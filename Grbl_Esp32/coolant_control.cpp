@@ -26,8 +26,10 @@
 
 void coolant_init()
 {
-  pinMode(COOLANT_FLOOD_BIT, OUTPUT);
-  pinMode(COOLANT_MIST_BIT, OUTPUT);
+  pinMode(COOLANT_FLOOD_PIN, OUTPUT);
+	#ifdef ENABLE_M7
+		pinMode(COOLANT_MIST_PIN, OUTPUT);
+	#endif
   coolant_stop();
 }
 
@@ -38,17 +40,17 @@ uint8_t coolant_get_state()
   uint8_t cl_state = COOLANT_STATE_DISABLE;
 
   #ifdef INVERT_COOLANT_FLOOD_PIN
-    if (! digitalRead(COOLANT_FLOOD_BIT)) {
+    if (! digitalRead(COOLANT_FLOOD_PIN)) {
   #else
-    if (digitalRead(COOLANT_FLOOD_BIT)) {
+    if (digitalRead(COOLANT_FLOOD_PIN)) {
   #endif
     cl_state |= COOLANT_STATE_FLOOD;
   }
   #ifdef ENABLE_M7
     #ifdef INVERT_COOLANT_MIST_PIN
-      if (! digitalRead(COOLANT_MIST_BIT)) {
+      if (! digitalRead(COOLANT_MIST_PIN)) {
     #else
-      if (digitalRead(COOLANT_MIST_BIT)) {
+      if (digitalRead(COOLANT_MIST_PIN)) {
     #endif
       cl_state |= COOLANT_STATE_MIST;
     }
@@ -64,15 +66,15 @@ uint8_t coolant_get_state()
 void coolant_stop()
 {
   #ifdef INVERT_COOLANT_FLOOD_PIN
-    digitalWrite(COOLANT_FLOOD_BIT, 1);    
+    digitalWrite(COOLANT_FLOOD_PIN, 1);    
   #else
-    digitalWrite(COOLANT_FLOOD_BIT, 0);
+    digitalWrite(COOLANT_FLOOD_PIN, 0);
   #endif
   #ifdef ENABLE_M7
     #ifdef INVERT_COOLANT_MIST_PIN
-      digitalWrite(COOLANT_MIST_BIT, 1);
+      digitalWrite(COOLANT_MIST_PIN, 1);
     #else
-      digitalWrite(COOLANT_MIST_BIT, 0);
+      digitalWrite(COOLANT_MIST_PIN, 0);
     #endif
   #endif
 }
@@ -94,18 +96,18 @@ void coolant_set_state(uint8_t mode)
   
     if (mode & COOLANT_FLOOD_ENABLE) {
       #ifdef INVERT_COOLANT_FLOOD_PIN
-        digitalWrite(COOLANT_FLOOD_BIT, 0);
+        digitalWrite(COOLANT_FLOOD_PIN, 0);
       #else
-        digitalWrite(COOLANT_FLOOD_BIT, 1);
+        digitalWrite(COOLANT_FLOOD_PIN, 1);
       #endif
     }
   
     #ifdef ENABLE_M7
       if (mode & COOLANT_MIST_ENABLE) {
         #ifdef INVERT_COOLANT_MIST_PIN
-          digitalWrite(COOLANT_MIST_BIT, 0);
+          digitalWrite(COOLANT_MIST_PIN, 0);
         #else
-          digitalWrite(COOLANT_MIST_BIT, 1);
+          digitalWrite(COOLANT_MIST_PIN, 1);
         #endif
       }
     #endif

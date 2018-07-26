@@ -200,7 +200,10 @@ void report_init_message()
 
 // Grbl help message
 void report_grbl_help() {
-  printPgmString(PSTR("[HLP:$$ $# $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H ~ ! ? ctrl-x]\r\n"));    
+  printPgmString(PSTR("[HLP:$$ $# $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H ~ ! ? ctrl-x]\r\n")); 
+	#ifdef VERBOSE_HELP	
+		settings_help();
+	#endif
 }
 
 
@@ -655,6 +658,37 @@ void report_realtime_steps()
 	for (idx=0; idx< N_AXIS; idx++) {
 		Serial.println(sys_position[idx]);
 	}
+}
+
+void settings_help()
+{
+	Serial.println("[HLP ----------- Setting Descriptions -----------]");
+	Serial.println("[HLP $0=Step Pulse Delay (3-255)]");
+	Serial.println("[HLP $1=Step Idle Delay (0-254, 255 keeps motors on)]");
+	Serial.println("[HLP $2=Step Pulse Invert Mask(00000ZYZ)]");
+	Serial.println("[HLP $3=Direction Invert Mask(00000XYZ)]");
+	Serial.println("[HLP $4=Step Enable Invert (boolean)]");
+	Serial.println("[HLP $6=Invert Probe Pin (boolean)]");
+	Serial.println("[HLP $10Status Report Options (See Wiki)]");
+	Serial.println("[HLP $11=Junction Deviation (float millimeters)]");
+	Serial.println("[HLP $12=Arc Tolerance (float millimeters)]");
+	Serial.println("[HLP $13=Report in Inches (boolean)]");
+	Serial.println("[HLP $20=Soft Limits Enable (boolean)]");
+	Serial.println("[HLP $21=Hard Limits Enable (boolean)]");
+	Serial.println("[HLP $22=Homing Enable (boolean)]");
+	Serial.println("[HLP $23=Homing Direction Invert (00000ZYX)]");
+	Serial.println("[HLP $24=Homing Feed Rate (mm/min)]");
+	Serial.println("[HLP $25=Homing Seek Rate (mm/min)]");
+	Serial.println("[HLP $26=Homing Switch Debounce Delay (milliseconds)]");
+	Serial.println("[HLP $27=Homing Switch Pull-off Distance (millimeters)]");
+	Serial.println("[HLP $30=Max Spindle Speed (RPM)]");
+	Serial.println("[HLP $31=Min Spindle Speed (RPM)]");
+	Serial.println("[HLP $32=Laser Mode Enable (boolean)]");
+	Serial.println("[HLP $100-102= XYZ Axis Resolution (step/mm)]");
+	Serial.println("[HLP $110-112= XYZ Axis Max Rate (mm/min)]");
+	Serial.println("[HLP $120-122= XYZ Axis Acceleration (step/mm^2)]");
+	Serial.println("[HLP $130-132= XYZ Axis max Travel (step/mm)]");
+	
 }
 
 #ifdef DEBUG

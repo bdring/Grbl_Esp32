@@ -132,6 +132,6 @@ void report_build_info(char *line);
   void report_realtime_debug();
 #endif
 
-
+void settings_help();
 
 #endif

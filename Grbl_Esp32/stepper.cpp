@@ -162,18 +162,68 @@ rmt_item32_t rmt_items[1];
 
 */
 
-void IRAM_ATTR onStepperOffTimer()
-{	
-	//digitalWrite(X_STEP_PIN, 0); // TODO ... inverted step pins
-	//digitalWrite(Y_STEP_PIN, 0); // TODO ... inverted step pins
-	//digitalWrite(Z_STEP_PIN, 0); // TODO ... inverted step pins
-	
-	set_stepper_pins_on(0); // all off
-	
-}
 
+/* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
+   the venerable Bresenham line algorithm to manage and exactly synchronize multi-axis moves.
+   Unlike the popular DDA algorithm, the Bresenham algorithm is not susceptible to numerical
+   round-off errors and only requires fast integer counters, meaning low computational overhead
+   and maximizing the Arduino's capabilities. However, the downside of the Bresenham algorithm
+   is, for certain multi-axis motions, the non-dominant axes may suffer from un-smooth step
+   pulse trains, or aliasing, which can lead to strange audible noises or shaking. This is
+   particularly noticeable or may cause motion issues at low step frequencies (0-5kHz), but
+   is usually not a physical problem at higher frequencies, although audible.
+     To improve Bresenham multi-axis performance, Grbl uses what we call an Adaptive Multi-Axis
+   Step Smoothing (AMASS) algorithm, which does what the name implies. At lower step frequencies,
+   AMASS artificially increases the Bresenham resolution without effecting the algorithm's
+   innate exactness. AMASS adapts its resolution levels automatically depending on the step
+   frequency to be executed, meaning that for even lower step frequencies the step smoothing
+   level increases. Algorithmically, AMASS is acheived by a simple bit-shifting of the Bresenham
+   step count for each AMASS level. For example, for a Level 1 step smoothing, we bit shift
+   the Bresenham step event count, effectively multiplying it by 2, while the axis step counts
+   remain the same, and then double the stepper ISR frequency. In effect, we are allowing the
+   non-dominant Bresenham axes step in the intermediate ISR tick, while the dominant axis is
+   stepping every two ISR ticks, rather than every ISR tick in the traditional sense. At AMASS
+   Level 2, we simply bit-shift again, so the non-dominant Bresenham axes can step within any
+   of the four ISR ticks, the dominant axis steps every four ISR ticks, and quadruple the
+   stepper ISR frequency. And so on. This, in effect, virtually eliminates multi-axis aliasing
+   issues with the Bresenham algorithm and does not significantly alter Grbl's performance, but
+   in fact, more efficiently utilizes unused CPU cycles overall throughout all configurations.
+     AMASS retains the Bresenham algorithm exactness by requiring that it always executes a full
+   Bresenham step, regardless of AMASS Level. Meaning that for an AMASS Level 2, all four
+   intermediate steps must be completed such that baseline Bresenham (Level 0) count is always
+   retained. Similarly, AMASS Level 3 means all eight intermediate steps must be executed.
+   Although the AMASS Levels are in reality arbitrary, where the baseline Bresenham counts can
+   be multiplied by any integer value, multiplication by powers of two are simply used to ease
+   CPU overhead with bitshift integer operations.
+     This interrupt is simple and dumb by design. All the computational heavy-lifting, as in
+   determining accelerations, is performed elsewhere. This interrupt pops pre-computed segments,
+   defined as constant velocity over n number of steps, from the step segment buffer and then
+   executes them by pulsing the stepper pins appropriately via the Bresenham algorithm. This
+   ISR is supported by The Stepper Port Reset Interrupt which it uses to reset the stepper port
+   after each pulse. The bresenham line tracer algorithm controls all stepper outputs
+   simultaneously with these two interrupts.
+   
+	 NOTE: This interrupt must be as efficient as possible and complete before the next ISR tick,
+   which for ESP32 Grbl must be less than xx.xusec (TBD). Oscilloscope measured time in
+   ISR is 5usec typical and 25usec maximum, well below requirement.
+   NOTE: This ISR expects at least one step to be executed per segment.
+	 
+	 The complete step timing should look this...
+		Direction pin is set
+		An optional (via STEP_PULSE_DELAY in config.h) is put after this
+		The step pin is started
+		A pulse length is determine (via option $0 ... settings.pulse_microseconds)
+		The pulse is ended
+		Direction will remain the same until another step occurs with a change in direction.
+		
+	 
+*/
+// TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
+// int8 variables and update position counters only when a segment completes. This can get complicated
+// with probing and homing cycles that require true real-time positions.
 void IRAM_ATTR onStepperDriverTimer()  // ISR It is time to take a step =======================================================================================
 {
+	uint64_t step_pulse_off_time;
 	
 	if (busy) { return; } // The busy-flag is used to avoid reentering this interrupt	
 	
@@ -184,8 +234,8 @@ void IRAM_ATTR onStepperDriverTimer()  // ISR It is time to take a step ========
 	
 	
 	set_stepper_pins_on(st.step_outbits);
+	step_pulse_off_time = esp_timer_get_time() + (settings.pulse_microseconds); // determine when to turn off pulse
 	
-	set_stepper_pins_on(STEP_OFF_AFTER_DELAY); // turns on off timers
 	
 	 
   busy = true;
@@ -288,6 +338,16 @@ void IRAM_ATTR onStepperDriverTimer()  // ISR It is time to take a step ========
   }
 
   st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
+	
+	
+	// wait for step pulse time to complete...some of it should have expired during code above
+	while (esp_timer_get_time() < step_pulse_off_time)
+	{
+		NOP(); // spin here until time to turn off step
+	}
+	set_stepper_pins_on(0); // turn all off
+	
+	
   busy = false;
 }
 
@@ -314,25 +374,8 @@ void stepper_init()
 																	true 												// auto reload
 																	);
  // attach the interrupt
- timerAttachInterrupt(stepperDriverTimer, &onStepperDriverTimer, true); 
+ timerAttachInterrupt(stepperDriverTimer, &onStepperDriverTimer, true);  
  
- // setup the stepper pin off timer interrupt 
- stepPulseOffTimer = timerBegin(		1, 													// timer number
-																	STEPPER_OFF_TIMER_PRESCALE, // prescaler
-																	false 												// auto reload
-																	);
- 
- // attach the interrupt
- timerAttachInterrupt(stepPulseOffTimer, // the timer
-											&onStepperOffTimer,  // the function to run
-											true // edge trigger
-											);
- /*
- timerAlarmWrite(	stepPulseOffTimer, // the timer
-									STEPPER_OFF_PERIOD_uSEC * 10, // 10x because each tick is 0.1uSec
-									false // auto reload
-									);
- */
 }
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
@@ -405,25 +448,11 @@ void set_direction_pins_on(uint8_t onMask)
 }
 
 void set_stepper_pins_on(uint8_t onMask)
-{	
-	
-	if (onMask == 0xFF) // if all off use the timer to do it.  This adds the step pulse delay
-	{
-		// setup the timer to turn them off		
-		timerAlarmWrite(stepPulseOffTimer, (settings.pulse_microseconds * 10), false);		
-		timerAlarmEnable(stepPulseOffTimer);
-	}	
-	//else if (onMask == 0)
-	//{
-		// should already be off
-	//}
-	else
-	{		
-		onMask ^= settings.step_invert_mask; // invert pins
+{		
+		onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
 		digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
 		digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
 		digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
-	}
 }
 
 
