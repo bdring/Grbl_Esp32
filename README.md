@@ -4,7 +4,7 @@
 
 ![ESP32](http://www.buildlog.net/blog/wp-content/uploads/2018/07/20180718_175943.jpg)
 
-### Status: Functional Beta (See issues below)
+### Status: Functional Beta (See minor issues below)
 
 
 
@@ -22,9 +22,8 @@ This is a port of [Grbl](https://github.com/gnea/grbl) for the ESP32. The ESP32 
 
 ### Issues / Changes
 
-1. **Startup Text** - Can we get rid of the ESP32 startup text? It might annoy some senders. It is probably possible using sdkconfig.h. but that might be difficult for the novice Arduino IDE user.
-2. **Direction pin delay** - Not implemented yet. Some drivers require a couple of microseconds after the direction pin is set before you start the step pulse. The original plan was to [use the RMT feature](http://www.buildlog.net/blog/?s=rmt), but that has issues when trying to use it in an Interrupt.
-3. **Limit Switch debouncing** is not supported yet. It does not seem to be a problem on my test rigs. It might be better to us an R/C filter for now.
+1. **Direction pin delay** - Not implemented yet. Some drivers require a couple of microseconds after the direction pin is set before you start the step pulse. The original plan was to [use the RMT feature](http://www.buildlog.net/blog/?s=rmt), but that has issues when trying to use it in an Interrupt.
+2. **Limit Switch debouncing** is not supported yet. It does not seem to be a problem on my test rigs. It might be better to us an R/C filter for now.
 
 ### Using It
 
@@ -34,11 +33,13 @@ I use the NodeMCU 32S version of the ESP32. I suggest starting with that if you 
 
 For basic instructions on using Grbl use the [gnea/grbl wiki](https://github.com/gnea/grbl/wiki). That is the Arduino version of Grbl, so keep that in mind regarding hardware setup. If you have questions ask via the GitHub issue system for this project.
 
+Note: Unlike Grbl on Arduinos, the controller does not reboot when you connect to it via USB.
+
 ### TODO List
 
 - RMT. The RMT feature is a ideal for direction and step features, but apparently has issues working in interrupts. See [this forum post](https://www.esp32.com/viewtopic.php?f=19&t=6397&hilit=grbl) and [this blog post](http://www.buildlog.net/blog/?s=rmt). It would be great to get it working.
 - Add spindle enable and direction.
-- Bluetooth - Add it so phones and PCs can use it to stream gcode. It would be great if it looks like a bluetooth serial port, that helps with compatibility with existing apps. ([Android Grbl Controller](https://play.google.com/store/apps/details?id=in.co.gorest.grblcontroller&hl=en_US) is best!)
+- [Bluetooth](https://github.com/bdring/Grbl_Esp32/issues/3) - Add it so phones and PCs can use it to stream gcode. It would be great if it looks like a bluetooth serial port, that helps with compatibility with existing apps. ([Android Grbl Controller](https://play.google.com/store/apps/details?id=in.co.gorest.grblcontroller&hl=en_US) is best!)
 
 ### Credits
 
@@ -47,6 +48,8 @@ The original [Grbl](https://github.com/gnea/grbl) is an awesome project by Sunge
 ### Contribute
 
 I would love to have help with this project. There are many things that need to be improved and added, especially BlueTooth and/or WiFi. If you need hardware to test with, I might be able to help with a test PCB.
+
+![](http://www.buildlog.net/blog/wp-content/uploads/2018/07/slack_hash_128.png)   [Slack channel](https://join.slack.com/t/buildlog/shared_invite/enQtNDA1ODM5MzI3MjE2LWYxNzMwZmNmMWVhYmUzMDdiYWQxMjk2MWQ1NzJhYzc2Mjg5NmRjMWI2MmM3OGE4M2JiZWQ2MThjMjQ3Y2U2OTE) for this project. 
 
 ### FAQ
 
