@@ -27,6 +27,7 @@
 #include <EEPROM.h>
 #include <driver/rmt.h>
 #include <esp_task_wdt.h>
+#include <freertos/task.h>
 
 // Define the Grbl system include files. NOTE: Do not alter organization.
 #include "config.h"
@@ -51,6 +52,7 @@
 #include "spindle_control.h"
 #include "stepper.h"
 #include "jog.h"
+
 
 
 

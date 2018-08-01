@@ -23,6 +23,8 @@
 #define RX_RING_BUFFER (RX_BUFFER_SIZE+1)
 #define TX_RING_BUFFER (TX_BUFFER_SIZE+1)
 
+portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
+
 uint8_t serial_rx_buffer[RX_RING_BUFFER];
 uint8_t serial_rx_buffer_head = 0;
 volatile uint8_t serial_rx_buffer_tail = 0;
@@ -106,6 +108,7 @@ void serialCheckTask(void *pvParameters)
 						}
 						// Throw away any unfound extended-ASCII character by not passing it to the serial buffer.
 					} else { // Write character to buffer
+						vTaskEnterCritical(&myMutex);
 						next_head = serial_rx_buffer_head + 1;
 						if (next_head == RX_RING_BUFFER) { next_head = 0; }
 
@@ -114,6 +117,7 @@ void serialCheckTask(void *pvParameters)
 							serial_rx_buffer[serial_rx_buffer_head] = data;
 							serial_rx_buffer_head = next_head;
 						}
+						vTaskExitCritical(&myMutex);
 					}
 			}  // switch data			
 			
@@ -138,14 +142,14 @@ uint8_t serial_read()
   if (serial_rx_buffer_head == tail) {
     return SERIAL_NO_DATA;
   } else {
+		vTaskEnterCritical(&myMutex); // make sure buffer is not modified while reading by newly read chars from the serial when we are here
     uint8_t data = serial_rx_buffer[tail];
 
     tail++;
     if (tail == RX_RING_BUFFER) { tail = 0; }
     serial_rx_buffer_tail = tail;
-
+		vTaskExitCritical(&myMutex);
     return data;
   }
 }
-
 
