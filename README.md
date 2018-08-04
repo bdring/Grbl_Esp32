@@ -23,7 +23,12 @@ This is a port of [Grbl](https://github.com/gnea/grbl) for the ESP32. The ESP32 
 ### Issues / Changes
 
 1. **Direction pin delay** - Not implemented yet. Some drivers require a couple of microseconds after the direction pin is set before you start the step pulse. The original plan was to [use the RMT feature](http://www.buildlog.net/blog/?s=rmt), but that has issues when trying to use it in an Interrupt.  **This is typically a option in Grbl that is not used.**
-2. **Limit Switch debouncing** is not supported yet. It does not seem to be a problem on my test rigs. It might be better to us an R/C filter for now.
+2. **Limit Switch debouncing** is not supported yet. It does not seem
+   to be a problem on my test rigs. It might be better to us an R/C
+   filter for now.
+3. **Floating inputs** On older ESP32s, some pins have nonfunctional
+   internal pullups.   If you see a spew of messages about the Door
+   Pin, try fitting pullup resistor to the button and probe inputs.
 
 ### Using It
 
