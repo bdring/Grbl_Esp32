@@ -40,7 +40,7 @@
   #define DEFAULT_DIRECTION_INVERT_MASK 2 // uint8_t
    #define DEFAULT_INVERT_ST_ENABLE 0 // boolean
   #define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
-  #define DEFAULT_INVERT_PROBE_PIN 1 
+  #define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
   
   #define DEFAULT_STATUS_REPORT_MASK 1 // MPos enabled
   

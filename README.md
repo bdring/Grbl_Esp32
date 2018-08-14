@@ -24,6 +24,9 @@ This is a port of [Grbl](https://github.com/gnea/grbl) for the ESP32. The ESP32 
 
 1. **Direction pin delay** - Not implemented yet. Some drivers require a couple of microseconds after the direction pin is set before you start the step pulse. The original plan was to [use the RMT feature](http://www.buildlog.net/blog/?s=rmt), but that has issues when trying to use it in an Interrupt.  **This is typically a option in Grbl that is not used.**
 2. **Limit Switch debouncing** is not supported yet. It does not seem to be a problem on my test rigs. It might be better to us an R/C filter for now.
+3. **Step Pulse Invert:** This has not been fully tested. I suggest...leaving $2=0
+
+
 
 ### Using It
 
@@ -35,11 +38,21 @@ For basic instructions on using Grbl use the [gnea/grbl wiki](https://github.com
 
 Note: Unlike Grbl on Arduinos, the controller does not reboot when you connect to it via USB. This may cause confusion on some older senders. Most modern Grbl senders will send a reset (Ctrl-X or 0x18) instead of relying on the reboot. I do not plan on changing this. It is better to do reboot when a connection is opened.
 
+Be sure you have external pullup resistors on any GPIO34-39 that you use. These default to door, start, hold and reset functions.
+
+BlueTooth: (Experimental) 
+
+- Use the dev branch of the firmware with BlueTooth.- in the name.
+- Use a serial port terminal to set the BlueTooth name using $I=NAME, where NAME is the BlueTooth name you want. I don't know all the naming rules, so keep it short and simple. There is no capability to use a password yet.
+- Reboot the ESP32 to turn on BlueTooth with that name. Grbl will now respond on either BlueTooth or Serial data. All BlueTooth sends are echo'd on the Serial port if you want to watch the data.
+- Android Instructions
+  - Pair with the device that has the name you chose.
+  - Get a gcode sender (Grbl Controller is recommended)
+
 ### TODO List
 
 - RMT. The RMT feature is a ideal for direction and step features, but apparently has issues working in interrupts. See [this forum post](https://www.esp32.com/viewtopic.php?f=19&t=6397&hilit=grbl) and [this blog post](http://www.buildlog.net/blog/?s=rmt). It would be great to get it working.
 - Add spindle enable and direction. 
-- [Bluetooth](https://github.com/bdring/Grbl_Esp32/issues/3) - Add it so phones and PCs can use it to stream gcode. It would be great if it looks like a bluetooth serial port, that helps with compatibility with existing apps. ([Android Grbl Controller](https://play.google.com/store/apps/details?id=in.co.gorest.grblcontroller&hl=en_US) is best!)
 
 ### Credits
 
