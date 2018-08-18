@@ -40,19 +40,20 @@ Note: Unlike Grbl on Arduinos, the controller does not reboot when you connect t
 
 Be sure you have external pullup resistors on any GPIO34-39 that you use. These default to door, start, hold and reset functions.
 
-BlueTooth: (Experimental) 
+Using Bluetooth:
 
-- Use the dev branch of the firmware with BlueTooth.- in the name.
-- Use a serial port terminal to set the BlueTooth name using $I=NAME, where NAME is the BlueTooth name you want. I don't know all the naming rules, so keep it short and simple. There is no capability to use a password yet.
-- Reboot the ESP32 to turn on BlueTooth with that name. Grbl will now respond on either BlueTooth or Serial data. All BlueTooth sends are echo'd on the Serial port if you want to watch the data.
-- Android Instructions
-  - Pair with the device that has the name you chose.
-  - Get a gcode sender (Grbl Controller is recommended)
+- [See the Wiki page](https://github.com/bdring/Grbl_Esp32/wiki/Using-Bletooth)
 
 ### TODO List
 
 - RMT. The RMT feature is a ideal for direction and step features, but apparently has issues working in interrupts. See [this forum post](https://www.esp32.com/viewtopic.php?f=19&t=6397&hilit=grbl) and [this blog post](http://www.buildlog.net/blog/?s=rmt). It would be great to get it working.
 - Add spindle enable and direction. 
+- Add SD card. Initially only these features will be supported.
+  - Mount Card
+  - List Files
+  - Run File
+  - Get job status (bytes send / file size)
+  - (Optional) Update firmware from SD card
 
 ### Credits
 

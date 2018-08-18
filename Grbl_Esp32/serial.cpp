@@ -64,9 +64,22 @@ void serialCheckTask(void *pvParameters)
 	
 	while(true) // run continuously
 	{
-		while (Serial.available()) // loop until all characters are read
+		#ifdef ENABLE_BLUETOOTH 
+			while (Serial.available() || (SerialBT.hasClient() && SerialBT.available()))
+		#else
+			while (Serial.available())
+		#endif
 		{			
-		  data = Serial.read();			
+		  if (Serial.available())				
+				data = Serial.read();
+			else
+			{
+				#ifdef ENABLE_BLUETOOTH
+					data = SerialBT.read();					
+					Serial.write(data);  // echo all data to serial					
+				#endif
+			}	  	
+			
 			
 			// Pick off realtime command characters directly from the serial stream. These characters are
 			// not passed into the main buffer, but these set system state flag bits for realtime execution.
@@ -121,9 +134,9 @@ void serialCheckTask(void *pvParameters)
 					}
 			}  // switch data			
 			
-		}  // if data	
+		}  // if something available	
 		vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks		
-	}  // while
+	}  // while(true)
 }
 
 void serial_reset_read_buffer()
