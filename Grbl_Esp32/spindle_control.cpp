@@ -37,9 +37,12 @@ void spindle_stop()
 }
 
 uint8_t spindle_get_state()
-{
-
-  
+{	  
+  // TODO Update this when direction and enable pin are added 
+	if (ledcRead(SPINDLE_PWM_CHANNEL) == 0) // Check the PWM value
+		return(SPINDLE_STATE_DISABLE);
+	else
+		return(SPINDLE_STATE_CW); // only CW is supported right now.
 }
 
 void spindle_set_speed(uint8_t pwm_value)
