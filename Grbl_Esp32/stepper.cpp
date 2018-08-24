@@ -496,6 +496,43 @@ void st_update_plan_block_parameters()
   }
 }
 
+#ifdef PARKING_ENABLE
+  // Changes the run state of the step segment buffer to execute the special parking motion.
+  void st_parking_setup_buffer()
+  {
+    // Store step execution data of partially completed block, if necessary.
+    if (prep.recalculate_flag & PREP_FLAG_HOLD_PARTIAL_BLOCK) {
+      prep.last_st_block_index = prep.st_block_index;
+      prep.last_steps_remaining = prep.steps_remaining;
+      prep.last_dt_remainder = prep.dt_remainder;
+      prep.last_step_per_mm = prep.step_per_mm;
+    }
+    // Set flags to execute a parking motion
+    prep.recalculate_flag |= PREP_FLAG_PARKING;
+    prep.recalculate_flag &= ~(PREP_FLAG_RECALCULATE);
+    pl_block = NULL; // Always reset parking motion to reload new block.
+  }
+
+
+  // Restores the step segment buffer to the normal run state after a parking motion.
+  void st_parking_restore_buffer()
+  {
+    // Restore step execution data and flags of partially completed block, if necessary.
+    if (prep.recalculate_flag & PREP_FLAG_HOLD_PARTIAL_BLOCK) {
+      st_prep_block = &st_block_buffer[prep.last_st_block_index];
+      prep.st_block_index = prep.last_st_block_index;
+      prep.steps_remaining = prep.last_steps_remaining;
+      prep.dt_remainder = prep.last_dt_remainder;
+      prep.step_per_mm = prep.last_step_per_mm;
+      prep.recalculate_flag = (PREP_FLAG_HOLD_PARTIAL_BLOCK | PREP_FLAG_RECALCULATE);
+      prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR/prep.step_per_mm; // Recompute this value.
+    } else {
+      prep.recalculate_flag = false;
+    }
+    pl_block = NULL; // Set to reload next block.
+  }
+#endif
+
 // Generates the step and direction port invert masks used in the Stepper Interrupt Driver.
 void st_generate_step_dir_invert_masks()
 {

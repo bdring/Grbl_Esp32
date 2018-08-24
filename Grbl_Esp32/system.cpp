@@ -24,7 +24,9 @@
 void system_ini() // Renamed from system_init() due to conflict with esp32 files
 {	
 	// setup control inputs
-	pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT);
+	#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
+		pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT);
+  #endif
   pinMode(CONTROL_RESET_PIN, INPUT);
   pinMode(CONTROL_FEED_HOLD_PIN, INPUT);
   pinMode(CONTROL_CYCLE_START_PIN, INPUT);
@@ -378,8 +380,15 @@ uint8_t system_check_travel_limits(float *target)
 // defined by the CONTROL_PIN_INDEX in the header file.
 uint8_t system_control_get_state()
 {
+	#ifdef IGNORE_CONTROL_PINS
+		return 0;
+	#endif	
+	
+	
   uint8_t control_state = 0;
+	#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
   if (digitalRead(CONTROL_SAFETY_DOOR_PIN)) { control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR; } 
+	#endif
   if (digitalRead(CONTROL_RESET_PIN)) { control_state |= CONTROL_PIN_INDEX_RESET; }
   if (digitalRead(CONTROL_FEED_HOLD_PIN)) { control_state |= CONTROL_PIN_INDEX_FEED_HOLD; }
   if (digitalRead(CONTROL_CYCLE_START_PIN)) { control_state |= CONTROL_PIN_INDEX_CYCLE_START; }   

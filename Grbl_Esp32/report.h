@@ -63,6 +63,16 @@
 #define STATUS_GCODE_G43_DYNAMIC_AXIS_ERROR 37
 #define STATUS_GCODE_MAX_VALUE_EXCEEDED 38
 
+#define STATUS_SD_FAILED_MOUNT 60 // SD Failed to mount
+#define STATUS_SD_FAILED_READ 61 // SD Failed to read file
+#define STATUS_SD_FAILED_OPEN_DIR 62 // SD card failed to open directory
+#define STATUS_SD_DIR_NOT_FOUND 63 // SD Card directory not found
+#define STATUS_SD_FILE_EMPTY 64 // SD Card directory not found
+
+#define STATUS_BT_FAIL_BEGIN 70  // Bluetooth failed to start
+
+
+
 // Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
 #define ALARM_HARD_LIMIT_ERROR      EXEC_ALARM_HARD_LIMIT
 #define ALARM_SOFT_LIMIT_ERROR      EXEC_ALARM_SOFT_LIMIT
@@ -86,6 +96,8 @@
 #define MESSAGE_RESTORE_DEFAULTS 9
 #define MESSAGE_SPINDLE_RESTORE 10
 #define MESSAGE_SLEEP_MODE 11
+
+void grbl_send(char *text);
 
 // Prints system status messages.
 void report_status_message(uint8_t status_code);

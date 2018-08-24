@@ -466,14 +466,38 @@ void report_build_info(char *line)
     strcat(build_info,"H");
   #endif
   #ifdef LIMITS_TWO_SWITCHES_ON_AXES
-    strcat(build_info,"L");
+    strcat(build_info,"T");
+  #endif
+	#ifdef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
+		strcat(build_info,"A");
+  #endif
+	#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
+		strcat(build_info,"+");
   #endif
   #ifdef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
-    strcat(build_info,"A");
+		strcat(build_info,"A");
+  #endif
+	#ifdef USE_SPINDLE_DIR_AS_ENABLE_PIN
+		strcat(build_info,"D");
+  #endif
+  #ifdef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
+		strcat(build_info,"0");
+  #endif
+  #ifdef ENABLE_SOFTWARE_DEBOUNCE
+		strcat(build_info,"S");
+  #endif
+  #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+		strcat(build_info,"R");
+  #endif
+  #ifndef HOMING_INIT_LOCK
+		strcat(build_info,"L");
   #endif
 	#ifdef ENABLE_BLUETOOTH
 		strcat(build_info,"B");
 	#endif
+	 #ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
+    strcat(build_info,"+");
+  #endif
   #ifndef ENABLE_RESTORE_EEPROM_WIPE_ALL // NOTE: Shown when disabled.
     strcat(build_info,"*");
   #endif

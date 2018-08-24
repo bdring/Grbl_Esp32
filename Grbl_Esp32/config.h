@@ -189,7 +189,7 @@ Some features should not be changed. See notes below.
 // immediately forces a feed hold and then safely de-energizes the machine. Resuming is blocked until
 // the safety door is re-engaged. When it is, Grbl will re-energize the machine and then resume on the
 // previous tool path, as if nothing happened.
-#define ENABLE_SAFETY_DOOR_INPUT_PIN // ESP32 Leave this enabled for now .. code for undefined not ready
+//#define ENABLE_SAFETY_DOOR_INPUT_PIN  // Default disabled. Uncomment to enable.
 
 // After the safety door switch has been toggled and restored, this setting sets the power-up delay
 // between restoring the spindle and coolant and resuming the cycle.
@@ -211,6 +211,10 @@ Some features should not be changed. See notes below.
 // inverting only two control pins, the safety door and reset. See cpu_map.h for other bit definitions.
 //#define INVERT_CONTROL_PIN_MASK CONTROL_MASK // Default disabled. Uncomment to disable.
 
+// This allows control pins to be ignored.
+// Since these are typically used on the pins that don't have pullups, they will float and cause
+// problems if not externally pulled up. Ignoring will always return not activated when read.
+//#define IGNORE_CONTROL_PINS
 
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.
@@ -579,7 +583,7 @@ Some features should not be changed. See notes below.
 // NOTE: Still a work-in-progress. Machine coordinates must be in all negative space and
 // does not work with HOMING_FORCE_SET_ORIGIN enabled. Parking motion also moves only in
 // positive direction.
-// #define PARKING_ENABLE  // Default disabled. Uncomment to enable
+//#define PARKING_ENABLE  // Default disabled. Uncomment to enable
 
 // Configure options for the parking motion, if enabled.
 #define PARKING_AXIS Z_AXIS // Define which axis that performs the parking motion
