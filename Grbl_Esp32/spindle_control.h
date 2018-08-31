@@ -3,7 +3,7 @@
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 	
-	2018 -	Bart Dring This file was modifed for use on the ESP32
+	2018 -	Bart Dring This file was modified for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 	
   Grbl is free software: you can redistribute it and/or modify
@@ -38,5 +38,7 @@
   uint8_t spindle_compute_pwm_value(float rpm);
   void spindle_set_state(uint8_t state, float rpm);
   void spindle_sync(uint8_t state, float rpm);
+	
+	void grbl_analogWrite(uint8_t chan, uint32_t duty);
 
 #endif

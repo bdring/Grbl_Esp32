@@ -3,7 +3,7 @@
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 	
-	2018 -	Bart Dring This file was modifed for use on the ESP32
+	2018 -	Bart Dring This file was modified for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 	
   Grbl is free software: you can redistribute it and/or modify
@@ -52,8 +52,9 @@ void setup() {
 	char line[LINE_BUFFER_SIZE];
 	settings_read_build_info(line);
 	if (line[0] != '\0') {
-		Serial.printf("Starting Bluetooth:%s", line);
-		bluetooth_init(line);
+		// just send to serial because it is the only interface available
+		Serial.printf("Starting Bluetooth:%s", line); 
+		bluetooth_init(line);	
 	}
 	#endif
 
