@@ -123,12 +123,11 @@ void report_status_message(uint8_t status_code)
 // Prints alarm messages.
 void report_alarm_message(uint8_t alarm_code)
 {
-	char alarm[10];
-	
-	sprintf(alarm, "ALARM:%d\r\n", alarm_code);
+	char alarm[32];
+	snprintf(alarm, 32, "ALARM:%d\r\n", alarm_code);
 	grbl_send(alarm);
-	
-  delay_ms(500); // Force delay to ensure message clears serial write buffer.
+
+	delay_ms(500); // Force delay to ensure message clears serial write buffer.
 }
 
 // Prints feedback messages. This serves as a centralized method to provide additional
