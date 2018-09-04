@@ -20,7 +20,7 @@
 
 // Grbl versioning system
 #define GRBL_VERSION "1.1f"
-#define GRBL_VERSION_BUILD "20180823"
+#define GRBL_VERSION_BUILD "20180904"
 
 //#include <sdkconfig.h>
 #include <arduino.h>
@@ -28,6 +28,8 @@
 #include <driver/rmt.h>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
+
+#include "driver/timer.h"
 
 // Define the Grbl system include files. NOTE: Do not alter organization.
 #include "config.h"
