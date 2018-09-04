@@ -32,7 +32,7 @@
 
 
 #include "grbl.h"
-#include "config.h"
+//#include "config.h"
 
 // Some useful constants.
 #define DT_SEGMENT (1.0/(ACCELERATION_TICKS_PER_SECOND*60.0)) // min/segment
@@ -68,6 +68,9 @@
     error "AMASS must have 1 or more levels to operate correctly."
   #endif
 //#endif
+
+#define STEP_TIMER_GROUP TIMER_GROUP_0
+#define STEP_TIMER_INDEX TIMER_0 
 
 // esp32 work around for diable in main loop
 extern uint64_t stepper_idle_counter;

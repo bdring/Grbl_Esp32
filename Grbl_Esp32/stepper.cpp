@@ -143,26 +143,6 @@ typedef struct {
 static st_prep_t prep;
 
 
-hw_timer_t * stepperDriverTimer = NULL;  // The main stepper driver timer
-hw_timer_t * stepPulseOffTimer = NULL;  // This turns the step pulse off after xx uSeconds
-hw_timer_t * directionDelayTimer = NULL; // This allows step pins to wait a few uSeconds after direction pin is set.
-
-
-rmt_config_t step_x_config;
-rmt_config_t step_y_config;
-rmt_config_t step_z_config;
-rmt_item32_t rmt_items[1];
-
-/*
-	* check the busy flag
-	* Set the direction pins
-	* Turn on the step pin, which turns itself off after a few usecs
-	* set the busy flag
-
-
-*/
-
-
 /* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
    the venerable Bresenham line algorithm to manage and exactly synchronize multi-axis moves.
    Unlike the popular DDA algorithm, the Bresenham algorithm is not susceptible to numerical
@@ -221,9 +201,13 @@ rmt_item32_t rmt_items[1];
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
-void IRAM_ATTR onStepperDriverTimer()  // ISR It is time to take a step =======================================================================================
+void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a step =======================================================================================
 {
 	uint64_t step_pulse_off_time;
+	
+	const int timer_idx = (int)para;  // get the timer index	
+	
+	TIMERG0.int_clr_timers.t0 = 1;
 	
 	if (busy) { return; } // The busy-flag is used to avoid reentering this interrupt	
 	
@@ -347,6 +331,7 @@ void IRAM_ATTR onStepperDriverTimer()  // ISR It is time to take a step ========
 	}
 	set_stepper_pins_on(0); // turn all off
 	
+	TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
 	
   busy = false;
 }
@@ -369,12 +354,29 @@ void stepper_init()
   pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
 
  // setup stepper timer interrupt
+ 
+ /*
  stepperDriverTimer = timerBegin(	0, 													// timer number
 																	F_TIMERS / F_STEPPER_TIMER, // prescaler
 																	true 												// auto reload
 																	);
  // attach the interrupt
  timerAttachInterrupt(stepperDriverTimer, &onStepperDriverTimer, true);  
+ */
+ 
+	timer_config_t config;
+	config.divider     = F_TIMERS / F_STEPPER_TIMER;
+	config.counter_dir = TIMER_COUNT_UP;
+	config.counter_en  = TIMER_PAUSE;
+	config.alarm_en    = TIMER_ALARM_EN;
+	config.intr_type   = TIMER_INTR_LEVEL;
+	config.auto_reload = true;
+	
+	timer_init(STEP_TIMER_GROUP, STEP_TIMER_INDEX, &config);
+  timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
+  timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);  
+  timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, 0, NULL, NULL);
+
  
 }
 
@@ -994,38 +996,36 @@ float st_get_realtime_rate()
 }
 
 void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val)
-{  
-  //timerWrite(stepperDriverTimer, 0);
-  timerAlarmWrite(stepperDriverTimer, alarm_val, true);  // the alarm point is found by looking at logic analyzer
-  //timerRestart(stepperDriverTimer);
+{   
+	timer_set_alarm_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, alarm_val);
 }
 
 void IRAM_ATTR Stepper_Timer_Start()
-{
-  	
-  #ifdef ESP_DEBUG
-	//Serial.print("St Start: ");
-	//Serial.println(st.step_pulse_time);
-  #endif	
+{  	
+	#ifdef ESP_DEBUG
+		//Serial.println("ST Start");
+	#endif
+
+  timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
 	
-  //timerWrite(stepperDriverTimer, 0);
-  timerAlarmWrite(stepperDriverTimer, st.step_pulse_time, true);  
-  timerAlarmEnable(stepperDriverTimer);
-  timerRestart(stepperDriverTimer);
+	timer_start(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
+	TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
+	
 }
 
 void IRAM_ATTR Stepper_Timer_Stop()
-{
+{		
 	#ifdef ESP_DEBUG
-	//Serial.println("Stop");
-  #endif
-	timerStop(stepperDriverTimer);
+		//Serial.println("ST Stop");
+	#endif
+	
+	timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
+	
 }
 
 
 void set_stepper_disable(uint8_t isOn)  // isOn = true // to disable
 { 
-
   if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) { isOn = !isOn; } // Apply pin invert.
   digitalWrite(STEPPERS_DISABLE_PIN, isOn );
 }
