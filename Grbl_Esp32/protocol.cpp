@@ -76,6 +76,21 @@ void protocol_main_loop()
   uint8_t c;
   for (;;) {
 
+		#ifdef ENABLE_SD_CARD
+			if (SD_ready_next) {
+				char fileLine[255];
+				if (readFileLine(fileLine)) {
+					SD_ready_next = false;
+					report_status_message(gc_execute_line(fileLine));
+				}
+				else {
+					closeFile(); // close file and clear SD ready/running flags
+					// TODO some type of alert
+				}
+			}
+		#endif
+	
+	
     // Process one line of incoming serial data, as the data becomes available. Performs an
     // initial filtering by removing spaces and comments and capitalizing all letters.
     while((c = serial_read()) != SERIAL_NO_DATA) {
@@ -122,10 +137,14 @@ void protocol_main_loop()
         } else {
           if (c <= ' ') {
             // Throw away whitepace and control characters
-          } else if (c == '/') {
+          } 
+					/*
+					else if (c == '/') {
             // Block delete NOT SUPPORTED. Ignore character.
             // NOTE: If supported, would simply need to check the system if block delete is enabled.
-          } else if (c == '(') {
+          } 
+					*/
+					else if (c == '(') {
             // Enable comments flag and ignore all characters until ')' or EOL.
             // NOTE: This doesn't follow the NIST definition exactly, but is good enough for now.
             // In the future, we could simply remove the items within the comments, but retain the
@@ -426,8 +445,8 @@ void protocol_exec_rt_system()
     if (rt_exec & EXEC_FEED_OVR_COARSE_MINUS) { new_f_override -= FEED_OVERRIDE_COARSE_INCREMENT; }
     if (rt_exec & EXEC_FEED_OVR_FINE_PLUS) { new_f_override += FEED_OVERRIDE_FINE_INCREMENT; }
     if (rt_exec & EXEC_FEED_OVR_FINE_MINUS) { new_f_override -= FEED_OVERRIDE_FINE_INCREMENT; }
-    new_f_override = min(new_f_override,MAX_FEED_RATE_OVERRIDE);
-    new_f_override = max(new_f_override,MIN_FEED_RATE_OVERRIDE);
+    new_f_override = MIN(new_f_override,MAX_FEED_RATE_OVERRIDE);
+    new_f_override = MAX(new_f_override,MIN_FEED_RATE_OVERRIDE);
 
     uint8_t new_r_override = sys.r_override;
     if (rt_exec & EXEC_RAPID_OVR_RESET) { new_r_override = DEFAULT_RAPID_OVERRIDE; }
@@ -454,8 +473,8 @@ void protocol_exec_rt_system()
     if (rt_exec & EXEC_SPINDLE_OVR_COARSE_MINUS) { last_s_override -= SPINDLE_OVERRIDE_COARSE_INCREMENT; }
     if (rt_exec & EXEC_SPINDLE_OVR_FINE_PLUS) { last_s_override += SPINDLE_OVERRIDE_FINE_INCREMENT; }
     if (rt_exec & EXEC_SPINDLE_OVR_FINE_MINUS) { last_s_override -= SPINDLE_OVERRIDE_FINE_INCREMENT; }
-    last_s_override = min(last_s_override,MAX_SPINDLE_SPEED_OVERRIDE);
-    last_s_override = max(last_s_override,MIN_SPINDLE_SPEED_OVERRIDE);
+    last_s_override = MIN(last_s_override,MAX_SPINDLE_SPEED_OVERRIDE);
+    last_s_override = MAX(last_s_override,MIN_SPINDLE_SPEED_OVERRIDE);
 
     if (last_s_override != sys.spindle_speed_ovr) {
       bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
@@ -582,7 +601,7 @@ static void protocol_exec_rt_suspend()
             if (bit_isfalse(sys.suspend,SUSPEND_RESTART_RETRACT)) {
               memcpy(restore_target,parking_target,sizeof(parking_target));
               retract_waypoint += restore_target[PARKING_AXIS];
-              retract_waypoint = min(retract_waypoint,PARKING_TARGET);
+              retract_waypoint = MIN(retract_waypoint,PARKING_TARGET);
             }
 
             // Execute slow pull-out parking retract motion. Parking requires homing enabled, the

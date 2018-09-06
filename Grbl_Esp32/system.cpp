@@ -3,7 +3,7 @@
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 	
-	2018 -	Bart Dring This file was modifed for use on the ESP32
+	2018 -	Bart Dring This file was modified for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 	
   Grbl is free software: you can redistribute it and/or modify
@@ -24,9 +24,7 @@
 void system_ini() // Renamed from system_init() due to conflict with esp32 files
 {	
 	// setup control inputs
-	#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-		pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT);
-  #endif
+	pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT);
   pinMode(CONTROL_RESET_PIN, INPUT);
   pinMode(CONTROL_FEED_HOLD_PIN, INPUT);
   pinMode(CONTROL_CYCLE_START_PIN, INPUT);
@@ -95,6 +93,7 @@ uint8_t system_execute_line(char *line)
   uint8_t char_counter = 1;
   uint8_t helper_var = 0; // Helper variable
   float parameter, value;
+	
   switch( line[char_counter] ) {
     case 0 : report_grbl_help(); break;
     case 'J' : // Jogging
@@ -219,6 +218,40 @@ uint8_t system_execute_line(char *line)
             helper_var = true;  // Set helper_var to flag storing method.
             // No break. Continues into default: to read remaining command characters.
           }
+				#ifdef ENABLE_SD_CARD // ==================== SD Card ============================
+				case 'F':
+					char fileLine[255];
+					if ( line[char_counter+1] == 0 ) {
+						// show the files
+						//Serial.println("Show the files");
+						listDir(SD, "/", 10); // 10 directory levels should be fine
+					}
+					else if (line[char_counter+1] == 'M') {
+						sd_mount();
+					}
+					else if (line[char_counter+1] == '=') { // run a file						
+						if (sys.state != STATE_IDLE) { return(STATUS_SYSTEM_GC_LOCK); } // must be in idle to run a file
+						char_counter += 2;
+						helper_var = char_counter; // Set helper variable as counter to start of user info line.
+						// shift the user info over to the beginning of the line "$F=/FOO.NC" becomes "/FOO.NC"
+						do {
+							line[char_counter-helper_var] = line[char_counter];
+						} while (line[char_counter++] != 0);
+						
+						openFile(SD, line);
+						if (!readFileLine(fileLine)) {
+							  return(STATUS_SD_FILE_EMPTY);
+								closeFile();
+						}
+						else {
+							report_status_message(gc_execute_line(fileLine));  // execute the first line
+						}						
+					}					
+					else {
+						return(STATUS_INVALID_STATEMENT);
+					}
+				break;
+				#endif // =============================== SD Card ========================================
         default :  // Storing setting methods [IDLE/ALARM]
           if(!read_float(line, &char_counter, &parameter)) { return(STATUS_BAD_NUMBER_FORMAT); }
           if(line[char_counter++] != '=') { return(STATUS_INVALID_STATEMENT); }
@@ -382,13 +415,11 @@ uint8_t system_control_get_state()
 {
 	#ifdef IGNORE_CONTROL_PINS
 		return 0;
-	#endif	
-	
-	
-  uint8_t control_state = 0;
-	#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-  if (digitalRead(CONTROL_SAFETY_DOOR_PIN)) { control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR; } 
 	#endif
+	
+	
+  uint8_t control_state = 0;	
+  if (digitalRead(CONTROL_SAFETY_DOOR_PIN)) { control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR; } 
   if (digitalRead(CONTROL_RESET_PIN)) { control_state |= CONTROL_PIN_INDEX_RESET; }
   if (digitalRead(CONTROL_FEED_HOLD_PIN)) { control_state |= CONTROL_PIN_INDEX_FEED_HOLD; }
   if (digitalRead(CONTROL_CYCLE_START_PIN)) { control_state |= CONTROL_PIN_INDEX_CYCLE_START; }   
