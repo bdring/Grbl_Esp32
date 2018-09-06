@@ -1,11 +1,11 @@
-#include "BluetoothSerial.h"
+#include "grbl.h"
 
 BluetoothSerial SerialBT;
 
 void bluetooth_init(char *name)
 {	
 	if (!SerialBT.begin(name))
-	{
-		Serial.printf("BlueTooth Failed: %s", name);
-	}
+	{		
+		report_status_message(STATUS_BT_FAIL_BEGIN);		
+	}	
 }

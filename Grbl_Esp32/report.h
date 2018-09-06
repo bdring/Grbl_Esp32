@@ -97,7 +97,9 @@
 #define MESSAGE_SPINDLE_RESTORE 10
 #define MESSAGE_SLEEP_MODE 11
 
+// functions to send data to the user.
 void grbl_send(char *text);
+void grbl_sendf(const char *format, ...);
 
 // Prints system status messages.
 void report_status_message(uint8_t status_code);

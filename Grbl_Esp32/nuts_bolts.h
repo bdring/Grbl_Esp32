@@ -38,7 +38,7 @@
 // Conversions
 #define MM_PER_INCH (25.40)
 #define INCH_PER_MM (0.0393701)
-#define TICKS_PER_MICROSECOND (F_STEPPER_TIMER/1000000) // Diffferent from AVR version 
+#define TICKS_PER_MICROSECOND (F_STEPPER_TIMER/1000000) // Different from AVR version 
 
 #define DELAY_MODE_DWELL       0
 #define DELAY_MODE_SYS_SUSPEND 1
@@ -47,8 +47,8 @@
 #define clear_vector(a) memset(a, 0, sizeof(a))
 #define clear_vector_float(a) memset(a, 0.0, sizeof(float)*N_AXIS)
 // #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*N_AXIS)
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
 #define isequal_position_vector(a,b) !(memcmp(a, b, sizeof(float)*N_AXIS))
 
 // Bit field and masking macros

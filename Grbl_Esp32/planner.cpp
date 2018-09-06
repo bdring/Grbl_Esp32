@@ -143,7 +143,7 @@ static void planner_recalculate()
   plan_block_t *current = &block_buffer[block_index];
 
   // Calculate maximum entry speed for last block in buffer, where the exit speed is always zero.
-  current->entry_speed_sqr = min( current->max_entry_speed_sqr, 2*current->acceleration*current->millimeters);
+  current->entry_speed_sqr = MIN( current->max_entry_speed_sqr, 2*current->acceleration*current->millimeters);
 
   block_index = plan_prev_block_index(block_index);
   if (block_index == block_buffer_planned) { // Only two plannable blocks in buffer. Reverse pass complete.
@@ -347,7 +347,7 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
         target_steps[idx] = lround(target[idx]*settings.steps_per_mm[idx]);
         block->steps[idx] = labs(target_steps[idx]-position_steps[idx]);
       }
-      block->step_event_count = max(block->step_event_count, block->steps[idx]);
+      block->step_event_count = MAX(block->step_event_count, block->steps[idx]);
       if (idx == A_MOTOR) {
         delta_mm = (target_steps[X_AXIS]-position_steps[X_AXIS] + target_steps[Y_AXIS]-position_steps[Y_AXIS])/settings.steps_per_mm[idx];
       } else if (idx == B_MOTOR) {
@@ -358,7 +358,7 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
     #else
       target_steps[idx] = lround(target[idx]*settings.steps_per_mm[idx]);
       block->steps[idx] = labs(target_steps[idx]-position_steps[idx]);
-      block->step_event_count = max(block->step_event_count, block->steps[idx]);
+      block->step_event_count = MAX(block->step_event_count, block->steps[idx]);
       delta_mm = (target_steps[idx] - position_steps[idx])/settings.steps_per_mm[idx];
 	  #endif
     unit_vec[idx] = delta_mm; // Store unit vector numerator
@@ -435,7 +435,7 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
         convert_delta_vector_to_unit_vector(junction_unit_vec);
         float junction_acceleration = limit_value_by_axis_maximum(settings.acceleration, junction_unit_vec);
         float sin_theta_d2 = sqrt(0.5*(1.0-junction_cos_theta)); // Trig half angle identity. Always positive.
-        block->max_junction_speed_sqr = max( MINIMUM_JUNCTION_SPEED*MINIMUM_JUNCTION_SPEED,
+        block->max_junction_speed_sqr = MAX( MINIMUM_JUNCTION_SPEED*MINIMUM_JUNCTION_SPEED,
                        (junction_acceleration * settings.junction_deviation * sin_theta_d2)/(1.0-sin_theta_d2) );
       }
     }

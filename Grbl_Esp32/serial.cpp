@@ -81,6 +81,8 @@ void serialCheckTask(void *pvParameters)
 			}	  	
 			
 			
+			
+			
 			// Pick off realtime command characters directly from the serial stream. These characters are
 			// not passed into the main buffer, but these set system state flag bits for realtime execution.
 			switch (data) {
@@ -121,6 +123,7 @@ void serialCheckTask(void *pvParameters)
 						}
 						// Throw away any unfound extended-ASCII character by not passing it to the serial buffer.
 					} else { // Write character to buffer
+					
 						vTaskEnterCritical(&myMutex);
 						next_head = serial_rx_buffer_head + 1;
 						if (next_head == RX_RING_BUFFER) { next_head = 0; }
@@ -129,10 +132,12 @@ void serialCheckTask(void *pvParameters)
 						if (next_head != serial_rx_buffer_tail) {
 							serial_rx_buffer[serial_rx_buffer_head] = data;
 							serial_rx_buffer_head = next_head;
-						}
+						}		
 						vTaskExitCritical(&myMutex);
 					}
 			}  // switch data			
+			
+			
 			
 		}  // if something available	
 		vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks		
@@ -161,7 +166,7 @@ uint8_t serial_read()
     tail++;
     if (tail == RX_RING_BUFFER) { tail = 0; }
     serial_rx_buffer_tail = tail;
-		vTaskExitCritical(&myMutex);
+		vTaskExitCritical(&myMutex);		
     return data;
   }
 }
