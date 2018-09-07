@@ -101,7 +101,7 @@ void loop() {
   sys_rt_exec_accessory_override = 0;
 
   // Reset Grbl primary systems.
-  serial_reset_read_buffer(); // Clear serial read buffer
+  serial_reset_read_buffer(CLIENT_ALL); // Clear serial read buffer
   
   gc_init(); // Set g-code parser to default state  
   
@@ -119,7 +119,7 @@ void loop() {
    
   
   // put your main code here, to run repeatedly:
-  report_init_message();
+  report_init_message(CLIENT_ALL);
 	
   // Start Grbl main loop. Processes program inputs and executes them.  
   protocol_main_loop();   

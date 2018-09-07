@@ -189,7 +189,7 @@ void system_clear_exec_accessory_overrides();
 
 // Execute the startup script lines stored in EEPROM upon initialization
 void system_execute_startup(char *line);
-uint8_t system_execute_line(char *line);
+uint8_t system_execute_line(char *line, uint8_t client);
 
 void system_flag_wco_change();
 

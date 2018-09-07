@@ -318,7 +318,7 @@ uint8_t mc_probe_cycle(float *target, plan_line_data_t *pl_data, uint8_t parser_
 
   #ifdef MESSAGE_PROBE_COORDINATES
     // All done! Output the probe position as message.
-    report_probe_parameters();
+    report_probe_parameters(CLIENT_ALL);
   #endif
 
   if (sys.probe_succeeded) { return(GC_PROBE_FOUND); } // Successful probe cycle.

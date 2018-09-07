@@ -41,9 +41,9 @@ void settings_init()
 	EEPROM.begin(EEPROM_SIZE);
   
   if(!read_global_settings()) {
-    report_status_message(STATUS_SETTING_READ_FAIL);
+    report_status_message(STATUS_SETTING_READ_FAIL, CLIENT_SERIAL);
     settings_restore(SETTINGS_RESTORE_ALL); // Force restore all EEPROM data.
-    report_grbl_settings();
+    report_grbl_settings(CLIENT_SERIAL); // only the serial could be working at this point
   }
 }
 

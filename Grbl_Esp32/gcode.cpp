@@ -48,7 +48,7 @@ void gc_init()
 
   // Load default G54 coordinate system.
   if (!(settings_read_coord_data(gc_state.modal.coord_select,gc_state.coord_system))) {
-    report_status_message(STATUS_SETTING_READ_FAIL);
+    report_status_message(STATUS_SETTING_READ_FAIL, CLIENT_SERIAL);
   }
 }
 
@@ -66,7 +66,7 @@ void gc_sync_position()
 // characters have been removed. In this function, all units and positions are converted and
 // exported to grbl's internal functions in terms of (mm, mm/min) and absolute machine
 // coordinates, respectively.
-uint8_t gc_execute_line(char *line)
+uint8_t gc_execute_line(char *line, uint8_t client)
 {
   /* -------------------------------------------------------------------------------------
      STEP 1: Initialize parser block struct and copy current g-code state modes. The parser

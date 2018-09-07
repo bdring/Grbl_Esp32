@@ -23,6 +23,7 @@
 */
 
 #include "grbl.h"
+#include "config.h"
 
 // Define line flags. Includes comment type tracking and line overflow detection.
 #define LINE_FLAG_OVERFLOW bit(0)
@@ -40,6 +41,8 @@ static void protocol_exec_rt_suspend();
 */
 void protocol_main_loop()
 {
+	//uint8_t client = CLIENT_SERIAL; // default client	
+	
   // Perform some machine checks to make sure everything is good to go.
   #ifdef CHECK_LIMITS_AT_INIT
     if (bit_istrue(settings.flags, BITFLAG_HARD_LIMIT_ENABLE)) {
@@ -74,14 +77,17 @@ void protocol_main_loop()
   uint8_t line_flags = 0;
   uint8_t char_counter = 0;
   uint8_t c;
+	
   for (;;) {
+		
+		// serialCheck(); // un comment this if you do this here rather than in a separate task
 
 		#ifdef ENABLE_SD_CARD
 			if (SD_ready_next) {
 				char fileLine[255];
 				if (readFileLine(fileLine)) {
 					SD_ready_next = false;
-					report_status_message(gc_execute_line(fileLine));
+					report_status_message(gc_execute_line(fileLine, CLIENT_SERIAL), CLIENT_SERIAL);
 				}
 				else {
 					closeFile(); // close file and clear SD ready/running flags
@@ -93,85 +99,92 @@ void protocol_main_loop()
 	
     // Process one line of incoming serial data, as the data becomes available. Performs an
     // initial filtering by removing spaces and comments and capitalizing all letters.
-    while((c = serial_read()) != SERIAL_NO_DATA) {
-      if ((c == '\n') || (c == '\r')) { // End of line reached
+		
+		uint8_t client = CLIENT_SERIAL;
+		for (client = 1; client <= CLIENT_COUNT; client++)
+		{
+			while((c = serial_read(client)) != SERIAL_NO_DATA) {
+				if ((c == '\n') || (c == '\r')) { // End of line reached
 
-        protocol_execute_realtime(); // Runtime command check point.
-        if (sys.abort) { return; } // Bail to calling function upon system abort
+					protocol_execute_realtime(); // Runtime command check point.
+					if (sys.abort) { return; } // Bail to calling function upon system abort
 
-        line[char_counter] = 0; // Set string termination character.
-        #ifdef REPORT_ECHO_LINE_RECEIVED
-          report_echo_line_received(line);
-        #endif
+					line[char_counter] = 0; // Set string termination character.
+					#ifdef REPORT_ECHO_LINE_RECEIVED
+						report_echo_line_received(line, client);
+					#endif
 
-        // Direct and execute one line of formatted input, and report status of execution.
-        if (line_flags & LINE_FLAG_OVERFLOW) {
-          // Report line overflow error.
-          report_status_message(STATUS_OVERFLOW);
-        } else if (line[0] == 0) {
-          // Empty or comment line. For syncing purposes.
-          report_status_message(STATUS_OK);
-        } else if (line[0] == '$') {
-          // Grbl '$' system command
-          report_status_message(system_execute_line(line));
-        } else if (sys.state & (STATE_ALARM | STATE_JOG)) {
-          // Everything else is gcode. Block if in alarm or jog mode.
-          report_status_message(STATUS_SYSTEM_GC_LOCK);
-        } else {
-          // Parse and execute g-code block.
-          report_status_message(gc_execute_line(line));
-        }
+					// Direct and execute one line of formatted input, and report status of execution.
+					if (line_flags & LINE_FLAG_OVERFLOW) {
+						// Report line overflow error.
+						report_status_message(STATUS_OVERFLOW, client);
+					} else if (line[0] == 0) {
+						// Empty or comment line. For syncing purposes.
+						report_status_message(STATUS_OK, client);
+					} else if (line[0] == '$') {
+						// Grbl '$' system command
+						report_status_message(system_execute_line(line, client), client);
+					} else if (sys.state & (STATE_ALARM | STATE_JOG)) {
+						// Everything else is gcode. Block if in alarm or jog mode.
+						report_status_message(STATUS_SYSTEM_GC_LOCK, client);
+					} else {
+						// Parse and execute g-code block.
+						report_status_message(gc_execute_line(line, client), client);
+					}
 
-        // Reset tracking data for next line.
-        line_flags = 0;
-        char_counter = 0;
+					// Reset tracking data for next line.
+					line_flags = 0;
+					char_counter = 0;
 
-      } else {
+				} else {
 
-        if (line_flags) {
-          // Throw away all (except EOL) comment characters and overflow characters.
-          if (c == ')') {
-            // End of '()' comment. Resume line allowed.
-            if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) { line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES); }
-          }
-        } else {
-          if (c <= ' ') {
-            // Throw away whitepace and control characters
-          } 
-					/*
-					else if (c == '/') {
-            // Block delete NOT SUPPORTED. Ignore character.
-            // NOTE: If supported, would simply need to check the system if block delete is enabled.
-          } 
-					*/
-					else if (c == '(') {
-            // Enable comments flag and ignore all characters until ')' or EOL.
-            // NOTE: This doesn't follow the NIST definition exactly, but is good enough for now.
-            // In the future, we could simply remove the items within the comments, but retain the
-            // comment control characters, so that the g-code parser can error-check it.
-            line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
-          } else if (c == ';') {
-            // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
-            line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
-          // TODO: Install '%' feature
-          // } else if (c == '%') {
-            // Program start-end percent sign NOT SUPPORTED.
-            // NOTE: This maybe installed to tell Grbl when a program is running vs manual input,
-            // where, during a program, the system auto-cycle start will continue to execute
-            // everything until the next '%' sign. This will help fix resuming issues with certain
-            // functions that empty the planner buffer to execute its task on-time.
-          } else if (char_counter >= (LINE_BUFFER_SIZE-1)) {
-            // Detect line buffer overflow and set flag.
-            line_flags |= LINE_FLAG_OVERFLOW;
-          } else if (c >= 'a' && c <= 'z') { // Upcase lowercase
-            line[char_counter++] = c-'a'+'A';
-          } else {
-            line[char_counter++] = c;
-          }
-        }
+					if (line_flags) {
+						// Throw away all (except EOL) comment characters and overflow characters.
+						if (c == ')') {
+							// End of '()' comment. Resume line allowed.
+							if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) { line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES); }
+						}
+					} else {
+						if (c <= ' ') {
+							// Throw away whitepace and control characters
+						} 
+						/*
+						else if (c == '/') {
+							// Block delete NOT SUPPORTED. Ignore character.
+							// NOTE: If supported, would simply need to check the system if block delete is enabled.
+						} 
+						*/
+						else if (c == '(') {
+							// Enable comments flag and ignore all characters until ')' or EOL.
+							// NOTE: This doesn't follow the NIST definition exactly, but is good enough for now.
+							// In the future, we could simply remove the items within the comments, but retain the
+							// comment control characters, so that the g-code parser can error-check it.
+							line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
+						} else if (c == ';') {
+							// NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
+							line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
+						// TODO: Install '%' feature
+						// } else if (c == '%') {
+							// Program start-end percent sign NOT SUPPORTED.
+							// NOTE: This maybe installed to tell Grbl when a program is running vs manual input,
+							// where, during a program, the system auto-cycle start will continue to execute
+							// everything until the next '%' sign. This will help fix resuming issues with certain
+							// functions that empty the planner buffer to execute its task on-time.
+						} else if (char_counter >= (LINE_BUFFER_SIZE-1)) {
+							// Detect line buffer overflow and set flag.
+							line_flags |= LINE_FLAG_OVERFLOW;
+						} else if (c >= 'a' && c <= 'z') { // Upcase lowercase
+							line[char_counter++] = c-'a'+'A';
+						} else {
+							line[char_counter++] = c;
+						}
+					}
 
-      }
-    }
+				}
+			} // while serial read
+		} // for clients
+		
+		
 
     // If there are no more characters in the serial read buffer to be processed and executed,
     // this indicates that g-code streaming has either filled the planner buffer or has
@@ -189,7 +202,9 @@ void protocol_main_loop()
 				set_stepper_disable(true);
 			}
 		}
-		
+#ifdef ENABLE_WIFI
+  wifi_config.handle();
+#endif
   }
 
   return; /* Never reached */
@@ -280,7 +295,7 @@ void protocol_exec_rt_system()
 
     // Execute and serial print status
     if (rt_exec & EXEC_STATUS_REPORT) {
-      report_realtime_status();
+      report_realtime_status(CLIENT_ALL);
       system_clear_exec_state_flag(EXEC_STATUS_REPORT);
     }
 
