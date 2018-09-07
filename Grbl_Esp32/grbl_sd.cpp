@@ -29,13 +29,12 @@
 
 File myFile;
 char fileTypes[FILE_TYPE_COUNT][8] = {".NC", ".TXT", ".GCODE"}; // filter out files not of these types (s/b UPPERCASE)
-bool SD_file_running = false; // a file has started but not completed
 bool SD_ready_next = false; // Grbl has processed a line and is waiting for another
 
 // attempt to mount the SD card
 bool sd_mount() {
 	if(!SD.begin()){
-				report_status_message(STATUS_SD_FAILED_MOUNT);
+				report_status_message(STATUS_SD_FAILED_MOUNT, CLIENT_SERIAL);
         return false;
   }	
 	return true;
@@ -46,11 +45,11 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
 		
     File root = fs.open(dirname);
     if(!root){
-				report_status_message(STATUS_SD_FAILED_OPEN_DIR);
+				report_status_message(STATUS_SD_FAILED_OPEN_DIR, CLIENT_SERIAL);
         return;
     }
     if(!root.isDirectory()){
-				report_status_message(STATUS_SD_DIR_NOT_FOUND);
+				report_status_message(STATUS_SD_DIR_NOT_FOUND, CLIENT_SERIAL);
         return;
     }
 
@@ -72,7 +71,7 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
 					for (uint8_t i=0; i < FILE_TYPE_COUNT; i++) // make sure it is a valid file type
 					{
 						if (strstr(temp_filename, fileTypes[i])) { 				
-							grbl_sendf("[FILE:%s,SIZE:%d]\r\n", file.name(), file.size());
+							grbl_sendf(CLIENT_ALL, "[FILE:%s,SIZE:%d]\r\n", file.name(), file.size());
 							break;
 						}
 					}            
@@ -84,12 +83,12 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
 boolean openFile(fs::FS &fs, const char * path){
   myFile = fs.open(path);
   if(!myFile){
-      report_status_message(STATUS_SD_FAILED_READ);
+      report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
       return false;
   }
 	
-  SD_file_running = true;
-	SD_ready_next = false; // this will get set to true when Grbl issues "ok" message 
+  set_sd_state(SDCARD_BUSY_PRINTING);
+  SD_ready_next = false; // this will get set to true when Grbl issues "ok" message 
   return true; 
 }
 
@@ -98,7 +97,7 @@ boolean closeFile(){
       return false;
   }
 	
-	SD_file_running = false;
+	set_sd_state(SDCARD_IDLE);
 	SD_ready_next = false;
   myFile.close();
   return true;
@@ -117,7 +116,7 @@ boolean readFileLine(char *line) {
   uint8_t line_flags = 0;
 	
   if (!myFile) {
-		report_status_message(STATUS_SD_FAILED_READ);
+		report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
     return false;
   }
 
@@ -156,7 +155,7 @@ boolean readFileLine(char *line) {
         if (index == 255) // name is too long so return false
         {
           line[index] = '\0';
-					report_status_message(STATUS_OVERFLOW);
+					report_status_message(STATUS_OVERFLOW, CLIENT_SERIAL);
           return false;
         }
   }
@@ -177,18 +176,37 @@ float sd_report_perc_complete() {
 	return  ((float)myFile.position() /  (float)myFile.size() * 100.0);
 }
 
-/*
-void readFile(fs::FS &fs, const char * path){ 
 
-    File file = fs.open(path);
-    if(!file){
-				report_status_message(STATUS_SD_FAILED_READ);				
-        return;
+uint8_t sd_state = SDCARD_IDLE;
+
+uint8_t get_sd_state(bool refresh){
+#if defined(SDCARD_DET_PIN) && SDCARD_SD_PIN != -1
+    //no need to go further if SD detect is not correct
+    if (!((digitalRead (SDCARD_DET_PIN) == SDCARD_DET_VAL) ? true : false)){
+        sd_state = SDCARD_NOT_PRESENT;
+        return sd_state;
     }
-    
-    while(file.available()){          
-        Serial.write(file.read());
+#endif
+    //if busy doing something return state
+    if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE))) return sd_state;
+    if (!refresh) return sd_state; //to avoid refresh=true + busy to reset SD and waste time
+    //SD is idle or not detected, let see if still the case
+
+    if (sd_state == SDCARD_IDLE) {
+        SD.end();
+        //using default value for speed ? should be parameter
+        //refresh content if card was removed    
+        if (!SD.begin()) sd_state = SDCARD_NOT_PRESENT;
+        else {
+            if ( !(SD.cardSize() > 0 )) sd_state = SDCARD_NOT_PRESENT;
+        }
     }
-    file.close();
+return sd_state;
 }
-*/
+
+uint8_t set_sd_state(uint8_t flag){
+    sd_state =  flag;
+    return sd_state;
+}
+
+
