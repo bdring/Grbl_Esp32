@@ -3,7 +3,7 @@
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 	
-	2018 -	Bart Dring This file was modifed for use on the ESP32
+	2018 -	Bart Dring This file was modified for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 	
   Grbl is free software: you can redistribute it and/or modify
@@ -23,31 +23,55 @@
 void spindle_init()
 {
 	
+	// Use DIR and Enable if pins are defined
+	#ifdef SPINDLE_ENABLE_PIN
+		pinMode(SPINDLE_ENABLE_PIN, OUTPUT);
+	#endif
+	
+	#ifdef SPINDLE_DIR_PIN
+		pinMode(SPINDLE_DIR_PIN, OUTPUT);
+	#endif
+	
     // use the LED control feature to setup PWM   https://esp-idf.readthedocs.io/en/v1.0/api/ledc.html
     ledcSetup(SPINDLE_PWM_CHANNEL, SPINDLE_PWM_BASE_FREQ, SPINDLE_PWM_BIT_PRECISION); // setup the channel
     ledcAttachPin(SPINDLE_PWM_PIN, SPINDLE_PWM_CHANNEL); // attach the PWM to the pin
-
-    // Start with PWM off
+		
+    // Start with spindle off off
 	  spindle_stop();
 }
 
 void spindle_stop()
 {		
-  grbl_analogWrite(SPINDLE_PWM_CHANNEL, 0);
+  spindle_set_enable(false);	
+	grbl_analogWrite(SPINDLE_PWM_CHANNEL, 0);	
 }
 
-uint8_t spindle_get_state()
+uint8_t spindle_get_state()  // returns SPINDLE_STATE_DISABLE, SPINDLE_STATE_CW or SPINDLE_STATE_CCW
 {	  
   // TODO Update this when direction and enable pin are added 
-	if (ledcRead(SPINDLE_PWM_CHANNEL) == 0) // Check the PWM value
+	if (ledcRead(SPINDLE_PWM_CHANNEL) == 0) // Check the PWM value		
 		return(SPINDLE_STATE_DISABLE);
 	else
-		return(SPINDLE_STATE_CW); // only CW is supported right now.
+	{
+		#ifdef SPINDLE_DIR_PIN			
+			if (digitalRead(SPINDLE_DIR_PIN))
+				return (SPINDLE_STATE_CW);
+			else
+				return(SPINDLE_STATE_CCW);
+		#else
+			return(SPINDLE_STATE_CW);
+		#endif		
+	}
 }
 
 void spindle_set_speed(uint8_t pwm_value)
-{
-	grbl_analogWrite(SPINDLE_PWM_CHANNEL, pwm_value);
+{	
+	#ifndef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
+		spindle_set_enable(true);
+	#else
+		spindle_set_enable(pwm_value != 0);
+	#endif
+	grbl_analogWrite(SPINDLE_PWM_CHANNEL, pwm_value);	
 }
 
 // Called by spindle_set_state() and step segment generator. Keep routine small and efficient.
@@ -70,12 +94,22 @@ void spindle_set_state(uint8_t state, float rpm)
   } else {
   
     // TODO ESP32 Enable and direction control
+		#ifdef SPINDLE_DIR_PIN
+		if (state == SPINDLE_ENABLE_CW) {
+        digitalWrite(SPINDLE_DIR_PIN, 1);
+    } 
+		else 
+		{
+        digitalWrite(SPINDLE_DIR_PIN, 0);
+    }
+		#endif
   
     
       // NOTE: Assumes all calls to this function is when Grbl is not moving or must remain off.
       if (settings.flags & BITFLAG_LASER_MODE) { 
         if (state == SPINDLE_ENABLE_CCW) { rpm = 0.0; } // TODO: May need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE);
       }
+						
       spindle_set_speed(spindle_compute_pwm_value(rpm));     
   }  
   sys.report_ovr_counter = 0; // Set to report change immediately
@@ -98,4 +132,14 @@ void grbl_analogWrite(uint8_t chan, uint32_t duty)
 	}
 }
 
+void spindle_set_enable(bool enable)
+{
+	#ifdef SPINDLE_ENABLE_PIN	
+		#ifndef INVERT_SPINDLE_ENABLE_PIN
+				digitalWrite(SPINDLE_ENABLE_PIN, enable); // turn off (low) with zero speed
+		#else
+				digitalWrite(SPINDLE_ENABLE_PIN, !enable); // turn off (high) with zero speed
+		#endif
+	#endif
+}
 

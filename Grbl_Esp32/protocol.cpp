@@ -511,19 +511,28 @@ void protocol_exec_rt_system()
     if (rt_exec & (EXEC_COOLANT_FLOOD_OVR_TOGGLE | EXEC_COOLANT_MIST_OVR_TOGGLE)) {
       if ((sys.state == STATE_IDLE) || (sys.state & (STATE_CYCLE | STATE_HOLD))) {
         uint8_t coolant_state = gc_state.modal.coolant;
-        #ifdef ENABLE_M7
-          if (rt_exec & EXEC_COOLANT_MIST_OVR_TOGGLE) {
-            if (coolant_state & COOLANT_MIST_ENABLE) { bit_false(coolant_state,COOLANT_MIST_ENABLE); }
-            else { coolant_state |= COOLANT_MIST_ENABLE; }
+        #ifdef COOLANT_FLOOD_PIN
+					if (rt_exec & EXEC_COOLANT_FLOOD_OVR_TOGGLE) 
+					{
+            if (coolant_state & COOLANT_FLOOD_ENABLE) { 
+							bit_false(coolant_state,COOLANT_FLOOD_ENABLE); 
+						}
+            else { 
+							coolant_state |= COOLANT_FLOOD_ENABLE;
+						}
           }
-          if (rt_exec & EXEC_COOLANT_FLOOD_OVR_TOGGLE) {
-            if (coolant_state & COOLANT_FLOOD_ENABLE) { bit_false(coolant_state,COOLANT_FLOOD_ENABLE); }
-            else { coolant_state |= COOLANT_FLOOD_ENABLE; }
+				#endif
+				#ifdef COOLANT_MIST_PIN
+					if (rt_exec & EXEC_COOLANT_MIST_OVR_TOGGLE) {
+            if (coolant_state & COOLANT_MIST_ENABLE) { 
+							bit_false(coolant_state,COOLANT_MIST_ENABLE); 
+						}
+            else { 
+							coolant_state |= COOLANT_MIST_ENABLE; 
+						}
           }
-        #else
-          if (coolant_state & COOLANT_FLOOD_ENABLE) { bit_false(coolant_state,COOLANT_FLOOD_ENABLE); }
-          else { coolant_state |= COOLANT_FLOOD_ENABLE; }
-        #endif
+				#endif
+        
         coolant_set_state(coolant_state); // Report counter set in coolant_set_state().
         gc_state.modal.coolant = coolant_state;
       }

@@ -49,7 +49,6 @@ Using SD Card
 ### Roadmap
 
 - Add Wifi support and a web page interface
-- Add spindle enable and direction. 
 
 ### Credits
 
