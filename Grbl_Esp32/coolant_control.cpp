@@ -26,8 +26,12 @@
 
 void coolant_init()
 {
-  pinMode(COOLANT_FLOOD_PIN, OUTPUT);
-	#ifdef ENABLE_M7
+	#ifdef COOLANT_FLOOD_PIN
+		pinMode(COOLANT_FLOOD_PIN, OUTPUT);
+	#endif
+	
+	
+	#ifdef COOLANT_MIST_PIN
 		pinMode(COOLANT_MIST_PIN, OUTPUT);
 	#endif
   coolant_stop();
@@ -39,14 +43,18 @@ uint8_t coolant_get_state()
 {
   uint8_t cl_state = COOLANT_STATE_DISABLE;
 
-  #ifdef INVERT_COOLANT_FLOOD_PIN
-    if (! digitalRead(COOLANT_FLOOD_PIN)) {
-  #else
-    if (digitalRead(COOLANT_FLOOD_PIN)) {
-  #endif
-    cl_state |= COOLANT_STATE_FLOOD;
-  }
-  #ifdef ENABLE_M7
+	#ifdef COOLANT_FLOOD_PIN
+		#ifdef INVERT_COOLANT_FLOOD_PIN
+			if (! digitalRead(COOLANT_FLOOD_PIN)) {
+		#else
+			if (digitalRead(COOLANT_FLOOD_PIN)) {
+		#endif
+			cl_state |= COOLANT_STATE_FLOOD;
+		}		
+	#endif
+	
+	
+  #ifdef COOLANT_MIST_PIN
     #ifdef INVERT_COOLANT_MIST_PIN
       if (! digitalRead(COOLANT_MIST_PIN)) {
     #else
@@ -65,12 +73,15 @@ uint8_t coolant_get_state()
 // an interrupt-level. No report flag set, but only called by routines that don't need it.
 void coolant_stop()
 {
-  #ifdef INVERT_COOLANT_FLOOD_PIN
-    digitalWrite(COOLANT_FLOOD_PIN, 1);    
-  #else
-    digitalWrite(COOLANT_FLOOD_PIN, 0);
-  #endif
-  #ifdef ENABLE_M7
+	#ifdef COOLANT_FLOOD_PIN
+		#ifdef INVERT_COOLANT_FLOOD_PIN
+			digitalWrite(COOLANT_FLOOD_PIN, 1);    
+		#else
+			digitalWrite(COOLANT_FLOOD_PIN, 0);
+		#endif
+	#endif
+	
+  #ifdef COOLANT_MIST_PIN
     #ifdef INVERT_COOLANT_MIST_PIN
       digitalWrite(COOLANT_MIST_PIN, 1);
     #else
@@ -93,7 +104,8 @@ void coolant_set_state(uint8_t mode)
     coolant_stop(); 
   
   } else {
-  
+		
+		#ifdef COOLANT_FLOOD_PIN 
     if (mode & COOLANT_FLOOD_ENABLE) {
       #ifdef INVERT_COOLANT_FLOOD_PIN
         digitalWrite(COOLANT_FLOOD_PIN, 0);
@@ -101,8 +113,9 @@ void coolant_set_state(uint8_t mode)
         digitalWrite(COOLANT_FLOOD_PIN, 1);
       #endif
     }
+		#endif
   
-    #ifdef ENABLE_M7
+    #ifdef COOLANT_MIST_PIN
       if (mode & COOLANT_MIST_ENABLE) {
         #ifdef INVERT_COOLANT_MIST_PIN
           digitalWrite(COOLANT_MIST_PIN, 0);

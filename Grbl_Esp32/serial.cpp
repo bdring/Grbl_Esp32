@@ -141,8 +141,10 @@ void serialCheckTask(void *pvParameters)
 							case CMD_SPINDLE_OVR_FINE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_PLUS); break;
 							case CMD_SPINDLE_OVR_FINE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_MINUS); break;
 							case CMD_SPINDLE_OVR_STOP: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP); break;
+							#ifdef COOLANT_FLOOD_PIN
 							case CMD_COOLANT_FLOOD_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_FLOOD_OVR_TOGGLE); break;
-							#ifdef ENABLE_M7
+							#endif
+							#ifdef COOLANT_MIST_PIN
 								case CMD_COOLANT_MIST_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_MIST_OVR_TOGGLE); break;
 							#endif
 						}
@@ -246,8 +248,10 @@ void serialCheck()
 							case CMD_SPINDLE_OVR_FINE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_PLUS); break;
 							case CMD_SPINDLE_OVR_FINE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_MINUS); break;
 							case CMD_SPINDLE_OVR_STOP: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP); break;
+							#ifdef COOLANT_FLOOD_PIN
 							case CMD_COOLANT_FLOOD_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_FLOOD_OVR_TOGGLE); break;
-							#ifdef ENABLE_M7
+							#endif
+							#ifdef COOLANT_MIST_PIN
 								case CMD_COOLANT_MIST_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_MIST_OVR_TOGGLE); break;
 							#endif
 						}
@@ -274,7 +278,7 @@ void serial_reset_read_buffer(uint8_t client)
 	{
 		if (client == client_num || client == CLIENT_ALL)
 		{
-			serial_rx_buffer_tail[client_num] = serial_rx_buffer_head[client_num];
+			serial_rx_buffer_tail[client_num-1] = serial_rx_buffer_head[client_num-1];
 		}
 	}		  
 }

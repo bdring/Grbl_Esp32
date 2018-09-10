@@ -34,8 +34,6 @@
 	changed. They are just preserved right now to make it easy to stay in sync
 	with AVR grbl
 	
-	
-	
 	*/
 	
 	// This is the CPU Map for the ESP32 CNC Controller R2
@@ -59,8 +57,11 @@
 		
 		#define STEPPERS_DISABLE_PIN GPIO_NUM_13
 		
-		#define COOLANT_FLOOD_PIN 	GPIO_NUM_16
-		#define COOLANT_MIST_PIN   	GPIO_NUM_19
+		
+		// *** the flood coolant feature code is activated by defining this pins
+		// *** Comment it out to use the pin for other features
+		#define COOLANT_FLOOD_PIN 	GPIO_NUM_16			
+		//#define COOLANT_MIST_PIN   	GPIO_NUM_21
 
 		#define SPINDLE_PWM_PIN    GPIO_NUM_17
 		#define SPINDLE_PWM_CHANNEL 0
@@ -69,6 +70,11 @@
 		#define SPINDLE_PWM_OFF_VALUE     0
 		#define SPINDLE_PWM_MAX_VALUE     255  // TODO ESP32 Calc from resolution
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
+		
+		// if these spindle function pins are defined, they will be activated in the code
+		// comment them out to use the pins for other functions
+		//#define SPINDLE_ENABLE_PIN	GPIO_NUM_16
+		//#define SPINDLE_DIR_PIN			GPIO_NUM_16
 		
 		#define X_LIMIT_BIT      	0  
 		#define Y_LIMIT_BIT      	1 

@@ -403,16 +403,14 @@ void report_gcode_modes(uint8_t client)
     case SPINDLE_DISABLE : strcat(modes_rpt, " M5"); break;
   }
 
-  //report_util_gcode_modes_M();
-  #ifdef ENABLE_M7
-    if (gc_state.modal.coolant) { // Note: Multiple coolant states may be active at the same time.
-      if (gc_state.modal.coolant & PL_COND_FLAG_COOLANT_MIST) { strcat(modes_rpt, " M7"); }
-      if (gc_state.modal.coolant & PL_COND_FLAG_COOLANT_FLOOD) { strcat(modes_rpt, " M8"); }
-    } else { strcat(modes_rpt, " M9"); }
-  #else
-    if (gc_state.modal.coolant) { strcat(modes_rpt, " M8"); }
-    else { strcat(modes_rpt, " M9"); }
-  #endif
+  //report_util_gcode_modes_M();  // optional M7 and M8 should have been dealt with by here
+	if (gc_state.modal.coolant) { // Note: Multiple coolant states may be active at the same time.
+		if (gc_state.modal.coolant & PL_COND_FLAG_COOLANT_MIST) { strcat(modes_rpt, " M7"); }      
+		if (gc_state.modal.coolant & PL_COND_FLAG_COOLANT_FLOOD) { strcat(modes_rpt, " M8"); }			
+	} 
+	else { 
+		strcat(modes_rpt, " M9"); 
+	}  
 
 	sprintf(temp, " T%d", gc_state.tool);
 	strcat(modes_rpt, temp); 
@@ -459,8 +457,8 @@ void report_build_info(char *line, uint8_t client)
   #ifdef USE_LINE_NUMBERS
     strcat(build_info,"N");
   #endif
-  #ifdef ENABLE_M7
-    strcat(build_info,"M");
+  #ifdef COOLANT_MIST_PIN
+    strcat(build_info,"M"); // TODO Need to deal with M8...it could be disabled
   #endif
   #ifdef COREXY
     strcat(build_info,"C");
@@ -703,7 +701,7 @@ void report_realtime_status(uint8_t client)
           #endif
         }
         if (cl_state & COOLANT_STATE_FLOOD) { strcat(status, "F"); }
-        #ifdef ENABLE_M7
+        #ifdef COOLANT_MIST_PIN // TODO Deal with M8 - Flood
           if (cl_state & COOLANT_STATE_MIST) { strcat(status, "M"); }
         #endif
       }  
