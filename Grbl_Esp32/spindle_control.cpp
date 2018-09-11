@@ -78,6 +78,9 @@ void spindle_set_speed(uint8_t pwm_value)
 uint8_t spindle_compute_pwm_value(float rpm)
 {
 	uint8_t pwm_value;
+	
+	rpm *= (0.010*sys.spindle_speed_ovr);
+	
 	pwm_value = map(rpm, settings.rpm_min, settings.rpm_max, SPINDLE_PWM_OFF_VALUE, SPINDLE_PWM_MAX_VALUE);		  
 	// TODO_ESP32  .. make it 16 bit
 	
