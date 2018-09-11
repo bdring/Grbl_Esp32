@@ -19,6 +19,7 @@ This is a port of [Grbl](https://github.com/gnea/grbl) for the ESP32. The ESP32 
 - **I/O** - It has just about the same number of pins as an Arduino UNO, the original target for Grbl
 - **Peripherals** - It has more timers and advanced features than an UNO.  These can also be mapped to pins more flexibly.
 - **Connectivity** - Bluetooth and WiFi built in.
+- **Fast Boot** - Boots almost instantly and does not need to be formally shutdown (unlike Raspberry Pi or Beagle Bone)
 
 ### Issues / Changes
 
