@@ -31,6 +31,7 @@ File myFile;
 char fileTypes[FILE_TYPE_COUNT][8] = {".NC", ".TXT", ".GCODE"}; // filter out files not of these types (s/b UPPERCASE)
 bool SD_ready_next = false; // Grbl has processed a line and is waiting for another
 
+
 // attempt to mount the SD card
 bool sd_mount() {
 	if(!SD.begin()){
@@ -82,6 +83,7 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
 
 boolean openFile(fs::FS &fs, const char * path){
   myFile = fs.open(path);
+	
   if(!myFile){
       report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
       return false;
@@ -207,6 +209,16 @@ return sd_state;
 uint8_t set_sd_state(uint8_t flag){
     sd_state =  flag;
     return sd_state;
+}
+
+void sd_get_current_filename(char* name) {		
+	
+		if (myFile != NULL)
+		{
+			strcpy(name, myFile.name());
+		}
+		else
+			name[0] = 0;		
 }
 
 

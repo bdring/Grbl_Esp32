@@ -47,4 +47,6 @@ boolean readFileLine(char *line);
 void readFile(fs::FS &fs, const char * path);
 float sd_report_perc_complete();
 
+void sd_get_current_filename(char* name);
+
 #endif

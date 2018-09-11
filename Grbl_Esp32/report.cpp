@@ -710,7 +710,10 @@ void report_realtime_status(uint8_t client)
 	
 	#ifdef ENABLE_SD_CARD
 		if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
-			sprintf(temp, "|SD:%4.2f", sd_report_perc_complete());
+			sprintf(temp, "|SD:%4.2f,", sd_report_perc_complete());
+			strcat(status, temp);
+			
+			sd_get_current_filename(temp);
 			strcat(status, temp);
 		}
 	#endif
