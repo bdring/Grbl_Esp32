@@ -94,16 +94,9 @@ void spindle_set_state(uint8_t state, float rpm)
   } else {
   
     // TODO ESP32 Enable and direction control
-		#ifdef SPINDLE_DIR_PIN
-		if (state == SPINDLE_ENABLE_CW) {
-        digitalWrite(SPINDLE_DIR_PIN, 1);
-    } 
-		else 
-		{
-        digitalWrite(SPINDLE_DIR_PIN, 0);
-    }
-		#endif
-  
+		#ifdef SPINDLE_DIR_PIN		
+      digitalWrite(SPINDLE_DIR_PIN, state == SPINDLE_ENABLE_CW);    
+		#endif  
     
       // NOTE: Assumes all calls to this function is when Grbl is not moving or must remain off.
       if (settings.flags & BITFLAG_LASER_MODE) { 
