@@ -32,23 +32,31 @@ void spindle_init()
 		pinMode(SPINDLE_DIR_PIN, OUTPUT);
 	#endif
 	
+	#ifdef SPINDLE_PWM_PIN
     // use the LED control feature to setup PWM   https://esp-idf.readthedocs.io/en/v1.0/api/ledc.html
     ledcSetup(SPINDLE_PWM_CHANNEL, SPINDLE_PWM_BASE_FREQ, SPINDLE_PWM_BIT_PRECISION); // setup the channel
     ledcAttachPin(SPINDLE_PWM_PIN, SPINDLE_PWM_CHANNEL); // attach the PWM to the pin
-		
+	#endif
+	
     // Start with spindle off off
 	  spindle_stop();
 }
 
 void spindle_stop()
 {		
-  spindle_set_enable(false);	
-	grbl_analogWrite(SPINDLE_PWM_CHANNEL, 0);	
+  spindle_set_enable(false);
+	#ifdef SPINDLE_PWM_PIN
+		grbl_analogWrite(SPINDLE_PWM_CHANNEL, 0);	
+	#endif
 }
 
 uint8_t spindle_get_state()  // returns SPINDLE_STATE_DISABLE, SPINDLE_STATE_CW or SPINDLE_STATE_CCW
 {	  
-  // TODO Update this when direction and enable pin are added 
+  // TODO Update this when direction and enable pin are added
+	#ifndef SPINDLE_PWM_PIN
+		return(SPINDLE_STATE_DISABLE);
+	#endif
+	
 	if (ledcRead(SPINDLE_PWM_CHANNEL) == 0) // Check the PWM value		
 		return(SPINDLE_STATE_DISABLE);
 	else
@@ -66,6 +74,10 @@ uint8_t spindle_get_state()  // returns SPINDLE_STATE_DISABLE, SPINDLE_STATE_CW 
 
 void spindle_set_speed(uint8_t pwm_value)
 {	
+	#ifndef SPINDLE_PWM_PIN
+		return;
+	#endif
+
 	#ifndef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
 		spindle_set_enable(true);
 	#else

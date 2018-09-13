@@ -38,23 +38,29 @@
 	
 	// This is the CPU Map for the ESP32 CNC Controller R2
 	
+	
+	  // It is OK to comment out any step and direction pins. This
+    // won't affect operation except that there will be no output
+		// form the pins. Grbl will virtually move the axis. This could 
+		// be handy if you are using a servo, etc. for another axis.
 		#define X_STEP_PIN      GPIO_NUM_12
 		#define Y_STEP_PIN      GPIO_NUM_14
 		#define Z_STEP_PIN      GPIO_NUM_27
 		#define STEP_MASK       B111 // don't change
 		
-		#define X_STEP_BIT    0 
-		#define Y_STEP_BIT    1 
-		#define Z_STEP_BIT    2   	
+		#define X_STEP_BIT    0  // don't change
+		#define Y_STEP_BIT    1  // don't change
+		#define Z_STEP_BIT    2  // don't change
 		
-		#define X_DIRECTION_BIT   0
-		#define Y_DIRECTION_BIT   1  
-		#define Z_DIRECTION_BIT   2  
+		#define X_DIRECTION_BIT   0 // don't change
+		#define Y_DIRECTION_BIT   1  // don't change
+		#define Z_DIRECTION_BIT   2  // don't change
 		
 		#define X_DIRECTION_PIN   GPIO_NUM_26
 		#define Y_DIRECTION_PIN   GPIO_NUM_25  
 		#define Z_DIRECTION_PIN   GPIO_NUM_33 
 		
+		// OK to comment out to use pin for other features
 		#define STEPPERS_DISABLE_PIN GPIO_NUM_13
 		
 		
@@ -62,8 +68,10 @@
 		// *** Comment it out to use the pin for other features
 		#define COOLANT_FLOOD_PIN 	GPIO_NUM_16			
 		//#define COOLANT_MIST_PIN   	GPIO_NUM_21
-
-		#define SPINDLE_PWM_PIN    GPIO_NUM_17
+		
+		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
+		// use a virtual spindle. Do not comment out the other parameters for the spindle.
+		#define SPINDLE_PWM_PIN    GPIO_NUM_17 
 		#define SPINDLE_PWM_CHANNEL 0
 		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
 		#define SPINDLE_PWM_BIT_PRECISION 8
@@ -76,9 +84,9 @@
 		//#define SPINDLE_ENABLE_PIN	GPIO_NUM_16
 		//#define SPINDLE_DIR_PIN			GPIO_NUM_16
 		
-		#define X_LIMIT_BIT      	0  
-		#define Y_LIMIT_BIT      	1 
-		#define Z_LIMIT_BIT     	2 
+		#define X_LIMIT_BIT      	0  // don't change
+		#define Y_LIMIT_BIT      	1  // don't change
+		#define Z_LIMIT_BIT     	2  // don't change
 		
 		#define X_LIMIT_PIN      	GPIO_NUM_2  
 		#define Y_LIMIT_PIN      	GPIO_NUM_4  
