@@ -341,17 +341,31 @@ void stepper_init()
 {	
   	
 	// make the direction pins outputs
-	pinMode(X_DIRECTION_PIN, OUTPUT);
-	pinMode(Y_DIRECTION_PIN, OUTPUT);
-	pinMode(Z_DIRECTION_PIN, OUTPUT);
+	#ifdef X_DIRECTION_PIN
+		pinMode(X_DIRECTION_PIN, OUTPUT);
+	#endif
+	#ifdef Y_DIRECTION_PIN
+		pinMode(Y_DIRECTION_PIN, OUTPUT);
+	#endif
+	#ifdef Z_DIRECTION_PIN
+		pinMode(Z_DIRECTION_PIN, OUTPUT);
+	#endif
 	
-	// make the step pins outputs
-	pinMode(X_STEP_PIN, OUTPUT);
-	pinMode(Y_STEP_PIN, OUTPUT);
-	pinMode(Z_STEP_PIN, OUTPUT);	
+	// make the step pins outputs	
+	#ifdef  X_STEP_PIN
+		pinMode(X_STEP_PIN, OUTPUT);
+	#endif
+	#ifdef Y_STEP_PIN
+		pinMode(Y_STEP_PIN, OUTPUT);
+	#endif
+	#ifdef Z_STEP_PIN
+		pinMode(Z_STEP_PIN, OUTPUT);	
+	#endif
 	
 	// make the stepper disable pin an output
-  pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
+	#ifdef STEPPERS_DISABLE_PIN
+		pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
+	#endif
 
  // setup stepper timer interrupt
  
@@ -444,17 +458,30 @@ void st_reset()
 void set_direction_pins_on(uint8_t onMask)
 {  
 	// inverts are applied in step generation
-  digitalWrite(X_DIRECTION_PIN, (onMask & (1<<X_AXIS)));
-  digitalWrite(Y_DIRECTION_PIN, (onMask & (1<<Y_AXIS)));
-  digitalWrite(Z_DIRECTION_PIN, (onMask & (1<<Z_AXIS)));
+	#ifdef X_DIRECTION_PIN
+		digitalWrite(X_DIRECTION_PIN, (onMask & (1<<X_AXIS)));
+	#endif
+	#ifdef Y_DIRECTION_PIN
+		digitalWrite(Y_DIRECTION_PIN, (onMask & (1<<Y_AXIS)));
+	#endif
+  #ifdef Z_DIRECTION_PIN
+		digitalWrite(Z_DIRECTION_PIN, (onMask & (1<<Z_AXIS)));
+	#endif
 }
 
 void set_stepper_pins_on(uint8_t onMask)
 {		
 		onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
-		digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
-		digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
-		digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
+		
+		#ifdef X_STEP_PIN
+			digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
+		#endif
+		#ifdef Y_STEP_PIN
+			digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
+		#endif
+		#ifdef Z_STEP_PIN
+			digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
+		#endif
 }
 
 
@@ -1027,7 +1054,10 @@ void IRAM_ATTR Stepper_Timer_Stop()
 void set_stepper_disable(uint8_t isOn)  // isOn = true // to disable
 { 
   if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) { isOn = !isOn; } // Apply pin invert.
-  digitalWrite(STEPPERS_DISABLE_PIN, isOn );
+	
+	#ifdef STEPPERS_DISABLE_PIN
+		digitalWrite(STEPPERS_DISABLE_PIN, isOn );
+	#endif
 }
 
 
