@@ -50,7 +50,6 @@ Using SD Card
 ### Roadmap
 
 - Add Wifi support and a web page interface
-- Add spindle enable and direction. 
 
 ### Credits
 
@@ -68,5 +67,9 @@ Start asking questions...I'll put the frequent ones here.
 
 
 
+### Donation
 
+This project requires a lot of work and often expensive items for testing. Please consider a donation to it.
+
+[![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TKNJ9Z775VXB2)
 
