@@ -107,13 +107,13 @@ Some features should not be changed. See notes below.
 // pull-off motion to disengage the limit switches. The following HOMING_CYCLE_x defines are executed
 // in order starting with suffix 0 and completes the homing routine for the specified-axes only. If
 // an axis is omitted from the defines, it will not home, nor will the system update its position.
-// Meaning that this allows for users with non-standard cartesian machines, such as a lathe (x then z,
+// Meaning that this allows for users with non-standard Cartesian machines, such as a lathe (x then z,
 // with no y), to configure the homing cycle behavior to their needs.
 // NOTE: The homing cycle is designed to allow sharing of limit pins, if the axes are not in the same
 // cycle, but this requires some pin settings changes in cpu_map.h file. For example, the default homing
 // cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
 // By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
-// may be reduced to one pin, if all axes are homed with seperate cycles, or vice versa, all three axes
+// may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
 // on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
 // will not be affected by pin sharing.
 // NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
@@ -185,7 +185,9 @@ Some features should not be changed. See notes below.
 // Enables a second coolant control pin via the mist coolant g-code command M7 on the Arduino Uno
 // analog pin 4. Only use this option if you require a second coolant control pin.
 // NOTE: The M8 flood coolant control pin on analog pin 3 will still be functional regardless.
-//#define ENABLE_M7 // Disabled by default. Uncomment to enable.
+// ESP32 NOTE! This is here for reference only. You enable both M7 and M8 by assigning them a GPIO Pin
+// in cpu_map.h
+//#define ENABLE_M7 // Don't uncomment...see above!
 
 // This option causes the feed hold input to act as a safety door switch. A safety door, when triggered,
 // immediately forces a feed hold and then safely de-energizes the machine. Resuming is blocked until
