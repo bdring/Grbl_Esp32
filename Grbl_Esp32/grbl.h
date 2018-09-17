@@ -20,7 +20,7 @@
 
 // Grbl versioning system
 #define GRBL_VERSION "1.1f"
-#define GRBL_VERSION_BUILD "20180910"
+#define GRBL_VERSION_BUILD "20180917"
 
 //#include <sdkconfig.h>
 #include <arduino.h>
@@ -61,4 +61,11 @@
 
 #ifdef ENABLE_SD_CARD	
 	#include "grbl_sd.h"
+#endif
+
+#ifdef ENABLE_WIFI	
+    #include "wificonfig.h"
+    #ifdef ENABLE_HTTP
+    #include "serial2socket.h"
+    #endif
 #endif

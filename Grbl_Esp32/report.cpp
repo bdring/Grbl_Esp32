@@ -484,6 +484,9 @@ void report_build_info(char *line, uint8_t client)
 	#ifdef ENABLE_SD_CARD
 		strcat(build_info,"S");
 	#endif
+  #if defined (ENABLE_WIFI) 
+    strcat(build_info,"W");
+  #endif  
   #ifndef ENABLE_RESTORE_EEPROM_WIPE_ALL // NOTE: Shown when disabled.
     strcat(build_info,"*");
   #endif
@@ -507,6 +510,9 @@ void report_build_info(char *line, uint8_t client)
   
   strcat(build_info,"]\r\n");
   grbl_send(client, build_info); // ok to send to all
+  #if defined (ENABLE_WIFI)
+  grbl_send(client, (char *)wifi_config.info()); 
+  #endif
 }
 
 
