@@ -91,6 +91,7 @@ typedef enum {
 
 //Default 404
 const char PAGE_404 []  = "<HTML>\n<HEAD>\n<title>Redirecting...</title> \n</HEAD>\n<BODY>\n<CENTER>Unknown page : $QUERY$- you will be redirected...\n<BR><BR>\nif not redirected, <a href='http://$WEB_ADDRESS$'>click here</a>\n<BR><BR>\n<PROGRESS name='prg' id='prg'></PROGRESS>\n\n<script>\nvar i = 0; \nvar x = document.getElementById(\"prg\"); \nx.max=5; \nvar interval=setInterval(function(){\ni=i+1; \nvar x = document.getElementById(\"prg\"); \nx.value=i; \nif (i>5) \n{\nclearInterval(interval);\nwindow.location.href='/';\n}\n},1000);\n</script>\n</CENTER>\n</BODY>\n</HTML>\n\n";
+const char PAGE_CAPTIVE [] = "<HTML>\n<HEAD>\n<title>Captive Portal</title> \n</HEAD>\n<BODY>\n<CENTER>Captive Portal page : $QUERY$- you will be redirected...\n<BR><BR>\nif not redirected, <a href='http://$WEB_ADDRESS$'>click here</a>\n<BR><BR>\n<PROGRESS name='prg' id='prg'></PROGRESS>\n\n<script>\nvar i = 0; \nvar x = document.getElementById(\"prg\"); \nx.max=5; \nvar interval=setInterval(function(){\ni=i+1; \nvar x = document.getElementById(\"prg\"); \nx.value=i; \nif (i>5) \n{\nclearInterval(interval);\nwindow.location.href='/';\n}\n},1000);\n</script>\n</CENTER>\n</BODY>\n</HTML>\n\n";
 
 
 Web_Server web_server;
@@ -301,19 +302,20 @@ void Web_Server:: handle_not_found()
                 path = pathWithGz;
             }
             File datafile = SD.open((char *)path.c_str());
-            if (!datafile) {
-                page_not_found = true;
+            if (datafile) {
+               if( _webserver->streamFile(datafile, contentType) == datafile.size()) {
+                    datafile.close();
+                    wifi_config.wait(0);
+                    return;
+               } else{
+                   datafile.close();
+               }
             }
-            if (!page_not_found && (_webserver->streamFile(datafile, contentType) != datafile.size())) {
-            } else {
-                //TODO
-            }
-            datafile.close();
-            wifi_config.wait(0);
-            return;
-        } else {
-            page_not_found = true;
-        }
+        } 
+        String content = "cannot find ";
+        content+=path;
+        _webserver->send(404,"text/plain",content.c_str());
+        return;
     } else
 #endif
         if(SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
@@ -329,9 +331,9 @@ void Web_Server:: handle_not_found()
         }
 
     if (page_not_found ) {
-#ifdef CAPTIVE_PORTAL_FEATURE
+#ifdef ENABLE_CAPTIVE_PORTAL
         if (WiFi.getMode()!=WIFI_STA ) {
-            String contentType=FPSTR(PAGE_CAPTIVE);
+            String contentType= PAGE_CAPTIVE;
             String stmp = WiFi.softAPIP().toString();
             //Web address = ip + port
             String KEY_IP = "$WEB_ADDRESS$";
