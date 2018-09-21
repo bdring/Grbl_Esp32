@@ -42,7 +42,6 @@
 #include <Preferences.h>
 #include "report.h"
 #include <WebServer.h>
-#include <AsyncTCP.h>
 #include <ESP32SSDP.h>
 #include <StreamString.h>
 #include <Update.h>
