@@ -22,7 +22,7 @@
 	#include "SD.h"
 	#include "SPI.h"
 
-#define FILE_TYPE_COUNT 3   // number of acceptable gcode file types in array
+#define FILE_TYPE_COUNT 5   // number of acceptable gcode file types in array
 
 #define SDCARD_DET_PIN -1
 #define SDCARD_DET_VAL 0
