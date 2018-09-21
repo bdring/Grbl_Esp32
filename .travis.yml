@@ -36,6 +36,7 @@ script:
   - build_sketch  $TRAVIS_BUILD_DIR/Grbl_Esp32/Grbl_Esp32.ino
   - sed -i "s/\/\/#define ENABLE_BLUETOOTH /#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
   - sed -i "s/#define ENABLE_WIFI /\/\/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
+  - arduino --board esp32:esp32:esp32 --save-prefs
   
 notifications:
   email:

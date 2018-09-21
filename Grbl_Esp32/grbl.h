@@ -23,7 +23,7 @@
 #define GRBL_VERSION_BUILD "20180917"
 
 //#include <sdkconfig.h>
-#include <arduino.h>
+#include <Arduino.h>
 #include <EEPROM.h>
 #include <driver/rmt.h>
 #include <esp_task_wdt.h>
