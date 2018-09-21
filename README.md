@@ -6,6 +6,8 @@
 
 ### Project Overview
 
+[![Build Status](https://travis-ci.org/bdring/Grbl_Esp32.svg?branch=WebUI)](https://travis-ci.org/bdring/Grbl_Esp32)
+
 This is a port of [Grbl](https://github.com/gnea/grbl) for the ESP32. The ESP32 is potentially a great target for Grbl for the following reasons
 
 - **Faster** - Faster step rates and additional features could be added
