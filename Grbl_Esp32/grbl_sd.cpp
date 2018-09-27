@@ -28,7 +28,7 @@
 
 
 File myFile;
-char fileTypes[FILE_TYPE_COUNT][8] = {".NC", ".TXT", ".GCODE"}; // filter out files not of these types (s/b UPPERCASE)
+char fileTypes[FILE_TYPE_COUNT][8] = {".NC", ".TXT", ".GCODE", ".TAP", ".NGC"}; // filter out files not of these types (s/b UPPERCASE)
 bool SD_ready_next = false; // Grbl has processed a line and is waiting for another
 
 

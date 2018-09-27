@@ -260,20 +260,38 @@ void limits_init()
 {  
 	
   #ifndef DISABLE_LIMIT_PIN_PULL_UP  
-    pinMode(X_LIMIT_PIN, INPUT_PULLUP);  // input with pullup
-    pinMode(Y_LIMIT_PIN, INPUT_PULLUP);
-    pinMode(Z_LIMIT_PIN, INPUT_PULLUP);
+		#ifdef X_LIMIT_PIN
+			pinMode(X_LIMIT_PIN, INPUT_PULLUP);  // input with pullup
+		#endif
+		#ifdef Y_LIMIT_PIN
+			pinMode(Y_LIMIT_PIN, INPUT_PULLUP);
+		#endif
+		#ifdef Z_LIMIT_PIN
+			pinMode(Z_LIMIT_PIN, INPUT_PULLUP);
+		#endif
 	#else
-		pinMode(X_LIMIT_PIN, INPUT); // input no pullup
-		pinMode(Y_LIMIT_PIN, INPUT);
-		pinMode(Z_LIMIT_PIN, INPUT);		
+		#ifdef X_LIMIT_PIN
+			pinMode(X_LIMIT_PIN, INPUT); // input no pullup
+		#endif
+		#ifdef Y_LIMIT_PIN
+			pinMode(Y_LIMIT_PIN, INPUT);
+		#endif
+		#ifdef Z_LIMIT_PIN
+			pinMode(Z_LIMIT_PIN, INPUT);	
+		#endif
   #endif
    
   if (bit_istrue(settings.flags,BITFLAG_HARD_LIMIT_ENABLE)) {
     // attach interrupt to them
-    attachInterrupt(digitalPinToInterrupt(X_LIMIT_PIN), isr_limit_switches, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Y_LIMIT_PIN), isr_limit_switches, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(Z_LIMIT_PIN), isr_limit_switches, CHANGE);
+		#ifdef X_LIMIT_PIN
+			attachInterrupt(digitalPinToInterrupt(X_LIMIT_PIN), isr_limit_switches, CHANGE);
+		#endif
+		#ifdef Y_LIMIT_PIN
+			attachInterrupt(digitalPinToInterrupt(Y_LIMIT_PIN), isr_limit_switches, CHANGE);
+		#endif
+		#ifdef Z_LIMIT_PIN
+			attachInterrupt(digitalPinToInterrupt(Z_LIMIT_PIN), isr_limit_switches, CHANGE);
+		#endif
   } else {
     limits_disable();
   }
@@ -304,8 +322,18 @@ void limits_disable()
 // number in bit position, i.e. Z_AXIS is (1<<2) or bit 2, and Y_AXIS is (1<<1) or bit 1.
 uint8_t limits_get_state()
 {
-  uint8_t limit_state = 0;  
-  uint8_t pin = (digitalRead(X_LIMIT_PIN) + (digitalRead(Y_LIMIT_PIN) << Y_AXIS) + (digitalRead(Z_LIMIT_PIN) << Z_AXIS) );
+  uint8_t limit_state = 0;
+  uint8_t pin = 0;
+	
+	#ifdef X_LIMIT_PIN
+		pin += digitalRead(X_LIMIT_PIN);
+	#endif
+	#ifdef Y_LIMIT_PIN
+		pin += (digitalRead(Y_LIMIT_PIN) << Y_AXIS);
+	#endif
+	#ifdef Z_LIMIT_PIN
+		pin += (digitalRead(Z_LIMIT_PIN) << Z_AXIS);
+	#endif
 
 	#ifdef INVERT_LIMIT_PIN_MASK // not normally used..unless you have both normal and inverted switches
     pin ^= INVERT_LIMIT_PIN_MASK;

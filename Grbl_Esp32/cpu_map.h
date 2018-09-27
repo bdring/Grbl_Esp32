@@ -36,8 +36,7 @@
 	
 	*/
 	
-	// This is the CPU Map for the ESP32 CNC Controller R2
-	
+	// This is the CPU Map for the ESP32 CNC Controller R2	
 	
 	  // It is OK to comment out any step and direction pins. This
     // won't affect operation except that there will be no output
@@ -45,24 +44,14 @@
 		// be handy if you are using a servo, etc. for another axis.
 		#define X_STEP_PIN      GPIO_NUM_12
 		#define Y_STEP_PIN      GPIO_NUM_14
-		#define Z_STEP_PIN      GPIO_NUM_27
-		#define STEP_MASK       B111 // don't change
-		
-		#define X_STEP_BIT    0  // don't change
-		#define Y_STEP_BIT    1  // don't change
-		#define Z_STEP_BIT    2  // don't change
-		
-		#define X_DIRECTION_BIT   0 // don't change
-		#define Y_DIRECTION_BIT   1  // don't change
-		#define Z_DIRECTION_BIT   2  // don't change
+    #define Z_STEP_PIN      GPIO_NUM_27		
 		
 		#define X_DIRECTION_PIN   GPIO_NUM_26
 		#define Y_DIRECTION_PIN   GPIO_NUM_25  
 		#define Z_DIRECTION_PIN   GPIO_NUM_33 
 		
 		// OK to comment out to use pin for other features
-		#define STEPPERS_DISABLE_PIN GPIO_NUM_13
-		
+		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
 		
 		// *** the flood coolant feature code is activated by defining this pins
 		// *** Comment it out to use the pin for other features
@@ -82,27 +71,18 @@
 		// if these spindle function pins are defined, they will be activated in the code
 		// comment them out to use the pins for other functions
 		//#define SPINDLE_ENABLE_PIN	GPIO_NUM_16
-		//#define SPINDLE_DIR_PIN			GPIO_NUM_16
-		
-		#define X_LIMIT_BIT      	0  // don't change
-		#define Y_LIMIT_BIT      	1  // don't change
-		#define Z_LIMIT_BIT     	2  // don't change
+		//#define SPINDLE_DIR_PIN			GPIO_NUM_16		
 		
 		#define X_LIMIT_PIN      	GPIO_NUM_2  
 		#define Y_LIMIT_PIN      	GPIO_NUM_4  
-		#define Z_LIMIT_PIN     	GPIO_NUM_15 
+		#define Z_LIMIT_PIN     	GPIO_NUM_15 		
 		
-		#define LIMIT_MASK      	B111  // don't change
 		#define PROBE_PIN       	GPIO_NUM_32  
-		#define PROBE_MASK        1 // don't change		
-		
 		
 		#define CONTROL_SAFETY_DOOR_PIN   GPIO_NUM_35  // needs external pullup
 		#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
 		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
-		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    
-		#define CONTROL_MASK      				B1111  // don't change
-		#define INVERT_CONTROL_PIN_MASK   B1110
+		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
 		
 		// These are some ESP32 CPU Settings that the program needs, but are generally not changed
 		#define F_TIMERS	80000000    // a reference to the speed of ESP32 timers
@@ -112,5 +92,29 @@
 		
 		#define STEP_PULSE_MIN 2   // uSeconds
 		#define STEP_PULSE_MAX 10  // uSeconds
+		
+		// =============== Don't change or comment these out ======================
+		// They are for legacy purposes and will not affect your I/O 
+		
+		#define X_STEP_BIT    0  // don't change
+		#define Y_STEP_BIT    1  // don't change
+		#define Z_STEP_BIT    2  // don't change
+		#define STEP_MASK       B111 // don't change
+		
+		#define X_DIRECTION_BIT   0 // don't change
+		#define Y_DIRECTION_BIT   1  // don't change
+		#define Z_DIRECTION_BIT   2  // don't change
+		
+		#define X_LIMIT_BIT      	0  // don't change
+		#define Y_LIMIT_BIT      	1  // don't change
+		#define Z_LIMIT_BIT     	2  // don't change
+		#define LIMIT_MASK      	B111  // don't change
+		
+		#define PROBE_MASK        1 // don't change		
+		
+		#define CONTROL_MASK      				B1111  	// don't change
+		#define INVERT_CONTROL_PIN_MASK   B1110		// don't change
+		
+		// =======================================================================
 		
 #endif
