@@ -129,7 +129,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
     // NOTE: Mantissa is multiplied by 100 to catch non-integer command values. This is more
     // accurate than the NIST gcode requirement of x10 when used for commands, but not quite
     // accurate enough for value words that require integers to within 0.0001. This should be
-    // a good enough comprimise and catch most all non-integer errors. To make it compliant,
+    // a good enough compromise and catch most all non-integer errors. To make it compliant,
     // we would simply need to change the mantissa to int16, but this add compiled flash space.
     // Maybe update this later.
     int_value = trunc(value);

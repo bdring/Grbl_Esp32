@@ -148,7 +148,15 @@ void report_status_message(uint8_t status_code, uint8_t client)
 				grbl_send(client,"ok\r\n");
 			#endif					
 			break;			
-    default:
+    default:			
+			#ifdef ENABLE_SD_CARD
+			// do we need to stop a running SD job?
+			if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+				grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
+			  closeFile();
+				return;
+			}
+			#endif
 			grbl_sendf(client, "error:%d\r\n", status_code);
   }
 }
@@ -192,6 +200,8 @@ void report_feedback_message(uint8_t message_code)  // OK to send to all clients
       grbl_send(CLIENT_ALL, "[MSG:Restoring spindle]\r\n"); break;
     case MESSAGE_SLEEP_MODE:
       grbl_send(CLIENT_ALL, "[MSG:Sleeping]\r\n"); break;
+		case MESSAGE_SD_FILE_QUIT:
+			grbl_sendf(CLIENT_ALL, "[MSG:Reset during SD file at line: %d]\r\n", sd_get_current_line_number()); break;
   }  		
 }
 

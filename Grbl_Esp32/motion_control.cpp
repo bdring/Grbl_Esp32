@@ -366,7 +366,15 @@ void mc_reset()
 
     // Kill spindle and coolant.
     spindle_stop();
-    coolant_stop();
+    coolant_stop();		
+		
+		#ifdef ENABLE_SD_CARD
+			// do we need to stop a running SD job?
+			if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+				report_feedback_message(MESSAGE_SD_FILE_QUIT);
+				closeFile();
+			}
+		#endif
 
     // Kill steppers only if in any motion state, i.e. cycle, actively holding, or homing.
     // NOTE: If steppers are kept enabled via the step idle delay setting, this also keeps
@@ -379,5 +387,6 @@ void mc_reset()
       } else { system_set_exec_alarm(EXEC_ALARM_ABORT_CYCLE); }
       st_go_idle(); // Force kill steppers. Position has likely been lost.
     }
+		
   }
 }

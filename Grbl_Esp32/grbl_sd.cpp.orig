@@ -25,9 +25,13 @@
 #define LINE_FLAG_COMMENT_PARENTHESES bit(1)
 #define LINE_FLAG_COMMENT_SEMICOLON bit(2)
 
+
+
 File myFile;
+char fileTypes[FILE_TYPE_COUNT][8] = {".NC", ".TXT", ".GCODE", ".TAP", ".NGC"}; // filter out files not of these types (s/b UPPERCASE)
 bool SD_ready_next = false; // Grbl has processed a line and is waiting for another
 uint32_t sd_current_line_number; // stores the most recent line number read from the SD
+
 
 // attempt to mount the SD card
 bool sd_mount()
@@ -59,7 +63,28 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels)
       if(levels) {
         listDir(fs, file.name(), levels -1);
       }
-    } else {      
+    } else {
+
+      /*
+      strcpy(temp_filename, file.name()); // make a copy
+
+
+
+      // convert it to uppercase so it is easy to filter
+      for(int i = 0; i <= strlen(file.name()); i++){
+      	temp_filename[i] = toupper(temp_filename[i]);
+      }
+
+      // now filter for accetable file types
+
+      for (uint8_t i=0; i < FILE_TYPE_COUNT; i++) // make sure it is a valid file type
+      {
+      	if (strstr(temp_filename, fileTypes[i])) {
+      		grbl_sendf(CLIENT_ALL, "[FILE:%s|SIZE:%d]\r\n", file.name(), file.size());
+      		break;
+      	}
+      }
+      */
       grbl_sendf(CLIENT_ALL, "[FILE:%s|SIZE:%d]\r\n", file.name(), file.size());
     }
     file = root.openNextFile();
@@ -114,9 +139,11 @@ boolean readFileLine(char *line)
 
   sd_current_line_number += 1;
 
+
   while(myFile.available()) {
     c = myFile.read();
-		
+
+
     if (c == '\r' || c == ' ' ) {
       // ignore these whitespace items
     } else if (c == '(') {
@@ -128,9 +155,8 @@ boolean readFileLine(char *line)
       }
     } else if (c == ';') {
       // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
-      if (!(line_flags & LINE_FLAG_COMMENT_PARENTHESES)) { // semi colon inside parentheses do not mean anything
+      if (!(line_flags & LINE_FLAG_COMMENT_PARENTHESES)) // semi colon inside parentheses do not mean anything
         line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
-      }
     } else if (c == '\n') { // found the newline, so mark the end and return true
       line[index] = '\0';
       return true;
@@ -152,17 +178,15 @@ boolean readFileLine(char *line)
   if (index !=0) {
     line[index] = '\0';
     return true;
-  } else { // empty line after new line
+  } else // empty line after new line
     return false;
-  }
 }
 
 // return a percentage complete 50.5 = 50.5%
 float sd_report_perc_complete()
 {
-  if (!myFile) {
+  if (!myFile)
     return 0.0;
-  }
 
   return  ((float)myFile.position() /  (float)myFile.size() * 100.0);
 }
@@ -185,24 +209,17 @@ uint8_t get_sd_state(bool refresh)
   }
 #endif
   //if busy doing something return state
-  if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE))) {
-    return sd_state;
-  }
-  if (!refresh) {
-    return sd_state;  //to avoid refresh=true + busy to reset SD and waste time
-  }
+  if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE))) return sd_state;
+  if (!refresh) return sd_state; //to avoid refresh=true + busy to reset SD and waste time
   //SD is idle or not detected, let see if still the case
 
   if (sd_state == SDCARD_IDLE) {
     SD.end();
     //using default value for speed ? should be parameter
     //refresh content if card was removed
-    if (!SD.begin()) {
-      sd_state = SDCARD_NOT_PRESENT;
-    } else {
-      if ( !(SD.cardSize() > 0 )) {
-        sd_state = SDCARD_NOT_PRESENT;
-      }
+    if (!SD.begin()) sd_state = SDCARD_NOT_PRESENT;
+    else {
+      if ( !(SD.cardSize() > 0 )) sd_state = SDCARD_NOT_PRESENT;
     }
   }
   return sd_state;
@@ -219,9 +236,8 @@ void sd_get_current_filename(char* name)
 
   if (myFile != NULL) {
     strcpy(name, myFile.name());
-  } else {
+  } else
     name[0] = 0;
-  }
 }
 
 
