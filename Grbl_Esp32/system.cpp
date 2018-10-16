@@ -442,3 +442,14 @@ uint8_t get_limit_pin_mask(uint8_t axis_idx)
   return((1<<Z_LIMIT_BIT));
 }
 
+// CoreXY calculation only. Returns x or y-axis "steps" based on CoreXY motor steps.
+int32_t system_convert_corexy_to_x_axis_steps(int32_t *steps)
+{
+	return( (steps[A_MOTOR] + steps[B_MOTOR])/2 );
+}
+int32_t system_convert_corexy_to_y_axis_steps(int32_t *steps)
+{
+	return( (steps[A_MOTOR] - steps[B_MOTOR])/2 );
+}
+
+
