@@ -365,6 +365,7 @@ void stepper_init()
 	// make the stepper disable pin an output
 	#ifdef STEPPERS_DISABLE_PIN
 		pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
+		set_stepper_disable(true);
 	#endif
 
  // setup stepper timer interrupt
