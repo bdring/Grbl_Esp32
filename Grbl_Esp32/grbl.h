@@ -69,4 +69,7 @@
     #ifdef ENABLE_HTTP
     #include "serial2socket.h"
     #endif
+    #ifdef ENABLE_TELNET
+    #include "telnet_server.h"
+    #endif
 #endif
