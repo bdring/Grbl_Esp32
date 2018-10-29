@@ -66,6 +66,7 @@ bool Telnet_Server::begin(){
     if (penabled == 0) return false;
     //create instance
     _telnetserver= new WiFiServer(_port);
+    _telnetserver->setNoDelay(true);
     String s = "[MSG:TELNET Started " + String(_port) + "]\r\n";
     grbl_send(CLIENT_ALL,(char *)s.c_str());
     //start telnet server
@@ -128,12 +129,16 @@ void Telnet_Server::handle(){
         }
     clearClients();
     //check clients for data
+    uint8_t c;
     for(uint8_t i = 0; i < MAX_TLNT_CLIENTS; i++){
       if (_telnetClients[i] && _telnetClients[i].connected()){
         if(_telnetClients[i].available()){
           //get data from the telnet client and push it to grbl
           while(_telnetClients[i].available() && (available() < TELNETRXBUFFERSIZE)) {
-              push(_telnetClients[i].read());
+              wifi_config.wait(0);
+              c = _telnetClients[i].read();
+              if ((char)c != '\r')push(c);
+              if ((char)c == '\n')return;
           }
         }
       }
@@ -178,6 +183,7 @@ bool Telnet_Server::push (const char * data){
         if (current > (TELNETRXBUFFERSIZE-1)) current = 0;
         _RXbuffer[current] = data[i];
         current ++;
+        wifi_config.wait(0);
         }
         _RXbufferSize+=strlen(data);
         return true;
