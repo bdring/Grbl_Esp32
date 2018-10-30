@@ -40,6 +40,9 @@
 #ifdef ENABLE_HTTP
 #include "web_server.h"
 #endif
+#ifdef ENABLE_TELNET
+#include "telnet_server.h"
+#endif
 
 WiFiServices wifi_services;
 
@@ -108,9 +111,16 @@ bool WiFiServices::begin(){
 #ifdef ENABLE_HTTP
     web_server.begin();
 #endif
+#ifdef ENABLE_TELNET
+    telnet_server.begin();
+#endif
     return no_error;
 }
 void WiFiServices::end(){
+#ifdef ENABLE_TELNET
+    telnet_server.end();
+#endif
+
 #ifdef ENABLE_HTTP
     web_server.end();
 #endif
@@ -133,6 +143,9 @@ void WiFiServices::handle(){
 #endif
 #ifdef ENABLE_HTTP
     web_server.handle();
+#endif
+#ifdef ENABLE_TELNET
+    telnet_server.handle();
 #endif
 }
 

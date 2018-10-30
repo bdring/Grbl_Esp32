@@ -101,8 +101,9 @@
 #define CLIENT_SERIAL 	1
 #define CLIENT_BT 			2
 #define CLIENT_WEBUI		3
+#define CLIENT_TELNET		4
 #define CLIENT_ALL			0xFF
-#define CLIENT_COUNT    3 // total number of client types regardless if they are used
+#define CLIENT_COUNT    4 // total number of client types regardless if they are used
 
 // functions to send data to the user.
 void grbl_send(uint8_t client, char *text);
