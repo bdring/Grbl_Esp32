@@ -66,6 +66,7 @@
 #define DEFAULT_HTTP_STATE 1
 #define DEFAULT_TELNETSERVER_PORT 8888
 #define DEFAULT_TELNET_STATE 1
+#define DEFAULT_STA_IP_MODE DHCP_MODE
 #define HIDDEN_PASSWORD "********"
 
 //boundaries
@@ -110,7 +111,7 @@ public:
     static void end();
     static void handle();
     static void restart_ESP();
-
+    static void reset_ESP();
     private :
     static bool ConnectSTA2AP();
     static void WiFiEvent(WiFiEvent_t event);
