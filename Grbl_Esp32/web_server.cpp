@@ -676,6 +676,7 @@ bool Web_Server::execute_internal_command (int cmd, String cmd_params, level_aut
             espresponse->print ("\"}");
             espresponse->print (",");
             
+#ifdef ENABLE_TELNET
             //4 - telnet protocol mode
             espresponse->print ("{\"F\":\"network\",\"P\":\"");
             espresponse->print (TELNET_ENABLE_ENTRY);
@@ -696,7 +697,7 @@ bool Web_Server::execute_internal_command (int cmd, String cmd_params, level_aut
             espresponse->print (String(MIN_TELNET_PORT).c_str());
             espresponse->print ("\"}");
             espresponse->print (",");
-            
+#endif          
             //6 - wifi mode
             espresponse->print ("{\"F\":\"network\",\"P\":\"");
             espresponse->print (ESP_WIFI_MODE);
