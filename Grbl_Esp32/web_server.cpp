@@ -127,6 +127,8 @@ bool Web_Server::begin(){
     int8_t penabled = prefs.getChar(HTTP_ENABLE_ENTRY, DEFAULT_HTTP_STATE);
     //Get http port
     _port = prefs.getUShort(HTTP_PORT_ENTRY, DEFAULT_WEBSERVER_PORT);
+    //Get telnet port
+    _data_port = prefs.getUShort(TELNET_PORT_ENTRY, DEFAULT_TELNETSERVER_PORT);
     //Get hostname
     String defV = DEFAULT_HOSTNAME;
     _hostname = prefs.getString(HOSTNAME_ENTRY, defV);

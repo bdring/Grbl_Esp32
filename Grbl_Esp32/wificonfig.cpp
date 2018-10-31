@@ -446,6 +446,90 @@ void WiFiConfig::restart_ESP(){
 }
 
 /**
+ * Restart ESP
+ */
+void WiFiConfig::reset_ESP(){
+    Preferences prefs;
+    prefs.begin(NAMESPACE, false);
+    String sval;
+    int8_t bbuf;
+    int16_t ibuf;
+    bool error = false;
+    sval = DEFAULT_HOSTNAME;
+    if (prefs.putString(HOSTNAME_ENTRY, sval) == 0){
+        error = true;
+    }
+    sval = DEFAULT_STA_SSID;
+    if (prefs.putString(STA_SSID_ENTRY, sval) == 0){
+        error = true;
+    }
+    sval = DEFAULT_STA_PWD;
+    if (prefs.putString(STA_PWD_ENTRY, sval) == 0){
+        error = true;
+    }
+    sval = DEFAULT_AP_SSID;
+    if (prefs.putString(AP_SSID_ENTRY, sval) == 0){
+        error = true;
+    }
+    sval = DEFAULT_AP_PWD;
+    if (prefs.putString(AP_PWD_ENTRY, sval) == 0){
+        error = true;
+    }
+    
+    bbuf = DEFAULT_AP_CHANNEL;
+    if (prefs.putChar(AP_CHANNEL_ENTRY, bbuf) ==0 ) {
+        error = true;
+    }
+    bbuf = DEFAULT_STA_IP_MODE;
+    if (prefs.putChar(STA_IP_MODE_ENTRY, bbuf) ==0 ) {
+        error = true;
+    }  
+    bbuf = DEFAULT_HTTP_STATE;
+    if (prefs.putChar(HTTP_ENABLE_ENTRY, bbuf) ==0 ) {
+        error = true;
+    } 
+    bbuf = DEFAULT_TELNET_STATE;
+    if (prefs.putChar(TELNET_ENABLE_ENTRY, bbuf) ==0 ) {
+        error = true;
+    }
+    bbuf = DEFAULT_WIFI_MODE;
+    if (prefs.putChar(ESP_WIFI_MODE, bbuf) ==0 ) {
+        error = true;
+    }  
+    ibuf = DEFAULT_WEBSERVER_PORT;
+    if (prefs.putUShort(HTTP_PORT_ENTRY, ibuf) == 0) {
+        error = true;
+    }
+    ibuf = DEFAULT_TELNETSERVER_PORT;
+    if (prefs.putUShort(TELNET_PORT_ENTRY, ibuf) == 0) {
+        error = true;
+    }
+    sval = DEFAULT_STA_IP;
+    if (prefs.putInt(STA_IP_ENTRY, wifi_config.IP_int_from_string(sval)) == 0) {
+        error = true;
+    }
+    sval = DEFAULT_STA_GW;
+    if (prefs.putInt(STA_GW_ENTRY, wifi_config.IP_int_from_string(sval)) == 0) {
+        error = true;
+    }
+    sval = DEFAULT_STA_MK;
+    if (prefs.putInt(STA_MK_ENTRY, wifi_config.IP_int_from_string(sval)) == 0) {
+        error = true;
+    }
+    sval = DEFAULT_AP_IP;
+    if (prefs.putInt(AP_IP_ENTRY, wifi_config.IP_int_from_string(sval)) == 0) {
+        error = true;
+    }         
+    prefs.end();
+    if (error) {
+        grbl_send(CLIENT_ALL,"[MSG:WiFi reset error]\r\n");
+    } else {
+        grbl_send(CLIENT_ALL,"[MSG:WiFi reset done]\r\n");
+    }
+}
+
+
+/**
  * Handle not critical actions that must be done in sync environement
  */
 void WiFiConfig::handle() {
