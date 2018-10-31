@@ -188,10 +188,11 @@ bool Web_Server::begin(){
 #endif
     
 #ifdef ENABLE_CAPTIVE_PORTAL
-     if(WiFi.getMode() == WIFI_AP){
+     if(WiFi.getMode() != WIFI_STA){
         // if DNSServer is started with "*" for domain name, it will reply with
         // provided IP to all DNS request
         dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
+        grbl_send(CLIENT_ALL,"[MSG:Captive Portal Started]\r\n");
         _webserver->on ("/generate_204", HTTP_ANY,  handle_root);
         _webserver->on ("/gconnectivitycheck.gstatic.com", HTTP_ANY, handle_root);
         //do not forget the / at the end
@@ -675,6 +676,7 @@ bool Web_Server::execute_internal_command (int cmd, String cmd_params, level_aut
             espresponse->print ("\"}");
             espresponse->print (",");
             
+#ifdef ENABLE_TELNET
             //4 - telnet protocol mode
             espresponse->print ("{\"F\":\"network\",\"P\":\"");
             espresponse->print (TELNET_ENABLE_ENTRY);
@@ -695,7 +697,7 @@ bool Web_Server::execute_internal_command (int cmd, String cmd_params, level_aut
             espresponse->print (String(MIN_TELNET_PORT).c_str());
             espresponse->print ("\"}");
             espresponse->print (",");
-            
+#endif          
             //6 - wifi mode
             espresponse->print ("{\"F\":\"network\",\"P\":\"");
             espresponse->print (ESP_WIFI_MODE);
@@ -2266,7 +2268,7 @@ void Web_Server::SDFile_direct_upload()
 void Web_Server::handle(){
 static uint32_t timeout = millis();
 #ifdef ENABLE_CAPTIVE_PORTAL
-    if(WiFi.getMode() == WIFI_AP){
+    if(WiFi.getMode() != WIFI_STA){
         dnsServer.processNextRequest();
     }
 #endif
