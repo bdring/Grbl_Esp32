@@ -33,7 +33,7 @@
   #define HOMING_AXIS_LOCATE_SCALAR  5.0 // Must be > 1 to ensure limit switch is cleared.
 #endif
 
-void isr_limit_switches()
+void IRAM_ATTR isr_limit_switches()
 {
 	 // Ignore limit switches if already in an alarm state or in-process of executing an alarm.
     // When in the alarm state, Grbl should have been reset or will force a reset, so any pending
