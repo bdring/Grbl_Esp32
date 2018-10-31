@@ -66,6 +66,9 @@
 		#define SPINDLE_PWM_BIT_PRECISION 8
 		#define SPINDLE_PWM_OFF_VALUE     0
 		#define SPINDLE_PWM_MAX_VALUE     255  // TODO ESP32 Calc from resolution
+#ifndef SPINDLE_PWM_MIN_VALUE
+		#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+#endif
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
 		
 		// if these spindle function pins are defined, they will be activated in the code
