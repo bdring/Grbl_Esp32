@@ -213,4 +213,9 @@ void system_set_exec_accessory_override_flag(uint8_t mask);
 void system_clear_exec_motion_overrides();
 void system_clear_exec_accessory_overrides();
 
+
+int32_t system_convert_corexy_to_x_axis_steps(int32_t *steps);
+int32_t system_convert_corexy_to_y_axis_steps(int32_t *steps);
+
+
 #endif

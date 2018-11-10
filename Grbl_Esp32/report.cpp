@@ -65,6 +65,12 @@ void grbl_send(uint8_t client, char *text)
 		if ( client == CLIENT_WEBUI || client == CLIENT_ALL )
 			Serial2Socket.write((const uint8_t*)text, strlen(text));
 #endif
+
+#if defined (ENABLE_WIFI) && defined(ENABLE_TELNET)
+		if ( client == CLIENT_TELNET || client == CLIENT_ALL ){
+                telnet_server.write((const uint8_t*)text, strlen(text));
+            }
+#endif
 	
 	if ( client == CLIENT_SERIAL || client == CLIENT_ALL )
 		Serial.print(text);	
@@ -148,7 +154,15 @@ void report_status_message(uint8_t status_code, uint8_t client)
 				grbl_send(client,"ok\r\n");
 			#endif					
 			break;			
-    default:
+    default:			
+			#ifdef ENABLE_SD_CARD
+			// do we need to stop a running SD job?
+			if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+				grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
+			  closeFile();
+				return;
+			}
+			#endif
 			grbl_sendf(client, "error:%d\r\n", status_code);
   }
 }
@@ -192,6 +206,8 @@ void report_feedback_message(uint8_t message_code)  // OK to send to all clients
       grbl_send(CLIENT_ALL, "[MSG:Restoring spindle]\r\n"); break;
     case MESSAGE_SLEEP_MODE:
       grbl_send(CLIENT_ALL, "[MSG:Sleeping]\r\n"); break;
+		case MESSAGE_SD_FILE_QUIT:
+			grbl_sendf(CLIENT_ALL, "[MSG:Reset during SD file at line: %d]\r\n", sd_get_current_line_number()); break;
   }  		
 }
 
@@ -484,6 +500,9 @@ void report_build_info(char *line, uint8_t client)
 	#ifdef ENABLE_SD_CARD
 		strcat(build_info,"S");
 	#endif
+  #if defined (ENABLE_WIFI) 
+    strcat(build_info,"W");
+  #endif  
   #ifndef ENABLE_RESTORE_EEPROM_WIPE_ALL // NOTE: Shown when disabled.
     strcat(build_info,"*");
   #endif
@@ -507,6 +526,9 @@ void report_build_info(char *line, uint8_t client)
   
   strcat(build_info,"]\r\n");
   grbl_send(client, build_info); // ok to send to all
+  #if defined (ENABLE_WIFI)
+  grbl_send(client, (char *)wifi_config.info()); 
+  #endif
 }
 
 

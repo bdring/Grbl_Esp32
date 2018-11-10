@@ -202,9 +202,6 @@ void protocol_main_loop()
 				set_stepper_disable(true);
 			}
 		}
-#ifdef ENABLE_WIFI
-  wifi_config.handle();
-#endif
   }
 
   return; /* Never reached */

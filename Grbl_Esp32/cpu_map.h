@@ -44,7 +44,7 @@
 		// be handy if you are using a servo, etc. for another axis.
 		#define X_STEP_PIN      GPIO_NUM_12
 		#define Y_STEP_PIN      GPIO_NUM_14
-		#define Z_STEP_PIN      GPIO_NUM_27		
+    #define Z_STEP_PIN      GPIO_NUM_27		
 		
 		#define X_DIRECTION_PIN   GPIO_NUM_26
 		#define Y_DIRECTION_PIN   GPIO_NUM_25  
@@ -62,10 +62,18 @@
 		// use a virtual spindle. Do not comment out the other parameters for the spindle.
 		#define SPINDLE_PWM_PIN    GPIO_NUM_17 
 		#define SPINDLE_PWM_CHANNEL 0
+		// PWM Generator is based on 80,000,000 Hz counter
+		// Therefor the freq determines the resolution
+		// 80,000,000 / freq = max resolution
+		// For 5000 that is 80,000,000 / 5000 = 16000 
+		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
 		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 8
+		#define SPINDLE_PWM_BIT_PRECISION 12   // be sure to match this with SPINDLE_PWM_MAX_VALUE
 		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     255  // TODO ESP32 Calc from resolution
+		#define SPINDLE_PWM_MAX_VALUE     4096 // (2^SPINDLE_PWM_BIT_PRECISION)
+#ifndef SPINDLE_PWM_MIN_VALUE
+		#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+#endif
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
 		
 		// if these spindle function pins are defined, they will be activated in the code

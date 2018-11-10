@@ -1,9 +1,9 @@
 /*
-  grbl_sd.cpp - Adds SD Card Features to Grbl_ESP32 
+  grbl_sd.cpp - Adds SD Card Features to Grbl_ESP32
   Part of Grbl_ESP32
 
   Copyright (c) 2018 Barton Dring Buildlog.net
-  
+
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -25,82 +25,71 @@
 #define LINE_FLAG_COMMENT_PARENTHESES bit(1)
 #define LINE_FLAG_COMMENT_SEMICOLON bit(2)
 
-
-
 File myFile;
-char fileTypes[FILE_TYPE_COUNT][8] = {".NC", ".TXT", ".GCODE", ".TAP", ".NGC"}; // filter out files not of these types (s/b UPPERCASE)
 bool SD_ready_next = false; // Grbl has processed a line and is waiting for another
-
+uint32_t sd_current_line_number; // stores the most recent line number read from the SD
 
 // attempt to mount the SD card
-bool sd_mount() {
-	if(!SD.begin()){
-				report_status_message(STATUS_SD_FAILED_MOUNT, CLIENT_SERIAL);
-        return false;
-  }	
-	return true;
+bool sd_mount()
+{
+  if(!SD.begin()) {
+    report_status_message(STATUS_SD_FAILED_MOUNT, CLIENT_SERIAL);
+    return false;
+  }
+  return true;
 }
 
-void listDir(fs::FS &fs, const char * dirname, uint8_t levels){
-    char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
-		
-    File root = fs.open(dirname);
-    if(!root){
-				report_status_message(STATUS_SD_FAILED_OPEN_DIR, CLIENT_SERIAL);
-        return;
-    }
-    if(!root.isDirectory()){
-				report_status_message(STATUS_SD_DIR_NOT_FOUND, CLIENT_SERIAL);
-        return;
-    }
+void listDir(fs::FS &fs, const char * dirname, uint8_t levels)
+{
+  char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
 
-    File file = root.openNextFile();
-    while(file){
-        if(file.isDirectory()){            
-            if(levels){
-                listDir(fs, file.name(), levels -1);
-            }
-        } else {
-					strcpy(temp_filename, file.name()); // make a copy
-					
-					// convert it to uppercase so it is easy to filter
-					for(int i = 0; i <= strlen(file.name()); i++){
-						temp_filename[i] = toupper(temp_filename[i]);
-					}
-					
-					// now filter for accetable file types
-					for (uint8_t i=0; i < FILE_TYPE_COUNT; i++) // make sure it is a valid file type
-					{
-						if (strstr(temp_filename, fileTypes[i])) { 				
-							grbl_sendf(CLIENT_ALL, "[FILE:%s,SIZE:%d]\r\n", file.name(), file.size());
-							break;
-						}
-					}            
-        }
-        file = root.openNextFile();
+  File root = fs.open(dirname);
+  if(!root) {
+    report_status_message(STATUS_SD_FAILED_OPEN_DIR, CLIENT_SERIAL);
+    return;
+  }
+  if(!root.isDirectory()) {
+    report_status_message(STATUS_SD_DIR_NOT_FOUND, CLIENT_SERIAL);
+    return;
+  }
+
+  File file = root.openNextFile();
+  while(file) {
+    if(file.isDirectory()) {
+      if(levels) {
+        listDir(fs, file.name(), levels -1);
+      }
+    } else {      
+      grbl_sendf(CLIENT_ALL, "[FILE:%s|SIZE:%d]\r\n", file.name(), file.size());
     }
+    file = root.openNextFile();
+  }
 }
 
-boolean openFile(fs::FS &fs, const char * path){
+boolean openFile(fs::FS &fs, const char * path)
+{
   myFile = fs.open(path);
-	
-  if(!myFile){
-      report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
-      return false;
+
+  if(!myFile) {
+    report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
+    return false;
   }
-	
+
   set_sd_state(SDCARD_BUSY_PRINTING);
-  SD_ready_next = false; // this will get set to true when Grbl issues "ok" message 
-  return true; 
+  SD_ready_next = false; // this will get set to true when Grbl issues "ok" message
+  sd_current_line_number = 0;
+  return true;
 }
 
-boolean closeFile(){
-  if(!myFile){
-      return false;
+boolean closeFile()
+{
+  if(!myFile) {
+    return false;
   }
-	
-	set_sd_state(SDCARD_IDLE);
-	SD_ready_next = false;
+
+  set_sd_state(SDCARD_IDLE);
+  SD_ready_next = false;
+  sd_current_line_number = 0;
   myFile.close();
   return true;
 }
@@ -110,115 +99,129 @@ boolean closeFile(){
  strip whitespace
  strip comments per http://linuxcnc.org/docs/ja/html/gcode/overview.html#gcode:comments
  make uppercase
- return true if a line is 
+ return true if a line is
 */
-boolean readFileLine(char *line) {
+boolean readFileLine(char *line)
+{
   char c;
   uint8_t index = 0;
   uint8_t line_flags = 0;
-	
+
   if (!myFile) {
-		report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
+    report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
     return false;
   }
 
-    
-  while(myFile.available()){
-        c = myFile.read();
-				
-				
-        if (c == '\r' || c == ' ' ) {  
-         // ignore these whitespace items
-        }
-				else if (c == '(') {
-					line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
-				}
-				else if (c == ')') {
-            // End of '()' comment. Resume line allowed.
-            if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) { line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES); }
-        }
-				else if (c == ';') {
-          // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
-					if (!(line_flags & LINE_FLAG_COMMENT_PARENTHESES)) // semi colon inside parentheses do not mean anything						
-						line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
-				}
-        else if (c == '\n') {  // found the newline, so mark the end and return true
-          line[index] = '\0';
-          return true;
-        }
-        else { // add characters to the line
-					if (!line_flags) {
-						c = toupper(c); // make upper case
-						line[index] = c;
-						index++;
-					}
-        }
+  sd_current_line_number += 1;
 
-        if (index == 255) // name is too long so return false
-        {
-          line[index] = '\0';
-					report_status_message(STATUS_OVERFLOW, CLIENT_SERIAL);
-          return false;
-        }
+  while(myFile.available()) {
+    c = myFile.read();
+		
+    if (c == '\r' || c == ' ' ) {
+      // ignore these whitespace items
+    } else if (c == '(') {
+      line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
+    } else if (c == ')') {
+      // End of '()' comment. Resume line allowed.
+      if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) {
+        line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES);
+      }
+    } else if (c == ';') {
+      // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
+      if (!(line_flags & LINE_FLAG_COMMENT_PARENTHESES)) { // semi colon inside parentheses do not mean anything
+        line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
+      }
+    } else if (c == '\n') { // found the newline, so mark the end and return true
+      line[index] = '\0';
+      return true;
+    } else { // add characters to the line
+      if (!line_flags) {
+        c = toupper(c); // make upper case
+        line[index] = c;
+        index++;
+      }
+    }
+
+    if (index == 255) { // name is too long so return false
+      line[index] = '\0';
+      report_status_message(STATUS_OVERFLOW, CLIENT_SERIAL);
+      return false;
+    }
   }
-	// some files end without a newline
+  // some files end without a newline
   if (index !=0) {
     line[index] = '\0';
     return true;
-  }
-  else // empty line after new line
+  } else { // empty line after new line
     return false;
+  }
 }
 
 // return a percentage complete 50.5 = 50.5%
-float sd_report_perc_complete() {
-	if (!myFile)
-		return 0.0;
-	
-	return  ((float)myFile.position() /  (float)myFile.size() * 100.0);
+float sd_report_perc_complete()
+{
+  if (!myFile) {
+    return 0.0;
+  }
+
+  return  ((float)myFile.position() /  (float)myFile.size() * 100.0);
+}
+
+uint32_t sd_get_current_line_number()
+{
+  return sd_current_line_number;
 }
 
 
 uint8_t sd_state = SDCARD_IDLE;
 
-uint8_t get_sd_state(bool refresh){
+uint8_t get_sd_state(bool refresh)
+{
 #if defined(SDCARD_DET_PIN) && SDCARD_SD_PIN != -1
-    //no need to go further if SD detect is not correct
-    if (!((digitalRead (SDCARD_DET_PIN) == SDCARD_DET_VAL) ? true : false)){
-        sd_state = SDCARD_NOT_PRESENT;
-        return sd_state;
-    }
-#endif
-    //if busy doing something return state
-    if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE))) return sd_state;
-    if (!refresh) return sd_state; //to avoid refresh=true + busy to reset SD and waste time
-    //SD is idle or not detected, let see if still the case
-
-    if (sd_state == SDCARD_IDLE) {
-        SD.end();
-        //using default value for speed ? should be parameter
-        //refresh content if card was removed    
-        if (!SD.begin()) sd_state = SDCARD_NOT_PRESENT;
-        else {
-            if ( !(SD.cardSize() > 0 )) sd_state = SDCARD_NOT_PRESENT;
-        }
-    }
-return sd_state;
-}
-
-uint8_t set_sd_state(uint8_t flag){
-    sd_state =  flag;
+  //no need to go further if SD detect is not correct
+  if (!((digitalRead (SDCARD_DET_PIN) == SDCARD_DET_VAL) ? true : false)) {
+    sd_state = SDCARD_NOT_PRESENT;
     return sd_state;
+  }
+#endif
+  //if busy doing something return state
+  if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE))) {
+    return sd_state;
+  }
+  if (!refresh) {
+    return sd_state;  //to avoid refresh=true + busy to reset SD and waste time
+  }
+  //SD is idle or not detected, let see if still the case
+
+  if (sd_state == SDCARD_IDLE) {
+    SD.end();
+    //using default value for speed ? should be parameter
+    //refresh content if card was removed
+    if (!SD.begin()) {
+      sd_state = SDCARD_NOT_PRESENT;
+    } else {
+      if ( !(SD.cardSize() > 0 )) {
+        sd_state = SDCARD_NOT_PRESENT;
+      }
+    }
+  }
+  return sd_state;
 }
 
-void sd_get_current_filename(char* name) {		
-	
-		if (myFile != NULL)
-		{
-			strcpy(name, myFile.name());
-		}
-		else
-			name[0] = 0;		
+uint8_t set_sd_state(uint8_t flag)
+{
+  sd_state =  flag;
+  return sd_state;
+}
+
+void sd_get_current_filename(char* name)
+{
+
+  if (myFile != NULL) {
+    strcpy(name, myFile.name());
+  } else {
+    name[0] = 0;
+  }
 }
 
 

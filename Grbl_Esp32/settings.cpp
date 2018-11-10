@@ -49,6 +49,11 @@ void settings_init()
 
 // Method to restore EEPROM-saved Grbl global settings back to defaults.
 void settings_restore(uint8_t restore_flag) {
+  if (restore_flag & SETTINGS_RESTORE_ALL){
+#ifdef ENABLE_WIFI
+      wifi_config.reset_ESP();
+#endif
+  }
   if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {
     settings.pulse_microseconds = DEFAULT_STEP_PULSE_MICROSECONDS;
     settings.stepper_idle_lock_time = DEFAULT_STEPPER_IDLE_LOCK_TIME;

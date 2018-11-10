@@ -47,7 +47,7 @@ void serial_init()
 	// create a task to check for incoming data
 	xTaskCreatePinnedToCore(	serialCheckTask,    // task
 													"servoSyncTask", // name for task
-													2048,   // size of task stack
+													8192,   // size of task stack
 													NULL,   // parameters
 													1, // priority
 													&serialCheckTaskHandle, 
@@ -76,6 +76,9 @@ void serialCheckTask(void *pvParameters)
         #if defined (ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
 			|| Serial2Socket.available()
 		#endif
+         #if defined (ENABLE_WIFI) && defined(ENABLE_TELNET)
+			|| telnet_server.available()
+		#endif
             )
 		{			
 		  if (Serial.available())
@@ -93,8 +96,21 @@ void serialCheckTask(void *pvParameters)
                 } else {		
 				#endif
                 #if defined (ENABLE_WIFI) && defined(ENABLE_HTTP)  && defined(ENABLE_SERIAL2SOCKET_IN)
-								client = CLIENT_WEBUI;
-                data = Serial2Socket.read();
+                if (Serial2Socket.available()) {
+                    client = CLIENT_WEBUI;
+                    data = Serial2Socket.read();
+                    }
+                    else
+                        {
+                #endif
+                #if defined (ENABLE_WIFI) && defined(ENABLE_TELNET)
+                    if(telnet_server.available()){
+                        client = CLIENT_TELNET;
+                        data = telnet_server.read();
+                    }
+                #endif
+                #if defined (ENABLE_WIFI) && defined(ENABLE_HTTP)  && defined(ENABLE_SERIAL2SOCKET_IN)
+                }
                 #endif
                 #ifdef ENABLE_BLUETOOTH
                 }
@@ -163,8 +179,14 @@ void serialCheckTask(void *pvParameters)
 						vTaskExitCritical(&myMutex);
 					}
 			}  // switch data			
-		}  // if something available	
-		vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks		
+		}  // if something available
+#ifdef ENABLE_WIFI
+        wifi_config.handle();
+#endif	
+#if defined (ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
+        Serial2Socket.handle_flush();
+#endif
+        vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks		
 	}  // while(true)
 }
 

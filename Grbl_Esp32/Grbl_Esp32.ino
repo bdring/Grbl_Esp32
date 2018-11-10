@@ -81,7 +81,9 @@ void setup() {
   #ifdef HOMING_INIT_LOCK
     if (bit_istrue(settings.flags,BITFLAG_HOMING_ENABLE)) { sys.state = STATE_ALARM; }
   #endif
-		
+#ifdef ENABLE_WIFI
+    wifi_config.begin();
+#endif
 }
 
 void loop() {  
