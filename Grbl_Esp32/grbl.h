@@ -20,7 +20,7 @@
 
 // Grbl versioning system
 #define GRBL_VERSION "1.1f"
-#define GRBL_VERSION_BUILD "20180919"
+#define GRBL_VERSION_BUILD "20180917"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -33,9 +33,10 @@
 
 // Define the Grbl system include files. NOTE: Do not alter organization.
 #include "config.h"
+#include "nuts_bolts.h"
 #include "cpu_map.h"
 #include "tdef.h"
-#include "nuts_bolts.h"
+
 #include "defaults.h"
 #include "settings.h"
 #include "system.h"
@@ -61,4 +62,14 @@
 
 #ifdef ENABLE_SD_CARD	
 	#include "grbl_sd.h"
+#endif
+
+#ifdef ENABLE_WIFI	
+    #include "wificonfig.h"
+    #ifdef ENABLE_HTTP
+    #include "serial2socket.h"
+    #endif
+    #ifdef ENABLE_TELNET
+    #include "telnet_server.h"
+    #endif
 #endif

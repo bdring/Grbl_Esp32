@@ -33,8 +33,8 @@
   void spindle_init();
   void spindle_stop();
   uint8_t spindle_get_state();
-  void spindle_set_speed(uint8_t pwm_value);
-  uint8_t spindle_compute_pwm_value(float rpm);
+  void spindle_set_speed(uint32_t pwm_value);
+  uint32_t spindle_compute_pwm_value(float rpm);
   void spindle_set_state(uint8_t state, float rpm);
   void spindle_sync(uint8_t state, float rpm);	
 	void grbl_analogWrite(uint8_t chan, uint32_t duty);	

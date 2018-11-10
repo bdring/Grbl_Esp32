@@ -52,9 +52,23 @@ Some features should not be changed. See notes below.
 // Serial baud rate
 #define BAUD_RATE 115200
 
-#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
+//#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
+
+#define ENABLE_WIFI //enable wifi
+
+#define ENABLE_HTTP //enable HTTP and all related services
+#define ENABLE_OTA  //enable OTA
+#define ENABLE_TELNET //enable telnet
+#define ENABLE_MDNS //enable mDNS discovery
+#define ENABLE_SSDP //enable UPNP discovery
+
+#define ENABLE_SERIAL2SOCKET_IN
+#define ENABLE_SERIAL2SOCKET_OUT
+
+#define ENABLE_CAPTIVE_PORTAL
+#define ENABLE_AUTHENTICATION
 
 // Define realtime command special characters. These characters are 'picked-off' directly from the
 // serial read data stream and are not passed to the grbl line execution parser. Select characters
@@ -654,4 +668,3 @@ Some features should not be changed. See notes below.
 
 
 #endif
-
