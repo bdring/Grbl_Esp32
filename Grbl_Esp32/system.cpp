@@ -1,6 +1,6 @@
 /*
   system.cpp - Header for system level commands and real-time processes
-  art of Grbl
+  Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 	
 	2018 -	Bart Dring This file was modified for use on the ESP32
