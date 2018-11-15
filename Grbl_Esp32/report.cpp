@@ -641,11 +641,11 @@ void report_realtime_status(uint8_t client)
   // Report realtime feed speed
   #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
     #ifdef VARIABLE_SPINDLE      
-			sprintf(temp, "|FS:%4.3f,%4.3f", st_get_realtime_rate(), sys.spindle_speed);
+			sprintf(temp, "|FS:%.0f,%.0f", st_get_realtime_rate(), sys.spindle_speed);
 			strcat(status, temp);
     #else
       
-			sprintf(temp, "|F:%4.3f", st_get_realtime_rate());
+			sprintf(temp, "|F:%.0f", st_get_realtime_rate());
 			strcat(status, temp);
     #endif      
   #endif
