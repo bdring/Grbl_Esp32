@@ -2,7 +2,7 @@
 
 # Grbl (CNC Controller) For ESP32
 
-![ESP32](http://www.buildlog.net/blog/wp-content/uploads/2018/08/20180819_170123.jpg)
+![ESP32](http://www.buildlog.net/blog/wp-content/uploads/2018/10/20181007_153826.jpg)
 
 ### Project Overview
 
@@ -10,7 +10,7 @@
 
 This is a port of [Grbl](https://github.com/gnea/grbl) for the ESP32. The ESP32 is potentially a great target for Grbl for the following reasons
 
-- **Faster** - Faster step rates and additional features could be added
+- **Faster** - At least 4x the step rates over Grbl
 - **Lower Cost** - 
 - **Small footprint** -
 - **More Flash and RAM** - A larger planner buffer could be used and more features could be added.
@@ -18,6 +18,7 @@ This is a port of [Grbl](https://github.com/gnea/grbl) for the ESP32. The ESP32 
 - **Peripherals** - It has more timers and advanced features than an UNO.  These can also be mapped to pins more flexibly.
 - **Connectivity** - Bluetooth and WiFi built in.
 - **Fast Boot** - Boots almost instantly and does not need to be formally shutdown (unlike Raspberry Pi or Beagle Bone)
+- **RTOS (Real Time operating System)** - Custom features can be added without affecting the performance of the motion control system.
 
 ### Issues / Changes
 
@@ -47,8 +48,7 @@ Using SD Card
 
 ### Roadmap
 
-- [Wifi Support](https://github.com/bdring/Grbl_Esp32/wiki/ESP3D-Web-UI-for-Grbl_ESP32) is currently in development. Use the [WebUI branch](https://github.com/bdring/Grbl_Esp32/tree/WebUI) if you want to check it out.
-- Add support for additional axes
+The roadmap is now [on the wiki](https://github.com/bdring/Grbl_Esp32/wiki/Development-Roadmap).
 
 ### Credits
 
