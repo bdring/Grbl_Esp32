@@ -52,7 +52,7 @@ Some features should not be changed. See notes below.
 // Serial baud rate
 #define BAUD_RATE 115200
 
-//#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
+#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
 
@@ -69,6 +69,38 @@ Some features should not be changed. See notes below.
 
 #define ENABLE_CAPTIVE_PORTAL
 #define ENABLE_AUTHENTICATION
+
+#define NAMESPACE "GRBL"
+#define ESP_RADIO_MODE "RADIO_MODE"
+
+#ifdef ENABLE_AUTHENTICATION
+#define DEFAULT_ADMIN_PWD "admin"
+#define DEFAULT_USER_PWD  "user";
+#define DEFAULT_ADMIN_LOGIN  "admin"
+#define DEFAULT_USER_LOGIN "user"
+#define ADMIN_PWD_ENTRY "ADMIN_PWD"
+#define USER_PWD_ENTRY "USER_PWD"
+#define AUTH_ENTRY_NB 20
+#define MAX_LOCAL_PASSWORD_LENGTH   16
+#define MIN_LOCAL_PASSWORD_LENGTH   1
+#endif
+
+//Radio Mode
+#define ESP_RADIO_OFF 0
+#define ESP_WIFI_STA 1
+#define ESP_WIFI_AP  2
+#define ESP_BT       3
+
+ //Default mode
+#ifdef ENABLE_WIFI
+#define DEFAULT_RADIO_MODE ESP_WIFI_AP
+#else
+    #ifdef ENABLE_BLUETOOTH
+    #define DEFAULT_RADIO_MODE ESP_BT
+    #else
+    #define DEFAULT_RADIO_MODE ESP_RADIO_OFF
+    #endif
+#endif
 
 // Define realtime command special characters. These characters are 'picked-off' directly from the
 // serial read data stream and are not passed to the grbl line execution parser. Select characters

@@ -46,17 +46,17 @@ void setup() {
   system_ini();   // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
 	
 	 
-	#ifdef ENABLE_BLUETOOTH
+	//#ifdef ENABLE_BLUETOOTH
 	// if $I has some text, that is the bluetooth name
 	// This is a temporary convenience until a new setting is defined
-	char line[LINE_BUFFER_SIZE];
-	settings_read_build_info(line);
-	if (line[0] != '\0') {
-		// just send to serial because it is the only interface available
-		Serial.printf("Starting Bluetooth:%s", line); 
-		bluetooth_init(line);	
-	}
-	#endif
+	//char line[LINE_BUFFER_SIZE];
+	//settings_read_build_info(line);
+	//if (line[0] != '\0') {
+	//	// just send to serial because it is the only interface available
+	//	Serial.printf("Starting Bluetooth:%s", line); 
+	//	bluetooth_init(line);	
+	//}
+	//#endif
 
   
 
@@ -83,6 +83,9 @@ void setup() {
   #endif
 #ifdef ENABLE_WIFI
     wifi_config.begin();
+#endif
+#ifdef ENABLE_BLUETOOTH
+    bt_config.begin();
 #endif
 }
 

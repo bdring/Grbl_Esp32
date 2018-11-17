@@ -19,6 +19,7 @@
 */
 
 #include "grbl.h"
+#include "commands.h"
 
 #define RX_RING_BUFFER (RX_BUFFER_SIZE+1)
 #define TX_RING_BUFFER (TX_BUFFER_SIZE+1)
@@ -180,9 +181,13 @@ void serialCheckTask(void *pvParameters)
 					}
 			}  // switch data			
 		}  // if something available
+        COMMANDS::handle();
 #ifdef ENABLE_WIFI
         wifi_config.handle();
-#endif	
+#endif
+#ifdef ENABLE_BLUETOOTH
+        bt_config.handle();
+#endif
 #if defined (ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
         Serial2Socket.handle_flush();
 #endif

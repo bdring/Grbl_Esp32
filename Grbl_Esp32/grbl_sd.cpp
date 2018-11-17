@@ -193,18 +193,13 @@ uint8_t get_sd_state(bool refresh)
   }
   //SD is idle or not detected, let see if still the case
 
-  if (sd_state == SDCARD_IDLE) {
     SD.end();
+    sd_state = SDCARD_NOT_PRESENT;
     //using default value for speed ? should be parameter
     //refresh content if card was removed
-    if (!SD.begin()) {
-      sd_state = SDCARD_NOT_PRESENT;
-    } else {
-      if ( !(SD.cardSize() > 0 )) {
-        sd_state = SDCARD_NOT_PRESENT;
-      }
+    if (SD.begin()) {
+      if ( SD.cardSize() > 0 )sd_state = SDCARD_IDLE;
     }
-  }
   return sd_state;
 }
 

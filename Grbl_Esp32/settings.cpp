@@ -51,7 +51,10 @@ void settings_init()
 void settings_restore(uint8_t restore_flag) {
   if (restore_flag & SETTINGS_RESTORE_ALL){
 #ifdef ENABLE_WIFI
-      wifi_config.reset_ESP();
+      wifi_config.reset_settings();
+#endif
+#ifdef ENABLE_BLUETOOTH
+      bt_config.reset_settings();
 #endif
   }
   if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {

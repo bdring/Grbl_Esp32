@@ -1,0 +1,107 @@
+* Change STA SSID 
+[ESP100]<SSID>pwd=<admin password>
+
+* Change STA Password 
+[ESP101]<Password>pwd=<admin password>
+
+* Change STA IP mode (DHCP/STATIC) 
+[ESP102]<mode>pwd=<admin password>
+
+* Change STA IP/Mask/GW 
+[ESP103]IP=<IP> MSK=<IP> GW=<IP> pwd=<admin password>
+
+* Change AP SSID 
+[ESP105]<SSID>pwd=<admin password>
+
+* Change AP Password 
+[ESP106]<Password>pwd=<admin password>
+
+* Change AP IP 
+[ESP107]<IP>pwd=<admin password>
+
+* Change AP channel 
+[ESP108]<channel>pwd=<admin password>
+
+* Set radio state which can be STA, AP, BT, OFF
+[ESP110]<state>pwd=<admin password>
+
+* Get current IP
+[ESP111]<header answer>
+
+* Get/Set hostname
+[ESP112]<Hostname> pwd=<admin password>
+
+* Set immediate wifi state which can be ON, OFF
+[ESP115]<state>pwd=<admin password>
+
+* Set HTTP state which can be ON, OFF
+[ESP120]<state>pwd=<admin password>
+
+* Set HTTP port 
+[ESP121]<port>pwd=<admin password>
+
+* Set Telnet state which can be ON, OFF
+[ESP130]<state>pwd=<admin password>
+
+* Set Telnet port 
+[ESP131]<port>pwd=<admin password>
+
+* Get/Set btname
+[ESP140]< Bluetooth name> pwd=<admin password>
+
+* Get SD Card Status
+[ESP200]
+
+*Get full EEPROM settings content
+but do not give any passwords
+[ESP400] pwd=<user/admin password>
+
+*Set EEPROM setting
+position in EEPROM, type: B(byte), I(integer/long), S(string), A(IP address / mask)
+[ESP401]P=<position> T=<type> V=<value> pwd=<user/admin password>
+Positions:
+HOSTNAME_ENTRY "ESP_HOSTNAME"   String
+STA_SSID_ENTRY "STA_SSID"       String
+STA_PWD_ENTRY "STA_PWD"         String
+STA_IP_ENTRY "STA_IP"           IP
+STA_GW_ENTRY "STA_GW"           IP
+STA_MK_ENTRY "STA_MK"           IP
+ESP_WIFI_MODE "WIFI_MODE"       Byte (0=OFF, STA=1, AP=2)
+AP_SSID_ENTRY "AP_SSID"         String
+AP_PWD_ENTRY "AP_PWD"           String
+AP_IP_ENTRY "AP_IP"             IP
+AP_CHANNEL_ENTRY "AP_CHANNEL"   Byte
+HTTP_ENABLE_ENTRY "HTTP_ON"     Byte (0=Disabled, 1=Enabled)
+HTTP_PORT_ENTRY "HTTP_PORT"     Integer
+TELNET_ENABLE_ENTRY "TELNET_ON" Byte (0=Disabled, 1=Enabled)
+TELNET_PORT_ENTRY "TELNET_PORT" Integer
+STA_IP_MODE_ENTRY "STA_IP_MODE" Byte (0=DHCP, 1=STATIC)
+
+*Get available AP list (limited to 30)
+output is JSON or plain text according parameter
+[ESP410] pwd=<user/admin password>
+
+*Get current settings of ESP3D
+output is JSON or plain text according parameter
+[ESP420]pwd=<user/admin password>
+
+* Restart ESP
+[ESP444]RESTART pwd=<admin password>
+
+* Change / Reset user password
+[ESP555]<password>pwd=<admin password>
+if no password set it use default one
+    
+* Read SPIFFS file and send each line to serial
+[ESP700]<filename> pwd=<user/admin password>
+
+* Format SPIFFS
+[ESP710]FORMAT pwd=<admin password>
+
+* SPIFFS total size and used size
+[ESP720]<header answer> pwd=<user/admin password>
+
+* Get fw version and basic information
+[ESP800]<header answer>
+
+
