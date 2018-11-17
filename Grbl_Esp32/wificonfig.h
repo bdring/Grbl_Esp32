@@ -19,14 +19,12 @@
 */
 
 //Preferences entries
-#define NAMESPACE "GRBL"
 #define HOSTNAME_ENTRY "ESP_HOSTNAME"
 #define STA_SSID_ENTRY "STA_SSID"
 #define STA_PWD_ENTRY "STA_PWD"
 #define STA_IP_ENTRY "STA_IP"
 #define STA_GW_ENTRY "STA_GW"
 #define STA_MK_ENTRY "STA_MK"
-#define ESP_WIFI_MODE "WIFI_MODE"
 #define AP_SSID_ENTRY "AP_SSID"
 #define AP_PWD_ENTRY "AP_PWD"
 #define AP_IP_ENTRY "AP_IP"
@@ -37,13 +35,8 @@
 #define TELNET_PORT_ENTRY "TELNET_PORT"
 #define STA_IP_MODE_ENTRY "STA_IP_MODE"
 
-//Wifi Mode
-#define ESP_WIFI_OFF 0
-#define ESP_WIFI_STA 1
-#define ESP_WIFI_AP  2
-
 #define DHCP_MODE   0
-#define STATIC_MODE   0
+#define STATIC_MODE   1
 
 //Switch 
 #define ESP_SAVE_ONLY 0
@@ -56,7 +49,6 @@
 #define DEFAULT_STA_IP "0.0.0.0"
 #define DEFAULT_STA_GW "0.0.0.0"
 #define DEFAULT_STA_MK "0.0.0.0"
-#define DEFAULT_WIFI_MODE ESP_WIFI_AP
 #define DEFAULT_AP_SSID "GRBL_ESP"
 #define DEFAULT_AP_PWD "12345678"
 #define DEFAULT_AP_IP "192.168.0.1"
@@ -95,14 +87,14 @@ public:
     WiFiConfig();
     ~WiFiConfig();
     static const char *info();
-    static void wait(uint32_t milliseconds);
     static bool isValidIP(const char * string);
     static bool isPasswordValid (const char * password);
     static bool isSSIDValid (const char * ssid);
     static bool isHostnameValid (const char * hostname);
     static uint32_t IP_int_from_string(String & s);
     static String IP_string_from_int(uint32_t ip_int);
-
+    static String Hostname(){return _hostname;}
+    static char * mac2str (uint8_t mac [8]);
     static bool StartAP();
     static bool StartSTA();
     static void StopWiFi();
@@ -110,12 +102,12 @@ public:
     static void begin();
     static void end();
     static void handle();
-    static void restart_ESP();
-    static void reset_ESP();
+    static void reset_settings();
+    static bool Is_WiFi_on();
     private :
     static bool ConnectSTA2AP();
     static void WiFiEvent(WiFiEvent_t event);
-    static bool restart_ESP_module;
+    static String _hostname;
 };
 
 extern WiFiConfig wifi_config;

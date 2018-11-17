@@ -50,7 +50,7 @@
 
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
-void grbl_send(uint8_t client, char *text)
+void grbl_send(uint8_t client, const char *text)
 {	
 #ifdef ENABLE_BLUETOOTH
     if (SerialBT.hasClient() && ( client == CLIENT_BT || client == CLIENT_ALL ) )
@@ -528,6 +528,9 @@ void report_build_info(char *line, uint8_t client)
   grbl_send(client, build_info); // ok to send to all
   #if defined (ENABLE_WIFI)
   grbl_send(client, (char *)wifi_config.info()); 
+  #endif
+   #if defined (ENABLE_BLUETOOTH)
+  grbl_send(client, (char *)bt_config.info()); 
   #endif
 }
 

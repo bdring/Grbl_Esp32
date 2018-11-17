@@ -28,6 +28,8 @@
 
 #include "grbl.h"
 
+#include "commands.h"
+#include "espresponse.h"
 #include "serial2socket.h"
 #include "web_server.h"
 #include <WebSocketsServer.h>
@@ -45,7 +47,6 @@
 #include <ESP32SSDP.h>
 #include <StreamString.h>
 #include <Update.h>
-#include <esp_wifi.h>
 #include <esp_wifi_types.h>
 #ifdef ENABLE_MDNS
 #include <ESPmDNS.h>
@@ -62,11 +63,6 @@ DNSServer dnsServer;
 //embedded response file if no files on SPIFFS
 #include "nofile.h"
 
-// Define line flags. Includes comment type tracking and line overflow detection.
-#define LINE_FLAG_OVERFLOW bit(0)
-#define LINE_FLAG_COMMENT_PARENTHESES bit(1)
-#define LINE_FLAG_COMMENT_SEMICOLON bit(2)
-
 //Upload status
 typedef enum {
     UPLOAD_STATUS_NONE = 0,
@@ -76,17 +72,6 @@ typedef enum {
     UPLOAD_STATUS_ONGOING  = 4
 } upload_status_type;
 
-#ifdef ENABLE_AUTHENTICATION
-#define DEFAULT_ADMIN_PWD "admin"
-#define DEFAULT_USER_PWD  "user";
-#define DEFAULT_ADMIN_LOGIN  "admin"
-#define DEFAULT_USER_LOGIN "user"
-#define ADMIN_PWD_ENTRY "ADMIN_PWD"
-#define USER_PWD_ENTRY "USER_PWD"
-#define AUTH_ENTRY_NB 20
-#define MAX_LOCAL_PASSWORD_LENGTH   16
-#define MIN_LOCAL_PASSWORD_LENGTH   1
-#endif
 
 //Default 404
 const char PAGE_404 []  = "<HTML>\n<HEAD>\n<title>Redirecting...</title> \n</HEAD>\n<BODY>\n<CENTER>Unknown page : $QUERY$- you will be redirected...\n<BR><BR>\nif not redirected, <a href='http://$WEB_ADDRESS$'>click here</a>\n<BR><BR>\n<PROGRESS name='prg' id='prg'></PROGRESS>\n\n<script>\nvar i = 0; \nvar x = document.getElementById(\"prg\"); \nx.max=5; \nvar interval=setInterval(function(){\ni=i+1; \nvar x = document.getElementById(\"prg\"); \nx.value=i; \nif (i>5) \n{\nclearInterval(interval);\nwindow.location.href='/';\n}\n},1000);\n</script>\n</CENTER>\n</BODY>\n</HTML>\n\n";
@@ -96,8 +81,6 @@ const char PAGE_CAPTIVE [] = "<HTML>\n<HEAD>\n<title>Captive Portal</title> \n</
 Web_Server web_server;
 bool Web_Server::_setupdone = false;
 uint16_t Web_Server::_port = 0;
-String Web_Server::_hostname = "";
-uint16_t Web_Server::_data_port = 0;
 long Web_Server::_id_connection = 0;
 uint8_t Web_Server::_upload_status = UPLOAD_STATUS_NONE;
 WebServer * Web_Server::_webserver = NULL;
@@ -127,11 +110,6 @@ bool Web_Server::begin(){
     int8_t penabled = prefs.getChar(HTTP_ENABLE_ENTRY, DEFAULT_HTTP_STATE);
     //Get http port
     _port = prefs.getUShort(HTTP_PORT_ENTRY, DEFAULT_WEBSERVER_PORT);
-    //Get telnet port
-    _data_port = prefs.getUShort(TELNET_PORT_ENTRY, DEFAULT_TELNETSERVER_PORT);
-    //Get hostname
-    String defV = DEFAULT_HOSTNAME;
-    _hostname = prefs.getString(HOSTNAME_ENTRY, defV);
     prefs.end();
     if (penabled == 0) return false;
     //create instance
@@ -207,7 +185,7 @@ bool Web_Server::begin(){
         //Add specific for SSDP
         SSDP.setSchemaURL ("description.xml");
         SSDP.setHTTPPort (_port);
-        SSDP.setName (_hostname);
+        SSDP.setName (wifi_config.Hostname());
         SSDP.setURL ("/");
         SSDP.setDeviceType ("upnp:rootdevice");
         /*Any customization could be here
@@ -307,7 +285,7 @@ void Web_Server:: handle_not_found()
             if (datafile) {
                if( _webserver->streamFile(datafile, contentType) == datafile.size()) {
                     datafile.close();
-                    wifi_config.wait(0);
+                    COMMANDS::wait(0);
                     return;
                } else{
                    datafile.close();
@@ -424,7 +402,7 @@ void Web_Server::handle_SSDP ()
         sschema.printf (templ.c_str(),
                         sip.c_str(),
                         _port,
-                        _hostname.c_str(),
+                        wifi_config.Hostname().c_str(),
                         serialNumber.c_str(),
                         uuid);
         _webserver->send (200, "text/xml", (String) sschema);
@@ -506,7 +484,7 @@ void Web_Server::handle_web_command ()
             if (cmd_part1.toInt() != 0) {
                 ESPResponseStream espresponse(_webserver);
                 //commmand is web only 
-                execute_internal_command (cmd_part1.toInt(), cmd_part2, auth_level, &espresponse);
+                COMMANDS::execute_internal_command (cmd_part1.toInt(), cmd_part2, auth_level, &espresponse);
                 //flush
                 espresponse.flush();
             }
@@ -578,7 +556,7 @@ void Web_Server::handle_web_command_silent ()
             //if command is a valid number then execute command
             if (cmd_part1.toInt() != 0) {
                 //commmand is web only 
-                if(execute_internal_command (cmd_part1.toInt(), cmd_part2, auth_level, NULL)) _webserver->send (200, "text/plain", "ok");
+                if(COMMANDS::execute_internal_command (cmd_part1.toInt(), cmd_part2, auth_level, NULL)) _webserver->send (200, "text/plain", "ok");
                 else  _webserver->send (200, "text/plain", "error");
             }
             //if not is not a valid [ESPXXX] command
@@ -604,775 +582,6 @@ void Web_Server::handle_web_command_silent ()
     }
 }
 
-
-bool Web_Server::execute_internal_command (int cmd, String cmd_params, level_authenticate_type auth_level,  ESPResponseStream  *espresponse)
-{
-    bool response = true;
-    level_authenticate_type auth_type = auth_level;
-
-    //manage parameters
-    String parameter;
-    switch (cmd) {
-       //Get SD Card Status
-        //[ESP200]
-        case 200:
-            {
-            if (!espresponse) return false;
-            String resp = "No SD card";
-#ifdef ENABLE_SD_CARD
-
-            int8_t state = get_sd_state(true);
-            if (state == SDCARD_IDLE)resp="SD card detected";
-            else if (state == SDCARD_NOT_PRESENT)resp="No SD card";
-            else resp="Busy";
-#endif
-            espresponse->println (resp.c_str());
-            }
-            break;
-        //Get full ESP32 wifi settings content
-        //[ESP400]
-        case 400:
-            { 
-            String v;
-            String defV;
-            Preferences prefs;
-            if (!espresponse) return false;
-#ifdef ENABLE_AUTHENTICATION
-            if (auth_type == LEVEL_GUEST) return false;
-#endif
-            int8_t vi;
-            espresponse->print("{\"EEPROM\":[");
-            prefs.begin(NAMESPACE, true);
-            //1 - Hostname
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (HOSTNAME_ENTRY);
-            espresponse->print ("\",\"T\":\"S\",\"V\":\"");
-            espresponse->print (_hostname.c_str());
-            espresponse->print ("\",\"H\":\"Hostname\" ,\"S\":\"");
-            espresponse->print (String(MAX_HOSTNAME_LENGTH).c_str());
-            espresponse->print ("\", \"M\":\"");
-            espresponse->print (String(MIN_HOSTNAME_LENGTH).c_str());
-            espresponse->print ("\"}");
-            espresponse->print (",");
-            
-            //2 - http protocol mode
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (HTTP_ENABLE_ENTRY);
-            espresponse->print ("\",\"T\":\"B\",\"V\":\"");
-            vi = prefs.getChar(HTTP_ENABLE_ENTRY, 1);
-            espresponse->print (String(vi).c_str());
-            espresponse->print ("\",\"H\":\"HTTP protocol\",\"O\":[{\"Enabled\":\"1\"},{\"Disabled\":\"0\"}]}");
-            espresponse->print (",");
-            
-            //3 - http port
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (HTTP_PORT_ENTRY);
-            espresponse->print ("\",\"T\":\"I\",\"V\":\"");
-            espresponse->print (String(_port).c_str());
-            espresponse->print ("\",\"H\":\"HTTP Port\",\"S\":\"");
-            espresponse->print (String(MAX_HTTP_PORT).c_str());
-            espresponse->print ("\",\"M\":\"");
-            espresponse->print (String(MIN_HTTP_PORT).c_str());
-            espresponse->print ("\"}");
-            espresponse->print (",");
-            
-#ifdef ENABLE_TELNET
-            //4 - telnet protocol mode
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (TELNET_ENABLE_ENTRY);
-            espresponse->print ("\",\"T\":\"B\",\"V\":\"");
-            vi = prefs.getChar(TELNET_ENABLE_ENTRY, 0);
-            espresponse->print (String(vi).c_str());
-            espresponse->print ("\",\"H\":\"Telnet protocol\",\"O\":[{\"Enabled\":\"1\"},{\"Disabled\":\"0\"}]}");
-            espresponse->print (",");
-            
-            //5 - telnet Port
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (TELNET_PORT_ENTRY);
-            espresponse->print ("\",\"T\":\"I\",\"V\":\"");
-            espresponse->print (String(_data_port).c_str());
-            espresponse->print ("\",\"H\":\"Telnet Port\",\"S\":\"");
-            espresponse->print (String(MAX_TELNET_PORT).c_str());
-            espresponse->print ("\",\"M\":\"");
-            espresponse->print (String(MIN_TELNET_PORT).c_str());
-            espresponse->print ("\"}");
-            espresponse->print (",");
-#endif          
-            //6 - wifi mode
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (ESP_WIFI_MODE);
-            espresponse->print ("\",\"T\":\"B\",\"V\":\"");
-            vi = prefs.getChar(ESP_WIFI_MODE, ESP_WIFI_OFF);
-            espresponse->print (String(vi).c_str());
-            espresponse->print ("\",\"H\":\"Wifi mode\",\"O\":[{\"STA\":\"1\"},{\"AP\":\"2\"},{\"None\":\"0\"}]}");
-            espresponse->print (",");
-
-            //7 - STA SSID
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (STA_SSID_ENTRY);
-            espresponse->print ("\",\"T\":\"S\",\"V\":\"");
-            defV = DEFAULT_STA_SSID;
-            espresponse->print (prefs.getString(STA_SSID_ENTRY, defV).c_str());
-            espresponse->print ("\",\"S\":\"");
-            espresponse->print (String(MAX_SSID_LENGTH).c_str());
-            espresponse->print ("\",\"H\":\"Station SSID\",\"M\":\"");
-            espresponse->print (String(MIN_SSID_LENGTH).c_str());
-            espresponse->print ("\"}");
-            espresponse->print (",");
-
-            //8 - STA password
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (STA_PWD_ENTRY);
-            espresponse->print ("\",\"T\":\"S\",\"V\":\"");
-            espresponse->print (HIDDEN_PASSWORD);
-            espresponse->print ("\",\"S\":\"");
-            espresponse->print (String(MAX_PASSWORD_LENGTH).c_str());
-            espresponse->print ("\",\"H\":\"Station Password\",\"M\":\"");
-            espresponse->print (String(MIN_PASSWORD_LENGTH).c_str());
-            espresponse->print ("\"}");
-            espresponse->print (",");
-            
-            // 9 - STA IP mode
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (STA_IP_MODE_ENTRY);
-            espresponse->print ("\",\"T\":\"B\",\"V\":\"");
-            espresponse->print (String(prefs.getChar(STA_IP_MODE_ENTRY, DHCP_MODE)).c_str());
-            espresponse->print ("\",\"H\":\"Station IP Mode\",\"O\":[{\"DHCP\":\"0\"},{\"Static\":\"1\"}]}");
-            espresponse->print (",");
-
-            //10-STA static IP
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (STA_IP_ENTRY);
-            espresponse->print ("\",\"T\":\"A\",\"V\":\"");
-            espresponse->print (wifi_config.IP_string_from_int(prefs.getInt(STA_IP_ENTRY, 0)).c_str());
-            espresponse->print ("\",\"H\":\"Station Static IP\"}");
-            espresponse->print (",");
-
-            //11-STA static Gateway
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (STA_GW_ENTRY);
-            espresponse->print ("\",\"T\":\"A\",\"V\":\"");
-            espresponse->print (wifi_config.IP_string_from_int(prefs.getInt(STA_GW_ENTRY, 0)).c_str());
-            espresponse->print ("\",\"H\":\"Station Static Gateway\"}");
-            espresponse->print (",");
-
-            //12-STA static Mask
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (STA_MK_ENTRY);
-            espresponse->print ("\",\"T\":\"A\",\"V\":\"");
-            espresponse->print (wifi_config.IP_string_from_int(prefs.getInt(STA_MK_ENTRY, 0)).c_str());
-            espresponse->print ("\",\"H\":\"Station Static Mask\"}");
-            espresponse->print (",");
-            
-            //13 - AP SSID
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (AP_SSID_ENTRY);
-            espresponse->print ("\",\"T\":\"S\",\"V\":\"");
-            defV = DEFAULT_AP_SSID;
-            espresponse->print (prefs.getString(AP_SSID_ENTRY, defV).c_str());
-            espresponse->print ("\",\"S\":\"");
-            espresponse->print (String(MAX_SSID_LENGTH).c_str());
-            espresponse->print ("\",\"H\":\"AP SSID\",\"M\":\"");
-            espresponse->print (String(MIN_SSID_LENGTH).c_str());
-            espresponse->print ("\"}");
-            espresponse->print (",");
-
-            //14 - AP password
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (AP_PWD_ENTRY);
-            espresponse->print ("\",\"T\":\"S\",\"V\":\"");
-            espresponse->print (HIDDEN_PASSWORD);
-            espresponse->print ("\",\"S\":\"");
-            espresponse->print (String(MAX_PASSWORD_LENGTH).c_str());
-            espresponse->print ("\",\"H\":\"AP Password\",\"M\":\"");
-            espresponse->print (String(MIN_PASSWORD_LENGTH).c_str());
-            espresponse->print ("\"}");
-            espresponse->print (",");
-            
-            //15 - AP static IP
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (AP_IP_ENTRY);
-            espresponse->print ("\",\"T\":\"A\",\"V\":\"");
-            defV = DEFAULT_AP_IP;
-            espresponse->print (wifi_config.IP_string_from_int(prefs.getInt(AP_IP_ENTRY, wifi_config.IP_int_from_string(defV))).c_str());
-            espresponse->print ("\",\"H\":\"AP Static IP\"}");
-            espresponse->print (",");
-            
-            //16 - AP Channel
-            espresponse->print ("{\"F\":\"network\",\"P\":\"");
-            espresponse->print (AP_CHANNEL_ENTRY);
-            espresponse->print ("\",\"T\":\"B\",\"V\":\"");
-            espresponse->print (String(prefs.getChar(AP_CHANNEL_ENTRY, DEFAULT_AP_CHANNEL)).c_str());
-            espresponse->print ("\",\"H\":\"AP Channel\",\"O\":[");
-            for (int i = MIN_CHANNEL; i <= MAX_CHANNEL ; i++) {
-                espresponse->print ("{\"");
-                espresponse->print (String(i).c_str());
-                espresponse->print ("\":\"");
-                espresponse->print (String(i).c_str());
-                espresponse->print ("\"}");
-                if (i < MAX_CHANNEL) {
-                    espresponse->print (",");
-                }
-            }
-            espresponse->print ("]}");
-            
-            espresponse->print ("]}");
-            prefs.end();
-            }
-            break;
-        //Set EEPROM setting
-        //[ESP401]P=<position> T=<type> V=<value> pwd=<user/admin password>
-        case 401:    
-            {
-#ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) return false;
-#endif
-            //check validity of parameters
-            String spos = get_param (cmd_params, "P=", false);
-            String styp = get_param (cmd_params, "T=", false);
-            String sval = get_param (cmd_params, "V=", true);
-            spos.trim();
-            sval.trim();
-            if (spos.length() == 0) {
-                response = false;
-            }
-            if (! (styp == "B" || styp == "S" || styp == "A" || styp == "I" || styp == "F") ) {
-                response = false;
-            }
-            if (sval.length() == 0) {
-                response = false;
-            }
-
-            if (response) {
-                Preferences prefs;
-                prefs.begin(NAMESPACE, false);
-                //Byte value
-                if ((styp == "B")  ||  (styp == "F")){
-                    int8_t bbuf = sval.toInt();
-                    if (prefs.putChar(spos.c_str(), bbuf) ==0 ) {
-                        response = false;
-                    } else {
-                        //dynamique refresh is better than restart the board
-                        if (spos == ESP_WIFI_MODE){
-                            //TODO
-                        }
-                        if (spos == AP_CHANNEL_ENTRY) {
-                            //TODO
-                        }
-                        if (spos == HTTP_ENABLE_ENTRY) {
-                            //TODO
-                        }
-                        if (spos == TELNET_ENABLE_ENTRY) {
-                            //TODO
-                        }
-                    }
-                }
-                //Integer value
-                if (styp == "I") {
-                    int16_t ibuf = sval.toInt();
-                    if (prefs.putUShort(spos.c_str(), ibuf) == 0) {
-                        response = false;
-                    } else {
-                        if (spos == HTTP_PORT_ENTRY){
-                            //TODO
-                        }
-                        if (spos == TELNET_PORT_ENTRY){
-                            //TODO
-                            //Serial.println(ibuf);
-                        }
-                    }
-                    
-                }
-                //String value
-                if (styp == "S") {
-                   if (prefs.putString(spos.c_str(), sval) == 0) {
-                        response = false;
-                    } else {
-                        if (spos == HOSTNAME_ENTRY){
-                            //TODO
-                        }
-                        if (spos == STA_SSID_ENTRY){
-                            //TODO
-                        }
-                        if (spos == STA_PWD_ENTRY){
-                            //TODO
-                        }
-                        if (spos == AP_SSID_ENTRY){
-                            //TODO
-                        }
-                        if (spos == AP_PWD_ENTRY){
-                            //TODO
-                        }
-                    }
-                    
-                }
-                //IP address
-                if (styp == "A") {
-                    if (prefs.putInt(spos.c_str(), wifi_config.IP_int_from_string(sval)) == 0) {
-                        response = false;
-                    } else {
-                        if (spos == STA_IP_ENTRY){
-                            //TODO
-                        }
-                        if (spos == STA_GW_ENTRY){
-                            //TODO
-                        }
-                        if (spos == STA_MK_ENTRY){
-                            //TODO
-                        }
-                        if (spos == AP_IP_ENTRY){
-                            //TODO
-                        }
-                    }
-                }
-                prefs.end();
-            }
-            if (!response) {
-                if (espresponse) espresponse->println ("Error: Incorrect Command");
-            } else {
-                 if (espresponse) espresponse->println ("ok");
-            }
-
-            }
-            break;
-    //Get available AP list (limited to 30)
-    //output is JSON 
-    //[ESP410]
-    case 410: {
-        if (!espresponse)return false;
-#ifdef ENABLE_AUTHENTICATION
-            if (auth_type == LEVEL_GUEST) return false;
-#endif
-        espresponse->print("{\"AP_LIST\":[");
-        int n = WiFi.scanComplete();
-        if (n == -2) {
-            WiFi.scanNetworks (true);
-        } else if (n) {	
-            for (int i = 0; i < n; ++i) {
-                if (i > 0) {
-                    espresponse->print (",");
-                }
-                espresponse->print ("{\"SSID\":\"");
-                espresponse->print (WiFi.SSID (i).c_str());
-                espresponse->print ("\",\"SIGNAL\":\"");
-                espresponse->print (String(wifi_config.getSignal (WiFi.RSSI (i) )).c_str());
-                espresponse->print ("\",\"IS_PROTECTED\":\"");
-                
-                if (WiFi.encryptionType (i) == WIFI_AUTH_OPEN) {
-                    espresponse->print ("0");
-                } else {
-                    espresponse->print ("1");
-                }
-                espresponse->print ("\"}");
-                }
-            }
-            WiFi.scanDelete();      
-            if (WiFi.scanComplete() == -2) {
-                WiFi.scanNetworks (true);
-            }
-       espresponse->print ("]}");
-    }
-    break;
-        //Get ESP current status 
-       case 420:
-            {
-#ifdef ENABLE_AUTHENTICATION
-            if (auth_type == LEVEL_GUEST) return false;
-#endif
-            if (!espresponse)return false;
-            espresponse->print ("Chip ID: ");
-            espresponse->print (String ( (uint16_t) (ESP.getEfuseMac() >> 32) ).c_str());
-            espresponse->print ("\n");
-            espresponse->print ("CPU Frequency: ");
-            espresponse->print (String (ESP.getCpuFreqMHz() ).c_str());
-            espresponse->print ("Mhz");
-            espresponse->print ("\n");
-            espresponse->print ("CPU Temperature: ");
-            espresponse->print (String (temperatureRead(), 1).c_str());
-            espresponse->print ("&deg;C");
-            espresponse->print ("\n");
-            espresponse->print ("Free memory: ");
-            espresponse->print (formatBytes (ESP.getFreeHeap()).c_str());
-            espresponse->print ("\n");
-            espresponse->print ("SDK: ");
-            espresponse->print (ESP.getSdkVersion());
-            espresponse->print ("\n");
-            espresponse->print ("Flash Size: ");
-            espresponse->print (formatBytes (ESP.getFlashChipSize()).c_str());
-            espresponse->print ("\n");
-            espresponse->print ("Available Size for update: ");
-            //Not OTA on 2Mb board per spec
-            if (ESP.getFlashChipSize() > 0x20000) {
-                espresponse->print (formatBytes (0x140000).c_str());
-            } else {
-                espresponse->print (formatBytes (0x0).c_str());
-            }
-            espresponse->print ("\n");
-            espresponse->print ("Available Size for SPIFFS: ");
-            espresponse->print (formatBytes (SPIFFS.totalBytes()).c_str());
-            espresponse->print ("\n");
-            espresponse->print ("Baud rate: ");
-            long br = Serial.baudRate();
-            //workaround for ESP32
-            if (br == 115201) {
-                br = 115200;
-            }
-            if (br == 230423) {
-                br = 230400;
-            }
-            espresponse->print (String(br).c_str());
-            espresponse->print ("\n");
-            espresponse->print ("Sleep mode: ");
-            if (WiFi.getSleep())espresponse->print ("Modem");
-            else espresponse->print ("None");
-            espresponse->print ("\n");
-            espresponse->print ("Web port: ");
-            espresponse->print (String(_port).c_str());
-            espresponse->print ("\n");
-            espresponse->print ("Data port: ");
-            if (_data_port!=0)espresponse->print (String(_data_port).c_str());
-            else espresponse->print ("Disabled");
-            espresponse->print ("\n");
-            espresponse->print ("Hostname: ");
-            espresponse->print ( _hostname.c_str());
-            espresponse->print ("\n");
-            espresponse->print ("Active Mode: ");
-            if (WiFi.getMode() == WIFI_STA) {
-                 espresponse->print ("STA (");
-                 espresponse->print ( WiFi.macAddress().c_str());
-                 espresponse->print (")");
-                 espresponse->print ("\n");
-                 espresponse->print ("Connected to: ");
-                 if (WiFi.isConnected()){ //in theory no need but ...  
-                     espresponse->print (WiFi.SSID().c_str());
-                     espresponse->print ("\n");
-                     espresponse->print ("Signal: ");
-                     espresponse->print ( String(wifi_config.getSignal (WiFi.RSSI())).c_str());
-                     espresponse->print ("%");
-                     espresponse->print ("\n");
-                     uint8_t PhyMode;
-                     esp_wifi_get_protocol (ESP_IF_WIFI_STA, &PhyMode);
-                     espresponse->print ("Phy Mode: ");
-                     if (PhyMode == (WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N)) espresponse->print ("11n");
-                     else if (PhyMode == (WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G)) espresponse->print ("11g");
-                     else if (PhyMode == (WIFI_PROTOCOL_11B )) espresponse->print ("11b");
-                     else espresponse->print ("???");
-                     espresponse->print ("\n");
-                     espresponse->print ("Channel: ");
-                     espresponse->print (String (WiFi.channel()).c_str());
-                     espresponse->print ("\n");
-                     espresponse->print ("IP Mode: ");
-                     tcpip_adapter_dhcp_status_t dhcp_status;
-                     tcpip_adapter_dhcpc_get_status (TCPIP_ADAPTER_IF_STA, &dhcp_status);
-                     if (dhcp_status == TCPIP_ADAPTER_DHCP_STARTED)espresponse->print ("DHCP");
-                     else espresponse->print ("Static");
-                     espresponse->print ("\n");
-                     espresponse->print ("IP: ");
-                     espresponse->print (WiFi.localIP().toString().c_str());
-                     espresponse->print ("\n");
-                     espresponse->print ("Gateway: ");
-                     espresponse->print (WiFi.gatewayIP().toString().c_str());
-                     espresponse->print ("\n");
-                     espresponse->print ("Mask: ");
-                     espresponse->print (WiFi.subnetMask().toString().c_str());
-                     espresponse->print ("\n");
-                     espresponse->print ("DNS: ");
-                     espresponse->print (WiFi.dnsIP().toString().c_str());
-                     espresponse->print ("\n");
-                 } //this is web command so connection => no command 
-                 espresponse->print ("Disabled Mode: ");
-                 espresponse->print ("AP (");
-                 espresponse->print (WiFi.softAPmacAddress().c_str());
-                 espresponse->print (")");
-                 espresponse->print ("\n");
-            } else if (WiFi.getMode() == WIFI_AP) {
-                 espresponse->print ("AP (");
-                 espresponse->print (WiFi.softAPmacAddress().c_str());
-                 espresponse->print (")");
-                 espresponse->print ("\n");
-                 wifi_config_t conf;
-                 esp_wifi_get_config (ESP_IF_WIFI_AP, &conf);
-                 espresponse->print ("SSID: ");
-                 espresponse->print ((const char*) conf.ap.ssid);
-                 espresponse->print ("\n");
-                 espresponse->print ("Visible: ");
-                 espresponse->print ( (conf.ap.ssid_hidden == 0) ? "Yes" : "No");
-                 espresponse->print ("\n");
-                 espresponse->print ("Authentication: ");
-                 if (conf.ap.authmode == WIFI_AUTH_OPEN) {
-                    espresponse->print ("None");
-                 } else if (conf.ap.authmode == WIFI_AUTH_WEP) {
-                    espresponse->print ("WEP");
-                 } else if (conf.ap.authmode == WIFI_AUTH_WPA_PSK) {
-                    espresponse->print ("WPA");
-                 } else if (conf.ap.authmode == WIFI_AUTH_WPA2_PSK) {
-                    espresponse->print ("WPA2");
-                 } else {
-                    espresponse->print ("WPA/WPA2");
-                 }
-                espresponse->print ("\n");
-                espresponse->print ("Max Connections: ");
-                espresponse->print (String(conf.ap.max_connection).c_str());
-                espresponse->print ("\n");
-                espresponse->print ("DHCP Server: ");
-                tcpip_adapter_dhcp_status_t dhcp_status;
-                tcpip_adapter_dhcps_get_status (TCPIP_ADAPTER_IF_AP, &dhcp_status);
-                if (dhcp_status == TCPIP_ADAPTER_DHCP_STARTED)espresponse->print ("Started");
-                else espresponse->print ("Stopped");
-                espresponse->print ("\n");
-                espresponse->print ("IP: ");
-                espresponse->print (WiFi.softAPIP().toString().c_str());
-                espresponse->print ("\n");
-                tcpip_adapter_ip_info_t ip_AP;
-                tcpip_adapter_get_ip_info (TCPIP_ADAPTER_IF_AP, &ip_AP);
-                espresponse->print ("Gateway: ");
-                espresponse->print (IPAddress (ip_AP.gw.addr).toString().c_str());
-                espresponse->print ("\n");
-                espresponse->print ("Mask: ");
-                espresponse->print (IPAddress (ip_AP.netmask.addr).toString().c_str());
-                espresponse->print ("\n");
-                espresponse->print ("Connected clients: ");
-                wifi_sta_list_t station;
-                tcpip_adapter_sta_list_t tcpip_sta_list;
-                esp_wifi_ap_get_sta_list (&station);
-                tcpip_adapter_get_sta_list (&station, &tcpip_sta_list);
-                espresponse->print (String(station.num).c_str());
-                espresponse->print ("\n");
-                for (int i = 0; i < station.num; i++) {
-                    espresponse->print (mac2str(tcpip_sta_list.sta[i].mac));
-                    espresponse->print (" ");
-                    espresponse->print ( IPAddress (tcpip_sta_list.sta[i].ip.addr).toString().c_str());
-                    espresponse->print ("\n");
-                    }
-                espresponse->print ("Disabled Mode: ");
-                espresponse->print ("STA (");
-                espresponse->print (WiFi.macAddress().c_str());
-                espresponse->print (")");
-                espresponse->print ("\n");
-            } else if (WiFi.getMode() == WIFI_AP_STA) //we should not be in this state but just in case ....
-            {
-               espresponse->print ("Mixed");
-               espresponse->print ("\n");
-               espresponse->print ("STA (");
-               espresponse->print (WiFi.macAddress().c_str());
-               espresponse->print (")");
-               espresponse->print ("\n");
-               espresponse->print ("AP (");
-               espresponse->print (WiFi.softAPmacAddress().c_str());
-               espresponse->print (")");
-               espresponse->print ("\n");
-        
-            } else { //we should not be there if no wifi ....
-               espresponse->print ("Wifi Off");
-               espresponse->print ("\n");
-            }
-            //TODO to complete
-            espresponse->print ("FW version: ");
-            espresponse->print (GRBL_VERSION);
-            espresponse->print (" (");
-            espresponse->print (GRBL_VERSION_BUILD);
-            espresponse->print (") (ESP32)");
-            }
-            break;
-                 //Set ESP mode
-         //cmd is RESTART
-         //[ESP444]<cmd>
-      case 444:
-            parameter = get_param(cmd_params,"", true);
-#ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                response = false;
-            } else
-#endif
-            {
-                if (parameter=="RESTART") {
-                 grbl_send(CLIENT_ALL,"[MSG:Restart ongoing]\r\n");
-                 wifi_config.restart_ESP();
-                } else response = false;
-            }
-            if (!response) {
-                 if (espresponse)espresponse->println ("Error: Incorrect Command");
-            } else {
-                 if (espresponse)espresponse->println ("ok");
-            }
-            break;
-#ifdef ENABLE_AUTHENTICATION
-    //Change / Reset user password
-    //[ESP555]<password>
-    case 555: {
-        if (auth_type == LEVEL_ADMIN) {
-            parameter = get_param (cmd_params, "", true);
-            if (parameter.length() == 0) {
-                Preferences prefs;
-                parameter = DEFAULT_USER_PWD;
-                prefs.begin(NAMESPACE, false);
-                if (prefs.putString(USER_PWD_ENTRY, parameter) != parameter.length()){
-                    response = false;
-                    espresponse->println ("error");
-                } else espresponse->println ("ok");
-                prefs.end();
-                
-            } else {
-                if (isLocalPasswordValid (parameter.c_str() ) ) {
-                    Preferences prefs;
-                    prefs.begin(NAMESPACE, false);
-                    if (prefs.putString(USER_PWD_ENTRY, parameter) != parameter.length()) {
-                        response = false;
-                        espresponse->println ("error");
-                    } else espresponse->println ("ok");
-                    prefs.end();
-                } else {
-                    espresponse->println ("error");
-                    response = false;
-                }
-            }
-        } else {
-            espresponse->println ("error");
-            response = false;
-        }
-        break;
-    }
-#endif
-    //[ESP700]<filename>
-    case 700: { //read local file
-#ifdef ENABLE_AUTHENTICATION
-            if (auth_type == LEVEL_GUEST) return false;
-#endif
-        cmd_params.trim() ;
-        if ( (cmd_params.length() > 0) && (cmd_params[0] != '/') ) {
-            cmd_params = "/" + cmd_params;
-        }
-        File currentfile = SPIFFS.open (cmd_params, FILE_READ);
-        if (currentfile) {//if file open success
-            //until no line in file
-            while (currentfile.available()) {
-                String currentline = currentfile.readStringUntil('\n');
-                currentline.replace("\n","");
-                currentline.replace("\r","");
-                if (currentline.length() > 0) {
-                    int ESPpos = currentline.indexOf ("[ESP");
-                    if (ESPpos > -1) {
-                        //is there the second part?
-                        int ESPpos2 = currentline.indexOf ("]", ESPpos);
-                        if (ESPpos2 > -1) {
-                            //Split in command and parameters
-                            String cmd_part1 = currentline.substring (ESPpos + 4, ESPpos2);
-                            String cmd_part2 = "";
-                            //is there space for parameters?
-                            if (ESPpos2 < currentline.length() ) {
-                                cmd_part2 = currentline.substring (ESPpos2 + 1);
-                            }
-                            //if command is a valid number then execute command
-                            if(cmd_part1.toInt()!=0) {
-                                if (!execute_internal_command(cmd_part1.toInt(),cmd_part2, auth_type, espresponse)) response = false;
-                            }
-                            //if not is not a valid [ESPXXX] command ignore it
-                        }
-                    } else {
-                        //preprocess line
-                        String processedline = "";
-                        char c;
-                        uint8_t index = 0;
-                        uint8_t line_flags = 0;
-                        for (uint16_t index=0; index < currentline.length(); index++){
-                            c = currentline[index];
-                            if (c == '\r' || c == ' ' || c == '\n') {  
-                            // ignore these whitespace items
-                                }
-                            else if (c == '(') {
-                                line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
-                            }
-                            else if (c == ')') {
-                            // End of '()' comment. Resume line allowed.
-                            if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) { line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES); }
-                            }
-                            else if (c == ';') {
-                            // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
-                                if (!(line_flags & LINE_FLAG_COMMENT_PARENTHESES)) // semi colon inside parentheses do not mean anything						
-                                    line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
-                            }
-                            
-                            else { // add characters to the line
-                                if (!line_flags) {
-                                    c = toupper(c); // make upper case
-                                    processedline += c;
-                                    }
-                                }
-                            }
-                        if (processedline.length() > 0)gc_execute_line((char *)processedline.c_str(), CLIENT_WEBUI);
-                        wifi_config.wait (1);
-                    }
-                wifi_config.wait (1);
-                }
-            }
-            currentfile.close();
-             if (espresponse)espresponse->println ("ok");
-        } else {
-             if (espresponse)espresponse->println ("error");
-            response = false;
-        }
-        break;
-    }
-    //Format SPIFFS
-    //[ESP710]FORMAT pwd=<admin password>
-    case 710:
-#ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) return false;
-#endif
-        parameter = get_param (cmd_params, "", true);
-#ifdef ENABLE_AUTHENTICATION
-        if (auth_type != LEVEL_ADMIN) {
-            espresponse->println ("error");
-            response = false;
-            break;
-        } else
-#endif
-        {
-            if (parameter == "FORMAT") {
-                 if (espresponse)espresponse->print ("Formating");
-                SPIFFS.format();
-                 if (espresponse)espresponse->println ("...Done");
-            } else {
-                 if (espresponse)espresponse->println ("error");
-                response = false;
-            }
-        }
-        break;
-        //get fw version / fw target / hostname / authentication
-        //[ESP800]
-        case 800: 
-            {
-            if (!espresponse)return false;
-            String resp;
-            resp = "FW version:";
-            resp += GRBL_VERSION;
-            resp += " # FW target:grbl-embedded  # FW HW:";
-            #ifdef ENABLE_SD_CARD
-            resp += "Direct SD";
-            #else
-            resp += "No SD";
-            #endif
-            resp += "  # primary sd:/sd # secondary sd:none # authentication:";
-            #ifdef ENABLE_AUTHENTICATION
-            resp += "yes";
-            #else
-            resp += "no";
-            #endif
-            resp += " # webcommunication: Sync: ";
-            resp += String(_port + 1);
-            resp += "# hostname:";
-            resp += _hostname;
-            if (WiFi.getMode() == WIFI_AP)resp += "(AP mode)";
-            if (espresponse)espresponse->println (resp.c_str());
-        }   
-            break;
-        default:
-             if (espresponse)espresponse->println ("Error: Incorrect Command");
-            response = false;
-            break;
-    }
-    return response;
-}
 
 //login status check
 void Web_Server::handle_login()
@@ -1447,7 +656,7 @@ void Web_Server::handle_login()
         //change password
         if (_webserver->hasArg("PASSWORD") && _webserver->hasArg("USER") && _webserver->hasArg("NEWPASSWORD") && (msg_alert_error==false) ) {
             String newpassword =  _webserver->arg("NEWPASSWORD");
-            if (isLocalPasswordValid(newpassword.c_str())) {
+            if (COMMANDS::isLocalPasswordValid(newpassword.c_str())) {
                 String spos;
                 if(sUser == DEFAULT_ADMIN_LOGIN) spos = ADMIN_PWD_ENTRY;
                 else spos = USER_PWD_ENTRY;
@@ -1691,7 +900,7 @@ void Web_Server::handleFileList ()
         } else {
             //do not add "." file
             if (! ( (filename == ".") || (filename == "") ) ) {
-                size = formatBytes (fileparsed.size() );
+                size = ESPResponseStream::formatBytes (fileparsed.size() );
             } else {
                 addtolist = false;
             }
@@ -1719,8 +928,8 @@ void Web_Server::handleFileList ()
     size_t usedBytes;
     totalBytes = SPIFFS.totalBytes();
     usedBytes = SPIFFS.usedBytes();
-    jsonfile += "\"total\":\"" + formatBytes (totalBytes) + "\",";
-    jsonfile += "\"used\":\"" + formatBytes (usedBytes) + "\",";
+    jsonfile += "\"total\":\"" + ESPResponseStream::formatBytes (totalBytes) + "\",";
+    jsonfile += "\"used\":\"" + ESPResponseStream::formatBytes (usedBytes) + "\",";
     jsonfile.concat (F ("\"occupation\":\"") );
     jsonfile += String (100 * usedBytes / totalBytes);
     jsonfile += "\"";
@@ -1837,7 +1046,7 @@ void Web_Server::SPIFFSFileupload ()
             }
             grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
     }
-    wifi_config.wait(0);
+    COMMANDS::wait(0);
 }
 
 //Web Update handler 
@@ -1857,8 +1066,8 @@ void Web_Server::handleUpdate ()
     _webserver->send(200, "application/json", jsonfile);
     //if success restart
     if (_upload_status == UPLOAD_STATUS_SUCCESSFUL) {
-        wifi_config.wait(1000);
-        wifi_config.restart_ESP();
+        COMMANDS::wait(1000);
+        COMMANDS::restart_ESP();
     } else {
         _upload_status = UPLOAD_STATUS_NONE;
     }
@@ -1926,7 +1135,7 @@ void Web_Server::WebUpdateUpload ()
         Update.end();
         _upload_status=UPLOAD_STATUS_CANCELLED;
     }
-    wifi_config.wait(0);
+    COMMANDS::wait(0);
 }
 
 
@@ -1965,7 +1174,7 @@ bool  Web_Server::deleteRecursive(String path)
                 break;
             }
         }
-       wifi_config.wait(0); //wdtFeed
+       COMMANDS::wait(0); //wdtFeed
     }
     file.close();
     if (result) return SD.rmdir((char *)path.c_str());
@@ -2098,7 +1307,7 @@ void Web_Server::handle_direct_SDFileList()
         File entry =  dir.openNextFile();
         int i = 0;
         while(entry) {
-            wifi_config.wait (1);
+            COMMANDS::wait (1);
             if (i>0) {
                 jsonfile+=",";
             }
@@ -2114,7 +1323,7 @@ void Web_Server::handle_direct_SDFileList()
                 jsonfile+="-1";
             } else {
                 // files have sizes, directories do not
-                jsonfile+=formatBytes(entry.size());
+                jsonfile+=ESPResponseStream::formatBytes(entry.size());
             }
             jsonfile+="\",\"datetime\":\"";
             //TODO - can be done later
@@ -2134,8 +1343,8 @@ void Web_Server::handle_direct_SDFileList()
     //SDCard are in GB or MB but no less
     totalspace = SD.totalBytes();
     usedspace = SD.usedBytes();
-    stotalspace = formatBytes(totalspace);
-    susedspace =  formatBytes(usedspace);
+    stotalspace = ESPResponseStream::formatBytes(totalspace);
+    susedspace =  ESPResponseStream::formatBytes(usedspace);
 
     uint32_t  occupedspace = (volFree/volTotal)*100;
     //minimum if even one byte is used is 1%
@@ -2261,7 +1470,7 @@ void Web_Server::SDFile_direct_upload()
             sdUploadFile.close();
         }
     }
-    wifi_config.wait(0);
+    COMMANDS::wait(0);
 }
 #endif
 
@@ -2325,16 +1534,6 @@ void Web_Server::handle_Websocket_Event(uint8_t num, uint8_t type, uint8_t * pay
 
 }
 
-//just simple helper to convert mac address to string
-char * Web_Server::mac2str (uint8_t mac [8])
-{
-    static char macstr [18];
-    if (0 > sprintf (macstr, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]) ) {
-        strcpy (macstr, "00:00:00:00:00:00");
-    }
-    return macstr;
-}
-
 String Web_Server::get_Splited_Value(String data, char separator, int index)
 {
   int found = 0;
@@ -2352,20 +1551,6 @@ String Web_Server::get_Splited_Value(String data, char separator, int index)
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
-
-//helper to format size to readable string
-String Web_Server::formatBytes (uint32_t bytes)
-{
-    if (bytes < 1024) {
-        return String (bytes) + " B";
-    } else if (bytes < (1024 * 1024) ) {
-        return String (bytes / 1024.0) + " KB";
-    } else if (bytes < (1024 * 1024 * 1024) ) {
-        return String (bytes / 1024.0 / 1024.0) + " MB";
-    } else {
-        return String (bytes / 1024.0 / 1024.0 / 1024.0) + " GB";
-    }
-}
 
 //helper to extract content type from file extension
 //Check what is the content tye according extension file
@@ -2427,23 +1612,6 @@ level_authenticate_type Web_Server::is_authenticated()
 }
 
 #ifdef ENABLE_AUTHENTICATION
-
-bool Web_Server::isLocalPasswordValid (const char * password)
-{
-    char c;
-    //limited size
-    if ( (strlen (password) > MAX_LOCAL_PASSWORD_LENGTH) ||  (strlen (password) < MIN_LOCAL_PASSWORD_LENGTH) ) {
-        return false;
-    }
-    //no space allowed
-    for (int i = 0; i < strlen (password); i++) {
-        c = password[i];
-        if (c == ' ') {
-            return false;
-        }
-    }
-    return true;
-}
 
 //add the information in the linked list if possible
 bool Web_Server::AddAuthIP (auth_ip * item)
@@ -2561,82 +1729,6 @@ level_authenticate_type Web_Server::ResetAuthIP (IPAddress ip, const char * sess
     return LEVEL_GUEST;
 }
 #endif
-
-String Web_Server::get_param (String & cmd_params, const char * id, bool withspace)
-{
-    static String parameter;
-    String sid = id;
-    int start;
-    int end = -1;
-    parameter = "";
-    //if no id it means it is first part of cmd
-    if (strlen (id) == 0) {
-        start = 0;
-    }
-    //else find id position
-    else {
-        start = cmd_params.indexOf (id);
-    }
-    //if no id found and not first part leave
-    if (start == -1 ) {
-        return parameter;
-    }
-    //password and SSID can have space so handle it
-    //if no space expected use space as delimiter
-    if (!withspace) {
-        end = cmd_params.indexOf (" ", start);
-    }
-    //if no end found - take all
-    if (end == -1) {
-        end = cmd_params.length();
-    }
-    //extract parameter
-    parameter = cmd_params.substring (start + strlen (id), end);
-    //be sure no extra space
-    parameter.trim();
-    return parameter;
-}
-
-ESPResponseStream::ESPResponseStream(WebServer * webserver){
-    _header_sent=false;
-    _webserver = webserver;
-}
-
-void ESPResponseStream::println(const char *data){
-    print(data);
-    print("\n");
-}
-
-void ESPResponseStream::print(const char *data){
-    if (!_header_sent) {
-         _webserver->setContentLength(CONTENT_LENGTH_UNKNOWN);
-         _webserver->sendHeader("Content-Type","text/html");
-         _webserver->sendHeader("Cache-Control","no-cache");
-         _webserver->send(200);
-         _header_sent = true;
-        }
-    _buffer+=data;
-    if (_buffer.length() > 1200) {
-        //send data
-        _webserver->sendContent(_buffer);
-        //reset buffer
-        _buffer = "";
-    }
-
-}
-
-void ESPResponseStream::flush(){
-    if(_header_sent) {
-        //send data
-        if(_buffer.length() > 0)_webserver->sendContent(_buffer);
-        //close connection
-        _webserver->sendContent("");
-        }
-    _header_sent = false;
-    _buffer = "";
-
-}
-
 
 #endif // Enable HTTP && ENABLE_WIFI
 

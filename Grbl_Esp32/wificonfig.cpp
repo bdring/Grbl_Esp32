@@ -20,7 +20,6 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-//#include "grbl.h"
 #include "config.h"
 
 #ifdef ENABLE_WIFI
@@ -33,26 +32,28 @@
 #include <Preferences.h>
 #include "wificonfig.h"
 #include "wifiservices.h"
-//#include "http_ESP32.h"
+#include "commands.h"
 #include "report.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-esp_err_t esp_task_wdt_reset();
-#ifdef __cplusplus
-}
-#endif
 
 WiFiConfig wifi_config;
 
-bool WiFiConfig::restart_ESP_module = false;
+String WiFiConfig::_hostname = "";
 
 WiFiConfig::WiFiConfig(){
 }
     
 WiFiConfig::~WiFiConfig(){
     end();
+}
+
+//just simple helper to convert mac address to string
+char * WiFiConfig::mac2str (uint8_t mac [8])
+{
+    static char macstr [18];
+    if (0 > sprintf (macstr, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]) ) {
+        strcpy (macstr, "00:00:00:00:00:00");
+    }
+    return macstr;
 }
 
 const char *WiFiConfig::info(){
@@ -126,7 +127,7 @@ bool WiFiConfig::isHostnameValid (const char * hostname)
     //only letter and digit
     for (int i = 0; i < strlen (hostname); i++) {
         c = hostname[i];
-        if (! (isdigit (c) || isalpha (c) || c == '_') ) {
+        if (! (isdigit (c) || isalpha (c) || c == '-') ) {
             return false;
         }
         if (c == ' ') {
@@ -135,6 +136,7 @@ bool WiFiConfig::isHostnameValid (const char * hostname)
     }
     return true;
 }
+
 
 /**
  * Check if SSID string is valid
@@ -183,17 +185,6 @@ bool WiFiConfig::isValidIP(const char * string){
     return ip.fromString(string);
 }
 
-/*
- * delay is to avoid with asyncwebserver and may need to wait sometimes
- */
-void WiFiConfig::wait(uint32_t milliseconds){
-    uint32_t timeout = millis();
-    esp_task_wdt_reset(); //for a wait 0;
-    //wait feeding WDT
-    while ( (millis() - timeout) < milliseconds) {
-       esp_task_wdt_reset();
-    }
-}
 
 /**
  * WiFi events 
@@ -284,7 +275,7 @@ bool WiFiConfig::ConnectSTA2AP(){
                 break;
         }
         grbl_sendf(CLIENT_ALL,"[MSG:%s]\r\n",msg.c_str());
-        wait (500);
+        COMMANDS::wait (500);
         count++;
         status = WiFi.status();
      }
@@ -408,27 +399,30 @@ void WiFiConfig::StopWiFi(){
  * begin WiFi setup
  */
 void WiFiConfig::begin() {
-   Preferences prefs;
-   //stop active services
+    Preferences prefs;
+    //stop active services
     wifi_services.end();
-   //setup events
-   WiFi.onEvent(WiFiConfig::WiFiEvent);
-   //open preferences as read-only
-   prefs.begin(NAMESPACE, true);
-   int8_t wifiMode = prefs.getChar(ESP_WIFI_MODE, DEFAULT_WIFI_MODE);
-   prefs.end();
-   if (wifiMode == ESP_WIFI_AP) {
+    //setup events
+    WiFi.onEvent(WiFiConfig::WiFiEvent);
+    //open preferences as read-only
+    prefs.begin(NAMESPACE, true);
+    //Get hostname
+    String defV = DEFAULT_HOSTNAME;
+    _hostname = prefs.getString(HOSTNAME_ENTRY, defV);
+    int8_t wifiMode = prefs.getChar(ESP_RADIO_MODE, DEFAULT_RADIO_MODE);
+    prefs.end();
+    if (wifiMode == ESP_WIFI_AP) {
        StartAP();
        //start services
        wifi_services.begin();
-   } else if (wifiMode == ESP_WIFI_STA){
+    } else if (wifiMode == ESP_WIFI_STA){
        if(!StartSTA()){
            grbl_send(CLIENT_ALL,"[MSG:Cannot connect to AP]\r\n");
            StartAP();
        }
        //start services
        wifi_services.begin();
-   }else WiFi.mode(WIFI_OFF);
+    }else WiFi.mode(WIFI_OFF);
 }
 
 /**
@@ -439,16 +433,9 @@ void WiFiConfig::end() {
 }
 
 /**
- * Restart ESP
+ * Reset ESP
  */
-void WiFiConfig::restart_ESP(){
-    restart_ESP_module=true;
-}
-
-/**
- * Restart ESP
- */
-void WiFiConfig::reset_ESP(){
+void WiFiConfig::reset_settings(){
     Preferences prefs;
     prefs.begin(NAMESPACE, false);
     String sval;
@@ -492,8 +479,8 @@ void WiFiConfig::reset_ESP(){
     if (prefs.putChar(TELNET_ENABLE_ENTRY, bbuf) ==0 ) {
         error = true;
     }
-    bbuf = DEFAULT_WIFI_MODE;
-    if (prefs.putChar(ESP_WIFI_MODE, bbuf) ==0 ) {
+    bbuf = DEFAULT_RADIO_MODE;
+    if (prefs.putChar(ESP_RADIO_MODE, bbuf) ==0 ) {
         error = true;
     }  
     ibuf = DEFAULT_WEBSERVER_PORT;
@@ -527,19 +514,14 @@ void WiFiConfig::reset_ESP(){
         grbl_send(CLIENT_ALL,"[MSG:WiFi reset done]\r\n");
     }
 }
-
+bool WiFiConfig::Is_WiFi_on(){
+    return !(WiFi.getMode() == WIFI_MODE_NULL);
+}
 
 /**
  * Handle not critical actions that must be done in sync environement
  */
-void WiFiConfig::handle() {
-    //in case of restart requested
-    if (restart_ESP_module) {
-        end();
-        ESP.restart();
-        while (1) {};
-    }
-    
+void WiFiConfig::handle() { 
     //Services
     wifi_services.handle();
 }

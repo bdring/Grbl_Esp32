@@ -33,6 +33,7 @@
 #include <WiFi.h>
 #include <Preferences.h>
 #include "report.h"
+#include "commands.h"
 
 
 Telnet_Server telnet_server;
@@ -117,7 +118,7 @@ size_t Telnet_Server::write(const uint8_t *buffer, size_t size){
         if (_telnetClients[i] && _telnetClients[i].connected()){
             log_i("[TELNET out connected]");
           _telnetClients[i].write(buffer, size);
-          wifi_config.wait(0);
+          COMMANDS::wait(0);
         }
     }
 }
@@ -135,7 +136,7 @@ void Telnet_Server::handle(){
         if(_telnetClients[i].available()){
           //get data from the telnet client and push it to grbl
           while(_telnetClients[i].available() && (available() < TELNETRXBUFFERSIZE)) {
-              wifi_config.wait(0);
+              COMMANDS::wait(0);
               c = _telnetClients[i].read();
               if ((char)c != '\r')push(c);
               if ((char)c == '\n')return;
@@ -147,7 +148,7 @@ void Telnet_Server::handle(){
           _telnetClients[i].stop();
         }
       }
-       wifi_config.wait(0);
+       COMMANDS::wait(0);
     }
 }
 
@@ -183,7 +184,7 @@ bool Telnet_Server::push (const char * data){
         if (current > (TELNETRXBUFFERSIZE-1)) current = 0;
         _RXbuffer[current] = data[i];
         current ++;
-        wifi_config.wait(0);
+        COMMANDS::wait(0);
         }
         _RXbufferSize+=strlen(data);
         return true;

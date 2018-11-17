@@ -45,6 +45,7 @@ class Telnet_Server {
     int available();
     bool push (uint8_t data);
     bool push (const char * data);
+    static uint16_t port(){return _port;}
     private:
     static bool _setupdone;
     static WiFiServer * _telnetserver;

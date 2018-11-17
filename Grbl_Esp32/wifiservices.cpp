@@ -133,7 +133,7 @@ void WiFiServices::end(){
     
 #ifdef ENABLE_MDNS
     //Stop mDNS
-    //MDNS.end();
+    MDNS.end();
 #endif 
 }
 
