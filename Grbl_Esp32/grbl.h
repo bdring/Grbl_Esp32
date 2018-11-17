@@ -57,7 +57,7 @@
 #include "jog.h"
 
 #ifdef ENABLE_BLUETOOTH
-	#include "btconfig.h"
+	#include "BTconfig.h"
 #endif
 
 #ifdef ENABLE_SD_CARD	
