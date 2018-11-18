@@ -107,6 +107,7 @@ void Telnet_Server::clearClients(){
 
 size_t Telnet_Server::write(const uint8_t *buffer, size_t size){
     
+    size_t wsize = 0;
     if ( !_setupdone || _telnetserver == NULL) {
         log_i("[TELNET out blocked]");
         return 0;
@@ -117,10 +118,11 @@ size_t Telnet_Server::write(const uint8_t *buffer, size_t size){
     for(uint8_t i = 0; i < MAX_TLNT_CLIENTS; i++){
         if (_telnetClients[i] && _telnetClients[i].connected()){
             log_i("[TELNET out connected]");
-          _telnetClients[i].write(buffer, size);
+          wsize = _telnetClients[i].write(buffer, size);
           COMMANDS::wait(0);
         }
     }
+    return wsize;
 }
 
 void Telnet_Server::handle(){

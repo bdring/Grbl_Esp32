@@ -187,7 +187,7 @@ void SSDPClass::_send(ssdp_method_t method){
     _deviceType,
    ip[0], ip[1], ip[2], ip[3], _port, _schemaURL
   );
-
+  if (len < 0) return;
   IPAddress remoteAddr;
   uint16_t remotePort;
   if(method == NONE) {

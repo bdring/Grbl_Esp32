@@ -205,7 +205,7 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 {
 	uint64_t step_pulse_off_time;
 	
-	const int timer_idx = (int)para;  // get the timer index	
+	//const int timer_idx = (int)para;  // get the timer index	
 	
 	TIMERG0.int_clr_timers.t0 = 1;
 	
@@ -390,7 +390,7 @@ void stepper_init()
 	timer_init(STEP_TIMER_GROUP, STEP_TIMER_INDEX, &config);
   timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
   timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);  
-  timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, 0, NULL, NULL);
+  timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
 
  
 }
