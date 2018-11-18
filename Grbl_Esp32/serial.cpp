@@ -29,7 +29,7 @@ portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 uint8_t serial_rx_buffer[CLIENT_COUNT][RX_RING_BUFFER];
 uint8_t serial_rx_buffer_head[CLIENT_COUNT] = {0};
 volatile uint8_t serial_rx_buffer_tail[CLIENT_COUNT] = {0};
-
+static TaskHandle_t serialCheckTaskHandle = 0;
 
 // Returns the number of bytes available in the RX serial buffer.
 uint8_t serial_get_rx_buffer_available(uint8_t client)
@@ -44,7 +44,7 @@ uint8_t serial_get_rx_buffer_available(uint8_t client)
 void serial_init()
 {
 	Serial.begin(BAUD_RATE);	
-	
+	serialCheckTaskHandle = 0;
 	// create a task to check for incoming data
 	xTaskCreatePinnedToCore(	serialCheckTask,    // task
 													"servoSyncTask", // name for task
@@ -62,9 +62,9 @@ void serial_init()
 // REaltime stuff is acted upon, then characters are added to the appropriate buffer
 void serialCheckTask(void *pvParameters)
 {
-	uint8_t data;
+  uint8_t data = 0;
   uint8_t next_head;
-	uint8_t client; // who send the data
+	uint8_t client = CLIENT_ALL; // who send the data
 	
 	uint8_t client_idx = 0;  // index of data buffer
 	

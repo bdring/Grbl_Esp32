@@ -73,6 +73,7 @@ bool Serial_2_Socket::attachWS(void * web_socket){
 
 bool Serial_2_Socket::detachWS(){
      _web_socket = NULL;
+     return true;
 }
 
 Serial_2_Socket::operator bool() const
@@ -94,8 +95,12 @@ size_t Serial_2_Socket::write(uint8_t c)
 size_t Serial_2_Socket::write(const uint8_t *buffer, size_t size)
 {
      if((buffer == NULL) ||(!_web_socket)) {
-            if(buffer == NULL)log_i("[SOCKET]No buffer");
-            if(!_web_socket)log_i("[SOCKET]No socket");
+            if(buffer == NULL){
+                log_i("[SOCKET]No buffer");
+            }
+            if(!_web_socket){
+                log_i("[SOCKET]No socket");
+            }
             return 0;
         }
 #if defined(ENABLE_SERIAL2SOCKET_OUT)

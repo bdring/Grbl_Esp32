@@ -41,7 +41,7 @@ bool sd_mount()
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels)
 {
-  char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
+  //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
 
   File root = fs.open(dirname);
   if(!root) {
@@ -212,7 +212,7 @@ uint8_t set_sd_state(uint8_t flag)
 void sd_get_current_filename(char* name)
 {
 
-  if (myFile != NULL) {
+  if (myFile) {
     strcpy(name, myFile.name());
   } else {
     name[0] = 0;

@@ -388,7 +388,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         parameter = get_param (cmd_params, "", true);
         if ((parameter.length() == 0) && !espresponse) return false;
 #ifdef ENABLE_AUTHENTICATION
-        if ((auth_type != LEVEL_ADMIN) && (parameter.length() >= 0)) {
+        if ((auth_type != LEVEL_ADMIN) && (parameter.length() > 0)) {
              espresponse->println ("Error: Wrong authentication!");
              return false;
         } 
@@ -479,7 +479,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            int16_t ibuf = parameter.toInt();
+            int ibuf = parameter.toInt();
             if ((ibuf > MAX_HTTP_PORT) || (ibuf < MIN_HTTP_PORT)) {
                 if(espresponse)espresponse->println ("Error: Incorrect port!");
                 response = false;
@@ -535,7 +535,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            int16_t ibuf = parameter.toInt();
+            int ibuf = parameter.toInt();
             if ((ibuf > MAX_TELNET_PORT) || (ibuf < MIN_TELNET_PORT)) {
                 if(espresponse)espresponse->println ("Error: Incorrect port!");
                 response = false;
@@ -567,7 +567,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         parameter = get_param (cmd_params, "", true);
         if ((parameter.length() == 0) && !espresponse) return false;
 #ifdef ENABLE_AUTHENTICATION
-        if ((auth_type != LEVEL_ADMIN) && (parameter.length() >= 0)) {
+        if ((auth_type != LEVEL_ADMIN) && (parameter.length() > 0)) {
              espresponse->println ("Error: Wrong authentication!");
              return false;
         } 
@@ -1357,7 +1357,6 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
                             //preprocess line
                             String processedline = "";
                             char c;
-                            uint8_t index = 0;
                             uint8_t line_flags = 0;
                             for (uint16_t index=0; index < currentline.length(); index++){
                                 c = currentline[index];
