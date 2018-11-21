@@ -40,12 +40,37 @@ const uint8_t *esp_bt_dev_get_address(void);
 #endif
 
 String BTConfig::_btname = "";
+String BTConfig::_btclient = "";
 
 BTConfig::BTConfig(){
 }
     
 BTConfig::~BTConfig(){
     end();
+}
+
+static void my_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
+{
+    switch (event)
+    {
+    case ESP_SPP_SRV_OPEN_EVT://Server connection open
+        {
+        char str[18];
+        str[17]='\0';
+        uint8_t * addr = param->srv_open.rem_bda;
+        sprintf(str, "%02X:%02X:%02X:%02X:%02X:%02X", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+        BTConfig::_btclient = str;
+        grbl_sendf(CLIENT_ALL,"[MSG:BT Connected with %s]\r\n", str);
+        }
+        break;
+
+    case ESP_SPP_CLOSE_EVT://Client connection closed
+        grbl_send(CLIENT_ALL,"[MSG:BT Disconnected]\r\n");
+        BTConfig::_btclient="";
+        break;
+    default:
+        break;
+    }
 }
 
 const char *BTConfig::info(){
@@ -59,7 +84,7 @@ const char *BTConfig::info(){
         result += device_address();
         result += "):Status=";
         if (SerialBT.hasClient()){
-            result += "Connected";
+            result += "Connected with " + _btclient;
         } else result += "Not connected";
     } 
     else result+="No BT";
@@ -111,7 +136,10 @@ void BTConfig::begin() {
         if (!SerialBT.begin(_btname))
             {		
             report_status_message(STATUS_BT_FAIL_BEGIN, CLIENT_ALL);		
-        } else grbl_sendf(CLIENT_ALL,"[MSG:BT Started with %s]\r\n", _btname.c_str());
+        } else {
+            SerialBT.register_callback(&my_spp_cb);
+            grbl_sendf(CLIENT_ALL,"[MSG:BT Started with %s]\r\n", _btname.c_str());
+        }
         
    }else end();
      
@@ -157,38 +185,10 @@ bool BTConfig::Is_BT_on(){
 }
 
 /**
- * BT events:
- * BT_EVENT_DISCONNECTED < New connection if none previously
- * BT_EVENT_CONNECTED < Disconnection
- */
-void BTConfig::BTEvent(uint8_t event){
-    switch (event){
-        case BT_EVENT_DISCONNECTED:
-            grbl_send(CLIENT_ALL,"[MSG:BT Disconnected]\r\n");
-            break;
-        case BT_EVENT_CONNECTED:
-            grbl_send(CLIENT_ALL,"[MSG:BT Connected]\r\n");
-            break;
-        default:
-        grbl_send(CLIENT_ALL,"[MSG:BT Unknow BT event]\r\n");
-    }
-}
-
-/**
  * Handle not critical actions that must be done in sync environement
  */
 void BTConfig::handle() {
-    static bool connected = false;
-    //generate event as BT seems not having event, or I am wrong ?
-    //currently only connection event but can add more later
-    if (Is_BT_on()){
-        if (connected != SerialBT.hasClient()) {
-            connected = SerialBT.hasClient();
-            if (connected) BTEvent(BT_EVENT_CONNECTED);
-            else BTEvent(BT_EVENT_DISCONNECTED);
-            
-        }
-    }
+   //If needed
 }
 
 

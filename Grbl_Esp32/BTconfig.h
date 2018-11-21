@@ -56,6 +56,7 @@ public:
     static void handle();
     static void reset_settings();
     static bool Is_BT_on();
+    static String _btclient;
     private :
     static String _btname;
 };

@@ -1234,7 +1234,10 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
                espresponse->print (bt_config.device_address());
                espresponse->println(")");
                espresponse->print ("Status: ");
-               if(SerialBT.hasClient()) espresponse->print ("Connected");
+               if(SerialBT.hasClient()) {
+                   espresponse->print ("Connected with ");
+                   espresponse->print (bt_config._btclient.c_str());
+               }
                else espresponse->print ("Not connected");
             } else{
                 espresponse->print ("Off");
