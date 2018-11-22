@@ -836,6 +836,13 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         //[ESP200]
         case 200:
             {
+#ifdef ENABLE_AUTHENTICATION
+            if (auth_type == LEVEL_GUEST) {
+                espresponse->println ("Error: Wrong authentication!");
+                return false;
+                
+            }
+#endif
             if (!espresponse) return false;
             String resp = "No SD card";
 #ifdef ENABLE_SD_CARD
@@ -848,6 +855,72 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             espresponse->println (resp.c_str());
             }
             break;
+#ifdef ENABLE_SD_CARD
+        //Get SD Card Content
+        //[ESP210]
+        case 210:
+            {
+            if (!espresponse) return false;
+#ifdef ENABLE_AUTHENTICATION
+            if (auth_type == LEVEL_GUEST) {
+                espresponse->println ("Error: Wrong authentication!");
+                return false;
+                
+            }
+#endif      
+            int8_t state = get_sd_state(true);
+            if (state  ==  SDCARD_IDLE) {
+                listDir(SD, "/", 10, espresponse->client());
+                espresponse->println ("");
+                }
+            else espresponse->println ((state == SDCARD_NOT_PRESENT) ? "No SD card" : "Busy");
+            }
+            break;
+            
+        //print SD file
+        //[ESP220]<filename>
+        case 220:
+            {
+#ifdef ENABLE_AUTHENTICATION
+            if (auth_type == LEVEL_GUEST) {
+                if(espresponse)espresponse->println ("Error: Wrong authentication!");
+                return false;
+                }
+#endif   
+            parameter = get_param (cmd_params, "", true);
+            if (parameter.length() == 0){
+                if(espresponse)espresponse->println ("Error: Missing file name!");
+                return false;
+                }
+            int8_t state = get_sd_state(true);
+            if (state  !=  SDCARD_IDLE) {
+                espresponse->println ((state == SDCARD_NOT_PRESENT) ? "No SD card" : "Busy");
+                return false;
+                }
+            if (sys.state != STATE_IDLE) { 
+                if(espresponse)espresponse->println ("Busy");
+                return false;
+                }
+            
+            if (!openFile(SD, parameter.c_str())){
+                report_status_message(STATUS_SD_FAILED_READ, (espresponse)?espresponse->client(): CLIENT_ALL);
+                espresponse->println ("");
+                return false;
+                }
+            char fileLine[255];
+            SD_client = (espresponse)?espresponse->client(): CLIENT_ALL;
+            if (!readFileLine(fileLine)) {
+                    closeFile();
+                    espresponse->println ("");
+                    return false;
+            } else {
+                report_status_message(gc_execute_line(fileLine, (espresponse)?espresponse->client(): CLIENT_ALL), (espresponse)?espresponse->client(): CLIENT_ALL);  // execute the first line
+                }
+            report_realtime_status( (espresponse)?espresponse->client(): CLIENT_ALL);
+            espresponse->println ("");
+            }
+            break;
+#endif
         //Get full ESP32  settings content
         //[ESP400]
         case 400:

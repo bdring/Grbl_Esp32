@@ -90,7 +90,7 @@ void protocol_main_loop()
 				char fileLine[255];
 				if (readFileLine(fileLine)) {
 					SD_ready_next = false;
-					report_status_message(gc_execute_line(fileLine, CLIENT_SERIAL), CLIENT_SERIAL);
+					report_status_message(gc_execute_line(fileLine, SD_client), SD_client);
 				}
 				else {
 					closeFile(); // close file and clear SD ready/running flags

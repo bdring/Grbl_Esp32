@@ -50,7 +50,13 @@
 [ESP140]< Bluetooth name> pwd=<admin password>
 
 * Get SD Card Status
-[ESP200]
+[ESP200] pwd=<user/admin password>
+
+* Get SD Card Content
+[ESP210] pwd=<user/admin password>
+
+* Print SD file
+[ESP220] <Filename> pwd=<user/admin password>
 
 *Get full EEPROM settings content
 but do not give any passwords
