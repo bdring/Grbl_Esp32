@@ -1,28 +1,28 @@
-* Change STA SSID 
+* Set/Get STA SSID 
 [ESP100]<SSID>pwd=<admin password>
 
-* Change STA Password 
+* Set STA Password 
 [ESP101]<Password>pwd=<admin password>
 
-* Change STA IP mode (DHCP/STATIC) 
+* Set/Get STA IP mode (DHCP/STATIC) 
 [ESP102]<mode>pwd=<admin password>
 
-* Change STA IP/Mask/GW 
+* Set/Get STA IP/Mask/GW 
 [ESP103]IP=<IP> MSK=<IP> GW=<IP> pwd=<admin password>
 
-* Change AP SSID 
+*  Set/Get AP SSID 
 [ESP105]<SSID>pwd=<admin password>
 
 * Change AP Password 
 [ESP106]<Password>pwd=<admin password>
 
-* Change AP IP 
+* Set/Get AP IP 
 [ESP107]<IP>pwd=<admin password>
 
-* Change AP channel 
+* Set/Get AP channel 
 [ESP108]<channel>pwd=<admin password>
 
-* Set radio state which can be STA, AP, BT, OFF
+* Set/Get radio state which can be STA, AP, BT, OFF
 [ESP110]<state>pwd=<admin password>
 
 * Get current IP
@@ -31,19 +31,19 @@
 * Get/Set hostname
 [ESP112]<Hostname> pwd=<admin password>
 
-* Set immediate wifi state which can be ON, OFF
+* Get/Set immediate Radio (WiFi/BT) state which can be ON, OFF
 [ESP115]<state>pwd=<admin password>
 
-* Set HTTP state which can be ON, OFF
+* Get/Set HTTP state which can be ON, OFF
 [ESP120]<state>pwd=<admin password>
 
-* Set HTTP port 
+* Get/Set HTTP port 
 [ESP121]<port>pwd=<admin password>
 
-* Set Telnet state which can be ON, OFF
+* Get/Set Telnet state which can be ON, OFF
 [ESP130]<state>pwd=<admin password>
 
-* Set Telnet port 
+* Get/Set Telnet port 
 [ESP131]<port>pwd=<admin password>
 
 * Get/Set btname
