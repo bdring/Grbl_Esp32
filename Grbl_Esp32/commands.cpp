@@ -87,24 +87,39 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 100:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+            if (auth_type == LEVEL_GUEST) {
+                 if (espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            if (!WiFiConfig::isSSIDValid (parameter.c_str() ) ) {
-                if(espresponse)espresponse->println ("Error: Incorrect SSID!");
-                response = false;
-                return false;
-            } else {
+            if ((parameter.length() == 0) && !espresponse) return false;
+            //get
+            if (parameter.length() == 0) {
                 Preferences prefs;
-                prefs.begin(NAMESPACE, false);
-                if (prefs.putString(STA_SSID_ENTRY, parameter) == 0){
-                    response = false;
-                    if(espresponse)espresponse->println ("Error: Set failed!");
-                    } else if(espresponse)espresponse->println ("ok");
+                prefs.begin(NAMESPACE, true);
+                String defV = DEFAULT_STA_SSID;
+                espresponse->println(prefs.getString(STA_SSID_ENTRY, defV).c_str());
                 prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+            if (auth_type != LEVEL_ADMIN) {
+                 if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                 return false;
+            } 
+#endif
+                if (!WiFiConfig::isSSIDValid (parameter.c_str() ) ) {
+                    if(espresponse)espresponse->println ("Error: Incorrect SSID!");
+                    response = false;
+                } else {
+                    Preferences prefs;
+                    prefs.begin(NAMESPACE, false);
+                    if (prefs.putString(STA_SSID_ENTRY, parameter) == 0){
+                        response = false;
+                        if(espresponse)espresponse->println ("Error: Set failed!");
+                        } else if(espresponse)espresponse->println ("ok");
+                    prefs.end();
+                    }
                 }
             }
             break;
@@ -114,7 +129,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             {
 #ifdef ENABLE_AUTHENTICATION
             if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
@@ -126,7 +141,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             } else {
                 Preferences prefs;
                 prefs.begin(NAMESPACE, false);
-                if (prefs.putString(STA_PWD_ENTRY, parameter) == 0){
+                if (prefs.putString(STA_PWD_ENTRY, parameter) != parameter.length()){
                     response = false;
                     if(espresponse)espresponse->println ("Error: Set failed!");
                     } else if(espresponse)espresponse->println ("ok");
@@ -139,26 +154,44 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 102:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+            if (auth_type == LEVEL_GUEST) {
+                 if (espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            parameter.toUpperCase();
-            if (!((parameter == "STATIC") || (parameter == "DHCP"))) {
-                if(espresponse)espresponse->println ("Error: only STATIC or DHCP mode supported!");
-                response = false;
-                return false;
-            } else {
+            if ((parameter.length() == 0) && !espresponse) return false;
+             //get
+            if (parameter.length() == 0) {
                 Preferences prefs;
-                prefs.begin(NAMESPACE, false);
-                int8_t bbuf = (parameter == "DHCP")?DHCP_MODE:STATIC_MODE;
-                if (prefs.putChar(STA_IP_MODE_ENTRY, bbuf) == 0){
-                    response = false;
-                    if(espresponse)espresponse->println ("Error: Set failed!");
-                    } else if(espresponse)espresponse->println ("ok");
+                prefs.begin(NAMESPACE, true);
+                int8_t resp = prefs.getChar(STA_IP_MODE_ENTRY, DHCP_MODE);
+                if (resp == DHCP_MODE) espresponse->println("DHCP");
+                else if (resp == STATIC_MODE) espresponse->println("STATIC");
+                else espresponse->println("???");
                 prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+            if (auth_type != LEVEL_ADMIN) {
+                 if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                 return false;
+            } 
+#endif
+                parameter.toUpperCase();
+                if (!((parameter == "STATIC") || (parameter == "DHCP"))) {
+                    if(espresponse)espresponse->println ("Error: only STATIC or DHCP mode supported!");
+                    response = false;
+                    return false;
+                } else {
+                    Preferences prefs;
+                    prefs.begin(NAMESPACE, false);
+                    int8_t bbuf = (parameter == "DHCP")?DHCP_MODE:STATIC_MODE;
+                    if (prefs.putChar(STA_IP_MODE_ENTRY, bbuf) == 0){
+                        response = false;
+                        if(espresponse)espresponse->println ("Error: Set failed!");
+                        } else if(espresponse)espresponse->println ("ok");
+                    prefs.end();
+                    }
                 }
             }
             break;
@@ -167,38 +200,67 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 103:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
+            if (auth_type == LEVEL_GUEST) {
                  espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
-            String IP = get_param (cmd_params, "IP=", true);
-            String GW = get_param (cmd_params, "GW=", true);
-            String MSK = get_param (cmd_params, "MSK=", true);
-            if ( !WiFiConfig::isValidIP(IP.c_str())) {
-                if(espresponse)espresponse->println ("Error: Incorrect IP!");
-                response = false;
-                return false;
-            }
-            if ( !WiFiConfig::isValidIP(GW.c_str())) {
-                if(espresponse)espresponse->println ("Error: Incorrect Gateway!");
-                response = false;
-                return false;
-            }
-            if ( !WiFiConfig::isValidIP(MSK.c_str())) {
-                if(espresponse)espresponse->println ("Error: Incorrect Mask!");
-                response = false;
-                return false;
-            }  
-            Preferences prefs;
-            prefs.begin(NAMESPACE, false);
-            if ((prefs.putInt(STA_IP_ENTRY, wifi_config.IP_int_from_string(IP)) == 0) || 
-            (prefs.putInt(STA_IP_ENTRY, wifi_config.IP_int_from_string(GW)) == 0) ||
-            (prefs.putInt(STA_IP_ENTRY, wifi_config.IP_int_from_string(MSK)) == 0)){
-                response = false;
-                if(espresponse)espresponse->println ("Error: Set failed!");
-                } else if(espresponse)espresponse->println ("ok");
-            prefs.end();
+            parameter = get_param (cmd_params, "", true);
+            if ((parameter.length() == 0) && !espresponse) return false;
+            //get
+            if (parameter.length() == 0) {
+                Preferences prefs;
+                prefs.begin(NAMESPACE, true);
+                //IP
+                String defV = DEFAULT_STA_IP;
+                int32_t IP = prefs.getInt(STA_IP_ENTRY, wifi_config.IP_int_from_string(defV));
+                //GW
+                defV = DEFAULT_STA_GW;
+                int32_t GW = prefs.getInt(STA_GW_ENTRY, wifi_config.IP_int_from_string(defV));
+                //MK
+                defV = DEFAULT_STA_MK;
+                int32_t MK = prefs.getInt(STA_MK_ENTRY, wifi_config.IP_int_from_string(defV));
+                defV = "IP:" + wifi_config.IP_string_from_int(IP) + ", GW:" + wifi_config.IP_string_from_int(GW) + ", MSK:" + wifi_config.IP_string_from_int(MK);
+                espresponse->println(defV.c_str());
+                prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+                if (auth_type != LEVEL_ADMIN) {
+                     if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                     return false;
+                } 
+#endif
+
+                String IP = get_param (cmd_params, "IP=", false);
+                String GW = get_param (cmd_params, "GW=", false);
+                String MSK = get_param (cmd_params, "MSK=", false);
+                Serial.println(IP);
+                Serial.println(GW);
+                if ( !WiFiConfig::isValidIP(IP.c_str())) {
+                    if(espresponse)espresponse->println ("Error: Incorrect IP!");
+                    response = false;
+                    return false;
+                }
+                if ( !WiFiConfig::isValidIP(GW.c_str())) {
+                    if(espresponse)espresponse->println ("Error: Incorrect Gateway!");
+                    response = false;
+                    return false;
+                }
+                if ( !WiFiConfig::isValidIP(MSK.c_str())) {
+                    if(espresponse)espresponse->println ("Error: Incorrect Mask!");
+                    response = false;
+                    return false;
+                }  
+                Preferences prefs;
+                prefs.begin(NAMESPACE, false);
+                if ((prefs.putInt(STA_IP_ENTRY, wifi_config.IP_int_from_string(IP)) == 0) || 
+                (prefs.putInt(STA_GW_ENTRY, wifi_config.IP_int_from_string(GW)) == 0) ||
+                (prefs.putInt(STA_MK_ENTRY, wifi_config.IP_int_from_string(MSK)) == 0)){
+                    response = false;
+                    if(espresponse)espresponse->println ("Error: Set failed!");
+                    } else if(espresponse)espresponse->println ("ok");
+                prefs.end();
+                }
             }
             break;
 
@@ -207,25 +269,39 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 105:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+            if (auth_type == LEVEL_GUEST) {
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            if (!WiFiConfig::isSSIDValid (parameter.c_str() ) ) {
-                if(espresponse)espresponse->println ("Error: Incorrect SSID!");
-                response = false;
-                return false;
-            }
-            Preferences prefs;
-            prefs.begin(NAMESPACE, false);
-            if (prefs.putString(AP_SSID_ENTRY, parameter) == 0){
-                response = false;
-                if(espresponse)espresponse->println ("Error: Set failed!");
-                } else if(espresponse)espresponse->println ("ok");
-            prefs.end();
-                
+            if ((parameter.length() == 0) && !espresponse) return false;
+            //get
+            if (parameter.length() == 0) {
+                Preferences prefs;
+                prefs.begin(NAMESPACE, true);
+                String defV = DEFAULT_AP_SSID;
+                espresponse->println(prefs.getString(AP_SSID_ENTRY, defV).c_str());
+                prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+                if (auth_type != LEVEL_ADMIN) {
+                     if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                     return false;
+                } 
+#endif
+                if (!WiFiConfig::isSSIDValid (parameter.c_str() ) ) {
+                    if(espresponse)espresponse->println ("Error: Incorrect SSID!");
+                    response = false;
+                }
+                Preferences prefs;
+                prefs.begin(NAMESPACE, false);
+                if (prefs.putString(AP_SSID_ENTRY, parameter) == 0){
+                    response = false;
+                    if(espresponse)espresponse->println ("Error: Set failed!");
+                    } else if(espresponse)espresponse->println ("ok");
+                prefs.end();
+                }
             }
             break;
         //Change AP Password 
@@ -234,7 +310,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             {
 #ifdef ENABLE_AUTHENTICATION
             if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
@@ -259,24 +335,42 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 107:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+            if (auth_type == LEVEL_GUEST) {
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            if ( !WiFiConfig::isValidIP(parameter.c_str())) {
-                if(espresponse)espresponse->println ("Error: Incorrect IP!");
-                response = false;
-                return false;
-            }
-            Preferences prefs;
-            prefs.begin(NAMESPACE, false);
-            if (prefs.putInt(AP_IP_ENTRY, wifi_config.IP_int_from_string(parameter)) == 0){
-                response = false;
-                if(espresponse)espresponse->println ("Error: Set failed!");
-                } else if(espresponse)espresponse->println ("ok");
-            prefs.end();
+            if ((parameter.length() == 0) && !espresponse) return false;
+            //get
+            if (parameter.length() == 0) {
+                Preferences prefs;
+                prefs.begin(NAMESPACE, true);
+                //IP
+                String defV = DEFAULT_AP_IP;
+                int32_t IP = prefs.getInt(AP_IP_ENTRY, wifi_config.IP_int_from_string(defV));
+                espresponse->println(wifi_config.IP_string_from_int(IP).c_str());
+                prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+                if (auth_type != LEVEL_ADMIN) {
+                     if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                     return false;
+                } 
+#endif
+                if ( !WiFiConfig::isValidIP(parameter.c_str())) {
+                    if(espresponse)espresponse->println ("Error: Incorrect IP!");
+                    response = false;
+                    return false;
+                }
+                Preferences prefs;
+                prefs.begin(NAMESPACE, false);
+                if (prefs.putInt(AP_IP_ENTRY, wifi_config.IP_int_from_string(parameter)) != parameter.length()){
+                    response = false;
+                    if(espresponse)espresponse->println ("Error: Set failed!");
+                    } else if(espresponse)espresponse->println ("ok");
+                prefs.end();
+                }
             }
             break;
         //Change AP channel 
@@ -284,27 +378,41 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 108:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+            if (auth_type == LEVEL_GUEST) {
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            int8_t bbuf = parameter.toInt();
-            if ((bbuf > MAX_CHANNEL) || (bbuf < MIN_CHANNEL)) {
-                if(espresponse)espresponse->println ("Error: Incorrect channel!");
-                response = false;
-                return false;
-            }
-            Preferences prefs;
-            prefs.begin(NAMESPACE, false);
-            
-            if (prefs.putChar(AP_CHANNEL_ENTRY, bbuf) == 0){
-                response = false;
-                if(espresponse)espresponse->println ("Error: Set failed!");
-                } else if(espresponse)espresponse->println ("ok");
-            prefs.end();
-                
+            if ((parameter.length() == 0) && !espresponse) return false;
+            //get
+            if (parameter.length() == 0) {
+                Preferences prefs;
+                prefs.begin(NAMESPACE, true);
+                int8_t channel = prefs.getChar(AP_CHANNEL_ENTRY, DEFAULT_AP_CHANNEL);
+                espresponse->println(String(channel).c_str());
+                prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+                if (auth_type != LEVEL_ADMIN) {
+                     if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                     return false;
+                } 
+#endif
+                int8_t bbuf = parameter.toInt();
+                if ((bbuf > MAX_CHANNEL) || (bbuf < MIN_CHANNEL)) {
+                    if(espresponse)espresponse->println ("Error: Incorrect channel!");
+                    response = false;
+                    return false;
+                }
+                Preferences prefs;
+                prefs.begin(NAMESPACE, false);
+                if (prefs.putChar(AP_CHANNEL_ENTRY, bbuf) == 0){
+                    response = false;
+                    if(espresponse)espresponse->println ("Error: Set failed!");
+                    } else if(espresponse)espresponse->println ("ok");
+                prefs.end();
+                }
             }
             break;
 #endif
@@ -314,48 +422,68 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 110:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+            if (auth_type == LEVEL_GUEST) {
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            parameter.toUpperCase();
-            if (!(
+            if ((parameter.length() == 0) && !espresponse) return false;
+            //get
+            if (parameter.length() == 0) {
+                Preferences prefs;
+                prefs.begin(NAMESPACE, true);
+                int8_t wifiMode = prefs.getChar(ESP_RADIO_MODE, DEFAULT_RADIO_MODE);
+                if (wifiMode == ESP_RADIO_OFF) espresponse->println("OFF");
+                else if (wifiMode == ESP_BT) espresponse->println("BT");
+                else if (wifiMode == ESP_WIFI_AP) espresponse->println("AP");
+                else if (wifiMode == ESP_WIFI_STA) espresponse->println("STA");
+                else espresponse->println("??");
+                prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+                if (auth_type != LEVEL_ADMIN) {
+                     if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                     return false;
+                } 
+#endif
+                parameter.toUpperCase();
+                if (!(
 #if defined( ENABLE_BLUETOOTH)
-            (parameter == "BT") ||
+                (parameter == "BT") ||
 #endif      
 #if defined( ENABLE_WIFI) 
-            (parameter == "STA") || (parameter == "AP") || 
+                (parameter == "STA") || (parameter == "AP") || 
 #endif
-            (parameter == "OFF"))) {
+                (parameter == "OFF"))) {
                 
-                if(espresponse)espresponse->println ("Error: only "
+                    if(espresponse)espresponse->println ("Error: only "
 #ifdef ENABLE_BLUETOOTH
-                "BT or "
+                    "BT or "
 #endif
 #ifdef ENABLE_WIFI
-                "STA or AP or "
+                    "STA or AP or "
 #endif
-                "OFF mode supported!");
-                response = false;
-                return false;
-            } else {
-                Preferences prefs;
-                prefs.begin(NAMESPACE, false);
-                int8_t bbuf = ESP_RADIO_OFF;
-#ifdef ENABLE_WIFI
-                if(parameter == "STA")bbuf = ESP_WIFI_STA;
-                if(parameter == "AP")bbuf = ESP_WIFI_AP;
-#endif
-#ifdef ENABLE_BLUETOOTH
-                if(parameter == "BT")bbuf = ESP_BT;
-#endif
-                if (prefs.putChar(ESP_RADIO_MODE, bbuf) == 0){
+                    "OFF mode supported!");
                     response = false;
-                    if(espresponse)espresponse->println ("Error: Set failed!");
-                    } else if(espresponse)espresponse->println ("ok");
-                prefs.end();
+                    return false;
+                } else {
+                    Preferences prefs;
+                    prefs.begin(NAMESPACE, false);
+                    int8_t bbuf = ESP_RADIO_OFF;
+#ifdef ENABLE_WIFI
+                    if(parameter == "STA")bbuf = ESP_WIFI_STA;
+                    if(parameter == "AP")bbuf = ESP_WIFI_AP;
+#endif
+#ifdef ENABLE_BLUETOOTH
+                    if(parameter == "BT")bbuf = ESP_BT;
+#endif
+                    if (prefs.putChar(ESP_RADIO_MODE, bbuf) == 0){
+                        response = false;
+                        if(espresponse)espresponse->println ("Error: Set failed!");
+                        } else if(espresponse)espresponse->println ("ok");
+                    prefs.end();
+                    }
                 }
             }
             break;
@@ -380,25 +508,27 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         //[ESP112]<Hostname> pwd=<admin password>
         case 112: {
 #ifdef ENABLE_AUTHENTICATION
-        if (auth_type == LEVEL_GUEST) {
-             espresponse->println ("Error: Wrong authentication!");
-            return false;
-        } 
+            if (auth_type == LEVEL_GUEST) {
+                 if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                return false;
+            } 
 #endif
-        parameter = get_param (cmd_params, "", true);
-        if ((parameter.length() == 0) && !espresponse) return false;
-#ifdef ENABLE_AUTHENTICATION
-        if ((auth_type != LEVEL_ADMIN) && (parameter.length() > 0)) {
-             espresponse->println ("Error: Wrong authentication!");
-             return false;
-        } 
-#endif
+            parameter = get_param (cmd_params, "", true);
+            if ((parameter.length() == 0) && !espresponse) return false;
             //Get hostname
             if (parameter.length() == 0) {
-                String shost = cmd_params;
-                shost=wifi_config.Hostname();
-                espresponse->println (shost.c_str());
+                Preferences prefs;
+                prefs.begin(NAMESPACE, true);
+                String defV = DEFAULT_HOSTNAME;
+                espresponse->println(prefs.getString(HOSTNAME_ENTRY, defV).c_str());
+                prefs.end();
             } else { //set host name
+#ifdef ENABLE_AUTHENTICATION
+                if (auth_type != LEVEL_ADMIN) {
+                     if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                     return false;
+                } 
+#endif
                 if (!wifi_config.isHostnameValid (parameter.c_str() ) ) {
                 if(espresponse)espresponse->println ("Error: Incorrect hostname!");
                 response = false;
@@ -414,57 +544,115 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             }
         }
         break;
-        
-        //Set immediate wifi state which can be ON, OFF
+#endif
+#if defined (ENABLE_WIFI) || defined (ENABLE_BLUETOOTH)
+        //Set immediate radio state which can be ON, OFF
         //[ESP115]<state>pwd=<admin password>
-        case 115:
-            {
+        case 115:{
 #ifdef ENABLE_AUTHENTICATION
             if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            parameter.toUpperCase();
-            if (!((parameter == "ON") || (parameter == "OFF"))) {
-                if(espresponse)espresponse->println ("Error: only ON or OFF mode supported!");
-                return false;
+             //get
+            if (parameter.length() == 0) {
+                bool on =false;
+#if defined (ENABLE_WIFI)
+                if (WiFi.getMode() != WIFI_MODE_NULL)on = true;
+#endif 
+#if defined (ENABLE_BLUETOOTH)
+                if (bt_config.Is_BT_on())on = true;
+#endif 
+                espresponse->println ((on)?"ON":"OFF");
             } else {
-                if (parameter == "OFF") {
-                   wifi_config.StopWiFi();
-                } else { //On
-                    wifi_config.begin();
+                parameter.toUpperCase();
+                if (!((parameter == "ON") || (parameter == "OFF"))) {
+                    if(espresponse)espresponse->println ("Error: only ON or OFF mode supported!");
+                    return false;
+                } else {
+                    //Stop everything
+#if defined (ENABLE_WIFI)
+                    if (WiFi.getMode() != WIFI_MODE_NULL)wifi_config.StopWiFi();
+#endif
+#if defined (ENABLE_BLUETOOTH)
+                    if (bt_config.Is_BT_on())bt_config.end();
+#endif
+                
+                    //if On start proper service
+                    if (parameter == "ON") { //On
+                        Preferences prefs;
+                        prefs.begin(NAMESPACE, true);
+                        int8_t wifiMode = prefs.getChar(ESP_RADIO_MODE, DEFAULT_RADIO_MODE);
+                        prefs.end();
+                        if ((wifiMode == ESP_WIFI_AP) || (wifiMode == ESP_WIFI_STA)){
+#if defined (ENABLE_WIFI)
+                        wifi_config.begin();
+#else
+                        if(espresponse)espresponse->println ("Error: WiFi is not enabled!");
+                        return false;
+#endif
+                        }
+                        else if (wifiMode == ESP_BT) {
+#if defined (ENABLE_BLUETOOTH)
+                            bt_config.begin();
+#else
+                        if(espresponse)espresponse->println ("Error: Bluetooth is not enabled!");
+                        return false;
+#endif                  
+                        } else {
+                            if(espresponse)espresponse->println ("[MSG: Radio is Off]");
+                            return false;
+                        }
+                    } else if(espresponse)espresponse->println ("[MSG: Radio is Off]");
                 }
             }
-            }
-            break;
-            
+        }
+        break;
+#endif
+#ifdef ENABLE_WIFI
         //Set HTTP state which can be ON, OFF
         //[ESP120]<state>pwd=<admin password>
         case 120:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+            if (auth_type == LEVEL_GUEST) {
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            parameter.toUpperCase();
-            if (!((parameter == "ON") || (parameter == "OFF"))) {
-                if(espresponse)espresponse->println ("Error: only ON or OFF mode supported!");
-                response = false;
-                return false;
-            } else {
+            if ((parameter.length() == 0) && !espresponse) return false;
+             //get
+            if (parameter.length() == 0) {
                 Preferences prefs;
-                prefs.begin(NAMESPACE, false);
-                int8_t bbuf = (parameter == "ON")?1:0;
-                if (prefs.putChar(HTTP_ENABLE_ENTRY, bbuf) == 0){
-                    response = false;
-                    if(espresponse)espresponse->println ("Error: Set failed!");
-                    } else if(espresponse)espresponse->println ("ok");
+                prefs.begin(NAMESPACE, true);
+                int8_t Mode = prefs.getChar(HTTP_ENABLE_ENTRY, DEFAULT_HTTP_STATE);
+                espresponse->println((Mode == 0)?"OFF":"ON");
                 prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+                if (auth_type != LEVEL_ADMIN) {
+                     if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                     return false;
+                } 
+#endif
+                parameter.toUpperCase();
+                if (!((parameter == "ON") || (parameter == "OFF"))) {
+                    if(espresponse)espresponse->println ("Error: only ON or OFF mode supported!");
+                    response = false;
+                    return false;
+                } else {
+                    Preferences prefs;
+                    prefs.begin(NAMESPACE, false);
+                    int8_t bbuf = (parameter == "ON")?1:0;
+                    if (prefs.putChar(HTTP_ENABLE_ENTRY, bbuf) == 0){
+                        response = false;
+                        if(espresponse)espresponse->println ("Error: Set failed!");
+                        } else if(espresponse)espresponse->println ("ok");
+                    prefs.end();
+                    }
                 }
             }
         break;
@@ -473,26 +661,42 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 121:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+            if (auth_type == LEVEL_GUEST) {
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            int ibuf = parameter.toInt();
-            if ((ibuf > MAX_HTTP_PORT) || (ibuf < MIN_HTTP_PORT)) {
-                if(espresponse)espresponse->println ("Error: Incorrect port!");
-                response = false;
-                return false;
-            }
-            Preferences prefs;
-            prefs.begin(NAMESPACE, false);
-            
-            if (prefs.putUShort(HTTP_PORT_ENTRY, ibuf) == 0){
-                response = false;
-                if(espresponse)espresponse->println ("Error: Set failed!");
-                } else if(espresponse)espresponse->println ("ok");
-            prefs.end();
+            if ((parameter.length() == 0) && !espresponse) return false;
+            //get
+            if (parameter.length() == 0) {
+                Preferences prefs;
+                prefs.begin(NAMESPACE, true);
+                int port = prefs.getUShort(HTTP_PORT_ENTRY, DEFAULT_WEBSERVER_PORT);
+                espresponse->println(String(port).c_str());
+                prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+                if (auth_type != LEVEL_ADMIN) {
+                     if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                     return false;
+                } 
+#endif
+                    int ibuf = parameter.toInt();
+                    if ((ibuf > MAX_HTTP_PORT) || (ibuf < MIN_HTTP_PORT)) {
+                        if(espresponse)espresponse->println ("Error: Incorrect port!");
+                        response = false;
+                        return false;
+                    }
+                    Preferences prefs;
+                    prefs.begin(NAMESPACE, false);
+                    
+                    if (prefs.putUShort(HTTP_PORT_ENTRY, ibuf) == 0){
+                        response = false;
+                        if(espresponse)espresponse->println ("Error: Set failed!");
+                        } else if(espresponse)espresponse->println ("ok");
+                    prefs.end();
+                }
                 
             }
             break;
@@ -501,26 +705,42 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 130:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+            if (auth_type == LEVEL_GUEST) {
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            parameter.toUpperCase();
-            if (!((parameter == "ON") || (parameter == "OFF"))) {
-                if(espresponse)espresponse->println ("Error: only ON or OFF mode supported!");
-                response = false;
-                return false;
-            } else {
+             if ((parameter.length() == 0) && !espresponse) return false;
+             //get
+             if (parameter.length() == 0) {
                 Preferences prefs;
-                prefs.begin(NAMESPACE, false);
-                int8_t bbuf = (parameter == "ON")?1:0;
-                if (prefs.putChar(TELNET_ENABLE_ENTRY, bbuf) == 0){
-                    response = false;
-                    if(espresponse)espresponse->println ("Error: Set failed!");
-                    } else if(espresponse)espresponse->println ("ok");
+                prefs.begin(NAMESPACE, true);
+                int8_t Mode = prefs.getChar(TELNET_ENABLE_ENTRY, DEFAULT_TELNET_STATE);
+                espresponse->println((Mode == 0)?"OFF":"ON");
                 prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+                if (auth_type != LEVEL_ADMIN) {
+                     if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                     return false;
+                } 
+#endif
+                parameter.toUpperCase();
+                if (!((parameter == "ON") || (parameter == "OFF"))) {
+                    if(espresponse)espresponse->println ("Error: only ON or OFF mode supported!");
+                    response = false;
+                    return false;
+                } else {
+                    Preferences prefs;
+                    prefs.begin(NAMESPACE, false);
+                    int8_t bbuf = (parameter == "ON")?1:0;
+                    if (prefs.putChar(TELNET_ENABLE_ENTRY, bbuf) == 0){
+                        response = false;
+                        if(espresponse)espresponse->println ("Error: Set failed!");
+                        } else if(espresponse)espresponse->println ("ok");
+                    prefs.end();
+                    }
                 }
             }
         break;
@@ -529,26 +749,42 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 131:
             {
 #ifdef ENABLE_AUTHENTICATION
-            if (auth_type != LEVEL_ADMIN) {
-                 espresponse->println ("Error: Wrong authentication!");
+            if (auth_type == LEVEL_GUEST) {
+                 if(espresponse)espresponse->println ("Error: Wrong authentication!");
                  return false;
             } 
 #endif
             parameter = get_param (cmd_params, "", true);
-            int ibuf = parameter.toInt();
-            if ((ibuf > MAX_TELNET_PORT) || (ibuf < MIN_TELNET_PORT)) {
-                if(espresponse)espresponse->println ("Error: Incorrect port!");
-                response = false;
-                return false;
-            }
-            Preferences prefs;
-            prefs.begin(NAMESPACE, false);
-            
-            if (prefs.putUShort(TELNET_PORT_ENTRY, ibuf) == 0){
-                response = false;
-                if(espresponse)espresponse->println ("Error: Set failed!");
-                } else if(espresponse)espresponse->println ("ok");
-            prefs.end();
+            if ((parameter.length() == 0) && !espresponse) return false;
+            //get
+            if (parameter.length() == 0) {
+                Preferences prefs;
+                prefs.begin(NAMESPACE, true);
+                int port = prefs.getUShort(TELNET_PORT_ENTRY, DEFAULT_TELNETSERVER_PORT);
+                espresponse->println(String(port).c_str());
+                prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+                if (auth_type != LEVEL_ADMIN) {
+                     if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                     return false;
+                } 
+#endif
+                int ibuf = parameter.toInt();
+                if ((ibuf > MAX_TELNET_PORT) || (ibuf < MIN_TELNET_PORT)) {
+                    if(espresponse)espresponse->println ("Error: Incorrect port!");
+                    response = false;
+                    return false;
+                }
+                Preferences prefs;
+                prefs.begin(NAMESPACE, false);
+                
+                if (prefs.putUShort(TELNET_PORT_ENTRY, ibuf) == 0){
+                    response = false;
+                    if(espresponse)espresponse->println ("Error: Set failed!");
+                    } else if(espresponse)espresponse->println ("ok");
+                prefs.end();
+                }
                 
             }
             break;
@@ -560,7 +796,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         case 140: {
 #ifdef ENABLE_AUTHENTICATION
         if (auth_type == LEVEL_GUEST) {
-             espresponse->println ("Error: Wrong authentication!");
+             if(espresponse)espresponse->println ("Error: Wrong authentication!");
             return false;
         } 
 #endif
@@ -574,9 +810,11 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
 #endif
             //Get btname
             if (parameter.length() == 0) {
-                String shost = cmd_params;
-                shost=bt_config.BTname();
-                espresponse->println (shost.c_str());
+                Preferences prefs;
+                prefs.begin(NAMESPACE, true);
+                String defV = DEFAULT_BT_NAME;
+                espresponse->println(prefs.getString(BT_NAME_ENTRY, defV).c_str());
+                prefs.end();
             } else { //set BT name
                 if (!bt_config.isBTnameValid (parameter.c_str() ) ) {
                 if(espresponse)espresponse->println ("Error: Incorrect name!");
@@ -670,7 +908,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             espresponse->print ("{\"F\":\"network\",\"P\":\"");
             espresponse->print (TELNET_ENABLE_ENTRY);
             espresponse->print ("\",\"T\":\"B\",\"V\":\"");
-            vi = prefs.getChar(TELNET_ENABLE_ENTRY, 0);
+            vi = prefs.getChar(TELNET_ENABLE_ENTRY, DEFAULT_TELNET_STATE);
             espresponse->print (String(vi).c_str());
             espresponse->print ("\",\"H\":\"Telnet protocol\",\"O\":[{\"Enabled\":\"1\"},{\"Disabled\":\"0\"}]}");
             espresponse->print (",");
