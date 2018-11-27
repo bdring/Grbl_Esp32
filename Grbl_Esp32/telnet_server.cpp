@@ -126,6 +126,7 @@ size_t Telnet_Server::write(const uint8_t *buffer, size_t size){
 }
 
 void Telnet_Server::handle(){
+    COMMANDS::wait(0);
     //check if can read
     if ( !_setupdone || _telnetserver == NULL) {
         return;

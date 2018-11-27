@@ -41,6 +41,7 @@
 #include <FS.h>
 #include <SPIFFS.h>
 #include <esp_wifi.h>
+#include <esp_ota_ops.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -1355,9 +1356,9 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
 #if defined (ENABLE_WIFI)
             if (WiFi.getMode() != WIFI_MODE_NULL){
                 espresponse->print ("Available Size for update: ");
-                //Not OTA on 2Mb board per spec
-                if (ESP.getFlashChipSize() > 0x20000) {
-                    espresponse->print (ESPResponseStream::ESPResponseStream::formatBytes (0x140000).c_str());
+                //Is OTA available ?
+                if (esp_ota_get_running_partition()) {
+                    espresponse->print (ESPResponseStream::ESPResponseStream::formatBytes (ESP.getFreeSketchSpace() + ESP.getSketchSize()).c_str());
                 } else {
                     espresponse->print (ESPResponseStream::formatBytes (0x0).c_str());
                 }
@@ -1930,6 +1931,7 @@ void COMMANDS::restart_ESP(){
  * Handle not critical actions that must be done in sync environement
  */
 void COMMANDS::handle() {
+    COMMANDS::wait(0);
     //in case of restart requested
     if (restart_ESP_module) {
         ESP.restart();
