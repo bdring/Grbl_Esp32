@@ -497,7 +497,7 @@ void Web_Server::handle_web_command ()
         }
         //Instead of send several commands one by one by web  / send full set and split here
         String scmd;
-        String res = "Ok";
+        String res = "";
         uint8_t sindex = 0;
         scmd = get_Splited_Value(cmd,'\n', sindex);
         while ( scmd != "" ){
@@ -570,7 +570,7 @@ void Web_Server::handle_web_command_silent ()
         String scmd;
         uint8_t sindex = 0;
         scmd = get_Splited_Value(cmd,'\n', sindex);
-        String res = "Ok";
+        String res = "";
         while ( scmd != "" ){
         if (scmd.length() > 1)scmd+="\n";
         else if (!is_realtime_cmd(scmd[0]) )scmd+="\n";

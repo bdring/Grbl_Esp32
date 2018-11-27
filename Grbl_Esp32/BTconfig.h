@@ -48,7 +48,6 @@ public:
     static const char *info();
     static void BTEvent(uint8_t event);
     static bool isBTnameValid (const char * hostname);
-    static uint32_t IP_int_from_string(String & s);
     static String BTname(){return _btname;}
     static const char* device_address();
     static void begin();
@@ -56,6 +55,7 @@ public:
     static void handle();
     static void reset_settings();
     static bool Is_BT_on();
+    static String _btclient;
     private :
     static String _btname;
 };
