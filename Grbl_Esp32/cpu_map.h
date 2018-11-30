@@ -19,7 +19,7 @@
 */
 
 #ifndef cpu_map_h
-#define cpu_map_h 
+//#define cpu_map_h 
 
   /*
 	Not all pins can can work for all functions.
@@ -36,6 +36,7 @@
 	
 	*/
 	
+#ifdef CPU_MAP_ESP32
 	// This is the CPU Map for the ESP32 CNC Controller R2	
 	
 	  // It is OK to comment out any step and direction pins. This
@@ -71,9 +72,11 @@
 		#define SPINDLE_PWM_BIT_PRECISION 12   // be sure to match this with SPINDLE_PWM_MAX_VALUE
 		#define SPINDLE_PWM_OFF_VALUE     0
 		#define SPINDLE_PWM_MAX_VALUE     4096 // (2^SPINDLE_PWM_BIT_PRECISION)
-#ifndef SPINDLE_PWM_MIN_VALUE
-		#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-#endif
+		
+		#ifndef SPINDLE_PWM_MIN_VALUE
+				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+		#endif
+		
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
 		
 		// if these spindle function pins are defined, they will be activated in the code
@@ -92,7 +95,113 @@
 		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
 		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
 		
-		// These are some ESP32 CPU Settings that the program needs, but are generally not changed
+#endif
+		
+		
+#ifdef CPU_MAP_PEN_LASER  // The Buildlog.net pen laser controller V1
+		#define X_STEP_PIN      GPIO_NUM_12
+		#define Y_STEP_PIN      GPIO_NUM_14		
+		#define X_DIRECTION_PIN   GPIO_NUM_26
+		#define Y_DIRECTION_PIN   GPIO_NUM_25  
+		
+		#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+		
+		#define X_LIMIT_PIN      	GPIO_NUM_2  
+		#define Y_LIMIT_PIN      	GPIO_NUM_4
+		
+		// ignored via config.h
+		#define CONTROL_SAFETY_DOOR_PIN   GPIO_NUM_35  // needs external pullup
+		#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
+		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
+		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup
+		
+		
+		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
+		// use a virtual spindle. Do not comment out the other parameters for the spindle.
+		#define SPINDLE_PWM_PIN    GPIO_NUM_17 // Laser PWM
+		#define SPINDLE_PWM_CHANNEL 0
+		// PWM Generator is based on 80,000,000 Hz counter
+		// Therefor the freq determines the resolution
+		// 80,000,000 / freq = max resolution
+		// For 5000 that is 80,000,000 / 5000 = 16000 
+		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
+		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+		#define SPINDLE_PWM_BIT_PRECISION 12   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+		#define SPINDLE_PWM_OFF_VALUE     0
+		#define SPINDLE_PWM_MAX_VALUE     4096 // (2^SPINDLE_PWM_BIT_PRECISION)
+		
+		#ifndef SPINDLE_PWM_MIN_VALUE
+				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+		#endif
+		
+		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
+		
+		// see servo_pen.h for servo i/o mapping
+		
+		
+#endif
+
+#ifdef CPU_MAP_MIDTBOT  // Buildlog.net midtbot
+		#define X_STEP_PIN      GPIO_NUM_12
+		#define Y_STEP_PIN      GPIO_NUM_14		
+		#define X_DIRECTION_PIN   GPIO_NUM_26
+		#define Y_DIRECTION_PIN   GPIO_NUM_25  
+		
+		#ifndef COREXY // maybe set in config.h
+			#define COREXY
+		#endif
+		
+		#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+		
+		#define X_LIMIT_PIN      	GPIO_NUM_2  
+		#define Y_LIMIT_PIN      	GPIO_NUM_4
+		
+		#ifndef USE_PEN_SERVO  // maybe set in config.h
+			#define USE_PEN_SERVO
+		#endif		
+		
+		#ifndef IGNORE_CONTROL_PINS // maybe set in config.h
+			#define IGNORE_CONTROL_PINS
+		#endif
+		#define CONTROL_SAFETY_DOOR_PIN   GPIO_NUM_35  // needs external pullup
+		#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
+		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
+		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup		
+		
+		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
+		// use a virtual spindle. Do not comment out the other parameters for the spindle.
+		//#define SPINDLE_PWM_PIN    GPIO_NUM_17 // Laser PWM
+		#define SPINDLE_PWM_CHANNEL 0
+		// PWM Generator is based on 80,000,000 Hz counter
+		// Therefor the freq determines the resolution
+		// 80,000,000 / freq = max resolution
+		// For 5000 that is 80,000,000 / 5000 = 16000 
+		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
+		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+		#define SPINDLE_PWM_BIT_PRECISION 12   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+		#define SPINDLE_PWM_OFF_VALUE     0
+		#define SPINDLE_PWM_MAX_VALUE     4096 // (2^SPINDLE_PWM_BIT_PRECISION)
+		
+		#ifndef SPINDLE_PWM_MIN_VALUE
+				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+		#endif
+		
+		// redefine some stuff from config.h
+		#define HOMING_CYCLE_0 (1<<X_AXIS)
+		#define HOMING_CYCLE_1 (1<<Y_AXIS)
+		#ifdef HOMING_CYCLE_2
+			#undef HOMING_CYCLE_2
+		#endif		
+		
+		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
+		
+		#define SERVO_PEN_PIN 					GPIO_NUM_27
+		
+#endif
+
+	// ================= common to all machines ================================
+	
+	// These are some ESP32 CPU Settings that the program needs, but are generally not changed
 		#define F_TIMERS	80000000    // a reference to the speed of ESP32 timers
 		#define F_STEPPER_TIMER 20000000  // frequency of step pulse timer
 		#define STEPPER_OFF_TIMER_PRESCALE 8 // gives a frequency of 10MHz
@@ -124,5 +233,6 @@
 		#define INVERT_CONTROL_PIN_MASK   B1110		// don't change
 		
 		// =======================================================================
+		
 		
 #endif
