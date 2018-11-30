@@ -58,10 +58,15 @@ void setup() {
 	}
 	#endif
 
-  
-
   memset(sys_position,0,sizeof(sys_position)); // Clear machine position.
-
+	
+	#ifdef USE_PEN_SERVO
+		servo_init();
+	#endif
+	
+	#ifdef USE_PEN_SOLENOID
+		solenoid_init();
+	#endif
   
   // Initialize system state.
   #ifdef FORCE_INITIALIZATION_ALARM
