@@ -32,8 +32,8 @@ void servo_init()
 	//validate_servo_settings(true); // display any calibration errors
 
 	// Debug stuff
-	grbl_sendf(CLIENT_SERIAL, "[MSG:Servo max,min pulse times %.4f sec,%.4f sec]\r\n", SERVO_MAX_PULSE_SEC, SERVO_MIN_PULSE_SEC);
-	grbl_sendf(CLIENT_SERIAL, "[MSG:Servo max,min pulse counts %d,%d]\r\n", SERVO_MAX_PULSE, SERVO_MIN_PULSE);
+	//grbl_sendf(CLIENT_SERIAL, "[MSG:Servo max,min pulse times %.4f sec,%.4f sec]\r\n", SERVO_MAX_PULSE_SEC, SERVO_MIN_PULSE_SEC);
+	//grbl_sendf(CLIENT_SERIAL, "[MSG:Servo max,min pulse counts %d,%d]\r\n", SERVO_MAX_PULSE, SERVO_MIN_PULSE);
 	validate_servo_settings(true); // will print errors
 	// debug stuff
 
@@ -93,11 +93,14 @@ bool validate_servo_settings(bool verbose) // make sure the settings are reasona
 // this is the task
 void servoSyncTask(void *pvParameters)
 {
-	int32_t current_position[N_AXIS]; // copy of current location
-	float m_pos[N_AXIS];   // machine position in mm
+	//int32_t current_position[N_AXIS]; // copy of current location
+	//float m_pos[N_AXIS];   // machine position in mm
 	TickType_t xLastWakeTime;
 	const TickType_t xServoFrequency = SERVO_TIMER_INT_FREQ;  // in ticks (typically ms)
 	uint16_t servo_delay_counter = 0;
+	
+	float mpos_z, wpos_z;
+	float z_offset;
 
 	while(true) { // don't ever return from this or the task dies
 
@@ -106,16 +109,12 @@ void servoSyncTask(void *pvParameters)
 		if (!servo_pen_enable) {
 			servo_delay_counter++;
 			servo_pen_enable = (servo_delay_counter > SERVO_TURNON_DELAY);
-		} else {
-			if(!stepper_idle) {
-				memcpy(current_position,sys_position,sizeof(sys_position));  // get current position in step
-				system_convert_array_steps_to_mpos(m_pos,current_position); // convert to millimeters
+		} else {			
+				mpos_z = system_convert_axis_steps_to_mpos(sys_position, Z_AXIS);  // get the machine Z in mm
+				z_offset = gc_state.coord_system[Z_AXIS]+gc_state.coord_offset[Z_AXIS]; // get the current z work offset
+				wpos_z = mpos_z - z_offset; // determine the current work Z			
 
-				calc_pen_servo(m_pos[Z_AXIS]); // calculate kinematics and move the servos
-			} else {
-				servo_disable();
-			}
-
+				calc_pen_servo(wpos_z); // calculate kinematics and move the servos
 		}
 	}
 }
@@ -133,7 +132,6 @@ void calc_pen_servo(float penZ)
 	if (validate_servo_settings(false)) { // if calibration settings are OK then apply them
 		// Apply a calibration to the minimum position
 		servo_pen_pulse_min = SERVO_MIN_PULSE * (settings.steps_per_mm[Z_AXIS] / 100.0);
-
 		// Apply a calibration to the maximum position
 		servo_pen_pulse_max = SERVO_MAX_PULSE * (settings.max_travel[Z_AXIS] / -100.0);
 	} else { // use the defaults
@@ -142,10 +140,12 @@ void calc_pen_servo(float penZ)
 	}
 
 	// determine the pulse length
-	servo_pen_pulse_len = mapConstrain(penZ, SERVO_PEN_RANGE_MIN_MM, SERVO_PEN_RANGE_MAX_MM, servo_pen_pulse_min, servo_pen_pulse_max );
+	servo_pen_pulse_len = (uint32_t)mapConstrain(penZ, SERVO_PEN_RANGE_MIN_MM, SERVO_PEN_RANGE_MAX_MM, servo_pen_pulse_min, servo_pen_pulse_max );
 
-	// TODO only update it if it has changed
-
+	// skip setting value if it is unchanged
+	if (ledcRead(SERVO_PEN_CHANNEL_NUM) == servo_pen_pulse_len)
+		return;
+  	
 	// update the PWM value
 	// ledcWrite appears to have issues with interrupts, so make this a critical section
 	portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;

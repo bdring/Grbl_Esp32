@@ -24,8 +24,6 @@
 	Everything occurs as a low priority task that syncs the servo with the
 	current machine position.
 
-	TODO Make it reversible (turn opposite way)
-
 */
 
 // ==== Begin: Things you are likely to change ====================
