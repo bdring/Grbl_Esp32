@@ -47,12 +47,12 @@ void serial_init()
 	serialCheckTaskHandle = 0;
 	// create a task to check for incoming data
 	xTaskCreatePinnedToCore(	serialCheckTask,    // task
-													"serialCheckTask", // name for task
+													"servoSyncTask", // name for task
 													8192,   // size of task stack
 													NULL,   // parameters
 													1, // priority
 													&serialCheckTaskHandle, 
-													1 // core
+													0 // core
 													); 
 	
 }
@@ -181,7 +181,6 @@ void serialCheckTask(void *pvParameters)
 					}
 			}  // switch data			
 		}  // if something available
-        vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
         COMMANDS::handle();
 #ifdef ENABLE_WIFI
         wifi_config.handle();
@@ -192,6 +191,7 @@ void serialCheckTask(void *pvParameters)
 #if defined (ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
         Serial2Socket.handle_flush();
 #endif
+        vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks		
 	}  // while(true)
 }
 
@@ -200,7 +200,7 @@ void serialCheckTask(void *pvParameters)
 // Realtime stuff is acted upon, then characters are added to the appropriate buffer
 void serialCheck()
 {
-  uint8_t data = 0;
+	uint8_t data;
   uint8_t next_head;
 	uint8_t client; // who send the data
 	
