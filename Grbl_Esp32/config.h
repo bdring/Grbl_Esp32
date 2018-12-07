@@ -5,7 +5,7 @@
   Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 	
-	2018 -	Bart Dring This file was modifed for use on the ESP32
+	2018 -	Bart Dring This file was modified for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 
   Grbl is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ Some features should not be changed. See notes below.
 // one configuration file by placing their specific defaults and pin map at the bottom of this file.
 // If doing so, simply comment out these two defines and see instructions below.
 #define DEFAULTS_GENERIC
-#define CPU_MAP_ESP32 // currently not required
+#define CPU_MAP_ESP32
 
 // Serial baud rate
 #define BAUD_RATE 115200
@@ -224,8 +224,11 @@ Some features should not be changed. See notes below.
 
 // Enable using a servo for the Z axis on a pen type machine.
 // You typically should not define a pin for the Z axis in cpu_map.h
-// You should configure your servo PWM pin and settings in servo_pen.h 
+// You should configure your settings in servo_pen.h
 //#define USE_PEN_SERVO
+// define your servo pin here or in cpu_map.h
+//#define SERVO_PEN_PIN 					GPIO_NUM_27
+
 // Enable using a solenoid for the Z axis on a pen type machine
 //#define USE_PEN_SOLENOID
 

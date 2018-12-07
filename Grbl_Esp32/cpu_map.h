@@ -86,7 +86,8 @@
 		
 		#define X_LIMIT_PIN      	GPIO_NUM_2  
 		#define Y_LIMIT_PIN      	GPIO_NUM_4  
-		#define Z_LIMIT_PIN     	GPIO_NUM_15 		
+		#define Z_LIMIT_PIN     	GPIO_NUM_15 	
+		#define LIMIT_MASK      	B111
 		
 		#define PROBE_PIN       	GPIO_NUM_32  
 		
@@ -108,6 +109,7 @@
 		
 		#define X_LIMIT_PIN      	GPIO_NUM_2  
 		#define Y_LIMIT_PIN      	GPIO_NUM_4
+		#define LIMIT_MASK      	B11
 		
 		// ignored via config.h
 		#define CONTROL_SAFETY_DOOR_PIN   GPIO_NUM_35  // needs external pullup
@@ -136,7 +138,7 @@
 		
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
 		
-		// see servo_pen.h for servo i/o mapping
+		#define SERVO_PEN_PIN 					GPIO_NUM_27
 		
 		
 #endif
@@ -155,10 +157,11 @@
 		
 		#define X_LIMIT_PIN      	GPIO_NUM_2  
 		#define Y_LIMIT_PIN      	GPIO_NUM_4
+		#define LIMIT_MASK      	B11		
 		
 		#ifndef USE_PEN_SERVO  // maybe set in config.h
 			#define USE_PEN_SERVO
-		#endif		
+		#endif
 		
 		#ifndef IGNORE_CONTROL_PINS // maybe set in config.h
 			#define IGNORE_CONTROL_PINS
@@ -191,12 +194,17 @@
 		#define HOMING_CYCLE_1 (1<<Y_AXIS)
 		#ifdef HOMING_CYCLE_2
 			#undef HOMING_CYCLE_2
+		#endif
+		
+		// redefine the defaults
+		#ifdef DEFAULTS_GENERIC
+			#undef DEFAULTS_GENERIC
 		#endif		
+		#define DEFAULTS_MIDTBOT		
 		
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
 		
-		#define SERVO_PEN_PIN 					GPIO_NUM_27
-		
+		#define SERVO_PEN_PIN 					GPIO_NUM_27		
 #endif
 
 	// ================= common to all machines ================================
@@ -225,7 +233,7 @@
 		#define X_LIMIT_BIT      	0  // don't change
 		#define Y_LIMIT_BIT      	1  // don't change
 		#define Z_LIMIT_BIT     	2  // don't change
-		#define LIMIT_MASK      	B111  // don't change
+		
 		
 		#define PROBE_MASK        1 // don't change		
 		
