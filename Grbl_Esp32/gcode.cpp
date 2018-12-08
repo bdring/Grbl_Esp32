@@ -264,15 +264,19 @@ uint8_t gc_execute_line(char *line, uint8_t client)
             switch(int_value) {
               case 3: 
 								gc_block.modal.spindle = SPINDLE_ENABLE_CW; 
-								break;              
-							case 4: 
-								#ifdef SPINDLE_DIR_PIN
-									gc_block.modal.spindle = SPINDLE_ENABLE_CCW; 
-								#else
-									FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
+								break;
+              case 4: // Supported if SPINDLE_DIR_PIN is defined or laser mode is on.
+								#ifndef SPINDLE_DIR_PIN 
+									// if laser mode is not on then this is an unsupported command
+									if bit_isfalse(settings.flags,BITFLAG_LASER_MODE) {
+										FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
+									break;
+									}
 								#endif
-								break;              
-              case 5: gc_block.modal.spindle = SPINDLE_DISABLE; break;
+								gc_block.modal.spindle = SPINDLE_ENABLE_CCW; 
+								break;
+              case 5: 
+								gc_block.modal.spindle = SPINDLE_DISABLE; break;
             }
 						break;          
           case 7: case 8: case 9:							
