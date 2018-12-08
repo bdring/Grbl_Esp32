@@ -61,6 +61,7 @@ Some features should not be changed. See notes below.
 #define ENABLE_HTTP //enable HTTP and all related services
 #define ENABLE_OTA  //enable OTA
 #define ENABLE_TELNET //enable telnet
+//#define ENABLE_TELNET_WELCOME_MSG //display welcome string when connect to telnet
 #define ENABLE_MDNS //enable mDNS discovery
 #define ENABLE_SSDP //enable UPNP discovery
 
