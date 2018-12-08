@@ -3,7 +3,7 @@
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 	
-	2018 -	Bart Dring This file was modifed for use on the ESP32
+	2018 -	Bart Dring This file was modified for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 	
   Grbl is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@
   re-assigning numbers
 	
 	(gpio34-39) are inputs only and don't have software pullup/down functions
-	You MUST use external pullups or noise WILL cause problems.
+	You MUST use external pull-ups or noise WILL cause problems.
 	
 	Unlike the AVR version certain pins are not forced into the same port. 
 	Therefore, bit masks are not use the same way and typically should not be 
@@ -69,9 +69,9 @@
 		// For 5000 that is 80,000,000 / 5000 = 16000 
 		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
 		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 12   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
 		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     4096 // (2^SPINDLE_PWM_BIT_PRECISION)
+		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
 		
 		#ifndef SPINDLE_PWM_MIN_VALUE
 				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
@@ -128,9 +128,9 @@
 		// For 5000 that is 80,000,000 / 5000 = 16000 
 		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
 		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 12   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
 		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     4096 // (2^SPINDLE_PWM_BIT_PRECISION)
+		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
 		
 		#ifndef SPINDLE_PWM_MIN_VALUE
 				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
@@ -181,9 +181,9 @@
 		// For 5000 that is 80,000,000 / 5000 = 16000 
 		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
 		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 12   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
 		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     4096 // (2^SPINDLE_PWM_BIT_PRECISION)
+		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
 		
 		#ifndef SPINDLE_PWM_MIN_VALUE
 				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
