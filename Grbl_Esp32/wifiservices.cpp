@@ -138,6 +138,7 @@ void WiFiServices::end(){
 }
 
 void WiFiServices::handle(){
+    COMMANDS::wait(0);
 #ifdef ENABLE_OTA
     ArduinoOTA.handle();
 #endif

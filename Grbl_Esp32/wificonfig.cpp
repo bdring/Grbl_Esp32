@@ -523,6 +523,7 @@ bool WiFiConfig::Is_WiFi_on(){
  */
 void WiFiConfig::handle() { 
     //Services
+    COMMANDS::wait(0);
     wifi_services.handle();
 }
 

@@ -41,6 +41,9 @@ bool Telnet_Server::_setupdone = false;
 uint16_t Telnet_Server::_port = 0;
 WiFiServer * Telnet_Server::_telnetserver = NULL;
 WiFiClient Telnet_Server::_telnetClients[MAX_TLNT_CLIENTS];
+#ifdef ENABLE_TELNET_WELCOME_MSG
+IPAddress Telnet_Server::_telnetClientsIP[MAX_TLNT_CLIENTS];
+#endif
 
 Telnet_Server::Telnet_Server(){
     _RXbufferSize = 0;
@@ -93,6 +96,9 @@ void Telnet_Server::clearClients(){
       for(i = 0; i < MAX_TLNT_CLIENTS; i++){
         //find free/disconnected spot
         if (!_telnetClients[i] || !_telnetClients[i].connected()){
+#ifdef ENABLE_TELNET_WELCOME_MSG
+          _telnetClientsIP[i] = IPAddress(0, 0, 0, 0);
+#endif
           if(_telnetClients[i]) _telnetClients[i].stop();
           _telnetClients[i] = _telnetserver->available();
           break;
@@ -126,6 +132,7 @@ size_t Telnet_Server::write(const uint8_t *buffer, size_t size){
 }
 
 void Telnet_Server::handle(){
+    COMMANDS::wait(0);
     //check if can read
     if ( !_setupdone || _telnetserver == NULL) {
         return;
@@ -135,6 +142,12 @@ void Telnet_Server::handle(){
     uint8_t c;
     for(uint8_t i = 0; i < MAX_TLNT_CLIENTS; i++){
       if (_telnetClients[i] && _telnetClients[i].connected()){
+#ifdef ENABLE_TELNET_WELCOME_MSG
+          if (_telnetClientsIP[i] != _telnetClients[i].remoteIP()){
+              report_init_message(CLIENT_TELNET);
+              _telnetClientsIP[i] = _telnetClients[i].remoteIP();
+            }
+#endif
         if(_telnetClients[i].available()){
           //get data from the telnet client and push it to grbl
           while(_telnetClients[i].available() && (available() < TELNETRXBUFFERSIZE)) {
@@ -147,6 +160,9 @@ void Telnet_Server::handle(){
       }
       else {
         if (_telnetClients[i]) {
+#ifdef ENABLE_TELNET_WELCOME_MSG
+          _telnetClientsIP[i] = IPAddress(0, 0, 0, 0);
+#endif
           _telnetClients[i].stop();
         }
       }

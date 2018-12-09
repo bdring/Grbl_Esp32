@@ -365,6 +365,7 @@ void Web_Server:: handle_not_found()
     }
 }
 
+#ifdef ENABLE_SSDP
 //http SSDP xml presentation
 void Web_Server::handle_SSDP ()
 {
@@ -410,6 +411,7 @@ void Web_Server::handle_SSDP ()
         _webserver->send (500);
     }
 }
+#endif
 
 bool Web_Server::is_realtime_cmd(char c){
     if (c == CMD_STATUS_REPORT) return true;
@@ -1077,7 +1079,7 @@ void Web_Server::handleUpdate ()
 void Web_Server::WebUpdateUpload ()
 {
     static size_t last_upload_update;
-    static uint32_t maxSketchSpace ;
+    static uint32_t maxSketchSpace = 0;
     //only admin can update FW
     if (is_authenticated() != LEVEL_ADMIN) {
         _upload_status = UPLOAD_STATUS_CANCELLED;
@@ -1093,11 +1095,12 @@ void Web_Server::WebUpdateUpload ()
     if(upload.status == UPLOAD_FILE_START) {
         grbl_send(CLIENT_ALL,"[MSG:Update Firmware]\r\n");
         _upload_status= UPLOAD_STATUS_ONGOING;
-
-        //Not sure can do OTA on 2Mb board
-        maxSketchSpace = (ESP.getFlashChipSize() > 0x20000) ? 0x140000 : 0x140000 / 2;
+        String  sizeargname  = upload.filename + "S";
+        if (_webserver->hasArg (sizeargname.c_str()) ) {
+            maxSketchSpace = _webserver->arg (sizeargname).toInt();
+        }
         last_upload_update = 0;
-        if(!Update.begin(maxSketchSpace)) { //start with max available size
+        if(!Update.begin()) { //start with max available size
             _upload_status=UPLOAD_STATUS_CANCELLED;
             grbl_send(CLIENT_ALL,"[MSG:Update cancelled]\r\n");
             _webserver->client().stop();
@@ -1112,7 +1115,8 @@ void Web_Server::WebUpdateUpload ()
         if (_upload_status == UPLOAD_STATUS_ONGOING) {
             //we do not know the total file size yet but we know the available space so let's use it
             if ( ((100 * upload.totalSize) / maxSketchSpace) !=last_upload_update) {
-                last_upload_update = (100 * upload.totalSize) / maxSketchSpace;
+                if ( maxSketchSpace > 0)last_upload_update = (100 * upload.totalSize) / maxSketchSpace;
+                else last_upload_update = upload.totalSize;
                 String s = "Update ";
                 s+= String(last_upload_update);
                 s+="%";
@@ -1120,6 +1124,7 @@ void Web_Server::WebUpdateUpload ()
             }
             if(Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
                 _upload_status=UPLOAD_STATUS_CANCELLED;
+                grbl_send(CLIENT_ALL,"[MSG:Update write failed]\r\n");
             }
         }
         //Upload end
@@ -1129,7 +1134,7 @@ void Web_Server::WebUpdateUpload ()
             //Now Reboot
             grbl_send(CLIENT_ALL,"[MSG:Update 100%]\r\n");
             _upload_status=UPLOAD_STATUS_SUCCESSFUL;
-        }
+        } else grbl_send(CLIENT_ALL,"[MSG:Update failed]\r\n");
     } else if(upload.status == UPLOAD_FILE_ABORTED) {
         grbl_send(CLIENT_ALL,"[MSG:Update failed]\r\n");
         Update.end();
@@ -1476,6 +1481,7 @@ void Web_Server::SDFile_direct_upload()
 
 void Web_Server::handle(){
 static uint32_t timeout = millis();
+    COMMANDS::wait(0);
 #ifdef ENABLE_CAPTIVE_PORTAL
     if(WiFi.getMode() != WIFI_STA){
         dnsServer.processNextRequest();
@@ -1491,6 +1497,7 @@ static uint32_t timeout = millis();
             timeout=millis();
         }
     }
+    
 }
 
 

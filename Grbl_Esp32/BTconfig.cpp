@@ -189,6 +189,7 @@ bool BTConfig::Is_BT_on(){
  */
 void BTConfig::handle() {
    //If needed
+   COMMANDS::wait(0);
 }
 
 
