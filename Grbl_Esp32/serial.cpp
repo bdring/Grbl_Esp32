@@ -201,8 +201,8 @@ void serialCheckTask(void *pvParameters)
 void serialCheck()
 {
 	uint8_t data = 0;
-  uint8_t next_head;
-	uint8_t client; // who send the data
+	uint8_t next_head;
+	uint8_t client = CLIENT_SERIAL; // who send the data
 	
 	uint8_t client_idx = 0;  // index of data buffer
 	
@@ -221,6 +221,7 @@ void serialCheck()
 				client = CLIENT_SERIAL;
 				data = Serial.read();
 			}	
+#if defined (ENABLE_BLUETOOTH) || (defined (ENABLE_WIFI) && defined(ENABLE_HTTP)  && defined(ENABLE_SERIAL2SOCKET_IN))
        else
 			{   //currently is wifi or BT but better to prepare both can be live				
 				#ifdef ENABLE_BLUETOOTH
@@ -237,6 +238,7 @@ void serialCheck()
                 }
                 #endif
 			}
+#endif
 						
 			client_idx = client - 1;  // for zero based array 
 			

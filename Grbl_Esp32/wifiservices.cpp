@@ -43,6 +43,7 @@
 #ifdef ENABLE_TELNET
 #include "telnet_server.h"
 #endif
+#include "commands.h"
 
 WiFiServices wifi_services;
 
