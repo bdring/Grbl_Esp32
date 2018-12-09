@@ -73,3 +73,6 @@
     #include "telnet_server.h"
     #endif
 #endif
+
+#include "servo_pen.h"
+#include "solenoid_pen.h"

@@ -46,7 +46,7 @@ Some features should not be changed. See notes below.
 // one configuration file by placing their specific defaults and pin map at the bottom of this file.
 // If doing so, simply comment out these two defines and see instructions below.
 #define DEFAULTS_GENERIC
-#define CPU_MAP_ESP32 // currently not required
+#define CPU_MAP_ESP32
 #define VERBOSE_HELP // adds addition help info, but could confuse some senders
 
 // Serial baud rate
@@ -255,6 +255,16 @@ Some features should not be changed. See notes below.
 // described, if not, motions may move in strange directions. Grbl requires the CoreXY A and B motors
 // have the same steps per mm internally.
 // #define COREXY // Default disabled. Uncomment to enable.
+
+// Enable using a servo for the Z axis on a pen type machine.
+// You typically should not define a pin for the Z axis in cpu_map.h
+// You should configure your settings in servo_pen.h
+//#define USE_PEN_SERVO
+// define your servo pin here or in cpu_map.h
+//#define SERVO_PEN_PIN 					GPIO_NUM_27
+
+// Enable using a solenoid for the Z axis on a pen type machine
+//#define USE_PEN_SOLENOID
 
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
