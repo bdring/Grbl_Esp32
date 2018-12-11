@@ -991,6 +991,7 @@ void Web_Server::SPIFFSFileupload ()
         //Upload write
         //**************
     } else if(upload.status == UPLOAD_FILE_WRITE) {
+        vTaskDelay(1 / portTICK_RATE_MS);
         //check if file is available and no error
         if(fsUploadFile && _upload_status == UPLOAD_STATUS_ONGOING) {
             //no error so write post date
@@ -1111,6 +1112,7 @@ void Web_Server::WebUpdateUpload ()
         //Upload write
         //**************
     } else if(upload.status == UPLOAD_FILE_WRITE) {
+        vTaskDelay(1 / portTICK_RATE_MS);
         //check if no error
         if (_upload_status == UPLOAD_STATUS_ONGOING) {
             //we do not know the total file size yet but we know the available space so let's use it
@@ -1430,6 +1432,7 @@ void Web_Server::SDFile_direct_upload()
         //Upload write
         //**************
     } else if(upload.status == UPLOAD_FILE_WRITE) {
+        vTaskDelay(1 / portTICK_RATE_MS);
         if(sdUploadFile && (_upload_status == UPLOAD_STATUS_ONGOING) && (get_sd_state(false) == SDCARD_BUSY_UPLOADING)) {
             //no error write post data
             sdUploadFile.write(upload.buf, upload.currentSize);
