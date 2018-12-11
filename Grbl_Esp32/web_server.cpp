@@ -283,14 +283,30 @@ void Web_Server:: handle_not_found()
             }
             File datafile = SD.open((char *)path.c_str());
             if (datafile) {
-               if( _webserver->streamFile(datafile, contentType) == datafile.size()) {
-                    datafile.close();
-                    COMMANDS::wait(0);
-                    return;
-               } else{
-                   datafile.close();
-               }
-            }
+                vTaskDelay(1 / portTICK_RATE_MS);
+                size_t totalFileSize = datafile.size();
+                size_t i = 0;
+                bool done = false;
+                _webserver->setContentLength(totalFileSize);
+                _webserver->send(200, contentType, "");
+                uint8_t buf[1024];
+                while (!done){
+                    vTaskDelay(1 / portTICK_RATE_MS);
+                    int v = datafile.read(buf,1024);
+                    if ((v == -1) ||  (v == 0)) {
+                        done = true;
+                    } else {
+                        _webserver->client().write(buf,1024);
+                        i+=v;
+                    }
+                    if (i >= totalFileSize) done = true;
+                }
+                datafile.close();
+                if ( i != totalFileSize) {
+                     //error: TBD
+                 }
+                return; 
+                }
         } 
         String content = "cannot find ";
         content+=path;
