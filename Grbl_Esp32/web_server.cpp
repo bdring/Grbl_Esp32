@@ -283,14 +283,30 @@ void Web_Server:: handle_not_found()
             }
             File datafile = SD.open((char *)path.c_str());
             if (datafile) {
-               if( _webserver->streamFile(datafile, contentType) == datafile.size()) {
-                    datafile.close();
-                    COMMANDS::wait(0);
-                    return;
-               } else{
-                   datafile.close();
-               }
-            }
+                vTaskDelay(1 / portTICK_RATE_MS);
+                size_t totalFileSize = datafile.size();
+                size_t i = 0;
+                bool done = false;
+                _webserver->setContentLength(totalFileSize);
+                _webserver->send(200, contentType, "");
+                uint8_t buf[1024];
+                while (!done){
+                    vTaskDelay(1 / portTICK_RATE_MS);
+                    int v = datafile.read(buf,1024);
+                    if ((v == -1) ||  (v == 0)) {
+                        done = true;
+                    } else {
+                        _webserver->client().write(buf,1024);
+                        i+=v;
+                    }
+                    if (i >= totalFileSize) done = true;
+                }
+                datafile.close();
+                if ( i != totalFileSize) {
+                     //error: TBD
+                 }
+                return; 
+                }
         } 
         String content = "cannot find ";
         content+=path;
@@ -991,6 +1007,7 @@ void Web_Server::SPIFFSFileupload ()
         //Upload write
         //**************
     } else if(upload.status == UPLOAD_FILE_WRITE) {
+        vTaskDelay(1 / portTICK_RATE_MS);
         //check if file is available and no error
         if(fsUploadFile && _upload_status == UPLOAD_STATUS_ONGOING) {
             //no error so write post date
@@ -1111,6 +1128,7 @@ void Web_Server::WebUpdateUpload ()
         //Upload write
         //**************
     } else if(upload.status == UPLOAD_FILE_WRITE) {
+        vTaskDelay(1 / portTICK_RATE_MS);
         //check if no error
         if (_upload_status == UPLOAD_STATUS_ONGOING) {
             //we do not know the total file size yet but we know the available space so let's use it
@@ -1430,6 +1448,7 @@ void Web_Server::SDFile_direct_upload()
         //Upload write
         //**************
     } else if(upload.status == UPLOAD_FILE_WRITE) {
+        vTaskDelay(1 / portTICK_RATE_MS);
         if(sdUploadFile && (_upload_status == UPLOAD_STATUS_ONGOING) && (get_sd_state(false) == SDCARD_BUSY_UPLOADING)) {
             //no error write post data
             sdUploadFile.write(upload.buf, upload.currentSize);
