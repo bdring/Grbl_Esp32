@@ -81,8 +81,8 @@ float hypot_f(float x, float y);
 float convert_delta_vector_to_unit_vector(float *vector);
 float limit_value_by_axis_maximum(float *max_value, float *unit_vec);
 
-//int constrain(int val, int min, int max);
-//long map(long x, long in_min, long in_max, long out_min, long out_max);
-long mapConstrain(long x, long in_min, long in_max, long out_min, long out_max);
+float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
+float map_float(float x, float in_min, float in_max, float out_min, float out_max);
+float constrain_float(float in, float min, float max);
 
 #endif

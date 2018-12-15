@@ -164,17 +164,24 @@ float limit_value_by_axis_maximum(float *max_value, float *unit_vec)
   return(limit_value);
 }
 
-// int constrain(int val, int min, int max) {
-    // return (val < min)? min : (val > max)? max : val;    
-// }
-
-// long map(long x, long in_min, long in_max, long out_min, long out_max)
-// {
-  // return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-// }
-
-long mapConstrain(long x, long in_min, long in_max, long out_min, long out_max)
+float map_float(float x, float in_min, float in_max, float out_min, float out_max) // DrawBot_Badge
 {
-    x = constrain(x, out_min, out_max);
-    return map(x, in_min, in_max, out_min, out_max);
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+float constrain_float(float in, float min, float max) // DrawBot_Badge
+{
+	if (in < min)
+		return min;
+	
+	if (in > max)
+		return max;
+	
+	return in;
+}
+
+float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max)
+{
+    x = constrain_float(x, in_min, in_max);
+    return map_float(x, in_min, in_max, out_min, out_max);
 }
