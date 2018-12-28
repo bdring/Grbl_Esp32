@@ -40,7 +40,7 @@ Be sure you have external pullup resistors on any GPIO34-39 that you use. These 
 
 Using Bluetooth:
 
-- [See the Wiki page](https://github.com/bdring/Grbl_Esp32/wiki/Using-Bletooth)
+- [See the Wiki page](https://github.com/bdring/Grbl_Esp32/wiki/Using-Bluetooth)
 
 Using SD Card
 
