@@ -45,7 +45,7 @@
 #include "coolant_control.h"
 #include "eeprom.h"
 #include "gcode.h"
-#include "limits.h"
+#include "grbl_limits.h"
 #include "motion_control.h"
 #include "print.h"
 #include "probe.h"
