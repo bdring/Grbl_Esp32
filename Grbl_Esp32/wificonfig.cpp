@@ -38,7 +38,7 @@
 WiFiConfig wifi_config;
 
 String WiFiConfig::_hostname = "";
-
+bool WiFiConfig::_events_registered = false;
 WiFiConfig::WiFiConfig(){
 }
     
@@ -403,7 +403,11 @@ void WiFiConfig::begin() {
     //stop active services
     wifi_services.end();
     //setup events
-    WiFi.onEvent(WiFiConfig::WiFiEvent);
+    if (!_events_registered) {
+        //cumulative function and no remove so only do once 
+        WiFi.onEvent(WiFiConfig::WiFiEvent);
+        _events_registered = true;
+    }
     //open preferences as read-only
     prefs.begin(NAMESPACE, true);
     //Get hostname

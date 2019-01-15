@@ -48,6 +48,7 @@
 
 #include "grbl.h"
 
+#define DEFAULTBUFFERSIZE 64
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char *text)
@@ -622,12 +623,27 @@ void report_realtime_status(uint8_t client)
 	strcat(status, temp);
 
   // Returns planner and serial read buffer states.
-  #ifdef REPORT_FIELD_BUFFER_STATE
-    if (bit_istrue(settings.status_report_mask,BITFLAG_RT_STATUS_BUFFER_STATE)) {      
-			sprintf(temp, "|Bf:%d,%d", plan_get_block_buffer_available(), serial_get_rx_buffer_available(CLIENT_SERIAL));
+#ifdef REPORT_FIELD_BUFFER_STATE
+    if (bit_istrue(settings.status_report_mask,BITFLAG_RT_STATUS_BUFFER_STATE)) {
+        int bufsize = DEFAULTBUFFERSIZE;
+#if defined(ENABLE_TELNET)
+        if (client == CLIENT_TELNET){
+            bufsize = telnet_server.get_rx_buffer_available();
+        }
+#endif //ENABLE_TELNET
+#if defined(ENABLE_BLUETOOTH)
+        if (client == CLIENT_BT){
+            //TODO FIXME
+            bufsize = 512 - SerialBT.available();
+        }
+#endif //ENABLE_BLUETOOTH
+        if (client == CLIENT_SERIAL){
+            bufsize = serial_get_rx_buffer_available(CLIENT_SERIAL);
+        }
+			sprintf(temp, "|Bf:%d,%d", plan_get_block_buffer_available(), bufsize);
 			strcat(status, temp);
     }
-  #endif
+#endif
 
   #ifdef USE_LINE_NUMBERS
     #ifdef REPORT_FIELD_LINE_NUMBERS

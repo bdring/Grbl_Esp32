@@ -111,7 +111,7 @@ struct SSDPTimer {
 
 SSDPClass::SSDPClass() :
 _server(0),
-_timer(new SSDPTimer),
+_timer(0),
 _port(80),
 _ttl(SSDP_MULTICAST_TTL),
 _respondToPort(0),
@@ -134,30 +134,40 @@ _notify_time(0)
 }
 
 SSDPClass::~SSDPClass(){
-  delete _timer;
+  end();
+}
+
+void SSDPClass::end(){
+    if(!_server) {
+        return;
+    }
+#ifdef DEBUG_SSDP
+    DEBUG_SSDP.printf_P(PSTR("SSDP end ... "));
+#endif
+  // undo all initializations done in begin(), in reverse order
+   _stopTimer();
+   _server->stop();
+   delete (_server);
+   _server = 0;
 }
 
 
 bool SSDPClass::begin(){
   _pending = false;
-
+  end();
   uint32_t chipId = ((uint16_t) (ESP.getEfuseMac() >> 32));
   sprintf(_uuid, "38323636-4558-4dda-9188-cda0e6%02x%02x%02x",
     (uint16_t) ((chipId >> 16) & 0xff),
     (uint16_t) ((chipId >>  8) & 0xff),
     (uint16_t)   chipId        & 0xff  );
-
+  assert(nullptr == _server);
+  _server = new WiFiUDP;
 #ifdef DEBUG_SSDP
   DEBUG_SSDP.printf("SSDP UUID: %s\n", (char *)_uuid);
 #endif
 
-  if (_server) {
-    delete (_server);
-    _server = 0;
-  }
 
   _server = new WiFiUDP;
-
   if (!(_server->beginMulticast(IPAddress(SSDP_MULTICAST_ADDR), SSDP_PORT))) {
 #ifdef DEBUG_SSDP
     DEBUG_SSDP.println("Error begin");
@@ -187,7 +197,7 @@ void SSDPClass::_send(ssdp_method_t method){
     _deviceType,
    ip[0], ip[1], ip[2], ip[3], _port, _schemaURL
   );
-  if (len < 0) return;
+  if(len < 0) return;
   IPAddress remoteAddr;
   uint16_t remotePort;
   if(method == NONE) {
@@ -234,7 +244,7 @@ void SSDPClass::schema(WiFiClient client){
 
 void SSDPClass::_update(){
   int nbBytes  =0;
-  char * packetBuffer = NULL;
+  char * packetBuffer = nullptr;
   
   if(!_pending && _server) {
     ssdp_method_t method = NONE;
@@ -430,11 +440,23 @@ void SSDPClass::_onTimerStatic(SSDPClass* self) {
 }
 
 void SSDPClass::_startTimer() {
+  _stopTimer();
+  _timer= new SSDPTimer();
   ETSTimer* tm = &(_timer->timer);
   const int interval = 1000;
   ets_timer_disarm(tm);
   ets_timer_setfn(tm, reinterpret_cast<ETSTimerFunc*>(&SSDPClass::_onTimerStatic), reinterpret_cast<void*>(this));
   ets_timer_arm(tm, interval, 1 /* repeat */);
+}
+
+void SSDPClass::_stopTimer() {
+  if(!_timer){
+    return;
+    }
+  ETSTimer* tm = &(_timer->timer);
+  ets_timer_disarm(tm);
+  delete _timer;
+  _timer = nullptr;
 }
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SSDP)

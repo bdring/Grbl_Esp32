@@ -61,7 +61,7 @@ Some features should not be changed. See notes below.
 #define ENABLE_HTTP //enable HTTP and all related services
 #define ENABLE_OTA  //enable OTA
 #define ENABLE_TELNET //enable telnet
-//#define ENABLE_TELNET_WELCOME_MSG //display welcome string when connect to telnet
+#define ENABLE_TELNET_WELCOME_MSG //display welcome string when connect to telnet
 #define ENABLE_MDNS //enable mDNS discovery
 #define ENABLE_SSDP //enable UPNP discovery
 
@@ -69,7 +69,7 @@ Some features should not be changed. See notes below.
 #define ENABLE_SERIAL2SOCKET_OUT
 
 #define ENABLE_CAPTIVE_PORTAL
-#define ENABLE_AUTHENTICATION
+//#define ENABLE_AUTHENTICATION
 
 #define NAMESPACE "GRBL"
 #define ESP_RADIO_MODE "RADIO_MODE"
@@ -265,7 +265,7 @@ Some features should not be changed. See notes below.
 // This allows control pins to be ignored.
 // Since these are typically used on the pins that don't have pullups, they will float and cause
 // problems if not externally pulled up. Ignoring will always return not activated when read.
-//#define IGNORE_CONTROL_PINS
+#define IGNORE_CONTROL_PINS
 
 
 

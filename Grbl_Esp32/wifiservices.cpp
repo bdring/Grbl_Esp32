@@ -67,18 +67,7 @@ bool WiFiServices::begin(){
     WiFi.scanNetworks (true);
     //Start SPIFFS
     SPIFFS.begin(true);
-#ifdef ENABLE_MDNS
-     //no need in AP mode
-     if(WiFi.getMode() == WIFI_STA){
-        //start mDns
-        if (!MDNS.begin(h.c_str())) {
-            grbl_send(CLIENT_ALL,"[MSG:Cannot start mDNS]\r\n");
-            no_error = false;
-        } else {
-            grbl_sendf(CLIENT_ALL,"[MSG:Start mDNS with hostname:%s]\r\n",h.c_str());
-        }
-    }
-#endif
+
 #ifdef ENABLE_OTA
     ArduinoOTA
     .onStart([]() {
@@ -108,6 +97,18 @@ bool WiFiServices::begin(){
       else if (error == OTA_END_ERROR) grbl_send(CLIENT_ALL,"[MSG:End Failed]\r\n");
     });
   ArduinoOTA.begin();
+#endif
+#ifdef ENABLE_MDNS
+     //no need in AP mode
+     if(WiFi.getMode() == WIFI_STA){
+        //start mDns
+        if (!MDNS.begin(h.c_str())) {
+            grbl_send(CLIENT_ALL,"[MSG:Cannot start mDNS]\r\n");
+            no_error = false;
+        } else {
+            grbl_sendf(CLIENT_ALL,"[MSG:Start mDNS with hostname:http://%s.local/]\r\n",h.c_str());
+        }
+    }
 #endif
 #ifdef ENABLE_HTTP
     web_server.begin();
