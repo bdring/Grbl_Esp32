@@ -626,11 +626,11 @@ void report_realtime_status(uint8_t client)
 #ifdef REPORT_FIELD_BUFFER_STATE
     if (bit_istrue(settings.status_report_mask,BITFLAG_RT_STATUS_BUFFER_STATE)) {
         int bufsize = DEFAULTBUFFERSIZE;
-#if defined(ENABLE_TELNET)
+#if defined (ENABLE_WIFI) && defined(ENABLE_TELNET)
         if (client == CLIENT_TELNET){
             bufsize = telnet_server.get_rx_buffer_available();
         }
-#endif //ENABLE_TELNET
+#endif //ENABLE_WIFI && ENABLE_TELNET
 #if defined(ENABLE_BLUETOOTH)
         if (client == CLIENT_BT){
             //TODO FIXME
