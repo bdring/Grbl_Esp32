@@ -186,8 +186,8 @@
 		#endif
 		
 		// redefine some stuff from config.h
-		#define HOMING_CYCLE_0 (1<<X_AXIS)
-		#define HOMING_CYCLE_1 (1<<Y_AXIS)
+		#define HOMING_CYCLE_0 (1<<Y_AXIS)
+		#define HOMING_CYCLE_1 (1<<X_AXIS)
 		#ifdef HOMING_CYCLE_2
 			#undef HOMING_CYCLE_2
 		#endif
@@ -200,7 +200,60 @@
 		
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
 		
-		#define SERVO_PEN_PIN 					GPIO_NUM_27		
+		#define SERVO_PEN_PIN 					GPIO_NUM_27
+		
+		#ifdef DEFAULTS_GENERIC 
+			#undef DEFAULTS_GENERIC  // undefine generic then define each default below
+		#endif
+		
+		// defaults
+		#define DEFAULT_STEP_PULSE_MICROSECONDS 3 
+		#define DEFAULT_STEPPER_IDLE_LOCK_TIME 255 // stay on
+		
+		#define DEFAULT_STEPPING_INVERT_MASK 0 // uint8_t
+		#define DEFAULT_DIRECTION_INVERT_MASK 2 // uint8_t
+		#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
+		#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
+		#define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
+		
+		#define DEFAULT_STATUS_REPORT_MASK 2 // MPos enabled
+		
+		#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
+		#define DEFAULT_ARC_TOLERANCE 0.002 // mm
+		#define DEFAULT_REPORT_INCHES 0 // false
+		
+		#define DEFAULT_SOFT_LIMIT_ENABLE 0 // false
+		#define DEFAULT_HARD_LIMIT_ENABLE 0  // false
+		
+		#define DEFAULT_HOMING_ENABLE 1  
+		#define DEFAULT_HOMING_DIR_MASK 1 
+		#define DEFAULT_HOMING_FEED_RATE 200.0 // mm/min
+		#define DEFAULT_HOMING_SEEK_RATE 1000.0 // mm/min
+		#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
+		#define DEFAULT_HOMING_PULLOFF 3.0 // mm
+
+		#define DEFAULT_SPINDLE_RPM_MAX 1000.0 // rpm
+		#define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
+		
+		#define DEFAULT_LASER_MODE 0 // false
+		
+		#define DEFAULT_X_STEPS_PER_MM 100.0
+		#define DEFAULT_Y_STEPS_PER_MM 100.0
+		#define DEFAULT_Z_STEPS_PER_MM 100.0 // This is percent in servo mode
+		
+		#define DEFAULT_X_MAX_RATE 8000.0 // mm/min
+		#define DEFAULT_Y_MAX_RATE 8000.0 // mm/min
+		#define DEFAULT_Z_MAX_RATE 5000.0 // mm/min
+		
+		#define DEFAULT_X_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+		#define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+		#define DEFAULT_Z_ACCELERATION (100.0*60*60) 
+		
+		#define DEFAULT_X_MAX_TRAVEL 50.0 // mm NOTE: Must be a positive value.
+		#define DEFAULT_Y_MAX_TRAVEL 300.0 // mm NOTE: Must be a positive value.
+		#define DEFAULT_Z_MAX_TRAVEL 100.0 // This is percent in servo mode
+		
+		
 #endif
 
 #ifdef CPU_MAP_POLAR_COASTER  // The Buildlog.net pen polar coaster controller V1

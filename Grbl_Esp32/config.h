@@ -205,6 +205,7 @@ Some features should not be changed. See notes below.
 // values cannot be less than 0.001mm or 0.0001in, because machines can not be physically more
 // precise this. So, there is likely no need to change these, but you can if you need to here.
 // NOTE: Must be an integer value from 0 to ~4. More than 4 may exhibit round-off errors.
+// ESP32 Note: These are mostly hard coded, so these values will not change anything
 #define N_DECIMAL_COORDVALUE_INCH 4 // Coordinate or position value in inches
 #define N_DECIMAL_COORDVALUE_MM   3 // Coordinate or position value in mm
 #define N_DECIMAL_RATEVALUE_INCH  1 // Rate or velocity value in in/min

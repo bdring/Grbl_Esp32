@@ -105,11 +105,16 @@ void grbl_sendf(uint8_t client, const char *format, ...)
 static void report_util_axis_values(float *axis_value, char *rpt) {
   uint8_t idx;
 	char axisVal[10];
+	float unit_conv = 1.0; // unit conversion multiplier..default is mm
 	
 	rpt[0] = '\0';
 	
+	if (bit_istrue(settings.flags,BITFLAG_REPORT_INCHES))
+		unit_conv = 1.0 / MM_PER_INCH;
+	
   for (idx=0; idx<N_AXIS; idx++) {
-		sprintf(axisVal, "%4.3f", axis_value[idx]);
+		
+		sprintf(axisVal, "%4.3f", axis_value[idx] * unit_conv);
 		strcat(rpt, axisVal);
     
     if (idx < (N_AXIS-1)) 
@@ -118,7 +123,6 @@ static void report_util_axis_values(float *axis_value, char *rpt) {
 		}
   }
 }
-
 
 void get_state(char *foo)
 {        
@@ -432,8 +436,13 @@ void report_gcode_modes(uint8_t client)
 
 	sprintf(temp, " T%d", gc_state.tool);
 	strcat(modes_rpt, temp); 
-
-  sprintf(temp, " F%4.3f", gc_state.feed_rate);
+	
+	
+	if (bit_istrue(settings.flags,BITFLAG_REPORT_INCHES)) {
+		sprintf(temp, " F:%.1f", gc_state.feed_rate);
+	} else {
+		sprintf(temp, " F:%.0f", gc_state.feed_rate);
+	}
 	strcat(modes_rpt, temp);
 	
   #ifdef VARIABLE_SPINDLE    
@@ -645,12 +654,19 @@ void report_realtime_status(uint8_t client)
 
   // Report realtime feed speed
   #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
-    #ifdef VARIABLE_SPINDLE      
-			sprintf(temp, "|FS:%.0f,%.0f", st_get_realtime_rate(), sys.spindle_speed);
+    #ifdef VARIABLE_SPINDLE
+			if (bit_istrue(settings.flags,BITFLAG_REPORT_INCHES)) {
+				sprintf(temp, "|FS:%.1f,%.0f", st_get_realtime_rate(), sys.spindle_speed / MM_PER_INCH);
+			} else {
+				sprintf(temp, "|FS:%.0f,%.0f", st_get_realtime_rate(), sys.spindle_speed);
+			}			
 			strcat(status, temp);
     #else
-      
-			sprintf(temp, "|F:%.0f", st_get_realtime_rate());
+			if (bit_istrue(settings.flags,BITFLAG_REPORT_INCHES)) {
+				sprintf(temp, "|F:%.1f", st_get_realtime_rate() / MM_PER_INCH);
+			} else {
+				sprintf(temp, "|F:%.0f", st_get_realtime_rate());
+			}
 			strcat(status, temp);
     #endif      
   #endif

@@ -7,6 +7,9 @@
 	
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
+  2018-12-29 - Wolfgang Lienbacher renamed file from limits.h to grbl_limits.h 
+          fixing ambiguation issues with limit.h in the esp32 Arduino Framework 
+          when compiling with VS-Code/PlatformIO.
 
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,8 +25,8 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef limits_h
-#define limits_h
+#ifndef grbl_limits_h
+#define grbl_limits_h
 
 
 // Initialize the limits module
