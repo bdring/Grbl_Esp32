@@ -115,7 +115,11 @@ static void report_util_axis_values(float *axis_value, char *rpt) {
 	
   for (idx=0; idx<N_AXIS; idx++) {
 		
-		sprintf(axisVal, "%4.3f", axis_value[idx] * unit_conv);
+		if (bit_istrue(settings.flags,BITFLAG_REPORT_INCHES))
+			sprintf(axisVal, "%4.4f", axis_value[idx] * unit_conv);  // Report inches to 4 decimals
+		else
+			sprintf(axisVal, "%4.3f", axis_value[idx] * unit_conv);  // Report mm to 3 decimals
+			
 		strcat(rpt, axisVal);
     
     if (idx < (N_AXIS-1)) 
