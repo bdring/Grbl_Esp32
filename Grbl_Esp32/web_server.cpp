@@ -216,6 +216,9 @@ bool Web_Server::begin(){
 
 void Web_Server::end(){
     _setupdone = false;
+#ifdef ENABLE_SSDP
+    SSDP.end();
+#endif //ENABLE_SSDP
 #ifdef ENABLE_MDNS
     //remove mDNS
     mdns_service_remove("_http", "_tcp");

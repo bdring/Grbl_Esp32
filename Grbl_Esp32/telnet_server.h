@@ -43,8 +43,9 @@ class Telnet_Server {
     int read(void);
     int peek(void);
     int available();
+    int get_rx_buffer_available();
     bool push (uint8_t data);
-    bool push (const char * data);
+    bool push (const uint8_t * data, int datasize);
     static uint16_t port(){return _port;}
     private:
     static bool _setupdone;

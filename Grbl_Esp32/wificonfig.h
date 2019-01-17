@@ -104,10 +104,11 @@ public:
     static void handle();
     static void reset_settings();
     static bool Is_WiFi_on();
-    private :
+private :
     static bool ConnectSTA2AP();
     static void WiFiEvent(WiFiEvent_t event);
     static String _hostname;
+    static bool _events_registered;
 };
 
 extern WiFiConfig wifi_config;
