@@ -1061,6 +1061,23 @@ void set_stepper_disable(uint8_t isOn)  // isOn = true // to disable
 	#endif
 }
 
+bool get_stepper_disable() { // returns true if steppers are disabled
+	bool disabled = false;
+
+	#ifdef STEPPERS_DISABLE_PIN
+		disabled = digitalRead(STEPPERS_DISABLE_PIN);
+	#else
+		return false; // thery are never disabled if there is no pin defined
+	#endif
+	
+  if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) { 
+		disabled = !disabled; // Apply pin invert.
+	} 
+	
+	return disabled;
+	
+}
+
 
   
 

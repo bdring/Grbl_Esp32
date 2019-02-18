@@ -76,3 +76,7 @@
 
 #include "servo_pen.h"
 #include "solenoid_pen.h"
+
+#ifdef USE_SERVO_AXES
+	#include "servo_axis.h"
+#endif

@@ -260,7 +260,8 @@ Some features should not be changed. See notes below.
 // Enable using a servo for the Z axis on a pen type machine.
 // You typically should not define a pin for the Z axis in cpu_map.h
 // You should configure your settings in servo_pen.h
-// #define USE_PEN_SERVO
+// #define USE_PEN_SERVO    // this method will be deprecated soon
+// #define USE_SERVO_AXES  // the new method
 // define your servo pin here or in cpu_map.h
 //#define SERVO_PEN_PIN 					GPIO_NUM_27
 
