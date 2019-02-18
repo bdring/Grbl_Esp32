@@ -199,7 +199,6 @@ static void planner_recalculate()
   }
 }
 
-
 void plan_reset()
 {
   memset(&pl, 0, sizeof(planner_t)); // Clear planner struct
@@ -326,6 +325,10 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
       position_steps[X_AXIS] = system_convert_corexy_to_x_axis_steps(sys_position);
       position_steps[Y_AXIS] = system_convert_corexy_to_y_axis_steps(sys_position);
       position_steps[Z_AXIS] = sys_position[Z_AXIS];
+  #elif defined(WALL_PLOTTER)
+      position_steps[X_AXIS] = system_convert_wall_plotter_to_x_axis_steps(sys_position);
+      position_steps[Y_AXIS] = system_convert_wall_plotter_to_y_axis_steps(sys_position);
+      position_steps[Z_AXIS] = sys_position[Z_AXIS];
     #else
       memcpy(position_steps, sys_position, sizeof(sys_position)); 
     #endif
@@ -336,22 +339,36 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
     target_steps[B_MOTOR] = lround(target[B_MOTOR]*settings.steps_per_mm[B_MOTOR]);
     block->steps[A_MOTOR] = labs((target_steps[X_AXIS]-position_steps[X_AXIS]) + (target_steps[Y_AXIS]-position_steps[Y_AXIS]));
     block->steps[B_MOTOR] = labs((target_steps[X_AXIS]-position_steps[X_AXIS]) - (target_steps[Y_AXIS]-position_steps[Y_AXIS]));
+  #elif defined(WALL_PLOTTER)
+    block->steps[A_MOTOR] = labs(sqrt(pow(target_steps[X_AXIS] - position_steps[X_AXIS], 2) + pow(target_steps[Y_AXIS] - position_steps[Y_AXIS], 2)));
+    block->steps[B_MOTOR] = labs(sqrt(pow(settings.max_travel[X_AXIS] - (target_steps[X_AXIS] + position_steps[X_AXIS]), 2) + pow(target_steps[Y_AXIS] - position_steps[Y_AXIS], 2)));
   #endif
+
 
   for (idx=0; idx<N_AXIS; idx++) {
     // Calculate target position in absolute steps, number of steps for each axis, and determine max step events.
     // Also, compute individual axes distance for move and prep unit vector calculations.
     // NOTE: Computes true distance from converted step values.
-    #ifdef COREXY
+    #if defined(COREXY) || defined(WALL_PLOTTER)
       if ( !(idx == A_MOTOR) && !(idx == B_MOTOR) ) {
         target_steps[idx] = lround(target[idx]*settings.steps_per_mm[idx]);
         block->steps[idx] = labs(target_steps[idx]-position_steps[idx]);
       }
       block->step_event_count = MAX(block->step_event_count, block->steps[idx]);
+    #endif
+    #ifdef COREXY
       if (idx == A_MOTOR) {
         delta_mm = (target_steps[X_AXIS]-position_steps[X_AXIS] + target_steps[Y_AXIS]-position_steps[Y_AXIS])/settings.steps_per_mm[idx];
       } else if (idx == B_MOTOR) {
         delta_mm = (target_steps[X_AXIS]-position_steps[X_AXIS] - target_steps[Y_AXIS]+position_steps[Y_AXIS])/settings.steps_per_mm[idx];
+      } else {
+        delta_mm = (target_steps[idx] - position_steps[idx])/settings.steps_per_mm[idx];
+      }
+    #elif defined(WALL_PLOTTER)
+      if (idx == A_MOTOR) {
+        delta_mm = sqrt(pow(target_steps[X_AXIS] - position_steps[X_AXIS], 2) + pow(target_steps[Y_AXIS] - position_steps[Y_AXIS], 2));
+      } else if (idx == B_MOTOR) {
+        delta_mm = sqrt(pow(settings.max_travel[A_MOTOR] - target_steps[X_AXIS] + position_steps[X_AXIS], 2) + pow(target_steps[Y_AXIS] - position_steps[Y_AXIS], 2));
       } else {
         delta_mm = (target_steps[idx] - position_steps[idx])/settings.steps_per_mm[idx];
       }
@@ -473,6 +490,14 @@ void plan_sync_position()
         pl.position[X_AXIS] = system_convert_corexy_to_x_axis_steps(sys_position);
       } else if (idx==Y_AXIS) {
         pl.position[Y_AXIS] = system_convert_corexy_to_y_axis_steps(sys_position);
+      } else {
+        pl.position[idx] = sys_position[idx];
+      }
+   #elif defined(WALL_PLOTTER)
+      if (idx==X_AXIS) {
+        pl.position[X_AXIS] = system_convert_wall_plotter_to_x_axis_steps(sys_position);
+      } else if (idx==Y_AXIS) {
+        pl.position[Y_AXIS] = system_convert_wall_plotter_to_y_axis_steps(sys_position);
       } else {
         pl.position[idx] = sys_position[idx];
       }

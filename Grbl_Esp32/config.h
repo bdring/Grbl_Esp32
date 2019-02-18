@@ -222,6 +222,10 @@ Some features should not be changed. See notes below.
 // have the same steps per mm internally.
 // #define COREXY // Default disabled. Uncomment to enable.
 
+// Enable hanging wall plotter kinematics.
+// TODO: Add documentation about what exactly is supported and what isn't.
+#define WALL_PLOTTER
+
 // Enable using a servo for the Z axis on a pen type machine.
 // You typically should not define a pin for the Z axis in cpu_map.h
 // You should configure your settings in servo_pen.h

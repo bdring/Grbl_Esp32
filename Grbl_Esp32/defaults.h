@@ -180,4 +180,37 @@
   #define DEFAULT_Z_MAX_TRAVEL 100.0 // DEFAULT CAL VALUE !!
 #endif
 
+// TODO: Calculate and verify all values
+#ifdef DEFAULTS_WALL_PLOTTER
+  // Settings only for custom wall plotter
+  #define DEFAULT_X_STEPS_PER_MM 1000.0 // TODO: Calculate DEFAULT_X_STEPS_PER_MM
+  #define DEFAULT_Y_STEPS_PER_MM 1000.0 // TODO: Calculate DEFAULT_Y_STEPS_PER_MM
+  #define DEFAULT_Z_STEPS_PER_MM 1000.0 // mm - not used
+  #define DEFAULT_X_MAX_RATE 6000.0 // mm/min
+  #define DEFAULT_Y_MAX_RATE 6000.0 // mm/min
+  #define DEFAULT_Z_MAX_RATE 6000.0 // mm/min - not used
+  #define DEFAULT_X_ACCELERATION (250.0*60*60) // 250*60*60 mm/min^2 = 250 mm/sec^2
+  #define DEFAULT_Y_ACCELERATION (250.0*60*60) // 250*60*60 mm/min^2 = 250 mm/sec^2
+  #define DEFAULT_Z_ACCELERATION (250.0*60*60) // 250*60*60 mm/min^2 = 250 mm/sec^2 - not used
+  #define DEFAULT_X_MAX_TRAVEL 1000.0 // mm
+  #define DEFAULT_Y_MAX_TRAVEL 1000.0 // mm
+  #define DEFAULT_Z_MAX_TRAVEL 1000.0 // mm - not used
+  #define DEFAULT_SPINDLE_RPM_MAX 0.0 // rpm - not used
+  #define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm - not used
+  #define DEFAULT_STEP_PULSE_MICROSECONDS 10
+  #define DEFAULT_STEPPING_INVERT_MASK 0
+  #define DEFAULT_DIRECTION_INVERT_MASK 0
+  #define DEFAULT_STEPPER_IDLE_LOCK_TIME 25 // msec (0-254, 255 keeps steppers enabled)
+  #define DEFAULT_SOFT_LIMIT_ENABLE 0 // true
+  #define DEFAULT_HARD_LIMIT_ENABLE 0  // false
+  #define DEFAULT_INVERT_PROBE_PIN 0 // false
+  #define DEFAULT_LASER_MODE 0 // false
+  #define DEFAULT_HOMING_ENABLE 0  // true
+  #define DEFAULT_HOMING_DIR_MASK 0 // move positive dir
+  #define DEFAULT_HOMING_FEED_RATE 500.0 // mm/min
+  #define DEFAULT_HOMING_SEEK_RATE 2000.0 // mm/min
+  #define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
+  #define DEFAULT_HOMING_PULLOFF 1.0 // mm
+#endif
+
 #endif

@@ -217,5 +217,11 @@ void system_clear_exec_accessory_overrides();
 int32_t system_convert_corexy_to_x_axis_steps(int32_t *steps);
 int32_t system_convert_corexy_to_y_axis_steps(int32_t *steps);
 
+// Wall plotter calculation only. Returns x or y-axis "steps" based on wall plotter motor steps
+
+  int32_t system_convert_wall_plotter_to_x_axis_steps(int32_t *steps);
+  int32_t system_convert_wall_plotter_to_y_axis_steps(int32_t *steps);
+
+
 
 #endif
