@@ -208,6 +208,9 @@ uint8_t system_execute_line(char *line, uint8_t client)
             #ifdef ENABLE_RESTORE_EEPROM_WIPE_ALL
               case '*': settings_restore(SETTINGS_RESTORE_ALL); break;
             #endif
+            #if defined(ENABLE_BLUETOOTH) || defined(ENABLE_WIFI)
+            case '@': settings_restore(SETTINGS_RESTORE_WIFI_SETTINGS); break;
+            #endif
             default: return(STATUS_INVALID_STATEMENT);
           }
           report_feedback_message(MESSAGE_RESTORE_DEFAULTS);
