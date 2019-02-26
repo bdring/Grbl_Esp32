@@ -104,6 +104,7 @@ class ServoAxis{
 		void set_homing_position(float homing_position);
 		void set_disable_on_alarm (bool disable_on_alarm);
 		void set_disable_with_steppers(bool disable_with_steppers);
+		void set_use_mpos(bool use_mpos);
     
 	private:
 		int _axis; // these should be assign in constructor using Grbl X_AXIS type values
@@ -116,10 +117,12 @@ class ServoAxis{
 		float _position_min = SERVO_POSITION_MIN_DEFAULT; // position in millimeters
 		float _position_max = SERVO_POSITION_MAX_DEFAULT; // position in millimeters
 		
+		
 		uint8_t _homing_type = SERVO_HOMING_OFF;
 		float _homing_position = SERVO_POSITION_MAX_DEFAULT;
 		bool _disable_on_alarm = true;
 		bool _disable_with_steppers = false;
+		bool _use_mpos = true;
 				
 		bool _validate_cal_settings();
 		void _write_pwm(uint32_t duty);

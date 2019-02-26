@@ -272,7 +272,7 @@ Some features should not be changed. See notes below.
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
 // The mask order is Cycle Start | Feed Hold | Reset | Safety Door
 // For example B1101 will invert the function of the Reset pin.
-#define INVERT_CONTROL_PIN_MASK   B1111	
+#define INVERT_CONTROL_PIN_MASK   B1111
 
 // This allows control pins to be ignored.
 // Since these are typically used on the pins that don't have pullups, they will float and cause
