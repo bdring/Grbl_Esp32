@@ -97,6 +97,7 @@ Some features should not be changed. See notes below.
 #ifdef ENABLE_WIFI
 #define DEFAULT_RADIO_MODE ESP_WIFI_AP
 #else
+    #undef ENABLE_NOTIFICATIONS
     #ifdef ENABLE_BLUETOOTH
     #define DEFAULT_RADIO_MODE ESP_BT
     #else
