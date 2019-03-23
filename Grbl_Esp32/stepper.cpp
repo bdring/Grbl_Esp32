@@ -355,11 +355,22 @@ void stepper_init()
 	#ifdef  X_STEP_PIN
 		pinMode(X_STEP_PIN, OUTPUT);
 	#endif
+	#ifdef  X_STEP_B_PIN // ganged motor
+		pinMode(X_STEP_B_PIN, OUTPUT);
+	#endif
+	
 	#ifdef Y_STEP_PIN
 		pinMode(Y_STEP_PIN, OUTPUT);
+	#endif	
+	#ifdef Y_STEP_B_PIN
+		pinMode(Y_STEP_B_PIN, OUTPUT);
 	#endif
+	
 	#ifdef Z_STEP_PIN
 		pinMode(Z_STEP_PIN, OUTPUT);	
+	#endif
+	#ifdef Z_STEP_B_PIN
+		pinMode(Z_STEP_B_PIN, OUTPUT);
 	#endif
 	
 	// make the stepper disable pin an output
@@ -470,20 +481,62 @@ void set_direction_pins_on(uint8_t onMask)
 	#endif
 }
 
-void set_stepper_pins_on(uint8_t onMask)
+#ifndef USE_GANGED_AXES
+	// basic one motor per axis
+	void set_stepper_pins_on(uint8_t onMask)
 {		
 		onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
 		
 		#ifdef X_STEP_PIN
 			digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
 		#endif
+		
 		#ifdef Y_STEP_PIN
 			digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
 		#endif
+		
 		#ifdef Z_STEP_PIN
 			digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
 		#endif
 }
+#else // we use ganged axes
+	void set_stepper_pins_on(uint8_t onMask)
+{		
+		onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
+		
+		#ifdef X_STEP_PIN
+			#ifndef X_STEP_B_PIN // if not a ganged axis
+				digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
+			#else // is a ganged axis
+				if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) )
+					digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
+				
+				if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) )
+					digitalWrite(X_STEP_B_PIN, (onMask & (1<<X_AXIS)));
+			#endif
+		#endif
+		
+		#ifdef Y_STEP_PIN
+			#ifndef Y_STEP_B_PIN // if not a ganged axis
+				digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
+			#else // is a ganged axis
+				if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) )
+					digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
+				
+				if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) )
+					digitalWrite(Y_STEP_B_PIN, (onMask & (1<<Y_AXIS)));
+			#endif
+		#endif
+		
+	
+		// ganged z not supported yet
+		#ifdef Z_STEP_PIN
+			digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
+		#endif
+}
+#endif
+
+
 
 
 // Stepper shutdown

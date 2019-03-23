@@ -76,9 +76,9 @@
 extern uint64_t stepper_idle_counter;
 extern bool stepper_idle;
 
+extern uint8_t ganged_mode;
+
 // -- Task handles for use in the notifications
-
-
 void IRAM_ATTR onSteppertimer();
 void IRAM_ATTR onStepperOffTimer();
 void stepper_init();

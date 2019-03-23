@@ -1,3 +1,33 @@
+This file defines the [ESP...] style commands. They can be used via serial, Bluetooth or Wifi
+These are used for basic wireless settings as well as SD card commands
+
+Some commands need to be authenticated with a password. Authentication
+is optional via #define ENABLE_AUTHENTICATION in the config.h file.
+The default password is "admin"
+
+============== Examples (assumes "admin" password): ===============
+
+Command: [ESP800]pwd=admin
+Reply: FW version:1.1f # FW target:grbl-embedded # FW HW:Direct SD # primary sd:/sd # secondary sd:none # authentication:yes # webcommunication: Sync: 81# hostname:grblesp
+
+Command: [ESP111]
+Reply: 192.168.1.11
+
+Command: [ESP121]pwd=admin
+Reply: 80
+
+Command: [ESP121]pwd=admin
+Reply: 80
+
+Command: [ESP121]81 pwd=admin
+Reply: ok
+
+Command: [ESP121]pwd=admin
+Reply: 81
+
+===============  Command Reference ========================
+
+
 * Set/Get STA SSID 
 [ESP100]<SSID>pwd=<admin password>
 

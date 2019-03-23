@@ -24,6 +24,7 @@
 
 #include "grbl.h"
 
+uint8_t ganged_mode = SQUARING_MODE_DUAL;
 
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
@@ -223,12 +224,44 @@ void mc_homing_cycle(uint8_t cycle_mask)
   #endif
   {
     // Search to engage all axes limit switches at faster homing seek rate.
-    limits_go_home(HOMING_CYCLE_0);  // Homing cycle 0
+		if (! axis_is_squared(HOMING_CYCLE_0))
+			limits_go_home(HOMING_CYCLE_0);  // Homing cycle 0
+	  else {
+			ganged_mode = SQUARING_MODE_DUAL;
+			limits_go_home(HOMING_CYCLE_0);
+			ganged_mode = SQUARING_MODE_A;
+			limits_go_home(HOMING_CYCLE_0);
+			ganged_mode = SQUARING_MODE_B;
+			limits_go_home(HOMING_CYCLE_0);
+			ganged_mode = SQUARING_MODE_DUAL; // always return to dual 
+		}
+		
     #ifdef HOMING_CYCLE_1
-      limits_go_home(HOMING_CYCLE_1);  // Homing cycle 1
+		if (! axis_is_squared(HOMING_CYCLE_1))
+      limits_go_home(HOMING_CYCLE_1);
+		else {
+			ganged_mode = SQUARING_MODE_DUAL;
+			limits_go_home(HOMING_CYCLE_1);
+			ganged_mode = SQUARING_MODE_A;
+			limits_go_home(HOMING_CYCLE_1);
+			ganged_mode = SQUARING_MODE_B;
+			limits_go_home(HOMING_CYCLE_1);
+			ganged_mode = SQUARING_MODE_DUAL; // always return to dual 
+		}
     #endif
+		
     #ifdef HOMING_CYCLE_2
-      limits_go_home(HOMING_CYCLE_2);  // Homing cycle 2
+		if (! axis_is_squared(HOMING_CYCLE_2))
+      limits_go_home(HOMING_CYCLE_2);
+		else {
+			ganged_mode = SQUARING_MODE_DUAL;
+			limits_go_home(HOMING_CYCLE_2);
+			ganged_mode = SQUARING_MODE_A;
+			limits_go_home(HOMING_CYCLE_2);
+			ganged_mode = SQUARING_MODE_B;
+			limits_go_home(HOMING_CYCLE_2);
+			ganged_mode = SQUARING_MODE_DUAL; // always return to dual 
+		}
     #endif
     
     #ifdef HOMING_CYCLE_3
@@ -388,5 +421,11 @@ void mc_reset()
       st_go_idle(); // Force kill steppers. Position has likely been lost.
     }
 		
+		#ifdef USE_GANGED_AXES
+			ganged_mode = SQUARING_MODE_DUAL; // in case an error occurred during squaring
+		#endif
+		
   }
 }
+
+
