@@ -914,6 +914,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             char fileLine[255];
             SD_client = (espresponse)?espresponse->client(): CLIENT_ALL;
             if (!readFileLine(fileLine)) {
+					//No need notification here it is just a macro
                     closeFile();
                     espresponse->println ("");
                     return false;

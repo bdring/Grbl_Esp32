@@ -93,8 +93,11 @@ void protocol_main_loop()
 					report_status_message(gc_execute_line(fileLine, SD_client), SD_client);
 				}
 				else {
+					char temp[50];
+					sd_get_current_filename(temp);
+					grbl_notifyf("SD print done", "%s print is successful", temp);
 					closeFile(); // close file and clear SD ready/running flags
-					// TODO some type of alert
+					
 				}
 			}
 		#endif
