@@ -391,6 +391,8 @@ void WiFiConfig::StopWiFi(){
     if((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA))WiFi.disconnect(true);
     if((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA))WiFi.softAPdisconnect(true);
     wifi_services.end();
+    WiFi.enableSTA (false);
+    WiFi.enableAP (false);
     WiFi.mode(WIFI_OFF);
     grbl_send(CLIENT_ALL,"\n[MSG:WiFi Off]\r\n");
 }
@@ -450,6 +452,22 @@ void WiFiConfig::reset_settings(){
     if (prefs.putString(HOSTNAME_ENTRY, sval) == 0){
         error = true;
     }
+    
+    bbuf = DEFAULT_NOTIFICATION_TYPE;
+	if (prefs.putChar(NOTIFICATION_TYPE, bbuf) ==0 ) {
+		error = true;
+	}
+	sval = DEFAULT_TOKEN;
+	if (prefs.putString(NOTIFICATION_T1, sval) == 0){
+		error = true;
+	}
+	if (prefs.putString(NOTIFICATION_T2, sval) == 0){
+		error = true;
+	}  
+	if (prefs.putString(NOTIFICATION_TS, sval) == 0){
+		error = true;
+	}  
+    
     sval = DEFAULT_STA_SSID;
     if (prefs.putString(STA_SSID_ENTRY, sval) == 0){
         error = true;

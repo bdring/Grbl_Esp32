@@ -102,6 +102,36 @@ void grbl_sendf(uint8_t client, const char *format, ...)
     }
 }
 
+//function to notify
+void grbl_notify(const char *title, const char *msg){
+#ifdef ENABLE_NOTIFICATIONS
+	notificationsservice.sendMSG(title, msg);
+#endif
+}
+
+void grbl_notifyf(const char *title, const char *format, ...){
+char loc_buf[64];
+    char * temp = loc_buf;
+    va_list arg;
+    va_list copy;
+    va_start(arg, format);
+    va_copy(copy, arg);
+    size_t len = vsnprintf(NULL, 0, format, arg);
+    va_end(copy);
+    if(len >= sizeof(loc_buf)){
+        temp = new char[len+1];
+        if(temp == NULL) {
+            return;
+        }
+    }
+    len = vsnprintf(temp, len+1, format, arg);
+    grbl_notify(title, temp);
+    va_end(arg);
+    if(len > 64){
+        delete[] temp;
+    }
+}
+
 // formats axis values into a string and returns that string in rpt
 static void report_util_axis_values(float *axis_value, char *rpt) {
   uint8_t idx;
@@ -167,8 +197,9 @@ void report_status_message(uint8_t status_code, uint8_t client)
 			#ifdef ENABLE_SD_CARD
 			// do we need to stop a running SD job?
 			if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+				grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sd_get_current_line_number());
 				grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
-			  closeFile();
+				closeFile();
 				return;
 			}
 			#endif
@@ -217,6 +248,7 @@ void report_feedback_message(uint8_t message_code)  // OK to send to all clients
       grbl_send(CLIENT_ALL, "[MSG:Sleeping]\r\n"); break;
 #ifdef ENABLE_SD_CARD
 		case MESSAGE_SD_FILE_QUIT:
+			grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
 			grbl_sendf(CLIENT_ALL, "[MSG:Reset during SD file at line: %d]\r\n", sd_get_current_line_number()); break;
 #endif
   }  		

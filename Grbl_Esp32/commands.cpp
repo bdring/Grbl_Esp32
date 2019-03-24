@@ -37,6 +37,9 @@
 #include "telnet_server.h"
 #endif
 #endif
+#ifdef ENABLE_NOTIFICATIONS
+#include "notifications_service.h"
+#endif
 #include <WiFi.h>
 #include <FS.h>
 #include <SPIFFS.h>
@@ -911,6 +914,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             char fileLine[255];
             SD_client = (espresponse)?espresponse->client(): CLIENT_ALL;
             if (!readFileLine(fileLine)) {
+					//No need notification here it is just a macro
                     closeFile();
                     espresponse->println ("");
                     return false;
@@ -1134,6 +1138,62 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
                 }
             }
             espresponse->print ("]}");
+#ifdef ENABLE_NOTIFICATIONS
+			espresponse->print (",");
+			//Notification type
+            espresponse->print ("{\"F\":\"network\",\"P\":\"");
+            espresponse->print (NOTIFICATION_TYPE);
+            espresponse->print ("\",\"T\":\"B\",\"V\":\"");
+            vi = prefs.getChar(NOTIFICATION_TYPE, DEFAULT_NOTIFICATION_TYPE);
+            espresponse->print (String(vi).c_str());
+            espresponse->print ("\",\"H\":\"Notification type\",\"O\":[{\"None\":\"0\"}");
+            espresponse->print (",{\"Line\":\"3\"},{\"Pushover\":\"1\"}");
+            espresponse->print (",{\"Email\":\"2\"}");
+            espresponse->print ("]}");
+            espresponse->print (",");
+            if(espresponse->client() != CLIENT_WEBUI)espresponse->println("");
+            
+            //Notification token 1
+            espresponse->print ("{\"F\":\"network\",\"P\":\"");
+            espresponse->print (NOTIFICATION_T1);
+            espresponse->print ("\",\"T\":\"S\",\"V\":\"");
+            defV = DEFAULT_TOKEN;
+            espresponse->print (prefs.getString(NOTIFICATION_T1, defV).c_str());
+            espresponse->print ("\",\"S\":\"");
+            espresponse->print (String(MAX_NOTIFICATION_TOKEN_LENGTH).c_str());
+            espresponse->print ("\",\"H\":\"Notification Token 1\",\"M\":\"");
+            espresponse->print (String(MIN_NOTIFICATION_TOKEN_LENGTH).c_str());
+            espresponse->print ("\"}");
+            espresponse->print (",");
+            if(espresponse->client() != CLIENT_WEBUI)espresponse->println("");
+            
+            //Notification token 2
+            espresponse->print ("{\"F\":\"network\",\"P\":\"");
+            espresponse->print (NOTIFICATION_T2);
+            espresponse->print ("\",\"T\":\"S\",\"V\":\"");
+            defV = DEFAULT_TOKEN;
+            espresponse->print (prefs.getString(NOTIFICATION_T2, defV).c_str());
+            espresponse->print ("\",\"S\":\"");
+            espresponse->print (String(MAX_NOTIFICATION_TOKEN_LENGTH).c_str());
+            espresponse->print ("\",\"H\":\"Notification Token 2\",\"M\":\"");
+            espresponse->print (String(MIN_NOTIFICATION_TOKEN_LENGTH).c_str());
+            espresponse->print ("\"}");
+            espresponse->print (",");
+            if(espresponse->client() != CLIENT_WEBUI)espresponse->println("");
+            
+            //Notification settings
+            espresponse->print ("{\"F\":\"network\",\"P\":\"");
+            espresponse->print (NOTIFICATION_TS);
+            espresponse->print ("\",\"T\":\"S\",\"V\":\"");
+            defV = DEFAULT_TOKEN;
+            espresponse->print (prefs.getString(NOTIFICATION_TS, defV).c_str());
+            espresponse->print ("\",\"S\":\"");
+            espresponse->print (String(MAX_NOTIFICATION_SETTING_LENGTH).c_str());
+            espresponse->print ("\",\"H\":\"Notification Settings\",\"M\":\"");
+            espresponse->print (String(MIN_NOTIFICATION_TOKEN_LENGTH).c_str());
+            espresponse->print ("\"}");
+            if(espresponse->client() != CLIENT_WEBUI)espresponse->println("");
+#endif //ENABLE_NOTIFICATIONS
 #endif
             espresponse->print ("]}");
             if(espresponse->client() != CLIENT_WEBUI)espresponse->println("");
@@ -1556,6 +1616,16 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             }
             espresponse->println("");
 #endif
+#ifdef ENABLE_NOTIFICATIONS
+			espresponse->print ("Notifications: ");
+			espresponse->print (notificationsservice.started()?"Enabled":"Disabled");
+			if (notificationsservice.started()) {
+				espresponse->print ("(");
+				espresponse->print (notificationsservice.getTypeString());
+				espresponse->print (")");
+			}
+			espresponse->println("");
+#endif
             //TODO to complete
             espresponse->print ("FW version: ");
             espresponse->print (GRBL_VERSION);
@@ -1625,6 +1695,138 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
         break;
     }
 #endif
+#ifdef ENABLE_NOTIFICATIONS
+	case 600: { //Send message
+       
+#ifdef ENABLE_AUTHENTICATION
+            if (auth_type == LEVEL_GUEST) {
+                if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                return false;
+            }
+#endif 
+			parameter = get_param (cmd_params, "", true);
+			if (parameter.length() == 0) {
+				if (espresponse)espresponse->println ("Invalid message!");
+				return false;
+			}
+			if (notificationsservice.sendMSG("GRBL Notification", parameter.c_str())) {
+				if (espresponse)espresponse->println ("ok");
+			} else {
+				if (espresponse)espresponse->println ("Cannot send message!");
+				return false;
+			}
+		}
+		break;
+	//Set/Get Notification settings
+	//[ESP610]type=<NONE/PUSHOVER/EMAIL/LINE> T1=<token1> T2=<token2> TS=<Settings> [pwd=<admin password>]
+	//Get will give type and settings only not the protected T1/T2
+	case 610: { //Send message
+       
+#ifdef ENABLE_AUTHENTICATION
+            if (auth_type == LEVEL_GUEST) {
+                if (espresponse)espresponse->println ("Error: Wrong authentication!");
+                return false;
+            }
+#endif 
+			parameter = get_param (cmd_params, "", true);
+            if ((parameter.length() == 0) && !espresponse) return false;
+             //get
+            if (parameter.length() == 0) {
+                Preferences prefs;
+                prefs.begin(NAMESPACE, true);
+                uint8_t vi = prefs.getChar(NOTIFICATION_TYPE, DEFAULT_NOTIFICATION_TYPE);
+                String defV = DEFAULT_TOKEN;
+                parameter = (vi == ESP_PUSHOVER_NOTIFICATION)?"PUSHOVER":(vi == ESP_LINE_NOTIFICATION)?"LINE":(vi == ESP_EMAIL_NOTIFICATION)?"EMAIL":"NONE";
+                parameter+=" ";
+                parameter+=prefs.getString(NOTIFICATION_TS, defV);
+                espresponse->println(parameter.c_str());
+                prefs.end();
+            } else { //set
+#ifdef ENABLE_AUTHENTICATION
+				if (auth_type != LEVEL_ADMIN) {
+					 if (espresponse)espresponse->println ("Error: Wrong authentication!");
+					 return false;
+				} 
+#endif	
+				response = false;
+				parameter = get_param (cmd_params, "type=", false);
+				if (parameter.length() !=0) {
+					uint8_t bbuf = (parameter == "NONE")?0:(parameter == "PUSHOVER")?ESP_PUSHOVER_NOTIFICATION:(parameter == "LINE")?ESP_LINE_NOTIFICATION:(parameter == "EMAIL")?ESP_EMAIL_NOTIFICATION:255;
+					if (bbuf != 255){
+						Preferences prefs;
+						prefs.begin(NAMESPACE, false);
+						if (prefs.putChar(NOTIFICATION_TYPE, bbuf) == 0){
+							if(espresponse)espresponse->println ("Error: Set failed!");
+							response = false;
+							} else {
+								response = true;
+							}
+						prefs.end();
+					} else{
+						 if(espresponse)espresponse->println ("Error: wrong type!");
+						 response = false;
+					}
+				}
+				
+				parameter = get_param (cmd_params, "T1=", false);
+				if (parameter.length() !=0) {
+					if (parameter.length() <=MAX_NOTIFICATION_TOKEN_LENGTH ){
+						Preferences prefs;
+						prefs.begin(NAMESPACE, false);
+						if (prefs.putString(NOTIFICATION_T1, parameter) == 0){
+							if(espresponse)espresponse->println ("Error: Set failed!");
+							response = false;
+							} else {
+								response = true;
+							}
+						prefs.end();
+					} else{
+						 if(espresponse)espresponse->println ("Error: token 1!");
+						 response = false;
+					}
+				}
+				parameter = get_param (cmd_params, "T2=", false);
+				if (parameter.length() !=0) {
+					if (parameter.length() <=MAX_NOTIFICATION_TOKEN_LENGTH ){
+						Preferences prefs;
+						prefs.begin(NAMESPACE, false);
+						if (prefs.putString(NOTIFICATION_T2, parameter) == 0){
+							if(espresponse)espresponse->println ("Error: Set failed!");
+							response = false;
+							} else {
+								response = true;
+							}
+						prefs.end();
+					} else{
+						 if(espresponse)espresponse->println ("Error: token 2!");
+						 response = false;
+					}
+				}
+				parameter = get_param (cmd_params, "TS=", false);
+				if (parameter.length() !=0) {
+					if (parameter.length() <=MAX_NOTIFICATION_SETTING_LENGTH ){
+						Preferences prefs;
+						prefs.begin(NAMESPACE, false);
+						if (prefs.putString(NOTIFICATION_TS, parameter) == 0){
+							if(espresponse)espresponse->println ("Error: Set failed!");
+							response = false;
+							} else {
+								response = true;
+							}
+						prefs.end();
+					} else{
+						 if(espresponse)espresponse->println ("Error: settings!");
+						 response = false;
+					}
+				}
+			}
+		   //update settings
+		   notificationsservice.begin();
+           if(espresponse && response)espresponse->println ("ok"); 
+			
+		}
+		break;
+#endif //ENABLE_NOTIFICATIONS
     //[ESP700]<filename> pwd=<user/admin password>
     case 700: { //read local file
        

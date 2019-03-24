@@ -64,6 +64,7 @@ Some features should not be changed. See notes below.
 #define ENABLE_TELNET_WELCOME_MSG //display welcome string when connect to telnet
 #define ENABLE_MDNS //enable mDNS discovery
 #define ENABLE_SSDP //enable UPNP discovery
+#define ENABLE_NOTIFICATIONS //enable notifications
 
 #define ENABLE_SERIAL2SOCKET_IN
 #define ENABLE_SERIAL2SOCKET_OUT
@@ -96,6 +97,7 @@ Some features should not be changed. See notes below.
 #ifdef ENABLE_WIFI
 #define DEFAULT_RADIO_MODE ESP_WIFI_AP
 #else
+    #undef ENABLE_NOTIFICATIONS
     #ifdef ENABLE_BLUETOOTH
     #define DEFAULT_RADIO_MODE ESP_BT
     #else

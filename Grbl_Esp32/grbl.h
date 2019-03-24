@@ -72,6 +72,9 @@
     #ifdef ENABLE_TELNET
     #include "telnet_server.h"
     #endif
+    #ifdef ENABLE_NOTIFICATIONS
+    #include "notifications_service.h"
+    #endif
 #endif
 
 #include "servo_pen.h"

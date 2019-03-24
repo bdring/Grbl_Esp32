@@ -43,6 +43,9 @@
 #ifdef ENABLE_TELNET
 #include "telnet_server.h"
 #endif
+#ifdef ENABLE_NOTIFICATIONS
+#include "notifications_service.h"
+#endif
 #include "commands.h"
 
 WiFiServices wifi_services;
@@ -116,9 +119,15 @@ bool WiFiServices::begin(){
 #ifdef ENABLE_TELNET
     telnet_server.begin();
 #endif
+#ifdef ENABLE_NOTIFICATIONS
+	notificationsservice.begin();
+#endif
     return no_error;
 }
 void WiFiServices::end(){
+#ifdef ENABLE_NOTIFICATIONS
+	notificationsservice.end();
+#endif
 #ifdef ENABLE_TELNET
     telnet_server.end();
 #endif
