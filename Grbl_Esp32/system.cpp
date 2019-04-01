@@ -53,6 +53,7 @@ void IRAM_ATTR isr_control_inputs()
   if (pin) {
     if (bit_istrue(pin,CONTROL_PIN_INDEX_RESET)) 
 		{
+			grbl_send(CLIENT_SERIAL, "[MSG:Reset via control pin]\r\n"); // help debug reason for reset
       mc_reset();
     } 
 		else if (bit_istrue(pin,CONTROL_PIN_INDEX_CYCLE_START)) 
