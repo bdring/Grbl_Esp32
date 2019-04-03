@@ -28,6 +28,11 @@
 #ifndef grbl_limits_h
 #define grbl_limits_h
 
+#define SQUARING_MODE_DUAL	0  // both motors run
+#define SQUARING_MODE_A			1  // A motor runs
+#define SQUARING_MODE_B			2  // B motor runs
+
+
 
 // Initialize the limits module
 void limits_init();
@@ -45,5 +50,7 @@ void limits_go_home(uint8_t cycle_mask);
 void limits_soft_check(float *target);
 
 void isr_limit_switches();
+
+bool axis_is_squared(uint8_t axis_mask);
 
 #endif
