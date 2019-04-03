@@ -27,29 +27,30 @@
 
 File myFile;
 bool SD_ready_next = false; // Grbl has processed a line and is waiting for another
+uint8_t SD_client = CLIENT_SERIAL;
 uint32_t sd_current_line_number; // stores the most recent line number read from the SD
 
 // attempt to mount the SD card
-bool sd_mount()
+/*bool sd_mount()
 {
   if(!SD.begin()) {
     report_status_message(STATUS_SD_FAILED_MOUNT, CLIENT_SERIAL);
     return false;
   }
   return true;
-}
+}*/
 
-void listDir(fs::FS &fs, const char * dirname, uint8_t levels)
+void listDir(fs::FS &fs, const char * dirname, uint8_t levels, uint8_t client)
 {
-  char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
+  //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
 
   File root = fs.open(dirname);
   if(!root) {
-    report_status_message(STATUS_SD_FAILED_OPEN_DIR, CLIENT_SERIAL);
+    report_status_message(STATUS_SD_FAILED_OPEN_DIR, client);
     return;
   }
   if(!root.isDirectory()) {
-    report_status_message(STATUS_SD_DIR_NOT_FOUND, CLIENT_SERIAL);
+    report_status_message(STATUS_SD_DIR_NOT_FOUND, client);
     return;
   }
 
@@ -57,7 +58,7 @@ void listDir(fs::FS &fs, const char * dirname, uint8_t levels)
   while(file) {
     if(file.isDirectory()) {
       if(levels) {
-        listDir(fs, file.name(), levels -1);
+        listDir(fs, file.name(), levels -1, client);
       }
     } else {      
       grbl_sendf(CLIENT_ALL, "[FILE:%s|SIZE:%d]\r\n", file.name(), file.size());
@@ -71,7 +72,7 @@ boolean openFile(fs::FS &fs, const char * path)
   myFile = fs.open(path);
 
   if(!myFile) {
-    report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
+    //report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
     return false;
   }
 
@@ -108,7 +109,7 @@ boolean readFileLine(char *line)
   uint8_t line_flags = 0;
 
   if (!myFile) {
-    report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
+    report_status_message(STATUS_SD_FAILED_READ, SD_client);
     return false;
   }
 
@@ -144,7 +145,7 @@ boolean readFileLine(char *line)
 
     if (index == 255) { // name is too long so return false
       line[index] = '\0';
-      report_status_message(STATUS_OVERFLOW, CLIENT_SERIAL);
+      report_status_message(STATUS_OVERFLOW, SD_client);
       return false;
     }
   }
@@ -193,18 +194,13 @@ uint8_t get_sd_state(bool refresh)
   }
   //SD is idle or not detected, let see if still the case
 
-  if (sd_state == SDCARD_IDLE) {
     SD.end();
+    sd_state = SDCARD_NOT_PRESENT;
     //using default value for speed ? should be parameter
     //refresh content if card was removed
-    if (!SD.begin()) {
-      sd_state = SDCARD_NOT_PRESENT;
-    } else {
-      if ( !(SD.cardSize() > 0 )) {
-        sd_state = SDCARD_NOT_PRESENT;
-      }
+    if (SD.begin()) {
+      if ( SD.cardSize() > 0 )sd_state = SDCARD_IDLE;
     }
-  }
   return sd_state;
 }
 
@@ -217,7 +213,7 @@ uint8_t set_sd_state(uint8_t flag)
 void sd_get_current_filename(char* name)
 {
 
-  if (myFile != NULL) {
+  if (myFile) {
     strcpy(name, myFile.name());
   } else {
     name[0] = 0;

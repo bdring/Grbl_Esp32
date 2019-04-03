@@ -57,7 +57,8 @@
 #define isequal_position_vector(a,b) !(memcmp(a, b, sizeof(float)*N_AXIS))
 
 // Bit field and masking macros
-#define bit(n) (1 << n)
+//Arduino.h:104:0: note: this is the location of the previous definition
+//#define bit(n) (1 << n)
 #define bit_true(x,mask) (x) |= (mask)
 #define bit_false(x,mask) (x) &= ~(mask)
 #define bit_istrue(x,mask) ((x & mask) != 0)

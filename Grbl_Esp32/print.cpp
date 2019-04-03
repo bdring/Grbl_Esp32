@@ -137,14 +137,6 @@ void printFloat_CoordValue(float n) {
   }
 }
 
-void printFloat_RateValue(float n) {
-  if (bit_istrue(settings.flags,BITFLAG_REPORT_INCHES)) {
-    printFloat(n*INCH_PER_MM,N_DECIMAL_RATEVALUE_INCH);
-  } else {
-    printFloat(n,N_DECIMAL_RATEVALUE_MM);
-  }
-}
-
 // Debug tool to print free memory in bytes at the called point.
 // NOTE: Keep commented unless using. Part of this function always gets compiled in.
 // void printFreeMemory()
