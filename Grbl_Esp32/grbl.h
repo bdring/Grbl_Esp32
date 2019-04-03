@@ -57,7 +57,7 @@
 #include "jog.h"
 
 #ifdef ENABLE_BLUETOOTH
-	#include "grbl_bluetooth.h"
+	#include "BTconfig.h"
 #endif
 
 #ifdef ENABLE_SD_CARD	
@@ -71,5 +71,8 @@
     #endif
     #ifdef ENABLE_TELNET
     #include "telnet_server.h"
+    #endif
+    #ifdef ENABLE_NOTIFICATIONS
+    #include "notifications_service.h"
     #endif
 #endif

@@ -106,8 +106,12 @@
 #define CLIENT_COUNT    4 // total number of client types regardless if they are used
 
 // functions to send data to the user.
-void grbl_send(uint8_t client, char *text);
+void grbl_send(uint8_t client, const char *text);
 void grbl_sendf(uint8_t client, const char *format, ...);
+
+//function to notify
+void grbl_notify(const char *title, const char *msg);
+void grbl_notifyf(const char *title, const char *format, ...);
 
 // Prints system status messages.
 void report_status_message(uint8_t status_code, uint8_t client);

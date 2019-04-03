@@ -48,9 +48,10 @@
 
 #include "grbl.h"
 
+#define DEFAULTBUFFERSIZE 64
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
-void grbl_send(uint8_t client, char *text)
+void grbl_send(uint8_t client, const char *text)
 {	
 #ifdef ENABLE_BLUETOOTH
     if (SerialBT.hasClient() && ( client == CLIENT_BT || client == CLIENT_ALL ) )
@@ -95,6 +96,36 @@ void grbl_sendf(uint8_t client, const char *format, ...)
     }
     len = vsnprintf(temp, len+1, format, arg);
     grbl_send(client, temp);
+    va_end(arg);
+    if(len > 64){
+        delete[] temp;
+    }
+}
+
+//function to notify
+void grbl_notify(const char *title, const char *msg){
+#ifdef ENABLE_NOTIFICATIONS
+	notificationsservice.sendMSG(title, msg);
+#endif
+}
+
+void grbl_notifyf(const char *title, const char *format, ...){
+char loc_buf[64];
+    char * temp = loc_buf;
+    va_list arg;
+    va_list copy;
+    va_start(arg, format);
+    va_copy(copy, arg);
+    size_t len = vsnprintf(NULL, 0, format, arg);
+    va_end(copy);
+    if(len >= sizeof(loc_buf)){
+        temp = new char[len+1];
+        if(temp == NULL) {
+            return;
+        }
+    }
+    len = vsnprintf(temp, len+1, format, arg);
+    grbl_notify(title, temp);
     va_end(arg);
     if(len > 64){
         delete[] temp;
@@ -158,8 +189,9 @@ void report_status_message(uint8_t status_code, uint8_t client)
 			#ifdef ENABLE_SD_CARD
 			// do we need to stop a running SD job?
 			if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+				grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sd_get_current_line_number());
 				grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
-			  closeFile();
+				closeFile();
 				return;
 			}
 			#endif
@@ -206,8 +238,11 @@ void report_feedback_message(uint8_t message_code)  // OK to send to all clients
       grbl_send(CLIENT_ALL, "[MSG:Restoring spindle]\r\n"); break;
     case MESSAGE_SLEEP_MODE:
       grbl_send(CLIENT_ALL, "[MSG:Sleeping]\r\n"); break;
+#ifdef ENABLE_SD_CARD
 		case MESSAGE_SD_FILE_QUIT:
+			grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
 			grbl_sendf(CLIENT_ALL, "[MSG:Reset during SD file at line: %d]\r\n", sd_get_current_line_number()); break;
+#endif
   }  		
 }
 
@@ -529,6 +564,9 @@ void report_build_info(char *line, uint8_t client)
   #if defined (ENABLE_WIFI)
   grbl_send(client, (char *)wifi_config.info()); 
   #endif
+   #if defined (ENABLE_BLUETOOTH)
+  grbl_send(client, (char *)bt_config.info()); 
+  #endif
 }
 
 
@@ -617,12 +655,27 @@ void report_realtime_status(uint8_t client)
 	strcat(status, temp);
 
   // Returns planner and serial read buffer states.
-  #ifdef REPORT_FIELD_BUFFER_STATE
-    if (bit_istrue(settings.status_report_mask,BITFLAG_RT_STATUS_BUFFER_STATE)) {      
-			sprintf(temp, "|Bf:%d,%d", plan_get_block_buffer_available(), serial_get_rx_buffer_available(CLIENT_SERIAL));
+#ifdef REPORT_FIELD_BUFFER_STATE
+    if (bit_istrue(settings.status_report_mask,BITFLAG_RT_STATUS_BUFFER_STATE)) {
+        int bufsize = DEFAULTBUFFERSIZE;
+#if defined (ENABLE_WIFI) && defined(ENABLE_TELNET)
+        if (client == CLIENT_TELNET){
+            bufsize = telnet_server.get_rx_buffer_available();
+        }
+#endif //ENABLE_WIFI && ENABLE_TELNET
+#if defined(ENABLE_BLUETOOTH)
+        if (client == CLIENT_BT){
+            //TODO FIXME
+            bufsize = 512 - SerialBT.available();
+        }
+#endif //ENABLE_BLUETOOTH
+        if (client == CLIENT_SERIAL){
+            bufsize = serial_get_rx_buffer_available(CLIENT_SERIAL);
+        }
+			sprintf(temp, "|Bf:%d,%d", plan_get_block_buffer_available(), bufsize);
 			strcat(status, temp);
     }
-  #endif
+#endif
 
   #ifdef USE_LINE_NUMBERS
     #ifdef REPORT_FIELD_LINE_NUMBERS
@@ -641,11 +694,11 @@ void report_realtime_status(uint8_t client)
   // Report realtime feed speed
   #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
     #ifdef VARIABLE_SPINDLE      
-			sprintf(temp, "|FS:%.0f,%.0f", st_get_realtime_rate(), sys.spindle_speed);
+			sprintf(temp, "|FS:%4.3f,%4.3f", st_get_realtime_rate(), sys.spindle_speed);
 			strcat(status, temp);
     #else
       
-			sprintf(temp, "|F:%.0f", st_get_realtime_rate());
+			sprintf(temp, "|F:%4.3f", st_get_realtime_rate());
 			strcat(status, temp);
     #endif      
   #endif
