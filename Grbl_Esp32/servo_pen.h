@@ -32,7 +32,7 @@
 // the pulse lengths for the min and max travel .. (Note: Servo brands vary)
 // If the servo goes backward from what you want, flip the values
 // Note: this is not necessarily the servos limits (just the travel you want)
-#define SERVO_MIN_PULSE_SEC 0.0012 // min pulse in seconds
+#define SERVO_MIN_PULSE_SEC 0.001 // min pulse in seconds
 #define SERVO_MAX_PULSE_SEC 0.002 // max pulse in seconds
 
 // Pulse repeat rate (PWM Frequency)
@@ -54,7 +54,7 @@
 #define SERVO_PULSE_RES_COUNT 65535 // see above  TODO...do the math here 2^SERVO_PULSE_RES_BITS
 
 // A way to reduce the turn on current
-#define SERVO_TURNON_DELAY 25  // Wait this many task counts to turn on servo
+#define SERVO_TURNON_DELAY SERVO_TIMER_INT_FREQ*3  // Wait this many task counts to turn on servo
 
 #define SERVO_TIME_PER_BIT  ((1.0 / (float)SERVO_PULSE_FREQ) / ((float)SERVO_PULSE_RES_COUNT) ) // seconds
 

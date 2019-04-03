@@ -24,11 +24,14 @@
 
 #include "grbl.h"
 #include "config.h"
+#include "commands.h"
+#include "espresponse.h"
 
 // Define line flags. Includes comment type tracking and line overflow detection.
 #define LINE_FLAG_OVERFLOW bit(0)
 #define LINE_FLAG_COMMENT_PARENTHESES bit(1)
 #define LINE_FLAG_COMMENT_SEMICOLON bit(2)
+#define LINE_FLAG_BRACKET bit(3) // square bracket for WebUI commands
 
 
 static char line[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
@@ -87,11 +90,14 @@ void protocol_main_loop()
 				char fileLine[255];
 				if (readFileLine(fileLine)) {
 					SD_ready_next = false;
-					report_status_message(gc_execute_line(fileLine, CLIENT_SERIAL), CLIENT_SERIAL);
+					report_status_message(gc_execute_line(fileLine, SD_client), SD_client);
 				}
 				else {
+					char temp[50];
+					sd_get_current_filename(temp);
+					grbl_notifyf("SD print done", "%s print is successful", temp);
 					closeFile(); // close file and clear SD ready/running flags
-					// TODO some type of alert
+					
 				}
 			}
 		#endif
@@ -124,6 +130,13 @@ void protocol_main_loop()
 					} else if (line[0] == '$') {
 						// Grbl '$' system command
 						report_status_message(system_execute_line(line, client), client);
+					} else if (line[0] == '[') {
+                        int cmd = 0;
+                        String cmd_params;
+                        if (COMMANDS::check_command (line, &cmd, cmd_params)) {
+                            ESPResponseStream espresponse(client);
+                            COMMANDS::execute_internal_command  (cmd, cmd_params, LEVEL_GUEST, &espresponse);
+                        } else grbl_sendf(client, "[MSG: Unknow Command...%s]\r\n", line);
 					} else if (sys.state & (STATE_ALARM | STATE_JOG)) {
 						// Everything else is gcode. Block if in alarm or jog mode.
 						report_status_message(STATUS_SYSTEM_GC_LOCK, client);
@@ -139,6 +152,9 @@ void protocol_main_loop()
 				} else {
 
 					if (line_flags) {
+						if (line_flags & LINE_FLAG_BRACKET) {  // in bracket mode all characters are accepted
+							line[char_counter++] = c;
+						}
 						// Throw away all (except EOL) comment characters and overflow characters.
 						if (c == ')') {
 							// End of '()' comment. Resume line allowed.
@@ -163,6 +179,12 @@ void protocol_main_loop()
 						} else if (c == ';') {
 							// NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
 							line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
+						} else if (c == '[') {
+							// For ESP3D bracket commands like [ESP100]<SSID>pwd=<admin password>
+							// prevents spaces being striped and converting to uppercase
+							line_flags |= LINE_FLAG_BRACKET;
+							line[char_counter++] = c; // capture this character
+							
 						// TODO: Install '%' feature
 						// } else if (c == '%') {
 							// Program start-end percent sign NOT SUPPORTED.

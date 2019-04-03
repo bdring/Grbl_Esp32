@@ -106,15 +106,17 @@ void servoSyncTask(void *pvParameters)
 
 		vTaskDelayUntil(&xLastWakeTime, xServoFrequency);
 
-		if (!servo_pen_enable) {
-			servo_delay_counter++;
-			servo_pen_enable = (servo_delay_counter > SERVO_TURNON_DELAY);
-		} else {			
-				mpos_z = system_convert_axis_steps_to_mpos(sys_position, Z_AXIS);  // get the machine Z in mm
-				z_offset = gc_state.coord_system[Z_AXIS]+gc_state.coord_offset[Z_AXIS]; // get the current z work offset
-				wpos_z = mpos_z - z_offset; // determine the current work Z			
+		if (sys.state != STATE_ALARM) {	// don't move until alarm is cleared...typically homing
+			if (!servo_pen_enable ) {
+				servo_delay_counter++;
+				servo_pen_enable = (servo_delay_counter > SERVO_TURNON_DELAY);
+			} else {			
+					mpos_z = system_convert_axis_steps_to_mpos(sys_position, Z_AXIS);  // get the machine Z in mm
+					z_offset = gc_state.coord_system[Z_AXIS]+gc_state.coord_offset[Z_AXIS]; // get the current z work offset
+					wpos_z = mpos_z - z_offset; // determine the current work Z			
 
-				calc_pen_servo(wpos_z); // calculate kinematics and move the servos
+					calc_pen_servo(wpos_z); // calculate kinematics and move the servos
+			}
 		}
 	}
 }
@@ -130,13 +132,29 @@ void calc_pen_servo(float penZ)
 	}
 
 	if (validate_servo_settings(false)) { // if calibration settings are OK then apply them
-		// Apply a calibration to the minimum position
-		servo_pen_pulse_min = SERVO_MIN_PULSE * (settings.steps_per_mm[Z_AXIS] / 100.0);
-		// Apply a calibration to the maximum position
-		servo_pen_pulse_max = SERVO_MAX_PULSE * (settings.max_travel[Z_AXIS] / -100.0);
+		if (bit_istrue(settings.dir_invert_mask,bit(Z_AXIS))) { // this allows the user to change the direction via settings
+			// Apply a calibration to the minimum position
+			servo_pen_pulse_max = SERVO_MIN_PULSE * (settings.steps_per_mm[Z_AXIS] / 100.0);
+			// Apply a calibration to the maximum position
+			servo_pen_pulse_min = SERVO_MAX_PULSE * (settings.max_travel[Z_AXIS] / -100.0);
+		}
+		else {
+			// Apply a calibration to the minimum position
+			servo_pen_pulse_min = SERVO_MIN_PULSE * (settings.steps_per_mm[Z_AXIS] / 100.0);
+			// Apply a calibration to the maximum position
+			servo_pen_pulse_max = SERVO_MAX_PULSE * (settings.max_travel[Z_AXIS] / -100.0);
+		}
+		
 	} else { // use the defaults
-		servo_pen_pulse_min = SERVO_MIN_PULSE;
-		servo_pen_pulse_max = SERVO_MAX_PULSE;
+		if (bit_istrue(settings.dir_invert_mask,bit(Z_AXIS))) { // this allows the user to change the direction via settings
+			servo_pen_pulse_min = SERVO_MAX_PULSE;
+			servo_pen_pulse_max = SERVO_MIN_PULSE;
+		}
+		else {
+			servo_pen_pulse_min = SERVO_MIN_PULSE;
+			servo_pen_pulse_max = SERVO_MAX_PULSE;
+		}
+		
 	}
 
 	// determine the pulse length

@@ -89,10 +89,7 @@ void calc_solenoid(float penZ)
 	uint32_t solenoid_pen_pulse_len;
 	
 	if (!solenoid_pen_enable) // only proceed if startup delay as expired 
-		return;
-		
-	
-		
+		return;		
 		
 	if (penZ < 0 && (sys.state != STATE_ALARM)) {  // alarm also makes it go up
 		solenoide_hold_count = 0; // reset this count
