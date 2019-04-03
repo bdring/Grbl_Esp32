@@ -22,6 +22,8 @@
 	This is designed to use a solenoid to lift a pen.
 	When the current Z location is below zero the pen is down
 	If the Z goes to zero or above the pen goes up.
+	There are two power levels, the initial pull up strength, then the hold strength
+	
 
 	Note: There is a still a virtual Z axis that has a finite speed.
 	If your gcode is commanding long travels in Z, there will be delays
@@ -37,8 +39,8 @@
 
 #define SOLENOID_TURNON_DELAY (SOLENOID_TIMER_INT_FREQ/2)
 #define SOLENOID_PULSE_LEN_UP 255
-#define SOLENOID_PULSE_LEN_HOLD 80 // a lower value to prevent overheating
-#define SOLENOID_HOLD_DELAY (SOLENOID_TIMER_INT_FREQ/2) // in task counts
+#define SOLENOID_HOLD_DELAY (SOLENOID_TIMER_INT_FREQ/2) // in task counts...after this delay power will change to hold level
+#define SOLENOID_PULSE_LEN_HOLD 80 // solenoid hold level ... typically a lower value to prevent overheating
 
 #define SOLENOID_TIMER_INT_FREQ 50
 

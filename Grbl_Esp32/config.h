@@ -5,7 +5,7 @@
   Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 	
-	2018 -	Bart Dring This file was modified for use on the ESP32
+	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 
   Grbl is free software: you can redistribute it and/or modify
@@ -46,12 +46,13 @@ Some features should not be changed. See notes below.
 // one configuration file by placing their specific defaults and pin map at the bottom of this file.
 // If doing so, simply comment out these two defines and see instructions below.
 #define DEFAULTS_GENERIC
-#define CPU_MAP_ESP32
+#define CPU_MAP_ESP32 // these are defined in cpu_map.h
+#define VERBOSE_HELP // adds addition help info, but could confuse some senders
 
 // Serial baud rate
 #define BAUD_RATE 115200
 
-//#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
+#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
 
@@ -60,14 +61,49 @@ Some features should not be changed. See notes below.
 #define ENABLE_HTTP //enable HTTP and all related services
 #define ENABLE_OTA  //enable OTA
 #define ENABLE_TELNET //enable telnet
+#define ENABLE_TELNET_WELCOME_MSG //display welcome string when connect to telnet
 #define ENABLE_MDNS //enable mDNS discovery
 #define ENABLE_SSDP //enable UPNP discovery
+#define ENABLE_NOTIFICATIONS //enable notifications
 
 #define ENABLE_SERIAL2SOCKET_IN
 #define ENABLE_SERIAL2SOCKET_OUT
 
 #define ENABLE_CAPTIVE_PORTAL
-#define ENABLE_AUTHENTICATION
+//#define ENABLE_AUTHENTICATION
+
+#define NAMESPACE "GRBL"
+#define ESP_RADIO_MODE "RADIO_MODE"
+
+#ifdef ENABLE_AUTHENTICATION
+#define DEFAULT_ADMIN_PWD "admin"
+#define DEFAULT_USER_PWD  "user";
+#define DEFAULT_ADMIN_LOGIN  "admin"
+#define DEFAULT_USER_LOGIN "user"
+#define ADMIN_PWD_ENTRY "ADMIN_PWD"
+#define USER_PWD_ENTRY "USER_PWD"
+#define AUTH_ENTRY_NB 20
+#define MAX_LOCAL_PASSWORD_LENGTH   16
+#define MIN_LOCAL_PASSWORD_LENGTH   1
+#endif
+
+//Radio Mode
+#define ESP_RADIO_OFF 0
+#define ESP_WIFI_STA 1
+#define ESP_WIFI_AP  2
+#define ESP_BT       3
+
+ //Default mode
+#ifdef ENABLE_WIFI
+#define DEFAULT_RADIO_MODE ESP_WIFI_AP
+#else
+    #undef ENABLE_NOTIFICATIONS
+    #ifdef ENABLE_BLUETOOTH
+    #define DEFAULT_RADIO_MODE ESP_BT
+    #else
+    #define DEFAULT_RADIO_MODE ESP_RADIO_OFF
+    #endif
+#endif
 
 // Define realtime command special characters. These characters are 'picked-off' directly from the
 // serial read data stream and are not passed to the grbl line execution parser. Select characters
@@ -171,6 +207,7 @@ Some features should not be changed. See notes below.
 // values cannot be less than 0.001mm or 0.0001in, because machines can not be physically more
 // precise this. So, there is likely no need to change these, but you can if you need to here.
 // NOTE: Must be an integer value from 0 to ~4. More than 4 may exhibit round-off errors.
+// ESP32 Note: These are mostly hard coded, so these values will not change anything
 #define N_DECIMAL_COORDVALUE_INCH 4 // Coordinate or position value in inches
 #define N_DECIMAL_COORDVALUE_MM   3 // Coordinate or position value in mm
 #define N_DECIMAL_RATEVALUE_INCH  1 // Rate or velocity value in in/min
@@ -206,7 +243,7 @@ Some features should not be changed. See notes below.
 // immediately forces a feed hold and then safely de-energizes the machine. Resuming is blocked until
 // the safety door is re-engaged. When it is, Grbl will re-energize the machine and then resume on the
 // previous tool path, as if nothing happened.
-//#define ENABLE_SAFETY_DOOR_INPUT_PIN // ESP32 Leave this enabled for now .. code for undefined not ready
+#define ENABLE_SAFETY_DOOR_INPUT_PIN // ESP32 Leave this enabled for now .. code for undefined not ready
 
 // After the safety door switch has been toggled and restored, this setting sets the power-up delay
 // between restoring the spindle and coolant and resuming the cycle.
@@ -225,23 +262,24 @@ Some features should not be changed. See notes below.
 // Enable using a servo for the Z axis on a pen type machine.
 // You typically should not define a pin for the Z axis in cpu_map.h
 // You should configure your settings in servo_pen.h
-//#define USE_PEN_SERVO
+// #define USE_PEN_SERVO    // this method will be deprecated soon
+// #define USE_SERVO_AXES  // the new method
 // define your servo pin here or in cpu_map.h
 //#define SERVO_PEN_PIN 					GPIO_NUM_27
 
 // Enable using a solenoid for the Z axis on a pen type machine
-//#define USE_PEN_SOLENOID
+// #define USE_PEN_SOLENOID
 
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
-// NOTE: The top option will mask and invert all control pins. The bottom option is an example of
-// inverting only two control pins, the safety door and reset. See cpu_map.h for other bit definitions.
-//#define INVERT_CONTROL_PIN_MASK CONTROL_MASK // Default disabled. Uncomment to disable.
+// The mask order is Cycle Start | Feed Hold | Reset | Safety Door
+// For example B1101 will invert the function of the Reset pin.
+#define INVERT_CONTROL_PIN_MASK   B1111
 
 // This allows control pins to be ignored.
 // Since these are typically used on the pins that don't have pullups, they will float and cause
 // problems if not externally pulled up. Ignoring will always return not activated when read.
-//#define IGNORE_CONTROL_PINS
+#define IGNORE_CONTROL_PINS
 
 
 

@@ -28,6 +28,7 @@
 #include "grbl.h"
 
 
+
 // Homing axis search distance multiplier. Computed by this value times the cycle travel.
 #ifndef HOMING_AXIS_SEARCH_SCALAR
   #define HOMING_AXIS_SEARCH_SCALAR  1.1 // Must be > 1 to ensure limit switch will be engaged.
@@ -387,4 +388,33 @@ void limits_soft_check(float *target)
     protocol_execute_realtime(); // Execute to enter critical event loop and system abort
     return;
   }
+}
+
+// return true if the axis is defined as a squared axis
+// Squaring: is used on gantry type axes that have two motors
+// Each motor with touch off its own switch to square the axis
+bool axis_is_squared(uint8_t axis_mask)
+{
+	// Note: multi-axis homing returns false because it will not match any of the following
+	
+	if (axis_mask == (1<<X_AXIS)) {
+		#ifdef X_AXIS_SQUARING
+			return true;
+		#endif
+	}
+	
+	if (axis_mask == (1<<Y_AXIS)) {
+		#ifdef Y_AXIS_SQUARING
+			return true;
+		#endif
+	}
+	
+	if (axis_mask == (1<<Z_AXIS)) {
+		#ifdef Z_AXIS_SQUARING
+			return true;
+		#endif
+	}
+	
+	return false;
+	
 }

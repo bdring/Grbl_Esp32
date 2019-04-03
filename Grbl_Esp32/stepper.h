@@ -76,9 +76,9 @@
 extern uint64_t stepper_idle_counter;
 extern bool stepper_idle;
 
+extern uint8_t ganged_mode;
+
 // -- Task handles for use in the notifications
-
-
 void IRAM_ATTR onSteppertimer();
 void IRAM_ATTR onStepperOffTimer();
 void stepper_init();
@@ -112,6 +112,7 @@ float st_get_realtime_rate();
 
 // disable (or enable) steppers via STEPPERS_DISABLE_PIN
 void set_stepper_disable(uint8_t disable);
+bool get_stepper_disable(); // returns the state of the pin
 
 void set_step_pin_on(uint8_t axis, uint8_t isOn);
 void set_direction_pin_on(uint8_t axis, uint8_t isOn);

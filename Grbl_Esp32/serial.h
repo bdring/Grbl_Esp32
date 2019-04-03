@@ -37,7 +37,6 @@
 #define SERIAL_NO_DATA 0xff
 
 // a task to read for incoming data from serial port
-static TaskHandle_t serialCheckTaskHandle = 0;
 void serialCheckTask(void *pvParameters);
 
 void serialCheck();
