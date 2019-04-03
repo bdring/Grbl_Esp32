@@ -238,11 +238,9 @@ void report_feedback_message(uint8_t message_code)  // OK to send to all clients
       grbl_send(CLIENT_ALL, "[MSG:Restoring spindle]\r\n"); break;
     case MESSAGE_SLEEP_MODE:
       grbl_send(CLIENT_ALL, "[MSG:Sleeping]\r\n"); break;
-#ifdef ENABLE_SD_CARD
-		case MESSAGE_SD_FILE_QUIT:
+	case MESSAGE_SD_FILE_QUIT:
 			grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
 			grbl_sendf(CLIENT_ALL, "[MSG:Reset during SD file at line: %d]\r\n", sd_get_current_line_number()); break;
-#endif
   }  		
 }
 
