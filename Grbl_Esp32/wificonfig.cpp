@@ -374,7 +374,7 @@ bool WiFiConfig::StartAP(){
     WiFi.softAPConfig(ip, ip, mask);
     //Start AP
     if(WiFi.softAP(SSID.c_str(), (password.length() > 0)?password.c_str():NULL, channel)) {
-        grbl_sendf(CLIENT_ALL,"\n[MSG:AP Started %s]\r\n", WiFi.softAPIP().toString().c_str());
+        grbl_sendf(CLIENT_ALL,"\n[MSG:Local access point %s started, %s]\r\n", SSID.c_str(), WiFi.softAPIP().toString().c_str());
         return true;
     } else {
         grbl_send(CLIENT_ALL,"[MSG:Starting AP failed]\r\n");
@@ -416,19 +416,21 @@ void WiFiConfig::begin() {
     String defV = DEFAULT_HOSTNAME;
     _hostname = prefs.getString(HOSTNAME_ENTRY, defV);
     int8_t wifiMode = prefs.getChar(ESP_RADIO_MODE, DEFAULT_RADIO_MODE);
-    prefs.end();
+    
     if (wifiMode == ESP_WIFI_AP) {
        StartAP();
        //start services
        wifi_services.begin();
     } else if (wifiMode == ESP_WIFI_STA){
        if(!StartSTA()){
-           grbl_send(CLIENT_ALL,"[MSG:Cannot connect to AP]\r\n");
+		   defV = DEFAULT_STA_SSID;
+           grbl_sendf(CLIENT_ALL,"[MSG:Cannot connect to %s]\r\n", prefs.getString(STA_SSID_ENTRY, defV).c_str());
            StartAP();
        }
        //start services
        wifi_services.begin();
     }else WiFi.mode(WIFI_OFF);
+    prefs.end();
 }
 
 /**
