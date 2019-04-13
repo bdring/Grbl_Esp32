@@ -659,6 +659,13 @@
 #ifdef CPU_MAP_MPCNC
 	// This is the CPU Map for the Buildlog.net MPCNC controller
 	
+		// switch to the correct default settings
+		#ifdef DEFAULTS_GENERIC
+			#undef DEFAULTS_GENERIC
+		#endif
+		#define DEFAULTS_MPCNC
+		
+	
 		#define USE_GANGED_AXES // allow two motors on an axis 
 	  
 		#define X_STEP_PIN      GPIO_NUM_12
@@ -680,7 +687,7 @@
 		
 				
 		// Note: if you use PWM rather than relay, you could map GPIO_NUM_17 to mist or flood 
-		//#define USE_SPINDLE_RELAY
+		#define USE_SPINDLE_RELAY
 		
 		#ifdef USE_SPINDLE_RELAY		
 			#define SPINDLE_PWM_PIN    GPIO_NUM_17
