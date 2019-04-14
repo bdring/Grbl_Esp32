@@ -460,13 +460,13 @@ void WiFiConfig::reset_settings(){
 		error = true;
 	}
 	sval = DEFAULT_TOKEN;
-	if (prefs.putString(NOTIFICATION_T1, sval) == 0){
+	if (prefs.putString(NOTIFICATION_T1, sval) != sval.length()){
 		error = true;
 	}
-	if (prefs.putString(NOTIFICATION_T2, sval) == 0){
+	if (prefs.putString(NOTIFICATION_T2, sval) != sval.length()){
 		error = true;
 	}  
-	if (prefs.putString(NOTIFICATION_TS, sval) == 0){
+	if (prefs.putString(NOTIFICATION_TS, sval) != sval.length()){
 		error = true;
 	}  
     
