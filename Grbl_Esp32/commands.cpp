@@ -369,7 +369,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
                 }
                 Preferences prefs;
                 prefs.begin(NAMESPACE, false);
-                if (prefs.putInt(AP_IP_ENTRY, wifi_config.IP_int_from_string(parameter)) != parameter.length()){
+                if (prefs.putInt(AP_IP_ENTRY, wifi_config.IP_int_from_string(parameter)) == 0){
                     response = false;
                     if(espresponse)espresponse->println ("Error: Set failed!");
                     } else if(espresponse)espresponse->println ("ok");
