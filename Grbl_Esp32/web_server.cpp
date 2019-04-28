@@ -522,6 +522,10 @@ void Web_Server::handle_web_command ()
         uint8_t sindex = 0;
         scmd = get_Splited_Value(cmd,'\n', sindex);
         while ( scmd != "" ){
+        if ((scmd.length() == 2) && (scmd[0] == 0xC2)){
+              scmd[0]=scmd[1];
+              scmd.remove(1,1);
+            }  
         if (scmd.length() > 1)scmd += "\n";
         else if (!is_realtime_cmd(scmd[0]) )scmd += "\n";
         if (!Serial2Socket.push(scmd.c_str()))res = "Error";
