@@ -49,6 +49,7 @@ Some features should not be changed. See notes below.
 #define CPU_MAP_ESP32 // these are defined in cpu_map.h
 #define VERBOSE_HELP // adds addition help info, but could confuse some senders
 
+
 // Serial baud rate
 #define BAUD_RATE 115200
 
@@ -501,6 +502,15 @@ Some features should not be changed. See notes below.
 // time step. Also, keep in mind that the Arduino delay timer is not very accurate for long delays.
 #define DWELL_TIME_STEP 50 // Integer (1-255) (milliseconds)
 
+
+// For test use only. This uses the ESP32's RMT perifieral to generate step pulses
+// It allows the use of the STEP_PULSE_DELAY (see below) and it automatically ends the
+// pulse in one operation.
+// Dir Pin  ____|--------------------
+// Step Pin _______|--|____________
+// While this is experimental, it is intended to be the future default method after testing
+//#define USE_RMT_STEPS
+
 // Creates a delay between the direction pin setting and corresponding step pulse by creating
 // another interrupt (Timer2 compare) to manage it. The main Grbl interrupt (Timer1 compare)
 // sets the direction pins, and does not immediately set the stepper pins, as it would in
@@ -510,8 +520,8 @@ Some features should not be changed. See notes below.
 // NOTE: Uncomment to enable. The recommended delay must be > 3us, and, when added with the
 // user-supplied step pulse time, the total time must not exceed 127us. Reported successful
 // values for certain setups have ranged from 5 to 20us.
-// !!!!! ESP32 Not currently implemented
-// #define STEP_PULSE_DELAY 10 // Step pulse delay in microseconds. Default disabled.
+// must use #define USE_RMT_STEPS for this to work
+//#define STEP_PULSE_DELAY 10 // Step pulse delay in microseconds. Default disabled.
 
 // The number of linear motions in the planner buffer to be planned at any give time. The vast
 // majority of RAM that Grbl uses is based on this buffer size. Only increase if there is extra
@@ -551,14 +561,11 @@ Some features should not be changed. See notes below.
 // #define RX_BUFFER_SIZE 128 // (1-254) Uncomment to override defaults in serial.h
 // #define TX_BUFFER_SIZE 100 // (1-254)
 
-// A simple software debouncing feature for hard limit switches. When enabled, the interrupt 
-// monitoring the hard limit switch pins will enable the Arduino's watchdog timer to re-check 
-// the limit pin state after a delay of about 32msec. This can help with CNC machines with 
-// problematic false triggering of their hard limit switches, but it WILL NOT fix issues with 
-// electrical interference on the signal cables from external sources. It's recommended to first
-// use shielded signal cables with their shielding connected to ground (old USB/computer cables 
-// work well and are cheap to find) and wire in a low-pass circuit into each limit pin.
-// #define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
+// A simple software debouncing feature for hard limit switches. When enabled, the limit 
+// switch interrupt unblock a waiting task which will recheck the limit switch pins after 
+// a short delay. Default disabled
+//#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
+#define DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
 
 // Configures the position after a probing cycle during Grbl's check mode. Disabled sets
 // the position to the probe target, when enabled sets the position to the start position.
