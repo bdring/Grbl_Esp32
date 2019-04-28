@@ -82,6 +82,8 @@ extern uint8_t ganged_mode;
 void IRAM_ATTR onSteppertimer();
 void IRAM_ATTR onStepperOffTimer();
 void stepper_init();
+void initRMT(); 
+inline IRAM_ATTR static void stepperRMT_Outputs();
 
 // Enable steppers, but cycle does not start unless called by motion control or realtime command.
 void st_wake_up();

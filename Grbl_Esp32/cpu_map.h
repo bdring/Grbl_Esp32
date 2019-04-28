@@ -35,7 +35,9 @@
 	with AVR grbl
 	
 	*/
-	
+		
+
+
 #ifdef CPU_MAP_ESP32
 	// This is the CPU Map for the ESP32 CNC Controller R2	
 	
@@ -43,13 +45,17 @@
     // won't affect operation except that there will be no output
 		// form the pins. Grbl will virtually move the axis. This could 
 		// be handy if you are using a servo, etc. for another axis.
-		#define X_STEP_PIN      GPIO_NUM_12
-		#define Y_STEP_PIN      GPIO_NUM_14
-    #define Z_STEP_PIN      GPIO_NUM_27		
+		#define X_STEP_PIN      	GPIO_NUM_12
+		#define X_DIRECTION_PIN  	GPIO_NUM_26
+		#define X_RMT_CHANNEL		0
 		
-		#define X_DIRECTION_PIN   GPIO_NUM_26
-		#define Y_DIRECTION_PIN   GPIO_NUM_25  
-		#define Z_DIRECTION_PIN   GPIO_NUM_33 
+		#define Y_STEP_PIN      	GPIO_NUM_14
+		#define Y_DIRECTION_PIN   	GPIO_NUM_25
+		#define Y_RMT_CHANNEL		1
+		
+		#define Z_STEP_PIN      	GPIO_NUM_27		
+		#define Z_DIRECTION_PIN   	GPIO_NUM_33 		 
+		#define Z_RMT_CHANNEL		2		
 		
 		// OK to comment out to use pin for other features
 		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
@@ -851,4 +857,3 @@
 		
 		
 #endif
-
