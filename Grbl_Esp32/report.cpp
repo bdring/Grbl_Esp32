@@ -197,9 +197,16 @@ void report_status_message(uint8_t status_code, uint8_t client)
 			#ifdef ENABLE_SD_CARD
 			// do we need to stop a running SD job?
 			if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
-				grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sd_get_current_line_number());
-				grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
-				closeFile();
+				if (status_code == STATUS_GCODE_UNSUPPORTED_COMMAND) {
+					grbl_sendf(client, "error:%d\r\n", status_code); // most senders seem to tolerate this error and keep on going
+					grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
+					// don't close file
+				}
+				else {
+					grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sd_get_current_line_number());
+					grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
+					closeFile();
+				}
 				return;
 			}
 			#endif

@@ -132,7 +132,9 @@ boolean readFileLine(char *line)
       if (!(line_flags & LINE_FLAG_COMMENT_PARENTHESES)) { // semi colon inside parentheses do not mean anything
         line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
       }
-    } else if (c == '\n') { // found the newline, so mark the end and return true
+    } else if (c == '%') {
+		// discard this character
+	} else if (c == '\n') { // found the newline, so mark the end and return true
       line[index] = '\0';
       return true;
     } else { // add characters to the line

@@ -261,10 +261,13 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 			// Segment buffer empty. Shutdown.
 			st_go_idle();
 #ifdef VARIABLE_SPINDLE
-			// Ensure pwm is set properly upon completion of rate-controlled motion.
-			if (st.exec_block->is_pwm_rate_adjusted) {
-				spindle_set_speed(SPINDLE_PWM_OFF_VALUE);
-			}
+			if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
+				// Ensure pwm is set properly upon completion of rate-controlled motion.
+				if (st.exec_block->is_pwm_rate_adjusted) {
+					spindle_set_speed(SPINDLE_PWM_OFF_VALUE);
+				}
+			}		
+
 #endif
 			system_set_exec_state_flag(EXEC_CYCLE_STOP); // Flag main program for cycle end
 			return; // Nothing to do but exit.
