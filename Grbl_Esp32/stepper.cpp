@@ -434,6 +434,7 @@ void stepper_init()
 
 }
 
+#ifdef USE_RMT_STEPS
 void initRMT()
 {
 	rmt_item32_t rmtItem[2];
@@ -517,6 +518,7 @@ void initRMT()
 
 
 }
+#endif
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void st_wake_up()
@@ -652,7 +654,7 @@ void set_stepper_pins_on(uint8_t onMask)
 }
 #endif
 
-
+#ifdef USE_RMT_STEPS
 // Set stepper pulse output pins
 inline IRAM_ATTR static void stepperRMT_Outputs()
 {
@@ -701,6 +703,7 @@ inline IRAM_ATTR static void stepperRMT_Outputs()
 	}
 #endif
 }
+#endif
 
 // Stepper shutdown
 void st_go_idle()
