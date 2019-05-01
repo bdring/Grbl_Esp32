@@ -45,6 +45,8 @@
     // won't affect operation except that there will be no output
 		// form the pins. Grbl will virtually move the axis. This could 
 		// be handy if you are using a servo, etc. for another axis.
+		#define CPU_MAP_NAME "CPU_MAP_ESP32"	
+		
 		#define X_STEP_PIN      	GPIO_NUM_12
 		#define X_DIRECTION_PIN  	GPIO_NUM_26
 		#define X_RMT_CHANNEL		0
@@ -111,6 +113,8 @@
 		// For solenoid  mode be sure to uncomment #define USE_PEN_SERVO in config.h
 		// For laser mode, you do not need to change anything
 		// Note: You can use all 3 modes at the same time if you want
+		
+		#define CPU_MAP_NAME "CPU_MAP_PEN_LASER"
 		
 		// Pick a board version
 		//#define PEN_LASER_V1
@@ -209,6 +213,9 @@
 #endif
 
 #ifdef CPU_MAP_MIDTBOT  // Buildlog.net midtbot
+
+	#define CPU_MAP_NAME "CPU_MAP_MIDTBOT"
+
 		#define X_STEP_PIN      GPIO_NUM_12
 		#define Y_STEP_PIN      GPIO_NUM_14		
 		#define X_DIRECTION_PIN   GPIO_NUM_26
@@ -326,6 +333,8 @@
 #endif
 
 #ifdef CPU_MAP_POLAR_COASTER  // The Buildlog.net pen polar coaster controller V1
+		#define CPU_MAP_NAME "CPU_MAP_POLAR_COASTER"
+
 		#define X_STEP_PIN      GPIO_NUM_15
 		#define Y_STEP_PIN      GPIO_NUM_2
 		#define X_DIRECTION_PIN   GPIO_NUM_25
@@ -431,6 +440,8 @@
 		// For solenoid  mode be sure to uncomment #define USE_PEN_SERVO in config.h
 		// For laser mode, you do not need to change anything
 		// Note: You can use all 3 modes at the same time if you want
+		
+		#define CPU_MAP_NAME "CPU_MAP_SERVO_AXIS"
 		
 		// Pick a board version
 		//#define PEN_LASER_V1
@@ -665,6 +676,8 @@
 #ifdef CPU_MAP_MPCNC
 	// This is the CPU Map for the Buildlog.net MPCNC controller
 	
+		#define CPU_MAP_NAME "CPU_MAP_MPCNC"
+	
 		// switch to the correct default settings
 		#ifdef DEFAULTS_GENERIC
 			#undef DEFAULTS_GENERIC
@@ -744,10 +757,12 @@
 		
 #endif
 
-#ifdef CPU_MAP_LOWRIDER
+#ifdef CPU_MAP_LOWRIDER // !!!!!!!!!!!!!!!!! Warning: Untested !!!!!!!!!!!!!!!!! //
 	// This is the CPU Map for the Buildlog.net MPCNC controller
 	// used in lowrider mode. Low rider has (2) Z and one each of X and Y
 	// These will not match the silkscreen or schematic descriptions	
+		#define CPU_MAP_NAME "CPU_MAP_LOWRIDER"
+	
 	
 		#define USE_GANGED_AXES // allow two motors on an axis 
 	  
@@ -757,9 +772,9 @@
 		#define Y_STEP_B_PIN    GPIO_NUM_21  // ganged motor
 		#define Y_AXIS_SQUARING
 		
-    #define Z_STEP_PIN      GPIO_NUM_12
+		#define Z_STEP_PIN      GPIO_NUM_12
 		#define Z_STEP_B_PIN    GPIO_NUM_22
-		#define Y_AXIS_SQUARING
+		#define Z_AXIS_SQUARING
 		
 		#define X_DIRECTION_PIN   GPIO_NUM_33 // use Z labeled connector
 		#define Y_DIRECTION_PIN   GPIO_NUM_25  
@@ -820,6 +835,7 @@
 		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
 		
 #endif
+
 
 	// ================= common to all machines ================================
 	
