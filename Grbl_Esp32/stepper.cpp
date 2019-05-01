@@ -261,10 +261,13 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 			// Segment buffer empty. Shutdown.
 			st_go_idle();
 #ifdef VARIABLE_SPINDLE
-			// Ensure pwm is set properly upon completion of rate-controlled motion.
-			if (st.exec_block->is_pwm_rate_adjusted) {
-				spindle_set_speed(SPINDLE_PWM_OFF_VALUE);
-			}
+			if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
+				// Ensure pwm is set properly upon completion of rate-controlled motion.
+				if (st.exec_block->is_pwm_rate_adjusted) {
+					spindle_set_speed(SPINDLE_PWM_OFF_VALUE);
+				}
+			}		
+
 #endif
 			system_set_exec_state_flag(EXEC_CYCLE_STOP); // Flag main program for cycle end
 			return; // Nothing to do but exit.
@@ -431,6 +434,7 @@ void stepper_init()
 
 }
 
+#ifdef USE_RMT_STEPS
 void initRMT()
 {
 	rmt_item32_t rmtItem[2];
@@ -514,6 +518,7 @@ void initRMT()
 
 
 }
+#endif
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void st_wake_up()
@@ -649,7 +654,7 @@ void set_stepper_pins_on(uint8_t onMask)
 }
 #endif
 
-
+#ifdef USE_RMT_STEPS
 // Set stepper pulse output pins
 inline IRAM_ATTR static void stepperRMT_Outputs()
 {
@@ -698,6 +703,7 @@ inline IRAM_ATTR static void stepperRMT_Outputs()
 	}
 #endif
 }
+#endif
 
 // Stepper shutdown
 void st_go_idle()
