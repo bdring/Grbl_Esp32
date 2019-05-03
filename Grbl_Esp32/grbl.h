@@ -43,7 +43,7 @@
 
 #include "planner.h"
 #include "coolant_control.h"
-#include "eeprom.h"
+#include "eeprom_memcpy.h"
 #include "gcode.h"
 #include "grbl_limits.h"
 #include "motion_control.h"
