@@ -18,8 +18,8 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef eeprom_h
-#define eeprom_h
+#ifndef eeprom_memcpy_h
+#define eeprom_memcpy_h
 
 #include "grbl.h"
 
