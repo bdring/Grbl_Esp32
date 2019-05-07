@@ -6,7 +6,7 @@
 
 ### Project Overview
 
-[![Build Status](https://travis-ci.org/bdring/Grbl_Esp32.svg?branch=master)](https://travis-ci.org/bdring/Grbl_Esp32)
+[![Build Status](https://travis-ci.com/odaki/Grbl_Esp32.svg?branch=master)](https://travis-ci.com/odaki/Grbl_Esp32)
 
 This is a port of [Grbl](https://github.com/gnea/grbl) for the ESP32. The ESP32 is potentially a great target for Grbl for the following reasons
 
@@ -54,4 +54,3 @@ Start asking questions...I'll put the frequent ones here.
 This project requires a lot of work and often expensive items for testing. Please consider a safe, secure and highly appreciated donation via the PayPal link below.
 
 [![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TKNJ9Z775VXB2)
-
