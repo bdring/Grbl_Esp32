@@ -759,26 +759,26 @@
 
 #ifdef CPU_MAP_LOWRIDER // !!!!!!!!!!!!!!!!! Warning: Untested !!!!!!!!!!!!!!!!! //
 	// This is the CPU Map for the Buildlog.net MPCNC controller
-	// used in lowrider mode. Low rider has (2) Z and one each of X and Y
+	// used in lowrider mode. Low rider has (2) Y and Z and one X motor
 	// These will not match the silkscreen or schematic descriptions	
 		#define CPU_MAP_NAME "CPU_MAP_LOWRIDER"
 	
 	
 		#define USE_GANGED_AXES // allow two motors on an axis 
 	  
-		#define X_STEP_PIN      GPIO_NUM_27    // use Z labeled connector
+		#define X_STEP_PIN      GPIO_NUM_27    	// use Z labeled connector
+		#define X_DIRECTION_PIN   GPIO_NUM_33 	// use Z labeled connector
 		
 		#define Y_STEP_PIN      GPIO_NUM_14
-		#define Y_STEP_B_PIN    GPIO_NUM_21  // ganged motor
+		#define Y_STEP_B_PIN    GPIO_NUM_21  	// ganged motor
+		#define Y_DIRECTION_PIN   GPIO_NUM_25 
 		#define Y_AXIS_SQUARING
 		
-		#define Z_STEP_PIN      GPIO_NUM_12
-		#define Z_STEP_B_PIN    GPIO_NUM_22
+		#define Z_STEP_PIN      GPIO_NUM_12  	// use X labeled connector
+		#define Z_STEP_B_PIN    GPIO_NUM_22		// use X labeled connector
+		#define Z_DIRECTION_PIN   GPIO_NUM_26 	// use X labeled connector
 		#define Z_AXIS_SQUARING
 		
-		#define X_DIRECTION_PIN   GPIO_NUM_33 // use Z labeled connector
-		#define Y_DIRECTION_PIN   GPIO_NUM_25  
-		#define Z_DIRECTION_PIN   GPIO_NUM_26 // use X labeled connector
 		
 		// OK to comment out to use pin for other features
 		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
