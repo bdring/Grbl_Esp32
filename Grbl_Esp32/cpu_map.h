@@ -836,6 +836,59 @@
 		
 #endif
 
+#ifdef CPU_MAP_TMC2130_PEN
+		
+		#define CPU_MAP_NAME "ESP32_TMC2130_PEN"
+		
+		#define USE_RMT_STEPS
+		
+		#define USE_TMC2130 // make sure you assign chip select pins to each axis
+		
+		#define X_STEP_PIN      	GPIO_NUM_12
+		#define X_DIRECTION_PIN   	GPIO_NUM_26
+		#define X_CS_PIN    		GPIO_NUM_17  //chip select
+		#define X_RMT_CHANNEL		0		
+		
+		#define Y_STEP_PIN      	GPIO_NUM_14   
+		#define Y_DIRECTION_PIN   	GPIO_NUM_25  
+		#define Y_CS_PIN    		GPIO_NUM_16  //chip select	
+		#define Y_RMT_CHANNEL		1		
+		
+		// OK to comment out to use pin for other features
+		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
+		
+		// *** the flood coolant feature code is activated by defining this pins
+		// *** Comment it out to use the pin for other features
+		//#define COOLANT_FLOOD_PIN 	GPIO_NUM_16			
+		//#define COOLANT_MIST_PIN   	GPIO_NUM_21
+		
+		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
+		// use a virtual spindle. Do not comment out the other parameters for the spindle.
+		//#define SPINDLE_PWM_PIN    GPIO_NUM_17 
+		#define SPINDLE_PWM_CHANNEL 0
+		// PWM Generator is based on 80,000,000 Hz counter
+		// Therefor the freq determines the resolution
+		// 80,000,000 / freq = max resolution
+		// For 5000 that is 80,000,000 / 5000 = 16000 
+		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
+		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+		#define SPINDLE_PWM_OFF_VALUE     0
+		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
+		
+		#ifndef SPINDLE_PWM_MIN_VALUE
+				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+		#endif
+		
+		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
+		
+		#define X_LIMIT_PIN      	GPIO_NUM_2  
+		#define Y_LIMIT_PIN      	GPIO_NUM_4  
+		#define LIMIT_MASK      	B11
+		
+#endif
+
+
 
 	// ================= common to all machines ================================
 	
