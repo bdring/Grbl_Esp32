@@ -360,6 +360,10 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 void stepper_init()
 {
 	
+	#ifdef USE_TMC2130
+		TMC2130_Init();
+	#endif
+	
 	#ifdef USE_RMT_STEPS
 		grbl_send(CLIENT_SERIAL, "[MSG:Using RMT Steps}\r\n");
 		initRMT();
@@ -646,11 +650,21 @@ void set_stepper_pins_on(uint8_t onMask)
 #endif
 #endif
 
-
-	// ganged z not supported yet
 #ifdef Z_STEP_PIN
+#ifndef Z_STEP_B_PIN // if not a ganged axis
 	digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
+#else // is a ganged axis
+	if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+		digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
+	}
+
+	if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
+		digitalWrite(Z_STEP_B_PIN, (onMask & (1<<Z_AXIS)));
+	}
 #endif
+#endif
+
+
 }
 #endif
 
