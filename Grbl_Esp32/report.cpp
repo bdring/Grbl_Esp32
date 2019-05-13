@@ -486,9 +486,9 @@ void report_gcode_modes(uint8_t client)
 	
 	
 	if (bit_istrue(settings.flags,BITFLAG_REPORT_INCHES)) {
-		sprintf(temp, " F:%.1f", gc_state.feed_rate);
+		sprintf(temp, " F%.1f", gc_state.feed_rate);
 	} else {
-		sprintf(temp, " F:%.0f", gc_state.feed_rate);
+		sprintf(temp, " F%.0f", gc_state.feed_rate);
 	}
 	strcat(modes_rpt, temp);
 	
