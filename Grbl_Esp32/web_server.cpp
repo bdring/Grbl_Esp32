@@ -1228,8 +1228,8 @@ void Web_Server::handle_direct_SDFileList()
         _upload_status = UPLOAD_STATUS_NONE;
     }
     bool list_files = true;
-    uint32_t totalspace = 0;
-    uint32_t usedspace = 0;
+    uint64_t totalspace = 0;
+    uint64_t usedspace = 0;
     if (get_sd_state(true) != SDCARD_IDLE) {
         _webserver->sendHeader("Cache-Control","no-cache");
         _webserver->send(200, "application/json", "{\"status\":\"No SD Card\"}");
