@@ -49,7 +49,7 @@ void spindle_stop()
 {		
   spindle_set_enable(false);
 	#ifdef SPINDLE_PWM_PIN
-		grbl_analogWrite(SPINDLE_PWM_CHANNEL, 0);	
+		grbl_analogWrite(SPINDLE_PWM_CHANNEL, SPINDLE_PWM_OFF_VALUE);
 	#endif
 }
 
