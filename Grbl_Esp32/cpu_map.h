@@ -115,7 +115,7 @@
     // won't affect operation except that there will be no output
 		// form the pins. Grbl will virtually move the axis. This could 
 		// be handy if you are using a servo, etc. for another axis.
-		#define CPU_MAP_NAME "CPU_MAP_ESP32"	
+		#define CPU_MAP_NAME "CPU_MAP_ESP32_ESC_SPINDLE"	
 		
 		#define X_STEP_PIN      	GPIO_NUM_12
 		#define X_DIRECTION_PIN  	GPIO_NUM_26
@@ -152,8 +152,8 @@
 		#define ESC_MAX_PULSE_SEC 0.002 // max pulse in seconds (OK to tune this one)		
 		#define ESC_TIME_PER_BIT  ((1.0 / (float)SPINDLE_PWM_BASE_FREQ) / ((float)SPINDLE_PULSE_RES_COUNT) ) // seconds
 
-		#define SPINDLE_PWM_OFF_VALUE    (uint16_t)(SERVO_MIN_PULSE_SEC / SERVO_TIME_PER_BIT) // in timer counts
-		#define SPINDLE_PWM_MAX_VALUE    (uint16_t)(SERVO_MAX_PULSE_SEC / SERVO_TIME_PER_BIT) // in timer counts
+		#define SPINDLE_PWM_OFF_VALUE    (uint16_t)(ESC_MIN_PULSE_SEC / ESC_TIME_PER_BIT) // in timer counts
+		#define SPINDLE_PWM_MAX_VALUE    (uint16_t)(ESC_MAX_PULSE_SEC / ESC_TIME_PER_BIT) // in timer counts
 		
 		#ifndef SPINDLE_PWM_MIN_VALUE
 				#define SPINDLE_PWM_MIN_VALUE   SPINDLE_PWM_OFF_VALUE   // Must be greater than zero.
