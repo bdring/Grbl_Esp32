@@ -254,7 +254,9 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 
 #ifdef VARIABLE_SPINDLE
 			// Set real-time spindle output as segment is loaded, just prior to the first step.
+			if (st_prep_block->is_pwm_rate_adjusted) {
 			spindle_set_speed(st.exec_segment->spindle_pwm);
+			}
 #endif
 
 		} else {
@@ -1153,7 +1155,6 @@ void st_prep_buffer()
 			bit_false(sys.step_control,STEP_CONTROL_UPDATE_SPINDLE_PWM);
 		}
 		prep_segment->spindle_pwm = prep.current_spindle_pwm; // Reload segment PWM value
-
 #endif
 
 		/* -----------------------------------------------------------------------------------

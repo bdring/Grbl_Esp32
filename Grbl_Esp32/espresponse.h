@@ -31,7 +31,7 @@ class ESPResponseStream{
     void print(const char *data);
     void println(const char *data);
     void flush();
-    static String formatBytes (uint32_t bytes);
+    static String formatBytes (uint64_t bytes);
     uint8_t client() {return _client;}
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     ESPResponseStream(WebServer * webserver);
