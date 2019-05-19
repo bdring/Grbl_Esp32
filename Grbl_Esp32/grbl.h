@@ -20,7 +20,7 @@
 
 // Grbl versioning system
 #define GRBL_VERSION "1.1f"
-#define GRBL_VERSION_BUILD "20180917"
+#define GRBL_VERSION_BUILD "20190518"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>

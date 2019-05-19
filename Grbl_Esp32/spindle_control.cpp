@@ -49,7 +49,7 @@ void spindle_stop()
 {		
   spindle_set_enable(false);
 	#ifdef SPINDLE_PWM_PIN
-		grbl_analogWrite(SPINDLE_PWM_CHANNEL, 0);	
+		grbl_analogWrite(SPINDLE_PWM_CHANNEL, SPINDLE_PWM_OFF_VALUE);
 	#endif
 }
 
@@ -86,7 +86,7 @@ void spindle_set_speed(uint32_t pwm_value)
 	#else
 		spindle_set_enable(pwm_value != 0);
 	#endif
-	grbl_analogWrite(SPINDLE_PWM_CHANNEL, pwm_value);	
+	grbl_analogWrite(SPINDLE_PWM_CHANNEL, pwm_value);
 }
 
 // Called by spindle_set_state() and step segment generator. Keep routine small and efficient.
