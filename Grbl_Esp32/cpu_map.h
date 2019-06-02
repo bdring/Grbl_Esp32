@@ -292,7 +292,7 @@
 		#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
 		#define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
 		
-		#define DEFAULT_STATUS_REPORT_MASK 2 // MPos enabled
+		#define DEFAULT_STATUS_REPORT_MASK 1
 		
 		#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
 		#define DEFAULT_ARC_TOLERANCE 0.002 // mm
@@ -393,7 +393,7 @@
 		#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
 		#define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
 		
-		#define DEFAULT_STATUS_REPORT_MASK 2 // MPos enabled
+		#define DEFAULT_STATUS_REPORT_MASK 1
 		
 		#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
 		#define DEFAULT_ARC_TOLERANCE 0.002 // mm
@@ -508,7 +508,7 @@
 		#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
 		#define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
 		
-		#define DEFAULT_STATUS_REPORT_MASK 2 // MPos enabled
+		#define DEFAULT_STATUS_REPORT_MASK 1
 		
 		#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
 		#define DEFAULT_ARC_TOLERANCE 0.002 // mm
@@ -633,7 +633,7 @@
 		#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
 		#define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
 		
-		#define DEFAULT_STATUS_REPORT_MASK 2 // MPos enabled
+		#define DEFAULT_STATUS_REPORT_MASK 1
 		
 		#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
 		#define DEFAULT_ARC_TOLERANCE 0.002 // mm
