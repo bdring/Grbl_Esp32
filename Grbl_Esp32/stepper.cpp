@@ -198,6 +198,58 @@ static st_prep_t prep;
 
 
 */
+
+#ifdef USE_RMT_STEPS
+// Set stepper pulse output pins
+inline IRAM_ATTR static void stepperRMT_Outputs()
+{
+
+#ifdef  X_STEP_PIN
+	if(st.step_outbits & (1<<X_AXIS)) {
+	#ifndef X_STEP_B_PIN // if not a ganged axis
+			RMT.conf_ch[X_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+			RMT.conf_ch[X_RMT_CHANNEL].conf1.tx_start = 1;
+	#else // it is a ganged axis
+			if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+				RMT.conf_ch[X_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+				RMT.conf_ch[X_RMT_CHANNEL].conf1.tx_start = 1;			}
+			
+			if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
+				RMT.conf_ch[X_B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+				RMT.conf_ch[X_B_RMT_CHANNEL].conf1.tx_start = 1;
+			}			
+	#endif
+	}
+
+#endif
+
+#ifdef  Y_STEP_PIN
+	if(st.step_outbits & (1<<Y_AXIS)) {
+#ifndef Y_STEP_B_PIN // if not a ganged axis
+		RMT.conf_ch[Y_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[Y_RMT_CHANNEL].conf1.tx_start = 1;
+#else // it is a ganged axis
+		if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+			RMT.conf_ch[Y_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+			RMT.conf_ch[Y_RMT_CHANNEL].conf1.tx_start = 1;
+		}		
+		if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
+			RMT.conf_ch[Y_B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+			RMT.conf_ch[Y_B_RMT_CHANNEL].conf1.tx_start = 1;
+		}		
+#endif
+	}
+#endif
+
+#ifdef  Z_STEP_PIN
+	if(st.step_outbits & (1<<Z_AXIS)) {
+		RMT.conf_ch[Z_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[Z_RMT_CHANNEL].conf1.tx_start = 1;
+	}
+#endif
+}
+#endif
+
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
@@ -667,57 +719,6 @@ void set_stepper_pins_on(uint8_t onMask)
 #endif
 
 
-}
-#endif
-
-#ifdef USE_RMT_STEPS
-// Set stepper pulse output pins
-inline IRAM_ATTR static void stepperRMT_Outputs()
-{
-
-#ifdef  X_STEP_PIN
-	if(st.step_outbits & (1<<X_AXIS)) {
-	#ifndef X_STEP_B_PIN // if not a ganged axis
-			RMT.conf_ch[X_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-			RMT.conf_ch[X_RMT_CHANNEL].conf1.tx_start = 1;
-	#else // it is a ganged axis
-			if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
-				RMT.conf_ch[X_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-				RMT.conf_ch[X_RMT_CHANNEL].conf1.tx_start = 1;			}
-			
-			if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
-				RMT.conf_ch[X_B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-				RMT.conf_ch[X_B_RMT_CHANNEL].conf1.tx_start = 1;
-			}			
-	#endif
-	}
-
-#endif
-
-#ifdef  Y_STEP_PIN
-	if(st.step_outbits & (1<<Y_AXIS)) {
-#ifndef Y_STEP_B_PIN // if not a ganged axis
-		RMT.conf_ch[Y_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-		RMT.conf_ch[Y_RMT_CHANNEL].conf1.tx_start = 1;
-#else // it is a ganged axis
-		if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
-			RMT.conf_ch[Y_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-			RMT.conf_ch[Y_RMT_CHANNEL].conf1.tx_start = 1;
-		}		
-		if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
-			RMT.conf_ch[Y_B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-			RMT.conf_ch[Y_B_RMT_CHANNEL].conf1.tx_start = 1;
-		}		
-#endif
-	}
-#endif
-
-#ifdef  Z_STEP_PIN
-	if(st.step_outbits & (1<<Z_AXIS)) {
-		RMT.conf_ch[Z_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-		RMT.conf_ch[Z_RMT_CHANNEL].conf1.tx_start = 1;
-	}
-#endif
 }
 #endif
 
