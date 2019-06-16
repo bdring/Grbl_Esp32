@@ -67,8 +67,6 @@
 #ifndef servo_h
 #define servo_h
 
-static TaskHandle_t servoSyncTaskHandle = 0;
-
 void servo_init();
 void servo_disable();
 bool validate_servo_settings(bool verbose);
