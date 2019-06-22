@@ -23,6 +23,8 @@
 
 #ifdef USE_PEN_SERVO
 
+static TaskHandle_t servoSyncTaskHandle = 0;
+
 // used to delay turn on
 bool servo_pen_enable = false;
 
