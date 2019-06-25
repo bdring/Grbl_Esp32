@@ -326,7 +326,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             } 
             Preferences prefs;
             prefs.begin(NAMESPACE, false);
-            if (prefs.putString(AP_PWD_ENTRY, parameter) == 0){
+            if (prefs.putString(AP_PWD_ENTRY, parameter) != parameter.length()){
                 response = false;
                 if(espresponse)espresponse->println ("Error: Set failed!");
                 } else if(espresponse)espresponse->println ("ok");
@@ -940,11 +940,12 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
                 return false;
             }
 #endif
-            int8_t vi;
+            
             espresponse->print("{\"EEPROM\":[");
             if(espresponse->client() != CLIENT_WEBUI)espresponse->println("");
             prefs.begin(NAMESPACE, true);
 #ifdef ENABLE_WIFI
+            int8_t vi;
             //1 - Hostname
             espresponse->print ("{\"F\":\"network\",\"P\":\"");
             espresponse->print (HOSTNAME_ENTRY);
@@ -1223,7 +1224,11 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             if (! (styp == "B" || styp == "S" || styp == "A" || styp == "I" || styp == "F") ) {
                 response = false;
             }
-            if (sval.length() == 0) {
+            if ((sval.length() == 0) 
+#if defined (ENABLE_WIFI)
+            && !((spos==AP_PWD_ENTRY) || (spos==STA_PWD_ENTRY))
+#endif
+            ){
                 response = false;
             }
 
@@ -1281,7 +1286,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
                 }
                 //String value
                 if (styp == "S") {
-                   if (prefs.putString(spos.c_str(), sval) == 0) {
+                   if (prefs.putString(spos.c_str(), sval) != sval.length()) {
                         response = false;
                     } else {
 #if defined (ENABLE_WIFI)
