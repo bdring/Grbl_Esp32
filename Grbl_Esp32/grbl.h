@@ -20,7 +20,7 @@
 
 // Grbl versioning system
 #define GRBL_VERSION "1.1f"
-#define GRBL_VERSION_BUILD "20180917"
+#define GRBL_VERSION_BUILD "20190622"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -43,7 +43,7 @@
 
 #include "planner.h"
 #include "coolant_control.h"
-#include "eeprom.h"
+#include "grbl_eeprom.h"
 #include "gcode.h"
 #include "grbl_limits.h"
 #include "motion_control.h"
@@ -57,7 +57,7 @@
 #include "jog.h"
 
 #ifdef ENABLE_BLUETOOTH
-	#include "grbl_bluetooth.h"
+	#include "BTconfig.h"
 #endif
 
 #ifdef ENABLE_SD_CARD	
@@ -72,7 +72,19 @@
     #ifdef ENABLE_TELNET
     #include "telnet_server.h"
     #endif
+    #ifdef ENABLE_NOTIFICATIONS
+    #include "notifications_service.h"
+    #endif
 #endif
 
 #include "servo_pen.h"
 #include "solenoid_pen.h"
+
+#ifdef USE_SERVO_AXES
+	#include "servo_axis.h"
+#endif
+
+#ifdef USE_TMC2130
+	#include "TMC2130.h" // https://github.com/teemuatlut/TMC2130Stepper
+#endif
+

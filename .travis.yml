@@ -18,7 +18,6 @@ before_script:
   - cd esp32/tools
   - python get.py
   - cd ..
-  - echo 'build.flash_freq=40m' >> platform.txt
   - mv $TRAVIS_BUILD_DIR/libraries/ESP32SSDP $HOME/arduino_ide/libraries/
   - mv $TRAVIS_BUILD_DIR/libraries/arduinoWebSockets $HOME/arduino_ide/libraries/
   
@@ -26,7 +25,7 @@ script:
   - cd $TRAVIS_BUILD_DIR
   - source command.sh
   - export PATH="$HOME/arduino_ide:$PATH"
-  - arduino --board esp32:esp32:esp32 --save-prefs
+  - arduino --board esp32:esp32:esp32:PartitionScheme=min_spiffs,FlashFreq=40 --pref compiler.warning_level=all --save-prefs
   - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
   - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
   - sed -i "s/#define ENABLE_BLUETOOTH/\/\/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
@@ -37,6 +36,11 @@ script:
   - sed -i "s/#define ENABLE_WIFI/\/\/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
   - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
   - build_sketch  $TRAVIS_BUILD_DIR/Grbl_Esp32/Grbl_Esp32.ino
+  - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
+  - sed -i "s/\/\/#define ENABLE_WIFI/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
+  - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
+  - build_sketch  $TRAVIS_BUILD_DIR/Grbl_Esp32/Grbl_Esp32.ino
+
   
 notifications:
   email:

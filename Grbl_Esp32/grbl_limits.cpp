@@ -27,6 +27,7 @@
 
 #include "grbl.h"
 
+xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 
 // Homing axis search distance multiplier. Computed by this value times the cycle travel.
 #ifndef HOMING_AXIS_SEARCH_SCALAR
@@ -38,25 +39,32 @@
 
 void IRAM_ATTR isr_limit_switches()
 {
-	 // Ignore limit switches if already in an alarm state or in-process of executing an alarm.
+	// Ignore limit switches if already in an alarm state or in-process of executing an alarm.
     // When in the alarm state, Grbl should have been reset or will force a reset, so any pending
     // moves in the planner and serial buffers are all cleared and newly sent blocks will be
     // locked out until a homing cycle or a kill lock command. Allows the user to disable the hard
     // limit setting if their limits are constantly triggering after a reset and move their axes.
 
-		if (  ( sys.state != STATE_ALARM) & (bit_isfalse(sys.state, STATE_HOMING)) ) {
-      if (!(sys_rt_exec_alarm)) {
-        #ifdef HARD_LIMIT_FORCE_STATE_CHECK
-          // Check limit pin state.
-          if (limits_get_state()) {
-            mc_reset(); // Initiate system kill.
-            system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT); // Indicate hard limit critical event
-          }
-        #else
-          mc_reset(); // Initiate system kill.
-          system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT); // Indicate hard limit critical event
-        #endif
-      }			
+	if (  ( sys.state != STATE_ALARM) & (bit_isfalse(sys.state, STATE_HOMING)) ) {
+		if (!(sys_rt_exec_alarm)) {
+			
+			#ifdef ENABLE_SOFTWARE_DEBOUNCE
+				// we will start a task that will recheck the switches after a small delay
+				int evt;
+				xQueueSendFromISR(limit_sw_queue, &evt, NULL);	
+			#else
+				#ifdef HARD_LIMIT_FORCE_STATE_CHECK
+				  // Check limit pin state.
+				  if (limits_get_state()) {
+					mc_reset(); // Initiate system kill.
+					system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT); // Indicate hard limit critical event
+				  }
+				#else
+				  mc_reset(); // Initiate system kill.
+				  system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT); // Indicate hard limit critical event
+				#endif				
+			#endif
+		}						
     }
 }
 
@@ -299,15 +307,17 @@ void limits_init()
     limits_disable();
   }
   
-
-// TODO Debounce
-/*
-  #ifdef ENABLE_SOFTWARE_DEBOUNCE
-    MCUSR &= ~(1<<WDRF);
-    WDTCSR |= (1<<WDCE) | (1<<WDE);
-    WDTCSR = (1<<WDP0); // Set time-out at ~32msec.
-  #endif
- */ 
+	// setup task used for debouncing
+	limit_sw_queue = xQueueCreate(10, sizeof( int ));
+	
+	xTaskCreate(limitCheckTask, 
+				"limitCheckTask", 
+				2048, 
+				NULL, 
+				5, // priority 
+				NULL);
+								
+								
 }
 
 
@@ -325,66 +335,104 @@ void limits_disable()
 // number in bit position, i.e. Z_AXIS is (1<<2) or bit 2, and Y_AXIS is (1<<1) or bit 1.
 uint8_t limits_get_state()
 {
-  uint8_t limit_state = 0;
-  uint8_t pin = 0;
+	uint8_t limit_state = 0;
+	uint8_t pin = 0;
 	
 	#ifdef X_LIMIT_PIN
 		pin += digitalRead(X_LIMIT_PIN);
 	#endif
+	
 	#ifdef Y_LIMIT_PIN
 		pin += (digitalRead(Y_LIMIT_PIN) << Y_AXIS);
 	#endif
+	
 	#ifdef Z_LIMIT_PIN
 		pin += (digitalRead(Z_LIMIT_PIN) << Z_AXIS);
 	#endif
 
 	#ifdef INVERT_LIMIT_PIN_MASK // not normally used..unless you have both normal and inverted switches
-    pin ^= INVERT_LIMIT_PIN_MASK;
-  #endif	
+		pin ^= INVERT_LIMIT_PIN_MASK;
+	#endif	
   
-  if (bit_istrue(settings.flags,BITFLAG_INVERT_LIMIT_PINS)) 
-	{ 
+	if (bit_istrue(settings.flags,BITFLAG_INVERT_LIMIT_PINS)) { 
 		pin ^= LIMIT_MASK;
 	}
   
-  if (pin) {
-    uint8_t idx;
-    for (idx=0; idx<N_AXIS; idx++) {
-      if (pin & get_limit_pin_mask(idx)) { limit_state |= (1 << idx); }
-    }
-  }
+	if (pin) {
+		uint8_t idx;
+		for (idx=0; idx<N_AXIS; idx++) {
+			if (pin & get_limit_pin_mask(idx)) { limit_state |= (1 << idx); }
+		}
+	}
 	
-  return(limit_state);
-  
-	
+	return(limit_state);	
 }
-
-
-
-
-
-
 
 // Performs a soft limit check. Called from mc_line() only. Assumes the machine has been homed,
 // the workspace volume is in all negative space, and the system is in normal operation.
 // NOTE: Used by jogging to limit travel within soft-limit volume.
 void limits_soft_check(float *target)
 {
-  if (system_check_travel_limits(target)) {
-    sys.soft_limit = true;
-    // Force feed hold if cycle is active. All buffered blocks are guaranteed to be within
-    // workspace volume so just come to a controlled stop so position is not lost. When complete
-    // enter alarm mode.
-    if (sys.state == STATE_CYCLE) {
-      system_set_exec_state_flag(EXEC_FEED_HOLD);
-      do {
-        protocol_execute_realtime();
-        if (sys.abort) { return; }
-      } while ( sys.state != STATE_IDLE );
+	if (system_check_travel_limits(target)) {
+		sys.soft_limit = true;
+		// Force feed hold if cycle is active. All buffered blocks are guaranteed to be within
+		// workspace volume so just come to a controlled stop so position is not lost. When complete
+		// enter alarm mode.
+		if (sys.state == STATE_CYCLE) {
+			system_set_exec_state_flag(EXEC_FEED_HOLD);
+		do {
+			protocol_execute_realtime();
+			if (sys.abort) { return; }
+		} while ( sys.state != STATE_IDLE );
     }
+	
     mc_reset(); // Issue system reset and ensure spindle and coolant are shutdown.
     system_set_exec_alarm(EXEC_ALARM_SOFT_LIMIT); // Indicate soft limit critical event
     protocol_execute_realtime(); // Execute to enter critical event loop and system abort
     return;
   }
+}
+
+// this is the task
+void limitCheckTask(void *pvParameters)
+{	
+	while(true) {
+		int evt;
+		xQueueReceive(limit_sw_queue, &evt, portMAX_DELAY); // block until receive queue
+		vTaskDelay( DEBOUNCE_PERIOD / portTICK_PERIOD_MS ); // delay a while
+		
+		if (limits_get_state()) {
+			mc_reset(); // Initiate system kill.
+			system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT); // Indicate hard limit critical event
+		}		
+	}
+}
+
+// return true if the axis is defined as a squared axis
+// Squaring: is used on gantry type axes that have two motors
+// Each motor with touch off its own switch to square the axis
+bool axis_is_squared(uint8_t axis_mask)
+{
+	// Note: multi-axis homing returns false because it will not match any of the following
+	
+	if (axis_mask == (1<<X_AXIS)) {
+		#ifdef X_AXIS_SQUARING
+			return true;
+		#endif
+	}
+	
+	if (axis_mask == (1<<Y_AXIS)) {
+		#ifdef Y_AXIS_SQUARING
+			return true;
+		#endif
+	}
+	
+	if (axis_mask == (1<<Z_AXIS)) {
+		#ifdef Z_AXIS_SQUARING
+			return true;
+		#endif
+	}
+	
+	return false;
+	
 }

@@ -24,15 +24,9 @@
 
 
 #include "config.h"
+#include "commands.h"
 class WebSocketsServer;
 class WebServer;
-
-//Authentication level
-typedef enum {
-    LEVEL_GUEST = 0,
-    LEVEL_USER = 1,
-    LEVEL_ADMIN = 2
-} level_authenticate_type;
 
 #ifdef ENABLE_AUTHENTICATION
 struct auth_ip {
@@ -46,21 +40,6 @@ struct auth_ip {
 
 #endif
 
-
-
-
-class ESPResponseStream{
-    public:
-    void print(const char *data);
-    void println(const char *data);
-    void flush();
-    ESPResponseStream(WebServer * webserver);
-    private:
-    bool _header_sent;
-    WebServer * _webserver;
-    String _buffer;
-};
-
 class Web_Server {
     public:
     Web_Server();
@@ -69,17 +48,14 @@ class Web_Server {
     void end();
     void handle();
     static long get_client_ID();
+    static uint16_t port(){return _port;}
     private:
     static bool _setupdone;
     static WebServer * _webserver;
     static long _id_connection;
     static WebSocketsServer * _socket_server;
     static uint16_t _port;
-    static uint16_t _data_port;
-    static String _hostname;
     static uint8_t _upload_status;
-    static char * mac2str (uint8_t mac [8]);
-    static String formatBytes (uint32_t bytes);
     static String getContentType (String filename);
     static String get_Splited_Value(String data, char separator, int index);
     static level_authenticate_type  is_authenticated();
@@ -91,10 +67,7 @@ class Web_Server {
     static bool ClearAuthIP (IPAddress ip, const char * sessionID);
     static auth_ip * GetAuth (IPAddress ip, const char * sessionID);
     static level_authenticate_type ResetAuthIP (IPAddress ip, const char * sessionID);
-    static bool isLocalPasswordValid (const char * password);
 #endif
-    static String get_param (String & cmd_params, const char * id, bool withspace);
-    static bool execute_internal_command (int cmd, String cmd_params, level_authenticate_type auth_level,  ESPResponseStream  *espresponse);
 #ifdef ENABLE_SSDP
     static void handle_SSDP ();
 #endif
