@@ -24,23 +24,26 @@
 void system_ini() // Renamed from system_init() due to conflict with esp32 files
 {	
 	// setup control inputs
-#ifdef CONTROL_SAFETY_DOOR_PIN
-	pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT);
-	attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef CONTROL_RESET_PIN
-	pinMode(CONTROL_RESET_PIN, INPUT);
-	attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef CONTROL_FEED_HOLD_PIN
-	pinMode(CONTROL_FEED_HOLD_PIN, INPUT);
-	attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef CONTROL_CYCLE_START_PIN
-	pinMode(CONTROL_CYCLE_START_PIN, INPUT);
-	attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
-#endif
+#ifndef IGNORE_CONTROL_PINS	
+	
+	#ifdef CONTROL_SAFETY_DOOR_PIN
+		pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT);
+		attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
+	#endif
+	#ifdef CONTROL_RESET_PIN
+		pinMode(CONTROL_RESET_PIN, INPUT);
+		attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
+	#endif
+	#ifdef CONTROL_FEED_HOLD_PIN
+		pinMode(CONTROL_FEED_HOLD_PIN, INPUT);
+		attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
+	#endif
+	#ifdef CONTROL_CYCLE_START_PIN
+		pinMode(CONTROL_CYCLE_START_PIN, INPUT);
+		attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
+	#endif
 
+#endif
 }
 
 void IRAM_ATTR isr_control_inputs()
@@ -50,6 +53,7 @@ void IRAM_ATTR isr_control_inputs()
   if (pin) {
     if (bit_istrue(pin,CONTROL_PIN_INDEX_RESET)) 
 		{
+			grbl_send(CLIENT_SERIAL, "[MSG:Reset via control pin]\r\n"); // help debug reason for reset
       mc_reset();
     } 
 		else if (bit_istrue(pin,CONTROL_PIN_INDEX_CYCLE_START)) 
@@ -205,6 +209,9 @@ uint8_t system_execute_line(char *line, uint8_t client)
             #ifdef ENABLE_RESTORE_EEPROM_WIPE_ALL
               case '*': settings_restore(SETTINGS_RESTORE_ALL); break;
             #endif
+            #if defined(ENABLE_BLUETOOTH) || defined(ENABLE_WIFI)
+            case '@': settings_restore(SETTINGS_RESTORE_WIFI_SETTINGS); break;
+            #endif
             default: return(STATUS_INVALID_STATEMENT);
           }
           report_feedback_message(MESSAGE_RESTORE_DEFAULTS);
@@ -225,43 +232,7 @@ uint8_t system_execute_line(char *line, uint8_t client)
             helper_var = true;  // Set helper_var to flag storing method.
             // No break. Continues into default: to read remaining command characters.
           }
-          case 'W':
-          //TODO
-          break;
-				#ifdef ENABLE_SD_CARD // ==================== SD Card ============================
-				case 'F':
-					char fileLine[255];
-					if ( line[char_counter+1] == 0 ) {
-						// show the files
-						//Serial.println("Show the files");
-						listDir(SD, "/", 10); // 10 directory levels should be fine
-					}
-					else if (line[char_counter+1] == 'M') {
-						sd_mount();
-					}
-					else if (line[char_counter+1] == '=') { // run a file						
-						if (sys.state != STATE_IDLE) { return(STATUS_SYSTEM_GC_LOCK); } // must be in idle to run a file
-						char_counter += 2;
-						helper_var = char_counter; // Set helper variable as counter to start of user info line.
-						// shift the user info over to the beginning of the line "$F=/FOO.NC" becomes "/FOO.NC"
-						do {
-							line[char_counter-helper_var] = line[char_counter];
-						} while (line[char_counter++] != 0);
-						
-						openFile(SD, line);
-						if (!readFileLine(fileLine)) {
-							  return(STATUS_SD_FILE_EMPTY);
-								closeFile();
-						}
-						else {
-							report_status_message(gc_execute_line(fileLine, CLIENT_SERIAL), CLIENT_SERIAL);  // execute the first line
-						}						
-					}					
-					else {
-						return(STATUS_INVALID_STATEMENT);
-					}
-				break;
-				#endif // =============================== SD Card ========================================
+
         default :  // Storing setting methods [IDLE/ALARM]
           if(!read_float(line, &char_counter, &parameter)) { return(STATUS_BAD_NUMBER_FORMAT); }
           if(line[char_counter++] != '=') { return(STATUS_INVALID_STATEMENT); }
@@ -423,28 +394,34 @@ uint8_t system_check_travel_limits(float *target)
 // defined by the CONTROL_PIN_INDEX in the header file.
 uint8_t system_control_get_state()
 {
+	uint8_t defined_pin_mask = 0; // a mask of defined pins 	
+	
 	#ifdef IGNORE_CONTROL_PINS
 		return 0;
-	#endif
-	
+	#endif	
 	
   uint8_t control_state = 0;
-#ifdef CONTROL_SAFETY_DOOR_PIN
-  if (digitalRead(CONTROL_SAFETY_DOOR_PIN)) { control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR; } 
-#endif
-#ifdef CONTROL_RESET_PIN
-  if (digitalRead(CONTROL_RESET_PIN)) { control_state |= CONTROL_PIN_INDEX_RESET; }
-#endif
-#ifdef CONTROL_FEED_HOLD_PIN
-  if (digitalRead(CONTROL_FEED_HOLD_PIN)) { control_state |= CONTROL_PIN_INDEX_FEED_HOLD; }
-#endif
-#ifdef CONTROL_CYCLE_START_PIN
-  if (digitalRead(CONTROL_CYCLE_START_PIN)) { control_state |= CONTROL_PIN_INDEX_CYCLE_START; }   
-#endif
+	#ifdef CONTROL_SAFETY_DOOR_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_SAFETY_DOOR;
+		if (digitalRead(CONTROL_SAFETY_DOOR_PIN)) { control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR; }
+	#endif
+	#ifdef CONTROL_RESET_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_RESET;
+		if (digitalRead(CONTROL_RESET_PIN)) { control_state |= CONTROL_PIN_INDEX_RESET; }
+	#endif
+	#ifdef CONTROL_FEED_HOLD_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_FEED_HOLD;
+		if (digitalRead(CONTROL_FEED_HOLD_PIN)) { control_state |= CONTROL_PIN_INDEX_FEED_HOLD; }	
+	#endif
+	#ifdef CONTROL_CYCLE_START_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_CYCLE_START;
+		if (digitalRead(CONTROL_CYCLE_START_PIN)) { control_state |= CONTROL_PIN_INDEX_CYCLE_START; }   
+	#endif
+	
   #ifdef INVERT_CONTROL_PIN_MASK
-    control_state ^= INVERT_CONTROL_PIN_MASK;
+    control_state ^= (INVERT_CONTROL_PIN_MASK & defined_pin_mask);
   #endif  
-  
+	  
   return(control_state);  
 }
 
