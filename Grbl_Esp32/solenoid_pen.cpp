@@ -23,6 +23,8 @@
 
 #ifdef USE_PEN_SOLENOID
 
+static TaskHandle_t solenoidSyncTaskHandle = 0;
+
 // used to delay turn on
 bool solenoid_pen_enable; 
 uint16_t solenoide_hold_count;
