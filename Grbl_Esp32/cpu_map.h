@@ -749,10 +749,10 @@
 		
 #endif
 
-#ifdef CPU_MAP_MPCNC
+#ifdef CPU_MAP_MPCNC_V1P2
 	// This is the CPU Map for the Buildlog.net MPCNC controller
 	
-		#define CPU_MAP_NAME "CPU_MAP_MPCNC"
+		#define CPU_MAP_NAME "CPU_MAP_MPCNC_V1P2"
 	
 		// switch to the correct default settings
 		#ifdef DEFAULTS_GENERIC
@@ -778,11 +778,10 @@
 		#define Z_DIRECTION_PIN   GPIO_NUM_33 
 		
 		// OK to comment out to use pin for other features
-		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
-		
+		#define STEPPERS_DISABLE_PIN GPIO_NUM_13				
 				
-		// Note: if you use PWM rather than relay, you could map GPIO_NUM_17 to mist or flood 
-		#define USE_SPINDLE_RELAY
+		// Note: if you use PWM rather than relay, you could map GPIO_NUM_2 to mist or flood 
+		//#define USE_SPINDLE_RELAY
 		
 		#ifdef USE_SPINDLE_RELAY		
 			#define SPINDLE_PWM_PIN    GPIO_NUM_2
@@ -810,12 +809,16 @@
 		
 		// Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
 		// Relay can be used for Spindle or Coolant
-		//#define COOLANT_FLOOD_PIN 	GPIO_NUM_17
+		//#define COOLANT_FLOOD_PIN 	GPIO_NUM_2
 		
 		#define X_LIMIT_PIN      	GPIO_NUM_17 
 		#define Y_LIMIT_PIN      	GPIO_NUM_4  
 		#define Z_LIMIT_PIN     	GPIO_NUM_15 	
 		#define LIMIT_MASK      	B111
+		
+		#ifndef ENABLE_SOFTWARE_DEBOUNCE   // V1P2 does not have R/C filters
+			#define ENABLE_SOFTWARE_DEBOUNCE
+		#endif
 		
 		#define PROBE_PIN       	GPIO_NUM_35  
 		
@@ -826,7 +829,15 @@
 		
 		#define INVERT_CONTROL_PIN_MASK   B1110
 		
-		// Note: check the #define IGNORE_CONTROL_PINS is the way you want in config.h
+		// Note: defualt is #define IGNORE_CONTROL_PINS in config.h
+		// uncomment to these lines to use them		
+		#ifdef IGNORE_CONTROL_PINS
+			#undef IGNORE_CONTROL_PINS
+		#endif
+		
+		
+		
+		
 		#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
 		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
 		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
@@ -896,7 +907,7 @@
 		// Relay can be used for Spindle or Coolant
 		//#define COOLANT_FLOOD_PIN 	GPIO_NUM_17
 		
-		#define X_LIMIT_PIN      	GPIO_NUM_2 
+		#define X_LIMIT_PIN      	GPIO_NUM_34 
 		#define Y_LIMIT_PIN      	GPIO_NUM_4  
 		#define Z_LIMIT_PIN     	GPIO_NUM_15 	
 		#define LIMIT_MASK      	B111
@@ -908,10 +919,10 @@
 			#undef INVERT_CONTROL_PIN_MASK			
 		#endif
 		
-		#define INVERT_CONTROL_PIN_MASK   B1110
+		#define INVERT_CONTROL_PIN_MASK   B1100
 		
 		// Note: check the #define IGNORE_CONTROL_PINS is the way you want in config.h
-		#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
+		//#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
 		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
 		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
 		
