@@ -475,7 +475,7 @@ void WiFiConfig::reset_settings(){
         error = true;
     }
     sval = DEFAULT_STA_PWD;
-    if (prefs.putString(STA_PWD_ENTRY, sval) == 0){
+    if (prefs.putString(STA_PWD_ENTRY, sval) != sval.length()){
         error = true;
     }
     sval = DEFAULT_AP_SSID;
@@ -483,7 +483,7 @@ void WiFiConfig::reset_settings(){
         error = true;
     }
     sval = DEFAULT_AP_PWD;
-    if (prefs.putString(AP_PWD_ENTRY, sval) == 0){
+    if (prefs.putString(AP_PWD_ENTRY, sval) != sval.length()){
         error = true;
     }
     
