@@ -419,10 +419,10 @@ void stepper_init()
 	#endif
 	
 	#ifdef USE_RMT_STEPS
-		grbl_send(CLIENT_SERIAL, "[MSG:Using RMT Steps}\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:Using RMT Steps]\r\n");
 		initRMT();
 	#else
-		grbl_send(CLIENT_SERIAL, "[MSG:Using Timed Steps}\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:Using Timed Steps]\r\n");
 		// make the step pins outputs
 		#ifdef  X_STEP_PIN
 			pinMode(X_STEP_PIN, OUTPUT);
