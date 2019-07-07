@@ -26,6 +26,8 @@
 
 #ifdef USE_SERVO_AXES
 
+static TaskHandle_t servosSyncTaskHandle = 0;
+
 #ifdef SERVO_X_PIN
 	ServoAxis X_Servo_Axis(X_AXIS, SERVO_X_PIN, SERVO_X_CHANNEL_NUM);
 #endif
@@ -73,7 +75,6 @@ void servosSyncTask(void *pvParameters)
 { 
   TickType_t xLastWakeTime;
   const TickType_t xServoFrequency = SERVO_TIMER_INT_FREQ;  // in ticks (typically ms)
-  uint16_t servo_delay_counter = 0;
 
   xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
   while(true) { // don't ever return from this or the task dies
@@ -182,7 +183,7 @@ void ServoAxis::set_location()
   float servo_pulse_min, servo_pulse_max;
   float min_pulse_cal, max_pulse_cal; // calibration values in percent 110% = 1.1
   uint32_t servo_pulse_len;
-	float servo_pos, mpos, offset, wpos;
+	float servo_pos, mpos, offset;
 	
 	// skip location if we are in alarm mode
 	if (_disable_on_alarm && (sys.state == STATE_ALARM)) {
