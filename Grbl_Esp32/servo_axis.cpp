@@ -74,10 +74,9 @@ void servosSyncTask(void *pvParameters)
   TickType_t xLastWakeTime;
   const TickType_t xServoFrequency = SERVO_TIMER_INT_FREQ;  // in ticks (typically ms)
   uint16_t servo_delay_counter = 0;
-  
-  while(true) { // don't ever return from this or the task dies
 
-    vTaskDelayUntil(&xLastWakeTime, xServoFrequency);
+  xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
+  while(true) { // don't ever return from this or the task dies
 		#ifdef SERVO_X_PIN
 			X_Servo_Axis.set_location();
 			
@@ -88,6 +87,7 @@ void servosSyncTask(void *pvParameters)
 		#ifdef SERVO_Z_PIN
 			Z_Servo_Axis.set_location();
 		#endif
+		vTaskDelayUntil(&xLastWakeTime, xServoFrequency);
   }
 } 
 
