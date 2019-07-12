@@ -115,7 +115,7 @@ void calc_solenoid(float penZ)
 	// ledcWrite appears to have issues with interrupts, so make this a critical section
 	portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 	portENTER_CRITICAL(&myMutex);
-			ledcWrite(SOLENOID_CHANNEL_NUM, solenoid_pen_pulse_len);		
+		ledcWrite(SOLENOID_CHANNEL_NUM, solenoid_pen_pulse_len);		
 	portEXIT_CRITICAL(&myMutex);	
 }
 
