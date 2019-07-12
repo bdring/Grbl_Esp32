@@ -40,18 +40,22 @@ static TaskHandle_t servosSyncTaskHandle = 0;
 
 void init_servos()
 {
+	grbl_send(CLIENT_SERIAL, "[MSG: Init Servos]\r\n");
 	#ifdef SERVO_X_PIN
+		grbl_send(CLIENT_SERIAL, "[MSG: Init X Servo]\r\n");
 		X_Servo_Axis.init();
-		Y_Servo_Axis.set_range(SERVO_X_RANGE_MIN, SERVO_X_RANGE_MAX);
+		X_Servo_Axis.set_range(SERVO_X_RANGE_MIN, SERVO_X_RANGE_MAX);
 		X_Servo_Axis.set_homing_type(SERVO_HOMING_OFF);
-		X_Servo_Axis.set_disable_on_alarm(true);
+		X_Servo_Axis.set_disable_on_alarm(false);
 		X_Servo_Axis.set_disable_with_steppers(false);
 	#endif
 	#ifdef SERVO_Y_PIN
+		grbl_send(CLIENT_SERIAL, "[MSG: Init Y Servo]\r\n");
 		Y_Servo_Axis.init();
 		Y_Servo_Axis.set_range(SERVO_Y_RANGE_MIN, SERVO_Y_RANGE_MAX);
 	#endif
 	#ifdef SERVO_Z_PIN
+		grbl_send(CLIENT_SERIAL, "[MSG: Init Z Servo]\r\n");
 		Z_Servo_Axis.init();		
 		Z_Servo_Axis.set_range(SERVO_Z_RANGE_MIN, SERVO_Z_RANGE_MAX);
 		Z_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
@@ -75,12 +79,13 @@ void servosSyncTask(void *pvParameters)
 { 
   TickType_t xLastWakeTime;
   const TickType_t xServoFrequency = SERVO_TIMER_INT_FREQ;  // in ticks (typically ms)
+  
+  
 
   xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
-  while(true) { // don't ever return from this or the task dies
+  while(true) { // don't ever return from this or the task dies	
 		#ifdef SERVO_X_PIN
-			X_Servo_Axis.set_location();
-			
+			X_Servo_Axis.set_location();			
 		#endif
 		#ifdef SERVO_Y_PIN
 			Y_Servo_Axis.set_location();
@@ -105,7 +110,7 @@ void ServoAxis::init()
 {
 	ledcSetup(_channel_num, _pwm_freq, _pwm_resolution_bits);
 	ledcAttachPin(_pin_num, _channel_num);
-  disable();
+	disable();
 }
 /*
 void ServoAxis::set_location()
@@ -140,7 +145,7 @@ void ServoAxis::set_location()
 	}
   
 	// get the calibration values
-	if (_cal_is_valid(false)) { // if calibration settings are OK then apply them
+	if (_cal_is_valid()) { // if calibration settings are OK then apply them
 		min_pulse_cal = (settings.steps_per_mm[_axis] / 100.0);
 		max_pulse_cal = (settings.max_travel[_axis] / -100.0);
 		if (bit_istrue(settings.dir_invert_mask,bit(_axis))) { // the offset needs to be backwards
@@ -214,7 +219,7 @@ void ServoAxis::set_location()
 	}
   
 	// get the calibration values
-	if (_cal_is_valid(false)) { // if calibration settings are OK then apply them
+	if (_cal_is_valid()) { // if calibration settings are OK then apply them
 		min_pulse_cal = (settings.steps_per_mm[_axis] / 100.0);
 		max_pulse_cal = (settings.max_travel[_axis] / -100.0);
 		if (bit_istrue(settings.dir_invert_mask,bit(_axis))) { // the offset needs to be backwards
@@ -264,12 +269,13 @@ void ServoAxis::disable()
 
 // checks to see if calibration values are in an acceptable range
 // vebose = true if you want an error sent to serial port
-bool ServoAxis::_cal_is_valid(bool verbose)
+bool ServoAxis::_cal_is_valid()
 {
   bool settingsOK = true;
+  static bool showError = true; // this will be used to show error only once
 
 	if ( (settings.steps_per_mm[_axis] < SERVO_CAL_MIN) || (settings.steps_per_mm[_axis] > SERVO_CAL_MAX) ) {
-		if (verbose) {
+		if (showError) {
 			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo cal ($10%d) Error: %4.4f s/b between %.2f and %.2f]\r\n", _axis, settings.steps_per_mm[_axis], SERVO_CAL_MIN, SERVO_CAL_MAX);
 		}
 		settingsOK = false;
@@ -277,11 +283,13 @@ bool ServoAxis::_cal_is_valid(bool verbose)
 
 	// Note: Max travel is set positive via $$, but stored as a negative number
 	if ( (settings.max_travel[_axis] < -SERVO_CAL_MAX) || (settings.max_travel[_axis] > -SERVO_CAL_MIN) ) {
-		if (verbose) {
+		if (showError) {
 			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo cal ($13%d) Error: %4.4f s/b between %.2f and %.2f]\r\n", _axis, -settings.max_travel[_axis], SERVO_CAL_MIN, SERVO_CAL_MAX);
 		}
 		settingsOK = false;
 	}
+	
+	showError = false;  // to show error once 
 	return settingsOK;
 }
 
