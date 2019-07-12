@@ -104,10 +104,8 @@ void servoSyncTask(void *pvParameters)
 	float mpos_z, wpos_z;
 	float z_offset;
 
+	xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
 	while(true) { // don't ever return from this or the task dies
-
-		vTaskDelayUntil(&xLastWakeTime, xServoFrequency);
-
 		if (sys.state != STATE_ALARM) {	// don't move until alarm is cleared...typically homing
 			if (!servo_pen_enable ) {
 				servo_delay_counter++;
@@ -120,6 +118,7 @@ void servoSyncTask(void *pvParameters)
 					calc_pen_servo(wpos_z); // calculate kinematics and move the servos
 			}
 		}
+		vTaskDelayUntil(&xLastWakeTime, xServoFrequency);
 	}
 }
 
@@ -169,9 +168,9 @@ void calc_pen_servo(float penZ)
 	// update the PWM value
 	// ledcWrite appears to have issues with interrupts, so make this a critical section
 	portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
-	taskENTER_CRITICAL(&myMutex);
+	portENTER_CRITICAL(&myMutex);
 	ledcWrite(SERVO_PEN_CHANNEL_NUM, servo_pen_pulse_len);
-	taskEXIT_CRITICAL(&myMutex);
+	portEXIT_CRITICAL(&myMutex);
 }
 
 #endif
