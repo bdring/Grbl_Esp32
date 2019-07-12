@@ -85,8 +85,6 @@
 #define SERVO_HOMING_OFF 0 // servo is off during homing
 #define SERVO_HOMING_TARGET 1 // servo is send to a location during homing
 
-static TaskHandle_t servosSyncTaskHandle = 0;
-
 extern float my_location;
 
 void init_servos();
@@ -126,9 +124,7 @@ class ServoAxis{
 				
 		bool _validate_cal_settings();
 		void _write_pwm(uint32_t duty);
-    bool _cal_is_valid(bool verbose); // checks to see if calibration values are in acceptable range
-    
-		
+		bool _cal_is_valid(); // checks to see if calibration values are in acceptable range 
 };
 
 #endif
