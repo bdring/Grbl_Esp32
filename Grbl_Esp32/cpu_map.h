@@ -192,14 +192,20 @@
 		
 		#define CPU_MAP_NAME "CPU_MAP_PEN_LASER"
 		
+		#define USE_RMT_STEPS
+		
 		// Pick a board version
 		//#define PEN_LASER_V1
 		#define PEN_LASER_V2
 
-		#define X_STEP_PIN      GPIO_NUM_12
-		#define Y_STEP_PIN      GPIO_NUM_14		
-		#define X_DIRECTION_PIN   GPIO_NUM_26
-		#define Y_DIRECTION_PIN   GPIO_NUM_25  
+		#define X_STEP_PIN      	GPIO_NUM_12
+		#define X_DIRECTION_PIN   	GPIO_NUM_26
+		#define X_RMT_CHANNEL		0
+		
+		
+		#define Y_STEP_PIN      	GPIO_NUM_14
+		#define Y_DIRECTION_PIN   	GPIO_NUM_25
+		#define Y_RMT_CHANNEL		1
 		
 		#define STEPPERS_DISABLE_PIN GPIO_NUM_13
 		
@@ -232,7 +238,24 @@
 		
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)			
 		
-		#define SERVO_PEN_PIN 					GPIO_NUM_27
+		#define USING_SERVO  // uncommewnt to use this feature
+		#define USING_SOLENOID // uncommewnt to use this feature
+		
+		#ifdef USING_SERVO
+			#define USE_SERVO_AXES 
+			#define SERVO_Z_PIN 	GPIO_NUM_27
+			#define SERVO_Z_CHANNEL_NUM 3
+			#define SERVO_Z_RANGE_MIN 0
+			#define SERVO_Z_RANGE_MAX 10
+		#endif
+		
+		#ifdef USING_SOLENOID
+			#define USE_PEN_SOLENOID
+			#define SOLENOID_PEN_PIN GPIO_NUM_16
+			#define SOLENOID_CHANNEL_NUM 6
+		#endif
+		
+		
 		
 		#ifdef DEFAULTS_GENERIC 
 			#undef DEFAULTS_GENERIC  // undefine generic then define each default below
