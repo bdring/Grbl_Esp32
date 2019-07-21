@@ -37,7 +37,6 @@
 	*/
 		
 
-
 #ifdef CPU_MAP_ESP32
 	// This is the CPU Map for the ESP32 CNC Controller R2	
 	
@@ -180,8 +179,7 @@
 		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
 		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
 		
-#endif
-		
+#endif		
 		
 #ifdef CPU_MAP_PEN_LASER  // The Buildlog.net pen laser controller V1
 
@@ -330,17 +328,22 @@
 		#define Y_LIMIT_PIN      	GPIO_NUM_4
 		#define LIMIT_MASK      	B11		
 		
-		#ifndef USE_PEN_SERVO  // maybe set in config.h
-			#define USE_PEN_SERVO
+		#ifndef USE_SERVO_AXES  // maybe set in config.h
+			#define USE_SERVO_AXES
 		#endif
+		
+		#define SERVO_Z_PIN 					GPIO_NUM_27
+		#define SERVO_Z_CHANNEL_NUM 		5
+		#define SERVO_Z_RANGE_MIN			0.0
+		#define SERVO_Z_RANGE_MAX			5.0
 		
 		#ifndef IGNORE_CONTROL_PINS // maybe set in config.h
 			#define IGNORE_CONTROL_PINS
 		#endif
-		#define CONTROL_SAFETY_DOOR_PIN   GPIO_NUM_35  // needs external pullup
-		#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
-		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
-		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup		
+		//#define CONTROL_SAFETY_DOOR_PIN   GPIO_NUM_35  // needs external pullup
+		//#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
+		//#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
+		//#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup		
 		
 		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
 		// use a virtual spindle. Do not comment out the other parameters for the spindle.
@@ -412,7 +415,7 @@
 		
 		#define DEFAULT_LASER_MODE 0 // false
 		
-		#define DEFAULT_X_STEPS_PER_MM 100.0
+		#define DEFAULT_X_STEPS_PER_MM 200.0
 		#define DEFAULT_Y_STEPS_PER_MM 100.0
 		#define DEFAULT_Z_STEPS_PER_MM 100.0 // This is percent in servo mode
 		
@@ -424,10 +427,9 @@
 		#define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
 		#define DEFAULT_Z_ACCELERATION (100.0*60*60) 
 		
-		#define DEFAULT_X_MAX_TRAVEL 50.0 // mm NOTE: Must be a positive value.
-		#define DEFAULT_Y_MAX_TRAVEL 300.0 // mm NOTE: Must be a positive value.
-		#define DEFAULT_Z_MAX_TRAVEL 100.0 // This is percent in servo mode
-		
+		#define DEFAULT_X_MAX_TRAVEL 100.0 // mm NOTE: Must be a positive value.
+		#define DEFAULT_Y_MAX_TRAVEL 100.0 // mm NOTE: Must be a positive value.
+		#define DEFAULT_Z_MAX_TRAVEL 100.0 // This is percent in servo mode		
 		
 #endif
 
@@ -646,7 +648,6 @@
 		
 		
 #endif
-
 
 #ifdef CPU_MAP_SM // String art machine definition
 	
