@@ -112,74 +112,6 @@ void ServoAxis::init()
 	ledcAttachPin(_pin_num, _channel_num);
 	disable();
 }
-/*
-void ServoAxis::set_location()
-{
-  // These are the pulse lengths for the minimum and maximum positions
-  // Note: Some machines will have the physical max/min inverted with pulse length max/min due to invert setting $3=...
-  float servo_pulse_min, servo_pulse_max;
-  float min_pulse_cal, max_pulse_cal; // calibration values in percent 110% = 1.1
-  uint32_t servo_pulse_len;
-	float mpos, offset, wpos;
-	
-	// skip location if we are in alarm mode
-	if (_disable_on_alarm && (sys.state == STATE_ALARM)) {
-		disable();
-		return;
-	}
-	
-	// track the disable status of the steppers if desired.
-	if (_disable_with_steppers && get_stepper_disable()) {
-		disable();
-		return;
-	}
-	
-	
-	if ( (_homing_type == SERVO_HOMING_TARGET) && (sys.state == STATE_HOMING) ) {
-		wpos = _homing_position; // go to servos home position
-	}
-	else {
-		mpos = system_convert_axis_steps_to_mpos(sys_position, _axis);  // get the axis machine position in mm
-		offset = gc_state.coord_system[_axis]+gc_state.coord_offset[_axis]; // get the current axis work offset
-		wpos = mpos - offset; // determine the current work position	
-	}
-  
-	// get the calibration values
-	if (_cal_is_valid()) { // if calibration settings are OK then apply them
-		min_pulse_cal = (settings.steps_per_mm[_axis] / 100.0);
-		max_pulse_cal = (settings.max_travel[_axis] / -100.0);
-		if (bit_istrue(settings.dir_invert_mask,bit(_axis))) { // the offset needs to be backwards
-			min_pulse_cal = 1.0 + (1.0 - min_pulse_cal);
-			max_pulse_cal = 1.0 + (1.0 - max_pulse_cal);
-		}			
-	}
-	else { // settings are not valid so don't apply any calibration
-		min_pulse_cal = 1.0;
-		max_pulse_cal = 1.0;	
-	}
-	
-	
-  if (bit_istrue(settings.dir_invert_mask,bit(_axis))) { // this allows the user to change the direction via settings		
-		servo_pulse_min = SERVO_MAX_PULSE;
-		servo_pulse_max = SERVO_MIN_PULSE;
-	}
-	else {
-		servo_pulse_min = SERVO_MIN_PULSE;
-		servo_pulse_max = SERVO_MAX_PULSE;
-	}
-	
-	// apply the calibrations
-	servo_pulse_min *= min_pulse_cal;
-	servo_pulse_max *= max_pulse_cal;
-
-  // determine the pulse length
-  servo_pulse_len = (uint32_t)mapConstrain(wpos, 
-        _position_min, _position_max, 
-        servo_pulse_min, servo_pulse_max );
-        
-  _write_pwm(servo_pulse_len);
-}
-*/
 
 void ServoAxis::set_location()
 {
@@ -209,49 +141,52 @@ void ServoAxis::set_location()
 	else {
 		mpos = system_convert_axis_steps_to_mpos(sys_position, _axis);  // get the axis machine position in mm
 		if (_use_mpos) {
-		servo_pos = mpos;
-		
+			servo_pos = mpos;		
 		}
 		else {
 			offset = gc_state.coord_system[_axis]+gc_state.coord_offset[_axis]; // get the current axis work offset
 			servo_pos = mpos - offset; // determine the current work position	
 		}
 	}
+	
+	
+	// 1. Get the pulse ranges of the servos
+	// 2. Invert if selected in the settings
+	// 3. Get the calibration values from the settings
+	// 4. Adjust the calibration offset direction of the cal based on the direction
+	// 5. Apply the calibrarion
+	
+	
+	servo_pulse_min = SERVO_MIN_PULSE;
+	servo_pulse_max = SERVO_MAX_PULSE;
+	
+	if (bit_istrue(settings.dir_invert_mask,bit(_axis))) { // this allows the user to change the direction via settings		
+		swap(servo_pulse_min, servo_pulse_max);
+	}
   
 	// get the calibration values
 	if (_cal_is_valid()) { // if calibration settings are OK then apply them
+	
 		min_pulse_cal = (settings.steps_per_mm[_axis] / 100.0);
 		max_pulse_cal = (settings.max_travel[_axis] / -100.0);
-		if (bit_istrue(settings.dir_invert_mask,bit(_axis))) { // the offset needs to be backwards
-			min_pulse_cal = 1.0 + (1.0 - min_pulse_cal);
-			max_pulse_cal = 1.0 + (1.0 - max_pulse_cal);
-		}			
+		
+		if (bit_istrue(settings.dir_invert_mask,bit(_axis))) {			
+			min_pulse_cal = 2.0 - min_pulse_cal;
+			max_pulse_cal = 2.0 - max_pulse_cal;			
+		}				
 	}
 	else { // settings are not valid so don't apply any calibration
 		min_pulse_cal = 1.0;
-		max_pulse_cal = 1.0;	
-	}
-	
-	
-  if (bit_istrue(settings.dir_invert_mask,bit(_axis))) { // this allows the user to change the direction via settings		
-		servo_pulse_min = SERVO_MAX_PULSE;
-		servo_pulse_max = SERVO_MIN_PULSE;
-	}
-	else {
-		servo_pulse_min = SERVO_MIN_PULSE;
-		servo_pulse_max = SERVO_MAX_PULSE;
+		max_pulse_cal = 1.0;
 	}
 	
 	// apply the calibrations
 	servo_pulse_min *= min_pulse_cal;
 	servo_pulse_max *= max_pulse_cal;
 	
-  // determine the pulse length
-  servo_pulse_len = (uint32_t)mapConstrain(servo_pos, 
-        _position_min, _position_max, 
-        servo_pulse_min, servo_pulse_max );
-        
-  _write_pwm(servo_pulse_len);
+	// determine the pulse length
+	servo_pulse_len = (uint32_t)mapConstrain(servo_pos, _position_min, _position_max, servo_pulse_min, servo_pulse_max );
+	_write_pwm(servo_pulse_len);
 }
 
 void ServoAxis::_write_pwm(uint32_t duty)
@@ -289,7 +224,7 @@ bool ServoAxis::_cal_is_valid()
 		settingsOK = false;
 	}
 	
-	showError = false;  // to show error once 
+	//showError = false;  // to show error once 
 	return settingsOK;
 }
 
