@@ -85,4 +85,9 @@ float mapConstrain(float x, float in_min, float in_max, float out_min, float out
 float map_float(float x, float in_min, float in_max, float out_min, float out_max);
 float constrain_float(float in, float min, float max);
 
+template <class T> void swap ( T& a, T& b )
+{
+  T c(a); a=b; b=c;
+}
+
 #endif
