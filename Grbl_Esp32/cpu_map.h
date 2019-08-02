@@ -86,7 +86,7 @@
 		
 		#define SPINDLE_ENABLE_PIN	GPIO_NUM_22
 		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
+		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)				
 		
 		// if these spindle function pins are defined, they will be activated in the code
 		// comment them out to use the pins for other functions
@@ -105,6 +105,65 @@
 		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
 		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
 		
+#endif
+
+#ifdef CPU_MAP_ESPDUINO_32
+    // !!!! Experimental Untested !!!!!
+	// This is a CPU MAP for ESPDUINO-32 Boards and Protoneer V3 boards
+	// Note: Probe pin is mapped, but will require a 10k external pullup to 3.3V to work.
+	#define CPU_MAP_NAME "CPU_MAP_ESPDUINO_32"	
+	
+	#define USE_RMT_STEPS
+	
+	#define X_STEP_PIN      		GPIO_NUM_26  // Uno D2
+	#define X_DIRECTION_PIN  		GPIO_NUM_16  // Uno D5
+	#define X_RMT_CHANNEL			0
+	
+	#define Y_STEP_PIN      		GPIO_NUM_25  // Uno D3
+	#define Y_DIRECTION_PIN   	GPIO_NUM_27  // Uno D6
+	#define Y_RMT_CHANNEL			1
+	
+	#define Z_STEP_PIN      		GPIO_NUM_17	// Uno D4
+	#define Z_DIRECTION_PIN   	GPIO_NUM_14	// Uno D7
+	#define Z_RMT_CHANNEL			2		
+	
+	// OK to comment out to use pin for other features
+	#define STEPPERS_DISABLE_PIN GPIO_NUM_12	// Uno D8
+			
+	#define SPINDLE_PWM_PIN    GPIO_NUM_19    // Uno D11
+	#define SPINDLE_PWM_CHANNEL 0
+	// PWM Generator is based on 80,000,000 Hz counter
+	// Therefor the freq determines the resolution
+	// 80,000,000 / freq = max resolution
+	// For 5000 that is 80,000,000 / 5000 = 16000 
+	// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
+	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+	#define SPINDLE_PWM_OFF_VALUE     0
+	#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
+	
+	#ifndef SPINDLE_PWM_MIN_VALUE
+			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+	#endif	
+	
+	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
+	
+	#define SPINDLE_DIR_PIN		GPIO_NUM_18	// Uno D13
+	
+	#define COOLANT_FLOOD_PIN 	GPIO_NUM_34  // Uno A3
+	#define COOLANT_MIST_PIN   	GPIO_NUM_36// Uno A4
+	
+	#define X_LIMIT_PIN      		GPIO_NUM_13  // Uno D9
+	#define Y_LIMIT_PIN      		GPIO_NUM_5   // Uno D10
+	#define Z_LIMIT_PIN     		GPIO_NUM_19  // Uno D12	
+	#define LIMIT_MASK      		B111
+	
+	#define PROBE_PIN       		GPIO_NUM_39  // Uno A5		
+	
+	// comment out #define IGNORE_CONTROL_PINS in config.h to use control pins  	
+	#define CONTROL_RESET_PIN         GPIO_NUM_2  // Uno A0
+	#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_4  // Uno A1 
+	#define CONTROL_CYCLE_START_PIN   GPIO_NUM_35  // Uno A2 ... ESP32 needs external pullup
 #endif
 
 #ifdef CPU_MAP_ESP32_ESC_SPINDLE
