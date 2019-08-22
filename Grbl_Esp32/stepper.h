@@ -32,7 +32,7 @@
 
 
 #include "grbl.h"
-//#include "config.h"
+#include "config.h"
 
 // Some useful constants.
 #define DT_SEGMENT (1.0/(ACCELERATION_TICKS_PER_SECOND*60.0)) // min/segment
@@ -81,8 +81,11 @@ extern uint8_t ganged_mode;
 // -- Task handles for use in the notifications
 void IRAM_ATTR onSteppertimer();
 void IRAM_ATTR onStepperOffTimer();
-void stepper_init();
-void initRMT(); 
+
+  void initRMT();
+  inline IRAM_ATTR static void stepperRMT_Outputs();
+
+void stepper_init(); 
 
 // Enable steppers, but cycle does not start unless called by motion control or realtime command.
 void st_wake_up();
