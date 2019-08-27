@@ -41,14 +41,24 @@ void settings_init()
 	EEPROM.begin(EEPROM_SIZE);
   
   if(!read_global_settings()) {
-    report_status_message(STATUS_SETTING_READ_FAIL);
+    report_status_message(STATUS_SETTING_READ_FAIL, CLIENT_SERIAL);
     settings_restore(SETTINGS_RESTORE_ALL); // Force restore all EEPROM data.
-    report_grbl_settings();
+    report_grbl_settings(CLIENT_SERIAL); // only the serial could be working at this point
   }
 }
 
 // Method to restore EEPROM-saved Grbl global settings back to defaults.
 void settings_restore(uint8_t restore_flag) {
+#if defined(ENABLE_BLUETOOTH) || defined(ENABLE_WIFI)
+  if (restore_flag & SETTINGS_RESTORE_WIFI_SETTINGS){
+#ifdef ENABLE_WIFI
+      wifi_config.reset_settings();
+#endif
+#ifdef ENABLE_BLUETOOTH
+      bt_config.reset_settings();
+#endif
+  }
+#endif
   if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {
     settings.pulse_microseconds = DEFAULT_STEP_PULSE_MICROSECONDS;
     settings.stepper_idle_lock_time = DEFAULT_STEPPER_IDLE_LOCK_TIME;
@@ -331,9 +341,7 @@ uint8_t get_step_pin_mask(uint8_t axis_idx)
 
 // Returns direction pin mask according to Grbl internal axis indexing.
 uint8_t get_direction_pin_mask(uint8_t axis_idx)
-{    
-  if ( axis_idx == X_AXIS ) { return((1<<X_DIRECTION_BIT)); }
-  if ( axis_idx == Y_AXIS ) { return((1<<Y_DIRECTION_BIT)); }
-  return((1<<Z_DIRECTION_BIT));
+{      
+	return(1<<axis_idx);
 }
 

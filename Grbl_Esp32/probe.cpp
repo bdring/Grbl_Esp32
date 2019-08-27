@@ -31,7 +31,7 @@ uint8_t probe_invert_mask;
 // Probe pin initialization routine.
 void probe_init()
 {
-  
+#ifdef PROBE_PIN
   #ifdef DISABLE_PROBE_PIN_PULL_UP
     pinMode(PROBE_PIN, INPUT);
   #else
@@ -40,6 +40,7 @@ void probe_init()
 
   
   probe_configure_invert_mask(false); // Initialize invert mask.
+#endif
 }
 
 
@@ -56,7 +57,11 @@ void probe_configure_invert_mask(uint8_t is_probe_away)
 // Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
 uint8_t probe_get_state() 
 { 
+#ifdef PROBE_PIN
 	return((digitalRead(PROBE_PIN)) ^ probe_invert_mask); 
+#else
+	return false;
+#endif
 }
 
 

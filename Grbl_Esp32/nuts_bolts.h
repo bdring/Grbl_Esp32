@@ -21,8 +21,6 @@
 #ifndef nuts_bolts_h
 #define nuts_bolts_h
 
-
-
 #define false 0
 #define true 1
 
@@ -35,10 +33,17 @@
 #define Z_AXIS 2
 // #define A_AXIS 3
 
+// CoreXY motor assignments. DO NOT ALTER.
+// NOTE: If the A and B motor axis bindings are changed, this effects the CoreXY equations.
+#define A_MOTOR X_AXIS // Must be X_AXIS
+#define B_MOTOR Y_AXIS // Must be Y_AXIS
+
+
+
 // Conversions
 #define MM_PER_INCH (25.40)
 #define INCH_PER_MM (0.0393701)
-#define TICKS_PER_MICROSECOND (F_STEPPER_TIMER/1000000) // Diffferent from AVR version 
+#define TICKS_PER_MICROSECOND (F_STEPPER_TIMER/1000000) // Different from AVR version 
 
 #define DELAY_MODE_DWELL       0
 #define DELAY_MODE_SYS_SUSPEND 1
@@ -47,12 +52,13 @@
 #define clear_vector(a) memset(a, 0, sizeof(a))
 #define clear_vector_float(a) memset(a, 0.0, sizeof(float)*N_AXIS)
 // #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*N_AXIS)
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
 #define isequal_position_vector(a,b) !(memcmp(a, b, sizeof(float)*N_AXIS))
 
 // Bit field and masking macros
-#define bit(n) (1 << n)
+//Arduino.h:104:0: note: this is the location of the previous definition
+//#define bit(n) (1 << n)
 #define bit_true(x,mask) (x) |= (mask)
 #define bit_false(x,mask) (x) &= ~(mask)
 #define bit_istrue(x,mask) ((x & mask) != 0)
@@ -75,8 +81,13 @@ float hypot_f(float x, float y);
 float convert_delta_vector_to_unit_vector(float *vector);
 float limit_value_by_axis_maximum(float *max_value, float *unit_vec);
 
-//int constrain(int val, int min, int max);
-//long map(long x, long in_min, long in_max, long out_min, long out_max);
-long mapConstrain(long x, long in_min, long in_max, long out_min, long out_max);
+float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
+float map_float(float x, float in_min, float in_max, float out_min, float out_max);
+float constrain_float(float in, float min, float max);
+
+template <class T> void swap ( T& a, T& b )
+{
+  T c(a); a=b; b=c;
+}
 
 #endif

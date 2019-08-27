@@ -46,22 +46,33 @@ void setup() {
   system_ini();   // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
 	
 	 
-	#ifdef ENABLE_BLUETOOTH
+	//#ifdef ENABLE_BLUETOOTH
 	// if $I has some text, that is the bluetooth name
 	// This is a temporary convenience until a new setting is defined
-	char line[LINE_BUFFER_SIZE];
-	settings_read_build_info(line);
-	if (line[0] != '\0') {
-		// just send to serial because it is the only interface available
-		Serial.printf("Starting Bluetooth:%s", line); 
-		bluetooth_init(line);	
-	}
-	#endif
+	//char line[LINE_BUFFER_SIZE];
+	//settings_read_build_info(line);
+	//if (line[0] != '\0') {
+	//	// just send to serial because it is the only interface available
+	//	Serial.printf("Starting Bluetooth:%s", line); 
+	//	bluetooth_init(line);	
+	//}
+	//#endif
 
   
 
   memset(sys_position,0,sizeof(sys_position)); // Clear machine position.
 
+	#ifdef USE_PEN_SERVO
+		servo_init();
+	#endif
+	
+	#ifdef USE_SERVO_AXES
+		init_servos();
+	#endif
+	
+	#ifdef USE_PEN_SOLENOID
+		solenoid_init();
+	#endif
   
   // Initialize system state.
   #ifdef FORCE_INITIALIZATION_ALARM
@@ -81,7 +92,12 @@ void setup() {
   #ifdef HOMING_INIT_LOCK
     if (bit_istrue(settings.flags,BITFLAG_HOMING_ENABLE)) { sys.state = STATE_ALARM; }
   #endif
-		
+#ifdef ENABLE_WIFI
+    wifi_config.begin();
+#endif
+#ifdef ENABLE_BLUETOOTH
+    bt_config.begin();
+#endif
 }
 
 void loop() {  
@@ -101,7 +117,7 @@ void loop() {
   sys_rt_exec_accessory_override = 0;
 
   // Reset Grbl primary systems.
-  serial_reset_read_buffer(); // Clear serial read buffer
+  serial_reset_read_buffer(CLIENT_ALL); // Clear serial read buffer
   
   gc_init(); // Set g-code parser to default state  
   
@@ -119,7 +135,7 @@ void loop() {
    
   
   // put your main code here, to run repeatedly:
-  report_init_message();
+  report_init_message(CLIENT_ALL);
 	
   // Start Grbl main loop. Processes program inputs and executes them.  
   protocol_main_loop();   

@@ -3,7 +3,7 @@
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 	
-	2018 -	Bart Dring This file was modifed for use on the ESP32
+	2018 -	Bart Dring This file was modified for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 	
   Grbl is free software: you can redistribute it and/or modify
@@ -24,18 +24,26 @@
 void system_ini() // Renamed from system_init() due to conflict with esp32 files
 {	
 	// setup control inputs
-	#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
+#ifndef IGNORE_CONTROL_PINS	
+	
+	#ifdef CONTROL_SAFETY_DOOR_PIN
 		pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT);
-  #endif
-  pinMode(CONTROL_RESET_PIN, INPUT);
-  pinMode(CONTROL_FEED_HOLD_PIN, INPUT);
-  pinMode(CONTROL_CYCLE_START_PIN, INPUT);
+		attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
+	#endif
+	#ifdef CONTROL_RESET_PIN
+		pinMode(CONTROL_RESET_PIN, INPUT);
+		attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
+	#endif
+	#ifdef CONTROL_FEED_HOLD_PIN
+		pinMode(CONTROL_FEED_HOLD_PIN, INPUT);
+		attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
+	#endif
+	#ifdef CONTROL_CYCLE_START_PIN
+		pinMode(CONTROL_CYCLE_START_PIN, INPUT);
+		attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
+	#endif
 
-  // attach interrupt to them
-  attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE); 
+#endif
 }
 
 void IRAM_ATTR isr_control_inputs()
@@ -45,6 +53,7 @@ void IRAM_ATTR isr_control_inputs()
   if (pin) {
     if (bit_istrue(pin,CONTROL_PIN_INDEX_RESET)) 
 		{
+			grbl_send(CLIENT_SERIAL, "[MSG:Reset via control pin]\r\n"); // help debug reason for reset
       mc_reset();
     } 
 		else if (bit_istrue(pin,CONTROL_PIN_INDEX_CYCLE_START)) 
@@ -72,11 +81,11 @@ void system_execute_startup(char *line)
   for (n=0; n < N_STARTUP_LINE; n++) {
     if (!(settings_read_startup_line(n, line))) {
       line[0] = 0;
-      report_execute_startup_message(line,STATUS_SETTING_READ_FAIL);
+      report_execute_startup_message(line,STATUS_SETTING_READ_FAIL, CLIENT_SERIAL);
     } else {
       if (line[0] != 0) {
-        uint8_t status_code = gc_execute_line(line);
-        report_execute_startup_message(line,status_code);
+        uint8_t status_code = gc_execute_line(line, CLIENT_SERIAL);
+        report_execute_startup_message(line,status_code, CLIENT_SERIAL);
       }
     }
   }
@@ -90,29 +99,30 @@ void system_execute_startup(char *line)
 // the lines that are processed afterward, not necessarily real-time during a cycle,
 // since there are motions already stored in the buffer. However, this 'lag' should not
 // be an issue, since these commands are not typically used during a cycle.
-uint8_t system_execute_line(char *line)
+uint8_t system_execute_line(char *line, uint8_t client)
 {
   uint8_t char_counter = 1;
   uint8_t helper_var = 0; // Helper variable
   float parameter, value;
+	
   switch( line[char_counter] ) {
-    case 0 : report_grbl_help(); break;
+    case 0 : report_grbl_help(client); break;
     case 'J' : // Jogging
       // Execute only if in IDLE or JOG states.
       if (sys.state != STATE_IDLE && sys.state != STATE_JOG) { return(STATUS_IDLE_ERROR); }
       if(line[2] != '=') { return(STATUS_INVALID_STATEMENT); }
-      return(gc_execute_line(line)); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
+      return(gc_execute_line(line, client)); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
       break;
     case '$': case 'G': case 'C': case 'X':
       if ( line[2] != 0 ) { return(STATUS_INVALID_STATEMENT); }
       switch( line[1] ) {
         case '$' : // Prints Grbl settings
           if ( sys.state & (STATE_CYCLE | STATE_HOLD) ) { return(STATUS_IDLE_ERROR); } // Block during cycle. Takes too long to print.
-          else { report_grbl_settings(); }
+          else { report_grbl_settings(client); }
           break;
         case 'G' : // Prints gcode parser state
           // TODO: Move this to realtime commands for GUIs to request this data during suspend-state.
-          report_gcode_modes();
+          report_gcode_modes(client);
           break;
         case 'C' : // Set check g-code mode [IDLE/CHECK]
           // Perform reset when toggling off. Check g-code mode should only work if Grbl
@@ -144,7 +154,7 @@ uint8_t system_execute_line(char *line)
       switch( line[1] ) {
         case '#' : // Print Grbl NGC parameters
           if ( line[2] != 0 ) { return(STATUS_INVALID_STATEMENT); }
-          else { report_ngc_parameters(); }
+          else { report_ngc_parameters(client); }
           break;
         case 'H' : // Perform homing cycle [IDLE/ALARM]
           if (bit_isfalse(settings.flags,BITFLAG_HOMING_ENABLE)) {return(STATUS_SETTING_DISABLED); }
@@ -175,7 +185,7 @@ uint8_t system_execute_line(char *line)
         case 'I' : // Print or store build info. [IDLE/ALARM]
           if ( line[++char_counter] == 0 ) {
             settings_read_build_info(line);
-            report_build_info(line);
+            report_build_info(line, client);
           #ifdef ENABLE_BUILD_INFO_WRITE_COMMAND
             } else { // Store startup line [IDLE/ALARM]
               if(line[char_counter++] != '=') { return(STATUS_INVALID_STATEMENT); }
@@ -199,6 +209,9 @@ uint8_t system_execute_line(char *line)
             #ifdef ENABLE_RESTORE_EEPROM_WIPE_ALL
               case '*': settings_restore(SETTINGS_RESTORE_ALL); break;
             #endif
+            #if defined(ENABLE_BLUETOOTH) || defined(ENABLE_WIFI)
+            case '@': settings_restore(SETTINGS_RESTORE_WIFI_SETTINGS); break;
+            #endif
             default: return(STATUS_INVALID_STATEMENT);
           }
           report_feedback_message(MESSAGE_RESTORE_DEFAULTS);
@@ -208,9 +221,9 @@ uint8_t system_execute_line(char *line)
           if ( line[++char_counter] == 0 ) { // Print startup lines
             for (helper_var=0; helper_var < N_STARTUP_LINE; helper_var++) {
               if (!(settings_read_startup_line(helper_var, line))) {
-                report_status_message(STATUS_SETTING_READ_FAIL);
+                report_status_message(STATUS_SETTING_READ_FAIL, CLIENT_SERIAL);
               } else {
-                report_startup_line(helper_var,line);
+                report_startup_line(helper_var,line, client);
               }
             }
             break;
@@ -219,6 +232,7 @@ uint8_t system_execute_line(char *line)
             helper_var = true;  // Set helper_var to flag storing method.
             // No break. Continues into default: to read remaining command characters.
           }
+
         default :  // Storing setting methods [IDLE/ALARM]
           if(!read_float(line, &char_counter, &parameter)) { return(STATUS_BAD_NUMBER_FORMAT); }
           if(line[char_counter++] != '=') { return(STATUS_INVALID_STATEMENT); }
@@ -229,7 +243,7 @@ uint8_t system_execute_line(char *line)
               line[char_counter-helper_var] = line[char_counter];
             } while (line[char_counter++] != 0);
             // Execute gcode block to ensure block is valid.
-            helper_var = gc_execute_line(line); // Set helper_var to returned status code.
+            helper_var = gc_execute_line(line, CLIENT_SERIAL); // Set helper_var to returned status code.
             if (helper_var) { return(helper_var); }
             else {
               helper_var = trunc(parameter); // Set helper_var to int value of parameter
@@ -380,23 +394,34 @@ uint8_t system_check_travel_limits(float *target)
 // defined by the CONTROL_PIN_INDEX in the header file.
 uint8_t system_control_get_state()
 {
+	uint8_t defined_pin_mask = 0; // a mask of defined pins 	
+	
 	#ifdef IGNORE_CONTROL_PINS
 		return 0;
 	#endif	
 	
-	
   uint8_t control_state = 0;
-	#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-  if (digitalRead(CONTROL_SAFETY_DOOR_PIN)) { control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR; } 
+	#ifdef CONTROL_SAFETY_DOOR_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_SAFETY_DOOR;
+		if (digitalRead(CONTROL_SAFETY_DOOR_PIN)) { control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR; }
 	#endif
-  if (digitalRead(CONTROL_RESET_PIN)) { control_state |= CONTROL_PIN_INDEX_RESET; }
-  if (digitalRead(CONTROL_FEED_HOLD_PIN)) { control_state |= CONTROL_PIN_INDEX_FEED_HOLD; }
-  if (digitalRead(CONTROL_CYCLE_START_PIN)) { control_state |= CONTROL_PIN_INDEX_CYCLE_START; }   
+	#ifdef CONTROL_RESET_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_RESET;
+		if (digitalRead(CONTROL_RESET_PIN)) { control_state |= CONTROL_PIN_INDEX_RESET; }
+	#endif
+	#ifdef CONTROL_FEED_HOLD_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_FEED_HOLD;
+		if (digitalRead(CONTROL_FEED_HOLD_PIN)) { control_state |= CONTROL_PIN_INDEX_FEED_HOLD; }	
+	#endif
+	#ifdef CONTROL_CYCLE_START_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_CYCLE_START;
+		if (digitalRead(CONTROL_CYCLE_START_PIN)) { control_state |= CONTROL_PIN_INDEX_CYCLE_START; }   
+	#endif
 	
   #ifdef INVERT_CONTROL_PIN_MASK
-    control_state ^= INVERT_CONTROL_PIN_MASK;
+    control_state ^= (INVERT_CONTROL_PIN_MASK & defined_pin_mask);
   #endif  
-  
+	  
   return(control_state);  
 }
 
@@ -407,4 +432,15 @@ uint8_t get_limit_pin_mask(uint8_t axis_idx)
   if ( axis_idx == Y_AXIS ) { return((1<<Y_LIMIT_BIT)); }
   return((1<<Z_LIMIT_BIT));
 }
+
+// CoreXY calculation only. Returns x or y-axis "steps" based on CoreXY motor steps.
+int32_t system_convert_corexy_to_x_axis_steps(int32_t *steps)
+{
+	return( (steps[A_MOTOR] + steps[B_MOTOR])/2 );
+}
+int32_t system_convert_corexy_to_y_axis_steps(int32_t *steps)
+{
+	return( (steps[A_MOTOR] - steps[B_MOTOR])/2 );
+}
+
 

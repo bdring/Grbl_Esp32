@@ -46,13 +46,65 @@ Some features should not be changed. See notes below.
 // one configuration file by placing their specific defaults and pin map at the bottom of this file.
 // If doing so, simply comment out these two defines and see instructions below.
 #define DEFAULTS_GENERIC
-#define CPU_MAP_ESP32 // currently not required
+#define CPU_MAP_ESP32 // these are defined in cpu_map.h
 #define VERBOSE_HELP // adds addition help info, but could confuse some senders
+
 
 // Serial baud rate
 #define BAUD_RATE 115200
 
 #define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
+
+#define ENABLE_SD_CARD // enable use of SD Card to run jobs
+
+#define ENABLE_WIFI //enable wifi
+
+#define ENABLE_HTTP //enable HTTP and all related services
+#define ENABLE_OTA  //enable OTA
+#define ENABLE_TELNET //enable telnet
+#define ENABLE_TELNET_WELCOME_MSG //display welcome string when connect to telnet
+#define ENABLE_MDNS //enable mDNS discovery
+#define ENABLE_SSDP //enable UPNP discovery
+#define ENABLE_NOTIFICATIONS //enable notifications
+
+#define ENABLE_SERIAL2SOCKET_IN
+#define ENABLE_SERIAL2SOCKET_OUT
+
+#define ENABLE_CAPTIVE_PORTAL
+//#define ENABLE_AUTHENTICATION
+
+#define NAMESPACE "GRBL"
+#define ESP_RADIO_MODE "RADIO_MODE"
+
+#ifdef ENABLE_AUTHENTICATION
+#define DEFAULT_ADMIN_PWD "admin"
+#define DEFAULT_USER_PWD  "user";
+#define DEFAULT_ADMIN_LOGIN  "admin"
+#define DEFAULT_USER_LOGIN "user"
+#define ADMIN_PWD_ENTRY "ADMIN_PWD"
+#define USER_PWD_ENTRY "USER_PWD"
+#define AUTH_ENTRY_NB 20
+#define MAX_LOCAL_PASSWORD_LENGTH   16
+#define MIN_LOCAL_PASSWORD_LENGTH   1
+#endif
+
+//Radio Mode
+#define ESP_RADIO_OFF 0
+#define ESP_WIFI_STA 1
+#define ESP_WIFI_AP  2
+#define ESP_BT       3
+
+ //Default mode
+#ifdef ENABLE_WIFI
+#define DEFAULT_RADIO_MODE ESP_WIFI_AP
+#else
+    #undef ENABLE_NOTIFICATIONS
+    #ifdef ENABLE_BLUETOOTH
+    #define DEFAULT_RADIO_MODE ESP_BT
+    #else
+    #define DEFAULT_RADIO_MODE ESP_RADIO_OFF
+    #endif
+#endif
 
 // Define realtime command special characters. These characters are 'picked-off' directly from the
 // serial read data stream and are not passed to the grbl line execution parser. Select characters
@@ -69,7 +121,7 @@ Some features should not be changed. See notes below.
 // NOTE: All override realtime commands must be in the extended ASCII character set, starting
 // at character value 128 (0x80) and up to 255 (0xFF). If the normal set of realtime commands,
 // such as status reports, feed hold, reset, and cycle start, are moved to the extended set
-// space, serial.c's RX ISR will need to be modified to accomodate the change.
+// space, serial.c's RX ISR will need to be modified to accommodate the change.
 // #define CMD_RESET 0x80
 // #define CMD_STATUS_REPORT 0x81
 // #define CMD_CYCLE_START 0x82
@@ -105,13 +157,13 @@ Some features should not be changed. See notes below.
 // pull-off motion to disengage the limit switches. The following HOMING_CYCLE_x defines are executed
 // in order starting with suffix 0 and completes the homing routine for the specified-axes only. If
 // an axis is omitted from the defines, it will not home, nor will the system update its position.
-// Meaning that this allows for users with non-standard cartesian machines, such as a lathe (x then z,
+// Meaning that this allows for users with non-standard Cartesian machines, such as a lathe (x then z,
 // with no y), to configure the homing cycle behavior to their needs.
 // NOTE: The homing cycle is designed to allow sharing of limit pins, if the axes are not in the same
 // cycle, but this requires some pin settings changes in cpu_map.h file. For example, the default homing
 // cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
 // By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
-// may be reduced to one pin, if all axes are homed with seperate cycles, or vice versa, all three axes
+// may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
 // on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
 // will not be affected by pin sharing.
 // NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
@@ -156,6 +208,7 @@ Some features should not be changed. See notes below.
 // values cannot be less than 0.001mm or 0.0001in, because machines can not be physically more
 // precise this. So, there is likely no need to change these, but you can if you need to here.
 // NOTE: Must be an integer value from 0 to ~4. More than 4 may exhibit round-off errors.
+// ESP32 Note: These are mostly hard coded, so these values will not change anything
 #define N_DECIMAL_COORDVALUE_INCH 4 // Coordinate or position value in inches
 #define N_DECIMAL_COORDVALUE_MM   3 // Coordinate or position value in mm
 #define N_DECIMAL_RATEVALUE_INCH  1 // Rate or velocity value in in/min
@@ -183,13 +236,15 @@ Some features should not be changed. See notes below.
 // Enables a second coolant control pin via the mist coolant g-code command M7 on the Arduino Uno
 // analog pin 4. Only use this option if you require a second coolant control pin.
 // NOTE: The M8 flood coolant control pin on analog pin 3 will still be functional regardless.
-//#define ENABLE_M7 // Disabled by default. Uncomment to enable.
+// ESP32 NOTE! This is here for reference only. You enable both M7 and M8 by assigning them a GPIO Pin
+// in cpu_map.h
+//#define ENABLE_M7 // Don't uncomment...see above!
 
 // This option causes the feed hold input to act as a safety door switch. A safety door, when triggered,
 // immediately forces a feed hold and then safely de-energizes the machine. Resuming is blocked until
 // the safety door is re-engaged. When it is, Grbl will re-energize the machine and then resume on the
 // previous tool path, as if nothing happened.
-//#define ENABLE_SAFETY_DOOR_INPUT_PIN  // Default disabled. Uncomment to enable.
+#define ENABLE_SAFETY_DOOR_INPUT_PIN // ESP32 Leave this enabled for now .. code for undefined not ready
 
 // After the safety door switch has been toggled and restored, this setting sets the power-up delay
 // between restoring the spindle and coolant and resuming the cycle.
@@ -205,16 +260,29 @@ Some features should not be changed. See notes below.
 // have the same steps per mm internally.
 // #define COREXY // Default disabled. Uncomment to enable.
 
+// Enable using a servo for the Z axis on a pen type machine.
+// You typically should not define a pin for the Z axis in cpu_map.h
+// You should configure your settings in servo_pen.h
+// #define USE_PEN_SERVO    // this method will be deprecated soon
+// #define USE_SERVO_AXES  // the new method
+// define your servo pin here or in cpu_map.h
+//#define SERVO_PEN_PIN 					GPIO_NUM_27
+
+// Enable using a solenoid for the Z axis on a pen type machine
+// #define USE_PEN_SOLENOID
+
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
-// NOTE: The top option will mask and invert all control pins. The bottom option is an example of
-// inverting only two control pins, the safety door and reset. See cpu_map.h for other bit definitions.
-//#define INVERT_CONTROL_PIN_MASK CONTROL_MASK // Default disabled. Uncomment to disable.
+// The mask order is Cycle Start | Feed Hold | Reset | Safety Door
+// For example B1101 will invert the function of the Reset pin.
+#define INVERT_CONTROL_PIN_MASK   B1111
 
 // This allows control pins to be ignored.
 // Since these are typically used on the pins that don't have pullups, they will float and cause
 // problems if not externally pulled up. Ignoring will always return not activated when read.
-//#define IGNORE_CONTROL_PINS
+#define IGNORE_CONTROL_PINS
+
+
 
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.
@@ -434,6 +502,15 @@ Some features should not be changed. See notes below.
 // time step. Also, keep in mind that the Arduino delay timer is not very accurate for long delays.
 #define DWELL_TIME_STEP 50 // Integer (1-255) (milliseconds)
 
+
+// For test use only. This uses the ESP32's RMT perifieral to generate step pulses
+// It allows the use of the STEP_PULSE_DELAY (see below) and it automatically ends the
+// pulse in one operation.
+// Dir Pin  ____|--------------------
+// Step Pin _______|--|____________
+// While this is experimental, it is intended to be the future default method after testing
+//#define USE_RMT_STEPS
+
 // Creates a delay between the direction pin setting and corresponding step pulse by creating
 // another interrupt (Timer2 compare) to manage it. The main Grbl interrupt (Timer1 compare)
 // sets the direction pins, and does not immediately set the stepper pins, as it would in
@@ -443,8 +520,8 @@ Some features should not be changed. See notes below.
 // NOTE: Uncomment to enable. The recommended delay must be > 3us, and, when added with the
 // user-supplied step pulse time, the total time must not exceed 127us. Reported successful
 // values for certain setups have ranged from 5 to 20us.
-// !!!!! ESP32 Not currently implemented
-// #define STEP_PULSE_DELAY 10 // Step pulse delay in microseconds. Default disabled.
+// must use #define USE_RMT_STEPS for this to work
+//#define STEP_PULSE_DELAY 10 // Step pulse delay in microseconds. Default disabled.
 
 // The number of linear motions in the planner buffer to be planned at any give time. The vast
 // majority of RAM that Grbl uses is based on this buffer size. Only increase if there is extra
@@ -484,14 +561,11 @@ Some features should not be changed. See notes below.
 // #define RX_BUFFER_SIZE 128 // (1-254) Uncomment to override defaults in serial.h
 // #define TX_BUFFER_SIZE 100 // (1-254)
 
-// A simple software debouncing feature for hard limit switches. When enabled, the interrupt 
-// monitoring the hard limit switch pins will enable the Arduino's watchdog timer to re-check 
-// the limit pin state after a delay of about 32msec. This can help with CNC machines with 
-// problematic false triggering of their hard limit switches, but it WILL NOT fix issues with 
-// electrical interference on the signal cables from external sources. It's recommended to first
-// use shielded signal cables with their shielding connected to ground (old USB/computer cables 
-// work well and are cheap to find) and wire in a low-pass circuit into each limit pin.
-// #define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
+// A simple software debouncing feature for hard limit switches. When enabled, the limit 
+// switch interrupt unblock a waiting task which will recheck the limit switch pins after 
+// a short delay. Default disabled
+//#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
+#define DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
 
 // Configures the position after a probing cycle during Grbl's check mode. Disabled sets
 // the position to the probe target, when enabled sets the position to the start position.
@@ -648,4 +722,3 @@ Some features should not be changed. See notes below.
 
 
 #endif
-

@@ -20,30 +20,34 @@
 
 // Grbl versioning system
 #define GRBL_VERSION "1.1f"
-#define GRBL_VERSION_BUILD "20180823"
+#define GRBL_VERSION_BUILD "20190708"
 
 //#include <sdkconfig.h>
-#include <arduino.h>
+#include <Arduino.h>
 #include <EEPROM.h>
 #include <driver/rmt.h>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
 
+#include "driver/timer.h"
+
 // Define the Grbl system include files. NOTE: Do not alter organization.
 #include "config.h"
+#include "nuts_bolts.h"
 #include "cpu_map.h"
 #include "tdef.h"
-#include "nuts_bolts.h"
+
 #include "defaults.h"
 #include "settings.h"
 #include "system.h"
 
 #include "planner.h"
 #include "coolant_control.h"
-#include "eeprom.h"
+#include "grbl_eeprom.h"
 #include "gcode.h"
-#include "limits.h"
+#include "grbl_limits.h"
 #include "motion_control.h"
+#include "print.h"
 #include "probe.h"
 #include "protocol.h"
 #include "report.h"
@@ -51,6 +55,36 @@
 #include "spindle_control.h"
 #include "stepper.h"
 #include "jog.h"
+
 #ifdef ENABLE_BLUETOOTH
-	#include "grbl_bluetooth.h"
+	#include "BTconfig.h"
 #endif
+
+#ifdef ENABLE_SD_CARD	
+	#include "grbl_sd.h"
+#endif
+
+#ifdef ENABLE_WIFI	
+    #include "wificonfig.h"
+    #ifdef ENABLE_HTTP
+    #include "serial2socket.h"
+    #endif
+    #ifdef ENABLE_TELNET
+    #include "telnet_server.h"
+    #endif
+    #ifdef ENABLE_NOTIFICATIONS
+    #include "notifications_service.h"
+    #endif
+#endif
+
+#include "servo_pen.h"
+#include "solenoid_pen.h"
+
+#ifdef USE_SERVO_AXES
+	#include "servo_axis.h"
+#endif
+
+#ifdef USE_TMC2130
+	#include "TMC2130.h" // https://github.com/teemuatlut/TMC2130Stepper
+#endif
+

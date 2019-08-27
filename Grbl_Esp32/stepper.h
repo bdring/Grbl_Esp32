@@ -32,7 +32,7 @@
 
 
 #include "grbl.h"
-#include "config.h"
+//#include "config.h"
 
 // Some useful constants.
 #define DT_SEGMENT (1.0/(ACCELERATION_TICKS_PER_SECOND*60.0)) // min/segment
@@ -69,16 +69,20 @@
   #endif
 //#endif
 
+#define STEP_TIMER_GROUP TIMER_GROUP_0
+#define STEP_TIMER_INDEX TIMER_0 
+
 // esp32 work around for diable in main loop
 extern uint64_t stepper_idle_counter;
 extern bool stepper_idle;
 
+extern uint8_t ganged_mode;
+
 // -- Task handles for use in the notifications
-
-
 void IRAM_ATTR onSteppertimer();
 void IRAM_ATTR onStepperOffTimer();
 void stepper_init();
+void initRMT(); 
 
 // Enable steppers, but cycle does not start unless called by motion control or realtime command.
 void st_wake_up();
@@ -109,6 +113,7 @@ float st_get_realtime_rate();
 
 // disable (or enable) steppers via STEPPERS_DISABLE_PIN
 void set_stepper_disable(uint8_t disable);
+bool get_stepper_disable(); // returns the state of the pin
 
 void set_step_pin_on(uint8_t axis, uint8_t isOn);
 void set_direction_pin_on(uint8_t axis, uint8_t isOn);

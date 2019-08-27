@@ -23,11 +23,15 @@
 */
 
 #include "grbl.h"
+#include "config.h"
+#include "commands.h"
+#include "espresponse.h"
 
 // Define line flags. Includes comment type tracking and line overflow detection.
 #define LINE_FLAG_OVERFLOW bit(0)
 #define LINE_FLAG_COMMENT_PARENTHESES bit(1)
 #define LINE_FLAG_COMMENT_SEMICOLON bit(2)
+#define LINE_FLAG_BRACKET bit(3) // square bracket for WebUI commands
 
 
 static char line[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
@@ -40,6 +44,8 @@ static void protocol_exec_rt_suspend();
 */
 void protocol_main_loop()
 {
+	//uint8_t client = CLIENT_SERIAL; // default client	
+	
   // Perform some machine checks to make sure everything is good to go.
   #ifdef CHECK_LIMITS_AT_INIT
     if (bit_istrue(settings.flags, BITFLAG_HARD_LIMIT_ENABLE)) {
@@ -74,85 +80,132 @@ void protocol_main_loop()
   uint8_t line_flags = 0;
   uint8_t char_counter = 0;
   uint8_t c;
+	
   for (;;) {
+		
+		// serialCheck(); // un comment this if you do this here rather than in a separate task
 
+		#ifdef ENABLE_SD_CARD
+			if (SD_ready_next) {
+				char fileLine[255];
+				if (readFileLine(fileLine)) {
+					SD_ready_next = false;
+					report_status_message(gc_execute_line(fileLine, SD_client), SD_client);
+				}
+				else {
+					char temp[50];
+					sd_get_current_filename(temp);
+					grbl_notifyf("SD print done", "%s print is successful", temp);
+					closeFile(); // close file and clear SD ready/running flags					
+				}
+			}
+		#endif
+	
+	
     // Process one line of incoming serial data, as the data becomes available. Performs an
     // initial filtering by removing spaces and comments and capitalizing all letters.
-    while((c = serial_read()) != SERIAL_NO_DATA) {
-      if ((c == '\n') || (c == '\r')) { // End of line reached
+		
+		uint8_t client = CLIENT_SERIAL;
+		for (client = 1; client <= CLIENT_COUNT; client++)
+		{
+			while((c = serial_read(client)) != SERIAL_NO_DATA) {
+				if ((c == '\n') || (c == '\r')) { // End of line reached
 
-        protocol_execute_realtime(); // Runtime command check point.
-        if (sys.abort) { return; } // Bail to calling function upon system abort
+					protocol_execute_realtime(); // Runtime command check point.
+					if (sys.abort) { return; } // Bail to calling function upon system abort
 
-        line[char_counter] = 0; // Set string termination character.
-        #ifdef REPORT_ECHO_LINE_RECEIVED
-          report_echo_line_received(line);
-        #endif
+					line[char_counter] = 0; // Set string termination character.
+					#ifdef REPORT_ECHO_LINE_RECEIVED
+						report_echo_line_received(line, client);
+					#endif
 
-        // Direct and execute one line of formatted input, and report status of execution.
-        if (line_flags & LINE_FLAG_OVERFLOW) {
-          // Report line overflow error.
-          report_status_message(STATUS_OVERFLOW);
-        } else if (line[0] == 0) {
-          // Empty or comment line. For syncing purposes.
-          report_status_message(STATUS_OK);
-        } else if (line[0] == '$') {
-          // Grbl '$' system command
-          report_status_message(system_execute_line(line));
-        } else if (sys.state & (STATE_ALARM | STATE_JOG)) {
-          // Everything else is gcode. Block if in alarm or jog mode.
-          report_status_message(STATUS_SYSTEM_GC_LOCK);
-        } else {
-          // Parse and execute g-code block.
-          report_status_message(gc_execute_line(line));
-        }
+					// Direct and execute one line of formatted input, and report status of execution.
+					if (line_flags & LINE_FLAG_OVERFLOW) {
+						// Report line overflow error.
+						report_status_message(STATUS_OVERFLOW, client);
+					} else if (line[0] == 0) {
+						// Empty or comment line. For syncing purposes.
+						report_status_message(STATUS_OK, client);
+					} else if (line[0] == '$') {
+						// Grbl '$' system command
+						report_status_message(system_execute_line(line, client), client);
+					} else if (line[0] == '[') {
+                        int cmd = 0;
+                        String cmd_params;
+                        if (COMMANDS::check_command (line, &cmd, cmd_params)) {
+                            ESPResponseStream espresponse(client);
+                            COMMANDS::execute_internal_command  (cmd, cmd_params, LEVEL_GUEST, &espresponse);
+                        } else grbl_sendf(client, "[MSG: Unknow Command...%s]\r\n", line);
+					} else if (sys.state & (STATE_ALARM | STATE_JOG)) {
+						// Everything else is gcode. Block if in alarm or jog mode.
+						report_status_message(STATUS_SYSTEM_GC_LOCK, client);
+					} else {
+						// Parse and execute g-code block.
+						report_status_message(gc_execute_line(line, client), client);
+					}
 
-        // Reset tracking data for next line.
-        line_flags = 0;
-        char_counter = 0;
+					// Reset tracking data for next line.
+					line_flags = 0;
+					char_counter = 0;
 
-      } else {
+				} else {
 
-        if (line_flags) {
-          // Throw away all (except EOL) comment characters and overflow characters.
-          if (c == ')') {
-            // End of '()' comment. Resume line allowed.
-            if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) { line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES); }
-          }
-        } else {
-          if (c <= ' ') {
-            // Throw away whitepace and control characters
-          } else if (c == '/') {
-            // Block delete NOT SUPPORTED. Ignore character.
-            // NOTE: If supported, would simply need to check the system if block delete is enabled.
-          } else if (c == '(') {
-            // Enable comments flag and ignore all characters until ')' or EOL.
-            // NOTE: This doesn't follow the NIST definition exactly, but is good enough for now.
-            // In the future, we could simply remove the items within the comments, but retain the
-            // comment control characters, so that the g-code parser can error-check it.
-            line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
-          } else if (c == ';') {
-            // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
-            line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
-          // TODO: Install '%' feature
-          // } else if (c == '%') {
-            // Program start-end percent sign NOT SUPPORTED.
-            // NOTE: This maybe installed to tell Grbl when a program is running vs manual input,
-            // where, during a program, the system auto-cycle start will continue to execute
-            // everything until the next '%' sign. This will help fix resuming issues with certain
-            // functions that empty the planner buffer to execute its task on-time.
-          } else if (char_counter >= (LINE_BUFFER_SIZE-1)) {
-            // Detect line buffer overflow and set flag.
-            line_flags |= LINE_FLAG_OVERFLOW;
-          } else if (c >= 'a' && c <= 'z') { // Upcase lowercase
-            line[char_counter++] = c-'a'+'A';
-          } else {
-            line[char_counter++] = c;
-          }
-        }
+					if (line_flags) {
+						if (line_flags & LINE_FLAG_BRACKET) {  // in bracket mode all characters are accepted
+							line[char_counter++] = c;
+						}
+						// Throw away all (except EOL) comment characters and overflow characters.
+						if (c == ')') {
+							// End of '()' comment. Resume line allowed.
+							if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) { line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES); }
+						}
+					} else {
+						if (c <= ' ') {
+							// Throw away whitepace and control characters
+						} 
+						/*
+						else if (c == '/') {
+							// Block delete NOT SUPPORTED. Ignore character.
+							// NOTE: If supported, would simply need to check the system if block delete is enabled.
+						} 
+						*/
+						else if (c == '(') {
+							// Enable comments flag and ignore all characters until ')' or EOL.
+							// NOTE: This doesn't follow the NIST definition exactly, but is good enough for now.
+							// In the future, we could simply remove the items within the comments, but retain the
+							// comment control characters, so that the g-code parser can error-check it.
+							line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
+						} else if (c == ';') {
+							// NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
+							line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
+						} else if (c == '[') {
+							// For ESP3D bracket commands like [ESP100]<SSID>pwd=<admin password>
+							// prevents spaces being striped and converting to uppercase
+							line_flags |= LINE_FLAG_BRACKET;
+							line[char_counter++] = c; // capture this character
+							
+						// TODO: Install '%' feature
+						} else if (c == '%') {
+							// Program start-end percent sign NOT SUPPORTED.
+							// NOTE: This maybe installed to tell Grbl when a program is running vs manual input,
+							// where, during a program, the system auto-cycle start will continue to execute
+							// everything until the next '%' sign. This will help fix resuming issues with certain
+							// functions that empty the planner buffer to execute its task on-time.
+						} else if (char_counter >= (LINE_BUFFER_SIZE-1)) {
+							// Detect line buffer overflow and set flag.
+							line_flags |= LINE_FLAG_OVERFLOW;
+						} else if (c >= 'a' && c <= 'z') { // Upcase lowercase
+							line[char_counter++] = c-'a'+'A';
+						} else {
+							line[char_counter++] = c;
+						}
+					}
 
-      }
-    }
+				}
+			} // while serial read
+		} // for clients
+		
+		
 
     // If there are no more characters in the serial read buffer to be processed and executed,
     // this indicates that g-code streaming has either filled the planner buffer or has
@@ -170,7 +223,6 @@ void protocol_main_loop()
 				set_stepper_disable(true);
 			}
 		}
-		
   }
 
   return; /* Never reached */
@@ -261,7 +313,7 @@ void protocol_exec_rt_system()
 
     // Execute and serial print status
     if (rt_exec & EXEC_STATUS_REPORT) {
-      report_realtime_status();
+      report_realtime_status(CLIENT_ALL);
       system_clear_exec_state_flag(EXEC_STATUS_REPORT);
     }
 
@@ -426,8 +478,8 @@ void protocol_exec_rt_system()
     if (rt_exec & EXEC_FEED_OVR_COARSE_MINUS) { new_f_override -= FEED_OVERRIDE_COARSE_INCREMENT; }
     if (rt_exec & EXEC_FEED_OVR_FINE_PLUS) { new_f_override += FEED_OVERRIDE_FINE_INCREMENT; }
     if (rt_exec & EXEC_FEED_OVR_FINE_MINUS) { new_f_override -= FEED_OVERRIDE_FINE_INCREMENT; }
-    new_f_override = min(new_f_override,MAX_FEED_RATE_OVERRIDE);
-    new_f_override = max(new_f_override,MIN_FEED_RATE_OVERRIDE);
+    new_f_override = MIN(new_f_override,MAX_FEED_RATE_OVERRIDE);
+    new_f_override = MAX(new_f_override,MIN_FEED_RATE_OVERRIDE);
 
     uint8_t new_r_override = sys.r_override;
     if (rt_exec & EXEC_RAPID_OVR_RESET) { new_r_override = DEFAULT_RAPID_OVERRIDE; }
@@ -454,8 +506,8 @@ void protocol_exec_rt_system()
     if (rt_exec & EXEC_SPINDLE_OVR_COARSE_MINUS) { last_s_override -= SPINDLE_OVERRIDE_COARSE_INCREMENT; }
     if (rt_exec & EXEC_SPINDLE_OVR_FINE_PLUS) { last_s_override += SPINDLE_OVERRIDE_FINE_INCREMENT; }
     if (rt_exec & EXEC_SPINDLE_OVR_FINE_MINUS) { last_s_override -= SPINDLE_OVERRIDE_FINE_INCREMENT; }
-    last_s_override = min(last_s_override,MAX_SPINDLE_SPEED_OVERRIDE);
-    last_s_override = max(last_s_override,MIN_SPINDLE_SPEED_OVERRIDE);
+    last_s_override = MIN(last_s_override,MAX_SPINDLE_SPEED_OVERRIDE);
+    last_s_override = MAX(last_s_override,MIN_SPINDLE_SPEED_OVERRIDE);
 
     if (last_s_override != sys.spindle_speed_ovr) {
       bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
@@ -477,19 +529,28 @@ void protocol_exec_rt_system()
     if (rt_exec & (EXEC_COOLANT_FLOOD_OVR_TOGGLE | EXEC_COOLANT_MIST_OVR_TOGGLE)) {
       if ((sys.state == STATE_IDLE) || (sys.state & (STATE_CYCLE | STATE_HOLD))) {
         uint8_t coolant_state = gc_state.modal.coolant;
-        #ifdef ENABLE_M7
-          if (rt_exec & EXEC_COOLANT_MIST_OVR_TOGGLE) {
-            if (coolant_state & COOLANT_MIST_ENABLE) { bit_false(coolant_state,COOLANT_MIST_ENABLE); }
-            else { coolant_state |= COOLANT_MIST_ENABLE; }
+        #ifdef COOLANT_FLOOD_PIN
+					if (rt_exec & EXEC_COOLANT_FLOOD_OVR_TOGGLE) 
+					{
+            if (coolant_state & COOLANT_FLOOD_ENABLE) { 
+							bit_false(coolant_state,COOLANT_FLOOD_ENABLE); 
+						}
+            else { 
+							coolant_state |= COOLANT_FLOOD_ENABLE;
+						}
           }
-          if (rt_exec & EXEC_COOLANT_FLOOD_OVR_TOGGLE) {
-            if (coolant_state & COOLANT_FLOOD_ENABLE) { bit_false(coolant_state,COOLANT_FLOOD_ENABLE); }
-            else { coolant_state |= COOLANT_FLOOD_ENABLE; }
+				#endif
+				#ifdef COOLANT_MIST_PIN
+					if (rt_exec & EXEC_COOLANT_MIST_OVR_TOGGLE) {
+            if (coolant_state & COOLANT_MIST_ENABLE) { 
+							bit_false(coolant_state,COOLANT_MIST_ENABLE); 
+						}
+            else { 
+							coolant_state |= COOLANT_MIST_ENABLE; 
+						}
           }
-        #else
-          if (coolant_state & COOLANT_FLOOD_ENABLE) { bit_false(coolant_state,COOLANT_FLOOD_ENABLE); }
-          else { coolant_state |= COOLANT_FLOOD_ENABLE; }
-        #endif
+				#endif
+        
         coolant_set_state(coolant_state); // Report counter set in coolant_set_state().
         gc_state.modal.coolant = coolant_state;
       }
@@ -582,7 +643,7 @@ static void protocol_exec_rt_suspend()
             if (bit_isfalse(sys.suspend,SUSPEND_RESTART_RETRACT)) {
               memcpy(restore_target,parking_target,sizeof(parking_target));
               retract_waypoint += restore_target[PARKING_AXIS];
-              retract_waypoint = min(retract_waypoint,PARKING_TARGET);
+              retract_waypoint = MIN(retract_waypoint,PARKING_TARGET);
             }
 
             // Execute slow pull-out parking retract motion. Parking requires homing enabled, the

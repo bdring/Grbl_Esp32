@@ -24,6 +24,7 @@
 
 #include "grbl.h"
 
+uint8_t ganged_mode = SQUARING_MODE_DUAL;
 
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
@@ -223,12 +224,44 @@ void mc_homing_cycle(uint8_t cycle_mask)
   #endif
   {
     // Search to engage all axes limit switches at faster homing seek rate.
-    limits_go_home(HOMING_CYCLE_0);  // Homing cycle 0
+		if (! axis_is_squared(HOMING_CYCLE_0))
+			limits_go_home(HOMING_CYCLE_0);  // Homing cycle 0
+	  else {
+			ganged_mode = SQUARING_MODE_DUAL;
+			limits_go_home(HOMING_CYCLE_0);
+			ganged_mode = SQUARING_MODE_A;
+			limits_go_home(HOMING_CYCLE_0);
+			ganged_mode = SQUARING_MODE_B;
+			limits_go_home(HOMING_CYCLE_0);
+			ganged_mode = SQUARING_MODE_DUAL; // always return to dual 
+		}
+		
     #ifdef HOMING_CYCLE_1
-      limits_go_home(HOMING_CYCLE_1);  // Homing cycle 1
+		if (! axis_is_squared(HOMING_CYCLE_1))
+      limits_go_home(HOMING_CYCLE_1);
+		else {
+			ganged_mode = SQUARING_MODE_DUAL;
+			limits_go_home(HOMING_CYCLE_1);
+			ganged_mode = SQUARING_MODE_A;
+			limits_go_home(HOMING_CYCLE_1);
+			ganged_mode = SQUARING_MODE_B;
+			limits_go_home(HOMING_CYCLE_1);
+			ganged_mode = SQUARING_MODE_DUAL; // always return to dual 
+		}
     #endif
+		
     #ifdef HOMING_CYCLE_2
-      limits_go_home(HOMING_CYCLE_2);  // Homing cycle 2
+		if (! axis_is_squared(HOMING_CYCLE_2))
+      limits_go_home(HOMING_CYCLE_2);
+		else {
+			ganged_mode = SQUARING_MODE_DUAL;
+			limits_go_home(HOMING_CYCLE_2);
+			ganged_mode = SQUARING_MODE_A;
+			limits_go_home(HOMING_CYCLE_2);
+			ganged_mode = SQUARING_MODE_B;
+			limits_go_home(HOMING_CYCLE_2);
+			ganged_mode = SQUARING_MODE_DUAL; // always return to dual 
+		}
     #endif
     
     #ifdef HOMING_CYCLE_3
@@ -318,7 +351,7 @@ uint8_t mc_probe_cycle(float *target, plan_line_data_t *pl_data, uint8_t parser_
 
   #ifdef MESSAGE_PROBE_COORDINATES
     // All done! Output the probe position as message.
-    report_probe_parameters();
+    report_probe_parameters(CLIENT_ALL);
   #endif
 
   if (sys.probe_succeeded) { return(GC_PROBE_FOUND); } // Successful probe cycle.
@@ -366,7 +399,16 @@ void mc_reset()
 
     // Kill spindle and coolant.
     spindle_stop();
-    coolant_stop();
+    coolant_stop();		
+		
+		#ifdef ENABLE_SD_CARD
+			// do we need to stop a running SD job?
+			if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+				//Report print stopped
+				report_feedback_message(MESSAGE_SD_FILE_QUIT);
+				closeFile();
+			}
+		#endif
 
     // Kill steppers only if in any motion state, i.e. cycle, actively holding, or homing.
     // NOTE: If steppers are kept enabled via the step idle delay setting, this also keeps
@@ -379,5 +421,12 @@ void mc_reset()
       } else { system_set_exec_alarm(EXEC_ALARM_ABORT_CYCLE); }
       st_go_idle(); // Force kill steppers. Position has likely been lost.
     }
+		
+		#ifdef USE_GANGED_AXES
+			ganged_mode = SQUARING_MODE_DUAL; // in case an error occurred during squaring
+		#endif
+		
   }
 }
+
+

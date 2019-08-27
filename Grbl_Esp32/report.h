@@ -96,11 +96,25 @@
 #define MESSAGE_RESTORE_DEFAULTS 9
 #define MESSAGE_SPINDLE_RESTORE 10
 #define MESSAGE_SLEEP_MODE 11
+#define MESSAGE_SD_FILE_QUIT 60 // mc_reset was called during an SD job
 
-void grbl_send(char *text);
+#define CLIENT_SERIAL 	1
+#define CLIENT_BT 			2
+#define CLIENT_WEBUI		3
+#define CLIENT_TELNET		4
+#define CLIENT_ALL			0xFF
+#define CLIENT_COUNT    4 // total number of client types regardless if they are used
+
+// functions to send data to the user.
+void grbl_send(uint8_t client, const char *text);
+void grbl_sendf(uint8_t client, const char *format, ...);
+
+//function to notify
+void grbl_notify(const char *title, const char *msg);
+void grbl_notifyf(const char *title, const char *format, ...);
 
 // Prints system status messages.
-void report_status_message(uint8_t status_code);
+void report_status_message(uint8_t status_code, uint8_t client);
 void report_realtime_steps();
 
 // Prints system alarm messages.
@@ -110,40 +124,40 @@ void report_alarm_message(uint8_t alarm_code);
 void report_feedback_message(uint8_t message_code);
 
 // Prints welcome message
-void report_init_message();
+void report_init_message(uint8_t client);
 
 // Prints Grbl help and current global settings
-void report_grbl_help();
+void report_grbl_help(uint8_t client);
 
 // Prints Grbl global settings
-void report_grbl_settings();
+void report_grbl_settings(uint8_t client);
 
 // Prints an echo of the pre-parsed line received right before execution.
-void report_echo_line_received(char *line);
+void report_echo_line_received(char *line, uint8_t client);
 
 // Prints realtime status report
-void report_realtime_status();
+void report_realtime_status(uint8_t client);
 
 // Prints recorded probe position
-void report_probe_parameters();
+void report_probe_parameters(uint8_t client);
 
 // Prints Grbl NGC parameters (coordinate offsets, probe)
-void report_ngc_parameters();
+void report_ngc_parameters(uint8_t client);
 
 // Prints current g-code parser mode state
-void report_gcode_modes();
+void report_gcode_modes(uint8_t client);
 
 // Prints startup line when requested and executed.
-void report_startup_line(uint8_t n, char *line);
-void report_execute_startup_message(char *line, uint8_t status_code);
+void report_startup_line(uint8_t n, char *line, uint8_t client);
+void report_execute_startup_message(char *line, uint8_t status_code, uint8_t client);
 
 // Prints build info and user info
-void report_build_info(char *line);
+void report_build_info(char *line, uint8_t client);
 
 #ifdef DEBUG
   void report_realtime_debug();
 #endif
 
-void settings_help();
+
 
 #endif
