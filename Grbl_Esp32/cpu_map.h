@@ -1086,6 +1086,11 @@
 #ifdef CPU_MAP_FOO_6X
 	#define CPU_MAP_NAME "CPU_MAP_FOO_6X"
 	
+	/*
+	#define USE_KINEMATICS	
+	#include "kinematics.h" 
+	*/
+	
 	// stepper motors
 	#define USE_RMT_STEPS	
 	

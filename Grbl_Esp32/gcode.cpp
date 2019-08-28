@@ -449,7 +449,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 					FAIL(STATUS_GCODE_MAX_VALUE_EXCEEDED);
 				}
 				grbl_sendf(CLIENT_ALL, "[MSG:Tool No: %d]\r\n", int_value);
-				gc_block.values.t = int_value; 
+				gc_state.tool = int_value;
 				break;
 			case 'X':
 				word_bit = WORD_X;
@@ -1180,8 +1180,8 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 		pl_data->spindle_speed = gc_state.spindle_speed; // Record data for planner use.
 	} // else { pl_data->spindle_speed = 0.0; } // Initialized as zero already.
 
-	// [5. Select tool ]: NOT SUPPORTED. Only tracks tool value.
-	gc_state.tool = gc_block.values.t;
+	// [5. Select tool ]: NOT SUPPORTED. Only tracks tool value.	
+	//	gc_state.tool = gc_block.values.t;
 
 	// [6. Change tool ]: NOT SUPPORTED
 
@@ -1270,7 +1270,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 		// and absolute and incremental modes.
 		pl_data->condition |= PL_COND_FLAG_RAPID_MOTION; // Set rapid motion condition flag.
 		if (axis_command) {
-			mc_line(gc_block.values.xyz, pl_data);
+			mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
 		}
 		mc_line(gc_block.values.ijk, pl_data);
 		memcpy(gc_state.position, gc_block.values.ijk, N_AXIS*sizeof(float));
@@ -1300,10 +1300,12 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 		if (axis_command == AXIS_COMMAND_MOTION_MODE) {
 			uint8_t gc_update_pos = GC_UPDATE_POS_TARGET;
 			if (gc_state.modal.motion == MOTION_MODE_LINEAR) {
-				mc_line(gc_block.values.xyz, pl_data);
+				//mc_line(gc_block.values.xyz, pl_data);
+				mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
 			} else if (gc_state.modal.motion == MOTION_MODE_SEEK) {
 				pl_data->condition |= PL_COND_FLAG_RAPID_MOTION; // Set rapid motion condition flag.
-				mc_line(gc_block.values.xyz, pl_data);
+				//mc_line(gc_block.values.xyz, pl_data);
+				mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
 			} else if ((gc_state.modal.motion == MOTION_MODE_CW_ARC) || (gc_state.modal.motion == MOTION_MODE_CCW_ARC)) {
 				mc_arc(gc_block.values.xyz, pl_data, gc_state.position, gc_block.values.ijk, gc_block.values.r,
 				       axis_0, axis_1, axis_linear, bit_istrue(gc_parser_flags,GC_PARSER_ARC_IS_CLOCKWISE));
