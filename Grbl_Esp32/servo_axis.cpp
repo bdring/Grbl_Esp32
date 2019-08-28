@@ -87,7 +87,7 @@ void init_servos()
 	#endif
 	#ifdef SERVO_C_PIN
 		grbl_send(CLIENT_SERIAL, "[MSG: Init C Servo]\r\n");
-		C_Servo_Axis.init();		
+		C_Servo_Axis.init();
 		C_Servo_Axis.set_range(SERVO_C_RANGE_MIN, SERVO_C_RANGE_MAX);
 		C_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
 		C_Servo_Axis.set_homing_position(SERVO_C_RANGE_MAX);
@@ -146,10 +146,12 @@ ServoAxis::ServoAxis(uint8_t axis, uint8_t pin_num, uint8_t channel_num) // cons
   _axis = axis;
 	_pin_num = pin_num;
 	_channel_num = channel_num;	
+	_showError = true; // this will be used to show error only once
 }
 
 void ServoAxis::init()
 {
+	_cal_is_valid();
 	ledcSetup(_channel_num, _pwm_freq, _pwm_resolution_bits);
 	ledcAttachPin(_pin_num, _channel_num);
 	disable();
@@ -249,10 +251,9 @@ void ServoAxis::disable()
 bool ServoAxis::_cal_is_valid()
 {
   bool settingsOK = true;
-  static bool showError = true; // this will be used to show error only once
-
+  
 	if ( (settings.steps_per_mm[_axis] < SERVO_CAL_MIN) || (settings.steps_per_mm[_axis] > SERVO_CAL_MAX) ) {
-		if (showError) {
+		if (_showError) {
 			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo cal ($10%d) Error: %4.4f s/b between %.2f and %.2f]\r\n", _axis, settings.steps_per_mm[_axis], SERVO_CAL_MIN, SERVO_CAL_MAX);
 		}
 		settingsOK = false;
@@ -260,13 +261,13 @@ bool ServoAxis::_cal_is_valid()
 
 	// Note: Max travel is set positive via $$, but stored as a negative number
 	if ( (settings.max_travel[_axis] < -SERVO_CAL_MAX) || (settings.max_travel[_axis] > -SERVO_CAL_MIN) ) {
-		if (showError) {
+		if (_showError) {
 			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo cal ($13%d) Error: %4.4f s/b between %.2f and %.2f]\r\n", _axis, -settings.max_travel[_axis], SERVO_CAL_MIN, SERVO_CAL_MAX);
 		}
 		settingsOK = false;
 	}
 	
-	showError = false;  // to show error once 
+	_showError = false;  // to show error once 
 	return settingsOK;
 }
 

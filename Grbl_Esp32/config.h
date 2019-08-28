@@ -53,11 +53,11 @@ Some features should not be changed. See notes below.
 // Serial baud rate
 #define BAUD_RATE 115200
 
-//#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
+#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
 
-//#define ENABLE_WIFI //enable wifi
+#define ENABLE_WIFI //enable wifi
 
 #define ENABLE_HTTP //enable HTTP and all related services
 #define ENABLE_OTA  //enable OTA
