@@ -64,49 +64,28 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 	float new_system[N_AXIS]; // target location in the new system
 	uint8_t index;
 	
+	// skip kinematics... not implemented yet.
+	mc_line(target, pl_data);
+	return;
+	
 	// All data is in machine space and axes have different offsets, so we need to apply the offset in corrections
 	for (index = 0; index < N_AXIS; index++) {
-		offsets[index] = gc_state.coord_system[index] + gc_state.coord_offset[index]; // offset from machine coordinate system
-		grbl_sendf(CLIENT_SERIAL, "[MSG: Kins Offset %d %4.3f, Target %4.3f]\r\n", index, offsets[index], target[index] - offsets[index]);
+		offsets[index] = gc_state.coord_system[index] + gc_state.coord_offset[index]; // offset from machine coordinate system		
 	}	
 	
 	switch (gc_state.tool) {
 		case 1: // XYZ only ignore all ABC
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Kin Tool 1]\r\n");
-			new_system[X_AXIS] = target[X_AXIS];
-			new_system[Y_AXIS] = target[Y_AXIS];
-			new_system[Z_AXIS] = target[Z_AXIS];
-			// remove ABC changes by setting to existing values
-			new_system[A_AXIS] = position[A_AXIS];
-			new_system[B_AXIS] = position[B_AXIS];
-			new_system[C_AXIS] = position[C_AXIS];
-			mc_line(new_system, pl_data);
+		
 		break;
 		case 2: // Convert XYZ to ABC (no motion on ABC)
-			// Remove XYZ by setting to existing values
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Kin Tool 2]\r\n");
-			new_system[X_AXIS] = position[X_AXIS];
-			new_system[Y_AXIS] = position[Y_AXIS];
-			new_system[Z_AXIS] = position[Z_AXIS];
-			// Use XYZ values for ABC
-			new_system[A_AXIS] = (target[X_AXIS] - offsets[X_AXIS]) + offsets[A_AXIS]; // they have different offsets, so we need to correct for that
-			new_system[B_AXIS] = (target[Y_AXIS] - offsets[Y_AXIS]) + offsets[B_AXIS];
-			new_system[C_AXIS] = (target[Z_AXIS] - offsets[Z_AXIS]) + offsets[C_AXIS];
 			
-			
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Target XYZ %4.3f, %4.3f, %4.3f]\r\n", target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Offset XYZ %4.3f, %4.3f, %4.3f]\r\n", offsets[X_AXIS], offsets[Y_AXIS], offsets[Z_AXIS]);
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Offset ABC %4.3f, %4.3f, %4.3f]\r\n", offsets[A_AXIS], offsets[B_AXIS], offsets[C_AXIS]);
-			grbl_sendf(CLIENT_SERIAL, "[MSG: New %4.3f, %4.3f, %4.3f]\r\n", new_system[A_AXIS], new_system[B_AXIS], new_system[C_AXIS]);
-			
-			mc_line(new_system, pl_data);
 		break;
 		default: // tool 0 or above 2 uses normal 6 axis code...no changes
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Kin normal]\r\n");
-			mc_line(target, pl_data);
-			grbl_sendf(CLIENT_SERIAL, "[MSG: T0 %4.3f, %4.3f, %4.3f]\r\n", target[A_AXIS], target[B_AXIS], target[C_AXIS]);
+			
 		break;
 	}		
+	
+		
 }
 
 #endif
