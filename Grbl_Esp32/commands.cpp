@@ -875,7 +875,12 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             int8_t state = get_sd_state(true);
             if (state  ==  SDCARD_IDLE) {
                 listDir(SD, "/", 10, espresponse->client());
+                String ssd = "[SD Free:" + ESPResponseStream::formatBytes(SD.totalBytes() - SD.usedBytes());
+                ssd +=" Used:" + ESPResponseStream::formatBytes(SD.usedBytes());
+                ssd +=" Total:" + ESPResponseStream::formatBytes(SD.totalBytes());
+                ssd +="]";
                 espresponse->println ("");
+                espresponse->println (ssd.c_str());
                 }
             else espresponse->println ((state == SDCARD_NOT_PRESENT) ? "No SD card" : "Busy");
             }
