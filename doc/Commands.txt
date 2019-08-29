@@ -85,6 +85,9 @@ Reply: 81
 * Get SD Card Content
 [ESP210] pwd=<user/admin password>
 
+* Delete SD Card file / directory
+[ESP215]<file/dir name>pwd=<user/admin password>
+
 * Print SD file
 [ESP220] <Filename> pwd=<user/admin password>
 
