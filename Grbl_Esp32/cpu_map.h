@@ -40,7 +40,7 @@
 //let -1 to use default board pin
 #define GRBL_SPI_SS -1
 #define GRBL_SPI_MOSI -1
-#define GRBL_SPI_MIS0 -1
+#define GRBL_SPI_MISO -1
 #define GRBL_SPI_SCK -1
 //Set you frequency 
 #define GRBL_SPI_FREQ  4000000
