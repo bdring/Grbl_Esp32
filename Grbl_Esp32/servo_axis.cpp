@@ -38,9 +38,19 @@ static TaskHandle_t servosSyncTaskHandle = 0;
 	ServoAxis Z_Servo_Axis(Z_AXIS, SERVO_Z_PIN, SERVO_Z_CHANNEL_NUM);
 #endif
 
+#ifdef SERVO_A_PIN
+	ServoAxis A_Servo_Axis(A_AXIS, SERVO_A_PIN, SERVO_A_CHANNEL_NUM);
+#endif
+#ifdef SERVO_B_PIN
+	ServoAxis B_Servo_Axis(B_AXIS, SERVO_B_PIN, SERVO_B_CHANNEL_NUM);
+#endif
+#ifdef SERVO_C_PIN
+	ServoAxis C_Servo_Axis(C_AXIS, SERVO_C_PIN, SERVO_C_CHANNEL_NUM);
+#endif
+
 void init_servos()
 {
-	grbl_send(CLIENT_SERIAL, "[MSG: Init Servos]\r\n");
+	//grbl_send(CLIENT_SERIAL, "[MSG: Init Servos]\r\n");
 	#ifdef SERVO_X_PIN
 		grbl_send(CLIENT_SERIAL, "[MSG: Init X Servo]\r\n");
 		X_Servo_Axis.init();
@@ -61,6 +71,28 @@ void init_servos()
 		Z_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
 		Z_Servo_Axis.set_homing_position(SERVO_Z_RANGE_MAX);
 	#endif
+	
+	#ifdef SERVO_A_PIN
+		grbl_send(CLIENT_SERIAL, "[MSG: Init A Servo]\r\n");
+		A_Servo_Axis.init();
+		A_Servo_Axis.set_range(SERVO_A_RANGE_MIN, SERVO_A_RANGE_MAX);
+		A_Servo_Axis.set_homing_type(SERVO_HOMING_OFF);
+		A_Servo_Axis.set_disable_on_alarm(false);
+		A_Servo_Axis.set_disable_with_steppers(false);
+	#endif
+	#ifdef SERVO_B_PIN
+		grbl_send(CLIENT_SERIAL, "[MSG: Init B Servo]\r\n");
+		B_Servo_Axis.init();
+		B_Servo_Axis.set_range(SERVO_B_RANGE_MIN, SERVO_B_RANGE_MAX);
+	#endif
+	#ifdef SERVO_C_PIN
+		grbl_send(CLIENT_SERIAL, "[MSG: Init C Servo]\r\n");
+		C_Servo_Axis.init();
+		C_Servo_Axis.set_range(SERVO_C_RANGE_MIN, SERVO_C_RANGE_MAX);
+		C_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
+		C_Servo_Axis.set_homing_position(SERVO_C_RANGE_MAX);
+	#endif
+	
   
   // setup a task that will calculate the determine and set the servo positions
   xTaskCreatePinnedToCore(  servosSyncTask,    // task
@@ -93,6 +125,16 @@ void servosSyncTask(void *pvParameters)
 		#ifdef SERVO_Z_PIN
 			Z_Servo_Axis.set_location();
 		#endif
+		#ifdef SERVO_A_PIN
+			A_Servo_Axis.set_location();			
+		#endif
+		#ifdef SERVO_B_PIN
+			B_Servo_Axis.set_location();
+		#endif
+		#ifdef SERVO_C_PIN
+			C_Servo_Axis.set_location();
+		#endif
+		
 		vTaskDelayUntil(&xLastWakeTime, xServoFrequency);
   }
 } 
@@ -104,10 +146,12 @@ ServoAxis::ServoAxis(uint8_t axis, uint8_t pin_num, uint8_t channel_num) // cons
   _axis = axis;
 	_pin_num = pin_num;
 	_channel_num = channel_num;	
+	_showError = true; // this will be used to show error only once
 }
 
 void ServoAxis::init()
 {
+	_cal_is_valid();
 	ledcSetup(_channel_num, _pwm_freq, _pwm_resolution_bits);
 	ledcAttachPin(_pin_num, _channel_num);
 	disable();
@@ -207,10 +251,9 @@ void ServoAxis::disable()
 bool ServoAxis::_cal_is_valid()
 {
   bool settingsOK = true;
-  static bool showError = true; // this will be used to show error only once
-
+  
 	if ( (settings.steps_per_mm[_axis] < SERVO_CAL_MIN) || (settings.steps_per_mm[_axis] > SERVO_CAL_MAX) ) {
-		if (showError) {
+		if (_showError) {
 			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo cal ($10%d) Error: %4.4f s/b between %.2f and %.2f]\r\n", _axis, settings.steps_per_mm[_axis], SERVO_CAL_MIN, SERVO_CAL_MAX);
 		}
 		settingsOK = false;
@@ -218,13 +261,13 @@ bool ServoAxis::_cal_is_valid()
 
 	// Note: Max travel is set positive via $$, but stored as a negative number
 	if ( (settings.max_travel[_axis] < -SERVO_CAL_MAX) || (settings.max_travel[_axis] > -SERVO_CAL_MIN) ) {
-		if (showError) {
+		if (_showError) {
 			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo cal ($13%d) Error: %4.4f s/b between %.2f and %.2f]\r\n", _axis, -settings.max_travel[_axis], SERVO_CAL_MIN, SERVO_CAL_MAX);
 		}
 		settingsOK = false;
 	}
 	
-	//showError = false;  // to show error once 
+	_showError = false;  // to show error once 
 	return settingsOK;
 }
 

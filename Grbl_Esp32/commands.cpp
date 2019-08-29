@@ -2035,10 +2035,13 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             resp += " # webcommunication: Sync: ";
             resp += String(web_server.port() + 1);
             #endif
-            resp += "# hostname:";
+            resp += " # hostname:";
             resp += wifi_config.Hostname();
             if (WiFi.getMode() == WIFI_AP)resp += "(AP mode)";
             #endif
+            //to save time in decoding `?`
+            resp += " # axis:";
+            resp += String(N_AXIS);
             if (espresponse)espresponse->println (resp.c_str());
         }   
             break;

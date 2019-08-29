@@ -349,8 +349,8 @@ void report_probe_parameters(uint8_t client)
 {
   // Report in terms of machine position.	
 	float print_position[N_AXIS];
-	char probe_rpt[50];	// the probe report we are building here
-	char temp[30];
+	char probe_rpt[100];	// the probe report we are building here
+	char temp[60];
 	
 	strcpy(probe_rpt, "[PRB:"); // initialize the string with the first characters
   
@@ -374,8 +374,8 @@ void report_ngc_parameters(uint8_t client)
 {
   float coord_data[N_AXIS];
   uint8_t coord_select;
-	char temp[50];
-	char ngc_rpt[400];	
+	char temp[60];
+	char ngc_rpt[500];	
 	
 	ngc_rpt[0] = '\0';	
 	
@@ -414,7 +414,7 @@ void report_ngc_parameters(uint8_t client)
 	
 	grbl_send(client, ngc_rpt);
 	
-  report_probe_parameters(client); 
+	report_probe_parameters(client);
 }
 
 

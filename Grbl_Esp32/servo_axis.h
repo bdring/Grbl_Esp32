@@ -108,6 +108,8 @@ class ServoAxis{
 		int _axis; // these should be assign in constructor using Grbl X_AXIS type values
 		int _pin_num; // The GPIO pin being used
 		int _channel_num; // The PWM channel
+		bool _showError;
+		
 		uint32_t _pwm_freq = SERVO_PULSE_FREQ;
 		uint32_t _pwm_resolution_bits = SERVO_PULSE_RES_BITS;
 		float _pulse_min = SERVO_MIN_PULSE; // in pwm counts
@@ -125,6 +127,7 @@ class ServoAxis{
 		bool _validate_cal_settings();
 		void _write_pwm(uint32_t duty);
 		bool _cal_is_valid(); // checks to see if calibration values are in acceptable range 
+		
 };
 
 #endif
