@@ -1366,19 +1366,20 @@ void Web_Server::handle_direct_SDFileList()
     }
     jsonfile+="],\"path\":\"";
     jsonfile+=path + "\",";
-    static uint32_t volTotal = 1;
-    static uint32_t volFree = 0;
     jsonfile+="\"total\":\"";
     String stotalspace,susedspace;
     //SDCard are in GB or MB but no less
     totalspace = SD.totalBytes();
     usedspace = SD.usedBytes();
     stotalspace = ESPResponseStream::formatBytes(totalspace);
-    susedspace =  ESPResponseStream::formatBytes(usedspace);
+    susedspace =  ESPResponseStream::formatBytes(usedspace+1);
 
-    uint32_t  occupedspace = (volFree/volTotal)*100;
+    uint32_t  occupedspace = 1;
+    uint32_t  usedspace2 = usedspace/(1024*1024);
+    uint32_t  totalspace2 = totalspace/(1024*1024);
+    occupedspace = (usedspace2 * 100)/totalspace2;
     //minimum if even one byte is used is 1%
-    if ( (occupedspace <= 1) && (volTotal!=volFree)) {
+    if ( occupedspace <= 1) {
         occupedspace=1;
     }
     if (totalspace) {

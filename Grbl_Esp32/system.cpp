@@ -44,6 +44,10 @@ void system_ini() // Renamed from system_init() due to conflict with esp32 files
 	#endif
 
 #endif
+   //customize pin definition if needed
+#if (GRBL_SPI_SS != -1) || (GRBL_SPI_MISO != -1) || (GRBL_SPI_MOSI != -1) || (GRBL_SPI_SCK != -1)
+    SPI.begin(GRBL_SPI_SCK, GRBL_SPI_MISO, GRBL_SPI_MOSI, GRBL_SPI_SS);
+#endif 
 }
 
 void IRAM_ATTR isr_control_inputs()
