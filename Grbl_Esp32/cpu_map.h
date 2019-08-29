@@ -35,14 +35,14 @@
 	with AVR grbl
 	
 	*/
-		
-//Set your pine definition 
+	
+//Set your pin definition 
 //let -1 to use default board pin
 #define GRBL_SPI_SS -1
 #define GRBL_SPI_MOSI -1
 #define GRBL_SPI_MISO -1
 #define GRBL_SPI_SCK -1
-//Set you frequency 
+//Set your frequency 
 #define GRBL_SPI_FREQ  4000000
 
 #ifdef CPU_MAP_ESP32
@@ -717,7 +717,7 @@
 #endif
 
 #ifdef CPU_MAP_SM // String art machine definition
-	
+		#define CPU_MAP_NAME "CPU_MAP_SM"
 
 		#define X_STEP_PIN      GPIO_NUM_12
 		#define X_DIRECTION_PIN   GPIO_NUM_26
@@ -1152,11 +1152,12 @@
 
 #ifdef CPU_MAP_FOO_6X
 	#define CPU_MAP_NAME "CPU_MAP_FOO_6X"
-	
-	/*
+		/*
 	#define USE_KINEMATICS	
 	#include "kinematics.h" 
 	*/
+	
+	// Be sure to change to N_AXIS 6 in nuts_bolts.h
 	
 	// stepper motors
 	#define USE_RMT_STEPS	
