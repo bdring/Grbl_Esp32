@@ -881,6 +881,49 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             }
             break;
             
+        //Delete SD Card file / directory
+        //[ESP215]
+        case 215:
+            {
+            if (!espresponse) return false;
+#ifdef ENABLE_AUTHENTICATION
+            if (auth_type == LEVEL_GUEST) {
+                espresponse->println ("Error: Wrong authentication!");
+                return false;
+                
+            }
+#endif      
+            parameter = get_param (cmd_params, "", true);
+            if (parameter.length() != 0) {
+                int8_t state = get_sd_state(true);
+                if (state  ==  SDCARD_IDLE) {
+                    File file2del = SD.open(cmd_params.c_str());
+                    if (file2del) {
+                        if (file2del.isDirectory()) {
+                            if (!SD.rmdir((char *)cmd_params.c_str())) {
+                                espresponse->println ("Error: Cannot delete directory! Is directory empty?");
+                            } else {
+                                 espresponse->println ("Directory deleted.");
+                            }
+                        } else {
+                            if (!SD.remove((char *)cmd_params.c_str())) {
+                                espresponse->println ("Error: Cannot delete file!");
+                            } else {
+                                espresponse->println ("File deleted.");
+                            } 
+                            }
+                    } else {
+                        espresponse->println ("Error: Cannot stat file!");
+                    }
+                    file2del.close();
+                } else {
+                    espresponse->println ((state == SDCARD_NOT_PRESENT) ? "No SD card" : "Busy");
+                    }
+                } else {
+                    espresponse->println ("Error: Missing file name!");
+                }
+            }
+            break;
         //print SD file
         //[ESP220]<filename>
         case 220:
