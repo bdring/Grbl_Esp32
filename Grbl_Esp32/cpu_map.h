@@ -36,6 +36,14 @@
 	
 	*/
 		
+//Set your pine definition 
+//let -1 to use default board pin
+#define GRBL_SPI_SS -1
+#define GRBL_SPI_MOSI -1
+#define GRBL_SPI_MIS0 -1
+#define GRBL_SPI_SCK -1
+//Set you frequency 
+#define GRBL_SPI_FREQ  4000000
 
 #ifdef CPU_MAP_ESP32
 	// This is the CPU Map for the ESP32 CNC Controller R2	
