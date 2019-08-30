@@ -37,7 +37,7 @@ Some features should not be changed. See notes below.
 
 #ifndef config_h
 #define config_h
-#include <arduino.h>
+#include <Arduino.h>
 
 //#define ESP_DEBUG
 #define N_AXIS 3 // Number of axes defined
