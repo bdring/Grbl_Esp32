@@ -437,6 +437,8 @@ void stepper_init()
 		Trinamic_Init();
 	#endif
 	
+	grbl_sendf(CLIENT_SERIAL, "[MSG:Axis count %d]\r\n", N_AXIS);
+	
 	#ifdef USE_RMT_STEPS
 		grbl_send(CLIENT_SERIAL, "[MSG:Using RMT Steps]\r\n");
 		initRMT();
