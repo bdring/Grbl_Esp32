@@ -1158,6 +1158,10 @@
 	*/
 	
 	// Be sure to change to N_AXIS 6 in nuts_bolts.h
+	#ifdef N_AXIS
+		#undef N_AXIS
+	#endif
+	#define N_AXIS 6
 	
 	// stepper motors
 	#define USE_RMT_STEPS	

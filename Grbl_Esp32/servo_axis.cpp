@@ -143,10 +143,11 @@ void servosSyncTask(void *pvParameters)
 
 ServoAxis::ServoAxis(uint8_t axis, uint8_t pin_num, uint8_t channel_num) // constructor
 {
-  _axis = axis;
+	_axis = axis;
 	_pin_num = pin_num;
 	_channel_num = channel_num;	
-	_showError = true; // this will be used to show error only once
+	_showError = true; // this will be used to show calibration error only once
+	_use_mpos = true;  // default is to use the machine position rather than work position
 }
 
 void ServoAxis::init()
