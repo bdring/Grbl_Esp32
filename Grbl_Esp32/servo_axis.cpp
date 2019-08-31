@@ -68,8 +68,12 @@ void init_servos()
 		grbl_send(CLIENT_SERIAL, "[MSG:Init Z Servo]\r\n");
 		Z_Servo_Axis.init();		
 		Z_Servo_Axis.set_range(SERVO_Z_RANGE_MIN, SERVO_Z_RANGE_MAX);
-		Z_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
-		Z_Servo_Axis.set_homing_position(SERVO_Z_RANGE_MAX);
+		#ifdef SERVO_Z_HOMING_TYPE
+			Z_Servo_Axis.set_homing_type(SERVO_Z_HOMING_TYPE);
+		#endif		
+		#ifdef SERVO_Z_HOME_POS			
+			Z_Servo_Axis.set_homing_position(SERVO_Z_HOME_POS);
+		#endif
 		#ifdef SERVO_Z_MPOS // value should be true or false
 			Z_Servo_Axis.set_use_mpos(SERVO_Z_MPOS);
 		#endif
@@ -92,8 +96,17 @@ void init_servos()
 		grbl_send(CLIENT_SERIAL, "[MSG:Init C Servo]\r\n");
 		C_Servo_Axis.init();
 		C_Servo_Axis.set_range(SERVO_C_RANGE_MIN, SERVO_C_RANGE_MAX);
-		C_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
-		C_Servo_Axis.set_homing_position(SERVO_C_RANGE_MAX);
+		//C_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
+		//C_Servo_Axis.set_homing_position(SERVO_C_RANGE_MAX);
+		#ifdef SERVO_C_HOMING_TYPE
+			C_Servo_Axis.set_homing_type(SERVO_C_HOMING_TYPE);
+		#endif		
+		#ifdef SERVO_C_HOME_POS			
+			C_Servo_Axis.set_homing_position(SERVO_C_HOME_POS);
+		#endif
+		#ifdef SERVO_C_MPOS // value should be true or false
+			C_Servo_Axis.set_use_mpos(SERVO_C_MPOS);
+		#endif
 	#endif
 	
   
@@ -217,14 +230,16 @@ void ServoAxis::set_location()
   
 	// get the calibration values
 	if (_cal_is_valid()) { // if calibration settings are OK then apply them
-	
-		min_pulse_cal = (settings.steps_per_mm[_axis] / 100.0);
-		max_pulse_cal = (settings.max_travel[_axis] / -100.0);
-		
-		if (bit_istrue(settings.dir_invert_mask,bit(_axis))) {			
-			min_pulse_cal = 2.0 - min_pulse_cal;
-			max_pulse_cal = 2.0 - max_pulse_cal;			
-		}				
+		// apply a calibration
+		// the cals apply differently if the direction is reverse (i.e. longer pulse is lower position)
+		if (bit_isfalse(settings.dir_invert_mask,bit(_axis))) {	// normal direction			
+			min_pulse_cal = 2.0 - (settings.steps_per_mm[_axis] / 100.0);
+			max_pulse_cal = (settings.max_travel[_axis] / -100.0);
+		} 
+		else { // inverted direction			
+			min_pulse_cal = (settings.steps_per_mm[_axis] / 100.0);
+			max_pulse_cal = 2.0 - (settings.max_travel[_axis] / -100.0);
+		}			
 	}
 	else { // settings are not valid so don't apply any calibration
 		min_pulse_cal = 1.0;
