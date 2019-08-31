@@ -40,7 +40,7 @@ Some features should not be changed. See notes below.
 #include <Arduino.h>
 
 //#define ESP_DEBUG
-#define N_AXIS 3 // Number of axes defined
+#define N_AXIS 3 // Number of axes defined (valid range: 3 to 6) 
 
 // Define CPU pin map and default settings.
 // NOTE: OEMs can avoid the need to maintain/update the defaults.h and cpu_map.h files and use only

@@ -379,11 +379,16 @@
 #ifdef CPU_MAP_MIDTBOT  // Buildlog.net midtbot
 
 	#define CPU_MAP_NAME "CPU_MAP_MIDTBOT"
+	
+	#define USE_RMT_STEPS
 
 		#define X_STEP_PIN      GPIO_NUM_12
-		#define Y_STEP_PIN      GPIO_NUM_14		
+		#define Y_STEP_PIN      GPIO_NUM_14
+		#define X_RMT_CHANNEL		0
+		
 		#define X_DIRECTION_PIN   GPIO_NUM_26
-		#define Y_DIRECTION_PIN   GPIO_NUM_25  
+		#define Y_DIRECTION_PIN   GPIO_NUM_25
+		#define Y_RMT_CHANNEL		1		
 		
 		#ifndef COREXY // maybe set in config.h
 			#define COREXY
@@ -403,6 +408,7 @@
 		#define SERVO_Z_CHANNEL_NUM 		5
 		#define SERVO_Z_RANGE_MIN			0.0
 		#define SERVO_Z_RANGE_MAX			5.0
+		#define SERVO_Z_MPOS					false
 		
 		#ifndef IGNORE_CONTROL_PINS // maybe set in config.h
 			#define IGNORE_CONTROL_PINS
