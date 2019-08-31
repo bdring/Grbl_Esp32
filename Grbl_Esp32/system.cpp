@@ -440,7 +440,8 @@ uint8_t get_limit_pin_mask(uint8_t axis_idx)
   if ( axis_idx == Z_AXIS ) { return((1<<Z_LIMIT_BIT)); }
   if ( axis_idx == A_AXIS ) { return((1<<A_LIMIT_BIT)); }
   if ( axis_idx == B_AXIS ) { return((1<<B_LIMIT_BIT)); }
-  return((1<<C_LIMIT_BIT));
+  if ( axis_idx == C_AXIS ) { return((1<<C_LIMIT_BIT)); }
+  return 0;
 }
 
 // CoreXY calculation only. Returns x or y-axis "steps" based on CoreXY motor steps.

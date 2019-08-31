@@ -95,9 +95,9 @@ class ServoAxis{
 	public:
 		ServoAxis(uint8_t axis, uint8_t pin_num, uint8_t channel_num); // constructor   
 		void init();
-    void set_location();
-    void disable(); // sets PWM to 0% duty cycle. Most servos can be manually moved in this state
-    void set_range(float min, float max);
+		void set_location();
+		void disable(); // sets PWM to 0% duty cycle. Most servos can be manually moved in this state
+		void set_range(float min, float max);
 		void set_homing_type(uint8_t homing_type);
 		void set_homing_position(float homing_position);
 		void set_disable_on_alarm (bool disable_on_alarm);

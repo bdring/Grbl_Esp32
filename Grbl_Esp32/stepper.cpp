@@ -262,13 +262,13 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 			st.steps[Y_AXIS] = st.exec_block->steps[Y_AXIS] >> st.exec_segment->amass_level;
 			st.steps[Z_AXIS] = st.exec_block->steps[Z_AXIS] >> st.exec_segment->amass_level;
 			
-			 #ifdef A_AXIS
+			 #if (N_AXIS > A_AXIS)
 			   st.steps[A_AXIS] = st.exec_block->steps[A_AXIS] >> st.exec_segment->amass_level;
 			#endif
-			#ifdef B_AXIS
+			#if (N_AXIS > B_AXIS)
 			   st.steps[B_AXIS] = st.exec_block->steps[B_AXIS] >> st.exec_segment->amass_level;
 			#endif
-			#ifdef C_AXIS
+			#if (N_AXIS > C_AXIS)
 			   st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
 			#endif
 			
