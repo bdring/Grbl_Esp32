@@ -386,14 +386,14 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 				axis_words |= (1<<A_AXIS);
 				break;
 #endif
-#ifdef defined(N_AXIS) &&  defined(B_AXIS) &&  (N_AXIS > B_AXIS)
+#if defined(N_AXIS) &&  defined(B_AXIS) &&  (N_AXIS > B_AXIS)
 			case 'B':
 				word_bit = WORD_B;
 				gc_block.values.xyz[B_AXIS] = value;
 				axis_words |= (1<<B_AXIS);
 				break;
 #endif
-defined(N_AXIS) &&  defined(C_AXIS) &&  (N_AXIS > C_AXIS)
+#if defined(N_AXIS) &&  defined(C_AXIS) &&  (N_AXIS > C_AXIS)
 			case 'C':
 				word_bit = WORD_C;
 				gc_block.values.xyz[C_AXIS] = value;
