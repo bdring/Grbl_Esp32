@@ -379,21 +379,21 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 			   legal g-code words and stores their value. Error-checking is performed later since some
 			   words (I,J,K,L,P,R) have multiple connotations and/or depend on the issued commands. */
 			switch(letter) {
-#ifdef N_AXIS > A_AXIS
+#if defined(N_AXIS) &&  defined(A_AXIS) &&  (N_AXIS > A_AXIS)
 			case 'A':
 				word_bit = WORD_A;
 				gc_block.values.xyz[A_AXIS] = value;
 				axis_words |= (1<<A_AXIS);
 				break;
 #endif
-#ifdef N_AXIS > B_AXIS
+#if defined(N_AXIS) &&  defined(B_AXIS) &&  (N_AXIS > B_AXIS)
 			case 'B':
 				word_bit = WORD_B;
 				gc_block.values.xyz[B_AXIS] = value;
 				axis_words |= (1<<B_AXIS);
 				break;
 #endif
-#ifdef N_AXIS > A_AXIS
+#if defined(N_AXIS) &&  defined(C_AXIS) &&  (N_AXIS > C_AXIS)
 			case 'C':
 				word_bit = WORD_C;
 				gc_block.values.xyz[C_AXIS] = value;
