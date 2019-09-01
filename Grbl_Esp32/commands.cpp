@@ -1474,11 +1474,15 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             if (WiFi.getMode() != WIFI_MODE_NULL){
                 espresponse->print ("Available Size for update: ");
                 //Is OTA available ?
+                size_t flashsize = 0;
                 if (esp_ota_get_running_partition()) {
-                    espresponse->print (ESPResponseStream::ESPResponseStream::formatBytes (ESP.getFreeSketchSpace() + ESP.getSketchSize()).c_str());
-                } else {
-                    espresponse->print (ESPResponseStream::formatBytes (0x0).c_str());
-                }
+                    const esp_partition_t* partition = esp_ota_get_next_update_partition(NULL);
+                    if (partition) {
+                        flashsize = partition->size;
+                    }
+                } 
+                espresponse->print (ESPResponseStream::formatBytes (flashsize).c_str()); 
+                
                 espresponse->println("");
             }
             if (WiFi.getMode() != WIFI_MODE_NULL){
@@ -2017,7 +2021,10 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             if (!espresponse)return false;
             String resp;
             resp = "FW version:";
-            resp += GRBL_VERSION;
+            resp += GRBL_VERSION ;
+            resp += " (";
+            resp += GRBL_VERSION_BUILD;
+            resp += ")";
             resp += " # FW target:grbl-embedded  # FW HW:";
             #ifdef ENABLE_SD_CARD
             resp += "Direct SD";
@@ -2034,6 +2041,16 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             #if defined (ENABLE_HTTP)
             resp += " # webcommunication: Sync: ";
             resp += String(web_server.port() + 1);
+            resp += ":";
+            if (WiFi.getMode() == WIFI_MODE_AP) {
+                resp += WiFi.softAPIP().toString();
+            } else if (WiFi.getMode() == WIFI_MODE_STA){
+                resp += WiFi.localIP().toString();
+            } else if (WiFi.getMode() == WIFI_MODE_APSTA) {
+                resp += WiFi.softAPIP().toString();
+            } else {
+                resp += "0.0.0.0";
+            }
             #endif
             resp += " # hostname:";
             resp += wifi_config.Hostname();

@@ -1,1 +1,6 @@
 .pioenvs/
+Thumbs.db
+.DS_Store
+*.orig
+embedded/node_modules
+embedded/dist
