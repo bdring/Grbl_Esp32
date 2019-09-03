@@ -986,7 +986,7 @@ void Web_Server::pushError(int code, const char * st, bool web_error, uint16_t t
         if (web_error != 0) {
             if (_webserver) {
                 if (_webserver->client().available() > 0) {
-                    _webserver->send (500, "text/xml", st);
+                    _webserver->send (web_error, "text/xml", st);
                 }
             }
         }
