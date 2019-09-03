@@ -1013,7 +1013,9 @@ void Web_Server::cancelUpload(){
 
 //SPIFFS files uploader handle
 void Web_Server::SPIFFSFileupload ()
-{
+{   
+    static String filename;
+    static File fsUploadFile = (File)0;
      //get authentication status
     level_authenticate_type auth_level= is_authenticated();
     //Guest cannot upload - only admin
@@ -1021,111 +1023,108 @@ void Web_Server::SPIFFSFileupload ()
         _upload_status = UPLOAD_STATUS_FAILED;
         grbl_send(CLIENT_ALL,"[MSG:Upload rejected]\r\n");
         pushError(ESP_ERROR_AUTHENTICATION, "Upload rejected", 401);
-    }
-    static String filename;
-    static File fsUploadFile = (File)0;
-    if (_upload_status != UPLOAD_STATUS_FAILED){
-        
-        
-        
+    } else {
         HTTPUpload& upload = _webserver->upload();
-        //Upload start
-        //**************
-        if(upload.status == UPLOAD_FILE_START) {
-            String upload_filename = upload.filename;
-            if (upload_filename[0] != '/') filename = "/" + upload_filename;
-            else filename = upload.filename;
-            //according User or Admin the root is different as user is isolate to /user when admin has full access
-            if(auth_level != LEVEL_ADMIN) {
-                upload_filename = filename;
-                filename = "/user" + upload_filename;
-            }
-            
-            if (SPIFFS.exists (filename) ) {
-                SPIFFS.remove (filename);
-            }
-            if (fsUploadFile ) {
-                fsUploadFile.close();
-            }
-            String  sizeargname  = upload.filename + "S";
-            if (_webserver->hasArg (sizeargname.c_str()) ) {
-                 uint32_t filesize = _webserver->arg (sizeargname.c_str()).toInt();
-                 uint32_t freespace = SPIFFS.totalBytes() - SPIFFS.usedBytes();
-                 if (filesize > freespace) {
-                    _upload_status=UPLOAD_STATUS_FAILED;
-                    grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
-                    pushError(ESP_ERROR_NOT_ENOUGH_SPACE, "Upload rejected, not enough space");
-                 }
-                 
-            }
-            if (_upload_status != UPLOAD_STATUS_FAILED) {
-                //create file
-                fsUploadFile = SPIFFS.open(filename, FILE_WRITE);
-                //check If creation succeed
-                if (fsUploadFile) {
-                    //if yes upload is started
-                    _upload_status= UPLOAD_STATUS_ONGOING;
-                } else {
-                    //if no set cancel flag
-                    _upload_status=UPLOAD_STATUS_FAILED;
-                    grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
-                    pushError(ESP_ERROR_FILE_CREATION, "File creation failed");
-                }
-            }
-            //Upload write
+        if((_upload_status != UPLOAD_STATUS_FAILED)|| (upload.status == UPLOAD_FILE_START)){
+            //Upload start
             //**************
-        } else if(upload.status == UPLOAD_FILE_WRITE) {
-            vTaskDelay(1 / portTICK_RATE_MS);
-            //check if file is available and no error
-            if(fsUploadFile && _upload_status == UPLOAD_STATUS_ONGOING) {
-                //no error so write post date
-                if (upload.currentSize != fsUploadFile.write(upload.buf, upload.currentSize)) {
+            if(upload.status == UPLOAD_FILE_START) {
+                _upload_status= UPLOAD_STATUS_ONGOING;
+                String upload_filename = upload.filename;
+                if (upload_filename[0] != '/') filename = "/" + upload_filename;
+                else filename = upload.filename;
+                //according User or Admin the root is different as user is isolate to /user when admin has full access
+                if(auth_level != LEVEL_ADMIN) {
+                    upload_filename = filename;
+                    filename = "/user" + upload_filename;
+                }
+                
+                if (SPIFFS.exists (filename) ) {
+                    SPIFFS.remove (filename);
+                }
+                if (fsUploadFile ) {
+                    fsUploadFile.close();
+                }
+                String  sizeargname  = upload.filename + "S";
+                if (_webserver->hasArg (sizeargname.c_str()) ) {
+                     uint32_t filesize = _webserver->arg (sizeargname.c_str()).toInt();
+                     uint32_t freespace = SPIFFS.totalBytes() - SPIFFS.usedBytes();
+                     if (filesize > freespace) {
+                        _upload_status=UPLOAD_STATUS_FAILED;
+                        grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
+                        pushError(ESP_ERROR_NOT_ENOUGH_SPACE, "Upload rejected, not enough space");
+                     }
+                     
+                }
+                if (_upload_status != UPLOAD_STATUS_FAILED) {
+                    //create file
+                    fsUploadFile = SPIFFS.open(filename, FILE_WRITE);
+                    //check If creation succeed
+                    if (fsUploadFile) {
+                        //if yes upload is started
+                        _upload_status= UPLOAD_STATUS_ONGOING;
+                    } else {
+                        //if no set cancel flag
+                        _upload_status=UPLOAD_STATUS_FAILED;
+                        grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
+                        pushError(ESP_ERROR_FILE_CREATION, "File creation failed");
+                    }
+                }
+                //Upload write
+                //**************
+            } else if(upload.status == UPLOAD_FILE_WRITE) {
+                vTaskDelay(1 / portTICK_RATE_MS);
+                //check if file is available and no error
+                if(fsUploadFile && _upload_status == UPLOAD_STATUS_ONGOING) {
+                    //no error so write post date
+                    if (upload.currentSize != fsUploadFile.write(upload.buf, upload.currentSize)) {
+                        _upload_status=UPLOAD_STATUS_FAILED;
+                        grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
+                        pushError(ESP_ERROR_FILE_WRITE, "File write failed");
+                    }
+                } else {
+                    //we have a problem set flag UPLOAD_STATUS_FAILED
                     _upload_status=UPLOAD_STATUS_FAILED;
                     grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
                     pushError(ESP_ERROR_FILE_WRITE, "File write failed");
                 }
-            } else {
-                //we have a problem set flag UPLOAD_STATUS_FAILED
-                _upload_status=UPLOAD_STATUS_FAILED;
-                grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
-                pushError(ESP_ERROR_FILE_WRITE, "File write failed");
-            }
-            //Upload end
-            //**************
-        } else if(upload.status == UPLOAD_FILE_END) {
-            //check if file is still open
-            if(fsUploadFile) {
-                //close it
-                fsUploadFile.close();
-                //check size 
-                String  sizeargname  = upload.filename + "S";
-                fsUploadFile = SPIFFS.open (filename, FILE_READ);
-                uint32_t filesize = fsUploadFile.size();
-                fsUploadFile.close();
-                if (_webserver->hasArg (sizeargname.c_str()) ) {
-                    if (_webserver->arg (sizeargname.c_str()) != String(filesize)) {
-                        _upload_status = UPLOAD_STATUS_FAILED;
+                //Upload end
+                //**************
+            } else if(upload.status == UPLOAD_FILE_END) {
+                //check if file is still open
+                if(fsUploadFile) {
+                    //close it
+                    fsUploadFile.close();
+                    //check size 
+                    String  sizeargname  = upload.filename + "S";
+                    fsUploadFile = SPIFFS.open (filename, FILE_READ);
+                    uint32_t filesize = fsUploadFile.size();
+                    fsUploadFile.close();
+                    if (_webserver->hasArg (sizeargname.c_str()) ) {
+                        if (_webserver->arg (sizeargname.c_str()) != String(filesize)) {
+                            _upload_status = UPLOAD_STATUS_FAILED;
+                        }
+                    } 
+                    if (_upload_status == UPLOAD_STATUS_ONGOING) {
+                        _upload_status = UPLOAD_STATUS_SUCCESSFUL;
+                    } else {
+                        grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
+                        pushError(ESP_ERROR_UPLOAD, "File upload failed");
                     }
-                } 
-                if (_upload_status == UPLOAD_STATUS_ONGOING) {
-                    _upload_status = UPLOAD_STATUS_SUCCESSFUL;
                 } else {
+                    //we have a problem set flag UPLOAD_STATUS_FAILED
+                    _upload_status=UPLOAD_STATUS_FAILED;
+                    pushError(ESP_ERROR_FILE_CLOSE, "File close failed");
                     grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
-                    pushError(ESP_ERROR_UPLOAD, "File upload failed");
+                    
                 }
+                //Upload cancelled
+                //**************
             } else {
-                //we have a problem set flag UPLOAD_STATUS_FAILED
-                _upload_status=UPLOAD_STATUS_FAILED;
-                pushError(ESP_ERROR_FILE_CLOSE, "File close failed");
-                grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
-                
+                    _upload_status = UPLOAD_STATUS_FAILED;
+                    //pushError(ESP_ERROR_UPLOAD, "File upload failed");
+                    return;
             }
-            //Upload cancelled
-            //**************
-        } else {
-                _upload_status = UPLOAD_STATUS_FAILED;
-                //pushError(ESP_ERROR_UPLOAD, "File upload failed");
-                return;
         }
     }
     
@@ -1173,9 +1172,9 @@ void Web_Server::WebUpdateUpload ()
         grbl_send(CLIENT_ALL,"[MSG:Upload rejected]\r\n");
         pushError(ESP_ERROR_AUTHENTICATION, "Upload rejected", 401);
     } else {
-        if(_upload_status != UPLOAD_STATUS_FAILED) {
-            //get current file ID
-            HTTPUpload& upload = _webserver->upload();
+        //get current file ID
+        HTTPUpload& upload = _webserver->upload();
+        if((_upload_status != UPLOAD_STATUS_FAILED)|| (upload.status == UPLOAD_FILE_START)){
             //Upload start
             //**************
             if(upload.status == UPLOAD_FILE_START) {
@@ -1503,113 +1502,115 @@ void Web_Server::SDFile_direct_upload()
         _upload_status=UPLOAD_STATUS_FAILED;
         _webserver->send(401, "application/json", "{\"status\":\"Authentication failed!\"}");
         pushError(ESP_ERROR_AUTHENTICATION, "Upload rejected", 401);
-    }
-    if (_upload_status !=UPLOAD_STATUS_FAILED) {
+    } else {
         //retrieve current file id
         HTTPUpload& upload = _webserver->upload();
-        //Upload start
-        //**************
-        if(upload.status == UPLOAD_FILE_START) {
-            filename= upload.filename;
-            //on SD need to add / if not present
-            if (filename[0]!='/') {
-                filename= "/"+upload.filename;
-            }
-            //check if SD Card is available
-            if ( get_sd_state(true) != SDCARD_IDLE) {
-                _upload_status=UPLOAD_STATUS_FAILED;
-                grbl_send(CLIENT_ALL,"[MSG:Upload cancelled]\r\n");
-                pushError(ESP_ERROR_UPLOAD_CANCELLED, "Upload cancelled");
-                
-            } else {
-                set_sd_state(SDCARD_BUSY_UPLOADING);
-                //delete file on SD Card if already present
-                if(SD.exists((char *)filename.c_str())) {
-                    SD.remove((char *)filename.c_str());
-                }
-                String  sizeargname  = upload.filename + "S";
-                if (_webserver->hasArg (sizeargname.c_str()) ) {
-                     uint32_t filesize = _webserver->arg (sizeargname.c_str()).toInt();
-                     uint64_t freespace = SD.totalBytes() - SD.usedBytes();
-                     if (filesize > freespace) {
-                        _upload_status=UPLOAD_STATUS_FAILED;
-                        grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
-                        pushError(ESP_ERROR_NOT_ENOUGH_SPACE, "Upload rejected, not enough space");
-                     }
-                     
-                }
-                if (_upload_status != UPLOAD_STATUS_FAILED){
-                    //Create file for writing
-                    sdUploadFile = SD.open((char *)filename.c_str(), FILE_WRITE);
-                    //check if creation succeed
-                    if (!sdUploadFile) {
-                        //if creation failed
-                        _upload_status=UPLOAD_STATUS_FAILED;
-                        grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
-                        pushError(ESP_ERROR_FILE_CREATION, "File creation failed");
-                    }
-                    //if creation succeed set flag UPLOAD_STATUS_ONGOING
-                    else {
-                        _upload_status= UPLOAD_STATUS_ONGOING;
-                    }
-                }
-            }
-            //Upload write
+        if((_upload_status != UPLOAD_STATUS_FAILED)|| (upload.status == UPLOAD_FILE_START)){
+            //Upload start
             //**************
-        } else if(upload.status == UPLOAD_FILE_WRITE) {
-            vTaskDelay(1 / portTICK_RATE_MS);
-            if(sdUploadFile && (_upload_status == UPLOAD_STATUS_ONGOING) && (get_sd_state(false) == SDCARD_BUSY_UPLOADING)) {
-                //no error write post data
-                if (upload.currentSize != sdUploadFile.write(upload.buf, upload.currentSize)) {
-                _upload_status = UPLOAD_STATUS_FAILED;
-                grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
-                pushError(ESP_ERROR_FILE_WRITE, "File write failed");
+            if(upload.status == UPLOAD_FILE_START) {
+                _upload_status= UPLOAD_STATUS_ONGOING;
+                filename= upload.filename;
+                //on SD need to add / if not present
+                if (filename[0]!='/') {
+                    filename= "/"+upload.filename;
                 }
-            } else { //if error set flag UPLOAD_STATUS_FAILED
-                _upload_status = UPLOAD_STATUS_FAILED;
-                grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
-                pushError(ESP_ERROR_FILE_WRITE, "File write failed");
-            }
-            //Upload end
-            //**************
-        } else if(upload.status == UPLOAD_FILE_END) {
-            //if file is open close it
-            if(sdUploadFile) {
-                sdUploadFile.close();
-                //TODO Check size
-                String  sizeargname  = upload.filename + "S";
-                if (_webserver->hasArg (sizeargname.c_str()) ) {
-                    uint32_t filesize = 0;
-                    sdUploadFile = SD.open (filename.c_str(), FILE_READ);
-                    filesize = sdUploadFile.size();
-                    sdUploadFile.close();
-                    if (_webserver->arg (sizeargname.c_str()) != String(filesize)) {
-                        _upload_status = UPLOAD_STATUS_FAILED;
-                        pushError(ESP_ERROR_UPLOAD, "File upload mismatch");
-                        grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
+                //check if SD Card is available
+                if ( get_sd_state(true) != SDCARD_IDLE) {
+                    _upload_status=UPLOAD_STATUS_FAILED;
+                    grbl_send(CLIENT_ALL,"[MSG:Upload cancelled]\r\n");
+                    pushError(ESP_ERROR_UPLOAD_CANCELLED, "Upload cancelled");
+                    
+                } else {
+                    set_sd_state(SDCARD_BUSY_UPLOADING);
+                    //delete file on SD Card if already present
+                    if(SD.exists((char *)filename.c_str())) {
+                        SD.remove((char *)filename.c_str());
+                    }
+                    String  sizeargname  = upload.filename + "S";
+                    if (_webserver->hasArg (sizeargname.c_str()) ) {
+                         uint32_t filesize = _webserver->arg (sizeargname.c_str()).toInt();
+                         uint64_t freespace = SD.totalBytes() - SD.usedBytes();
+                         if (filesize > freespace) {
+                            _upload_status=UPLOAD_STATUS_FAILED;
+                            grbl_send(CLIENT_ALL,"[MSG:Upload error]\r\n");
+                            pushError(ESP_ERROR_NOT_ENOUGH_SPACE, "Upload rejected, not enough space");
+                         }
+                         
+                    }
+                    if (_upload_status != UPLOAD_STATUS_FAILED){
+                        //Create file for writing
+                        sdUploadFile = SD.open((char *)filename.c_str(), FILE_WRITE);
+                        //check if creation succeed
+                        if (!sdUploadFile) {
+                            //if creation failed
+                            _upload_status=UPLOAD_STATUS_FAILED;
+                            grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
+                            pushError(ESP_ERROR_FILE_CREATION, "File creation failed");
                         }
+                        //if creation succeed set flag UPLOAD_STATUS_ONGOING
+                        else {
+                            _upload_status= UPLOAD_STATUS_ONGOING;
+                        }
+                    }
                 }
-            } else {
-                _upload_status = UPLOAD_STATUS_FAILED;
-                grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
-                pushError(ESP_ERROR_FILE_CLOSE, "File close failed");
-            }
-            if (_upload_status == UPLOAD_STATUS_ONGOING) {
-                _upload_status = UPLOAD_STATUS_SUCCESSFUL;
+                //Upload write
+                //**************
+            } else if(upload.status == UPLOAD_FILE_WRITE) {
+                vTaskDelay(1 / portTICK_RATE_MS);
+                if(sdUploadFile && (_upload_status == UPLOAD_STATUS_ONGOING) && (get_sd_state(false) == SDCARD_BUSY_UPLOADING)) {
+                    //no error write post data
+                    if (upload.currentSize != sdUploadFile.write(upload.buf, upload.currentSize)) {
+                    _upload_status = UPLOAD_STATUS_FAILED;
+                    grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
+                    pushError(ESP_ERROR_FILE_WRITE, "File write failed");
+                    }
+                } else { //if error set flag UPLOAD_STATUS_FAILED
+                    _upload_status = UPLOAD_STATUS_FAILED;
+                    grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
+                    pushError(ESP_ERROR_FILE_WRITE, "File write failed");
+                }
+                //Upload end
+                //**************
+            } else if(upload.status == UPLOAD_FILE_END) {
+                //if file is open close it
+                if(sdUploadFile) {
+                    sdUploadFile.close();
+                    //TODO Check size
+                    String  sizeargname  = upload.filename + "S";
+                    if (_webserver->hasArg (sizeargname.c_str()) ) {
+                        uint32_t filesize = 0;
+                        sdUploadFile = SD.open (filename.c_str(), FILE_READ);
+                        filesize = sdUploadFile.size();
+                        sdUploadFile.close();
+                        if (_webserver->arg (sizeargname.c_str()) != String(filesize)) {
+                            _upload_status = UPLOAD_STATUS_FAILED;
+                            pushError(ESP_ERROR_UPLOAD, "File upload mismatch");
+                            grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
+                            }
+                    }
+                } else {
+                    _upload_status = UPLOAD_STATUS_FAILED;
+                    grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
+                    pushError(ESP_ERROR_FILE_CLOSE, "File close failed");
+                }
+                if (_upload_status == UPLOAD_STATUS_ONGOING) {
+                    _upload_status = UPLOAD_STATUS_SUCCESSFUL;
+                    set_sd_state(SDCARD_IDLE);
+                } else {
+                    _upload_status = UPLOAD_STATUS_FAILED;
+                    pushError(ESP_ERROR_UPLOAD, "Upload error");
+                }
+                
+            } else {//Upload cancelled
+                _upload_status=UPLOAD_STATUS_FAILED;
                 set_sd_state(SDCARD_IDLE);
-            } else {
-                _upload_status = UPLOAD_STATUS_FAILED;
-                pushError(ESP_ERROR_UPLOAD, "Upload error");
+                grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
+                if(sdUploadFile) {
+                    sdUploadFile.close();
+                }
+                return;
             }
-            
-        } else {//Upload cancelled
-            _upload_status=UPLOAD_STATUS_FAILED;
-            set_sd_state(SDCARD_IDLE);
-            grbl_send(CLIENT_ALL,"[MSG:Upload failed]\r\n");
-            if(sdUploadFile) {
-                sdUploadFile.close();
-            }
-            return;
         }
     }
     if (_upload_status == UPLOAD_STATUS_FAILED) {
