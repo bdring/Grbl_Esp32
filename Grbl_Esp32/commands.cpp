@@ -875,12 +875,64 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             int8_t state = get_sd_state(true);
             if (state  ==  SDCARD_IDLE) {
                 listDir(SD, "/", 10, espresponse->client());
+                String ssd = "[SD Free:" + ESPResponseStream::formatBytes(SD.totalBytes() - SD.usedBytes());
+                ssd +=" Used:" + ESPResponseStream::formatBytes(SD.usedBytes());
+                ssd +=" Total:" + ESPResponseStream::formatBytes(SD.totalBytes());
+                ssd +="]";
                 espresponse->println ("");
+                espresponse->println (ssd.c_str());
                 }
             else espresponse->println ((state == SDCARD_NOT_PRESENT) ? "No SD card" : "Busy");
             }
             break;
             
+        //Delete SD Card file / directory
+        //[ESP215]<file/dir name>pwd=<user/admin password>
+        case 215:
+            {
+            if (!espresponse) return false;
+#ifdef ENABLE_AUTHENTICATION
+            if (auth_type == LEVEL_GUEST) {
+                espresponse->println ("Error: Wrong authentication!");
+                return false;
+                
+            }
+#endif      
+            parameter = get_param (cmd_params, "", true);
+            if (parameter.length() != 0) {
+                int8_t state = get_sd_state(true);
+                parameter.trim();
+                if (parameter[0] != '/'){
+                    parameter = "/" + parameter;
+                }
+                if (state  ==  SDCARD_IDLE) {
+                    File file2del = SD.open(parameter.c_str());
+                    if (file2del) {
+                        if (file2del.isDirectory()) {
+                            if (!SD.rmdir((char *)parameter.c_str())) {
+                                espresponse->println ("Error: Cannot delete directory! Is directory empty?");
+                            } else {
+                                 espresponse->println ("Directory deleted.");
+                            }
+                        } else {
+                            if (!SD.remove((char *)parameter.c_str())) {
+                                espresponse->println ("Error: Cannot delete file!");
+                            } else {
+                                espresponse->println ("File deleted.");
+                            } 
+                            }
+                    } else {
+                        espresponse->println ("Error: Cannot stat file!");
+                    }
+                    file2del.close();
+                } else {
+                    espresponse->println ((state == SDCARD_NOT_PRESENT) ? "No SD card" : "Busy");
+                    }
+                } else {
+                    espresponse->println ("Error: Missing file name!");
+                }
+            }
+            break;
         //print SD file
         //[ESP220]<filename>
         case 220:
@@ -1422,11 +1474,15 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             if (WiFi.getMode() != WIFI_MODE_NULL){
                 espresponse->print ("Available Size for update: ");
                 //Is OTA available ?
+                size_t flashsize = 0;
                 if (esp_ota_get_running_partition()) {
-                    espresponse->print (ESPResponseStream::ESPResponseStream::formatBytes (ESP.getFreeSketchSpace() + ESP.getSketchSize()).c_str());
-                } else {
-                    espresponse->print (ESPResponseStream::formatBytes (0x0).c_str());
-                }
+                    const esp_partition_t* partition = esp_ota_get_next_update_partition(NULL);
+                    if (partition) {
+                        flashsize = partition->size;
+                    }
+                } 
+                espresponse->print (ESPResponseStream::formatBytes (flashsize).c_str()); 
+                
                 espresponse->println("");
             }
             if (WiFi.getMode() != WIFI_MODE_NULL){
@@ -1965,7 +2021,10 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             if (!espresponse)return false;
             String resp;
             resp = "FW version:";
-            resp += GRBL_VERSION;
+            resp += GRBL_VERSION ;
+            resp += " (";
+            resp += GRBL_VERSION_BUILD;
+            resp += ")";
             resp += " # FW target:grbl-embedded  # FW HW:";
             #ifdef ENABLE_SD_CARD
             resp += "Direct SD";
@@ -1982,11 +2041,24 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
             #if defined (ENABLE_HTTP)
             resp += " # webcommunication: Sync: ";
             resp += String(web_server.port() + 1);
+            resp += ":";
+            if (WiFi.getMode() == WIFI_MODE_AP) {
+                resp += WiFi.softAPIP().toString();
+            } else if (WiFi.getMode() == WIFI_MODE_STA){
+                resp += WiFi.localIP().toString();
+            } else if (WiFi.getMode() == WIFI_MODE_APSTA) {
+                resp += WiFi.softAPIP().toString();
+            } else {
+                resp += "0.0.0.0";
+            }
             #endif
-            resp += "# hostname:";
+            resp += " # hostname:";
             resp += wifi_config.Hostname();
             if (WiFi.getMode() == WIFI_AP)resp += "(AP mode)";
             #endif
+            //to save time in decoding `?`
+            resp += " # axis:";
+            resp += String(N_AXIS);
             if (espresponse)espresponse->println (resp.c_str());
         }   
             break;

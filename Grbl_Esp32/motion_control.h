@@ -46,6 +46,7 @@
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
 // (1 minute)/feed_rate time.
+void mc_line_kins(float *target, plan_line_data_t *pl_data, float *position);
 void mc_line(float *target, plan_line_data_t *pl_data);
 
 // Execute an arc in offset mode format. position == current xyz, target == target xyz,

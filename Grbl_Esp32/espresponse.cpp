@@ -24,6 +24,8 @@
 #include <WebServer.h>
 #endif
 
+#include "report.h"
+
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
 ESPResponseStream::ESPResponseStream(WebServer * webserver){
     _header_sent=false;

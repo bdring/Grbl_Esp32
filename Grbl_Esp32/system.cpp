@@ -44,6 +44,10 @@ void system_ini() // Renamed from system_init() due to conflict with esp32 files
 	#endif
 
 #endif
+   //customize pin definition if needed
+#if (GRBL_SPI_SS != -1) || (GRBL_SPI_MISO != -1) || (GRBL_SPI_MOSI != -1) || (GRBL_SPI_SCK != -1)
+    SPI.begin(GRBL_SPI_SCK, GRBL_SPI_MISO, GRBL_SPI_MOSI, GRBL_SPI_SS);
+#endif 
 }
 
 void IRAM_ATTR isr_control_inputs()
@@ -156,7 +160,7 @@ uint8_t system_execute_line(char *line, uint8_t client)
           if ( line[2] != 0 ) { return(STATUS_INVALID_STATEMENT); }
           else { report_ngc_parameters(client); }
           break;
-        case 'H' : // Perform homing cycle [IDLE/ALARM]
+        case 'H' : // Perform homing cycle [IDLE/ALARM]  $H
           if (bit_isfalse(settings.flags,BITFLAG_HOMING_ENABLE)) {return(STATUS_SETTING_DISABLED); }
           if (system_check_safety_door_ajar()) { return(STATUS_CHECK_DOOR); } // Block if safety door is ajar.
           sys.state = STATE_HOMING; // Set system state variable
@@ -168,6 +172,9 @@ uint8_t system_execute_line(char *line, uint8_t client)
                 case 'X': mc_homing_cycle(HOMING_CYCLE_X); break;
                 case 'Y': mc_homing_cycle(HOMING_CYCLE_Y); break;
                 case 'Z': mc_homing_cycle(HOMING_CYCLE_Z); break;
+				case 'A': mc_homing_cycle(HOMING_CYCLE_A); break;
+				case 'B': mc_homing_cycle(HOMING_CYCLE_B); break;
+				case 'C': mc_homing_cycle(HOMING_CYCLE_C); break;
                 default: return(STATUS_INVALID_STATEMENT);
               }
           #endif
@@ -430,7 +437,11 @@ uint8_t get_limit_pin_mask(uint8_t axis_idx)
 {
   if ( axis_idx == X_AXIS ) { return((1<<X_LIMIT_BIT)); }
   if ( axis_idx == Y_AXIS ) { return((1<<Y_LIMIT_BIT)); }
-  return((1<<Z_LIMIT_BIT));
+  if ( axis_idx == Z_AXIS ) { return((1<<Z_LIMIT_BIT)); }
+  if ( axis_idx == A_AXIS ) { return((1<<A_LIMIT_BIT)); }
+  if ( axis_idx == B_AXIS ) { return((1<<B_LIMIT_BIT)); }
+  if ( axis_idx == C_AXIS ) { return((1<<C_LIMIT_BIT)); }
+  return 0;
 }
 
 // CoreXY calculation only. Returns x or y-axis "steps" based on CoreXY motor steps.
