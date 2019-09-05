@@ -21,6 +21,8 @@
 #include "grbl.h"
 #include "config.h"
 
+xQueueHandle control_sw_queue;  // used by control switch debouncing
+
 void system_ini() // Renamed from system_init() due to conflict with esp32 files
 {	
 	// setup control inputs
@@ -42,6 +44,38 @@ void system_ini() // Renamed from system_init() due to conflict with esp32 files
 		pinMode(CONTROL_CYCLE_START_PIN, INPUT);
 		attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
 	#endif
+	
+	#ifdef MACRO_BUTTON_0_PIN
+		pinMode(MACRO_BUTTON_0_PIN, INPUT_PULLUP);
+		attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_0_PIN), isr_control_inputs, CHANGE);
+	#endif
+
+	#ifdef MACRO_BUTTON_1_PIN
+		pinMode(MACRO_BUTTON_1_PIN, INPUT_PULLUP);
+		attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_1_PIN), isr_control_inputs, CHANGE);
+	#endif
+
+	#ifdef MACRO_BUTTON_2_PIN
+		pinMode(MACRO_BUTTON_2_PIN, INPUT_PULLUP);
+		attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_2_PIN), isr_control_inputs, CHANGE);
+	#endif
+
+	#ifdef MACRO_BUTTON_3_PIN
+		pinMode(MACRO_BUTTON_3_PIN, INPUT_PULLUP);
+		attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_3_PIN), isr_control_inputs, CHANGE);
+	#endif
+	
+	#ifdef ENABLE_CONTROL_SW_DEBOUNCE
+		// setup task used for debouncing
+		control_sw_queue = xQueueCreate(10, sizeof( int ));
+		
+		xTaskCreate(controlCheckTask, 
+					"controlCheckTask", 
+					2048, 
+					NULL, 
+					5, // priority 
+					NULL);
+	#endif
 
 #endif
    //customize pin definition if needed
@@ -50,32 +84,33 @@ void system_ini() // Renamed from system_init() due to conflict with esp32 files
 #endif 
 }
 
+#ifdef ENABLE_CONTROL_SW_DEBOUNCE
+// this is the debounce task
+void controlCheckTask(void *pvParameters)
+{	
+	while(true) {
+		int evt;
+		xQueueReceive(control_sw_queue, &evt, portMAX_DELAY); // block until receive queue
+		vTaskDelay( CONTROL_SW_DEBOUNCE_PERIOD / portTICK_PERIOD_MS ); // delay a while
+		
+		uint8_t pin = system_control_get_state();
+		if (pin) {			
+			system_exec_control_pin(pin);
+		}
+	}
+}
+#endif
+
 void IRAM_ATTR isr_control_inputs()
-{
-	
-	uint8_t pin = system_control_get_state();
-  if (pin) {
-    if (bit_istrue(pin,CONTROL_PIN_INDEX_RESET)) 
-		{
-			grbl_send(CLIENT_SERIAL, "[MSG:Reset via control pin]\r\n"); // help debug reason for reset
-      mc_reset();
-    } 
-		else if (bit_istrue(pin,CONTROL_PIN_INDEX_CYCLE_START)) 
-		{
-      bit_true(sys_rt_exec_state, EXEC_CYCLE_START);
-    
-    } 		
-		else if (bit_istrue(pin,CONTROL_PIN_INDEX_FEED_HOLD)) 
-		{
-        bit_true(sys_rt_exec_state, EXEC_FEED_HOLD);
-    
-    }		
-		else if (bit_istrue(pin,CONTROL_PIN_INDEX_SAFETY_DOOR)) 
-		{
-        bit_true(sys_rt_exec_state, EXEC_SAFETY_DOOR);
-    
-    }		
-  }  
+{  
+	#ifdef ENABLE_CONTROL_SW_DEBOUNCE
+		// we will start a task that will recheck the switches after a small delay
+		int evt;
+		xQueueSendFromISR(control_sw_queue, &evt, NULL);	
+	#else
+		uint8_t pin = system_control_get_state();
+		system_exec_control_pin(pin);
+	#endif
 }
 
 // Executes user startup script, if stored.
@@ -425,6 +460,27 @@ uint8_t system_control_get_state()
 		if (digitalRead(CONTROL_CYCLE_START_PIN)) { control_state |= CONTROL_PIN_INDEX_CYCLE_START; }   
 	#endif
 	
+	#ifdef MACRO_BUTTON_0_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_0;
+		if (digitalRead(MACRO_BUTTON_0_PIN)) { control_state |= CONTROL_PIN_INDEX_MACRO_0; }
+	#endif
+	
+	#ifdef MACRO_BUTTON_1_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_1;
+		if (digitalRead(MACRO_BUTTON_1_PIN)) { control_state |= CONTROL_PIN_INDEX_MACRO_1; }
+	#endif
+	
+	#ifdef MACRO_BUTTON_2_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_2;
+		if (digitalRead(MACRO_BUTTON_2_PIN)) { control_state |= CONTROL_PIN_INDEX_MACRO_2; }
+	#endif
+	
+	#ifdef MACRO_BUTTON_3_PIN
+		defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_3;
+		if (digitalRead(MACRO_BUTTON_3_PIN)) { control_state |= CONTROL_PIN_INDEX_MACRO_3; }
+	#endif
+	
+	
   #ifdef INVERT_CONTROL_PIN_MASK
     control_state ^= (INVERT_CONTROL_PIN_MASK & defined_pin_mask);
   #endif  
@@ -442,6 +498,44 @@ uint8_t get_limit_pin_mask(uint8_t axis_idx)
   if ( axis_idx == B_AXIS ) { return((1<<B_LIMIT_BIT)); }
   if ( axis_idx == C_AXIS ) { return((1<<C_LIMIT_BIT)); }
   return 0;
+}
+
+// execute the function of the control pin
+void system_exec_control_pin(uint8_t pin) {
+	
+	if (bit_istrue(pin,CONTROL_PIN_INDEX_RESET)) {
+		grbl_send(CLIENT_SERIAL, "[MSG:Reset via control pin]\r\n"); // help debug reason for reset
+		mc_reset();
+	} 
+	else if (bit_istrue(pin,CONTROL_PIN_INDEX_CYCLE_START)) {
+		bit_true(sys_rt_exec_state, EXEC_CYCLE_START);    
+	} 		
+	else if (bit_istrue(pin,CONTROL_PIN_INDEX_FEED_HOLD)) {
+		bit_true(sys_rt_exec_state, EXEC_FEED_HOLD);    
+	}		
+	else if (bit_istrue(pin,CONTROL_PIN_INDEX_SAFETY_DOOR)) {
+		bit_true(sys_rt_exec_state, EXEC_SAFETY_DOOR);    
+	}
+	#ifdef MACRO_BUTTON_0_PIN
+	else if (pin == 96) {	
+		user_defined_macro(CONTROL_PIN_INDEX_MACRO_0); // function must be implemented by user 
+	}
+	#endif
+	#ifdef MACRO_BUTTON_1_PIN
+	else if (pin == 80) {
+		user_defined_macro(CONTROL_PIN_INDEX_MACRO_1); // function must be implemented by user 
+	}
+	#endif
+	#ifdef MACRO_BUTTON_2_PIN
+	else if (pin == 48) {
+		user_defined_macro(CONTROL_PIN_INDEX_MACRO_2); // function must be implemented by user 
+	}
+	#endif
+	#ifdef MACRO_BUTTON_3_PIN
+	else if (bit_istrue(pin,CONTROL_PIN_INDEX_MACRO_3)) {
+		user_defined_macro(CONTROL_PIN_INDEX_MACRO_3); // function must be implemented by user 
+	}
+	#endif 
 }
 
 // CoreXY calculation only. Returns x or y-axis "steps" based on CoreXY motor steps.

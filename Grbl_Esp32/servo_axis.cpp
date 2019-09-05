@@ -276,7 +276,9 @@ bool ServoAxis::_cal_is_valid()
   
 	if ( (settings.steps_per_mm[_axis] < SERVO_CAL_MIN) || (settings.steps_per_mm[_axis] > SERVO_CAL_MAX) ) {
 		if (_showError) {
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo cal ($10%d) Error: %4.4f s/b between %.2f and %.2f]\r\n", _axis, settings.steps_per_mm[_axis], SERVO_CAL_MIN, SERVO_CAL_MAX);
+			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo calibration ($10%d) value error. Reset to 100]\r\n", _axis);
+			settings.steps_per_mm[_axis] = 100;
+			write_global_settings();
 		}
 		settingsOK = false;
 	}
@@ -284,12 +286,19 @@ bool ServoAxis::_cal_is_valid()
 	// Note: Max travel is set positive via $$, but stored as a negative number
 	if ( (settings.max_travel[_axis] < -SERVO_CAL_MAX) || (settings.max_travel[_axis] > -SERVO_CAL_MIN) ) {
 		if (_showError) {
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo cal ($13%d) Error: %4.4f s/b between %.2f and %.2f]\r\n", _axis, -settings.max_travel[_axis], SERVO_CAL_MIN, SERVO_CAL_MAX);
+			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo calibration ($13%d) value error. Reset to 100]\r\n", _axis);
+			settings.max_travel[_axis] = -100;
+			write_global_settings();
 		}
 		settingsOK = false;
 	}
 	
 	_showError = false;  // to show error once 
+	
+	if (! settingsOK) {
+		write_global_settings(); // they were changed so write them to 
+	}
+	
 	return settingsOK;
 }
 
