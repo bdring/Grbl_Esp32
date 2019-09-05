@@ -50,7 +50,7 @@
 
 */
 #include "grbl.h"
-
+#ifdef CPU_MAP_POLAR_COASTER
 #ifdef USE_KINEMATICS
 
 /*
@@ -195,19 +195,28 @@ void user_defined_macro(uint8_t index)
 {
 	//grbl_sendf(CLIENT_SERIAL, "[MSG: Macro #%d]\r\n", index);
 	switch (index) {
+		#ifdef MACRO_BUTTON_0_PIN
 		case CONTROL_PIN_INDEX_MACRO_0:
 			Serial2Socket.push("$H\r"); // home machine
 		break;
+		#endif
+		#ifdef MACRO_BUTTON_1_PIN
 		case CONTROL_PIN_INDEX_MACRO_1:
 			Serial2Socket.push("[ESP220]/1.nc\r"); // run SD card file 1.nc
 		break;
+		#endif
+		#ifdef MACRO_BUTTON_2_PIN
 		case CONTROL_PIN_INDEX_MACRO_2:
 			Serial2Socket.push("[ESP220]/2.nc\r"); // run SD card file 2.nc
 		break;
+		#endif
+		#ifdef MACRO_BUTTON_3_PIN
 		case CONTROL_PIN_INDEX_MACRO_3:
 		break;
+		#endif
 		default:
 		break;
 	}
 }
+#endif
 
