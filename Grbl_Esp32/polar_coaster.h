@@ -1,5 +1,5 @@
 /*
-  kinematics.h - Implements simple kinematics for Grbl_ESP32
+  kinematics_polar_coaster.h - Implements simple kinematics for Grbl_ESP32
   Part of Grbl_ESP32
 
   Copyright (c) 2019 Barton Dring @buildlog
@@ -19,9 +19,18 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define RADIUS_AXIS 0
+#define POLAR_AXIS 1
+
+#define SEGMENT_LENGTH 0.5 // segment length in mm
+
 #ifndef kinematics_h
-  #define kinematics_h    
+  #define kinematics_h
+    
+	#include "grbl.h"
 		
 void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *position);
+void calc_polar(float *target_xyz, float *polar, float last_angle);
+void user_defined_macro(uint8_t index);
 
 #endif
