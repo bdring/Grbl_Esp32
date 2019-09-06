@@ -433,6 +433,10 @@ void stepper_init()
 		set_stepper_disable(true);
 	#endif
 	
+	#ifdef USE_TMC2130
+		TMC2130_Init();
+	#endif
+	
 	#ifdef USE_TRINAMIC
 		Trinamic_Init();
 	#endif
