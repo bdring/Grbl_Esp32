@@ -68,6 +68,93 @@ void COMMANDS::wait(uint32_t milliseconds){
     }
 }
 
+bool COMMANDS::execute_command (String cmd_params)
+{
+    bool res = true;
+    String currentline ="";
+    //parse all line in case of multi commands
+    for (uint p = 0; p < cmd_params.length(); p++){
+        //separator is \n or \r or nothing for last command (just in case)
+        if ((cmd_params[p] == '\r') || (cmd_params[p] == '\n') || (p == (cmd_params.length()-1))) {
+            //if last char is not a \r neither \n
+            if ((p == (cmd_params.length()-1)) && !((cmd_params[p] == '\r') || (cmd_params[p] == '\n'))) {
+                currentline+=cmd_params[p]; //add char to line
+            }
+            //remove space
+            currentline.trim();
+            //still have a content ?
+            if (currentline.length() > 0) { //process the line
+                int ESPpos = currentline.indexOf ("[ESP");
+                if (ESPpos > -1) {
+                    //is there the second part?
+                    int ESPpos2 = currentline.indexOf ("]", ESPpos);
+                    if (ESPpos2 > -1) {
+                        //Split in command and parameters
+                        String cmd_part1 = currentline.substring (ESPpos + 4, ESPpos2);
+                        String cmd_part2 = "";
+                        //is there space for parameters?
+                        if (ESPpos2 < currentline.length() ) {
+                            cmd_part2 = currentline.substring (ESPpos2 + 1);
+                        }
+                        //if command is a valid number then execute command
+                        if(cmd_part1.toInt()!=0) {
+                            ESPResponseStream  espresponse;
+                            if (!execute_internal_command(cmd_part1.toInt(),cmd_part2, LEVEL_ADMIN, &espresponse)){
+                                 report_status_message(STATUS_GCODE_UNSUPPORTED_COMMAND, CLIENT_ALL);
+                                 res = false;
+                             }
+                        }
+                        //if not is not a valid [ESPXXX] command ignore it
+                    }
+                } else {
+                    //preprocess line
+                    String processedline = "";
+                    char c;
+                    uint8_t line_flags = 0;
+                    for (uint16_t index=0; index < currentline.length(); index++){
+                        c = currentline[index];
+                        if (c == '\r' || c == ' ' || c == '\n') {  
+                        // ignore these whitespace items
+                            }
+                        else if (c == '(') {
+                            line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
+                        }
+                        else if (c == ')') {
+                        // End of '()' comment. Resume line allowed.
+                        if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) { line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES); }
+                        }
+                        else if (c == ';') {
+                        // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
+                            if (!(line_flags & LINE_FLAG_COMMENT_PARENTHESES)) // semi colon inside parentheses do not mean anything						
+                                line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
+                        }
+                        
+                        else { // add characters to the line
+                            if (!line_flags) {
+                                c = toupper(c); // make upper case
+                                processedline += c;
+                                }
+                            }
+                        }
+                    if (processedline.length() > 0) {
+                        uint8_t r =  gc_execute_line((char *)processedline.c_str(), CLIENT_NONE);
+                        if (STATUS_OK != r) {
+                            report_status_message(r, CLIENT_ALL);
+                            res=false;
+                            }
+                    }
+                    wait (1);
+                }
+            wait (1);
+            currentline="";
+            }
+        } else { //add char to line
+            currentline+=cmd_params[p];
+        }
+    }
+    return res;
+}
+
 bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authenticate_type auth_level,  ESPResponseStream  *espresponse)
 {
     bool response = true;
