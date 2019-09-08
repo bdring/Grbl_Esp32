@@ -408,7 +408,9 @@
 		#define SERVO_Z_CHANNEL_NUM 		5
 		#define SERVO_Z_RANGE_MIN			0.0
 		#define SERVO_Z_RANGE_MAX			5.0
-		#define SERVO_Z_MPOS					false
+		#define SERVO_Z_HOMING_TYPE		SERVO_HOMING_TARGET // during homing it will instantly move to a target value
+		#define SERVO_Z_HOME_POS			SERVO_Z_RANGE_MAX // move to max during homing
+		#define SERVO_Z_MPOS					false		// will not use mpos, uses work coordinates
 		
 		#ifndef IGNORE_CONTROL_PINS // maybe set in config.h
 			#define IGNORE_CONTROL_PINS
@@ -507,104 +509,133 @@
 #endif
 
 #ifdef CPU_MAP_POLAR_COASTER  // The Buildlog.net pen polar coaster controller V1
-		#define CPU_MAP_NAME "CPU_MAP_POLAR_COASTER"
+    #define CPU_MAP_NAME "CPU_MAP_POLAR_COASTER"		
+			
+	#define USE_KINEMATICS	
+	#include "polar_coaster.h"
 
-		#define X_STEP_PIN      GPIO_NUM_15
-		#define Y_STEP_PIN      GPIO_NUM_2
-		#define X_DIRECTION_PIN   GPIO_NUM_25
-		#define Y_DIRECTION_PIN   GPIO_NUM_26
-		
-		#define STEPPERS_DISABLE_PIN GPIO_NUM_17
-		
-		#define X_LIMIT_PIN      	GPIO_NUM_4
-		#define LIMIT_MASK      	B1
-		
-		#define CONTROL_RESET_PIN         GPIO_NUM_13
-		
-		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
-		// use a virtual spindle. Do not comment out the other parameters for the spindle.
-		//#define SPINDLE_PWM_PIN    GPIO_NUM_17
-		#define SPINDLE_PWM_CHANNEL 0
-		// PWM Generator is based on 80,000,000 Hz counter
-		// Therefor the freq determines the resolution
-		// 80,000,000 / freq = max resolution
-		// For 5000 that is 80,000,000 / 5000 = 16000 
-		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
-		
-		#ifndef SPINDLE_PWM_MIN_VALUE
-				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif
-		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
-		
-		#define USE_PEN_SERVO
-		#define SERVO_PEN_PIN 					GPIO_NUM_16
-		
-		// redefine some stuff from config.h
-		#define HOMING_CYCLE_0 (1<<X_AXIS) // this 'bot only homes the X axis
-		#ifdef HOMING_CYCLE_1
-			#undef HOMING_CYCLE_1
-		#endif
-		#ifdef HOMING_CYCLE_2
-			#undef HOMING_CYCLE_2
-		#endif		
-		
-		#ifdef DEFAULTS_GENERIC 
-			#undef DEFAULTS_GENERIC  // undefine generic then define each default below
-		#endif
-		
-		// defaults
-		#define DEFAULT_STEP_PULSE_MICROSECONDS 3 
-		#define DEFAULT_STEPPER_IDLE_LOCK_TIME 255 // stay on
-		
-		#define DEFAULT_STEPPING_INVERT_MASK 0 // uint8_t
-		#define DEFAULT_DIRECTION_INVERT_MASK 2 // uint8_t
-		#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
-		#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
-		#define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
-		
-		#define DEFAULT_STATUS_REPORT_MASK 1
-		
-		#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
-		#define DEFAULT_ARC_TOLERANCE 0.002 // mm
-		#define DEFAULT_REPORT_INCHES 0 // false
-		
-		#define DEFAULT_SOFT_LIMIT_ENABLE 0 // false
-		#define DEFAULT_HARD_LIMIT_ENABLE 0  // false
-		
-		#define DEFAULT_HOMING_ENABLE 1  
-		#define DEFAULT_HOMING_DIR_MASK 0 // move positive dir Z, negative X,Y
-		#define DEFAULT_HOMING_FEED_RATE 200.0 // mm/min
-		#define DEFAULT_HOMING_SEEK_RATE 1000.0 // mm/min
-		#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
-		#define DEFAULT_HOMING_PULLOFF 3.0 // mm
+	#define USE_RMT_STEPS
 
-		#define DEFAULT_SPINDLE_RPM_MAX 1000.0 // rpm
-		#define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
-		
-		#define DEFAULT_LASER_MODE 0 // false
-		
-		#define DEFAULT_X_STEPS_PER_MM 200.0
-		#define DEFAULT_Y_STEPS_PER_MM 71.111
-		#define DEFAULT_Z_STEPS_PER_MM 100.0 // This is percent in servo mode
-		
-		#define DEFAULT_X_MAX_RATE 5000.0 // mm/min
-		#define DEFAULT_Y_MAX_RATE 15000.0 // mm/min
-		#define DEFAULT_Z_MAX_RATE 3000.0 // mm/min
-		
-		#define DEFAULT_X_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
-		#define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
-		#define DEFAULT_Z_ACCELERATION (50.0*60*60) 
-		
-		#define DEFAULT_X_MAX_TRAVEL 50.0 // mm NOTE: Must be a positive value.
-		#define DEFAULT_Y_MAX_TRAVEL 300.0 // mm NOTE: Must be a positive value.
-		#define DEFAULT_Z_MAX_TRAVEL 100.0 // This is percent in servo mode
-		
-		
+	#define X_STEP_PIN			GPIO_NUM_15
+	#define X_RMT_CHANNEL		0
+	#define Y_STEP_PIN      	GPIO_NUM_2
+	#define Y_RMT_CHANNEL		1
+	#define X_DIRECTION_PIN 	GPIO_NUM_25
+	#define Y_DIRECTION_PIN 	GPIO_NUM_26
+	
+	#define STEPPERS_DISABLE_PIN GPIO_NUM_17
+	
+	#ifndef USE_SERVO_AXES  // maybe set in config.h
+		#define USE_SERVO_AXES
+	#endif
+
+	#define SERVO_Z_PIN 					GPIO_NUM_16
+	#define SERVO_Z_CHANNEL_NUM 		5
+	#define SERVO_Z_RANGE_MIN			0.0
+	#define SERVO_Z_RANGE_MAX			5.0
+	#define SERVO_Z_HOMING_TYPE		SERVO_HOMING_TARGET // during homing it will instantly move to a target value
+	#define SERVO_Z_HOME_POS			SERVO_Z_RANGE_MAX // move to max during homing
+	#define SERVO_Z_MPOS					false		// will not use mpos, uses work coordinates
+	
+	
+	
+	#define X_LIMIT_PIN      	GPIO_NUM_4
+	#define LIMIT_MASK      	B1
+	
+	#ifdef IGNORE_CONTROL_PINS // maybe set in config.h
+		#undef IGNORE_CONTROL_PINS
+	#endif
+	
+	#ifndef ENABLE_CONTROL_SW_DEBOUNCE
+		#define ENABLE_CONTROL_SW_DEBOUNCE
+	#endif
+
+	#define MACRO_BUTTON_0_PIN		GPIO_NUM_13
+	#define MACRO_BUTTON_1_PIN		GPIO_NUM_12
+	#define MACRO_BUTTON_2_PIN		GPIO_NUM_14
+	
+	// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
+	// use a virtual spindle. Do not comment out the other parameters for the spindle.
+	//#define SPINDLE_PWM_PIN    GPIO_NUM_17
+	#define SPINDLE_PWM_CHANNEL 0
+	// PWM Generator is based on 80,000,000 Hz counter
+	// Therefor the freq determines the resolution
+	// 80,000,000 / freq = max resolution
+	// For 5000 that is 80,000,000 / 5000 = 16000 
+	// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
+	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+	#define SPINDLE_PWM_OFF_VALUE     0
+	#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
+	
+	#ifndef SPINDLE_PWM_MIN_VALUE
+			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+	#endif
+	
+	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
+	
+	//#define USE_PEN_SERVO
+	//#define SERVO_PEN_PIN 					GPIO_NUM_16
+	
+	// redefine some stuff from config.h
+	#define HOMING_CYCLE_0 (1<<X_AXIS) // this 'bot only homes the X axis
+	#ifdef HOMING_CYCLE_1
+		#undef HOMING_CYCLE_1
+	#endif
+	#ifdef HOMING_CYCLE_2
+		#undef HOMING_CYCLE_2
+	#endif		
+	
+	#ifdef DEFAULTS_GENERIC 
+		#undef DEFAULTS_GENERIC  // undefine generic then define each default below
+	#endif
+	
+	// defaults
+	#define DEFAULT_STEP_PULSE_MICROSECONDS 3 
+	#define DEFAULT_STEPPER_IDLE_LOCK_TIME 255 // stay on
+	
+	#define DEFAULT_STEPPING_INVERT_MASK 0 // uint8_t
+	#define DEFAULT_DIRECTION_INVERT_MASK 2 // uint8_t
+	#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
+	#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
+	#define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
+	
+	#define DEFAULT_STATUS_REPORT_MASK 2 // MPos enabled
+	
+	#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
+	#define DEFAULT_ARC_TOLERANCE 0.002 // mm
+	#define DEFAULT_REPORT_INCHES 0 // false
+	
+	#define DEFAULT_SOFT_LIMIT_ENABLE 0 // false
+	#define DEFAULT_HARD_LIMIT_ENABLE 0  // false
+	
+	#define DEFAULT_HOMING_ENABLE 1  
+	#define DEFAULT_HOMING_DIR_MASK 0 // move positive dir Z, negative X,Y
+	#define DEFAULT_HOMING_FEED_RATE 200.0 // mm/min
+	#define DEFAULT_HOMING_SEEK_RATE 1000.0 // mm/min
+	#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
+	#define DEFAULT_HOMING_PULLOFF 3.0 // mm
+
+	#define DEFAULT_SPINDLE_RPM_MAX 1000.0 // rpm
+	#define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
+	
+	#define DEFAULT_LASER_MODE 0 // false
+	
+	#define DEFAULT_X_STEPS_PER_MM 200.0
+	#define DEFAULT_Y_STEPS_PER_MM 71.111
+	#define DEFAULT_Z_STEPS_PER_MM 100.0 // This is percent in servo mode
+	
+	#define DEFAULT_X_MAX_RATE 5000.0 // mm/min
+	#define DEFAULT_Y_MAX_RATE 15000.0 // mm/min
+	#define DEFAULT_Z_MAX_RATE 3000.0 // mm/min
+	
+	#define DEFAULT_X_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+	#define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+	#define DEFAULT_Z_ACCELERATION (50.0*60*60) 
+	
+	#define DEFAULT_X_MAX_TRAVEL 50.0 // mm NOTE: Must be a positive value.
+	#define DEFAULT_Y_MAX_TRAVEL 300.0 // mm NOTE: Must be a positive value.
+	#define DEFAULT_Z_MAX_TRAVEL 100.0 // This is percent in servo mode
 		
 #endif
 
@@ -1114,16 +1145,28 @@
 		
 		#define X_STEP_PIN      	GPIO_NUM_12
 		#define X_DIRECTION_PIN   	GPIO_NUM_26
-		#define X_CS_PIN    		GPIO_NUM_17  //chip select
+		#define X_CS_PIN    			GPIO_NUM_17  //chip select
 		#define X_RMT_CHANNEL		0		
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14   
 		#define Y_DIRECTION_PIN   	GPIO_NUM_25  
-		#define Y_CS_PIN    		GPIO_NUM_16  //chip select	
+		#define Y_CS_PIN    			GPIO_NUM_16  //chip select	
 		#define Y_RMT_CHANNEL		1		
 		
 		// OK to comment out to use pin for other features
 		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
+		
+		#ifndef USE_SERVO_AXES  // maybe set in config.h
+			#define USE_SERVO_AXES
+		#endif
+		
+		#define SERVO_Z_PIN 					GPIO_NUM_27
+		#define SERVO_Z_CHANNEL_NUM 		5
+		#define SERVO_Z_RANGE_MIN			0.0
+		#define SERVO_Z_RANGE_MAX			5.0
+		#define SERVO_Z_HOMING_TYPE		SERVO_HOMING_TARGET // during homing it will instantly move to a target value
+		#define SERVO_Z_HOME_POS			SERVO_Z_RANGE_MAX // move to max during homing
+		#define SERVO_Z_MPOS					false		// will not use mpos, uses work coordinates
 		
 		// *** the flood coolant feature code is activated by defining this pins
 		// *** Comment it out to use the pin for other features
@@ -1157,11 +1200,7 @@
 #endif
 
 #ifdef CPU_MAP_FOO_6X
-	#define CPU_MAP_NAME "CPU_MAP_FOO_6X"
-		/*
-	#define USE_KINEMATICS	
-	#include "kinematics.h" 
-	*/
+	#define CPU_MAP_NAME "CPU_MAP_FOO_6X"	
 	
 	// Be sure to change to N_AXIS 6 in nuts_bolts.h
 	#ifdef N_AXIS
@@ -1198,11 +1237,17 @@
 		#define SERVO_Z_CHANNEL_NUM 	6
 		#define SERVO_Z_RANGE_MIN		0.0
 		#define SERVO_Z_RANGE_MAX		5.0
+		#define SERVO_Z_HOMING_TYPE	SERVO_HOMING_TARGET // during homing it will instantly move to a target value
+		#define SERVO_Z_HOME_POS		SERVO_Z_RANGE_MAX // move to max during homing
+		#define SERVO_Z_MPOS				false		// will not use mpos, uses work coordinates
 		
 		#define SERVO_C_PIN 			GPIO_NUM_2
 		#define SERVO_C_CHANNEL_NUM 	7
 		#define SERVO_C_RANGE_MIN		0.0
-		#define SERVO_C_RANGE_MAX		5.0		
+		#define SERVO_C_RANGE_MAX		5.0
+		#define SERVO_C_HOMING_TYPE	SERVO_HOMING_TARGET // during homing it will instantly move to a target value
+		#define SERVO_C_HOME_POS		SERVO_C_RANGE_MAX // move to max during homing
+		#define SERVO_C_MPOS				false		// will not use mpos, uses work coordinates		
 		
 		// limit switches
 		#define X_LIMIT_PIN      	GPIO_NUM_21

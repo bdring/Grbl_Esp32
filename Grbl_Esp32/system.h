@@ -134,6 +134,10 @@ extern system_t sys;
   #define CONTROL_PIN_INDEX_RESET         bit(1)
   #define CONTROL_PIN_INDEX_FEED_HOLD     bit(2)
   #define CONTROL_PIN_INDEX_CYCLE_START   bit(3)
+  #define CONTROL_PIN_INDEX_MACRO_0			  bit(4)
+  #define CONTROL_PIN_INDEX_MACRO_1			  bit(5)
+  #define CONTROL_PIN_INDEX_MACRO_2			  bit(6)
+  #define CONTROL_PIN_INDEX_MACRO_3			  bit(7)
 //#else
   //#define N_CONTROL_PIN 3
   //#define CONTROL_PIN_INDEX_RESET         bit(0)
@@ -216,6 +220,10 @@ void system_clear_exec_accessory_overrides();
 
 int32_t system_convert_corexy_to_x_axis_steps(int32_t *steps);
 int32_t system_convert_corexy_to_y_axis_steps(int32_t *steps);
+
+// A task that runs after a control switch interrupt for debouncing.
+void controlCheckTask(void *pvParameters);
+void system_exec_control_pin(uint8_t pin);
 
 
 #endif
