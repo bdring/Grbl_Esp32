@@ -133,8 +133,10 @@ void protocol_main_loop()
                         int cmd = 0;
                         String cmd_params;
                         if (COMMANDS::check_command (line, &cmd, cmd_params)) {
-                            ESPResponseStream espresponse(client);
-                            COMMANDS::execute_internal_command  (cmd, cmd_params, LEVEL_GUEST, &espresponse);
+                            ESPResponseStream espresponse(client, true);
+                            if (!COMMANDS::execute_internal_command  (cmd, cmd_params, LEVEL_GUEST, &espresponse)) {
+                                report_status_message(STATUS_GCODE_UNSUPPORTED_COMMAND, CLIENT_ALL);
+                            }
                         } else grbl_sendf(client, "[MSG: Unknow Command...%s]\r\n", line);
 					} else if (sys.state & (STATE_ALARM | STATE_JOG)) {
 						// Everything else is gcode. Block if in alarm or jog mode.
