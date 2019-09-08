@@ -42,7 +42,8 @@ ESPResponseStream::ESPResponseStream(){
 #endif
 }
 
-ESPResponseStream::ESPResponseStream(uint8_t client){
+ESPResponseStream::ESPResponseStream(uint8_t client, bool byid){
+    (void)byid; //fake parameter to avoid confusion with pointer one (NULL == 0)
     _client = client;
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     _header_sent=false;

@@ -42,7 +42,6 @@ class COMMANDS
 public:
     static bool check_command (const char *, int * cmd, String & cmd_params);
     static String get_param (String & cmd_params, const char * id, bool withspace);
-    static bool execute_command (String cmd_params);
     static bool execute_internal_command  (int cmd, String cmd_params, level_authenticate_type auth_level = LEVEL_GUEST ,  ESPResponseStream  *espresponse= NULL);
     static void wait(uint32_t milliseconds);
     static void handle();
