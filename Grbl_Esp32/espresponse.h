@@ -36,7 +36,7 @@ class ESPResponseStream{
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     ESPResponseStream(WebServer * webserver);
 #endif
-    ESPResponseStream(uint8_t client);
+    ESPResponseStream(uint8_t client, bool byid = true);
     ESPResponseStream();
     private:
     uint8_t _client;
