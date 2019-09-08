@@ -68,13 +68,13 @@ typedef struct {
 	uint32_t counter_x,        // Counter variables for the bresenham line tracer
 	         counter_y,
 	         counter_z
-			 #ifdef A_AXIS
+			 #if (N_AXIS > A_AXIS)
 				, counter_a
 			#endif
-			#ifdef B_AXIS
+			#if (N_AXIS > B_AXIS)
 				, counter_b
 			#endif
-			#ifdef C_AXIS
+			#if (N_AXIS > C_AXIS)
 				, counter_c
             #endif
 			;
@@ -351,7 +351,7 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 		}
 	}
 	
-#if N_AXIS > A_AXIS
+#if (N_AXIS > A_AXIS)
    #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
      st.counter_a += st.steps[A_AXIS];
    #else
@@ -366,7 +366,7 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 #endif
   
   
- #if N_AXIS > B_AXIS
+ #if (N_AXIS > B_AXIS)
    #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
      st.counter_b += st.steps[B_AXIS];
    #else
@@ -380,7 +380,7 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
    }
  #endif
 
-#if N_AXIS > C_AXIS
+#if (N_AXIS > C_AXIS)
    #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
      st.counter_c += st.steps[C_AXIS];
    #else
@@ -431,6 +431,10 @@ void stepper_init()
 	#ifdef STEPPERS_DISABLE_PIN
 		pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
 		set_stepper_disable(true);
+	#endif
+	
+	#ifdef USE_TMC2130
+		TMC2130_Init();
 	#endif
 	
 	#ifdef USE_TRINAMIC
