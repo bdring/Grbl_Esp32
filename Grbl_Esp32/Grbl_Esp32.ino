@@ -98,6 +98,7 @@ void setup() {
 #ifdef ENABLE_BLUETOOTH
     bt_config.begin();
 #endif
+    inputBuffer.begin();
 }
 
 void loop() {  
