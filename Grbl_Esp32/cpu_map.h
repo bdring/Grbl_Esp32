@@ -512,6 +512,7 @@
     #define CPU_MAP_NAME "CPU_MAP_POLAR_COASTER"		
 			
 	#define USE_KINEMATICS	
+	#define FWD_KINEMATICS_REPORTING // report in cartesian
 	#include "polar_coaster.h"
 
 	#define USE_RMT_STEPS
