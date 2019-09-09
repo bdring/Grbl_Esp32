@@ -106,7 +106,7 @@ void protocol_main_loop()
     // initial filtering by removing spaces and comments and capitalizing all letters.
 		
 		uint8_t client = CLIENT_SERIAL;
-		for (client = 1; client <= CLIENT_COUNT; client++)
+		for (client = 0; client <= CLIENT_COUNT; client++)
 		{
 			while((c = serial_read(client)) != SERIAL_NO_DATA) {
 				if ((c == '\n') || (c == '\r')) { // End of line reached

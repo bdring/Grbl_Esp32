@@ -312,7 +312,7 @@ void serialCheck()
 
 void serial_reset_read_buffer(uint8_t client)
 {		
-	for (uint8_t client_num = 1; client_num <= CLIENT_COUNT; client_num++)	
+	for (uint8_t client_num = 0; client_num <= CLIENT_COUNT; client_num++)	
 	{
 		if (client == client_num || client == CLIENT_ALL)
 		{
