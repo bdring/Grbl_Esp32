@@ -674,8 +674,13 @@ void report_realtime_status(uint8_t client)
   if (bit_istrue(settings.status_report_mask,BITFLAG_RT_STATUS_POSITION_TYPE)) {
     strcat(status, "|MPos:");
   } else {
+	#ifdef FWD_KINEMATICS_REPORTING
+		forward_kinematics(print_position);
+	#endif
     strcat(status, "|WPos:");
   }
+  
+  
   report_util_axis_values(print_position, temp);
 	strcat(status, temp);
 
