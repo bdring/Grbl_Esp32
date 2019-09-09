@@ -70,7 +70,7 @@ void serialCheckTask(void *pvParameters)
 	
 	while(true) // run continuously
 	{ 		
-		while (Serial.available()
+		while (Serial.available() || inputBuffer.available()
 		#ifdef ENABLE_BLUETOOTH 
 			 || (SerialBT.hasClient() && SerialBT.available())
 		#endif
@@ -86,14 +86,18 @@ void serialCheckTask(void *pvParameters)
 			{
 				client = CLIENT_SERIAL;
 				data = Serial.read();
-			}	
+			}
+       else if (inputBuffer.available()){
+                client = CLIENT_NONE;
+                data = inputBuffer.read();
+       }
        else
 			{   //currently is wifi or BT but better to prepare both can be live
 				#ifdef ENABLE_BLUETOOTH
                 if(SerialBT.hasClient() && SerialBT.available()){
-									client = CLIENT_BT;
-									data = SerialBT.read();					
-									//Serial.write(data);  // echo all data to serial
+                    client = CLIENT_BT;
+                    data = SerialBT.read();					
+                    //Serial.write(data);  // echo all data to serial
                 } else {		
 				#endif
                 #if defined (ENABLE_WIFI) && defined(ENABLE_HTTP)  && defined(ENABLE_SERIAL2SOCKET_IN)
@@ -207,7 +211,7 @@ void serialCheck()
 	uint8_t client_idx = 0;  // index of data buffer
 	
 	 		
-		while (Serial.available()
+		while (Serial.available() || inputBuffer.available()
 		#ifdef ENABLE_BLUETOOTH 
 			 || (SerialBT.hasClient() && SerialBT.available())
 		#endif
@@ -220,19 +224,24 @@ void serialCheck()
 			{
 				client = CLIENT_SERIAL;
 				data = Serial.read();
-			}	
+			}
+       else if (inputBuffer.available())
+            {
+                client = CLIENT_NONE;
+                data = inputBuffer.read();
+            }     
 #if defined (ENABLE_BLUETOOTH) || (defined (ENABLE_WIFI) && defined(ENABLE_HTTP)  && defined(ENABLE_SERIAL2SOCKET_IN))
        else
 			{   //currently is wifi or BT but better to prepare both can be live				
 				#ifdef ENABLE_BLUETOOTH
                 if(SerialBT.hasClient() && SerialBT.available()){
-									client = CLIENT_BT;
-									data = SerialBT.read();
-                } else {		
+					client = CLIENT_BT;
+					data = SerialBT.read();
+                } else {
 				#endif
                 #if defined (ENABLE_WIFI) && defined(ENABLE_HTTP)  && defined(ENABLE_SERIAL2SOCKET_IN)
-								client = CLIENT_WEBUI;
-                data = Serial2Socket.read();
+					client = CLIENT_WEBUI;
+                    data = Serial2Socket.read();
                 #endif
                 #ifdef ENABLE_BLUETOOTH
                 }
@@ -303,7 +312,7 @@ void serialCheck()
 
 void serial_reset_read_buffer(uint8_t client)
 {		
-	for (uint8_t client_num = 1; client_num <= CLIENT_COUNT; client_num++)	
+	for (uint8_t client_num = 0; client_num <= CLIENT_COUNT; client_num++)	
 	{
 		if (client == client_num || client == CLIENT_ALL)
 		{
