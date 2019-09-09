@@ -1180,7 +1180,6 @@ void Web_Server::WebUpdateUpload ()
             if(upload.status == UPLOAD_FILE_START) {
                 grbl_send(CLIENT_ALL,"[MSG:Update Firmware]\r\n");
                 _upload_status= UPLOAD_STATUS_ONGOING;
-                uint32_t maxSketchSpace = 0;
                 String  sizeargname  = upload.filename + "S";
                 if (_webserver->hasArg (sizeargname.c_str()) ) {
                     maxSketchSpace = _webserver->arg (sizeargname).toInt();
