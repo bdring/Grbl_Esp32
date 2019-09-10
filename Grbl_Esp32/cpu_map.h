@@ -248,7 +248,7 @@
 		
 #endif		
 		
-#ifdef CPU_MAP_PEN_LASER  // The Buildlog.net pen laser controller V1
+#ifdef CPU_MAP_PEN_LASER  // The Buildlog.net pen laser controller V1 & V2
 
 		// For pen mode be sure to uncomment #define USE_PEN_SERVO in config.h
 		// For solenoid  mode be sure to uncomment #define USE_PEN_SERVO in config.h
@@ -303,8 +303,8 @@
 		
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)			
 		
-		#define USING_SERVO  // uncommewnt to use this feature
-		#define USING_SOLENOID // uncommewnt to use this feature
+		#define USING_SERVO  // uncomment to use this feature
+		//#define USING_SOLENOID // uncomment to use this feature
 		
 		#ifdef USING_SERVO
 			#define USE_SERVO_AXES 
