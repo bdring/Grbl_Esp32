@@ -167,20 +167,15 @@ Some features should not be changed. See notes below.
 // may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
 // on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
 // will not be affected by pin sharing.
-// NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
-//#define HOMING_CYCLE_0 (1<<Z_AXIS)                // REQUIRED: First move Z to clear workspace.
-//#define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // OPTIONAL: Then move X,Y at the same time.
-// #define HOMING_CYCLE_2                         // OPTIONAL: Uncomment and add axes mask to enable
 
-#define HOMING_CYCLE_0 (1<<Z_AXIS)                // REQUIRED: First move Z to clear workspace.
+// NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.  
+#define HOMING_CYCLE_0 (1<<Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
 #define HOMING_CYCLE_1 (1<<X_AXIS)  
 #define HOMING_CYCLE_2 (1<<Y_AXIS)
 
-// NOTE: The following are two examples to setup homing for 2-axis machines.
-// #define HOMING_CYCLE_0 ((1<<X_AXIS)|(1<<Y_AXIS))  // NOT COMPATIBLE WITH COREXY: Homes both X-Y in one cycle. 
-
-// #define HOMING_CYCLE_0 (1<<X_AXIS)  // COREXY COMPATIBLE: First home X
-// #define HOMING_CYCLE_1 (1<<Y_AXIS)  // COREXY COMPATIBLE: Then home Y
+// NOTE: The following is for for homingg X and Y at the same time
+// #define HOMING_CYCLE_0 (1<<Z_AXIS) // first home z by itself
+// #define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
 
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
