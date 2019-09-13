@@ -45,6 +45,41 @@
 //Set your frequency 
 #define GRBL_SPI_FREQ  4000000
 
+#ifdef CPU_MAP_TEST_DRIVE
+	/*
+	This is just a demo CPU_MAP for test driving. It creates a basic 3 axis machine, but
+	no actual i/o is used. It will appear that axes are moving, but they are virtual
+
+	This can be uploaded to an unattached ESP32 or attached to unknown hardware. There is no risk
+	pins trying to output signals into a short, etc that could dmamge the ESP32
+
+	Assuming no changes have been made to the config.h file it is also a way to get he basic program
+	running so OTA (over the air) firmware loading can be done.
+
+	*/
+	#define CPU_MAP_NAME "CPU_MAP_DEFAULT - Demo Only No I/O!"
+	
+	
+	// the following items currently need to be defined, but no i/o needs to be mapped
+	// fixing soon
+	
+	#define LIMIT_MASK 0  // no limit pins
+	
+	#define SPINDLE_PWM_CHANNEL 0
+	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+	#define SPINDLE_PWM_OFF_VALUE     0
+	#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
+	
+	#ifndef SPINDLE_PWM_MIN_VALUE
+			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+	#endif
+	
+	#define SPINDLE_ENABLE_PIN	GPIO_NUM_22
+	
+	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
+#endif
+
 #ifdef CPU_MAP_ESP32
 	// This is the CPU Map for the ESP32 CNC Controller R2	
 	
