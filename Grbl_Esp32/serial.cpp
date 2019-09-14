@@ -88,7 +88,7 @@ void serialCheckTask(void *pvParameters)
 				data = Serial.read();
 			}
        else if (inputBuffer.available()){
-                client = CLIENT_NONE;
+                client = CLIENT_INPUT;
                 data = inputBuffer.read();
        }
        else
@@ -227,7 +227,7 @@ void serialCheck()
 			}
        else if (inputBuffer.available())
             {
-                client = CLIENT_NONE;
+                client = CLIENT_INPUT;
                 data = inputBuffer.read();
             }     
 #if defined (ENABLE_BLUETOOTH) || (defined (ENABLE_WIFI) && defined(ENABLE_HTTP)  && defined(ENABLE_SERIAL2SOCKET_IN))
