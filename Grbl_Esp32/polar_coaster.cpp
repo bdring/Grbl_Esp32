@@ -142,6 +142,38 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 	}
 }
 
+
+/*
+Forward kinematics converts position back to the original cartesian system. It is
+typically used for reporting
+
+For example, on a polar machine, you tell it to go to a place like X10Y10. It 
+converts to a radius and angle using inverse kinematics. The machine posiiton is now 
+in those units X14.14 (radius) and Y45 (degrees). If you want to report those units as 
+X10,Y10, you would use forward kinematics
+
+position = the current machine position
+converted = position with forward kinematics applied.
+
+*/
+void forward_kinematics(float *position)
+{
+	float original_position[N_AXIS]; // temporary storage of original
+	float print_position[N_AXIS];
+	int32_t current_position[N_AXIS]; // Copy current state of the system position variable
+	
+	memcpy(current_position,sys_position,sizeof(sys_position));
+	system_convert_array_steps_to_mpos(print_position,current_position);
+	
+	original_position[X_AXIS] = print_position[X_AXIS] - gc_state.coord_system[X_AXIS]+gc_state.coord_offset[X_AXIS];
+	original_position[Y_AXIS] = print_position[Y_AXIS] - gc_state.coord_system[Y_AXIS]+gc_state.coord_offset[Y_AXIS];
+	original_position[Z_AXIS] = print_position[Z_AXIS] - gc_state.coord_system[Z_AXIS]+gc_state.coord_offset[Z_AXIS];
+	
+	position[X_AXIS] = cos(radians(original_position[Y_AXIS])) * original_position[X_AXIS] * -1;
+	position[Y_AXIS] = sin(radians(original_position[Y_AXIS])) * original_position[X_AXIS];
+	position[Z_AXIS] = original_position[Z_AXIS];  // unchanged
+}
+
 // helper functions
 
 /*******************************************
