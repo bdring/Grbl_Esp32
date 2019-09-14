@@ -33,4 +33,6 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 void calc_polar(float *target_xyz, float *polar, float last_angle);
 void user_defined_macro(uint8_t index);
 
+void forward_kinematics(float *position);
+
 #endif
