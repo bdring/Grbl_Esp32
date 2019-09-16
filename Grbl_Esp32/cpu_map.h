@@ -999,9 +999,6 @@
 			#undef IGNORE_CONTROL_PINS
 		#endif
 		
-		
-		
-		
 		#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
 		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
 		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
@@ -1177,32 +1174,44 @@
 		
 		#define USE_RMT_STEPS
 		
-		#define USE_TMC2130 // make sure you assign chip select pins to each axis
+		#define USE_TRINAMIC // Using at least 1 trinamic driver
 		
 		#define X_STEP_PIN      	GPIO_NUM_12
 		#define X_DIRECTION_PIN   	GPIO_NUM_26
-		#define X_CS_PIN    			GPIO_NUM_17  //chip select
-		#define X_RMT_CHANNEL		0		
+		#define X_TRINAMIC   	   	// using SPI control
+		#define X_DRIVER_TMC2130 	// Which Driver Type?
+		#define X_CS_PIN    		GPIO_NUM_17  //chip select
+		#define X_RSENSE			0.11f   // .11 Ohm
+		#define X_MICROSTEPS		32
+		#define X_RMS_CURRENT		750 // run current in mA
+		#define X_HOLD_CURRENT      0.25 // hold current as percentage of run current
+		#define X_RMT_CHANNEL		0
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14   
-		#define Y_DIRECTION_PIN   	GPIO_NUM_25  
-		#define Y_CS_PIN    			GPIO_NUM_16  //chip select	
+		#define Y_DIRECTION_PIN   	GPIO_NUM_25 
+		#define Y_TRINAMIC   	   	// using SPI control
+		#define Y_DRIVER_TMC2130 	// Which Driver Type?
+		#define Y_CS_PIN    		GPIO_NUM_16  //chip select
+		#define Y_RSENSE			0.11f   // .11 Ohm
+		#define Y_MICROSTEPS		32
+		#define Y_RMS_CURRENT		750 // in mA
+		#define Y_HOLD_CURRENT      0.25 // hold current as percentage of run current
 		#define Y_RMT_CHANNEL		1		
 		
 		// OK to comment out to use pin for other features
-		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
+		#define STEPPERS_DISABLE_PIN GPIO_NUM_13	
 		
 		#ifndef USE_SERVO_AXES  // maybe set in config.h
 			#define USE_SERVO_AXES
 		#endif
 		
-		#define SERVO_Z_PIN 					GPIO_NUM_27
+		#define SERVO_Z_PIN 				GPIO_NUM_27
 		#define SERVO_Z_CHANNEL_NUM 		5
 		#define SERVO_Z_RANGE_MIN			0.0
 		#define SERVO_Z_RANGE_MAX			5.0
-		#define SERVO_Z_HOMING_TYPE		SERVO_HOMING_TARGET // during homing it will instantly move to a target value
+		#define SERVO_Z_HOMING_TYPE			SERVO_HOMING_TARGET // during homing it will instantly move to a target value
 		#define SERVO_Z_HOME_POS			SERVO_Z_RANGE_MAX // move to max during homing
-		#define SERVO_Z_MPOS					false		// will not use mpos, uses work coordinates
+		#define SERVO_Z_MPOS				false		// will not use mpos, uses work coordinates
 		
 		// *** the flood coolant feature code is activated by defining this pins
 		// *** Comment it out to use the pin for other features
@@ -1224,14 +1233,14 @@
 		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
 		
 		#ifndef SPINDLE_PWM_MIN_VALUE
-				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
 		#endif
 		
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
 		
-		#define X_LIMIT_PIN      	GPIO_NUM_2  
-		#define Y_LIMIT_PIN      	GPIO_NUM_4  
-		#define LIMIT_MASK      	B11
+		#define X_LIMIT_PIN      	GPIO_NUM_2
+		#define Y_LIMIT_PIN      	GPIO_NUM_4
+		#define LIMIT_MASK      	B11	
 		
 #endif
 
