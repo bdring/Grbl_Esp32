@@ -182,9 +182,14 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 			case 1:
 			case 2:
 			case 3:
-#ifdef PROBE_PIN //only allow G38 "Probe" commands if a probe pin is defined.
+
 			case 38:
-#endif
+				#ifndef PROBE_PIN //only allow G38 "Probe" commands if a probe pin is defined.
+					if (int_value == 38) {
+						grbl_send(CLIENT_SERIAL, "[MSG:No probe pin defined!]\r\n");
+						FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported G command]
+					}
+				#endif
 				// Check for G0/1/2/3/38 being called with G10/28/30/92 on same block.
 				// * G43.1 is also an axis command but is not explicitly defined this way.
 				if (axis_command) {

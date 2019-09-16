@@ -267,10 +267,10 @@ void report_feedback_message(uint8_t message_code)  // OK to send to all clients
 // Welcome message
 void report_init_message(uint8_t client)
 {
-	grbl_send(client,"\r\nGrbl " GRBL_VERSION " ['$' for help]\r\n");
 	#ifdef CPU_MAP_NAME
 		grbl_send(client,"[MSG:Using cpu_map..." CPU_MAP_NAME "]\r\n");
 	#endif
+	grbl_send(client,"\r\nGrbl " GRBL_VERSION " ['$' for help]\r\n");
 }
 
 // Grbl help message
@@ -841,4 +841,20 @@ void report_realtime_steps()
 	for (idx=0; idx< N_AXIS; idx++) {
 		grbl_sendf(CLIENT_ALL, "%ld\n", sys_position[idx]);  // OK to send to all ... debug stuff
 	}
+}
+
+void report_gcode_comment(char *comment) {
+	char msg[80];
+	const uint8_t offset = 4;  // ignore "MSG_" part of comment
+	uint8_t index = offset; 
+	
+	if (strstr(comment, "MSG")) {
+		while(index < strlen(comment)) {
+			msg[index-offset] = comment[index];
+			index++;
+		}
+		msg[index-offset] = 0; // null terminate
+		
+		grbl_sendf(CLIENT_ALL, "[MSG:GCode Comment %s]\r\n",msg);
+	}	
 }
