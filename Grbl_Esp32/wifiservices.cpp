@@ -67,7 +67,6 @@ bool WiFiServices::begin(){
     prefs.begin(NAMESPACE, true);
     h = prefs.getString(HOSTNAME_ENTRY, defV);
     prefs.end();
-    WiFi.scanNetworks (true);
     //Start SPIFFS
     SPIFFS.begin(true);
 
@@ -122,6 +121,8 @@ bool WiFiServices::begin(){
 #ifdef ENABLE_NOTIFICATIONS
 	notificationsservice.begin();
 #endif
+    //be sure we are not is mixed mode in setup
+    WiFi.scanNetworks (true);
     return no_error;
 }
 void WiFiServices::end(){
@@ -150,6 +151,12 @@ void WiFiServices::end(){
 
 void WiFiServices::handle(){
     COMMANDS::wait(0);
+    //to avoid mixed mode due to scan network
+    if (WiFi.getMode() == WIFI_AP_STA) {
+        if (WiFi.scanComplete() != WIFI_SCAN_RUNNING) {
+            WiFi.enableSTA (false);
+        }
+    }
 #ifdef ENABLE_OTA
     ArduinoOTA.handle();
 #endif

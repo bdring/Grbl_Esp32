@@ -67,7 +67,17 @@ typedef struct {
 	// Used by the bresenham line algorithm
 	uint32_t counter_x,        // Counter variables for the bresenham line tracer
 	         counter_y,
-	         counter_z;
+	         counter_z
+			 #if (N_AXIS > A_AXIS)
+				, counter_a
+			#endif
+			#if (N_AXIS > B_AXIS)
+				, counter_b
+			#endif
+			#if (N_AXIS > C_AXIS)
+				, counter_c
+            #endif
+			;
 #ifdef STEP_PULSE_DELAY
 	uint8_t step_bits;  // Stores out_bits output to complete the step pulse delay
 #endif
@@ -198,58 +208,6 @@ static st_prep_t prep;
 
 
 */
-
-#ifdef USE_RMT_STEPS
-// Set stepper pulse output pins
-inline IRAM_ATTR static void stepperRMT_Outputs()
-{
-
-#ifdef  X_STEP_PIN
-	if(st.step_outbits & (1<<X_AXIS)) {
-	#ifndef X_STEP_B_PIN // if not a ganged axis
-			RMT.conf_ch[X_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-			RMT.conf_ch[X_RMT_CHANNEL].conf1.tx_start = 1;
-	#else // it is a ganged axis
-			if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
-				RMT.conf_ch[X_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-				RMT.conf_ch[X_RMT_CHANNEL].conf1.tx_start = 1;			}
-			
-			if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
-				RMT.conf_ch[X_B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-				RMT.conf_ch[X_B_RMT_CHANNEL].conf1.tx_start = 1;
-			}			
-	#endif
-	}
-
-#endif
-
-#ifdef  Y_STEP_PIN
-	if(st.step_outbits & (1<<Y_AXIS)) {
-#ifndef Y_STEP_B_PIN // if not a ganged axis
-		RMT.conf_ch[Y_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-		RMT.conf_ch[Y_RMT_CHANNEL].conf1.tx_start = 1;
-#else // it is a ganged axis
-		if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
-			RMT.conf_ch[Y_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-			RMT.conf_ch[Y_RMT_CHANNEL].conf1.tx_start = 1;
-		}		
-		if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
-			RMT.conf_ch[Y_B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-			RMT.conf_ch[Y_B_RMT_CHANNEL].conf1.tx_start = 1;
-		}		
-#endif
-	}
-#endif
-
-#ifdef  Z_STEP_PIN
-	if(st.step_outbits & (1<<Z_AXIS)) {
-		RMT.conf_ch[Z_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-		RMT.conf_ch[Z_RMT_CHANNEL].conf1.tx_start = 1;
-	}
-#endif
-}
-#endif
-
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
@@ -294,6 +252,7 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 
 				// Initialize Bresenham line and distance counters
 				st.counter_x = st.counter_y = st.counter_z = (st.exec_block->step_event_count >> 1);
+				// TODO ABC
 			}
 			st.dir_outbits = st.exec_block->direction_bits ^ settings.dir_invert_mask;
 
@@ -302,6 +261,17 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 			st.steps[X_AXIS] = st.exec_block->steps[X_AXIS] >> st.exec_segment->amass_level;
 			st.steps[Y_AXIS] = st.exec_block->steps[Y_AXIS] >> st.exec_segment->amass_level;
 			st.steps[Z_AXIS] = st.exec_block->steps[Z_AXIS] >> st.exec_segment->amass_level;
+			
+			 #if (N_AXIS > A_AXIS)
+			   st.steps[A_AXIS] = st.exec_block->steps[A_AXIS] >> st.exec_segment->amass_level;
+			#endif
+			#if (N_AXIS > B_AXIS)
+			   st.steps[B_AXIS] = st.exec_block->steps[B_AXIS] >> st.exec_segment->amass_level;
+			#endif
+			#if (N_AXIS > C_AXIS)
+			   st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
+			#endif
+			
 #endif
 
 #ifdef VARIABLE_SPINDLE
@@ -380,6 +350,49 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 			sys_position[Z_AXIS]++;
 		}
 	}
+	
+#if (N_AXIS > A_AXIS)
+   #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+     st.counter_a += st.steps[A_AXIS];
+   #else
+     st.counter_a += st.exec_block->steps[A_AXIS];
+   #endif
+   if (st.counter_a > st.exec_block->step_event_count) {
+     st.step_outbits |= (1<<A_STEP_BIT);
+     st.counter_a -= st.exec_block->step_event_count;
+     if (st.exec_block->direction_bits & (1<<A_DIRECTION_BIT)) { sys_position[A_AXIS]--; }
+     else { sys_position[A_AXIS]++; }
+   }
+#endif
+  
+  
+ #if (N_AXIS > B_AXIS)
+   #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+     st.counter_b += st.steps[B_AXIS];
+   #else
+     st.counter_b += st.exec_block->steps[B_AXIS];
+   #endif
+   if (st.counter_b > st.exec_block->step_event_count) {
+     st.step_outbits |= (1<<B_STEP_BIT);
+     st.counter_b -= st.exec_block->step_event_count;
+     if (st.exec_block->direction_bits & (1<<B_DIRECTION_BIT)) { sys_position[B_AXIS]--; }
+     else { sys_position[B_AXIS]++; }
+   }
+ #endif
+
+#if (N_AXIS > C_AXIS)
+   #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+     st.counter_c += st.steps[C_AXIS];
+   #else
+     st.counter_c += st.exec_block->steps[C_AXIS];
+   #endif
+   if (st.counter_c > st.exec_block->step_event_count) {
+     st.step_outbits |= (1<<C_STEP_BIT);
+     st.counter_c -= st.exec_block->step_event_count;
+     if (st.exec_block->direction_bits & (1<<C_DIRECTION_BIT)) { sys_position[C_AXIS]--; }
+     else { sys_position[C_AXIS]++; }
+   }
+ #endif
 
 	// During a homing cycle, lock out and prevent desired axes from moving.
 	if (sys.state == STATE_HOMING) {
@@ -414,9 +427,21 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 void stepper_init()
 {
 	
+	// make the stepper disable pin an output
+	#ifdef STEPPERS_DISABLE_PIN
+		pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
+		set_stepper_disable(true);
+	#endif
+	
 	#ifdef USE_TMC2130
 		TMC2130_Init();
 	#endif
+	
+	#ifdef USE_TRINAMIC
+		Trinamic_Init();
+	#endif
+	
+	grbl_sendf(CLIENT_SERIAL, "[MSG:Axis count %d]\r\n", N_AXIS);
 	
 	#ifdef USE_RMT_STEPS
 		grbl_send(CLIENT_SERIAL, "[MSG:Using RMT Steps]\r\n");
@@ -444,6 +469,19 @@ void stepper_init()
 		#ifdef Z_STEP_B_PIN
 			pinMode(Z_STEP_B_PIN, OUTPUT);
 		#endif
+		
+		#ifdef A_STEP_PIN
+			pinMode(A_STEP_PIN, OUTPUT);
+		#endif
+		
+		#ifdef B_STEP_PIN
+			pinMode(B_STEP_PIN, OUTPUT);
+		#endif
+		
+		#ifdef C_STEP_PIN
+			pinMode(C_STEP_PIN, OUTPUT);
+		#endif	
+		
 	#endif
 
 	// make the direction pins outputs
@@ -456,14 +494,18 @@ void stepper_init()
 	#ifdef Z_DIRECTION_PIN
 		pinMode(Z_DIRECTION_PIN, OUTPUT);
 	#endif
-
-
-
-	// make the stepper disable pin an output
-	#ifdef STEPPERS_DISABLE_PIN
-		pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
-		set_stepper_disable(true);
+	#ifdef A_DIRECTION_PIN
+		pinMode(A_DIRECTION_PIN, OUTPUT);
 	#endif
+	#ifdef B_DIRECTION_PIN
+		pinMode(B_DIRECTION_PIN, OUTPUT);
+	#endif
+	#ifdef C_DIRECTION_PIN
+		pinMode(C_DIRECTION_PIN, OUTPUT);
+	#endif
+
+
+	
 
 // setup stepper timer interrupt
 
@@ -573,6 +615,38 @@ void initRMT()
 	rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
 #endif
 
+#ifdef A_STEP_PIN
+	rmt_set_source_clk( (rmt_channel_t)A_RMT_CHANNEL, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)A_RMT_CHANNEL;
+	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, A_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+	rmtConfig.gpio_num = A_STEP_PIN;  // TODO
+	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
+	rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
+	rmt_config(&rmtConfig);
+	rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
+#endif
+
+#ifdef B_STEP_PIN
+	rmt_set_source_clk( (rmt_channel_t)B_RMT_CHANNEL, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)B_RMT_CHANNEL;
+	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, B_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+	rmtConfig.gpio_num = B_STEP_PIN;  // TODO
+	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
+	rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
+	rmt_config(&rmtConfig);
+	rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
+#endif
+
+#ifdef C_STEP_PIN
+	rmt_set_source_clk( (rmt_channel_t)C_RMT_CHANNEL, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)C_RMT_CHANNEL;
+	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, C_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+	rmtConfig.gpio_num = C_STEP_PIN;  // TODO
+	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
+	rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
+	rmt_config(&rmtConfig);
+	rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
+#endif
 
 
 }
@@ -651,6 +725,17 @@ void set_direction_pins_on(uint8_t onMask)
 #ifdef Z_DIRECTION_PIN
 	digitalWrite(Z_DIRECTION_PIN, (onMask & (1<<Z_AXIS)));
 #endif
+#ifdef A_DIRECTION_PIN
+	digitalWrite(A_DIRECTION_PIN, (onMask & (1<<A_AXIS)));
+#endif
+#ifdef B_DIRECTION_PIN
+	digitalWrite(B_DIRECTION_PIN, (onMask & (1<<B_AXIS)));
+#endif
+#ifdef C_DIRECTION_PIN
+	digitalWrite(C_DIRECTION_PIN, (onMask & (1<<C_AXIS)));
+#endif
+
+
 }
 
 #ifndef USE_GANGED_AXES
@@ -669,6 +754,10 @@ void set_stepper_pins_on(uint8_t onMask)
 
 #ifdef Z_STEP_PIN
 	digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
+#endif
+
+#ifdef A_STEP_PIN
+	digitalWrite(A_STEP_PIN, (onMask & (1<<A_AXIS)));
 #endif
 }
 #else // we use ganged axes
@@ -722,12 +811,90 @@ void set_stepper_pins_on(uint8_t onMask)
 }
 #endif
 
+#ifdef USE_RMT_STEPS
+// Set stepper pulse output pins
+inline IRAM_ATTR static void stepperRMT_Outputs()
+{
+	
+#ifdef  X_STEP_PIN
+	if(st.step_outbits & (1<<X_AXIS)) {
+	#ifndef X_STEP_B_PIN // if not a ganged axis
+			RMT.conf_ch[X_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+			RMT.conf_ch[X_RMT_CHANNEL].conf1.tx_start = 1;
+	#else // it is a ganged axis
+			if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+				RMT.conf_ch[X_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+				RMT.conf_ch[X_RMT_CHANNEL].conf1.tx_start = 1;			}
+			
+			if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
+				RMT.conf_ch[X_B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+				RMT.conf_ch[X_B_RMT_CHANNEL].conf1.tx_start = 1;
+			}			
+	#endif
+	}
+
+#endif
+
+#ifdef  Y_STEP_PIN
+	if(st.step_outbits & (1<<Y_AXIS)) {
+#ifndef Y_STEP_B_PIN // if not a ganged axis
+		RMT.conf_ch[Y_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[Y_RMT_CHANNEL].conf1.tx_start = 1;
+#else // it is a ganged axis
+		if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+			RMT.conf_ch[Y_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+			RMT.conf_ch[Y_RMT_CHANNEL].conf1.tx_start = 1;
+		}		
+		if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
+			RMT.conf_ch[Y_B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+			RMT.conf_ch[Y_B_RMT_CHANNEL].conf1.tx_start = 1;
+		}		
+#endif
+	}
+#endif
+
+#ifdef  Z_STEP_PIN
+	if(st.step_outbits & (1<<Z_AXIS)) {
+		RMT.conf_ch[Z_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[Z_RMT_CHANNEL].conf1.tx_start = 1;
+	}
+#endif
+
+#ifdef  A_STEP_PIN
+	if(st.step_outbits & (1<<A_AXIS)) {
+		
+		RMT.conf_ch[A_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[A_RMT_CHANNEL].conf1.tx_start = 1;
+	}
+#endif
+
+#ifdef  B_STEP_PIN
+	if(st.step_outbits & (1<<B_AXIS)) {
+		
+		RMT.conf_ch[B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[B_RMT_CHANNEL].conf1.tx_start = 1;
+	}
+#endif
+
+#ifdef  C_STEP_PIN
+	if(st.step_outbits & (1<<C_AXIS)) {
+		
+		RMT.conf_ch[C_RMT_CHANNEL].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[C_RMT_CHANNEL].conf1.tx_start = 1;
+	}
+#endif
+
+}
+#endif
+
 // Stepper shutdown
 void st_go_idle()
 {
 	// Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
 	Stepper_Timer_Stop();
 	busy = false;
+	
+	
 
 	bool pin_state = false;
 	// Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
@@ -1324,11 +1491,15 @@ void IRAM_ATTR Stepper_Timer_Stop()
 
 
 void set_stepper_disable(uint8_t isOn)  // isOn = true // to disable
-{
+{	
+	#ifdef TRINAMIC
+		return;
+	#endif
+	
 	if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) {
 		isOn = !isOn;    // Apply pin invert.
 	}
-
+	
 #ifdef STEPPERS_DISABLE_PIN
 	digitalWrite(STEPPERS_DISABLE_PIN, isOn );
 #endif
@@ -1351,7 +1522,6 @@ bool get_stepper_disable()   // returns true if steppers are disabled
 	return disabled;
 
 }
-
 
 
 

@@ -53,6 +53,7 @@
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char *text)
 {	
+    if (client == CLIENT_NONE) return;
 #ifdef ENABLE_BLUETOOTH
     if (SerialBT.hasClient() && ( client == CLIENT_BT || client == CLIENT_ALL ) )
     {
@@ -80,6 +81,7 @@ void grbl_send(uint8_t client, const char *text)
 // This is a formating version of the grbl_send(CLIENT_ALL,...) function that work like printf
 void grbl_sendf(uint8_t client, const char *format, ...)
 {
+    if (client == CLIENT_NONE) return;
     char loc_buf[64];
     char * temp = loc_buf;
     va_list arg;
@@ -349,8 +351,8 @@ void report_probe_parameters(uint8_t client)
 {
   // Report in terms of machine position.	
 	float print_position[N_AXIS];
-	char probe_rpt[50];	// the probe report we are building here
-	char temp[30];
+	char probe_rpt[100];	// the probe report we are building here
+	char temp[60];
 	
 	strcpy(probe_rpt, "[PRB:"); // initialize the string with the first characters
   
@@ -374,8 +376,8 @@ void report_ngc_parameters(uint8_t client)
 {
   float coord_data[N_AXIS];
   uint8_t coord_select;
-	char temp[50];
-	char ngc_rpt[400];	
+	char temp[60];
+	char ngc_rpt[500];	
 	
 	ngc_rpt[0] = '\0';	
 	
@@ -414,7 +416,7 @@ void report_ngc_parameters(uint8_t client)
 	
 	grbl_send(client, ngc_rpt);
 	
-  report_probe_parameters(client); 
+	report_probe_parameters(client);
 }
 
 
@@ -615,7 +617,7 @@ void report_realtime_status(uint8_t client)
   float print_position[N_AXIS];
 	
 	char status[200];
-	char temp[50];
+	char temp[80];
 	
   system_convert_array_steps_to_mpos(print_position,current_position);
 
@@ -672,8 +674,13 @@ void report_realtime_status(uint8_t client)
   if (bit_istrue(settings.status_report_mask,BITFLAG_RT_STATUS_POSITION_TYPE)) {
     strcat(status, "|MPos:");
   } else {
+	#ifdef FWD_KINEMATICS_REPORTING
+		forward_kinematics(print_position);
+	#endif
     strcat(status, "|WPos:");
   }
+  
+  
   report_util_axis_values(print_position, temp);
 	strcat(status, temp);
 
@@ -744,13 +751,13 @@ void report_realtime_status(uint8_t client)
         if (bit_istrue(lim_pin_state,bit(X_AXIS))) { strcat(status, "X"); }
         if (bit_istrue(lim_pin_state,bit(Y_AXIS))) { strcat(status, "Y"); }
         if (bit_istrue(lim_pin_state,bit(Z_AXIS))) { strcat(status, "Z"); }
-        #ifdef A_AXIS
+        #if (N_AXIS > A_AXIS)
          if (bit_istrue(lim_pin_state,bit(A_AXIS))) { strcat(status, "A"); }
         #endif
-        #ifdef B_AXIS
+        #if (N_AXIS > B_AXIS)
          if (bit_istrue(lim_pin_state,bit(B_AXIS))) { strcat(status, "B"); }
         #endif
-        #ifdef C_AXIS
+        #if (N_AXIS > C_AXIS)
          if (bit_istrue(lim_pin_state,bit(C_AXIS))) { strcat(status, "C"); }
         #endif
       }
@@ -774,7 +781,7 @@ void report_realtime_status(uint8_t client)
       if (sys.report_ovr_counter == 0) { sys.report_ovr_counter = 1; } // Set override on next report.
       strcat(status, "|WCO:");
       report_util_axis_values(wco, temp);
-			strcat(status, temp);
+	  strcat(status, temp);
     }
   #endif
 
@@ -784,9 +791,9 @@ void report_realtime_status(uint8_t client)
       if (sys.state & (STATE_HOMING | STATE_CYCLE | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) {
         sys.report_ovr_counter = (REPORT_OVR_REFRESH_BUSY_COUNT-1); // Reset counter for slow refresh
       } else { sys.report_ovr_counter = (REPORT_OVR_REFRESH_IDLE_COUNT-1); }      
-			sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
-			strcat(status, temp);
-      
+			
+		sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
+		strcat(status, temp);      
 
       uint8_t sp_state = spindle_get_state();
       uint8_t cl_state = coolant_get_state();

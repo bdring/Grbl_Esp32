@@ -38,11 +38,21 @@ static TaskHandle_t servosSyncTaskHandle = 0;
 	ServoAxis Z_Servo_Axis(Z_AXIS, SERVO_Z_PIN, SERVO_Z_CHANNEL_NUM);
 #endif
 
+#ifdef SERVO_A_PIN
+	ServoAxis A_Servo_Axis(A_AXIS, SERVO_A_PIN, SERVO_A_CHANNEL_NUM);
+#endif
+#ifdef SERVO_B_PIN
+	ServoAxis B_Servo_Axis(B_AXIS, SERVO_B_PIN, SERVO_B_CHANNEL_NUM);
+#endif
+#ifdef SERVO_C_PIN
+	ServoAxis C_Servo_Axis(C_AXIS, SERVO_C_PIN, SERVO_C_CHANNEL_NUM);
+#endif
+
 void init_servos()
 {
-	grbl_send(CLIENT_SERIAL, "[MSG: Init Servos]\r\n");
+	//grbl_send(CLIENT_SERIAL, "[MSG: Init Servos]\r\n");
 	#ifdef SERVO_X_PIN
-		grbl_send(CLIENT_SERIAL, "[MSG: Init X Servo]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:Init X Servo]\r\n");
 		X_Servo_Axis.init();
 		X_Servo_Axis.set_range(SERVO_X_RANGE_MIN, SERVO_X_RANGE_MAX);
 		X_Servo_Axis.set_homing_type(SERVO_HOMING_OFF);
@@ -50,17 +60,55 @@ void init_servos()
 		X_Servo_Axis.set_disable_with_steppers(false);
 	#endif
 	#ifdef SERVO_Y_PIN
-		grbl_send(CLIENT_SERIAL, "[MSG: Init Y Servo]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:Init Y Servo]\r\n");
 		Y_Servo_Axis.init();
 		Y_Servo_Axis.set_range(SERVO_Y_RANGE_MIN, SERVO_Y_RANGE_MAX);
 	#endif
 	#ifdef SERVO_Z_PIN
-		grbl_send(CLIENT_SERIAL, "[MSG: Init Z Servo]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:Init Z Servo]\r\n");
 		Z_Servo_Axis.init();		
 		Z_Servo_Axis.set_range(SERVO_Z_RANGE_MIN, SERVO_Z_RANGE_MAX);
-		Z_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
-		Z_Servo_Axis.set_homing_position(SERVO_Z_RANGE_MAX);
+		#ifdef SERVO_Z_HOMING_TYPE
+			Z_Servo_Axis.set_homing_type(SERVO_Z_HOMING_TYPE);
+		#endif		
+		#ifdef SERVO_Z_HOME_POS			
+			Z_Servo_Axis.set_homing_position(SERVO_Z_HOME_POS);
+		#endif
+		#ifdef SERVO_Z_MPOS // value should be true or false
+			Z_Servo_Axis.set_use_mpos(SERVO_Z_MPOS);
+		#endif
 	#endif
+	
+	#ifdef SERVO_A_PIN
+		grbl_send(CLIENT_SERIAL, "[MSG:Init A Servo]\r\n");
+		A_Servo_Axis.init();
+		A_Servo_Axis.set_range(SERVO_A_RANGE_MIN, SERVO_A_RANGE_MAX);
+		A_Servo_Axis.set_homing_type(SERVO_HOMING_OFF);
+		A_Servo_Axis.set_disable_on_alarm(false);
+		A_Servo_Axis.set_disable_with_steppers(false);
+	#endif
+	#ifdef SERVO_B_PIN
+		grbl_send(CLIENT_SERIAL, "[MSG:Init B Servo]\r\n");
+		B_Servo_Axis.init();
+		B_Servo_Axis.set_range(SERVO_B_RANGE_MIN, SERVO_B_RANGE_MAX);
+	#endif
+	#ifdef SERVO_C_PIN
+		grbl_send(CLIENT_SERIAL, "[MSG:Init C Servo]\r\n");
+		C_Servo_Axis.init();
+		C_Servo_Axis.set_range(SERVO_C_RANGE_MIN, SERVO_C_RANGE_MAX);
+		//C_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
+		//C_Servo_Axis.set_homing_position(SERVO_C_RANGE_MAX);
+		#ifdef SERVO_C_HOMING_TYPE
+			C_Servo_Axis.set_homing_type(SERVO_C_HOMING_TYPE);
+		#endif		
+		#ifdef SERVO_C_HOME_POS			
+			C_Servo_Axis.set_homing_position(SERVO_C_HOME_POS);
+		#endif
+		#ifdef SERVO_C_MPOS // value should be true or false
+			C_Servo_Axis.set_use_mpos(SERVO_C_MPOS);
+		#endif
+	#endif
+	
   
   // setup a task that will calculate the determine and set the servo positions
   xTaskCreatePinnedToCore(  servosSyncTask,    // task
@@ -93,6 +141,16 @@ void servosSyncTask(void *pvParameters)
 		#ifdef SERVO_Z_PIN
 			Z_Servo_Axis.set_location();
 		#endif
+		#ifdef SERVO_A_PIN
+			A_Servo_Axis.set_location();			
+		#endif
+		#ifdef SERVO_B_PIN
+			B_Servo_Axis.set_location();
+		#endif
+		#ifdef SERVO_C_PIN
+			C_Servo_Axis.set_location();
+		#endif
+		
 		vTaskDelayUntil(&xLastWakeTime, xServoFrequency);
   }
 } 
@@ -101,13 +159,16 @@ void servosSyncTask(void *pvParameters)
 
 ServoAxis::ServoAxis(uint8_t axis, uint8_t pin_num, uint8_t channel_num) // constructor
 {
-  _axis = axis;
+	_axis = axis;
 	_pin_num = pin_num;
 	_channel_num = channel_num;	
+	_showError = true; // this will be used to show calibration error only once
+	_use_mpos = true;  // default is to use the machine position rather than work position
 }
 
 void ServoAxis::init()
 {
+	_cal_is_valid();
 	ledcSetup(_channel_num, _pwm_freq, _pwm_resolution_bits);
 	ledcAttachPin(_pin_num, _channel_num);
 	disable();
@@ -115,12 +176,14 @@ void ServoAxis::init()
 
 void ServoAxis::set_location()
 {
-  // These are the pulse lengths for the minimum and maximum positions
-  // Note: Some machines will have the physical max/min inverted with pulse length max/min due to invert setting $3=...
-  float servo_pulse_min, servo_pulse_max;
-  float min_pulse_cal, max_pulse_cal; // calibration values in percent 110% = 1.1
-  uint32_t servo_pulse_len;
+	// These are the pulse lengths for the minimum and maximum positions
+	// Note: Some machines will have the physical max/min inverted with pulse length max/min due to invert setting $3=...
+	float servo_pulse_min, servo_pulse_max;
+	float min_pulse_cal, max_pulse_cal; // calibration values in percent 110% = 1.1
+	uint32_t servo_pulse_len;
 	float servo_pos, mpos, offset;
+	
+	
 	
 	// skip location if we are in alarm mode
 	if (_disable_on_alarm && (sys.state == STATE_ALARM)) {
@@ -132,7 +195,7 @@ void ServoAxis::set_location()
 	if (_disable_with_steppers && get_stepper_disable()) {
 		disable();
 		return;
-	}
+	}	
 	
 	
 	if ( (_homing_type == SERVO_HOMING_TARGET) && (sys.state == STATE_HOMING) ) {
@@ -144,8 +207,9 @@ void ServoAxis::set_location()
 			servo_pos = mpos;		
 		}
 		else {
-			offset = gc_state.coord_system[_axis]+gc_state.coord_offset[_axis]; // get the current axis work offset
-			servo_pos = mpos - offset; // determine the current work position	
+			offset = gc_state.coord_system[_axis] + gc_state.coord_offset[_axis]; // get the current axis work offset
+			servo_pos = mpos - offset; // determine the current work position
+			
 		}
 	}
 	
@@ -166,14 +230,16 @@ void ServoAxis::set_location()
   
 	// get the calibration values
 	if (_cal_is_valid()) { // if calibration settings are OK then apply them
-	
-		min_pulse_cal = (settings.steps_per_mm[_axis] / 100.0);
-		max_pulse_cal = (settings.max_travel[_axis] / -100.0);
-		
-		if (bit_istrue(settings.dir_invert_mask,bit(_axis))) {			
-			min_pulse_cal = 2.0 - min_pulse_cal;
-			max_pulse_cal = 2.0 - max_pulse_cal;			
-		}				
+		// apply a calibration
+		// the cals apply differently if the direction is reverse (i.e. longer pulse is lower position)
+		if (bit_isfalse(settings.dir_invert_mask,bit(_axis))) {	// normal direction			
+			min_pulse_cal = 2.0 - (settings.steps_per_mm[_axis] / 100.0);
+			max_pulse_cal = (settings.max_travel[_axis] / -100.0);
+		} 
+		else { // inverted direction			
+			min_pulse_cal = (settings.steps_per_mm[_axis] / 100.0);
+			max_pulse_cal = 2.0 - (settings.max_travel[_axis] / -100.0);
+		}			
 	}
 	else { // settings are not valid so don't apply any calibration
 		min_pulse_cal = 1.0;
@@ -207,24 +273,32 @@ void ServoAxis::disable()
 bool ServoAxis::_cal_is_valid()
 {
   bool settingsOK = true;
-  static bool showError = true; // this will be used to show error only once
-
+  
 	if ( (settings.steps_per_mm[_axis] < SERVO_CAL_MIN) || (settings.steps_per_mm[_axis] > SERVO_CAL_MAX) ) {
-		if (showError) {
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo cal ($10%d) Error: %4.4f s/b between %.2f and %.2f]\r\n", _axis, settings.steps_per_mm[_axis], SERVO_CAL_MIN, SERVO_CAL_MAX);
+		if (_showError) {
+			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo calibration ($10%d) value error. Reset to 100]\r\n", _axis);
+			settings.steps_per_mm[_axis] = 100;
+			write_global_settings();
 		}
 		settingsOK = false;
 	}
 
 	// Note: Max travel is set positive via $$, but stored as a negative number
 	if ( (settings.max_travel[_axis] < -SERVO_CAL_MAX) || (settings.max_travel[_axis] > -SERVO_CAL_MIN) ) {
-		if (showError) {
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo cal ($13%d) Error: %4.4f s/b between %.2f and %.2f]\r\n", _axis, -settings.max_travel[_axis], SERVO_CAL_MIN, SERVO_CAL_MAX);
+		if (_showError) {
+			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo calibration ($13%d) value error. Reset to 100]\r\n", _axis);
+			settings.max_travel[_axis] = -100;
+			write_global_settings();
 		}
 		settingsOK = false;
 	}
 	
-	//showError = false;  // to show error once 
+	_showError = false;  // to show error once 
+	
+	if (! settingsOK) {
+		write_global_settings(); // they were changed so write them to 
+	}
+	
 	return settingsOK;
 }
 
@@ -274,6 +348,15 @@ void ServoAxis::set_disable_on_alarm (bool disable_on_alarm)
 void ServoAxis::set_disable_with_steppers(bool disable_with_steppers) {
 	_disable_with_steppers = disable_with_steppers;
 }
+
+/*
+	If true, servo position will alway be calculated in machine position
+	Offsets will not be applied
+*/
+void ServoAxis::set_use_mpos(bool use_mpos) {
+	_use_mpos = use_mpos;
+}
+
 
 
 #endif
