@@ -182,9 +182,14 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 			case 1:
 			case 2:
 			case 3:
-#ifdef PROBE_PIN //only allow G38 "Probe" commands if a probe pin is defined.
+
 			case 38:
-#endif
+				#ifndef PROBE_PIN //only allow G38 "Probe" commands if a probe pin is defined.
+					if (int_value == 38) {
+						grbl_send(CLIENT_SERIAL, "[MSG:No probe pin defined!]\r\n");
+						FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported G command]
+					}
+				#endif
 				// Check for G0/1/2/3/38 being called with G10/28/30/92 on same block.
 				// * G43.1 is also an axis command but is not explicitly defined this way.
 				if (axis_command) {
@@ -379,21 +384,21 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 			   legal g-code words and stores their value. Error-checking is performed later since some
 			   words (I,J,K,L,P,R) have multiple connotations and/or depend on the issued commands. */
 			switch(letter) {
-#ifdef A_AXIS
+#if (N_AXIS > A_AXIS)
 			case 'A':
 				word_bit = WORD_A;
 				gc_block.values.xyz[A_AXIS] = value;
 				axis_words |= (1<<A_AXIS);
 				break;
 #endif
-#ifdef B_AXIS
+#if (N_AXIS > B_AXIS)
 			case 'B':
 				word_bit = WORD_B;
 				gc_block.values.xyz[B_AXIS] = value;
 				axis_words |= (1<<B_AXIS);
 				break;
 #endif
-#ifdef C_AXIS
+#if (N_AXIS > C_AXIS)
 			case 'C':
 				word_bit = WORD_C;
 				gc_block.values.xyz[C_AXIS] = value;
@@ -449,7 +454,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 					FAIL(STATUS_GCODE_MAX_VALUE_EXCEEDED);
 				}
 				grbl_sendf(CLIENT_ALL, "[MSG:Tool No: %d]\r\n", int_value);
-				gc_block.values.t = int_value; 
+				gc_state.tool = int_value;
 				break;
 			case 'X':
 				word_bit = WORD_X;
@@ -1180,8 +1185,8 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 		pl_data->spindle_speed = gc_state.spindle_speed; // Record data for planner use.
 	} // else { pl_data->spindle_speed = 0.0; } // Initialized as zero already.
 
-	// [5. Select tool ]: NOT SUPPORTED. Only tracks tool value.
-	gc_state.tool = gc_block.values.t;
+	// [5. Select tool ]: NOT SUPPORTED. Only tracks tool value.	
+	//	gc_state.tool = gc_block.values.t;
 
 	// [6. Change tool ]: NOT SUPPORTED
 
@@ -1270,7 +1275,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 		// and absolute and incremental modes.
 		pl_data->condition |= PL_COND_FLAG_RAPID_MOTION; // Set rapid motion condition flag.
 		if (axis_command) {
-			mc_line(gc_block.values.xyz, pl_data);
+			mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
 		}
 		mc_line(gc_block.values.ijk, pl_data);
 		memcpy(gc_state.position, gc_block.values.ijk, N_AXIS*sizeof(float));
@@ -1300,10 +1305,12 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 		if (axis_command == AXIS_COMMAND_MOTION_MODE) {
 			uint8_t gc_update_pos = GC_UPDATE_POS_TARGET;
 			if (gc_state.modal.motion == MOTION_MODE_LINEAR) {
-				mc_line(gc_block.values.xyz, pl_data);
+				//mc_line(gc_block.values.xyz, pl_data);
+				mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
 			} else if (gc_state.modal.motion == MOTION_MODE_SEEK) {
 				pl_data->condition |= PL_COND_FLAG_RAPID_MOTION; // Set rapid motion condition flag.
-				mc_line(gc_block.values.xyz, pl_data);
+				//mc_line(gc_block.values.xyz, pl_data);
+				mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
 			} else if ((gc_state.modal.motion == MOTION_MODE_CW_ARC) || (gc_state.modal.motion == MOTION_MODE_CCW_ARC)) {
 				mc_arc(gc_block.values.xyz, pl_data, gc_state.position, gc_block.values.ijk, gc_block.values.r,
 				       axis_0, axis_1, axis_linear, bit_istrue(gc_parser_flags,GC_PARSER_ARC_IS_CLOCKWISE));
