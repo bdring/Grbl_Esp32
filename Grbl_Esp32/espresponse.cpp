@@ -24,6 +24,8 @@
 #include <WebServer.h>
 #endif
 
+#include "report.h"
+
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
 ESPResponseStream::ESPResponseStream(WebServer * webserver){
     _header_sent=false;
@@ -32,7 +34,16 @@ ESPResponseStream::ESPResponseStream(WebServer * webserver){
 }
 #endif
 
-ESPResponseStream::ESPResponseStream(uint8_t client){
+ESPResponseStream::ESPResponseStream(){
+    _client = CLIENT_NONE;
+#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
+    _header_sent=false;
+    _webserver = NULL;
+#endif
+}
+
+ESPResponseStream::ESPResponseStream(uint8_t client, bool byid){
+    (void)byid; //fake parameter to avoid confusion with pointer one (NULL == 0)
     _client = client;
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     _header_sent=false;
@@ -61,6 +72,7 @@ String ESPResponseStream::formatBytes (uint64_t bytes)
 }
 
 void ESPResponseStream::print(const char *data){
+    if (_client == CLIENT_NONE) return;
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     if (_webserver) {
         if (!_header_sent) {

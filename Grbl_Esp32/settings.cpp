@@ -100,6 +100,29 @@ void settings_restore(uint8_t restore_flag) {
     settings.max_travel[X_AXIS] = (-DEFAULT_X_MAX_TRAVEL);
     settings.max_travel[Y_AXIS] = (-DEFAULT_Y_MAX_TRAVEL);
     settings.max_travel[Z_AXIS] = (-DEFAULT_Z_MAX_TRAVEL);
+	
+	#if (N_AXIS > A_AXIS)
+		 settings.steps_per_mm[A_AXIS] = DEFAULT_A_STEPS_PER_MM;
+		 settings.max_rate[A_AXIS] = DEFAULT_A_MAX_RATE;
+		 settings.acceleration[A_AXIS] = DEFAULT_A_ACCELERATION;
+		 settings.max_travel[A_AXIS] = (-DEFAULT_A_MAX_TRAVEL);
+	#endif
+	
+	#if (N_AXIS > B_AXIS)
+		 settings.steps_per_mm[B_AXIS] = DEFAULT_B_STEPS_PER_MM;
+		 settings.max_rate[B_AXIS] = DEFAULT_B_MAX_RATE;
+		 settings.acceleration[B_AXIS] = DEFAULT_B_ACCELERATION;
+		 settings.max_travel[B_AXIS] = (-DEFAULT_B_MAX_TRAVEL);
+	#endif
+	
+	#if (N_AXIS > C_AXIS)
+		 settings.steps_per_mm[C_AXIS] = DEFAULT_C_STEPS_PER_MM;
+		 settings.max_rate[C_AXIS] = DEFAULT_C_MAX_RATE;
+		 settings.acceleration[C_AXIS] = DEFAULT_C_ACCELERATION;
+		 settings.max_travel[C_AXIS] = (-DEFAULT_C_MAX_TRAVEL);
+	#endif
+	
+	
 
     write_global_settings();
   }

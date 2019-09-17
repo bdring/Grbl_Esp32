@@ -20,7 +20,7 @@
 
 // Grbl versioning system
 #define GRBL_VERSION "1.1f"
-#define GRBL_VERSION_BUILD "20190708"
+#define GRBL_VERSION_BUILD "20190916"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -55,6 +55,7 @@
 #include "spindle_control.h"
 #include "stepper.h"
 #include "jog.h"
+#include "inputbuffer.h"
 
 #ifdef ENABLE_BLUETOOTH
 	#include "BTconfig.h"
@@ -84,7 +85,8 @@
 	#include "servo_axis.h"
 #endif
 
-#ifdef USE_TMC2130
-	#include "TMC2130.h" // https://github.com/teemuatlut/TMC2130Stepper
+#ifdef USE_TRINAMIC
+	#include "grbl_trinamic.h" 
+	//#include "TMCStepper.h" // https://github.com/teemuatlut/TMCStepper
 #endif
 

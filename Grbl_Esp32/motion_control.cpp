@@ -26,6 +26,17 @@
 
 uint8_t ganged_mode = SQUARING_MODE_DUAL;
 
+
+// this allows kinematics to be used. 
+void mc_line_kins(float *target, plan_line_data_t *pl_data, float *position)
+{		
+	#ifndef USE_KINEMATICS	
+		mc_line(target, pl_data);
+	#else // else use kinematics
+		inverse_kinematics(target, pl_data, position);
+	#endif
+}
+
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
 // (1 minute)/feed_rate time.

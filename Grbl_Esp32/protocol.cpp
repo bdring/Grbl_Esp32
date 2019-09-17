@@ -35,6 +35,7 @@
 
 
 static char line[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
+static char comment[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
 
 static void protocol_exec_rt_suspend();
 
@@ -79,6 +80,7 @@ void protocol_main_loop()
 
   uint8_t line_flags = 0;
   uint8_t char_counter = 0;
+  uint8_t comment_char_counter = 0;
   uint8_t c;
 	
   for (;;) {
@@ -106,7 +108,7 @@ void protocol_main_loop()
     // initial filtering by removing spaces and comments and capitalizing all letters.
 		
 		uint8_t client = CLIENT_SERIAL;
-		for (client = 1; client <= CLIENT_COUNT; client++)
+		for (client = 0; client <= CLIENT_COUNT; client++)
 		{
 			while((c = serial_read(client)) != SERIAL_NO_DATA) {
 				if ((c == '\n') || (c == '\r')) { // End of line reached
@@ -133,8 +135,10 @@ void protocol_main_loop()
                         int cmd = 0;
                         String cmd_params;
                         if (COMMANDS::check_command (line, &cmd, cmd_params)) {
-                            ESPResponseStream espresponse(client);
-                            COMMANDS::execute_internal_command  (cmd, cmd_params, LEVEL_GUEST, &espresponse);
+                            ESPResponseStream espresponse(client, true);
+                            if (!COMMANDS::execute_internal_command  (cmd, cmd_params, LEVEL_GUEST, &espresponse)) {
+                                report_status_message(STATUS_GCODE_UNSUPPORTED_COMMAND, CLIENT_ALL);
+                            }
                         } else grbl_sendf(client, "[MSG: Unknow Command...%s]\r\n", line);
 					} else if (sys.state & (STATE_ALARM | STATE_JOG)) {
 						// Everything else is gcode. Block if in alarm or jog mode.
@@ -147,7 +151,7 @@ void protocol_main_loop()
 					// Reset tracking data for next line.
 					line_flags = 0;
 					char_counter = 0;
-
+					comment_char_counter = 0;
 				} else {
 
 					if (line_flags) {
@@ -157,7 +161,14 @@ void protocol_main_loop()
 						// Throw away all (except EOL) comment characters and overflow characters.
 						if (c == ')') {
 							// End of '()' comment. Resume line allowed.
-							if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) { line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES); }
+							if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) { 
+								line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES); 
+								comment[comment_char_counter] = 0; // null terminate								
+								report_gcode_comment(comment);								
+							}
+						}
+						if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) {  // capture all characters into a comment buffer
+							comment[comment_char_counter++] = c;
 						}
 					} else {
 						if (c <= ' ') {
@@ -175,6 +186,7 @@ void protocol_main_loop()
 							// In the future, we could simply remove the items within the comments, but retain the
 							// comment control characters, so that the g-code parser can error-check it.
 							line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
+							comment_char_counter = 0;
 						} else if (c == ';') {
 							// NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
 							line_flags |= LINE_FLAG_COMMENT_SEMICOLON;

@@ -200,7 +200,7 @@ uint8_t get_sd_state(bool refresh)
     sd_state = SDCARD_NOT_PRESENT;
     //using default value for speed ? should be parameter
     //refresh content if card was removed
-    if (SD.begin()) {
+    if (SD.begin((GRBL_SPI_SS == -1)?SS:GRBL_SPI_SS, SPI, GRBL_SPI_FREQ)) {
       if ( SD.cardSize() > 0 )sd_state = SDCARD_IDLE;
     }
   return sd_state;
