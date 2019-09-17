@@ -2,7 +2,7 @@
 	grbl_trinamic.cpp - Support for Trinamic Stepper Drivers SPI Mode
 	using the TMCStepper library
 	
-	Part of Grbl_ESP32 
+	Part of Grbl_ESP32
 
 	Copyright (c) 2019 Barton Dring for Buildlog.net LLC   	
 
@@ -30,9 +30,6 @@
 	#ifdef X_DRIVER_TMC2130	
 		TMC2130Stepper TRINAMIC_X = TMC2130Stepper(X_CS_PIN, X_RSENSE);
 	#endif
-	#ifdef X_DRIVER_TMC2208
-		TMC2208Stepper TRINAMIC_X = TMC2208Stepper(X_CS_PIN, X_RSENSE);
-	#endif
 	#ifdef X_DRIVER_TMC2209
 		TMC2209Stepper TRINAMIC_X = TMC2209Stepper(X_CS_PIN, X_RSENSE);
 	#endif
@@ -44,9 +41,6 @@
 #ifdef Y_TRINAMIC
 	#ifdef Y_DRIVER_TMC2130	
 		TMC2130Stepper TRINAMIC_Y = TMC2130Stepper(Y_CS_PIN, Y_RSENSE);
-	#endif
-	#ifdef Y_DRIVER_TMC2208
-		TMC2208Stepper TRINAMIC_Y = TMC2208Stepper(Y_CS_PIN, Y_RSENSE);
 	#endif
 	#ifdef Y_DRIVER_TMC2209
 		TMC2209Stepper TRINAMIC_Y = TMC2209Stepper(Y_CS_PIN, Y_RSENSE);
@@ -60,9 +54,6 @@
 	#ifdef Z_DRIVER_TMC2130	
 		TMC2130Stepper TRINAMIC_Z = TMC2130Stepper(Z_CS_PIN, Z_RSENSE);
 	#endif
-	#ifdef Z_DRIVER_TMC2208
-		TMC2208Stepper TRINAMIC_Z = TMC2208Stepper(Z_CS_PIN, Z_RSENSE);
-	#endif
 	#ifdef Z_DRIVER_TMC2209
 		TMC2209Stepper TRINAMIC_Z = TMC2209Stepper(Z_CS_PIN, Z_RSENSE);
 	#endif
@@ -74,9 +65,6 @@
 #ifdef A_TRINAMIC
 	#ifdef A_DRIVER_TMC2130	
 		TMC2130Stepper TRINAMIC_A = TMC2130Stepper(A_CS_PIN, A_RSENSE);
-	#endif
-	#ifdef A_DRIVER_TMC2208
-		TMC2208Stepper TRINAMIC_A = TMC2208Stepper(A_CS_PIN, A_RSENSE);
 	#endif
 	#ifdef A_DRIVER_TMC2209
 		TMC2209Stepper TRINAMIC_A = TMC2209Stepper(A_CS_PIN, A_RSENSE);
@@ -90,9 +78,6 @@
 	#ifdef B_DRIVER_TMC2130	
 		TMC2130Stepper TRINAMIC_B = TMC2130Stepper(B_CS_PIN, B_RSENSE);
 	#endif
-	#ifdef B_DRIVER_TMC2208
-		TMC2208Stepper TRINAMIC_B = TMC2208Stepper(B_CS_PIN, B_RSENSE);
-	#endif
 	#ifdef B_DRIVER_TMC2209
 		TMC2209Stepper TRINAMIC_B = TMC2209Stepper(B_CS_PIN, B_RSENSE);
 	#endif
@@ -104,9 +89,6 @@
 #ifdef C_TRINAMIC
 	#ifdef C_DRIVER_TMC2130	
 		TMC2130Stepper TRINAMIC_c = TMC2130Stepper(C_CS_PIN, C_RSENSE);
-	#endif
-	#ifdef C_DRIVER_TMC2208
-		TMC2208Stepper TRINAMIC_C = TMC2208Stepper(C_CS_PIN, C_RSENSE);
 	#endif
 	#ifdef C_DRIVER_TMC2209
 		TMC2209Stepper TRINAMIC_C = TMC2209Stepper(C_CS_PIN, C_RSENSE);
