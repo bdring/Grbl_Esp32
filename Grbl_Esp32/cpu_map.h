@@ -546,7 +546,7 @@
 #ifdef CPU_MAP_POLAR_COASTER  // The Buildlog.net pen polar coaster controller V1
     #define CPU_MAP_NAME "CPU_MAP_POLAR_COASTER"		
 			
-	#define USE_KINEMATICS	
+	#define USE_KINEMATICS
 	#define FWD_KINEMATICS_REPORTING // report in cartesian
 	#include "polar_coaster.h"
 
@@ -1114,22 +1114,22 @@
 		#define X_DIRECTION_PIN   	GPIO_NUM_26
 		#define X_TRINAMIC   	   	// using SPI control
 		#define X_DRIVER_TMC2130 	// Which Driver Type?
-		#define X_CS_PIN    		GPIO_NUM_17  //chip select
-		#define X_RSENSE			0.11f   // .11 Ohm
-		#define X_MICROSTEPS		32
-		#define X_RMS_CURRENT		750 // run current in mA
-		#define X_HOLD_CURRENT      0.25 // hold current as percentage of run current
+		#define X_CS_PIN    			GPIO_NUM_17  //chip select
+		#define X_RSENSE				0.11f   // .11 Ohm
+		#define X_MICROSTEPS			32
+		#define X_RMS_CURRENT		700 // run current in mA
+		#define X_HOLD_CURRENT     0.25 // hold current as percentage of run current
 		#define X_RMT_CHANNEL		0
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14   
 		#define Y_DIRECTION_PIN   	GPIO_NUM_25 
 		#define Y_TRINAMIC   	   	// using SPI control
 		#define Y_DRIVER_TMC2130 	// Which Driver Type?
-		#define Y_CS_PIN    		GPIO_NUM_16  //chip select
-		#define Y_RSENSE			0.11f   // .11 Ohm
-		#define Y_MICROSTEPS		32
-		#define Y_RMS_CURRENT		750 // in mA
-		#define Y_HOLD_CURRENT      0.25 // hold current as percentage of run current
+		#define Y_CS_PIN    			GPIO_NUM_16  //chip select
+		#define Y_RSENSE				0.11f   // .11 Ohm
+		#define Y_MICROSTEPS			32
+		#define Y_RMS_CURRENT		700 // in mA
+		#define Y_HOLD_CURRENT     0.25 // hold current as percentage of run current
 		#define Y_RMT_CHANNEL		1		
 		
 		// OK to comment out to use pin for other features
