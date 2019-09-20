@@ -53,6 +53,20 @@
 #ifdef CPU_MAP_POLAR_COASTER
 #ifdef USE_KINEMATICS
 
+// this get called before homing 
+// return true to complete normal home
+// return false to exit normal homing
+bool kinematics_homing(uint8_t cycle_mask) 
+{
+	// cycle mask not used for polar coaster	
+	
+	// zero the axes that are not homed
+	sys_position[Y_AXIS] = 0.0f; 
+	sys_position[Z_AXIS] = 0.0f; 
+
+	return true; // finish normal homing cycle
+}
+
 /*
  Apply inverse kinematics for a polar system
 
@@ -140,6 +154,8 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 
 		mc_line(polar, pl_data);
 	}
+	
+	// TO DO don't need a feedrate for rapids
 }
 
 
@@ -193,17 +209,24 @@ void calc_polar(float *target_xyz, float *polar, float last_angle)
 {
 	float delta_ang; // the difference from the last and next angle
 	
-	target_xyz[X_AXIS] *= -1.0;   // compensate for Polar Coaster's radial axis being mirrored (right side) from normal 0deg
+	//grbl_sendf(CLIENT_SERIAL, "calc polar: x...%4.2f y...%4.2f\r\n", target_xyz[X_AXIS], target_xyz[Y_AXIS]);
 	
-	// determine the new polar values
-	polar[POLAR_AXIS] = atan2(target_xyz[Y_AXIS], target_xyz[X_AXIS]) * 180.0 / M_PI;
+	//target_xyz[X_AXIS] *= -1.0;   // compensate for Polar Coaster's radial axis being mirrored (right side) from normal 0deg
 	
-	// no negative angles...we want the absolute angle not -90, use 270
-	if (polar[POLAR_AXIS] < 0.0) {
-		polar[POLAR_AXIS] = 360.0 + polar[POLAR_AXIS];
-	}
-
 	polar[RADIUS_AXIS] = hypot_f(target_xyz[X_AXIS], target_xyz[Y_AXIS]);
+	
+	if (polar[RADIUS_AXIS] == 0) {
+		polar[POLAR_AXIS] = last_angle; // don't care about angle at center
+	}
+	else {
+		polar[POLAR_AXIS] = atan2(target_xyz[Y_AXIS], target_xyz[X_AXIS]) * 180.0 / M_PI;
+		// no negative angles...we want the absolute angle not -90, use 270
+		if (polar[POLAR_AXIS] < 0.0) {
+			polar[POLAR_AXIS] = 360.0 + polar[POLAR_AXIS];
+		}
+	}
+	
+	
 
 	polar[Z_AXIS] = target_xyz[Z_AXIS]; // Z is unchanged
 
