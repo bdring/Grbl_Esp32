@@ -918,7 +918,7 @@
 	
 	// uncomment ONE of the following versions
 	//#define V1P1
-	#define V1P2
+	#define V1P2  // works for V1.2.1 as well
 		
 	#ifdef V1P1
 		#define CPU_MAP_NAME "CPU_MAP_MPCNC_V1P1"
@@ -983,8 +983,9 @@
 	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
 	
 	// Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
-	// Relay can be used for Spindle or Coolant
+	// Relay can be used for spindle or either coolant
 	//#define COOLANT_FLOOD_PIN 	GPIO_NUM_2
+	//#define COOLANT_MIST_PIN   	GPIO_NUM_2
 	
 	#ifdef V1P1	//v1p1
 		#define X_LIMIT_PIN      	GPIO_NUM_2
@@ -1011,7 +1012,7 @@
 	
 	#define INVERT_CONTROL_PIN_MASK   B1110
 	
-	// Note: defualt is #define IGNORE_CONTROL_PINS in config.h
+	// Note: default is #define IGNORE_CONTROL_PINS in config.h
 	// uncomment to these lines to use them		
 	#ifdef IGNORE_CONTROL_PINS
 		#undef IGNORE_CONTROL_PINS
