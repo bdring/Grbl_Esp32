@@ -213,6 +213,14 @@ void mc_dwell(float seconds)
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
 void mc_homing_cycle(uint8_t cycle_mask)
 {
+	
+	// This give kinematics a chance to do something before normal homing
+	// if it returns true, the homing is canceled.
+	#ifdef USE_KINEMATICS
+		if (!kinematics_homing(cycle_mask))
+			return;
+	#endif
+	
   // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
   // with machines with limits wired on both ends of travel to one limit pin.
   // TODO: Move the pin-specific LIMIT_PIN call to limits.c as a function.

@@ -274,11 +274,9 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 			
 #endif
 
-#ifdef VARIABLE_SPINDLE
+#ifdef VARIABLE_SPINDLE	
 			// Set real-time spindle output as segment is loaded, just prior to the first step.
-			if (st_prep_block->is_pwm_rate_adjusted) {
 			spindle_set_speed(st.exec_segment->spindle_pwm);
-			}
 #endif
 
 		} else {
@@ -433,21 +431,21 @@ void stepper_init()
 		set_stepper_disable(true);
 	#endif
 	
-	#ifdef USE_TMC2130
-		TMC2130_Init();
-	#endif
+	//#ifdef USE_TMC2130
+	//	TMC2130_Init();
+	//#endif
 	
-	#ifdef USE_TRINAMIC
+	#ifdef USE_TRINAMIC		
 		Trinamic_Init();
 	#endif
 	
 	grbl_sendf(CLIENT_SERIAL, "[MSG:Axis count %d]\r\n", N_AXIS);
 	
 	#ifdef USE_RMT_STEPS
-		grbl_send(CLIENT_SERIAL, "[MSG:Using RMT Steps]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:RMT Steps]\r\n");
 		initRMT();
 	#else
-		grbl_send(CLIENT_SERIAL, "[MSG:Using Timed Steps]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:Timed Steps]\r\n");
 		// make the step pins outputs
 		#ifdef  X_STEP_PIN
 			pinMode(X_STEP_PIN, OUTPUT);
