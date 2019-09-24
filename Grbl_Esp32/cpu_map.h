@@ -546,7 +546,7 @@
 #ifdef CPU_MAP_POLAR_COASTER  // The Buildlog.net pen polar coaster controller V1
     #define CPU_MAP_NAME "CPU_MAP_POLAR_COASTER"		
 			
-	#define USE_KINEMATICS	
+	#define USE_KINEMATICS
 	#define FWD_KINEMATICS_REPORTING // report in cartesian
 	#include "polar_coaster.h"
 
@@ -913,182 +913,114 @@
 		
 #endif
 
-#ifdef CPU_MAP_MPCNC_V1P2
+#ifdef CPU_MAP_MPCNC  // all versions...select below
 	// This is the CPU Map for the Buildlog.net MPCNC controller
 	
+	// uncomment ONE of the following versions
+	//#define V1P1
+	#define V1P2  // works for V1.2.1 as well
+		
+	#ifdef V1P1
+		#define CPU_MAP_NAME "CPU_MAP_MPCNC_V1P1"
+	#else // V1P2
 		#define CPU_MAP_NAME "CPU_MAP_MPCNC_V1P2"
+	#endif	
+		
+	// switch to the correct default settings
+	#ifdef DEFAULTS_GENERIC
+		#undef DEFAULTS_GENERIC
+	#endif
+	#define DEFAULTS_MPCNC
 	
-		// switch to the correct default settings
-		#ifdef DEFAULTS_GENERIC
-			#undef DEFAULTS_GENERIC
-		#endif
-		#define DEFAULTS_MPCNC
-		
+	#define USE_GANGED_AXES // allow two motors on an axis 
+  
+	#define X_STEP_PIN      GPIO_NUM_12
+	#define X_STEP_B_PIN    GPIO_NUM_22	 // ganged motor
+	#define X_AXIS_SQUARING
 	
-		#define USE_GANGED_AXES // allow two motors on an axis 
-	  
-		#define X_STEP_PIN      GPIO_NUM_12
-		#define X_STEP_B_PIN    GPIO_NUM_22	 // ganged motor
-		#define X_AXIS_SQUARING
-		
-		#define Y_STEP_PIN      GPIO_NUM_14
-		#define Y_STEP_B_PIN    GPIO_NUM_21  // ganged motor
-		#define Y_AXIS_SQUARING
-		
-		#define Z_STEP_PIN      GPIO_NUM_27
-		
-		#define X_DIRECTION_PIN   GPIO_NUM_26
-		#define Y_DIRECTION_PIN   GPIO_NUM_25  
-		#define Z_DIRECTION_PIN   GPIO_NUM_33 
-		
-		// OK to comment out to use pin for other features
-		#define STEPPERS_DISABLE_PIN GPIO_NUM_13				
+	#define Y_STEP_PIN      GPIO_NUM_14
+	#define Y_STEP_B_PIN    GPIO_NUM_21  // ganged motor
+	#define Y_AXIS_SQUARING
+	
+	#define Z_STEP_PIN      GPIO_NUM_27
+	
+	#define X_DIRECTION_PIN   GPIO_NUM_26
+	#define Y_DIRECTION_PIN   GPIO_NUM_25  
+	#define Z_DIRECTION_PIN   GPIO_NUM_33 
+	
+	// OK to comment out to use pin for other features
+	#define STEPPERS_DISABLE_PIN GPIO_NUM_13				
 				
-		// Note: if you use PWM rather than relay, you could map GPIO_NUM_2 to mist or flood 
-		//#define USE_SPINDLE_RELAY
-		
-		#ifdef USE_SPINDLE_RELAY		
+	// Note: if you use PWM rather than relay, you could map GPIO_NUM_2 to mist or flood 
+	//#define USE_SPINDLE_RELAY
+	
+	#ifdef USE_SPINDLE_RELAY
+		#ifdef V1P1
+			#define SPINDLE_PWM_PIN    GPIO_NUM_17
+		#else // V1p2
 			#define SPINDLE_PWM_PIN    GPIO_NUM_2
-		#else
-			#define SPINDLE_PWM_PIN    GPIO_NUM_16
-			#define SPINDLE_ENABLE_PIN	GPIO_NUM_32
-		#endif
-		
-		#define SPINDLE_PWM_CHANNEL 0
-		// PWM Generator is based on 80,000,000 Hz counter
-		// Therefor the freq determines the resolution
-		// 80,000,000 / freq = max resolution
-		// For 5000 that is 80,000,000 / 5000 = 16000 
-		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
-		
-		#ifndef SPINDLE_PWM_MIN_VALUE
-				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif
-		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
-		
-		// Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
-		// Relay can be used for Spindle or Coolant
-		//#define COOLANT_FLOOD_PIN 	GPIO_NUM_2
-		
-		#define X_LIMIT_PIN      	GPIO_NUM_17 
-		#define Y_LIMIT_PIN      	GPIO_NUM_4  
-		#define Z_LIMIT_PIN     	GPIO_NUM_15 	
-		#define LIMIT_MASK      	B111
-		
+		#endif			
+	#else
+		#define SPINDLE_PWM_PIN    GPIO_NUM_16
+		#define SPINDLE_ENABLE_PIN	GPIO_NUM_32
+	#endif
+	
+	#define SPINDLE_PWM_CHANNEL 0
+	// PWM Generator is based on 80,000,000 Hz counter
+	// Therefor the freq determines the resolution
+	// 80,000,000 / freq = max resolution
+	// For 5000 that is 80,000,000 / 5000 = 16000 
+	// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
+	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+	#define SPINDLE_PWM_OFF_VALUE     0
+	#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
+	
+	#ifndef SPINDLE_PWM_MIN_VALUE
+			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+	#endif
+	
+	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
+	
+	// Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
+	// Relay can be used for spindle or either coolant
+	//#define COOLANT_FLOOD_PIN 	GPIO_NUM_2
+	//#define COOLANT_MIST_PIN   	GPIO_NUM_2
+	
+	#ifdef V1P1	//v1p1
+		#define X_LIMIT_PIN      	GPIO_NUM_2
+	#else
+		#define X_LIMIT_PIN      	GPIO_NUM_17
+	#endif	
+	
+	#define Y_LIMIT_PIN      	GPIO_NUM_4  
+	#define Z_LIMIT_PIN     	GPIO_NUM_15 	
+	#define LIMIT_MASK      	B111
+	
+	#ifdef V1P2
 		#ifndef ENABLE_SOFTWARE_DEBOUNCE   // V1P2 does not have R/C filters
 			#define ENABLE_SOFTWARE_DEBOUNCE
 		#endif
-		
-		#define PROBE_PIN       	GPIO_NUM_35  
-		
-		// The default value in config.h is wrong for this controller
-		#ifdef INVERT_CONTROL_PIN_MASK
-			#undef INVERT_CONTROL_PIN_MASK			
-		#endif
-		
-		#define INVERT_CONTROL_PIN_MASK   B1110
-		
-		// Note: defualt is #define IGNORE_CONTROL_PINS in config.h
-		// uncomment to these lines to use them		
-		#ifdef IGNORE_CONTROL_PINS
-			#undef IGNORE_CONTROL_PINS
-		#endif
-		
-		
-		
-		
-		#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
-		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
-		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
-		
-#endif
-
-#ifdef CPU_MAP_MPCNC_V1P1
-	// This is the CPU Map for the Buildlog.net MPCNC controller
+	#endif
 	
-		#define CPU_MAP_NAME "CPU_MAP_MPCNC_V1P1"
+	#define PROBE_PIN       	GPIO_NUM_35  
 	
-		// switch to the correct default settings
-		#ifdef DEFAULTS_GENERIC
-			#undef DEFAULTS_GENERIC
-		#endif
-		#define DEFAULTS_MPCNC
-		
+	// The default value in config.h is wrong for this controller
+	#ifdef INVERT_CONTROL_PIN_MASK
+		#undef INVERT_CONTROL_PIN_MASK			
+	#endif
 	
-		#define USE_GANGED_AXES // allow two motors on an axis 
-	  
-		#define X_STEP_PIN      GPIO_NUM_12
-		#define X_STEP_B_PIN    GPIO_NUM_22	 // ganged motor
-		#define X_AXIS_SQUARING
-		
-		#define Y_STEP_PIN      GPIO_NUM_14
-		#define Y_STEP_B_PIN    GPIO_NUM_21  // ganged motor
-		#define Y_AXIS_SQUARING
-		
-		#define Z_STEP_PIN      GPIO_NUM_27
-		
-		#define X_DIRECTION_PIN   GPIO_NUM_26
-		#define Y_DIRECTION_PIN   GPIO_NUM_25  
-		#define Z_DIRECTION_PIN   GPIO_NUM_33 
-		
-		// OK to comment out to use pin for other features
-		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
-		
-				
-		// Note: if you use PWM rather than relay, you could map GPIO_NUM_17 to mist or flood 
-		#define USE_SPINDLE_RELAY
-		
-		#ifdef USE_SPINDLE_RELAY		
-			#define SPINDLE_PWM_PIN    GPIO_NUM_17
-		#else
-			#define SPINDLE_PWM_PIN    GPIO_NUM_16
-			#define SPINDLE_ENABLE_PIN	GPIO_NUM_32
-		#endif
-		
-		#define SPINDLE_PWM_CHANNEL 0
-		// PWM Generator is based on 80,000,000 Hz counter
-		// Therefor the freq determines the resolution
-		// 80,000,000 / freq = max resolution
-		// For 5000 that is 80,000,000 / 5000 = 16000 
-		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
-		
-		#ifndef SPINDLE_PWM_MIN_VALUE
-				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif
-		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
-		
-		// Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
-		// Relay can be used for Spindle or Coolant
-		//#define COOLANT_FLOOD_PIN 	GPIO_NUM_17
-		
-		#define X_LIMIT_PIN      	GPIO_NUM_34 
-		#define Y_LIMIT_PIN      	GPIO_NUM_4  
-		#define Z_LIMIT_PIN     	GPIO_NUM_15 	
-		#define LIMIT_MASK      	B111
-		
-		#define PROBE_PIN       	GPIO_NUM_35  
-		
-		// The default value in config.h is wrong for this controller
-		#ifdef INVERT_CONTROL_PIN_MASK
-			#undef INVERT_CONTROL_PIN_MASK			
-		#endif
-		
-		#define INVERT_CONTROL_PIN_MASK   B1100
-		
-		// Note: check the #define IGNORE_CONTROL_PINS is the way you want in config.h
-		//#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
-		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
-		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
+	#define INVERT_CONTROL_PIN_MASK   B1110
+	
+	// Note: default is #define IGNORE_CONTROL_PINS in config.h
+	// uncomment to these lines to use them		
+	#ifdef IGNORE_CONTROL_PINS
+		#undef IGNORE_CONTROL_PINS
+	#endif
+	
+	#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
+	#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
+	#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
 		
 #endif
 
@@ -1177,32 +1109,44 @@
 		
 		#define USE_RMT_STEPS
 		
-		#define USE_TMC2130 // make sure you assign chip select pins to each axis
+		#define USE_TRINAMIC // Using at least 1 trinamic driver
 		
 		#define X_STEP_PIN      	GPIO_NUM_12
 		#define X_DIRECTION_PIN   	GPIO_NUM_26
+		#define X_TRINAMIC   	   	// using SPI control
+		#define X_DRIVER_TMC2130 	// Which Driver Type?
 		#define X_CS_PIN    			GPIO_NUM_17  //chip select
-		#define X_RMT_CHANNEL		0		
+		#define X_RSENSE				0.11f   // .11 Ohm
+		#define X_MICROSTEPS			32
+		#define X_RMS_CURRENT		700 // run current in mA
+		#define X_HOLD_CURRENT     0.25 // hold current as percentage of run current
+		#define X_RMT_CHANNEL		0
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14   
-		#define Y_DIRECTION_PIN   	GPIO_NUM_25  
-		#define Y_CS_PIN    			GPIO_NUM_16  //chip select	
+		#define Y_DIRECTION_PIN   	GPIO_NUM_25 
+		#define Y_TRINAMIC   	   	// using SPI control
+		#define Y_DRIVER_TMC2130 	// Which Driver Type?
+		#define Y_CS_PIN    			GPIO_NUM_16  //chip select
+		#define Y_RSENSE				0.11f   // .11 Ohm
+		#define Y_MICROSTEPS			32
+		#define Y_RMS_CURRENT		700 // in mA
+		#define Y_HOLD_CURRENT     0.25 // hold current as percentage of run current
 		#define Y_RMT_CHANNEL		1		
 		
 		// OK to comment out to use pin for other features
-		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
+		#define STEPPERS_DISABLE_PIN GPIO_NUM_13	
 		
 		#ifndef USE_SERVO_AXES  // maybe set in config.h
 			#define USE_SERVO_AXES
 		#endif
 		
-		#define SERVO_Z_PIN 					GPIO_NUM_27
+		#define SERVO_Z_PIN 				GPIO_NUM_27
 		#define SERVO_Z_CHANNEL_NUM 		5
 		#define SERVO_Z_RANGE_MIN			0.0
 		#define SERVO_Z_RANGE_MAX			5.0
-		#define SERVO_Z_HOMING_TYPE		SERVO_HOMING_TARGET // during homing it will instantly move to a target value
+		#define SERVO_Z_HOMING_TYPE			SERVO_HOMING_TARGET // during homing it will instantly move to a target value
 		#define SERVO_Z_HOME_POS			SERVO_Z_RANGE_MAX // move to max during homing
-		#define SERVO_Z_MPOS					false		// will not use mpos, uses work coordinates
+		#define SERVO_Z_MPOS				false		// will not use mpos, uses work coordinates
 		
 		// *** the flood coolant feature code is activated by defining this pins
 		// *** Comment it out to use the pin for other features
@@ -1224,14 +1168,14 @@
 		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
 		
 		#ifndef SPINDLE_PWM_MIN_VALUE
-				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
 		#endif
 		
 		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
 		
-		#define X_LIMIT_PIN      	GPIO_NUM_2  
-		#define Y_LIMIT_PIN      	GPIO_NUM_4  
-		#define LIMIT_MASK      	B11
+		#define X_LIMIT_PIN      	GPIO_NUM_2
+		#define Y_LIMIT_PIN      	GPIO_NUM_4
+		#define LIMIT_MASK      	B11	
 		
 #endif
 

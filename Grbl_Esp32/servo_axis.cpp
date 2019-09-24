@@ -52,7 +52,7 @@ void init_servos()
 {
 	//grbl_send(CLIENT_SERIAL, "[MSG: Init Servos]\r\n");
 	#ifdef SERVO_X_PIN
-		grbl_send(CLIENT_SERIAL, "[MSG:Init X Servo]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:X Servo]\r\n");
 		X_Servo_Axis.init();
 		X_Servo_Axis.set_range(SERVO_X_RANGE_MIN, SERVO_X_RANGE_MAX);
 		X_Servo_Axis.set_homing_type(SERVO_HOMING_OFF);
@@ -60,12 +60,12 @@ void init_servos()
 		X_Servo_Axis.set_disable_with_steppers(false);
 	#endif
 	#ifdef SERVO_Y_PIN
-		grbl_send(CLIENT_SERIAL, "[MSG:Init Y Servo]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:Y Servo]\r\n");
 		Y_Servo_Axis.init();
 		Y_Servo_Axis.set_range(SERVO_Y_RANGE_MIN, SERVO_Y_RANGE_MAX);
 	#endif
 	#ifdef SERVO_Z_PIN
-		grbl_send(CLIENT_SERIAL, "[MSG:Init Z Servo]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:Z Servo]\r\n");
 		Z_Servo_Axis.init();		
 		Z_Servo_Axis.set_range(SERVO_Z_RANGE_MIN, SERVO_Z_RANGE_MAX);
 		#ifdef SERVO_Z_HOMING_TYPE
@@ -80,7 +80,7 @@ void init_servos()
 	#endif
 	
 	#ifdef SERVO_A_PIN
-		grbl_send(CLIENT_SERIAL, "[MSG:Init A Servo]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:A Servo]\r\n");
 		A_Servo_Axis.init();
 		A_Servo_Axis.set_range(SERVO_A_RANGE_MIN, SERVO_A_RANGE_MAX);
 		A_Servo_Axis.set_homing_type(SERVO_HOMING_OFF);
@@ -88,12 +88,12 @@ void init_servos()
 		A_Servo_Axis.set_disable_with_steppers(false);
 	#endif
 	#ifdef SERVO_B_PIN
-		grbl_send(CLIENT_SERIAL, "[MSG:Init B Servo]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:B Servo]\r\n");
 		B_Servo_Axis.init();
 		B_Servo_Axis.set_range(SERVO_B_RANGE_MIN, SERVO_B_RANGE_MAX);
 	#endif
 	#ifdef SERVO_C_PIN
-		grbl_send(CLIENT_SERIAL, "[MSG:Init C Servo]\r\n");
+		grbl_send(CLIENT_SERIAL, "[MSG:C Servo]\r\n");
 		C_Servo_Axis.init();
 		C_Servo_Axis.set_range(SERVO_C_RANGE_MIN, SERVO_C_RANGE_MAX);
 		//C_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
