@@ -1508,6 +1508,7 @@ void Web_Server::SDFile_direct_upload()
             //Upload start
             //**************
             if(upload.status == UPLOAD_FILE_START) {
+		_webserver->sendHeader("Access-Control-Allow-Origin", "*");
                 _upload_status= UPLOAD_STATUS_ONGOING;
                 filename= upload.filename;
                 //on SD need to add / if not present
