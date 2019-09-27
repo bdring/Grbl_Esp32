@@ -429,7 +429,7 @@ uint8_t system_check_travel_limits(float *target)
         if (target[idx] < 0 || target[idx] > -settings.max_travel[idx]) { return(true); }
       #else
         if (target[idx] > 0 || target[idx] < settings.max_travel[idx]) { return(true); }
-        ndif
+      #endif
     #endif
   }
   return(false);
