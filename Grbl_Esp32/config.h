@@ -194,7 +194,7 @@ Some features should not be changed. See notes below.
 // #define HOMING_FORCE_SET_ORIGIN // Uncomment to enable.
 
 // Uncomment this define to force Grbl to always set the machine origin at bottom left.
-#define HOMING_FORCE_POSITIVE_SPACE // Uncomment to enable.
+// #define HOMING_FORCE_POSITIVE_SPACE // Uncomment to enable.
 
 // Number of blocks Grbl executes upon startup. These blocks are stored in EEPROM, where the size
 // and addresses are defined in settings.h. With the current settings, up to 2 startup blocks may
