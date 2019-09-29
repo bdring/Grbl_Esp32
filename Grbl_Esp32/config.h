@@ -193,7 +193,10 @@ Some features should not be changed. See notes below.
 // define to force Grbl to always set the machine origin at the homed location despite switch orientation.
 // #define HOMING_FORCE_SET_ORIGIN // Uncomment to enable.
 
-// Uncomment this define to force Grbl to always set the machine origin at bottom left.
+// Uncomment this define to force Grbl to always set the machine origin at minimum travel positions of
+// the axes. Note: The $23 setting determines the direction of travel during homing. If an axes homes towards the 
+// minimum, it will set the machine position to 0. If it homes towards the maximum it will set the 
+// machine position to the max travel ($13x), minus the switch pull off ($27).
 // #define HOMING_FORCE_POSITIVE_SPACE // Uncomment to enable.
 
 // Number of blocks Grbl executes upon startup. These blocks are stored in EEPROM, where the size
