@@ -19,9 +19,9 @@
 	You should have received a copy of the GNU General Public License
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include "grbl.h"
 
+#ifdef USE_TRINAMIC
 
 // TODO try to use the #define ## method to clean this up
 //#define DRIVER(driver, axis) driver##Stepper = TRINAMIC_axis## = driver##Stepper(axis##_CS_PIN, axis##_RSENSE);
@@ -102,7 +102,7 @@
 
 void Trinamic_Init()
 {
-    grbl_send(CLIENT_SERIAL, "[MSG:Using TMCStepper Library]\r\n");
+    grbl_sendf(CLIENT_SERIAL, "[MSG:Using TMCStepper Library Ver 0x%06x]\r\n", TMCSTEPPER_VERSION);
 	
 	SPI.begin();
 	
@@ -170,3 +170,5 @@ void Trinamic_Init()
 	
 	// TODO ABC Axes
 }
+
+#endif
