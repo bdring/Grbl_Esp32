@@ -102,7 +102,7 @@
 
 void Trinamic_Init()
 {
-    grbl_send(CLIENT_SERIAL, "[MSG:Using TMCStepper Library]\r\n");
+    grbl_sendf(CLIENT_SERIAL, "[MSG:Using TMCStepper Library Ver 0x%06x]\r\n", TMCSTEPPER_VERSION);
 	
 	SPI.begin();
 	
