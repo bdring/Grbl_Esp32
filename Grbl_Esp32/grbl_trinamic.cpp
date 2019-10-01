@@ -20,11 +20,15 @@
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifdef USE_TRINAMIC
+
 #include "grbl.h"
 
 
 // TODO try to use the #define ## method to clean this up
 //#define DRIVER(driver, axis) driver##Stepper = TRINAMIC_axis## = driver##Stepper(axis##_CS_PIN, axis##_RSENSE);
+
+
 
 #ifdef X_TRINAMIC
 	#ifdef X_DRIVER_TMC2130	
@@ -170,3 +174,5 @@ void Trinamic_Init()
 	
 	// TODO ABC Axes
 }
+
+#endif
