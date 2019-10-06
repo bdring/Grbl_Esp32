@@ -44,6 +44,7 @@ uint8_t serial_get_rx_buffer_available(uint8_t client)
 void serial_init()
 {
 	Serial.begin(BAUD_RATE);	
+	grbl_send(CLIENT_SERIAL,"\r\n"); // create some white space after ESP32 boot info
 	serialCheckTaskHandle = 0;
 	// create a task to check for incoming data
 	xTaskCreatePinnedToCore(	serialCheckTask,    // task

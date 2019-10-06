@@ -155,6 +155,8 @@ void report_execute_startup_message(char *line, uint8_t status_code, uint8_t cli
 // Prints build info and user info
 void report_build_info(char *line, uint8_t client);
 
+void report_gcode_comment(char *comment);
+
 #ifdef DEBUG
   void report_realtime_debug();
 #endif
