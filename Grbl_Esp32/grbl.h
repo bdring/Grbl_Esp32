@@ -20,7 +20,7 @@
 
 // Grbl versioning system
 #define GRBL_VERSION "1.1f"
-#define GRBL_VERSION_BUILD "20190916"
+#define GRBL_VERSION_BUILD "20191004"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -86,7 +86,6 @@
 #endif
 
 #ifdef USE_TRINAMIC
-	#include "grbl_trinamic.h" 
-	//#include "TMCStepper.h" // https://github.com/teemuatlut/TMCStepper
+	#include "grbl_trinamic.h"
 #endif
 
