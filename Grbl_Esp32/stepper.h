@@ -82,8 +82,10 @@ extern uint8_t ganged_mode;
 void IRAM_ATTR onSteppertimer();
 void IRAM_ATTR onStepperOffTimer();
 
+#ifdef USE_RMT_STEPS
   void initRMT();
   inline IRAM_ATTR static void stepperRMT_Outputs();
+#endif
 
 void stepper_init(); 
 
