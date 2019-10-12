@@ -22,6 +22,8 @@
   #define spindle_control_h
   
   #include "grbl.h"
+  
+#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)
 
 #define SPINDLE_NO_SYNC false
 #define SPINDLE_FORCE_SYNC true
