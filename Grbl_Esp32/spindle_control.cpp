@@ -35,6 +35,7 @@ void spindle_init()
 		#endif
 	
 		pwm_gradient = SPINDLE_PWM_RANGE/(settings.rpm_max-settings.rpm_min);
+		//grbl_sendf(CLIENT_SERIAL, "[MSG:pwm_gradient %4.4f SPINDLE_PWM_RANGE %d]\r\n", pwm_gradient, SPINDLE_PWM_RANGE);
 		
 		// Use DIR and Enable if pins are defined
 		#ifdef SPINDLE_ENABLE_PIN
@@ -58,12 +59,12 @@ void spindle_init()
 
 void spindle_stop()
 {		
-  spindle_set_enable(false);
+	spindle_set_enable(false);
 	#ifdef SPINDLE_PWM_PIN
 		#ifndef INVERT_SPINDLE_PWM
 			grbl_analogWrite(SPINDLE_PWM_CHANNEL, SPINDLE_PWM_OFF_VALUE);
 		#else
-			grbl_analogWrite(SPINDLE_PWM_CHANNEL, (1<<SPINDLE_PWM_BIT_PRECISION) - 1);
+			grbl_analogWrite(SPINDLE_PWM_CHANNEL, (1<<SPINDLE_PWM_BIT_PRECISION));
 		#endif
 	#endif
 }
@@ -118,9 +119,7 @@ void spindle_set_speed(uint32_t pwm_value)
 	
 }
 
-// Called by spindle_set_state() and step segment generator. Keep routine small and efficient.
-uint32_t spindle_compute_pwm_value(float rpm)
-{
+uint32_t spindle_compute_pwm_value(float rpm){
 	#ifdef SPINDLE_PWM_PIN
 		uint32_t pwm_value;
 		rpm *= (0.010*sys.spindle_speed_ovr); // Scale by spindle speed override value.
@@ -135,20 +134,28 @@ uint32_t spindle_compute_pwm_value(float rpm)
 				pwm_value = SPINDLE_PWM_OFF_VALUE;
 			} else { // Set minimum PWM output
 				sys.spindle_speed = settings.rpm_min;
-			pwm_value = SPINDLE_PWM_MIN_VALUE;
+				pwm_value = SPINDLE_PWM_MIN_VALUE;
 			}
 		} else {
 			// Compute intermediate PWM value with linear spindle speed model.
 			// NOTE: A nonlinear model could be installed here, if required, but keep it VERY light-weight.
 			sys.spindle_speed = rpm;
-			pwm_value = floor((rpm-settings.rpm_min)*pwm_gradient) + SPINDLE_PWM_MIN_VALUE;
-		}		
-		
+			#ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
+				pwm_value = piecewise_linear_fit(rpm);
+			#else
+				pwm_value = floor((rpm-settings.rpm_min)*pwm_gradient) + SPINDLE_PWM_MIN_VALUE;
+			#endif
+		}
+		//grbl_sendf(CLIENT_SERIAL, "[MSG:Rpm %4.1f PWM %d]\r\n", rpm, pwm_value);
 		return(pwm_value);
 	#else
 		return(0); // no SPINDLE_PWM_PIN
 	#endif
 }
+
+
+// Called by spindle_set_state() and step segment generator. Keep routine small and efficient.
+
 
 
 void spindle_set_state(uint8_t state, float rpm)
@@ -207,4 +214,30 @@ void spindle_set_enable(bool enable)
 		#endif
 	#endif
 }
+
+uint32_t piecewise_linear_fit(float rpm) {
+	uint32_t pwm_value;
+	
+	#if (N_PIECES > 3)
+		if (rpm > RPM_POINT34) {
+			pwm_value = floor(RPM_LINE_A4*rpm - RPM_LINE_B4);
+		} else 
+	#endif
+	#if (N_PIECES > 2)
+		if (rpm > RPM_POINT23) {
+			pwm_value = floor(RPM_LINE_A3*rpm - RPM_LINE_B3);
+		} else 
+	#endif
+	#if (N_PIECES > 1)
+		if (rpm > RPM_POINT12) {
+			pwm_value = floor(RPM_LINE_A2*rpm - RPM_LINE_B2);
+		} else 
+	#endif
+	{
+		pwm_value = floor(RPM_LINE_A1*rpm - RPM_LINE_B1);
+	}
+	return pwm_value;
+}
+
+
 
