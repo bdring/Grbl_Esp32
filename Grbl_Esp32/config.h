@@ -695,6 +695,7 @@ Some features should not be changed. See notes below.
 // the 'fit_nonlinear_spindle.py' script solution. Used only when ENABLE_PIECEWISE_LINEAR_SPINDLE
 // is enabled. Make sure the constant values are exactly the same as the script solution.
 // NOTE: When N_PIECES < 4, unused RPM_LINE and RPM_POINT defines are not required and omitted.
+/*
 #define N_PIECES 4  // Integer (1-4). Number of piecewise lines used in script solution.
 #define RPM_MAX  11686.4  // Max RPM of model. $30 > RPM_MAX will be limited to RPM_MAX.
 #define RPM_MIN  202.5    // Min RPM of model. $31 < RPM_MIN will be limited to RPM_MIN.
@@ -709,6 +710,19 @@ Some features should not be changed. See notes below.
 #define RPM_LINE_B3  4.881851e+02
 #define RPM_LINE_A4  1.203413e-01  // Used N_PIECES = 4. A and B constants of line 4.
 #define RPM_LINE_B4  1.151360e+03
+*/
+
+#define N_PIECES 3
+#define RPM_MAX 23935.2
+#define RPM_MIN 2412.2
+#define RPM_POINT12 6283.9
+#define RPM_POINT23 11866.0
+#define RPM_LINE_A1 4.390865e-03
+#define RPM_LINE_B1 7.591787e+00
+#define RPM_LINE_A2 1.074874e-02
+#define RPM_LINE_B2 4.754411e+01
+#define RPM_LINE_A3 9.528342e-03
+#define RPM_LINE_B3 3.306286e+01
 
 
 /* ---------------------------------------------------------------------------------------
