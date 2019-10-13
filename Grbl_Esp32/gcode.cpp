@@ -320,6 +320,9 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 			case 3:
 			case 4:
 			case 5:
+				#ifndef SPINDLE_PWM_PIN
+					grbl_send(CLIENT_SERIAL, "[MSG:No spindle pin defined]\r\n");
+				#endif
 				word_bit = MODAL_GROUP_M7;
 				switch(int_value) {
 				case 3:
