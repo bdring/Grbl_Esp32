@@ -35,6 +35,7 @@
 "36","Invalid gcode ID:36","Unused value words found in block."
 "37","Invalid gcode ID:37","G43.1 dynamic tool length offset is not assigned to configured tool length axis."
 "38","Invalid gcode ID:38","Tool number greater than max supported value."
+"39","Parameter P exceeded max ID:39","Parameter P exceeded max"
 "60","SD failed to mount"
 "61","SD card failed to open file for reading"
 "62","SD card failed to open directory"

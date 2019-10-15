@@ -225,5 +225,7 @@ int32_t system_convert_corexy_to_y_axis_steps(int32_t *steps);
 void controlCheckTask(void *pvParameters);
 void system_exec_control_pin(uint8_t pin);
 
+void sys_io_control(uint8_t io_num_mask, bool turnOn);
+
 
 #endif
