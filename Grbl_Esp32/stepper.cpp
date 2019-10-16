@@ -208,6 +208,9 @@ static st_prep_t prep;
 
 
 */
+#ifdef USE_RMT_STEPS
+  inline IRAM_ATTR static void stepperRMT_Outputs();
+#endif
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
