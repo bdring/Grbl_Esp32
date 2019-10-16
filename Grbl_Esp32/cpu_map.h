@@ -469,7 +469,13 @@
 		#endif
 		
 		// redefine some stuff from config.h
+		#ifdef HOMING_CYCLE_0
+			#undef HOMING_CYCLE_0
+		#endif
 		#define HOMING_CYCLE_0 (1<<Y_AXIS)
+		#ifdef HOMING_CYCLE_1
+			#undef HOMING_CYCLE_1
+		#endif
 		#define HOMING_CYCLE_1 (1<<X_AXIS)
 		#ifdef HOMING_CYCLE_2
 			#undef HOMING_CYCLE_2
@@ -606,6 +612,9 @@
 	//#define SERVO_PEN_PIN 					GPIO_NUM_16
 	
 	// redefine some stuff from config.h
+	#ifdef HOMING_CYCLE_0
+		#undef HOMING_CYCLE_0
+	#endif
 	#define HOMING_CYCLE_0 (1<<X_AXIS) // this 'bot only homes the X axis
 	#ifdef HOMING_CYCLE_1
 		#undef HOMING_CYCLE_1
