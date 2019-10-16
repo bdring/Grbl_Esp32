@@ -368,7 +368,23 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 					FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported M command]
 				}
 				break;
-			default:
+			case 62:
+			case 63:
+				//grbl_sendf(CLIENT_SERIAL,"M%d...\r\n", int_value);
+				word_bit = MODAL_GROUP_M10;				
+				switch (int_value) {
+					case 62:
+						gc_block.modal.io_control = NON_MODAL_IO_ENABLE;
+					break;
+					case 63:
+						gc_block.modal.io_control = NON_MODAL_IO_DISABLE;
+					break;
+					default:
+					break;
+				}
+				
+				break;
+			default:				
 				FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported M command]
 			}
 
@@ -613,6 +629,13 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 
 	// [10. Dwell ]: P value missing. P is negative (done.) NOTE: See below.
 	if (gc_block.non_modal_command == NON_MODAL_DWELL) {
+		if (bit_isfalse(value_words,bit(WORD_P))) {
+			FAIL(STATUS_GCODE_VALUE_WORD_MISSING);    // [P word missing]
+		}
+		bit_false(value_words,bit(WORD_P));
+	}
+	
+	if ( (gc_block.modal.io_control == NON_MODAL_IO_ENABLE)  || (gc_block.modal.io_control == NON_MODAL_IO_DISABLE)) {
 		if (bit_isfalse(value_words,bit(WORD_P))) {
 			FAIL(STATUS_GCODE_VALUE_WORD_MISSING);    // [P word missing]
 		}
@@ -1215,6 +1238,16 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 		}
 	}
 	pl_data->condition |= gc_state.modal.coolant; // Set condition flag for planner use.
+
+    // turn on/off an i/o pin
+	if ( (gc_block.modal.io_control == NON_MODAL_IO_ENABLE) || (gc_block.modal.io_control == NON_MODAL_IO_DISABLE) ) {
+		if (gc_block.values.p <= MAX_USER_DIGITAL_PIN) {
+			sys_io_control(1<<(int)gc_block.values.p, (gc_block.modal.io_control == NON_MODAL_IO_ENABLE));
+		}
+		else {
+			FAIL(STATUS_P_PARAM_MAX_EXCEEDED);
+		}			
+	}	
 
 	// [9. Enable/disable feed rate or spindle overrides ]: NOT SUPPORTED. Always enabled.
 
