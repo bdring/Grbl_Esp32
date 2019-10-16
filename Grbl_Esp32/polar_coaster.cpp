@@ -87,7 +87,6 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 	float p_dx, p_dy, p_dz; // distances in each polar axis
 
 	float dist, polar_dist; // the distances in both systems...used to determine feed rate
-	float new_feedrate;  //
 
 	uint32_t segment_count;  // number of segments the move will be broken in to.
 	float seg_target[N_AXIS]; // The target of the current segment
