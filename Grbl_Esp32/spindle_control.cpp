@@ -20,7 +20,9 @@
 
 #include "grbl.h"
 
+#ifdef SPINDLE_PWM_PIN
 static float pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
+#endif
 
 void spindle_init()
 {
