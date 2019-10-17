@@ -46,6 +46,7 @@
 #define MODAL_GROUP_M4 11  // [M0,M1,M2,M30] Stopping
 #define MODAL_GROUP_M7 12 // [M3,M4,M5] Spindle turning
 #define MODAL_GROUP_M8 13 // [M7,M8,M9] Coolant control
+#define MODAL_GROUP_M10 14 // [M62, M63] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
 
 // #define OTHER_INPUT_F 14
 // #define OTHER_INPUT_S 15
@@ -124,9 +125,16 @@
 #define COOLANT_FLOOD_ENABLE  PL_COND_FLAG_COOLANT_FLOOD // M8 (NOTE: Uses planner condition bit flag)
 #define COOLANT_MIST_ENABLE   PL_COND_FLAG_COOLANT_MIST  // M7 (NOTE: Uses planner condition bit flag)
 
+// modal Group M10: User I/O control
+#define NON_MODAL_IO_ENABLE		1
+#define NON_MODAL_IO_DISABLE	2
+#define MAX_USER_DIGITAL_PIN	4
+
 // Modal Group G8: Tool length offset
 #define TOOL_LENGTH_OFFSET_CANCEL 0 // G49 (Default: Must be zero)
 #define TOOL_LENGTH_OFFSET_ENABLE_DYNAMIC 1 // G43.1
+
+
 
 // Modal Group G12: Active work coordinate system
 // N/A: Stores coordinate system value (54-59) to change to.
@@ -192,6 +200,7 @@ typedef struct {
   uint8_t program_flow;    // {M0,M1,M2,M30}
   uint8_t coolant;         // {M7,M8,M9}
   uint8_t spindle;         // {M3,M4,M5}
+  uint8_t io_control;      // {M62, M63}
 } gc_modal_t;
 
 typedef struct {

@@ -418,7 +418,9 @@ void mc_reset()
 
     // Kill spindle and coolant.
     spindle_stop();
-    coolant_stop();		
+    coolant_stop();
+	// turn off all digital I/O
+	sys_io_control(0xFF, false);
 		
 		#ifdef ENABLE_SD_CARD
 			// do we need to stop a running SD job?
