@@ -22,6 +22,8 @@
   #define spindle_control_h
   
   #include "grbl.h"
+  
+#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)
 
 #define SPINDLE_NO_SYNC false
 #define SPINDLE_FORCE_SYNC true
@@ -36,8 +38,9 @@
   void spindle_set_speed(uint32_t pwm_value);
   uint32_t spindle_compute_pwm_value(float rpm);
   void spindle_set_state(uint8_t state, float rpm);
-  void spindle_sync(uint8_t state, float rpm);	
-	void grbl_analogWrite(uint8_t chan, uint32_t duty);	
-	void spindle_set_enable(bool enable);
+  void spindle_sync(uint8_t state, float rpm);
+  void grbl_analogWrite(uint8_t chan, uint32_t duty);
+  void spindle_set_enable(bool enable);
+  uint32_t piecewise_linear_fit(float rpm);
 
 #endif

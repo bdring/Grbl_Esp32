@@ -57,97 +57,97 @@
 	running so OTA (over the air) firmware loading can be done.
 
 	*/
-	#define CPU_MAP_NAME "CPU_MAP_DEFAULT - Demo Only No I/O!"
-	
+	#define CPU_MAP_NAME "CPU_MAP_DEFAULT - Demo Only No I/O!"	
 	
 	// the following items currently need to be defined, but no i/o needs to be mapped
 	// fixing soon
 	
-	#define LIMIT_MASK 0  // no limit pins
+	#define LIMIT_MASK 0  // no limit pins		
+#endif
+
+#ifdef CPU_MAP_ESP32
+	// This is the CPU Map for the ESP32 Development Controller
+	// https://github.com/bdring/Grbl_ESP32_Development_Controller
+	// https://www.tindie.com/products/33366583/grbl_esp32-cnc-development-board-v35/
+	
+	// Select the version (uncomment one of them)
+	#define CPU_MAP_V3p5 // version 3.5 and earlier
+	//#define CPU_MAP_V4 // version 4 or higher (in developement) 
+	
+	#define USE_RMT_STEPS
+	
+	// It is OK to comment out any step and direction pins. This
+    // won't affect operation except that there will be no output
+	// form the pins. Grbl will virtually move the axis. This could 
+	// be handy if you are using a servo, etc. for another axis.
+	#if (defined CPU_MAP_V4)
+		#define CPU_MAP_NAME 		"CPU_MAP_ESP32_V4"
+		#define X_DIRECTION_PIN  	GPIO_NUM_14
+		#define Y_STEP_PIN      	GPIO_NUM_26
+		#define Y_DIRECTION_PIN   	GPIO_NUM_15
+		//#define COOLANT_FLOOD_PIN 	GPIO_NUM_25
+		#define SPINDLE_PWM_PIN    	GPIO_NUM_2
+		#define X_LIMIT_PIN      	GPIO_NUM_17
+		#define Z_LIMIT_PIN     	GPIO_NUM_16		
+	#elif (defined CPU_MAP_V3p5)
+		#define CPU_MAP_NAME 		"CPU_MAP_ESP32_V3.5"
+		#define X_DIRECTION_PIN  	GPIO_NUM_26
+		#define Y_STEP_PIN      	GPIO_NUM_14
+		#define Y_DIRECTION_PIN   	GPIO_NUM_25
+		//#define COOLANT_FLOOD_PIN 	GPIO_NUM_16
+		#define SPINDLE_PWM_PIN    	GPIO_NUM_17
+		#define X_LIMIT_PIN      	GPIO_NUM_2
+		#define Z_LIMIT_PIN     	GPIO_NUM_15 
+	#endif
+	
+	#define X_STEP_PIN      	GPIO_NUM_12
+	
+	#define X_RMT_CHANNEL		0
+	
+	// #define Y_STEP_PIN (see versions above) 	
+	#define Y_RMT_CHANNEL		1
+	
+	#define Z_STEP_PIN      	GPIO_NUM_27		
+	#define Z_DIRECTION_PIN   	GPIO_NUM_33		 
+	#define Z_RMT_CHANNEL		2		
+	
+	// OK to comment out to use pin for other features
+	#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
+		
+	//#define COOLANT_MIST_PIN   	GPIO_NUM_21
+	#define USER_DIGITAL_PIN_1	GPIO_NUM_21
+	#define USER_DIGITAL_PIN_2	GPIO_NUM_25
+	
 	
 	#define SPINDLE_PWM_CHANNEL 0
+	// PWM Generator is based on 80,000,000 Hz counter
+	// Therefor the freq determines the resolution
+	// 80,000,000 / freq = max resolution
+	// For 5000 that is 80,000,000 / 5000 = 16000 
+	// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
+	
 	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
+	#define SPINDLE_PWM_BIT_PRECISION 8   
 	#define SPINDLE_PWM_OFF_VALUE     0
-	#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
+	#define SPINDLE_PWM_MAX_VALUE     255
+	//#define INVERT_SPINDLE_PWM
 	
 	#ifndef SPINDLE_PWM_MIN_VALUE
-			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+		#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
 	#endif
 	
 	#define SPINDLE_ENABLE_PIN	GPIO_NUM_22
 	
-	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
-#endif
-
-#ifdef CPU_MAP_ESP32
-	// This is the CPU Map for the ESP32 CNC Controller R2	
+	// see versions for X and Z
+	#define Y_LIMIT_PIN      	GPIO_NUM_4	
+	#define LIMIT_MASK      	B111
 	
-	  // It is OK to comment out any step and direction pins. This
-    // won't affect operation except that there will be no output
-		// form the pins. Grbl will virtually move the axis. This could 
-		// be handy if you are using a servo, etc. for another axis.
-		#define CPU_MAP_NAME "CPU_MAP_ESP32"	
-		
-		#define X_STEP_PIN      	GPIO_NUM_12
-		#define X_DIRECTION_PIN  	GPIO_NUM_26
-		#define X_RMT_CHANNEL		0
-		
-		#define Y_STEP_PIN      	GPIO_NUM_14
-		#define Y_DIRECTION_PIN   	GPIO_NUM_25
-		#define Y_RMT_CHANNEL		1
-		
-		#define Z_STEP_PIN      	GPIO_NUM_27		
-		#define Z_DIRECTION_PIN   	GPIO_NUM_33 		 
-		#define Z_RMT_CHANNEL		2		
-		
-		// OK to comment out to use pin for other features
-		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
-		
-		// *** the flood coolant feature code is activated by defining this pins
-		// *** Comment it out to use the pin for other features
-		#define COOLANT_FLOOD_PIN 	GPIO_NUM_16			
-		//#define COOLANT_MIST_PIN   	GPIO_NUM_21
-		
-		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
-		// use a virtual spindle. Do not comment out the other parameters for the spindle.
-		#define SPINDLE_PWM_PIN    GPIO_NUM_17 
-		#define SPINDLE_PWM_CHANNEL 0
-		// PWM Generator is based on 80,000,000 Hz counter
-		// Therefor the freq determines the resolution
-		// 80,000,000 / freq = max resolution
-		// For 5000 that is 80,000,000 / 5000 = 16000 
-		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
-		
-		#ifndef SPINDLE_PWM_MIN_VALUE
-				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif
-		
-		#define SPINDLE_ENABLE_PIN	GPIO_NUM_22
-		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)				
-		
-		// if these spindle function pins are defined, they will be activated in the code
-		// comment them out to use the pins for other functions
-		//#define SPINDLE_ENABLE_PIN	GPIO_NUM_16
-		//#define SPINDLE_DIR_PIN			GPIO_NUM_16		
-		
-		#define X_LIMIT_PIN      	GPIO_NUM_2  
-		#define Y_LIMIT_PIN      	GPIO_NUM_4  
-		#define Z_LIMIT_PIN     	GPIO_NUM_15 	
-		#define LIMIT_MASK      	B111
-		
-		#define PROBE_PIN       	GPIO_NUM_32  
-		
-		#define CONTROL_SAFETY_DOOR_PIN   GPIO_NUM_35  // needs external pullup
-		#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
-		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
-		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
-		
+	#define PROBE_PIN       	GPIO_NUM_32  
+	
+	#define CONTROL_SAFETY_DOOR_PIN   GPIO_NUM_35  // needs external pullup
+	#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
+	#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
+	#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup 
 #endif
 
 #ifdef CPU_MAP_ESPDUINO_32
@@ -189,7 +189,6 @@
 			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
 	#endif	
 	
-	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
 	
 	#define SPINDLE_DIR_PIN		GPIO_NUM_18	// Uno D13
 	
@@ -259,9 +258,7 @@
 		#ifndef SPINDLE_PWM_MIN_VALUE
 				#define SPINDLE_PWM_MIN_VALUE   SPINDLE_PWM_OFF_VALUE   // Must be greater than zero.
 		#endif
-		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)
-		
+				
 		#define SPINDLE_ENABLE_PIN	GPIO_NUM_22			
 		
 		// if these spindle function pins are defined, they will be activated in the code
@@ -334,9 +331,7 @@
 		
 		#ifndef SPINDLE_PWM_MIN_VALUE
 				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif
-		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)			
+		#endif			
 		
 		#define USING_SERVO  // uncomment to use this feature
 		//#define USING_SOLENOID // uncomment to use this feature
@@ -474,7 +469,13 @@
 		#endif
 		
 		// redefine some stuff from config.h
+		#ifdef HOMING_CYCLE_0
+			#undef HOMING_CYCLE_0
+		#endif
 		#define HOMING_CYCLE_0 (1<<Y_AXIS)
+		#ifdef HOMING_CYCLE_1
+			#undef HOMING_CYCLE_1
+		#endif
 		#define HOMING_CYCLE_1 (1<<X_AXIS)
 		#ifdef HOMING_CYCLE_2
 			#undef HOMING_CYCLE_2
@@ -484,9 +485,7 @@
 		#ifdef DEFAULTS_GENERIC
 			#undef DEFAULTS_GENERIC
 		#endif		
-		#define DEFAULTS_MIDTBOT		
-		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
+		#define DEFAULTS_MIDTBOT	
 		
 		#define SERVO_PEN_PIN 					GPIO_NUM_27
 		
@@ -608,12 +607,14 @@
 			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
 	#endif
 	
-	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
-	
+		
 	//#define USE_PEN_SERVO
 	//#define SERVO_PEN_PIN 					GPIO_NUM_16
 	
 	// redefine some stuff from config.h
+	#ifdef HOMING_CYCLE_0
+		#undef HOMING_CYCLE_0
+	#endif
 	#define HOMING_CYCLE_0 (1<<X_AXIS) // this 'bot only homes the X axis
 	#ifdef HOMING_CYCLE_1
 		#undef HOMING_CYCLE_1
@@ -720,9 +721,7 @@
 		
 		#ifndef SPINDLE_PWM_MIN_VALUE
 				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif
-		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)			
+		#endif	
 		
 		#define SERVO_Y_PIN 					GPIO_NUM_14
 		#define SERVO_Y_CHANNEL_NUM 	6
@@ -816,9 +815,7 @@
 		
 		#ifndef SPINDLE_PWM_MIN_VALUE
 				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif
-		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)			
+		#endif		
 		
 		// define Y and Z as servos
 		#define USE_SERVO_AXES
@@ -980,8 +977,6 @@
 			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
 	#endif
 	
-	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
-	
 	// Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
 	// Relay can be used for spindle or either coolant
 	//#define COOLANT_FLOOD_PIN 	GPIO_NUM_2
@@ -1082,9 +1077,7 @@
 	
 	#ifndef SPINDLE_PWM_MIN_VALUE
 			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-	#endif
-	
-	#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
+	#endif	
 	
 	// Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
 	// Relay can be used for Spindle or Coolant
@@ -1187,9 +1180,7 @@
 		
 		#ifndef SPINDLE_PWM_MIN_VALUE
 			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif
-		
-		#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)		
+		#endif		
 		
 		#define X_LIMIT_PIN      	GPIO_NUM_2
 		#define Y_LIMIT_PIN      	GPIO_NUM_4
@@ -1290,8 +1281,7 @@
 		#define SPINDLE_PWM_BIT_PRECISION 	8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
 		#define SPINDLE_PWM_OFF_VALUE     	0
 		#define SPINDLE_PWM_MAX_VALUE     	255 // (2^SPINDLE_PWM_BIT_PRECISION)
-		#define SPINDLE_PWM_MIN_VALUE   		SPINDLE_PWM_OFF_VALUE   // Must be greater than zero.
-		#define SPINDLE_PWM_RANGE         	(SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)	
+		#define SPINDLE_PWM_MIN_VALUE   		SPINDLE_PWM_OFF_VALUE   // Must be greater than zero.		
 		
 		// defaults  ... <Idle|MPos:-497.000,-3.000,0.000,-3.000,-497.000,0.000|FS:0,0>
 		#ifdef DEFAULTS_GENERIC
