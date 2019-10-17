@@ -134,11 +134,18 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 
 		polar_dist = sqrt( (p_dx * p_dx) + (p_dy * p_dy) +(p_dz * p_dz)); // calculate the total move distance
 
-		if (polar_dist == 0 || dist == 0) { // prevent 0 feed rate
-			polar_dist = dist;    // default to same feed rate
+		float polar_rate_multiply = 1.0;  // fail safe rate
+		if (polar_dist == 0 || dist == 0) { // prevent 0 feed rate and division by 0
+			polar_rate_multiply = 1.0;    // default to same feed rate
+		} else {
+			// calc a feed rate multiplier
+			polar_rate_multiply = polar_dist / dist;
+			if (polar_rate_multiply < 0.5) { // prevent much slower speed
+				polar_rate_multiply = 0.5;
+			}
 		}
 
-		pl_data->feed_rate *= polar_dist / dist;  // apply the distance ratio between coord systems
+		pl_data->feed_rate *= polar_rate_multiply;  // apply the distance ratio between coord systems
 		
 		// end determining new feed rate 
 
