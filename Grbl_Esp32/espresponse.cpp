@@ -35,7 +35,7 @@ ESPResponseStream::ESPResponseStream(WebServer * webserver){
 #endif
 
 ESPResponseStream::ESPResponseStream(){
-    _client = CLIENT_NONE;
+    _client = CLIENT_INPUT;
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     _header_sent=false;
     _webserver = NULL;
@@ -72,7 +72,7 @@ String ESPResponseStream::formatBytes (uint64_t bytes)
 }
 
 void ESPResponseStream::print(const char *data){
-    if (_client == CLIENT_NONE) return;
+    if (_client == CLIENT_INPUT) return;
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     if (_webserver) {
         if (!_header_sent) {
