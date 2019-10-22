@@ -102,6 +102,14 @@ void mc_arc(float *target, plan_line_data_t *pl_data, float *position, float *of
   float rt_axis0 = target[axis_0] - center_axis0;
   float rt_axis1 = target[axis_1] - center_axis1;
 
+#ifdef USE_KINEMATICS
+  float previous_position[N_AXIS];
+  uint16_t n;
+  for (n = 0; n < N_AXIS; n++) {
+    previous_position[n] = position[n];
+  }
+#endif
+
   // CCW angle between position and target from circle center. Only one atan2() trig computation required.
   float angular_travel = atan2(r_axis0*rt_axis1-r_axis1*rt_axis0, r_axis0*rt_axis0+r_axis1*rt_axis1);
   if (is_clockwise_arc) { // Correct atan2 output per direction
@@ -187,15 +195,25 @@ void mc_arc(float *target, plan_line_data_t *pl_data, float *position, float *of
       position[axis_0] = center_axis0 + r_axis0;
       position[axis_1] = center_axis1 + r_axis1;
       position[axis_linear] += linear_per_segment;
-
+#ifdef USE_KINEMATICS
+      mc_line_kins(position, pl_data, previous_position);
+      previous_position[axis_0] = position[axis_0];
+      previous_position[axis_1] = position[axis_1];
+      previous_position[axis_linear] = position[axis_linear];
+#else
       mc_line(position, pl_data);
+#endif
 
       // Bail mid-circle on system abort. Runtime command check already performed by mc_line.
       if (sys.abort) { return; }
     }
   }
   // Ensure last segment arrives at target location.
+#ifdef USE_KINEMATICS
+  mc_line_kins(target, pl_data, previous_position);
+#else
   mc_line(target, pl_data);
+#endif
 }
 
 
