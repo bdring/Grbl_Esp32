@@ -53,7 +53,7 @@
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char *text)
 {	
-    if (client == CLIENT_NONE) return;
+    if (client == CLIENT_INPUT) return;
 #ifdef ENABLE_BLUETOOTH
     if (SerialBT.hasClient() && ( client == CLIENT_BT || client == CLIENT_ALL ) )
     {
@@ -81,7 +81,7 @@ void grbl_send(uint8_t client, const char *text)
 // This is a formating version of the grbl_send(CLIENT_ALL,...) function that work like printf
 void grbl_sendf(uint8_t client, const char *format, ...)
 {
-    if (client == CLIENT_NONE) return;
+    if (client == CLIENT_INPUT) return;
     char loc_buf[64];
     char * temp = loc_buf;
     va_list arg;
