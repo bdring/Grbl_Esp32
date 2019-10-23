@@ -44,6 +44,7 @@
 #define MODAL_GROUP_G13 10 // [G61] Control mode
 
 #define MODAL_GROUP_M4 11  // [M0,M1,M2,M30] Stopping
+#define MODAL_GROUP_M6 14  // [M6] Tool change
 #define MODAL_GROUP_M7 12 // [M3,M4,M5] Spindle turning
 #define MODAL_GROUP_M8 13 // [M7,M8,M9] Coolant control
 #define MODAL_GROUP_M10 14 // [M62, M63] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
@@ -134,7 +135,7 @@
 #define TOOL_LENGTH_OFFSET_CANCEL 0 // G49 (Default: Must be zero)
 #define TOOL_LENGTH_OFFSET_ENABLE_DYNAMIC 1 // G43.1
 
-
+#define TOOL_CHANGE 1
 
 // Modal Group G12: Active work coordinate system
 // N/A: Stores coordinate system value (54-59) to change to.
@@ -200,6 +201,7 @@ typedef struct {
   uint8_t program_flow;    // {M0,M1,M2,M30}
   uint8_t coolant;         // {M7,M8,M9}
   uint8_t spindle;         // {M3,M4,M5}
+  uint8_t tool_change;     // {M6}
   uint8_t io_control;      // {M62, M63}
 } gc_modal_t;
 
