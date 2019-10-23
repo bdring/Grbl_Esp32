@@ -234,7 +234,11 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 	#else
 		set_stepper_pins_on(st.step_outbits);
 		step_pulse_off_time = esp_timer_get_time() + (settings.pulse_microseconds); // determine when to turn off pulse
-	#endif	
+	#endif
+	
+	#ifdef USE_UNIPOLAR
+		unipolar_step(st.step_outbits, st.dir_outbits);
+	#endif
 
 	busy = true;
 	// If there is no step segment, attempt to pop one from the stepper buffer
@@ -435,9 +439,9 @@ void stepper_init()
 		set_stepper_disable(true);
 	#endif
 	
-	//#ifdef USE_TMC2130
-	//	TMC2130_Init();
-	//#endif
+	#ifdef USE_UNIPOLAR
+		unipolar_init();
+	#endif
 	
 	#ifdef USE_TRINAMIC		
 		Trinamic_Init();
@@ -1504,6 +1508,10 @@ void set_stepper_disable(uint8_t isOn)  // isOn = true // to disable
 	if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) {
 		isOn = !isOn;    // Apply pin invert.
 	}
+	
+	#ifdef USE_UNIPOLAR
+		unipolar_disable(isOn);
+	#endif
 	
 #ifdef STEPPERS_DISABLE_PIN
 	digitalWrite(STEPPERS_DISABLE_PIN, isOn );
