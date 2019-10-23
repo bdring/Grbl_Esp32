@@ -22,6 +22,7 @@
 #include "config.h"
 
 xQueueHandle control_sw_queue;  // used by control switch debouncing
+bool debouncing = false;  // debouncing in process
 
 void system_ini() // Renamed from system_init() due to conflict with esp32 files
 {	
@@ -46,21 +47,25 @@ void system_ini() // Renamed from system_init() due to conflict with esp32 files
 		#endif
 		
 		#ifdef MACRO_BUTTON_0_PIN
+			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 0]\r\n");
 			pinMode(MACRO_BUTTON_0_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_0_PIN), isr_control_inputs, CHANGE);
 		#endif
 
 		#ifdef MACRO_BUTTON_1_PIN
+			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 1]\r\n");
 			pinMode(MACRO_BUTTON_1_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_1_PIN), isr_control_inputs, CHANGE);
 		#endif
 
 		#ifdef MACRO_BUTTON_2_PIN
+			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 2]\r\n");
 			pinMode(MACRO_BUTTON_2_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_2_PIN), isr_control_inputs, CHANGE);
 		#endif
 
 		#ifdef MACRO_BUTTON_3_PIN
+			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 3]\r\n");
 			pinMode(MACRO_BUTTON_3_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_3_PIN), isr_control_inputs, CHANGE);
 		#endif	
@@ -86,22 +91,24 @@ void system_ini() // Renamed from system_init() due to conflict with esp32 files
 
 	// Setup USER_DIGITAL_PINs controlled by M62 and M63
 	#ifdef USER_DIGITAL_PIN_1
-		pinMode(USER_DIGITAL_PIN_1, OUTPUT);	
+		pinMode(USER_DIGITAL_PIN_1, OUTPUT);
+		sys_io_control(1<<1, false); // turn off
 	#endif
 
 	#ifdef USER_DIGITAL_PIN_2
 		pinMode(USER_DIGITAL_PIN_2, OUTPUT);
+		sys_io_control(1<<2, false); // turn off
 	#endif
 
 	#ifdef USER_DIGITAL_PIN_3
 		pinMode(USER_DIGITAL_PIN_3, OUTPUT);
+		sys_io_control(1<<3, false); // turn off
 	#endif
 
 	#ifdef USER_DIGITAL_PIN_4
 		pinMode(USER_DIGITAL_PIN_4, OUTPUT);
-	#endif
-	
-	sys_io_control(0xFF, false); // turn them all off
+		sys_io_control(1<<4, false); // turn off
+	#endif	
 }
 
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
@@ -111,22 +118,26 @@ void controlCheckTask(void *pvParameters)
 	while(true) {
 		int evt;
 		xQueueReceive(control_sw_queue, &evt, portMAX_DELAY); // block until receive queue
-		vTaskDelay( CONTROL_SW_DEBOUNCE_PERIOD / portTICK_PERIOD_MS ); // delay a while
+		vTaskDelay(CONTROL_SW_DEBOUNCE_PERIOD); // delay a while
 		
 		uint8_t pin = system_control_get_state();
 		if (pin) {			
 			system_exec_control_pin(pin);
 		}
+		debouncing = false;
 	}
 }
 #endif
 
 void IRAM_ATTR isr_control_inputs()
-{  
+{  	
 	#ifdef ENABLE_CONTROL_SW_DEBOUNCE
 		// we will start a task that will recheck the switches after a small delay
 		int evt;
-		xQueueSendFromISR(control_sw_queue, &evt, NULL);	
+		if (!debouncing) { // prevent resending until debounce is done
+			debouncing = true;
+			xQueueSendFromISR(control_sw_queue, &evt, NULL);
+		}		
 	#else
 		uint8_t pin = system_control_get_state();
 		system_exec_control_pin(pin);
@@ -541,17 +552,17 @@ void system_exec_control_pin(uint8_t pin) {
 		bit_true(sys_rt_exec_state, EXEC_SAFETY_DOOR);  
 	}
 	#ifdef MACRO_BUTTON_0_PIN
-	else if (pin == 96) {	
+	else if (bit_istrue(pin,CONTROL_PIN_INDEX_MACRO_0)) {	
 		user_defined_macro(CONTROL_PIN_INDEX_MACRO_0); // function must be implemented by user 
 	}
 	#endif
 	#ifdef MACRO_BUTTON_1_PIN
-	else if (pin == 80) {
+	else if (bit_istrue(pin,CONTROL_PIN_INDEX_MACRO_1)) {
 		user_defined_macro(CONTROL_PIN_INDEX_MACRO_1); // function must be implemented by user 
 	}
 	#endif
 	#ifdef MACRO_BUTTON_2_PIN
-	else if (pin == 48) {
+	else if (bit_istrue(pin,CONTROL_PIN_INDEX_MACRO_2)) {
 		user_defined_macro(CONTROL_PIN_INDEX_MACRO_2); // function must be implemented by user 
 	}
 	#endif

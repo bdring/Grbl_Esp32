@@ -56,6 +56,10 @@ void setup() {
 	#ifdef USE_PEN_SOLENOID
 		solenoid_init();
 	#endif
+	
+	#ifdef USE_MACHINE_INIT
+		machine_init(); // user supplied function for special initialization
+	#endif
   
   // Initialize system state.
   #ifdef FORCE_INITIALIZATION_ALARM

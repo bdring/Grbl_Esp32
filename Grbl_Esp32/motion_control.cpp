@@ -231,6 +231,12 @@ void mc_dwell(float seconds)
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
 void mc_homing_cycle(uint8_t cycle_mask)
 {
+	#ifdef USE_CUSTOM_HOMING
+		if (user_defined_homing())
+		{
+			return;
+		}
+	#endif	
 	
 	// This give kinematics a chance to do something before normal homing
 	// if it returns true, the homing is canceled.

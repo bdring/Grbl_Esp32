@@ -344,7 +344,11 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 				}
 				break;
 			case 6: // too change
-				grbl_send(CLIENT_ALL, "[MSG:Tool Change]\r\n");
+				word_bit = MODAL_GROUP_M6;
+				gc_block.modal.tool_change = TOOL_CHANGE;
+				#ifdef USE_TOOL_CHANGE
+					//tool_change(gc_state.tool);
+				#endif
 				break;
 			case 7:
 			case 8:
@@ -491,7 +495,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 				axis_words |= (1<<Z_AXIS);
 				break;
 			default:
-				FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
+				FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);				
 			}
 
 			// NOTE: Variable 'word_bit' is always assigned, if the non-command letter is valid.
@@ -1215,6 +1219,11 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 	//	gc_state.tool = gc_block.values.t;
 
 	// [6. Change tool ]: NOT SUPPORTED
+	if (gc_block.modal.tool_change == TOOL_CHANGE) {
+		#ifdef USE_TOOL_CHANGE
+			user_tool_change(gc_state.tool);
+		#endif
+	}
 
 	// [7. Spindle control ]:
 	if (gc_state.modal.spindle != gc_block.modal.spindle) {
@@ -1412,6 +1421,9 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 				coolant_set_state(COOLANT_DISABLE);
 			}
 			report_feedback_message(MESSAGE_PROGRAM_END);
+			#ifdef USE_M30
+				user_m30();
+			#endif
 		}
 		gc_state.modal.program_flow = PROGRAM_FLOW_RUNNING; // Reset program flow.
 	}
