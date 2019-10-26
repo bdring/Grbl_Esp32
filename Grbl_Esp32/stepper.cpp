@@ -57,7 +57,7 @@ typedef struct {
 	uint8_t prescaler;      // Without AMASS, a prescaler is required to adjust for slow timing.
 #endif
 #ifdef VARIABLE_SPINDLE
-	uint8_t spindle_pwm;
+	uint16_t spindle_pwm;
 #endif
 } segment_t;
 static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
@@ -147,7 +147,7 @@ typedef struct {
 
 #ifdef VARIABLE_SPINDLE
 	float inv_rate;    // Used by PWM laser mode to speed up segment calculations.
-	uint8_t current_spindle_pwm;
+	uint16_t current_spindle_pwm;
 #endif
 } st_prep_t;
 static st_prep_t prep;
@@ -293,8 +293,8 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 #if ( (defined VARIABLE_SPINDLE) && (defined SPINDLE_PWM_PIN) )
 			if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
 				// Ensure pwm is set properly upon completion of rate-controlled motion.
-				if (st.exec_block->is_pwm_rate_adjusted) {					
-					spindle_set_speed(SPINDLE_PWM_OFF_VALUE);					
+				if (st.exec_block->is_pwm_rate_adjusted) {
+					spindle_set_speed(SPINDLE_PWM_OFF_VALUE);
 				}
 			}		
 
@@ -1090,7 +1090,7 @@ void st_prep_buffer()
 				// Setup laser mode variables. PWM rate adjusted motions will always complete a motion with the
 				// spindle off.
 				st_prep_block->is_pwm_rate_adjusted = false;
-				if (settings.flags & BITFLAG_LASER_MODE) {
+				if (settings.flags & BITFLAG_LASER_MODE) {					
 					if (pl_block->condition & PL_COND_FLAG_SPINDLE_CCW) {
 						// Pre-compute inverse programmed rate to speed up PWM updating per step segment.
 						prep.inv_rate = 1.0/pl_block->programmed_rate;
