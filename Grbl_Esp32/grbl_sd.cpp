@@ -29,6 +29,7 @@ File myFile;
 bool SD_ready_next = false; // Grbl has processed a line and is waiting for another
 uint8_t SD_client = CLIENT_SERIAL;
 uint32_t sd_current_line_number; // stores the most recent line number read from the SD
+static char comment[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
 
 // attempt to mount the SD card
 /*bool sd_mount()
@@ -107,6 +108,7 @@ boolean readFileLine(char *line)
   char c;
   uint8_t index = 0;
   uint8_t line_flags = 0;
+  uint8_t comment_char_counter = 0;
 
   if (!myFile) {
     report_status_message(STATUS_SD_FAILED_READ, SD_client);
@@ -118,15 +120,21 @@ boolean readFileLine(char *line)
   while(myFile.available()) {
     c = myFile.read();
 		
+	if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) {  // capture all characters into a comment buffer
+		comment[comment_char_counter++] = c;
+	}
+	
     if (c == '\r' || c == ' ' ) {
       // ignore these whitespace items
     } else if (c == '(') {
       line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
     } else if (c == ')') {
       // End of '()' comment. Resume line allowed.
-      if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) {
-        line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES);
-      }
+	  if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) { 
+			line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES); 
+			comment[comment_char_counter] = 0; // null terminate								
+			report_gcode_comment(comment);								
+		}
     } else if (c == ';') {
       // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
       if (!(line_flags & LINE_FLAG_COMMENT_PARENTHESES)) { // semi colon inside parentheses do not mean anything
