@@ -75,7 +75,11 @@
 // #define SETTING_INDEX_G92    N_COORDINATE_SYSTEM+2  // Coordinate offset (G92.2,G92.3 not supported)
 
 // Define Grbl axis settings numbering scheme. Starts at START_VAL, every INCREMENT, over N_SETTINGS.
-#define AXIS_N_SETTINGS          4
+#ifndef SHOW_EXTENDED_SETTINGS
+	#define AXIS_N_SETTINGS          4
+#else
+	#define AXIS_N_SETTINGS          7
+#endif
 #define AXIS_SETTINGS_START_VAL  100 // NOTE: Reserving settings values >= 100 for axis settings. Up to 255.
 #define AXIS_SETTINGS_INCREMENT  10  // Must be greater than the number of axis settings
 
@@ -86,6 +90,9 @@ typedef struct {
   float max_rate[N_AXIS];
   float acceleration[N_AXIS];
   float max_travel[N_AXIS];
+  float current[N_AXIS]; //  $140... run current (extended set)
+  float hold_current[N_AXIS]; // $150 percent of run current (extended set)
+  uint16_t microsteps[N_AXIS]; // $160... (extended set)
 
   // Remaining Grbl settings
   uint8_t pulse_microseconds;
@@ -95,7 +102,12 @@ typedef struct {
   uint8_t status_report_mask; // Mask to indicate desired report data.
   float junction_deviation;
   float arc_tolerance;
-
+  
+  float spindle_pwm_freq;      // $33 Hz (extended set)
+  float spindle_pwm_off_value; // $34 Percent (extended set)
+  float spindle_pwm_min_value; // $35 Percent (extended set)
+  float spindle_pwm_max_value; // $36 Percent (extended set)
+  
   float rpm_max;
   float rpm_min;
 
@@ -135,7 +147,7 @@ uint8_t get_step_pin_mask(uint8_t i);
 // Returns the direction pin mask according to Grbl's internal axis numbering
 uint8_t get_direction_pin_mask(uint8_t i);
 
-
+void settings_spi_driver_init();
 #endif
 
 

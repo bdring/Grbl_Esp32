@@ -68,7 +68,12 @@ void settings_restore(uint8_t restore_flag) {
     settings.junction_deviation = DEFAULT_JUNCTION_DEVIATION;
 
     settings.arc_tolerance = DEFAULT_ARC_TOLERANCE;
-
+	
+	settings.spindle_pwm_freq = DEFAULT_SPINDLE_FREQ;      // $33 Hz (extended set)
+	settings.spindle_pwm_off_value = DEFAULT_SPINDLE_OFF_VALUE; // $34 Percent (extended set)
+	settings.spindle_pwm_min_value = DEFAULT_SPINDLE_MIN_VALUE; // $35 Percent (extended set)
+	settings.spindle_pwm_max_value = DEFAULT_SPINDLE_MAX_VALUE; // $36 Percent (extended set)
+	
     settings.rpm_max = DEFAULT_SPINDLE_RPM_MAX;
     settings.rpm_min = DEFAULT_SPINDLE_RPM_MIN;
 
@@ -91,21 +96,41 @@ void settings_restore(uint8_t restore_flag) {
     settings.steps_per_mm[X_AXIS] = DEFAULT_X_STEPS_PER_MM;
     settings.steps_per_mm[Y_AXIS] = DEFAULT_Y_STEPS_PER_MM;
     settings.steps_per_mm[Z_AXIS] = DEFAULT_Z_STEPS_PER_MM;
+	
     settings.max_rate[X_AXIS] = DEFAULT_X_MAX_RATE;
     settings.max_rate[Y_AXIS] = DEFAULT_Y_MAX_RATE;
     settings.max_rate[Z_AXIS] = DEFAULT_Z_MAX_RATE;
+	
     settings.acceleration[X_AXIS] = DEFAULT_X_ACCELERATION;
     settings.acceleration[Y_AXIS] = DEFAULT_Y_ACCELERATION;
     settings.acceleration[Z_AXIS] = DEFAULT_Z_ACCELERATION;
+	
     settings.max_travel[X_AXIS] = (-DEFAULT_X_MAX_TRAVEL);
     settings.max_travel[Y_AXIS] = (-DEFAULT_Y_MAX_TRAVEL);
     settings.max_travel[Z_AXIS] = (-DEFAULT_Z_MAX_TRAVEL);
+	
+	settings.current[X_AXIS] = DEFAULT_X_CURRENT;
+	settings.current[Y_AXIS] = DEFAULT_Y_CURRENT;
+	settings.current[Z_AXIS] = DEFAULT_Z_CURRENT;
+	
+	settings.hold_current[X_AXIS] = DEFAULT_X_HOLD_CURRENT;
+	settings.hold_current[Y_AXIS] = DEFAULT_Y_HOLD_CURRENT;
+	settings.hold_current[Z_AXIS] = DEFAULT_Z_HOLD_CURRENT;
+	
+	settings.microsteps[X_AXIS] = DEFAULT_X_MICROSTEPS;
+	settings.microsteps[Y_AXIS] = DEFAULT_Y_MICROSTEPS;
+	settings.microsteps[Z_AXIS] = DEFAULT_Z_MICROSTEPS;
+	
+	
 	
 	#if (N_AXIS > A_AXIS)
 		 settings.steps_per_mm[A_AXIS] = DEFAULT_A_STEPS_PER_MM;
 		 settings.max_rate[A_AXIS] = DEFAULT_A_MAX_RATE;
 		 settings.acceleration[A_AXIS] = DEFAULT_A_ACCELERATION;
 		 settings.max_travel[A_AXIS] = (-DEFAULT_A_MAX_TRAVEL);
+		 settings.current[A_AXIS] = DEFAULT_A_CURRENT;
+		 settings.hold_current[A_AXIS] = DEFAULT_A_HOLD_CURRENT;
+		 settings.microsteps[A_AXIS] = DEFAULT_A_MICROSTEPS;
 	#endif
 	
 	#if (N_AXIS > B_AXIS)
@@ -113,6 +138,9 @@ void settings_restore(uint8_t restore_flag) {
 		 settings.max_rate[B_AXIS] = DEFAULT_B_MAX_RATE;
 		 settings.acceleration[B_AXIS] = DEFAULT_B_ACCELERATION;
 		 settings.max_travel[B_AXIS] = (-DEFAULT_B_MAX_TRAVEL);
+		 settings.current[B_AXIS] = DEFAULT_B_CURRENT;
+		 settings.hold_current[B_AXIS] = DEFAULT_B_HOLD_CURRENT;
+		 settings.microsteps[B_AXIS] = DEFAULT_B_MICROSTEPS;
 	#endif
 	
 	#if (N_AXIS > C_AXIS)
@@ -120,6 +148,9 @@ void settings_restore(uint8_t restore_flag) {
 		 settings.max_rate[C_AXIS] = DEFAULT_C_MAX_RATE;
 		 settings.acceleration[C_AXIS] = DEFAULT_C_ACCELERATION;
 		 settings.max_travel[C_AXIS] = (-DEFAULT_C_MAX_TRAVEL);
+		 settings.current[C_AXIS] = DEFAULT_C_CURRENT;
+		 settings.hold_current[C_AXIS] = DEFAULT_C_HOLD_CURRENT;
+		 settings.microsteps[C_AXIS] = DEFAULT_C_MICROSTEPS;
 	#endif
 	
 	
@@ -241,6 +272,7 @@ uint8_t settings_read_startup_line(uint8_t n, char *line)
 // A helper method to set settings from command line
 uint8_t settings_store_global_setting(uint8_t parameter, float value) {
   if (value < 0.0) { return(STATUS_NEGATIVE_VALUE); }
+  uint8_t int_value = trunc(value); // integer version
   if (parameter >= AXIS_SETTINGS_START_VAL) {
     // Store axis configuration. Axis numbering sequence set by AXIS_SETTING defines.
     // NOTE: Ensure the setting index corresponds to the report.c settings printout.
@@ -264,6 +296,18 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
             break;
           case 2: settings.acceleration[parameter] = value*60*60; break; // Convert to mm/min^2 for grbl internal use.
           case 3: settings.max_travel[parameter] = -value; break;  // Store as negative for grbl internal use.
+		  case 4: // run current
+				settings.current[parameter] = value;
+				settings_spi_driver_init();
+			break;
+		  case 5: // hold current
+				settings.hold_current[parameter] = value;
+				settings_spi_driver_init();
+		  break;
+		  case 6: // microstepping
+				settings.microsteps[parameter] = int_value;
+				settings_spi_driver_init();
+		  break;
         }
         break; // Exit while-loop after setting has been configured and proceed to the EEPROM write call.
       } else {
@@ -275,7 +319,7 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
     }
   } else {
     // Store non-axis Grbl settings
-    uint8_t int_value = trunc(value);
+    
     switch(parameter) {
       case 0:
         if (int_value < 3) { return(STATUS_SETTING_STEP_PULSE_MIN); }
@@ -343,6 +387,10 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
           return(STATUS_SETTING_DISABLED_LASER);
         #endif
         break;
+	  case 33: settings.spindle_pwm_freq = value; spindle_init(); break; // Re-initialize spindle pwm calibration
+      case 34: settings.spindle_pwm_off_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
+      case 35: settings.spindle_pwm_min_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
+      case 36: settings.spindle_pwm_max_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
       default:
         return(STATUS_INVALID_STATEMENT);
     }
@@ -351,9 +399,6 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
   return(STATUS_OK);
 }
 
-
-
-
 // Returns step pin mask according to Grbl internal axis indexing.
 uint8_t get_step_pin_mask(uint8_t axis_idx)
 {
@@ -361,10 +406,18 @@ uint8_t get_step_pin_mask(uint8_t axis_idx)
   return(1<<axis_idx);
 }
 
-
 // Returns direction pin mask according to Grbl internal axis indexing.
 uint8_t get_direction_pin_mask(uint8_t axis_idx)
 {      
 	return(1<<axis_idx);
+}
+
+// this allows a conditional re-init of the trinamic settings
+void settings_spi_driver_init() {
+	#ifdef USE_TRINAMIC
+		trinamic_change_settings();
+	#else
+		grbl_send(CLIENT_ALL, "[MSG: No SPI drivers setup]\r\n");
+	#endif
 }
 
