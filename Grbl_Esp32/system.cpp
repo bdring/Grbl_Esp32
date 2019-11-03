@@ -30,19 +30,19 @@ void system_ini() // Renamed from system_init() due to conflict with esp32 files
 	#ifndef IGNORE_CONTROL_PINS
 		
 		#ifdef CONTROL_SAFETY_DOOR_PIN
-			pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT);
+			pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
 		#endif
 		#ifdef CONTROL_RESET_PIN
-			pinMode(CONTROL_RESET_PIN, INPUT);
+			pinMode(CONTROL_RESET_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
 		#endif
 		#ifdef CONTROL_FEED_HOLD_PIN
-			pinMode(CONTROL_FEED_HOLD_PIN, INPUT);
+			pinMode(CONTROL_FEED_HOLD_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
 		#endif
 		#ifdef CONTROL_CYCLE_START_PIN
-			pinMode(CONTROL_CYCLE_START_PIN, INPUT);
+			pinMode(CONTROL_CYCLE_START_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
 		#endif
 		
@@ -611,5 +611,4 @@ void sys_io_control(uint8_t io_num_mask, bool turnOn) {
 			return;
 		}
 	#endif
-	grbl_sendf(CLIENT_SERIAL, "[MSG:Undefined IO pin...%d]\r\n", io_num_mask);
 }
