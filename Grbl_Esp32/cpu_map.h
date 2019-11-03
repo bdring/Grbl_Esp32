@@ -59,9 +59,6 @@
 	*/
 	#define CPU_MAP_NAME "CPU_MAP_DEFAULT - Demo Only No I/O!"	
 	
-	// the following items currently need to be defined, but no i/o needs to be mapped
-	// fixing soon
-	
 	#define LIMIT_MASK 0  // no limit pins		
 #endif
 
@@ -71,8 +68,8 @@
 	// https://www.tindie.com/products/33366583/grbl_esp32-cnc-development-board-v35/
 	
 	// Select the version (uncomment one of them)
-	#define CPU_MAP_V3p5 // version 3.5 and earlier
-	//#define CPU_MAP_V4 // version 4 or higher (in developement) 
+	//#define CPU_MAP_V3p5 // version 3.5 and earlier
+	#define CPU_MAP_V4 // version 4 or higher (in developement) 
 	
 	#define USE_RMT_STEPS
 	
@@ -120,26 +117,8 @@
 	
 	
 	#define SPINDLE_PWM_CHANNEL 0
-	// PWM Generator is based on 80,000,000 Hz counter
-	// Therefor the freq determines the resolution
-	// 80,000,000 / freq = max resolution
-	// For 5000 that is 80,000,000 / 5000 = 16000 
-	// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-	
-	
-	
-	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-	#define SPINDLE_PWM_BIT_PRECISION 8   
-	#define SPINDLE_PWM_OFF_VALUE     0
-	#define SPINDLE_PWM_MAX_VALUE     255
-	//#define INVERT_SPINDLE_PWM
-	
-	#ifndef SPINDLE_PWM_MIN_VALUE
-		#undef SPINDLE_PWM_MIN_VALUE		
-	#endif
-	#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.	
-	
-	#define SPINDLE_ENABLE_PIN	GPIO_NUM_22	
+	#define SPINDLE_PWM_BIT_PRECISION 8	
+	#define SPINDLE_ENABLE_PIN	GPIO_NUM_22
 	
 	// see versions for X and Z
 	#define Y_LIMIT_PIN      	GPIO_NUM_4	
@@ -177,22 +156,8 @@
 	#define STEPPERS_DISABLE_PIN GPIO_NUM_12	// Uno D8
 			
 	#define SPINDLE_PWM_PIN    GPIO_NUM_19    // Uno D11
-	#define SPINDLE_PWM_CHANNEL 0
-	// PWM Generator is based on 80,000,000 Hz counter
-	// Therefor the freq determines the resolution
-	// 80,000,000 / freq = max resolution
-	// For 5000 that is 80,000,000 / 5000 = 16000 
-	// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-	#define SPINDLE_PWM_OFF_VALUE     0
-	#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
-	
-	#ifndef SPINDLE_PWM_MIN_VALUE
-			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-	#endif	
-	
-	
+	#define SPINDLE_PWM_CHANNEL 0	
+	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE	
 	#define SPINDLE_DIR_PIN		GPIO_NUM_18	// Uno D13
 	
 	#define COOLANT_FLOOD_PIN 	GPIO_NUM_34  // Uno A3
@@ -234,29 +199,34 @@
 	#define Z_RMT_CHANNEL		2		
 	
 	// OK to comment out to use pin for other features
-	#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
+	#define STEPPERS_DISABLE_PIN GPIO_NUM_13	
 		
 	#define SPINDLE_PWM_PIN    	GPIO_NUM_2
+	#define SPINDLE_ENABLE_PIN	GPIO_NUM_22
 	#define SPINDLE_PWM_CHANNEL 0	
 			
-	// Begin RC ESC Based Spindle #defines ======================	
-	#define SPINDLE_PWM_BASE_FREQ 50 // Hz for ESC
-	#define SPINDLE_PWM_BIT_PRECISION 16   // 16 bit required for ESC
-	#define SPINDLE_PULSE_RES_COUNT 65535
-	
-	#define ESC_MIN_PULSE_SEC 0.0007 // min pulse in seconds (OK to tune this one)
-	#define ESC_MAX_PULSE_SEC 0.0022 // max pulse in seconds (OK to tune this one)		
-	#define ESC_TIME_PER_BIT  ((1.0 / (float)SPINDLE_PWM_BASE_FREQ) / ((float)SPINDLE_PULSE_RES_COUNT) ) // seconds
+	// Begin RC ESC Based Spindle Information ======================	
+	#define SPINDLE_PWM_BIT_PRECISION 16   // 16 bit recommended for ESC (don't change)
+	/*	
+		Important ESC Settings
+		$33=50 // Hz this is the typical good frequency for an ESC
+		
+		Determine the typical min and max pulse length of your ESC
+		min_pulse is typically 1ms (0.001 sec) or less
+		max_pulse is typically 2ms (0.002 sec) or more
+		
+		determine PWM_period. It is (1/freq) if freq = 50...period = 0.02 
+		
+		determine pulse length for min_pulse and max_pulse in percent.
+		
+		(pulse / PWM_period)
+		
+		min_pulse = (0.001 / 0.02) = 0.035 = 3.5%  so ... $33 and $34 = 3.5
+		max_pulse = (0.002 / .02) = 0.1 = 10%  so ... $36=10
 
-	#define SPINDLE_PWM_OFF_VALUE    (uint16_t)(ESC_MIN_PULSE_SEC / ESC_TIME_PER_BIT) // in timer counts
-	#define SPINDLE_PWM_MAX_VALUE    (uint16_t)(ESC_MAX_PULSE_SEC / ESC_TIME_PER_BIT) // in timer counts
+	*/
 	
-	#ifndef SPINDLE_PWM_MIN_VALUE
-		#undef SPINDLE_PWM_MIN_VALUE		
-	#endif
-	#define SPINDLE_PWM_MIN_VALUE   SPINDLE_PWM_OFF_VALUE   // Must be greater than zero.
 	
-	#define SPINDLE_ENABLE_PIN	GPIO_NUM_22
 	// End RC ESC Based Spindle #defines ===========================
 	
 	#define X_LIMIT_PIN      	GPIO_NUM_17
@@ -310,20 +280,9 @@
 		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
 		// use a virtual spindle. Do not comment out the other parameters for the spindle.
 		#define SPINDLE_PWM_PIN    GPIO_NUM_17 // Laser PWM
-		#define SPINDLE_PWM_CHANNEL 0
-		// PWM Generator is based on 80,000,000 Hz counter
-		// Therefor the freq determines the resolution
-		// 80,000,000 / freq = max resolution
-		// For 5000 that is 80,000,000 / 5000 = 16000 
-		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+		#define SPINDLE_PWM_CHANNEL 0		
 		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
-		
-		#ifndef SPINDLE_PWM_MIN_VALUE
-				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif			
+			
 		
 		#define USING_SERVO  // uncomment to use this feature
 		//#define USING_SOLENOID // uncomment to use this feature
@@ -342,12 +301,7 @@
 			#define SOLENOID_CHANNEL_NUM 6
 		#endif
 		
-		
-		
-		#ifdef DEFAULTS_GENERIC 
-			#undef DEFAULTS_GENERIC  // undefine generic then define each default below
-		#endif
-		
+				
 		// defaults
 		#define DEFAULT_STEP_PULSE_MICROSECONDS 3 
 		#define DEFAULT_STEPPER_IDLE_LOCK_TIME 250 // stay on
@@ -437,28 +391,8 @@
 		#ifndef IGNORE_CONTROL_PINS // maybe set in config.h
 			#define IGNORE_CONTROL_PINS
 		#endif
-		//#define CONTROL_SAFETY_DOOR_PIN   GPIO_NUM_35  // needs external pullup
-		//#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
-		//#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
-		//#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup		
 		
-		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
-		// use a virtual spindle. Do not comment out the other parameters for the spindle.
-		//#define SPINDLE_PWM_PIN    GPIO_NUM_17 // Laser PWM
-		#define SPINDLE_PWM_CHANNEL 0
-		// PWM Generator is based on 80,000,000 Hz counter
-		// Therefor the freq determines the resolution
-		// 80,000,000 / freq = max resolution
-		// For 5000 that is 80,000,000 / 5000 = 16000 
-		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
-		
-		#ifndef SPINDLE_PWM_MIN_VALUE
-				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif
+			
 		
 		// redefine some stuff from config.h
 		#ifdef HOMING_CYCLE_0
@@ -472,18 +406,10 @@
 		#ifdef HOMING_CYCLE_2
 			#undef HOMING_CYCLE_2
 		#endif
-		
-		// redefine the defaults
-		#ifdef DEFAULTS_GENERIC
-			#undef DEFAULTS_GENERIC
-		#endif		
-		#define DEFAULTS_MIDTBOT	
-		
+				
 		#define SERVO_PEN_PIN 					GPIO_NUM_27
 		
-		#ifdef DEFAULTS_GENERIC 
-			#undef DEFAULTS_GENERIC  // undefine generic then define each default below
-		#endif
+		
 		
 		// defaults
 		#define DEFAULT_STEP_PULSE_MICROSECONDS 3 
@@ -590,7 +516,7 @@
 	// 80,000,000 / freq = max resolution
 	// For 5000 that is 80,000,000 / 5000 = 16000 
 	// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+	//#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
 	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
 	#define SPINDLE_PWM_OFF_VALUE     0
 	#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
@@ -615,9 +541,7 @@
 		#undef HOMING_CYCLE_2
 	#endif		
 	
-	#ifdef DEFAULTS_GENERIC 
-		#undef DEFAULTS_GENERIC  // undefine generic then define each default below
-	#endif
+	
 	
 	// defaults
 	#define DEFAULT_STEP_PULSE_MICROSECONDS 3 
@@ -706,7 +630,7 @@
 		// 80,000,000 / freq = max resolution
 		// For 5000 that is 80,000,000 / 5000 = 16000 
 		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+		//#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
 		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
 		#define SPINDLE_PWM_OFF_VALUE     0
 		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
@@ -726,9 +650,7 @@
 		#define SERVO_Z_RANGE_MAX			20.0
 		
 		
-		#ifdef DEFAULTS_GENERIC 
-			#undef DEFAULTS_GENERIC  // undefine generic then define each default below
-		#endif
+		
 		
 		// defaults
 		#define DEFAULT_STEP_PULSE_MICROSECONDS 3 
@@ -780,128 +702,6 @@
 		
 #endif
 
-#ifdef CPU_MAP_SM // String art machine definition
-		#define CPU_MAP_NAME "CPU_MAP_SM"
-
-		#define X_STEP_PIN      GPIO_NUM_12
-		#define X_DIRECTION_PIN   GPIO_NUM_26
-		
-		#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
-		
-		#define X_LIMIT_PIN      	GPIO_NUM_15
-		#define LIMIT_MASK      	B1			
-		
-		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
-		// use a virtual spindle. Do not comment out the other parameters for the spindle.
-		#define SPINDLE_PWM_PIN    GPIO_NUM_17 // Laser PWM
-		#define SPINDLE_PWM_CHANNEL 0
-		// PWM Generator is based on 80,000,000 Hz counter
-		// Therefor the freq determines the resolution
-		// 80,000,000 / freq = max resolution
-		// For 5000 that is 80,000,000 / 5000 = 16000 
-		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
-		
-		#ifndef SPINDLE_PWM_MIN_VALUE
-				#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif		
-		
-		// define Y and Z as servos
-		#define USE_SERVO_AXES
-		#define SERVO_Y_PIN 					GPIO_NUM_27
-		#define SERVO_Y_CHANNEL_NUM 	6
-		#define SERVO_Y_RANGE_MIN			0.0
-		#define SERVO_Y_RANGE_MAX			20.0
-		
-		#define SERVO_Z_PIN 					GPIO_NUM_14
-		#define SERVO_Z_CHANNEL_NUM 	5
-		#define SERVO_Z_RANGE_MIN			0.0
-		#define SERVO_Z_RANGE_MAX			28.0		
-		
-		// define the control pins
-		//#define CONTROL_RESET_PIN         GPIO_NUM_36  // needs external pullup
-		#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_34  // needs external pullup
-		#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup
-		
-		// change some things that may have been defined in config.h
-		#ifndef IGNORE_CONTROL_PINS
-			#define IGNORE_CONTROL_PINS
-		#endif
-		#ifdef INVERT_CONTROL_PIN_MASK
-			#undef INVERT_CONTROL_PIN_MASK
-		#endif
-		#define INVERT_CONTROL_PIN_MASK   B1100
-		
-
-		// clear any default homings and set X as the only one
-		#ifdef HOMING_CYCLE_0
-			#undef HOMING_CYCLE_0
-		#endif
-		#define HOMING_CYCLE_0 (1<<X_AXIS) 
-		#ifdef HOMING_CYCLE_1
-			#undef HOMING_CYCLE_1
-		#endif
-		#ifdef HOMING_CYCLE_2
-			#undef HOMING_CYCLE_2
-		#endif		
-				
-		#ifdef DEFAULTS_GENERIC 
-			#undef DEFAULTS_GENERIC  // undefine generic then define each default below
-		#endif
-		
-		// defaults
-		#define DEFAULT_STEP_PULSE_MICROSECONDS 3 
-		#define DEFAULT_STEPPER_IDLE_LOCK_TIME 255 // stay on
-		
-		#define DEFAULT_STEPPING_INVERT_MASK 0 // uint8_t
-		#define DEFAULT_DIRECTION_INVERT_MASK 6 // Y and Z need to be inverted
-		#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
-		#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
-		#define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
-		
-		#define DEFAULT_STATUS_REPORT_MASK 1
-		
-		#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
-		#define DEFAULT_ARC_TOLERANCE 0.002 // mm
-		#define DEFAULT_REPORT_INCHES 0 // false
-		
-		#define DEFAULT_SOFT_LIMIT_ENABLE 0 // false
-		#define DEFAULT_HARD_LIMIT_ENABLE 0  // false
-		
-		#define DEFAULT_HOMING_ENABLE 1  
-		#define DEFAULT_HOMING_DIR_MASK 0 // move positive dir Z, negative X,Y
-		#define DEFAULT_HOMING_FEED_RATE 25.0 // mm/min
-		#define DEFAULT_HOMING_SEEK_RATE 600.0 // mm/min
-		#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
-		#define DEFAULT_HOMING_PULLOFF 1.0 // mm
-
-		#define DEFAULT_SPINDLE_RPM_MAX 1000.0 // rpm
-		#define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
-		
-		#define DEFAULT_LASER_MODE 0 // false
-		
-		#define DEFAULT_X_STEPS_PER_MM 300.0
-		#define DEFAULT_Y_STEPS_PER_MM 100.0   // This is percent in servo mode...used for calibration
-		#define DEFAULT_Z_STEPS_PER_MM 100.0 // This is percent in servo mode...used for calibration
-		
-		#define DEFAULT_X_MAX_RATE 8000.0 // mm/min
-		#define DEFAULT_Y_MAX_RATE 4000.0 // mm/min
-		#define DEFAULT_Z_MAX_RATE 4000.0 // mm/min
-		
-		#define DEFAULT_X_ACCELERATION (150.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
-		#define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
-		#define DEFAULT_Z_ACCELERATION (200.0*60*60) 
-		
-		#define DEFAULT_X_MAX_TRAVEL 100000.0 // mm NOTE: Must be a positive value.
-		#define DEFAULT_Y_MAX_TRAVEL 100.0 // This is percent in servo mode...used for calibration
-		#define DEFAULT_Z_MAX_TRAVEL 100.0 // This is percent in servo mode...used for calibration
-		
-		
-#endif
-
 #ifdef CPU_MAP_MPCNC  // all versions...select below
 	// This is the CPU Map for the Buildlog.net MPCNC controller
 	
@@ -915,12 +715,6 @@
 		#define CPU_MAP_NAME "CPU_MAP_MPCNC_V1P2"
 	#endif	
 		
-	// switch to the correct default settings
-	#ifdef DEFAULTS_GENERIC
-		#undef DEFAULTS_GENERIC
-	#endif
-	#define DEFAULTS_MPCNC
-	
 	#define USE_GANGED_AXES // allow two motors on an axis 
   
 	#define X_STEP_PIN      GPIO_NUM_12
@@ -954,20 +748,9 @@
 		#define SPINDLE_ENABLE_PIN	GPIO_NUM_32
 	#endif
 	
-	#define SPINDLE_PWM_CHANNEL 0
-	// PWM Generator is based on 80,000,000 Hz counter
-	// Therefor the freq determines the resolution
-	// 80,000,000 / freq = max resolution
-	// For 5000 that is 80,000,000 / 5000 = 16000 
-	// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+	#define SPINDLE_PWM_CHANNEL 0	
 	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-	#define SPINDLE_PWM_OFF_VALUE     0
-	#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
 	
-	#ifndef SPINDLE_PWM_MIN_VALUE
-			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-	#endif
 	
 	// Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
 	// Relay can be used for spindle or either coolant
@@ -1007,7 +790,58 @@
 	
 	#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
 	#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
-	#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    		
+	#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    
+
+		#define DEFAULT_STEP_PULSE_MICROSECONDS 3 
+	#define DEFAULT_STEPPER_IDLE_LOCK_TIME 255 //  255 = Keep steppers on 
+
+	#define DEFAULT_STEPPING_INVERT_MASK 0 // uint8_t
+	#define DEFAULT_DIRECTION_INVERT_MASK 0 // uint8_t
+	#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
+	#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
+	#define DEFAULT_INVERT_PROBE_PIN 0 // boolean 
+
+	#define DEFAULT_STATUS_REPORT_MASK 1
+
+	#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
+	#define DEFAULT_ARC_TOLERANCE 0.002 // mm
+	#define DEFAULT_REPORT_INCHES 0 // false
+
+	#define DEFAULT_SOFT_LIMIT_ENABLE 0 // false
+	#define DEFAULT_HARD_LIMIT_ENABLE 0  // false
+
+	#define DEFAULT_HOMING_ENABLE 1  // false
+	#define DEFAULT_HOMING_DIR_MASK 3 // move positive dir Z,negative X,Y
+	#define DEFAULT_HOMING_FEED_RATE 600.0 // mm/min
+	#define DEFAULT_HOMING_SEEK_RATE 2000.0 // mm/min
+	#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
+	#define DEFAULT_HOMING_PULLOFF 1.5 // mm
+
+	#ifdef USE_SPINDLE_RELAY
+		#define DEFAULT_SPINDLE_RPM_MAX 1.0 // must be 1 so PWM duty is alway 100% to prevent relay damage
+	#else
+		#define DEFAULT_SPINDLE_RPM_MAX 1000.0 // can be change to your spindle max
+	#endif	
+		
+	#define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
+
+	#define DEFAULT_LASER_MODE 0 // false
+
+	#define DEFAULT_X_STEPS_PER_MM 200.0
+	#define DEFAULT_Y_STEPS_PER_MM 200.0
+	#define DEFAULT_Z_STEPS_PER_MM 800.0
+
+	#define DEFAULT_X_MAX_RATE 8000.0 // mm/min
+	#define DEFAULT_Y_MAX_RATE 8000.0 // mm/min
+	#define DEFAULT_Z_MAX_RATE 3000.0 // mm/min
+
+	#define DEFAULT_X_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+	#define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+	#define DEFAULT_Z_ACCELERATION (100.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+
+	#define DEFAULT_X_MAX_TRAVEL 500.0 // mm NOTE: Must be a positive value.
+	#define DEFAULT_Y_MAX_TRAVEL 500.0 // mm NOTE: Must be a positive value.
+	#define DEFAULT_Z_MAX_TRAVEL 80.0 // mm NOTE: Must be a positive value.
 		
 #endif
 
@@ -1056,20 +890,9 @@
 		#define SPINDLE_ENABLE_PIN	GPIO_NUM_32
 	#endif
 		
-	#define SPINDLE_PWM_CHANNEL 0
-	// PWM Generator is based on 80,000,000 Hz counter
-	// Therefor the freq determines the resolution
-	// 80,000,000 / freq = max resolution
-	// For 5000 that is 80,000,000 / 5000 = 16000 
-	// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-	#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+	#define SPINDLE_PWM_CHANNEL 0	
 	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-	#define SPINDLE_PWM_OFF_VALUE     0
-	#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
 	
-	#ifndef SPINDLE_PWM_MIN_VALUE
-			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-	#endif	
 	
 	// Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
 	// Relay can be used for Spindle or Coolant
@@ -1120,9 +943,6 @@
 		#define X_DRIVER_TMC2130 	// Which Driver Type?
 		#define X_CS_PIN    			GPIO_NUM_17  //chip select
 		#define X_RSENSE				0.11f   // .11 Ohm
-		#define X_MICROSTEPS			32
-		#define X_RMS_CURRENT		700 // run current in mA
-		#define X_HOLD_CURRENT     0.25 // hold current as percentage of run current
 		#define X_RMT_CHANNEL		0
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14   
@@ -1131,9 +951,6 @@
 		#define Y_DRIVER_TMC2130 	// Which Driver Type?
 		#define Y_CS_PIN    			GPIO_NUM_16  //chip select
 		#define Y_RSENSE				0.11f   // .11 Ohm
-		#define Y_MICROSTEPS			32
-		#define Y_RMS_CURRENT		700 // in mA
-		#define Y_HOLD_CURRENT     0.25 // hold current as percentage of run current
 		#define Y_RMT_CHANNEL		1		
 		
 		// OK to comment out to use pin for other features
@@ -1159,20 +976,9 @@
 		// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
 		// use a virtual spindle. Do not comment out the other parameters for the spindle.
 		//#define SPINDLE_PWM_PIN    GPIO_NUM_17 
-		#define SPINDLE_PWM_CHANNEL 0
-		// PWM Generator is based on 80,000,000 Hz counter
-		// Therefor the freq determines the resolution
-		// 80,000,000 / freq = max resolution
-		// For 5000 that is 80,000,000 / 5000 = 16000 
-		// round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-		#define SPINDLE_PWM_BASE_FREQ 5000 // Hz
+		#define SPINDLE_PWM_CHANNEL 0		
 		#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-		#define SPINDLE_PWM_OFF_VALUE     0
-		#define SPINDLE_PWM_MAX_VALUE     255 // (2^SPINDLE_PWM_BIT_PRECISION)
 		
-		#ifndef SPINDLE_PWM_MIN_VALUE
-			#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
-		#endif		
 		
 		#define X_LIMIT_PIN      	GPIO_NUM_2
 		#define Y_LIMIT_PIN      	GPIO_NUM_4
@@ -1264,21 +1070,7 @@
 		#endif
 		#define HOMING_CYCLE_3 (1<<B_AXIS)
 		*/
-		
-		
-		// required spindle stuff ... fix (remove) this requirement!
-		//#define SPINDLE_PWM_PIN    /
-		#define SPINDLE_PWM_CHANNEL 			0
-		#define SPINDLE_PWM_BASE_FREQ 		5000 // Hz
-		#define SPINDLE_PWM_BIT_PRECISION 	8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-		#define SPINDLE_PWM_OFF_VALUE     	0
-		#define SPINDLE_PWM_MAX_VALUE     	255 // (2^SPINDLE_PWM_BIT_PRECISION)
-		#define SPINDLE_PWM_MIN_VALUE   		SPINDLE_PWM_OFF_VALUE   // Must be greater than zero.		
-		
-		// defaults  ... <Idle|MPos:-497.000,-3.000,0.000,-3.000,-497.000,0.000|FS:0,0>
-		#ifdef DEFAULTS_GENERIC
-			#undef DEFAULTS_GENERIC  // undefine generic then define each default below
-		#endif
+				
 		#define DEFAULT_STEP_PULSE_MICROSECONDS 3 
 		#define DEFAULT_STEPPER_IDLE_LOCK_TIME 200 // 200ms
 		

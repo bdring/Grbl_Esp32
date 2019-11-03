@@ -284,7 +284,7 @@ void report_grbl_help(uint8_t client) {
 void report_grbl_settings(uint8_t client) {
   // Print Grbl settings.
 	char setting[20];
-	char rpt[800];
+	char rpt[1000];
 	
 	rpt[0] = '\0';
 	
@@ -300,7 +300,8 @@ void report_grbl_settings(uint8_t client) {
 	sprintf(setting, "$11=%4.3f\r\n", settings.junction_deviation);   strcat(rpt, setting);	
 	sprintf(setting, "$12=%4.3f\r\n", settings.arc_tolerance);   strcat(rpt, setting);	
 	
-  sprintf(setting, "$13=%d\r\n", bit_istrue(settings.flags,BITFLAG_REPORT_INCHES));   strcat(rpt, setting);	
+	
+	sprintf(setting, "$13=%d\r\n", bit_istrue(settings.flags,BITFLAG_REPORT_INCHES));   strcat(rpt, setting);	
 	sprintf(setting, "$20=%d\r\n", bit_istrue(settings.flags,BITFLAG_SOFT_LIMIT_ENABLE));   strcat(rpt, setting);	
 	sprintf(setting, "$21=%d\r\n", bit_istrue(settings.flags,BITFLAG_HARD_LIMIT_ENABLE));   strcat(rpt, setting);	
 	sprintf(setting, "$22=%d\r\n", bit_istrue(settings.flags,BITFLAG_HOMING_ENABLE));   strcat(rpt, setting);	
@@ -320,6 +321,13 @@ void report_grbl_settings(uint8_t client) {
   #else
     strcat(rpt, "$32=0\r\n");
   #endif
+  
+  #ifdef SHOW_EXTENDED_SETTINGS
+		sprintf(setting, "$33=%5.3f\r\n", settings.spindle_pwm_freq);   strcat(rpt, setting);
+		sprintf(setting, "$34=%3.3f\r\n", settings.spindle_pwm_off_value);   strcat(rpt, setting);
+		sprintf(setting, "$35=%3.3f\r\n", settings.spindle_pwm_min_value);   strcat(rpt, setting);
+		sprintf(setting, "$36=%3.3f\r\n", settings.spindle_pwm_max_value);   strcat(rpt, setting);		
+  #endif
 	
   // Print axis settings
   uint8_t idx, set_idx;
@@ -330,7 +338,12 @@ void report_grbl_settings(uint8_t client) {
 				case 0: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.steps_per_mm[idx]);   strcat(rpt, setting);	 break;
 				case 1: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.max_rate[idx]);   strcat(rpt, setting);	 break;
 				case 2: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.acceleration[idx]/(60*60));   strcat(rpt, setting);	 break;
-				case 3: sprintf(setting, "$%d=%4.3f\r\n", val+idx, -settings.max_travel[idx]);   strcat(rpt, setting);	 break;		        
+				case 3: sprintf(setting, "$%d=%4.3f\r\n", val+idx, -settings.max_travel[idx]);   strcat(rpt, setting);	 break;
+				#ifdef SHOW_EXTENDED_SETTINGS
+					case 4: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.current[idx]);   strcat(rpt, setting);	 break;
+					case 5: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.hold_current[idx]);   strcat(rpt, setting);	 break;
+					case 6: sprintf(setting, "$%d=%d\r\n", val+idx, settings.microsteps[idx]);   strcat(rpt, setting);	 break;
+				#endif
       }
     }
     val += AXIS_SETTINGS_INCREMENT;
@@ -494,7 +507,7 @@ void report_gcode_modes(uint8_t client)
 	}
 	strcat(modes_rpt, temp);
 	
-  #ifdef VARIABLE_SPINDLE    
+  #ifdef VARIABLE_SPINDLE 
 		sprintf(temp, " S%4.3f", gc_state.spindle_speed);
 	  strcat(modes_rpt, temp);
   #endif
