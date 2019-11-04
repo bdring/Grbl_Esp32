@@ -102,19 +102,15 @@
 
 void Trinamic_Init()
 {
-    grbl_sendf(CLIENT_SERIAL, "[MSG:Using TMCStepper Library Ver 0x%06x]\r\n", TMCSTEPPER_VERSION);
+    grbl_sendf(CLIENT_SERIAL, "[MSG:TMCStepper Init using Library Ver 0x%06x]\r\n", TMCSTEPPER_VERSION);
 	
 	SPI.begin();
 	
 	#ifdef X_TRINAMIC
 		TRINAMIC_X.begin(); // Initiate pins and registries
 		TRINAMIC_X.toff(5);
-		TRINAMIC_X.microsteps(X_MICROSTEPS);
-		#ifdef X_HOLD_CURRENT
-			TRINAMIC_X.rms_current(X_RMS_CURRENT, X_HOLD_CURRENT);
-		#else
-			TRINAMIC_X.rms_current(X_RMS_CURRENT); // default hold current is 0.5 or 50%
-		#endif		
+		TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);		
+		TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS]/100.0);			
 		TRINAMIC_X.en_pwm_mode(1);      // Enable extremely quiet stepping
 		TRINAMIC_X.pwm_autoscale(1);
 	#endif
@@ -122,12 +118,8 @@ void Trinamic_Init()
 	#ifdef Y_TRINAMIC
 		TRINAMIC_Y.begin(); // Initiate pins and registries
 		TRINAMIC_Y.toff(5);
-		TRINAMIC_Y.microsteps(Y_MICROSTEPS);
-		#ifdef Y_HOLD_CURRENT
-			TRINAMIC_Y.rms_current(Y_RMS_CURRENT, Y_HOLD_CURRENT);
-		#else
-			TRINAMIC_Y.rms_current(Y_RMS_CURRENT); // default hold current is 0.5 or 50%
-		#endif		
+		TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
+		TRINAMIC_X.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS]/100.0);	
 		TRINAMIC_Y.en_pwm_mode(1);      // Enable extremely quiet stepping
 		TRINAMIC_Y.pwm_autoscale(1);		
 	#endif
@@ -135,8 +127,8 @@ void Trinamic_Init()
 	#ifdef Z_TRINAMIC
 		TRINAMIC_Z.begin(); // Initiate pins and registries
 		TRINAMIC_Z.toff(5);
-		TRINAMIC_Z.microsteps(Z_MICROSTEPS);
-		TRINAMIC_Z.rms_current(Z_RMS_CURRENT);
+		TRINAMIC_Z.microsteps(settings.microsteps[Z_AXIS]);
+		TRINAMIC_X.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS]/100.0);
 		TRINAMIC_Z.en_pwm_mode(1);      // Enable extremely quiet stepping
 		TRINAMIC_Z.pwm_autoscale(1);
 	#endif
@@ -144,8 +136,8 @@ void Trinamic_Init()
 	#ifdef A_TRINAMIC
 		TRINAMIC_A.begin(); // Initiate pins and registries
 		TRINAMIC_A.toff(5);
-		TRINAMIC_A.microsteps(A_MICROSTEPS);
-		TRINAMIC_A.rms_current(A_RMS_CURRENT);
+		TRINAMIC_A.microsteps(settings.microsteps[A_AXIS]);
+		TRINAMIC_X.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS]/100.0);
 		TRINAMIC_A.en_pwm_mode(1);      // Enable extremely quiet stepping
 		TRINAMIC_A.pwm_autoscale(1);
 	#endif
@@ -153,8 +145,8 @@ void Trinamic_Init()
 	#ifdef B_TRINAMIC
 		TRINAMIC_B.begin(); // Initiate pins and registries
 		TRINAMIC_B.toff(5);
-		TRINAMIC_B.microsteps(B_MICROSTEPS);
-		TRINAMIC_B.rms_current(B_RMS_CURRENT);
+		TRINAMIC_B.microsteps(settings.microsteps[B_AXIS]);
+		TTRINAMIC_X.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS]/100.0);
 		TRINAMIC_B.en_pwm_mode(1);      // Enable extremely quiet stepping
 		TRINAMIC_B.pwm_autoscale(1);
 	#endif
@@ -162,13 +154,46 @@ void Trinamic_Init()
 	#ifdef C_TRINAMIC
 		TRINAMIC_C.begin(); // Initiate pins and registries
 		TRINAMIC_C.toff(5);
-		TRINAMIC_C.microsteps(C_MICROSTEPS);
-		TRINAMIC_C.rms_current(C_RMS_CURRENT);
+		TRINAMIC_C.microsteps(settings.microsteps[C_AXIS]);
+		TRINAMIC_X.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS]/100.0);
 		TRINAMIC_C.en_pwm_mode(1);      // Enable extremely quiet stepping
 		TRINAMIC_C.pwm_autoscale(1);
 	#endif
 	
-	// TODO ABC Axes
+	
+}
+
+void trinamic_change_settings()
+{
+	#ifdef X_TRINAMIC		
+		TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);		
+		TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS]/100.0);
+	#endif
+	
+	#ifdef Y_TRINAMIC
+		TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
+		TRINAMIC_X.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS]/100.0);
+	#endif
+	
+	#ifdef Z_TRINAMIC
+		TRINAMIC_Z.microsteps(settings.microsteps[Z_AXIS]);
+		TRINAMIC_X.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS]/100.0);
+	#endif
+	
+	#ifdef A_TRINAMIC
+		TRINAMIC_A.microsteps(settings.microsteps[A_AXIS]);
+		TRINAMIC_X.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS]/100.0);
+	#endif
+	
+	#ifdef B_TRINAMIC
+		TRINAMIC_B.microsteps(settings.microsteps[B_AXIS]);
+		TTRINAMIC_X.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS]/100.0);
+	#endif
+	
+	#ifdef C_TRINAMIC
+		TRINAMIC_C.microsteps(settings.microsteps[C_AXIS]);
+		TRINAMIC_X.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS]/100.0);
+	#endif
 }
 
 #endif

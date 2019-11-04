@@ -26,6 +26,7 @@
 #ifdef USE_TRINAMIC
 	#include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
 	void Trinamic_Init();
+	void trinamic_change_settings();
 #endif
 
 #endif

@@ -23,7 +23,6 @@
   
   #include "grbl.h"
   
-#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)
 
 #define SPINDLE_NO_SYNC false
 #define SPINDLE_FORCE_SYNC true
@@ -31,6 +30,8 @@
 #define SPINDLE_STATE_DISABLE  0  // Must be zero.
 #define SPINDLE_STATE_CW       bit(0)
 #define SPINDLE_STATE_CCW      bit(1)
+
+#define SPINDLE_PULSE_RES_COUNT ((1<<SPINDLE_PWM_BIT_PRECISION) -1)  //(don't change)
   
   void spindle_init();
   void spindle_stop();
