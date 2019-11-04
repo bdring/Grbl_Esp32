@@ -33,3 +33,6 @@
 "130","X-axis maximum travel","millimeters","Maximum X-axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances."
 "131","Y-axis maximum travel","millimeters","Maximum Y-axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances."
 "132","Z-axis maximum travel","millimeters","Maximum Z-axis travel distance from homing switch. Determines valid machine space for soft-limits and homing search distances."
+"140-145","Motor run current","Amps","Motor run current for SPI (Trinamic) type motors"
+"150-155","Motor hold current","Percent","Hold current in percent of run current for SPI (Trinamic) type motors"
+"160-165","Motor microstepping","micros/step","Number of microsteps per step for SPI (Trinamic) type motors"

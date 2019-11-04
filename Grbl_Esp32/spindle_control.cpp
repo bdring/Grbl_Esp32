@@ -22,10 +22,15 @@
 
 #ifdef SPINDLE_PWM_PIN
 static float pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
+float spindle_pwm_period;
+float spindle_pwm_off_value;
+float spindle_pwm_min_value;
+float spindle_pwm_max_value;
 #endif
 
 void spindle_init()
 {
+	
 	#ifdef SPINDLE_PWM_PIN
 	
 		#ifdef INVERT_SPINDLE_PWM
@@ -35,9 +40,27 @@ void spindle_init()
 		#ifdef INVERT_SPINDLE_ENABLE_PIN
 			grbl_send(CLIENT_SERIAL, "[MSG: INVERT_SPINDLE_ENABLE_PIN]\r\n");
 		#endif
-	
-		pwm_gradient = SPINDLE_PWM_RANGE/(settings.rpm_max-settings.rpm_min);
-		//grbl_sendf(CLIENT_SERIAL, "[MSG:pwm_gradient %4.4f SPINDLE_PWM_RANGE %d]\r\n", pwm_gradient, SPINDLE_PWM_RANGE);
+		
+		spindle_pwm_period = SPINDLE_PULSE_RES_COUNT;
+		
+		
+		spindle_pwm_off_value = (spindle_pwm_period * settings.spindle_pwm_off_value / 100);
+		spindle_pwm_min_value = (spindle_pwm_period * settings.spindle_pwm_min_value / 100);
+		spindle_pwm_max_value = (spindle_pwm_period * settings.spindle_pwm_max_value / 100);
+		
+		//pwm_gradient = (settings.spindle_pwm_max_value - settings.spindle_pwm_min_value)/(settings.rpm_max-settings.rpm_min);
+		pwm_gradient = (spindle_pwm_max_value-spindle_pwm_min_value)/(settings.rpm_max-settings.rpm_min);	
+			
+			
+		if ( (F_TIMERS / (uint32_t)settings.spindle_pwm_freq) < spindle_pwm_max_value) {
+			/*
+			PWM Generator is based on 80,000,000 Hz counter
+			Therefor the freq determines the resolution 80,000,000 / freq = max resolution
+			For 5000 that is 80,000,000 / 5000 = 16000
+			Round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
+			*/		
+			grbl_sendf(CLIENT_SERIAL, "[MSG: Warning! Spindle freq %5.0f too high for requested PWM max %5.2f%%  (%5.0f)]\r\n", settings.spindle_pwm_freq, settings.spindle_pwm_max_value, spindle_pwm_max_value);
+		}
 		
 		// Use DIR and Enable if pins are defined
 		#ifdef SPINDLE_ENABLE_PIN
@@ -46,13 +69,11 @@ void spindle_init()
 		
 		#ifdef SPINDLE_DIR_PIN
 			pinMode(SPINDLE_DIR_PIN, OUTPUT);
-		#endif
-		
+		#endif		
 		
 		// use the LED control feature to setup PWM   https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/peripherals/ledc.html
-		ledcSetup(SPINDLE_PWM_CHANNEL, SPINDLE_PWM_BASE_FREQ, SPINDLE_PWM_BIT_PRECISION); // setup the channel
-		ledcAttachPin(SPINDLE_PWM_PIN, SPINDLE_PWM_CHANNEL); // attach the PWM to the pin
-		
+		ledcSetup(SPINDLE_PWM_CHANNEL, (double)settings.spindle_pwm_freq, SPINDLE_PWM_BIT_PRECISION); // setup the channel
+		ledcAttachPin(SPINDLE_PWM_PIN, SPINDLE_PWM_CHANNEL); // attach the PWM to the pin		
 		
 		// Start with spindle off off
 		 spindle_stop();
@@ -61,12 +82,13 @@ void spindle_init()
 
 void spindle_stop()
 {		
-	spindle_set_enable(false);
+	spindle_set_enable(false);	
+
 	#ifdef SPINDLE_PWM_PIN
 		#ifndef INVERT_SPINDLE_PWM
-			grbl_analogWrite(SPINDLE_PWM_CHANNEL, SPINDLE_PWM_OFF_VALUE);
+			grbl_analogWrite(SPINDLE_PWM_CHANNEL, spindle_pwm_off_value);
 		#else
-			grbl_analogWrite(SPINDLE_PWM_CHANNEL, (1<<SPINDLE_PWM_BIT_PRECISION));
+			grbl_analogWrite(SPINDLE_PWM_CHANNEL, (1<<SPINDLE_PWM_BIT_PRECISION));  // TO DO...wrong for min_pwm
 		#endif
 	#endif
 }
@@ -106,13 +128,12 @@ void spindle_set_speed(uint32_t pwm_value)
 		#endif
 		
 		#ifndef INVERT_SPINDLE_PWM
-			grbl_analogWrite(SPINDLE_PWM_CHANNEL, pwm_value);			
+			grbl_analogWrite(SPINDLE_PWM_CHANNEL, pwm_value);		
 		#else
 			grbl_analogWrite(SPINDLE_PWM_CHANNEL, (1<<SPINDLE_PWM_BIT_PRECISION) - pwm_value);
 		#endif
 		
-	#endif
-	
+	#endif	
 }
 
 uint32_t spindle_compute_pwm_value(float rpm){
@@ -123,14 +144,14 @@ uint32_t spindle_compute_pwm_value(float rpm){
 		if ((settings.rpm_min >= settings.rpm_max) || (rpm >= settings.rpm_max)) {
 		// No PWM range possible. Set simple on/off spindle control pin state.
 			sys.spindle_speed = settings.rpm_max;
-			pwm_value = SPINDLE_PWM_MAX_VALUE;
+			pwm_value = spindle_pwm_max_value;
 		} else if (rpm <= settings.rpm_min) {
 			if (rpm == 0.0) { // S0 disables spindle
 				sys.spindle_speed = 0.0;
-				pwm_value = SPINDLE_PWM_OFF_VALUE;
+				pwm_value = spindle_pwm_off_value;
 			} else { // Set minimum PWM output
 				sys.spindle_speed = settings.rpm_min;
-				pwm_value = SPINDLE_PWM_MIN_VALUE;
+				pwm_value = spindle_pwm_min_value;	
 			}
 		} else {
 			// Compute intermediate PWM value with linear spindle speed model.
@@ -139,10 +160,9 @@ uint32_t spindle_compute_pwm_value(float rpm){
 			#ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
 				pwm_value = piecewise_linear_fit(rpm);
 			#else
-				pwm_value = floor((rpm-settings.rpm_min)*pwm_gradient) + SPINDLE_PWM_MIN_VALUE;
+				pwm_value = floor((rpm - settings.rpm_min)*pwm_gradient) + settings.spindle_pwm_min_value;
 			#endif
 		}
-		//grbl_sendf(CLIENT_SERIAL, "[MSG:Rpm %4.1f PWM %d]\r\n", rpm, pwm_value);
 		return(pwm_value);
 	#else
 		return(0); // no SPINDLE_PWM_PIN
@@ -151,9 +171,6 @@ uint32_t spindle_compute_pwm_value(float rpm){
 
 
 // Called by spindle_set_state() and step segment generator. Keep routine small and efficient.
-
-
-
 void spindle_set_state(uint8_t state, float rpm)
 {
 	#ifdef SPINDLE_PWM_PIN
@@ -165,7 +182,7 @@ void spindle_set_state(uint8_t state, float rpm)
 	  
 		// TODO ESP32 Enable and direction control
 			#ifdef SPINDLE_DIR_PIN		
-		  digitalWrite(SPINDLE_DIR_PIN, state == SPINDLE_ENABLE_CW);    
+				digitalWrite(SPINDLE_DIR_PIN, state == SPINDLE_ENABLE_CW);    
 			#endif  
 		
 		  // NOTE: Assumes all calls to this function is when Grbl is not moving or must remain off.
@@ -195,7 +212,7 @@ void grbl_analogWrite(uint8_t chan, uint32_t duty)
 {
 	if (ledcRead(chan) != duty) // reduce unnecessary calls to ledcWrite()
 	{
-		
+		grbl_sendf(CLIENT_SERIAL, "[MSG: grbl_analogWrite %d]\r\n", duty);
 		ledcWrite(chan, duty);
 	}
 }
