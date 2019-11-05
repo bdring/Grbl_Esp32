@@ -21,80 +21,112 @@
 */
 #include "grbl.h"
 
-#ifdef USE_TRINAMIC
+#ifdef USE_TRINAMIC	
+/*
+	The drivers can use SPI daisy chaining to allow the use of only (1) CS_PIN.
+	The PCB must be designed for this, with SDO pins being coonect to the 
+	next driver's SDI pin. The final SDO goes back to the controller.
+	
+	This is setup in cpu_map.
+	add #define TRINAMIC_DAISY_CHAIN to your map
+	Make every axis CS_PIN definition be for the same pin like this...
+	#define X_CS_PIN GPIO_NUM_17
+	#define Y_CS_PIN GPIO_NUM_17
+	...etc.
+
+	Indexes are assigned to each axis in daisy chain mode as shown below.
+	This assumes your first SPI driver axis is X and there are no gaps until
+	the last SPI driver.
+
+*/
+#ifndef TRINAMIC_DAISY_CHAIN
+	#define X_DRIVER_SPI_INDEX -1
+	#define Y_DRIVER_SPI_INDEX -1
+	#define Z_DRIVER_SPI_INDEX -1
+	#define A_DRIVER_SPI_INDEX -1
+	#define B_DRIVER_SPI_INDEX -1
+	#define C_DRIVER_SPI_INDEX -1
+#else
+	#define X_DRIVER_SPI_INDEX 1
+	#define Y_DRIVER_SPI_INDEX 2
+	#define Z_DRIVER_SPI_INDEX 3
+	#define A_DRIVER_SPI_INDEX 4
+	#define B_DRIVER_SPI_INDEX 5
+	#define C_DRIVER_SPI_INDEX 6
+#endif
 
 // TODO try to use the #define ## method to clean this up
 //#define DRIVER(driver, axis) driver##Stepper = TRINAMIC_axis## = driver##Stepper(axis##_CS_PIN, axis##_RSENSE);
 
 #ifdef X_TRINAMIC
 	#ifdef X_DRIVER_TMC2130	
-		TMC2130Stepper TRINAMIC_X = TMC2130Stepper(X_CS_PIN, X_RSENSE);
+		TMC2130Stepper TRINAMIC_X = TMC2130Stepper(X_CS_PIN, X_RSENSE, X_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef X_DRIVER_TMC2209
-		TMC2209Stepper TRINAMIC_X = TMC2209Stepper(X_CS_PIN, X_RSENSE);
+		TMC2209Stepper TRINAMIC_X = TMC2209Stepper(X_CS_PIN, X_RSENSE, X_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef X_DRIVER_TMC5160
-		TMC5160Stepper TRINAMIC_X = TMC5160Stepper(X_CS_PIN, X_RSENSE);
+		TMC5160Stepper TRINAMIC_X = TMC5160Stepper(X_CS_PIN, X_RSENSE, X_DRIVER_SPI_INDEX);
 	#endif
 #endif
 
 #ifdef Y_TRINAMIC
 	#ifdef Y_DRIVER_TMC2130	
-		TMC2130Stepper TRINAMIC_Y = TMC2130Stepper(Y_CS_PIN, Y_RSENSE);
+		TMC2130Stepper TRINAMIC_Y = TMC2130Stepper(Y_CS_PIN, Y_RSENSE, Y_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef Y_DRIVER_TMC2209
-		TMC2209Stepper TRINAMIC_Y = TMC2209Stepper(Y_CS_PIN, Y_RSENSE);
+		TMC2209Stepper TRINAMIC_Y = TMC2209Stepper(Y_CS_PIN, Y_RSENSE, Y_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef Y_DRIVER_TMC5160
-		TMC5160Stepper TRINAMIC_Y = TMC5160Stepper(Y_CS_PIN, Y_RSENSE);
+		TMC5160Stepper TRINAMIC_Y = TMC5160Stepper(Y_CS_PIN, Y_RSENSE, Y_DRIVER_SPI_INDEX);
 	#endif
 #endif
 
 #ifdef Z_TRINAMIC
 	#ifdef Z_DRIVER_TMC2130	
-		TMC2130Stepper TRINAMIC_Z = TMC2130Stepper(Z_CS_PIN, Z_RSENSE);
+		TMC2130Stepper TRINAMIC_Z = TMC2130Stepper(Z_CS_PIN, Z_RSENSE, Z_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef Z_DRIVER_TMC2209
-		TMC2209Stepper TRINAMIC_Z = TMC2209Stepper(Z_CS_PIN, Z_RSENSE);
+		TMC2209Stepper TRINAMIC_Z = TMC2209Stepper(Z_CS_PIN, Z_RSENSE, Z_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef Z_DRIVER_TMC5160
-		TMC5160Stepper TRINAMIC_Z = TMC5160Stepper(Z_CS_PIN, Z_RSENSE);
+		TMC5160Stepper TRINAMIC_Z = TMC5160Stepper(Z_CS_PIN, Z_RSENSE, Z_DRIVER_SPI_INDEX);
 	#endif
 #endif
 
 #ifdef A_TRINAMIC
 	#ifdef A_DRIVER_TMC2130	
-		TMC2130Stepper TRINAMIC_A = TMC2130Stepper(A_CS_PIN, A_RSENSE);
+		TMC2130Stepper TRINAMIC_A = TMC2130Stepper(A_CS_PIN, A_RSENSE, A_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef A_DRIVER_TMC2209
-		TMC2209Stepper TRINAMIC_A = TMC2209Stepper(A_CS_PIN, A_RSENSE);
+		TMC2209Stepper TRINAMIC_A = TMC2209Stepper(A_CS_PIN, A_RSENSE, A_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef A_DRIVER_TMC5160
-		TMC5160Stepper TRINAMIC_A = TMC5160Stepper(A_CS_PIN, A_RSENSE);
+		TMC5160Stepper TRINAMIC_A = TMC5160Stepper(A_CS_PIN, A_RSENSE, A_DRIVER_SPI_INDEX);
 	#endif
 #endif
 
 #ifdef B_TRINAMIC
 	#ifdef B_DRIVER_TMC2130	
-		TMC2130Stepper TRINAMIC_B = TMC2130Stepper(B_CS_PIN, B_RSENSE);
+		TMC2130Stepper TRINAMIC_B = TMC2130Stepper(B_CS_PIN, B_RSENSE, B_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef B_DRIVER_TMC2209
-		TMC2209Stepper TRINAMIC_B = TMC2209Stepper(B_CS_PIN, B_RSENSE);
+		TMC2209Stepper TRINAMIC_B = TMC2209Stepper(B_CS_PIN, B_RSENSE, B_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef B_DRIVER_TMC5160
-		TMC5160Stepper TRINAMIC_B = TMC5160Stepper(B_CS_PIN, B_RSENSE);
+		TMC5160Stepper TRINAMIC_B = TMC5160Stepper(B_CS_PIN, B_RSENSE, B_DRIVER_SPI_INDEX);
 	#endif
 #endif
 
 #ifdef C_TRINAMIC
 	#ifdef C_DRIVER_TMC2130	
-		TMC2130Stepper TRINAMIC_c = TMC2130Stepper(C_CS_PIN, C_RSENSE);
+		TMC2130Stepper TRINAMIC_c = TMC2130Stepper(C_CS_PIN, C_RSENSE, C_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef C_DRIVER_TMC2209
-		TMC2209Stepper TRINAMIC_C = TMC2209Stepper(C_CS_PIN, C_RSENSE);
+		TMC2209Stepper TRINAMIC_C = TMC2209Stepper(C_CS_PIN, C_RSENSE, C_DRIVER_SPI_INDEX);
 	#endif
 	#ifdef C_DRIVER_TMC5160
-		TMC5160Stepper TRINAMIC_C = TMC5160Stepper(C_CS_PIN, C_RSENSE);
+		TMC5160Stepper TRINAMIC_C = TMC5160Stepper(C_CS_PIN, C_RSENSE, C_DRIVER_SPI_INDEX);
 	#endif
 #endif
 
