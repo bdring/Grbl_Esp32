@@ -212,7 +212,8 @@ void grbl_analogWrite(uint8_t chan, uint32_t duty)
 {
 	if (ledcRead(chan) != duty) // reduce unnecessary calls to ledcWrite()
 	{
-		grbl_sendf(CLIENT_SERIAL, "[MSG: grbl_analogWrite %d]\r\n", duty);
+		// Useful for debug, but too many messages in laser mode
+		// grbl_sendf(CLIENT_SERIAL, "[MSG: grbl_analogWrite %d]\r\n", duty);
 		ledcWrite(chan, duty);
 	}
 }
