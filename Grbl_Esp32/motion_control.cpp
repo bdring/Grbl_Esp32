@@ -236,7 +236,7 @@ void mc_homing_cycle(uint8_t cycle_mask)
 		{
 			return;
 		}
-	#endif	
+	#endif
 	
 	// This give kinematics a chance to do something before normal homing
 	// if it returns true, the homing is canceled.

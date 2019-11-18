@@ -46,14 +46,14 @@ Some features should not be changed. See notes below.
 // NOTE: OEMs can avoid the need to maintain/update the defaults.h and cpu_map.h files and use only
 // one configuration file by placing their specific defaults and pin map at the bottom of this file.
 // If doing so, simply comment out these two defines and see instructions below.
-#define CPU_MAP_TEST_DRIVE // these are defined in cpu_map.h
+#define CPU_MAP_WALLBOT // these are defined in cpu_map.h
 #define VERBOSE_HELP // adds addition help info, but could confuse some senders
 
 
 // Serial baud rate
 #define BAUD_RATE 115200
 
-#define ENABLE_BLUETOOTH // enable bluetooth ... turns of if $I= something
+//#define ENABLE_BLUETOOTH // enable bluetooth
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
 
@@ -582,8 +582,8 @@ Some features should not be changed. See notes below.
 // uses the homing pull-off distance setting times the LOCATE_SCALAR to pull-off and re-engage
 // the limit switch.
 // NOTE: Both of these values must be greater than 1.0 to ensure proper function.
-// #define HOMING_AXIS_SEARCH_SCALAR  1.5 // Uncomment to override defaults in limits.c.
-// #define HOMING_AXIS_LOCATE_SCALAR  10.0 // Uncomment to override defaults in limits.c.
+#define HOMING_AXIS_SEARCH_SCALAR  100.0 // Uncomment to override defaults in limits.c.
+#define HOMING_AXIS_LOCATE_SCALAR  100.0 // Uncomment to override defaults in limits.c.
 
 // Enable the '$RST=*', '$RST=$', and '$RST=#' eeprom restore commands. There are cases where
 // these commands may be undesirable. Simply comment the desired macro to disable it.

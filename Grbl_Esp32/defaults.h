@@ -292,7 +292,26 @@
 	#define DEFAULT_C_MICROSTEPS 16 // $165 micro steps (extended set)
 #endif
 
+// ========== Stallguard (SPI Drivers ) ================
 
+#ifndef  DEFAULT_X_STALLGUARD
+	#define DEFAULT_X_STALLGUARD 16 // $170 stallguard (extended set)
+#endif
+#ifndef  DEFAULT_Y_STALLGUARD
+	#define DEFAULT_Y_STALLGUARD 16 // $171 stallguard (extended set)
+#endif
+#ifndef  DEFAULT_Z_STALLGUARD
+	#define DEFAULT_Z_STALLGUARD 16 // $172 stallguard (extended set)
+#endif
+#ifndef  DEFAULT_A_STALLGUARD
+	#define DEFAULT_A_STALLGUARD 16 // $173 stallguard (extended set)
+#endif
+#ifndef  DEFAULT_B_STALLGUARD
+	#define DEFAULT_B_STALLGUARD 16 // $174 stallguard (extended set)
+#endif
+#ifndef  DEFAULT_C_STALLGUARD
+	#define DEFAULT_C_STALLGUARD 16 // $175 stallguard (extended set)
+#endif
 
 
 

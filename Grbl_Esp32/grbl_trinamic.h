@@ -23,8 +23,30 @@
 
 #include "grbl.h"
 
+
 #ifdef USE_TRINAMIC
-	#include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
+	#include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper	
+
+	// make these items available to other modules, for special mnachine functions.
+	#ifdef X_TRINAMIC
+		extern TMC2130Stepper TRINAMIC_X;
+	#endif
+	#ifdef Y_TRINAMIC
+		extern TMC2130Stepper TRINAMIC_Y;
+	#endif
+	#ifdef Z_TRINAMIC
+		extern TMC2130Stepper TRINAMIC_Z;
+	#endif
+	#ifdef A_TRINAMIC
+		extern TMC2130Stepper TRINAMIC_A;
+	#endif
+	#ifdef B_TRINAMIC
+		extern TMC2130Stepper TRINAMIC_B;
+	#endif
+	#ifdef C_TRINAMIC
+		extern TMC2130Stepper TRINAMIC_C;
+	#endif
+	
 	void Trinamic_Init();
 	void trinamic_change_settings();
 #endif

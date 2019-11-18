@@ -136,9 +136,19 @@ void Trinamic_Init()
 {
     grbl_sendf(CLIENT_SERIAL, "[MSG:TMCStepper Init using Library Ver 0x%06x]\r\n", TMCSTEPPER_VERSION);
 	
+	#if TRINAMIC_DAISY_CHAIN
+		grbl_send(CLIENT_SERIAL, "[MSG:TMCStepper Daisy Chain]\r\n");
+	#endif
+	
 	SPI.begin();
+
+	#ifdef USE_MACHINE_TRINAMIC_INIT		
+		machine_trinamic_setup();
+		return;
+	#endif
 	
 	#ifdef X_TRINAMIC
+		grbl_send(CLIENT_SERIAL, "[MSG:Trinamic X Axis]\r\n");
 		TRINAMIC_X.begin(); // Initiate pins and registries
 		TRINAMIC_X.toff(5);
 		TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);		
@@ -148,6 +158,7 @@ void Trinamic_Init()
 	#endif
 	
 	#ifdef Y_TRINAMIC
+		grbl_send(CLIENT_SERIAL, "[MSG:Trinamic Y Axis]\r\n");
 		TRINAMIC_Y.begin(); // Initiate pins and registries
 		TRINAMIC_Y.toff(5);
 		TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
@@ -157,6 +168,7 @@ void Trinamic_Init()
 	#endif
 	
 	#ifdef Z_TRINAMIC
+		grbl_send(CLIENT_SERIAL, "[MSG:Trinamic Z Axis]\r\n");
 		TRINAMIC_Z.begin(); // Initiate pins and registries
 		TRINAMIC_Z.toff(5);
 		TRINAMIC_Z.microsteps(settings.microsteps[Z_AXIS]);
@@ -166,6 +178,7 @@ void Trinamic_Init()
 	#endif
 	
 	#ifdef A_TRINAMIC
+		grbl_send(CLIENT_SERIAL, "[MSG:Trinamic A Axis]\r\n");
 		TRINAMIC_A.begin(); // Initiate pins and registries
 		TRINAMIC_A.toff(5);
 		TRINAMIC_A.microsteps(settings.microsteps[A_AXIS]);
@@ -175,6 +188,7 @@ void Trinamic_Init()
 	#endif
 	
 	#ifdef B_TRINAMIC
+		grbl_send(CLIENT_SERIAL, "[MSG:Trinamic B Axis]\r\n");
 		TRINAMIC_B.begin(); // Initiate pins and registries
 		TRINAMIC_B.toff(5);
 		TRINAMIC_B.microsteps(settings.microsteps[B_AXIS]);
@@ -184,15 +198,14 @@ void Trinamic_Init()
 	#endif
 	
 	#ifdef C_TRINAMIC
+		grbl_send(CLIENT_SERIAL, "[MSG:Trinamic C Axis]\r\n");
 		TRINAMIC_C.begin(); // Initiate pins and registries
 		TRINAMIC_C.toff(5);
 		TRINAMIC_C.microsteps(settings.microsteps[C_AXIS]);
 		TRINAMIC_X.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS]/100.0);
 		TRINAMIC_C.en_pwm_mode(1);      // Enable extremely quiet stepping
 		TRINAMIC_C.pwm_autoscale(1);
-	#endif
-	
-	
+	#endif	
 }
 
 void trinamic_change_settings()
@@ -200,31 +213,37 @@ void trinamic_change_settings()
 	#ifdef X_TRINAMIC		
 		TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);		
 		TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS]/100.0);
+		TRINAMIC_X.sgt(settings.stallguard[X_AXIS]);
 	#endif
 	
 	#ifdef Y_TRINAMIC
 		TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
-		TRINAMIC_X.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS]/100.0);
+		TRINAMIC_Y.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS]/100.0);
+		TRINAMIC_Y.sgt(settings.stallguard[Y_AXIS]);
 	#endif
 	
 	#ifdef Z_TRINAMIC
 		TRINAMIC_Z.microsteps(settings.microsteps[Z_AXIS]);
-		TRINAMIC_X.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS]/100.0);
+		TRINAMIC_Z.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS]/100.0);
+		TRINAMIC_Z.sgt(settings.stallguard[Z_AXIS]);
 	#endif
 	
 	#ifdef A_TRINAMIC
 		TRINAMIC_A.microsteps(settings.microsteps[A_AXIS]);
-		TRINAMIC_X.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS]/100.0);
+		TRINAMIC_A.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS]/100.0);
+		TRINAMIC_A.sgt(settings.stallguard[A_AXIS]);
 	#endif
 	
 	#ifdef B_TRINAMIC
 		TRINAMIC_B.microsteps(settings.microsteps[B_AXIS]);
-		TTRINAMIC_X.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS]/100.0);
+		TRINAMIC_B.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS]/100.0);
+		TRINAMIC_B.sgt(settings.stallguard[B_AXIS]);
 	#endif
 	
 	#ifdef C_TRINAMIC
 		TRINAMIC_C.microsteps(settings.microsteps[C_AXIS]);
-		TRINAMIC_X.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS]/100.0);
+		TRINAMIC_C.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS]/100.0);
+		TRINAMIC_C.sgt(settings.stallguard[C_AXIS]);
 	#endif
 }
 

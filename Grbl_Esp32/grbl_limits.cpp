@@ -29,6 +29,8 @@
 
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 
+homing_info_t last_homing_info;  // can be used by machine specific functions
+
 // Homing axis search distance multiplier. Computed by this value times the cycle travel.
 #ifndef HOMING_AXIS_SEARCH_SCALAR
   #define HOMING_AXIS_SEARCH_SCALAR  1.1 // Must be > 1 to ensure limit switch will be engaged.
@@ -78,6 +80,8 @@ void IRAM_ATTR isr_limit_switches()
 void limits_go_home(uint8_t cycle_mask)
 {
   if (sys.abort) { return; } // Block if system reset has been issued.
+
+	last_homing_info.success = true;
 
   // Initialize plan data struct for homing motion. Spindle and coolant are disabled.
   plan_line_data_t plan_data;
@@ -206,6 +210,14 @@ void limits_go_home(uint8_t cycle_mask)
       }
 
     } while (STEP_MASK & axislock);
+	
+	// for wallbot
+	if (n_cycle == 2*N_HOMING_LOCATE_CYCLE+1) { // is this the first cycle? 
+		system_convert_array_steps_to_mpos(target,sys_position);		
+		last_homing_info.travel_dist[X_AXIS] = fabs(target[X_AXIS]);
+		last_homing_info.travel_dist[Y_AXIS] = fabs(target[Y_AXIS]);
+		last_homing_info.travel_dist[Z_AXIS] = fabs(target[Z_AXIS]);				
+	}
 
     st_reset(); // Immediately force kill steppers and reset step segment buffer.
     delay_ms(settings.homing_debounce_delay); // Delay to allow transient dynamics to dissipate.

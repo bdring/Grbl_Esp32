@@ -78,10 +78,12 @@
 #ifndef SHOW_EXTENDED_SETTINGS
 	#define AXIS_N_SETTINGS          4
 #else
-	#define AXIS_N_SETTINGS          7
+	#define AXIS_N_SETTINGS          8
 #endif
 #define AXIS_SETTINGS_START_VAL  100 // NOTE: Reserving settings values >= 100 for axis settings. Up to 255.
 #define AXIS_SETTINGS_INCREMENT  10  // Must be greater than the number of axis settings
+
+#define USER_SETTING_COUNT 5 // for user to define for their machine
 
 // Global persistent settings (Stored from byte EEPROM_ADDR_GLOBAL onwards)
 typedef struct {
@@ -93,6 +95,7 @@ typedef struct {
   float current[N_AXIS]; //  $140... run current (extended set)
   float hold_current[N_AXIS]; // $150 percent of run current (extended set)
   uint16_t microsteps[N_AXIS]; // $160... (extended set)
+  uint8_t stallguard[N_AXIS]; // $170... (extended set)
 
   // Remaining Grbl settings
   uint8_t pulse_microseconds;
@@ -118,6 +121,10 @@ typedef struct {
   float homing_seek_rate;
   uint16_t homing_debounce_delay;
   float homing_pulloff;
+
+  int16_t machine_int16[USER_SETTING_COUNT]; // settings starting at 80 to be defined by the user
+  float machine_float[USER_SETTING_COUNT];    // settings starting at 80 to be defined by the user
+
 } settings_t;
 extern settings_t settings;
 

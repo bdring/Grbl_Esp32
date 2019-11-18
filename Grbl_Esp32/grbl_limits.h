@@ -32,6 +32,12 @@
 #define SQUARING_MODE_A			1  // A motor runs
 #define SQUARING_MODE_B			2  // B motor runs
 
+typedef struct {
+  bool success;
+  float travel_dist[N_AXIS];
+} homing_info_t;
+extern homing_info_t last_homing_info;
+
 // Initialize the limits module
 void limits_init();
 

@@ -58,9 +58,7 @@
 
 	*/
 	#define CPU_MAP_NAME "CPU_MAP_DEFAULT - Demo Only No I/O!"	
-	
-	#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_21  // Uno A1 
-	
+
 	#define LIMIT_MASK 0  // no limit pins		
 #endif
 
@@ -1200,6 +1198,14 @@
 
 #ifdef CPU_MAP_ATARI_1020
 	#include "atari_1020.h"	
+#endif
+
+#ifdef CPU_MAP_MIDTBOT_UNI
+	#include "midtbot_uni.h"
+#endif
+
+#ifdef CPU_MAP_WALLBOT
+	#include "wallbot.h"
 #endif
 
 	// ================= common to all machines ================================
