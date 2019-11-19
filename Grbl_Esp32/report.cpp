@@ -813,17 +813,8 @@ void report_realtime_status(uint8_t client)
       if (sp_state || cl_state) {
         strcat(status, "|A:");
         if (sp_state) { // != SPINDLE_STATE_DISABLE
-          #ifdef VARIABLE_SPINDLE 
-            #ifdef USE_SPINDLE_DIR_AS_ENABLE_PIN
-              strcat(status, "S"); // CW
-            #else
-              if (sp_state == SPINDLE_STATE_CW) { strcat(status, "S"); } // CW
-              else { strcat(status, "C"); } // CCW
-            #endif
-          #else
-            if (sp_state & SPINDLE_STATE_CW) { strcat(status, "S"); } // CW
-            else { strcat(status, "C"); } // CCW
-          #endif
+          if (sp_state == SPINDLE_STATE_CW) { strcat(status, "S"); } // CW
+          else { strcat(status, "C"); } // CCW
         }
         if (cl_state & COOLANT_STATE_FLOOD) { strcat(status, "F"); }
         #ifdef COOLANT_MIST_PIN // TODO Deal with M8 - Flood
