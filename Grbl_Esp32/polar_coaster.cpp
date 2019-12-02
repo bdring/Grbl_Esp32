@@ -225,7 +225,7 @@ void calc_polar(float *target_xyz, float *polar, float last_angle)
 	
 	//grbl_sendf(CLIENT_SERIAL, "calc polar: x...%4.2f y...%4.2f\r\n", target_xyz[X_AXIS], target_xyz[Y_AXIS]);
 	
-	target_xyz[X_AXIS] *= -1.0;   // compensate for Polar Coaster's radial axis being mirrored (right side) from normal 0deg
+	//target_xyz[X_AXIS] *= -1.0;   // compensate for Polar Coaster's radial axis being mirrored (right side) from normal 0deg
 	
 	polar[RADIUS_AXIS] = hypot_f(target_xyz[X_AXIS], target_xyz[Y_AXIS]);
 	
