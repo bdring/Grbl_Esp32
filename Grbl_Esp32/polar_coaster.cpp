@@ -65,7 +65,9 @@ bool kinematics_pre_homing(uint8_t cycle_mask)
 	
 	// zero the axes that are not homed
 	sys_position[Y_AXIS] = 0.0f; 
-	//sys_position[Z_AXIS] = 0.0f; // do not zero Z axis to prevent the pen from moving down
+
+    // Move pen up.
+    sys_position[Z_AXIS] = SERVO_Z_RANGE_MAX * settings.steps_per_mm[Z_AXIS];
 
 	return false; // do not skip the rest of homing cycle
 }
