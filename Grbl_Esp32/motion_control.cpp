@@ -240,9 +240,10 @@ void mc_homing_cycle(uint8_t cycle_mask)
 	
 	// This give kinematics a chance to do something before normal homing
 	// if it returns true, the homing is canceled.
-	#ifdef USE_KINEMATICS
-		if (!kinematics_homing(cycle_mask))
-			return;
+	#ifdef USE_KINEMATICS		
+		if (kinematics_pre_homing(cycle_mask)) {
+ 			return;
+		}
 	#endif
 	
   // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
@@ -329,6 +330,11 @@ void mc_homing_cycle(uint8_t cycle_mask)
   // Sync gcode parser and planner positions to homed position.
   gc_sync_position();
   plan_sync_position();
+
+  #ifdef USE_KINEMATICS
+	// This give kinematics a chance to do something after normal homing
+	kinematics_post_homing();
+  #endif
 
   // If hard limits feature enabled, re-enable hard limits pin change register after homing cycle.
   limits_init();

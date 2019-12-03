@@ -53,18 +53,27 @@
 #ifdef CPU_MAP_POLAR_COASTER
 #ifdef USE_KINEMATICS
 
+static float last_angle = 0;
+static float last_radius = 0;
+
 // this get called before homing 
-// return true to complete normal home
-// return false to exit normal homing
-bool kinematics_homing(uint8_t cycle_mask) 
-{
+// return false to complete normal home
+// return true to exit normal homing
+bool kinematics_pre_homing(uint8_t cycle_mask) {
 	// cycle mask not used for polar coaster	
 	
 	// zero the axes that are not homed
 	sys_position[Y_AXIS] = 0.0f; 
-	sys_position[Z_AXIS] = 0.0f; 
+	sys_position[Z_AXIS] = SERVO_Z_RANGE_MAX * settings.steps_per_mm[Z_AXIS]; // Move pen up.
 
-	return true; // finish normal homing cycle
+	return false; // finish normal homing cycle
+}
+
+void kinematics_post_homing() {
+	// sync the X axis (do not need sync but make it for the fail safe)
+	last_radius = sys_position[X_AXIS];
+	// reset the internal angle value
+	last_angle = 0;
 }
 
 /*
@@ -80,8 +89,8 @@ bool kinematics_homing(uint8_t cycle_mask)
 */
 void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *position)
 {
-	static float last_angle = 0;
-	static float last_radius = 0;
+	//static float last_angle = 0;
+	//static float last_radius = 0;
 
 	float dx, dy, dz; // distances in each cartesian axis
 	float p_dx, p_dy, p_dz; // distances in each polar axis
@@ -279,5 +288,13 @@ void user_defined_macro(uint8_t index)
 		break;
 	}
 }
+
+// handle the M30 command
+void user_m30() {
+	char gcode_line[20];
+	sprintf(gcode_line, "G53G0X-%3.2f\r", settings.homing_pulloff); // go to the homing pulloff location to move pen out of the way	
+	inputBuffer.push(gcode_line);
+}
+
 #endif
 
