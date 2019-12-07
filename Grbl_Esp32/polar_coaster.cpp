@@ -291,9 +291,7 @@ void user_defined_macro(uint8_t index)
 
 // handle the M30 command
 void user_m30() {
-	char gcode_line[20];
-	sprintf(gcode_line, "G53G0X-%3.2f\r", settings.homing_pulloff); // go to the homing pulloff location to move pen out of the way	
-	inputBuffer.push(gcode_line);
+	inputBuffer.push("$H\r");
 }
 
 #endif
