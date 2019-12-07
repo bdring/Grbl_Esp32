@@ -163,10 +163,7 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 
 		last_radius = polar[RADIUS_AXIS];
 		last_angle = polar[POLAR_AXIS];
-
-		//grbl_sendf(CLIENT_SERIAL, "Polar: %4.2f \r\n", polar[POLAR_AXIS]);
-		//grbl_sendf(CLIENT_SERIAL, "Radius: %4.2f \r\n", polar[RADIUS_AXIS]);
-
+		
 		mc_line(polar, pl_data);
 	}
 	
@@ -223,11 +220,7 @@ void forward_kinematics(float *position)
 void calc_polar(float *target_xyz, float *polar, float last_angle)
 {
 	float delta_ang; // the difference from the last and next angle
-	
-	//grbl_sendf(CLIENT_SERIAL, "calc polar: x...%4.2f y...%4.2f\r\n", target_xyz[X_AXIS], target_xyz[Y_AXIS]);
-	
-	//target_xyz[X_AXIS] *= -1.0;   // compensate for Polar Coaster's radial axis being mirrored (right side) from normal 0deg
-	
+
 	polar[RADIUS_AXIS] = hypot_f(target_xyz[X_AXIS], target_xyz[Y_AXIS]);
 	
 	if (polar[RADIUS_AXIS] == 0) {
@@ -235,29 +228,37 @@ void calc_polar(float *target_xyz, float *polar, float last_angle)
 	}
 	else {
 		polar[POLAR_AXIS] = atan2(target_xyz[Y_AXIS], target_xyz[X_AXIS]) * 180.0 / M_PI;
-		// no negative angles...we want the absolute angle not -90, use 270
-		if (polar[POLAR_AXIS] < 0.0) {
-			polar[POLAR_AXIS] = 360.0 + polar[POLAR_AXIS];
-		}
-	}
-	
-	
+
+		// no negative angles...we want the absolute angle not -90, use 270		
+		polar[POLAR_AXIS] = abs_angle(polar[POLAR_AXIS]);
+	}	
 
 	polar[Z_AXIS] = target_xyz[Z_AXIS]; // Z is unchanged
 
-	delta_ang = polar[POLAR_AXIS] - fmod(last_angle, 360.0); // what is the difference from the last angle
+	delta_ang = polar[POLAR_AXIS] -  abs_angle(last_angle);
 
 	// if the delta is above 180 degrees it means we are crossing the 0 degree line
 	if ( fabs(delta_ang) <= 180.0) {
 		polar[POLAR_AXIS] = last_angle + delta_ang;
-	} else {
-		if (fmod(last_angle, 360.0) > 180.0) {  // crossing zer clockwise
-			polar[POLAR_AXIS]  = last_angle + delta_ang + 360.0;
-		} else { // rossing zero counter clockwise
+	} else {	
+		if (delta_ang > 0.0)  { // crossing zero counter clockwise
 			polar[POLAR_AXIS] = last_angle - (360.0 - delta_ang);
+		} else {
+			polar[POLAR_AXIS]  = last_angle + delta_ang + 360.0;
 		}
 	}
 }
+
+// Return a 0-360 angle ... fix above 360 and below zero
+float abs_angle(float ang) {
+	ang = fmod(ang, 360.0);  // 0-360 or 0 to -360
+
+	if (ang < 0.0) {
+		ang = 360.0 + ang;
+	}
+	return ang;
+}
+
 #endif
 
 // Polar coaster has macro buttons, this handles those button pushes.
