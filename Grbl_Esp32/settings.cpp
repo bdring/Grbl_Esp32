@@ -121,7 +121,9 @@ void settings_restore(uint8_t restore_flag) {
 	settings.microsteps[Y_AXIS] = DEFAULT_Y_MICROSTEPS;
 	settings.microsteps[Z_AXIS] = DEFAULT_Z_MICROSTEPS;
 	
-	
+  settings.stallguard[X_AXIS] = DEFAULT_X_STALLGUARD;
+	settings.stallguard[Y_AXIS] = DEFAULT_Y_STALLGUARD;
+	settings.stallguard[Z_AXIS] = DEFAULT_Z_STALLGUARD;
 	
 	#if (N_AXIS > A_AXIS)
 		 settings.steps_per_mm[A_AXIS] = DEFAULT_A_STEPS_PER_MM;
@@ -131,6 +133,7 @@ void settings_restore(uint8_t restore_flag) {
 		 settings.current[A_AXIS] = DEFAULT_A_CURRENT;
 		 settings.hold_current[A_AXIS] = DEFAULT_A_HOLD_CURRENT;
 		 settings.microsteps[A_AXIS] = DEFAULT_A_MICROSTEPS;
+     settings.stallguard[A_AXIS] = DEFAULT_Z_STALLGUARD;
 	#endif
 	
 	#if (N_AXIS > B_AXIS)
@@ -141,6 +144,7 @@ void settings_restore(uint8_t restore_flag) {
 		 settings.current[B_AXIS] = DEFAULT_B_CURRENT;
 		 settings.hold_current[B_AXIS] = DEFAULT_B_HOLD_CURRENT;
 		 settings.microsteps[B_AXIS] = DEFAULT_B_MICROSTEPS;
+     settings.stallguard[B_AXIS] = DEFAULT_Z_STALLGUARD;
 	#endif
 	
 	#if (N_AXIS > C_AXIS)
@@ -151,9 +155,15 @@ void settings_restore(uint8_t restore_flag) {
 		 settings.current[C_AXIS] = DEFAULT_C_CURRENT;
 		 settings.hold_current[C_AXIS] = DEFAULT_C_HOLD_CURRENT;
 		 settings.microsteps[C_AXIS] = DEFAULT_C_MICROSTEPS;
+     settings.stallguard[C_AXIS] = DEFAULT_Z_STALLGUARD;
 	#endif
 	
-	
+    // TODO figure out a clean way to add actual default values
+    for (uint8_t index = 0; index<USER_SETTING_COUNT; index++) {
+      settings.machine_int16[index] = 0;
+      settings.machine_float[index] = 0.0;
+    }
+    
 
     write_global_settings();
   }
@@ -307,6 +317,10 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
 		  case 6: // microstepping
 				settings.microsteps[parameter] = int_value;
 				settings_spi_driver_init();
+      break;
+      case 7: // stallguard
+        settings.stallguard[parameter] = int_value;
+				settings_spi_driver_init();
 		  break;
         }
         break; // Exit while-loop after setting has been configured and proceed to the EEPROM write call.
@@ -391,6 +405,22 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
       case 34: settings.spindle_pwm_off_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
       case 35: settings.spindle_pwm_min_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
       case 36: settings.spindle_pwm_max_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
+
+      case 80:
+      case 81:
+      case 82:
+      case 83:
+      case 84:
+        settings.machine_int16[parameter - 80] = int_value;
+        break;
+
+      case 90:
+      case 91:
+      case 92:
+      case 93:
+      case 94:
+        settings.machine_float[parameter - 90] = value;
+        break;
       default:
         return(STATUS_INVALID_STATEMENT);
     }
@@ -420,4 +450,3 @@ void settings_spi_driver_init() {
 		grbl_send(CLIENT_ALL, "[MSG: No SPI drivers setup]\r\n");
 	#endif
 }
-

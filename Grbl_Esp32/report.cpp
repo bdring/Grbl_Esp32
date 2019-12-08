@@ -284,7 +284,7 @@ void report_grbl_help(uint8_t client) {
 void report_grbl_settings(uint8_t client) {
   // Print Grbl settings.
 	char setting[20];
-	char rpt[1000];
+	char rpt[1000];  
 	
 	rpt[0] = '\0';
 	
@@ -326,7 +326,16 @@ void report_grbl_settings(uint8_t client) {
 		sprintf(setting, "$33=%5.3f\r\n", settings.spindle_pwm_freq);   strcat(rpt, setting);
 		sprintf(setting, "$34=%3.3f\r\n", settings.spindle_pwm_off_value);   strcat(rpt, setting);
 		sprintf(setting, "$35=%3.3f\r\n", settings.spindle_pwm_min_value);   strcat(rpt, setting);
-		sprintf(setting, "$36=%3.3f\r\n", settings.spindle_pwm_max_value);   strcat(rpt, setting);		
+		sprintf(setting, "$36=%3.3f\r\n", settings.spindle_pwm_max_value);   strcat(rpt, setting);
+
+    for (uint8_t index = 0; index<USER_SETTING_COUNT; index++) {
+      sprintf(setting, "$%d=%d\r\n", 80 + index, settings.machine_int16[index]);   strcat(rpt, setting);
+    }
+
+    for (uint8_t index = 0; index<USER_SETTING_COUNT; index++) {
+      sprintf(setting, "$%d=%5.3f\r\n", 90 + index, settings.machine_float[index]);   strcat(rpt, setting);
+    }
+
   #endif
 	
   // Print axis settings
@@ -343,6 +352,7 @@ void report_grbl_settings(uint8_t client) {
 					case 4: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.current[idx]);   strcat(rpt, setting);	 break;
 					case 5: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.hold_current[idx]);   strcat(rpt, setting);	 break;
 					case 6: sprintf(setting, "$%d=%d\r\n", val+idx, settings.microsteps[idx]);   strcat(rpt, setting);	 break;
+          case 7: sprintf(setting, "$%d=%d\r\n", val+idx, settings.stallguard[idx]);   strcat(rpt, setting);	 break;
 				#endif
       }
     }
@@ -812,7 +822,7 @@ void report_realtime_status(uint8_t client)
       uint8_t cl_state = coolant_get_state();
       if (sp_state || cl_state) {
         strcat(status, "|A:");
-        if (sp_state) { // != SPINDLE_STATE_DISABLE
+        if (sp_state) { // != SPINDLE_STATE_DISABLE   
           if (sp_state == SPINDLE_STATE_CW) { strcat(status, "S"); } // CW
           else { strcat(status, "C"); } // CCW
         }
