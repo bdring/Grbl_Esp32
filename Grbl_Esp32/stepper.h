@@ -47,6 +47,14 @@
 #define PREP_FLAG_PARKING bit(2)
 #define PREP_FLAG_DECEL_OVERRIDE bit(3)
 
+// which RMT channels to use with the axes
+#define X_RMT_CHANNEL		0
+#define Y_RMT_CHANNEL		1
+#define Z_RMT_CHANNEL		2
+#define A_RMT_CHANNEL		3
+#define B_RMT_CHANNEL		4
+#define C_RMT_CHANNEL		5
+
 // Define Adaptive Multi-Axis Step-Smoothing(AMASS) levels and cutoff frequencies. The highest level
 // frequency bin starts at 0Hz and ends at its cutoff frequency. The next lower level frequency bin
 // starts at the next higher cutoff frequency, and so on. The cutoff frequencies for each level must

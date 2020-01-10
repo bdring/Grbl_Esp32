@@ -33,9 +33,7 @@
 #define USE_RMT_STEPS
 
 #define X_STEP_PIN			GPIO_NUM_15
-#define X_RMT_CHANNEL		0
 #define Y_STEP_PIN      	GPIO_NUM_2
-#define Y_RMT_CHANNEL		1
 #define X_DIRECTION_PIN 	GPIO_NUM_25
 #define Y_DIRECTION_PIN 	GPIO_NUM_26
 
