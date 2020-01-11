@@ -31,7 +31,7 @@
 #define SPINDLE_STATE_CW       bit(0)
 #define SPINDLE_STATE_CCW      bit(1)
 
-#define SPINDLE_PULSE_RES_COUNT ((1<<SPINDLE_PWM_BIT_PRECISION) -1)  //(don't change)
+extern uint32_t spindle_pwm_off_value;
   
   void spindle_init();
   void spindle_stop();

@@ -294,7 +294,7 @@ void IRAM_ATTR onStepperDriverTimer(void *para)  // ISR It is time to take a ste
 			if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
 				// Ensure pwm is set properly upon completion of rate-controlled motion.
 				if (st.exec_block->is_pwm_rate_adjusted) {
-					spindle_set_speed(settings.spindle_pwm_off_value);
+					spindle_set_speed(spindle_pwm_off_value);
 				}
 			}		
 
@@ -1325,7 +1325,7 @@ void st_prep_buffer()
 			} else {
 				sys.spindle_speed = 0.0;
 				#if ( (defined VARIABLE_SPINDLE) && (defined SPINDLE_PWM_PIN) )
-					prep.current_spindle_pwm = settings.spindle_pwm_off_value;
+					prep.current_spindle_pwm = spindle_pwm_off_value ;
 				#endif
 				
 			}
