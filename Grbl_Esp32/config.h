@@ -39,16 +39,16 @@ Some features should not be changed. See notes below.
 #define config_h
 #include <Arduino.h>
 
-//#define ESP_DEBUG
+// !!!! Most Important Configuration Item !!!!
+// #define the CPU map you want to use
+// The CPU map is the main definition of the machine/controller you want to use
+// These are typically found in the cpu_map.h file.
+// See Github repo wiki for more details
+#define CPU_MAP_TEST_DRIVE // these are defined in cpu_map.h
+
 #define N_AXIS 3 // Number of axes defined (valid range: 3 to 6) 
 
-// Define CPU pin map and default settings.
-// NOTE: OEMs can avoid the need to maintain/update the defaults.h and cpu_map.h files and use only
-// one configuration file by placing their specific defaults and pin map at the bottom of this file.
-// If doing so, simply comment out these two defines and see instructions below.
-#define CPU_MAP_TEST_DRIVE // these are defined in cpu_map.h
 #define VERBOSE_HELP // adds addition help info, but could confuse some senders
-
 
 // Serial baud rate
 #define BAUD_RATE 115200
