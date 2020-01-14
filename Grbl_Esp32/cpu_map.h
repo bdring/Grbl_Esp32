@@ -837,6 +837,7 @@
 		#define USE_SERVO_AXES
 	#endif
 	
+	
 	#define SERVO_Z_PIN 				GPIO_NUM_27
 	#define SERVO_Z_CHANNEL_NUM 		5
 	#define SERVO_Z_RANGE_MIN			0.0
@@ -845,17 +846,13 @@
 	#define SERVO_Z_HOME_POS			SERVO_Z_RANGE_MAX // move to max during homing
 	#define SERVO_Z_MPOS				false		// will not use mpos, uses work coordinates
 	
-	// *** the flood coolant feature code is activated by defining this pins
-	// *** Comment it out to use the pin for other features
-	//#define COOLANT_FLOOD_PIN 	GPIO_NUM_16			
-	//#define COOLANT_MIST_PIN   	GPIO_NUM_21
 	
-	// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
-	// use a virtual spindle. Do not comment out the other parameters for the spindle.
-	//#define SPINDLE_PWM_PIN    GPIO_NUM_17 
+	// Comment out servo pin and uncomment spindle pwm pin to use the servo PWM to control a spindle
+	/*
+	#define SPINDLE_PWM_PIN    GPIO_NUM_27
 	#define SPINDLE_PWM_CHANNEL 0		
 	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-	
+	*/
 	
 	// #define X_LIMIT_PIN      	See version section
 	#define Y_LIMIT_PIN      	GPIO_NUM_4

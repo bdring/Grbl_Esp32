@@ -32,7 +32,7 @@ void spindle_init()
 {
 	
 	#ifdef SPINDLE_PWM_PIN
-	
+		grbl_sendf(CLIENT_SERIAL, "[MSG:Spindle init on pin %d]\r\n", SPINDLE_PWM_PIN);
 		#ifdef INVERT_SPINDLE_PWM
 			grbl_send(CLIENT_SERIAL, "[MSG: INVERT_SPINDLE_PWM]\r\n");
 		#endif
@@ -70,7 +70,7 @@ void spindle_init()
 		ledcAttachPin(SPINDLE_PWM_PIN, SPINDLE_PWM_CHANNEL); // attach the PWM to the pin
 		
 		// Start with spindle off off
-		 spindle_stop();
+		spindle_stop();
 	#endif
 }
 
@@ -111,7 +111,7 @@ uint8_t spindle_get_state()  // returns SPINDLE_STATE_DISABLE, SPINDLE_STATE_CW 
 }
 
 void spindle_set_speed(uint32_t pwm_value)
-{
+{	
 	#ifndef SPINDLE_PWM_PIN
 		//grbl_sendf(CLIENT_SERIAL, "[MSG: set speed...no pin defined]\r\n");
 		return;
