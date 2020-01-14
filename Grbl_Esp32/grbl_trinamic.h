@@ -27,6 +27,7 @@
 	#include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
 	void Trinamic_Init();
 	void trinamic_change_settings();
+	void trinamic_test_response(uint8_t result, const char *axis);
 #endif
 
 #endif
