@@ -113,7 +113,7 @@ uint8_t spindle_get_state()  // returns SPINDLE_STATE_DISABLE, SPINDLE_STATE_CW 
 void spindle_set_speed(uint32_t pwm_value)
 {
 	#ifndef SPINDLE_PWM_PIN
-		grbl_sendf(CLIENT_SERIAL, "[MSG: set speed...no pin defined]\r\n");
+		//grbl_sendf(CLIENT_SERIAL, "[MSG: set speed...no pin defined]\r\n");
 		return;
 	#else
 		#ifndef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
