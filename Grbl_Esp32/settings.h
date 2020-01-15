@@ -75,11 +75,8 @@
 // #define SETTING_INDEX_G92    N_COORDINATE_SYSTEM+2  // Coordinate offset (G92.2,G92.3 not supported)
 
 // Define Grbl axis settings numbering scheme. Starts at START_VAL, every INCREMENT, over N_SETTINGS.
-#ifndef SHOW_EXTENDED_SETTINGS
-	#define AXIS_N_SETTINGS          4
-#else
-	#define AXIS_N_SETTINGS          8
-#endif
+#define AXIS_N_SETTINGS          8 // includes extended settings
+
 #define AXIS_SETTINGS_START_VAL  100 // NOTE: Reserving settings values >= 100 for axis settings. Up to 255.
 #define AXIS_SETTINGS_INCREMENT  10  // Must be greater than the number of axis settings
 
