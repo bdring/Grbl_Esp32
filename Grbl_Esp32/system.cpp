@@ -183,13 +183,18 @@ uint8_t system_execute_line(char *line, uint8_t client)
       if(line[2] != '=') { return(STATUS_INVALID_STATEMENT); }
       return(gc_execute_line(line, client)); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
       break;
-    case '$': case 'G': case 'C': case 'X':
+    case '$': case 'G': case 'C': case 'X': case '+':
       if ( line[2] != 0 ) { return(STATUS_INVALID_STATEMENT); }
       switch( line[1] ) {
-        case '$' : // Prints Grbl settings
+        case '$': case '+' : // Prints Grbl settings
           if ( sys.state & (STATE_CYCLE | STATE_HOLD) ) { return(STATUS_IDLE_ERROR); } // Block during cycle. Takes too long to print.
-          else { report_grbl_settings(client); }
-          break;
+          else { 
+			if (line[1] == '$')
+				report_grbl_settings(client, false); // entended settings depend on SHOW_EXTENDED_SETTINGS
+			else
+				report_grbl_settings(client, true);  // force display of extended settings
+		  }
+          break;		
         case 'G' : // Prints gcode parser state
           // TODO: Move this to realtime commands for GUIs to request this data during suspend-state.
           report_gcode_modes(client);

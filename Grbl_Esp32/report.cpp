@@ -275,16 +275,23 @@ void report_init_message(uint8_t client)
 
 // Grbl help message
 void report_grbl_help(uint8_t client) {	
-  grbl_send(client,"[HLP:$$ $# $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H $F ~ ! ? ctrl-x]\r\n");	
+  grbl_send(client,"[HLP:$$ $+ $# $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H $F ~ ! ? ctrl-x]\r\n");	
 }
 
 
 // Grbl global settings print out.
 // NOTE: The numbering scheme here must correlate to storing in settings.c
-void report_grbl_settings(uint8_t client) {
+// Extended setting will be displayed if force_extended is true or #ifdef SHOW_EXTENDED_SETTINGS
+void report_grbl_settings(uint8_t client, uint8_t show_extended) {
   // Print Grbl settings.
 	char setting[20];
-	char rpt[1000];  
+	char rpt[1000];
+	
+	#ifdef SHOW_EXTENDED_SETTINGS
+		show_extended = true;
+	#endif
+	
+	grbl_sendf(CLIENT_SERIAL, "[MSG:Extended %d]\r\n", show_extended);
 	
 	rpt[0] = '\0';
 	
@@ -322,7 +329,7 @@ void report_grbl_settings(uint8_t client) {
     strcat(rpt, "$32=0\r\n");
   #endif
   
-  #ifdef SHOW_EXTENDED_SETTINGS
+  if (show_extended) {
 		sprintf(setting, "$33=%5.3f\r\n", settings.spindle_pwm_freq);   strcat(rpt, setting);
 		sprintf(setting, "$34=%3.3f\r\n", settings.spindle_pwm_off_value);   strcat(rpt, setting);
 		sprintf(setting, "$35=%3.3f\r\n", settings.spindle_pwm_min_value);   strcat(rpt, setting);
@@ -334,9 +341,8 @@ void report_grbl_settings(uint8_t client) {
 
     for (uint8_t index = 0; index<USER_SETTING_COUNT; index++) {
       sprintf(setting, "$%d=%5.3f\r\n", 90 + index, settings.machine_float[index]);   strcat(rpt, setting);
-    }
-
-  #endif
+	}
+  }
 	
   // Print axis settings
   uint8_t idx, set_idx;
@@ -348,12 +354,12 @@ void report_grbl_settings(uint8_t client) {
 				case 1: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.max_rate[idx]);   strcat(rpt, setting);	 break;
 				case 2: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.acceleration[idx]/(60*60));   strcat(rpt, setting);	 break;
 				case 3: sprintf(setting, "$%d=%4.3f\r\n", val+idx, -settings.max_travel[idx]);   strcat(rpt, setting);	 break;
-				#ifdef SHOW_EXTENDED_SETTINGS
-					case 4: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.current[idx]);   strcat(rpt, setting);	 break;
-					case 5: sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.hold_current[idx]);   strcat(rpt, setting);	 break;
-					case 6: sprintf(setting, "$%d=%d\r\n", val+idx, settings.microsteps[idx]);   strcat(rpt, setting);	 break;
-          case 7: sprintf(setting, "$%d=%d\r\n", val+idx, settings.stallguard[idx]);   strcat(rpt, setting);	 break;
-				#endif
+				
+					case 4: if (show_extended) {sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.current[idx]);   strcat(rpt, setting);}	 break;
+					case 5: if (show_extended) {sprintf(setting, "$%d=%4.3f\r\n", val+idx, settings.hold_current[idx]);   strcat(rpt, setting);}	 break;
+					case 6: if (show_extended) {sprintf(setting, "$%d=%d\r\n", val+idx, settings.microsteps[idx]);   strcat(rpt, setting);}	 break;
+					case 7: if (show_extended) {sprintf(setting, "$%d=%d\r\n", val+idx, settings.stallguard[idx]);   strcat(rpt, setting);}	 break;
+				
       }
     }
     val += AXIS_SETTINGS_INCREMENT;
