@@ -59,8 +59,6 @@
 	*/
 	#define CPU_MAP_NAME "CPU_MAP_DEFAULT - Demo Only No I/O!"	
 	
-	#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_21  // Uno A1 
-	
 	#define LIMIT_MASK 0  // no limit pins		
 #endif
 
@@ -99,16 +97,10 @@
 		#define Z_LIMIT_PIN     	GPIO_NUM_15 
 	#endif
 	
-	#define X_STEP_PIN      	GPIO_NUM_12
-	
-	#define X_RMT_CHANNEL		0
-	
-	// #define Y_STEP_PIN (see versions above) 	
-	#define Y_RMT_CHANNEL		1
+	#define X_STEP_PIN      	GPIO_NUM_12	
 	
 	#define Z_STEP_PIN      	GPIO_NUM_27		
-	#define Z_DIRECTION_PIN   	GPIO_NUM_33		 
-	#define Z_RMT_CHANNEL		2		
+	#define Z_DIRECTION_PIN   	GPIO_NUM_33	
 	
 	// OK to comment out to use pin for other features
 	#define STEPPERS_DISABLE_PIN GPIO_NUM_13		
@@ -138,44 +130,44 @@
     // !!!! Experimental Untested !!!!!
 	// This is a CPU MAP for ESPDUINO-32 Boards and Protoneer V3 boards
 	// Note: Probe pin is mapped, but will require a 10k external pullup to 3.3V to work.
+	
+	// Rebooting...See this issue https://github.com/bdring/Grbl_Esp32/issues/314
+	
 	#define CPU_MAP_NAME "CPU_MAP_ESPDUINO_32"	
 	
 	#define USE_RMT_STEPS
 	
-	#define X_STEP_PIN      		GPIO_NUM_26  // Uno D2
-	#define X_DIRECTION_PIN  		GPIO_NUM_16  // Uno D5
-	#define X_RMT_CHANNEL			0
+	#define X_STEP_PIN      		GPIO_NUM_26
+	#define X_DIRECTION_PIN  		GPIO_NUM_16
 	
-	#define Y_STEP_PIN      		GPIO_NUM_25  // Uno D3
-	#define Y_DIRECTION_PIN   	GPIO_NUM_27  // Uno D6
-	#define Y_RMT_CHANNEL			1
+	#define Y_STEP_PIN      		GPIO_NUM_25
+	#define Y_DIRECTION_PIN   	GPIO_NUM_27
 	
-	#define Z_STEP_PIN      		GPIO_NUM_17	// Uno D4
-	#define Z_DIRECTION_PIN   	GPIO_NUM_14	// Uno D7
-	#define Z_RMT_CHANNEL			2		
+	#define Z_STEP_PIN      		GPIO_NUM_17
+	#define Z_DIRECTION_PIN   	GPIO_NUM_14
 	
 	// OK to comment out to use pin for other features
-	#define STEPPERS_DISABLE_PIN GPIO_NUM_12	// Uno D8
+	#define STEPPERS_DISABLE_PIN GPIO_NUM_12
 			
-	#define SPINDLE_PWM_PIN    GPIO_NUM_19    // Uno D11
+	#define SPINDLE_PWM_PIN    GPIO_NUM_19
 	#define SPINDLE_PWM_CHANNEL 0	
 	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE	
-	#define SPINDLE_DIR_PIN		GPIO_NUM_18	// Uno D13
+	#define SPINDLE_DIR_PIN		GPIO_NUM_18
 	
-	#define COOLANT_FLOOD_PIN 	GPIO_NUM_34  // Uno A3
-	#define COOLANT_MIST_PIN   	GPIO_NUM_36// Uno A4
+	#define COOLANT_FLOOD_PIN 	GPIO_NUM_34
+	#define COOLANT_MIST_PIN   	GPIO_NUM_36
 	
-	#define X_LIMIT_PIN      		GPIO_NUM_13  // Uno D9
-	#define Y_LIMIT_PIN      		GPIO_NUM_5   // Uno D10
-	#define Z_LIMIT_PIN     		GPIO_NUM_19  // Uno D12	
+	#define X_LIMIT_PIN      		GPIO_NUM_13
+	#define Y_LIMIT_PIN      		GPIO_NUM_5 
+	#define Z_LIMIT_PIN     		GPIO_NUM_19
 	#define LIMIT_MASK      		B111
 	
-	#define PROBE_PIN       		GPIO_NUM_39  // Uno A5		
+	#define PROBE_PIN       		GPIO_NUM_39	
 	
 	// comment out #define IGNORE_CONTROL_PINS in config.h to use control pins  	
-	#define CONTROL_RESET_PIN         GPIO_NUM_2  // Uno A0
-	#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_4  // Uno A1 
-	#define CONTROL_CYCLE_START_PIN   GPIO_NUM_35  // Uno A2 ... ESP32 needs external pullup
+	#define CONTROL_RESET_PIN         GPIO_NUM_2
+	#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_4
+	#define CONTROL_CYCLE_START_PIN   GPIO_NUM_35 // ESP32 needs external pullup
 #endif
 
 #ifdef CPU_MAP_ESP32_ESC_SPINDLE
@@ -185,20 +177,19 @@
 	// https://github.com/bdring/Grbl_Esp32/wiki/BESC-Spindle-Feature
 	
 	#define CPU_MAP_NAME 		"CPU_MAP_ESP32_ESC_SPINDLE"	
+	
+	#define SHOW_EXTENDED_SETTINGS
 		
 	#define USE_RMT_STEPS	
 	
 	#define X_STEP_PIN      	GPIO_NUM_12
-	#define X_DIRECTION_PIN  	GPIO_NUM_14	
-	#define X_RMT_CHANNEL		0
+	#define X_DIRECTION_PIN  	GPIO_NUM_14
 	
 	#define Y_STEP_PIN      	GPIO_NUM_26
-	#define Y_DIRECTION_PIN   	GPIO_NUM_15// #define Y_STEP_PIN (see versions above) 	
-	#define Y_RMT_CHANNEL		1
+	#define Y_DIRECTION_PIN   	GPIO_NUM_15// #define Y_STEP_PIN (see versions above)
 	
 	#define Z_STEP_PIN      	GPIO_NUM_27		
-	#define Z_DIRECTION_PIN   	GPIO_NUM_33		 
-	#define Z_RMT_CHANNEL		2		
+	#define Z_DIRECTION_PIN   	GPIO_NUM_33
 	
 	// OK to comment out to use pin for other features
 	#define STEPPERS_DISABLE_PIN GPIO_NUM_13	
@@ -209,9 +200,12 @@
 			
 	// Begin RC ESC Based Spindle Information ======================	
 	#define SPINDLE_PWM_BIT_PRECISION 16   // 16 bit recommended for ESC (don't change)
+	
+	
 	/*	
 		Important ESC Settings
 		$33=50 // Hz this is the typical good frequency for an ESC
+		#define DEFAULT_SPINDLE_FREQ 5000.0 // $33 Hz (extended set)
 		
 		Determine the typical min and max pulse length of your ESC
 		min_pulse is typically 1ms (0.001 sec) or less
@@ -223,10 +217,16 @@
 		
 		(pulse / PWM_period)
 		
-		min_pulse = (0.001 / 0.02) = 0.035 = 3.5%  so ... $33 and $34 = 3.5
+		min_pulse = (0.001 / 0.02) = 0.05 = 5%  so ... $34 and $35 = 5.0
 		max_pulse = (0.002 / .02) = 0.1 = 10%  so ... $36=10
 
 	*/
+	#define DEFAULT_SPINDLE_FREQ		50.0
+	#define DEFAULT_SPINDLE_OFF_VALUE	5.0
+	#define DEFAULT_SPINDLE_MIN_VALUE	5.0
+	#define DEFAULT_SPINDLE_MAX_VALUE	10.0
+	
+	
 	
 	
 	// End RC ESC Based Spindle #defines ===========================
@@ -260,13 +260,10 @@
 		#define PEN_LASER_V2
 
 		#define X_STEP_PIN      	GPIO_NUM_12
-		#define X_DIRECTION_PIN   	GPIO_NUM_26
-		#define X_RMT_CHANNEL		0
-		
+		#define X_DIRECTION_PIN   	GPIO_NUM_26		
 		
 		#define Y_STEP_PIN      	GPIO_NUM_14
-		#define Y_DIRECTION_PIN   	GPIO_NUM_25
-		#define Y_RMT_CHANNEL		1
+		#define Y_DIRECTION_PIN   	GPIO_NUM_25		
 		
 		#define STEPPERS_DISABLE_PIN GPIO_NUM_13
 		
@@ -362,11 +359,9 @@
 
 		#define X_STEP_PIN      GPIO_NUM_12
 		#define Y_STEP_PIN      GPIO_NUM_14
-		#define X_RMT_CHANNEL		0
 		
 		#define X_DIRECTION_PIN   GPIO_NUM_26
 		#define Y_DIRECTION_PIN   GPIO_NUM_25
-		#define Y_RMT_CHANNEL		1		
 		
 		#ifndef COREXY // maybe set in config.h
 			#define COREXY
@@ -827,7 +822,6 @@
 	#define X_DRIVER_TMC2130 	// Which Driver Type?
 	#define X_CS_PIN    			GPIO_NUM_17  //chip select
 	#define X_RSENSE				0.11f   // .11 Ohm
-	#define X_RMT_CHANNEL		0
 	
 	#define Y_STEP_PIN      	GPIO_NUM_14   
 	#define Y_DIRECTION_PIN   	GPIO_NUM_25 
@@ -835,7 +829,6 @@
 	#define Y_DRIVER_TMC2130 	// Which Driver Type?
 	#define Y_CS_PIN    			GPIO_NUM_16  //chip select
 	#define Y_RSENSE				0.11f   // .11 Ohm
-	#define Y_RMT_CHANNEL		1		
 	
 	// OK to comment out to use pin for other features
 	#define STEPPERS_DISABLE_PIN GPIO_NUM_13	
@@ -843,6 +836,7 @@
 	#ifndef USE_SERVO_AXES  // maybe set in config.h
 		#define USE_SERVO_AXES
 	#endif
+	
 	
 	#define SERVO_Z_PIN 				GPIO_NUM_27
 	#define SERVO_Z_CHANNEL_NUM 		5
@@ -852,17 +846,13 @@
 	#define SERVO_Z_HOME_POS			SERVO_Z_RANGE_MAX // move to max during homing
 	#define SERVO_Z_MPOS				false		// will not use mpos, uses work coordinates
 	
-	// *** the flood coolant feature code is activated by defining this pins
-	// *** Comment it out to use the pin for other features
-	//#define COOLANT_FLOOD_PIN 	GPIO_NUM_16			
-	//#define COOLANT_MIST_PIN   	GPIO_NUM_21
 	
-	// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
-	// use a virtual spindle. Do not comment out the other parameters for the spindle.
-	//#define SPINDLE_PWM_PIN    GPIO_NUM_17 
+	// Comment out servo pin and uncomment spindle pwm pin to use the servo PWM to control a spindle
+	/*
+	#define SPINDLE_PWM_PIN    GPIO_NUM_27
 	#define SPINDLE_PWM_CHANNEL 0		
 	#define SPINDLE_PWM_BIT_PRECISION 8   // be sure to match this with SPINDLE_PWM_MAX_VALUE
-	
+	*/
 	
 	// #define X_LIMIT_PIN      	See version section
 	#define Y_LIMIT_PIN      	GPIO_NUM_4
@@ -884,21 +874,17 @@
 	
 	#define X_STEP_PIN      	GPIO_NUM_12
 	#define X_DIRECTION_PIN   GPIO_NUM_26
-	#define X_RMT_CHANNEL		0		
 	
 	#define Y_STEP_PIN      	GPIO_NUM_14   
 	#define Y_DIRECTION_PIN   GPIO_NUM_25
-	#define Y_RMT_CHANNEL		1
 
 	// Z is a servo
 	
 	#define A_STEP_PIN      	GPIO_NUM_27   
 	#define A_DIRECTION_PIN   GPIO_NUM_33
-	#define A_RMT_CHANNEL		2	
 	
 	#define B_STEP_PIN      	GPIO_NUM_15
 	#define B_DIRECTION_PIN   GPIO_NUM_32
-	#define B_RMT_CHANNEL		3	
 	
 	// C is a servo
 		
@@ -1035,7 +1021,6 @@
 	#define X_DRIVER_TMC2130 	// Which Driver Type?
 	#define X_CS_PIN    		GPIO_NUM_17  // Daisy Chain, all share same CS pin
 	#define X_RSENSE			0.11f   // .11 Ohm
-	#define X_RMT_CHANNEL		0
 	
 	#define Y_STEP_PIN      	GPIO_NUM_27
 	#define Y_DIRECTION_PIN   	GPIO_NUM_26
@@ -1043,7 +1028,6 @@
 	#define Y_DRIVER_TMC2130 	// Which Driver Type?
 	#define Y_CS_PIN    		X_CS_PIN  // Daisy Chain, all share same CS pin
 	#define Y_RSENSE			0.11f   // .11 Ohm
-	#define Y_RMT_CHANNEL		1	
 	
 	#define Z_STEP_PIN      	GPIO_NUM_15
 	#define Z_DIRECTION_PIN   	GPIO_NUM_2
@@ -1051,7 +1035,6 @@
 	#define Z_DRIVER_TMC2130 	// Which Driver Type?
 	#define Z_CS_PIN    		X_CS_PIN  // Daisy Chain, all share same CS pin
 	#define Z_RSENSE			0.11f   // .11 Ohm
-	#define Z_RMT_CHANNEL		2
 
 	#define A_STEP_PIN      	GPIO_NUM_33
 	#define A_DIRECTION_PIN   	GPIO_NUM_32
@@ -1059,7 +1042,6 @@
 	#define A_DRIVER_TMC2130 	// Which Driver Type?
 	#define A_CS_PIN    		X_CS_PIN  // Daisy Chain, all share same CS pin
 	#define A_RSENSE			0.11f   // .11 Ohm
-	#define A_RMT_CHANNEL		3
 	
 	#define STEPPERS_DISABLE_PIN GPIO_NUM_13
 	

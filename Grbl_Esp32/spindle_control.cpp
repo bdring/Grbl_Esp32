@@ -22,17 +22,17 @@
 
 #ifdef SPINDLE_PWM_PIN
 static float pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
-float spindle_pwm_period;
-float spindle_pwm_off_value;
-float spindle_pwm_min_value;
-float spindle_pwm_max_value;
+uint32_t spindle_pwm_period; // how many counts in 1 period
+uint32_t spindle_pwm_off_value;
+uint32_t spindle_pwm_min_value;
+uint32_t spindle_pwm_max_value;
 #endif
 
 void spindle_init()
 {
 	
 	#ifdef SPINDLE_PWM_PIN
-	
+		grbl_sendf(CLIENT_SERIAL, "[MSG:Spindle init on pin %d]\r\n", SPINDLE_PWM_PIN);
 		#ifdef INVERT_SPINDLE_PWM
 			grbl_send(CLIENT_SERIAL, "[MSG: INVERT_SPINDLE_PWM]\r\n");
 		#endif
@@ -41,26 +41,20 @@ void spindle_init()
 			grbl_send(CLIENT_SERIAL, "[MSG: INVERT_SPINDLE_ENABLE_PIN]\r\n");
 		#endif
 		
-		spindle_pwm_period = SPINDLE_PULSE_RES_COUNT;
-		
-		
-		spindle_pwm_off_value = (spindle_pwm_period * settings.spindle_pwm_off_value / 100);
-		spindle_pwm_min_value = (spindle_pwm_period * settings.spindle_pwm_min_value / 100);
-		spindle_pwm_max_value = (spindle_pwm_period * settings.spindle_pwm_max_value / 100);
-		
-		//pwm_gradient = (settings.spindle_pwm_max_value - settings.spindle_pwm_min_value)/(settings.rpm_max-settings.rpm_min);
-		pwm_gradient = (spindle_pwm_max_value-spindle_pwm_min_value)/(settings.rpm_max-settings.rpm_min);	
-			
-			
-		if ( (F_TIMERS / (uint32_t)settings.spindle_pwm_freq) < spindle_pwm_max_value) {
-			/*
-			PWM Generator is based on 80,000,000 Hz counter
-			Therefor the freq determines the resolution 80,000,000 / freq = max resolution
-			For 5000 that is 80,000,000 / 5000 = 16000
-			Round down to nearest bit count for SPINDLE_PWM_MAX_VALUE = 13bits (8192)
-			*/		
-			grbl_sendf(CLIENT_SERIAL, "[MSG: Warning! Spindle freq %5.0f too high for requested PWM max %5.2f%%  (%5.0f)]\r\n", settings.spindle_pwm_freq, settings.spindle_pwm_max_value, spindle_pwm_max_value);
+		// determine how many PWM counts are in eqach PWM cycle
+		spindle_pwm_period = ((1<<SPINDLE_PWM_BIT_PRECISION) -1);
+
+		if (settings.spindle_pwm_min_value > settings.spindle_pwm_min_value) {
+			grbl_sendf(CLIENT_SERIAL, "[MSG: Warning spindle min pwm is greater than max. Check $35 and $36]\r\n", pwm_gradient);			
 		}
+		
+		// pre-caculate some PWM count values		
+		spindle_pwm_off_value = (spindle_pwm_period * settings.spindle_pwm_off_value / 100.0);
+		spindle_pwm_min_value = (spindle_pwm_period * settings.spindle_pwm_min_value / 100.0);
+		spindle_pwm_max_value = (spindle_pwm_period * settings.spindle_pwm_max_value / 100.0);		
+				
+		// The pwm_gradient is the pwm duty cycle units per rpm
+		pwm_gradient = (spindle_pwm_max_value-spindle_pwm_min_value)/(settings.rpm_max-settings.rpm_min);
 		
 		// Use DIR and Enable if pins are defined
 		#ifdef SPINDLE_ENABLE_PIN
@@ -73,15 +67,15 @@ void spindle_init()
 		
 		// use the LED control feature to setup PWM   https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/peripherals/ledc.html
 		ledcSetup(SPINDLE_PWM_CHANNEL, (double)settings.spindle_pwm_freq, SPINDLE_PWM_BIT_PRECISION); // setup the channel
-		ledcAttachPin(SPINDLE_PWM_PIN, SPINDLE_PWM_CHANNEL); // attach the PWM to the pin		
+		ledcAttachPin(SPINDLE_PWM_PIN, SPINDLE_PWM_CHANNEL); // attach the PWM to the pin
 		
 		// Start with spindle off off
-		 spindle_stop();
+		spindle_stop();
 	#endif
 }
 
 void spindle_stop()
-{		
+{	
 	spindle_set_enable(false);	
 
 	#ifdef SPINDLE_PWM_PIN
@@ -119,6 +113,7 @@ uint8_t spindle_get_state()  // returns SPINDLE_STATE_DISABLE, SPINDLE_STATE_CW 
 void spindle_set_speed(uint32_t pwm_value)
 {	
 	#ifndef SPINDLE_PWM_PIN
+		//grbl_sendf(CLIENT_SERIAL, "[MSG: set speed...no pin defined]\r\n");
 		return;
 	#else
 		#ifndef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
@@ -160,7 +155,7 @@ uint32_t spindle_compute_pwm_value(float rpm){
 			#ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
 				pwm_value = piecewise_linear_fit(rpm);
 			#else
-				pwm_value = floor((rpm - settings.rpm_min)*pwm_gradient) + settings.spindle_pwm_min_value;
+				pwm_value = floor((rpm - settings.rpm_min)*pwm_gradient) + spindle_pwm_min_value;
 			#endif
 		}
 		return(pwm_value);
@@ -211,9 +206,7 @@ void spindle_sync(uint8_t state, float rpm)
 void grbl_analogWrite(uint8_t chan, uint32_t duty)
 {
 	if (ledcRead(chan) != duty) // reduce unnecessary calls to ledcWrite()
-	{
-		// Useful for debug, but too many messages in laser mode
-		// grbl_sendf(CLIENT_SERIAL, "[MSG: grbl_analogWrite %d]\r\n", duty);
+	{		
 		ledcWrite(chan, duty);
 	}
 }

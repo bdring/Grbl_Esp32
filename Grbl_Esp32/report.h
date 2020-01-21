@@ -132,7 +132,7 @@ void report_init_message(uint8_t client);
 void report_grbl_help(uint8_t client);
 
 // Prints Grbl global settings
-void report_grbl_settings(uint8_t client);
+void report_grbl_settings(uint8_t client, uint8_t show_extended);
 
 // Prints an echo of the pre-parsed line received right before execution.
 void report_echo_line_received(char *line, uint8_t client);
