@@ -140,6 +140,11 @@ void Trinamic_Init()
 	
 	SPI.begin();
 	
+	#ifdef USE_MACHINE_TRINAMIC_INIT		
+		machine_trinamic_setup();
+		return;
+	#endif
+	
 	#ifdef X_TRINAMIC
 		TRINAMIC_X.begin(); // Initiate pins and registries
 		testResult = TRINAMIC_X.test_connection();

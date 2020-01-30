@@ -1066,6 +1066,10 @@
 	#include "atari_1020.h"	
 #endif
 
+#ifdef CPU_MAP_SPI_DELTA
+	#include "spi_delta.h"
+#endif
+
 	// ================= common to all machines ================================
 	
 	// These are some ESP32 CPU Settings that the program needs, but are generally not changed
