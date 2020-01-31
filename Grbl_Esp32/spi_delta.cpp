@@ -1,5 +1,3 @@
-#include "grbl.h"
-
 /*
 
 	The motors use an angle for the units. The 0 angle is
@@ -10,40 +8,42 @@
 	to the motors.
 */
 
-static float last_angle[N_AXIS] = {0.0, 0.0, 0.0}; // save the last motor angles for distance calcs
+#include "grbl.h"
+
+
 
 #ifdef CPU_MAP_SPI_DELTA
 
- // a bunch of precalculated math ... change to defines soon
- const float sqrt3 = 1.732050807;
- const float pi = 3.141592653;    // PI
- const float dtr = pi/(float)180.0;
- const float sin120 = sqrt3/2.0;   
- const float cos120 = -0.5;        
- const float tan60 = sqrt3;
- const float sin30 = 0.5;
- const float tan30 = 1.0/sqrt3;
+static float last_angle[N_AXIS] = {0.0, 0.0, 0.0}; // save the previous motor angles for distance/feed rate calcs
 
- // the geometry of the robot
- const float rf = 100; // radius (length) of the motor crank arms
- const float re = 220; // radius (length) of the linkages
+// a bunch of precalculated math ... change to #defines soon
+const float sqrt3 = 1.732050807;  // square root of 3
+const float pi = 3.141592653;    // PI
+const float dtr = pi/(float)180.0; // degrees to radians
+const float sin120 = sqrt3/2.0;   
+const float cos120 = -0.5;        
+const float tan60 = sqrt3;
+const float sin30 = 0.5;
+const float tan30 = 1.0/sqrt3;
 
+// the geometry of the robot
+const float rf = 100; // radius (length) of the motor crank arms
+const float re = 220; // radius (length) of the linkages
 const float f = 294.449; // triangle (length) of the head (motor mount)
 const float e = 86.6025f; // ....triangle (length) of the end effector
 
-float delta_z_offset; // the position of Z in relation to 0,0,0 in motor angles
+float delta_z_offset; // the Z position of the end effector in relation to 0,0,0 in motor angles
 
-static TaskHandle_t readSgTaskHandle = 0;   // for optional realtime stallguard data diaplay
+static TaskHandle_t readSgTaskHandle = 0;   // for realtime stallguard data diaplay
 
 // initialize the specific features of this machine. This happens once at startup
 void machine_init()
 {		
 	
 	// determine where z would be (delta_z_offset) when the motor angles are all zero
+	// this is used to set machine Z zero after homing.
 	float x0, y0;
-	delta_calcForward(0.0, 0.0, 0.0, x0, y0, delta_z_offset) ;	
-	grbl_sendf(CLIENT_SERIAL, "[MSG:Zero Angs in Cart X:%4.3f Y:%4.3f Z:%4.3f]\r\n\r\n", x0, y0, delta_z_offset);
-	
+	delta_calcForward(0.0, 0.0, 0.0, x0, y0, delta_z_offset);
 
 	// setup a task that will display stallguard info when that feature is enabled		
 	xTaskCreatePinnedToCore(	readSgTask,    // task
@@ -92,70 +92,20 @@ void machine_trinamic_setup()
 {
 	uint8_t testResult;
 	
-	grbl_send(CLIENT_SERIAL, "[MSG:Machine Trinamic Setup]\r\n");
+	grbl_send(CLIENT_SERIAL, "[MSG:Machine Trinamic Setup]\r\n");	
+	
 	TRINAMIC_X.begin(); // Initiate pins and registries
 	trinamic_test_response(testResult, "X");
-	TRINAMIC_X.tbl(1);
-	TRINAMIC_X.toff(3);
-	//driver.pwm_autoscale(false);
-	//TRINAMIC_X.blank_time(24);	
-	TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);
-	TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS]/100.0);	
-	TRINAMIC_X.TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
-	TRINAMIC_X.THIGH(NORMAL_THIGH);
-	TRINAMIC_X.hysteresis_start(4);
-	TRINAMIC_X.hysteresis_end(-2);
-	//TRINAMIC_X.diag1_stall(1); // stallguard i/o is on diag1
-	//TRINAMIC_X.diag1_pushpull(0); // 0 = active low	
-	TRINAMIC_X.sfilt(1);   
-	//TRINAMIC_X.semin(5);
-	//TRINAMIC_X.semax(2);
-	//TRINAMIC_X.sedn(0b01);
-	TRINAMIC_X.sgt(settings.stallguard[X_AXIS]);
-
-
+	
 	TRINAMIC_Y.begin(); // Initiate pins and registries
 	trinamic_test_response(testResult, "Y");
-	TRINAMIC_Y.tbl(1);
-	TRINAMIC_Y.toff(3);
-	//driver.pwm_autoscale(false);
-	//TRINAMIC_X.blank_time(24);	
-	TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
-	TRINAMIC_Y.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS]/100.0);	
-	TRINAMIC_Y.TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
-	TRINAMIC_Y.THIGH(NORMAL_THIGH);
-	TRINAMIC_Y.hysteresis_start(4);
-	TRINAMIC_Y.hysteresis_end(-2);	
-	//TRINAMIC_Y.diag1_stall(1); // stallguard i/o is on diag1
-	//TRINAMIC_Y.diag1_pushpull(0); // 0 = active low
-	//
-	TRINAMIC_Z.sfilt(1);   
-	//TRINAMIC_Z.semin(5);
-	//TRINAMIC_Z.semax(2);
-	//TRINAMIC_Z.sedn(0b01);
-	TRINAMIC_Z.sgt(settings.stallguard[Z_AXIS]);
 	
 	TRINAMIC_Z.begin(); // Initiate pins and registries
 	trinamic_test_response(testResult, "Z");
-	TRINAMIC_Z.tbl(1);
-	TRINAMIC_Z.toff(3);
-	//driver.pwm_autoscale(false);
-	//TRINAMIC_Z.blank_time(24);	
-	TRINAMIC_Z.microsteps(settings.microsteps[Z_AXIS]);
-	TRINAMIC_Z.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS]/100.0);	
-	TRINAMIC_Z.TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
-	TRINAMIC_Z.THIGH(NORMAL_THIGH);
-	TRINAMIC_Z.hysteresis_start(4);
-	TRINAMIC_Z.hysteresis_end(-2);	
-	//TRINAMIC_Z.diag1_stall(1); // stallguard i/o is on diag1
-	//TRINAMIC_Z.diag1_pushpull(0); // 0 = active low
-	//
-	TRINAMIC_Z.sfilt(1);   
-	//TRINAMIC_Z.semin(5);
-	//TRINAMIC_Z.semax(2);
-	//TRINAMIC_Z.sedn(0b01);
-	TRINAMIC_Z.sgt(settings.stallguard[Z_AXIS]);
-
+	
+	
+	delta_motor_mode(DELTA_MOTOR_RUN_MODE);
+		
 }
 
 /*
@@ -182,20 +132,36 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 	
 	float seg_target[N_AXIS]; // The target of the current segment
 	
+	float feed_rate = pl_data->feed_rate; // save original feed rate
+	
+	// Check the destination to see if it is in work area
+	int status = delta_calcInverse(target[X_AXIS] , target[Y_AXIS] , target[Z_AXIS] + delta_z_offset, motor_angles[0], motor_angles[1], motor_angles[2]);
+	
+	if (status == KIN_ANGLE_ERROR) {
+		return;
+	}
+	if (motor_angles[0] < MAX_NEGATIVE_ANGLE || motor_angles[0] < MAX_NEGATIVE_ANGLE || motor_angles[0] < MAX_NEGATIVE_ANGLE) {
+		grbl_sendf(	CLIENT_SERIAL, "[MSG:Destination too high]\r\n");
+		return;
+	}	
+	
 	// adjust the end effector location
 	//target[Z_AXIS] += delta_z_offset; // Note: For typical (fixed top) deltas, the offset is negative
 
 	// calculate cartesian move distance for each axis
+	
 	dx = target[X_AXIS] - position[X_AXIS];
 	dy = target[Y_AXIS] - position[Y_AXIS];
 	dz = target[Z_AXIS] - position[Z_AXIS];
 
 	// calculate the total X,Y,Z axis move distance
 	dist = sqrt( (dx * dx) + (dy * dy) + (dz * dz));
+	
+	//dist = three_axis_dist(target, position);
 
 	segment_count = ceil(dist / SEGMENT_LENGTH);    // determine the number of segments we need	... round up so there is at least 1 (except when dist is 0)
 
-	segment_dist /= segment_count;  // distanse of each segment...will be used for feedrate conversion
+	segment_dist = dist / ((float)segment_count);  // distanse of each segment...will be used for feedrate conversion
 
 	for(uint32_t segment = 1; segment <= segment_count; segment++) {
 		// determine this segment's target
@@ -205,35 +171,37 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 		
 		//grbl_sendf(	CLIENT_SERIAL, "[MSG:Kin Segment Target Cart X:%4.3f Y:%4.3f Z:%4.3f]\r\n",seg_target[X_AXIS], seg_target[Y_AXIS],seg_target[Z_AXIS]);
 		
+		// calculate the delta motor angles
 		int status = delta_calcInverse(seg_target[X_AXIS] , seg_target[Y_AXIS] , seg_target[Z_AXIS] + delta_z_offset, motor_angles[0], motor_angles[1], motor_angles[2]);
+		
+		// check to see if we are trying to go too high
+		if (motor_angles[0] < MAX_NEGATIVE_ANGLE || motor_angles[0] < MAX_NEGATIVE_ANGLE || motor_angles[0] < MAX_NEGATIVE_ANGLE) {
+			grbl_sendf(	CLIENT_SERIAL, "[MSG:Angle error. Too high]\r\n");
+			status = KIN_ANGLE_ERROR;
+		}
+		
 		
 		if(status == KIN_ANGLE_CALC_OK) {
 			//grbl_sendf(	CLIENT_SERIAL, "[MSG:Kin Segment Target Angs X:%4.3f Y:%4.3f Z:%4.3f]\r\n\r\n", motor_angles[0], motor_angles[1], motor_angles[2]);
 			
+			// Convert back to radians .... TODO get rid of degrees
 			motor_angles[0] *= dtr;
 			motor_angles[1] *= dtr;
-			motor_angles[2] *= dtr;
+			motor_angles[2] *= dtr;			
 			
+			delta_distance = three_axis_dist(motor_angles, last_angle);
 			
-			dist = sqrt(    ((motor_angles[0] - last_angle[0]) * (motor_angles[0] - last_angle[0])) + 
-							((motor_angles[1] - last_angle[1]) * (motor_angles[1] - last_angle[1])) +
-							((motor_angles[2] - last_angle[2]) * (motor_angles[2] - last_angle[2])));
-			
-			
-			// todo use an memcpy
-			last_angle[0] = motor_angles[0];
+			// save angles for next distance calc
+			last_angle[0] = motor_angles[0];// TODO use an memcpy
 			last_angle[1] = motor_angles[1];
 			last_angle[2] = motor_angles[2];
 			
-			//calc_polar(seg_target, polar, last_angle);
-			
-			// calculate the targets for the delta
-			
-			// determine the move distance in the angular units
-			
-			// determine the new feed rate (if G1)
-			
-			// begin determining new feed rate		
+			if (pl_data->condition & PL_COND_FLAG_RAPID_MOTION) {
+				pl_data->feed_rate = feed_rate;
+			}
+			else {
+				pl_data->feed_rate = (feed_rate * delta_distance / segment_dist );
+			}
 					
 			mc_line(motor_angles, pl_data);
 			
@@ -243,17 +211,14 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 		}
 		
 		
-	}
-	//mc_line(target, pl_data);
-	
-	// TO DO don't need a feedrate for rapids
+	}	
 }
 
 
 
  // inverse kinematics: (x0, y0, z0) -> (theta1, theta2, theta3)
  // returned status: 0=OK, -1=non-existing position
- int delta_calcInverse(float x0, float y0, float z0, float &theta1, float &theta2, float &theta3) {
+int delta_calcInverse(float x0, float y0, float z0, float &theta1, float &theta2, float &theta3) {
 	 //grbl_sendf(CLIENT_SERIAL, "[MSG:Calc X:%4.3f Y:%4.3f Z:%4.3f]\r\n\r\n", x0, y0, z0);			
 			
      theta1 = theta2 = theta3 = 0;
@@ -284,134 +249,15 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
     return status;
 }
 
- // helper functions, calculates angle theta1 (for YZ-pane)
- int delta_calcAngleYZ(float x0, float y0, float z0, float &theta) {
-     float y1 = -0.5 * 0.57735 * f; // f/2 * tg 30
-     y0 -= 0.5 * 0.57735    * e;    // shift center to edge
-     // z = a + b*y
-     float a = (x0*x0 + y0*y0 + z0*z0 +rf*rf - re*re - y1*y1)/(2*z0);
-     float b = (y1-y0)/z0;
-     // discriminant
-     float d = -(a+b*y1)*(a+b*y1)+rf*(b*b*rf+rf); 
-     if (d < 0) return -1; // non-existing point
-     float yj = (y1 - a*b - sqrt(d))/(b*b + 1); // choosing outer point
-     float zj = a + b*yj;
-     theta = 180.0*atan(-zj/(y1 - yj))/pi + ((yj>y1)?180.0:0.0);
-     return 0;
- }
-
-void forward_kinematics(float *position)
-{
-	
-}
-
-/*
-	Pick your ideal homing speed and set both $25 and $24 to that speed
-	Run a G1 move with that speed and look at the TSTEP values
-	Set the TCOOLTHRS about 10% above that and THIGH about 10% below
-	These values are in clock counts between steps on the drive, so
-	a lower number represents a higher step rate.
-*/
-bool kinematics_homing(uint8_t cycle_mask) 
-{
-	//grbl_send(CLIENT_SERIAL, "[MSG:Kinematics homing]\r\n");
-
-	uint16_t tcoolthrs = settings.machine_int16[0]; // $80 setting
-	uint16_t thigh = settings.machine_int16[1]; // $81 setting
-
-	// setup the homing mode motor settings
-	TRINAMIC_X.sgt(settings.stallguard[X_AXIS]);
-	TRINAMIC_X.TCOOLTHRS(tcoolthrs) ; 
-	TRINAMIC_X.THIGH(thigh);
-	TRINAMIC_X.diag1_stall(1); // stallguard i/o is on diag1
-	TRINAMIC_X.diag1_pushpull(0); // 0 = active low
-
-	TRINAMIC_Y.sgt(settings.stallguard[Y_AXIS]);
-	TRINAMIC_Y.TCOOLTHRS(tcoolthrs) ; //(0xFFFFF); // 20bit max
-	TRINAMIC_Y.THIGH(thigh);
-	TRINAMIC_Y.diag1_stall(1); // stallguard i/o is on diag1
-	TRINAMIC_Y.diag1_pushpull(0); // 0 = active low
-
-	TRINAMIC_Z.sgt(settings.stallguard[Z_AXIS]);
-	TRINAMIC_Z.TCOOLTHRS(tcoolthrs) ; //(0xFFFFF); // 20bit max
-	TRINAMIC_Z.THIGH(thigh);
-	TRINAMIC_Z.diag1_stall(1); // stallguard i/o is on diag1
-	TRINAMIC_Z.diag1_pushpull(0); // 0 = active low
-
-	//grbl_sendf(CLIENT_SERIAL, "[MSG:Kinematics homing %d %d %d]\r\n", tcoolthrs, thigh, settings.stallguard[Z_AXIS]);
-
-	if (spi_delta_homing(cycle_mask)) { // if successfully homes
-		// return to the normal run settings
-		TRINAMIC_X.TCOOLTHRS(NORMAL_TCOOLTHRS) ;
-		TRINAMIC_X.THIGH(NORMAL_THIGH);
-		TRINAMIC_X.diag1_stall(0); // stallguard i/o is not on diag1
-
-		TRINAMIC_Y.TCOOLTHRS(NORMAL_TCOOLTHRS) ; //(0xFFFFF); // 20bit max
-		TRINAMIC_Y.THIGH(NORMAL_THIGH);
-		TRINAMIC_Y.diag1_stall(0); // stallguard i/o is not on diag1
-		
-		TRINAMIC_Z.TCOOLTHRS(NORMAL_TCOOLTHRS) ; //(0xFFFFF); // 20bit max
-		TRINAMIC_Z.THIGH(NORMAL_THIGH);
-		TRINAMIC_Z.diag1_stall(0); // stallguard i/o is not on diag1
-		
-		// set machine position to 0
-		sys_position[X_AXIS] = 0;
-		sys_position[Y_AXIS] = 0;
-		sys_position[Z_AXIS] = 0;
-
-		gc_sync_position();
-		plan_sync_position();
-		
-	}
-	else {
-		set_stepper_disable(true); // disable motors to allow them to free wheel
-	}
-
-	return false; // false...we don't want to finish normal homing cycle
-}
-
-bool kinematics_pre_homing(uint8_t cycle_mask) {
-	//grbl_sendf(CLIENT_SERIAL, "[MSG:Kinematics pre-homing %d]\r\n", cycle_mask);
-	kinematics_homing(cycle_mask);
-	return true; 
-}
-
-void kinematics_post_homing() {
-	//grbl_send(CLIENT_SERIAL, "[MSG:Kinematics post-homing]\r\n");
-}
- 
-	
-bool spi_delta_homing(uint8_t cycle_mask)
-{
-	//grbl_sendf(CLIENT_SERIAL, "[MSG:spi_delta_homing %d]\r\n", cycle_mask);
-
-	// =================== home X axis ======================
-	if (cycle_mask == HOMING_CYCLE_ALL) {
-		//grbl_sendf(CLIENT_SERIAL, "[MSG:spi_delta_homing %d]\r\n", cycle_mask);
-		limits_go_home(HOMING_CYCLE_0);
-		
-		if (sys_rt_exec_alarm) {
-			// if last homing failed quit
-			//grbl_send(CLIENT_SERIAL, "[MSG:Kinematics homing failure]\r\n");
-			return false;	
-		}
-	}
-	
-	gc_sync_position();
-	plan_sync_position();
-			
-	return true;
-}
-
 int delta_calcForward(float theta1, float theta2, float theta3, float &x0, float &y0, float &z0) {
         
 
      float t = (f-e)*tan30/2;
-     
+     float dtr = pi/(float)180.0;
  
-     theta1 *= dtr;
-     theta2 *= dtr;
-     theta3 *= dtr;
+     //theta1 *= dtr;
+     //theta2 *= dtr;
+     //theta3 *= dtr;
  
      float y1 = -(t + rf*cos(theta1));
      float z1 = -rf*sin(theta1);
@@ -452,12 +298,177 @@ int delta_calcForward(float theta1, float theta2, float theta3, float &x0, float
      y0 = (a2*z0 + b2)/dnm;
      return 0;
  }
+
+
+ // helper functions, calculates angle theta1 (for YZ-pane)
+ int delta_calcAngleYZ(float x0, float y0, float z0, float &theta) {
+     float y1 = -0.5 * 0.57735 * f; // f/2 * tg 30
+     y0 -= 0.5 * 0.57735    * e;    // shift center to edge
+     // z = a + b*y
+     float a = (x0*x0 + y0*y0 + z0*z0 +rf*rf - re*re - y1*y1)/(2*z0);
+     float b = (y1-y0)/z0;
+     // discriminant
+     float d = -(a+b*y1)*(a+b*y1)+rf*(b*b*rf+rf); 
+     if (d < 0) return -1; // non-existing point
+     float yj = (y1 - a*b - sqrt(d))/(b*b + 1); // choosing outer point
+     float zj = a + b*yj;
+     theta = 180.0*atan(-zj/(y1 - yj))/pi + ((yj>y1)?180.0:0.0);
+     return 0;
+ }
+
+void forward_kinematics(float *position)
+{	
+	float calc_fwd[N_AXIS];
+	
+	//grbl_sendf(CLIENT_ALL,"[MSG:Fwd Kin Calc 1....%4.3f %4.3f %4.3f]\r\n", position[X_AXIS], position[Y_AXIS], position[Z_AXIS]);
+	
+	position[X_AXIS] += gc_state.coord_system[X_AXIS]+gc_state.coord_offset[X_AXIS];
+	position[Y_AXIS] += gc_state.coord_system[Y_AXIS]+gc_state.coord_offset[Y_AXIS];
+	position[Z_AXIS] += gc_state.coord_system[Z_AXIS]+gc_state.coord_offset[Z_AXIS];
+	
+	//grbl_sendf(CLIENT_ALL,"[MSG:Fwd Kin Calc 2....%4.3f %4.3f %4.3f]\r\n", position[X_AXIS], position[Y_AXIS], position[Z_AXIS]);
+	
+	if (delta_calcForward(position[X_AXIS], position[Y_AXIS], position[Z_AXIS], calc_fwd[X_AXIS], calc_fwd[Y_AXIS], calc_fwd[Z_AXIS]) == 0) {
+		position[X_AXIS] = calc_fwd[X_AXIS] - (gc_state.coord_system[X_AXIS]+gc_state.coord_offset[X_AXIS]);
+		position[Y_AXIS] = calc_fwd[Y_AXIS] - (gc_state.coord_system[Y_AXIS]+gc_state.coord_offset[Y_AXIS]);
+		position[Z_AXIS] = calc_fwd[Z_AXIS] - (gc_state.coord_system[Z_AXIS]+gc_state.coord_offset[Z_AXIS]) - delta_z_offset;
+		//grbl_sendf(CLIENT_ALL,"[MSG:Fwd Kin Calc....3 %4.3f %4.3f %4.3f %4.3f]\r\n", position[X_AXIS], position[Y_AXIS], position[Z_AXIS], delta_z_offset);
+	}
+	else {
+		grbl_send(CLIENT_SERIAL, "[MSG:Fwd Kin Error]\r\n");
+	}
+}
+
+/*
+	Pick your ideal homing speed and set both $25 and $24 to that speed
+	Run a G1 move with that speed and look at the TSTEP values
+	Set the TCOOLTHRS about 10% above that and THIGH about 10% below
+	These values are in clock counts between steps on the drive, so
+	a lower number represents a higher step rate.
+*/
+bool kinematics_homing(uint8_t cycle_mask) 
+{	
+	delta_motor_mode(DELTA_MOTOR_HOME_MODE);  // send spi commands for this mode
+	
+	if (spi_delta_homing(cycle_mask)) { // if successfully homes		
+		// return to the normal run settings
+		delta_motor_mode(DELTA_MOTOR_RUN_MODE); // send spi commands for this mode		
+		
+		// set machine position to 0
+		sys_position[X_AXIS] = 0;
+		sys_position[Y_AXIS] = 0;
+		sys_position[Z_AXIS] = 0;
+
+		gc_sync_position();
+		plan_sync_position();		
+	}
+	else {
+		set_stepper_disable(true); // disable motors to allow them to free wheel
+	}
+
+	return false; // false...we don't want to finish normal homing cycle
+}
+
+bool kinematics_pre_homing(uint8_t cycle_mask) {
+	kinematics_homing(cycle_mask);
+	return true; 
+}
+
+void kinematics_post_homing() {
+}
  
+	
+bool spi_delta_homing(uint8_t cycle_mask)
+{
+	if (cycle_mask == HOMING_CYCLE_ALL)
+		cycle_mask = HOMING_CYCLE_0;
+	
+	limits_go_home(cycle_mask);
+	
+	if (sys_rt_exec_alarm) {			
+		return false;	
+	}	
+	
+	// TODO do we need these lines?
+	gc_sync_position();
+	plan_sync_position();
+			
+	return true;
+}
+ 
+ 
+ // Determine the unit distance between (2) 3D points
  float three_axis_dist(float *pt1, float *pt2)
  {
 	 return sqrt(	((pt1[0] - pt2[0]) * (pt1[0] - pt2[0])) + 
 					((pt1[1] - pt2[1]) * (pt1[1] - pt2[1])) +
 					((pt1[2] - pt2[2]) * (pt1[2] - pt2[2])));
  }
+ 
+ void delta_motor_mode(uint8_t mode) {
+	if (mode == DELTA_MOTOR_RUN_MODE) {
+		
+		TRINAMIC_X.tbl(1);
+		TRINAMIC_X.toff(3);
+		TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);
+		TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS]/100.0);	
+		TRINAMIC_X.TCOOLTHRS(NORMAL_TCOOLTHRS); // lower threshold velocity for switching on coolStep and stallGuard feature
+		TRINAMIC_X.THIGH(NORMAL_THIGH);
+		TRINAMIC_X.hysteresis_start(4);
+		TRINAMIC_X.hysteresis_end(-2);
+		
+		TRINAMIC_Y.tbl(1);
+		TRINAMIC_Y.toff(3);
+		TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
+		TRINAMIC_Y.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS]/100.0);	
+		TRINAMIC_Y.TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
+		TRINAMIC_Y.THIGH(NORMAL_THIGH);
+		TRINAMIC_Y.hysteresis_start(4);
+		TRINAMIC_Y.hysteresis_end(-2);
+		
+		TRINAMIC_Z.tbl(1);
+		TRINAMIC_Z.toff(3);
+		TRINAMIC_Z.microsteps(settings.microsteps[Z_AXIS]);
+		TRINAMIC_Z.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS]/100.0);	
+		TRINAMIC_Z.TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
+		TRINAMIC_Z.THIGH(NORMAL_THIGH);
+		TRINAMIC_Z.hysteresis_start(4);
+		TRINAMIC_Z.hysteresis_end(-2);
+		
+	} 
+	else if (mode == DELTA_MOTOR_HOME_MODE) {
+		
+		// get some values from the settings
+		uint16_t tcoolthrs = settings.machine_int16[0]; // $80 setting
+		uint16_t thigh = settings.machine_int16[1]; // $81 setting
+
+		// setup the homing mode motor settings
+		TRINAMIC_X.sgt(settings.stallguard[X_AXIS]);
+		TRINAMIC_X.sfilt(1);
+		TRINAMIC_X.TCOOLTHRS(tcoolthrs) ; 
+		TRINAMIC_X.THIGH(thigh);
+		TRINAMIC_X.diag1_stall(1); // stallguard i/o is on diag1
+		TRINAMIC_X.diag1_pushpull(0); // 0 = active low
+
+		TRINAMIC_Y.sgt(settings.stallguard[Y_AXIS]);
+		TRINAMIC_Y.sfilt(1);
+		TRINAMIC_Y.TCOOLTHRS(tcoolthrs) ; //(0xFFFFF); // 20bit max
+		TRINAMIC_Y.THIGH(thigh);
+		TRINAMIC_Y.diag1_stall(1); // stallguard i/o is on diag1
+		TRINAMIC_Y.diag1_pushpull(0); // 0 = active low
+
+		TRINAMIC_Z.sgt(settings.stallguard[Z_AXIS]);
+		TRINAMIC_Z.sfilt(1);
+		TRINAMIC_Z.TCOOLTHRS(tcoolthrs) ; //(0xFFFFF); // 20bit max
+		TRINAMIC_Z.THIGH(thigh);
+		TRINAMIC_Z.diag1_stall(1); // stallguard i/o is on diag1
+		TRINAMIC_Z.diag1_pushpull(0); // 0 = active low
+	}
+	else {
+		grbl_sendf(	CLIENT_SERIAL, "[MSG:Undefined motor mode requested]\r\n");
+	}
+ }
+ 
+ 
 
 #endif

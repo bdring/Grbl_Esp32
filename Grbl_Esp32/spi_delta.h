@@ -24,14 +24,14 @@
 #define CPU_MAP_NAME "CPU_MAP_SPI_DELTA"		
 
 	// the cooolstep setting for the different modes
-	#define NORMAL_TCOOLTHRS 		0xFFFFF // 20 bit is max
+	#define DELTA_MOTOR_RUN_MODE	0  	// setup motor params for normal run mode
+	#define DELTA_MOTOR_HOME_MODE	1	// setup motor params for sensorless homing mode
+	#define NORMAL_TCOOLTHRS 		0 	// 20 bit is max
 	#define NORMAL_THIGH 			0
-	#define HOMING_TCOOLTHRS 		800
-	#define HOMING_THIGH 			500
 
 	// enable these special machine functions to be called from the main program
 	#define USE_KINEMATICS				// there are kinematic equations for this machine
-	//#define FWD_KINEMATICS_REPORTING   // report in cartesian
+	#define FWD_KINEMATICS_REPORTING   // report in cartesian
 	#define USE_RMT_STEPS   			// Use the RMT periferal to generate step pulses
 	#define USE_TRINAMIC				// some Trinamic motors are used on this machine
 	#define USE_MACHINE_TRINAMIC_INIT	// there is a machine specific setup for the drivers
@@ -40,6 +40,8 @@
 	#define SEGMENT_LENGTH 0.5 // segment length in mm
 	#define KIN_ANGLE_CALC_OK   0
 	#define KIN_ANGLE_ERROR     -1
+	
+	#define MAX_NEGATIVE_ANGLE -0.75 // in radians how far can the arms go up?
 	
 // ================== Config ======================
 
@@ -152,11 +154,11 @@
 	#define DEFAULT_Z_STALLGUARD 3
 
 #ifndef spi_delta_h
-	// function prototypes
+	
 	#define spi_delta_h	
 	
 	#include "grbl.h"
-	
+	// function prototypes
 	void machine_init();
 	void readSgTask(void *pvParameters);
 	void machine_trinamic_setup();
@@ -170,4 +172,5 @@
 	int delta_calcAngleYZ(float x0, float y0, float z0, float &theta);
 	int delta_calcForward(float theta1, float theta2, float theta3, float &x0, float &y0, float &z0) ;
 	float three_axis_dist(float *pt1, float *pt2);
+	void delta_motor_mode(uint8_t mode);
 #endif
