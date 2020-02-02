@@ -163,6 +163,20 @@ void settings_restore(uint8_t restore_flag) {
       settings.machine_int16[index] = 0;
       settings.machine_float[index] = 0.0;
     }
+	
+	// User Integer values
+	settings.machine_int16[0] = DEFAULT_USER_INT_80;
+	settings.machine_int16[1] = DEFAULT_USER_INT_81;
+	settings.machine_int16[2] = DEFAULT_USER_INT_82;
+	settings.machine_int16[3] = DEFAULT_USER_INT_83;
+	settings.machine_int16[4] = DEFAULT_USER_INT_84;
+	
+	// User Integer values
+    settings.machine_float[0] = DEFAULT_USER_FLOAT_90;
+	settings.machine_float[1] = DEFAULT_USER_FLOAT_91;
+	settings.machine_float[2] = DEFAULT_USER_FLOAT_92;
+	settings.machine_float[3] = DEFAULT_USER_FLOAT_93;
+	settings.machine_float[4] = DEFAULT_USER_FLOAT_94;
     
 
     write_global_settings();
@@ -411,7 +425,7 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
       case 82:
       case 83:
       case 84:
-        settings.machine_int16[parameter - 80] = int_value;
+        settings.machine_int16[parameter - 80] = (uint16_t)value;
         break;
 
       case 90:
