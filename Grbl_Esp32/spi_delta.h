@@ -2,7 +2,7 @@
 	spi_delta.h
 	Part of Grbl_ESP32
 
-	copyright (c) 2018 -	Bart Dring This file was modified for use on the ESP32
+	copyright (c) 2020 -	Bart Dring This file was modified for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 
 	Grbl is free software: you can redistribute it and/or modify
@@ -17,6 +17,8 @@
 
 	You should have received a copy of the GNU General Public License
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
+	
+	
 
 	
 */
@@ -42,6 +44,8 @@
 	#define KIN_ANGLE_ERROR     -1
 	
 	#define MAX_NEGATIVE_ANGLE -0.75 // in radians how far can the arms go up?
+	
+	#define HOMING_CURRENT_REDUCTION 1.0
 	
 // ================== Config ======================
 

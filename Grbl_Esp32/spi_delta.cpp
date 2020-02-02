@@ -1,11 +1,48 @@
 /*
+	spi_delta.cpp
+	Part of Grbl_ESP32
+
+	copyright (c) 2020 -	Bart Dring This file was modified for use on the ESP32
+					CPU. Do not use this with Grbl for atMega328P
+
+	Grbl is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	Grbl is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
+	
+	=================================================================
+
+	This file contains machine specific functions for a stepper driven
+	delta machine. The steppers are Trinamic TMC2130 type. It uses sensorless
+	endstops for homing. The motors run normally in the quiet stealthchop mode
+	and switch to coolstep mode for homing.
+	
+	inverse kinematics are used to convert cartesian real world units to
+	motor angels
+	
+	forward kinematics are to report cartesian coordinates from the motor 
+	angles.
+	
 
 	The motors use an angle for the units. The 0 angle is
-	when the motor crank arm is horizontal. The positive direction
-	is down.
+	when the motor crank arm is horizontal. Positive angles are down (towards end effector).
 	
 	The end effector is always below the motors, so its Z is negative with respect
 	to the motors.
+	
+	TODO
+		Get rid of any degree calculation and use radians only
+		
+		
+		
 */
 
 #include "grbl.h"
@@ -390,8 +427,8 @@ bool spi_delta_homing(uint8_t cycle_mask)
 	}	
 	
 	// TODO do we need these lines?
-	gc_sync_position();
-	plan_sync_position();
+	//gc_sync_position();
+	//plan_sync_position();
 			
 	return true;
 }
@@ -438,11 +475,13 @@ bool spi_delta_homing(uint8_t cycle_mask)
 	} 
 	else if (mode == DELTA_MOTOR_HOME_MODE) {
 		
-		// get some values from the settings
+		// get the coolstep range from the settings
+		// This sets the speed at which stalls are detected...for homing. 
 		uint16_t tcoolthrs = settings.machine_int16[0]; // $80 setting
 		uint16_t thigh = settings.machine_int16[1]; // $81 setting
 
-		// setup the homing mode motor settings
+		// setup the homing mode motor settings		
+		TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0 * HOMING_CURRENT_REDUCTION, settings.hold_current[X_AXIS]/100.0);	
 		TRINAMIC_X.sgt(settings.stallguard[X_AXIS]);
 		TRINAMIC_X.sfilt(1);
 		TRINAMIC_X.TCOOLTHRS(tcoolthrs) ; 
@@ -450,13 +489,15 @@ bool spi_delta_homing(uint8_t cycle_mask)
 		TRINAMIC_X.diag1_stall(1); // stallguard i/o is on diag1
 		TRINAMIC_X.diag1_pushpull(0); // 0 = active low
 
+		TRINAMIC_Y.rms_current(settings.current[Y_AXIS] * 1000.0 * HOMING_CURRENT_REDUCTION, settings.hold_current[Y_AXIS]/100.0);		
 		TRINAMIC_Y.sgt(settings.stallguard[Y_AXIS]);
 		TRINAMIC_Y.sfilt(1);
-		TRINAMIC_Y.TCOOLTHRS(tcoolthrs) ; //(0xFFFFF); // 20bit max
+		TRINAMIC_Y.TCOOLTHRS(tcoolthrs) ;
 		TRINAMIC_Y.THIGH(thigh);
 		TRINAMIC_Y.diag1_stall(1); // stallguard i/o is on diag1
 		TRINAMIC_Y.diag1_pushpull(0); // 0 = active low
 
+		TRINAMIC_Z.rms_current(settings.current[Z_AXIS] * 1000.0 * HOMING_CURRENT_REDUCTION, settings.hold_current[Z_AXIS]/100.0);		
 		TRINAMIC_Z.sgt(settings.stallguard[Z_AXIS]);
 		TRINAMIC_Z.sfilt(1);
 		TRINAMIC_Z.TCOOLTHRS(tcoolthrs) ; //(0xFFFFF); // 20bit max

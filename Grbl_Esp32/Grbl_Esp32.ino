@@ -38,6 +38,11 @@ volatile uint8_t sys_rt_exec_accessory_override; // Global realtime executor bit
 void setup() {
   
   serial_init();   // Setup serial baud rate and interrupts
+  
+  #ifdef CPU_MAP_NAME
+		grbl_send(CLIENT_SERIAL,"[MSG:Using cpu_map..." CPU_MAP_NAME "]\r\n");
+  #endif
+  
   settings_init(); // Load Grbl settings from EEPROM  
   
   stepper_init();  // Configure stepper pins and interrupt timers
