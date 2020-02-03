@@ -125,7 +125,10 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 		// Import the next g-code word, expecting a letter followed by a value. Otherwise, error out.
 		letter = line[char_counter];
 		if((letter < 'A') || (letter > 'Z')) {
+			grbl_sendf(CLIENT_SERIAL, "[MSG:Cmd Letter:%s Char#:%d]\r\n", line, char_counter);
+			
 			FAIL(STATUS_EXPECTED_COMMAND_LETTER);    // [Expected word letter]
+			
 		}
 		char_counter++;
 		if (!read_float(line, &char_counter, &value)) {
@@ -463,9 +466,10 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 				break;
 			// NOTE: For certain commands, P value must be an integer, but none of these commands are supported.
 			// case 'Q': // Not supported
-			case 'R':
+			case 'R':			
 				word_bit = WORD_R;
 				gc_block.values.r = value;
+				grbl_sendf(CLIENT_ALL, "[MSG:Found R: %4.3f]\r\n", value);
 				break;
 			case 'S':
 				word_bit = WORD_S;
@@ -575,6 +579,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 	// NOTE: For jogging, ignore prior feed rate mode. Enforce G94 and check for required F word.
 	if (gc_parser_flags & GC_PARSER_JOG_MOTION) {
 		if (bit_isfalse(value_words,bit(WORD_F))) {
+			grbl_sendf(CLIENT_SERIAL,"[MSG:Feed Rate Error:%s]\r\n", line);
 			FAIL(STATUS_GCODE_UNDEFINED_FEED_RATE);
 		}
 		if (gc_block.modal.units == UNITS_MODE_INCHES) {
@@ -586,6 +591,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 			if (axis_command == AXIS_COMMAND_MOTION_MODE) {
 				if ((gc_block.modal.motion != MOTION_MODE_NONE) || (gc_block.modal.motion != MOTION_MODE_SEEK)) {
 					if (bit_isfalse(value_words,bit(WORD_F))) {
+						grbl_sendf(CLIENT_SERIAL,"[MSG:Feed Rate Error:%s]\r\n", line);
 						FAIL(STATUS_GCODE_UNDEFINED_FEED_RATE);    // [F word missing]
 					}
 				}
@@ -897,6 +903,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 		} else {
 			// Check if feed rate is defined for the motion modes that require it.
 			if (gc_block.values.f == 0.0) {
+				grbl_sendf(CLIENT_SERIAL,"[MSG:Feed Rate Error:%s]\r\n", line);
 				FAIL(STATUS_GCODE_UNDEFINED_FEED_RATE);    // [Feed rate undefined]
 			}
 
@@ -933,7 +940,8 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 				if (value_words & bit(WORD_R)) { // Arc Radius Mode
 					bit_false(value_words,bit(WORD_R));
 					if (isequal_position_vector(gc_state.position, gc_block.values.xyz)) {
-						FAIL(STATUS_GCODE_INVALID_TARGET);    // [Invalid target]
+						grbl_sendf(CLIENT_SERIAL,"[MSG:Line A:%s]\r\n", line);
+						FAIL(STATUS_GCODE_INVALID_TARGET);    // [Invalid target]						
 					}
 
 					// Convert radius value to proper units.
@@ -1057,10 +1065,12 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 					float delta_r = fabs(target_r-gc_block.values.r);
 					if (delta_r > 0.005) {
 						if (delta_r > 0.5) {
-							FAIL(STATUS_GCODE_INVALID_TARGET);    // [Arc definition error] > 0.5mm
+							grbl_sendf(CLIENT_SERIAL,"[MSG:Line B:%s (R:%4.3f)]\r\n", line, gc_block.values.r);
+							FAIL(STATUS_GCODE_INVALID_TARGET);    // [Arc definition error] > 0.5mm							
 						}
 						if (delta_r > (0.001*gc_block.values.r)) {
-							FAIL(STATUS_GCODE_INVALID_TARGET);    // [Arc definition error] > 0.005mm AND 0.1% radius
+							grbl_sendf(CLIENT_SERIAL,"[MSG:Line B:%s (R:%4.3f)]\r\n", line, gc_block.values.r);
+							FAIL(STATUS_GCODE_INVALID_TARGET);    // [Arc definition error] > 0.005mm AND 0.1% radius							
 						}
 					}
 				}
@@ -1082,7 +1092,8 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 					FAIL(STATUS_GCODE_NO_AXIS_WORDS);    // [No axis words]
 				}
 				if (isequal_position_vector(gc_state.position, gc_block.values.xyz)) {
-					FAIL(STATUS_GCODE_INVALID_TARGET);    // [Invalid target]
+					grbl_sendf(CLIENT_SERIAL,"[MSG:Line D:%s]\r\n", line);
+					FAIL(STATUS_GCODE_INVALID_TARGET);    // [Invalid target]					
 				}
 				break;
 			}

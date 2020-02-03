@@ -62,11 +62,11 @@
 		#undef HOMING_CYCLE_2
 	#endif
 	
-	// we only want one homing sequence...no backoff and repeat
+	
 	#ifdef N_HOMING_LOCATE_CYCLE
 		#undef N_HOMING_LOCATE_CYCLE
 	#endif
-	#define N_HOMING_LOCATE_CYCLE 0 
+	#define N_HOMING_LOCATE_CYCLE 1 
 	
 	#define SHOW_EXTENDED_SETTINGS
 	

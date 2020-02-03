@@ -38,8 +38,22 @@
 	The end effector is always below the motors, so its Z is negative with respect
 	to the motors.
 	
+	Some reference links
+	
+	FYI: http://forums.trossenrobotics.com/tutorials/introduction-129/delta-robot-kinematics-3276/
+    Better: http://hypertriangle.com/~alex/delta-robot-tutorial/
+	
 	TODO
+	Firmware
 		Get rid of any degree calculation and use radians only
+		Do a double home in case poor initial home due to bad start angle
+		Add a M30 to park the head
+	Hardware
+		Remove side boss of motor cranks
+		Look at increasing the end effector and spreading out the linkages
+		Add a way to assist tensioning the belt
+		Add a power off end effector cradle.
+		
 		
 		
 		
@@ -138,15 +152,13 @@ void machine_trinamic_setup()
 	trinamic_test_response(testResult, "Y");
 	
 	TRINAMIC_Z.begin(); // Initiate pins and registries
-	trinamic_test_response(testResult, "Z");
+	trinamic_test_response(testResult, "Z");	
 	
-	
-	delta_motor_mode(DELTA_MOTOR_RUN_MODE);
-		
+	delta_motor_mode(DELTA_MOTOR_RUN_MODE); // set the rest of the driver settings to run mode		
 }
 
 /*
-	convert desired cartesian moves of the end effector to delta motor movements.
+	convert desired cartesian moves of the end effector to delta motor angles.
 	This is done by breaking the moves into tiny segment and converting the endpoint to motor angles.
 	The feedrate also needs to be converted
 	All cnversions are done in machine space. This prevents G5x offsets from messing things up
@@ -224,7 +236,7 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 			// Convert back to radians .... TODO get rid of degrees
 			motor_angles[0] *= dtr;
 			motor_angles[1] *= dtr;
-			motor_angles[2] *= dtr;			
+			motor_angles[2] *= dtr;
 			
 			delta_distance = three_axis_dist(motor_angles, last_angle);
 			
