@@ -266,10 +266,7 @@ void report_feedback_message(uint8_t message_code)  // OK to send to all clients
 
 // Welcome message
 void report_init_message(uint8_t client)
-{
-	#ifdef CPU_MAP_NAME
-		grbl_send(client,"[MSG:Using cpu_map..." CPU_MAP_NAME "]\r\n");
-	#endif
+{	
 	grbl_send(client,"\r\nGrbl " GRBL_VERSION " ['$' for help]\r\n");
 }
 
