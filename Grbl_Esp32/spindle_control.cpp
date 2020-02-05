@@ -32,7 +32,7 @@ void spindle_init()
 {
 	
 	#ifdef SPINDLE_PWM_PIN
-		grbl_sendf(CLIENT_SERIAL, "[MSG:Spindle init on pin %d]\r\n", SPINDLE_PWM_PIN);
+		
 		#ifdef INVERT_SPINDLE_PWM
 			grbl_send(CLIENT_SERIAL, "[MSG: INVERT_SPINDLE_PWM]\r\n");
 		#endif
