@@ -399,14 +399,12 @@ bool kinematics_homing(uint8_t cycle_mask)
 {	
 	delta_motor_mode(DELTA_MOTOR_HOME_MODE);  // send spi commands for this mode
 	
-	if (spi_delta_homing(cycle_mask)) { // if successfully homes		
-		// return to the normal run settings
-		delta_motor_mode(DELTA_MOTOR_RUN_MODE); // send spi commands for this mode		
+	if (spi_delta_homing(cycle_mask)) { // if successfully homes				
 		
 		// set machine position to 0
 		sys_position[X_AXIS] = 0;
 		sys_position[Y_AXIS] = 0;
-		sys_position[Z_AXIS] = 0;
+		sys_position[Z_AXIS] = 0;		
 
 		gc_sync_position();
 		plan_sync_position();		
@@ -415,7 +413,9 @@ bool kinematics_homing(uint8_t cycle_mask)
 		set_stepper_disable(true); // disable motors to allow them to free wheel
 	}
 
+	delta_motor_mode(DELTA_MOTOR_RUN_MODE); // send spi commands for this mode
 	return false; // false...we don't want to finish normal homing cycle
+
 }
 
 bool kinematics_pre_homing(uint8_t cycle_mask) {
@@ -455,6 +455,9 @@ bool spi_delta_homing(uint8_t cycle_mask)
  }
  
  void delta_motor_mode(uint8_t mode) {
+
+	//grbl_sendf(	CLIENT_SERIAL, "[MSG:Set motor mode:%d]\r\n", mode);
+
 	if (mode == DELTA_MOTOR_RUN_MODE) {
 		
 		TRINAMIC_X.tbl(1);
