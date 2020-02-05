@@ -145,6 +145,47 @@
 	#define DEFAULT_LASER_MODE 0 // false
 #endif
 
+// user settings
+#ifndef DEFAULT_USER_INT_80
+	#define DEFAULT_USER_INT_80 0 // $80 User integer setting
+#endif
+
+#ifndef DEFAULT_USER_INT_81
+	#define DEFAULT_USER_INT_81 0 // $81 User integer setting
+#endif
+
+#ifndef DEFAULT_USER_INT_82
+	#define DEFAULT_USER_INT_82 0 // $82 User integer setting
+#endif
+
+#ifndef DEFAULT_USER_INT_83
+	#define DEFAULT_USER_INT_83 0 // $83 User integer setting
+#endif
+
+#ifndef DEFAULT_USER_INT_84
+	#define DEFAULT_USER_INT_84 0 // $84 User integer setting
+#endif
+
+#ifndef DEFAULT_USER_FLOAT_90
+	#define DEFAULT_USER_FLOAT_90 0.0 // $90 User integer setting
+#endif
+
+#ifndef DEFAULT_USER_FLOAT_91
+	#define DEFAULT_USER_FLOAT_91 0.0 // $92 User integer setting
+#endif
+
+#ifndef DEFAULT_USER_FLOAT_92
+	#define DEFAULT_USER_FLOAT_92 0.0 // $92 User integer setting
+#endif
+
+#ifndef DEFAULT_USER_FLOAT_93
+	#define DEFAULT_USER_FLOAT_93 0.0 // $93 User integer setting
+#endif
+
+#ifndef DEFAULT_USER_FLOAT_94
+	#define DEFAULT_USER_FLOAT_94 0.0 // $94 User integer setting
+#endif
+
 
 // =========== 	AXIS RESOLUTION ======
 
