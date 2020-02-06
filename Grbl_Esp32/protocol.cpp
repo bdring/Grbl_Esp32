@@ -85,7 +85,7 @@ void protocol_main_loop()
 	
   for (;;) {
 		
-		// serialCheck(); // un comment this if you do this here rather than in a separate task
+		
 
 		#ifdef ENABLE_SD_CARD
 			if (SD_ready_next) {
@@ -108,9 +108,10 @@ void protocol_main_loop()
     // initial filtering by removing spaces and comments and capitalizing all letters.
 		
 		uint8_t client = CLIENT_SERIAL;
-		for (client = 0; client <= CLIENT_COUNT; client++)
+		for (client = 0; client < CLIENT_COUNT; client++)
 		{
 			while((c = serial_read(client)) != SERIAL_NO_DATA) {
+        //grbl_sendf(CLIENT_SERIAL, "[MSG:ptcl read...%d %d]\r\n", c, client);
 				if ((c == '\n') || (c == '\r')) { // End of line reached
 
 					protocol_execute_realtime(); // Runtime command check point.
@@ -124,6 +125,7 @@ void protocol_main_loop()
 					// Direct and execute one line of formatted input, and report status of execution.
 					if (line_flags & LINE_FLAG_OVERFLOW) {
 						// Report line overflow error.
+            //grbl_sendf(client, "[MSG:exec gcode %s %d]\r\n", line, char_counter);
 						report_status_message(STATUS_OVERFLOW, client);
 					} else if (line[0] == 0) {
 						// Empty or comment line. For syncing purposes.
@@ -145,6 +147,7 @@ void protocol_main_loop()
 						report_status_message(STATUS_SYSTEM_GC_LOCK, client);
 					} else {
 						// Parse and execute g-code block.
+            //grbl_sendf(client, "[MSG:exec gcode %s]\r\n", line);
 						report_status_message(gc_execute_line(line, client), client);
 					}
 

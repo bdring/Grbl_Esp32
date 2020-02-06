@@ -286,9 +286,7 @@ void report_grbl_settings(uint8_t client, uint8_t show_extended) {
 	
 	#ifdef SHOW_EXTENDED_SETTINGS
 		show_extended = true;
-	#endif
-	
-	grbl_sendf(CLIENT_SERIAL, "[MSG:Extended %d]\r\n", show_extended);
+	#endif	
 	
 	rpt[0] = '\0';
 	

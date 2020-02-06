@@ -54,11 +54,26 @@ int InputBuffer::available(){
     return _RXbufferSize;
 }
 
+int InputBuffer::availableforwrite(){
+    return (RXBUFFERSIZE - _RXbufferSize);
+}
+
 size_t InputBuffer::write(uint8_t c)
-{
-    //No need currently
-    //keep for compatibility
-    return 1;
+{    
+    if ((1 + _RXbufferSize) <= RXBUFFERSIZE){
+        int current = _RXbufferpos + _RXbufferSize;
+        if (current > RXBUFFERSIZE) 
+            current = current - RXBUFFERSIZE;
+        
+            if (current > (RXBUFFERSIZE-1)) 
+                current = 0;
+            _RXbuffer[current] = c;
+            current ++;
+        
+        _RXbufferSize+=1;
+        return 1;
+    }
+    return 0;
 }
 
 size_t InputBuffer::write(const uint8_t *buffer, size_t size)

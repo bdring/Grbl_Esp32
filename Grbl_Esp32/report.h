@@ -99,11 +99,11 @@
 #define MESSAGE_SLEEP_MODE 11
 #define MESSAGE_SD_FILE_QUIT 60 // mc_reset was called during an SD job
 
-#define CLIENT_SERIAL 		1
-#define CLIENT_BT 			2
-#define CLIENT_WEBUI		3
-#define CLIENT_TELNET		4
-#define CLIENT_INPUT        5
+#define CLIENT_SERIAL 		0
+#define CLIENT_BT 			1
+#define CLIENT_WEBUI		2
+#define CLIENT_TELNET		3
+#define CLIENT_INPUT        4
 #define CLIENT_ALL			0xFF
 #define CLIENT_COUNT    	5 // total number of client types regardless if they are used
 
