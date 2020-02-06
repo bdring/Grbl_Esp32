@@ -54,6 +54,7 @@ class InputBuffer: public Print{
     void begin();
     void end();
     int available();
+    int availableforwrite();
     int peek(void);
     int read(void);
     bool push (const char * data);
