@@ -176,7 +176,7 @@ bool Web_Server::begin(){
 #endif
     
 #ifdef ENABLE_CAPTIVE_PORTAL
-     if(WiFi.getMode() != WIFI_STA){
+     if(WiFi.getMode() == WIFI_AP){
         // if DNSServer is started with "*" for domain name, it will reply with
         // provided IP to all DNS request
         dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
@@ -341,7 +341,7 @@ void Web_Server:: handle_not_found()
 
     if (page_not_found ) {
 #ifdef ENABLE_CAPTIVE_PORTAL
-        if (WiFi.getMode()!=WIFI_STA ) {
+        if(WiFi.getMode() == WIFI_AP) {
             String contentType= PAGE_CAPTIVE;
             String stmp = WiFi.softAPIP().toString();
             //Web address = ip + port
@@ -1630,7 +1630,7 @@ void Web_Server::handle(){
 static uint32_t timeout = millis();
     COMMANDS::wait(0);
 #ifdef ENABLE_CAPTIVE_PORTAL
-    if(WiFi.getMode() != WIFI_STA){
+    if(WiFi.getMode() == WIFI_AP){
         dnsServer.processNextRequest();
     }
 #endif
