@@ -49,10 +49,9 @@ static TaskHandle_t servosSyncTaskHandle = 0;
 #endif
 
 void init_servos()
-{
-	//grbl_send(CLIENT_SERIAL, "[MSG: Init Servos]\r\n");
+{	
 	#ifdef SERVO_X_PIN
-		grbl_sendf(CLIENT_SERIAL, "[MSG:X Servo range %4.3f to %4.3f]\r\n", SERVO_X_RANGE_MIN, SERVO_X_RANGE_MAX);
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "X Servo range %4.3f to %4.3f", SERVO_X_RANGE_MIN, SERVO_X_RANGE_MAX);
 		X_Servo_Axis.init();
 		X_Servo_Axis.set_range(SERVO_X_RANGE_MIN, SERVO_X_RANGE_MAX);
 		X_Servo_Axis.set_homing_type(SERVO_HOMING_OFF);
@@ -60,12 +59,12 @@ void init_servos()
 		X_Servo_Axis.set_disable_with_steppers(false);
 	#endif
 	#ifdef SERVO_Y_PIN
-		grbl_sendf(CLIENT_SERIAL, "[MSG:Y Servo range %4.3f to %4.3f]\r\n", SERVO_Y_RANGE_MIN, SERVO_Y_RANGE_MAX);
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Y Servo range %4.3f to %4.3f", SERVO_Y_RANGE_MIN, SERVO_Y_RANGE_MAX);
 		Y_Servo_Axis.init();
 		Y_Servo_Axis.set_range(SERVO_Y_RANGE_MIN, SERVO_Y_RANGE_MAX);
 	#endif
 	#ifdef SERVO_Z_PIN
-		grbl_sendf(CLIENT_SERIAL, "[MSG:Z Servo range %4.3f to %4.3f]\r\n", SERVO_Z_RANGE_MIN, SERVO_Z_RANGE_MAX);
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Z Servo range %4.3f to %4.3f", SERVO_Z_RANGE_MIN, SERVO_Z_RANGE_MAX);
 		Z_Servo_Axis.init();		
 		Z_Servo_Axis.set_range(SERVO_Z_RANGE_MIN, SERVO_Z_RANGE_MAX);
 		#ifdef SERVO_Z_HOMING_TYPE
@@ -80,7 +79,7 @@ void init_servos()
 	#endif
 	
 	#ifdef SERVO_A_PIN
-		grbl_sendf(CLIENT_SERIAL, "[MSG:A Servo range %4.3f to %4.3f]\r\n", SERVO_A_RANGE_MIN, SERVO_A_RANGE_MAX);
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "A Servo range %4.3f to %4.3f", SERVO_A_RANGE_MIN, SERVO_A_RANGE_MAX);
 		A_Servo_Axis.init();
 		A_Servo_Axis.set_range(SERVO_A_RANGE_MIN, SERVO_A_RANGE_MAX);
 		A_Servo_Axis.set_homing_type(SERVO_HOMING_OFF);
@@ -88,12 +87,12 @@ void init_servos()
 		A_Servo_Axis.set_disable_with_steppers(false);
 	#endif
 	#ifdef SERVO_B_PIN
-		grbl_sendf(CLIENT_SERIAL, "[MSG:B Servo range %4.3f to %4.3f]\r\n", SERVO_B_RANGE_MIN, SERVO_B_RANGE_MAX);
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "B Servo range %4.3f to %4.3f", SERVO_B_RANGE_MIN, SERVO_B_RANGE_MAX);
 		B_Servo_Axis.init();
 		B_Servo_Axis.set_range(SERVO_B_RANGE_MIN, SERVO_B_RANGE_MAX);
 	#endif
 	#ifdef SERVO_C_PIN
-		grbl_sendf(CLIENT_SERIAL, "[MSG:C Servo range %4.3f to %4.3f]\r\n", SERVO_C_RANGE_MIN, SERVO_C_RANGE_MAX);
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "C Servo range %4.3f to %4.3f", SERVO_C_RANGE_MIN, SERVO_C_RANGE_MAX);
 		C_Servo_Axis.init();
 		C_Servo_Axis.set_range(SERVO_C_RANGE_MIN, SERVO_C_RANGE_MAX);
 		//C_Servo_Axis.set_homing_type(SERVO_HOMING_TARGET);
@@ -276,7 +275,7 @@ bool ServoAxis::_cal_is_valid()
   
 	if ( (settings.steps_per_mm[_axis] < SERVO_CAL_MIN) || (settings.steps_per_mm[_axis] > SERVO_CAL_MAX) ) {
 		if (_showError) {
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo calibration ($10%d) value error. Reset to 100]\r\n", _axis);
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($10%d) value error. Reset to 100", _axis);
 			settings.steps_per_mm[_axis] = 100;
 			write_global_settings();
 		}
@@ -286,7 +285,7 @@ bool ServoAxis::_cal_is_valid()
 	// Note: Max travel is set positive via $$, but stored as a negative number
 	if ( (settings.max_travel[_axis] < -SERVO_CAL_MAX) || (settings.max_travel[_axis] > -SERVO_CAL_MIN) ) {
 		if (_showError) {
-			grbl_sendf(CLIENT_SERIAL, "[MSG:Servo calibration ($13%d) value error. Reset to 100]\r\n", _axis);
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($13%d) value error. Reset to 100", _axis);
 			settings.max_travel[_axis] = -100;
 			write_global_settings();
 		}
@@ -311,8 +310,8 @@ void ServoAxis::set_range(float min, float max) {
     _position_min = min;
     _position_max = max;
   }
-  else {
-    grbl_send(CLIENT_SERIAL, "[MSG:Error setting range. Min not smaller than max]\r\n");
+  else {    
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Error setting range. Min not smaller than max");
   }
 }
 

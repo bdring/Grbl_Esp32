@@ -34,18 +34,18 @@ void spindle_init()
 	#ifdef SPINDLE_PWM_PIN
 		
 		#ifdef INVERT_SPINDLE_PWM
-			grbl_send(CLIENT_SERIAL, "[MSG: INVERT_SPINDLE_PWM]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "INVERT_SPINDLE_PWM");
 		#endif
 		
 		#ifdef INVERT_SPINDLE_ENABLE_PIN
-			grbl_send(CLIENT_SERIAL, "[MSG: INVERT_SPINDLE_ENABLE_PIN]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "INVERT_SPINDLE_ENABLE_PIN");
 		#endif
 		
 		// determine how many PWM counts are in eqach PWM cycle
 		spindle_pwm_period = ((1<<SPINDLE_PWM_BIT_PRECISION) -1);
 
 		if (settings.spindle_pwm_min_value > settings.spindle_pwm_min_value) {
-			grbl_sendf(CLIENT_SERIAL, "[MSG: Warning spindle min pwm is greater than max. Check $35 and $36]\r\n", pwm_gradient);			
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning spindle min pwm is greater than max. Check $35 and $36");			
 		}
 		
 		// pre-caculate some PWM count values		

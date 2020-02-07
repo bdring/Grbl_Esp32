@@ -85,7 +85,7 @@ void protocol_main_loop()
 	
   for (;;) {
 		
-		// serialCheck(); // un comment this if you do this here rather than in a separate task
+		
 
 		#ifdef ENABLE_SD_CARD
 			if (SD_ready_next) {
@@ -108,7 +108,7 @@ void protocol_main_loop()
     // initial filtering by removing spaces and comments and capitalizing all letters.
 		
 		uint8_t client = CLIENT_SERIAL;
-		for (client = 0; client <= CLIENT_COUNT; client++)
+		for (client = 0; client < CLIENT_COUNT; client++)
 		{
 			while((c = serial_read(client)) != SERIAL_NO_DATA) {
 				if ((c == '\n') || (c == '\r')) { // End of line reached
@@ -139,12 +139,12 @@ void protocol_main_loop()
                             if (!COMMANDS::execute_internal_command  (cmd, cmd_params, LEVEL_GUEST, &espresponse)) {
                                 report_status_message(STATUS_GCODE_UNSUPPORTED_COMMAND, CLIENT_ALL);
                             }
-                        } else grbl_sendf(client, "[MSG: Unknow Command...%s]\r\n", line);
+                        } else grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Unknow Command...%s", line);
 					} else if (sys.state & (STATE_ALARM | STATE_JOG)) {
 						// Everything else is gcode. Block if in alarm or jog mode.
 						report_status_message(STATUS_SYSTEM_GC_LOCK, client);
 					} else {
-						// Parse and execute g-code block.
+						// Parse and execute g-code block
 						report_status_message(gc_execute_line(line, client), client);
 					}
 

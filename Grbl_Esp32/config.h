@@ -49,6 +49,7 @@ Some features should not be changed. See notes below.
 #define N_AXIS 3 // Number of axes defined (valid range: 3 to 6) 
 
 #define VERBOSE_HELP // adds addition help info, but could confuse some senders
+#define GRBL_MSG_LEVEL MSG_LEVEL_INFO // what level of [MSG:....] do you want to see 0=all off
 
 // Serial baud rate
 #define BAUD_RATE 115200
@@ -264,7 +265,6 @@ Some features should not be changed. See notes below.
 // Enable using a servo for the Z axis on a pen type machine.
 // You typically should not define a pin for the Z axis in cpu_map.h
 // You should configure your settings in servo_pen.h
-// #define USE_PEN_SERVO    // this method will be deprecated soon
 // #define USE_SERVO_AXES  // the new method
 // define your servo pin here or in cpu_map.h
 //#define SERVO_PEN_PIN 					GPIO_NUM_27

@@ -398,9 +398,7 @@ uint8_t limits_get_state()
 	
 	#ifdef C_LIMIT_PIN
 		pin += (digitalRead(C_LIMIT_PIN) << C_AXIS);
-	#endif
-	
-	//grbl_sendf(CLIENT_SERIAL, "[MSG: Limit pins %d]\r\n", pin);
+	#endif	
 
 	#ifdef INVERT_LIMIT_PIN_MASK // not normally used..unless you have both normal and inverted switches
 		pin ^= INVERT_LIMIT_PIN_MASK;
@@ -408,9 +406,7 @@ uint8_t limits_get_state()
   
 	if (bit_istrue(settings.flags,BITFLAG_INVERT_LIMIT_PINS)) { 
 		pin ^= LIMIT_MASK;
-	}
-	
-	//grbl_sendf(CLIENT_SERIAL, "[MSG: Limit Inverted %d]\r\n", pin);
+	}	
   
 	if (pin) {
 		uint8_t idx;
@@ -419,9 +415,7 @@ uint8_t limits_get_state()
 				limit_state |= (1 << idx);
 			}
 		}
-	}
-	
-	//grbl_sendf(CLIENT_SERIAL, "[MSG: Limit State %d]\r\n", limit_state);
+	}	
 	
 	return(limit_state);	
 }

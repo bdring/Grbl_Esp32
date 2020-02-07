@@ -39,8 +39,6 @@
 // a task to read for incoming data from serial port
 void serialCheckTask(void *pvParameters);
 
-void serialCheck();
-
 void serial_write(uint8_t data);
 // Fetches the first byte in the serial read buffer. Called by main program.
 uint8_t serial_read(uint8_t client);
@@ -53,5 +51,9 @@ void serial_reset_read_buffer(uint8_t client);
 
 // Returns the number of bytes available in the RX serial buffer.
 uint8_t serial_get_rx_buffer_available(uint8_t client);
+
+void execute_realtime_command(uint8_t command, uint8_t client);
+bool any_client_has_data();
+bool is_realtime_command(uint8_t data);
 
 #endif

@@ -47,25 +47,25 @@ void system_ini() // Renamed from system_init() due to conflict with esp32 files
 		#endif
 		
 		#ifdef MACRO_BUTTON_0_PIN
-			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 0]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 0");
 			pinMode(MACRO_BUTTON_0_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_0_PIN), isr_control_inputs, CHANGE);
 		#endif
 
 		#ifdef MACRO_BUTTON_1_PIN
-			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 1]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 1");
 			pinMode(MACRO_BUTTON_1_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_1_PIN), isr_control_inputs, CHANGE);
 		#endif
 
 		#ifdef MACRO_BUTTON_2_PIN
-			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 2]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 2");
 			pinMode(MACRO_BUTTON_2_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_2_PIN), isr_control_inputs, CHANGE);
 		#endif
 
 		#ifdef MACRO_BUTTON_3_PIN
-			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 3]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 3");
 			pinMode(MACRO_BUTTON_3_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_3_PIN), isr_control_inputs, CHANGE);
 		#endif	
@@ -544,7 +544,7 @@ uint8_t get_limit_pin_mask(uint8_t axis_idx)
 void system_exec_control_pin(uint8_t pin) {
 	
 	if (bit_istrue(pin,CONTROL_PIN_INDEX_RESET)) {
-		grbl_send(CLIENT_SERIAL, "[MSG:Reset via control pin]\r\n"); // help debug reason for reset
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset via control pin");
 		mc_reset();
 	} 
 	else if (bit_istrue(pin,CONTROL_PIN_INDEX_CYCLE_START)) {
