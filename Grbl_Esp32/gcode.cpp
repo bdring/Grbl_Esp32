@@ -186,7 +186,8 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 			case 38:
 				#ifndef PROBE_PIN //only allow G38 "Probe" commands if a probe pin is defined.
 					if (int_value == 38) {
-						grbl_send(CLIENT_SERIAL, "[MSG:No probe pin defined!]\r\n");
+						grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No probe pin defined");
+						
 						FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported G command]
 					}
 				#endif
@@ -321,7 +322,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 			case 4:
 			case 5:
 				#ifndef SPINDLE_PWM_PIN
-					grbl_send(CLIENT_SERIAL, "[MSG:No spindle pin defined]\r\n");
+					grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No spindle pin defined");
 				#endif
 				word_bit = MODAL_GROUP_M7;
 				switch(int_value) {
@@ -476,7 +477,7 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 				if(value > MAX_TOOL_NUMBER)  {
 					FAIL(STATUS_GCODE_MAX_VALUE_EXCEEDED);
 				}
-				grbl_sendf(CLIENT_ALL, "[MSG:Tool No: %d]\r\n", int_value);
+				grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Tool No: %d", int_value);
 				gc_state.tool = int_value;
 				break;
 			case 'X':

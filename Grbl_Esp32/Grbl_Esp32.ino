@@ -37,12 +37,12 @@ volatile uint8_t sys_rt_exec_accessory_override; // Global realtime executor bit
 
 void setup() {
   
-  serial_init();   // Setup serial baud rate and interrupts
+  serial_init();   // Setup serial baud rate and interrupts  
   
-  grbl_sendf(CLIENT_SERIAL, "[MSG:ESP32 SDK: %s]\r\n", ESP.getSdkVersion()); // print the SDK version
+  grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion()); // print the SDK version
 
   #ifdef CPU_MAP_NAME // show the map name at startup
-		grbl_send(CLIENT_SERIAL,"[MSG:Using cpu_map..." CPU_MAP_NAME "]\r\n");
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using cpu_map:%s", CPU_MAP_NAME);
   #endif
 	
   settings_init(); // Load Grbl settings from EEPROM  
