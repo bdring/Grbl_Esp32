@@ -19,6 +19,7 @@
 */
 
 #include "grbl.h"
+#include "WiFi.h"
 
 // Declare system global variable structure
 system_t sys;
@@ -36,6 +37,11 @@ volatile uint8_t sys_rt_exec_accessory_override; // Global realtime executor bit
 
 
 void setup() {
+  WiFi.persistent(false);
+  WiFi.disconnect(true);
+  WiFi.enableSTA (false);
+  WiFi.enableAP (false);
+  WiFi.mode (WIFI_OFF);
   
   serial_init();   // Setup serial baud rate and interrupts  
   
