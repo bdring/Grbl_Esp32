@@ -111,7 +111,6 @@ void protocol_main_loop()
 		for (client = 0; client < CLIENT_COUNT; client++)
 		{
 			while((c = serial_read(client)) != SERIAL_NO_DATA) {
-        //grbl_sendf(CLIENT_SERIAL, "[MSG:ptcl read...%d %d]\r\n", c, client);
 				if ((c == '\n') || (c == '\r')) { // End of line reached
 
 					protocol_execute_realtime(); // Runtime command check point.
@@ -125,7 +124,6 @@ void protocol_main_loop()
 					// Direct and execute one line of formatted input, and report status of execution.
 					if (line_flags & LINE_FLAG_OVERFLOW) {
 						// Report line overflow error.
-            //grbl_sendf(client, "[MSG:exec gcode %s %d]\r\n", line, char_counter);
 						report_status_message(STATUS_OVERFLOW, client);
 					} else if (line[0] == 0) {
 						// Empty or comment line. For syncing purposes.
@@ -141,13 +139,12 @@ void protocol_main_loop()
                             if (!COMMANDS::execute_internal_command  (cmd, cmd_params, LEVEL_GUEST, &espresponse)) {
                                 report_status_message(STATUS_GCODE_UNSUPPORTED_COMMAND, CLIENT_ALL);
                             }
-                        } else grbl_sendf(client, "[MSG: Unknow Command...%s]\r\n", line);
+                        } else grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Unknow Command...%s", line);
 					} else if (sys.state & (STATE_ALARM | STATE_JOG)) {
 						// Everything else is gcode. Block if in alarm or jog mode.
 						report_status_message(STATUS_SYSTEM_GC_LOCK, client);
 					} else {
-						// Parse and execute g-code block.
-            //grbl_sendf(client, "[MSG:exec gcode %s]\r\n", line);
+						// Parse and execute g-code block
 						report_status_message(gc_execute_line(line, client), client);
 					}
 

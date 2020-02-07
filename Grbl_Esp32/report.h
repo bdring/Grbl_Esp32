@@ -107,9 +107,17 @@
 #define CLIENT_ALL			0xFF
 #define CLIENT_COUNT    	5 // total number of client types regardless if they are used
 
+#define MSG_LEVEL_NONE		0 // set GRBL_MSG_LEVEL in config.h to the level you want to see
+#define MSG_LEVEL_ERROR		1
+#define MSG_LEVEL_WARNING	2
+#define MSG_LEVEL_INFO		3
+#define MSG_LEVEL_DEBUG		4
+#define MSG_LEVEL_VERBOSE	5
+
 // functions to send data to the user.
 void grbl_send(uint8_t client, const char *text);
 void grbl_sendf(uint8_t client, const char *format, ...);
+void grbl_msg_sendf(uint8_t client, uint8_t level, const char *format, ...);
 
 //function to notify
 void grbl_notify(const char *title, const char *msg);

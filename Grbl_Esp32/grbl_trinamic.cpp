@@ -136,7 +136,7 @@ void Trinamic_Init()
 {
 	uint8_t testResult;
 	
-    grbl_sendf(CLIENT_SERIAL, "[MSG:TMCStepper Init using Library Ver 0x%06x]\r\n", TMCSTEPPER_VERSION);
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TMCStepper Init using Library Ver 0x%06x", TMCSTEPPER_VERSION);
 	
 	SPI.begin();
 	
@@ -243,17 +243,21 @@ void trinamic_change_settings()
 }
 
 void trinamic_test_response(uint8_t result, const char *axis) 
-{
-	grbl_sendf(CLIENT_SERIAL, "[MSG:%s Trinamic driver test ", axis);
+{	
 	if (result) {
 		grbl_sendf(CLIENT_SERIAL, "failed.");
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed", axis);
 		switch(result) {
-            case 1: grbl_sendf(CLIENT_SERIAL, " Check connection]\r\n"); break;
-            case 2: grbl_sendf(CLIENT_SERIAL, " Check motor power]\r\n"); break;
+            case 1: 
+				grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test check connection", axis); 
+				break;
+            case 2: 
+				grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test check motor power", axis);
+				break;
         }
 	}
 	else {
-		grbl_sendf(CLIENT_SERIAL, "passed]\r\n");
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed", axis);
 	}		
 }
 
