@@ -243,10 +243,17 @@ uint8_t system_execute_line(char *line, uint8_t client)
                 case 'X': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_X); break;
                 case 'Y': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_Y); break;
                 case 'Z': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_Z); break;
-                case 'A': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_A); break;
-                case 'B': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_B); break;
-                case 'C': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_C); break;
-                default: return(STATUS_INVALID_STATEMENT);
+                #if (N_AXIS > 3) // make sure axis is defined
+                  case 'A': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_A); break;
+                #endif
+                #if (N_AXIS > 4) // make sure axis is defined
+                  case 'B': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_B); break;
+                #endif
+                #if (N_AXIS > 5) // make sure axis is defined
+                  case 'C': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_C); break;
+                #endif
+                default: 
+                  return(STATUS_INVALID_STATEMENT);
               }
           #endif
           } else { return(STATUS_INVALID_STATEMENT); }

@@ -585,10 +585,6 @@
 	#endif	
 		
 	#define USE_GANGED_AXES // allow two motors on an axis 
-
-	#ifdef HOMING_SINGLE_AXIS_COMMANDS
-		#undef HOMING_SINGLE_AXIS_COMMANDS
-	#endif
   
 	#define X_STEP_PIN      GPIO_NUM_12
 	#define X_STEP_B_PIN    GPIO_NUM_22	 // ganged motor
@@ -688,7 +684,7 @@
 
 	#define DEFAULT_HOMING_ENABLE 1  // false
 	#define DEFAULT_HOMING_DIR_MASK 3 // move positive dir Z,negative X,Y
-	#define DEFAULT_HOMING_FEED_RATE 500.0 // mm/min
+	#define DEFAULT_HOMING_FEED_RATE 100.0 // mm/min
 	#define DEFAULT_HOMING_SEEK_RATE 200.0 // mm/min
 	#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
 	#define DEFAULT_HOMING_PULLOFF 2.0 // mm
@@ -840,10 +836,9 @@
 	// OK to comment out to use pin for other features
 	#define STEPPERS_DISABLE_PIN GPIO_NUM_13	
 	
-	#ifndef USE_SERVO_AXES  // maybe set in config.h
+	#ifndef USE_SERVO_AXES  // may be set in config.h
 		#define USE_SERVO_AXES
 	#endif
-	
 	
 	#define SERVO_Z_PIN 				GPIO_NUM_27
 	#define SERVO_Z_CHANNEL_NUM 		5
