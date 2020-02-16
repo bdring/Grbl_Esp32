@@ -585,6 +585,10 @@
 	#endif	
 		
 	#define USE_GANGED_AXES // allow two motors on an axis 
+
+	#ifdef HOMING_SINGLE_AXIS_COMMANDS
+		#undef HOMING_SINGLE_AXIS_COMMANDS
+	#endif
   
 	#define X_STEP_PIN      GPIO_NUM_12
 	#define X_STEP_B_PIN    GPIO_NUM_22	 // ganged motor
@@ -653,10 +657,13 @@
 	
 	// Note: default is #define IGNORE_CONTROL_PINS in config.h
 	// uncomment to these lines to use them		
+
+	/*
 	#ifdef IGNORE_CONTROL_PINS
 		#undef IGNORE_CONTROL_PINS
 	#endif
-	
+	*/
+
 	#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
 	#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
 	#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    
@@ -681,10 +688,10 @@
 
 	#define DEFAULT_HOMING_ENABLE 1  // false
 	#define DEFAULT_HOMING_DIR_MASK 3 // move positive dir Z,negative X,Y
-	#define DEFAULT_HOMING_FEED_RATE 600.0 // mm/min
-	#define DEFAULT_HOMING_SEEK_RATE 2000.0 // mm/min
+	#define DEFAULT_HOMING_FEED_RATE 500.0 // mm/min
+	#define DEFAULT_HOMING_SEEK_RATE 200.0 // mm/min
 	#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
-	#define DEFAULT_HOMING_PULLOFF 1.5 // mm
+	#define DEFAULT_HOMING_PULLOFF 2.0 // mm
 
 	#ifdef USE_SPINDLE_RELAY
 		#define DEFAULT_SPINDLE_RPM_MAX 1.0 // must be 1 so PWM duty is alway 100% to prevent relay damage
@@ -1064,6 +1071,10 @@
 
 #ifdef CPU_MAP_ATARI_1020
 	#include "atari_1020.h"	
+#endif
+
+#ifdef CPU_MAP_CUSTOM_MACHINE
+	#include "custom_machine_template.h"	
 #endif
 
 	// ================= common to all machines ================================
