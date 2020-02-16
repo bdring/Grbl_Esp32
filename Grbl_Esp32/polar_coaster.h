@@ -24,7 +24,7 @@
 
 #define SEGMENT_LENGTH 0.5 // segment length in mm
 #define USE_KINEMATICS
-#define FWD_KINEMATICS_REPORTING // report in cartesian	
+#define USE_FWD_KINEMATIC // report in cartesian	
 #define USE_M30
 
 // ============= Begin CPU MAP ================

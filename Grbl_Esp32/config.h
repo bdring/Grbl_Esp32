@@ -46,13 +46,17 @@ Some features should not be changed. See notes below.
 // See Github repo wiki for more details
 #define CPU_MAP_TEST_DRIVE // these are defined in cpu_map.h
 
-#define N_AXIS 3 // Number of axes defined (valid range: 3 to 6) 
+// Number of axes defined (steppers, servos, etc) (valid range: 3 to 6)
+// Even if your machine only uses less than the minimum of 3, you should select 3 
+#define N_AXIS 3 
 
-#define VERBOSE_HELP // adds addition help info, but could confuse some senders
+#define VERBOSE_HELP // Currently this doesn't do anything
 #define GRBL_MSG_LEVEL MSG_LEVEL_INFO // what level of [MSG:....] do you want to see 0=all off
 
 // Serial baud rate
-#define BAUD_RATE 115200
+// OK to change, but the ESP32 boot text is 115200, so you will not see that is your
+// serial monitor, sender, etc uses a different value than 115200
+#define BAUD_RATE 115200  
 
 #define ENABLE_BLUETOOTH // enable bluetooth 
 
