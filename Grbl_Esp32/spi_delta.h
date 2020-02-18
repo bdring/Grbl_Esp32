@@ -43,7 +43,7 @@
 	#define KIN_ANGLE_CALC_OK   0
 	#define KIN_ANGLE_ERROR     -1
 	
-	#define MAX_NEGATIVE_ANGLE -0.75 // in radians how far can the arms go up?
+	#define MAX_NEGATIVE_ANGLE -36 // in degrees how far can the arms go up?
 	
 	#define HOMING_CURRENT_REDUCTION 1.0
 	
@@ -66,7 +66,7 @@
 	#ifdef N_HOMING_LOCATE_CYCLE
 		#undef N_HOMING_LOCATE_CYCLE
 	#endif
-	#define N_HOMING_LOCATE_CYCLE 0
+	#define N_HOMING_LOCATE_CYCLE 1
 	
 	#define SHOW_EXTENDED_SETTINGS
 	

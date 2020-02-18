@@ -189,10 +189,10 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 	if (status == KIN_ANGLE_ERROR) {
 		return;
 	}
-	if (motor_angles[0] < MAX_NEGATIVE_ANGLE || motor_angles[0] < MAX_NEGATIVE_ANGLE || motor_angles[0] < MAX_NEGATIVE_ANGLE) {
-		grbl_sendf(	CLIENT_SERIAL, "[MSG:Destination too high]\r\n");
+	if (motor_angles[0] < MAX_NEGATIVE_ANGLE || motor_angles[1] < MAX_NEGATIVE_ANGLE || motor_angles[2] < MAX_NEGATIVE_ANGLE) {
+		grbl_sendf(	CLIENT_SERIAL, "[MSG:Destination unreachable. Move rejected]\r\n");
 		return;
-	}	
+	}
 	
 	// adjust the end effector location
 	//target[Z_AXIS] += delta_z_offset; // Note: For typical (fixed top) deltas, the offset is negative
@@ -224,11 +224,18 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 		int status = delta_calcInverse(seg_target[X_AXIS] , seg_target[Y_AXIS] , seg_target[Z_AXIS] + delta_z_offset, motor_angles[0], motor_angles[1], motor_angles[2]);
 		
 		// check to see if we are trying to go too high
+		for (int axis = 0; axis < N_AXIS; axis++) {
+			if (motor_angles[axis] < MAX_NEGATIVE_ANGLE) {
+				grbl_sendf(	CLIENT_SERIAL, "[MSG:Axis %d angle error. Too high %4.3f]\r\n", axis, motor_angles[axis]);
+			}
+		}
+
+		/*
 		if (motor_angles[0] < MAX_NEGATIVE_ANGLE || motor_angles[0] < MAX_NEGATIVE_ANGLE || motor_angles[0] < MAX_NEGATIVE_ANGLE) {
 			grbl_sendf(	CLIENT_SERIAL, "[MSG:Angle error. Too high]\r\n");
 			status = KIN_ANGLE_ERROR;
 		}
-		
+		*/
 		
 		if(status == KIN_ANGLE_CALC_OK) {
 			//grbl_sendf(	CLIENT_SERIAL, "[MSG:Kin Segment Target Angs X:%4.3f Y:%4.3f Z:%4.3f]\r\n\r\n", motor_angles[0], motor_angles[1], motor_angles[2]);
@@ -397,7 +404,7 @@ void forward_kinematics(float *position)
 */
 bool kinematics_homing(uint8_t cycle_mask) 
 {	
-	delta_motor_mode(DELTA_MOTOR_HOME_MODE);  // send spi commands for this mode
+	delta_motor_mode(DELTA_MOTOR_RUN_MODE);  // send spi commands for this mode
 	
 	if (spi_delta_homing(cycle_mask)) { // if successfully homes				
 		
@@ -407,7 +414,7 @@ bool kinematics_homing(uint8_t cycle_mask)
 		sys_position[Z_AXIS] = 0;		
 
 		gc_sync_position();
-		plan_sync_position();		
+		plan_sync_position();
 	}
 	else {
 		set_stepper_disable(true); // disable motors to allow them to free wheel
@@ -461,14 +468,16 @@ bool spi_delta_homing(uint8_t cycle_mask)
 	if (mode == DELTA_MOTOR_RUN_MODE) {
 		
 		TRINAMIC_X.tbl(1);
-		TRINAMIC_X.toff(3);
+		TRINAMIC_X.toff(5);
 		TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);
 		TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS]/100.0);	
 		TRINAMIC_X.TCOOLTHRS(NORMAL_TCOOLTHRS); // lower threshold velocity for switching on coolStep and stallGuard feature
 		TRINAMIC_X.THIGH(NORMAL_THIGH);
 		TRINAMIC_X.hysteresis_start(4);
 		TRINAMIC_X.hysteresis_end(-2);
-		
+		TRINAMIC_X.en_pwm_mode(1);      // Enable extremely quiet stepping
+		TRINAMIC_X.pwm_autoscale(1);
+
 		TRINAMIC_Y.tbl(1);
 		TRINAMIC_Y.toff(3);
 		TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
@@ -477,6 +486,8 @@ bool spi_delta_homing(uint8_t cycle_mask)
 		TRINAMIC_Y.THIGH(NORMAL_THIGH);
 		TRINAMIC_Y.hysteresis_start(4);
 		TRINAMIC_Y.hysteresis_end(-2);
+		TRINAMIC_Y.en_pwm_mode(1);      // Enable extremely quiet stepping
+		TRINAMIC_Y.pwm_autoscale(1);
 		
 		TRINAMIC_Z.tbl(1);
 		TRINAMIC_Z.toff(3);
@@ -486,6 +497,8 @@ bool spi_delta_homing(uint8_t cycle_mask)
 		TRINAMIC_Z.THIGH(NORMAL_THIGH);
 		TRINAMIC_Z.hysteresis_start(4);
 		TRINAMIC_Z.hysteresis_end(-2);
+		TRINAMIC_Z.en_pwm_mode(1);      // Enable extremely quiet stepping
+		TRINAMIC_Z.pwm_autoscale(1);
 		
 	} 
 	else if (mode == DELTA_MOTOR_HOME_MODE) {
