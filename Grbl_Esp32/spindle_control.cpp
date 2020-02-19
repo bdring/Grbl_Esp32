@@ -205,8 +205,14 @@ void spindle_sync(uint8_t state, float rpm)
 
 void grbl_analogWrite(uint8_t chan, uint32_t duty)
 {
-	if (ledcRead(chan) != duty) // reduce unnecessary calls to ledcWrite()
+	// Remember the old duty cycle in memory instead of reading
+	// it from the I/O peripheral because I/O reads are quite
+	// a bit slower than memory reads.
+	static uint32_t old_duty = 0;
+
+	if (old_duty != duty) // reduce unnecessary calls to ledcWrite()
 	{		
+		old_duty = duty;
 		ledcWrite(chan, duty);
 	}
 }
