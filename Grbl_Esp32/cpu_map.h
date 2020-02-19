@@ -1011,11 +1011,14 @@
 	#ifdef N_AXIS
 		#undef N_AXIS
 	#endif
-	#define N_AXIS 4 // can be 3 or 4. if 3 install bypass jumper for driver 4
+	#define N_AXIS 4 // can be 3 or 4. (if 3 install bypass jumper next to the A driver)
 	
 	#define USE_TRINAMIC  
 	#define TRINAMIC_DAISY_CHAIN
-	#define USE_TRINAMIC_ENABLE
+
+	// Use SPI enable instead of the enable pin
+	// The hardware enable pin is tied to ground
+	#define USE_TRINAMIC_ENABLE 
 	#define USE_RMT_STEPS
 	
 	#define X_DRIVER_TMC2130 	// Which Driver Type?
@@ -1048,12 +1051,21 @@
 		#define A_CS_PIN    		X_CS_PIN  // Daisy Chain, all share same CS pin
 	#endif
 	
+	// Mist is a 3.3V output
+	// Turn on with M7 and off with M9
 	#define COOLANT_MIST_PIN   	GPIO_NUM_21
 	
 	#define SPINDLE_PWM_PIN    			GPIO_NUM_25
 	#define SPINDLE_ENABLE_PIN			GPIO_NUM_4
 	#define SPINDLE_PWM_CHANNEL 		0
 	#define SPINDLE_PWM_BIT_PRECISION 	8
+
+	// Relay operation
+	// Install Jumper near relay
+	// For spindle Use max RPM of 1  
+	// For PWM remove jumper and set MAX RPM to something higher ($30 setting)
+	// Interlock jumper along top edge needs to be installed for both versions
+	#define DEFAULT_SPINDLE_RPM_MAX     1 // Should be 1 for relay operation
 	
 	#define PROBE_PIN       	GPIO_NUM_22
 	
