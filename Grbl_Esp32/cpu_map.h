@@ -817,7 +817,7 @@
 		
 	#define USE_RMT_STEPS
 	
-	#define USE_TRINAMIC // Using at least 1 trinamic driver
+	#define USE_TRINAMIC // Using at least 1 trinamic driver	
 	
 	#define X_STEP_PIN      	GPIO_NUM_12
 	#define X_DIRECTION_PIN   	GPIO_NUM_26
@@ -1011,56 +1011,62 @@
 	#ifdef N_AXIS
 		#undef N_AXIS
 	#endif
-	#define N_AXIS 4
+	#define N_AXIS 4 // can be 3 or 4. if 3 install bypass jumper for driver 4
 	
 	#define USE_TRINAMIC  
 	#define TRINAMIC_DAISY_CHAIN
+	#define USE_TRINAMIC_ENABLE
 	#define USE_RMT_STEPS
 	
+	#define X_DRIVER_TMC2130 	// Which Driver Type?
+	#define X_RSENSE			0.11f   // .11 Ohm...typical of 2130 type 0.075 typical for TMC5160
 	#define X_STEP_PIN      	GPIO_NUM_12
 	#define X_DIRECTION_PIN   	GPIO_NUM_14
 	#define X_TRINAMIC   	   	// using SPI control
-	#define X_DRIVER_TMC2130 	// Which Driver Type?
 	#define X_CS_PIN    		GPIO_NUM_17  // Daisy Chain, all share same CS pin
-	#define X_RSENSE			0.11f   // .11 Ohm
 	
+	#define Y_DRIVER_TMC2130 	// Which Driver Type?
+	#define Y_RSENSE			0.11f   // .11 Ohm...typical of 2130 type 0.075 typical for TMC5160
 	#define Y_STEP_PIN      	GPIO_NUM_27
 	#define Y_DIRECTION_PIN   	GPIO_NUM_26
 	#define Y_TRINAMIC   	   	// using SPI control
-	#define Y_DRIVER_TMC2130 	// Which Driver Type?
 	#define Y_CS_PIN    		X_CS_PIN  // Daisy Chain, all share same CS pin
-	#define Y_RSENSE			0.11f   // .11 Ohm
 	
+	#define Z_DRIVER_TMC2130 	// Which Driver Type?
+	#define Z_RSENSE			0.11f   // .11 Ohm...typical of 2130 type 0.075 typical for TMC5160
 	#define Z_STEP_PIN      	GPIO_NUM_15
 	#define Z_DIRECTION_PIN   	GPIO_NUM_2
 	#define Z_TRINAMIC   	   	// using SPI control
-	#define Z_DRIVER_TMC2130 	// Which Driver Type?
 	#define Z_CS_PIN    		X_CS_PIN  // Daisy Chain, all share same CS pin
-	#define Z_RSENSE			0.11f   // .11 Ohm
 
-	#define A_STEP_PIN      	GPIO_NUM_33
-	#define A_DIRECTION_PIN   	GPIO_NUM_32
-	#define A_TRINAMIC   	   	// using SPI control
-	#define A_DRIVER_TMC2130 	// Which Driver Type?
-	#define A_CS_PIN    		X_CS_PIN  // Daisy Chain, all share same CS pin
-	#define A_RSENSE			0.11f   // .11 Ohm
-	
-	#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+	#if (N_AXIS == 4)
+		#define A_DRIVER_TMC2130 	// Which Driver Type?
+		#define A_RSENSE			0.11f   // .11 Ohm...typical of 2130 type 0.075 typical for TMC5160
+		#define A_STEP_PIN      	GPIO_NUM_33
+		#define A_DIRECTION_PIN   	GPIO_NUM_32
+		#define A_TRINAMIC   	   	// using SPI control
+		#define A_CS_PIN    		X_CS_PIN  // Daisy Chain, all share same CS pin
+	#endif
 	
 	#define COOLANT_MIST_PIN   	GPIO_NUM_21
 	
 	#define SPINDLE_PWM_PIN    			GPIO_NUM_25
 	#define SPINDLE_ENABLE_PIN			GPIO_NUM_4
 	#define SPINDLE_PWM_CHANNEL 		0
-	#define SPINDLE_PWM_BIT_PRECISION 	8	
+	#define SPINDLE_PWM_BIT_PRECISION 	8
 	
 	#define PROBE_PIN       	GPIO_NUM_22
 	
 	#define X_LIMIT_PIN      	GPIO_NUM_36
 	#define Y_LIMIT_PIN      	GPIO_NUM_39
 	#define Z_LIMIT_PIN      	GPIO_NUM_34
-	#define A_LIMIT_PIN      	GPIO_NUM_35
-	#define LIMIT_MASK      	B1111
+
+	#if (N_AXIS == 4)
+		#define A_LIMIT_PIN      	GPIO_NUM_35
+		#define LIMIT_MASK      	B1111
+	#else
+		#define LIMIT_MASK      	B0111
+	#endif
 	
 #endif
 

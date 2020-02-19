@@ -190,43 +190,43 @@
 // =========== 	AXIS RESOLUTION ======
 
 #ifndef  DEFAULT_X_STEPS_PER_MM
-	#define DEFAULT_X_STEPS_PER_MM 800.0
+	#define DEFAULT_X_STEPS_PER_MM 100.0
 #endif  
 #ifndef  DEFAULT_Y_STEPS_PER_MM
-	#define DEFAULT_Y_STEPS_PER_MM 800.0
+	#define DEFAULT_Y_STEPS_PER_MM 100.0
 #endif  
 #ifndef  DEFAULT_Z_STEPS_PER_MM
-	#define DEFAULT_Z_STEPS_PER_MM 800.0
+	#define DEFAULT_Z_STEPS_PER_MM 100.0
 #endif  
 #ifndef  DEFAULT_A_STEPS_PER_MM
-	#define DEFAULT_A_STEPS_PER_MM 800.0
+	#define DEFAULT_A_STEPS_PER_MM 100.0
 #endif  
 #ifndef  DEFAULT_B_STEPS_PER_MM
-	#define DEFAULT_B_STEPS_PER_MM 800.0
+	#define DEFAULT_B_STEPS_PER_MM 100.0
 #endif  
 #ifndef  DEFAULT_C_STEPS_PER_MM
-	#define DEFAULT_C_STEPS_PER_MM 800.0
+	#define DEFAULT_C_STEPS_PER_MM 100.0
 #endif  
 
 // ============ AXIS MAX SPPED =========  
 
 #ifndef  DEFAULT_X_MAX_RATE
-	#define DEFAULT_X_MAX_RATE 5000.0 // mm/min
+	#define DEFAULT_X_MAX_RATE 1000.0 // mm/min
 #endif
 #ifndef  DEFAULT_Y_MAX_RATE
-	#define DEFAULT_Y_MAX_RATE 5000.0 // mm/min
+	#define DEFAULT_Y_MAX_RATE 1000.0 // mm/min
 #endif
 #ifndef  DEFAULT_Z_MAX_RATE
-	#define DEFAULT_Z_MAX_RATE 5000.0 // mm/min
+	#define DEFAULT_Z_MAX_RATE 1000.0 // mm/min
 #endif
 #ifndef  DEFAULT_A_MAX_RATE
-	#define DEFAULT_A_MAX_RATE 5000.0 // mm/min
+	#define DEFAULT_A_MAX_RATE 1000.0 // mm/min
 #endif
 #ifndef  DEFAULT_B_MAX_RATE
-	#define DEFAULT_B_MAX_RATE 5000.0 // mm/min
+	#define DEFAULT_B_MAX_RATE 1000.0 // mm/min
 #endif
 #ifndef  DEFAULT_C_MAX_RATE
-	#define DEFAULT_C_MAX_RATE 5000.0 // mm/min
+	#define DEFAULT_C_MAX_RATE 1000.0 // mm/min
 #endif  
 
 // ============== Axis Acceleration =========
