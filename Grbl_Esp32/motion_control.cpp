@@ -263,7 +263,24 @@ void mc_homing_cycle(uint8_t cycle_mask)
   // Perform homing routine. NOTE: Special motion case. Only system reset works.
   
   #ifdef HOMING_SINGLE_AXIS_COMMANDS
+    /*
     if (cycle_mask) { limits_go_home(cycle_mask); } // Perform homing cycle based on mask.
+    else
+    */
+    if (cycle_mask) { 
+      if (! axis_is_squared(cycle_mask))
+			  limits_go_home(cycle_mask);  // Homing cycle 0
+	    else {
+        ganged_mode = SQUARING_MODE_DUAL;
+        limits_go_home(cycle_mask);
+        ganged_mode = SQUARING_MODE_A;
+        limits_go_home(cycle_mask);
+        ganged_mode = SQUARING_MODE_B;
+        limits_go_home(cycle_mask);
+        ganged_mode = SQUARING_MODE_DUAL; // always return to dual 
+		}
+      
+    } // Perform homing cycle based on mask.
     else
   #endif
   {
