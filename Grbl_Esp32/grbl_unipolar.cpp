@@ -47,15 +47,15 @@
 	void unipolar_init(){
 		#ifdef X_UNIPOLAR
 			X_Unipolar.init();
-			grbl_send(CLIENT_SERIAL, "[MSG:X Unipolar]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "X unipolar");
 		#endif
 		#ifdef Y_UNIPOLAR
 			Y_Unipolar.init();
-			grbl_send(CLIENT_SERIAL, "[MSG:Y Unipolar]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Y unipolar");
 		#endif
 		#ifdef Z_UNIPOLAR
 			Z_Unipolar.init();
-			grbl_send(CLIENT_SERIAL, "[MSG:Z Unipolar]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Z unipolar");
 		#endif
 	}
 
@@ -109,9 +109,7 @@
 	{
 		if (enabled == _enabled)
 			return; // no change
-		
-		//grbl_sendf(CLIENT_SERIAL, "[MSG:Enabled...%d]\r\n", enabled);
-		
+				
 		_enabled = enabled;
 		
 		if (!enabled) {

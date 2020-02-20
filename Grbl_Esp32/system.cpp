@@ -47,25 +47,25 @@ void system_ini() // Renamed from system_init() due to conflict with esp32 files
 		#endif
 		
 		#ifdef MACRO_BUTTON_0_PIN
-			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 0]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 0");
 			pinMode(MACRO_BUTTON_0_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_0_PIN), isr_control_inputs, CHANGE);
 		#endif
 
 		#ifdef MACRO_BUTTON_1_PIN
-			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 1]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 1");
 			pinMode(MACRO_BUTTON_1_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_1_PIN), isr_control_inputs, CHANGE);
 		#endif
 
 		#ifdef MACRO_BUTTON_2_PIN
-			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 2]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 2");
 			pinMode(MACRO_BUTTON_2_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_2_PIN), isr_control_inputs, CHANGE);
 		#endif
 
 		#ifdef MACRO_BUTTON_3_PIN
-			grbl_send(CLIENT_SERIAL, "[MSG:Macro Pin 3]\r\n");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 3");
 			pinMode(MACRO_BUTTON_3_PIN, INPUT_PULLUP);
 			attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_3_PIN), isr_control_inputs, CHANGE);
 		#endif	
@@ -233,20 +233,27 @@ uint8_t system_execute_line(char *line, uint8_t client)
           break;
         case 'H' : // Perform homing cycle [IDLE/ALARM]  $H
           if (bit_isfalse(settings.flags,BITFLAG_HOMING_ENABLE)) {return(STATUS_SETTING_DISABLED); }
-          if (system_check_safety_door_ajar()) { return(STATUS_CHECK_DOOR); } // Block if safety door is ajar.
-          sys.state = STATE_HOMING; // Set system state variable
+          if (system_check_safety_door_ajar()) { return(STATUS_CHECK_DOOR); } // Block if safety door is ajar.          
           if (line[2] == 0) {
+            sys.state = STATE_HOMING; // Set system state variable
             mc_homing_cycle(HOMING_CYCLE_ALL);
           #ifdef HOMING_SINGLE_AXIS_COMMANDS
             } else if (line[3] == 0) {
               switch (line[2]) {
-                case 'X': mc_homing_cycle(HOMING_CYCLE_X); break;
-                case 'Y': mc_homing_cycle(HOMING_CYCLE_Y); break;
-                case 'Z': mc_homing_cycle(HOMING_CYCLE_Z); break;
-				case 'A': mc_homing_cycle(HOMING_CYCLE_A); break;
-				case 'B': mc_homing_cycle(HOMING_CYCLE_B); break;
-				case 'C': mc_homing_cycle(HOMING_CYCLE_C); break;
-                default: return(STATUS_INVALID_STATEMENT);
+                case 'X': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_X); break;
+                case 'Y': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_Y); break;
+                case 'Z': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_Z); break;
+                #if (N_AXIS > 3) // make sure axis is defined
+                  case 'A': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_A); break;
+                #endif
+                #if (N_AXIS > 4) // make sure axis is defined
+                  case 'B': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_B); break;
+                #endif
+                #if (N_AXIS > 5) // make sure axis is defined
+                  case 'C': sys.state = STATE_HOMING; mc_homing_cycle(HOMING_CYCLE_C); break;
+                #endif
+                default: 
+                  return(STATUS_INVALID_STATEMENT);
               }
           #endif
           } else { return(STATUS_INVALID_STATEMENT); }
@@ -544,7 +551,7 @@ uint8_t get_limit_pin_mask(uint8_t axis_idx)
 void system_exec_control_pin(uint8_t pin) {
 	
 	if (bit_istrue(pin,CONTROL_PIN_INDEX_RESET)) {
-		grbl_send(CLIENT_SERIAL, "[MSG:Reset via control pin]\r\n"); // help debug reason for reset
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset via control pin");
 		mc_reset();
 	} 
 	else if (bit_istrue(pin,CONTROL_PIN_INDEX_CYCLE_START)) {

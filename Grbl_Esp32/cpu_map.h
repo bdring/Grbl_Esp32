@@ -653,10 +653,13 @@
 	
 	// Note: default is #define IGNORE_CONTROL_PINS in config.h
 	// uncomment to these lines to use them		
+
+	/*
 	#ifdef IGNORE_CONTROL_PINS
 		#undef IGNORE_CONTROL_PINS
 	#endif
-	
+	*/
+
 	#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
 	#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup 
 	#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup    
@@ -681,10 +684,10 @@
 
 	#define DEFAULT_HOMING_ENABLE 1  // false
 	#define DEFAULT_HOMING_DIR_MASK 3 // move positive dir Z,negative X,Y
-	#define DEFAULT_HOMING_FEED_RATE 600.0 // mm/min
-	#define DEFAULT_HOMING_SEEK_RATE 2000.0 // mm/min
+	#define DEFAULT_HOMING_FEED_RATE 100.0 // mm/min
+	#define DEFAULT_HOMING_SEEK_RATE 200.0 // mm/min
 	#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
-	#define DEFAULT_HOMING_PULLOFF 1.5 // mm
+	#define DEFAULT_HOMING_PULLOFF 2.0 // mm
 
 	#ifdef USE_SPINDLE_RELAY
 		#define DEFAULT_SPINDLE_RPM_MAX 1.0 // must be 1 so PWM duty is alway 100% to prevent relay damage
@@ -833,10 +836,9 @@
 	// OK to comment out to use pin for other features
 	#define STEPPERS_DISABLE_PIN GPIO_NUM_13	
 	
-	#ifndef USE_SERVO_AXES  // maybe set in config.h
+	#ifndef USE_SERVO_AXES  // may be set in config.h
 		#define USE_SERVO_AXES
 	#endif
-	
 	
 	#define SERVO_Z_PIN 				GPIO_NUM_27
 	#define SERVO_Z_CHANNEL_NUM 		5
@@ -1064,6 +1066,10 @@
 
 #ifdef CPU_MAP_ATARI_1020
 	#include "atari_1020.h"	
+#endif
+
+#ifdef CPU_MAP_CUSTOM_MACHINE
+	#include "custom_machine_template.h"	
 #endif
 
 	// ================= common to all machines ================================

@@ -263,8 +263,7 @@ float abs_angle(float ang) {
 
 // Polar coaster has macro buttons, this handles those button pushes.
 void user_defined_macro(uint8_t index)
-{
-	//grbl_sendf(CLIENT_SERIAL, "[MSG: Macro #%d]\r\n", index);
+{	
 	switch (index) {
 		#ifdef MACRO_BUTTON_0_PIN
 		case CONTROL_PIN_INDEX_MACRO_0:

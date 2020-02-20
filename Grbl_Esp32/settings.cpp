@@ -461,6 +461,6 @@ void settings_spi_driver_init() {
 	#ifdef USE_TRINAMIC
 		trinamic_change_settings();
 	#else
-		grbl_send(CLIENT_ALL, "[MSG: No SPI drivers setup]\r\n");
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No SPI drivers setup");
 	#endif
 }
