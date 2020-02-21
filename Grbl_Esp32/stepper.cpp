@@ -1501,8 +1501,9 @@ void IRAM_ATTR Stepper_Timer_Stop()
 
 void set_stepper_disable(uint8_t isOn)  // isOn = true // to disable
 {	
-	#ifdef TRINAMIC
-		return;
+	
+	#ifdef USE_TRINAMIC_ENABLE
+		trinamic_stepper_enable(!isOn);
 	#endif
 	
 	if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) {

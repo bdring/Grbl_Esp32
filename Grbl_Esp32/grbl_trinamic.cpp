@@ -133,9 +133,7 @@
 // TODO ABC Axes
 
 void Trinamic_Init()
-{
-	uint8_t testResult;
-	
+{	
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TMCStepper Init using Library Ver 0x%06x", TMCSTEPPER_VERSION);
 	
 	SPI.begin();
@@ -147,9 +145,8 @@ void Trinamic_Init()
 	
 	#ifdef X_TRINAMIC
 		TRINAMIC_X.begin(); // Initiate pins and registries
-		testResult = TRINAMIC_X.test_connection();
-		trinamic_test_response(testResult, "X");
-		TRINAMIC_X.toff(5);
+		trinamic_test_response(TRINAMIC_X.test_connection(), "X");
+		TRINAMIC_X.toff(TRINAMIC_DEFAULT_TOFF);
 		TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);
 		TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS]/100.0);	
 		TRINAMIC_X.en_pwm_mode(1);      // Enable extremely quiet stepping
@@ -158,9 +155,8 @@ void Trinamic_Init()
 	
 	#ifdef Y_TRINAMIC
 		TRINAMIC_Y.begin(); // Initiate pins and registries
-		testResult = TRINAMIC_Y.test_connection();
-		trinamic_test_response(testResult, "Y");
-		TRINAMIC_Y.toff(5);
+		trinamic_test_response(TRINAMIC_Y.test_connection(), "Y");
+		TRINAMIC_Y.toff(TRINAMIC_DEFAULT_TOFF);
 		TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
 		TRINAMIC_Y.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS]/100.0);	
 		TRINAMIC_Y.en_pwm_mode(1);      // Enable extremely quiet stepping
@@ -169,9 +165,8 @@ void Trinamic_Init()
 	
 	#ifdef Z_TRINAMIC
 		TRINAMIC_Z.begin(); // Initiate pins and registries
-		testResult = TRINAMIC_Z.test_connection();
-		trinamic_test_response(testResult, "Z");
-		TRINAMIC_Z.toff(5);
+		trinamic_test_response(TRINAMIC_Z.test_connection(), "Z");
+		TRINAMIC_Z.toff(TRINAMIC_DEFAULT_TOFF);
 		TRINAMIC_Z.microsteps(settings.microsteps[Z_AXIS]);
 		TRINAMIC_Z.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS]/100.0);
 		TRINAMIC_Z.en_pwm_mode(1);      // Enable extremely quiet stepping
@@ -180,9 +175,8 @@ void Trinamic_Init()
 	
 	#ifdef A_TRINAMIC
 		TRINAMIC_A.begin(); // Initiate pins and registries
-		testResult = TRINAMIC_A.test_connection();
-		trinamic_test_response(testResult, "A");
-		TRINAMIC_A.toff(5);
+		trinamic_test_response(TRINAMIC_A.test_connection(), "A");
+		TRINAMIC_A.toff(TRINAMIC_DEFAULT_TOFF);
 		TRINAMIC_A.microsteps(settings.microsteps[A_AXIS]);
 		TRINAMIC_A.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS]/100.0);
 		TRINAMIC_A.en_pwm_mode(1);      // Enable extremely quiet stepping
@@ -191,9 +185,8 @@ void Trinamic_Init()
 	
 	#ifdef B_TRINAMIC
 		TRINAMIC_B.begin(); // Initiate pins and registries
-		testResult = TRINAMIC_B.test_connection();
-		trinamic_test_response(testResult, "B");
-		TRINAMIC_B.toff(5);
+		trinamic_test_response(TRINAMIC_B.test_connection(), "B");
+		TRINAMIC_B.toff(TRINAMIC_DEFAULT_TOFF);
 		TRINAMIC_B.microsteps(settings.microsteps[B_AXIS]);
 		TRINAMIC_B.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS]/100.0);
 		TRINAMIC_B.en_pwm_mode(1);      // Enable extremely quiet stepping
@@ -202,9 +195,8 @@ void Trinamic_Init()
 	
 	#ifdef C_TRINAMIC
 		TRINAMIC_C.begin(); // Initiate pins and registries
-		testResult = TRINAMIC_C.test_connection();
-		trinamic_test_response(testResult, "C");
-		TRINAMIC_C.toff(5);
+		trinamic_test_response(TRINAMIC_C.test_connection(), "C");
+		TRINAMIC_C.toff(TRINAMIC_DEFAULT_TOFF);
 		TRINAMIC_C.microsteps(settings.microsteps[C_AXIS]);
 		TRINAMIC_C.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS]/100.0);
 		TRINAMIC_C.en_pwm_mode(1);      // Enable extremely quiet stepping
@@ -264,6 +256,52 @@ void trinamic_test_response(uint8_t result, const char *axis)
 	else {
 		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed", axis);
 	}		
+}
+
+void trinamic_stepper_enable(bool enable) {
+
+	// Trinamic_Init() has already enabled the drivers in case #define USE_TRINAMIC_ENABLE is not used
+	// so the previous_state is set accordingly
+	static bool previous_state = true; 
+
+	uint8_t toff;
+
+	if (enable == previous_state)
+		return;
+
+	previous_state = enable;	
+
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Trinamic Enable: %d", enable);
+
+	if (enable)
+		toff = TRINAMIC_DEFAULT_TOFF;
+	else
+		toff = 0; // diables driver
+
+	#ifdef X_TRINAMIC
+		TRINAMIC_X.toff(toff);
+	#endif
+
+	#ifdef Y_TRINAMIC
+		TRINAMIC_Y.toff(toff);
+	#endif
+
+	#ifdef Z_TRINAMIC
+		TRINAMIC_Z.toff(toff);
+	#endif
+
+	#ifdef A_TRINAMIC
+		TRINAMIC_A.toff(toff);
+	#endif
+
+	#ifdef B_TRINAMIC
+		TRINAMIC_B.toff(toff);
+	#endif
+
+	#ifdef C_TRINAMIC
+		TRINAMIC_C.toff(toff);
+	#endif
+
 }
 
 #endif
