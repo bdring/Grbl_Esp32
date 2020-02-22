@@ -509,24 +509,44 @@ void stepper_init()
 	#ifdef X_DIRECTION_PIN
 		pinMode(X_DIRECTION_PIN, OUTPUT);
 	#endif
+	#ifdef X2_DIRECTION_PIN
+		pinMode(X2_DIRECTION_PIN, OUTPUT);
+	#endif
+
 	#ifdef Y_DIRECTION_PIN
 		pinMode(Y_DIRECTION_PIN, OUTPUT);
 	#endif
+	#ifdef Y2_DIRECTION_PIN
+		pinMode(Y2_DIRECTION_PIN, OUTPUT);
+	#endif
+
 	#ifdef Z_DIRECTION_PIN
 		pinMode(Z_DIRECTION_PIN, OUTPUT);
 	#endif
+	#ifdef Z2_DIRECTION_PIN
+		pinMode(Z2_DIRECTION_PIN, OUTPUT);
+	#endif
+
 	#ifdef A_DIRECTION_PIN
 		pinMode(A_DIRECTION_PIN, OUTPUT);
 	#endif
+	#ifdef A2_DIRECTION_PIN
+		pinMode(A2_DIRECTION_PIN, OUTPUT);
+	#endif
+
 	#ifdef B_DIRECTION_PIN
 		pinMode(B_DIRECTION_PIN, OUTPUT);
 	#endif
+	#ifdef B2_DIRECTION_PIN
+		pinMode(B2_DIRECTION_PIN, OUTPUT);
+	#endif
+
 	#ifdef C_DIRECTION_PIN
 		pinMode(C_DIRECTION_PIN, OUTPUT);
 	#endif
-
-
-	
+	#ifdef C2_DIRECTION_PIN
+		pinMode(C2_DIRECTION_PIN, OUTPUT);
+	#endif	
 
 // setup stepper timer interrupt
 
@@ -747,7 +767,7 @@ void set_direction_pins_on(uint8_t onMask)
 	digitalWrite(X_DIRECTION_PIN, (onMask & (1<<X_AXIS)));
 #endif
 #ifdef X2_DIRECTION_PIN // optional ganged axis 
-	digitalWrite(X2_DIRECTION_PIN, (onMask & (1<<X_AXIS)));
+	digitalWrite(X2_DIRECTION_PIN, (onMask & (1<<X_AXIS)));	
 #endif
 
 #ifdef Y_DIRECTION_PIN
