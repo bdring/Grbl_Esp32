@@ -152,6 +152,21 @@ typedef struct {
 } st_prep_t;
 static st_prep_t prep;
 
+// RMT channel numbers. These are assigned dynamically as needed via the CPU MAP
+// Only 8 are available (0-7) 
+// They are Initialized with an invalid number to prevent unitended consequences
+uint8_t X_rmt_chan_num = 255;
+uint8_t X2_rmt_chan_num = 255; // Ganged axes have the "2"
+uint8_t Y_rmt_chan_num = 255;
+uint8_t Y2_rmt_chan_num = 255;
+uint8_t Z_rmt_chan_num = 255;
+uint8_t Z2_rmt_chan_num = 255;
+uint8_t A_rmt_chan_num = 255;
+uint8_t A2_rmt_chan_num = 255;
+uint8_t B_rmt_chan_num = 255;
+uint8_t B2_rmt_chan_num = 255;
+uint8_t C_rmt_chan_num = 255;
+uint8_t C2_rmt_chan_num = 255;
 
 /* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
    the venerable Bresenham line algorithm to manage and exactly synchronize multi-axis moves.
@@ -458,22 +473,22 @@ void stepper_init()
 		#ifdef  X_STEP_PIN
 			pinMode(X_STEP_PIN, OUTPUT);
 		#endif
-		#ifdef  X_STEP_B_PIN // ganged motor
-			pinMode(X_STEP_B_PIN, OUTPUT);
+		#ifdef  X2_STEP_PIN // ganged motor
+			pinMode(X2_STEP_PIN, OUTPUT);
 		#endif
 
 		#ifdef Y_STEP_PIN
 			pinMode(Y_STEP_PIN, OUTPUT);
 		#endif
-		#ifdef Y_STEP_B_PIN
-			pinMode(Y_STEP_B_PIN, OUTPUT);
+		#ifdef Y2_STEP_PIN
+			pinMode(Y2_STEP_PIN, OUTPUT);
 		#endif
 
 		#ifdef Z_STEP_PIN
 			pinMode(Z_STEP_PIN, OUTPUT);
 		#endif
-		#ifdef Z_STEP_B_PIN
-			pinMode(Z_STEP_B_PIN, OUTPUT);
+		#ifdef Z2_STEP_PIN
+			pinMode(Z2_STEP_PIN, OUTPUT);
 		#endif
 		
 		#ifdef A_STEP_PIN
@@ -536,8 +551,6 @@ void stepper_init()
 	timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
 	timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
 	timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
-
-
 }
 
 #ifdef USE_RMT_STEPS
@@ -567,8 +580,9 @@ void initRMT()
 	rmtItem[1].duration1 = 0;
 
 #ifdef X_STEP_PIN
-	rmt_set_source_clk( (rmt_channel_t)X_RMT_CHANNEL, RMT_BASECLK_APB);
-	rmtConfig.channel = (rmt_channel_t)X_RMT_CHANNEL;
+	X_rmt_chan_num = sys_get_next_RMT_chan_num();
+	rmt_set_source_clk( (rmt_channel_t)X_rmt_chan_num, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)X_rmt_chan_num;
 	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, X_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
 	rmtConfig.gpio_num = X_STEP_PIN;
 	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
@@ -577,11 +591,12 @@ void initRMT()
 	rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
 #endif
 
-#ifdef X_STEP_B_PIN
-	rmt_set_source_clk( (rmt_channel_t)X_B_RMT_CHANNEL, RMT_BASECLK_APB);
-	rmtConfig.channel = (rmt_channel_t)X_B_RMT_CHANNEL;
+#ifdef X2_STEP_PIN
+	X2_rmt_chan_num = sys_get_next_RMT_chan_num();
+	rmt_set_source_clk( (rmt_channel_t)X2_rmt_chan_num, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)X2_rmt_chan_num;
 	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, X_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-	rmtConfig.gpio_num = X_STEP_B_PIN;
+	rmtConfig.gpio_num = X2_STEP_PIN;
 	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
 	rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
 	rmt_config(&rmtConfig);
@@ -589,8 +604,9 @@ void initRMT()
 #endif
 
 #ifdef Y_STEP_PIN
-	rmt_set_source_clk( (rmt_channel_t)Y_RMT_CHANNEL, RMT_BASECLK_APB);
-	rmtConfig.channel = (rmt_channel_t)Y_RMT_CHANNEL;
+	Y_rmt_chan_num = sys_get_next_RMT_chan_num();
+	rmt_set_source_clk( (rmt_channel_t)Y_rmt_chan_num, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)Y_rmt_chan_num;
 	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Y_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
 	rmtConfig.gpio_num = Y_STEP_PIN;
 	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
@@ -599,11 +615,12 @@ void initRMT()
 	rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
 #endif
 
-#ifdef Y_STEP_B_PIN
-	rmt_set_source_clk( (rmt_channel_t)Y_B_RMT_CHANNEL, RMT_BASECLK_APB);
-	rmtConfig.channel = (rmt_channel_t)Y_B_RMT_CHANNEL;
+#ifdef Y2_STEP_PIN
+	Y2_rmt_chan_num = sys_get_next_RMT_chan_num();
+	rmt_set_source_clk( (rmt_channel_t)Y2_rmt_chan_num, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)Y2_rmt_chan_num;
 	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Y_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-	rmtConfig.gpio_num = Y_STEP_B_PIN;
+	rmtConfig.gpio_num = Y2_STEP_PIN;
 	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
 	rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
 	rmt_config(&rmtConfig);
@@ -611,8 +628,9 @@ void initRMT()
 #endif
 
 #ifdef Z_STEP_PIN
-	rmt_set_source_clk( (rmt_channel_t)Z_RMT_CHANNEL, RMT_BASECLK_APB);
-	rmtConfig.channel = (rmt_channel_t)Z_RMT_CHANNEL;
+	Z_rmt_chan_num = sys_get_next_RMT_chan_num();
+	rmt_set_source_clk( (rmt_channel_t)Z_rmt_chan_num, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)Z_rmt_chan_num;
 	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Z_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
 	rmtConfig.gpio_num = Z_STEP_PIN;
 	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
@@ -622,8 +640,9 @@ void initRMT()
 #endif
 
 #ifdef A_STEP_PIN
-	rmt_set_source_clk( (rmt_channel_t)A_RMT_CHANNEL, RMT_BASECLK_APB);
-	rmtConfig.channel = (rmt_channel_t)A_RMT_CHANNEL;
+	A_rmt_chan_num = sys_get_next_RMT_chan_num();
+	rmt_set_source_clk( (rmt_channel_t)A_rmt_chan_num, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)A_rmt_chan_num;
 	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, A_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
 	rmtConfig.gpio_num = A_STEP_PIN;  // TODO
 	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
@@ -633,8 +652,9 @@ void initRMT()
 #endif
 
 #ifdef B_STEP_PIN
-	rmt_set_source_clk( (rmt_channel_t)B_RMT_CHANNEL, RMT_BASECLK_APB);
-	rmtConfig.channel = (rmt_channel_t)B_RMT_CHANNEL;
+	B_rmt_chan_num = sys_get_next_RMT_chan_num();
+	rmt_set_source_clk( (rmt_channel_t)B_rmt_chan_num, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)B_rmt_chan_num;
 	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, B_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
 	rmtConfig.gpio_num = B_STEP_PIN;  // TODO
 	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
@@ -644,8 +664,9 @@ void initRMT()
 #endif
 
 #ifdef C_STEP_PIN
-	rmt_set_source_clk( (rmt_channel_t)C_RMT_CHANNEL, RMT_BASECLK_APB);
-	rmtConfig.channel = (rmt_channel_t)C_RMT_CHANNEL;
+	C_rmt_chan_num = sys_get_next_RMT_chan_num();
+	rmt_set_source_clk( (rmt_channel_t)C_rmt_chan_num, RMT_BASECLK_APB);
+	rmtConfig.channel = (rmt_channel_t)C_rmt_chan_num;
 	rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, C_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
 	rmtConfig.gpio_num = C_STEP_PIN;  // TODO
 	rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
@@ -725,96 +746,116 @@ void set_direction_pins_on(uint8_t onMask)
 #ifdef X_DIRECTION_PIN
 	digitalWrite(X_DIRECTION_PIN, (onMask & (1<<X_AXIS)));
 #endif
+#ifdef X2_DIRECTION_PIN // optional ganged axis 
+	digitalWrite(X2_DIRECTION_PIN, (onMask & (1<<X_AXIS)));
+#endif
+
 #ifdef Y_DIRECTION_PIN
 	digitalWrite(Y_DIRECTION_PIN, (onMask & (1<<Y_AXIS)));
 #endif
+#ifdef Y2_DIRECTION_PIN // optional ganged axis 
+	digitalWrite(Y2_DIRECTION_PIN, (onMask & (1<<Y_AXIS)));
+#endif
+
 #ifdef Z_DIRECTION_PIN
 	digitalWrite(Z_DIRECTION_PIN, (onMask & (1<<Z_AXIS)));
 #endif
+#ifdef Z2_DIRECTION_PIN // optional ganged axis 
+	digitalWrite(Z2_DIRECTION_PIN, (onMask & (1<<Z_AXIS)));
+#endif
+
 #ifdef A_DIRECTION_PIN
 	digitalWrite(A_DIRECTION_PIN, (onMask & (1<<A_AXIS)));
 #endif
+#ifdef A2_DIRECTION_PIN // optional ganged axis 
+	digitalWrite(A2_DIRECTION_PIN, (onMask & (1<<A_AXIS)));
+#endif
+
 #ifdef B_DIRECTION_PIN
 	digitalWrite(B_DIRECTION_PIN, (onMask & (1<<B_AXIS)));
 #endif
+#ifdef B2_DIRECTION_PIN // optional ganged axis 
+	digitalWrite(B2_DIRECTION_PIN, (onMask & (1<<B_AXIS)));
+#endif
+
 #ifdef C_DIRECTION_PIN
 	digitalWrite(C_DIRECTION_PIN, (onMask & (1<<C_AXIS)));
 #endif
-
+#ifdef C2_DIRECTION_PIN // optional ganged axis 
+	digitalWrite(C2_DIRECTION_PIN, (onMask & (1<<C_AXIS)));
+#endif
 
 }
 
 #ifndef USE_GANGED_AXES
 // basic one motor per axis
-void set_stepper_pins_on(uint8_t onMask)
-{
-	onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
+	void set_stepper_pins_on(uint8_t onMask)
+	{
+		onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
 
-#ifdef X_STEP_PIN
-	digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
-#endif
-
-#ifdef Y_STEP_PIN
-	digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
-#endif
-
-#ifdef Z_STEP_PIN
-	digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
-#endif
-
-#ifdef A_STEP_PIN
-	digitalWrite(A_STEP_PIN, (onMask & (1<<A_AXIS)));
-#endif
-}
-#else // we use ganged axes
-void set_stepper_pins_on(uint8_t onMask)
-{
-	onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
-
-#ifdef X_STEP_PIN
-#ifndef X_STEP_B_PIN // if not a ganged axis
-	digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
-#else // is a ganged axis
-	if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+	#ifdef X_STEP_PIN
 		digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
-	}
+	#endif
 
-	if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
-		digitalWrite(X_STEP_B_PIN, (onMask & (1<<X_AXIS)));
-	}
-#endif
-#endif
-
-#ifdef Y_STEP_PIN
-#ifndef Y_STEP_B_PIN // if not a ganged axis
-	digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
-#else // is a ganged axis
-	if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+	#ifdef Y_STEP_PIN
 		digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
-	}
+	#endif
 
-	if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
-		digitalWrite(Y_STEP_B_PIN, (onMask & (1<<Y_AXIS)));
-	}
-#endif
-#endif
-
-#ifdef Z_STEP_PIN
-#ifndef Z_STEP_B_PIN // if not a ganged axis
-	digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
-#else // is a ganged axis
-	if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+	#ifdef Z_STEP_PIN
 		digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
+	#endif
+
+	#ifdef A_STEP_PIN
+		digitalWrite(A_STEP_PIN, (onMask & (1<<A_AXIS)));
+	#endif
 	}
+#else // we use ganged axes
+	void set_stepper_pins_on(uint8_t onMask)
+	{
+		onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
 
-	if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
-		digitalWrite(Z_STEP_B_PIN, (onMask & (1<<Z_AXIS)));
+		#ifdef X_STEP_PIN
+			#ifndef X2_STEP_PIN // if not a ganged axis
+				digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
+			#else // is a ganged axis
+				if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+					digitalWrite(X_STEP_PIN, (onMask & (1<<X_AXIS)));
+				}
+
+				if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
+					digitalWrite(X2_STEP_PIN, (onMask & (1<<X_AXIS)));
+				}
+			#endif
+		#endif
+
+		#ifdef Y_STEP_PIN
+			#ifndef Y2_STEP_PIN // if not a ganged axis
+				digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
+			#else // is a ganged axis
+				if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+					digitalWrite(Y_STEP_PIN, (onMask & (1<<Y_AXIS)));
+				}
+
+				if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
+					digitalWrite(Y2_STEP_PIN, (onMask & (1<<Y_AXIS)));
+				}
+			#endif
+		#endif
+
+		#ifdef Z_STEP_PIN
+			#ifndef Z2_STEP_PIN // if not a ganged axis
+				digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
+			#else // is a ganged axis
+				if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
+					digitalWrite(Z_STEP_PIN, (onMask & (1<<Z_AXIS)));
+				}
+
+				if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
+					digitalWrite(Z2_STEP_PIN, (onMask & (1<<Z_AXIS)));
+				}
+			#endif
+		#endif
 	}
-#endif
-#endif
-
-
-}
 #endif
 
 #ifdef USE_RMT_STEPS
@@ -824,17 +865,17 @@ inline IRAM_ATTR static void stepperRMT_Outputs()
 	
 #ifdef  X_STEP_PIN
 	if(st.step_outbits & (1<<X_AXIS)) {
-	#ifndef X_STEP_B_PIN // if not a ganged axis
-			RMT.conf_ch[X_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-			RMT.conf_ch[X_RMT_CHANNEL].conf1.tx_start = 1;
+	#ifndef X2_STEP_PIN // if not a ganged axis
+			RMT.conf_ch[X_rmt_chan_num].conf1.mem_rd_rst = 1;
+			RMT.conf_ch[X_rmt_chan_num].conf1.tx_start = 1;
 	#else // it is a ganged axis
 			if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
-				RMT.conf_ch[X_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-				RMT.conf_ch[X_RMT_CHANNEL].conf1.tx_start = 1;			}
+				RMT.conf_ch[X_rmt_chan_num].conf1.mem_rd_rst = 1;
+				RMT.conf_ch[X_rmt_chan_num].conf1.tx_start = 1;			}
 			
 			if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
-				RMT.conf_ch[X_B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-				RMT.conf_ch[X_B_RMT_CHANNEL].conf1.tx_start = 1;
+				RMT.conf_ch[X2_rmt_chan_num].conf1.mem_rd_rst = 1;
+				RMT.conf_ch[X2_rmt_chan_num].conf1.tx_start = 1;
 			}			
 	#endif
 	}
@@ -843,17 +884,17 @@ inline IRAM_ATTR static void stepperRMT_Outputs()
 
 #ifdef  Y_STEP_PIN
 	if(st.step_outbits & (1<<Y_AXIS)) {
-#ifndef Y_STEP_B_PIN // if not a ganged axis
-		RMT.conf_ch[Y_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-		RMT.conf_ch[Y_RMT_CHANNEL].conf1.tx_start = 1;
+#ifndef Y2_STEP_PIN // if not a ganged axis
+		RMT.conf_ch[Y_rmt_chan_num].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[Y_rmt_chan_num].conf1.tx_start = 1;
 #else // it is a ganged axis
 		if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A) ) {
-			RMT.conf_ch[Y_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-			RMT.conf_ch[Y_RMT_CHANNEL].conf1.tx_start = 1;
+			RMT.conf_ch[Y_rmt_chan_num].conf1.mem_rd_rst = 1;
+			RMT.conf_ch[Y_rmt_chan_num].conf1.tx_start = 1;
 		}		
 		if ( (ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B) ) {
-			RMT.conf_ch[Y_B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-			RMT.conf_ch[Y_B_RMT_CHANNEL].conf1.tx_start = 1;
+			RMT.conf_ch[Y2_rmt_chan_num].conf1.mem_rd_rst = 1;
+			RMT.conf_ch[Y2_rmt_chan_num].conf1.tx_start = 1;
 		}		
 #endif
 	}
@@ -861,32 +902,32 @@ inline IRAM_ATTR static void stepperRMT_Outputs()
 
 #ifdef  Z_STEP_PIN
 	if(st.step_outbits & (1<<Z_AXIS)) {
-		RMT.conf_ch[Z_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-		RMT.conf_ch[Z_RMT_CHANNEL].conf1.tx_start = 1;
+		RMT.conf_ch[Z_rmt_chan_num].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[Z_rmt_chan_num].conf1.tx_start = 1;
 	}
 #endif
 
 #ifdef  A_STEP_PIN
 	if(st.step_outbits & (1<<A_AXIS)) {
 		
-		RMT.conf_ch[A_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-		RMT.conf_ch[A_RMT_CHANNEL].conf1.tx_start = 1;
+		RMT.conf_ch[A_rmt_chan_num].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[A_rmt_chan_num].conf1.tx_start = 1;
 	}
 #endif
 
 #ifdef  B_STEP_PIN
 	if(st.step_outbits & (1<<B_AXIS)) {
 		
-		RMT.conf_ch[B_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-		RMT.conf_ch[B_RMT_CHANNEL].conf1.tx_start = 1;
+		RMT.conf_ch[B_rmt_chan_num].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[B_rmt_chan_num].conf1.tx_start = 1;
 	}
 #endif
 
 #ifdef  C_STEP_PIN
 	if(st.step_outbits & (1<<C_AXIS)) {
 		
-		RMT.conf_ch[C_RMT_CHANNEL].conf1.mem_rd_rst = 1;
-		RMT.conf_ch[C_RMT_CHANNEL].conf1.tx_start = 1;
+		RMT.conf_ch[C_rmt_chan_num].conf1.mem_rd_rst = 1;
+		RMT.conf_ch[C_rmt_chan_num].conf1.tx_start = 1;
 	}
 #endif
 
@@ -1536,6 +1577,3 @@ bool get_stepper_disable()   // returns true if steppers are disabled
 	return disabled;
 
 }
-
-
-

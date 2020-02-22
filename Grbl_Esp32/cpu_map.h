@@ -585,19 +585,20 @@
 	#endif	
 		
 	#define USE_GANGED_AXES // allow two motors on an axis 
+	#define USE_RMT_STEPS
   
 	#define X_STEP_PIN      GPIO_NUM_12
-	#define X_STEP_B_PIN    GPIO_NUM_22	 // ganged motor
+	#define X2_STEP_PIN    GPIO_NUM_22	 // ganged motor
 	#define X_AXIS_SQUARING
 	
 	#define Y_STEP_PIN      GPIO_NUM_14
-	#define Y_STEP_B_PIN    GPIO_NUM_21  // ganged motor
+	#define Y2_STEP_PIN    GPIO_NUM_21  // ganged motor
 	#define Y_AXIS_SQUARING
 	
 	#define Z_STEP_PIN      GPIO_NUM_27
 	
 	#define X_DIRECTION_PIN   GPIO_NUM_26
-	#define Y_DIRECTION_PIN   GPIO_NUM_25  
+	#define Y_DIRECTION_PIN   GPIO_NUM_25
 	#define Z_DIRECTION_PIN   GPIO_NUM_33 
 	
 	// OK to comment out to use pin for other features
@@ -736,14 +737,14 @@
 	#define X_DIRECTION_PIN   GPIO_NUM_33 	// use Z labeled connector
 	
 	#define Y_STEP_PIN      GPIO_NUM_14
-	#define Y_STEP_B_PIN    GPIO_NUM_21  	// ganged motor
+	#define Y2_STEP_PIN    GPIO_NUM_21  	// ganged motor
 	#define Y_DIRECTION_PIN   GPIO_NUM_25 
 	#define Y_AXIS_SQUARING
 	
 	#define Z_STEP_PIN      GPIO_NUM_12  	// use X labeled connector
-	#define Z_STEP_B_PIN    GPIO_NUM_22		// use X labeled connector
+	#define Z2_STEP_PIN    GPIO_NUM_22		// use X labeled connector
 	#define Z_DIRECTION_PIN   GPIO_NUM_26 	// use X labeled connector
-	#define Z_AXIS_SQUARING	
+	#define Z_AXIS_SQUARING
 	
 	// OK to comment out to use pin for other features
 	#define STEPPERS_DISABLE_PIN GPIO_NUM_13
@@ -1079,6 +1080,52 @@
 	#else
 		#define LIMIT_MASK      	B0111
 	#endif
+	
+#endif
+
+#ifdef EXTERNAL_DRIVER_4X
+	#define CPU_MAP_NAME 		"External Driver Board V1.1"
+
+	#ifdef N_AXIS
+		#undef N_AXIS
+	#endif
+	#define N_AXIS 4
+
+	#define USE_RMT_STEPS	
+	#define X_STEP_PIN      	GPIO_NUM_0
+	#define X_DIRECTION_PIN   	GPIO_NUM_2
+	#define Y_STEP_PIN      	GPIO_NUM_26
+	#define Y_DIRECTION_PIN   	GPIO_NUM_15
+	#define Z_STEP_PIN      	GPIO_NUM_27
+	#define Z_DIRECTION_PIN   	GPIO_NUM_33
+	#define A_STEP_PIN      	GPIO_NUM_14
+	#define A_DIRECTION_PIN   	GPIO_NUM_12
+	#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+
+	
+	#define SPINDLE_PWM_PIN    	GPIO_NUM_25
+	#define SPINDLE_PWM_CHANNEL 0
+	#define SPINDLE_PWM_BIT_PRECISION 8
+	#define SPINDLE_ENABLE_PIN	GPIO_NUM_22
+	
+	#define MODBUS_TX	GPIO_NUM_17
+	#define MODBUS_RX	GPIO_NUM_4
+	#define MODBUS_CTRL	GPIO_NUM_16
+	
+	#define X_LIMIT_PIN      	GPIO_NUM_34	
+	#define Y_LIMIT_PIN      	GPIO_NUM_35	
+	#define Z_LIMIT_PIN      	GPIO_NUM_36
+
+	#if (N_AXIS == 3)
+		#define LIMIT_MASK      	B0111
+	#else
+		#define A_LIMIT_PIN      	GPIO_NUM_39
+		#define LIMIT_MASK      	B1111
+	#endif
+
+	#define PROBE_PIN       	GPIO_NUM_32
+	#define COOLANT_MIST_PIN   	GPIO_NUM_21
+
 	
 #endif
 
