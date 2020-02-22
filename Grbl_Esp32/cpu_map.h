@@ -1012,20 +1012,27 @@
 	#ifdef N_AXIS
 		#undef N_AXIS
 	#endif
-	#define N_AXIS 4 // can be 3 or 4. (if 3 install bypass jumper next to the A driver)
+	#define N_AXIS 3 // can be 3 or 4. (if 3 install bypass jumper next to the A driver)
 	
 	#define USE_TRINAMIC  
 	#define TRINAMIC_DAISY_CHAIN
 
 	// Use SPI enable instead of the enable pin
 	// The hardware enable pin is tied to ground
-	#define USE_TRINAMIC_ENABLE 
+	#define USE_TRINAMIC_ENABLE
+
+	// The ESP32 RMT feature will generate the step pulse timing
 	#define USE_RMT_STEPS
 	
+	// allow two motors on an axis
+	#define USE_GANGED_AXES  
+
 	#define X_DRIVER_TMC2130 	// Which Driver Type?
 	#define X_RSENSE			0.11f   // .11 Ohm...typical of 2130 type 0.075 typical for TMC5160
 	#define X_STEP_PIN      	GPIO_NUM_12
 	#define X_DIRECTION_PIN   	GPIO_NUM_14
+	#define X2_STEP_PIN			GPIO_NUM_33
+	#define X2_DIRECTION_PIN   	GPIO_NUM_32
 	#define X_TRINAMIC   	   	// using SPI control
 	#define X_CS_PIN    		GPIO_NUM_17  // Daisy Chain, all share same CS pin
 	
