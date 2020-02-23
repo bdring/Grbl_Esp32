@@ -17,6 +17,8 @@
 	You should have received a copy of the GNU General Public License
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
+#define TRINAMIC_DEFAULT_TOFF 5
+
 
 #ifndef GRBL_TRINAMIC_h
 	#define GRBL_TRINAMIC_h
@@ -28,6 +30,7 @@
 	void Trinamic_Init();
 	void trinamic_change_settings();
 	void trinamic_test_response(uint8_t result, const char *axis);
+	void trinamic_stepper_enable(bool enable);
 #endif
 
 #endif

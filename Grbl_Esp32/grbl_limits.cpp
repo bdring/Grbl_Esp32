@@ -51,7 +51,7 @@ void IRAM_ATTR isr_limit_switches()
 			#ifdef ENABLE_SOFTWARE_DEBOUNCE
 				// we will start a task that will recheck the switches after a small delay
 				int evt;
-				xQueueSendFromISR(limit_sw_queue, &evt, NULL);	
+				xQueueSendFromISR(limit_sw_queue, &evt, NULL);
 			#else
 				#ifdef HARD_LIMIT_FORCE_STATE_CHECK
 				  // Check limit pin state.
@@ -450,11 +450,16 @@ void limitCheckTask(void *pvParameters)
 {	
 	while(true) {
 		int evt;
-		xQueueReceive(limit_sw_queue, &evt, portMAX_DELAY); // block until receive queue
+		xQueueReceive(limit_sw_queue, &evt, portMAX_DELAY); // block until receive queue    
 		vTaskDelay( DEBOUNCE_PERIOD / portTICK_PERIOD_MS ); // delay a while
 		
-		if (limits_get_state()) {
-			mc_reset(); // Initiate system kill.
+    uint8_t switch_state;
+
+    switch_state = limits_get_state();
+
+		if (switch_state) {
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Limit Switch State %08d", switch_state);
+			mc_reset(); // Initiate system kill.      
 			system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT); // Indicate hard limit critical event
 		}		
 	}
