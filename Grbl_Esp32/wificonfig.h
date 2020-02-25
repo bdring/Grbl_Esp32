@@ -53,8 +53,13 @@
 
 //defaults values
 #define DEFAULT_HOSTNAME "grblesp"
+#ifdef CONNECT_TO_SSID
+#define DEFAULT_STA_SSID CONNECT_TO_SSID
+#define DEFAULT_STA_PWD SSID_PASSWORD
+#else //!CONNECT_TO_SSID
 #define DEFAULT_STA_SSID "GRBL_ESP"
 #define DEFAULT_STA_PWD "12345678"
+#endif //CONNECT_TO_SSID
 #define DEFAULT_STA_IP "0.0.0.0"
 #define DEFAULT_STA_GW "0.0.0.0"
 #define DEFAULT_STA_MK "0.0.0.0"
