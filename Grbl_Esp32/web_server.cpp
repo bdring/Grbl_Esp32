@@ -512,7 +512,7 @@ void Web_Server::handle_web_command ()
                 cmd_part2 = cmd.substring (ESPpos2 + 1);
             }
             //if command is a valid number then execute command
-            if (cmd_part1.toInt() != 0) {
+            if (cmd_part1.toInt() >= 0) {
                 ESPResponseStream espresponse(_webserver);
                 //commmand is web only 
                 COMMANDS::execute_internal_command (cmd_part1.toInt(), cmd_part2, auth_level, &espresponse);
@@ -589,7 +589,7 @@ void Web_Server::handle_web_command_silent ()
                 cmd_part2 = cmd.substring (ESPpos2 + 1);
             }
             //if command is a valid number then execute command
-            if (cmd_part1.toInt() != 0) {
+            if (cmd_part1.toInt() >= 0) {
                 //commmand is web only 
                 if(COMMANDS::execute_internal_command (cmd_part1.toInt(), cmd_part2, auth_level, NULL)) _webserver->send (200, "text/plain", "ok");
                 else  _webserver->send (200, "text/plain", "error");
