@@ -85,6 +85,53 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
     //manage parameters
     String parameter;
     switch (cmd) {
+		//help
+		//[ESP] or [ESP0]
+		case 0:
+            {
+				if (espresponse){
+					espresponse->println ("[List of ESP3D commands]");
+					espresponse->println ("[ESP] - display this help");
+					espresponse->println ("[ESP100](SSID) - display/set STA SSID");
+					espresponse->println ("[ESP101](Password) - set STA password");
+					espresponse->println ("[ESP102](Mode) - display/set STA IP mode (DHCP/STATIC)");
+					espresponse->println ("[ESP103](IP=xxxx MSK=xxxx GW=xxxx) - display/set STA IP/Mask/GW");
+					espresponse->println ("[ESP105](SSID) - display/set AP SSID");
+					espresponse->println ("[ESP106](Password) - set AP password");
+					espresponse->println ("[ESP107](IP) - display/set AP IP");
+					espresponse->println ("[ESP108](Chanel) - display/set AP chanel");
+					espresponse->println ("[ESP110](State) - display/set radio state which can be STA, AP, BT, OFF");
+					espresponse->println ("[ESP111]display current IP");
+					espresponse->println ("[ESP112](Hostname) - display/set Hostname");
+					espresponse->println ("[ESP115](State) - display/set immediate radio state which can be ON, OFF");
+					espresponse->println ("[ESP120](State) - display/set HTTP state which can be ON, OFF");
+					espresponse->println ("[ESP121](Port) - display/set HTTP port ");
+					espresponse->println ("[ESP130](State) - display/set Telnet state which can be ON, OFF");
+					espresponse->println ("[ESP131](Port) - display/set Telnet port ");
+					espresponse->println ("[ESP140](Bluetooth name) - display/set Bluetooth name");
+					espresponse->println ("[ESP200] - display SD Card Status");
+					espresponse->println ("[ESP210] - display SD Card content");
+					espresponse->println ("[ESP215](file/dir name) - delete SD Card file / directory");
+					espresponse->println ("[ESP220](file name) - run file from SD");
+					espresponse->println ("[ESP400] - display ESP3D settings in JSON");
+					espresponse->println ("[ESP401]P=(position) T=(type) V=(value) - Set specific setting");
+					espresponse->println ("[ESP410] - display available AP list (limited to 30) in JSON");
+					espresponse->println ("[ESP420] - display ESP3D current status");
+					espresponse->println ("[ESP444]RESTART - Restart ESP");
+			#ifdef ENABLE_AUTHENTICATION
+					espresponse->println ("[ESP555](Password) - set user password");
+			#endif //ENABLE_AUTHENTICATION
+			#ifdef ENABLE_NOTIFICATIONS
+					espresponse->println ("[ESP600](message) - send message");
+					espresponse->println ("[ESP610]type=(NONE/PUSHOVER/EMAIL/LINE) T1=(token1) T2=(token2) TS=(Settings) - display/set Notification settings");
+			#endif //ENABLE_NOTIFICATIONS
+					espresponse->println ("[ESP700](file name) - run macro file from ESP Filesystem");
+					espresponse->println ("[ESP710]FORMAT - Format ESP Filesystem");
+					espresponse->println ("[ESP720]display total size and used size of ESP Filesystem");
+					espresponse->println ("[ESP800] - display FW Informations");
+				}
+			}
+			break;
 #ifdef ENABLE_WIFI
         //STA SSID
         //[ESP100]<SSID>[pwd=<admin password>]
@@ -1757,6 +1804,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
     }
 #endif
 #ifdef ENABLE_NOTIFICATIONS
+    //[ESP600]<msg>
 	case 600: { //Send message
        
 #ifdef ENABLE_AUTHENTICATION
@@ -1926,7 +1974,7 @@ bool COMMANDS::execute_internal_command (int cmd, String cmd_params, level_authe
                                     cmd_part2 = currentline.substring (ESPpos2 + 1);
                                 }
                                 //if command is a valid number then execute command
-                                if(cmd_part1.toInt()!=0) {
+                                if(cmd_part1.toInt()>=0) {
                                     if (!execute_internal_command(cmd_part1.toInt(),cmd_part2, auth_type, espresponse)) response = false;
                                 }
                                 //if not is not a valid [ESPXXX] command ignore it
@@ -2188,7 +2236,7 @@ bool COMMANDS::check_command (const char * line, int * cmd, String & cmd_params)
                 cmd_part2 = buffer.substring (ESPpos2 + 1);
             }
             //if command is a valid number then execute command
-            if (cmd_part1.toInt() != 0) {
+            if (cmd_part1.toInt() >= 0) {
                  *cmd = cmd_part1.toInt();
                  cmd_params = cmd_part2;
                  result = true;
