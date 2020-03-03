@@ -624,3 +624,18 @@ void sys_io_control(uint8_t io_num_mask, bool turnOn) {
 		}
 	#endif
 }
+
+// Call this function to get an RMT channel number
+// returns -1 for error
+int8_t sys_get_next_RMT_chan_num()
+{
+  static uint8_t next_RMT_chan_num = 0; // channels 0-7 are valid
+
+  if (next_RMT_chan_num< 8) { // 7 is the max PWM channel number
+    return next_RMT_chan_num++;
+  }
+  else {
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_ERROR, "Error: out of RMT channels");
+    return -1;
+  }
+}
