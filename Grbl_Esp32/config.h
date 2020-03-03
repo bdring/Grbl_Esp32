@@ -47,8 +47,8 @@ Some features should not be changed. See notes below.
 #define CPU_MAP_TEST_DRIVE // these are defined in cpu_map.h
 
 // Number of axes defined (steppers, servos, etc) (valid range: 3 to 6)
-// Even if your machine only uses less than the minimum of 3, you should select 3 
-#define N_AXIS 3 
+// Even if your machine only uses less than the minimum of 3, you should select 3
+#define N_AXIS 3
 
 #define VERBOSE_HELP // Currently this doesn't do anything
 #define GRBL_MSG_LEVEL MSG_LEVEL_INFO // what level of [MSG:....] do you want to see 0=all off
@@ -56,7 +56,11 @@ Some features should not be changed. See notes below.
 // Serial baud rate
 // OK to change, but the ESP32 boot text is 115200, so you will not see that is your
 // serial monitor, sender, etc uses a different value than 115200
-#define BAUD_RATE 115200  
+#define BAUD_RATE 115200
+
+//Connect to your local AP with these credentials
+//#define CONNECT_TO_SSID  "your SSID"
+//#define SSID_PASSWORD  "your SSID password"
 
 #define ENABLE_BLUETOOTH // enable bluetooth 
 
@@ -101,7 +105,11 @@ Some features should not be changed. See notes below.
 
  //Default mode
 #ifdef ENABLE_WIFI
+#ifdef CONNECT_TO_SSID
+#define DEFAULT_RADIO_MODE ESP_WIFI_STA
+#else
 #define DEFAULT_RADIO_MODE ESP_WIFI_AP
+#endif //CONNECT_TO_SSID
 #else
     #undef ENABLE_NOTIFICATIONS
     #ifdef ENABLE_BLUETOOTH
@@ -288,7 +296,7 @@ Some features should not be changed. See notes below.
 #define IGNORE_CONTROL_PINS
 
 #define ENABLE_CONTROL_SW_DEBOUNCE // Default disabled. Uncomment to enable.
-#define CONTROL_SW_DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds 
+#define CONTROL_SW_DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
 
 
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,

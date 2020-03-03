@@ -271,8 +271,6 @@ void trinamic_stepper_enable(bool enable) {
 
 	previous_state = enable;	
 
-	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Trinamic Enable: %d", enable);
-
 	if (enable)
 		toff = TRINAMIC_DEFAULT_TOFF;
 	else
