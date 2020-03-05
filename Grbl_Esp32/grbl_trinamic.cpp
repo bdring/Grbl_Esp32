@@ -27,7 +27,7 @@
 	The PCB must be designed for this, with SDO pins being coonect to the 
 	next driver's SDI pin. The final SDO goes back to the controller.
 	
-	This is setup in cpu_map.
+	This is setup in the machine definition file (Machines/*.h).
 	add #define TRINAMIC_DAISY_CHAIN to your map
 	Make every axis CS_PIN definition be for the same pin like this...
 	#define X_CS_PIN GPIO_NUM_17

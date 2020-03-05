@@ -47,8 +47,8 @@ void setup() {
   
   grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion()); // print the SDK version
 
-  #ifdef CPU_MAP_NAME // show the map name at startup
-		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using cpu_map:%s", CPU_MAP_NAME);
+  #ifdef MACHINE_NAME // show the map name at startup
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using cpu_map:%s", MACHINE_NAME);
   #endif
 	
   settings_init(); // Load Grbl settings from EEPROM  

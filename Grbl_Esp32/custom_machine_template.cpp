@@ -20,152 +20,152 @@
 
 	=======================================================================
 
-This is a template of a custom machine file. All of these functions are called by
-main Grbl_ESP when enabled via #define statements. The machine designer must fill 
-in the contents of the functions. Almost all of them are optional. Remove any 
-unused functions. See each function for more information
+This is a template for a custom machine file.  The various optional functions are
+called by main Grbl_ESP when enabled via #define statements in Machines/my_machine.h.
+The machine designer must fill in the contents of the functions that are enabled.
+See each function for more information
 
-Make copies of custom_machine_template.cpp and custom_machine_template.h
-and replace the file prefix with your machine's name
+Copy custom_machine_template.cpp and Machines/custom_machine_template.h,
+changing the filenames to your machine's name.
 
 Example:
-my_machine.h
+Machines/my_machine.h
 my_machine.cpp
 
-In cpu_map.h you need to create #include links to your new machine files. This is 
-done using a CPU_MAP name so that you can switch to it in config.h like any of 
-the other defined machine. See the template example at the bottom of cpu_map.h
+Edit machine.h to include your Machines/my_machine.h file
 
-Example
-#ifdef CPU_MAP_MY_MACHINE
-	#include my_machine.h
-#endif
-
-in config.h make sure CPU_MAP_MY_MACHINE is the only define cpu map. 
-
-To keep your machine organized and cpu_map.h clean, put all of the stuff normally put in 
-cpu_map.h in your my_machine.h file. There are sections in that template expaining it.
+Edit Machines/my_machine.h according to the instructions therein.
 
 ===============================================================================
 
 */
 
-#ifdef CPU_MAP_CUSTOM_MACHINE // !!! Change this name to your machine map name
+// It is necessary to include grbl.h so that the machine definitions
+// will be loaded before the remainder of this file is processed.
+#include "grbl.h"
+
+// !!! Change this to the name you chose in Machines/my_machine.h
+// The compiler will skip the rest of this file unless that name is defined
+#ifdef MACHINE_CUSTOM
+
+#ifdef USE_MACHINE_INIT
 /*
-This function is called if you have #define USE_MACHINE_INIT in your my_machine.h file
 This function will be called when Grbl_ESP32 first starts. You can use it to do any
 special things your machine needs at startup.
 */
 void machine_init() {
-	
-}
 
+}
+#endif
+
+#ifdef USE_CUSTOM_HOMING
 /*
-This function is called if you have #define USE_CUSTOM_HOMING in your my_machine.h file
-This function gets called at the begining of the normal Grbl_ESP32 homing sequence. You 
-Can skip the rest of normal Grbl_ESP32 homing by returning false. You return true if you 
-want normal homing to continue. You might do this if you just need to prep the machine 
-for homing.
+  user_defined_homing() is called at the begining of the normal Grbl_ESP32 homing
+  sequence.  If user_defined_homing() returns false, the rest of normal Grbl_ESP32
+  homing is skipped if it returns false, other normal homing continues.  For
+  example, if you need to manually prep the machine for homing, you could implement
+  user_defined_homing() to wait for some button to be pressed, then return true.
 */
 bool user_defined_homing() {
-	return true; // True = done with homing, false = continue with normal Grbl_ESP32 homing
+	// True = done with homing, false = continue with normal Grbl_ESP32 homing
+	return true;
 }
+#endif
 
+
+#ifdef USE_KINEMATICS
+/*
+  Inverse Kinematics converts X,Y,Z cartesian coordinate to the steps
+  on your "joint" motors.  It requires the following three functions:
+*/
 
 /*
-Inverse Kinematics converts X,Y,Z cartesian coordinate to the steps on your "joint"
-motors.
+  inverse_kinematics() looks at incoming move commands and modifies
+  them before Grbl_ESP32 puts them in the motion planner.
 
-This function allows you to look at incoming move commands and modify them before
-Grbl_ESP32 puts them in the motion planner.
+  Grbl_ESP32 processes arcs by converting them into tiny little line segments.
+  Kinematics in Grbl_ESP32 works the same way. Search for this function across
+  Grbl_ESP32 for examples. You are basically converting cartesian X,Y,Z... targets to
 
-Grbl_ESP32 processes arc by converting them into tiny little line segments. 
-Kinematics in Grbl_ESP32 works the same way. Search for this function across Grbl_ESP32 
-for examples. You are basically converting cartesian X,Y,Z... targets to 
-
-target = an N_AXIS array of target positions (where the move is supposed to go)
-pl_data = planner data (see the definition of this type to see what it is)
-position = an N_AXIS array of where the machine is starting from for this move
+    target = an N_AXIS array of target positions (where the move is supposed to go)
+    pl_data = planner data (see the definition of this type to see what it is)
+    position = an N_AXIS array of where the machine is starting from for this move
 */
-void inverse_kinematics(target, pl_data, position) {
-
-	mc_line(target, pl_data); // this simply moves to the target Replace with your kinematics.
-}
-
-/*
-Forward Kinematics converts your motor postions to X,Y,Z... cartesian information. 
-This is used by the status command. 
-
-Convert the N_AXIS array of motor positions to cartesian in your code. 
-
-*/
-void forward_kinematics(float *position) {
-
-	// position[X_AXIS] = 
-	// position[Y_AXIS] = 
+void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *position) {
+	// this simply moves to the target. Replace with your kinematics.
+	mc_line(target, pl_data);
 }
 
 /*
- This function is required if you have #define USE_KINEMATIC
- This function is called before normal homing
- You can use it to do special homing or just to set stuff up 
- 
- cycle_mask = is a bit mask of the axes being homed this time.
- 
+  kinematics_pre_homing() is called before normal homing
+  You can use it to do special homing or just to set stuff up
+
+  cycle_mask is a bit mask of the axes being homed this time.
 */
-bool kinematics_pre_homing(cycle_mask)) {
+bool kinematics_pre_homing(uint8_t cycle_mask)) {
 	return false; // finish normal homing cycle
 }
 
-
-
-/* 
-	This function is required if you have #define USE_KINEMATIC
-	It is called at the end of normal homing
-	
+/*
+  kinematics_post_homing() is called at the end of normal homing
 */
 void kinematics_post_homing() {
-	
 }
+#endif
 
+#ifdef USE_FWD_KINEMATICS
 /*
-	This function is called if #USE_TOOL_CHANGE is define and
-	a gcode for a tool change is received
+  The status command uses forward_kinematics() to convert
+  your motor positions to cartesian X,Y,Z... coordinates.
 
+  Convert the N_AXIS array of motor positions to cartesian in your code.
+*/
+void forward_kinematics(float *position) {
+	// position[X_AXIS] =
+	// position[Y_AXIS] =
+}
+#endif
+
+#ifdef USE_TOOL_CHANGE
+/*
+  user_tool_change() is called when tool change gcode is received,
+  to perform appropriate actions for your machine.
 */
 void user_tool_change(uint8_t new_tool) {
-	
 }
+#endif
 
-/* 
-	This will be called if any of the #define MACRO_BUTTON_0_PIN options
-	are defined
+#ifdef MACRO_BUTTON_0_PIN
+/*
+  options.  user_defined_macro() is called with the button number to
+  perform whatever actions you choose.
 */
 void user_defined_macro(uint8_t index)
 {
 }
+#endif
 
+#ifdef USE_M30
 /*
-	This function is called if #define USE_M30 is defined and 
-	an M30 gcode is received. M30 signals the end of a gcode file.
-	
-		
+  user_m30() is called when an M30 gcode signals the end of a gcode file.
 */
 void user_m30() {
 }
+#endif
 
+#ifdef USE_MACHINE_TRINAMIC_INIT
 /*
-	Enable this function with #define USE_MACHINE_TRINAMIC_INIT
-	This will replace the normal setup of trinamic drivers with your own
-	This is where you could setup StallGaurd
-	
+  machine_triaminic_setup() replaces the normal setup of trinamic
+  drivers with your own code.  For example, you could setup StallGuard
 */
 void machine_trinamic_setup() {
-	
+
 }
+#endif
 
-
-// feel free to add any additional functions specific to your machine
+// If you add any additional functions specific to your machine that
+// require calls from common code, guard their calls in the common code with
+// #ifdef USE_WHATEVER and add function prototypes (also guarded) to grbl.h
 
 
 #endif

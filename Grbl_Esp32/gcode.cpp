@@ -344,11 +344,11 @@ uint8_t gc_execute_line(char *line, uint8_t client)
 					break;
 				}
 				break;
-			case 6: // too change
+			case 6: // tool change
 				word_bit = MODAL_GROUP_M6;
 				gc_block.modal.tool_change = TOOL_CHANGE;
 				#ifdef USE_TOOL_CHANGE
-					//tool_change(gc_state.tool);
+					//user_tool_change(gc_state.tool);
 				#endif
 				break;
 			case 7:

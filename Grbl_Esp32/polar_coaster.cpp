@@ -1,5 +1,5 @@
 /*
-  kinematics_polar_coaster.cpp - Implements simple inverse kinematics for Grbl_ESP32
+  polar_coaster.cpp - Implements simple inverse kinematics for Grbl_ESP32
   Part of Grbl_ESP32
 
   Copyright (c) 2019 Barton Dring @buildlog
@@ -49,9 +49,14 @@
 
 
 */
+
 #include "grbl.h"
-#ifdef CPU_MAP_POLAR_COASTER
+
+#ifdef MACHINE_POLAR_COASTER
 #ifdef USE_KINEMATICS
+
+void calc_polar(float *target_xyz, float *polar, float last_angle);
+float abs_angle(float ang);
 
 static float last_angle = 0;
 static float last_radius = 0;
