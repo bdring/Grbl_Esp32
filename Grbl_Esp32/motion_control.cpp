@@ -244,7 +244,7 @@ void mc_homing_cycle(uint8_t cycle_mask)
 		if (kinematics_pre_homing(cycle_mask)) {
  			return;
 		}
-	#endif
+	#endif  
 	
   // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
   // with machines with limits wired on both ends of travel to one limit pin.
@@ -262,6 +262,8 @@ void mc_homing_cycle(uint8_t cycle_mask)
   // -------------------------------------------------------------------------------------
   // Perform homing routine. NOTE: Special motion case. Only system reset works.
   
+  n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;
+
   #ifdef HOMING_SINGLE_AXIS_COMMANDS
     /*
     if (cycle_mask) { limits_go_home(cycle_mask); } // Perform homing cycle based on mask.
@@ -272,8 +274,10 @@ void mc_homing_cycle(uint8_t cycle_mask)
 			  limits_go_home(cycle_mask);  // Homing cycle 0
 	    else {
         ganged_mode = SQUARING_MODE_DUAL;
+        n_homing_locate_cycle = 0; // don't do a second touch cycle
         limits_go_home(cycle_mask);
         ganged_mode = SQUARING_MODE_A;
+        n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE; // restore to default value
         limits_go_home(cycle_mask);
         ganged_mode = SQUARING_MODE_B;
         limits_go_home(cycle_mask);
@@ -289,8 +293,10 @@ void mc_homing_cycle(uint8_t cycle_mask)
 			limits_go_home(HOMING_CYCLE_0);  // Homing cycle 0
 	  else {
 			ganged_mode = SQUARING_MODE_DUAL;
+      n_homing_locate_cycle = 0; // don't do a second touch cycle
 			limits_go_home(HOMING_CYCLE_0);
 			ganged_mode = SQUARING_MODE_A;
+      n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE; // restore to default value
 			limits_go_home(HOMING_CYCLE_0);
 			ganged_mode = SQUARING_MODE_B;
 			limits_go_home(HOMING_CYCLE_0);
@@ -302,8 +308,10 @@ void mc_homing_cycle(uint8_t cycle_mask)
       limits_go_home(HOMING_CYCLE_1);
 		else {
 			ganged_mode = SQUARING_MODE_DUAL;
+      n_homing_locate_cycle = 0; // don't do a second touch cycle
 			limits_go_home(HOMING_CYCLE_1);
 			ganged_mode = SQUARING_MODE_A;
+      n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE; // restore to default value
 			limits_go_home(HOMING_CYCLE_1);
 			ganged_mode = SQUARING_MODE_B;
 			limits_go_home(HOMING_CYCLE_1);
@@ -316,8 +324,10 @@ void mc_homing_cycle(uint8_t cycle_mask)
       limits_go_home(HOMING_CYCLE_2);
 		else {
 			ganged_mode = SQUARING_MODE_DUAL;
+      n_homing_locate_cycle = 0; // don't do a second touch cycle
 			limits_go_home(HOMING_CYCLE_2);
 			ganged_mode = SQUARING_MODE_A;
+       n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE; // restore to default value
 			limits_go_home(HOMING_CYCLE_2);
 			ganged_mode = SQUARING_MODE_B;
 			limits_go_home(HOMING_CYCLE_2);
