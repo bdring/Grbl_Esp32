@@ -32,15 +32,33 @@
 
 */
 
+#ifndef SOLENOID_PWM_FREQ
 #define SOLENOID_PWM_FREQ 5000
+#endif
+
+#ifndef SOLENOID_PWM_RES_BITS
 #define SOLENOID_PWM_RES_BITS 8
+#endif
 
+#ifndef SOLENOID_TURNON_DELAY
 #define SOLENOID_TURNON_DELAY (SOLENOID_TIMER_INT_FREQ/2)
-#define SOLENOID_PULSE_LEN_UP 255
-#define SOLENOID_HOLD_DELAY (SOLENOID_TIMER_INT_FREQ/2) // in task counts...after this delay power will change to hold level
-#define SOLENOID_PULSE_LEN_HOLD 80 // solenoid hold level ... typically a lower value to prevent overheating
+#endif
 
+#ifndef SOLENOID_PULSE_LEN_UP
+#define SOLENOID_PULSE_LEN_UP 255
+#endif
+
+#ifndef SOLENOID_HOLD_DELAY
+#define SOLENOID_HOLD_DELAY (SOLENOID_TIMER_INT_FREQ/2) // in task counts...after this delay power will change to hold level
+#endif
+
+#ifndef SOLENOID_PULSE_LEN_HOLD
+#define SOLENOID_PULSE_LEN_HOLD 80 // solenoid hold level ... typically a lower value to prevent overheating
+#endif
+
+#ifndef SOLENOID_TIMER_INT_FREQ
 #define SOLENOID_TIMER_INT_FREQ 50
+#endif
 
 #ifndef solenoid_h
 #define solenoid_h

@@ -11,8 +11,7 @@
 
 // For actual use, select the appropriate board from Machines/,
 // or create your own, for example:
-// #include "Machines/3x_v4.h"
-#include "Machines/spi_daisy_4x.h"
+#include "Machines/3x_v4.h"
 
 // Some configurations use two files, the first assigning pins
 // and the second providing additional customization, for example:
@@ -31,4 +30,4 @@
 
 // Paste default settings override definitions here.
 
-#endif _machine_h
+#endif // _machine_h

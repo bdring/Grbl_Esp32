@@ -1,8 +1,6 @@
 #ifndef _machine_common_h
 #define _machine_common_h
 
-#define USE_RMT_STEPS
-
 #ifndef SPINDLE_PWM_BIT_PRECISION
 #define SPINDLE_PWM_BIT_PRECISION 8
 #endif

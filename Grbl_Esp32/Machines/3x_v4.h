@@ -12,9 +12,9 @@
 #define Z_DIRECTION_PIN         GPIO_NUM_33
 
 #define LIMIT_MASK              B111
-#define X_AXIS_LIMIT_PIN        GPIO_NUM_17
-#define Y_AXIS_LIMIT_PIN        GPIO_NUM_4
-#define Z_AXIS_LIMIT_PIN        GPIO_NUM_16
+#define X_LIMIT_PIN             GPIO_NUM_17
+#define Y_LIMIT_PIN             GPIO_NUM_4
+#define Z_LIMIT_PIN             GPIO_NUM_16
 
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_13

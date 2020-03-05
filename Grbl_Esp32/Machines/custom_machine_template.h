@@ -42,16 +42,16 @@
 // for all the things that can go here
 
 // Assign CPU pins to machine functions, for example:
-// #define X_STEP_PIN              GPIO_NUM_12
-// #define X_DIRECTION_PIN         GPIO_NUM_26
-// #define X_AXIS_LIMIT_PIN        GPIO_NUM_2
+#define X_STEP_PIN              GPIO_NUM_12
+#define X_DIRECTION_PIN         GPIO_NUM_26
+#define X_LIMIT_PIN             GPIO_NUM_2
 
 // #define SPINDLE_PWM_PIN         GPIO_NUM_17
 
 // #define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_35
 
 // Set the number of bits to the number of limit switches
-// #define LIMIT_MASK      	B111
+#define LIMIT_MASK      	B111
 
 // ============== Enable custom features =======================
 

@@ -23,13 +23,14 @@
 
 #ifdef USE_TRINAMIC	
 /*
-	The drivers can use SPI daisy chaining to allow the use of only (1) CS_PIN.
-	The PCB must be designed for this, with SDO pins being coonect to the 
-	next driver's SDI pin. The final SDO goes back to the controller.
+	The drivers can use SPI daisy chaining to allow the use of a single CS_PIN.
+	The PCB must be designed for this, with SDO pins connected to the 
+	next driver's SDI pin and the final SDO going back to the CPU.
 	
-	This is setup in the machine definition file (Machines/*.h).
-	add #define TRINAMIC_DAISY_CHAIN to your map
-	Make every axis CS_PIN definition be for the same pin like this...
+	To set this up, #define TRINAMIC_DAISY_CHAIN in your machine definition
+	file (Machines/something.h).
+
+	Set the CS_PIN definition for every axis to the same pin, like this...
 	#define X_CS_PIN GPIO_NUM_17
 	#define Y_CS_PIN GPIO_NUM_17
 	...etc.
