@@ -34,7 +34,7 @@
 	
 	1. In config.h un-comment #define USE_SERVO_AXES 
 
-	2. In a cpu_map.h section, define servo pins and PWM channels like this .... 
+	2. In the machine definition file in Machines/, define servo pins and PWM channels like this .... 
 				#define SERVO_Y_PIN 					GPIO_NUM_14
 				#define SERVO_Y_CHANNEL_NUM 	6
 				
