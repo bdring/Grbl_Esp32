@@ -25,6 +25,10 @@
 #define MACHINE_NAME "MACHINE_ATARI_1020"
 
 // ================== CPU MAP ======================
+#ifdef USE_RMT_STEPS
+        #undef USE_RMT_STEPS
+#endif
+
 #define USE_UNIPOLAR
 
 #define X_UNIPOLAR
@@ -69,7 +73,7 @@
 #endif
 
 #ifdef INVERT_CONTROL_PIN_MASK
-        #undef IGNORE_CONTROL_PINS
+        #undef INVERT_CONTROL_PIN_MASK
 #endif
 #define INVERT_CONTROL_PIN_MASK   B01110000
 

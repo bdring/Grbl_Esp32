@@ -15,3 +15,7 @@
 #define MACHINE_NAME "MACHINE_DEFAULT - Demo Only No I/O!"
 
 #define LIMIT_MASK 0  // no limit pins
+
+#ifdef USE_RMT_STEPS
+#undef USE_RMT_STEPS  // Suppress unused variable warning
+#endif

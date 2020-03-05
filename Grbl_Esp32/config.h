@@ -41,6 +41,53 @@ Some features should not be changed. See notes below.
 
 // It is no longer necessary to edit this file to choose
 // a machine configuration; edit machine.h instead
+// machine.h is #included below, after some definitions
+// that the machine file might choose to undefine.
+
+// Define the homing cycle patterns with bitmasks. The homing cycle first performs a search mode
+// to quickly engage the limit switches, followed by a slower locate mode, and finished by a short
+// pull-off motion to disengage the limit switches. The following HOMING_CYCLE_x defines are executed
+// in order starting with suffix 0 and completes the homing routine for the specified-axes only. If
+// an axis is omitted from the defines, it will not home, nor will the system update its position.
+// Meaning that this allows for users with non-standard Cartesian machines, such as a lathe (x then z,
+// with no y), to configure the homing cycle behavior to their needs.
+// NOTE: The homing cycle is designed to allow sharing of limit pins, if the axes are not in the same
+// cycle, but this requires some pin settings changes in the machine definition file. For example, the default homing
+// cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
+// By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
+// may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
+// on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
+// will not be affected by pin sharing.
+
+// NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
+// These homing cycle definitions precede the machine.h file so that the machine
+// definition can undefine them if necessary.
+#define HOMING_CYCLE_0 (1<<Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
+#define HOMING_CYCLE_1 (1<<X_AXIS)
+#define HOMING_CYCLE_2 (1<<Y_AXIS)
+
+// NOTE: The following is for for homing X and Y at the same time
+// #define HOMING_CYCLE_0 (1<<Z_AXIS) // first home z by itself
+// #define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
+
+// Inverts pin logic of the control command pins based on a mask. This essentially means you can use
+// normally-closed switches on the specified pins, rather than the default normally-open switches.
+// The mask order is Cycle Start | Feed Hold | Reset | Safety Door
+// For example B1101 will invert the function of the Reset pin.
+#define INVERT_CONTROL_PIN_MASK   B1111
+
+// This allows control pins to be ignored.
+// Since these are typically used on the pins that don't have pullups, they will float and cause
+// problems if not externally pulled up. Ignoring will always return not activated when read.
+#define IGNORE_CONTROL_PINS
+
+#define ENABLE_CONTROL_SW_DEBOUNCE // Default disabled. Uncomment to enable.
+#define CONTROL_SW_DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
+
+#define USE_RMT_STEPS
+
+// Include the file that loads the machine-specific config file.
+// machine.h must be edited to choose the desired file.
 #include "machine.h"
 
 // machine_common.h contains settings that do not change
@@ -167,30 +214,6 @@ Some features should not be changed. See notes below.
 // mainly a safety feature to remind the user to home, since position is unknown to Grbl.
 #define HOMING_INIT_LOCK // Comment to disable
 
-// Define the homing cycle patterns with bitmasks. The homing cycle first performs a search mode
-// to quickly engage the limit switches, followed by a slower locate mode, and finished by a short
-// pull-off motion to disengage the limit switches. The following HOMING_CYCLE_x defines are executed
-// in order starting with suffix 0 and completes the homing routine for the specified-axes only. If
-// an axis is omitted from the defines, it will not home, nor will the system update its position.
-// Meaning that this allows for users with non-standard Cartesian machines, such as a lathe (x then z,
-// with no y), to configure the homing cycle behavior to their needs.
-// NOTE: The homing cycle is designed to allow sharing of limit pins, if the axes are not in the same
-// cycle, but this requires some pin settings changes in the machine definition file. For example, the default homing
-// cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
-// By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
-// may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
-// on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
-// will not be affected by pin sharing.
-
-// NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.  
-#define HOMING_CYCLE_0 (1<<Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
-#define HOMING_CYCLE_1 (1<<X_AXIS)  
-#define HOMING_CYCLE_2 (1<<Y_AXIS)
-
-// NOTE: The following is for for homingg X and Y at the same time
-// #define HOMING_CYCLE_0 (1<<Z_AXIS) // first home z by itself
-// #define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
-
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
 // greater.
@@ -285,21 +308,6 @@ Some features should not be changed. See notes below.
 
 // Enable using a solenoid for the Z axis on a pen type machine
 // #define USE_PEN_SOLENOID
-
-// Inverts pin logic of the control command pins based on a mask. This essentially means you can use
-// normally-closed switches on the specified pins, rather than the default normally-open switches.
-// The mask order is Cycle Start | Feed Hold | Reset | Safety Door
-// For example B1101 will invert the function of the Reset pin.
-#define INVERT_CONTROL_PIN_MASK   B1111
-
-// This allows control pins to be ignored.
-// Since these are typically used on the pins that don't have pullups, they will float and cause
-// problems if not externally pulled up. Ignoring will always return not activated when read.
-#define IGNORE_CONTROL_PINS
-
-#define ENABLE_CONTROL_SW_DEBOUNCE // Default disabled. Uncomment to enable.
-#define CONTROL_SW_DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
-
 
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.

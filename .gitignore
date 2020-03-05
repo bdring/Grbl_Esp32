@@ -5,3 +5,5 @@ Thumbs.db
 embedded/node_modules
 embedded/dist
 *~
+.pio/
+.vscode/
