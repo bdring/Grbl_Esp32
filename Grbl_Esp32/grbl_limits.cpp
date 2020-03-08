@@ -27,6 +27,8 @@
 
 #include "grbl.h"
 
+uint8_t n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;
+
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 
 // Homing axis search distance multiplier. Computed by this value times the cycle travel.
@@ -89,7 +91,7 @@ void limits_go_home(uint8_t cycle_mask)
   #endif
 
   // Initialize variables used for homing computations.
-  uint8_t n_cycle = (2*N_HOMING_LOCATE_CYCLE+1);
+  uint8_t n_cycle = (2*n_homing_locate_cycle+1);
   uint8_t step_pin[N_AXIS];
   float target[N_AXIS];
   float max_travel = 0.0;
