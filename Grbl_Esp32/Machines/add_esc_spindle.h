@@ -8,6 +8,9 @@
 // This uses a Brushless DC Hobby motor as a spindle motor.  See:
 //   https://github.com/bdring/Grbl_Esp32/wiki/BESC-Spindle-Feature
 
+// MACHINE_EXTRA is appended to MACHINE_NAME for startup message display
+#define MACHINE_EXTRA "_ESC_SPINDLE"
+
 #define SHOW_EXTENDED_SETTINGS
 
 #define SPINDLE_PWM_BIT_PRECISION 16   // 16 bit recommended for ESC (don't change)
