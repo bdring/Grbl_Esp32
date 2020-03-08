@@ -4,7 +4,6 @@
 // Rebooting...See this issue https://github.com/bdring/Grbl_Esp32/issues/314
 // !!!! Experimental Untested !!!!!
 
-
 #define MACHINE_NAME "MACHINE_ESPDUINO_32"
 
 #define X_STEP_PIN              GPIO_NUM_26

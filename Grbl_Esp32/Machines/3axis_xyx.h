@@ -1,8 +1,8 @@
-// This is the CPU Map for the ESP32 Development Controller
+// Pin assignments for the ESP32 Development Controller
 // used to drive a dual motor gantry where the drivers
 // labeled X, Y and Z drive the machine axes X, Y and X.
-// https://github.com/bdring/Grbl_ESP32_Development_Controller
-// https://www.tindie.com/products/33366583/grbl_esp32-cnc-development-board-v35/
+//   https://github.com/bdring/Grbl_ESP32_Development_Controller
+//   https://www.tindie.com/products/33366583/grbl_esp32-cnc-development-board-v35/
 
 #define MACHINE_NAME            "MACHINE_ESP32_V4_XYX"
 #define X_STEP_PIN              GPIO_NUM_26  /* labeled Y */
@@ -21,8 +21,8 @@
 
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_13
 
-#define COOLANT_MIST_PIN_1      GPIO_NUM_21
-#define COOLANT_FLOOE_PIN_2     GPIO_NUM_25
+#define COOLANT_MIST_PIN        GPIO_NUM_21
+#define COOLANT_FLOOD_PIN       GPIO_NUM_25
 
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_22
 

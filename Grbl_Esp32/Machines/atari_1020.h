@@ -1,30 +1,14 @@
-/*
-        atari_1020.h
-        Part of Grbl_ESP32
+// Pin assignments and other configuration for an Atari 1020 pen plotter
 
-        copyright (c) 2018 -    Bart Dring This file was modified for use on the ESP32
-                                        CPU. Do not use this with Grbl for atMega328P
-
-        Grbl is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        Grbl is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
-
-        This contains all the special features required to control an
-        Atari 1010 Pen Plotter
-*/
+// The pen plotter uses several special options, including unipolar
+// motors, custom homing and tool changing.  The file atari_1020.cpp
+// defines custom functions to handle the special features.  As such,
+// this file defines not only pin assignments but also many other
+// things that are necessary to override default choices that are
+// inappropriate for this particular machine.
 
 #define MACHINE_NAME "MACHINE_ATARI_1020"
 
-// ================== CPU MAP ======================
 #ifdef USE_RMT_STEPS
         #undef USE_RMT_STEPS
 #endif
@@ -78,7 +62,7 @@
 #define INVERT_CONTROL_PIN_MASK   B01110000
 
 #define MACRO_BUTTON_0_PIN              GPIO_NUM_34  // Pen Switch
-#define MACRO_BUTTON_1_PIN              GPIO_NUM_35      // Color Switch
+#define MACRO_BUTTON_1_PIN              GPIO_NUM_35  // Color Switch
 #define MACRO_BUTTON_2_PIN              GPIO_NUM_36  // Paper Switch
 
 #ifdef DEFAULTS_GENERIC
@@ -131,8 +115,6 @@
 #define DEFAULT_Y_MAX_TRAVEL 20000.0 // mm NOTE: Must be a positive value.
 #define DEFAULT_Z_MAX_TRAVEL 10.0 // This is percent in servo mode
 
-// ================== CPU MAP ======================
-
 #define ATARI_1020
 
 #define SOLENOID_PWM_FREQ 5000
@@ -144,7 +126,7 @@
 
 #define SOLENOID_TASK_FREQ 50  // this is milliseconds
 
-#define MAX_PEN_NUMBER                  4
+#define MAX_PEN_NUMBER          4
 #define BUMPS_PER_PEN_CHANGE    3
 
 

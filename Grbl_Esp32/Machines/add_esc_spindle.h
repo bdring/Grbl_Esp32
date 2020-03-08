@@ -1,9 +1,12 @@
-// This is an example of using a Brushless DC Hobby motor as
-// a spindle motor.  See this wiki page for more info
-// https://github.com/bdring/Grbl_Esp32/wiki/BESC-Spindle-Feature
-//
-// To use this file you must first include another machine file
-// that defines the pin assignments, such as Machines/3x_v4.h
+// This is an additional configuration fragment that can be
+// included after a base configuration file.  The base file
+// establishes most settings and the add-on changes a few things.
+// For example, in machines.h, you would write:
+//   #include "Machines/3axis_v4.h"             // Basic pin assignments
+//   #include "Machines/add_esc_spindle.h"      // Add-ons for ESC spindle
+
+// This uses a Brushless DC Hobby motor as a spindle motor.  See:
+//   https://github.com/bdring/Grbl_Esp32/wiki/BESC-Spindle-Feature
 
 #define SHOW_EXTENDED_SETTINGS
 
