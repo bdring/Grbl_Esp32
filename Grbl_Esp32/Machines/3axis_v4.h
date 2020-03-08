@@ -1,6 +1,6 @@
 // Pin assignments for the ESP32 Development Controller, v4.1 and later.
-// https://github.com/bdring/Grbl_ESP32_Development_Controller
-// https://www.tindie.com/products/33366583/grbl_esp32-cnc-development-board-v35/
+//   https://github.com/bdring/Grbl_ESP32_Development_Controller
+//   https://www.tindie.com/products/33366583/grbl_esp32-cnc-development-board-v35/
 
 #define MACHINE_NAME            "MACHINE_ESP32_V4"
 

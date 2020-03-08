@@ -1,5 +1,5 @@
 /*
-	custom_machine_template.cpp
+	custom_code_template.cpp
 	Part of Grbl_ESP32
 
 	copyright (c) 2020 -	Bart Dring. This file was intended for use on the ESP32
@@ -20,13 +20,13 @@
 
 	=======================================================================
 
-This is a template for a custom machine file.  The various optional functions are
-called by main Grbl_ESP when enabled via #define statements in Machines/my_machine.h.
-The machine designer must fill in the contents of the functions that are enabled.
-See each function for more information
+This is a template for user-defined C++ code functions.  Grbl can be
+configured to call some optional functions, enabled by #define statements
+in the machine definition .h file.  Implement the functions thus enabled
+herein.  The possible functions are listed and described below.
 
-Copy custom_machine_template.cpp and Machines/custom_machine_template.h,
-changing the filenames to your machine's name.
+To use this file, copy it to a name of your own choosing, and also copy
+Machines/template.h to a similar name.
 
 Example:
 Machines/my_machine.h
@@ -36,6 +36,9 @@ Edit machine.h to include your Machines/my_machine.h file
 
 Edit Machines/my_machine.h according to the instructions therein.
 
+Fill in the function definitions below for the functions that you have
+enabled with USE_ defines in Machines/my_machine.h
+
 ===============================================================================
 
 */
@@ -44,13 +47,13 @@ Edit Machines/my_machine.h according to the instructions therein.
 // will be loaded before the remainder of this file is processed.
 #include "grbl.h"
 
-// !!! Change this to the name you chose in Machines/my_machine.h
+// !!! Change this to the MACHINE_name you chose in Machines/my_machine.h
 // The compiler will skip the rest of this file unless that name is defined
 #ifdef MACHINE_CUSTOM
 
 #ifdef USE_MACHINE_INIT
 /*
-This function will be called when Grbl_ESP32 first starts. You can use it to do any
+machine_init() is called when Grbl_ESP32 first starts. You can use it to do any
 special things your machine needs at startup.
 */
 void machine_init() {
@@ -110,10 +113,11 @@ bool kinematics_pre_homing(uint8_t cycle_mask)) {
   kinematics_post_homing() is called at the end of normal homing
 */
 void kinematics_post_homing() {
+
 }
 #endif
 
-#ifdef USE_FWD_KINEMATICS
+#ifdef USE_FWD_KINEMATIC
 /*
   The status command uses forward_kinematics() to convert
   your motor positions to cartesian X,Y,Z... coordinates.
@@ -132,16 +136,18 @@ void forward_kinematics(float *position) {
   to perform appropriate actions for your machine.
 */
 void user_tool_change(uint8_t new_tool) {
+
 }
 #endif
 
-#ifdef MACRO_BUTTON_0_PIN
+#if defined(MACRO_BUTTON_0_PIN) || defined(MACRO_BUTTON_1_PIN) || defined(MACRO_BUTTON_2_PIN)
 /*
   options.  user_defined_macro() is called with the button number to
   perform whatever actions you choose.
 */
 void user_defined_macro(uint8_t index)
 {
+
 }
 #endif
 
@@ -150,6 +156,7 @@ void user_defined_macro(uint8_t index)
   user_m30() is called when an M30 gcode signals the end of a gcode file.
 */
 void user_m30() {
+
 }
 #endif
 

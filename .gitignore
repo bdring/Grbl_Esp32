@@ -7,3 +7,4 @@ embedded/dist
 *~
 .pio/
 .vscode/
+.history/

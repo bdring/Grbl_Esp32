@@ -99,6 +99,10 @@ Some features should not be changed. See notes below.
 #define N_AXIS 3
 #endif
 
+#ifndef LIMIT_MASK
+#define LIMIT_MASK B0
+#endif
+
 #define VERBOSE_HELP // Currently this doesn't do anything
 #define GRBL_MSG_LEVEL MSG_LEVEL_INFO // what level of [MSG:....] do you want to see 0=all off
 

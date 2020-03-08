@@ -1,4 +1,4 @@
-// Pin assignments for 6-axis system
+// Pin assignments for a 6-axis system
 
 #define MACHINE_NAME "MACHINE_FOO_6X"
 

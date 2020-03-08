@@ -1,6 +1,6 @@
 // Pin assignments for the ESP32 Development Controller, v3.5.
-// https://github.com/bdring/Grbl_ESP32_Development_Controller
-// https://www.tindie.com/products/33366583/grbl_esp32-cnc-development-board-v35/
+//   https://github.com/bdring/Grbl_ESP32_Development_Controller
+//   https://www.tindie.com/products/33366583/grbl_esp32-cnc-development-board-v35/
 
 #define MACHINE_NAME            "MACHINE_ESP32_V3.5"
 
@@ -21,8 +21,8 @@
 
 #define SPINDLE_PWM_PIN         GPIO_NUM_17  // labeled SpinPWM
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
-#define MIST_PIN                GPIO_NUM_21  // labeled Mist
-#define FLOOD_PIN               GPIO_NUM_16  // labeled Flood
+#define COOLANT_MIST_PIN        GPIO_NUM_21  // labeled Mist
+#define COOLANT_FLOOD_PIN       GPIO_NUM_16  // labeled Flood
 #define PROBE_PIN               GPIO_NUM_32  // labeled Probe
 
 #define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_35  // labeled Door,  needs external pullup
