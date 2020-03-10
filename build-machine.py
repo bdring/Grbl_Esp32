@@ -1,18 +1,20 @@
 #!/usr/bin/env python2
 
-# Compile Grbl_ESP32 for the machine listed on the command line, as in
-#  ./build-machine.py 3xis_v4.h
+# Compile Grbl_ESP32 for each of the machines defined in Machines/ .
+# Add-on files are built on top of a single base.
+# This is useful for automated testing, to make sure you haven't broken something
 
-# Add-ons can be built by listing both the base name and the adder, as in
-#   ./build-machine.py 3axis_v4.h add_esc_spindle.h
-
-#  -q suppresses most messages
-#  -u uploads the firmware to the target machine
+# The output is filtered so that the only lines you see are a single
+# success or failure line for each build, plus any preceding lines that
+# contain the word "error".  If you need to see everything, for example to
+# see the details of an errored build, include -v on the command line.
 
 from __future__ import print_function
-import os, subprocess, sys
+from builder import buildMachine
+import os, sys
 
-cmd=['platformio','run']
+extraArgs=None
+
 verbose = '-v' in sys.argv or '-q' not in sys.argv
 if '-v' in sys.argv:
     sys.argv.remove('-v')
@@ -20,30 +22,12 @@ if '-q' in sys.argv:
     sys.argv.remove('-q')
 if '-u' in sys.argv:
     sys.argv.remove('-u')
-    cmd.append('--target=upload')
-
-env = dict(os.environ)
-
-def buildMachine(baseName, addName=None):
-    displayName = baseName
-    flags = '-DMACHINE_FILENAME=' + baseName
-    if addName:
-        displayName += ' + ' + addName
-        flags += ' -DMACHINE_FILENAME2=' + addName
-    print('Building machine ' + displayName)
-    env['PLATFORMIO_BUILD_FLAGS'] = flags
-    if verbose:
-        subprocess.Popen(cmd, env=env).wait()
-    else:
-        app = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, env=env)
-        for line in app.stdout:
-            if "Took" in line or 'Uploading' in line or "error" in line.lower():
-                print(line, end='')
+    extraArgs = '--target=upload'
 
 if len(sys.argv) == 2:
-    buildMachine(sys.argv[1], None)
+    buildMachine(sys.argv[1], addName=None, verbose=verbose, extraArgs=extraArgs)
 elif len(sys.argv) == 3:
-    buildMachine(sys.argv[1], sys.argv[2])
+    buildMachine(sys.argv[1], addName=sys.argv[2], verbose=verbose, extraArgs=extraArgs)
 else:
     print("Usage: ./build-machine.py [-q] [-u] machine_name.h [add_name.h]")
     print(' Build for the given machine and optional add-on regardless of machine.h')

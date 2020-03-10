@@ -9,6 +9,8 @@
 
 #define MACHINE_NAME "MACHINE_ATARI_1020"
 
+#define CUSTOM_CODE_FILENAME "Custom/atari_1020.cpp"
+
 #ifdef USE_RMT_STEPS
         #undef USE_RMT_STEPS
 #endif

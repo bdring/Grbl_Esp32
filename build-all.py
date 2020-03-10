@@ -1,5 +1,10 @@
 #!/usr/bin/env python2
 
+# Note: If you experience random errors running this script within
+# VSCode, try running it from a regular terminal window.  Some VSCode
+# extensions seem to randomly interfere with the files that platformio
+# uses during compilation.
+
 # Compile Grbl_ESP32 for each of the machines defined in Machines/ .
 # Add-on files are built on top of a single base.
 # This is useful for automated testing, to make sure you haven't broken something
@@ -9,31 +14,16 @@
 # contain the word "error".  If you need to see everything, for example to
 # see the details of an errored build, include -v on the command line.
 
-from __future__ import print_function
-import os, subprocess, sys
+from builder import buildMachine
+import os, sys
 
-env = dict(os.environ)
+cmd = ['platformio','run']
+
 verbose = '-v' in sys.argv
-
-def buildMachine(baseName, addName=None):
-    displayName = baseName
-    flags = '-DMACHINE_FILENAME=' + baseName
-    if addName:
-        displayName += ' + ' + addName
-        flags += ' -DMACHINE_FILENAME2=' + addName
-    print('Building machine ' + displayName)
-    env['PLATFORMIO_BUILD_FLAGS'] = flags
-    app = subprocess.Popen(['platformio','run'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1, env=env)
-    for line in app.stdout:
-        if verbose or "Took" in line or "error" in line.lower():
-            print(line, end='')
-    print()
 
 adderBase = '3axis_v4.h'
 for name in os.listdir('Grbl_Esp32/Machines'):
     if name.startswith('add_'):
-        buildMachine(adderBase, name)
+        buildMachine(adderBase, addName=name, verbose=verbose)
     else:
-        buildMachine(name)
-
-
+        buildMachine(name, verbose=verbose)

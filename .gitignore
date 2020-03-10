@@ -8,3 +8,4 @@ embedded/dist
 .pio/
 .vscode/
 .history/
+*.pyc

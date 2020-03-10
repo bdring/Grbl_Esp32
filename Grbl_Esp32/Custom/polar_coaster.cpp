@@ -28,7 +28,7 @@
 	How it works...
 
 	If you tell it to go to X10 Y10 Z10 in Cartesian space, for example, the equations
-  will convert those values to the required joint values. In the case of a polar machine, X represents the radius,
+	will convert those values to the required joint values. In the case of a polar machine, X represents the radius,
 	Y represents the polar degrees and Z would be unchanged.
 
 	In most cases, a straight line in Cartesian space could cause a curve in the new system.
@@ -50,10 +50,9 @@
 
 */
 
-#include "grbl.h"
-
-#ifdef MACHINE_POLAR_COASTER
-#ifdef USE_KINEMATICS
+// This file is enabled by defining CUSTOM_CODE_FILENAME "polar_coaster.cpp"
+// in Machines/polar_coaster.h, thus causing this file to be included
+// from ../custom_code.cpp
 
 void calc_polar(float *target_xyz, float *polar, float last_angle);
 float abs_angle(float ang);
@@ -175,7 +174,6 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 	// TO DO don't need a feedrate for rapids
 }
 
-
 /*
 Forward kinematics converts position back to the original cartesian system. It is
 typically used for reporting
@@ -264,8 +262,6 @@ float abs_angle(float ang) {
 	return ang;
 }
 
-#endif
-
 // Polar coaster has macro buttons, this handles those button pushes.
 void user_defined_macro(uint8_t index)
 {	
@@ -298,6 +294,3 @@ void user_defined_macro(uint8_t index)
 void user_m30() {
 	inputBuffer.push("$H\r");
 }
-
-#endif
-
