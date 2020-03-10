@@ -34,13 +34,15 @@
 // === Machine Name
 // Change TEMPLATE to some name of your own choosing.  That name
 // will be shown in a Grbl startup message to identify your
-// configuration.  If you need to implement custom code functions
-// as in custom_code_template.cpp, the beginning #ifdef in
-// your custom .cpp file must match your chosen MACHINE_name ,
-// so as to enable the compilation of your file and suppress
-// compilation of other custom .cpp files.
+// configuration.
 
 #define MACHINE_NAME            "MACHINE_TEMPLATE"
+
+// If your machine requires custom code as described below in
+// Special Features, you must copy Custom/custom_code_template.cpp
+// to a new name like Custom/my_custom_code.cpp, implement the
+// functions therein, and enable its use by defining:
+// #define CUSTOM_CODE_FILENAME "Custom/my_custom_code.cpp"
 
 // === Number of axes
 

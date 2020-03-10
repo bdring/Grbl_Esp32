@@ -3,8 +3,9 @@
 
 #define MACHINE_NAME "MACHINE_POLAR_COASTER"
 
-// This must be defined so that polar_coaster.cpp is not skipped
-#define MACHINE_POLAR_COASTER
+// This causes the custom code file to be included in the build
+// via ../custom_code.cpp
+#define CUSTOM_CODE_FILENAME "Custom/polar_coaster.cpp"
 
 #define RADIUS_AXIS 0
 #define POLAR_AXIS 1

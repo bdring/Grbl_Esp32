@@ -30,7 +30,7 @@ Machines/template.h to a similar name.
 
 Example:
 Machines/my_machine.h
-my_machine.cpp
+Custom/my_machine.cpp
 
 Edit machine.h to include your Machines/my_machine.h file
 
@@ -42,14 +42,6 @@ enabled with USE_ defines in Machines/my_machine.h
 ===============================================================================
 
 */
-
-// It is necessary to include grbl.h so that the machine definitions
-// will be loaded before the remainder of this file is processed.
-#include "grbl.h"
-
-// !!! Change this to the MACHINE_name you chose in Machines/my_machine.h
-// The compiler will skip the rest of this file unless that name is defined
-#ifdef MACHINE_CUSTOM
 
 #ifdef USE_MACHINE_INIT
 /*
@@ -173,6 +165,3 @@ void machine_trinamic_setup() {
 // If you add any additional functions specific to your machine that
 // require calls from common code, guard their calls in the common code with
 // #ifdef USE_WHATEVER and add function prototypes (also guarded) to grbl.h
-
-
-#endif
