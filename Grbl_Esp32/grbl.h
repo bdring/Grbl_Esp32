@@ -34,7 +34,6 @@
 // Define the Grbl system include files. NOTE: Do not alter organization.
 #include "config.h"
 #include "nuts_bolts.h"
-#include "cpu_map.h"
 #include "tdef.h"
 
 #include "defaults.h"
@@ -92,3 +91,25 @@
 	#include "grbl_unipolar.h"
 #endif
 
+// Called if USE_MACHINE_INIT is defined
+void machine_init();
+
+// Called if USE_CUSTOM_HOMING is defined
+bool user_defined_homing();
+
+// Called if USE_KINEMATICS is defined
+void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *position);
+bool kinematics_pre_homing(uint8_t cycle_mask);
+void kinematics_post_homing();
+
+// Called if USE_FWD_KINEMATIC is defined
+void forward_kinematics(float *position);
+
+// Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined
+void user_defined_macro(uint8_t index);
+
+// Called if USE_M30 is defined
+void user_m30();
+
+// Called if USE_TOOL_CHANGE is defined
+void user_tool_change(uint8_t new_tool);

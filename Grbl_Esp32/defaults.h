@@ -261,7 +261,7 @@
 #ifndef  DEFAULT_Z_MAX_TRAVEL
 	#define DEFAULT_Z_MAX_TRAVEL 300.0 // mm NOTE: Must be a positive value.
 #endif
-#ifndef  DEFAULT_A_TRAVEL
+#ifndef  DEFAULT_A_MAX_TRAVEL
 	#define DEFAULT_A_MAX_TRAVEL 300.0 // mm NOTE: Must be a positive value.
 #endif
 #ifndef  DEFAULT_B_MAX_TRAVEL
