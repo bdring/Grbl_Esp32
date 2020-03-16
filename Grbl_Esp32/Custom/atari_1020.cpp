@@ -23,9 +23,10 @@
  	This contains all the special features required to control an 
 	Atari 1010 Pen Plotter	
 */
-#include "grbl.h"
 
-#ifdef ATARI_1020
+// This file is enabled by defining CUSTOM_CODE_FILENAME "atari_1020.cpp"
+// in Machines/atari_1020.h, thus causing this file to be included
+// from ../custom_code.cpp
 
 #define HOMING_PHASE_FULL_APPROACH	0 // move to right end
 #define HOMING_PHASE_CHECK			1 // check reed switch
@@ -319,6 +320,3 @@ void user_m30() {
 	sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH); // 
 	inputBuffer.push(gcode_line);
 }
-
-#endif
-

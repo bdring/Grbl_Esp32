@@ -30,7 +30,7 @@
 
 // Axis array index values. Must start with 0 and be continuous.
 // Note: You set the number of axes used by changing N_AXIS.
-// Be sure to define pins or servos in cpu_map.h 
+// Be sure to define pins or servos in the machine definition file.
 #define X_AXIS 0 // Axis indexing value.
 #define Y_AXIS 1
 #define Z_AXIS 2

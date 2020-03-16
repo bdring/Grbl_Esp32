@@ -31,6 +31,9 @@
 	void trinamic_change_settings();
 	void trinamic_test_response(uint8_t result, const char *axis);
 	void trinamic_stepper_enable(bool enable);
+	#ifdef USE_MACHINE_TRINAMIC_INIT
+		void machine_trinamic_setup();
+	#endif
 #endif
 
-#endif
+#endif // GRBL_TRIAMINIC_h
