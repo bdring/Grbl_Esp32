@@ -1,12 +1,34 @@
-// This is an additional configuration fragment that can be
-// included after a base configuration file.  The base file
-// establishes most settings and the add-on changes a few things.
-// For example, in machines.h, you would write:
-//   #include "Machines/3axis_v4.h"             // Basic pin assignments
-//   #include "Machines/add_esc_spindle.h"      // Add-ons for ESC spindle
+/*
+   add_esc_spindle.h
+   Part of Grbl_ESP32
 
-// This uses a Brushless DC Hobby motor as a spindle motor.  See:
-//   https://github.com/bdring/Grbl_Esp32/wiki/BESC-Spindle-Feature
+   This is an additional configuration fragment that can be
+   included after a base configuration file.  The base file
+   establishes most settings and the add-on changes a few things.
+   For example, in machines.h, you would write:
+   #include "Machines/3axis_v4.h"             // Basic pin assignments
+   #include "Machines/add_esc_spindle.h"      // Add-ons for ESC spindle
+
+   This uses a Brushless DC Hobby motor as a spindle motor.  See:
+   https://github.com/bdring/Grbl_Esp32/wiki/BESC-Spindle-Feature
+
+   2019  -  Bart Dring
+   2020  -  Mitch Bradley
+
+   Grbl_ESP32 is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   Grbl is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 
 // MACHINE_EXTRA is appended to MACHINE_NAME for startup message display
 #define MACHINE_EXTRA "_ESC_SPINDLE"
