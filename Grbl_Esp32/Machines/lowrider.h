@@ -1,8 +1,29 @@
-// Pin assignments for the Buildlog.net MPCNC controller
-// used in lowrider mode. Low rider has (2) Y and Z and one X motor
-// These will not match the silkscreen or schematic descriptions
+/*
+    lowrider.h
+    Part of Grbl_ESP32
 
-// !!!!!!!!!!!!!!!!! Warning: Untested !!!!!!!!!!!!!!!!! //
+    Pin assignments for the Buildlog.net MPCNC controller    
+    used in lowrider mode. Low rider has (2) Y and Z and one X motor
+    These will not match the silkscreen or schematic descriptions...see definitions below
+    https://github.com/bdring/Grbl_ESP32_MPCNC_Controller
+
+    2019    - Bart Dring
+    2020    - Mitch Bradley
+
+    Grbl_ESP32 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Grbl is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 //#define V1P1
 #define V1P2  // works for V1.2.1 as well
 

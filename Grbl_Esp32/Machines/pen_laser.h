@@ -1,9 +1,30 @@
-// Pen assignments for the Buildlog.net pen laser controller V1 & V2
+/*
+        pen_laser.h
+        Part of Grbl_ESP32
 
-// For pen mode be sure to uncomment #define USE_PEN_SERVO in config.h
-// For solenoid  mode be sure to uncomment #define USE_PEN_SERVO in config.h
-// For laser mode, you do not need to change anything
-// Note: You can use all 3 modes at the same time if you want
+        Pen assignments for the Buildlog.net pen laser controller V1 & V2
+
+        For pen mode be sure to uncomment #define USE_PEN_SERVO in config.h
+        For solenoid  mode be sure to uncomment #define USE_PEN_SERVO in config.h
+        For laser mode, you do not need to change anything
+        Note: You can use all 3 modes at the same time if you want
+
+        2019    - Bart Dring
+        2020    - Mitch Bradley
+
+        Grbl_ESP32 is free software: you can redistribute it and/or modify
+        it under the terms of the GNU General Public License as published by
+        the Free Software Foundation, either version 3 of the License, or
+        (at your option) any later version.
+
+        Grbl is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
+
+        You should have received a copy of the GNU General Public License
+        along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #define MACHINE_NAME "MACHINE_PEN_LASER"
 
