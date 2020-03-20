@@ -24,31 +24,26 @@
 
 #include "Print.h"
 #define RXBUFFERSIZE 128
-class InputBuffer: public Print{
-    public:
+class InputBuffer: public Print {
+  public:
     InputBuffer();
     ~InputBuffer();
     size_t write(uint8_t c);
-    size_t write(const uint8_t *buffer, size_t size);
+    size_t write(const uint8_t* buffer, size_t size);
 
-    inline size_t write(const char * s)
-    {
+    inline size_t write(const char* s) {
         return write((uint8_t*) s, strlen(s));
     }
-    inline size_t write(unsigned long n)
-    {
+    inline size_t write(unsigned long n) {
         return write((uint8_t) n);
     }
-    inline size_t write(long n)
-    {
+    inline size_t write(long n) {
         return write((uint8_t) n);
     }
-    inline size_t write(unsigned int n)
-    {
+    inline size_t write(unsigned int n) {
         return write((uint8_t) n);
     }
-    inline size_t write(int n)
-    {
+    inline size_t write(int n) {
         return write((uint8_t) n);
     }
     void begin();
@@ -57,10 +52,10 @@ class InputBuffer: public Print{
     int availableforwrite();
     int peek(void);
     int read(void);
-    bool push (const char * data);
+    bool push(const char* data);
     void flush(void);
     operator bool() const;
-    private:
+  private:
     uint8_t _RXbuffer[RXBUFFERSIZE];
     uint16_t _RXbufferSize;
     uint16_t _RXbufferpos;

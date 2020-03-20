@@ -4,10 +4,10 @@
 
   Copyright (c) 2011-2015 Sungeun K. Jeon
   Copyright (c) 2009-2011 Simen Svale Skogsrud
-      
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
-  
+
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -25,8 +25,8 @@
 
 
 #ifndef motion_control_h
-  #define motion_control_h
-    
+#define motion_control_h
+
 #include "grbl.h"
 
 
@@ -46,15 +46,15 @@
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
 // (1 minute)/feed_rate time.
-void mc_line_kins(float *target, plan_line_data_t *pl_data, float *position);
-void mc_line(float *target, plan_line_data_t *pl_data);
+void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position);
+void mc_line(float* target, plan_line_data_t* pl_data);
 
 // Execute an arc in offset mode format. position == current xyz, target == target xyz,
 // offset == offset from current xyz, axis_XXX defines circle plane in tool space, axis_linear is
 // the direction of helical travel, radius == circle radius, is_clockwise_arc boolean. Used
 // for vector transformation direction.
-void mc_arc(float *target, plan_line_data_t *pl_data, float *position, float *offset, float radius,
-  uint8_t axis_0, uint8_t axis_1, uint8_t axis_linear, uint8_t is_clockwise_arc);
+void mc_arc(float* target, plan_line_data_t* pl_data, float* position, float* offset, float radius,
+            uint8_t axis_0, uint8_t axis_1, uint8_t axis_linear, uint8_t is_clockwise_arc);
 
 // Dwell for a specific number of seconds
 void mc_dwell(float seconds);
@@ -63,10 +63,10 @@ void mc_dwell(float seconds);
 void mc_homing_cycle(uint8_t cycle_mask);
 
 // Perform tool length probe cycle. Requires probe switch.
-uint8_t mc_probe_cycle(float *target, plan_line_data_t *pl_data, uint8_t parser_flags);
+uint8_t mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_flags);
 
 // Plans and executes the single special motion case for parking. Independent of main planner buffer.
-void mc_parking_motion(float *parking_target, plan_line_data_t *pl_data);
+void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data);
 
 // Performs system reset. If in motion state, kills all motion and sets system alarm.
 void mc_reset();

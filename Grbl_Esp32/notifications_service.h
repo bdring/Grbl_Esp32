@@ -24,18 +24,17 @@
 #define _NOTIFICATIONS_SERVICE_H
 
 
-class NotificationsService
-{
-public:
+class NotificationsService {
+  public:
     NotificationsService();
     ~NotificationsService();
     bool begin();
     void end();
     void handle();
-    bool sendMSG(const char * title, const char * message);
-    const char * getTypeString();
+    bool sendMSG(const char* title, const char* message);
+    const char* getTypeString();
     bool started();
-private:
+  private:
     bool _started;
     uint8_t _notificationType;
     String _token1;
@@ -43,9 +42,9 @@ private:
     String _settings;
     String _serveraddress;
     uint16_t _port;
-    bool sendPushoverMSG(const char * title, const char * message);
-    bool sendEmailMSG(const char * title, const char * message);
-    bool sendLineMSG(const char * title, const char * message);
+    bool sendPushoverMSG(const char* title, const char* message);
+    bool sendEmailMSG(const char* title, const char* message);
+    bool sendLineMSG(const char* title, const char* message);
     bool getPortFromSettings();
     bool getServerAddressFromSettings();
     bool getEmailFromSettings();

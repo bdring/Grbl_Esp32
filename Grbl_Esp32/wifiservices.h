@@ -25,7 +25,7 @@
 
 
 class WiFiServices {
-    public:
+  public:
     WiFiServices();
     ~WiFiServices();
     static bool begin();

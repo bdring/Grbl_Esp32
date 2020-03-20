@@ -4,7 +4,7 @@
 
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 
@@ -26,9 +26,9 @@
 #define print_h
 
 
-void printString(const char *s);
+void printString(const char* s);
 
-void printPgmString(const char *s);
+void printPgmString(const char* s);
 
 void printInteger(long n);
 

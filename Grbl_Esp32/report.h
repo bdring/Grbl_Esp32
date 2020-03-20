@@ -2,10 +2,10 @@
   report.h - Header for system level commands and real-time processes
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
-	
+
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -115,13 +115,13 @@
 #define MSG_LEVEL_VERBOSE	5
 
 // functions to send data to the user.
-void grbl_send(uint8_t client, const char *text);
-void grbl_sendf(uint8_t client, const char *format, ...);
-void grbl_msg_sendf(uint8_t client, uint8_t level, const char *format, ...);
+void grbl_send(uint8_t client, const char* text);
+void grbl_sendf(uint8_t client, const char* format, ...);
+void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...);
 
 //function to notify
-void grbl_notify(const char *title, const char *msg);
-void grbl_notifyf(const char *title, const char *format, ...);
+void grbl_notify(const char* title, const char* msg);
+void grbl_notifyf(const char* title, const char* format, ...);
 
 // Prints system status messages.
 void report_status_message(uint8_t status_code, uint8_t client);
@@ -143,7 +143,7 @@ void report_grbl_help(uint8_t client);
 void report_grbl_settings(uint8_t client, uint8_t show_extended);
 
 // Prints an echo of the pre-parsed line received right before execution.
-void report_echo_line_received(char *line, uint8_t client);
+void report_echo_line_received(char* line, uint8_t client);
 
 // Prints realtime status report
 void report_realtime_status(uint8_t client);
@@ -158,16 +158,16 @@ void report_ngc_parameters(uint8_t client);
 void report_gcode_modes(uint8_t client);
 
 // Prints startup line when requested and executed.
-void report_startup_line(uint8_t n, char *line, uint8_t client);
-void report_execute_startup_message(char *line, uint8_t status_code, uint8_t client);
+void report_startup_line(uint8_t n, char* line, uint8_t client);
+void report_execute_startup_message(char* line, uint8_t status_code, uint8_t client);
 
 // Prints build info and user info
-void report_build_info(char *line, uint8_t client);
+void report_build_info(char* line, uint8_t client);
 
-void report_gcode_comment(char *comment);
+void report_gcode_comment(char* comment);
 
 #ifdef DEBUG
-  void report_realtime_debug();
+    void report_realtime_debug();
 #endif
 
 

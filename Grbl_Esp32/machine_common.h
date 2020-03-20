@@ -2,7 +2,7 @@
 #define _machine_common_h
 
 #ifndef SPINDLE_PWM_BIT_PRECISION
-#define SPINDLE_PWM_BIT_PRECISION 8
+    #define SPINDLE_PWM_BIT_PRECISION 8
 #endif
 
 #define SPINDLE_PWM_MAX_VALUE ((1<<SPINDLE_PWM_BIT_PRECISION) - 1)
@@ -12,14 +12,14 @@
 // It should not be necessary to change anything herein
 
 #ifndef GRBL_SPI_FREQ
-// You can override these by defining them in a board file.
-// To override, you must set all of them
-//-1 means use the default board pin
-#define GRBL_SPI_SS -1
-#define GRBL_SPI_MOSI -1
-#define GRBL_SPI_MISO -1
-#define GRBL_SPI_SCK -1
-#define GRBL_SPI_FREQ  4000000
+    // You can override these by defining them in a board file.
+    // To override, you must set all of them
+    //-1 means use the default board pin
+    #define GRBL_SPI_SS -1
+    #define GRBL_SPI_MOSI -1
+    #define GRBL_SPI_MISO -1
+    #define GRBL_SPI_SCK -1
+    #define GRBL_SPI_FREQ  4000000
 #endif
 
 // ESP32 CPU Settings
