@@ -18,7 +18,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
-		#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+    #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
 
 //Preferences entries
@@ -42,13 +42,13 @@
 extern BluetoothSerial SerialBT;
 
 class BTConfig {
-public:
+  public:
     BTConfig();
     ~BTConfig();
-    static const char *info();
+    static const char* info();
     static void BTEvent(uint8_t event);
-    static bool isBTnameValid (const char * hostname);
-    static String BTname(){return _btname;}
+    static bool isBTnameValid(const char* hostname);
+    static String BTname() {return _btname;}
     static const char* device_address();
     static void begin();
     static void end();
@@ -56,7 +56,7 @@ public:
     static void reset_settings();
     static bool Is_BT_on();
     static String _btclient;
-    private :
+  private :
     static String _btname;
 };
 

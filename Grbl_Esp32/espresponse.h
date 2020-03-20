@@ -23,26 +23,26 @@
 #include "config.h"
 
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
-class WebServer;
+    class WebServer;
 #endif
 
-class ESPResponseStream{
-    public:
-    void print(const char *data);
-    void println(const char *data);
+class ESPResponseStream {
+  public:
+    void print(const char* data);
+    void println(const char* data);
     void flush();
-    static String formatBytes (uint64_t bytes);
+    static String formatBytes(uint64_t bytes);
     uint8_t client() {return _client;}
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
-    ESPResponseStream(WebServer * webserver);
+    ESPResponseStream(WebServer* webserver);
 #endif
     ESPResponseStream(uint8_t client, bool byid = true);
     ESPResponseStream();
-    private:
+  private:
     uint8_t _client;
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     bool _header_sent;
-    WebServer * _webserver;
+    WebServer* _webserver;
     String _buffer;
 #endif
 };

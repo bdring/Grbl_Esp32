@@ -4,7 +4,7 @@
 
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 
@@ -26,7 +26,7 @@
 #define stepper_h
 
 #ifndef SEGMENT_BUFFER_SIZE
-  #define SEGMENT_BUFFER_SIZE 6
+    #define SEGMENT_BUFFER_SIZE 6
 #endif
 
 
@@ -57,20 +57,20 @@
 // NOTE: Current settings are set to overdrive the ISR to no more than 16kHz, balancing CPU overhead
 // and timer accuracy.  Do not alter these settings unless you know what you are doing.
 ///#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-  #define MAX_AMASS_LEVEL 3
-  // AMASS_LEVEL0: Normal operation. No AMASS. No upper cutoff frequency. Starts at LEVEL1 cutoff frequency.
-	// Note ESP32 use F_STEPPER_TIMER rather than the AVR F_CPU
-  #define AMASS_LEVEL1 (F_STEPPER_TIMER/8000) // Over-drives ISR (x2). Defined as F_CPU/(Cutoff frequency in Hz)
-  #define AMASS_LEVEL2 (F_STEPPER_TIMER/4000) // Over-drives ISR (x4)
-  #define AMASS_LEVEL3 (F_STEPPER_TIMER/2000) // Over-drives ISR (x8)
+#define MAX_AMASS_LEVEL 3
+// AMASS_LEVEL0: Normal operation. No AMASS. No upper cutoff frequency. Starts at LEVEL1 cutoff frequency.
+// Note ESP32 use F_STEPPER_TIMER rather than the AVR F_CPU
+#define AMASS_LEVEL1 (F_STEPPER_TIMER/8000) // Over-drives ISR (x2). Defined as F_CPU/(Cutoff frequency in Hz)
+#define AMASS_LEVEL2 (F_STEPPER_TIMER/4000) // Over-drives ISR (x4)
+#define AMASS_LEVEL3 (F_STEPPER_TIMER/2000) // Over-drives ISR (x8)
 
-  #if MAX_AMASS_LEVEL <= 0
+#if MAX_AMASS_LEVEL <= 0
     error "AMASS must have 1 or more levels to operate correctly."
-  #endif
+#endif
 //#endif
 
 #define STEP_TIMER_GROUP TIMER_GROUP_0
-#define STEP_TIMER_INDEX TIMER_0 
+#define STEP_TIMER_INDEX TIMER_0
 
 // esp32 work around for diable in main loop
 extern uint64_t stepper_idle_counter;
@@ -83,10 +83,10 @@ void IRAM_ATTR onSteppertimer();
 void IRAM_ATTR onStepperOffTimer();
 
 #ifdef USE_RMT_STEPS
-  void initRMT();
+    void initRMT();
 #endif
 
-void stepper_init(); 
+void stepper_init();
 
 // Enable steppers, but cycle does not start unless called by motion control or realtime command.
 void st_wake_up();
