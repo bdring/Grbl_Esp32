@@ -44,7 +44,7 @@
 #define USE_SERVO_AXES
 #endif
 
-#define SERVO_Z_PIN     GPIO_NUM_27
+#define SERVO_Z_PIN             GPIO_NUM_27
 #define SERVO_Z_CHANNEL_NUM     5
 #define SERVO_Z_RANGE_MIN       0.0
 #define SERVO_Z_RANGE_MAX       5.0
@@ -77,29 +77,29 @@
 
 // defaults
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
-#define DEFAULT_STEPPER_IDLE_LOCK_TIME 255 // stay on
+#define DEFAULT_STEPPER_IDLE_LOCK_TIME  255 // stay on
 
-#define DEFAULT_STEPPING_INVERT_MASK 0 // uint8_t
-#define DEFAULT_DIRECTION_INVERT_MASK 2 // uint8_t
-#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
-#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
-#define DEFAULT_INVERT_PROBE_PIN 0 // boolean
+#define DEFAULT_STEPPING_INVERT_MASK    0 // uint8_t
+#define DEFAULT_DIRECTION_INVERT_MASK   2 // uint8_t
+#define DEFAULT_INVERT_ST_ENABLE        0 // boolean
+#define DEFAULT_INVERT_LIMIT_PINS       1 // boolean
+#define DEFAULT_INVERT_PROBE_PIN        0 // boolean
 
 #define DEFAULT_STATUS_REPORT_MASK 1
 
-#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
-#define DEFAULT_ARC_TOLERANCE 0.002 // mm
-#define DEFAULT_REPORT_INCHES 0 // false
+#define DEFAULT_JUNCTION_DEVIATION  0.01 // mm
+#define DEFAULT_ARC_TOLERANCE       0.002 // mm
+#define DEFAULT_REPORT_INCHES       0 // false
 
 #define DEFAULT_SOFT_LIMIT_ENABLE 0 // false
 #define DEFAULT_HARD_LIMIT_ENABLE 0  // false
 
-#define DEFAULT_HOMING_ENABLE 1
-#define DEFAULT_HOMING_DIR_MASK 1
-#define DEFAULT_HOMING_FEED_RATE 200.0 // mm/min
-#define DEFAULT_HOMING_SEEK_RATE 1000.0 // mm/min
-#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
-#define DEFAULT_HOMING_PULLOFF 3.0 // mm
+#define DEFAULT_HOMING_ENABLE           1
+#define DEFAULT_HOMING_DIR_MASK         1
+#define DEFAULT_HOMING_FEED_RATE        200.0 // mm/min
+#define DEFAULT_HOMING_SEEK_RATE        1000.0 // mm/min
+#define DEFAULT_HOMING_DEBOUNCE_DELAY   250 // msec (0-65k)
+#define DEFAULT_HOMING_PULLOFF          3.0 // mm
 
 #define DEFAULT_SPINDLE_RPM_MAX 1000.0 // rpm
 #define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm

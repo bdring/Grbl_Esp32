@@ -55,10 +55,10 @@
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
 
 #ifndef USE_SERVO_AXES  // may be set in config.h
-        #define USE_SERVO_AXES
+    #define USE_SERVO_AXES
 #endif
 
-#define SERVO_Z_PIN                     GPIO_NUM_27
+#define SERVO_Z_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
 #define SERVO_Z_CHANNEL_NUM             5
 #define SERVO_Z_RANGE_MIN               0.0
 #define SERVO_Z_RANGE_MAX               5.0
@@ -75,3 +75,7 @@
 // #define X_LIMIT_PIN          See version section
 #define Y_LIMIT_PIN             GPIO_NUM_4
 #define LIMIT_MASK              B11
+
+// defaults
+#define DEFAULT_Z_STEPS_PER_MM 100.0    // This is used as the servo calibration
+#define DEFAULT_Z_MAX_TRAVEL 300.0      // This is used as the servo calibration
