@@ -47,18 +47,18 @@
 #define DHCP_MODE   0
 #define STATIC_MODE   1
 
-//Switch 
+//Switch
 #define ESP_SAVE_ONLY 0
 #define ESP_APPLY_NOW 1
 
 //defaults values
 #define DEFAULT_HOSTNAME "grblesp"
 #ifdef CONNECT_TO_SSID
-#define DEFAULT_STA_SSID CONNECT_TO_SSID
-#define DEFAULT_STA_PWD SSID_PASSWORD
+    #define DEFAULT_STA_SSID CONNECT_TO_SSID
+    #define DEFAULT_STA_PWD SSID_PASSWORD
 #else //!CONNECT_TO_SSID
-#define DEFAULT_STA_SSID "GRBL_ESP"
-#define DEFAULT_STA_PWD "12345678"
+    #define DEFAULT_STA_SSID "GRBL_ESP"
+    #define DEFAULT_STA_PWD "12345678"
 #endif //CONNECT_TO_SSID
 #define DEFAULT_STA_IP "0.0.0.0"
 #define DEFAULT_STA_GW "0.0.0.0"
@@ -101,28 +101,28 @@
 #include "WiFi.h"
 
 class WiFiConfig {
-public:
+  public:
     WiFiConfig();
     ~WiFiConfig();
-    static const char *info();
-    static bool isValidIP(const char * string);
-    static bool isPasswordValid (const char * password);
-    static bool isSSIDValid (const char * ssid);
-    static bool isHostnameValid (const char * hostname);
-    static uint32_t IP_int_from_string(String & s);
+    static const char* info();
+    static bool isValidIP(const char* string);
+    static bool isPasswordValid(const char* password);
+    static bool isSSIDValid(const char* ssid);
+    static bool isHostnameValid(const char* hostname);
+    static uint32_t IP_int_from_string(String& s);
     static String IP_string_from_int(uint32_t ip_int);
-    static String Hostname(){return _hostname;}
-    static char * mac2str (uint8_t mac [8]);
+    static String Hostname() {return _hostname;}
+    static char* mac2str(uint8_t mac [8]);
     static bool StartAP();
     static bool StartSTA();
     static void StopWiFi();
-    static int32_t getSignal (int32_t RSSI);
+    static int32_t getSignal(int32_t RSSI);
     static void begin();
     static void end();
     static void handle();
     static void reset_settings();
     static bool Is_WiFi_on();
-private :
+  private :
     static bool ConnectSTA2AP();
     static void WiFiEvent(WiFiEvent_t event);
     static String _hostname;

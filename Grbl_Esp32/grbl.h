@@ -2,10 +2,10 @@
   grbl.h - Header for system level commands and real-time processes
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
-	
+
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -20,7 +20,7 @@
 
 // Grbl versioning system
 #define GRBL_VERSION "1.1f"
-#define GRBL_VERSION_BUILD "20200225"
+#define GRBL_VERSION_BUILD "20200319"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -34,7 +34,6 @@
 // Define the Grbl system include files. NOTE: Do not alter organization.
 #include "config.h"
 #include "nuts_bolts.h"
-#include "cpu_map.h"
 #include "tdef.h"
 
 #include "defaults.h"
@@ -58,37 +57,59 @@
 #include "inputbuffer.h"
 
 #ifdef ENABLE_BLUETOOTH
-	#include "BTconfig.h"
+    #include "BTconfig.h"
 #endif
 
-#ifdef ENABLE_SD_CARD	
-	#include "grbl_sd.h"
+#ifdef ENABLE_SD_CARD
+    #include "grbl_sd.h"
 #endif
 
-#ifdef ENABLE_WIFI	
+#ifdef ENABLE_WIFI
     #include "wificonfig.h"
     #ifdef ENABLE_HTTP
-    #include "serial2socket.h"
+        #include "serial2socket.h"
     #endif
     #ifdef ENABLE_TELNET
-    #include "telnet_server.h"
+        #include "telnet_server.h"
     #endif
     #ifdef ENABLE_NOTIFICATIONS
-    #include "notifications_service.h"
+        #include "notifications_service.h"
     #endif
 #endif
 
 #include "solenoid_pen.h"
 
 #ifdef USE_SERVO_AXES
-	#include "servo_axis.h"
+    #include "servo_axis.h"
 #endif
 
 #ifdef USE_TRINAMIC
-	#include "grbl_trinamic.h"
+    #include "grbl_trinamic.h"
 #endif
 
 #ifdef USE_UNIPOLAR
-	#include "grbl_unipolar.h"
+    #include "grbl_unipolar.h"
 #endif
 
+// Called if USE_MACHINE_INIT is defined
+void machine_init();
+
+// Called if USE_CUSTOM_HOMING is defined
+bool user_defined_homing();
+
+// Called if USE_KINEMATICS is defined
+void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
+bool kinematics_pre_homing(uint8_t cycle_mask);
+void kinematics_post_homing();
+
+// Called if USE_FWD_KINEMATIC is defined
+void forward_kinematics(float* position);
+
+// Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined
+void user_defined_macro(uint8_t index);
+
+// Called if USE_M30 is defined
+void user_m30();
+
+// Called if USE_TOOL_CHANGE is defined
+void user_tool_change(uint8_t new_tool);

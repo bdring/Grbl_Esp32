@@ -33,23 +33,23 @@ class WiFiClient;
 #define FLUSHTIMEOUT 500
 
 class Telnet_Server {
-    public:
+  public:
     Telnet_Server();
     ~Telnet_Server();
     bool begin();
     void end();
     void handle();
-    size_t write(const uint8_t *buffer, size_t size);
+    size_t write(const uint8_t* buffer, size_t size);
     int read(void);
     int peek(void);
     int available();
     int get_rx_buffer_available();
-    bool push (uint8_t data);
-    bool push (const uint8_t * data, int datasize);
-    static uint16_t port(){return _port;}
-    private:
+    bool push(uint8_t data);
+    bool push(const uint8_t* data, int datasize);
+    static uint16_t port() {return _port;}
+  private:
     static bool _setupdone;
-    static WiFiServer * _telnetserver;
+    static WiFiServer* _telnetserver;
     static WiFiClient _telnetClients[MAX_TLNT_CLIENTS];
 #ifdef ENABLE_TELNET_WELCOME_MSG
     static IPAddress _telnetClientsIP[MAX_TLNT_CLIENTS];

@@ -1,4 +1,4 @@
-/* 
+/*
  grbl_unipolar.h
   Part of Grbl_ESP32
 
@@ -21,34 +21,34 @@
 	Unipolar Class
 
 	This class allows you to control a unipolar motor. Unipolar motors have 5 wires. One
-	is typically tied to a voltage, while the other 4 are switched to ground in a 
+	is typically tied to a voltage, while the other 4 are switched to ground in a
 	sequence
 
-	To take a step simply call the step(direction) function. It will take 
+	To take a step simply call the step(direction) function. It will take
 
 */
 #ifndef grbl_unipolar_h
-  #define grbl_unipolar_h
+#define grbl_unipolar_h
 
-	void unipolar_init();
-	void unipolar_step(uint8_t step_mask, uint8_t dir_mask);
-	void unipolar_disable(bool enable);
+void unipolar_init();
+void unipolar_step(uint8_t step_mask, uint8_t dir_mask);
+void unipolar_disable(bool enable);
 
-	class Unipolar{
-		public:
-			Unipolar(uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3, bool half_step); // constructor   
-			void set_enabled(bool enabled);
-			void step(bool step, bool dir_forward);
-			void init();
-		
-		private:
-			uint8_t _current_phase = 0;
-			bool _enabled = false;
-			bool _half_step = true;	// default is half step, full step
-			uint8_t _pin_phase0;
-			uint8_t _pin_phase1;
-			uint8_t _pin_phase2;
-			uint8_t _pin_phase3;
-			
-	};
+class Unipolar {
+  public:
+    Unipolar(uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3, bool half_step); // constructor
+    void set_enabled(bool enabled);
+    void step(bool step, bool dir_forward);
+    void init();
+
+  private:
+    uint8_t _current_phase = 0;
+    bool _enabled = false;
+    bool _half_step = true;	// default is half step, full step
+    uint8_t _pin_phase0;
+    uint8_t _pin_phase1;
+    uint8_t _pin_phase2;
+    uint8_t _pin_phase3;
+
+};
 #endif

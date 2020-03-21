@@ -2,10 +2,10 @@
   system.h - Header for system level commands and real-time processes
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
-	
+
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -19,31 +19,31 @@
 */
 
 #ifndef system_h
-  #define system_h
-  #include "grbl.h"
-  #include "tdef.h"
+#define system_h
+#include "grbl.h"
+#include "tdef.h"
 
 // Define global system variables
 typedef struct {
-  uint8_t state;               // Tracks the current system state of Grbl.
-  uint8_t abort;               // System abort flag. Forces exit back to main loop for reset.             
-  uint8_t suspend;             // System suspend bitflag variable that manages holds, cancels, and safety door.
-  uint8_t soft_limit;          // Tracks soft limit errors for the state machine. (boolean)
-  uint8_t step_control;        // Governs the step segment generator depending on system state.
-  uint8_t probe_succeeded;     // Tracks if last probing cycle was successful.
-  uint8_t homing_axis_lock;    // Locks axes when limits engage. Used as an axis motion mask in the stepper ISR.
-  uint8_t f_override;          // Feed rate override value in percent
-  uint8_t r_override;          // Rapids override value in percent
-  uint8_t spindle_speed_ovr;   // Spindle speed value in percent
-  uint8_t spindle_stop_ovr;    // Tracks spindle stop override states
-  uint8_t report_ovr_counter;  // Tracks when to add override data to status reports.
-  uint8_t report_wco_counter;  // Tracks when to add work coordinate offset data to status reports.
-  #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+    uint8_t state;               // Tracks the current system state of Grbl.
+    uint8_t abort;               // System abort flag. Forces exit back to main loop for reset.
+    uint8_t suspend;             // System suspend bitflag variable that manages holds, cancels, and safety door.
+    uint8_t soft_limit;          // Tracks soft limit errors for the state machine. (boolean)
+    uint8_t step_control;        // Governs the step segment generator depending on system state.
+    uint8_t probe_succeeded;     // Tracks if last probing cycle was successful.
+    uint8_t homing_axis_lock;    // Locks axes when limits engage. Used as an axis motion mask in the stepper ISR.
+    uint8_t f_override;          // Feed rate override value in percent
+    uint8_t r_override;          // Rapids override value in percent
+    uint8_t spindle_speed_ovr;   // Spindle speed value in percent
+    uint8_t spindle_stop_ovr;    // Tracks spindle stop override states
+    uint8_t report_ovr_counter;  // Tracks when to add override data to status reports.
+    uint8_t report_wco_counter;  // Tracks when to add work coordinate offset data to status reports.
+#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
     uint8_t override_ctrl;     // Tracks override control states.
-  #endif
-  
+#endif
+
     float spindle_speed;
-  
+
 } system_t;
 extern system_t sys;
 
@@ -129,20 +129,20 @@ extern system_t sys;
 
 // Define control pin index for Grbl internal use. Pin maps may change, but these values don't.
 //#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-  #define N_CONTROL_PIN 4
-  #define CONTROL_PIN_INDEX_SAFETY_DOOR   bit(0)
-  #define CONTROL_PIN_INDEX_RESET         bit(1)
-  #define CONTROL_PIN_INDEX_FEED_HOLD     bit(2)
-  #define CONTROL_PIN_INDEX_CYCLE_START   bit(3)
-  #define CONTROL_PIN_INDEX_MACRO_0			  bit(4)
-  #define CONTROL_PIN_INDEX_MACRO_1			  bit(5)
-  #define CONTROL_PIN_INDEX_MACRO_2			  bit(6)
-  #define CONTROL_PIN_INDEX_MACRO_3			  bit(7)
+#define N_CONTROL_PIN 4
+#define CONTROL_PIN_INDEX_SAFETY_DOOR   bit(0)
+#define CONTROL_PIN_INDEX_RESET         bit(1)
+#define CONTROL_PIN_INDEX_FEED_HOLD     bit(2)
+#define CONTROL_PIN_INDEX_CYCLE_START   bit(3)
+#define CONTROL_PIN_INDEX_MACRO_0			  bit(4)
+#define CONTROL_PIN_INDEX_MACRO_1			  bit(5)
+#define CONTROL_PIN_INDEX_MACRO_2			  bit(6)
+#define CONTROL_PIN_INDEX_MACRO_3			  bit(7)
 //#else
-  //#define N_CONTROL_PIN 3
-  //#define CONTROL_PIN_INDEX_RESET         bit(0)
-  //#define CONTROL_PIN_INDEX_FEED_HOLD     bit(1)
-  //#define CONTROL_PIN_INDEX_CYCLE_START   bit(2)
+//#define N_CONTROL_PIN 3
+//#define CONTROL_PIN_INDEX_RESET         bit(0)
+//#define CONTROL_PIN_INDEX_FEED_HOLD     bit(1)
+//#define CONTROL_PIN_INDEX_CYCLE_START   bit(2)
 //#endif
 
 // Define spindle stop override control states.
@@ -166,8 +166,8 @@ extern volatile uint8_t sys_rt_exec_motion_override; // Global realtime executor
 extern volatile uint8_t sys_rt_exec_accessory_override; // Global realtime executor bitflag variable for spindle/coolant overrides.
 
 #ifdef DEBUG
-  #define EXEC_DEBUG_REPORT  bit(0)
-  extern volatile uint8_t sys_rt_exec_debug;
+    #define EXEC_DEBUG_REPORT  bit(0)
+    extern volatile uint8_t sys_rt_exec_debug;
 #endif
 
 
@@ -192,19 +192,19 @@ void system_clear_exec_motion_overrides();
 void system_clear_exec_accessory_overrides();
 
 // Execute the startup script lines stored in EEPROM upon initialization
-void system_execute_startup(char *line);
-uint8_t system_execute_line(char *line, uint8_t client);
+void system_execute_startup(char* line);
+uint8_t system_execute_line(char* line, uint8_t client);
 
 void system_flag_wco_change();
 
 // Returns machine position of axis 'idx'. Must be sent a 'step' array.
-float system_convert_axis_steps_to_mpos(int32_t *steps, uint8_t idx);
+float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx);
 
 // Updates a machine 'position' array based on the 'step' array sent.
-void system_convert_array_steps_to_mpos(float *position, int32_t *steps);
+void system_convert_array_steps_to_mpos(float* position, int32_t* steps);
 
 // Checks and reports if target array exceeds machine travel limits.
-uint8_t system_check_travel_limits(float *target);
+uint8_t system_check_travel_limits(float* target);
 uint8_t get_limit_pin_mask(uint8_t axis_idx);
 
 // Special handlers for setting and clearing Grbl's real-time execution flags.
@@ -218,16 +218,16 @@ void system_clear_exec_motion_overrides();
 void system_clear_exec_accessory_overrides();
 
 
-int32_t system_convert_corexy_to_x_axis_steps(int32_t *steps);
-int32_t system_convert_corexy_to_y_axis_steps(int32_t *steps);
+int32_t system_convert_corexy_to_x_axis_steps(int32_t* steps);
+int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps);
 
 // A task that runs after a control switch interrupt for debouncing.
-void controlCheckTask(void *pvParameters);
+void controlCheckTask(void* pvParameters);
 void system_exec_control_pin(uint8_t pin);
 
 void sys_io_control(uint8_t io_num_mask, bool turnOn);
 
-// 
+//
 int8_t sys_get_next_RMT_chan_num();
 
 #endif
