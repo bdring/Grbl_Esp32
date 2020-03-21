@@ -15,15 +15,21 @@ fi
 BuildMachine () {
     basename=$1
     addname=$2
-    BF="-DMACHINE_FILENAME=$basename"
+    BF="\"-DMACHINE_FILENAME=$basename\""
     displayname=$basename
     if [ "$addname" != "" ]
     then
-        BF="$BF -DMACHINE_FILENAME2=$addname"
+        BF="$BF \"-DMACHINE_FILENAME2=$addname\""
         displayname="$basename + $addname"
     fi
     echo "Building machine $displayname"
-    PLATFORMIO_BUILD_FLAGS=\'$BF\' platformio run 2>&1 | $FILTER
+    PLATFORMIO_BUILD_FLAGS=$BF platformio run 2>&1 | $FILTER
+    local re=$?
+    # check result
+	if [ $re -ne 0 ]; then
+		echo "Failed to build machine $displayname"
+		return $re
+	fi
     echo
 }
 
