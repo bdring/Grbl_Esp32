@@ -4,7 +4,7 @@
 
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 
@@ -53,7 +53,7 @@
 #define SETTINGS_RESTORE_BUILD_INFO bit(3)
 #define SETTINGS_RESTORE_WIFI_SETTINGS  bit(4)
 #ifndef SETTINGS_RESTORE_ALL
-  #define SETTINGS_RESTORE_ALL 0xFF // All bitflags
+    #define SETTINGS_RESTORE_ALL 0xFF // All bitflags
 #endif
 
 // Define EEPROM memory address location values for Grbl settings and parameters
@@ -84,66 +84,66 @@
 
 // Global persistent settings (Stored from byte EEPROM_ADDR_GLOBAL onwards)
 typedef struct {
-  // Axis settings
-  float steps_per_mm[N_AXIS];
-  float max_rate[N_AXIS];
-  float acceleration[N_AXIS];
-  float max_travel[N_AXIS];
-  float current[N_AXIS]; //  $140... run current (extended set)
-  float hold_current[N_AXIS]; // $150 percent of run current (extended set)
-  uint16_t microsteps[N_AXIS]; // $160... (extended set)
-  uint8_t stallguard[N_AXIS]; // $170... (extended set)
+    // Axis settings
+    float steps_per_mm[N_AXIS];
+    float max_rate[N_AXIS];
+    float acceleration[N_AXIS];
+    float max_travel[N_AXIS];
+    float current[N_AXIS]; //  $140... run current (extended set)
+    float hold_current[N_AXIS]; // $150 percent of run current (extended set)
+    uint16_t microsteps[N_AXIS]; // $160... (extended set)
+    uint8_t stallguard[N_AXIS]; // $170... (extended set)
 
-  // Remaining Grbl settings
-  uint8_t pulse_microseconds;
-  uint8_t step_invert_mask;
-  uint8_t dir_invert_mask;
-  uint8_t stepper_idle_lock_time; // If max value 255, steppers do not disable.
-  uint8_t status_report_mask; // Mask to indicate desired report data.
-  float junction_deviation;
-  float arc_tolerance;
-  
-  float spindle_pwm_freq;      // $33 Hz (extended set)
-  float spindle_pwm_off_value; // $34 Percent (extended set)
-  float spindle_pwm_min_value; // $35 Percent (extended set)
-  float spindle_pwm_max_value; // $36 Percent (extended set)
-  
-  float rpm_max;
-  float rpm_min;
+    // Remaining Grbl settings
+    uint8_t pulse_microseconds;
+    uint8_t step_invert_mask;
+    uint8_t dir_invert_mask;
+    uint8_t stepper_idle_lock_time; // If max value 255, steppers do not disable.
+    uint8_t status_report_mask; // Mask to indicate desired report data.
+    float junction_deviation;
+    float arc_tolerance;
 
-  uint8_t flags;  // Contains default boolean settings
+    float spindle_pwm_freq;      // $33 Hz (extended set)
+    float spindle_pwm_off_value; // $34 Percent (extended set)
+    float spindle_pwm_min_value; // $35 Percent (extended set)
+    float spindle_pwm_max_value; // $36 Percent (extended set)
 
-  uint8_t homing_dir_mask;
-  float homing_feed_rate;
-  float homing_seek_rate;
-  uint16_t homing_debounce_delay;
-  float homing_pulloff;
+    float rpm_max;
+    float rpm_min;
 
-  int16_t machine_int16[USER_SETTING_COUNT]; // settings starting at 80 to be defined by the user
-  float machine_float[USER_SETTING_COUNT];    // settings starting at 80 to be defined by the user
+    uint8_t flags;  // Contains default boolean settings
+
+    uint8_t homing_dir_mask;
+    float homing_feed_rate;
+    float homing_seek_rate;
+    uint16_t homing_debounce_delay;
+    float homing_pulloff;
+
+    int16_t machine_int16[USER_SETTING_COUNT]; // settings starting at 80 to be defined by the user
+    float machine_float[USER_SETTING_COUNT];    // settings starting at 80 to be defined by the user
 
 } settings_t;
 extern settings_t settings;
 
 // Initialize the configuration subsystem (load settings from EEPROM)
-void settings_init(); 
+void settings_init();
 void settings_restore(uint8_t restore_flag);
 void write_global_settings();
 uint8_t read_global_settings();
 
-uint8_t settings_read_startup_line(uint8_t n, char *line);
-void settings_store_startup_line(uint8_t n, char *line);
+uint8_t settings_read_startup_line(uint8_t n, char* line);
+void settings_store_startup_line(uint8_t n, char* line);
 
-uint8_t settings_read_build_info(char *line);
-void settings_store_build_info(char *line);
+uint8_t settings_read_build_info(char* line);
+void settings_store_build_info(char* line);
 
 uint8_t settings_store_global_setting(uint8_t parameter, float value);
 
 // Writes selected coordinate data to EEPROM
-void settings_write_coord_data(uint8_t coord_select, float *coord_data);
+void settings_write_coord_data(uint8_t coord_select, float* coord_data);
 
 // Reads selected coordinate data from EEPROM
-uint8_t settings_read_coord_data(uint8_t coord_select, float *coord_data);
+uint8_t settings_read_coord_data(uint8_t coord_select, float* coord_data);
 
 // Returns the step pin mask according to Grbl's internal axis numbering
 uint8_t get_step_pin_mask(uint8_t i);

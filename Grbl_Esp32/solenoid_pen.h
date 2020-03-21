@@ -23,7 +23,7 @@
 	When the current Z location is below zero the pen is down
 	If the Z goes to zero or above the pen goes up.
 	There are two power levels, the initial pull up strength, then the hold strength
-	
+
 
 	Note: There is a still a virtual Z axis that has a finite speed.
 	If your gcode is commanding long travels in Z, there will be delays
@@ -32,22 +32,40 @@
 
 */
 
-#define SOLENOID_PWM_FREQ 5000
-#define SOLENOID_PWM_RES_BITS 8
+#ifndef SOLENOID_PWM_FREQ
+    #define SOLENOID_PWM_FREQ 5000
+#endif
 
-#define SOLENOID_TURNON_DELAY (SOLENOID_TIMER_INT_FREQ/2)
-#define SOLENOID_PULSE_LEN_UP 255
-#define SOLENOID_HOLD_DELAY (SOLENOID_TIMER_INT_FREQ/2) // in task counts...after this delay power will change to hold level
-#define SOLENOID_PULSE_LEN_HOLD 80 // solenoid hold level ... typically a lower value to prevent overheating
+#ifndef SOLENOID_PWM_RES_BITS
+    #define SOLENOID_PWM_RES_BITS 8
+#endif
 
-#define SOLENOID_TIMER_INT_FREQ 50
+#ifndef SOLENOID_TURNON_DELAY
+    #define SOLENOID_TURNON_DELAY (SOLENOID_TIMER_INT_FREQ/2)
+#endif
+
+#ifndef SOLENOID_PULSE_LEN_UP
+    #define SOLENOID_PULSE_LEN_UP 255
+#endif
+
+#ifndef SOLENOID_HOLD_DELAY
+    #define SOLENOID_HOLD_DELAY (SOLENOID_TIMER_INT_FREQ/2) // in task counts...after this delay power will change to hold level
+#endif
+
+#ifndef SOLENOID_PULSE_LEN_HOLD
+    #define SOLENOID_PULSE_LEN_HOLD 80 // solenoid hold level ... typically a lower value to prevent overheating
+#endif
+
+#ifndef SOLENOID_TIMER_INT_FREQ
+    #define SOLENOID_TIMER_INT_FREQ 50
+#endif
 
 #ifndef solenoid_h
-#define solenoid_h
+    #define solenoid_h
 
-void solenoid_init();
-void solenoid_disable();
-void solenoidSyncTask(void *pvParameters);
-void calc_solenoid(float penZ);
+    void solenoid_init();
+    void solenoid_disable();
+    void solenoidSyncTask(void* pvParameters);
+    void calc_solenoid(float penZ);
 
 #endif
