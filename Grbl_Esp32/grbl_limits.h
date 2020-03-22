@@ -4,11 +4,11 @@
 
   Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
-  2018-12-29 - Wolfgang Lienbacher renamed file from limits.h to grbl_limits.h 
-          fixing ambiguation issues with limit.h in the esp32 Arduino Framework 
+  2018-12-29 - Wolfgang Lienbacher renamed file from limits.h to grbl_limits.h
+          fixing ambiguation issues with limit.h in the esp32 Arduino Framework
           when compiling with VS-Code/PlatformIO.
 
   Grbl is free software: you can redistribute it and/or modify
@@ -47,13 +47,13 @@ uint8_t limits_get_state();
 void limits_go_home(uint8_t cycle_mask);
 
 // Check for soft limit violations
-void limits_soft_check(float *target);
+void limits_soft_check(float* target);
 
 void isr_limit_switches();
 
 bool axis_is_squared(uint8_t axis_mask);
 
 // A task that runs after a limit switch interrupt.
-void limitCheckTask(void *pvParameters); 
+void limitCheckTask(void* pvParameters);
 
 #endif

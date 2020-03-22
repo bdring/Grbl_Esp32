@@ -2,10 +2,10 @@
   nuts_bolts.h - Header for system level commands and real-time processes
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
-	
+
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -30,7 +30,7 @@
 
 // Axis array index values. Must start with 0 and be continuous.
 // Note: You set the number of axes used by changing N_AXIS.
-// Be sure to define pins or servos in cpu_map.h 
+// Be sure to define pins or servos in the machine definition file.
 #define X_AXIS 0 // Axis indexing value.
 #define Y_AXIS 1
 #define Z_AXIS 2
@@ -73,7 +73,7 @@
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is
 // a pointer to the result variable. Returns true when it succeeds
-uint8_t read_float(char *line, uint8_t *char_counter, float *float_ptr);
+uint8_t read_float(char* line, uint8_t* char_counter, float* float_ptr);
 
 // Non-blocking delay function used for general operation and suspend features.
 void delay_sec(float seconds, uint8_t mode);
@@ -84,16 +84,15 @@ void delay_ms(uint16_t ms);
 // Computes hypotenuse, avoiding avr-gcc's bloated version and the extra error checking.
 float hypot_f(float x, float y);
 
-float convert_delta_vector_to_unit_vector(float *vector);
-float limit_value_by_axis_maximum(float *max_value, float *unit_vec);
+float convert_delta_vector_to_unit_vector(float* vector);
+float limit_value_by_axis_maximum(float* max_value, float* unit_vec);
 
 float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
 float map_float(float x, float in_min, float in_max, float out_min, float out_max);
 float constrain_float(float in, float min, float max);
 
-template <class T> void swap ( T& a, T& b )
-{
-  T c(a); a=b; b=c;
+template <class T> void swap(T& a, T& b) {
+    T c(a); a = b; b = c;
 }
 
 #endif
