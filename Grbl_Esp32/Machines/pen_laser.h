@@ -41,10 +41,10 @@
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_13
 
 #ifdef PEN_LASER_V1
-        #define X_LIMIT_PIN     GPIO_NUM_2
+    #define X_LIMIT_PIN     GPIO_NUM_2
 #endif
 #ifdef PEN_LASER_V2
-        #define X_LIMIT_PIN     GPIO_NUM_15
+    #define X_LIMIT_PIN     GPIO_NUM_15
 #endif
 #define Y_LIMIT_PIN             GPIO_NUM_4
 #define LIMIT_MASK              B11
@@ -57,17 +57,15 @@
 //#define USING_SOLENOID // uncomment to use this feature
 
 #ifdef USING_SERVO
-        #define USE_SERVO_AXES
-        #define SERVO_Z_PIN     GPIO_NUM_27
-        #define SERVO_Z_CHANNEL_NUM 3
-        #define SERVO_Z_RANGE_MIN 0
-        #define SERVO_Z_RANGE_MAX 10
+    #define USE_SERVO_AXES
+    #define SERVO_Z_PIN     GPIO_NUM_27
+    #define SERVO_Z_RANGE_MIN 0
+    #define SERVO_Z_RANGE_MAX 10
 #endif
 
 #ifdef USING_SOLENOID
-        #define USE_PEN_SOLENOID
-        #define SOLENOID_PEN_PIN GPIO_NUM_16
-        #define SOLENOID_CHANNEL_NUM 6
+    #define USE_PEN_SOLENOID
+    #define SOLENOID_PEN_PIN GPIO_NUM_16
 #endif
 
 // defaults
