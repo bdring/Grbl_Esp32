@@ -31,7 +31,7 @@
 #define Y_DIRECTION_PIN GPIO_NUM_25
 
 #ifndef COREXY // maybe set in config.h
-#define COREXY
+    #define COREXY
 #endif
 
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
@@ -41,11 +41,10 @@
 #define LIMIT_MASK      B11
 
 #ifndef USE_SERVO_AXES  // maybe set in config.h
-#define USE_SERVO_AXES
+    #define USE_SERVO_AXES
 #endif
 
 #define SERVO_Z_PIN             GPIO_NUM_27
-#define SERVO_Z_CHANNEL_NUM     5
 #define SERVO_Z_RANGE_MIN       0.0
 #define SERVO_Z_RANGE_MAX       5.0
 #define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
@@ -53,24 +52,24 @@
 #define SERVO_Z_MPOS            false   // will not use mpos, uses work coordinates
 
 #ifndef IGNORE_CONTROL_PINS // maybe set in config.h
-        #define IGNORE_CONTROL_PINS
+    #define IGNORE_CONTROL_PINS
 #endif
 
 // redefine some stuff from config.h
 #ifdef HOMING_CYCLE_0
-#undef HOMING_CYCLE_0
+    #undef HOMING_CYCLE_0
 #endif
 
 #define HOMING_CYCLE_0 (1<<Y_AXIS)
 
 #ifdef HOMING_CYCLE_1
-#undef HOMING_CYCLE_1
+    #undef HOMING_CYCLE_1
 #endif
 
 #define HOMING_CYCLE_1 (1<<X_AXIS)
 
 #ifdef HOMING_CYCLE_2
-#undef HOMING_CYCLE_2
+    #undef HOMING_CYCLE_2
 #endif
 
 #define SERVO_PEN_PIN           GPIO_NUM_27

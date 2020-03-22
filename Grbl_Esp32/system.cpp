@@ -588,3 +588,13 @@ int8_t sys_get_next_RMT_chan_num() {
         return -1;
     }
 }
+
+int8_t sys_get_next_PWM_chan_num() {
+    static uint8_t next_PWM_chan_num = 0; // channels 0-7 are valid
+    if (next_PWM_chan_num < 8)  // 7 is the max PWM channel number
+        return next_PWM_chan_num++;
+    else {
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_ERROR, "Error: out of PWM channels");
+        return -1;
+    }
+}

@@ -44,11 +44,10 @@
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_17
 
 #ifndef USE_SERVO_AXES  // maybe set in config.h
-  #define USE_SERVO_AXES
+    #define USE_SERVO_AXES
 #endif
 
 #define SERVO_Z_PIN             GPIO_NUM_16
-#define SERVO_Z_CHANNEL_NUM     5
 #define SERVO_Z_RANGE_MIN       0.0
 #define SERVO_Z_RANGE_MAX       5.0
 #define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
@@ -59,20 +58,20 @@
 #define LIMIT_MASK              B1
 
 #ifdef IGNORE_CONTROL_PINS // maybe set in config.h
-  #undef IGNORE_CONTROL_PINS
+    #undef IGNORE_CONTROL_PINS
 #endif
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
-  #define ENABLE_CONTROL_SW_DEBOUNCE
+    #define ENABLE_CONTROL_SW_DEBOUNCE
 #endif
 
 #ifdef CONTROL_SW_DEBOUNCE_PERIOD
-  #undef CONTROL_SW_DEBOUNCE_PERIOD
+    #undef CONTROL_SW_DEBOUNCE_PERIOD
 #endif
 #define CONTROL_SW_DEBOUNCE_PERIOD 100 // really long debounce
 
 #ifdef INVERT_CONTROL_PIN_MASK
-  #undef INVERT_CONTROL_PIN_MASK
+    #undef INVERT_CONTROL_PIN_MASK
 #endif
 #define INVERT_CONTROL_PIN_MASK B11111111
 
@@ -82,14 +81,14 @@
 
 // redefine some stuff from config.h
 #ifdef HOMING_CYCLE_0
-  #undef HOMING_CYCLE_0
+    #undef HOMING_CYCLE_0
 #endif
 #define HOMING_CYCLE_0 (1<<X_AXIS) // this 'bot only homes the X axis
 #ifdef HOMING_CYCLE_1
-  #undef HOMING_CYCLE_1
+    #undef HOMING_CYCLE_1
 #endif
 #ifdef HOMING_CYCLE_2
-  #undef HOMING_CYCLE_2
+    #undef HOMING_CYCLE_2
 #endif
 
 // ============= End CPU MAP ==================

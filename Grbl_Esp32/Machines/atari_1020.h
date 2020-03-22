@@ -33,7 +33,7 @@
 #define CUSTOM_CODE_FILENAME "Custom/atari_1020.cpp"
 
 #ifdef USE_RMT_STEPS
-#undef USE_RMT_STEPS
+    #undef USE_RMT_STEPS
 #endif
 
 #define USE_UNIPOLAR
@@ -52,32 +52,31 @@
 
 #define SOLENOID_DIRECTION_PIN GPIO_NUM_4
 #define SOLENOID_PEN_PIN GPIO_NUM_2
-#define SOLENOID_CHANNEL_NUM 6
 
 #ifdef HOMING_CYCLE_0
-#undef HOMING_CYCLE_0
+    #undef HOMING_CYCLE_0
 #endif
 #define HOMING_CYCLE_0 (1 << X_AXIS) // this 'bot only homes the X axis
 #ifdef HOMING_CYCLE_1
-#undef HOMING_CYCLE_1
+    #undef HOMING_CYCLE_1
 #endif
 #ifdef HOMING_CYCLE_2
-#undef HOMING_CYCLE_2
+    #undef HOMING_CYCLE_2
 #endif
 
 #define REED_SW_PIN GPIO_NUM_17
 #define LIMIT_MASK 0
 
 #ifdef IGNORE_CONTROL_PINS // maybe set in config.h
-#undef IGNORE_CONTROL_PINS
+    #undef IGNORE_CONTROL_PINS
 #endif
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
-#define ENABLE_CONTROL_SW_DEBOUNCE
+    #define ENABLE_CONTROL_SW_DEBOUNCE
 #endif
 
 #ifdef INVERT_CONTROL_PIN_MASK
-#undef INVERT_CONTROL_PIN_MASK
+    #undef INVERT_CONTROL_PIN_MASK
 #endif
 #define INVERT_CONTROL_PIN_MASK B01110000
 
@@ -86,7 +85,7 @@
 #define MACRO_BUTTON_2_PIN GPIO_NUM_36 // Paper Switch
 
 #ifdef DEFAULTS_GENERIC
-#undef DEFAULTS_GENERIC // undefine generic then define each default below
+    #undef DEFAULTS_GENERIC // undefine generic then define each default below
 #endif
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME 200 // 200ms
@@ -160,11 +159,11 @@
 #define USE_M30 // use the user defined end of program
 
 #ifndef atari_h
-#define atari_h
+    #define atari_h
 
-void solenoid_disable();
-void solenoidSyncTask(void *pvParameters);
-void calc_solenoid(float penZ);
-void atari_home_task(void *pvParameters);
-void atari_next_pen();
+    void solenoid_disable();
+    void solenoidSyncTask(void* pvParameters);
+    void calc_solenoid(float penZ);
+    void atari_home_task(void* pvParameters);
+    void atari_next_pen();
 #endif

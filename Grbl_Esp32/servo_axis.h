@@ -36,7 +36,6 @@
 
 	2. In the machine definition file in Machines/, define servo pins and PWM channels like this ....
 				#define SERVO_Y_PIN 					GPIO_NUM_14
-				#define SERVO_Y_CHANNEL_NUM 	6
 
 				undefine any step and direction pins associated with that axis
 
@@ -93,7 +92,7 @@ void servosSyncTask(void* pvParameters);
 
 class ServoAxis {
   public:
-    ServoAxis(uint8_t axis, uint8_t pin_num, uint8_t channel_num); // constructor
+    ServoAxis(uint8_t axis, uint8_t pin_num); // constructor
     void init();
     void set_location();
     void disable(); // sets PWM to 0% duty cycle. Most servos can be manually moved in this state
