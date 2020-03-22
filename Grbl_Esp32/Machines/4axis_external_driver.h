@@ -22,7 +22,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME            "External Driver Board V1.1"
+#define MACHINE_NAME            "External 4 Axis Driver Board"
 
 #ifdef N_AXIS
         #undef N_AXIS
