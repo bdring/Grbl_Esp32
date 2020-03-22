@@ -2,7 +2,7 @@
     mpcnc.h
     Part of Grbl_ESP32
 
-    Pin assignments for the Buildlog.net MPCNC controller        
+    Pin assignments for the Buildlog.net MPCNC controller
     https://github.com/bdring/Grbl_ESP32_MPCNC_Controller
 
     2019    - Bart Dring
@@ -21,18 +21,12 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
- 
+
 // // Pin assignments for the Buildlog.net MPCNC controller
 
-// uncomment ONE of the following versions
-//#define V1P1
-#define V1P2  // works for V1.2.1 as well
 
-#ifdef V1P1
-#define MACHINE_NAME "MACHINE_MPCNC_V1P1"
-#else // V1P2
+
 #define MACHINE_NAME "MACHINE_MPCNC_V1P2"
-#endif
 
 #define USE_GANGED_AXES // allow two motors on an axis
 
@@ -57,14 +51,10 @@
 //#define USE_SPINDLE_RELAY
 
 #ifdef USE_SPINDLE_RELAY
-#ifdef V1P1
-#define SPINDLE_PWM_PIN GPIO_NUM_17
-#else // V1p2
-#define SPINDLE_PWM_PIN GPIO_NUM_2
-#endif
+    #define SPINDLE_PWM_PIN GPIO_NUM_2
 #else
-#define SPINDLE_PWM_PIN         GPIO_NUM_16
-#define SPINDLE_ENABLE_PIN      GPIO_NUM_32
+    #define SPINDLE_PWM_PIN         GPIO_NUM_16
+    #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
 #endif
 
 // Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
@@ -72,27 +62,23 @@
 //#define COOLANT_FLOOD_PIN     GPIO_NUM_2
 //#define COOLANT_MIST_PIN      GPIO_NUM_2
 
-#ifdef V1P1     //v1p1
-#define X_LIMIT_PIN             GPIO_NUM_2
-#else
-#define X_LIMIT_PIN             GPIO_NUM_17
-#endif
 
+#define X_LIMIT_PIN             GPIO_NUM_17
 #define Y_LIMIT_PIN             GPIO_NUM_4
 #define Z_LIMIT_PIN             GPIO_NUM_15
 #define LIMIT_MASK              B111
 
-#ifdef V1P2
+
 #ifndef ENABLE_SOFTWARE_DEBOUNCE   // V1P2 does not have R/C filters
-#define ENABLE_SOFTWARE_DEBOUNCE
+    #define ENABLE_SOFTWARE_DEBOUNCE
 #endif
-#endif
+
 
 #define PROBE_PIN               GPIO_NUM_35
 
 // The default value in config.h is wrong for this controller
 #ifdef INVERT_CONTROL_PIN_MASK
-#undef INVERT_CONTROL_PIN_MASK
+    #undef INVERT_CONTROL_PIN_MASK
 #endif
 
 #define INVERT_CONTROL_PIN_MASK B1110
@@ -106,39 +92,39 @@
 #endif
 */
 
-#define CONTROL_RESET_PIN       GPIO_NUM_34  // needs external pullup
-#define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // needs external pullup
-#define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // needs external pullup
+#define CONTROL_RESET_PIN           GPIO_NUM_34  // needs external pullup
+#define CONTROL_FEED_HOLD_PIN       GPIO_NUM_36  // needs external pullup
+#define CONTROL_CYCLE_START_PIN     GPIO_NUM_39  // needs external pullup
 
-#define DEFAULT_STEP_PULSE_MICROSECONDS 3
-#define DEFAULT_STEPPER_IDLE_LOCK_TIME 255 //  255 = Keep steppers on
+#define DEFAULT_STEP_PULSE_MICROSECONDS     3
+#define DEFAULT_STEPPER_IDLE_LOCK_TIME      255 //  255 = Keep steppers on
 
-#define DEFAULT_STEPPING_INVERT_MASK 0 // uint8_t
-#define DEFAULT_DIRECTION_INVERT_MASK 0 // uint8_t
-#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
-#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
-#define DEFAULT_INVERT_PROBE_PIN 0 // boolean
+#define DEFAULT_STEPPING_INVERT_MASK    0 // uint8_t
+#define DEFAULT_DIRECTION_INVERT_MASK   0 // uint8_t
+#define DEFAULT_INVERT_ST_ENABLE        0 // boolean
+#define DEFAULT_INVERT_LIMIT_PINS       1 // boolean
+#define DEFAULT_INVERT_PROBE_PIN        0 // boolean
 
-#define DEFAULT_STATUS_REPORT_MASK 1
+#define DEFAULT_STATUS_REPORT_MASK      1
 
-#define DEFAULT_JUNCTION_DEVIATION 0.01 // mm
-#define DEFAULT_ARC_TOLERANCE 0.002 // mm
-#define DEFAULT_REPORT_INCHES 0 // false
+#define DEFAULT_JUNCTION_DEVIATION  0.01 // mm
+#define DEFAULT_ARC_TOLERANCE       0.002 // mm
+#define DEFAULT_REPORT_INCHES       0 // false
 
 #define DEFAULT_SOFT_LIMIT_ENABLE 0 // false
 #define DEFAULT_HARD_LIMIT_ENABLE 0  // false
 
-#define DEFAULT_HOMING_ENABLE 1  // false
-#define DEFAULT_HOMING_DIR_MASK 3 // move positive dir Z,negative X,Y
-#define DEFAULT_HOMING_FEED_RATE 100.0 // mm/min
-#define DEFAULT_HOMING_SEEK_RATE 200.0 // mm/min
-#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
-#define DEFAULT_HOMING_PULLOFF 2.0 // mm
+#define DEFAULT_HOMING_ENABLE           1  // false
+#define DEFAULT_HOMING_DIR_MASK         3 // move positive dir Z,negative X,Y
+#define DEFAULT_HOMING_FEED_RATE        100.0 // mm/min
+#define DEFAULT_HOMING_SEEK_RATE        200.0 // mm/min
+#define DEFAULT_HOMING_DEBOUNCE_DELAY   250 // msec (0-65k)
+#define DEFAULT_HOMING_PULLOFF          2.0 // mm
 
 #ifdef USE_SPINDLE_RELAY
-#define DEFAULT_SPINDLE_RPM_MAX 1.0 // must be 1 so PWM duty is alway 100% to prevent relay damage
+    #define DEFAULT_SPINDLE_RPM_MAX 1.0 // must be 1 so PWM duty is alway 100% to prevent relay damage
 #else
-#define DEFAULT_SPINDLE_RPM_MAX 1000.0 // can be change to your spindle max
+    #define DEFAULT_SPINDLE_RPM_MAX 1000.0 // can be change to your spindle max
 #endif
 
 #define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
