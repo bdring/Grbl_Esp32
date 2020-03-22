@@ -79,6 +79,14 @@
 
 #include "solenoid_pen.h"
 
+#ifdef USE_PCF8574
+    #include <Wire.h>
+#endif
+
+#ifdef USE_IO_EXPANDER
+    #include "io_expander.h"
+#endif
+
 #ifdef USE_SERVO_AXES
     #include "servo_axis.h"
 #endif

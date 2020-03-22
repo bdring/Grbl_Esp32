@@ -103,6 +103,14 @@ Some features should not be changed. See notes below.
     #define LIMIT_MASK B0
 #endif
 
+#ifdef USE_IO_EXPANDER
+#define EXPANDER_PIN_MODE expanderPinMode
+#define EXPANDER_DIGITAL_WRITE expanderDigitalWrite
+#else
+#define EXPANDER_PIN_MODE PinMode
+#define EXPANDER_DIGITAL_WRITE digitalWrite
+#endif
+
 #define VERBOSE_HELP // Currently this doesn't do anything
 #define GRBL_MSG_LEVEL MSG_LEVEL_INFO // what level of [MSG:....] do you want to see 0=all off
 
