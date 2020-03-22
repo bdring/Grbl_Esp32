@@ -4,7 +4,7 @@
 # for every machine configuration in the Machines/ directory.
 # It is useful for automated testing.
 
-trap "echo; exit" SIGINT
+trap "echo; exit 255" SIGINT
 
 # With -v, show all output.  Otherwise, show just the result
 if [ "$1" = "-v" ]; then
@@ -12,18 +12,29 @@ if [ "$1" = "-v" ]; then
 else
    FILTER="grep error\|Took"
 fi
+set -o pipefail
+NUM_ERRORS=0
+
 BuildMachine () {
     basename=$1
     addname=$2
-    BF="-DMACHINE_FILENAME=$basename"
+    BF="\"-DMACHINE_FILENAME=$basename\""
     displayname=$basename
     if [ "$addname" != "" ]
     then
-        BF="$BF -DMACHINE_FILENAME2=$addname"
+        BF="$BF \"-DMACHINE_FILENAME2=$addname\""
         displayname="$basename + $addname"
     fi
     echo "Building machine $displayname"
-    PLATFORMIO_BUILD_FLAGS=\'$BF\' platformio run 2>&1 | $FILTER
+    PLATFORMIO_BUILD_FLAGS=$BF platformio run 2>&1 | $FILTER
+    local re=$?
+    # check result
+    if [ $re -ne 0 ]; then
+        echo "Failed to build machine $displayname"
+        echo
+        NUM_ERRORS=$(( NUM_ERRORS + 1 ))
+        return $re
+	fi
     echo
 }
 
@@ -40,3 +51,5 @@ do
     adder=`basename $file`
     BuildMachine $base $adder
 done
+
+exit $NUM_ERRORS
