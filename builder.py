@@ -1,0 +1,32 @@
+# This script is imported by build-machine.py and build-all.py
+# It performs a platformio build with a given base machine file
+# and an optional add-on file.  The verbose argument controls
+# whether the full output is displayed, or filtered to show
+# only summary information.  extraArgs can be used to perform
+# uploading after compilation.
+
+from __future__ import print_function
+import subprocess, os
+
+env = dict(os.environ)
+
+def buildMachine(baseName, addName=None, verbose=True, extraArgs=None):
+    cmd = ['platformio','run']
+    if extraArgs:
+        cmd.append(extraArgs)
+    displayName = baseName
+    flags = '-DMACHINE_FILENAME=' + baseName
+    if addName:
+        displayName += ' + ' + addName
+        flags += ' -DMACHINE_FILENAME2=' + addName
+    print('Building machine ' + displayName)
+    env['PLATFORMIO_BUILD_FLAGS'] = flags
+    if verbose:
+        app = subprocess.Popen(cmd, env=env)
+    else:
+        app = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
+        for line in app.stdout:
+            if "Took" in line or 'Uploading' in line or "error" in line.lower():
+                print(line, end='')
+    app.wait()
+    print()

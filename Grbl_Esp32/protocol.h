@@ -4,7 +4,7 @@
 
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
 
@@ -32,7 +32,7 @@
 // memory space we can invest into here or we re-write the g-code parser not to have this
 // buffer.
 #ifndef LINE_BUFFER_SIZE
-  #define LINE_BUFFER_SIZE 80
+    #define LINE_BUFFER_SIZE 80
 #endif
 
 // Starts Grbl main loop. It handles all incoming characters from the serial port and executes

@@ -4,9 +4,9 @@
 
   Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
-					CPU. Do not use this with Grbl for atMega328P
+		CPU. Do not use this with Grbl for atMega328P
 
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -39,16 +39,69 @@ Some features should not be changed. See notes below.
 #define config_h
 #include <Arduino.h>
 
-// !!!! Most Important Configuration Item !!!!
-// #define the CPU map you want to use
-// The CPU map is the main definition of the machine/controller you want to use
-// These are typically found in the cpu_map.h file.
-// See Github repo wiki for more details
-#define CPU_MAP_TEST_DRIVE // these are defined in cpu_map.h
+// It is no longer necessary to edit this file to choose
+// a machine configuration; edit machine.h instead
+// machine.h is #included below, after some definitions
+// that the machine file might choose to undefine.
+
+// Define the homing cycle patterns with bitmasks. The homing cycle first performs a search mode
+// to quickly engage the limit switches, followed by a slower locate mode, and finished by a short
+// pull-off motion to disengage the limit switches. The following HOMING_CYCLE_x defines are executed
+// in order starting with suffix 0 and completes the homing routine for the specified-axes only. If
+// an axis is omitted from the defines, it will not home, nor will the system update its position.
+// Meaning that this allows for users with non-standard Cartesian machines, such as a lathe (x then z,
+// with no y), to configure the homing cycle behavior to their needs.
+// NOTE: The homing cycle is designed to allow sharing of limit pins, if the axes are not in the same
+// cycle, but this requires some pin settings changes in the machine definition file. For example, the default homing
+// cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
+// By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
+// may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
+// on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
+// will not be affected by pin sharing.
+
+// NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
+// These homing cycle definitions precede the machine.h file so that the machine
+// definition can undefine them if necessary.
+#define HOMING_CYCLE_0 (1<<Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
+#define HOMING_CYCLE_1 (1<<X_AXIS)
+#define HOMING_CYCLE_2 (1<<Y_AXIS)
+
+// NOTE: The following is for for homing X and Y at the same time
+// #define HOMING_CYCLE_0 (1<<Z_AXIS) // first home z by itself
+// #define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
+
+// Inverts pin logic of the control command pins based on a mask. This essentially means you can use
+// normally-closed switches on the specified pins, rather than the default normally-open switches.
+// The mask order is Cycle Start | Feed Hold | Reset | Safety Door
+// For example B1101 will invert the function of the Reset pin.
+#define INVERT_CONTROL_PIN_MASK   B1111
+
+// This allows control pins to be ignored.
+// Since these are typically used on the pins that don't have pullups, they will float and cause
+// problems if not externally pulled up. Ignoring will always return not activated when read.
+#define IGNORE_CONTROL_PINS
+
+#define ENABLE_CONTROL_SW_DEBOUNCE // Default disabled. Uncomment to enable.
+#define CONTROL_SW_DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
+
+#define USE_RMT_STEPS
+
+// Include the file that loads the machine-specific config file.
+// machine.h must be edited to choose the desired file.
+#include "machine.h"
+
+// machine_common.h contains settings that do not change
+#include "machine_common.h"
 
 // Number of axes defined (steppers, servos, etc) (valid range: 3 to 6)
 // Even if your machine only uses less than the minimum of 3, you should select 3
-#define N_AXIS 3
+#ifndef N_AXIS
+    #define N_AXIS 3
+#endif
+
+#ifndef LIMIT_MASK
+    #define LIMIT_MASK B0
+#endif
 
 #define VERBOSE_HELP // Currently this doesn't do anything
 #define GRBL_MSG_LEVEL MSG_LEVEL_INFO // what level of [MSG:....] do you want to see 0=all off
@@ -62,7 +115,7 @@ Some features should not be changed. See notes below.
 //#define CONNECT_TO_SSID  "your SSID"
 //#define SSID_PASSWORD  "your SSID password"
 
-#define ENABLE_BLUETOOTH // enable bluetooth 
+#define ENABLE_BLUETOOTH // enable bluetooth
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
 
@@ -86,15 +139,15 @@ Some features should not be changed. See notes below.
 #define ESP_RADIO_MODE "RADIO_MODE"
 
 #ifdef ENABLE_AUTHENTICATION
-#define DEFAULT_ADMIN_PWD "admin"
-#define DEFAULT_USER_PWD  "user";
-#define DEFAULT_ADMIN_LOGIN  "admin"
-#define DEFAULT_USER_LOGIN "user"
-#define ADMIN_PWD_ENTRY "ADMIN_PWD"
-#define USER_PWD_ENTRY "USER_PWD"
-#define AUTH_ENTRY_NB 20
-#define MAX_LOCAL_PASSWORD_LENGTH   16
-#define MIN_LOCAL_PASSWORD_LENGTH   1
+    #define DEFAULT_ADMIN_PWD "admin"
+    #define DEFAULT_USER_PWD  "user";
+    #define DEFAULT_ADMIN_LOGIN  "admin"
+    #define DEFAULT_USER_LOGIN "user"
+    #define ADMIN_PWD_ENTRY "ADMIN_PWD"
+    #define USER_PWD_ENTRY "USER_PWD"
+    #define AUTH_ENTRY_NB 20
+    #define MAX_LOCAL_PASSWORD_LENGTH   16
+    #define MIN_LOCAL_PASSWORD_LENGTH   1
 #endif
 
 //Radio Mode
@@ -103,19 +156,19 @@ Some features should not be changed. See notes below.
 #define ESP_WIFI_AP  2
 #define ESP_BT       3
 
- //Default mode
+//Default mode
 #ifdef ENABLE_WIFI
-#ifdef CONNECT_TO_SSID
-#define DEFAULT_RADIO_MODE ESP_WIFI_STA
-#else
-#define DEFAULT_RADIO_MODE ESP_WIFI_AP
-#endif //CONNECT_TO_SSID
+    #ifdef CONNECT_TO_SSID
+        #define DEFAULT_RADIO_MODE ESP_WIFI_STA
+    #else
+        #define DEFAULT_RADIO_MODE ESP_WIFI_AP
+    #endif //CONNECT_TO_SSID
 #else
     #undef ENABLE_NOTIFICATIONS
     #ifdef ENABLE_BLUETOOTH
-    #define DEFAULT_RADIO_MODE ESP_BT
+        #define DEFAULT_RADIO_MODE ESP_BT
     #else
-    #define DEFAULT_RADIO_MODE ESP_RADIO_OFF
+        #define DEFAULT_RADIO_MODE ESP_RADIO_OFF
     #endif
 #endif
 
@@ -165,36 +218,12 @@ Some features should not be changed. See notes below.
 // mainly a safety feature to remind the user to home, since position is unknown to Grbl.
 #define HOMING_INIT_LOCK // Comment to disable
 
-// Define the homing cycle patterns with bitmasks. The homing cycle first performs a search mode
-// to quickly engage the limit switches, followed by a slower locate mode, and finished by a short
-// pull-off motion to disengage the limit switches. The following HOMING_CYCLE_x defines are executed
-// in order starting with suffix 0 and completes the homing routine for the specified-axes only. If
-// an axis is omitted from the defines, it will not home, nor will the system update its position.
-// Meaning that this allows for users with non-standard Cartesian machines, such as a lathe (x then z,
-// with no y), to configure the homing cycle behavior to their needs.
-// NOTE: The homing cycle is designed to allow sharing of limit pins, if the axes are not in the same
-// cycle, but this requires some pin settings changes in cpu_map.h file. For example, the default homing
-// cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
-// By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
-// may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
-// on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
-// will not be affected by pin sharing.
-
-// NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.  
-#define HOMING_CYCLE_0 (1<<Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
-#define HOMING_CYCLE_1 (1<<X_AXIS)  
-#define HOMING_CYCLE_2 (1<<Y_AXIS)
-
-// NOTE: The following is for for homingg X and Y at the same time
-// #define HOMING_CYCLE_0 (1<<Z_AXIS) // first home z by itself
-// #define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
-
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
 // greater.
 #define N_HOMING_LOCATE_CYCLE 1 // Integer (1-128)
 
-// Enables single axis homing commands. $HX, $HY, and $HZ for X, Y, and Z-axis homing. The full homing 
+// Enables single axis homing commands. $HX, $HY, and $HZ for X, Y, and Z-axis homing. The full homing
 // cycle is still invoked by the $H command. This is disabled by default. It's here only to address
 // users that need to switch between a two-axis and three-axis machine. This is actually very rare.
 // If you have a two-axis machine, DON'T USE THIS. Instead, just alter the homing cycle for two-axes.
@@ -206,8 +235,8 @@ Some features should not be changed. See notes below.
 // #define HOMING_FORCE_SET_ORIGIN // Uncomment to enable.
 
 // Uncomment this define to force Grbl to always set the machine origin at minimum travel positions of
-// the axes. Note: The $23 setting determines the direction of travel during homing. If an axes homes towards the 
-// minimum, it will set the machine position to 0. If it homes towards the maximum it will set the 
+// the axes. Note: The $23 setting determines the direction of travel during homing. If an axes homes towards the
+// minimum, it will set the machine position to 0. If it homes towards the maximum it will set the
 // machine position to the max travel ($13x), minus the switch pull off ($27).
 // #define HOMING_FORCE_POSITIVE_SPACE // Uncomment to enable.
 
@@ -251,7 +280,7 @@ Some features should not be changed. See notes below.
 // analog pin 4. Only use this option if you require a second coolant control pin.
 // NOTE: The M8 flood coolant control pin on analog pin 3 will still be functional regardless.
 // ESP32 NOTE! This is here for reference only. You enable both M7 and M8 by assigning them a GPIO Pin
-// in cpu_map.h
+// in the machine definition file.
 //#define ENABLE_M7 // Don't uncomment...see above!
 
 // This option causes the feed hold input to act as a safety door switch. A safety door, when triggered,
@@ -275,29 +304,14 @@ Some features should not be changed. See notes below.
 // #define COREXY // Default disabled. Uncomment to enable.
 
 // Enable using a servo for the Z axis on a pen type machine.
-// You typically should not define a pin for the Z axis in cpu_map.h
+// You typically should not define a pin for the Z axis in the machine definition file
 // You should configure your settings in servo_pen.h
 // #define USE_SERVO_AXES  // the new method
-// define your servo pin here or in cpu_map.h
+// define your servo pin here or in the machine definition file
 //#define SERVO_PEN_PIN 					GPIO_NUM_27
 
 // Enable using a solenoid for the Z axis on a pen type machine
 // #define USE_PEN_SOLENOID
-
-// Inverts pin logic of the control command pins based on a mask. This essentially means you can use
-// normally-closed switches on the specified pins, rather than the default normally-open switches.
-// The mask order is Cycle Start | Feed Hold | Reset | Safety Door
-// For example B1101 will invert the function of the Reset pin.
-#define INVERT_CONTROL_PIN_MASK   B1111
-
-// This allows control pins to be ignored.
-// Since these are typically used on the pins that don't have pullups, they will float and cause
-// problems if not externally pulled up. Ignoring will always return not activated when read.
-#define IGNORE_CONTROL_PINS
-
-#define ENABLE_CONTROL_SW_DEBOUNCE // Default disabled. Uncomment to enable.
-#define CONTROL_SW_DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
-
 
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.
@@ -363,7 +377,7 @@ Some features should not be changed. See notes below.
 
 // The status report change for Grbl v1.1 and after also removed the ability to disable/enable most data
 // fields from the report. This caused issues for GUI developers, who've had to manage several scenarios
-// and configurations. The increased efficiency of the new reporting style allows for all data fields to 
+// and configurations. The increased efficiency of the new reporting style allows for all data fields to
 // be sent without potential performance issues.
 // NOTE: The options below are here only provide a way to disable certain data fields if a unique
 // situation demands it, but be aware GUIs may depend on this data. If disabled, it may not be compatible.
@@ -439,10 +453,10 @@ Some features should not be changed. See notes below.
 // The hardware PWM output on pin D11 is required for variable spindle output voltages.
 #define VARIABLE_SPINDLE // Default enabled. Comment to disable.
 
-// Alters the behavior of the spindle enable pin. By default Grbl will not disable the enable pin if 
-// spindle speed is zero and M3/4 is active, but still sets the PWM output to zero. This allows the users 
+// Alters the behavior of the spindle enable pin. By default Grbl will not disable the enable pin if
+// spindle speed is zero and M3/4 is active, but still sets the PWM output to zero. This allows the users
 // to know if the spindle is active and use it as an additional control input.
-// However, in some use cases, user may want the enable pin to disable with a zero spindle speed and 
+// However, in some use cases, user may want the enable pin to disable with a zero spindle speed and
 // re-enable when spindle speed is greater than zero. This option does that.
 #define SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED // Default enabled. Comment to disable.
 
@@ -551,8 +565,8 @@ Some features should not be changed. See notes below.
 // #define RX_BUFFER_SIZE 128 // (1-254) Uncomment to override defaults in serial.h
 // #define TX_BUFFER_SIZE 100 // (1-254)
 
-// A simple software debouncing feature for hard limit switches. When enabled, the limit 
-// switch interrupt unblock a waiting task which will recheck the limit switch pins after 
+// A simple software debouncing feature for hard limit switches. When enabled, the limit
+// switch interrupt unblock a waiting task which will recheck the limit switch pins after
 // a short delay. Default disabled
 //#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
 #define DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
@@ -600,7 +614,7 @@ Some features should not be changed. See notes below.
 // Additional settings have been added to the original set that you see with the $$ command
 // Some senders may not be able to parse anything different from the original set
 // You can still set these like $33=5000, but you cannot read them back.
-// Default is off to limit support issues...you can enable here or in your cpu_map
+// Default is off to limit support issues...you can enable here or in your machine definition file
 // #define SHOW_EXTENDED_SETTINGS
 
 // Enable the '$I=(string)' build info write command. If disabled, any existing build info data must
@@ -634,8 +648,8 @@ Some features should not be changed. See notes below.
 #define FORCE_BUFFER_SYNC_DURING_WCO_CHANGE // Default enabled. Comment to disable.
 
 // By default, Grbl disables feed rate overrides for all G38.x probe cycle commands. Although this
-// may be different than some pro-class machine control, it's arguable that it should be this way. 
-// Most probe sensors produce different levels of error that is dependent on rate of speed. By 
+// may be different than some pro-class machine control, it's arguable that it should be this way.
+// Most probe sensors produce different levels of error that is dependent on rate of speed. By
 // keeping probing cycles to their programmed feed rates, the probe sensor should be a lot more
 // repeatable. If needed, you can disable this behavior by uncommenting the define below.
 // #define ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES // Default disabled. Uncomment to enable.
@@ -661,13 +675,13 @@ Some features should not be changed. See notes below.
 #define PARKING_RATE 500.0 // Parking fast rate after pull-out in mm/min.
 #define PARKING_PULLOUT_RATE 100.0 // Pull-out/plunge slow feed rate in mm/min.
 #define PARKING_PULLOUT_INCREMENT 5.0 // Spindle pull-out and plunge distance in mm. Incremental distance.
-                                      // Must be positive value or equal to zero.
+// Must be positive value or equal to zero.
 
-// Enables a special set of M-code commands that enables and disables the parking motion. 
-// These are controlled by `M56`, `M56 P1`, or `M56 Px` to enable and `M56 P0` to disable. 
-// The command is modal and will be set after a planner sync. Since it is g-code, it is 
+// Enables a special set of M-code commands that enables and disables the parking motion.
+// These are controlled by `M56`, `M56 P1`, or `M56 Px` to enable and `M56 P0` to disable.
+// The command is modal and will be set after a planner sync. Since it is g-code, it is
 // executed in sync with g-code commands. It is not a real-time command.
-// NOTE: PARKING_ENABLE is required. By default, M56 is active upon initialization. Use 
+// NOTE: PARKING_ENABLE is required. By default, M56 is active upon initialization. Use
 // DEACTIVATE_PARKING_UPON_INIT to set M56 P0 as the power-up default.
 // #define ENABLE_PARKING_OVERRIDE_CONTROL   // Default disabled. Uncomment to enable
 // #define DEACTIVATE_PARKING_UPON_INIT // Default disabled. Uncomment to enable.
@@ -679,7 +693,7 @@ Some features should not be changed. See notes below.
 #define DISABLE_LASER_DURING_HOLD // Default enabled. Comment to disable.
 
 // Enables a piecewise linear model of the spindle PWM/speed output. Requires a solution by the
-// 'fit_nonlinear_spindle.py' script in the /doc/script folder of the repo. See file comments 
+// 'fit_nonlinear_spindle.py' script in the /doc/script folder of the repo. See file comments
 // on how to gather spindle data and run the script to generate a solution.
 // #define ENABLE_PIECEWISE_LINEAR_SPINDLE  // Default disabled. Uncomment to enable.
 
@@ -715,20 +729,5 @@ Some features should not be changed. See notes below.
 #define RPM_LINE_B2 4.754411e+01
 #define RPM_LINE_A3 9.528342e-03
 #define RPM_LINE_B3 3.306286e+01
-
-
-/* ---------------------------------------------------------------------------------------
-   OEM Single File Configuration Option
-
-   Instructions: Paste the cpu_map and default setting definitions below without an enclosing
-   #ifdef. Comment out the CPU_MAP_xxx and DEFAULT_xxx defines at the top of this file, and
-   the compiler will ignore the contents of defaults.h and cpu_map.h and use the definitions
-   below.
-*/
-
-// Paste CPU_MAP definitions here.
-
-// Paste default settings definitions here.
-
 
 #endif

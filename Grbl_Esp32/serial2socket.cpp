@@ -34,120 +34,115 @@
 Serial_2_Socket Serial2Socket;
 
 
-Serial_2_Socket::Serial_2_Socket(){
+Serial_2_Socket::Serial_2_Socket() {
     _web_socket = NULL;
     _TXbufferSize = 0;
     _RXbufferSize = 0;
     _RXbufferpos = 0;
 }
-Serial_2_Socket::~Serial_2_Socket(){
+Serial_2_Socket::~Serial_2_Socket() {
     if (_web_socket) detachWS();
     _TXbufferSize = 0;
     _RXbufferSize = 0;
     _RXbufferpos = 0;
 }
-void Serial_2_Socket::begin(long speed){
+void Serial_2_Socket::begin(long speed) {
     _TXbufferSize = 0;
     _RXbufferSize = 0;
     _RXbufferpos = 0;
 }
 
-void Serial_2_Socket::end(){
+void Serial_2_Socket::end() {
     _TXbufferSize = 0;
     _RXbufferSize = 0;
     _RXbufferpos = 0;
 }
 
-long Serial_2_Socket::baudRate(){
- return 0;
+long Serial_2_Socket::baudRate() {
+    return 0;
 }
 
-bool Serial_2_Socket::attachWS(void * web_socket){
+bool Serial_2_Socket::attachWS(void* web_socket) {
     if (web_socket) {
         _web_socket = web_socket;
-        _TXbufferSize=0;
+        _TXbufferSize = 0;
         return true;
     }
     return false;
 }
 
-bool Serial_2_Socket::detachWS(){
-     _web_socket = NULL;
-     return true;
-}
-
-Serial_2_Socket::operator bool() const
-{
+bool Serial_2_Socket::detachWS() {
+    _web_socket = NULL;
     return true;
 }
-int Serial_2_Socket::available(){
+
+Serial_2_Socket::operator bool() const {
+    return true;
+}
+int Serial_2_Socket::available() {
     return _RXbufferSize;
 }
 
 
-size_t Serial_2_Socket::write(uint8_t c)
-{
-    if(!_web_socket) return 0;
-    write(&c,1);
+size_t Serial_2_Socket::write(uint8_t c) {
+    if (!_web_socket) return 0;
+    write(&c, 1);
     return 1;
 }
 
-size_t Serial_2_Socket::write(const uint8_t *buffer, size_t size)
-{
-     if((buffer == NULL) ||(!_web_socket)) {
-            if(buffer == NULL){
-                log_i("[SOCKET]No buffer");
-            }
-            if(!_web_socket){
-                log_i("[SOCKET]No socket");
-            }
-            return 0;
-        }
+size_t Serial_2_Socket::write(const uint8_t* buffer, size_t size) {
+    if ((buffer == NULL) || (!_web_socket)) {
+        if (buffer == NULL)
+            log_i("[SOCKET]No buffer");
+        if (!_web_socket)
+            log_i("[SOCKET]No socket");
+        return 0;
+    }
 #if defined(ENABLE_SERIAL2SOCKET_OUT)
-        if (_TXbufferSize==0)_lastflush = millis();
-        //send full line
-        if (_TXbufferSize + size > TXBUFFERSIZE) flush();
-        //need periodic check to force to flush in case of no end 
-        for (int i = 0; i < size;i++){
-            _TXbuffer[_TXbufferSize] = buffer[i];
-            _TXbufferSize++;
-        }
-        log_i("[SOCKET]buffer size %d",_TXbufferSize);
-        handle_flush();
+    if (_TXbufferSize == 0)_lastflush = millis();
+    //send full line
+    if (_TXbufferSize + size > TXBUFFERSIZE) flush();
+    //need periodic check to force to flush in case of no end
+    for (int i = 0; i < size; i++) {
+        _TXbuffer[_TXbufferSize] = buffer[i];
+        _TXbufferSize++;
+    }
+    log_i("[SOCKET]buffer size %d", _TXbufferSize);
+    handle_flush();
 #endif
     return size;
 }
 
-int Serial_2_Socket::peek(void){
+int Serial_2_Socket::peek(void) {
     if (_RXbufferSize > 0)return _RXbuffer[_RXbufferpos];
     else return -1;
 }
 
-bool Serial_2_Socket::push (const char * data){
+bool Serial_2_Socket::push(const char* data) {
 #if defined(ENABLE_SERIAL2SOCKET_IN)
     int data_size = strlen(data);
-    if ((data_size + _RXbufferSize) <= RXBUFFERSIZE){
+    if ((data_size + _RXbufferSize) <= RXBUFFERSIZE) {
         int current = _RXbufferpos + _RXbufferSize;
         if (current > RXBUFFERSIZE) current = current - RXBUFFERSIZE;
-        for (int i = 0; i < data_size; i++){
-        if (current > (RXBUFFERSIZE-1)) current = 0;
-        _RXbuffer[current] = data[i];
-        current ++;
+        for (int i = 0; i < data_size; i++) {
+            if (current > (RXBUFFERSIZE - 1)) current = 0;
+            _RXbuffer[current] = data[i];
+            current ++;
         }
-        _RXbufferSize+=strlen(data);
+        _RXbufferSize += strlen(data);
         return true;
     }
     return false;
 #else
-     return true;
+    return true;
 #endif
 }
 
-int Serial_2_Socket::read(void){
+int Serial_2_Socket::read(void) {
     if (_RXbufferSize > 0) {
         int v = _RXbuffer[_RXbufferpos];
         _RXbufferpos++;
-        if (_RXbufferpos > (RXBUFFERSIZE-1))_RXbufferpos = 0;
+        if (_RXbufferpos > (RXBUFFERSIZE - 1))_RXbufferpos = 0;
         _RXbufferSize--;
         return v;
     } else return -1;
@@ -155,21 +150,21 @@ int Serial_2_Socket::read(void){
 
 void Serial_2_Socket::handle_flush() {
     if (_TXbufferSize > 0) {
-        if ((_TXbufferSize>=TXBUFFERSIZE) || ((millis()- _lastflush) > FLUSHTIMEOUT)) {
-                log_i("[SOCKET]need flush, buffer size %d",_TXbufferSize);
-                flush();
-            }
+        if ((_TXbufferSize >= TXBUFFERSIZE) || ((millis() - _lastflush) > FLUSHTIMEOUT)) {
+            log_i("[SOCKET]need flush, buffer size %d", _TXbufferSize);
+            flush();
         }
+    }
 }
-void Serial_2_Socket::flush(void){
-    if (_TXbufferSize > 0){
+void Serial_2_Socket::flush(void) {
+    if (_TXbufferSize > 0) {
         //if ((((AsyncWebSocket *)_web_socket)->count() > 0) && (((AsyncWebSocket *)_web_socket)->availableForWriteAll())) {
-             log_i("[SOCKET]flush data, buffer size %d",_TXbufferSize);
-            ((WebSocketsServer *)_web_socket)->broadcastBIN(_TXbuffer,_TXbufferSize);
-       // } else {
-       //      log_i("[SOCKET]Cannot flush, buffer size %d",_TXbufferSize);
-       // }
-        //refresh timout 
+        log_i("[SOCKET]flush data, buffer size %d", _TXbufferSize);
+        ((WebSocketsServer*)_web_socket)->broadcastBIN(_TXbuffer, _TXbufferSize);
+        // } else {
+        //      log_i("[SOCKET]Cannot flush, buffer size %d",_TXbufferSize);
+        // }
+        //refresh timout
         _lastflush = millis();
         //reset buffer
         _TXbufferSize = 0;

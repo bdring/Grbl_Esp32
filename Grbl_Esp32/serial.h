@@ -2,10 +2,10 @@
   serial.h - Header for system level commands and real-time processes
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
-	
+
 	2018 -	Bart Dring This file was modifed for use on the ESP32
 					CPU. Do not use this with Grbl for atMega328P
-	
+
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -24,20 +24,20 @@
 #include "grbl.h"
 
 #ifndef RX_BUFFER_SIZE
-  #define RX_BUFFER_SIZE 128
+    #define RX_BUFFER_SIZE 128
 #endif
 #ifndef TX_BUFFER_SIZE
-  #ifdef USE_LINE_NUMBERS
-    #define TX_BUFFER_SIZE 112
-  #else
-    #define TX_BUFFER_SIZE 104
-  #endif
+    #ifdef USE_LINE_NUMBERS
+        #define TX_BUFFER_SIZE 112
+    #else
+        #define TX_BUFFER_SIZE 104
+    #endif
 #endif
 
 #define SERIAL_NO_DATA 0xff
 
 // a task to read for incoming data from serial port
-void serialCheckTask(void *pvParameters);
+void serialCheckTask(void* pvParameters);
 
 void serial_write(uint8_t data);
 // Fetches the first byte in the serial read buffer. Called by main program.
