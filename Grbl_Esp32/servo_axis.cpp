@@ -63,6 +63,12 @@ void init_servos() {
 #ifdef SERVO_X_MPOS // value should be true or false
     X_Servo_Axis.set_use_mpos(SERVO_X_MPOS);
 #endif
+#ifdef SERVO_X_DISABLE_ON_ALARM
+    set_disable_on_alarm(SERVO_X_DISABLE_ON_ALARM);
+#endif
+#ifdef SERVO_X_DISABLE_WITH_STEPPERS
+    set_disable_with_steppers(SERVO_X_DISABLE_WITH_STEPPERS);
+#endif
 #endif
     // ======================== Y Axis ===========================
 #ifdef SERVO_Y_PIN
@@ -77,6 +83,12 @@ void init_servos() {
 #endif
 #ifdef SERVO_Y_MPOS // value should be true or false
     Y_Servo_Axis.set_use_mpos(SERVO_Y_MPOS);
+#endif
+#ifdef SERVO_Y_DISABLE_ON_ALARM
+    set_disable_on_alarm(SERVO_Y_DISABLE_ON_ALARM);
+#endif
+#ifdef SERVO_Y_DISABLE_WITH_STEPPERS
+    set_disable_with_steppers(SERVO_Y_DISABLE_WITH_STEPPERS);
 #endif
 #endif
     // ======================== Z Axis ===========================
@@ -93,6 +105,12 @@ void init_servos() {
 #ifdef SERVO_Z_MPOS // value should be true or false
     Z_Servo_Axis.set_use_mpos(SERVO_Z_MPOS);
 #endif
+#ifdef SERVO_Z_DISABLE_ON_ALARM
+    set_disable_on_alarm(SERVO_Z_DISABLE_ON_ALARM);
+#endif
+#ifdef SERVO_Z_DISABLE_WITH_STEPPERS
+    set_disable_with_steppers(SERVO_Z_DISABLE_WITH_STEPPERS);
+#endif
 #endif
     // ======================== A Axis ===========================
 #ifdef SERVO_A_PIN
@@ -107,6 +125,12 @@ void init_servos() {
 #endif
 #ifdef SERVO_A_MPOS // value should be true or false
     A_Servo_Axis.set_use_mpos(SERVO_A_MPOS);
+#endif
+#ifdef SERVO_A_DISABLE_ON_ALARM
+    set_disable_on_alarm(SERVO_A_DISABLE_ON_ALARM);
+#endif
+#ifdef SERVO_A_DISABLE_WITH_STEPPERS
+    set_disable_with_steppers(SERVO_A_DISABLE_WITH_STEPPERS);
 #endif
 #endif
     // ======================== B Axis ===========================
@@ -123,6 +147,12 @@ void init_servos() {
 #ifdef SERVO_B_MPOS // value should be true or false
     B_Servo_Axis.set_use_mpos(SERVO_B_MPOS);
 #endif
+#ifdef SERVO_B_DISABLE_ON_ALARM
+    set_disable_on_alarm(SERVO_B_DISABLE_ON_ALARM);
+#endif
+#ifdef SERVO_B_DISABLE_WITH_STEPPERS
+    set_disable_with_steppers(SERVO_B_DISABLE_WITH_STEPPERS);
+#endif
 #endif
     // ======================== C Axis ===========================
 #ifdef SERVO_C_PIN
@@ -137,6 +167,12 @@ void init_servos() {
 #endif
 #ifdef SERVO_C_MPOS // value should be true or false
     C_Servo_Axis.set_use_mpos(SERVO_C_MPOS);
+#endif
+#ifdef SERVO_C_DISABLE_ON_ALARM
+    set_disable_on_alarm(SERVO_C_DISABLE_ON_ALARM);
+#endif
+#ifdef SERVO_C_DISABLE_WITH_STEPPERS
+    set_disable_with_steppers(SERVO_C_DISABLE_WITH_STEPPERS);
 #endif
 #endif
     // setup a task that will calculate the determine and set the servo positions
