@@ -4,7 +4,7 @@
 
     Pin assignments for the TMC2130 Pen/Laser controller
     https://github.com/bdring/Grbl_ESP32_TMC2130_Plotter_Controller
-   
+
     2018    - Bart Dring
     2020    - Mitch Bradley
 
@@ -28,11 +28,11 @@
 #define MACHINE_V2 // version 2 PCB
 
 #ifdef MACHINE_V1
-        #define MACHINE_NAME    "ESP32_TMC2130_PEN V1"
-        #define X_LIMIT_PIN     GPIO_NUM_2
+    #define MACHINE_NAME    "ESP32_TMC2130_PEN V1"
+    #define X_LIMIT_PIN     GPIO_NUM_2
 #else
-        #define MACHINE_NAME    "ESP32_TMC2130_PEN V2"
-        #define X_LIMIT_PIN     GPIO_NUM_32
+    #define MACHINE_NAME    "ESP32_TMC2130_PEN V2"
+    #define X_LIMIT_PIN     GPIO_NUM_32
 #endif
 
 #define USE_TRINAMIC // Using at least 1 trinamic driver
@@ -59,7 +59,6 @@
 #endif
 
 #define SERVO_Z_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
-#define SERVO_Z_CHANNEL_NUM             5
 #define SERVO_Z_RANGE_MIN               0.0
 #define SERVO_Z_RANGE_MAX               5.0
 #define SERVO_Z_HOMING_TYPE             SERVO_HOMING_TARGET // during homing it will instantly move to a target value

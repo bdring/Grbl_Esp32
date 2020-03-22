@@ -6,7 +6,6 @@
 #endif
 
 #define SPINDLE_PWM_MAX_VALUE ((1<<SPINDLE_PWM_BIT_PRECISION) - 1)
-#define SPINDLE_PWM_CHANNEL 0
 
 // Grbl setting that are common to all machines
 // It should not be necessary to change anything herein
