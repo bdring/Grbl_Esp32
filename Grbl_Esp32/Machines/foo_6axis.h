@@ -24,9 +24,8 @@
 
 #define MACHINE_NAME "MACHINE_FOO_6X"
 
-// Be sure to change to N_AXIS 6 in nuts_bolts.h
 #ifdef N_AXIS
-#undef N_AXIS
+    #undef N_AXIS
 #endif
 #define N_AXIS 6
 
@@ -50,7 +49,6 @@
 // servos
 #define USE_SERVO_AXES
 #define SERVO_Z_PIN             GPIO_NUM_22
-#define SERVO_Z_CHANNEL_NUM     6
 #define SERVO_Z_RANGE_MIN       0.0
 #define SERVO_Z_RANGE_MAX       5.0
 #define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
@@ -58,7 +56,6 @@
 #define SERVO_Z_MPOS            false           // will not use mpos, uses work coordinates
 
 #define SERVO_C_PIN             GPIO_NUM_2
-#define SERVO_C_CHANNEL_NUM     7
 #define SERVO_C_RANGE_MIN       0.0
 #define SERVO_C_RANGE_MAX       5.0
 #define SERVO_C_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
@@ -76,20 +73,20 @@
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
 
 #ifdef HOMING_CYCLE_0   // undefine from config.h
-        #undef HOMING_CYCLE_0
+    #undef HOMING_CYCLE_0
 #endif
 //#define HOMING_CYCLE_0 (1<<X_AXIS)
 #define HOMING_CYCLE_0 ((1<<X_AXIS)|(1<<Y_AXIS))
 //#define HOMING_CYCLE_0 ((1<<X_AXIS)|(1<<Y_AXIS) |(1<<A_AXIS)|(1<<B_AXIS))
 
 #ifdef HOMING_CYCLE_1   // undefine from config.h
-        #undef HOMING_CYCLE_1
+    #undef HOMING_CYCLE_1
 #endif
 //#define HOMING_CYCLE_1 (1<<A_AXIS)
 #define HOMING_CYCLE_1 ((1<<A_AXIS)|(1<<B_AXIS))
 
 #ifdef HOMING_CYCLE_2   // undefine from config.h
-        #undef HOMING_CYCLE_2
+    #undef HOMING_CYCLE_2
 #endif
 /*
 #define HOMING_CYCLE_2 (1<<Y_AXIS)

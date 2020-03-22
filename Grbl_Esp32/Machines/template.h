@@ -1,6 +1,6 @@
 /*
-    template.h  
-    Part of Grbl_ESP32  
+    template.h
+    Part of Grbl_ESP32
 
     Template for a machine configuration file.
 
@@ -135,7 +135,6 @@
 // #define USE_SERVO_AXES
 
 // #define SERVO_Z_PIN             GPIO_NUM_22
-// #define SERVO_Z_CHANNEL_NUM     6
 // #define SERVO_Z_RANGE_MIN       0.0
 // #define SERVO_Z_RANGE_MAX       5.0
 // #define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value

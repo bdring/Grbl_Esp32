@@ -23,6 +23,8 @@
 
 #ifdef USE_PEN_SOLENOID
 
+int8_t solenoid_pwm_chan_num;
+
 static TaskHandle_t solenoidSyncTaskHandle = 0;
 
 // used to delay turn on
@@ -35,8 +37,9 @@ void solenoid_init() {
     solenoid_pen_enable = false;  // start delay has not completed yet.
     solenoide_hold_count = 0; // initialize
     // setup PWM channel
-    ledcSetup(SOLENOID_CHANNEL_NUM, SOLENOID_PWM_FREQ, SOLENOID_PWM_RES_BITS);
-    ledcAttachPin(SOLENOID_PEN_PIN, SOLENOID_CHANNEL_NUM);
+    solenoid_pwm_chan_num = sys_get_next_PWM_chan_num();
+    ledcSetup(solenoid_pwm_chan_num, SOLENOID_PWM_FREQ, SOLENOID_PWM_RES_BITS);
+    ledcAttachPin(SOLENOID_PEN_PIN, solenoid_pwm_chan_num);
     solenoid_disable(); // start it it off
     // setup a task that will calculate the determine and set the servo position
     xTaskCreatePinnedToCore(solenoidSyncTask,     // task
@@ -51,7 +54,7 @@ void solenoid_init() {
 
 // turn off the PWM (0 duty)
 void solenoid_disable() {
-    ledcWrite(SOLENOID_CHANNEL_NUM, 0);
+    ledcWrite(solenoid_pwm_chan_num, 0);
 }
 
 // this is the task
@@ -91,13 +94,13 @@ void calc_solenoid(float penZ) {
             solenoid_pen_pulse_len = SOLENOID_PULSE_LEN_HOLD;
     }
     // skip setting value if it is unchanged
-    if (ledcRead(SOLENOID_CHANNEL_NUM) == solenoid_pen_pulse_len)
+    if (ledcRead(solenoid_pwm_chan_num) == solenoid_pen_pulse_len)
         return;
     // update the PWM value
     // ledcWrite appears to have issues with interrupts, so make this a critical section
     portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
     portENTER_CRITICAL(&myMutex);
-    ledcWrite(SOLENOID_CHANNEL_NUM, solenoid_pen_pulse_len);
+    ledcWrite(solenoid_pwm_chan_num, solenoid_pen_pulse_len);
     portEXIT_CRITICAL(&myMutex);
 }
 
