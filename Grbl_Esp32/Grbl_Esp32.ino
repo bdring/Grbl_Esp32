@@ -45,12 +45,13 @@ void setup() {
     serial_init();   // Setup serial baud rate and interrupts
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD); // print grbl_esp32 verion info
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion()); // print the SDK version
-#ifdef MACHINE_NAME // show the map name at startup
-#ifdef MACHINE_EXTRA
-#define MACHINE_STRING MACHINE_NAME MACHINE_EXTRA
-#else
-#define MACHINE_STRING MACHINE_NAME
-#endif
+// show the map name at startup
+#ifdef MACHINE_NAME
+  #ifdef MACHINE_EXTRA
+    #define MACHINE_STRING MACHINE_NAME MACHINE_EXTRA
+  #else
+    #define MACHINE_STRING MACHINE_NAME
+  #endif
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_STRING);
 #endif
     settings_init(); // Load Grbl settings from EEPROM
