@@ -12,11 +12,11 @@ install:
   - pip install -U platformio
 
 script:
-  - ./configure-features.py -e WIFI -d BLUETOOTH
+  - ./configure-features.py -e WIFI -d BLUETOOTH -v
   - ./build-machine.py test_drive.h
-  - ./configure-features.py -e BLUETOOTH -d WIFI
+  - ./configure-features.py -e BLUETOOTH -d WIFI -v
   - ./build-machine.py test_drive.h
-  - ./configure-features.py -e BLUETOOTH WIFI
+  - ./configure-features.py -e BLUETOOTH WIFI -v
   - ./build-all.py
 
 notifications:
