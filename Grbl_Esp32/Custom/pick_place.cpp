@@ -51,8 +51,8 @@ enabled with USE_ defines in Machines/my_machine.h
 #ifdef USE_IO_EXPANDER
 
 PCF8574 expander[] = {
-  PCF8574(0x38),
-  PCF8574(0x39),
+  PCF8574(EXPANDER_0_I2C_ADDR),
+  PCF8574(EXPANDER_1_I2C_ADDR),
 };
 
 #define MAX_PIN 64

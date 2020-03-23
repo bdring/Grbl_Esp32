@@ -77,6 +77,9 @@
 
 #define USE_MACHINE_INIT
 
+#define EXPANDER_0_I2C_ADDR 0x38
+#define EXPANDER_1_I2C_ADDR 0x39
+
 // === Number of axes
 
 // You can set the number of axes that the machine supports
@@ -101,10 +104,10 @@
 #define B_STEP_PIN              GPIO_NUM_15
 #define B_DIRECTION_PIN         GPIO_NUM_32
 
-#define USER_DIGITAL_PIN_0 (64 + 5)
-#define USER_DIGITAL_PIN_1 (64 + 6)
-#define USER_DIGITAL_PIN_2 (64 + 7)
-#define USER_DIGITAL_PIN_3 (64*1 + 0)
+#define USER_DIGITAL_PIN_1 (64 + 5)
+#define USER_DIGITAL_PIN_2 (64 + 6)
+#define USER_DIGITAL_PIN_3 (64 + 7)
+#define USER_DIGITAL_PIN_4 (64*1 + 0)
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
