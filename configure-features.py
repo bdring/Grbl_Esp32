@@ -148,7 +148,7 @@ def changeConfig(src, enabled, disabled):
             # in the defines block to modify
             if regend.match(line):
                 # end of block found
-                state = 0
+                state = 2
                 dst += line
             else:
                 dstLine = ""
@@ -171,7 +171,12 @@ def changeConfig(src, enabled, disabled):
                     print(dstLine.rstrip())
                 else:
                     dst += line
-                    print(line.rstrip())   
+                    print(line.rstrip())
+        elif state == 2:
+            dst += line
+    if state != 2:
+        print("EYECATCH pair not found. Cancel changes.")
+        sys.exit(255)
     return dst
 
 def main():
