@@ -30,3 +30,4 @@ def buildMachine(baseName, addName=None, verbose=True, extraArgs=None):
                 print(line, end='')
     app.wait()
     print()
+    return app.returncode
