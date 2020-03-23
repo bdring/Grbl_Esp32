@@ -24,12 +24,15 @@ if '-u' in sys.argv:
     sys.argv.remove('-u')
     extraArgs = '--target=upload'
 
+exitCode = 255
 if len(sys.argv) == 2:
-    buildMachine(sys.argv[1], addName=None, verbose=verbose, extraArgs=extraArgs)
+    exitCode = buildMachine(sys.argv[1], addName=None, verbose=verbose, extraArgs=extraArgs)
 elif len(sys.argv) == 3:
-    buildMachine(sys.argv[1], addName=sys.argv[2], verbose=verbose, extraArgs=extraArgs)
+    exitCode = buildMachine(sys.argv[1], addName=sys.argv[2], verbose=verbose, extraArgs=extraArgs)
 else:
     print("Usage: ./build-machine.py [-q] [-u] machine_name.h [add_name.h]")
     print(' Build for the given machine and optional add-on regardless of machine.h')
     print('  -q suppresses most messages')
     print('  -u uploads to the target after compilation')
+
+sys.exit(exitCode)

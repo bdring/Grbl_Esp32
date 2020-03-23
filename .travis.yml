@@ -1,46 +1,25 @@
 sudo: false
-
-language: bash
+language: python
 
 os:
   - linux
 
-before_script:
-  - "export DISPLAY=:99.0"
-  - sleep 3 # give xvfb some time to start
-  - wget http://downloads.arduino.cc/arduino-1.8.5-linux64.tar.xz
-  - tar xf arduino-1.8.5-linux64.tar.xz
-  - mv arduino-1.8.5 $HOME/arduino_ide
-  - cd $HOME/arduino_ide/hardware
-  - mkdir esp32
-  - cd esp32
-  - git clone https://github.com/espressif/arduino-esp32.git esp32
-  - cd esp32/tools
-  - python get.py
-  - cd ..
-  - mv $TRAVIS_BUILD_DIR/libraries/ESP32SSDP $HOME/arduino_ide/libraries/
-  - mv $TRAVIS_BUILD_DIR/libraries/arduinoWebSockets $HOME/arduino_ide/libraries/
+cache:
+  directories:
+    - "~/.platformio"
+
+install:
   - pip install -U platformio
-  - platformio update
 
 script:
-  - cd $TRAVIS_BUILD_DIR
-  - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/#define ENABLE_BLUETOOTH/\/\/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/\/\/#define ENABLE_WIFI/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - build-all.sh
-  - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/#define ENABLE_WIFI/\/\/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - build-all.sh
-  - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/\/\/#define ENABLE_WIFI/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - build-all.sh
+  - ./configure-features.py -e WIFI -d BLUETOOTH -v
+  - ./build-machine.py test_drive.h
+  - ./configure-features.py -e BLUETOOTH -d WIFI -v
+  - ./build-machine.py test_drive.h
+  - ./configure-features.py -e BLUETOOTH WIFI -v
+  - ./build-all.py
 
-  notifications:
+notifications:
   email:
     on_success: change
     on_failure: change
