@@ -80,14 +80,15 @@ def checkFeatureList(optname, features, verbose=False):
     if features:
         for n in features:
             if isValidFeature(n) is True:
-                if verbose:
-                    print("valid " + optname + " feature: " + n)
+                #if verbose:
+                #    print("valid " + optname + " feature: " + n)
+                pass
             else:
                 print("unknown " + optname + " feature: " + n)
                 return -1
     else:
-        if verbose:
-            print(optname + " is not specified")  
+        #if verbose:
+        #    print(optname + " is not specified")  
         return 0
 
     return len(features)
@@ -133,7 +134,7 @@ def writeConfig(path, buf):
         else:
             f.close()
 
-def changeConfig(src, enabled, disabled):
+def changeConfig(src, enabled, disabled, verbose=False):
     dst = ""
     regstart = re.compile(r'^\s*//\s*' + eyecatchBeginString)
     regend = re.compile(r'^\s*//\s*' + eyecatchEndString)
@@ -168,10 +169,12 @@ def changeConfig(src, enabled, disabled):
                             break
                 if len(dstLine) != 0:
                     dst += dstLine
-                    print(dstLine.rstrip())
+                    if verbose:
+                        print(dstLine.rstrip())
                 else:
                     dst += line
-                    print(line.rstrip())
+                    if verbose:
+                        print(line.rstrip())
         elif state == 2:
             dst += line
     if state != 2:
@@ -205,12 +208,12 @@ def main():
     # Verification (whether or not to use "choice" with argparse)
     numEnables = checkFeatureList("-e", enabledFeatures, verbose)
     numDisables = checkFeatureList("-d", disabledFeatures, verbose)
-    if verbose:
-        print("enables: ", numEnables)
-        print(enabledFeatures)
-        print("disables: ", numDisables)
-        print(disabledFeatures)
-        print("config file: " + configFilePath)
+    #if verbose:
+    #    print("enables: ", numEnables)
+    #    print(enabledFeatures)
+    #    print("disables: ", numDisables)
+    #    print(disabledFeatures)
+    #    print("config file: " + configFilePath)
 
     # Final checking about args
     if numEnables < 0 or numDisables < 0 or (numEnables == 0 and numDisables == 0):
@@ -219,7 +222,8 @@ def main():
     # Check if the target file exists
     configFilePathAbs = os.path.abspath(configFilePath)
     if verbose:
-        print("full path: " + configFilePathAbs)
+        print("Config path: " + configFilePathAbs)
+        print()
     if not os.path.isfile(configFilePathAbs):
         print("config file not found: " + configFilePathAbs)
         sys.exit(255)
@@ -228,7 +232,7 @@ def main():
     src = readConfig(configFilePathAbs)
 
     # Change the specified settings
-    dst = changeConfig(src, enabledFeatures, disabledFeatures)
+    dst = changeConfig(src, enabledFeatures, disabledFeatures, verbose)
 
     # Write back
     writeConfig(configFilePathAbs, dst)
