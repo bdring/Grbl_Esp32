@@ -1,5 +1,5 @@
 sudo: false
-language: bash
+language: python
 
 os:
   - linux
@@ -12,25 +12,13 @@ install:
   - pip install --user -U pip
   - pip install --user -U platformio
 
-before_script:
-  - cd $TRAVIS_BUILD_DIR
-  - chmod +x *.sh *.py
 script:
-  - cd $TRAVIS_BUILD_DIR
-  - sed -n '118,136p;137q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/#define ENABLE_BLUETOOTH/\/\/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/\/\/#define ENABLE_WIFI/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -n '118,136p;137q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - PLATFORMIO_BUILD_FLAGS=-DMACHINE_FILENAME=test_drive.h platformio run
-  - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/#define ENABLE_WIFI/\/\/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -n '118,136p;137q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - PLATFORMIO_BUILD_FLAGS=-DMACHINE_FILENAME=test_drive.h platformio run
-  - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/\/\/#define ENABLE_WIFI/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -n '118,136p;137q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - ./build-all.sh
+  - ./configure-features.py -e WIFI -d BLUETOOTH
+  - ./build-machine.py test_drive.h
+  - ./configure-features.py -e BLUETOOTH -d WIFI
+  - ./build-machine.py test_drive.h
+  - ./configure-features.py -e BLUETOOTH WIFI
+  - ./build-all.py
 
 notifications:
   email:
