@@ -1,4 +1,5 @@
 .pioenvs/
+.pio/
 Thumbs.db
 .DS_Store
 *.orig
