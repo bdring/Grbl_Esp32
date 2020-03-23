@@ -1,5 +1,5 @@
 /*
-    template.h
+    pick_place.h
     Part of Grbl_ESP32
 
     Template for a machine configuration file.
@@ -74,6 +74,8 @@
 
 #define SDA_PIN GPIO_NUM_21
 #define SCL_PIN GPIO_NUM_22
+
+#define USE_MACHINE_INIT
 
 // === Number of axes
 
@@ -272,7 +274,7 @@
 // USE_MACHINE_TRINAMIC_INIT enables the machine_triaminic_setup()
 // function that replaces the normal setup of Triaminic drivers.
 // It could, for, example, setup StallGuard or other special modes.
-#define USE_MACHINE_TRINAMIC_INIT
+// #define USE_MACHINE_TRINAMIC_INIT
 
 
 // === Grbl behavior options

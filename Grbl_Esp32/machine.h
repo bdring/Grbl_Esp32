@@ -8,7 +8,8 @@
 
 // !!! For initial testing, start with test_drive.h which disables
 // all I/O pins
-#include "Machines/test_drive.h"
+// #include "Machines/test_drive.h"
+#include "Machines/pick_place.h"
 
 // !!! For actual use, change the line above to select a board
 // from Machines/, for example:

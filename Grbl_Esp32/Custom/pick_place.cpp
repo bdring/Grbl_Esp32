@@ -1,5 +1,5 @@
 /*
-	custom_code_template.cpp (copy and use your machine name)
+	pick_place.cpp
 	Part of Grbl_ESP32
 
 	copyright (c) 2020 -	Bart Dring. This file was intended for use on the ESP32
@@ -86,6 +86,8 @@ special things your machine needs at startup.
 */
 void machine_init()
 {
+  expander[0].begin();
+  expander[1].begin();
 }
 #endif
 
