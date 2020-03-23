@@ -39,11 +39,11 @@
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_13
 
 #ifdef PEN_LASER_V1
-#define X_LIMIT_PIN             GPIO_NUM_2
+    #define X_LIMIT_PIN             GPIO_NUM_2
 #endif
 
 #ifdef PEN_LASER_V2
-#define X_LIMIT_PIN             GPIO_NUM_15
+    #define X_LIMIT_PIN             GPIO_NUM_15
 #endif
 
 #define Y_LIMIT_PIN             GPIO_NUM_4
@@ -61,16 +61,14 @@
 #define SPINDLE_PWM_OFF_VALUE   0
 
 #ifndef SPINDLE_PWM_MIN_VALUE
-#define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+    #define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
 #endif
 
 #define SERVO_Y_PIN             GPIO_NUM_14
-#define SERVO_Y_CHANNEL_NUM     6
 #define SERVO_Y_RANGE_MIN       0.0
 #define SERVO_Y_RANGE_MAX       30.0
 
 #define SERVO_Z_PIN             GPIO_NUM_27
-#define SERVO_Z_CHANNEL_NUM     5
 #define SERVO_Z_RANGE_MIN       0.0
 #define SERVO_Z_RANGE_MAX       20.0
 

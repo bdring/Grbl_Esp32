@@ -229,5 +229,6 @@ void sys_io_control(uint8_t io_num_mask, bool turnOn);
 
 //
 int8_t sys_get_next_RMT_chan_num();
+int8_t sys_get_next_PWM_chan_num();
 
 #endif
