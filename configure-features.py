@@ -1,8 +1,23 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-# Configure Grbl_ESP32 by specified options.
+#
+# Grbl_Esp32 configurator
+#   Copyright (C) 2020 Michiyasu Odaki
+# 
 # This is useful for automated testing, to make sure you haven't broken something
+#
+#  Grbl_Esp32 is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  Grbl_Esp32 is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with Grbl_Esp32.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
 import os, sys, argparse, re
@@ -39,6 +54,21 @@ def usage(parser):
     parser.print_usage()
     printValidFeatureList()
     sys.exit(255)
+
+def parseArgs(defaultConfigPath):
+    # Argument parser (-h is also available)
+    parser = argparse.ArgumentParser(description='Configure Grbl_ESP32 features')
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-c', '--configfile', default=defaultConfigPath)
+    parser.add_argument('-e', '--enable', nargs='*'
+                        ,help='specify feature name(ex. WIFI)'
+                        #, choices=validFeatureList
+                        )
+    parser.add_argument('-d', '--disable', nargs='*'
+                        ,help='specify feature name(ex. BLUETOOTH)'
+                        #,choices=validFeatureList
+                        )
+    return parser.parse_args(), parser
 
 def isValidFeature(feature):
     if feature:
@@ -103,21 +133,53 @@ def writeConfig(path, buf):
         else:
             f.close()
 
+def changeConfig(src, enabled, disabled):
+    dst = ""
+    regstart = re.compile(r'^\s*//\s*' + eyecatchBeginString)
+    regend = re.compile(r'^\s*//\s*' + eyecatchEndString)
+    state = 0;
+    for line in src:
+        if state == 0:
+            # out of the defines block to modify
+            if regstart.match(line):
+                state = 1
+            dst += line
+        elif state == 1:
+            # in the defines block to modify
+            if regend.match(line):
+                # end of block found
+                state = 0
+                dst += line
+            else:
+                dstLine = ""
+                if len(enabled) > 0:
+                    for name in enabled:
+                        s = enablePrefix + name
+                        m = re.match(r'^s*//\s*#define\s+(' + s + r'.*)$', line)
+                        if m:
+                            dstLine = "#define " + m.group(1) + '\n'
+                            break
+                if len(disabled) > 0:
+                    for name in disabled:
+                        s = enablePrefix + name
+                        m = re.match(r'^\s*#define\s+' + s + r'.*$', line)
+                        if m:
+                            dstLine = "//" + line
+                            break
+                if len(dstLine) != 0:
+                    dst += dstLine
+                    print(dstLine.rstrip())
+                else:
+                    dst += line
+                    print(line.rstrip())   
+    return dst
+
 def main():
     # Concatinate dir and file
     configFilePath = os.path.join(configDirName, configFileName)
 
-    # Argument parser (-h is also available)
-    parser = argparse.ArgumentParser(description='Configure Grbl_ESP32 features')
-    parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-c', '--configfile', default=configFilePath)
-    parser.add_argument('-e', '--enable', nargs='*', help='specify feature name(ex. WIFI)'
-                        #, choices=validFeatureList
-                        )
-    parser.add_argument('-d', '--disable', nargs='*', help='specify feature name(ex. BLUETOOTH)'
-                        #,choices=validFeatureList
-                        )
-    args = parser.parse_args()
+    # Parse arguments
+    args, parser = parseArgs(configFilePath)
 
     # Set params to local variables
     verbose = args.verbose
@@ -161,44 +223,7 @@ def main():
     src = readConfig(configFilePathAbs)
 
     # Change the specified settings
-    regstart = re.compile(r'^\s*//\s*' + eyecatchBeginString)
-    regend = re.compile(r'^\s*//\s*' + eyecatchEndString)
-    dst = ""
-    status = 0;
-    for line in src:
-        if status == 0:
-            # out of the defines block to modify
-            if regstart.match(line):
-                status = 1
-            dst += line
-        elif status == 1:
-            # in the defines block to modify
-            if regend.match(line):
-                # end of block found
-                status = 0
-                dst += line
-            else:
-                dstLine = ""
-                if numEnables > 0:
-                    for name in enabledFeatures:
-                        s = enablePrefix + name
-                        m = re.match(r'^s*//\s*#define\s+(' + s + r'.*)$', line)
-                        if m:
-                            dstLine = "#define " + m.group(1) + '\n'
-                            break
-                if numDisables > 0:
-                    for name in disabledFeatures:
-                        s = enablePrefix + name
-                        m = re.match(r'^\s*#define\s+' + s + r'.*$', line)
-                        if m:
-                            dstLine = "//" + line
-                            break
-                if len(dstLine) != 0:
-                    dst += dstLine
-                    print(dstLine.rstrip())
-                else:
-                    dst += line
-                    print(line.rstrip())
+    dst = changeConfig(src, enabledFeatures, disabledFeatures)
 
     # Write back
     writeConfig(configFilePathAbs, dst)
