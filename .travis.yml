@@ -9,8 +9,7 @@ cache:
     - "~/.platformio"
 
 install:
-  - pip install --user -U pip
-  - pip install --user -U platformio
+  - pip install -U platformio
 
 script:
   - ./configure-features.py -e WIFI -d BLUETOOTH
