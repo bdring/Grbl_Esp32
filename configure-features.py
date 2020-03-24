@@ -72,7 +72,7 @@ def parseArgs(defaultConfigPath):
 
 def isValidFeature(feature):
     if feature:
-        if feature.upper() in validFeatureList:
+        if feature in validFeatureList:
             return True #valid
     return False #invalid
 
@@ -136,6 +136,9 @@ def writeConfig(path, buf):
 
 def changeConfig(src, enabled, disabled, verbose=False):
     dst = ""
+    numEnabledDic = {}
+    for name in enabled:
+        numEnabledDic[name] = 0
     regstart = re.compile(r'^\s*//\s*' + eyecatchBeginString)
     regend = re.compile(r'^\s*//\s*' + eyecatchEndString)
     state = 0;
@@ -149,6 +152,10 @@ def changeConfig(src, enabled, disabled, verbose=False):
             # in the defines block to modify
             if regend.match(line):
                 # end of block found
+                for name in enabled:
+                    # add the define to enable if it was not found in the block
+                    if numEnabledDic[name] == 0:
+                        dst += "#define " + enablePrefix + name + '\n'
                 state = 2
                 dst += line
             else:
@@ -159,6 +166,7 @@ def changeConfig(src, enabled, disabled, verbose=False):
                         m = re.match(r'^s*//\s*#define\s+(' + s + r'.*)$', line)
                         if m:
                             dstLine = "#define " + m.group(1) + '\n'
+                            numEnabledDic[name] += 1
                             break
                 if len(disabled) > 0:
                     for name in disabled:
