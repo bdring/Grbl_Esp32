@@ -72,7 +72,7 @@ def parseArgs(defaultConfigPath):
 
 def isValidFeature(feature):
     if feature:
-        if feature.upper() in validFeatureList:
+        if feature in validFeatureList:
             return True #valid
     return False #invalid
 
