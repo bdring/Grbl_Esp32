@@ -2,7 +2,7 @@
     the_ant_cpcbm.h
     Part of Grbl_ESP32
 
-    2020    - Angelo Di Chello for The Ant Team
+    2020    - The Ant Team
 
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
