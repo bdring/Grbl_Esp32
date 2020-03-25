@@ -63,8 +63,8 @@ Some features should not be changed. See notes below.
 // These homing cycle definitions precede the machine.h file so that the machine
 // definition can undefine them if necessary.
 #define HOMING_CYCLE_0 (1<<Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
-#define HOMING_CYCLE_1 (1<<X_AXIS)
-#define HOMING_CYCLE_2 (1<<Y_AXIS)
+#define HOMING_CYCLE_1 (1<<Y_AXIS)
+#define HOMING_CYCLE_2 (1<<X_AXIS)
 
 // NOTE: The following is for for homing X and Y at the same time
 // #define HOMING_CYCLE_0 (1<<Z_AXIS) // first home z by itself
@@ -301,7 +301,7 @@ Some features should not be changed. See notes below.
 // defined at (http://corexy.com/theory.html). Motors are assumed to positioned and wired exactly as
 // described, if not, motions may move in strange directions. Grbl requires the CoreXY A and B motors
 // have the same steps per mm internally.
-// #define COREXY // Default disabled. Uncomment to enable.
+#define COREXY // Default disabled. Uncomment to enable.
 
 // Enable using a servo for the Z axis on a pen type machine.
 // You typically should not define a pin for the Z axis in the machine definition file

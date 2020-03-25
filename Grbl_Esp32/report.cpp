@@ -488,7 +488,7 @@ void report_execute_startup_message(char* line, uint8_t status_code, uint8_t cli
 // Prints build info line
 void report_build_info(char* line, uint8_t client) {
     char build_info[50];
-    strcpy(build_info, "[VER:" GRBL_VERSION "." GRBL_VERSION_BUILD ":");
+    strcpy(build_info, "[VER:" GRBL_VERSION "." GRBL_VERSION_BUILD " " GRBL_VERSION_TIME " :");
     strcat(build_info, line);
     strcat(build_info, "]\r\n[OPT:");
 #ifdef VARIABLE_SPINDLE
