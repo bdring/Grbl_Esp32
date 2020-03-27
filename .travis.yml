@@ -8,9 +8,6 @@ os:
 before_script:
   - "export DISPLAY=:99.0"
   - sleep 3 # give xvfb some time to start
-  - wget https://bootstrap.pypa.io/get-pip.py
-  - python get-pip.py
-  - python -m pip install pyserial
   - curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
   - wget http://downloads.arduino.cc/arduino-1.8.5-linux64.tar.xz
   - tar xf arduino-1.8.5-linux64.tar.xz
@@ -31,6 +28,8 @@ script:
   - source command.sh
   - export PATH="$HOME/arduino_ide:$PATH"
   - arduino-cli core update-index
+  - arduino-cli lib update-index
+  - arduino-cli lib list
   - arduino-cli compile --fqbn esp32:esp32:esp32 --build-properties build.partitions=min_spiffs,upload.maximum_size=1966080,build.defines+=-DMACHINE_FILENAME=the_ant_cpcbm.h $TRAVIS_BUILD_DIR/Grbl_Esp32/Grbl_Esp32.ino -v
 
 
