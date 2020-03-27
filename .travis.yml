@@ -31,22 +31,8 @@ script:
   - source command.sh
   - export PATH="$HOME/arduino_ide:$PATH"
   - arduino-cli core update-index
-  - arduino --board esp32:esp32:esp32:PartitionScheme=min_spiffs,FlashFreq=40 --pref compiler.warning_level=all --save-prefs
-  - arduino-cli compile --fqbn esp32:esp32:esp32 --build-properties build.partitions=min_spiffs,upload.maximum_size=1966080,build.defines+=-DMACHINE_FILENAME=the_ant_cpcbm.h $TRAVIS_BUILD_DIR/Grbl_Esp32/Grbl_Esp32.ino
-  - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/#define ENABLE_BLUETOOTH/\/\/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/\/\/#define ENABLE_WIFI/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - build_sketch  $TRAVIS_BUILD_DIR/Grbl_Esp32/Grbl_Esp32.ino
-  - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/#define ENABLE_WIFI/\/\/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - build_sketch  $TRAVIS_BUILD_DIR/Grbl_Esp32/Grbl_Esp32.ino
-  - sed -i "s/\/\/#define ENABLE_BLUETOOTH/#define ENABLE_BLUETOOTH/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -i "s/\/\/#define ENABLE_WIFI/#define ENABLE_WIFI/g" $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - sed -n '48,72p;73q' $TRAVIS_BUILD_DIR/Grbl_Esp32/config.h
-  - build_sketch  $TRAVIS_BUILD_DIR/Grbl_Esp32/Grbl_Esp32.ino
+  - arduino-cli compile --fqbn esp32:esp32:esp32 --build-properties build.partitions=min_spiffs,upload.maximum_size=1966080,build.defines+=-DMACHINE_FILENAME=the_ant_cpcbm.h $TRAVIS_BUILD_DIR/Grbl_Esp32/Grbl_Esp32.ino -v
+
 
   
 notifications:
