@@ -458,6 +458,12 @@ void report_gcode_modes(uint8_t client) {
         if (gc_state.modal.coolant & PL_COND_FLAG_COOLANT_FLOOD)  strcat(modes_rpt, " M8");
     } else
         strcat(modes_rpt, " M9");
+
+#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+    if (sys.override_ctrl == OVERRIDE_PARKING_MOTION)
+        strcat(modes_rpt, " M56");
+#endif
+
     sprintf(temp, " T%d", gc_state.tool);
     strcat(modes_rpt, temp);
     if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
@@ -523,6 +529,9 @@ void report_build_info(char* line, uint8_t client) {
 #endif
 #ifdef ENABLE_SD_CARD
     strcat(build_info, "S");
+#endif
+#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+    serial_write('R');
 #endif
 #if defined (ENABLE_WIFI)
     strcat(build_info, "W");

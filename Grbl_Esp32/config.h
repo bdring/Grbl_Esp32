@@ -114,7 +114,7 @@ Some features should not be changed. See notes below.
 //Connect to your local AP with these credentials
 //#define CONNECT_TO_SSID  "your SSID"
 //#define SSID_PASSWORD  "your SSID password"
-
+//CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
 #define ENABLE_BLUETOOTH // enable bluetooth
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
@@ -134,7 +134,7 @@ Some features should not be changed. See notes below.
 
 #define ENABLE_CAPTIVE_PORTAL
 //#define ENABLE_AUTHENTICATION
-
+//CONFIGURE_EYECATCH_END (DO NOT MODIFY  THIS LINE)
 #define NAMESPACE "GRBL"
 #define ESP_RADIO_MODE "RADIO_MODE"
 
