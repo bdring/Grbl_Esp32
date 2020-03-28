@@ -343,10 +343,14 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                 case 9:
                     gc_block.modal.coolant = COOLANT_DISABLE;
                     break;
-                default:
-                    FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported M command]
                 }
                 break;
+#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+            case 56:
+                word_bit = MODAL_GROUP_M9;
+                gc_block.modal.override = OVERRIDE_PARKING_MOTION;
+                break;
+#endif
             case 62:
             case 63:
                 //grbl_sendf(CLIENT_SERIAL,"M%d...\r\n", int_value);
@@ -580,6 +584,14 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // [7. Spindle control ]: N/A
     // [8. Coolant control ]: N/A
     // [9. Enable/disable feed rate or spindle overrides ]: NOT SUPPORTED.
+#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+    if (bit_istrue(command_words, bit(MODAL_GROUP_M9))) { // Already set as enabled in parser.
+        if (bit_istrue(value_words, bit(WORD_P))) {
+            if (gc_block.values.p == 0.0)  gc_block.modal.override = OVERRIDE_DISABLED;
+            bit_false(value_words, bit(WORD_P));
+        }
+    }
+#endif
     // [10. Dwell ]: P value missing. P is negative (done.) NOTE: See below.
     if (gc_block.non_modal_command == NON_MODAL_DWELL) {
         if (bit_isfalse(value_words, bit(WORD_P))) {
@@ -1128,7 +1140,13 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         else
             FAIL(STATUS_P_PARAM_MAX_EXCEEDED);
     }
-    // [9. Enable/disable feed rate or spindle overrides ]: NOT SUPPORTED. Always enabled.
+    // [9. Override control ]: NOT SUPPORTED. Always enabled. Except for a Grbl-only parking control.
+#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+    if (gc_state.modal.override != gc_block.modal.override) {
+        gc_state.modal.override = gc_block.modal.override;
+        mc_override_ctrl_update(gc_state.modal.override);
+    }
+#endif
     // [10. Dwell ]:
     if (gc_block.non_modal_command == NON_MODAL_DWELL)
         mc_dwell(gc_block.values.p);
@@ -1258,6 +1276,13 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             gc_state.modal.coord_select = 0; // G54
             gc_state.modal.spindle = SPINDLE_DISABLE;
             gc_state.modal.coolant = COOLANT_DISABLE;
+#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+#ifdef DEACTIVATE_PARKING_UPON_INIT
+            gc_state.modal.override = OVERRIDE_DISABLED;
+#else
+            gc_state.modal.override = OVERRIDE_PARKING_MOTION;
+#endif
+#endif
             // gc_state.modal.override = OVERRIDE_DISABLE; // Not supported.
 #ifdef RESTORE_OVERRIDES_AFTER_PROGRAM_END
             sys.f_override = DEFAULT_FEED_OVERRIDE;
