@@ -54,25 +54,30 @@
     // enable I2S I/O expander pin mapping.
     //
     #include "i2s_ioexpander.h"
-    #define IS_I2S_EXPANDER_PIN(IO) TEST(IO, 7)
+    #define IS_I2S_EXPANDER_PIN(IO) (!!((IO) & (1 << 7)))
     #define I2S_EXPANDER_PIN_INDEX(IO) (IO & 0x7F)
     // Read a pin wrapper
     #define READ(IO)                do{ IS_I2S_EXPANDER_PIN(IO) ?\
-                                    i2s_state(I2S_EXPANDER_PIN_INDEX(IO)) : digitalRead(IO)\
+                                        i2s_state(I2S_EXPANDER_PIN_INDEX(IO)) : digitalRead(IO);\
                                     }while(0)
     // Write to a pin wrapper
     #define WRITE(IO, v)            do{ IS_I2S_EXPANDER_PIN(IO) ?\
-                                    i2s_write(I2S_EXPANDER_PIN_INDEX(IO), v) : digitalWrite(IO, v)\
+                                        i2s_write(I2S_EXPANDER_PIN_INDEX(IO), v) : digitalWrite(IO, v);\
                                     }while(0)
-    #define SET_INPUT(IO)           pinMode(IO, INPUT)
+    #define SET_INPUT(IO)           do{ if (!IS_I2S_EXPANDER_PIN(IO))\
+                                        pinMode(IO, INPUT);\
+                                    }while(0)
     // Set pin as input with pullup wrapper
-    #define SET_INPUT_PULLUP(IO)    pinMode(IO, INPUT_PULLUP)
-    // Set pin as output wrapper
-    #define SET_OUTPUT(IO)          pinMode(IO, OUTPUT)
+    #define SET_INPUT_PULLUP(IO)    do{ if (!IS_I2S_EXPANDER_PIN(IO))\
+                                        pinMode(IO, INPUT_PULLUP);\
+                                    }while(0)    // Set pin as output wrapper
+    #define SET_OUTPUT(IO)          do{ if (!IS_I2S_EXPANDER_PIN(IO))\
+                                       pinMode(IO, OUTPUT);\
+                                    }while(0)
     // Set pin as PWM
-    #define SET_PWM(IO)             pinMode(IO, OUTPUT)
+    #define SET_PWM(IO)             SET_OUTPUT(IO)
     // Set pin as output and init
-    #define OUT_WRITE(IO,V)         do{ pinMode(IO, OUTPUT); WRITE(IO,V); }while(0)
+    #define OUT_WRITE(IO,V)         do{ SET_OUTPUT(IO); WRITE(IO,V); }while(0)
     // PWM outputs
     #define PWM_PIN(P)              (P < 34 || P > 127) // NOTE Pins >= 34 are input only on ESP32, so they can't be used for output.
 #else

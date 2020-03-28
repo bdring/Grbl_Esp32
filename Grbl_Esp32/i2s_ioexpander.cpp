@@ -202,7 +202,7 @@ void stepperTask(void* parameter) {
   }
 }
 
-int i2s_init(i2s_init_t init_param) {
+int i2s_init(i2s_init_t &init_param) {
   periph_module_enable(PERIPH_I2S0_MODULE);
 
   /**
