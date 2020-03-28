@@ -39,6 +39,7 @@
 #include "defaults.h"
 #include "settings.h"
 #include "system.h"
+#include "fastio.h"
 
 #include "planner.h"
 #include "coolant_control.h"
@@ -89,6 +90,10 @@
 
 #ifdef USE_UNIPOLAR
     #include "grbl_unipolar.h"
+#endif
+
+#ifdef USE_I2S_IOEXPANDER
+    #include "i2s_ioexpander.h"
 #endif
 
 // Called if USE_MACHINE_INIT is defined

@@ -1,5 +1,5 @@
 /*
-    i2s.cpp
+    i2s_ioexpander.cpp
     Part of Grbl_ESP32
 
     Basic GPIO expander using the ESP32 I2S peripheral
@@ -48,9 +48,9 @@
 
 #include "config.h"
 
-#ifdef USE_I2S_EXPANDER
+#ifdef USE_I2S_IOEXPANDER
 
-#include "i2s.h"
+#include "i2s_ioexpander.h"
 
 //
 // define some Marlin macros
