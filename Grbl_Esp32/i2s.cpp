@@ -48,6 +48,8 @@
 
 #include "config.h"
 
+#ifdef USE_I2S_EXPANDER
+
 #include "i2s.h"
 
 //
@@ -383,3 +385,5 @@ uint8_t i2s_state(uint8_t pin) {
 void i2s_push_sample() {
   dma.current[dma.rw_pos++] = i2s_port_data;
 }
+
+#endif
