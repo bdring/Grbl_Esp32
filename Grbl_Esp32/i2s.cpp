@@ -40,19 +40,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifdef ARDUINO_ARCH_ESP32
-
-#include "../../inc/MarlinConfigPre.h"
-
-#include "i2s.h"
-
-#include "../shared/Marduino.h"
+#include <FreeRTOS.h>
 #include <driver/periph_ctrl.h>
 #include <rom/lldesc.h>
 #include <soc/i2s_struct.h>
 #include <freertos/queue.h>
-#include "../../module/stepper.h"
 
+#include "config.h"
+
+#include "i2s.h"
+
+//
+// define some Marlin macros
+//
+#ifndef SET_BIT_TO
+#define SET_BIT_TO(N,B,TF) \
+                        do{\
+                            if (TF) (N) |= (1 << (B));\
+                            else (N) &= ~(1 << (B));\
+                        }while(0)
+#endif
+#ifndef TEST
+#define TEST(n,b) (!!((n) & (1 << (b))))
+#endif
+
+//
+// configrations for DMA connected I2S
+//
 #define DMA_BUF_COUNT 8                                // number of DMA buffers to store data
 #define DMA_BUF_LEN   4092                             // maximum size in bytes
 #define I2S_SAMPLE_SIZE 4                              // 4 bytes, 32 bits per sample
@@ -77,10 +91,10 @@ static i2s_dev_t* I2S[I2S_NUM_MAX] = {&I2S0, &I2S1};
 static i2s_dma_t dma;
 
 // output value
-uint32_t i2s_port_data = 0;
+static volatile uint32_t i2s_port_data = 0;
 
-#define I2S_ENTER_CRITICAL()  portENTER_CRITICAL(&i2s_spinlock[i2s_num])
-#define I2S_EXIT_CRITICAL()   portEXIT_CRITICAL(&i2s_spinlock[i2s_num])
+#define I2S_ENTER_CRITICAL(i2s_num)  portENTER_CRITICAL(&i2s_spinlock[i2s_num])
+#define I2S_EXIT_CRITICAL(i2s_num)   portEXIT_CRITICAL(&i2s_spinlock[i2s_num])
 
 static inline void gpio_matrix_out_check(uint32_t gpio, uint32_t signal_idx, bool out_inv, bool oen_inv) {
   //if pin = -1, do not need to configure
@@ -91,20 +105,19 @@ static inline void gpio_matrix_out_check(uint32_t gpio, uint32_t signal_idx, boo
   }
 }
 
-static esp_err_t i2s_reset_fifo(i2s_port_t i2s_num) {
-  I2S_ENTER_CRITICAL();
+static void i2s_reset_fifo(i2s_port_t i2s_num) {
+  I2S_ENTER_CRITICAL(i2s_num);
   I2S[i2s_num]->conf.rx_fifo_reset = 1;
   I2S[i2s_num]->conf.rx_fifo_reset = 0;
   I2S[i2s_num]->conf.tx_fifo_reset = 1;
   I2S[i2s_num]->conf.tx_fifo_reset = 0;
-  I2S_EXIT_CRITICAL();
-
-  return ESP_OK;
+  I2S_EXIT_CRITICAL(i2s_num);
 }
 
-esp_err_t i2s_start(i2s_port_t i2s_num) {
+int i2s_start() {
+  i2s_port_t i2s_num = I2S_NUM_0;
   //start DMA link
-  I2S_ENTER_CRITICAL();
+  I2S_ENTER_CRITICAL(i2s_num);
   i2s_reset_fifo(i2s_num);
 
   //reset dma
@@ -121,30 +134,33 @@ esp_err_t i2s_start(i2s_port_t i2s_num) {
   I2S[i2s_num]->int_clr.val = 0xFFFFFFFF;
   I2S[i2s_num]->out_link.start = 1;
   I2S[i2s_num]->conf.tx_start = 1;
-  I2S_EXIT_CRITICAL();
+  I2S_EXIT_CRITICAL(i2s_num);
 
-  return ESP_OK;
+  return 0;
 }
 
-esp_err_t i2s_stop(i2s_port_t i2s_num) {
-  I2S_ENTER_CRITICAL();
+int i2s_stop() {
+  i2s_port_t i2s_num = I2S_NUM_0;
+
+  I2S_ENTER_CRITICAL(i2s_num);
   I2S[i2s_num]->out_link.stop = 1;
   I2S[i2s_num]->conf.tx_start = 0;
 
   I2S[i2s_num]->int_clr.val = I2S[i2s_num]->int_st.val; //clear pending interrupt
-  I2S_EXIT_CRITICAL();
+  I2S_EXIT_CRITICAL(i2s_num);
 
-  return ESP_OK;
+  return 0;
 }
 
 static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
+  i2s_port_t i2s_num = I2S_NUM_0;
   int dummy;
   lldesc_t *finish_desc;
   portBASE_TYPE high_priority_task_awoken = pdFALSE;
 
-  if (I2S0.int_st.out_eof) {
+  if (I2S[i2s_num]->int_st.out_eof) {
     // Get the descriptor of the last item in the linkedlist
-    finish_desc = (lldesc_t*) I2S0.out_eof_des_addr;
+    finish_desc = (lldesc_t*) I2S[i2s_num]->out_eof_des_addr;
 
     // If the queue is full it's because we have an underflow,
     // more than buf_count isr without new data, remove the front buffer
@@ -157,11 +173,14 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
   if (high_priority_task_awoken == pdTRUE) portYIELD_FROM_ISR();
 
   // clear interrupt
-  I2S0.int_clr.val = I2S0.int_st.val; //clear pending interrupt
+  I2S[i2s_num]->int_clr.val = I2S[i2s_num]->int_st.val; //clear pending interrupt
 }
+
+extern void i2s_push_sample();
 
 void stepperTask(void* parameter) {
   uint32_t remaining = 0;
+  i2s_init_t *param = (i2s_init_t*)parameter;
 
   while (1) {
     xQueueReceive(dma.queue, &dma.current, portMAX_DELAY);
@@ -174,14 +193,14 @@ void stepperTask(void* parameter) {
         remaining--;
       }
       else {
-        Stepper::pulse_phase_isr();
-        remaining = Stepper::block_phase_isr();
+        param->pulse_func();
+        remaining = param->block_func();
       }
     }
   }
 }
 
-int i2s_init() {
+int i2s_init(i2s_init_t init_param) {
   periph_module_enable(PERIPH_I2S0_MODULE);
 
   /**
@@ -202,6 +221,10 @@ int i2s_init() {
    *      N = 10
    *      M = 20
    */
+
+  i2s_init_t *stepper_param_p = (i2s_init_t*)malloc(sizeof(i2s_init_t));
+  if (stepper_param_p == nullptr) return -1;
+  *stepper_param_p = init_param; // copy the struct members
 
   // Allocate the array of pointers to the buffers
   dma.buffers = (uint32_t **)malloc(sizeof(uint32_t*) * DMA_BUF_COUNT);
@@ -241,7 +264,7 @@ int i2s_init() {
   I2S0.out_link.addr = (uint32_t)dma.desc[0];
 
   // stop i2s
-  i2s_stop(I2S_NUM_0);
+  i2s_stop();
 
   // configure I2S data port interface.
   i2s_reset_fifo(I2S_NUM_0);
@@ -276,7 +299,7 @@ int i2s_init() {
   I2S0.fifo_conf.dscr_en = 0;
 
   I2S0.conf_chan.tx_chan_mod = (
-    #if ENABLED(I2S_STEPPER_SPLIT_STREAM)
+    #if ENABLE_I2S_STEPPER_SPLIT_STREAM
       4
     #else
       0
@@ -325,23 +348,23 @@ int i2s_init() {
 
   // Allocate and Enable the I2S interrupt
   intr_handle_t i2s_isr_handle;
-  esp_intr_alloc(ETS_I2S0_INTR_SOURCE, 0, i2s_intr_handler_default, nullptr, &i2s_isr_handle);
+  esp_intr_alloc(ETS_I2S0_INTR_SOURCE, 0, i2s_intr_handler_default, (void*)I2S_NUM_0, &i2s_isr_handle);
   esp_intr_enable(i2s_isr_handle);
 
-  // Create the task that will feed the buffer
-  xTaskCreatePinnedToCore(stepperTask, "StepperTask", 10000, nullptr, 1, nullptr, CONFIG_ARDUINO_RUNNING_CORE); // run I2S stepper task on same core as rest of Marlin
-
   // Route the i2s pins to the appropriate GPIO
-  gpio_matrix_out_check(I2S_DATA, I2S0O_DATA_OUT23_IDX, 0, 0);
-  gpio_matrix_out_check(I2S_BCK, I2S0O_BCK_OUT_IDX, 0, 0);
-  gpio_matrix_out_check(I2S_WS, I2S0O_WS_OUT_IDX, 0, 0);
+  gpio_matrix_out_check(init_param.data_pin, I2S0O_DATA_OUT23_IDX, 0, 0);
+  gpio_matrix_out_check(init_param.bck_pin, I2S0O_BCK_OUT_IDX, 0, 0);
+  gpio_matrix_out_check(init_param.ws_pin, I2S0O_WS_OUT_IDX, 0, 0);
+
+  // Create the task that will feed the buffer
+  xTaskCreatePinnedToCore(stepperTask, "StepperTask", 10000, stepper_param_p, 1, nullptr, CONFIG_ARDUINO_RUNNING_CORE); // run I2S stepper task on same core as rest of Marlin
 
   // Start the I2S peripheral
-  return i2s_start(I2S_NUM_0);
+  return i2s_start();
 }
 
 void i2s_write(uint8_t pin, uint8_t val) {
-  #if ENABLED(I2S_STEPPER_SPLIT_STREAM)
+  #if ENABLE_I2S_STEPPER_SPLIT_STREAM
     if (pin >= 16) {
       SET_BIT_TO(I2S0.conf_single_data, pin, val);
       return;
@@ -351,7 +374,7 @@ void i2s_write(uint8_t pin, uint8_t val) {
 }
 
 uint8_t i2s_state(uint8_t pin) {
-  #if ENABLED(I2S_STEPPER_SPLIT_STREAM)
+  #if ENABLE_I2S_STEPPER_SPLIT_STREAM
     if (pin >= 16) return TEST(I2S0.conf_single_data, pin);
   #endif
   return TEST(i2s_port_data, pin);
@@ -360,5 +383,3 @@ uint8_t i2s_state(uint8_t pin) {
 void i2s_push_sample() {
   dma.current[dma.rw_pos++] = i2s_port_data;
 }
-
-#endif // ARDUINO_ARCH_ESP32

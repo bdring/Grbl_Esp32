@@ -40,17 +40,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#pragma once
+#ifndef i2s_h
+#define i2s_h
 
+#ifdef USE_I2S_EXPANDER
 #include <stdint.h>
 
-// current value of the outputs provided over i2s
-extern volatile uint32_t i2s_port_data;
+typedef void (*i2s_pulse_phase_isr_t)();
+typedef uint32_t (*i2s_block_phase_isr_t)();
 
-int i2s_init();
+typedef struct {
+    uint8_t ws_pin;
+    uint8_t bck_pin;
+    uint8_t data_pin;
+    i2s_pulse_phase_isr_t pulse_func;
+    i2s_block_phase_isr_t block_func;
+} i2s_init_t;
 
+int i2s_init(i2s_init_t init_param);
 uint8_t i2s_state(uint8_t pin);
-
 void i2s_write(uint8_t pin, uint8_t val);
-
 void i2s_push_sample();
+#endif
+
+#endif
