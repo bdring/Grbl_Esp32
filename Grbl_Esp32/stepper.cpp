@@ -238,20 +238,20 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
     if (busy) {
         return;    // The busy-flag is used to avoid reentering this interrupt
     }
+    busy = true;
     set_direction_pins_on(st.dir_outbits);
 #ifdef USE_RMT_STEPS
     stepperRMT_Outputs();
 #else
     set_stepper_pins_on(st.step_outbits);
+#ifdef I2S_STEPPER_STREAM
+    i2s_push_sample();
+#endif
     step_pulse_off_time = esp_timer_get_time() + (settings.pulse_microseconds); // determine when to turn off pulse
 #endif
 #ifdef USE_UNIPOLAR
     unipolar_step(st.step_outbits, st.dir_outbits);
 #endif
-#ifdef I2S_STEPPER_STREAM
-    i2s_push_sample();
-#endif
-    busy = true;
     // If there is no step segment, attempt to pop one from the stepper buffer
     if (st.exec_segment == NULL) {
         // Anything in the buffer? If so, load and initialize next step segment.
@@ -405,19 +405,21 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
         NOP(); // spin here until time to turn off step
     }
     set_stepper_pins_on(0); // turn all off
-#endif
 #ifdef I2S_STEPPER_STREAM
     i2s_push_sample();
+#endif
 #endif
     TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
     busy = false;
 }
 
 void dummy_pulse() {
+    NOP();
     return;
 }
 
 uint32_t dummy_block() {
+    NOP();
     return 0;
 }
 

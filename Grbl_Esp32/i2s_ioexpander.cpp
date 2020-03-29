@@ -155,14 +155,13 @@ int i2s_stop() {
 }
 
 static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
-  i2s_port_t i2s_num = I2S_NUM_0;
   int dummy;
   lldesc_t *finish_desc;
   portBASE_TYPE high_priority_task_awoken = pdFALSE;
 
-  if (I2S[i2s_num]->int_st.out_eof) {
+  if (I2S0.int_st.out_eof) {
     // Get the descriptor of the last item in the linkedlist
-    finish_desc = (lldesc_t*) I2S[i2s_num]->out_eof_des_addr;
+    finish_desc = (lldesc_t*) I2S0.out_eof_des_addr;
 
     // If the queue is full it's because we have an underflow,
     // more than buf_count isr without new data, remove the front buffer
@@ -175,32 +174,20 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
   if (high_priority_task_awoken == pdTRUE) portYIELD_FROM_ISR();
 
   // clear interrupt
-  I2S[i2s_num]->int_clr.val = I2S[i2s_num]->int_st.val; //clear pending interrupt
+  I2S0.int_clr.val = I2S0.int_st.val; //clear pending interrupt
 }
 
-extern void i2s_push_sample();
-
-void stepperTask(void* parameter) {
-  uint32_t remaining = 0;
-  i2s_init_t *param = (i2s_init_t*)parameter;
-
+#if 1
+static void i2sIOExpanderTask(void* parameter) {
   while (1) {
     xQueueReceive(dma.queue, &dma.current, portMAX_DELAY);
     dma.rw_pos = 0;
-
     while (dma.rw_pos < DMA_SAMPLE_COUNT) {
-      // Fill with the port data post pulse_phase until the next step
-      if (remaining) {
-        i2s_push_sample();
-        remaining--;
-      }
-      else {
-        param->pulse_func();
-        remaining = param->block_func();
-      }
+      i2s_push_sample();
     }
   }
 }
+#endif
 
 int i2s_init(i2s_init_t &init_param) {
   periph_module_enable(PERIPH_I2S0_MODULE);
@@ -223,10 +210,6 @@ int i2s_init(i2s_init_t &init_param) {
    *      N = 10
    *      M = 20
    */
-
-  i2s_init_t *stepper_param_p = (i2s_init_t*)malloc(sizeof(i2s_init_t));
-  if (stepper_param_p == nullptr) return -1;
-  *stepper_param_p = init_param; // copy the struct members
 
   // Allocate the array of pointers to the buffers
   dma.buffers = (uint32_t **)malloc(sizeof(uint32_t*) * DMA_BUF_COUNT);
@@ -350,17 +333,24 @@ int i2s_init(i2s_init_t &init_param) {
 
   // Allocate and Enable the I2S interrupt
   intr_handle_t i2s_isr_handle;
-  esp_intr_alloc(ETS_I2S0_INTR_SOURCE, 0, i2s_intr_handler_default, (void*)I2S_NUM_0, &i2s_isr_handle);
+  esp_intr_alloc(ETS_I2S0_INTR_SOURCE, 0, i2s_intr_handler_default, nullptr, &i2s_isr_handle);
   esp_intr_enable(i2s_isr_handle);
 
   // Route the i2s pins to the appropriate GPIO
   gpio_matrix_out_check(init_param.data_pin, I2S0O_DATA_OUT23_IDX, 0, 0);
   gpio_matrix_out_check(init_param.bck_pin, I2S0O_BCK_OUT_IDX, 0, 0);
   gpio_matrix_out_check(init_param.ws_pin, I2S0O_WS_OUT_IDX, 0, 0);
-
+#if 1
   // Create the task that will feed the buffer
-  xTaskCreatePinnedToCore(stepperTask, "StepperTask", 10000, stepper_param_p, 1, nullptr, CONFIG_ARDUINO_RUNNING_CORE); // run I2S stepper task on same core as rest of Marlin
-
+  xTaskCreatePinnedToCore(i2sIOExpanderTask,
+                          "I2SIOExpanderTask",
+                          1024 * 64,
+                          nullptr,
+                          1,
+                          nullptr,
+                          CONFIG_ARDUINO_RUNNING_CORE  // run I2S IO expander task on same core
+                          );
+#endif
   // Start the I2S peripheral
   return i2s_start();
 }
