@@ -107,20 +107,24 @@ static inline void gpio_matrix_out_check(uint32_t gpio, uint32_t signal_idx, boo
   }
 }
 
-static void i2s_reset_fifo(i2s_port_t i2s_num) {
-  I2S_ENTER_CRITICAL(i2s_num);
+static inline void i2s_reset_fifo_without_lock(i2s_port_t i2s_num) {
   I2S[i2s_num]->conf.rx_fifo_reset = 1;
   I2S[i2s_num]->conf.rx_fifo_reset = 0;
   I2S[i2s_num]->conf.tx_fifo_reset = 1;
   I2S[i2s_num]->conf.tx_fifo_reset = 0;
+}
+
+static void i2s_reset_fifo(i2s_port_t i2s_num) {
+  I2S_ENTER_CRITICAL(i2s_num);
+  i2s_reset_fifo_without_lock(i2s_num);
   I2S_EXIT_CRITICAL(i2s_num);
 }
 
-int i2s_start() {
+static int i2s_start() {
   i2s_port_t i2s_num = I2S_NUM_0;
   //start DMA link
   I2S_ENTER_CRITICAL(i2s_num);
-  i2s_reset_fifo(i2s_num);
+  i2s_reset_fifo_without_lock(i2s_num);
 
   //reset dma
   I2S[i2s_num]->lc_conf.in_rst = 1;
@@ -141,7 +145,7 @@ int i2s_start() {
   return 0;
 }
 
-int i2s_stop() {
+static int i2s_stop() {
   i2s_port_t i2s_num = I2S_NUM_0;
 
   I2S_ENTER_CRITICAL(i2s_num);
@@ -177,7 +181,6 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
   I2S0.int_clr.val = I2S0.int_st.val; //clear pending interrupt
 }
 
-#if 1
 static void i2sIOExpanderTask(void* parameter) {
   while (1) {
     xQueueReceive(dma.queue, &dma.current, portMAX_DELAY);
@@ -187,7 +190,6 @@ static void i2sIOExpanderTask(void* parameter) {
     }
   }
 }
-#endif
 
 int i2s_init(i2s_init_t &init_param) {
   periph_module_enable(PERIPH_I2S0_MODULE);
@@ -340,7 +342,7 @@ int i2s_init(i2s_init_t &init_param) {
   gpio_matrix_out_check(init_param.data_pin, I2S0O_DATA_OUT23_IDX, 0, 0);
   gpio_matrix_out_check(init_param.bck_pin, I2S0O_BCK_OUT_IDX, 0, 0);
   gpio_matrix_out_check(init_param.ws_pin, I2S0O_WS_OUT_IDX, 0, 0);
-#if 1
+
   // Create the task that will feed the buffer
   xTaskCreatePinnedToCore(i2sIOExpanderTask,
                           "I2SIOExpanderTask",
@@ -350,7 +352,7 @@ int i2s_init(i2s_init_t &init_param) {
                           nullptr,
                           CONFIG_ARDUINO_RUNNING_CORE  // run I2S IO expander task on same core
                           );
-#endif
+
   // Start the I2S peripheral
   return i2s_start();
 }
