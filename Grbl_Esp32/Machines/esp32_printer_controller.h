@@ -78,12 +78,12 @@
 
 // Step and direction pins; these must be output-capable pins,
 // specifically ESP32 GPIO numbers 0..31
-#define X_STEP_PIN              137
-#define X_DIRECTION_PIN         135
-#define Y_STEP_PIN              133
-#define Y_DIRECTION_PIN         132
-#define Z_STEP_PIN              130
-#define Z_DIRECTION_PIN         129
+#define X_STEP_PIN              128
+#define X_DIRECTION_PIN         129
+#define Y_STEP_PIN              130
+#define Y_DIRECTION_PIN         131
+#define Z_STEP_PIN              132
+#define Z_DIRECTION_PIN         133
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the

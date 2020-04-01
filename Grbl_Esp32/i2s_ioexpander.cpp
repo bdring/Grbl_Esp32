@@ -98,6 +98,38 @@ static volatile uint32_t i2s_port_data = 0;
 #define I2S_ENTER_CRITICAL(i2s_num)  portENTER_CRITICAL(&i2s_spinlock[i2s_num])
 #define I2S_EXIT_CRITICAL(i2s_num)   portEXIT_CRITICAL(&i2s_spinlock[i2s_num])
 
+void i2s_write(uint8_t pin, uint8_t val) {
+  #if ENABLE_I2S_STEPPER_SPLIT_STREAM
+    if (pin >= 16) {
+      SET_BIT_TO(I2S0.conf_single_data, pin, val);
+      return;
+    }
+  #endif
+  SET_BIT_TO(i2s_port_data, pin, val);
+}
+
+uint8_t i2s_state(uint8_t pin) {
+  uint8_t rc = 0;
+  #if ENABLE_I2S_STEPPER_SPLIT_STREAM
+    if (pin >= 16) {
+      rc = TEST(I2S0.conf_single_data, pin);
+      return rc;
+    }
+  #endif
+  rc = TEST(i2s_port_data, pin);
+  return rc;
+}
+
+static void i2s_push_sample_without_check() {
+  dma.current[dma.rw_pos++] = i2s_port_data;
+}
+
+void i2s_push_sample() {
+  if (dma.rw_pos < DMA_SAMPLE_COUNT) {
+    i2s_push_sample_without_check();
+  }
+}
+
 static inline void gpio_matrix_out_check(uint32_t gpio, uint32_t signal_idx, bool out_inv, bool oen_inv) {
   //if pin = -1, do not need to configure
   if (gpio != -1) {
@@ -158,6 +190,9 @@ static int i2s_stop() {
   return 0;
 }
 
+//
+// I2S DMA Interrupts handler
+//
 static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
   int dummy;
   lldesc_t *finish_desc;
@@ -182,16 +217,21 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
 }
 
 static void i2sIOExpanderTask(void* parameter) {
+  i2s_ioexpander_init_t *stepper_param_p = (i2s_ioexpander_init_t*)parameter;
   while (1) {
+    uint32_t remaining = 0;
     xQueueReceive(dma.queue, &dma.current, portMAX_DELAY);
     dma.rw_pos = 0;
     while (dma.rw_pos < DMA_SAMPLE_COUNT) {
-      i2s_push_sample();
+      // Fill with the port data post pulse_phase until the next step
+      uint64_t starttime = stepper_param_p->pulse_func();
+      stepper_param_p->block_func(starttime);
+      stepper_param_p->block_func(starttime);
     }
   }
 }
 
-int i2s_init(i2s_init_t &init_param) {
+int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   periph_module_enable(PERIPH_I2S0_MODULE);
 
   /**
@@ -212,6 +252,9 @@ int i2s_init(i2s_init_t &init_param) {
    *      N = 10
    *      M = 20
    */
+  i2s_ioexpander_init_t *stepper_param_p = (i2s_ioexpander_init_t*)malloc(sizeof(i2s_ioexpander_init_t));
+  if (stepper_param_p == nullptr) return -1;
+  *stepper_param_p = init_param; // copy the struct members
 
   // Allocate the array of pointers to the buffers
   dma.buffers = (uint32_t **)malloc(sizeof(uint32_t*) * DMA_BUF_COUNT);
@@ -247,7 +290,7 @@ int i2s_init(i2s_init_t &init_param) {
 
   dma.queue = xQueueCreate(DMA_BUF_COUNT, sizeof(uint32_t *));
 
-  // Set the first DMA descriptor
+   // Set the first DMA descriptor
   I2S0.out_link.addr = (uint32_t)dma.desc[0];
 
   // stop i2s
@@ -296,7 +339,7 @@ int i2s_init(i2s_init_t &init_param) {
   I2S0.conf.tx_mono = 0;
 
   I2S0.conf_chan.rx_chan_mod = 0;
-  I2S0.fifo_conf.rx_fifo_mod = 0;
+  I2S0.fifo_conf.rx_fifo_mod = 0; // Receive FIFO mode configuration bit. 
   I2S0.conf.rx_mono = 0;
 
   I2S0.fifo_conf.dscr_en = 1; //connect dma to fifo
@@ -304,34 +347,35 @@ int i2s_init(i2s_init_t &init_param) {
   I2S0.conf.tx_start = 0;
   I2S0.conf.rx_start = 0;
 
-  I2S0.conf.tx_msb_right = 1;
-  I2S0.conf.tx_right_first = 1;
+  I2S0.conf.tx_msb_right = 1; // Set this bit to place right-channel data at the MSB in the transmit FIFO.
+  I2S0.conf.tx_right_first = 1; // Set this bit to transmit right-channel data first.
 
   I2S0.conf.tx_slave_mod = 0; // Master
-  I2S0.fifo_conf.tx_fifo_mod_force_en = 1;
+  I2S0.fifo_conf.tx_fifo_mod_force_en = 1; //The bit should always be set to 1.
 
-  I2S0.pdm_conf.rx_pdm_en = 0;
-  I2S0.pdm_conf.tx_pdm_en = 0;
+  I2S0.pdm_conf.rx_pdm_en = 0; // Set this bit to enable receiver’s PDM mode.
+  I2S0.pdm_conf.tx_pdm_en = 0; // Set this bit to enable transmitter’s PDM mode.
 
   I2S0.conf.tx_short_sync = 0;
   I2S0.conf.rx_short_sync = 0;
   I2S0.conf.tx_msb_shift = 0;
   I2S0.conf.rx_msb_shift = 0;
 
-  // set clock
-  I2S0.clkm_conf.clka_en = 0;       // Use PLL/2 as reference
-  I2S0.clkm_conf.clkm_div_num = 10; // minimum value of 2, reset value of 4, max 256
+  // set clock (fi2s)
+  I2S0.clkm_conf.clka_en = 0;       // Use 160 MHz PLL_D2_CLK as reference
+  I2S0.clkm_conf.clkm_div_num = 10; // minimum value of 2, reset value of 4, max 256 (I²S clock divider’s integral value)
   I2S0.clkm_conf.clkm_div_a = 0;    // 0 at reset, what about divide by 0? (not an issue)
   I2S0.clkm_conf.clkm_div_b = 0;    // 0 at reset
 
-  // fbck = fi2s / tx_bck_div_num
+  // Bit clock configuration bit in transmitter mode.
+  // fbck = fi2s / tx_bck_div_num = (160 MHz / 10) / 2 = 8 MHz
   I2S0.sample_rate_conf.tx_bck_div_num = 2; // minimum value of 2 defaults to 6
-
-  // Enable TX interrupts
-  I2S0.int_ena.out_eof = 1;
-  I2S0.int_ena.out_dscr_err = 0;
-  I2S0.int_ena.out_total_eof = 0;
-  I2S0.int_ena.out_done = 0;
+  
+  // Enable TX interrupts (DMA Interrupts)
+  I2S0.int_ena.out_eof = 1; // Triggered when rxlink has finished sending a packet.
+  I2S0.int_ena.out_dscr_err = 0; // Triggered when invalid rxlink descriptors are encountered.
+  I2S0.int_ena.out_total_eof = 0; // Triggered when all transmitting linked lists are used up.
+  I2S0.int_ena.out_done = 0; // Triggered when all transmitted and buffered data have been read.
 
   // Allocate and Enable the I2S interrupt
   intr_handle_t i2s_isr_handle;
@@ -347,7 +391,7 @@ int i2s_init(i2s_init_t &init_param) {
   xTaskCreatePinnedToCore(i2sIOExpanderTask,
                           "I2SIOExpanderTask",
                           1024 * 64,
-                          nullptr,
+                          stepper_param_p,
                           1,
                           nullptr,
                           CONFIG_ARDUINO_RUNNING_CORE  // run I2S IO expander task on same core
@@ -356,26 +400,4 @@ int i2s_init(i2s_init_t &init_param) {
   // Start the I2S peripheral
   return i2s_start();
 }
-
-void i2s_write(uint8_t pin, uint8_t val) {
-  #if ENABLE_I2S_STEPPER_SPLIT_STREAM
-    if (pin >= 16) {
-      SET_BIT_TO(I2S0.conf_single_data, pin, val);
-      return;
-    }
-  #endif
-  SET_BIT_TO(i2s_port_data, pin, val);
-}
-
-uint8_t i2s_state(uint8_t pin) {
-  #if ENABLE_I2S_STEPPER_SPLIT_STREAM
-    if (pin >= 16) return TEST(I2S0.conf_single_data, pin);
-  #endif
-  return TEST(i2s_port_data, pin);
-}
-
-void i2s_push_sample() {
-  dma.current[dma.rw_pos++] = i2s_port_data;
-}
-
 #endif

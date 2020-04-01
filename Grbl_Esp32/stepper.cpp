@@ -226,32 +226,49 @@ uint8_t C2_rmt_chan_num = 255;
 #ifdef USE_RMT_STEPS
     inline IRAM_ATTR static void stepperRMT_Outputs();
 #endif
+
+static uint64_t stepper_pulse_func(); // returns start time
+void stepper_block_func(uint64_t step_pulse_start_time);
+
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
 void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a step =======================================================================================
-#ifndef USE_RMT_STEPS
-    uint64_t step_pulse_off_time;
-#endif
     //const int timer_idx = (int)para;  // get the timer index
     TIMERG0.int_clr_timers.t0 = 1;
     if (busy) {
         return;    // The busy-flag is used to avoid reentering this interrupt
     }
     busy = true;
+
+    uint64_t step_pulse_start_time = stepper_pulse_func();
+    stepper_block_func(step_pulse_start_time);
+
+    TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
+    busy = false;
+}
+
+/**
+ * This phase of the ISR should ONLY create the pulses for the steppers.
+ * This prevents jitter caused by the interval between the start of the
+ * interrupt and the start of the pulses. DON'T add any logic ahead of the
+ * call to this method that might cause variation in the timing. The aim
+ * is to keep pulse timing as regular as possible.
+ */
+static uint64_t stepper_pulse_func(){
     set_direction_pins_on(st.dir_outbits);
 #ifdef USE_RMT_STEPS
     stepperRMT_Outputs();
 #else
     set_stepper_pins_on(st.step_outbits);
-#ifdef I2S_STEPPER_STREAM
-    i2s_push_sample();
 #endif
-    step_pulse_off_time = esp_timer_get_time() + (settings.pulse_microseconds); // determine when to turn off pulse
-#endif
+
+    uint64_t step_pulse_start_time = esp_timer_get_time();
+
 #ifdef USE_UNIPOLAR
     unipolar_step(st.step_outbits, st.dir_outbits);
 #endif
+
     // If there is no step segment, attempt to pop one from the stepper buffer
     if (st.exec_segment == NULL) {
         // Anything in the buffer? If so, load and initialize next step segment.
@@ -301,7 +318,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
             }
 #endif
             system_set_exec_state_flag(EXEC_CYCLE_STOP); // Flag main program for cycle end
-            return; // Nothing to do but exit.
+            return step_pulse_start_time; // Nothing to do but exit.
         }
     }
     // Check probing state.
@@ -398,29 +415,32 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
         if (++segment_buffer_tail == SEGMENT_BUFFER_SIZE)
             segment_buffer_tail = 0;
     }
+
+    return step_pulse_start_time;
+}
+
+// This is the last half of the stepper interrupt: This one processes and
+// properly schedules blocks from the planner. This is executed after creating
+// the step pulses, so it is not time critical, as pulses are already done.
+void stepper_block_func(uint64_t step_pulse_start_time) {
 #ifndef USE_RMT_STEPS
+#ifdef I2S_STEPPER_STREAM
+    uint8_t pulse_on_time = 0; // 4us per sample (250KHz)
+    while (pulse_on_time < settings.pulse_microseconds) {
+        i2s_push_sample();
+        pulse_on_time += 4;
+    }
+    set_stepper_pins_on(0); // turn all off
+#else
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
     // wait for step pulse time to complete...some of it should have expired during code above
-    while (esp_timer_get_time() < step_pulse_off_time) {
+    while (esp_timer_get_time() - step_pulse_start_time < settings.pulse_microseconds) {
         NOP(); // spin here until time to turn off step
     }
     set_stepper_pins_on(0); // turn all off
-#ifdef I2S_STEPPER_STREAM
-    i2s_push_sample();
 #endif
 #endif
-    TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
-    busy = false;
-}
-
-void dummy_pulse() {
-    NOP();
     return;
-}
-
-uint32_t dummy_block() {
-    NOP();
-    return 0;
 }
 
 void stepper_init() {
@@ -434,16 +454,6 @@ void stepper_init() {
 #endif
 #ifdef USE_TRINAMIC
     Trinamic_Init();
-#endif
-#ifdef USE_I2S_IOEXPANDER
-    i2s_init_t param = {
-        .ws_pin = I2S_WS,
-        .bck_pin = I2S_BCK,
-        .data_pin = I2S_DATA,
-        .pulse_func = dummy_pulse,
-        .block_func = dummy_block,
-    };
-    i2s_init(param);
 #endif
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
 #ifdef USE_RMT_STEPS
@@ -517,6 +527,17 @@ void stepper_init() {
 #ifdef C2_DIRECTION_PIN
     SET_OUTPUT(C2_DIRECTION_PIN);
 #endif
+
+#ifdef USE_I2S_IOEXPANDER
+    i2s_ioexpander_init_t param = {
+        .ws_pin = I2S_WS,
+        .bck_pin = I2S_BCK,
+        .data_pin = I2S_DATA,
+        .pulse_func = stepper_pulse_func,
+        .block_func = stepper_block_func,
+    };
+    i2s_ioexpander_init(param);
+#else
     // setup stepper timer interrupt
     /*
     stepperDriverTimer = timerBegin(	0, 													// timer number
@@ -537,6 +558,7 @@ void stepper_init() {
     timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
     timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
     timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
+#endif
 }
 
 #ifdef USE_RMT_STEPS
