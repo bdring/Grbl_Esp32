@@ -58,12 +58,15 @@
 #ifndef SET_BIT_TO
 #define SET_BIT_TO(N,B,TF) \
                         do{\
-                            if (TF) (N) |= (1 << (B));\
-                            else (N) &= ~(1 << (B));\
+                            if (TF) {\
+                                (N) |= (1UL << (B));\
+                            } else {\
+                                (N) &= ~(1UL << (B));\
+                            }\
                         }while(0)
 #endif
 #ifndef TEST
-#define TEST(n,b) (!!((n) & (1 << (b))))
+#define TEST(n,b) (!!((n) & (1UL << (b))))
 #endif
 
 //

@@ -54,7 +54,7 @@
     // enable I2S I/O expander pin mapping.
     //
     #include "i2s_ioexpander.h"
-    #define IS_I2S_EXPANDER_PIN(IO) (((IO) & ~0x7F))
+    #define IS_I2S_EXPANDER_PIN(IO) ((IO) & ~0x7F)
     #define I2S_EXPANDER_PIN_INDEX(IO) ((IO) & 0x7F)
     // Read a pin wrapper
     #define READ(IO)                do{ IS_I2S_EXPANDER_PIN(IO) ?\
