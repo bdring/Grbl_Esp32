@@ -33,7 +33,7 @@
 #define SPINDLE_STATE_CCW      bit(1)
 
 extern uint32_t spindle_pwm_off_value;
-extern Laser my_spindle;
+extern PWMSpindle my_spindle;
 
 void spindle_init();
 void spindle_stop();

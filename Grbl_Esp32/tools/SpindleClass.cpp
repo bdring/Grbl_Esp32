@@ -1,3 +1,9 @@
+/*
+
+
+Testing
+    Should $G show actual speed 
+*/
 #include "grbl.h"
 #include "SpindleClass.h"
 
@@ -31,6 +37,8 @@ void PWMSpindle::init() {
 
 float PWMSpindle::set_rpm(float rpm) {
     uint32_t pwm_value;
+
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set RPM %5.1f", rpm);
 
     // apply overrides and limits
     rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
@@ -117,7 +125,7 @@ void PWMSpindle::set_pwm(uint32_t duty) {
 #ifdef INVERT_SPINDLE_PWM
     duty = (1 << SPINDLE_PWM_BIT_PRECISION) - duty;
 #endif
-
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set PWM %d of %d", duty, (1 << SPINDLE_PWM_BIT_PRECISION)-1);
     ledcWrite(_spindle_pwm_chan_num, duty);
 }
 
