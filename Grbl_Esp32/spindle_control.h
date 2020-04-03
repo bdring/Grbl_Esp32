@@ -22,6 +22,7 @@
 #define spindle_control_h
 
 #include "grbl.h"
+#include "tools/SpindleClass.h"
 
 
 #define SPINDLE_NO_SYNC false
@@ -32,6 +33,7 @@
 #define SPINDLE_STATE_CCW      bit(1)
 
 extern uint32_t spindle_pwm_off_value;
+extern Laser my_spindle;
 
 void spindle_init();
 void spindle_stop();

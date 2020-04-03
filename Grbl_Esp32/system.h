@@ -125,7 +125,7 @@ extern system_t sys;
 #define STEP_CONTROL_END_MOTION           bit(0)
 #define STEP_CONTROL_EXECUTE_HOLD         bit(1)
 #define STEP_CONTROL_EXECUTE_SYS_MOTION   bit(2)
-#define STEP_CONTROL_UPDATE_SPINDLE_PWM   bit(3)
+#define STEP_CONTROL_UPDATE_SPINDLE_RPM   bit(3)
 
 // Define control pin index for Grbl internal use. Pin maps may change, but these values don't.
 //#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
