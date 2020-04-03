@@ -46,8 +46,10 @@
 #ifdef USE_I2S_IOEXPANDER
 #include <stdint.h>
 
+#define USEC_PER_PULSE 4 // 1000 x 1000 / ((160 x 1000 x 1000) / 10 / 2) x 32 bit = 4 usec/pulse
+
 typedef uint64_t (*i2s_pulse_phase_isr_t)(void);
-typedef void (*i2s_block_phase_isr_t)(uint64_t step_pulse_start_time);
+typedef void (*i2s_block_phase_isr_t)(uint64_t start_time_usec);
 
 typedef struct {
     uint8_t ws_pin;
@@ -58,9 +60,9 @@ typedef struct {
 } i2s_ioexpander_init_t;
 
 int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param);
-uint8_t i2s_state(uint8_t pin);
-void i2s_write(uint8_t pin, uint8_t val);
-void i2s_push_sample();
+uint8_t i2s_ioexpander_state(uint8_t pin);
+void i2s_ioexpander_write(uint8_t pin, uint8_t val);
+void i2s_ioexpander_push_sample();
 #endif
 
 #endif

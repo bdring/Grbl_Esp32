@@ -228,7 +228,7 @@ uint8_t C2_rmt_chan_num = 255;
 #endif
 
 static uint64_t stepper_pulse_func(); // returns start time
-void stepper_block_func(uint64_t step_pulse_start_time);
+static void stepper_block_func(uint64_t step_pulse_start_time);
 
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
@@ -422,13 +422,13 @@ static uint64_t stepper_pulse_func(){
 // This is the last half of the stepper interrupt: This one processes and
 // properly schedules blocks from the planner. This is executed after creating
 // the step pulses, so it is not time critical, as pulses are already done.
-void stepper_block_func(uint64_t step_pulse_start_time) {
+static void stepper_block_func(uint64_t step_pulse_start_time) {
 #ifndef USE_RMT_STEPS
 #ifdef I2S_STEPPER_STREAM
-    uint8_t pulse_on_time = 0; // 4us per sample (250KHz)
+    uint8_t pulse_on_time = 0;
     while (pulse_on_time < settings.pulse_microseconds) {
-        i2s_push_sample();
-        pulse_on_time += 4;
+        i2s_ioexpander_push_sample();
+        pulse_on_time += USEC_PER_PULSE; // 4us per sample (250KHz)
     }
     set_stepper_pins_on(0); // turn all off
 #else

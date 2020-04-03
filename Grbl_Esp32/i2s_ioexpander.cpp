@@ -101,7 +101,7 @@ static volatile uint32_t i2s_port_data = 0;
 #define I2S_ENTER_CRITICAL(i2s_num)  portENTER_CRITICAL(&i2s_spinlock[i2s_num])
 #define I2S_EXIT_CRITICAL(i2s_num)   portEXIT_CRITICAL(&i2s_spinlock[i2s_num])
 
-void i2s_write(uint8_t pin, uint8_t val) {
+void i2s_ioexpander_write(uint8_t pin, uint8_t val) {
   #if ENABLE_I2S_STEPPER_SPLIT_STREAM
     if (pin >= 16) {
       SET_BIT_TO(I2S0.conf_single_data, pin, val);
@@ -111,7 +111,7 @@ void i2s_write(uint8_t pin, uint8_t val) {
   SET_BIT_TO(i2s_port_data, pin, val);
 }
 
-uint8_t i2s_state(uint8_t pin) {
+uint8_t i2s_ioexpander_state(uint8_t pin) {
   uint8_t rc = 0;
   #if ENABLE_I2S_STEPPER_SPLIT_STREAM
     if (pin >= 16) {
@@ -123,13 +123,9 @@ uint8_t i2s_state(uint8_t pin) {
   return rc;
 }
 
-static void i2s_push_sample_without_check() {
-  dma.current[dma.rw_pos++] = i2s_port_data;
-}
-
-void i2s_push_sample() {
+void i2s_ioexpander_push_sample() {
   if (dma.rw_pos < DMA_SAMPLE_COUNT) {
-    i2s_push_sample_without_check();
+    dma.current[dma.rw_pos++] = i2s_port_data;
   }
 }
 
@@ -227,9 +223,9 @@ static void i2sIOExpanderTask(void* parameter) {
     dma.rw_pos = 0;
     while (dma.rw_pos < DMA_SAMPLE_COUNT) {
       // Fill with the port data post pulse_phase until the next step
-      uint64_t starttime = stepper_param_p->pulse_func();
-      stepper_param_p->block_func(starttime);
-      stepper_param_p->block_func(starttime);
+      (void)stepper_param_p->pulse_func();
+      stepper_param_p->block_func(0 /* NOTNEEDED */);
+      stepper_param_p->block_func(0 /* NOTNEEDED */);
     }
   }
 }
