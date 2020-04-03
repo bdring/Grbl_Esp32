@@ -464,7 +464,7 @@ void protocol_exec_rt_system() {
         last_s_override = MIN(last_s_override, MAX_SPINDLE_SPEED_OVERRIDE);
         last_s_override = MAX(last_s_override, MIN_SPINDLE_SPEED_OVERRIDE);
         if (last_s_override != sys.spindle_speed_ovr) {
-            bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
+            bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
             sys.spindle_speed_ovr = last_s_override;
             sys.report_ovr_counter = 0; // Set to report change immediately
         }
@@ -657,7 +657,7 @@ static void protocol_exec_rt_suspend() {
                             if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
                                 if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
-                                    bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
+                                    bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                                 } else {
                                     spindle_set_state((restore_condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)), restore_spindle_speed);
                                     delay_sec(SAFETY_DOOR_SPINDLE_DELAY, DELAY_MODE_SYS_SUSPEND);
@@ -716,7 +716,7 @@ static void protocol_exec_rt_suspend() {
                             report_feedback_message(MESSAGE_SPINDLE_RESTORE);
                             if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
                                 // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
-                                bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
+                                bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                             } else
                                 spindle_set_state((restore_condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)), restore_spindle_speed);
                         }
@@ -727,10 +727,10 @@ static void protocol_exec_rt_suspend() {
                     }
                 } else {
                     // Handles spindle state during hold. NOTE: Spindle speed overrides may be altered during hold state.
-                    // NOTE: STEP_CONTROL_UPDATE_SPINDLE_PWM is automatically reset upon resume in step generator.
-                    if (bit_istrue(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM)) {
+                    // NOTE: STEP_CONTROL_UPDATE_SPINDLE_RPM is automatically reset upon resume in step generator.
+                    if (bit_istrue(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM)) {
                         spindle_set_state((restore_condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)), restore_spindle_speed);
-                        bit_false(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
+                        bit_false(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                     }
                 }
             }
