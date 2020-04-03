@@ -428,7 +428,7 @@ static void stepper_block_func(uint64_t step_pulse_start_time) {
     uint8_t pulse_on_time = 0;
     while (pulse_on_time < settings.pulse_microseconds) {
         i2s_ioexpander_push_sample();
-        pulse_on_time += USEC_PER_PULSE; // 4us per sample (250KHz)
+        pulse_on_time += I2S_IOEXP_USEC_PER_PULSE; // 4us per sample (250KHz)
     }
     set_stepper_pins_on(0); // turn all off
 #else
