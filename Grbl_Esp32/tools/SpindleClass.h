@@ -41,6 +41,18 @@ class Spindle {
 
 };
 
+// This is a dummy spindle that has no I/O.
+// It is used to ignore spindle activity when no spinde is desired
+class NullSpindle : public Spindle {
+    void init();
+    float set_rpm(float rpm);
+    void set_pwm(uint32_t duty);
+    void set_state(uint8_t state, float rpm);
+    uint8_t get_state();
+    void stop();
+    void config_message();
+};
+
 class PWMSpindle : public Spindle {
   public:
     void init();

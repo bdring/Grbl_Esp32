@@ -31,16 +31,17 @@ PWMSpindle my_spindle;
 void spindle_init() {
     my_spindle.init();
     my_spindle.config_message();
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle is rate adjustable %d", my_spindle.isRateAdjusted());
 }
 
 void spindle_stop() {
     my_spindle.stop();
 }
 
+
 uint8_t spindle_get_state() {
     return my_spindle.get_state();
 }
+
 
 
 
