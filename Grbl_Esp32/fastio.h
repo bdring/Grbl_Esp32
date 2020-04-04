@@ -79,7 +79,7 @@
     // Set pin as output and init
     #define OUT_WRITE(IO,V)         do{ SET_OUTPUT(IO); WRITE(IO,V); }while(0)
     // PWM outputs
-    #define PWM_PIN(P)              (P < 34 || P > 127) // NOTE Pins >= 34 are input only on ESP32, so they can't be used for output.
+    #define PWM_PIN(P)              (P < 34 || P >= I2S_IOEXP_PIN_BASE) // NOTE Pins >= 34 are input only on ESP32, so they can't be used for output.
 #else
     //
     // default implimentation
