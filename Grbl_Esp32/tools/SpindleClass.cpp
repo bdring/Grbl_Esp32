@@ -81,8 +81,10 @@ float PWMSpindle::set_rpm(float rpm) {
             sys.spindle_speed = 0.0;
             pwm_value = _pwm_off_value;
         } else { // Set minimum PWM output
-            sys.spindle_speed = settings.rpm_min;
+            rpm = settings.rpm_min;
+            sys.spindle_speed = rpm;
             pwm_value = _pwm_min_value;
+            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RPM less than min RPM:%5.2f %d", rpm, pwm_value);
         }
     } else {
         // Compute intermediate PWM value with linear spindle speed model.
@@ -92,6 +94,7 @@ float PWMSpindle::set_rpm(float rpm) {
         pwm_value = piecewise_linear_fit(rpm);
 #else
         pwm_value = floor((rpm - settings.rpm_min) * _pwm_gradient) + _pwm_min_value;
+        //pwm_value = map_float(rpm, settings.rpm_min, settings.rpm_max, _pwm_min_value, _pwm_max_value);
 #endif
     }
 
@@ -140,6 +143,7 @@ void PWMSpindle::stop() {
 // prints the startup message of the spindle config
 void PWMSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM spindle on GPIO %d, freq %.2fHz, Res %d bits", SPINDLE_PWM_PIN, settings.spindle_pwm_freq, SPINDLE_PWM_BIT_PRECISION);
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM Off:%d Min:%d Max:%d", _pwm_off_value, _pwm_min_value, _pwm_max_value); 
 }
 
 
