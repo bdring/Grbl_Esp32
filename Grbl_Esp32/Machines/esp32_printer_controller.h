@@ -52,6 +52,9 @@
 // unusual homing cycles, etc.  See the Special Features section
 // below for additional instructions.
 
+// 3D printer controller using ESP32 processor
+// https://github.com/MitchBradley/Esp32PrinterController
+
 // === Machine Name
 // Change TEMPLATE to some name of your own choosing.  That name
 // will be shown in a Grbl startup message to identify your
@@ -71,28 +74,30 @@
 // by defining N_AXIS.  If you do not define it, 3 will be
 // used.  The value must be at least 3, even if your machine
 // has fewer axes.
-// #define N_AXIS 4
+#define N_AXIS 4
 
 
 // == Pin Assignments
 
 // Step and direction pins; these must be output-capable pins,
 // specifically ESP32 GPIO numbers 0..31
-#define X_STEP_PIN              128
-#define X_DIRECTION_PIN         129
-#define Y_STEP_PIN              130
-#define Y_DIRECTION_PIN         131
-#define Z_STEP_PIN              132
-#define Z_DIRECTION_PIN         133
+#define X_STEP_PIN              137
+#define X_DIRECTION_PIN         141
+#define Y_STEP_PIN              133
+#define Y_DIRECTION_PIN         132
+#define Z_STEP_PIN              130
+#define Z_DIRECTION_PIN         129
+#define A_STEP_PIN              140
+#define A_DIRECTION_PIN         141
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
 // X, Z, A and B axes do, the LIMIT_MASK value would be B11101
-// #define LIMIT_MASK              B111
+#define LIMIT_MASK              B0111
 
-// #define X_LIMIT_PIN             GPIO_NUM_17
-// #define Y_LIMIT_PIN             GPIO_NUM_4
-// #define Z_LIMIT_PIN             GPIO_NUM_16
+#define X_LIMIT_PIN             GPIO_NUM_34
+#define Y_LIMIT_PIN             GPIO_NUM_35
+#define Z_LIMIT_PIN             GPIO_NUM_32
 
 // Common enable for all steppers.  If it is okay to leave
 // your drivers enabled at all times, you can leave
