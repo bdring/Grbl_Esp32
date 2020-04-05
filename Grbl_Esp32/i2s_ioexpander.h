@@ -54,17 +54,59 @@ typedef void (*i2s_ioexpander_pulse_phase_func_t)(void);
 typedef void (*i2s_ioexpander_block_phase_func_t)(void);
 
 typedef struct {
-    uint8_t ws_pin;
+    /*
+        I2S bitstream:
+             LEFT Channel                    Right Channel
+        ws   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~________________________________
+        bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~
+        data ________________________________vutsrqponmlkjihgfedcba9876543210
+
+        0:Extended GPIO 128, 1: Extened GPIO 129, ..., v: Extended GPIO 159
+    */
+    uint8_t ws_pin;     /* */
     uint8_t bck_pin;
     uint8_t data_pin;
+    /*
+        Callback functions that generates the stepper pulse and block
+            |~~~~|____|
+            Pulse Block
+        
+        * When the I2S stepper is idle, it continuously calls the block function.
+     */
     i2s_ioexpander_pulse_phase_func_t pulse_phase_func;
     i2s_ioexpander_block_phase_func_t block_phase_func;
 } i2s_ioexpander_init_t;
 
+/*
+  Initialize I2S and DMA for the stepper bitstreamer
+  use I2S0, I2S0 isr, DMA, and FIFO(xQueue).
+*/
 int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param);
+
+/*
+  Get a bit state from the internal pin state var.
+
+  pin: expanded pin No. (0..31)
+*/
 uint8_t i2s_ioexpander_state(uint8_t pin);
+
+/*
+   Set a bit in the internal pin state var. (not written electrically)
+
+   pin: extended pin No. (0..31)
+   val: bit value(0 or not 0)
+*/
 void i2s_ioexpander_write(uint8_t pin, uint8_t val);
-void i2s_ioexpander_push_sample();
+
+/*
+    Set current pin state to the I2S bitstream buffer
+    (This call will generate a future 4us bitstream)
+
+    return: number of puhsed samples
+            1 .. success
+            0 .. no space for push
+ */
+uint32_t i2s_ioexpander_push_sample();
 #endif
 
 #endif

@@ -82,14 +82,14 @@
 // Step and direction pins; these must be output-capable pins,
 // specifically ESP32 GPIO numbers 0..31
 // With the I2S I/O expander enabled, you can specify 128..159 as output pins.
-#define X_STEP_PIN              137
-#define X_DIRECTION_PIN         141
-#define Y_STEP_PIN              133
-#define Y_DIRECTION_PIN         132
-#define Z_STEP_PIN              130
-#define Z_DIRECTION_PIN         129
-#define A_STEP_PIN              140
-#define A_DIRECTION_PIN         141
+#define X_STEP_PIN              137 /* 128 + 8 x 1 + 1 */
+#define X_DIRECTION_PIN         135 /* 128 + 8 x 0 + 7 */
+#define Y_STEP_PIN              133 /* 128 + 8 x 0 + 5 */
+#define Y_DIRECTION_PIN         132 /* 128 + 8 x 0 + 4 */
+#define Z_STEP_PIN              130 /* 128 + 8 x 0 + 2 */
+#define Z_DIRECTION_PIN         129 /* 128 + 8 x 0 + 1 */
+#define A_STEP_PIN              140 /* 128 + 8 x 1 + 4 */
+#define A_DIRECTION_PIN         141 /* 128 x 8 x 1 + 5 */
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
@@ -212,14 +212,14 @@
 // I2S (steppers & other output-only pins)
 //
 #define USE_I2S_IOEXPANDER
-#define I2S_IOEXPANDER_WS       17
 #define I2S_IOEXPANDER_BCK      22
+#define I2S_IOEXPANDER_WS       17
 #define I2S_IOEXPANDER_DATA     16
 
 #define I2S_STEPPER_STREAM
 // If the number of extended GPIOs is sufficient
 // to be 16 instead of 32, define "I2S_STEPPER_SPLIT_STREAM".
-//#define I2S_STEPPER_SPLIT_STREAM
+#define I2S_STEPPER_SPLIT_STREAM
 
 // === Special Features
 // Grbl_ESP32 can support non-Cartesian machines and some other

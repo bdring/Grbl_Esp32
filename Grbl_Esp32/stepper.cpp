@@ -261,9 +261,10 @@ static void stepper_pulse_phase_func() {
     stepperRMT_Outputs();
 #else
     set_stepper_pins_on(st.step_outbits);
-#endif
-
+  #ifndef I2S_STEPPER_STREAM
     uint64_t step_pulse_start_time = esp_timer_get_time();
+  #endif
+#endif
 
 #ifdef USE_UNIPOLAR
     unipolar_step(st.step_outbits, st.dir_outbits);
@@ -417,21 +418,23 @@ static void stepper_pulse_phase_func() {
     }
 
 #ifndef USE_RMT_STEPS
-#ifdef I2S_STEPPER_STREAM
+  #ifdef I2S_STEPPER_STREAM
+    //
+    // Generate pulse (at least one pulse)
+    //
     uint8_t pulse_on_time = 0;
-    while (pulse_on_time < settings.pulse_microseconds) {
+    do {
         i2s_ioexpander_push_sample();
         pulse_on_time += I2S_IOEXP_USEC_PER_PULSE; // 4us per sample (250KHz)
-    }
-    set_stepper_pins_on(0); // turn all off
-#else
+    } while (pulse_on_time < settings.pulse_microseconds);
+  #else
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
     // wait for step pulse time to complete...some of it should have expired during code above
     while (esp_timer_get_time() - step_pulse_start_time < settings.pulse_microseconds) {
         NOP(); // spin here until time to turn off step
     }
+  #endif
     set_stepper_pins_on(0); // turn all off
-#endif
 #endif
     return;
 }
@@ -443,11 +446,16 @@ static void stepper_block_phase_func() {
 #ifdef I2S_STEPPER_STREAM
     uint8_t pulse_on_time = 0;
     while (pulse_on_time < settings.pulse_microseconds) {
-        i2s_ioexpander_push_sample();
+        uint32_t num_pushed;
+        num_pushed = i2s_ioexpander_push_sample();
+        if (num_pushed < 1) {
+            return; // no space for push
+        }
         pulse_on_time += I2S_IOEXP_USEC_PER_PULSE; // 4 us per sample (250KHz)
     }
 #else
-    /*DO NOTHING*/
+    /*DONOTHING*/
+    return;
 #endif
 }
 
@@ -1393,23 +1401,29 @@ float st_get_realtime_rate() {
 }
 
 void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {
+#ifndef I2S_STEPPER_STREAM
     timer_set_alarm_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, alarm_val);
+#endif
 }
 
 void IRAM_ATTR Stepper_Timer_Start() {
 #ifdef ESP_DEBUG
     //Serial.println("ST Start");
 #endif
+#ifndef I2S_STEPPER_STREAM
     timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
     timer_start(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
     TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
+#endif
 }
 
 void IRAM_ATTR Stepper_Timer_Stop() {
 #ifdef ESP_DEBUG
     //Serial.println("ST Stop");
 #endif
+#ifndef I2S_STEPPER_STREAM
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
+#endif
 }
 
 
