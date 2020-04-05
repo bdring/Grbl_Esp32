@@ -67,7 +67,7 @@ class PWMSpindle : public Spindle {
 
   private:
     int8_t _spindle_pwm_chan_num;
-    float _pwm_freq;
+    
 
     int32_t _current_pwm_duty;
 
@@ -83,6 +83,7 @@ class PWMSpindle : public Spindle {
     void set_spindle_dir_pin(bool Clockwise);
 
   protected:
+    float _pwm_freq;
     uint32_t _pwm_period; // how many counts in 1 period
 };
 
@@ -100,6 +101,7 @@ class RelaySpindle : public PWMSpindle {
 class Laser : public PWMSpindle {
   public:
     bool isRateAdjusted();
+    void config_message();
 };
 
 // This uses one of the (2) DAC pins on ESP32 to output a voltage

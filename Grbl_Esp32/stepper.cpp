@@ -143,7 +143,7 @@ typedef struct {
 
 
     float inv_rate;    // Used by PWM laser mode to speed up segment calculations.
-    uint16_t current_spindle_pwm;  // todo remove
+    //uint16_t current_spindle_pwm;  // todo remove
     float current_spindle_rpm;
 
 } st_prep_t;
@@ -283,7 +283,9 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
 
             // Set real-time spindle output as segment is loaded, just prior to the first step.
             //spindle_set_speed(st.exec_segment->spindle_rpm);
-            my_spindle.set_rpm(st.exec_segment->spindle_rpm);
+            //grbl_send(CLIENT_SERIAL, "A_");
+            my_spindle.set_rpm(prep.current_spindle_rpm);
+            
 
         } else {
             // Segment buffer empty. Shutdown.
@@ -293,6 +295,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
                 if (st.exec_block->is_pwm_rate_adjusted) {
                     //spindle_set_speed(spindle_pwm_off_value);
+                    //grbl_send(CLIENT_SERIAL, "B_");
                     my_spindle.set_rpm(0.0);
                 }
             }
@@ -987,7 +990,14 @@ void st_prep_buffer() {
                 } else
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
 
-                st_prep_block->is_pwm_rate_adjusted = my_spindle.isRateAdjusted();
+                //st_prep_block->is_pwm_rate_adjusted = my_spindle.isRateAdjusted();
+                if (my_spindle.isRateAdjusted() ){ //   settings.flags & BITFLAG_LASER_MODE) {
+                    if (pl_block->condition & PL_COND_FLAG_SPINDLE_CCW) {
+                        // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
+                        prep.inv_rate = 1.0 / pl_block->programmed_rate;
+                        st_prep_block->is_pwm_rate_adjusted = true;
+                    }
+                }
 
             }
             /* ---------------------------------------------------------------------------------
@@ -1188,11 +1198,15 @@ void st_prep_buffer() {
             if (pl_block->condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)) {
                 float rpm = pl_block->spindle_speed;
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
-                if (st_prep_block->is_pwm_rate_adjusted)
+                if (st_prep_block->is_pwm_rate_adjusted) {                    
                     rpm *= (prep.current_speed * prep.inv_rate);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RPM %.2f", rpm);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
+                }
                 // If current_speed is zero, then may need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE)
-                // but this would be instantaneous only and during a motion. May not matter at all.
-                prep.current_spindle_rpm = my_spindle.set_rpm(rpm);
+                // but this would be instantaneous only and during a motion. May not matter at all.                
+                //prep.current_spindle_rpm = my_spindle.set_rpm(rpm);
+                prep.current_spindle_rpm = rpm;
             } else {
                 sys.spindle_speed = 0.0;
                 prep.current_spindle_rpm = 0.0;

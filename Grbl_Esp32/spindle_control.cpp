@@ -28,7 +28,7 @@
 int8_t spindle_pwm_chan_num;
 
 // define a spindle type
-DacSpindle my_spindle;
+Laser my_spindle;
 //NullSpindle my_spindle;
 
 void spindle_init() {
