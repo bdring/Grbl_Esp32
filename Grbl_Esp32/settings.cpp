@@ -366,7 +366,7 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
         case 25: settings.homing_seek_rate = value; break;
         case 26: settings.homing_debounce_delay = int_value; break;
         case 27: settings.homing_pulloff = value; break;
-        case 30: settings.rpm_max = value; spindle_init(); break; // Re-initialize spindle rpm calibration
+        case 30: settings.rpm_max = std::max(value, 1.0f); spindle_init(); break; // Re-initialize spindle rpm calibration (min of 1)
         case 31: settings.rpm_min = value; spindle_init(); break; // Re-initialize spindle rpm calibration
         case 32:
 #ifdef VARIABLE_SPINDLE

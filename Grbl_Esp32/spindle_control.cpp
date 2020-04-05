@@ -22,34 +22,31 @@
 #include "tools/SpindleClass.h"
 #include "tools/SpindleClass.cpp"
 
+//  TODO Get rid of these intermediary functions and directly access object from Grbl
+//  This saves me from touching the grbl_esp32 code as much right now.
+
 int8_t spindle_pwm_chan_num;
 
 // define a spindle type
-//RelaySpindle my_spindle;
-PWMSpindle my_spindle;
+DacSpindle my_spindle;
+//NullSpindle my_spindle;
 
 void spindle_init() {
     my_spindle.init();
-    my_spindle.config_message();
 }
 
 void spindle_stop() {
     my_spindle.stop();
 }
 
-
 uint8_t spindle_get_state() {
     return my_spindle.get_state();
 }
-
-
-
 
 // Called by spindle_set_state() and step segment generator. Keep routine small and efficient.
 void spindle_set_state(uint8_t state, float rpm) {
     my_spindle.set_state(state, rpm);
 }
-
 
 void spindle_sync(uint8_t state, float rpm) {
     if (sys.state == STATE_CHECK_MODE)
@@ -57,5 +54,3 @@ void spindle_sync(uint8_t state, float rpm) {
     protocol_buffer_synchronize(); // Empty planner buffer to ensure spindle is set when programmed.
     spindle_set_state(state, rpm);
 }
-
-

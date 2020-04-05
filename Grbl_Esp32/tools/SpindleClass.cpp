@@ -2,9 +2,8 @@
     SpindleClass.cpp
 
     A Spindle Class
-    
+
     Part of Grbl_ESP32
-    Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 
     2020 -	Bart Dring This file was modified for use on the ESP32
                     CPU. Do not use this with Grbl for atMega328P
@@ -39,21 +38,56 @@ bool Spindle::isRateAdjusted() {
     return false; // default for basic spindles is false
 }
 
+// ======================= NullSpindle ==============================
+// A bunch of do nothing (ignore) methods
+void NullSpindle :: init() {
+    config_message();
+}
+float NullSpindle :: set_rpm(float rpm) {
+    return rpm;
+}
+void NullSpindle :: set_pwm(uint32_t duty) {}
+void NullSpindle :: set_state(uint8_t state, float rpm) {}
+uint8_t NullSpindle :: get_state() {
+    return (SPINDLE_STATE_DISABLE);
+}
+void NullSpindle :: stop() {}
+void NullSpindle :: config_message() {
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No spindle (NullSpindle)");
+}
+
+// ======================= PWMSpindle ==============================
+
 void PWMSpindle::init() {
+    _pwm_freq = settings.spindle_pwm_freq;
     _pwm_period = ((1 << SPINDLE_PWM_BIT_PRECISION) - 1);
+
     if (settings.spindle_pwm_min_value > settings.spindle_pwm_min_value)
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning spindle min pwm is greater than max. Check $35 and $36");
+
+    if ((F_TIMERS / _pwm_freq) < _pwm_period)
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning spindle PWM precision (%d bits) too high for frequency (%.2f Hz)", SPINDLE_PWM_BIT_PRECISION, _pwm_freq);
+
+
     // pre-caculate some PWM count values
     _pwm_off_value = (_pwm_period * settings.spindle_pwm_off_value / 100.0);
     _pwm_min_value = (_pwm_period * settings.spindle_pwm_min_value / 100.0);
     _pwm_max_value = (_pwm_period * settings.spindle_pwm_max_value / 100.0);
-    // The pwm_gradient is the pwm duty cycle units per rpm
-    _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (settings.rpm_max - settings.rpm_min);
 
+#ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
+    _min_rpm = RPM_MIN;
+    _max_rpm = RPM_MAX;
+#else
+    _min_rpm = settings.rpm_min;
+    _max_rpm = settings.rpm_max;
+#endif
+    // The pwm_gradient is the pwm duty cycle units per rpm
+    _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
 
     _spindle_pwm_chan_num = sys_get_next_PWM_chan_num();
-    ledcSetup(_spindle_pwm_chan_num, (double)settings.spindle_pwm_freq, SPINDLE_PWM_BIT_PRECISION); // setup the channel
+    ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, SPINDLE_PWM_BIT_PRECISION); // setup the channel
     ledcAttachPin(SPINDLE_PWM_PIN, _spindle_pwm_chan_num); // attach the PWM to the pin
+    config_message();
 
 #ifdef SPINDLE_ENABLE_PIN
     pinMode(SPINDLE_ENABLE_PIN, OUTPUT);
@@ -72,16 +106,16 @@ float PWMSpindle::set_rpm(float rpm) {
     rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
 
     // Calculate PWM register value based on rpm max/min settings and programmed rpm.
-    if ((settings.rpm_min >= settings.rpm_max) || (rpm >= settings.rpm_max)) {
+    if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
         // No PWM range possible. Set simple on/off spindle control pin state.
-        sys.spindle_speed = settings.rpm_max;
+        sys.spindle_speed = _max_rpm;
         pwm_value = _pwm_max_value;
-    } else if (rpm <= settings.rpm_min) {
+    } else if (rpm <= _min_rpm) {
         if (rpm == 0.0) { // S0 disables spindle
             sys.spindle_speed = 0.0;
             pwm_value = _pwm_off_value;
         } else { // Set minimum PWM output
-            rpm = settings.rpm_min;
+            rpm = _min_rpm;
             sys.spindle_speed = rpm;
             pwm_value = _pwm_min_value;
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RPM less than min RPM:%5.2f %d", rpm, pwm_value);
@@ -93,8 +127,7 @@ float PWMSpindle::set_rpm(float rpm) {
 #ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
         pwm_value = piecewise_linear_fit(rpm);
 #else
-        pwm_value = floor((rpm - settings.rpm_min) * _pwm_gradient) + _pwm_min_value;
-        //pwm_value = map_float(rpm, settings.rpm_min, settings.rpm_max, _pwm_min_value, _pwm_max_value);
+        pwm_value = floor((rpm - _min_rpm) * _pwm_gradient) + _pwm_min_value;
 #endif
     }
 
@@ -118,7 +151,7 @@ void PWMSpindle::set_state(uint8_t state, float rpm) {
 }
 
 uint8_t PWMSpindle::get_state() {
-    
+
 
     if (_current_pwm_duty == 0) // Check the PWM value
         return (SPINDLE_STATE_DISABLE);
@@ -142,8 +175,8 @@ void PWMSpindle::stop() {
 
 // prints the startup message of the spindle config
 void PWMSpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM spindle on GPIO %d, freq %.2fHz, Res %d bits", SPINDLE_PWM_PIN, settings.spindle_pwm_freq, SPINDLE_PWM_BIT_PRECISION);
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM Off:%d Min:%d Max:%d", _pwm_off_value, _pwm_min_value, _pwm_max_value); 
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM spindle on GPIO %d, freq %.2fHz, Res %d bits", SPINDLE_PWM_PIN, _pwm_freq, SPINDLE_PWM_BIT_PRECISION);
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM Off:%d Min:%d Max:%d", _pwm_off_value, _pwm_min_value, _pwm_max_value);
 }
 
 
@@ -157,7 +190,7 @@ void PWMSpindle::set_pwm(uint32_t duty) {
 #ifdef INVERT_SPINDLE_PWM
     duty = (1 << SPINDLE_PWM_BIT_PRECISION) - duty;
 #endif
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set PWM %d of %d", duty, (1 << SPINDLE_PWM_BIT_PRECISION)-1);
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set PWM %d of %d", duty, (1 << SPINDLE_PWM_BIT_PRECISION) - 1);
     ledcWrite(_spindle_pwm_chan_num, duty);
 }
 
@@ -190,6 +223,7 @@ void RelaySpindle::init() {
 #ifdef SPINDLE_DIR_PIN
     pinMode(SPINDLE_DIR_PIN, OUTPUT);
 #endif
+    config_message();
 }
 
 // prints the startup message of the spindle config
@@ -209,6 +243,38 @@ void RelaySpindle::set_pwm(uint32_t duty) {
 
 
 bool Laser :: isRateAdjusted() {
-    // must be in $32=1 (laser mode) and M4 (CCW rotation)
-    return ( settings.flags & BITFLAG_LASER_MODE );
+    // must be in $32=1 (laser mode)
+    return (settings.flags & BITFLAG_LASER_MODE);
 }
+
+// ======================= DacSpindle =======================
+void DacSpindle :: init() {
+    _pwm_period = ((1 << SPINDLE_PWM_BIT_PRECISION) - 1);
+    _gpio_ok = true;
+    switch (SPINDLE_PWM_PIN) {
+    case GPIO_NUM_25:
+        _dac_channel_num = DAC_CHANNEL_1;
+        break;
+    case GPIO_NUM_26:
+        _dac_channel_num = DAC_CHANNEL_1;
+        break;
+    default:
+        _gpio_ok = false;
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DAC spindle pin invalid GPIO_NUM_%d", SPINDLE_PWM_PIN);
+        return; // skip config message
+    }
+    config_message();
+}
+
+void DacSpindle :: config_message() {
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DAC spindle on GPIO %d", SPINDLE_PWM_PIN);
+}
+
+void DacSpindle :: set_pwm(uint32_t duty) {
+    // remap duty over DAC's 0-255 range
+    duty = map(duty, 0, _pwm_period, 0, 255);
+    if (_gpio_ok)
+        dac_output_voltage(_dac_channel_num, (uint8_t)duty);
+}
+
+
