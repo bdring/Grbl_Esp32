@@ -2,11 +2,15 @@
     SpindleClass.cpp
 
     A Spindle Class
+        Spindle         - A base class. Do not use
+        PWMSpindel      - A spindle with a PWM output
+        RelaySpindle    - An on/off only spindle
+        Laser           - Output is PWM, but the M4 laser power mode can be used
+        DacSpindle      - Uses the DAC to output a 0-3.3V output
 
     Part of Grbl_ESP32
 
-    2020 -	Bart Dring This file was modified for use on the ESP32
-                    CPU. Do not use this with Grbl for atMega328P
+    2020 -	Bart Dring 
 
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,17 +22,6 @@
     GNU General Public License for more details.
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
-
-/*
-
-TODO
-
-
-Testing
-    Should $G show actual speed (Regular Grbl does not)
-    Speed overrides only take place during motion
 
 */
 #include "grbl.h"
@@ -190,7 +183,7 @@ void PWMSpindle::set_pwm(uint32_t duty) {
 #ifdef INVERT_SPINDLE_PWM
     duty = (1 << SPINDLE_PWM_BIT_PRECISION) - duty;
 #endif
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set PWM %d of %d", duty, (1 << SPINDLE_PWM_BIT_PRECISION) - 1);
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set PWM %d of %d", duty, (1 << SPINDLE_PWM_BIT_PRECISION) - 1);
     ledcWrite(_spindle_pwm_chan_num, duty);
 }
 
@@ -239,7 +232,7 @@ void RelaySpindle::set_pwm(uint32_t duty) {
 }
 
 
-// ====================== Laser =============================
+// ===================================== Laser ==============================================
 
 
 bool Laser :: isRateAdjusted() {
@@ -247,9 +240,20 @@ bool Laser :: isRateAdjusted() {
     return (settings.flags & BITFLAG_LASER_MODE);
 }
 
-// ======================= DacSpindle =======================
+void Laser :: config_message() {
+    grbl_msg_sendf(CLIENT_SERIAL,
+                   MSG_LEVEL_INFO,
+                   "Laser spindle on GPIO:%d, Freq:%.2fHz, Res:%dbits Laser mode:$32=%d",
+                   SPINDLE_PWM_PIN,
+                   _pwm_freq,
+                   SPINDLE_PWM_BIT_PRECISION,
+                   isRateAdjusted());  // the current mode
+}
+
+// ======================================== DacSpindle ======================================
 void DacSpindle :: init() {
     _pwm_period = ((1 << SPINDLE_PWM_BIT_PRECISION) - 1);
+    _dac_channel_num = (dac_channel_t)0;
     _gpio_ok = true;
     switch (SPINDLE_PWM_PIN) {
     case GPIO_NUM_25:

@@ -369,12 +369,11 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
         case 30: settings.rpm_max = std::max(value, 1.0f); spindle_init(); break; // Re-initialize spindle rpm calibration (min of 1)
         case 31: settings.rpm_min = value; spindle_init(); break; // Re-initialize spindle rpm calibration
         case 32:
-#ifdef VARIABLE_SPINDLE
-            if (int_value)  settings.flags |= BITFLAG_LASER_MODE;
-            else  settings.flags &= ~BITFLAG_LASER_MODE;
-#else
-            return (STATUS_SETTING_DISABLED_LASER);
-#endif
+            if (int_value)
+                settings.flags |= BITFLAG_LASER_MODE;
+            else
+                settings.flags &= ~BITFLAG_LASER_MODE;
+            spindle_init(); // update the spindle class
             break;
         case 33: settings.spindle_pwm_freq = value; spindle_init(); break; // Re-initialize spindle pwm calibration
         case 34: settings.spindle_pwm_off_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
