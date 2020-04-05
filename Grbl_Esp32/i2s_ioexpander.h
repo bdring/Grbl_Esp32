@@ -48,17 +48,17 @@
 
 #define I2S_IOEXP_PIN_BASE 128
 
-#define I2S_IOEXP_USEC_PER_PULSE 4 // 1000 x 1000 / ((160 x 1000 x 1000) / 10 / 2) x 32 bit = 4 usec/pulse
+#define I2S_IOEXP_USEC_PER_PULSE 4 /* 1000000 usec / ((160000000 Hz) / 10 / 2) x 32 bit/pulse = 4 usec/pulse */
 
-typedef uint64_t (*i2s_pulse_phase_isr_t)(void);
-typedef void (*i2s_block_phase_isr_t)(uint64_t start_time_usec);
+typedef void (*i2s_ioexpander_pulse_phase_func_t)(void);
+typedef void (*i2s_ioexpander_block_phase_func_t)(void);
 
 typedef struct {
     uint8_t ws_pin;
     uint8_t bck_pin;
     uint8_t data_pin;
-    i2s_pulse_phase_isr_t pulse_func;
-    i2s_block_phase_isr_t block_func;
+    i2s_ioexpander_pulse_phase_func_t pulse_phase_func;
+    i2s_ioexpander_block_phase_func_t block_phase_func;
 } i2s_ioexpander_init_t;
 
 int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param);

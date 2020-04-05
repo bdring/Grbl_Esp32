@@ -223,9 +223,8 @@ static void i2sIOExpanderTask(void* parameter) {
     dma.rw_pos = 0;
     while (dma.rw_pos < DMA_SAMPLE_COUNT) {
       // Fill with the port data post pulse_phase until the next step
-      (void)stepper_param_p->pulse_func();
-      stepper_param_p->block_func(0 /* NOTNEEDED */);
-      stepper_param_p->block_func(0 /* NOTNEEDED */);
+      stepper_param_p->pulse_phase_func();
+      stepper_param_p->block_phase_func();
     }
   }
 }

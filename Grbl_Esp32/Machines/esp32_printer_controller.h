@@ -81,6 +81,7 @@
 
 // Step and direction pins; these must be output-capable pins,
 // specifically ESP32 GPIO numbers 0..31
+// With the I2S I/O expander enabled, you can specify 128..159 as output pins.
 #define X_STEP_PIN              137
 #define X_DIRECTION_PIN         141
 #define Y_STEP_PIN              133
@@ -211,10 +212,11 @@
 // I2S (steppers & other output-only pins)
 //
 #define USE_I2S_IOEXPANDER
+#define I2S_IOEXPANDER_WS       17
+#define I2S_IOEXPANDER_BCK      22
+#define I2S_IOEXPANDER_DATA     16
+
 #define I2S_STEPPER_STREAM
-#define I2S_WS              17
-#define I2S_BCK             22
-#define I2S_DATA            16
 // If the number of extended GPIOs is sufficient
 // to be 16 instead of 32, define "I2S_STEPPER_SPLIT_STREAM".
 //#define I2S_STEPPER_SPLIT_STREAM

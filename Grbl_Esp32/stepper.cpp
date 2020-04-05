@@ -227,8 +227,8 @@ uint8_t C2_rmt_chan_num = 255;
     inline IRAM_ATTR static void stepperRMT_Outputs();
 #endif
 
-static uint64_t stepper_pulse_func(); // returns start time
-static void stepper_block_func(uint64_t step_pulse_start_time);
+static void stepper_pulse_phase_func();
+static void stepper_block_phase_func();
 
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
@@ -241,8 +241,8 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
     }
     busy = true;
 
-    uint64_t step_pulse_start_time = stepper_pulse_func();
-    stepper_block_func(step_pulse_start_time);
+    stepper_pulse_phase_func();
+    stepper_block_phase_func();
 
     TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
     busy = false;
@@ -255,7 +255,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
  * call to this method that might cause variation in the timing. The aim
  * is to keep pulse timing as regular as possible.
  */
-static uint64_t stepper_pulse_func(){
+static void stepper_pulse_phase_func() {
     set_direction_pins_on(st.dir_outbits);
 #ifdef USE_RMT_STEPS
     stepperRMT_Outputs();
@@ -318,7 +318,7 @@ static uint64_t stepper_pulse_func(){
             }
 #endif
             system_set_exec_state_flag(EXEC_CYCLE_STOP); // Flag main program for cycle end
-            return step_pulse_start_time; // Nothing to do but exit.
+            return; // Nothing to do but exit.
         }
     }
     // Check probing state.
@@ -416,13 +416,6 @@ static uint64_t stepper_pulse_func(){
             segment_buffer_tail = 0;
     }
 
-    return step_pulse_start_time;
-}
-
-// This is the last half of the stepper interrupt: This one processes and
-// properly schedules blocks from the planner. This is executed after creating
-// the step pulses, so it is not time critical, as pulses are already done.
-static void stepper_block_func(uint64_t step_pulse_start_time) {
 #ifndef USE_RMT_STEPS
 #ifdef I2S_STEPPER_STREAM
     uint8_t pulse_on_time = 0;
@@ -443,6 +436,21 @@ static void stepper_block_func(uint64_t step_pulse_start_time) {
     return;
 }
 
+// This is the last half of the stepper interrupt: This one processes and
+// properly schedules blocks from the planner. This is executed after creating
+// the step pulses, so it is not time critical, as pulses are already done.
+static void stepper_block_phase_func() {
+#ifdef I2S_STEPPER_STREAM
+    uint8_t pulse_on_time = 0;
+    while (pulse_on_time < settings.pulse_microseconds) {
+        i2s_ioexpander_push_sample();
+        pulse_on_time += I2S_IOEXP_USEC_PER_PULSE; // 4 us per sample (250KHz)
+    }
+#else
+    /*DO NOTHING*/
+#endif
+}
+
 void stepper_init() {
     // make the stepper disable pin an output
 #ifdef STEPPERS_DISABLE_PIN
@@ -460,7 +468,11 @@ void stepper_init() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RMT Steps");
     initRMT();
 #else
+  #ifdef I2S_STEPPER_STREAM
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "I2S Steps");
+  #else
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Timed Steps");
+  #endif
     // make the step pins outputs
 #ifdef  X_STEP_PIN
     SET_OUTPUT(X_STEP_PIN);
@@ -530,11 +542,11 @@ void stepper_init() {
 
 #ifdef USE_I2S_IOEXPANDER
     i2s_ioexpander_init_t param = {
-        .ws_pin = I2S_WS,
-        .bck_pin = I2S_BCK,
-        .data_pin = I2S_DATA,
-        .pulse_func = stepper_pulse_func,
-        .block_func = stepper_block_func,
+        .ws_pin = I2S_IOEXPANDER_WS,
+        .bck_pin = I2S_IOEXPANDER_BCK,
+        .data_pin = I2S_IOEXPANDER_DATA,
+        .pulse_phase_func = stepper_pulse_phase_func,
+        .block_phase_func = stepper_block_phase_func,
     };
     i2s_ioexpander_init(param);
 #else
