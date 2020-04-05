@@ -48,22 +48,25 @@
 
 #define I2S_IOEXP_PIN_BASE 128
 
-#define I2S_IOEXP_USEC_PER_PULSE 4 /* 1000000 usec / ((160000000 Hz) / 10 / 2) x 32 bit/pulse = 4 usec/pulse */
+/* 1000000 usec / ((160000000 Hz) / 5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
+#define I2S_IOEXP_USEC_PER_PULSE 4
 
 typedef void (*i2s_ioexpander_pulse_phase_func_t)(void);
 typedef void (*i2s_ioexpander_block_phase_func_t)(void);
 
 typedef struct {
     /*
-        I2S bitstream:
-             LEFT Channel                    Right Channel
-        ws   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~________________________________
-        bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~
-        data ________________________________vutsrqponmlkjihgfedcba9876543210
-
+        I2S bitstream (32-bits):
+             LEFT Channel                    Right Channel                   LEFT Channel
+        ws   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~________________________________~~~~...
+        bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~
+        data vutsrqponmlkjihgfedcba9876543210vutsrqponmlkjihgfedcba9876543210vuts
+             --------------------------------XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX^
+                                                                             latch X bits
         0:Extended GPIO 128, 1: Extened GPIO 129, ..., v: Extended GPIO 159
+        (data at LEFT Channel will ignored by shift-register IC)
     */
-    uint8_t ws_pin;     /* */
+    uint8_t ws_pin;
     uint8_t bck_pin;
     uint8_t data_pin;
     /*
@@ -109,4 +112,8 @@ void i2s_ioexpander_write(uint8_t pin, uint8_t val);
 uint32_t i2s_ioexpander_push_sample();
 #endif
 
+/*
+   Reference: "ESP32 Technical Reference Manual" by Espressif Systems
+     https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf
+ */
 #endif

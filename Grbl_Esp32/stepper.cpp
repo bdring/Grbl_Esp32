@@ -425,7 +425,7 @@ static void stepper_pulse_phase_func() {
     uint8_t pulse_on_time = 0;
     do {
         i2s_ioexpander_push_sample();
-        pulse_on_time += I2S_IOEXP_USEC_PER_PULSE; // 4us per sample (250KHz)
+        pulse_on_time += I2S_IOEXP_USEC_PER_PULSE; // The resolution is limited by I2S_IOEXP_USEC_PER_PULSE
     } while (pulse_on_time < settings.pulse_microseconds);
   #else
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask

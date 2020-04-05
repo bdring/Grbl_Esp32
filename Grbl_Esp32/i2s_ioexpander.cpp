@@ -72,10 +72,10 @@
 //
 // configrations for DMA connected I2S
 //
-#define DMA_BUF_COUNT 8                                // number of DMA buffers to store data
-#define DMA_BUF_LEN   4092                             // maximum size in bytes
-#define I2S_SAMPLE_SIZE 4                              // 4 bytes, 32 bits per sample
-#define DMA_SAMPLE_COUNT DMA_BUF_LEN / I2S_SAMPLE_SIZE // number of samples per buffer
+#define DMA_BUF_COUNT 8                                /* number of DMA buffers to store data */
+#define DMA_BUF_LEN   4092                             /* maximum size in bytes (4092 is DMA's limit) */
+#define I2S_SAMPLE_SIZE 4                              /* 4 bytes, 32 bits per sample */
+#define DMA_SAMPLE_COUNT DMA_BUF_LEN / I2S_SAMPLE_SIZE /* number of samples per buffer */
 
 typedef struct {
   uint32_t     **buffers;
@@ -98,25 +98,11 @@ static volatile uint32_t i2s_port_data = 0;
 // External funtions (without init function)
 //
 void i2s_ioexpander_write(uint8_t pin, uint8_t val) {
-  #if ENABLE_I2S_STEPPER_SPLIT_STREAM
-    if (pin >= 16) {
-      SET_BIT_TO(I2S0.conf_single_data, pin, val);
-      return;
-    }
-  #endif
   SET_BIT_TO(i2s_port_data, pin, val);
 }
 
 uint8_t i2s_ioexpander_state(uint8_t pin) {
-  uint8_t rc = 0;
-  #if ENABLE_I2S_STEPPER_SPLIT_STREAM
-    if (pin >= 16) {
-      rc = TEST(I2S0.conf_single_data, pin);
-      return rc;
-    }
-  #endif
-  rc = TEST(i2s_port_data, pin);
-  return rc;
+  return TEST(i2s_port_data, pin);
 }
 
 uint32_t i2s_ioexpander_push_sample() {
@@ -229,13 +215,13 @@ static void i2sIOExpanderTask(void* parameter) {
     while (dma.rw_pos < DMA_SAMPLE_COUNT) {
       // Fill with the extended GPIO port data
       stepper_param_p->pulse_phase_func();
-       stepper_param_p->block_phase_func();
+      stepper_param_p->block_phase_func();
     }
   }
 }
 
 //
-// Initialize funtion (exported function)
+// Initialize funtion (external function)
 //
 int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   periph_module_enable(PERIPH_I2S0_MODULE);
@@ -254,8 +240,11 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
    *
    *   fwclk = fbclk / 32
    *
-   *   for fwclk = 250kHz (4µS pulse time)
+   *   for fwclk = 250kHz (16-bit: 4µS pulse time, 32-bit: 8μS pulse time)
    *      N = 10
+   *      M = 2
+   *   for fwclk = 500kHz (16-bit: 2µS pulse time, 32-bit: 4μS pulse time)
+   *      N = 5
    *      M = 2
    */
   i2s_ioexpander_init_t *stepper_param_p = (i2s_ioexpander_init_t*)malloc(sizeof(i2s_ioexpander_init_t));
@@ -334,21 +323,15 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
 
   I2S0.fifo_conf.dscr_en = 0;
 
-  I2S0.conf_chan.tx_chan_mod = (
-    #if ENABLE_I2S_STEPPER_SPLIT_STREAM
-      4
-    #else
-      0
-    #endif
-  );
-  I2S0.fifo_conf.tx_fifo_mod = 0;
-  I2S0.conf.tx_mono = 0;
+  I2S0.conf_chan.tx_chan_mod = 0; // 0: Dual channel data mode
+  I2S0.fifo_conf.tx_fifo_mod = 2; // 0: 16-bit dual channel data, 2: 32-bit dual channel data
+  I2S0.conf.tx_mono = 0; // Set this bit to enable transmitter’s mono mode in PCM standard mode.
 
-  I2S0.conf_chan.rx_chan_mod = 0;
-  I2S0.fifo_conf.rx_fifo_mod = 0; // Receive FIFO mode configuration bit. 
+  I2S0.conf_chan.rx_chan_mod = 0; // 0: Dual channel data mode
+  I2S0.fifo_conf.rx_fifo_mod = 2; // 0: 16-bit dual channel data, 2: 32-bit dual channel data
   I2S0.conf.rx_mono = 0;
 
-  I2S0.fifo_conf.dscr_en = 1; //connect dma to fifo
+  I2S0.fifo_conf.dscr_en = 1; //connect DMA to fifo
 
   I2S0.conf.tx_start = 0;
   I2S0.conf.rx_start = 0;
@@ -362,21 +345,24 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   I2S0.pdm_conf.rx_pdm_en = 0; // Set this bit to enable receiver’s PDM mode.
   I2S0.pdm_conf.tx_pdm_en = 0; // Set this bit to enable transmitter’s PDM mode.
 
-  I2S0.conf.tx_short_sync = 0;
-  I2S0.conf.rx_short_sync = 0;
-  I2S0.conf.tx_msb_shift = 0;
-  I2S0.conf.rx_msb_shift = 0;
+  I2S0.conf.tx_short_sync = 0; // Set this bit to enable transmitter in PCM standard mode.
+  I2S0.conf.rx_short_sync = 0; // Set this bit to enable receiver in PCM standard mode.
+  I2S0.conf.tx_msb_shift = 0; // Do not use the Philips standard to avoid bit-shifting
+  I2S0.conf.rx_msb_shift = 0; // Do not use the Philips standard to avoid bit-shifting
 
   // set clock (fi2s)
   I2S0.clkm_conf.clka_en = 0;       // Use 160 MHz PLL_D2_CLK as reference
-  I2S0.clkm_conf.clkm_div_num = 10; // minimum value of 2, reset value of 4, max 256 (I²S clock divider’s integral value)
+  I2S0.clkm_conf.clkm_div_num = 5; // minimum value of 2, reset value of 4, max 256 (I²S clock divider’s integral value)
   I2S0.clkm_conf.clkm_div_a = 0;    // 0 at reset, what about divide by 0? (not an issue)
   I2S0.clkm_conf.clkm_div_b = 0;    // 0 at reset
 
   // Bit clock configuration bit in transmitter mode.
-  // fbck = fi2s / tx_bck_div_num = (160 MHz / 10) / 2 = 8 MHz
+  // fbck = fi2s / tx_bck_div_num = (160 MHz / 5) / 2 = 16 MHz
   I2S0.sample_rate_conf.tx_bck_div_num = 2; // minimum value of 2 defaults to 6
-  
+  I2S0.sample_rate_conf.rx_bck_div_num = 2;
+  I2S0.sample_rate_conf.tx_bits_mod = 32;
+  I2S0.sample_rate_conf.rx_bits_mod = 32;
+
   // Enable TX interrupts (DMA Interrupts)
   I2S0.int_ena.out_eof = 1; // Triggered when rxlink has finished sending a packet.
   I2S0.int_ena.out_dscr_err = 0; // Triggered when invalid rxlink descriptors are encountered.

@@ -215,11 +215,7 @@
 #define I2S_IOEXPANDER_BCK      22
 #define I2S_IOEXPANDER_WS       17
 #define I2S_IOEXPANDER_DATA     16
-
 #define I2S_STEPPER_STREAM
-// If the number of extended GPIOs is sufficient
-// to be 16 instead of 32, define "I2S_STEPPER_SPLIT_STREAM".
-#define I2S_STEPPER_SPLIT_STREAM
 
 // === Special Features
 // Grbl_ESP32 can support non-Cartesian machines and some other
