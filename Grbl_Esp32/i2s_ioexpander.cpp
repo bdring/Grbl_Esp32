@@ -97,20 +97,32 @@ static volatile uint32_t i2s_port_data = 0;
 //
 // External funtions (without init function)
 //
-void i2s_ioexpander_write(uint8_t pin, uint8_t val) {
+void IRAM_ATTR i2s_ioexpander_write(uint8_t pin, uint8_t val) {
   SET_BIT_TO(i2s_port_data, pin, val);
 }
 
-uint8_t i2s_ioexpander_state(uint8_t pin) {
+uint8_t IRAM_ATTR i2s_ioexpander_state(uint8_t pin) {
   return TEST(i2s_port_data, pin);
 }
 
-uint32_t i2s_ioexpander_push_sample() {
-  if (dma.rw_pos < DMA_SAMPLE_COUNT) {
-    dma.current[dma.rw_pos++] = i2s_port_data;
-    return 1;
+static volatile uint32_t *push_buffer;
+static volatile uint32_t push_buffer_w_pos = 0;
+static volatile uint32_t push_buffer_r_pos = 0;
+
+static inline uint32_t IRAM_ATTR i2s_ioexpander_read_sample(uint32_t *samplep) {
+  if (push_buffer_r_pos >= push_buffer_w_pos) {
+    // no data to read (buffer empty)
+    push_buffer_w_pos = 0;
+    push_buffer_r_pos = 0;
+    return -1;
   }
+  *samplep = push_buffer[push_buffer_r_pos++];
   return 0;
+}
+
+uint32_t IRAM_ATTR i2s_ioexpander_push_sample() {
+  push_buffer[push_buffer_w_pos++] = i2s_port_data;
+  return 1;
 }
 
 //
@@ -214,8 +226,14 @@ static void i2sIOExpanderTask(void* parameter) {
     dma.rw_pos = 0;
     while (dma.rw_pos < DMA_SAMPLE_COUNT) {
       // Fill with the extended GPIO port data
-      stepper_param_p->pulse_phase_func();
-      stepper_param_p->block_phase_func();
+      uint32_t sample = 0;
+      if (i2s_ioexpander_read_sample(&sample) != 0) {
+        // fillout push buffer
+        stepper_param_p->pulse_phase_func();
+        stepper_param_p->block_phase_func();
+      } else {
+        dma.current[dma.rw_pos++] = sample;
+      }
     }
   }
 }
@@ -288,6 +306,10 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
    // Set the first DMA descriptor
   I2S0.out_link.addr = (uint32_t)dma.desc[0];
 
+  // sample buffering
+  push_buffer = (uint32_t *)malloc(sizeof(uint32_t) * DMA_SAMPLE_COUNT);
+  if (push_buffer == nullptr) return -1;
+
   // stop i2s
   i2s_stop();
 
@@ -323,11 +345,11 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
 
   I2S0.fifo_conf.dscr_en = 0;
 
-  I2S0.conf_chan.tx_chan_mod = 0; // 0: Dual channel data mode
+  I2S0.conf_chan.tx_chan_mod = 4; // 0: Dual channel data mode, 4: Mono
   I2S0.fifo_conf.tx_fifo_mod = 2; // 0: 16-bit dual channel data, 2: 32-bit dual channel data
   I2S0.conf.tx_mono = 0; // Set this bit to enable transmitter’s mono mode in PCM standard mode.
 
-  I2S0.conf_chan.rx_chan_mod = 0; // 0: Dual channel data mode
+  I2S0.conf_chan.rx_chan_mod = 1; // 0: right+left, 1: right+right
   I2S0.fifo_conf.rx_fifo_mod = 2; // 0: 16-bit dual channel data, 2: 32-bit dual channel data
   I2S0.conf.rx_mono = 0;
 

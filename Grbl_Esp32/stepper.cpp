@@ -445,14 +445,10 @@ static void stepper_pulse_phase_func() {
 static void stepper_block_phase_func() {
 #ifdef I2S_STEPPER_STREAM
     uint8_t pulse_on_time = 0;
-    while (pulse_on_time < settings.pulse_microseconds) {
-        uint32_t num_pushed;
-        num_pushed = i2s_ioexpander_push_sample();
-        if (num_pushed < 1) {
-            return; // no space for push
-        }
-        pulse_on_time += I2S_IOEXP_USEC_PER_PULSE; // 4 us per sample (250KHz)
-    }
+    do {
+        i2s_ioexpander_push_sample();
+        pulse_on_time += I2S_IOEXP_USEC_PER_PULSE; // The resolution is limited by I2S_IOEXP_USEC_PER_PULSE
+    } while (pulse_on_time < settings.pulse_microseconds);
 #else
     /*DONOTHING*/
     return;

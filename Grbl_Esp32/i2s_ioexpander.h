@@ -59,8 +59,8 @@ typedef struct {
         I2S bitstream (32-bits):
              LEFT Channel                    Right Channel                   LEFT Channel
         ws   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~________________________________~~~~...
-        bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~
-        data vutsrqponmlkjihgfedcba9876543210vutsrqponmlkjihgfedcba9876543210vuts
+        bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~...
+        data ________________________________vutsrqponmlkjihgfedcba9876543210vuts...
              --------------------------------XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX^
                                                                              latch X bits
         0:Extended GPIO 128, 1: Extened GPIO 129, ..., v: Extended GPIO 159
