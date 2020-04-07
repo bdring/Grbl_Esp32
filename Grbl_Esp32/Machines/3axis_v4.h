@@ -40,11 +40,12 @@
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_13
 
-#define SPINDLE_PWM_PIN         GPIO_NUM_2   // labeled SpinPWM
+#define SPINDLE_PWM_PIN         GPIO_NUM_25   // labeled SpinPWM
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
-#define MIST_PIN                GPIO_NUM_21  // labeled Mist
-#define FLOOD_PIN               GPIO_NUM_25  // labeled Flood
-#define PROBE_PIN               GPIO_NUM_32  // labeled Probe
+#define SPINDLE_DIR_PIN         GPIO_NUM_21
+//#define MIST_PIN                GPIO_NUM_21  // labeled Mist
+//#define FLOOD_PIN               GPIO_NUM_25  // labeled Flood
+//#define PROBE_PIN               GPIO_NUM_32  // labeled Probe
 
 #define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_35  // labeled Door,  needs external pullup
 #define CONTROL_RESET_PIN       GPIO_NUM_34  // labeled Reset, needs external pullup

@@ -744,7 +744,7 @@ void report_realtime_status(uint8_t client) {
         } else  sys.report_ovr_counter = (REPORT_OVR_REFRESH_IDLE_COUNT - 1);
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
-        uint8_t sp_state = spindle_get_state();
+        uint8_t sp_state =  my_spindle.get_state();
         uint8_t cl_state = coolant_get_state();
         if (sp_state || cl_state) {
             strcat(status, "|A:");
