@@ -2,6 +2,7 @@
     SpindleClass.h
 
     Header file for a Spindle Class
+    See SpindleClass.cpp for more details
 
     Part of Grbl_ESP32
 
@@ -19,9 +20,6 @@
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
-    TODO
-        Consider breaking into one file per class.
-
 */
 #include "grbl.h"
 #include <driver/dac.h>
@@ -31,7 +29,7 @@
 #define SPINDLE_STATE_CW       bit(0)
 #define SPINDLE_STATE_CCW      bit(1)
 
-#define UNDEFINED_PIN 255
+#define UNDEFINED_PIN 255  // Pins will be set to this if not defined
 
 #ifndef SPINDLE_CLASS_H
 #define SPINDLE_CLASS_H
@@ -76,16 +74,10 @@ class PWMSpindle : public Spindle {
     virtual void set_pwm(uint32_t duty);
 
   private:
-    int8_t _spindle_pwm_chan_num;    
-
+    int8_t _spindle_pwm_chan_num;
     int32_t _current_pwm_duty;
-
     float _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
-    
-    
-    
-    
     void set_spindle_dir_pin(bool Clockwise);
 
   protected:
@@ -110,8 +102,6 @@ class RelaySpindle : public PWMSpindle {
     void init();
     void config_message();
     void set_pwm(uint32_t duty);
-  private:
-
 };
 
 // this is the same as a PWM spindle, but the M4 compensation is supported.
@@ -129,8 +119,7 @@ class DacSpindle : public PWMSpindle {
     void set_pwm(uint32_t duty); // sets DAC instead of PWM
     float set_rpm(float rpm);
   private:
-    dac_channel_t _dac_channel_num;
-    bool _gpio_ok;
+    bool _gpio_ok; // DAC is on a valid pin
 };
 
 
