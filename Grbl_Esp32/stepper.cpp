@@ -590,6 +590,17 @@ void initRMT() {
     rmt_config(&rmtConfig);
     rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
 #endif
+#ifdef Z2_STEP_PIN
+    Z2_rmt_chan_num = sys_get_next_RMT_chan_num();
+    rmt_set_source_clk((rmt_channel_t)Z2_rmt_chan_num, RMT_BASECLK_APB);
+    rmtConfig.channel = (rmt_channel_t)Z2_rmt_chan_num;
+    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Z_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+    rmtConfig.gpio_num = Z2_STEP_PIN;
+    rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
+    rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
+    rmt_config(&rmtConfig);
+    rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
+#endif
 #ifdef A_STEP_PIN
     A_rmt_chan_num = sys_get_next_RMT_chan_num();
     rmt_set_source_clk((rmt_channel_t)A_rmt_chan_num, RMT_BASECLK_APB);
@@ -802,12 +813,25 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
 #endif
     }
 #endif
+
 #ifdef  Z_STEP_PIN
     if (st.step_outbits & (1 << Z_AXIS)) {
+#ifndef Z2_STEP_PIN // if not a ganged axis
         RMT.conf_ch[Z_rmt_chan_num].conf1.mem_rd_rst = 1;
         RMT.conf_ch[Z_rmt_chan_num].conf1.tx_start = 1;
+#else // it is a ganged axis
+        if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A)) {
+            RMT.conf_ch[Z_rmt_chan_num].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[Z_rmt_chan_num].conf1.tx_start = 1;
+        }
+        if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B)) {
+            RMT.conf_ch[Z2_rmt_chan_num].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[Z2_rmt_chan_num].conf1.tx_start = 1;
+        }
+#endif
     }
 #endif
+
 #ifdef  A_STEP_PIN
     if (st.step_outbits & (1 << A_AXIS)) {
         RMT.conf_ch[A_rmt_chan_num].conf1.mem_rd_rst = 1;
