@@ -40,7 +40,7 @@ void settings_init() {
     if (!read_global_settings()) {
         report_status_message(STATUS_SETTING_READ_FAIL, CLIENT_SERIAL);
         settings_restore(SETTINGS_RESTORE_ALL); // Force restore all EEPROM data.
-        report_grbl_settings(CLIENT_SERIAL, false); // only the serial could be working at this point
+        report_grbl_settings(CLIENT_SERIAL, false);
     }
 }
 
@@ -366,19 +366,19 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
         case 25: settings.homing_seek_rate = value; break;
         case 26: settings.homing_debounce_delay = int_value; break;
         case 27: settings.homing_pulloff = value; break;
-        case 30: settings.rpm_max = std::max(value, 1.0f); spindle_init(); break; // Re-initialize spindle rpm calibration (min of 1)
-        case 31: settings.rpm_min = value; spindle_init(); break; // Re-initialize spindle rpm calibration
+        case 30: settings.rpm_max = std::max(value, 1.0f); my_spindle.init(); break; // Re-initialize spindle rpm calibration (min of 1)
+        case 31: settings.rpm_min = value; my_spindle.init(); break; // Re-initialize spindle rpm calibration
         case 32:
             if (int_value)
                 settings.flags |= BITFLAG_LASER_MODE;
             else
                 settings.flags &= ~BITFLAG_LASER_MODE;
-            spindle_init(); // update the spindle class
+            my_spindle.init(); // update the spindle class
             break;
-        case 33: settings.spindle_pwm_freq = value; spindle_init(); break; // Re-initialize spindle pwm calibration
-        case 34: settings.spindle_pwm_off_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
-        case 35: settings.spindle_pwm_min_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
-        case 36: settings.spindle_pwm_max_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
+        case 33: settings.spindle_pwm_freq = value; my_spindle.init(); break; // Re-initialize spindle pwm calibration
+        case 34: settings.spindle_pwm_off_value = value; my_spindle.init(); break; // Re-initialize spindle pwm calibration
+        case 35: settings.spindle_pwm_min_value = value; my_spindle.init(); break; // Re-initialize spindle pwm calibration
+        case 36: settings.spindle_pwm_max_value = value; my_spindle.init(); break; // Re-initialize spindle pwm calibration
         case 80:
         case 81:
         case 82:

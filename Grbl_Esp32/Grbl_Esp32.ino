@@ -21,6 +21,8 @@
 #include "grbl.h"
 #include "WiFi.h"
 
+#include "tools/SpindleClass.cpp"
+
 // Declare system global variable structure
 system_t sys;
 int32_t sys_position[N_AXIS];      // Real-time machine (aka home) position vector in steps.
@@ -113,7 +115,7 @@ void loop() {
     // Reset Grbl primary systems.
     serial_reset_read_buffer(CLIENT_ALL); // Clear serial read buffer
     gc_init(); // Set g-code parser to default state
-    spindle_init();
+    my_spindle.init();
     coolant_init();
     limits_init();
     probe_init();

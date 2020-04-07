@@ -19,10 +19,19 @@
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
+    TODO
+        Consider breaking into one file per class.
+
 */
 #include "grbl.h"
 #include <driver/dac.h>
 
+
+#define SPINDLE_STATE_DISABLE  0  // Must be zero.
+#define SPINDLE_STATE_CW       bit(0)
+#define SPINDLE_STATE_CCW      bit(1)
+
+#define UNDEFINED_PIN 255
 
 #ifndef SPINDLE_CLASS_H
 #define SPINDLE_CLASS_H
@@ -38,6 +47,7 @@ class Spindle {
     virtual void stop();
     virtual void config_message();
     virtual bool isRateAdjusted();
+    virtual void spindle_sync(uint8_t state, float rpm);
 
 };
 
@@ -58,7 +68,7 @@ class NullSpindle : public Spindle {
 class PWMSpindle : public Spindle {
   public:
     void init();
-    float set_rpm(float rpm);
+    virtual float set_rpm(float rpm);
     void set_state(uint8_t state, float rpm);
     uint8_t get_state();
     void stop();
@@ -66,25 +76,32 @@ class PWMSpindle : public Spindle {
     virtual void set_pwm(uint32_t duty);
 
   private:
-    int8_t _spindle_pwm_chan_num;
-    
+    int8_t _spindle_pwm_chan_num;    
 
     int32_t _current_pwm_duty;
 
     float _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
-    uint32_t _pwm_off_value;
-    uint32_t _pwm_min_value;
-    uint32_t _pwm_max_value;
-    float _min_rpm;
-    float _max_rpm;
-
-    void set_enable_pin(bool enable_pin);
+    
+    
+    
+    
     void set_spindle_dir_pin(bool Clockwise);
 
   protected:
+    float _min_rpm;
+    float _max_rpm;
+    uint32_t _pwm_off_value;
+    uint32_t _pwm_min_value;
+    uint32_t _pwm_max_value;
+    uint8_t _output_pin;
+    uint8_t _enable_pin;
+    uint8_t _direction_pin;
     float _pwm_freq;
     uint32_t _pwm_period; // how many counts in 1 period
+
+    void set_enable_pin(bool enable_pin);
+    void get_pin_numbers();
 };
 
 // This is for an on/off spindle all RPMs above 0 are on
@@ -110,6 +127,7 @@ class DacSpindle : public PWMSpindle {
     void init();
     void config_message();
     void set_pwm(uint32_t duty); // sets DAC instead of PWM
+    float set_rpm(float rpm);
   private:
     dac_channel_t _dac_channel_num;
     bool _gpio_ok;

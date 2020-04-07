@@ -24,22 +24,6 @@
 #include "grbl.h"
 #include "tools/SpindleClass.h"
 
-
-#define SPINDLE_NO_SYNC false
-#define SPINDLE_FORCE_SYNC true
-
-#define SPINDLE_STATE_DISABLE  0  // Must be zero.
-#define SPINDLE_STATE_CW       bit(0)
-#define SPINDLE_STATE_CCW      bit(1)
-
-//extern uint32_t spindle_pwm_off_value;
-extern Laser my_spindle;
-
-void spindle_init();
-void spindle_stop();
-uint8_t spindle_get_state();
-void spindle_set_speed(uint32_t pwm_value);
-void spindle_set_state(uint8_t state, float rpm);
-void spindle_sync(uint8_t state, float rpm);
+extern DacSpindle my_spindle;
 
 #endif
