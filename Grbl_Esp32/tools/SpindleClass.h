@@ -26,6 +26,12 @@
 #define SPINDLE_STATE_CW       bit(0)
 #define SPINDLE_STATE_CCW      bit(1)
 
+#define SPINDLE_TYPE_NONE   0
+#define SPINDLE_TYPE_PWM    1
+#define SPINDLE_TYPE_RELAY  2
+#define SPINDLE_TYPE_LASER  4
+#define SPINDLE_TYPE_DAC    5
+
 #ifndef SPINDLE_CLASS_H
 #define SPINDLE_CLASS_H
 
@@ -120,7 +126,15 @@ class DacSpindle : public PWMSpindle {
     void set_pwm(uint32_t duty); // sets DAC instead of PWM
 };
 
-extern NullSpindle my_spindle;
+extern Spindle *my_spindle;
+
+extern NullSpindle null_spindle;
+extern PWMSpindle pwm_spindle;
+extern RelaySpindle relay_spindle;
+extern Laser laser;
+extern DacSpindle dac_spindle;
+
+void spindle_select(uint8_t spindle_type);
 
 
 #endif

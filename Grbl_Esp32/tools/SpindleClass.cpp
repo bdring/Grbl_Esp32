@@ -41,6 +41,35 @@
 #include "RelaySpindle.cpp"
 #include "Laser.cpp"
 
+NullSpindle null_spindle;
+PWMSpindle pwm_spindle;
+RelaySpindle relay_spindle;
+Laser laser;
+DacSpindle dac_spindle;
+
+void spindle_select(uint8_t spindle_type) {
+    
+    switch (spindle_type) {
+    case SPINDLE_TYPE_PWM:        
+        my_spindle = &pwm_spindle;
+        break;
+    case SPINDLE_TYPE_RELAY:
+        my_spindle = &relay_spindle;
+        break;
+    case SPINDLE_TYPE_LASER:
+        my_spindle = &laser;
+        break;
+    case SPINDLE_TYPE_DAC:
+        my_spindle = &dac_spindle;
+        break;
+    case SPINDLE_TYPE_NONE:
+    default:
+        my_spindle = &null_spindle;
+        break;
+    }
+    my_spindle->init();
+}
+
 bool Spindle::isRateAdjusted() {
     return false; // default for basic spindles is false
 }

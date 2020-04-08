@@ -36,7 +36,8 @@ volatile uint8_t sys_rt_exec_accessory_override; // Global realtime executor bit
     volatile uint8_t sys_rt_exec_debug;
 #endif
 
-NullSpindle my_spindle;
+Spindle *my_spindle;
+
 
 
 void setup() {
@@ -116,7 +117,8 @@ void loop() {
     // Reset Grbl primary systems.
     serial_reset_read_buffer(CLIENT_ALL); // Clear serial read buffer
     gc_init(); // Set g-code parser to default state
-    my_spindle.init();
+   // my_spindle.init();
+    spindle_select(SPINDLE_TYPE_PWM);
     coolant_init();
     limits_init();
     probe_init();
