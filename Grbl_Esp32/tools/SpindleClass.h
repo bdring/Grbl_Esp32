@@ -37,15 +37,12 @@ class Spindle {
   public:
     virtual void init(); // not in constructor because this also gets called when $$ settings change
     virtual float set_rpm(float rpm);
-    //virtual void set_pwm(uint32_t duty);
     virtual void set_state(uint8_t state, float rpm);
     virtual uint8_t get_state();
     virtual void stop();
     virtual void config_message();
     virtual bool isRateAdjusted();
     virtual void spindle_sync(uint8_t state, float rpm);
-
-
 };
 
 // This is a dummy spindle that has no I/O.
@@ -68,7 +65,7 @@ class PWMSpindle : public Spindle {
     void set_state(uint8_t state, float rpm);
     uint8_t get_state();
     void stop();
-    void config_message();    
+    void config_message();
 
   private:
     int8_t _spindle_pwm_chan_num;
@@ -113,7 +110,7 @@ class Laser : public PWMSpindle {
 class DacSpindle : public PWMSpindle {
   public:
     void init();
-    void config_message();    
+    void config_message();
     float set_rpm(float rpm);
   private:
     bool _gpio_ok; // DAC is on a valid pin
