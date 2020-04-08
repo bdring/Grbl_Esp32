@@ -21,9 +21,6 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "grbl.h"
-#include <driver/dac.h>
-
 
 #define SPINDLE_STATE_DISABLE  0  // Must be zero.
 #define SPINDLE_STATE_CW       bit(0)
@@ -31,6 +28,11 @@
 
 #ifndef SPINDLE_CLASS_H
 #define SPINDLE_CLASS_H
+
+#include "grbl.h"
+#include <driver/dac.h>
+
+
 
 // This is the base class. Do not use this as your spindle
 class Spindle {
@@ -117,6 +119,8 @@ class DacSpindle : public PWMSpindle {
   protected:
     void set_pwm(uint32_t duty); // sets DAC instead of PWM
 };
+
+extern NullSpindle my_spindle;
 
 
 #endif
