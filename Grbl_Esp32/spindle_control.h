@@ -24,6 +24,6 @@
 #include "grbl.h"
 #include "tools/SpindleClass.h"
 
-extern DacSpindle my_spindle;
+extern NullSpindle my_spindle;
 
 #endif

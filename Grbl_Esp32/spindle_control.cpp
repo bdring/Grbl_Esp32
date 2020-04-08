@@ -24,4 +24,4 @@
 //  This saves me from touching the grbl_esp32 code as much right now.
 
 // define a spindle type
-DacSpindle my_spindle;
+NullSpindle my_spindle;
