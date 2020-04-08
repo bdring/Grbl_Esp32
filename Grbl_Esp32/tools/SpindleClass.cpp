@@ -3,7 +3,7 @@
 
     A Spindle Class
         Spindle         - A base class. Do not use
-        PWMSpindel      - A spindle with a PWM output
+        PWMSpindle     - A spindle with a PWM output
         RelaySpindle    - An on/off only spindle
         Laser           - Output is PWM, but the M4 laser power mode can be used
         DacSpindle      - Uses the DAC to output a 0-3.3V output
@@ -55,7 +55,6 @@ void NullSpindle :: init() {
 float NullSpindle :: set_rpm(float rpm) {
     return rpm;
 }
-void NullSpindle :: set_pwm(uint32_t duty) {}
 void NullSpindle :: set_state(uint8_t state, float rpm) {}
 uint8_t NullSpindle :: get_state() {
     return (SPINDLE_STATE_DISABLE);
@@ -68,7 +67,6 @@ void NullSpindle :: config_message() {
 
 
 // ======================= PWMSpindle ==============================
-
 void PWMSpindle::init() {
 
     get_pin_numbers();
@@ -146,8 +144,6 @@ float PWMSpindle::set_rpm(float rpm) {
         return rpm;
 
     uint32_t pwm_value;
-
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set RPM %5.1f", rpm);
 
     // apply overrides and limits
     rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
@@ -228,7 +224,6 @@ void PWMSpindle::stop() {
 // prints the startup message of the spindle config
 void PWMSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM spindle on GPIO %d, freq %.2fHz, Res %d bits", _output_pin, _pwm_freq, SPINDLE_PWM_BIT_PRECISION);
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM Off:%d Min:%d Max:%d", _pwm_off_value, _pwm_min_value, _pwm_max_value);
 }
 
 
@@ -245,7 +240,6 @@ void PWMSpindle::set_pwm(uint32_t duty) {
 #ifdef INVERT_SPINDLE_PWM
     duty = (1 << SPINDLE_PWM_BIT_PRECISION) - duty;
 #endif
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set PWM %d of %d", duty, (1 << SPINDLE_PWM_BIT_PRECISION) - 1);
     ledcWrite(_spindle_pwm_chan_num, duty);
 }
 
@@ -268,7 +262,6 @@ void PWMSpindle::set_spindle_dir_pin(bool Clockwise) {
 /*
     This is the same as a PWM spindle, but is a digital rather than PWM output
 */
-
 void RelaySpindle::init() {
     get_pin_numbers();
     if (_output_pin == UNDEFINED_PIN)
@@ -326,10 +319,9 @@ void DacSpindle :: init() {
     _max_rpm = settings.rpm_max;
     _pwm_min_value = 0;     // not actually PWM...DAC counts
     _pwm_max_value = 255;   // not actually PWM...DAC counts
-    _dac_channel_num = (dac_channel_t)0;
     _gpio_ok = true;
 
-    if (_output != GPIO_NUM_25 && _output != GPIO_NUM_26) { // DAC can only be used on these pins 
+    if (_output_pin != GPIO_NUM_25 && _output_pin != GPIO_NUM_26) { // DAC can only be used on these pins 
         _gpio_ok = false;
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DAC spindle pin invalid GPIO_NUM_%d", _output_pin);
         return;
@@ -378,10 +370,8 @@ float DacSpindle::set_rpm(float rpm) {
         // Compute intermediate PWM value with linear spindle speed model.
         // NOTE: A nonlinear model could be installed here, if required, but keep it VERY light-weight.
         sys.spindle_speed = rpm;
-
-        //pwm_value = floor((rpm - _min_rpm) * _pwm_gradient) + _pwm_min_value;
+        
         pwm_value = (uint32_t)map_float(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
-
     }
 
 #ifdef  SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
@@ -399,5 +389,3 @@ void DacSpindle :: set_pwm(uint32_t duty) {
     }
        
 }
-
-
