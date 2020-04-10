@@ -64,12 +64,16 @@ void settings_restore(uint8_t restore_flag) {
         settings.status_report_mask = DEFAULT_STATUS_REPORT_MASK;
         settings.junction_deviation = DEFAULT_JUNCTION_DEVIATION;
         settings.arc_tolerance = DEFAULT_ARC_TOLERANCE;
+
+        settings.rpm_max = DEFAULT_SPINDLE_RPM_MAX;
+        settings.rpm_min = DEFAULT_SPINDLE_RPM_MIN;
         settings.spindle_pwm_freq = DEFAULT_SPINDLE_FREQ;      // $33 Hz (extended set)
         settings.spindle_pwm_off_value = DEFAULT_SPINDLE_OFF_VALUE; // $34 Percent (extended set)
         settings.spindle_pwm_min_value = DEFAULT_SPINDLE_MIN_VALUE; // $35 Percent (extended set)
         settings.spindle_pwm_max_value = DEFAULT_SPINDLE_MAX_VALUE; // $36 Percent (extended set)
-        settings.rpm_max = DEFAULT_SPINDLE_RPM_MAX;
-        settings.rpm_min = DEFAULT_SPINDLE_RPM_MIN;
+        settings.spindle_pwm_precision_bits = MIN(8, DEFAULT_SPINDLE_PWM_BIT_PRECISION); // $37
+        settings.spindle_type= DEFAULT_SPINDLE_TYPE; // $38
+        
         settings.homing_dir_mask = DEFAULT_HOMING_DIR_MASK;
         settings.homing_feed_rate = DEFAULT_HOMING_FEED_RATE;
         settings.homing_seek_rate = DEFAULT_HOMING_SEEK_RATE;
@@ -375,10 +379,12 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
                 settings.flags &= ~BITFLAG_LASER_MODE;
             my_spindle->init(); // update the spindle class
             break;
-        case 33: settings.spindle_pwm_freq = value; my_spindle->init(); break; // Re-initialize spindle pwm calibration
-        case 34: settings.spindle_pwm_off_value = value; my_spindle->init(); break; // Re-initialize spindle pwm calibration
-        case 35: settings.spindle_pwm_min_value = value; my_spindle->init(); break; // Re-initialize spindle pwm calibration
-        case 36: settings.spindle_pwm_max_value = value; my_spindle->init(); break; // Re-initialize spindle pwm calibration
+        case 33: settings.spindle_pwm_freq = value; spindle_select(settings.spindle_type); break; // Re-initialize spindle pwm calibration
+        case 34: settings.spindle_pwm_off_value = value; spindle_select(settings.spindle_type); break; // Re-initialize spindle pwm calibration
+        case 35: settings.spindle_pwm_min_value = value; spindle_select(settings.spindle_type); break; // Re-initialize spindle pwm calibration
+        case 36: settings.spindle_pwm_max_value = value; spindle_select(settings.spindle_type); break; // Re-initialize spindle pwm calibration
+        case 37: settings.spindle_pwm_precision_bits = MIN(8, value);spindle_select(settings.spindle_type); break;
+        case 38: settings.spindle_type = value; spindle_select(settings.spindle_type); break;
         case 80:
         case 81:
         case 82:

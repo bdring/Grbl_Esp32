@@ -107,6 +107,8 @@ typedef struct {
     float spindle_pwm_off_value; // $34 Percent (extended set)
     float spindle_pwm_min_value; // $35 Percent (extended set)
     float spindle_pwm_max_value; // $36 Percent (extended set)
+    uint8_t spindle_pwm_precision_bits; // $37 PWM pwm precision in bits (extended set)
+    uint8_t spindle_type;        // $38 The spindle class to be used (extended set)
 
     float rpm_max;
     float rpm_min;

@@ -26,8 +26,7 @@
     TODO
         Consider breaking into one file per class.
 
-    Get rid of dependance on machine definition #defines
-        SPINDLE_PWM_BIT_PRECISION
+    Get rid of dependance on machine definition #defines       
         SPINDLE_PWM_PIN
         SPINDLE_ENABLE_PIN
         SPINDLE_DIR_PIN
