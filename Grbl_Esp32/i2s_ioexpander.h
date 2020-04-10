@@ -52,7 +52,6 @@
 #define I2S_IOEXP_USEC_PER_PULSE 4
 
 typedef void (*i2s_ioexpander_pulse_phase_func_t)(void);
-typedef void (*i2s_ioexpander_block_phase_func_t)(void);
 
 typedef struct {
     /*
@@ -60,24 +59,17 @@ typedef struct {
              LEFT Channel                    Right Channel                   LEFT Channel
         ws   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~________________________________~~~~...
         bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~...
-        data ________________________________vutsrqponmlkjihgfedcba9876543210____...
-                                             XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX^
+        data vutsrqponmlkjihgfedcba9876543210vutsrqponmlkjihgfedcba9876543210____...
+             dummy(same as right channel)    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX^
                                                                              latch X bits
-        0:Extended GPIO 128, 1: Extened GPIO 129, ..., v: Extended GPIO 159
+        0:Extended GPIO 128, 1: Extended GPIO 129, ..., v: Extended GPIO 159
         (data at LEFT Channel will ignored by shift-register IC)
     */
     uint8_t ws_pin;
     uint8_t bck_pin;
     uint8_t data_pin;
-    /*
-        Callback functions that generates the stepper pulse and block
-            |~~~~|____|
-            Pulse Block
-        
-        * When the I2S stepper is idle, it continuously calls the block function.
-     */
     i2s_ioexpander_pulse_phase_func_t pulse_phase_func;
-    i2s_ioexpander_block_phase_func_t block_phase_func;
+    uint32_t pulse_period; // aka step rate.
 } i2s_ioexpander_init_t;
 
 /*
@@ -103,13 +95,19 @@ void i2s_ioexpander_write(uint8_t pin, uint8_t val);
 
 /*
     Set current pin state to the I2S bitstream buffer
-    (This call will generate a future 4us bitstream)
+    (This call will generate a future 4μs x N bitstream)
+
+    num: Number of samples to be generated
 
     return: number of puhsed samples
-            1 .. success
             0 .. no space for push
  */
-uint32_t i2s_ioexpander_push_sample();
+uint32_t i2s_ioexpander_push_sample(uint32_t num);
+
+int i2s_ioexpander_start();
+int i2s_ioexpander_stop();
+int i2s_ioexpander_set_pulse_period(uint64_t period);
+
 #endif
 
 /*
