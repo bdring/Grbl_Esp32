@@ -197,7 +197,7 @@ static int i2s_stop() {
 }
 
 int i2s_ioexpander_start() {
-  i2s_start();
+  //i2s_start();
   i2s_ioexpander_status = RUNNING;
   return 0;
 }
@@ -234,7 +234,7 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
       xQueueReceiveFromISR(dma.queue, &dummy, &high_priority_task_awoken);
       // This will avoid any kind of noise that may get introduced due to transmission
       // of previous data from tx descriptor on I2S line.
-      memset(dummy, 0, DMA_BUF_LEN);
+      memset(dummy, i2s_port_data, DMA_BUF_LEN);
     }
     // Send a DMA complete event to the I2S bitstreamer task with finished buffer 
     xQueueSendFromISR(dma.queue, &finish_desc, &high_priority_task_awoken);
@@ -261,10 +261,10 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
     // and fills the buffer for later DMA.
     if (i2s_ioexpander_status == STOPPING) {
       if (i2s_ioexpander_clear_buffer_counter++ < DMA_BUF_COUNT) {
-        memset(dma.current, 0, DMA_BUF_LEN);
+        memset(dma.current, i2s_port_data, DMA_BUF_LEN);
         dma.rw_pos = DMA_BUF_LEN;
       } else {
-        i2s_stop();
+        //i2s_stop();
         i2s_ioexpander_status = STOPPED;
       }
     } else {
