@@ -32,13 +32,13 @@ void PWMSpindle::init() {
     }
 
     _pwm_freq = settings.spindle_pwm_freq;
-    _pwm_period = ((1 << SPINDLE_PWM_BIT_PRECISION) - 1);
+    _pwm_period = ((1 << settings.spindle_pwm_precision_bits) - 1);
 
     if (settings.spindle_pwm_min_value > settings.spindle_pwm_min_value)
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Spindle min pwm is greater than max. Check $35 and $36");
 
     if ((F_TIMERS / _pwm_freq) < _pwm_period)
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning spindle PWM precision (%d bits) too high for frequency (%.2f Hz)", SPINDLE_PWM_BIT_PRECISION, _pwm_freq);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning spindle PWM precision (%d bits) too high for frequency (%.2f Hz)", settings.spindle_pwm_precision_bits, _pwm_freq);
 
     // pre-caculate some PWM count values
     _pwm_off_value = (_pwm_period * settings.spindle_pwm_off_value / 100.0);
@@ -56,7 +56,7 @@ void PWMSpindle::init() {
     _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
 
     _spindle_pwm_chan_num = sys_get_next_PWM_chan_num();
-    ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, SPINDLE_PWM_BIT_PRECISION); // setup the channel
+    ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, settings.spindle_pwm_precision_bits); // setup the channel
     ledcAttachPin(_output_pin, _spindle_pwm_chan_num); // attach the PWM to the pin    
 
     if (_enable_pin != UNDEFINED_PIN)
@@ -99,10 +99,13 @@ float PWMSpindle::set_rpm(float rpm) {
     if (_output_pin == UNDEFINED_PIN)
         return rpm;
 
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RPM:%5.2f Min:%5.2f Max:%5.2f", rpm, _min_rpm, _max_rpm);
+
     uint32_t pwm_value;
 
     // apply overrides and limits
     rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RPM 1:%5.2f", rpm);
 
     // Calculate PWM register value based on rpm max/min settings and programmed rpm.
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
@@ -115,6 +118,7 @@ float PWMSpindle::set_rpm(float rpm) {
             pwm_value = _pwm_off_value;
         } else { // Set minimum PWM output
             rpm = _min_rpm;
+            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RPM 2:%5.2f", rpm);
             sys.spindle_speed = rpm;
             pwm_value = _pwm_min_value;
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RPM less than min RPM:%5.2f %d", rpm, pwm_value);
@@ -123,6 +127,7 @@ float PWMSpindle::set_rpm(float rpm) {
         // Compute intermediate PWM value with linear spindle speed model.
         // NOTE: A nonlinear model could be installed here, if required, but keep it VERY light-weight.
         sys.spindle_speed = rpm;
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RPM 3:%5.2f", rpm);
 #ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
         pwm_value = piecewise_linear_fit(rpm);
 #else
@@ -134,6 +139,7 @@ float PWMSpindle::set_rpm(float rpm) {
     set_enable_pin(rpm != 0);
 #endif
 
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RPM Final:%5.2f", rpm);
     set_pwm(pwm_value);
 
     return rpm;
@@ -179,7 +185,7 @@ void PWMSpindle::stop() {
 
 // prints the startup message of the spindle config
 void PWMSpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM spindle on GPIO %d, freq %.2fHz, Res %d bits", _output_pin, _pwm_freq, SPINDLE_PWM_BIT_PRECISION);
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM spindle on GPIO %d, freq %.2fHz, Res %d bits", _output_pin, _pwm_freq, settings.spindle_pwm_precision_bits);
 }
 
 
@@ -194,7 +200,7 @@ void PWMSpindle::set_pwm(uint32_t duty) {
     _current_pwm_duty = duty;
 
 #ifdef INVERT_SPINDLE_PWM
-    duty = (1 << SPINDLE_PWM_BIT_PRECISION) - duty;
+    duty = (1 << settings.spindle_pwm_precision_bits) - duty;
 #endif
     ledcWrite(_spindle_pwm_chan_num, duty);
 }

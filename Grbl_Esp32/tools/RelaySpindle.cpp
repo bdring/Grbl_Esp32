@@ -17,7 +17,7 @@
     GNU General Public License for more details.
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
-    
+
 */
 #include "grbl.h"
 #include "SpindleClass.h"
@@ -47,9 +47,27 @@ void RelaySpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Relay spindle on GPIO %d", _output_pin);
 }
 
+float RelaySpindle::set_rpm(float rpm) {
+    if (_output_pin == UNDEFINED_PIN)
+        return rpm;
+
+    sys.spindle_speed = rpm;
+
+    if (rpm == 0) {
+        sys.spindle_speed = 0.0;
+        set_pwm(0);
+    } else {
+        sys.spindle_speed = rpm;
+        set_pwm(1);
+    }
+
+    return rpm;
+}
+
 void RelaySpindle::set_pwm(uint32_t duty) {
 #ifdef INVERT_SPINDLE_PWM
     duty = (duty == 0); // flip duty
 #endif
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Relay output %d", duty > 0);
     digitalWrite(_output_pin, duty > 0); // anything greater
 }

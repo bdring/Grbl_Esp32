@@ -35,7 +35,7 @@
 
 #define SHOW_EXTENDED_SETTINGS
 
-#define SPINDLE_PWM_BIT_PRECISION 16   // 16 bit recommended for ESC (don't change)
+#define DEFAULT_SPINDLE_PWM_BIT_PRECISION 16   // 16 bit recommended for ESC (don't change)
 
 /*
  Important ESC Settings

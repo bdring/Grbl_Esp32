@@ -318,6 +318,8 @@ void report_grbl_settings(uint8_t client, uint8_t show_extended) {
         sprintf(setting, "$34=%3.3f\r\n", settings.spindle_pwm_off_value);   strcat(rpt, setting);
         sprintf(setting, "$35=%3.3f\r\n", settings.spindle_pwm_min_value);   strcat(rpt, setting);
         sprintf(setting, "$36=%3.3f\r\n", settings.spindle_pwm_max_value);   strcat(rpt, setting);
+        sprintf(setting, "$37=%d\r\n", settings.spindle_pwm_precision_bits);   strcat(rpt, setting);
+        sprintf(setting, "$38=%d\r\n", settings.spindle_type);   strcat(rpt, setting);
         for (uint8_t index = 0; index < USER_SETTING_COUNT; index++) {
             sprintf(setting, "$%d=%d\r\n", 80 + index, settings.machine_int16[index]);   strcat(rpt, setting);
         }

@@ -104,6 +104,8 @@ class RelaySpindle : public PWMSpindle {
   public:
     void init();
     void config_message();
+    float set_rpm(float rpm);
+  protected:
     void set_pwm(uint32_t duty);
 };
 
