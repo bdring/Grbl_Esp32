@@ -47,7 +47,8 @@
 #define MODAL_GROUP_M6 14  // [M6] Tool change
 #define MODAL_GROUP_M7 12 // [M3,M4,M5] Spindle turning
 #define MODAL_GROUP_M8 13 // [M7,M8,M9] Coolant control
-#define MODAL_GROUP_M10 14 // [M62, M63] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
+#define MODAL_GROUP_M9 14 // [M56] Override control
+#define MODAL_GROUP_M10 15 // [M62, M63] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
 
 // #define OTHER_INPUT_F 14
 // #define OTHER_INPUT_S 15
@@ -126,6 +127,15 @@
 #define COOLANT_FLOOD_ENABLE  PL_COND_FLAG_COOLANT_FLOOD // M8 (NOTE: Uses planner condition bit flag)
 #define COOLANT_MIST_ENABLE   PL_COND_FLAG_COOLANT_MIST  // M7 (NOTE: Uses planner condition bit flag)
 
+// Modal Group M9: Override control
+#ifdef DEACTIVATE_PARKING_UPON_INIT
+    #define OVERRIDE_DISABLED  0 // (Default: Must be zero)
+    #define OVERRIDE_PARKING_MOTION 1 // M56
+#else
+    #define OVERRIDE_PARKING_MOTION 0 // M56 (Default: Must be zero)
+    #define OVERRIDE_DISABLED  1 // Parking disabled.
+#endif
+
 // modal Group M10: User I/O control
 #define NON_MODAL_IO_ENABLE		1
 #define NON_MODAL_IO_DISABLE	2
@@ -203,6 +213,7 @@ typedef struct {
     uint8_t spindle;         // {M3,M4,M5}
     uint8_t tool_change;     // {M6}
     uint8_t io_control;      // {M62, M63}
+    uint8_t override;        // {M56}
 } gc_modal_t;
 
 typedef struct {
