@@ -34,6 +34,8 @@
     #ifdef USE_MACHINE_TRINAMIC_INIT
         void machine_trinamic_setup();
     #endif
+
+    uint8_t get_next_trinamic_driver_index();
 #endif
 
 #endif // GRBL_TRIAMINIC_h
