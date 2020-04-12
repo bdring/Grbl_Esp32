@@ -525,15 +525,9 @@ void stepper_init() {
     SET_OUTPUT(C2_DIRECTION_PIN);
 #endif
 
-#ifdef USE_I2S_IOEXPANDER
-    i2s_ioexpander_init_t param = {
-        .ws_pin = I2S_IOEXPANDER_WS,
-        .bck_pin = I2S_IOEXPANDER_BCK,
-        .data_pin = I2S_IOEXPANDER_DATA,
-        .pulse_phase_func = stepper_pulse_phase_func,
-        .pulse_period = F_TIMERS / F_STEPPER_TIMER, // default
-    };
-    i2s_ioexpander_init(param);
+#ifdef I2S_STEPPER_STREAM
+    // I2S stepper do not use timer interrupt but callback
+    i2s_ioexpander_register_pulse_callback(stepper_pulse_phase_func);
 #else
     // setup stepper timer interrupt
     /*

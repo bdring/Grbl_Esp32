@@ -107,6 +107,7 @@ uint32_t i2s_ioexpander_push_sample(uint32_t num);
 int i2s_ioexpander_start();
 int i2s_ioexpander_stop();
 int i2s_ioexpander_set_pulse_period(uint64_t period);
+int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t func);
 
 #endif
 

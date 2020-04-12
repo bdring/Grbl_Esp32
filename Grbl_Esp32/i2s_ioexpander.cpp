@@ -98,6 +98,7 @@ static volatile uint32_t i2s_port_data = 0;
 
 static volatile uint64_t i2s_ioexpander_pulse_period;
 static uint64_t i2s_ioexpander_remain_time_until_next_pulse; // Time remaining until the next pulse (μsec)
+static volatile i2s_ioexpander_pulse_phase_func_t i2s_ioexpander_pulse_phase_func;
 
 enum i2s_ioexpander_status_t {
   UNKNOWN = 0,
@@ -118,11 +119,6 @@ void IRAM_ATTR i2s_ioexpander_write(uint8_t pin, uint8_t val) {
 uint8_t IRAM_ATTR i2s_ioexpander_state(uint8_t pin) {
   return TEST(i2s_port_data, pin);
 }
-
-#define PUSH_BUFFER_SAMPLE_COUNT (DMA_SAMPLE_COUNT * 1)
-static volatile uint32_t *push_buffer;
-static volatile uint32_t push_buffer_w_pos = 0;
-static volatile uint32_t push_buffer_r_pos = 0;
 
 uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
   uint32_t n = 0;
@@ -181,23 +177,11 @@ static int i2s_start() {
   I2S0.out_link.start = 1;
   I2S0.conf.tx_start = 1;
   I2S_EXIT_CRITICAL();
-
-  return 0;
-}
-
-static int i2s_stop() {
-  I2S_ENTER_CRITICAL();
-  I2S0.out_link.stop = 1;
-  I2S0.conf.tx_start = 0;
-
-  I2S0.int_clr.val = I2S0.int_st.val; //clear pending interrupt
-  I2S_EXIT_CRITICAL();
-
+ 
   return 0;
 }
 
 int i2s_ioexpander_start() {
-  //i2s_start();
   i2s_ioexpander_status = RUNNING;
   return 0;
 }
@@ -216,11 +200,15 @@ int i2s_ioexpander_set_pulse_period(uint64_t period) {
   return 0;
 }
 
+int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t func) {
+  i2s_ioexpander_pulse_phase_func = func;
+  return 0;
+}
+
 //
 // I2S DMA Interrupts handler
 //
 static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
-  void *dummy;
   lldesc_t *finish_desc;
   portBASE_TYPE high_priority_task_awoken = pdFALSE;
 
@@ -231,10 +219,14 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
     // If the queue is full it's because we have an underflow,
     // more than buf_count isr without new data, remove the front buffer
     if (xQueueIsQueueFullFromISR(dma.queue)) {
-      xQueueReceiveFromISR(dma.queue, &dummy, &high_priority_task_awoken);
+      uint32_t *finished_buffer;
+      xQueueReceiveFromISR(dma.queue, &finished_buffer, &high_priority_task_awoken);
       // This will avoid any kind of noise that may get introduced due to transmission
       // of previous data from tx descriptor on I2S line.
-      memset(dummy, i2s_port_data, DMA_BUF_LEN);
+      uint32_t port_data = i2s_port_data;
+      for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
+        finished_buffer[i] = port_data;
+      }
     }
     // Send a DMA complete event to the I2S bitstreamer task with finished buffer 
     xQueueSendFromISR(dma.queue, &finish_desc, &high_priority_task_awoken);
@@ -250,7 +242,6 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
 // I2S bitstream generator task
 //
 static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
-  i2s_ioexpander_init_t *stepper_param_p = (i2s_ioexpander_init_t*)parameter;
   lldesc_t *dma_desc;
   while (1) {
     // Wait a DMA complete event from I2S isr
@@ -261,10 +252,12 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
     // and fills the buffer for later DMA.
     if (i2s_ioexpander_status == STOPPING) {
       if (i2s_ioexpander_clear_buffer_counter++ < DMA_BUF_COUNT) {
-        memset(dma.current, i2s_port_data, DMA_BUF_LEN);
-        dma.rw_pos = DMA_BUF_LEN;
+        uint32_t port_data = i2s_port_data;
+        for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
+          dma.current[i] = port_data;
+        }
+        dma.rw_pos = DMA_SAMPLE_COUNT;
       } else {
-        //i2s_stop();
         i2s_ioexpander_status = STOPPED;
       }
     } else {
@@ -273,13 +266,19 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
           // no data to read (buffer empty)
           if (i2s_ioexpander_remain_time_until_next_pulse < I2S_IOEXP_USEC_PER_PULSE) {
             // fillout push buffer
-            stepper_param_p->pulse_phase_func(); // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT 
-            i2s_ioexpander_remain_time_until_next_pulse = i2s_ioexpander_pulse_period;
-            continue;
+            if (i2s_ioexpander_pulse_phase_func != NULL) {
+              (*i2s_ioexpander_pulse_phase_func)(); // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT 
+              i2s_ioexpander_remain_time_until_next_pulse = i2s_ioexpander_pulse_period;
+              continue;
+            }
           }
-          // no pulse data in push buffer (pulse off or idle)
+          // no pulse data in push buffer (pulse off or idle or not defined callback)
           dma.current[dma.rw_pos++] = i2s_port_data;
-          i2s_ioexpander_remain_time_until_next_pulse -= I2S_IOEXP_USEC_PER_PULSE;
+          if (i2s_ioexpander_remain_time_until_next_pulse >= I2S_IOEXP_USEC_PER_PULSE) {
+            i2s_ioexpander_remain_time_until_next_pulse -= I2S_IOEXP_USEC_PER_PULSE;            
+          } else {
+            i2s_ioexpander_remain_time_until_next_pulse = 0;
+          }
       }
       dma_desc->length = dma.rw_pos * I2S_SAMPLE_SIZE;      
     }
@@ -290,7 +289,14 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
 // Initialize funtion (external function)
 //
 int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
+  // To make sure hardware is enabled before any hardware register operations.
+  periph_module_reset(PERIPH_I2S0_MODULE);
   periph_module_enable(PERIPH_I2S0_MODULE);
+
+  // Route the i2s pins to the appropriate GPIO
+  gpio_matrix_out_check(init_param.data_pin, I2S0O_DATA_OUT23_IDX, 0, 0);
+  gpio_matrix_out_check(init_param.bck_pin, I2S0O_BCK_OUT_IDX, 0, 0);
+  gpio_matrix_out_check(init_param.ws_pin, I2S0O_WS_OUT_IDX, 0, 0);
 
   /**
    * Each i2s transfer will take
@@ -313,9 +319,6 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
    *      N = 5
    *      M = 2
    */
-  i2s_ioexpander_init_t *stepper_param_p = (i2s_ioexpander_init_t*)malloc(sizeof(i2s_ioexpander_init_t));
-  if (stepper_param_p == nullptr) return -1;
-  *stepper_param_p = init_param; // copy the struct members
 
   // Allocate the array of pointers to the buffers
   dma.buffers = (uint32_t **)malloc(sizeof(uint32_t*) * DMA_BUF_COUNT);
@@ -349,19 +352,22 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
     dma.desc[buf_idx]->empty = (uint32_t)((buf_idx < (DMA_BUF_COUNT - 1)) ? (dma.desc[buf_idx + 1]) : dma.desc[0]);
   }
 
+  dma.rw_pos = 0;
+  dma.current = NULL;
   dma.queue = xQueueCreate(DMA_BUF_COUNT, sizeof(uint32_t *));
 
    // Set the first DMA descriptor
   I2S0.out_link.addr = (uint32_t)dma.desc[0];
 
-  // sample buffering
-  push_buffer = (uint32_t *)malloc(sizeof(uint32_t) * PUSH_BUFFER_SAMPLE_COUNT);
-  if (push_buffer == nullptr) return -1;
-
   // stop i2s
   I2S0.out_link.stop = 1;
   I2S0.conf.tx_start = 0;
+
   I2S0.int_clr.val = I2S0.int_st.val; //clear pending interrupt
+
+  //
+  // i2s_param_config
+  //
 
   // configure I2S data port interface.
   i2s_reset_fifo();
@@ -417,12 +423,17 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   I2S0.pdm_conf.rx_pdm_en = 0; // Set this bit to enable receiver’s PDM mode.
   I2S0.pdm_conf.tx_pdm_en = 0; // Set this bit to enable transmitter’s PDM mode.
 
+  // I2S_COMM_FORMAT_I2S_LSB
   I2S0.conf.tx_short_sync = 0; // Set this bit to enable transmitter in PCM standard mode.
   I2S0.conf.rx_short_sync = 0; // Set this bit to enable receiver in PCM standard mode.
   I2S0.conf.tx_msb_shift = 0; // Do not use the Philips standard to avoid bit-shifting
   I2S0.conf.rx_msb_shift = 0; // Do not use the Philips standard to avoid bit-shifting
 
-  // set clock (fi2s)
+  //
+  // i2s_set_clk
+  //
+
+   // set clock (fi2s)
   I2S0.clkm_conf.clka_en = 0;       // Use 160 MHz PLL_D2_CLK as reference
   I2S0.clkm_conf.clkm_div_num = 5; // minimum value of 2, reset value of 4, max 256 (I²S clock divider’s integral value)
   I2S0.clkm_conf.clkm_div_a = 0;    // 0 at reset, what about divide by 0? (not an issue)
@@ -441,27 +452,23 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   I2S0.int_ena.out_total_eof = 0; // Triggered when all transmitting linked lists are used up.
   I2S0.int_ena.out_done = 0; // Triggered when all transmitted and buffered data have been read.
 
-  // Allocate and Enable the I2S interrupt
-  esp_intr_alloc(ETS_I2S0_INTR_SOURCE, 0, i2s_intr_handler_default, nullptr, &i2s_isr_handle);
-  esp_intr_enable(i2s_isr_handle);
-
-  // Route the i2s pins to the appropriate GPIO
-  gpio_matrix_out_check(init_param.data_pin, I2S0O_DATA_OUT23_IDX, 0, 0);
-  gpio_matrix_out_check(init_param.bck_pin, I2S0O_BCK_OUT_IDX, 0, 0);
-  gpio_matrix_out_check(init_param.ws_pin, I2S0O_WS_OUT_IDX, 0, 0);
-
   // default pulse callback period (μsec)
   i2s_ioexpander_pulse_period = init_param.pulse_period;
+  i2s_ioexpander_pulse_phase_func = init_param.pulse_phase_func;
 
   // Create the task that will feed the buffer
   xTaskCreatePinnedToCore(i2sIOExpanderTask,
                           "I2SIOExpanderTask",
                           1024 * 10,
-                          stepper_param_p,
+                          NULL,
                           1,
                           nullptr,
                           CONFIG_ARDUINO_RUNNING_CORE  // must run the task on same core
                           );
+
+  // Allocate and Enable the I2S interrupt
+  esp_intr_alloc(ETS_I2S0_INTR_SOURCE, 0, i2s_intr_handler_default, nullptr, &i2s_isr_handle);
+  esp_intr_enable(i2s_isr_handle);
 
   // Start the I2S peripheral
   i2s_start();
