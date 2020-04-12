@@ -442,7 +442,7 @@ void trinamic_stepper_enable(bool enable) {
 uint8_t get_next_trinamic_driver_index() {
     static uint8_t index = 1; // they start at 1
     #ifndef TRINAMIC_DAISY_CHAIN
-        return -1
+        return -1;
     #else
         return index++;
     #endif
