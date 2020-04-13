@@ -28,6 +28,7 @@
 #include <driver/rmt.h>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
+#include <Preferences.h>
 
 #include "driver/timer.h"
 
@@ -38,6 +39,7 @@
 
 #include "defaults.h"
 #include "settings.h"
+#include "grbl_preferences.h" 
 #include "system.h"
 
 #include "planner.h"

@@ -69,6 +69,12 @@ void spindle_select(uint8_t spindle_type) {
     my_spindle->init();
 }
 
+void spindle_read_prefs(Preferences &prefs) {
+    uint8_t foo = prefs.getUChar("SPIN_TYPE", SPINDLE_TYPE_PWM);
+}
+
+
+
 bool Spindle::isRateAdjusted() {
     return false; // default for basic spindles is false
 }
