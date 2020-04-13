@@ -137,6 +137,6 @@ extern Laser laser;
 extern DacSpindle dac_spindle;
 
 void spindle_select(uint8_t spindle_type);
-
+void spindle_read_prefs(Preferences &prefs);
 
 #endif

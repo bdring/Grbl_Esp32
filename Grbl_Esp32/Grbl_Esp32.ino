@@ -59,6 +59,7 @@ void setup() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_STRING);
 #endif
     settings_init(); // Load Grbl settings from EEPROM
+    grbl_preferences_init();
     stepper_init();  // Configure stepper pins and interrupt timers
     system_ini();   // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
     memset(sys_position, 0, sizeof(sys_position)); // Clear machine position.
