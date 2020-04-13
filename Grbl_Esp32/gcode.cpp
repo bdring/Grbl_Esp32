@@ -1088,16 +1088,12 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // [4. Set spindle speed ]:
     if ((gc_state.spindle_speed != gc_block.values.s) || bit_istrue(gc_parser_flags, GC_PARSER_LASER_FORCE_SYNC)) {
         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
-#ifdef VARIABLE_SPINDLE
             if (bit_isfalse(gc_parser_flags, GC_PARSER_LASER_ISMOTION)) {
                 if (bit_istrue(gc_parser_flags, GC_PARSER_LASER_DISABLE))
                     my_spindle->set_state(gc_state.modal.spindle, 0.0);
                 else
                     my_spindle->set_state(gc_state.modal.spindle, gc_block.values.s);
             }
-#else
-            my_spindle->set_state(gc_state.modal.spindle, 0.0);
-#endif
         }
         gc_state.spindle_speed = gc_block.values.s; // Update spindle speed state.
     }

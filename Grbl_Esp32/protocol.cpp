@@ -535,7 +535,6 @@ static void protocol_exec_rt_suspend() {
 #endif
     plan_block_t* block = plan_get_current_block();
     uint8_t restore_condition;
-#ifdef VARIABLE_SPINDLE
     float restore_spindle_speed;
     if (block == NULL) {
         restore_condition = (gc_state.modal.spindle | gc_state.modal.coolant);
@@ -548,10 +547,7 @@ static void protocol_exec_rt_suspend() {
     if (bit_istrue(settings.flags, BITFLAG_LASER_MODE))
         system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP);
 #endif
-#else
-    if (block == NULL)  restore_condition = (gc_state.modal.spindle | gc_state.modal.coolant);
-    else  restore_condition = block->condition;
-#endif
+
     while (sys.suspend) {
         if (sys.abort)  return;
         // Block until initial hold is complete and the machine has stopped motion.
@@ -600,10 +596,10 @@ static void protocol_exec_rt_suspend() {
                         pl_data->condition = (PL_COND_FLAG_SYSTEM_MOTION | PL_COND_FLAG_NO_FEED_OVERRIDE);
                         pl_data->spindle_speed = 0.0;
                         my_spindle->set_state((SPINDLE_DISABLE, 0.0); // De-energize
-                        coolant_set_state(COOLANT_DISABLE); // De-energize
-                        // Execute fast parking retract motion to parking target location.
+                                              coolant_set_state(COOLANT_DISABLE); // De-energize
+                                              // Execute fast parking retract motion to parking target location.
                         if (parking_target[PARKING_AXIS] < PARKING_TARGET) {
-                            parking_target[PARKING_AXIS] = PARKING_TARGET;
+                        parking_target[PARKING_AXIS] = PARKING_TARGET;
                             pl_data->feed_rate = PARKING_RATE;
                             mc_parking_motion(parking_target, pl_data);
                         }
@@ -611,8 +607,8 @@ static void protocol_exec_rt_suspend() {
                         // Parking motion not possible. Just disable the spindle and coolant.
                         // NOTE: Laser mode does not start a parking motion to ensure the laser stops immediately.
                         ->set_state((SPINDLE_DISABLE, 0.0); // De-energize
-                        coolant_set_state(COOLANT_DISABLE);     // De-energize
-                    }
+                            coolant_set_state(COOLANT_DISABLE);     // De-energize
+                        }
 #endif
                     sys.suspend &= ~(SUSPEND_RESTART_RETRACT);
                     sys.suspend |= SUSPEND_RETRACT_COMPLETE;
