@@ -447,12 +447,6 @@ Some features should not be changed. See notes below.
 // tool length offset value is subtracted from the current location.
 #define TOOL_LENGTH_OFFSET_AXIS Z_AXIS // Default z-axis. Valid values are X_AXIS, Y_AXIS, or Z_AXIS.
 
-// Enables variable spindle output voltage for different RPM values. On the Arduino Uno, the spindle
-// enable pin will output 5V for maximum RPM with 256 intermediate levels and 0V when disabled.
-// NOTE: IMPORTANT for Arduino Unos! When enabled, the Z-limit pin D11 and spindle enable pin D12 switch!
-// The hardware PWM output on pin D11 is required for variable spindle output voltages.
-#define VARIABLE_SPINDLE // Don't edit this for Grbl_ESP32
-
 // Alters the behavior of the spindle enable pin. By default Grbl will not disable the enable pin if
 // spindle speed is zero and M3/4 is active, but still sets the PWM output to zero. This allows the users
 // to know if the spindle is active and use it as an additional control input.

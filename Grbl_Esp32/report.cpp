@@ -308,11 +308,8 @@ void report_grbl_settings(uint8_t client, uint8_t show_extended) {
     sprintf(setting, "$27=%4.3f\r\n", settings.homing_pulloff);   strcat(rpt, setting);
     sprintf(setting, "$30=%4.3f\r\n", settings.rpm_max);   strcat(rpt, setting);
     sprintf(setting, "$31=%4.3f\r\n", settings.rpm_min);   strcat(rpt, setting);
-#ifdef VARIABLE_SPINDLE
     sprintf(setting, "$32=%d\r\n", bit_istrue(settings.flags, BITFLAG_LASER_MODE));  strcat(rpt, setting);
-#else
-    strcat(rpt, "$32=0\r\n");
-#endif
+
     if (show_extended) {
         sprintf(setting, "$33=%5.3f\r\n", settings.spindle_pwm_freq);   strcat(rpt, setting);
         sprintf(setting, "$34=%3.3f\r\n", settings.spindle_pwm_off_value);   strcat(rpt, setting);
@@ -473,10 +470,8 @@ void report_gcode_modes(uint8_t client) {
     else
         sprintf(temp, " F%.0f", gc_state.feed_rate);
     strcat(modes_rpt, temp);
-#ifdef VARIABLE_SPINDLE
     sprintf(temp, " S%4.3f", gc_state.spindle_speed);
     strcat(modes_rpt, temp);
-#endif
     strcat(modes_rpt, "]\r\n");
     grbl_send(client, modes_rpt);
 }
@@ -499,12 +494,8 @@ void report_build_info(char* line, uint8_t client) {
     strcpy(build_info, "[VER:" GRBL_VERSION "." GRBL_VERSION_BUILD ":");
     strcat(build_info, line);
     strcat(build_info, "]\r\n[OPT:");
-#ifdef VARIABLE_SPINDLE
-    strcat(build_info, "V");
-#endif
-#ifdef USE_LINE_NUMBERS
+    strcat(build_info, "V"); // variable spindle..always on now
     strcat(build_info, "N");
-#endif
 #ifdef COOLANT_MIST_PIN
     strcat(build_info, "M"); // TODO Need to deal with M8...it could be disabled
 #endif
@@ -681,19 +672,11 @@ void report_realtime_status(uint8_t client) {
 #endif
     // Report realtime feed speed
 #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
-#ifdef VARIABLE_SPINDLE
     if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
         sprintf(temp, "|FS:%.1f,%.0f", st_get_realtime_rate(), sys.spindle_speed / MM_PER_INCH);
     else
         sprintf(temp, "|FS:%.0f,%.0f", st_get_realtime_rate(), sys.spindle_speed);
     strcat(status, temp);
-#else
-    if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
-        sprintf(temp, "|F:%.1f", st_get_realtime_rate() / MM_PER_INCH);
-    else
-        sprintf(temp, "|F:%.0f", st_get_realtime_rate());
-    strcat(status, temp);
-#endif
 #endif
 #ifdef REPORT_FIELD_PIN_STATE
     uint8_t lim_pin_state = limits_get_state();
