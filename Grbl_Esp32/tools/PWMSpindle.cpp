@@ -31,6 +31,8 @@ void PWMSpindle::init() {
         return; // We cannot continue without the output pin
     }
 
+    _min_rpm = grbl_preferences.getFloat("SPIN_MAX_RPM", DEFAULT_SPINDLE_MIN_VALUE);
+
     _pwm_freq = settings.spindle_pwm_freq;
     _pwm_period = ((1 << settings.spindle_pwm_precision_bits) - 1);
 
