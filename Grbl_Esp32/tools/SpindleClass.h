@@ -39,7 +39,6 @@
 #include <driver/dac.h>
 
 
-
 // This is the base class. Do not use this as your spindle
 class Spindle {
   public:
@@ -51,6 +50,7 @@ class Spindle {
     virtual void config_message();
     virtual bool isRateAdjusted();
     virtual void spindle_sync(uint8_t state, float rpm);
+    virtual const char *get_name();
 };
 
 // This is a dummy spindle that has no I/O.
@@ -63,6 +63,7 @@ class NullSpindle : public Spindle {
     uint8_t get_state();
     void stop();
     void config_message();
+    const char *get_name();
 };
 
 // This adds support for PWM
@@ -74,6 +75,7 @@ class PWMSpindle : public Spindle {
     uint8_t get_state();
     void stop();
     void config_message();
+    const char *get_name();
 
   private:
     int8_t _spindle_pwm_chan_num;
@@ -104,6 +106,7 @@ class RelaySpindle : public PWMSpindle {
   public:
     void init();
     void config_message();
+    const char *get_name();
     float set_rpm(float rpm);
   protected:
     void set_pwm(uint32_t duty);
@@ -114,6 +117,7 @@ class Laser : public PWMSpindle {
   public:
     bool isRateAdjusted();
     void config_message();
+    const char *get_name();
 };
 
 // This uses one of the (2) DAC pins on ESP32 to output a voltage
@@ -121,6 +125,7 @@ class DacSpindle : public PWMSpindle {
   public:
     void init();
     void config_message();
+    const char *get_name();
     float set_rpm(float rpm);
   private:
     bool _gpio_ok; // DAC is on a valid pin
@@ -138,5 +143,6 @@ extern DacSpindle dac_spindle;
 
 void spindle_select(uint8_t spindle_type);
 void spindle_read_prefs(Preferences &prefs);
+void list_spindles();
 
 #endif

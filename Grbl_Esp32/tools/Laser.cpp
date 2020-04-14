@@ -25,6 +25,7 @@
 
 // ===================================== Laser ==============================================
 
+const char *Laser::get_name() { return "laser"; }
 
 bool Laser :: isRateAdjusted() {
     // must be in $32=1 (laser mode)

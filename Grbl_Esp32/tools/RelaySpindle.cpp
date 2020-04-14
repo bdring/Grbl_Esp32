@@ -26,6 +26,8 @@
 /*
     This is the same as a PWM spindle, but is a digital rather than PWM output
 */
+const char *RelaySpindle::get_name() { return "relay"; }
+
 void RelaySpindle::init() {
     get_pin_numbers();
     if (_output_pin == UNDEFINED_PIN)

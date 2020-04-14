@@ -23,6 +23,8 @@
 #include "SpindleClass.h"
 
 // ======================= PWMSpindle ==============================
+const char *PWMSpindle::get_name() { return "pwm"; }
+
 void PWMSpindle::init() {
 
     get_pin_numbers();

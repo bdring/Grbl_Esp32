@@ -24,6 +24,8 @@
 
 // ======================= NullSpindle ==============================
 // NullSpindle is just bunch of do nothing (ignore) methods to be used when you don't want a spindle
+const char *NullSpindle::get_name() { return "none"; }
+
 void NullSpindle :: init() {
     config_message();
 }

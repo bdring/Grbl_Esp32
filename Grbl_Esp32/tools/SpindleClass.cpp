@@ -46,6 +46,33 @@ RelaySpindle relay_spindle;
 Laser laser;
 DacSpindle dac_spindle;
 
+Spindle *spindles[] = {
+    &null_spindle,
+    &pwm_spindle,
+    &relay_spindle,
+    &laser,
+    &dac_spindle,
+    NULL,
+};
+
+void list_spindles(void) {
+    Spindle *s;
+    for (Spindle **sp = spindles; (s = *sp) != NULL; sp++) {
+        grbl_sendf(CLIENT_ALL, "[MSG:Available spindle: %s]\n", s->get_name());
+    }
+}
+
+void spindle_select_by_name(char *spindle_name) {
+    Spindle *s;
+    for (Spindle **sp = spindles; (s = *sp) != NULL; sp++) {
+        if (strcmp(spindle_name, s->get_name()) == 0 ) {
+            my_spindle = s;
+            break;
+        }
+    }
+    my_spindle->init();
+}
+
 void spindle_select(uint8_t spindle_type) {
     
     switch (spindle_type) {

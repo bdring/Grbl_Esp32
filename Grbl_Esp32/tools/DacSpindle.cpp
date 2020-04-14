@@ -26,6 +26,8 @@
 #include "SpindleClass.h"
 
 // ======================================== DacSpindle ======================================
+const char *DacSpindle::get_name() { return "dac"; }
+
 void DacSpindle :: init() {
     get_pin_numbers();
     if (_output_pin == UNDEFINED_PIN)

@@ -99,6 +99,7 @@ void setup() {
     bt_config.begin();
 #endif
     inputBuffer.begin();
+    list_spindles();
 }
 
 void loop() {
@@ -118,7 +119,13 @@ void loop() {
     // Reset Grbl primary systems.
     serial_reset_read_buffer(CLIENT_ALL); // Clear serial read buffer
     gc_init(); // Set g-code parser to default state
-    spindle_select(settings.spindle_type);
+
+    // Select spindle according to $38
+    // spindle_select(settings.spindle_type);
+
+    // For testing, select the spindle by name
+    spindle_select_by_name("laser");
+
     coolant_init();
     limits_init();
     probe_init();
