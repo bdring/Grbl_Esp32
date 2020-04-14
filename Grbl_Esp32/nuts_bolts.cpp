@@ -166,4 +166,8 @@ float mapConstrain(float x, float in_min, float in_max, float out_min, float out
     return map_float(x, in_min, in_max, out_min, out_max);
 }
 
+bool char_is_numeric(char value) {
+    return (value >= '0' && value <='9');
+}
+
 
