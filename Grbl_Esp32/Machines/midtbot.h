@@ -40,9 +40,7 @@
 #define Y_LIMIT_PIN     GPIO_NUM_4
 #define LIMIT_MASK      B11
 
-#ifndef USE_SERVO_AXES  // maybe set in config.h
-    #define USE_SERVO_AXES
-#endif
+#define USE_SERVO_AXES
 
 #define SERVO_Z_PIN             GPIO_NUM_27
 #define SERVO_Z_RANGE_MIN       0.0
