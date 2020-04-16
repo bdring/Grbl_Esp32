@@ -46,28 +46,13 @@
 #include <soc/i2s_struct.h>
 #include <freertos/queue.h>
 
+#include <stdatomic.h>
+
 #include "config.h"
 
 #ifdef USE_I2S_IOEXPANDER
 
 #include "i2s_ioexpander.h"
-
-//
-// define some Marlin macros
-//
-#ifndef SET_BIT_TO
-#define SET_BIT_TO(N,B,TF) \
-                        do{\
-                            if (TF) {\
-                                (N) |= (1UL << (B));\
-                            } else {\
-                                (N) &= ~(1UL << (B));\
-                            }\
-                        }while(0)
-#endif
-#ifndef TEST
-#define TEST(n,b) (!!((n) & (1UL << (b))))
-#endif
 
 //
 // configrations for DMA connected I2S
@@ -91,13 +76,13 @@ static i2s_dma_t dma;
 static intr_handle_t i2s_isr_handle;
 
 // output value
-static volatile uint32_t i2s_port_data = 0;
+static volatile atomic_uint_least32_t i2s_port_data = ATOMIC_VAR_INIT(0);
 
 #define I2S_ENTER_CRITICAL()  portENTER_CRITICAL(&i2s_spinlock)
 #define I2S_EXIT_CRITICAL()   portEXIT_CRITICAL(&i2s_spinlock)
 
-static volatile uint64_t i2s_ioexpander_pulse_period;
-static uint64_t i2s_ioexpander_remain_time_until_next_pulse; // Time remaining until the next pulse (μsec)
+static volatile uint32_t i2s_ioexpander_pulse_period;
+static uint32_t i2s_ioexpander_remain_time_until_next_pulse; // Time remaining until the next pulse (μsec)
 static volatile i2s_ioexpander_pulse_phase_func_t i2s_ioexpander_pulse_phase_func;
 
 enum i2s_ioexpander_status_t {
@@ -113,11 +98,17 @@ static volatile uint32_t i2s_ioexpander_clear_buffer_counter = 0;
 // External funtions (without init function)
 //
 void IRAM_ATTR i2s_ioexpander_write(uint8_t pin, uint8_t val) {
-  SET_BIT_TO(i2s_port_data, pin, val);
+  uint32_t bit = 1UL << pin;
+  if (val) {
+    atomic_fetch_or(&i2s_port_data, bit);
+  } else {
+    atomic_fetch_and(&i2s_port_data, ~bit);
+  }
 }
 
 uint8_t IRAM_ATTR i2s_ioexpander_state(uint8_t pin) {
-  return TEST(i2s_port_data, pin);
+  uint32_t port_data = atomic_load(&i2s_port_data);
+  return (!!(port_data & (1UL << pin)));
 }
 
 uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
@@ -125,8 +116,10 @@ uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
   if (num > DMA_SAMPLE_SAFE_COUNT) {
     return 0;
   }
+  // push at least one sample
+  uint32_t port_data = atomic_load(&i2s_port_data);
   do {
-    dma.current[dma.rw_pos++] = i2s_port_data;
+    dma.current[dma.rw_pos++] = port_data;
     n++;
   } while(n < num);
   return n;
@@ -195,7 +188,7 @@ int i2s_ioexpander_stop() {
   return 0;
 }
 
-int i2s_ioexpander_set_pulse_period(uint64_t period) {
+int i2s_ioexpander_set_pulse_period(uint32_t period) {
   i2s_ioexpander_pulse_period = period;
   return 0;
 }
@@ -223,7 +216,7 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
       xQueueReceiveFromISR(dma.queue, &finished_buffer, &high_priority_task_awoken);
       // This will avoid any kind of noise that may get introduced due to transmission
       // of previous data from tx descriptor on I2S line.
-      uint32_t port_data = i2s_port_data;
+      uint32_t port_data = atomic_load(&i2s_port_data);
       for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
         finished_buffer[i] = port_data;
       }
@@ -252,7 +245,7 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
     // and fills the buffer for later DMA.
     if (i2s_ioexpander_status == STOPPING) {
       if (i2s_ioexpander_clear_buffer_counter++ < DMA_BUF_COUNT) {
-        uint32_t port_data = i2s_port_data;
+        uint32_t port_data = atomic_load(&i2s_port_data);
         for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
           dma.current[i] = port_data;
         }
@@ -273,7 +266,7 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
             }
           }
           // no pulse data in push buffer (pulse off or idle or not defined callback)
-          dma.current[dma.rw_pos++] = i2s_port_data;
+          dma.current[dma.rw_pos++] = atomic_load(&i2s_port_data);
           if (i2s_ioexpander_remain_time_until_next_pulse >= I2S_IOEXP_USEC_PER_PULSE) {
             i2s_ioexpander_remain_time_until_next_pulse -= I2S_IOEXP_USEC_PER_PULSE;            
           } else {
