@@ -23,12 +23,12 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "SPI_DAISY_4X"
+#define MACHINE_NAME "SPI_DAISY_4X_XYZ"
 
 #ifdef N_AXIS
         #undef N_AXIS
 #endif
-#define N_AXIS 4 // can be 3 or 4. (if 3 install bypass jumper next to the A driver)
+#define N_AXIS 3
 
 #define USE_TRINAMIC
 #define TRINAMIC_DAISY_CHAIN
@@ -58,14 +58,6 @@
 #define Z_TRINAMIC              // using SPI control
 #define Z_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
-#if (N_AXIS == 4)
-        #define A_DRIVER_TMC2130        // Which Driver Type?
-        #define A_RSENSE        TMC2130_RSENSE_DEFAULT
-        #define A_STEP_PIN      GPIO_NUM_33
-        #define A_DIRECTION_PIN GPIO_NUM_32
-        #define A_TRINAMIC      // using SPI control
-        #define A_CS_PIN        X_CS_PIN  // Daisy Chain, all share same CS pin
-#endif
 
 // Mist is a 3.3V output
 // Turn on with M7 and off with M9
@@ -86,10 +78,5 @@
 #define X_LIMIT_PIN             GPIO_NUM_36
 #define Y_LIMIT_PIN             GPIO_NUM_39
 #define Z_LIMIT_PIN             GPIO_NUM_34
+#define LIMIT_MASK              B0111
 
-#if (N_AXIS == 4)
-        #define A_LIMIT_PIN     GPIO_NUM_35
-        #define LIMIT_MASK      B1111
-#else
-        #define LIMIT_MASK      B0111
-#endif
