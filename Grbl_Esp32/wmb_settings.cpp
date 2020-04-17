@@ -1,7 +1,10 @@
+#include <iostream>
 #include <map>
 #include <string>
+#include <string.h>
 #include <typeinfo>
 #include <iterator>
+#include "./defaults.h"
 using namespace std;
 
 // These status values are just assigned at random, for testing
@@ -13,6 +16,68 @@ typedef enum {
   STATUS_INVALID_VALUE,
   STATUS_IDLE_ERROR,
 } err_t;
+
+enum {
+  BITFLAG_INVERT_ST_ENABLE = 1,
+  BITFLAG_INVERT_LIMIT_PINS = 2,
+  BITFLAG_INVERT_PROBE_PIN = 4,
+  BITFLAG_REPORT_INCHES = 8,
+  BITFLAG_SOFT_LIMIT_ENABLE = 16,
+  BITFLAG_HARD_LIMIT_ENABLE = 32,
+  BITFLAG_HOMING_ENABLE = 64,
+  BITFLAG_LASER_MODE = 128,
+};
+#define DEFAULT_SPINDLE_TYPE 0
+#define DEFAULT_SPINDLE_BIT_PRECISION 10
+enum {
+  STATE_IDLE = 0,
+  STATE_JOG,
+};
+#define MAXLINE 128
+int client;
+
+struct {
+  int flags;
+} settings;
+
+struct {
+  int state;
+} sys;
+
+#define MAX_N_AXIS 6
+#define MESSAGE_RESTORE_DEFAULTS "restoring defaults"
+enum {
+  SETTINGS_RESTORE_DEFAULTS,
+  SETTINGS_RESTORE_PARAMETERS,
+  SETTINGS_RESTORE_ALL,
+  SETTINGS_RESTORE_WIFI_SETTINGS,
+  SETTINGS_WIPE,
+};
+
+err_t my_spindle_init();
+err_t limits_init();
+err_t also_soft_limit();
+void settings_restore(int);
+void report_feedback_message(const char *);
+err_t report_normal_settings(uint8_t);
+err_t report_extended_settings(uint8_t);
+err_t report_gcode_modes(uint8_t);
+err_t report_build_info(uint8_t);
+err_t report_startup_lines(uint8_t);
+err_t toggle_check_mode(uint8_t);
+err_t disable_alarm_lock(uint8_t);
+err_t report_ngc(uint8_t);
+err_t home_all(uint8_t);
+err_t home_x(uint8_t);
+err_t home_y(uint8_t);
+err_t home_z(uint8_t);
+err_t home_a(uint8_t);
+err_t home_b(uint8_t);
+err_t home_c(uint8_t);
+err_t sleep(uint8_t);
+err_t gc_execute_line(char *line, uint8_t client);
+
+void mc_reset();
 
 err_t check_motor_settings() { return STATUS_OK; }
 err_t settings_spi_driver_init() { return STATUS_OK; }
@@ -71,21 +136,21 @@ class TypedSetting : public Setting {
   { }
   void load() {
     if (isfloat) {
-      storedValue = preferences.getFloat(displayName, defaultValue);
+      //p      storedValue = preferences.getFloat(displayName, defaultValue);
     } else {
-      storedValue = preferences.getInt(displayName, defaultValue);
+      //p      storedValue = preferences.getInt(displayName, defaultValue);
     }  // Read value from backing store
     currentValue = storedValue;
   }
   void commit() {
     if (storedValue != currentValue) {
       if (storedValue == defaultValue) {
-        preferences.remove(displayName);
+        //p        preferences.remove(displayName);
       } else {
         if (isfloat) {
-          preferences.putFloat(displayName, currentValue);
+          //p          preferences.putFloat(displayName, currentValue);
         } else {
-          preferences.putInt(displayName, currentValue);
+          //p          preferences.putInt(displayName, currentValue);
         }
       }
     }
@@ -242,27 +307,6 @@ AxisSettings axis_settings[] = {
   c_axis_settings,
 };
 
-void list_settings()
-{
-  for (Setting *s = SettingsList; s; s = s->link) {
-    cout << s->getName() << " " << s->getStringValue() << '\n';
-  }
-}
-
-void list_numbered_settings()
-{
-  for (map<string, Setting>::iterator it = numberedSettings.begin();
-       it != numberedSettings.end();
-       it+) {
-    cout << it->first << ": " << it->second->getStringValue() << '\n';
-  }
-}
-
-int main()
-{
-  list_settings();
-}
-
 class StringSetting : public Setting {
  private:
   string currentValue;
@@ -276,27 +320,26 @@ class StringSetting : public Setting {
       currentValue(defVal)
   { };
   void load() {
-    storedValue = preferences.getString(displayName, defaultValue);
+    //p    storedValue = preferences.getString(displayName, defaultValue);
     currentValue = storedValue;
   }
   void commit() {
     if (storedValue != currentValue) {
       if (storedValue == defaultValue) {
-        preferences.remove(displayName);
+        //p        preferences.remove(displayName);
       } else {
-        preferences.putString(displayName, currentValue);
+        //p        preferences.putString(displayName, currentValue);
       }
     }
   }
   string get() { return currentValue;  }
-  err_t set(T value) { currentValue = value;  return STATUS_OK;  }
+  err_t set(string value) { currentValue = value;  return STATUS_OK;  }
   err_t string_to_value(string s, string &value) {
     value = s;
     return STATUS_OK;
   }
   string value_to_string (string value) { return value; }
   err_t setStringValue(string s) {
-    if (checker && (err_t ret = checker())) return ret;
     currentValue = s;
     return STATUS_OK;
   }
@@ -308,7 +351,7 @@ StringSetting build_info("I", "");
 
 // Single-use class for the $RST= command
 // There is no underlying stored value
-class SettingsReset {
+class SettingsReset : public Setting {
  public:
   SettingsReset(string name) :
       Setting(name)
@@ -340,7 +383,7 @@ class SettingsReset {
     err_t ret = string_to_value(s, value);
     return ret ? ret : set(value);
   }
-  string value_to_string (string value) {
+  string value_to_string (int value) {
     switch(value) {
       case SETTINGS_RESTORE_DEFAULTS: return "$"; break;
       case SETTINGS_RESTORE_PARAMETERS: return "#"; break;
@@ -361,28 +404,30 @@ IntSetting dir_invert_mask("DIR_INVERT_MASK", DEFAULT_DIRECTION_INVERT_MASK, 0, 
 // XXX need to call st_generate_step_invert_masks()
 IntSetting homing_dir_mask("HOMING_DIR_INVERT_MASK", DEFAULT_HOMING_DIR_MASK, 0, (1<<MAX_N_AXIS)-1);
 
-class FlagSetting {
+class FlagSetting : public Setting {
  private:
   bool defaultValue;
   bool storedValue;
   bool currentValue;
   uint32_t bitMask;
+  err_t (*checker)();
  public:
-  FlagSetting(string name, bool defVal, uint32_t mask) :
+  FlagSetting(string name, bool defVal, uint32_t mask, err_t (*f)() = NULL) :
       Setting(name),
       defaultValue(defVal),
-      bitMask(mask)
+      bitMask(mask),
+      checker(f)
   { }
   void load() {
-    storedValue = preferences.getBool(displayName, defaultValue);
+    //p    storedValue = preferences.getBool(displayName, defaultValue);
     currentValue = storedValue;
   }
   void commit() {
     if (storedValue != currentValue) {
       if (storedValue == defaultValue) {
-        preferences.remove(displayName);
+        //p        preferences.remove(displayName);
       } else {
-        preferences.putBool(displayName, currentValue);
+        //p        preferences.putBool(displayName, currentValue);
       }
     }
   }
@@ -401,7 +446,7 @@ class FlagSetting {
     try {
       n = stoi(s);
     }
-    catch {
+    catch (int e) {
       return STATUS_INVALID_VALUE;
     }
     value = !!n;
@@ -410,6 +455,7 @@ class FlagSetting {
   err_t setStringValue(string s) {
     bool value;
     err_t ret = string_to_value(s, value);
+    if (checker && (ret = checker())) return ret;
     return ret ? ret : set(value);
   }
   string value_to_string (bool value) {
@@ -440,7 +486,7 @@ FloatSetting arc_tolerance("ARC_TOLERANCE", DEFAULT_ARC_TOLERANCE, 0, 1);
 
 FloatSetting homing_feed_rate("HOMING_FEED", DEFAULT_HOMING_FEED_RATE, 0, 10000);
 FloatSetting homing_seek_rate("HOMING_SEEK", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
-FloatSetting homing_debounce_delay("HOMING_DEBOUNCE", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
+FloatSetting homing_debounce("HOMING_DEBOUNCE", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
 FloatSetting homing_pulloff("HOMING_PULLOFF", DEFAULT_HOMING_PULLOFF, 0, 10000);
 FloatSetting spindle_pwm_freq("SPINDLE_PWM_FREQ", DEFAULT_SPINDLE_FREQ, 0, 10000);
 FloatSetting rpm_max("RPM_MAX", DEFAULT_SPINDLE_RPM_MAX, 0, 10000);
@@ -452,6 +498,105 @@ FloatSetting spindle_pwm_max_value("SPINDLE_PWM_MAX_VALUE", DEFAULT_SPINDLE_MAX_
 IntSetting spindle_pwm_bit_precision("SPINDLE_PWM_BIT_PRECISION", DEFAULT_SPINDLE_BIT_PRECISION, 0, 10000);
 
 StringSetting spindle_type("SPINDLE_TYPE", DEFAULT_SPINDLE_TYPE);
+
+// The following table maps numbered settings to their settings
+// objects, for backwards compatibility.  It is used if the
+// line is of the form "$key=value".  If a key match is found,
+// the object's setValueString method is invoked with the value
+// as argument.  If no match is found, the list of named settings
+// is searched, with the same behavior on a match.
+
+// These are compatibily aliases for Classic GRBL
+std::map<const char*, Setting*> numberedSettings = {
+    { "0", &pulse_microseconds },
+    { "1", &stepper_idle_lock_time },
+    { "2", &step_invert_mask },
+    { "3", &dir_invert_mask },
+    { "4", &step_enable_invert },
+    { "5", &limit_invert },
+    { "6", &probe_invert },
+    { "10", &status_mask },
+    { "11", &junction_deviation },
+    { "12", &arc_tolerance },
+    { "13", &report_inches },
+    { "20", &soft_limits },
+    { "21", &hard_limits },
+    { "22", &homing_enable },
+    { "23", &homing_dir_mask },
+    { "24", &homing_feed_rate },
+    { "25", &homing_seek_rate },
+    { "26", &homing_debounce },
+    { "27", &homing_pulloff },
+    { "30", &rpm_max },
+    { "31", &rpm_min },
+    { "32", &laser_mode },
+    { "33", &spindle_pwm_freq },
+    { "34", &spindle_pwm_off_value },
+    { "35", &spindle_pwm_min_value },
+    { "36", &spindle_pwm_max_value },
+    { "37", &spindle_pwm_bit_precision },
+    { "38", &spindle_type },
+#if 0
+    { "80", &machine_int16_0 },
+    { "81", &machine_int16_1 },
+    { "82", &machine_int16_2 },
+    { "83", &machine_int16_3 },
+    { "84", &machine_int16_4 },
+    { "90", &machine_float_0 },
+    { "91", &machine_float_1 },
+    { "92", &machine_float_2 },
+    { "93", &machine_float_3 },
+    { "94", &machine_float_4 },
+#endif
+    { "100", &x_axis_settings.steps_per_mm },
+    { "101", &y_axis_settings.steps_per_mm },
+    { "102", &z_axis_settings.steps_per_mm },
+    { "103", &a_axis_settings.steps_per_mm },
+    { "104", &b_axis_settings.steps_per_mm },
+    { "105", &c_axis_settings.steps_per_mm },
+    { "110", &x_axis_settings.max_rate },
+    { "111", &y_axis_settings.max_rate },
+    { "112", &z_axis_settings.max_rate },
+    { "113", &a_axis_settings.max_rate },
+    { "114", &b_axis_settings.max_rate },
+    { "115", &c_axis_settings.max_rate },
+    { "120", &x_axis_settings.acceleration },
+    { "121", &y_axis_settings.acceleration },
+    { "122", &z_axis_settings.acceleration },
+    { "123", &a_axis_settings.acceleration },
+    { "124", &b_axis_settings.acceleration },
+    { "125", &c_axis_settings.acceleration },
+    { "130", &x_axis_settings.max_travel },
+    { "131", &y_axis_settings.max_travel },
+    { "132", &z_axis_settings.max_travel },
+    { "133", &a_axis_settings.max_travel },
+    { "134", &b_axis_settings.max_travel },
+    { "135", &c_axis_settings.max_travel },
+    { "140", &x_axis_settings.run_current },
+    { "141", &y_axis_settings.run_current },
+    { "142", &z_axis_settings.run_current },
+    { "143", &a_axis_settings.run_current },
+    { "144", &b_axis_settings.run_current },
+    { "145", &c_axis_settings.run_current },
+    { "150", &x_axis_settings.hold_current },
+    { "151", &y_axis_settings.hold_current },
+    { "152", &z_axis_settings.hold_current },
+    { "153", &a_axis_settings.hold_current },
+    { "154", &b_axis_settings.hold_current },
+    { "155", &c_axis_settings.hold_current },
+    { "160", &x_axis_settings.microsteps },
+    { "161", &y_axis_settings.microsteps },
+    { "162", &z_axis_settings.microsteps },
+    { "163", &a_axis_settings.microsteps },
+    { "164", &b_axis_settings.microsteps },
+    { "165", &c_axis_settings.microsteps },
+    { "170", &x_axis_settings.stallguard },
+    { "171", &y_axis_settings.stallguard },
+    { "172", &z_axis_settings.stallguard },
+    { "173", &a_axis_settings.stallguard },
+    { "174", &b_axis_settings.stallguard },
+    { "175", &c_axis_settings.stallguard },
+};
 
 // FIXME - jog may need to be special-cased in the parser, since
 // it is not really a setting and the entire line needs to be
@@ -465,7 +610,7 @@ uint8_t jog_set(uint8_t *value, uint8_t client) {
   // restore the $J= prefix because gc_execute_line() expects it
   char line[MAXLINE];
   strcpy(line, "$J=");
-  strncat(line, value, MAXLINE-strlen("$J=")-1);
+  strncat(line, (char *)value, MAXLINE-strlen("$J=")-1);
 
   return gc_execute_line(line, client); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
 }
@@ -475,8 +620,8 @@ uint8_t jog_set(uint8_t *value, uint8_t client) {
 // The key value is matched against the string and the corresponding
 // function is called with no arguments.
 // If there is no key match an error is reported
-typedef uint8_t (*Command_t)(void);
-std::map<std::string, Command_t> dollarCommands = {
+typedef err_t (*Command_t)(uint8_t);
+std::map<const char*, Command_t> dollarCommands = {
     { "$", report_normal_settings },
     { "+", report_extended_settings },
     { "G", report_gcode_modes },
@@ -495,110 +640,13 @@ std::map<std::string, Command_t> dollarCommands = {
     { "N", report_startup_lines },
 };
 
-// The following table maps numbered settings to their settings
-// objects, for backwards compatibility.  It is used if the
-// line is of the form "$key=value".  If a key match is found,
-// the object's setValueString method is invoked with the value
-// as argument.  If no match is found, the list of named settings
-// is searched, with the same behavior on a match.
-
-// These are compatibily aliases for Classic GRBL
-std::map<std::string, Setting> numberedSettings = {
-    { "0", pulse_microseconds },
-    { "1", stepper_idle_lock_time },
-    { "2", step_invert_mask },
-    { "3", dir_invert_mask },
-    { "4", step_enable_invert },
-    { "5", limit_invert },
-    { "6", probe_invert },
-    { "10", status_mask },
-    { "11", junction_deviation },
-    { "12", arc_tolerance },
-    { "13", report_inches },
-    { "20", soft_limits },
-    { "21", hard_limits },
-    { "22", homing_enable },
-    { "23", homing_dir_mask },
-    { "24", homing_feed_rate },
-    { "25", homing_seek },
-    { "26", homing_debounce },
-    { "27", homing_pulloff },
-    { "30", spindle_max_speed },
-    { "31", spindle_min_speed },
-    { "32", laser_mode },
-    { "33", spindle_pwm_freq },
-    { "34", spindle_pwm_off_value },
-    { "35", spindle_pwm_min_value },
-    { "36", spindle_pwm_max_value },
-    { "37", spindle_pwm_precision_bits },
-    { "38", spindle_type },
-    { "80", machine_int16_0 },
-    { "81", machine_int16_1 },
-    { "82", machine_int16_2 },
-    { "83", machine_int16_3 },
-    { "84", machine_int16_4 },
-    { "90", machine_float_0 },
-    { "91", machine_float_1 },
-    { "92", machine_float_2 },
-    { "93", machine_float_3 },
-    { "94", machine_float_4 },
-    { "100", x_steps },
-    { "101", y_steps },
-    { "102", z_steps },
-    { "103", a_steps },
-    { "104", b_steps },
-    { "105", c_steps },
-    { "110", x_max_rate },
-    { "111", y_max_rate },
-    { "112", z_max_rate },
-    { "113", a_max_rate },
-    { "114", b_max_rate },
-    { "115", c_max_rate },
-    { "120", x_acceleration },
-    { "121", y_acceleration },
-    { "122", z_acceleration },
-    { "123", a_acceleration },
-    { "124", b_acceleration },
-    { "125", c_acceleration },
-    { "130", x_max_travel },
-    { "131", y_max_travel },
-    { "132", z_max_travel },
-    { "133", a_max_travel },
-    { "134", b_max_travel },
-    { "135", c_max_travel },
-    { "140", x_run_current },
-    { "141", y_run_current },
-    { "142", z_run_current },
-    { "143", a_run_current },
-    { "144", b_run_current },
-    { "145", c_run_current },
-    { "150", x_hold_current },
-    { "151", y_hold_current },
-    { "152", z_hold_current },
-    { "153", a_hold_current },
-    { "154", b_hold_current },
-    { "155", c_hold_current },
-    { "160", x_microsteps },
-    { "161", y_microsteps },
-    { "162", z_microsteps },
-    { "163", a_microsteps },
-    { "164", b_microsteps },
-    { "165", c_microsteps },
-    { "170", x_stallguard },
-    { "171", y_stallguard },
-    { "172", z_stallguard },
-    { "173", a_stallguard },
-    { "174", b_stallguard },
-    { "175", c_stallguard },
-};
-
 // normalize_key puts a key string into canonical form -
 // upper case without whitespace.
 // start points to a null-terminated string.
 // Returns the first substring that does not contain whitespace,
 // converted to upper case.
-char *normalize_key(uint8_t *start) {
-  uint8_t c;
+char *normalize_key(char *start) {
+  char c;
 
   // In the usual case, this loop will exit on the very first test,
   // because the first character is likely to be non-white.
@@ -615,7 +663,7 @@ char *normalize_key(uint8_t *start) {
   // Having found the beginning of the printable string,
   // we now scan forward, converting lower to upper case,
   // until we find a space character.
-  uint8_t end;
+  char *end;
   for (end = start; (c = *end) != '\0' && !isspace(c); end++) {
     if (islower(c)) {
       *end = toupper(c);
@@ -632,21 +680,22 @@ char *normalize_key(uint8_t *start) {
 // This is for changing settings with $key=value .
 // Lookup key in the numberedSettings map.  If found, execute
 // the corresponding object's "set" method.  Otherwise fail.
-setting_t do_setting(const uint8_t *key, uint8_t *value, uint8_t client) {
-
-  std::string k = key;
+err_t do_setting(const char *key, char *value, uint8_t client) {
 
   // First search this numberedSettings array - aliases
   // for the underlying named settings.
-  map<string, Setting_t>::iterator i = numberedSettings.find(k);
-  if (i != numberedSetting.end()) {
-    return i->second.setStringValue(value);
+  map<const char*, Setting*>::iterator it = numberedSettings.find(key);
+  if (it != numberedSettings.end()) {
+    return it->second->setStringValue(value);
   }
+
+  std::string k = key;
 
   // Then search the list of named settings.
   for (Setting *s = SettingsList; s; s = s->link) {
     if (s->getName().compare(k)) {
       return s->setStringValue(value);
+    }
   }
 
   return STATUS_INVALID_STATEMENT;
@@ -658,10 +707,9 @@ setting_t do_setting(const uint8_t *key, uint8_t *value, uint8_t client) {
 // As an enhancement to Classic GRBL, if the key is not found
 // in the commands map, look it up in the lists of settings
 // and display the current value.
-setting_t do_command(const uint8_t *key, uint8_t client) {
+err_t do_command(const char *key, uint8_t client) {
 
-  std::string k = key;
-  map<string, Command_t>::iterator i = dollarCommands.find(k);
+  map<const char*, Command_t>::iterator i = dollarCommands.find(key);
   if (i != dollarCommands.end()) {
     return i->second(client);
   }
@@ -671,24 +719,25 @@ setting_t do_command(const uint8_t *key, uint8_t client) {
   // as a setting and display the value.
   std::string k = key;
 
-  map<string, Setting_t>::iterator i = numberedSettings.find(k);
-  if (i != numberedSettings.end()) {
-    Setting_t s = i->second;
-    display("$%s=%s\n", key, s.value_to_string(s.get()));
+  map<const char *, Setting*>::iterator it = numberedSettings.find(key);
+  if (it != numberedSettings.end()) {
+    Setting *s = it->second;
+    cout << key << "=" << s->getStringValue() << '\n';
     return STATUS_OK;
   }
 
   for (Setting *s = SettingsList; s; s = s->link) {
     if (s->getName().compare(k)) {
-      display("$%s=%s\n", key, s->getValueString());
+      cout << key << "=" << s->getStringValue() << '\n';
       return STATUS_OK;
+    }
   }
 
   return STATUS_INVALID_STATEMENT;
 }
 
 uint8_t system_execute_line(char* line, uint8_t client) {
-  uint8_t *value = (uint8_t *)strchr(line, '=');
+  char *value = strchr(line, '=');
 
   if (value) {
     // Equals was found; replace it with null and skip it
@@ -698,4 +747,25 @@ uint8_t system_execute_line(char* line, uint8_t client) {
     // No equals, so it must be a command
     do_command(normalize_key(line), client);
   }
+}
+
+void list_settings()
+{
+  for (Setting *s = SettingsList; s; s = s->link) {
+    cout << s->getName() << " " << s->getStringValue() << '\n';
+  }
+}
+
+void list_numbered_settings()
+{
+  for (map<const char*, Setting*>::iterator it = numberedSettings.begin();
+       it != numberedSettings.end();
+       it++) {
+    cout << it->first << ": " << it->second->getStringValue() << '\n';
+  }
+}
+
+int main()
+{
+  list_settings();
 }
