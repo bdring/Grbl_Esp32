@@ -97,12 +97,12 @@ class Setting {
 
   // Add each constructed setting to the linked list
   Setting *link;
-  Setting(string name) {
+  Setting(const char* name) {
     displayName = name;
     link = SettingsList;
     SettingsList = this;
   }
-  string getName() { return displayName; };
+  const char* getName() { return displayName; };
 
   // load() reads the backing store to get the current
   // value of the setting.  This could be slow so it
@@ -117,7 +117,7 @@ class Setting {
   virtual string getStringValue() =0;
 
  private:
-  string displayName;
+  const char* displayName;
 };
 
 // This template class, derived from the generic abstract
@@ -126,7 +126,7 @@ class Setting {
 template<typename T>
 class TypedSetting : public Setting {
  public:
-  TypedSetting(string name, T defVal, T minVal, T maxVal, err_t (*f)() = NULL) :
+  TypedSetting(const char* name, T defVal, T minVal, T maxVal, err_t (*f)() = NULL) :
       Setting(name),
       defaultValue(defVal),
       currentValue(defVal),
@@ -216,14 +216,14 @@ class AxisSettings {
   AxisSettings(string axisName, float steps, float rate, float accel, float travel,
                   float run, float hold, int usteps, int stall) :
       name(axisName),
-      steps_per_mm(axisName+"_STEPS_PER_MM", steps, 0, 1000, check_motor_settings),
-      max_rate(axisName+"_MAX_RATE", rate, 0, 1000000, check_motor_settings),
-      acceleration(axisName+"_ACCELERATION", accel, 0, 10000000),
-      max_travel(axisName+"_MAX_TRAVEL", travel, -10000, 10000),
-      run_current(axisName+"_RUN_CURRENT", run, -10000, 10000, settings_spi_driver_init),
-      hold_current(axisName+"_HOLD_CURRENT", hold, 0, 100, settings_spi_driver_init),
-      microsteps(axisName+"_MICROSTEPS", usteps, 1, 2048, settings_spi_driver_init),
-      stallguard(axisName+"_STALLGUARD", stall, 0, 100, settings_spi_driver_init)
+      steps_per_mm((axisName+"_STEPS_PER_MM").c_str(), steps, 0, 1000, check_motor_settings),
+      max_rate((axisName+"_MAX_RATE").c_str(), rate, 0, 1000000, check_motor_settings),
+      acceleration((axisName+"_ACCELERATION").c_str(), accel, 0, 10000000),
+      max_travel((axisName+"_MAX_TRAVEL").c_str(), travel, -10000, 10000),
+      run_current((axisName+"_RUN_CURRENT").c_str(), run, -10000, 10000, settings_spi_driver_init),
+      hold_current((axisName+"_HOLD_CURRENT").c_str(), hold, 0, 100, settings_spi_driver_init),
+      microsteps((axisName+"_MICROSTEPS").c_str(), usteps, 1, 2048, settings_spi_driver_init),
+      stallguard((axisName+"_STALLGUARD").c_str(), stall, 0, 100, settings_spi_driver_init)
   {}
 };
 AxisSettings x_axis_settings = {
@@ -314,7 +314,7 @@ class StringSetting : public Setting {
   string defaultValue;
 
  public:
-  StringSetting(string name, string defVal) :
+  StringSetting(const char* name, string defVal) :
     Setting(name),
       defaultValue(defVal),
       currentValue(defVal)
@@ -353,7 +353,7 @@ StringSetting build_info("I", "");
 // There is no underlying stored value
 class SettingsReset : public Setting {
  public:
-  SettingsReset(string name) :
+  SettingsReset(const char* name) :
       Setting(name)
   { }
   void load() {
@@ -412,7 +412,7 @@ class FlagSetting : public Setting {
   uint32_t bitMask;
   err_t (*checker)();
  public:
-  FlagSetting(string name, bool defVal, uint32_t mask, err_t (*f)() = NULL) :
+  FlagSetting(const char* name, bool defVal, uint32_t mask, err_t (*f)() = NULL) :
       Setting(name),
       defaultValue(defVal),
       bitMask(mask),
@@ -689,11 +689,9 @@ err_t do_setting(const char *key, char *value, uint8_t client) {
     return it->second->setStringValue(value);
   }
 
-  std::string k = key;
-
   // Then search the list of named settings.
   for (Setting *s = SettingsList; s; s = s->link) {
-    if (s->getName().compare(k)) {
+    if (strcmp(s->getName(), key) == 0) {
       return s->setStringValue(value);
     }
   }
@@ -717,7 +715,6 @@ err_t do_command(const char *key, uint8_t client) {
   // Enhancement - not in Classic GRBL:
   // If it is not a command, look up the key
   // as a setting and display the value.
-  std::string k = key;
 
   map<const char *, Setting*>::iterator it = numberedSettings.find(key);
   if (it != numberedSettings.end()) {
@@ -727,7 +724,8 @@ err_t do_command(const char *key, uint8_t client) {
   }
 
   for (Setting *s = SettingsList; s; s = s->link) {
-    if (s->getName().compare(k)) {
+    //    if (s->getName().compare(k)) {
+    if (strcmp(s->getName(), key) == 0) {
       cout << key << "=" << s->getStringValue() << '\n';
       return STATUS_OK;
     }
