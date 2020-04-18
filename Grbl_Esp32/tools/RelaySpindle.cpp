@@ -39,6 +39,8 @@ void RelaySpindle::init() {
     if (_direction_pin != UNDEFINED_PIN)
         pinMode(_direction_pin, OUTPUT);
 
+    is_reversable = (_direction_pin != UNDEFINED_PIN);
+
     config_message();
 }
 

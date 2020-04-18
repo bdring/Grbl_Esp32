@@ -46,8 +46,11 @@ void DacSpindle :: init() {
     if (_enable_pin != UNDEFINED_PIN)
         pinMode(_enable_pin, OUTPUT);
 
-    if (_direction_pin != UNDEFINED_PIN)
+    if (_direction_pin != UNDEFINED_PIN) {
         pinMode(_direction_pin, OUTPUT);
+    }
+    is_reversable = (_direction_pin != UNDEFINED_PIN);
+        
 
     config_message();
 }

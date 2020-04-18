@@ -67,6 +67,8 @@ void PWMSpindle::init() {
     if (_direction_pin != UNDEFINED_PIN)
         pinMode(_direction_pin, OUTPUT);
 
+    is_reversable = (_direction_pin != UNDEFINED_PIN);
+
     config_message();
 }
 
@@ -87,7 +89,7 @@ void PWMSpindle :: get_pin_numbers() {
 #endif
 
 #ifdef SPINDLE_DIR_PIN
-    _direction_pin = SPINDLE_DIR_PIN;
+    _direction_pin = SPINDLE_DIR_PIN;    
 #else
     _direction_pin = UNDEFINED_PIN;
 #endif
@@ -148,7 +150,6 @@ float PWMSpindle::set_rpm(float rpm) {
 }
 
 void PWMSpindle::set_state(uint8_t state, float rpm) {
-
     if (sys.abort)
         return;   // Block during abort.
 

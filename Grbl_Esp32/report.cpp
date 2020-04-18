@@ -776,3 +776,22 @@ void report_gcode_comment(char* comment) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "GCode Comment...%s", msg);
     }
 }
+
+
+/*
+    Print a message in hex formate
+    Ex: report_hex_msg(msg, "Rx:", 6);
+    Would could print [MSG Rx: 0x01 0x03 0x01 0x08 0x31 0xbf]
+*/
+void report_hex_msg(char* buf, const char *prefix, int len) {
+    char report[200];
+    char temp[20];
+    sprintf(report, "%s", prefix);
+    for (int i = 0; i < len; i++) {
+        sprintf(temp, " 0x%02X", buf[i]);
+        strcat(report, temp);
+    }
+
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
+
+}

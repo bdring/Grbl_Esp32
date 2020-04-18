@@ -170,6 +170,6 @@ void report_gcode_comment(char* comment);
     void report_realtime_debug();
 #endif
 
-
+void report_hex_msg(char* buf, const char *prefix, int len);
 
 #endif
