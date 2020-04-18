@@ -26,17 +26,29 @@
 #define SPINDLE_STATE_CW       bit(0)
 #define SPINDLE_STATE_CCW      bit(1)
 
-#define SPINDLE_TYPE_NONE   0
-#define SPINDLE_TYPE_PWM    1
-#define SPINDLE_TYPE_RELAY  2
-#define SPINDLE_TYPE_LASER  4
-#define SPINDLE_TYPE_DAC    5
 
+#define SPINDLE_TYPE_NONE       0
+#define SPINDLE_TYPE_PWM        1
+#define SPINDLE_TYPE_RELAY      2
+#define SPINDLE_TYPE_LASER      3
+#define SPINDLE_TYPE_DAC        4
+#define SPINDLE_TYPE_HUANYANG   5
+/*
+typedef enum {
+  SPINDLE_TYPE_NONE = 0,
+  SPINDLE_TYPE_PWM,
+  SPINDLE_TYPE_RELAY,
+  SPINDLE_TYPE_LASER,
+  SPINDLE_TYPE_DAC,
+  SPINDLE_TYPE_HUANGYANG,
+} spindle_type_t;
+*/
 #ifndef SPINDLE_CLASS_H
 #define SPINDLE_CLASS_H
 
 #include "grbl.h"
 #include <driver/dac.h>
+#include "driver/uart.h"
 
 
 
@@ -51,6 +63,8 @@ class Spindle {
     virtual void config_message();
     virtual bool isRateAdjusted();
     virtual void spindle_sync(uint8_t state, float rpm);
+
+    bool is_reversable;
 };
 
 // This is a dummy spindle that has no I/O.
@@ -128,15 +142,38 @@ class DacSpindle : public PWMSpindle {
     void set_pwm(uint32_t duty); // sets DAC instead of PWM
 };
 
-extern Spindle *my_spindle;
+class HuanyangSpindle : public Spindle {
+  public:
+    void init();
+    void config_message();
+    virtual void set_state(uint8_t state, float rpm);
+    uint8_t get_state();
+    float set_rpm(float rpm);
+    void stop();    
+
+  private:
+    bool get_response(uint16_t length);
+    uint16_t  ModRTU_CRC(char* buf, int len);
+    void add_ModRTU_CRC(char* buf, int full_msg_len);
+    bool set_mode(uint8_t mode);
+    bool get_pin_numbers();
+
+    uint8_t _txd_pin;
+    uint8_t _rxd_pin;
+    uint8_t _rts_pin;
+    uint8_t _state;
+};
+
+extern Spindle* my_spindle;
 
 extern NullSpindle null_spindle;
 extern PWMSpindle pwm_spindle;
 extern RelaySpindle relay_spindle;
 extern Laser laser;
 extern DacSpindle dac_spindle;
+extern HuanyangSpindle huanyang_spindle;
 
 void spindle_select(uint8_t spindle_type);
-void spindle_read_prefs(Preferences &prefs);
+void spindle_read_prefs(Preferences& prefs);
 
 #endif

@@ -39,12 +39,14 @@
 #include "DacSpindle.cpp"
 #include "RelaySpindle.cpp"
 #include "Laser.cpp"
+#include "HuanyangSpindle.cpp"
 
 NullSpindle null_spindle;
 PWMSpindle pwm_spindle;
 RelaySpindle relay_spindle;
 Laser laser;
 DacSpindle dac_spindle;
+HuanyangSpindle huanyang_spindle;
 
 void spindle_select(uint8_t spindle_type) {
     
@@ -60,6 +62,9 @@ void spindle_select(uint8_t spindle_type) {
         break;
     case SPINDLE_TYPE_DAC:
         my_spindle = &dac_spindle;
+        break;
+    case SPINDLE_TYPE_HUANYANG:
+         my_spindle = &huanyang_spindle;
         break;
     case SPINDLE_TYPE_NONE:
     default:
