@@ -55,14 +55,14 @@ typedef void (*i2s_ioexpander_pulse_phase_func_t)(void);
 
 typedef struct {
     /*
-        I2S bitstream (32-bits):
+        I2S bitstream (32-bits): Transfers from LSB(bit0) to MSB(bit31) in sequence
              LEFT Channel                    Right Channel                   LEFT Channel
         ws   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~________________________________~~~~...
         bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~...
         data vutsrqponmlkjihgfedcba9876543210vutsrqponmlkjihgfedcba9876543210____...
-             dummy(same as right channel)    XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX^
-                                                                             latch X bits
-        0:Extended GPIO 128, 1: Extended GPIO 129, ..., v: Extended GPIO 159
+                                             XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                                            ^Latches the X bits when ws is switched to High
+        bit0:Extended GPIO 128, 1: Extended GPIO 129, ..., v: Extended GPIO 159
         (data at LEFT Channel will ignored by shift-register IC)
     */
     uint8_t ws_pin;
@@ -104,9 +104,33 @@ void i2s_ioexpander_write(uint8_t pin, uint8_t val);
  */
 uint32_t i2s_ioexpander_push_sample(uint32_t num);
 
-int i2s_ioexpander_start();
-int i2s_ioexpander_stop();
+/*
+   Start to pausing the pulse callback
+
+   After this function is called,
+   the callback function to generate the pulse data
+   will not be called.
+ */
+int i2s_ioexpander_pause();
+
+/*
+   Start to resuming the pulse callback
+
+   After this function is called,
+   the callback function to generate the pulse data
+   will be called again.
+ */
+int i2s_ioexpander_resume();
+
+/*
+   Set the pulse callback period in microseconds
+   (like the timer period for the ISR)
+ */
 int i2s_ioexpander_set_pulse_period(uint32_t period);
+
+/*
+   Register a callback function to generate pulse data
+ */
 int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t func);
 
 #endif

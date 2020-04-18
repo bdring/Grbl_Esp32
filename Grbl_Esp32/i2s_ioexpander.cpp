@@ -76,7 +76,7 @@ static i2s_dma_t dma;
 static intr_handle_t i2s_isr_handle;
 
 // output value
-static volatile atomic_uint_least32_t i2s_port_data = ATOMIC_VAR_INIT(0);
+static atomic_uint_least32_t i2s_port_data = ATOMIC_VAR_INIT(0);
 
 #define I2S_ENTER_CRITICAL()  portENTER_CRITICAL(&i2s_spinlock)
 #define I2S_EXIT_CRITICAL()   portEXIT_CRITICAL(&i2s_spinlock)
@@ -125,6 +125,30 @@ uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
   return n;
 }
 
+int i2s_ioexpander_pause() {
+  if (i2s_ioexpander_status == STOPPING) {
+    return -1;
+  }
+  i2s_ioexpander_status = STOPPING;
+  i2s_ioexpander_clear_buffer_counter = 0;
+  return 0;
+}
+
+int i2s_ioexpander_resume() {
+  i2s_ioexpander_status = RUNNING;
+  return 0;
+}
+
+int i2s_ioexpander_set_pulse_period(uint32_t period) {
+  i2s_ioexpander_pulse_period = period;
+  return 0;
+}
+
+int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t func) {
+  i2s_ioexpander_pulse_phase_func = func;
+  return 0;
+}
+
 //
 // Internal functions (and init function)
 //
@@ -171,30 +195,6 @@ static int i2s_start() {
   I2S0.conf.tx_start = 1;
   I2S_EXIT_CRITICAL();
  
-  return 0;
-}
-
-int i2s_ioexpander_start() {
-  i2s_ioexpander_status = RUNNING;
-  return 0;
-}
-
-int i2s_ioexpander_stop() {
-  if (i2s_ioexpander_status == STOPPING) {
-    return -1;
-  }
-  i2s_ioexpander_status = STOPPING;
-  i2s_ioexpander_clear_buffer_counter = 0;
-  return 0;
-}
-
-int i2s_ioexpander_set_pulse_period(uint32_t period) {
-  i2s_ioexpander_pulse_period = period;
-  return 0;
-}
-
-int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t func) {
-  i2s_ioexpander_pulse_phase_func = func;
   return 0;
 }
 
@@ -258,14 +258,14 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
       while (dma.rw_pos < (DMA_SAMPLE_COUNT - DMA_SAMPLE_SAFE_COUNT)) {
           // no data to read (buffer empty)
           if (i2s_ioexpander_remain_time_until_next_pulse < I2S_IOEXP_USEC_PER_PULSE) {
-            // fillout push buffer
+            // fillout future DMA buffer (tail of the DMA buffer chains)
             if (i2s_ioexpander_pulse_phase_func != NULL) {
               (*i2s_ioexpander_pulse_phase_func)(); // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT 
               i2s_ioexpander_remain_time_until_next_pulse = i2s_ioexpander_pulse_period;
               continue;
             }
           }
-          // no pulse data in push buffer (pulse off or idle or not defined callback)
+          // no pulse data in push buffer (pulse off or idle or callback is not defined)
           dma.current[dma.rw_pos++] = atomic_load(&i2s_port_data);
           if (i2s_ioexpander_remain_time_until_next_pulse >= I2S_IOEXP_USEC_PER_PULSE) {
             i2s_ioexpander_remain_time_until_next_pulse -= I2S_IOEXP_USEC_PER_PULSE;            
