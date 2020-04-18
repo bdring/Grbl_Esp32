@@ -39,7 +39,6 @@
 #include "defaults.h"
 #include "settings.h"
 #include "system.h"
-#include "fastio.h"
 
 #include "planner.h"
 #include "coolant_control.h"

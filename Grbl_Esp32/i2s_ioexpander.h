@@ -51,6 +51,38 @@
 /* 1000000 usec / ((160000000 Hz) / 5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
 #define I2S_IOEXP_USEC_PER_PULSE 4
 
+#define IS_I2S_IOEXP_PIN(IO) ((IO) & ~0x7F)
+#define I2S_IOEXP_PIN_INDEX(IO) ((IO) & 0x7F)
+
+// Read a pin wrapper
+#define I2S_IOEXP_READ(IO)      do{ IS_I2S_IOEXP_PIN(IO) ?\
+                                    i2s_ioexpander_state(I2S_IOEXP_PIN_INDEX(IO)) : digitalRead(IO);\
+                                }while(0)
+// Write to a pin wrapper
+#define I2S_IOEXP_WRITE(IO, v)  do{ IS_I2S_IOEXP_PIN(IO) ?\
+                                    i2s_ioexpander_write(I2S_IOEXP_PIN_INDEX(IO), v) : digitalWrite(IO, v);\
+                                }while(0)
+#define I2S_IOEXP_SET_INPUT(IO) do{ if (!IS_I2S_IOEXP_PIN(IO))\
+                                    pinMode(IO, INPUT);\
+                                }while(0)
+// Set pin as input with pullup wrapper
+#define I2S_IOEXP_SET_INPUT_PULLUP(IO)\
+                                do{ if (!IS_I2S_IOEXP_PIN(IO))\
+                                    pinMode(IO, INPUT_PULLUP);\
+                                }while(0)
+// Set pin as output wrapper
+#define I2S_IOEXP_SET_OUTPUT(IO)\
+                                do{ if (!IS_I2S_IOEXP_PIN(IO))\
+                                    pinMode(IO, OUTPUT);\
+                                }while(0)
+// Set pin as PWM
+#define I2S_IOEXP_SET_PWM(IO)   I2S_IOEXP_SET_OUTPUT(IO)
+// Set pin as output and init
+#define I2S_IOEXP_OUT_WRITE(IO,V)\
+                                do{ I2S_IOEXP_SET_OUTPUT(IO); I2S_IOEXP_WRITE(IO,V); }while(0)
+// PWM outputs
+#define I2S_IOEXP_PWM_PIN(IO)    ((IO) < 34) /* NOTE Pins >= 34 are input only on ESP32, so they can't be used for output. */
+
 typedef void (*i2s_ioexpander_pulse_phase_func_t)(void);
 
 typedef struct {

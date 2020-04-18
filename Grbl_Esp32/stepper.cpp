@@ -436,10 +436,88 @@ static void stepper_pulse_phase_func() {
     return;
 }
 
+#ifdef I2S_STEPPER_STREAM
 void stepper_init() {
     // make the stepper disable pin an output
 #ifdef STEPPERS_DISABLE_PIN
-    SET_OUTPUT(STEPPERS_DISABLE_PIN);
+    I2S_IOEXP_SET_OUTPUT(STEPPERS_DISABLE_PIN);
+    set_stepper_disable(true);
+#endif
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "I2S Steps");
+    // make the step pins outputs
+#ifdef  X_STEP_PIN
+    I2S_IOEXP_SET_OUTPUT(X_STEP_PIN);
+#endif
+#ifdef  X2_STEP_PIN // ganged motor
+    I2S_IOEXP_SET_OUTPUT(X2_STEP_PIN);
+#endif
+#ifdef Y_STEP_PIN
+    I2S_IOEXP_SET_OUTPUT(Y_STEP_PIN);
+#endif
+#ifdef Y2_STEP_PIN
+    I2S_IOEXP_SET_OUTPUT(Y2_STEP_PIN);
+#endif
+#ifdef Z_STEP_PIN
+    I2S_IOEXP_SET_OUTPUT(Z_STEP_PIN);
+#endif
+#ifdef Z2_STEP_PIN
+    I2S_IOEXP_SET_OUTPUT(Z2_STEP_PIN);
+#endif
+#ifdef A_STEP_PIN
+    I2S_IOEXP_SET_OUTPUT(A_STEP_PIN);
+#endif
+#ifdef B_STEP_PIN
+    I2S_IOEXP_SET_OUTPUT(B_STEP_PIN);
+#endif
+#ifdef C_STEP_PIN
+    I2S_IOEXP_SET_OUTPUT(C_STEP_PIN);
+#endif
+    // make the direction pins outputs
+#ifdef X_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(X_DIRECTION_PIN);
+#endif
+#ifdef X2_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(X2_DIRECTION_PIN);
+#endif
+#ifdef Y_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(Y_DIRECTION_PIN);
+#endif
+#ifdef Y2_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(Y2_DIRECTION_PIN);
+#endif
+#ifdef Z_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(Z_DIRECTION_PIN);
+#endif
+#ifdef Z2_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(Z2_DIRECTION_PIN);
+#endif
+#ifdef A_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(A_DIRECTION_PIN);
+#endif
+#ifdef A2_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(A2_DIRECTION_PIN);
+#endif
+#ifdef B_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(B_DIRECTION_PIN);
+#endif
+#ifdef B2_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(B2_DIRECTION_PIN);
+#endif
+#ifdef C_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(C_DIRECTION_PIN);
+#endif
+#ifdef C2_DIRECTION_PIN
+    I2S_IOEXP_SET_OUTPUT(C2_DIRECTION_PIN);
+#endif
+    // I2S stepper do not use timer interrupt but callback
+    i2s_ioexpander_register_pulse_callback(stepper_pulse_phase_func);
+}
+#else
+void stepper_init() {
+    // make the stepper disable pin an output
+#ifdef STEPPERS_DISABLE_PIN
+    pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
     set_stepper_disable(true);
 #endif
 #ifdef USE_UNIPOLAR
@@ -453,82 +531,73 @@ void stepper_init() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RMT Steps");
     initRMT();
 #else
-  #ifdef I2S_STEPPER_STREAM
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "I2S Steps");
-  #else
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Timed Steps");
-  #endif
     // make the step pins outputs
 #ifdef  X_STEP_PIN
-    SET_OUTPUT(X_STEP_PIN);
+    pinMode(X_STEP_PIN, OUTPUT);
 #endif
 #ifdef  X2_STEP_PIN // ganged motor
-    SET_OUTPUT(X2_STEP_PIN);
+    pinMode(X2_STEP_PIN, OUTPUT);
 #endif
 #ifdef Y_STEP_PIN
-    SET_OUTPUT(Y_STEP_PIN);
+    pinMode(Y_STEP_PIN, OUTPUT);
 #endif
 #ifdef Y2_STEP_PIN
-    SET_OUTPUT(Y2_STEP_PIN);
+    pinMode(Y2_STEP_PIN, OUTPUT);
 #endif
 #ifdef Z_STEP_PIN
-    SET_OUTPUT(Z_STEP_PIN);
+    pinMode(Z_STEP_PIN, OUTPUT);
 #endif
 #ifdef Z2_STEP_PIN
-    SET_OUTPUT(Z2_STEP_PIN);
+    pinMode(Z2_STEP_PIN, OUTPUT);
 #endif
 #ifdef A_STEP_PIN
-    SET_OUTPUT(A_STEP_PIN);
+    pinMode(A_STEP_PIN, OUTPUT);
 #endif
 #ifdef B_STEP_PIN
-    SET_OUTPUT(B_STEP_PIN);
+    pinMode(B_STEP_PIN, OUTPUT);
 #endif
 #ifdef C_STEP_PIN
-    SET_OUTPUT(C_STEP_PIN);
+    pinMode(C_STEP_PIN, OUTPUT);
 #endif
 #endif
     // make the direction pins outputs
 #ifdef X_DIRECTION_PIN
-    SET_OUTPUT(X_DIRECTION_PIN);
+    pinMode(X_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef X2_DIRECTION_PIN
-    SET_OUTPUT(X2_DIRECTION_PIN);
+    pinMode(X2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef Y_DIRECTION_PIN
-    SET_OUTPUT(Y_DIRECTION_PIN);
+    pinMode(Y_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef Y2_DIRECTION_PIN
-    SET_OUTPUT(Y2_DIRECTION_PIN);
+    pinMode(Y2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef Z_DIRECTION_PIN
-    SET_OUTPUT(Z_DIRECTION_PIN);
+    pinMode(Z_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef Z2_DIRECTION_PIN
-    SET_OUTPUT(Z2_DIRECTION_PIN);
+    pinMode(Z2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef A_DIRECTION_PIN
-    SET_OUTPUT(A_DIRECTION_PIN);
+    pinMode(A_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef A2_DIRECTION_PIN
-    SET_OUTPUT(A2_DIRECTION_PIN);
+    pinMode(A2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef B_DIRECTION_PIN
-    SET_OUTPUT(B_DIRECTION_PIN);
+    pinMode(B_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef B2_DIRECTION_PIN
-    SET_OUTPUT(B2_DIRECTION_PIN);
+    pinMode(B2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef C_DIRECTION_PIN
-    SET_OUTPUT(C_DIRECTION_PIN);
+    pinMode(C_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef C2_DIRECTION_PIN
-    SET_OUTPUT(C2_DIRECTION_PIN);
+    pinMode(C2_DIRECTION_PIN, OUTPUT);
 #endif
-
-#ifdef I2S_STEPPER_STREAM
-    // I2S stepper do not use timer interrupt but callback
-    i2s_ioexpander_register_pulse_callback(stepper_pulse_phase_func);
-#else
     // setup stepper timer interrupt
     /*
     stepperDriverTimer = timerBegin(	0, 													// timer number
@@ -549,8 +618,8 @@ void stepper_init() {
     timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
     timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
     timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
-#endif
 }
+#endif
 
 #ifdef USE_RMT_STEPS
 void initRMT() {
@@ -720,62 +789,104 @@ void st_reset() {
 
 
 
-
+#ifdef I2S_STEPPER_STREAM
 void set_direction_pins_on(uint8_t onMask) {
     // inverts are applied in step generation
 #ifdef X_DIRECTION_PIN
-    WRITE(X_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
+    I2S_IOEXP_WRITE(X_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
 #endif
 #ifdef X2_DIRECTION_PIN // optional ganged axis 
-    WRITE(X2_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
+    I2S_IOEXP_WRITE(X2_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
 #endif
 #ifdef Y_DIRECTION_PIN
-    WRITE(Y_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
+    I2S_IOEXP_WRITE(Y_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
 #endif
 #ifdef Y2_DIRECTION_PIN // optional ganged axis 
-    WRITE(Y2_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
+    I2S_IOEXP_WRITE(Y2_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
 #endif
 #ifdef Z_DIRECTION_PIN
-    WRITE(Z_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
+    I2S_IOEXP_WRITE(Z_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
 #endif
 #ifdef Z2_DIRECTION_PIN // optional ganged axis 
-    WRITE(Z2_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
+    I2S_IOEXP_WRITE(Z2_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
 #endif
 #ifdef A_DIRECTION_PIN
-    WRITE(A_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
+    I2S_IOEXP_WRITE(A_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
 #endif
 #ifdef A2_DIRECTION_PIN // optional ganged axis 
-    WRITE(A2_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
+    I2S_IOEXP_WRITE(A2_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
 #endif
 #ifdef B_DIRECTION_PIN
-    WRITE(B_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
+    I2S_IOEXP_WRITE(B_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
 #endif
 #ifdef B2_DIRECTION_PIN // optional ganged axis 
-    WRITE(B2_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
+    I2S_IOEXP_WRITE(B2_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
 #endif
 #ifdef C_DIRECTION_PIN
-    WRITE(C_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
+    I2S_IOEXP_WRITE(C_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
 #endif
 #ifdef C2_DIRECTION_PIN // optional ganged axis 
-    WRITE(C2_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
+    I2S_IOEXP_WRITE(C2_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
 #endif
 }
+#else
+void set_direction_pins_on(uint8_t onMask) {
+    // inverts are applied in step generation
+#ifdef X_DIRECTION_PIN
+    digitalWrite(X_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
+#endif
+#ifdef X2_DIRECTION_PIN // optional ganged axis 
+    digitalWrite(X2_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
+#endif
+#ifdef Y_DIRECTION_PIN
+    digitalWrite(Y_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
+#endif
+#ifdef Y2_DIRECTION_PIN // optional ganged axis 
+    digitalWrite(Y2_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
+#endif
+#ifdef Z_DIRECTION_PIN
+    digitalWrite(Z_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
+#endif
+#ifdef Z2_DIRECTION_PIN // optional ganged axis 
+    digitalWrite(Z2_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
+#endif
+#ifdef A_DIRECTION_PIN
+    digitalWrite(A_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
+#endif
+#ifdef A2_DIRECTION_PIN // optional ganged axis 
+    digitalWrite(A2_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
+#endif
+#ifdef B_DIRECTION_PIN
+    digitalWrite(B_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
+#endif
+#ifdef B2_DIRECTION_PIN // optional ganged axis 
+    digitalWrite(B2_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
+#endif
+#ifdef C_DIRECTION_PIN
+    digitalWrite(C_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
+#endif
+#ifdef C2_DIRECTION_PIN // optional ganged axis 
+    digitalWrite(C2_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
+#endif
+}
+#endif
 
+#ifdef I2S_STEPPER_STREAM
 #ifndef USE_GANGED_AXES
 // basic one motor per axis
 void set_stepper_pins_on(uint8_t onMask) {
     onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
 #ifdef X_STEP_PIN
-    WRITE(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+    I2S_IOEXP_WRITE(X_STEP_PIN, (onMask & (1 << X_AXIS)));
 #endif
 #ifdef Y_STEP_PIN
-    WRITE(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+    I2S_IOEXP_WRITE(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
 #endif
 #ifdef Z_STEP_PIN
-    WRITE(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+    I2S_IOEXP_WRITE(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
 #endif
 #ifdef A_STEP_PIN
-    WRITE(A_STEP_PIN, (onMask & (1 << A_AXIS)));
+    I2S_IOEXP_WRITE(A_STEP_PIN, (onMask & (1 << A_AXIS)));
 #endif
 }
 #else // we use ganged axes
@@ -783,35 +894,89 @@ void set_stepper_pins_on(uint8_t onMask) {
     onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
 #ifdef X_STEP_PIN
 #ifndef X2_STEP_PIN // if not a ganged axis
-    WRITE(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+    I2S_IOEXP_WRITE(X_STEP_PIN, (onMask & (1 << X_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        WRITE(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+        I2S_IOEXP_WRITE(X_STEP_PIN, (onMask & (1 << X_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        WRITE(X2_STEP_PIN, (onMask & (1 << X_AXIS)));
+        I2S_IOEXP_WRITE(X2_STEP_PIN, (onMask & (1 << X_AXIS)));
 #endif
 #endif
 #ifdef Y_STEP_PIN
 #ifndef Y2_STEP_PIN // if not a ganged axis
-    WRITE(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+    I2S_IOEXP_WRITE(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        WRITE(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+        I2S_IOEXP_WRITE(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        WRITE(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
+        I2S_IOEXP_WRITE(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
 #endif
 #endif
 #ifdef Z_STEP_PIN
 #ifndef Z2_STEP_PIN // if not a ganged axis
-    WRITE(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+    I2S_IOEXP_WRITE(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        WRITE(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+        I2S_IOEXP_WRITE(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        WRITE(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
+        I2S_IOEXP_WRITE(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
 #endif
 #endif
 }
+#endif
+#else
+#ifndef USE_GANGED_AXES
+// basic one motor per axis
+void set_stepper_pins_on(uint8_t onMask) {
+    onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
+#ifdef X_STEP_PIN
+    digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+#endif
+#ifdef Y_STEP_PIN
+    digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+#endif
+#ifdef Z_STEP_PIN
+    digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+#endif
+#ifdef A_STEP_PIN
+    digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
+#endif
+}
+#else // we use ganged axes
+void set_stepper_pins_on(uint8_t onMask) {
+    onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
+#ifdef X_STEP_PIN
+#ifndef X2_STEP_PIN // if not a ganged axis
+    digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+#else // is a ganged axis
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
+        digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
+        digitalWrite(X2_STEP_PIN, (onMask & (1 << X_AXIS)));
+#endif
+#endif
+#ifdef Y_STEP_PIN
+#ifndef Y2_STEP_PIN // if not a ganged axis
+    digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+#else // is a ganged axis
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
+        digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
+        digitalWrite(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
+#endif
+#endif
+#ifdef Z_STEP_PIN
+#ifndef Z2_STEP_PIN // if not a ganged axis
+    digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+#else // is a ganged axis
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
+        digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
+        digitalWrite(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
+#endif
+#endif
+}
+#endif
 #endif
 
 #ifdef USE_RMT_STEPS
@@ -1441,14 +1606,22 @@ void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
     unipolar_disable(isOn);
 #endif
 #ifdef STEPPERS_DISABLE_PIN
-    WRITE(STEPPERS_DISABLE_PIN, isOn);
+#ifdef I2S_STEPPER_STREAM
+    I2S_IOEXP_WRITE(STEPPERS_DISABLE_PIN, isOn);
+#else
+    digitalWrite(STEPPERS_DISABLE_PIN, isOn);
+#endif
 #endif
 }
 
 bool get_stepper_disable() { // returns true if steppers are disabled
     bool disabled = false;
 #ifdef STEPPERS_DISABLE_PIN
-    disabled = READ(STEPPERS_DISABLE_PIN);
+#ifdef I2S_STEPPER_STREAM
+    disabled = I2S_IOEXP_READ(STEPPERS_DISABLE_PIN);
+#else
+    disabled = digitalRead(STEPPERS_DISABLE_PIN);
+#endif
 #else
     return false; // thery are never disabled if there is no pin defined
 #endif
