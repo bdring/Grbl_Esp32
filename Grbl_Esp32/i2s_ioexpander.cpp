@@ -125,7 +125,7 @@ uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
   return n;
 }
 
-int i2s_ioexpander_pause() {
+int i2s_ioexpander_pause_pulse() {
   if (i2s_ioexpander_status == STOPPING) {
     return -1;
   }
@@ -134,7 +134,7 @@ int i2s_ioexpander_pause() {
   return 0;
 }
 
-int i2s_ioexpander_resume() {
+int i2s_ioexpander_resume_pulse() {
   i2s_ioexpander_status = RUNNING;
   return 0;
 }

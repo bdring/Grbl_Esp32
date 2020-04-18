@@ -111,7 +111,7 @@ uint32_t i2s_ioexpander_push_sample(uint32_t num);
    the callback function to generate the pulse data
    will not be called.
  */
-int i2s_ioexpander_pause();
+int i2s_ioexpander_pause_pulse();
 
 /*
    Start to resuming the pulse callback
@@ -120,7 +120,7 @@ int i2s_ioexpander_pause();
    the callback function to generate the pulse data
    will be called again.
  */
-int i2s_ioexpander_resume();
+int i2s_ioexpander_resume_pulse();
 
 /*
    Set the pulse callback period in microseconds
