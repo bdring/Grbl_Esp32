@@ -422,7 +422,7 @@ static void stepper_pulse_phase_func() {
     // The pulse resolution is limited by I2S_IOEXP_USEC_PER_PULSE
     //
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
-    i2s_ioexpander_push_sample(settings.pulse_microseconds / I2S_IOEXP_USEC_PER_PULSE);
+    i2s_ioexpander_push_sample((settings.pulse_microseconds / I2S_IOEXP_USEC_PER_PULSE) + 1); // +1 to round it up
     set_stepper_pins_on(0); // turn all off
   #else
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask

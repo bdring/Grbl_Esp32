@@ -48,8 +48,8 @@
 
 #define I2S_IOEXP_PIN_BASE 128
 
-/* 1000000 usec / ((160000000 Hz) / 5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
-#define I2S_IOEXP_USEC_PER_PULSE 4
+/* 1000000 usec / ((160000000 Hz) / 2.5 / 2) x 32 bit/pulse x 2(stereo) = 2 usec/pulse */
+#define I2S_IOEXP_USEC_PER_PULSE 2
 
 #define IS_I2S_IOEXP_PIN(IO) ((IO) & ~0x7F)
 #define I2S_IOEXP_PIN_INDEX(IO) ((IO) & 0x7F)
@@ -127,9 +127,10 @@ void i2s_ioexpander_write(uint8_t pin, uint8_t val);
 
 /*
     Set current pin state to the I2S bitstream buffer
-    (This call will generate a future 4μs x N bitstream)
+    (This call will generate a future I2S_IOEXP_USEC_PER_PULSE μs x N bitstream)
 
     num: Number of samples to be generated
+         The number of samples is limited to (20 / I2S_IOEXP_USEC_PER_PULSE).
 
     return: number of puhsed samples
             0 .. no space for push

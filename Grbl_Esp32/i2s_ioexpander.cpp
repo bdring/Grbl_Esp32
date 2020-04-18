@@ -55,13 +55,23 @@
 #include "i2s_ioexpander.h"
 
 //
-// configrations for DMA connected I2S
+// Configrations for DMA connected I2S
 //
-#define DMA_BUF_COUNT 8                                /* number of DMA buffers to store data */
-#define DMA_BUF_LEN   4092                             /* maximum size in bytes (4092 is DMA's limit) */
+// One DMA buffer transfer takes about 1 ms (2000/4 x I2S_IOEXP_USEC_PER_PULSE = 1000 us)
+// If DMA_BUF_COUNT is 5, it will take about 5 ms for all the DMA buffer transfers to finish.
+//
+// Increasing DMA_BUF_COUNT has the effect of preventing buffer underflow,
+// but on the other hand, it leads to a delay with pulse and/or non-pulse-generated I/Os.
+// The number of DMA_BUF_COUNT should be chosen carefully.
+// 
+// Reference information:
+//   FreeRtoS task time slice = portTICK_PERIOD_MS = 1 ms (ESP32 FreeRtoS port)
+//
+#define DMA_BUF_COUNT 5                                /* number of DMA buffers to store data */
+#define DMA_BUF_LEN   2000                             /* maximum size in bytes (4092 is DMA's limit) */
 #define I2S_SAMPLE_SIZE 4                              /* 4 bytes, 32 bits per sample */
 #define DMA_SAMPLE_COUNT DMA_BUF_LEN / I2S_SAMPLE_SIZE /* number of samples per buffer */
-#define DMA_SAMPLE_SAFE_COUNT 5                        /* prevent buffer overrun */
+#define SAMPLE_SAFE_COUNT (20/I2S_IOEXP_USEC_PER_PULSE) /* prevent buffer overrun */
 
 typedef struct {
   uint32_t     **buffers;
@@ -88,11 +98,9 @@ static volatile i2s_ioexpander_pulse_phase_func_t i2s_ioexpander_pulse_phase_fun
 enum i2s_ioexpander_status_t {
   UNKNOWN = 0,
   RUNNING,
-  STOPPING,
-  STOPPED,
+  PAUSED,
 };
 static volatile i2s_ioexpander_status_t i2s_ioexpander_status;
-static volatile uint32_t i2s_ioexpander_clear_buffer_counter = 0;
 
 //
 // External funtions (without init function)
@@ -112,12 +120,12 @@ uint8_t IRAM_ATTR i2s_ioexpander_state(uint8_t pin) {
 }
 
 uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
-  uint32_t n = 0;
-  if (num > DMA_SAMPLE_SAFE_COUNT) {
+  if (num > SAMPLE_SAFE_COUNT) {
     return 0;
   }
-  // push at least one sample
+  // push at least one sample (even if num is zero)
   uint32_t port_data = atomic_load(&i2s_port_data);
+  uint32_t n = 0;
   do {
     dma.current[dma.rw_pos++] = port_data;
     n++;
@@ -126,11 +134,7 @@ uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
 }
 
 int i2s_ioexpander_pause_pulse() {
-  if (i2s_ioexpander_status == STOPPING) {
-    return -1;
-  }
-  i2s_ioexpander_status = STOPPING;
-  i2s_ioexpander_clear_buffer_counter = 0;
+  i2s_ioexpander_status = PAUSED;
   return 0;
 }
 
@@ -220,6 +224,7 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
       for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
         finished_buffer[i] = port_data;
       }
+      finish_desc->length = DMA_BUF_LEN;
     }
     // Send a DMA complete event to the I2S bitstreamer task with finished buffer 
     xQueueSendFromISR(dma.queue, &finish_desc, &high_priority_task_awoken);
@@ -243,19 +248,19 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
     dma.current = (uint32_t*)(dma_desc->buf);
     // It reuses the oldest (just transferred) buffer with the name "current"
     // and fills the buffer for later DMA.
-    if (i2s_ioexpander_status == STOPPING) {
-      if (i2s_ioexpander_clear_buffer_counter++ < DMA_BUF_COUNT) {
-        uint32_t port_data = atomic_load(&i2s_port_data);
-        for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
-          dma.current[i] = port_data;
-        }
-        dma.rw_pos = DMA_SAMPLE_COUNT;
-      } else {
-        i2s_ioexpander_status = STOPPED;
-      }
-    } else {
+    if (i2s_ioexpander_status == RUNNING) {
+      //
+      // Fillout the buffer for pulse
+      //
+      // To avoid buffer overflow, all of the maximum pulse width (normaly about 10us)
+      // is adjusted to be in a single buffer.
+      // DMA_SAMPLE_SAFE_COUNT is referred to as the margin value.
+      // Therefore, if a buffer is close to full and it is time to generate a pulse,
+      // the generation of the buffer is interrupted (the buffer length is shortened slightly)
+      // and the pulse generation is postponed until the next buffer is filled.
+      //
       dma.rw_pos = 0;
-      while (dma.rw_pos < (DMA_SAMPLE_COUNT - DMA_SAMPLE_SAFE_COUNT)) {
+      while (dma.rw_pos < (DMA_SAMPLE_COUNT - SAMPLE_SAFE_COUNT)) {
           // no data to read (buffer empty)
           if (i2s_ioexpander_remain_time_until_next_pulse < I2S_IOEXP_USEC_PER_PULSE) {
             // fillout future DMA buffer (tail of the DMA buffer chains)
@@ -273,7 +278,17 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
             i2s_ioexpander_remain_time_until_next_pulse = 0;
           }
       }
+      // set filled length to the DMA descriptor
       dma_desc->length = dma.rw_pos * I2S_SAMPLE_SIZE;      
+    } else {
+      // Stepper not started or stopped
+      // (just set current I/O port bits to the buffer)
+      uint32_t port_data = atomic_load(&i2s_port_data);
+      for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
+        dma.current[i] = port_data;
+      }
+      dma.rw_pos = DMA_SAMPLE_COUNT;
+      dma_desc->length = DMA_BUF_LEN;
     }
   }
 }
@@ -295,7 +310,7 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
    * Each i2s transfer will take
    *   fpll = PLL_D2_CLK      -- clka_en = 0
    *
-   *   fi2s = fpll / N + b/a  -- N = clkm_div_num
+   *   fi2s = fpll / N + b/a  -- N + b/a = clkm_div_num
    *   fi2s = 160MHz / 2
    *   fi2s = 80MHz
    *
@@ -305,11 +320,14 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
    *
    *   fwclk = fbclk / 32
    *
-   *   for fwclk = 250kHz (16-bit: 4µS pulse time, 32-bit: 8μS pulse time)
-   *      N = 10
+   *   for fwclk = 250kHz(16-bit: 4µS pulse time), 125kHz(32-bit: 8μS pulse time)
+   *      N = 10, b/a = 0
    *      M = 2
-   *   for fwclk = 500kHz (16-bit: 2µS pulse time, 32-bit: 4μS pulse time)
-   *      N = 5
+   *   for fwclk = 500kHz(16-bit: 2µS pulse time), 250kHz(32-bit: 4μS pulse time)
+   *      N = 5, b/a = 0
+   *      M = 2
+   *   for fwclk = 1000kHz(16-bit: 1µS pulse time), 500kHz(32-bit: 2μS pulse time)
+   *      N = 2, b/a = 2/1 (N + b/a = 2.5)
    *      M = 2
    */
 
@@ -426,14 +444,17 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   // i2s_set_clk
   //
 
-   // set clock (fi2s)
+  // set clock (fi2s) 160MHz / 2.5
   I2S0.clkm_conf.clka_en = 0;       // Use 160 MHz PLL_D2_CLK as reference
-  I2S0.clkm_conf.clkm_div_num = 5; // minimum value of 2, reset value of 4, max 256 (I²S clock divider’s integral value)
-  I2S0.clkm_conf.clkm_div_a = 0;    // 0 at reset, what about divide by 0? (not an issue)
-  I2S0.clkm_conf.clkm_div_b = 0;    // 0 at reset
-
+  // N + b/a = 2.5
+  // N = 2
+  I2S0.clkm_conf.clkm_div_num = 2; // minimum value of 2, reset value of 4, max 256 (I²S clock divider’s integral value)
+  // b/a = 0.5
+  I2S0.clkm_conf.clkm_div_b = 1;    // 0 at reset
+  I2S0.clkm_conf.clkm_div_a = 2;    // 0 at reset, what about divide by 0? (not an issue)
+  
   // Bit clock configuration bit in transmitter mode.
-  // fbck = fi2s / tx_bck_div_num = (160 MHz / 5) / 2 = 16 MHz
+  // fbck = fi2s / tx_bck_div_num = (160 MHz / 2.5) / 2 = 32 MHz
   I2S0.sample_rate_conf.tx_bck_div_num = 2; // minimum value of 2 defaults to 6
   I2S0.sample_rate_conf.rx_bck_div_num = 2;
   I2S0.sample_rate_conf.tx_bits_mod = 32;
