@@ -23,6 +23,10 @@
 #include "SpindleClass.h"
 
 // ======================= PWMSpindle ==============================
+/*
+    This gets called at startup or whenever a spindle setting changes
+    If the spindle is running it will stop and need to be restarted with M3Snnnn
+*/
 void PWMSpindle::init() {
 
     get_pin_numbers();
@@ -94,7 +98,7 @@ void PWMSpindle :: get_pin_numbers() {
     // The pwm_gradient is the pwm duty cycle units per rpm
     _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
 
-    _spindle_pwm_chan_num = sys_get_next_PWM_chan_num();
+    _spindle_pwm_chan_num = 0; // Channel 0 is reserved for spindle use
    
 
 }
@@ -180,7 +184,7 @@ uint8_t PWMSpindle::get_state() {
 void PWMSpindle::stop() {
     // inverts are delt with in methods
     set_enable_pin(false);
-    set_pwm(0);
+    set_pwm(_pwm_off_value);
 }
 
 // prints the startup message of the spindle config
@@ -190,6 +194,9 @@ void PWMSpindle :: config_message() {
 
 
 void PWMSpindle::set_pwm(uint32_t duty) {
+
+grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle set duty:%d", duty);
+
     if (_output_pin == UNDEFINED_PIN)
         return;
 
