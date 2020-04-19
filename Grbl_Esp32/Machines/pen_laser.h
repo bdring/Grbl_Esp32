@@ -59,8 +59,8 @@
 #ifdef USING_SERVO
     #define USE_SERVO_AXES
     #define SERVO_Z_PIN     GPIO_NUM_27
-    #define SERVO_Z_RANGE_MIN 0
-    #define SERVO_Z_RANGE_MAX 10
+    #define SERVO_Z_RANGE_MIN 0.0
+    #define SERVO_Z_RANGE_MAX 10.0
 #endif
 
 #ifdef USING_SOLENOID
@@ -99,8 +99,8 @@
 
 #define DEFAULT_LASER_MODE 0 // false
 
-#define DEFAULT_X_STEPS_PER_MM 80
-#define DEFAULT_Y_STEPS_PER_MM 80
+#define DEFAULT_X_STEPS_PER_MM 80.0
+#define DEFAULT_Y_STEPS_PER_MM 80.0
 #define DEFAULT_Z_STEPS_PER_MM 100.0 // This is percent in servo mode...used for calibration
 
 #define DEFAULT_X_MAX_RATE 5000.0 // mm/min
