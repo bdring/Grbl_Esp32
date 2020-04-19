@@ -34,7 +34,7 @@ void RelaySpindle::init() {
     pinMode(_output_pin, OUTPUT);
 
     if (_enable_pin != UNDEFINED_PIN)
-        pinMode(SPINDLE_ENABLE_PIN, OUTPUT);
+        pinMode(_enable_pin, OUTPUT);
 
     if (_direction_pin != UNDEFINED_PIN)
         pinMode(_direction_pin, OUTPUT);
