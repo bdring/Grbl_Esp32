@@ -33,16 +33,8 @@
 #define SPINDLE_TYPE_LASER      3
 #define SPINDLE_TYPE_DAC        4
 #define SPINDLE_TYPE_HUANYANG   5
-/*
-typedef enum {
-  SPINDLE_TYPE_NONE = 0,
-  SPINDLE_TYPE_PWM,
-  SPINDLE_TYPE_RELAY,
-  SPINDLE_TYPE_LASER,
-  SPINDLE_TYPE_DAC,
-  SPINDLE_TYPE_HUANGYANG,
-} spindle_type_t;
-*/
+#define SPINDLE_TYPE_BESC       6
+
 #ifndef SPINDLE_CLASS_H
 #define SPINDLE_CLASS_H
 
@@ -90,10 +82,8 @@ class PWMSpindle : public Spindle {
     void config_message();
 
   private:
-    int8_t _spindle_pwm_chan_num;
+    
     int32_t _current_pwm_duty;
-    float _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
-
     void set_spindle_dir_pin(bool Clockwise);
 
   protected:
@@ -105,8 +95,11 @@ class PWMSpindle : public Spindle {
     uint8_t _output_pin;
     uint8_t _enable_pin;
     uint8_t _direction_pin;
+    int8_t _spindle_pwm_chan_num;
     float _pwm_freq;
     uint32_t _pwm_period; // how many counts in 1 period
+    uint8_t _pwm_precision;
+    float _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
     virtual void set_pwm(uint32_t duty);
     void set_enable_pin(bool enable_pin);
@@ -149,7 +142,7 @@ class HuanyangSpindle : public Spindle {
     virtual void set_state(uint8_t state, float rpm);
     uint8_t get_state();
     float set_rpm(float rpm);
-    void stop();    
+    void stop();
 
   private:
     bool get_response(uint16_t length);
@@ -164,6 +157,13 @@ class HuanyangSpindle : public Spindle {
     uint8_t _state;
 };
 
+class BESCSpindle : public PWMSpindle {
+  public:
+    void init();
+    void config_message();
+    float set_rpm(float rpm);
+};
+
 extern Spindle* my_spindle;
 
 extern NullSpindle null_spindle;
@@ -172,6 +172,7 @@ extern RelaySpindle relay_spindle;
 extern Laser laser;
 extern DacSpindle dac_spindle;
 extern HuanyangSpindle huanyang_spindle;
+extern BESCSpindle besc_spindle;
 
 void spindle_select(uint8_t spindle_type);
 void spindle_read_prefs(Preferences& prefs);

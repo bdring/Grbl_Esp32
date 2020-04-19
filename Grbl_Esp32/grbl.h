@@ -39,7 +39,6 @@
 
 #include "defaults.h"
 #include "settings.h"
-#include "grbl_preferences.h" 
 #include "system.h"
 
 #include "planner.h"

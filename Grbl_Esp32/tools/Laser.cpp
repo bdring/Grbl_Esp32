@@ -37,6 +37,6 @@ void Laser :: config_message() {
                    "Laser spindle on GPIO:%d, Freq:%.2fHz, Res:%dbits Laser mode:$32=%d",
                    _output_pin,
                    _pwm_freq,
-                   settings.spindle_pwm_precision_bits,
+                   SPINDLE_PWM_BIT_PRECISION,
                    isRateAdjusted());  // the current mode
 }
