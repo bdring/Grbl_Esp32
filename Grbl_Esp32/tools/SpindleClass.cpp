@@ -26,7 +26,7 @@
     TODO
         Consider breaking into one file per class.
 
-    Get rid of dependance on machine definition #defines       
+    Get rid of dependance on machine definition #defines
         SPINDLE_PWM_PIN
         SPINDLE_ENABLE_PIN
         SPINDLE_DIR_PIN
@@ -40,6 +40,7 @@
 #include "RelaySpindle.cpp"
 #include "Laser.cpp"
 #include "HuanyangSpindle.cpp"
+#include "BESCSpindle.cpp"
 
 NullSpindle null_spindle;
 PWMSpindle pwm_spindle;
@@ -47,11 +48,12 @@ RelaySpindle relay_spindle;
 Laser laser;
 DacSpindle dac_spindle;
 HuanyangSpindle huanyang_spindle;
+BESCSpindle besc_spindle;
 
 void spindle_select(uint8_t spindle_type) {
-    
+
     switch (spindle_type) {
-    case SPINDLE_TYPE_PWM:        
+    case SPINDLE_TYPE_PWM:
         my_spindle = &pwm_spindle;
         break;
     case SPINDLE_TYPE_RELAY:
@@ -64,7 +66,10 @@ void spindle_select(uint8_t spindle_type) {
         my_spindle = &dac_spindle;
         break;
     case SPINDLE_TYPE_HUANYANG:
-         my_spindle = &huanyang_spindle;
+        my_spindle = &huanyang_spindle;
+        break;
+    case SPINDLE_TYPE_BESC:
+        my_spindle = &besc_spindle;
         break;
     case SPINDLE_TYPE_NONE:
     default:
@@ -74,7 +79,7 @@ void spindle_select(uint8_t spindle_type) {
     my_spindle->init();
 }
 
-void spindle_read_prefs(Preferences &prefs) {
+void spindle_read_prefs(Preferences& prefs) {
     uint8_t foo = prefs.getUChar("SPIN_TYPE", SPINDLE_TYPE_PWM);
 }
 

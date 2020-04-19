@@ -59,7 +59,6 @@ void setup() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_STRING);
 #endif
     settings_init(); // Load Grbl settings from EEPROM
-    grbl_preferences.begin(GRBL_PREFERENCES_NAMESPACE, true); // readonly = false
     stepper_init();  // Configure stepper pins and interrupt timers
     system_ini();   // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
     memset(sys_position, 0, sizeof(sys_position)); // Clear machine position.
@@ -99,11 +98,9 @@ void setup() {
     bt_config.begin();
 #endif
     inputBuffer.begin();
-    grbl_preferences.end(); // everyone should have their prefs by now
 }
 
 void loop() {
-    grbl_preferences.begin(GRBL_PREFERENCES_NAMESPACE, true); // readonly = false
     // Reset system variables.
     uint8_t prior_state = sys.state;
     memset(&sys, 0, sizeof(system_t)); // Clear system struct variable.
@@ -120,7 +117,7 @@ void loop() {
     // Reset Grbl primary systems.
     serial_reset_read_buffer(CLIENT_ALL); // Clear serial read buffer
     gc_init(); // Set g-code parser to default state
-    spindle_select(settings.spindle_type);
+    spindle_select(SPINDLE_TYPE);
     coolant_init();
     limits_init();
     probe_init();
@@ -132,6 +129,5 @@ void loop() {
     // put your main code here, to run repeatedly:
     report_init_message(CLIENT_ALL);
     // Start Grbl main loop. Processes program inputs and executes them.
-     grbl_preferences.end(); // everyone should have their prefs by now
     protocol_main_loop();
 }

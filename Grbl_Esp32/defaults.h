@@ -143,14 +143,6 @@
         #define DEFAULT_SPINDLE_MAX_VALUE 100.0 // $36 Percent (extended set)
     #endif
 
-    #ifndef DEFAULT_SPINDLE_PWM_BIT_PRECISION // $37
-         #define DEFAULT_SPINDLE_PWM_BIT_PRECISION 8
-    #endif
-
-    #ifndef DEFAULT_SPINDLE_TYPE  // $38
-        #define DEFAULT_SPINDLE_TYPE SPINDLE_TYPE_PWM
-    #endif
-
     // ================  user settings =====================
     #ifndef DEFAULT_USER_INT_80
         #define DEFAULT_USER_INT_80 0 // $80 User integer setting

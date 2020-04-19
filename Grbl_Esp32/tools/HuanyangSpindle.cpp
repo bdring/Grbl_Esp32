@@ -195,6 +195,9 @@ bool HuanyangSpindle :: get_response(uint16_t length) {
     0x01    0x05    0x02    0x09 0xC4   0xBF 0x0F               Write Frequency (0x9C4 = 2500 = 25.00HZ)
 */
 float HuanyangSpindle :: set_rpm(float rpm) {
+
+    // TODO add in all the speed modifiers, like override and linearization
+
     char msg[7] = {HUANYANG_ADDR, 0x05, 0x02, 0x00, 0x00, 0x00, 0x00};
 
     // add data (rpm) bytes
