@@ -56,7 +56,7 @@ void spindle_init() {
     pinMode(SPINDLE_DIR_PIN, OUTPUT);
 #endif
     // use the LED control feature to setup PWM   https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/peripherals/ledc.html
-    spindle_pwm_chan_num = sys_get_next_PWM_chan_num();
+    spindle_pwm_chan_num = 0; // spindle always uses channel 0
     ledcSetup(spindle_pwm_chan_num, (double)settings.spindle_pwm_freq, SPINDLE_PWM_BIT_PRECISION); // setup the channel
     ledcAttachPin(SPINDLE_PWM_PIN, spindle_pwm_chan_num); // attach the PWM to the pin
     // Start with spindle off off
