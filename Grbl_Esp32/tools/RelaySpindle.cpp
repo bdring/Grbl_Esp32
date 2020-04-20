@@ -47,7 +47,7 @@ void RelaySpindle::init() {
 
 // prints the startup message of the spindle config
 void RelaySpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Relay spindle on GPIO %d", _output_pin);
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Relay spindle on Pin:%d", _output_pin);
 }
 
 float RelaySpindle::set_rpm(float rpm) {

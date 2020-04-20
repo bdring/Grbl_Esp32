@@ -56,7 +56,7 @@ void DacSpindle :: init() {
 }
 
 void DacSpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DAC spindle on GPIO %d", _output_pin);
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DAC spindle on Pin:%d", _output_pin);
 }
 
 float DacSpindle::set_rpm(float rpm) {
