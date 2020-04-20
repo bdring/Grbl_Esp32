@@ -39,7 +39,7 @@ void DacSpindle :: init() {
 
     if (_output_pin != GPIO_NUM_25 && _output_pin != GPIO_NUM_26) { // DAC can only be used on these pins 
         _gpio_ok = false;
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DAC spindle pin invalid GPIO_NUM_%d", _output_pin);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DAC spindle pin invalid GPIO_NUM_%d (pin 25 or 26 only)", _output_pin);
         return;
     }    
 
