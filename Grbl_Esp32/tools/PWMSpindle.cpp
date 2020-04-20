@@ -107,31 +107,25 @@ float PWMSpindle::set_rpm(float rpm) {
     // apply override
     rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
 
-    // Calculate PWM register value based on rpm max/min settings and programmed rpm.
+    // apply limits limits
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
-        // No PWM range possible. Set simple on/off spindle control pin state.
-        sys.spindle_speed = _max_rpm;
-        pwm_value = _pwm_max_value;
-    } else if (rpm <= _min_rpm) {
-        if (rpm == 0.0) { // S0 disables spindle
-            sys.spindle_speed = 0.0;
-            pwm_value = _pwm_off_value;
-        } else { // Set minimum PWM output
-            rpm = _min_rpm;           
-            sys.spindle_speed = rpm;
-            pwm_value = _pwm_min_value;
-        }
-    } else {
-        // Compute intermediate PWM value with linear spindle speed model.
-        // NOTE: A nonlinear model could be installed here, if required, but keep it VERY light-weight.
-        sys.spindle_speed = rpm;
+        rpm = _max_rpm;
+    } else if (rpm != 0.0 && rpm <= _min_rpm) {        
+        rpm = _min_rpm;
+    }
+
+    sys.spindle_speed = rpm;
 
 #ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
-        pwm_value = piecewise_linear_fit(rpm);
+    pwm_value = piecewise_linear_fit(rpm);
 #else
-        pwm_value = floor((rpm - _min_rpm) * _pwm_gradient) + _pwm_min_value;
-#endif
-    }
+    // Calculate PWM register value based on rpm max/min settings and programmed rpm.
+    if (rpm == 0.0) {
+        pwm_value = _pwm_off_value;
+    } else {
+        pwm_value = (uint16_t)map_float(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
+    }        
+#endif    
 
 #ifdef  SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
     set_enable_pin(rpm != 0);
@@ -181,7 +175,7 @@ void PWMSpindle::stop() {
 
 // prints the startup message of the spindle config
 void PWMSpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM spindle on GPIO %d, freq %.2fHz, Res %d bits", _output_pin, _pwm_freq, _pwm_precision);
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM spindle on Pin:%d, Freq:%.2fHz, Res:%dbits", _output_pin, _pwm_freq, _pwm_precision);
 }
 
 

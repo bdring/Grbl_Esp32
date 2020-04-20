@@ -84,7 +84,7 @@ void BESCSpindle :: init() {
 
 // prints the startup message of the spindle config
 void BESCSpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "BESC spindle on GPIO %d", _output_pin);
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "BESC spindle on Pin:%d", _output_pin);
 }
 
 float BESCSpindle::set_rpm(float rpm) {
@@ -110,7 +110,7 @@ float BESCSpindle::set_rpm(float rpm) {
         pwm_value = _pwm_off_value;
     } else {
         pwm_value = (uint16_t)map_float(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
-    }    
+    }
 
 #ifdef  SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
     set_enable_pin(rpm != 0);
