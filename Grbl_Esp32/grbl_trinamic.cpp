@@ -40,94 +40,148 @@
 	the last SPI driver.
 
 */
-#ifndef TRINAMIC_DAISY_CHAIN
-    #define X_DRIVER_SPI_INDEX -1
-    #define Y_DRIVER_SPI_INDEX -1
-    #define Z_DRIVER_SPI_INDEX -1
-    #define A_DRIVER_SPI_INDEX -1
-    #define B_DRIVER_SPI_INDEX -1
-    #define C_DRIVER_SPI_INDEX -1
-#else
-    #define X_DRIVER_SPI_INDEX 1
-    #define Y_DRIVER_SPI_INDEX 2
-    #define Z_DRIVER_SPI_INDEX 3
-    #define A_DRIVER_SPI_INDEX 4
-    #define B_DRIVER_SPI_INDEX 5
-    #define C_DRIVER_SPI_INDEX 6
-#endif
+
 
 // TODO try to use the #define ## method to clean this up
 //#define DRIVER(driver, axis) driver##Stepper = TRINAMIC_axis## = driver##Stepper(axis##_CS_PIN, axis##_RSENSE);
 
 #ifdef X_TRINAMIC
     #ifdef X_DRIVER_TMC2130
-        TMC2130Stepper TRINAMIC_X = TMC2130Stepper(X_CS_PIN, X_RSENSE, X_DRIVER_SPI_INDEX);
+        TMC2130Stepper TRINAMIC_X = TMC2130Stepper(X_CS_PIN, X_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef X_DRIVER_TMC2209
-        TMC2209Stepper TRINAMIC_X = TMC2209Stepper(X_CS_PIN, X_RSENSE, X_DRIVER_SPI_INDEX);
+        TMC2209Stepper TRINAMIC_X = TMC2209Stepper(X_CS_PIN, X_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef X_DRIVER_TMC5160
-        TMC5160Stepper TRINAMIC_X = TMC5160Stepper(X_CS_PIN, X_RSENSE, X_DRIVER_SPI_INDEX);
+        TMC5160Stepper TRINAMIC_X = TMC5160Stepper(X_CS_PIN, X_RSENSE, get_next_trinamic_driver_index());
+    #endif
+#endif
+
+#ifdef X2_TRINAMIC
+    #ifdef X2_DRIVER_TMC2130
+        TMC2130Stepper TRINAMIC_X2 = TMC2130Stepper(X2_CS_PIN, X2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef X2_DRIVER_TMC2209
+        TMC2209Stepper TRINAMIC_X2 = TMC2209Stepper(X2_CS_PIN, X2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef X2_DRIVER_TMC5160
+        TMC5160Stepper TRINAMIC_X2 = TMC5160Stepper(X2_CS_PIN, X2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
 #ifdef Y_TRINAMIC
     #ifdef Y_DRIVER_TMC2130
-        TMC2130Stepper TRINAMIC_Y = TMC2130Stepper(Y_CS_PIN, Y_RSENSE, Y_DRIVER_SPI_INDEX);
+        TMC2130Stepper TRINAMIC_Y = TMC2130Stepper(Y_CS_PIN, Y_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef Y_DRIVER_TMC2209
-        TMC2209Stepper TRINAMIC_Y = TMC2209Stepper(Y_CS_PIN, Y_RSENSE, Y_DRIVER_SPI_INDEX);
+        TMC2209Stepper TRINAMIC_Y = TMC2209Stepper(Y_CS_PIN, Y_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef Y_DRIVER_TMC5160
-        TMC5160Stepper TRINAMIC_Y = TMC5160Stepper(Y_CS_PIN, Y_RSENSE, Y_DRIVER_SPI_INDEX);
+        TMC5160Stepper TRINAMIC_Y = TMC5160Stepper(Y_CS_PIN, Y_RSENSE, get_next_trinamic_driver_index());
+    #endif
+#endif
+#ifdef Y2_TRINAMIC
+    #ifdef Y2_DRIVER_TMC2130
+        TMC2130Stepper TRINAMIC_Y2 = TMC2130Stepper(Y2_CS_PIN, Y2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef Y2_DRIVER_TMC2209
+        TMC2209Stepper TRINAMIC_Y2 = TMC2209Stepper(Y2_CS_PIN, Y2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef Y2_DRIVER_TMC5160
+        TMC5160Stepper TRINAMIC_Y2 = TMC5160Stepper(Y2_CS_PIN, Y2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
+
 #ifdef Z_TRINAMIC
     #ifdef Z_DRIVER_TMC2130
-        TMC2130Stepper TRINAMIC_Z = TMC2130Stepper(Z_CS_PIN, Z_RSENSE, Z_DRIVER_SPI_INDEX);
+        TMC2130Stepper TRINAMIC_Z = TMC2130Stepper(Z_CS_PIN, Z_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef Z_DRIVER_TMC2209
-        TMC2209Stepper TRINAMIC_Z = TMC2209Stepper(Z_CS_PIN, Z_RSENSE, Z_DRIVER_SPI_INDEX);
+        TMC2209Stepper TRINAMIC_Z = TMC2209Stepper(Z_CS_PIN, Z_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef Z_DRIVER_TMC5160
-        TMC5160Stepper TRINAMIC_Z = TMC5160Stepper(Z_CS_PIN, Z_RSENSE, Z_DRIVER_SPI_INDEX);
+        TMC5160Stepper TRINAMIC_Z = TMC5160Stepper(Z_CS_PIN, Z_RSENSE, get_next_trinamic_driver_index());
+    #endif
+#endif
+#ifdef Z2_TRINAMIC
+    #ifdef Z2_DRIVER_TMC2130
+        TMC2130Stepper TRINAMIC_Z2 = TMC2130Stepper(Z2_CS_PIN, Z2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef Z2_DRIVER_TMC2209
+        TMC2209Stepper TRINAMIC_Z2 = TMC2209Stepper(Z2_CS_PIN, Z2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef Z2_DRIVER_TMC5160
+        TMC5160Stepper TRINAMIC_Z2 = TMC5160Stepper(Z2_CS_PIN, Z2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
 #ifdef A_TRINAMIC
     #ifdef A_DRIVER_TMC2130
-        TMC2130Stepper TRINAMIC_A = TMC2130Stepper(A_CS_PIN, A_RSENSE, A_DRIVER_SPI_INDEX);
+        TMC2130Stepper TRINAMIC_A = TMC2130Stepper(A_CS_PIN, A_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef A_DRIVER_TMC2209
-        TMC2209Stepper TRINAMIC_A = TMC2209Stepper(A_CS_PIN, A_RSENSE, A_DRIVER_SPI_INDEX);
+        TMC2209Stepper TRINAMIC_A = TMC2209Stepper(A_CS_PIN, A_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef A_DRIVER_TMC5160
-        TMC5160Stepper TRINAMIC_A = TMC5160Stepper(A_CS_PIN, A_RSENSE, A_DRIVER_SPI_INDEX);
+        TMC5160Stepper TRINAMIC_A = TMC5160Stepper(A_CS_PIN, A_RSENSE, get_next_trinamic_driver_index());
+    #endif
+#endif
+#ifdef A2_TRINAMIC
+    #ifdef A2_DRIVER_TMC2130
+        TMC2130Stepper TRINAMIC_A2 = TMC2130Stepper(A2_CS_PIN, A2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef A2_DRIVER_TMC2209
+        TMC2209Stepper TRINAMIC_A2 = TMC2209Stepper(A2_CS_PIN, A_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef A2_DRIVER_TMC5160
+        TMC5160Stepper TRINAMIC_A2 = TMC5160Stepper(A2_CS_PIN, A2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
 #ifdef B_TRINAMIC
     #ifdef B_DRIVER_TMC2130
-        TMC2130Stepper TRINAMIC_B = TMC2130Stepper(B_CS_PIN, B_RSENSE, B_DRIVER_SPI_INDEX);
+        TMC2130Stepper TRINAMIC_B = TMC2130Stepper(B_CS_PIN, B_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef B_DRIVER_TMC2209
-        TMC2209Stepper TRINAMIC_B = TMC2209Stepper(B_CS_PIN, B_RSENSE, B_DRIVER_SPI_INDEX);
+        TMC2209Stepper TRINAMIC_B = TMC2209Stepper(B_CS_PIN, B_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef B_DRIVER_TMC5160
-        TMC5160Stepper TRINAMIC_B = TMC5160Stepper(B_CS_PIN, B_RSENSE, B_DRIVER_SPI_INDEX);
+        TMC5160Stepper TRINAMIC_B = TMC5160Stepper(B_CS_PIN, B_RSENSE, get_next_trinamic_driver_index());
+    #endif
+#endif
+#ifdef B2_TRINAMIC
+    #ifdef B2_DRIVER_TMC2130
+        TMC2130Stepper TRINAMIC_B2 = TMC2130Stepper(B2_CS_PIN, B2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef B2_DRIVER_TMC2209
+        TMC2209Stepper TRINAMIC_B2 = TMC2209Stepper(B2_CS_PIN, B2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef B2_DRIVER_TMC5160
+        TMC5160Stepper TRINAMIC_B2 = TMC5160Stepper(B2_CS_PIN, B2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
 #ifdef C_TRINAMIC
     #ifdef C_DRIVER_TMC2130
-        TMC2130Stepper TRINAMIC_c = TMC2130Stepper(C_CS_PIN, C_RSENSE, C_DRIVER_SPI_INDEX);
+        TMC2130Stepper TRINAMIC_c = TMC2130Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef C_DRIVER_TMC2209
-        TMC2209Stepper TRINAMIC_C = TMC2209Stepper(C_CS_PIN, C_RSENSE, C_DRIVER_SPI_INDEX);
+        TMC2209Stepper TRINAMIC_C = TMC2209Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef C_DRIVER_TMC5160
-        TMC5160Stepper TRINAMIC_C = TMC5160Stepper(C_CS_PIN, C_RSENSE, C_DRIVER_SPI_INDEX);
+        TMC5160Stepper TRINAMIC_C = TMC5160Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
+    #endif
+#endif
+#ifdef C2_TRINAMIC
+    #ifdef C2_DRIVER_TMC2130
+        TMC2130Stepper TRINAMIC_C2 = TMC2130Stepper(C2_CS_PIN, C2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef C2_DRIVER_TMC2209
+        TMC2209Stepper TRINAMIC_C2 = TMC2209Stepper(C2_CS_PIN, C2_RSENSE, get_next_trinamic_driver_index());
+    #endif
+    #ifdef C2_DRIVER_TMC5160
+        TMC5160Stepper TRINAMIC_C2 = TMC5160Stepper(C2_CS_PIN, C2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
@@ -138,15 +192,25 @@ void Trinamic_Init() {
     machine_trinamic_setup();
     return;
 #endif
-#ifdef X_TRINAMIC
+#ifdef X_TRINAMIC    
     TRINAMIC_X.begin(); // Initiate pins and registries
-    trinamic_test_response(TRINAMIC_X.test_connection(), "X");
+    trinamic_test_response(TRINAMIC_X.test_connection(), "X");    
     TRINAMIC_X.toff(TRINAMIC_DEFAULT_TOFF);
     TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);
     TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
     TRINAMIC_X.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_X.pwm_autoscale(1);
 #endif
+#ifdef X2_TRINAMIC    
+    TRINAMIC_X2.begin(); // Initiate pins and registries
+    trinamic_test_response(TRINAMIC_X2.test_connection(), "X2");    
+    TRINAMIC_X2.toff(TRINAMIC_DEFAULT_TOFF);
+    TRINAMIC_X2.microsteps(settings.microsteps[X_AXIS]);
+    TRINAMIC_X2.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
+    TRINAMIC_X2.en_pwm_mode(1);    // Enable extremely quiet stepping
+    TRINAMIC_X2.pwm_autoscale(1);
+#endif
+
 #ifdef Y_TRINAMIC
     TRINAMIC_Y.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_Y.test_connection(), "Y");
@@ -156,6 +220,16 @@ void Trinamic_Init() {
     TRINAMIC_Y.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_Y.pwm_autoscale(1);
 #endif
+#ifdef Y2_TRINAMIC
+    TRINAMIC_Y2.begin(); // Initiate pins and registries
+    trinamic_test_response(TRINAMIC_Y2.test_connection(), "Y2");
+    TRINAMIC_Y2.toff(TRINAMIC_DEFAULT_TOFF);
+    TRINAMIC_Y2.microsteps(settings.microsteps[Y_AXIS]);
+    TRINAMIC_Y2.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS] / 100.0);
+    TRINAMIC_Y2.en_pwm_mode(1);      // Enable extremely quiet stepping
+    TRINAMIC_Y2.pwm_autoscale(1);
+#endif
+
 #ifdef Z_TRINAMIC
     TRINAMIC_Z.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_Z.test_connection(), "Z");
@@ -165,6 +239,16 @@ void Trinamic_Init() {
     TRINAMIC_Z.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_Z.pwm_autoscale(1);
 #endif
+#ifdef Z2_TRINAMIC
+    TRINAMIC_Z2.begin(); // Initiate pins and registries
+    trinamic_test_response(TRINAMIC_Z2.test_connection(), "Z2");
+    TRINAMIC_Z2.toff(TRINAMIC_DEFAULT_TOFF);
+    TRINAMIC_Z2.microsteps(settings.microsteps[Z_AXIS]);
+    TRINAMIC_Z2.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS] / 100.0);
+    TRINAMIC_Z2.en_pwm_mode(1);      // Enable extremely quiet stepping
+    TRINAMIC_Z2.pwm_autoscale(1);
+#endif
+
 #ifdef A_TRINAMIC
     TRINAMIC_A.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_A.test_connection(), "A");
@@ -174,6 +258,16 @@ void Trinamic_Init() {
     TRINAMIC_A.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_A.pwm_autoscale(1);
 #endif
+#ifdef A2_TRINAMIC
+    TRINAMIC_A2.begin(); // Initiate pins and registries
+    trinamic_test_response(TRINAMIC_A2.test_connection(), "A2");
+    TRINAMIC_A2.toff(TRINAMIC_DEFAULT_TOFF);
+    TRINAMIC_A2.microsteps(settings.microsteps[A_AXIS]);
+    TRINAMIC_A2.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS] / 100.0);
+    TRINAMIC_A2.en_pwm_mode(1);      // Enable extremely quiet stepping
+    TRINAMIC_A2.pwm_autoscale(1);
+#endif
+
 #ifdef B_TRINAMIC
     TRINAMIC_B.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_B.test_connection(), "B");
@@ -183,6 +277,16 @@ void Trinamic_Init() {
     TRINAMIC_B.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_B.pwm_autoscale(1);
 #endif
+#ifdef B2_TRINAMIC
+    TRINAMIC_B2.begin(); // Initiate pins and registries
+    trinamic_test_response(TRINAMIC_B2.test_connection(), "B2");
+    TRINAMIC_B2.toff(TRINAMIC_DEFAULT_TOFF);
+    TRINAMIC_B2.microsteps(settings.microsteps[B_AXIS]);
+    TRINAMIC_B2.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
+    TRINAMIC_B2.en_pwm_mode(1);      // Enable extremely quiet stepping
+    TRINAMIC_B2.pwm_autoscale(1);
+#endif
+
 #ifdef C_TRINAMIC
     TRINAMIC_C.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_C.test_connection(), "C");
@@ -192,6 +296,15 @@ void Trinamic_Init() {
     TRINAMIC_C.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_C.pwm_autoscale(1);
 #endif
+#ifdef C2_TRINAMIC
+    TRINAMIC_C2.begin(); // Initiate pins and registries
+    trinamic_test_response(TRINAMIC_C2.test_connection(), "C2");
+    TRINAMIC_C2.toff(TRINAMIC_DEFAULT_TOFF);
+    TRINAMIC_C2.microsteps(settings.microsteps[C_AXIS]);
+    TRINAMIC_C2.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS] / 100.0);
+    TRINAMIC_C2.en_pwm_mode(1);      // Enable extremely quiet stepping
+    TRINAMIC_C2.pwm_autoscale(1);
+#endif
 }
 
 // Call this function called whenever $$ settings that affect the drivers are changed
@@ -200,26 +313,57 @@ void trinamic_change_settings() {
     TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);
     TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
 #endif
+#ifdef X2_TRINAMIC
+    TRINAMIC_X2.microsteps(settings.microsteps[X_AXIS]);
+    TRINAMIC_X2.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
+#endif
+
 #ifdef Y_TRINAMIC
     TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
     TRINAMIC_Y.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS] / 100.0);
 #endif
+#ifdef Y2_TRINAMIC
+    TRINAMIC_Y2.microsteps(settings.microsteps[Y_AXIS]);
+    TRINAMIC_Y2.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS] / 100.0);
+#endif
+
+
 #ifdef Z_TRINAMIC
     TRINAMIC_Z.microsteps(settings.microsteps[Z_AXIS]);
     TRINAMIC_Z.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS] / 100.0);
 #endif
+#ifdef Z2_TRINAMIC
+    TRINAMIC_Z2.microsteps(settings.microsteps[Z_AXIS]);
+    TRINAMIC_Z2.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS] / 100.0);
+#endif
+
 #ifdef A_TRINAMIC
     TRINAMIC_A.microsteps(settings.microsteps[A_AXIS]);
     TRINAMIC_A.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS] / 100.0);
 #endif
+#ifdef A2_TRINAMIC
+    TRINAMIC_A2.microsteps(settings.microsteps[A_AXIS]);
+    TRINAMIC_A2.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS] / 100.0);
+#endif
+
 #ifdef B_TRINAMIC
     TRINAMIC_B.microsteps(settings.microsteps[B_AXIS]);
     TTRINAMIC_B.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
 #endif
+#ifdef B2_TRINAMIC
+    TRINAMIC_B2.microsteps(settings.microsteps[B_AXIS]);
+    TTRINAMIC_B2.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
+#endif
+
 #ifdef C_TRINAMIC
     TRINAMIC_C.microsteps(settings.microsteps[C_AXIS]);
     TRINAMIC_C.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS] / 100.0);
 #endif
+#ifdef C2_TRINAMIC
+    TRINAMIC_C2.microsteps(settings.microsteps[C_AXIS]);
+    TRINAMIC_C2.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS] / 100.0);
+#endif
+
 }
 
 // Display the response of the attempt to connect to a Trinamic driver
@@ -252,21 +396,56 @@ void trinamic_stepper_enable(bool enable) {
 #ifdef X_TRINAMIC
     TRINAMIC_X.toff(toff);
 #endif
+#ifdef X2_TRINAMIC
+    TRINAMIC_X2.toff(toff);
+#endif
+
 #ifdef Y_TRINAMIC
     TRINAMIC_Y.toff(toff);
 #endif
+#ifdef Y2_TRINAMIC
+    TRINAMIC_Y2.toff(toff);
+#endif
+
 #ifdef Z_TRINAMIC
     TRINAMIC_Z.toff(toff);
 #endif
+#ifdef Z2_TRINAMIC
+    TRINAMIC_Z2.toff(toff);
+#endif
+
 #ifdef A_TRINAMIC
     TRINAMIC_A.toff(toff);
 #endif
+#ifdef A2_TRINAMIC
+    TRINAMIC_A2.toff(toff);
+#endif
+
 #ifdef B_TRINAMIC
     TRINAMIC_B.toff(toff);
 #endif
+#ifdef B2_TRINAMIC
+    TRINAMIC_B2.toff(toff);
+#endif
+
 #ifdef C_TRINAMIC
     TRINAMIC_C.toff(toff);
 #endif
+#ifdef C2_TRINAMIC
+    TRINAMIC_C2.toff(toff);
+#endif
+
+}
+
+// returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
+// need to be inserted into the order of axes.
+uint8_t get_next_trinamic_driver_index() {
+    static uint8_t index = 1; // they start at 1
+    #ifndef TRINAMIC_DAISY_CHAIN
+        return -1;
+    #else
+        return index++;
+    #endif
 }
 
 #endif
