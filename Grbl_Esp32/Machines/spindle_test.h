@@ -1,19 +1,10 @@
 /*
-    test_drive.h
+    spindle_test.h
     Part of Grbl_ESP32
 
     Pin assignments (or lack thereof) for testing Grbl_ESP32.
 
-    It creates a basic 3 axis machine without actually driving
-    I/O pins.  Grbl will report that axes are moving, but no physical
-    motor motion will occur.
-
-    This can be uploaded to an unattached ESP32 or attached to
-    unknown hardware with no risk of pins trying to output signals
-    into a short, etc that could dmamge the ESP32
-
-    It can also be used to get the basic program running so OTA
-    (over the air) firmware loading can be done.
+    This is just a minimal machine definition to test Spindle Classes
 
     2018    - Bart Dring
     2020    - Mitch Bradley
@@ -34,8 +25,11 @@
 
 #define MACHINE_NAME "Spindle Class Testing"
 
-#define SPINDLE_TYPE       SPINDLE_TYPE_BESC
-#define SPINDLE_PWM_PIN    GPIO_NUM_27
+
+#define SPINDLE_TYPE       SPINDLE_TYPE_PWM
+//#define SPINDLE_TYPE       SPINDLE_TYPE_BESC
+
+#define SPINDLE_OUTPUT_PIN    GPIO_NUM_27
 
 
 #define LIMIT_MASK 0  // no limit pins

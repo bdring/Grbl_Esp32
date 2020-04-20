@@ -68,7 +68,7 @@
 
 // Comment out servo pin and uncomment spindle pwm pin to use the servo PWM to control a spindle
 /*
-#define SPINDLE_PWM_PIN    GPIO_NUM_27
+#define SPINDLE_OUTPUT_PIN    GPIO_NUM_27
 */
 
 // #define X_LIMIT_PIN          See version section

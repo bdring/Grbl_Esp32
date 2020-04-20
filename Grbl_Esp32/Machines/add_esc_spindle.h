@@ -35,8 +35,6 @@
 
 #define SHOW_EXTENDED_SETTINGS
 
-#define DEFAULT_SPINDLE_PWM_BIT_PRECISION 16   // 16 bit recommended for ESC (don't change)
-
 /*
  Important ESC Settings
  $33=50 // Hz this is the typical good frequency for an ESC

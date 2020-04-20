@@ -284,7 +284,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
             // Set real-time spindle output as segment is loaded, just prior to the first step.
             //spindle_set_speed(st.exec_segment->spindle_rpm);
             //grbl_send(CLIENT_SERIAL, "A_");
-            my_spindle->set_rpm(prep.current_spindle_rpm);
+            spindle->set_rpm(prep.current_spindle_rpm);
             
 
         } else {
@@ -296,7 +296,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
                 if (st.exec_block->is_pwm_rate_adjusted) {
                     //spindle_set_speed(spindle_pwm_off_value);
                     //grbl_send(CLIENT_SERIAL, "B_");
-                    my_spindle->set_rpm(0.0);
+                    spindle->set_rpm(0.0);
                 }
             }
 
@@ -991,7 +991,7 @@ void st_prep_buffer() {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
 
                 
-                if (my_spindle->isRateAdjusted() ){ //   settings.flags & BITFLAG_LASER_MODE) {
+                if (spindle->isRateAdjusted() ){ //   settings.flags & BITFLAG_LASER_MODE) {
                     if (pl_block->condition & PL_COND_FLAG_SPINDLE_CCW) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
                         prep.inv_rate = 1.0 / pl_block->programmed_rate;

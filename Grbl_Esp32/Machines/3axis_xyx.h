@@ -32,7 +32,7 @@
 #define Y2_STEP_PIN             GPIO_NUM_27  /* labeled Z */
 #define Y2_DIRECTION_PIN        GPIO_NUM_33  /* labeled Z */
 
-#define SPINDLE_PWM_PIN         GPIO_NUM_2
+#define SPINDLE_OUTPUT_PIN         GPIO_NUM_2
 
 #define LIMIT_MASK              B11
 #define X_LIMIT_PIN             GPIO_NUM_17
