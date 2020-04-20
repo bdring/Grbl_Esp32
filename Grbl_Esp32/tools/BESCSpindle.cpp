@@ -54,7 +54,7 @@
 
 void BESCSpindle :: init() {
 
-    get_pin_numbers();
+    get_pins_and_settings();
 
     if (_output_pin == UNDEFINED_PIN) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: BESC output pin not defined");
@@ -116,6 +116,6 @@ float BESCSpindle::set_rpm(float rpm) {
     set_enable_pin(rpm != 0);
 #endif
 
-    set_pwm(pwm_value);
+    set_output(pwm_value);
     return rpm;
 }

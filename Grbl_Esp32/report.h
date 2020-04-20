@@ -172,4 +172,6 @@ void report_gcode_comment(char* comment);
 
 void report_hex_msg(char* buf, const char *prefix, int len);
 
+char report_get_axis_letter(uint8_t axis);
+
 #endif

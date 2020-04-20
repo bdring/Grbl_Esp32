@@ -27,7 +27,7 @@
 
 // ======================================== DacSpindle ======================================
 void DacSpindle :: init() {
-    get_pin_numbers();
+    get_pins_and_settings();
     if (_output_pin == UNDEFINED_PIN)
         return;
     
@@ -97,12 +97,12 @@ float DacSpindle::set_rpm(float rpm) {
     set_enable_pin(rpm != 0);
 #endif
 
-    set_pwm(pwm_value);
+    set_output(pwm_value);
 
     return rpm;
 }
 
-void DacSpindle :: set_pwm(uint32_t duty) {
+void DacSpindle :: set_output(uint32_t duty) {
     if (_gpio_ok) {
          dacWrite(_output_pin, (uint8_t)duty);
     }
