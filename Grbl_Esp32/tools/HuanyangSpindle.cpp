@@ -58,7 +58,7 @@
 void HuanyangSpindle :: init() {
 
     // fail if numbers are not defined
-    if (!get_pin_numbers()) {
+    if (!get_pins_and_settings()) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Huanyang spindle errors");
         return;
     }
@@ -99,7 +99,7 @@ void HuanyangSpindle :: init() {
 // Checks for all the required pin definitions
 // It returns a message for each missing pin
 // Returns true if all pins are defined.
-bool HuanyangSpindle :: get_pin_numbers() {
+bool HuanyangSpindle :: get_pins_and_settings() {
     bool pins_ok = true;
 
 #ifdef HUANYANG_TXD_PIN

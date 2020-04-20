@@ -314,7 +314,7 @@ void report_grbl_settings(uint8_t client, uint8_t show_extended) {
         sprintf(setting, "$33=%5.3f\r\n", settings.spindle_pwm_freq);   strcat(rpt, setting);
         sprintf(setting, "$34=%3.3f\r\n", settings.spindle_pwm_off_value);   strcat(rpt, setting);
         sprintf(setting, "$35=%3.3f\r\n", settings.spindle_pwm_min_value);   strcat(rpt, setting);
-        sprintf(setting, "$36=%3.3f\r\n", settings.spindle_pwm_max_value);   strcat(rpt, setting);        
+        sprintf(setting, "$36=%3.3f\r\n", settings.spindle_pwm_max_value);   strcat(rpt, setting);
         for (uint8_t index = 0; index < USER_SETTING_COUNT; index++) {
             sprintf(setting, "$%d=%d\r\n", 80 + index, settings.machine_int16[index]);   strcat(rpt, setting);
         }
@@ -777,11 +777,11 @@ void report_gcode_comment(char* comment) {
 
 
 /*
-    Print a message in hex formate
+    Print a message in hex format
     Ex: report_hex_msg(msg, "Rx:", 6);
-    Would could print [MSG Rx: 0x01 0x03 0x01 0x08 0x31 0xbf]
+    Would would print something like ... [MSG Rx: 0x01 0x03 0x01 0x08 0x31 0xbf]
 */
-void report_hex_msg(char* buf, const char *prefix, int len) {
+void report_hex_msg(char* buf, const char* prefix, int len) {
     char report[200];
     char temp[20];
     sprintf(report, "%s", prefix);
@@ -792,4 +792,23 @@ void report_hex_msg(char* buf, const char *prefix, int len) {
 
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
 
+}
+
+char report_get_axis_letter(uint8_t axis) {
+    switch (axis) {
+    case X_AXIS:
+        return 'X';
+    case Y_AXIS:
+        return 'Y';
+    case Z_AXIS:
+        return 'Z';
+    case A_AXIS:
+        return 'A';
+    case B_AXIS:
+        return 'B';
+    case C_AXIS:
+        return 'C';
+    default:
+        return '?';
+    }
 }

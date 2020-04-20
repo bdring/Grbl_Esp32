@@ -74,6 +74,8 @@
 
 #define SERVO_PEN_PIN           GPIO_NUM_27
 
+#define SPINDLE_TYPE SPINDLE_TYPE_NONE
+
 // defaults
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME  255 // stay on

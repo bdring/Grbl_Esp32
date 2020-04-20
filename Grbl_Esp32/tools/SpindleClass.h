@@ -101,9 +101,9 @@ class PWMSpindle : public Spindle {
     uint8_t _pwm_precision;
     float _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
-    virtual void set_pwm(uint32_t duty);
+    virtual void set_output(uint32_t duty);
     void set_enable_pin(bool enable_pin);
-    void get_pin_numbers();
+    void get_pins_and_settings();
     uint8_t calc_pwm_precision(float freq); 
 };
 
@@ -114,7 +114,7 @@ class RelaySpindle : public PWMSpindle {
     void config_message();
     float set_rpm(float rpm);
   protected:
-    void set_pwm(uint32_t duty);
+    void set_output(uint32_t duty);
 };
 
 // this is the same as a PWM spindle, but the M4 compensation is supported.
@@ -133,7 +133,7 @@ class DacSpindle : public PWMSpindle {
   private:
     bool _gpio_ok; // DAC is on a valid pin
   protected:
-    void set_pwm(uint32_t duty); // sets DAC instead of PWM
+    void set_output(uint32_t duty); // sets DAC instead of PWM
 };
 
 class HuanyangSpindle : public Spindle {
@@ -150,7 +150,7 @@ class HuanyangSpindle : public Spindle {
     uint16_t  ModRTU_CRC(char* buf, int len);
     void add_ModRTU_CRC(char* buf, int full_msg_len);
     bool set_mode(uint8_t mode);
-    bool get_pin_numbers();
+    bool get_pins_and_settings();
 
     uint8_t _txd_pin;
     uint8_t _rxd_pin;

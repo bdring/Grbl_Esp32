@@ -65,11 +65,7 @@
 #define SERVO_Z_HOME_POS                SERVO_Z_RANGE_MAX // move to max during homing
 #define SERVO_Z_MPOS                    false           // will not use mpos, uses work coordinates
 
-
-// Comment out servo pin and uncomment spindle pwm pin to use the servo PWM to control a spindle
-/*
-#define SPINDLE_OUTPUT_PIN    GPIO_NUM_27
-*/
+#define SPINDLE_TYPE SPINDLE_TYPE_RELAY
 
 // #define X_LIMIT_PIN          See version section
 #define Y_LIMIT_PIN             GPIO_NUM_4

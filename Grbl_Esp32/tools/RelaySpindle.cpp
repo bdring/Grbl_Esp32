@@ -27,7 +27,8 @@
     This is the same as a PWM spindle, but is a digital rather than PWM output
 */
 void RelaySpindle::init() {
-    get_pin_numbers();
+    get_pins_and_settings();
+
     if (_output_pin == UNDEFINED_PIN)
         return;
 
@@ -57,19 +58,18 @@ float RelaySpindle::set_rpm(float rpm) {
 
     if (rpm == 0) {
         sys.spindle_speed = 0.0;
-        set_pwm(0);
+        set_output(0);
     } else {
         sys.spindle_speed = rpm;
-        set_pwm(1);
+        set_output(1);
     }
 
     return rpm;
 }
 
-void RelaySpindle::set_pwm(uint32_t duty) {
+void RelaySpindle::set_output(uint32_t duty) {
 #ifdef INVERT_SPINDLE_PWM
     duty = (duty == 0); // flip duty
 #endif
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Relay output %d", duty > 0);
     digitalWrite(_output_pin, duty > 0); // anything greater
 }
