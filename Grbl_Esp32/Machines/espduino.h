@@ -39,7 +39,7 @@
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_12
 
-#define SPINDLE_PWM_PIN         GPIO_NUM_19
+#define SPINDLE_OUTPUT_PIN         GPIO_NUM_19
 #define SPINDLE_DIR_PIN         GPIO_NUM_18
 
 #define COOLANT_FLOOD_PIN       GPIO_NUM_34

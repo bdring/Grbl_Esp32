@@ -50,9 +50,9 @@
 //#define USE_SPINDLE_RELAY
 
 #ifdef USE_SPINDLE_RELAY
-    #define SPINDLE_PWM_PIN GPIO_NUM_17
+    #define SPINDLE_OUTPUT_PIN GPIO_NUM_17
 #else
-    #define SPINDLE_PWM_PIN         GPIO_NUM_16
+    #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
     #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
 #endif
 

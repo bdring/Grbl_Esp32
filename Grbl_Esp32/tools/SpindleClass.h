@@ -104,6 +104,7 @@ class PWMSpindle : public Spindle {
     virtual void set_pwm(uint32_t duty);
     void set_enable_pin(bool enable_pin);
     void get_pin_numbers();
+    uint8_t calc_pwm_precision(float freq); 
 };
 
 // This is for an on/off spindle all RPMs above 0 are on
@@ -164,7 +165,7 @@ class BESCSpindle : public PWMSpindle {
     float set_rpm(float rpm);
 };
 
-extern Spindle* my_spindle;
+extern Spindle* spindle;
 
 extern NullSpindle null_spindle;
 extern PWMSpindle pwm_spindle;

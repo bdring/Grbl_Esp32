@@ -368,14 +368,14 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
         case 25: settings.homing_seek_rate = value; break;
         case 26: settings.homing_debounce_delay = int_value; break;
         case 27: settings.homing_pulloff = value; break;
-        case 30: settings.rpm_max = std::max(value, 1.0f); my_spindle->init(); break; // Re-initialize spindle rpm calibration (min of 1)
-        case 31: settings.rpm_min = value; my_spindle->init(); break; // Re-initialize spindle rpm calibration
+        case 30: settings.rpm_max = std::max(value, 1.0f); spindle->init(); break; // Re-initialize spindle rpm calibration (min of 1)
+        case 31: settings.rpm_min = value; spindle->init(); break; // Re-initialize spindle rpm calibration
         case 32:
             if (int_value)
                 settings.flags |= BITFLAG_LASER_MODE;
             else
                 settings.flags &= ~BITFLAG_LASER_MODE;
-            my_spindle->init(); // update the spindle class
+            spindle->init(); // update the spindle class
             break;
         case 33: settings.spindle_pwm_freq = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration
         case 34: settings.spindle_pwm_off_value = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration

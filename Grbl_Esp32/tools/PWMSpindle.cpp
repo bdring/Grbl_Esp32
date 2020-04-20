@@ -53,8 +53,8 @@ void PWMSpindle::init() {
 void PWMSpindle :: get_pin_numbers() {
     // setup all the pins
 
-#ifdef SPINDLE_PWM_PIN
-    _output_pin = SPINDLE_PWM_PIN;
+#ifdef SPINDLE_OUTPUT_PIN
+    _output_pin = SPINDLE_OUTPUT_PIN;
 #else
     _output_pin = UNDEFINED_PIN;
 #endif
@@ -73,15 +73,11 @@ void PWMSpindle :: get_pin_numbers() {
     is_reversable = (_direction_pin != UNDEFINED_PIN);
 
     _pwm_freq = settings.spindle_pwm_freq;
-    _pwm_precision = SPINDLE_PWM_BIT_PRECISION;
-    _pwm_period = ((1 << _pwm_precision) - 1);
-
+    _pwm_precision = calc_pwm_precision(_pwm_freq); // detewrmine the best precision
+    _pwm_period = (1 << _pwm_precision);
 
     if (settings.spindle_pwm_min_value > settings.spindle_pwm_min_value)
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Spindle min pwm is greater than max. Check $35 and $36");
-
-    if ((F_TIMERS / _pwm_freq) < _pwm_period)
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning spindle PWM precision (%d bits) too high for frequency (%.2f Hz)", _pwm_precision, _pwm_freq);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Spindle min pwm is greater than max. Check $35 and $36");    
 
     // pre-caculate some PWM count values
     _pwm_off_value = (_pwm_period * settings.spindle_pwm_off_value / 100.0);
@@ -225,4 +221,20 @@ void PWMSpindle::set_enable_pin(bool enable) {
 void PWMSpindle::set_spindle_dir_pin(bool Clockwise) {
     if (_direction_pin != UNDEFINED_PIN)
         digitalWrite(_direction_pin, Clockwise);
+}
+
+
+/*
+    Calculate the best precision of a PWM base on the frequency in bits
+
+    80,000,000 / freq = period
+    determine the highest precision where (1 << precision) < period 
+*/
+uint8_t PWMSpindle :: calc_pwm_precision(float freq) {
+    uint8_t precision = 0;
+    
+    while ((1 << precision ) < (uint32_t)(80000000.0/ freq) && precision <= 16)
+        precision++;
+
+    return precision - 1;
 }
