@@ -25,6 +25,10 @@
 
 #include "grbl.h"
 
+// the default current sense resistors used on most driver modules
+#define TMC2130_RSENSE_DEFAULT  0.11f
+#define TMC5160_RSENSE_DEFAULT  0.075f
+
 #ifdef USE_TRINAMIC
     #include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
     void Trinamic_Init();
@@ -34,6 +38,8 @@
     #ifdef USE_MACHINE_TRINAMIC_INIT
         void machine_trinamic_setup();
     #endif
+
+    uint8_t get_next_trinamic_driver_index();
 #endif
 
 #endif // GRBL_TRIAMINIC_h

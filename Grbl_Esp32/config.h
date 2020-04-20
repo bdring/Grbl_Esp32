@@ -303,16 +303,6 @@ Some features should not be changed. See notes below.
 // have the same steps per mm internally.
 // #define COREXY // Default disabled. Uncomment to enable.
 
-// Enable using a servo for the Z axis on a pen type machine.
-// You typically should not define a pin for the Z axis in the machine definition file
-// You should configure your settings in servo_pen.h
-// #define USE_SERVO_AXES  // the new method
-// define your servo pin here or in the machine definition file
-//#define SERVO_PEN_PIN 					GPIO_NUM_27
-
-// Enable using a solenoid for the Z axis on a pen type machine
-// #define USE_PEN_SOLENOID
-
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.
 // This build option will invert only the limit pins defined here, and then the invert limits setting
