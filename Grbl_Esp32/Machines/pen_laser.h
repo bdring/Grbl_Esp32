@@ -26,7 +26,7 @@
         along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "MACHINE_PEN_LASER"
+#define MACHINE_NAME "PEN_LASER"
 
 // Pick a board version
 //#define PEN_LASER_V1
