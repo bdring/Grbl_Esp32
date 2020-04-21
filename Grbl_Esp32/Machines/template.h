@@ -56,7 +56,7 @@
 // will be shown in a Grbl startup message to identify your
 // configuration.
 
-#define MACHINE_NAME            "MACHINE_TEMPLATE"
+#define MACHINE_NAME            "TEMPLATE"
 
 // If your machine requires custom code as described below in
 // Special Features, you must copy Custom/custom_code_template.cpp
