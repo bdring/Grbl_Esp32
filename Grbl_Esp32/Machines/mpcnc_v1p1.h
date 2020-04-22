@@ -55,6 +55,7 @@
 #else
     #define SPINDLE_TYPE SPINDLE_TYPE_PWM
     #define SPINDLE_PWM_PIN         GPIO_NUM_16
+
     #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
 #endif
 

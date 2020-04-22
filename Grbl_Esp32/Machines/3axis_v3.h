@@ -42,6 +42,7 @@
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM
 #define SPINDLE_PWM_PIN         GPIO_NUM_17  // labeled SpinPWM
+
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
 
 #define COOLANT_MIST_PIN        GPIO_NUM_21  // labeled Mist

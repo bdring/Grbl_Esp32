@@ -42,6 +42,7 @@
 /*
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM
 #define SPINDLE_PWM_PIN         GPIO_NUM_25
+
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_22
 */
 
