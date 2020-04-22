@@ -549,6 +549,7 @@ void report_build_info(char* line, uint8_t client) {
     // These will likely have a comma delimiter to separate them.
     strcat(build_info, "]\r\n");
     grbl_send(client, build_info); // ok to send to all
+    report_machine_type(client);
 #if defined (ENABLE_WIFI)
     grbl_send(client, (char*)wifi_config.info());
 #endif
@@ -773,6 +774,10 @@ void report_gcode_comment(char* comment) {
         msg[index - offset] = 0; // null terminate
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "GCode Comment...%s", msg);
     }
+}
+
+void report_machine_type(uint8_t client) {
+    grbl_msg_sendf(client, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_NAME);
 }
 
 

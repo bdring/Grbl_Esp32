@@ -27,8 +27,7 @@
 
 
 bool Laser :: isRateAdjusted() {
-    // must be in $32=1 (laser mode)
-    return (settings.flags & BITFLAG_LASER_MODE);
+    return true; // can use M4 (CCW) laser mode.
 }
 
 void Laser :: config_message() {

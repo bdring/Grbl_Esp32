@@ -107,7 +107,7 @@ float PWMSpindle::set_rpm(float rpm) {
     // apply override
     rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
 
-    // apply limits limits
+    // apply limits
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
         rpm = _max_rpm;
     } else if (rpm != 0.0 && rpm <= _min_rpm) {        

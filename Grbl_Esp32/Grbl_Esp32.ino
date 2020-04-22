@@ -56,7 +56,7 @@ void setup() {
   #else
     #define MACHINE_STRING MACHINE_NAME
   #endif
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_STRING);
+    report_machine_type(CLIENT_SERIAL);
 #endif
     settings_init(); // Load Grbl settings from EEPROM
     stepper_init();  // Configure stepper pins and interrupt timers
