@@ -72,7 +72,7 @@
 #else
 
     #define SPINDLE_TYPE        SPINDLE_TYPE_PWM
-    #define SPINDLE_PWM_PIN     GPIO_NUM_27
+    #define SPINDLE_OUTPUT_PIN     GPIO_NUM_27
 #endif
 
 // #define X_LIMIT_PIN          See version section at beginning of file
