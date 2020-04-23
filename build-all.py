@@ -22,12 +22,8 @@ cmd = ['platformio','run']
 verbose = '-v' in sys.argv
 
 numErrors = 0
-adderBase = '3axis_v4.h'
 for name in os.listdir('Grbl_Esp32/Machines'):
-    if name.startswith('add_'):
-        exitCode = buildMachine(adderBase, addName=name, verbose=verbose)
-    else:
-        exitCode = buildMachine(name, verbose=verbose)
+    exitCode = buildMachine(name, verbose=verbose)
     if exitCode != 0:
         numErrors += 1
 
