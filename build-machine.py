@@ -26,12 +26,10 @@ if '-u' in sys.argv:
 
 exitCode = 255
 if len(sys.argv) == 2:
-    exitCode = buildMachine(sys.argv[1], addName=None, verbose=verbose, extraArgs=extraArgs)
-elif len(sys.argv) == 3:
-    exitCode = buildMachine(sys.argv[1], addName=sys.argv[2], verbose=verbose, extraArgs=extraArgs)
+    exitCode = buildMachine(sys.argv[1], verbose=verbose, extraArgs=extraArgs)
 else:
-    print("Usage: ./build-machine.py [-q] [-u] machine_name.h [add_name.h]")
-    print(' Build for the given machine and optional add-on regardless of machine.h')
+    print("Usage: ./build-machine.py [-q] [-u] machine_name.h")
+    print(' Build for the given machine regardless of machine.h')
     print('  -q suppresses most messages')
     print('  -u uploads to the target after compilation')
 
