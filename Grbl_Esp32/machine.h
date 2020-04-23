@@ -14,12 +14,6 @@
 // from Machines/, for example:
 // #include "Machines/3axis_v4.h"
 
-// Some configurations use two files, the first establishing a base
-// configuration and the second providing additional customization,
-// for example:
-// #include "Machines/3axis_v4.h"
-// #include "Machines/add_esc_spindle.h"
-
 // === OEM Single File Configuration Option
 // OEMs that wish to publish source code that is configured for a
 // specific machine may put all of their configuration definitions
@@ -48,14 +42,6 @@
 #define MACHINE_PATHNAME_QUOTED(name) <Machines/name>
 
 #include MACHINE_PATHNAME_QUOTED(MACHINE_FILENAME)
-
-// You can choose two-file configurations by also defining MACHINE_FILENAME2,
-// for example:
-//   $env:PLATFORMIO_BUILD_FLAGS='-DMACHINE_FILENAME=3axis_v4.h -DMACHINE_FILENAME2=add_esc_spindle.h'; platformio run
-
-#ifdef MACHINE_FILENAME2
-#include MACHINE_PATHNAME_QUOTED(MACHINE_FILENAME2)
-#endif
 
 #endif // MACHINE_FILENAME
 
