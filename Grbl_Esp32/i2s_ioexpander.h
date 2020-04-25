@@ -93,7 +93,9 @@ typedef struct {
         bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~...
         data vutsrqponmlkjihgfedcba9876543210vutsrqponmlkjihgfedcba9876543210____...
                                              XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                                            ^Latches the X bits when ws is switched to High
+                                                                             ^
+                                Latches the X bits when ws is switched to High
+
         bit0:Extended GPIO 128, 1: Extended GPIO 129, ..., v: Extended GPIO 159
         (data at LEFT Channel will ignored by shift-register IC)
     */
@@ -107,6 +109,8 @@ typedef struct {
 /*
   Initialize I2S and DMA for the stepper bitstreamer
   use I2S0, I2S0 isr, DMA, and FIFO(xQueue).
+
+  return -1 ... already initialized
 */
 int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param);
 
@@ -165,6 +169,15 @@ int i2s_ioexpander_set_pulse_period(uint32_t period);
    Register a callback function to generate pulse data
  */
 int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t func);
+
+
+/*
+   Reset i2s I/O expander
+   - Stop ISR/DMA
+   - Clear DMA buffer with the current expanded GPIO bits
+   - Retart ISR/DMA
+ */
+int i2s_ioexpander_reset();
 
 #endif
 

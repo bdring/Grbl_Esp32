@@ -94,11 +94,11 @@
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
 // X, Z, A and B axes do, the LIMIT_MASK value would be B11101
-#define LIMIT_MASK              B0111
+//#define LIMIT_MASK              B0111
 
-#define X_LIMIT_PIN             GPIO_NUM_34
-#define Y_LIMIT_PIN             GPIO_NUM_35
-#define Z_LIMIT_PIN             GPIO_NUM_32
+//#define X_LIMIT_PIN             GPIO_NUM_34
+//#define Y_LIMIT_PIN             GPIO_NUM_35
+//#define Z_LIMIT_PIN             GPIO_NUM_32
 
 // Common enable for all steppers.  If it is okay to leave
 // your drivers enabled at all times, you can leave
@@ -125,7 +125,7 @@
 // RESET, FEED_HOLD, and CYCLE_START can control GCode execution at
 // the push of a button.
 
-// #define CONTROL_RESET_PIN       GPIO_NUM_34  // labeled Reset, needs external pullup
+#define CONTROL_RESET_PIN       GPIO_NUM_34  // labeled Reset, needs external pullup
 // #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // labeled Hold,  needs external pullup
 // #define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // labeled Start, needs external pullup
 
@@ -185,7 +185,7 @@
 // The control pins with names that begin with CONTROL_ are
 // ignored by default, to avoid noise problems.  To make them
 // work, you must undefine IGNORE_CONTROL_PINS
-// #undef IGNORE_CONTROL_PINS
+#undef IGNORE_CONTROL_PINS
 
 // If some of the control pin switches are normally closed
 // (the default is normally open), you can invert some of them

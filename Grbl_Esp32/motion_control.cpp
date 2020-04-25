@@ -450,6 +450,9 @@ void mc_reset() {
 #ifdef USE_GANGED_AXES
         ganged_mode = SQUARING_MODE_DUAL; // in case an error occurred during squaring
 #endif
+#ifdef USE_I2S_IOEXPANDER
+        i2s_ioexpander_reset();
+#endif
     }
 }
 
