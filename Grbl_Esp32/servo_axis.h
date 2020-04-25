@@ -79,7 +79,7 @@
 #define SERVO_CAL_MIN 20.0 // Percent: the minimum allowable calibration value
 #define SERVO_CAL_MAX 180.0 // Percent: the maximum allowable calibration value
 
-#define SERVO_TIMER_INT_FREQ 20 // Hz This is the task frequency
+#define SERVO_TIMER_INT_FREQ 20.0 // Hz This is the task frequency
 
 #define SERVO_HOMING_OFF 0 // servo is off during homing
 #define SERVO_HOMING_TARGET 1 // servo is send to a location during homing
