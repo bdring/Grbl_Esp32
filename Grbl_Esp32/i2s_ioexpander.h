@@ -87,13 +87,15 @@ typedef void (*i2s_ioexpander_pulse_phase_func_t)(void);
 
 typedef struct {
     /*
-        I2S bitstream (32-bits): Transfers from LSB(bit0) to MSB(bit31) in sequence
-             LEFT Channel                    Right Channel                   LEFT Channel
-        ws   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~________________________________~~~~...
-        bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~...
-        data vutsrqponmlkjihgfedcba9876543210vutsrqponmlkjihgfedcba9876543210____...
-                                             XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                                                                             ^
+        I2S bitstream (32-bits): Transfers from MSB(bit31) to LSB(bit0) in sequence
+
+        ------------------time line------------------------>
+             Right Channel                   LEFT Channel
+        ws   ________________________________~~~~...
+        bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~...
+        data vutsrqponmlkjihgfedcba9876543210vuts...
+             XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                                             ^
                                 Latches the X bits when ws is switched to High
 
         bit0:Extended GPIO 128, 1: Extended GPIO 129, ..., v: Extended GPIO 159
