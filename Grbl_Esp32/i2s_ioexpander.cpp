@@ -244,6 +244,8 @@ static int i2s_start() {
   I2S0.conf.rx_reset = 1;
   I2S0.conf.rx_reset = 0;
 
+  I2S0.conf1.tx_stop_en = 1; // Prevent unintentional 0's at the start of I2S
+
   I2S0.out_link.addr = (uint32_t)dma.desc[0];
 
   // Connect DMA to FIFO
@@ -252,6 +254,8 @@ static int i2s_start() {
   I2S0.int_clr.val = 0xFFFFFFFF;
   I2S0.out_link.start = 1;
   I2S0.conf.tx_start = 1;
+
+  I2S0.conf1.tx_stop_en = 0; // BCK, WS start to work
 
   I2S_EXIT_CRITICAL();
  
