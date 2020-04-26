@@ -268,7 +268,6 @@ bool WiFiConfig::ConnectSTA2AP() {
  */
 
 bool WiFiConfig::StartSTA() {
-    String defV;
     Preferences prefs;
     //stop active service
     wifi_services.end();
@@ -278,6 +277,20 @@ bool WiFiConfig::StartSTA() {
     WiFi.enableAP(false);
     WiFi.mode(WIFI_STA);
     //Get parameters for STA
+#ifdef WMB
+    String h = wifi_hostname.get();
+    WiFi.setHostname(h.c_str());
+    //SSID
+    String SSID = wifi_sta_ssid.get();
+    if (SSID.length() == 0) SSID = DEFAULT_STA_SSID;
+    //password
+    String password = wifi_sta_password.get();
+    int8_t IP_mode = wifi_sta_mode.get();
+    int32_t IP = wifi_sta_ip.get();
+    int32_t GW = wifi_sta_gateway.get();
+    int32_t MK = wifi_sta_netmask.get();
+#else
+    String defV;
     prefs.begin(NAMESPACE, true);
     defV = DEFAULT_HOSTNAME;
     String h = prefs.getString(HOSTNAME_ENTRY, defV);
@@ -300,6 +313,7 @@ bool WiFiConfig::StartSTA() {
     defV = DEFAULT_STA_MK;
     int32_t MK = prefs.getInt(STA_MK_ENTRY, IP_int_from_string(defV));
     prefs.end();
+#endif
     //if not DHCP
     if (IP_mode != DHCP_MODE) {
         IPAddress ip(IP), mask(MK), gateway(GW);
@@ -330,6 +344,20 @@ bool WiFiConfig::StartAP() {
     WiFi.enableSTA(false);
     WiFi.mode(WIFI_AP);
     //Get parameters for AP
+#ifdef WMB
+    //SSID
+    String SSID = wifi_ap_ssid.get();
+    if (SSID.length() == 0) SSID = DEFAULT_AP_SSID;
+
+    String password = wifi_ap_password.get();
+
+    int8_t channel = wifi_ap_channel.get();
+    if (channel == 0) channel = DEFAULT_AP_CHANNEL;
+
+    int32_t IP = wifi_ap_ip.get();
+    if (IP == 0)
+        IP = IP_int_from_string(DEFAULT_AP_IP);
+#else
     prefs.begin(NAMESPACE, true);
     //SSID
     defV = DEFAULT_AP_SSID;
@@ -347,6 +375,7 @@ bool WiFiConfig::StartAP() {
     if (IP == 0)
         IP = IP_int_from_string(defV);
     prefs.end();
+#endif
     IPAddress ip(IP);
     IPAddress mask;
     mask.fromString(DEFAULT_AP_MK);
@@ -381,7 +410,6 @@ void WiFiConfig::StopWiFi() {
  * begin WiFi setup
  */
 void WiFiConfig::begin() {
-    Preferences prefs;
     //stop active services
     wifi_services.end();
     //setup events
@@ -390,6 +418,24 @@ void WiFiConfig::begin() {
         WiFi.onEvent(WiFiConfig::WiFiEvent);
         _events_registered = true;
     }
+#ifdef WMB
+    //Get hostname
+    _hostname = wifi_hostname.get();
+    int8_t wifiMode = wifi_radio_mode.get();
+    if (wifiMode == ESP_WIFI_AP) {
+        StartAP();
+        //start services
+        wifi_services.begin();
+    } else if (wifiMode == ESP_WIFI_STA) {
+        if (!StartSTA()) {
+            grbl_sendf(CLIENT_ALL, "[MSG:Cannot connect to %s]\r\n", wifi_sta_ssid.get());
+            StartAP();
+        }
+        //start services
+        wifi_services.begin();
+    } else WiFi.mode(WIFI_OFF);
+#else
+    Preferences prefs;
     //open preferences as read-only
     prefs.begin(NAMESPACE, true);
     //Get hostname
@@ -410,6 +456,7 @@ void WiFiConfig::begin() {
         wifi_services.begin();
     } else WiFi.mode(WIFI_OFF);
     prefs.end();
+#endif
 }
 
 /**
@@ -423,6 +470,54 @@ void WiFiConfig::end() {
  * Reset ESP
  */
 void WiFiConfig::reset_settings() {
+#ifdef WMB
+    String sval;
+    int8_t bbuf;
+    int16_t ibuf;
+    bool error = false;
+    sval = DEFAULT_HOSTNAME;
+    // XXX should add setDefault() methods
+    if (wifi_hostname.setStringValue(DEFAULT_HOSTNAME))
+        error = true;
+    if (notification_type.setStringValue(DEFAULT_NOTIFICATION_TYPE))
+        error = true;
+    if (notification_t1.setStringValue(DEFAULT_TOKEN))
+        error = true;
+    if (notification_t2.setStringValue(DEFAULT_TOKEN))
+        error = true;
+    if (notification_ts.setStringValue(DEFAULT_TOKEN))
+        error = true;
+    if (wifi_sta_ssid.setStringValue(DEFAULT_STA_SSID))
+        error = true;
+    if (wifi_sta_password.setStringValue(DEFAULT_STA_PWD))
+        error = true;
+    if (wifi_ap_ssid.setStringValue(DEFAULT_AP_SSID))
+        error = true;
+    if (wifi_ap_password.setStringValue(DEFAULT_AP_PWD))
+        error = true;
+    if (wifi_ap_channel.setStringValue(DEFAULT_AP_CHANNEL))
+        error = true;
+    if (wifi_sta_mode.setStringValue(STA_IP_MODE));
+        error = true;
+    if (wifi_http_enable.setStringValue(DEFAULT_HTTP_STATE))
+        error = true;
+    if (wifi_telnet_enable.setStringValue(DEFAULT_TELNET_STATE))
+        error = true;
+    if (wifi_radio_mode.setStringValue(DEFAULT_RADIO_MODE))
+        error = true;
+    if (http_port.setStringValue(DEFAULT_WEBSERVER_PORT))
+        error = true;
+    if (telnet_port.setStringValue(DEFAULT_TELNETSERVER_PORT))
+        error = true;
+    if (wifi_sta_ip.setStringValue(DEFAULT_STA_IP))
+        error = true;
+    if (wifi_sta_gw.setStringValue(DEFAULT_STA_GW))
+        error = true;
+    if (wifi_sta_netmask.setStringValue(DEFAULT_STA_MK))
+        error = true;
+    if (wifi_ap_ip.setStringValue(DEFAULT_AP_IP))
+        error = true;
+#else
     Preferences prefs;
     prefs.begin(NAMESPACE, false);
     String sval;
@@ -488,6 +583,7 @@ void WiFiConfig::reset_settings() {
     if (prefs.putInt(AP_IP_ENTRY, wifi_config.IP_int_from_string(sval)) == 0)
         error = true;
     prefs.end();
+#endif
     if (error)
         grbl_send(CLIENT_ALL, "[MSG:WiFi reset error]\r\n");
     else

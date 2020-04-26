@@ -5,17 +5,11 @@
 #include <typeinfo>
 #include <iterator>
 #include "./defaults.h"
+#include "./JSONencoder.h"
 using namespace std;
 
-// These status values are just assigned at random, for testing
-// they need to be synced with the rest of Grbl
-typedef enum {
-  STATUS_OK = 0,
-  STATUS_INVALID_STATEMENT,
-  STATUS_NUMBER_RANGE,
-  STATUS_INVALID_VALUE,
-  STATUS_IDLE_ERROR,
-} err_t;
+#include "wmb_defs.h"
+
 
 enum {
   BITFLAG_INVERT_ST_ENABLE = 1,
@@ -27,8 +21,6 @@ enum {
   BITFLAG_HOMING_ENABLE = 64,
   BITFLAG_LASER_MODE = 128,
 };
-#define DEFAULT_SPINDLE_TYPE 0
-#define DEFAULT_SPINDLE_BIT_PRECISION 10
 enum {
   STATE_IDLE = 0,
   STATE_JOG,
@@ -44,7 +36,6 @@ struct {
   int state;
 } sys;
 
-#define MAX_N_AXIS 6
 #define MESSAGE_RESTORE_DEFAULTS "restoring defaults"
 enum {
   SETTINGS_RESTORE_DEFAULTS,
@@ -53,34 +44,6 @@ enum {
   SETTINGS_RESTORE_WIFI_SETTINGS,
   SETTINGS_WIPE,
 };
-
-err_t my_spindle_init();
-err_t limits_init();
-err_t also_soft_limit();
-void settings_restore(int);
-void report_feedback_message(const char *);
-err_t report_normal_settings(uint8_t);
-err_t report_extended_settings(uint8_t);
-err_t report_gcode_modes(uint8_t);
-err_t report_build_info(uint8_t);
-err_t report_startup_lines(uint8_t);
-err_t toggle_check_mode(uint8_t);
-err_t disable_alarm_lock(uint8_t);
-err_t report_ngc(uint8_t);
-err_t home_all(uint8_t);
-err_t home_x(uint8_t);
-err_t home_y(uint8_t);
-err_t home_z(uint8_t);
-err_t home_a(uint8_t);
-err_t home_b(uint8_t);
-err_t home_c(uint8_t);
-err_t sleep(uint8_t);
-err_t gc_execute_line(char *line, uint8_t client);
-
-void mc_reset();
-
-err_t check_motor_settings() { return STATUS_OK; }
-err_t settings_spi_driver_init() { return STATUS_OK; }
 
 // SettingsList is a linked list of all settings,
 // so common code can enumerate them.
@@ -93,6 +56,9 @@ Setting *SettingsList = NULL;
 // represented as human-readable strings.  This generic
 // interface is used for managing settings via the user interface.
 class Setting {
+ private:
+  const char* displayName;
+  const char* webuiName;
  public:
 
   // Add each constructed setting to the linked list
@@ -116,8 +82,11 @@ class Setting {
   virtual err_t setStringValue(string value) =0;
   virtual string getStringValue() =0;
 
- private:
-  const char* displayName;
+  const char* getWebuiName() { return webuiName; };
+
+  // The default implementation of addWebui() does nothing.
+  // Derived classes may override it to do something.
+  virtual void addWebui(JSONencoder *) { };
 };
 
 // This template class, derived from the generic abstract
@@ -126,13 +95,18 @@ class Setting {
 template<typename T>
 class TypedSetting : public Setting {
  public:
-  TypedSetting(const char* name, T defVal, T minVal, T maxVal, err_t (*f)() = NULL) :
-      Setting(name),
+  TypedSetting<T>(const char *webName, const char* name, T defVal, T minVal, T maxVal, err_t (*function)(const char *) = NULL) :
+  // TypedSetting<T>(const char *webName, const char* name, T defVal, T minVal, T maxVal) :
+      Setting(name, webName),
       defaultValue(defVal),
       currentValue(defVal),
       minValue(minVal),
-      maxValue(maxVal),
-      checker(f)
+      maxValue(maxVal)
+      //      checker(function)
+  { }
+
+  TypedSetting(const char* name, T defVal, T minVal, T maxVal, err_t (*function)(const char *) = NULL) :
+      TypedSetting(NULL, name, defVal, minVal, maxVal, function)
   { }
   void load() {
     if (isfloat) {
@@ -185,18 +159,15 @@ class TypedSetting : public Setting {
     currentValue = newValue;
     return ret;
   }
-  string getStringValue () {
-    return to_string(get());
+  const char* getStringValue() {
+    return to_string(get()).c_str();
   }
-
- private:
-  T defaultValue;
-  T currentValue;
-  T storedValue;
-  T minValue;
-  T maxValue;
-  const bool isfloat = typeid(T) == typeid(float);
-  err_t (*checker)();
+  void addWebui(JSONencoder *j) {
+    if (!isfloat && getWebuiName()) {
+      j->begin_webui(getName(), getWebuiName(), "I", getStringValue(), minValue, maxValue);
+      j->end_object();
+    }
+  }
 };
 
 typedef TypedSetting<float> FloatSetting;
@@ -214,18 +185,18 @@ class AxisSettings {
   IntSetting microsteps;
   IntSetting stallguard;
   AxisSettings(string axisName, float steps, float rate, float accel, float travel,
-                  float run, float hold, int usteps, int stall) :
-      name(axisName),
-      steps_per_mm((axisName+"_STEPS_PER_MM").c_str(), steps, 0, 1000, check_motor_settings),
-      max_rate((axisName+"_MAX_RATE").c_str(), rate, 0, 1000000, check_motor_settings),
-      acceleration((axisName+"_ACCELERATION").c_str(), accel, 0, 10000000),
-      max_travel((axisName+"_MAX_TRAVEL").c_str(), travel, -10000, 10000),
-      run_current((axisName+"_RUN_CURRENT").c_str(), run, -10000, 10000, settings_spi_driver_init),
-      hold_current((axisName+"_HOLD_CURRENT").c_str(), hold, 0, 100, settings_spi_driver_init),
-      microsteps((axisName+"_MICROSTEPS").c_str(), usteps, 1, 2048, settings_spi_driver_init),
-      stallguard((axisName+"_STALLGUARD").c_str(), stall, 0, 100, settings_spi_driver_init)
-  {}
+               float run, float hold, int usteps, int stall)
+      : steps_per_mm((axisName+"_STEPS_PER_MM").c_str(), NULL, steps, 1.0, 50000.0,check_motor_settings)
+      , max_rate((axisName+"_MAX_RATE").c_str(), NULL, rate, 1.0, 1000000.0, check_motor_settings)
+    , acceleration((axisName+"_ACCELERATION").c_str(), NULL, accel, 1.0, 100000.0)
+    , max_travel((axisName+"_MAX_TRAVEL").c_str(), NULL, travel, 1.0, 100000.0)   // Note! this values is entered as scaler but store negative
+    , run_current((axisName+"_RUN_CURRENT").c_str(), NULL, run, 0.05, 20.0, settings_spi_driver_init)
+    , hold_current((axisName+"_HOLD_CURRENT").c_str(), NULL, hold, 0.0, 100.0, settings_spi_driver_init)
+    ,  microsteps((axisName+"_MICROSTEPS").c_str(), NULL, usteps, 1, 256, settings_spi_driver_init)
+    , stallguard((axisName+"_STALLGUARD").c_str(), NULL, stall, 0, 100,  settings_spi_driver_init)
+          { }
 };
+
 AxisSettings x_axis_settings = {
     "X",
     DEFAULT_X_STEPS_PER_MM,
@@ -393,7 +364,7 @@ class SettingsReset : public Setting {
       default: return "";
     }
   }
-  string getStringValue() { return ""; }
+  const char* getStringValue() { return ""; }
 };
 
 IntSetting pulse_microseconds("STEP_PULSE", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
@@ -409,14 +380,15 @@ class FlagSetting : public Setting {
   bool defaultValue;
   bool storedValue;
   bool currentValue;
-  uint32_t bitMask;
   err_t (*checker)();
  public:
-  FlagSetting(const char* name, bool defVal, uint32_t mask, err_t (*f)() = NULL) :
-      Setting(name),
+  FlagSetting(const char *webName, const char* name, bool defVal, err_t (*f)() = NULL) :
+      Setting(name, webName),
       defaultValue(defVal),
-      bitMask(mask),
       checker(f)
+  { }
+  FlagSetting(const char* name, bool defVal, err_t (*f)() = NULL) :
+      FlagSetting(NULL, name, defVal, f)
   { }
   void load() {
     //p    storedValue = preferences.getBool(displayName, defaultValue);
@@ -434,11 +406,6 @@ class FlagSetting : public Setting {
   bool get() {  return currentValue;  }
   err_t set(bool value) {
     currentValue = value;
-    if (value) {
-      settings.flags |= bitMask;
-    } else {
-      settings.flags |= ~bitMask;
-    }
     return STATUS_OK;
   }
   err_t string_to_value(string s, bool &value) {
@@ -458,26 +425,26 @@ class FlagSetting : public Setting {
     if (checker && (ret = checker())) return ret;
     return ret ? ret : set(value);
   }
-  string value_to_string (bool value) {
-    return to_string(value);
+  const char* value_to_string (bool value) {
+    return to_string(value).c_str();
   }
   string getStringValue() { return value_to_string(get()); }
 };
 
-FlagSetting step_enable_invert("STEP_ENABLE_INVERT", DEFAULT_INVERT_ST_ENABLE, BITFLAG_INVERT_ST_ENABLE);
-FlagSetting limit_invert("LIMIT_INVERT", DEFAULT_INVERT_LIMIT_PINS, BITFLAG_INVERT_LIMIT_PINS);
-FlagSetting probe_invert("PROBE_INVERT", DEFAULT_INVERT_PROBE_PIN, BITFLAG_INVERT_PROBE_PIN);
-FlagSetting report_inches("REPORT_INCHES", DEFAULT_REPORT_INCHES, BITFLAG_REPORT_INCHES);
+FlagSetting step_enable_invert("STEP_ENABLE_INVERT", DEFAULT_INVERT_ST_ENABLE);
+FlagSetting limit_invert("LIMIT_INVERT", DEFAULT_INVERT_LIMIT_PINS);
+FlagSetting probe_invert("PROBE_INVERT", DEFAULT_INVERT_PROBE_PIN);
+FlagSetting report_inches("REPORT_INCHES", DEFAULT_REPORT_INCHES);
 err_t check_homing_enable() {
   return STATUS_OK;
 }
-FlagSetting soft_limits("SOFT_LIMITS", DEFAULT_SOFT_LIMIT_ENABLE, BITFLAG_SOFT_LIMIT_ENABLE, check_homing_enable);
+FlagSetting soft_limits("SOFT_LIMITS", DEFAULT_SOFT_LIMIT_ENABLE, check_homing_enable);
 // XXX need to check for HOMING_ENABLE
-FlagSetting hard_limits("HARD_LIMITS", DEFAULT_HARD_LIMIT_ENABLE, BITFLAG_HARD_LIMIT_ENABLE, limits_init);
+FlagSetting hard_limits("HARD_LIMITS", DEFAULT_HARD_LIMIT_ENABLE, limits_init);
 // XXX need to call limits_init();
-FlagSetting homing_enable("HOMING_ENABLE", DEFAULT_HOMING_ENABLE, BITFLAG_HOMING_ENABLE, also_soft_limit);
+FlagSetting homing_enable("HOMING_ENABLE", DEFAULT_HOMING_ENABLE, also_soft_limit);
 // XXX also need to clear, but not set, BITFLAG_SOFT_LIMIT_ENABLE
-FlagSetting laser_mode("LASER_MODE", DEFAULT_LASER_MODE, BITFLAG_LASER_MODE, my_spindle_init);
+FlagSetting laser_mode("LASER_MODE", DEFAULT_LASER_MODE, my_spindle_init);
 // XXX also need to call my_spindle->init();
 
 IntSetting status_mask("STATUS_MASK", DEFAULT_STATUS_REPORT_MASK, 0, 2);
@@ -709,7 +676,9 @@ void list_numbered_settings()
   }
 }
 
+#if TEST_SETTINGS
 int main()
 {
   list_settings();
 }
+#endif

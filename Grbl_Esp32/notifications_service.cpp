@@ -271,6 +271,80 @@ bool NotificationsService::sendLineMSG(const char* title, const char* message) {
     Notificationclient.stop();
     return res;
 }
+#ifdef WMB
+//Email#serveraddress:port
+bool NotificationsService::getPortFromSettings() {
+    String tmp = notification_ts.get();
+    int pos = tmp.lastIndexOf(':');
+    if (pos == -1)
+        return false;
+    _port = tmp.substring(pos + 1).toInt();
+    log_d("port : %d", _port);
+    return _port > 0;
+}
+//Email#serveraddress:port
+bool NotificationsService::getServerAddressFromSettings() {
+    String tmp = notification_ts.get();
+    int pos1 = tmp.indexOf('#');
+    int pos2 = tmp.lastIndexOf(':');
+    if ((pos1 == -1) || (pos2 == -1))
+        return false;
+    //TODO add a check for valid email ?
+    _serveraddress = tmp.substring(pos1 + 1, pos2);
+    log_d("server : %s", _serveraddress.c_str());
+    return true;
+}
+//Email#serveraddress:port
+bool NotificationsService::getEmailFromSettings() {
+    String tmp = notification_ts.get();
+    int pos = tmp.indexOf('#');
+    if (pos == -1)
+        return false;
+    _settings = tmp.substring(0, pos);
+    log_d("email : %s", _settings.c_str());
+    //TODO add a check for valid email ?
+    return true;
+}
+
+
+bool NotificationsService::begin() {
+    end();
+    _notificationType = notification_type.get();
+    switch (_notificationType) {
+    case 0: //no notification = no error but no start
+        return true;
+    case ESP_PUSHOVER_NOTIFICATION:
+        _token1 = notification_t1.get();
+        _token2 = notification_t2.get();
+        _port = PUSHOVERPORT;
+        _serveraddress = PUSHOVERSERVER;
+        break;
+    case ESP_LINE_NOTIFICATION:
+        _token1 = notification_t1.get();
+        _port = LINEPORT;
+        _serveraddress = LINESERVER;
+        break;
+    case ESP_EMAIL_NOTIFICATION:
+        _token1 = base64::encode(notification_t1.get());
+        _token2 = base64::encode(notification_t2.get());
+        if (!getEmailFromSettings() || !getPortFromSettings() || !getServerAddressFromSettings()) {
+            return false;
+        }
+        break;
+    default:
+        return false;
+        break;
+    }
+    bool res = true;
+    if (WiFi.getMode() != WIFI_STA)
+        res = false;
+    if (!res)
+        end();
+    _started = res;
+    return _started;
+}
+
+#else
 //Email#serveraddress:port
 bool NotificationsService::getPortFromSettings() {
     Preferences prefs;
@@ -365,6 +439,7 @@ bool NotificationsService::begin() {
     _started = res;
     return _started;
 }
+#endif
 void NotificationsService::end() {
     if (!_started)
         return;

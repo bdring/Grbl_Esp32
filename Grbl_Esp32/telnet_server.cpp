@@ -53,18 +53,22 @@ Telnet_Server::~Telnet_Server() {
     end();
 }
 
-
 bool Telnet_Server::begin() {
     bool no_error = true;
     end();
-    Preferences prefs;
     _RXbufferSize = 0;
     _RXbufferpos = 0;;
+#ifdef WMB
+    int8_t penabled = telnet_enable.get();
+    _port = telnet_port.get();
+#else
+    Preferences prefs;
     prefs.begin(NAMESPACE, true);
     int8_t penabled = prefs.getChar(TELNET_ENABLE_ENTRY, DEFAULT_TELNET_STATE);
     //Get telnet port
     _port = prefs.getUShort(TELNET_PORT_ENTRY, DEFAULT_TELNETSERVER_PORT);
     prefs.end();
+#endif
     if (penabled == 0) return false;
     //create instance
     _telnetserver = new WiFiServer(_port, MAX_TLNT_CLIENTS);
@@ -76,6 +80,7 @@ bool Telnet_Server::begin() {
     _setupdone = true;
     return no_error;
 }
+#endif
 
 void Telnet_Server::end() {
     _setupdone = false;
