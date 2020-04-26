@@ -57,7 +57,7 @@
 //
 // Configrations for DMA connected I2S
 //
-// One DMA buffer transfer takes about 1 ms (2000/4 x I2S_IOEXP_USEC_PER_PULSE = 1000 us)
+// One DMA buffer transfer takes about 2 ms (2000/4 x I2S_IOEXP_USEC_PER_PULSE = 2000 us)
 // If DMA_BUF_COUNT is 5, it will take about 5 ms for all the DMA buffer transfers to finish.
 //
 // Increasing DMA_BUF_COUNT has the effect of preventing buffer underflow,
@@ -65,7 +65,7 @@
 // The number of DMA_BUF_COUNT should be chosen carefully.
 // 
 // Reference information:
-//   FreeRtoS task time slice = portTICK_PERIOD_MS = 1 ms (ESP32 FreeRtoS port)
+//   FreeRTOS task time slice = portTICK_PERIOD_MS = 1 ms (ESP32 FreeRTOS port)
 //
 #define DMA_BUF_COUNT 5                                /* number of DMA buffers to store data */
 #define DMA_BUF_LEN   2000                             /* maximum size in bytes (4092 is DMA's limit) */
@@ -244,8 +244,6 @@ static int i2s_start() {
   I2S0.conf.rx_reset = 1;
   I2S0.conf.rx_reset = 0;
 
-  I2S0.conf1.tx_stop_en = 1; // Prevent unintentional 0's at the start of I2S
-
   I2S0.out_link.addr = (uint32_t)dma.desc[0];
 
   // Connect DMA to FIFO
@@ -255,7 +253,7 @@ static int i2s_start() {
   I2S0.out_link.start = 1;
   I2S0.conf.tx_start = 1;
 
-  I2S0.conf1.tx_stop_en = 0; // BCK, WS start to work
+  I2S0.conf1.tx_stop_en = 1; // Prevent unintentional 0's at the start of I2S
 
   I2S_EXIT_CRITICAL();
  
@@ -546,7 +544,7 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   I2S0.conf.rx_start = 0;
 
   I2S0.conf.tx_msb_right = 1; // Set this bit to place right-channel data at the MSB in the transmit FIFO.
-  I2S0.conf.tx_right_first = 0; // Set this bit to transmit right-channel data first.
+  I2S0.conf.tx_right_first = 0; // XXX: Setting this bit allows the right-channel data to be sent first, but on the actual device, 0 is required to send with right-first.
 
   I2S0.conf.tx_slave_mod = 0; // Master
   I2S0.fifo_conf.tx_fifo_mod_force_en = 1; //The bit should always be set to 1.
@@ -564,19 +562,20 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   // i2s_set_clk
   //
 
-  // set clock (fi2s) 160MHz / 2.5
+  // set clock (fi2s) 160MHz / 5
   I2S0.clkm_conf.clka_en = 0;       // Use 160 MHz PLL_D2_CLK as reference
-  // N + b/a = 2.5
-  // N = 2
-  I2S0.clkm_conf.clkm_div_num = 2; // minimum value of 2, reset value of 4, max 256 (I²S clock divider’s integral value)
-  // b/a = 0.5
-  I2S0.clkm_conf.clkm_div_b = 1;    // 0 at reset
-  I2S0.clkm_conf.clkm_div_a = 2;    // 0 at reset, what about divide by 0? (not an issue)
+  // N + b/a = 0
+  // N = 5
+  I2S0.clkm_conf.clkm_div_num = 5; // minimum value of 2, reset value of 4, max 256 (I²S clock divider’s integral value)
+  // b/a = 0
+  I2S0.clkm_conf.clkm_div_b = 0;    // 0 at reset
+  I2S0.clkm_conf.clkm_div_a = 0;    // 0 at reset, what about divide by 0? (not an issue)
   
   // Bit clock configuration bit in transmitter mode.
-  // fbck = fi2s / tx_bck_div_num = (160 MHz / 2.5) / 2 = 32 MHz
+  // fbck = fi2s / tx_bck_div_num = (160 MHz / 5) / 2 = 16 MHz
   I2S0.sample_rate_conf.tx_bck_div_num = 2; // minimum value of 2 defaults to 6
   I2S0.sample_rate_conf.rx_bck_div_num = 2;
+  // Data width is 32-bit. Forgetting this setting will result in a 16-bit transfer.
   I2S0.sample_rate_conf.tx_bits_mod = 32;
   I2S0.sample_rate_conf.rx_bits_mod = 32;
 

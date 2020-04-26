@@ -48,8 +48,8 @@
 
 #define I2S_IOEXP_PIN_BASE 128
 
-/* 1000000 usec / ((160000000 Hz) / 2.5 / 2) x 32 bit/pulse x 2(stereo) = 2 usec/pulse */
-#define I2S_IOEXP_USEC_PER_PULSE 2
+/* 1000000 usec / ((160000000 Hz) / 5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
+#define I2S_IOEXP_USEC_PER_PULSE 4
 
 #define IS_I2S_IOEXP_PIN(IO) ((IO) & ~0x7F)
 #define I2S_IOEXP_PIN_INDEX(IO) ((IO) & 0x7F)
