@@ -170,10 +170,6 @@ void report_gcode_comment(char* comment);
     void report_realtime_debug();
 #endif
 
-void report_machine_type(uint8_t client);
 
-void report_hex_msg(char* buf, const char *prefix, int len);
-
-char report_get_axis_letter(uint8_t axis);
 
 #endif

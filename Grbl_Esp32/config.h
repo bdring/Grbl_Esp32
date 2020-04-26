@@ -205,7 +205,7 @@ Some features should not be changed. See notes below.
 #define CMD_RAPID_OVR_LOW 0x97
 // #define CMD_RAPID_OVR_EXTRA_LOW 0x98 // *NOT SUPPORTED*
 #define CMD_SPINDLE_OVR_RESET 0x99      // Restores spindle override value to 100%.
-#define CMD_SPINDLE_OVR_COARSE_PLUS 0x9A // 154
+#define CMD_SPINDLE_OVR_COARSE_PLUS 0x9A
 #define CMD_SPINDLE_OVR_COARSE_MINUS 0x9B
 #define CMD_SPINDLE_OVR_FINE_PLUS 0x9C
 #define CMD_SPINDLE_OVR_FINE_MINUS 0x9D
@@ -436,6 +436,12 @@ Some features should not be changed. See notes below.
 // the selected axis with the tool oriented toward the negative direction. In other words, a positive
 // tool length offset value is subtracted from the current location.
 #define TOOL_LENGTH_OFFSET_AXIS Z_AXIS // Default z-axis. Valid values are X_AXIS, Y_AXIS, or Z_AXIS.
+
+// Enables variable spindle output voltage for different RPM values. On the Arduino Uno, the spindle
+// enable pin will output 5V for maximum RPM with 256 intermediate levels and 0V when disabled.
+// NOTE: IMPORTANT for Arduino Unos! When enabled, the Z-limit pin D11 and spindle enable pin D12 switch!
+// The hardware PWM output on pin D11 is required for variable spindle output voltages.
+#define VARIABLE_SPINDLE // Default enabled. Comment to disable.
 
 // Alters the behavior of the spindle enable pin. By default Grbl will not disable the enable pin if
 // spindle speed is zero and M3/4 is active, but still sets the PWM output to zero. This allows the users

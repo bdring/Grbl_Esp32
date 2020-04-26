@@ -70,20 +70,15 @@
 // Turn on with M7 and off with M9
 #define COOLANT_MIST_PIN        GPIO_NUM_21
 
-#define SPINDLE_OUTPUT_PIN         GPIO_NUM_25
+#define SPINDLE_PWM_PIN         GPIO_NUM_25
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 
 // Relay operation
 // Install Jumper near relay
-// For PWM remove jumper to prevent relay damage
+// For spindle Use max RPM of 1
+// For PWM remove jumper and set MAX RPM to something higher ($30 setting)
 // Interlock jumper along top edge needs to be installed for both versions
-#define USE_RELAY  // comment out to use PWM
-
-#ifdef USE_RELAY
-    #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
-#else
-    #define SPINDLE_TYPE SPINDLE_TYPE_PWM
-#endif
+#define DEFAULT_SPINDLE_RPM_MAX     1 // Should be 1 for relay operation
 
 #define PROBE_PIN               GPIO_NUM_22
 

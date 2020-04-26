@@ -424,7 +424,7 @@ void mc_reset() {
     if (bit_isfalse(sys_rt_exec_state, EXEC_RESET)) {
         system_set_exec_state_flag(EXEC_RESET);
         // Kill spindle and coolant.
-        spindle->stop();
+        spindle_stop();
         coolant_stop();
         // turn off all digital I/O
         sys_io_control(0xFF, false);

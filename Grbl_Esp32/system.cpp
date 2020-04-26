@@ -589,13 +589,11 @@ int8_t sys_get_next_RMT_chan_num() {
     }
 }
 
-
 /*
     This returns an unused pwm channel.
     The 8 channels share 4 timers, so pairs 0,1 & 2,3 , etc
     have to be the same frequency. The spindle always uses channel 0
     so we start counting from 2.
-
     There are still possible issues if requested channels use different frequencies
     TODO: Make this more robust.
 */

@@ -26,7 +26,7 @@
 
 
 
-#define MACHINE_NAME "MPCNC_V1P2"
+#define MACHINE_NAME "MACHINE_MPCNC_V1P2"
 
 #define USE_GANGED_AXES // allow two motors on an axis
 
@@ -51,12 +51,9 @@
 //#define USE_SPINDLE_RELAY
 
 #ifdef USE_SPINDLE_RELAY
-    #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
-    #define SPINDLE_OUTPUT_PIN GPIO_NUM_2
+    #define SPINDLE_PWM_PIN GPIO_NUM_2
 #else
-    #define SPINDLE_TYPE SPINDLE_TYPE_PWM
-    #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
-
+    #define SPINDLE_PWM_PIN         GPIO_NUM_16
     #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
 #endif
 
