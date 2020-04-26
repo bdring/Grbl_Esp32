@@ -22,12 +22,14 @@
 */
 
 
-#define MACHINE_NAME "MACHINE_FOO_6X"
+#define MACHINE_NAME "FOO_6X"
 
 #ifdef N_AXIS
     #undef N_AXIS
 #endif
 #define N_AXIS 6
+
+#define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
 // stepper motors
 #define X_STEP_PIN      GPIO_NUM_12
@@ -121,11 +123,6 @@
 #define DEFAULT_HOMING_SEEK_RATE 2000.0 // mm/min
 #define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
 #define DEFAULT_HOMING_PULLOFF 3.0 // mm
-
-#define DEFAULT_SPINDLE_RPM_MAX 1000.0 // rpm
-#define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
-
-#define DEFAULT_LASER_MODE 0 // false
 
 #define DEFAULT_X_STEPS_PER_MM 400.0
 #define DEFAULT_Y_STEPS_PER_MM 400.0

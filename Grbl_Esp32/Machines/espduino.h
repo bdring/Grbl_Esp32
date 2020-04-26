@@ -25,7 +25,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "MACHINE_ESPDUINO_32"
+#define MACHINE_NAME "ESPDUINO_32"
 
 #define X_STEP_PIN              GPIO_NUM_26
 #define X_DIRECTION_PIN         GPIO_NUM_16
@@ -39,7 +39,9 @@
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_12
 
-#define SPINDLE_PWM_PIN         GPIO_NUM_19
+#define SPINDLE_TYPE SPINDLE_TYPE_PWM
+#define SPINDLE_OUTPUT_PIN         GPIO_NUM_19
+
 #define SPINDLE_DIR_PIN         GPIO_NUM_18
 
 #define COOLANT_FLOOD_PIN       GPIO_NUM_34
