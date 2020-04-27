@@ -74,6 +74,7 @@ extern system_t sys;
 #define EXEC_ALARM_HOMING_FAIL_DOOR     7
 #define EXEC_ALARM_HOMING_FAIL_PULLOFF  8
 #define EXEC_ALARM_HOMING_FAIL_APPROACH 9
+#define EXEC_ALARM_SPINDLE_CONTROL      10
 
 // Override bit maps. Realtime bitflags to control feed, rapid, spindle, and coolant overrides.
 // Spindle/coolant and feed/rapids are separated into two controlling flag variables.
@@ -125,7 +126,7 @@ extern system_t sys;
 #define STEP_CONTROL_END_MOTION           bit(0)
 #define STEP_CONTROL_EXECUTE_HOLD         bit(1)
 #define STEP_CONTROL_EXECUTE_SYS_MOTION   bit(2)
-#define STEP_CONTROL_UPDATE_SPINDLE_PWM   bit(3)
+#define STEP_CONTROL_UPDATE_SPINDLE_RPM   bit(3)
 
 // Define control pin index for Grbl internal use. Pin maps may change, but these values don't.
 //#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
@@ -152,8 +153,7 @@ extern system_t sys;
 #define SPINDLE_STOP_OVR_RESTORE        bit(2)
 #define SPINDLE_STOP_OVR_RESTORE_CYCLE  bit(3)
 
-
-
+#define UNDEFINED_PIN 255  // Can be used to show a pin has no i/O assigned
 
 // NOTE: These position variables may need to be declared as volatiles, if problems arise.
 extern int32_t sys_position[N_AXIS];      // Real-time machine (aka home) position vector in steps.

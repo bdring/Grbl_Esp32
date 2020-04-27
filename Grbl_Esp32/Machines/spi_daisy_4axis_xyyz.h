@@ -78,7 +78,8 @@
 // Turn on with M7 and off with M9
 #define COOLANT_MIST_PIN        GPIO_NUM_21
 
-#define SPINDLE_PWM_PIN         GPIO_NUM_25
+#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
+#define SPINDLE_OUTPUT_PIN         GPIO_NUM_25
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 
 // Relay operation

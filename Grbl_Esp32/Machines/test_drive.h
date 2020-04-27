@@ -32,9 +32,11 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "MACHINE_DEFAULT - Demo Only No I/O!"
+#define MACHINE_NAME "Test Drive - Demo Only No I/O!"
 
 #define LIMIT_MASK 0  // no limit pins
+
+#define SPINDLE_TYPE    SPINDLE_TYPE_NONE
 
 #ifdef USE_RMT_STEPS
 #undef USE_RMT_STEPS  // Suppress unused variable warning

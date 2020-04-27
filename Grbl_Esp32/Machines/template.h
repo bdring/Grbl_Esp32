@@ -56,7 +56,7 @@
 // will be shown in a Grbl startup message to identify your
 // configuration.
 
-#define MACHINE_NAME            "MACHINE_TEMPLATE"
+#define MACHINE_NAME            "TEMPLATE"
 
 // If your machine requires custom code as described below in
 // Special Features, you must copy Custom/custom_code_template.cpp
@@ -102,7 +102,7 @@
 // machine does not support one of these features, you can leave
 // the corresponding pin undefined.
 
-// #define SPINDLE_PWM_PIN         GPIO_NUM_2   // labeled SpinPWM
+// #define SPINDLE_OUTPUT_PIN         GPIO_NUM_2   // labeled SpinPWM
 // #define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
 // #define COOLANT_MIST_PIN        GPIO_NUM_21  // labeled Mist
 // #define COOLANT_FLOOD_PIN       GPIO_NUM_25  // labeled Flood

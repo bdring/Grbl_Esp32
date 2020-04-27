@@ -149,6 +149,10 @@ float map_float(float x, float in_min, float in_max, float out_min, float out_ma
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+uint32_t map_uint32_t(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max) {
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 float constrain_float(float in, float min, float max) { // DrawBot_Badge
     if (in < min)
         return min;
@@ -160,6 +164,10 @@ float constrain_float(float in, float min, float max) { // DrawBot_Badge
 float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max) {
     x = constrain_float(x, in_min, in_max);
     return map_float(x, in_min, in_max, out_min, out_max);
+}
+
+bool char_is_numeric(char value) {
+    return (value >= '0' && value <='9');
 }
 
 
