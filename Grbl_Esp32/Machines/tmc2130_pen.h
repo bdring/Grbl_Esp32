@@ -61,6 +61,8 @@
 //#define USE_SPINDLE
 
 #ifdef USE_SERVO_AXES
+    #define SPINDLE_TYPE            SPINDLE_TYPE_NONE
+
     #define SERVO_Z_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
     #define SERVO_Z_RANGE_MIN               0.0
     #define SERVO_Z_RANGE_MAX               5.0
@@ -68,7 +70,9 @@
     #define SERVO_Z_HOME_POS                SERVO_Z_RANGE_MAX // move to max during homing
     #define SERVO_Z_MPOS                    false           // will not use mpos, uses work coordinates
 #else
-    #define SPINDLE_PWM_PIN    GPIO_NUM_27
+
+    #define SPINDLE_TYPE        SPINDLE_TYPE_PWM
+    #define SPINDLE_OUTPUT_PIN     GPIO_NUM_27
 #endif
 
 // #define X_LIMIT_PIN          See version section at beginning of file

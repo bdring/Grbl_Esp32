@@ -26,7 +26,7 @@
 
 
 
-#define MACHINE_NAME "MACHINE_MPCNC_V1P2"
+#define MACHINE_NAME "MPCNC_V1P2"
 
 #define USE_GANGED_AXES // allow two motors on an axis
 
@@ -51,9 +51,12 @@
 //#define USE_SPINDLE_RELAY
 
 #ifdef USE_SPINDLE_RELAY
-    #define SPINDLE_PWM_PIN GPIO_NUM_2
+    #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
+    #define SPINDLE_OUTPUT_PIN GPIO_NUM_2
 #else
-    #define SPINDLE_PWM_PIN         GPIO_NUM_16
+    #define SPINDLE_TYPE SPINDLE_TYPE_PWM
+    #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
+
     #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
 #endif
 
@@ -83,14 +86,6 @@
 
 #define INVERT_CONTROL_PIN_MASK B1110
 
-// Note: default is #define IGNORE_CONTROL_PINS in config.h
-// uncomment to these lines to use them
-
-/*
-#ifdef IGNORE_CONTROL_PINS
-#undef IGNORE_CONTROL_PINS
-#endif
-*/
 
 #define CONTROL_RESET_PIN           GPIO_NUM_34  // needs external pullup
 #define CONTROL_FEED_HOLD_PIN       GPIO_NUM_36  // needs external pullup
