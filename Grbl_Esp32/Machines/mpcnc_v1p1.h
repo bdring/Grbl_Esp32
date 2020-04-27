@@ -79,15 +79,6 @@
 
 #define INVERT_CONTROL_PIN_MASK B1110
 
-// Note: default is #define IGNORE_CONTROL_PINS in config.h
-// uncomment to these lines to use them
-
-/*
-#ifdef IGNORE_CONTROL_PINS
-#undef IGNORE_CONTROL_PINS
-#endif
-*/
-
 #define CONTROL_RESET_PIN           GPIO_NUM_34  // needs external pullup
 #define CONTROL_FEED_HOLD_PIN       GPIO_NUM_36  // needs external pullup
 #define CONTROL_CYCLE_START_PIN     GPIO_NUM_39  // needs external pullup

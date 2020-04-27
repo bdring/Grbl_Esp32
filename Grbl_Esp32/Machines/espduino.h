@@ -54,7 +54,6 @@
 
 #define PROBE_PIN               GPIO_NUM_39
 
-// comment out #define IGNORE_CONTROL_PINS in config.h to use control pins
 #define CONTROL_RESET_PIN       GPIO_NUM_2
 #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_4
 #define CONTROL_CYCLE_START_PIN GPIO_NUM_35 // ESP32 needs external pullup

@@ -59,10 +59,6 @@
 
 #define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
-#ifdef IGNORE_CONTROL_PINS // maybe set in config.h
-    #undef IGNORE_CONTROL_PINS
-#endif
-
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE
 #endif

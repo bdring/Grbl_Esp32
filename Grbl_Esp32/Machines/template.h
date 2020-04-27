@@ -175,11 +175,6 @@
 
 // === Control Pins
 
-// The control pins with names that begin with CONTROL_ are
-// ignored by default, to avoid noise problems.  To make them
-// work, you must undefine IGNORE_CONTROL_PINS
-// #undef IGNORE_CONTROL_PINS
-
 // If some of the control pin switches are normally closed
 // (the default is normally open), you can invert some of them
 // with INVERT_CONTROL_PIN_MASK.  The bits in the mask are
