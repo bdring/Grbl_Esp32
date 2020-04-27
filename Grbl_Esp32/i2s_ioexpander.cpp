@@ -101,12 +101,16 @@ static uint8_t i2s_ioexpander_ws_pin = -1;
 static uint8_t i2s_ioexpander_bck_pin = -1;
 static uint8_t i2s_ioexpander_data_pin = -1;
 
-enum i2s_ioexpander_status_t {
+enum i2s_ioexpander_pulser_status_t {
   UNKNOWN = 0,
   RUNNING,
   PAUSED,
 };
-static volatile i2s_ioexpander_status_t i2s_ioexpander_status;
+static volatile i2s_ioexpander_pulser_status_t i2s_ioexpander_pulser_status;
+
+static portMUX_TYPE i2s_pulser_spinlock = portMUX_INITIALIZER_UNLOCKED;
+#define I2S_PULSER_ENTER_CRITICAL()  portENTER_CRITICAL(&i2s_pulser_spinlock)
+#define I2S_PULSER_EXIT_CRITICAL()   portEXIT_CRITICAL(&i2s_pulser_spinlock)
 
 //
 // Internal functions
@@ -253,8 +257,6 @@ static int i2s_start() {
   I2S0.out_link.start = 1;
   I2S0.conf.tx_start = 1;
 
-  I2S0.conf1.tx_stop_en = 1; // Prevent unintentional 0's at the start of I2S
-
   I2S_EXIT_CRITICAL();
  
   return 0;
@@ -306,7 +308,8 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
     dma.current = (uint32_t*)(dma_desc->buf);
     // It reuses the oldest (just transferred) buffer with the name "current"
     // and fills the buffer for later DMA.
-    if (i2s_ioexpander_status == RUNNING) {
+    I2S_PULSER_ENTER_CRITICAL(); // Lock pulser status
+    if (i2s_ioexpander_pulser_status == RUNNING) {
       //
       // Fillout the buffer for pulse
       //
@@ -321,11 +324,16 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
       while (dma.rw_pos < (DMA_SAMPLE_COUNT - SAMPLE_SAFE_COUNT)) {
           // no data to read (buffer empty)
           if (i2s_ioexpander_remain_time_until_next_pulse < I2S_IOEXP_USEC_PER_PULSE) {
-            // fillout future DMA buffer (tail of the DMA buffer chains)
-            if (i2s_ioexpander_pulse_phase_func != NULL) {
-              (*i2s_ioexpander_pulse_phase_func)(); // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT
-              i2s_ioexpander_remain_time_until_next_pulse = i2s_ioexpander_pulse_period;
-              continue;
+            // pulser status may change in pulse phase func, so I need to check it every time.
+            if (i2s_ioexpander_pulser_status == RUNNING) {
+              // fillout future DMA buffer (tail of the DMA buffer chains)
+              if (i2s_ioexpander_pulse_phase_func != NULL) {
+                I2S_PULSER_EXIT_CRITICAL(); // Temporarily unlocked status lock as it may be locked in pulse callback.
+                (*i2s_ioexpander_pulse_phase_func)(); // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT
+                I2S_PULSER_ENTER_CRITICAL(); // Lock again.
+                i2s_ioexpander_remain_time_until_next_pulse = i2s_ioexpander_pulse_period;
+                continue;
+              }
             }
           }
           // no pulse data in push buffer (pulse off or idle or callback is not defined)
@@ -348,6 +356,7 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
       dma.rw_pos = DMA_SAMPLE_COUNT;
       dma_desc->length = DMA_BUF_LEN;
     }
+    I2S_PULSER_EXIT_CRITICAL(); // Unlock pulser status
   }
 }
 
@@ -383,12 +392,16 @@ uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
 }
 
 int i2s_ioexpander_pause_pulse() {
-  i2s_ioexpander_status = PAUSED;
+  I2S_PULSER_ENTER_CRITICAL();
+  i2s_ioexpander_pulser_status = PAUSED;
+  I2S_PULSER_EXIT_CRITICAL();
   return 0;
 }
 
 int i2s_ioexpander_resume_pulse() {
-  i2s_ioexpander_status = RUNNING;
+  I2S_PULSER_ENTER_CRITICAL();
+  i2s_ioexpander_pulser_status = RUNNING;
+  I2S_PULSER_EXIT_CRITICAL();
   return 0;
 }
 
@@ -611,7 +624,8 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
 
   // Start the I2S peripheral
   i2s_start();
-  i2s_ioexpander_status = RUNNING;
+  // However, I still make sure that pulse callback is not called.
+  i2s_ioexpander_pause_pulse();
 
   return 0;
 }
