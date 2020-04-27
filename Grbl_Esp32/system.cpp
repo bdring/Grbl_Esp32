@@ -26,7 +26,7 @@ bool debouncing = false;  // debouncing in process
 
 void system_ini() { // Renamed from system_init() due to conflict with esp32 files
     // setup control inputs
-#ifndef IGNORE_CONTROL_PINS
+
 #ifdef CONTROL_SAFETY_DOOR_PIN
     pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
@@ -73,7 +73,7 @@ void system_ini() { // Renamed from system_init() due to conflict with esp32 fil
                 5, // priority
                 NULL);
 #endif
-#endif
+
     //customize pin definition if needed
 #if (GRBL_SPI_SS != -1) || (GRBL_SPI_MISO != -1) || (GRBL_SPI_MOSI != -1) || (GRBL_SPI_SCK != -1)
     SPI.begin(GRBL_SPI_SCK, GRBL_SPI_MISO, GRBL_SPI_MOSI, GRBL_SPI_SS);
@@ -453,10 +453,8 @@ uint8_t system_check_travel_limits(float* target) {
 // defined by the CONTROL_PIN_INDEX in the header file.
 uint8_t system_control_get_state() {
     uint8_t defined_pin_mask = 0; // a mask of defined pins
-#ifdef IGNORE_CONTROL_PINS
-    return 0;
-#endif
     uint8_t control_state = 0;
+    
 #ifdef CONTROL_SAFETY_DOOR_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_SAFETY_DOOR;
     if (digitalRead(CONTROL_SAFETY_DOOR_PIN))  control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR;
