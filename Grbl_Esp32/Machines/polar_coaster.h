@@ -22,11 +22,13 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "MACHINE_POLAR_COASTER"
+#define MACHINE_NAME "POLAR_COASTER"
 
 // This causes the custom code file to be included in the build
 // via ../custom_code.cpp
 #define CUSTOM_CODE_FILENAME "Custom/polar_coaster.cpp"
+
+#define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
 #define RADIUS_AXIS 0
 #define POLAR_AXIS 1
@@ -55,9 +57,7 @@
 #define X_LIMIT_PIN             GPIO_NUM_4
 #define LIMIT_MASK              B1
 
-#ifdef IGNORE_CONTROL_PINS // maybe set in config.h
-    #undef IGNORE_CONTROL_PINS
-#endif
+#define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE
