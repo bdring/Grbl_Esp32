@@ -1,7 +1,7 @@
 /*
     BESCSpindle.cpp
 
-    This a special type of PWM spindle for RC type Brushless DC Speed 
+    This a special type of PWM spindle for RC type Brushless DC Speed
     controllers.
 
     Part of Grbl_ESP32
@@ -38,11 +38,8 @@
 
 */
 
-#include "grbl.h"
-#include "SpindleClass.h"
-
 // don't change these
-#define BESC_PWM_FREQ           50.0f // Hz 
+#define BESC_PWM_FREQ           50.0f // Hz
 #define BESC_PWM_BIT_PRECISION  16   // bits
 #define BESC_PULSE_PERIOD       (1.0 / BESC_PWM_FREQ)
 // ok to tweak
@@ -94,17 +91,17 @@ float BESCSpindle::set_rpm(float rpm) {
         return rpm;
 
     // apply speed overrides
-    rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)  
+    rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
 
     // apply limits limits
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
         rpm = _max_rpm;
-    } else if (rpm != 0.0 && rpm <= _min_rpm) {        
+    } else if (rpm != 0.0 && rpm <= _min_rpm) {
         rpm = _min_rpm;
     }
 
     sys.spindle_speed = rpm;
-    
+
     // determine the pwm value
     if (rpm == 0.0) {
         pwm_value = _pwm_off_value;

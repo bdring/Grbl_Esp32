@@ -19,8 +19,6 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "grbl.h"
-#include "SpindleClass.h"
 
 // ======================= PWMSpindle ==============================
 /*
@@ -110,7 +108,7 @@ float PWMSpindle::set_rpm(float rpm) {
     // apply limits
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
         rpm = _max_rpm;
-    } else if (rpm != 0.0 && rpm <= _min_rpm) {        
+    } else if (rpm != 0.0 && rpm <= _min_rpm) {
         rpm = _min_rpm;
     }
 
@@ -124,13 +122,13 @@ float PWMSpindle::set_rpm(float rpm) {
         pwm_value = _pwm_off_value;
     } else {
         pwm_value = (uint16_t)map_float(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
-    }        
-#endif    
+    }
+#endif
 
 #ifdef  SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
     set_enable_pin(rpm != 0);
 #endif
-    
+
     set_output(pwm_value);
 
     return rpm;
@@ -179,7 +177,7 @@ void PWMSpindle :: config_message() {
 }
 
 
-void PWMSpindle::set_output(uint32_t duty) {    
+void PWMSpindle::set_output(uint32_t duty) {
 
     if (_output_pin == UNDEFINED_PIN)
         return;
