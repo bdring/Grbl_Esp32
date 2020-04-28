@@ -17,10 +17,8 @@
     GNU General Public License for more details.
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
-    
+
 */
-#include "grbl.h"
-#include "SpindleClass.h"
 
 // ======================= NullSpindle ==============================
 // NullSpindle is just bunch of do nothing (ignore) methods to be used when you don't want a spindle
