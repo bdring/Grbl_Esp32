@@ -44,8 +44,6 @@
         Add periodic pinging of VFD in run mode to see if it is still at correct RPM
 */
 
-#include "grbl.h"
-#include "SpindleClass.h"
 #include "driver/uart.h"
 
 #define HUANYANG_ADDR           0x01
@@ -62,7 +60,7 @@ void HuanyangSpindle :: init() {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Huanyang spindle errors");
         return;
     }
-    
+
     uart_driver_delete(HUANYANG_UART_PORT); // this allows us to init() more than once if settings have changed.
 
     uart_config_t uart_config = {
@@ -71,9 +69,9 @@ void HuanyangSpindle :: init() {
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .rx_flow_ctrl_thresh = 122, 
+        .rx_flow_ctrl_thresh = 122,
     };
-    
+
     uart_param_config(HUANYANG_UART_PORT, &uart_config);
 
     uart_set_pin(HUANYANG_UART_PORT,
@@ -153,7 +151,7 @@ void HuanyangSpindle :: set_state(uint8_t state, float rpm) {
     }
 
     set_rpm(rpm);
-    sys.report_ovr_counter = 0; // Set to report change immediately    
+    sys.report_ovr_counter = 0; // Set to report change immediately
 }
 
 bool HuanyangSpindle :: set_mode(uint8_t mode) {
@@ -167,7 +165,7 @@ bool HuanyangSpindle :: set_mode(uint8_t mode) {
         msg[3] = 0x08;
 
     add_ModRTU_CRC(msg, sizeof(msg));
-    
+
     //report_hex_msg(msg, "To VFD:", sizeof(msg));  // TODO for debugging comment out
 
     uart_write_bytes(HUANYANG_UART_PORT, msg, sizeof(msg));
@@ -185,7 +183,7 @@ bool HuanyangSpindle :: get_response(uint16_t length) {
         return false;
     }
     // check CRC?
-    // Check address?   
+    // Check address?
 
     return true;
 }
@@ -205,8 +203,8 @@ float HuanyangSpindle :: set_rpm(float rpm) {
     msg[3] = (data & 0xFF00) >> 8;
     msg[4] = (data & 0xFF);
 
-    add_ModRTU_CRC(msg, sizeof(msg));    
-    
+    add_ModRTU_CRC(msg, sizeof(msg));
+
     //report_hex_msg(msg, "To VFD:", sizeof(msg));  // TODO for debugging comment out
 
     uart_write_bytes(HUANYANG_UART_PORT, msg, sizeof(msg));
