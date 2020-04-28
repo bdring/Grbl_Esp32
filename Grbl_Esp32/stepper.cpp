@@ -1,5 +1,3 @@
-#include "grbl.h"
-
 /*
   stepper.c - stepper motor driver: executes motion plans using stepper motors
   Part of Grbl
@@ -54,7 +52,7 @@ typedef struct {
 #else
     uint8_t prescaler;      // Without AMASS, a prescaler is required to adjust for slow timing.
 #endif
-    uint16_t spindle_rpm;  // TODO get rid of this.  
+    uint16_t spindle_rpm;  // TODO get rid of this.
 } segment_t;
 static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 
@@ -285,7 +283,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
             //spindle_set_speed(st.exec_segment->spindle_rpm);
             //grbl_send(CLIENT_SERIAL, "A_");
             spindle->set_rpm(prep.current_spindle_rpm);
-            
+
 
         } else {
             // Segment buffer empty. Shutdown.
@@ -1014,7 +1012,7 @@ void st_prep_buffer() {
                 } else
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
 
-                
+
                 if (spindle->isRateAdjusted() ){ //   settings.flags & BITFLAG_LASER_MODE) {
                     if (pl_block->condition & PL_COND_FLAG_SPINDLE_CCW) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
@@ -1222,14 +1220,14 @@ void st_prep_buffer() {
             if (pl_block->condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)) {
                 float rpm = pl_block->spindle_speed;
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
-                if (st_prep_block->is_pwm_rate_adjusted) {                    
+                if (st_prep_block->is_pwm_rate_adjusted) {
                     rpm *= (prep.current_speed * prep.inv_rate);
                     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RPM %.2f", rpm);
                     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
                 }
                 // If current_speed is zero, then may need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE)
-                // but this would be instantaneous only and during a motion. May not matter at all.                
-                
+                // but this would be instantaneous only and during a motion. May not matter at all.
+
                 prep.current_spindle_rpm = rpm;
             } else {
                 sys.spindle_speed = 0.0;
