@@ -32,8 +32,6 @@
         SPINDLE_DIR_PIN
 
 */
-#include "grbl.h"
-#include "SpindleClass.h"
 #include "NullSpindle.cpp"
 #include "PWMSpindle.cpp"
 #include "DacSpindle.cpp"
@@ -95,5 +93,3 @@ void Spindle :: spindle_sync(uint8_t state, float rpm) {
     protocol_buffer_synchronize(); // Empty planner buffer to ensure spindle is set when programmed.
     set_state(state, rpm);
 }
-
-
