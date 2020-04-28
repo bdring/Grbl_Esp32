@@ -144,22 +144,22 @@ void i2s_ioexpander_write(uint8_t pin, uint8_t val);
 uint32_t i2s_ioexpander_push_sample(uint32_t num);
 
 /*
-   Start to pausing the pulse callback
+   Set pulser mode to passtrough
 
    After this function is called,
    the callback function to generate the pulse data
-   will not be called.
+   will not be called. 
  */
-int i2s_ioexpander_pause_pulse();
+int i2s_ioexpander_set_passthrough();
 
 /*
-   Start to resuming the pulse callback
+   Set pulser mode to stepping
 
    After this function is called,
-   the callback function to generate the pulse data
-   will be called again.
+   the callback function to generate stepping pulse data
+   will be called.
  */
-int i2s_ioexpander_resume_pulse();
+int i2s_ioexpander_set_stepping();
 
 /*
    Set the pulse callback period in microseconds

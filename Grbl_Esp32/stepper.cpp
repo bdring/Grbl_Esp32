@@ -1579,7 +1579,7 @@ void IRAM_ATTR Stepper_Timer_Start() {
     //Serial.println("ST Start");
 #endif
 #ifdef I2S_STEPPER_STREAM
-    i2s_ioexpander_resume_pulse();
+    i2s_ioexpander_set_stepping();
 #else
     timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
     timer_start(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
@@ -1592,7 +1592,7 @@ void IRAM_ATTR Stepper_Timer_Stop() {
     //Serial.println("ST Stop");
 #endif
 #ifdef I2S_STEPPER_STREAM
-    i2s_ioexpander_pause_pulse();
+    i2s_ioexpander_set_passthrough();
 #else
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
 #endif

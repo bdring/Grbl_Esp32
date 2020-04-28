@@ -102,9 +102,8 @@ static uint8_t i2s_ioexpander_bck_pin = -1;
 static uint8_t i2s_ioexpander_data_pin = -1;
 
 enum i2s_ioexpander_pulser_status_t {
-  UNKNOWN = 0,
-  RUNNING,
-  PAUSED,
+  PASSTHROUGH = 0,
+  STEPPING,
 };
 static volatile i2s_ioexpander_pulser_status_t i2s_ioexpander_pulser_status;
 
@@ -309,7 +308,7 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
     // It reuses the oldest (just transferred) buffer with the name "current"
     // and fills the buffer for later DMA.
     I2S_PULSER_ENTER_CRITICAL(); // Lock pulser status
-    if (i2s_ioexpander_pulser_status == RUNNING) {
+    if (i2s_ioexpander_pulser_status == STEPPING) {
       //
       // Fillout the buffer for pulse
       //
@@ -325,7 +324,7 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
           // no data to read (buffer empty)
           if (i2s_ioexpander_remain_time_until_next_pulse < I2S_IOEXP_USEC_PER_PULSE) {
             // pulser status may change in pulse phase func, so I need to check it every time.
-            if (i2s_ioexpander_pulser_status == RUNNING) {
+            if (i2s_ioexpander_pulser_status == STEPPING) {
               // fillout future DMA buffer (tail of the DMA buffer chains)
               if (i2s_ioexpander_pulse_phase_func != NULL) {
                 I2S_PULSER_EXIT_CRITICAL(); // Temporarily unlocked status lock as it may be locked in pulse callback.
@@ -391,16 +390,16 @@ uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
   return n;
 }
 
-int i2s_ioexpander_pause_pulse() {
+int i2s_ioexpander_set_passthrough() {
   I2S_PULSER_ENTER_CRITICAL();
-  i2s_ioexpander_pulser_status = PAUSED;
+  i2s_ioexpander_pulser_status = PASSTHROUGH;
   I2S_PULSER_EXIT_CRITICAL();
   return 0;
 }
 
-int i2s_ioexpander_resume_pulse() {
+int i2s_ioexpander_set_stepping() {
   I2S_PULSER_ENTER_CRITICAL();
-  i2s_ioexpander_pulser_status = RUNNING;
+  i2s_ioexpander_pulser_status = STEPPING;
   I2S_PULSER_EXIT_CRITICAL();
   return 0;
 }
@@ -624,8 +623,6 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
 
   // Start the I2S peripheral
   i2s_start();
-  // However, I still make sure that pulse callback is not called.
-  i2s_ioexpander_pause_pulse();
 
   return 0;
 }
