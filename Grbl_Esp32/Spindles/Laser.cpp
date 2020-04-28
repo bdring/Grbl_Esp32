@@ -1,7 +1,7 @@
 /*
     Laser.cpp
 
-    This is similar the the PWM Spindle except that it allows the 
+    This is similar the the PWM Spindle except that it allows the
     M4 speed vs. power copensation.
 
     Part of Grbl_ESP32
@@ -17,11 +17,8 @@
     GNU General Public License for more details.
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
-    
-*/
 
-#include "grbl.h"
-#include "SpindleClass.h"
+*/
 
 // ===================================== Laser ==============================================
 
