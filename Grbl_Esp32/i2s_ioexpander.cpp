@@ -105,7 +105,7 @@ enum i2s_ioexpander_pulser_status_t {
   PASSTHROUGH = 0,
   STEPPING,
 };
-static volatile i2s_ioexpander_pulser_status_t i2s_ioexpander_pulser_status;
+static volatile i2s_ioexpander_pulser_status_t i2s_ioexpander_pulser_status = PASSTHROUGH;
 
 static portMUX_TYPE i2s_pulser_spinlock = portMUX_INITIALIZER_UNLOCKED;
 #define I2S_PULSER_ENTER_CRITICAL()  portENTER_CRITICAL(&i2s_pulser_spinlock)
