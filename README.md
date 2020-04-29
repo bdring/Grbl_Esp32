@@ -9,7 +9,7 @@
 Grbl_ESP32 started as a port of [Grbl](https://github.com/gnea/grbl) to the ESP32. The power of the ESP32 has allowed this firmware to grow far beyond the limitations of 8-bit AVR controllers. Here are some of the current features
 
 - **Motors**
-- Control up to 6 coordinated axes (XYZABC)
+  - Control up to 6 coordinated axes (XYZABC)
   - Each axis can have 1 or 2 motors each for a total of 12 motors
   - Dual motors axes can optionally auto square using a home switch and independent control for each motor.
   - Motor drivers can be dynamically assigned to axes, so a 4 motor XYZA controller could be converted to a XYYZ (dual motor Y axis) without any hardware changes.
@@ -28,7 +28,7 @@ Grbl_ESP32 started as a port of [Grbl](https://github.com/gnea/grbl) to the ESP3
   - Feed rate override
   - Spindle speed override
 - **Spindles**
-- PWM
+  - PWM
   - RS485 Modus
   - DAC (analog voltage) 0-10V
   - Relay Based
@@ -36,7 +36,7 @@ Grbl_ESP32 started as a port of [Grbl](https://github.com/gnea/grbl) to the ESP3
   - Laser PWM with power/speed compensation
   - Easy to create custom spindles
 - **Connectivity**
-- USB/Serial
+  - USB/Serial
   - Bluetooth/Serial Creates a virtual serial port on your phone or PC. Standard serial port applications can use Bluetooth.
   - WIFI
     - Creates its own access point or connects to yours.
@@ -48,10 +48,8 @@ Grbl_ESP32 started as a port of [Grbl](https://github.com/gnea/grbl) to the ESP3
 - **Compatibility** 
   - Grbl_ESP32 is fully backward compatible with Grbl and can use all gcode senders.
 - **Customizable**
-- Easy to map pins to any functions.
-  
-- Custom machines can be designed without touching the main code. 
-  
+  - Easy to map pins to any functions.  
+  - Custom machines can be designed without touching the main code.   
   - Custom initialization
     - Kinematics
     - Custom homing
