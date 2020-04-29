@@ -38,7 +38,7 @@
 #ifndef SPINDLE_CLASS_H
 #define SPINDLE_CLASS_H
 
-#include "grbl.h"
+#include "../grbl.h"
 #include <driver/dac.h>
 #include "driver/uart.h"
 
@@ -82,7 +82,7 @@ class PWMSpindle : public Spindle {
     void config_message();
 
   private:
-    
+
     int32_t _current_pwm_duty;
     void set_spindle_dir_pin(bool Clockwise);
 
@@ -104,7 +104,7 @@ class PWMSpindle : public Spindle {
     virtual void set_output(uint32_t duty);
     void set_enable_pin(bool enable_pin);
     void get_pins_and_settings();
-    uint8_t calc_pwm_precision(float freq); 
+    uint8_t calc_pwm_precision(float freq);
 };
 
 // This is for an on/off spindle all RPMs above 0 are on

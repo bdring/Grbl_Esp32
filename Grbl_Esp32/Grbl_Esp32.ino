@@ -21,7 +21,7 @@
 #include "grbl.h"
 #include "WiFi.h"
 
-#include "tools/SpindleClass.cpp"
+#include "Spindles/SpindleClass.cpp"
 
 // Declare system global variable structure
 system_t sys;

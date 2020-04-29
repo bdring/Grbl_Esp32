@@ -3,7 +3,7 @@
 
     This uses the Analog DAC in the ESP32 to generate a voltage
     proportional to the GCode S value desired. Some spindle uses
-    a 0-5V or 0-10V value to control the spindle. You would use 
+    a 0-5V or 0-10V value to control the spindle. You would use
     an Op Amp type circuit to get from the 0.3.3V of the ESP32 to that voltage.
 
     Part of Grbl_ESP32
@@ -19,29 +19,26 @@
     GNU General Public License for more details.
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
-    
-*/
 
-#include "grbl.h"
-#include "SpindleClass.h"
+*/
 
 // ======================================== DacSpindle ======================================
 void DacSpindle :: init() {
     get_pins_and_settings();
     if (_output_pin == UNDEFINED_PIN)
         return;
-    
+
     _min_rpm = settings.rpm_min;
     _max_rpm = settings.rpm_max;
     _pwm_min_value = 0;     // not actually PWM...DAC counts
     _pwm_max_value = 255;   // not actually PWM...DAC counts
     _gpio_ok = true;
 
-    if (_output_pin != GPIO_NUM_25 && _output_pin != GPIO_NUM_26) { // DAC can only be used on these pins 
+    if (_output_pin != GPIO_NUM_25 && _output_pin != GPIO_NUM_26) { // DAC can only be used on these pins
         _gpio_ok = false;
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DAC spindle pin invalid GPIO_NUM_%d (pin 25 or 26 only)", _output_pin);
         return;
-    }    
+    }
 
     if (_enable_pin != UNDEFINED_PIN)
         pinMode(_enable_pin, OUTPUT);
@@ -50,7 +47,7 @@ void DacSpindle :: init() {
         pinMode(_direction_pin, OUTPUT);
     }
     is_reversable = (_direction_pin != UNDEFINED_PIN);
-        
+
 
     config_message();
 }
@@ -89,7 +86,7 @@ float DacSpindle::set_rpm(float rpm) {
         // Compute intermediate PWM value with linear spindle speed model.
         // NOTE: A nonlinear model could be installed here, if required, but keep it VERY light-weight.
         sys.spindle_speed = rpm;
-        
+
         pwm_value = (uint32_t)map_float(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
     }
 
@@ -106,5 +103,5 @@ void DacSpindle :: set_output(uint32_t duty) {
     if (_gpio_ok) {
          dacWrite(_output_pin, (uint8_t)duty);
     }
-       
+
 }
