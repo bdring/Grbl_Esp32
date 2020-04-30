@@ -23,6 +23,8 @@
 
 #include "grbl.h"
 
+typedef uint8_t err_t; // For status codes
+
 // Define Grbl status codes. Valid values (0-255)
 #define STATUS_OK 0
 #define STATUS_EXPECTED_COMMAND_LETTER 1
@@ -72,6 +74,8 @@
 
 #define STATUS_BT_FAIL_BEGIN 70  // Bluetooth failed to start
 
+#define STATUS_NUMBER_RANGE 80 // Setting number range problem
+#define STATUS_INVALID_VALUE 81 // Setting string problem
 
 
 // Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
@@ -158,8 +162,8 @@ void report_ngc_parameters(uint8_t client);
 void report_gcode_modes(uint8_t client);
 
 // Prints startup line when requested and executed.
-void report_startup_line(uint8_t n, char* line, uint8_t client);
-void report_execute_startup_message(char* line, uint8_t status_code, uint8_t client);
+void report_startup_line(uint8_t n, const char* line, uint8_t client);
+void report_execute_startup_message(const char* line, uint8_t status_code, uint8_t client);
 
 // Prints build info and user info
 void report_build_info(char* line, uint8_t client);

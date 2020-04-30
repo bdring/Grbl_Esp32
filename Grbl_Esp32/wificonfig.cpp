@@ -34,6 +34,9 @@
 #include "wifiservices.h"
 #include "commands.h"
 #include "report.h"
+#ifdef NEW_SETTINGS
+#include "SettingsDefinitions.h"
+#endif
 
 WiFiConfig wifi_config;
 
@@ -277,7 +280,7 @@ bool WiFiConfig::StartSTA() {
     WiFi.enableAP(false);
     WiFi.mode(WIFI_STA);
     //Get parameters for STA
-#ifdef WMB
+#ifdef NEW_SETTINGS
     String h = wifi_hostname.get();
     WiFi.setHostname(h.c_str());
     //SSID
@@ -344,7 +347,7 @@ bool WiFiConfig::StartAP() {
     WiFi.enableSTA(false);
     WiFi.mode(WIFI_AP);
     //Get parameters for AP
-#ifdef WMB
+#ifdef NEW_SETTINGS
     //SSID
     String SSID = wifi_ap_ssid.get();
     if (SSID.length() == 0) SSID = DEFAULT_AP_SSID;
@@ -355,8 +358,10 @@ bool WiFiConfig::StartAP() {
     if (channel == 0) channel = DEFAULT_AP_CHANNEL;
 
     int32_t IP = wifi_ap_ip.get();
-    if (IP == 0)
-        IP = IP_int_from_string(DEFAULT_AP_IP);
+    if (IP == 0) {
+        String defV = DEFAULT_AP_IP;
+        IP = IP_int_from_string(defV);
+    }
 #else
     prefs.begin(NAMESPACE, true);
     //SSID
@@ -418,7 +423,7 @@ void WiFiConfig::begin() {
         WiFi.onEvent(WiFiConfig::WiFiEvent);
         _events_registered = true;
     }
-#ifdef WMB
+#ifdef NEW_SETTINGS
     //Get hostname
     _hostname = wifi_hostname.get();
     int8_t wifiMode = wifi_radio_mode.get();
@@ -470,7 +475,7 @@ void WiFiConfig::end() {
  * Reset ESP
  */
 void WiFiConfig::reset_settings() {
-#ifdef WMB
+#ifdef NEW_SETTINGS
     String sval;
     int8_t bbuf;
     int16_t ibuf;
@@ -495,23 +500,23 @@ void WiFiConfig::reset_settings() {
         error = true;
     if (wifi_ap_password.setStringValue(DEFAULT_AP_PWD))
         error = true;
-    if (wifi_ap_channel.setStringValue(DEFAULT_AP_CHANNEL))
+    if (wifi_ap_channel.setStringValue(std::to_string(DEFAULT_AP_CHANNEL).c_str()))
         error = true;
-    if (wifi_sta_mode.setStringValue(STA_IP_MODE));
+    if (wifi_sta_mode.setStringValue(std::to_string(DEFAULT_STA_IP_MODE).c_str()));
         error = true;
-    if (wifi_http_enable.setStringValue(DEFAULT_HTTP_STATE))
+    if (http_enable.setStringValue(std::to_string(DEFAULT_HTTP_STATE).c_str()))
         error = true;
-    if (wifi_telnet_enable.setStringValue(DEFAULT_TELNET_STATE))
+    if (telnet_enable.setStringValue(std::to_string(DEFAULT_TELNET_STATE).c_str()))
         error = true;
-    if (wifi_radio_mode.setStringValue(DEFAULT_RADIO_MODE))
+    if (wifi_radio_mode.setStringValue(std::to_string(DEFAULT_RADIO_MODE).c_str()))
         error = true;
-    if (http_port.setStringValue(DEFAULT_WEBSERVER_PORT))
+    if (http_port.setStringValue(to_string(DEFAULT_WEBSERVER_PORT).c_str()))
         error = true;
-    if (telnet_port.setStringValue(DEFAULT_TELNETSERVER_PORT))
+    if (telnet_port.setStringValue(to_string(DEFAULT_TELNETSERVER_PORT).c_str()))
         error = true;
     if (wifi_sta_ip.setStringValue(DEFAULT_STA_IP))
         error = true;
-    if (wifi_sta_gw.setStringValue(DEFAULT_STA_GW))
+    if (wifi_sta_gateway.setStringValue(DEFAULT_STA_GW))
         error = true;
     if (wifi_sta_netmask.setStringValue(DEFAULT_STA_MK))
         error = true;

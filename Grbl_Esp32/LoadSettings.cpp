@@ -2,13 +2,18 @@
 // Ultimately the code that uses the old settings
 // should be changed to use the Settings objects directly
 
-void setbit(bool flag, int32_t mask)
+#include "grbl.h"
+#ifdef NEW_SETTINGS
+
+#include "SettingsDefinitions.h"
+
+void setBit(bool flag, int32_t mask)
 {
     if (flag) {
         settings.flags |= mask;
     }
 }
-transfer_settings()
+void transfer_settings()
 {
     // axes
     for (int i = 0; i < N_AXIS; i++) {
@@ -52,9 +57,23 @@ transfer_settings()
     // Spindle
     settings.rpm_min = rpm_min.get();
     settings.rpm_max = rpm_max.get();
-    settings.spindle_pwm_precision_bits = spindle_pwm_precision.get();
+//    settings.spindle_pwm_precision_bits = spindle_pwm_precision.get();
     settings.spindle_pwm_freq = spindle_pwm_freq.get();
     settings.spindle_pwm_min_value = spindle_pwm_min_value.get();
     settings.spindle_pwm_max_value = spindle_pwm_max_value.get();
     settings.spindle_pwm_off_value = spindle_pwm_off_value.get();
 }
+
+void load_settings()
+{
+    for (Setting *s = SettingsList; s; s = s->next()) {
+        s->load();
+    }
+}
+
+void settings_init()
+{
+    load_settings();
+    transfer_settings();
+}
+#endif

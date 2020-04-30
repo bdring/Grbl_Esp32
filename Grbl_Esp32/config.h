@@ -38,7 +38,7 @@ Some features should not be changed. See notes below.
 #ifndef config_h
 #define config_h
 #include <Arduino.h>
-
+//#define NEW_SETTINGS
 // It is no longer necessary to edit this file to choose
 // a machine configuration; edit machine.h instead
 // machine.h is #included below, after some definitions
@@ -87,6 +87,9 @@ Some features should not be changed. See notes below.
 
 // machine_common.h contains settings that do not change
 #include "machine_common.h"
+
+// #define NEW_SETTINGS
+#define MAX_N_AXIS 6
 
 // Number of axes defined (steppers, servos, etc) (valid range: 3 to 6)
 // Even if your machine only uses less than the minimum of 3, you should select 3

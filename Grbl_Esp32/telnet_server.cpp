@@ -80,7 +80,6 @@ bool Telnet_Server::begin() {
     _setupdone = true;
     return no_error;
 }
-#endif
 
 void Telnet_Server::end() {
     _setupdone = false;

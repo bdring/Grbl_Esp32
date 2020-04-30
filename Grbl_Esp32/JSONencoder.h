@@ -5,10 +5,10 @@
 #define MAX_JSON_LEVEL 16
 class JSONencoder {
   private:
+    bool pretty;
+    int level;
     std::string str;
     int count[MAX_JSON_LEVEL];
-    int level;
-    bool pretty;
     void add(char c) { str += c; }
     void comma_line();
     void comma();
@@ -18,7 +18,7 @@ class JSONencoder {
     void line();
   public:
     // Constructor; set _pretty true for pretty printing
-    JSONencoder(bool _pretty);
+    JSONencoder(bool pretty);
     // If you don't set _pretty it defaults to false
     JSONencoder();
 

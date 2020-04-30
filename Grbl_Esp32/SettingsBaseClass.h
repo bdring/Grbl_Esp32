@@ -1,8 +1,8 @@
 #pragma once
+#include "grbl.h"
 #include "JSONencoder.h"
-#include <string>
+//#include <string>
 #include <map>
-#include "wmb_defs.h"
 
 using namespace std;
 
@@ -25,21 +25,19 @@ class Setting {
 private:
     const char* displayName;
     const char* webuiName;
-    err_t (*checker)(const char *);
+    bool (*checker)(const char *);
     // Add each constructed setting to the linked list
-    Setting *link;
 
 public:
+    Setting *link;
     Setting *next() { return link; }
 
-    err_t check(const char *s) {
-        if (checker) {
-            return checker(s);
-        }
+    bool check(const char *s) {
+        return checker ? checker(s) : false;
     }
 
     ~Setting() {}
-    Setting(const char *webuiName, const char* displayNname, err_t (*checker)(const char *))
+    Setting(const char *webuiName, const char* displayNname, bool (*checker)(const char *))
     {
         webuiName = webuiName;
         displayName = displayName;

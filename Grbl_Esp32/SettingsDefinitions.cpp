@@ -1,5 +1,6 @@
+#include "grbl.h"
+#ifdef NEW_SETTINGS
 #include "SettingsDerivedClasses.h"
-#include "defaults.h"
 
 Setting *SettingsList = NULL;
 
@@ -102,13 +103,13 @@ FlagSetting step_enable_invert("STEP_ENABLE_INVERT", DEFAULT_INVERT_ST_ENABLE);
 FlagSetting limit_invert("LIMIT_INVERT", DEFAULT_INVERT_LIMIT_PINS);
 FlagSetting probe_invert("PROBE_INVERT", DEFAULT_INVERT_PROBE_PIN);
 FlagSetting report_inches("REPORT_INCHES", DEFAULT_REPORT_INCHES);
-FlagSetting soft_limits("SOFT_LIMITS", DEFAULT_SOFT_LIMIT_ENABLE, check_homing_enable);
+FlagSetting soft_limits("SOFT_LIMITS", DEFAULT_SOFT_LIMIT_ENABLE);
 // XXX need to check for HOMING_ENABLE
-FlagSetting hard_limits("HARD_LIMITS", DEFAULT_HARD_LIMIT_ENABLE, limits_init);
+FlagSetting hard_limits("HARD_LIMITS", DEFAULT_HARD_LIMIT_ENABLE);
 // XXX need to call limits_init();
-FlagSetting homing_enable("HOMING_ENABLE", DEFAULT_HOMING_ENABLE, also_soft_limit);
+FlagSetting homing_enable("HOMING_ENABLE", DEFAULT_HOMING_ENABLE);
 // XXX also need to clear, but not set, BITFLAG_SOFT_LIMIT_ENABLE
-FlagSetting laser_mode("LASER_MODE", DEFAULT_LASER_MODE, my_spindle_init);
+FlagSetting laser_mode("LASER_MODE", DEFAULT_LASER_MODE);
 // XXX also need to call my_spindle->init();
 
 IntSetting status_mask("STATUS_MASK", DEFAULT_STATUS_REPORT_MASK, 0, 2);
@@ -126,47 +127,9 @@ FloatSetting rpm_min("RPM_MIN", DEFAULT_SPINDLE_RPM_MIN, 0, 100000);
 FloatSetting spindle_pwm_off_value("SPINDLE_PWM_OFF_VALUE", DEFAULT_SPINDLE_OFF_VALUE, 0.0, 100.0); // these are percentages
 FloatSetting spindle_pwm_min_value("SPINDLE_PWM_MIN_VALUE", DEFAULT_SPINDLE_MIN_VALUE, 0.0, 100.0);
 FloatSetting spindle_pwm_max_value("SPINDLE_PWM_MAX_VALUE", DEFAULT_SPINDLE_MAX_VALUE, 0.0, 100.0);
-IntSetting spindle_pwm_bit_precision("SPINDLE_PWM_BIT_PRECISION", DEFAULT_SPINDLE_BIT_PRECISION, 1, 16);
+// IntSetting spindle_pwm_bit_precision("SPINDLE_PWM_BIT_PRECISION", DEFAULT_SPINDLE_BIT_PRECISION, 1, 16);
 
-StringSetting spindle_type("SPINDLE_TYPE", DEFAULT_SPINDLE_TYPE);
-
-// These are compatibily aliases for Classic GRBL
-std::map<const char*, Setting*> numberedSettings = {
-    { "0", &pulse_microseconds },
-    { "1", &stepper_idle_lock_time },
-    { "2", &step_invert_mask },
-    { "3", &dir_invert_mask },
-    { "4", &step_enable_invert },
-    { "5", &limit_invert },
-    { "6", &probe_invert },
-    { "10", &status_mask },
-    { "11", &junction_deviation },
-    { "12", &arc_tolerance },
-    { "13", &report_inches },
-    { "20", &soft_limits },
-    { "21", &hard_limits },
-    { "22", &homing_enable },
-    { "23", &homing_dir_mask },
-    { "24", &homing_feed_rate },
-    { "25", &homing_seek_rate },
-    { "26", &homing_debounce },
-    { "27", &homing_pulloff },
-    { "30", &rpm_max },
-    { "31", &rpm_min },
-    { "32", &laser_mode },
-    { "100", &x_axis_settings.steps_per_mm },
-    { "101", &y_axis_settings.steps_per_mm },
-    { "102", &z_axis_settings.steps_per_mm },
-    { "110", &x_axis_settings.max_rate },
-    { "111", &y_axis_settings.max_rate },
-    { "112", &z_axis_settings.max_rate },
-    { "120", &x_axis_settings.acceleration },
-    { "121", &y_axis_settings.acceleration },
-    { "122", &z_axis_settings.acceleration },
-    { "130", &x_axis_settings.max_travel },
-    { "131", &y_axis_settings.max_travel },
-    { "132", &z_axis_settings.max_travel },
-};
+StringSetting spindle_type("SPINDLE_TYPE", SPINDLE_TYPE);
 
 // WebUI Settings
 
@@ -176,33 +139,33 @@ std::map<const char*, int8_t> onoffOptions = {
 };
 
 #ifdef ENABLE_WIFI
-StringSetting wifi_sta_ssid("Station SSID", "STA_SSID", DEFAULT_STA_SSID, WiFiConfig::isSSIDValid);
-StringSetting wifi_sta_password("Station Password", "STA_PWD", DEFAULT_STA_PWD, WiFiConfig::isPasswordValid);
+StringSetting wifi_sta_ssid("Station SSID", "STA_SSID", DEFAULT_STA_SSID, 0, 0, WiFiConfig::isSSIDValid);
+StringSetting wifi_sta_password("Station Password", "STA_PWD", DEFAULT_STA_PWD, 0, 0, WiFiConfig::isPasswordValid);
 // XXX hack StringSetting class to return a ***** password if checker is isPasswordValid
 
 std::map<const char*, int8_t> staModeOptions = {
-    { "DHCP",   DHCP_MODE , }
-    { "Static", STATIC_MODE , }
+    { "DHCP",   DHCP_MODE , },
+    { "Static", STATIC_MODE , },
 };
 EnumSetting   wifi_sta_mode("Station IP Mode", "STA_IP_MODE", DEFAULT_STA_IP_MODE, staModeOptions);
-IPaddrSetting wifi_sta_ip("Station Static IP", "STA_IP", DEFAULT_STA_IP);
-IPaddrSetting wifi_sta_gateway("Station Static Gateway", "STA_GW", DEFAULT_STA_GW);
-IPaddrSetting wifi_sta_netmask("Station Static Mask", "STA_MK", DEFAULT_STA_MK);
+IPaddrSetting wifi_sta_ip("Station Static IP", "STA_IP", DEFAULT_STA_IP, NULL);
+IPaddrSetting wifi_sta_gateway("Station Static Gateway", "STA_GW", DEFAULT_STA_GW, NULL);
+IPaddrSetting wifi_sta_netmask("Station Static Mask", "STA_MK", DEFAULT_STA_MK, NULL);
 
 //XXX for compatibility, implement wifi_sta_ip_gw_mk()
 
-StringSetting wifi_ap_ssid("AP SSID", "AP_SSID", DEFAULT_AP_SSID, WiFiConfig::isSSIDValid);
-StringSetting wifi_ap_password("AP Password", "AP_PWD", DEFAULT_AP_PWD, WiFiConfig::isPasswordValid);
+StringSetting wifi_ap_ssid("AP SSID", "AP_SSID", DEFAULT_AP_SSID, 0, 0, WiFiConfig::isSSIDValid);
+StringSetting wifi_ap_password("AP Password", "AP_PWD", DEFAULT_AP_PWD, 0, 0, WiFiConfig::isPasswordValid);
 
-IPaddrSetting wifi_ap_ip("AP Static IP", "AP_IP", DEFAULT_AP_IP);
+IPaddrSetting wifi_ap_ip("AP Static IP", "AP_IP", DEFAULT_AP_IP, NULL);
 
-IntSetting wifi_ap_channel("AP Channel", "AP_CHANNEL", DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL);
+IntSetting wifi_ap_channel("AP Channel", "AP_CHANNEL", DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL, NULL);
 
-StringSetting wifi_hostname("Hostname", "ESP_HOSTNAME", DEFAULT_HOSTNAME, WiFiConfig::isHostnameValid);
+StringSetting wifi_hostname("Hostname", "ESP_HOSTNAME", DEFAULT_HOSTNAME, 0, 0, WiFiConfig::isHostnameValid);
 EnumSetting http_enable("HTTP protocol", "HTTP_ON", DEFAULT_HTTP_STATE, onoffOptions);
-IntSetting http_port(NULL, "HTTP_PORT", DEFAULT_HTTP_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT);
+IntSetting http_port("HTTP Port", "HTTP_PORT", DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
 EnumSetting telnet_enable("Telnet protocol", "TELNET_ON", DEFAULT_TELNET_STATE, onoffOptions);
-IntSetting telnet_port(NULL, "TELNET_PORT", DEFAULT_TELNET_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT);
+IntSetting telnet_port("Telnet Port", "TELNET_PORT", DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
 
 #endif
 std::map<const char*, int8_t> radioOptions = {
@@ -229,7 +192,7 @@ EnumSetting wifi_radio_mode("Radio mode", "RADIO_MODE", DEFAULT_RADIO_MODE, radi
 #endif
 
 #ifdef ENABLE_BLUETOOTH
-StringSetting bt_name("Bluetooth name", "BT_NAME", DEFAULT_BT_NAME, BTConfig::isBTnameValid);
+StringSetting bt_name("Bluetooth name", "BT_NAME", DEFAULT_BT_NAME, 0, 0, BTConfig::isBTnameValid);
 #endif
 
 #ifdef ENABLE_AUTHENTICATION
@@ -240,14 +203,15 @@ StringSetting admin_password("ADMIN_PWD", DEFAULT_ADMIN_PWD, isLocalPasswordVali
 
 #ifdef ENABLE_NOTIFICATIONS
 std::map<const char*, int8_t> notificationOptions = {
-    { "NONE", 0, }
-    { "LINE", 3, }
-    { "PUSHOVER", 1, }
-    { "EMAIL", 2, }
+    { "NONE", 0, },
+    { "LINE", 3, },
+    { "PUSHOVER", 1, },
+    { "EMAIL", 2, },
 };
 
 EnumSetting notification_type("Notification type", "NOTIF_TYPE", DEFAULT_NOTIFICATION_TYPE, notificationOptions);
-StringSetting notification_t1("Notification Token 1", "NOTIF_T1", DEFAULT_TOKEN , MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH);
-StringSetting notification_t2("Notification Token 2", "NOTIF_T2", DEFAULT_TOKEN, MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH);
-StringSetting notification_ts("Notification Settings", "NOTIF_T2", DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH);
+StringSetting notification_t1("Notification Token 1", "NOTIF_T1", DEFAULT_TOKEN , MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
+StringSetting notification_t2("Notification Token 2", "NOTIF_T2", DEFAULT_TOKEN, MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
+StringSetting notification_ts("Notification Settings", "NOTIF_T2", DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
+#endif
 #endif

@@ -1,7 +1,20 @@
 // Class for creating JSON-encoded strings.
 
+#include "grbl.h"
+#ifdef NEW_SETTINGS
+
 #include "JSONencoder.h"
 #include <string>
+
+// Constructor.  If _pretty is true, newlines are
+// inserted into the JSON string for easy reading.
+JSONencoder::JSONencoder(bool pretty) :
+    pretty(pretty),
+    level(0),
+    str("")
+{
+    count[level] = 0;
+}
 
 // Private function to add commas between
 // elements as needed, omitting the comma
@@ -58,16 +71,6 @@ void JSONencoder::line() {
             add(' ');
         }
     }
-}
-
-// Constructor.  If _pretty is true, newlines are
-// inserted into the JSON string for easy reading.
-JSONencoder::JSONencoder(bool _pretty) :
-    pretty(_pretty),
-    level(0),
-    str("")
-{
-    count[level] = 0;
 }
 
 // Constructor that supplies a default falue for "pretty"
@@ -168,3 +171,4 @@ void JSONencoder::begin_webui(const char *p, const char *help, const char *type,
     member("S", min);
     member("M", max);
 }
+#endif

@@ -477,11 +477,11 @@ void report_gcode_modes(uint8_t client) {
 
 
 // Prints specified startup line
-void report_startup_line(uint8_t n, char* line, uint8_t client) {
+void report_startup_line(uint8_t n, const char* line, uint8_t client) {
     grbl_sendf(client, "$N%d=%s\r\n", n, line);	// OK to send to all
 }
 
-void report_execute_startup_message(char* line, uint8_t status_code, uint8_t client) {
+void report_execute_startup_message(const char* line, uint8_t status_code, uint8_t client) {
     grbl_sendf(client, ">%s:", line);  	// OK to send to all
     report_status_message(status_code, client);
 }

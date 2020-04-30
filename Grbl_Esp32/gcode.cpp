@@ -62,7 +62,7 @@ void gc_sync_position() {
 // characters have been removed. In this function, all units and positions are converted and
 // exported to grbl's internal functions in terms of (mm, mm/min) and absolute machine
 // coordinates, respectively.
-uint8_t gc_execute_line(char* line, uint8_t client) {
+uint8_t gc_execute_line(const char* line, uint8_t client) {
     /* -------------------------------------------------------------------------------------
        STEP 1: Initialize parser block struct and copy current g-code state modes. The parser
        updates these modes and commands as the block line is parser and will only be used and

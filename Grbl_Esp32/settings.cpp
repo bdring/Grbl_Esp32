@@ -26,6 +26,8 @@
 
 settings_t settings;
 
+
+#ifndef NEW_SETTINGS
 // Method to store startup lines into EEPROM
 void settings_store_startup_line(uint8_t n, char* line) {
 #ifdef FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE
@@ -43,6 +45,7 @@ void settings_init() {
         report_grbl_settings(CLIENT_SERIAL, false);
     }
 }
+
 
 // Method to restore EEPROM-saved Grbl global settings back to defaults.
 void settings_restore(uint8_t restore_flag) {
@@ -203,7 +206,7 @@ void write_global_settings() {
     EEPROM.write(0, SETTINGS_VERSION);
     memcpy_to_eeprom_with_checksum(EEPROM_ADDR_GLOBAL, (char*)&settings, sizeof(settings_t));
 }
-
+#endif
 // Read selected coordinate data from EEPROM. Updates pointed coord_data value.
 uint8_t settings_read_coord_data(uint8_t coord_select, float* coord_data) {
     uint32_t addr = coord_select * (sizeof(float) * N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
@@ -243,8 +246,7 @@ uint8_t settings_read_build_info(char* line) {
     return (true);
 }
 
-
-
+#ifndef NEW_SETTINGS
 // Reads startup line from EEPROM. Updated pointed line string data.
 uint8_t settings_read_startup_line(uint8_t n, char* line) {
     uint32_t addr = n * (LINE_BUFFER_SIZE + 1) + EEPROM_ADDR_STARTUP_BLOCK;
@@ -402,6 +404,7 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
     write_global_settings();
     return (STATUS_OK);
 }
+#endif
 
 // Returns step pin mask according to Grbl internal axis indexing.
 uint8_t get_step_pin_mask(uint8_t axis_idx) {

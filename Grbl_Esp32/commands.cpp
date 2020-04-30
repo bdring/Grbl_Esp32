@@ -69,6 +69,7 @@ void COMMANDS::wait(uint32_t milliseconds) {
 
 bool COMMANDS::execute_internal_command(int cmd, String cmd_params, level_authenticate_type auth_level,  ESPResponseStream*  espresponse) {
     bool response = true;
+#ifndef NEW_SETTINGS
     level_authenticate_type auth_type = auth_level;
     if (!espresponse) return false;
 #ifdef ENABLE_AUTHENTICATION
@@ -2006,6 +2007,7 @@ bool COMMANDS::execute_internal_command(int cmd, String cmd_params, level_authen
         response = false;
         break;
     }
+#endif
     return response;
 }
 

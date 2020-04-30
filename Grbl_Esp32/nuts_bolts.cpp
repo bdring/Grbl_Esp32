@@ -36,8 +36,8 @@
 // Scientific notation is officially not supported by g-code, and the 'E' character may
 // be a g-code word on some CNC systems. So, 'E' notation will not be recognized.
 // NOTE: Thanks to Radu-Eosif Mihailescu for identifying the issues with using strtod().
-uint8_t read_float(char* line, uint8_t* char_counter, float* float_ptr) {
-    char* ptr = line + *char_counter;
+uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr) {
+    const char* ptr = line + *char_counter;
     unsigned char c;
     // Grab first character and increment pointer. No spaces assumed in line.
     c = *ptr++;

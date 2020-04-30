@@ -126,6 +126,7 @@ void IRAM_ATTR isr_control_inputs() {
 #endif
 }
 
+#ifndef NEW_SETTINGS
 // Executes user startup script, if stored.
 void system_execute_startup(char* line) {
     uint8_t n;
@@ -320,7 +321,7 @@ uint8_t system_execute_line(char* line, uint8_t client) {
     }
     return (STATUS_OK); // If '$' command makes it to here, then everything's ok.
 }
-
+#endif
 
 // Returns if safety door is ajar(T) or closed(F), based on pin state.
 uint8_t system_check_safety_door_ajar() {
