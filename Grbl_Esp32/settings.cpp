@@ -416,6 +416,7 @@ uint8_t get_direction_pin_mask(uint8_t axis_idx) {
 
 // this allows a conditional re-init of the trinamic settings
 void settings_spi_driver_init() {
+    motor_read_settings();
 #ifdef USE_TRINAMIC
     trinamic_change_settings();
 #else

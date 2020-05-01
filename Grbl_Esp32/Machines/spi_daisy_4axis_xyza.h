@@ -1,5 +1,5 @@
 /*
-    spi_daisy_4axis.h
+    spi_daisy_4axis_xyza.h
     Part of Grbl_ESP32
 
     Pin assignments for a 4-axis machine using Triaminic drivers

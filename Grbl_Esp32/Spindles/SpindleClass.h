@@ -56,7 +56,7 @@ class Spindle {
     virtual bool isRateAdjusted();
     virtual void spindle_sync(uint8_t state, float rpm);
 
-    bool is_reversable;
+    bool is_reversable; 
 };
 
 // This is a dummy spindle that has no I/O.

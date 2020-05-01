@@ -1,5 +1,5 @@
 /*
-    tmc21340_pen.h
+    tmc2130_pen.h
     Part of Grbl_ESP32
 
     Pin assignments for the TMC2130 Pen/Laser controller

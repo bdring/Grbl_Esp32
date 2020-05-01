@@ -42,8 +42,7 @@
 */
 
 
-// TODO try to use the #define ## method to clean this up
-//#define DRIVER(driver, axis) driver##Stepper = TRINAMIC_axis## = driver##Stepper(axis##_CS_PIN, axis##_RSENSE);
+
 
 #ifdef X_TRINAMIC
     #ifdef X_DRIVER_TMC2130
@@ -192,18 +191,18 @@ void Trinamic_Init() {
     machine_trinamic_setup();
     return;
 #endif
-#ifdef X_TRINAMIC    
+#ifdef X_TRINAMIC
     TRINAMIC_X.begin(); // Initiate pins and registries
-    trinamic_test_response(TRINAMIC_X.test_connection(), "X");    
+    trinamic_test_response(TRINAMIC_X.test_connection(), "X");
     TRINAMIC_X.toff(TRINAMIC_DEFAULT_TOFF);
     TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);
     TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
     TRINAMIC_X.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_X.pwm_autoscale(1);
 #endif
-#ifdef X2_TRINAMIC    
+#ifdef X2_TRINAMIC
     TRINAMIC_X2.begin(); // Initiate pins and registries
-    trinamic_test_response(TRINAMIC_X2.test_connection(), "X2");    
+    trinamic_test_response(TRINAMIC_X2.test_connection(), "X2");
     TRINAMIC_X2.toff(TRINAMIC_DEFAULT_TOFF);
     TRINAMIC_X2.microsteps(settings.microsteps[X_AXIS]);
     TRINAMIC_X2.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
@@ -366,6 +365,7 @@ void trinamic_change_settings() {
 
 }
 
+
 // Display the response of the attempt to connect to a Trinamic driver
 void trinamic_test_response(uint8_t result, const char* axis) {
     if (result) {
@@ -441,11 +441,36 @@ void trinamic_stepper_enable(bool enable) {
 // need to be inserted into the order of axes.
 uint8_t get_next_trinamic_driver_index() {
     static uint8_t index = 1; // they start at 1
-    #ifndef TRINAMIC_DAISY_CHAIN
-        return -1;
-    #else
-        return index++;
-    #endif
+#ifndef TRINAMIC_DAISY_CHAIN
+    return -1;
+#else
+    return index++;
+#endif
+}
+
+/*
+    This will print StallGuard data that is useful for tuning.
+*/
+void readSgTask(void* pvParameters) {
+    TickType_t xLastWakeTime;
+    const TickType_t xreadSg = 50;  // in ticks (typically ms)
+    uint32_t tstep;
+    uint8_t sg;
+
+    xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
+    while (true) { // don't ever return from this or the task dies
+        if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) { // use laser mode as a way to turn off this data
+
+#ifdef X_TRINAMIC
+            tstep = TRINAMIC_X.TSTEP();
+            sg = TRINAMIC_X.sg_result();
+
+            if (tstep != 0xFFFFF)   // if axis is moving
+                grbl_sendf(CLIENT_ALL, "SG Debug   SGX:%03d TSX:%05d    SGY:%3d TSY%5d \r\n", sg, tstep);
+#endif
+        }
+        vTaskDelayUntil(&xLastWakeTime, xreadSg);
+    }
 }
 
 #endif

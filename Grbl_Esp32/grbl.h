@@ -89,6 +89,8 @@
 #ifdef USE_TRINAMIC
     #include "grbl_trinamic.h"
 #endif
+#include "MotorClass.h"
+
 
 #ifdef USE_UNIPOLAR
     #include "grbl_unipolar.h"

@@ -83,7 +83,7 @@ void spindle_read_prefs(Preferences& prefs) {
 
 
 
-bool Spindle::isRateAdjusted() {
+bool Spindle::isRateAdjusted() { 
     return false; // default for basic spindles is false
 }
 
