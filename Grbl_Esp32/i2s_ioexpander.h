@@ -98,7 +98,7 @@ typedef struct {
                                              ^
                                 Latches the X bits when ws is switched to High
 
-        bit0:Extended GPIO 128, 1: Extended GPIO 129, ..., v: Extended GPIO 159
+        bit0:Expanded GPIO 128, 1: Expanded GPIO 129, ..., v: Expanded GPIO 159
         (data at LEFT Channel will ignored by shift-register IC)
     */
     uint8_t ws_pin;
@@ -126,7 +126,7 @@ uint8_t i2s_ioexpander_state(uint8_t pin);
 /*
    Set a bit in the internal pin state var. (not written electrically)
 
-   pin: extended pin No. (0..31)
+   pin: expanded pin No. (0..31)
    val: bit value(0 or not 0)
 */
 void i2s_ioexpander_write(uint8_t pin, uint8_t val);
@@ -148,7 +148,7 @@ uint32_t i2s_ioexpander_push_sample(uint32_t num);
 
    After this function is called,
    the callback function to generate the pulse data
-   will not be called. 
+   will not be called.
  */
 int i2s_ioexpander_set_passthrough();
 

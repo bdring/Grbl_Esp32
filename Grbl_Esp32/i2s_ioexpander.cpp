@@ -58,8 +58,11 @@
 //
 // Configrations for DMA connected I2S
 //
-// One DMA buffer transfer takes about 2 ms (2000/4 x I2S_IOEXP_USEC_PER_PULSE = 2000 us)
-// If DMA_BUF_COUNT is 5, it will take about 5 ms for all the DMA buffer transfers to finish.
+// One DMA buffer transfer takes about 2 ms
+//   DMA_BUF_LEN / I2S_SAMPLE_SIZE x I2S_IOEXP_USEC_PER_PULSE
+//   = 2000 / 4 x 4
+//   = 2000us = 2ms
+// If DMA_BUF_COUNT is 5, it will take about 10 ms for all the DMA buffer transfers to finish.
 //
 // Increasing DMA_BUF_COUNT has the effect of preventing buffer underflow,
 // but on the other hand, it leads to a delay with pulse and/or non-pulse-generated I/Os.
@@ -72,7 +75,7 @@
 #define DMA_BUF_LEN   2000                             /* maximum size in bytes (4092 is DMA's limit) */
 #define I2S_SAMPLE_SIZE 4                              /* 4 bytes, 32 bits per sample */
 #define DMA_SAMPLE_COUNT DMA_BUF_LEN / I2S_SAMPLE_SIZE /* number of samples per buffer */
-#define SAMPLE_SAFE_COUNT (20/I2S_IOEXP_USEC_PER_PULSE) /* prevent buffer overrun */
+#define SAMPLE_SAFE_COUNT (20/I2S_IOEXP_USEC_PER_PULSE) /* prevent buffer overrun (GRBL's $0 should be less than 20) */
 
 typedef struct {
   uint32_t     **buffers;
