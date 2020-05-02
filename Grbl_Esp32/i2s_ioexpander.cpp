@@ -137,14 +137,9 @@ static void i2s_reset_fifo() {
   I2S_EXIT_CRITICAL();
 }
 
-static int i2s_clear_dma_buffers() {
-  if (!i2s_ioexpander_initialized) {
-    return -1;
-  }
-
+static int i2s_clear_dma_buffers(uint32_t port_data) {
   for (int buf_idx = 0; buf_idx < DMA_BUF_COUNT; buf_idx++) {
     // Clear the DMA buffer
-    uint32_t port_data = atomic_load(&i2s_port_data);
     for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
       dma.buffers[buf_idx][i] = port_data;
     }
@@ -423,7 +418,8 @@ int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t fun
 
 int i2s_ioexpander_reset() {
   i2s_stop();
-  i2s_clear_dma_buffers();
+  uint32_t port_data = atomic_load(&i2s_port_data);
+  i2s_clear_dma_buffers(port_data);
   i2s_start();
   return 0;
 }
@@ -489,17 +485,7 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   }
 
   // Initialize
-  for (int buf_idx = 0; buf_idx < DMA_BUF_COUNT; buf_idx++) {
-    dma.desc[buf_idx]->owner = 1;
-    dma.desc[buf_idx]->eof = 1; // set to 1 will trigger the interrupt
-    dma.desc[buf_idx]->sosf = 0;
-    dma.desc[buf_idx]->length = DMA_BUF_LEN;
-    dma.desc[buf_idx]->size = DMA_BUF_LEN;
-    dma.desc[buf_idx]->buf = (uint8_t *) dma.buffers[buf_idx];
-    dma.desc[buf_idx]->offset = 0;
-    dma.desc[buf_idx]->qe.stqe_next = (lldesc_t *)((buf_idx < (DMA_BUF_COUNT - 1)) ? (dma.desc[buf_idx + 1]) : dma.desc[0]);
-  }
-
+  i2s_clear_dma_buffers(0);
   dma.rw_pos = 0;
   dma.current = NULL;
   dma.queue = xQueueCreate(DMA_BUF_COUNT, sizeof(uint32_t *));
