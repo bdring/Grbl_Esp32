@@ -4,11 +4,13 @@
 #define MOTOR_TYPE_NONE         0
 #define MOTOR_TYPE_TRINAMIC     1
 
-#define TRINAMIC_FCLK       12000000 // Hz Approx
+// Internal clock Approx (Hz) used to calculate TSTEP from homing rate
+#define TRINAMIC_FCLK       12900000
 
-#define TRINAMIC_RUN_MODE_STEALTHCHOP   0   // very quiet
-#define TRINAMIC_RUN_MODE_COOLSTEP      1   // everything runs cooler so higher current possible
-#define TRINAMIC_RUN_MODE_STALLGUARD    2   // A coolstep mode with stallguard on
+#define TRINAMIC_RUN_MODE_STEALTHCHOP           0   // very quiet
+#define TRINAMIC_RUN_MODE_COOLSTEP              1   // everything runs cooler so higher current possible
+#define TRINAMIC_RUN_MODE_STEATH_STALLGUARD     2   // Quiet run stallguard homing
+#define TRINAMIC_RUN_MODE_COOL_STALLGUARD       3   // Cool run stallguard homing
 
 // the cooolstep setting for the different modes
 // TODO these should be settings
@@ -22,6 +24,11 @@
 #define TMC2130_RSENSE_DEFAULT  0.11f
 #define TMC5160_RSENSE_DEFAULT  0.075f
 
+// ============ defaults =================
+#ifndef TRINAMIC_RUN_MODE
+    #define TRINAMIC_RUN_MODE           TRINAMIC_RUN_MODE_COOLSTEP
+#endif
+
 #ifndef MOTORCLASS_H
     #define MOTORCLASS_H
 
@@ -31,6 +38,7 @@ class Motor {
     virtual void config_message();
     virtual void debug_message();
     virtual void read_settings();
+    virtual void set_homing_mode(bool isHoming);
     
     //virtual void set_enable(bool enable);
     //virtual void set_step_pin(bool step);    

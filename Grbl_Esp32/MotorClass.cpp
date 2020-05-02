@@ -25,6 +25,9 @@
         Deal with custom machine ... machine_trinamic_setup();
         Class is ready to deal with non SPI pins, but they have not been needed yet.
             It would be nice in the config message though
+
+    Reference
+        TMC2130 Datasheet https://www.trinamic.com/fileadmin/assets/Products/ICs_Documents/TMC2130_datasheet.pdf
 */
 
 #include "grbl.h"
@@ -184,7 +187,9 @@ void Motor :: debug_message() {
 }
 
 void Motor :: read_settings() {
+}
 
+void Motor :: set_homing_mode(bool isHoming) {
 }
 
 // ========================================= TrinamicDriver Class =======================================
@@ -249,6 +254,7 @@ void TrinamicDriver :: trinamic_test_response() {
     Read setting and send them to the driver. Called at init() and whenever related settings change
 */
 void TrinamicDriver :: read_settings() {
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis read_settings() ", report_get_axis_letter(axis_index));
     tmcstepper->microsteps(settings.microsteps[axis_index]);
     tmcstepper->rms_current(settings.current[axis_index] * 1000.0, settings.hold_current[axis_index] / 100.0);
     tmcstepper->sgt(settings.stallguard[axis_index]);
@@ -263,10 +269,12 @@ void TrinamicDriver :: read_settings() {
 */
 void TrinamicDriver :: set_mode(uint8_t mode) {
     if (mode == TRINAMIC_RUN_MODE_STEALTHCHOP) {
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_RUN_MODE_STEALTHCHOP");
         tmcstepper->toff(5);
         tmcstepper->en_pwm_mode(1);      // Enable extremely quiet stepping
         tmcstepper->pwm_autoscale(1);
     } else if (mode == TRINAMIC_RUN_MODE_COOLSTEP) {
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_RUN_MODE_COOLSTEP");
         tmcstepper->tbl(1);
         tmcstepper->toff(3);
         tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
@@ -276,9 +284,10 @@ void TrinamicDriver :: set_mode(uint8_t mode) {
         tmcstepper->diag1_stall(0); // stallguard i/o is not on diag1
     } else if (mode == TRINAMIC_RUN_MODE_STALLGUARD) {
         // setup the homing mode motor settings
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_RUN_MODE_STALLGUARD");
         tmcstepper->tbl(1);
         tmcstepper->toff(3);
-        tmcstepper->TCOOLTHRS(HOMING_TCOOLTHRS) ;
+        tmcstepper->TCOOLTHRS(HOMING_TCOOLTHRS);
         tmcstepper->THIGH(HOMING_THIGH);
         tmcstepper->hysteresis_start(4);
         tmcstepper->hysteresis_end(-2);
@@ -293,22 +302,19 @@ void TrinamicDriver :: set_mode(uint8_t mode) {
     This is the stallguard tuning info. It is call debug, so it could be generic across all class.
 */
 void TrinamicDriver :: debug_message() {
-    uint32_t tstep;
-    uint8_t sg;
-    float feedrate;
 
-    tstep = tmcstepper->TSTEP();
+    uint32_t tstep = tmcstepper->TSTEP();
+
     if (tstep == 0xFFFFF)   // if axis is not moving return
         return;
 
-    feedrate = st_get_realtime_rate(); //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
+    float feedrate = st_get_realtime_rate(); //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
-    sg = tmcstepper->sg_result();
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "%c Stallguard  SG:%03d TS:%05d Rate:%05.2fHz",
+                   "%c Stallguard  %d   SG_Val: %03d   Rate: %05.0fmm/min",
                    report_get_axis_letter(axis_index),
-                   sg,
-                   tstep,
+                   tmcstepper->stallguard(),
+                   tmcstepper->sg_result(),
                    feedrate);
 }

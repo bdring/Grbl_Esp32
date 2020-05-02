@@ -71,7 +71,7 @@ void settings_restore(uint8_t restore_flag) {
         settings.spindle_pwm_off_value = DEFAULT_SPINDLE_OFF_VALUE; // $34 Percent (extended set)
         settings.spindle_pwm_min_value = DEFAULT_SPINDLE_MIN_VALUE; // $35 Percent (extended set)
         settings.spindle_pwm_max_value = DEFAULT_SPINDLE_MAX_VALUE; // $36 Percent (extended set)
-        
+
         settings.homing_dir_mask = DEFAULT_HOMING_DIR_MASK;
         settings.homing_feed_rate = DEFAULT_HOMING_FEED_RATE;
         settings.homing_seek_rate = DEFAULT_HOMING_SEEK_RATE;
@@ -380,7 +380,7 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
         case 33: settings.spindle_pwm_freq = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration
         case 34: settings.spindle_pwm_off_value = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration
         case 35: settings.spindle_pwm_min_value = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration
-        case 36: settings.spindle_pwm_max_value = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration        
+        case 36: settings.spindle_pwm_max_value = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration
         case 80:
         case 81:
         case 82:
@@ -416,10 +416,13 @@ uint8_t get_direction_pin_mask(uint8_t axis_idx) {
 
 // this allows a conditional re-init of the trinamic settings
 void settings_spi_driver_init() {
-    motor_read_settings();
 #ifdef USE_TRINAMIC
     trinamic_change_settings();
-#else
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No SPI drivers setup");
+    return;
 #endif
+#ifdef USE_TRINAMIC_CLASS
+    motor_read_settings();
+    return;
+#endif
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No SPI drivers setup");
 }
