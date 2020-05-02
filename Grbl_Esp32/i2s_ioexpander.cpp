@@ -44,6 +44,7 @@
 #include <driver/periph_ctrl.h>
 #include <rom/lldesc.h>
 #include <soc/i2s_struct.h>
+#include <soc/i2s_reg.h>
 #include <freertos/queue.h>
 
 #include <stdatomic.h>
@@ -63,7 +64,7 @@
 // Increasing DMA_BUF_COUNT has the effect of preventing buffer underflow,
 // but on the other hand, it leads to a delay with pulse and/or non-pulse-generated I/Os.
 // The number of DMA_BUF_COUNT should be chosen carefully.
-// 
+//
 // Reference information:
 //   FreeRTOS task time slice = portTICK_PERIOD_MS = 1 ms (ESP32 FreeRTOS port)
 //
@@ -254,10 +255,16 @@ static int i2s_start() {
 
   I2S0.int_clr.val = 0xFFFFFFFF;
   I2S0.out_link.start = 1;
+  I2S0.conf1.tx_stop_en = 1; // BCK and WCK are suppressed while FIFO is empty
   I2S0.conf.tx_start = 1;
+  // wait for first FIFO data
+  while (I2S0.state.tx_idle) {
+    NOP();
+  }
+  I2S0.conf1.tx_stop_en = 0; // BCK and WCK are generated regardless of the FIFO status
 
   I2S_EXIT_CRITICAL();
- 
+
   return 0;
 }
 
@@ -582,7 +589,7 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   // b/a = 0
   I2S0.clkm_conf.clkm_div_b = 0;    // 0 at reset
   I2S0.clkm_conf.clkm_div_a = 0;    // 0 at reset, what about divide by 0? (not an issue)
-  
+
   // Bit clock configuration bit in transmitter mode.
   // fbck = fi2s / tx_bck_div_num = (160 MHz / 5) / 2 = 16 MHz
   I2S0.sample_rate_conf.tx_bck_div_num = 2; // minimum value of 2 defaults to 6
