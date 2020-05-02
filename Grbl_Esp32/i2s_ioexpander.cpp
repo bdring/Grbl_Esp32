@@ -75,7 +75,7 @@
 #define DMA_BUF_LEN   2000                             /* maximum size in bytes (4092 is DMA's limit) */
 #define I2S_SAMPLE_SIZE 4                              /* 4 bytes, 32 bits per sample */
 #define DMA_SAMPLE_COUNT DMA_BUF_LEN / I2S_SAMPLE_SIZE /* number of samples per buffer */
-#define SAMPLE_SAFE_COUNT (20/I2S_IOEXP_USEC_PER_PULSE) /* prevent buffer overrun (GRBL's $0 should be less than 20) */
+#define SAMPLE_SAFE_COUNT (20/I2S_IOEXP_USEC_PER_PULSE) /* prevent buffer overrun (GRBL's $0 should be less than or equal 20) */
 
 typedef struct {
   uint32_t     **buffers;
@@ -351,8 +351,7 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
       // set filled length to the DMA descriptor
       dma_desc->length = dma.rw_pos * I2S_SAMPLE_SIZE;
     } else {
-      // Stepper paused unknown
-      // (just set current I/O port bits to the buffer)
+      // Stepper paused (just set current I/O port bits to the buffer)
       uint32_t port_data = atomic_load(&i2s_port_data);
       for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
         dma.current[i] = port_data;
