@@ -156,7 +156,7 @@ static int i2s_clear_dma_buffers() {
     dma.desc[buf_idx]->size = DMA_BUF_LEN;
     dma.desc[buf_idx]->buf = (uint8_t *) dma.buffers[buf_idx];
     dma.desc[buf_idx]->offset = 0;
-    dma.desc[buf_idx]->empty = (uint32_t)((buf_idx < (DMA_BUF_COUNT - 1)) ? (dma.desc[buf_idx + 1]) : dma.desc[0]);
+    dma.desc[buf_idx]->qe.stqe_next = (lldesc_t *)((buf_idx < (DMA_BUF_COUNT - 1)) ? (dma.desc[buf_idx + 1]) : dma.desc[0]);
   }
   return 0;
 }
@@ -497,7 +497,7 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
     dma.desc[buf_idx]->size = DMA_BUF_LEN;
     dma.desc[buf_idx]->buf = (uint8_t *) dma.buffers[buf_idx];
     dma.desc[buf_idx]->offset = 0;
-    dma.desc[buf_idx]->empty = (uint32_t)((buf_idx < (DMA_BUF_COUNT - 1)) ? (dma.desc[buf_idx + 1]) : dma.desc[0]);
+    dma.desc[buf_idx]->qe.stqe_next = (lldesc_t *)((buf_idx < (DMA_BUF_COUNT - 1)) ? (dma.desc[buf_idx + 1]) : dma.desc[0]);
   }
 
   dma.rw_pos = 0;
