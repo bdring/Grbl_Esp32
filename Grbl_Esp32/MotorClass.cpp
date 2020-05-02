@@ -107,7 +107,7 @@ void init_motors() {
     myMotor[C_AXIS][1] = new Nullmotor();
 #endif
 
-// tuning gets turned on if this is defined and laser mode is on at boot time.
+    // tuning gets turned on if this is defined and laser mode is on at boot time.
 #ifdef ENABLE_STALLGUARD_TUNING  // TODO move this to a setting
     if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
         xTaskCreatePinnedToCore(readSgTask,     // task
@@ -211,10 +211,10 @@ void TrinamicDriver :: init() {
     tmcstepper->begin();
     trinamic_test_response(); // Prints an error if there is a problem
     read_settings(); // pull info from settings
-    #ifdef TRINAMIC_RUN_MODE // temporary fix for when not defined
+#ifdef TRINAMIC_RUN_MODE // temporary fix for when not defined
     set_mode(TRINAMIC_RUN_MODE);
-    #endif
-    is_active = true;
+#endif
+    is_active = true;  // as opposed to NullMotors, this is a real motor
 }
 
 /*
@@ -230,25 +230,24 @@ void TrinamicDriver :: config_message() {
 }
 
 /*
-    This basically pings the driver. It will print an error message if the is one.
+    This basically pings the driver. It will print an error message if there is one.
 */
 void TrinamicDriver :: trinamic_test_response() {
-    uint8_t result;
-    result = tmcstepper->test_connection();
-
-    if (result) {
-        switch (result) {
-        case 1:
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check connection", report_get_axis_letter(axis_index));
-            break;
-        case 2:
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check motor power", report_get_axis_letter(axis_index));
-            break;
-        }
+    switch (tmcstepper->test_connection()) {
+    case 1:
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check connection", report_get_axis_letter(axis_index));
+        break;
+    case 2:
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check motor power", report_get_axis_letter(axis_index));
+        break;
+    default:
+        return;
     }
 }
 
-
+/*
+    Read setting and send them to the driver. Called at init() and whenever related settings change
+*/
 void TrinamicDriver :: read_settings() {
     tmcstepper->microsteps(settings.microsteps[axis_index]);
     tmcstepper->rms_current(settings.current[axis_index] * 1000.0, settings.hold_current[axis_index] / 100.0);
@@ -289,8 +288,9 @@ void TrinamicDriver :: set_mode(uint8_t mode) {
     } else
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Trinamic undefined mode requested:%d", mode);
 }
+
 /*
-    This is the stallguard tuning info. It is call debug, so it could be generic across all class.    
+    This is the stallguard tuning info. It is call debug, so it could be generic across all class.
 */
 void TrinamicDriver :: debug_message() {
     uint32_t tstep;
