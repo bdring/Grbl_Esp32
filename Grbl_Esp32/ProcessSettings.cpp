@@ -1,8 +1,17 @@
 #include "grbl.h"
+
 #ifdef NEW_SETTINGS
 #include "SettingsDefinitions.h"
-//#include <iostream>
 #include <map>
+
+
+struct cmp_str
+{
+   bool operator()(char const *a, char const *b) const
+   {
+      return strcmp(a, b) < 0;
+   }
+};
 
 // The following table maps numbered settings to their settings
 // objects, for backwards compatibility.  It is used if the
@@ -11,42 +20,45 @@
 // as argument.  If no match is found, the list of named settings
 // is searched, with the same behavior on a match.
 
-// These are compatibily aliases for Classic GRBL
-std::map<const char*, Setting*> numberedSettings = {
-    { "0", &pulse_microseconds },
-    { "1", &stepper_idle_lock_time },
-    { "2", &step_invert_mask },
-    { "3", &dir_invert_mask },
-    { "4", &step_enable_invert },
-    { "5", &limit_invert },
-    { "6", &probe_invert },
-    { "10", &status_mask },
-    { "11", &junction_deviation },
-    { "12", &arc_tolerance },
-    { "13", &report_inches },
-    { "20", &soft_limits },
-    { "21", &hard_limits },
-    { "22", &homing_enable },
-    { "23", &homing_dir_mask },
-    { "24", &homing_feed_rate },
-    { "25", &homing_seek_rate },
-    { "26", &homing_debounce },
-    { "27", &homing_pulloff },
-    { "30", &rpm_max },
-    { "31", &rpm_min },
-    { "32", &laser_mode },
-    { "100", &x_axis_settings.steps_per_mm },
-    { "101", &y_axis_settings.steps_per_mm },
-    { "102", &z_axis_settings.steps_per_mm },
-    { "110", &x_axis_settings.max_rate },
-    { "111", &y_axis_settings.max_rate },
-    { "112", &z_axis_settings.max_rate },
-    { "120", &x_axis_settings.acceleration },
-    { "121", &y_axis_settings.acceleration },
-    { "122", &z_axis_settings.acceleration },
-    { "130", &x_axis_settings.max_travel },
-    { "131", &y_axis_settings.max_travel },
-    { "132", &z_axis_settings.max_travel },
+// These are compatibility aliases for Classic GRBL
+std::map<const char*, Setting*, cmp_str> numberedSettings = {
+    #if XXX  // These cannot be initialized statically because the LHS of the -> is NULL then
+    // The solution is to add a compat string to the Settings struct so the table goes away.
+    { "0", pulse_microseconds },
+    { "1", stepper_idle_lock_time },
+    { "2", step_invert_mask },
+    { "3", dir_invert_mask },
+    { "4", step_enable_invert },
+    { "5", limit_invert },
+    { "6", probe_invert },
+    { "10", status_mask },
+    { "11", junction_deviation },
+    { "12", arc_tolerance },
+    { "13", report_inches },
+    { "20", soft_limits },
+    { "21", hard_limits },
+    { "22", homing_enable },
+    { "23", homing_dir_mask },
+    { "24", homing_feed_rate },
+    { "25", homing_seek_rate },
+    { "26", homing_debounce },
+    { "27", homing_pulloff },
+    { "30", rpm_max },
+    { "31", rpm_min },
+    { "32", laser_mode },
+    { "100", x_axis_settings->steps_per_mm },
+    { "101", y_axis_settings->steps_per_mm },
+    { "102", z_axis_settings->steps_per_mm },
+    { "110", x_axis_settings->max_rate },
+    { "111", y_axis_settings->max_rate },
+    { "112", z_axis_settings->max_rate },
+    { "120", x_axis_settings->acceleration },
+    { "121", y_axis_settings->acceleration },
+    { "122", z_axis_settings->acceleration },
+    { "130", x_axis_settings->max_travel },
+    { "131", y_axis_settings->max_travel },
+    { "132", z_axis_settings->max_travel },
+#endif
 };
 
 // FIXME - jog may need to be special-cased in the parser, since
@@ -157,8 +169,8 @@ err_t get_report_build_info(uint8_t client) {
     return STATUS_OK;
 }
 err_t report_startup_lines(uint8_t client) {
-    report_startup_line(0, startup_line_0.get(), client);
-    report_startup_line(1, startup_line_1.get(), client);
+    report_startup_line(0, startup_line_0->get(), client);
+    report_startup_line(1, startup_line_1->get(), client);
     return STATUS_OK;
 }
 
@@ -168,7 +180,7 @@ err_t report_startup_lines(uint8_t client) {
 // function is called with no arguments.
 // If there is no key match an error is reported
 typedef err_t (*Command_t)(uint8_t);
-std::map<const char*, Command_t> dollarCommands = {
+std::map<const char*, Command_t, cmp_str> dollarCommands = {
     { "$", report_normal_settings },
     { "+", report_extended_settings },
     { "G", report_gcode },
@@ -231,7 +243,7 @@ char *normalize_key(char *start) {
 err_t do_setting(const char *key, char *value) {
     // First search this numberedSettings array - aliases
     // for the underlying named settings.
-    std::map<const char*, Setting*>::iterator it = numberedSettings.find(key);
+    std::map<const char*, Setting*, cmp_str>::iterator it = numberedSettings.find(key);
     if (it != numberedSettings.end()) {
         return it->second->setStringValue(value);
     }
@@ -254,7 +266,7 @@ err_t do_setting(const char *key, char *value) {
 // and display the current value.
 err_t do_command(const char *key, uint8_t client) {
 
-    std::map<const char*, Command_t>::iterator i = dollarCommands.find(key);
+    std::map<const char*, Command_t, cmp_str>::iterator i = dollarCommands.find(key);
     if (i != dollarCommands.end()) {
         return i->second(client);
     }
@@ -262,17 +274,17 @@ err_t do_command(const char *key, uint8_t client) {
     // Enhancement - not in Classic GRBL:
     // If it is not a command, look up the key
     // as a setting and display the value.
-    std::map<const char *, Setting*>::iterator it = numberedSettings.find(key);
+    std::map<const char *, Setting*, cmp_str>::iterator it = numberedSettings.find(key);
     if (it != numberedSettings.end()) {
         Setting *s = it->second;
-        grbl_sendf(client, "%s = %s\n", key, s->getStringValue());
+        grbl_sendf(client, "$%s=%s\n", key, s->getStringValue());
         return STATUS_OK;
     }
 
     for (Setting *s = SettingsList; s; s = s->next()) {
         //    if (s->getName().compare(k)) {
         if (strcmp(s->getName(), key) == 0) {
-            grbl_sendf(client, "%s = %s\n", key, s->getStringValue());
+            grbl_sendf(client, "$%s=%s\n", key, s->getStringValue());
             return STATUS_OK;
         }
     }
@@ -283,18 +295,23 @@ err_t do_command(const char *key, uint8_t client) {
 uint8_t system_execute_line(char* line, uint8_t client) {
     err_t res;
     char *value = strchr(line, '=');
+    char *key = normalize_key(line+1);
 
     if (value) {
         // Equals was found; replace it with null and skip it
         *value++ = '\0';
-        res = do_setting(normalize_key(line), value);
+        res = do_setting(key, value);
     } else {
         // No equals, so it must be a command
-        res = do_command(normalize_key(line), client);
+        res = do_command(key, client);
     }
     return res;
 }
 void system_execute_startup(char* line) {
+#ifndef XXX
+    grbl_sendf(CLIENT_SERIAL, "Skipping system_execute_startup\r\n");
+    delay(1000);
+#else
     err_t status_code;
     const char *gcline = startup_line_0.get();
     if (*gcline) {
@@ -306,16 +323,16 @@ void system_execute_startup(char* line) {
         status_code = gc_execute_line(gcline, CLIENT_SERIAL);
         report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);
     }
-
+#endif
 }
-#if 0
-
 void list_settings()
 {
     for (Setting *s = SettingsList; s; s = s->link) {
-        cout << s->getName() << " " << s->getStringValue() << '\n';
+        grbl_sendf(CLIENT_SERIAL, "%s=%s\r\n", s->getName(), s->getStringValue());
     }
 }
+#if 0
+
 void list_numbered_settings()
 {
     for (std::map<const char*, Setting*>::iterator it = numberedSettings.begin();
@@ -332,4 +349,3 @@ int main()
 }
 #endif
 #endif
-

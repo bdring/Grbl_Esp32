@@ -85,14 +85,14 @@
 // Global persistent settings (Stored from byte EEPROM_ADDR_GLOBAL onwards)
 typedef struct {
     // Axis settings
-    float steps_per_mm[N_AXIS];
-    float max_rate[N_AXIS];
-    float acceleration[N_AXIS];
-    float max_travel[N_AXIS];
-    float current[N_AXIS]; //  $140... run current (extended set)
-    float hold_current[N_AXIS]; // $150 percent of run current (extended set)
-    uint16_t microsteps[N_AXIS]; // $160... (extended set)
-    uint8_t stallguard[N_AXIS]; // $170... (extended set)
+    float steps_per_mm[MAX_N_AXIS];
+    float max_rate[MAX_N_AXIS];
+    float acceleration[MAX_N_AXIS];
+    float max_travel[MAX_N_AXIS];
+    float current[MAX_N_AXIS]; //  $140... run current (extended set)
+    float hold_current[MAX_N_AXIS]; // $150 percent of run current (extended set)
+    uint16_t microsteps[MAX_N_AXIS]; // $160... (extended set)
+    uint8_t stallguard[MAX_N_AXIS]; // $170... (extended set)
 
     // Remaining Grbl settings
     uint8_t pulse_microseconds;

@@ -281,17 +281,17 @@ bool WiFiConfig::StartSTA() {
     WiFi.mode(WIFI_STA);
     //Get parameters for STA
 #ifdef NEW_SETTINGS
-    String h = wifi_hostname.get();
+    String h = wifi_hostname->get();
     WiFi.setHostname(h.c_str());
     //SSID
-    String SSID = wifi_sta_ssid.get();
+    String SSID = wifi_sta_ssid->get();
     if (SSID.length() == 0) SSID = DEFAULT_STA_SSID;
     //password
-    String password = wifi_sta_password.get();
-    int8_t IP_mode = wifi_sta_mode.get();
-    int32_t IP = wifi_sta_ip.get();
-    int32_t GW = wifi_sta_gateway.get();
-    int32_t MK = wifi_sta_netmask.get();
+    String password = wifi_sta_password->get();
+    int8_t IP_mode = wifi_sta_mode->get();
+    int32_t IP = wifi_sta_ip->get();
+    int32_t GW = wifi_sta_gateway->get();
+    int32_t MK = wifi_sta_netmask->get();
 #else
     String defV;
     prefs.begin(NAMESPACE, true);
@@ -349,15 +349,15 @@ bool WiFiConfig::StartAP() {
     //Get parameters for AP
 #ifdef NEW_SETTINGS
     //SSID
-    String SSID = wifi_ap_ssid.get();
+    String SSID = wifi_ap_ssid->get();
     if (SSID.length() == 0) SSID = DEFAULT_AP_SSID;
 
-    String password = wifi_ap_password.get();
+    String password = wifi_ap_password->get();
 
-    int8_t channel = wifi_ap_channel.get();
+    int8_t channel = wifi_ap_channel->get();
     if (channel == 0) channel = DEFAULT_AP_CHANNEL;
 
-    int32_t IP = wifi_ap_ip.get();
+    int32_t IP = wifi_ap_ip->get();
     if (IP == 0) {
         String defV = DEFAULT_AP_IP;
         IP = IP_int_from_string(defV);
@@ -425,15 +425,15 @@ void WiFiConfig::begin() {
     }
 #ifdef NEW_SETTINGS
     //Get hostname
-    _hostname = wifi_hostname.get();
-    int8_t wifiMode = wifi_radio_mode.get();
+    _hostname = wifi_hostname->get();
+    int8_t wifiMode = wifi_radio_mode->get();
     if (wifiMode == ESP_WIFI_AP) {
         StartAP();
         //start services
         wifi_services.begin();
     } else if (wifiMode == ESP_WIFI_STA) {
         if (!StartSTA()) {
-            grbl_sendf(CLIENT_ALL, "[MSG:Cannot connect to %s]\r\n", wifi_sta_ssid.get());
+            grbl_sendf(CLIENT_ALL, "[MSG:Cannot connect to %s]\r\n", wifi_sta_ssid->get());
             StartAP();
         }
         //start services
@@ -482,45 +482,45 @@ void WiFiConfig::reset_settings() {
     bool error = false;
     sval = DEFAULT_HOSTNAME;
     // XXX should add setDefault() methods
-    if (wifi_hostname.setStringValue(DEFAULT_HOSTNAME))
+    if (wifi_hostname->setStringValue(DEFAULT_HOSTNAME))
         error = true;
-    if (notification_type.setStringValue(DEFAULT_NOTIFICATION_TYPE))
+    if (notification_type->setStringValue(DEFAULT_NOTIFICATION_TYPE))
         error = true;
-    if (notification_t1.setStringValue(DEFAULT_TOKEN))
+    if (notification_t1->setStringValue(DEFAULT_TOKEN))
         error = true;
-    if (notification_t2.setStringValue(DEFAULT_TOKEN))
+    if (notification_t2->setStringValue(DEFAULT_TOKEN))
         error = true;
-    if (notification_ts.setStringValue(DEFAULT_TOKEN))
+    if (notification_ts->setStringValue(DEFAULT_TOKEN))
         error = true;
-    if (wifi_sta_ssid.setStringValue(DEFAULT_STA_SSID))
+    if (wifi_sta_ssid->setStringValue(DEFAULT_STA_SSID))
         error = true;
-    if (wifi_sta_password.setStringValue(DEFAULT_STA_PWD))
+    if (wifi_sta_password->setStringValue(DEFAULT_STA_PWD))
         error = true;
-    if (wifi_ap_ssid.setStringValue(DEFAULT_AP_SSID))
+    if (wifi_ap_ssid->setStringValue(DEFAULT_AP_SSID))
         error = true;
-    if (wifi_ap_password.setStringValue(DEFAULT_AP_PWD))
+    if (wifi_ap_password->setStringValue(DEFAULT_AP_PWD))
         error = true;
-    if (wifi_ap_channel.setStringValue(std::to_string(DEFAULT_AP_CHANNEL).c_str()))
+    if (wifi_ap_channel->setStringValue(std::to_string(DEFAULT_AP_CHANNEL).c_str()))
         error = true;
-    if (wifi_sta_mode.setStringValue(std::to_string(DEFAULT_STA_IP_MODE).c_str()));
+    if (wifi_sta_mode->setStringValue(std::to_string(DEFAULT_STA_IP_MODE).c_str()));
         error = true;
-    if (http_enable.setStringValue(std::to_string(DEFAULT_HTTP_STATE).c_str()))
+    if (http_enable->setStringValue(std::to_string(DEFAULT_HTTP_STATE).c_str()))
         error = true;
-    if (telnet_enable.setStringValue(std::to_string(DEFAULT_TELNET_STATE).c_str()))
+    if (telnet_enable->setStringValue(std::to_string(DEFAULT_TELNET_STATE).c_str()))
         error = true;
-    if (wifi_radio_mode.setStringValue(std::to_string(DEFAULT_RADIO_MODE).c_str()))
+    if (wifi_radio_mode->setStringValue(std::to_string(DEFAULT_RADIO_MODE).c_str()))
         error = true;
-    if (http_port.setStringValue(to_string(DEFAULT_WEBSERVER_PORT).c_str()))
+    if (http_port->setStringValue(to_string(DEFAULT_WEBSERVER_PORT).c_str()))
         error = true;
-    if (telnet_port.setStringValue(to_string(DEFAULT_TELNETSERVER_PORT).c_str()))
+    if (telnet_port->setStringValue(to_string(DEFAULT_TELNETSERVER_PORT).c_str()))
         error = true;
-    if (wifi_sta_ip.setStringValue(DEFAULT_STA_IP))
+    if (wifi_sta_ip->setStringValue(DEFAULT_STA_IP))
         error = true;
-    if (wifi_sta_gateway.setStringValue(DEFAULT_STA_GW))
+    if (wifi_sta_gateway->setStringValue(DEFAULT_STA_GW))
         error = true;
-    if (wifi_sta_netmask.setStringValue(DEFAULT_STA_MK))
+    if (wifi_sta_netmask->setStringValue(DEFAULT_STA_MK))
         error = true;
-    if (wifi_ap_ip.setStringValue(DEFAULT_AP_IP))
+    if (wifi_ap_ip->setStringValue(DEFAULT_AP_IP))
         error = true;
 #else
     Preferences prefs;

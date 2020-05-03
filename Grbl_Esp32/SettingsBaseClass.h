@@ -23,9 +23,9 @@ extern Setting *SettingsList;
 
 class Setting {
 private:
-    const char* displayName;
-    const char* webuiName;
-    bool (*checker)(const char *);
+    const char* _webuiName;
+    const char* _displayName;
+    bool (*_checker)(const char *);
     // Add each constructed setting to the linked list
 
 public:
@@ -33,20 +33,13 @@ public:
     Setting *next() { return link; }
 
     bool check(const char *s) {
-        return checker ? checker(s) : false;
+        return _checker ? _checker(s) : false;
     }
 
     ~Setting() {}
-    Setting(const char *webuiName, const char* displayNname, bool (*checker)(const char *))
-    {
-        webuiName = webuiName;
-        displayName = displayName;
-        checker = checker;
-        link = SettingsList;
-        SettingsList = this;
-    }
-    const char* getName() { return displayName; }
-    const char* getWebuiName() { return webuiName; }
+    Setting(const char *webuiName, const char* displayNname, bool (*checker)(const char *));
+    const char* getName() { return _displayName; }
+    const char* getWebuiName() { return _webuiName; }
 
     // load() reads the backing store to get the current
     // value of the setting.  This could be slow so it
