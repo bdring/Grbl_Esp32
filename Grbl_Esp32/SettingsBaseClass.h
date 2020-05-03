@@ -24,6 +24,7 @@ extern Setting *SettingsList;
 class Setting {
 private:
     const char* _webuiName;
+    const char *_grblName;
     const char* _displayName;
     bool (*_checker)(const char *);
     // Add each constructed setting to the linked list
@@ -37,8 +38,9 @@ public:
     }
 
     ~Setting() {}
-    Setting(const char *webuiName, const char* displayNname, bool (*checker)(const char *));
+    Setting(const char *webuiName, const char * grblName, const char* displayName, bool (*checker)(const char *));
     const char* getName() { return _displayName; }
+    const char* getGrblName() { return _grblName; }
     const char* getWebuiName() { return _webuiName; }
 
     // load() reads the backing store to get the current

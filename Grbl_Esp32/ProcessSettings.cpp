@@ -4,61 +4,12 @@
 #include "SettingsDefinitions.h"
 #include <map>
 
-
 struct cmp_str
 {
    bool operator()(char const *a, char const *b) const
    {
       return strcmp(a, b) < 0;
    }
-};
-
-// The following table maps numbered settings to their settings
-// objects, for backwards compatibility.  It is used if the
-// line is of the form "$key=value".  If a key match is found,
-// the object's setValueString method is invoked with the value
-// as argument.  If no match is found, the list of named settings
-// is searched, with the same behavior on a match.
-
-// These are compatibility aliases for Classic GRBL
-std::map<const char*, Setting*, cmp_str> numberedSettings = {
-    #if XXX  // These cannot be initialized statically because the LHS of the -> is NULL then
-    // The solution is to add a compat string to the Settings struct so the table goes away.
-    { "0", pulse_microseconds },
-    { "1", stepper_idle_lock_time },
-    { "2", step_invert_mask },
-    { "3", dir_invert_mask },
-    { "4", step_enable_invert },
-    { "5", limit_invert },
-    { "6", probe_invert },
-    { "10", status_mask },
-    { "11", junction_deviation },
-    { "12", arc_tolerance },
-    { "13", report_inches },
-    { "20", soft_limits },
-    { "21", hard_limits },
-    { "22", homing_enable },
-    { "23", homing_dir_mask },
-    { "24", homing_feed_rate },
-    { "25", homing_seek_rate },
-    { "26", homing_debounce },
-    { "27", homing_pulloff },
-    { "30", rpm_max },
-    { "31", rpm_min },
-    { "32", laser_mode },
-    { "100", x_axis_settings->steps_per_mm },
-    { "101", y_axis_settings->steps_per_mm },
-    { "102", z_axis_settings->steps_per_mm },
-    { "110", x_axis_settings->max_rate },
-    { "111", y_axis_settings->max_rate },
-    { "112", z_axis_settings->max_rate },
-    { "120", x_axis_settings->acceleration },
-    { "121", y_axis_settings->acceleration },
-    { "122", z_axis_settings->acceleration },
-    { "130", x_axis_settings->max_travel },
-    { "131", y_axis_settings->max_travel },
-    { "132", z_axis_settings->max_travel },
-#endif
 };
 
 // FIXME - jog may need to be special-cased in the parser, since
@@ -198,7 +149,7 @@ std::map<const char*, Command_t, cmp_str> dollarCommands = {
     { "I", get_report_build_info },
     { "N", report_startup_lines },
 };
-// XXX See Store startup line [IDLE/ALARM]
+// FIXME See Store startup line [IDLE/ALARM]
 
 // normalize_key puts a key string into canonical form -
 // upper case without whitespace.
@@ -238,23 +189,19 @@ char *normalize_key(char *start) {
 }
 
 // This is for changing settings with $key=value .
-// Lookup key in the numberedSettings map.  If found, execute
-// the corresponding object's "set" method.  Otherwise fail.
+// Lookup key in the Settings list, considering both
+// the text name and the grbl compatible name, if any.
+// If found, execute the object's "setStringValue" method.
+// Otherwise fail.
 err_t do_setting(const char *key, char *value) {
     // First search this numberedSettings array - aliases
     // for the underlying named settings.
-    std::map<const char*, Setting*, cmp_str>::iterator it = numberedSettings.find(key);
-    if (it != numberedSettings.end()) {
-        return it->second->setStringValue(value);
-    }
-
-    // Then search the list of named settings.
     for (Setting *s = SettingsList; s; s = s->link) {
-        if (strcmp(s->getName(), key) == 0) {
+        if ((strcmp(s->getName(), key) == 0)
+        || (s->getGrblName() && (strcmp(s->getGrblName(), key) == 0))) {
             return s->setStringValue(value);
         }
     }
-
     return STATUS_INVALID_STATEMENT;
 }
 
@@ -274,16 +221,18 @@ err_t do_command(const char *key, uint8_t client) {
     // Enhancement - not in Classic GRBL:
     // If it is not a command, look up the key
     // as a setting and display the value.
+#if 0
     std::map<const char *, Setting*, cmp_str>::iterator it = numberedSettings.find(key);
     if (it != numberedSettings.end()) {
         Setting *s = it->second;
         grbl_sendf(client, "$%s=%s\n", key, s->getStringValue());
         return STATUS_OK;
     }
-
+#endif
     for (Setting *s = SettingsList; s; s = s->next()) {
         //    if (s->getName().compare(k)) {
-        if (strcmp(s->getName(), key) == 0) {
+        if ((strcmp(s->getName(), key) == 0)
+        || (s->getGrblName() && (strcmp(s->getGrblName(), key) == 0))) {
             grbl_sendf(client, "$%s=%s\n", key, s->getStringValue());
             return STATUS_OK;
         }
@@ -308,22 +257,17 @@ uint8_t system_execute_line(char* line, uint8_t client) {
     return res;
 }
 void system_execute_startup(char* line) {
-#ifndef XXX
-    grbl_sendf(CLIENT_SERIAL, "Skipping system_execute_startup\r\n");
-    delay(1000);
-#else
     err_t status_code;
-    const char *gcline = startup_line_0.get();
+    const char *gcline = startup_line_0->get();
     if (*gcline) {
         status_code = gc_execute_line(gcline, CLIENT_SERIAL);
         report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);
     }
-    gcline = startup_line_1.get();
+    gcline = startup_line_1->get();
     if (*gcline) {
         status_code = gc_execute_line(gcline, CLIENT_SERIAL);
         report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);
     }
-#endif
 }
 void list_settings()
 {
@@ -331,21 +275,4 @@ void list_settings()
         grbl_sendf(CLIENT_SERIAL, "%s=%s\r\n", s->getName(), s->getStringValue());
     }
 }
-#if 0
-
-void list_numbered_settings()
-{
-    for (std::map<const char*, Setting*>::iterator it = numberedSettings.begin();
-         it != numberedSettings.end();
-         it++) {
-        cout << it->first << ": " << it->second->getStringValue() << '\n';
-    }
-}
-#endif
-#if TEST_SETTINGS
-int main()
-{
-    list_settings();
-}
-#endif
 #endif
