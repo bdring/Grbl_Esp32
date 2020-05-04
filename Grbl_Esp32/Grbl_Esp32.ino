@@ -21,8 +21,6 @@
 #include "grbl.h"
 #include "WiFi.h"
 
-#include "Spindles/SpindleClass.cpp"
-
 // Declare system global variable structure
 system_t sys;
 int32_t sys_position[N_AXIS];      // Real-time machine (aka home) position vector in steps.
@@ -35,8 +33,6 @@ volatile uint8_t sys_rt_exec_accessory_override; // Global realtime executor bit
 #ifdef DEBUG
     volatile uint8_t sys_rt_exec_debug;
 #endif
-
-Spindle *spindle;
 
 
 
@@ -56,7 +52,7 @@ void setup() {
   #else
     #define MACHINE_STRING MACHINE_NAME
   #endif
-    report_machine_type(CLIENT_SERIAL);
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_STRING);
 #endif
     settings_init(); // Load Grbl settings from EEPROM
     stepper_init();  // Configure stepper pins and interrupt timers
@@ -117,7 +113,7 @@ void loop() {
     // Reset Grbl primary systems.
     serial_reset_read_buffer(CLIENT_ALL); // Clear serial read buffer
     gc_init(); // Set g-code parser to default state
-    spindle_select(SPINDLE_TYPE);
+    spindle_init();
     coolant_init();
     limits_init();
     probe_init();
