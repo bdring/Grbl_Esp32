@@ -1,7 +1,7 @@
 /*
     NullSpindle.cpp
 
-    This is used when you don't want to use a spindle-> No I/O will be used
+    This is used when you don't want to use a spindle No I/O will be used
     and most methods don't do anything
 
     Part of Grbl_ESP32

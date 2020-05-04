@@ -66,7 +66,7 @@ uint32_t DacSpindle::set_rpm(uint32_t rpm) {
 
     // apply overrides and limits
     //rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
-    rpm *= rpm * sys.spindle_speed_ovr / 100; // Scale by spindle->speed override value (percent)
+    rpm *= rpm * sys.spindle_speed_ovr / 100; // Scale by spindle speed override value (percent)
 
     // Calculate PWM register value based on rpm max/min settings and programmed rpm.
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {

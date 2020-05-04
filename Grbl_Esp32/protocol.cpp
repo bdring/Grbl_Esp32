@@ -560,7 +560,7 @@ static void protocol_exec_rt_suspend() {
                     // Ensure any prior spindle stop override is disabled at start of safety door routine.
                     sys.spindle_stop_ovr = SPINDLE_STOP_OVR_DISABLED;
 #ifndef PARKING_ENABLE
-                    spindle->set_state(SPINDLE_DISABLE, 0.0); // De-energize
+                    spindle->set_state(SPINDLE_DISABLE, 0); // De-energize
                     coolant_set_state(COOLANT_DISABLE);     // De-energize
 #else
                     // Get current position and store restore location and spindle retract waypoint.
@@ -595,7 +595,7 @@ static void protocol_exec_rt_suspend() {
                         // NOTE: Clear accessory state after retract and after an aborted restore motion.
                         pl_data->condition = (PL_COND_FLAG_SYSTEM_MOTION | PL_COND_FLAG_NO_FEED_OVERRIDE);
                         pl_data->spindle_speed = 0.0;
-                        spindle->set_state((SPINDLE_DISABLE, 0.0); // De-energize
+                        spindle->set_state((SPINDLE_DISABLE, 0); // De-energize
                                               coolant_set_state(COOLANT_DISABLE); // De-energize
                                               // Execute fast parking retract motion to parking target location.
                         if (parking_target[PARKING_AXIS] < PARKING_TARGET) {
@@ -616,7 +616,7 @@ static void protocol_exec_rt_suspend() {
                     if (sys.state == STATE_SLEEP) {
                         report_feedback_message(MESSAGE_SLEEP_MODE);
                         // Spindle and coolant should already be stopped, but do it again just to be sure.
-                        spindle->set_state(SPINDLE_DISABLE, 0.0); // De-energize
+                        spindle->set_state(SPINDLE_DISABLE, 0); // De-energize
                         coolant_set_state(COOLANT_DISABLE); // De-energize
                         st_go_idle(); // Disable steppers
                         while (!(sys.abort))  protocol_exec_rt_system();   // Do nothing until reset.
@@ -655,7 +655,7 @@ static void protocol_exec_rt_suspend() {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                     bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                                 } else {
-                                    spindle->set_state((restore_condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)), restore_spindle_speed);
+                                    spindle->set_state((restore_condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)), (uint32_t)restore_spindle_speed);
                                     delay_sec(SAFETY_DOOR_SPINDLE_DELAY, DELAY_MODE_SYS_SUSPEND);
                                 }
                             }
@@ -701,7 +701,7 @@ static void protocol_exec_rt_suspend() {
                     // Handles beginning of spindle stop
                     if (sys.spindle_stop_ovr & SPINDLE_STOP_OVR_INITIATE) {
                         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
-                            spindle->set_state(SPINDLE_DISABLE, 0.0); // De-energize
+                            spindle->set_state(SPINDLE_DISABLE, 0); // De-energize
                             sys.spindle_stop_ovr = SPINDLE_STOP_OVR_ENABLED; // Set stop override state to enabled, if de-energized.
                         } else {
                             sys.spindle_stop_ovr = SPINDLE_STOP_OVR_DISABLED; // Clear stop override state
@@ -714,7 +714,7 @@ static void protocol_exec_rt_suspend() {
                                 // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                 bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                             } else
-                                spindle->set_state((restore_condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)), restore_spindle_speed);
+                                spindle->set_state((restore_condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)), (uint32_t)restore_spindle_speed);
                         }
                         if (sys.spindle_stop_ovr & SPINDLE_STOP_OVR_RESTORE_CYCLE) {
                             system_set_exec_state_flag(EXEC_CYCLE_START);  // Set to resume program.
@@ -725,7 +725,7 @@ static void protocol_exec_rt_suspend() {
                     // Handles spindle state during hold. NOTE: Spindle speed overrides may be altered during hold state.
                     // NOTE: STEP_CONTROL_UPDATE_SPINDLE_RPM is automatically reset upon resume in step generator.
                     if (bit_istrue(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM)) {
-                        spindle->set_state((restore_condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)), restore_spindle_speed);
+                        spindle->set_state((restore_condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)), (uint32_t)restore_spindle_speed);
                         bit_false(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                     }
                 }

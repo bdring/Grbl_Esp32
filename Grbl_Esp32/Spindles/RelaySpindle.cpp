@@ -1,8 +1,8 @@
 /*
     RelaySpindle.cpp
 
-    This is used for a basic on/off spindle-> All S Values about 1
-    will turn the spindle->on.
+    This is used for a basic on/off spindle All S Values about 1
+    will turn the spindle on.
 
     Part of Grbl_ESP32
     2020 -	Bart Dring
@@ -22,7 +22,7 @@
 
 // ========================= RelaySpindle ==================================
 /*
-    This is the same as a PWM spindle-> but is a digital rather than PWM output
+    This is the same as a PWM spindle but is a digital rather than PWM output
 */
 void RelaySpindle::init() {
     get_pins_and_settings();
@@ -43,9 +43,9 @@ void RelaySpindle::init() {
     config_message();
 }
 
-// prints the startup message of the spindle->config
+// prints the startup message of the spindle config
 void RelaySpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Relay spindle->on Pin:%d", _output_pin);
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Relay spindle on Pin:%d", _output_pin);
 }
 
 uint32_t RelaySpindle::set_rpm(uint32_t rpm) {

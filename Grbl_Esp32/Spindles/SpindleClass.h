@@ -59,8 +59,8 @@ class Spindle {
     bool is_reversable;
 };
 
-// This is a dummy spindle->that has no I/O.
-// It is used to ignore spindle->commands when no spinde is desired
+// This is a dummy spindle that has no I/O.
+// It is used to ignore spindle commands when no spinde is desired
 class NullSpindle : public Spindle {
   public:
     void init();
@@ -107,7 +107,7 @@ class PWMSpindle : public Spindle {
     uint8_t calc_pwm_precision(uint32_t freq);
 };
 
-// This is for an on/off spindle->all RPMs above 0 are on
+// This is for an on/off spindle all RPMs above 0 are on
 class RelaySpindle : public PWMSpindle {
   public:
     void init();
@@ -117,7 +117,7 @@ class RelaySpindle : public PWMSpindle {
     void set_output(uint32_t duty);
 };
 
-// this is the same as a PWM spindle-> but the M4 compensation is supported.
+// this is the same as a PWM spindle but the M4 compensation is supported.
 class Laser : public PWMSpindle {
   public:
     bool isRateAdjusted();
