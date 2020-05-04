@@ -51,11 +51,10 @@
 
 #ifdef USE_SPINDLE_RELAY
     #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
-    #define SPINDLE_OUTPUT_PIN GPIO_NUM_17
+    #define SPINDLE_PWM_PIN GPIO_NUM_17
 #else
     #define SPINDLE_TYPE SPINDLE_TYPE_PWM
-    #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
-
+    #define SPINDLE_PWM_PIN         GPIO_NUM_16
     #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
 #endif
 
@@ -78,6 +77,15 @@
 #endif
 
 #define INVERT_CONTROL_PIN_MASK B1110
+
+// Note: default is #define IGNORE_CONTROL_PINS in config.h
+// uncomment to these lines to use them
+
+/*
+#ifdef IGNORE_CONTROL_PINS
+#undef IGNORE_CONTROL_PINS
+#endif
+*/
 
 #define CONTROL_RESET_PIN           GPIO_NUM_34  // needs external pullup
 #define CONTROL_FEED_HOLD_PIN       GPIO_NUM_36  // needs external pullup

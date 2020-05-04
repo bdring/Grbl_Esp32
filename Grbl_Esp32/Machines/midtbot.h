@@ -51,6 +51,10 @@
 #define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
 #define SERVO_Z_MPOS            false   // will not use mpos, uses work coordinates
 
+#ifndef IGNORE_CONTROL_PINS // maybe set in config.h
+    #define IGNORE_CONTROL_PINS
+#endif
+
 // redefine some stuff from config.h
 #ifdef HOMING_CYCLE_0
     #undef HOMING_CYCLE_0
@@ -69,8 +73,6 @@
 #endif
 
 #define SERVO_PEN_PIN           GPIO_NUM_27
-
-#define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
 // defaults
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3

@@ -40,8 +40,7 @@
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_12
 
 #define SPINDLE_TYPE SPINDLE_TYPE_PWM
-#define SPINDLE_OUTPUT_PIN         GPIO_NUM_19
-
+#define SPINDLE_PWM_PIN         GPIO_NUM_19
 #define SPINDLE_DIR_PIN         GPIO_NUM_18
 
 #define COOLANT_FLOOD_PIN       GPIO_NUM_34
@@ -54,6 +53,7 @@
 
 #define PROBE_PIN               GPIO_NUM_39
 
+// comment out #define IGNORE_CONTROL_PINS in config.h to use control pins
 #define CONTROL_RESET_PIN       GPIO_NUM_2
 #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_4
 #define CONTROL_CYCLE_START_PIN GPIO_NUM_35 // ESP32 needs external pullup
