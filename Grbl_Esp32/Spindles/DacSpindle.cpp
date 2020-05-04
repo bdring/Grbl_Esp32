@@ -74,7 +74,7 @@ uint32_t DacSpindle::set_rpm(uint32_t rpm) {
         sys.spindle_speed = _max_rpm;
         pwm_value = 255;
     } else if (rpm <= _min_rpm) {
-        if (rpm == 0.0) { // S0 disables spindle
+        if (rpm == 0) { // S0 disables spindle
             sys.spindle_speed = 0;
             pwm_value = 0;
         } else { // Set minimum PWM output
