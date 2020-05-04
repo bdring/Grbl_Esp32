@@ -66,7 +66,7 @@
 // Special Features, you must copy Custom/custom_code_template.cpp
 // to a new name like Custom/my_custom_code.cpp, implement the
 // functions therein, and enable its use by defining:
-// #define CUSTOM_CODE_FILENAME "Custom/my_custom_code.cpp"
+#define CUSTOM_CODE_FILENAME "Custom/esp32_printer_controller.cpp"
 
 // === Number of axes
 
@@ -94,11 +94,11 @@
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
 // X, Z, A and B axes do, the LIMIT_MASK value would be B11101
-//#define LIMIT_MASK              B0111
+#define LIMIT_MASK              B0111
 
-//#define X_LIMIT_PIN             GPIO_NUM_34
-//#define Y_LIMIT_PIN             GPIO_NUM_35
-//#define Z_LIMIT_PIN             GPIO_NUM_32
+#define X_LIMIT_PIN             GPIO_NUM_34
+#define Y_LIMIT_PIN             GPIO_NUM_35
+#define Z_LIMIT_PIN             GPIO_NUM_32
 
 // Common enable for all steppers.  If it is okay to leave
 // your drivers enabled at all times, you can leave
@@ -126,7 +126,6 @@
 // RESET, FEED_HOLD, and CYCLE_START can control GCode execution at
 // the push of a button.
 
-#define CONTROL_RESET_PIN       GPIO_NUM_34  // labeled Reset, needs external pullup
 // #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // labeled Hold,  needs external pullup
 // #define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // labeled Start, needs external pullup
 
@@ -215,7 +214,7 @@
 #define USE_I2S_IOEXPANDER
 #define I2S_IOEXPANDER_BCK      22
 #define I2S_IOEXPANDER_WS       17
-#define I2S_IOEXPANDER_DATA     16
+#define I2S_IOEXPANDER_DATA     21
 #define I2S_STEPPER_STREAM
 
 // === Special Features
@@ -227,6 +226,8 @@
 // functions.  custom_code_template.cpp describes the functions
 // that you can implement.  The ifdef guards are described below:
 //
+#define USE_MACHINE_INIT
+
 // USE_CUSTOM_HOMING enables the user_defined_homing() function
 // that can implement an arbitrary homing sequence.
 // #define USE_CUSTOM_HOMING
