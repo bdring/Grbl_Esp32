@@ -23,7 +23,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME            "ESP32_V4"
+#define MACHINE_NAME            "Spindle class Test"
 
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_14
@@ -43,12 +43,3 @@
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_2   // labeled SpinPWM
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
-
-#define MIST_PIN                GPIO_NUM_21  // labeled Mist
-#define FLOOD_PIN               GPIO_NUM_25  // labeled Flood
-#define PROBE_PIN               GPIO_NUM_32  // labeled Probe
-
-#define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_35  // labeled Door,  needs external pullup
-#define CONTROL_RESET_PIN       GPIO_NUM_34  // labeled Reset, needs external pullup
-#define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // labeled Hold,  needs external pullup
-#define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // labeled Start, needs external pullup

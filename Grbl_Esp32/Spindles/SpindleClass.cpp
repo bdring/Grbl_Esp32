@@ -3,7 +3,7 @@
 
     A Spindle Class
         Spindle         - A base class. Do not use
-        PWMSpindle     - A spindle->with a PWM output
+        PWMSpindle     - A spindle with a PWM output
         RelaySpindle    - An on/off only spindle
         Laser           - Output is PWM, but the M4 laser power mode can be used
         DacSpindle      - Uses the DAC to output a 0-3.3V output
@@ -88,12 +88,12 @@ void spindle_read_prefs(Preferences& prefs) {
 
 
 bool Spindle::isRateAdjusted() {
-    return false; // default for basic spindle-> is false
+    return false; // default for basic spindle is false
 }
 
 void Spindle :: spindle_sync(uint8_t state, uint32_t rpm) {
     if (sys.state == STATE_CHECK_MODE)
         return;
-    protocol_buffer_synchronize(); // Empty planner buffer to ensure spindle->is set when programmed.
+    protocol_buffer_synchronize(); // Empty planner buffer to ensure spindle is set when programmed.
     set_state(state, rpm);
 }

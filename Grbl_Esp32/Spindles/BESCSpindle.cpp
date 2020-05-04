@@ -92,7 +92,7 @@ uint32_t BESCSpindle::set_rpm(uint32_t rpm) {
 
     // apply speed overrides
     //rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
-    rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle->speed override value (percent)
+    rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle speed override value (percent)
 
     // apply limits limits
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {

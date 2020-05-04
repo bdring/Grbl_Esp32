@@ -282,7 +282,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
             // Set real-time spindle output as segment is loaded, just prior to the first step.
             //spindle_set_speed(st.exec_segment->spindle_rpm);
             //grbl_send(CLIENT_SERIAL, "A_");
-            spindle->set_rpm(prep.current_spindle_rpm);
+            spindle->set_rpm((uint32_t)prep.current_spindle_rpm);
 
 
         } else {
@@ -294,7 +294,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
                 if (st.exec_block->is_pwm_rate_adjusted) {
                     //spindle_set_speed(spindle_pwm_off_value);
                     //grbl_send(CLIENT_SERIAL, "B_");
-                    spindle->set_rpm(0.0);
+                    spindle->set_rpm(0);
                 }
             }
 

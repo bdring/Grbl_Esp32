@@ -1,7 +1,7 @@
 /*
     PWMSpindle.cpp
 
-    This is a full featured TTL PWM spindle-> This does not include speed/power
+    This is a full featured TTL PWM spindle This does not include speed/power
     compensation. Use the Laser class for that.
 
     Part of Grbl_ESP32
@@ -22,9 +22,12 @@
 
 // ======================= PWMSpindle ==============================
 /*
-    This gets called at startup or whenever a spindle->setting changes
-    If the spindle->is running it will stop and need to be restarted with M3Snnnn
+    This gets called at startup or whenever a spindle setting changes
+    If the spindle is running it will stop and need to be restarted with M3Snnnn
 */
+
+//#include "grbl.h"
+
 void PWMSpindle :: init() {
     
     get_pins_and_settings();
@@ -67,6 +70,7 @@ void PWMSpindle :: get_pins_and_settings() {
 #else
     _direction_pin = UNDEFINED_PIN;
 #endif
+
     is_reversable = (_direction_pin != UNDEFINED_PIN);
 
     _pwm_freq = (uint32_t)settings.spindle_pwm_freq;
@@ -91,7 +95,7 @@ void PWMSpindle :: get_pins_and_settings() {
     // The pwm_gradient is the pwm duty cycle units per rpm
     // _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
 
-    _spindle_pwm_chan_num = 0; // Channel 0 is reserved for spindle->use
+    _spindle_pwm_chan_num = 0; // Channel 0 is reserved for spindle use
 
 
 }
@@ -103,8 +107,8 @@ uint32_t PWMSpindle::set_rpm(uint32_t rpm) {
         return rpm;
 
     // apply override
-    //rpm *= (0.010 * sys.spindle->speed_ovr); // Scale by spindle->speed override value (percent)
-    rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle->speed override value (percent)
+    //rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
+    rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle speed override value (percent)
 
     // apply limits
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
@@ -139,7 +143,7 @@ void PWMSpindle::set_state(uint8_t state, uint32_t rpm) {
     if (sys.abort)
         return;   // Block during abort.
 
-    if (state == SPINDLE_DISABLE) { // Halt or set spindle->direction and rpm.
+    if (state == SPINDLE_DISABLE) { // Halt or set spindle direction and rpm.
         sys.spindle_speed = 0.0;
         stop();
     } else {
@@ -172,15 +176,20 @@ void PWMSpindle::stop() {
     set_output(_pwm_off_value);
 }
 
-// prints the startup message of the spindle->config
+// prints the startup message of the spindle config
 void PWMSpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "PWM spindle on Pin:%d, Freq:%dHz, Res:%dbits", _output_pin, _pwm_freq, _pwm_precision);
+    grbl_msg_sendf( CLIENT_SERIAL, 
+                    MSG_LEVEL_INFO, 
+                    "PWM spindle on Output:%d, Enbl:%d, Dir:%d, Freq:%dHz, Res:%dbits", 
+                    _output_pin, 
+                    _enable_pin, // 255 means pin not defined
+                    _direction_pin, // 255 means pin not defined
+                    _pwm_freq, 
+                    _pwm_precision);
 }
 
 
-void PWMSpindle::set_output(uint32_t duty) {
-
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Duty %d", duty);
+void PWMSpindle::set_output(uint32_t duty) {    
 
     if (_output_pin == UNDEFINED_PIN)
         return;
@@ -192,7 +201,7 @@ void PWMSpindle::set_output(uint32_t duty) {
     _current_pwm_duty = duty;
 
 #ifdef INVERT_SPINDLE_PWM
-    duty = (1 << settings.spindle->pwm_precision_bits) - duty;
+    duty = (1 << settings.spindle_pwm_precision_bits) - duty;
 #endif
     ledcWrite(_spindle_pwm_chan_num, duty);
 }
@@ -222,6 +231,7 @@ void PWMSpindle::set_spindle_dir_pin(bool Clockwise) {
 uint8_t PWMSpindle :: calc_pwm_precision(uint32_t freq) {
     uint8_t precision = 0;
 
+    // increase the precision (bits) until it exceeds allow by frequency the max or is 16
     while ((1 << precision) < (uint32_t)(80000000 / freq) && precision <= 16)
         precision++;
 
