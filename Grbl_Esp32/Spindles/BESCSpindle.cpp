@@ -59,7 +59,7 @@ void BESCSpindle :: init() {
     }
 
     // override some settings to what is required for a BESC
-    _pwm_freq = BESC_PWM_FREQ;
+    _pwm_freq = (uint32_t)BESC_PWM_FREQ;
     _pwm_precision = 16;
 
     // override these settings
@@ -97,14 +97,14 @@ uint32_t BESCSpindle::set_rpm(uint32_t rpm) {
     // apply limits limits
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
         rpm = _max_rpm;
-    } else if (rpm != 0.0 && rpm <= _min_rpm) {
+    } else if (rpm != 0 && rpm <= _min_rpm) {
         rpm = _min_rpm;
     }
 
     sys.spindle_speed = rpm;
 
     // determine the pwm value
-    if (rpm == 0.0) {
+    if (rpm == 0) {
         pwm_value = _pwm_off_value;
     } else {
         pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
