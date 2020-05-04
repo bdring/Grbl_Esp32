@@ -1,7 +1,7 @@
 /*
     NullSpindle.cpp
 
-    This is used when you don't want to use a spindle. No I/O will be used
+    This is used when you don't want to use a spindle-> No I/O will be used
     and most methods don't do anything
 
     Part of Grbl_ESP32
@@ -26,10 +26,10 @@ void NullSpindle :: init() {
     is_reversable = false;
     config_message();
 }
-float NullSpindle :: set_rpm(float rpm) {
+uint32_t NullSpindle :: set_rpm(uint32_t rpm) {
     return rpm;
 }
-void NullSpindle :: set_state(uint8_t state, float rpm) {}
+void NullSpindle :: set_state(uint8_t state, uint32_t rpm) {}
 uint8_t NullSpindle :: get_state() {
     return (SPINDLE_STATE_DISABLE);
 }

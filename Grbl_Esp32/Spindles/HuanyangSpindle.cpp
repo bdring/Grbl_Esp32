@@ -134,7 +134,7 @@ void HuanyangSpindle :: config_message() {
     0x01    0x03    0x01    0x08    0xF1 0x8E                   Stop spindle
     0x01    0x03    0x01    0x11    0x30 0x44                   Start spindle counter-clockwise
 */
-void HuanyangSpindle :: set_state(uint8_t state, float rpm) {
+void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) {
     if (sys.abort)
         return;   // Block during abort.
 
@@ -192,14 +192,15 @@ bool HuanyangSpindle :: get_response(uint16_t length) {
     ADDR    CMD     LEN     DATA        CRC
     0x01    0x05    0x02    0x09 0xC4   0xBF 0x0F               Write Frequency (0x9C4 = 2500 = 25.00HZ)
 */
-float HuanyangSpindle :: set_rpm(float rpm) {
+uint32_t HuanyangSpindle :: set_rpm(uint32_t rpm) {
 
     // TODO add in all the speed modifiers, like override and linearization
 
     char msg[7] = {HUANYANG_ADDR, 0x05, 0x02, 0x00, 0x00, 0x00, 0x00};
 
     // add data (rpm) bytes
-    uint16_t data = uint16_t(rpm / 60.0 * 100.0); // send Hz * 10  (Ex:1500 RPM = 25Hz .... Send 2500)
+    //uint16_t data = uint16_t(rpm / 60.0 * 100.0); // send Hz * 10  (Ex:1500 RPM = 25Hz .... Send 2500)
+    uint16_t data = uint16_t(rpm * 100 / 60); // send Hz * 10  (Ex:1500 RPM = 25Hz .... Send 2500)
     msg[3] = (data & 0xFF00) >> 8;
     msg[4] = (data & 0xFF);
 

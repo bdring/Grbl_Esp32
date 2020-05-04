@@ -3,7 +3,7 @@
 
     A Spindle Class
         Spindle         - A base class. Do not use
-        PWMSpindle     - A spindle with a PWM output
+        PWMSpindle     - A spindle->with a PWM output
         RelaySpindle    - An on/off only spindle
         Laser           - Output is PWM, but the M4 laser power mode can be used
         DacSpindle      - Uses the DAC to output a 0-3.3V output
@@ -40,6 +40,7 @@
 #include "HuanyangSpindle.cpp"
 #include "BESCSpindle.cpp"
 
+
 NullSpindle null_spindle;
 PWMSpindle pwm_spindle;
 RelaySpindle relay_spindle;
@@ -48,8 +49,9 @@ DacSpindle dac_spindle;
 HuanyangSpindle huanyang_spindle;
 BESCSpindle besc_spindle;
 
-void spindle_select(uint8_t spindle_type) {
 
+void spindle_select(uint8_t spindle_type) {
+    
     switch (spindle_type) {
     case SPINDLE_TYPE_PWM:
         spindle = &pwm_spindle;
@@ -74,8 +76,10 @@ void spindle_select(uint8_t spindle_type) {
         spindle = &null_spindle;
         break;
     }
+    
     spindle->init();
 }
+
 
 void spindle_read_prefs(Preferences& prefs) {
     uint8_t foo = prefs.getUChar("SPIN_TYPE", SPINDLE_TYPE_PWM);
@@ -84,12 +88,12 @@ void spindle_read_prefs(Preferences& prefs) {
 
 
 bool Spindle::isRateAdjusted() {
-    return false; // default for basic spindles is false
+    return false; // default for basic spindle-> is false
 }
 
-void Spindle :: spindle_sync(uint8_t state, float rpm) {
+void Spindle :: spindle_sync(uint8_t state, uint32_t rpm) {
     if (sys.state == STATE_CHECK_MODE)
         return;
-    protocol_buffer_synchronize(); // Empty planner buffer to ensure spindle is set when programmed.
+    protocol_buffer_synchronize(); // Empty planner buffer to ensure spindle->is set when programmed.
     set_state(state, rpm);
 }
