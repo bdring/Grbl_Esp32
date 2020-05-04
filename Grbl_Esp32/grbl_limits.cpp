@@ -379,6 +379,14 @@ uint8_t limits_get_state() {
 // NOTE: Used by jogging to limit travel within soft-limit volume.
 void limits_soft_check(float* target) {
     if (system_check_travel_limits(target)) {
+        // TODO for debugging only 3 axes right now
+        grbl_msg_sendf(CLIENT_SERIAL, 
+                        MSG_LEVEL_INFO, 
+                        "Soft limit error target WPOS X:%5.2f Y:%5.2f Z:%5.2f", 
+                        target[X_AXIS] - gc_state.coord_system[X_AXIS],
+                        target[Y_AXIS] - gc_state.coord_system[Y_AXIS], 
+                        target[Z_AXIS] - gc_state.coord_system[Z_AXIS]);
+
         sys.soft_limit = true;
         // Force feed hold if cycle is active. All buffered blocks are guaranteed to be within
         // workspace volume so just come to a controlled stop so position is not lost. When complete

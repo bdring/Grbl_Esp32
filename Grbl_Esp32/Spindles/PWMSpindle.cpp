@@ -144,7 +144,7 @@ void PWMSpindle::set_state(uint8_t state, uint32_t rpm) {
         return;   // Block during abort.
 
     if (state == SPINDLE_DISABLE) { // Halt or set spindle direction and rpm.
-        sys.spindle_speed = 0.0;
+        sys.spindle_speed = 0;
         stop();
     } else {
         set_spindle_dir_pin(state == SPINDLE_ENABLE_CW);
