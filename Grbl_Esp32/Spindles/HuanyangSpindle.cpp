@@ -146,7 +146,7 @@ void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) {
     }
 
     if (state == SPINDLE_DISABLE) {
-        sys.spindle_speed = 0.0;
+        sys.spindle_speed = 0;
         return;
     }
 
