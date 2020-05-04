@@ -56,7 +56,7 @@ void DacSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DAC spindle on Pin:%d", _output_pin);
 }
 
-float DacSpindle::set_rpm(float rpm) {
+uint32_t DacSpindle::set_rpm(uint32_t rpm) {
     if (_output_pin == UNDEFINED_PIN)
         return rpm;
 
@@ -65,7 +65,8 @@ float DacSpindle::set_rpm(float rpm) {
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set RPM %5.1f", rpm);
 
     // apply overrides and limits
-    rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
+    //rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
+    rpm *= rpm * sys.spindle_speed_ovr / 100; // Scale by spindle->speed override value (percent)
 
     // Calculate PWM register value based on rpm max/min settings and programmed rpm.
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
@@ -87,7 +88,7 @@ float DacSpindle::set_rpm(float rpm) {
         // NOTE: A nonlinear model could be installed here, if required, but keep it VERY light-weight.
         sys.spindle_speed = rpm;
 
-        pwm_value = (uint32_t)map_float(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
+        pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
     }
 
 #ifdef  SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED

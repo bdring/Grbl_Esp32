@@ -84,14 +84,15 @@ void BESCSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "BESC spindle on Pin:%d", _output_pin);
 }
 
-float BESCSpindle::set_rpm(float rpm) {
+uint32_t BESCSpindle::set_rpm(uint32_t rpm) {
     uint32_t pwm_value;
 
     if (_output_pin == UNDEFINED_PIN)
         return rpm;
 
     // apply speed overrides
-    rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
+    //rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
+    rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle->speed override value (percent)
 
     // apply limits limits
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
@@ -106,7 +107,7 @@ float BESCSpindle::set_rpm(float rpm) {
     if (rpm == 0.0) {
         pwm_value = _pwm_off_value;
     } else {
-        pwm_value = (uint16_t)map_float(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
+        pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
     }
 
 #ifdef  SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED

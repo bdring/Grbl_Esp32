@@ -48,24 +48,24 @@
 class Spindle {
   public:
     virtual void init(); // not in constructor because this also gets called when $$ settings change
-    virtual float set_rpm(float rpm);
-    virtual void set_state(uint8_t state, float rpm);
+    virtual uint32_t set_rpm(uint32_t rpm);
+    virtual void set_state(uint8_t state, uint32_t rpm);
     virtual uint8_t get_state();
     virtual void stop();
     virtual void config_message();
     virtual bool isRateAdjusted();
-    virtual void spindle_sync(uint8_t state, float rpm);
+    virtual void spindle_sync(uint8_t state, uint32_t rpm);
 
     bool is_reversable;
 };
 
-// This is a dummy spindle that has no I/O.
-// It is used to ignore spindle commands when no spinde is desired
+// This is a dummy spindle->that has no I/O.
+// It is used to ignore spindle->commands when no spinde is desired
 class NullSpindle : public Spindle {
   public:
     void init();
-    float set_rpm(float rpm);
-    void set_state(uint8_t state, float rpm);
+    uint32_t set_rpm(uint32_t rpm);
+    void set_state(uint8_t state, uint32_t rpm);
     uint8_t get_state();
     void stop();
     void config_message();
@@ -75,8 +75,8 @@ class NullSpindle : public Spindle {
 class PWMSpindle : public Spindle {
   public:
     void init();
-    virtual float set_rpm(float rpm);
-    void set_state(uint8_t state, float rpm);
+    virtual uint32_t set_rpm(uint32_t rpm);
+    void set_state(uint8_t state, uint32_t rpm);
     uint8_t get_state();
     void stop();
     void config_message();
@@ -87,8 +87,8 @@ class PWMSpindle : public Spindle {
     void set_spindle_dir_pin(bool Clockwise);
 
   protected:
-    float _min_rpm;
-    float _max_rpm;
+    uint32_t _min_rpm;
+    uint32_t _max_rpm;
     uint32_t _pwm_off_value;
     uint32_t _pwm_min_value;
     uint32_t _pwm_max_value;
@@ -96,28 +96,28 @@ class PWMSpindle : public Spindle {
     uint8_t _enable_pin;
     uint8_t _direction_pin;
     int8_t _spindle_pwm_chan_num;
-    float _pwm_freq;
+    uint32_t _pwm_freq;
     uint32_t _pwm_period; // how many counts in 1 period
     uint8_t _pwm_precision;
-    float _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
+    //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
     virtual void set_output(uint32_t duty);
     void set_enable_pin(bool enable_pin);
     void get_pins_and_settings();
-    uint8_t calc_pwm_precision(float freq);
+    uint8_t calc_pwm_precision(uint32_t freq);
 };
 
-// This is for an on/off spindle all RPMs above 0 are on
+// This is for an on/off spindle->all RPMs above 0 are on
 class RelaySpindle : public PWMSpindle {
   public:
     void init();
     void config_message();
-    float set_rpm(float rpm);
+    uint32_t set_rpm(uint32_t rpm);
   protected:
     void set_output(uint32_t duty);
 };
 
-// this is the same as a PWM spindle, but the M4 compensation is supported.
+// this is the same as a PWM spindle-> but the M4 compensation is supported.
 class Laser : public PWMSpindle {
   public:
     bool isRateAdjusted();
@@ -129,7 +129,7 @@ class DacSpindle : public PWMSpindle {
   public:
     void init();
     void config_message();
-    float set_rpm(float rpm);
+    uint32_t set_rpm(uint32_t rpm);
   private:
     bool _gpio_ok; // DAC is on a valid pin
   protected:
@@ -140,9 +140,9 @@ class HuanyangSpindle : public Spindle {
   public:
     void init();
     void config_message();
-    virtual void set_state(uint8_t state, float rpm);
+    void set_state(uint8_t state, uint32_t rpm);
     uint8_t get_state();
-    float set_rpm(float rpm);
+    uint32_t set_rpm(uint32_t rpm);
     void stop();
 
   private:
@@ -162,10 +162,11 @@ class BESCSpindle : public PWMSpindle {
   public:
     void init();
     void config_message();
-    float set_rpm(float rpm);
+    uint32_t set_rpm(uint32_t rpm);
 };
 
-extern Spindle* spindle;
+extern Spindle *spindle;
+
 
 extern NullSpindle null_spindle;
 extern PWMSpindle pwm_spindle;
@@ -175,7 +176,7 @@ extern DacSpindle dac_spindle;
 extern HuanyangSpindle huanyang_spindle;
 extern BESCSpindle besc_spindle;
 
-void spindle_select(uint8_t spindle_type);
+void spindle_select(uint8_t spindletype);
 void spindle_read_prefs(Preferences& prefs);
 
 #endif
