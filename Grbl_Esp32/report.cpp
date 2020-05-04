@@ -672,9 +672,9 @@ void report_realtime_status(uint8_t client) {
     // Report realtime feed speed
 #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
     if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
-        sprintf(temp, "|FS:%.1f,%.0f", st_get_realtime_rate(), sys.spindle_speed / MM_PER_INCH);
+        sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate()/ MM_PER_INCH, sys.spindle_speed);
     else
-        sprintf(temp, "|FS:%.0f,%.0f", st_get_realtime_rate(), sys.spindle_speed);
+        sprintf(temp, "|FS:%.0f,%d", st_get_realtime_rate(), sys.spindle_speed);
     strcat(status, temp);
 #endif
 #ifdef REPORT_FIELD_PIN_STATE

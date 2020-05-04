@@ -43,6 +43,8 @@
 #include "driver/uart.h"
 
 
+// ===============  No floats! ===========================
+// ================ NO FLOATS! ==========================
 
 // This is the base class. Do not use this as your spindle
 class Spindle {
@@ -95,10 +97,13 @@ class PWMSpindle : public Spindle {
     uint8_t _output_pin;
     uint8_t _enable_pin;
     uint8_t _direction_pin;
-    int8_t _spindle_pwm_chan_num;
+    uint8_t _spindle_pwm_chan_num;
     uint32_t _pwm_freq;
     uint32_t _pwm_period; // how many counts in 1 period
     uint8_t _pwm_precision;
+    bool _piecewide_linear;
+    bool _off_with_zero_speed;
+    bool _invert_pwm;
     //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
     virtual void set_output(uint32_t duty);
