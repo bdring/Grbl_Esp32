@@ -20,6 +20,8 @@
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
+    See SpindleClass.cpp for more info and references
+
 */
 
 #define SPINDLE_STATE_DISABLE  0  // Must be zero.

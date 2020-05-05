@@ -24,7 +24,7 @@
 */
 
 #define MACHINE_NAME            "Spindle class Test"
-/*
+
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_14
 #define Y_STEP_PIN              GPIO_NUM_26
@@ -44,7 +44,8 @@
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_2   // labeled SpinPWM
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
-*/
 
+/*
 #define SPINDLE_TYPE            SPINDLE_TYPE_BESC
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_27   // labeled SpinPWM
+#define SPINDLE_OUTPUT_PIN      GPIO_NUM_27   //  
+*/

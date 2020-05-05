@@ -103,7 +103,7 @@ void PWMSpindle :: get_pins_and_settings() {
 #else
     _min_rpm = (uint32_t)settings.rpm_min;
     _max_rpm = (uint32_t)settings.rpm_max;
-    _piecewide_linear = true;
+    _piecewide_linear = false;
 #endif
     // The pwm_gradient is the pwm duty cycle units per rpm
     // _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
@@ -118,6 +118,8 @@ uint32_t PWMSpindle::set_rpm(uint32_t rpm) {
 
     if (_output_pin == UNDEFINED_PIN)
         return rpm;
+
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set rpm %d", rpm);
 
     // apply override
     rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle speed override value (uint8_t percent)
@@ -200,6 +202,8 @@ void PWMSpindle :: config_message() {
 void PWMSpindle::set_output(uint32_t duty) {
     if (_output_pin == UNDEFINED_PIN)
         return;
+
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set output %d", duty);
 
     // to prevent excessive calls to ledcWrite, make sure duty hass changed
     if (duty == _current_pwm_duty)
