@@ -4,6 +4,14 @@
 #ifndef _machine_h
 #define _machine_h
 
+/*
+PWM
+    Tested on arc_arrow.nc
+    
+
+
+*/
+
 #ifndef MACHINE_FILENAME
 
 // !!! For initial testing, start with test_drive.h which disables
