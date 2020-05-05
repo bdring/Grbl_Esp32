@@ -17,19 +17,23 @@
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
-    // VFD frequencies are in Hz. Multiple by 60 for RPM
+                         WARNING!!!!
+    VFDs are very dangerous. They have high voltages and are very powerful
+    Remove power before changing bits.
 
-    // before using spindle, VFD must be setup for RS485 and match your spindle
+    VFD frequencies are in Hz. Multiply by 60 for RPM
+
+    before using spindle, VFD must be setup for RS485 and match your spindle    
     PD001   2   RS485 Control of run commands
     PD002   2   RS485 Control of operating frequency
-    PD005   400 Maximum frequency Hz
+    PD005   400 Maximum frequency Hz (Typical for spindles)
     PD011   120 Min Speed (Recommend Aircooled=120 Water=100)
     PD014   10  Acceleration time (Test to optimize)
     PD015   10  Deceleration time (Test to optimize)
     PD023   1   Reverse run enabled
-    PD142   3.7 Max current Amps (0.8kw=3.7 1.5kw=7.0)
-    PD163   1   RS485 Address: 1
-    PD164   1   RS485 Baud rate: 9600
+    PD142   3.7 Max current Amps (0.8kw=3.7 1.5kw=7.0, 2.2kw=??)
+    PD163   1   RS485 Address: 1 (Typical. OK to change...see below)
+    PD164   1   RS485 Baud rate: 9600 (Typical. OK to change...see below)
     PD165   3   RS485 Mode: RTU, 8N1
 
     Some references....
@@ -46,12 +50,15 @@
 
 #include "driver/uart.h"
 
-#define HUANYANG_ADDR           0x01
 #define HUANYANG_UART_PORT      UART_NUM_2      // hard coded for this port right now
 #define ECHO_TEST_CTS           UART_PIN_NO_CHANGE // CTS pin is not used
-#define HUANYANG_BAUD_RATE      9600   // PD164 setting
 #define HUANYANG_BUF_SIZE       127
 #define RESPONSE_WAIT_TICKS     80 // how long to wait for a response
+
+// OK to change these
+// #define them in your machine definition file if you want different values
+#define HUANYANG_ADDR           0x01
+#define HUANYANG_BAUD_RATE      9600   // PD164 setting
 
 void HuanyangSpindle :: init() {
 

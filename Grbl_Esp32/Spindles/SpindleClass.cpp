@@ -24,7 +24,7 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
     TODO
-        Consider breaking into one file per class.
+        Add Spindle spin up/down delays
 
     Get rid of dependance on machine definition #defines
         SPINDLE_OUTPUT_PIN
