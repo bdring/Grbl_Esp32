@@ -66,6 +66,43 @@ void transfer_settings()
     settings.spindle_pwm_off_value = spindle_pwm_off_value->get();
 }
 
+void settings_restore(uint8_t restore_flag) {
+#if defined(ENABLE_BLUETOOTH) || defined(ENABLE_WIFI)
+    if (restore_flag & SETTINGS_RESTORE_WIFI_SETTINGS) {
+#ifdef ENABLE_WIFI
+        wifi_config.reset_settings();
+#endif
+#ifdef ENABLE_BLUETOOTH
+        bt_config.reset_settings();
+#endif
+    }
+#endif
+    if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {
+        for (Setting *s = SettingsList; s; s = s->next()) {
+            bool restore_startup = restore_flag & SETTINGS_RESTORE_STARTUP_LINES;
+            if (!s->getWebuiName()) {
+                const char *name = s->getName();
+                if (restore_startup || ((strcmp(name, "N0") != 0) && (strcmp(name, "N1") == 0))) {
+                    s->setDefault();
+                }
+            }
+        }
+        transfer_settings();
+        // TODO commit changes
+    }
+    if (restore_flag & SETTINGS_RESTORE_PARAMETERS) {
+        uint8_t idx;
+        float coord_data[N_AXIS];
+        memset(&coord_data, 0, sizeof(coord_data));
+        for (idx = 0; idx <= SETTING_INDEX_NCOORD; idx++)  settings_write_coord_data(idx, coord_data);
+    }
+    if (restore_flag & SETTINGS_RESTORE_BUILD_INFO) {
+        EEPROM.write(EEPROM_ADDR_BUILD_INFO, 0);
+        EEPROM.write(EEPROM_ADDR_BUILD_INFO + 1, 0); // Checksum
+        EEPROM.commit();
+    }
+}
+
 void load_settings()
 {
     for (Setting *s = SettingsList; s; s = s->next()) {
@@ -79,7 +116,6 @@ void settings_init()
 {
     make_settings();
     load_settings();
-    list_settings();
     transfer_settings();
 }
 #endif

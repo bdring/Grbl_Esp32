@@ -475,60 +475,20 @@ void WiFiConfig::end() {
  * Reset ESP
  */
 void WiFiConfig::reset_settings() {
-#ifdef NEW_SETTINGS
-    String sval;
-    int8_t bbuf;
-    int16_t ibuf;
     bool error = false;
-    sval = DEFAULT_HOSTNAME;
-    // XXX should add setDefault() methods
-    if (wifi_hostname->setStringValue(DEFAULT_HOSTNAME))
-        error = true;
-    if (notification_type->setStringValue(DEFAULT_NOTIFICATION_TYPE))
-        error = true;
-    if (notification_t1->setStringValue(DEFAULT_TOKEN))
-        error = true;
-    if (notification_t2->setStringValue(DEFAULT_TOKEN))
-        error = true;
-    if (notification_ts->setStringValue(DEFAULT_TOKEN))
-        error = true;
-    if (wifi_sta_ssid->setStringValue(DEFAULT_STA_SSID))
-        error = true;
-    if (wifi_sta_password->setStringValue(DEFAULT_STA_PWD))
-        error = true;
-    if (wifi_ap_ssid->setStringValue(DEFAULT_AP_SSID))
-        error = true;
-    if (wifi_ap_password->setStringValue(DEFAULT_AP_PWD))
-        error = true;
-    if (wifi_ap_channel->setStringValue(std::to_string(DEFAULT_AP_CHANNEL).c_str()))
-        error = true;
-    if (wifi_sta_mode->setStringValue(std::to_string(DEFAULT_STA_IP_MODE).c_str()));
-        error = true;
-    if (http_enable->setStringValue(std::to_string(DEFAULT_HTTP_STATE).c_str()))
-        error = true;
-    if (telnet_enable->setStringValue(std::to_string(DEFAULT_TELNET_STATE).c_str()))
-        error = true;
-    if (wifi_radio_mode->setStringValue(std::to_string(DEFAULT_RADIO_MODE).c_str()))
-        error = true;
-    if (http_port->setStringValue(to_string(DEFAULT_WEBSERVER_PORT).c_str()))
-        error = true;
-    if (telnet_port->setStringValue(to_string(DEFAULT_TELNETSERVER_PORT).c_str()))
-        error = true;
-    if (wifi_sta_ip->setStringValue(DEFAULT_STA_IP))
-        error = true;
-    if (wifi_sta_gateway->setStringValue(DEFAULT_STA_GW))
-        error = true;
-    if (wifi_sta_netmask->setStringValue(DEFAULT_STA_MK))
-        error = true;
-    if (wifi_ap_ip->setStringValue(DEFAULT_AP_IP))
-        error = true;
+#ifdef NEW_SETTINGS
+    for (Setting *s = SettingsList; s; s = s->link) {
+        if (s->getWebuiName()) {
+            s->setDefault();
+        }
+   }
+   // TODO commit the changes and check that for errors
 #else
     Preferences prefs;
     prefs.begin(NAMESPACE, false);
     String sval;
     int8_t bbuf;
     int16_t ibuf;
-    bool error = false;
     sval = DEFAULT_HOSTNAME;
     if (prefs.putString(HOSTNAME_ENTRY, sval) == 0)
         error = true;
@@ -591,8 +551,7 @@ void WiFiConfig::reset_settings() {
 #endif
     if (error)
         grbl_send(CLIENT_ALL, "[MSG:WiFi reset error]\r\n");
-    else
-        grbl_send(CLIENT_ALL, "[MSG:WiFi reset done]\r\n");
+    grbl_send(CLIENT_ALL, "[MSG:WiFi reset done]\r\n");
 }
 bool WiFiConfig::Is_WiFi_on() {
     return !(WiFi.getMode() == WIFI_MODE_NULL);

@@ -8,7 +8,7 @@ struct cmp_str
 {
    bool operator()(char const *a, char const *b) const
    {
-      return strcmp(a, b) < 0;
+      return strcasecmp(a, b) < 0;
    }
 };
 
@@ -38,10 +38,22 @@ err_t report_normal_settings(uint8_t client) {
     report_grbl_settings(client, false);
     return STATUS_OK;
 }
+#ifdef NEW_SETTINGS
+err_t report_extended_settings(uint8_t client) {
+    for (Setting *s = SettingsList; s; s = s->next()) {
+        const char *grblName = s->getGrblName();
+        if (grblName) {
+            grbl_sendf(client, "%s=%s\n", grblName, s->getStringValue());
+        }
+    }
+    return STATUS_OK;
+}
+#else
 err_t report_extended_settings(uint8_t client) {
     report_grbl_settings(client, true);
     return STATUS_OK;
 }
+#endif
 err_t toggle_check_mode(uint8_t client) {
     // Perform reset when toggling off. Check g-code mode should only work if Grbl
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
@@ -124,6 +136,13 @@ err_t report_startup_lines(uint8_t client) {
     report_startup_line(1, startup_line_1->get(), client);
     return STATUS_OK;
 }
+err_t list_settings(uint8_t client)
+{
+    for (Setting *s = SettingsList; s; s = s->link) {
+        grbl_sendf(client, "%s=%s\r\n", s->getName(), s->getStringValue());
+    }
+    return STATUS_OK;
+}
 
 // The following table is used if the line is of the form "$key\n"
 // i.e. dollar commands without "="
@@ -134,6 +153,7 @@ typedef err_t (*Command_t)(uint8_t);
 std::map<const char*, Command_t, cmp_str> dollarCommands = {
     { "$", report_normal_settings },
     { "+", report_extended_settings },
+    { "S", list_settings },
     { "G", report_gcode },
     { "C", toggle_check_mode },
     { "X", disable_alarm_lock },
@@ -152,10 +172,10 @@ std::map<const char*, Command_t, cmp_str> dollarCommands = {
 // FIXME See Store startup line [IDLE/ALARM]
 
 // normalize_key puts a key string into canonical form -
-// upper case without whitespace.
+// without whitespace.
 // start points to a null-terminated string.
-// Returns the first substring that does not contain whitespace,
-// converted to upper case.
+// Returns the first substring that does not contain whitespace.
+// Case is unchanged because comparisons are case-insensitive.
 char *normalize_key(char *start) {
     char c;
 
@@ -172,13 +192,9 @@ char *normalize_key(char *start) {
     }
 
     // Having found the beginning of the printable string,
-    // we now scan forward, converting lower to upper case,
-    // until we find a space character.
+    // we now scan forward until we find a space character.
     char *end;
     for (end = start; (c = *end) != '\0' && !isspace(c); end++) {
-        if (islower(c)) {
-            *end = toupper(c);
-        }
     }
 
     // end now points to either a whitespace character of end of string
@@ -197,7 +213,7 @@ err_t do_setting(const char *key, char *value) {
     // First search this numberedSettings array - aliases
     // for the underlying named settings.
     for (Setting *s = SettingsList; s; s = s->link) {
-        if ((strcmp(s->getName(), key) == 0)
+        if ((strcasecmp(s->getName(), key) == 0)
         || (s->getGrblName() && (strcmp(s->getGrblName(), key) == 0))) {
             return s->setStringValue(value);
         }
@@ -221,19 +237,11 @@ err_t do_command(const char *key, uint8_t client) {
     // Enhancement - not in Classic GRBL:
     // If it is not a command, look up the key
     // as a setting and display the value.
-#if 0
-    std::map<const char *, Setting*, cmp_str>::iterator it = numberedSettings.find(key);
-    if (it != numberedSettings.end()) {
-        Setting *s = it->second;
-        grbl_sendf(client, "$%s=%s\n", key, s->getStringValue());
-        return STATUS_OK;
-    }
-#endif
     for (Setting *s = SettingsList; s; s = s->next()) {
         //    if (s->getName().compare(k)) {
-        if ((strcmp(s->getName(), key) == 0)
-        || (s->getGrblName() && (strcmp(s->getGrblName(), key) == 0))) {
-            grbl_sendf(client, "$%s=%s\n", key, s->getStringValue());
+        if ((strcasecmp(s->getName(), key) == 0)
+        || (s->getGrblName() && (strcasecmp(s->getGrblName(), key) == 0))) {
+            grbl_sendf(client, "$%s=%s\n", s->getName(), s->getStringValue());
             return STATUS_OK;
         }
     }
@@ -267,12 +275,6 @@ void system_execute_startup(char* line) {
     if (*gcline) {
         status_code = gc_execute_line(gcline, CLIENT_SERIAL);
         report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);
-    }
-}
-void list_settings()
-{
-    for (Setting *s = SettingsList; s; s = s->link) {
-        grbl_sendf(CLIENT_SERIAL, "%s=%s\r\n", s->getName(), s->getStringValue());
     }
 }
 #endif

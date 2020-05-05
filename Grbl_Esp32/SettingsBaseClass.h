@@ -54,6 +54,7 @@ public:
 
     virtual err_t setStringValue(const char* value) =0;
     err_t setStringValue(string s) {  return setStringValue(s.c_str());  }
+    virtual void setDefault() =0;
 
     virtual const char* getStringValue() =0;
 

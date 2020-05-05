@@ -1,4 +1,7 @@
 #include "SettingsBaseClass.h"
+#include <nvs.h>
+
+extern nvs_handle _handle;
 
 class IntSetting : public Setting {
 private:
@@ -20,6 +23,7 @@ public:
     void load();
     void commit();
     err_t setStringValue(const char *);
+    void setDefault() { _currentValue = _defaultValue; }
     const char *getStringValue();
     void addWebui(JSONencoder *);
 };
@@ -42,6 +46,7 @@ public:
     void load();
     void commit();
     err_t setStringValue(const char *);
+    void setDefault() { _currentValue = _defaultValue; }
     const char *getStringValue();
 };
 
@@ -66,6 +71,7 @@ public:
     void commit();
     err_t setStringValue(const char *);
     const char *getStringValue();
+    void setDefault() { _currentValue = _defaultValue; }
     void addWebui(JSONencoder *);
 };
 
@@ -87,6 +93,7 @@ public:
     void commit();
     err_t setStringValue(const char *);
     const char *getStringValue();
+    void setDefault() { _currentValue = _defaultValue; }
     void addWebui(JSONencoder *);
 };
 
@@ -105,6 +112,7 @@ public:
     void load();
     void commit();
     err_t setStringValue(const char *);
+    void setDefault() { _currentValue = _defaultValue; }
     const char *getStringValue();
     // void addWebui(JSONencoder *);
 };
@@ -126,6 +134,7 @@ public:
     void commit();
     err_t setStringValue(const char *);
     const char *getStringValue();
+    void setDefault() { _currentValue = _defaultValue; }
     void addWebui(JSONencoder *);
 };
 

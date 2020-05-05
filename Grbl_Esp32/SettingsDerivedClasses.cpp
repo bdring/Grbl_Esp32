@@ -17,7 +17,7 @@ Setting::Setting(const char* webuiName, const char* grblName, const char* displa
     SettingsList = this;
 }
 
-nvs_handle _handle;
+nvs_handle _handle = 0;
 
 IntSetting::IntSetting(const char *webName, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *) = NULL)
       : Setting(webName, grblName, name, checker)
@@ -64,7 +64,7 @@ err_t IntSetting::setStringValue(const char* s) {
     }
     _currentValue = convertedValue;
     return STATUS_OK;
-  }
+}
 
 const char* IntSetting::getStringValue() {
     return std::to_string(get()).c_str();
@@ -400,13 +400,13 @@ AxisSettings::AxisSettings(int axisNum, const char *axisName, float steps, float
                            float run, float hold, int usteps, int stall)
 {
     name = axisName;
-    steps_per_mm = new FloatSetting(makeGrblName(axisNum, 100), makename(axisName, "_STEPS_PER_MM"), steps, 1.0, 50000.0);
-    max_rate     = new FloatSetting(makeGrblName(axisNum, 110), makename(axisName, "_MAX_RATE"), rate, 1.0, 1000000.0);
-    acceleration = new FloatSetting(makeGrblName(axisNum, 120), makename(axisName, "_ACCELERATION"), accel, 1.0, 100000.0);
-    max_travel   = new FloatSetting(makeGrblName(axisNum, 130), makename(axisName, "_MAX_TRAVEL"), travel, 1.0, 100000.0);   // Note! this values is entered as scaler but store negative
-    run_current  = new FloatSetting(NULL, makename(axisName, "_RUN_CURRENT"), run, 0.05, 20.0);
-    hold_current = new FloatSetting(NULL, makename(axisName, "_HOLD_CURRENT"), hold, 0.0, 100.0);
-    microsteps   = new IntSetting(NULL, makename(axisName, "_MICROSTEPS"), usteps, 1, 256);
-    stallguard   = new IntSetting(NULL, makename(axisName, "_STALLGUARD"), stall, 0, 100);
+    steps_per_mm = new FloatSetting(makeGrblName(axisNum, 100), makename(axisName, "StepsPerMm"), steps, 1.0, 50000.0);
+    max_rate     = new FloatSetting(makeGrblName(axisNum, 110), makename(axisName, "MaxRate"), rate, 1.0, 1000000.0);
+    acceleration = new FloatSetting(makeGrblName(axisNum, 120), makename(axisName, "Acceleration"), accel, 1.0, 100000.0);
+    max_travel   = new FloatSetting(makeGrblName(axisNum, 130), makename(axisName, "MaxTravel"), travel, 1.0, 100000.0);   // Note! this values is entered as scaler but store negative
+    run_current  = new FloatSetting(makeGrblName(axisNum, 140), makename(axisName, "RunCurrent"), run, 0.05, 20.0);
+    hold_current = new FloatSetting(makeGrblName(axisNum, 150), makename(axisName, "HoldCurrent"), hold, 0.0, 100.0);
+    microsteps   = new IntSetting(makeGrblName(axisNum, 160), makename(axisName, "Microsteps"), usteps, 1, 256);
+    stallguard   = new IntSetting(makeGrblName(axisNum, 170), makename(axisName, "StallGuard"), stall, 0, 100);
  }
 #endif
