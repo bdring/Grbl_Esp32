@@ -226,6 +226,7 @@ static int i2s_start() {
   if (!i2s_ioexpander_initialized) {
     return -1;
   }
+  I2S_ENTER_CRITICAL();
   // Transmit recovery data to 74HC595
   uint32_t port_data = atomic_load(&i2s_port_data); // current expanded port value
   i2s_gpio_shiftout(port_data);
@@ -233,7 +234,6 @@ static int i2s_start() {
   // Attach I2S to specified GPIO pin
   i2s_gpio_attach(i2s_ioexpander_ws_pin, i2s_ioexpander_bck_pin, i2s_ioexpander_data_pin);
   //start DMA link
-  I2S_ENTER_CRITICAL();
   i2s_reset_fifo_without_lock();
   //reset DMA
   I2S0.lc_conf.in_rst = 1;
@@ -248,17 +248,16 @@ static int i2s_start() {
 
   I2S0.out_link.addr = (uint32_t)dma.desc[0];
 
+  I2S0.conf1.tx_stop_en = 1; // BCK and WCK are suppressed while FIFO is empty
+
   // Connect DMA to FIFO
   I2S0.fifo_conf.dscr_en = 1; // Set this bit to enable I2S DMA mode. (R/W)
 
   I2S0.int_clr.val = 0xFFFFFFFF;
   I2S0.out_link.start = 1;
-  I2S0.conf1.tx_stop_en = 1; // BCK and WCK are suppressed while FIFO is empty
   I2S0.conf.tx_start = 1;
-  // wait for first FIFO data
-  while (I2S0.state.tx_idle) {
-    NOP();
-  }
+  // Wait for the first FIFO data to prevent the unintentional generation of 0 data
+  ets_delay_us(20);
   I2S0.conf1.tx_stop_en = 0; // BCK and WCK are generated regardless of the FIFO status
 
   I2S_EXIT_CRITICAL();
