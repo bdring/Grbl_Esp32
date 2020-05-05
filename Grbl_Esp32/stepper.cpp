@@ -1074,6 +1074,9 @@ void st_go_idle() {
     } else
         set_stepper_disable(pin_state);
     set_stepper_pins_on(0);
+#ifdef USE_I2S_IOEXPANDER
+    i2s_ioexpander_reset();
+#endif
 }
 
 // Called by planner_recalculate() when the executing block is updated by the new plan.
