@@ -74,7 +74,7 @@
 // by defining N_AXIS.  If you do not define it, 3 will be
 // used.  The value must be at least 3, even if your machine
 // has fewer axes.
-#define N_AXIS 4
+#define N_AXIS 3
 
 
 // == Pin Assignments
@@ -86,19 +86,19 @@
 #define X_DIRECTION_PIN         135 /* 128 + 8 x 0 + 7 */
 #define Y_STEP_PIN              133 /* 128 + 8 x 0 + 5 */
 #define Y_DIRECTION_PIN         132 /* 128 + 8 x 0 + 4 */
-#define Z_STEP_PIN              130 /* 128 + 8 x 0 + 2 */
-#define Z_DIRECTION_PIN         129 /* 128 + 8 x 0 + 1 */
-#define A_STEP_PIN              140 /* 128 + 8 x 1 + 4 */
-#define A_DIRECTION_PIN         141 /* 128 x 8 x 1 + 5 */
+//#define Z_STEP_PIN              130 /* 128 + 8 x 0 + 2 */
+//#define Z_DIRECTION_PIN         129 /* 128 + 8 x 0 + 1 */
+//#define A_STEP_PIN              140 /* 128 + 8 x 1 + 4 */
+//#define A_DIRECTION_PIN         141 /* 128 x 8 x 1 + 5 */
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
 // X, Z, A and B axes do, the LIMIT_MASK value would be B11101
-#define LIMIT_MASK              B0111
+#define LIMIT_MASK              B001
 
 #define X_LIMIT_PIN             GPIO_NUM_34
-#define Y_LIMIT_PIN             GPIO_NUM_35
-#define Z_LIMIT_PIN             GPIO_NUM_32
+//#define Y_LIMIT_PIN             GPIO_NUM_35
+//#define Z_LIMIT_PIN             GPIO_NUM_32
 
 // Common enable for all steppers.  If it is okay to leave
 // your drivers enabled at all times, you can leave
@@ -139,14 +139,14 @@
 // === Servos
 // To use a servo motor on an axis, do not define step and direction
 // pins for that axis, but instead include a block like this:
-// #define USE_SERVO_AXES
+#define USE_SERVO_AXES
 
-// #define SERVO_Z_PIN             GPIO_NUM_22
-// #define SERVO_Z_RANGE_MIN       0.0
-// #define SERVO_Z_RANGE_MAX       5.0
-// #define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-// #define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
-// #define SERVO_Z_MPOS            false           // will not use mpos, uses work coordinates
+#define SERVO_Z_PIN             GPIO_NUM_15
+#define SERVO_Z_RANGE_MIN       0.0
+#define SERVO_Z_RANGE_MAX       5.0
+#define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
+#define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
+#define SERVO_Z_MPOS            false           // will not use mpos, uses work coordinates
 
 // === Homing cycles
 // The default homing order is Z first (HOMING_CYCLE_0),
@@ -157,14 +157,17 @@
 // simultaneously, then A and B simultaneously, and Z
 // not at all.
 
-// #undef HOMING_CYCLE_0
-// #define HOMING_CYCLE_0 ((1<<X_AXIS)|(1<<Y_AXIS))
-
-// #undef HOMING_CYCLE_1
-// #define HOMING_CYCLE_1 ((1<<A_AXIS)|(1<<B_AXIS))
-
-// #undef HOMING_CYCLE_2
-// #endif
+// redefine some stuff from config.h
+#ifdef HOMING_CYCLE_0
+    #undef HOMING_CYCLE_0
+#endif
+#define HOMING_CYCLE_0 (1<<X_AXIS) // this 'bot only homes the X axis
+#ifdef HOMING_CYCLE_1
+    #undef HOMING_CYCLE_1
+#endif
+#ifdef HOMING_CYCLE_2
+    #undef HOMING_CYCLE_2
+#endif
 
 // === Default settings
 // Grbl has many run-time settings that the user can changed by
@@ -179,6 +182,14 @@
 
 //#define DEFAULT_INVERT_LIMIT_PINS 1
 //#define DEFAULT_REPORT_INCHES 1
+#define DEFAULT_STEP_PULSE_MICROSECONDS 4
+
+#define DEFAULT_HOMING_ENABLE 1
+#define DEFAULT_HOMING_DIR_MASK 0 // move positive dir Z, negative X,Y
+#define DEFAULT_HOMING_FEED_RATE 200.0 // mm/min
+#define DEFAULT_HOMING_SEEK_RATE 1000.0 // mm/min
+#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
+#define DEFAULT_HOMING_PULLOFF 3.0 // mm
 
 // === Control Pins
 
@@ -199,7 +210,19 @@
 // reduce false triggering.
 // #define ENABLE_CONTROL_SW_DEBOUNCE // Default disabled. Uncomment to enable.
 // #define CONTROL_SW_DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
+#ifndef ENABLE_CONTROL_SW_DEBOUNCE
+    #define ENABLE_CONTROL_SW_DEBOUNCE
+#endif
 
+#ifdef CONTROL_SW_DEBOUNCE_PERIOD
+    #undef CONTROL_SW_DEBOUNCE_PERIOD
+#endif
+#define CONTROL_SW_DEBOUNCE_PERIOD 100 // really long debounce
+
+#ifdef INVERT_CONTROL_PIN_MASK
+    #undef INVERT_CONTROL_PIN_MASK
+#endif
+#define INVERT_CONTROL_PIN_MASK B11111111
 
 // Grbl_ESP32 use the ESP32's special RMT (IR remote control) hardware
 // engine to achieve more precise high step rates than can be done

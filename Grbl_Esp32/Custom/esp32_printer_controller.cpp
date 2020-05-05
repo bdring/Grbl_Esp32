@@ -56,6 +56,13 @@ special things your machine needs at startup.
 #define STEPPERS_DISABLE_PIN_Z  131
 #define STEPPERS_DISABLE_PIN_A  139
 
+#define FAN1_PIN 13
+#define FAN2_PIN 142
+#define FAN3_PIN 143
+
+#define BED_PIN 4
+#define NOZZLE_PIN 2
+
 void machine_init()
 {
   // Enable steppers
@@ -63,6 +70,13 @@ void machine_init()
   I2S_IOEXP_OUT_WRITE(STEPPERS_DISABLE_PIN_Y, LOW); // enable
   I2S_IOEXP_OUT_WRITE(STEPPERS_DISABLE_PIN_Z, LOW); // enable
   I2S_IOEXP_OUT_WRITE(STEPPERS_DISABLE_PIN_A, LOW); // enable
+
+  I2S_IOEXP_OUT_WRITE(FAN1_PIN, LOW); // disable
+  I2S_IOEXP_OUT_WRITE(FAN2_PIN, LOW); // disable
+  I2S_IOEXP_OUT_WRITE(FAN3_PIN, LOW); // disable
+
+  I2S_IOEXP_OUT_WRITE(BED_PIN, LOW); // disable
+  I2S_IOEXP_OUT_WRITE(NOZZLE_PIN, LOW); // disable
 }
 #endif
 
