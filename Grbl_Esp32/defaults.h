@@ -132,11 +132,11 @@
     #endif
 
     #ifndef DEFAULT_SPINDLE_OFF_VALUE
-        #define DEFAULT_SPINDLE_OFF_VALUE 0.0 // $34 Percent (extended set)
+        #define DEFAULT_SPINDLE_OFF_VALUE 100.0 // $34 Percent (extended set)
     #endif
 
     #ifndef DEFAULT_SPINDLE_MIN_VALUE
-        #define DEFAULT_SPINDLE_MIN_VALUE 0.0 // $35 Percent (extended set)
+        #define DEFAULT_SPINDLE_MIN_VALUE 100.0 // $35 Percent (extended set)
     #endif
 
     #ifndef DEFAULT_SPINDLE_MAX_VALUE

@@ -62,7 +62,7 @@ void PWMSpindle :: get_pins_and_settings() {
 #ifdef INVERT_SPINDLE_ENABLE_PIN
     _invert_pwm = true;
 #else
-    _invert_pwm = true;
+    _invert_pwm = false;
 #endif
 
 #ifdef SPINDLE_ENABLE_PIN
@@ -208,7 +208,7 @@ void PWMSpindle::set_output(uint32_t duty) {
     _current_pwm_duty = duty;
 
     if (_invert_pwm)
-        duty = (1 << _pwm_precision) - duty;
+        duty = (1 << _pwm_precision) - duty;   
 
     ledcWrite(_spindle_pwm_chan_num, duty);
 
