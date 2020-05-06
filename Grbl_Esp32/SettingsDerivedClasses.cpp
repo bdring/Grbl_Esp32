@@ -1,5 +1,4 @@
 #include "grbl.h"
-#ifdef NEW_SETTINGS
 
 #include "SettingsDerivedClasses.h"
 #include "JSONencoder.h"
@@ -431,5 +430,3 @@ AxisSettings::AxisSettings(int axisNum, const char *axisName, float steps, float
  AxisSettings::AxisSettings(const char *axisName) :
     name(axisName)
 {}
-
-#endif

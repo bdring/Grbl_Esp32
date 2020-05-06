@@ -1,6 +1,5 @@
 #include "grbl.h"
 
-#ifdef NEW_SETTINGS
 #include "SettingsDefinitions.h"
 #include <map>
 
@@ -34,7 +33,6 @@ err_t report_gcode(uint8_t client) {
     report_gcode_modes(client);
     return STATUS_OK;
 }
-#ifdef NEW_SETTINGS
 const char *map_grbl_value(const char *value) {
     if (strcmp(value, "Off") == 0) {
         return "0";
@@ -76,16 +74,6 @@ err_t list_settings(uint8_t client)
     }
     return STATUS_OK;
 }
-#else
-err_t report_normal_settings(uint8_t client) {
-    report_grbl_settings(client, false);
-    return STATUS_OK;
-}
-err_t report_extended_settings(uint8_t client) {
-    report_grbl_settings(client, true);
-    return STATUS_OK;
-}
-#endif
 err_t toggle_check_mode(uint8_t client) {
     // Perform reset when toggling off. Check g-code mode should only work if Grbl
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
@@ -302,4 +290,4 @@ void system_execute_startup(char* line) {
         report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);
     }
 }
-#endif
+

@@ -1,7 +1,6 @@
 // Class for creating JSON-encoded strings.
 
 #include "grbl.h"
-#ifdef NEW_SETTINGS
 
 #include "JSONencoder.h"
 #include <string>
@@ -171,4 +170,3 @@ void JSONencoder::begin_webui(const char *p, const char *help, const char *type,
     member("S", min);
     member("M", max);
 }
-#endif

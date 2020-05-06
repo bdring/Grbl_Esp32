@@ -1,5 +1,5 @@
 #include "grbl.h"
-#ifdef NEW_SETTINGS
+
 #include "SettingsDerivedClasses.h"
 
 Setting *SettingsList = NULL;
@@ -402,4 +402,3 @@ void make_settings()
     pulse_microseconds = new IntSetting(GRBL, "0", "StepPulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_pwm_freq = new FloatSetting(EXTENDED, NULL, "SpindlePWMFreq", DEFAULT_SPINDLE_FREQ, 0, 100000);
 }
-#endif // NEW_SETTINGS

@@ -3,7 +3,6 @@
 // should be changed to use the Settings objects directly
 
 #include "grbl.h"
-#ifdef NEW_SETTINGS
 
 #include "SettingsDefinitions.h"
 
@@ -119,4 +118,3 @@ void settings_init()
     load_settings();
     transfer_settings();
 }
-#endif
