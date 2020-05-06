@@ -134,6 +134,9 @@ uint32_t PWMSpindle::set_rpm(uint32_t rpm) {
 
     if (_piecewide_linear) {
         //pwm_value = piecewise_linear_fit(rpm); TODO
+        pwm_value = 0;
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Linear fit not implemented yet.");
+
     } else {
         if (rpm == 0)
             pwm_value = _pwm_off_value;
