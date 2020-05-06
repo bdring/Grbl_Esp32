@@ -245,6 +245,8 @@ bool HuanyangSpindle :: set_mode(uint8_t mode) {
 
     if (xQueueSend(hy_cmd_queue, &mode_cmd, 0) != pdTRUE)
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
+
+    return true;
 }
 
 /*

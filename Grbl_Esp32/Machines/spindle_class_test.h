@@ -41,9 +41,9 @@
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_13
 
 
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_2   // labeled SpinPWM
-#define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
+#define SPINDLE_TYPE            SPINDLE_TYPE_DAC
+#define SPINDLE_OUTPUT_PIN      GPIO_NUM_25   // labeled SpinPWM
+//#define SPINDLE_ENABLE_PIN      GPIO_NUM_25  // labeled SpinEnbl
 
 /*
 #define SPINDLE_TYPE            SPINDLE_TYPE_BESC
