@@ -47,9 +47,9 @@
 */
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG
-#define MODBUS_TX               GPIO_NUM_17
-#define MODBUS_RX               GPIO_NUM_4
-#define MODBUS_CTRL             GPIO_NUM_16
+#define HUANYANG_TXD_PIN        GPIO_NUM_17
+#define HUANYANG_RXD_PIN        GPIO_NUM_4
+#define HUANYANG_RTS_PIN        GPIO_NUM_16
 
 #define X_LIMIT_PIN             GPIO_NUM_34
 #define Y_LIMIT_PIN             GPIO_NUM_35

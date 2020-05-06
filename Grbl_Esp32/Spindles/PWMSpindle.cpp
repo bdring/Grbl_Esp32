@@ -190,7 +190,7 @@ void PWMSpindle::stop() {
 void PWMSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "PWM spindle o Output:%d, Enbl:%d, Dir:%d, Freq:%dHz, Res:%dbits",
+                   "PWM spindle Output:%d, Enbl:%d, Dir:%d, Freq:%dHz, Res:%dbits",
                    _output_pin,
                    _enable_pin, // 255 means pin not defined
                    _direction_pin, // 255 means pin not defined
