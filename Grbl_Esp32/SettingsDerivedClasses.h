@@ -151,6 +151,4 @@ public:
     IntSetting *stallguard;
 
     AxisSettings(const char *axisName);
-    AxisSettings(int axis, const char *axisName, float steps, float rate, float accel, float travel,
-               float run, float hold, int usteps, int stall);
 };

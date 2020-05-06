@@ -385,48 +385,6 @@ void IPaddrSetting::addWebui(JSONencoder *j) {
     }
 }
 
-#if 0
-// Construct e.g. X_MAX_RATE from axisName "X" and tail "_MAX_RATE"
-// in dynamically allocated memory that will not be freed.
-static const char *makename(const char *axisName, const char *tail) {
-    char *retval = (char *)malloc(strlen(axisName) + strlen(tail) + 1);
-    strcpy(retval, axisName);
-    return strcat(retval, tail);
-}
-
-// Generates a string like "122" from axisNum 2 and base 120
-static const char *makeGrblName(int axisNum, int base) {
-    // To omit A,B,C axes:
-    // if (axisNum > 2) return NULL;
-    char buf[4];
-    snprintf(buf, 4, "%d", axisNum + base);
-    char *retval = (char *)malloc(strlen(buf));
-    return strcpy(retval, buf);
-}
-
-AxisSettings::AxisSettings(int axisNum, const char *axisName, float steps, float rate, float accel, float travel,
-                           float run, float hold, int usteps, int stall)
-{
-    name = axisName;
-    // Creating these in reverse order makes them display in the order people expect
-    stallguard   = new IntSetting(EXTENDED, makeGrblName(axisNum, 170), makename(axisName, "StallGuard"), stall, 0, 100);
-    stallguard->setAxis(axisNum);
-    microsteps   = new IntSetting(EXTENDED, makeGrblName(axisNum, 160), makename(axisName, "Microsteps"), usteps, 1, 256);
-    microsteps->setAxis(axisNum);
-    hold_current = new FloatSetting(EXTENDED, makeGrblName(axisNum, 150), makename(axisName, "HoldCurrent"), hold, 0.0, 100.0);
-    hold_current->setAxis(axisNum);
-    run_current  = new FloatSetting(EXTENDED, makeGrblName(axisNum, 140), makename(axisName, "RunCurrent"), run, 0.05, 20.0);
-    run_current->setAxis(axisNum);
-    max_travel   = new FloatSetting(GRBL, makeGrblName(axisNum, 130), makename(axisName, "MaxTravel"), travel, 1.0, 100000.0);   // Note! this values is entered as scaler but store negative
-    max_travel->setAxis(axisNum);
-    acceleration = new FloatSetting(GRBL, makeGrblName(axisNum, 120), makename(axisName, "Acceleration"), accel, 1.0, 100000.0);
-    acceleration->setAxis(axisNum);
-    max_rate     = new FloatSetting(GRBL, makeGrblName(axisNum, 110), makename(axisName, "MaxRate"), rate, 1.0, 1000000.0);
-    max_rate->setAxis(axisNum);
-    steps_per_mm = new FloatSetting(GRBL, makeGrblName(axisNum, 100), makename(axisName, "StepsPerMm"), steps, 1.0, 50000.0);
-    steps_per_mm->setAxis(axisNum);
- }
-#endif
  AxisSettings::AxisSettings(const char *axisName) :
     name(axisName)
 {}
