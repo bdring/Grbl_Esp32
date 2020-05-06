@@ -477,7 +477,7 @@ void WiFiConfig::end() {
 void WiFiConfig::reset_settings() {
     bool error = false;
 #ifdef NEW_SETTINGS
-    for (Setting *s = SettingsList; s; s = s->link) {
+    for (Setting *s = SettingsList; s; s = s->next()) {
         if (s->getWebuiName()) {
             s->setDefault();
         }

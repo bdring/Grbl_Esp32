@@ -88,7 +88,6 @@ Some features should not be changed. See notes below.
 // machine_common.h contains settings that do not change
 #include "machine_common.h"
 
-// #define NEW_SETTINGS
 #define MAX_N_AXIS 6
 
 // Number of axes defined (steppers, servos, etc) (valid range: 3 to 6)

@@ -34,21 +34,53 @@ err_t report_gcode(uint8_t client) {
     report_gcode_modes(client);
     return STATUS_OK;
 }
+#ifdef NEW_SETTINGS
+const char *map_grbl_value(const char *value) {
+    if (strcmp(value, "Off") == 0) {
+        return "0";
+    }
+    if (strcmp(value, "On") == 0) {
+        return "1";
+    }
+    return value;
+}
+void show_grbl_settings(uint8_t client, group_t group, bool wantAxis) {
+    for (Setting *s = SettingsList; s; s = s->next()) {
+        if (s->getGroup() == group && s->getGrblName()) {
+            bool isAxis = s->getAxis() != NO_AXIS;
+            // The following test could be expressed more succinctly with XOR,
+            // but is arguably clearer when written out
+            if ((wantAxis && isAxis) || (!wantAxis && !isAxis)) {
+                grbl_sendf(client, "$%s=%s\n", s->getGrblName(), map_grbl_value(s->getStringValue()));
+            }
+        }
+    }
+    
+}
 err_t report_normal_settings(uint8_t client) {
-    report_grbl_settings(client, false);
+    show_grbl_settings(client, GRBL, false);     // GRBL non-axis settings
+    show_grbl_settings(client, GRBL, true);      // GRBL axis settings
     return STATUS_OK;
 }
-#ifdef NEW_SETTINGS
 err_t report_extended_settings(uint8_t client) {
+    show_grbl_settings(client, GRBL, false);     // GRBL non-axis settings
+    show_grbl_settings(client, EXTENDED, false); // Extended non-axis settings
+    show_grbl_settings(client, GRBL, true);      // GRBL axis settings
+    show_grbl_settings(client, EXTENDED, true);  // Extended axis settings
+    return STATUS_OK;
+}
+err_t list_settings(uint8_t client)
+{
     for (Setting *s = SettingsList; s; s = s->next()) {
-        const char *grblName = s->getGrblName();
-        if (grblName) {
-            grbl_sendf(client, "%s=%s\n", grblName, s->getStringValue());
-        }
+        grbl_sendf(client, "$%s=%s\r\n", s->getName(), s->getStringValue());
     }
     return STATUS_OK;
 }
 #else
+err_t report_normal_settings(uint8_t client) {
+    report_grbl_settings(client, false);
+    return STATUS_OK;
+}
 err_t report_extended_settings(uint8_t client) {
     report_grbl_settings(client, true);
     return STATUS_OK;
@@ -136,13 +168,6 @@ err_t report_startup_lines(uint8_t client) {
     report_startup_line(1, startup_line_1->get(), client);
     return STATUS_OK;
 }
-err_t list_settings(uint8_t client)
-{
-    for (Setting *s = SettingsList; s; s = s->link) {
-        grbl_sendf(client, "%s=%s\r\n", s->getName(), s->getStringValue());
-    }
-    return STATUS_OK;
-}
 
 // The following table is used if the line is of the form "$key\n"
 // i.e. dollar commands without "="
@@ -212,7 +237,7 @@ char *normalize_key(char *start) {
 err_t do_setting(const char *key, char *value) {
     // First search this numberedSettings array - aliases
     // for the underlying named settings.
-    for (Setting *s = SettingsList; s; s = s->link) {
+    for (Setting *s = SettingsList; s; s = s->next()) {
         if ((strcasecmp(s->getName(), key) == 0)
         || (s->getGrblName() && (strcmp(s->getGrblName(), key) == 0))) {
             return s->setStringValue(value);

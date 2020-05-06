@@ -12,10 +12,10 @@ private:
     int32_t _maxValue;
 
 public:
-    IntSetting(const char *webName, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *));
+    IntSetting(const char *webName, group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *));
 
-    IntSetting(const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *) = NULL)
-        : IntSetting(NULL, grblName, name, defVal, minVal, maxVal, checker)
+    IntSetting(group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *) = NULL)
+        : IntSetting(NULL, group, grblName, name, defVal, minVal, maxVal, checker)
     { }
 
     int32_t get() {  return _currentValue;  }
@@ -25,6 +25,7 @@ public:
     err_t setStringValue(const char *);
     void setDefault() { _currentValue = _defaultValue; }
     const char *getStringValue();
+    const char *getStringDefault();
     void addWebui(JSONencoder *);
 };
 
@@ -36,10 +37,10 @@ private:
     float _minValue;
     float _maxValue;
 public:
-    FloatSetting(const char *webName, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(const char *));
+    FloatSetting(const char *webName, group_t group, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(const char *));
 
-    FloatSetting(const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(const char *) = NULL)
-        : FloatSetting(NULL, grblName, name, defVal, minVal, maxVal, checker)
+    FloatSetting(group_t group, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(const char *) = NULL)
+        : FloatSetting(NULL, group, grblName, name, defVal, minVal, maxVal, checker)
     { }
 
     float get() {  return _currentValue;  }
@@ -60,10 +61,10 @@ private:
     int _maxLength;
     void _setStoredValue(const char *s);
 public:
-    StringSetting(const char *webName, const char* grblName, const char* name, const char* defVal, int min, int max, bool (*checker)(const char *));
+    StringSetting(const char *webName, group_t group, const char* grblName, const char* name, const char* defVal, int min, int max, bool (*checker)(const char *));
 
-    StringSetting(const char* grblName, const char* name, const char* defVal, bool (*checker)(const char *) = NULL)
-        : StringSetting(NULL, grblName, name, defVal, 0, 0, checker)
+    StringSetting(group_t group, const char* grblName, const char* name, const char* defVal, bool (*checker)(const char *) = NULL)
+        : StringSetting(NULL, group, grblName, name, defVal, 0, 0, checker)
     { };
 
     const char* get() { return _currentValue.c_str();  }
@@ -82,10 +83,10 @@ private:
     int8_t _currentValue;
     std::map<const char *, int8_t>_options;
 public:
-    EnumSetting(const char *webName, const char* grblName, const char* name, int8_t defVal, std::map<const char *, int8_t>opts);
+    EnumSetting(const char *webName, group_t group, const char* grblName, const char* name, int8_t defVal, std::map<const char *, int8_t>opts);
 
-    EnumSetting(const char* grblName, const char* name, int8_t defVal, std::map<const char *, int8_t>opts) :
-        EnumSetting(NULL, grblName, name, defVal, opts)
+    EnumSetting(group_t group, const char* grblName, const char* name, int8_t defVal, std::map<const char *, int8_t>opts) :
+        EnumSetting(NULL, group, grblName, name, defVal, opts)
     { }
 
     int8_t get() { return _currentValue;  }
@@ -103,9 +104,9 @@ private:
     int8_t _storedValue;
     bool _currentValue;
 public:
-    FlagSetting(const char *webName, const char* grblName, const char* name, bool defVal, bool (*checker)(const char *));
-    FlagSetting(const char* grblName, const char* name, bool defVal, bool (*checker)(const char *) = NULL)
-        : FlagSetting(NULL, grblName, name, defVal, checker)
+    FlagSetting(const char *webName, group_t group, const char* grblName, const char* name, bool defVal, bool (*checker)(const char *));
+    FlagSetting(group_t group, const char* grblName, const char* name, bool defVal, bool (*checker)(const char *) = NULL)
+        : FlagSetting(NULL, group, grblName, name, defVal, checker)
     { }
 
     bool get() {  return _currentValue;  }
@@ -124,9 +125,8 @@ private:
     uint32_t _storedValue;
 
 public:
-    IPaddrSetting(const char *webName, const char * grblName, const char* name, uint32_t defVal, bool (*checker)(const char *));
-
-    IPaddrSetting(const char *webName, const char * grblName, const char* name, const char *defVal, bool (*checker)(const char *));
+    IPaddrSetting(const char *webName, group_t group, const char * grblName, const char* name, uint32_t defVal, bool (*checker)(const char *));
+    IPaddrSetting(const char *webName, group_t group, const char * grblName, const char* name, const char *defVal, bool (*checker)(const char *));
 
     uint32_t get() {  return _currentValue;  }
 
@@ -150,6 +150,7 @@ public:
     IntSetting *microsteps;
     IntSetting *stallguard;
 
+    AxisSettings(const char *axisName);
     AxisSettings(int axis, const char *axisName, float steps, float rate, float accel, float travel,
                float run, float hold, int usteps, int stall);
 };

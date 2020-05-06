@@ -7,8 +7,10 @@
 #include <map>
 #include "nvs.h"
 
-Setting::Setting(const char* webuiName, const char* grblName, const char* displayName, bool (*checker)(const char *))
+Setting::Setting(const char* webuiName, group_t group, const char* grblName, const char* displayName, bool (*checker)(const char *))
         : _webuiName(webuiName)
+        , _group(group)
+        , _axis(NO_AXIS)
         , _grblName(grblName)
         , _displayName(displayName)
         , _checker(checker)
@@ -19,8 +21,8 @@ Setting::Setting(const char* webuiName, const char* grblName, const char* displa
 
 nvs_handle _handle = 0;
 
-IntSetting::IntSetting(const char *webName, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *) = NULL)
-      : Setting(webName, grblName, name, checker)
+IntSetting::IntSetting(const char *webName, group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *) = NULL)
+      : Setting(webName, group, grblName, name, checker)
       , _defaultValue(defVal)
       , _currentValue(defVal)
       , _minValue(minVal)
@@ -77,8 +79,8 @@ void IntSetting::addWebui(JSONencoder *j) {
     }
 }
 
-FloatSetting::FloatSetting(const char *webName, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(const char *) = NULL)
-    : Setting(webName, grblName, name, checker)
+FloatSetting::FloatSetting(const char *webName, group_t group, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(const char *) = NULL)
+    : Setting(webName, group, grblName, name, checker)
     , _defaultValue(defVal)
     , _currentValue(defVal)
     , _minValue(minVal)
@@ -146,8 +148,8 @@ const char* FloatSetting::getStringValue() {
     return strval;
 }
 
-StringSetting::StringSetting(const char *webName, const char* grblName, const char* name, const char* defVal, int min, int max, bool (*checker)(const char *))
-    : Setting(webName, grblName, name, checker)
+StringSetting::StringSetting(const char *webName, group_t group, const char* grblName, const char* name, const char* defVal, int min, int max, bool (*checker)(const char *))
+    : Setting(webName, group, grblName, name, checker)
 {
     _defaultValue = defVal;
     _currentValue = defVal;
@@ -197,7 +199,13 @@ err_t StringSetting::setStringValue(const char* s) {
     return STATUS_OK;
 }
 
-const char* StringSetting::getStringValue() { return _currentValue.c_str(); }
+const char* StringSetting::getStringValue() {
+    // If the string is a password do not display it 
+    if (_checker && _checker == WiFiConfig::isPasswordValid) {
+        return "******";
+    }
+     return _currentValue.c_str();
+}
 
 void StringSetting::addWebui(JSONencoder *j) {
     if (!getWebuiName()) {
@@ -208,9 +216,9 @@ void StringSetting::addWebui(JSONencoder *j) {
     j->end_object();
 }
 
-EnumSetting::EnumSetting(const char *webName, const char* grblName, const char* name, int8_t defVal, std::map<const char *, int8_t>opts)
+EnumSetting::EnumSetting(const char *webName, group_t group, const char* grblName, const char* name, int8_t defVal, std::map<const char *, int8_t>opts)
     // No checker function because enumerations have an exact set of value
-    : Setting(webName, grblName, name, NULL)
+    : Setting(webName, group, grblName, name, NULL)
     , _defaultValue(defVal)
     , _options(opts)
 { }
@@ -271,8 +279,8 @@ void EnumSetting::addWebui(JSONencoder *j) {
     j->end_object();
 }
 
-FlagSetting::FlagSetting(const char *webName, const char * grblName, const char* name, bool defVal, bool (*checker)(const char *) = NULL) :
-    Setting(webName, grblName, name, checker),
+FlagSetting::FlagSetting(const char *webName, group_t group, const char * grblName, const char* name, bool defVal, bool (*checker)(const char *) = NULL) :
+    Setting(webName, group, grblName, name, checker),
     _defaultValue(defVal)
 { }
 
@@ -311,14 +319,14 @@ const char* FlagSetting::getStringValue() {
 
 #include <WiFi.h>
 
-IPaddrSetting::IPaddrSetting(const char *webName, const char * grblName, const char* name, uint32_t defVal, bool (*checker)(const char *) = NULL)
-      : Setting(webName, grblName, name, checker) // There are no GRBL IP settings.
+IPaddrSetting::IPaddrSetting(const char *webName, group_t group, const char * grblName, const char* name, uint32_t defVal, bool (*checker)(const char *) = NULL)
+      : Setting(webName, group, grblName, name, checker) // There are no GRBL IP settings.
       , _defaultValue(defVal)
       , _currentValue(defVal)
 { }
 
-IPaddrSetting::IPaddrSetting(const char *webName, const char * grblName, const char* name, const char *defVal, bool (*checker)(const char *) = NULL)
-      : Setting(webName, grblName, name, checker)
+IPaddrSetting::IPaddrSetting(const char *webName, group_t group, const char * grblName, const char* name, const char *defVal, bool (*checker)(const char *) = NULL)
+      : Setting(webName, group, grblName, name, checker)
 {
     IPAddress ipaddr;
     if (ipaddr.fromString(defVal)) {
@@ -378,16 +386,17 @@ void IPaddrSetting::addWebui(JSONencoder *j) {
     }
 }
 
+#if 0
 // Construct e.g. X_MAX_RATE from axisName "X" and tail "_MAX_RATE"
 // in dynamically allocated memory that will not be freed.
-const char *makename(const char *axisName, const char *tail) {
+static const char *makename(const char *axisName, const char *tail) {
     char *retval = (char *)malloc(strlen(axisName) + strlen(tail) + 1);
     strcpy(retval, axisName);
     return strcat(retval, tail);
 }
 
 // Generates a string like "122" from axisNum 2 and base 120
-const char *makeGrblName(int axisNum, int base) {
+static const char *makeGrblName(int axisNum, int base) {
     // To omit A,B,C axes:
     // if (axisNum > 2) return NULL;
     char buf[4];
@@ -400,13 +409,27 @@ AxisSettings::AxisSettings(int axisNum, const char *axisName, float steps, float
                            float run, float hold, int usteps, int stall)
 {
     name = axisName;
-    steps_per_mm = new FloatSetting(makeGrblName(axisNum, 100), makename(axisName, "StepsPerMm"), steps, 1.0, 50000.0);
-    max_rate     = new FloatSetting(makeGrblName(axisNum, 110), makename(axisName, "MaxRate"), rate, 1.0, 1000000.0);
-    acceleration = new FloatSetting(makeGrblName(axisNum, 120), makename(axisName, "Acceleration"), accel, 1.0, 100000.0);
-    max_travel   = new FloatSetting(makeGrblName(axisNum, 130), makename(axisName, "MaxTravel"), travel, 1.0, 100000.0);   // Note! this values is entered as scaler but store negative
-    run_current  = new FloatSetting(makeGrblName(axisNum, 140), makename(axisName, "RunCurrent"), run, 0.05, 20.0);
-    hold_current = new FloatSetting(makeGrblName(axisNum, 150), makename(axisName, "HoldCurrent"), hold, 0.0, 100.0);
-    microsteps   = new IntSetting(makeGrblName(axisNum, 160), makename(axisName, "Microsteps"), usteps, 1, 256);
-    stallguard   = new IntSetting(makeGrblName(axisNum, 170), makename(axisName, "StallGuard"), stall, 0, 100);
+    // Creating these in reverse order makes them display in the order people expect
+    stallguard   = new IntSetting(EXTENDED, makeGrblName(axisNum, 170), makename(axisName, "StallGuard"), stall, 0, 100);
+    stallguard->setAxis(axisNum);
+    microsteps   = new IntSetting(EXTENDED, makeGrblName(axisNum, 160), makename(axisName, "Microsteps"), usteps, 1, 256);
+    microsteps->setAxis(axisNum);
+    hold_current = new FloatSetting(EXTENDED, makeGrblName(axisNum, 150), makename(axisName, "HoldCurrent"), hold, 0.0, 100.0);
+    hold_current->setAxis(axisNum);
+    run_current  = new FloatSetting(EXTENDED, makeGrblName(axisNum, 140), makename(axisName, "RunCurrent"), run, 0.05, 20.0);
+    run_current->setAxis(axisNum);
+    max_travel   = new FloatSetting(GRBL, makeGrblName(axisNum, 130), makename(axisName, "MaxTravel"), travel, 1.0, 100000.0);   // Note! this values is entered as scaler but store negative
+    max_travel->setAxis(axisNum);
+    acceleration = new FloatSetting(GRBL, makeGrblName(axisNum, 120), makename(axisName, "Acceleration"), accel, 1.0, 100000.0);
+    acceleration->setAxis(axisNum);
+    max_rate     = new FloatSetting(GRBL, makeGrblName(axisNum, 110), makename(axisName, "MaxRate"), rate, 1.0, 1000000.0);
+    max_rate->setAxis(axisNum);
+    steps_per_mm = new FloatSetting(GRBL, makeGrblName(axisNum, 100), makename(axisName, "StepsPerMm"), steps, 1.0, 50000.0);
+    steps_per_mm->setAxis(axisNum);
  }
+#endif
+ AxisSettings::AxisSettings(const char *axisName) :
+    name(axisName)
+{}
+
 #endif

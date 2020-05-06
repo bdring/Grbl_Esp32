@@ -21,16 +21,30 @@ extern Setting *SettingsList;
 // kinds of data.  Code that accesses settings should use only these
 // generic functions and should not use derived classes directly.
 
+enum {
+    NO_AXIS = 255,
+};
+enum {
+    GRBL = 1,
+    EXTENDED,
+    WEBUI
+};
+typedef uint16_t group_t;
+typedef uint8_t axis_t;
+
 class Setting {
 private:
     const char* _webuiName;
+    group_t _group;
+    axis_t _axis;
     const char *_grblName;
     const char* _displayName;
+
+protected:
     bool (*_checker)(const char *);
-    // Add each constructed setting to the linked list
+    Setting *link;  // linked list of setting objects
 
 public:
-    Setting *link;
     Setting *next() { return link; }
 
     bool check(const char *s) {
@@ -38,7 +52,10 @@ public:
     }
 
     ~Setting() {}
-    Setting(const char *webuiName, const char * grblName, const char* displayName, bool (*checker)(const char *));
+    Setting(const char *webuiName, group_t group, const char * grblName, const char* displayName, bool (*checker)(const char *));
+    group_t getGroup() { return _group; }
+    axis_t getAxis() { return _axis; }
+    void setAxis(axis_t axis) { _axis = axis; }
     const char* getName() { return _displayName; }
     const char* getGrblName() { return _grblName; }
     const char* getWebuiName() { return _webuiName; }

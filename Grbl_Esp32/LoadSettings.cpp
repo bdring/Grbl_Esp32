@@ -16,12 +16,14 @@ void setBit(bool flag, int32_t mask)
 void transfer_settings()
 {
     // axes
-    //    for (int i = 0; i < N_AXIS; i++) {
-    for (int i = 0; i < MAX_N_AXIS; i++) {
+    for (int i = 0; i < N_AXIS; i++) {
         AxisSettings* so = axis_settings[i];
+        if (!so) {
+            continue;
+        }
         settings.steps_per_mm[i] = so->steps_per_mm->get();
         settings.max_rate[i] = so->max_rate->get();
-        settings.acceleration[i] = so->acceleration->get();
+        settings.acceleration[i] = so->acceleration->get() * SEC_PER_MIN_SQ;
         settings.max_travel[i] = -so->max_travel->get(); // Stored as negative
         settings.current[i] = so->run_current->get();
         settings.hold_current[i] = so->hold_current->get();
@@ -110,7 +112,6 @@ void load_settings()
     }
 }
 
-extern void list_settings();
 extern void make_settings();
 void settings_init()
 {
