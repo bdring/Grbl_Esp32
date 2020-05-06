@@ -144,7 +144,23 @@ class DacSpindle : public PWMSpindle {
 };
 
 class HuanyangSpindle : public Spindle {
+  private:
+    uint16_t  ModRTU_CRC(char* buf, int len);
+    void add_ModRTU_CRC(char* buf, int full_msg_len);
+    bool set_mode(uint8_t mode);
+    bool get_pins_and_settings();
+
+    uint32_t _current_pwm_rpm;
+    uint8_t _txd_pin;
+    uint8_t _rxd_pin;
+    uint8_t _rts_pin;
+    uint8_t _state;
+    bool _task_running;
+
   public:
+    HuanyangSpindle() {
+        _task_running = false;
+    }
     void init();
     void config_message();
     void set_state(uint8_t state, uint32_t rpm);
@@ -152,17 +168,7 @@ class HuanyangSpindle : public Spindle {
     uint32_t set_rpm(uint32_t rpm);
     void stop();
 
-  private:
-    bool get_response(uint16_t length);
-    uint16_t  ModRTU_CRC(char* buf, int len);
-    void add_ModRTU_CRC(char* buf, int full_msg_len);
-    bool set_mode(uint8_t mode);
-    bool get_pins_and_settings();
 
-    uint8_t _txd_pin;
-    uint8_t _rxd_pin;
-    uint8_t _rts_pin;
-    uint8_t _state;
 };
 
 class BESCSpindle : public PWMSpindle {
@@ -172,7 +178,7 @@ class BESCSpindle : public PWMSpindle {
     uint32_t set_rpm(uint32_t rpm);
 };
 
-extern Spindle *spindle;
+extern Spindle* spindle;
 
 
 extern NullSpindle null_spindle;
@@ -185,5 +191,8 @@ extern BESCSpindle besc_spindle;
 
 void spindle_select(uint8_t spindletype);
 void spindle_read_prefs(Preferences& prefs);
+
+// in HuanyangSpindle.cpp
+void vfd_cmd_task(void* pvParameters);
 
 #endif
