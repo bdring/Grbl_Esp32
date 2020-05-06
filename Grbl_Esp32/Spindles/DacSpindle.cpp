@@ -57,9 +57,9 @@ void DacSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "DAC spindle Output:%d, Enbl:%d, Dir:%d, Res:8bits",
-                   _output_pin,
-                   _enable_pin, // 255 means pin not defined
-                   _direction_pin); // 255 means pin not defined                  
+                   report_pin_number(_output_pin),
+                   report_pin_number(_enable_pin), // 255 means pin not defined
+                   report_pin_number(_direction_pin)); // 255 means pin not defined                  
 }
 
 uint32_t DacSpindle::set_rpm(uint32_t rpm) {

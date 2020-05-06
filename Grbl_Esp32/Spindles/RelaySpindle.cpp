@@ -44,8 +44,13 @@ void RelaySpindle::init() {
 }
 
 // prints the startup message of the spindle config
-void RelaySpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Relay spindle on Pin:%d", _output_pin);
+void RelaySpindle :: config_message() {    
+    grbl_msg_sendf(CLIENT_SERIAL,
+                   MSG_LEVEL_INFO,
+                   "Relay spindle Output:%d, Enbl:%d, Dir:%d",
+                   report_pin_number(_output_pin),
+                   report_pin_number(_enable_pin), // 255 means pin not defined
+                   report_pin_number(_direction_pin)); // 255 means pin not defined
 }
 
 uint32_t RelaySpindle::set_rpm(uint32_t rpm) {
@@ -55,12 +60,13 @@ uint32_t RelaySpindle::set_rpm(uint32_t rpm) {
     sys.spindle_speed = rpm;
 
     if (rpm == 0) {
-        sys.spindle_speed = 0;
         set_output(0);
     } else {
-        sys.spindle_speed = rpm;
         set_output(1);
     }
+
+    if (_off_with_zero_speed)
+        set_enable_pin(rpm != 0);
 
     return rpm;
 }
