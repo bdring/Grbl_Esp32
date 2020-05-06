@@ -84,11 +84,11 @@ void BESCSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "BESC spindle on Pin:%d Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
-                   _output_pin,
+                   report_pin_number(_output_pin),
                    BESC_MIN_PULSE_SECS * 1000.0, // convert to milliseconds
                    BESC_MAX_PULSE_SECS * 1000.0, // convert to milliseconds
-                   _pwm_freq,
-                   _pwm_precision);
+                   report_pin_number(_pwm_freq),
+                   report_pin_number(_pwm_precision));
 }
 
 uint32_t BESCSpindle::set_rpm(uint32_t rpm) {

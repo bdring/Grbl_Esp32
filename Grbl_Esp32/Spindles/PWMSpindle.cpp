@@ -161,9 +161,11 @@ void PWMSpindle::set_state(uint8_t state, uint32_t rpm) {
         stop();
     } else {
         set_spindle_dir_pin(state == SPINDLE_ENABLE_CW);
-        set_enable_pin(true);
         set_rpm(rpm);
     }
+
+    set_enable_pin(state == SPINDLE_DISABLE);
+
     sys.report_ovr_counter = 0; // Set to report change immediately
 }
 
@@ -194,9 +196,9 @@ void PWMSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "PWM spindle Output:%d, Enbl:%d, Dir:%d, Freq:%dHz, Res:%dbits",
-                   _output_pin,
-                   _enable_pin, // 255 means pin not defined
-                   _direction_pin, // 255 means pin not defined
+                   report_pin_number(_output_pin),
+                   report_pin_number(_enable_pin), // 255 means pin not defined
+                   report_pin_number(_direction_pin), // 255 means pin not defined
                    _pwm_freq,
                    _pwm_precision);
 }
@@ -215,7 +217,7 @@ void PWMSpindle::set_output(uint32_t duty) {
     _current_pwm_duty = duty;
 
     if (_invert_pwm)
-        duty = (1 << _pwm_precision) - duty;   
+        duty = (1 << _pwm_precision) - duty;
 
     ledcWrite(_spindle_pwm_chan_num, duty);
 
