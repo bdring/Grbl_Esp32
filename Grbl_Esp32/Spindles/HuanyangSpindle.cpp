@@ -47,6 +47,8 @@
         What happens if the VFD does not respond
         Add periodic pinging of VFD in run mode to see if it is still at correct RPM
 */
+#include "SpindleClass.h"
+
 #include "driver/uart.h"
 
 #define HUANYANG_UART_PORT      UART_NUM_2      // hard coded for this port right now
