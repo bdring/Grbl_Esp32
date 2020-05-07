@@ -97,7 +97,7 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
 void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
     if (client == CLIENT_INPUT) return;
     if (level > GRBL_MSG_LEVEL) return;
-    char loc_buf[64];
+    char loc_buf[100];
     char* temp = loc_buf;
     va_list arg;
     va_list copy;
@@ -113,7 +113,7 @@ void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_sendf(client, "[MSG:%s]\r\n", temp);
     va_end(arg);
-    if (len > 64)
+    if (len > 100)
         delete[] temp;
 }
 
@@ -681,9 +681,9 @@ void report_realtime_status(uint8_t client) {
 #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
 #ifdef VARIABLE_SPINDLE
     if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
-        sprintf(temp, "|FS:%.1f,%.0f", st_get_realtime_rate(), sys.spindle_speed / MM_PER_INCH);
+        sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate()/ MM_PER_INCH, sys.spindle_speed);
     else
-        sprintf(temp, "|FS:%.0f,%.0f", st_get_realtime_rate(), sys.spindle_speed);
+        sprintf(temp, "|FS:%.0f,%d", st_get_realtime_rate(), sys.spindle_speed);
     strcat(status, temp);
 #else
     if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
@@ -790,4 +790,54 @@ void report_gcode_comment(char* comment) {
         msg[index - offset] = 0; // null terminate
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "GCode Comment...%s", msg);
     }
+}
+
+void report_machine_type(uint8_t client) {
+    grbl_msg_sendf(client, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_NAME);
+}
+
+
+/*
+    Print a message in hex format
+    Ex: report_hex_msg(msg, "Rx:", 6);
+    Would would print something like ... [MSG Rx: 0x01 0x03 0x01 0x08 0x31 0xbf]
+*/
+void report_hex_msg(char* buf, const char* prefix, int len) {
+    char report[200];
+    char temp[20];
+    sprintf(report, "%s", prefix);
+    for (int i = 0; i < len; i++) {
+        sprintf(temp, " 0x%02X", buf[i]);
+        strcat(report, temp);
+    }
+
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
+
+}
+
+char report_get_axis_letter(uint8_t axis) {
+    switch (axis) {
+    case X_AXIS:
+        return 'X';
+    case Y_AXIS:
+        return 'Y';
+    case Z_AXIS:
+        return 'Z';
+    case A_AXIS:
+        return 'A';
+    case B_AXIS:
+        return 'B';
+    case C_AXIS:
+        return 'C';
+    default:
+        return '?';
+    }
+}
+
+// used to report the pin nhumber or -1 for undefined.
+int16_t report_pin_number(uint8_t pin_number) {
+    if (pin_number == UNDEFINED_PIN)
+        return -1;
+    else
+        return (int16_t)pin_number;
 }
