@@ -30,6 +30,7 @@
     BESC_MAX_PULSE_SECS is typically 2ms (0.002 sec) or more
 
 */
+#include "SpindleClass.h"
 
 // don't change these
 #define BESC_PWM_FREQ           50.0f // Hz
