@@ -190,7 +190,6 @@ extern HuanyangSpindle huanyang_spindle;
 extern BESCSpindle besc_spindle;
 
 void spindle_select(uint8_t spindletype);
-void spindle_read_prefs(Preferences& prefs);
 
 // in HuanyangSpindle.cpp
 void vfd_cmd_task(void* pvParameters);
