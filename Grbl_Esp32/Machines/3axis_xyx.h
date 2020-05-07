@@ -33,7 +33,7 @@
 #define Y2_DIRECTION_PIN        GPIO_NUM_33  /* labeled Z */
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM
-#define SPINDLE_PWM_PIN         GPIO_NUM_2
+#define SPINDLE_OUTPUT_PIN         GPIO_NUM_2
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_22
 
 #define LIMIT_MASK              B11
