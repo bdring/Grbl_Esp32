@@ -295,23 +295,16 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             case 3:
             case 4:
             case 5:
-#ifndef SPINDLE_PWM_PIN
-                grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No spindle pin defined");
-#endif
                 word_bit = MODAL_GROUP_M7;
                 switch (int_value) {
                 case 3:
                     gc_block.modal.spindle = SPINDLE_ENABLE_CW;
                     break;
                 case 4: // Supported if SPINDLE_DIR_PIN is defined or laser mode is on.
-#ifndef SPINDLE_DIR_PIN
-                    // if laser mode is not on then this is an unsupported command
-                    if bit_isfalse(settings.flags, BITFLAG_LASER_MODE) {
+                    if (spindle->is_reversable || bit_istrue(settings.flags, BITFLAG_LASER_MODE))
+                        gc_block.modal.spindle = SPINDLE_ENABLE_CCW;
+                    else
                         FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
-                        break;
-                    }
-#endif
-                    gc_block.modal.spindle = SPINDLE_ENABLE_CCW;
                     break;
                 case 5:
                     gc_block.modal.spindle = SPINDLE_DISABLE;
@@ -1088,16 +1081,12 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // [4. Set spindle speed ]:
     if ((gc_state.spindle_speed != gc_block.values.s) || bit_istrue(gc_parser_flags, GC_PARSER_LASER_FORCE_SYNC)) {
         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
-#ifdef VARIABLE_SPINDLE
             if (bit_isfalse(gc_parser_flags, GC_PARSER_LASER_ISMOTION)) {
                 if (bit_istrue(gc_parser_flags, GC_PARSER_LASER_DISABLE))
-                    spindle_sync(gc_state.modal.spindle, 0.0);
+                    spindle->spindle_sync(gc_state.modal.spindle, 0);
                 else
-                    spindle_sync(gc_state.modal.spindle, gc_block.values.s);
+                    spindle->spindle_sync(gc_state.modal.spindle, (uint32_t)gc_block.values.s);
             }
-#else
-            spindle_sync(gc_state.modal.spindle, 0.0);
-#endif
         }
         gc_state.spindle_speed = gc_block.values.s; // Update spindle speed state.
     }
@@ -1118,7 +1107,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         // Update spindle control and apply spindle speed when enabling it in this block.
         // NOTE: All spindle state changes are synced, even in laser mode. Also, pl_data,
         // rather than gc_state, is used to manage laser state for non-laser motions.
-        spindle_sync(gc_block.modal.spindle, pl_data->spindle_speed);
+        spindle->spindle_sync(gc_block.modal.spindle, (uint32_t)pl_data->spindle_speed);
         gc_state.modal.spindle = gc_block.modal.spindle;
     }
     pl_data->condition |= gc_state.modal.spindle; // Set condition flag for planner use.
@@ -1294,7 +1283,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                 if (!(settings_read_coord_data(gc_state.modal.coord_select, gc_state.coord_system)))
                     FAIL(STATUS_SETTING_READ_FAIL);
                 system_flag_wco_change(); // Set to refresh immediately just in case something altered.
-                spindle_set_state(SPINDLE_DISABLE, 0.0);
+                spindle->set_state(SPINDLE_DISABLE, 0);
                 coolant_set_state(COOLANT_DISABLE);
             }
             report_feedback_message(MESSAGE_PROGRAM_END);

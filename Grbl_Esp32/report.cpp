@@ -97,7 +97,7 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
 void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
     if (client == CLIENT_INPUT) return;
     if (level > GRBL_MSG_LEVEL) return;
-    char loc_buf[64];
+    char loc_buf[100];
     char* temp = loc_buf;
     va_list arg;
     va_list copy;
@@ -113,7 +113,7 @@ void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_sendf(client, "[MSG:%s]\r\n", temp);
     va_end(arg);
-    if (len > 64)
+    if (len > 100)
         delete[] temp;
 }
 
@@ -308,11 +308,8 @@ void report_grbl_settings(uint8_t client, uint8_t show_extended) {
     sprintf(setting, "$27=%4.3f\r\n", settings.homing_pulloff);   strcat(rpt, setting);
     sprintf(setting, "$30=%4.3f\r\n", settings.rpm_max);   strcat(rpt, setting);
     sprintf(setting, "$31=%4.3f\r\n", settings.rpm_min);   strcat(rpt, setting);
-#ifdef VARIABLE_SPINDLE
     sprintf(setting, "$32=%d\r\n", bit_istrue(settings.flags, BITFLAG_LASER_MODE));  strcat(rpt, setting);
-#else
-    strcat(rpt, "$32=0\r\n");
-#endif
+
     if (show_extended) {
         sprintf(setting, "$33=%5.3f\r\n", settings.spindle_pwm_freq);   strcat(rpt, setting);
         sprintf(setting, "$34=%3.3f\r\n", settings.spindle_pwm_off_value);   strcat(rpt, setting);
@@ -471,10 +468,8 @@ void report_gcode_modes(uint8_t client) {
     else
         sprintf(temp, " F%.0f", gc_state.feed_rate);
     strcat(modes_rpt, temp);
-#ifdef VARIABLE_SPINDLE
     sprintf(temp, " S%4.3f", gc_state.spindle_speed);
     strcat(modes_rpt, temp);
-#endif
     strcat(modes_rpt, "]\r\n");
     grbl_send(client, modes_rpt);
 }
@@ -497,12 +492,8 @@ void report_build_info(char* line, uint8_t client) {
     strcpy(build_info, "[VER:" GRBL_VERSION "." GRBL_VERSION_BUILD ":");
     strcat(build_info, line);
     strcat(build_info, "]\r\n[OPT:");
-#ifdef VARIABLE_SPINDLE
-    strcat(build_info, "V");
-#endif
-#ifdef USE_LINE_NUMBERS
+    strcat(build_info, "V"); // variable spindle..always on now
     strcat(build_info, "N");
-#endif
 #ifdef COOLANT_MIST_PIN
     strcat(build_info, "M"); // TODO Need to deal with M8...it could be disabled
 #endif
@@ -558,6 +549,7 @@ void report_build_info(char* line, uint8_t client) {
     // These will likely have a comma delimiter to separate them.
     strcat(build_info, "]\r\n");
     grbl_send(client, build_info); // ok to send to all
+    report_machine_type(client);
 #if defined (ENABLE_WIFI)
     grbl_send(client, (char*)wifi_config.info());
 #endif
@@ -679,19 +671,11 @@ void report_realtime_status(uint8_t client) {
 #endif
     // Report realtime feed speed
 #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
-#ifdef VARIABLE_SPINDLE
     if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
-        sprintf(temp, "|FS:%.1f,%.0f", st_get_realtime_rate(), sys.spindle_speed / MM_PER_INCH);
+        sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate()/ MM_PER_INCH, sys.spindle_speed);
     else
-        sprintf(temp, "|FS:%.0f,%.0f", st_get_realtime_rate(), sys.spindle_speed);
+        sprintf(temp, "|FS:%.0f,%d", st_get_realtime_rate(), sys.spindle_speed);
     strcat(status, temp);
-#else
-    if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
-        sprintf(temp, "|F:%.1f", st_get_realtime_rate() / MM_PER_INCH);
-    else
-        sprintf(temp, "|F:%.0f", st_get_realtime_rate());
-    strcat(status, temp);
-#endif
 #endif
 #ifdef REPORT_FIELD_PIN_STATE
     uint8_t lim_pin_state = limits_get_state();
@@ -744,7 +728,7 @@ void report_realtime_status(uint8_t client) {
         } else  sys.report_ovr_counter = (REPORT_OVR_REFRESH_IDLE_COUNT - 1);
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
-        uint8_t sp_state = spindle_get_state();
+        uint8_t sp_state =  spindle->get_state();
         uint8_t cl_state = coolant_get_state();
         if (sp_state || cl_state) {
             strcat(status, "|A:");
@@ -790,4 +774,54 @@ void report_gcode_comment(char* comment) {
         msg[index - offset] = 0; // null terminate
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "GCode Comment...%s", msg);
     }
+}
+
+void report_machine_type(uint8_t client) {
+    grbl_msg_sendf(client, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_NAME);
+}
+
+
+/*
+    Print a message in hex format
+    Ex: report_hex_msg(msg, "Rx:", 6);
+    Would would print something like ... [MSG Rx: 0x01 0x03 0x01 0x08 0x31 0xbf]
+*/
+void report_hex_msg(char* buf, const char* prefix, int len) {
+    char report[200];
+    char temp[20];
+    sprintf(report, "%s", prefix);
+    for (int i = 0; i < len; i++) {
+        sprintf(temp, " 0x%02X", buf[i]);
+        strcat(report, temp);
+    }
+
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
+
+}
+
+char report_get_axis_letter(uint8_t axis) {
+    switch (axis) {
+    case X_AXIS:
+        return 'X';
+    case Y_AXIS:
+        return 'Y';
+    case Z_AXIS:
+        return 'Z';
+    case A_AXIS:
+        return 'A';
+    case B_AXIS:
+        return 'B';
+    case C_AXIS:
+        return 'C';
+    default:
+        return '?';
+    }
+}
+
+// used to report the pin nhumber or -1 for undefined.
+int16_t report_pin_number(uint8_t pin_number) {
+    if (pin_number == UNDEFINED_PIN)
+        return -1;
+    else
+        return (int16_t)pin_number;
 }
