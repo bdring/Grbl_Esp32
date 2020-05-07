@@ -206,15 +206,16 @@ void system_flag_wco_change() {
 //   serves as a central place to compute the transformation.
 float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
     float pos;
+    float steps_per_mm = axis_settings[idx]->steps_per_mm->get();
 #ifdef COREXY
     if (idx == X_AXIS)
-        pos = (float)system_convert_corexy_to_x_axis_steps(steps) / settings.steps_per_mm[idx];
+        pos = (float)system_convert_corexy_to_x_axis_steps(steps) / steps_per_mm;
     else if (idx == Y_AXIS)
-        pos = (float)system_convert_corexy_to_y_axis_steps(steps) / settings.steps_per_mm[idx];
+        pos = (float)system_convert_corexy_to_y_axis_steps(steps) / steps_per_mm;
     else
-        pos = steps[idx] / settings.steps_per_mm[idx];
+        pos = steps[idx] / steps_per_mm;
 #else
-    pos = steps[idx] / settings.steps_per_mm[idx];
+    pos = steps[idx] / steps_per_mm;
 #endif
     return (pos);
 }
@@ -226,26 +227,24 @@ void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     return;
 }
 
-
-
 // Checks and reports if target array exceeds machine travel limits.
 uint8_t system_check_travel_limits(float* target) {
     uint8_t idx;
     for (idx = 0; idx < N_AXIS; idx++) {
+        float travel = axis_settings[idx]->max_travel->get();
 #ifdef HOMING_FORCE_SET_ORIGIN
+        uint8_t mask = homing_dir_mask->get();
         // When homing forced set origin is enabled, soft limits checks need to account for directionality.
-        // NOTE: max_travel is stored as negative
-        if (bit_istrue(settings.homing_dir_mask, bit(idx))) {
-            if (target[idx] < 0 || target[idx] > -settings.max_travel[idx])  return (true);
+        if (bit_istrue(mask, bit(idx))) {
+            if (target[idx] < 0 || target[idx] > travel)  return (true);
         } else {
-            if (target[idx] > 0 || target[idx] < settings.max_travel[idx])  return (true);
+            if (target[idx] > 0 || target[idx] < -travel)  return (true);
         }
 #else
-        // NOTE: max_travel is stored as negative
 #ifdef HOMING_FORCE_POSITIVE_SPACE
-        if (target[idx] < 0 || target[idx] > -settings.max_travel[idx])  return (true);
+        if (target[idx] < 0 || target[idx] > travel)  return (true);
 #else
-        if (target[idx] > 0 || target[idx] < settings.max_travel[idx])  return (true);
+        if (target[idx] > 0 || target[idx] < -travel)  return (true);
 #endif
 #endif
     }

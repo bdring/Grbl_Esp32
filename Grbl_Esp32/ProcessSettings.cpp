@@ -53,7 +53,6 @@ void show_grbl_settings(uint8_t client, group_t group, bool wantAxis) {
             }
         }
     }
-    
 }
 err_t report_normal_settings(uint8_t client) {
     show_grbl_settings(client, GRBL, false);     // GRBL non-axis settings

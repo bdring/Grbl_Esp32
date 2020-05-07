@@ -85,7 +85,8 @@ void delay_ms(uint16_t ms);
 float hypot_f(float x, float y);
 
 float convert_delta_vector_to_unit_vector(float* vector);
-float limit_value_by_axis_maximum(float* max_value, float* unit_vec);
+float limit_acceleration_by_axis_maximum(float* unit_vec);
+float limit_rate_by_axis_maximum(float* unit_vec);
 
 float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
 float map_float(float x, float in_min, float in_max, float out_min, float out_max);

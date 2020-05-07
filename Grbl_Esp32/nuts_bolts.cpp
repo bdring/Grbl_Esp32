@@ -135,12 +135,22 @@ float convert_delta_vector_to_unit_vector(float* vector) {
     return (magnitude);
 }
 
-float limit_value_by_axis_maximum(float* max_value, float* unit_vec) {
+float limit_acceleration_by_axis_maximum(float* unit_vec) {
     uint8_t idx;
     float limit_value = SOME_LARGE_VALUE;
     for (idx = 0; idx < N_AXIS; idx++) {
         if (unit_vec[idx] != 0)    // Avoid divide by zero.
-            limit_value = MIN(limit_value, fabs(max_value[idx] / unit_vec[idx]));
+            limit_value = MIN(limit_value, fabs(axis_settings[idx]->acceleration->get() / unit_vec[idx]));
+    }
+    return (limit_value);
+}
+
+float limit_rate_by_axis_maximum(float* unit_vec) {
+    uint8_t idx;
+    float limit_value = SOME_LARGE_VALUE;
+    for (idx = 0; idx < N_AXIS; idx++) {
+        if (unit_vec[idx] != 0)    // Avoid divide by zero.
+            limit_value = MIN(limit_value, fabs(axis_settings[idx]->max_rate->get() / unit_vec[idx]));
     }
     return (limit_value);
 }

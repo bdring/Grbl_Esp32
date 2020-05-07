@@ -47,7 +47,7 @@ void protocol_main_loop() {
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
 #ifdef CHECK_LIMITS_AT_INIT
-    if (bit_istrue(settings.flags, BITFLAG_HARD_LIMIT_ENABLE)) {
+    if (hard_limits->get()) {
         if (limits_get_state()) {
             sys.state = STATE_ALARM; // Ensure alarm state is active.
             report_feedback_message(MESSAGE_CHECK_LIMITS);
@@ -544,7 +544,7 @@ static void protocol_exec_rt_suspend() {
         restore_spindle_speed = block->spindle_speed;
     }
 #ifdef DISABLE_LASER_DURING_HOLD
-    if (bit_istrue(settings.flags, BITFLAG_LASER_MODE))
+    if (laser_mode->get())
         system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP);
 #endif
 
@@ -574,14 +574,14 @@ static void protocol_exec_rt_suspend() {
                     // current location not exceeding the parking target location, and laser mode disabled.
                     // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                    if ((bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE)) &&
-                            (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
-                            bit_isfalse(settings.flags, BITFLAG_LASER_MODE) &&
-                            (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
+                    if (homing_enable->get() &&
+                        (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
+                        laser_mode->get() &&
+                        (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
-                    if ((bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE)) &&
+                        if (homing_enable->get() &&
                             (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
-                            bit_isfalse(settings.flags, BITFLAG_LASER_MODE)) {
+                            laser_mode->get()) {
 #endif
                         // Retract spindle by pullout distance. Ensure retraction motion moves away from
                         // the workpiece and waypoint motion doesn't exceed the parking target location.
@@ -634,10 +634,10 @@ static void protocol_exec_rt_suspend() {
                         // Execute fast restore motion to the pull-out position. Parking requires homing enabled.
                         // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                        if (((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) &&
+                        if (homing_enable->get() && !laser_mode->get()) &&
                                 (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
-                        if ((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) {
+                        if (homing_enable->get() && !laser_mode->get()) {
 #endif
                             // Check to ensure the motion doesn't move below pull-out position.
                             if (parking_target[PARKING_AXIS] <= PARKING_TARGET) {
@@ -651,7 +651,7 @@ static void protocol_exec_rt_suspend() {
                         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
                             // Block if safety door re-opened during prior restore actions.
                             if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
-                                if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
+                                if (laser_mode->get()) {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                     bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                                 } else {
@@ -671,10 +671,10 @@ static void protocol_exec_rt_suspend() {
 #ifdef PARKING_ENABLE
                         // Execute slow plunge motion from pull-out position to resume position.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                        if (((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) &&
+                        if (homing_enable->get() && !laser_mode->get()) &&
                                 (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
-                        if ((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) {
+                        if (homing_enable->get() && !laser_mode->get()) {
 #endif
                             // Block if safety door re-opened during prior restore actions.
                             if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
@@ -710,7 +710,7 @@ static void protocol_exec_rt_suspend() {
                     } else if (sys.spindle_stop_ovr & (SPINDLE_STOP_OVR_RESTORE | SPINDLE_STOP_OVR_RESTORE_CYCLE)) {
                         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
                             report_feedback_message(MESSAGE_SPINDLE_RESTORE);
-                            if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
+                            if (laser_mode->get()) {
                                 // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                 bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                             } else

@@ -1,3 +1,4 @@
+#pragma once
 #include "SettingsDerivedClasses.h"
 
 extern AxisSettings* x_axis_settings;

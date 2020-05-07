@@ -6,6 +6,8 @@
 
 using namespace std;
 
+typedef uint8_t err_t; // For status codes
+
 // SettingsList is a linked list of all settings,
 // so common code can enumerate them.
 class Setting;

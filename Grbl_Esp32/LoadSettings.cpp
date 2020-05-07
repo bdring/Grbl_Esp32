@@ -6,6 +6,7 @@
 
 #include "SettingsDefinitions.h"
 
+#if 0
 void setBit(bool flag, int32_t mask)
 {
     if (flag) {
@@ -66,6 +67,7 @@ void transfer_settings()
     settings.spindle_pwm_max_value = spindle_pwm_max_value->get();
     settings.spindle_pwm_off_value = spindle_pwm_off_value->get();
 }
+#endif
 
 void settings_restore(uint8_t restore_flag) {
 #if defined(ENABLE_BLUETOOTH) || defined(ENABLE_WIFI)
@@ -88,7 +90,7 @@ void settings_restore(uint8_t restore_flag) {
                 }
             }
         }
-        transfer_settings();
+        //transfer_settings();
         // TODO commit changes
     }
     if (restore_flag & SETTINGS_RESTORE_PARAMETERS) {
@@ -116,5 +118,5 @@ void settings_init()
 {
     make_settings();
     load_settings();
-    transfer_settings();
+    //transfer_settings();
 }

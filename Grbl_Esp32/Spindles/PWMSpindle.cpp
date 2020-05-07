@@ -69,24 +69,24 @@ void PWMSpindle :: get_pins_and_settings() {
 #endif
     is_reversable = (_direction_pin != UNDEFINED_PIN);
 
-    _pwm_freq = settings.spindle_pwm_freq;
+    _pwm_freq = spindle_pwm_freq->get();
     _pwm_precision = calc_pwm_precision(_pwm_freq); // detewrmine the best precision
     _pwm_period = (1 << _pwm_precision);
 
-    if (settings.spindle_pwm_min_value > settings.spindle_pwm_min_value)
+    if (spindle_pwm_min_value->get() > spindle_pwm_min_value->get())
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Spindle min pwm is greater than max. Check $35 and $36");
 
     // pre-caculate some PWM count values
-    _pwm_off_value = (_pwm_period * settings.spindle_pwm_off_value / 100.0);
-    _pwm_min_value = (_pwm_period * settings.spindle_pwm_min_value / 100.0);
-    _pwm_max_value = (_pwm_period * settings.spindle_pwm_max_value / 100.0);
+    _pwm_off_value = (_pwm_period * spindle_pwm_off_value->get() / 100.0);
+    _pwm_min_value = (_pwm_period * spindle_pwm_min_value->get() / 100.0);
+    _pwm_max_value = (_pwm_period * spindle_pwm_max_value->get() / 100.0);
 
 #ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
     _min_rpm = RPM_MIN;
     _max_rpm = RPM_MAX;
 #else
-    _min_rpm = settings.rpm_min;
-    _max_rpm = settings.rpm_max;
+    _min_rpm = rpm_min->get();
+    _max_rpm = rpm_max->get();
 #endif
     // The pwm_gradient is the pwm duty cycle units per rpm
     _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
@@ -189,7 +189,7 @@ void PWMSpindle::set_output(uint32_t duty) {
     _current_pwm_duty = duty;
 
 #ifdef INVERT_SPINDLE_PWM
-    duty = (1 << settings.spindle_pwm_precision_bits) - duty;
+    duty = (1 << spindle_pwm_precision_bits->get()) - duty;
 #endif
     ledcWrite(_spindle_pwm_chan_num, duty);
 }

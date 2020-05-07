@@ -1,3 +1,4 @@
+#pragma once
 #include "SettingsBaseClass.h"
 #include <nvs.h>
 

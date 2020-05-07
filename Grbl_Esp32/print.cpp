@@ -120,7 +120,7 @@ void printFloat(float n, uint8_t decimal_places) {
 //  - CoordValue: Handles all position or coordinate values in inches or mm reporting.
 //  - RateValue: Handles feed rate and current velocity in inches or mm reporting.
 void printFloat_CoordValue(float n) {
-    if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
+    if (report_inches->get())
         printFloat(n * INCH_PER_MM, N_DECIMAL_COORDVALUE_INCH);
     else
         printFloat(n, N_DECIMAL_COORDVALUE_MM);

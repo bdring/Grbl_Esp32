@@ -304,7 +304,7 @@ uint8_t gc_execute_line(const char* line, uint8_t client) {
                     gc_block.modal.spindle = SPINDLE_ENABLE_CW;
                     break;
                 case 4: // Supported if SPINDLE_DIR_PIN is defined or laser mode is on.
-                    if (spindle->is_reversable || bit_istrue(settings.flags, BITFLAG_LASER_MODE))
+                    if (spindle->is_reversable || laser_mode->get())
                         gc_block.modal.spindle = SPINDLE_ENABLE_CCW;
                     else
                         FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
@@ -1040,7 +1040,7 @@ uint8_t gc_execute_line(const char* line, uint8_t client) {
         return (status);
     }
     // If in laser mode, setup laser power based on current and past parser conditions.
-    if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
+    if (laser_mode->get()) {
         if (!((gc_block.modal.motion == MOTION_MODE_LINEAR) || (gc_block.modal.motion == MOTION_MODE_CW_ARC)
                 || (gc_block.modal.motion == MOTION_MODE_CCW_ARC)))
             gc_parser_flags |= GC_PARSER_LASER_DISABLE;

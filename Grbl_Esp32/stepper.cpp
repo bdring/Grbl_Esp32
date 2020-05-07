@@ -212,7 +212,7 @@ uint8_t C2_rmt_chan_num = 255;
 		Direction pin is set
 		An optional (via STEP_PULSE_DELAY in config.h) is put after this
 		The step pin is started
-		A pulse length is determine (via option $0 ... settings.pulse_microseconds)
+		A pulse length is determine (via option $0 ... pulse_microseconds)
 		The pulse is ended
 		Direction will remain the same until another step occurs with a change in direction.
 
@@ -238,7 +238,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
     stepperRMT_Outputs();
 #else
     set_stepper_pins_on(st.step_outbits);
-    step_pulse_off_time = esp_timer_get_time() + (settings.pulse_microseconds); // determine when to turn off pulse
+    step_pulse_off_time = esp_timer_get_time() + (pulse_microseconds->get()); // determine when to turn off pulse
 #endif
 #ifdef USE_UNIPOLAR
     unipolar_step(st.step_outbits, st.dir_outbits);
@@ -262,7 +262,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
                 st.counter_x = st.counter_y = st.counter_z = (st.exec_block->step_event_count >> 1);
                 // TODO ABC
             }
-            st.dir_outbits = st.exec_block->direction_bits ^ settings.dir_invert_mask;
+            st.dir_outbits = st.exec_block->direction_bits ^ dir_invert_mask->get();
 #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
             // With AMASS enabled, adjust Bresenham axis increment counters according to AMASS level.
             st.steps[X_AXIS] = st.exec_block->steps[X_AXIS] >> st.exec_segment->amass_level;
@@ -533,14 +533,14 @@ void initRMT() {
 #else
     rmtItem[0].duration0 = 1;
 #endif
-    rmtItem[0].duration1 = 4 * settings.pulse_microseconds;
+    rmtItem[0].duration1 = 4 * pulse_microseconds->get();
     rmtItem[1].duration0 = 0;
     rmtItem[1].duration1 = 0;
 #ifdef X_STEP_PIN
     X_rmt_chan_num = sys_get_next_RMT_chan_num();
     rmt_set_source_clk((rmt_channel_t)X_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)X_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, X_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+    rmtConfig.tx_config.idle_level = bit_istrue(step_invert_mask->get(), X_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
     rmtConfig.gpio_num = X_STEP_PIN;
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
@@ -551,7 +551,7 @@ void initRMT() {
     X2_rmt_chan_num = sys_get_next_RMT_chan_num();
     rmt_set_source_clk((rmt_channel_t)X2_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)X2_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, X_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+    rmtConfig.tx_config.idle_level = bit_istrue(sstep_invert_mask->get(), X_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
     rmtConfig.gpio_num = X2_STEP_PIN;
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
@@ -562,7 +562,7 @@ void initRMT() {
     Y_rmt_chan_num = sys_get_next_RMT_chan_num();
     rmt_set_source_clk((rmt_channel_t)Y_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)Y_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Y_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+    rmtConfig.tx_config.idle_level = bit_istrue(step_invert_mask->get(), Y_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
     rmtConfig.gpio_num = Y_STEP_PIN;
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
@@ -573,7 +573,7 @@ void initRMT() {
     Y2_rmt_chan_num = sys_get_next_RMT_chan_num();
     rmt_set_source_clk((rmt_channel_t)Y2_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)Y2_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Y_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+    rmtConfig.tx_config.idle_level = bit_istrue(step_invert_mask->get(), Y_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
     rmtConfig.gpio_num = Y2_STEP_PIN;
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
@@ -584,7 +584,7 @@ void initRMT() {
     Z_rmt_chan_num = sys_get_next_RMT_chan_num();
     rmt_set_source_clk((rmt_channel_t)Z_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)Z_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Z_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+    rmtConfig.tx_config.idle_level = bit_istrue(step_invert_mask->get(), Z_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
     rmtConfig.gpio_num = Z_STEP_PIN;
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
@@ -595,7 +595,7 @@ void initRMT() {
     Z2_rmt_chan_num = sys_get_next_RMT_chan_num();
     rmt_set_source_clk((rmt_channel_t)Z2_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)Z2_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Z_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+    rmtConfig.tx_config.idle_level = bit_istrue(step_invert_mask->get(), Z_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
     rmtConfig.gpio_num = Z2_STEP_PIN;
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
@@ -606,7 +606,7 @@ void initRMT() {
     A_rmt_chan_num = sys_get_next_RMT_chan_num();
     rmt_set_source_clk((rmt_channel_t)A_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)A_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, A_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+    rmtConfig.tx_config.idle_level = bit_istrue(step_invert_mask->get(), A_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
     rmtConfig.gpio_num = A_STEP_PIN;  // TODO
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
@@ -617,7 +617,7 @@ void initRMT() {
     B_rmt_chan_num = sys_get_next_RMT_chan_num();
     rmt_set_source_clk((rmt_channel_t)B_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)B_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, B_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+    rmtConfig.tx_config.idle_level = bit_istrue(step_invert_mask->get(), B_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
     rmtConfig.gpio_num = B_STEP_PIN;  // TODO
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
@@ -628,7 +628,7 @@ void initRMT() {
     C_rmt_chan_num = sys_get_next_RMT_chan_num();
     rmt_set_source_clk((rmt_channel_t)C_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)C_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, C_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+    rmtConfig.tx_config.idle_level = bit_istrue(step_invert_mask->get(), C_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
     rmtConfig.gpio_num = C_STEP_PIN;  // TODO
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
@@ -653,7 +653,7 @@ void st_wake_up() {
     // Step pulse delay handling is not require with ESP32...the RMT function does it.
 #else // Normal operation
     // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
-    st.step_pulse_time = -(((settings.pulse_microseconds - 2) * TICKS_PER_MICROSECOND) >> 3);
+    st.step_pulse_time = -(((pulse_microseconds->get() - 2) * TICKS_PER_MICROSECOND) >> 3);
 #endif
     // Enable Stepper Driver Interrupt
     Stepper_Timer_Start();
@@ -727,7 +727,7 @@ void set_direction_pins_on(uint8_t onMask) {
 #ifndef USE_GANGED_AXES
 // basic one motor per axis
 void set_stepper_pins_on(uint8_t onMask) {
-    onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
+    onMask ^= step_invert_mask->get(); // invert pins as required by invert mask
 #ifdef X_STEP_PIN
     digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
 #endif
@@ -743,7 +743,7 @@ void set_stepper_pins_on(uint8_t onMask) {
 }
 #else // we use ganged axes
 void set_stepper_pins_on(uint8_t onMask) {
-    onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
+    onMask ^= step_invert_mask->get(); // invert pins as required by invert mask
 #ifdef X_STEP_PIN
 #ifndef X2_STEP_PIN // if not a ganged axis
     digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
@@ -861,12 +861,12 @@ void st_go_idle() {
     busy = false;
     bool pin_state = false;
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
-    if (((settings.stepper_idle_lock_time != 0xff) || sys_rt_exec_alarm || sys.state == STATE_SLEEP) && sys.state != STATE_HOMING) {
+    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm || sys.state == STATE_SLEEP) && sys.state != STATE_HOMING) {
         // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
         // stop and not drift from residual inertial forces at the end of the last movement.
         stepper_idle = true; // esp32 work around for disable in main loop
-        stepper_idle_counter = esp_timer_get_time() + (settings.stepper_idle_lock_time * 1000); // * 1000 because the time is in uSecs
-        //vTaskDelay(settings.stepper_idle_lock_time / portTICK_PERIOD_MS);	// this probably does not work when called from ISR
+        stepper_idle_counter = esp_timer_get_time() + (stepper_idle_lock_time->get() * 1000); // * 1000 because the time is in uSecs
+        //vTaskDelay(stepper_idle_lock_time->get() / portTICK_PERIOD_MS);	// this probably does not work when called from ISR
         //pin_state = true;
     } else
         set_stepper_disable(pin_state);
@@ -923,13 +923,13 @@ void st_generate_step_dir_invert_masks() {
     step_port_invert_mask = 0;
     dir_port_invert_mask = 0;
     for (idx=0; idx<N_AXIS; idx++) {
-      if (bit_istrue(settings.step_invert_mask,bit(idx))) { step_port_invert_mask |= get_step_pin_mask(idx); }
-      if (bit_istrue(settings.dir_invert_mask,bit(idx))) { dir_port_invert_mask |= get_direction_pin_mask(idx); }
+      if (bit_istrue(step_invert_mask->get(),bit(idx))) { step_port_invert_mask |= get_step_pin_mask(idx); }
+      if (bit_istrue(dir_invert_mask->get(),bit(idx))) { dir_port_invert_mask |= get_direction_pin_mask(idx); }
     }
     */
     // simpler with ESP32, but let's do it here for easier change management
-    step_port_invert_mask = settings.step_invert_mask;
-    dir_port_invert_mask = settings.dir_invert_mask;
+    step_port_invert_mask = step_invert_mask->get();
+    dir_port_invert_mask = dir_invert_mask->get();
 }
 
 // Increments the step segment buffer block data ring buffer.
@@ -1013,7 +1013,7 @@ void st_prep_buffer() {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
 
 
-                if (spindle->isRateAdjusted() ){ //   settings.flags & BITFLAG_LASER_MODE) {
+                if (spindle->isRateAdjusted() ){ //   laser_mode->get() {
                     if (pl_block->condition & PL_COND_FLAG_SPINDLE_CCW) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
                         prep.inv_rate = 1.0 / pl_block->programmed_rate;
@@ -1384,7 +1384,7 @@ void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
 #ifdef USE_TRINAMIC_ENABLE
     trinamic_stepper_enable(!isOn);
 #endif
-    if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
+    if (step_enable_invert->get()) {
         isOn = !isOn;    // Apply pin invert.
     }
 #ifdef USE_UNIPOLAR
@@ -1402,7 +1402,7 @@ bool get_stepper_disable() { // returns true if steppers are disabled
 #else
     return false; // thery are never disabled if there is no pin defined
 #endif
-    if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
+    if (step_enable_invert->get()) {
         disabled = !disabled; // Apply pin invert.
     }
     return disabled;
