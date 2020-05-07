@@ -17,19 +17,23 @@
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
-    // VFD frequencies are in Hz. Multiple by 60 for RPM
+                         WARNING!!!!
+    VFDs are very dangerous. They have high voltages and are very powerful
+    Remove power before changing bits.
 
-    // before using spindle, VFD must be setup for RS485 and match your spindle
+    VFD frequencies are in Hz. Multiply by 60 for RPM
+
+    before using spindle, VFD must be setup for RS485 and match your spindle
     PD001   2   RS485 Control of run commands
     PD002   2   RS485 Control of operating frequency
-    PD005   400 Maximum frequency Hz
+    PD005   400 Maximum frequency Hz (Typical for spindles)
     PD011   120 Min Speed (Recommend Aircooled=120 Water=100)
     PD014   10  Acceleration time (Test to optimize)
     PD015   10  Deceleration time (Test to optimize)
     PD023   1   Reverse run enabled
-    PD142   3.7 Max current Amps (0.8kw=3.7 1.5kw=7.0)
-    PD163   1   RS485 Address: 1
-    PD164   1   RS485 Baud rate: 9600
+    PD142   3.7 Max current Amps (0.8kw=3.7 1.5kw=7.0, 2.2kw=??)
+    PD163   1   RS485 Address: 1 (Typical. OK to change...see below)
+    PD164   1   RS485 Baud rate: 9600 (Typical. OK to change...see below)
     PD165   3   RS485 Mode: RTU, 8N1
 
     Some references....
@@ -47,22 +51,84 @@
 
 #include "driver/uart.h"
 
-#define HUANYANG_ADDR           0x01
 #define HUANYANG_UART_PORT      UART_NUM_2      // hard coded for this port right now
 #define ECHO_TEST_CTS           UART_PIN_NO_CHANGE // CTS pin is not used
-#define HUANYANG_BAUD_RATE      9600   // PD164 setting
 #define HUANYANG_BUF_SIZE       127
-#define RESPONSE_WAIT_TICKS     80 // how long to wait for a response
+#define RESPONSE_WAIT_TICKS     50 // how long to wait for a response
+#define HUANYANG_MAX_MSG_SIZE   10   // more than enough for a modbus message
+
+// OK to change these
+// #define them in your machine definition file if you want different values
+#ifndef HUANYANG_ADDR
+    #define HUANYANG_ADDR           0x01
+#endif
+
+#ifndef HUANYANG_BAUD_RATE
+    #define HUANYANG_BAUD_RATE      9600   // PD164 setting
+#endif
+
+// communication task and queue stuff
+typedef struct {
+    uint8_t tx_length;
+    uint8_t rx_length;
+    char msg[HUANYANG_MAX_MSG_SIZE];
+} hy_command_t;
+
+QueueHandle_t hy_cmd_queue;
+
+static TaskHandle_t vfd_cmdTaskHandle = 0;
+
+// The communications task
+void vfd_cmd_task(void* pvParameters) {
+    hy_command_t next_cmd;
+    uint8_t rx_message[HUANYANG_MAX_MSG_SIZE];
+
+    while (true) {
+        if (xQueueReceive(hy_cmd_queue, &next_cmd, 0) == pdTRUE) {
+            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "queue send %d !!!", next_cmd.tx_length);
+            //report_hex_msg(next_cmd.msg, "To VFD:", next_cmd.tx_length);  // TODO for debugging comment out
+            uart_write_bytes(HUANYANG_UART_PORT, next_cmd.msg, next_cmd.tx_length);
+
+            uint16_t read_length = uart_read_bytes(HUANYANG_UART_PORT, rx_message, next_cmd.rx_length, RESPONSE_WAIT_TICKS);
+
+            if (read_length < next_cmd.rx_length) {
+                grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RS485 Unresponsive");
+                // TODO Do something with this error
+                // system_set_exec_alarm(EXEC_ALARM_SPINDLE_CONTROL);
+            }
+        } else {
+            // TODO: Should we ping the spindle here to make sure it does not go off line?
+        }
+        vTaskDelay(500); // TODO: What is the best value here?
+    }
+}
+
+// ================== Class methods ==================================
 
 void HuanyangSpindle :: init() {
 
-    // fail if numbers are not defined
+    if (! _task_running) { // init can happen many times, we only want to start one task
+        xTaskCreatePinnedToCore(vfd_cmd_task,      // task
+                                "vfd_cmdTaskHandle", // name for task
+                                2048,   // size of task stack
+                                NULL,   // parameters
+                                1, // priority
+                                &vfd_cmdTaskHandle,
+                                0 // core
+                               );
+        hy_cmd_queue = xQueueCreate(5, sizeof(hy_command_t));
+        _task_running = true;
+    }
+
+    // fail if required items are not defined
     if (!get_pins_and_settings()) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Huanyang spindle errors");
         return;
     }
 
-    uart_driver_delete(HUANYANG_UART_PORT); // this allows us to init() more than once if settings have changed.
+    // this allows us to init() again later.
+    // If you change certain settings, init() gets called agian
+    uart_driver_delete(HUANYANG_UART_PORT);
 
     uart_config_t uart_config = {
         .baud_rate = HUANYANG_BAUD_RATE,
@@ -90,7 +156,11 @@ void HuanyangSpindle :: init() {
 
     uart_set_mode(HUANYANG_UART_PORT, UART_MODE_RS485_HALF_DUPLEX);
 
-    is_reversable = true;
+    is_reversable = true; // these VFDs are always reversable
+
+    //
+    _current_pwm_rpm = 0;
+    _state = SPINDLE_DISABLE;
 
     config_message();
 }
@@ -126,7 +196,12 @@ bool HuanyangSpindle :: get_pins_and_settings() {
 }
 
 void HuanyangSpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Huanyang Spindle Tx:%d Rx:%d RTS:%d", _txd_pin, _rxd_pin, _rts_pin);
+    grbl_msg_sendf(CLIENT_SERIAL, 
+                    MSG_LEVEL_INFO, 
+                    "Huanyang Spindle Tx:%d Rx:%d RTS:%d", 
+                    report_pin_number(_txd_pin),
+                    report_pin_number(_rxd_pin), 
+                    report_pin_number(_rts_pin));
 }
 
 /*
@@ -135,56 +210,48 @@ void HuanyangSpindle :: config_message() {
     0x01    0x03    0x01    0x08    0xF1 0x8E                   Stop spindle
     0x01    0x03    0x01    0x11    0x30 0x44                   Start spindle counter-clockwise
 */
-void HuanyangSpindle :: set_state(uint8_t state, float rpm) {
+void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) {
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Set state");
+
     if (sys.abort)
         return;   // Block during abort.
 
-    _state = state; // store locally for faster get_state()
-
-    if (!set_mode(state)) {  // try to set state. If it fails there is no need to try to set RPM
-        system_set_exec_alarm(EXEC_ALARM_SPINDLE_CONTROL);
-        return;
-    }
-
-    if (state == SPINDLE_DISABLE) {
-        sys.spindle_speed = 0.0;
-        return;
+    if (state != _state) { // already at the desired state. This function gets called a lot.
+        _state = state; // store locally for faster get_state()
+        set_mode(state);
+        if (state == SPINDLE_DISABLE) {
+            sys.spindle_speed = 0;
+            return;
+        }
     }
 
     set_rpm(rpm);
     sys.report_ovr_counter = 0; // Set to report change immediately
+
+    return;
 }
 
 bool HuanyangSpindle :: set_mode(uint8_t mode) {
-    char msg[6] = {HUANYANG_ADDR, 0x03, 0x01, 0x00, 0x00, 0x00};
+    hy_command_t mode_cmd;
+
+    mode_cmd.tx_length = 6;
+    mode_cmd.rx_length = 6;
+
+    mode_cmd.msg[0] = HUANYANG_ADDR;
+    mode_cmd.msg[1] = 0x03;
+    mode_cmd.msg[2] = 0x01;
 
     if (mode == SPINDLE_ENABLE_CW)
-        msg[3] = 0x01;
+        mode_cmd.msg[3] = 0x01;
     else if (mode == SPINDLE_ENABLE_CCW)
-        msg[3] = 0x11;
+        mode_cmd.msg[3] = 0x11;
     else    //SPINDLE_DISABLE
-        msg[3] = 0x08;
+        mode_cmd.msg[3] = 0x08;
 
-    add_ModRTU_CRC(msg, sizeof(msg));
+    add_ModRTU_CRC(mode_cmd.msg, mode_cmd.rx_length);
 
-    //report_hex_msg(msg, "To VFD:", sizeof(msg));  // TODO for debugging comment out
-
-    uart_write_bytes(HUANYANG_UART_PORT, msg, sizeof(msg));
-
-    return get_response(6);
-}
-
-
-bool HuanyangSpindle :: get_response(uint16_t length) {
-    uint8_t rx_message[10];
-
-    uint16_t read_length = uart_read_bytes(HUANYANG_UART_PORT, rx_message, length, RESPONSE_WAIT_TICKS);
-    if (read_length < length) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RS485 Unresponsive");
-        return false;
-    }
-    // check CRC?
-    // Check address?
+    if (xQueueSend(hy_cmd_queue, &mode_cmd, 0) != pdTRUE)
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
 
     return true;
 }
@@ -193,23 +260,32 @@ bool HuanyangSpindle :: get_response(uint16_t length) {
     ADDR    CMD     LEN     DATA        CRC
     0x01    0x05    0x02    0x09 0xC4   0xBF 0x0F               Write Frequency (0x9C4 = 2500 = 25.00HZ)
 */
-float HuanyangSpindle :: set_rpm(float rpm) {
+uint32_t HuanyangSpindle :: set_rpm(uint32_t rpm) {
+    hy_command_t rpm_cmd;
 
-    // TODO add in all the speed modifiers, like override and linearization
+    if (rpm == _current_pwm_rpm) // prevent setting same RPM twice
+        return rpm;
 
-    char msg[7] = {HUANYANG_ADDR, 0x05, 0x02, 0x00, 0x00, 0x00, 0x00};
+    _current_pwm_rpm = rpm;
 
-    // add data (rpm) bytes
-    uint16_t data = uint16_t(rpm / 60.0 * 100.0); // send Hz * 10  (Ex:1500 RPM = 25Hz .... Send 2500)
-    msg[3] = (data & 0xFF00) >> 8;
-    msg[4] = (data & 0xFF);
+    // TODO add the speed modifiers override, linearization, etc.
 
-    add_ModRTU_CRC(msg, sizeof(msg));
+    rpm_cmd.tx_length = 7;
+    rpm_cmd.rx_length = 6;
 
-    //report_hex_msg(msg, "To VFD:", sizeof(msg));  // TODO for debugging comment out
+    rpm_cmd.msg[0] = HUANYANG_ADDR;
+    rpm_cmd.msg[1] = 0x05;
+    rpm_cmd.msg[2] = 0x02;
 
-    uart_write_bytes(HUANYANG_UART_PORT, msg, sizeof(msg));
-    get_response(6);
+    uint16_t data = (uint16_t)(rpm * 100 / 60); // send Hz * 10  (Ex:1500 RPM = 25Hz .... Send 2500)
+
+    rpm_cmd.msg[3] = (data & 0xFF00) >> 8;
+    rpm_cmd.msg[4] = (data & 0xFF);
+
+    add_ModRTU_CRC(rpm_cmd.msg, rpm_cmd.tx_length);
+
+    if (xQueueSend(hy_cmd_queue, &rpm_cmd, 0) != pdTRUE)
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
 
     return rpm;
 }
