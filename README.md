@@ -6,20 +6,65 @@
 
 ### Project Overview
 
-[![Build Status](https://travis-ci.com/odaki/Grbl_Esp32.svg?branch=master)](https://travis-ci.com/odaki/Grbl_Esp32)
+Grbl_ESP32 started as a port of [Grbl](https://github.com/gnea/grbl) to the ESP32. The power of the ESP32 has allowed this firmware to grow far beyond the limitations of 8-bit AVR controllers. Here are some of the current features
 
-This is a port of [Grbl](https://github.com/gnea/grbl) for the ESP32. The ESP32 is potentially a great target for Grbl for the following reasons
+- **Motors**
+  - Control up to 6 coordinated axes (XYZABC)
+  - Each axis can have 1 or 2 motors each for a total of 12 motors
+  - Dual motors axes can optionally auto square using a home switch and independent control for each motor.
+  - Motor drivers can be dynamically assigned to axes, so a 4 motor XYZA controller could be converted to a XYYZ (dual motor Y axis) without any hardware changes.
+  - Step rates up to 120,000 per/second.
+  - Trinamic (SPI controlled) stepper motors are supported including StealthChop, CoolStep and StallGuard modes. Sensorless homing can be used.
+  - RC hobby servos can be used as coordinated motors with acceleration and speed control. 
+- **Peripherals**
+  - Limit/Homing Switches with debouncing
+  - User input buttons (hold, resume, reset)
+  - Coolant control (Mist, Flood)
+  - Z Probe (any axis)
+  - Safety Door (open door safely retracts and stops spindle, can be resumed)
+  - Additional I/O via shift register and I/O expanders supported (on dev branches)
+- **Job Control**
+  - Instant feed hold and resume
+  - Feed rate override
+  - Spindle speed override
+- **Spindles**
+  - PWM
+  - RS485 Modus
+  - DAC (analog voltage) 0-10V
+  - Relay Based
+  - RC type Brushless DC motors using low cost BESCs
+  - Laser PWM with power/speed compensation
+  - Easy to create custom spindles
+- **Connectivity**
+  - USB/Serial
+  - Bluetooth/Serial Creates a virtual serial port on your phone or PC. Standard serial port applications can use Bluetooth.
+  - WIFI
+    - Creates its own access point or connects to yours.
+    - Built in web server. The server has full featured CNC control app that will run on your phone or PC in a browser. No app required.
+    - Telnet sending of gcode
+    - Push notifications (like...job done, get a text/email)
+    - OTA (over the air) firmware upgrades.
+- SD card. Gcode can be loaded and run via WIFI.
+- **Compatibility** 
+  - Grbl_ESP32 is fully backward compatible with Grbl and can use all gcode senders.
+- **Customizable**
+  - Easy to map pins to any functions.  
+  - Custom machines can be designed without touching the main code.   
+  - Custom initialization
+    - Kinematics
+    - Custom homing
+    - Tool changer sequences
+    - Button macros (run gcode sequence, etc.)
+    - Custom end of Job sequence
+    - RTOS Real time operating system allows background monitoring and  control without affecting motion control performance
+  
+- Fast boot
+  
+  - It boots in about 2 seconds (unlike Raspberry Pi, Beagle Bone). Does not need to be formally shut down. Just kill the power
 
-- **Faster** - At least 4x the step rates over Grbl
-- **Lower Cost** - 
-- **Small footprint** -
-- **More Flash and RAM** - A larger planner buffer could be used and more features could be added.
-- **I/O** - It has just about the same number of pins as an Arduino UNO, the original target for Grbl
-- **Peripherals** - It has more timers and advanced features than an UNO.  These can also be mapped to pins more flexibly.
-- **Connectivity** - Bluetooth and WiFi built in.
-- **Fast Boot** - Boots almost instantly and does not need to be formally shutdown (unlike Raspberry Pi or Beagle Bone)
-- **RTOS (Real Time operating System)** - Custom features can be added without affecting the performance of the motion control system.
+### Test Drive It
 
+Grbl_ESP32 has a test drive mode. If you just compile it and load it onto an ESP32, it will create a virtual machine without any pins mapped. This allows you to safely test drive it without any attached hardware. Everything is functional including the WIFI and web user interface. Things like homing, that require feedback from actual switches cannot be done.
 
 ### Using It
 
@@ -51,6 +96,6 @@ Start asking questions...I'll put the frequent ones here.
 
 ### <a name="donation"></a>Donation
 
-This project requires a lot of work and often expensive items for testing. Please consider a safe, secure and highly appreciated donation via the PayPal link below.
+This project requires a lot of work and often expensive items for testing. Please consider a safe, secure and highly appreciated donation via the PayPal link below or via the Github sponsor link at the top of the page.
 
 [![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TKNJ9Z775VXB2)
