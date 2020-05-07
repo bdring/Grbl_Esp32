@@ -18,9 +18,11 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
 // Grbl versioning system
-#define GRBL_VERSION "1.1f"
-#define GRBL_VERSION_BUILD "20200504"
+
+#define GRBL_VERSION "1.2a"
+#define GRBL_VERSION_BUILD "20200428"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -28,6 +30,7 @@
 #include <driver/rmt.h>
 #include <esp_task_wdt.h>
 #include <freertos/task.h>
+#include <Preferences.h>
 
 #include "driver/timer.h"
 
@@ -51,7 +54,7 @@
 #include "protocol.h"
 #include "report.h"
 #include "serial.h"
-#include "spindle_control.h"
+#include "Spindles/SpindleClass.h"
 #include "stepper.h"
 #include "jog.h"
 #include "inputbuffer.h"

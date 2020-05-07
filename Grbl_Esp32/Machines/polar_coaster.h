@@ -57,9 +57,7 @@
 #define X_LIMIT_PIN             GPIO_NUM_4
 #define LIMIT_MASK              B1
 
-#ifdef IGNORE_CONTROL_PINS // maybe set in config.h
-    #undef IGNORE_CONTROL_PINS
-#endif
+#define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE

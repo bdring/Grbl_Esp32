@@ -49,10 +49,6 @@
 #define Y_LIMIT_PIN             GPIO_NUM_4
 #define LIMIT_MASK              B11
 
-// If SPINDLE_PWM_PIN is commented out, this frees up the pin, but Grbl will still
-// use a virtual spindle. Do not comment out the other parameters for the spindle.
-//#define SPINDLE_PWM_PIN    GPIO_NUM_17 // Laser PWM
-
 #define USING_SERVO  // uncomment to use this feature
 //#define USING_SOLENOID // uncomment to use this feature
 
@@ -67,6 +63,8 @@
     #define USE_PEN_SOLENOID
     #define SOLENOID_PEN_PIN GPIO_NUM_16
 #endif
+
+#define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
 // defaults
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3

@@ -32,8 +32,6 @@
 */
 #include "SpindleClass.h"
 
-#include "SpindleClass.h"
-
 // don't change these
 #define BESC_PWM_FREQ           50.0f // Hz
 #define BESC_PWM_BIT_PRECISION  16   // bits

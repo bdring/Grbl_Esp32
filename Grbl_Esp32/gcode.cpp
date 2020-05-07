@@ -301,14 +301,10 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                     gc_block.modal.spindle = SPINDLE_ENABLE_CW;
                     break;
                 case 4: // Supported if SPINDLE_DIR_PIN is defined or laser mode is on.
-#ifndef SPINDLE_DIR_PIN
-                    // if laser mode is not on then this is an unsupported command
-                    if bit_isfalse(settings.flags, BITFLAG_LASER_MODE) {
+                    if (spindle->is_reversable || bit_istrue(settings.flags, BITFLAG_LASER_MODE))
+                        gc_block.modal.spindle = SPINDLE_ENABLE_CCW;
+                    else
                         FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
-                        break;
-                    }
-#endif
-                    gc_block.modal.spindle = SPINDLE_ENABLE_CCW;
                     break;
                 case 5:
                     gc_block.modal.spindle = SPINDLE_DISABLE;
@@ -1085,16 +1081,12 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // [4. Set spindle speed ]:
     if ((gc_state.spindle_speed != gc_block.values.s) || bit_istrue(gc_parser_flags, GC_PARSER_LASER_FORCE_SYNC)) {
         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
-#ifdef VARIABLE_SPINDLE
             if (bit_isfalse(gc_parser_flags, GC_PARSER_LASER_ISMOTION)) {
                 if (bit_istrue(gc_parser_flags, GC_PARSER_LASER_DISABLE))
                     spindle->spindle_sync(gc_state.modal.spindle, 0);
                 else
                     spindle->spindle_sync(gc_state.modal.spindle, (uint32_t)gc_block.values.s);
             }
-#else
-            spindle_sync(gc_state.modal.spindle, 0.0);
-#endif
         }
         gc_state.spindle_speed = gc_block.values.s; // Update spindle speed state.
     }
