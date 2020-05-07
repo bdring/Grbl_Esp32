@@ -19,6 +19,7 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
+#include "SpindleClass.h"
 
 // ======================= NullSpindle ==============================
 // NullSpindle is just bunch of do nothing (ignore) methods to be used when you don't want a spindle
