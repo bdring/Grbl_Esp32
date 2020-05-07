@@ -1,12 +1,7 @@
 /*
     SpindleClass.cpp
 
-    A Spindle Class
-        Spindle         - A base class. Do not use
-        PWMSpindle     - A spindle with a PWM output
-        RelaySpindle    - An on/off only spindle
-        Laser           - Output is PWM, but the M4 laser power mode can be used
-        DacSpindle      - Uses the DAC to output a 0-3.3V output
+    A Base class for spindles and spinsle like things such as lasers
 
     Part of Grbl_ESP32
 
@@ -41,6 +36,8 @@
 #include "BESCSpindle.cpp"
 
 
+// An instance of each type of spindle is created here.
+// This allows the spindle to be dynamicly switched
 NullSpindle null_spindle;
 PWMSpindle pwm_spindle;
 RelaySpindle relay_spindle;
@@ -80,12 +77,7 @@ void spindle_select(uint8_t spindle_type) {
     spindle->init();
 }
 
-
-void spindle_read_prefs(Preferences& prefs) {
-    uint8_t foo = prefs.getUChar("SPIN_TYPE", SPINDLE_TYPE_PWM);
-}
-
-
+// ========================= Spindle ==================================
 
 bool Spindle::isRateAdjusted() {
     return false; // default for basic spindle is false

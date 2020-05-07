@@ -4,8 +4,8 @@
     This a special type of PWM spindle for RC type Brushless DC Speed
     controllers. They use a short pulse for off and a longer pulse for
     full on. The pulse is always a small portion of the full cycle.
-    Some BESC have a special turn on procedure. This may be a one time
-    procedure or must be done every time.
+    Some BESCs have a special turn on procedure. This may be a one time
+    procedure or must be done every time. The user must do that via gcode.
 
     Part of Grbl_ESP32
     2020 -	Bart Dring
@@ -99,7 +99,6 @@ uint32_t BESCSpindle::set_rpm(uint32_t rpm) {
         return rpm;
 
     // apply speed overrides
-    //rpm *= (0.010 * sys.spindle_speed_ovr); // Scale by spindle speed override value (percent)
     rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle speed override value (percent)
 
     // apply limits limits

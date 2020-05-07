@@ -1,7 +1,7 @@
 /*
     RelaySpindle.cpp
 
-    This is used for a basic on/off spindle All S Values about 1
+    This is used for a basic on/off spindle All S Values above 0
     will turn the spindle on.
 
     Part of Grbl_ESP32
@@ -23,7 +23,7 @@
 
 // ========================= RelaySpindle ==================================
 /*
-    This is the same as a PWM spindle but is a digital rather than PWM output
+    This is a sub class of PWMSpindle but is a digital rather than PWM output
 */
 void RelaySpindle::init() {
     get_pins_and_settings();
