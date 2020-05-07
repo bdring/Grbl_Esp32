@@ -283,18 +283,16 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
             st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
 #endif
 #endif
-#ifdef VARIABLE_SPINDLE
             // Set real-time spindle output as segment is loaded, just prior to the first step.
-            spindle_set_speed(st.exec_segment->spindle_pwm);
-#endif
+            spindle->set_rpm(st.exec_segment->spindle_rpm);
         } else {
             // Segment buffer empty. Shutdown.
             st_go_idle();
-#if ( (defined VARIABLE_SPINDLE) && (defined SPINDLE_PWM_PIN) )
             if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
-                if (st.exec_block->is_pwm_rate_adjusted)
-                    spindle_set_speed(spindle_pwm_off_value);
+                if (st.exec_block->is_pwm_rate_adjusted) {
+                    spindle->set_rpm(0);
+                }
             }
 #endif
             system_set_exec_state_flag(EXEC_CYCLE_STOP); // Flag main program for cycle end

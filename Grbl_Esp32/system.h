@@ -42,7 +42,7 @@ typedef struct {
     uint8_t override_ctrl;     // Tracks override control states.
 #endif
 
-    float spindle_speed;
+    uint32_t spindle_speed;
 
 } system_t;
 extern system_t sys;
