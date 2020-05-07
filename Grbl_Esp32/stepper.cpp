@@ -1,5 +1,3 @@
-#include "grbl.h"
-
 /*
   stepper.c - stepper motor driver: executes motion plans using stepper motors
   Part of Grbl
@@ -37,9 +35,7 @@ typedef struct {
     uint32_t steps[N_AXIS];
     uint32_t step_event_count;
     uint8_t direction_bits;
-#ifdef VARIABLE_SPINDLE
     uint8_t is_pwm_rate_adjusted; // Tracks motions that require constant laser power/rate
-#endif
 } st_block_t;
 static st_block_t st_block_buffer[SEGMENT_BUFFER_SIZE - 1];
 
@@ -56,9 +52,7 @@ typedef struct {
 #else
     uint8_t prescaler;      // Without AMASS, a prescaler is required to adjust for slow timing.
 #endif
-#ifdef VARIABLE_SPINDLE
-    uint16_t spindle_pwm;
-#endif
+    uint16_t spindle_rpm;  // TODO get rid of this.
 } segment_t;
 static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 
@@ -145,10 +139,11 @@ typedef struct {
     float accelerate_until; // Acceleration ramp end measured from end of block (mm)
     float decelerate_after; // Deceleration ramp start measured from end of block (mm)
 
-#ifdef VARIABLE_SPINDLE
+
     float inv_rate;    // Used by PWM laser mode to speed up segment calculations.
-    uint16_t current_spindle_pwm;
-#endif
+    //uint16_t current_spindle_pwm;  // todo remove
+    float current_spindle_rpm;
+
 } st_prep_t;
 static st_prep_t prep;
 
@@ -283,20 +278,18 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
             st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
 #endif
 #endif
-#ifdef VARIABLE_SPINDLE
             // Set real-time spindle output as segment is loaded, just prior to the first step.
-            spindle_set_speed(st.exec_segment->spindle_pwm);
-#endif
+            spindle->set_rpm(st.exec_segment->spindle_rpm);
         } else {
             // Segment buffer empty. Shutdown.
             st_go_idle();
-#if ( (defined VARIABLE_SPINDLE) && (defined SPINDLE_PWM_PIN) )
             if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
-                if (st.exec_block->is_pwm_rate_adjusted)
-                    spindle_set_speed(spindle_pwm_off_value);
+                if (st.exec_block->is_pwm_rate_adjusted) {
+                    spindle->set_rpm(0);
+                }
             }
-#endif
+
             system_set_exec_state_flag(EXEC_CYCLE_STOP); // Flag main program for cycle end
             return; // Nothing to do but exit.
         }
@@ -688,37 +681,37 @@ void set_direction_pins_on(uint8_t onMask) {
 #ifdef X_DIRECTION_PIN
     digitalWrite(X_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
 #endif
-#ifdef X2_DIRECTION_PIN // optional ganged axis 
+#ifdef X2_DIRECTION_PIN // optional ganged axis
     digitalWrite(X2_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
 #endif
 #ifdef Y_DIRECTION_PIN
     digitalWrite(Y_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
 #endif
-#ifdef Y2_DIRECTION_PIN // optional ganged axis 
+#ifdef Y2_DIRECTION_PIN // optional ganged axis
     digitalWrite(Y2_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
 #endif
 #ifdef Z_DIRECTION_PIN
     digitalWrite(Z_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
 #endif
-#ifdef Z2_DIRECTION_PIN // optional ganged axis 
+#ifdef Z2_DIRECTION_PIN // optional ganged axis
     digitalWrite(Z2_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
 #endif
 #ifdef A_DIRECTION_PIN
     digitalWrite(A_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
 #endif
-#ifdef A2_DIRECTION_PIN // optional ganged axis 
+#ifdef A2_DIRECTION_PIN // optional ganged axis
     digitalWrite(A2_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
 #endif
 #ifdef B_DIRECTION_PIN
     digitalWrite(B_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
 #endif
-#ifdef B2_DIRECTION_PIN // optional ganged axis 
+#ifdef B2_DIRECTION_PIN // optional ganged axis
     digitalWrite(B2_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
 #endif
 #ifdef C_DIRECTION_PIN
     digitalWrite(C_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
 #endif
-#ifdef C2_DIRECTION_PIN // optional ganged axis 
+#ifdef C2_DIRECTION_PIN // optional ganged axis
     digitalWrite(C2_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
 #endif
 }
@@ -1010,18 +1003,16 @@ void st_prep_buffer() {
                     prep.recalculate_flag &= ~(PREP_FLAG_DECEL_OVERRIDE);
                 } else
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
-#ifdef VARIABLE_SPINDLE
-                // Setup laser mode variables. PWM rate adjusted motions will always complete a motion with the
-                // spindle off.
-                st_prep_block->is_pwm_rate_adjusted = false;
-                if (settings.flags & BITFLAG_LASER_MODE) {
+
+
+                if (spindle->isRateAdjusted() ){ //   settings.flags & BITFLAG_LASER_MODE) {
                     if (pl_block->condition & PL_COND_FLAG_SPINDLE_CCW) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
                         prep.inv_rate = 1.0 / pl_block->programmed_rate;
                         st_prep_block->is_pwm_rate_adjusted = true;
                     }
                 }
-#endif
+
             }
             /* ---------------------------------------------------------------------------------
              Compute the velocity profile of a new planner block based on its entry and exit
@@ -1107,9 +1098,9 @@ void st_prep_buffer() {
                     prep.maximum_speed = prep.exit_speed;
                 }
             }
-#ifdef VARIABLE_SPINDLE
-            bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM); // Force update whenever updating block.
-#endif
+
+            bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM); // Force update whenever updating block.
+
         }
         // Initialize new segment
         segment_t* prep_segment = &segment_buffer[segment_buffer_head];
@@ -1213,29 +1204,32 @@ void st_prep_buffer() {
                 }
             }
         } while (mm_remaining > prep.mm_complete); // **Complete** Exit loop. Profile complete.
-#ifdef VARIABLE_SPINDLE
+
         /* -----------------------------------------------------------------------------------
           Compute spindle speed PWM output for step segment
         */
-        if (st_prep_block->is_pwm_rate_adjusted || (sys.step_control & STEP_CONTROL_UPDATE_SPINDLE_PWM)) {
+        if (st_prep_block->is_pwm_rate_adjusted || (sys.step_control & STEP_CONTROL_UPDATE_SPINDLE_RPM)) {
             if (pl_block->condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)) {
                 float rpm = pl_block->spindle_speed;
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
-                if (st_prep_block->is_pwm_rate_adjusted)
+                if (st_prep_block->is_pwm_rate_adjusted) {
                     rpm *= (prep.current_speed * prep.inv_rate);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RPM %.2f", rpm);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
+                }
                 // If current_speed is zero, then may need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE)
                 // but this would be instantaneous only and during a motion. May not matter at all.
-                prep.current_spindle_pwm = spindle_compute_pwm_value(rpm);
+
+                prep.current_spindle_rpm = rpm;
             } else {
                 sys.spindle_speed = 0.0;
-#if ( (defined VARIABLE_SPINDLE) && (defined SPINDLE_PWM_PIN) )
-                prep.current_spindle_pwm = spindle_pwm_off_value ;
-#endif
+                prep.current_spindle_rpm = 0.0;
+
             }
-            bit_false(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
+            bit_false(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
         }
-        prep_segment->spindle_pwm = prep.current_spindle_pwm; // Reload segment PWM value
-#endif
+        prep_segment->spindle_rpm = prep.current_spindle_rpm; // Reload segment PWM value
+
         /* -----------------------------------------------------------------------------------
            Compute segment step rate, steps to execute, and apply necessary rate corrections.
            NOTE: Steps are computed by direct scalar conversion of the millimeter distance

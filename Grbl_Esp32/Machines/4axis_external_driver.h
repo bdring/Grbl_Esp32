@@ -22,7 +22,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME            "External 4 Axis Driver Board"
+#define MACHINE_NAME            "External 4 Axis Driver Board V2"
 
 #ifdef N_AXIS
         #undef N_AXIS
@@ -35,20 +35,22 @@
 #define Y_DIRECTION_PIN         GPIO_NUM_15
 #define Z_STEP_PIN              GPIO_NUM_27
 #define Z_DIRECTION_PIN         GPIO_NUM_33
-#define A_STEP_PIN              GPIO_NUM_14
-#define A_DIRECTION_PIN         GPIO_NUM_12
+#define A_STEP_PIN              GPIO_NUM_12
+#define A_DIRECTION_PIN         GPIO_NUM_14
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_13
 
 /*
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
-#define SPINDLE_PWM_PIN         GPIO_NUM_25
-#define SPINDLE_ENABLE_PIN      GPIO_NUM_22
+#define SPINDLE_TYPE            SPINDLE_TYPE_PWM // only one spindle at a time
 */
 
-#define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG
-#define MODBUS_TX               GPIO_NUM_17
-#define MODBUS_RX               GPIO_NUM_4
-#define MODBUS_CTRL             GPIO_NUM_16
+#define SPINDLE_OUTPUT_PIN      GPIO_NUM_25
+#define SPINDLE_ENABLE_PIN      GPIO_NUM_22
+
+
+#define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG // only one spindle at a time
+#define HUANYANG_TXD_PIN        GPIO_NUM_17
+#define HUANYANG_RXD_PIN        GPIO_NUM_4
+#define HUANYANG_RTS_PIN        GPIO_NUM_16
 
 #define X_LIMIT_PIN             GPIO_NUM_34
 #define Y_LIMIT_PIN             GPIO_NUM_35
