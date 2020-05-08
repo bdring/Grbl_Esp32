@@ -20,6 +20,8 @@
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
+    See SpindleClass.cpp for more info and references
+
 */
 
 #define SPINDLE_STATE_DISABLE  0  // Must be zero.
@@ -43,18 +45,20 @@
 #include "driver/uart.h"
 
 
+// ===============  No floats! ===========================
+// ================ NO FLOATS! ==========================
 
 // This is the base class. Do not use this as your spindle
 class Spindle {
   public:
     virtual void init(); // not in constructor because this also gets called when $$ settings change
-    virtual float set_rpm(float rpm);
-    virtual void set_state(uint8_t state, float rpm);
+    virtual uint32_t set_rpm(uint32_t rpm);
+    virtual void set_state(uint8_t state, uint32_t rpm);
     virtual uint8_t get_state();
     virtual void stop();
     virtual void config_message();
     virtual bool isRateAdjusted();
-    virtual void spindle_sync(uint8_t state, float rpm);
+    virtual void spindle_sync(uint8_t state, uint32_t rpm);
 
     bool is_reversable; 
 };
@@ -64,8 +68,8 @@ class Spindle {
 class NullSpindle : public Spindle {
   public:
     void init();
-    float set_rpm(float rpm);
-    void set_state(uint8_t state, float rpm);
+    uint32_t set_rpm(uint32_t rpm);
+    void set_state(uint8_t state, uint32_t rpm);
     uint8_t get_state();
     void stop();
     void config_message();
@@ -75,8 +79,8 @@ class NullSpindle : public Spindle {
 class PWMSpindle : public Spindle {
   public:
     void init();
-    virtual float set_rpm(float rpm);
-    void set_state(uint8_t state, float rpm);
+    virtual uint32_t set_rpm(uint32_t rpm);
+    void set_state(uint8_t state, uint32_t rpm);
     uint8_t get_state();
     void stop();
     void config_message();
@@ -87,24 +91,27 @@ class PWMSpindle : public Spindle {
     void set_spindle_dir_pin(bool Clockwise);
 
   protected:
-    float _min_rpm;
-    float _max_rpm;
+    uint32_t _min_rpm;
+    uint32_t _max_rpm;
     uint32_t _pwm_off_value;
     uint32_t _pwm_min_value;
     uint32_t _pwm_max_value;
     uint8_t _output_pin;
     uint8_t _enable_pin;
     uint8_t _direction_pin;
-    int8_t _spindle_pwm_chan_num;
-    float _pwm_freq;
+    uint8_t _spindle_pwm_chan_num;
+    uint32_t _pwm_freq;
     uint32_t _pwm_period; // how many counts in 1 period
     uint8_t _pwm_precision;
-    float _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
+    bool _piecewide_linear;
+    bool _off_with_zero_speed;
+    bool _invert_pwm;
+    //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
     virtual void set_output(uint32_t duty);
     void set_enable_pin(bool enable_pin);
     void get_pins_and_settings();
-    uint8_t calc_pwm_precision(float freq);
+    uint8_t calc_pwm_precision(uint32_t freq);
 };
 
 // This is for an on/off spindle all RPMs above 0 are on
@@ -112,12 +119,12 @@ class RelaySpindle : public PWMSpindle {
   public:
     void init();
     void config_message();
-    float set_rpm(float rpm);
+    uint32_t set_rpm(uint32_t rpm);
   protected:
     void set_output(uint32_t duty);
 };
 
-// this is the same as a PWM spindle, but the M4 compensation is supported.
+// this is the same as a PWM spindle but the M4 compensation is supported.
 class Laser : public PWMSpindle {
   public:
     bool isRateAdjusted();
@@ -129,7 +136,7 @@ class DacSpindle : public PWMSpindle {
   public:
     void init();
     void config_message();
-    float set_rpm(float rpm);
+    uint32_t set_rpm(uint32_t rpm);
   private:
     bool _gpio_ok; // DAC is on a valid pin
   protected:
@@ -137,35 +144,42 @@ class DacSpindle : public PWMSpindle {
 };
 
 class HuanyangSpindle : public Spindle {
-  public:
-    void init();
-    void config_message();
-    virtual void set_state(uint8_t state, float rpm);
-    uint8_t get_state();
-    float set_rpm(float rpm);
-    void stop();
-
   private:
-    bool get_response(uint16_t length);
     uint16_t  ModRTU_CRC(char* buf, int len);
     void add_ModRTU_CRC(char* buf, int full_msg_len);
     bool set_mode(uint8_t mode);
     bool get_pins_and_settings();
 
+    uint32_t _current_pwm_rpm;
     uint8_t _txd_pin;
     uint8_t _rxd_pin;
     uint8_t _rts_pin;
     uint8_t _state;
+    bool _task_running;
+
+  public:
+    HuanyangSpindle() {
+        _task_running = false;
+    }
+    void init();
+    void config_message();
+    void set_state(uint8_t state, uint32_t rpm);
+    uint8_t get_state();
+    uint32_t set_rpm(uint32_t rpm);
+    void stop();
+
+
 };
 
 class BESCSpindle : public PWMSpindle {
   public:
     void init();
     void config_message();
-    float set_rpm(float rpm);
+    uint32_t set_rpm(uint32_t rpm);
 };
 
 extern Spindle* spindle;
+
 
 extern NullSpindle null_spindle;
 extern PWMSpindle pwm_spindle;
@@ -175,7 +189,9 @@ extern DacSpindle dac_spindle;
 extern HuanyangSpindle huanyang_spindle;
 extern BESCSpindle besc_spindle;
 
-void spindle_select(uint8_t spindle_type);
-void spindle_read_prefs(Preferences& prefs);
+void spindle_select(uint8_t spindletype);
+
+// in HuanyangSpindle.cpp
+void vfd_cmd_task(void* pvParameters);
 
 #endif
