@@ -1,6 +1,6 @@
 #include "grbl.h"
 
-#include "SettingsBaseClass.h"
+#include "SettingsClass.h"
 #include "JSONencoder.h"
 #include <string>
 #include <map>
