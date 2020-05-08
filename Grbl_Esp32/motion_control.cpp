@@ -24,6 +24,13 @@
 
 #include "grbl.h"
 
+// M_PI is not defined in standard C/C++ but some compilers
+// support it anyway.  The following suppresses Intellisense
+// problem reports.
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 uint8_t ganged_mode = SQUARING_MODE_DUAL;
 
 
