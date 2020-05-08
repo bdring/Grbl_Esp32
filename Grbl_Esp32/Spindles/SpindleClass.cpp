@@ -84,7 +84,7 @@ void spindle_read_prefs(Preferences& prefs) {
 
 
 bool Spindle::isRateAdjusted() { 
-    return false; // default for basic spindles is false
+    return false; // default for basic spindle is false
 }
 
 void Spindle :: spindle_sync(uint8_t state, float rpm) {
