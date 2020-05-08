@@ -1,6 +1,6 @@
 #include "grbl.h"
 
-#include "SettingsDerivedClasses.h"
+#include "SettingsBaseClass.h"
 
 Setting *SettingsList = NULL;
 

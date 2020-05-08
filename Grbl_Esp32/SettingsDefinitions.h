@@ -1,5 +1,5 @@
 #pragma once
-#include "SettingsDerivedClasses.h"
+#include "SettingsBaseClass.h"
 
 static const char *NVS_PARTITION_NAME = "Grbl_ESP32";
 extern err_t report_nvs_stats(uint8_t client);

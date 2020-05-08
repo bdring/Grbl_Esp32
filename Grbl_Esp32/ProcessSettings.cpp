@@ -2,6 +2,58 @@
 
 #include "SettingsDefinitions.h"
 #include <map>
+void settings_restore(uint8_t restore_flag) {
+    #if defined(ENABLE_BLUETOOTH) || defined(ENABLE_WIFI)
+        if (restore_flag & SETTINGS_RESTORE_WIFI_SETTINGS) {
+            #ifdef ENABLE_WIFI
+                    wifi_config.reset_settings();
+            #endif
+            #ifdef ENABLE_BLUETOOTH
+                    bt_config.reset_settings();
+            #endif
+        }
+    #endif
+    if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {
+        for (Setting *s = SettingsList; s; s = s->next()) {
+            bool restore_startup = restore_flag & SETTINGS_RESTORE_STARTUP_LINES;
+            if (!s->getWebuiName()) {
+                const char *name = s->getName();
+                if (restore_startup || ((strcmp(name, "N0") != 0) && (strcmp(name, "N1") == 0))) {
+                    s->setDefault();
+                }
+            }
+        }
+        //transfer_settings();
+        // TODO commit changes
+    }
+    if (restore_flag & SETTINGS_RESTORE_PARAMETERS) {
+        uint8_t idx;
+        float coord_data[N_AXIS];
+        memset(&coord_data, 0, sizeof(coord_data));
+        for (idx = 0; idx <= SETTING_INDEX_NCOORD; idx++)  settings_write_coord_data(idx, coord_data);
+    }
+    if (restore_flag & SETTINGS_RESTORE_BUILD_INFO) {
+        EEPROM.write(EEPROM_ADDR_BUILD_INFO, 0);
+        EEPROM.write(EEPROM_ADDR_BUILD_INFO + 1, 0); // Checksum
+        EEPROM.commit();
+    }
+}
+
+// Get settings values from non volatile storage into memory
+void load_settings()
+{
+    for (Setting *s = SettingsList; s; s = s->next()) {
+        s->load();
+    }
+}
+
+extern void make_settings();
+void settings_init()
+{
+    make_settings();
+    load_settings();
+}
+
 
 // FIXME - jog may need to be special-cased in the parser, since
 // it is not really a setting and the entire line needs to be
@@ -176,6 +228,16 @@ std::map<const char*, Command_t, cmp_str> dollarCommands = {
 };
 // FIXME See Store startup line [IDLE/ALARM]
 
+std::map<const char*, uint8_t, cmp_str> restoreCommands = {
+    { "$", SETTINGS_RESTORE_DEFAULTS },
+    { "settings", SETTINGS_RESTORE_DEFAULTS },
+    { "#", SETTINGS_RESTORE_PARAMETERS },
+    { "gcode", SETTINGS_RESTORE_PARAMETERS },
+    { "*", SETTINGS_RESTORE_ALL },
+    { "all", SETTINGS_RESTORE_ALL },
+    { "@", SETTINGS_RESTORE_WIFI_SETTINGS },
+    { "wifi", SETTINGS_RESTORE_WIFI_SETTINGS },
+};
 // normalize_key puts a key string into canonical form -
 // without whitespace.
 // start points to a null-terminated string.
@@ -214,7 +276,15 @@ char *normalize_key(char *start) {
 // the text name and the grbl compatible name, if any.
 // If found, execute the object's "setStringValue" method.
 // Otherwise fail.
-err_t do_setting(const char *key, char *value) {
+err_t do_setting(const char *key, const char *value) {
+    if (strcasecmp(key, "RST") == 0) {
+        auto it = restoreCommands.find(value);
+        if (it == restoreCommands.end()) {
+            return STATUS_INVALID_STATEMENT;
+        }
+        settings_restore(it->second);
+        return STATUS_OK;
+    }
     // Find the setting named "key" and set its value, considering
     // both the textual names and the old GRBL setting numbers
     for (Setting *s = SettingsList; s; s = s->next()) {
@@ -234,9 +304,9 @@ err_t do_setting(const char *key, char *value) {
 // and display the current value.
 err_t do_command(const char *key, uint8_t client) {
 
-    std::map<const char*, Command_t, cmp_str>::iterator i = dollarCommands.find(key);
-    if (i != dollarCommands.end()) {
-        return i->second(client);
+    std::map<const char*, Command_t, cmp_str>::iterator it = dollarCommands.find(key);
+    if (it != dollarCommands.end()) {
+        return it->second(client);
     }
 
     // Enhancement - not in Classic GRBL:
