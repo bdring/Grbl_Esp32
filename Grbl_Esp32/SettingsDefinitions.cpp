@@ -72,7 +72,8 @@ EnumSetting* http_enable;
 IntSetting* http_port;
 EnumSetting* telnet_enable;
 IntSetting* telnet_port;
-std::map<const char*, int8_t> staModeOptions = {
+typedef std::map<const char *, int8_t, cmp_str> enum_opt_t;
+enum_opt_t staModeOptions = {
     { "DHCP",   DHCP_MODE , },
     { "Static", STATIC_MODE , },
 };
@@ -80,13 +81,13 @@ std::map<const char*, int8_t> staModeOptions = {
 
 #if defined( ENABLE_WIFI) ||  defined( ENABLE_BLUETOOTH)
 EnumSetting* wifi_radio_mode;
-std::map<const char*, int8_t> radioOptions = {
+enum_opt_t radioOptions = {
     { "None", ESP_RADIO_OFF, },
     { "STA", ESP_WIFI_STA, },
     { "AP", ESP_WIFI_AP, },
     { "BT", ESP_BT, },
 };
-std::map<const char*, int8_t> radioEnabledOptions = {
+enum_opt_t radioEnabledOptions = {
     { "NONE", ESP_RADIO_OFF, },
 #ifdef ENABLE_WIFI
     { "STA", ESP_WIFI_STA, },
@@ -109,7 +110,7 @@ StringSetting* admin_password;
 #endif
 
 #ifdef ENABLE_NOTIFICATIONS
-std::map<const char*, int8_t> notificationOptions = {
+enum_opt_t notificationOptions = {
     { "NONE", 0, },
     { "LINE", 3, },
     { "PUSHOVER", 1, },
@@ -120,11 +121,11 @@ StringSetting* notification_t1;
 StringSetting* notification_t2;
 StringSetting* notification_ts;
 #endif
-std::map<const char*, int8_t> onoffOptions = {
-  {  "OFF", 0, },
+enum_opt_t onoffOptions = {
+  { "OFF", 0, },
   { "ON", 1, }
 };
-std::map<const char*, int8_t> spindleTypes = {
+enum_opt_t spindleTypes = {
   { "NONE", SPINDLE_TYPE_NONE, },
   { "PWM", SPINDLE_TYPE_PWM, },
   { "RELAY", SPINDLE_TYPE_RELAY, },
@@ -243,52 +244,52 @@ static const char *makeGrblName(int axisNum, int base) {
 
 void make_settings()
 {
-   if (!_handle) {
-        if (esp_err_t err = nvs_open("Grbl_ESP32", NVS_READWRITE, &_handle)) {
+    if (!_handle) {
+        if (esp_err_t err = nvs_open(NVS_PARTITION_NAME, NVS_READWRITE, &_handle)) {
             grbl_sendf(CLIENT_SERIAL, "nvs_open failed with error %d\r\n", err);
         }
     }
     // WebUI Settings
-#ifdef ENABLE_NOTIFICATIONS
-    notification_ts = new StringSetting(NULL, WEBUI, "Notification Settings", "NotifyTS", DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
-    notification_t2 = new StringSetting(NULL, WEBUI, "Notification Token 2", "NotifyT2", DEFAULT_TOKEN, MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
-    notification_t1 = new StringSetting(NULL, WEBUI, "Notification Token 1", "NotifyT1", DEFAULT_TOKEN , MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
-    notification_type = new EnumSetting(NULL, WEBUI, "Notification type", "NotifyType", DEFAULT_NOTIFICATION_TYPE, notificationOptions);
-#endif
+    #ifdef ENABLE_NOTIFICATIONS
+        notification_ts = new StringSetting(NULL, WEBUI, "Notification Settings", "NotifyTS", DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
+        notification_t2 = new StringSetting(NULL, WEBUI, "Notification Token 2", "NotifyT2", DEFAULT_TOKEN, MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
+        notification_t1 = new StringSetting(NULL, WEBUI, "Notification Token 1", "NotifyT1", DEFAULT_TOKEN , MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
+        notification_type = new EnumSetting(NULL, WEBUI, "Notification type", "NotifyType", DEFAULT_NOTIFICATION_TYPE, &notificationOptions);
+    #endif
 
-#ifdef ENABLE_AUTHENTICATION
-    // XXX need ADMIN_ONLY and if it is called without a parameter it sets the default
-    admin_password = new StringSetting(WEBUI, NULL, "AdminPwd", DEFAULT_ADMIN_PWD, isLocalPasswordValid);
-    user_password = new StringSetting(WEBUI, NULL, "UserPwd", DEFAULT_USER_PWD, isLocalPasswordValid);
-#endif
+    #ifdef ENABLE_AUTHENTICATION
+        // XXX need ADMIN_ONLY and if it is called without a parameter it sets the default
+        admin_password = new StringSetting(WEBUI, NULL, "AdminPwd", DEFAULT_ADMIN_PWD, isLocalPasswordValid);
+        user_password = new StringSetting(WEBUI, NULL, "UserPwd", DEFAULT_USER_PWD, isLocalPasswordValid);
+    #endif
 
-#ifdef ENABLE_BLUETOOTH
-    bt_name = new StringSetting("Bluetooth name", WEBUI, "ESP140", "BTName", DEFAULT_BT_NAME, 0, 0, BTConfig::isBTnameValid);
-#endif
+    #ifdef ENABLE_BLUETOOTH
+        bt_name = new StringSetting("Bluetooth name", WEBUI, "ESP140", "BTName", DEFAULT_BT_NAME, 0, 0, BTConfig::isBTnameValid);
+    #endif
 
-#if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
-    wifi_radio_mode = new EnumSetting("Radio mode", WEBUI, "ESP110", "RadioMode", DEFAULT_RADIO_MODE, radioEnabledOptions);
-#endif
+    #if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
+        wifi_radio_mode = new EnumSetting("Radio mode", WEBUI, "ESP110", "RadioMode", DEFAULT_RADIO_MODE, &radioEnabledOptions);
+    #endif
 
-#ifdef ENABLE_WIFI
-    telnet_port = new IntSetting("Telnet Port", WEBUI, "ESP131", "TelnetPort", DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
-    telnet_enable = new EnumSetting("Telnet protocol", WEBUI, "ESP130", "TelnetOn", DEFAULT_TELNET_STATE, onoffOptions);
-    http_enable = new EnumSetting("HTTP protocol", WEBUI, "ESP120", "HTTPOn", DEFAULT_HTTP_STATE, onoffOptions);
-    http_port = new IntSetting("HTTP Port", WEBUI, "ESP121", "HTTPPort", DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
-    wifi_hostname = new StringSetting("Hostname", WEBUI, "ESP112", "ESPHostname", DEFAULT_HOSTNAME, 0, 0, WiFiConfig::isHostnameValid);
-    wifi_ap_channel = new IntSetting("AP Channel", WEBUI, "ESP108", "APChannel", DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL, NULL);
-    wifi_ap_ip = new IPaddrSetting("AP Static IP", WEBUI, "ESP107", "APIP", DEFAULT_AP_IP, NULL);
-    wifi_ap_password = new StringSetting("AP Password", WEBUI, "ESP106", "APPassword", DEFAULT_AP_PWD, 0, 0, WiFiConfig::isPasswordValid);
-    wifi_ap_ssid = new StringSetting("AP SSID", WEBUI, "ESP105", "ApSSID", DEFAULT_AP_SSID, 0, 0, WiFiConfig::isSSIDValid);
-    //XXX for compatibility, implement wifi_sta_ip_gw_mk()
-    wifi_sta_netmask = new IPaddrSetting("Station Static Mask", WEBUI, NULL, "StaNetmask", DEFAULT_STA_MK, NULL);
-    wifi_sta_gateway = new IPaddrSetting("Station Static Gateway", WEBUI, NULL, "StaGateway", DEFAULT_STA_GW, NULL);
-    wifi_sta_ip = new IPaddrSetting("Station Static IP", WEBUI, NULL, "StaIP", DEFAULT_STA_IP, NULL);
-    wifi_sta_mode = new EnumSetting("Station IP Mode", WEBUI, "ESP102", "StaIPMode", DEFAULT_STA_IP_MODE, staModeOptions);
-    // XXX hack StringSetting class to return a ***** password if checker is isPasswordValid
-    wifi_sta_password = new StringSetting("Station Password", WEBUI, "ESP101", "StaPwd", DEFAULT_STA_PWD, 0, 0, WiFiConfig::isPasswordValid);
-    wifi_sta_ssid = new StringSetting("Station SSID", WEBUI, "ESP100", "StaSSID", DEFAULT_STA_SSID, 0, 0, WiFiConfig::isSSIDValid);
-#endif
+    #ifdef ENABLE_WIFI
+        telnet_port = new IntSetting("Telnet Port", WEBUI, "ESP131", "TelnetPort", DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
+        telnet_enable = new EnumSetting("Telnet protocol", WEBUI, "ESP130", "TelnetOn", DEFAULT_TELNET_STATE, &onoffOptions);
+        http_enable = new EnumSetting("HTTP protocol", WEBUI, "ESP120", "HTTPOn", DEFAULT_HTTP_STATE, &onoffOptions);
+        http_port = new IntSetting("HTTP Port", WEBUI, "ESP121", "HTTPPort", DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
+        wifi_hostname = new StringSetting("Hostname", WEBUI, "ESP112", "ESPHostname", DEFAULT_HOSTNAME, 0, 0, WiFiConfig::isHostnameValid);
+        wifi_ap_channel = new IntSetting("AP Channel", WEBUI, "ESP108", "APChannel", DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL, NULL);
+        wifi_ap_ip = new IPaddrSetting("AP Static IP", WEBUI, "ESP107", "APIP", DEFAULT_AP_IP, NULL);
+        wifi_ap_password = new StringSetting("AP Password", WEBUI, "ESP106", "APPassword", DEFAULT_AP_PWD, 0, 0, WiFiConfig::isPasswordValid);
+        wifi_ap_ssid = new StringSetting("AP SSID", WEBUI, "ESP105", "ApSSID", DEFAULT_AP_SSID, 0, 0, WiFiConfig::isSSIDValid);
+        //XXX for compatibility, implement wifi_sta_ip_gw_mk()
+        wifi_sta_netmask = new IPaddrSetting("Station Static Mask", WEBUI, NULL, "StaNetmask", DEFAULT_STA_MK, NULL);
+        wifi_sta_gateway = new IPaddrSetting("Station Static Gateway", WEBUI, NULL, "StaGateway", DEFAULT_STA_GW, NULL);
+        wifi_sta_ip = new IPaddrSetting("Station Static IP", WEBUI, NULL, "StaIP", DEFAULT_STA_IP, NULL);
+        wifi_sta_mode = new EnumSetting("Station IP Mode", WEBUI, "ESP102", "StaIPMode", DEFAULT_STA_IP_MODE, &staModeOptions);
+        // XXX hack StringSetting class to return a ***** password if checker is isPasswordValid
+        wifi_sta_password = new StringSetting("Station Password", WEBUI, "ESP101", "StaPwd", DEFAULT_STA_PWD, 0, 0, WiFiConfig::isPasswordValid);
+        wifi_sta_ssid = new StringSetting("Station SSID", WEBUI, "ESP100", "StaSSID", DEFAULT_STA_SSID, 0, 0, WiFiConfig::isSSIDValid);
+    #endif
 
     // The following horrid code accomodates people who insist that axis settings
     // be grouped by setting type rather than by axis.
@@ -360,7 +361,7 @@ void make_settings()
     spindle_pwm_min_value = new FloatSetting(EXTENDED, "35", "SpindleMinPWM", DEFAULT_SPINDLE_MIN_VALUE, 0.0, 100.0);
     spindle_pwm_off_value = new FloatSetting(EXTENDED, "34", "SpindleOffPWM", DEFAULT_SPINDLE_OFF_VALUE, 0.0, 100.0); // these are percentages
     // IntSetting spindle_pwm_bit_precision("SpindlePWMbitPrecision", DEFAULT_SPINDLE_BIT_PRECISION, 1, 16);
-    spindle_type = new EnumSetting(NULL, EXTENDED, "33", "SpindleType", SPINDLE_TYPE, spindleTypes);
+    spindle_type = new EnumSetting(NULL, EXTENDED, "33", "SpindleType", SPINDLE_TYPE, &spindleTypes);
 
     // GRBL Non-numbered settings
     startup_line_0 = new StringSetting(GRBL, NULL, "N0", "");
@@ -401,4 +402,23 @@ void make_settings()
     stepper_idle_lock_time = new IntSetting(GRBL, "1", "StepperIdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
     pulse_microseconds = new IntSetting(GRBL, "0", "StepPulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_pwm_freq = new FloatSetting(EXTENDED, NULL, "SpindlePWMFreq", DEFAULT_SPINDLE_FREQ, 0, 100000);
+}
+
+err_t report_nvs_stats(uint8_t client) {
+    nvs_stats_t stats;
+    if( err_t err = nvs_get_stats(NULL, &stats)) {
+        return err;
+    }
+    grbl_sendf(client, "[MSG: NVS Used: %d Free: %d Total: %d]\r\n",
+        stats.used_entries, stats.free_entries, stats.total_entries);
+    #if 0  // The SDK we use does not have this yet
+        nvs_iterator_t it = nvs_entry_find(NULL, NULL, NVS_TYPE_ANY);
+        while (it != NULL) {
+            nvs_entry_info_t info;
+            nvs_entry_info(it, &info);
+            it = nvs_entry_next(it);
+            grbl_sendf(client, "namespace %s key '%s', type '%d' \n", info.namespace_name, info.key, info.type);
+        }
+    #endif
+    return STATUS_OK;
 }

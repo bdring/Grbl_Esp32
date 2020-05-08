@@ -38,14 +38,10 @@ void IntSetting::load() {
     }
 }
 
-void IntSetting::commit() {
+void IntSetting::setDefault() {
+    _currentValue = _defaultValue;
     if (_storedValue != _currentValue) {
-        if (_currentValue == _defaultValue) {
-            nvs_erase_key(_handle, getName());
-        } else {
-            nvs_set_i32(_handle, getName(), _currentValue);
-            _storedValue = _currentValue;
-        }
+        nvs_erase_key(_handle, getName());
     }
 }
 
@@ -64,6 +60,14 @@ err_t IntSetting::setStringValue(const char* s) {
         return STATUS_NUMBER_RANGE;
     }
     _currentValue = convertedValue;
+    if (_storedValue != _currentValue) {
+        if (_currentValue == _defaultValue) {
+            nvs_erase_key(_handle, getName());
+        } else {
+            nvs_set_i32(_handle, getName(), _currentValue);
+            _storedValue = _currentValue;
+        }
+    }
     return STATUS_OK;
 }
 
@@ -94,19 +98,10 @@ void FloatSetting::load() {
     _currentValue = nvs_get_i32(_handle, getName(), &v.ival) ? _defaultValue : v.fval;
 }
 
-void FloatSetting::commit() {
+void FloatSetting::setDefault() {
+    _currentValue = _defaultValue;
     if (_storedValue != _currentValue) {
-        if (_currentValue == _defaultValue) {
-            nvs_erase_key(_handle, getName());
-        } else {
-            union {
-                int32_t ival;
-                float   fval;
-            } v;
-            v.fval = _currentValue;
-            nvs_set_i32(_handle, getName(), v.ival);
-            _storedValue = _currentValue;
-        }
+        nvs_erase_key(_handle, getName());
     }
 }
 
@@ -126,6 +121,19 @@ err_t FloatSetting::setStringValue(const char* s) {
         return STATUS_NUMBER_RANGE;
     }
     _currentValue = convertedValue;
+    if (_storedValue != _currentValue) {
+        if (_currentValue == _defaultValue) {
+            nvs_erase_key(_handle, getName());
+        } else {
+            union {
+                int32_t ival;
+                float   fval;
+            } v;
+            v.fval = _currentValue;
+            nvs_set_i32(_handle, getName(), v.ival);
+            _storedValue = _currentValue;
+        }
+    }
     return STATUS_OK;
 }
 
@@ -175,15 +183,10 @@ void StringSetting::load() {
     _currentValue = _storedValue;
 }
 
-void StringSetting::commit() {
+void StringSetting::setDefault() {
+    _currentValue = _defaultValue;
     if (_storedValue != _currentValue) {
-        if (_currentValue == _defaultValue) {
-            nvs_erase_key(_handle, getName());
-            _storedValue = _defaultValue;
-        } else {
-            nvs_set_str(_handle, getName(), _currentValue.c_str());
-            _storedValue = _currentValue;
-        }
+        nvs_erase_key(_handle, getName());
     }
 }
 
@@ -194,7 +197,16 @@ err_t StringSetting::setStringValue(const char* s) {
     if (check(s)) {
         return STATUS_INVALID_VALUE;
     }
-    _currentValue = s;
+   _currentValue = s;
+    if (_storedValue != _currentValue) {
+        if (_currentValue == _defaultValue) {
+            nvs_erase_key(_handle, getName());
+            _storedValue = _defaultValue;
+        } else {
+            nvs_set_str(_handle, getName(), _currentValue.c_str());
+            _storedValue = _currentValue;
+        }
+    }
     return STATUS_OK;
 }
 
@@ -215,7 +227,9 @@ void StringSetting::addWebui(JSONencoder *j) {
     j->end_object();
 }
 
-EnumSetting::EnumSetting(const char *webName, group_t group, const char* grblName, const char* name, int8_t defVal, std::map<const char *, int8_t>opts)
+typedef std::map<const char *, int8_t, cmp_str> enum_opt_t;
+
+EnumSetting::EnumSetting(const char *webName, group_t group, const char* grblName, const char* name, int8_t defVal, enum_opt_t *opts)
     // No checker function because enumerations have an exact set of value
     : Setting(webName, group, grblName, name, NULL)
     , _defaultValue(defVal)
@@ -231,7 +245,20 @@ void EnumSetting::load() {
         _currentValue = _storedValue;
     }
 }
-void EnumSetting::commit() {
+
+void EnumSetting::setDefault() {
+    _currentValue = _defaultValue;
+    if (_storedValue != _currentValue) {
+        nvs_erase_key(_handle, getName());
+    }
+}
+
+err_t EnumSetting::setStringValue(const char* s) {
+    enum_opt_t::iterator it = _options->find(s);
+    if (it == _options->end()) {
+        return STATUS_BAD_NUMBER_FORMAT;
+    }
+    _currentValue = it->second;
     if (_storedValue != _currentValue) {
         if (_storedValue == _defaultValue) {
             nvs_erase_key(_handle, getName());
@@ -240,19 +267,12 @@ void EnumSetting::commit() {
             _storedValue = _currentValue;
         }
     }
-}
-err_t EnumSetting::setStringValue(const char* s) {
-    std::map<const char *, int8_t>::iterator it = _options.find(s);
-    if (it == _options.end()) {
-        return STATUS_BAD_NUMBER_FORMAT;
-    }
-    _currentValue = it->second;
     return STATUS_OK;
 }
 
 const char* EnumSetting::getStringValue() {
-    for (std::map<const char*, int8_t>::iterator it = _options.begin();
-         it != _options.end();
+    for (enum_opt_t::iterator it = _options->begin();
+         it != _options->end();
          it++) {
         if (it->second == _currentValue) {
             return it->first;
@@ -267,8 +287,8 @@ void EnumSetting::addWebui(JSONencoder *j) {
     }
     j->begin_webui(getName(), getWebuiName(), "B", getStringValue());
     j->begin_array("O");
-    for (std::map<const char*, int8_t>::iterator it = _options.begin();
-         it != _options.end();
+    for (enum_opt_t::iterator it = _options->begin();
+         it != _options->end();
          it++) {
         j->begin_object();
         j->member(it->first, it->second);
@@ -292,7 +312,19 @@ void FlagSetting::load() {
         _currentValue = !!_storedValue;
     }
 }
-void FlagSetting::commit() {
+void FlagSetting::setDefault() {
+    _currentValue = _defaultValue;
+    if (_storedValue != _currentValue) {
+        nvs_erase_key(_handle, getName());
+    }
+}
+
+err_t FlagSetting::setStringValue(const char* s) {
+    _currentValue = (strcasecmp(s, "on") == 0)
+    || (strcasecmp(s, "true") == 0)
+    || (strcasecmp(s, "enabled") == 0)
+    || (strcasecmp(s, "yes") == 0)
+    || (strcasecmp(s, "1") == 0);
     // _storedValue is -1, 0, or 1
     // _currentValue is 0 or 1
     if (_storedValue != (int8_t)_currentValue) {
@@ -303,14 +335,7 @@ void FlagSetting::commit() {
             _storedValue = _currentValue;
         }
     }
-}
-err_t FlagSetting::setStringValue(const char* s) {
-    _currentValue = (strcasecmp(s, "on") == 0)
-    || (strcasecmp(s, "true") == 0)
-    || (strcasecmp(s, "enabled") == 0)
-    || (strcasecmp(s, "yes") == 0)
-    || (strcasecmp(s, "1") == 0);
-     return STATUS_OK;
+    return STATUS_OK;
 }
 const char* FlagSetting::getStringValue() {
     return get() ? "On" : "Off";
@@ -347,14 +372,10 @@ void IPaddrSetting::load() {
     _currentValue = _storedValue;
 }
 
-void IPaddrSetting::commit() {
+void IPaddrSetting::setDefault() {
+    _currentValue = _defaultValue;
     if (_storedValue != _currentValue) {
-        if (_currentValue == _defaultValue) {
-            nvs_erase_key(_handle, getName());
-        } else {
-            nvs_set_i32(_handle, getName(), (int32_t)_currentValue);
-            _storedValue = _currentValue;
-        }
+        nvs_erase_key(_handle, getName());
     }
 }
 
@@ -367,6 +388,14 @@ err_t IPaddrSetting::setStringValue(const char* s) {
     if (ipaddr.fromString(s)) {
         _currentValue = ipaddr;
         return STATUS_OK;
+    }
+    if (_storedValue != _currentValue) {
+        if (_currentValue == _defaultValue) {
+            nvs_erase_key(_handle, getName());
+        } else {
+            nvs_set_i32(_handle, getName(), (int32_t)_currentValue);
+            _storedValue = _currentValue;
+        }
     }
     return STATUS_INVALID_VALUE;
 }

@@ -48,9 +48,9 @@ protected:
 
 public:
     Setting *next() { return link; }
-
+    // Returns true on error
     bool check(const char *s) {
-        return _checker ? _checker(s) : false;
+        return _checker ? !_checker(s) : false;
     }
 
     ~Setting() {}
@@ -66,10 +66,6 @@ public:
     // value of the setting.  This could be slow so it
     // should be done infrequently, typically once at startup.
     virtual void load() =0;
-
-    // commit() puts the current value of the setting into
-    // the backing store.
-    virtual void commit() =0;
 
     virtual err_t setStringValue(const char* value) =0;
     err_t setStringValue(string s) {  return setStringValue(s.c_str());  }

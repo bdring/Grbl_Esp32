@@ -3,14 +3,6 @@
 #include "SettingsDefinitions.h"
 #include <map>
 
-struct cmp_str
-{
-   bool operator()(char const *a, char const *b) const
-   {
-      return strcasecmp(a, b) < 0;
-   }
-};
-
 // FIXME - jog may need to be special-cased in the parser, since
 // it is not really a setting and the entire line needs to be
 // sent to gc_execute_line.  It is probably also more time-critical
@@ -168,6 +160,7 @@ std::map<const char*, Command_t, cmp_str> dollarCommands = {
     { "S", list_settings },
     { "G", report_gcode },
     { "C", toggle_check_mode },
+    { "N", report_nvs_stats },
     { "X", disable_alarm_lock },
     { "#", report_ngc },
     { "H", home_all },
@@ -222,8 +215,8 @@ char *normalize_key(char *start) {
 // If found, execute the object's "setStringValue" method.
 // Otherwise fail.
 err_t do_setting(const char *key, char *value) {
-    // First search this numberedSettings array - aliases
-    // for the underlying named settings.
+    // Find the setting named "key" and set its value, considering
+    // both the textual names and the old GRBL setting numbers
     for (Setting *s = SettingsList; s; s = s->next()) {
         if ((strcasecmp(s->getName(), key) == 0)
         || (s->getGrblName() && (strcmp(s->getGrblName(), key) == 0))) {
@@ -262,19 +255,18 @@ err_t do_command(const char *key, uint8_t client) {
 }
 
 uint8_t system_execute_line(char* line, uint8_t client) {
-    err_t res;
     char *value = strchr(line, '=');
-    char *key = normalize_key(line+1);
-
     if (value) {
         // Equals was found; replace it with null and skip it
+        // This must precede normalize_key() to prevent it from
+        // paring whitespace from the value.
         *value++ = '\0';
-        res = do_setting(key, value);
-    } else {
-        // No equals, so it must be a command
-        res = do_command(key, client);
     }
-    return res;
+    char *key = normalize_key(line+1);
+
+    return value
+        ? do_setting(key, value)
+        : do_command(key, client);
 }
 void system_execute_startup(char* line) {
     err_t status_code;

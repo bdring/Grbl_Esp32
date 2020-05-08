@@ -135,6 +135,11 @@ void protocol_main_loop() {
                     char_counter = 0;
                     comment_char_counter = 0;
                 } else {
+                    if (c == '\b') {
+                        // Backspace erases
+                        if (char_counter)
+                            --char_counter;
+                    } else
                     if (line_flags) {
                         if (line_flags & LINE_FLAG_BRACKET)    // in bracket mode all characters are accepted
                             line[char_counter++] = c;
@@ -169,7 +174,7 @@ void protocol_main_loop() {
                         } else if (c == ';') {
                             // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
                             line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
-                        } else if (c == '[') {
+                        } else if (c == '[' || c == '$') {
                             // For ESP3D bracket commands like [ESP100]<SSID>pwd=<admin password>
                             // prevents spaces being striped and converting to uppercase
                             line_flags |= LINE_FLAG_BRACKET;

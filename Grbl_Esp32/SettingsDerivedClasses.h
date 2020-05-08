@@ -22,9 +22,8 @@ public:
     int32_t get() {  return _currentValue;  }
 
     void load();
-    void commit();
+    void setDefault();
     err_t setStringValue(const char *);
-    void setDefault() { _currentValue = _defaultValue; }
     const char *getStringValue();
     const char *getStringDefault();
     void addWebui(JSONencoder *);
@@ -46,9 +45,8 @@ public:
 
     float get() {  return _currentValue;  }
     void load();
-    void commit();
+    void setDefault();
     err_t setStringValue(const char *);
-    void setDefault() { _currentValue = _defaultValue; }
     const char *getStringValue();
 };
 
@@ -70,32 +68,38 @@ public:
 
     const char* get() { return _currentValue.c_str();  }
     void load();
-    void commit();
+    void setDefault();
     err_t setStringValue(const char *);
     const char *getStringValue();
-    void setDefault() { _currentValue = _defaultValue; }
     void addWebui(JSONencoder *);
 };
+struct cmp_str
+{
+   bool operator()(char const *a, char const *b) const
+   {
+      return strcasecmp(a, b) < 0;
+   }
+};
+typedef std::map<const char *, int8_t, cmp_str> enum_opt_t;
 
 class EnumSetting : public Setting {
 private:
     int8_t _defaultValue;
     int8_t _storedValue;
     int8_t _currentValue;
-    std::map<const char *, int8_t>_options;
+    std::map<const char *, int8_t, cmp_str>* _options;
 public:
-    EnumSetting(const char *webName, group_t group, const char* grblName, const char* name, int8_t defVal, std::map<const char *, int8_t>opts);
+    EnumSetting(const char *webName, group_t group, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts);
 
-    EnumSetting(group_t group, const char* grblName, const char* name, int8_t defVal, std::map<const char *, int8_t>opts) :
+    EnumSetting(group_t group, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts) :
         EnumSetting(NULL, group, grblName, name, defVal, opts)
     { }
 
     int8_t get() { return _currentValue;  }
     void load();
-    void commit();
+    void setDefault();
     err_t setStringValue(const char *);
     const char *getStringValue();
-    void setDefault() { _currentValue = _defaultValue; }
     void addWebui(JSONencoder *);
 };
 
@@ -112,9 +116,8 @@ public:
 
     bool get() {  return _currentValue;  }
     void load();
-    void commit();
+    void setDefault();
     err_t setStringValue(const char *);
-    void setDefault() { _currentValue = _defaultValue; }
     const char *getStringValue();
     // void addWebui(JSONencoder *);
 };
@@ -132,10 +135,9 @@ public:
     uint32_t get() {  return _currentValue;  }
 
     void load();
-    void commit();
+    void setDefault();
     err_t setStringValue(const char *);
     const char *getStringValue();
-    void setDefault() { _currentValue = _defaultValue; }
     void addWebui(JSONencoder *);
 };
 
