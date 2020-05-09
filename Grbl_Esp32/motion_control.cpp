@@ -210,6 +210,7 @@ void mc_dwell(float seconds) {
 // NOTE: There should be no motions in the buffer and Grbl must be in an idle state before
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
 void mc_homing_cycle(uint8_t cycle_mask) {
+    
 #ifdef USE_CUSTOM_HOMING
     if (user_defined_homing())
         return;
@@ -234,6 +235,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     // -------------------------------------------------------------------------------------
     // Perform homing routine. NOTE: Special motion case. Only system reset works.
     n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;
+    motors_set_homing_mode(true); // entering homing mode
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
     /*
     if (cycle_mask) { limits_go_home(cycle_mask); } // Perform homing cycle based on mask.
@@ -312,12 +314,18 @@ void mc_homing_cycle(uint8_t cycle_mask) {
 #endif
     }
     protocol_execute_realtime(); // Check for reset and set system abort.
-    if (sys.abort)  return;   // Did not complete. Alarm state set by mc_alarm.
+    if (sys.abort){
+         motors_set_homing_mode(false); // entering homing mode
+         return;   // Did not complete. Alarm state set by mc_alarm.        
+    } 
     // Homing cycle complete! Setup system for normal operation.
     // -------------------------------------------------------------------------------------
     // Sync gcode parser and planner positions to homed position.
     gc_sync_position();
     plan_sync_position();
+
+    motors_set_homing_mode(false); // leaving homing mode
+
 #ifdef USE_KINEMATICS
     // This give kinematics a chance to do something after normal homing
     kinematics_post_homing();
