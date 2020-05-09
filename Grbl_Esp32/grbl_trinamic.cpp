@@ -45,141 +45,141 @@
 
 
 #ifdef X_TRINAMIC
-    #ifdef X_DRIVER_TMC2130
+    #ifdef X_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_X = TMC2130Stepper(X_CS_PIN, X_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef X_DRIVER_TMC2209
+    #ifdef X_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_X = TMC2209Stepper(X_CS_PIN, X_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef X_DRIVER_TMC5160
+    #ifdef X_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_X = TMC5160Stepper(X_CS_PIN, X_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
 #ifdef X2_TRINAMIC
-    #ifdef X2_DRIVER_TMC2130
+    #ifdef X2_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_X2 = TMC2130Stepper(X2_CS_PIN, X2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef X2_DRIVER_TMC2209
+    #ifdef X2_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_X2 = TMC2209Stepper(X2_CS_PIN, X2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef X2_DRIVER_TMC5160
+    #ifdef X2_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_X2 = TMC5160Stepper(X2_CS_PIN, X2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
 #ifdef Y_TRINAMIC
-    #ifdef Y_DRIVER_TMC2130
+    #ifdef Y_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_Y = TMC2130Stepper(Y_CS_PIN, Y_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef Y_DRIVER_TMC2209
+    #ifdef Y_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_Y = TMC2209Stepper(Y_CS_PIN, Y_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef Y_DRIVER_TMC5160
+    #ifdef Y_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_Y = TMC5160Stepper(Y_CS_PIN, Y_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 #ifdef Y2_TRINAMIC
-    #ifdef Y2_DRIVER_TMC2130
+    #ifdef Y2_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_Y2 = TMC2130Stepper(Y2_CS_PIN, Y2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef Y2_DRIVER_TMC2209
+    #ifdef Y2_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_Y2 = TMC2209Stepper(Y2_CS_PIN, Y2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef Y2_DRIVER_TMC5160
+    #ifdef Y2_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_Y2 = TMC5160Stepper(Y2_CS_PIN, Y2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
 
 #ifdef Z_TRINAMIC
-    #ifdef Z_DRIVER_TMC2130
+    #ifdef Z_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_Z = TMC2130Stepper(Z_CS_PIN, Z_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef Z_DRIVER_TMC2209
+    #ifdef Z_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_Z = TMC2209Stepper(Z_CS_PIN, Z_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef Z_DRIVER_TMC5160
+    #ifdef Z_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_Z = TMC5160Stepper(Z_CS_PIN, Z_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 #ifdef Z2_TRINAMIC
-    #ifdef Z2_DRIVER_TMC2130
+    #ifdef Z2_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_Z2 = TMC2130Stepper(Z2_CS_PIN, Z2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef Z2_DRIVER_TMC2209
+    #ifdef Z2_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_Z2 = TMC2209Stepper(Z2_CS_PIN, Z2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef Z2_DRIVER_TMC5160
+    #ifdef Z2_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_Z2 = TMC5160Stepper(Z2_CS_PIN, Z2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
 #ifdef A_TRINAMIC
-    #ifdef A_DRIVER_TMC2130
+    #ifdef A_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_A = TMC2130Stepper(A_CS_PIN, A_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef A_DRIVER_TMC2209
+    #ifdef A_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_A = TMC2209Stepper(A_CS_PIN, A_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef A_DRIVER_TMC5160
+    #ifdef A_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_A = TMC5160Stepper(A_CS_PIN, A_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 #ifdef A2_TRINAMIC
-    #ifdef A2_DRIVER_TMC2130
+    #ifdef A2_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_A2 = TMC2130Stepper(A2_CS_PIN, A2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef A2_DRIVER_TMC2209
+    #ifdef A2_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_A2 = TMC2209Stepper(A2_CS_PIN, A_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef A2_DRIVER_TMC5160
+    #ifdef A2_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_A2 = TMC5160Stepper(A2_CS_PIN, A2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
 #ifdef B_TRINAMIC
-    #ifdef B_DRIVER_TMC2130
+    #ifdef B_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_B = TMC2130Stepper(B_CS_PIN, B_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef B_DRIVER_TMC2209
+    #ifdef B_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_B = TMC2209Stepper(B_CS_PIN, B_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef B_DRIVER_TMC5160
+    #ifdef B_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_B = TMC5160Stepper(B_CS_PIN, B_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 #ifdef B2_TRINAMIC
-    #ifdef B2_DRIVER_TMC2130
+    #ifdef B2_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_B2 = TMC2130Stepper(B2_CS_PIN, B2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef B2_DRIVER_TMC2209
+    #ifdef B2_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_B2 = TMC2209Stepper(B2_CS_PIN, B2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef B2_DRIVER_TMC5160
+    #ifdef B2_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_B2 = TMC5160Stepper(B2_CS_PIN, B2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 
 #ifdef C_TRINAMIC
-    #ifdef C_DRIVER_TMC2130
+    #ifdef C_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_c = TMC2130Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef C_DRIVER_TMC2209
+    #ifdef C_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_C = TMC2209Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef C_DRIVER_TMC5160
+    #ifdef C_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_C = TMC5160Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif
 #ifdef C2_TRINAMIC
-    #ifdef C2_DRIVER_TMC2130
+    #ifdef C2_TRINAMIC_DRIVER_TMC2130
         TMC2130Stepper TRINAMIC_C2 = TMC2130Stepper(C2_CS_PIN, C2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef C2_DRIVER_TMC2209
+    #ifdef C2_TRINAMIC_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_C2 = TMC2209Stepper(C2_CS_PIN, C2_RSENSE, get_next_trinamic_driver_index());
     #endif
-    #ifdef C2_DRIVER_TMC5160
+    #ifdef C2_TRINAMIC_DRIVER_TMC5160
         TMC5160Stepper TRINAMIC_C2 = TMC5160Stepper(C2_CS_PIN, C2_RSENSE, get_next_trinamic_driver_index());
     #endif
 #endif

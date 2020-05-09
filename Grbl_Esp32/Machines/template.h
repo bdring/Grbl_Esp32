@@ -239,7 +239,7 @@
 // drivers; inspect the code in grbl_triaminic.cpp to see them.
 // #define USE_TRIAMINIC
 // #define X_TRIAMINIC
-// #define X_DRIVER_TMC2209
+// #define X_TRINAMIC_DRIVER_TMC2209
 // #define TRIAMINIC_DAISY_CHAIN
 
 // USE_MACHINE_TRINAMIC_INIT enables the machine_triaminic_setup()

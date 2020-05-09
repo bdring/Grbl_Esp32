@@ -43,8 +43,8 @@ void init_motors() {
     SPI.begin(); // Yes, I know about the SD issue
 
     // this WILL be done better with settings
-#ifdef X_TRINAMIC
-    myMotor[X_AXIS][0] = new TrinamicDriver(X_AXIS, X_DRIVER, X_RSENSE, X_CS_PIN, get_next_trinamic_driver_index());
+#ifdef X_TRINAMIC_DRIVER
+    myMotor[X_AXIS][0] = new TrinamicDriver(X_AXIS, X_TRINAMIC_DRIVER, X_RSENSE, X_CS_PIN, get_next_trinamic_driver_index());
 #else
     #ifdef X_STEP_PIN
         myMotor[X_AXIS][0] = new StandardStepper(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN);
@@ -53,8 +53,8 @@ void init_motors() {
     #endif    
 #endif
 
-#ifdef X2_TRINAMIC
-    myMotor[X_AXIS][1] = new TrinamicDriver(X_AXIS, X2_DRIVER, X2_RSENSE, X2_CS_PIN, get_next_trinamic_driver_index());
+#ifdef X2_TRINAMIC_DRIVER
+    myMotor[X_AXIS][1] = new TrinamicDriver(X_AXIS, X2_TRINAMIC_DRIVER, X2_RSENSE, X2_CS_PIN, get_next_trinamic_driver_index());
 #else
    #ifdef X2_STEP_PIN
         myMotor[X_AXIS][1] = new StandardStepper(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN);
@@ -64,8 +64,8 @@ void init_motors() {
 #endif
 
 
-#ifdef Y_TRINAMIC
-    myMotor[Y_AXIS][0] = new TrinamicDriver(Y_AXIS, Y_DRIVER, Y_RSENSE, Y_CS_PIN, get_next_trinamic_driver_index());
+#ifdef Y_TRINAMIC_DRIVER
+    myMotor[Y_AXIS][0] = new TrinamicDriver(Y_AXIS, Y_TRINAMIC_DRIVER, Y_RSENSE, Y_CS_PIN, get_next_trinamic_driver_index());
 #else
     #ifdef Y_STEP_PIN
         myMotor[Y_AXIS][0] = new StandardStepper(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN);
@@ -75,8 +75,8 @@ void init_motors() {
 #endif
 
 
-#ifdef Y2_TRINAMIC
-    myMotor[Y_AXIS][1] = new TrinamicDriver(Y_AXIS, Y2_DRIVER, Y2_RSENSE, Y2_CS_PIN, get_next_trinamic_driver_index());
+#ifdef Y2_TRINAMIC_DRIVER
+    myMotor[Y_AXIS][1] = new TrinamicDriver(Y_AXIS, Y2_TRINAMIC_DRIVER, Y2_RSENSE, Y2_CS_PIN, get_next_trinamic_driver_index());
 #else
     #ifdef Y2_STEP_PIN
         myMotor[Y_AXIS][1] = new StandardStepper(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN);
@@ -85,8 +85,8 @@ void init_motors() {
     #endif 
 #endif
 
-#ifdef Z_TRINAMIC
-    myMotor[Z_AXIS][0] = new TrinamicDriver(Z_AXIS, Z_DRIVER, Z_RSENSE, Z_CS_PIN, get_next_trinamic_driver_index());
+#ifdef Z_TRINAMIC_DRIVER
+    myMotor[Z_AXIS][0] = new TrinamicDriver(Z_AXIS, Z_TRINAMIC_DRIVER, Z_RSENSE, Z_CS_PIN, get_next_trinamic_driver_index());
 #else
     #ifdef Z_STEP_PIN
         myMotor[Z_AXIS][0] = new StandardStepper(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN);
@@ -95,8 +95,8 @@ void init_motors() {
     #endif 
 #endif
 
-#ifdef Z2_TRINAMIC
-    myMotor[Z_AXIS][1] = new TrinamicDriver(Z_AXIS, Z2_DRIVER, Z2_RSENSE, Z2_CS_PIN, get_next_trinamic_driver_index());
+#ifdef Z2_TRINAMIC_DRIVER
+    myMotor[Z_AXIS][1] = new TrinamicDriver(Z_AXIS, Z2_TRINAMIC_DRIVER, Z2_RSENSE, Z2_CS_PIN, get_next_trinamic_driver_index());
 #else
     #ifdef Z2_STEP_PIN
         myMotor[Z_AXIS][1] = new StandardStepper(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN);
@@ -105,8 +105,8 @@ void init_motors() {
     #endif 
 #endif
 
-#ifdef A_TRINAMIC
-    myMotor[A_AXIS][0] = new TrinamicDriver(A_AXIS, A_DRIVER, A_RSENSE, A_CS_PIN, get_next_trinamic_driver_index());
+#ifdef A_TRINAMIC_DRIVER
+    myMotor[A_AXIS][0] = new TrinamicDriver(A_AXIS, A_TRINAMIC_DRIVER, A_RSENSE, A_CS_PIN, get_next_trinamic_driver_index());
 #else
     #ifdef A_STEP_PIN
         myMotor[A_AXIS][0] = new StandardStepper(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN);
@@ -115,8 +115,8 @@ void init_motors() {
     #endif 
 #endif
 
-#ifdef A2_TRINAMIC
-    myMotor[A_AXIS][1] = new TrinamicDriver(A_AXIS, A2_DRIVER, A2_RSENSE, A2_CS_PIN, get_next_trinamic_driver_index());
+#ifdef A2_TRINAMIC_DRIVER
+    myMotor[A_AXIS][1] = new TrinamicDriver(A_AXIS, A2_TRINAMIC_DRIVER, A2_RSENSE, A2_CS_PIN, get_next_trinamic_driver_index());
 #else
     #ifdef A2_STEP_PIN
         myMotor[A_AXIS][1] = new StandardStepper(A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN);
@@ -125,8 +125,8 @@ void init_motors() {
     #endif 
 #endif
 
-#ifdef B_TRINAMIC
-    myMotor[B_AXIS][0] = new TrinamicDriver(B_AXIS, B_DRIVER, B_RSENSE, B_CS_PIN, get_next_trinamic_driver_index());
+#ifdef B_TRINAMIC_DRIVER
+    myMotor[B_AXIS][0] = new TrinamicDriver(B_AXIS, B_TRINAMIC_DRIVER, B_RSENSE, B_CS_PIN, get_next_trinamic_driver_index());
 #else
     #ifdef A_STEP_PIN
         myMotor[A_AXIS][0] = new StandardStepper(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN);
@@ -134,8 +134,8 @@ void init_motors() {
         myMotor[A_AXIS][0] = new Nullmotor();
     #endif 
 #endif
-#ifdef B2_TRINAMIC
-    myMotor[B_AXIS][1] = new TrinamicDriver(B_AXIS, B2_DRIVER, B2_RSENSE, B2_CS_PIN, get_next_trinamic_driver_index());
+#ifdef B2_TRINAMIC_DRIVER
+    myMotor[B_AXIS][1] = new TrinamicDriver(B_AXIS, B2_TRINAMIC_DRIVER, B2_RSENSE, B2_CS_PIN, get_next_trinamic_driver_index());
 #else
    #ifdef B2_STEP_PIN
         myMotor[B_AXIS][1] = new StandardStepper(B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN);
@@ -144,8 +144,8 @@ void init_motors() {
     #endif 
 #endif
 
-#ifdef C_TRINAMIC
-    myMotor[C_AXIS][0] = new TrinamicDriver(C_AXIS, C_DRIVER, C_RSENSE, C_CS_PIN, get_next_trinamic_driver_index());
+#ifdef C_TRINAMIC_DRIVER
+    myMotor[C_AXIS][0] = new TrinamicDriver(C_AXIS, C_TRINAMIC_DRIVER, C_RSENSE, C_CS_PIN, get_next_trinamic_driver_index());
 #else
     #ifdef A_STEP_PIN
         myMotor[A_AXIS][0] = new StandardStepper(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN);
@@ -153,8 +153,8 @@ void init_motors() {
         myMotor[A_AXIS][0] = new Nullmotor();
     #endif 
 #endif
-#ifdef C2_TRINAMIC
-    myMotor[C_AXIS][1] = new TrinamicDriver(C_AXIS, C2_DRIVER, C2_RSENSE, C2_CS_PIN, get_next_trinamic_driver_index());
+#ifdef C2_TRINAMIC_DRIVER
+    myMotor[C_AXIS][1] = new TrinamicDriver(C_AXIS, C2_TRINAMIC_DRIVER, C2_RSENSE, C2_CS_PIN, get_next_trinamic_driver_index());
 #else
     #ifdef C2_STEP_PIN
         myMotor[C_AXIS][1] = new StandardStepper(C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN);
@@ -236,6 +236,15 @@ void motors_set_homing_mode(bool is_homing) {
     }
 }
 
+void motors_set_enable(bool enabled) {
+    // TODO the global enable pin goes here 
+    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+            myMotor[axis][gang_index]->set_enable(enabled);
+        }
+    }
+}
+
 // ============================== Class Methods ================================================
 
 Motor :: Motor() {
@@ -254,6 +263,10 @@ void Motor :: debug_message() {
 void Motor :: read_settings() {
 }
 
+void Motor :: set_enable(bool enable) {
+    // TODO Can be used for individual enables or SPI soft enables
+}
+
 void Motor :: set_homing_mode(bool is_homing) {
     _is_homing = is_homing;
 }
@@ -262,8 +275,17 @@ StandardStepper :: StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t
     this->axis_index = axis_index;
     this->step_pin = step_pin;
     this->dir_pin = dir_pin;
+    init();
     config_message();
 }
+
+void StandardStepper :: init() {
+    _is_homing = false;
+
+    // TODO Step but, but RMT complicates things
+    pinMode(dir_pin, OUTPUT);
+}
+
 
 void StandardStepper :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
@@ -295,6 +317,8 @@ void TrinamicDriver :: init() {
         return;
     }
     config_message();
+    // TODO step pins
+    pinMode(dir_pin, OUTPUT);
     tmcstepper->begin();
     trinamic_test_response(); // Prints an error if there is a problem
     read_settings(); // pull info from settings
@@ -313,7 +337,8 @@ void TrinamicDriver :: config_message() {
                    _driver_part_number,
                    step_pin,
                    dir_pin,                   
-                   cs_pin, index);
+                   cs_pin, 
+                   spi_index);
 }
 
 /*
@@ -336,7 +361,7 @@ void TrinamicDriver :: trinamic_test_response() {
     Read setting and send them to the driver. Called at init() and whenever related settings change
 */
 void TrinamicDriver :: read_settings() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis read_settings() ", report_get_axis_letter(axis_index));
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis read_settings() ", report_get_axis_letter(axis_index));
     tmcstepper->microsteps(settings.microsteps[axis_index]);
     tmcstepper->rms_current(settings.current[axis_index] * 1000.0, settings.hold_current[axis_index] / 100.0);
     tmcstepper->sgt(settings.stallguard[axis_index]);
@@ -368,15 +393,21 @@ void TrinamicDriver :: set_mode() {
         tmcstepper->toff(5);
         tmcstepper->en_pwm_mode(1);      // Enable extremely quiet stepping
         tmcstepper->pwm_autoscale(1);
-    } else if (mode == TRINAMIC_RUN_MODE_COOLSTEP) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_RUN_MODE_COOLSTEP");
+    } else if (mode == TRINAMIC_RUN_MODE_COOLSTEP || mode == TRINAMIC_RUN_MODE_STALLGUARD) {        
         tmcstepper->tbl(1);
         tmcstepper->toff(3);
-        tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
-        tmcstepper->THIGH(NORMAL_THIGH);
         tmcstepper->hysteresis_start(4);
         tmcstepper->hysteresis_end(-2);
-        tmcstepper->diag1_stall(0); // stallguard i/o is not on diag1
+        tmcstepper->sfilt(1);
+        tmcstepper->diag1_pushpull(0); // 0 = active low
+        tmcstepper->diag1_stall(1); // stallguard i/o is on diag1
+        if (mode == TRINAMIC_RUN_MODE_COOLSTEP) {
+            tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
+            tmcstepper->THIGH(NORMAL_THIGH);
+        } else {
+            tmcstepper->TCOOLTHRS(HOMING_TCOOLTHRS);
+            tmcstepper->THIGH(HOMING_THIGH);
+        }       
     } else {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_RUN_MODE_STALLGUARD");
         tmcstepper->tbl(1);
@@ -398,16 +429,17 @@ void TrinamicDriver :: set_mode() {
 
         uint32_t tstep = tmcstepper->TSTEP();
 
-        if (tstep == 0xFFFFF)   // if axis is not moving return
+        if (tstep == 0xFFFFF || tstep == -1)   // if axis is not moving return
             return;
 
         float feedrate = st_get_realtime_rate(); //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
-                       "%c Stallguard  %d   SG_Val: %03d   Rate: %05.0fmm/min",
+                       "%c Stallguard  %d   SG_Val: %04d   Rate: %05.0fmm/min,   %d",
                        report_get_axis_letter(axis_index),
                        tmcstepper->stallguard(),
                        tmcstepper->sg_result(),
-                       feedrate);
+                       feedrate,
+                       tstep);
     }

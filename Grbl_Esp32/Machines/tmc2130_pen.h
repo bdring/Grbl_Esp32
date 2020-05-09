@@ -40,14 +40,14 @@
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_26
 #define X_TRINAMIC              // using SPI control
-#define X_DRIVER_TMC2130        // Which Driver Type?
+#define X_TRINAMIC_DRIVER_TMC2130        // Which Driver Type?
 #define X_CS_PIN                GPIO_NUM_17  //chip select
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
 
 #define Y_STEP_PIN              GPIO_NUM_14
 #define Y_DIRECTION_PIN         GPIO_NUM_25
 #define Y_TRINAMIC              // using SPI control
-#define Y_DRIVER_TMC2130        // Which Driver Type?
+#define Y_TRINAMIC_DRIVER_TMC2130        // Which Driver Type?
 #define Y_CS_PIN                GPIO_NUM_16  //chip select
 #define Y_RSENSE                TMC2130_RSENSE_DEFAULT
 

@@ -449,6 +449,8 @@ void stepper_init() {
 #endif
 #endif
     // make the direction pins outputs
+
+  /* Move to motor class  
 #ifdef X_DIRECTION_PIN
     pinMode(X_DIRECTION_PIN, OUTPUT);
 #endif
@@ -485,6 +487,10 @@ void stepper_init() {
 #ifdef C2_DIRECTION_PIN
     pinMode(C2_DIRECTION_PIN, OUTPUT);
 #endif
+*/
+
+
+
     // setup stepper timer interrupt
     /*
     stepperDriverTimer = timerBegin(	0, 													// timer number

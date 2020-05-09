@@ -16,7 +16,7 @@ PWM
 
 // !!! For initial testing, start with test_drive.h which disables
 // all I/O pins
-#include "Machines/3axis_v4.h"
+#include "Machines/motor_class_test.h"
 
 // !!! For actual use, change the line above to select a board
 // from Machines/, for example:

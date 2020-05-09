@@ -45,9 +45,7 @@ class Motor {
     virtual void debug_message();
     virtual void read_settings();
     virtual void set_homing_mode(bool is_homing);
-
-    //virtual void set_enable(bool enable);
-    //virtual void set_step_pin(bool step);
+    virtual void set_enable(bool enable);
 
     uint8_t axis_index;  // X_AXIS, etc
     uint8_t step_pin = UNDEFINED_PIN;
@@ -68,6 +66,7 @@ class StandardStepper : public Motor {
   public:
     void config_message();
     StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin);
+    void init();
 };
 
 class TrinamicDriver : public Motor {
@@ -106,5 +105,6 @@ uint8_t get_next_trinamic_driver_index();
 void readSgTask(void* pvParameters);
 void motor_read_settings();
 void motors_set_homing_mode(bool is_homing);
+void motors_set_enable(bool enabled);
 
 #endif
