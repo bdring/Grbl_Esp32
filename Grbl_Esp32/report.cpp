@@ -97,7 +97,7 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
 void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
     if (client == CLIENT_INPUT) return;
     if (level > GRBL_MSG_LEVEL) return;
-    char loc_buf[64];
+    char loc_buf[100];
     char* temp = loc_buf;
     va_list arg;
     va_list copy;
@@ -113,7 +113,7 @@ void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_sendf(client, "[MSG:%s]\r\n", temp);
     va_end(arg);
-    if (len > 64)
+    if (len > 100)
         delete[] temp;
 }
 
@@ -672,9 +672,9 @@ void report_realtime_status(uint8_t client) {
     // Report realtime feed speed
 #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
     if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
-        sprintf(temp, "|FS:%.1f,%.0f", st_get_realtime_rate(), sys.spindle_speed / MM_PER_INCH);
+        sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate()/ MM_PER_INCH, sys.spindle_speed);
     else
-        sprintf(temp, "|FS:%.0f,%.0f", st_get_realtime_rate(), sys.spindle_speed);
+        sprintf(temp, "|FS:%.0f,%d", st_get_realtime_rate(), sys.spindle_speed);
     strcat(status, temp);
 #endif
 #ifdef REPORT_FIELD_PIN_STATE
@@ -816,4 +816,12 @@ char report_get_axis_letter(uint8_t axis) {
     default:
         return '?';
     }
+}
+
+// used to report the pin nhumber or -1 for undefined.
+int16_t report_pin_number(uint8_t pin_number) {
+    if (pin_number == UNDEFINED_PIN)
+        return -1;
+    else
+        return (int16_t)pin_number;
 }
