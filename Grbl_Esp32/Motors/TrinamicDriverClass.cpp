@@ -53,11 +53,13 @@ void TrinamicDriver :: init() {
     }
     config_message();
     // TODO step pins
-    pinMode(dir_pin, OUTPUT);
+    init_step_dir_pins(); // from StandardStepper
     tmcstepper->begin();
     trinamic_test_response(); // Try communicating with motor. Prints an error if there is a problem.
     read_settings(); // pull info from settings
     set_mode();
+    
+    _is_homing = false;    
     is_active = true;  // as opposed to NullMotors, this is a real motor
 }
 
@@ -124,12 +126,12 @@ void TrinamicDriver :: set_mode() {
     }
     
     if (mode == TRINAMIC_RUN_MODE_STEALTHCHOP) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "STEALTHCHOP");
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "STEALTHCHOP");
         tmcstepper->toff(5);
         tmcstepper->en_pwm_mode(1);      // Enable extremely quiet stepping
         tmcstepper->pwm_autoscale(1);
-    } else if (mode == TRINAMIC_RUN_MODE_COOLSTEP || mode == TRINAMIC_RUN_MODE_STALLGUARD) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "COOLSTEP");   
+    } else  {  // if (mode == TRINAMIC_RUN_MODE_COOLSTEP || mode == TRINAMIC_RUN_MODE_STALLGUARD)
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "COOLSTEP");   
         tmcstepper->tbl(1);
         tmcstepper->toff(3);
         tmcstepper->hysteresis_start(4);
@@ -147,24 +149,7 @@ void TrinamicDriver :: set_mode() {
             tmcstepper->TCOOLTHRS(tcoolthrs);
             tmcstepper->THIGH(thigh);
         }       
-    } else {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_RUN_MODE_STALLGUARD");
-
-        uint32_t tcoolthrs = calc_tstep(settings.homing_feed_rate, 150.0);
-        uint32_t thigh = calc_tstep(settings.homing_feed_rate, 60.0);
-
-        
-
-        tmcstepper->tbl(1);
-        tmcstepper->toff(3);
-        tmcstepper->TCOOLTHRS(HOMING_TCOOLTHRS);
-        tmcstepper->THIGH(HOMING_THIGH);
-        tmcstepper->hysteresis_start(4);
-        tmcstepper->hysteresis_end(-2);
-        tmcstepper->sfilt(1);
-        tmcstepper->diag1_stall(1); // stallguard i/o is on diag1
-        tmcstepper->diag1_pushpull(0); // 0 = active low
-    }    
+    }
 }
 
     /*
@@ -199,3 +184,24 @@ void TrinamicDriver :: set_mode() {
 
         return (uint32_t)tstep;
     }
+
+
+// this can use the enable feature over SPI. The dedicated pin must be in the enable mode, 
+// but that can be hardwired that way.
+    void TrinamicDriver :: set_disable(bool disable) {
+        #ifdef USE_TRINAMIC_ENABLE
+            if (disable) {
+                tmcstepper->toff(0);
+            } else {
+                set_mode(); // resets everything including toff
+            }
+        #endif
+        // the pin based enable could be added here.
+        // This would be for individual motors, not the single pin for all motors.
+    }
+
+/*
+    void TrinamicDriver :: set_direction_pins(uint8_t onMask) {
+        digitalWrite(dir_pin, (onMask & (1 << axis_index)));
+    }
+*/

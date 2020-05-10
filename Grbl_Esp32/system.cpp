@@ -332,11 +332,8 @@ uint8_t system_check_safety_door_ajar() {
 }
 
 // Special handlers for setting and clearing Grbl's real-time execution flags.
-void system_set_exec_state_flag(uint8_t mask) {
-    // TODO uint8_t sreg = SREG;
-    // TODO cli();
-    sys_rt_exec_state |= (mask);
-    // TODO SREG = sreg;
+void system_set_exec_state_flag(uint8_t mask) {    
+    sys_rt_exec_state |= (mask);    
 }
 
 void system_clear_exec_state_flag(uint8_t mask) {

@@ -2,6 +2,11 @@
     MotorClass.h
 
     Header file for Motor Classes
+        Motor
+            Nullmotor
+            StandardStepper
+                TrinamicDriver
+                Unipolar
 
     These are for motors coordinated by Grbl_ESP32
 
@@ -30,14 +35,8 @@
 #define TRINAMIC_HOMING_NONE        0
 #define TRINAMIC_HOMING_STALLGUARD  1
 
-// the cooolstep setting for the different modes
-// TODO these should be settings
 #define NORMAL_TCOOLTHRS 		0xFFFFF // 20 bit is max
 #define NORMAL_THIGH 			0
-#define HOMING_TCOOLTHRS 		500
-#define HOMING_THIGH 			300
-
-// TODO !!!!! Look at using homing speed for TSTEP stuff
 
 #define TMC2130_RSENSE_DEFAULT  0.11f
 #define TMC5160_RSENSE_DEFAULT  0.075f
@@ -64,7 +63,8 @@ class Motor {
     virtual void debug_message();
     virtual void read_settings();
     virtual void set_homing_mode(bool is_homing);
-    virtual void set_enable(bool enable);
+    virtual void set_disable(bool disable);
+    virtual void set_direction_pins(uint8_t onMask);
 
     uint8_t axis_index;  // X_AXIS, etc
     uint8_t step_pin = UNDEFINED_PIN;
@@ -72,6 +72,9 @@ class Motor {
     uint8_t enable_pin;
     uint8_t is_active = false;
     bool _is_homing;
+
+protected:
+    bool _invert_step_pin;
 
     Motor();
 
@@ -83,12 +86,17 @@ class Nullmotor : public Motor {
 
 class StandardStepper : public Motor {
   public:
-    void config_message();
+    virtual void config_message();
+    StandardStepper();
     StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin);
-    void init();
+    virtual void init();
+    virtual void set_direction_pins(uint8_t onMask);
+    void init_step_dir_pins();
+
+    //void set_diable(bool disable);
 };
 
-class TrinamicDriver : public Motor {
+class TrinamicDriver : public StandardStepper {
   public:
     void config_message();
     void init();
@@ -98,9 +106,10 @@ class TrinamicDriver : public Motor {
     void trinamic_stepper_enable(bool enable);
     void debug_message();
     void set_homing_mode(bool is_homing);
+    void set_disable(bool disable);
+    //void set_direction_pins(uint8_t onMask);
     //uint8_t _run_mode;
     uint8_t _homing_mode;
-
     uint8_t cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
     
 
@@ -112,8 +121,6 @@ class TrinamicDriver : public Motor {
     float _r_sense;
     int8_t spi_index;
     uint32_t calc_tstep(float speed, float percent);
-    
-
 };
 
 // ========== global functions ===================
@@ -129,7 +136,7 @@ uint8_t get_next_trinamic_driver_index();
 void readSgTask(void* pvParameters);
 void motor_read_settings();
 void motors_set_homing_mode(bool is_homing);
-void motors_set_enable(bool enabled);
 void motors_set_disable(bool disable);
+void motors_set_direction_pins(uint8_t onMask);
 
 #endif

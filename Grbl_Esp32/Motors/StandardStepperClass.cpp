@@ -22,18 +22,28 @@
 
 */
 
+StandardStepper :: StandardStepper() {
+
+}
+
 StandardStepper :: StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin) {
     this->axis_index = axis_index;
     this->step_pin = step_pin;
     this->dir_pin = dir_pin;
+
     init();
     config_message();
 }
 
 void StandardStepper :: init() {
-    _is_homing = false;
+    init_step_dir_pins();
+    _is_homing = false;    
+    is_active = true;  // as opposed to NullMotors, this is a real motor    
+}
 
-    // TODO Step but, but RMT complicates things
+void StandardStepper :: init_step_dir_pins() {
+    // TODO Step pin, but RMT complicates things
+    _invert_step_pin = bit_istrue(settings.step_invert_mask, axis_index);
     pinMode(dir_pin, OUTPUT);
 }
 
@@ -45,4 +55,8 @@ void StandardStepper :: config_message() {
                    report_get_axis_letter(axis_index),
                    step_pin,
                    dir_pin);
+}
+
+void StandardStepper :: set_direction_pins(uint8_t onMask) {
+    digitalWrite(dir_pin, (onMask & (1 << axis_index)));
 }

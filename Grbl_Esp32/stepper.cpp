@@ -52,7 +52,7 @@ typedef struct {
 #else
     uint8_t prescaler;      // Without AMASS, a prescaler is required to adjust for slow timing.
 #endif
-    uint16_t spindle_rpm;  // TODO get rid of this.
+    uint16_t spindle_rpm;
 } segment_t;
 static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 
@@ -442,10 +442,6 @@ void stepper_init() {
     pinMode(C_STEP_PIN, OUTPUT);
 #endif
 #endif
-    // make the direction pins outputs
-
-
-
 
     // setup stepper timer interrupt
     /*
@@ -561,7 +557,7 @@ void initRMT() {
     rmt_set_source_clk((rmt_channel_t)A_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)A_rmt_chan_num;
     rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, A_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = A_STEP_PIN;  // TODO
+    rmtConfig.gpio_num = A_STEP_PIN; 
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
     rmt_config(&rmtConfig);
@@ -572,7 +568,7 @@ void initRMT() {
     rmt_set_source_clk((rmt_channel_t)B_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)B_rmt_chan_num;
     rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, B_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = B_STEP_PIN;  // TODO
+    rmtConfig.gpio_num = B_STEP_PIN;
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
     rmt_config(&rmtConfig);
@@ -583,7 +579,7 @@ void initRMT() {
     rmt_set_source_clk((rmt_channel_t)C_rmt_chan_num, RMT_BASECLK_APB);
     rmtConfig.channel = (rmt_channel_t)C_rmt_chan_num;
     rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, C_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = C_STEP_PIN;  // TODO
+    rmtConfig.gpio_num = C_STEP_PIN;
     rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
     rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
     rmt_config(&rmtConfig);
@@ -634,48 +630,9 @@ void st_reset() {
     // TODO do we need to turn step pins off?
 }
 
-
-
-
-
 void set_direction_pins_on(uint8_t onMask) {
-    // inverts are applied in step generation
-#ifdef X_DIRECTION_PIN
-    digitalWrite(X_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef X2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(X2_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef Y_DIRECTION_PIN
-    digitalWrite(Y_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Y2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(Y2_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Z_DIRECTION_PIN
-    digitalWrite(Z_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef Z2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(Z2_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef A_DIRECTION_PIN
-    digitalWrite(A_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef A2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(A2_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef B_DIRECTION_PIN
-    digitalWrite(B_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef B2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(B2_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef C_DIRECTION_PIN
-    digitalWrite(C_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
-#ifdef C2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(C2_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
+    // inverts are applied in step generation....TODO move to Classes
+    motors_set_direction_pins(onMask);
 }
 
 #ifndef USE_GANGED_AXES
@@ -1331,18 +1288,4 @@ void IRAM_ATTR Stepper_Timer_Stop() {
     //Serial.println("ST Stop");
 #endif
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
-}
-
-
-bool get_stepper_disable() { // returns true if steppers are disabled
-    bool disabled = false;
-#ifdef STEPPERS_DISABLE_PIN
-    disabled = digitalRead(STEPPERS_DISABLE_PIN);
-#else
-    return false; // thery are never disabled if there is no pin defined
-#endif
-    if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
-        disabled = !disabled; // Apply pin invert.
-    }
-    return disabled;
 }

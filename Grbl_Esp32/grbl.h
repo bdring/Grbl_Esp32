@@ -21,7 +21,7 @@
 #pragma once
 // Grbl versioning system
 
-#define GRBL_VERSION "1.2a"
+#define GRBL_VERSION "1.3a"
 #define GRBL_VERSION_BUILD "20200507"
 
 //#include <sdkconfig.h>

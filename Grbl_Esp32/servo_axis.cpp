@@ -245,10 +245,12 @@ void ServoAxis::set_location() {
         return;
     }
     // track the disable status of the steppers if desired.
+    /* TODO Fix in MotorClass
     if (_disable_with_steppers && get_stepper_disable()) {
         disable();
         return;
     }
+    */
     if ((_homing_type == SERVO_HOMING_TARGET) && (sys.state == STATE_HOMING)) {
         servo_pos = _homing_position; // go to servos home position
     } else {

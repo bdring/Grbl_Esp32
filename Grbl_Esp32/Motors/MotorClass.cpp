@@ -23,7 +23,6 @@
 
     TODO
         Move step pin stuff to classes
-        Move Enable stuff to classes
         Make Trinamic subclass of standard stepper
         Create a unipolar class
 
@@ -44,11 +43,10 @@ Motor* myMotor[6][2]; // number of axes (normal and ganged)
 static TaskHandle_t readSgTaskHandle = 0;   // for realtime stallguard data diaplay
 
 
-void init_motors() {
-
-    
-
-    
+void init_motors() {    
+    // TODO SPI needs to be done before constructors because they have an init that uses SPI
+    // Should move all inits to the end and conditionally turn on SPI
+    SPI.begin(); // Yes, I know about the SD issue
 
     // this WILL be done better with settings
 #ifdef X_TRINAMIC_DRIVER
@@ -171,7 +169,7 @@ void init_motors() {
     #endif 
 #endif
 
-    SPI.begin(); // Yes, I know about the SD issue
+    
     #ifdef STEPPERS_DISABLE_PIN
         pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
     #endif
@@ -195,18 +193,21 @@ void init_motors() {
 }
 
 void motors_set_disable(bool disable) {
-    #ifdef STEPPERS_DISABLE_PIN   // global diable pin
+    
+    // now step through all the motors
+    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+            myMotor[axis][gang_index]->set_disable(disable);
+        }
+    }
+    // global diable pin
+    #ifdef STEPPERS_DISABLE_PIN   
         if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
             disable = !disable;    // Apply pin invert.
         }
         digitalWrite(STEPPERS_DISABLE_PIN, disable);
     #endif
-    // now step through all the motors
-    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
-            //myMotor[axis][gang_index]->set_enable(enabled);
-        }
-    }
+
 }
 
 
@@ -267,11 +268,10 @@ void motors_set_homing_mode(bool is_homing) {
     }
 }
 
-void motors_set_enable(bool enabled) {
-    // TODO the global enable pin goes here 
+void motors_set_direction_pins(uint8_t onMask) {
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
-            myMotor[axis][gang_index]->set_enable(enabled);
+            myMotor[axis][gang_index]->set_direction_pins(onMask);
         }
     }
 }
@@ -285,23 +285,12 @@ void Motor :: init() {
     _is_homing = false;
 }
 
-void Motor :: config_message() {
-}
-
-void Motor :: debug_message() {
-}
-
-void Motor :: read_settings() {
-}
-
-void Motor :: set_enable(bool enable) {
-    // TODO Can be used for individual enables or SPI soft enables
-}
+void Motor :: config_message() {}
+void Motor :: debug_message() {}
+void Motor :: read_settings() {}
+void Motor :: set_disable(bool disable) {}
+void Motor :: set_direction_pins(uint8_t onMask) {}
 
 void Motor :: set_homing_mode(bool is_homing) {
     _is_homing = is_homing;
 }
-
-
-
- 
