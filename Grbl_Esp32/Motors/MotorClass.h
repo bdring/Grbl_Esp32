@@ -1,11 +1,27 @@
-#include "grbl.h"
-#include <TMCStepper.h>
+/*
+    MotorClass.h
 
-#define MOTOR_TYPE_NONE         0
-#define MOTOR_TYPE_TRINAMIC     1
+    Header file for Motor Classes
 
-// Internal clock Approx (Hz) used to calculate TSTEP from homing rate
-#define TRINAMIC_FCLK       12900000
+    These are for motors coordinated by Grbl_ESP32
+
+    See motorClass.cpp for more details
+
+    Part of Grbl_ESP32
+    2020 -	Bart Dring
+
+    Grbl is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    Grbl is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
 
 #define TRINAMIC_RUN_MODE_STEALTHCHOP   0   // very quiet
 #define TRINAMIC_RUN_MODE_COOLSTEP      1   // everything runs cooler so higher current possible
@@ -37,6 +53,9 @@
 
 #ifndef MOTORCLASS_H
 #define MOTORCLASS_H
+
+#include "../grbl.h"
+#include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
 
 class Motor {
   public:
@@ -85,16 +104,21 @@ class TrinamicDriver : public Motor {
     uint8_t cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
     
 
-    TrinamicDriver(uint8_t axis_index, uint16_t driver_part_number, float r_sense, uint8_t cs_pin, int8_t spi_index);
+    TrinamicDriver(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_sense, uint8_t cs_pin, int8_t spi_index);
 
   private:
     TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
     uint16_t _driver_part_number; // example: use 2130 for TMC2130
     float _r_sense;
     int8_t spi_index;
+    uint32_t calc_tstep(float speed, float percent);
     
 
 };
+
+// ========== global functions ===================
+
+// These are used for setup and to talk to the motors as a group.
 
 void init_motors();
 
@@ -106,5 +130,6 @@ void readSgTask(void* pvParameters);
 void motor_read_settings();
 void motors_set_homing_mode(bool is_homing);
 void motors_set_enable(bool enabled);
+void motors_set_disable(bool disable);
 
 #endif

@@ -55,6 +55,7 @@
 #include "report.h"
 #include "serial.h"
 #include "Spindles/SpindleClass.h"
+#include "Motors/MotorClass.h"
 #include "stepper.h"
 #include "jog.h"
 #include "inputbuffer.h"
@@ -85,11 +86,6 @@
 #ifdef USE_SERVO_AXES
     #include "servo_axis.h"
 #endif
-
-#ifdef USE_TRINAMIC
-    #include "grbl_trinamic.h"
-#endif
-#include "MotorClass.h"
 
 
 #ifdef USE_UNIPOLAR

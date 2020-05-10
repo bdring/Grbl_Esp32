@@ -201,7 +201,7 @@ void protocol_main_loop() {
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
         if (stepper_idle) {
             if (esp_timer_get_time() > stepper_idle_counter)
-                set_stepper_disable(true);
+                motors_set_disable(true);
         }
     }
     return; /* Never reached */

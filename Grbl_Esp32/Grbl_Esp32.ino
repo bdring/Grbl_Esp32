@@ -22,6 +22,7 @@
 #include "WiFi.h"
 
 #include "Spindles/SpindleClass.cpp"
+#include "Motors/MotorClass.cpp"
 
 // Declare system global variable structure
 system_t sys;

@@ -116,7 +116,6 @@ void st_update_plan_block_parameters();
 float st_get_realtime_rate();
 
 // disable (or enable) steppers via STEPPERS_DISABLE_PIN
-void set_stepper_disable(uint8_t disable);
 bool get_stepper_disable(); // returns the state of the pin
 
 void set_step_pin_on(uint8_t axis, uint8_t isOn);

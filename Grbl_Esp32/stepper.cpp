@@ -403,15 +403,9 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
 
 void stepper_init() {
     // make the stepper disable pin an output
-#ifdef STEPPERS_DISABLE_PIN
-    pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
-    set_stepper_disable(true);
-#endif
+
 #ifdef USE_UNIPOLAR
     unipolar_init();
-#endif
-#ifdef USE_TRINAMIC
-    Trinamic_Init();
 #endif
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
 #ifdef USE_RMT_STEPS
@@ -450,44 +444,6 @@ void stepper_init() {
 #endif
     // make the direction pins outputs
 
-  /* Move to motor class  
-#ifdef X_DIRECTION_PIN
-    pinMode(X_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef X2_DIRECTION_PIN
-    pinMode(X2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Y_DIRECTION_PIN
-    pinMode(Y_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Y2_DIRECTION_PIN
-    pinMode(Y2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Z_DIRECTION_PIN
-    pinMode(Z_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Z2_DIRECTION_PIN
-    pinMode(Z2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef A_DIRECTION_PIN
-    pinMode(A_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef A2_DIRECTION_PIN
-    pinMode(A2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef B_DIRECTION_PIN
-    pinMode(B_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef B2_DIRECTION_PIN
-    pinMode(B2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef C_DIRECTION_PIN
-    pinMode(C_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef C2_DIRECTION_PIN
-    pinMode(C2_DIRECTION_PIN, OUTPUT);
-#endif
-*/
 
 
 
@@ -642,7 +598,7 @@ void st_wake_up() {
     //Serial.println("st_wake_up()");
 #endif
     // Enable stepper drivers.
-    set_stepper_disable(false);
+    motors_set_disable(false);
     stepper_idle = false;
     // Initialize stepper output bits to ensure first ISR call does not step.
     st.step_outbits = step_port_invert_mask;
@@ -867,7 +823,7 @@ void st_go_idle() {
         //vTaskDelay(settings.stepper_idle_lock_time / portTICK_PERIOD_MS);	// this probably does not work when called from ISR
         //pin_state = true;
     } else
-        set_stepper_disable(pin_state);
+        motors_set_disable(pin_state);
     set_stepper_pins_on(0);
 }
 
@@ -1377,21 +1333,6 @@ void IRAM_ATTR Stepper_Timer_Stop() {
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
 }
 
-
-void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
-#ifdef USE_TRINAMIC_ENABLE
-    trinamic_stepper_enable(!isOn);
-#endif
-    if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
-        isOn = !isOn;    // Apply pin invert.
-    }
-#ifdef USE_UNIPOLAR
-    unipolar_disable(isOn);
-#endif
-#ifdef STEPPERS_DISABLE_PIN
-    digitalWrite(STEPPERS_DISABLE_PIN, isOn);
-#endif
-}
 
 bool get_stepper_disable() { // returns true if steppers are disabled
     bool disabled = false;
