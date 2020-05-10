@@ -118,7 +118,7 @@ void loop() {
     // Reset Grbl primary systems.
     serial_reset_read_buffer(CLIENT_ALL); // Clear serial read buffer
     gc_init(); // Set g-code parser to default state
-    //spindle_select(SPINDLE_TYPE);
+    spindle->stop();
     coolant_init();
     limits_init();
     probe_init();
