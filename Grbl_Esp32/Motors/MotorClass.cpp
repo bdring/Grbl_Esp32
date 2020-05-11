@@ -25,13 +25,12 @@
         Move step pin stuff to classes
         Make Trinamic subclass of standard stepper
         Create a unipolar class
-
+        Need a way to indicate ganged axes in messages
+        Make sure public/private/protected is cleaned up.
               
         Deal with custom machine ... machine_trinamic_setup();
         Class is ready to deal with non SPI pins, but they have not been needed yet.
-            It would be nice in the config message though
-
-        
+            It would be nice in the config message though        
 
     Reference
         TMC2130 Datasheet https://www.trinamic.com/fileadmin/assets/Products/ICs_Documents/TMC2130_datasheet.pdf
@@ -42,6 +41,9 @@
 Motor* myMotor[6][2]; // number of axes (normal and ganged)
 static TaskHandle_t readSgTaskHandle = 0;   // for realtime stallguard data diaplay
 
+uint8_t rmt_chan_num[6][2];
+rmt_item32_t rmtItem[2];
+rmt_config_t rmtConfig;
 
 void init_motors() {    
     // TODO SPI needs to be done before constructors because they have an init that uses SPI
@@ -69,7 +71,6 @@ void init_motors() {
     #endif 
 #endif
 
-
 #ifdef Y_TRINAMIC_DRIVER
     myMotor[Y_AXIS][0] = new TrinamicDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, Y_CS_PIN, get_next_trinamic_driver_index());
 #else
@@ -79,7 +80,6 @@ void init_motors() {
         myMotor[Y_AXIS][0] = new Nullmotor();
     #endif 
 #endif
-
 
 #ifdef Y2_TRINAMIC_DRIVER
     myMotor[Y_AXIS][1] = new TrinamicDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, Y2_CS_PIN, get_next_trinamic_driver_index());
@@ -168,7 +168,6 @@ void init_motors() {
         myMotor[C_AXIS][1] = new Nullmotor();
     #endif 
 #endif
-
     
     #ifdef STEPPERS_DISABLE_PIN
         pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
@@ -187,9 +186,7 @@ void init_motors() {
                                 0 // core
                                );
     }
-#endif
-
-   
+#endif   
 }
 
 void motors_set_disable(bool disable) {
@@ -207,7 +204,6 @@ void motors_set_disable(bool disable) {
         }
         digitalWrite(STEPPERS_DISABLE_PIN, disable);
     #endif
-
 }
 
 

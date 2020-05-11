@@ -20,19 +20,18 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-
 #include <TMCStepper.h>
-
 
 #define TRINAMIC_FCLK       12700000.0 // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
 
 TrinamicDriver :: TrinamicDriver(   uint8_t axis_index, 
-                                    uint8_t step_pin,
+                                    gpio_num_t step_pin,
                                     uint8_t dir_pin,
                                     uint16_t driver_part_number,
                                     float r_sense, uint8_t cs_pin,
                                     int8_t spi_index) {
     this->axis_index = axis_index;
+    this->dual_axis_index = axis_index < 6 ? 0 : 1; // 0 = primary 1 = ganged
     _driver_part_number = driver_part_number;
     _r_sense = r_sense;
     this->step_pin = step_pin;
@@ -108,7 +107,6 @@ void TrinamicDriver :: set_homing_mode(bool is_homing) {
     _homing_mode = is_homing;
     set_mode();
 }
-
 
 /*
     There are ton of settings. I'll start by grouping then into modes for now.
@@ -199,9 +197,4 @@ void TrinamicDriver :: set_mode() {
         // the pin based enable could be added here.
         // This would be for individual motors, not the single pin for all motors.
     }
-
-/*
-    void TrinamicDriver :: set_direction_pins(uint8_t onMask) {
-        digitalWrite(dir_pin, (onMask & (1 << axis_index)));
-    }
-*/
+    

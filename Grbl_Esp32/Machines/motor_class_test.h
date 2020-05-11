@@ -94,6 +94,8 @@
 
 #define MACHINE_NAME "MotorClass Test TMC2130 Pen board"
 
+//#undef USE_RMT_STEPS
+
 #ifdef N_AXIS
         #undef N_AXIS
 #endif

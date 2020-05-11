@@ -56,8 +56,14 @@
 #include "../grbl.h"
 #include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
 
+extern uint8_t rmt_chan_num[MAX_AXES][2];
+extern rmt_item32_t rmtItem[2];
+extern rmt_config_t rmtConfig;
+
 class Motor {
   public:
+    Motor();
+
     virtual void init(); // not in constructor because this also gets called when $$ settings change
     virtual void config_message();
     virtual void debug_message();
@@ -67,17 +73,10 @@ class Motor {
     virtual void set_direction_pins(uint8_t onMask);
 
     uint8_t axis_index;  // X_AXIS, etc
-    uint8_t step_pin = UNDEFINED_PIN;
-    uint8_t dir_pin;
-    uint8_t enable_pin;
+    uint8_t dual_axis_index; // 0 = primary 1=ganged
     uint8_t is_active = false;
+    
     bool _is_homing;
-
-protected:
-    bool _invert_step_pin;
-
-    Motor();
-
 };
 
 class Nullmotor : public Motor {
@@ -86,14 +85,18 @@ class Nullmotor : public Motor {
 
 class StandardStepper : public Motor {
   public:
-    virtual void config_message();
     StandardStepper();
-    StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin);
+    StandardStepper(uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin);
+
+    virtual void config_message();    
     virtual void init();
     virtual void set_direction_pins(uint8_t onMask);
     void init_step_dir_pins();
 
-    //void set_diable(bool disable);
+    gpio_num_t step_pin;
+    bool _invert_step_pin;
+    uint8_t dir_pin;
+    uint8_t enable_pin;
 };
 
 class TrinamicDriver : public StandardStepper {
@@ -107,13 +110,11 @@ class TrinamicDriver : public StandardStepper {
     void debug_message();
     void set_homing_mode(bool is_homing);
     void set_disable(bool disable);
-    //void set_direction_pins(uint8_t onMask);
-    //uint8_t _run_mode;
-    uint8_t _homing_mode;
-    uint8_t cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
-    
 
-    TrinamicDriver(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_sense, uint8_t cs_pin, int8_t spi_index);
+    uint8_t _homing_mode;
+    uint8_t cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)    
+
+    TrinamicDriver(uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_sense, uint8_t cs_pin, int8_t spi_index);
 
   private:
     TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
@@ -126,13 +127,8 @@ class TrinamicDriver : public StandardStepper {
 // ========== global functions ===================
 
 // These are used for setup and to talk to the motors as a group.
-
 void init_motors();
-
-// returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
-// need to be inserted into the order of axes.
 uint8_t get_next_trinamic_driver_index();
-
 void readSgTask(void* pvParameters);
 void motor_read_settings();
 void motors_set_homing_mode(bool is_homing);
