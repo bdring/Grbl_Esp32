@@ -71,11 +71,12 @@ class Motor {
     virtual void set_homing_mode(bool is_homing);
     virtual void set_disable(bool disable);
     virtual void set_direction_pins(uint8_t onMask);
+    virtual void step(bool step, bool dir_forward); // only used on Unipolar right now
 
     uint8_t axis_index;  // X_AXIS, etc
     uint8_t dual_axis_index; // 0 = primary 1=ganged
     uint8_t is_active = false;
-    
+
     bool _is_homing;
 };
 
@@ -88,7 +89,7 @@ class StandardStepper : public Motor {
     StandardStepper();
     StandardStepper(uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin);
 
-    virtual void config_message();    
+    virtual void config_message();
     virtual void init();
     virtual void set_direction_pins(uint8_t onMask);
     void init_step_dir_pins();
@@ -112,7 +113,7 @@ class TrinamicDriver : public StandardStepper {
     void set_disable(bool disable);
 
     uint8_t _homing_mode;
-    uint8_t cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)    
+    uint8_t cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
 
     TrinamicDriver(uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_sense, uint8_t cs_pin, int8_t spi_index);
 
@@ -123,6 +124,27 @@ class TrinamicDriver : public StandardStepper {
     int8_t spi_index;
     uint32_t calc_tstep(float speed, float percent);
 };
+
+class UnipolarMotor : public Motor {
+  public:
+    UnipolarMotor();
+    UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3);
+    void init();
+    //void read_settings();
+    void config_message();
+    void set_disable(bool disable);
+    void step(bool step, bool dir_forward); // only used on Unipolar right now
+
+    uint8_t _pin_phase0;
+    uint8_t _pin_phase1;
+    uint8_t _pin_phase2;
+    uint8_t _pin_phase3;
+    uint8_t _current_phase;
+    bool _half_step;
+    bool _enabled;
+};
+
+
 
 // ========== global functions ===================
 

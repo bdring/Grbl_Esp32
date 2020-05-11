@@ -37,6 +37,7 @@
 */
 #include "TrinamicDriverClass.cpp"
 #include "StandardStepperClass.cpp"
+#include "UnipolarMotorClass.cpp"
 
 Motor* myMotor[6][2]; // number of axes (normal and ganged)
 static TaskHandle_t readSgTaskHandle = 0;   // for realtime stallguard data diaplay
@@ -54,11 +55,15 @@ void init_motors() {
 #ifdef X_TRINAMIC_DRIVER
     myMotor[X_AXIS][0] = new TrinamicDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_TRINAMIC_DRIVER, X_RSENSE, X_CS_PIN, get_next_trinamic_driver_index());
 #else
-    #ifdef X_STEP_PIN
-        myMotor[X_AXIS][0] = new StandardStepper(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN);
+    #ifdef X_UNIPOLAR
+        myMotor[X_AXIS][0] = new UnipolarMotor(X_AXIS, X_PIN_PHASE_0, X_PIN_PHASE_1, X_PIN_PHASE_2, X_PIN_PHASE_3);
     #else
-        myMotor[X_AXIS][0] = new Nullmotor();
-    #endif    
+        #ifdef X_STEP_PIN
+            myMotor[X_AXIS][0] = new StandardStepper(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN);
+        #else
+            myMotor[X_AXIS][0] = new Nullmotor();
+        #endif    
+    #endif
 #endif
 
 #ifdef X2_TRINAMIC_DRIVER
@@ -286,6 +291,7 @@ void Motor :: debug_message() {}
 void Motor :: read_settings() {}
 void Motor :: set_disable(bool disable) {}
 void Motor :: set_direction_pins(uint8_t onMask) {}
+void Motor :: step(bool step, bool dir_forward) {}
 
 void Motor :: set_homing_mode(bool is_homing) {
     _is_homing = is_homing;

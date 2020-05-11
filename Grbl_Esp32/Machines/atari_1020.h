@@ -36,7 +36,7 @@
     #undef USE_RMT_STEPS
 #endif
 
-#define USE_UNIPOLAR
+//#define USE_UNIPOLAR
 
 #define X_UNIPOLAR
 #define X_PIN_PHASE_0 GPIO_NUM_13
