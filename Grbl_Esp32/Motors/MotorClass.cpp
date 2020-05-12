@@ -21,16 +21,12 @@
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
-    TODO
-        Move step pin stuff to classes
-        Make Trinamic subclass of standard stepper
-        Create a unipolar class
-        Need a way to indicate ganged axes in messages
+    TODO       
         Make sure public/private/protected is cleaned up.
               
         Deal with custom machine ... machine_trinamic_setup();
         Class is ready to deal with non SPI pins, but they have not been needed yet.
-            It would be nice in the config message though        
+            It would be nice in the config message though
 
     Reference
         TMC2130 Datasheet https://www.trinamic.com/fileadmin/assets/Products/ICs_Documents/TMC2130_datasheet.pdf
@@ -46,7 +42,10 @@ uint8_t rmt_chan_num[6][2];
 rmt_item32_t rmtItem[2];
 rmt_config_t rmtConfig;
 
+bool motor_class_steps; // true if at least one motor class is handling steps
+
 void init_motors() {    
+    motor_class_steps = false; 
     // TODO SPI needs to be done before constructors because they have an init that uses SPI
     // Should move all inits to the end and conditionally turn on SPI
     SPI.begin(); // Yes, I know about the SD issue
@@ -57,6 +56,7 @@ void init_motors() {
 #else
     #ifdef X_UNIPOLAR
         myMotor[X_AXIS][0] = new UnipolarMotor(X_AXIS, X_PIN_PHASE_0, X_PIN_PHASE_1, X_PIN_PHASE_2, X_PIN_PHASE_3);
+        motor_class_steps = true; // could be moved to class
     #else
         #ifdef X_STEP_PIN
             myMotor[X_AXIS][0] = new StandardStepper(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN);
@@ -277,6 +277,21 @@ void motors_set_direction_pins(uint8_t onMask) {
     }
 }
 
+/*
+    currently much of the step pulse I/O is done in stepper.cpp
+    Some classes like UnipolarMotorClass do it themselves.
+    This gives every class a notification of step.
+    Note: global variable (bool motor_class_steps) decides whether this 
+    is needed to be called.
+*/
+void motors_step(uint8_t step_mask, uint8_t dir_mask) {
+    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+            myMotor[axis][gang_index]->step(step_mask, dir_mask);
+        }
+    }
+}
+
 // ============================== Class Methods ================================================
 
 Motor :: Motor() {
@@ -291,7 +306,7 @@ void Motor :: debug_message() {}
 void Motor :: read_settings() {}
 void Motor :: set_disable(bool disable) {}
 void Motor :: set_direction_pins(uint8_t onMask) {}
-void Motor :: step(bool step, bool dir_forward) {}
+void Motor :: step(uint8_t step_mask, uint8_t dir_mask) {}
 
 void Motor :: set_homing_mode(bool is_homing) {
     _is_homing = is_homing;

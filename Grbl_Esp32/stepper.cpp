@@ -225,9 +225,12 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
     set_stepper_pins_on(st.step_outbits);
     step_pulse_off_time = esp_timer_get_time() + (settings.pulse_microseconds); // determine when to turn off pulse
 #endif
-#ifdef USE_UNIPOLAR
-    unipolar_step(st.step_outbits, st.dir_outbits);
-#endif
+    // #ifdef USE_UNIPOLAR
+    if (motor_class_steps) { // if one of the motors is handling the step I/O ... like Unipolar
+        motors_step(st.step_outbits, st.dir_outbits); // send step info to motor classes
+    }
+    //unipolar_step(st.step_outbits, st.dir_outbits);
+    //#endif
     busy = true;
     // If there is no step segment, attempt to pop one from the stepper buffer
     if (st.exec_segment == NULL) {
@@ -389,9 +392,6 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
 void stepper_init() {
     // make the stepper disable pin an output
 
-#ifdef USE_UNIPOLAR
-    unipolar_init();
-#endif
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
 #ifdef USE_RMT_STEPS
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RMT Steps");
@@ -423,11 +423,8 @@ void stepper_init() {
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void st_wake_up() {
-#ifdef ESP_DEBUG
-    //Serial.println("st_wake_up()");
-#endif
     // Enable stepper drivers.
-    motors_set_disable(false);
+    motors_set_disable(false); // global and individual
     stepper_idle = false;
     // Initialize stepper output bits to ensure first ISR call does not step.
     st.step_outbits = step_port_invert_mask;
@@ -444,9 +441,6 @@ void st_wake_up() {
 
 // Reset and clear stepper subsystem variables
 void st_reset() {
-#ifdef ESP_DEBUG
-    //Serial.println("st_reset()");
-#endif
     // Initialize stepper driver idle state.
     st_go_idle();
     // Initialize stepper algorithm variables.
@@ -459,8 +453,7 @@ void st_reset() {
     segment_next_head = 1;
     busy = false;
     st_generate_step_dir_invert_masks();
-    st.dir_outbits = dir_port_invert_mask; // Initialize direction bits to default.
-    // TODO do we need to turn step pins off?
+    st.dir_outbits = dir_port_invert_mask; // Initialize direction bits to default.   
 }
 
 void set_direction_pins_on(uint8_t onMask) {

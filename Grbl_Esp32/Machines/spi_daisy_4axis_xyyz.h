@@ -58,7 +58,7 @@
 
 // Y2 motor connects to the 2nd driver
 #define Y2_TRINAMIC_DRIVER_TMC2130        // Which Driver Type?
-#define Y2_RSENSE               TMC2130_RSENSE_DEFAULT
+#define Y2_RSENSE                TMC2130_RSENSE_DEFAULT
 #define Y2_STEP_PIN              GPIO_NUM_15  // Z on schem
 #define Y2_DIRECTION_PIN         GPIO_NUM_2   // Z on schem
 #define Y2_TRINAMIC              // using SPI control

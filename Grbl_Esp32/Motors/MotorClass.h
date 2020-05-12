@@ -2,11 +2,14 @@
     MotorClass.h
 
     Header file for Motor Classes
+    Here is the hierarchy
+
         Motor
             Nullmotor
             StandardStepper
                 TrinamicDriver
-                Unipolar
+            Unipolar
+            RC Servo
 
     These are for motors coordinated by Grbl_ESP32
 
@@ -71,7 +74,7 @@ class Motor {
     virtual void set_homing_mode(bool is_homing);
     virtual void set_disable(bool disable);
     virtual void set_direction_pins(uint8_t onMask);
-    virtual void step(bool step, bool dir_forward); // only used on Unipolar right now
+    virtual void step(uint8_t step_mask, uint8_t dir_mask); // only used on Unipolar right now
 
     uint8_t axis_index;  // X_AXIS, etc
     uint8_t dual_axis_index; // 0 = primary 1=ganged
@@ -133,7 +136,7 @@ class UnipolarMotor : public Motor {
     //void read_settings();
     void config_message();
     void set_disable(bool disable);
-    void step(bool step, bool dir_forward); // only used on Unipolar right now
+    void step(uint8_t step_mask, uint8_t dir_mask); // only used on Unipolar right now
 
     uint8_t _pin_phase0;
     uint8_t _pin_phase1;
@@ -156,5 +159,8 @@ void motor_read_settings();
 void motors_set_homing_mode(bool is_homing);
 void motors_set_disable(bool disable);
 void motors_set_direction_pins(uint8_t onMask);
+void motors_step(uint8_t step_mask, uint8_t dir_mask);
+
+extern bool motor_class_steps; // true if at least one motor class is handling steps
 
 #endif

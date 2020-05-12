@@ -46,22 +46,22 @@ void UnipolarMotor :: set_disable(bool disable) {
     _enabled = !disable;
 }
 
-void UnipolarMotor::step(bool step, bool dir_forward) {
+void UnipolarMotor::step(uint8_t step_mask, uint8_t dir_mask) {
     uint8_t _phase[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // temporary phase values...all start as off
     uint8_t phase_max;
+
+    if (!(step_mask & (1 << axis_index)))
+        return;	// a step is not required on this interrupt
+
+    if (!_enabled)
+        return;	// don't do anything, phase is not changed or lost
 
     if (_half_step)
         phase_max = 7;
     else
         phase_max = 3;
 
-    if (!step)
-        return;	// a step is not required on this interrupt
-
-    if (!_enabled)
-        return;	// don't do anything, phase is not changed or lost
-
-    if (dir_forward) { // count up
+    if (dir_mask & (1 << axis_index)) { // count up
         if (_current_phase == phase_max)
             _current_phase = 0;
         else

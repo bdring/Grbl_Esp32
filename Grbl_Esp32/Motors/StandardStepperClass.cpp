@@ -88,10 +88,19 @@ void StandardStepper :: init_step_dir_pins() {
 
 
 void StandardStepper :: config_message() {
+    char ganged[3];
+    
+    if (dual_axis_index) {
+        strcpy(ganged, "2");
+    } else {
+        strcpy(ganged, "");
+    }
+
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "%c Axis standard stepper motor Step:%d Dir:%d",
+                   "%c%s Axis standard stepper motor Step:%d Dir:%d",
                    report_get_axis_letter(axis_index),
+                   ganged,
                    step_pin,
                    dir_pin);
 }
