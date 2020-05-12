@@ -29,7 +29,12 @@ enum {
 enum {
     GRBL = 1,
     EXTENDED,
-    WEBUI
+    WEB_FIRST, // delimiter, not used as value
+    WEBUI,
+    WEBCMDRU,
+    WEBCMDWU,
+    WEBCMDWA,
+    WEB_LAST, // delimiter, not used as value
 };
 typedef uint16_t group_t;
 typedef uint8_t axis_t;
@@ -230,4 +235,19 @@ public:
     IntSetting *stallguard;
 
     AxisSettings(const char *axisName);
+};
+class WebCommandSetting : public Setting {
+    private:
+        const char* (*_action)(char *);
+        const char* password;
+    public:
+    WebCommandSetting(const char* webName, group_t group, const char * grblName, const char* name, const char * (*action)(char *)) :
+        Setting(webName, group, grblName, name, NULL),
+        _action(action)
+    {}
+    void load() {}
+    void setDefault() {}
+    err_t setStringValue(const char* parameter) {}
+    const char *getStringValue() {}
+    err_t processWebCommand(ESPResponseStream* response, char* parameter);
 };

@@ -141,6 +141,11 @@ void JSONencoder::member(const char *tag, std::string value) {
     quoted(value.c_str());
 }
 
+void JSONencoder::member(const char *tag, String value) {
+    begin_member(tag);
+    quoted(value.c_str());
+}
+
 // Creates a "tag":"value" member from an integer
 void JSONencoder::member(const char *tag, int value) {
     member(tag, std::to_string(value));

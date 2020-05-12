@@ -31,6 +31,7 @@ class JSONencoder {
     // member() creates a "tag":"value" element
     void member(const char *tag, const char *value);
     void member(const char *tag, std::string value);
+    void member(const char *tag, String value);
     void member(const char *tag, int value);
 
     // begin_array() starts a "tag":[  array element

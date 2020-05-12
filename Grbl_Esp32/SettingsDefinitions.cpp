@@ -1,5 +1,4 @@
 #include "grbl.h"
-
 #include "SettingsClass.h"
 
 Setting *SettingsList = NULL;
@@ -48,83 +47,6 @@ IntSetting* spindle_pwm_bit_precision;
 
 EnumSetting* spindle_type;
 
-StringSetting* wifi_sta_ssid;
-StringSetting* wifi_sta_password;
-// XXX hack StringSetting class to return a ***** password if checker is isPasswordValid
-
-#ifdef ENABLE_WIFI
-EnumSetting*   wifi_sta_mode;
-IPaddrSetting* wifi_sta_ip;
-IPaddrSetting* wifi_sta_gateway;
-IPaddrSetting* wifi_sta_netmask;
-
-//XXX for compatibility, implement wifi_sta_ip_gw_mk;
-
-StringSetting* wifi_ap_ssid;
-StringSetting* wifi_ap_password;
-
-IPaddrSetting* wifi_ap_ip;
-
-IntSetting* wifi_ap_channel;
-
-StringSetting* wifi_hostname;
-EnumSetting* http_enable;
-IntSetting* http_port;
-EnumSetting* telnet_enable;
-IntSetting* telnet_port;
-typedef std::map<const char *, int8_t, cmp_str> enum_opt_t;
-enum_opt_t staModeOptions = {
-    { "DHCP",   DHCP_MODE , },
-    { "Static", STATIC_MODE , },
-};
-#endif
-
-#if defined( ENABLE_WIFI) ||  defined( ENABLE_BLUETOOTH)
-EnumSetting* wifi_radio_mode;
-enum_opt_t radioOptions = {
-    { "None", ESP_RADIO_OFF, },
-    { "STA", ESP_WIFI_STA, },
-    { "AP", ESP_WIFI_AP, },
-    { "BT", ESP_BT, },
-};
-enum_opt_t radioEnabledOptions = {
-    { "NONE", ESP_RADIO_OFF, },
-#ifdef ENABLE_WIFI
-    { "STA", ESP_WIFI_STA, },
-    { "AP", ESP_WIFI_AP, },
-#endif
-#ifdef ENABLE_BLUETOOTH
-    { "BT", ESP_BT, },
-#endif
-};
-#endif
-
-#ifdef ENABLE_BLUETOOTH
-StringSetting* bt_name;
-#endif
-
-#ifdef ENABLE_AUTHENTICATION
-// XXX need ADMIN_ONLY and if it is called without a parameter it sets the default
-StringSetting* user_password;
-StringSetting* admin_password;
-#endif
-
-#ifdef ENABLE_NOTIFICATIONS
-enum_opt_t notificationOptions = {
-    { "NONE", 0, },
-    { "LINE", 3, },
-    { "PUSHOVER", 1, },
-    { "EMAIL", 2, },
-};
-EnumSetting* notification_type;
-StringSetting* notification_t1;
-StringSetting* notification_t2;
-StringSetting* notification_ts;
-#endif
-enum_opt_t onoffOptions = {
-  { "OFF", 0, },
-  { "ON", 1, }
-};
 enum_opt_t spindleTypes = {
   { "NONE", SPINDLE_TYPE_NONE, },
   { "PWM", SPINDLE_TYPE_PWM, },
@@ -249,48 +171,6 @@ void make_settings()
             grbl_sendf(CLIENT_SERIAL, "nvs_open failed with error %d\r\n", err);
         }
     }
-    // WebUI Settings
-    #ifdef ENABLE_NOTIFICATIONS
-        notification_ts = new StringSetting(NULL, WEBUI, "Notification Settings", "NotifyTS", DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
-        notification_t2 = new StringSetting(NULL, WEBUI, "Notification Token 2", "NotifyT2", DEFAULT_TOKEN, MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
-        notification_t1 = new StringSetting(NULL, WEBUI, "Notification Token 1", "NotifyT1", DEFAULT_TOKEN , MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
-        notification_type = new EnumSetting(NULL, WEBUI, "Notification type", "NotifyType", DEFAULT_NOTIFICATION_TYPE, &notificationOptions);
-    #endif
-
-    #ifdef ENABLE_AUTHENTICATION
-        // XXX need ADMIN_ONLY and if it is called without a parameter it sets the default
-        admin_password = new StringSetting(WEBUI, NULL, "AdminPwd", DEFAULT_ADMIN_PWD, isLocalPasswordValid);
-        user_password = new StringSetting(WEBUI, NULL, "UserPwd", DEFAULT_USER_PWD, isLocalPasswordValid);
-    #endif
-
-    #ifdef ENABLE_BLUETOOTH
-        bt_name = new StringSetting("Bluetooth name", WEBUI, "ESP140", "BTName", DEFAULT_BT_NAME, 0, 0, BTConfig::isBTnameValid);
-    #endif
-
-    #if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
-        wifi_radio_mode = new EnumSetting("Radio mode", WEBUI, "ESP110", "RadioMode", DEFAULT_RADIO_MODE, &radioEnabledOptions);
-    #endif
-
-    #ifdef ENABLE_WIFI
-        telnet_port = new IntSetting("Telnet Port", WEBUI, "ESP131", "TelnetPort", DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
-        telnet_enable = new EnumSetting("Telnet protocol", WEBUI, "ESP130", "TelnetOn", DEFAULT_TELNET_STATE, &onoffOptions);
-        http_enable = new EnumSetting("HTTP protocol", WEBUI, "ESP120", "HTTPOn", DEFAULT_HTTP_STATE, &onoffOptions);
-        http_port = new IntSetting("HTTP Port", WEBUI, "ESP121", "HTTPPort", DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
-        wifi_hostname = new StringSetting("Hostname", WEBUI, "ESP112", "ESPHostname", DEFAULT_HOSTNAME, 0, 0, WiFiConfig::isHostnameValid);
-        wifi_ap_channel = new IntSetting("AP Channel", WEBUI, "ESP108", "APChannel", DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL, NULL);
-        wifi_ap_ip = new IPaddrSetting("AP Static IP", WEBUI, "ESP107", "APIP", DEFAULT_AP_IP, NULL);
-        wifi_ap_password = new StringSetting("AP Password", WEBUI, "ESP106", "APPassword", DEFAULT_AP_PWD, 0, 0, WiFiConfig::isPasswordValid);
-        wifi_ap_ssid = new StringSetting("AP SSID", WEBUI, "ESP105", "ApSSID", DEFAULT_AP_SSID, 0, 0, WiFiConfig::isSSIDValid);
-        //XXX for compatibility, implement wifi_sta_ip_gw_mk()
-        wifi_sta_netmask = new IPaddrSetting("Station Static Mask", WEBUI, NULL, "StaNetmask", DEFAULT_STA_MK, NULL);
-        wifi_sta_gateway = new IPaddrSetting("Station Static Gateway", WEBUI, NULL, "StaGateway", DEFAULT_STA_GW, NULL);
-        wifi_sta_ip = new IPaddrSetting("Station Static IP", WEBUI, NULL, "StaIP", DEFAULT_STA_IP, NULL);
-        wifi_sta_mode = new EnumSetting("Station IP Mode", WEBUI, "ESP102", "StaIPMode", DEFAULT_STA_IP_MODE, &staModeOptions);
-        // XXX hack StringSetting class to return a ***** password if checker is isPasswordValid
-        wifi_sta_password = new StringSetting("Station Password", WEBUI, "ESP101", "StaPwd", DEFAULT_STA_PWD, 0, 0, WiFiConfig::isPasswordValid);
-        wifi_sta_ssid = new StringSetting("Station SSID", WEBUI, "ESP100", "StaSSID", DEFAULT_STA_SSID, 0, 0, WiFiConfig::isSSIDValid);
-    #endif
-
     // The following horrid code accomodates people who insist that axis settings
     // be grouped by setting type rather than by axis.
     int axis;
