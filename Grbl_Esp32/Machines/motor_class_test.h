@@ -96,10 +96,15 @@
 
 //#undef USE_RMT_STEPS
 
+
+
+/* 
+========================================================================
 #ifdef N_AXIS
         #undef N_AXIS
 #endif
 #define N_AXIS 3 // can be 3 or 4. (if 3 install bypass jumper next to the A driver)
+
 
 #define SPINDLE_TYPE                SPINDLE_TYPE_NONE
 
@@ -128,3 +133,41 @@
 #define X_LIMIT_PIN             GPIO_NUM_32
 #define Y_LIMIT_PIN             GPIO_NUM_4
 #define LIMIT_MASK              B11
+
+======================================================
+*/
+
+
+// =============== Unipolar Test =================
+
+#define N_AXIS 2
+
+#define SPINDLE_TYPE                SPINDLE_TYPE_NONE
+
+#define X_UNIPOLAR
+#define X_PIN_PHASE_0 GPIO_NUM_13
+#define X_PIN_PHASE_1 GPIO_NUM_21
+#define X_PIN_PHASE_2 GPIO_NUM_16
+#define X_PIN_PHASE_3 GPIO_NUM_22
+
+#define Y_UNIPOLAR
+#define Y_PIN_PHASE_0 GPIO_NUM_25
+#define Y_PIN_PHASE_1 GPIO_NUM_27
+#define Y_PIN_PHASE_2 GPIO_NUM_26
+#define Y_PIN_PHASE_3 GPIO_NUM_32
+
+#define DEFAULT_X_STEPS_PER_MM 10
+#define DEFAULT_Y_STEPS_PER_MM 10
+#define DEFAULT_Z_STEPS_PER_MM 100.0 // This is percent in servo mode
+
+#define DEFAULT_X_MAX_RATE 5000.0   // mm/min
+#define DEFAULT_Y_MAX_RATE 5000.0   // mm/min
+#define DEFAULT_Z_MAX_RATE 200000.0 // mm/min
+
+#define DEFAULT_X_ACCELERATION (500.0 * 60 * 60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+#define DEFAULT_Y_ACCELERATION (500.0 * 60 * 60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+#define DEFAULT_Z_ACCELERATION (500.0 * 60 * 60)
+
+#define DEFAULT_X_MAX_TRAVEL 120.0   // mm NOTE: Must be a positive value.
+#define DEFAULT_Y_MAX_TRAVEL 20000.0 // mm NOTE: Must be a positive value.
+#define DEFAULT_Z_MAX_TRAVEL 10.0    // This is percent in servo mode

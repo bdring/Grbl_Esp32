@@ -94,6 +94,10 @@ Some features should not be changed. See notes below.
     #define N_AXIS 3
 #endif
 
+#if ( (N_AXIS < 3) || (N_AXIS > 6) )
+    #error N_AXIS Must 3 to 6
+#endif
+
 #ifndef LIMIT_MASK
     #define LIMIT_MASK B0
 #endif

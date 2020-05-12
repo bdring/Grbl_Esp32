@@ -23,10 +23,22 @@
 
     TODO       
         Make sure public/private/protected is cleaned up.
+        Only a few Unipolar axes have been setup in init()
               
         Deal with custom machine ... machine_trinamic_setup();
         Class is ready to deal with non SPI pins, but they have not been needed yet.
             It would be nice in the config message though
+
+    Testing
+        Done (success)
+            3 Axis (3 Standard Steppers)
+            MPCNC (ganged with shared direction pin)
+            TMC2130 Pen Laser (trinamics, stallguard tuning)
+            Unipolar
+        
+        TODO
+            4 Axis SPI (Daisy Chain, Ganged with unique direction pins)
+                 
 
     Reference
         TMC2130 Datasheet https://www.trinamic.com/fileadmin/assets/Products/ICs_Documents/TMC2130_datasheet.pdf
@@ -79,10 +91,15 @@ void init_motors() {
 #ifdef Y_TRINAMIC_DRIVER
     myMotor[Y_AXIS][0] = new TrinamicDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, Y_CS_PIN, get_next_trinamic_driver_index());
 #else
-    #ifdef Y_STEP_PIN
-        myMotor[Y_AXIS][0] = new StandardStepper(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN);
+    #ifdef Y_UNIPOLAR
+        myMotor[Y_AXIS][0] = new UnipolarMotor(Y_AXIS, Y_PIN_PHASE_0, Y_PIN_PHASE_1, Y_PIN_PHASE_2, Y_PIN_PHASE_3);
+        motor_class_steps = true; // could be moved to class
     #else
-        myMotor[Y_AXIS][0] = new Nullmotor();
+        #ifdef Y_STEP_PIN
+            myMotor[Y_AXIS][0] = new StandardStepper(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN);
+        #else
+            myMotor[Y_AXIS][0] = new Nullmotor();
+        #endif
     #endif 
 #endif
 
@@ -175,7 +192,12 @@ void init_motors() {
 #endif
     
     #ifdef STEPPERS_DISABLE_PIN
+        grbl_msg_sendf(CLIENT_SERIAL,
+                   MSG_LEVEL_INFO,
+                   "Global stepper enable pin:%d",
+                   STEPPERS_DISABLE_PIN);
         pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
+
     #endif
     motors_set_disable(true);
 
@@ -194,22 +216,7 @@ void init_motors() {
 #endif   
 }
 
-void motors_set_disable(bool disable) {
-    
-    // now step through all the motors
-    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
-            myMotor[axis][gang_index]->set_disable(disable);
-        }
-    }
-    // global diable pin
-    #ifdef STEPPERS_DISABLE_PIN   
-        if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
-            disable = !disable;    // Apply pin invert.
-        }
-        digitalWrite(STEPPERS_DISABLE_PIN, disable);
-    #endif
-}
+
 
 
 // returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
@@ -244,6 +251,31 @@ void readSgTask(void* pvParameters) {
         }
         vTaskDelayUntil(&xLastWakeTime, xreadSg);
     }
+}
+
+void motors_set_disable(bool disable) {
+    static bool _current_disable = true;
+
+    if (disable == _current_disable)
+        return;
+    
+    _current_disable = disable;
+
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_disable(%d)", disable);
+
+    // now step through all the motors
+    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+            myMotor[axis][gang_index]->set_disable(disable);
+        }
+    }
+    // global disable pin
+    #ifdef STEPPERS_DISABLE_PIN   
+        if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
+            disable = !disable;    // Apply pin invert.
+        }
+        digitalWrite(STEPPERS_DISABLE_PIN, disable);
+    #endif
 }
 
 /*

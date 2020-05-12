@@ -34,13 +34,15 @@
 #define X_DIRECTION_PIN     GPIO_NUM_33     // use Z labeled connector
 
 #define Y_STEP_PIN          GPIO_NUM_14
-#define Y2_STEP_PIN         GPIO_NUM_21     // ganged motor
 #define Y_DIRECTION_PIN     GPIO_NUM_25
+#define Y2_STEP_PIN         GPIO_NUM_21     // ganged motor
+#define Y2_DIRECTION_PIN    Y_DIRECTION_PIN
 #define Y_AXIS_SQUARING
 
 #define Z_STEP_PIN          GPIO_NUM_12     // use X labeled connector
-#define Z2_STEP_PIN         GPIO_NUM_22     // use X labeled connector
 #define Z_DIRECTION_PIN     GPIO_NUM_26     // use X labeled connector
+#define Z2_STEP_PIN         GPIO_NUM_22     // use X labeled connector
+#define Z2_DIRECTION_PIN    Z_DIRECTION_PIN
 #define Z_AXIS_SQUARING
 
 // OK to comment out to use pin for other features
