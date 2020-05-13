@@ -30,7 +30,7 @@ TrinamicDriver :: TrinamicDriver(   uint8_t axis_index,
                                     uint16_t driver_part_number,
                                     float r_sense, uint8_t cs_pin,
                                     int8_t spi_index) {
-    this->axis_index = axis_index;
+    this->axis_index = axis_index % MAX_AXES;
     this->dual_axis_index = axis_index < 6 ? 0 : 1; // 0 = primary 1 = ganged
     _driver_part_number = driver_part_number;
     _r_sense = r_sense;
@@ -50,6 +50,7 @@ void TrinamicDriver :: init() {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Trinamic unsupported p/n:%d", _driver_part_number);
         return;
     }
+    set_axis_name();
     config_message();
     // TODO step pins
     init_step_dir_pins(); // from StandardStepper
@@ -65,28 +66,28 @@ void TrinamicDriver :: init() {
 /*
     This is the startup message showing the basic definition
 */
-void TrinamicDriver :: config_message() {
+void TrinamicDriver :: config_message() {  
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "%c Axis Trinamic driver TMC%d Step:%d Dir:%d CS:%d Index:%d",
-                   report_get_axis_letter(axis_index),
+                   "%s Axis Trinamic driver TMC%d Step:%d Dir:%d CS:%d Index:%d",                   
+                   _axis_name,
                    _driver_part_number,
                    step_pin,
                    dir_pin,                   
-                   cs_pin, 
+                   cs_pin,
                    spi_index);
 }
 
-bool TrinamicDriver :: test() {
+bool TrinamicDriver :: test() {   
     switch (tmcstepper->test_connection()) {
     case 1:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check connection", report_get_axis_letter(axis_index));
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection", _axis_name);
         return false;
     case 2:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check motor power", report_get_axis_letter(axis_index));
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power", _axis_name);
         return false;
     default:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test passed", report_get_axis_letter(axis_index));
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed", _axis_name);
         return true;
     }
 }
@@ -97,10 +98,10 @@ bool TrinamicDriver :: test() {
 void TrinamicDriver :: trinamic_test_response() {
     switch (tmcstepper->test_connection()) {
     case 1:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check connection", report_get_axis_letter(axis_index));
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection", _axis_name);
         break;
     case 2:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check motor power", report_get_axis_letter(axis_index));
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power", _axis_name);
         break;
     default:
         return;
@@ -178,8 +179,8 @@ void TrinamicDriver :: set_mode() {
 
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
-                       "%c Stallguard  %d   SG_Val: %04d   Rate: %05.0fmm/min,   %d",
-                       report_get_axis_letter(axis_index),
+                       "%s Stallguard  %d   SG_Val: %04d   Rate: %05.0fmm/min,   %d",
+                       _axis_name,
                        tmcstepper->stallguard(),
                        tmcstepper->sg_result(),
                        feedrate,

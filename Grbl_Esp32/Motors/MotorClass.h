@@ -63,6 +63,22 @@ extern uint8_t rmt_chan_num[MAX_AXES][2];
 extern rmt_item32_t rmtItem[2];
 extern rmt_config_t rmtConfig;
 
+// ========== global functions ===================
+
+// These are used for setup and to talk to the motors as a group.
+void init_motors();
+uint8_t get_next_trinamic_driver_index();
+void readSgTask(void* pvParameters);
+void motor_read_settings();
+void motors_set_homing_mode(bool is_homing);
+void motors_set_disable(bool disable);
+void motors_set_direction_pins(uint8_t onMask);
+void motors_step(uint8_t step_mask, uint8_t dir_mask);
+
+extern bool motor_class_steps; // true if at least one motor class is handling steps
+
+// ==================== Classes ====================
+
 class Motor {
   public:
     Motor();
@@ -76,12 +92,19 @@ class Motor {
     virtual void set_direction_pins(uint8_t onMask);
     virtual void step(uint8_t step_mask, uint8_t dir_mask); // only used on Unipolar right now
     virtual bool test();
+    virtual void set_axis_name();
 
     uint8_t axis_index;  // X_AXIS, etc
     uint8_t dual_axis_index; // 0 = primary 1=ganged
     uint8_t is_active = false;
 
+    
+        
+
     bool _is_homing;
+
+    char _axis_name[10];
+
 };
 
 class Nullmotor : public Motor {
@@ -151,18 +174,5 @@ class UnipolarMotor : public Motor {
 
 
 
-// ========== global functions ===================
-
-// These are used for setup and to talk to the motors as a group.
-void init_motors();
-uint8_t get_next_trinamic_driver_index();
-void readSgTask(void* pvParameters);
-void motor_read_settings();
-void motors_set_homing_mode(bool is_homing);
-void motors_set_disable(bool disable);
-void motors_set_direction_pins(uint8_t onMask);
-void motors_step(uint8_t step_mask, uint8_t dir_mask);
-
-extern bool motor_class_steps; // true if at least one motor class is handling steps
 
 #endif

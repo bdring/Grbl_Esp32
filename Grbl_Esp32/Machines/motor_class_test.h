@@ -175,7 +175,8 @@
 #define DEFAULT_Z_MAX_TRAVEL 10.0    // This is percent in servo mode
 */
 
-// SPI 4 axis xyza
+/*
+// ======================= SPI 4 axis xyza ===========================
 #define MACHINE_NAME "MotorClass Test 4x SPI XYZA"
 #define N_AXIS 4
 
@@ -210,3 +211,43 @@
 #define A_CS_PIN        X_CS_PIN  // Daisy Chain, all share same CS pin
 
 #define SPINDLE_TYPE                SPINDLE_TYPE_NONE
+*/
+
+// ======================= SPI 4 axis xxyz ===========================
+#define MACHINE_NAME "MotorClass Test 4x SPI XXYZ"
+#define N_AXIS 3
+
+#define TRINAMIC_DAISY_CHAIN
+
+// Use SPI enable instead of the enable pin
+// The hardware enable pin is tied to ground
+#define USE_TRINAMIC_ENABLE
+
+#define X_TRINAMIC_DRIVER       2130
+#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X_STEP_PIN              GPIO_NUM_12
+#define X_DIRECTION_PIN         GPIO_NUM_14
+#define X_CS_PIN                GPIO_NUM_17  // Daisy Chain, all share same CS pin
+
+#define X2_TRINAMIC_DRIVER       2130
+#define X2_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X2_STEP_PIN              GPIO_NUM_27
+#define X2_DIRECTION_PIN         GPIO_NUM_26
+#define X2_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
+//#define X_AXIS_SQUARING
+
+#define Y_TRINAMIC_DRIVER       2130
+#define Y_RSENSE                TMC2130_RSENSE_DEFAULT
+#define Y_STEP_PIN              GPIO_NUM_15
+#define Y_DIRECTION_PIN         GPIO_NUM_2
+#define Y_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
+
+
+#define Z_TRINAMIC_DRIVER       2130
+#define Z_RSENSE        TMC2130_RSENSE_DEFAULT
+#define Z_STEP_PIN      GPIO_NUM_33
+#define Z_DIRECTION_PIN GPIO_NUM_32
+#define Z_CS_PIN        X_CS_PIN  // Daisy Chain, all share same CS pin
+
+#define SPINDLE_TYPE                SPINDLE_TYPE_NONE
+

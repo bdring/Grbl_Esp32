@@ -186,9 +186,9 @@ void init_motors() {
     #endif 
 #endif
 
-    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
-            myMotor[axis][gang_index]->test();
+    for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {        
+            myMotor[axis][gang_index]->test();            
         }
     }
     
@@ -341,6 +341,19 @@ void Motor :: set_disable(bool disable) {}
 void Motor :: set_direction_pins(uint8_t onMask) {}
 void Motor :: step(uint8_t step_mask, uint8_t dir_mask) {}
 bool Motor :: test() {return true;}; // true = OK
+
+void Motor :: set_axis_name() {
+   char ganged[3];
+
+    if (dual_axis_index) {
+        strcpy(ganged, "2");
+    } else {
+        strcpy(ganged, "");
+    }
+
+    sprintf(_axis_name, "%c%s", report_get_axis_letter(axis_index), ganged);
+
+}
 
 void Motor :: set_homing_mode(bool is_homing) {
     _is_homing = is_homing;
