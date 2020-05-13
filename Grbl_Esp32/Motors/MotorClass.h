@@ -75,6 +75,7 @@ class Motor {
     virtual void set_disable(bool disable);
     virtual void set_direction_pins(uint8_t onMask);
     virtual void step(uint8_t step_mask, uint8_t dir_mask); // only used on Unipolar right now
+    virtual bool test();
 
     uint8_t axis_index;  // X_AXIS, etc
     uint8_t dual_axis_index; // 0 = primary 1=ganged
@@ -114,6 +115,7 @@ class TrinamicDriver : public StandardStepper {
     void debug_message();
     void set_homing_mode(bool is_homing);
     void set_disable(bool disable);
+    bool test();
 
     uint8_t _homing_mode;
     uint8_t cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)

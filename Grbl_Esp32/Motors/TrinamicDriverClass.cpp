@@ -54,7 +54,7 @@ void TrinamicDriver :: init() {
     // TODO step pins
     init_step_dir_pins(); // from StandardStepper
     tmcstepper->begin();
-    trinamic_test_response(); // Try communicating with motor. Prints an error if there is a problem.
+    //trinamic_test_response(); // Try communicating with motor. Prints an error if there is a problem.
     read_settings(); // pull info from settings
     set_mode();
     
@@ -75,6 +75,20 @@ void TrinamicDriver :: config_message() {
                    dir_pin,                   
                    cs_pin, 
                    spi_index);
+}
+
+bool TrinamicDriver :: test() {
+    switch (tmcstepper->test_connection()) {
+    case 1:
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check connection", report_get_axis_letter(axis_index));
+        return false;
+    case 2:
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check motor power", report_get_axis_letter(axis_index));
+        return false;
+    default:
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test passed", report_get_axis_letter(axis_index));
+        return true;
+    }
 }
 
 /*

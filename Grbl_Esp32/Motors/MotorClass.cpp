@@ -1,11 +1,6 @@
 /*
     MotorClass.cpp
 
-    A Motor Class and derived classes
-        Motor           - A base class. Do not use
-        Nullmotor       - Used when there is not motor on the axis
-        TrinamicDriver  - A motor powered by a Trinamic Driver
-
     Part of Grbl_ESP32
 
     2020 -	Bart Dring
@@ -156,10 +151,10 @@ void init_motors() {
 #ifdef B_TRINAMIC_DRIVER
     myMotor[B_AXIS][0] = new TrinamicDriver(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_TRINAMIC_DRIVER, B_RSENSE, B_CS_PIN, get_next_trinamic_driver_index());
 #else
-    #ifdef A_STEP_PIN
-        myMotor[A_AXIS][0] = new StandardStepper(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN);
+    #ifdef B_STEP_PIN
+        myMotor[B_AXIS][0] = new StandardStepper(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN);
     #else
-        myMotor[A_AXIS][0] = new Nullmotor();
+        myMotor[B_AXIS][0] = new Nullmotor();
     #endif 
 #endif
 #ifdef B2_TRINAMIC_DRIVER
@@ -175,10 +170,10 @@ void init_motors() {
 #ifdef C_TRINAMIC_DRIVER
     myMotor[C_AXIS][0] = new TrinamicDriver(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_TRINAMIC_DRIVER, C_RSENSE, C_CS_PIN, get_next_trinamic_driver_index());
 #else
-    #ifdef A_STEP_PIN
-        myMotor[A_AXIS][0] = new StandardStepper(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN);
+    #ifdef C_STEP_PIN
+        myMotor[C_AXIS][0] = new StandardStepper(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN);
     #else
-        myMotor[A_AXIS][0] = new Nullmotor();
+        myMotor[C_AXIS][0] = new Nullmotor();
     #endif 
 #endif
 #ifdef C2_TRINAMIC_DRIVER
@@ -190,6 +185,12 @@ void init_motors() {
         myMotor[C_AXIS][1] = new Nullmotor();
     #endif 
 #endif
+
+    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+            myMotor[axis][gang_index]->test();
+        }
+    }
     
     #ifdef STEPPERS_DISABLE_PIN
         grbl_msg_sendf(CLIENT_SERIAL,
@@ -339,6 +340,7 @@ void Motor :: read_settings() {}
 void Motor :: set_disable(bool disable) {}
 void Motor :: set_direction_pins(uint8_t onMask) {}
 void Motor :: step(uint8_t step_mask, uint8_t dir_mask) {}
+bool Motor :: test() {return true;}; // true = OK
 
 void Motor :: set_homing_mode(bool is_homing) {
     _is_homing = is_homing;
