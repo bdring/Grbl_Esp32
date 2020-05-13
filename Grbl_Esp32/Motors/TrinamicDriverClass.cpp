@@ -42,6 +42,7 @@ TrinamicDriver :: TrinamicDriver(   uint8_t axis_index,
 }
 
 void TrinamicDriver :: init() {
+    set_axis_name();
     if (_driver_part_number == 2130)
         tmcstepper = new TMC2130Stepper(cs_pin, _r_sense, spi_index);
     else if (_driver_part_number == 5160)
@@ -50,7 +51,7 @@ void TrinamicDriver :: init() {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Trinamic unsupported p/n:%d", _driver_part_number);
         return;
     }
-    set_axis_name();
+    
     config_message();
     // TODO step pins
     init_step_dir_pins(); // from StandardStepper

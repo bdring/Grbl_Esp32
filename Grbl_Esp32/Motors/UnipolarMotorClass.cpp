@@ -13,6 +13,7 @@ UnipolarMotor :: UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t p
 
     _half_step = true; // TODO read from settings ... microstep > 1 = half step
 
+    set_axis_name();
     init();
     config_message();
 }
@@ -28,8 +29,8 @@ void UnipolarMotor :: init() {
 void UnipolarMotor :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "%c Axis unipolar stepper motor Ph0:%d Ph1:%d Ph2:%d Ph3:%d",
-                   report_get_axis_letter(axis_index),
+                   "%s Axis unipolar stepper motor Ph0:%d Ph1:%d Ph2:%d Ph3:%d",
+                   _axis_name,
                    _pin_phase0,
                    _pin_phase1,
                    _pin_phase2,

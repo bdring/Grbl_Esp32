@@ -98,12 +98,8 @@ class Motor {
     uint8_t dual_axis_index; // 0 = primary 1=ganged
     uint8_t is_active = false;
 
-    
-        
-
     bool _is_homing;
-
-    char _axis_name[10];
+    char _axis_name[10];// this the name to use when reporting like "X" or "X2"
 
 };
 
@@ -170,6 +166,22 @@ class UnipolarMotor : public Motor {
     uint8_t _current_phase;
     bool _half_step;
     bool _enabled;
+};
+
+class RcServo : public Motor {
+    public:
+    RcServo();
+    RcServo(uint8_t axis_index, uint8_t pwm_pin);
+    void config_message();
+    void init();
+    void _write_pwm(uint32_t duty);
+    void set_disable(bool disable);
+
+    uint8_t _pwm_pin;
+    uint8_t _channel_num;
+    uint32_t _current_pwm_duty;
+
+    void set_location();
 };
 
 

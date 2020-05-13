@@ -249,5 +249,9 @@
 #define Z_DIRECTION_PIN GPIO_NUM_32
 #define Z_CS_PIN        X_CS_PIN  // Daisy Chain, all share same CS pin
 
+#define A_SERVO
+#define A_SERVO_PIN             GPIO_NUM_33
+
+
 #define SPINDLE_TYPE                SPINDLE_TYPE_NONE
 

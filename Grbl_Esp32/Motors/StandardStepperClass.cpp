@@ -31,7 +31,7 @@ StandardStepper :: StandardStepper(uint8_t axis_index, gpio_num_t step_pin, uint
     this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1; // 0 = primary 1 = ganged
     this->step_pin = step_pin;
     this->dir_pin = dir_pin;
-
+    set_axis_name();
     init();
     config_message();
 }
@@ -87,20 +87,11 @@ void StandardStepper :: init_step_dir_pins() {
 }
 
 
-void StandardStepper :: config_message() {
-    char ganged[3];
-    
-    if (dual_axis_index) {
-        strcpy(ganged, "2");
-    } else {
-        strcpy(ganged, "");
-    }
-
+void StandardStepper :: config_message() {    
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "%c%s Axis standard stepper motor Step:%d Dir:%d",
-                   report_get_axis_letter(axis_index),
-                   ganged,
+                   "%s Axis standard stepper motor Step:%d Dir:%d",
+                   _axis_name,
                    step_pin,
                    dir_pin);
 }
