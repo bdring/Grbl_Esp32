@@ -258,7 +258,7 @@ void report_feedback_message(uint8_t message_code) { // OK to send to all client
 #ifdef ENABLE_SD_CARD
     case MESSAGE_SD_FILE_QUIT:
         grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset during SD file at line: %d", sd_get_current_line_number);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset during SD file at line: %d", sd_get_current_line_number());
         break;
 #endif
     }

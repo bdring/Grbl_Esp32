@@ -23,7 +23,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "SPI_DAISY_4X_XYZ"
+#define MACHINE_NAME "SPI Daisy 4x XYZ"
 
 #ifdef N_AXIS
         #undef N_AXIS
