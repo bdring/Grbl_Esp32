@@ -22,7 +22,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "POLAR_COASTER"
+#define MACHINE_NAME "Polar Coaster"
 
 // This causes the custom code file to be included in the build
 // via ../custom_code.cpp
