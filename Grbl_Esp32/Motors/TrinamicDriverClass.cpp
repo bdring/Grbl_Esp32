@@ -21,6 +21,7 @@
 
 */
 #include <TMCStepper.h>
+#include "TrinamicDriverClass.h"
 
 #define TRINAMIC_FCLK       12700000.0 // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
 
@@ -30,6 +31,7 @@ TrinamicDriver :: TrinamicDriver(   uint8_t axis_index,
                                     uint16_t driver_part_number,
                                     float r_sense, uint8_t cs_pin,
                                     int8_t spi_index) {
+    type_id = TRINAMIC_SPI_MOTOR;                                        
     this->axis_index = axis_index % MAX_AXES;
     this->dual_axis_index = axis_index < 6 ? 0 : 1; // 0 = primary 1 = ganged
     _driver_part_number = driver_part_number;

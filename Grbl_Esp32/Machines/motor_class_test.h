@@ -214,8 +214,8 @@
 */
 
 // ======================= SPI 4 axis xxyz ===========================
-#define MACHINE_NAME "MotorClass Test 4x SPI XXYZ"
-#define N_AXIS 3
+#define MACHINE_NAME "MotorClass Test 4x SPI XXYZ A Servo"
+#define N_AXIS 4
 
 #define TRINAMIC_DAISY_CHAIN
 
@@ -244,14 +244,14 @@
 
 
 #define Z_TRINAMIC_DRIVER       2130
-#define Z_RSENSE        TMC2130_RSENSE_DEFAULT
-#define Z_STEP_PIN      GPIO_NUM_33
-#define Z_DIRECTION_PIN GPIO_NUM_32
-#define Z_CS_PIN        X_CS_PIN  // Daisy Chain, all share same CS pin
+#define Z_RSENSE                TMC2130_RSENSE_DEFAULT
+#define Z_STEP_PIN              GPIO_NUM_33
+#define Z_DIRECTION_PIN         GPIO_NUM_32
+#define Z_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 #define A_SERVO
-#define A_SERVO_PIN             GPIO_NUM_33
+#define A_SERVO_PIN             GPIO_NUM_25
+#define A_SERVO_RANGE_MIN       0.0
+#define A_SERVO_RANGE_MAX       5.0
 
-
-#define SPINDLE_TYPE                SPINDLE_TYPE_NONE
-
+#define SPINDLE_TYPE            SPINDLE_TYPE_NONE

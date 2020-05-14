@@ -27,6 +27,7 @@ StandardStepper :: StandardStepper() {
 }
 
 StandardStepper :: StandardStepper(uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin) {
+    type_id = STANDARD_MOTOR;
     this->axis_index = axis_index % MAX_AXES;
     this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1; // 0 = primary 1 = ganged
     this->step_pin = step_pin;

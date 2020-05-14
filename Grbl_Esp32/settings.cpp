@@ -275,15 +275,20 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
                     if (value * settings.max_rate[parameter] > (MAX_STEP_RATE_HZ * 60.0))  return (STATUS_MAX_STEP_RATE_EXCEEDED);
 #endif
                     settings.steps_per_mm[parameter] = value;
+                    motor_read_settings();
                     break;
                 case 1:
 #ifdef MAX_STEP_RATE_HZ
                     if (value * settings.steps_per_mm[parameter] > (MAX_STEP_RATE_HZ * 60.0))   return (STATUS_MAX_STEP_RATE_EXCEEDED);
 #endif
                     settings.max_rate[parameter] = value;
+                    motor_read_settings();
                     break;
                 case 2: settings.acceleration[parameter] = value * 60 * 60; break; // Convert to mm/min^2 for grbl internal use.
-                case 3: settings.max_travel[parameter] = -value; break;  // Store as negative for grbl internal use.
+                case 3:
+                    settings.max_travel[parameter] = -value; 
+                    motor_read_settings();
+                    break;  // Store as negative for grbl internal use.
                 case 4: // run current
                     settings.current[parameter] = value;
                     settings_spi_driver_init();
@@ -323,6 +328,7 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
         case 3:
             settings.dir_invert_mask = int_value;
             st_generate_step_dir_invert_masks(); // Regenerate step and direction port invert masks.
+            motor_read_settings();
             break;
         case 4: // Reset to ensure change. Immediate re-init may cause problems.
             if (int_value)  settings.flags |= BITFLAG_INVERT_ST_ENABLE;

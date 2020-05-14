@@ -31,6 +31,8 @@
 
 */
 
+
+/*
 #define TRINAMIC_RUN_MODE_STEALTHCHOP   0   // very quiet
 #define TRINAMIC_RUN_MODE_COOLSTEP      1   // everything runs cooler so higher current possible
 #define TRINAMIC_RUN_MODE_STALLGUARD    2   // everything runs cooler so higher current possible
@@ -43,25 +45,29 @@
 
 #define TMC2130_RSENSE_DEFAULT  0.11f
 #define TMC5160_RSENSE_DEFAULT  0.075f
+*/
 
-// ============ defaults =================
-#ifndef TRINAMIC_RUN_MODE
-    #define TRINAMIC_RUN_MODE           TRINAMIC_RUN_MODE_COOLSTEP
-#endif
-
-#ifndef TRINAMIC_HOMING_MODE
-    #define TRINAMIC_HOMING_MODE        TRINAMIC_HOMING_NONE
-#endif
 
 #ifndef MOTORCLASS_H
 #define MOTORCLASS_H
 
 #include "../grbl.h"
 #include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
+#include "TrinamicDriverClass.h"
+#include "RcServoClass.h"
 
 extern uint8_t rmt_chan_num[MAX_AXES][2];
 extern rmt_item32_t rmtItem[2];
 extern rmt_config_t rmtConfig;
+
+typedef enum {
+    MOTOR,
+    NULL_MOTOR,
+    STANDARD_MOTOR,
+    TRINAMIC_SPI_MOTOR,
+    UNIPOLAR_MOTOR,
+    RC_SERVO_MOTOR
+} motor_class_id_t;
 
 // ========== global functions ===================
 
@@ -74,6 +80,8 @@ void motors_set_homing_mode(bool is_homing);
 void motors_set_disable(bool disable);
 void motors_set_direction_pins(uint8_t onMask);
 void motors_step(uint8_t step_mask, uint8_t dir_mask);
+
+void servoUpdateTask(void* pvParameters);
 
 extern bool motor_class_steps; // true if at least one motor class is handling steps
 
@@ -93,10 +101,14 @@ class Motor {
     virtual void step(uint8_t step_mask, uint8_t dir_mask); // only used on Unipolar right now
     virtual bool test();
     virtual void set_axis_name();
+    virtual void update();
 
+    motor_class_id_t type_id;
     uint8_t axis_index;  // X_AXIS, etc
     uint8_t dual_axis_index; // 0 = primary 1=ganged
     uint8_t is_active = false;
+    bool _showError;
+    bool _use_mpos = true;
 
     bool _is_homing;
     char _axis_name[10];// this the name to use when reporting like "X" or "X2"
@@ -149,6 +161,7 @@ class TrinamicDriver : public StandardStepper {
     uint32_t calc_tstep(float speed, float percent);
 };
 
+
 class UnipolarMotor : public Motor {
   public:
     UnipolarMotor();
@@ -171,17 +184,27 @@ class UnipolarMotor : public Motor {
 class RcServo : public Motor {
     public:
     RcServo();
-    RcServo(uint8_t axis_index, uint8_t pwm_pin);
+    RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max);
     void config_message();
     void init();
     void _write_pwm(uint32_t duty);
     void set_disable(bool disable);
+    void update();
+    void read_settings();
 
     uint8_t _pwm_pin;
     uint8_t _channel_num;
     uint32_t _current_pwm_duty;
+    
+    float _position_min;
+    float _position_max; // position in millimeters
+    float _homing_position;    
+
+    float servo_pulse_min;
+    float servo_pulse_max;
 
     void set_location();
+    void _get_calibration();
 };
 
 
