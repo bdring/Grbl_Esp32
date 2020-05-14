@@ -32,15 +32,15 @@ StandardStepper :: StandardStepper(uint8_t axis_index, gpio_num_t step_pin, uint
     this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1; // 0 = primary 1 = ganged
     this->step_pin = step_pin;
     this->dir_pin = dir_pin;
-    set_axis_name();
     init();
-    config_message();
 }
 
 void StandardStepper :: init() {
-    init_step_dir_pins();
     _is_homing = false;    
-    is_active = true;  // as opposed to NullMotors, this is a real motor    
+    is_active = true;  // as opposed to NullMotors, this is a real motor
+    set_axis_name();
+    init_step_dir_pins();
+    config_message();
 }
 
 void StandardStepper :: init_step_dir_pins() {

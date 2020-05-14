@@ -80,7 +80,6 @@ void motors_set_homing_mode(bool is_homing);
 void motors_set_disable(bool disable);
 void motors_set_direction_pins(uint8_t onMask);
 void motors_step(uint8_t step_mask, uint8_t dir_mask);
-
 void servoUpdateTask(void* pvParameters);
 
 extern bool motor_class_steps; // true if at least one motor class is handling steps
@@ -104,15 +103,16 @@ class Motor {
     virtual void update();
 
     motor_class_id_t type_id;
+    uint8_t is_active = false;
+
+  protected:
     uint8_t axis_index;  // X_AXIS, etc
     uint8_t dual_axis_index; // 0 = primary 1=ganged
-    uint8_t is_active = false;
+    
     bool _showError;
     bool _use_mpos = true;
-
     bool _is_homing;
     char _axis_name[10];// this the name to use when reporting like "X" or "X2"
-
 };
 
 class Nullmotor : public Motor {
@@ -130,6 +130,8 @@ class StandardStepper : public Motor {
     void init_step_dir_pins();
 
     gpio_num_t step_pin;
+
+  protected:
     bool _invert_step_pin;
     uint8_t dir_pin;
     uint8_t enable_pin;
@@ -137,6 +139,8 @@ class StandardStepper : public Motor {
 
 class TrinamicDriver : public StandardStepper {
   public:
+    TrinamicDriver(uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_sense, uint8_t cs_pin, int8_t spi_index);
+
     void config_message();
     void init();
     void set_mode();
@@ -148,17 +152,15 @@ class TrinamicDriver : public StandardStepper {
     void set_disable(bool disable);
     bool test();
 
+  private:
+    uint32_t calc_tstep(float speed, float percent);
+
+    TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
     uint8_t _homing_mode;
     uint8_t cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
-
-    TrinamicDriver(uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_sense, uint8_t cs_pin, int8_t spi_index);
-
-  private:
-    TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
     uint16_t _driver_part_number; // example: use 2130 for TMC2130
     float _r_sense;
     int8_t spi_index;
-    uint32_t calc_tstep(float speed, float percent);
 };
 
 
@@ -167,11 +169,11 @@ class UnipolarMotor : public Motor {
     UnipolarMotor();
     UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3);
     void init();
-    //void read_settings();
     void config_message();
     void set_disable(bool disable);
     void step(uint8_t step_mask, uint8_t dir_mask); // only used on Unipolar right now
 
+  private:
     uint8_t _pin_phase0;
     uint8_t _pin_phase1;
     uint8_t _pin_phase2;
@@ -182,7 +184,7 @@ class UnipolarMotor : public Motor {
 };
 
 class RcServo : public Motor {
-    public:
+  public:
     RcServo();
     RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max);
     void config_message();
@@ -192,22 +194,20 @@ class RcServo : public Motor {
     void update();
     void read_settings();
 
+  private:
+    void set_location();
+    void _get_calibration();
+
     uint8_t _pwm_pin;
     uint8_t _channel_num;
     uint32_t _current_pwm_duty;
-    
+
     float _position_min;
     float _position_max; // position in millimeters
-    float _homing_position;    
+    float _homing_position;
 
     float servo_pulse_min;
     float servo_pulse_max;
-
-    void set_location();
-    void _get_calibration();
 };
-
-
-
 
 #endif

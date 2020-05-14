@@ -19,6 +19,7 @@
     TODO
         Make sure public/private/protected is cleaned up.
         Only a few Unipolar axes have been setup in init()
+        Get rid of Z_SERVO, just reply on Z_SERVO_PIN
 
         Deal with custom machine ... machine_trinamic_setup();
         Class is ready to deal with non SPI pins, but they have not been needed yet.
@@ -77,7 +78,7 @@ void init_motors() {
     myMotor[X_AXIS][1] = new TrinamicDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, X2_CS_PIN, get_next_trinamic_driver_index());
 #elif defined(X2_SERVO)
     myMotor[X_AXIS][1] = new RcServo(X2_AXIS, X2_SERVO_PIN), X2_SERVO_RANGE_MIN, X2_SERVO_RANGE_MAX;
-#elif defined(X_UNIPOLAR)
+#elif defined(X2_UNIPOLAR)
     myMotor[X_AXIS][1] = new UnipolarMotor(X2_AXIS, X2_PIN_PHASE_0, X2_PIN_PHASE_1, X2_PIN_PHASE_2, X2_PIN_PHASE_3);
 #elif defined(X2_STEP_PIN)
     myMotor[X_AXIS][1] = new StandardStepper(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN);

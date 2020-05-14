@@ -563,8 +563,8 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
             RMT.conf_ch[rmt_chan_num[Z_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
         }
         if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B)) {
-            RMT.conf_ch[Z2_rmt_chan_num].conf1.mem_rd_rst = 1;
-            RMT.conf_ch[Z2_rmt_chan_num].conf1.tx_start = 1;
+            RMT.conf_ch[rmt_chan_num[Z_AXIS][GANGED_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[Z_AXIS][GANGED_MOTOR]].conf1.tx_start = 1;
         }
 #endif
     }

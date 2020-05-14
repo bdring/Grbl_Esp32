@@ -237,9 +237,8 @@
 // drivers that require software configuration at startup.
 // There are several options that control the details of such
 // drivers; inspect the code in grbl_triaminic.cpp to see them.
-// #define USE_TRIAMINIC
-// #define X_TRIAMINIC
-// #define X_TRINAMIC_DRIVER_TMC2209
+
+// #define X_TRINAMIC_DRIVE         2130
 // #define TRIAMINIC_DAISY_CHAIN
 
 // USE_MACHINE_TRINAMIC_INIT enables the machine_triaminic_setup()

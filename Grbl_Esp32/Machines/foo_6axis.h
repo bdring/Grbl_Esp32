@@ -49,20 +49,17 @@
 // C is a servo
 
 // servos
-#define USE_SERVO_AXES
-#define SERVO_Z_PIN             GPIO_NUM_22
-#define SERVO_Z_RANGE_MIN       0.0
-#define SERVO_Z_RANGE_MAX       5.0
-#define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-#define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
-#define SERVO_Z_MPOS            false           // will not use mpos, uses work coordinates
 
-#define SERVO_C_PIN             GPIO_NUM_2
-#define SERVO_C_RANGE_MIN       0.0
-#define SERVO_C_RANGE_MAX       5.0
-#define SERVO_C_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-#define SERVO_C_HOME_POS        SERVO_C_RANGE_MAX // move to max during homing
-#define SERVO_C_MPOS            false           // will not use mpos, uses work coordinates
+#define Z_SERVO
+#define Z_SERVO_PIN             GPIO_NUM_22
+#define Z_SERVO_RANGE_MIN       0.0
+#define Z_SERVO_RANGE_MAX       5.0
+
+
+#define C_SERVO
+#define C_SERVO_PIN             GPIO_NUM_2
+#define C_SERVO_RANGE_MIN       0.0
+#define C_SERVO_RANGE_MAX       5.0
 
 // limit switches
 #define X_LIMIT_PIN             GPIO_NUM_21

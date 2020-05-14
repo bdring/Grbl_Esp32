@@ -83,11 +83,6 @@
 
 #include "solenoid_pen.h"
 
-#ifdef USE_SERVO_AXES
-    #include "servo_axis.h"
-#endif
-
-
 #ifdef USE_UNIPOLAR
     #include "grbl_unipolar.h"
 #endif

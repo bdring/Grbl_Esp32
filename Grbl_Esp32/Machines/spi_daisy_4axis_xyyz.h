@@ -41,37 +41,33 @@
 #define USE_GANGED_AXES
 
 // Y motor connects to the 1st driver
-#define X_TRINAMIC_DRIVER_TMC2130        // Which Driver Type?
-#define X_RSENSE               TMC2130_RSENSE_DEFAULT
+#define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
+#define X_RSENSE                TMC2130_RSENSE_DEFAULT
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_14
-#define X_TRINAMIC              // using SPI control
 #define X_CS_PIN                GPIO_NUM_17  // Daisy Chain, all share same CS pin
 
 // Y motor connects to the 2nd driver
-#define Y_TRINAMIC_DRIVER_TMC2130        // Which Driver Type?
+#define Y_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define Y_RSENSE                TMC2130_RSENSE_DEFAULT
 #define Y_STEP_PIN              GPIO_NUM_27
 #define Y_DIRECTION_PIN         GPIO_NUM_26
-#define Y_TRINAMIC              // using SPI control
 #define Y_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 // Y2 motor connects to the 2nd driver
-#define Y2_TRINAMIC_DRIVER_TMC2130        // Which Driver Type?
+#define Y2_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define Y2_RSENSE                TMC2130_RSENSE_DEFAULT
 #define Y2_STEP_PIN              GPIO_NUM_15  // Z on schem
 #define Y2_DIRECTION_PIN         GPIO_NUM_2   // Z on schem
-#define Y2_TRINAMIC              // using SPI control
 #define Y2_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 #define Y_AXIS_SQUARING // optional
 
 // Z Axis motor connects to the 4th driver
-#define Z_TRINAMIC_DRIVER_TMC2130        // Which Driver Type?
+#define Z_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define Z_RSENSE                TMC2130_RSENSE_DEFAULT
 #define Z_STEP_PIN              GPIO_NUM_33 // A on schem
 #define Z_DIRECTION_PIN         GPIO_NUM_32 // A on schem
-#define Z_TRINAMIC              // using SPI control
 #define Z_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 // Mist is a 3.3V output
