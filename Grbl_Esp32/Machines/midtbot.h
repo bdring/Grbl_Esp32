@@ -22,7 +22,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "MIDTBOT"
+#define MACHINE_NAME "midTbot"
 
 #define SPINDLE_TYPE    SPINDLE_TYPE_NONE
 

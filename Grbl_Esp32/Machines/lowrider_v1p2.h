@@ -26,7 +26,7 @@
 
 
 
-#define MACHINE_NAME "MACHINE_LOWRIDER_V1P2"
+#define MACHINE_NAME "LOWRIDER_V1P2"
 
 #define USE_GANGED_AXES // allow two motors on an axis
 
