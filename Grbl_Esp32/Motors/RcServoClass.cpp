@@ -69,10 +69,6 @@ void RcServo :: init() {
     ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
     ledcAttachPin(_pwm_pin, _channel_num);
     _current_pwm_duty = 0;
-
-    pinMode(GPIO_NUM_4, OUTPUT);
-    digitalWrite(GPIO_NUM_4, HIGH);
-
 }
 
 void RcServo :: config_message() {
