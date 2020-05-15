@@ -61,7 +61,6 @@
 #ifdef USE_SERVO_AXES
     #define SPINDLE_TYPE            SPINDLE_TYPE_NONE
 
-    #define Z_SERVO
     #define Z_SERVO_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
     #define Z_SERVO_RANGE_MIN               0.0
     #define Z_SERVO_RANGE_MAX               5.0

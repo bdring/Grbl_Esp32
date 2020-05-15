@@ -50,13 +50,11 @@
 
 // servos
 
-#define Z_SERVO
 #define Z_SERVO_PIN             GPIO_NUM_22
 #define Z_SERVO_RANGE_MIN       0.0
 #define Z_SERVO_RANGE_MAX       5.0
 
 
-#define C_SERVO
 #define C_SERVO_PIN             GPIO_NUM_2
 #define C_SERVO_RANGE_MIN       0.0
 #define C_SERVO_RANGE_MAX       5.0

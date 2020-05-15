@@ -42,7 +42,6 @@
 #define Y_LIMIT_PIN     GPIO_NUM_4
 #define LIMIT_MASK      B11
 
-#define Z_SERVO
 #define Z_SERVO_PIN             GPIO_NUM_27
 #define Z_SERVO_RANGE_MIN       0.0
 #define Z_SERVO_RANGE_MAX       5.0

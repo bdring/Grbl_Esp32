@@ -64,7 +64,7 @@ void init_motors() {
     // this WILL be done better with settings
 #ifdef X_TRINAMIC_DRIVER
     myMotor[X_AXIS][0] = new TrinamicDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_TRINAMIC_DRIVER, X_RSENSE, X_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(X_SERVO)
+#elif defined(X_SERVO_PIN)
     myMotor[X_AXIS][0] = new RcServo(X_AXIS, X_SERVO_PIN, X_SERVO_RANGE_MIN, X_SERVO_RANGE_MAX);
 #elif defined(X_UNIPOLAR)
     myMotor[X_AXIS][0] = new UnipolarMotor(X_AXIS, X_PIN_PHASE_0, X_PIN_PHASE_1, X_PIN_PHASE_2, X_PIN_PHASE_3);
@@ -76,7 +76,7 @@ void init_motors() {
 
 #ifdef X2_TRINAMIC_DRIVER
     myMotor[X_AXIS][1] = new TrinamicDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, X2_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(X2_SERVO)
+#elif defined(X2_SERVO_PIN)
     myMotor[X_AXIS][1] = new RcServo(X2_AXIS, X2_SERVO_PIN), X2_SERVO_RANGE_MIN, X2_SERVO_RANGE_MAX;
 #elif defined(X2_UNIPOLAR)
     myMotor[X_AXIS][1] = new UnipolarMotor(X2_AXIS, X2_PIN_PHASE_0, X2_PIN_PHASE_1, X2_PIN_PHASE_2, X2_PIN_PHASE_3);
@@ -90,7 +90,7 @@ void init_motors() {
     // this WILL be done better with settings
 #ifdef Y_TRINAMIC_DRIVER
     myMotor[Y_AXIS][0] = new TrinamicDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, Y_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(Y_SERVO)
+#elif defined(Y_SERVO_PIN)
     myMotor[Y_AXIS][0] = new RcServo(Y_AXIS, Y_SERVO_PIN, Y_SERVO_RANGE_MIN, Y_SERVO_RANGE_MAX);
 #elif defined(Y_UNIPOLAR)
     myMotor[Y_AXIS][0] = new UnipolarMotor(Y_AXIS, Y_PIN_PHASE_0, Y_PIN_PHASE_1, Y_PIN_PHASE_2, Y_PIN_PHASE_3);
@@ -102,7 +102,7 @@ void init_motors() {
 
 #ifdef Y2_TRINAMIC_DRIVER
     myMotor[Y_AXIS][1] = new TrinamicDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, Y2_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(Y2_SERVO)
+#elif defined(Y2_SERVO_PIN)
     myMotor[Y_AXIS][1] = new RcServo(Y2_AXIS, Y2_SERVO_PIN, Y2_SERVO_RANGE_MIN, Y2_SERVO_RANGE_MAX);
 #elif defined(Y2_UNIPOLAR)
     myMotor[Y_AXIS][1] = new UnipolarMotor(Y2_AXIS, Y2_PIN_PHASE_0, Y2_PIN_PHASE_1, Y2_PIN_PHASE_2, Y2_PIN_PHASE_3);
@@ -115,7 +115,7 @@ void init_motors() {
     // this WILL be done better with settings
 #ifdef Z_TRINAMIC_DRIVER
     myMotor[Z_AXIS][0] = new TrinamicDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, Z_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(Z_SERVO)
+#elif defined(Z_SERVO_PIN)
     myMotor[Z_AXIS][0] = new RcServo(Z_AXIS, Z_SERVO_PIN, Z_SERVO_RANGE_MIN, Z_SERVO_RANGE_MAX);
 #elif defined(Z_UNIPOLAR)
     myMotor[Z_AXIS][0] = new UnipolarMotor(Z_AXIS, Z_PIN_PHASE_0, Z_PIN_PHASE_1, Z_PIN_PHASE_2, Z_PIN_PHASE_3);
@@ -127,7 +127,7 @@ void init_motors() {
 
 #ifdef Z2_TRINAMIC_DRIVER
     myMotor[Z_AXIS][1] = new TrinamicDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, Z2_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(Z2_SERVO)
+#elif defined(Z2_SERVO_PIN)
     myMotor[Z_AXIS][1] = new RcServo(Z2_AXIS, Z2_SERVO_PIN, Z2_SERVO_RANGE_MIN, Z2_SERVO_RANGE_MAX);
 #elif defined(Z2_UNIPOLAR)
     myMotor[Z_AXIS][1] = new UnipolarMotor(Z2_AXIS, Z2_PIN_PHASE_0, Z2_PIN_PHASE_1, Z2_PIN_PHASE_2, Z2_PIN_PHASE_3);
@@ -140,7 +140,7 @@ void init_motors() {
     // this WILL be done better with settings
 #ifdef A_TRINAMIC_DRIVER
     myMotor[A_AXIS][0] = new TrinamicDriver(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_TRINAMIC_DRIVER, A_RSENSE, A_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(A_SERVO)
+#elif defined(A_SERVO_PIN)
     myMotor[A_AXIS][0] = new RcServo(A_AXIS, A_SERVO_PIN, A_SERVO_RANGE_MIN, A_SERVO_RANGE_MAX);
 #elif defined(A_UNIPOLAR)
     myMotor[A_AXIS][0] = new UnipolarMotor(A_AXIS, A_PIN_PHASE_0, A_PIN_PHASE_1, A_PIN_PHASE_2, A_PIN_PHASE_3);
@@ -152,7 +152,7 @@ void init_motors() {
 
 #ifdef A2_TRINAMIC_DRIVER
     myMotor[A_AXIS][1] = new TrinamicDriver(A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_TRINAMIC_DRIVER, A2_RSENSE, A2_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(A2_SERVO)
+#elif defined(A2_SERVO_PIN)
     myMotor[A_AXIS][1] = new RcServo(A2_AXIS, A2_SERVO_PIN, A2_SERVO_RANGE_MIN, A2_SERVO_RANGE_MAX);
 #elif defined(A2_UNIPOLAR)
     myMotor[A_AXIS][1] = new UnipolarMotor(A2_AXIS, A2_PIN_PHASE_0, A2_PIN_PHASE_1, A2_PIN_PHASE_2, A2_PIN_PHASE_3);
@@ -165,7 +165,7 @@ void init_motors() {
     // this WILL be done better with settings
 #ifdef B_TRINAMIC_DRIVER
     myMotor[B_AXIS][0] = new TrinamicDriver(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_TRINAMIC_DRIVER, B_RSENSE, B_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(B_SERVO)
+#elif defined(B_SERVO_PIN)
     myMotor[B_AXIS][0] = new RcServo(B_AXIS, B_SERVO_PIN, B_SERVO_RANGE_MIN, B_SERVO_RANGE_MAX);
 #elif defined(B_UNIPOLAR)
     myMotor[B_AXIS][0] = new UnipolarMotor(B_AXIS, B_PIN_PHASE_0, B_PIN_PHASE_1, B_PIN_PHASE_2, B_PIN_PHASE_3);
@@ -177,7 +177,7 @@ void init_motors() {
 
 #ifdef B2_TRINAMIC_DRIVER
     myMotor[B_AXIS][1] = new TrinamicDriver(B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_TRINAMIC_DRIVER, B2_RSENSE, B2_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(B2_SERVO)
+#elif defined(B2_SERVO_PIN)
     myMotor[B_AXIS][1] = new RcServo(B2_AXIS, B2_SERVO_PIN, B2_SERVO_RANGE_MIN, B2_SERVO_RANGE_MAX);
 #elif defined(B2_UNIPOLAR)
     myMotor[B_AXIS][1] = new UnipolarMotor(B2_AXIS, B2_PIN_PHASE_0, B2_PIN_PHASE_1, B2_PIN_PHASE_2, B2_PIN_PHASE_3);
@@ -190,7 +190,7 @@ void init_motors() {
     // this WILL be done better with settings
 #ifdef C_TRINAMIC_DRIVER
     myMotor[C_AXIS][0] = new TrinamicDriver(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_TRINAMIC_DRIVER, C_RSENSE, C_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(C_SERVO)
+#elif defined(C_SERVO_PIN)
     myMotor[C_AXIS][0] = new RcServo(C_AXIS, C_SERVO_PIN, C_SERVO_RANGE_MIN, C_SERVO_RANGE_MAX);
 #elif defined(C_UNIPOLAR)
     myMotor[C_AXIS][0] = new UnipolarMotor(C_AXIS, C_PIN_PHASE_0, C_PIN_PHASE_1, C_PIN_PHASE_2, C_PIN_PHASE_3);
@@ -202,7 +202,7 @@ void init_motors() {
 
 #ifdef C2_TRINAMIC_DRIVER
     myMotor[C_AXIS][1] = new TrinamicDriver(C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_TRINAMIC_DRIVER, C2_RSENSE, C2_CS_PIN, get_next_trinamic_driver_index());
-#elif defined(C2_SERVO)
+#elif defined(C2_SERVO_PIN)
     myMotor[C_AXIS][1] = new RcServo(C2_AXIS, C2_SERVO_PIN, C2_SERVO_RANGE_MIN, C2_SERVO_RANGE_MAX);
 #elif defined(C2_UNIPOLAR)
     myMotor[C_AXIS][1] = new UnipolarMotor(C2_AXIS, C2_PIN_PHASE_0, C2_PIN_PHASE_1, C2_PIN_PHASE_2, C2_PIN_PHASE_3);
