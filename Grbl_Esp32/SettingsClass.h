@@ -1,8 +1,10 @@
 #pragma once
+#include "report.h"
 #include "JSONencoder.h"
 #include <cstring>
 #include <map>
 #include <nvs.h>
+#include "espresponse.h"
 
 using namespace std;
 
@@ -10,8 +12,8 @@ typedef uint8_t err_t; // For status codes
 
 // SettingsList is a linked list of all settings,
 // so common code can enumerate them.
-class Setting;
-extern Setting *SettingsList;
+class Command;
+extern Command *CommandsList;
 
 // This abstract class defines the generic interface that
 // is used to set and get values for all settings independent
@@ -31,6 +33,7 @@ enum {
     EXTENDED,
     WEB_FIRST, // delimiter, not used as value
     WEBUI,
+    WEBNOAUTH,
     WEBCMDRU,
     WEBCMDWU,
     WEBCMDWA,
@@ -39,27 +42,21 @@ enum {
 typedef uint16_t group_t;
 typedef uint8_t axis_t;
 
-class Setting {
-private:
+class Command {
+protected:
     const char* _webuiName;
     group_t _group;
-    axis_t _axis;
+    axis_t _axis = NO_AXIS;
     const char *_grblName;
     const char* _displayName;
 
-protected:
-    bool (*_checker)(const char *);
-    Setting *link;  // linked list of setting objects
+    Command *link;  // linked list of setting objects
 
 public:
-    Setting *next() { return link; }
-    // Returns true on error
-    bool check(const char *s) {
-        return _checker ? !_checker(s) : false;
-    }
+    Command *next() { return link; }
 
-    ~Setting() {}
-    Setting(const char *webuiName, group_t group, const char * grblName, const char* displayName, bool (*checker)(const char *));
+    ~Command() {}
+    Command(const char *webuiName, group_t group, const char * grblName, const char* displayName);
     group_t getGroup() { return _group; }
     axis_t getAxis() { return _axis; }
     void setAxis(axis_t axis) { _axis = axis; }
@@ -70,19 +67,38 @@ public:
     // load() reads the backing store to get the current
     // value of the setting.  This could be slow so it
     // should be done infrequently, typically once at startup.
-    virtual void load() =0;
-
-    virtual err_t setStringValue(const char* value) =0;
-    err_t setStringValue(string s) {  return setStringValue(s.c_str());  }
-    virtual void setDefault() =0;
-
-    virtual const char* getStringValue() =0;
+    virtual void load() {};
+    virtual void setDefault() {};
 
     // The default implementation of addWebui() does nothing.
     // Derived classes may override it to do something.
-    virtual void addWebui(JSONencoder *) { };
+    virtual void addWebui(JSONencoder *) {};
+
+    virtual err_t action(char* value, ESPResponseStream* out) =0;
 };
 
+class Setting : public Command {
+private:
+protected:
+    bool (*_checker)(const char *);
+
+public:
+    // Returns true on error
+    bool check(const char *s) {
+        return _checker ? !_checker(s) : false;
+    }
+
+    ~Setting() {}
+    Setting(const char *webuiName, group_t group, const char * grblName, const char* displayName, bool (*checker)(const char *));
+
+    virtual err_t setStringValue(const char* value) =0;
+    err_t setStringValue(string s) {  return setStringValue(s.c_str());  }
+    virtual const char* getStringValue() =0;
+
+    err_t action(char* value, ESPResponseStream* out);
+};
+
+// XXX probably should be a static method of Setting
 extern nvs_handle _handle;
 
 class IntSetting : public Setting {
@@ -100,14 +116,13 @@ public:
         : IntSetting(NULL, group, grblName, name, defVal, minVal, maxVal, checker)
     { }
 
-    int32_t get() {  return _currentValue;  }
-
     void load();
     void setDefault();
-    err_t setStringValue(const char *);
-    const char *getStringValue();
-    const char *getStringDefault();
     void addWebui(JSONencoder *);
+    err_t setStringValue(const char* value);
+    const char* getStringValue();
+
+    int32_t get() {  return _currentValue;  }
 };
 
 class FloatSetting : public Setting {
@@ -124,11 +139,14 @@ public:
         : FloatSetting(NULL, group, grblName, name, defVal, minVal, maxVal, checker)
     { }
 
-    float get() {  return _currentValue;  }
     void load();
     void setDefault();
-    err_t setStringValue(const char *);
-    const char *getStringValue();
+    // There are no Float settings in WebUI
+    void addWebui(JSONencoder *) {}
+    err_t setStringValue(const char* value);
+    const char* getStringValue();
+
+    float get() {  return _currentValue;  }
 };
 
 #define MAX_SETTING_STRING 256
@@ -147,12 +165,13 @@ public:
         : StringSetting(NULL, group, grblName, name, defVal, 0, 0, checker)
     { };
 
-    const char* get() { return _currentValue.c_str();  }
     void load();
     void setDefault();
-    err_t setStringValue(const char *);
-    const char *getStringValue();
     void addWebui(JSONencoder *);
+    err_t setStringValue(const char* value);
+    const char* getStringValue();
+
+    const char* get() { return _currentValue.c_str();  }
 };
 struct cmp_str
 {
@@ -176,12 +195,13 @@ public:
         EnumSetting(NULL, group, grblName, name, defVal, opts)
     { }
 
-    int8_t get() { return _currentValue;  }
     void load();
     void setDefault();
-    err_t setStringValue(const char *);
-    const char *getStringValue();
     void addWebui(JSONencoder *);
+    err_t setStringValue(const char* value);
+    const char* getStringValue();
+
+    int8_t get() { return _currentValue;  }
 };
 
 class FlagSetting : public Setting {
@@ -195,12 +215,15 @@ public:
         : FlagSetting(NULL, group, grblName, name, defVal, checker)
     { }
 
-    bool get() {  return _currentValue;  }
     void load();
     void setDefault();
-    err_t setStringValue(const char *);
-    const char *getStringValue();
-    // void addWebui(JSONencoder *);
+    // There are no Flag settings in WebUI
+    // The booleans are expressed as Enums
+    void addWebui(JSONencoder *) {}
+    err_t setStringValue(const char* value);
+    const char* getStringValue();
+
+    bool get() {  return _currentValue;  }
 };
 
 class IPaddrSetting : public Setting {
@@ -213,13 +236,13 @@ public:
     IPaddrSetting(const char *webName, group_t group, const char * grblName, const char* name, uint32_t defVal, bool (*checker)(const char *));
     IPaddrSetting(const char *webName, group_t group, const char * grblName, const char* name, const char *defVal, bool (*checker)(const char *));
 
-    uint32_t get() {  return _currentValue;  }
-
     void load();
     void setDefault();
-    err_t setStringValue(const char *);
-    const char *getStringValue();
     void addWebui(JSONencoder *);
+    err_t setStringValue(const char* value);
+    const char* getStringValue();
+
+    uint32_t get() {  return _currentValue;  }
 };
 
 class AxisSettings {
@@ -236,18 +259,14 @@ public:
 
     AxisSettings(const char *axisName);
 };
-class WebCommandSetting : public Setting {
+class WebCommand : public Command {
     private:
-        const char* (*_action)(char *);
+        err_t (*_action)(char *);
         const char* password;
     public:
-    WebCommandSetting(const char* webName, group_t group, const char * grblName, const char* name, const char * (*action)(char *)) :
-        Setting(webName, group, grblName, name, NULL),
+    WebCommand(const char* webName, group_t group, const char * grblName, const char* name, err_t (*action)(char *)) :
+        Command(webName, group, grblName, name),
         _action(action)
     {}
-    void load() {}
-    void setDefault() {}
-    err_t setStringValue(const char* parameter) {}
-    const char *getStringValue() {}
-    err_t processWebCommand(ESPResponseStream* response, char* parameter);
+    err_t action(char* value, ESPResponseStream* response);
 };

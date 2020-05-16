@@ -1,4 +1,5 @@
 #include "grbl.h"
+#include "commands.h"
 
 #include "SettingsDefinitions.h"
 #include <map>
@@ -14,7 +15,7 @@ void settings_restore(uint8_t restore_flag) {
         }
     #endif
     if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {
-        for (Setting *s = SettingsList; s; s = s->next()) {
+        for (Command *s = CommandsList; s; s = s->next()) {
             bool restore_startup = restore_flag & SETTINGS_RESTORE_STARTUP_LINES;
             if (!s->getWebuiName()) {
                 const char *name = s->getName();
@@ -42,15 +43,17 @@ void settings_restore(uint8_t restore_flag) {
 // Get settings values from non volatile storage into memory
 void load_settings()
 {
-    for (Setting *s = SettingsList; s; s = s->next()) {
+    for (Command *s = CommandsList; s; s = s->next()) {
         s->load();
     }
 }
 
 extern void make_settings();
+extern void make_web_settings();
 void settings_init()
 {
     make_settings();
+    make_web_settings();
     load_settings();
 }
 
@@ -87,13 +90,15 @@ const char *map_grbl_value(const char *value) {
     return value;
 }
 void show_grbl_settings(uint8_t client, group_t group, bool wantAxis) {
-    for (Setting *s = SettingsList; s; s = s->next()) {
-        if (s->getGroup() == group && s->getGrblName()) {
-            bool isAxis = s->getAxis() != NO_AXIS;
+    //auto out = new ESPResponseStream(client);
+    for (Command *cp = CommandsList; cp; cp = cp->next()) {
+        if (cp->getGroup() == group && cp->getGrblName()) {
+            bool isAxis = cp->getAxis() != NO_AXIS;
             // The following test could be expressed more succinctly with XOR,
             // but is arguably clearer when written out
             if ((wantAxis && isAxis) || (!wantAxis && !isAxis)) {
-                grbl_sendf(client, "$%s=%s\n", s->getGrblName(), map_grbl_value(s->getStringValue()));
+                Setting *s = (Setting *)cp;
+                grbl_sendf(client, "%s=%s\r\n", s->getGrblName(), map_grbl_value(s->getStringValue()));
             }
         }
     }
@@ -112,8 +117,11 @@ err_t report_extended_settings(uint8_t client) {
 }
 err_t list_settings(uint8_t client)
 {
-    for (Setting *s = SettingsList; s; s = s->next()) {
-        grbl_sendf(client, "$%s=%s\r\n", s->getName(), s->getStringValue());
+    for (Command *cp = CommandsList; cp; cp = cp->next()) {
+        if (cp->getGroup() <= WEBUI) {
+            Setting* s = (Setting*)cp;
+            grbl_sendf(client, "%s=%s\r\n", s->getName(), s->getStringValue());
+        }
     }
     return STATUS_OK;
 }
@@ -272,25 +280,62 @@ char *normalize_key(char *start) {
 }
 
 // This is for changing settings with $key=value .
-// Lookup key in the Settings list, considering both
+// Lookup key in the Commands list, considering both
 // the text name and the grbl compatible name, if any.
 // If found, execute the object's "setStringValue" method.
 // Otherwise fail.
-err_t do_setting(const char *key, const char *value) {
-    if (strcasecmp(key, "RST") == 0) {
-        auto it = restoreCommands.find(value);
-        if (it == restoreCommands.end()) {
-            return STATUS_INVALID_STATEMENT;
-        }
-        settings_restore(it->second);
-        return STATUS_OK;
+// There is no "out" parameter because this does not
+// generate any output; it just returns status
+err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out) {
+    // If value is NULL, set it to the empty string to simplify
+    // subsequent tests.
+    if (!value) {
+        value = "";
     }
-    // Find the setting named "key" and set its value, considering
-    // both the textual names and the old GRBL setting numbers
-    for (Setting *s = SettingsList; s; s = s->next()) {
-        if ((strcasecmp(s->getName(), key) == 0)
-        || (s->getGrblName() && (strcmp(s->getGrblName(), key) == 0))) {
-            return s->setStringValue(value);
+    // First search the list of settings.  If found, set a new
+    // value if one is given, otherwise display the current value
+    for (Command *cp = CommandsList; cp; cp = cp->next()) {
+        if (cp->getGroup() <= WEBUI &&
+            ((strcasecmp(cp->getName(), key) == 0) ||
+             (cp->getGrblName() && (strcasecmp(cp->getGrblName(), key) == 0)))
+        ) {
+            Setting* s = (Setting*)cp;
+            if (*value) {
+                return s->setStringValue(value);
+            } else {
+                grbl_sendf(out->client(), "$%s=%s\n", s->getName(), s->getStringValue());
+                return STATUS_OK;
+            }
+        }
+    }
+    // If a setting was not found, check the map of special $ commands
+    if (*value) {
+        if (strcasecmp(key, "RST") == 0) {
+            auto it = restoreCommands.find(value);
+            if (it == restoreCommands.end()) {
+                return STATUS_INVALID_STATEMENT;
+            }
+            settings_restore(it->second);
+            return STATUS_OK;
+        }
+    } else {
+        std::map<const char*, Command_t, cmp_str>::iterator it = dollarCommands.find(key);
+        if (it != dollarCommands.end()) {
+            return it->second(out->client());
+        }
+    }
+
+    // If we have not already found the command or setting, look for
+    // a WebUI command.  They handle values internally; you cannot
+    // determine whether to set or display solely based on the presence
+    // of a value.
+    for (Command *cp = CommandsList; cp; cp = cp->next()) {
+        if ((cp->getGroup() > WEBUI) &&
+                ((strcasecmp(cp->getName(), key) == 0) ||
+                 (cp->getGrblName() && strcasecmp(cp->getGrblName(), key) == 0)
+                )
+        ) {
+            return cp->action(value, out);
         }
     }
     return STATUS_INVALID_STATEMENT;
@@ -302,21 +347,23 @@ err_t do_setting(const char *key, const char *value) {
 // As an enhancement to Classic GRBL, if the key is not found
 // in the commands map, look it up in the lists of settings
 // and display the current value.
-err_t do_command(const char *key, uint8_t client) {
+err_t do_command(const char *key, ESPResponseStream* out) {
 
     std::map<const char*, Command_t, cmp_str>::iterator it = dollarCommands.find(key);
     if (it != dollarCommands.end()) {
-        return it->second(client);
+        return it->second(out->client());
     }
 
     // Enhancement - not in Classic GRBL:
     // If it is not a command, look up the key
     // as a setting and display the value.
-    for (Setting *s = SettingsList; s; s = s->next()) {
-        //    if (s->getName().compare(k)) {
-        if ((strcasecmp(s->getName(), key) == 0)
-        || (s->getGrblName() && (strcasecmp(s->getGrblName(), key) == 0))) {
-            grbl_sendf(client, "$%s=%s\n", s->getName(), s->getStringValue());
+    for (Command *cp = CommandsList; cp; cp = cp->next()) {
+        if ((strcasecmp(cp->getName(), key) == 0)
+        || (cp->getGrblName() && (strcasecmp(cp->getGrblName(), key) == 0))) {
+            if (cp->getGroup() <= WEBUI) {
+                Setting* s = (Setting*)cp;
+                grbl_sendf(out->client(), "$%s=%s\n", s->getName(), s->getStringValue());
+            }
             return STATUS_OK;
         }
     }
@@ -324,20 +371,36 @@ err_t do_command(const char *key, uint8_t client) {
     return STATUS_INVALID_STATEMENT;
 }
 
-uint8_t system_execute_line(char* line, uint8_t client) {
-    char *value = strchr(line, '=');
-    if (value) {
-        // Equals was found; replace it with null and skip it
-        // This must precede normalize_key() to prevent it from
-        // paring whitespace from the value.
+uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authenticate_type auth_level) {
+    char *value;
+    if (*line++ == '[') { // [ESPxxx] form
+        value = strrchr(line, ']');
+        if (!value) {
+            // Missing ] is an error in this form
+            return STATUS_INVALID_STATEMENT;
+        }
+        // ']' was found; replace it with null and set value to
+        // to the rest of the line, which might be empty
         *value++ = '\0';
+    } else {
+        // $xxx form
+        value = strrchr(line, '=');
+        if (value) {
+            // $xxx=yyy form.
+            *value++ = '\0';
+        }
     }
-    char *key = normalize_key(line+1);
-
-    return value
-        ? do_setting(key, value)
-        : do_command(key, client);
+    char *key = normalize_key(line);
+    // At this point there are three possibilities for value
+    // NULL - $xxx without =
+    // empty string - [ESPxxx] or $xxx= with nothing after
+    // non-empty string - [ESPxxx]yyy or $xxx=yyy
+    return do_command_or_setting(key, value, out);
 }
+uint8_t system_execute_line(char* line, uint8_t client) {
+    return system_execute_line(line, new ESPResponseStream(client, true), LEVEL_GUEST);
+}
+
 void system_execute_startup(char* line) {
     err_t status_code;
     const char *gcline = startup_line_0->get();

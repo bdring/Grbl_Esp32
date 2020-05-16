@@ -69,12 +69,19 @@
 #define STATUS_SD_FAILED_OPEN_DIR 62 // SD card failed to open directory
 #define STATUS_SD_DIR_NOT_FOUND 63 // SD Card directory not found
 #define STATUS_SD_FILE_EMPTY 64 // SD Card directory not found
+#define STATUS_SD_FILE_NOT_FOUND 65 // SD Card file not found
+#define STATUS_SD_FAILED_OPEN_FILE 66 // SD card failed to open file
+#define STATUS_SD_FAILED_BUSY 67 // SD card is busy
+#define STATUS_SD_FAILED_DEL_DIR 68
+#define STATUS_SD_FAILED_DEL_FILE 69
 
 #define STATUS_BT_FAIL_BEGIN 70  // Bluetooth failed to start
+#define STATUS_WIFI_FAIL_BEGIN 71  // WiFi failed to start
 
 #define STATUS_NUMBER_RANGE 80 // Setting number range problem
 #define STATUS_INVALID_VALUE 81 // Setting string problem
 
+#define STATUS_MESSAGE_FAILED 90
 
 // Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
 #define ALARM_HARD_LIMIT_ERROR      EXEC_ALARM_HARD_LIMIT

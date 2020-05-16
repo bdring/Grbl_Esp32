@@ -112,7 +112,7 @@ void protocol_main_loop() {
                     } else if (line[0] == 0) {
                         // Empty or comment line. For syncing purposes.
                         report_status_message(STATUS_OK, client);
-                    } else if (line[0] == '$') {
+                    } else if (line[0] == '$' || line[0] == '[') {
                         // Grbl '$' system command
                         report_status_message(system_execute_line(line, client), client);
                     } else if (line[0] == '[') {

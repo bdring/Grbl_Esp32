@@ -6,26 +6,40 @@
 #include <map>
 #include "nvs.h"
 
-Setting::Setting(const char* webuiName, group_t group, const char* grblName, const char* displayName, bool (*checker)(const char *))
-        : _webuiName(webuiName)
-        , _group(group)
-        , _axis(NO_AXIS)
-        , _grblName(grblName)
-        , _displayName(displayName)
-        , _checker(checker)
+Command::Command(const char* webuiName, group_t group, const char* grblName, const char* displayName)
+    : _webuiName(webuiName)
+    , _group(group)
+    , _grblName(grblName)
+    , _displayName(displayName)
 {
-    link = SettingsList;
-    SettingsList = this;
+    link = CommandsList;
+    CommandsList = this;
+}
+
+Setting::Setting(const char* webuiName, group_t group, const char* grblName, const char* displayName, bool (*checker)(const char *))
+    : Command(webuiName, group, grblName, displayName)
+    , _checker(checker)
+{ }
+
+err_t Setting::action(char* value, ESPResponseStream* out) {
+    if (value && *value) {
+        return setStringValue(value);
+    } else {
+        if (out) {
+            out->println(getStringValue());
+        }
+        return STATUS_OK;
+    }
 }
 
 nvs_handle _handle = 0;
 
 IntSetting::IntSetting(const char *webName, group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *) = NULL)
-      : Setting(webName, group, grblName, name, checker)
-      , _defaultValue(defVal)
-      , _currentValue(defVal)
-      , _minValue(minVal)
-      , _maxValue(maxVal)
+    : Setting(webName, group, grblName, name, checker)
+    , _defaultValue(defVal)
+    , _currentValue(defVal)
+    , _minValue(minVal)
+    , _maxValue(maxVal)
 { }
 
 void IntSetting::load() {

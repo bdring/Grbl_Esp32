@@ -1,7 +1,7 @@
 #include "grbl.h"
 #include "SettingsClass.h"
 
-Setting *SettingsList = NULL;
+Command *CommandsList = NULL;
 
 StringSetting* startup_line_0;
 StringSetting* startup_line_1;
