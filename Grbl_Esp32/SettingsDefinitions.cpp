@@ -1,7 +1,7 @@
 #include "grbl.h"
 #include "SettingsClass.h"
 
-Command *CommandsList = NULL;
+// Command *CommandsList = NULL;
 
 StringSetting* startup_line_0;
 StringSetting* startup_line_1;
@@ -166,11 +166,8 @@ static const char *makeGrblName(int axisNum, int base) {
 
 void make_settings()
 {
-    if (!_handle) {
-        if (esp_err_t err = nvs_open(NVS_PARTITION_NAME, NVS_READWRITE, &_handle)) {
-            grbl_sendf(CLIENT_SERIAL, "nvs_open failed with error %d\r\n", err);
-        }
-    }
+    Setting::init();
+
     // The following horrid code accomodates people who insist that axis settings
     // be grouped by setting type rather than by axis.
     int axis;
@@ -179,7 +176,7 @@ void make_settings()
         def = &axis_defaults[axis];
         axis_settings[axis] = new AxisSettings(def->name);
     }
-    AxisSettings** p = axis_settings; 
+    AxisSettings** p = axis_settings;
     x_axis_settings = axis_settings[X_AXIS];
     y_axis_settings = axis_settings[Y_AXIS];
     z_axis_settings = axis_settings[Z_AXIS];
@@ -189,7 +186,7 @@ void make_settings()
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting = new IntSetting(EXTENDED, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, 0, 100);
-        setting->setAxis(axis); 
+        setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {

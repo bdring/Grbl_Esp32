@@ -10,10 +10,10 @@ using namespace std;
 
 typedef uint8_t err_t; // For status codes
 
-// SettingsList is a linked list of all settings,
+// Command::List is a linked list of all settings,
 // so common code can enumerate them.
 class Command;
-extern Command *CommandsList;
+// extern Command *CommandsList;
 
 // This abstract class defines the generic interface that
 // is used to set and get values for all settings independent
@@ -42,27 +42,61 @@ enum {
 typedef uint16_t group_t;
 typedef uint8_t axis_t;
 
-class Command {
+class Word {
 protected:
-    const char* _webuiName;
-    group_t _group;
-    axis_t _axis = NO_AXIS;
+    const char* _description;
     const char *_grblName;
-    const char* _displayName;
-
-    Command *link;  // linked list of setting objects
-
+    const char* _fullName;
 public:
-    Command *next() { return link; }
+    Word(const char *description, const char * grblName, const char* fullName);
+    const char* getName() { return _fullName; }
+    const char* getGrblName() { return _grblName; }
+    const char* getDescription() { return _description; }
+};
+
+class Command : public Word {
+protected:
+    group_t _group;
+    Command *link;  // linked list of setting objects
+public:
+    static Command* List;
+    Command* next() { return link; }
 
     ~Command() {}
-    Command(const char *webuiName, group_t group, const char * grblName, const char* displayName);
+    Command(const char *description, group_t group, const char * grblName, const char* fullName);
+    group_t getGroup() { return _group; }
+
+    // The default implementation of addWebui() does nothing.
+    // Derived classes may override it to do something.
+    virtual void addWebui(JSONencoder *) {};
+
+    virtual err_t action(char* value, ESPResponseStream* out) =0;
+};
+
+class Setting : public Word {
+private:
+protected:
+    static nvs_handle _handle;
+    group_t _group;
+    axis_t _axis = NO_AXIS;
+    Setting *link;  // linked list of setting objects
+
+    bool (*_checker)(const char *);
+public:
+    static void init();
+    static Setting* List;
+    Setting* next() { return link; }
+
+    // Returns true on error
+    bool check(const char *s) {
+        return _checker ? !_checker(s) : false;
+    }
+
+    ~Setting() {}
+    Setting(const char *description, group_t group, const char * grblName, const char* fullName, bool (*checker)(const char *));
     group_t getGroup() { return _group; }
     axis_t getAxis() { return _axis; }
     void setAxis(axis_t axis) { _axis = axis; }
-    const char* getName() { return _displayName; }
-    const char* getGrblName() { return _grblName; }
-    const char* getWebuiName() { return _webuiName; }
 
     // load() reads the backing store to get the current
     // value of the setting.  This could be slow so it
@@ -74,32 +108,10 @@ public:
     // Derived classes may override it to do something.
     virtual void addWebui(JSONencoder *) {};
 
-    virtual err_t action(char* value, ESPResponseStream* out) =0;
-};
-
-class Setting : public Command {
-private:
-protected:
-    bool (*_checker)(const char *);
-
-public:
-    // Returns true on error
-    bool check(const char *s) {
-        return _checker ? !_checker(s) : false;
-    }
-
-    ~Setting() {}
-    Setting(const char *webuiName, group_t group, const char * grblName, const char* displayName, bool (*checker)(const char *));
-
     virtual err_t setStringValue(const char* value) =0;
     err_t setStringValue(string s) {  return setStringValue(s.c_str());  }
     virtual const char* getStringValue() =0;
-
-    err_t action(char* value, ESPResponseStream* out);
 };
-
-// XXX probably should be a static method of Setting
-extern nvs_handle _handle;
 
 class IntSetting : public Setting {
 private:

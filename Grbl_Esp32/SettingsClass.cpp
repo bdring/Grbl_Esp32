@@ -6,33 +6,43 @@
 #include <map>
 #include "nvs.h"
 
-Command::Command(const char* webuiName, group_t group, const char* grblName, const char* displayName)
-    : _webuiName(webuiName)
-    , _group(group)
+Word::Word(const char* description, const char* grblName, const char* fullName)
+    : _description(description)
     , _grblName(grblName)
-    , _displayName(displayName)
+    , _fullName(fullName)
+{}
+
+Command* Command::List = NULL;
+
+Command::Command(const char* description, group_t group, const char* grblName, const char* fullName)
+    : Word(description, grblName, fullName)
+    , _group(group)
 {
-    link = CommandsList;
-    CommandsList = this;
+    link = List;
+    List = this;
 }
 
-Setting::Setting(const char* webuiName, group_t group, const char* grblName, const char* displayName, bool (*checker)(const char *))
-    : Command(webuiName, group, grblName, displayName)
-    , _checker(checker)
-{ }
+Setting* Setting::List = NULL;
 
-err_t Setting::action(char* value, ESPResponseStream* out) {
-    if (value && *value) {
-        return setStringValue(value);
-    } else {
-        if (out) {
-            out->println(getStringValue());
+Setting::Setting(const char* description, group_t group, const char* grblName, const char* fullName, bool (*checker)(const char *))
+    : Word(description, grblName, fullName)
+    , _group(group)
+    , _checker(checker)
+{
+    link = List;
+    List = this;
+}
+
+nvs_handle Setting::_handle = 0;
+
+void Setting::init() {
+    // XXX Move this to Setting::init()
+    if (!_handle) {
+        if (esp_err_t err = nvs_open(NVS_PARTITION_NAME, NVS_READWRITE, &_handle)) {
+            grbl_sendf(CLIENT_SERIAL, "nvs_open failed with error %d\r\n", err);
         }
-        return STATUS_OK;
     }
 }
-
-nvs_handle _handle = 0;
 
 IntSetting::IntSetting(const char *webName, group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *) = NULL)
     : Setting(webName, group, grblName, name, checker)
@@ -90,8 +100,8 @@ const char* IntSetting::getStringValue() {
 }
 
 void IntSetting::addWebui(JSONencoder *j) {
-    if (getWebuiName()) {
-        j->begin_webui(getName(), getWebuiName(), "I", getStringValue(), _minValue, _maxValue);
+    if (getDescription()) {
+        j->begin_webui(getName(), getDescription(), "I", getStringValue(), _minValue, _maxValue);
         j->end_object();
     }
 }
@@ -233,11 +243,11 @@ const char* StringSetting::getStringValue() {
 }
 
 void StringSetting::addWebui(JSONencoder *j) {
-    if (!getWebuiName()) {
+    if (!getDescription()) {
         return;
     }
     j->begin_webui(
-        getName(), getWebuiName(), "S", getStringValue(), _minLength, _maxLength);
+        getName(), getDescription(), "S", getStringValue(), _minLength, _maxLength);
     j->end_object();
 }
 
@@ -296,10 +306,10 @@ const char* EnumSetting::getStringValue() {
 }
 
 void EnumSetting::addWebui(JSONencoder *j) {
-    if (!getWebuiName()) {
+    if (!getDescription()) {
       return;
     }
-    j->begin_webui(getName(), getWebuiName(), "B", getStringValue());
+    j->begin_webui(getName(), getDescription(), "B", getStringValue());
     j->begin_array("O");
     for (enum_opt_t::iterator it = _options->begin();
          it != _options->end();
@@ -422,8 +432,8 @@ const char* IPaddrSetting::getStringValue() {
 }
 
 void IPaddrSetting::addWebui(JSONencoder *j) {
-    if (getWebuiName()) {
-        j->begin_webui(getName(), getWebuiName(), "A", getStringValue());
+    if (getDescription()) {
+        j->begin_webui(getName(), getDescription(), "A", getStringValue());
         j->end_object();
     }
 }

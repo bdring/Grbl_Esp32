@@ -15,9 +15,9 @@ void settings_restore(uint8_t restore_flag) {
         }
     #endif
     if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {
-        for (Command *s = CommandsList; s; s = s->next()) {
+        for (Setting *s = Setting::List; s; s = s->next()) {
             bool restore_startup = restore_flag & SETTINGS_RESTORE_STARTUP_LINES;
-            if (!s->getWebuiName()) {
+            if (!s->getDescription()) {
                 const char *name = s->getName();
                 if (restore_startup || ((strcmp(name, "N0") != 0) && (strcmp(name, "N1") == 0))) {
                     s->setDefault();
@@ -43,7 +43,7 @@ void settings_restore(uint8_t restore_flag) {
 // Get settings values from non volatile storage into memory
 void load_settings()
 {
-    for (Command *s = CommandsList; s; s = s->next()) {
+    for (Setting *s = Setting::List; s; s = s->next()) {
         s->load();
     }
 }
@@ -92,13 +92,12 @@ const char *map_grbl_value(const char *value) {
 }
 void show_grbl_settings(uint8_t client, group_t group, bool wantAxis) {
     //auto out = new ESPResponseStream(client);
-    for (Command *cp = CommandsList; cp; cp = cp->next()) {
-        if (cp->getGroup() == group && cp->getGrblName()) {
-            bool isAxis = cp->getAxis() != NO_AXIS;
+    for (Setting *s = Setting::List; s; s = s->next()) {
+        if (s->getGroup() == group && s->getGrblName()) {
+            bool isAxis = s->getAxis() != NO_AXIS;
             // The following test could be expressed more succinctly with XOR,
             // but is arguably clearer when written out
             if ((wantAxis && isAxis) || (!wantAxis && !isAxis)) {
-                Setting *s = (Setting *)cp;
                 grbl_sendf(client, "%s=%s\r\n", s->getGrblName(), map_grbl_value(s->getStringValue()));
             }
         }
@@ -118,11 +117,8 @@ err_t report_extended_settings(const char* value, uint8_t client) {
 }
 err_t list_settings(const char* value, uint8_t client)
 {
-    for (Command *cp = CommandsList; cp; cp = cp->next()) {
-        if (cp->getGroup() < COMMANDS) {
-            Setting* s = (Setting*)cp;
-            grbl_sendf(client, "%s=%s\r\n", s->getName(), s->getStringValue());
-        }
+    for (Setting *s = Setting::List; s; s = s->next()) {
+        grbl_sendf(client, "%s=%s\r\n", s->getName(), s->getStringValue());
     }
     return STATUS_OK;
 }
@@ -289,7 +285,7 @@ char *normalize_key(char *start) {
 }
 
 // This is for changing settings with $key=value .
-// Lookup key in the Commands list, considering both
+// Lookup key in the Settings list, considering both
 // the text name and the grbl compatible name, if any.
 // If found, execute the object's "setStringValue" method.
 // Otherwise fail.
@@ -298,17 +294,18 @@ char *normalize_key(char *start) {
 err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out) {
     // If value is NULL, set it to the empty string to simplify
     // subsequent tests.
+    char empty[] = { '\0' };
     if (!value) {
-        value = "";
+        value = empty;
     }
     // First search the list of settings.  If found, set a new
     // value if one is given, otherwise display the current value
-    for (Command *cp = CommandsList; cp; cp = cp->next()) {
-        if (cp->getGroup() < COMMANDS &&
-            ((strcasecmp(cp->getName(), key) == 0) ||
-             (cp->getGrblName() && (strcasecmp(cp->getGrblName(), key) == 0)))
-        ) {
-            Setting* s = (Setting*)cp;
+    for (Setting *s = Setting::List; s; s = s->next()) {
+        if ((strcasecmp(s->getName(), key) == 0)
+        || (s->getGrblName()
+            && strcasecmp(s->getGrblName(), key) == 0
+           )
+         ) {
             if (*value) {
                 return s->setStringValue(value);
             } else {
@@ -321,12 +318,12 @@ err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out
     // If we did not find a setting, look for a command.  Commands
     // handle values internally; you cannot determine whether to set
     // or display solely based on the presence of a value.
-    for (Command *cp = CommandsList; cp; cp = cp->next()) {
-        if ((cp->getGroup() > COMMANDS)
-        && (  (strcasecmp(cp->getName(), key) == 0)
-           || (cp->getGrblName() && strcasecmp(cp->getGrblName(), key) == 0)
-           )
-        ) {
+    for (Command *cp = Command::List; cp; cp = cp->next()) {
+        if (  (strcasecmp(cp->getName(), key) == 0)
+           || (cp->getGrblName()
+               && strcasecmp(cp->getGrblName(), key) == 0
+              )
+           ) {
             return cp->action(value, out);
         }
     }

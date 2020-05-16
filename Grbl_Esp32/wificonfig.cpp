@@ -405,8 +405,8 @@ void WiFiConfig::end() {
  */
 void WiFiConfig::reset_settings() {
     bool error = false;
-    for (Command *s = CommandsList; s; s = s->next()) {
-        if (s->getWebuiName()) {
+    for (Setting *s = Setting::List; s; s = s->next()) {
+        if (s->getDescription()) {
             s->setDefault();
         }
    }

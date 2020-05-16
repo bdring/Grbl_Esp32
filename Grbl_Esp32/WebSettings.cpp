@@ -454,7 +454,7 @@ static err_t getSettings(char *parameter) { // ESP400
     JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
     j->begin();
     j->begin_array("EEPROM");
-    for (Command *js = CommandsList; js; js = js->next()) {
+    for (Setting *js = Setting::List; js; js = js->next()) {
         if (js->getGroup() == WEBUI) {
             js->addWebui(j);
         }
@@ -783,7 +783,7 @@ static err_t getFwInfo(char *parameter) { // ESP800
         webPrintln(" # axis:", String(N_AXIS));
     return STATUS_OK;
 }
-Command* webSettings[20];
+Command* webCommands[20];
 void make_web_settings()
 {
 
@@ -795,7 +795,7 @@ void make_web_settings()
     // RU - need user or admin password to read
     // WU - need user or admin password to set
     // WA - need admin password to set
-    Command **sp = webSettings;
+    Command **sp = webCommands;
     *sp++ = new WebCommand("Get FW info",        WEBCMDRU, "ESP800", "FwInfo",          getFwInfo);
     *sp++ = new WebCommand("SPIFFS size",        WEBCMDRU, "ESP720", "SPIFFSSize",      SPIFFSSize);
     *sp++ = new WebCommand("Run local file",     WEBCMDRU, "ESP700", "runFile",         runFile);
