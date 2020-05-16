@@ -246,7 +246,6 @@ void make_settings()
     // GRBL Non-numbered settings
     startup_line_0 = new StringSetting(GRBL, NULL, "N0", "");
     startup_line_1 = new StringSetting(GRBL, NULL, "N1", "");
-    build_info = new StringSetting(GRBL, NULL, "I", "");
 
     // GRBL Numbered Settings
     laser_mode = new FlagSetting(GRBL, "32", "LaserMode", DEFAULT_LASER_MODE);
@@ -284,7 +283,7 @@ void make_settings()
     spindle_pwm_freq = new FloatSetting(EXTENDED, NULL, "SpindlePWMFreq", DEFAULT_SPINDLE_FREQ, 0, 100000);
 }
 
-err_t report_nvs_stats(uint8_t client) {
+err_t report_nvs_stats(const char* value, uint8_t client) {
     nvs_stats_t stats;
     if( err_t err = nvs_get_stats(NULL, &stats)) {
         return err;

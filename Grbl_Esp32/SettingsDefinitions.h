@@ -2,7 +2,7 @@
 #include "SettingsClass.h"
 
 static const char *NVS_PARTITION_NAME = "Grbl_ESP32";
-extern err_t report_nvs_stats(uint8_t client);
+extern err_t report_nvs_stats(const char* value, uint8_t client);
 
 extern AxisSettings* x_axis_settings;
 extern AxisSettings* y_axis_settings;

@@ -431,3 +431,7 @@ void IPaddrSetting::addWebui(JSONencoder *j) {
  AxisSettings::AxisSettings(const char *axisName) :
     name(axisName)
 {}
+
+err_t GrblCommand::action(char* value, ESPResponseStream* out) {
+  return _action((const char*)value, out->client());
+};

@@ -49,14 +49,15 @@ void load_settings()
 }
 
 extern void make_settings();
+extern void make_grbl_commands();
 extern void make_web_settings();
 void settings_init()
 {
     make_settings();
     make_web_settings();
+    make_grbl_commands();
     load_settings();
 }
-
 
 // FIXME - jog may need to be special-cased in the parser, since
 // it is not really a setting and the entire line needs to be
@@ -76,7 +77,7 @@ uint8_t jog_set(uint8_t *value, uint8_t client) {
     return gc_execute_line(line, client); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
 }
 
-err_t report_gcode(uint8_t client) {
+err_t report_gcode(const char *value, uint8_t client) {
     report_gcode_modes(client);
     return STATUS_OK;
 }
@@ -103,29 +104,29 @@ void show_grbl_settings(uint8_t client, group_t group, bool wantAxis) {
         }
     }
 }
-err_t report_normal_settings(uint8_t client) {
+err_t report_normal_settings(const char* value, uint8_t client) {
     show_grbl_settings(client, GRBL, false);     // GRBL non-axis settings
     show_grbl_settings(client, GRBL, true);      // GRBL axis settings
     return STATUS_OK;
 }
-err_t report_extended_settings(uint8_t client) {
+err_t report_extended_settings(const char* value, uint8_t client) {
     show_grbl_settings(client, GRBL, false);     // GRBL non-axis settings
     show_grbl_settings(client, EXTENDED, false); // Extended non-axis settings
     show_grbl_settings(client, GRBL, true);      // GRBL axis settings
     show_grbl_settings(client, EXTENDED, true);  // Extended axis settings
     return STATUS_OK;
 }
-err_t list_settings(uint8_t client)
+err_t list_settings(const char* value, uint8_t client)
 {
     for (Command *cp = CommandsList; cp; cp = cp->next()) {
-        if (cp->getGroup() <= WEBUI) {
+        if (cp->getGroup() < COMMANDS) {
             Setting* s = (Setting*)cp;
             grbl_sendf(client, "%s=%s\r\n", s->getName(), s->getStringValue());
         }
     }
     return STATUS_OK;
 }
-err_t toggle_check_mode(uint8_t client) {
+err_t toggle_check_mode(const char* value, uint8_t client) {
     // Perform reset when toggling off. Check g-code mode should only work if Grbl
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
     // simple and consistent.
@@ -139,7 +140,7 @@ err_t toggle_check_mode(uint8_t client) {
     }
     return STATUS_OK;
 }
-err_t disable_alarm_lock(uint8_t client) {
+err_t disable_alarm_lock(const char* value, uint8_t client) {
     if (sys.state == STATE_ALARM) {
         // Block if safety door is ajar.
         if (system_check_safety_door_ajar())
@@ -150,7 +151,7 @@ err_t disable_alarm_lock(uint8_t client) {
     } // Otherwise, no effect.
     return STATUS_OK;
 }
-err_t report_ngc(uint8_t client) {
+err_t report_ngc(const char* value, uint8_t client) {
     report_ngc_parameters(client);
     return STATUS_OK;
 }
@@ -171,71 +172,42 @@ err_t home(uint8_t client, int cycle) {
     }
     return STATUS_OK;
 }
-err_t home_all(uint8_t client) {
+err_t home_all(const char* value, uint8_t client) {
     return home(client, HOMING_CYCLE_ALL);
 }
-err_t home_x(uint8_t client) {
+err_t home_x(const char* value, uint8_t client) {
     return home(client, HOMING_CYCLE_X);
 }
-err_t home_y(uint8_t client) {
+err_t home_y(const char* value, uint8_t client) {
     return home(client, HOMING_CYCLE_Y);
 }
-err_t home_z(uint8_t client) {
+err_t home_z(const char* value, uint8_t client) {
     return home(client, HOMING_CYCLE_Z);
 }
-err_t home_a(uint8_t client) {
+err_t home_a(const char* value, uint8_t client) {
     return home(client, HOMING_CYCLE_A);
 }
-err_t home_b(uint8_t client) {
+err_t home_b(const char* value, uint8_t client) {
     return home(client, HOMING_CYCLE_B);
 }
-err_t home_c(uint8_t client) {
+err_t home_c(const char* value, uint8_t client) {
     return home(client, HOMING_CYCLE_C);
 }
-err_t sleep_grbl(uint8_t client) {
+err_t sleep_grbl(const char* value, uint8_t client) {
     system_set_exec_state_flag(EXEC_SLEEP);
     return STATUS_OK;
 }
-err_t get_report_build_info(uint8_t client) {
+err_t get_report_build_info(const char* value, uint8_t client) {
     char line[128];
     settings_read_build_info(line);
     report_build_info(line, client);
     return STATUS_OK;
 }
-err_t report_startup_lines(uint8_t client) {
+err_t report_startup_lines(const char* value, uint8_t client) {
     report_startup_line(0, startup_line_0->get(), client);
     report_startup_line(1, startup_line_1->get(), client);
     return STATUS_OK;
 }
-
-// The following table is used if the line is of the form "$key\n"
-// i.e. dollar commands without "="
-// The key value is matched against the string and the corresponding
-// function is called with no arguments.
-// If there is no key match an error is reported
-typedef err_t (*Command_t)(uint8_t);
-std::map<const char*, Command_t, cmp_str> dollarCommands = {
-    { "$", report_normal_settings },
-    { "+", report_extended_settings },
-    { "S", list_settings },
-    { "G", report_gcode },
-    { "C", toggle_check_mode },
-    { "N", report_nvs_stats },
-    { "X", disable_alarm_lock },
-    { "#", report_ngc },
-    { "H", home_all },
-    { "HX", home_x },
-    { "HY", home_y },
-    { "HZ", home_z },
-    { "HA", home_a },
-    { "HB", home_b },
-    { "HC", home_c },
-    { "SLP", sleep_grbl },
-    { "I", get_report_build_info },
-    { "N", report_startup_lines },
-};
-// FIXME See Store startup line [IDLE/ALARM]
-
 std::map<const char*, uint8_t, cmp_str> restoreCommands = {
     { "$", SETTINGS_RESTORE_DEFAULTS },
     { "settings", SETTINGS_RESTORE_DEFAULTS },
@@ -246,6 +218,43 @@ std::map<const char*, uint8_t, cmp_str> restoreCommands = {
     { "@", SETTINGS_RESTORE_WIFI_SETTINGS },
     { "wifi", SETTINGS_RESTORE_WIFI_SETTINGS },
 };
+err_t restore_settings(const char* value, uint8_t client) {
+    auto it = restoreCommands.find(value);
+    if (it == restoreCommands.end()) {
+        return STATUS_INVALID_STATEMENT;
+    }
+    settings_restore(it->second);
+    return STATUS_OK;
+}
+
+// The following table is used if the line is of the form "$key\n"
+// i.e. dollar commands without "="
+// The key value is matched against the string and the corresponding
+// function is called with no arguments.
+// If there is no key match an error is reported
+void make_grbl_commands() {
+    new GrblCommand( "$",   "showGrblSettings", report_normal_settings );
+    new GrblCommand( "+",   "showExtendedSettings", report_extended_settings );
+    new GrblCommand( "S",   "showSettings",  list_settings );
+    new GrblCommand( "G",   "showGCodeModes", report_gcode );
+    new GrblCommand( "C",   "toggleCheckMode", toggle_check_mode );
+    new GrblCommand( "V",   "showNvsStats",    report_nvs_stats );
+    new GrblCommand( "X",   "disableAlarmLock", disable_alarm_lock );
+    new GrblCommand( "#",   "reportNgc", report_ngc );
+    new GrblCommand( "H",   "homeAll", home_all );
+    new GrblCommand( "HX",  "homeX", home_x );
+    new GrblCommand( "HY",  "homeY", home_y );
+    new GrblCommand( "HZ",  "homeZ", home_z );
+    new GrblCommand( "HA",  "homeA", home_a );
+    new GrblCommand( "HB",  "homeB", home_b );
+    new GrblCommand( "HC",  "homeC", home_c );
+    new GrblCommand( "SLP", "sleep", sleep_grbl );
+    new GrblCommand( "I",   "showBuild", get_report_build_info );
+    new GrblCommand( "N",   "showStartupLines", report_startup_lines );
+    new GrblCommand( "RST", "restoreSettings", restore_settings );
+};
+// FIXME See Store startup line [IDLE/ALARM]
+
 // normalize_key puts a key string into canonical form -
 // without whitespace.
 // start points to a null-terminated string.
@@ -295,7 +304,7 @@ err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out
     // First search the list of settings.  If found, set a new
     // value if one is given, otherwise display the current value
     for (Command *cp = CommandsList; cp; cp = cp->next()) {
-        if (cp->getGroup() <= WEBUI &&
+        if (cp->getGroup() < COMMANDS &&
             ((strcasecmp(cp->getName(), key) == 0) ||
              (cp->getGrblName() && (strcasecmp(cp->getGrblName(), key) == 0)))
         ) {
@@ -308,66 +317,19 @@ err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out
             }
         }
     }
-    // If a setting was not found, check the map of special $ commands
-    if (*value) {
-        if (strcasecmp(key, "RST") == 0) {
-            auto it = restoreCommands.find(value);
-            if (it == restoreCommands.end()) {
-                return STATUS_INVALID_STATEMENT;
-            }
-            settings_restore(it->second);
-            return STATUS_OK;
-        }
-    } else {
-        std::map<const char*, Command_t, cmp_str>::iterator it = dollarCommands.find(key);
-        if (it != dollarCommands.end()) {
-            return it->second(out->client());
-        }
-    }
 
-    // If we have not already found the command or setting, look for
-    // a WebUI command.  They handle values internally; you cannot
-    // determine whether to set or display solely based on the presence
-    // of a value.
+    // If we did not find a setting, look for a command.  Commands
+    // handle values internally; you cannot determine whether to set
+    // or display solely based on the presence of a value.
     for (Command *cp = CommandsList; cp; cp = cp->next()) {
-        if ((cp->getGroup() > WEBUI) &&
-                ((strcasecmp(cp->getName(), key) == 0) ||
-                 (cp->getGrblName() && strcasecmp(cp->getGrblName(), key) == 0)
-                )
+        if ((cp->getGroup() > COMMANDS)
+        && (  (strcasecmp(cp->getName(), key) == 0)
+           || (cp->getGrblName() && strcasecmp(cp->getGrblName(), key) == 0)
+           )
         ) {
             return cp->action(value, out);
         }
     }
-    return STATUS_INVALID_STATEMENT;
-}
-
-// This is for bare commands like "$RST" - no equals sign.
-// Lookup key in the dollarCommands map.  If found, execute
-// the corresponding command.
-// As an enhancement to Classic GRBL, if the key is not found
-// in the commands map, look it up in the lists of settings
-// and display the current value.
-err_t do_command(const char *key, ESPResponseStream* out) {
-
-    std::map<const char*, Command_t, cmp_str>::iterator it = dollarCommands.find(key);
-    if (it != dollarCommands.end()) {
-        return it->second(out->client());
-    }
-
-    // Enhancement - not in Classic GRBL:
-    // If it is not a command, look up the key
-    // as a setting and display the value.
-    for (Command *cp = CommandsList; cp; cp = cp->next()) {
-        if ((strcasecmp(cp->getName(), key) == 0)
-        || (cp->getGrblName() && (strcasecmp(cp->getGrblName(), key) == 0))) {
-            if (cp->getGroup() <= WEBUI) {
-                Setting* s = (Setting*)cp;
-                grbl_sendf(out->client(), "$%s=%s\n", s->getName(), s->getStringValue());
-            }
-            return STATUS_OK;
-        }
-    }
-
     return STATUS_INVALID_STATEMENT;
 }
 

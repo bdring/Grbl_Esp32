@@ -31,13 +31,13 @@ enum {
 enum {
     GRBL = 1,
     EXTENDED,
-    WEB_FIRST, // delimiter, not used as value
     WEBUI,
+    COMMANDS,
+    GRBLCMD,
     WEBNOAUTH,
     WEBCMDRU,
     WEBCMDWU,
     WEBCMDWA,
-    WEB_LAST, // delimiter, not used as value
 };
 typedef uint16_t group_t;
 typedef uint8_t axis_t;
@@ -266,6 +266,17 @@ class WebCommand : public Command {
     public:
     WebCommand(const char* webName, group_t group, const char * grblName, const char* name, err_t (*action)(char *)) :
         Command(webName, group, grblName, name),
+        _action(action)
+    {}
+    err_t action(char* value, ESPResponseStream* response);
+};
+
+class GrblCommand : public Command {
+    private:
+        err_t (*_action)(const char *, uint8_t);
+    public:
+GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, uint8_t)) :
+        Command(NULL, GRBLCMD, grblName, name),
         _action(action)
     {}
     err_t action(char* value, ESPResponseStream* response);
