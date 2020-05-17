@@ -213,6 +213,7 @@
 #define SPINDLE_TYPE                SPINDLE_TYPE_NONE
 */
 
+/*
 // ======================= SPI 4 axis xxyz ===========================
 #define MACHINE_NAME "MotorClass Test 4x SPI XXYZ A Servo"
 #define N_AXIS 4
@@ -254,3 +255,35 @@
 #define A_SERVO_RANGE_MAX       5.0
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_NONE
+*/
+
+
+
+#define MACHINE_NAME    "Solenoid test using TMC2130 pen"
+
+#define X_STEP_PIN              GPIO_NUM_12
+#define X_DIRECTION_PIN         GPIO_NUM_26
+#define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
+#define X_CS_PIN                GPIO_NUM_17  //chip select
+#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+
+#define Y_STEP_PIN              GPIO_NUM_14
+#define Y_DIRECTION_PIN         GPIO_NUM_25
+#define Y_TRINAMIC_DRIVER       2130        // Which Driver Type?
+#define Y_CS_PIN                GPIO_NUM_16  //chip select
+#define Y_RSENSE                TMC2130_RSENSE_DEFAULT
+
+// OK to comment out to use pin for other features
+#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+
+#define Z_SOLENOID_PIN          GPIO_NUM_27 // comment this out if PWM spindle/laser control.
+#define Z_SOLENOID_MAX          5.0
+#define SOLENOID_ALLOW_DISABLE  true    // solenoid will turn off when motors diable 
+
+#define X_LIMIT_PIN             GPIO_NUM_32
+#define Y_LIMIT_PIN             GPIO_NUM_4
+#define LIMIT_MASK              B11
+
+// defaults
+#define DEFAULT_Z_STEPS_PER_MM 100.0    // This is used as the servo calibration
+#define DEFAULT_Z_MAX_TRAVEL 300.0      // This is used as the servo calibration

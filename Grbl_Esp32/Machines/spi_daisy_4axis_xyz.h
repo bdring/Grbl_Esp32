@@ -30,7 +30,6 @@
 #endif
 #define N_AXIS 3
 
-#define USE_TRINAMIC
 #define TRINAMIC_DAISY_CHAIN
 
 // Use SPI enable instead of the enable pin

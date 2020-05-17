@@ -55,6 +55,7 @@
 #include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
 #include "TrinamicDriverClass.h"
 #include "RcServoClass.h"
+#include "SolenoidClass.h"
 
 extern uint8_t rmt_chan_num[MAX_AXES][2];
 extern rmt_item32_t rmtItem[2];
@@ -66,7 +67,8 @@ typedef enum {
     STANDARD_MOTOR,
     TRINAMIC_SPI_MOTOR,
     UNIPOLAR_MOTOR,
-    RC_SERVO_MOTOR
+    RC_SERVO_MOTOR,
+    SOLENOID
 } motor_class_id_t;
 
 // ========== global functions ===================
@@ -108,7 +110,7 @@ class Motor {
   protected:
     uint8_t axis_index;  // X_AXIS, etc
     uint8_t dual_axis_index; // 0 = primary 1=ganged
-    
+
     bool _showError;
     bool _use_mpos = true;
     bool _is_homing;
@@ -187,27 +189,41 @@ class RcServo : public Motor {
   public:
     RcServo();
     RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max);
-    void config_message();
-    void init();
+    virtual void config_message();
+    virtual void init();
     void _write_pwm(uint32_t duty);
-    void set_disable(bool disable);
-    void update();
+    virtual void set_disable(bool disable);
+    virtual void update();
     void read_settings();
 
-  private:
+  protected:
     void set_location();
     void _get_calibration();
 
     uint8_t _pwm_pin;
     uint8_t _channel_num;
     uint32_t _current_pwm_duty;
+    bool _disabled;
 
     float _position_min;
     float _position_max; // position in millimeters
     float _homing_position;
 
-    float servo_pulse_min;
-    float servo_pulse_max;
+    float _pwm_pulse_min;
+    float _pwm_pulse_max;
+};
+
+class Solenoid : public RcServo {
+  public:
+    Solenoid();
+    Solenoid(uint8_t axis_index, gpio_num_t pwm_pin, float transition_poiont);
+    void config_message();
+    void set_location();
+    void update();
+    void init();
+    void set_disable(bool disable);
+    
+    float _transition_poiont;
 };
 
 #endif

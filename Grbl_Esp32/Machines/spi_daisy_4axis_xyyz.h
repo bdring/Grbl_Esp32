@@ -30,7 +30,6 @@
 #endif
 #define N_AXIS 3 // can be 3 or 4. (if 3 install bypass jumper next to the A driver)
 
-#define USE_TRINAMIC
 #define TRINAMIC_DAISY_CHAIN
 
 // Use SPI enable instead of the enable pin

@@ -35,8 +35,6 @@
     #define X_LIMIT_PIN     GPIO_NUM_32
 #endif
 
-#define USE_TRINAMIC // Using at least 1 trinamic driver
-
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_26
 #define X_TRINAMIC_DRIVER       2130        // Which Driver Type?

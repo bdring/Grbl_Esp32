@@ -43,6 +43,7 @@
 #include "StandardStepperClass.cpp"
 #include "UnipolarMotorClass.cpp"
 #include "RcServoClass.cpp"
+#include "SolenoidClass.cpp"
 
 Motor* myMotor[6][2]; // number of axes (normal and ganged)
 static TaskHandle_t readSgTaskHandle = 0;   // for realtime stallguard data diaplay
@@ -121,6 +122,8 @@ void init_motors() {
     myMotor[Z_AXIS][0] = new UnipolarMotor(Z_AXIS, Z_PIN_PHASE_0, Z_PIN_PHASE_1, Z_PIN_PHASE_2, Z_PIN_PHASE_3);
 #elif defined(Z_STEP_PIN)
     myMotor[Z_AXIS][0] = new StandardStepper(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN);
+#elif defined(Z_SOLENOID_PIN)
+    myMotor[Z_AXIS][0] = new Solenoid(Z_AXIS, Z_SOLENOID_PIN, Z_SOLENOID_MAX);
 #else
     myMotor[Z_AXIS][0] = new Nullmotor();
 #endif
@@ -244,8 +247,11 @@ void init_motors() {
     // certain motors need features to be turned on. Check them here
     for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
         for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            if (myMotor[axis][gang_index]->type_id == RC_SERVO_MOTOR) need_servo_task = true;
-            if (myMotor[axis][gang_index]->type_id == UNIPOLAR_MOTOR) motor_class_steps = true;
+            if (myMotor[axis][gang_index]->type_id == RC_SERVO_MOTOR || myMotor[axis][gang_index]->type_id == SOLENOID) 
+                need_servo_task = true;
+                
+            if (myMotor[axis][gang_index]->type_id == UNIPOLAR_MOTOR) 
+                motor_class_steps = true;
         }
     }
 

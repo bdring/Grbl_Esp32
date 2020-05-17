@@ -56,11 +56,8 @@ RcServo :: RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max) {
     this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1; // 0 = primary 1 = ganged
     this->_pwm_pin = pwm_pin;
     _position_min = min;
-    _position_max = max;
-    set_axis_name();
-    init();
-    config_message();
-    is_active = true;  // as opposed to NullMotors, this is a real motor
+    _position_max = max;    
+    init();    
 }
 
 void RcServo :: init() {
@@ -69,6 +66,9 @@ void RcServo :: init() {
     ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
     ledcAttachPin(_pwm_pin, _channel_num);
     _current_pwm_duty = 0;
+    is_active = true;  // as opposed to NullMotors, this is a real motor
+    set_axis_name();
+    config_message();
 }
 
 void RcServo :: config_message() {
@@ -94,11 +94,15 @@ void RcServo::_write_pwm(uint32_t duty) {
 
 // sets the PWM to zero. This allows most servos to be manually moved
 void RcServo::set_disable(bool disable) {
-    if (disable)
+    _disabled = disable;
+    if (_disabled)
         _write_pwm(0);
 }
 
 void RcServo::update() {
+    if (_disabled)
+        return;
+
     set_location();
 }
 
@@ -128,7 +132,7 @@ void RcServo::set_location() {
     }
     
     // determine the pulse length
-    servo_pulse_len = (uint32_t)mapConstrain(servo_pos, _position_min, _position_max, servo_pulse_min, servo_pulse_max);
+    servo_pulse_len = (uint32_t)mapConstrain(servo_pos, _position_min, _position_max, _pwm_pulse_min, _pwm_pulse_max);
     _write_pwm(servo_pulse_len);
 
 }
@@ -163,14 +167,14 @@ void RcServo::_get_calibration() {
         write_global_settings(); // they were changed, so write them
     }
 
-    servo_pulse_min = SERVO_MIN_PULSE;
-    servo_pulse_max = SERVO_MAX_PULSE;
+    _pwm_pulse_min = SERVO_MIN_PULSE;
+    _pwm_pulse_max = SERVO_MAX_PULSE;
 
     // apply inverts and store them in local variable
     if (bit_istrue(settings.dir_invert_mask, bit(axis_index))) {	// normal direction
         _cal_min = 2.0 - (settings.steps_per_mm[axis_index] / 100.0);
         _cal_max = 2.0 - (settings.max_travel[axis_index] / -100.0);
-        swap(servo_pulse_min, servo_pulse_max);
+        swap(_pwm_pulse_min, _pwm_pulse_max);
     } else { // inverted direction
         _cal_min = (settings.steps_per_mm[axis_index] / 100.0);
         //_cal_max = 2.0 - (settings.max_travel[axis_index] / -100.0);
@@ -179,7 +183,7 @@ void RcServo::_get_calibration() {
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration min%1.2f max %1.2f", _cal_min, _cal_max );
 
-    servo_pulse_min *= _cal_min;
-    servo_pulse_max *= _cal_max;
+    _pwm_pulse_min *= _cal_min;
+    _pwm_pulse_max *= _cal_max;
 }
 
