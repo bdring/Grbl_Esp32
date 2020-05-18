@@ -98,7 +98,7 @@ void show_grbl_settings(uint8_t client, group_t group, bool wantAxis) {
             // The following test could be expressed more succinctly with XOR,
             // but is arguably clearer when written out
             if ((wantAxis && isAxis) || (!wantAxis && !isAxis)) {
-                grbl_sendf(client, "%s=%s\r\n", s->getGrblName(), map_grbl_value(s->getStringValue()));
+                grbl_sendf(client, "$%s=%s\r\n", s->getGrblName(), map_grbl_value(s->getStringValue()));
             }
         }
     }

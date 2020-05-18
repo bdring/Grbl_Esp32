@@ -498,31 +498,14 @@ void Web_Server::_handle_web_command (bool silent)
     cmd.trim();
     int ESPpos = cmd.indexOf ("[ESP");
     if (ESPpos > -1) {
-        //is there the second part?
-        int ESPpos2 = cmd.indexOf ("]", ESPpos);
-        if (ESPpos2 > -1) {
-            //Split in command and parameters
-            int cmdInt = cmd.substring (ESPpos + 4, ESPpos2).toInt();
-            //only [ESP800] is allowed login free if authentication is enabled
-            if ( (auth_level == LEVEL_GUEST)  && (cmdInt != 800) ) {
-                _webserver->send (401, "text/plain", "Authentication failed!\n");
-                return;
-            }
-            String cmdArgs = cmd.substring(ESPpos2 + 1);
-            //if command is a valid number then execute command
-            if (cmdInt >= 0) {
-                //commmand is web only
-                if (silent) {
-                    _webserver->send (200, "text/plain",
-                                      COMMANDS::execute_internal_command (cmdInt, cmdArgs, auth_level, NULL)
-                                      ? "ok" : "error");
-                } else {
-                    auto espresponse = new ESPResponseStream (_webserver);
-                    COMMANDS::execute_internal_command (cmdInt, cmdArgs, auth_level, espresponse);
-                    espresponse->flush();
-                }
-            }
-            //if not is not a valid [ESPXXX] command
+        char line[256];
+        strncpy(line, cmd.c_str(), 255);
+        if (silent) {
+            _webserver->send (200, "text/plain", system_execute_line(line, NULL, auth_level) ? "error" : "ok");
+        } else {
+            auto espresponse = new ESPResponseStream (_webserver);
+            (void)system_execute_line(line, espresponse, LEVEL_GUEST);
+            espresponse->flush();
         }
     } else { //execute GCODE
         if (auth_level == LEVEL_GUEST) {

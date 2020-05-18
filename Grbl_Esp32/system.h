@@ -22,6 +22,7 @@
 #define system_h
 #include "grbl.h"
 #include "tdef.h"
+#include "commands.h"
 
 // Define global system variables
 typedef struct {
@@ -193,6 +194,7 @@ void system_clear_exec_accessory_overrides();
 
 // Execute the startup script lines stored in EEPROM upon initialization
 void system_execute_startup(char* line);
+uint8_t system_execute_line(char* line, ESPResponseStream*, level_authenticate_type);
 uint8_t system_execute_line(char* line, uint8_t client);
 err_t do_command_or_setting(const char *key, char *value, ESPResponseStream*);
 void system_flag_wco_change();
