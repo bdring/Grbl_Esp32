@@ -164,7 +164,7 @@
 
 #ifdef C_TRINAMIC
     #ifdef C_DRIVER_TMC2130
-        TMC2130Stepper TRINAMIC_c = TMC2130Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
+        TMC2130Stepper TRINAMIC_C = TMC2130Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef C_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_C = TMC2209Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
@@ -192,18 +192,18 @@ void Trinamic_Init() {
     machine_trinamic_setup();
     return;
 #endif
-#ifdef X_TRINAMIC    
+#ifdef X_TRINAMIC
     TRINAMIC_X.begin(); // Initiate pins and registries
-    trinamic_test_response(TRINAMIC_X.test_connection(), "X");    
+    trinamic_test_response(TRINAMIC_X.test_connection(), "X");
     TRINAMIC_X.toff(TRINAMIC_DEFAULT_TOFF);
     TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);
     TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
     TRINAMIC_X.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_X.pwm_autoscale(1);
 #endif
-#ifdef X2_TRINAMIC    
+#ifdef X2_TRINAMIC
     TRINAMIC_X2.begin(); // Initiate pins and registries
-    trinamic_test_response(TRINAMIC_X2.test_connection(), "X2");    
+    trinamic_test_response(TRINAMIC_X2.test_connection(), "X2");
     TRINAMIC_X2.toff(TRINAMIC_DEFAULT_TOFF);
     TRINAMIC_X2.microsteps(settings.microsteps[X_AXIS]);
     TRINAMIC_X2.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
@@ -348,11 +348,11 @@ void trinamic_change_settings() {
 
 #ifdef B_TRINAMIC
     TRINAMIC_B.microsteps(settings.microsteps[B_AXIS]);
-    TTRINAMIC_B.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
+    TRINAMIC_B.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
 #endif
 #ifdef B2_TRINAMIC
     TRINAMIC_B2.microsteps(settings.microsteps[B_AXIS]);
-    TTRINAMIC_B2.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
+    TRINAMIC_B2.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
 #endif
 
 #ifdef C_TRINAMIC
@@ -440,12 +440,12 @@ void trinamic_stepper_enable(bool enable) {
 // returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
 // need to be inserted into the order of axes.
 uint8_t get_next_trinamic_driver_index() {
+#ifdef TRINAMIC_DAISY_CHAIN
     static uint8_t index = 1; // they start at 1
-    #ifndef TRINAMIC_DAISY_CHAIN
-        return -1;
-    #else
-        return index++;
-    #endif
+    return index++;
+#else
+    return -1;
+#endif
 }
 
 #endif
