@@ -82,14 +82,14 @@
 // Step and direction pins; these must be output-capable pins,
 // specifically ESP32 GPIO numbers 0..31
 // With the I2S I/O expander enabled, you can specify 128..159 as output pins.
-#define X_STEP_PIN              137 /* 128 + 8 x 1 + 1 */
-#define X_DIRECTION_PIN         135 /* 128 + 8 x 0 + 7 */
-#define Y_STEP_PIN              133 /* 128 + 8 x 0 + 5 */
-#define Y_DIRECTION_PIN         132 /* 128 + 8 x 0 + 4 */
-//#define Z_STEP_PIN              130 /* 128 + 8 x 0 + 2 */
-//#define Z_DIRECTION_PIN         129 /* 128 + 8 x 0 + 1 */
-//#define A_STEP_PIN              140 /* 128 + 8 x 1 + 4 */
-//#define A_DIRECTION_PIN         141 /* 128 x 8 x 1 + 5 */
+#define X_STEP_PIN              GPIO_NUM_I2S_IOEXP_9 /* 128 + 8 x 1 + 1 */
+#define X_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_7 /* 128 + 8 x 0 + 7 */
+#define Y_STEP_PIN              GPIO_NUM_I2S_IOEXP_5 /* 128 + 8 x 0 + 5 */
+#define Y_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_4 /* 128 + 8 x 0 + 4 */
+//#define Z_STEP_PIN              GPIO_NUM_I2S_IOEXP_2 /* 128 + 8 x 0 + 2 */
+//#define Z_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_1 /* 128 + 8 x 0 + 1 */
+//#define A_STEP_PIN              GPIO_NUM_I2S_IOEXP_12 /* 128 + 8 x 1 + 4 */
+//#define A_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_13 /* 128 x 8 x 1 + 5 */
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
@@ -182,7 +182,7 @@
 
 //#define DEFAULT_INVERT_LIMIT_PINS 1
 //#define DEFAULT_REPORT_INCHES 1
-#define DEFAULT_STEP_PULSE_MICROSECONDS 4
+#define DEFAULT_STEP_PULSE_MICROSECONDS I2S_IOEXP_USEC_PER_PULSE
 
 #define DEFAULT_HOMING_ENABLE 1
 #define DEFAULT_HOMING_DIR_MASK 0 // move positive dir Z, negative X,Y
@@ -235,9 +235,9 @@
 // I2S (steppers & other output-only pins)
 //
 #define USE_I2S_IOEXPANDER
-#define I2S_IOEXPANDER_BCK      22
-#define I2S_IOEXPANDER_WS       17
-#define I2S_IOEXPANDER_DATA     21
+#define I2S_IOEXPANDER_BCK      GPIO_NUM_22
+#define I2S_IOEXPANDER_WS       GPIO_NUM_17
+#define I2S_IOEXPANDER_DATA     GPIO_NUM_21
 #define I2S_STEPPER_STREAM
 
 // === Special Features
