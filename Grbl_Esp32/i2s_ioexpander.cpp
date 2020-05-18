@@ -101,9 +101,9 @@ static volatile uint32_t i2s_ioexpander_pulse_period;
 static uint32_t i2s_ioexpander_remain_time_until_next_pulse; // Time remaining until the next pulse (μsec)
 static volatile i2s_ioexpander_pulse_phase_func_t i2s_ioexpander_pulse_phase_func;
 
-static uint8_t i2s_ioexpander_ws_pin = -1;
-static uint8_t i2s_ioexpander_bck_pin = -1;
-static uint8_t i2s_ioexpander_data_pin = -1;
+static uint8_t i2s_ioexpander_ws_pin = 255;
+static uint8_t i2s_ioexpander_bck_pin = 255;
+static uint8_t i2s_ioexpander_data_pin = 255;
 
 enum i2s_ioexpander_pulser_status_t {
   PASSTHROUGH = 0,
@@ -118,9 +118,9 @@ static portMUX_TYPE i2s_pulser_spinlock = portMUX_INITIALIZER_UNLOCKED;
 //
 // Internal functions
 //
-static inline void gpio_matrix_out_check(uint32_t gpio, uint32_t signal_idx, bool out_inv, bool oen_inv) {
-  //if pin = -1, do not need to configure
-  if (gpio != -1) {
+static inline void gpio_matrix_out_check(uint8_t gpio, uint32_t signal_idx, bool out_inv, bool oen_inv) {
+  //if pin == 255, do not need to configure
+  if (gpio != 255) {
     PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);
     gpio_set_direction((gpio_num_t)gpio, (gpio_mode_t)GPIO_MODE_DEF_OUTPUT);
     gpio_matrix_out(gpio, signal_idx, out_inv, oen_inv);
