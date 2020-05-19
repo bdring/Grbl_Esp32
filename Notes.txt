@@ -1,0 +1,17 @@
+done platformio.ini changes need to be reverted
+done settings.h - unnecessary struct definition?
+done wmb_defs.h can go away?
+done dead code in notifications
+check limit signs
+HOWTO_openocd can go away
+check with ENABLE_WIFI off
+
+C181096 2.4 3.0
+C351410 2.5 2.9
+HY2113-JB1B 2.8 2.8
+C359989 2.4 3.0
+C128764 2.5 2.9
+C86247 2.4 3.0
+C305480 2.5 2.9
+	
+C14213 2.4 3.0

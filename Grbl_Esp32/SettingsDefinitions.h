@@ -33,7 +33,7 @@ extern FlagSetting* soft_limits;
 extern FlagSetting* hard_limits;
 // XXX need to call limits_init;
 extern FlagSetting* homing_enable;
-// XXX also need to clear, but not set, BITFLAG_SOFT_LIMIT_ENABLE
+// XXX also need to clear, but not set, soft_limits
 extern FlagSetting* laser_mode;
 // XXX also need to call my_spindle->init;
 
@@ -82,7 +82,7 @@ extern EnumSetting* telnet_enable;
 extern IntSetting* telnet_port;
 #endif
 
-#if defined( ENABLE_WIFI) ||  defined( ENABLE_BLUETOOTH)
+#ifdef WIFI_OR_BLUETOOTH
 extern EnumSetting* wifi_radio_mode;
 #endif
 

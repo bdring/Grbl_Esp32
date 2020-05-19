@@ -1,1 +1,0 @@
-PS C:\Users\wmb\.platformio\packages\tool-openocd-esp32> .\bin\openocd.exe -f .\share\openocd\scripts\interface\ftdi\minimodule.cfg -f .\share\openocd\scripts\board\esp-wroom-32.cfg

@@ -24,7 +24,7 @@ FlagSetting* soft_limits;
 FlagSetting* hard_limits;
 // XXX need to call limits_init;
 FlagSetting* homing_enable;
-// XXX also need to clear, but not set, BITFLAG_SOFT_LIMIT_ENABLE
+// XXX also need to clear, but not set, soft_limits
 FlagSetting* laser_mode;
 // XXX also need to call my_spindle->init;
 
@@ -265,7 +265,7 @@ void make_settings()
     soft_limits = new FlagSetting(GRBL, "20", "SoftLimits", DEFAULT_SOFT_LIMIT_ENABLE, NULL);
 
     report_inches = new FlagSetting(GRBL, "13", "ReportInches", DEFAULT_REPORT_INCHES);
-    // XXX also need to clear, but not set, BITFLAG_SOFT_LIMIT_ENABLE
+    // XXX also need to clear, but not set, soft_limits
     arc_tolerance = new FloatSetting(GRBL, "12", "ArcTolerance", DEFAULT_ARC_TOLERANCE, 0, 1);
     junction_deviation = new FloatSetting(GRBL, "11", "JunctionDeviation", DEFAULT_JUNCTION_DEVIATION, 0, 10);
     status_mask = new IntSetting(GRBL, "10", "StatusMask", DEFAULT_STATUS_REPORT_MASK, 0, 2);

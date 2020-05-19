@@ -116,7 +116,11 @@ Some features should not be changed. See notes below.
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
 
-//#define ENABLE_WIFI //enable wifi
+#define ENABLE_WIFI //enable wifi
+
+#if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
+#define WIFI_OR_BLUETOOTH
+#endif
 
 #define ENABLE_HTTP //enable HTTP and all related services
 #define ENABLE_OTA  //enable OTA

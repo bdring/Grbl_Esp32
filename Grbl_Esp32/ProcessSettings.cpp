@@ -4,7 +4,7 @@
 #include "SettingsDefinitions.h"
 #include <map>
 void settings_restore(uint8_t restore_flag) {
-    #if defined(ENABLE_BLUETOOTH) || defined(ENABLE_WIFI)
+    #ifdef WIFI_OR_BLUETOOTH
         if (restore_flag & SETTINGS_RESTORE_WIFI_SETTINGS) {
             #ifdef ENABLE_WIFI
                     wifi_config.reset_settings();
@@ -152,7 +152,7 @@ err_t report_ngc(const char* value, uint8_t client) {
     return STATUS_OK;
 }
 err_t home(uint8_t client, int cycle) {
-    if (bit_isfalse(settings.flags, BITFLAG_HOMING_ENABLE))
+    if (homing_enable->get() == false)
         return (STATUS_SETTING_DISABLED);
     if (system_check_safety_door_ajar())
         return (STATUS_CHECK_DOOR); // Block if safety door is ajar.

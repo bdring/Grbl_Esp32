@@ -24,8 +24,6 @@
 
 #include "grbl.h"
 
-settings_t settings;
-
 // Read selected coordinate data from EEPROM. Updates pointed coord_data value.
 uint8_t settings_read_coord_data(uint8_t coord_select, float* coord_data) {
     uint32_t addr = coord_select * (sizeof(float) * MAX_N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;

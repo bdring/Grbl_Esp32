@@ -235,11 +235,13 @@ err_t StringSetting::setStringValue(const char* s) {
 }
 
 const char* StringSetting::getStringValue() {
+    #ifdef ENABLE_WIFI
     // If the string is a password do not display it 
     if (_checker && _checker == WiFiConfig::isPasswordValid) {
         return "******";
     }
-     return _currentValue.c_str();
+    #endif
+    return _currentValue.c_str();
 }
 
 void StringSetting::addWebui(JSONencoder *j) {

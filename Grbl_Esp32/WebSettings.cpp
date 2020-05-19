@@ -1,4 +1,8 @@
 #include "grbl.h"
+
+#ifndef WIFI_OR_BLUETOOTH
+void make_web_settings() {}
+#else
 #include "SettingsClass.h"
 #include "espresponse.h"
 #include "web_server.h"
@@ -39,7 +43,7 @@ enum_opt_t staModeOptions = {
 };
 #endif
 
-#if defined( ENABLE_WIFI) ||  defined( ENABLE_BLUETOOTH)
+#ifdef WIFI_OR_BLUETOOTH
 EnumSetting* wifi_radio_mode;
 enum_opt_t radioOptions = {
     { "None", ESP_RADIO_OFF, },
@@ -208,7 +212,7 @@ static err_t SPIFFSSize(char *parameter) { // ESP720
     return STATUS_OK;
 }
 
-char *trim(char *str)
+static char *trim(char *str)
 {
     char *end;
     // Trim leading space
@@ -838,7 +842,7 @@ void make_web_settings()
         bt_name           = new StringSetting("Bluetooth name",         WEBUI, "ESP140", "BTName",       DEFAULT_BT_NAME, 0, 0, BTConfig::isBTnameValid);
     #endif
 
-    #if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
+    #ifdef WIFI_OR_BLUETOOTH
         // user+ to get, admin to set
         wifi_radio_mode   = new EnumSetting("Radio mode",               WEBUI, "ESP110", "RadioMode",      DEFAULT_RADIO_MODE, &radioEnabledOptions);
     #endif
@@ -863,3 +867,4 @@ void make_web_settings()
         wifi_sta_ssid     = new StringSetting("Station SSID",           WEBUI, "ESP100", "StaSSID",      DEFAULT_STA_SSID, 0, 0, WiFiConfig::isSSIDValid);
     #endif
 }
+#endif
