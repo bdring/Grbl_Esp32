@@ -86,10 +86,10 @@
 #define X_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_7 /* 128 + 8 x 0 + 7 */
 #define Y_STEP_PIN              GPIO_NUM_I2S_IOEXP_5 /* 128 + 8 x 0 + 5 */
 #define Y_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_4 /* 128 + 8 x 0 + 4 */
-//#define Z_STEP_PIN              GPIO_NUM_I2S_IOEXP_2 /* 128 + 8 x 0 + 2 */
-//#define Z_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_1 /* 128 + 8 x 0 + 1 */
-//#define A_STEP_PIN              GPIO_NUM_I2S_IOEXP_12 /* 128 + 8 x 1 + 4 */
-//#define A_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_13 /* 128 x 8 x 1 + 5 */
+#define Z_STEP_PIN              GPIO_NUM_I2S_IOEXP_2 /* 128 + 8 x 0 + 2 */
+#define Z_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_1 /* 128 + 8 x 0 + 1 */
+#define A_STEP_PIN              GPIO_NUM_I2S_IOEXP_12 /* 128 + 8 x 1 + 4 */
+#define A_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_13 /* 128 x 8 x 1 + 5 */
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
@@ -139,14 +139,14 @@
 // === Servos
 // To use a servo motor on an axis, do not define step and direction
 // pins for that axis, but instead include a block like this:
-#define USE_SERVO_AXES
+//#define USE_SERVO_AXES
 
-#define SERVO_Z_PIN             GPIO_NUM_15
-#define SERVO_Z_RANGE_MIN       0.0
-#define SERVO_Z_RANGE_MAX       5.0
-#define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-#define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
-#define SERVO_Z_MPOS            false           // will not use mpos, uses work coordinates
+//#define SERVO_Z_PIN             GPIO_NUM_15  // It cannot be used when JTAG debugging
+//#define SERVO_Z_RANGE_MIN       0.0
+//#define SERVO_Z_RANGE_MAX       5.0
+//#define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
+//#define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
+//#define SERVO_Z_MPOS            false           // will not use mpos, uses work coordinates
 
 // === Homing cycles
 // The default homing order is Z first (HOMING_CYCLE_0),

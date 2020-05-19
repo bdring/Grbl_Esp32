@@ -71,7 +71,8 @@ void machine_init()
   I2S_IOEXP_OUT_WRITE(STEPPERS_DISABLE_PIN_Z, LOW); // enable
   I2S_IOEXP_OUT_WRITE(STEPPERS_DISABLE_PIN_A, LOW); // enable
 
-  I2S_IOEXP_OUT_WRITE(FAN1_PIN, LOW); // disable
+  // I2S_IOEXP_OUT_WRITE(FAN1_PIN, LOW); // comment out for JTAG debugging
+
   I2S_IOEXP_OUT_WRITE(FAN2_PIN, LOW); // disable
   I2S_IOEXP_OUT_WRITE(FAN3_PIN, LOW); // disable
 
