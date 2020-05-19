@@ -60,17 +60,8 @@ bool WiFiServices::begin() {
     bool no_error = true;
     //Sanity check
     if (WiFi.getMode() == WIFI_OFF) return false;
-    String h;
-#ifdef WMB
-    h = wifi_hostname.get();
-#else
-    Preferences prefs;
-    //Get hostname
-    String defV = DEFAULT_HOSTNAME;
-    prefs.begin(NAMESPACE, true);
-    h = prefs.getString(HOSTNAME_ENTRY, defV);
-    prefs.end();
-#endif
+    String h = wifi_hostname->get();
+
     //Start SPIFFS
     SPIFFS.begin(true);
 #ifdef ENABLE_OTA

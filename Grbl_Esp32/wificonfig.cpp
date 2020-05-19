@@ -270,7 +270,6 @@ bool WiFiConfig::ConnectSTA2AP() {
  */
 
 bool WiFiConfig::StartSTA() {
-    Preferences prefs;
     //stop active service
     wifi_services.end();
     //Sanity check
@@ -310,8 +309,6 @@ bool WiFiConfig::StartSTA() {
  */
 
 bool WiFiConfig::StartAP() {
-    String defV;
-    Preferences prefs;
     //stop active services
     wifi_services.end();
     //Sanity check
@@ -330,10 +327,6 @@ bool WiFiConfig::StartAP() {
     if (channel == 0) channel = DEFAULT_AP_CHANNEL;
 
     int32_t IP = wifi_ap_ip->get();
-    if (IP == 0) {
-        String defV = DEFAULT_AP_IP;
-        IP = IP_int_from_string(defV);
-    }
     IPAddress ip(IP);
     IPAddress mask;
     mask.fromString(DEFAULT_AP_MK);

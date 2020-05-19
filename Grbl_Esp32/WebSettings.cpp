@@ -825,40 +825,41 @@ void make_web_settings()
     // WebUI Settings
     // Standard WEBUI authentication is user+ to get, admin to set unless otherwise specified
     #ifdef ENABLE_NOTIFICATIONS
-        notification_ts   = new StringSetting("Notification Settings",  WEBUI, NULL,     NOTIFICATION_TS,     DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
-        notification_t2   = new StringSetting("Notification Token 2",   WEBUI, NULL,     NOTIFICATION_T2,     DEFAULT_TOKEN, MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
-        notification_t1   = new StringSetting("Notification Token 1",   WEBUI, NULL,     NOTIFICATION_T1,     DEFAULT_TOKEN , MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
-        notification_type = new EnumSetting("Notification type",        WEBUI, NULL,     NOTIFICATION_TYPE,   DEFAULT_NOTIFICATION_TYPE, &notificationOptions);
+        notification_ts   = new StringSetting("Notification Settings",  WEBUI, NULL,     "NotificationTS",     DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
+        notification_t2   = new StringSetting("Notification Token 2",   WEBUI, NULL,     "NotificationT2",     DEFAULT_TOKEN, MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
+        notification_t1   = new StringSetting("Notification Token 1",   WEBUI, NULL,     "NotificationT1",     DEFAULT_TOKEN , MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
+        notification_type = new EnumSetting("Notification type",        WEBUI, NULL,     "NotificationType",   DEFAULT_NOTIFICATION_TYPE, &notificationOptions);
     #endif
     #ifdef ENABLE_AUTHENTICATION
-        user_password     = new StringSetting("User password",          WEBUI, NULL,     USER_PWD_ENTRY, &isLocalPasswordValid);
+        user_password     = new StringSetting("User password",          WEBUI, NULL,     "UserPassword", &isLocalPasswordValid);
+        admin_password    = new StringSetting("Admin password",         WEBUI, NULL,     "AdminPassword", &isLocalPasswordValid);
     #endif
     #ifdef ENABLE_BLUETOOTH
-        bt_name           = new StringSetting("Bluetooth name",         WEBUI, "ESP140", BT_NAME_ENTRY,       DEFAULT_BT_NAME, 0, 0, BTConfig::isBTnameValid);
+        bt_name           = new StringSetting("Bluetooth name",         WEBUI, "ESP140", "BTName",       DEFAULT_BT_NAME, 0, 0, BTConfig::isBTnameValid);
     #endif
 
     #if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
         // user+ to get, admin to set
-        wifi_radio_mode   = new EnumSetting("Radio mode",               WEBUI, "ESP110", ESP_RADIO_MODE,      DEFAULT_RADIO_MODE, &radioEnabledOptions);
+        wifi_radio_mode   = new EnumSetting("Radio mode",               WEBUI, "ESP110", "RadioMode",      DEFAULT_RADIO_MODE, &radioEnabledOptions);
     #endif
 
     #ifdef ENABLE_WIFI
-        telnet_port       = new IntSetting("Telnet Port",               WEBUI, "ESP131", TELNET_PORT_ENTRY,   DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
-        telnet_enable     = new EnumSetting("Telnet protocol",          WEBUI, "ESP130", TELNET_ENABLE_ENTRY, DEFAULT_TELNET_STATE, &onoffOptions);
-        http_port         = new IntSetting("HTTP Port",                 WEBUI, "ESP121", HTTP_PORT_ENTRY,     DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
-        http_enable       = new EnumSetting("HTTP protocol",            WEBUI, "ESP120", HTTP_ENABLE_ENTRY,   DEFAULT_HTTP_STATE, &onoffOptions);
-        wifi_hostname     = new StringSetting("Hostname",               WEBUI, "ESP112", HOSTNAME_ENTRY,      DEFAULT_HOSTNAME, 0, 0, WiFiConfig::isHostnameValid);
-        wifi_ap_channel   = new IntSetting("AP Channel",                WEBUI, "ESP108", AP_CHANNEL_ENTRY,    DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL, NULL);
-        wifi_ap_ip        = new IPaddrSetting("AP Static IP",           WEBUI, "ESP107", AP_IP_ENTRY,         DEFAULT_AP_IP, NULL);
+        telnet_port       = new IntSetting("Telnet Port",               WEBUI, "ESP131", "TELNET_PORT",   DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
+        telnet_enable     = new EnumSetting("Telnet protocol",          WEBUI, "ESP130", "TELNET_ON", DEFAULT_TELNET_STATE, &onoffOptions);
+        http_port         = new IntSetting("HTTP Port",                 WEBUI, "ESP121", "HTTP_PORT",     DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
+        http_enable       = new EnumSetting("HTTP protocol",            WEBUI, "ESP120", "HTTP_ON",   DEFAULT_HTTP_STATE, &onoffOptions);
+        wifi_hostname     = new StringSetting("Hostname",               WEBUI, "ESP112", "ESP_HOSTNAME",      DEFAULT_HOSTNAME, 0, 0, WiFiConfig::isHostnameValid);
+        wifi_ap_channel   = new IntSetting("AP Channel",                WEBUI, "ESP108", "AP_CHANNEL",    DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL, NULL);
+        wifi_ap_ip        = new IPaddrSetting("AP Static IP",           WEBUI, "ESP107", "AP_IP",         DEFAULT_AP_IP, NULL);
         // no get, admin to set
-        wifi_ap_password  = new StringSetting("AP Password",            WEBUI, "ESP106", AP_PWD_ENTRY,        DEFAULT_AP_PWD,  0, 0, WiFiConfig::isPasswordValid);
-        wifi_ap_ssid      = new StringSetting("AP SSID",                WEBUI, "ESP105", AP_SSID_ENTRY,       DEFAULT_AP_SSID, 0, 0, WiFiConfig::isSSIDValid);
-        wifi_sta_netmask  = new IPaddrSetting("Station Static Mask",    WEBUI, NULL,     STA_MK_ENTRY,        DEFAULT_STA_MK, NULL);
-        wifi_sta_gateway  = new IPaddrSetting("Station Static Gateway", WEBUI, NULL,     STA_GW_ENTRY,        DEFAULT_STA_GW, NULL);
-        wifi_sta_ip       = new IPaddrSetting("Station Static IP",      WEBUI, NULL,     STA_IP_ENTRY,        DEFAULT_STA_IP, NULL);
-        wifi_sta_mode     = new EnumSetting("Station IP Mode",          WEBUI, "ESP102", STA_IP_MODE_ENTRY,   DEFAULT_STA_IP_MODE, &staModeOptions);
+        wifi_ap_password  = new StringSetting("AP Password",            WEBUI, "ESP106", "AP_PWD",        DEFAULT_AP_PWD,  0, 0, WiFiConfig::isPasswordValid);
+        wifi_ap_ssid      = new StringSetting("AP SSID",                WEBUI, "ESP105", "AP_SSID",       DEFAULT_AP_SSID, 0, 0, WiFiConfig::isSSIDValid);
+        wifi_sta_netmask  = new IPaddrSetting("Station Static Mask",    WEBUI, NULL,     "STA_MK",        DEFAULT_STA_MK, NULL);
+        wifi_sta_gateway  = new IPaddrSetting("Station Static Gateway", WEBUI, NULL,     "STA_GW",        DEFAULT_STA_GW, NULL);
+        wifi_sta_ip       = new IPaddrSetting("Station Static IP",      WEBUI, NULL,     "STA_IP",        DEFAULT_STA_IP, NULL);
+        wifi_sta_mode     = new EnumSetting("Station IP Mode",          WEBUI, "ESP102", "STA_IP_MODE",   DEFAULT_STA_IP_MODE, &staModeOptions);
         // no get, admin to set
-        wifi_sta_password = new StringSetting("Station Password",       WEBUI, "ESP101", STA_PWD_ENTRY,       DEFAULT_STA_PWD,  0, 0, WiFiConfig::isPasswordValid);
-        wifi_sta_ssid     = new StringSetting("Station SSID",           WEBUI, "ESP100", STA_SSID_ENTRY,      DEFAULT_STA_SSID, 0, 0, WiFiConfig::isSSIDValid);
+        wifi_sta_password = new StringSetting("Station Password",       WEBUI, "ESP101", "STA_PWD",       DEFAULT_STA_PWD,  0, 0, WiFiConfig::isPasswordValid);
+        wifi_sta_ssid     = new StringSetting("Station SSID",           WEBUI, "ESP100", "StaSSID",      DEFAULT_STA_SSID, 0, 0, WiFiConfig::isSSIDValid);
     #endif
 }

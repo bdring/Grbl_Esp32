@@ -133,15 +133,12 @@ Some features should not be changed. See notes below.
 //#define ENABLE_AUTHENTICATION
 //CONFIGURE_EYECATCH_END (DO NOT MODIFY  THIS LINE)
 #define NAMESPACE "GRBL"
-#define ESP_RADIO_MODE "RADIO_MODE"
 
 #ifdef ENABLE_AUTHENTICATION
     #define DEFAULT_ADMIN_PWD "admin"
     #define DEFAULT_USER_PWD  "user";
     #define DEFAULT_ADMIN_LOGIN  "admin"
     #define DEFAULT_USER_LOGIN "user"
-    #define ADMIN_PWD_ENTRY "ADMIN_PWD"
-    #define USER_PWD_ENTRY "USER_PWD"
     #define AUTH_ENTRY_NB 20
     #define MAX_LOCAL_PASSWORD_LENGTH   16
     #define MIN_LOCAL_PASSWORD_LENGTH   1

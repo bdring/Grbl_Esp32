@@ -41,7 +41,6 @@
 #include <SD.h>
 #include "grbl_sd.h"
 #endif
-#include <Preferences.h>
 #include "report.h"
 #include <WebServer.h>
 #include <ESP32SSDP.h>
@@ -115,18 +114,11 @@ bool Web_Server::begin(){
    
     bool no_error = true;
     _setupdone = false;
-#ifdef WMB
-    int8_t penabled = http_enable.get();
-    _port = http_port.get();
-#else
-    Preferences prefs;
-    prefs.begin(NAMESPACE, true);
-    int8_t penabled = prefs.getChar(HTTP_ENABLE_ENTRY, DEFAULT_HTTP_STATE);
-    //Get http port
-    _port = prefs.getUShort(HTTP_PORT_ENTRY, DEFAULT_WEBSERVER_PORT);
-    prefs.end();
-#endif
-    if (penabled == 0) return false;
+    if (http_enable->get() == 0) {
+        return false;
+    }
+    _port = http_port->get();
+
     //create instance
     _webserver= new WebServer(_port);
 #ifdef ENABLE_AUTHENTICATION
@@ -589,22 +581,8 @@ void Web_Server::handle_login()
             if (msg_alert_error == false) {
                 //Password
                 sPassword = _webserver->arg("PASSWORD");
-                String sadminPassword;
-
-#ifdef WMB
-                prefs.begin(NAMESPACE, true);
-                sadminPassword = admin_password.get();
+                String sadminPassword = admin_password.get();
                 String suserPassword = user_password.get();
-#else
-                Preferences prefs;
-                prefs.begin(NAMESPACE, true);
-                String defV = DEFAULT_ADMIN_PWD;
-                sadminPassword = prefs.getString(ADMIN_PWD_ENTRY, defV);
-                String suserPassword;
-                defV = DEFAULT_USER_PWD;
-                suserPassword = prefs.getString(USER_PWD_ENTRY, defV);
-                prefs.end();
-#endif
 
                 if(!(((sUser == DEFAULT_ADMIN_LOGIN) && (strcmp(sPassword.c_str(),sadminPassword.c_str()) == 0)) ||
                         ((sUser == DEFAULT_USER_LOGIN) && (strcmp(sPassword.c_str(),suserPassword.c_str()) == 0)))) {
@@ -622,8 +600,6 @@ void Web_Server::handle_login()
         if (_webserver->hasArg("PASSWORD") && _webserver->hasArg("USER") && _webserver->hasArg("NEWPASSWORD") && (msg_alert_error==false) ) {
             String newpassword =  _webserver->arg("NEWPASSWORD");
             if (COMMANDS::isLocalPasswordValid(newpassword.c_str())) {
-
-#ifdef WMB
                 err_t err;
                 if (sUser == DEFAULT_ADMIN_LOGIN) {
                     err = admin_password.setStringValue(newpassword);
@@ -635,19 +611,6 @@ void Web_Server::handle_login()
                      smsg = "Error: Cannot apply changes";
                      code = 500;
                 }
-#else
-                String spos;
-                spos = sUser == DEFAULT_ADMIN_LOGIN ? ADMIN_PWD_ENTRY : USER_PWD_ENTRY;
-
-                Preferences prefs;
-                prefs.begin(NAMESPACE, false);
-                if (prefs.putString(spos.c_str(), newpassword) != newpassword.length()) {
-                     msg_alert_error = true;
-                     smsg = "Error: Cannot apply changes";
-                     code = 500;
-                }
-                prefs.end();
-#endif
             } else {
                 msg_alert_error=true;
                 smsg = "Error: Incorrect password";

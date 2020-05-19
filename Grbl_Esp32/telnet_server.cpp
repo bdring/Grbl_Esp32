@@ -58,18 +58,11 @@ bool Telnet_Server::begin() {
     end();
     _RXbufferSize = 0;
     _RXbufferpos = 0;;
-#ifdef WMB
-    int8_t penabled = telnet_enable.get();
-    _port = telnet_port.get();
-#else
-    Preferences prefs;
-    prefs.begin(NAMESPACE, true);
-    int8_t penabled = prefs.getChar(TELNET_ENABLE_ENTRY, DEFAULT_TELNET_STATE);
-    //Get telnet port
-    _port = prefs.getUShort(TELNET_PORT_ENTRY, DEFAULT_TELNETSERVER_PORT);
-    prefs.end();
-#endif
-    if (penabled == 0) return false;
+    if (telnet_enable->get() == 0) {
+        return false;
+    }
+    _port = telnet_port->get();
+
     //create instance
     _telnetserver = new WiFiServer(_port, MAX_TLNT_CLIENTS);
     _telnetserver->setNoDelay(true);

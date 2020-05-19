@@ -127,12 +127,7 @@ bool COMMANDS::isLocalPasswordValid(const char* password) {
 //check admin password
 bool COMMANDS::isadmin(String& cmd_params) {
     String adminpassword;
-    String sadminPassword;
-    Preferences prefs;
-    prefs.begin(NAMESPACE, true);
-    String defV = DEFAULT_ADMIN_PWD;
-    sadminPassword = prefs.getString(ADMIN_PWD_ENTRY, defV);
-    prefs.end();
+    String sadminPassword = admin_password->get();
     adminpassword = get_param(cmd_params, "pwd=", true);
     if (!sadminPassword.equals(adminpassword))
         return false;
@@ -141,14 +136,8 @@ bool COMMANDS::isadmin(String& cmd_params) {
 }
 //check user password - admin password is also valid
 bool COMMANDS::isuser(String& cmd_params) {
-    String userpassword;
-    String suserPassword;
-    Preferences prefs;
-    prefs.begin(NAMESPACE, true);
-    String defV = DEFAULT_USER_PWD;
-    suserPassword = prefs.getString(USER_PWD_ENTRY, defV);
-    prefs.end();
-    userpassword = get_param(cmd_params, "pwd=", true);
+    String suserPassword = user_password->get();
+    String userpassword = get_param(cmd_params, "pwd=", true);
     //it is not user password
     if (!suserPassword.equals(userpassword)) {
         //check admin password

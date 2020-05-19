@@ -238,7 +238,7 @@ void make_settings()
     spindle_pwm_min_value = new FloatSetting(EXTENDED, "35", "SpindleMinPWM", DEFAULT_SPINDLE_MIN_VALUE, 0.0, 100.0);
     spindle_pwm_off_value = new FloatSetting(EXTENDED, "34", "SpindleOffPWM", DEFAULT_SPINDLE_OFF_VALUE, 0.0, 100.0); // these are percentages
     // IntSetting spindle_pwm_bit_precision("SpindlePWMbitPrecision", DEFAULT_SPINDLE_BIT_PRECISION, 1, 16);
-    spindle_type = new EnumSetting(NULL, EXTENDED, "33", "SpindleType", SPINDLE_TYPE, &spindleTypes);
+    spindle_type = new EnumSetting(NULL, EXTENDED, "33", "SpindleType", SPINDLE_TYPE_NONE, &spindleTypes);
 
     // GRBL Non-numbered settings
     startup_line_0 = new StringSetting(GRBL, NULL, "N0", "");
