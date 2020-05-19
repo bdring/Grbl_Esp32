@@ -1,12 +1,7 @@
 /*
     SpindleClass.cpp
 
-    A Spindle Class
-        Spindle         - A base class. Do not use
-        PWMSpindle     - A spindle with a PWM output
-        RelaySpindle    - An on/off only spindle
-        Laser           - Output is PWM, but the M4 laser power mode can be used
-        DacSpindle      - Uses the DAC to output a 0-3.3V output
+    A Base class for spindles and spinsle like things such as lasers
 
     Part of Grbl_ESP32
 
@@ -24,7 +19,7 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
     TODO
-        Consider breaking into one file per class.
+        Add Spindle spin up/down delays
 
     Get rid of dependance on machine definition #defines
         SPINDLE_OUTPUT_PIN
@@ -40,6 +35,9 @@
 #include "HuanyangSpindle.cpp"
 #include "BESCSpindle.cpp"
 
+
+// An instance of each type of spindle is created here.
+// This allows the spindle to be dynamicly switched
 NullSpindle null_spindle;
 PWMSpindle pwm_spindle;
 RelaySpindle relay_spindle;
@@ -48,8 +46,9 @@ DacSpindle dac_spindle;
 HuanyangSpindle huanyang_spindle;
 BESCSpindle besc_spindle;
 
-void spindle_select(uint8_t spindle_type) {
 
+void spindle_select(uint8_t spindle_type) {
+    
     switch (spindle_type) {
     case SPINDLE_TYPE_PWM:
         spindle = &pwm_spindle;
@@ -74,14 +73,17 @@ void spindle_select(uint8_t spindle_type) {
         spindle = &null_spindle;
         break;
     }
+    
     spindle->init();
 }
 
+// ========================= Spindle ==================================
+
 bool Spindle::isRateAdjusted() {
-    return false; // default for basic spindles is false
+    return false; // default for basic spindle is false
 }
 
-void Spindle :: spindle_sync(uint8_t state, float rpm) {
+void Spindle :: spindle_sync(uint8_t state, uint32_t rpm) {
     if (sys.state == STATE_CHECK_MODE)
         return;
     protocol_buffer_synchronize(); // Empty planner buffer to ensure spindle is set when programmed.

@@ -295,9 +295,6 @@ uint8_t gc_execute_line(const char* line, uint8_t client) {
             case 3:
             case 4:
             case 5:
-#ifndef SPINDLE_OUTPUT_PIN
-                grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No spindle pin defined");
-#endif
                 word_bit = MODAL_GROUP_M7;
                 switch (int_value) {
                 case 3:
@@ -1086,9 +1083,9 @@ uint8_t gc_execute_line(const char* line, uint8_t client) {
         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
             if (bit_isfalse(gc_parser_flags, GC_PARSER_LASER_ISMOTION)) {
                 if (bit_istrue(gc_parser_flags, GC_PARSER_LASER_DISABLE))
-                    spindle->set_state(gc_state.modal.spindle, 0.0);
+                    spindle->spindle_sync(gc_state.modal.spindle, 0);
                 else
-                    spindle->set_state(gc_state.modal.spindle, gc_block.values.s);
+                    spindle->spindle_sync(gc_state.modal.spindle, (uint32_t)gc_block.values.s);
             }
         }
         gc_state.spindle_speed = gc_block.values.s; // Update spindle speed state.
@@ -1110,7 +1107,7 @@ uint8_t gc_execute_line(const char* line, uint8_t client) {
         // Update spindle control and apply spindle speed when enabling it in this block.
         // NOTE: All spindle state changes are synced, even in laser mode. Also, pl_data,
         // rather than gc_state, is used to manage laser state for non-laser motions.
-        spindle->set_state(gc_block.modal.spindle, pl_data->spindle_speed);
+        spindle->spindle_sync(gc_block.modal.spindle, (uint32_t)pl_data->spindle_speed);
         gc_state.modal.spindle = gc_block.modal.spindle;
     }
     pl_data->condition |= gc_state.modal.spindle; // Set condition flag for planner use.
@@ -1286,7 +1283,7 @@ uint8_t gc_execute_line(const char* line, uint8_t client) {
                 if (!(settings_read_coord_data(gc_state.modal.coord_select, gc_state.coord_system)))
                     FAIL(STATUS_SETTING_READ_FAIL);
                 system_flag_wco_change(); // Set to refresh immediately just in case something altered.
-                spindle->set_state(SPINDLE_DISABLE, 0.0);
+                spindle->set_state(SPINDLE_DISABLE, 0);
                 coolant_set_state(COOLANT_DISABLE);
             }
             report_feedback_message(MESSAGE_PROGRAM_END);
