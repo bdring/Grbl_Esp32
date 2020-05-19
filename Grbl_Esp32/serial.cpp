@@ -82,7 +82,7 @@ void serial_init() {
                             NULL,   // parameters
                             1, // priority
                             &serialCheckTaskHandle,
-                            0 // core
+                            1 // core
                            );
 }
 

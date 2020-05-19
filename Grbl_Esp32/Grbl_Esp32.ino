@@ -91,6 +91,7 @@ void setup() {
 #ifdef HOMING_INIT_LOCK
     if (homing_enable->get())  sys.state = STATE_ALARM;
 #endif
+    spindle_select(SPINDLE_TYPE);
 #ifdef ENABLE_WIFI
     wifi_config.begin();
 #endif
@@ -117,7 +118,7 @@ void loop() {
     // Reset Grbl primary systems.
     serial_reset_read_buffer(CLIENT_ALL); // Clear serial read buffer
     gc_init(); // Set g-code parser to default state
-    spindle_select(SPINDLE_TYPE);
+    spindle->stop();
     coolant_init();
     limits_init();
     probe_init();

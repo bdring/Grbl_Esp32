@@ -112,7 +112,7 @@ Some features should not be changed. See notes below.
 //#define CONNECT_TO_SSID  "your SSID"
 //#define SSID_PASSWORD  "your SSID password"
 //CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
-//#define ENABLE_BLUETOOTH // enable bluetooth
+#define ENABLE_BLUETOOTH // enable bluetooth
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
 
@@ -121,6 +121,7 @@ Some features should not be changed. See notes below.
 #if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
 #define WIFI_OR_BLUETOOTH
 #endif
+
 
 #define ENABLE_HTTP //enable HTTP and all related services
 #define ENABLE_OTA  //enable OTA
