@@ -142,7 +142,11 @@ float limit_acceleration_by_axis_maximum(float* unit_vec) {
         if (unit_vec[idx] != 0)    // Avoid divide by zero.
             limit_value = MIN(limit_value, fabs(axis_settings[idx]->acceleration->get() / unit_vec[idx]));
     }
-    return (limit_value);
+    // The acceleration setting is stored and displayed in units of mm/sec^2,
+    // but used in units of mm/min^2.  It suffices to perform the conversion once on
+    // exit, since the limit computation above is independent of units - it simply
+    // finds the smallest value.
+    return (limit_value * SEC_PER_MIN_SQ);
 }
 
 float limit_rate_by_axis_maximum(float* unit_vec) {
