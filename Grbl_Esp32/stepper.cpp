@@ -429,7 +429,7 @@ static void stepper_pulse_phase_func() {
     return;
 }
 
-#ifdef I2S_STEPPER_STREAM
+#ifdef USE_I2S_IOEXPANDER
 void stepper_init() {
     // make the stepper disable pin an output
 #ifdef STEPPERS_DISABLE_PIN
@@ -503,8 +503,22 @@ void stepper_init() {
 #ifdef C2_DIRECTION_PIN
     I2S_IOEXP_SET_OUTPUT(C2_DIRECTION_PIN);
 #endif
+#ifdef I2S_STEPPER_STREAM
     // I2S stepper do not use timer interrupt but callback
     i2s_ioexpander_register_pulse_callback(stepper_pulse_phase_func);
+#else
+    timer_config_t config;
+    config.divider     = F_TIMERS / F_STEPPER_TIMER;
+    config.counter_dir = TIMER_COUNT_UP;
+    config.counter_en  = TIMER_PAUSE;
+    config.alarm_en    = TIMER_ALARM_EN;
+    config.intr_type   = TIMER_INTR_LEVEL;
+    config.auto_reload = true;
+    timer_init(STEP_TIMER_GROUP, STEP_TIMER_INDEX, &config);
+    timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
+    timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
+    timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
+#endif
 }
 #else
 void stepper_init() {
@@ -782,7 +796,7 @@ void st_reset() {
 
 
 
-#ifdef I2S_STEPPER_STREAM
+#ifdef USE_I2S_IOEXPANDER
 void set_direction_pins_on(uint8_t onMask) {
     // inverts are applied in step generation
 #ifdef X_DIRECTION_PIN
@@ -864,7 +878,7 @@ void set_direction_pins_on(uint8_t onMask) {
 }
 #endif
 
-#ifdef I2S_STEPPER_STREAM
+#ifdef USE_I2S_IOEXPANDER
 #ifndef USE_GANGED_AXES
 // basic one motor per axis
 void set_stepper_pins_on(uint8_t onMask) {
@@ -1066,7 +1080,7 @@ void st_go_idle() {
     } else
         set_stepper_disable(pin_state);
     set_stepper_pins_on(0);
-#ifdef USE_I2S_IOEXPANDER
+#ifdef I2S_STEPPER_STREAM
     i2s_ioexpander_reset();
 #endif
 }
@@ -1614,7 +1628,7 @@ void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
 bool get_stepper_disable() { // returns true if steppers are disabled
     bool disabled = false;
 #ifdef STEPPERS_DISABLE_PIN
-#ifdef I2S_STEPPER_STREAM
+#ifdef USE_I2S_IOEXPANDER
     disabled = I2S_IOEXP_READ(STEPPERS_DISABLE_PIN);
 #else
     disabled = digitalRead(STEPPERS_DISABLE_PIN);

@@ -36,6 +36,8 @@
 
 // I2S (steppers & other output-only pins)
 #define USE_I2S_IOEXPANDER
+// Define I2S_STEPPER_STREAM if buffering is used.
+// (there will be a delay between the specified I/O operation and the actual I/O execution)
 #define I2S_STEPPER_STREAM
 #undef USE_RMT_STEPS
 

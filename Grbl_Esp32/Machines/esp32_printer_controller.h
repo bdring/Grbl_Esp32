@@ -191,6 +191,7 @@
 #define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
 #define DEFAULT_HOMING_PULLOFF 3.0 // mm
 
+#define DEFAULT_HARD_LIMIT_ENABLE 1
 // === Control Pins
 
 // The control pins with names that begin with CONTROL_ are
@@ -238,7 +239,9 @@
 #define I2S_IOEXPANDER_BCK      GPIO_NUM_22
 #define I2S_IOEXPANDER_WS       GPIO_NUM_17
 #define I2S_IOEXPANDER_DATA     GPIO_NUM_21
-#define I2S_STEPPER_STREAM
+// Define I2S_STEPPER_STREAM if buffering is used.
+// (there will be a delay between the specified I/O operation and the actual I/O execution)
+//#define I2S_STEPPER_STREAM
 
 // === Special Features
 // Grbl_ESP32 can support non-Cartesian machines and some other

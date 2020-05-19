@@ -282,7 +282,11 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
       lldesc_t *front_desc;
       // Remove a descriptor from the DMA complete event queue
       xQueueReceiveFromISR(dma.queue, &front_desc, &high_priority_task_awoken);
+#ifdef I2S_STEPPER_STREAM
       uint32_t port_data = atomic_load(&i2s_port_data);
+#else
+      uint32_t port_data = 0;
+#endif
       for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
         front_desc->buf[i] = port_data;
       }
@@ -340,7 +344,11 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
             }
           }
           // no pulse data in push buffer (pulse off or idle or callback is not defined)
+#ifdef I2S_STEPPER_STREAM
           dma.current[dma.rw_pos++] = atomic_load(&i2s_port_data);
+#else
+          dma.current[dma.rw_pos++] = 0;
+#endif
           if (i2s_ioexpander_remain_time_until_next_pulse >= I2S_IOEXP_USEC_PER_PULSE) {
             i2s_ioexpander_remain_time_until_next_pulse -= I2S_IOEXP_USEC_PER_PULSE;
           } else {
@@ -351,7 +359,11 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
       dma_desc->length = dma.rw_pos * I2S_SAMPLE_SIZE;
     } else {
       // Stepper paused (just set current I/O port bits to the buffer)
+#ifdef I2S_STEPPER_STREAM
       uint32_t port_data = atomic_load(&i2s_port_data);
+#else
+      uint32_t port_data = 0;
+#endif
       for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
         dma.current[i] = port_data;
       }
@@ -372,6 +384,9 @@ void IRAM_ATTR i2s_ioexpander_write(uint8_t pin, uint8_t val) {
   } else {
     atomic_fetch_and(&i2s_port_data, ~bit);
   }
+#ifndef I2S_STEPPER_STREAM
+  I2S0.conf_single_data = atomic_load(&i2s_port_data);
+#endif
 }
 
 uint8_t IRAM_ATTR i2s_ioexpander_state(uint8_t pin) {
@@ -384,7 +399,11 @@ uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
     return 0;
   }
   // push at least one sample (even if num is zero)
+#ifdef I2S_STEPPER_STREAM
   uint32_t port_data = atomic_load(&i2s_port_data);
+#else
+  uint32_t port_data = 0;
+#endif
   uint32_t n = 0;
   do {
     dma.current[dma.rw_pos++] = port_data;
@@ -419,7 +438,11 @@ int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t fun
 
 int i2s_ioexpander_reset() {
   i2s_stop();
+#ifdef I2S_STEPPER_STREAM
   uint32_t port_data = atomic_load(&i2s_port_data);
+#else
+  uint32_t port_data = 0;
+#endif
   i2s_clear_dma_buffers(port_data);
   i2s_start();
   return 0;
@@ -536,8 +559,12 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
 
   I2S0.fifo_conf.dscr_en = 0;
 
+#ifdef I2S_STEPPER_STREAM
   I2S0.conf_chan.tx_chan_mod = 4; // 1: Mono (right) 4:right+constant
-  I2S0.conf_single_data = 0; // constant value (left)
+#else
+  I2S0.conf_chan.tx_chan_mod = 3; // 1: Mono (right) 4:right+constant 3:left+constant
+#endif
+  I2S0.conf_single_data = 0; // initial constant value
   I2S0.fifo_conf.tx_fifo_mod = 3; // 1: 16-bit single channel data, 3: 32-bit single channel data
   I2S0.conf.tx_mono = 0; // Set this bit to enable transmitter’s mono mode in PCM standard mode.
 
