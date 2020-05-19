@@ -99,7 +99,7 @@ void vfd_cmd_task(void* pvParameters) {
         } else {
             // TODO: Should we ping the spindle here to make sure it does not go off line?
         }
-        vTaskDelay(500); // TODO: What is the best value here?
+        vTaskDelay(200); // TODO: What is the best value here?
     }
 }
 
