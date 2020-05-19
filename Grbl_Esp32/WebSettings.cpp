@@ -844,22 +844,22 @@ void make_web_settings()
     #endif
 
     #ifdef ENABLE_WIFI
-        telnet_port       = new IntSetting("Telnet Port",               WEBUI, "ESP131", "TELNET_PORT",   DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
-        telnet_enable     = new EnumSetting("Telnet protocol",          WEBUI, "ESP130", "TELNET_ON", DEFAULT_TELNET_STATE, &onoffOptions);
-        http_port         = new IntSetting("HTTP Port",                 WEBUI, "ESP121", "HTTP_PORT",     DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
-        http_enable       = new EnumSetting("HTTP protocol",            WEBUI, "ESP120", "HTTP_ON",   DEFAULT_HTTP_STATE, &onoffOptions);
-        wifi_hostname     = new StringSetting("Hostname",               WEBUI, "ESP112", "ESP_HOSTNAME",      DEFAULT_HOSTNAME, 0, 0, WiFiConfig::isHostnameValid);
-        wifi_ap_channel   = new IntSetting("AP Channel",                WEBUI, "ESP108", "AP_CHANNEL",    DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL, NULL);
-        wifi_ap_ip        = new IPaddrSetting("AP Static IP",           WEBUI, "ESP107", "AP_IP",         DEFAULT_AP_IP, NULL);
+        telnet_port       = new IntSetting("Telnet Port",               WEBUI, "ESP131", "TelnetPort",   DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
+        telnet_enable     = new EnumSetting("Telnet protocol",          WEBUI, "ESP130", "TelnetOn", DEFAULT_TELNET_STATE, &onoffOptions);
+        http_port         = new IntSetting("HTTP Port",                 WEBUI, "ESP121", "HttpPort",     DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
+        http_enable       = new EnumSetting("HTTP protocol",            WEBUI, "ESP120", "HttpOn",   DEFAULT_HTTP_STATE, &onoffOptions);
+        wifi_hostname     = new StringSetting("Hostname",               WEBUI, "ESP112", "MyHostname",      DEFAULT_HOSTNAME, 0, 0, WiFiConfig::isHostnameValid);
+        wifi_ap_channel   = new IntSetting("AP Channel",                WEBUI, "ESP108", "ApChannel",    DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL, NULL);
+        wifi_ap_ip        = new IPaddrSetting("AP Static IP",           WEBUI, "ESP107", "ApIP",         DEFAULT_AP_IP, NULL);
         // no get, admin to set
-        wifi_ap_password  = new StringSetting("AP Password",            WEBUI, "ESP106", "AP_PWD",        DEFAULT_AP_PWD,  0, 0, WiFiConfig::isPasswordValid);
-        wifi_ap_ssid      = new StringSetting("AP SSID",                WEBUI, "ESP105", "AP_SSID",       DEFAULT_AP_SSID, 0, 0, WiFiConfig::isSSIDValid);
-        wifi_sta_netmask  = new IPaddrSetting("Station Static Mask",    WEBUI, NULL,     "STA_MK",        DEFAULT_STA_MK, NULL);
-        wifi_sta_gateway  = new IPaddrSetting("Station Static Gateway", WEBUI, NULL,     "STA_GW",        DEFAULT_STA_GW, NULL);
-        wifi_sta_ip       = new IPaddrSetting("Station Static IP",      WEBUI, NULL,     "STA_IP",        DEFAULT_STA_IP, NULL);
-        wifi_sta_mode     = new EnumSetting("Station IP Mode",          WEBUI, "ESP102", "STA_IP_MODE",   DEFAULT_STA_IP_MODE, &staModeOptions);
+        wifi_ap_password  = new StringSetting("AP Password",            WEBUI, "ESP106", "ApPwd",        DEFAULT_AP_PWD,  0, 0, WiFiConfig::isPasswordValid);
+        wifi_ap_ssid      = new StringSetting("AP SSID",                WEBUI, "ESP105", "ApSSID",       DEFAULT_AP_SSID, 0, 0, WiFiConfig::isSSIDValid);
+        wifi_sta_netmask  = new IPaddrSetting("Station Static Mask",    WEBUI, NULL,     "StaMask",        DEFAULT_STA_MK, NULL);
+        wifi_sta_gateway  = new IPaddrSetting("Station Static Gateway", WEBUI, NULL,     "StaGateway",        DEFAULT_STA_GW, NULL);
+        wifi_sta_ip       = new IPaddrSetting("Station Static IP",      WEBUI, NULL,     "StaIP",        DEFAULT_STA_IP, NULL);
+        wifi_sta_mode     = new EnumSetting("Station IP Mode",          WEBUI, "ESP102", "StaIPMode",   DEFAULT_STA_IP_MODE, &staModeOptions);
         // no get, admin to set
-        wifi_sta_password = new StringSetting("Station Password",       WEBUI, "ESP101", "STA_PWD",       DEFAULT_STA_PWD,  0, 0, WiFiConfig::isPasswordValid);
+        wifi_sta_password = new StringSetting("Station Password",       WEBUI, "ESP101", "StaPassword",       DEFAULT_STA_PWD,  0, 0, WiFiConfig::isPasswordValid);
         wifi_sta_ssid     = new StringSetting("Station SSID",           WEBUI, "ESP100", "StaSSID",      DEFAULT_STA_SSID, 0, 0, WiFiConfig::isSSIDValid);
     #endif
 }
