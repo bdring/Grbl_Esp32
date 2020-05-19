@@ -536,7 +536,8 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
 
   I2S0.fifo_conf.dscr_en = 0;
 
-  I2S0.conf_chan.tx_chan_mod = 1; // 1: Mono (right)
+  I2S0.conf_chan.tx_chan_mod = 4; // 1: Mono (right) 4:right+constant
+  I2S0.conf_single_data = 0; // constant value (left)
   I2S0.fifo_conf.tx_fifo_mod = 3; // 1: 16-bit single channel data, 3: 32-bit single channel data
   I2S0.conf.tx_mono = 0; // Set this bit to enable transmitter’s mono mode in PCM standard mode.
 
