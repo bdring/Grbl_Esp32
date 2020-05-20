@@ -176,7 +176,6 @@ void make_settings()
         def = &axis_defaults[axis];
         axis_settings[axis] = new AxisSettings(def->name);
     }
-    AxisSettings** p = axis_settings;
     x_axis_settings = axis_settings[X_AXIS];
     y_axis_settings = axis_settings[Y_AXIS];
     z_axis_settings = axis_settings[Z_AXIS];

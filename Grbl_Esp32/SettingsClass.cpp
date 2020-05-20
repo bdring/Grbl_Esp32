@@ -31,6 +31,22 @@ Setting::Setting(const char* description, group_t group, const char* grblName, c
 {
     link = List;
     List = this;
+
+    // NVS keys are limited to 15 characters, so if the setting name is longer
+    // than that, we derive a 15-character name from a hash function
+    size_t len = strlen(fullName);
+    if (len <= 15) {
+        _keyName = _fullName;
+    } else {
+        // This is Donald Knuth's hash function from Vol 3, chapter 6.4
+        char *hashName = (char *)malloc(16);
+        uint32_t hash = len;
+        for (const char *s = fullName; *s; s++) {
+            hash = ((hash << 5) ^ (hash >> 27)) ^ (*s);
+        }
+        sprintf(hashName, "%.7s%08x", fullName, hash);
+        _keyName = hashName;
+    }
 }
 
 nvs_handle Setting::_handle = 0;
@@ -38,7 +54,7 @@ nvs_handle Setting::_handle = 0;
 void Setting::init() {
     // XXX Move this to Setting::init()
     if (!_handle) {
-        if (esp_err_t err = nvs_open(NVS_PARTITION_NAME, NVS_READWRITE, &_handle)) {
+        if (esp_err_t err = nvs_open("Grbl_ESP32", NVS_READWRITE, &_handle)) {
             grbl_sendf(CLIENT_SERIAL, "nvs_open failed with error %d\r\n", err);
         }
     }
@@ -53,7 +69,7 @@ IntSetting::IntSetting(const char *description, group_t group, const char* grblN
 { }
 
 void IntSetting::load() {
-    esp_err_t err = nvs_get_i32(_handle, getName(), &_storedValue);
+    esp_err_t err = nvs_get_i32(_handle, _keyName, &_storedValue);
     if (err) {
         _storedValue = std::numeric_limits<int32_t>::min();
         _currentValue = _defaultValue;
@@ -65,7 +81,7 @@ void IntSetting::load() {
 void IntSetting::setDefault() {
     _currentValue = _defaultValue;
     if (_storedValue != _currentValue) {
-        nvs_erase_key(_handle, getName());
+        nvs_erase_key(_handle, _keyName);
     }
 }
 
@@ -86,9 +102,11 @@ err_t IntSetting::setStringValue(const char* s) {
     _currentValue = convertedValue;
     if (_storedValue != _currentValue) {
         if (_currentValue == _defaultValue) {
-            nvs_erase_key(_handle, getName());
+            nvs_erase_key(_handle, _keyName);
         } else {
-            nvs_set_i32(_handle, getName(), _currentValue);
+            if (nvs_set_i32(_handle, _keyName, _currentValue)) {
+                return STATUS_NVS_SET_FAILED;
+            }
             _storedValue = _currentValue;
         }
     }
@@ -119,13 +137,17 @@ void FloatSetting::load() {
         int32_t ival;
         float   fval;
     } v;
-    _currentValue = nvs_get_i32(_handle, getName(), &v.ival) ? _defaultValue : v.fval;
+    if (nvs_get_i32(_handle, _keyName, &v.ival)) {
+        _currentValue = _defaultValue;
+    } else {
+        _currentValue = v.fval;
+    }
 }
 
 void FloatSetting::setDefault() {
     _currentValue = _defaultValue;
     if (_storedValue != _currentValue) {
-        nvs_erase_key(_handle, getName());
+        nvs_erase_key(_handle, _keyName);
     }
 }
 
@@ -147,14 +169,16 @@ err_t FloatSetting::setStringValue(const char* s) {
     _currentValue = convertedValue;
     if (_storedValue != _currentValue) {
         if (_currentValue == _defaultValue) {
-            nvs_erase_key(_handle, getName());
+            nvs_erase_key(_handle, _keyName);
         } else {
             union {
                 int32_t ival;
                 float   fval;
             } v;
             v.fval = _currentValue;
-            nvs_set_i32(_handle, getName(), v.ival);
+            if (nvs_set_i32(_handle, _keyName, v.ival)) {
+                return STATUS_NVS_SET_FAILED;
+            }
             _storedValue = _currentValue;
         }
     }
@@ -190,14 +214,14 @@ StringSetting::StringSetting(const char *description, group_t group, const char*
 
 void StringSetting::load() {
     size_t len = 0;
-    esp_err_t err = nvs_get_str(_handle, getName(), NULL, &len);
+    esp_err_t err = nvs_get_str(_handle, _keyName, NULL, &len);
     if(err) {
         _storedValue = _defaultValue;
         _currentValue = _defaultValue;
         return;
     }
     char buf[len];
-    err = nvs_get_str(_handle, getName(), buf, &len);
+    err = nvs_get_str(_handle, _keyName, buf, &len);
     if (err) {
         _storedValue = _defaultValue;
         _currentValue = _defaultValue;
@@ -210,7 +234,7 @@ void StringSetting::load() {
 void StringSetting::setDefault() {
     _currentValue = _defaultValue;
     if (_storedValue != _currentValue) {
-        nvs_erase_key(_handle, getName());
+        nvs_erase_key(_handle, _keyName);
     }
 }
 
@@ -224,10 +248,12 @@ err_t StringSetting::setStringValue(const char* s) {
    _currentValue = s;
     if (_storedValue != _currentValue) {
         if (_currentValue == _defaultValue) {
-            nvs_erase_key(_handle, getName());
+            nvs_erase_key(_handle, _keyName);
             _storedValue = _defaultValue;
         } else {
-            nvs_set_str(_handle, getName(), _currentValue.c_str());
+            if (nvs_set_str(_handle, _keyName, _currentValue.c_str())) {
+                return STATUS_NVS_SET_FAILED;
+            }
             _storedValue = _currentValue;
         }
     }
@@ -236,7 +262,7 @@ err_t StringSetting::setStringValue(const char* s) {
 
 const char* StringSetting::getStringValue() {
     #ifdef ENABLE_WIFI
-    // If the string is a password do not display it 
+    // If the string is a password do not display it
     if (_checker && _checker == WiFiConfig::isPasswordValid) {
         return "******";
     }
@@ -263,7 +289,7 @@ EnumSetting::EnumSetting(const char *description, group_t group, const char* grb
 { }
 
 void EnumSetting::load() {
-    esp_err_t err = nvs_get_i8(_handle, getName(), &_storedValue);
+    esp_err_t err = nvs_get_i8(_handle, _keyName, &_storedValue);
     if (err) {
         _storedValue = -1;
         _currentValue = _defaultValue;
@@ -275,7 +301,7 @@ void EnumSetting::load() {
 void EnumSetting::setDefault() {
     _currentValue = _defaultValue;
     if (_storedValue != _currentValue) {
-        nvs_erase_key(_handle, getName());
+        nvs_erase_key(_handle, _keyName);
     }
 }
 
@@ -287,9 +313,11 @@ err_t EnumSetting::setStringValue(const char* s) {
     _currentValue = it->second;
     if (_storedValue != _currentValue) {
         if (_storedValue == _defaultValue) {
-            nvs_erase_key(_handle, getName());
+            nvs_erase_key(_handle, _keyName);
         } else {
-            nvs_set_i8(_handle, getName(), _currentValue);
+            if (nvs_set_i8(_handle, _keyName, _currentValue)) {
+                return STATUS_NVS_SET_FAILED;
+            }
             _storedValue = _currentValue;
         }
     }
@@ -330,7 +358,7 @@ FlagSetting::FlagSetting(const char *description, group_t group, const char * gr
 { }
 
 void FlagSetting::load() {
-    esp_err_t err = nvs_get_i8(_handle, getName(), &_storedValue);
+    esp_err_t err = nvs_get_i8(_handle, _keyName, &_storedValue);
     if (err) {
         _storedValue = -1;  // Neither well-formed false (0) nor true (1)
         _currentValue = _defaultValue;
@@ -341,7 +369,7 @@ void FlagSetting::load() {
 void FlagSetting::setDefault() {
     _currentValue = _defaultValue;
     if (_storedValue != _currentValue) {
-        nvs_erase_key(_handle, getName());
+        nvs_erase_key(_handle, _keyName);
     }
 }
 
@@ -355,9 +383,11 @@ err_t FlagSetting::setStringValue(const char* s) {
     // _currentValue is 0 or 1
     if (_storedValue != (int8_t)_currentValue) {
         if (_currentValue == _defaultValue) {
-            nvs_erase_key(_handle, getName());
+            nvs_erase_key(_handle, _keyName);
         } else {
-            nvs_set_i8(_handle, getName(), _currentValue);
+            if (nvs_set_i8(_handle, _keyName, _currentValue)) {
+                return STATUS_NVS_SET_FAILED;
+            }
             _storedValue = _currentValue;
         }
     }
@@ -388,7 +418,7 @@ IPaddrSetting::IPaddrSetting(const char *description, group_t group, const char 
 }
 
 void IPaddrSetting::load() {
-    esp_err_t err = nvs_get_i32(_handle, getName(), (int32_t *)&_storedValue);
+    esp_err_t err = nvs_get_i32(_handle, _keyName, (int32_t *)&_storedValue);
     if (err) {
         _storedValue = 0x000000ff;  // Unreasonable value for any IP thing
         _currentValue = _defaultValue;
@@ -401,7 +431,7 @@ void IPaddrSetting::load() {
 void IPaddrSetting::setDefault() {
     _currentValue = _defaultValue;
     if (_storedValue != _currentValue) {
-        nvs_erase_key(_handle, getName());
+        nvs_erase_key(_handle, _keyName);
     }
 }
 
@@ -409,7 +439,6 @@ err_t IPaddrSetting::setStringValue(const char* s) {
     if (check(s)) {
         return STATUS_INVALID_VALUE;
     }
-    uint32_t convertedValue;
     IPAddress ipaddr;
     if (!ipaddr.fromString(s)) {
         return STATUS_INVALID_VALUE;
@@ -417,9 +446,11 @@ err_t IPaddrSetting::setStringValue(const char* s) {
     _currentValue = ipaddr;
     if (_storedValue != _currentValue) {
         if (_currentValue == _defaultValue) {
-            nvs_erase_key(_handle, getName());
+            nvs_erase_key(_handle, _keyName);
         } else {
-            nvs_set_i32(_handle, getName(), (int32_t)_currentValue);
+            if (nvs_set_i32(_handle, _keyName, (int32_t)_currentValue)) {
+                return STATUS_NVS_SET_FAILED;
+            }
             _storedValue = _currentValue;
         }
     }

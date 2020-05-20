@@ -77,6 +77,11 @@ uint8_t jog_set(uint8_t *value, uint8_t client) {
     return gc_execute_line(line, client); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
 }
 
+err_t show_grbl_help(const char* value, uint8_t client) {
+    report_grbl_help(client);
+    return STATUS_OK;
+}
+
 err_t report_gcode(const char *value, uint8_t client) {
     report_gcode_modes(client);
     return STATUS_OK;
@@ -223,17 +228,19 @@ err_t restore_settings(const char* value, uint8_t client) {
     return STATUS_OK;
 }
 
-// The following table is used if the line is of the form "$key\n"
-// i.e. dollar commands without "="
-// The key value is matched against the string and the corresponding
-// function is called with no arguments.
-// If there is no key match an error is reported
+// Commands use the same syntax as Settings, but instead of setting or
+// displaying a persistent value, a command causes some action to occur.
+// That action could be anything, from displaying a run-time parameter
+// to performing some system state change.  Each command is responsible
+// for decoding its own value string, if it needs one.
 void make_grbl_commands() {
+    new GrblCommand( "",    "showGrblHelp", show_grbl_help );
     new GrblCommand( "$",   "showGrblSettings", report_normal_settings );
     new GrblCommand( "+",   "showExtendedSettings", report_extended_settings );
     new GrblCommand( "S",   "showSettings",  list_settings );
     new GrblCommand( "G",   "showGCodeModes", report_gcode );
     new GrblCommand( "C",   "toggleCheckMode", toggle_check_mode );
+    new GrblCommand( "NVX", "eraseNVS",        Setting::eraseNVS );
     new GrblCommand( "V",   "showNvsStats",    report_nvs_stats );
     new GrblCommand( "X",   "disableAlarmLock", disable_alarm_lock );
     new GrblCommand( "#",   "reportNgc", report_ngc );

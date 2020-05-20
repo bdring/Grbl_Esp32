@@ -82,6 +82,7 @@ protected:
     Setting *link;  // linked list of setting objects
 
     bool (*_checker)(const char *);
+    const char* _keyName;
 public:
     static void init();
     static Setting* List;
@@ -90,6 +91,12 @@ public:
     // Returns true on error
     bool check(const char *s) {
         return _checker ? !_checker(s) : false;
+    }
+
+    static err_t eraseNVS(const char* value, uint8_t client) {
+        nvs_erase_all(_handle);
+        //        return STATUS_OK;
+        return 0;
     }
 
     ~Setting() {}

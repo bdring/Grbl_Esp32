@@ -615,7 +615,7 @@ static err_t setUserPassword(char *parameter) { // ESP555
 #endif
 static err_t setSystemMode(char *parameter) { // ESP444
     parameter = trim(parameter);
-    if (strcmp(parameter, "RESTART") != 0) {
+    if (strcasecmp(parameter, "RESTART") != 0) {
         webPrintln("Incorrect command");
         return STATUS_INVALID_VALUE;
     }
@@ -787,7 +787,7 @@ static err_t getFwInfo(char *parameter) { // ESP800
         webPrintln(" # axis:", String(N_AXIS));
     return STATUS_OK;
 }
-Command* webCommands[20];
+
 void make_web_settings()
 {
 
@@ -799,28 +799,27 @@ void make_web_settings()
     // RU - need user or admin password to read
     // WU - need user or admin password to set
     // WA - need admin password to set
-    Command **sp = webCommands;
-    *sp++ = new WebCommand("Get FW info",        WEBCMDRU, "ESP800", "FwInfo",          getFwInfo);
-    *sp++ = new WebCommand("SPIFFS size",        WEBCMDRU, "ESP720", "SPIFFSSize",      SPIFFSSize);
-    *sp++ = new WebCommand("Run local file",     WEBCMDRU, "ESP700", "runFile",         runFile);
-    *sp++ = new WebCommand("Notification",       WEBCMDWA, "ESP610", "Notification",    getSetNotification);
-    *sp++ = new WebCommand("Get system stats",   WEBCMDRU, "ESP420", "getSysStats",     getSysStats);
-    *sp++ = new WebCommand("Get AP list",        WEBCMDRU, "ESP410", "getAPList",       getAPList);
-    *sp++ = new WebCommand("Get settings",       WEBCMDRU, "ESP400", "getSettings",     getSettings);
-    *sp++ = new WebCommand("Print SD file",      WEBCMDRU, "ESP220", "printSDFile",     printSDFile);
-    *sp++ = new WebCommand("Get SD content",     WEBCMDRU, "ESP210", "getSDData",       getSDData);
-    *sp++ = new WebCommand("Get SD status",      WEBCMDRU, "ESP200", "getSDStatus",     getSDStatus);
-    *sp++ = new WebCommand("Delete SD item",     WEBCMDWU, "ESP215", "deleteSDItem",    deleteSDObject);
-    *sp++ = new WebCommand("Send message",       WEBCMDWU, "ESP600", "sendMessage",     sendMessage);
-    *sp++ = new WebCommand("Format SPIFFS",      WEBCMDWA, "ESP710", "formatSpiffs",    formatSpiffs);
+    new WebCommand("Get FW info",        WEBCMDRU, "ESP800", "FwInfo",          getFwInfo);
+    new WebCommand("SPIFFS size",        WEBCMDRU, "ESP720", "SPIFFSSize",      SPIFFSSize);
+    new WebCommand("Run local file",     WEBCMDRU, "ESP700", "runFile",         runFile);
+    new WebCommand("Notification",       WEBCMDWA, "ESP610", "Notification",    getSetNotification);
+    new WebCommand("Get system stats",   WEBCMDRU, "ESP420", "getSysStats",     getSysStats);
+    new WebCommand("Get AP list",        WEBCMDRU, "ESP410", "getAPList",       getAPList);
+    new WebCommand("Get settings",       WEBCMDRU, "ESP400", "getSettings",     getSettings);
+    new WebCommand("Print SD file",      WEBCMDRU, "ESP220", "printSDFile",     printSDFile);
+    new WebCommand("Get SD content",     WEBCMDRU, "ESP210", "getSDData",       getSDData);
+    new WebCommand("Get SD status",      WEBCMDRU, "ESP200", "getSDStatus",     getSDStatus);
+    new WebCommand("Delete SD item",     WEBCMDWU, "ESP215", "deleteSDItem",    deleteSDObject);
+    new WebCommand("Send message",       WEBCMDWU, "ESP600", "sendMessage",     sendMessage);
+    new WebCommand("Format SPIFFS",      WEBCMDWA, "ESP710", "formatSpiffs",    formatSpiffs);
     #ifdef ENABLE_AUTHENTICATION
-    *sp++ = new WebCommand("Set user password",  WEBCMDWA, "ESP555", "setUserPassword", setUserPassword);
+    new WebCommand("Set user password",  WEBCMDWA, "ESP555", "setUserPassword", setUserPassword);
     #endif
-    *sp++ = new WebCommand("Set system mode",    WEBCMDWA, "ESP444", "setSystemMode",   setSystemMode);
-    *sp++ = new WebCommand("Set web setting",    WEBCMDWA, "ESP401", "setRadioState",   setWebSetting);
-    *sp++ = new WebCommand("Set radio state",    WEBCMDWA, "ESP115", "setRadioState",   setRadioState);
-    *sp++ = new WebCommand("Get current IP",     WEBNOAUTH,"ESP111", "getIP",           getIP);
-    *sp++ = new WebCommand("Set STA IP/Mask/GW", WEBCMDWA, "ESP103", "getSetStaParams", getSetStaParams);
+    new WebCommand("Set system mode",    WEBCMDWA, "ESP444", "setSystemMode",   setSystemMode);
+    new WebCommand("Set web setting",    WEBCMDWA, "ESP401", "setRadioState",   setWebSetting);
+    new WebCommand("Set radio state",    WEBCMDWA, "ESP115", "setRadioState",   setRadioState);
+    new WebCommand("Get current IP",     WEBNOAUTH,"ESP111", "getIP",           getIP);
+    new WebCommand("Set STA IP/Mask/GW", WEBCMDWA, "ESP103", "getSetStaParams", getSetStaParams);
 // If authentication enabled, display_settings skips or displays <Authentication Required>
 
 // TODO ESP or ESP0 - list ESP commands  WEBNOAUTH
