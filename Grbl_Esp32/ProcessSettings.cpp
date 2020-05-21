@@ -200,23 +200,38 @@ err_t sleep_grbl(const char* value, uint8_t client) {
     return STATUS_OK;
 }
 err_t get_report_build_info(const char* value, uint8_t client) {
-    char line[128];
-    settings_read_build_info(line);
-    report_build_info(line, client);
-    return STATUS_OK;
+    if (*value == '\0') {
+        char line[128];
+        settings_read_build_info(line);
+        report_build_info(line, client);
+        return STATUS_OK;
+    }
+    #ifdef ENABLE_BUILD_INFO_WRITE_COMMAND
+        settings_store_build_info(value);
+        return STATUS_OK;
+    #else
+        return STATUS_INVALID_STATEMENT;
+    #endif
 }
 err_t report_startup_lines(const char* value, uint8_t client) {
     report_startup_line(0, startup_line_0->get(), client);
     report_startup_line(1, startup_line_1->get(), client);
     return STATUS_OK;
 }
+
 std::map<const char*, uint8_t, cmp_str> restoreCommands = {
-    { "$", SETTINGS_RESTORE_DEFAULTS },
-    { "settings", SETTINGS_RESTORE_DEFAULTS },
-    { "#", SETTINGS_RESTORE_PARAMETERS },
-    { "gcode", SETTINGS_RESTORE_PARAMETERS },
-    { "*", SETTINGS_RESTORE_ALL },
-    { "all", SETTINGS_RESTORE_ALL },
+    #ifdef ENABLE_RESTORE_EEPROM_DEFAULT_SETTINGS
+        { "$", SETTINGS_RESTORE_DEFAULTS },
+        { "settings", SETTINGS_RESTORE_DEFAULTS },
+    #endif
+    #ifdef ENABLE_RESTORE_EEPROM_CLEAR_PARAMETERS
+        { "#", SETTINGS_RESTORE_PARAMETERS },
+        { "gcode", SETTINGS_RESTORE_PARAMETERS },
+    #endif
+    #ifdef ENABLE_RESTORE_EEPROM_WIPE_ALL
+        { "*", SETTINGS_RESTORE_ALL },
+        { "all", SETTINGS_RESTORE_ALL },
+    #endif
     { "@", SETTINGS_RESTORE_WIFI_SETTINGS },
     { "wifi", SETTINGS_RESTORE_WIFI_SETTINGS },
 };
@@ -246,12 +261,20 @@ void make_grbl_commands() {
     new GrblCommand( "X",   "disableAlarmLock", disable_alarm_lock );
     new GrblCommand( "#",   "reportNgc", report_ngc );
     new GrblCommand( "H",   "homeAll", home_all );
-    new GrblCommand( "HX",  "homeX", home_x );
-    new GrblCommand( "HY",  "homeY", home_y );
-    new GrblCommand( "HZ",  "homeZ", home_z );
-    new GrblCommand( "HA",  "homeA", home_a );
-    new GrblCommand( "HB",  "homeB", home_b );
-    new GrblCommand( "HC",  "homeC", home_c );
+    #ifdef HOMING_SINGLE_AXIS_COMMANDS
+        new GrblCommand( "HX",  "homeX", home_x );
+        new GrblCommand( "HY",  "homeY", home_y );
+        new GrblCommand( "HZ",  "homeZ", home_z );
+        #if (N_AXIS > 3)
+            new GrblCommand( "HA",  "homeA", home_a );
+        #endif
+        #if (N_AXIS > 4)
+            new GrblCommand( "HB",  "homeB", home_b );
+        #endif
+        #if (N_AXIS > 5)
+            new GrblCommand( "HC",  "homeC", home_c );
+        #endif
+    #endif
     new GrblCommand( "SLP", "sleep", sleep_grbl );
     new GrblCommand( "I",   "showBuild", get_report_build_info );
     new GrblCommand( "N",   "showStartupLines", report_startup_lines );
