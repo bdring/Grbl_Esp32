@@ -53,6 +53,7 @@ extern void make_grbl_commands();
 extern void make_web_settings();
 void settings_init()
 {
+    EEPROM.begin(EEPROM_SIZE);
     make_settings();
     make_web_settings();
     make_grbl_commands();
