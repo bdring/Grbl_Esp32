@@ -48,7 +48,7 @@ void settings_write_coord_data(uint8_t coord_select, float* coord_data) {
 
 // Method to store build info into EEPROM
 // NOTE: This function can only be called in IDLE state.
-void settings_store_build_info(char* line) {
+void settings_store_build_info(const char* line) {
     // Build info can only be stored when state is IDLE.
     memcpy_to_eeprom_with_checksum(EEPROM_ADDR_BUILD_INFO, (char*)line, LINE_BUFFER_SIZE);
 }

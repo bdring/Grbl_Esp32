@@ -66,7 +66,7 @@ void settings_restore(uint8_t restore_flag);
 void write_global_settings();
 
 uint8_t settings_read_build_info(char* line);
-void settings_store_build_info(char* line);
+void settings_store_build_info(const char* line);
 
 // Writes selected coordinate data to EEPROM
 void settings_write_coord_data(uint8_t coord_select, float* coord_data);
