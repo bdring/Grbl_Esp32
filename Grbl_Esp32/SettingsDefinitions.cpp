@@ -154,6 +154,19 @@ static const char *makename(const char *axisName, const char *tail) {
     return strcat(retval, tail);
 }
 
+static bool checkStartupLine(char* value) {
+    // Modify the string in place to make it upper case,
+    // because Grbl is case-insensitive for GCode, but it is
+    // done by modifying incoming lines before interpretation.
+    for (char* s = value; *s; s++) {
+        char c = *s;
+        if (islower(c)) {
+            *s = toupper(c);
+        }
+    }
+    return gc_execute_line(value, CLIENT_SERIAL) == 0;
+}
+
 // Generates a string like "122" from axisNum 2 and base 120
 static const char *makeGrblName(int axisNum, int base) {
     // To omit A,B,C axes:
@@ -168,8 +181,8 @@ void make_settings()
 {
     Setting::init();
 
-    // The following horrid code accomodates people who insist that axis settings
-    // be grouped by setting type rather than by axis.
+    // Create the axis settings in the order that people are
+    // accustomed to seeing.
     int axis;
     axis_defaults_t* def;
     for (axis = 0; axis < N_AXIS; axis++) {
@@ -230,7 +243,6 @@ void make_settings()
         setting->setAxis(axis);
         axis_settings[axis]->steps_per_mm = setting;
     }
-    // End of horrid code
 
     // Spindle Settings
     spindle_pwm_max_value = new FloatSetting(EXTENDED, "36", "SpindleMaxPWM", DEFAULT_SPINDLE_MAX_VALUE, 0.0, 100.0);
@@ -240,8 +252,8 @@ void make_settings()
     spindle_type = new EnumSetting(NULL, EXTENDED, "33", "SpindleType", SPINDLE_TYPE_NONE, &spindleTypes);
 
     // GRBL Non-numbered settings
-    startup_line_0 = new StringSetting(GRBL, NULL, "N0", "");
-    startup_line_1 = new StringSetting(GRBL, NULL, "N1", "");
+    startup_line_0 = new StringSetting(GRBL, NULL, "N0", "", checkStartupLine);
+    startup_line_1 = new StringSetting(GRBL, NULL, "N1", "", checkStartupLine);
 
     // GRBL Numbered Settings
     laser_mode = new FlagSetting(GRBL, "32", "LaserMode", DEFAULT_LASER_MODE);

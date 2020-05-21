@@ -81,7 +81,7 @@ protected:
     axis_t _axis = NO_AXIS;
     Setting *link;  // linked list of setting objects
 
-    bool (*_checker)(const char *);
+    bool (*_checker)(char *);
     const char* _keyName;
 public:
     static void init();
@@ -89,7 +89,7 @@ public:
     Setting* next() { return link; }
 
     // Returns true on error
-    bool check(const char *s) {
+    bool check(char *s) {
         return _checker ? !_checker(s) : false;
     }
 
@@ -100,7 +100,7 @@ public:
     }
 
     ~Setting() {}
-    Setting(const char *description, group_t group, const char * grblName, const char* fullName, bool (*checker)(const char *));
+    Setting(const char *description, group_t group, const char * grblName, const char* fullName, bool (*checker)(char *));
     group_t getGroup() { return _group; }
     axis_t getAxis() { return _axis; }
     void setAxis(axis_t axis) { _axis = axis; }
@@ -115,7 +115,7 @@ public:
     // Derived classes may override it to do something.
     virtual void addWebui(JSONencoder *) {};
 
-    virtual err_t setStringValue(const char* value) =0;
+    virtual err_t setStringValue(char* value) =0;
     err_t setStringValue(string s) {  return setStringValue(s.c_str());  }
     virtual const char* getStringValue() =0;
 };
@@ -129,16 +129,16 @@ private:
     int32_t _maxValue;
 
 public:
-    IntSetting(const char *description, group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *));
+    IntSetting(const char *description, group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(char *));
 
-    IntSetting(group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(const char *) = NULL)
+    IntSetting(group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(char *) = NULL)
         : IntSetting(NULL, group, grblName, name, defVal, minVal, maxVal, checker)
     { }
 
     void load();
     void setDefault();
     void addWebui(JSONencoder *);
-    err_t setStringValue(const char* value);
+    err_t setStringValue(char* value);
     const char* getStringValue();
 
     int32_t get() {  return _currentValue;  }
@@ -152,9 +152,9 @@ private:
     float _minValue;
     float _maxValue;
 public:
-    FloatSetting(const char *description, group_t group, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(const char *));
+    FloatSetting(const char *description, group_t group, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(char *));
 
-    FloatSetting(group_t group, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(const char *) = NULL)
+    FloatSetting(group_t group, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(char *) = NULL)
         : FloatSetting(NULL, group, grblName, name, defVal, minVal, maxVal, checker)
     { }
 
@@ -162,7 +162,7 @@ public:
     void setDefault();
     // There are no Float settings in WebUI
     void addWebui(JSONencoder *) {}
-    err_t setStringValue(const char* value);
+    err_t setStringValue(char* value);
     const char* getStringValue();
 
     float get() {  return _currentValue;  }
@@ -178,16 +178,16 @@ private:
     int _maxLength;
     void _setStoredValue(const char *s);
 public:
-    StringSetting(const char *description, group_t group, const char* grblName, const char* name, const char* defVal, int min, int max, bool (*checker)(const char *));
+    StringSetting(const char *description, group_t group, const char* grblName, const char* name, const char* defVal, int min, int max, bool (*checker)(char *));
 
-    StringSetting(group_t group, const char* grblName, const char* name, const char* defVal, bool (*checker)(const char *) = NULL)
+    StringSetting(group_t group, const char* grblName, const char* name, const char* defVal, bool (*checker)(char *) = NULL)
         : StringSetting(NULL, group, grblName, name, defVal, 0, 0, checker)
     { };
 
     void load();
     void setDefault();
     void addWebui(JSONencoder *);
-    err_t setStringValue(const char* value);
+    err_t setStringValue(char* value);
     const char* getStringValue();
 
     const char* get() { return _currentValue.c_str();  }
@@ -217,7 +217,7 @@ public:
     void load();
     void setDefault();
     void addWebui(JSONencoder *);
-    err_t setStringValue(const char* value);
+    err_t setStringValue(char* value);
     const char* getStringValue();
 
     int8_t get() { return _currentValue;  }
@@ -229,8 +229,8 @@ private:
     int8_t _storedValue;
     bool _currentValue;
 public:
-    FlagSetting(const char *description, group_t group, const char* grblName, const char* name, bool defVal, bool (*checker)(const char *));
-    FlagSetting(group_t group, const char* grblName, const char* name, bool defVal, bool (*checker)(const char *) = NULL)
+    FlagSetting(const char *description, group_t group, const char* grblName, const char* name, bool defVal, bool (*checker)(char *));
+    FlagSetting(group_t group, const char* grblName, const char* name, bool defVal, bool (*checker)(char *) = NULL)
         : FlagSetting(NULL, group, grblName, name, defVal, checker)
     { }
 
@@ -239,7 +239,7 @@ public:
     // There are no Flag settings in WebUI
     // The booleans are expressed as Enums
     void addWebui(JSONencoder *) {}
-    err_t setStringValue(const char* value);
+    err_t setStringValue(char* value);
     const char* getStringValue();
 
     bool get() {  return _currentValue;  }
@@ -252,13 +252,13 @@ private:
     uint32_t _storedValue;
 
 public:
-    IPaddrSetting(const char *description, group_t group, const char * grblName, const char* name, uint32_t defVal, bool (*checker)(const char *));
-    IPaddrSetting(const char *description, group_t group, const char * grblName, const char* name, const char *defVal, bool (*checker)(const char *));
+    IPaddrSetting(const char *description, group_t group, const char * grblName, const char* name, uint32_t defVal, bool (*checker)(char *));
+    IPaddrSetting(const char *description, group_t group, const char * grblName, const char* name, const char *defVal, bool (*checker)(char *));
 
     void load();
     void setDefault();
     void addWebui(JSONencoder *);
-    err_t setStringValue(const char* value);
+    err_t setStringValue(char* value);
     const char* getStringValue();
 
     uint32_t get() {  return _currentValue;  }
@@ -290,13 +290,20 @@ class WebCommand : public Command {
     err_t action(char* value, ESPResponseStream* response);
 };
 
+enum {
+  ANY_STATE = false,
+  IDLE_OR_ALARM = true,
+};
+
 class GrblCommand : public Command {
     private:
         err_t (*_action)(const char *, uint8_t);
+        bool _idleOnly;
     public:
-GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, uint8_t)) :
-        Command(NULL, GRBLCMD, grblName, name),
-        _action(action)
+    GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, uint8_t), bool idleOnly)
+      : Command(NULL, GRBLCMD, grblName, name)
+      , _action(action)
+     , _idleOnly(idleOnly)
     {}
     err_t action(char* value, ESPResponseStream* response);
 };

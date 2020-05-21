@@ -200,7 +200,7 @@ err_t sleep_grbl(const char* value, uint8_t client) {
     return STATUS_OK;
 }
 err_t get_report_build_info(const char* value, uint8_t client) {
-    if (*value == '\0') {
+    if (!value) {
         char line[128];
         settings_read_build_info(line);
         report_build_info(line, client);
@@ -236,6 +236,9 @@ std::map<const char*, uint8_t, cmp_str> restoreCommands = {
     { "wifi", SETTINGS_RESTORE_WIFI_SETTINGS },
 };
 err_t restore_settings(const char* value, uint8_t client) {
+    if (!value) {
+        return STATUS_INVALID_STATEMENT;
+    }
     auto it = restoreCommands.find(value);
     if (it == restoreCommands.end()) {
         return STATUS_INVALID_STATEMENT;
@@ -250,37 +253,36 @@ err_t restore_settings(const char* value, uint8_t client) {
 // to performing some system state change.  Each command is responsible
 // for decoding its own value string, if it needs one.
 void make_grbl_commands() {
-    new GrblCommand( "",    "showGrblHelp", show_grbl_help );
-    new GrblCommand( "$",   "showGrblSettings", report_normal_settings );
-    new GrblCommand( "+",   "showExtendedSettings", report_extended_settings );
-    new GrblCommand( "S",   "showSettings",  list_settings );
-    new GrblCommand( "G",   "showGCodeModes", report_gcode );
-    new GrblCommand( "C",   "toggleCheckMode", toggle_check_mode );
-    new GrblCommand( "NVX", "eraseNVS",        Setting::eraseNVS );
-    new GrblCommand( "V",   "showNvsStats",    report_nvs_stats );
-    new GrblCommand( "X",   "disableAlarmLock", disable_alarm_lock );
-    new GrblCommand( "#",   "reportNgc", report_ngc );
-    new GrblCommand( "H",   "homeAll", home_all );
+    new GrblCommand("",    "showGrblHelp", show_grbl_help, ANY_STATE);
+    new GrblCommand("$",   "showGrblSettings", report_normal_settings, ANY_STATE);
+    new GrblCommand("+",   "showExtendedSettings", report_extended_settings, ANY_STATE);
+    new GrblCommand("S",   "showSettings",  list_settings, ANY_STATE);
+    new GrblCommand("G",   "showGCodeModes", report_gcode, ANY_STATE);
+    new GrblCommand("C",   "toggleCheckMode", toggle_check_mode, ANY_STATE);
+    new GrblCommand("X",   "disableAlarmLock", disable_alarm_lock, ANY_STATE);
+    new GrblCommand("NVX", "eraseNVS",        Setting::eraseNVS, IDLE_OR_ALARM);
+    new GrblCommand("V",   "showNvsStats",    report_nvs_stats, IDLE_OR_ALARM);
+    new GrblCommand("#",   "reportNgc", report_ngc, IDLE_OR_ALARM);
+    new GrblCommand("H",   "homeAll", home_all, IDLE_OR_ALARM);
     #ifdef HOMING_SINGLE_AXIS_COMMANDS
-        new GrblCommand( "HX",  "homeX", home_x );
-        new GrblCommand( "HY",  "homeY", home_y );
-        new GrblCommand( "HZ",  "homeZ", home_z );
+        new GrblCommand("HX",  "homeX", home_x, IDLE_OR_ALARM);
+        new GrblCommand("HY",  "homeY", home_y, IDLE_OR_ALARM);
+        new GrblCommand("HZ",  "homeZ", home_z, IDLE_OR_ALARM);
         #if (N_AXIS > 3)
-            new GrblCommand( "HA",  "homeA", home_a );
+            new GrblCommand("HA",  "homeA", home_a, IDLE_OR_ALARM);
         #endif
         #if (N_AXIS > 4)
-            new GrblCommand( "HB",  "homeB", home_b );
+            new GrblCommand("HB",  "homeB", home_b, IDLE_OR_ALARM);
         #endif
         #if (N_AXIS > 5)
-            new GrblCommand( "HC",  "homeC", home_c );
+            new GrblCommand("HC",  "homeC", home_c, IDLE_OR_ALARM);
         #endif
     #endif
-    new GrblCommand( "SLP", "sleep", sleep_grbl );
-    new GrblCommand( "I",   "showBuild", get_report_build_info );
-    new GrblCommand( "N",   "showStartupLines", report_startup_lines );
-    new GrblCommand( "RST", "restoreSettings", restore_settings );
+    new GrblCommand("SLP", "sleep", sleep_grbl, IDLE_OR_ALARM);
+    new GrblCommand("I",   "showBuild", get_report_build_info, IDLE_OR_ALARM);
+    new GrblCommand("N",   "showStartupLines", report_startup_lines, IDLE_OR_ALARM);
+    new GrblCommand("RST", "restoreSettings", restore_settings, IDLE_OR_ALARM);
 };
-// FIXME See Store startup line [IDLE/ALARM]
 
 // normalize_key puts a key string into canonical form -
 // without whitespace.
@@ -323,12 +325,11 @@ char *normalize_key(char *start) {
 // There is no "out" parameter because this does not
 // generate any output; it just returns status
 err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out) {
-    // If value is NULL, set it to the empty string to simplify
-    // subsequent tests.
-    char empty[] = { '\0' };
-    if (!value) {
-        value = empty;
-    }
+    // If value is NULL, it means that there was no value string, i.e.
+    // $key without =, or [key] with nothing following.
+    // If value is not NULL, but the string is empty, that is the form
+    // $key= with nothing following the = .  It is important to distinguish
+    // those cases so that you can say "$N0=" to clear a startup line.
     // First search the list of settings.  If found, set a new
     // value if one is given, otherwise display the current value
     for (Setting *s = Setting::List; s; s = s->next()) {
@@ -337,7 +338,7 @@ err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out
             && strcasecmp(s->getGrblName(), key) == 0
            )
          ) {
-            if (*value) {
+            if (value) {
                 return s->setStringValue(value);
             } else {
                 grbl_sendf(out->client(), "$%s=%s\n", s->getName(), s->getStringValue());
@@ -369,9 +370,12 @@ uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authentica
             // Missing ] is an error in this form
             return STATUS_INVALID_STATEMENT;
         }
-        // ']' was found; replace it with null and set value to
-        // to the rest of the line, which might be empty
+        // ']' was found; replace it with null and set value to the rest of the line.
         *value++ = '\0';
+        // If the rest of the line is empty, replace value with NULL.
+        if (*value == '\0') {
+            value = NULL;
+        }
     } else {
         // $xxx form
         value = strrchr(line, '=');
@@ -383,7 +387,8 @@ uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authentica
     char *key = normalize_key(line);
     // At this point there are three possibilities for value
     // NULL - $xxx without =
-    // empty string - [ESPxxx] or $xxx= with nothing after
+    // NULL - [ESPxxx] with nothing after ]
+    // empty string - $xxx= with nothing after
     // non-empty string - [ESPxxx]yyy or $xxx=yyy
     return do_command_or_setting(key, value, out);
 }
