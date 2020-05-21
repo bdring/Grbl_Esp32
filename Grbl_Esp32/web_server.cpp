@@ -508,7 +508,7 @@ void Web_Server::_handle_web_command (bool silent)
         String scmd;
         const char *res = "";
         uint8_t sindex = 0;
-        // XXX this is very inefficient.  get_Splited_Value() is O(n^2)
+        // TODO Settings - this is very inefficient.  get_Splited_Value() is O(n^2)
         // when it could easily be O(n).  Also, it would be just as easy to push
         // the entire string into Serial2Socket and pull off lines from there.
         for (uint8_t sindex = 0;
@@ -1306,6 +1306,7 @@ void Web_Server::handle_direct_SDFileList()
             list_files = false;
         }
     }
+    // TODO Settings - consider using the JSONEncoder class
     String jsonfile = "{" ;
     jsonfile+="\"files\":[";
 

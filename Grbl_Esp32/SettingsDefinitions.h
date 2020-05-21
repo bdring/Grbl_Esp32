@@ -20,7 +20,6 @@ extern IntSetting* stepper_idle_lock_time;
 
 extern IntSetting* step_invert_mask;
 extern IntSetting* dir_invert_mask;
-// XXX need to call st_generate_step_invert_masks;
 extern IntSetting* homing_dir_mask;
 
 extern FlagSetting* step_enable_invert;
@@ -28,13 +27,9 @@ extern FlagSetting* limit_invert;
 extern FlagSetting* probe_invert;
 extern FlagSetting* report_inches;
 extern FlagSetting* soft_limits;
-// XXX need to check for HOMING_ENABLE
 extern FlagSetting* hard_limits;
-// XXX need to call limits_init;
 extern FlagSetting* homing_enable;
-// XXX also need to clear, but not set, soft_limits
 extern FlagSetting* laser_mode;
-// XXX also need to call my_spindle->init;
 
 extern IntSetting* status_mask;
 extern FloatSetting* junction_deviation;
@@ -57,15 +52,12 @@ extern EnumSetting* spindle_type;
 
 extern StringSetting* wifi_sta_ssid;
 extern StringSetting* wifi_sta_password;
-// XXX hack StringSetting class to return a ***** password if checker is isPasswordValid
 
 #ifdef ENABLE_WIFI
 extern EnumSetting*   wifi_sta_mode;
 extern IPaddrSetting* wifi_sta_ip;
 extern IPaddrSetting* wifi_sta_gateway;
 extern IPaddrSetting* wifi_sta_netmask;
-
-//XXX for compatibility, implement wifi_sta_ip_gw_mk;
 
 extern StringSetting* wifi_ap_ssid;
 extern StringSetting* wifi_ap_password;
@@ -90,7 +82,7 @@ extern StringSetting* bt_name;
 #endif
 
 #ifdef ENABLE_AUTHENTICATION
-// XXX need ADMIN_ONLY and if it is called without a parameter it sets the default
+// TODO Settings - need ADMIN_ONLY and if it is called without a parameter it sets the default
 extern StringSetting* user_password;
 extern StringSetting* admin_password;
 #endif

@@ -12,7 +12,7 @@ IntSetting* stepper_idle_lock_time;
 
 IntSetting* step_invert_mask;
 IntSetting* dir_invert_mask;
-// XXX need to call st_generate_step_invert_masks;
+// TODO Settings - need to call st_generate_step_invert_masks;
 IntSetting* homing_dir_mask;
 
 FlagSetting* step_enable_invert;
@@ -20,13 +20,13 @@ FlagSetting* limit_invert;
 FlagSetting* probe_invert;
 FlagSetting* report_inches;
 FlagSetting* soft_limits;
-// XXX need to check for HOMING_ENABLE
+// TODO Settings - need to check for HOMING_ENABLE
 FlagSetting* hard_limits;
-// XXX need to call limits_init;
+// TODO Settings - need to call limits_init;
 FlagSetting* homing_enable;
-// XXX also need to clear, but not set, soft_limits
+// TODO Settings - also need to clear, but not set, soft_limits
 FlagSetting* laser_mode;
-// XXX also need to call my_spindle->init;
+// TODO Settings - also need to call my_spindle->init;
 
 IntSetting* status_mask;
 FloatSetting* junction_deviation;
@@ -257,7 +257,7 @@ void make_settings()
 
     // GRBL Numbered Settings
     laser_mode = new FlagSetting(GRBL, "32", "LaserMode", DEFAULT_LASER_MODE);
-    // XXX also need to call my_spindle->init();
+    // TODO Settings - also need to call my_spindle->init();
     rpm_min = new FloatSetting(GRBL, "31", "RpmMin", DEFAULT_SPINDLE_RPM_MIN, 0, 100000);
     rpm_max = new FloatSetting(GRBL, "30", "RpmMax", DEFAULT_SPINDLE_RPM_MAX, 0, 100000);
 
@@ -267,16 +267,16 @@ void make_settings()
     homing_seek_rate = new FloatSetting(GRBL, "25", "HomingSeek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
     homing_feed_rate = new FloatSetting(GRBL, "24", "HomingFeed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
 
-    // XXX need to call st_generate_step_invert_masks()
+    // TODO Settings - need to call st_generate_step_invert_masks()
     homing_dir_mask = new IntSetting(GRBL, "23", "HomingDirInvertMask", DEFAULT_HOMING_DIR_MASK, 0, (1<<MAX_N_AXIS)-1);
-    // XXX need to call limits_init();
+    // TODO Settings - need to call limits_init();
     homing_enable = new FlagSetting(GRBL, "22", "HomingEnable", DEFAULT_HOMING_ENABLE);
-    // XXX need to check for HOMING_ENABLE
+    // TODO Settings - need to check for HOMING_ENABLE
     hard_limits = new FlagSetting(GRBL, "21", "HardLimits", DEFAULT_HARD_LIMIT_ENABLE);
     soft_limits = new FlagSetting(GRBL, "20", "SoftLimits", DEFAULT_SOFT_LIMIT_ENABLE, NULL);
 
     report_inches = new FlagSetting(GRBL, "13", "ReportInches", DEFAULT_REPORT_INCHES);
-    // XXX also need to clear, but not set, soft_limits
+    // TODO Settings - also need to clear, but not set, soft_limits
     arc_tolerance = new FloatSetting(GRBL, "12", "ArcTolerance", DEFAULT_ARC_TOLERANCE, 0, 1);
     junction_deviation = new FloatSetting(GRBL, "11", "JunctionDeviation", DEFAULT_JUNCTION_DEVIATION, 0, 10);
     status_mask = new IntSetting(GRBL, "10", "StatusMask", DEFAULT_STATUS_REPORT_MASK, 0, 2);

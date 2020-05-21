@@ -14,15 +14,12 @@ void make_web_settings() {}
 
 StringSetting* wifi_sta_ssid;
 StringSetting* wifi_sta_password;
-// XXX hack StringSetting class to return a ***** password if checker is isPasswordValid
 
 #ifdef ENABLE_WIFI
 EnumSetting*   wifi_sta_mode;
 IPaddrSetting* wifi_sta_ip;
 IPaddrSetting* wifi_sta_gateway;
 IPaddrSetting* wifi_sta_netmask;
-
-//XXX for compatibility, implement wifi_sta_ip_gw_mk;
 
 StringSetting* wifi_ap_ssid;
 StringSetting* wifi_ap_password;
@@ -68,7 +65,7 @@ StringSetting* bt_name;
 #endif
 
 #ifdef ENABLE_AUTHENTICATION
-// XXX need ADMIN_ONLY and if it is called without a parameter it sets the default
+// TODO Settings - need ADMIN_ONLY and if it is called without a parameter it sets the default
 StringSetting* user_password;
 StringSetting* admin_password;
 #endif
@@ -133,7 +130,7 @@ err_t WebCommand::action(char* value, ESPResponseStream* out) {
         value = &empty;
     }
     espresponse = out;
-    // TODO authenticate
+    // TODO Settings - authenticate
     password = remove_password(value);
     #ifdef ENABLE_AUTHENTICATION
         switch (_group) {
@@ -255,7 +252,7 @@ static err_t runFile(char *parameter) { // ESP700
         currentline.replace("\n", "");
         currentline.replace("\r", "");
         if (currentline.length() > 0) {
-            // TODO feed into command interpreter
+            // TODO Settings - feed into command interpreter
             // while accumulating error codes
         }
     }
@@ -422,7 +419,6 @@ static err_t getSysStats(char *parameter) { // ESP420
     }
     webPrintln("");
 #endif
-    //TODO to complete
     webPrint("FW version: ");
     webPrint(GRBL_VERSION);
     webPrint(" (");
@@ -796,7 +792,7 @@ void make_web_settings()
 {
 
     #ifdef ENABLE_AUTHENTICATION
-        // XXX need ADMIN_ONLY and if it is called without a parameter it sets the default
+        // TODO Settings - need ADMIN_ONLY and if it is called without a parameter it sets the default
         admin_password = new StringSetting(WEBUI, NULL, "AdminPwd", DEFAULT_ADMIN_PWD, isLocalPasswordValid);
         user_password = new StringSetting(WEBUI, NULL, "UserPwd", DEFAULT_USER_PWD, isLocalPasswordValid);
     #endif
@@ -826,8 +822,7 @@ void make_web_settings()
     new WebCommand("Set STA IP/Mask/GW", WEBCMDWA, "ESP103", "getSetStaParams", getSetStaParams);
 // If authentication enabled, display_settings skips or displays <Authentication Required>
 
-// TODO ESP or ESP0 - list ESP commands  WEBNOAUTH
-// TODO ESP800 Get info,          no auth to get, no set  WEBAUTH with erroring set method
+// TODO Settings - ESP or ESP0 - list ESP commands  WEBNOAUTH
 
     // WebUI Settings
     // Standard WEBUI authentication is user+ to get, admin to set unless otherwise specified

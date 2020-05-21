@@ -24,8 +24,6 @@ void settings_restore(uint8_t restore_flag) {
                 }
             }
         }
-        //transfer_settings();
-        // TODO commit changes
     }
     if (restore_flag & SETTINGS_RESTORE_PARAMETERS) {
         uint8_t idx;
@@ -60,7 +58,7 @@ void settings_init()
     load_settings();
 }
 
-// FIXME - jog may need to be special-cased in the parser, since
+// TODO Settings - jog may need to be special-cased in the parser, since
 // it is not really a setting and the entire line needs to be
 // sent to gc_execute_line.  It is probably also more time-critical
 // than actual settings, which change infrequently, so handling

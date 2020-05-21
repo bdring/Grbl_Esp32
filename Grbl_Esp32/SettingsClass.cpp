@@ -52,7 +52,6 @@ Setting::Setting(const char* description, group_t group, const char* grblName, c
 nvs_handle Setting::_handle = 0;
 
 void Setting::init() {
-    // XXX Move this to Setting::init()
     if (!_handle) {
         if (esp_err_t err = nvs_open("Grbl_ESP32", NVS_READWRITE, &_handle)) {
             grbl_sendf(CLIENT_SERIAL, "nvs_open failed with error %d\r\n", err);
