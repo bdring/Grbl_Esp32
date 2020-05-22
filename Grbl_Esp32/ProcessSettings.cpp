@@ -252,9 +252,9 @@ err_t restore_settings(const char* value, uint8_t client) {
 // for decoding its own value string, if it needs one.
 void make_grbl_commands() {
     new GrblCommand("",    "showGrblHelp", show_grbl_help, ANY_STATE);
-    new GrblCommand("$",   "showGrblSettings", report_normal_settings, ANY_STATE);
-    new GrblCommand("+",   "showExtendedSettings", report_extended_settings, ANY_STATE);
-    new GrblCommand("S",   "showSettings",  list_settings, ANY_STATE);
+    new GrblCommand("$",   "showGrblSettings", report_normal_settings, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("+",   "showExtendedSettings", report_extended_settings, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("S",   "showSettings",  list_settings, NOT_CYCLE_OR_HOLD);
     new GrblCommand("G",   "showGCodeModes", report_gcode, ANY_STATE);
     new GrblCommand("C",   "toggleCheckMode", toggle_check_mode, ANY_STATE);
     new GrblCommand("X",   "disableAlarmLock", disable_alarm_lock, ANY_STATE);

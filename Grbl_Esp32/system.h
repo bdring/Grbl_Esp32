@@ -196,7 +196,7 @@ void system_clear_exec_accessory_overrides();
 void system_execute_startup(char* line);
 uint8_t system_execute_line(char* line, ESPResponseStream*, level_authenticate_type);
 uint8_t system_execute_line(char* line, uint8_t client);
-err_t do_command_or_setting(const char *key, char *value, ESPResponseStream*);
+uint8_t do_command_or_setting(const char *key, char *value, ESPResponseStream*);
 void system_flag_wco_change();
 
 // Returns machine position of axis 'idx'. Must be sent a 'step' array.

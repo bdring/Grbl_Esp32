@@ -1,5 +1,6 @@
 #pragma once
 #include "report.h"
+#include "system.h"
 #include "JSONencoder.h"
 #include <cstring>
 #include <map>
@@ -288,19 +289,20 @@ class WebCommand : public Command {
 };
 
 enum {
-  ANY_STATE = false,
-  IDLE_OR_ALARM = true,
+  ANY_STATE = 0,
+  IDLE_OR_ALARM = ~STATE_IDLE,
+  NOT_CYCLE_OR_HOLD = (STATE_CYCLE | STATE_HOLD),
 };
 
 class GrblCommand : public Command {
     private:
         err_t (*_action)(const char *, uint8_t);
-        bool _idleOnly;
+        uint8_t _disallowedStates;
     public:
-    GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, uint8_t), bool idleOnly)
+    GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, uint8_t), uint8_t disallowedStates)
       : Command(NULL, GRBLCMD, grblName, name)
       , _action(action)
-     , _idleOnly(idleOnly)
+      , _disallowedStates(disallowedStates)
     {}
     err_t action(char* value, ESPResponseStream* response);
 };
