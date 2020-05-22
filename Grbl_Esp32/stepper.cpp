@@ -632,9 +632,7 @@ void initRMT() {
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void st_wake_up() {
-#ifdef ESP_DEBUG
-    //Serial.println("st_wake_up()");
-#endif
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "st_wake_up");
     // Enable stepper drivers.
     set_stepper_disable(false);
     stepper_idle = false;
@@ -850,18 +848,23 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
 void st_go_idle() {
     // Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
     Stepper_Timer_Stop();
-    busy = false;
-    bool pin_state = false;
+    busy = false;    
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
     if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm || sys.state == STATE_SLEEP) && sys.state != STATE_HOMING) {
         // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
         // stop and not drift from residual inertial forces at the end of the last movement.
-        stepper_idle = true; // esp32 work around for disable in main loop
-        stepper_idle_counter = esp_timer_get_time() + (stepper_idle_lock_time->get() * 1000); // * 1000 because the time is in uSecs
-        //vTaskDelay(stepper_idle_lock_time->get() / portTICK_PERIOD_MS);	// this probably does not work when called from ISR
-        //pin_state = true;
+
+        if (sys.state == STATE_SLEEP || sys_rt_exec_alarm) {
+            set_stepper_disable(true);
+        } else {
+            stepper_idle = true; // esp32 work around for disable in main loop
+            stepper_idle_counter = esp_timer_get_time() + (stepper_idle_lock_time->get() * 1000); // * 1000 because the time is in uSecs
+            // after idle countdown will be disabled in protocol loop
+        }
+        
     } else
-        set_stepper_disable(pin_state);
+        set_stepper_disable(false);
+
     set_stepper_pins_on(0);
 }
 
