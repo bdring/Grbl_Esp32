@@ -49,6 +49,16 @@ Setting::Setting(const char* description, group_t group, const char* grblName, c
     }
 }
 
+err_t Setting::check(char *s) {
+    if (sys.state != STATE_IDLE && !(sys.state & STATE_ALARM)) {
+        return STATUS_IDLE_ERROR;
+    }
+    if (!_checker) {
+        return STATUS_OK;
+    }
+    return _checker(s) ? STATUS_OK : STATUS_INVALID_VALUE;
+}
+
 nvs_handle Setting::_handle = 0;
 
 void Setting::init() {
@@ -85,8 +95,8 @@ void IntSetting::setDefault() {
 }
 
 err_t IntSetting::setStringValue(char* s) {
-    if (check(s)) {
-        return STATUS_INVALID_VALUE;
+    if (err_t err = check(s)) {
+        return err;
     }
     int32_t convertedValue;
     try {
@@ -151,8 +161,8 @@ void FloatSetting::setDefault() {
 }
 
 err_t FloatSetting::setStringValue(char* s) {
-    if (check(s)) {
-      return STATUS_INVALID_VALUE;
+    if (err_t err = check(s)) {
+        return err;
     }
 
     float convertedValue;
@@ -241,8 +251,8 @@ err_t StringSetting::setStringValue(char* s) {
     if (_minLength && _maxLength && (strlen(s) < _minLength || strlen(s) > _maxLength)) {
         return STATUS_BAD_NUMBER_FORMAT;
     }
-    if (check(s)) {
-        return STATUS_INVALID_VALUE;
+    if (err_t err = check(s)) {
+        return err;
     }
    _currentValue = s;
     if (_storedValue != _currentValue) {
@@ -435,8 +445,8 @@ void IPaddrSetting::setDefault() {
 }
 
 err_t IPaddrSetting::setStringValue(char* s) {
-    if (check(s)) {
-        return STATUS_INVALID_VALUE;
+    if (err_t err = check(s)) {
+        return err;
     }
     IPAddress ipaddr;
     if (!ipaddr.fromString(s)) {

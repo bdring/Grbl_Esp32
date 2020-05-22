@@ -88,10 +88,7 @@ public:
     static Setting* List;
     Setting* next() { return link; }
 
-    // Returns true on error
-    bool check(char *s) {
-        return _checker ? !_checker(s) : false;
-    }
+    err_t check(char *s);
 
     static err_t eraseNVS(const char* value, uint8_t client) {
         nvs_erase_all(_handle);

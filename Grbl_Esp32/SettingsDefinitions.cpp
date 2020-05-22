@@ -155,16 +155,21 @@ static const char *makename(const char *axisName, const char *tail) {
 }
 
 static bool checkStartupLine(char* value) {
-    // Modify the string in place to make it upper case,
-    // because Grbl is case-insensitive for GCode, but it is
-    // done by modifying incoming lines before interpretation.
+    if (sys.state != STATE_IDLE) {
+        return STATUS_IDLE_ERROR;
+    }
+    // Modify the string in place in the same way that the
+    // line reader modifies GCode lines.
+    char* p = value;
     for (char* s = value; *s; s++) {
         char c = *s;
-        if (islower(c)) {
-            *s = toupper(c);
+        if (!isspace(c)) {
+            *p++ = islower(c) ? toupper(c) : c;
         }
     }
-    return gc_execute_line(value, CLIENT_SERIAL) == 0;
+    *p++ = '\0';
+    err_t err = gc_execute_line(value, CLIENT_SERIAL);
+    return err == 0;
 }
 
 // Generates a string like "122" from axisNum 2 and base 120
