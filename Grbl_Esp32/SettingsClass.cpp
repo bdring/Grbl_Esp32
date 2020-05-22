@@ -485,7 +485,7 @@ void IPaddrSetting::addWebui(JSONencoder *j) {
 {}
 
 err_t GrblCommand::action(char* value, ESPResponseStream* out) {
-    if (_idleOnly && (sys.state != STATE_IDLE || !(sys.state & STATE_ALARM))) {
+    if (_idleOnly && (sys.state != STATE_IDLE && !(sys.state & STATE_ALARM))) {
         return STATUS_IDLE_ERROR;
     }
     return _action((const char*)value, out->client());
