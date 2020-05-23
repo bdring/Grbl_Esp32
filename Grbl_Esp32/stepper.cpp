@@ -779,6 +779,9 @@ void st_reset() {
 #endif
     // Initialize stepper driver idle state.
     st_go_idle();
+#ifdef I2S_STEPPER_STREAM
+    i2s_ioexpander_reset();
+#endif
     // Initialize stepper algorithm variables.
     memset(&prep, 0, sizeof(st_prep_t));
     memset(&st, 0, sizeof(stepper_t));
@@ -1080,9 +1083,6 @@ void st_go_idle() {
     } else
         set_stepper_disable(pin_state);
     set_stepper_pins_on(0);
-#ifdef I2S_STEPPER_STREAM
-    i2s_ioexpander_reset();
-#endif
 }
 
 // Called by planner_recalculate() when the executing block is updated by the new plan.
