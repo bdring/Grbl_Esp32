@@ -195,12 +195,13 @@ static int i2s_gpio_shiftout(uint32_t port_data) {
 
 static int i2s_stop() {
   I2S_ENTER_CRITICAL();
+#ifdef I2S_STEPPER_STREAM
   // Stop FIFO DMA
   I2S0.out_link.stop = 1;
 
   // Disconnect DMA from FIFO
   I2S0.fifo_conf.dscr_en = 0; //Unset this bit to disable I2S DMA mode. (R/W)
-
+#endif
   // stop TX module
   I2S0.conf.tx_start = 0;
 
@@ -220,8 +221,10 @@ static int i2s_stop() {
   uint32_t port_data = atomic_load(&i2s_port_data); // current expanded port value
   i2s_gpio_shiftout(port_data);
 
+#ifdef I2S_STEPPER_STREAM
   //clear pending interrupt
   I2S0.int_clr.val = I2S0.int_st.val;
+#endif
   I2S_EXIT_CRITICAL();
   return 0;
 }
@@ -384,7 +387,7 @@ void IRAM_ATTR i2s_ioexpander_write(uint8_t pin, uint8_t val) {
     atomic_fetch_and(&i2s_port_data, ~bit);
   }
 #ifndef I2S_STEPPER_STREAM
-  I2S0.conf_single_data = atomic_load(&i2s_port_data);
+  I2S0.conf_single_data = atomic_load(&i2s_port_data); // Apply port data in real time
 #endif
 }
 
