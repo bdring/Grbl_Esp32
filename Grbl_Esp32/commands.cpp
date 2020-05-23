@@ -67,47 +67,6 @@ void COMMANDS::wait(uint32_t milliseconds) {
         esp_task_wdt_reset();
 }
 
-bool COMMANDS::execute_internal_command(int cmd, String cmd_params, level_authenticate_type auth_level,  ESPResponseStream*  espresponse) {
-    bool response = true;
-    return response;
-}
-
-
-String COMMANDS::get_param(String& cmd_params, const char* id, bool withspace) {
-    static String parameter;
-    String sid = id;
-    int start;
-    int end = -1;
-    if (cmd_params.indexOf("pwd=") == 0)cmd_params = " " + cmd_params;
-    parameter = "";
-    //if no id it means it is first part of cmd
-    if (strlen(id) == 0)
-        start = 0;
-    //else find id position
-    else
-        start = cmd_params.indexOf(id);
-    //if no id found and not first part leave
-    if (start == -1)
-        return parameter;
-    //password and SSID can have space so handle it
-    //if no space expected use space as delimiter
-    if (!withspace)
-        end = cmd_params.indexOf(" ", start);
-#ifdef ENABLE_AUTHENTICATION
-    //if space expected only one parameter but additional password may be present
-    else if (sid != " pwd=")
-        end = cmd_params.indexOf(" pwd=", start);
-#endif
-    //if no end found - take all
-    if (end == -1)
-        end = cmd_params.length();
-    //extract parameter
-    parameter = cmd_params.substring(start + strlen(id), end);
-    //be sure no extra space
-    parameter.trim();
-    return parameter;
-}
-
 #ifdef ENABLE_AUTHENTICATION
 
 bool COMMANDS::isLocalPasswordValid(const char* password) {
