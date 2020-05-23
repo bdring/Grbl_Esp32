@@ -33,13 +33,10 @@ private:
     int line_flags;
     int comment_char_counter;
 public:
-    GCodePreprocessor(char* _line, int _maxlen)
-        : line(_line)
-        , maxlen(_maxlen)
-        , index(0)
-        , line_flags(0)
-        , comment_char_counter(0)
+    GCodePreprocessor()
     {}
+
+    void begin(char* _line, int _maxlen);
 
     // Returns the length of the preprocessed string
     int end();

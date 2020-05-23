@@ -47,7 +47,9 @@
 */
 
 #include "grbl.h"
-
+#ifdef REPORT_HEAP
+EspClass esp;
+#endif
 #define DEFAULTBUFFERSIZE 64
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
@@ -673,6 +675,10 @@ void report_realtime_status(uint8_t client) {
         sd_get_current_filename(temp);
         strcat(status, temp);
     }
+#endif
+#ifdef REPORT_HEAP
+    sprintf(temp, "|Heap:%d", esp.getHeapSize());
+    strcat(status, temp);
 #endif
     strcat(status, ">\r\n");
     grbl_send(client, status);

@@ -4,6 +4,7 @@
 #include "SettingsDefinitions.h"
 #include "GCodePreprocessor.h"
 #include <map>
+static GCodePreprocessor gcpp;
 void settings_restore(uint8_t restore_flag) {
     #ifdef WIFI_OR_BLUETOOTH
         if (restore_flag & SETTINGS_RESTORE_WIFI_SETTINGS) {
@@ -260,8 +261,8 @@ err_t doJog(const char* value, uint8_t client) {
     }
     char jogLine[LINE_BUFFER_SIZE];
     strcpy(jogLine, "$J=");
-    auto gcpp = new GCodePreprocessor(jogLine+3, LINE_BUFFER_SIZE-3);
-    if (gcpp->convertString(value)) {
+    gcpp.begin(jogLine+3, LINE_BUFFER_SIZE-3);
+    if (gcpp.convertString(value)) {
         return STATUS_INVALID_STATEMENT;
     }
 grbl_sendf(client, "%s\r\n", jogLine);

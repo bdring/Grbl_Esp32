@@ -88,19 +88,20 @@ boolean closeFile() {
  make uppercase
  return true if a line is
 */
+static GCodePreprocessor gcpp;
 boolean readFileLine(char* line, int maxlen) {
     if (!myFile) {
         report_status_message(STATUS_SD_FAILED_READ, SD_client);
         return false;
     }
-    auto gcpp = new GCodePreprocessor(line, maxlen);
+    gcpp.begin(line, maxlen);
     sd_current_line_number += 1;
     while (myFile.available()) {
-        if (gcpp->next(myFile.read())) {
-            return gcpp->end() != maxlen;
+        if (gcpp.next(myFile.read())) {
+            return gcpp.end() != maxlen;
         }
     }
-    return gcpp->end() != 0;
+    return gcpp.end() != 0;
 }
 
 // return a percentage complete 50.5 = 50.5%

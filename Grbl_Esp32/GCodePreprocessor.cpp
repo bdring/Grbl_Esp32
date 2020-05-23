@@ -13,6 +13,14 @@ int GCodePreprocessor::end() {
     return index;
 }
 
+void GCodePreprocessor::begin(char* _line, int _maxlen) {
+    line = _line;
+    maxlen = _maxlen;
+    index = 0;
+    line_flags = 0;
+    comment_char_counter = 0;
+}
+
 // Returns true when a newline is found or no more characters
 // can be added to the string.
 bool GCodePreprocessor::next(char c) {
