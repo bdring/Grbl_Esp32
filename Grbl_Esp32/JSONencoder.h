@@ -1,13 +1,12 @@
 // Class for creating JSON-encoded strings.
 
 #pragma once
-#include <string>
 #define MAX_JSON_LEVEL 16
 class JSONencoder {
   private:
     bool pretty;
     int level;
-    std::string str;
+    String str;
     int count[MAX_JSON_LEVEL];
     void add(char c) { str += c; }
     void comma_line();
@@ -26,11 +25,10 @@ class JSONencoder {
     void begin();
 
     // end() returns the encoded string
-    std::string end();
+    String end();
 
     // member() creates a "tag":"value" element
     void member(const char *tag, const char *value);
-    void member(const char *tag, std::string value);
     void member(const char *tag, String value);
     void member(const char *tag, int value);
 

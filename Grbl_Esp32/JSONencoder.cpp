@@ -3,7 +3,6 @@
 #include "grbl.h"
 
 #include "JSONencoder.h"
-#include <string>
 
 // Constructor.  If _pretty is true, newlines are
 // inserted into the JSON string for easy reading.
@@ -42,7 +41,7 @@ void JSONencoder::comma() {
 void JSONencoder::quoted(const char *s)
 {
     add('"');
-    str.append(s);
+    str.concat(s);
     add('"');
 }
 
@@ -85,7 +84,7 @@ void JSONencoder::begin() {
 
 // Finishes the JSON encoding process, closing the unnamed object
 // and returning the encoded string
-std::string JSONencoder::end() {
+String JSONencoder::end() {
     end_object();
     return str;
 }
@@ -135,12 +134,7 @@ void JSONencoder::member(const char *tag, const char *value) {
     quoted(value);
 }
 
-// Creates a "tag":"value" member from a C++ string
-void JSONencoder::member(const char *tag, std::string value) {
-    begin_member(tag);
-    quoted(value.c_str());
-}
-
+// Creates a "tag":"value" member from an Arduino string
 void JSONencoder::member(const char *tag, String value) {
     begin_member(tag);
     quoted(value.c_str());
@@ -148,7 +142,7 @@ void JSONencoder::member(const char *tag, String value) {
 
 // Creates a "tag":"value" member from an integer
 void JSONencoder::member(const char *tag, int value) {
-    member(tag, std::to_string(value));
+    member(tag, String(value));
 }
 
 // Creates an Esp32_WebUI configuration item specification from
@@ -165,7 +159,7 @@ void JSONencoder::begin_webui(const char *p, const char *help, const char *type,
 // Creates an Esp32_WebUI configuration item specification from
 // an integer value.
 void JSONencoder::begin_webui(const char *p, const char *help, const char *type, int val) {
-    begin_webui(p, help, type, std::to_string(val).c_str());
+    begin_webui(p, help, type, String(val).c_str());
 }
 
 // Creates an Esp32_WebUI configuration item specification from

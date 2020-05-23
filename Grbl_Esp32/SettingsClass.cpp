@@ -2,7 +2,6 @@
 
 #include "SettingsClass.h"
 #include "JSONencoder.h"
-#include <string>
 #include <map>
 #include "nvs.h"
 
@@ -98,11 +97,9 @@ err_t IntSetting::setStringValue(char* s) {
     if (err_t err = check(s)) {
         return err;
     }
-    int32_t convertedValue;
-    try {
-        convertedValue = std::stoi(s);
-    }
-    catch (int e) {
+    char* endptr;
+    int32_t convertedValue = strtol(s, &endptr, 10);
+    if (endptr == s || *endptr != '\0') {
         return STATUS_BAD_NUMBER_FORMAT;
     }
     if (convertedValue < _minValue || convertedValue > _maxValue) {
@@ -123,7 +120,9 @@ err_t IntSetting::setStringValue(char* s) {
 }
 
 const char* IntSetting::getStringValue() {
-    return std::to_string(get()).c_str();
+    static char strval[32];
+    sprintf(strval, "%d", get());
+    return strval;
 }
 
 void IntSetting::addWebui(JSONencoder *j) {
@@ -166,10 +165,11 @@ err_t FloatSetting::setStringValue(char* s) {
     }
 
     float convertedValue;
-    try {
-        convertedValue = std::stof(s);
-    }
-    catch (int e) {
+    uint8_t len = strlen(s);
+    uint8_t retlen;
+    if (!read_float(s, &retlen, &convertedValue)
+        || retlen != len)
+    {
         return STATUS_BAD_NUMBER_FORMAT;
     }
     if (convertedValue < _minValue || convertedValue > _maxValue) {
@@ -236,7 +236,7 @@ void StringSetting::load() {
         _currentValue = _defaultValue;
         return;
     }
-    _storedValue = std::string(buf);
+    _storedValue = String(buf);
     _currentValue = _storedValue;
 }
 

@@ -152,10 +152,6 @@ static void webPrint(const char *s)
         espresponse->print(s);
     }
 }
-static void webPrint(string s)
-{
-    webPrint(s.c_str());
-}
 static void webPrint(String s)
 {
     webPrint(s.c_str());

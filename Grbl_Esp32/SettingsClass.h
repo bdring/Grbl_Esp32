@@ -2,12 +2,9 @@
 #include "report.h"
 #include "system.h"
 #include "JSONencoder.h"
-#include <cstring>
 #include <map>
 #include <nvs.h>
 #include "espresponse.h"
-
-using namespace std;
 
 typedef uint8_t err_t; // For status codes
 
@@ -114,7 +111,7 @@ public:
     virtual void addWebui(JSONencoder *) {};
 
     virtual err_t setStringValue(char* value) =0;
-    err_t setStringValue(string s) {  return setStringValue(s.c_str());  }
+    err_t setStringValue(String s) {  return setStringValue(s.c_str());  }
     virtual const char* getStringValue() =0;
 };
 
@@ -169,9 +166,9 @@ public:
 #define MAX_SETTING_STRING 256
 class StringSetting : public Setting {
 private:
-    std::string _defaultValue;
-    std::string _currentValue;
-    std::string _storedValue;
+    String _defaultValue;
+    String _currentValue;
+    String _storedValue;
     int _minLength;
     int _maxLength;
     void _setStoredValue(const char *s);
