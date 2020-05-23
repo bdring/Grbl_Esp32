@@ -2,6 +2,7 @@
 #include "commands.h"
 
 #include "SettingsDefinitions.h"
+#include "GCodePreprocessor.h"
 #include <map>
 void settings_restore(uint8_t restore_flag) {
     #ifdef WIFI_OR_BLUETOOTH
@@ -245,6 +246,28 @@ err_t restore_settings(const char* value, uint8_t client) {
     return STATUS_OK;
 }
 
+err_t showState(const char* value, uint8_t client) {
+    grbl_sendf(client, "State 0x%x\r\n", sys.state);
+    return STATUS_OK;
+}
+err_t doJog(const char* value, uint8_t client) {
+    // For jogging, you must give gc_execute_line() a line that
+    // begins with $J=.  There are several ways we can get here,
+    // including  $J, $J=xxx, [J]xxx.  For any form other than
+    // $J without =, we reconstruct a $J= line for gc_execute_line().
+    if (!value) {
+        return STATUS_INVALID_STATEMENT;
+    }
+    char jogLine[LINE_BUFFER_SIZE];
+    strcpy(jogLine, "$J=");
+    auto gcpp = new GCodePreprocessor(jogLine+3, LINE_BUFFER_SIZE-3);
+    if (gcpp->convertString(value)) {
+        return STATUS_INVALID_STATEMENT;
+    }
+grbl_sendf(client, "%s\r\n", jogLine);
+    return gc_execute_line(jogLine, client);
+}
+
 // Commands use the same syntax as Settings, but instead of setting or
 // displaying a persistent value, a command causes some action to occur.
 // That action could be anything, from displaying a run-time parameter
@@ -252,6 +275,8 @@ err_t restore_settings(const char* value, uint8_t client) {
 // for decoding its own value string, if it needs one.
 void make_grbl_commands() {
     new GrblCommand("",    "showGrblHelp", show_grbl_help, ANY_STATE);
+    new GrblCommand("T",   "State", showState, ANY_STATE);
+    new GrblCommand("J",   "Jog", doJog, IDLE_OR_JOG);
     new GrblCommand("$",   "showGrblSettings", report_normal_settings, NOT_CYCLE_OR_HOLD);
     new GrblCommand("+",   "showExtendedSettings", report_extended_settings, NOT_CYCLE_OR_HOLD);
     new GrblCommand("S",   "showSettings",  list_settings, NOT_CYCLE_OR_HOLD);

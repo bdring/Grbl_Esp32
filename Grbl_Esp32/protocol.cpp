@@ -26,6 +26,7 @@
 #include "config.h"
 #include "commands.h"
 #include "espresponse.h"
+#include "GCodePreprocessor.h"
 
 // Define line flags. Includes comment type tracking and line overflow detection.
 #define LINE_FLAG_OVERFLOW bit(0)
@@ -82,7 +83,7 @@ void protocol_main_loop() {
 #ifdef ENABLE_SD_CARD
         if (SD_ready_next) {
             char fileLine[255];
-            if (readFileLine(fileLine)) {
+            if (readFileLine(fileLine, 255)) {
                 SD_ready_next = false;
                 report_status_message(gc_execute_line(fileLine, SD_client), SD_client);
             } else {
@@ -141,8 +142,24 @@ void protocol_main_loop() {
                             --char_counter;
                     } else
                     if (line_flags) {
-                        if (line_flags & LINE_FLAG_BRACKET)    // in bracket mode all characters are accepted
+                        if (line_flags & LINE_FLAG_BRACKET) {   // in bracket mode all characters are accepted
+#if 0
+                            // LINE_FLAG_BRACKET mode disables the GCode canonicalization of
+                            // lower-case to upper-case translation, whitespace removal,
+                            // and comment removal.  There are two $xx= cases where we still
+                            // want that canonicalization - $J= and $Nn= .  We check for those
+                            // cases here and turn off LINE_FLAG_BRACKET mode.
+                            if (c == '=' && char_counter && line[0] == '$') {
+                                if ((char_counter == 2 && toupper(line[1]) == 'J')
+                                || (char_counter == 3 && toupper(line[1]) == 'N' && isdigit(line[2]) ))
+                                {
+                                    line_flags &= ~LINE_FLAG_BRACKET;
+                                }
+                            }
+#endif
                             line[char_counter++] = c;
+                        }
+
                         // Throw away all (except EOL) comment characters and overflow characters.
                         if (c == ')') {
                             // End of '()' comment. Resume line allowed.

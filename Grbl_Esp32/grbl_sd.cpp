@@ -19,11 +19,7 @@
 */
 
 #include "grbl_sd.h"
-
-// Define line flags. Includes comment type tracking and line overflow detection.
-#define LINE_FLAG_OVERFLOW bit(0)
-#define LINE_FLAG_COMMENT_PARENTHESES bit(1)
-#define LINE_FLAG_COMMENT_SEMICOLON bit(2)
+#include "GCodePreprocessor.h"
 
 File myFile;
 bool SD_ready_next = false; // Grbl has processed a line and is waiting for another
@@ -92,59 +88,19 @@ boolean closeFile() {
  make uppercase
  return true if a line is
 */
-boolean readFileLine(char* line) {
-    char c;
-    uint8_t index = 0;
-    uint8_t line_flags = 0;
-    uint8_t comment_char_counter = 0;
+boolean readFileLine(char* line, int maxlen) {
     if (!myFile) {
         report_status_message(STATUS_SD_FAILED_READ, SD_client);
         return false;
     }
+    auto gcpp = new GCodePreprocessor(line, maxlen);
     sd_current_line_number += 1;
     while (myFile.available()) {
-        c = myFile.read();
-        if (line_flags & LINE_FLAG_COMMENT_PARENTHESES)    // capture all characters into a comment buffer
-            comment[comment_char_counter++] = c;
-        if (c == '\r' || c == ' ') {
-            // ignore these whitespace items
-        } else if (c == '(')
-            line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
-        else if (c == ')') {
-            // End of '()' comment. Resume line allowed.
-            if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) {
-                line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES);
-                comment[comment_char_counter] = 0; // null terminate
-                report_gcode_comment(comment);
-            }
-        } else if (c == ';') {
-            // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
-            if (!(line_flags & LINE_FLAG_COMMENT_PARENTHESES))   // semi colon inside parentheses do not mean anything
-                line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
-        } else if (c == '%') {
-            // discard this character
-        } else if (c == '\n') { // found the newline, so mark the end and return true
-            line[index] = '\0';
-            return true;
-        } else { // add characters to the line
-            if (!line_flags) {
-                c = toupper(c); // make upper case
-                line[index] = c;
-                index++;
-            }
-        }
-        if (index == 255) { // name is too long so return false
-            line[index] = '\0';
-            report_status_message(STATUS_OVERFLOW, SD_client);
-            return false;
+        if (gcpp->next(myFile.read())) {
+            return gcpp->end() != maxlen;
         }
     }
-    // some files end without a newline
-    if (index != 0) {
-        line[index] = '\0';
-        return true;
-    } else   // empty line after new line
-        return false;
+    return gcpp->end() != 0;
 }
 
 // return a percentage complete 50.5 = 50.5%

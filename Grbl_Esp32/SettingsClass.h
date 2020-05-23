@@ -288,10 +288,11 @@ class WebCommand : public Command {
     err_t action(char* value, ESPResponseStream* response);
 };
 
-enum {
-  ANY_STATE = 0,
-  IDLE_OR_ALARM = ~STATE_IDLE,
-  NOT_CYCLE_OR_HOLD = (STATE_CYCLE | STATE_HOLD),
+enum : uint8_t {
+    ANY_STATE = 0,
+    IDLE_OR_ALARM = 0xff & ~STATE_ALARM,
+    IDLE_OR_JOG = 0xff & ~STATE_JOG,
+    NOT_CYCLE_OR_HOLD = STATE_CYCLE | STATE_HOLD,
 };
 
 class GrblCommand : public Command {

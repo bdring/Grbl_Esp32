@@ -4,6 +4,7 @@
 void make_web_settings() {}
 #else
 #include "SettingsClass.h"
+#include "GCodePreprocessor.h"
 #include "espresponse.h"
 #include "web_server.h"
 #include "string.h"
@@ -494,13 +495,13 @@ static err_t printSDFile(char *parameter) { // ESP220
         return STATUS_OK;
     }
     char fileLine[255];
-    SD_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
-    if (!readFileLine(fileLine)) {
+    if (!readFileLine(fileLine, 255)) {
         //No need notification here it is just a macro
         closeFile();
         webPrintln("");
         return STATUS_OK;
     }
+    SD_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
     report_status_message(gc_execute_line(fileLine, (espresponse) ? espresponse->client() : CLIENT_ALL), (espresponse) ? espresponse->client() : CLIENT_ALL); // execute the first line
     report_realtime_status((espresponse) ? espresponse->client() : CLIENT_ALL);
     webPrintln("");

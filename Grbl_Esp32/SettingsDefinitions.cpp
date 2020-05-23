@@ -1,7 +1,6 @@
 #include "grbl.h"
 #include "SettingsClass.h"
-
-// Command *CommandsList = NULL;
+#include "GCodePreprocessor.h"
 
 StringSetting* startup_line_0;
 StringSetting* startup_line_1;
@@ -158,18 +157,18 @@ static bool checkStartupLine(char* value) {
     if (sys.state != STATE_IDLE) {
         return STATUS_IDLE_ERROR;
     }
-    // Modify the string in place in the same way that the
-    // line reader modifies GCode lines.
-    char* p = value;
-    for (char* s = value; *s; s++) {
-        char c = *s;
-        if (!isspace(c)) {
-            *p++ = islower(c) ? toupper(c) : c;
-        }
+    // We pass in strlen+1 because this is an in-place conversion.
+    // If no characters are removed, the end of the input string
+    // will be reached at the same time as there is no more space
+    // for new characters in the output string.  We do not want
+    // to treat that as an error, so we say the output string
+    // is longer than it really is, i.e. we count the space
+    // for the null terminator.
+    auto gcpp = new GCodePreprocessor(value, strlen(value)+1);
+    if (gcpp->convertString(value)) {
+        return STATUS_INVALID_STATEMENT;
     }
-    *p++ = '\0';
-    err_t err = gc_execute_line(value, CLIENT_SERIAL);
-    return err == 0;
+    return gc_execute_line(value, CLIENT_SERIAL) == 0;
 }
 
 // Generates a string like "122" from axisNum 2 and base 120
