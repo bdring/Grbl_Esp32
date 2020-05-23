@@ -116,14 +116,6 @@ void protocol_main_loop() {
                     } else if (line[0] == '$' || line[0] == '[') {
                         // Grbl '$' system command
                         report_status_message(system_execute_line(line, client), client);
-                    } else if (line[0] == '[') {
-                        int cmd = 0;
-                        String cmd_params;
-                        if (COMMANDS::check_command(line, &cmd, cmd_params)) {
-                            ESPResponseStream espresponse(client, true);
-                            if (!COMMANDS::execute_internal_command(cmd, cmd_params, LEVEL_GUEST, &espresponse))
-                                report_status_message(STATUS_GCODE_UNSUPPORTED_COMMAND, CLIENT_ALL);
-                        } else grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Unknow Command...%s", line);
                     } else if (sys.state & (STATE_ALARM | STATE_JOG)) {
                         // Everything else is gcode. Block if in alarm or jog mode.
                         report_status_message(STATUS_SYSTEM_GC_LOCK, client);

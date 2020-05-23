@@ -147,34 +147,6 @@ bool COMMANDS::isuser(String& cmd_params) {
 }
 #endif
 
-//check is valid [ESPXXX] command
-//return XXX as cmd and command as cmd_params
-bool COMMANDS::check_command(const char* line, int* cmd, String& cmd_params) {
-    String buffer = line;
-    bool result = false;
-    int ESPpos = buffer.indexOf("[ESP");
-    if (ESPpos > -1) {
-        //is there the second part?
-        int ESPpos2 = buffer.indexOf("]", ESPpos);
-        if (ESPpos2 > -1) {
-            //Split in command and parameters
-            String cmd_part1 = buffer.substring(ESPpos + 4, ESPpos2);
-            String cmd_part2 = "";
-            //is there space for parameters?
-            if (ESPpos2 < buffer.length())
-                cmd_part2 = buffer.substring(ESPpos2 + 1);
-            //if command is a valid number then execute command
-            if (cmd_part1.toInt() >= 0) {
-                *cmd = cmd_part1.toInt();
-                cmd_params = cmd_part2;
-                result = true;
-            }
-            //if not is not a valid [ESPXXX] command
-        }
-    }
-    return result;
-}
-
 /**
  * Restart ESP
  */
