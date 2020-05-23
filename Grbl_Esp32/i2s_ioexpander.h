@@ -84,6 +84,11 @@
 /* 1000000 usec / ((160000000 Hz) / 5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
 #define I2S_IOEXP_USEC_PER_PULSE 4
 
+#define I2S_IOEXP_DMABUF_COUNT 5     /* number of DMA buffers to store data */
+#define I2S_IOEXP_DMABUF_LEN   2000  /* maximum size in bytes (4092 is DMA's limit) */
+
+#define I2S_IOEXP_DELAY_MS    (I2S_IOEXP_DMABUF_LEN / sizeof(uint32_t) * (I2S_IOEXP_DMABUF_COUNT + 1) * I2S_IOEXP_USEC_PER_PULSE / 1000)
+
 #define IS_I2S_IOEXP_PIN(IO) ((IO) & ~0x7F)
 #define I2S_IOEXP_PIN_INDEX(IO) ((IO) & 0x7F)
 

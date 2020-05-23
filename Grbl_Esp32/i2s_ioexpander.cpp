@@ -59,22 +59,20 @@
 // Configrations for DMA connected I2S
 //
 // One DMA buffer transfer takes about 2 ms
-//   DMA_BUF_LEN / I2S_SAMPLE_SIZE x I2S_IOEXP_USEC_PER_PULSE
+//   I2S_IOEXP_DMABUF_LEN / I2S_SAMPLE_SIZE x I2S_IOEXP_USEC_PER_PULSE
 //   = 2000 / 4 x 4
 //   = 2000us = 2ms
-// If DMA_BUF_COUNT is 5, it will take about 10 ms for all the DMA buffer transfers to finish.
+// If I2S_IOEXP_DMABUF_COUNT is 5, it will take about 10 ms for all the DMA buffer transfers to finish.
 //
-// Increasing DMA_BUF_COUNT has the effect of preventing buffer underflow,
+// Increasing I2S_IOEXP_DMABUF_COUNT has the effect of preventing buffer underflow,
 // but on the other hand, it leads to a delay with pulse and/or non-pulse-generated I/Os.
-// The number of DMA_BUF_COUNT should be chosen carefully.
+// The number of I2S_IOEXP_DMABUF_COUNT should be chosen carefully.
 //
 // Reference information:
 //   FreeRTOS task time slice = portTICK_PERIOD_MS = 1 ms (ESP32 FreeRTOS port)
 //
-#define DMA_BUF_COUNT 5                                /* number of DMA buffers to store data */
-#define DMA_BUF_LEN   2000                             /* maximum size in bytes (4092 is DMA's limit) */
-#define I2S_SAMPLE_SIZE 4                              /* 4 bytes, 32 bits per sample */
-#define DMA_SAMPLE_COUNT DMA_BUF_LEN / I2S_SAMPLE_SIZE /* number of samples per buffer */
+#define I2S_SAMPLE_SIZE   4     /* 4 bytes, 32 bits per sample */
+#define DMA_SAMPLE_COUNT I2S_IOEXP_DMABUF_LEN / I2S_SAMPLE_SIZE /* number of samples per buffer */
 #define SAMPLE_SAFE_COUNT (20/I2S_IOEXP_USEC_PER_PULSE) /* prevent buffer overrun (GRBL's $0 should be less than or equal 20) */
 
 typedef struct {
@@ -141,7 +139,7 @@ static void i2s_reset_fifo() {
 }
 
 static int i2s_clear_dma_buffers(uint32_t port_data) {
-  for (int buf_idx = 0; buf_idx < DMA_BUF_COUNT; buf_idx++) {
+  for (int buf_idx = 0; buf_idx < I2S_IOEXP_DMABUF_COUNT; buf_idx++) {
     // Clear the DMA buffer
     for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
       dma.buffers[buf_idx][i] = port_data;
@@ -150,11 +148,11 @@ static int i2s_clear_dma_buffers(uint32_t port_data) {
     dma.desc[buf_idx]->owner = 1;
     dma.desc[buf_idx]->eof = 1; // set to 1 will trigger the interrupt
     dma.desc[buf_idx]->sosf = 0;
-    dma.desc[buf_idx]->length = DMA_BUF_LEN;
-    dma.desc[buf_idx]->size = DMA_BUF_LEN;
+    dma.desc[buf_idx]->length = I2S_IOEXP_DMABUF_LEN;
+    dma.desc[buf_idx]->size = I2S_IOEXP_DMABUF_LEN;
     dma.desc[buf_idx]->buf = (uint8_t *) dma.buffers[buf_idx];
     dma.desc[buf_idx]->offset = 0;
-    dma.desc[buf_idx]->qe.stqe_next = (lldesc_t *)((buf_idx < (DMA_BUF_COUNT - 1)) ? (dma.desc[buf_idx + 1]) : dma.desc[0]);
+    dma.desc[buf_idx]->qe.stqe_next = (lldesc_t *)((buf_idx < (I2S_IOEXP_DMABUF_COUNT - 1)) ? (dma.desc[buf_idx + 1]) : dma.desc[0]);
   }
   return 0;
 }
@@ -290,7 +288,7 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
       for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
         front_desc->buf[i] = port_data;
       }
-      front_desc->length = DMA_BUF_LEN;
+      front_desc->length = I2S_IOEXP_DMABUF_LEN;
     }
 
     // Send a DMA complete event to the I2S bitstreamer task with finished buffer
@@ -368,7 +366,7 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
         dma.current[i] = port_data;
       }
       dma.rw_pos = DMA_SAMPLE_COUNT;
-      dma_desc->length = DMA_BUF_LEN;
+      dma_desc->length = I2S_IOEXP_DMABUF_LEN;
     }
     I2S_PULSER_EXIT_CRITICAL(); // Unlock pulser status
   }
@@ -489,21 +487,21 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
    */
 
   // Allocate the array of pointers to the buffers
-  dma.buffers = (uint32_t **)malloc(sizeof(uint32_t*) * DMA_BUF_COUNT);
+  dma.buffers = (uint32_t **)malloc(sizeof(uint32_t*) * I2S_IOEXP_DMABUF_COUNT);
   if (dma.buffers == nullptr) return -1;
 
   // Allocate each buffer that can be used by the DMA controller
-  for (int buf_idx = 0; buf_idx < DMA_BUF_COUNT; buf_idx++) {
-    dma.buffers[buf_idx] = (uint32_t*) heap_caps_calloc(1, DMA_BUF_LEN, MALLOC_CAP_DMA);
+  for (int buf_idx = 0; buf_idx < I2S_IOEXP_DMABUF_COUNT; buf_idx++) {
+    dma.buffers[buf_idx] = (uint32_t*) heap_caps_calloc(1, I2S_IOEXP_DMABUF_LEN, MALLOC_CAP_DMA);
     if (dma.buffers[buf_idx] == nullptr) return -1;
   }
 
   // Allocate the array of DMA descriptors
-  dma.desc = (lldesc_t**) malloc(sizeof(lldesc_t*) * DMA_BUF_COUNT);
+  dma.desc = (lldesc_t**) malloc(sizeof(lldesc_t*) * I2S_IOEXP_DMABUF_COUNT);
   if (dma.desc == nullptr) return -1;
 
   // Allocate each DMA descriptor that will be used by the DMA controller
-  for (int buf_idx = 0; buf_idx < DMA_BUF_COUNT; buf_idx++) {
+  for (int buf_idx = 0; buf_idx < I2S_IOEXP_DMABUF_COUNT; buf_idx++) {
     dma.desc[buf_idx] = (lldesc_t*) heap_caps_malloc(sizeof(lldesc_t), MALLOC_CAP_DMA);
     if (dma.desc[buf_idx] == nullptr) return -1;
   }
@@ -512,7 +510,7 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   i2s_clear_dma_buffers(0);
   dma.rw_pos = 0;
   dma.current = NULL;
-  dma.queue = xQueueCreate(DMA_BUF_COUNT, sizeof(uint32_t *));
+  dma.queue = xQueueCreate(I2S_IOEXP_DMABUF_COUNT, sizeof(uint32_t *));
 
    // Set the first DMA descriptor
   I2S0.out_link.addr = (uint32_t)dma.desc[0];
