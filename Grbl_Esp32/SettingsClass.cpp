@@ -434,7 +434,6 @@ void IPaddrSetting::load() {
     } else {
         _currentValue = _storedValue;
     }
-    _currentValue = _storedValue;
 }
 
 void IPaddrSetting::setDefault() {
