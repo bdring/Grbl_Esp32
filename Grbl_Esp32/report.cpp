@@ -274,7 +274,7 @@ void report_init_message(uint8_t client) {
 
 // Grbl help message
 void report_grbl_help(uint8_t client) {
-    grbl_send(client, "[HLP:$$ $+ $# $S $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H $F ~ ! ? ctrl-x]\r\n");
+    grbl_send(client, "[HLP:$$ $+ $# $S $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H $F $E=err ~ ! ? ctrl-x]\r\n");
 }
 
 

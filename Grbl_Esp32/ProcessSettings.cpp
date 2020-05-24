@@ -265,9 +265,91 @@ err_t doJog(const char* value, uint8_t client) {
     if (gcpp.convertString(value)) {
         return STATUS_INVALID_STATEMENT;
     }
-grbl_sendf(client, "%s\r\n", jogLine);
     return gc_execute_line(jogLine, client);
 }
+
+std::map<uint8_t, const char*> ErrorCodes = {
+    { STATUS_OK , "No error", },
+    { STATUS_EXPECTED_COMMAND_LETTER , "Expected GCodecommand letter", },
+    { STATUS_BAD_NUMBER_FORMAT , "Bad GCode number format", },
+    { STATUS_INVALID_STATEMENT , "Invalid $ statement", },
+    { STATUS_NEGATIVE_VALUE , "Negative value", },
+    { STATUS_SETTING_DISABLED , "Setting disabled", },
+    { STATUS_SETTING_STEP_PULSE_MIN , "Step pulse too short", },
+    { STATUS_SETTING_READ_FAIL , "Failed to read settings", },
+    { STATUS_IDLE_ERROR , "Command requires idle state", },
+    { STATUS_SYSTEM_GC_LOCK , "GCode cannot be executed in lock or alarm state", },
+    { STATUS_SOFT_LIMIT_ERROR , "Soft limit error", },
+    { STATUS_OVERFLOW , "Line too long", },
+    { STATUS_MAX_STEP_RATE_EXCEEDED , "Max step rate exceeded", },
+    { STATUS_CHECK_DOOR , "Check door", },
+    { STATUS_LINE_LENGTH_EXCEEDED , "Startup line too long", },
+    { STATUS_TRAVEL_EXCEEDED , "Max travel exceeded during jog", },
+    { STATUS_INVALID_JOG_COMMAND , "Invalid jog command", },
+    { STATUS_SETTING_DISABLED_LASER , "Laser mode requires PWM output", },
+    { STATUS_GCODE_UNSUPPORTED_COMMAND , "Unsupported GCode command", },
+    { STATUS_GCODE_MODAL_GROUP_VIOLATION , "Gcode modal group violation", },
+    { STATUS_GCODE_UNDEFINED_FEED_RATE , "Gcode undefined feed rate", },
+    { STATUS_GCODE_COMMAND_VALUE_NOT_INTEGER , "Gcode command value not integer", },
+    { STATUS_GCODE_AXIS_COMMAND_CONFLICT , "Gcode axis command conflict", },
+    { STATUS_GCODE_WORD_REPEATED , "Gcode word repeated", },
+    { STATUS_GCODE_NO_AXIS_WORDS , "Gcode no axis words", },
+    { STATUS_GCODE_INVALID_LINE_NUMBER , "Gcode invalid line number", },
+    { STATUS_GCODE_VALUE_WORD_MISSING , "Gcode value word missing", },
+    { STATUS_GCODE_UNSUPPORTED_COORD_SYS , "Gcode unsupported coordinate system", },
+    { STATUS_GCODE_G53_INVALID_MOTION_MODE , "Gcode G53 invalid motion mode", },
+    { STATUS_GCODE_AXIS_WORDS_EXIST , "Gcode extra axis words", },
+    { STATUS_GCODE_NO_AXIS_WORDS_IN_PLANE , "Gcode no axis words in plane", },
+    { STATUS_GCODE_INVALID_TARGET , "Gcode invalid target", },
+    { STATUS_GCODE_ARC_RADIUS_ERROR , "Gcode arc radius error", },
+    { STATUS_GCODE_NO_OFFSETS_IN_PLANE , "Gcode no offsets in plane", },
+    { STATUS_GCODE_UNUSED_WORDS , "Gcode unused words", },
+    { STATUS_GCODE_G43_DYNAMIC_AXIS_ERROR , "Gcode G43 dynamic axis error", },
+    { STATUS_GCODE_MAX_VALUE_EXCEEDED , "Gcode max value exceeded", },
+    { STATUS_P_PARAM_MAX_EXCEEDED , "P param max exceeded", },
+    { STATUS_SD_FAILED_MOUNT , "SD failed mount", },
+    { STATUS_SD_FAILED_READ , "SD failed read", },
+    { STATUS_SD_FAILED_OPEN_DIR , "SD failed to open directory", },
+    { STATUS_SD_DIR_NOT_FOUND , "SD directory not found", },
+    { STATUS_SD_FILE_EMPTY , "SD file empty", },
+    { STATUS_SD_FILE_NOT_FOUND , "SD file not found", },
+    { STATUS_SD_FAILED_OPEN_FILE , "SD failed to open file", },
+    { STATUS_SD_FAILED_BUSY , "SD is busy", },
+    { STATUS_SD_FAILED_DEL_DIR, "SD failed to delete directory", },
+    { STATUS_SD_FAILED_DEL_FILE, "SD failed to delete file", },
+    { STATUS_BT_FAIL_BEGIN , "Bluetooth failed to start", },
+    { STATUS_WIFI_FAIL_BEGIN , "WiFi failed to start", },
+    { STATUS_NUMBER_RANGE , "Number out of range for setting", },
+    { STATUS_INVALID_VALUE , "Invalid value for setting", },
+    { STATUS_MESSAGE_FAILED , "Failed to send message", },
+    { STATUS_NVS_SET_FAILED , "Failed to store setting", },
+};
+
+err_t listErrorCodes(const char* value, uint8_t client) {
+    if (value) {
+        char* endptr = NULL;
+        uint8_t errorNumber = strtol(value, &endptr, 10);
+        if (endptr != value && *endptr) {
+            grbl_sendf(client, "Malformed error number: %s\r\n", value);
+            return STATUS_INVALID_VALUE;
+        }
+        auto it = ErrorCodes.find(errorNumber);
+        if (it == ErrorCodes.end()) {
+            grbl_sendf(client, "Unknown error number: %d\r\n", errorNumber);
+            return STATUS_INVALID_VALUE;
+        }
+        grbl_sendf(client, "%d: %s\r\n", it->first, it->second);
+        return STATUS_OK;
+    }
+    for (auto it = ErrorCodes.begin();
+         it != ErrorCodes.end();
+         it++) {
+        grbl_sendf(client, "%d: %s\r\n", it->first, it->second);
+    }
+
+    return STATUS_OK;
+}
+
 
 // Commands use the same syntax as Settings, but instead of setting or
 // displaying a persistent value, a command causes some action to occur.
@@ -278,9 +360,9 @@ void make_grbl_commands() {
     new GrblCommand("",    "showGrblHelp", show_grbl_help, ANY_STATE);
     new GrblCommand("T",   "State", showState, ANY_STATE);
     new GrblCommand("J",   "Jog", doJog, IDLE_OR_JOG);
-    new GrblCommand("$",   "showGrblSettings", report_normal_settings, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("+",   "showExtendedSettings", report_extended_settings, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("S",   "showSettings",  list_settings, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("$",   "listGrblSettings", report_normal_settings, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("+",   "listExtendedSettings", report_extended_settings, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("S",   "listSettings",  list_settings, NOT_CYCLE_OR_HOLD);
     new GrblCommand("G",   "showGCodeModes", report_gcode, ANY_STATE);
     new GrblCommand("C",   "toggleCheckMode", toggle_check_mode, ANY_STATE);
     new GrblCommand("X",   "disableAlarmLock", disable_alarm_lock, ANY_STATE);
@@ -306,6 +388,7 @@ void make_grbl_commands() {
     new GrblCommand("I",   "showBuild", get_report_build_info, IDLE_OR_ALARM);
     new GrblCommand("N",   "showStartupLines", report_startup_lines, IDLE_OR_ALARM);
     new GrblCommand("RST", "restoreSettings", restore_settings, IDLE_OR_ALARM);
+    new GrblCommand("E",   "listErrorCodes",  listErrorCodes, ANY_STATE);
 };
 
 // normalize_key puts a key string into canonical form -
