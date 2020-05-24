@@ -93,8 +93,7 @@ const char* BTConfig::info() {
 bool BTConfig::isBTnameValid(const char* hostname) {
     //limited size
     char c;
-    if (strlen(hostname) > MAX_BTNAME_LENGTH || strlen(hostname) < MIN_BTNAME_LENGTH)
-        return false;
+    // length is checked automatically by string setting
     //only letter and digit
     for (int i = 0; i < strlen(hostname); i++) {
         c = hostname[i];

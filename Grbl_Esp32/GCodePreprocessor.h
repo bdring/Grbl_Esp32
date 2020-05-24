@@ -4,17 +4,19 @@
 //
 // There are two usage models - feed in characters one at a time,
 // or feed in a string.  For character-at-at-time conversion:
-//   auto gcpp = new GCodePreprocessor(string, maxlen);
+//   GCodePreprocessor gcpp;
+//   gcpp.begin(string, maxlen);
 //   while (c = getchar()) {
-//        if (gcpp->next(c)) {
-//             return gcpp->end() != maxlen; // True for okay
+//        if (gcpp.next(c)) {
+//             return gcpp.end() != maxlen; // True for okay
 //        }
 //    }
-//    return gcpp->end() != 0;  // True if not empty
+//    return gcpp.end() != 0;  // True if not empty
 //
 // For whole-string conversion:
-//    auto gcpp = new GCodePreprocessor(outstring, maxlen);
-//    error = gcpp->convertString(instring);  // True if error
+//    GCodePreprocessor gcpp;
+//    gcpp.begin(string, maxlen);
+//    error = gcpp.convertString(instring);  // True if error
 // Outstring and instring can be the same, in which case maxlen
 // should be set to strlen(outstring)+1;
 // The only possible error for convertString() is if outstring is

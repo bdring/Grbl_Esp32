@@ -166,6 +166,6 @@ void JSONencoder::begin_webui(const char *p, const char *help, const char *type,
 // a C-style string value, with additional min and max arguments.
 void JSONencoder::begin_webui(const char *p, const char *help, const char *type, const char *val, int min, int max) {
     begin_webui(p, help, type, val);
-    member("S", min);
-    member("M", max);
+    member("S", max);
+    member("M", min);
 }

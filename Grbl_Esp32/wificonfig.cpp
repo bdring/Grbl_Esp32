@@ -118,8 +118,7 @@ String WiFiConfig::IP_string_from_int(uint32_t ip_int) {
 bool WiFiConfig::isHostnameValid(const char* hostname) {
     //limited size
     char c;
-    if (strlen(hostname) > MAX_HOSTNAME_LENGTH || strlen(hostname) < MIN_HOSTNAME_LENGTH)
-        return false;
+    // length is checked automatically by string setting
     //only letter and digit
     for (int i = 0; i < strlen(hostname); i++) {
         c = hostname[i];
@@ -139,8 +138,7 @@ bool WiFiConfig::isHostnameValid(const char* hostname) {
 bool WiFiConfig::isSSIDValid(const char* ssid) {
     //limited size
     //char c;
-    if (strlen(ssid) > MAX_SSID_LENGTH || strlen(ssid) < MIN_SSID_LENGTH)
-        return false;
+    // length is checked automatically by string setting
     //only printable
     for (int i = 0; i < strlen(ssid); i++) {
         if (!isPrintable(ssid[i]))
@@ -156,8 +154,7 @@ bool WiFiConfig::isSSIDValid(const char* ssid) {
 bool WiFiConfig::isPasswordValid(const char* password) {
     if (strlen(password) == 0) return true;  //open network
     //limited size
-    if ((strlen(password) > MAX_PASSWORD_LENGTH) || (strlen(password) < MIN_PASSWORD_LENGTH))
-        return false;
+    // length is checked automatically by string setting
     //no space allowed ?
     /*  for (int i = 0; i < strlen (password); i++)
           if (password[i] == ' ') {

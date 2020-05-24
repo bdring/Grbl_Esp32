@@ -4,7 +4,6 @@
 #include "SettingsDefinitions.h"
 #include "GCodePreprocessor.h"
 #include <map>
-static GCodePreprocessor gcpp;
 void settings_restore(uint8_t restore_flag) {
     #ifdef WIFI_OR_BLUETOOTH
         if (restore_flag & SETTINGS_RESTORE_WIFI_SETTINGS) {
@@ -252,6 +251,7 @@ err_t showState(const char* value, uint8_t client) {
     return STATUS_OK;
 }
 err_t doJog(const char* value, uint8_t client) {
+    static GCodePreprocessor gcpp;
     // For jogging, you must give gc_execute_line() a line that
     // begins with $J=.  There are several ways we can get here,
     // including  $J, $J=xxx, [J]xxx.  For any form other than

@@ -88,8 +88,8 @@ boolean closeFile() {
  make uppercase
  return true if a line is
 */
-static GCodePreprocessor gcpp;
 boolean readFileLine(char* line, int maxlen) {
+    static GCodePreprocessor gcpp;
     if (!myFile) {
         report_status_message(STATUS_SD_FAILED_READ, SD_client);
         return false;

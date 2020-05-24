@@ -153,7 +153,6 @@ static const char *makename(const char *axisName, const char *tail) {
     return strcat(retval, tail);
 }
 
-static GCodePreprocessor gcpp;
 static bool checkStartupLine(char* value) {
     if (sys.state != STATE_IDLE) {
         return STATUS_IDLE_ERROR;
@@ -165,6 +164,7 @@ static bool checkStartupLine(char* value) {
     // to treat that as an error, so we say the output string
     // is longer than it really is, i.e. we count the space
     // for the null terminator.
+    static GCodePreprocessor gcpp;
     gcpp.begin(value, strlen(value)+1);
     if (gcpp.convertString(value)) {
         return STATUS_INVALID_STATEMENT;
