@@ -29,7 +29,7 @@ enum {
 enum {
     GRBL = 1,
     EXTENDED,
-    WEBUI,
+    WEBSET,
     COMMANDS,
     GRBLCMD,
     WEBNOAUTH,
