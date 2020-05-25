@@ -314,10 +314,33 @@ void EnumSetting::setDefault() {
     }
 }
 
+// For enumerations, we allow the value to be set
+// either with the string name or the numeric value.
+// This is necessary for WebUI, which uses the number
+// for setting.
 err_t EnumSetting::setStringValue(char* s) {
     enum_opt_t::iterator it = _options->find(s);
     if (it == _options->end()) {
-        return STATUS_BAD_NUMBER_FORMAT;
+        // If we don't find the value in keys, look for it in the numeric values
+
+        // Disallow empty string
+        if (!s || !*s) {
+            return STATUS_BAD_NUMBER_FORMAT;
+        }
+        char *endptr;
+        uint8_t num = strtol(s, &endptr, 10);
+        // Disallow non-numeric characters in string
+        if (*endptr) {
+            return STATUS_BAD_NUMBER_FORMAT;
+        }
+        for (it = _options->begin(); it != _options->end(); it++) {
+            if (it->second == num) {
+                break;
+            }
+        }
+        if (it == _options->end()) {
+            return STATUS_BAD_NUMBER_FORMAT;
+        }
     }
     _currentValue = it->second;
     if (_storedValue != _currentValue) {
@@ -348,7 +371,7 @@ void EnumSetting::addWebui(JSONencoder *j) {
     if (!getDescription()) {
       return;
     }
-    j->begin_webui(getName(), getDescription(), "B", getStringValue());
+    j->begin_webui(getName(), getDescription(), "B", String(get()).c_str());
     j->begin_array("O");
     for (enum_opt_t::iterator it = _options->begin();
          it != _options->end();

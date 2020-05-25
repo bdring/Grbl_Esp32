@@ -329,7 +329,7 @@ err_t listErrorCodes(const char* value, uint8_t client) {
     if (value) {
         char* endptr = NULL;
         uint8_t errorNumber = strtol(value, &endptr, 10);
-        if (endptr != value && *endptr) {
+        if (*endptr) {
             grbl_sendf(client, "Malformed error number: %s\r\n", value);
             return STATUS_INVALID_VALUE;
         }
