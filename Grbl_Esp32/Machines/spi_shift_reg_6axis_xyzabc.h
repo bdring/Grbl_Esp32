@@ -60,9 +60,7 @@
 #define STEPPER_B_MS3           GPIO_NUM_I2S_IOEXP_19   // B_CS
 #define STEPPER_C_MS3           GPIO_NUM_I2S_IOEXP_22   // C_CS
 
-#define STEPPER_RESET           GPIO_NUM_I2S_IOEXP_19 
-
-
+#define STEPPER_RESET           GPIO_NUM_19 
 
 #define X_ENABLE_PIN            GPIO_NUM_I2S_IOEXP_0
 #define X_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_1
