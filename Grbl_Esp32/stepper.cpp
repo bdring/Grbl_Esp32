@@ -519,6 +519,9 @@ void stepper_init() {
     timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
     timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
 #endif
+#ifdef USE_TRINAMIC
+    Trinamic_Init();
+#endif
 }
 #else
 void stepper_init() {
@@ -898,6 +901,12 @@ void set_stepper_pins_on(uint8_t onMask) {
 #ifdef A_STEP_PIN
     I2S_IOEXP_WRITE(A_STEP_PIN, (onMask & (1 << A_AXIS)));
 #endif
+#ifdef B_STEP_PIN
+    I2S_IOEXP_WRITE(B_STEP_PIN, (onMask & (1 << B_AXIS)));
+#endif
+#ifdef C_STEP_PIN
+    I2S_IOEXP_WRITE(C_STEP_PIN, (onMask & (1 << C_AXIS)));
+#endif
 }
 #else // we use ganged axes
 void set_stepper_pins_on(uint8_t onMask) {
@@ -950,6 +959,12 @@ void set_stepper_pins_on(uint8_t onMask) {
 #endif
 #ifdef A_STEP_PIN
     digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
+#endif
+#ifdef B_STEP_PIN
+    digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
+#endif
+#ifdef C_STEP_PIN
+    digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
 #endif
 }
 #else // we use ganged axes
