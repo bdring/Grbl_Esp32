@@ -36,7 +36,7 @@
     #undef USE_RMT_STEPS
 #endif
 
-#define USE_UNIPOLAR
+//#define USE_UNIPOLAR
 
 #define X_UNIPOLAR
 #define X_PIN_PHASE_0 GPIO_NUM_13
@@ -66,10 +66,6 @@
 
 #define REED_SW_PIN GPIO_NUM_17
 #define LIMIT_MASK 0
-
-#ifdef IGNORE_CONTROL_PINS // maybe set in config.h
-    #undef IGNORE_CONTROL_PINS
-#endif
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE

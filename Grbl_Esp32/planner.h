@@ -81,7 +81,7 @@ typedef struct {
     float rapid_rate;             // Axis-limit adjusted maximum rate for this block direction in (mm/min)
     float programmed_rate;        // Programmed rate of this block (mm/min).
 
-    //#ifdef VARIABLE_SPINDLE
+
     // Stored spindle speed data used by spindle overrides and resuming methods.
     float spindle_speed;    // Block spindle speed. Copied from pl_line_data.
     //#endif
@@ -90,7 +90,7 @@ typedef struct {
 // Planner data prototype. Must be used when passing new motions to the planner.
 typedef struct {
     float feed_rate;          // Desired feed rate for line motion. Value is ignored, if rapid motion.
-    float spindle_speed;      // Desired spindle speed through line motion.
+    uint32_t spindle_speed;      // Desired spindle speed through line motion.
     uint8_t condition;        // Bitflag variable to indicate planner conditions. See defines above.
 #ifdef USE_LINE_NUMBERS
     int32_t line_number;    // Desired line number to report when executing.

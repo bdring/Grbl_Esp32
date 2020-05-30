@@ -22,12 +22,14 @@
 */
 
 
-#define MACHINE_NAME "MACHINE_FOO_6X"
+#define MACHINE_NAME "FOO_6X"
 
 #ifdef N_AXIS
     #undef N_AXIS
 #endif
 #define N_AXIS 6
+
+#define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
 // stepper motors
 #define X_STEP_PIN      GPIO_NUM_12
@@ -47,20 +49,15 @@
 // C is a servo
 
 // servos
-#define USE_SERVO_AXES
-#define SERVO_Z_PIN             GPIO_NUM_22
-#define SERVO_Z_RANGE_MIN       0.0
-#define SERVO_Z_RANGE_MAX       5.0
-#define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-#define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
-#define SERVO_Z_MPOS            false           // will not use mpos, uses work coordinates
 
-#define SERVO_C_PIN             GPIO_NUM_2
-#define SERVO_C_RANGE_MIN       0.0
-#define SERVO_C_RANGE_MAX       5.0
-#define SERVO_C_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-#define SERVO_C_HOME_POS        SERVO_C_RANGE_MAX // move to max during homing
-#define SERVO_C_MPOS            false           // will not use mpos, uses work coordinates
+#define Z_SERVO_PIN             GPIO_NUM_22
+#define Z_SERVO_RANGE_MIN       0.0
+#define Z_SERVO_RANGE_MAX       5.0
+
+
+#define C_SERVO_PIN             GPIO_NUM_2
+#define C_SERVO_RANGE_MIN       0.0
+#define C_SERVO_RANGE_MAX       5.0
 
 // limit switches
 #define X_LIMIT_PIN             GPIO_NUM_21
@@ -121,11 +118,6 @@
 #define DEFAULT_HOMING_SEEK_RATE 2000.0 // mm/min
 #define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
 #define DEFAULT_HOMING_PULLOFF 3.0 // mm
-
-#define DEFAULT_SPINDLE_RPM_MAX 1000.0 // rpm
-#define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
-
-#define DEFAULT_LASER_MODE 0 // false
 
 #define DEFAULT_X_STEPS_PER_MM 400.0
 #define DEFAULT_Y_STEPS_PER_MM 400.0

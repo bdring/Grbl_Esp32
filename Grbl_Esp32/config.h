@@ -63,8 +63,8 @@ Some features should not be changed. See notes below.
 // These homing cycle definitions precede the machine.h file so that the machine
 // definition can undefine them if necessary.
 #define HOMING_CYCLE_0 (1<<Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
-#define HOMING_CYCLE_1 (1<<Y_AXIS)
-#define HOMING_CYCLE_2 (1<<X_AXIS)
+#define HOMING_CYCLE_1 (1<<X_AXIS)
+#define HOMING_CYCLE_2 (1<<Y_AXIS)
 
 // NOTE: The following is for for homing X and Y at the same time
 // #define HOMING_CYCLE_0 (1<<Z_AXIS) // first home z by itself
@@ -75,11 +75,6 @@ Some features should not be changed. See notes below.
 // The mask order is Cycle Start | Feed Hold | Reset | Safety Door
 // For example B1101 will invert the function of the Reset pin.
 #define INVERT_CONTROL_PIN_MASK   B1111
-
-// This allows control pins to be ignored.
-// Since these are typically used on the pins that don't have pullups, they will float and cause
-// problems if not externally pulled up. Ignoring will always return not activated when read.
-#define IGNORE_CONTROL_PINS
 
 #define ENABLE_CONTROL_SW_DEBOUNCE // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
@@ -99,6 +94,10 @@ Some features should not be changed. See notes below.
     #define N_AXIS 3
 #endif
 
+#if ( (N_AXIS < 3) || (N_AXIS > 6) )
+    #error N_AXIS Must 3 to 6
+#endif
+
 #ifndef LIMIT_MASK
     #define LIMIT_MASK B0
 #endif
@@ -115,7 +114,7 @@ Some features should not be changed. See notes below.
 //#define CONNECT_TO_SSID  "your SSID"
 //#define SSID_PASSWORD  "your SSID password"
 //CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
-#define ENABLE_BLUETOOTH // enable bluetooth
+//#define ENABLE_BLUETOOTH // enable bluetooth
 
 #define ENABLE_SD_CARD // enable use of SD Card to run jobs
 
@@ -205,7 +204,7 @@ Some features should not be changed. See notes below.
 #define CMD_RAPID_OVR_LOW 0x97
 // #define CMD_RAPID_OVR_EXTRA_LOW 0x98 // *NOT SUPPORTED*
 #define CMD_SPINDLE_OVR_RESET 0x99      // Restores spindle override value to 100%.
-#define CMD_SPINDLE_OVR_COARSE_PLUS 0x9A
+#define CMD_SPINDLE_OVR_COARSE_PLUS 0x9A // 154
 #define CMD_SPINDLE_OVR_COARSE_MINUS 0x9B
 #define CMD_SPINDLE_OVR_FINE_PLUS 0x9C
 #define CMD_SPINDLE_OVR_FINE_MINUS 0x9D
@@ -301,17 +300,7 @@ Some features should not be changed. See notes below.
 // defined at (http://corexy.com/theory.html). Motors are assumed to positioned and wired exactly as
 // described, if not, motions may move in strange directions. Grbl requires the CoreXY A and B motors
 // have the same steps per mm internally.
-#define COREXY // Default disabled. Uncomment to enable.
-
-// Enable using a servo for the Z axis on a pen type machine.
-// You typically should not define a pin for the Z axis in the machine definition file
-// You should configure your settings in servo_pen.h
-// #define USE_SERVO_AXES  // the new method
-// define your servo pin here or in the machine definition file
-//#define SERVO_PEN_PIN 					GPIO_NUM_27
-
-// Enable using a solenoid for the Z axis on a pen type machine
-// #define USE_PEN_SOLENOID
+// #define COREXY // Default disabled. Uncomment to enable.
 
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.
@@ -447,12 +436,6 @@ Some features should not be changed. See notes below.
 // tool length offset value is subtracted from the current location.
 #define TOOL_LENGTH_OFFSET_AXIS Z_AXIS // Default z-axis. Valid values are X_AXIS, Y_AXIS, or Z_AXIS.
 
-// Enables variable spindle output voltage for different RPM values. On the Arduino Uno, the spindle
-// enable pin will output 5V for maximum RPM with 256 intermediate levels and 0V when disabled.
-// NOTE: IMPORTANT for Arduino Unos! When enabled, the Z-limit pin D11 and spindle enable pin D12 switch!
-// The hardware PWM output on pin D11 is required for variable spindle output voltages.
-#define VARIABLE_SPINDLE // Default enabled. Comment to disable.
-
 // Alters the behavior of the spindle enable pin. By default Grbl will not disable the enable pin if
 // spindle speed is zero and M3/4 is active, but still sets the PWM output to zero. This allows the users
 // to know if the spindle is active and use it as an additional control input.
@@ -467,7 +450,7 @@ Some features should not be changed. See notes below.
 // NOTE: Only use this for debugging purposes!! When echoing, this takes up valuable resources and can effect
 // performance. If absolutely needed for normal operation, the serial write buffer should be greatly increased
 // to help minimize transmission waiting within the serial write protocol.
-// #define REPORT_ECHO_LINE_RECEIVED // Default disabled. Uncomment to enable.
+//#define REPORT_ECHO_LINE_RECEIVED // Default disabled. Uncomment to enable.
 
 // Minimum planner junction speed. Sets the default minimum junction speed the planner plans to at
 // every buffer block junction, except for starting from rest and end of the buffer, which are always

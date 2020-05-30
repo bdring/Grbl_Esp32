@@ -40,7 +40,7 @@ void settings_init() {
     if (!read_global_settings()) {
         report_status_message(STATUS_SETTING_READ_FAIL, CLIENT_SERIAL);
         settings_restore(SETTINGS_RESTORE_ALL); // Force restore all EEPROM data.
-        report_grbl_settings(CLIENT_SERIAL, false); // only the serial could be working at this point
+        report_grbl_settings(CLIENT_SERIAL, false);
     }
 }
 
@@ -64,12 +64,14 @@ void settings_restore(uint8_t restore_flag) {
         settings.status_report_mask = DEFAULT_STATUS_REPORT_MASK;
         settings.junction_deviation = DEFAULT_JUNCTION_DEVIATION;
         settings.arc_tolerance = DEFAULT_ARC_TOLERANCE;
+
+        settings.rpm_max = DEFAULT_SPINDLE_RPM_MAX;
+        settings.rpm_min = DEFAULT_SPINDLE_RPM_MIN;
         settings.spindle_pwm_freq = DEFAULT_SPINDLE_FREQ;      // $33 Hz (extended set)
         settings.spindle_pwm_off_value = DEFAULT_SPINDLE_OFF_VALUE; // $34 Percent (extended set)
         settings.spindle_pwm_min_value = DEFAULT_SPINDLE_MIN_VALUE; // $35 Percent (extended set)
         settings.spindle_pwm_max_value = DEFAULT_SPINDLE_MAX_VALUE; // $36 Percent (extended set)
-        settings.rpm_max = DEFAULT_SPINDLE_RPM_MAX;
-        settings.rpm_min = DEFAULT_SPINDLE_RPM_MIN;
+
         settings.homing_dir_mask = DEFAULT_HOMING_DIR_MASK;
         settings.homing_feed_rate = DEFAULT_HOMING_FEED_RATE;
         settings.homing_seek_rate = DEFAULT_HOMING_SEEK_RATE;
@@ -273,15 +275,20 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
                     if (value * settings.max_rate[parameter] > (MAX_STEP_RATE_HZ * 60.0))  return (STATUS_MAX_STEP_RATE_EXCEEDED);
 #endif
                     settings.steps_per_mm[parameter] = value;
+                    motor_read_settings();
                     break;
                 case 1:
 #ifdef MAX_STEP_RATE_HZ
                     if (value * settings.steps_per_mm[parameter] > (MAX_STEP_RATE_HZ * 60.0))   return (STATUS_MAX_STEP_RATE_EXCEEDED);
 #endif
                     settings.max_rate[parameter] = value;
+                    motor_read_settings();
                     break;
                 case 2: settings.acceleration[parameter] = value * 60 * 60; break; // Convert to mm/min^2 for grbl internal use.
-                case 3: settings.max_travel[parameter] = -value; break;  // Store as negative for grbl internal use.
+                case 3:
+                    settings.max_travel[parameter] = -value; 
+                    motor_read_settings();
+                    break;  // Store as negative for grbl internal use.
                 case 4: // run current
                     settings.current[parameter] = value;
                     settings_spi_driver_init();
@@ -321,6 +328,7 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
         case 3:
             settings.dir_invert_mask = int_value;
             st_generate_step_dir_invert_masks(); // Regenerate step and direction port invert masks.
+            motor_read_settings();
             break;
         case 4: // Reset to ensure change. Immediate re-init may cause problems.
             if (int_value)  settings.flags |= BITFLAG_INVERT_ST_ENABLE;
@@ -366,20 +374,19 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
         case 25: settings.homing_seek_rate = value; break;
         case 26: settings.homing_debounce_delay = int_value; break;
         case 27: settings.homing_pulloff = value; break;
-        case 30: settings.rpm_max = value; spindle_init(); break; // Re-initialize spindle rpm calibration
-        case 31: settings.rpm_min = value; spindle_init(); break; // Re-initialize spindle rpm calibration
+        case 30: settings.rpm_max = std::max(value, 1.0f); spindle->init(); break; // Re-initialize spindle rpm calibration (min of 1)
+        case 31: settings.rpm_min = value; spindle->init(); break; // Re-initialize spindle rpm calibration
         case 32:
-#ifdef VARIABLE_SPINDLE
-            if (int_value)  settings.flags |= BITFLAG_LASER_MODE;
-            else  settings.flags &= ~BITFLAG_LASER_MODE;
-#else
-            return (STATUS_SETTING_DISABLED_LASER);
-#endif
+            if (int_value)
+                settings.flags |= BITFLAG_LASER_MODE;
+            else
+                settings.flags &= ~BITFLAG_LASER_MODE;
+            spindle->init(); // update the spindle class
             break;
-        case 33: settings.spindle_pwm_freq = value; spindle_init(); break; // Re-initialize spindle pwm calibration
-        case 34: settings.spindle_pwm_off_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
-        case 35: settings.spindle_pwm_min_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
-        case 36: settings.spindle_pwm_max_value = value; spindle_init(); break; // Re-initialize spindle pwm calibration
+        case 33: settings.spindle_pwm_freq = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration
+        case 34: settings.spindle_pwm_off_value = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration
+        case 35: settings.spindle_pwm_min_value = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration
+        case 36: settings.spindle_pwm_max_value = value; spindle_select(SPINDLE_TYPE); break; // Re-initialize spindle pwm calibration
         case 80:
         case 81:
         case 82:
@@ -415,9 +422,5 @@ uint8_t get_direction_pin_mask(uint8_t axis_idx) {
 
 // this allows a conditional re-init of the trinamic settings
 void settings_spi_driver_init() {
-#ifdef USE_TRINAMIC
-    trinamic_change_settings();
-#else
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No SPI drivers setup");
-#endif
+    motor_read_settings();
 }

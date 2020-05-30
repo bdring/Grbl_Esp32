@@ -56,7 +56,7 @@
 // will be shown in a Grbl startup message to identify your
 // configuration.
 
-#define MACHINE_NAME            "MACHINE_TEMPLATE"
+#define MACHINE_NAME            "TEMPLATE"
 
 // If your machine requires custom code as described below in
 // Special Features, you must copy Custom/custom_code_template.cpp
@@ -102,7 +102,7 @@
 // machine does not support one of these features, you can leave
 // the corresponding pin undefined.
 
-// #define SPINDLE_PWM_PIN         GPIO_NUM_2   // labeled SpinPWM
+// #define SPINDLE_OUTPUT_PIN         GPIO_NUM_2   // labeled SpinPWM
 // #define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
 // #define COOLANT_MIST_PIN        GPIO_NUM_21  // labeled Mist
 // #define COOLANT_FLOOD_PIN       GPIO_NUM_25  // labeled Flood
@@ -131,15 +131,12 @@
 
 // === Servos
 // To use a servo motor on an axis, do not define step and direction
-// pins for that axis, but instead include a block like this:
-// #define USE_SERVO_AXES
+// pins for that axis, but instead include a block that has three 
+// #defines, like this.
 
 // #define SERVO_Z_PIN             GPIO_NUM_22
 // #define SERVO_Z_RANGE_MIN       0.0
 // #define SERVO_Z_RANGE_MAX       5.0
-// #define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-// #define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
-// #define SERVO_Z_MPOS            false           // will not use mpos, uses work coordinates
 
 // === Homing cycles
 // The default homing order is Z first (HOMING_CYCLE_0),
@@ -174,11 +171,6 @@
 //#define DEFAULT_REPORT_INCHES 1
 
 // === Control Pins
-
-// The control pins with names that begin with CONTROL_ are
-// ignored by default, to avoid noise problems.  To make them
-// work, you must undefine IGNORE_CONTROL_PINS
-// #undef IGNORE_CONTROL_PINS
 
 // If some of the control pin switches are normally closed
 // (the default is normally open), you can invert some of them
@@ -242,9 +234,8 @@
 // drivers that require software configuration at startup.
 // There are several options that control the details of such
 // drivers; inspect the code in grbl_triaminic.cpp to see them.
-// #define USE_TRIAMINIC
-// #define X_TRIAMINIC
-// #define X_DRIVER_TMC2209
+
+// #define X_TRINAMIC_DRIVE         2130
 // #define TRIAMINIC_DAISY_CHAIN
 
 // USE_MACHINE_TRINAMIC_INIT enables the machine_triaminic_setup()

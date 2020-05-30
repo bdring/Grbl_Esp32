@@ -21,6 +21,9 @@
 #include "grbl.h"
 #include "WiFi.h"
 
+#include "Spindles/SpindleClass.cpp"
+#include "Motors/MotorClass.cpp"
+
 // Declare system global variable structure
 system_t sys;
 int32_t sys_position[N_AXIS];      // Real-time machine (aka home) position vector in steps.
@@ -33,6 +36,8 @@ volatile uint8_t sys_rt_exec_accessory_override; // Global realtime executor bit
 #ifdef DEBUG
     volatile uint8_t sys_rt_exec_debug;
 #endif
+
+Spindle *spindle;
 
 
 
@@ -52,18 +57,19 @@ void setup() {
   #else
     #define MACHINE_STRING MACHINE_NAME
   #endif
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_STRING);
+    report_machine_type(CLIENT_SERIAL);
 #endif
     settings_init(); // Load Grbl settings from EEPROM
     stepper_init();  // Configure stepper pins and interrupt timers
+
+    init_motors();
+
     system_ini();   // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
     memset(sys_position, 0, sizeof(sys_position)); // Clear machine position.
 #ifdef USE_PEN_SERVO
     servo_init();
 #endif
-#ifdef USE_SERVO_AXES
-    init_servos();
-#endif
+
 #ifdef USE_PEN_SOLENOID
     solenoid_init();
 #endif
@@ -87,6 +93,7 @@ void setup() {
 #ifdef HOMING_INIT_LOCK
     if (bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE))  sys.state = STATE_ALARM;
 #endif
+    spindle_select(SPINDLE_TYPE);
 #ifdef ENABLE_WIFI
     wifi_config.begin();
 #endif
@@ -112,8 +119,7 @@ void loop() {
     sys_rt_exec_accessory_override = 0;
     // Reset Grbl primary systems.
     serial_reset_read_buffer(CLIENT_ALL); // Clear serial read buffer
-    gc_init(); // Set g-code parser to default state
-    spindle_init();
+    gc_init(); // Set g-code parser to default state    
     coolant_init();
     limits_init();
     probe_init();

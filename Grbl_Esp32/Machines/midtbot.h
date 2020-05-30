@@ -22,7 +22,9 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "MACHINE_MIDTBOT"
+#define MACHINE_NAME "MIDTBOT"
+
+#define SPINDLE_TYPE    SPINDLE_TYPE_NONE
 
 #define X_STEP_PIN      GPIO_NUM_12
 #define Y_STEP_PIN      GPIO_NUM_14
@@ -40,20 +42,9 @@
 #define Y_LIMIT_PIN     GPIO_NUM_4
 #define LIMIT_MASK      B11
 
-#ifndef USE_SERVO_AXES  // maybe set in config.h
-    #define USE_SERVO_AXES
-#endif
-
-#define SERVO_Z_PIN             GPIO_NUM_27
-#define SERVO_Z_RANGE_MIN       0.0
-#define SERVO_Z_RANGE_MAX       5.0
-#define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-#define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
-#define SERVO_Z_MPOS            false   // will not use mpos, uses work coordinates
-
-#ifndef IGNORE_CONTROL_PINS // maybe set in config.h
-    #define IGNORE_CONTROL_PINS
-#endif
+#define Z_SERVO_PIN             GPIO_NUM_27
+#define Z_SERVO_RANGE_MIN       0.0
+#define Z_SERVO_RANGE_MAX       5.0
 
 // redefine some stuff from config.h
 #ifdef HOMING_CYCLE_0
@@ -73,6 +64,8 @@
 #endif
 
 #define SERVO_PEN_PIN           GPIO_NUM_27
+
+#define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
 // defaults
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
@@ -99,11 +92,6 @@
 #define DEFAULT_HOMING_SEEK_RATE        1000.0 // mm/min
 #define DEFAULT_HOMING_DEBOUNCE_DELAY   250 // msec (0-65k)
 #define DEFAULT_HOMING_PULLOFF          3.0 // mm
-
-#define DEFAULT_SPINDLE_RPM_MAX 1000.0 // rpm
-#define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
-
-#define DEFAULT_LASER_MODE 0 // false
 
 #define DEFAULT_X_STEPS_PER_MM 200.0
 #define DEFAULT_Y_STEPS_PER_MM 100.0

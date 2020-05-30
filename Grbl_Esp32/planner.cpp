@@ -284,9 +284,8 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     plan_block_t* block = &block_buffer[block_buffer_head];
     memset(block, 0, sizeof(plan_block_t)); // Zero all block values.
     block->condition = pl_data->condition;
-#ifdef VARIABLE_SPINDLE
     block->spindle_speed = pl_data->spindle_speed;
-#endif
+
 #ifdef USE_LINE_NUMBERS
     block->line_number = pl_data->line_number;
 #endif
@@ -299,23 +298,17 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
 #ifdef COREXY
         position_steps[X_AXIS] = system_convert_corexy_to_x_axis_steps(sys_position);
         position_steps[Y_AXIS] = system_convert_corexy_to_y_axis_steps(sys_position);
-        position_steps[Z_AXIS] =  (bit_istrue(settings.dir_invert_mask,bit(Z_AXIS)) ? -1 : 1) * sys_position[Z_AXIS];
+        position_steps[Z_AXIS] = sys_position[Z_AXIS];
 #else
         memcpy(position_steps, sys_position, sizeof(sys_position));
 #endif
     } else  memcpy(position_steps, pl.position, sizeof(pl.position));
 #ifdef COREXY
-    float corexy_dir_invert_X, corexy_dir_invert_Y, corexy_dir_invert_Z;
-
-    corexy_dir_invert_X = bit_istrue(settings.dir_invert_mask,bit(X_AXIS)) ? -1 : 1;
-    corexy_dir_invert_Y = bit_istrue(settings.dir_invert_mask,bit(Y_AXIS)) ? -1 : 1;
-    corexy_dir_invert_Z = bit_istrue(settings.dir_invert_mask,bit(Z_AXIS)) ? -1 : 1;
-
-    target_steps[A_MOTOR] = lround(target[A_MOTOR]*settings.steps_per_mm[A_MOTOR]);
-    target_steps[B_MOTOR] = lround(target[B_MOTOR]*settings.steps_per_mm[B_MOTOR]);
-    block->steps[A_MOTOR] = labs(corexy_dir_invert_X*(target_steps[X_AXIS]-position_steps[X_AXIS]) + corexy_dir_invert_Y * (target_steps[Y_AXIS]-position_steps[Y_AXIS]));
-    block->steps[B_MOTOR] = labs(corexy_dir_invert_X*(target_steps[X_AXIS]-position_steps[X_AXIS]) - corexy_dir_invert_Y * (target_steps[Y_AXIS]-position_steps[Y_AXIS]));
-  #endif
+    target_steps[A_MOTOR] = lround(target[A_MOTOR] * settings.steps_per_mm[A_MOTOR]);
+    target_steps[B_MOTOR] = lround(target[B_MOTOR] * settings.steps_per_mm[B_MOTOR]);
+    block->steps[A_MOTOR] = labs((target_steps[X_AXIS] - position_steps[X_AXIS]) + (target_steps[Y_AXIS] - position_steps[Y_AXIS]));
+    block->steps[B_MOTOR] = labs((target_steps[X_AXIS] - position_steps[X_AXIS]) - (target_steps[Y_AXIS] - position_steps[Y_AXIS]));
+#endif
     for (idx = 0; idx < N_AXIS; idx++) {
         // Calculate target position in absolute steps, number of steps for each axis, and determine max step events.
         // Also, compute individual axes distance for move and prep unit vector calculations.
@@ -327,11 +320,11 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
         }
         block->step_event_count = MAX(block->step_event_count, block->steps[idx]);
         if (idx == A_MOTOR)
-            delta_mm = (corexy_dir_invert_X*(target_steps[X_AXIS]-position_steps[X_AXIS]) + corexy_dir_invert_Y*(target_steps[Y_AXIS]-position_steps[Y_AXIS]))/settings.steps_per_mm[idx];
+            delta_mm = (target_steps[X_AXIS] - position_steps[X_AXIS] + target_steps[Y_AXIS] - position_steps[Y_AXIS]) / settings.steps_per_mm[idx];
         else if (idx == B_MOTOR)
-            delta_mm = (corexy_dir_invert_X*(target_steps[X_AXIS]-position_steps[X_AXIS]) + corexy_dir_invert_Y*(-target_steps[Y_AXIS]+position_steps[Y_AXIS]))/settings.steps_per_mm[idx];
+            delta_mm = (target_steps[X_AXIS] - position_steps[X_AXIS] - target_steps[Y_AXIS] + position_steps[Y_AXIS]) / settings.steps_per_mm[idx];
         else
-            delta_mm = (corexy_dir_invert_Z*(target_steps[idx] - position_steps[idx]))/settings.steps_per_mm[idx];
+            delta_mm = (target_steps[idx] - position_steps[idx]) / settings.steps_per_mm[idx];
 #else
         target_steps[idx] = lround(target[idx] * settings.steps_per_mm[idx]);
         block->steps[idx] = labs(target_steps[idx] - position_steps[idx]);

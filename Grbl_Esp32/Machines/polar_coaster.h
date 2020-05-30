@@ -22,11 +22,13 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "MACHINE_POLAR_COASTER"
+#define MACHINE_NAME "POLAR_COASTER"
 
 // This causes the custom code file to be included in the build
 // via ../custom_code.cpp
 #define CUSTOM_CODE_FILENAME "Custom/polar_coaster.cpp"
+
+#define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
 #define RADIUS_AXIS 0
 #define POLAR_AXIS 1
@@ -43,23 +45,14 @@
 
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_17
 
-#ifndef USE_SERVO_AXES  // maybe set in config.h
-    #define USE_SERVO_AXES
-#endif
-
-#define SERVO_Z_PIN             GPIO_NUM_16
-#define SERVO_Z_RANGE_MIN       0.0
-#define SERVO_Z_RANGE_MAX       5.0
-#define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-#define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
-#define SERVO_Z_MPOS            false           // will not use mpos, uses work coordinates
+#define Z_SERVO_PIN             GPIO_NUM_16
+#define Z_SERVO_RANGE_MIN       0.0
+#define Z_SERVO_RANGE_MAX       5.0
 
 #define X_LIMIT_PIN             GPIO_NUM_4
 #define LIMIT_MASK              B1
 
-#ifdef IGNORE_CONTROL_PINS // maybe set in config.h
-    #undef IGNORE_CONTROL_PINS
-#endif
+#define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE

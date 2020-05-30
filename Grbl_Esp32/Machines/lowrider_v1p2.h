@@ -34,13 +34,15 @@
 #define X_DIRECTION_PIN     GPIO_NUM_33     // use Z labeled connector
 
 #define Y_STEP_PIN          GPIO_NUM_14
-#define Y2_STEP_PIN         GPIO_NUM_21     // ganged motor
 #define Y_DIRECTION_PIN     GPIO_NUM_25
+#define Y2_STEP_PIN         GPIO_NUM_21     // ganged motor
+#define Y2_DIRECTION_PIN    Y_DIRECTION_PIN
 #define Y_AXIS_SQUARING
 
 #define Z_STEP_PIN          GPIO_NUM_12     // use X labeled connector
-#define Z2_STEP_PIN         GPIO_NUM_22     // use X labeled connector
 #define Z_DIRECTION_PIN     GPIO_NUM_26     // use X labeled connector
+#define Z2_STEP_PIN         GPIO_NUM_22     // use X labeled connector
+#define Z2_DIRECTION_PIN    Z_DIRECTION_PIN
 #define Z_AXIS_SQUARING
 
 // OK to comment out to use pin for other features
@@ -50,9 +52,11 @@
 //#define USE_SPINDLE_RELAY
 
 #ifdef USE_SPINDLE_RELAY
-    #define SPINDLE_PWM_PIN GPIO_NUM_2
+    #define SPINDLE_TYPE SPINDLE_TYPE_PWM
+    #define SPINDLE_OUTPUT_PIN GPIO_NUM_2
 #else
-    #define SPINDLE_PWM_PIN         GPIO_NUM_16
+    #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
+    #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
     #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
 #endif
 
@@ -78,7 +82,6 @@
 
 #define INVERT_CONTROL_PIN_MASK   B1110
 
-// Note: check the #define IGNORE_CONTROL_PINS is the way you want in config.h
 #define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
 #define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup
 #define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup

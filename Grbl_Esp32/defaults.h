@@ -114,38 +114,36 @@
         #define DEFAULT_HOMING_PULLOFF 1.0 // $27 mm
     #endif
 
-    // ======== sPINDLE STUFF ====================
+    // ======== SPINDLE STUFF ====================
+    #ifndef  DEFAULT_SPINDLE_RPM_MIN // $31
+        #define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
+    #endif
+
+    #ifndef  DEFAULT_LASER_MODE // $32
+        #define DEFAULT_LASER_MODE 0 // false
+    #endif
+
+    #ifndef  DEFAULT_SPINDLE_RPM_MAX // $30
+        #define DEFAULT_SPINDLE_RPM_MAX 1000.0 // rpm
+    #endif
 
     #ifndef DEFAULT_SPINDLE_FREQ
         #define DEFAULT_SPINDLE_FREQ 5000.0 // $33 Hz (extended set)
     #endif
 
     #ifndef DEFAULT_SPINDLE_OFF_VALUE
-        #define DEFAULT_SPINDLE_OFF_VALUE 0.0 // $34 Percent (extended set)
+        #define DEFAULT_SPINDLE_OFF_VALUE 0.0 // $34 Percent of full period(extended set)
     #endif
 
     #ifndef DEFAULT_SPINDLE_MIN_VALUE
-        #define DEFAULT_SPINDLE_MIN_VALUE 0.0 // $35 Percent (extended set)
+        #define DEFAULT_SPINDLE_MIN_VALUE 0.0 // $35 Percent of full period (extended set)
     #endif
 
     #ifndef DEFAULT_SPINDLE_MAX_VALUE
-        #define DEFAULT_SPINDLE_MAX_VALUE 100.0 // $36 Percent (extended set)
+        #define DEFAULT_SPINDLE_MAX_VALUE 100.0 // $36 Percent of full period (extended set)
     #endif
 
-    #ifndef  DEFAULT_SPINDLE_RPM_MAX
-        #define DEFAULT_SPINDLE_RPM_MAX 1000.0 // rpm
-    #endif
-
-
-    #ifndef  DEFAULT_SPINDLE_RPM_MIN
-        #define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
-    #endif
-
-    #ifndef  DEFAULT_LASER_MODE
-        #define DEFAULT_LASER_MODE 0 // false
-    #endif
-
-    // user settings
+    // ================  user settings =====================
     #ifndef DEFAULT_USER_INT_80
         #define DEFAULT_USER_INT_80 0 // $80 User integer setting
     #endif

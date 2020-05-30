@@ -25,22 +25,25 @@
 // // Pin assignments for the Buildlog.net MPCNC controller
 
 
-#define MACHINE_NAME "MACHINE_MPCNC_V1P1"
+#define MACHINE_NAME "MPCNC_V1P1"
 
-#define USE_GANGED_AXES // allow two motors on an axis
+#define USE_GANGED_AXES     // allow two motors on an axis
 
-#define X_STEP_PIN      GPIO_NUM_12
-#define X2_STEP_PIN     GPIO_NUM_22      // ganged motor
+#define X_STEP_PIN          GPIO_NUM_12
+#define X_DIRECTION_PIN     GPIO_NUM_26
+#define X2_STEP_PIN         GPIO_NUM_22      // ganged motor
+#define X2_DIRECTION_PIN    X_DIRECTION_PIN
 #define X_AXIS_SQUARING
 
-#define Y_STEP_PIN      GPIO_NUM_14
-#define Y2_STEP_PIN     GPIO_NUM_21  // ganged motor
+
+#define Y_STEP_PIN          GPIO_NUM_14
+#define Y_DIRECTION_PIN     GPIO_NUM_25
+#define Y2_STEP_PIN         GPIO_NUM_21  // ganged motor
+#define Y2_DIRECTION_PIN    Y_DIRECTION_PIN
 #define Y_AXIS_SQUARING
 
 #define Z_STEP_PIN      GPIO_NUM_27
 
-#define X_DIRECTION_PIN GPIO_NUM_26
-#define Y_DIRECTION_PIN GPIO_NUM_25
 #define Z_DIRECTION_PIN GPIO_NUM_33
 
 // OK to comment out to use pin for other features
@@ -50,9 +53,12 @@
 //#define USE_SPINDLE_RELAY
 
 #ifdef USE_SPINDLE_RELAY
-    #define SPINDLE_PWM_PIN GPIO_NUM_17
+    #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
+    #define SPINDLE_OUTPUT_PIN GPIO_NUM_17
 #else
-    #define SPINDLE_PWM_PIN         GPIO_NUM_16
+    #define SPINDLE_TYPE SPINDLE_TYPE_PWM
+    #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
+
     #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
 #endif
 
@@ -75,15 +81,6 @@
 #endif
 
 #define INVERT_CONTROL_PIN_MASK B1110
-
-// Note: default is #define IGNORE_CONTROL_PINS in config.h
-// uncomment to these lines to use them
-
-/*
-#ifdef IGNORE_CONTROL_PINS
-#undef IGNORE_CONTROL_PINS
-#endif
-*/
 
 #define CONTROL_RESET_PIN           GPIO_NUM_34  // needs external pullup
 #define CONTROL_FEED_HOLD_PIN       GPIO_NUM_36  // needs external pullup

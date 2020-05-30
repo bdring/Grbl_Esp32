@@ -1,5 +1,3 @@
-#include "grbl.h"
-
 /*
   stepper.c - stepper motor driver: executes motion plans using stepper motors
   Part of Grbl
@@ -37,9 +35,7 @@ typedef struct {
     uint32_t steps[N_AXIS];
     uint32_t step_event_count;
     uint8_t direction_bits;
-#ifdef VARIABLE_SPINDLE
     uint8_t is_pwm_rate_adjusted; // Tracks motions that require constant laser power/rate
-#endif
 } st_block_t;
 static st_block_t st_block_buffer[SEGMENT_BUFFER_SIZE - 1];
 
@@ -56,9 +52,7 @@ typedef struct {
 #else
     uint8_t prescaler;      // Without AMASS, a prescaler is required to adjust for slow timing.
 #endif
-#ifdef VARIABLE_SPINDLE
-    uint16_t spindle_pwm;
-#endif
+    uint16_t spindle_rpm;
 } segment_t;
 static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 
@@ -145,28 +139,14 @@ typedef struct {
     float accelerate_until; // Acceleration ramp end measured from end of block (mm)
     float decelerate_after; // Deceleration ramp start measured from end of block (mm)
 
-#ifdef VARIABLE_SPINDLE
+
     float inv_rate;    // Used by PWM laser mode to speed up segment calculations.
-    uint16_t current_spindle_pwm;
-#endif
+    //uint16_t current_spindle_pwm;  // todo remove
+    float current_spindle_rpm;
+
 } st_prep_t;
 static st_prep_t prep;
 
-// RMT channel numbers. These are assigned dynamically as needed via the CPU MAP
-// Only 8 are available (0-7)
-// They are Initialized with an invalid number to prevent unitended consequences
-uint8_t X_rmt_chan_num = 255;
-uint8_t X2_rmt_chan_num = 255; // Ganged axes have the "2"
-uint8_t Y_rmt_chan_num = 255;
-uint8_t Y2_rmt_chan_num = 255;
-uint8_t Z_rmt_chan_num = 255;
-uint8_t Z2_rmt_chan_num = 255;
-uint8_t A_rmt_chan_num = 255;
-uint8_t A2_rmt_chan_num = 255;
-uint8_t B_rmt_chan_num = 255;
-uint8_t B2_rmt_chan_num = 255;
-uint8_t C_rmt_chan_num = 255;
-uint8_t C2_rmt_chan_num = 255;
 
 /* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
    the venerable Bresenham line algorithm to manage and exactly synchronize multi-axis moves.
@@ -245,9 +225,12 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
     set_stepper_pins_on(st.step_outbits);
     step_pulse_off_time = esp_timer_get_time() + (settings.pulse_microseconds); // determine when to turn off pulse
 #endif
-#ifdef USE_UNIPOLAR
-    unipolar_step(st.step_outbits, st.dir_outbits);
-#endif
+    // #ifdef USE_UNIPOLAR
+    if (motor_class_steps) { // if one of the motors is handling the step I/O ... like Unipolar
+        motors_step(st.step_outbits, st.dir_outbits); // send step info to motor classes
+    }
+    //unipolar_step(st.step_outbits, st.dir_outbits);
+    //#endif
     busy = true;
     // If there is no step segment, attempt to pop one from the stepper buffer
     if (st.exec_segment == NULL) {
@@ -283,20 +266,18 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
             st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
 #endif
 #endif
-#ifdef VARIABLE_SPINDLE
             // Set real-time spindle output as segment is loaded, just prior to the first step.
-            spindle_set_speed(st.exec_segment->spindle_pwm);
-#endif
+            spindle->set_rpm(st.exec_segment->spindle_rpm);
         } else {
             // Segment buffer empty. Shutdown.
             st_go_idle();
-#if ( (defined VARIABLE_SPINDLE) && (defined SPINDLE_PWM_PIN) )
             if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
-                if (st.exec_block->is_pwm_rate_adjusted)
-                    spindle_set_speed(spindle_pwm_off_value);
+                if (st.exec_block->is_pwm_rate_adjusted) {
+                    spindle->set_rpm(0);
+                }
             }
-#endif
+
             system_set_exec_state_flag(EXEC_CYCLE_STOP); // Flag main program for cycle end
             return; // Nothing to do but exit.
         }
@@ -410,88 +391,14 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
 
 void stepper_init() {
     // make the stepper disable pin an output
-#ifdef STEPPERS_DISABLE_PIN
-    pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
-    set_stepper_disable(true);
-#endif
-#ifdef USE_UNIPOLAR
-    unipolar_init();
-#endif
-#ifdef USE_TRINAMIC
-    Trinamic_Init();
-#endif
+
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
 #ifdef USE_RMT_STEPS
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RMT Steps");
-    initRMT();
 #else
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Timed Steps");
-    // make the step pins outputs
-#ifdef  X_STEP_PIN
-    pinMode(X_STEP_PIN, OUTPUT);
 #endif
-#ifdef  X2_STEP_PIN // ganged motor
-    pinMode(X2_STEP_PIN, OUTPUT);
-#endif
-#ifdef Y_STEP_PIN
-    pinMode(Y_STEP_PIN, OUTPUT);
-#endif
-#ifdef Y2_STEP_PIN
-    pinMode(Y2_STEP_PIN, OUTPUT);
-#endif
-#ifdef Z_STEP_PIN
-    pinMode(Z_STEP_PIN, OUTPUT);
-#endif
-#ifdef Z2_STEP_PIN
-    pinMode(Z2_STEP_PIN, OUTPUT);
-#endif
-#ifdef A_STEP_PIN
-    pinMode(A_STEP_PIN, OUTPUT);
-#endif
-#ifdef B_STEP_PIN
-    pinMode(B_STEP_PIN, OUTPUT);
-#endif
-#ifdef C_STEP_PIN
-    pinMode(C_STEP_PIN, OUTPUT);
-#endif
-#endif
-    // make the direction pins outputs
-#ifdef X_DIRECTION_PIN
-    pinMode(X_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef X2_DIRECTION_PIN
-    pinMode(X2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Y_DIRECTION_PIN
-    pinMode(Y_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Y2_DIRECTION_PIN
-    pinMode(Y2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Z_DIRECTION_PIN
-    pinMode(Z_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Z2_DIRECTION_PIN
-    pinMode(Z2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef A_DIRECTION_PIN
-    pinMode(A_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef A2_DIRECTION_PIN
-    pinMode(A2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef B_DIRECTION_PIN
-    pinMode(B_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef B2_DIRECTION_PIN
-    pinMode(B2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef C_DIRECTION_PIN
-    pinMode(C_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef C2_DIRECTION_PIN
-    pinMode(C2_DIRECTION_PIN, OUTPUT);
-#endif
+
     // setup stepper timer interrupt
     /*
     stepperDriverTimer = timerBegin(	0, 													// timer number
@@ -514,125 +421,10 @@ void stepper_init() {
     timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
 }
 
-#ifdef USE_RMT_STEPS
-void initRMT() {
-    rmt_item32_t rmtItem[2];
-    rmt_config_t rmtConfig;
-    rmtConfig.rmt_mode = RMT_MODE_TX;
-    rmtConfig.clk_div = 20;
-    rmtConfig.mem_block_num = 2;
-    rmtConfig.tx_config.loop_en = false;
-    rmtConfig.tx_config.carrier_en = false;
-    rmtConfig.tx_config.carrier_freq_hz = 0;
-    rmtConfig.tx_config.carrier_duty_percent = 50;
-    rmtConfig.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
-    rmtConfig.tx_config.idle_output_en = true;
-#ifdef STEP_PULSE_DELAY
-    rmtItem[0].duration0 = STEP_PULSE_DELAY * 4;
-#else
-    rmtItem[0].duration0 = 1;
-#endif
-    rmtItem[0].duration1 = 4 * settings.pulse_microseconds;
-    rmtItem[1].duration0 = 0;
-    rmtItem[1].duration1 = 0;
-#ifdef X_STEP_PIN
-    X_rmt_chan_num = sys_get_next_RMT_chan_num();
-    rmt_set_source_clk((rmt_channel_t)X_rmt_chan_num, RMT_BASECLK_APB);
-    rmtConfig.channel = (rmt_channel_t)X_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, X_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = X_STEP_PIN;
-    rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
-    rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
-    rmt_config(&rmtConfig);
-    rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
-#endif
-#ifdef X2_STEP_PIN
-    X2_rmt_chan_num = sys_get_next_RMT_chan_num();
-    rmt_set_source_clk((rmt_channel_t)X2_rmt_chan_num, RMT_BASECLK_APB);
-    rmtConfig.channel = (rmt_channel_t)X2_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, X_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = X2_STEP_PIN;
-    rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
-    rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
-    rmt_config(&rmtConfig);
-    rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
-#endif
-#ifdef Y_STEP_PIN
-    Y_rmt_chan_num = sys_get_next_RMT_chan_num();
-    rmt_set_source_clk((rmt_channel_t)Y_rmt_chan_num, RMT_BASECLK_APB);
-    rmtConfig.channel = (rmt_channel_t)Y_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Y_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = Y_STEP_PIN;
-    rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
-    rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
-    rmt_config(&rmtConfig);
-    rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
-#endif
-#ifdef Y2_STEP_PIN
-    Y2_rmt_chan_num = sys_get_next_RMT_chan_num();
-    rmt_set_source_clk((rmt_channel_t)Y2_rmt_chan_num, RMT_BASECLK_APB);
-    rmtConfig.channel = (rmt_channel_t)Y2_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Y_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = Y2_STEP_PIN;
-    rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
-    rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
-    rmt_config(&rmtConfig);
-    rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
-#endif
-#ifdef Z_STEP_PIN
-    Z_rmt_chan_num = sys_get_next_RMT_chan_num();
-    rmt_set_source_clk((rmt_channel_t)Z_rmt_chan_num, RMT_BASECLK_APB);
-    rmtConfig.channel = (rmt_channel_t)Z_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, Z_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = Z_STEP_PIN;
-    rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
-    rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
-    rmt_config(&rmtConfig);
-    rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
-#endif
-#ifdef A_STEP_PIN
-    A_rmt_chan_num = sys_get_next_RMT_chan_num();
-    rmt_set_source_clk((rmt_channel_t)A_rmt_chan_num, RMT_BASECLK_APB);
-    rmtConfig.channel = (rmt_channel_t)A_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, A_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = A_STEP_PIN;  // TODO
-    rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
-    rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
-    rmt_config(&rmtConfig);
-    rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
-#endif
-#ifdef B_STEP_PIN
-    B_rmt_chan_num = sys_get_next_RMT_chan_num();
-    rmt_set_source_clk((rmt_channel_t)B_rmt_chan_num, RMT_BASECLK_APB);
-    rmtConfig.channel = (rmt_channel_t)B_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, B_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = B_STEP_PIN;  // TODO
-    rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
-    rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
-    rmt_config(&rmtConfig);
-    rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
-#endif
-#ifdef C_STEP_PIN
-    C_rmt_chan_num = sys_get_next_RMT_chan_num();
-    rmt_set_source_clk((rmt_channel_t)C_rmt_chan_num, RMT_BASECLK_APB);
-    rmtConfig.channel = (rmt_channel_t)C_rmt_chan_num;
-    rmtConfig.tx_config.idle_level = bit_istrue(settings.step_invert_mask, C_AXIS) ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-    rmtConfig.gpio_num = C_STEP_PIN;  // TODO
-    rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
-    rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
-    rmt_config(&rmtConfig);
-    rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
-#endif
-}
-#endif
-
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void st_wake_up() {
-#ifdef ESP_DEBUG
-    //Serial.println("st_wake_up()");
-#endif
     // Enable stepper drivers.
-    set_stepper_disable(false);
+    motors_set_disable(false); // global and individual
     stepper_idle = false;
     // Initialize stepper output bits to ensure first ISR call does not step.
     st.step_outbits = step_port_invert_mask;
@@ -649,9 +441,6 @@ void st_wake_up() {
 
 // Reset and clear stepper subsystem variables
 void st_reset() {
-#ifdef ESP_DEBUG
-    //Serial.println("st_reset()");
-#endif
     // Initialize stepper driver idle state.
     st_go_idle();
     // Initialize stepper algorithm variables.
@@ -664,52 +453,12 @@ void st_reset() {
     segment_next_head = 1;
     busy = false;
     st_generate_step_dir_invert_masks();
-    st.dir_outbits = dir_port_invert_mask; // Initialize direction bits to default.
-    // TODO do we need to turn step pins off?
+    st.dir_outbits = dir_port_invert_mask; // Initialize direction bits to default.   
 }
 
-
-
-
-
 void set_direction_pins_on(uint8_t onMask) {
-    // inverts are applied in step generation
-#ifdef X_DIRECTION_PIN
-    digitalWrite(X_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef X2_DIRECTION_PIN // optional ganged axis 
-    digitalWrite(X2_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef Y_DIRECTION_PIN
-    digitalWrite(Y_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Y2_DIRECTION_PIN // optional ganged axis 
-    digitalWrite(Y2_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Z_DIRECTION_PIN
-    digitalWrite(Z_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef Z2_DIRECTION_PIN // optional ganged axis 
-    digitalWrite(Z2_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef A_DIRECTION_PIN
-    digitalWrite(A_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef A2_DIRECTION_PIN // optional ganged axis 
-    digitalWrite(A2_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef B_DIRECTION_PIN
-    digitalWrite(B_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef B2_DIRECTION_PIN // optional ganged axis 
-    digitalWrite(B2_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef C_DIRECTION_PIN
-    digitalWrite(C_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
-#ifdef C2_DIRECTION_PIN // optional ganged axis 
-    digitalWrite(C2_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
+    // inverts are applied in step generation....TODO move to Classes
+    motors_set_direction_pins(onMask);
 }
 
 #ifndef USE_GANGED_AXES
@@ -771,16 +520,16 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
 #ifdef  X_STEP_PIN
     if (st.step_outbits & (1 << X_AXIS)) {
 #ifndef X2_STEP_PIN // if not a ganged axis
-        RMT.conf_ch[X_rmt_chan_num].conf1.mem_rd_rst = 1;
-        RMT.conf_ch[X_rmt_chan_num].conf1.tx_start = 1;
+        RMT.conf_ch[rmt_chan_num[X_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+        RMT.conf_ch[rmt_chan_num[X_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
 #else // it is a ganged axis
         if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A)) {
-            RMT.conf_ch[X_rmt_chan_num].conf1.mem_rd_rst = 1;
-            RMT.conf_ch[X_rmt_chan_num].conf1.tx_start = 1;
+            RMT.conf_ch[rmt_chan_num[X_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[X_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
         }
         if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B)) {
-            RMT.conf_ch[X2_rmt_chan_num].conf1.mem_rd_rst = 1;
-            RMT.conf_ch[X2_rmt_chan_num].conf1.tx_start = 1;
+            RMT.conf_ch[rmt_chan_num[X_AXIS][GANGED_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[X_AXIS][GANGED_MOTOR]].conf1.tx_start = 1;
         }
 #endif
     }
@@ -788,42 +537,55 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
 #ifdef  Y_STEP_PIN
     if (st.step_outbits & (1 << Y_AXIS)) {
 #ifndef Y2_STEP_PIN // if not a ganged axis
-        RMT.conf_ch[Y_rmt_chan_num].conf1.mem_rd_rst = 1;
-        RMT.conf_ch[Y_rmt_chan_num].conf1.tx_start = 1;
+        RMT.conf_ch[rmt_chan_num[Y_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+        RMT.conf_ch[rmt_chan_num[Y_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
 #else // it is a ganged axis
         if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A)) {
-            RMT.conf_ch[Y_rmt_chan_num].conf1.mem_rd_rst = 1;
-            RMT.conf_ch[Y_rmt_chan_num].conf1.tx_start = 1;
+            RMT.conf_ch[rmt_chan_num[Y_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[Y_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
         }
         if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B)) {
-            RMT.conf_ch[Y2_rmt_chan_num].conf1.mem_rd_rst = 1;
-            RMT.conf_ch[Y2_rmt_chan_num].conf1.tx_start = 1;
+            RMT.conf_ch[rmt_chan_num[Y_AXIS][GANGED_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[Y_AXIS][GANGED_MOTOR]].conf1.tx_start = 1;
         }
 #endif
     }
 #endif
+
 #ifdef  Z_STEP_PIN
     if (st.step_outbits & (1 << Z_AXIS)) {
-        RMT.conf_ch[Z_rmt_chan_num].conf1.mem_rd_rst = 1;
-        RMT.conf_ch[Z_rmt_chan_num].conf1.tx_start = 1;
+#ifndef Z2_STEP_PIN // if not a ganged axis
+        RMT.conf_ch[rmt_chan_num[Z_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+        RMT.conf_ch[rmt_chan_num[Z_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
+#else // it is a ganged axis
+        if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A)) {
+            RMT.conf_ch[rmt_chan_num[Z_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[Z_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
+        }
+        if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B)) {
+            RMT.conf_ch[rmt_chan_num[Z_AXIS][GANGED_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[Z_AXIS][GANGED_MOTOR]].conf1.tx_start = 1;
+        }
+#endif
     }
 #endif
+
 #ifdef  A_STEP_PIN
     if (st.step_outbits & (1 << A_AXIS)) {
-        RMT.conf_ch[A_rmt_chan_num].conf1.mem_rd_rst = 1;
-        RMT.conf_ch[A_rmt_chan_num].conf1.tx_start = 1;
+        RMT.conf_ch[rmt_chan_num[A_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+        RMT.conf_ch[rmt_chan_num[A_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
     }
 #endif
 #ifdef  B_STEP_PIN
     if (st.step_outbits & (1 << B_AXIS)) {
-        RMT.conf_ch[B_rmt_chan_num].conf1.mem_rd_rst = 1;
-        RMT.conf_ch[B_rmt_chan_num].conf1.tx_start = 1;
+        RMT.conf_ch[rmt_chan_num[B_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+        RMT.conf_ch[rmt_chan_num[B_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
     }
 #endif
 #ifdef  C_STEP_PIN
     if (st.step_outbits & (1 << C_AXIS)) {
-        RMT.conf_ch[C_rmt_chan_num].conf1.mem_rd_rst = 1;
-        RMT.conf_ch[C_rmt_chan_num].conf1.tx_start = 1;
+        RMT.conf_ch[rmt_chan_num[C_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+        RMT.conf_ch[rmt_chan_num[C_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
     }
 #endif
 }
@@ -844,7 +606,7 @@ void st_go_idle() {
         //vTaskDelay(settings.stepper_idle_lock_time / portTICK_PERIOD_MS);	// this probably does not work when called from ISR
         //pin_state = true;
     } else
-        set_stepper_disable(pin_state);
+        motors_set_disable(pin_state);
     set_stepper_pins_on(0);
 }
 
@@ -986,18 +748,16 @@ void st_prep_buffer() {
                     prep.recalculate_flag &= ~(PREP_FLAG_DECEL_OVERRIDE);
                 } else
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
-#ifdef VARIABLE_SPINDLE
-                // Setup laser mode variables. PWM rate adjusted motions will always complete a motion with the
-                // spindle off.
-                st_prep_block->is_pwm_rate_adjusted = false;
-                if (settings.flags & BITFLAG_LASER_MODE) {
+
+
+                if (spindle->isRateAdjusted() ){ //   settings.flags & BITFLAG_LASER_MODE) {
                     if (pl_block->condition & PL_COND_FLAG_SPINDLE_CCW) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
                         prep.inv_rate = 1.0 / pl_block->programmed_rate;
                         st_prep_block->is_pwm_rate_adjusted = true;
                     }
                 }
-#endif
+
             }
             /* ---------------------------------------------------------------------------------
              Compute the velocity profile of a new planner block based on its entry and exit
@@ -1083,9 +843,9 @@ void st_prep_buffer() {
                     prep.maximum_speed = prep.exit_speed;
                 }
             }
-#ifdef VARIABLE_SPINDLE
-            bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM); // Force update whenever updating block.
-#endif
+
+            bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM); // Force update whenever updating block.
+
         }
         // Initialize new segment
         segment_t* prep_segment = &segment_buffer[segment_buffer_head];
@@ -1189,29 +949,32 @@ void st_prep_buffer() {
                 }
             }
         } while (mm_remaining > prep.mm_complete); // **Complete** Exit loop. Profile complete.
-#ifdef VARIABLE_SPINDLE
+
         /* -----------------------------------------------------------------------------------
           Compute spindle speed PWM output for step segment
         */
-        if (st_prep_block->is_pwm_rate_adjusted || (sys.step_control & STEP_CONTROL_UPDATE_SPINDLE_PWM)) {
+        if (st_prep_block->is_pwm_rate_adjusted || (sys.step_control & STEP_CONTROL_UPDATE_SPINDLE_RPM)) {
             if (pl_block->condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)) {
                 float rpm = pl_block->spindle_speed;
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
-                if (st_prep_block->is_pwm_rate_adjusted)
+                if (st_prep_block->is_pwm_rate_adjusted) {
                     rpm *= (prep.current_speed * prep.inv_rate);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RPM %.2f", rpm);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
+                }
                 // If current_speed is zero, then may need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE)
                 // but this would be instantaneous only and during a motion. May not matter at all.
-                prep.current_spindle_pwm = spindle_compute_pwm_value(rpm);
+
+                prep.current_spindle_rpm = rpm;
             } else {
                 sys.spindle_speed = 0.0;
-#if ( (defined VARIABLE_SPINDLE) && (defined SPINDLE_PWM_PIN) )
-                prep.current_spindle_pwm = spindle_pwm_off_value ;
-#endif
+                prep.current_spindle_rpm = 0.0;
+
             }
-            bit_false(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
+            bit_false(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
         }
-        prep_segment->spindle_pwm = prep.current_spindle_pwm; // Reload segment PWM value
-#endif
+        prep_segment->spindle_rpm = prep.current_spindle_rpm; // Reload segment PWM value
+
         /* -----------------------------------------------------------------------------------
            Compute segment step rate, steps to execute, and apply necessary rate corrections.
            NOTE: Steps are computed by direct scalar conversion of the millimeter distance
@@ -1351,33 +1114,4 @@ void IRAM_ATTR Stepper_Timer_Stop() {
     //Serial.println("ST Stop");
 #endif
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
-}
-
-
-void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
-#ifdef USE_TRINAMIC_ENABLE
-    trinamic_stepper_enable(!isOn);
-#endif
-    if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
-        isOn = !isOn;    // Apply pin invert.
-    }
-#ifdef USE_UNIPOLAR
-    unipolar_disable(isOn);
-#endif
-#ifdef STEPPERS_DISABLE_PIN
-    digitalWrite(STEPPERS_DISABLE_PIN, isOn);
-#endif
-}
-
-bool get_stepper_disable() { // returns true if steppers are disabled
-    bool disabled = false;
-#ifdef STEPPERS_DISABLE_PIN
-    disabled = digitalRead(STEPPERS_DISABLE_PIN);
-#else
-    return false; // thery are never disabled if there is no pin defined
-#endif
-    if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
-        disabled = !disabled; // Apply pin invert.
-    }
-    return disabled;
 }

@@ -31,12 +31,25 @@
 // Axis array index values. Must start with 0 and be continuous.
 // Note: You set the number of axes used by changing N_AXIS.
 // Be sure to define pins or servos in the machine definition file.
+#define MAX_AXES 6
+
 #define X_AXIS 0 // Axis indexing value.
 #define Y_AXIS 1
 #define Z_AXIS 2
 #define A_AXIS 3
 #define B_AXIS 4
 #define C_AXIS 5
+
+#define X2_AXIS 6
+#define Y2_AXIS 7
+#define Z2_AXIS 8
+#define A2_AXIS 9
+#define B2_AXIS 10
+#define C2_AXIS 11
+
+
+#define PRIMARY_MOTOR    0
+#define GANGED_MOTOR     1
 
 
 // CoreXY motor assignments. DO NOT ALTER.
@@ -89,7 +102,9 @@ float limit_value_by_axis_maximum(float* max_value, float* unit_vec);
 
 float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
 float map_float(float x, float in_min, float in_max, float out_min, float out_max);
+uint32_t map_uint32_t(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max);
 float constrain_float(float in, float min, float max);
+bool char_is_numeric(char value);
 
 template <class T> void swap(T& a, T& b) {
     T c(a); a = b; b = c;
