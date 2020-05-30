@@ -45,6 +45,8 @@
 #define I2S_STEPPER_STREAM
 #undef USE_RMT_STEPS
 
+#define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
+
 #define I2S_IOEXPANDER_BCK      GPIO_NUM_22
 #define I2S_IOEXPANDER_WS       GPIO_NUM_17
 #define I2S_IOEXPANDER_DATA     GPIO_NUM_21

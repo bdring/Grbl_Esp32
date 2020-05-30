@@ -432,10 +432,31 @@ static void stepper_pulse_phase_func() {
 #ifdef USE_I2S_IOEXPANDER
 void stepper_init() {
     // make the stepper disable pin an output
+	
 #ifdef STEPPERS_DISABLE_PIN
-    I2S_IOEXP_SET_OUTPUT(STEPPERS_DISABLE_PIN);
-    set_stepper_disable(true);
+    I2S_IOEXP_SET_OUTPUT(STEPPERS_DISABLE_PIN);    	
 #endif
+#ifdef X_ENABLE_PIN
+	HAL_pinMode(X_ENABLE_PIN, OUTPUT);	
+#endif
+#ifdef Y_ENABLE_PIN
+	HAL_pinMode(Y_ENABLE_PIN, OUTPUT);	
+#endif
+#ifdef Z_ENABLE_PIN
+	HAL_pinMode(Z_ENABLE_PIN, OUTPUT);	
+#endif
+#ifdef A_ENABLE_PIN
+	HAL_pinMode(A_ENABLE_PIN, OUTPUT);	
+#endif
+#ifdef B_ENABLE_PIN
+	HAL_pinMode(B_ENABLE_PIN, OUTPUT);	
+#endif
+#ifdef C_ENABLE_PIN
+	HAL_pinMode(C_ENABLE_PIN, OUTPUT);
+#endif
+
+	set_stepper_disable(true);
+
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "I2S Steps");
     // make the step pins outputs
@@ -1620,8 +1641,18 @@ void IRAM_ATTR Stepper_Timer_Stop() {
 #endif
 }
 
-
+// this gets called a lot, exit early is no change 
 void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
+    static bool previous_state = true;
+
+    if (previous_state == isOn) 
+        return;
+
+    previous_state = isOn;
+
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "set_stepper_disable:%d", isOn);
+
+
 #ifdef USE_TRINAMIC_ENABLE
     trinamic_stepper_enable(!isOn);
 #endif
@@ -1638,6 +1669,26 @@ void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
     digitalWrite(STEPPERS_DISABLE_PIN, isOn);
 #endif
 #endif
+
+#ifdef X_ENABLE_PIN
+    HAL_digitalWrite(X_ENABLE_PIN, isOn);
+#endif
+#ifdef Y_ENABLE_PIN
+    HAL_digitalWrite(Y_ENABLE_PIN, isOn);
+#endif
+#ifdef Z_ENABLE_PIN
+    HAL_digitalWrite(Z_ENABLE_PIN, isOn);
+#endif
+#ifdef A_ENABLE_PIN
+    HAL_digitalWrite(A_ENABLE_PIN, isOn);
+#endif
+#ifdef B_ENABLE_PIN
+    HAL_digitalWrite(B_ENABLE_PIN, isOn);
+#endif
+#ifdef C_ENABLE_PIN
+    HAL_digitalWrite(C_ENABLE_PIN, isOn);
+#endif
+
 }
 
 bool get_stepper_disable() { // returns true if steppers are disabled

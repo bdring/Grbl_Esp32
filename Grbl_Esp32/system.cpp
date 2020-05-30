@@ -606,3 +606,20 @@ int8_t sys_get_next_PWM_chan_num() {
         return -1;
     }
 }
+
+
+void HAL_pinMode(uint8_t pin_num, uint8_t mode) {    
+    if (pin_num < I2S_IOEXP_PIN_BASE) {
+        pinMode(pin_num, mode);
+        return;
+    }    
+}
+
+void HAL_digitalWrite(uint8_t pin_num, uint8_t val) {    
+    if (pin_num < I2S_IOEXP_PIN_BASE) {
+        digitalWrite(pin_num, val);
+        return;
+    }
+    
+    I2S_IOEXP_WRITE(pin_num, val);
+}

@@ -231,4 +231,7 @@ void sys_io_control(uint8_t io_num_mask, bool turnOn);
 int8_t sys_get_next_RMT_chan_num();
 int8_t sys_get_next_PWM_chan_num();
 
+void HAL_pinMode(uint8_t pin_num, uint8_t mode);
+void HAL_digitalWrite(uint8_t pin_num, uint8_t val);
+
 #endif
