@@ -567,16 +567,16 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   I2S0.fifo_conf.dscr_en = 0;
 
 #ifdef I2S_STEPPER_STREAM
-  I2S0.conf_chan.tx_chan_mod = 4; // 1: Mono (right) 4:right+constant
+  I2S0.conf_chan.tx_chan_mod = 4; // 3:right+constant 4:left+constant (when tx_msb_right = 1)
 #else
-  I2S0.conf_chan.tx_chan_mod = 3; // 1: Mono (right) 4:right+constant 3:left+constant
+  I2S0.conf_chan.tx_chan_mod = 3; // 3:right+constant 4:left+constant (when tx_msb_right = 1)
 #endif
   I2S0.conf_single_data = 0; // initial constant value
   I2S0.fifo_conf.tx_fifo_mod = 3; // 1: 16-bit single channel data, 3: 32-bit single channel data
   I2S0.conf.tx_mono = 0; // Set this bit to enable transmitter’s mono mode in PCM standard mode.
 
   I2S0.conf_chan.rx_chan_mod = 1; // 1: right+right
-  I2S0.fifo_conf.rx_fifo_mod = 3; // 1: 16-bit single channel data, 2: 32-bit single channel data
+  I2S0.fifo_conf.rx_fifo_mod = 3; // 1: 16-bit single channel data, 3: 32-bit single channel data
   I2S0.conf.rx_mono = 0;
 
 #ifdef I2S_STEPPER_STREAM
@@ -586,7 +586,7 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   I2S0.conf.rx_start = 0;
 
   I2S0.conf.tx_msb_right = 1; // Set this bit to place right-channel data at the MSB in the transmit FIFO.
-  I2S0.conf.tx_right_first = 0; // XXX: Setting this bit allows the right-channel data to be sent first, but on the actual device, 0 is required to send with right-first.
+  I2S0.conf.tx_right_first = 0; // Setting this bit allows the right-channel data to be sent first.
 
   I2S0.conf.tx_slave_mod = 0; // Master
 #ifdef I2S_STEPPER_STREAM

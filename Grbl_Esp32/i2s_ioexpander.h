@@ -128,7 +128,7 @@ typedef struct {
         I2S bitstream (32-bits): Transfers from MSB(bit31) to LSB(bit0) in sequence
 
         ------------------time line------------------------>
-             Right Channel                   LEFT Channel
+             Left Channel                    Right Channel
         ws   ________________________________~~~~...
         bck  _~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~_~...
         data vutsrqponmlkjihgfedcba9876543210
@@ -137,7 +137,6 @@ typedef struct {
                                 Latches the X bits when ws is switched to High
 
         bit0:Expanded GPIO 128, 1: Expanded GPIO 129, ..., v: Expanded GPIO 159
-        (data at LEFT Channel will ignored by shift-register IC)
     */
     uint8_t ws_pin;
     uint8_t bck_pin;
