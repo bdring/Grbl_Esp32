@@ -249,7 +249,8 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
  * is to keep pulse timing as regular as possible.
  */
 static void stepper_pulse_phase_func() {
-    set_direction_pins_on(st.dir_outbits);
+    //set_direction_pins_on(st.dir_outbits);
+    motors_set_direction_pins(st.dir_outbits);
 #ifdef USE_RMT_STEPS
     stepperRMT_Outputs();
 #else
@@ -455,7 +456,8 @@ void stepper_init() {
 	HAL_pinMode(C_ENABLE_PIN, OUTPUT);
 #endif
 
-	set_stepper_disable(true);
+	//st_stepper_disable(true);
+    motors_set_disable(true);
 
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "I2S Steps");
@@ -548,9 +550,10 @@ void stepper_init() {
 void stepper_init() {
     // make the stepper disable pin an output
 #ifdef STEPPERS_DISABLE_PIN
-    pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
-    set_stepper_disable(true);
+    HAL_pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
 #endif
+    motors_set_disable(true);
+
 #ifdef USE_UNIPOLAR
     unipolar_init();
 #endif
@@ -781,7 +784,8 @@ void st_wake_up() {
     //Serial.println("st_wake_up()");
 #endif
     // Enable stepper drivers.
-    set_stepper_disable(false);
+    //set_stepper_disable(false);
+    motors_set_disable(false);
     stepper_idle = false;
     // Initialize stepper output bits to ensure first ISR call does not step.
     st.step_outbits = step_port_invert_mask;
@@ -823,87 +827,7 @@ void st_reset() {
 
 
 
-#ifdef USE_I2S_IOEXPANDER
-void set_direction_pins_on(uint8_t onMask) {
-    // inverts are applied in step generation
-#ifdef X_DIRECTION_PIN
-    I2S_IOEXP_WRITE(X_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef X2_DIRECTION_PIN // optional ganged axis 
-    I2S_IOEXP_WRITE(X2_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef Y_DIRECTION_PIN
-    I2S_IOEXP_WRITE(Y_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Y2_DIRECTION_PIN // optional ganged axis 
-    I2S_IOEXP_WRITE(Y2_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Z_DIRECTION_PIN
-    I2S_IOEXP_WRITE(Z_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef Z2_DIRECTION_PIN // optional ganged axis 
-    I2S_IOEXP_WRITE(Z2_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef A_DIRECTION_PIN
-    I2S_IOEXP_WRITE(A_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef A2_DIRECTION_PIN // optional ganged axis 
-    I2S_IOEXP_WRITE(A2_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef B_DIRECTION_PIN
-    I2S_IOEXP_WRITE(B_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef B2_DIRECTION_PIN // optional ganged axis 
-    I2S_IOEXP_WRITE(B2_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef C_DIRECTION_PIN
-    I2S_IOEXP_WRITE(C_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
-#ifdef C2_DIRECTION_PIN // optional ganged axis 
-    I2S_IOEXP_WRITE(C2_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
-}
-#else
-void set_direction_pins_on(uint8_t onMask) {
-    // inverts are applied in step generation
-#ifdef X_DIRECTION_PIN
-    digitalWrite(X_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef X2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(X2_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef Y_DIRECTION_PIN
-    digitalWrite(Y_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Y2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(Y2_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Z_DIRECTION_PIN
-    digitalWrite(Z_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef Z2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(Z2_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef A_DIRECTION_PIN
-    digitalWrite(A_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef A2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(A2_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef B_DIRECTION_PIN
-    digitalWrite(B_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef B2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(B2_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef C_DIRECTION_PIN
-    digitalWrite(C_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
-#ifdef C2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(C2_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
-}
-#endif
+
 
 #ifdef USE_I2S_IOEXPANDER
 #ifndef USE_GANGED_AXES
@@ -1116,8 +1040,11 @@ void st_go_idle() {
         stepper_idle_counter = esp_timer_get_time() + (settings.stepper_idle_lock_time * 1000); // * 1000 because the time is in uSecs
         //vTaskDelay(settings.stepper_idle_lock_time / portTICK_PERIOD_MS);	// this probably does not work when called from ISR
         //pin_state = true;
-    } else
-        set_stepper_disable(pin_state);
+    } else {
+        //set_stepper_disable(pin_state);
+        motors_set_disable(pin_state);
+    }
+        
     set_stepper_pins_on(0);
 }
 
@@ -1643,52 +1570,9 @@ void IRAM_ATTR Stepper_Timer_Stop() {
 
 // this gets called a lot, exit early is no change 
 void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
-    static bool previous_state = true;
 
-    if (previous_state == isOn) 
-        return;
-
-    previous_state = isOn;
-
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "set_stepper_disable:%d", isOn);
-
-
-#ifdef USE_TRINAMIC_ENABLE
-    trinamic_stepper_enable(!isOn);
-#endif
-    if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
-        isOn = !isOn;    // Apply pin invert.
-    }
-#ifdef USE_UNIPOLAR
-    unipolar_disable(isOn);
-#endif
-#ifdef STEPPERS_DISABLE_PIN
-#ifdef I2S_STEPPER_STREAM
-    I2S_IOEXP_WRITE(STEPPERS_DISABLE_PIN, isOn);
-#else
-    digitalWrite(STEPPERS_DISABLE_PIN, isOn);
-#endif
-#endif
-
-#ifdef X_ENABLE_PIN
-    HAL_digitalWrite(X_ENABLE_PIN, isOn);
-#endif
-#ifdef Y_ENABLE_PIN
-    HAL_digitalWrite(Y_ENABLE_PIN, isOn);
-#endif
-#ifdef Z_ENABLE_PIN
-    HAL_digitalWrite(Z_ENABLE_PIN, isOn);
-#endif
-#ifdef A_ENABLE_PIN
-    HAL_digitalWrite(A_ENABLE_PIN, isOn);
-#endif
-#ifdef B_ENABLE_PIN
-    HAL_digitalWrite(B_ENABLE_PIN, isOn);
-#endif
-#ifdef C_ENABLE_PIN
-    HAL_digitalWrite(C_ENABLE_PIN, isOn);
-#endif
-
+    motors_set_disable(isOn);
+    return;
 }
 
 bool get_stepper_disable() { // returns true if steppers are disabled
