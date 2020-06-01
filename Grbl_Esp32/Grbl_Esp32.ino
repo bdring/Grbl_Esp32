@@ -72,6 +72,7 @@ void setup() {
 #endif
     settings_init(); // Load Grbl settings from EEPROM
     stepper_init();  // Configure stepper pins and interrupt timers
+    init_motors();
     system_ini();   // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
     memset(sys_position, 0, sizeof(sys_position)); // Clear machine position.
 #ifdef USE_PEN_SERVO
