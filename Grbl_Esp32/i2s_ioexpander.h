@@ -46,7 +46,7 @@
 #ifdef USE_I2S_IOEXPANDER
 #include <stdint.h>
 
-#define I2S_IOEXP_PIN_BASE 128
+//#define I2S_IOEXP_PIN_BASE 128
 
 #define GPIO_NUM_I2S_IOEXP_0  (I2S_IOEXP_PIN_BASE + 0)
 #define GPIO_NUM_I2S_IOEXP_1  (I2S_IOEXP_PIN_BASE + 1)

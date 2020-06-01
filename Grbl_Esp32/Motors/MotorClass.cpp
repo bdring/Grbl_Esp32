@@ -47,7 +47,7 @@ void motors_set_disable(bool disable) {
 
     previous_state = disable;
 
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_disable:%d", disable);
+     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_disable:%d", disable);
 
 
 #ifdef USE_TRINAMIC_ENABLE
@@ -60,26 +60,26 @@ void motors_set_disable(bool disable) {
     unipolar_disable(isOn);
 #endif
 #ifdef STEPPERS_DISABLE_PIN
-    HAL_digitalWrite(X_ENABLE_PIN, disable);
+    HAL_digitalWrite(STEPPERS_DISABLE_PIN, disable);
 #endif
 
-#ifdef X_ENABLE_PIN
-    HAL_digitalWrite(X_ENABLE_PIN, disable);
+#ifdef X_DISABLE_PIN
+    HAL_digitalWrite(X_DISABLE_PIN, disable);
 #endif
-#ifdef Y_ENABLE_PIN
-    HAL_digitalWrite(Y_ENABLE_PIN, disable);
+#ifdef Y_DISABLE_PIN
+    HAL_digitalWrite(Y_DISABLE_PIN, disable);
 #endif
-#ifdef Z_ENABLE_PIN
-    HAL_digitalWrite(Z_ENABLE_PIN, disable);
+#ifdef Z_DISABLE_PIN
+    HAL_digitalWrite(Z_DISABLE_PIN, disable);
 #endif
-#ifdef A_ENABLE_PIN
-    HAL_digitalWrite(A_ENABLE_PIN, disable);
+#ifdef A_DISABLE_PIN
+    HAL_digitalWrite(A_DISABLE_PIN, disable);
 #endif
-#ifdef B_ENABLE_PIN
-    HAL_digitalWrite(B_ENABLE_PIN, disable);
+#ifdef B_DISABLE_PIN
+    HAL_digitalWrite(B_DISABLE_PIN, disable);
 #endif
-#ifdef C_ENABLE_PIN
-    HAL_digitalWrite(C_ENABLE_PIN, disable);
+#ifdef C_DISABLE_PIN
+    HAL_digitalWrite(C_DISABLE_PIN, disable);
 #endif
 }
 

@@ -47,7 +47,7 @@
 
 #define USE_TRINAMIC // Using at least 1 trinamic driver
 
-#define X_ENABLE_PIN            GPIO_NUM_I2S_IOEXP_0
+#define X_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_0
 #define X_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_1
 #define X_STEP_PIN              GPIO_NUM_I2S_IOEXP_2
 #define X_TRINAMIC              // using SPI control
@@ -57,13 +57,13 @@
 
 #define Y_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_4
 #define Y_STEP_PIN              GPIO_NUM_I2S_IOEXP_5
-#define Y_ENABLE_PIN            GPIO_NUM_I2S_IOEXP_7
+#define Y_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_7
 #define Y_TRINAMIC              // using SPI control
 #define Y_DRIVER_TMC2130        // Which Driver Type?
 #define Y_CS_PIN                GPIO_NUM_I2S_IOEXP_6
 #define Y_RSENSE                X_RSENSE
 
-#define Z_ENABLE_PIN            GPIO_NUM_I2S_IOEXP_8
+#define Z_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_8
 #define Z_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_9
 #define Z_STEP_PIN              GPIO_NUM_I2S_IOEXP_10
 #define Z_TRINAMIC              // using SPI control
@@ -73,13 +73,13 @@
 
 #define A_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_12
 #define A_STEP_PIN              GPIO_NUM_I2S_IOEXP_13
-#define A_ENABLE_PIN            GPIO_NUM_I2S_IOEXP_15
+#define A_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_15
 #define A_TRINAMIC              // using SPI control
 #define A_DRIVER_TMC2130        // Which Driver Type?
 #define A_CS_PIN                GPIO_NUM_I2S_IOEXP_14
 #define A_RSENSE                X_RSENSE
 
-#define B_ENABLE_PIN            GPIO_NUM_I2S_IOEXP_16
+#define B_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_16
 #define B_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_17
 #define B_STEP_PIN              GPIO_NUM_I2S_IOEXP_18
 #define B_TRINAMIC              // using SPI control
@@ -89,7 +89,7 @@
 
 #define C_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_20
 #define C_STEP_PIN              GPIO_NUM_I2S_IOEXP_21
-#define C_ENABLE_PIN            GPIO_NUM_I2S_IOEXP_23
+#define C_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_23
 #define C_TRINAMIC              // using SPI control
 #define C_DRIVER_TMC2130        // Which Driver Type?
 #define C_CS_PIN                GPIO_NUM_I2S_IOEXP_22

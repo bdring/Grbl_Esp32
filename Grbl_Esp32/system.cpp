@@ -620,6 +620,7 @@ void HAL_digitalWrite(uint8_t pin_num, uint8_t val) {
         digitalWrite(pin_num, val);
         return;
     }
-    
+#ifdef    USE_I2S_IOEXPANDER
     I2S_IOEXP_WRITE(pin_num, val);
+#endif
 }

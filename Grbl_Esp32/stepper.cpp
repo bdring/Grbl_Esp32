@@ -249,15 +249,14 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
  * is to keep pulse timing as regular as possible.
  */
 static void stepper_pulse_phase_func() {
-    //set_direction_pins_on(st.dir_outbits);
     motors_set_direction_pins(st.dir_outbits);
 #ifdef USE_RMT_STEPS
     stepperRMT_Outputs();
 #else
     set_stepper_pins_on(st.step_outbits);
-  #ifndef I2S_STEPPER_STREAM
+#ifndef I2S_STEPPER_STREAM
     uint64_t step_pulse_start_time = esp_timer_get_time();
-  #endif
+#endif
 #endif
 
 #ifdef USE_UNIPOLAR
@@ -305,9 +304,8 @@ static void stepper_pulse_phase_func() {
             st_go_idle();
             if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
-                if (st.exec_block->is_pwm_rate_adjusted) {
+                if (st.exec_block->is_pwm_rate_adjusted)
                     spindle->set_rpm(0);
-                }
             }
 
             system_set_exec_state_flag(EXEC_CYCLE_STOP); // Flag main program for cycle end
@@ -410,7 +408,7 @@ static void stepper_pulse_phase_func() {
     }
 
 #ifndef USE_RMT_STEPS
-  #ifdef I2S_STEPPER_STREAM
+#ifdef I2S_STEPPER_STREAM
     //
     // Generate pulse (at least one pulse)
     // The pulse resolution is limited by I2S_IOEXP_USEC_PER_PULSE
@@ -418,113 +416,116 @@ static void stepper_pulse_phase_func() {
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
     i2s_ioexpander_push_sample((settings.pulse_microseconds / I2S_IOEXP_USEC_PER_PULSE) + 1); // +1 to round it up
     set_stepper_pins_on(0); // turn all off
-  #else
+#else
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
     // wait for step pulse time to complete...some of it should have expired during code above
     while (esp_timer_get_time() - step_pulse_start_time < settings.pulse_microseconds) {
         NOP(); // spin here until time to turn off step
     }
     set_stepper_pins_on(0); // turn all off
-  #endif
+#endif
 #endif
     return;
 }
 
-#ifdef USE_I2S_IOEXPANDER
 void stepper_init() {
     // make the stepper disable pin an output
-	
+
 #ifdef STEPPERS_DISABLE_PIN
-    I2S_IOEXP_SET_OUTPUT(STEPPERS_DISABLE_PIN);    	
+    HAL_pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
 #endif
-#ifdef X_ENABLE_PIN
-	HAL_pinMode(X_ENABLE_PIN, OUTPUT);	
+#ifdef X_DISABLE_PIN
+    HAL_pinMode(X_DISABLE_PIN, OUTPUT);
 #endif
-#ifdef Y_ENABLE_PIN
-	HAL_pinMode(Y_ENABLE_PIN, OUTPUT);	
+#ifdef Y_DISABLE_PIN
+    HAL_pinMode(Y_DISABLE_PIN, OUTPUT);
 #endif
-#ifdef Z_ENABLE_PIN
-	HAL_pinMode(Z_ENABLE_PIN, OUTPUT);	
+#ifdef Z_DISABLE_PIN
+    HAL_pinMode(Z_DISABLE_PIN, OUTPUT);
 #endif
-#ifdef A_ENABLE_PIN
-	HAL_pinMode(A_ENABLE_PIN, OUTPUT);	
+#ifdef A_DISABLE_PIN
+    HAL_pinMode(A_DISABLE_PIN, OUTPUT);
 #endif
-#ifdef B_ENABLE_PIN
-	HAL_pinMode(B_ENABLE_PIN, OUTPUT);	
+#ifdef B_DISABLE_PIN
+    HAL_pinMode(B_DISABLE_PIN, OUTPUT);
 #endif
-#ifdef C_ENABLE_PIN
-	HAL_pinMode(C_ENABLE_PIN, OUTPUT);
+#ifdef C_DISABLE_PIN
+    HAL_pinMode(C_DISABLE_PIN, OUTPUT);
 #endif
 
-	//st_stepper_disable(true);
     motors_set_disable(true);
 
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "I2S Steps");
     // make the step pins outputs
+#ifdef USE_RMT_STEPS
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RMT Steps");
+    initRMT();
+#else
 #ifdef  X_STEP_PIN
-    I2S_IOEXP_SET_OUTPUT(X_STEP_PIN);
+    HAL_pinMode(X_STEP_PIN, OUTPUT);
 #endif
 #ifdef  X2_STEP_PIN // ganged motor
-    I2S_IOEXP_SET_OUTPUT(X2_STEP_PIN);
+    HAL_pinMode(X2_STEP_PIN, OUTPUT);
 #endif
 #ifdef Y_STEP_PIN
-    I2S_IOEXP_SET_OUTPUT(Y_STEP_PIN);
+    HAL_pinMode(Y_STEP_PIN, OUTPUT);
 #endif
-#ifdef Y2_STEP_PIN
-    I2S_IOEXP_SET_OUTPUT(Y2_STEP_PIN);
+#ifdef Y2_STEP_PIN    
+    HAL_pinMode(Y2_STEP_PIN, OUTPUT);
 #endif
 #ifdef Z_STEP_PIN
-    I2S_IOEXP_SET_OUTPUT(Z_STEP_PIN);
+    HAL_pinMode(Z_STEP_PIN, OUTPUT);
 #endif
 #ifdef Z2_STEP_PIN
-    I2S_IOEXP_SET_OUTPUT(Z2_STEP_PIN);
+    HAL_pinMode(Z2_STEP_PIN, OUTPUT);
 #endif
 #ifdef A_STEP_PIN
-    I2S_IOEXP_SET_OUTPUT(A_STEP_PIN);
+    HAL_pinMode(A_STEP_PIN, OUTPUT);
 #endif
 #ifdef B_STEP_PIN
-    I2S_IOEXP_SET_OUTPUT(B_STEP_PIN);
+    HAL_pinMode(B_STEP_PIN, OUTPUT);
 #endif
 #ifdef C_STEP_PIN
-    I2S_IOEXP_SET_OUTPUT(C_STEP_PIN);
+    HAL_pinMode(C_STEP_PIN, OUTPUT);
 #endif
+#endif // USE_RMT_STEPS
     // make the direction pins outputs
 #ifdef X_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(X_DIRECTION_PIN);
+    HAL_pinMode(X_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef X2_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(X2_DIRECTION_PIN);
+    HAL_pinMode(X2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef Y_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(Y_DIRECTION_PIN);
+    HAL_pinMode(Y_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef Y2_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(Y2_DIRECTION_PIN);
+    HAL_pinMode(Y2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef Z_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(Z_DIRECTION_PIN);
+    HAL_pinMode(Z_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef Z2_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(Z2_DIRECTION_PIN);
+    HAL_pinMode(Z2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef A_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(A_DIRECTION_PIN);
+    HAL_pinMode(A_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef A2_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(A2_DIRECTION_PIN);
+    HAL_pinMode(A2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef B_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(B_DIRECTION_PIN);
+    HAL_pinMode(B_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef B2_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(B2_DIRECTION_PIN);
+    HAL_pinMode(B2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef C_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(C_DIRECTION_PIN);
+    HAL_pinMode(C_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef C2_DIRECTION_PIN
-    I2S_IOEXP_SET_OUTPUT(C2_DIRECTION_PIN);
+    HAL_pinMode(C2_DIRECTION_PIN, OUTPUT);
 #endif
 #ifdef I2S_STEPPER_STREAM
     // I2S stepper do not use timer interrupt but callback
@@ -546,114 +547,6 @@ void stepper_init() {
     Trinamic_Init();
 #endif
 }
-#else
-void stepper_init() {
-    // make the stepper disable pin an output
-#ifdef STEPPERS_DISABLE_PIN
-    HAL_pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
-#endif
-    motors_set_disable(true);
-
-#ifdef USE_UNIPOLAR
-    unipolar_init();
-#endif
-#ifdef USE_TRINAMIC
-    Trinamic_Init();
-#endif
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
-#ifdef USE_RMT_STEPS
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RMT Steps");
-    initRMT();
-#else
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Timed Steps");
-    // make the step pins outputs
-#ifdef  X_STEP_PIN
-    pinMode(X_STEP_PIN, OUTPUT);
-#endif
-#ifdef  X2_STEP_PIN // ganged motor
-    pinMode(X2_STEP_PIN, OUTPUT);
-#endif
-#ifdef Y_STEP_PIN
-    pinMode(Y_STEP_PIN, OUTPUT);
-#endif
-#ifdef Y2_STEP_PIN
-    pinMode(Y2_STEP_PIN, OUTPUT);
-#endif
-#ifdef Z_STEP_PIN
-    pinMode(Z_STEP_PIN, OUTPUT);
-#endif
-#ifdef Z2_STEP_PIN
-    pinMode(Z2_STEP_PIN, OUTPUT);
-#endif
-#ifdef A_STEP_PIN
-    pinMode(A_STEP_PIN, OUTPUT);
-#endif
-#ifdef B_STEP_PIN
-    pinMode(B_STEP_PIN, OUTPUT);
-#endif
-#ifdef C_STEP_PIN
-    pinMode(C_STEP_PIN, OUTPUT);
-#endif
-#endif
-    // make the direction pins outputs
-#ifdef X_DIRECTION_PIN
-    pinMode(X_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef X2_DIRECTION_PIN
-    pinMode(X2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Y_DIRECTION_PIN
-    pinMode(Y_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Y2_DIRECTION_PIN
-    pinMode(Y2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Z_DIRECTION_PIN
-    pinMode(Z_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef Z2_DIRECTION_PIN
-    pinMode(Z2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef A_DIRECTION_PIN
-    pinMode(A_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef A2_DIRECTION_PIN
-    pinMode(A2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef B_DIRECTION_PIN
-    pinMode(B_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef B2_DIRECTION_PIN
-    pinMode(B2_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef C_DIRECTION_PIN
-    pinMode(C_DIRECTION_PIN, OUTPUT);
-#endif
-#ifdef C2_DIRECTION_PIN
-    pinMode(C2_DIRECTION_PIN, OUTPUT);
-#endif
-    // setup stepper timer interrupt
-    /*
-    stepperDriverTimer = timerBegin(	0, 													// timer number
-    																F_TIMERS / F_STEPPER_TIMER, // prescaler
-    																true 												// auto reload
-    																);
-    // attach the interrupt
-    timerAttachInterrupt(stepperDriverTimer, &onStepperDriverTimer, true);
-    */
-    timer_config_t config;
-    config.divider     = F_TIMERS / F_STEPPER_TIMER;
-    config.counter_dir = TIMER_COUNT_UP;
-    config.counter_en  = TIMER_PAUSE;
-    config.alarm_en    = TIMER_ALARM_EN;
-    config.intr_type   = TIMER_INTR_LEVEL;
-    config.auto_reload = true;
-    timer_init(STEP_TIMER_GROUP, STEP_TIMER_INDEX, &config);
-    timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
-    timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
-    timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
-}
-#endif
 
 #ifdef USE_RMT_STEPS
 void initRMT() {
@@ -784,7 +677,6 @@ void st_wake_up() {
     //Serial.println("st_wake_up()");
 #endif
     // Enable stepper drivers.
-    //set_stepper_disable(false);
     motors_set_disable(false);
     stepper_idle = false;
     // Initialize stepper output bits to ensure first ISR call does not step.
@@ -1040,11 +932,9 @@ void st_go_idle() {
         stepper_idle_counter = esp_timer_get_time() + (settings.stepper_idle_lock_time * 1000); // * 1000 because the time is in uSecs
         //vTaskDelay(settings.stepper_idle_lock_time / portTICK_PERIOD_MS);	// this probably does not work when called from ISR
         //pin_state = true;
-    } else {
-        //set_stepper_disable(pin_state);
+    } else
         motors_set_disable(pin_state);
-    }
-        
+
     set_stepper_pins_on(0);
 }
 
@@ -1188,7 +1078,7 @@ void st_prep_buffer() {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
 
 
-                if (spindle->isRateAdjusted() ){ //   settings.flags & BITFLAG_LASER_MODE) {
+                if (spindle->isRateAdjusted()) { //   settings.flags & BITFLAG_LASER_MODE) {
                     if (pl_block->condition & PL_COND_FLAG_SPINDLE_CCW) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
                         prep.inv_rate = 1.0 / pl_block->programmed_rate;
@@ -1566,13 +1456,6 @@ void IRAM_ATTR Stepper_Timer_Stop() {
 #else
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
 #endif
-}
-
-// this gets called a lot, exit early is no change 
-void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
-
-    motors_set_disable(isOn);
-    return;
 }
 
 bool get_stepper_disable() { // returns true if steppers are disabled
