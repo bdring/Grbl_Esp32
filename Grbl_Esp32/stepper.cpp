@@ -493,34 +493,6 @@ void st_reset() {
 }
 
 
-
-
-
-
-#ifndef USE_GANGED_AXES
-// basic one motor per axis
-void set_stepper_pins_on(uint8_t onMask) {
-    onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
-#ifdef X_STEP_PIN
-    HAL_digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef Y_STEP_PIN
-    HAL_digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Z_STEP_PIN
-    HAL_digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef A_STEP_PIN
-    HAL_digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef B_STEP_PIN
-    HAL_digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef C_STEP_PIN
-    HAL_digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
-#endif
-}
-#else // we use ganged axes
 void set_stepper_pins_on(uint8_t onMask) {
     onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
 #ifdef X_STEP_PIN
@@ -543,6 +515,7 @@ void set_stepper_pins_on(uint8_t onMask) {
         HAL_digitalWrite(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
 #endif
 #endif
+
 #ifdef Z_STEP_PIN
 #ifndef Z2_STEP_PIN // if not a ganged axis
     HAL_digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
@@ -553,8 +526,40 @@ void set_stepper_pins_on(uint8_t onMask) {
         HAL_digitalWrite(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
 #endif
 #endif
-}
+#ifdef A_STEP_PIN
+#ifndef A2_STEP_PIN // if not a ganged axis
+    HAL_digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
+#else // is a ganged axis
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
+        HAL_digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
+        HAL_digitalWrite(A2_STEP_PIN, (onMask & (1 << A_AXIS)));
 #endif
+#endif
+
+#ifdef B_STEP_PIN
+#ifndef B2_STEP_PIN // if not a ganged axis
+    HAL_digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
+#else // is a ganged axis
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
+        HAL_digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
+        HAL_digitalWrite(B2_STEP_PIN, (onMask & (1 << B_AXIS)));
+#endif
+#endif
+
+#ifdef C_STEP_PIN
+#ifndef C2_STEP_PIN // if not a ganged axis
+    HAL_digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
+#else // is a ganged axis
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
+        HAL_digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
+    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
+        HAL_digitalWrite(C2_STEP_PIN, (onMask & (1 << C_AXIS)));
+#endif
+#endif
+}
+//#endif
 
 #ifdef USE_RMT_STEPS
 inline IRAM_ATTR static void stepperRMT_Outputs() {
@@ -613,22 +618,59 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
 
 #ifdef  A_STEP_PIN
     if (st.step_outbits & (1 << A_AXIS)) {
+#ifndef A2_STEP_PIN // if not a ganged axis
         RMT.conf_ch[rmt_chan_num[A_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
         RMT.conf_ch[rmt_chan_num[A_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
+#else // it is a ganged axis
+        if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A)) {
+            RMT.conf_ch[rmt_chan_num[A_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[A_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
+        }
+        if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B)) {
+            RMT.conf_ch[rmt_chan_num[A_AXIS][GANGED_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[A_AXIS][GANGED_MOTOR]].conf1.tx_start = 1;
+        }
+#endif
     }
 #endif
+
 #ifdef  B_STEP_PIN
     if (st.step_outbits & (1 << B_AXIS)) {
+#ifndef Z2_STEP_PIN // if not a ganged axis
         RMT.conf_ch[rmt_chan_num[B_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
         RMT.conf_ch[rmt_chan_num[B_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
+#else // it is a ganged axis
+        if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A)) {
+            RMT.conf_ch[rmt_chan_num[B_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[B_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
+        }
+        if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B)) {
+            RMT.conf_ch[rmt_chan_num[B_AXIS][GANGED_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[B_AXIS][GANGED_MOTOR]].conf1.tx_start = 1;
+        }
+#endif
     }
 #endif
+
 #ifdef  C_STEP_PIN
     if (st.step_outbits & (1 << C_AXIS)) {
+#ifndef Z2_STEP_PIN // if not a ganged axis
         RMT.conf_ch[rmt_chan_num[C_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
         RMT.conf_ch[rmt_chan_num[C_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
+#else // it is a ganged axis
+        if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A)) {
+            RMT.conf_ch[rmt_chan_num[C_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[C_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
+        }
+        if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B)) {
+            RMT.conf_ch[rmt_chan_num[C_AXIS][GANGED_MOTOR]].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[rmt_chan_num[C_AXIS][GANGED_MOTOR]].conf1.tx_start = 1;
+        }
+#endif
     }
 #endif
+
+
 }
 #endif
 
