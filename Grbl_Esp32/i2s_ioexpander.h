@@ -93,7 +93,8 @@
 #define GPIO_NUM_I2S_IOEXP_31  (I2S_IOEXP_PIN_BASE + 31)
 #endif
 
-/* 1000000 usec / ((160000000 Hz) / 5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
+/* 16-bit mode: 1000000 usec / ((160000000 Hz) / 10 / 2) x 16 bit/pulse x 2(stereo) = 4 usec/pulse */
+/* 32-bit mode: 1000000 usec / ((160000000 Hz) /  5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
 #define I2S_IOEXP_USEC_PER_PULSE 4
 
 #define I2S_IOEXP_DMABUF_COUNT 5     /* number of DMA buffers to store data */

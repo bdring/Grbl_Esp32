@@ -183,9 +183,9 @@ static int i2s_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) {
 
 static int i2s_gpio_shiftout(uint32_t port_data) {
   digitalWrite(i2s_ioexpander_ws_pin, LOW);
-  for (int i = 0; i < 32; i++) {
+  for (int i = 0; i <I2S_IOEXP_NUM_BITS; i++) {
     // XXX do not use raw defines for machine
-    digitalWrite(i2s_ioexpander_data_pin, !!(port_data & (1 << (31 - i))));
+    digitalWrite(i2s_ioexpander_data_pin, !!(port_data & (1 << (I2S_IOEXP_NUM_BITS-1 - i))));
     digitalWrite(i2s_ioexpander_bck_pin, HIGH);
     digitalWrite(i2s_ioexpander_bck_pin, LOW);
   }
@@ -387,7 +387,13 @@ void IRAM_ATTR i2s_ioexpander_write(uint8_t pin, uint8_t val) {
     atomic_fetch_and(&i2s_port_data, ~bit);
   }
 #ifndef I2S_STEPPER_STREAM
+#if I2S_IOEXP_NUM_BITS == 16
+  uint32_t port_data = atomic_load(&i2s_port_data);
+  port_data <<= 16; // Shift needed. This specification is not spelled out in the manual.
+  I2S0.conf_single_data = port_data; // Apply port data in real time
+#else
   I2S0.conf_single_data = atomic_load(&i2s_port_data); // Apply port data in real time
+#endif
 #endif
 }
 
@@ -572,11 +578,21 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   I2S0.conf_chan.tx_chan_mod = 3; // 3:right+constant 4:left+constant (when tx_msb_right = 1)
 #endif
   I2S0.conf_single_data = 0; // initial constant value
-  I2S0.fifo_conf.tx_fifo_mod = 3; // 1: 16-bit single channel data, 3: 32-bit single channel data
+#if I2S_IOEXP_NUM_BITS == 16
+  I2S0.fifo_conf.tx_fifo_mod = 0; // 0: 16-bit dual channel data, 3: 32-bit single channel data
+  I2S0.fifo_conf.rx_fifo_mod = 0; // 0: 16-bit dual channel data, 3: 32-bit single channel data
+  I2S0.sample_rate_conf.tx_bits_mod = 16; // default is 16-bits
+  I2S0.sample_rate_conf.rx_bits_mod = 16; // default is 16-bits
+#else
+  I2S0.fifo_conf.tx_fifo_mod = 3; // 0: 16-bit dual channel data, 3: 32-bit single channel data
+  I2S0.fifo_conf.rx_fifo_mod = 3; // 0: 16-bit dual channel data, 3: 32-bit single channel data
+  // Data width is 32-bit. Forgetting this setting will result in a 16-bit transfer.
+  I2S0.sample_rate_conf.tx_bits_mod = 32;
+  I2S0.sample_rate_conf.rx_bits_mod = 32;
+#endif
   I2S0.conf.tx_mono = 0; // Set this bit to enable transmitter’s mono mode in PCM standard mode.
 
   I2S0.conf_chan.rx_chan_mod = 1; // 1: right+right
-  I2S0.fifo_conf.rx_fifo_mod = 3; // 1: 16-bit single channel data, 3: 32-bit single channel data
   I2S0.conf.rx_mono = 0;
 
 #ifdef I2S_STEPPER_STREAM
@@ -608,8 +624,13 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   // set clock (fi2s) 160MHz / 5
   I2S0.clkm_conf.clka_en = 0;       // Use 160 MHz PLL_D2_CLK as reference
   // N + b/a = 0
+#if I2S_IOEXP_NUM_BITS == 16
+  // N = 10
+  I2S0.clkm_conf.clkm_div_num = 10; // minimum value of 2, reset value of 4, max 256 (I²S clock divider’s integral value)
+#else
   // N = 5
   I2S0.clkm_conf.clkm_div_num = 5; // minimum value of 2, reset value of 4, max 256 (I²S clock divider’s integral value)
+#endif
   // b/a = 0
   I2S0.clkm_conf.clkm_div_b = 0;    // 0 at reset
   I2S0.clkm_conf.clkm_div_a = 0;    // 0 at reset, what about divide by 0? (not an issue)
@@ -618,9 +639,6 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   // fbck = fi2s / tx_bck_div_num = (160 MHz / 5) / 2 = 16 MHz
   I2S0.sample_rate_conf.tx_bck_div_num = 2; // minimum value of 2 defaults to 6
   I2S0.sample_rate_conf.rx_bck_div_num = 2;
-  // Data width is 32-bit. Forgetting this setting will result in a 16-bit transfer.
-  I2S0.sample_rate_conf.tx_bits_mod = 32;
-  I2S0.sample_rate_conf.rx_bits_mod = 32;
 
 #ifdef I2S_STEPPER_STREAM
   // Enable TX interrupts (DMA Interrupts)

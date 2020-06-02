@@ -241,7 +241,8 @@
 #define I2S_IOEXPANDER_DATA     GPIO_NUM_21
 // Define I2S_STEPPER_STREAM if buffering is used.
 // (there will be a delay between the specified I/O operation and the actual I/O execution)
-//#define I2S_STEPPER_STREAM
+#define I2S_IOEXP_NUM_BITS 16
+#define I2S_STEPPER_STREAM
 
 // === Special Features
 // Grbl_ESP32 can support non-Cartesian machines and some other
