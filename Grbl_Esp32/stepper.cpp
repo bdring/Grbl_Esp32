@@ -497,28 +497,27 @@ void st_reset() {
 
 
 
-#ifdef USE_I2S_IOEXPANDER
 #ifndef USE_GANGED_AXES
 // basic one motor per axis
 void set_stepper_pins_on(uint8_t onMask) {
     onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
 #ifdef X_STEP_PIN
-    I2S_IOEXP_WRITE(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+    HAL_digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
 #endif
 #ifdef Y_STEP_PIN
-    I2S_IOEXP_WRITE(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+    HAL_digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
 #endif
 #ifdef Z_STEP_PIN
-    I2S_IOEXP_WRITE(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+    HAL_digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
 #endif
 #ifdef A_STEP_PIN
-    I2S_IOEXP_WRITE(A_STEP_PIN, (onMask & (1 << A_AXIS)));
+    HAL_digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
 #endif
 #ifdef B_STEP_PIN
-    I2S_IOEXP_WRITE(B_STEP_PIN, (onMask & (1 << B_AXIS)));
+    HAL_digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
 #endif
 #ifdef C_STEP_PIN
-    I2S_IOEXP_WRITE(C_STEP_PIN, (onMask & (1 << C_AXIS)));
+    HAL_digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
 #endif
 }
 #else // we use ganged axes
@@ -526,95 +525,35 @@ void set_stepper_pins_on(uint8_t onMask) {
     onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
 #ifdef X_STEP_PIN
 #ifndef X2_STEP_PIN // if not a ganged axis
-    I2S_IOEXP_WRITE(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+    HAL_digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        I2S_IOEXP_WRITE(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+        HAL_digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        I2S_IOEXP_WRITE(X2_STEP_PIN, (onMask & (1 << X_AXIS)));
+        HAL_digitalWrite(X2_STEP_PIN, (onMask & (1 << X_AXIS)));
 #endif
 #endif
 #ifdef Y_STEP_PIN
 #ifndef Y2_STEP_PIN // if not a ganged axis
-    I2S_IOEXP_WRITE(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+    HAL_digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        I2S_IOEXP_WRITE(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+        HAL_digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        I2S_IOEXP_WRITE(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
+        HAL_digitalWrite(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
 #endif
 #endif
 #ifdef Z_STEP_PIN
 #ifndef Z2_STEP_PIN // if not a ganged axis
-    I2S_IOEXP_WRITE(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+    HAL_digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        I2S_IOEXP_WRITE(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+        HAL_digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        I2S_IOEXP_WRITE(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
+        HAL_digitalWrite(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
 #endif
 #endif
 }
-#endif
-#else
-#ifndef USE_GANGED_AXES
-// basic one motor per axis
-void set_stepper_pins_on(uint8_t onMask) {
-    onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
-#ifdef X_STEP_PIN
-    digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef Y_STEP_PIN
-    digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Z_STEP_PIN
-    digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef A_STEP_PIN
-    digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef B_STEP_PIN
-    digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef C_STEP_PIN
-    digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
-#endif
-}
-#else // we use ganged axes
-void set_stepper_pins_on(uint8_t onMask) {
-    onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
-#ifdef X_STEP_PIN
-#ifndef X2_STEP_PIN // if not a ganged axis
-    digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
-#else // is a ganged axis
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(X2_STEP_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#endif
-#ifdef Y_STEP_PIN
-#ifndef Y2_STEP_PIN // if not a ganged axis
-    digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
-#else // is a ganged axis
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#endif
-#ifdef Z_STEP_PIN
-#ifndef Z2_STEP_PIN // if not a ganged axis
-    digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
-#else // is a ganged axis
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#endif
-}
-#endif
 #endif
 
 #ifdef USE_RMT_STEPS
@@ -1236,11 +1175,7 @@ void IRAM_ATTR Stepper_Timer_Stop() {
 bool get_stepper_disable() { // returns true if steppers are disabled
     bool disabled = false;
 #ifdef STEPPERS_DISABLE_PIN
-#ifdef USE_I2S_IOEXPANDER
-    disabled = I2S_IOEXP_READ(STEPPERS_DISABLE_PIN);
-#else
-    disabled = digitalRead(STEPPERS_DISABLE_PIN);
-#endif
+    disabled = HAL_digitalRead(STEPPERS_DISABLE_PIN);
 #else
     return false; // thery are never disabled if there is no pin defined
 #endif

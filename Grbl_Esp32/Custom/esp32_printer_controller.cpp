@@ -66,18 +66,18 @@ special things your machine needs at startup.
 void machine_init()
 {
   // Enable steppers
-  I2S_IOEXP_OUT_WRITE(STEPPERS_DISABLE_PIN_X, LOW); // enable
-  I2S_IOEXP_OUT_WRITE(STEPPERS_DISABLE_PIN_Y, LOW); // enable
-  I2S_IOEXP_OUT_WRITE(STEPPERS_DISABLE_PIN_Z, LOW); // enable
-  I2S_IOEXP_OUT_WRITE(STEPPERS_DISABLE_PIN_A, LOW); // enable
+  HAL_digitalWrite(STEPPERS_DISABLE_PIN_X, LOW); // enable
+  HAL_digitalWrite(STEPPERS_DISABLE_PIN_Y, LOW); // enable
+  HAL_digitalWrite(STEPPERS_DISABLE_PIN_Z, LOW); // enable
+  HAL_digitalWrite(STEPPERS_DISABLE_PIN_A, LOW); // enable
 
-  // I2S_IOEXP_OUT_WRITE(FAN1_PIN, LOW); // comment out for JTAG debugging
+  // HAL_digitalWrite(FAN1_PIN, LOW); // comment out for JTAG debugging
 
-  I2S_IOEXP_OUT_WRITE(FAN2_PIN, LOW); // disable
-  I2S_IOEXP_OUT_WRITE(FAN3_PIN, LOW); // disable
+  HAL_digitalWrite(FAN2_PIN, LOW); // disable
+  HAL_digitalWrite(FAN3_PIN, LOW); // disable
 
-  I2S_IOEXP_OUT_WRITE(BED_PIN, LOW); // disable
-  I2S_IOEXP_OUT_WRITE(NOZZLE_PIN, LOW); // disable
+  HAL_digitalWrite(BED_PIN, LOW); // disable
+  HAL_digitalWrite(NOZZLE_PIN, LOW); // disable
 }
 #endif
 
