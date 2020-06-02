@@ -710,5 +710,6 @@ Some features should not be changed. See notes below.
 #define RPM_LINE_B3 3.306286e+01
 
 #define I2S_IOEXP_PIN_BASE 128
+#define I2S_IOEXP_NUM_BITS 32
 
 #endif
