@@ -1,5 +1,133 @@
+/*
+    MotorClass.cpp
+    Part of Grbl_ESP32
+    2020 -	Bart Dring
+    Grbl is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    Grbl is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
+    TODO
+        Make sure public/private/protected is cleaned up.
+        Only a few Unipolar axes have been setup in init()
+        Get rid of Z_SERVO, just reply on Z_SERVO_PIN
+        Deal with custom machine ... machine_trinamic_setup();
+        Class is ready to deal with non SPI pins, but they have not been needed yet.
+            It would be nice in the config message though
+    Testing
+        Done (success)
+            3 Axis (3 Standard Steppers)
+            MPCNC (ganged with shared direction pin)
+            TMC2130 Pen Laser (trinamics, stallguard tuning)
+            Unipolar
+        TODO
+            4 Axis SPI (Daisy Chain, Ganged with unique direction pins)
+    Reference
+        TMC2130 Datasheet https://www.trinamic.com/fileadmin/assets/Products/ICs_Documents/TMC2130_datasheet.pdf
+*/
+
+#include "TrinamicDriverClass.cpp"
+#include "StandardStepperClass.cpp"
+//#include "UnipolarMotorClass.cpp"
+#include "RcServoClass.cpp"
+//#include "SolenoidClass.cpp"
+
+Motor* myMotor[MAX_AXES][MAX_GANGED]; // number of axes (normal and ganged)
+static TaskHandle_t readSgTaskHandle = 0;   // for realtime stallguard data diaplay
+static TaskHandle_t servoUpdateTaskHandle = 0;
+
+uint8_t rmt_chan_num[MAX_AXES][MAX_GANGED];
+rmt_item32_t rmtItem[2];
+rmt_config_t rmtConfig;
+
+bool motor_class_steps; // true if at least one motor class is handling steps
+
 void init_motors() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Init Motors");
+
+#ifdef X_STEP_PIN
+    myMotor[X_AXIS][0] = new StandardStepper(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_DISABLE_PIN);
+#else
+    myMotor[X_AXIS][0] = new Nullmotor();
+#endif
+
+#ifdef X2_STEP_PIN
+    myMotor[X_AXIS][1] = new StandardStepper(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, x2_DISABLE_PIN);
+#else
+    myMotor[X_AXIS][1] = new Nullmotor();
+#endif
+
+#ifdef Y_STEP_PIN
+    myMotor[Y_AXIS][0] = new StandardStepper(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN);
+#else
+    myMotor[Y_AXIS][0] = new Nullmotor();
+#endif
+
+#ifdef Y2_STEP_PIN
+    myMotor[Y_AXIS][1] = new StandardStepper(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN);
+#else
+    myMotor[Y_AXIS][1] = new Nullmotor();
+#endif
+
+
+#ifdef Z_STEP_PIN
+    myMotor[Z_AXIS][0] = new StandardStepper(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN);
+#elif defined(Z_SOLENOID_PIN)
+    myMotor[Z_AXIS][0] = new Solenoid(Z_AXIS, Z_SOLENOID_PIN, Z_SOLENOID_MAX);
+#else
+    myMotor[Z_AXIS][0] = new Nullmotor();
+#endif
+
+#ifdef Z2_STEP_PIN
+    myMotor[Z_AXIS][1] = new StandardStepper(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN);
+#else
+    myMotor[Z_AXIS][1] = new Nullmotor();
+#endif
+
+
+#ifdef A_STEP_PIN
+    myMotor[A_AXIS][0] = new StandardStepper(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN);
+#else
+    myMotor[A_AXIS][0] = new Nullmotor();
+#endif
+
+#ifdef A2_STEP_PIN
+    myMotor[A_AXIS][1] = new StandardStepper(A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN);
+#else
+    myMotor[A_AXIS][1] = new Nullmotor();
+#endif
+
+
+#ifdef B_STEP_PIN
+    myMotor[B_AXIS][0] = new StandardStepper(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN);
+#else
+    myMotor[B_AXIS][0] = new Nullmotor();
+#endif
+
+#ifdef B2_STEP_PIN
+    myMotor[B_AXIS][1] = new StandardStepper(B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN);
+#else
+    myMotor[B_AXIS][1] = new Nullmotor();
+#endif
+
+
+#ifdef C_STEP_PIN
+    myMotor[C_AXIS][0] = new StandardStepper(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN);
+#else
+    myMotor[C_AXIS][0] = new Nullmotor();
+#endif
+
+#ifdef C2_STEP_PIN
+    myMotor[C_AXIS][1] = new StandardStepper(C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN);
+#else
+    myMotor[C_AXIS][1] = new Nullmotor();
+#endif
+
 
 #ifdef USE_STEPSTICK
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using StepStick Mode");
@@ -36,6 +164,14 @@ void init_motors() {
 
 #endif
 
+#ifdef STEPPERS_DISABLE_PIN
+    grbl_msg_sendf(CLIENT_SERIAL,
+                   MSG_LEVEL_INFO,
+                   "Global stepper enable pin:%d",
+                   STEPPERS_DISABLE_PIN);
+    HAL_pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
+#endif
+
 }
 
 
@@ -47,7 +183,7 @@ void motors_set_disable(bool disable) {
 
     previous_state = disable;
 
-     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_disable:%d", disable);
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_disable:%d", disable);
 
 
 #ifdef USE_TRINAMIC_ENABLE
@@ -63,62 +199,50 @@ void motors_set_disable(bool disable) {
     HAL_digitalWrite(STEPPERS_DISABLE_PIN, disable);
 #endif
 
-#ifdef X_DISABLE_PIN
-    HAL_digitalWrite(X_DISABLE_PIN, disable);
-#endif
-#ifdef Y_DISABLE_PIN
-    HAL_digitalWrite(Y_DISABLE_PIN, disable);
-#endif
-#ifdef Z_DISABLE_PIN
-    HAL_digitalWrite(Z_DISABLE_PIN, disable);
-#endif
-#ifdef A_DISABLE_PIN
-    HAL_digitalWrite(A_DISABLE_PIN, disable);
-#endif
-#ifdef B_DISABLE_PIN
-    HAL_digitalWrite(B_DISABLE_PIN, disable);
-#endif
-#ifdef C_DISABLE_PIN
-    HAL_digitalWrite(C_DISABLE_PIN, disable);
-#endif
+// now loop through all the motors
+    for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
+            myMotor[axis][gang_index]->set_disable(disable);
+    }
 }
 
 void motors_set_direction_pins(uint8_t onMask) {
-#ifdef X_DIRECTION_PIN
-    HAL_digitalWrite(X_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef X2_DIRECTION_PIN // optional ganged axis
-    HAL_digitalWrite(X2_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef Y_DIRECTION_PIN
-    HAL_digitalWrite(Y_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Y2_DIRECTION_PIN // optional ganged axis
-    HAL_digitalWrite(Y2_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Z_DIRECTION_PIN
-    HAL_digitalWrite(Z_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef Z2_DIRECTION_PIN // optional ganged axis
-    HAL_digitalWrite(Z2_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef A_DIRECTION_PIN
-    HAL_digitalWrite(A_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef A2_DIRECTION_PIN // optional ganged axis
-    HAL_digitalWrite(A2_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef B_DIRECTION_PIN
-    HAL_digitalWrite(B_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef B2_DIRECTION_PIN // optional ganged axis
-    HAL_digitalWrite(B2_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef C_DIRECTION_PIN
-    HAL_digitalWrite(C_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
-#ifdef C2_DIRECTION_PIN // optional ganged axis
-    HAL_digitalWrite(C2_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
+    static uint8_t previous_val = 255;  // should never be this value
+    if (previous_val == onMask)
+        return;
+    previous_val = onMask;
+
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_direction_pins:0x%02X", onMask);    
+
+    for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
+            myMotor[axis][gang_index]->set_direction_pins(onMask);
+    }
 }
 
+// ============================== Class Methods ================================================
+
+Motor :: Motor() {
+    type_id = MOTOR;
+}
+
+void Motor :: init() {
+    _is_homing = false;
+}
+
+void Motor :: config_message() {}
+void Motor :: debug_message() {}
+void Motor :: read_settings() {}
+void Motor :: set_disable(bool disable) {}
+void Motor :: set_direction_pins(uint8_t onMask) {}
+void Motor :: step(uint8_t step_mask, uint8_t dir_mask) {}
+bool Motor :: test() {return true;}; // true = OK
+void Motor :: update() {}
+
+void Motor :: set_axis_name() {
+    sprintf(_axis_name, "%c%s", report_get_axis_letter(axis_index), dual_axis_index ? "2" : "");
+}
+
+void Motor :: set_homing_mode(bool is_homing) {
+    _is_homing = is_homing;
+}

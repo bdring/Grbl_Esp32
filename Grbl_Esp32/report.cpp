@@ -47,6 +47,7 @@
 */
 
 #include "grbl.h"
+#include <string>
 
 #define DEFAULTBUFFERSIZE 64
 
