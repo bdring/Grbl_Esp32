@@ -131,35 +131,43 @@ void init_motors() {
 
 #ifdef USE_STEPSTICK
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using StepStick Mode");
-
+#ifdef STEPPER_MS1
     HAL_pinMode(STEPPER_MS1, OUTPUT);
     HAL_digitalWrite(STEPPER_MS1, HIGH);
-
+#endif
+#ifdef STEPPER_MS2
     HAL_pinMode(STEPPER_MS2, OUTPUT);
     HAL_digitalWrite(STEPPER_MS2, HIGH);
-
+#endif
+#ifdef STEPPER_X_MS3
     HAL_pinMode(STEPPER_X_MS3, OUTPUT);
     HAL_digitalWrite(STEPPER_X_MS3, HIGH);
-
+#endif
+#ifdef STEPPER_Y_MS3
     HAL_pinMode(STEPPER_Y_MS3, OUTPUT);
     HAL_digitalWrite(STEPPER_Y_MS3, HIGH);
-
+#endif
+#ifdef STEPPER_Z_MS3
     HAL_pinMode(STEPPER_Z_MS3, OUTPUT);
     HAL_digitalWrite(STEPPER_Z_MS3, HIGH);
-
+#endif
+#ifdef STEPPER_A_MS3
     HAL_pinMode(STEPPER_A_MS3, OUTPUT);
     HAL_digitalWrite(STEPPER_A_MS3, HIGH);
-
+#endif
+#ifdef STEPPER_B_MS3
     HAL_pinMode(STEPPER_B_MS3, OUTPUT);
     HAL_digitalWrite(STEPPER_B_MS3, HIGH);
-
+#endif
+#ifdef STEPPER_C_MS3
     HAL_pinMode(STEPPER_C_MS3, OUTPUT);
     HAL_digitalWrite(STEPPER_C_MS3, HIGH);
-
+#endif
+#ifdef STEPPER_RESET
     // !RESET pin on steppers  (MISO On Schematic)
     HAL_pinMode(STEPPER_RESET, OUTPUT);
     HAL_digitalWrite(STEPPER_RESET, HIGH);
-
+#endif
     // Note !SLEEP is set via jumper
 
 #endif
