@@ -447,9 +447,8 @@ void mc_reset() {
             } else  system_set_exec_alarm(EXEC_ALARM_ABORT_CYCLE);
             st_go_idle(); // Force kill steppers. Position has likely been lost.
         }
-#ifdef USE_GANGED_AXES
         ganged_mode = SQUARING_MODE_DUAL; // in case an error occurred during squaring
-#endif
+
 #ifdef I2S_STEPPER_STREAM
         i2s_ioexpander_reset();
 #endif
