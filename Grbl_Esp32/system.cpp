@@ -626,7 +626,7 @@ void HAL_digitalWrite(uint8_t pin_num, uint8_t val) {
         digitalWrite(pin_num, val);
         return;
     }
-    uint8_t exp_pin_num = pin_num - I2S_IOEXP_PIN_BASE;
+    uint8_t exp_pin_num = I2S_IOEXP_PIN_INDEX(pin_num);
     i2s_ioexpander_write(exp_pin_num, val);
 #else
     digitalWrite(pin_num, val);
@@ -638,7 +638,7 @@ int HAL_digitalRead(uint8_t pin_num) {
     if (pin_num < I2S_IOEXP_PIN_BASE) {
         return digitalRead(pin_num);
     }
-    uint8_t exp_pin_num = pin_num - I2S_IOEXP_PIN_BASE;
+    uint8_t exp_pin_num = I2S_IOEXP_PIN_INDEX(pin_num);
     return i2s_ioexpander_state(exp_pin_num);
 #else
     return digitalRead(pin_num);
