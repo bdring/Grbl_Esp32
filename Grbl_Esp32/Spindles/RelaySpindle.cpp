@@ -31,21 +31,13 @@ void RelaySpindle::init() {
     if (_output_pin == UNDEFINED_PIN)
         return;
 
-    pinMode(_output_pin, OUTPUT);
-
-    if (_enable_pin != UNDEFINED_PIN)
-        pinMode(_enable_pin, OUTPUT);
-
-    if (_direction_pin != UNDEFINED_PIN)
-        pinMode(_direction_pin, OUTPUT);
-
-    is_reversable = (_direction_pin != UNDEFINED_PIN);
+    is_reversable = _direction_pin != UNDEFINED_PIN;
 
     config_message();
 }
 
 // prints the startup message of the spindle config
-void RelaySpindle :: config_message() {    
+void RelaySpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "Relay spindle Output:%d, Enbl:%d, Dir:%d",
@@ -76,5 +68,5 @@ void RelaySpindle::set_output(uint32_t duty) {
 #ifdef INVERT_SPINDLE_PWM
     duty = (duty == 0); // flip duty
 #endif
-    digitalWrite(_output_pin, duty > 0); // anything greater
+    _output_pin->write(duty > 0); // anything greater
 }

@@ -341,27 +341,13 @@ void limits_disable() {
 uint8_t limits_get_state() {
     uint8_t limit_state = 0;
     uint8_t pin = 0;
-#ifdef X_LIMIT_PIN
-    pin += digitalRead(X_LIMIT_PIN);
-#endif
-#ifdef Y_LIMIT_PIN
-    pin += (digitalRead(Y_LIMIT_PIN) << Y_AXIS);
-#endif
-#ifdef Z_LIMIT_PIN
-    pin += (digitalRead(Z_LIMIT_PIN) << Z_AXIS);
-#endif
-#ifdef A_LIMIT_PIN
-    pin += (digitalRead(A_LIMIT_PIN) << A_AXIS);
-#endif
-#ifdef B_LIMIT_PIN
-    pin += (digitalRead(B_LIMIT_PIN) << B_AXIS);
-#endif
-#ifdef C_LIMIT_PIN
-    pin += (digitalRead(C_LIMIT_PIN) << C_AXIS);
-#endif
-#ifdef INVERT_LIMIT_PIN_MASK // not normally used..unless you have both normal and inverted switches
-    pin ^= INVERT_LIMIT_PIN_MASK;
-#endif
+    for (int i = 0; i < MAX_NUM_LIMIT_PINS; i++) {
+        InPin* p = limitPins[i];
+        if (p) {
+            pin += p->pin->read() << p->axis;
+        }
+    }
+    pin ^= invertLimitPinMask;
     if (bit_istrue(settings.flags, BITFLAG_INVERT_LIMIT_PINS))
         pin ^= LIMIT_MASK;
     if (pin) {

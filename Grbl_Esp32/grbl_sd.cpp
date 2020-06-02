@@ -164,7 +164,7 @@ uint8_t sd_state = SDCARD_IDLE;
 uint8_t get_sd_state(bool refresh) {
 #if defined(SDCARD_DET_PIN) && SDCARD_SD_PIN != -1
     //no need to go further if SD detect is not correct
-    if (!((digitalRead(SDCARD_DET_PIN) == SDCARD_DET_VAL) ? true : false)) {
+    if (!((sdcardDetPin->read() == SDCARD_DET_VAL) ? true : false)) {
         sd_state = SDCARD_NOT_PRESENT;
         return sd_state;
     }

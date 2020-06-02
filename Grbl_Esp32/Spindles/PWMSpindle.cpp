@@ -41,7 +41,7 @@ void PWMSpindle :: init() {
     ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, _pwm_precision); // setup the channel
     ledcAttachPin(_output_pin, _spindle_pwm_chan_num); // attach the PWM to the pin
 
-    if (_enable_pin != UNDEFINED_PIN)
+    if (spindleEnable_pin != UNDEFINED_PIN)
         pinMode(_enable_pin, OUTPUT);
 
     if (_direction_pin != UNDEFINED_PIN)
@@ -55,7 +55,7 @@ void PWMSpindle :: get_pins_and_settings() {
     // setup all the pins
 
 #ifdef SPINDLE_OUTPUT_PIN
-    _output_pin = SPINDLE_OUTPUT_PIN;
+    _output_pin = new SPINDLE_OUTPUT_PIN;
 #else
     _output_pin = UNDEFINED_PIN;
 #endif
@@ -67,7 +67,7 @@ void PWMSpindle :: get_pins_and_settings() {
 #endif
 
 #ifdef SPINDLE_ENABLE_PIN
-    _enable_pin = SPINDLE_ENABLE_PIN;
+    _enable_pin = new SPINDLE_ENABLE_PIN;
 #ifdef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
     _off_with_zero_speed = true;
 #endif
@@ -177,7 +177,7 @@ uint8_t PWMSpindle::get_state() {
         return (SPINDLE_STATE_DISABLE);
     else {
         if (_direction_pin != UNDEFINED_PIN) {
-            if (digitalRead(_direction_pin))
+            if (_direction_pin->read())
                 return (SPINDLE_STATE_CW);
             else
                 return (SPINDLE_STATE_CCW);
@@ -227,16 +227,12 @@ void PWMSpindle::set_output(uint32_t duty) {
 void PWMSpindle::set_enable_pin(bool enable) {
     if (_enable_pin == UNDEFINED_PIN)
         return;
-#ifndef INVERT_SPINDLE_ENABLE_PIN
-    digitalWrite(_enable_pin, enable);
-#else
-    digitalWrite(_enable_pin, !enable);
-#endif
+    _enable_pin->write(enable ^ invertSpindleEnablePin);
 }
 
 void PWMSpindle::set_spindle_dir_pin(bool Clockwise) {
     if (_direction_pin != UNDEFINED_PIN)
-        digitalWrite(_direction_pin, Clockwise);
+        _direction_pin->write(Clockwise);
 }
 
 

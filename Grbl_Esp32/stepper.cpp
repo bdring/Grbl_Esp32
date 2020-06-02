@@ -401,12 +401,16 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
 }
 
 
+OutPin* steppersDisablePin;
 void stepper_init() {
     // make the stepper disable pin an output
 #ifdef STEPPERS_DISABLE_PIN
-    pinMode(STEPPERS_DISABLE_PIN, OUTPUT);
-    set_stepper_disable(true);
+    steppersDisablePin = new STEPPERS_DISABLE_PIN;
+#else
+    steppersDisablePin = UNDEFINED_PIN;
 #endif
+    set_stepper_disable(true);
+
 #ifdef USE_UNIPOLAR
     unipolar_init();
 #endif
@@ -673,101 +677,35 @@ void st_reset() {
 }
 
 
-
-
+// Motor fields include:
+//   OutPin* directionPin
+//   OutPin* stepPin
+//   uint8_t axis  // values up to MAX_NUM_AXES
+//     -- or it could be a precomputed mask i.e. 1<<axis
+//   uint8_t ab    // value is 1 for motor A, 2 for motor B
 
 void set_direction_pins_on(uint8_t onMask) {
     // inverts are applied in step generation
-#ifdef X_DIRECTION_PIN
-    digitalWrite(X_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef X2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(X2_DIRECTION_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef Y_DIRECTION_PIN
-    digitalWrite(Y_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Y2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(Y2_DIRECTION_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Z_DIRECTION_PIN
-    digitalWrite(Z_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef Z2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(Z2_DIRECTION_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef A_DIRECTION_PIN
-    digitalWrite(A_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef A2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(A2_DIRECTION_PIN, (onMask & (1 << A_AXIS)));
-#endif
-#ifdef B_DIRECTION_PIN
-    digitalWrite(B_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef B2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(B2_DIRECTION_PIN, (onMask & (1 << B_AXIS)));
-#endif
-#ifdef C_DIRECTION_PIN
-    digitalWrite(C_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
-#ifdef C2_DIRECTION_PIN // optional ganged axis
-    digitalWrite(C2_DIRECTION_PIN, (onMask & (1 << C_AXIS)));
-#endif
+    for (i = 0; i < MAX_NUM_MOTORS; i++) {
+        Motor* m = motors[i];
+        if (m) {
+            m->directionPin->write(onMask & (1 << m->axis));
+        }
+    }
 }
 
-#ifndef USE_GANGED_AXES
-// basic one motor per axis
 void set_stepper_pins_on(uint8_t onMask) {
     onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
-#ifdef X_STEP_PIN
-    digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#ifdef Y_STEP_PIN
-    digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#ifdef Z_STEP_PIN
-    digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#ifdef A_STEP_PIN
-    digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
-#endif
+    for (i = 0; i < MAX_NUM_MOTORS; i++) {
+        Motor* m = motors[i];
+        // m->ab is 1 for the A motor, 2 for the B motor
+        // gangedMode is 1 for SQUARING_MODE_A,
+        // 2 for SQUARING_MODE_B, 3 for SQUARING_MODE_DUAL
+        if (m && (m->ab & gangedMode)) {
+            m->stepPin->write(onMask & (1 << m->axis));
+        }
+    }
 }
-#else // we use ganged axes
-void set_stepper_pins_on(uint8_t onMask) {
-    onMask ^= settings.step_invert_mask; // invert pins as required by invert mask
-#ifdef X_STEP_PIN
-#ifndef X2_STEP_PIN // if not a ganged axis
-    digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
-#else // is a ganged axis
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(X2_STEP_PIN, (onMask & (1 << X_AXIS)));
-#endif
-#endif
-#ifdef Y_STEP_PIN
-#ifndef Y2_STEP_PIN // if not a ganged axis
-    digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
-#else // is a ganged axis
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
-#endif
-#endif
-#ifdef Z_STEP_PIN
-#ifndef Z2_STEP_PIN // if not a ganged axis
-    digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
-#else // is a ganged axis
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
-    if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
-#endif
-#endif
-}
-#endif
 
 #ifdef USE_RMT_STEPS
 // Set stepper pulse output pins
@@ -1382,18 +1320,18 @@ void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
 #ifdef USE_UNIPOLAR
     unipolar_disable(isOn);
 #endif
-#ifdef STEPPERS_DISABLE_PIN
-    digitalWrite(STEPPERS_DISABLE_PIN, isOn);
-#endif
+    // XXX We could save a lot of code by defining a null pin
+    // that discards writes.
+    if(steppersDisablePin) {
+        steppersDisablePin->write(isOn);
+    }
 }
 
 bool get_stepper_disable() { // returns true if steppers are disabled
-    bool disabled = false;
-#ifdef STEPPERS_DISABLE_PIN
-    disabled = digitalRead(STEPPERS_DISABLE_PIN);
-#else
-    return false; // thery are never disabled if there is no pin defined
-#endif
+    if (!steppersDisablePin) {
+        return false;
+    }
+    bool disabled = steppersDisablePin->read();
     if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
         disabled = !disabled; // Apply pin invert.
     }

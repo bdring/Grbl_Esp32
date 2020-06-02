@@ -83,6 +83,7 @@ void unipolar_disable(bool disable) {
 #endif
 }
 
+// XXX need to pass in class arguments
 
 Unipolar::Unipolar(uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3, bool half_step) { // constructor
     _pin_phase0 = pin_phase0;
@@ -93,10 +94,6 @@ Unipolar::Unipolar(uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, u
 }
 
 void Unipolar::init() {
-    pinMode(_pin_phase0, OUTPUT);
-    pinMode(_pin_phase1, OUTPUT);
-    pinMode(_pin_phase2, OUTPUT);
-    pinMode(_pin_phase3, OUTPUT);
     _current_phase = 0;
     set_enabled(false);
 }
@@ -106,10 +103,10 @@ void Unipolar::set_enabled(bool enabled) {
         return; // no change
     _enabled = enabled;
     if (!enabled) {
-        digitalWrite(_pin_phase0, 0);
-        digitalWrite(_pin_phase1, 0);
-        digitalWrite(_pin_phase2, 0);
-        digitalWrite(_pin_phase3, 0);
+        _pin_phase0->clear();
+        _pin_phase1->clear();
+        _pin_phase2->clear();
+        _pin_phase3->clear();
     }
 }
 
@@ -206,9 +203,9 @@ void Unipolar::step(bool step, bool dir_forward) {
             break;
         }
     }
-    digitalWrite(_pin_phase0, _phase[0]);
-    digitalWrite(_pin_phase1, _phase[1]);
-    digitalWrite(_pin_phase2, _phase[2]);
-    digitalWrite(_pin_phase3, _phase[3]);
+    _pin_phase0->write(_phase[0]);
+    _pin_phase1->write(_phase[1]);
+    _pin_phase2->write(_phase[2]);
+    _pin_phase3->write(_phase[3]);
 }
 #endif

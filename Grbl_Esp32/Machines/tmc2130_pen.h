@@ -29,30 +29,30 @@
 
 #ifdef MACHINE_V1
     #define MACHINE_NAME    "ESP32_TMC2130_PEN V1"
-    #define X_LIMIT_PIN     GPIO_NUM_2
+#define X_LIMIT_PIN     GPIOin(2)
 #else
     #define MACHINE_NAME    "ESP32_TMC2130_PEN V2"
-    #define X_LIMIT_PIN     GPIO_NUM_32
+#define X_LIMIT_PIN     GPIOin(32)
 #endif
 
 #define USE_TRINAMIC // Using at least 1 trinamic driver
 
-#define X_STEP_PIN              GPIO_NUM_12
-#define X_DIRECTION_PIN         GPIO_NUM_26
+#define X_STEP_PIN              GPIOout(12)
+#define X_DIRECTION_PIN         GPIOout(26)
 #define X_TRINAMIC              // using SPI control
 #define X_DRIVER_TMC2130        // Which Driver Type?
-#define X_CS_PIN                GPIO_NUM_17  //chip select
+#define X_CS_PIN                GPIOout(17)  //chip select
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
 
-#define Y_STEP_PIN              GPIO_NUM_14
-#define Y_DIRECTION_PIN         GPIO_NUM_25
+#define Y_STEP_PIN              GPIOout(14)
+#define Y_DIRECTION_PIN         GPIOout(25)
 #define Y_TRINAMIC              // using SPI control
 #define Y_DRIVER_TMC2130        // Which Driver Type?
-#define Y_CS_PIN                GPIO_NUM_16  //chip select
+#define Y_CS_PIN                GPIOout(16)  //chip select
 #define Y_RSENSE                TMC2130_RSENSE_DEFAULT
 
 // OK to comment out to use pin for other features
-#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN GPIOout(13)
 
 
 
@@ -63,7 +63,7 @@
 #ifdef USE_SERVO_AXES
     #define SPINDLE_TYPE            SPINDLE_TYPE_NONE
 
-    #define SERVO_Z_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
+#define SERVO_Z_PIN                     GPIOout(27) // comment this out if PWM spindle/laser control.
     #define SERVO_Z_RANGE_MIN               0.0
     #define SERVO_Z_RANGE_MAX               5.0
     #define SERVO_Z_HOMING_TYPE             SERVO_HOMING_TARGET // during homing it will instantly move to a target value
@@ -72,11 +72,11 @@
 #else
 
     #define SPINDLE_TYPE        SPINDLE_TYPE_PWM
-    #define SPINDLE_OUTPUT_PIN     GPIO_NUM_27
+#define SPINDLE_OUTPUT_PIN     GPIOout(27)
 #endif
 
 // #define X_LIMIT_PIN          See version section at beginning of file
-#define Y_LIMIT_PIN             GPIO_NUM_4
+#define Y_LIMIT_PIN             GPIOin(4)
 #define LIMIT_MASK              B11
 
 // defaults

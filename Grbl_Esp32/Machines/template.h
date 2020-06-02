@@ -77,64 +77,64 @@
 
 // Step and direction pins; these must be output-capable pins,
 // specifically ESP32 GPIO numbers 0..31
-// #define X_STEP_PIN              GPIO_NUM_12
-// #define X_DIRECTION_PIN         GPIO_NUM_14
-// #define Y_STEP_PIN              GPIO_NUM_26
-// #define Y_DIRECTION_PIN         GPIO_NUM_15
-// #define Z_STEP_PIN              GPIO_NUM_27
-// #define Z_DIRECTION_PIN         GPIO_NUM_33
+// #define X_STEP_PIN              GPIOout(12)
+// #define X_DIRECTION_PIN         GPIOout(14)
+// #define Y_STEP_PIN              GPIOout(26)
+// #define Y_DIRECTION_PIN         GPIOout(15)
+// #define Z_STEP_PIN              GPIOout(27)
+// #define Z_DIRECTION_PIN         GPIOout(33)
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
 // X, Z, A and B axes do, the LIMIT_MASK value would be B11101
 // #define LIMIT_MASK              B111
 
-// #define X_LIMIT_PIN             GPIO_NUM_17
-// #define Y_LIMIT_PIN             GPIO_NUM_4
-// #define Z_LIMIT_PIN             GPIO_NUM_16
+// #define X_LIMIT_PIN             GPIOin(17)
+// #define Y_LIMIT_PIN             GPIOin(4)
+// #define Z_LIMIT_PIN             GPIOin(16)
 
 // Common enable for all steppers.  If it is okay to leave
 // your drivers enabled at all times, you can leave
 // STEPPERS_DISABLE_PIN undefined and use the pin for something else.
-// #define STEPPERS_DISABLE_PIN    GPIO_NUM_13
+// #define STEPPERS_DISABLE_PIN    GPIOout(13)
 
 // Pins for controlling various aspects of the machine.  If your
 // machine does not support one of these features, you can leave
 // the corresponding pin undefined.
 
-// #define SPINDLE_OUTPUT_PIN         GPIO_NUM_2   // labeled SpinPWM
-// #define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
-// #define COOLANT_MIST_PIN        GPIO_NUM_21  // labeled Mist
-// #define COOLANT_FLOOD_PIN       GPIO_NUM_25  // labeled Flood
-// #define PROBE_PIN               GPIO_NUM_32  // labeled Probe
+// #define SPINDLE_OUTPUT_PIN         GPIOout(2)   // labeled SpinPWM
+// #define SPINDLE_ENABLE_PIN      GPIOout(22)  // labeled SpinEnbl
+// #define COOLANT_MIST_PIN        GPIOout(21)  // labeled Mist
+// #define COOLANT_FLOOD_PIN       GPIOout(25)  // labeled Flood
+// #define PROBE_PIN               GPIOin(32)  // labeled Probe
 
 // Input pins for various functions.  If the corresponding pin is not defined,
 // the function will not be available.
 
 // CONTROL_SAFETY_DOOR_PIN shuts off the machine when a door is opened
 // or some other unsafe condition exists.
-// #define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_35  // labeled Door,  needs external pullup
+// #define CONTROL_SAFETY_DOOR_PIN GPIOin(35)  // labeled Door,  needs external pullup
 
 // RESET, FEED_HOLD, and CYCLE_START can control GCode execution at
 // the push of a button.
 
-// #define CONTROL_RESET_PIN       GPIO_NUM_34  // labeled Reset, needs external pullup
-// #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // labeled Hold,  needs external pullup
-// #define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // labeled Start, needs external pullup
+// #define CONTROL_RESET_PIN       GPIOin(34)  // labeled Reset, needs external pullup
+// #define CONTROL_FEED_HOLD_PIN   GPIOin(36)  // labeled Hold,  needs external pullup
+// #define CONTROL_CYCLE_START_PIN GPIOin(39)  // labeled Start, needs external pullup
 
 // === Ganging
 // If you need to use two motors on one axis, you can "gang" the motors by
 // defining a second pin to control the other motor on the axis.  For example:
 
-// #define Y2_STEP_PIN             GPIO_NUM_27  /* labeled Z */
-// #define Y2_DIRECTION_PIN        GPIO_NUM_33  /* labeled Z */
+// #define Y2_STEP_PIN             GPIOout(27)  /* labeled Z */
+// #define Y2_DIRECTION_PIN        GPIOout(33)  /* labeled Z */
 
 // === Servos
 // To use a servo motor on an axis, do not define step and direction
 // pins for that axis, but instead include a block like this:
 // #define USE_SERVO_AXES
 
-// #define SERVO_Z_PIN             GPIO_NUM_22
+// #define SERVO_Z_PIN             GPIOout(22)
 // #define SERVO_Z_RANGE_MIN       0.0
 // #define SERVO_Z_RANGE_MAX       5.0
 // #define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value

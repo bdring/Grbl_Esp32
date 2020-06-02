@@ -29,48 +29,48 @@
 
 #define USE_GANGED_AXES // allow two motors on an axis
 
-#define X_STEP_PIN      GPIO_NUM_12
-#define X2_STEP_PIN     GPIO_NUM_22      // ganged motor
+#define X_STEP_PIN      GPIOout(12)
+#define X2_STEP_PIN     GPIOout(22)      // ganged motor
 #define X_AXIS_SQUARING
 
-#define Y_STEP_PIN      GPIO_NUM_14
-#define Y2_STEP_PIN     GPIO_NUM_21  // ganged motor
+#define Y_STEP_PIN      GPIOout(14)
+#define Y2_STEP_PIN     GPIOout(21)  // ganged motor
 #define Y_AXIS_SQUARING
 
-#define Z_STEP_PIN      GPIO_NUM_27
+#define Z_STEP_PIN      GPIOout(27)
 
-#define X_DIRECTION_PIN GPIO_NUM_26
-#define Y_DIRECTION_PIN GPIO_NUM_25
-#define Z_DIRECTION_PIN GPIO_NUM_33
+#define X_DIRECTION_PIN GPIOout(26)
+#define Y_DIRECTION_PIN GPIOout(25)
+#define Z_DIRECTION_PIN GPIOout(33)
 
 // OK to comment out to use pin for other features
-#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN GPIOout(13)
 
 // Note: if you use PWM rather than relay, you could map GPIO_NUM_2 to mist or flood
 //#define USE_SPINDLE_RELAY
 
 #ifdef USE_SPINDLE_RELAY
     #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
-    #define SPINDLE_OUTPUT_PIN GPIO_NUM_17
+#define SPINDLE_OUTPUT_PIN     GPIOout(17)
 #else
     #define SPINDLE_TYPE SPINDLE_TYPE_PWM
-    #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
+#define SPINDLE_OUTPUT_PIN      GPIOout(16)
 
-    #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
+#define SPINDLE_ENABLE_PIN      GPIOout(32)
 #endif
 
 // Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
 // Relay can be used for spindle or either coolant
-//#define COOLANT_FLOOD_PIN     GPIO_NUM_2
-//#define COOLANT_MIST_PIN      GPIO_NUM_2
+//#define COOLANT_FLOOD_PIN     GPIOout(2)
+//#define COOLANT_MIST_PIN      GPIOout(2)
 
 
-#define X_LIMIT_PIN             GPIO_NUM_2
-#define Y_LIMIT_PIN             GPIO_NUM_4
-#define Z_LIMIT_PIN             GPIO_NUM_15
+#define X_LIMIT_PIN             GPIOin(2)
+#define Y_LIMIT_PIN             GPIOin(4)
+#define Z_LIMIT_PIN             GPIOin(15)
 #define LIMIT_MASK              B111
 
-#define PROBE_PIN               GPIO_NUM_35
+#define PROBE_PIN               GPIOin(35)
 
 // The default value in config.h is wrong for this controller
 #ifdef INVERT_CONTROL_PIN_MASK
@@ -79,9 +79,9 @@
 
 #define INVERT_CONTROL_PIN_MASK B1110
 
-#define CONTROL_RESET_PIN           GPIO_NUM_34  // needs external pullup
-#define CONTROL_FEED_HOLD_PIN       GPIO_NUM_36  // needs external pullup
-#define CONTROL_CYCLE_START_PIN     GPIO_NUM_39  // needs external pullup
+#define CONTROL_RESET_PIN           GPIOin(34)  // needs external pullup
+#define CONTROL_FEED_HOLD_PIN       GPIOin(36)  // needs external pullup
+#define CONTROL_CYCLE_START_PIN     GPIOin(39)  // needs external pullup
 
 #define DEFAULT_STEP_PULSE_MICROSECONDS     3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME      255 //  255 = Keep steppers on

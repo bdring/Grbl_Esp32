@@ -25,31 +25,31 @@
 
 #define MACHINE_NAME            "ESP32_V3.5"
 
-#define X_STEP_PIN              GPIO_NUM_12
-#define X_DIRECTION_PIN         GPIO_NUM_26
-#define Y_STEP_PIN              GPIO_NUM_14
-#define Y_DIRECTION_PIN         GPIO_NUM_25
-#define Z_STEP_PIN              GPIO_NUM_27
-#define Z_DIRECTION_PIN         GPIO_NUM_33
+#define X_STEP_PIN              GPIOout(12)
+#define X_DIRECTION_PIN         GPIOout(26)
+#define Y_STEP_PIN              GPIOout(14)
+#define Y_DIRECTION_PIN         GPIOout(25)
+#define Z_STEP_PIN              GPIOout(27)
+#define Z_DIRECTION_PIN         GPIOout(33)
 
 #define LIMIT_MASK              B111
-#define X_LIMIT_PIN             GPIO_NUM_2  // labeled X Limit
-#define Y_LIMIT_PIN             GPIO_NUM_4  // labeled Y Limit
-#define Z_LIMIT_PIN             GPIO_NUM_15 // labeled Z Limit
+#define X_LIMIT_PIN             GPIOin(2)  // labeled X Limit
+#define Y_LIMIT_PIN             GPIOin(4)  // labeled Y Limit
+#define Z_LIMIT_PIN             GPIOin(15) // labeled Z Limit
 
 // OK to comment out to use pin for other features
-#define STEPPERS_DISABLE_PIN    GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN    GPIOout(13)
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM
-#define SPINDLE_OUTPUT_PIN         GPIO_NUM_17  // labeled SpinPWM
+#define SPINDLE_OUTPUT_PIN      GPIOout(17)  // labeled SpinPWM
 
-#define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
+#define SPINDLE_ENABLE_PIN      GPIOout(22)  // labeled SpinEnbl
 
-#define COOLANT_MIST_PIN        GPIO_NUM_21  // labeled Mist
-#define COOLANT_FLOOD_PIN       GPIO_NUM_16  // labeled Flood
-#define PROBE_PIN               GPIO_NUM_32  // labeled Probe
+#define COOLANT_MIST_PIN        GPIOout(21)  // labeled Mist
+#define COOLANT_FLOOD_PIN       GPIOout(16)  // labeled Flood
+#define PROBE_PIN               GPIOin(32)   // labeled Probe
 
-#define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_35  // labeled Door,  needs external pullup
-#define CONTROL_RESET_PIN       GPIO_NUM_34  // labeled Reset, needs external pullup
-#define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // labeled Hold,  needs external pullup
-#define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // labeled Start, needs external pullup
+#define CONTROL_SAFETY_DOOR_PIN GPIOin(35)   // labeled Door,  needs external pullup
+#define CONTROL_RESET_PIN       GPIOin(34)   // labeled Reset, needs external pullup
+#define CONTROL_FEED_HOLD_PIN   GPIOin(36)   // labeled Hold,  needs external pullup
+#define CONTROL_CYCLE_START_PIN GPIOin(39)   // labeled Start, needs external pullup

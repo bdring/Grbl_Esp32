@@ -30,41 +30,41 @@
 
 #define USE_GANGED_AXES // allow two motors on an axis
 
-#define X_STEP_PIN          GPIO_NUM_27     // use Z labeled connector
-#define X_DIRECTION_PIN     GPIO_NUM_33     // use Z labeled connector
+#define X_STEP_PIN          GPIOout(27)     // use Z labeled connector
+#define X_DIRECTION_PIN     GPIOout(33)     // use Z labeled connector
 
-#define Y_STEP_PIN          GPIO_NUM_14
-#define Y2_STEP_PIN         GPIO_NUM_21     // ganged motor
-#define Y_DIRECTION_PIN     GPIO_NUM_25
+#define Y_STEP_PIN          GPIOout(14)
+#define Y2_STEP_PIN         GPIOout(21)     // ganged motor
+#define Y_DIRECTION_PIN     GPIOout(25)
 #define Y_AXIS_SQUARING
 
-#define Z_STEP_PIN          GPIO_NUM_12     // use X labeled connector
-#define Z2_STEP_PIN         GPIO_NUM_22     // use X labeled connector
-#define Z_DIRECTION_PIN     GPIO_NUM_26     // use X labeled connector
+#define Z_STEP_PIN          GPIOout(12)     // use X labeled connector
+#define Z2_STEP_PIN         GPIOout(22)     // use X labeled connector
+#define Z_DIRECTION_PIN     GPIOout(26)     // use X labeled connector
 #define Z_AXIS_SQUARING
 
 // OK to comment out to use pin for other features
-#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN GPIOout(13)
 
 // Note: if you use PWM rather than relay, you could map GPIO_NUM_2 to mist or flood
 //#define USE_SPINDLE_RELAY
 
 #ifdef USE_SPINDLE_RELAY
     #define SPINDLE_TYPE SPINDLE_TYPE_PWM
-    #define SPINDLE_OUTPUT_PIN GPIO_NUM_2
+#define SPINDLE_OUTPUT_PIN      GPIOout(2)
 #else
     #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
-    #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
-    #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
+#define SPINDLE_OUTPUT_PIN      GPIOout(16)
+#define SPINDLE_ENABLE_PIN      GPIOout(32)
 #endif
 
 // Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
 // Relay can be used for Spindle or Coolant
-//#define COOLANT_FLOOD_PIN             GPIO_NUM_17
+//#define COOLANT_FLOOD_PIN             GPIOout(17)
 
-#define X_LIMIT_PIN             GPIO_NUM_15
-#define Y_LIMIT_PIN             GPIO_NUM_4
-#define Z_LIMIT_PIN             GPIO_NUM_17
+#define X_LIMIT_PIN             GPIOin(15)
+#define Y_LIMIT_PIN             GPIOin( 4)
+#define Z_LIMIT_PIN             GPIOin(17)
 
 #define LIMIT_MASK              B111
 
@@ -80,6 +80,6 @@
 
 #define INVERT_CONTROL_PIN_MASK   B1110
 
-#define CONTROL_RESET_PIN         GPIO_NUM_34  // needs external pullup
-#define CONTROL_FEED_HOLD_PIN     GPIO_NUM_36  // needs external pullup
-#define CONTROL_CYCLE_START_PIN   GPIO_NUM_39  // needs external pullup
+#define CONTROL_RESET_PIN         GPIOin(34)  // needs external pullup
+#define CONTROL_FEED_HOLD_PIN     GPIOin(36)  // needs external pullup
+#define CONTROL_CYCLE_START_PIN   GPIOin(39)  // needs external pullup

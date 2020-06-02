@@ -454,47 +454,63 @@ uint8_t system_check_travel_limits(float* target) {
 uint8_t system_control_get_state() {
     uint8_t defined_pin_mask = 0; // a mask of defined pins
     uint8_t control_state = 0;
-    
-#ifdef CONTROL_SAFETY_DOOR_PIN
-    defined_pin_mask |= CONTROL_PIN_INDEX_SAFETY_DOOR;
-    if (digitalRead(CONTROL_SAFETY_DOOR_PIN))  control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR;
-#endif
-#ifdef CONTROL_RESET_PIN
-    defined_pin_mask |= CONTROL_PIN_INDEX_RESET;
-    if (digitalRead(CONTROL_RESET_PIN))  control_state |= CONTROL_PIN_INDEX_RESET;
-#endif
-#ifdef CONTROL_FEED_HOLD_PIN
-    defined_pin_mask |= CONTROL_PIN_INDEX_FEED_HOLD;
-    if (digitalRead(CONTROL_FEED_HOLD_PIN))  control_state |= CONTROL_PIN_INDEX_FEED_HOLD;
-#endif
-#ifdef CONTROL_CYCLE_START_PIN
-    defined_pin_mask |= CONTROL_PIN_INDEX_CYCLE_START;
-    if (digitalRead(CONTROL_CYCLE_START_PIN))  control_state |= CONTROL_PIN_INDEX_CYCLE_START;
-#endif
-#ifdef MACRO_BUTTON_0_PIN
-    defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_0;
-    if (digitalRead(MACRO_BUTTON_0_PIN))  control_state |= CONTROL_PIN_INDEX_MACRO_0;
-#endif
-#ifdef MACRO_BUTTON_1_PIN
-    defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_1;
-    if (digitalRead(MACRO_BUTTON_1_PIN))  control_state |= CONTROL_PIN_INDEX_MACRO_1;
-#endif
-#ifdef MACRO_BUTTON_2_PIN
-    defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_2;
-    if (digitalRead(MACRO_BUTTON_2_PIN))  control_state |= CONTROL_PIN_INDEX_MACRO_2;
-#endif
-#ifdef MACRO_BUTTON_3_PIN
-    defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_3;
-    if (digitalRead(MACRO_BUTTON_3_PIN))  control_state |= CONTROL_PIN_INDEX_MACRO_3;
-#endif
-#ifdef INVERT_CONTROL_PIN_MASK
-    control_state ^= (INVERT_CONTROL_PIN_MASK & defined_pin_mask);
-#endif
+
+    if (controlSafetyDoorPin) {
+        defined_pin_mask |= CONTROL_PIN_INDEX_SAFETY_DOOR;
+        if (controlSafetyDoorPin->read()) {
+            control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR;
+        }
+    }
+    if (controlResetPin) {
+        defined_pin_mask |= CONTROL_PIN_INDEX_RESET;
+        if (controlResetPin->read()) {
+            control_state |= CONTROL_PIN_INDEX_RESET;
+        }
+    }
+    if (controlFeedHoldPin) {
+        defined_pin_mask |= CONTROL_PIN_INDEX_FEED_HOLD;
+        if (controlFeedHoldPin->read()) {
+            control_state |= CONTROL_PIN_INDEX_FEED_HOLD;
+        }
+    }
+    if (controlCycleStartPin) {
+        defined_pin_mask |= CONTROL_PIN_INDEX_CYCLE_START;
+        if (controlCycleStartPin->read()) {
+            control_state |= CONTROL_PIN_INDEX_CYCLE_START;
+        }
+    }
+    if (macroButton0Pin) {
+        defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_0;
+        if (macroButton0Pin->read()) {
+            control_state |= CONTROL_PIN_INDEX_MACRO_0;
+        }
+    }
+    if (macroButton1Pin) {
+        defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_1;
+        if (macroButton1Pin->read()) {
+            control_state |= CONTROL_PIN_INDEX_MACRO_1;
+        }
+    }
+    if (macroButton2Pin) {
+        defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_2;
+        if (macroButton2Pin->read()) {
+            control_state |= CONTROL_PIN_INDEX_MACRO_2;
+        }
+    }
+    if (macroButton3Pin) {
+        defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_3;
+        if (macroButton3Pin->read()) {
+            control_state |= CONTROL_PIN_INDEX_MACRO_3;
+        }
+    }
+    control_state ^= (invertControlPinMask & defined_pin_mask);
     return (control_state);
 }
 
 // Returns limit pin mask according to Grbl internal axis indexing.
 uint8_t get_limit_pin_mask(uint8_t axis_idx) {
+    // XXX this should be a table lookup
+    // return axis_idx < MAX_NUM_AXIS && (1 << limitBit[axis_idx]);
     if (axis_idx == X_AXIS)  return ((1 << X_LIMIT_BIT));
     if (axis_idx == Y_AXIS)  return ((1 << Y_LIMIT_BIT));
     if (axis_idx == Z_AXIS)  return ((1 << Z_LIMIT_BIT));
@@ -549,30 +565,18 @@ int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps) {
 // It uses a mask so all can be turned of in ms_reset
 void sys_io_control(uint8_t io_num_mask, bool turnOn) {
     protocol_buffer_synchronize();
-#ifdef USER_DIGITAL_PIN_1
-    if (io_num_mask & 1 << 1) {
-        digitalWrite(USER_DIGITAL_PIN_1, turnOn);
-        return;
+    if (userDigitalPin1 && (io_num_mask & 1 << 1)) {
+        userDigitalPin1->write(turnOn);
     }
-#endif
-#ifdef USER_DIGITAL_PIN_2
-    if (io_num_mask & 1 << 2) {
-        digitalWrite(USER_DIGITAL_PIN_2, turnOn);
-        return;
+    if (userDigitalPin2 && (io_num_mask & 1 << 2)) {
+        userDigitalPin2->write(turnOn);
     }
-#endif
-#ifdef USER_DIGITAL_PIN_3
-    if (io_num_mask & 1 << 3) {
-        digitalWrite(USER_DIGITAL_PIN_3, turnOn);
-        return;
+    if (userDigitalPin3 && (io_num_mask & 1 << 3)) {
+        userDigitalPin3->write(turnOn);
     }
-#endif
-#ifdef USER_DIGITAL_PIN_4
-    if (io_num_mask & 1 << 4) {
-        digitalWrite(USER_DIGITAL_PIN_4, turnOn);
-        return;
+    if (userDigitalPin4 && (io_num_mask & 1 << 4)) {
+        userDigitalPin4->write(turnOn);
     }
-#endif
 }
 
 // Call this function to get an RMT channel number

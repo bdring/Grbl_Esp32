@@ -41,15 +41,20 @@ bool atari_homing = false;
 uint8_t homing_phase = HOMING_PHASE_FULL_APPROACH;
 uint8_t current_tool;
 
+OutPin* solenoidDirectionPin;
+OutPin* reedSwitchPin;
+
 void machine_init() {
+    solenoidDirectionPin = new SOLENOID_DIRECTION_PIN;
+    reedSwitchPin = new REED_SW_PIN;
+
     solenoid_pull_count = 0; // initialize
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Atari 1020 Solenoid");
     // setup PWM channel
     solenoid_pwm_chan_num = sys_get_next_PWM_chan_num();
     ledcSetup(solenoid_pwm_chan_num, SOLENOID_PWM_FREQ, SOLENOID_PWM_RES_BITS);
     ledcAttachPin(SOLENOID_PEN_PIN, solenoid_pwm_chan_num);
-    pinMode(SOLENOID_DIRECTION_PIN, OUTPUT); // this sets the direction of the solenoid current
-    pinMode(REED_SW_PIN, INPUT_PULLUP);		 // external pullup required
+
     // setup a task that will calculate solenoid position
     xTaskCreatePinnedToCore(solenoidSyncTask,   // task
                             "solenoidSyncTask", // name for task
@@ -131,7 +136,7 @@ void atari_home_task(void* pvParameters) {
                     homing_phase = HOMING_PHASE_CHECK;
                     break;
                 case HOMING_PHASE_CHECK: // check the limits switch
-                    if (digitalRead(REED_SW_PIN) == 0) {
+                    if (reedSwitchPin->read()) == 0) {
                         // see if reed switch is grounded
                         inputBuffer.push("G4P0.1\n"); // dramtic pause
                         sys_position[X_AXIS] = ATARI_HOME_POS * settings.steps_per_mm[X_AXIS];
@@ -196,7 +201,7 @@ void calc_solenoid(float penZ) {
         solenoid_pull_count = SOLENOID_PULL_DURATION;	 // set the time to count down
     }
     previousPenState = isPenUp; // save the prev state
-    digitalWrite(SOLENOID_DIRECTION_PIN, isPenUp);
+    solenoidDirectionPin->write(isPenUp);
     // skip setting value if it is unchanged
     if (ledcRead(solenoid_pwm_chan_num) == solenoid_pen_pulse_len)
         return;

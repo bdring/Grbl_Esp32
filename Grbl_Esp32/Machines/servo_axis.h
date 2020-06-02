@@ -33,25 +33,25 @@
 //#define PEN_LASER_V1
 #define PEN_LASER_V2
 
-#define X_STEP_PIN              GPIO_NUM_12
-#define X_DIRECTION_PIN         GPIO_NUM_26
+#define X_STEP_PIN              GPIOout(12)
+#define X_DIRECTION_PIN         GPIOout(26)
 
-#define STEPPERS_DISABLE_PIN    GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN    GPIOout(13)
 
 #ifdef PEN_LASER_V1
-    #define X_LIMIT_PIN             GPIO_NUM_2
+#define X_LIMIT_PIN             GPIOin(2)
 #endif
 
 #ifdef PEN_LASER_V2
-    #define X_LIMIT_PIN             GPIO_NUM_15
+#define X_LIMIT_PIN             GPIOin(15)
 #endif
 
-#define Y_LIMIT_PIN             GPIO_NUM_4
+#define Y_LIMIT_PIN             GPIOin(4)
 #define LIMIT_MASK              B11
 
 // If SPINDLE_OUTPUT_PIN is commented out, this frees up the pin, but Grbl will still
 // use a virtual spindle. Do not comment out the other parameters for the spindle.
-#define SPINDLE_OUTPUT_PIN    GPIO_NUM_17 // Laser PWM
+#define SPINDLE_OUTPUT_PIN    GPIOout(17) // Laser PWM
 // PWM Generator is based on 80,000,000 Hz counter
 // Therefor the freq determines the resolution
 // 80,000,000 / freq = max resolution

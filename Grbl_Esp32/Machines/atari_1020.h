@@ -50,7 +50,10 @@
 #define Y_PIN_PHASE_2 GPIO_NUM_26
 #define Y_PIN_PHASE_3 GPIO_NUM_32
 
-#define SOLENOID_DIRECTION_PIN GPIO_NUM_4
+#define SOLENOID_DIRECTION_PIN GPIOPin(4, outputPin, true);
+
+// This one must be a GPIO because the ledc controller is
+// used to drive it.
 #define SOLENOID_PEN_PIN GPIO_NUM_2
 
 #ifdef HOMING_CYCLE_0
@@ -64,7 +67,7 @@
     #undef HOMING_CYCLE_2
 #endif
 
-#define REED_SW_PIN GPIO_NUM_17
+#define REED_SW_PIN GPIOPin(17, inputPin|pullUp, false);
 #define LIMIT_MASK 0
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE

@@ -25,27 +25,27 @@
 
 #define MACHINE_NAME            "Spindle class Test"
 
-#define X_STEP_PIN              GPIO_NUM_12
-#define X_DIRECTION_PIN         GPIO_NUM_14
-#define Y_STEP_PIN              GPIO_NUM_26
-#define Y_DIRECTION_PIN         GPIO_NUM_15
-#define Z_STEP_PIN              GPIO_NUM_27
-#define Z_DIRECTION_PIN         GPIO_NUM_33
+#define X_STEP_PIN              GPIOout(12)
+#define X_DIRECTION_PIN         GPIOout(14)
+#define Y_STEP_PIN              GPIOout(26)
+#define Y_DIRECTION_PIN         GPIOout(15)
+#define Z_STEP_PIN              GPIOout(27)
+#define Z_DIRECTION_PIN         GPIOout(33)
 
 #define LIMIT_MASK              B111
-#define X_LIMIT_PIN             GPIO_NUM_17
-#define Y_LIMIT_PIN             GPIO_NUM_4
-#define Z_LIMIT_PIN             GPIO_NUM_16
+#define X_LIMIT_PIN             GPIOin(17)
+#define Y_LIMIT_PIN             GPIOin(4)
+#define Z_LIMIT_PIN             GPIOin(16)
 
 // OK to comment out to use pin for other features
-#define STEPPERS_DISABLE_PIN    GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN    GPIOout(13)
 
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_RELAY
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_25   // labeled SpinPWM
-//#define SPINDLE_ENABLE_PIN      GPIO_NUM_25  // labeled SpinEnbl
+#define SPINDLE_OUTPUT_PIN      GPIOout(25)   // labeled SpinPWM
+//#define SPINDLE_ENABLE_PIN      GPIOout(25)  // labeled SpinEnbl
 
 /*
 #define SPINDLE_TYPE            SPINDLE_TYPE_BESC
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_27   //
+#define SPINDLE_OUTPUT_PIN      GPIOout(27)   //
 */
