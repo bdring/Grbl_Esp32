@@ -57,7 +57,7 @@ void init_motors() {
 #endif
 
 #ifdef X2_STEP_PIN
-    myMotor[X_AXIS][1] = new StandardStepper(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, x2_DISABLE_PIN);
+    myMotor[X_AXIS][1] = new StandardStepper(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN);
 #else
     myMotor[X_AXIS][1] = new Nullmotor();
 #endif
@@ -187,13 +187,13 @@ void motors_set_disable(bool disable) {
 
 
 #ifdef USE_TRINAMIC_ENABLE
-    trinamic_stepper_enable(!isOn);
+    trinamic_stepper_enable(!disable);
 #endif
     if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
         disable = !disable;    // Apply pin invert.
     }
 #ifdef USE_UNIPOLAR
-    unipolar_disable(isOn);
+    unipolar_disable(disable);
 #endif
 #ifdef STEPPERS_DISABLE_PIN
     HAL_digitalWrite(STEPPERS_DISABLE_PIN, disable);
