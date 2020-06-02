@@ -233,5 +233,5 @@ int8_t sys_get_next_PWM_chan_num();
 
 void HAL_pinMode(uint8_t pin_num, uint8_t mode);
 void HAL_digitalWrite(uint8_t pin_num, uint8_t val);
-
+int HAL_digitalRead(uint8_t pin_num);
 #endif
