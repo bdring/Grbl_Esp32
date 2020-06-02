@@ -49,8 +49,12 @@
 #include <stdint.h>
 
 /* Assert */
-#if defined(I2S_IOEXP_NUM_BITS) && (I2S_IOEXP_NUM_BITS != 16) && (I2S_IOEXP_NUM_BITS != 32)
-#error "I2S_IOEXP_NUM_BITS should be 16 or 32"
+#if defined(I2S_IOEXP_NUM_BITS)
+  #if (I2S_IOEXP_NUM_BITS != 16) && (I2S_IOEXP_NUM_BITS != 32)
+    #error "I2S_IOEXP_NUM_BITS should be 16 or 32"
+  #endif
+#else
+  #define I2S_IOEXP_NUM_BITS 32
 #endif
 
 #define GPIO_NUM_I2S_IOEXP_0  (I2S_IOEXP_PIN_BASE + 0)
