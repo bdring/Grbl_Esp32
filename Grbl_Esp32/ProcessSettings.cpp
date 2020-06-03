@@ -424,13 +424,8 @@ char *normalize_key(char *start) {
     return start;
 }
 
-// This is for changing settings with $key=value .
-// Lookup key in the Settings list, considering both
-// the text name and the grbl compatible name, if any.
-// If found, execute the object's "setStringValue" method.
-// Otherwise fail.
-// There is no "out" parameter because this does not
-// generate any output; it just returns status
+// This is the handler for all forms of settings commands,
+// $..= and [..], with and without a value.
 err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out) {
     // If value is NULL, it means that there was no value string, i.e.
     // $key without =, or [key] with nothing following.
@@ -466,7 +461,33 @@ err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out
             return cp->action(value, out);
         }
     }
-    return STATUS_INVALID_STATEMENT;
+
+    // If we did not find an exact match and there is no value,
+    // indicating a display operation, we allow partial matches
+    // and display every possibility.  This only applies to the
+    // text form of the name, not to the nnn and ESPnnn forms.
+    err_t retval = STATUS_INVALID_STATEMENT;
+    if (!value) {
+        auto lcKey = String(key);
+        // We allow the key string to begin with *, which we remove.
+        // This lets us look at X axis settings with $*x.
+        // $x by itself is the disable alarm lock command
+        if (lcKey.startsWith("*")) {
+            lcKey.remove(0,1);
+        }
+        lcKey.toLowerCase();
+        for (Setting *s = Setting::List; s; s = s->next()) {
+            auto lcTest = String(s->getName());
+            lcTest.toLowerCase();
+
+            //            if (strstr(lcTest.c_str(), lcKey.c_str()) != NULL) {
+            if (lcTest.indexOf(lcKey) >= 0) {
+                grbl_sendf(out->client(), "$%s=%s\n", s->getName(), s->getStringValue());
+                retval = STATUS_OK;
+            }
+        }
+    }
+    return retval;
 }
 
 uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authenticate_type auth_level) {
