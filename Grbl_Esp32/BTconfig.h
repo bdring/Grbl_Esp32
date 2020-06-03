@@ -21,9 +21,6 @@
     #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
 
-//Preferences entries
-#define BT_NAME_ENTRY "BT_NAME"
-
 //defaults values
 #define DEFAULT_BT_NAME "btgrblesp"
 

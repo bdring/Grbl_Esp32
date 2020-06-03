@@ -93,8 +93,7 @@ const char* BTConfig::info() {
 bool BTConfig::isBTnameValid(const char* hostname) {
     //limited size
     char c;
-    if (strlen(hostname) > MAX_BTNAME_LENGTH || strlen(hostname) < MIN_BTNAME_LENGTH)
-        return false;
+    // length is checked automatically by string setting
     //only letter and digit
     for (int i = 0; i < strlen(hostname); i++) {
         c = hostname[i];
@@ -116,16 +115,10 @@ const char* BTConfig::device_address() {
  * begin WiFi setup
  */
 void BTConfig::begin() {
-    Preferences prefs;
     //stop active services
     end();
-    prefs.begin(NAMESPACE, true);
-    //Get hostname
-    String defV = DEFAULT_BT_NAME;
-    _btname = prefs.getString(BT_NAME_ENTRY, defV);
-    int8_t wifiMode = prefs.getChar(ESP_RADIO_MODE, DEFAULT_RADIO_MODE);
-    prefs.end();
-    if (wifiMode == ESP_BT) {
+    _btname = bt_name->get();
+    if (wifi_radio_mode->get() == ESP_BT) {
         if (!SerialBT.begin(_btname))
             report_status_message(STATUS_BT_FAIL_BEGIN, CLIENT_ALL);
         else {
@@ -146,22 +139,9 @@ void BTConfig::end() {
  * Reset ESP
  */
 void BTConfig::reset_settings() {
-    Preferences prefs;
-    prefs.begin(NAMESPACE, false);
-    String sval;
-    int8_t bbuf;
-    bool error = false;
-    sval = DEFAULT_BT_NAME;
-    if (prefs.putString(BT_NAME_ENTRY, sval) == 0)
-        error = true;
-    bbuf = DEFAULT_RADIO_MODE;
-    if (prefs.putChar(ESP_RADIO_MODE, bbuf) == 0)
-        error = true;
-    prefs.end();
-    if (error)
-        grbl_send(CLIENT_ALL, "[MSG:BT reset error]\r\n");
-    else
-        grbl_send(CLIENT_ALL, "[MSG:BT reset done]\r\n");
+    bt_name->setDefault();
+    wifi_radio_mode->setDefault();
+    grbl_send(CLIENT_ALL, "[MSG:BT reset done]\r\n");
 }
 
 /**

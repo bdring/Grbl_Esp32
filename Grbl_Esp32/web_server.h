@@ -74,8 +74,9 @@ class Web_Server {
     static void handle_root();
     static void handle_login();
     static void handle_not_found();
-    static void handle_web_command();
-    static void handle_web_command_silent();
+    static void _handle_web_command(bool);
+    static void handle_web_command() { _handle_web_command(false); }
+    static void handle_web_command_silent() { _handle_web_command(true); }
     static void handle_Websocket_Event(uint8_t num, uint8_t type, uint8_t* payload, size_t length);
     static void SPIFFSFileupload();
     static void handleFileList();

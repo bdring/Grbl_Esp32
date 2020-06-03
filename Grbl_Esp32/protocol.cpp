@@ -26,6 +26,7 @@
 #include "config.h"
 #include "commands.h"
 #include "espresponse.h"
+#include "GCodePreprocessor.h"
 
 // Define line flags. Includes comment type tracking and line overflow detection.
 #define LINE_FLAG_OVERFLOW bit(0)
@@ -47,7 +48,7 @@ void protocol_main_loop() {
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
 #ifdef CHECK_LIMITS_AT_INIT
-    if (bit_istrue(settings.flags, BITFLAG_HARD_LIMIT_ENABLE)) {
+    if (hard_limits->get()) {
         if (limits_get_state()) {
             sys.state = STATE_ALARM; // Ensure alarm state is active.
             report_feedback_message(MESSAGE_CHECK_LIMITS);
@@ -82,7 +83,7 @@ void protocol_main_loop() {
 #ifdef ENABLE_SD_CARD
         if (SD_ready_next) {
             char fileLine[255];
-            if (readFileLine(fileLine)) {
+            if (readFileLine(fileLine, 255)) {
                 SD_ready_next = false;
                 report_status_message(gc_execute_line(fileLine, SD_client), SD_client);
             } else {
@@ -112,17 +113,9 @@ void protocol_main_loop() {
                     } else if (line[0] == 0) {
                         // Empty or comment line. For syncing purposes.
                         report_status_message(STATUS_OK, client);
-                    } else if (line[0] == '$') {
+                    } else if (line[0] == '$' || line[0] == '[') {
                         // Grbl '$' system command
                         report_status_message(system_execute_line(line, client), client);
-                    } else if (line[0] == '[') {
-                        int cmd = 0;
-                        String cmd_params;
-                        if (COMMANDS::check_command(line, &cmd, cmd_params)) {
-                            ESPResponseStream espresponse(client, true);
-                            if (!COMMANDS::execute_internal_command(cmd, cmd_params, LEVEL_GUEST, &espresponse))
-                                report_status_message(STATUS_GCODE_UNSUPPORTED_COMMAND, CLIENT_ALL);
-                        } else grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Unknow Command...%s", line);
                     } else if (sys.state & (STATE_ALARM | STATE_JOG)) {
                         // Everything else is gcode. Block if in alarm or jog mode.
                         report_status_message(STATUS_SYSTEM_GC_LOCK, client);
@@ -135,9 +128,30 @@ void protocol_main_loop() {
                     char_counter = 0;
                     comment_char_counter = 0;
                 } else {
+                    if (c == '\b') {
+                        // Backspace erases
+                        if (char_counter)
+                            --char_counter;
+                    } else
                     if (line_flags) {
-                        if (line_flags & LINE_FLAG_BRACKET)    // in bracket mode all characters are accepted
+                        if (line_flags & LINE_FLAG_BRACKET) {   // in bracket mode all characters are accepted
+#if 0
+                            // LINE_FLAG_BRACKET mode disables the GCode canonicalization of
+                            // lower-case to upper-case translation, whitespace removal,
+                            // and comment removal.  There are two $xx= cases where we still
+                            // want that canonicalization - $J= and $Nn= .  We check for those
+                            // cases here and turn off LINE_FLAG_BRACKET mode.
+                            if (c == '=' && char_counter && line[0] == '$') {
+                                if ((char_counter == 2 && toupper(line[1]) == 'J')
+                                || (char_counter == 3 && toupper(line[1]) == 'N' && isdigit(line[2]) ))
+                                {
+                                    line_flags &= ~LINE_FLAG_BRACKET;
+                                }
+                            }
+#endif
                             line[char_counter++] = c;
+                        }
+
                         // Throw away all (except EOL) comment characters and overflow characters.
                         if (c == ')') {
                             // End of '()' comment. Resume line allowed.
@@ -169,7 +183,7 @@ void protocol_main_loop() {
                         } else if (c == ';') {
                             // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
                             line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
-                        } else if (c == '[') {
+                        } else if (c == '[' || c == '$') {
                             // For ESP3D bracket commands like [ESP100]<SSID>pwd=<admin password>
                             // prevents spaces being striped and converting to uppercase
                             line_flags |= LINE_FLAG_BRACKET;
@@ -544,7 +558,7 @@ static void protocol_exec_rt_suspend() {
         restore_spindle_speed = block->spindle_speed;
     }
 #ifdef DISABLE_LASER_DURING_HOLD
-    if (bit_istrue(settings.flags, BITFLAG_LASER_MODE))
+    if (laser_mode->get())
         system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP);
 #endif
 
@@ -574,14 +588,14 @@ static void protocol_exec_rt_suspend() {
                     // current location not exceeding the parking target location, and laser mode disabled.
                     // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                    if ((bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE)) &&
-                            (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
-                            bit_isfalse(settings.flags, BITFLAG_LASER_MODE) &&
-                            (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
+                    if (homing_enable->get() &&
+                        (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
+                        laser_mode->get() &&
+                        (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
-                    if ((bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE)) &&
+                        if (homing_enable->get() &&
                             (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
-                            bit_isfalse(settings.flags, BITFLAG_LASER_MODE)) {
+                            laser_mode->get()) {
 #endif
                         // Retract spindle by pullout distance. Ensure retraction motion moves away from
                         // the workpiece and waypoint motion doesn't exceed the parking target location.
@@ -634,10 +648,10 @@ static void protocol_exec_rt_suspend() {
                         // Execute fast restore motion to the pull-out position. Parking requires homing enabled.
                         // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                        if (((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) &&
+                        if (homing_enable->get() && !laser_mode->get()) &&
                                 (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
-                        if ((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) {
+                        if (homing_enable->get() && !laser_mode->get()) {
 #endif
                             // Check to ensure the motion doesn't move below pull-out position.
                             if (parking_target[PARKING_AXIS] <= PARKING_TARGET) {
@@ -651,7 +665,7 @@ static void protocol_exec_rt_suspend() {
                         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
                             // Block if safety door re-opened during prior restore actions.
                             if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
-                                if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
+                                if (laser_mode->get()) {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                     bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                                 } else {
@@ -671,10 +685,10 @@ static void protocol_exec_rt_suspend() {
 #ifdef PARKING_ENABLE
                         // Execute slow plunge motion from pull-out position to resume position.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                        if (((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) &&
+                        if (homing_enable->get() && !laser_mode->get()) &&
                                 (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
-                        if ((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) {
+                        if (homing_enable->get() && !laser_mode->get()) {
 #endif
                             // Block if safety door re-opened during prior restore actions.
                             if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
@@ -710,7 +724,7 @@ static void protocol_exec_rt_suspend() {
                     } else if (sys.spindle_stop_ovr & (SPINDLE_STOP_OVR_RESTORE | SPINDLE_STOP_OVR_RESTORE_CYCLE)) {
                         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
                             report_feedback_message(MESSAGE_SPINDLE_RESTORE);
-                            if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
+                            if (laser_mode->get()) {
                                 // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                 bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                             } else
