@@ -3,6 +3,7 @@
 // Conversion can be done in-place on a char array.
 
 #include "grbl.h"
+#include "grbl_sd.h"
 #include "GCodePreprocessor.h"
 
 // Returns false if the end was reached
