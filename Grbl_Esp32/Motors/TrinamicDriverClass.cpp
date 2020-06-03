@@ -111,9 +111,9 @@ void TrinamicDriver :: trinamic_test_response() {
 */
 void TrinamicDriver :: read_settings() {
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis read_settings() ", report_get_axis_letter(axis_index));
-    tmcstepper->microsteps(settings.microsteps[axis_index]);
-    tmcstepper->rms_current(settings.current[axis_index] * 1000.0, settings.hold_current[axis_index] / 100.0);
-    tmcstepper->sgt(settings.stallguard[axis_index]);
+    tmcstepper->microsteps(axis_settings[axis_index]->microsteps->get());
+    tmcstepper->rms_current(axis_settings[axis_index]->run_current->get() * 1000.0, axis_settings[axis_index]->hold_current->get() / 100.0);
+    tmcstepper->sgt(axis_settings[axis_index]->stallguard->get());
 }
 
 void TrinamicDriver :: set_homing_mode(bool is_homing) {
@@ -152,8 +152,8 @@ void TrinamicDriver :: set_mode() {
             tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
             tmcstepper->THIGH(NORMAL_THIGH);
         } else {
-            uint32_t tcoolthrs = calc_tstep(settings.homing_feed_rate, 150.0);
-            uint32_t thigh = calc_tstep(settings.homing_feed_rate, 60.0);
+            uint32_t tcoolthrs = calc_tstep(homing_feed_rate->get(), 150.0);
+            uint32_t thigh = calc_tstep(homing_feed_rate->get(), 60.0);
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Tstep range %d - %d SGV:%d", thigh, tcoolthrs, tmcstepper->sgt());
             tmcstepper->TCOOLTHRS(tcoolthrs);
             tmcstepper->THIGH(thigh);
@@ -188,7 +188,7 @@ void TrinamicDriver :: debug_message() {
 // This is used to set the stallguard window from the homing speed.
 // The percent is the offset on the window
 uint32_t TrinamicDriver :: calc_tstep(float speed, float percent) {
-    float tstep = speed / 60.0 * settings.steps_per_mm[axis_index] * (float)(256 / settings.microsteps[axis_index]);
+    float tstep = speed / 60.0 * axis_settings[axis_index]->steps_per_mm->get() * (float)(256 / axis_settings[axis_index]->microsteps->get());
     tstep = TRINAMIC_FCLK / tstep * percent / 100.0;
 
     return (uint32_t)tstep;

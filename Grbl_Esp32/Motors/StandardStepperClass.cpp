@@ -45,7 +45,7 @@ void StandardStepper :: init() {
 
 void StandardStepper :: init_step_dir_pins() {
     // TODO Step pin, but RMT complicates things
-    _invert_step_pin = bit_istrue(settings.step_invert_mask, axis_index);
+    _invert_step_pin = bit_istrue(step_invert_mask->get(), bit(axis_index));
     HAL_pinMode(dir_pin, OUTPUT);
 
 #ifdef USE_RMT_STEPS
@@ -66,7 +66,7 @@ void StandardStepper :: init_step_dir_pins() {
     rmtItem[0].duration0 = 1;
 #endif
 
-    rmtItem[0].duration1 = 4 * settings.pulse_microseconds;
+    rmtItem[0].duration1 = 4 * pulse_microseconds->get();
     rmtItem[1].duration0 = 0;
     rmtItem[1].duration1 = 0;
 

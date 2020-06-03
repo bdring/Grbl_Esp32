@@ -111,7 +111,7 @@ void RcServo::set_location() {
     }
 
     if (sys.state == STATE_HOMING) {
-        if (bit_istrue(settings.homing_dir_mask, bit(axis_index))) {
+        if (bit_istrue(homing_dir_mask->get(), bit(axis_index))) {
             servo_pos = _position_min; // go to servos home position
         } else {
             servo_pos = _position_max; // go to servos home position
@@ -122,7 +122,7 @@ void RcServo::set_location() {
         offset = gc_state.coord_system[axis_index] + gc_state.coord_offset[axis_index]; // get the current axis work offset
         servo_pos = mpos - offset; // determine the current work position
     }
-    
+
     // determine the pulse length
     servo_pulse_len = (uint32_t)mapConstrain(servo_pos, _position_min, _position_max, _pwm_pulse_min, _pwm_pulse_max);
     _write_pwm(servo_pulse_len);
@@ -141,17 +141,19 @@ void RcServo::_get_calibration() {
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Read settings");
 
     // make sure the min is in range
-    if ((settings.steps_per_mm[axis_index] < SERVO_CAL_MIN) || (settings.steps_per_mm[axis_index] > SERVO_CAL_MAX)) {
+    if ((axis_settings[axis_index]->steps_per_mm->get() < SERVO_CAL_MIN) || (axis_settings[axis_index]->steps_per_mm->get() > SERVO_CAL_MAX)) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($10%d) value error. Reset to 100", axis_index);
-        settings.steps_per_mm[axis_index] = 100;
+        char reset_val[] = "100";
+        axis_settings[axis_index]->steps_per_mm->setStringValue(reset_val);
         settingsOK = false;
     }
 
     // make sure the max is in range
     // Note: Max travel is set positive via $$, but stored as a negative number
-    if ((settings.max_travel[axis_index] < -SERVO_CAL_MAX) || (settings.max_travel[axis_index] > -SERVO_CAL_MIN)) {
+    if ((axis_settings[axis_index]->max_travel->get() < -SERVO_CAL_MAX) || (axis_settings[axis_index]->max_travel->get() > -SERVO_CAL_MIN)) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($13%d) value error. Reset to 100", axis_index);
-        settings.max_travel[axis_index] = -100;
+        char reset_val[] = "-100"; // stored as a negative
+        axis_settings[axis_index]->max_travel->setStringValue(reset_val);
         settingsOK = false;
     }
 
@@ -163,14 +165,14 @@ void RcServo::_get_calibration() {
     _pwm_pulse_max = SERVO_MAX_PULSE;
 
     // apply inverts and store them in local variable
-    if (bit_istrue(settings.dir_invert_mask, bit(axis_index))) {	// normal direction
-        _cal_min = 2.0 - (settings.steps_per_mm[axis_index] / 100.0);
-        _cal_max = 2.0 - (settings.max_travel[axis_index] / -100.0);
+    if (bit_istrue(dir_invert_mask->get(), bit(axis_index))) {	// normal direction
+        _cal_min = 2.0 - (axis_settings[axis_index]->steps_per_mm->get() / 100.0);
+        _cal_max = 2.0 - (axis_settings[axis_index]->max_travel->get() / -100.0);
         swap(_pwm_pulse_min, _pwm_pulse_max);
     } else { // inverted direction
-        _cal_min = (settings.steps_per_mm[axis_index] / 100.0);
+        _cal_min = (axis_settings[axis_index]->steps_per_mm->get() / 100.0);
         //_cal_max = 2.0 - (settings.max_travel[axis_index] / -100.0);
-        _cal_max = (settings.max_travel[axis_index] / -100.0);
+        _cal_max = (axis_settings[axis_index]->max_travel->get() / -100.0);
     }
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration min%1.2f max %1.2f", _cal_min, _cal_max );

@@ -197,8 +197,8 @@ void motors_set_disable(bool disable) {
 #ifdef USE_TRINAMIC_ENABLE
     trinamic_stepper_enable(!disable);
 #endif
-    if (bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE)) {
-        disable = !disable;    // Apply pin invert.
+   if (step_enable_invert->get()) {
+         disable = !disable;    // Apply pin invert.
     }
 #ifdef USE_UNIPOLAR
     unipolar_disable(disable);
@@ -220,7 +220,7 @@ void motors_set_direction_pins(uint8_t onMask) {
         return;
     previous_val = onMask;
 
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_direction_pins:0x%02X", onMask);    
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_direction_pins:0x%02X", onMask);
 
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
