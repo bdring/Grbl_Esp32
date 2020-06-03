@@ -31,7 +31,9 @@ class ESPResponseStream {
     void print(const char* data);
     void println(const char* data);
     void flush();
+#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     bool anyOutput() { return _header_sent; }
+#endif
     static String formatBytes(uint64_t bytes);
     uint8_t client() {return _client;}
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
