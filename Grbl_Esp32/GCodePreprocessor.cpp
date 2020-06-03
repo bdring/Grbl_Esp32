@@ -3,7 +3,6 @@
 // Conversion can be done in-place on a char array.
 
 #include "grbl.h"
-#include "grbl_sd.h"
 #include "GCodePreprocessor.h"
 
 // Returns false if the end was reached
@@ -55,7 +54,9 @@ bool GCodePreprocessor::next(char c) {
         }
     }
     if (index == maxlen) { // name is too long so return false
-        report_status_message(STATUS_OVERFLOW, SD_client);
+#ifdef ENABLE_SD_CARD
+         report_status_message(STATUS_OVERFLOW, SD_client);
+#endif
         return true;
     }
     return false;
