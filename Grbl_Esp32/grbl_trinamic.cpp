@@ -348,11 +348,11 @@ void trinamic_change_settings() {
 
 #ifdef B_TRINAMIC
     TRINAMIC_B.microsteps(axis_settings[B_AXIS]->microsteps->get());
-    TTRINAMIC_B.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
+    TRINAMIC_B.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
 #endif
 #ifdef B2_TRINAMIC
     TRINAMIC_B2.microsteps(axis_settings[B_AXIS]->microsteps->get());
-    TTRINAMIC_B2.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
+    TRINAMIC_B2.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
 #endif
 
 #ifdef C_TRINAMIC

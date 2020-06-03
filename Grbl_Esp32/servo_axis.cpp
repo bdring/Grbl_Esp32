@@ -314,8 +314,8 @@ bool ServoAxis::_cal_is_valid() {
         }
         settingsOK = false;
     }
-    auto travel = -settings[_axis]->max_travel->get();
-    if ((travel < -SERVO_CAL_MAX) || travel > -SERVO_CAL_MIN)) {
+    auto travel = -axis_settings[_axis]->max_travel->get();
+    if ((travel < -SERVO_CAL_MAX) || travel > -SERVO_CAL_MIN) {
         if (_showError) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($13%d) value error. Reset to 100", _axis);
             axis_settings[_axis]->max_travel->setStringValue("100");
