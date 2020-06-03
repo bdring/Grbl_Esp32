@@ -480,7 +480,6 @@ err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out
             auto lcTest = String(s->getName());
             lcTest.toLowerCase();
 
-            //            if (strstr(lcTest.c_str(), lcKey.c_str()) != NULL) {
             if (lcTest.indexOf(lcKey) >= 0) {
                 grbl_sendf(out->client(), "$%s=%s\n", s->getName(), s->getStringValue());
                 retval = STATUS_OK;
