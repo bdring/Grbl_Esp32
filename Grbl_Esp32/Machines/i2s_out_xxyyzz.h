@@ -1,5 +1,5 @@
 /*
-    spi_shift_reg_6axis_xyzabc.h
+    i2s_out_xxyyzz.h
     Part of Grbl_ESP32
 
     Pin assignments for the ESP32 SPI 6-axis board
@@ -23,8 +23,6 @@
 */
 #define MACHINE_NAME            "ESP32 SPI XXYYZZ Axis Driver Board (StepStick)"
 
-#define CUSTOM_CODE_FILENAME    "Custom/spi_shift_reg_6axis_xyzabc.cpp"
-
 #ifdef N_AXIS
         #undef N_AXIS
 #endif
@@ -35,8 +33,6 @@
 #endif
 
 // === Special Features
-#define USE_MACHINE_INIT
-#define USE_MACHINE_TRINAMIC_INIT
 
 // I2S (steppers & other output-only pins)
 #define USE_I2S_IOEXPANDER

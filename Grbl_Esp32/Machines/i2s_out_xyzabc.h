@@ -1,5 +1,5 @@
 /*
-    spi_shift_reg_6axis_xyzabc_trinamic.h
+    i2s_out_xyzabc.h
     Part of Grbl_ESP32
 
     Pin assignments for the ESP32 SPI 6-axis board
@@ -21,18 +21,18 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define MACHINE_NAME            "ESP32 SPI 6 Axis Driver Board (Trinamic)"
-
-#define CUSTOM_CODE_FILENAME    "Custom/spi_shift_reg_6axis_xyzabc.cpp"
+#define MACHINE_NAME            "ESP32 SPI 6 Axis Driver Board (StepStick)"
 
 #ifdef N_AXIS
         #undef N_AXIS
 #endif
 #define N_AXIS 6
 
+#ifdef ENABLE_SD_CARD
+    #undef ENABLE_SD_CARD
+#endif
+
 // === Special Features
-#define USE_MACHINE_INIT
-//#define USE_MACHINE_TRINAMIC_INIT
 
 // I2S (steppers & other output-only pins)
 #define USE_I2S_IOEXPANDER
@@ -41,59 +41,51 @@
 #define I2S_STEPPER_STREAM
 #undef USE_RMT_STEPS
 
+#define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
+
 #define I2S_IOEXPANDER_BCK      GPIO_NUM_22
 #define I2S_IOEXPANDER_WS       GPIO_NUM_17
 #define I2S_IOEXPANDER_DATA     GPIO_NUM_21
 
-#define USE_TRINAMIC // Using at least 1 trinamic driver
+
+#define STEPPER_MS1             GPIO_NUM_23             // MOSI
+#define STEPPER_MS2             GPIO_NUM_18             // SCK
+
+#define STEPPER_X_MS3           GPIO_NUM_I2S_IOEXP_3    // X_CS
+#define STEPPER_Y_MS3           GPIO_NUM_I2S_IOEXP_6    // Y_CS
+#define STEPPER_Z_MS3           GPIO_NUM_I2S_IOEXP_11   // Z_CS
+#define STEPPER_A_MS3           GPIO_NUM_I2S_IOEXP_14   // A_CS
+#define STEPPER_B_MS3           GPIO_NUM_I2S_IOEXP_19   // B_CS
+#define STEPPER_C_MS3           GPIO_NUM_I2S_IOEXP_22   // C_CS
+
+#define STEPPER_RESET           GPIO_NUM_19 
 
 #define X_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_0
 #define X_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_1
 #define X_STEP_PIN              GPIO_NUM_I2S_IOEXP_2
-#define X_TRINAMIC              // using SPI control
-#define X_DRIVER_TMC2130        // Which Driver Type?
-#define X_CS_PIN                GPIO_NUM_I2S_IOEXP_3
-#define X_RSENSE                TMC2130_RSENSE_DEFAULT
 
 #define Y_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_4
 #define Y_STEP_PIN              GPIO_NUM_I2S_IOEXP_5
 #define Y_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_7
-#define Y_TRINAMIC              // using SPI control
-#define Y_DRIVER_TMC2130        // Which Driver Type?
-#define Y_CS_PIN                GPIO_NUM_I2S_IOEXP_6
-#define Y_RSENSE                X_RSENSE
 
 #define Z_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_8
 #define Z_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_9
 #define Z_STEP_PIN              GPIO_NUM_I2S_IOEXP_10
-#define Z_TRINAMIC              // using SPI control
-#define Z_DRIVER_TMC2130        // Which Driver Type?
-#define Z_CS_PIN                GPIO_NUM_I2S_IOEXP_11
-#define Z_RSENSE                X_RSENSE
 
 #define A_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_12
 #define A_STEP_PIN              GPIO_NUM_I2S_IOEXP_13
 #define A_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_15
-#define A_TRINAMIC              // using SPI control
-#define A_DRIVER_TMC2130        // Which Driver Type?
-#define A_CS_PIN                GPIO_NUM_I2S_IOEXP_14
-#define A_RSENSE                X_RSENSE
 
 #define B_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_16
 #define B_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_17
 #define B_STEP_PIN              GPIO_NUM_I2S_IOEXP_18
-#define B_TRINAMIC              // using SPI control
-#define B_DRIVER_TMC2130        // Which Driver Type?
-#define B_CS_PIN                GPIO_NUM_I2S_IOEXP_19
-#define B_RSENSE                X_RSENSE
+//#define B_CS_PIN                GPIO_NUM_I2S_IOEXP_19
 
 #define C_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_20
 #define C_STEP_PIN              GPIO_NUM_I2S_IOEXP_21
+//#define C_CS_PIN                GPIO_NUM_I2S_IOEXP_22
 #define C_DISABLE_PIN            GPIO_NUM_I2S_IOEXP_23
-#define C_TRINAMIC              // using SPI control
-#define C_DRIVER_TMC2130        // Which Driver Type?
-#define C_CS_PIN                GPIO_NUM_I2S_IOEXP_22
-#define C_RSENSE                X_RSENSE
+
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM // only one spindle at a time
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
@@ -111,6 +103,8 @@
 #define PROBE_PIN               GPIO_NUM_25
 
 #define COOLANT_MIST_PIN        GPIO_NUM_2
+
+
 
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_IOEXP_USEC_PER_PULSE
