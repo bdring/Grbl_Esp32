@@ -677,7 +677,7 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
 void st_go_idle() {
     // Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
     Stepper_Timer_Stop();
-    busy = false;    
+    busy = false;
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
     if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm || sys.state == STATE_SLEEP) && sys.state != STATE_HOMING) {
         // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
@@ -690,7 +690,6 @@ void st_go_idle() {
             stepper_idle_counter = esp_timer_get_time() + (stepper_idle_lock_time->get() * 1000); // * 1000 because the time is in uSecs
             // after idle countdown will be disabled in protocol loop
         }
-        
     } else
         motors_set_disable(false);
 
@@ -1214,21 +1213,6 @@ void IRAM_ATTR Stepper_Timer_Stop() {
     i2s_ioexpander_set_passthrough();
 #else
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
-}
-
-
-void set_stepper_disable(uint8_t isOn) { // isOn = true // to disable
-#ifdef USE_TRINAMIC_ENABLE
-    trinamic_stepper_enable(!isOn);
-#endif
-    if (step_enable_invert->get()) {
-        isOn = !isOn;    // Apply pin invert.
-    }
-#ifdef USE_UNIPOLAR
-    unipolar_disable(isOn);
-#endif
-#ifdef STEPPERS_DISABLE_PIN
-    digitalWrite(STEPPERS_DISABLE_PIN, isOn);
 #endif
 }
 
