@@ -98,13 +98,12 @@ void limits_go_home(uint8_t cycle_mask) {
 #endif
         if (bit_istrue(cycle_mask, bit(idx))) {
             // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.
-            // NOTE: settings.max_travel[] is stored as a negative value.
-            max_travel = MAX(max_travel, (-HOMING_AXIS_SEARCH_SCALAR) * settings.max_travel[idx]);
+            max_travel = MAX(max_travel, (HOMING_AXIS_SEARCH_SCALAR) * axis_settings[idx]->max_travel->get());
         }
     }
     // Set search mode with approach at seek rate to quickly engage the specified cycle_mask limit switches.
     bool approach = true;
-    float homing_rate = settings.homing_seek_rate;
+    float homing_rate = homing_seek_rate->get();
     uint8_t limit_state, axislock, n_active_axis;
     do {
         system_convert_array_steps_to_mpos(target, sys_position);
@@ -130,7 +129,8 @@ void limits_go_home(uint8_t cycle_mask) {
 #endif
                 // Set target direction based on cycle mask and homing cycle approach state.
                 // NOTE: This happens to compile smaller than any other implementation tried.
-                if (bit_istrue(settings.homing_dir_mask, bit(idx))) {
+                auto mask = homing_dir_mask->get();
+                if (bit_istrue(mask, bit(idx))) {
                     if (approach)  target[idx] = -max_travel;
                     else  target[idx] = max_travel;
                 } else {
@@ -191,16 +191,16 @@ void limits_go_home(uint8_t cycle_mask) {
             }
         } while (STEP_MASK & axislock);
         st_reset(); // Immediately force kill steppers and reset step segment buffer.
-        delay_ms(settings.homing_debounce_delay); // Delay to allow transient dynamics to dissipate.
+        delay_ms(homing_debounce->get()); // Delay to allow transient dynamics to dissipate.
         // Reverse direction and reset homing rate for locate cycle(s).
         approach = !approach;
         // After first cycle, homing enters locating phase. Shorten search to pull-off distance.
         if (approach) {
-            max_travel = settings.homing_pulloff * HOMING_AXIS_LOCATE_SCALAR;
-            homing_rate = settings.homing_feed_rate;
+            max_travel = homing_pulloff->get() * HOMING_AXIS_LOCATE_SCALAR;
+            homing_rate = homing_feed_rate->get();
         } else {
-            max_travel = settings.homing_pulloff;
-            homing_rate = settings.homing_seek_rate;
+            max_travel = homing_pulloff->get();
+            homing_rate = homing_seek_rate->get();
         }
     } while (n_cycle-- > 0);
     // The active cycle axes should now be homed and machine limits have been located. By
@@ -211,23 +211,26 @@ void limits_go_home(uint8_t cycle_mask) {
     // triggering when hard limits are enabled or when more than one axes shares a limit pin.
     int32_t set_axis_position;
     // Set machine positions for homed limit switches. Don't update non-homed axes.
+    auto mask = homing_dir_mask->get();
+    auto pulloff = homing_pulloff->get();
     for (idx = 0; idx < N_AXIS; idx++) {
-        // NOTE: settings.max_travel[] is stored as a negative value.
+        auto steps = axis_settings[idx]->steps_per_mm->get();
         if (cycle_mask & bit(idx)) {
 #ifdef HOMING_FORCE_SET_ORIGIN
             set_axis_position = 0;
 #else
-            if (bit_istrue(settings.homing_dir_mask, bit(idx))) {
+            auto travel = axis_settings[idx]->max_travel->get();
+            if (bit_istrue(mask, bit(idx))) {
 #ifdef HOMING_FORCE_POSITIVE_SPACE
                 set_axis_position = 0; //lround(settings.homing_pulloff*settings.steps_per_mm[idx]);
 #else
-                set_axis_position = lround((settings.max_travel[idx] + settings.homing_pulloff) * settings.steps_per_mm[idx]);
+                set_axis_position = lround((-travel + pulloff) * steps);
 #endif
             } else {
 #ifdef HOMING_FORCE_POSITIVE_SPACE
-                set_axis_position = lround((-settings.max_travel[idx] - settings.homing_pulloff) * settings.steps_per_mm[idx]);
+                set_axis_position = lround((-travel - pulloff) * steps);
 #else
-                set_axis_position = lround(-settings.homing_pulloff * settings.steps_per_mm[idx]);
+                set_axis_position = lround(-pulloff * steps);
 #endif
             }
 #endif
@@ -291,7 +294,7 @@ void limits_init() {
     pinMode(C_LIMIT_PIN, INPUT);
 #endif
 #endif
-    if (bit_istrue(settings.flags, BITFLAG_HARD_LIMIT_ENABLE)) {
+    if (hard_limits->get()) {
         // attach interrupt to them
 #ifdef X_LIMIT_PIN
         attachInterrupt(digitalPinToInterrupt(X_LIMIT_PIN), isr_limit_switches, CHANGE);
@@ -362,7 +365,7 @@ uint8_t limits_get_state() {
 #ifdef INVERT_LIMIT_PIN_MASK // not normally used..unless you have both normal and inverted switches
     pin ^= INVERT_LIMIT_PIN_MASK;
 #endif
-    if (bit_istrue(settings.flags, BITFLAG_INVERT_LIMIT_PINS))
+    if (limit_invert->get())
         pin ^= LIMIT_MASK;
     if (pin) {
         uint8_t idx;

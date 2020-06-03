@@ -88,6 +88,8 @@ Some features should not be changed. See notes below.
 // machine_common.h contains settings that do not change
 #include "machine_common.h"
 
+#define MAX_N_AXIS 6
+
 // Number of axes defined (steppers, servos, etc) (valid range: 3 to 6)
 // Even if your machine only uses less than the minimum of 3, you should select 3
 #ifndef N_AXIS
@@ -116,6 +118,11 @@ Some features should not be changed. See notes below.
 
 //#define ENABLE_WIFI //enable wifi
 
+#if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
+#define WIFI_OR_BLUETOOTH
+#endif
+
+
 #define ENABLE_HTTP //enable HTTP and all related services
 #define ENABLE_OTA  //enable OTA
 #define ENABLE_TELNET //enable telnet
@@ -131,15 +138,12 @@ Some features should not be changed. See notes below.
 //#define ENABLE_AUTHENTICATION
 //CONFIGURE_EYECATCH_END (DO NOT MODIFY  THIS LINE)
 #define NAMESPACE "GRBL"
-#define ESP_RADIO_MODE "RADIO_MODE"
 
 #ifdef ENABLE_AUTHENTICATION
     #define DEFAULT_ADMIN_PWD "admin"
     #define DEFAULT_USER_PWD  "user";
     #define DEFAULT_ADMIN_LOGIN  "admin"
     #define DEFAULT_USER_LOGIN "user"
-    #define ADMIN_PWD_ENTRY "ADMIN_PWD"
-    #define USER_PWD_ENTRY "USER_PWD"
     #define AUTH_ENTRY_NB 20
     #define MAX_LOCAL_PASSWORD_LENGTH   16
     #define MIN_LOCAL_PASSWORD_LENGTH   1

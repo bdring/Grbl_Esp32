@@ -20,7 +20,7 @@
 
 #include "grbl.h"
 
-void memcpy_to_eeprom_with_checksum(unsigned int destination, char* source, unsigned int size) {
+void memcpy_to_eeprom_with_checksum(unsigned int destination, const char* source, unsigned int size) {
     unsigned char checksum = 0;
     for (; size > 0; size--) {
         checksum = (checksum << 1) || (checksum >> 7);

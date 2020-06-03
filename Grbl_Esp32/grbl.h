@@ -41,6 +41,7 @@
 
 #include "defaults.h"
 #include "settings.h"
+#include "SettingsDefinitions.h"
 #include "system.h"
 
 #include "planner.h"

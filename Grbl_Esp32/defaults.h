@@ -228,24 +228,25 @@
     #endif
 
     // ============== Axis Acceleration =========
-
+    #define SEC_PER_MIN_SQ  (60.0*60.0)  // Seconds Per Minute Squared, for acceleration conversion
+    // Default accelerations are expressed in mm/sec^2
     #ifndef  DEFAULT_X_ACCELERATION
-        #define DEFAULT_X_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_X_ACCELERATION 200.0
     #endif
     #ifndef  DEFAULT_Y_ACCELERATION
-        #define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_Y_ACCELERATION 200.0
     #endif
     #ifndef  DEFAULT_Z_ACCELERATION
-        #define DEFAULT_Z_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_Z_ACCELERATION 200.0
     #endif
     #ifndef  DEFAULT_A_ACCELERATION
-        #define DEFAULT_A_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_A_ACCELERATION 200.0
     #endif
     #ifndef  DEFAULT_B_ACCELERATION
-        #define DEFAULT_B_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_B_ACCELERATION 200.0
     #endif
     #ifndef  DEFAULT_C_ACCELERATION
-        #define DEFAULT_C_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_C_ACCELERATION 200.0
     #endif
 
     // ========= AXIS MAX TRAVEL ============

@@ -36,8 +36,8 @@
 // Scientific notation is officially not supported by g-code, and the 'E' character may
 // be a g-code word on some CNC systems. So, 'E' notation will not be recognized.
 // NOTE: Thanks to Radu-Eosif Mihailescu for identifying the issues with using strtod().
-uint8_t read_float(char* line, uint8_t* char_counter, float* float_ptr) {
-    char* ptr = line + *char_counter;
+uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr) {
+    const char* ptr = line + *char_counter;
     unsigned char c;
     // Grab first character and increment pointer. No spaces assumed in line.
     c = *ptr++;
@@ -135,12 +135,26 @@ float convert_delta_vector_to_unit_vector(float* vector) {
     return (magnitude);
 }
 
-float limit_value_by_axis_maximum(float* max_value, float* unit_vec) {
+float limit_acceleration_by_axis_maximum(float* unit_vec) {
     uint8_t idx;
     float limit_value = SOME_LARGE_VALUE;
     for (idx = 0; idx < N_AXIS; idx++) {
         if (unit_vec[idx] != 0)    // Avoid divide by zero.
-            limit_value = MIN(limit_value, fabs(max_value[idx] / unit_vec[idx]));
+            limit_value = MIN(limit_value, fabs(axis_settings[idx]->acceleration->get() / unit_vec[idx]));
+    }
+    // The acceleration setting is stored and displayed in units of mm/sec^2,
+    // but used in units of mm/min^2.  It suffices to perform the conversion once on
+    // exit, since the limit computation above is independent of units - it simply
+    // finds the smallest value.
+    return (limit_value * SEC_PER_MIN_SQ);
+}
+
+float limit_rate_by_axis_maximum(float* unit_vec) {
+    uint8_t idx;
+    float limit_value = SOME_LARGE_VALUE;
+    for (idx = 0; idx < N_AXIS; idx++) {
+        if (unit_vec[idx] != 0)    // Avoid divide by zero.
+            limit_value = MIN(limit_value, fabs(axis_settings[idx]->max_rate->get() / unit_vec[idx]));
     }
     return (limit_value);
 }
