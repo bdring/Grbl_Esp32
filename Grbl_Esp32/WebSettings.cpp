@@ -473,6 +473,7 @@ static err_t listSettings(char *parameter) { // ESP400
     delete j;
     return STATUS_OK;
 }
+#ifdef ENABLE_SD_CARD
 static err_t runSDFile(char *parameter) { // ESP220
     parameter = trim(parameter);
     if (*parameter == '\0') {
@@ -531,23 +532,6 @@ static err_t listSDFiles(char *parameter) { // ESP210
     webPrintln(ssd);
     return STATUS_OK;
 }
-static err_t showSDStatus(char *parameter) {  // ESP200
-    const char* resp = "No SD card";
-#ifdef ENABLE_SD_CARD
-    switch (get_sd_state(true)) {
-        case SDCARD_IDLE:
-            resp = "SD card detected";
-            break;
-        case SDCARD_NOT_PRESENT:
-            resp = "No SD card";
-            break;
-        default:
-            resp = "Busy";
-    }
-#endif
-    webPrintln(resp);
-    return STATUS_OK;
-}
 static err_t deleteSDObject(char *parameter) { // ESP215
     parameter = trim(parameter);
     if (*parameter == '\0') {
@@ -582,6 +566,24 @@ static err_t deleteSDObject(char *parameter) { // ESP215
         webPrintln("File deleted.");
     }
     file2del.close();
+    return STATUS_OK;
+}
+#endif
+static err_t showSDStatus(char *parameter) {  // ESP200
+    const char* resp = "No SD card";
+#ifdef ENABLE_SD_CARD
+    switch (get_sd_state(true)) {
+        case SDCARD_IDLE:
+            resp = "SD card detected";
+            break;
+        case SDCARD_NOT_PRESENT:
+            resp = "No SD card";
+            break;
+        default:
+            resp = "Busy";
+    }
+#endif
+    webPrintln(resp);
     return STATUS_OK;
 }
 static err_t sendMessage(char *parameter) { // ESP600
@@ -855,10 +857,12 @@ void make_web_settings()
     new WebCommand("P=position T=type V=value",
                               WEBCMDWA, "ESP401", "SetWebSetting",setWebSetting);
     new WebCommand(NULL,      WEBCMDRU, "ESP400", "ListSettings", listSettings);
+#ifdef ENABLE_SD_CARD
     new WebCommand("path",    WEBCMDRU, "ESP220", "RunSDFile",    runSDFile);
     new WebCommand(NULL,      WEBCMDRU, "ESP210", "ListSDFiles",  listSDFiles);
     new WebCommand("file_or_directory_path",
                               WEBCMDWU, "ESP215", "DeleteSDItem", deleteSDObject);
+#endif
     new WebCommand(NULL,      WEBCMDRU, "ESP200", "SDStatus",     showSDStatus);
     new WebCommand("STA|AP|BT|OFF",
                               WEBCMDWA, "ESP115", "RadioState",   setRadioState);

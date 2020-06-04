@@ -55,7 +55,7 @@ bool GCodePreprocessor::next(char c) {
     }
     if (index == maxlen) { // name is too long so return false
 #ifdef ENABLE_SD_CARD
-         report_status_message(STATUS_OVERFLOW, SD_client);
+        report_status_message(STATUS_OVERFLOW, SD_client);
 #endif
         return true;
     }
