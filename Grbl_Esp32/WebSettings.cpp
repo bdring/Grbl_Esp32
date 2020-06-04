@@ -274,11 +274,11 @@ static err_t showSysStats(char *parameter) { // ESP420
 
     // Round baudRate to nearest 100 because ESP32 can say e.g. 115201
     webPrintln("Baud rate: ", String((Serial.baudRate()/100) * 100));
+#ifdef ENABLE_WIFI
     webPrintln("Sleep mode: ", WiFi.getSleep() ? "Modem" : "None");
 
     int mode = WiFi.getMode();
     if (mode != WIFI_MODE_NULL) {
-#if defined (ENABLE_WIFI)
         //Is OTA available ?
         size_t flashsize = 0;
         if (esp_ota_get_running_partition()) {
@@ -433,6 +433,7 @@ static err_t showSysStats(char *parameter) { // ESP420
     return STATUS_OK;
 }
 static err_t listAPs(char *parameter) { // ESP410
+#ifdef ENABLE_WIFI
     JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
     j->begin();
     j->begin_array("AP_LIST");
@@ -457,6 +458,7 @@ static err_t listAPs(char *parameter) { // ESP410
     j->end_array();
     webPrint(j->end());
     delete j;
+#endif
     return STATUS_OK;
 }
 static err_t listSettings(char *parameter) { // ESP400
@@ -591,10 +593,12 @@ static err_t sendMessage(char *parameter) { // ESP600
         webPrintln("Invalid message!");
         return STATUS_INVALID_VALUE;
     }
+#ifdef ENABLE_NOTIFICATIONS
     if (!notificationsservice.sendMSG("GRBL Notification", parameter)) {
         webPrintln("Cannot send message!");
         return STATUS_MESSAGE_FAILED;
     }
+#endif
     return STATUS_OK;
 }
 static err_t formatSpiffs(char *parameter) { // ESP710
@@ -643,6 +647,7 @@ static err_t setWebSetting(char *parameter) { // ESP401
 }
 
 static err_t showSetStaParams(char *parameter) { // ESP103
+#ifdef ENABLE_WIFI
     if (*parameter == '\0') {
         webPrint("IP:", wifi_sta_ip->getStringValue());
         webPrint(" GW:", wifi_sta_gateway->getStringValue());
@@ -660,6 +665,9 @@ static err_t showSetStaParams(char *parameter) { // ESP103
         err = wifi_sta_gateway->setStringValue(gateway);
     }
     return err;
+#else
+    return STATUS_OK;
+#endif
 }
 static err_t setRadioState(char *parameter) { // ESP115
     parameter = trim(parameter);
@@ -727,6 +735,7 @@ static err_t setRadioState(char *parameter) { // ESP115
     }
 }
 static err_t showSetNotification(char *parameter) { // ESP610
+#ifdef ENABLE_AUTHENTICATION
     if (*parameter == '\0') {
         webPrint("", notification_type->getStringValue());
         webPrintln(" ", notification_ts->getStringValue());
@@ -747,10 +756,14 @@ static err_t showSetNotification(char *parameter) { // ESP610
         err = notification_ts->setStringValue(ts);
     }
     return err;
-
+#else
+    return STATUS_OK;
+#endif
 }
 static err_t showIP(char *parameter) { // ESP111
+#ifdef ENABLE_WIFI
     webPrintln(parameter, WiFi.getMode() == WIFI_STA ? WiFi.localIP() : WiFi.softAPIP());
+#endif
     return STATUS_OK;
 }
 static err_t showFwInfo(char *parameter) { // ESP800
