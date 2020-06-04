@@ -135,7 +135,6 @@ void RcServo::read_settings() {
 
 // this should change to use its own settings.
 void RcServo::_get_calibration() {
-    bool settingsOK = true;
     float _cal_min, _cal_max;
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Read settings");
@@ -145,7 +144,6 @@ void RcServo::_get_calibration() {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($10%d) value error. Reset to 100", axis_index);
         char reset_val[] = "100";
         axis_settings[axis_index]->steps_per_mm->setStringValue(reset_val);
-        settingsOK = false;
     }
 
     // make sure the max is in range
@@ -154,11 +152,6 @@ void RcServo::_get_calibration() {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($13%d) value error. Reset to 100", axis_index);
         char reset_val[] = "-100"; // stored as a negative
         axis_settings[axis_index]->max_travel->setStringValue(reset_val);
-        settingsOK = false;
-    }
-
-    if (! settingsOK) {
-        write_global_settings(); // they were changed, so write them
     }
 
     _pwm_pulse_min = SERVO_MIN_PULSE;

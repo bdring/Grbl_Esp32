@@ -16,6 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifndef RCSERVOCLASS_H
+#define RCSERVOCLASS_H
 
 // this is the pulse range of a the servo. Typical servos are 0.001 to 0.002 seconds
 // some servos have a wider range. You can adjust this here or in the calibration feature
@@ -41,3 +43,5 @@
 #define SERVO_CAL_MAX 180.0 // Percent: the maximum allowable calibration value
 
 #define SERVO_TIMER_INT_FREQ 50.0 // Hz This is the task frequency
+
+#endif
