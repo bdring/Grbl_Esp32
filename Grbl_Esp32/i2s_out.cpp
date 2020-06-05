@@ -118,7 +118,7 @@ static portMUX_TYPE i2s_out_pulser_spinlock = portMUX_INITIALIZER_UNLOCKED;
 #define I2S_OUT_PULSER_EXIT_CRITICAL()   portEXIT_CRITICAL(&i2s_out_pulser_spinlock)
 
 // To avoid recursive calls when we call the i2s_out function from an overridden digitalWrite(),
-// I'll make sure to call digitalWite() in Arduino for ESP32.
+// I'll make sure to call digitalWrite() in Arduino for ESP32.
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 #define rawDigitalWrite(pin, val)   __digitalWrite(pin, val)
 
