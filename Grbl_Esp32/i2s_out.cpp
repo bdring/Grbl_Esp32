@@ -82,40 +82,40 @@ typedef struct {
   uint32_t     rw_pos;
   lldesc_t     **desc;
   xQueueHandle queue;
-} i2s_dma_t;
+} i2s_out_dma_t;
 
-static i2s_dma_t dma;
-static intr_handle_t i2s_isr_handle;
+static i2s_out_dma_t o_dma;
+static intr_handle_t i2s_out_isr_handle;
 #endif
 
 // output value
-static atomic_uint_least32_t i2s_port_data = ATOMIC_VAR_INIT(0);
+static atomic_uint_least32_t i2s_out_port_data = ATOMIC_VAR_INIT(0);
 
-static portMUX_TYPE i2s_spinlock = portMUX_INITIALIZER_UNLOCKED;
-#define I2S_ENTER_CRITICAL()  portENTER_CRITICAL(&i2s_spinlock)
-#define I2S_EXIT_CRITICAL()   portEXIT_CRITICAL(&i2s_spinlock)
+static portMUX_TYPE i2s_out_spinlock = portMUX_INITIALIZER_UNLOCKED;
+#define I2S_OUT_ENTER_CRITICAL()  portENTER_CRITICAL(&i2s_out_spinlock)
+#define I2S_OUT_EXIT_CRITICAL()   portEXIT_CRITICAL(&i2s_out_spinlock)
 
-static int i2s_ioexpander_initialized = 0;
+static int i2s_out_initialized = 0;
 
 #ifdef I2S_STEPPER_STREAM
-static volatile uint32_t i2s_ioexpander_pulse_period;
-static uint32_t i2s_ioexpander_remain_time_until_next_pulse; // Time remaining until the next pulse (μsec)
-static volatile i2s_ioexpander_pulse_phase_func_t i2s_ioexpander_pulse_phase_func;
+static volatile uint32_t i2s_out_pulse_period;
+static uint32_t i2s_out_remain_time_until_next_pulse; // Time remaining until the next pulse (μsec)
+static volatile i2s_out_pulse_func_t i2s_out_pulse_func;
 #endif
 
-static uint8_t i2s_ioexpander_ws_pin = 255;
-static uint8_t i2s_ioexpander_bck_pin = 255;
-static uint8_t i2s_ioexpander_data_pin = 255;
+static uint8_t i2s_out_ws_pin = 255;
+static uint8_t i2s_out_bck_pin = 255;
+static uint8_t i2s_out_data_pin = 255;
 
-enum i2s_ioexpander_pulser_status_t {
+enum i2s_out_pulser_status_t {
   PASSTHROUGH = 0,
   STEPPING,
 };
-static volatile i2s_ioexpander_pulser_status_t i2s_ioexpander_pulser_status = PASSTHROUGH;
+static volatile i2s_out_pulser_status_t i2s_out_pulser_status = PASSTHROUGH;
 
-static portMUX_TYPE i2s_pulser_spinlock = portMUX_INITIALIZER_UNLOCKED;
-#define I2S_PULSER_ENTER_CRITICAL()  portENTER_CRITICAL(&i2s_pulser_spinlock)
-#define I2S_PULSER_EXIT_CRITICAL()   portEXIT_CRITICAL(&i2s_pulser_spinlock)
+static portMUX_TYPE i2s_out_pulser_spinlock = portMUX_INITIALIZER_UNLOCKED;
+#define I2S_OUT_PULSER_ENTER_CRITICAL()  portENTER_CRITICAL(&i2s_out_pulser_spinlock)
+#define I2S_OUT_PULSER_EXIT_CRITICAL()   portEXIT_CRITICAL(&i2s_out_pulser_spinlock)
 
 //
 // Internal functions
@@ -129,41 +129,41 @@ static inline void gpio_matrix_out_check(uint8_t gpio, uint32_t signal_idx, bool
   }
 }
 
-static inline void i2s_reset_fifo_without_lock() {
+static inline void i2s_out_reset_fifo_without_lock() {
   I2S0.conf.rx_fifo_reset = 1;
   I2S0.conf.rx_fifo_reset = 0;
   I2S0.conf.tx_fifo_reset = 1;
   I2S0.conf.tx_fifo_reset = 0;
 }
 
-static void i2s_reset_fifo() {
-  I2S_ENTER_CRITICAL();
-  i2s_reset_fifo_without_lock();
-  I2S_EXIT_CRITICAL();
+static void i2s_out_reset_fifo() {
+  I2S_OUT_ENTER_CRITICAL();
+  i2s_out_reset_fifo_without_lock();
+  I2S_OUT_EXIT_CRITICAL();
 }
 
 #ifdef I2S_STEPPER_STREAM
-static int i2s_clear_dma_buffers(uint32_t port_data) {
+static int i2s_clear_o_dma_buffers(uint32_t port_data) {
   for (int buf_idx = 0; buf_idx < I2S_IOEXP_DMABUF_COUNT; buf_idx++) {
     // Clear the DMA buffer
     for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
-      dma.buffers[buf_idx][i] = port_data;
+      o_dma.buffers[buf_idx][i] = port_data;
     }
     // Initialize DMA descriptor
-    dma.desc[buf_idx]->owner = 1;
-    dma.desc[buf_idx]->eof = 1; // set to 1 will trigger the interrupt
-    dma.desc[buf_idx]->sosf = 0;
-    dma.desc[buf_idx]->length = I2S_IOEXP_DMABUF_LEN;
-    dma.desc[buf_idx]->size = I2S_IOEXP_DMABUF_LEN;
-    dma.desc[buf_idx]->buf = (uint8_t *) dma.buffers[buf_idx];
-    dma.desc[buf_idx]->offset = 0;
-    dma.desc[buf_idx]->qe.stqe_next = (lldesc_t *)((buf_idx < (I2S_IOEXP_DMABUF_COUNT - 1)) ? (dma.desc[buf_idx + 1]) : dma.desc[0]);
+    o_dma.desc[buf_idx]->owner = 1;
+    o_dma.desc[buf_idx]->eof = 1; // set to 1 will trigger the interrupt
+    o_dma.desc[buf_idx]->sosf = 0;
+    o_dma.desc[buf_idx]->length = I2S_IOEXP_DMABUF_LEN;
+    o_dma.desc[buf_idx]->size = I2S_IOEXP_DMABUF_LEN;
+    o_dma.desc[buf_idx]->buf = (uint8_t *) o_dma.buffers[buf_idx];
+    o_dma.desc[buf_idx]->offset = 0;
+    o_dma.desc[buf_idx]->qe.stqe_next = (lldesc_t *)((buf_idx < (I2S_IOEXP_DMABUF_COUNT - 1)) ? (o_dma.desc[buf_idx + 1]) : o_dma.desc[0]);
   }
   return 0;
 }
 #endif
 
-static int i2s_gpio_attach(uint8_t ws, uint8_t bck, uint8_t data) {
+static int i2s_out_gpio_attach(uint8_t ws, uint8_t bck, uint8_t data) {
   // Route the i2s pins to the appropriate GPIO
   gpio_matrix_out_check(data, I2S0O_DATA_OUT23_IDX, 0, 0);
   gpio_matrix_out_check(bck, I2S0O_BCK_OUT_IDX, 0, 0);
@@ -173,7 +173,7 @@ static int i2s_gpio_attach(uint8_t ws, uint8_t bck, uint8_t data) {
 
 #define I2S_IOEXP_DETACH_PORT_IDX   0x100
 
-static int i2s_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) {
+static int i2s_out_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) {
   // Route the i2s pins to the appropriate GPIO
   gpio_matrix_out_check(ws, I2S_IOEXP_DETACH_PORT_IDX, 0, 0);
   gpio_matrix_out_check(bck, I2S_IOEXP_DETACH_PORT_IDX, 0, 0);
@@ -181,20 +181,20 @@ static int i2s_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) {
   return 0;
 }
 
-static int i2s_gpio_shiftout(uint32_t port_data) {
-  digitalWrite(i2s_ioexpander_ws_pin, LOW);
+static int i2s_out_gpio_shiftout(uint32_t port_data) {
+  digitalWrite(i2s_out_ws_pin, LOW);
   for (int i = 0; i <I2S_IOEXP_NUM_BITS; i++) {
     // XXX do not use raw defines for machine
-    digitalWrite(i2s_ioexpander_data_pin, !!(port_data & (1 << (I2S_IOEXP_NUM_BITS-1 - i))));
-    digitalWrite(i2s_ioexpander_bck_pin, HIGH);
-    digitalWrite(i2s_ioexpander_bck_pin, LOW);
+    digitalWrite(i2s_out_data_pin, !!(port_data & (1 << (I2S_IOEXP_NUM_BITS-1 - i))));
+    digitalWrite(i2s_out_bck_pin, HIGH);
+    digitalWrite(i2s_out_bck_pin, LOW);
   }
-  digitalWrite(i2s_ioexpander_ws_pin, HIGH); // Latch
+  digitalWrite(i2s_out_ws_pin, HIGH); // Latch
   return 0;
 }
 
-static int i2s_stop() {
-  I2S_ENTER_CRITICAL();
+static int i2s_out_stop() {
+  I2S_OUT_ENTER_CRITICAL();
 #ifdef I2S_STEPPER_STREAM
   // Stop FIFO DMA
   I2S0.out_link.stop = 1;
@@ -207,41 +207,41 @@ static int i2s_stop() {
 
   // Force WS to LOW before detach
   // This operation prevents unintended WS edge trigger when detach
-  digitalWrite(i2s_ioexpander_ws_pin, LOW);
+  digitalWrite(i2s_out_ws_pin, LOW);
 
   // Now, detach GPIO pin from I2S
-  i2s_gpio_detach(i2s_ioexpander_ws_pin, i2s_ioexpander_bck_pin, i2s_ioexpander_data_pin);
+  i2s_out_gpio_detach(i2s_out_ws_pin, i2s_out_bck_pin, i2s_out_data_pin);
 
   // Force BCK to LOW
   // After the TX module is stopped, BCK always seems to be in LOW.
   // However, I'm going to do it manually to ensure the BCK's LOW.
-  digitalWrite(i2s_ioexpander_bck_pin, LOW);
+  digitalWrite(i2s_out_bck_pin, LOW);
 
   // Transmit recovery data to 74HC595
-  uint32_t port_data = atomic_load(&i2s_port_data); // current expanded port value
-  i2s_gpio_shiftout(port_data);
+  uint32_t port_data = atomic_load(&i2s_out_port_data); // current expanded port value
+  i2s_out_gpio_shiftout(port_data);
 
 #ifdef I2S_STEPPER_STREAM
   //clear pending interrupt
   I2S0.int_clr.val = I2S0.int_st.val;
 #endif
-  I2S_EXIT_CRITICAL();
+  I2S_OUT_EXIT_CRITICAL();
   return 0;
 }
 
-static int i2s_start() {
-  if (!i2s_ioexpander_initialized) {
+static int i2s_out_start() {
+  if (!i2s_out_initialized) {
     return -1;
   }
-  I2S_ENTER_CRITICAL();
+  I2S_OUT_ENTER_CRITICAL();
   // Transmit recovery data to 74HC595
-  uint32_t port_data = atomic_load(&i2s_port_data); // current expanded port value
-  i2s_gpio_shiftout(port_data);
+  uint32_t port_data = atomic_load(&i2s_out_port_data); // current expanded port value
+  i2s_out_gpio_shiftout(port_data);
 
   // Attach I2S to specified GPIO pin
-  i2s_gpio_attach(i2s_ioexpander_ws_pin, i2s_ioexpander_bck_pin, i2s_ioexpander_data_pin);
+  i2s_out_gpio_attach(i2s_out_ws_pin, i2s_out_bck_pin, i2s_out_data_pin);
   //start DMA link
-  i2s_reset_fifo_without_lock();
+  i2s_out_reset_fifo_without_lock();
 
 #ifdef I2S_STEPPER_STREAM
   //reset DMA
@@ -250,7 +250,7 @@ static int i2s_start() {
   I2S0.lc_conf.out_rst = 1;
   I2S0.lc_conf.out_rst = 0;
 
-  I2S0.out_link.addr = (uint32_t)dma.desc[0];
+  I2S0.out_link.addr = (uint32_t)o_dma.desc[0];
 #endif
 
   I2S0.conf.tx_reset = 1;
@@ -272,16 +272,16 @@ static int i2s_start() {
   ets_delay_us(20);
   I2S0.conf1.tx_stop_en = 0; // BCK and WCK are generated regardless of the FIFO status
 
-  I2S_EXIT_CRITICAL();
+  I2S_OUT_EXIT_CRITICAL();
 
   return 0;
 }
 
 #ifdef I2S_STEPPER_STREAM
 //
-// I2S DMA Interrupts handler
+// I2S out DMA Interrupts handler
 //
-static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
+static void IRAM_ATTR i2s_out_intr_handler_default(void *arg) {
   lldesc_t *finish_desc;
   portBASE_TYPE high_priority_task_awoken = pdFALSE;
 
@@ -291,11 +291,11 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
 
     // If the queue is full it's because we have an underflow,
     // more than buf_count isr without new data, remove the front buffer
-    if (xQueueIsQueueFullFromISR(dma.queue)) {
+    if (xQueueIsQueueFullFromISR(o_dma.queue)) {
       lldesc_t *front_desc;
       // Remove a descriptor from the DMA complete event queue
-      xQueueReceiveFromISR(dma.queue, &front_desc, &high_priority_task_awoken);
-      uint32_t port_data = atomic_load(&i2s_port_data);
+      xQueueReceiveFromISR(o_dma.queue, &front_desc, &high_priority_task_awoken);
+      uint32_t port_data = atomic_load(&i2s_out_port_data);
       for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
         front_desc->buf[i] = port_data;
       }
@@ -303,7 +303,7 @@ static void IRAM_ATTR i2s_intr_handler_default(void *arg) {
     }
 
     // Send a DMA complete event to the I2S bitstreamer task with finished buffer
-    xQueueSendFromISR(dma.queue, &finish_desc, &high_priority_task_awoken);
+    xQueueSendFromISR(o_dma.queue, &finish_desc, &high_priority_task_awoken);
   }
 
   if (high_priority_task_awoken == pdTRUE) portYIELD_FROM_ISR();
@@ -320,12 +320,12 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
   while (1) {
     // Wait a DMA complete event from I2S isr
     // (Block until a DMA transfer has complete)
-    xQueueReceive(dma.queue, &dma_desc, portMAX_DELAY);
-    dma.current = (uint32_t*)(dma_desc->buf);
+    xQueueReceive(o_dma.queue, &dma_desc, portMAX_DELAY);
+    o_dma.current = (uint32_t*)(dma_desc->buf);
     // It reuses the oldest (just transferred) buffer with the name "current"
     // and fills the buffer for later DMA.
-    I2S_PULSER_ENTER_CRITICAL(); // Lock pulser status
-    if (i2s_ioexpander_pulser_status == STEPPING) {
+    I2S_OUT_PULSER_ENTER_CRITICAL(); // Lock pulser status
+    if (i2s_out_pulser_status == STEPPING) {
       //
       // Fillout the buffer for pulse
       //
@@ -336,42 +336,42 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
       // the generation of the buffer is interrupted (the buffer length is shortened slightly)
       // and the pulse generation is postponed until the next buffer is filled.
       //
-      dma.rw_pos = 0;
-      while (dma.rw_pos < (DMA_SAMPLE_COUNT - SAMPLE_SAFE_COUNT)) {
+      o_dma.rw_pos = 0;
+      while (o_dma.rw_pos < (DMA_SAMPLE_COUNT - SAMPLE_SAFE_COUNT)) {
           // no data to read (buffer empty)
-          if (i2s_ioexpander_remain_time_until_next_pulse < I2S_IOEXP_USEC_PER_PULSE) {
+          if (i2s_out_remain_time_until_next_pulse < I2S_IOEXP_USEC_PER_PULSE) {
             // pulser status may change in pulse phase func, so I need to check it every time.
-            if (i2s_ioexpander_pulser_status == STEPPING) {
+            if (i2s_out_pulser_status == STEPPING) {
               // fillout future DMA buffer (tail of the DMA buffer chains)
-              if (i2s_ioexpander_pulse_phase_func != NULL) {
-                I2S_PULSER_EXIT_CRITICAL(); // Temporarily unlocked status lock as it may be locked in pulse callback.
-                (*i2s_ioexpander_pulse_phase_func)(); // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT
-                I2S_PULSER_ENTER_CRITICAL(); // Lock again.
-                i2s_ioexpander_remain_time_until_next_pulse = i2s_ioexpander_pulse_period;
+              if (i2s_out_pulse_func != NULL) {
+                I2S_OUT_PULSER_EXIT_CRITICAL(); // Temporarily unlocked status lock as it may be locked in pulse callback.
+                (*i2s_out_pulse_func)(); // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT
+                I2S_OUT_PULSER_ENTER_CRITICAL(); // Lock again.
+                i2s_out_remain_time_until_next_pulse = i2s_out_pulse_period;
                 continue;
               }
             }
           }
           // no pulse data in push buffer (pulse off or idle or callback is not defined)
-          dma.current[dma.rw_pos++] = atomic_load(&i2s_port_data);
-          if (i2s_ioexpander_remain_time_until_next_pulse >= I2S_IOEXP_USEC_PER_PULSE) {
-            i2s_ioexpander_remain_time_until_next_pulse -= I2S_IOEXP_USEC_PER_PULSE;
+          o_dma.current[o_dma.rw_pos++] = atomic_load(&i2s_out_port_data);
+          if (i2s_out_remain_time_until_next_pulse >= I2S_IOEXP_USEC_PER_PULSE) {
+            i2s_out_remain_time_until_next_pulse -= I2S_IOEXP_USEC_PER_PULSE;
           } else {
-            i2s_ioexpander_remain_time_until_next_pulse = 0;
+            i2s_out_remain_time_until_next_pulse = 0;
           }
       }
       // set filled length to the DMA descriptor
-      dma_desc->length = dma.rw_pos * I2S_SAMPLE_SIZE;
+      dma_desc->length = o_dma.rw_pos * I2S_SAMPLE_SIZE;
     } else {
       // Stepper paused (just set current I/O port bits to the buffer)
-      uint32_t port_data = atomic_load(&i2s_port_data);
+      uint32_t port_data = atomic_load(&i2s_out_port_data);
       for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
-        dma.current[i] = port_data;
+        o_dma.current[i] = port_data;
       }
-      dma.rw_pos = DMA_SAMPLE_COUNT;
+      o_dma.rw_pos = DMA_SAMPLE_COUNT;
       dma_desc->length = I2S_IOEXP_DMABUF_LEN;
     }
-    I2S_PULSER_EXIT_CRITICAL(); // Unlock pulser status
+    I2S_OUT_PULSER_EXIT_CRITICAL(); // Unlock pulser status
   }
 }
 #endif
@@ -379,39 +379,39 @@ static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
 //
 // External funtions
 //
-void IRAM_ATTR i2s_ioexpander_write(uint8_t pin, uint8_t val) {
+void IRAM_ATTR i2s_out_write(uint8_t pin, uint8_t val) {
   uint32_t bit = 1UL << pin;
   if (val) {
-    atomic_fetch_or(&i2s_port_data, bit);
+    atomic_fetch_or(&i2s_out_port_data, bit);
   } else {
-    atomic_fetch_and(&i2s_port_data, ~bit);
+    atomic_fetch_and(&i2s_out_port_data, ~bit);
   }
 #ifndef I2S_STEPPER_STREAM
 #if I2S_IOEXP_NUM_BITS == 16
-  uint32_t port_data = atomic_load(&i2s_port_data);
+  uint32_t port_data = atomic_load(&i2s_out_port_data);
   port_data <<= 16; // Shift needed. This specification is not spelled out in the manual.
   I2S0.conf_single_data = port_data; // Apply port data in real time
 #else
-  I2S0.conf_single_data = atomic_load(&i2s_port_data); // Apply port data in real time
+  I2S0.conf_single_data = atomic_load(&i2s_out_port_data); // Apply port data in real time
 #endif
 #endif
 }
 
-uint8_t IRAM_ATTR i2s_ioexpander_state(uint8_t pin) {
-  uint32_t port_data = atomic_load(&i2s_port_data);
+uint8_t IRAM_ATTR i2s_out_state(uint8_t pin) {
+  uint32_t port_data = atomic_load(&i2s_out_port_data);
   return (!!(port_data & (1UL << pin)));
 }
 
-uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
+uint32_t IRAM_ATTR i2s_out_push_sample(uint32_t num) {
 #ifdef I2S_STEPPER_STREAM
   if (num > SAMPLE_SAFE_COUNT) {
     return 0;
   }
   // push at least one sample (even if num is zero)
-  uint32_t port_data = atomic_load(&i2s_port_data);
+  uint32_t port_data = atomic_load(&i2s_out_port_data);
   uint32_t n = 0;
   do {
-    dma.current[dma.rw_pos++] = port_data;
+    o_dma.current[o_dma.rw_pos++] = port_data;
     n++;
   } while(n < num);
   return n;
@@ -420,49 +420,49 @@ uint32_t IRAM_ATTR i2s_ioexpander_push_sample(uint32_t num) {
 #endif
 }
 
-int i2s_ioexpander_set_passthrough() {
-  I2S_PULSER_ENTER_CRITICAL();
-  i2s_ioexpander_pulser_status = PASSTHROUGH;
-  I2S_PULSER_EXIT_CRITICAL();
+int i2s_out_set_passthrough() {
+  I2S_OUT_PULSER_ENTER_CRITICAL();
+  i2s_out_pulser_status = PASSTHROUGH;
+  I2S_OUT_PULSER_EXIT_CRITICAL();
   return 0;
 }
 
-int i2s_ioexpander_set_stepping() {
-  I2S_PULSER_ENTER_CRITICAL();
-  i2s_ioexpander_pulser_status = STEPPING;
-  I2S_PULSER_EXIT_CRITICAL();
+int i2s_out_set_stepping() {
+  I2S_OUT_PULSER_ENTER_CRITICAL();
+  i2s_out_pulser_status = STEPPING;
+  I2S_OUT_PULSER_EXIT_CRITICAL();
   return 0;
 }
 
-int i2s_ioexpander_set_pulse_period(uint32_t period) {
+int i2s_out_set_pulse_period(uint32_t period) {
 #ifdef I2S_STEPPER_STREAM
-  i2s_ioexpander_pulse_period = period;
+  i2s_out_pulse_period = period;
 #endif
   return 0;
 }
 
-int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t func) {
+int i2s_out_set_pulse_callback(i2s_out_pulse_func_t func) {
 #ifdef I2S_STEPPER_STREAM
-  i2s_ioexpander_pulse_phase_func = func;
+  i2s_out_pulse_func = func;
 #endif
   return 0;
 }
 
-int i2s_ioexpander_reset() {
-  i2s_stop();
+int i2s_out_reset() {
+  i2s_out_stop();
 #ifdef I2S_STEPPER_STREAM
-  uint32_t port_data = atomic_load(&i2s_port_data);
-  i2s_clear_dma_buffers(port_data);
+  uint32_t port_data = atomic_load(&i2s_out_port_data);
+  i2s_clear_o_dma_buffers(port_data);
 #endif
-  i2s_start();
+  i2s_out_start();
   return 0;
 }
 
 //
 // Initialize funtion (external function)
 //
-int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
-  if (i2s_ioexpander_initialized) {
+int i2s_out_init(i2s_out_init_t &init_param) {
+  if (i2s_out_initialized) {
     // already initialized
     return -1;
   }
@@ -471,7 +471,7 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   periph_module_enable(PERIPH_I2S0_MODULE);
 
   // Route the i2s pins to the appropriate GPIO
-  i2s_gpio_attach(init_param.ws_pin, init_param.bck_pin, init_param.data_pin);
+  i2s_out_gpio_attach(init_param.ws_pin, init_param.bck_pin, init_param.data_pin);
 
   /**
    * Each i2s transfer will take
@@ -500,33 +500,33 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
 
 #ifdef I2S_STEPPER_STREAM
   // Allocate the array of pointers to the buffers
-  dma.buffers = (uint32_t **)malloc(sizeof(uint32_t*) * I2S_IOEXP_DMABUF_COUNT);
-  if (dma.buffers == nullptr) return -1;
+  o_dma.buffers = (uint32_t **)malloc(sizeof(uint32_t*) * I2S_IOEXP_DMABUF_COUNT);
+  if (o_dma.buffers == nullptr) return -1;
 
   // Allocate each buffer that can be used by the DMA controller
   for (int buf_idx = 0; buf_idx < I2S_IOEXP_DMABUF_COUNT; buf_idx++) {
-    dma.buffers[buf_idx] = (uint32_t*) heap_caps_calloc(1, I2S_IOEXP_DMABUF_LEN, MALLOC_CAP_DMA);
-    if (dma.buffers[buf_idx] == nullptr) return -1;
+    o_dma.buffers[buf_idx] = (uint32_t*) heap_caps_calloc(1, I2S_IOEXP_DMABUF_LEN, MALLOC_CAP_DMA);
+    if (o_dma.buffers[buf_idx] == nullptr) return -1;
   }
 
   // Allocate the array of DMA descriptors
-  dma.desc = (lldesc_t**) malloc(sizeof(lldesc_t*) * I2S_IOEXP_DMABUF_COUNT);
-  if (dma.desc == nullptr) return -1;
+  o_dma.desc = (lldesc_t**) malloc(sizeof(lldesc_t*) * I2S_IOEXP_DMABUF_COUNT);
+  if (o_dma.desc == nullptr) return -1;
 
   // Allocate each DMA descriptor that will be used by the DMA controller
   for (int buf_idx = 0; buf_idx < I2S_IOEXP_DMABUF_COUNT; buf_idx++) {
-    dma.desc[buf_idx] = (lldesc_t*) heap_caps_malloc(sizeof(lldesc_t), MALLOC_CAP_DMA);
-    if (dma.desc[buf_idx] == nullptr) return -1;
+    o_dma.desc[buf_idx] = (lldesc_t*) heap_caps_malloc(sizeof(lldesc_t), MALLOC_CAP_DMA);
+    if (o_dma.desc[buf_idx] == nullptr) return -1;
   }
 
   // Initialize
-  i2s_clear_dma_buffers(0);
-  dma.rw_pos = 0;
-  dma.current = NULL;
-  dma.queue = xQueueCreate(I2S_IOEXP_DMABUF_COUNT, sizeof(uint32_t *));
+  i2s_clear_o_dma_buffers(0);
+  o_dma.rw_pos = 0;
+  o_dma.current = NULL;
+  o_dma.queue = xQueueCreate(I2S_IOEXP_DMABUF_COUNT, sizeof(uint32_t *));
 
    // Set the first DMA descriptor
-  I2S0.out_link.addr = (uint32_t)dma.desc[0];
+  I2S0.out_link.addr = (uint32_t)o_dma.desc[0];
 #endif
 
   // stop i2s
@@ -540,7 +540,7 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   //
 
   // configure I2S data port interface.
-  i2s_reset_fifo();
+  i2s_out_reset_fifo();
 
   //reset i2s
   I2S0.conf.tx_reset = 1;
@@ -648,8 +648,8 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
   I2S0.int_ena.out_done = 0; // Triggered when all transmitted and buffered data have been read.
 
   // default pulse callback period (μsec)
-  i2s_ioexpander_pulse_period = init_param.pulse_period;
-  i2s_ioexpander_pulse_phase_func = init_param.pulse_phase_func;
+  i2s_out_pulse_period = init_param.pulse_period;
+  i2s_out_pulse_func = init_param.pulse_func;
 
   // Create the task that will feed the buffer
   xTaskCreatePinnedToCore(i2sIOExpanderTask,
@@ -662,18 +662,18 @@ int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param) {
                           );
 
   // Allocate and Enable the I2S interrupt
-  esp_intr_alloc(ETS_I2S0_INTR_SOURCE, 0, i2s_intr_handler_default, nullptr, &i2s_isr_handle);
-  esp_intr_enable(i2s_isr_handle);
+  esp_intr_alloc(ETS_I2S0_INTR_SOURCE, 0, i2s_out_intr_handler_default, nullptr, &i2s_out_isr_handle);
+  esp_intr_enable(i2s_out_isr_handle);
 #endif
 
   // Remember GPIO pin numbers
-  i2s_ioexpander_ws_pin = init_param.ws_pin;
-  i2s_ioexpander_bck_pin = init_param.bck_pin;
-  i2s_ioexpander_data_pin = init_param.data_pin;
-  i2s_ioexpander_initialized = 1;
+  i2s_out_ws_pin = init_param.ws_pin;
+  i2s_out_bck_pin = init_param.bck_pin;
+  i2s_out_data_pin = init_param.data_pin;
+  i2s_out_initialized = 1;
 
   // Start the I2S peripheral
-  i2s_start();
+  i2s_out_start();
 
   return 0;
 }

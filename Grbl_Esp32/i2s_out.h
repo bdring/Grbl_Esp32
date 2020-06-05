@@ -105,7 +105,7 @@
 #define IS_I2S_IOEXP_PIN(IO) (((IO) >= I2S_IOEXP_PIN_BASE) && ((IO) < I2S_IOEXP_PIN_BASE + I2S_IOEXP_NUM_BITS))
 #define I2S_IOEXP_PIN_INDEX(IO) ((IO) - I2S_IOEXP_PIN_BASE)
 
-typedef void (*i2s_ioexpander_pulse_phase_func_t)(void);
+typedef void (*i2s_out_pulse_func_t)(void);
 
 typedef struct {
     /*
@@ -120,14 +120,15 @@ typedef struct {
                                              ^
                                 Latches the X bits when ws is switched to High
 
+        If I2S_IOEXP_PIN_BASE is set to 128,
         bit0:Expanded GPIO 128, 1: Expanded GPIO 129, ..., v: Expanded GPIO 159
     */
     uint8_t ws_pin;
     uint8_t bck_pin;
     uint8_t data_pin;
-    i2s_ioexpander_pulse_phase_func_t pulse_phase_func;
+    i2s_out_pulse_func_t pulse_func;
     uint32_t pulse_period; // aka step rate.
-} i2s_ioexpander_init_t;
+} i2s_out_init_t;
 
 /*
   Initialize I2S and DMA for the stepper bitstreamer
@@ -135,14 +136,14 @@ typedef struct {
 
   return -1 ... already initialized
 */
-int i2s_ioexpander_init(i2s_ioexpander_init_t &init_param);
+int i2s_out_init(i2s_out_init_t &init_param);
 
 /*
   Get a bit state from the internal pin state var.
 
   pin: expanded pin No. (0..31)
 */
-uint8_t i2s_ioexpander_state(uint8_t pin);
+uint8_t i2s_out_state(uint8_t pin);
 
 /*
    Set a bit in the internal pin state var. (not written electrically)
@@ -150,7 +151,7 @@ uint8_t i2s_ioexpander_state(uint8_t pin);
    pin: expanded pin No. (0..31)
    val: bit value(0 or not 0)
 */
-void i2s_ioexpander_write(uint8_t pin, uint8_t val);
+void i2s_out_write(uint8_t pin, uint8_t val);
 
 /*
     Set current pin state to the I2S bitstream buffer
@@ -162,7 +163,7 @@ void i2s_ioexpander_write(uint8_t pin, uint8_t val);
     return: number of puhsed samples
             0 .. no space for push
  */
-uint32_t i2s_ioexpander_push_sample(uint32_t num);
+uint32_t i2s_out_push_sample(uint32_t num);
 
 /*
    Set pulser mode to passtrough
@@ -171,7 +172,7 @@ uint32_t i2s_ioexpander_push_sample(uint32_t num);
    the callback function to generate the pulse data
    will not be called.
  */
-int i2s_ioexpander_set_passthrough();
+int i2s_out_set_passthrough();
 
 /*
    Set pulser mode to stepping
@@ -180,18 +181,18 @@ int i2s_ioexpander_set_passthrough();
    the callback function to generate stepping pulse data
    will be called.
  */
-int i2s_ioexpander_set_stepping();
+int i2s_out_set_stepping();
 
 /*
    Set the pulse callback period in microseconds
    (like the timer period for the ISR)
  */
-int i2s_ioexpander_set_pulse_period(uint32_t period);
+int i2s_out_set_pulse_period(uint32_t period);
 
 /*
    Register a callback function to generate pulse data
  */
-int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t func);
+int i2s_out_set_pulse_callback(i2s_out_pulse_func_t func);
 
 
 /*
@@ -200,7 +201,7 @@ int i2s_ioexpander_register_pulse_callback(i2s_ioexpander_pulse_phase_func_t fun
    - Clear DMA buffer with the current expanded GPIO bits
    - Retart ISR/DMA
  */
-int i2s_ioexpander_reset();
+int i2s_out_reset();
 
 #endif
 

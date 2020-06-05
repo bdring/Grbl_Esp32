@@ -430,7 +430,7 @@ void HAL_digitalWrite(uint8_t pin_num, uint8_t val) {
         return;
     }
     uint8_t exp_pin_num = I2S_IOEXP_PIN_INDEX(pin_num);
-    i2s_ioexpander_write(exp_pin_num, val);
+    i2s_out_write(exp_pin_num, val);
 #else
     digitalWrite(pin_num, val);
 #endif
@@ -442,7 +442,7 @@ int HAL_digitalRead(uint8_t pin_num) {
         return digitalRead(pin_num);
     }
     uint8_t exp_pin_num = I2S_IOEXP_PIN_INDEX(pin_num);
-    return i2s_ioexpander_state(exp_pin_num);
+    return i2s_out_state(exp_pin_num);
 #else
     return digitalRead(pin_num);
 #endif

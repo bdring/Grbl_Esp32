@@ -208,7 +208,7 @@ static st_prep_t prep;
     inline IRAM_ATTR static void stepperRMT_Outputs();
 #endif
 
-static void stepper_pulse_phase_func();
+static void stepper_pulse_func();
 
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
@@ -221,7 +221,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
     }
     busy = true;
 
-    stepper_pulse_phase_func();
+    stepper_pulse_func();
 
     TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
     busy = false;
@@ -234,7 +234,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
  * call to this method that might cause variation in the timing. The aim
  * is to keep pulse timing as regular as possible.
  */
-static void stepper_pulse_phase_func() {
+static void stepper_pulse_func() {
     motors_set_direction_pins(st.dir_outbits);
 #ifdef USE_RMT_STEPS
     stepperRMT_Outputs();
@@ -400,7 +400,7 @@ static void stepper_pulse_phase_func() {
     // The pulse resolution is limited by I2S_IOEXP_USEC_PER_PULSE
     //
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
-    i2s_ioexpander_push_sample(pulse_microseconds->get() / I2S_IOEXP_USEC_PER_PULSE);
+    i2s_out_push_sample(pulse_microseconds->get() / I2S_IOEXP_USEC_PER_PULSE);
     set_stepper_pins_on(0); // turn all off
 #else
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
@@ -426,7 +426,7 @@ void stepper_init() {
 
 #ifdef I2S_STEPPER_STREAM
     // I2S stepper do not use timer interrupt but callback
-    i2s_ioexpander_register_pulse_callback(stepper_pulse_phase_func);
+    i2s_out_set_pulse_callback(stepper_pulse_func);
 #else
     timer_config_t config;
     config.divider     = F_TIMERS / F_STEPPER_TIMER;
@@ -474,7 +474,7 @@ void st_reset() {
     // Initialize stepper driver idle state.
     st_go_idle();
 #ifdef I2S_STEPPER_STREAM
-    i2s_ioexpander_reset();
+    i2s_out_reset();
 #endif
     // Initialize stepper algorithm variables.
     memset(&prep, 0, sizeof(st_prep_t));
@@ -1186,7 +1186,7 @@ void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {
 #ifdef I2S_STEPPER_STREAM
     // 1 tick = F_TIMERS / F_STEPPER_TIMER
     // Pulse ISR is called for each tick of alarm_val.
-    i2s_ioexpander_set_pulse_period(alarm_val / 60);
+    i2s_out_set_pulse_period(alarm_val / 60);
 #else
     timer_set_alarm_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, alarm_val);
 #endif
@@ -1197,7 +1197,7 @@ void IRAM_ATTR Stepper_Timer_Start() {
     //Serial.println("ST Start");
 #endif
 #ifdef I2S_STEPPER_STREAM
-    i2s_ioexpander_set_stepping();
+    i2s_out_set_stepping();
 #else
     timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
     timer_start(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
@@ -1210,7 +1210,7 @@ void IRAM_ATTR Stepper_Timer_Stop() {
     //Serial.println("ST Stop");
 #endif
 #ifdef I2S_STEPPER_STREAM
-    i2s_ioexpander_set_passthrough();
+    i2s_out_set_passthrough();
 #else
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
 #endif

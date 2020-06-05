@@ -61,14 +61,14 @@ void setup() {
 #endif
 #ifdef USE_I2S_IOEXPANDER
     // The I2S I/O expander must be initialized before it can access the enhanced GPIO port
-    i2s_ioexpander_init_t param = {
+    i2s_out_init_t param = {
         .ws_pin = I2S_IOEXPANDER_WS,
         .bck_pin = I2S_IOEXPANDER_BCK,
         .data_pin = I2S_IOEXPANDER_DATA,
-        .pulse_phase_func = NULL,
+        .pulse_func = NULL,
         .pulse_period = F_TIMERS / F_STEPPER_TIMER, // default
     };
-    i2s_ioexpander_init(param);
+    i2s_out_init(param);
 #endif
     settings_init(); // Load Grbl settings from EEPROM
     stepper_init();  // Configure stepper pins and interrupt timers
