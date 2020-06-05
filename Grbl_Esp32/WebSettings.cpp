@@ -22,7 +22,7 @@
 
 #include "grbl.h"
 
-#include <WiFi.H>
+#include <WiFi.h>
 #include <FS.h>
 #include <SPIFFS.h>
 #include <esp_wifi.h>
