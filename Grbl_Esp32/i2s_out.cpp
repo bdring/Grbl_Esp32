@@ -315,7 +315,7 @@ static void IRAM_ATTR i2s_out_intr_handler_default(void *arg) {
 //
 // I2S bitstream generator task
 //
-static void IRAM_ATTR i2sIOExpanderTask(void* parameter) {
+static void IRAM_ATTR i2sOutTask(void* parameter) {
   lldesc_t *dma_desc;
   while (1) {
     // Wait a DMA complete event from I2S isr
@@ -652,8 +652,8 @@ int i2s_out_init(i2s_out_init_t &init_param) {
   i2s_out_pulse_func = init_param.pulse_func;
 
   // Create the task that will feed the buffer
-  xTaskCreatePinnedToCore(i2sIOExpanderTask,
-                          "I2SIOExpanderTask",
+  xTaskCreatePinnedToCore(i2sOutTask,
+                          "I2SOutTask",
                           1024 * 10,
                           NULL,
                           1,
