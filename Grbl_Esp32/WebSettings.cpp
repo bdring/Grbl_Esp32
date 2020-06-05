@@ -416,7 +416,6 @@ static err_t showSysStats(char *parameter) { // ESP420
 
     // Round baudRate to nearest 100 because ESP32 can say e.g. 115201
     webPrintln("Baud rate: ", String((Serial.baudRate()/100) * 100));
-#ifdef ENABLE_WIFI
     webPrintln("Sleep mode: ", WiFi.getSleep() ? "Modem" : "None");
 
 #ifdef ENABLE_WIFI
@@ -578,7 +577,6 @@ static err_t showSysStats(char *parameter) { // ESP420
 
 #ifdef ENABLE_WIFI
 static err_t listAPs(char *parameter) { // ESP410
-#ifdef ENABLE_WIFI
     JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
     j->begin();
     j->begin_array("AP_LIST");
@@ -603,7 +601,6 @@ static err_t listAPs(char *parameter) { // ESP410
     j->end_array();
     webPrint(j->end());
     delete j;
-#endif
     return STATUS_OK;
 }
 #endif
@@ -984,6 +981,4 @@ void make_web_settings()
         wifi_sta_ssid     = new StringSetting("Station SSID",           WEBSET, "ESP100", "StaSSID",      DEFAULT_STA_SSID, MIN_SSID_LENGTH, MAX_SSID_LENGTH, (bool (*)(char*))WiFiConfig::isSSIDValid);
     #endif
 }
-#endif
-
 #endif
