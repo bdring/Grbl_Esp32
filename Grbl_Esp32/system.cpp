@@ -412,7 +412,7 @@ int8_t sys_get_next_PWM_chan_num() {
 
 
 void HAL_pinMode(uint8_t pin_num, uint8_t mode) {
-#ifdef USE_I2S_IOEXPANDER
+#ifdef USE_I2S_OUT
     if (pin_num < I2S_OUT_PIN_BASE) {
         pinMode(pin_num, mode);
         return;
@@ -424,7 +424,7 @@ void HAL_pinMode(uint8_t pin_num, uint8_t mode) {
 }
 
 void HAL_digitalWrite(uint8_t pin_num, uint8_t val) {
-#ifdef USE_I2S_IOEXPANDER
+#ifdef USE_I2S_OUT
     if (pin_num < I2S_OUT_PIN_BASE) {
         digitalWrite(pin_num, val);
         return;
@@ -437,7 +437,7 @@ void HAL_digitalWrite(uint8_t pin_num, uint8_t val) {
 }
 
 int HAL_digitalRead(uint8_t pin_num) {
-#ifdef USE_I2S_IOEXPANDER
+#ifdef USE_I2S_OUT
     if (pin_num < I2S_OUT_PIN_BASE) {
         return digitalRead(pin_num);
     }

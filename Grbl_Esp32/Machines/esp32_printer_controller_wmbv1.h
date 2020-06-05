@@ -163,11 +163,11 @@
 //
 // I2S (steppers & other output-only pins)
 //
-#define USE_I2S_IOEXPANDER
-#define I2S_IOEXPANDER_BCK      22
-#define I2S_IOEXPANDER_WS       17
-#define I2S_IOEXPANDER_DATA     21
-#define I2S_STEPPER_STREAM
+#define USE_I2S_OUT
+#define I2S_OUT_BCK      22
+#define I2S_OUT_WS       17
+#define I2S_OUT_DATA     21
+#define USE_I2S_OUT_STREAM
 
 // USE_M30 enables the user_m30() function which implements
 // custom behavior when a GCode programs stops at the end

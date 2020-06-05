@@ -240,7 +240,7 @@ static void stepper_pulse_func() {
     stepperRMT_Outputs();
 #else
     set_stepper_pins_on(st.step_outbits);
-#ifndef I2S_STEPPER_STREAM
+#ifndef USE_I2S_OUT_STREAM
     uint64_t step_pulse_start_time = esp_timer_get_time();
 #endif
 #endif
@@ -394,7 +394,7 @@ static void stepper_pulse_func() {
     }
 
 #ifndef USE_RMT_STEPS
-#ifdef I2S_STEPPER_STREAM
+#ifdef USE_I2S_OUT_STREAM
     //
     // Generate pulse (at least one pulse)
     // The pulse resolution is limited by I2S_OUT_USEC_PER_PULSE
@@ -424,7 +424,7 @@ void stepper_init() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Timed Steps");
 #endif
 
-#ifdef I2S_STEPPER_STREAM
+#ifdef USE_I2S_OUT_STREAM
     // I2S stepper do not use timer interrupt but callback
     i2s_out_set_pulse_callback(stepper_pulse_func);
 #else
@@ -473,7 +473,7 @@ void st_reset() {
 #endif
     // Initialize stepper driver idle state.
     st_go_idle();
-#ifdef I2S_STEPPER_STREAM
+#ifdef USE_I2S_OUT_STREAM
     i2s_out_reset();
 #endif
     // Initialize stepper algorithm variables.
@@ -1183,7 +1183,7 @@ float st_get_realtime_rate() {
 }
 
 void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {
-#ifdef I2S_STEPPER_STREAM
+#ifdef USE_I2S_OUT_STREAM
     // 1 tick = F_TIMERS / F_STEPPER_TIMER
     // Pulse ISR is called for each tick of alarm_val.
     i2s_out_set_pulse_period(alarm_val / 60);
@@ -1196,7 +1196,7 @@ void IRAM_ATTR Stepper_Timer_Start() {
 #ifdef ESP_DEBUG
     //Serial.println("ST Start");
 #endif
-#ifdef I2S_STEPPER_STREAM
+#ifdef USE_I2S_OUT_STREAM
     i2s_out_set_stepping();
 #else
     timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
@@ -1209,7 +1209,7 @@ void IRAM_ATTR Stepper_Timer_Stop() {
 #ifdef ESP_DEBUG
     //Serial.println("ST Stop");
 #endif
-#ifdef I2S_STEPPER_STREAM
+#ifdef USE_I2S_OUT_STREAM
     i2s_out_set_passthrough();
 #else
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);

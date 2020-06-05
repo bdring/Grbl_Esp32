@@ -31,15 +31,15 @@
 // === Special Features
 
 // I2S (steppers & other output-only pins)
-#define USE_I2S_IOEXPANDER
-// Define I2S_STEPPER_STREAM if buffering is used.
+#define USE_I2S_OUT
+// Define USE_I2S_OUT_STREAM if buffering is used.
 // (there will be a delay between the specified I/O operation and the actual I/O execution)
-#define I2S_STEPPER_STREAM
+#define USE_I2S_OUT_STREAM
 #undef USE_RMT_STEPS
 
-#define I2S_IOEXPANDER_BCK      GPIO_NUM_22
-#define I2S_IOEXPANDER_WS       GPIO_NUM_17
-#define I2S_IOEXPANDER_DATA     GPIO_NUM_21
+#define I2S_OUT_BCK      GPIO_NUM_22
+#define I2S_OUT_WS       GPIO_NUM_17
+#define I2S_OUT_DATA     GPIO_NUM_21
 
 #define USE_TRINAMIC // Using at least 1 trinamic driver
 

@@ -96,7 +96,7 @@
     #include "grbl_unipolar.h"
 #endif
 
-#ifdef USE_I2S_IOEXPANDER
+#ifdef USE_I2S_OUT
     #include "i2s_out.h"
 #endif
 

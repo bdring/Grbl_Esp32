@@ -45,7 +45,16 @@
 
 #include "config.h" // I2S_OUT_PIN_BASE
 
-#ifdef USE_I2S_IOEXPANDER
+// If USE_I2S_OUT_STREAM is defined
+// but the prerequisite USE_I2S_OUT is not defined,
+// it is forced to be defined.
+#ifdef USE_I2S_OUT_STREAM
+  #ifndef USE_I2S_OUT
+    #define USE_I2S_OUT
+  #endif
+#endif
+
+#ifdef USE_I2S_OUT
 #include <stdint.h>
 
 /* Assert */

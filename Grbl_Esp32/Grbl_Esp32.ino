@@ -59,12 +59,12 @@ void setup() {
   #endif
     report_machine_type(CLIENT_SERIAL);
 #endif
-#ifdef USE_I2S_IOEXPANDER
+#ifdef USE_I2S_OUT
     // The I2S I/O expander must be initialized before it can access the enhanced GPIO port
     i2s_out_init_t param = {
-        .ws_pin = I2S_IOEXPANDER_WS,
-        .bck_pin = I2S_IOEXPANDER_BCK,
-        .data_pin = I2S_IOEXPANDER_DATA,
+        .ws_pin = I2S_OUT_WS,
+        .bck_pin = I2S_OUT_BCK,
+        .data_pin = I2S_OUT_DATA,
         .pulse_func = NULL,
         .pulse_period = F_TIMERS / F_STEPPER_TIMER, // default
     };
