@@ -397,10 +397,10 @@ static void stepper_pulse_func() {
 #ifdef I2S_STEPPER_STREAM
     //
     // Generate pulse (at least one pulse)
-    // The pulse resolution is limited by I2S_IOEXP_USEC_PER_PULSE
+    // The pulse resolution is limited by I2S_OUT_USEC_PER_PULSE
     //
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
-    i2s_out_push_sample(pulse_microseconds->get() / I2S_IOEXP_USEC_PER_PULSE);
+    i2s_out_push_sample(pulse_microseconds->get() / I2S_OUT_USEC_PER_PULSE);
     set_stepper_pins_on(0); // turn all off
 #else
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask

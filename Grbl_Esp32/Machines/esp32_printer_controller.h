@@ -82,14 +82,14 @@
 // Step and direction pins; these must be output-capable pins,
 // specifically ESP32 GPIO numbers 0..31
 // With the I2S I/O expander enabled, you can specify 128..159 as output pins.
-#define X_STEP_PIN              GPIO_NUM_I2S_IOEXP_9 /* 128 + 8 x 1 + 1 */
-#define X_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_7 /* 128 + 8 x 0 + 7 */
-#define Y_STEP_PIN              GPIO_NUM_I2S_IOEXP_5 /* 128 + 8 x 0 + 5 */
-#define Y_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_4 /* 128 + 8 x 0 + 4 */
-#define Z_STEP_PIN              GPIO_NUM_I2S_IOEXP_2 /* 128 + 8 x 0 + 2 */
-#define Z_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_1 /* 128 + 8 x 0 + 1 */
-#define A_STEP_PIN              GPIO_NUM_I2S_IOEXP_12 /* 128 + 8 x 1 + 4 */
-#define A_DIRECTION_PIN         GPIO_NUM_I2S_IOEXP_13 /* 128 x 8 x 1 + 5 */
+#define X_STEP_PIN              GPIO_NUM_I2S_OUT_9 /* 128 + 8 x 1 + 1 */
+#define X_DIRECTION_PIN         GPIO_NUM_I2S_OUT_7 /* 128 + 8 x 0 + 7 */
+#define Y_STEP_PIN              GPIO_NUM_I2S_OUT_5 /* 128 + 8 x 0 + 5 */
+#define Y_DIRECTION_PIN         GPIO_NUM_I2S_OUT_4 /* 128 + 8 x 0 + 4 */
+#define Z_STEP_PIN              GPIO_NUM_I2S_OUT_2 /* 128 + 8 x 0 + 2 */
+#define Z_DIRECTION_PIN         GPIO_NUM_I2S_OUT_1 /* 128 + 8 x 0 + 1 */
+#define A_STEP_PIN              GPIO_NUM_I2S_OUT_12 /* 128 + 8 x 1 + 4 */
+#define A_DIRECTION_PIN         GPIO_NUM_I2S_OUT_13 /* 128 x 8 x 1 + 5 */
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
@@ -182,7 +182,7 @@
 
 //#define DEFAULT_INVERT_LIMIT_PINS 1
 //#define DEFAULT_REPORT_INCHES 1
-#define DEFAULT_STEP_PULSE_MICROSECONDS I2S_IOEXP_USEC_PER_PULSE
+#define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
 
 #define DEFAULT_HOMING_ENABLE 1
 #define DEFAULT_HOMING_DIR_MASK 0 // move positive dir Z, negative X,Y
@@ -241,7 +241,7 @@
 #define I2S_IOEXPANDER_DATA     GPIO_NUM_21
 // Define I2S_STEPPER_STREAM if buffering is used.
 // (there will be a delay between the specified I/O operation and the actual I/O execution)
-#define I2S_IOEXP_NUM_BITS 16
+#define I2S_OUT_NUM_BITS 16
 #define I2S_STEPPER_STREAM
 
 // === Special Features

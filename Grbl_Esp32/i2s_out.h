@@ -43,67 +43,67 @@
 #ifndef i2s_out_h
 #define i2s_out_h
 
-#include "config.h" // I2S_IOEXP_PIN_BASE
+#include "config.h" // I2S_OUT_PIN_BASE
 
 #ifdef USE_I2S_IOEXPANDER
 #include <stdint.h>
 
 /* Assert */
-#if defined(I2S_IOEXP_NUM_BITS)
-  #if (I2S_IOEXP_NUM_BITS != 16) && (I2S_IOEXP_NUM_BITS != 32)
-    #error "I2S_IOEXP_NUM_BITS should be 16 or 32"
+#if defined(I2S_OUT_NUM_BITS)
+  #if (I2S_OUT_NUM_BITS != 16) && (I2S_OUT_NUM_BITS != 32)
+    #error "I2S_OUT_NUM_BITS should be 16 or 32"
   #endif
 #else
-  #define I2S_IOEXP_NUM_BITS 32
+  #define I2S_OUT_NUM_BITS 32
 #endif
 
-#define GPIO_NUM_I2S_IOEXP_0  (I2S_IOEXP_PIN_BASE + 0)
-#define GPIO_NUM_I2S_IOEXP_1  (I2S_IOEXP_PIN_BASE + 1)
-#define GPIO_NUM_I2S_IOEXP_2  (I2S_IOEXP_PIN_BASE + 2)
-#define GPIO_NUM_I2S_IOEXP_3  (I2S_IOEXP_PIN_BASE + 3)
-#define GPIO_NUM_I2S_IOEXP_4  (I2S_IOEXP_PIN_BASE + 4)
-#define GPIO_NUM_I2S_IOEXP_5  (I2S_IOEXP_PIN_BASE + 5)
-#define GPIO_NUM_I2S_IOEXP_6  (I2S_IOEXP_PIN_BASE + 6)
-#define GPIO_NUM_I2S_IOEXP_7  (I2S_IOEXP_PIN_BASE + 7)
-#define GPIO_NUM_I2S_IOEXP_8  (I2S_IOEXP_PIN_BASE + 8)
-#define GPIO_NUM_I2S_IOEXP_9  (I2S_IOEXP_PIN_BASE + 9)
-#define GPIO_NUM_I2S_IOEXP_10  (I2S_IOEXP_PIN_BASE + 10)
-#define GPIO_NUM_I2S_IOEXP_11  (I2S_IOEXP_PIN_BASE + 11)
-#define GPIO_NUM_I2S_IOEXP_12  (I2S_IOEXP_PIN_BASE + 12)
-#define GPIO_NUM_I2S_IOEXP_13  (I2S_IOEXP_PIN_BASE + 13)
-#define GPIO_NUM_I2S_IOEXP_14  (I2S_IOEXP_PIN_BASE + 14)
-#define GPIO_NUM_I2S_IOEXP_15  (I2S_IOEXP_PIN_BASE + 15)
+#define GPIO_NUM_I2S_OUT_0  (I2S_OUT_PIN_BASE + 0)
+#define GPIO_NUM_I2S_OUT_1  (I2S_OUT_PIN_BASE + 1)
+#define GPIO_NUM_I2S_OUT_2  (I2S_OUT_PIN_BASE + 2)
+#define GPIO_NUM_I2S_OUT_3  (I2S_OUT_PIN_BASE + 3)
+#define GPIO_NUM_I2S_OUT_4  (I2S_OUT_PIN_BASE + 4)
+#define GPIO_NUM_I2S_OUT_5  (I2S_OUT_PIN_BASE + 5)
+#define GPIO_NUM_I2S_OUT_6  (I2S_OUT_PIN_BASE + 6)
+#define GPIO_NUM_I2S_OUT_7  (I2S_OUT_PIN_BASE + 7)
+#define GPIO_NUM_I2S_OUT_8  (I2S_OUT_PIN_BASE + 8)
+#define GPIO_NUM_I2S_OUT_9  (I2S_OUT_PIN_BASE + 9)
+#define GPIO_NUM_I2S_OUT_10  (I2S_OUT_PIN_BASE + 10)
+#define GPIO_NUM_I2S_OUT_11  (I2S_OUT_PIN_BASE + 11)
+#define GPIO_NUM_I2S_OUT_12  (I2S_OUT_PIN_BASE + 12)
+#define GPIO_NUM_I2S_OUT_13  (I2S_OUT_PIN_BASE + 13)
+#define GPIO_NUM_I2S_OUT_14  (I2S_OUT_PIN_BASE + 14)
+#define GPIO_NUM_I2S_OUT_15  (I2S_OUT_PIN_BASE + 15)
 
-#if I2S_IOEXP_NUM_BITS > 16
-#define GPIO_NUM_I2S_IOEXP_16  (I2S_IOEXP_PIN_BASE + 16)
-#define GPIO_NUM_I2S_IOEXP_17  (I2S_IOEXP_PIN_BASE + 17)
-#define GPIO_NUM_I2S_IOEXP_18  (I2S_IOEXP_PIN_BASE + 18)
-#define GPIO_NUM_I2S_IOEXP_19  (I2S_IOEXP_PIN_BASE + 19)
-#define GPIO_NUM_I2S_IOEXP_20  (I2S_IOEXP_PIN_BASE + 20)
-#define GPIO_NUM_I2S_IOEXP_21  (I2S_IOEXP_PIN_BASE + 21)
-#define GPIO_NUM_I2S_IOEXP_22  (I2S_IOEXP_PIN_BASE + 22)
-#define GPIO_NUM_I2S_IOEXP_23  (I2S_IOEXP_PIN_BASE + 23)
-#define GPIO_NUM_I2S_IOEXP_24  (I2S_IOEXP_PIN_BASE + 24)
-#define GPIO_NUM_I2S_IOEXP_25  (I2S_IOEXP_PIN_BASE + 25)
-#define GPIO_NUM_I2S_IOEXP_26  (I2S_IOEXP_PIN_BASE + 26)
-#define GPIO_NUM_I2S_IOEXP_27  (I2S_IOEXP_PIN_BASE + 27)
-#define GPIO_NUM_I2S_IOEXP_28  (I2S_IOEXP_PIN_BASE + 28)
-#define GPIO_NUM_I2S_IOEXP_29  (I2S_IOEXP_PIN_BASE + 29)
-#define GPIO_NUM_I2S_IOEXP_30  (I2S_IOEXP_PIN_BASE + 30)
-#define GPIO_NUM_I2S_IOEXP_31  (I2S_IOEXP_PIN_BASE + 31)
+#if I2S_OUT_NUM_BITS > 16
+#define GPIO_NUM_I2S_OUT_16  (I2S_OUT_PIN_BASE + 16)
+#define GPIO_NUM_I2S_OUT_17  (I2S_OUT_PIN_BASE + 17)
+#define GPIO_NUM_I2S_OUT_18  (I2S_OUT_PIN_BASE + 18)
+#define GPIO_NUM_I2S_OUT_19  (I2S_OUT_PIN_BASE + 19)
+#define GPIO_NUM_I2S_OUT_20  (I2S_OUT_PIN_BASE + 20)
+#define GPIO_NUM_I2S_OUT_21  (I2S_OUT_PIN_BASE + 21)
+#define GPIO_NUM_I2S_OUT_22  (I2S_OUT_PIN_BASE + 22)
+#define GPIO_NUM_I2S_OUT_23  (I2S_OUT_PIN_BASE + 23)
+#define GPIO_NUM_I2S_OUT_24  (I2S_OUT_PIN_BASE + 24)
+#define GPIO_NUM_I2S_OUT_25  (I2S_OUT_PIN_BASE + 25)
+#define GPIO_NUM_I2S_OUT_26  (I2S_OUT_PIN_BASE + 26)
+#define GPIO_NUM_I2S_OUT_27  (I2S_OUT_PIN_BASE + 27)
+#define GPIO_NUM_I2S_OUT_28  (I2S_OUT_PIN_BASE + 28)
+#define GPIO_NUM_I2S_OUT_29  (I2S_OUT_PIN_BASE + 29)
+#define GPIO_NUM_I2S_OUT_30  (I2S_OUT_PIN_BASE + 30)
+#define GPIO_NUM_I2S_OUT_31  (I2S_OUT_PIN_BASE + 31)
 #endif
 
 /* 16-bit mode: 1000000 usec / ((160000000 Hz) / 10 / 2) x 16 bit/pulse x 2(stereo) = 4 usec/pulse */
 /* 32-bit mode: 1000000 usec / ((160000000 Hz) /  5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
-#define I2S_IOEXP_USEC_PER_PULSE 4
+#define I2S_OUT_USEC_PER_PULSE 4
 
-#define I2S_IOEXP_DMABUF_COUNT 5     /* number of DMA buffers to store data */
-#define I2S_IOEXP_DMABUF_LEN   2000  /* maximum size in bytes (4092 is DMA's limit) */
+#define I2S_OUT_DMABUF_COUNT 5     /* number of DMA buffers to store data */
+#define I2S_OUT_DMABUF_LEN   2000  /* maximum size in bytes (4092 is DMA's limit) */
 
-#define I2S_IOEXP_DELAY_MS    (I2S_IOEXP_DMABUF_LEN / sizeof(uint32_t) * (I2S_IOEXP_DMABUF_COUNT + 1) * I2S_IOEXP_USEC_PER_PULSE / 1000)
+#define I2S_OUT_DELAY_MS    (I2S_OUT_DMABUF_LEN / sizeof(uint32_t) * (I2S_OUT_DMABUF_COUNT + 1) * I2S_OUT_USEC_PER_PULSE / 1000)
 
-#define IS_I2S_IOEXP_PIN(IO) (((IO) >= I2S_IOEXP_PIN_BASE) && ((IO) < I2S_IOEXP_PIN_BASE + I2S_IOEXP_NUM_BITS))
-#define I2S_IOEXP_PIN_INDEX(IO) ((IO) - I2S_IOEXP_PIN_BASE)
+#define IS_I2S_OUT_PIN(IO) (((IO) >= I2S_OUT_PIN_BASE) && ((IO) < I2S_OUT_PIN_BASE + I2S_OUT_NUM_BITS))
+#define I2S_OUT_PIN_INDEX(IO) ((IO) - I2S_OUT_PIN_BASE)
 
 typedef void (*i2s_out_pulse_func_t)(void);
 
@@ -120,7 +120,7 @@ typedef struct {
                                              ^
                                 Latches the X bits when ws is switched to High
 
-        If I2S_IOEXP_PIN_BASE is set to 128,
+        If I2S_OUT_PIN_BASE is set to 128,
         bit0:Expanded GPIO 128, 1: Expanded GPIO 129, ..., v: Expanded GPIO 159
     */
     uint8_t ws_pin;
@@ -155,10 +155,10 @@ void i2s_out_write(uint8_t pin, uint8_t val);
 
 /*
     Set current pin state to the I2S bitstream buffer
-    (This call will generate a future I2S_IOEXP_USEC_PER_PULSE μs x N bitstream)
+    (This call will generate a future I2S_OUT_USEC_PER_PULSE μs x N bitstream)
 
     num: Number of samples to be generated
-         The number of samples is limited to (20 / I2S_IOEXP_USEC_PER_PULSE).
+         The number of samples is limited to (20 / I2S_OUT_USEC_PER_PULSE).
 
     return: number of puhsed samples
             0 .. no space for push
