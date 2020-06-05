@@ -165,6 +165,31 @@ class TrinamicDriver : public StandardStepper {
     int8_t spi_index;
 };
 
+class TrinamicUartDriver : public StandardStepper {
+  public:
+    void config_message();
+    void init();
+    void set_mode();
+    void read_settings();
+    void trinamic_test_response();
+    void trinamic_stepper_enable(bool enable);
+    void debug_message();
+    void set_homing_mode(bool is_homing);
+    void set_disable(bool disable);
+    bool test();
+
+    uint8_t _homing_mode;
+    uint8_t addr;
+
+    TrinamicUartDriver( uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_sense /*,uint16_t SW_RX_pin, uint16_t SW_TX_pin*/, uint8_t addr);
+
+  private:
+    TMC2208Stepper* tmcstepper;  // all other driver types are subclasses of this one
+    uint16_t _driver_part_number; // example: use 2130 for TMC2130
+    float _r_sense;
+    //uint32_t calc_tstep(float speed, float percent);
+};
+
 
 class UnipolarMotor : public Motor {
   public:

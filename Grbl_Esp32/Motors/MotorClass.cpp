@@ -40,6 +40,7 @@
         TMC2130 Datasheet https://www.trinamic.com/fileadmin/assets/Products/ICs_Documents/TMC2130_datasheet.pdf
 */
 #include "TrinamicDriverClass.cpp"
+#include "TrinamicUartDriverClass.cpp"
 #include "StandardStepperClass.cpp"
 #include "UnipolarMotorClass.cpp"
 #include "RcServoClass.cpp"
@@ -64,7 +65,20 @@ void init_motors() {
 
     // this WILL be done better with settings
 #ifdef X_TRINAMIC_DRIVER
+    #if(X_TRINAMIC_DRIVER == 2130)
+    {
     myMotor[X_AXIS][0] = new TrinamicDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_TRINAMIC_DRIVER, X_RSENSE, X_CS_PIN, get_next_trinamic_driver_index());
+    }
+    #endif
+    #if(X_TRINAMIC_DRIVER == 2208)
+    {
+        //HW_SERIAL version
+        myMotor[X_AXIS][0] = new TrinamicUartDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_TRINAMIC_DRIVER, X_RSENSE, 0);
+
+        //SW_SERIAL version
+        // myMotor[X_AXIS][0] = new TrinamicUartDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_TRINAMIC_DRIVER, X_RSENSE, GPIO_NUM_16,GPIO_NUM_17, 0); 
+    }
+    #endif
 #elif defined(X_SERVO_PIN)
     myMotor[X_AXIS][0] = new RcServo(X_AXIS, X_SERVO_PIN, X_SERVO_RANGE_MIN, X_SERVO_RANGE_MAX);
 #elif defined(X_UNIPOLAR)
@@ -76,7 +90,16 @@ void init_motors() {
 #endif
 
 #ifdef X2_TRINAMIC_DRIVER
+    #if(X2_TRINAMIC_DRIVER == 2130)
+    {
     myMotor[X_AXIS][1] = new TrinamicDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, X2_CS_PIN, get_next_trinamic_driver_index());
+    }
+    #endif
+    #if(X_TRINAMIC_DRIVER == 2208)
+    {
+        myMotor[X_AXIS][1] = new TrinamicUartDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, 0);
+    }
+    #endif
 #elif defined(X2_SERVO_PIN)
     myMotor[X_AXIS][1] = new RcServo(X2_AXIS, X2_SERVO_PIN), X2_SERVO_RANGE_MIN, X2_SERVO_RANGE_MAX;
 #elif defined(X2_UNIPOLAR)
@@ -90,7 +113,16 @@ void init_motors() {
 
     // this WILL be done better with settings
 #ifdef Y_TRINAMIC_DRIVER
+    #if(Y_TRINAMIC_DRIVER == 2130)
+    {
     myMotor[Y_AXIS][0] = new TrinamicDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, Y_CS_PIN, get_next_trinamic_driver_index());
+    }
+    #endif
+    #if(X_TRINAMIC_DRIVER == 2208)
+    {
+        myMotor[Y_AXIS][0] = new TrinamicUartDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, 0);
+    }
+    #endif
 #elif defined(Y_SERVO_PIN)
     myMotor[Y_AXIS][0] = new RcServo(Y_AXIS, Y_SERVO_PIN, Y_SERVO_RANGE_MIN, Y_SERVO_RANGE_MAX);
 #elif defined(Y_UNIPOLAR)
@@ -102,7 +134,16 @@ void init_motors() {
 #endif
 
 #ifdef Y2_TRINAMIC_DRIVER
+    #if(Y2_TRINAMIC_DRIVER == 2130)
+    {
     myMotor[Y_AXIS][1] = new TrinamicDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, Y2_CS_PIN, get_next_trinamic_driver_index());
+    }
+    #endif
+    #if(X_TRINAMIC_DRIVER == 2208)
+    {
+        myMotor[Y_AXIS][1] = new TrinamicUartDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, 0);
+    }
+    #endif
 #elif defined(Y2_SERVO_PIN)
     myMotor[Y_AXIS][1] = new RcServo(Y2_AXIS, Y2_SERVO_PIN, Y2_SERVO_RANGE_MIN, Y2_SERVO_RANGE_MAX);
 #elif defined(Y2_UNIPOLAR)
@@ -115,7 +156,16 @@ void init_motors() {
 
     // this WILL be done better with settings
 #ifdef Z_TRINAMIC_DRIVER
+    #if(Z_TRINAMIC_DRIVER == 2130)
+    {
     myMotor[Z_AXIS][0] = new TrinamicDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, Z_CS_PIN, get_next_trinamic_driver_index());
+    }
+    #endif
+    #if(X_TRINAMIC_DRIVER == 2208)
+    {
+        myMotor[Z_AXIS][0] = new TrinamicUartDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, 0);
+    }
+    #endif
 #elif defined(Z_SERVO_PIN)
     myMotor[Z_AXIS][0] = new RcServo(Z_AXIS, Z_SERVO_PIN, Z_SERVO_RANGE_MIN, Z_SERVO_RANGE_MAX);
 #elif defined(Z_UNIPOLAR)
@@ -129,7 +179,16 @@ void init_motors() {
 #endif
 
 #ifdef Z2_TRINAMIC_DRIVER
+    #if(Z2_TRINAMIC_DRIVER == 2130)
+    {
     myMotor[Z_AXIS][1] = new TrinamicDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, Z2_CS_PIN, get_next_trinamic_driver_index());
+    }
+    #endif
+    #if(X_TRINAMIC_DRIVER == 2208)
+    {
+        myMotor[Z_AXIS][1] = new TrinamicUartDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, 0);
+    }
+    #endif
 #elif defined(Z2_SERVO_PIN)
     myMotor[Z_AXIS][1] = new RcServo(Z2_AXIS, Z2_SERVO_PIN, Z2_SERVO_RANGE_MIN, Z2_SERVO_RANGE_MAX);
 #elif defined(Z2_UNIPOLAR)
