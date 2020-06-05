@@ -166,7 +166,7 @@ err_t FloatSetting::setStringValue(char* s) {
 
     float convertedValue;
     uint8_t len = strlen(s);
-    uint8_t retlen;
+    uint8_t retlen = 0;
     if (!read_float(s, &retlen, &convertedValue)
         || retlen != len)
     {
