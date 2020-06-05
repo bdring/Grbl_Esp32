@@ -1,5 +1,5 @@
 /*
-    i2s_ioexpander.h
+    i2s_out.h
     Part of Grbl_ESP32
 
     Header for basic GPIO expander using the ESP32 I2S peripheral
@@ -40,8 +40,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef i2s_ioexpander_h
-#define i2s_ioexpander_h
+#ifndef i2s_out_h
+#define i2s_out_h
 
 #include "config.h" // I2S_IOEXP_PIN_BASE
 

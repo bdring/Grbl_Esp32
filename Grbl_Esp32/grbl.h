@@ -97,7 +97,7 @@
 #endif
 
 #ifdef USE_I2S_IOEXPANDER
-    #include "i2s_ioexpander.h"
+    #include "i2s_out.h"
 #endif
 
 // Called if USE_MACHINE_INIT is defined

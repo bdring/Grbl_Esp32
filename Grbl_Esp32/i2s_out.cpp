@@ -1,8 +1,8 @@
 /*
-    i2s_ioexpander.cpp
+    i2s_out.cpp
     Part of Grbl_ESP32
 
-    Basic GPIO expander using the ESP32 I2S peripheral (I2S0 only)
+    Basic GPIO expander using the ESP32 I2S peripheral (output)
 
     2020    - Michiyasu Odaki
 
@@ -53,7 +53,7 @@
 
 #ifdef USE_I2S_IOEXPANDER
 
-#include "i2s_ioexpander.h"
+#include "i2s_out.h"
 
 //
 // Configrations for DMA connected I2S
