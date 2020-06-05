@@ -90,7 +90,7 @@ typedef enum {
 void init_motors();
 uint8_t get_next_trinamic_driver_index();
 void readSgTask(void* pvParameters);
-void motor_read_settings();
+void motors_read_settings();
 void motors_set_homing_mode(bool is_homing);
 void motors_set_disable(bool disable);
 void motors_set_direction_pins(uint8_t onMask);
@@ -208,6 +208,7 @@ class RcServo : public Motor {
     virtual void set_disable(bool disable);
     virtual void update();
     void read_settings();
+    void set_homing_mode(bool is_homing);
 
   protected:
     void set_location();
