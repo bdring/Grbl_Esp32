@@ -66,7 +66,7 @@ void init_motors() {
 #ifdef X2_TRINAMIC_DRIVER
     myMotor[X_AXIS][1] = new TrinamicDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, X2_CS_PIN, get_next_trinamic_driver_index());
 #elif defined(X2_SERVO_PIN)
-    myMotor[X_AXIS][1] = new RcServo(X2_AXIS, X2_SERVO_PIN), X2_SERVO_RANGE_MIN, X2_SERVO_RANGE_MAX;
+    myMotor[X_AXIS][1] = new RcServo(X2_AXIS, X2_SERVO_PIN, X2_SERVO_RANGE_MIN, X2_SERVO_RANGE_MAX);
 #elif defined(X2_UNIPOLAR)
     myMotor[X_AXIS][1] = new UnipolarMotor(X2_AXIS, X2_PIN_PHASE_0, X2_PIN_PHASE_1, X2_PIN_PHASE_2, X2_PIN_PHASE_3);
 #elif defined(X2_STEP_PIN)
