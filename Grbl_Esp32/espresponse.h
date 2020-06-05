@@ -43,8 +43,8 @@ class ESPResponseStream {
     ESPResponseStream();
   private:
     uint8_t _client;
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     bool _header_sent;
+#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     WebServer* _webserver;
     String _buffer;
 #endif
