@@ -281,7 +281,7 @@ static int i2s_out_start() {
 //
 // I2S out DMA Interrupts handler
 //
-static void IRAM_ATTR i2s_out_intr_handler_default(void *arg) {
+static void IRAM_ATTR i2s_out_intr_handler(void *arg) {
   lldesc_t *finish_desc;
   portBASE_TYPE high_priority_task_awoken = pdFALSE;
 
@@ -662,7 +662,7 @@ int i2s_out_init(i2s_out_init_t &init_param) {
                           );
 
   // Allocate and Enable the I2S interrupt
-  esp_intr_alloc(ETS_I2S0_INTR_SOURCE, 0, i2s_out_intr_handler_default, nullptr, &i2s_out_isr_handle);
+  esp_intr_alloc(ETS_I2S0_INTR_SOURCE, 0, i2s_out_intr_handler, nullptr, &i2s_out_isr_handle);
   esp_intr_enable(i2s_out_isr_handle);
 #endif
 
