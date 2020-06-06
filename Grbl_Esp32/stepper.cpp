@@ -420,6 +420,8 @@ void stepper_init() {
     // make the step pins outputs
 #ifdef USE_RMT_STEPS
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RMT Steps");
+#elif defined(USE_I2S_OUT_STREAM)
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "I2S Steps");
 #else
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Timed Steps");
 #endif
