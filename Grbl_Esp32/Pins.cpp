@@ -1,17 +1,16 @@
+#include "Arduino.h"
 #include "config.h"
 #include "Pins.h"
 
-const char* pinName(uint8_t pin) {
-    static char name[8];
+String pinName(uint8_t pin) {
     if (pin == UNDEFINED_PIN) {
         return "NONE";
     }
     if (pin < I2S_OUT_PIN_BASE) {
-        sprintf(name, "GPIO%02d", pin);
+        return String("GPIO_") + pin;
     } else {
-        sprintf(name, "I2SO%02d", pin - I2S_OUT_PIN_BASE);
+        return String("I2SO_") + (pin - I2S_OUT_PIN_BASE);
     }
-    return name;
 }
 
 #ifdef USE_I2S_OUT

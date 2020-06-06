@@ -86,7 +86,7 @@ void BESCSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "BESC spindle on Pin:%s Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
-                   pinName(_output_pin),
+                   pinName(_output_pin).c_str(),
                    BESC_MIN_PULSE_SECS * 1000.0, // convert to milliseconds
                    BESC_MAX_PULSE_SECS * 1000.0, // convert to milliseconds
                    _pwm_freq,

@@ -32,10 +32,10 @@ void UnipolarMotor :: config_message() {
                    MSG_LEVEL_INFO,
                    "%s Axis unipolar stepper motor Ph0:%s Ph1:%s Ph2:%s Ph3:%s",
                    _axis_name,
-                   pinName(_pin_phase0),
-                   pinName(_pin_phase1),
-                   pinName(_pin_phase2),
-                   pinName(_pin_phase3));
+                   pinName(_pin_phase0).c_str(),
+                   pinName(_pin_phase1).c_str(),
+                   pinName(_pin_phase2).c_str(),
+                   pinName(_pin_phase3).c_str());
 }
 
 void UnipolarMotor :: set_disable(bool disable) {

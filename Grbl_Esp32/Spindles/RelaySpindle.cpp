@@ -49,9 +49,9 @@ void RelaySpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "Relay spindle Output:%s, Enbl:%s, Dir:%s",
-                   pinName(_output_pin),
-                   pinName(_enable_pin), // 255 means pin not defined
-                   pinName(_direction_pin)); // 255 means pin not defined
+                   pinName(_output_pin).c_str(),
+                   pinName(_enable_pin).c_str(),
+                   pinName(_direction_pin).c_str());
 }
 
 uint32_t RelaySpindle::set_rpm(uint32_t rpm) {

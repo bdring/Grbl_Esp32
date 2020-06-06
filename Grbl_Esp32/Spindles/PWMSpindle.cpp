@@ -197,9 +197,9 @@ void PWMSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "PWM spindle Output:%s, Enbl:%s, Dir:%s, Freq:%dHz, Res:%dbits",
-                   pinName(_output_pin),
-                   pinName(_enable_pin),
-                   pinName(_direction_pin),
+                   pinName(_output_pin).c_str(),
+                   pinName(_enable_pin).c_str(),
+                   pinName(_direction_pin).c_str(),
                    _pwm_freq,
                    _pwm_precision);
 }

@@ -199,9 +199,9 @@ void HuanyangSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                     MSG_LEVEL_INFO,
                     "Huanyang Spindle Tx:%s Rx:%s RTS:%s",
-                    pinName(_txd_pin),
-                    pinName(_rxd_pin),
-                    pinName(_rts_pin));
+                    pinName(_txd_pin).c_str(),
+                    pinName(_rxd_pin).c_str(),
+                    pinName(_rts_pin).c_str());
 }
 
 /*
