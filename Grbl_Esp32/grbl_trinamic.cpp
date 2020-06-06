@@ -448,4 +448,14 @@ uint8_t get_next_trinamic_driver_index() {
 #endif
 }
 
+#ifdef USE_I2S_OUT
+//
+// Override default function and insert a short delay
+//
+void TMC2130Stepper::switchCSpin(bool state) {
+    digitalWrite(_pinCS, state);
+    delay(I2S_OUT_DELAY_MS);
+}
+#endif
+
 #endif
