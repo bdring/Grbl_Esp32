@@ -154,8 +154,6 @@ extern system_t sys;
 #define SPINDLE_STOP_OVR_RESTORE        bit(2)
 #define SPINDLE_STOP_OVR_RESTORE_CYCLE  bit(3)
 
-#define UNDEFINED_PIN 255  // Can be used to show a pin has no i/O assigned
-
 // NOTE: These position variables may need to be declared as volatiles, if problems arise.
 extern int32_t sys_position[N_AXIS];      // Real-time machine (aka home) position vector in steps.
 extern int32_t sys_probe_position[N_AXIS]; // Last probe position in machine coordinates and steps.
@@ -233,7 +231,4 @@ void sys_io_control(uint8_t io_num_mask, bool turnOn);
 int8_t sys_get_next_RMT_chan_num();
 int8_t sys_get_next_PWM_chan_num();
 
-void HAL_pinMode(uint8_t pin_num, uint8_t mode);
-void HAL_digitalWrite(uint8_t pin_num, uint8_t val);
-int HAL_digitalRead(uint8_t pin_num);
 #endif

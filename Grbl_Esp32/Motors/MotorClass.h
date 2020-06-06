@@ -24,6 +24,8 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Pins.h"
+
 #ifndef X_DISABLE_PIN
     #define X_DISABLE_PIN   UNDEFINED_PIN
 #endif

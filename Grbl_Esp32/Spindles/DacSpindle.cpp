@@ -57,17 +57,17 @@ void DacSpindle :: init() {
 void DacSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "DAC spindle Output:%d, Enbl:%d, Dir:%d, Res:8bits",
-                   report_pin_number(_output_pin),
-                   report_pin_number(_enable_pin), // 255 means pin not defined
-                   report_pin_number(_direction_pin)); // 255 means pin not defined                  
+                   "DAC spindle Output:%s, Enbl:%s, Dir:%s, Res:8bits",
+                   pinName(_output_pin),
+                   pinName(_enable_pin),
+                   pinName(_direction_pin));
 }
 
 uint32_t DacSpindle::set_rpm(uint32_t rpm) {
     if (_output_pin == UNDEFINED_PIN)
         return rpm;
 
-    uint32_t pwm_value;    
+    uint32_t pwm_value;
 
     // apply overrides and limits
     rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle speed override value (percent)

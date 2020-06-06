@@ -46,7 +46,7 @@ void StandardStepper :: init() {
 void StandardStepper :: init_step_dir_pins() {
     // TODO Step pin, but RMT complicates things
     _invert_step_pin = bit_istrue(step_invert_mask->get(), bit(axis_index));
-    HAL_pinMode(dir_pin, OUTPUT);
+    pinMode(dir_pin, OUTPUT);
 
 #ifdef USE_RMT_STEPS
     rmtConfig.rmt_mode = RMT_MODE_TX;
@@ -81,11 +81,11 @@ void StandardStepper :: init_step_dir_pins() {
     rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
 
 #else
-    HAL_pinMode(step_pin, OUTPUT);
+    pinMode(step_pin, OUTPUT);
 
 #endif // USE_RMT_STEPS
     if (disable_pin != UNDEFINED_PIN)
-        HAL_pinMode(disable_pin, OUTPUT);
+        pinMode(disable_pin, OUTPUT);
 
 }
 
@@ -93,19 +93,19 @@ void StandardStepper :: init_step_dir_pins() {
 void StandardStepper :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "%s Axis standard stepper motor Step:%d Dir:%d Disable:%d",
+                   "%s Axis standard stepper motor Step:%s Dir:%s Disable:%s",
                    _axis_name,
-                   step_pin,
-                   dir_pin,
-                   disable_pin);
+                   pinName(step_pin),
+                   pinName(dir_pin),
+                   pinName(disable_pin));
 }
 
 void StandardStepper :: set_direction_pins(uint8_t onMask) {
-    HAL_digitalWrite(dir_pin, (onMask & (1 << axis_index)));
+    digitalWrite(dir_pin, (onMask & (1 << axis_index)));
 }
 
 void StandardStepper :: set_disable(bool disable) {
 
     if (disable_pin != UNDEFINED_PIN)
-        HAL_digitalWrite(disable_pin, disable);    
+        digitalWrite(disable_pin, disable);
 }

@@ -50,6 +50,7 @@
 #include <stdatomic.h>
 
 #include "config.h"
+#include "Pins.h"
 
 #ifdef USE_I2S_OUT
 
@@ -117,11 +118,6 @@ static portMUX_TYPE i2s_out_pulser_spinlock = portMUX_INITIALIZER_UNLOCKED;
 #define I2S_OUT_PULSER_ENTER_CRITICAL()  portENTER_CRITICAL(&i2s_out_pulser_spinlock)
 #define I2S_OUT_PULSER_EXIT_CRITICAL()   portEXIT_CRITICAL(&i2s_out_pulser_spinlock)
 
-// To avoid recursive calls when we call the i2s_out function from an overridden digitalWrite(),
-// I'll make sure to call digitalWrite() in Arduino for ESP32.
-extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
-#define rawDigitalWrite(pin, val)   __digitalWrite(pin, val)
-
 //
 // Internal functions
 //
@@ -187,13 +183,13 @@ static int i2s_out_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) {
 }
 
 static int i2s_out_gpio_shiftout(uint32_t port_data) {
-  rawDigitalWrite(i2s_out_ws_pin, LOW);
+  __digitalWrite(i2s_out_ws_pin, LOW);
   for (int i = 0; i <I2S_OUT_NUM_BITS; i++) {
-    rawDigitalWrite(i2s_out_data_pin, !!(port_data & (1 << (I2S_OUT_NUM_BITS-1 - i))));
-    rawDigitalWrite(i2s_out_bck_pin, HIGH);
-    rawDigitalWrite(i2s_out_bck_pin, LOW);
+    __digitalWrite(i2s_out_data_pin, !!(port_data & (1 << (I2S_OUT_NUM_BITS-1 - i))));
+    __digitalWrite(i2s_out_bck_pin, HIGH);
+    __digitalWrite(i2s_out_bck_pin, LOW);
   }
-  rawDigitalWrite(i2s_out_ws_pin, HIGH); // Latch
+  __digitalWrite(i2s_out_ws_pin, HIGH); // Latch
   return 0;
 }
 
@@ -211,7 +207,7 @@ static int i2s_out_stop() {
 
   // Force WS to LOW before detach
   // This operation prevents unintended WS edge trigger when detach
-  rawDigitalWrite(i2s_out_ws_pin, LOW);
+  __digitalWrite(i2s_out_ws_pin, LOW);
 
   // Now, detach GPIO pin from I2S
   i2s_out_gpio_detach(i2s_out_ws_pin, i2s_out_bck_pin, i2s_out_data_pin);
@@ -219,7 +215,7 @@ static int i2s_out_stop() {
   // Force BCK to LOW
   // After the TX module is stopped, BCK always seems to be in LOW.
   // However, I'm going to do it manually to ensure the BCK's LOW.
-  rawDigitalWrite(i2s_out_bck_pin, LOW);
+  __digitalWrite(i2s_out_bck_pin, LOW);
 
   // Transmit recovery data to 74HC595
   uint32_t port_data = atomic_load(&i2s_out_port_data); // current expanded port value

@@ -43,6 +43,7 @@
 #include "../grbl.h"
 #include <driver/dac.h>
 #include "driver/uart.h"
+#include "Pins.h"
 
 
 // ===============  No floats! ===========================

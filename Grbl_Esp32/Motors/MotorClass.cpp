@@ -206,41 +206,41 @@ void init_motors() {
 #ifdef USE_STEPSTICK
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using StepStick Mode");
 #ifdef STEPPER_MS1
-    HAL_pinMode(STEPPER_MS1, OUTPUT);
-    HAL_digitalWrite(STEPPER_MS1, HIGH);
+    pinMode(STEPPER_MS1, OUTPUT);
+    digitalWrite(STEPPER_MS1, HIGH);
 #endif
 #ifdef STEPPER_MS2
-    HAL_pinMode(STEPPER_MS2, OUTPUT);
-    HAL_digitalWrite(STEPPER_MS2, HIGH);
+    pinMode(STEPPER_MS2, OUTPUT);
+    digitalWrite(STEPPER_MS2, HIGH);
 #endif
 #ifdef STEPPER_X_MS3
-    HAL_pinMode(STEPPER_X_MS3, OUTPUT);
-    HAL_digitalWrite(STEPPER_X_MS3, HIGH);
+    pinMode(STEPPER_X_MS3, OUTPUT);
+    digitalWrite(STEPPER_X_MS3, HIGH);
 #endif
 #ifdef STEPPER_Y_MS3
-    HAL_pinMode(STEPPER_Y_MS3, OUTPUT);
-    HAL_digitalWrite(STEPPER_Y_MS3, HIGH);
+    pinMode(STEPPER_Y_MS3, OUTPUT);
+    digitalWrite(STEPPER_Y_MS3, HIGH);
 #endif
 #ifdef STEPPER_Z_MS3
-    HAL_pinMode(STEPPER_Z_MS3, OUTPUT);
-    HAL_digitalWrite(STEPPER_Z_MS3, HIGH);
+    pinMode(STEPPER_Z_MS3, OUTPUT);
+    digitalWrite(STEPPER_Z_MS3, HIGH);
 #endif
 #ifdef STEPPER_A_MS3
-    HAL_pinMode(STEPPER_A_MS3, OUTPUT);
-    HAL_digitalWrite(STEPPER_A_MS3, HIGH);
+    pinMode(STEPPER_A_MS3, OUTPUT);
+    digitalWrite(STEPPER_A_MS3, HIGH);
 #endif
 #ifdef STEPPER_B_MS3
-    HAL_pinMode(STEPPER_B_MS3, OUTPUT);
-    HAL_digitalWrite(STEPPER_B_MS3, HIGH);
+    pinMode(STEPPER_B_MS3, OUTPUT);
+    digitalWrite(STEPPER_B_MS3, HIGH);
 #endif
 #ifdef STEPPER_C_MS3
-    HAL_pinMode(STEPPER_C_MS3, OUTPUT);
-    HAL_digitalWrite(STEPPER_C_MS3, HIGH);
+    pinMode(STEPPER_C_MS3, OUTPUT);
+    digitalWrite(STEPPER_C_MS3, HIGH);
 #endif
 #ifdef STEPPER_RESET
     // !RESET pin on steppers  (MISO On Schematic)
-    HAL_pinMode(STEPPER_RESET, OUTPUT);
-    HAL_digitalWrite(STEPPER_RESET, HIGH);
+    pinMode(STEPPER_RESET, OUTPUT);
+    digitalWrite(STEPPER_RESET, HIGH);
 #endif
     // Note !SLEEP is set via jumper
 
@@ -251,7 +251,7 @@ void init_motors() {
                    MSG_LEVEL_INFO,
                    "Global stepper enable pin:%d",
                    STEPPERS_DISABLE_PIN);
-    HAL_pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
+    pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
 #endif
 
     // certain motors need features to be turned on. Check them here
@@ -319,7 +319,7 @@ void motors_set_disable(bool disable) {
     unipolar_disable(disable);
 #endif
 #ifdef STEPPERS_DISABLE_PIN
-    HAL_digitalWrite(STEPPERS_DISABLE_PIN, disable);
+    digitalWrite(STEPPERS_DISABLE_PIN, disable);
 #endif
 
 // now loop through all the motors

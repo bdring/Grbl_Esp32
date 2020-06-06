@@ -43,7 +43,7 @@
 #ifndef i2s_out_h
 #define i2s_out_h
 
-#include "config.h" // I2S_OUT_PIN_BASE
+#include "Pins.h"
 
 // If USE_I2S_OUT_STREAM is defined
 // but the prerequisite USE_I2S_OUT is not defined,
@@ -66,6 +66,7 @@
   #define I2S_OUT_NUM_BITS 32
 #endif
 
+#define I2SO(n) (I2S_OUT_PIN_BASE + n)
 #define GPIO_NUM_I2S_OUT_0  (I2S_OUT_PIN_BASE + 0)
 #define GPIO_NUM_I2S_OUT_1  (I2S_OUT_PIN_BASE + 1)
 #define GPIO_NUM_I2S_OUT_2  (I2S_OUT_PIN_BASE + 2)

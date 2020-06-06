@@ -66,18 +66,18 @@ special things your machine needs at startup.
 void machine_init()
 {
   // Enable steppers
-  HAL_digitalWrite(STEPPERS_DISABLE_PIN_X, LOW); // enable
-  HAL_digitalWrite(STEPPERS_DISABLE_PIN_Y, LOW); // enable
-  HAL_digitalWrite(STEPPERS_DISABLE_PIN_Z, LOW); // enable
-  HAL_digitalWrite(STEPPERS_DISABLE_PIN_A, LOW); // enable
+  digitalWrite(STEPPERS_DISABLE_PIN_X, LOW); // enable
+  digitalWrite(STEPPERS_DISABLE_PIN_Y, LOW); // enable
+  digitalWrite(STEPPERS_DISABLE_PIN_Z, LOW); // enable
+  digitalWrite(STEPPERS_DISABLE_PIN_A, LOW); // enable
 
-  // HAL_digitalWrite(FAN1_PIN, LOW); // comment out for JTAG debugging
+  // digitalWrite(FAN1_PIN, LOW); // comment out for JTAG debugging
 
-  HAL_digitalWrite(FAN2_PIN, LOW); // disable
-  HAL_digitalWrite(FAN3_PIN, LOW); // disable
+  digitalWrite(FAN2_PIN, LOW); // disable
+  digitalWrite(FAN3_PIN, LOW); // disable
 
-  HAL_digitalWrite(BED_PIN, LOW); // disable
-  HAL_digitalWrite(NOZZLE_PIN, LOW); // disable
+  digitalWrite(BED_PIN, LOW); // disable
+  digitalWrite(NOZZLE_PIN, LOW); // disable
 }
 #endif
 

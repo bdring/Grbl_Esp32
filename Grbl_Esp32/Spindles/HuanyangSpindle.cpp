@@ -196,12 +196,12 @@ bool HuanyangSpindle :: get_pins_and_settings() {
 }
 
 void HuanyangSpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, 
-                    MSG_LEVEL_INFO, 
-                    "Huanyang Spindle Tx:%d Rx:%d RTS:%d", 
-                    report_pin_number(_txd_pin),
-                    report_pin_number(_rxd_pin), 
-                    report_pin_number(_rts_pin));
+    grbl_msg_sendf(CLIENT_SERIAL,
+                    MSG_LEVEL_INFO,
+                    "Huanyang Spindle Tx:%s Rx:%s RTS:%s",
+                    pinName(_txd_pin),
+                    pinName(_rxd_pin),
+                    pinName(_rts_pin));
 }
 
 /*

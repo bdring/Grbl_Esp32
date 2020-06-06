@@ -746,11 +746,3 @@ char report_get_axis_letter(uint8_t axis) {
         return '?';
     }
 }
-
-// used to report the pin nhumber or -1 for undefined.
-int16_t report_pin_number(uint8_t pin_number) {
-    if (pin_number == UNDEFINED_PIN)
-        return -1;
-    else
-        return (int16_t)pin_number;
-}

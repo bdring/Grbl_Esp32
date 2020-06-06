@@ -495,66 +495,66 @@ void set_stepper_pins_on(uint8_t onMask) {
     onMask ^= step_invert_mask->get(); // invert pins as required by invert mask
 #ifdef X_STEP_PIN
 #ifndef X2_STEP_PIN // if not a ganged axis
-    HAL_digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+    digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        HAL_digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+        digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        HAL_digitalWrite(X2_STEP_PIN, (onMask & (1 << X_AXIS)));
+        digitalWrite(X2_STEP_PIN, (onMask & (1 << X_AXIS)));
 #endif
 #endif
 #ifdef Y_STEP_PIN
 #ifndef Y2_STEP_PIN // if not a ganged axis
-    HAL_digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+    digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        HAL_digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+        digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        HAL_digitalWrite(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
+        digitalWrite(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
 #endif
 #endif
 
 #ifdef Z_STEP_PIN
 #ifndef Z2_STEP_PIN // if not a ganged axis
-    HAL_digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+    digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        HAL_digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+        digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        HAL_digitalWrite(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
+        digitalWrite(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
 #endif
 #endif
 
 #ifdef A_STEP_PIN
 #ifndef A2_STEP_PIN // if not a ganged axis
-    HAL_digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
+    digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        HAL_digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
+        digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        HAL_digitalWrite(A2_STEP_PIN, (onMask & (1 << A_AXIS)));
+        digitalWrite(A2_STEP_PIN, (onMask & (1 << A_AXIS)));
 #endif
 #endif
 
 #ifdef B_STEP_PIN
 #ifndef B2_STEP_PIN // if not a ganged axis
-    HAL_digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
+    digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        HAL_digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
+        digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        HAL_digitalWrite(B2_STEP_PIN, (onMask & (1 << B_AXIS)));
+        digitalWrite(B2_STEP_PIN, (onMask & (1 << B_AXIS)));
 #endif
 #endif
 
 #ifdef C_STEP_PIN
 #ifndef C2_STEP_PIN // if not a ganged axis
-    HAL_digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
+    digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        HAL_digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
+        digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        HAL_digitalWrite(C2_STEP_PIN, (onMask & (1 << C_AXIS)));
+        digitalWrite(C2_STEP_PIN, (onMask & (1 << C_AXIS)));
 #endif
 #endif
 }
@@ -1219,7 +1219,7 @@ void IRAM_ATTR Stepper_Timer_Stop() {
 bool get_stepper_disable() { // returns true if steppers are disabled
     bool disabled = false;
 #ifdef STEPPERS_DISABLE_PIN
-    disabled = HAL_digitalRead(STEPPERS_DISABLE_PIN);
+    disabled = digitalRead(STEPPERS_DISABLE_PIN);
 #else
     return false; // thery are never disabled if there is no pin defined
 #endif

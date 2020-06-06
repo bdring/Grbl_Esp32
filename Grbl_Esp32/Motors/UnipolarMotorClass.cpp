@@ -30,15 +30,15 @@ void UnipolarMotor :: init() {
 void UnipolarMotor :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "%s Axis unipolar stepper motor Ph0:%d Ph1:%d Ph2:%d Ph3:%d",
+                   "%s Axis unipolar stepper motor Ph0:%s Ph1:%s Ph2:%s Ph3:%s",
                    _axis_name,
-                   _pin_phase0,
-                   _pin_phase1,
-                   _pin_phase2,
-                   _pin_phase3);
+                   pinName(_pin_phase0),
+                   pinName(_pin_phase1),
+                   pinName(_pin_phase2),
+                   pinName(_pin_phase3));
 }
 
-void UnipolarMotor :: set_disable(bool disable) {  
+void UnipolarMotor :: set_disable(bool disable) {
     if (disable) {
         digitalWrite(_pin_phase0, 0);
         digitalWrite(_pin_phase1, 0);

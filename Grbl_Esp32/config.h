@@ -713,6 +713,4 @@ Some features should not be changed. See notes below.
 #define RPM_LINE_A3 9.528342e-03
 #define RPM_LINE_B3 3.306286e+01
 
-#define I2S_OUT_PIN_BASE 128
-
 #endif
