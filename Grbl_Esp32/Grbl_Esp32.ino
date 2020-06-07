@@ -67,6 +67,7 @@ void setup() {
         .data_pin = I2S_OUT_DATA,
         .pulse_func = NULL,
         .pulse_period = F_TIMERS / F_STEPPER_TIMER, // default
+        .init_val = 0,
     };
     i2s_out_init(param);
 #endif

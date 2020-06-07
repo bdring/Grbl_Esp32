@@ -466,6 +466,9 @@ int i2s_out_init(i2s_out_init_t &init_param) {
     // already initialized
     return -1;
   }
+
+  atomic_store(&i2s_out_port_data, init_param.init_val);
+
   // To make sure hardware is enabled before any hardware register operations.
   periph_module_reset(PERIPH_I2S0_MODULE);
   periph_module_enable(PERIPH_I2S0_MODULE);
@@ -520,7 +523,7 @@ int i2s_out_init(i2s_out_init_t &init_param) {
   }
 
   // Initialize
-  i2s_clear_o_dma_buffers(0);
+  i2s_clear_o_dma_buffers(init_param.init_val);
   o_dma.rw_pos = 0;
   o_dma.current = NULL;
   o_dma.queue = xQueueCreate(I2S_OUT_DMABUF_COUNT, sizeof(uint32_t *));
@@ -574,10 +577,11 @@ int i2s_out_init(i2s_out_init_t &init_param) {
 
 #ifdef USE_I2S_OUT_STREAM
   I2S0.conf_chan.tx_chan_mod = 4; // 3:right+constant 4:left+constant (when tx_msb_right = 1)
+  I2S0.conf_single_data = 0; // initial constant value
 #else
   I2S0.conf_chan.tx_chan_mod = 3; // 3:right+constant 4:left+constant (when tx_msb_right = 1)
+  I2S0.conf_single_data = init_param.init_val; // initial constant value
 #endif
-  I2S0.conf_single_data = 0; // initial constant value
 #if I2S_OUT_NUM_BITS == 16
   I2S0.fifo_conf.tx_fifo_mod = 0; // 0: 16-bit dual channel data, 3: 32-bit single channel data
   I2S0.fifo_conf.rx_fifo_mod = 0; // 0: 16-bit dual channel data, 3: 32-bit single channel data

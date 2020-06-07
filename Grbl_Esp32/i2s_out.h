@@ -136,6 +136,7 @@ typedef struct {
     uint8_t data_pin;
     i2s_out_pulse_func_t pulse_func;
     uint32_t pulse_period; // aka step rate.
+    uint32_t init_val;
 } i2s_out_init_t;
 
 /*
