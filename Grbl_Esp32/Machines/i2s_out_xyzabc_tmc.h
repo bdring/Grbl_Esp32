@@ -110,3 +110,5 @@
 
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
+
+#define I2S_OUT_INITIAL_VALUE (bit(3) | bit(6) | bit(11) | bit(14) | bit(19) | bit(22))
