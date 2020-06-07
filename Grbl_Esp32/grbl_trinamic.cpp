@@ -187,6 +187,43 @@
 
 void Trinamic_Init() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TMCStepper Init using Library Ver 0x%06x", TMCSTEPPER_VERSION);
+#ifdef X_DRIVER_TMC2130
+    digitalWrite(X_CS_PIN, HIGH);
+#endif
+#ifdef X2_DRIVER_TMC2130
+    digitalWrite(X2_CS_PIN, HIGH);
+#endif
+#ifdef Y_DRIVER_TMC2130
+    digitalWrite(Y_CS_PIN, HIGH);
+#endif
+#ifdef Y2_DRIVER_TMC2130
+    digitalWrite(Y2_CS_PIN, HIGH);
+#endif
+#ifdef Z_DRIVER_TMC2130
+    digitalWrite(Z_CS_PIN, HIGH);
+#endif
+#ifdef Z2_DRIVER_TMC2130
+    digitalWrite(Z2_CS_PIN, HIGH);
+#endif
+#ifdef A_DRIVER_TMC2130
+    digitalWrite(A_CS_PIN, HIGH);
+#endif
+#ifdef A2_DRIVER_TMC2130
+    digitalWrite(A2_CS_PIN, HIGH);
+#endif
+#ifdef B_DRIVER_TMC2130
+    digitalWrite(B_CS_PIN, HIGH);
+#endif
+#ifdef B2_DRIVER_TMC2130
+    digitalWrite(B2_CS_PIN, HIGH);
+#endif
+#ifdef C_DRIVER_TMC2130
+    digitalWrite(C_CS_PIN, HIGH);
+#endif
+#ifdef C2_DRIVER_TMC2130
+    digitalWrite(C2_CS_PIN, HIGH);
+#endif
+
     SPI.begin();
 #ifdef USE_MACHINE_TRINAMIC_INIT
     machine_trinamic_setup();
