@@ -21,10 +21,12 @@
 #define TRINAMIC_FCLK       12700000.0 // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
 
 TrinamicDriver :: TrinamicDriver(uint8_t axis_index,
-                                 gpio_num_t step_pin,
+                                 uint8_t step_pin,
                                  uint8_t dir_pin,
+                                 uint8_t disable_pin,
+                                 uint8_t cs_pin,
                                  uint16_t driver_part_number,
-                                 float r_sense, uint8_t cs_pin,
+                                 float r_sense, 
                                  int8_t spi_index) {
     type_id = TRINAMIC_SPI_MOTOR;
     this->axis_index = axis_index % MAX_AXES;
@@ -33,6 +35,7 @@ TrinamicDriver :: TrinamicDriver(uint8_t axis_index,
     _r_sense = r_sense;
     this->step_pin = step_pin;
     this->dir_pin  = dir_pin;
+    this->disable_pin = disable_pin;
     this->cs_pin = cs_pin;
     this->spi_index = spi_index;
     init();
@@ -52,9 +55,10 @@ void TrinamicDriver :: init() {
     config_message();
     // TODO step pins
     init_step_dir_pins(); // from StandardStepper
+    //
     tmcstepper->begin();
-    //trinamic_test_response(); // Try communicating with motor. Prints an error if there is a problem.
-    read_settings(); // pull info from settings
+    trinamic_test_response(); // Try communicating with motor. Prints an error if there is a problem.
+    read_settings(); // pull info from settings   
     set_mode();
 
     _is_homing = false;
@@ -66,14 +70,17 @@ void TrinamicDriver :: init() {
 */
 void TrinamicDriver :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
-                   MSG_LEVEL_INFO,
-                   "%s Axis Trinamic driver TMC%d Step:%d Dir:%d CS:%d Index:%d",
-                   _axis_name,
-                   _driver_part_number,
-                   step_pin,
-                   dir_pin,
-                   cs_pin,
-                   spi_index);
+                    MSG_LEVEL_INFO,
+                    "%s Axis Trinamic driver TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d",
+                    _axis_name,
+                    _driver_part_number,
+                    pinName(step_pin).c_str(),
+                    pinName(dir_pin).c_str(),
+                    pinName(cs_pin).c_str(),
+                    pinName(disable_pin).c_str(),
+                    spi_index);
+
+                   
 }
 
 bool TrinamicDriver :: test() {
@@ -132,7 +139,7 @@ void TrinamicDriver :: set_mode() {
     if (_is_homing && (_homing_mode ==  TRINAMIC_HOMING_STALLGUARD))
         mode = TRINAMIC_RUN_MODE_STALLGUARD;
     else
-        mode = TRINAMIC_RUN_MODE;
+        mode = TRINAMIC_RUN_MODE_STEALTHCHOP;
 
     if (mode == TRINAMIC_RUN_MODE_STEALTHCHOP) {
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "STEALTHCHOP");
@@ -198,6 +205,11 @@ uint32_t TrinamicDriver :: calc_tstep(float speed, float percent) {
 // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,
 // but that can be hardwired that way.
 void TrinamicDriver :: set_disable(bool disable) {
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis disable %d", _axis_name, disable);
+
+    if (disable_pin != UNDEFINED_PIN)
+        digitalWrite(disable_pin, disable);
+
 #ifdef USE_TRINAMIC_ENABLE
     if (disable)
         tmcstepper->toff(0);

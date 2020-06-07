@@ -447,7 +447,6 @@ uint8_t get_next_trinamic_driver_index() {
     return -1;
 #endif
 }
-
 #ifdef USE_I2S_OUT
 //
 // Override default function and insert a short delay

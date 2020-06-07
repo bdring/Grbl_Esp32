@@ -156,7 +156,14 @@ class StandardStepper : public Motor {
 
 class TrinamicDriver : public StandardStepper {
   public:
-    TrinamicDriver(uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_sense, uint8_t cs_pin, int8_t spi_index);
+    TrinamicDriver(uint8_t axis_index,
+                        uint8_t step_pin,
+                        uint8_t dir_pin,
+                        uint8_t disable_pin,
+                        uint8_t cs_pin,
+                        uint16_t driver_part_number,
+                        float r_sense, 
+                        int8_t spi_index);
 
     void config_message();
     void init();
