@@ -207,8 +207,7 @@ uint32_t TrinamicDriver :: calc_tstep(float speed, float percent) {
 void TrinamicDriver :: set_disable(bool disable) {
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis disable %d", _axis_name, disable);
 
-    if (disable_pin != UNDEFINED_PIN)
-        digitalWrite(disable_pin, disable);
+    digitalWrite(disable_pin, disable);
 
 #ifdef USE_TRINAMIC_ENABLE
     if (disable)

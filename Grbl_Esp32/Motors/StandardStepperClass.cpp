@@ -84,9 +84,7 @@ void StandardStepper :: init_step_dir_pins() {
     pinMode(step_pin, OUTPUT);
 
 #endif // USE_RMT_STEPS
-    if (disable_pin != UNDEFINED_PIN)
-        pinMode(disable_pin, OUTPUT);
-
+    pinMode(disable_pin, OUTPUT);
 }
 
 
@@ -105,7 +103,5 @@ void StandardStepper :: set_direction_pins(uint8_t onMask) {
 }
 
 void StandardStepper :: set_disable(bool disable) {
-
-    if (disable_pin != UNDEFINED_PIN)
-        digitalWrite(disable_pin, disable);
+    digitalWrite(disable_pin, disable);
 }

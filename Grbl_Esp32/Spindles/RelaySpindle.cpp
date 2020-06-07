@@ -32,12 +32,8 @@ void RelaySpindle::init() {
         return;
 
     pinMode(_output_pin, OUTPUT);
-
-    if (_enable_pin != UNDEFINED_PIN)
-        pinMode(_enable_pin, OUTPUT);
-
-    if (_direction_pin != UNDEFINED_PIN)
-        pinMode(_direction_pin, OUTPUT);
+    pinMode(_enable_pin, OUTPUT);
+    pinMode(_direction_pin, OUTPUT);
 
     is_reversable = (_direction_pin != UNDEFINED_PIN);
 
@@ -59,12 +55,7 @@ uint32_t RelaySpindle::set_rpm(uint32_t rpm) {
         return rpm;
 
     sys.spindle_speed = rpm;
-
-    if (rpm == 0) {
-        set_output(0);
-    } else {
-        set_output(1);
-    }
+    set_output(rpm != 0);
 
     if (_off_with_zero_speed)
         set_enable_pin(rpm != 0);
