@@ -42,6 +42,22 @@ Spindle *spindle;
 
 
 void setup() {
+#ifdef USE_I2S_OUT
+#ifndef I2S_OUT_INITIAL_VALUE
+#define I2S_OUT_INITIAL_VALUE 0
+#endif
+    // The I2S I/O expander must be initialized before it can access the enhanced GPIO port
+    i2s_out_init_t param = {
+        .ws_pin = I2S_OUT_WS,
+        .bck_pin = I2S_OUT_BCK,
+        .data_pin = I2S_OUT_DATA,
+        .pulse_func = NULL,
+        .pulse_period = F_TIMERS / F_STEPPER_TIMER, // default
+        .init_val = I2S_OUT_INITIAL_VALUE,
+    };
+    i2s_out_init(param);
+    delay(I2S_OUT_DELAY_MS);
+#endif
     WiFi.persistent(false);
     WiFi.disconnect(true);
     WiFi.enableSTA(false);
@@ -58,21 +74,6 @@ void setup() {
     #define MACHINE_STRING MACHINE_NAME
   #endif
     report_machine_type(CLIENT_SERIAL);
-#endif
-#ifdef USE_I2S_OUT
-#ifndef I2S_OUT_INITIAL_VALUE
-#define I2S_OUT_INITIAL_VALUE 0
-#endif
-    // The I2S I/O expander must be initialized before it can access the enhanced GPIO port
-    i2s_out_init_t param = {
-        .ws_pin = I2S_OUT_WS,
-        .bck_pin = I2S_OUT_BCK,
-        .data_pin = I2S_OUT_DATA,
-        .pulse_func = NULL,
-        .pulse_period = F_TIMERS / F_STEPPER_TIMER, // default
-        .init_val = I2S_OUT_INITIAL_VALUE,
-    };
-    i2s_out_init(param);
 #endif
     settings_init(); // Load Grbl settings from EEPROM
     stepper_init();  // Configure stepper pins and interrupt timers
