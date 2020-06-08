@@ -190,50 +190,62 @@ void Trinamic_Init() {
 #ifdef X_DRIVER_TMC2130
     pinMode(X_CS_PIN, OUTPUT);
     digitalWrite(X_CS_PIN, HIGH);
+    TRINAMIC_X.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef X2_DRIVER_TMC2130
     pinMode(X2_CS_PIN, OUTPUT);
     digitalWrite(X2_CS_PIN, HIGH);
+    TRINAMIC_X2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef Y_DRIVER_TMC2130
     pinMode(Y_CS_PIN, OUTPUT);
     digitalWrite(Y_CS_PIN, HIGH);
+    TRINAMIC_Y.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef Y2_DRIVER_TMC2130
     pinMode(Y2_CS_PIN, OUTPUT);
     digitalWrite(Y2_CS_PIN, HIGH);
+    TRINAMIC_Y2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef Z_DRIVER_TMC2130
     pinMode(Z_CS_PIN, OUTPUT);
     digitalWrite(Z_CS_PIN, HIGH);
+    TRINAMIC_Z.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef Z2_DRIVER_TMC2130
     pinMode(Z2_CS_PIN, OUTPUT);
     digitalWrite(Z2_CS_PIN, HIGH);
+    TRINAMIC_Z2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef A_DRIVER_TMC2130
     pinMode(A_CS_PIN, OUTPUT);
     digitalWrite(A_CS_PIN, HIGH);
+    TRINAMIC_A.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef A2_DRIVER_TMC2130
     pinMode(A2_CS_PIN, OUTPUT);
     digitalWrite(A2_CS_PIN, HIGH);
+    TRINAMIC_A2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef B_DRIVER_TMC2130
     pinMode(B_CS_PIN, OUTPUT);
     digitalWrite(B_CS_PIN, HIGH);
+    TRINAMIC_B.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef B2_DRIVER_TMC2130
     pinMode(B2_CS_PIN, OUTPUT);
     digitalWrite(B2_CS_PIN, HIGH);
+    TRINAMIC_B2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef C_DRIVER_TMC2130
     pinMode(C_CS_PIN, OUTPUT);
     digitalWrite(C_CS_PIN, HIGH);
+    TRINAMIC_C.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef C2_DRIVER_TMC2130
     pinMode(C2_CS_PIN, OUTPUT);
     digitalWrite(C2_CS_PIN, HIGH);
+    TRINAMIC_C2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 
     SPI.begin();
