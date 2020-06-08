@@ -114,7 +114,7 @@ Some features should not be changed. See notes below.
 //CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
 #define ENABLE_BLUETOOTH // enable bluetooth
 
-//#define ENABLE_SD_CARD // enable use of SD Card to run jobs
+#define ENABLE_SD_CARD // enable use of SD Card to run jobs
 
 #define ENABLE_WIFI //enable wifi
 
@@ -136,7 +136,7 @@ Some features should not be changed. See notes below.
 
 #define ENABLE_CAPTIVE_PORTAL
 //#define ENABLE_AUTHENTICATION
-//CONFIGURE_EYECATCH_END (DO NOT MODIFY  THIS LINE)
+//CONFIGURE_EYECATCH_END (DO NOT MODIFY THIS LINE)
 #define NAMESPACE "GRBL"
 
 #ifdef ENABLE_AUTHENTICATION
