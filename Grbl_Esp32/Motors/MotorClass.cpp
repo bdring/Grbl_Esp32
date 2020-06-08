@@ -364,30 +364,29 @@ void motors_set_direction_pins(uint8_t onMask) {
 }
 
 // for testing
-/*
-
+#ifndef USE_TRINAMIC
 // returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
 // need to be inserted into the order of axes.
 uint8_t get_next_trinamic_driver_index() {
+#ifdef TRINAMIC_DAISY_CHAIN
     static uint8_t index = 1; // they start at 1
-#ifndef TRINAMIC_DAISY_CHAIN
-    return -1;
-#else
     return index++;
+#else
+    return -1;
 #endif
 }
-
 #ifdef USE_I2S_OUT
 //
 // Override default function and insert a short delay
 //
 void TMC2130Stepper::switchCSpin(bool state) {
     digitalWrite(_pinCS, state);
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "CS (%d)", state);
     delay(I2S_OUT_DELAY_MS);
 }
 #endif
-*/
+
+#endif
+
 // ============================== Class Methods ================================================
 
 Motor :: Motor() {
