@@ -697,15 +697,6 @@ int i2s_out_init(i2s_out_init_t &init_param) {
 /*
   Initialize I2S out by default parameters.
 
-    i2s_out_init_t default_param = {
-        .ws_pin = I2S_OUT_WS,
-        .bck_pin = I2S_OUT_BCK,
-        .data_pin = I2S_OUT_DATA,
-        .pulse_func = NULL,
-        .pulse_period = I2S_OUT_USEC_PER_PULSE,
-        .init_val = 0,
-    };
-
   return -1 ... already initialized
 */
 int i2s_out_init() {
