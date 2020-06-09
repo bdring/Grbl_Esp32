@@ -140,12 +140,27 @@ typedef struct {
 } i2s_out_init_t;
 
 /*
-  Initialize I2S and DMA for the stepper bitstreamer
-  use I2S0, I2S0 isr, DMA, and FIFO(xQueue).
+  Initialize I2S out by parameters.
 
   return -1 ... already initialized
 */
 int i2s_out_init(i2s_out_init_t &init_param);
+
+/*
+  Initialize I2S out by default parameters.
+
+    i2s_out_init_t default_param = {
+        .ws_pin = I2S_OUT_WS,
+        .bck_pin = I2S_OUT_BCK,
+        .data_pin = I2S_OUT_DATA,
+        .pulse_func = NULL,
+        .pulse_period = I2S_OUT_USEC_PER_PULSE,
+        .init_val = I2S_OUT_INIT_VAL,
+    };
+
+  return -1 ... already initialized
+*/
+int i2s_out_init();
 
 /*
   Get a bit state from the internal pin state var.
