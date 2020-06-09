@@ -681,4 +681,34 @@ int i2s_out_init(i2s_out_init_t &init_param) {
 
   return 0;
 }
+
+#ifndef I2S_OUT_WS
+#define I2S_OUT_WS    GPIO_NUM_17
+#endif
+#ifndef I2S_OUT_BCK
+#define I2S_OUT_BCK   GPIO_NUM_22
+#endif
+#ifndef I2S_OUT_DATA
+#define I2S_OUT_DATA  GPIO_NUM_21
+#endif
+#ifndef I2S_OUT_INIT_VAL
+#define I2S_OUT_INIT_VAL  0
+#endif
+/*
+  Initialize I2S out by default parameters.
+
+  return -1 ... already initialized
+*/
+int i2s_out_init() {
+    i2s_out_init_t default_param = {
+        .ws_pin = I2S_OUT_WS,
+        .bck_pin = I2S_OUT_BCK,
+        .data_pin = I2S_OUT_DATA,
+        .pulse_func = NULL,
+        .pulse_period = I2S_OUT_USEC_PER_PULSE,
+        .init_val = I2S_OUT_INIT_VAL,
+    };
+    return i2s_out_init(default_param);
+}
+
 #endif
