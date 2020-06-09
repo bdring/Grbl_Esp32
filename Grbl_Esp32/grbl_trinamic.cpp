@@ -187,64 +187,79 @@
 
 void Trinamic_Init() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TMCStepper Init using Library Ver 0x%06x", TMCSTEPPER_VERSION);
+
+    // On Slack Grbl_Esp32 channel, Mitch Bradley suggested.
+    // "Any pin that could possibly be implemented with a GPIO pin needs
+    //  a pinMode before the first active use. pinMode(OUTPUT) does not have to
+    //  precede digitalWrite(HIGH), as the following sequence is useful:
+    //    digitalWrite(GPIOn, HIGH);
+    //    pinMode(GPIOn, OUTPUT);
+    //  The reason for that sequence is that, for pins that default to input mode/tri-state,
+    //  setting it HIGH first prevents a low-going transition if the pin output register
+    //  happens to be LOW when you select OUTPUT mode."
+
+    // Notes on using I2S out:
+    //  The TMC connected to the I2S out requires SPI clocking down (approximately 100 KHz)
+    //  to work in concert with slow CS operations by I2S out.
+
 #ifdef X_DRIVER_TMC2130
-    pinMode(X_CS_PIN, OUTPUT);
     digitalWrite(X_CS_PIN, HIGH);
+    pinMode(X_CS_PIN, OUTPUT);
     TRINAMIC_X.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef X2_DRIVER_TMC2130
-    pinMode(X2_CS_PIN, OUTPUT);
     digitalWrite(X2_CS_PIN, HIGH);
+    pinMode(X2_CS_PIN, OUTPUT);
     TRINAMIC_X2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef Y_DRIVER_TMC2130
-    pinMode(Y_CS_PIN, OUTPUT);
     digitalWrite(Y_CS_PIN, HIGH);
+    pinMode(Y_CS_PIN, OUTPUT);
     TRINAMIC_Y.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef Y2_DRIVER_TMC2130
-    pinMode(Y2_CS_PIN, OUTPUT);
     digitalWrite(Y2_CS_PIN, HIGH);
+    pinMode(Y2_CS_PIN, OUTPUT);
     TRINAMIC_Y2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef Z_DRIVER_TMC2130
-    pinMode(Z_CS_PIN, OUTPUT);
     digitalWrite(Z_CS_PIN, HIGH);
+    pinMode(Z_CS_PIN, OUTPUT);
     TRINAMIC_Z.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef Z2_DRIVER_TMC2130
-    pinMode(Z2_CS_PIN, OUTPUT);
     digitalWrite(Z2_CS_PIN, HIGH);
+    pinMode(Z2_CS_PIN, OUTPUT);
     TRINAMIC_Z2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef A_DRIVER_TMC2130
-    pinMode(A_CS_PIN, OUTPUT);
     digitalWrite(A_CS_PIN, HIGH);
+    pinMode(A_CS_PIN, OUTPUT);
     TRINAMIC_A.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef A2_DRIVER_TMC2130
-    pinMode(A2_CS_PIN, OUTPUT);
     digitalWrite(A2_CS_PIN, HIGH);
+    pinMode(A2_CS_PIN, OUTPUT);
     TRINAMIC_A2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef B_DRIVER_TMC2130
-    pinMode(B_CS_PIN, OUTPUT);
     digitalWrite(B_CS_PIN, HIGH);
+    pinMode(B_CS_PIN, OUTPUT);
     TRINAMIC_B.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef B2_DRIVER_TMC2130
-    pinMode(B2_CS_PIN, OUTPUT);
     digitalWrite(B2_CS_PIN, HIGH);
+    pinMode(B2_CS_PIN, OUTPUT);
     TRINAMIC_B2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef C_DRIVER_TMC2130
-    pinMode(C_CS_PIN, OUTPUT);
     digitalWrite(C_CS_PIN, HIGH);
+    pinMode(C_CS_PIN, OUTPUT);
     TRINAMIC_C.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 #ifdef C2_DRIVER_TMC2130
-    pinMode(C2_CS_PIN, OUTPUT);
     digitalWrite(C2_CS_PIN, HIGH);
+    pinMode(C2_CS_PIN, OUTPUT);
     TRINAMIC_C2.setSPISpeed(TRINAMIC_SPI_FREQ);
 #endif
 
