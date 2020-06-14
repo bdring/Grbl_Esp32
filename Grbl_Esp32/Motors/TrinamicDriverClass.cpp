@@ -1,9 +1,12 @@
 /*
     TrinamicDriverClass.cpp
     This is used for Trinamic SPI controlled stepper motor drivers.
+
     TODO: SPI enable
+
     Part of Grbl_ESP32
     2020 -	Bart Dring
+
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -14,11 +17,10 @@
     GNU General Public License for more details.
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
+
 */
 #include <TMCStepper.h>
 #include "TrinamicDriverClass.h"
-
-#define TRINAMIC_FCLK       12700000.0 // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
 
 TrinamicDriver :: TrinamicDriver(uint8_t axis_index,
                                  uint8_t step_pin,
@@ -26,7 +28,7 @@ TrinamicDriver :: TrinamicDriver(uint8_t axis_index,
                                  uint8_t disable_pin,
                                  uint8_t cs_pin,
                                  uint16_t driver_part_number,
-                                 float r_sense, 
+                                 float r_sense,
                                  int8_t spi_index) {
     type_id = TRINAMIC_SPI_MOTOR;
     this->axis_index = axis_index % MAX_AXES;
@@ -38,11 +40,7 @@ TrinamicDriver :: TrinamicDriver(uint8_t axis_index,
     this->disable_pin = disable_pin;
     this->cs_pin = cs_pin;
     this->spi_index = spi_index;
-    init();
-}
 
-void TrinamicDriver :: init() {
-    set_axis_name();
     if (_driver_part_number == 2130)
         tmcstepper = new TMC2130Stepper(cs_pin, _r_sense, spi_index);
     else if (_driver_part_number == 5160)
@@ -52,13 +50,29 @@ void TrinamicDriver :: init() {
         return;
     }
 
-    config_message();
-    // TODO step pins
+    set_axis_name();
+
     init_step_dir_pins(); // from StandardStepper
-    //
+
+    digitalWrite(cs_pin, HIGH);
+    pinMode(cs_pin, OUTPUT);
+
+    // use slower speed if I2S
+    if (cs_pin >= I2S_OUT_PIN_BASE)
+        tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
+
+    config_message();
+
+    // init() must be called later, after all TMC drivers have CS pins setup.
+}
+
+void TrinamicDriver :: init() {
+
+    SPI.begin();  // this will get called for each motor, but does not seem to hurt anything
+
     tmcstepper->begin();
-    trinamic_test_response(); // Try communicating with motor. Prints an error if there is a problem.
-    read_settings(); // pull info from settings   
+    test(); // Try communicating with motor. Prints an error if there is a problem.
+    read_settings(); // pull info from settings
     set_mode();
 
     _is_homing = false;
@@ -70,48 +84,34 @@ void TrinamicDriver :: init() {
 */
 void TrinamicDriver :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
-                    MSG_LEVEL_INFO,
-                    "%s Axis Trinamic driver TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d",
-                    _axis_name,
-                    _driver_part_number,
-                    pinName(step_pin).c_str(),
-                    pinName(dir_pin).c_str(),
-                    pinName(cs_pin).c_str(),
-                    pinName(disable_pin).c_str(),
-                    spi_index);
-
-                   
+                   MSG_LEVEL_INFO,
+                   "%s Axis Trinamic driver TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d",
+                   _axis_name,
+                   _driver_part_number,
+                   pinName(step_pin).c_str(),
+                   pinName(dir_pin).c_str(),
+                   pinName(cs_pin).c_str(),
+                   pinName(disable_pin).c_str(),
+                   spi_index);
 }
 
 bool TrinamicDriver :: test() {
+    char lib_ver[32];
+    sprintf(lib_ver, "TMCStepper Ver 0x%06x", TMCSTEPPER_VERSION);
+
     switch (tmcstepper->test_connection()) {
     case 1:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection", _axis_name);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection. %s", _axis_name, lib_ver);
         return false;
     case 2:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power", _axis_name);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power. %s", _axis_name, lib_ver);
         return false;
     default:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed", _axis_name);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed. %s", _axis_name, lib_ver);
         return true;
     }
 }
 
-/*
-    This basically pings the driver. It will print an error message if there is one.
-*/
-void TrinamicDriver :: trinamic_test_response() {
-    switch (tmcstepper->test_connection()) {
-    case 1:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection", _axis_name);
-        break;
-    case 2:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power", _axis_name);
-        break;
-    default:
-        return;
-    }
-}
 
 /*
     Read setting and send them to the driver. Called at init() and whenever related settings change
@@ -169,7 +169,7 @@ void TrinamicDriver :: set_mode() {
 }
 
 /*
-    This is the stallguard tuning info. It is call debug, so it could be generic across all class.
+    This is the stallguard tuning info. It is call debug, so it could be generic across all classes.
 */
 void TrinamicDriver :: debug_message() {
 
@@ -219,3 +219,4 @@ void TrinamicDriver :: set_disable(bool disable) {
     // the pin based enable could be added here.
     // This would be for individual motors, not the single pin for all motors.
 }
+

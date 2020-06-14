@@ -21,7 +21,7 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define MACHINE_NAME            "ESP32 SPI 6 Axis Driver Board (Trinamic)"
+#define MACHINE_NAME            "ESP32 SPI 6 Axis Driver Board (Trinamic Motorclass)"
 
 #ifdef N_AXIS
         #undef N_AXIS
@@ -41,7 +41,11 @@
 #define I2S_OUT_WS       GPIO_NUM_17
 #define I2S_OUT_DATA     GPIO_NUM_21
 
-//#define USE_TRINAMIC // Using at least 1 trinamic driver
+#define ENABLE_STALLGUARD_TUNING
+#define TRINAMIC_RUN_MODE           TRINAMIC_RUN_MODE_STEALTHCHOP
+//#define TRINAMIC_RUN_MODE           TRINAMIC_RUN_MODE_COOLSTEP
+//#define TRINAMIC_RUN_MODE           TRINAMIC_RUN_MODE_STALLGUARD
+#define TRINAMIC_HOMING_MODE        TRINAMIC_HOMING_STALLGUARD
 
 #define X_TRINAMIC_DRIVER       2130
 #define X_DISABLE_PIN           GPIO_NUM_I2S_OUT_0
@@ -67,7 +71,7 @@
 #define A_TRINAMIC_DRIVER       2130
 #define A_DIRECTION_PIN         GPIO_NUM_I2S_OUT_12
 #define A_STEP_PIN              GPIO_NUM_I2S_OUT_13
-#define A_DISABLE_PIN            GPIO_NUM_I2S_OUT_15
+#define A_DISABLE_PIN           GPIO_NUM_I2S_OUT_15
 #define A_CS_PIN                GPIO_NUM_I2S_OUT_14
 #define A_RSENSE                X_RSENSE
 
@@ -85,11 +89,12 @@
 #define C_CS_PIN                GPIO_NUM_I2S_OUT_22
 #define C_RSENSE                X_RSENSE
 
+/*
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM // only one spindle at a time
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 #define SPINDLE_DIR_PIN         GPIO_NUM_16
-
+*/
 #define X_LIMIT_PIN             GPIO_NUM_36
 #define Y_LIMIT_PIN             GPIO_NUM_39
 #define Z_LIMIT_PIN             GPIO_NUM_34
@@ -97,6 +102,9 @@
 #define B_LIMIT_PIN             GPIO_NUM_32
 #define C_LIMIT_PIN             GPIO_NUM_33
 #define LIMIT_MASK              B111111
+
+#define SPINDLE_TYPE SPINDLE_TYPE_RELAY
+#define SPINDLE_OUTPUT_PIN GPIO_NUM_26
 
 #define PROBE_PIN               GPIO_NUM_25
 

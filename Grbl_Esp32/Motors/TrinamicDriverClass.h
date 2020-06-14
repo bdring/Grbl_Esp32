@@ -30,6 +30,10 @@
 #define TMC2130_RSENSE_DEFAULT  0.11f
 #define TMC5160_RSENSE_DEFAULT  0.075f
 
+#define TRINAMIC_SPI_FREQ 100000
+
+#define TRINAMIC_FCLK       12700000.0 // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
+
 // ============ defaults =================
 #ifndef TRINAMIC_RUN_MODE
     #define TRINAMIC_RUN_MODE           TRINAMIC_RUN_MODE_COOLSTEP
@@ -45,8 +49,5 @@
 
 #include "MotorClass.h"
 #include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
-
-
-
 
 #endif

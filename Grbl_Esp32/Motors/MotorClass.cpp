@@ -31,6 +31,7 @@
         TMC2130 Datasheet https://www.trinamic.com/fileadmin/assets/Products/ICs_Documents/TMC2130_datasheet.pdf
 */
 
+#include "grbl.h"
 #include "TrinamicDriverClass.cpp"
 #include "StandardStepperClass.cpp"
 #include "UnipolarMotorClass.cpp"
@@ -206,43 +207,42 @@ void init_motors() {
 #ifdef USE_STEPSTICK
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using StepStick Mode");
 #ifdef STEPPER_MS1
-    pinMode(STEPPER_MS1, OUTPUT);
     digitalWrite(STEPPER_MS1, HIGH);
+    pinMode(STEPPER_MS1, OUTPUT);
 #endif
 #ifdef STEPPER_MS2
-    pinMode(STEPPER_MS2, OUTPUT);
     digitalWrite(STEPPER_MS2, HIGH);
+    pinMode(STEPPER_MS2, OUTPUT);
 #endif
 #ifdef STEPPER_X_MS3
-    pinMode(STEPPER_X_MS3, OUTPUT);
     digitalWrite(STEPPER_X_MS3, HIGH);
+    pinMode(STEPPER_X_MS3, OUTPUT);
 #endif
 #ifdef STEPPER_Y_MS3
-    pinMode(STEPPER_Y_MS3, OUTPUT);
     digitalWrite(STEPPER_Y_MS3, HIGH);
+    pinMode(STEPPER_Y_MS3, OUTPUT);
 #endif
 #ifdef STEPPER_Z_MS3
-    pinMode(STEPPER_Z_MS3, OUTPUT);
     digitalWrite(STEPPER_Z_MS3, HIGH);
+    pinMode(STEPPER_Z_MS3, OUTPUT);
 #endif
 #ifdef STEPPER_A_MS3
-    pinMode(STEPPER_A_MS3, OUTPUT);
     digitalWrite(STEPPER_A_MS3, HIGH);
+    pinMode(STEPPER_A_MS3, OUTPUT);
 #endif
 #ifdef STEPPER_B_MS3
-    pinMode(STEPPER_B_MS3, OUTPUT);
     digitalWrite(STEPPER_B_MS3, HIGH);
+    pinMode(STEPPER_B_MS3, OUTPUT);
 #endif
 #ifdef STEPPER_C_MS3
-    pinMode(STEPPER_C_MS3, OUTPUT);
     digitalWrite(STEPPER_C_MS3, HIGH);
+    pinMode(STEPPER_C_MS3, OUTPUT);
 #endif
 #ifdef STEPPER_RESET
     // !RESET pin on steppers  (MISO On Schematic)
-    pinMode(STEPPER_RESET, OUTPUT);
     digitalWrite(STEPPER_RESET, HIGH);
+    pinMode(STEPPER_RESET, OUTPUT);
 #endif
-    // Note !SLEEP is set via jumper
 
 #endif
 
@@ -257,11 +257,16 @@ void init_motors() {
     // certain motors need features to be turned on. Check them here
     for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
         for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            if (myMotor[axis][gang_index]->type_id == RC_SERVO_MOTOR || myMotor[axis][gang_index]->type_id == SOLENOID) 
+            if (myMotor[axis][gang_index]->type_id == RC_SERVO_MOTOR || myMotor[axis][gang_index]->type_id == SOLENOID)
                 need_servo_task = true;
-                
-            if (myMotor[axis][gang_index]->type_id == UNIPOLAR_MOTOR) 
+
+            if (myMotor[axis][gang_index]->type_id == UNIPOLAR_MOTOR)
                 motor_class_steps = true;
+
+            // CS Pins of all TMC motors need to be setup before any can be talked to
+            // ...so init cannot be called via the constructors. This inits them all.
+            if (myMotor[axis][gang_index]->type_id == TRINAMIC_SPI_MOTOR)
+                myMotor[axis][gang_index]->init();
         }
     }
 
@@ -275,6 +280,21 @@ void init_motors() {
                                 0 // core
                                );
     }
+
+    // tuning gets turned on if this is defined and laser mode is on at boot time.
+#ifdef ENABLE_STALLGUARD_TUNING  // TODO move this to a setting
+    if (laser_mode->get()) {
+        xTaskCreatePinnedToCore(readSgTask,     // task
+                                "readSgTask", // name for task
+                                4096,   // size of task stack
+                                NULL,   // parameters
+                                1, // priority
+                                &readSgTaskHandle,
+                                0 // core
+                               );
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Stallgaurd tunuing enabled");
+    }
+#endif
 
 }
 
@@ -314,8 +334,8 @@ void motors_set_disable(bool disable) {
 #ifdef USE_TRINAMIC_ENABLE
     trinamic_stepper_enable(!disable);
 #endif
-   if (step_enable_invert->get()) {
-         disable = !disable;    // Apply pin invert.
+    if (step_enable_invert->get()) {
+        disable = !disable;    // Apply pin invert.
     }
 #ifdef USE_UNIPOLAR
     unipolar_disable(disable);
@@ -324,7 +344,7 @@ void motors_set_disable(bool disable) {
     digitalWrite(STEPPERS_DISABLE_PIN, disable);
 #endif
 
-// now loop through all the motors
+    // now loop through all the motors
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
             myMotor[axis][gang_index]->set_disable(disable);
@@ -333,9 +353,8 @@ void motors_set_disable(bool disable) {
 
 void motors_read_settings() {
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
             myMotor[axis][gang_index]->read_settings();
-        }
     }
 }
 
@@ -375,6 +394,31 @@ uint8_t get_next_trinamic_driver_index() {
     return -1;
 #endif
 }
+
+/*
+    This will print StallGuard data that is useful for tuning.
+*/
+void readSgTask(void* pvParameters) {
+    TickType_t xLastWakeTime;
+    const TickType_t xreadSg = 500;  // in ticks (typically ms)
+    uint32_t tstep;
+    uint8_t sg;
+
+    xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
+    while (true) { // don't ever return from this or the task dies
+        if (laser_mode->get()) { // use laser mode as a way to turn off this data TODO... Needs its own setting
+            for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
+                for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+                    if (myMotor[axis][gang_index]->is_active)// get rid of this
+                        myMotor[axis][gang_index]->debug_message();
+                }
+            }
+        }
+        vTaskDelayUntil(&xLastWakeTime, xreadSg);
+    }
+}
+
+
 #ifdef USE_I2S_OUT
 //
 // Override default function and insert a short delay
