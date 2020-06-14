@@ -44,7 +44,7 @@ uint8_t set_sd_state(uint8_t flag);
 void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client);
 boolean openFile(fs::FS& fs, const char* path);
 boolean closeFile();
-boolean readFileLine(char* line);
+boolean readFileLine(char* line, int len);
 void readFile(fs::FS& fs, const char* path);
 float sd_report_perc_complete();
 uint32_t sd_get_current_line_number();

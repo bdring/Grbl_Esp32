@@ -73,7 +73,7 @@
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is
 // a pointer to the result variable. Returns true when it succeeds
-uint8_t read_float(char* line, uint8_t* char_counter, float* float_ptr);
+uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr);
 
 // Non-blocking delay function used for general operation and suspend features.
 void delay_sec(float seconds, uint8_t mode);
@@ -85,7 +85,8 @@ void delay_ms(uint16_t ms);
 float hypot_f(float x, float y);
 
 float convert_delta_vector_to_unit_vector(float* vector);
-float limit_value_by_axis_maximum(float* max_value, float* unit_vec);
+float limit_acceleration_by_axis_maximum(float* unit_vec);
+float limit_rate_by_axis_maximum(float* unit_vec);
 
 float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
 float map_float(float x, float in_min, float in_max, float out_min, float out_max);

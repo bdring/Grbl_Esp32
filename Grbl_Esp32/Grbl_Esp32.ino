@@ -89,7 +89,7 @@ void setup() {
     // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
     // things uncontrollably. Very bad.
 #ifdef HOMING_INIT_LOCK
-    if (bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE))  sys.state = STATE_ALARM;
+    if (homing_enable->get())  sys.state = STATE_ALARM;
 #endif
     spindle_select(SPINDLE_TYPE);
 #ifdef ENABLE_WIFI
