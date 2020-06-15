@@ -2,11 +2,9 @@
     TrinamicDriverClass.cpp
     This is used for Trinamic SPI controlled stepper motor drivers.
 
-    TODO: SPI enable
-
     Part of Grbl_ESP32
     2020 -	Bart Dring
-
+    
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -85,7 +83,7 @@ void TrinamicDriver :: init() {
 void TrinamicDriver :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "%s Axis Trinamic driver TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d",
+                   "%s Axis Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d",
                    _axis_name,
                    _driver_part_number,
                    pinName(step_pin).c_str(),
@@ -134,14 +132,16 @@ void TrinamicDriver :: set_homing_mode(bool is_homing) {
     Coolstep mode, so it will need to switch to Coolstep when homing
 */
 void TrinamicDriver :: set_mode() {
-    uint8_t mode;
+
 
     if (_is_homing && (_homing_mode ==  TRINAMIC_HOMING_STALLGUARD))
-        mode = TRINAMIC_RUN_MODE_STALLGUARD;
-    else
-        mode = TRINAMIC_RUN_MODE_STEALTHCHOP;
+        _mode = TRINAMIC_RUN_MODE_STALLGUARD;
+    else {
+        _mode = TRINAMIC_RUN_MODE;
+                
+}
 
-    if (mode == TRINAMIC_RUN_MODE_STEALTHCHOP) {
+    if (_mode == TRINAMIC_RUN_MODE_STEALTHCHOP) {
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "STEALTHCHOP");
         tmcstepper->toff(5);
         tmcstepper->en_pwm_mode(1);      // Enable extremely quiet stepping
@@ -155,13 +155,13 @@ void TrinamicDriver :: set_mode() {
         tmcstepper->sfilt(1);
         tmcstepper->diag1_pushpull(0); // 0 = active low
         tmcstepper->diag1_stall(1); // stallguard i/o is on diag1
-        if (mode == TRINAMIC_RUN_MODE_COOLSTEP) {
+        if (_mode == TRINAMIC_RUN_MODE_COOLSTEP) {
             tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
             tmcstepper->THIGH(NORMAL_THIGH);
         } else {
             uint32_t tcoolthrs = calc_tstep(homing_feed_rate->get(), 150.0);
             uint32_t thigh = calc_tstep(homing_feed_rate->get(), 60.0);
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Tstep range %d - %d SGV:%d", thigh, tcoolthrs, tmcstepper->sgt());
+            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Tstep range %d - %d SGV:%d", thigh, tcoolthrs, tmcstepper->sgt());
             tmcstepper->TCOOLTHRS(tcoolthrs);
             tmcstepper->THIGH(thigh);
         }
@@ -171,23 +171,24 @@ void TrinamicDriver :: set_mode() {
 /*
     This is the stallguard tuning info. It is call debug, so it could be generic across all classes.
 */
-void TrinamicDriver :: debug_message() {
+void TrinamicDriver :: debug_message() {    
 
     uint32_t tstep = tmcstepper->TSTEP();
 
-    if (tstep == 0xFFFFF || tstep == -1)   // if axis is not moving return
+    if (tstep == 0xFFFFF || tstep == -1) {   // if axis is not moving return
         return;
+    }     
 
     float feedrate = st_get_realtime_rate(); //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "%s Stallguard  %d   SG_Val: %04d   Rate: %05.0fmm/min,   %d",
-                   _axis_name,
+                   "%s Stallguard %d   SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
+                   _axis_name,                   
                    tmcstepper->stallguard(),
                    tmcstepper->sg_result(),
                    feedrate,
-                   tstep);
+                   axis_settings[axis_index]->stallguard->get());
 }
 
 // calculate a tstep from a rate

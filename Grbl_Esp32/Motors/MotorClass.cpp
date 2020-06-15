@@ -48,8 +48,7 @@ rmt_config_t rmtConfig;
 
 bool motor_class_steps; // true if at least one motor class is handling steps
 
-void init_motors() {
-    bool need_servo_task = false;
+void init_motors() {    
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Init Motors");
 
 #ifdef X_TRINAMIC_DRIVER
@@ -254,12 +253,13 @@ void init_motors() {
     pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
 #endif
 
+    
+
+
     // certain motors need features to be turned on. Check them here
     for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
         for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            if (myMotor[axis][gang_index]->type_id == RC_SERVO_MOTOR || myMotor[axis][gang_index]->type_id == SOLENOID)
-                need_servo_task = true;
-
+            
             if (myMotor[axis][gang_index]->type_id == UNIPOLAR_MOTOR)
                 motor_class_steps = true;
 
@@ -270,7 +270,20 @@ void init_motors() {
         }
     }
 
-    if (need_servo_task) {
+    if (motors_have_type_id(TRINAMIC_SPI_MOTOR)) {
+        xTaskCreatePinnedToCore(readSgTask,     // task
+                                "readSgTask", // name for task
+                                4096,   // size of task stack
+                                NULL,   // parameters
+                                1, // priority
+                                &readSgTaskHandle,
+                                0 // core
+                               );
+        if (stallguard_debug_mask->get() != 0 )
+            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Stallgaurd debug enabled: %d", stallguard_debug_mask->get());
+    }
+
+    if (motors_have_type_id(RC_SERVO_MOTOR)) {
         xTaskCreatePinnedToCore(servoUpdateTask,     // task
                                 "servoUpdateTask", // name for task
                                 4096,   // size of task stack
@@ -280,22 +293,6 @@ void init_motors() {
                                 0 // core
                                );
     }
-
-    // tuning gets turned on if this is defined and laser mode is on at boot time.
-#ifdef ENABLE_STALLGUARD_TUNING  // TODO move this to a setting
-    if (laser_mode->get()) {
-        xTaskCreatePinnedToCore(readSgTask,     // task
-                                "readSgTask", // name for task
-                                4096,   // size of task stack
-                                NULL,   // parameters
-                                1, // priority
-                                &readSgTaskHandle,
-                                0 // core
-                               );
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Stallgaurd tunuing enabled");
-    }
-#endif
-
 }
 
 
@@ -317,6 +314,17 @@ void servoUpdateTask(void* pvParameters) {
 
         vTaskDelayUntil(&xLastWakeTime, xUpdate);
     }
+}
+
+// do any motors match the type_id
+bool motors_have_type_id(motor_class_id_t id) {
+    for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {           
+            if (myMotor[axis][gang_index]->type_id == id)
+                return true;
+        }
+    }
+    return false;
 }
 
 
@@ -368,6 +376,7 @@ void motors_set_homing_mode(bool is_homing) {
     }
 }
 
+
 void motors_set_direction_pins(uint8_t onMask) {
     static uint8_t previous_val = 255;  // should never be this value
     if (previous_val == onMask)
@@ -400,17 +409,17 @@ uint8_t get_next_trinamic_driver_index() {
 */
 void readSgTask(void* pvParameters) {
     TickType_t xLastWakeTime;
-    const TickType_t xreadSg = 500;  // in ticks (typically ms)
-    uint32_t tstep;
-    uint8_t sg;
+    const TickType_t xreadSg = 200;  // in ticks (typically ms)
 
     xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
     while (true) { // don't ever return from this or the task dies
-        if (laser_mode->get()) { // use laser mode as a way to turn off this data TODO... Needs its own setting
-            for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-                for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
-                    if (myMotor[axis][gang_index]->is_active)// get rid of this
+        if (stallguard_debug_mask->get() != 0) {            
+            for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+                if (stallguard_debug_mask->get() & 1<<axis) {
+                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SG:%d", stallguard_debug_mask->get());
+                    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
                         myMotor[axis][gang_index]->debug_message();
+                    }
                 }
             }
         }

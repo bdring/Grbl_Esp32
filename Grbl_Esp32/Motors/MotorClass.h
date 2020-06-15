@@ -91,6 +91,7 @@ typedef enum {
 // These are used for setup and to talk to the motors as a group.
 void init_motors();
 uint8_t get_next_trinamic_driver_index();
+bool motors_have_type_id(motor_class_id_t id);
 void readSgTask(void* pvParameters);
 void motors_read_settings();
 void motors_set_homing_mode(bool is_homing);
@@ -185,6 +186,7 @@ class TrinamicDriver : public StandardStepper {
     uint16_t _driver_part_number; // example: use 2130 for TMC2130
     float _r_sense;
     int8_t spi_index;
+    uint8_t _mode;
 };
 
 
