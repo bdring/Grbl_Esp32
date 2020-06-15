@@ -18,9 +18,9 @@ extern StringSetting* build_info;
 extern IntSetting* pulse_microseconds;
 extern IntSetting* stepper_idle_lock_time;
 
-extern IntSetting* step_invert_mask;
-extern IntSetting* dir_invert_mask;
-extern IntSetting* homing_dir_mask;
+extern AxisMaskSetting* step_invert_mask;
+extern AxisMaskSetting* dir_invert_mask;
+extern AxisMaskSetting* homing_dir_mask;
 
 extern FlagSetting* step_enable_invert;
 extern FlagSetting* limit_invert;
@@ -93,3 +93,5 @@ extern StringSetting* notification_t1;
 extern StringSetting* notification_t2;
 extern StringSetting* notification_ts;
 #endif
+
+extern AxisMaskSetting* stallguard_debug_mask;

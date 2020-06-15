@@ -9,10 +9,11 @@ StringSetting* build_info;
 IntSetting* pulse_microseconds;
 IntSetting* stepper_idle_lock_time;
 
-IntSetting* step_invert_mask;
-IntSetting* dir_invert_mask;
+AxisMaskSetting* step_invert_mask;
+AxisMaskSetting* dir_invert_mask;
 // TODO Settings - need to call st_generate_step_invert_masks;
-IntSetting* homing_dir_mask;
+AxisMaskSetting* homing_dir_mask;
+AxisMaskSetting* stallguard_debug_mask;
 
 FlagSetting* step_enable_invert;
 FlagSetting* limit_invert;
@@ -273,7 +274,7 @@ void make_settings()
     homing_feed_rate = new FloatSetting(GRBL, "24", "HomingFeed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
 
     // TODO Settings - need to call st_generate_step_invert_masks()
-    homing_dir_mask = new IntSetting(GRBL, "23", "HomingDirInvertMask", DEFAULT_HOMING_DIR_MASK, 0, (1<<MAX_N_AXIS)-1);
+    homing_dir_mask = new AxisMaskSetting(GRBL, "23", "HomingDirInvertMask", DEFAULT_HOMING_DIR_MASK);
     // TODO Settings - need to call limits_init();
     homing_enable = new FlagSetting(GRBL, "22", "HomingEnable", DEFAULT_HOMING_ENABLE);
     // TODO Settings - need to check for HOMING_ENABLE
@@ -289,11 +290,12 @@ void make_settings()
     probe_invert = new FlagSetting(GRBL, "6", "ProbeInvert", DEFAULT_INVERT_PROBE_PIN);
     limit_invert = new FlagSetting(GRBL, "5", "LimitInvert", DEFAULT_INVERT_LIMIT_PINS);
     step_enable_invert = new FlagSetting(GRBL, "4", "StepEnableInvert", DEFAULT_INVERT_ST_ENABLE);
-    dir_invert_mask = new IntSetting(GRBL, "3", "DirInvertMask", DEFAULT_DIRECTION_INVERT_MASK, 0, (1<<MAX_N_AXIS)-1);
-    step_invert_mask = new IntSetting(GRBL, "2", "StepInvertMask", DEFAULT_STEPPING_INVERT_MASK, 0, (1<<MAX_N_AXIS)-1);
+    dir_invert_mask = new AxisMaskSetting(GRBL, "3", "DirInvertMask", DEFAULT_DIRECTION_INVERT_MASK);
+    step_invert_mask = new AxisMaskSetting(GRBL, "2", "StepInvertMask", DEFAULT_STEPPING_INVERT_MASK);
     stepper_idle_lock_time = new IntSetting(GRBL, "1", "StepperIdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
     pulse_microseconds = new IntSetting(GRBL, "0", "StepPulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_pwm_freq = new FloatSetting(EXTENDED, NULL, "SpindlePWMFreq", DEFAULT_SPINDLE_FREQ, 0, 100000);
+    stallguard_debug_mask = new AxisMaskSetting(EXTENDED, NULL, "StallguardDebugMask", 0);
 }
 
 err_t report_nvs_stats(const char* value, uint8_t client) {

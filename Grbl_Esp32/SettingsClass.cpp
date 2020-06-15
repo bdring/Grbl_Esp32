@@ -132,6 +132,92 @@ void IntSetting::addWebui(JSONencoder *j) {
     }
 }
 
+AxisMaskSetting::AxisMaskSetting(const char *description, group_t group, const char* grblName, const char* name, int32_t defVal, bool (*checker)(char *) = NULL)
+    : Setting(description, group, grblName, name, checker)
+    , _defaultValue(defVal)
+    , _currentValue(defVal)
+{ }
+
+void AxisMaskSetting::load() {
+    esp_err_t err = nvs_get_i32(_handle, _keyName, &_storedValue);
+    if (err) {
+        _storedValue = -1;
+        _currentValue = _defaultValue;
+    } else {
+        _currentValue = _storedValue;
+    }
+}
+
+void AxisMaskSetting::setDefault() {
+    _currentValue = _defaultValue;
+    if (_storedValue != _currentValue) {
+        nvs_erase_key(_handle, _keyName);
+    }
+}
+
+err_t AxisMaskSetting::setStringValue(char* s) {
+    if (err_t err = check(s)) {
+        return err;
+    }
+    int32_t convertedValue;
+    char* endptr;
+    if (*s == '\0') {
+        convertedValue = 0;
+    } else {
+        convertedValue = strtol(s, &endptr, 10);
+        if (endptr == s || *endptr != '\0') {
+            // Try to convert as an axis list
+            convertedValue = 0;
+            auto axisNames = String("XYZABC");
+            while (*s) {
+                int index = axisNames.indexOf(toupper(*s++));
+                if (index < 0) {
+                    return STATUS_BAD_NUMBER_FORMAT;
+                }
+                convertedValue |= 1 << index;
+            }
+        }
+    }
+    _currentValue = convertedValue;
+    if (_storedValue != _currentValue) {
+        if (_currentValue == _defaultValue) {
+            nvs_erase_key(_handle, _keyName);
+        } else {
+            if (nvs_set_i32(_handle, _keyName, _currentValue)) {
+                return STATUS_NVS_SET_FAILED;
+            }
+            _storedValue = _currentValue;
+        }
+    }
+    return STATUS_OK;
+}
+
+const char* AxisMaskSetting::getCompatibleValue() {
+    static char strval[32];
+    sprintf(strval, "%d", get());
+    return strval;
+}
+
+const char* AxisMaskSetting::getStringValue() {
+    static char strval[32];
+    char *s = strval;
+    uint32_t mask = get();
+    for (int i = 0; i < MAX_N_AXIS; i++) {
+        if (mask & (1<<i)) {
+            *s++ = "XYZABC"[i];
+        }
+    }
+    *s = '\0';
+    return strval;
+}
+
+void AxisMaskSetting::addWebui(JSONencoder *j) {
+    if (getDescription()) {
+        j->begin_webui(getName(), getDescription(), "I", getStringValue(), 0, (1<<MAX_N_AXIS)-1);
+        j->end_object();
+    }
+}
+
 FloatSetting::FloatSetting(const char *description, group_t group, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(char *) = NULL)
     : Setting(description, group, grblName, name, checker)
     , _defaultValue(defVal)
@@ -428,6 +514,10 @@ err_t FlagSetting::setStringValue(char* s) {
 const char* FlagSetting::getStringValue() {
     return get() ? "On" : "Off";
 }
+const char* FlagSetting::getCompatibleValue() {
+    return get() ? "1" : "0";
+}
+
 
 #include <WiFi.h>
 
