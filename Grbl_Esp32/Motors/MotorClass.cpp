@@ -360,6 +360,7 @@ void motors_set_disable(bool disable) {
 }
 
 void motors_read_settings() {
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Read Settings");
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
             myMotor[axis][gang_index]->read_settings();
@@ -413,6 +414,11 @@ void readSgTask(void* pvParameters) {
 
     xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
     while (true) { // don't ever return from this or the task dies
+        if (motorSettingChanged) {
+            motors_read_settings();
+            motorSettingChanged = false;
+        }            
+
         if (stallguard_debug_mask->get() != 0) {            
             for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
                 if (stallguard_debug_mask->get() & 1<<axis) {

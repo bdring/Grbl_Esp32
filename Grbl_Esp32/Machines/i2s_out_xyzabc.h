@@ -2,7 +2,7 @@
     i2s_out_xyzabc.h
     Part of Grbl_ESP32
 
-    Pin assignments for the ESP32 SPI 6-axis board
+    Pin assignments for the ESP32 I2S 6-axis board
 
     2018    - Bart Dring
     2020    - Mitch Bradley
@@ -21,7 +21,7 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define MACHINE_NAME            "ESP32 SPI 6 Axis Driver Board (StepStick)"
+#define MACHINE_NAME            "ESP32 I2S 6 Axis Driver Board (StepStick)"
 
 #ifdef N_AXIS
         #undef N_AXIS

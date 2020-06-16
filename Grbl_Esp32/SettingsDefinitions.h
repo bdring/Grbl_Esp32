@@ -1,6 +1,8 @@
 #pragma once
 #include "SettingsClass.h"
 
+extern bool motorSettingChanged;
+
 extern err_t report_nvs_stats(const char* value, uint8_t client);
 
 extern AxisSettings* x_axis_settings;
