@@ -143,13 +143,13 @@ void TrinamicDriver :: set_mode() {
 
     if (_mode == TRINAMIC_RUN_MODE_STEALTHCHOP) {
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "STEALTHCHOP");
-        tmcstepper->toff(5);
+        tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
         tmcstepper->en_pwm_mode(1);      // Enable extremely quiet stepping
         tmcstepper->pwm_autoscale(1);
     } else  {  // if (mode == TRINAMIC_RUN_MODE_COOLSTEP || mode == TRINAMIC_RUN_MODE_STALLGUARD)
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "COOLSTEP");
         tmcstepper->tbl(1);
-        tmcstepper->toff(3);
+        tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
         tmcstepper->hysteresis_start(4);
         tmcstepper->hysteresis_end(-2);
         tmcstepper->sfilt(1);
@@ -175,9 +175,9 @@ void TrinamicDriver :: debug_message() {
 
     uint32_t tstep = tmcstepper->TSTEP();
 
-    if (tstep == 0xFFFFF || tstep == -1) {   // if axis is not moving return
+    if (tstep == 0xFFFFF || tstep < 1) {   // if axis is not moving return
         return;
-    }     
+    }
 
     float feedrate = st_get_realtime_rate(); //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
@@ -212,9 +212,12 @@ void TrinamicDriver :: set_disable(bool disable) {
 
 #ifdef USE_TRINAMIC_ENABLE
     if (disable)
-        tmcstepper->toff(0);
+        tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
     else {
-        set_mode(); // resets everything including toff
+        if (_mode == TRINAMIC_TOFF_STEALTHCHOP)
+            tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
+        else 
+            tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
     }
 #endif
     // the pin based enable could be added here.

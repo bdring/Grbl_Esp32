@@ -27,6 +27,9 @@
 #define NORMAL_TCOOLTHRS 		0xFFFFF // 20 bit is max
 #define NORMAL_THIGH 			0
 
+
+
+
 #define TMC2130_RSENSE_DEFAULT  0.11f
 #define TMC5160_RSENSE_DEFAULT  0.075f
 
@@ -34,13 +37,26 @@
 
 #define TRINAMIC_FCLK       12700000.0 // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
 
-// ============ defaults =================
+// ==== defaults OK to define them in your machine definition ====
 #ifndef TRINAMIC_RUN_MODE
     #define TRINAMIC_RUN_MODE           TRINAMIC_RUN_MODE_COOLSTEP
 #endif
 
 #ifndef TRINAMIC_HOMING_MODE
     #define TRINAMIC_HOMING_MODE        TRINAMIC_HOMING_NONE
+#endif
+
+
+#ifndef TRINAMIC_TOFF_DISABLE
+    #define TRINAMIC_TOFF_DISABLE       0
+#endif
+
+#ifndef TRINAMIC_TOFF_STEALTHCHOP
+    #define TRINAMIC_TOFF_STEALTHCHOP   5
+#endif
+
+#ifndef TRINAMIC_TOFF_COOLSTEP
+    #define TRINAMIC_TOFF_COOLSTEP      3
 #endif
 
 

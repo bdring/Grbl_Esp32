@@ -1,5 +1,5 @@
 /*
-    i2s_out_xyzabc_tmc_class.h
+    i2s_out_xyzabc_trinamic.h
     Part of Grbl_ESP32
 
     Pin assignments for the ESP32 SPI 6-axis board
@@ -21,7 +21,7 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define MACHINE_NAME            "ESP32 SPI 6 Axis Driver Board (Trinamic Motorclass)"
+#define MACHINE_NAME            "ESP32 SPI 6 Axis Driver Board Trinamic"
 
 #ifdef N_AXIS
         #undef N_AXIS
@@ -57,12 +57,12 @@
 #define Y_TRINAMIC_DRIVER       2130
 #define Y_DIRECTION_PIN         GPIO_NUM_I2S_OUT_4
 #define Y_STEP_PIN              GPIO_NUM_I2S_OUT_5
-#define Y_DISABLE_PIN            GPIO_NUM_I2S_OUT_7
+#define Y_DISABLE_PIN           GPIO_NUM_I2S_OUT_7
 #define Y_CS_PIN                GPIO_NUM_I2S_OUT_6
 #define Y_RSENSE                X_RSENSE
 
 #define Z_TRINAMIC_DRIVER       2130
-#define Z_DISABLE_PIN            GPIO_NUM_I2S_OUT_8
+#define Z_DISABLE_PIN           GPIO_NUM_I2S_OUT_8
 #define Z_DIRECTION_PIN         GPIO_NUM_I2S_OUT_9
 #define Z_STEP_PIN              GPIO_NUM_I2S_OUT_10
 #define Z_CS_PIN                GPIO_NUM_I2S_OUT_11
@@ -76,7 +76,7 @@
 #define A_RSENSE                X_RSENSE
 
 #define B_TRINAMIC_DRIVER       2130
-#define B_DISABLE_PIN            GPIO_NUM_I2S_OUT_16
+#define B_DISABLE_PIN           GPIO_NUM_I2S_OUT_16
 #define B_DIRECTION_PIN         GPIO_NUM_I2S_OUT_17
 #define B_STEP_PIN              GPIO_NUM_I2S_OUT_18
 #define B_CS_PIN                GPIO_NUM_I2S_OUT_19
@@ -85,7 +85,7 @@
 #define C_TRINAMIC_DRIVER       2130
 #define C_DIRECTION_PIN         GPIO_NUM_I2S_OUT_20
 #define C_STEP_PIN              GPIO_NUM_I2S_OUT_21
-#define C_DISABLE_PIN            GPIO_NUM_I2S_OUT_23
+#define C_DISABLE_PIN           GPIO_NUM_I2S_OUT_23
 #define C_CS_PIN                GPIO_NUM_I2S_OUT_22
 #define C_RSENSE                X_RSENSE
 

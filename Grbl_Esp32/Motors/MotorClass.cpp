@@ -48,7 +48,7 @@ rmt_config_t rmtConfig;
 
 bool motor_class_steps; // true if at least one motor class is handling steps
 
-void init_motors() {    
+void init_motors() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Init Motors");
 
 #ifdef X_TRINAMIC_DRIVER
@@ -245,21 +245,18 @@ void init_motors() {
 
 #endif
 
-#ifdef STEPPERS_DISABLE_PIN
-    grbl_msg_sendf(CLIENT_SERIAL,
-                   MSG_LEVEL_INFO,
-                   "Global stepper enable pin:%d",
-                   STEPPERS_DISABLE_PIN);
-    pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
-#endif
-
-    
-
+    if (STEPPERS_DISABLE_PIN != UNDEFINED_PIN) {
+        pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
+        grbl_msg_sendf(CLIENT_SERIAL,
+                       MSG_LEVEL_INFO,
+                       "Global stepper disable pin:%s",
+                       pinName(STEPPERS_DISABLE_PIN));
+    }
 
     // certain motors need features to be turned on. Check them here
     for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
         for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            
+
             if (myMotor[axis][gang_index]->type_id == UNIPOLAR_MOTOR)
                 motor_class_steps = true;
 
@@ -279,7 +276,7 @@ void init_motors() {
                                 &readSgTaskHandle,
                                 0 // core
                                );
-        if (stallguard_debug_mask->get() != 0 )
+        if (stallguard_debug_mask->get() != 0)
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Stallgaurd debug enabled: %d", stallguard_debug_mask->get());
     }
 
@@ -319,7 +316,7 @@ void servoUpdateTask(void* pvParameters) {
 // do any motors match the type_id
 bool motors_have_type_id(motor_class_id_t id) {
     for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
-        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {           
+        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
             if (myMotor[axis][gang_index]->type_id == id)
                 return true;
         }
@@ -336,23 +333,13 @@ void motors_set_disable(bool disable) {
 
     previous_state = disable;
 
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_disable:%d", disable);
-
-
-#ifdef USE_TRINAMIC_ENABLE
-    trinamic_stepper_enable(!disable);
-#endif
     if (step_enable_invert->get()) {
         disable = !disable;    // Apply pin invert.
     }
-#ifdef USE_UNIPOLAR
-    unipolar_disable(disable);
-#endif
-#ifdef STEPPERS_DISABLE_PIN
-    digitalWrite(STEPPERS_DISABLE_PIN, disable);
-#endif
 
-    // now loop through all the motors
+    digitalWrite(STEPPERS_DISABLE_PIN, disable);
+
+    // now loop through all the motors to see if they can individually diable
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
             myMotor[axis][gang_index]->set_disable(disable);
@@ -417,18 +404,19 @@ void readSgTask(void* pvParameters) {
         if (motorSettingChanged) {
             motors_read_settings();
             motorSettingChanged = false;
-        }            
+        }
 
-        if (stallguard_debug_mask->get() != 0) {            
-            for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
-                if (stallguard_debug_mask->get() & 1<<axis) {
-                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SG:%d", stallguard_debug_mask->get());
-                    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-                        myMotor[axis][gang_index]->debug_message();
+        if (stallguard_debug_mask->get() != 0) {
+            if (sys.state == STATE_CYCLE || sys.state == STATE_HOMING || sys.state == STATE_JOG) {
+                for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+                    if (stallguard_debug_mask->get() & 1 << axis) {
+                        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SG:%d", stallguard_debug_mask->get());
+                        for (uint8_t gang_index = 0; gang_index < 2; gang_index++)
+                            myMotor[axis][gang_index]->debug_message();
                     }
                 }
-            }
-        }
+            } // sys.state
+        } // if mask
         vTaskDelayUntil(&xLastWakeTime, xreadSg);
     }
 }

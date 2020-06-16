@@ -353,6 +353,15 @@
         #define DEFAULT_C_STALLGUARD 16 // $175 stallguard (extended set)
     #endif
 
+// ==================  pin defaults ========================
+
+// Here is a place to default pins to UNDEFINED_PIN.
+// This can eliminate checking to see if the pin is defined because
+// the overridden pinMode and digitalWrite functions will deal with it.
+
+#ifndef STEPPERS_DISABLE_PIN
+    #define STEPPERS_DISABLE_PIN    UNDEFINED_PIN
+#endif
 
 
 
