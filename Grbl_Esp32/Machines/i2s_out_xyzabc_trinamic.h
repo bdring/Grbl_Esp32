@@ -48,45 +48,45 @@
 #define TRINAMIC_HOMING_MODE        TRINAMIC_HOMING_STALLGUARD
 
 #define X_TRINAMIC_DRIVER       2130
-#define X_DISABLE_PIN           GPIO_NUM_I2S_OUT_0
-#define X_DIRECTION_PIN         GPIO_NUM_I2S_OUT_1
-#define X_STEP_PIN              GPIO_NUM_I2S_OUT_2
-#define X_CS_PIN                GPIO_NUM_I2S_OUT_3
+#define X_DISABLE_PIN           I2S_OUT_0
+#define X_DIRECTION_PIN         I2S_OUT_1
+#define X_STEP_PIN              I2S_OUT_2
+#define X_CS_PIN                I2S_OUT_3
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
 
 #define Y_TRINAMIC_DRIVER       2130
-#define Y_DIRECTION_PIN         GPIO_NUM_I2S_OUT_4
-#define Y_STEP_PIN              GPIO_NUM_I2S_OUT_5
-#define Y_DISABLE_PIN           GPIO_NUM_I2S_OUT_7
-#define Y_CS_PIN                GPIO_NUM_I2S_OUT_6
+#define Y_DIRECTION_PIN         I2S_OUT_4
+#define Y_STEP_PIN              I2S_OUT_5
+#define Y_DISABLE_PIN           I2S_OUT_7
+#define Y_CS_PIN                I2S_OUT_6
 #define Y_RSENSE                X_RSENSE
 
 #define Z_TRINAMIC_DRIVER       2130
-#define Z_DISABLE_PIN           GPIO_NUM_I2S_OUT_8
-#define Z_DIRECTION_PIN         GPIO_NUM_I2S_OUT_9
-#define Z_STEP_PIN              GPIO_NUM_I2S_OUT_10
-#define Z_CS_PIN                GPIO_NUM_I2S_OUT_11
+#define Z_DISABLE_PIN           I2S_OUT_8
+#define Z_DIRECTION_PIN         I2S_OUT_9
+#define Z_STEP_PIN              I2S_OUT_10
+#define Z_CS_PIN                I2S_OUT_11
 #define Z_RSENSE                X_RSENSE
 
 #define A_TRINAMIC_DRIVER       2130
-#define A_DIRECTION_PIN         GPIO_NUM_I2S_OUT_12
-#define A_STEP_PIN              GPIO_NUM_I2S_OUT_13
-#define A_DISABLE_PIN           GPIO_NUM_I2S_OUT_15
-#define A_CS_PIN                GPIO_NUM_I2S_OUT_14
+#define A_DIRECTION_PIN         I2S_OUT_12
+#define A_STEP_PIN              I2S_OUT_13
+#define A_DISABLE_PIN           I2S_OUT_15
+#define A_CS_PIN                I2S_OUT_14
 #define A_RSENSE                X_RSENSE
 
 #define B_TRINAMIC_DRIVER       2130
-#define B_DISABLE_PIN           GPIO_NUM_I2S_OUT_16
-#define B_DIRECTION_PIN         GPIO_NUM_I2S_OUT_17
-#define B_STEP_PIN              GPIO_NUM_I2S_OUT_18
-#define B_CS_PIN                GPIO_NUM_I2S_OUT_19
+#define B_DISABLE_PIN           I2S_OUT_16
+#define B_DIRECTION_PIN         I2S_OUT_17
+#define B_STEP_PIN              I2S_OUT_18
+#define B_CS_PIN                I2S_OUT_19
 #define B_RSENSE                X_RSENSE
 
 #define C_TRINAMIC_DRIVER       2130
-#define C_DIRECTION_PIN         GPIO_NUM_I2S_OUT_20
-#define C_STEP_PIN              GPIO_NUM_I2S_OUT_21
-#define C_DISABLE_PIN           GPIO_NUM_I2S_OUT_23
-#define C_CS_PIN                GPIO_NUM_I2S_OUT_22
+#define C_DIRECTION_PIN         I2S_OUT_20
+#define C_STEP_PIN              I2S_OUT_21
+#define C_DISABLE_PIN           I2S_OUT_23
+#define C_CS_PIN                I2S_OUT_22
 #define C_RSENSE                X_RSENSE
 
 /*

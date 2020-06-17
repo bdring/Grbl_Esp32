@@ -48,43 +48,43 @@
 #define I2S_OUT_DATA     GPIO_NUM_21
 
 
-#define STEPPER_MS1             GPIO_NUM_23             // MOSI
-#define STEPPER_MS2             GPIO_NUM_18             // SCK
+#define STEPPER_MS1             GPIO_NUM_23 // MOSI
+#define STEPPER_MS2             GPIO_NUM_18 // SCK
 
-#define STEPPER_X_MS3           GPIO_NUM_I2S_OUT_3    // X_CS
-#define STEPPER_Y_MS3           GPIO_NUM_I2S_OUT_6    // Y_CS
-#define STEPPER_Z_MS3           GPIO_NUM_I2S_OUT_11   // Z_CS
-#define STEPPER_A_MS3           GPIO_NUM_I2S_OUT_14   // A_CS
-#define STEPPER_B_MS3           GPIO_NUM_I2S_OUT_19   // B_CS
-#define STEPPER_C_MS3           GPIO_NUM_I2S_OUT_22   // C_CS
+#define STEPPER_X_MS3           I2S_OUT_3   // X_CS
+#define STEPPER_Y_MS3           I2S_OUT_6   // Y_CS
+#define STEPPER_Z_MS3           I2S_OUT_11  // Z_CS
+#define STEPPER_A_MS3           I2S_OUT_14  // A_CS
+#define STEPPER_B_MS3           I2S_OUT_19  // B_CS
+#define STEPPER_C_MS3           I2S_OUT_22  // C_CS
 
-#define STEPPER_RESET           GPIO_NUM_19 
+#define STEPPER_RESET           GPIO_NUM_19
 
 #define USE_GANGED_AXES // allow two motors on an axis
 
-#define X_DISABLE_PIN            GPIO_NUM_I2S_OUT_0
-#define X_DIRECTION_PIN         GPIO_NUM_I2S_OUT_1
-#define X_STEP_PIN              GPIO_NUM_I2S_OUT_2
+#define X_DISABLE_PIN           I2S_OUT_0
+#define X_DIRECTION_PIN         I2S_OUT_1
+#define X_STEP_PIN              I2S_OUT_2
 
-#define X2_DIRECTION_PIN         GPIO_NUM_I2S_OUT_4
-#define X2_STEP_PIN              GPIO_NUM_I2S_OUT_5
-#define X2_DISABLE_PIN            GPIO_NUM_I2S_OUT_7
+#define X2_DIRECTION_PIN        I2S_OUT_4
+#define X2_STEP_PIN             I2S_OUT_5
+#define X2_DISABLE_PIN          I2S_OUT_7
 
-#define Y_DISABLE_PIN            GPIO_NUM_I2S_OUT_8
-#define Y_DIRECTION_PIN         GPIO_NUM_I2S_OUT_9
-#define Y_STEP_PIN              GPIO_NUM_I2S_OUT_10
+#define Y_DISABLE_PIN           I2S_OUT_8
+#define Y_DIRECTION_PIN         I2S_OUT_9
+#define Y_STEP_PIN              I2S_OUT_10
 
-#define Y2_DIRECTION_PIN         GPIO_NUM_I2S_OUT_12
-#define Y2_STEP_PIN              GPIO_NUM_I2S_OUT_13
-#define Y2_DISABLE_PIN           GPIO_NUM_I2S_OUT_15
+#define Y2_DIRECTION_PIN        I2S_OUT_12
+#define Y2_STEP_PIN             I2S_OUT_13
+#define Y2_DISABLE_PIN          I2S_OUT_15
 
-#define Z_DISABLE_PIN           GPIO_NUM_I2S_OUT_16
-#define Z_DIRECTION_PIN         GPIO_NUM_I2S_OUT_17
-#define Z_STEP_PIN              GPIO_NUM_I2S_OUT_18
+#define Z_DISABLE_PIN           I2S_OUT_16
+#define Z_DIRECTION_PIN         I2S_OUT_17
+#define Z_STEP_PIN              I2S_OUT_18
 
-#define Z2_DIRECTION_PIN         GPIO_NUM_I2S_OUT_20
-#define Z2_STEP_PIN              GPIO_NUM_I2S_OUT_21
-#define Z2_DISABLE_PIN            GPIO_NUM_I2S_OUT_23
+#define Z2_DIRECTION_PIN        I2S_OUT_20
+#define Z2_STEP_PIN             I2S_OUT_21
+#define Z2_DISABLE_PIN          I2S_OUT_23
 
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM // only one spindle at a time
