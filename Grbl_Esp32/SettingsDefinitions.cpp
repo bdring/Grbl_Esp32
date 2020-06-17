@@ -240,13 +240,13 @@ void make_settings() {
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new FloatSetting(EXTENDED, makeGrblName(axis, 150), makename(def->name, "HoldCurrent"), def->hold_current, 0.0, 100.0, checkHoldcurrent);
+        auto setting = new FloatSetting(EXTENDED, makeGrblName(axis, 150), makename(def->name, "HoldCurrent"), def->hold_current, 0.05, 20.0, checkHoldcurrent); // Amps
         setting->setAxis(axis);
         axis_settings[axis]->hold_current = setting;
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new FloatSetting(EXTENDED, makeGrblName(axis, 140), makename(def->name, "RunCurrent"), def->run_current, 0.05, 20.0, checkRunCurrent);
+        auto setting = new FloatSetting(EXTENDED, makeGrblName(axis, 140), makename(def->name, "RunCurrent"), def->run_current, 0.0, 20.0, checkRunCurrent); // Amps
         setting->setAxis(axis);
         axis_settings[axis]->run_current = setting;
     }

@@ -113,11 +113,26 @@ bool TrinamicDriver :: test() {
 
 /*
     Read setting and send them to the driver. Called at init() and whenever related settings change
+    both are stored as float Amps, but TMCStepper library expects...
+    uint16_t run (mA)
+    float hold (as a percentage of run)
 */
 void TrinamicDriver :: read_settings() {
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis read_settings() ", report_get_axis_letter(axis_index));
+    
+    uint16_t run_i_ma = (uint16_t)(axis_settings[axis_index]->run_current->get() * 1000.0);
+    float hold_i_percent;    
+
+    if (axis_settings[axis_index]->run_current->get() == 0)
+        hold_i_percent = 0;
+    else {
+        hold_i_percent = axis_settings[axis_index]->hold_current->get() / axis_settings[axis_index]->run_current->get();
+        if (hold_i_percent > 1.0)
+            hold_i_percent = 1.0;
+    }
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Current run %d hold %f", _axis_name, run_i_ma, hold_i_percent);
+
     tmcstepper->microsteps(axis_settings[axis_index]->microsteps->get());
-    tmcstepper->rms_current(axis_settings[axis_index]->run_current->get() * 1000.0, axis_settings[axis_index]->hold_current->get() / 100.0);
+    tmcstepper->rms_current(run_i_ma, hold_i_percent);
     tmcstepper->sgt(axis_settings[axis_index]->stallguard->get());
 }
 
@@ -133,9 +148,9 @@ void TrinamicDriver :: set_homing_mode(uint8_t homing_mask) {
 */
 void TrinamicDriver :: set_mode() {
 
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set TMC mode");    
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set TMC mode");
 
-    if ( (_homing_mask & 1<<axis_index)  && (_homing_mode ==  TRINAMIC_HOMING_STALLGUARD))
+    if ((_homing_mask & 1 << axis_index)  && (_homing_mode ==  TRINAMIC_HOMING_STALLGUARD))
         _mode = TRINAMIC_RUN_MODE_STALLGUARD;
     else
         _mode = TRINAMIC_RUN_MODE;
@@ -149,11 +164,11 @@ void TrinamicDriver :: set_mode() {
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s TMC Mode: %d", _axis_name, _mode);
 
     if (_mode == TRINAMIC_RUN_MODE_STEALTHCHOP) {
-        
+
         tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
         tmcstepper->en_pwm_mode(1);      // Enable extremely quiet stepping
         tmcstepper->pwm_autoscale(1);
-    } else  {  // if (mode == TRINAMIC_RUN_MODE_COOLSTEP || mode == TRINAMIC_RUN_MODE_STALLGUARD)        
+    } else  {  // if (mode == TRINAMIC_RUN_MODE_COOLSTEP || mode == TRINAMIC_RUN_MODE_STALLGUARD)
         tmcstepper->tbl(1);
         tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
         tmcstepper->hysteresis_start(4);
@@ -188,7 +203,7 @@ void TrinamicDriver :: debug_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "%s Stallguard %d   SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
-                   _axis_name,             
+                   _axis_name,
                    tmcstepper->stallguard(),
                    tmcstepper->sg_result(),
                    feedrate,
@@ -220,7 +235,7 @@ void TrinamicDriver :: set_disable(bool disable) {
     else {
         if (_mode == TRINAMIC_TOFF_STEALTHCHOP)
             tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
-        else 
+        else
             tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
     }
 #endif
