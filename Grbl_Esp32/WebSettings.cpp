@@ -889,96 +889,91 @@ void make_web_settings()
     // RU - need user or admin password to read
     // WU - need user or admin password to set
     // WA - need admin password to set
-    #ifdef ENABLE_AUTHENTICATION
-        // TODO Settings - need ADMIN_ONLY and if it is called without a parameter it sets the default
-        admin_password = new StringSetting(WEBUI, NULL, "AdminPwd", DEFAULT_ADMIN_PWD, isLocalPasswordValid);
-        user_password = new StringSetting(WEBUI, NULL, "UserPwd", DEFAULT_USER_PWD, isLocalPasswordValid);
-    #endif
     #ifdef WEB_COMMON
-        new WebCommand(NULL,      WEBCMDRU, "ESP800", "FwInfo",       showFwInfo);
-        new WebCommand(NULL,      WEBCMDRU, "ESP720", "SPIFFSSize",   SPIFFSSize);
-        new WebCommand("FORMAT",  WEBCMDWA, "ESP710", "FormatSpiffs", formatSpiffs);
-        new WebCommand("path",    WEBCMDRU, "ESP700", "RunLocalFile", runFile);
+        new WebCommand(NULL,      WEBCMDRU, "ESP800", "Firmware/Info",showFwInfo);
+        new WebCommand(NULL,      WEBCMDRU, "ESP720", "LocalFS/Size",   SPIFFSSize);
+        new WebCommand("FORMAT",  WEBCMDWA, "ESP710", "LocalFS/Format", formatSpiffs);
+        new WebCommand("path",    WEBCMDRU, "ESP700", "LocalFS/Run", runFile);
     #endif
     #ifdef ENABLE_NOTIFICATIONS
         new WebCommand("TYPE=NONE|PUSHOVER|EMAIL|LINE T1=token1 T2=token2 TS=settings",
-                                  WEBCMDWA, "ESP610", "Notifications",showSetNotification);
-        new WebCommand("message", WEBCMDWU, "ESP600", "SendMessage",  sendMessage);
+                                  WEBCMDWA, "ESP610", "Notification/Setup",showSetNotification);
+        new WebCommand("message", WEBCMDWU, "ESP600", "Notification/Send",  sendMessage);
     #endif
     #ifdef ENABLE_AUTHENTICATION
-        new WebCommand("password",WEBCMDWA, "ESP555", "SetUserPassword",  setUserPassword);
+        new WebCommand("password",WEBCMDWA, "ESP555", "WebUI/SetUserPassword",  setUserPassword);
     #endif
     #ifdef WEB_COMMON
-        new WebCommand("RESTART", WEBCMDWA, "ESP444", "SetSystemMode",setSystemMode);
-        new WebCommand(NULL,      WEBCMDRU, "ESP420", "SysStats",     showSysStats);
+        new WebCommand("RESTART", WEBCMDWA, "ESP444", "System/Control",setSystemMode);
+        new WebCommand(NULL,      WEBCMDRU, "ESP420", "System/Stats",     showSysStats);
     #endif
     #ifdef ENABLE_WIFI
-        new WebCommand(NULL,      WEBCMDRU, "ESP410", "ListAPs",      listAPs);
+        new WebCommand(NULL,      WEBCMDRU, "ESP410", "WiFi/ListAPs",      listAPs);
     #endif
     #ifdef WEB_COMMON
         new WebCommand("P=position T=type V=value",
-                                  WEBCMDWA, "ESP401", "SetWebSetting",setWebSetting);
-        new WebCommand(NULL,      WEBCMDRU, "ESP400", "ListSettings", listSettings);
+                                  WEBCMDWA, "ESP401", "WebUI/Set",setWebSetting);
+        new WebCommand(NULL,      WEBCMDRU, "ESP400", "WebUI/List", listSettings);
     #endif
     #ifdef ENABLE_SD_CARD
-        new WebCommand("path",    WEBCMDRU, "ESP220", "RunSDFile",    runSDFile);
+        new WebCommand("path",    WEBCMDRU, "ESP220", "SD/Run",    runSDFile);
         new WebCommand("file_or_directory_path",
-                                  WEBCMDWU, "ESP215", "DeleteSDItem", deleteSDObject);
-        new WebCommand(NULL,      WEBCMDRU, "ESP210", "ListSDFiles",  listSDFiles);
+                                  WEBCMDWU, "ESP215", "SD/Delete", deleteSDObject);
+        new WebCommand(NULL,      WEBCMDRU, "ESP210", "SD/List",  listSDFiles);
     #endif
     #ifdef WEB_COMMON
-        new WebCommand(NULL,      WEBCMDRU, "ESP200", "SDStatus",     showSDStatus);
+        new WebCommand(NULL,      WEBCMDRU, "ESP200", "SD/Status",     showSDStatus);
         new WebCommand("STA|AP|BT|OFF",
-                                  WEBCMDWA, "ESP115", "RadioState",   setRadioState);
+                                  WEBCMDWA, "ESP115", "Radio/State",   setRadioState);
     #endif
     #ifdef ENABLE_WIFI
-        new WebCommand(NULL,      WEBNOAUTH,"ESP111", "CurrentIP",    showIP);
+        new WebCommand(NULL,      WEBNOAUTH,"ESP111", "System/IP",    showIP);
         new WebCommand("IP=ipaddress MSK=netmask GW=gateway",
-                                  WEBCMDWA, "ESP103", "StaParams",    showSetStaParams);
+                                  WEBCMDWA, "ESP103", "Sta/Setup",    showSetStaParams);
     #endif
     #ifdef WEB_COMMON
-        new WebCommand(NULL,      WEBNOAUTH,"ESP0",   "WebHelp",      showWebHelp);
-        new WebCommand(NULL,      WEBNOAUTH,"ESP",    "WebHelp",      showWebHelp);
+        new WebCommand(NULL,      WEBNOAUTH,"ESP0",   "WebUI/Help",   showWebHelp);
+        new WebCommand(NULL,      WEBNOAUTH,"ESP",    "WebUI/Help",   showWebHelp);
     #endif
     // WebUI Settings
     // Standard WEBUI authentication is user+ to get, admin to set unless otherwise specified
     #ifdef ENABLE_NOTIFICATIONS
-        notification_ts   = new StringSetting("Notification Settings",  WEBSET, NULL,     "NotificationTS",     DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
-        notification_t2   = new StringSetting("Notification Token 2",   WEBSET, NULL,     "NotificationT2",     DEFAULT_TOKEN, MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
-        notification_t1   = new StringSetting("Notification Token 1",   WEBSET, NULL,     "NotificationT1",     DEFAULT_TOKEN , MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
-        notification_type = new EnumSetting("Notification type",        WEBSET, NULL,     "NotificationType",   DEFAULT_NOTIFICATION_TYPE, &notificationOptions);
+        notification_ts   = new StringSetting("Notification Settings",  WEBSET, NULL,     "Notification/TS",     DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
+        notification_t2   = new StringSetting("Notification Token 2",   WEBSET, NULL,     "Notification/T2",     DEFAULT_TOKEN, MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
+        notification_t1   = new StringSetting("Notification Token 1",   WEBSET, NULL,     "Notification/T1",     DEFAULT_TOKEN , MIN_NOTIFICATION_TOKEN_LENGTH, MAX_NOTIFICATION_TOKEN_LENGTH, NULL);
+        notification_type = new EnumSetting("Notification type",        WEBSET, NULL,     "Notification/Type",   DEFAULT_NOTIFICATION_TYPE, &notificationOptions);
     #endif
     #ifdef ENABLE_AUTHENTICATION
-        user_password     = new StringSetting("User password",          WEBSET, NULL,     "UserPassword", &isLocalPasswordValid);
-        admin_password    = new StringSetting("Admin password",         WEBSET, NULL,     "AdminPassword", &isLocalPasswordValid);
+        user_password     = new StringSetting("User password",          WEBSET, NULL,     "WebUI/UserPassword", &isLocalPasswordValid);
+        admin_password    = new StringSetting("Admin password",         WEBSET, NULL,     "WebUI/AdminPassword", &isLocalPasswordValid);
     #endif
     #ifdef ENABLE_BLUETOOTH
-        bt_name           = new StringSetting("Bluetooth name",         WEBSET, "ESP140", "BTName",       DEFAULT_BT_NAME, MIN_BTNAME_LENGTH, MAX_BTNAME_LENGTH, (bool (*)(char*))BTConfig::isBTnameValid);
+        bt_name           = new StringSetting("Bluetooth name",         WEBSET, "ESP140", "Bluetooth/Name",       DEFAULT_BT_NAME, MIN_BTNAME_LENGTH, MAX_BTNAME_LENGTH, (bool (*)(char*))BTConfig::isBTnameValid);
     #endif
 
     #ifdef WIFI_OR_BLUETOOTH
         // user+ to get, admin to set
-        wifi_radio_mode   = new EnumSetting("Radio mode",               WEBSET, "ESP110", "RadioMode",    DEFAULT_RADIO_MODE, &radioEnabledOptions);
+        wifi_radio_mode   = new EnumSetting("Radio mode",               WEBSET, "ESP110", "Radio/Mode",    DEFAULT_RADIO_MODE, &radioEnabledOptions);
     #endif
 
     #ifdef ENABLE_WIFI
-        telnet_port       = new IntSetting("Telnet Port",               WEBSET, "ESP131", "TelnetPort",   DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
-        telnet_enable     = new EnumSetting("Telnet Enable",            WEBSET, "ESP130", "TelnetOn",     DEFAULT_TELNET_STATE, &onoffOptions);
-        http_port         = new IntSetting("HTTP Port",                 WEBSET, "ESP121", "HttpPort",     DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
-        http_enable       = new EnumSetting("HTTP Enable",              WEBSET, "ESP120", "HttpOn",       DEFAULT_HTTP_STATE, &onoffOptions);
-        wifi_hostname     = new StringSetting("Hostname",               WEBSET, "ESP112", "MyHostname",   DEFAULT_HOSTNAME, MIN_HOSTNAME_LENGTH, MAX_HOSTNAME_LENGTH, (bool (*)(char*))WiFiConfig::isHostnameValid);
-        wifi_ap_channel   = new IntSetting("AP Channel",                WEBSET, "ESP108", "ApChannel",    DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL, NULL);
-        wifi_ap_ip        = new IPaddrSetting("AP Static IP",           WEBSET, "ESP107", "ApIP",         DEFAULT_AP_IP, NULL);
+        telnet_port       = new IntSetting("Telnet Port",               WEBSET, "ESP131", "Telnet/Port",   DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
+        telnet_enable     = new EnumSetting("Telnet Enable",            WEBSET, "ESP130", "Telnet/Enable",     DEFAULT_TELNET_STATE, &onoffOptions);
+        http_port         = new IntSetting("HTTP Port",                 WEBSET, "ESP121", "Http/Port",     DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
+        http_enable       = new EnumSetting("HTTP Enable",              WEBSET, "ESP120", "Http/Enable",       DEFAULT_HTTP_STATE, &onoffOptions);
+        wifi_hostname     = new StringSetting("Hostname",               WEBSET, "ESP112", "System/Hostname",   DEFAULT_HOSTNAME, MIN_HOSTNAME_LENGTH, MAX_HOSTNAME_LENGTH, (bool (*)(char*))WiFiConfig::isHostnameValid);
+        wifi_ap_channel   = new IntSetting("AP Channel",                WEBSET, "ESP108", "AP/Channel",    DEFAULT_AP_CHANNEL, MIN_CHANNEL, MAX_CHANNEL, NULL);
+        wifi_ap_ip        = new IPaddrSetting("AP Static IP",           WEBSET, "ESP107", "AP/IP",         DEFAULT_AP_IP, NULL);
         // no get, admin to set
-        wifi_ap_password  = new StringSetting("AP Password",            WEBSET, "ESP106", "ApPassword",   DEFAULT_AP_PWD,  MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, (bool (*)(char*))WiFiConfig::isPasswordValid);
-        wifi_ap_ssid      = new StringSetting("AP SSID",                WEBSET, "ESP105", "ApSSID",       DEFAULT_AP_SSID, MIN_SSID_LENGTH, MAX_SSID_LENGTH, (bool (*)(char*))WiFiConfig::isSSIDValid);
-        wifi_sta_netmask  = new IPaddrSetting("Station Static Mask",    WEBSET, NULL,     "StaMask",      DEFAULT_STA_MK, NULL);
-        wifi_sta_gateway  = new IPaddrSetting("Station Static Gateway", WEBSET, NULL,     "StaGateway",   DEFAULT_STA_GW, NULL);
-        wifi_sta_ip       = new IPaddrSetting("Station Static IP",      WEBSET, NULL,     "StaIP",        DEFAULT_STA_IP, NULL);
-        wifi_sta_mode     = new EnumSetting("Station IP Mode",          WEBSET, "ESP102", "StaIPMode",    DEFAULT_STA_IP_MODE, &staModeOptions);
+        wifi_ap_password  = new StringSetting("AP Password",            WEBSET, "ESP106", "AP/Password",   DEFAULT_AP_PWD,  MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, (bool (*)(char*))WiFiConfig::isPasswordValid);
+        wifi_ap_ssid      = new StringSetting("AP SSID",                WEBSET, "ESP105", "AP/SSID",       DEFAULT_AP_SSID, MIN_SSID_LENGTH, MAX_SSID_LENGTH, (bool (*)(char*))WiFiConfig::isSSIDValid);
+        wifi_sta_netmask  = new IPaddrSetting("Station Static Mask",    WEBSET, NULL,     "Sta/Netmask",      DEFAULT_STA_MK, NULL);
+        wifi_sta_gateway  = new IPaddrSetting("Station Static Gateway", WEBSET, NULL,     "Sta/Gateway",   DEFAULT_STA_GW, NULL);
+        wifi_sta_ip       = new IPaddrSetting("Station Static IP",      WEBSET, NULL,     "Sta/IP",        DEFAULT_STA_IP, NULL);
+        wifi_sta_mode     = new EnumSetting("Station IP Mode",          WEBSET, "ESP102", "Sta/IPMode",    DEFAULT_STA_IP_MODE, &staModeOptions);
         // no get, admin to set
-        wifi_sta_password = new StringSetting("Station Password",       WEBSET, "ESP101", "StaPassword",  DEFAULT_STA_PWD,  MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, (bool (*)(char*))WiFiConfig::isPasswordValid);
-        wifi_sta_ssid     = new StringSetting("Station SSID",           WEBSET, "ESP100", "StaSSID",      DEFAULT_STA_SSID, MIN_SSID_LENGTH, MAX_SSID_LENGTH, (bool (*)(char*))WiFiConfig::isSSIDValid);
+        wifi_sta_password = new StringSetting("Station Password",       WEBSET, "ESP101", "Sta/Password",  DEFAULT_STA_PWD,  MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, (bool (*)(char*))WiFiConfig::isPasswordValid);
+        wifi_sta_ssid     = new StringSetting("Station SSID",           WEBSET, "ESP100", "Sta/SSID",      DEFAULT_STA_SSID, MIN_SSID_LENGTH, MAX_SSID_LENGTH, (bool (*)(char*))WiFiConfig::isSSIDValid);
     #endif
 }
 #endif
