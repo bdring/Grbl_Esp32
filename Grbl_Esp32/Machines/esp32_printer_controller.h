@@ -1,22 +1,17 @@
 /*
     esp32_printer_controller.h
     Part of Grbl_ESP32
-
     Template for a machine configuration file.
-
     2020    - Mitch Bradley
     2020    - Michiyasu Odaki
-
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     Grbl is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -82,14 +77,14 @@
 // Step and direction pins; these must be output-capable pins,
 // specifically ESP32 GPIO numbers 0..31
 // With the I2S I/O expander enabled, you can specify 128..159 as output pins.
-#define X_STEP_PIN              GPIO_NUM_I2S_OUT_9 /* 128 + 8 x 1 + 1 */
-#define X_DIRECTION_PIN         GPIO_NUM_I2S_OUT_7 /* 128 + 8 x 0 + 7 */
-#define Y_STEP_PIN              GPIO_NUM_I2S_OUT_5 /* 128 + 8 x 0 + 5 */
-#define Y_DIRECTION_PIN         GPIO_NUM_I2S_OUT_4 /* 128 + 8 x 0 + 4 */
-#define Z_STEP_PIN              GPIO_NUM_I2S_OUT_2 /* 128 + 8 x 0 + 2 */
-#define Z_DIRECTION_PIN         GPIO_NUM_I2S_OUT_1 /* 128 + 8 x 0 + 1 */
-#define A_STEP_PIN              GPIO_NUM_I2S_OUT_12 /* 128 + 8 x 1 + 4 */
-#define A_DIRECTION_PIN         GPIO_NUM_I2S_OUT_13 /* 128 x 8 x 1 + 5 */
+#define X_STEP_PIN              I2S_OUT_9 /* 128 + 8 x 1 + 1 */
+#define X_DIRECTION_PIN         I2S_OUT_7 /* 128 + 8 x 0 + 7 */
+#define Y_STEP_PIN              I2S_OUT_5 /* 128 + 8 x 0 + 5 */
+#define Y_DIRECTION_PIN         I2S_OUT_4 /* 128 + 8 x 0 + 4 */
+#define Z_STEP_PIN              I2S_OUT_2 /* 128 + 8 x 0 + 2 */
+#define Z_DIRECTION_PIN         I2S_OUT_1 /* 128 + 8 x 0 + 1 */
+#define A_STEP_PIN              I2S_OUT_12 /* 128 + 8 x 1 + 4 */
+#define A_DIRECTION_PIN         I2S_OUT_13 /* 128 x 8 x 1 + 5 */
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the

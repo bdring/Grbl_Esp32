@@ -1,5 +1,5 @@
 /*
-    mpcnc.h
+    mpcnc_v1p2.h
     Part of Grbl_ESP32
 
     Pin assignments for the Buildlog.net MPCNC controller

@@ -245,9 +245,8 @@ static void stepper_pulse_func() {
 #endif
 #endif
 
-#ifdef USE_UNIPOLAR
-    unipolar_step(st.step_outbits, st.dir_outbits);
-#endif
+    // some motor objects, like unipolar, handle steps themselves
+    motors_step(st.step_outbits, st.dir_outbits);
 
     // If there is no step segment, attempt to pop one from the stepper buffer
     if (st.exec_segment == NULL) {

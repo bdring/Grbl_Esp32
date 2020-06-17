@@ -267,6 +267,9 @@ void init_motors() {
         }
     }
 
+    // some motor objects require a step signal
+    motor_class_steps = motors_have_type_id(UNIPOLAR_MOTOR);
+
     if (motors_have_type_id(TRINAMIC_SPI_MOTOR)) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
         xTaskCreatePinnedToCore(readSgTask,     // task
@@ -391,6 +394,16 @@ uint8_t get_next_trinamic_driver_index() {
 #else
     return -1;
 #endif
+}
+
+// some motor objects, like unipolar need step signals
+void motors_step(uint8_t step_mask, uint8_t dir_mask) {
+    if (motor_class_steps) { // determined in init_motors if any motors need to handle steps
+        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
+            for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
+                myMotor[axis][gang_index]->step(step_mask, dir_mask);
+        }
+    }
 }
 
 /*

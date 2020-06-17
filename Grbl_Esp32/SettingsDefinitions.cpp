@@ -320,7 +320,7 @@ void make_settings() {
     stepper_idle_lock_time = new IntSetting(GRBL, "1", "StepperIdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
     pulse_microseconds = new IntSetting(GRBL, "0", "StepPulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_pwm_freq = new FloatSetting(EXTENDED, NULL, "SpindlePWMFreq", DEFAULT_SPINDLE_FREQ, 0, 100000);
-    stallguard_debug_mask = new AxisMaskSetting(EXTENDED, NULL, "StallguardDebugMask", 0, checkStallguardDebugMask);
+    stallguard_debug_mask = new AxisMaskSetting(EXTENDED, NULL, "StallGuardDebugMask", 0, checkStallguardDebugMask);
 }
 
 err_t report_nvs_stats(const char* value, uint8_t client) {

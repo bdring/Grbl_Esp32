@@ -22,7 +22,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "midTbot"
+#define MACHINE_NAME "MIDTBOT"
 
 #define SPINDLE_TYPE    SPINDLE_TYPE_NONE
 
@@ -45,7 +45,6 @@
 #define Z_SERVO_PIN             GPIO_NUM_27
 #define Z_SERVO_RANGE_MIN       0.0
 #define Z_SERVO_RANGE_MAX       5.0
-
 
 // redefine some stuff from config.h
 #ifdef HOMING_CYCLE_0
@@ -102,9 +101,9 @@
 #define DEFAULT_Y_MAX_RATE 8000.0 // mm/min
 #define DEFAULT_Z_MAX_RATE 5000.0 // mm/min
 
-#define DEFAULT_X_ACCELERATION 200.0
-#define DEFAULT_Y_ACCELERATION 200.0
-#define DEFAULT_Z_ACCELERATION 100.0
+#define DEFAULT_X_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+#define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+#define DEFAULT_Z_ACCELERATION (100.0*60*60)
 
 #define DEFAULT_X_MAX_TRAVEL 100.0 // mm NOTE: Must be a positive value.
 #define DEFAULT_Y_MAX_TRAVEL 100.0 // mm NOTE: Must be a positive value.
