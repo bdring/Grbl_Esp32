@@ -46,40 +46,40 @@
 #define STEPPER_MS1             GPIO_NUM_23 // MOSI
 #define STEPPER_MS2             GPIO_NUM_18 // SCK
 
-#define STEPPER_X_MS3           I2S_OUT_3   // X_CS
-#define STEPPER_Y_MS3           I2S_OUT_6   // Y_CS
-#define STEPPER_Z_MS3           I2S_OUT_11  // Z_CS
-#define STEPPER_A_MS3           I2S_OUT_14  // A_CS
-#define STEPPER_B_MS3           I2S_OUT_19  // B_CS
-#define STEPPER_C_MS3           I2S_OUT_22  // C_CS
+#define STEPPER_X_MS3           I2SO(3)   // X_CS
+#define STEPPER_Y_MS3           I2SO(6)   // Y_CS
+#define STEPPER_Z_MS3           I2SO(11)  // Z_CS
+#define STEPPER_A_MS3           I2SO(14)  // A_CS
+#define STEPPER_B_MS3           I2SO(19)  // B_CS
+#define STEPPER_C_MS3           I2SO(22)  // C_CS
 
 #define STEPPER_RESET           GPIO_NUM_19
 
-#define X_DISABLE_PIN           I2S_OUT_0
-#define X_DIRECTION_PIN         I2S_OUT_1
-#define X_STEP_PIN              I2S_OUT_2
+#define X_DISABLE_PIN           I2SO(0)
+#define X_DIRECTION_PIN         I2SO(1)
+#define X_STEP_PIN              I2SO(2)
 
-#define Y_DIRECTION_PIN         I2S_OUT_4
-#define Y_STEP_PIN              I2S_OUT_5
-#define Y_DISABLE_PIN           I2S_OUT_7
+#define Y_DIRECTION_PIN         I2SO(4)
+#define Y_STEP_PIN              I2SO(5)
+#define Y_DISABLE_PIN           I2SO(7)
 
-#define Z_DISABLE_PIN           I2S_OUT_8
-#define Z_DIRECTION_PIN         I2S_OUT_9
-#define Z_STEP_PIN              I2S_OUT_10
+#define Z_DISABLE_PIN           I2SO(8)
+#define Z_DIRECTION_PIN         I2SO(9)
+#define Z_STEP_PIN              I2SO(10)
 
-#define A_DIRECTION_PIN         I2S_OUT_12
-#define A_STEP_PIN              I2S_OUT_13
-#define A_DISABLE_PIN           I2S_OUT_15
+#define A_DIRECTION_PIN         I2SO(12)
+#define A_STEP_PIN              I2SO(13)
+#define A_DISABLE_PIN           I2SO(15)
 
-#define B_DISABLE_PIN           I2S_OUT_16
-#define B_DIRECTION_PIN         I2S_OUT_17
-#define B_STEP_PIN              I2S_OUT_18
-//#define B_CS_PIN                I2S_OUT_19
+#define B_DISABLE_PIN           I2SO(16)
+#define B_DIRECTION_PIN         I2SO(17)
+#define B_STEP_PIN              I2SO(18)
+//#define B_CS_PIN                I2SO(19)
 
-#define C_DIRECTION_PIN         I2S_OUT_20
-#define C_STEP_PIN              I2S_OUT_21
-//#define C_CS_PIN                I2S_OUT_22
-#define C_DISABLE_PIN           I2S_OUT_23
+#define C_DIRECTION_PIN         I2SO(20)
+#define C_STEP_PIN              I2SO(21)
+//#define C_CS_PIN                I2SO(22)
+#define C_DISABLE_PIN           I2SO(23)
 
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM // only one spindle at a time
