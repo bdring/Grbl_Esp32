@@ -36,7 +36,7 @@ StandardStepper :: StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t
 }
 
 void StandardStepper :: init() {
-    _is_homing = false;
+    _homing_mask = 0;
     is_active = true;  // as opposed to NullMotors, this is a real motor
     set_axis_name();
     init_step_dir_pins();

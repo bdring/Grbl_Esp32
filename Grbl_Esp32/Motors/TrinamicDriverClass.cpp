@@ -4,7 +4,7 @@
 
     Part of Grbl_ESP32
     2020 -	Bart Dring
-    
+
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -38,6 +38,9 @@ TrinamicDriver :: TrinamicDriver(uint8_t axis_index,
     this->disable_pin = disable_pin;
     this->cs_pin = cs_pin;
     this->spi_index = spi_index;
+
+    _homing_mode =  TRINAMIC_HOMING_MODE;
+    _homing_mask = 0; // no axes homing
 
     if (_driver_part_number == 2130)
         tmcstepper = new TMC2130Stepper(cs_pin, _r_sense, spi_index);
@@ -73,7 +76,7 @@ void TrinamicDriver :: init() {
     read_settings(); // pull info from settings
     set_mode();
 
-    _is_homing = false;
+    _homing_mask = 0;
     is_active = true;  // as opposed to NullMotors, this is a real motor
 }
 
@@ -94,18 +97,15 @@ void TrinamicDriver :: config_message() {
 }
 
 bool TrinamicDriver :: test() {
-    char lib_ver[32];
-    sprintf(lib_ver, "TMCStepper Ver 0x%06x", TMCSTEPPER_VERSION);
-
     switch (tmcstepper->test_connection()) {
     case 1:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection. %s", _axis_name, lib_ver);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection.", _axis_name);
         return false;
     case 2:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power. %s", _axis_name, lib_ver);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power.", _axis_name);
         return false;
     default:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed. %s", _axis_name, lib_ver);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed.", _axis_name);
         return true;
     }
 }
@@ -121,8 +121,8 @@ void TrinamicDriver :: read_settings() {
     tmcstepper->sgt(axis_settings[axis_index]->stallguard->get());
 }
 
-void TrinamicDriver :: set_homing_mode(bool is_homing) {
-    _homing_mode = is_homing;
+void TrinamicDriver :: set_homing_mode(uint8_t homing_mask) {
+    _homing_mask = homing_mask;
     set_mode();
 }
 
@@ -133,21 +133,27 @@ void TrinamicDriver :: set_homing_mode(bool is_homing) {
 */
 void TrinamicDriver :: set_mode() {
 
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set TMC mode");    
 
-    if (_is_homing && (_homing_mode ==  TRINAMIC_HOMING_STALLGUARD))
+    if ( (_homing_mask & 1<<axis_index)  && (_homing_mode ==  TRINAMIC_HOMING_STALLGUARD))
         _mode = TRINAMIC_RUN_MODE_STALLGUARD;
-    else {
+    else
         _mode = TRINAMIC_RUN_MODE;
-                
-}
+
+
+    if (_lastMode == _mode)
+        return;
+
+    _lastMode = _mode;
+
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s TMC Mode: %d", _axis_name, _mode);
 
     if (_mode == TRINAMIC_RUN_MODE_STEALTHCHOP) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "STEALTHCHOP");
+        
         tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
         tmcstepper->en_pwm_mode(1);      // Enable extremely quiet stepping
         tmcstepper->pwm_autoscale(1);
-    } else  {  // if (mode == TRINAMIC_RUN_MODE_COOLSTEP || mode == TRINAMIC_RUN_MODE_STALLGUARD)
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "COOLSTEP");
+    } else  {  // if (mode == TRINAMIC_RUN_MODE_COOLSTEP || mode == TRINAMIC_RUN_MODE_STALLGUARD)        
         tmcstepper->tbl(1);
         tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
         tmcstepper->hysteresis_start(4);
@@ -171,20 +177,18 @@ void TrinamicDriver :: set_mode() {
 /*
     This is the stallguard tuning info. It is call debug, so it could be generic across all classes.
 */
-void TrinamicDriver :: debug_message() {    
+void TrinamicDriver :: debug_message() {
 
     uint32_t tstep = tmcstepper->TSTEP();
 
-    if (tstep == 0xFFFFF || tstep < 1) {   // if axis is not moving return
+    if (tstep == 0xFFFFF || tstep < 1)     // if axis is not moving return
         return;
-    }
-
     float feedrate = st_get_realtime_rate(); //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "%s Stallguard %d   SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
-                   _axis_name,                   
+                   _axis_name,             
                    tmcstepper->stallguard(),
                    tmcstepper->sg_result(),
                    feedrate,

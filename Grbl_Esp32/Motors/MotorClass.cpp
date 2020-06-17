@@ -268,6 +268,7 @@ void init_motors() {
     }
 
     if (motors_have_type_id(TRINAMIC_SPI_MOTOR)) {
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
         xTaskCreatePinnedToCore(readSgTask,     // task
                                 "readSgTask", // name for task
                                 4096,   // size of task stack
@@ -277,7 +278,7 @@ void init_motors() {
                                 0 // core
                                );
         if (stallguard_debug_mask->get() != 0)
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Stallgaurd debug enabled: %d", stallguard_debug_mask->get());
+            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
     }
 
     if (motors_have_type_id(RC_SERVO_MOTOR)) {
@@ -356,11 +357,11 @@ void motors_read_settings() {
 
 // use this to tell all the motors what the current homing mode is
 // They can use this to setup things like Stall
-void motors_set_homing_mode(bool is_homing) {
+void motors_set_homing_mode(uint8_t homing_mask) {
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_homing_mode(%d)", is_homing);
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
-            myMotor[axis][gang_index]->set_homing_mode(is_homing);
+            myMotor[axis][gang_index]->set_homing_mode(homing_mask);
     }
 }
 
@@ -441,7 +442,7 @@ Motor :: Motor() {
 }
 
 void Motor :: init() {
-    _is_homing = false;
+    _homing_mask = 0;
 }
 
 void Motor :: config_message() {}
@@ -457,6 +458,6 @@ void Motor :: set_axis_name() {
     sprintf(_axis_name, "%c%s", report_get_axis_letter(axis_index), dual_axis_index ? "2" : "");
 }
 
-void Motor :: set_homing_mode(bool is_homing) {
-    _is_homing = is_homing;
+void Motor :: set_homing_mode(uint8_t homing_mask) {
+    _homing_mask = homing_mask;
 }

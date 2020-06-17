@@ -95,12 +95,12 @@
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 #define SPINDLE_DIR_PIN         GPIO_NUM_16
 */
-#define X_LIMIT_PIN             GPIO_NUM_36
-#define Y_LIMIT_PIN             GPIO_NUM_39
-#define Z_LIMIT_PIN             GPIO_NUM_34
-#define A_LIMIT_PIN             GPIO_NUM_35
-#define B_LIMIT_PIN             GPIO_NUM_32
-#define C_LIMIT_PIN             GPIO_NUM_33
+#define X_LIMIT_PIN             GPIO_NUM_33
+#define Y_LIMIT_PIN             GPIO_NUM_32
+#define Z_LIMIT_PIN             GPIO_NUM_35
+#define A_LIMIT_PIN             GPIO_NUM_34
+#define B_LIMIT_PIN             GPIO_NUM_39
+#define C_LIMIT_PIN             GPIO_NUM_36
 #define LIMIT_MASK              B111111
 
 #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
