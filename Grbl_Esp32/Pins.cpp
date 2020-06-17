@@ -10,7 +10,7 @@ String pinName(uint8_t pin) {
     if (pin < I2S_OUT_PIN_BASE) {
         return String("GPIO(") + pin + ")";
     } else {
-        return String("I2SO<") + (pin - I2S_OUT_PIN_BASE) + ")";
+        return String("I2SO(") + (pin - I2S_OUT_PIN_BASE) + ")";
     }
 }
 
