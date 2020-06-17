@@ -165,7 +165,7 @@ void RcServo::_get_calibration() {
     // Note: Max travel is set positive via $$, but stored as a negative number
     if ((axis_settings[axis_index]->max_travel->get() < SERVO_CAL_MIN) || (axis_settings[axis_index]->max_travel->get() > SERVO_CAL_MAX)) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($13%d) value error. %3.2f Reset to 100", axis_index, axis_settings[axis_index]->max_travel->get());
-        char reset_val[] = "-100"; // stored as a negative
+        char reset_val[] = "100";
         axis_settings[axis_index]->max_travel->setStringValue(reset_val);
     }
 

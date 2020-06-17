@@ -99,13 +99,13 @@ void TrinamicDriver :: config_message() {
 bool TrinamicDriver :: test() {
     switch (tmcstepper->test_connection()) {
     case 1:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection.", _axis_name);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection", _axis_name);
         return false;
     case 2:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power.", _axis_name);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power", _axis_name);
         return false;
     default:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed.", _axis_name);
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed", _axis_name);
         return true;
     }
 }

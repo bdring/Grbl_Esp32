@@ -5,7 +5,7 @@
 
 String pinName(uint8_t pin) {
     if (pin == UNDEFINED_PIN) {
-        return "NONE";
+        return "None";
     }
     if (pin < I2S_OUT_PIN_BASE) {
         return String("GPIO(") + pin + ")";
