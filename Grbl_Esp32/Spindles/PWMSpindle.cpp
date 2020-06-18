@@ -57,7 +57,7 @@ void PWMSpindle :: get_pins_and_settings() {
     _output_pin = UNDEFINED_PIN;
 #endif
 
-#ifdef INVERT_SPINDLE_ENABLE_PIN
+#ifdef INVERT_SPINDLE_OUTPUT_PIN
     _invert_pwm = true;
 #else
     _invert_pwm = false;

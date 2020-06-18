@@ -21,8 +21,9 @@
 #pragma once
 // Grbl versioning system
 
+
 #define GRBL_VERSION "1.3a"
-#define GRBL_VERSION_BUILD "20200617"
+#define GRBL_VERSION_BUILD "20200618"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
