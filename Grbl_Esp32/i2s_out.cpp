@@ -137,14 +137,14 @@ static inline void i2s_out_reset_fifo_without_lock() {
   I2S0.conf.tx_fifo_reset = 0;
 }
 
-static void i2s_out_reset_fifo() {
+static void IRAM_ATTR i2s_out_reset_fifo() {
   I2S_OUT_ENTER_CRITICAL();
   i2s_out_reset_fifo_without_lock();
   I2S_OUT_EXIT_CRITICAL();
 }
 
 #ifdef USE_I2S_OUT_STREAM
-static int i2s_clear_o_dma_buffers(uint32_t port_data) {
+static int IRAM_ATTR i2s_clear_o_dma_buffers(uint32_t port_data) {
   for (int buf_idx = 0; buf_idx < I2S_OUT_DMABUF_COUNT; buf_idx++) {
     // Clear the DMA buffer
     for (int i = 0; i < DMA_SAMPLE_COUNT; i++) {
@@ -164,7 +164,7 @@ static int i2s_clear_o_dma_buffers(uint32_t port_data) {
 }
 #endif
 
-static int i2s_out_gpio_attach(uint8_t ws, uint8_t bck, uint8_t data) {
+static int IRAM_ATTR i2s_out_gpio_attach(uint8_t ws, uint8_t bck, uint8_t data) {
   // Route the i2s pins to the appropriate GPIO
   gpio_matrix_out_check(data, I2S0O_DATA_OUT23_IDX, 0, 0);
   gpio_matrix_out_check(bck, I2S0O_BCK_OUT_IDX, 0, 0);
@@ -174,7 +174,7 @@ static int i2s_out_gpio_attach(uint8_t ws, uint8_t bck, uint8_t data) {
 
 #define I2S_OUT_DETACH_PORT_IDX   0x100
 
-static int i2s_out_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) {
+static int IRAM_ATTR i2s_out_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) {
   // Route the i2s pins to the appropriate GPIO
   gpio_matrix_out_check(ws, I2S_OUT_DETACH_PORT_IDX, 0, 0);
   gpio_matrix_out_check(bck, I2S_OUT_DETACH_PORT_IDX, 0, 0);
@@ -182,7 +182,7 @@ static int i2s_out_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) {
   return 0;
 }
 
-static int i2s_out_gpio_shiftout(uint32_t port_data) {
+static int IRAM_ATTR i2s_out_gpio_shiftout(uint32_t port_data) {
   __digitalWrite(i2s_out_ws_pin, LOW);
   for (int i = 0; i <I2S_OUT_NUM_BITS; i++) {
     __digitalWrite(i2s_out_data_pin, !!(port_data & (1 << (I2S_OUT_NUM_BITS-1 - i))));
@@ -193,7 +193,7 @@ static int i2s_out_gpio_shiftout(uint32_t port_data) {
   return 0;
 }
 
-static int i2s_out_stop() {
+static int IRAM_ATTR i2s_out_stop() {
   I2S_OUT_ENTER_CRITICAL();
 #ifdef USE_I2S_OUT_STREAM
   // Stop FIFO DMA
@@ -229,7 +229,7 @@ static int i2s_out_stop() {
   return 0;
 }
 
-static int i2s_out_start() {
+static int IRAM_ATTR i2s_out_start() {
   if (!i2s_out_initialized) {
     return -1;
   }
@@ -420,35 +420,55 @@ uint32_t IRAM_ATTR i2s_out_push_sample(uint32_t num) {
 #endif
 }
 
-int i2s_out_set_passthrough() {
+int IRAM_ATTR i2s_out_set_passthrough() {
   I2S_OUT_PULSER_ENTER_CRITICAL();
   i2s_out_pulser_status = PASSTHROUGH;
   I2S_OUT_PULSER_EXIT_CRITICAL();
+  i2s_out_stop();
   return 0;
 }
 
-int i2s_out_set_stepping() {
+int IRAM_ATTR i2s_out_set_stepping() {
+  bool state_changed = false;
+
   I2S_OUT_PULSER_ENTER_CRITICAL();
-  i2s_out_pulser_status = STEPPING;
+  if (i2s_out_pulser_status != STEPPING) {
+    i2s_out_pulser_status = STEPPING;
+    state_changed = true;
+  }
   I2S_OUT_PULSER_EXIT_CRITICAL();
+
+  if (state_changed) {
+#ifdef USE_I2S_OUT_STREAM
+    uint32_t port_data = atomic_load(&i2s_out_port_data);
+    i2s_clear_o_dma_buffers(port_data);
+#endif
+    i2s_out_start();
+  }
+
   return 0;
 }
 
-int i2s_out_set_pulse_period(uint32_t period) {
+int IRAM_ATTR i2s_out_shiftout() {
+  uint32_t port_data = atomic_load(&i2s_out_port_data); // current expanded port value
+  return i2s_out_gpio_shiftout(port_data);
+}
+
+int IRAM_ATTR i2s_out_set_pulse_period(uint32_t period) {
 #ifdef USE_I2S_OUT_STREAM
   i2s_out_pulse_period = period;
 #endif
   return 0;
 }
 
-int i2s_out_set_pulse_callback(i2s_out_pulse_func_t func) {
+int IRAM_ATTR i2s_out_set_pulse_callback(i2s_out_pulse_func_t func) {
 #ifdef USE_I2S_OUT_STREAM
   i2s_out_pulse_func = func;
 #endif
   return 0;
 }
 
-int i2s_out_reset() {
+int IRAM_ATTR i2s_out_reset() {
   i2s_out_stop();
 #ifdef USE_I2S_OUT_STREAM
   uint32_t port_data = atomic_load(&i2s_out_port_data);
@@ -461,7 +481,7 @@ int i2s_out_reset() {
 //
 // Initialize funtion (external function)
 //
-int i2s_out_init(i2s_out_init_t &init_param) {
+int IRAM_ATTR i2s_out_init(i2s_out_init_t &init_param) {
   if (i2s_out_initialized) {
     // already initialized
     return -1;
@@ -699,7 +719,7 @@ int i2s_out_init(i2s_out_init_t &init_param) {
 
   return -1 ... already initialized
 */
-int i2s_out_init() {
+int IRAM_ATTR i2s_out_init() {
     i2s_out_init_t default_param = {
         .ws_pin = I2S_OUT_WS,
         .bck_pin = I2S_OUT_BCK,
