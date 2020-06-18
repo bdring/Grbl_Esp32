@@ -49,9 +49,6 @@
 
 #include <stdatomic.h>
 
-#include "config.h"
-#include "Pins.h"
-
 #ifdef USE_I2S_OUT
 
 #include "i2s_out.h"

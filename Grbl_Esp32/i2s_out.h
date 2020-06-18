@@ -38,8 +38,6 @@
 #ifndef i2s_out_h
 #define i2s_out_h
 
-#include "Pins.h"
-
 // If USE_I2S_OUT_STREAM is defined
 // but the prerequisite USE_I2S_OUT is not defined,
 // it is forced to be defined.

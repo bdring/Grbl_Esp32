@@ -27,8 +27,6 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Pins.h"
-
 #ifndef MOTORCLASS_H
 #define MOTORCLASS_H
 
