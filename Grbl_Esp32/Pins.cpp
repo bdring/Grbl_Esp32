@@ -1,6 +1,5 @@
 #include "Arduino.h"
-#include "config.h"
-#include "Pins.h"
+#include "grbl.h"
 #include "i2s_out.h"
 
 String pinName(uint8_t pin) {

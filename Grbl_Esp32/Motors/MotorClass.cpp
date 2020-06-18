@@ -31,7 +31,7 @@
         TMC2130 Datasheet https://www.trinamic.com/fileadmin/assets/Products/ICs_Documents/TMC2130_datasheet.pdf
 */
 
-#include "grbl.h"
+#include "../grbl.h"
 #include "TrinamicDriverClass.cpp"
 #include "StandardStepperClass.cpp"
 #include "UnipolarMotorClass.cpp"
