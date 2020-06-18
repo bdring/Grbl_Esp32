@@ -444,5 +444,20 @@ bool axis_is_squared(uint8_t axis_mask) {
         return true;
 #endif
     }
+     if (axis_mask == (1 << A_AXIS)) {
+#ifdef A_AXIS_SQUARING
+        return true;
+#endif
+    }
+     if (axis_mask == (1 << B_AXIS)) {
+#ifdef B_AXIS_SQUARING
+        return true;
+#endif
+    }
+     if (axis_mask == (1 << C_AXIS)) {
+#ifdef C_AXIS_SQUARING
+        return true;
+#endif
+    }
     return false;
 }

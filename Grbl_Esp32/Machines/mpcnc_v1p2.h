@@ -1,5 +1,5 @@
 /*
-    mpcnc.h
+    mpcnc_v1p2.h
     Part of Grbl_ESP32
 
     Pin assignments for the Buildlog.net MPCNC controller
@@ -41,7 +41,9 @@
 #define Z_STEP_PIN      GPIO_NUM_27
 
 #define X_DIRECTION_PIN GPIO_NUM_26
+#define X2_DIRECTION_PIN    X_DIRECTION_PIN
 #define Y_DIRECTION_PIN GPIO_NUM_25
+#define Y2_DIRECTION_PIN    Y_DIRECTION_PIN
 #define Z_DIRECTION_PIN GPIO_NUM_33
 
 // OK to comment out to use pin for other features

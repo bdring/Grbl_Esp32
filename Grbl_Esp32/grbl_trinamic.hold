@@ -29,6 +29,8 @@
 #define TMC2130_RSENSE_DEFAULT  0.11f
 #define TMC5160_RSENSE_DEFAULT  0.075f
 
+#define TRINAMIC_SPI_FREQ 100000
+
 #ifdef USE_TRINAMIC
     #include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
     void Trinamic_Init();

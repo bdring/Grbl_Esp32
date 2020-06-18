@@ -82,10 +82,6 @@ extern uint8_t ganged_mode;
 void IRAM_ATTR onSteppertimer();
 void IRAM_ATTR onStepperOffTimer();
 
-#ifdef USE_RMT_STEPS
-    void initRMT();
-#endif
-
 void stepper_init();
 
 // Enable steppers, but cycle does not start unless called by motion control or realtime command.
@@ -116,11 +112,8 @@ void st_update_plan_block_parameters();
 float st_get_realtime_rate();
 
 // disable (or enable) steppers via STEPPERS_DISABLE_PIN
-void set_stepper_disable(uint8_t disable);
 bool get_stepper_disable(); // returns the state of the pin
 
-void set_step_pin_on(uint8_t axis, uint8_t isOn);
-void set_direction_pin_on(uint8_t axis, uint8_t isOn);
 void set_stepper_pins_on(uint8_t onMask);
 void set_direction_pins_on(uint8_t onMask);
 

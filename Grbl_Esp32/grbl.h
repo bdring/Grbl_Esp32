@@ -21,8 +21,9 @@
 #pragma once
 // Grbl versioning system
 
-#define GRBL_VERSION "1.2a"
-#define GRBL_VERSION_BUILD "20200614"
+
+#define GRBL_VERSION "1.3a"
+#define GRBL_VERSION_BUILD "20200618"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -55,7 +56,9 @@
 #include "protocol.h"
 #include "report.h"
 #include "serial.h"
+#include "Pins.h"
 #include "Spindles/SpindleClass.h"
+#include "Motors/MotorClass.h"
 #include "stepper.h"
 #include "jog.h"
 #include "inputbuffer.h"
@@ -93,6 +96,10 @@
 
 #ifdef USE_UNIPOLAR
     #include "grbl_unipolar.h"
+#endif
+
+#ifdef USE_I2S_OUT
+    #include "i2s_out.h"
 #endif
 
 // Called if USE_MACHINE_INIT is defined
