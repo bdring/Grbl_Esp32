@@ -130,6 +130,16 @@ static inline void gpio_matrix_out_check(uint8_t gpio, uint32_t signal_idx, bool
   }
 }
 
+static inline void i2s_out_single_data() {
+#if I2S_OUT_NUM_BITS == 16
+  uint32_t port_data = atomic_load(&i2s_out_port_data);
+  port_data <<= 16; // Shift needed. This specification is not spelled out in the manual.
+  I2S0.conf_single_data = port_data; // Apply port data in real time
+#else
+  I2S0.conf_single_data = atomic_load(&i2s_out_port_data); // Apply port data in real time
+#endif
+}
+
 static inline void i2s_out_reset_fifo_without_lock() {
   I2S0.conf.rx_fifo_reset = 1;
   I2S0.conf.rx_fifo_reset = 0;
@@ -387,13 +397,7 @@ void IRAM_ATTR i2s_out_write(uint8_t pin, uint8_t val) {
     atomic_fetch_and(&i2s_out_port_data, ~bit);
   }
 #ifndef USE_I2S_OUT_STREAM
-#if I2S_OUT_NUM_BITS == 16
-  uint32_t port_data = atomic_load(&i2s_out_port_data);
-  port_data <<= 16; // Shift needed. This specification is not spelled out in the manual.
-  I2S0.conf_single_data = port_data; // Apply port data in real time
-#else
-  I2S0.conf_single_data = atomic_load(&i2s_out_port_data); // Apply port data in real time
-#endif
+  i2s_out_single_data();
 #endif
 }
 
