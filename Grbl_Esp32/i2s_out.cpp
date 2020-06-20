@@ -40,6 +40,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include "config.h"
+
+#ifdef USE_I2S_OUT
+
 #include <FreeRTOS.h>
 #include <driver/periph_ctrl.h>
 #include <rom/lldesc.h>
@@ -49,8 +53,7 @@
 
 #include <stdatomic.h>
 
-#ifdef USE_I2S_OUT
-
+#include "Pins.h"
 #include "i2s_out.h"
 
 //
