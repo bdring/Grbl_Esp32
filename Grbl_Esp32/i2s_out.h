@@ -141,7 +141,7 @@ uint32_t i2s_out_push_sample(uint32_t num);
    Set pulser mode to passtrough
    After this function is called,
    the callback function to generate the pulse data
-   will not be called.
+   will not be called, and stop ISR/DMA.
  */
 int i2s_out_set_passthrough();
 
@@ -149,9 +149,17 @@ int i2s_out_set_passthrough();
    Set pulser mode to stepping
    After this function is called,
    the callback function to generate stepping pulse data
-   will be called.
+   will be called, and restart ISR/DMA.
  */
 int i2s_out_set_stepping();
+
+
+/*
+   Shifts out the state value of the current pin with a bit bang.
+   Note: Before calling this function, i2s_out_set_passthrough() must be called.
+ */
+int i2s_out_shiftout();
+
 
 /*
    Set the pulse callback period in microseconds
