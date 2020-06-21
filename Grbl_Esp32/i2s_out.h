@@ -162,14 +162,6 @@ int i2s_out_set_stepping();
  */
 void i2s_out_delay();
 
-
-/*
-   Shifts out the state value of the current pin with a bit bang.
-   Note: Before calling this function, i2s_out_set_passthrough() must be called.
- */
-int i2s_out_shiftout();
-
-
 /*
    Set the pulse callback period in microseconds
    (like the timer period for the ISR)
@@ -180,7 +172,6 @@ int i2s_out_set_pulse_period(uint32_t period);
    Register a callback function to generate pulse data
  */
 int i2s_out_set_pulse_callback(i2s_out_pulse_func_t func);
-
 
 /*
    Reset i2s I/O expander
