@@ -447,13 +447,15 @@ static void IRAM_ATTR i2sOutTask(void* parameter) {
 //
 void IRAM_ATTR i2s_out_delay() {
 #ifdef USE_I2S_OUT_STREAM
+ I2S_OUT_PULSER_ENTER_CRITICAL();
   if (i2s_out_pulser_status == PASSTHROUGH) {
-    ets_delay_us(I2S_OUT_USEC_PER_PULSE);
+    ets_delay_us(I2S_OUT_USEC_PER_PULSE * 2);
   } else {
     delay(I2S_OUT_DELAY_MS);
   }
+ I2S_OUT_PULSER_EXIT_CRITICAL();
 #else
-  ets_delay_us(I2S_OUT_USEC_PER_PULSE);
+  ets_delay_us(I2S_OUT_USEC_PER_PULSE * 2);
 #endif
 }
 
@@ -556,6 +558,7 @@ int IRAM_ATTR i2s_out_reset() {
   }
 #endif
   i2s_out_start();
+  i2s_out_delay();
   I2S_OUT_PULSER_EXIT_CRITICAL();
   return 0;
 }
