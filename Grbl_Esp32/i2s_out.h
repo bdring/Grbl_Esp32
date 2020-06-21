@@ -38,6 +38,9 @@
 #ifndef i2s_out_h
 #define i2s_out_h
 
+// It should be included at the outset to know the machine configuration.
+#include "config.h"
+
 // If USE_I2S_OUT_STREAM is defined
 // but the prerequisite USE_I2S_OUT is not defined,
 // it is forced to be defined.
@@ -152,6 +155,12 @@ int i2s_out_set_passthrough();
    will be called, and restart ISR/DMA.
  */
 int i2s_out_set_stepping();
+
+/*
+  Dynamically delay until the Shift Register Pin changes
+  according to the current I2S processing state and mode.
+ */
+void i2s_out_delay();
 
 
 /*

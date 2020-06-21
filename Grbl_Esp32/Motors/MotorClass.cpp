@@ -442,11 +442,7 @@ void readSgTask(void* pvParameters) {
 //
 void TMC2130Stepper::switchCSpin(bool state) {
     digitalWrite(_pinCS, state);
-#ifdef USE_I2S_OUT_STREAM
-    delay(I2S_OUT_DELAY_MS);
-#else
-    ets_delay_us(I2S_OUT_USEC_PER_PULSE);
-#endif
+    i2s_out_delay();
 }
 #endif
 
