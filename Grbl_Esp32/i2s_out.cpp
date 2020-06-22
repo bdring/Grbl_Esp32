@@ -558,13 +558,14 @@ int IRAM_ATTR i2s_out_reset() {
   if (i2s_out_pulser_status == STEPPING) {
     uint32_t port_data = atomic_load(&i2s_out_port_data);
     i2s_clear_o_dma_buffers(port_data);
+  } else if (i2s_out_pulser_status == WAITING) {
+    i2s_clear_o_dma_buffers(0);
+    i2s_out_pulser_status = PASSTHROUGH;
   }
 #endif
   // You need to set the status before calling i2s_out_start()
   // because the process in i2s_out_start() is different depending on the status.
-  // The reset assumes that the status will not change, so not change the status.
   i2s_out_start();
-  i2s_out_delay();
   I2S_OUT_PULSER_EXIT_CRITICAL();
   return 0;
 }
