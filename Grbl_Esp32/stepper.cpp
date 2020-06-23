@@ -473,10 +473,10 @@ void st_reset() {
     //Serial.println("st_reset()");
 #endif
     // Initialize stepper driver idle state.
-    st_go_idle();
 #ifdef USE_I2S_OUT_STREAM
     i2s_out_reset();
 #endif
+    st_go_idle();
     // Initialize stepper algorithm variables.
     memset(&prep, 0, sizeof(st_prep_t));
     memset(&st, 0, sizeof(stepper_t));

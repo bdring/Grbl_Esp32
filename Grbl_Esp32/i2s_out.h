@@ -71,7 +71,8 @@
 #define I2S_OUT_DMABUF_COUNT 5     /* number of DMA buffers to store data */
 #define I2S_OUT_DMABUF_LEN   2000  /* maximum size in bytes (4092 is DMA's limit) */
 
-#define I2S_OUT_DELAY_MS    (I2S_OUT_DMABUF_LEN / sizeof(uint32_t) * (I2S_OUT_DMABUF_COUNT + 1) * I2S_OUT_USEC_PER_PULSE / 1000)
+#define I2S_OUT_DELAY_DMABUF_MS (I2S_OUT_DMABUF_LEN / sizeof(uint32_t) * I2S_OUT_USEC_PER_PULSE / 1000)
+#define I2S_OUT_DELAY_MS        (I2S_OUT_DELAY_DMABUF_MS * (I2S_OUT_DMABUF_COUNT + 1))
 
 typedef void (*i2s_out_pulse_func_t)(void);
 

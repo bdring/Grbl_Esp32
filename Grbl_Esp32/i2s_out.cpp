@@ -443,6 +443,7 @@ static void IRAM_ATTR i2sOutTask(void* parameter) {
         // We don't need to fill up the buffer by port_data any more.
         i2s_clear_dma_buffer(dma_desc, 0); // Essentially, no clearing is required. I'll make sure I know when I've written something.
         o_dma.rw_pos = 0; // If someone calls i2s_out_push_sample, make sure there is no buffer overflow
+        dma_desc->qe.stqe_next = NULL; // Cut the DMA descriptor ring. This allow us to identify the tail of the buffer.
       }
     } else {
         // Stepper paused (passthrough state, static I2S control mode)
@@ -519,32 +520,58 @@ uint32_t IRAM_ATTR i2s_out_push_sample(uint32_t num) {
 
 int IRAM_ATTR i2s_out_set_passthrough() {
   I2S_OUT_PULSER_ENTER_CRITICAL();
+#ifdef USE_I2S_OUT_STREAM
   if (i2s_out_pulser_status == STEPPING) {
     i2s_out_pulser_status = WAITING; // Start stopping the pulser
   }
+#else
+  i2s_out_pulser_status = PASSTHROUGH;
+#endif
   I2S_OUT_PULSER_EXIT_CRITICAL();
   return 0;
 }
 
 int IRAM_ATTR i2s_out_set_stepping() {
   I2S_OUT_PULSER_ENTER_CRITICAL();
-  if (i2s_out_pulser_status != PASSTHROUGH) {
+#ifdef USE_I2S_OUT_STREAM
+  if (i2s_out_pulser_status == STEPPING) {
     // Re-entered (fail safe)
     I2S_OUT_PULSER_EXIT_CRITICAL();
-    return -1;
+    return 0;
   }
 
+  if (i2s_out_pulser_status == WAITING) {
+    // Wait for complete DMAs
+    for(;;) {
+      I2S_OUT_PULSER_EXIT_CRITICAL();
+      delay(I2S_OUT_DELAY_DMABUF_MS);
+      I2S_OUT_PULSER_ENTER_CRITICAL();
+      if (i2s_out_pulser_status == WAITING) {
+        continue;
+      }
+      if (i2s_out_pulser_status == PASSTHROUGH) {
+        // DMA completed
+        break;
+      }
+      // Another function change the I2S state to STEPPING
+      I2S_OUT_PULSER_EXIT_CRITICAL();
+      return 0;
+    }
+  }
+
+  // Change I2S state from PASSTHROUGH to STEPPING
   i2s_out_stop();
-#ifdef USE_I2S_OUT_STREAM
   uint32_t port_data = atomic_load(&i2s_out_port_data);
   i2s_clear_o_dma_buffers(port_data);
-#endif
+
   // You need to set the status before calling i2s_out_start()
   // because the process in i2s_out_start() is different depending on the status.
   i2s_out_pulser_status = STEPPING;
   i2s_out_start();
+#else
+  i2s_out_pulser_status = STEPPING;
+#endif
   I2S_OUT_PULSER_EXIT_CRITICAL();
-
   return 0;
 }
 
