@@ -289,7 +289,7 @@ static void stepper_pulse_func() {
             st_go_idle();
             if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
-                if (st.exec_block->is_pwm_rate_adjusted)
+                if (st.exec_block != NULL && st.exec_block->is_pwm_rate_adjusted)
                     spindle->set_rpm(0);
             }
 
