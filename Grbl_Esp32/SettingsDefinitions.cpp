@@ -280,7 +280,7 @@ void make_settings() {
     spindle_pwm_min_value = new FloatSetting(EXTENDED, "35", "SpindleMinPWM", DEFAULT_SPINDLE_MIN_VALUE, 0.0, 100.0);
     spindle_pwm_off_value = new FloatSetting(EXTENDED, "34", "SpindleOffPWM", DEFAULT_SPINDLE_OFF_VALUE, 0.0, 100.0); // these are percentages
     // IntSetting spindle_pwm_bit_precision("SpindlePWMbitPrecision", DEFAULT_SPINDLE_BIT_PRECISION, 1, 16);
-    spindle_type = new EnumSetting(NULL, EXTENDED, "33", "SpindleType", SPINDLE_TYPE_NONE, &spindleTypes);
+    spindle_pwm_freq = new FloatSetting(EXTENDED, "33", "SpindlePWMFreq", DEFAULT_SPINDLE_FREQ, 0, 100000);
 
     // GRBL Non-numbered settings
     startup_line_0 = new StringSetting(GRBL, NULL, "N0", "", checkStartupLine);
@@ -319,7 +319,7 @@ void make_settings() {
     step_invert_mask = new AxisMaskSetting(GRBL, "2", "StepInvertMask", DEFAULT_STEPPING_INVERT_MASK);
     stepper_idle_lock_time = new IntSetting(GRBL, "1", "StepperIdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
     pulse_microseconds = new IntSetting(GRBL, "0", "StepPulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
-    spindle_pwm_freq = new FloatSetting(EXTENDED, NULL, "SpindlePWMFreq", DEFAULT_SPINDLE_FREQ, 0, 100000);
+    spindle_type = new EnumSetting(NULL, EXTENDED, NULL, "SpindleType", SPINDLE_TYPE_NONE, &spindleTypes);
     stallguard_debug_mask = new AxisMaskSetting(EXTENDED, NULL, "StallGuardDebugMask", 0, checkStallguardDebugMask);
 }
 
