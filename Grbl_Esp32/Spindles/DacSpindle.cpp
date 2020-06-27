@@ -94,10 +94,6 @@ uint32_t DacSpindle::set_rpm(uint32_t rpm) {
         
         pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
     }
-
-    if (_off_with_zero_speed) {
-        set_enable_pin(rpm != 0);
-    }
     
     set_output(pwm_value);
 
