@@ -142,9 +142,6 @@ uint32_t PWMSpindle::set_rpm(uint32_t rpm) {
             pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
     }
 
-    if (_off_with_zero_speed)
-        set_enable_pin(rpm != 0);
-
     set_output(pwm_value);
 
     return 0;
@@ -162,7 +159,7 @@ void PWMSpindle::set_state(uint8_t state, uint32_t rpm) {
         set_rpm(rpm);
     }
 
-    set_enable_pin(state == SPINDLE_DISABLE);
+    set_enable_pin(state != SPINDLE_DISABLE);
 
     sys.report_ovr_counter = 0; // Set to report change immediately
 }
@@ -206,6 +203,7 @@ void PWMSpindle::set_output(uint32_t duty) {
 
     _current_pwm_duty = duty;
 
+     if (_invert_pwm)
         duty = (1 << _pwm_precision) - duty;
 
     ledcWrite(_spindle_pwm_chan_num, duty);
@@ -213,6 +211,10 @@ void PWMSpindle::set_output(uint32_t duty) {
 }
 
 void PWMSpindle::set_enable_pin(bool enable) {
+
+if (_off_with_zero_speed &&  sys.spindle_speed == 0)
+        enable = false;
+
 #ifdef INVERT_SPINDLE_ENABLE_PIN
     enable = !enable;
 #endif
