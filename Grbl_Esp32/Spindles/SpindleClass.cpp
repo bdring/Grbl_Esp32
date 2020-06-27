@@ -47,9 +47,9 @@ HuanyangSpindle huanyang_spindle;
 BESCSpindle besc_spindle;
 
 
-void spindle_select(uint8_t spindle_type) {
+void spindle_select() {
     
-    switch (spindle_type) {
+    switch (spindle_type->get()) {
     case SPINDLE_TYPE_PWM:
         spindle = &pwm_spindle;
         break;
