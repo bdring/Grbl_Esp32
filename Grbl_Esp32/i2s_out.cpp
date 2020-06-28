@@ -314,6 +314,79 @@ static int IRAM_ATTR i2s_out_start() {
 }
 
 #ifdef USE_I2S_OUT_STREAM
+
+static int IRAM_ATTR i2s_fillout_dma_buffer(lldesc_t *dma_desc) {
+  uint32_t *buf = (uint32_t*)dma_desc->buf;
+  o_dma.rw_pos = 0;
+  // It reuses the oldest (just transferred) buffer with the name "current"
+  // and fills the buffer for later DMA.
+  I2S_OUT_PULSER_ENTER_CRITICAL(); // Lock pulser status
+  if (i2s_out_pulser_status == STEPPING) {
+    //
+    // Fillout the buffer for pulse
+    //
+    // To avoid buffer overflow, all of the maximum pulse width (normaly about 10us)
+    // is adjusted to be in a single buffer.
+    // DMA_SAMPLE_SAFE_COUNT is referred to as the margin value.
+    // Therefore, if a buffer is close to full and it is time to generate a pulse,
+    // the generation of the buffer is interrupted (the buffer length is shortened slightly)
+    // and the pulse generation is postponed until the next buffer is filled.
+    //
+    o_dma.rw_pos = 0;
+    while (o_dma.rw_pos < (DMA_SAMPLE_COUNT - SAMPLE_SAFE_COUNT)) {
+        // no data to read (buffer empty)
+        if (i2s_out_remain_time_until_next_pulse < I2S_OUT_USEC_PER_PULSE) {
+          // pulser status may change in pulse phase func, so I need to check it every time.
+          if (i2s_out_pulser_status == STEPPING) {
+            // fillout future DMA buffer (tail of the DMA buffer chains)
+            if (i2s_out_pulse_func != NULL) {
+              I2S_OUT_PULSER_EXIT_CRITICAL(); // Temporarily unlocked status lock as it may be locked in pulse callback.
+              (*i2s_out_pulse_func)(); // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT
+              I2S_OUT_PULSER_ENTER_CRITICAL(); // Lock again.
+              i2s_out_remain_time_until_next_pulse = i2s_out_pulse_period;
+              if (i2s_out_pulser_status == WAITING) {
+                // i2s_out_set_passthrough() has called from the pulse function.
+                // It needs to go into pass-through mode.
+                // This DMA descriptor must be a tail of the chain.
+                dma_desc->qe.stqe_next = NULL; // Cut the DMA descriptor ring. This allow us to identify the tail of the buffer.
+              } else if (i2s_out_pulser_status == PASSTHROUGH) {
+                // i2s_out_reset() has called during the execution of the pulse function.
+                // I2S has already in static mode, and buffers has cleared to zero.
+                // To prevent the pulse function from being called back,
+                // we assume that the buffer is already full.
+                i2s_out_remain_time_until_next_pulse = 0; // There is no need to fill the current buffer.
+                o_dma.rw_pos = DMA_SAMPLE_COUNT; // The buffer is full.
+                break;
+              }
+              continue;
+            }
+          }
+        }
+        // no pulse data in push buffer (pulse off or idle or callback is not defined)
+        buf[o_dma.rw_pos++] = atomic_load(&i2s_out_port_data);
+        if (i2s_out_remain_time_until_next_pulse >= I2S_OUT_USEC_PER_PULSE) {
+          i2s_out_remain_time_until_next_pulse -= I2S_OUT_USEC_PER_PULSE;
+        } else {
+          i2s_out_remain_time_until_next_pulse = 0;
+        }
+    }
+    // set filled length to the DMA descriptor
+    dma_desc->length = o_dma.rw_pos * I2S_SAMPLE_SIZE;
+  } else if (i2s_out_pulser_status == WAITING) {
+    i2s_clear_dma_buffer(dma_desc, 0); // Essentially, no clearing is required. I'll make sure I know when I've written something.
+    o_dma.rw_pos = 0; // If someone calls i2s_out_push_sample, make sure there is no buffer overflow
+    dma_desc->qe.stqe_next = NULL; // Cut the DMA descriptor ring. This allow us to identify the tail of the buffer.
+  } else {
+    // Stepper paused (passthrough state, static I2S control mode)
+    // In the passthrough mode, there is no need to fill the buffer with port_data.
+    i2s_clear_dma_buffer(dma_desc, 0); // Essentially, no clearing is required. I'll make sure I know when I've written something.
+    o_dma.rw_pos = 0; // If someone calls i2s_out_push_sample, make sure there is no buffer overflow
+  }
+  I2S_OUT_PULSER_EXIT_CRITICAL(); // Unlock pulser status
+
+  return 0;
+}
+
 //
 // I2S out DMA Interrupts handler
 //
@@ -388,45 +461,7 @@ static void IRAM_ATTR i2sOutTask(void* parameter) {
       // the generation of the buffer is interrupted (the buffer length is shortened slightly)
       // and the pulse generation is postponed until the next buffer is filled.
       //
-      o_dma.rw_pos = 0;
-      while (o_dma.rw_pos < (DMA_SAMPLE_COUNT - SAMPLE_SAFE_COUNT)) {
-          // no data to read (buffer empty)
-          if (i2s_out_remain_time_until_next_pulse < I2S_OUT_USEC_PER_PULSE) {
-            // pulser status may change in pulse phase func, so I need to check it every time.
-            if (i2s_out_pulser_status == STEPPING) {
-              // fillout future DMA buffer (tail of the DMA buffer chains)
-              if (i2s_out_pulse_func != NULL) {
-                I2S_OUT_PULSER_EXIT_CRITICAL(); // Temporarily unlocked status lock as it may be locked in pulse callback.
-                (*i2s_out_pulse_func)(); // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT
-                I2S_OUT_PULSER_ENTER_CRITICAL(); // Lock again.
-                i2s_out_remain_time_until_next_pulse = i2s_out_pulse_period;
-                if (i2s_out_pulser_status == WAITING) {
-                  // i2s_out_set_passthrough() has called from the pulse function.
-                  // It needs to go into pass-through mode.
-                  // This DMA descriptor must be a tail of the chain.
-                  dma_desc->qe.stqe_next = NULL; // Cut the DMA descriptor ring. This allow us to identify the tail of the buffer.
-                } else if (i2s_out_pulser_status == PASSTHROUGH) {
-                  // i2s_out_reset() has called during the execution of the pulse function.
-                  // I2S has already in static mode, and buffers has cleared to zero.
-                  // To prevent the pulse function from being called back,
-                  // we assume that the buffer is already full.
-                  i2s_out_remain_time_until_next_pulse = 0; // There is no need to fill the current buffer.
-                  o_dma.rw_pos = DMA_SAMPLE_COUNT; // The buffer is full.
-                  break;
-                }
-                continue;
-              }
-            }
-          }
-          // no pulse data in push buffer (pulse off or idle or callback is not defined)
-          o_dma.current[o_dma.rw_pos++] = atomic_load(&i2s_out_port_data);
-          if (i2s_out_remain_time_until_next_pulse >= I2S_OUT_USEC_PER_PULSE) {
-            i2s_out_remain_time_until_next_pulse -= I2S_OUT_USEC_PER_PULSE;
-          } else {
-            i2s_out_remain_time_until_next_pulse = 0;
-          }
-      }
-      // set filled length to the DMA descriptor
+      i2s_fillout_dma_buffer(dma_desc);
       dma_desc->length = o_dma.rw_pos * I2S_SAMPLE_SIZE;
     } else if (i2s_out_pulser_status == WAITING) {
       if (dma_desc->qe.stqe_next == NULL) {
