@@ -113,6 +113,7 @@ public:
     virtual err_t setStringValue(char* value) =0;
     err_t setStringValue(String s) {  return setStringValue(s.c_str());  }
     virtual const char* getStringValue() =0;
+    virtual const char* getCompatibleValue() { return getStringValue(); }
 };
 
 class IntSetting : public Setting {
@@ -134,6 +135,29 @@ public:
     void setDefault();
     void addWebui(JSONencoder *);
     err_t setStringValue(char* value);
+    const char* getStringValue();
+
+    int32_t get() {  return _currentValue;  }
+};
+
+class AxisMaskSetting : public Setting {
+private:
+    int32_t _defaultValue;
+    int32_t _currentValue;
+    int32_t _storedValue;
+
+public:
+    AxisMaskSetting(const char *description, group_t group, const char* grblName, const char* name, int32_t defVal, bool (*checker)(char *));
+
+    AxisMaskSetting(group_t group, const char* grblName, const char* name, int32_t defVal, bool (*checker)(char *) = NULL)
+        : AxisMaskSetting(NULL, group, grblName, name, defVal, checker)
+    { }
+
+    void load();
+    void setDefault();
+    void addWebui(JSONencoder *);
+    err_t setStringValue(char* value);
+    const char* getCompatibleValue();
     const char* getStringValue();
 
     int32_t get() {  return _currentValue;  }
@@ -235,6 +259,7 @@ public:
     // The booleans are expressed as Enums
     void addWebui(JSONencoder *) {}
     err_t setStringValue(char* value);
+    const char* getCompatibleValue();
     const char* getStringValue();
 
     bool get() {  return _currentValue;  }

@@ -353,6 +353,57 @@
         #define DEFAULT_C_STALLGUARD 16 // $175 stallguard (extended set)
     #endif
 
+    #ifndef TRINAMIC_HOMING_MODE
+        #define TRINAMIC_HOMING_MODE    TRINAMIC_HOMING_NONE
+    #endif
+
+// ==================  pin defaults ========================
+
+// Here is a place to default pins to UNDEFINED_PIN.
+// This can eliminate checking to see if the pin is defined because
+// the overridden pinMode and digitalWrite functions will deal with it.
+
+#ifndef STEPPERS_DISABLE_PIN
+    #define STEPPERS_DISABLE_PIN    UNDEFINED_PIN
+#endif
+
+#ifndef X_DISABLE_PIN
+    #define X_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef Y_DISABLE_PIN
+    #define Y_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef Z_DISABLE_PIN
+    #define Z_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef A_DISABLE_PIN
+    #define A_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef B_DISABLE_PIN
+    #define B_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef C_DISABLE_PIN
+    #define C_DISABLE_PIN   UNDEFINED_PIN
+#endif
+
+#ifndef X2_DISABLE_PIN
+    #define X2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef Y2_DISABLE_PIN
+    #define Y2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef Z2_DISABLE_PIN
+    #define Z2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef A2_DISABLE_PIN
+    #define A2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef B2_DISABLE_PIN
+    #define B2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef C2_DISABLE_PIN
+    #define C2_DISABLE_PIN   UNDEFINED_PIN
+#endif
 
 
 

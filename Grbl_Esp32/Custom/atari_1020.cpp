@@ -134,7 +134,7 @@ void atari_home_task(void* pvParameters) {
                     if (digitalRead(REED_SW_PIN) == 0) {
                         // see if reed switch is grounded
                         inputBuffer.push("G4P0.1\n"); // dramtic pause
-                        sys_position[X_AXIS] = ATARI_HOME_POS * axis_settings[X_AXIS]->steps_per_mm->get()
+                        sys_position[X_AXIS] = ATARI_HOME_POS * axis_settings[X_AXIS]->steps_per_mm->get();
                         sys_position[Y_AXIS] = 0.0;
                         sys_position[Z_AXIS] = 1.0 * axis_settings[Y_AXIS]->steps_per_mm->get();
                         gc_sync_position();

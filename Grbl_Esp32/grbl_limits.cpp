@@ -190,6 +190,11 @@ void limits_go_home(uint8_t cycle_mask) {
                 }
             }
         } while (STEP_MASK & axislock);
+#ifdef USE_I2S_OUT_STREAM
+        if (!approach) {
+            delay_ms(I2S_OUT_DELAY_MS);
+        }
+#endif
         st_reset(); // Immediately force kill steppers and reset step segment buffer.
         delay_ms(homing_debounce->get()); // Delay to allow transient dynamics to dissipate.
         // Reverse direction and reset homing rate for locate cycle(s).
@@ -441,6 +446,21 @@ bool axis_is_squared(uint8_t axis_mask) {
     }
     if (axis_mask == (1 << Z_AXIS)) {
 #ifdef Z_AXIS_SQUARING
+        return true;
+#endif
+    }
+     if (axis_mask == (1 << A_AXIS)) {
+#ifdef A_AXIS_SQUARING
+        return true;
+#endif
+    }
+     if (axis_mask == (1 << B_AXIS)) {
+#ifdef B_AXIS_SQUARING
+        return true;
+#endif
+    }
+     if (axis_mask == (1 << C_AXIS)) {
+#ifdef C_AXIS_SQUARING
         return true;
 #endif
     }

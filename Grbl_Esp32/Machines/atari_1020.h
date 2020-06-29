@@ -28,15 +28,13 @@
         along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "ATARI_1020"
+#define MACHINE_NAME "MACHINE_ATARI_1020"
 
 #define CUSTOM_CODE_FILENAME "Custom/atari_1020.cpp"
 
 #ifdef USE_RMT_STEPS
     #undef USE_RMT_STEPS
 #endif
-
-#define USE_UNIPOLAR
 
 #define X_UNIPOLAR
 #define X_PIN_PHASE_0 GPIO_NUM_13
@@ -121,9 +119,9 @@
 #define DEFAULT_Y_MAX_RATE 5000.0   // mm/min
 #define DEFAULT_Z_MAX_RATE 200000.0 // mm/min
 
-#define DEFAULT_X_ACCELERATION 500.0
-#define DEFAULT_Y_ACCELERATION 500.0
-#define DEFAULT_Z_ACCELERATION 500.0
+#define DEFAULT_X_ACCELERATION (500.0 * 60 * 60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+#define DEFAULT_Y_ACCELERATION (500.0 * 60 * 60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+#define DEFAULT_Z_ACCELERATION (500.0 * 60 * 60)
 
 #define DEFAULT_X_MAX_TRAVEL 120.0   // mm NOTE: Must be a positive value.
 #define DEFAULT_Y_MAX_TRAVEL 20000.0 // mm NOTE: Must be a positive value.

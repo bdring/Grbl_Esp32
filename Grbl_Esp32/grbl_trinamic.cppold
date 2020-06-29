@@ -164,7 +164,7 @@
 
 #ifdef C_TRINAMIC
     #ifdef C_DRIVER_TMC2130
-        TMC2130Stepper TRINAMIC_c = TMC2130Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
+        TMC2130Stepper TRINAMIC_C = TMC2130Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef C_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_C = TMC2209Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
@@ -187,23 +187,99 @@
 
 void Trinamic_Init() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TMCStepper Init using Library Ver 0x%06x", TMCSTEPPER_VERSION);
+
+    // On Slack Grbl_Esp32 channel, Mitch Bradley suggested.
+    // "Any pin that could possibly be implemented with a GPIO pin needs
+    //  a pinMode before the first active use. pinMode(OUTPUT) does not have to
+    //  precede digitalWrite(HIGH), as the following sequence is useful:
+    //    digitalWrite(GPIOn, HIGH);
+    //    pinMode(GPIOn, OUTPUT);
+    //  The reason for that sequence is that, for pins that default to input mode/tri-state,
+    //  setting it HIGH first prevents a low-going transition if the pin output register
+    //  happens to be LOW when you select OUTPUT mode."
+
+    // Notes on using I2S out:
+    //  The TMC connected to the I2S out requires SPI clocking down (approximately 100 KHz)
+    //  to work in concert with slow CS operations by I2S out.
+
+#ifdef X_DRIVER_TMC2130
+    digitalWrite(X_CS_PIN, HIGH);
+    pinMode(X_CS_PIN, OUTPUT);
+    TRINAMIC_X.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef X2_DRIVER_TMC2130
+    digitalWrite(X2_CS_PIN, HIGH);
+    pinMode(X2_CS_PIN, OUTPUT);
+    TRINAMIC_X2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef Y_DRIVER_TMC2130
+    digitalWrite(Y_CS_PIN, HIGH);
+    pinMode(Y_CS_PIN, OUTPUT);
+    TRINAMIC_Y.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef Y2_DRIVER_TMC2130
+    digitalWrite(Y2_CS_PIN, HIGH);
+    pinMode(Y2_CS_PIN, OUTPUT);
+    TRINAMIC_Y2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef Z_DRIVER_TMC2130
+    digitalWrite(Z_CS_PIN, HIGH);
+    pinMode(Z_CS_PIN, OUTPUT);
+    TRINAMIC_Z.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef Z2_DRIVER_TMC2130
+    digitalWrite(Z2_CS_PIN, HIGH);
+    pinMode(Z2_CS_PIN, OUTPUT);
+    TRINAMIC_Z2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef A_DRIVER_TMC2130
+    digitalWrite(A_CS_PIN, HIGH);
+    pinMode(A_CS_PIN, OUTPUT);
+    TRINAMIC_A.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef A2_DRIVER_TMC2130
+    digitalWrite(A2_CS_PIN, HIGH);
+    pinMode(A2_CS_PIN, OUTPUT);
+    TRINAMIC_A2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef B_DRIVER_TMC2130
+    digitalWrite(B_CS_PIN, HIGH);
+    pinMode(B_CS_PIN, OUTPUT);
+    TRINAMIC_B.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef B2_DRIVER_TMC2130
+    digitalWrite(B2_CS_PIN, HIGH);
+    pinMode(B2_CS_PIN, OUTPUT);
+    TRINAMIC_B2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef C_DRIVER_TMC2130
+    digitalWrite(C_CS_PIN, HIGH);
+    pinMode(C_CS_PIN, OUTPUT);
+    TRINAMIC_C.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef C2_DRIVER_TMC2130
+    digitalWrite(C2_CS_PIN, HIGH);
+    pinMode(C2_CS_PIN, OUTPUT);
+    TRINAMIC_C2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+
     SPI.begin();
 #ifdef USE_MACHINE_TRINAMIC_INIT
     machine_trinamic_setup();
     return;
 #endif
-#ifdef X_TRINAMIC    
+#ifdef X_TRINAMIC
     TRINAMIC_X.begin(); // Initiate pins and registries
-    trinamic_test_response(TRINAMIC_X.test_connection(), "X");    
+    trinamic_test_response(TRINAMIC_X.test_connection(), "X");
     TRINAMIC_X.toff(TRINAMIC_DEFAULT_TOFF);
     TRINAMIC_X.microsteps(axis_settings[X_AXIS]->microsteps->get());
     TRINAMIC_X.rms_current(axis_settings[X_AXIS]->run_current->get() * 1000.0, axis_settings[X_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_X.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_X.pwm_autoscale(1);
 #endif
-#ifdef X2_TRINAMIC    
+#ifdef X2_TRINAMIC
     TRINAMIC_X2.begin(); // Initiate pins and registries
-    trinamic_test_response(TRINAMIC_X2.test_connection(), "X2");    
+    trinamic_test_response(TRINAMIC_X2.test_connection(), "X2");
     TRINAMIC_X2.toff(TRINAMIC_DEFAULT_TOFF);
     TRINAMIC_X2.microsteps(axis_settings[X_AXIS]->microsteps->get());
     TRINAMIC_X2.rms_current(axis_settings[X_AXIS]->run_current->get() * 1000.0, axis_settings[X_AXIS]->hold_current->get() / 100.0);
@@ -348,11 +424,11 @@ void trinamic_change_settings() {
 
 #ifdef B_TRINAMIC
     TRINAMIC_B.microsteps(axis_settings[B_AXIS]->microsteps->get());
-    TTRINAMIC_B.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
+    TRINAMIC_B.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
 #endif
 #ifdef B2_TRINAMIC
     TRINAMIC_B2.microsteps(axis_settings[B_AXIS]->microsteps->get());
-    TTRINAMIC_B2.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
+    TRINAMIC_B2.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
 #endif
 
 #ifdef C_TRINAMIC
@@ -440,12 +516,21 @@ void trinamic_stepper_enable(bool enable) {
 // returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
 // need to be inserted into the order of axes.
 uint8_t get_next_trinamic_driver_index() {
+#ifdef TRINAMIC_DAISY_CHAIN
     static uint8_t index = 1; // they start at 1
-    #ifndef TRINAMIC_DAISY_CHAIN
-        return -1;
-    #else
-        return index++;
-    #endif
+    return index++;
+#else
+    return -1;
+#endif
 }
+#ifdef USE_I2S_OUT
+//
+// Override default function and insert a short delay
+//
+void TMC2130Stepper::switchCSpin(bool state) {
+    digitalWrite(_pinCS, state);
+    delay(I2S_OUT_DELAY_MS);
+}
+#endif
 
 #endif

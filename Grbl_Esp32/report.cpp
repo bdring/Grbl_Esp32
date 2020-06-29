@@ -274,7 +274,7 @@ void report_init_message(uint8_t client) {
 
 // Grbl help message
 void report_grbl_help(uint8_t client) {
-    grbl_send(client, "[HLP:$$ $+ $# $S $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H $F $E=err ~ ! ? ctrl-x]\r\n");
+    grbl_send(client, "[HLP:$$ $+ $# $S $L $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H $F $E=err ~ ! ? ctrl-x]\r\n");
 }
 
 
@@ -745,12 +745,4 @@ char report_get_axis_letter(uint8_t axis) {
     default:
         return '?';
     }
-}
-
-// used to report the pin nhumber or -1 for undefined.
-int16_t report_pin_number(uint8_t pin_number) {
-    if (pin_number == UNDEFINED_PIN)
-        return -1;
-    else
-        return (int16_t)pin_number;
 }

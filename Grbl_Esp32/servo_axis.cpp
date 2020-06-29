@@ -309,24 +309,22 @@ bool ServoAxis::_cal_is_valid() {
     if ((axis_settings[_axis]->steps_per_mm->get() < SERVO_CAL_MIN) || (axis_settings[_axis]->steps_per_mm->get() > SERVO_CAL_MAX)) {
         if (_showError) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($10%d) value error. Reset to 100", _axis);
-            axis_settings[_axis]->steps_per_mm->setStringValue("100");
-            write_global_settings();
+            char reset_val[] = "100";
+            axis_settings[_axis]->steps_per_mm->setStringValue(reset_val);
         }
         settingsOK = false;
     }
-    auto travel = -settings[_axis]->max_travel->get();
-    if ((travel < -SERVO_CAL_MAX) || travel > -SERVO_CAL_MIN)) {
+    // Note: Max travel is set positive via $$, but stored as a negative number
+    auto travel = -axis_settings[_axis]->max_travel->get();
+    if ((travel < -SERVO_CAL_MAX) || travel > -SERVO_CAL_MIN) {
         if (_showError) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($13%d) value error. Reset to 100", _axis);
-            axis_settings[_axis]->max_travel->setStringValue("100");
-            write_global_settings();
+            char reset_val[] = "-100"; // stored as a negative
+            axis_settings[_axis]->max_travel->setStringValue(reset_val);
         }
         settingsOK = false;
     }
     _showError = false;  // to show error once
-    if (! settingsOK) {
-        write_global_settings(); // they were changed so write them to
-    }
     return settingsOK;
 }
 

@@ -41,11 +41,8 @@ void PWMSpindle :: init() {
     ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, _pwm_precision); // setup the channel
     ledcAttachPin(_output_pin, _spindle_pwm_chan_num); // attach the PWM to the pin
 
-    if (_enable_pin != UNDEFINED_PIN)
-        pinMode(_enable_pin, OUTPUT);
-
-    if (_direction_pin != UNDEFINED_PIN)
-        pinMode(_direction_pin, OUTPUT);
+    pinMode(_enable_pin, OUTPUT);
+    pinMode(_direction_pin, OUTPUT);
 
     config_message();
 }
@@ -145,9 +142,6 @@ uint32_t PWMSpindle::set_rpm(uint32_t rpm) {
             pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
     }
 
-    if (_off_with_zero_speed)
-        set_enable_pin(rpm != 0);
-
     set_output(pwm_value);
 
     return 0;
@@ -165,25 +159,17 @@ void PWMSpindle::set_state(uint8_t state, uint32_t rpm) {
         set_rpm(rpm);
     }
 
-    set_enable_pin(state == SPINDLE_DISABLE);
+    set_enable_pin(state != SPINDLE_DISABLE);
 
     sys.report_ovr_counter = 0; // Set to report change immediately
 }
 
 uint8_t PWMSpindle::get_state() {
-
-
     if (_current_pwm_duty == 0  || _output_pin == UNDEFINED_PIN)
         return (SPINDLE_STATE_DISABLE);
-    else {
-        if (_direction_pin != UNDEFINED_PIN) {
-            if (digitalRead(_direction_pin))
-                return (SPINDLE_STATE_CW);
-            else
-                return (SPINDLE_STATE_CCW);
-        } else
-            return (SPINDLE_STATE_CW);
-    }
+    if (_direction_pin != UNDEFINED_PIN)
+        return digitalRead(_direction_pin) ? SPINDLE_STATE_CW : SPINDLE_STATE_CCW;
+    return (SPINDLE_STATE_CW);
 }
 
 void PWMSpindle::stop() {
@@ -196,10 +182,10 @@ void PWMSpindle::stop() {
 void PWMSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "PWM spindle Output:%d, Enbl:%d, Dir:%d, Freq:%dHz, Res:%dbits",
-                   report_pin_number(_output_pin),
-                   report_pin_number(_enable_pin), // 255 means pin not defined
-                   report_pin_number(_direction_pin), // 255 means pin not defined
+                   "PWM spindle Output:%s, Enbl:%s, Dir:%s, Freq:%dHz, Res:%dbits",
+                   pinName(_output_pin).c_str(),
+                   pinName(_enable_pin).c_str(),
+                   pinName(_direction_pin).c_str(),
                    _pwm_freq,
                    _pwm_precision);
 }
@@ -217,6 +203,7 @@ void PWMSpindle::set_output(uint32_t duty) {
 
     _current_pwm_duty = duty;
 
+     if (_invert_pwm)
         duty = (1 << _pwm_precision) - duty;
 
     ledcWrite(_spindle_pwm_chan_num, duty);
@@ -224,18 +211,18 @@ void PWMSpindle::set_output(uint32_t duty) {
 }
 
 void PWMSpindle::set_enable_pin(bool enable) {
-    if (_enable_pin == UNDEFINED_PIN)
-        return;
-#ifndef INVERT_SPINDLE_ENABLE_PIN
-    digitalWrite(_enable_pin, enable);
-#else
-    digitalWrite(_enable_pin, !enable);
+
+if (_off_with_zero_speed &&  sys.spindle_speed == 0)
+        enable = false;
+
+#ifdef INVERT_SPINDLE_ENABLE_PIN
+    enable = !enable;
 #endif
+    digitalWrite(_enable_pin, enable);
 }
 
 void PWMSpindle::set_spindle_dir_pin(bool Clockwise) {
-    if (_direction_pin != UNDEFINED_PIN)
-        digitalWrite(_direction_pin, Clockwise);
+    digitalWrite(_direction_pin, Clockwise);
 }
 
 

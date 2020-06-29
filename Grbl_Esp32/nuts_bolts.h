@@ -38,6 +38,18 @@
 #define B_AXIS 4
 #define C_AXIS 5
 
+#define MAX_AXES 6
+#define MAX_GANGED 2
+
+#define PRIMARY_MOTOR    0
+#define GANGED_MOTOR     1
+
+#define X2_AXIS (X_AXIS + MAX_AXES)
+#define Y2_AXIS (Y_AXIS + MAX_AXES)
+#define Z2_AXIS (Z_AXIS + MAX_AXES)
+#define A2_AXIS (A_AXIS + MAX_AXES)
+#define B2_AXIS (B_AXIS + MAX_AXES)
+#define C2_AXIS (C_AXIS + MAX_AXES)
 
 // CoreXY motor assignments. DO NOT ALTER.
 // NOTE: If the A and B motor axis bindings are changed, this effects the CoreXY equations.

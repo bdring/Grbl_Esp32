@@ -86,15 +86,6 @@ err_t report_gcode(const char *value, uint8_t client) {
     report_gcode_modes(client);
     return STATUS_OK;
 }
-const char *map_grbl_value(const char *value) {
-    if (strcmp(value, "Off") == 0) {
-        return "0";
-    }
-    if (strcmp(value, "On") == 0) {
-        return "1";
-    }
-    return value;
-}
 void show_grbl_settings(uint8_t client, group_t group, bool wantAxis) {
     //auto out = new ESPResponseStream(client);
     for (Setting *s = Setting::List; s; s = s->next()) {
@@ -103,7 +94,7 @@ void show_grbl_settings(uint8_t client, group_t group, bool wantAxis) {
             // The following test could be expressed more succinctly with XOR,
             // but is arguably clearer when written out
             if ((wantAxis && isAxis) || (!wantAxis && !isAxis)) {
-                grbl_sendf(client, "$%s=%s\r\n", s->getGrblName(), map_grbl_value(s->getStringValue()));
+                grbl_sendf(client, "$%s=%s\r\n", s->getGrblName(), s->getCompatibleValue());
             }
         }
     }
@@ -120,10 +111,20 @@ err_t report_extended_settings(const char* value, uint8_t client) {
     show_grbl_settings(client, EXTENDED, true);  // Extended axis settings
     return STATUS_OK;
 }
+err_t list_grbl_names(const char* value, uint8_t client)
+{
+    for (Setting *s = Setting::List; s; s = s->next()) {
+        const char* gn = s->getGrblName();
+        if (gn) {
+            grbl_sendf(client, "$%s => $%s\r\n", gn, s->getName(), s->getStringValue());
+        }
+    }
+    return STATUS_OK;
+}
 err_t list_settings(const char* value, uint8_t client)
 {
     for (Setting *s = Setting::List; s; s = s->next()) {
-        grbl_sendf(client, "%s=%s\r\n", s->getName(), s->getStringValue());
+        grbl_sendf(client, "$%s=%s\r\n", s->getName(), s->getStringValue());
     }
     return STATUS_OK;
 }
@@ -360,8 +361,10 @@ void make_grbl_commands() {
     new GrblCommand("",    "showGrblHelp", show_grbl_help, ANY_STATE);
     new GrblCommand("T",   "State", showState, ANY_STATE);
     new GrblCommand("J",   "Jog", doJog, IDLE_OR_JOG);
+
     new GrblCommand("$",   "listGrblSettings", report_normal_settings, NOT_CYCLE_OR_HOLD);
     new GrblCommand("+",   "listExtendedSettings", report_extended_settings, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("L",   "listGrblNames", list_grbl_names, NOT_CYCLE_OR_HOLD);
     new GrblCommand("S",   "listSettings",  list_settings, NOT_CYCLE_OR_HOLD);
     new GrblCommand("G",   "showGCodeModes", report_gcode, ANY_STATE);
     new GrblCommand("C",   "toggleCheckMode", toggle_check_mode, ANY_STATE);
@@ -435,11 +438,7 @@ err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out
     // First search the list of settings.  If found, set a new
     // value if one is given, otherwise display the current value
     for (Setting *s = Setting::List; s; s = s->next()) {
-        if ((strcasecmp(s->getName(), key) == 0)
-        || (s->getGrblName()
-            && strcasecmp(s->getGrblName(), key) == 0
-           )
-         ) {
+        if (strcasecmp(s->getName(), key) == 0) {
             if (value) {
                 return s->setStringValue(value);
             } else {
@@ -449,6 +448,16 @@ err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out
         }
     }
 
+    for (Setting *s = Setting::List; s; s = s->next()) {
+        if (s->getGrblName() && strcasecmp(s->getGrblName(), key) == 0) {
+            if (value) {
+                return s->setStringValue(value);
+            } else {
+                grbl_sendf(out->client(), "$%s=%s\n", s->getGrblName(), s->getCompatibleValue());
+                return STATUS_OK;
+            }
+        }
+    }
     // If we did not find a setting, look for a command.  Commands
     // handle values internally; you cannot determine whether to set
     // or display solely based on the presence of a value.
