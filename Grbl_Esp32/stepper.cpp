@@ -289,7 +289,7 @@ static void stepper_pulse_func() {
             st_go_idle();
             if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
-                if (st.exec_block->is_pwm_rate_adjusted)
+                if (st.exec_block != NULL && st.exec_block->is_pwm_rate_adjusted)
                     spindle->set_rpm(0);
             }
 
@@ -473,10 +473,10 @@ void st_reset() {
     //Serial.println("st_reset()");
 #endif
     // Initialize stepper driver idle state.
-    st_go_idle();
 #ifdef USE_I2S_OUT_STREAM
     i2s_out_reset();
 #endif
+    st_go_idle();
     // Initialize stepper algorithm variables.
     memset(&prep, 0, sizeof(st_prep_t));
     memset(&st, 0, sizeof(stepper_t));

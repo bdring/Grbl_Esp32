@@ -38,6 +38,9 @@
 #ifndef i2s_out_h
 #define i2s_out_h
 
+// It should be included at the outset to know the machine configuration.
+#include "config.h"
+
 // If USE_I2S_OUT_STREAM is defined
 // but the prerequisite USE_I2S_OUT is not defined,
 // it is forced to be defined.
@@ -68,7 +71,8 @@
 #define I2S_OUT_DMABUF_COUNT 5     /* number of DMA buffers to store data */
 #define I2S_OUT_DMABUF_LEN   2000  /* maximum size in bytes (4092 is DMA's limit) */
 
-#define I2S_OUT_DELAY_MS    (I2S_OUT_DMABUF_LEN / sizeof(uint32_t) * (I2S_OUT_DMABUF_COUNT + 1) * I2S_OUT_USEC_PER_PULSE / 1000)
+#define I2S_OUT_DELAY_DMABUF_MS (I2S_OUT_DMABUF_LEN / sizeof(uint32_t) * I2S_OUT_USEC_PER_PULSE / 1000)
+#define I2S_OUT_DELAY_MS        (I2S_OUT_DELAY_DMABUF_MS * (I2S_OUT_DMABUF_COUNT + 1))
 
 typedef void (*i2s_out_pulse_func_t)(void);
 
@@ -154,6 +158,12 @@ int i2s_out_set_passthrough();
 int i2s_out_set_stepping();
 
 /*
+  Dynamically delay until the Shift Register Pin changes
+  according to the current I2S processing state and mode.
+ */
+void i2s_out_delay();
+
+/*
    Set the pulse callback period in microseconds
    (like the timer period for the ISR)
  */
@@ -163,7 +173,6 @@ int i2s_out_set_pulse_period(uint32_t period);
    Register a callback function to generate pulse data
  */
 int i2s_out_set_pulse_callback(i2s_out_pulse_func_t func);
-
 
 /*
    Reset i2s I/O expander
