@@ -96,7 +96,7 @@ void setup() {
 #ifdef HOMING_INIT_LOCK
     if (homing_enable->get())  sys.state = STATE_ALARM;
 #endif
-    spindle_select(SPINDLE_TYPE);
+    spindle_select();
 #ifdef ENABLE_WIFI
     wifi_config.begin();
 #endif
