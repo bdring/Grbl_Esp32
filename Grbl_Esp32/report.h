@@ -85,6 +85,8 @@
 
 #define STATUS_NVS_SET_FAILED 100
 
+#define STATUS_AUTHENTICATION_FAILED 110
+
 // Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
 #define ALARM_HARD_LIMIT_ERROR      EXEC_ALARM_HARD_LIMIT
 #define ALARM_SOFT_LIMIT_ERROR      EXEC_ALARM_SOFT_LIMIT

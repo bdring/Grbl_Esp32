@@ -135,13 +135,13 @@ Some features should not be changed. See notes below.
 #define ENABLE_SERIAL2SOCKET_OUT
 
 #define ENABLE_CAPTIVE_PORTAL
-//#define ENABLE_AUTHENTICATION
+#define ENABLE_AUTHENTICATION
 //CONFIGURE_EYECATCH_END (DO NOT MODIFY THIS LINE)
 #define NAMESPACE "GRBL"
 
 #ifdef ENABLE_AUTHENTICATION
     #define DEFAULT_ADMIN_PWD "admin"
-    #define DEFAULT_USER_PWD  "user";
+    #define DEFAULT_USER_PWD  "user"
     #define DEFAULT_ADMIN_LOGIN  "admin"
     #define DEFAULT_USER_LOGIN "user"
     #define AUTH_ENTRY_NB 20

@@ -46,7 +46,7 @@ class COMMANDS {
 #ifdef ENABLE_AUTHENTICATION
     static bool isadmin(String& cmd_params);
     static bool isuser(String& cmd_params);
-    static bool isLocalPasswordValid(const char* password);
+    static bool isLocalPasswordValid(char* password);
 #endif
   private :
     static bool restart_ESP_module;

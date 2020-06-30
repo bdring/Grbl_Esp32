@@ -86,10 +86,10 @@ err_t report_gcode(const char *value, uint8_t client) {
     report_gcode_modes(client);
     return STATUS_OK;
 }
-void show_grbl_settings(uint8_t client, group_t group, bool wantAxis) {
+void show_grbl_settings(uint8_t client, type_t type, bool wantAxis) {
     //auto out = new ESPResponseStream(client);
     for (Setting *s = Setting::List; s; s = s->next()) {
-        if (s->getGroup() == group && s->getGrblName()) {
+        if (s->getType() == type && s->getGrblName()) {
             bool isAxis = s->getAxis() != NO_AXIS;
             // The following test could be expressed more succinctly with XOR,
             // but is arguably clearer when written out
@@ -427,33 +427,68 @@ char *normalize_key(char *start) {
     return start;
 }
 
+void show_setting(const char* name, const char* value, ESPResponseStream* out) {
+    grbl_sendf(out->client(), "$%s=%s\n", name, value);
+}
+
+// WG Readable and writable as guest
+// WU Readable and writable as user and admin
+// WA Readable as user and admin, writable as admin
+
+// If authentication is disabled, auth_level will be LEVEL_ADMIN
+bool auth_failed(Word* w, const char* value, level_authenticate_type auth_level) {
+    permissions_t permissions = w->getPermissions();
+    switch (auth_level) {
+        case LEVEL_ADMIN:  // Admin can do anything
+            return false;  // Nothing is an Admin auth fail
+        case LEVEL_GUEST:  // Guest can only access open settings
+            return permissions != WG;  // Anything other than RG is Guest auth fail
+        case LEVEL_USER:  // User is complicated...
+            if (!value) {      // User can read anything
+                return false;  // No read is a User auth fail
+            }
+            return permissions == WA;  // User cannot write WA
+        default:
+            return true;
+    }
+}
+
 // This is the handler for all forms of settings commands,
 // $..= and [..], with and without a value.
-err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out) {
+err_t do_command_or_setting(const char *key, char *value, level_authenticate_type auth_level, ESPResponseStream* out) {
     // If value is NULL, it means that there was no value string, i.e.
     // $key without =, or [key] with nothing following.
     // If value is not NULL, but the string is empty, that is the form
     // $key= with nothing following the = .  It is important to distinguish
     // those cases so that you can say "$N0=" to clear a startup line.
-    // First search the list of settings.  If found, set a new
+
+    // First search the settings list by text name.  If found, set a new
     // value if one is given, otherwise display the current value
     for (Setting *s = Setting::List; s; s = s->next()) {
         if (strcasecmp(s->getName(), key) == 0) {
+            if (auth_failed(s, value, auth_level)) {
+                return STATUS_AUTHENTICATION_FAILED;
+            }
             if (value) {
                 return s->setStringValue(value);
             } else {
-                grbl_sendf(out->client(), "$%s=%s\n", s->getName(), s->getStringValue());
+                show_setting(s->getName(), s->getStringValue(), out);
                 return STATUS_OK;
             }
         }
     }
 
+    // Then search the setting list by compatible name.  If found, set a new
+    // value if one is given, otherwise display the current value in compatible mode
     for (Setting *s = Setting::List; s; s = s->next()) {
         if (s->getGrblName() && strcasecmp(s->getGrblName(), key) == 0) {
+            if (auth_failed(s, value, auth_level)) {
+                return STATUS_AUTHENTICATION_FAILED;
+            }
             if (value) {
                 return s->setStringValue(value);
             } else {
-                grbl_sendf(out->client(), "$%s=%s\n", s->getGrblName(), s->getCompatibleValue());
+                show_setting(s->getGrblName(), s->getCompatibleValue(), out);
                 return STATUS_OK;
             }
         }
@@ -467,7 +502,10 @@ err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out
                && strcasecmp(cp->getGrblName(), key) == 0
               )
            ) {
-            return cp->action(value, out);
+            if (auth_failed(cp, value, auth_level)) {
+                return STATUS_AUTHENTICATION_FAILED;
+            }
+            return cp->action(value, auth_level, out);
         }
     }
 
@@ -485,17 +523,58 @@ err_t do_command_or_setting(const char *key, char *value, ESPResponseStream* out
             lcKey.remove(0,1);
         }
         lcKey.toLowerCase();
+        bool found = false;
         for (Setting *s = Setting::List; s; s = s->next()) {
             auto lcTest = String(s->getName());
             lcTest.toLowerCase();
 
             if (lcTest.indexOf(lcKey) >= 0) {
-                grbl_sendf(out->client(), "$%s=%s\n", s->getName(), s->getStringValue());
-                retval = STATUS_OK;
+                if (auth_failed(s, value, auth_level)) {
+                    // When searching for matching names, we just skip ones
+                    // that we are not permitted to read.
+                    continue;
+                }
+                show_setting(s->getName(), s->getStringValue(), out);
+                found = true;
             }
         }
+        if (found) {
+            return STATUS_OK;
+        }
     }
-    return retval;
+    return STATUS_INVALID_STATEMENT;
+}
+
+void remove_password(char *value, level_authenticate_type& auth_level) {
+    #ifdef ENABLE_AUTHENTICATION
+    String paramStr = String((const char*)value);
+    int pos = paramStr.indexOf("pwd=");
+    if (pos == -1) {
+        return;
+    }
+
+    // Truncate the value string at the pwd= .
+    // If the pwd= is preceded by a space, take off that space too.
+    int endpos = pos;
+    if (endpos && value[endpos-1] == ' ') {
+        --endpos;
+    }
+    value[endpos] = '\0';
+
+    // Upgrade the authentication level if a password
+    // for a higher level is present.
+    const char* password = value + pos + strlen("pwd=");
+    if (auth_level < LEVEL_USER) {
+        if (!strcmp(password, user_password->get())) {
+            auth_level = LEVEL_USER;
+        }
+    }
+    if (auth_level < LEVEL_ADMIN) {
+        if (!strcmp(password, admin_password->get())) {
+            auth_level = LEVEL_ADMIN;
+        }
+    }
+    #endif
 }
 
 uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authenticate_type auth_level) {
@@ -520,13 +599,16 @@ uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authentica
             *value++ = '\0';
         }
     }
+
+    remove_password(value, auth_level);
+
     char *key = normalize_key(line);
     // At this point there are three possibilities for value
     // NULL - $xxx without =
     // NULL - [ESPxxx] with nothing after ]
     // empty string - $xxx= with nothing after
     // non-empty string - [ESPxxx]yyy or $xxx=yyy
-    return do_command_or_setting(key, value, out);
+    return do_command_or_setting(key, value, auth_level, out);
 }
 uint8_t system_execute_line(char* line, uint8_t client) {
     return system_execute_line(line, new ESPResponseStream(client, true), LEVEL_GUEST);

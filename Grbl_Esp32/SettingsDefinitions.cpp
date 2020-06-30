@@ -231,100 +231,100 @@ void make_settings() {
     c_axis_settings = axis_settings[C_AXIS];
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new IntSetting(EXTENDED, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, checkStallguard);
+        auto setting = new IntSetting(EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, checkStallguard);
         setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new IntSetting(EXTENDED, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, checkMicrosteps);
+        auto setting = new IntSetting(EXTENDED, WG, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, checkMicrosteps);
         setting->setAxis(axis);
         axis_settings[axis]->microsteps = setting;
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new FloatSetting(EXTENDED, makeGrblName(axis, 150), makename(def->name, "Current/Hold"), def->hold_current, 0.05, 20.0, checkHoldcurrent); // Amps
+        auto setting = new FloatSetting(EXTENDED, WG, makeGrblName(axis, 150), makename(def->name, "Current/Hold"), def->hold_current, 0.05, 20.0, checkHoldcurrent); // Amps
         setting->setAxis(axis);
         axis_settings[axis]->hold_current = setting;
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new FloatSetting(EXTENDED, makeGrblName(axis, 140), makename(def->name, "Current/Run"), def->run_current, 0.0, 20.0, checkRunCurrent); // Amps
+        auto setting = new FloatSetting(EXTENDED, WG, makeGrblName(axis, 140), makename(def->name, "Current/Run"), def->run_current, 0.0, 20.0, checkRunCurrent); // Amps
         setting->setAxis(axis);
         axis_settings[axis]->run_current = setting;
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new FloatSetting(GRBL, makeGrblName(axis, 130), makename(def->name, "MaxTravel"), def->max_travel, 1.0, 100000.0);
+        auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 130), makename(def->name, "MaxTravel"), def->max_travel, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->max_travel = setting;
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new FloatSetting(GRBL, makeGrblName(axis, 120), makename(def->name, "Acceleration"), def->acceleration, 1.0, 100000.0);
+        auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 120), makename(def->name, "Acceleration"), def->acceleration, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->acceleration = setting;
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new FloatSetting(GRBL, makeGrblName(axis, 110), makename(def->name, "MaxRate"), def->max_rate, 1.0, 100000.0);
+        auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 110), makename(def->name, "MaxRate"), def->max_rate, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->max_rate = setting;
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new FloatSetting(GRBL, makeGrblName(axis, 100), makename(def->name, "StepsPerMm"), def->steps_per_mm, 1.0, 100000.0);
+        auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 100), makename(def->name, "StepsPerMm"), def->steps_per_mm, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->steps_per_mm = setting;
     }
 
     // Spindle Settings
-    spindle_pwm_max_value = new FloatSetting(EXTENDED, "36", "Spindle/PWM/Max", DEFAULT_SPINDLE_MAX_VALUE, 0.0, 100.0);
-    spindle_pwm_min_value = new FloatSetting(EXTENDED, "35", "Spindle/PWM/Min", DEFAULT_SPINDLE_MIN_VALUE, 0.0, 100.0);
-    spindle_pwm_off_value = new FloatSetting(EXTENDED, "34", "Spindle/PWM/Off", DEFAULT_SPINDLE_OFF_VALUE, 0.0, 100.0); // these are percentages
-    // IntSetting spindle_pwm_bit_precision("Spindle/PWM/Precision", DEFAULT_SPINDLE_BIT_PRECISION, 1, 16);
-    spindle_pwm_freq = new FloatSetting(EXTENDED, "33", "Spindle/PWM/Frequency", DEFAULT_SPINDLE_FREQ, 0, 100000);
+    spindle_pwm_max_value = new FloatSetting(EXTENDED, WG, "36", "Spindle/PWM/Max", DEFAULT_SPINDLE_MAX_VALUE, 0.0, 100.0);
+    spindle_pwm_min_value = new FloatSetting(EXTENDED, WG, "35", "Spindle/PWM/Min", DEFAULT_SPINDLE_MIN_VALUE, 0.0, 100.0);
+    spindle_pwm_off_value = new FloatSetting(EXTENDED, WG, "34", "Spindle/PWM/Off", DEFAULT_SPINDLE_OFF_VALUE, 0.0, 100.0); // these are percentages
+    // IntSetting spindle_pwm_bit_precision(EXTENDED, WG, "Spindle/PWM/Precision", DEFAULT_SPINDLE_BIT_PRECISION, 1, 16);
+    spindle_pwm_freq = new FloatSetting(EXTENDED, WG, "33", "Spindle/PWM/Frequency", DEFAULT_SPINDLE_FREQ, 0, 100000);
 
     // GRBL Non-numbered settings
-    startup_line_0 = new StringSetting(GRBL, "N0", "GCode/Line0", "", checkStartupLine);
-    startup_line_1 = new StringSetting(GRBL, "N1", "GCode/Line1", "", checkStartupLine);
+    startup_line_0 = new StringSetting(GRBL, WG, "N0", "GCode/Line0", "", checkStartupLine);
+    startup_line_1 = new StringSetting(GRBL, WG, "N1", "GCode/Line1", "", checkStartupLine);
 
     // GRBL Numbered Settings
-    laser_mode = new FlagSetting(GRBL, "32", "GCode/LaserMode", DEFAULT_LASER_MODE);
+    laser_mode = new FlagSetting(GRBL, WG, "32", "GCode/LaserMode", DEFAULT_LASER_MODE);
     // TODO Settings - also need to call my_spindle->init();
-    rpm_min = new FloatSetting(GRBL, "31", "GCode/MinS", DEFAULT_SPINDLE_RPM_MIN, 0, 100000);
-    rpm_max = new FloatSetting(GRBL, "30", "GCode/MaxS", DEFAULT_SPINDLE_RPM_MAX, 0, 100000);
+    rpm_min = new FloatSetting(GRBL, WG, "31", "GCode/MinS", DEFAULT_SPINDLE_RPM_MIN, 0, 100000);
+    rpm_max = new FloatSetting(GRBL, WG, "30", "GCode/MaxS", DEFAULT_SPINDLE_RPM_MAX, 0, 100000);
 
 
-    homing_pulloff = new FloatSetting(GRBL, "27", "Homing/Pulloff", DEFAULT_HOMING_PULLOFF, 0, 1000);
-    homing_debounce = new FloatSetting(GRBL, "26", "Homing/Debounce", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
-    homing_seek_rate = new FloatSetting(GRBL, "25", "Homing/Seek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
-    homing_feed_rate = new FloatSetting(GRBL, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
+    homing_pulloff = new FloatSetting(GRBL, WG, "27", "Homing/Pulloff", DEFAULT_HOMING_PULLOFF, 0, 1000);
+    homing_debounce = new FloatSetting(GRBL, WG, "26", "Homing/Debounce", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
+    homing_seek_rate = new FloatSetting(GRBL, WG, "25", "Homing/Seek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
+    homing_feed_rate = new FloatSetting(GRBL, WG, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
 
     // TODO Settings - need to call st_generate_step_invert_masks()
-    homing_dir_mask = new AxisMaskSetting(GRBL, "23", "Homing/DirInvert", DEFAULT_HOMING_DIR_MASK);
+    homing_dir_mask = new AxisMaskSetting(GRBL, WG, "23", "Homing/DirInvert", DEFAULT_HOMING_DIR_MASK);
 
     // TODO Settings - need to call limits_init();
-    homing_enable = new FlagSetting(GRBL, "22", "Homing/Enable", DEFAULT_HOMING_ENABLE);
+    homing_enable = new FlagSetting(GRBL, WG, "22", "Homing/Enable", DEFAULT_HOMING_ENABLE);
     // TODO Settings - need to check for HOMING_ENABLE
-    hard_limits = new FlagSetting(GRBL, "21", "Limits/Hard", DEFAULT_HARD_LIMIT_ENABLE);
-    soft_limits = new FlagSetting(GRBL, "20", "Limits/Soft", DEFAULT_SOFT_LIMIT_ENABLE, NULL);
+    hard_limits = new FlagSetting(GRBL, WG, "21", "Limits/Hard", DEFAULT_HARD_LIMIT_ENABLE);
+    soft_limits = new FlagSetting(GRBL, WG, "20", "Limits/Soft", DEFAULT_SOFT_LIMIT_ENABLE, NULL);
 
-    report_inches = new FlagSetting(GRBL, "13", "Report/Inches", DEFAULT_REPORT_INCHES);
+    report_inches = new FlagSetting(GRBL, WG, "13", "Report/Inches", DEFAULT_REPORT_INCHES);
     // TODO Settings - also need to clear, but not set, soft_limits
-    arc_tolerance = new FloatSetting(GRBL, "12", "GCode/ArcTolerance", DEFAULT_ARC_TOLERANCE, 0, 1);
-    junction_deviation = new FloatSetting(GRBL, "11", "GCode/JunctionDeviation", DEFAULT_JUNCTION_DEVIATION, 0, 10);
-    status_mask = new IntSetting(GRBL, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 2);
+    arc_tolerance = new FloatSetting(GRBL, WG, "12", "GCode/ArcTolerance", DEFAULT_ARC_TOLERANCE, 0, 1);
+    junction_deviation = new FloatSetting(GRBL, WG, "11", "GCode/JunctionDeviation", DEFAULT_JUNCTION_DEVIATION, 0, 10);
+    status_mask = new IntSetting(GRBL, WG, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 2);
 
-    probe_invert = new FlagSetting(GRBL, "6", "Probe/Invert", DEFAULT_INVERT_PROBE_PIN);
-    limit_invert = new FlagSetting(GRBL, "5", "Limits/Invert", DEFAULT_INVERT_LIMIT_PINS);
-    step_enable_invert = new FlagSetting(GRBL, "4", "Stepper/EnableInvert", DEFAULT_INVERT_ST_ENABLE);
-    dir_invert_mask = new AxisMaskSetting(GRBL, "3", "Stepper/DirInvert", DEFAULT_DIRECTION_INVERT_MASK);
-    step_invert_mask = new AxisMaskSetting(GRBL, "2", "Stepper/StepInvert", DEFAULT_STEPPING_INVERT_MASK);
-    stepper_idle_lock_time = new IntSetting(GRBL, "1", "Stepper/IdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
-    pulse_microseconds = new IntSetting(GRBL, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
-    spindle_type = new EnumSetting(NULL, EXTENDED, NULL, "Spindle/Type", SPINDLE_TYPE_NONE, &spindleTypes);
-    stallguard_debug_mask = new AxisMaskSetting(EXTENDED, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
+    probe_invert = new FlagSetting(GRBL, WG, "6", "Probe/Invert", DEFAULT_INVERT_PROBE_PIN);
+    limit_invert = new FlagSetting(GRBL, WG, "5", "Limits/Invert", DEFAULT_INVERT_LIMIT_PINS);
+    step_enable_invert = new FlagSetting(GRBL, WG, "4", "Stepper/EnableInvert", DEFAULT_INVERT_ST_ENABLE);
+    dir_invert_mask = new AxisMaskSetting(GRBL, WG, "3", "Stepper/DirInvert", DEFAULT_DIRECTION_INVERT_MASK);
+    step_invert_mask = new AxisMaskSetting(GRBL, WG, "2", "Stepper/StepInvert", DEFAULT_STEPPING_INVERT_MASK);
+    stepper_idle_lock_time = new IntSetting(GRBL, WG, "1", "Stepper/IdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
+    pulse_microseconds = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
+    spindle_type = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", SPINDLE_TYPE_NONE, &spindleTypes);
+    stallguard_debug_mask = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
 }
 
 err_t report_nvs_stats(const char* value, uint8_t client) {

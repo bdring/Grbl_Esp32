@@ -69,7 +69,7 @@ void COMMANDS::wait(uint32_t milliseconds) {
 
 #ifdef ENABLE_AUTHENTICATION
 
-bool COMMANDS::isLocalPasswordValid(const char* password) {
+bool COMMANDS::isLocalPasswordValid(char* password) {
     char c;
     //limited size
     if ((strlen(password) > MAX_LOCAL_PASSWORD_LENGTH) || (strlen(password) < MIN_LOCAL_PASSWORD_LENGTH))
@@ -81,28 +81,6 @@ bool COMMANDS::isLocalPasswordValid(const char* password) {
             return false;
     }
     return true;
-}
-
-//check admin password
-bool COMMANDS::isadmin(String& cmd_params) {
-    String adminpassword;
-    String sadminPassword = admin_password->get();
-    adminpassword = get_param(cmd_params, "pwd=", true);
-    if (!sadminPassword.equals(adminpassword))
-        return false;
-    else
-        return true;
-}
-//check user password - admin password is also valid
-bool COMMANDS::isuser(String& cmd_params) {
-    String suserPassword = user_password->get();
-    String userpassword = get_param(cmd_params, "pwd=", true);
-    //it is not user password
-    if (!suserPassword.equals(userpassword)) {
-        //check admin password
-        return isadmin(cmd_params);
-    } else
-        return true;
 }
 #endif
 

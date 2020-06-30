@@ -587,8 +587,8 @@ void Web_Server::handle_login()
             if (msg_alert_error == false) {
                 //Password
                 sPassword = _webserver->arg("PASSWORD");
-                String sadminPassword = admin_password.get();
-                String suserPassword = user_password.get();
+                String sadminPassword = admin_password->get();
+                String suserPassword = user_password->get();
 
                 if(!(((sUser == DEFAULT_ADMIN_LOGIN) && (strcmp(sPassword.c_str(),sadminPassword.c_str()) == 0)) ||
                         ((sUser == DEFAULT_USER_LOGIN) && (strcmp(sPassword.c_str(),suserPassword.c_str()) == 0)))) {
@@ -605,12 +605,12 @@ void Web_Server::handle_login()
         //change password
         if (_webserver->hasArg("PASSWORD") && _webserver->hasArg("USER") && _webserver->hasArg("NEWPASSWORD") && (msg_alert_error==false) ) {
             String newpassword =  _webserver->arg("NEWPASSWORD");
-            if (COMMANDS::isLocalPasswordValid(newpassword.c_str())) {
+            if (COMMANDS::isLocalPasswordValid((char *)newpassword.c_str())) {
                 err_t err;
                 if (sUser == DEFAULT_ADMIN_LOGIN) {
-                    err = admin_password.setStringValue(newpassword);
+                    err = admin_password->setStringValue((char *)newpassword.c_str());
                 } else {
-                    err = user_password.setStringValue(newpassword);
+                    err = user_password->setStringValue((char *)newpassword.c_str());
                 }
                 if (err) {
                      msg_alert_error = true;

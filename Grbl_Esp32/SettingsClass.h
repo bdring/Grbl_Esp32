@@ -26,27 +26,31 @@ class Command;
 enum {
     NO_AXIS = 255,
 };
-enum {
-    GRBL = 1,
-    EXTENDED,
-    WEBSET,
-    COMMANDS,
-    GRBLCMD,
-    WEBNOAUTH,
-    WEBCMDRU,
-    WEBCMDWU,
-    WEBCMDWA,
-};
-typedef uint16_t group_t;
+typedef enum : uint8_t {
+    GRBL = 1,  // Classic GRBL settings like $100
+    EXTENDED,  // Settings added by early versions of Grbl_Esp32
+    WEBSET,    // Settings for ESP3D_WebUI, stored in NVS
+    GRBLCMD,   // Non-persistent GRBL commands like $H
+    WEBCMD,    // ESP3D_WebUI commands that are not directly settings
+} type_t;
+typedef enum : uint8_t {
+    WG,  // Readable and writable as guest
+    WU,  // Readable and writable as user and admin
+    WA,  // Readable as user and admin, writable as admin
+} permissions_t;
 typedef uint8_t axis_t;
 
 class Word {
 protected:
-    const char* _description;
-    const char *_grblName;
-    const char* _fullName;
+    const char*  _description;
+    const char*  _grblName;
+    const char*  _fullName;
+    type_t       _type;
+    permissions_t _permissions;
 public:
-    Word(const char *description, const char * grblName, const char* fullName);
+    Word(type_t type, permissions_t permissions, const char *description, const char * grblName, const char* fullName);
+    type_t getType() { return _type; }
+    permissions_t getPermissions() { return _permissions; }
     const char* getName() { return _fullName; }
     const char* getGrblName() { return _grblName; }
     const char* getDescription() { return _description; }
@@ -54,28 +58,27 @@ public:
 
 class Command : public Word {
 protected:
-    group_t _group;
     Command *link;  // linked list of setting objects
 public:
     static Command* List;
     Command* next() { return link; }
 
     ~Command() {}
-    Command(const char *description, group_t group, const char * grblName, const char* fullName);
-    group_t getGroup() { return _group; }
+    Command(const char *description, type_t type, permissions_t permissions, const char * grblName, const char* fullName);
+    // group_t getGroup() { return _group; }
 
     // The default implementation of addWebui() does nothing.
     // Derived classes may override it to do something.
     virtual void addWebui(JSONencoder *) {};
 
-    virtual err_t action(char* value, ESPResponseStream* out) =0;
+    virtual err_t action(char* value, level_authenticate_type auth_type, ESPResponseStream* out) =0;
 };
 
 class Setting : public Word {
 private:
 protected:
     static nvs_handle _handle;
-    group_t _group;
+    // group_t _group;
     axis_t _axis = NO_AXIS;
     Setting *link;  // linked list of setting objects
 
@@ -95,8 +98,9 @@ public:
     }
 
     ~Setting() {}
-    Setting(const char *description, group_t group, const char * grblName, const char* fullName, bool (*checker)(char *));
-    group_t getGroup() { return _group; }
+    // Setting(const char *description, group_t group, const char * grblName, const char* fullName, bool (*checker)(char *));
+    Setting(const char *description, type_t type, permissions_t permissions, const char * grblName, const char* fullName, bool (*checker)(char *));
+    // group_t getGroup() { return _group; }
     axis_t getAxis() { return _axis; }
     void setAxis(axis_t axis) { _axis = axis; }
 
@@ -125,10 +129,10 @@ private:
     int32_t _maxValue;
 
 public:
-    IntSetting(const char *description, group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(char *));
+    IntSetting(const char *description, type_t type, permissions_t permissions, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(char *));
 
-    IntSetting(group_t group, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(char *) = NULL)
-        : IntSetting(NULL, group, grblName, name, defVal, minVal, maxVal, checker)
+    IntSetting(type_t type, permissions_t permissions, const char* grblName, const char* name, int32_t defVal, int32_t minVal, int32_t maxVal, bool (*checker)(char *) = NULL)
+            : IntSetting(NULL, type, permissions, grblName, name, defVal, minVal, maxVal, checker)
     { }
 
     void load();
@@ -147,10 +151,10 @@ private:
     int32_t _storedValue;
 
 public:
-    AxisMaskSetting(const char *description, group_t group, const char* grblName, const char* name, int32_t defVal, bool (*checker)(char *));
+    AxisMaskSetting(const char *description, type_t type, permissions_t permissions, const char* grblName, const char* name, int32_t defVal, bool (*checker)(char *));
 
-    AxisMaskSetting(group_t group, const char* grblName, const char* name, int32_t defVal, bool (*checker)(char *) = NULL)
-        : AxisMaskSetting(NULL, group, grblName, name, defVal, checker)
+    AxisMaskSetting(type_t type, permissions_t permissions, const char* grblName, const char* name, int32_t defVal, bool (*checker)(char *) = NULL)
+            : AxisMaskSetting(NULL, type, permissions, grblName, name, defVal, checker)
     { }
 
     void load();
@@ -171,10 +175,10 @@ private:
     float _minValue;
     float _maxValue;
 public:
-    FloatSetting(const char *description, group_t group, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(char *));
+    FloatSetting(const char *description, type_t type, permissions_t permissions, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(char *));
 
-    FloatSetting(group_t group, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(char *) = NULL)
-        : FloatSetting(NULL, group, grblName, name, defVal, minVal, maxVal, checker)
+    FloatSetting(type_t type, permissions_t permissions, const char* grblName, const char* name, float defVal, float minVal, float maxVal, bool (*checker)(char *) = NULL)
+            : FloatSetting(NULL, type, permissions, grblName, name, defVal, minVal, maxVal, checker)
     { }
 
     void load();
@@ -197,10 +201,10 @@ private:
     int _maxLength;
     void _setStoredValue(const char *s);
 public:
-    StringSetting(const char *description, group_t group, const char* grblName, const char* name, const char* defVal, int min, int max, bool (*checker)(char *));
+    StringSetting(const char *description, type_t type, permissions_t permissions, const char* grblName, const char* name, const char* defVal, int min, int max, bool (*checker)(char *));
 
-    StringSetting(group_t group, const char* grblName, const char* name, const char* defVal, bool (*checker)(char *) = NULL)
-        : StringSetting(NULL, group, grblName, name, defVal, 0, 0, checker)
+    StringSetting(type_t type, permissions_t permissions, const char* grblName, const char* name, const char* defVal, bool (*checker)(char *) = NULL)
+        : StringSetting(NULL, type, permissions, grblName, name, defVal, 0, 0, checker)
     { };
 
     void load();
@@ -227,10 +231,10 @@ private:
     int8_t _currentValue;
     std::map<const char *, int8_t, cmp_str>* _options;
 public:
-    EnumSetting(const char *description, group_t group, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts);
+    EnumSetting(const char *description, type_t type, permissions_t permissions, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts);
 
-    EnumSetting(group_t group, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts) :
-        EnumSetting(NULL, group, grblName, name, defVal, opts)
+    EnumSetting(type_t type, permissions_t permissions, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts) :
+        EnumSetting(NULL, type, permissions, grblName, name, defVal, opts)
     { }
 
     void load();
@@ -248,9 +252,9 @@ private:
     int8_t _storedValue;
     bool _currentValue;
 public:
-    FlagSetting(const char *description, group_t group, const char* grblName, const char* name, bool defVal, bool (*checker)(char *));
-    FlagSetting(group_t group, const char* grblName, const char* name, bool defVal, bool (*checker)(char *) = NULL)
-        : FlagSetting(NULL, group, grblName, name, defVal, checker)
+    FlagSetting(const char *description, type_t type, permissions_t permissions, const char* grblName, const char* name, bool defVal, bool (*checker)(char *));
+    FlagSetting(type_t type, permissions_t permissions, const char* grblName, const char* name, bool defVal, bool (*checker)(char *) = NULL)
+        : FlagSetting(NULL, type, permissions, grblName, name, defVal, checker)
     { }
 
     void load();
@@ -272,8 +276,8 @@ private:
     uint32_t _storedValue;
 
 public:
-    IPaddrSetting(const char *description, group_t group, const char * grblName, const char* name, uint32_t defVal, bool (*checker)(char *));
-    IPaddrSetting(const char *description, group_t group, const char * grblName, const char* name, const char *defVal, bool (*checker)(char *));
+    IPaddrSetting(const char *description, type_t type, permissions_t permissions, const char * grblName, const char* name, uint32_t defVal, bool (*checker)(char *));
+    IPaddrSetting(const char *description, type_t type, permissions_t permissions, const char * grblName, const char* name, const char *defVal, bool (*checker)(char *));
 
     void load();
     void setDefault();
@@ -300,14 +304,14 @@ public:
 };
 class WebCommand : public Command {
     private:
-        err_t (*_action)(char *);
+        err_t (*_action)(char *, level_authenticate_type);
         const char* password;
     public:
-    WebCommand(const char* description, group_t group, const char * grblName, const char* name, err_t (*action)(char *)) :
-        Command(description, group, grblName, name),
+    WebCommand(const char* description, type_t type, permissions_t permissions, const char * grblName, const char* name, err_t (*action)(char *, level_authenticate_type)) :
+        Command(description, type, permissions, grblName, name),
         _action(action)
     {}
-    err_t action(char* value, ESPResponseStream* response);
+    err_t action(char* value, level_authenticate_type auth_type, ESPResponseStream* response);
 };
 
 enum : uint8_t {
@@ -323,9 +327,9 @@ class GrblCommand : public Command {
         uint8_t _disallowedStates;
     public:
     GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, uint8_t), uint8_t disallowedStates)
-      : Command(NULL, GRBLCMD, grblName, name)
-      , _action(action)
-      , _disallowedStates(disallowedStates)
+        : Command(NULL, GRBLCMD, WG, grblName, name)
+        , _action(action)
+        , _disallowedStates(disallowedStates)
     {}
-    err_t action(char* value, ESPResponseStream* response);
+    err_t action(char* value, level_authenticate_type auth_type, ESPResponseStream* response);
 };
