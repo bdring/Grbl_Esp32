@@ -570,27 +570,39 @@ static err_t listAPs(char *parameter, level_authenticate_type auth_level) { // E
     JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
     j->begin();
     j->begin_array("AP_LIST");
-    //j->line();
+    // An initial async scanNetworks was issued at startup, so there
+    // is a good chance that scan information is already available.
     int n = WiFi.scanComplete();
-    if (n == -2)
-        WiFi.scanNetworks(true);
-    else if (n) {
-        for (int i = 0; i < n; ++i) {
-            j->begin_object();
-            j->member("SSID", WiFi.SSID(i));
-            j->member("SIGNAL", wifi_config.getSignal(WiFi.RSSI(i)));
-            j->member("IS_PROTECTED", WiFi.encryptionType(i) != WIFI_AUTH_OPEN);
-            //            j->member("IS_PROTECTED", WiFi.encryptionType(i) == WIFI_AUTH_OPEN ? "0" : "1");
-            j->end_object();
-            //j->line();
-        }
+    switch (n) {
+        case -2:  // Scan not triggered
+            WiFi.scanNetworks(true);    // Begin async scan
+            break;
+        case -1:  // Scan in progress
+            break;
+        default:
+            for (int i = 0; i < n; ++i) {
+                j->begin_object();
+                j->member("SSID", WiFi.SSID(i));
+                j->member("SIGNAL", wifi_config.getSignal(WiFi.RSSI(i)));
+                j->member("IS_PROTECTED", WiFi.encryptionType(i) != WIFI_AUTH_OPEN);
+                //            j->member("IS_PROTECTED", WiFi.encryptionType(i) == WIFI_AUTH_OPEN ? "0" : "1");
+                j->end_object();
+            }
+            WiFi.scanDelete();
+            // Restart the scan in async mode so new data will be available
+            // when we ask again.
+            n = WiFi.scanComplete();
+            if (n == -2) {
+                WiFi.scanNetworks(true);
+            }
+            break;
     }
-    WiFi.scanDelete();
-    if (WiFi.scanComplete() == -2)
-        WiFi.scanNetworks(true);
     j->end_array();
     webPrint(j->end());
     delete j;
+    if (espresponse->client() != CLIENT_WEBUI) {
+        espresponse->println("");
+    }
     return STATUS_OK;
 }
 #endif
