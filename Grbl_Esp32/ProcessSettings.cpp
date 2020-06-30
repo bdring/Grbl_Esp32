@@ -545,25 +545,25 @@ err_t do_command_or_setting(const char *key, char *value, level_authenticate_typ
     return STATUS_INVALID_STATEMENT;
 }
 
-void remove_password(char *value, level_authenticate_type& auth_level) {
+void remove_password(char *str, level_authenticate_type& auth_level) {
     #ifdef ENABLE_AUTHENTICATION
-    String paramStr = String((const char*)value);
+    String paramStr = String((const char*)str);
     int pos = paramStr.indexOf("pwd=");
     if (pos == -1) {
         return;
     }
 
-    // Truncate the value string at the pwd= .
+    // Truncate the str string at the pwd= .
     // If the pwd= is preceded by a space, take off that space too.
     int endpos = pos;
-    if (endpos && value[endpos-1] == ' ') {
+    if (endpos && str[endpos-1] == ' ') {
         --endpos;
     }
-    value[endpos] = '\0';
+    str[endpos] = '\0';
 
     // Upgrade the authentication level if a password
     // for a higher level is present.
-    const char* password = value + pos + strlen("pwd=");
+    const char* password = str + pos + strlen("pwd=");
     if (auth_level < LEVEL_USER) {
         if (!strcmp(password, user_password->get())) {
             auth_level = LEVEL_USER;
@@ -578,6 +578,8 @@ void remove_password(char *value, level_authenticate_type& auth_level) {
 }
 
 uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authenticate_type auth_level) {
+    remove_password(line, auth_level);
+
     char *value;
     if (*line++ == '[') { // [ESPxxx] form
         value = strrchr(line, ']');
@@ -599,8 +601,6 @@ uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authentica
             *value++ = '\0';
         }
     }
-
-    remove_password(value, auth_level);
 
     char *key = normalize_key(line);
     // At this point there are three possibilities for value
