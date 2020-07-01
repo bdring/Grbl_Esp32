@@ -775,6 +775,50 @@ static err_t listSDFiles(char *parameter, level_authenticate_type auth_level) { 
 }
 #endif
 
+static err_t listLocalFiles(char *parameter, level_authenticate_type auth_level) { // No ESP command
+    webPrintln("");
+    listDir(SPIFFS, "/", 10, espresponse->client());
+    String ssd = "[Local FS Free:" + ESPResponseStream::formatBytes(SPIFFS.totalBytes() - SPIFFS.usedBytes());
+    ssd += " Used:" + ESPResponseStream::formatBytes(SPIFFS.usedBytes());
+    ssd += " Total:" + ESPResponseStream::formatBytes(SPIFFS.totalBytes());
+    ssd += "]";
+    webPrintln(ssd);
+    return STATUS_OK;
+}
+
+static void listDirJSON(fs::FS& fs, const char* dirname, uint8_t levels, JSONencoder* j) {
+    File root = fs.open(dirname);
+    File file = root.openNextFile();
+    while (file) {
+        const char* tailName = strchr(file.name(), '/');
+        tailName = tailName ? tailName + 1 : file.name();
+        if (file.isDirectory() && levels) {
+            j->begin_array(tailName);
+            listDirJSON(fs, file.name(), levels - 1, j);
+            j->end_array();
+        } else {
+            j->begin_object();
+            j->member("name", tailName);
+            j->member("size", file.size());
+            j->end_object();
+        }
+        file = root.openNextFile();
+    }
+}
+
+static err_t listLocalFilesJSON(char *parameter, level_authenticate_type auth_level) { // No ESP command
+    JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
+    j->begin();
+    j->begin_array("files");
+    listDirJSON(SPIFFS, "/", 4, j);
+    j->end_array();
+    webPrint(j->end());
+    if (espresponse->client() != CLIENT_WEBUI) {
+        webPrintln("");
+    }
+    return STATUS_OK;
+}
+
 static err_t showSDStatus(char *parameter, level_authenticate_type auth_level) {  // ESP200
     const char* resp = "No SD card";
 #ifdef ENABLE_SD_CARD
@@ -938,10 +982,12 @@ void make_web_settings()
     // WU - need user or admin password to set
     // WA - need admin password to set
     #ifdef WEB_COMMON
-        new WebCommand(NULL,      WEBCMD, WG, "ESP800", "Firmware/Info",showFwInfo);
-        new WebCommand(NULL,      WEBCMD, WU, "ESP720", "LocalFS/Size",   SPIFFSSize);
-        new WebCommand("FORMAT",  WEBCMD, WA, "ESP710", "LocalFS/Format", formatSpiffs);
-        new WebCommand("path",    WEBCMD, WU, "ESP700", "LocalFS/Run", runFile);
+        new WebCommand(NULL,      WEBCMD, WG, "ESP800", "Firmware/Info",   showFwInfo);
+        new WebCommand(NULL,      WEBCMD, WU, "ESP720", "LocalFS/Size",    SPIFFSSize);
+        new WebCommand("FORMAT",  WEBCMD, WA, "ESP710", "LocalFS/Format",  formatSpiffs);
+        new WebCommand("path",    WEBCMD, WU, "ESP700", "LocalFS/Run",     runFile);
+        new WebCommand("path",    WEBCMD, WU, NULL,     "LocalFS/List",    listLocalFiles);
+        new WebCommand("path",    WEBCMD, WU, NULL,     "LocalFS/ListJSON",listLocalFilesJSON);
     #endif
     #ifdef ENABLE_NOTIFICATIONS
         new WebCommand("TYPE=NONE|PUSHOVER|EMAIL|LINE T1=token1 T2=token2 TS=settings",
