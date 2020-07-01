@@ -595,7 +595,7 @@ uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authentica
         }
     } else {
         // $xxx form
-        value = strrchr(line, '=');
+        value = strchr(line, '=');
         if (value) {
             // $xxx=yyy form.
             *value++ = '\0';
