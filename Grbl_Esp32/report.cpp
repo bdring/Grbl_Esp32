@@ -148,7 +148,7 @@ void grbl_notifyf(const char* title, const char* format, ...) {
 // formats axis values into a string and returns that string in rpt
 static void report_util_axis_values(float* axis_value, char* rpt) {
     uint8_t idx;
-    char axisVal[10];
+    char axisVal[20];
     float unit_conv = 1.0; // unit conversion multiplier..default is mm
     rpt[0] = '\0';
     if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
