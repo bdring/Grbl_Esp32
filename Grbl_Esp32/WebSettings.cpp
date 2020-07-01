@@ -115,24 +115,60 @@ enum_opt_t onoffOptions = {
 
 static ESPResponseStream* espresponse;
 
-char* get_param(char *parameter, const char *key, bool allowSpaces) {
-    String paramStr = String((const char *)parameter);
-    int pos = paramStr.indexOf(key);
-    char *value = parameter + pos + strlen(key);
-    if (!allowSpaces) {
-        // For no-space values like with T= and P=,
-        // the value string starts right after = and
-        // ends at the first space.
-        char* end = strchr(value, ' ');
-        if (end) {
-            *end = '\0';
+typedef struct {
+    char* key;
+    char* value;
+} keyval_t;
+
+static keyval_t params[10];
+bool split_params(char *parameter) {
+    int i = 0;
+    for (char* s = parameter; *s; s++) {
+        if (*s == '=') {
+            params[i].value = s+1;
+            *s = '\0';
+            // Search backward looking for the start of the key,
+            // either just after a space or at the beginning of the strin
+            if (s == parameter) {
+                return false;
+            }
+            for (char* k = s-1; k >= parameter; --k) {
+                if (*k == '\0') {
+                    // If we find a NUL - i.e. the end of the previous key -
+                    // before finding a space, the string is malformed.
+                    return false;
+                }
+                if (*k == ' ') {
+                    *k = '\0';
+                    params[i++].key = k+1;
+                    break;
+                }
+                if (k == parameter) {
+                    params[i++].key = k;
+                }
+            }
         }
     }
-    // For space-allowed values like with V=, the value
-    // starts after the = and continues to the string end.
-    // Any trailing " pwd=<password>" part has already been
-    // removed.
-    return value;
+    params[i].key = NULL;
+    return true;
+}
+
+char nullstr[1] = { '\0' };
+char* get_param(const char *key, bool allowSpaces) {
+    for (keyval_t* p = params; p->key; p++) {
+        if (!strcasecmp(key, p->key)) {
+            if (!allowSpaces) {
+                for (char* s = p->value; *s; s++) {
+                    if (*s == ' ') {
+                        *s = '\0';
+                        break;
+                    }
+                }
+            }
+            return p->value;
+        }
+    }
+    return nullstr;
 }
 
 const char* remove_password(char *parameter) {
@@ -340,10 +376,13 @@ static err_t showSetNotification(char *parameter, level_authenticate_type auth_l
         webPrintln(" ", notification_ts->getStringValue());
         return STATUS_OK;
     }
-    char *ts = get_param(parameter, "TS=", false);
-    char *t2 = get_param(parameter, "T2=", false);
-    char *t1 = get_param(parameter, "T1=", false);
-    char *ty = get_param(parameter, "type=", false);
+    if (!split_params(parameter)) {
+        return STATUS_INVALID_VALUE;
+    }
+    char *ts = get_param("TS", false);
+    char *t2 = get_param("T2", false);
+    char *t1 = get_param("T1", false);
+    char *ty = get_param("type", false);
     err_t err = notification_type->setStringValue(ty);
     if (!err) {
         err = notification_t1->setStringValue(t1);
@@ -610,8 +649,11 @@ static err_t listAPs(char *parameter, level_authenticate_type auth_level) { // E
 static err_t setWebSetting(char *parameter, level_authenticate_type auth_level) { // ESP401
     // We do not need the "T=" (type) parameter because the
     // Setting objects know their own type
-    char *sval = get_param(parameter, "V=", true);
-    const char *spos = get_param(parameter, "P=", false);
+    if (!split_params(parameter)) {
+        return STATUS_INVALID_VALUE;
+    }
+    char *sval = get_param("V", true);
+    const char *spos = get_param("P", false);
     if (*spos == '\0') {
         webPrintln("Missing parameter");
         return STATUS_INVALID_VALUE;
@@ -830,9 +872,13 @@ static err_t showSetStaParams(char *parameter, level_authenticate_type auth_leve
         webPrintln(" MSK:", wifi_sta_netmask->getStringValue());
         return STATUS_OK;
     }
-    char *gateway = get_param(parameter, "GW=", false);
-    char *netmask = get_param(parameter, "MSK=", false);
-    char *ip = get_param(parameter, "IP=", false);
+    if (!split_params(parameter)) {
+        return STATUS_INVALID_VALUE;
+    }
+    char *gateway = get_param("GW", false);
+    char *netmask = get_param("MSK", false);
+    char *ip = get_param("IP", false);
+
     err_t err = wifi_sta_ip->setStringValue(ip);
     if (!err) {
         err = wifi_sta_netmask->setStringValue(netmask);
@@ -907,29 +953,29 @@ void make_web_settings()
     #endif
     #ifdef WEB_COMMON
         new WebCommand("RESTART", WEBCMD, WA, "ESP444", "System/Control",setSystemMode);
-        new WebCommand(NULL,      WEBCMD, WU, "ESP420", "System/Stats",     showSysStats);
+        new WebCommand(NULL,      WEBCMD, WU, "ESP420", "System/Stats", showSysStats);
     #endif
     #ifdef ENABLE_WIFI
-        new WebCommand(NULL,      WEBCMD, WU, "ESP410", "WiFi/ListAPs",      listAPs);
+        new WebCommand(NULL,      WEBCMD, WU, "ESP410", "WiFi/ListAPs", listAPs);
     #endif
     #ifdef WEB_COMMON
         new WebCommand("P=position T=type V=value",
-                                  WEBCMD, WA, "ESP401", "WebUI/Set",setWebSetting);
-        new WebCommand(NULL,      WEBCMD, WU, "ESP400", "WebUI/List", listSettings);
+                                  WEBCMD, WA, "ESP401", "WebUI/Set",    setWebSetting);
+        new WebCommand(NULL,      WEBCMD, WU, "ESP400", "WebUI/List",   listSettings);
     #endif
     #ifdef ENABLE_SD_CARD
-        new WebCommand("path",    WEBCMD, WU, "ESP220", "SD/Run",    runSDFile);
+        new WebCommand("path",    WEBCMD, WU, "ESP220", "SD/Run",       runSDFile);
         new WebCommand("file_or_directory_path",
-                                  WEBCMD, WU, "ESP215", "SD/Delete", deleteSDObject);
-        new WebCommand(NULL,      WEBCMD, WU, "ESP210", "SD/List",  listSDFiles);
+                                  WEBCMD, WU, "ESP215", "SD/Delete",    deleteSDObject);
+        new WebCommand(NULL,      WEBCMD, WU, "ESP210", "SD/List",      listSDFiles);
     #endif
     #ifdef WEB_COMMON
-        new WebCommand(NULL,      WEBCMD, WU, "ESP200", "SD/Status",     showSDStatus);
+        new WebCommand(NULL,      WEBCMD, WU, "ESP200", "SD/Status",    showSDStatus);
         new WebCommand("STA|AP|BT|OFF",
-                                  WEBCMD, WA, "ESP115", "Radio/State",   setRadioState);
+                                  WEBCMD, WA, "ESP115", "Radio/State",  setRadioState);
     #endif
     #ifdef ENABLE_WIFI
-        new WebCommand(NULL,      WEBCMD, WG,"ESP111", "System/IP",    showIP);
+        new WebCommand(NULL,      WEBCMD, WG,"ESP111", "System/IP",     showIP);
         new WebCommand("IP=ipaddress MSK=netmask GW=gateway",
                                   WEBCMD, WA, "ESP103", "Sta/Setup",    showSetStaParams);
     #endif
