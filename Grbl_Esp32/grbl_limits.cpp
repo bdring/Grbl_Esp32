@@ -149,6 +149,9 @@ void limits_go_home(uint8_t cycle_mask) {
         sys.step_control = STEP_CONTROL_EXECUTE_SYS_MOTION; // Set to execute homing motion and clear existing flags.
         st_prep_buffer(); // Prep and fill segment buffer from newly planned block.
         st_wake_up(); // Initiate motion
+#ifdef USE_I2S_OUT
+        delay_ms(I2S_OUT_DELAY_MS);
+#endif
         do {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
