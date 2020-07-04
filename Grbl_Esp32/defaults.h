@@ -293,22 +293,22 @@
     // ========== Motor hold current (SPI Drivers ) =============
 
     #ifndef  DEFAULT_X_HOLD_CURRENT
-        #define DEFAULT_X_HOLD_CURRENT 50 // $150 percent of run current (extended set)
+        #define DEFAULT_X_HOLD_CURRENT 0.125 // $150 current in amps (extended set)
     #endif
     #ifndef  DEFAULT_Y_HOLD_CURRENT
-        #define DEFAULT_Y_HOLD_CURRENT 50 // $151 percent of run current (extended set)
+        #define DEFAULT_Y_HOLD_CURRENT 0.125 // $151 current in amps (extended set)
     #endif
     #ifndef  DEFAULT_Z_HOLD_CURRENT
-        #define DEFAULT_Z_HOLD_CURRENT 50 // $152 percent of run current (extended set)
+        #define DEFAULT_Z_HOLD_CURRENT 0.125 // $152 current in amps (extended set)
     #endif
     #ifndef  DEFAULT_A_HOLD_CURRENT
-        #define DEFAULT_A_HOLD_CURRENT 50 // $153 percent of run current (extended set)
+        #define DEFAULT_A_HOLD_CURRENT 0.125 // $153 current in amps (extended set)
     #endif
     #ifndef  DEFAULT_B_HOLD_CURRENT
-        #define DEFAULT_B_HOLD_CURRENT 50 // $154 percent of run current (extended set)
+        #define DEFAULT_B_HOLD_CURRENT 0.125 // $154 current in amps (extended set)
     #endif
     #ifndef  DEFAULT_C_HOLD_CURRENT
-        #define DEFAULT_C_HOLD_CURRENT 50 // $154 percent of run current (extended set)
+        #define DEFAULT_C_HOLD_CURRENT 0.125 // $154 current in amps (extended set)
     #endif
 
     // ========== Microsteps (SPI Drivers ) ================
