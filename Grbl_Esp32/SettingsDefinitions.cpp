@@ -231,7 +231,7 @@ void make_settings() {
     c_axis_settings = axis_settings[C_AXIS];
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
-        auto setting = new IntSetting(EXTENDED, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, 0, 100, checkStallguard);
+        auto setting = new IntSetting(EXTENDED, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, checkStallguard);
         setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
