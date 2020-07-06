@@ -92,6 +92,7 @@ void IntSetting::setDefault() {
 }
 
 err_t IntSetting::setStringValue(char* s) {
+    s = trim(s);
     if (err_t err = check(s)) {
         return err;
     }
@@ -154,6 +155,7 @@ void AxisMaskSetting::setDefault() {
 }
 
 err_t AxisMaskSetting::setStringValue(char* s) {
+    s = trim(s);
     if (err_t err = check(s)) {
         return err;
     }
@@ -244,6 +246,7 @@ void FloatSetting::setDefault() {
 }
 
 err_t FloatSetting::setStringValue(char* s) {
+    s = trim(s);
     if (err_t err = check(s)) {
         return err;
     }
@@ -409,6 +412,7 @@ void EnumSetting::setDefault() {
 // This is necessary for WebUI, which uses the number
 // for setting.
 err_t EnumSetting::setStringValue(char* s) {
+    s = trim(s);
     enum_opt_t::iterator it = _options->find(s);
     if (it == _options->end()) {
         // If we don't find the value in keys, look for it in the numeric values
@@ -496,6 +500,7 @@ void FlagSetting::setDefault() {
 }
 
 err_t FlagSetting::setStringValue(char* s) {
+    s = trim(s);
     _currentValue = (strcasecmp(s, "on") == 0)
     || (strcasecmp(s, "true") == 0)
     || (strcasecmp(s, "enabled") == 0)
@@ -561,6 +566,7 @@ void IPaddrSetting::setDefault() {
 }
 
 err_t IPaddrSetting::setStringValue(char* s) {
+    s = trim(s);
     if (err_t err = check(s)) {
         return err;
     }

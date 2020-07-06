@@ -252,7 +252,7 @@ static void webPrintln(const char *s, String s2)
     webPrintln(s, s2.c_str());
 }
 
-static char *trim(char *str)
+char *trim(char *str)
 {
     char *end;
     // Trim leading space
