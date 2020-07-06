@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include "grbl.h"
 #include "i2s_out.h"
 

@@ -1,6 +1,4 @@
 #include "grbl.h"
-
-#include "SettingsClass.h"
 #include "JSONencoder.h"
 #include <map>
 #include "nvs.h"

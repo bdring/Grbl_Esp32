@@ -20,20 +20,16 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "config.h"
+#include "grbl.h"
 
 #if defined (ENABLE_WIFI) &&  defined (ENABLE_HTTP)
 
 #include "wifiservices.h"
 
-#include "grbl.h"
-
-#include "commands.h"
 #include "espresponse.h"
 #include "serial2socket.h"
 #include "web_server.h"
 #include <WebSocketsServer.h>
-#include "wificonfig.h"
 #include <WiFi.h>
 #include <FS.h>
 #include <SPIFFS.h>
@@ -41,7 +37,6 @@
 #include <SD.h>
 #include "grbl_sd.h"
 #endif
-#include "report.h"
 #include <WebServer.h>
 #include <ESP32SSDP.h>
 #include <StreamString.h>

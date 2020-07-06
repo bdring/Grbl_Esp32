@@ -20,16 +20,13 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "config.h"
+#include "grbl.h"
 
 #ifdef ENABLE_WIFI
 
 #include <WiFi.h>
 #include <FS.h>
 #include <SPIFFS.h>
-#include <Preferences.h>
-#include "report.h"
-#include "wificonfig.h"
 #include "wifiservices.h"
 #ifdef ENABLE_MDNS
     #include <ESPmDNS.h>

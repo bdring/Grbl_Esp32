@@ -20,7 +20,6 @@
 
 #ifndef ESPRESPONSE_h
 #define ESPRESPONSE_h
-#include "config.h"
 
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     class WebServer;

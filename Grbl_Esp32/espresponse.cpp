@@ -17,14 +17,12 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include "config.h"
+#include "grbl.h"
 #include "espresponse.h"
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     #include "web_server.h"
     #include <WebServer.h>
 #endif
-
-#include "report.h"
 
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
 ESPResponseStream::ESPResponseStream(WebServer* webserver) {

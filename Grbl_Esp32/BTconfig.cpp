@@ -20,14 +20,11 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "config.h"
+#include "grbl.h"
 
 #ifdef ENABLE_BLUETOOTH
-#include <Preferences.h>
 #include "BluetoothSerial.h"
 #include "BTconfig.h"
-#include "commands.h"
-#include "report.h"
 
 BTConfig bt_config;
 BluetoothSerial SerialBT;

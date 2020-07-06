@@ -1,6 +1,4 @@
 #include "grbl.h"
-#include "SettingsClass.h"
-#include "GCodePreprocessor.h"
 
 bool motorSettingChanged = false;
 

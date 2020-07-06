@@ -21,8 +21,6 @@
 #ifndef report_h
 #define report_h
 
-#include "grbl.h"
-
 // Define Grbl status codes. Valid values (0-255)
 #define STATUS_OK 0
 #define STATUS_EXPECTED_COMMAND_LETTER 1

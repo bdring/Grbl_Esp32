@@ -41,7 +41,6 @@
 
 #include "defaults.h"
 #include "settings.h"
-#include "SettingsDefinitions.h"
 #include "system.h"
 
 #include "planner.h"
@@ -61,6 +60,9 @@
 #include "stepper.h"
 #include "jog.h"
 #include "inputbuffer.h"
+#include "commands.h"
+#include "SettingsClass.h"
+#include "SettingsDefinitions.h"
 
 #ifdef ENABLE_BLUETOOTH
     #include "BTconfig.h"

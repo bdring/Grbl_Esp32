@@ -20,7 +20,7 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "config.h"
+#include "grbl.h"
 
 #ifdef ENABLE_WIFI
 
@@ -29,12 +29,7 @@
 #include <ESPmDNS.h>
 #include <FS.h>
 #include <SPIFFS.h>
-#include <Preferences.h>
-#include "wificonfig.h"
 #include "wifiservices.h"
-#include "commands.h"
-#include "report.h"
-#include "SettingsDefinitions.h"
 
 
 WiFiConfig wifi_config;

@@ -17,34 +17,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include "config.h"
-#include "commands.h"
-#include "espresponse.h"
-#include <Preferences.h>
-#include "report.h"
-#ifdef ENABLE_SD_CARD
-    #include "grbl_sd.h"
-#endif
-#ifdef ENABLE_BLUETOOTH
-    #include "BTconfig.h"
-#endif
-#ifdef ENABLE_WIFI
-    #include "wificonfig.h"
-    #if defined (ENABLE_HTTP)
-        #include "web_server.h"
-    #endif
-    #ifdef ENABLE_TELNET
-        #include "telnet_server.h"
-    #endif
-#endif
-#ifdef ENABLE_NOTIFICATIONS
-    #include "notifications_service.h"
-#endif
-#include <WiFi.h>
-#include <FS.h>
-#include <SPIFFS.h>
-#include <esp_wifi.h>
-#include <esp_ota_ops.h>
+#include "grbl.h"
 
 #ifdef __cplusplus
 extern "C" {

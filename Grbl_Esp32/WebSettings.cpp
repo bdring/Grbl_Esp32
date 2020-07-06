@@ -31,8 +31,6 @@
 #ifndef WIFI_OR_BLUETOOTH
 void make_web_settings() {}
 #else
-#include "SettingsClass.h"
-#include "GCodePreprocessor.h"
 #include "espresponse.h"
 #include "web_server.h"
 #include "string.h"

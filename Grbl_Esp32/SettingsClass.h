@@ -1,6 +1,4 @@
 #pragma once
-#include "report.h"
-#include "system.h"
 #include "JSONencoder.h"
 #include <map>
 #include <nvs.h>

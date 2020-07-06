@@ -23,10 +23,6 @@
 */
 
 #include "grbl.h"
-#include "config.h"
-#include "commands.h"
-#include "espresponse.h"
-#include "GCodePreprocessor.h"
 
 // Define line flags. Includes comment type tracking and line overflow detection.
 #define LINE_FLAG_OVERFLOW bit(0)
