@@ -1,5 +1,32 @@
 #include "grbl.h"
 #include <map>
+
+// WG Readable and writable as guest
+// WU Readable and writable as user and admin
+// WA Readable as user and admin, writable as admin
+
+// If authentication is disabled, auth_level will be LEVEL_ADMIN
+bool auth_failed(Word* w, const char* value, level_authenticate_type auth_level) {
+    permissions_t permissions = w->getPermissions();
+    switch (auth_level) {
+        case LEVEL_ADMIN:  // Admin can do anything
+            return false;  // Nothing is an Admin auth fail
+        case LEVEL_GUEST:  // Guest can only access open settings
+            return permissions != WG;  // Anything other than RG is Guest auth fail
+        case LEVEL_USER:  // User is complicated...
+            if (!value) {      // User can read anything
+                return false;  // No read is a User auth fail
+            }
+            return permissions == WA;  // User cannot write WA
+        default:
+            return true;
+    }
+}
+
+void show_setting(const char* name, const char* value, ESPResponseStream* out) {
+    grbl_sendf(out->client(), "$%s=%s\n", name, value);
+}
+
 void settings_restore(uint8_t restore_flag) {
     #ifdef WIFI_OR_BLUETOOTH
         if (restore_flag & SETTINGS_RESTORE_WIFI_SETTINGS) {
@@ -60,7 +87,7 @@ void settings_init()
 // sent to gc_execute_line.  It is probably also more time-critical
 // than actual settings, which change infrequently, so handling
 // it early is probably prudent.
-uint8_t jog_set(uint8_t *value, uint8_t client) {
+uint8_t jog_set(uint8_t *value, level_authenticate_type auth_level, ESPResponseStream* out) {
     // Execute only if in IDLE or JOG states.
     if (sys.state != STATE_IDLE && sys.state != STATE_JOG)  return STATUS_IDLE_ERROR;
 
@@ -70,61 +97,64 @@ uint8_t jog_set(uint8_t *value, uint8_t client) {
     strcpy(line, "$J=");
     strncat(line, (char *)value, MAXLINE-strlen("$J=")-1);
 
-    return gc_execute_line(line, client); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
+    return gc_execute_line(line, out->client()); // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
 }
 
-err_t show_grbl_help(const char* value, uint8_t client) {
-    report_grbl_help(client);
+err_t show_grbl_help(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    report_grbl_help(out->client());
     return STATUS_OK;
 }
 
-err_t report_gcode(const char *value, uint8_t client) {
-    report_gcode_modes(client);
+err_t report_gcode(const char *value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    report_gcode_modes(out->client());
     return STATUS_OK;
 }
-void show_grbl_settings(uint8_t client, type_t type, bool wantAxis) {
-    //auto out = new ESPResponseStream(client);
+
+void show_grbl_settings(ESPResponseStream* out, type_t type, bool wantAxis) {
     for (Setting *s = Setting::List; s; s = s->next()) {
         if (s->getType() == type && s->getGrblName()) {
             bool isAxis = s->getAxis() != NO_AXIS;
             // The following test could be expressed more succinctly with XOR,
             // but is arguably clearer when written out
             if ((wantAxis && isAxis) || (!wantAxis && !isAxis)) {
-                grbl_sendf(client, "$%s=%s\r\n", s->getGrblName(), s->getCompatibleValue());
+                show_setting(s->getGrblName(), s->getCompatibleValue(), out);
             }
         }
     }
 }
-err_t report_normal_settings(const char* value, uint8_t client) {
-    show_grbl_settings(client, GRBL, false);     // GRBL non-axis settings
-    show_grbl_settings(client, GRBL, true);      // GRBL axis settings
+err_t report_normal_settings(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    show_grbl_settings(out, GRBL, false);     // GRBL non-axis settings
+    show_grbl_settings(out, GRBL, true);      // GRBL axis settings
     return STATUS_OK;
 }
-err_t report_extended_settings(const char* value, uint8_t client) {
-    show_grbl_settings(client, GRBL, false);     // GRBL non-axis settings
-    show_grbl_settings(client, EXTENDED, false); // Extended non-axis settings
-    show_grbl_settings(client, GRBL, true);      // GRBL axis settings
-    show_grbl_settings(client, EXTENDED, true);  // Extended axis settings
+err_t report_extended_settings(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    show_grbl_settings(out, GRBL, false);     // GRBL non-axis settings
+    show_grbl_settings(out, EXTENDED, false); // Extended non-axis settings
+    show_grbl_settings(out, GRBL, true);      // GRBL axis settings
+    show_grbl_settings(out, EXTENDED, true);  // Extended axis settings
     return STATUS_OK;
 }
-err_t list_grbl_names(const char* value, uint8_t client)
+err_t list_grbl_names(const char* value, level_authenticate_type auth_level, ESPResponseStream* out)
 {
     for (Setting *s = Setting::List; s; s = s->next()) {
         const char* gn = s->getGrblName();
         if (gn) {
-            grbl_sendf(client, "$%s => $%s\r\n", gn, s->getName(), s->getStringValue());
+            grbl_sendf(out->client(), "$%s => $%s\r\n", gn, s->getName());
         }
     }
     return STATUS_OK;
 }
-err_t list_settings(const char* value, uint8_t client)
+err_t list_settings(const char* value, level_authenticate_type auth_level, ESPResponseStream* out)
 {
     for (Setting *s = Setting::List; s; s = s->next()) {
-        grbl_sendf(client, "$%s=%s\r\n", s->getName(), s->getStringValue());
+        const char *displayValue = auth_failed(s, value, auth_level)
+                ? "<Authentication required>"
+                : s->getStringValue();
+        show_setting(s->getName(), displayValue, out);
     }
     return STATUS_OK;
 }
-err_t toggle_check_mode(const char* value, uint8_t client) {
+err_t toggle_check_mode(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
     // Perform reset when toggling off. Check g-code mode should only work if Grbl
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
     // simple and consistent.
@@ -138,7 +168,7 @@ err_t toggle_check_mode(const char* value, uint8_t client) {
     }
     return STATUS_OK;
 }
-err_t disable_alarm_lock(const char* value, uint8_t client) {
+err_t disable_alarm_lock(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
     if (sys.state == STATE_ALARM) {
         // Block if safety door is ajar.
         if (system_check_safety_door_ajar())
@@ -149,11 +179,11 @@ err_t disable_alarm_lock(const char* value, uint8_t client) {
     } // Otherwise, no effect.
     return STATUS_OK;
 }
-err_t report_ngc(const char* value, uint8_t client) {
-    report_ngc_parameters(client);
+err_t report_ngc(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    report_ngc_parameters(out->client());
     return STATUS_OK;
 }
-err_t home(uint8_t client, int cycle) {
+err_t home(int cycle) {
     if (homing_enable->get() == false)
         return (STATUS_SETTING_DISABLED);
     if (system_check_safety_door_ajar())
@@ -170,36 +200,36 @@ err_t home(uint8_t client, int cycle) {
     }
     return STATUS_OK;
 }
-err_t home_all(const char* value, uint8_t client) {
-    return home(client, HOMING_CYCLE_ALL);
+err_t home_all(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    return home(HOMING_CYCLE_ALL);
 }
-err_t home_x(const char* value, uint8_t client) {
-    return home(client, HOMING_CYCLE_X);
+err_t home_x(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    return home(HOMING_CYCLE_X);
 }
-err_t home_y(const char* value, uint8_t client) {
-    return home(client, HOMING_CYCLE_Y);
+err_t home_y(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    return home(HOMING_CYCLE_Y);
 }
-err_t home_z(const char* value, uint8_t client) {
-    return home(client, HOMING_CYCLE_Z);
+err_t home_z(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    return home(HOMING_CYCLE_Z);
 }
-err_t home_a(const char* value, uint8_t client) {
-    return home(client, HOMING_CYCLE_A);
+err_t home_a(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    return home(HOMING_CYCLE_A);
 }
-err_t home_b(const char* value, uint8_t client) {
-    return home(client, HOMING_CYCLE_B);
+err_t home_b(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    return home(HOMING_CYCLE_B);
 }
-err_t home_c(const char* value, uint8_t client) {
-    return home(client, HOMING_CYCLE_C);
+err_t home_c(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    return home(HOMING_CYCLE_C);
 }
-err_t sleep_grbl(const char* value, uint8_t client) {
+err_t sleep_grbl(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
     system_set_exec_state_flag(EXEC_SLEEP);
     return STATUS_OK;
 }
-err_t get_report_build_info(const char* value, uint8_t client) {
+err_t get_report_build_info(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
     if (!value) {
         char line[128];
         settings_read_build_info(line);
-        report_build_info(line, client);
+        report_build_info(line, out->client());
         return STATUS_OK;
     }
     #ifdef ENABLE_BUILD_INFO_WRITE_COMMAND
@@ -209,9 +239,9 @@ err_t get_report_build_info(const char* value, uint8_t client) {
         return STATUS_INVALID_STATEMENT;
     #endif
 }
-err_t report_startup_lines(const char* value, uint8_t client) {
-    report_startup_line(0, startup_line_0->get(), client);
-    report_startup_line(1, startup_line_1->get(), client);
+err_t report_startup_lines(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    report_startup_line(0, startup_line_0->get(), out->client());
+    report_startup_line(1, startup_line_1->get(), out->client());
     return STATUS_OK;
 }
 
@@ -231,7 +261,7 @@ std::map<const char*, uint8_t, cmp_str> restoreCommands = {
     { "@", SETTINGS_RESTORE_WIFI_SETTINGS },
     { "wifi", SETTINGS_RESTORE_WIFI_SETTINGS },
 };
-err_t restore_settings(const char* value, uint8_t client) {
+err_t restore_settings(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
     if (!value) {
         return STATUS_INVALID_STATEMENT;
     }
@@ -243,12 +273,11 @@ err_t restore_settings(const char* value, uint8_t client) {
     return STATUS_OK;
 }
 
-err_t showState(const char* value, uint8_t client) {
-    grbl_sendf(client, "State 0x%x\r\n", sys.state);
+err_t showState(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    grbl_sendf(out->client(), "State 0x%x\r\n", sys.state);
     return STATUS_OK;
 }
-err_t doJog(const char* value, uint8_t client) {
-    static GCodePreprocessor gcpp;
+err_t doJog(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
     // For jogging, you must give gc_execute_line() a line that
     // begins with $J=.  There are several ways we can get here,
     // including  $J, $J=xxx, [J]xxx.  For any form other than
@@ -258,11 +287,7 @@ err_t doJog(const char* value, uint8_t client) {
     }
     char jogLine[LINE_BUFFER_SIZE];
     strcpy(jogLine, "$J=");
-    gcpp.begin(jogLine+3, LINE_BUFFER_SIZE-3);
-    if (gcpp.convertString(value)) {
-        return STATUS_INVALID_STATEMENT;
-    }
-    return gc_execute_line(jogLine, client);
+    return gc_execute_line(jogLine, out->client());
 }
 
 std::map<uint8_t, const char*> ErrorCodes = {
@@ -320,30 +345,37 @@ std::map<uint8_t, const char*> ErrorCodes = {
     { STATUS_INVALID_VALUE , "Invalid value for setting", },
     { STATUS_MESSAGE_FAILED , "Failed to send message", },
     { STATUS_NVS_SET_FAILED , "Failed to store setting", },
+    { STATUS_AUTHENTICATION_FAILED, "Authentication failed!", },
 };
 
-err_t listErrorCodes(const char* value, uint8_t client) {
+const char* errorString(err_t errorNumber) {
+    auto it = ErrorCodes.find(errorNumber);
+    return it == ErrorCodes.end() ? NULL : it->second;
+}
+
+err_t listErrorCodes(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
     if (value) {
         char* endptr = NULL;
         uint8_t errorNumber = strtol(value, &endptr, 10);
         if (*endptr) {
-            grbl_sendf(client, "Malformed error number: %s\r\n", value);
+            grbl_sendf(out->client(), "Malformed error number: %s\r\n", value);
             return STATUS_INVALID_VALUE;
         }
-        auto it = ErrorCodes.find(errorNumber);
-        if (it == ErrorCodes.end()) {
-            grbl_sendf(client, "Unknown error number: %d\r\n", errorNumber);
+        const char* errorName = errorString(errorNumber);
+        if (errorName) {
+            grbl_sendf(out->client(), "%d: %s\r\n", errorNumber, errorName);
             return STATUS_INVALID_VALUE;
+        } else {
+            grbl_sendf(out->client(), "Unknown error number: %d\r\n", errorNumber);
+            return STATUS_OK;
         }
-        grbl_sendf(client, "%d: %s\r\n", it->first, it->second);
-        return STATUS_OK;
     }
+
     for (auto it = ErrorCodes.begin();
          it != ErrorCodes.end();
          it++) {
-        grbl_sendf(client, "%d: %s\r\n", it->first, it->second);
+        grbl_sendf(out->client(), "%d: %s\r\n", it->first, it->second);
     }
-
     return STATUS_OK;
 }
 
@@ -366,7 +398,7 @@ void make_grbl_commands() {
     new GrblCommand("C",   "toggleCheckMode", toggle_check_mode, ANY_STATE);
     new GrblCommand("X",   "disableAlarmLock", disable_alarm_lock, ANY_STATE);
     new GrblCommand("NVX", "eraseNVS",        Setting::eraseNVS, IDLE_OR_ALARM);
-    new GrblCommand("V",   "showNvsStats",    report_nvs_stats, IDLE_OR_ALARM);
+    new GrblCommand("V",   "showNvsStats",    Setting::report_nvs_stats, IDLE_OR_ALARM);
     new GrblCommand("#",   "reportNgc", report_ngc, IDLE_OR_ALARM);
     new GrblCommand("H",   "homeAll", home_all, IDLE_OR_ALARM);
     #ifdef HOMING_SINGLE_AXIS_COMMANDS
@@ -421,32 +453,6 @@ char *normalize_key(char *start) {
     *end = '\0';
 
     return start;
-}
-
-void show_setting(const char* name, const char* value, ESPResponseStream* out) {
-    grbl_sendf(out->client(), "$%s=%s\n", name, value);
-}
-
-// WG Readable and writable as guest
-// WU Readable and writable as user and admin
-// WA Readable as user and admin, writable as admin
-
-// If authentication is disabled, auth_level will be LEVEL_ADMIN
-bool auth_failed(Word* w, const char* value, level_authenticate_type auth_level) {
-    permissions_t permissions = w->getPermissions();
-    switch (auth_level) {
-        case LEVEL_ADMIN:  // Admin can do anything
-            return false;  // Nothing is an Admin auth fail
-        case LEVEL_GUEST:  // Guest can only access open settings
-            return permissions != WG;  // Anything other than RG is Guest auth fail
-        case LEVEL_USER:  // User is complicated...
-            if (!value) {      // User can read anything
-                return false;  // No read is a User auth fail
-            }
-            return permissions == WA;  // User cannot write WA
-        default:
-            return true;
-    }
 }
 
 // This is the handler for all forms of settings commands,
@@ -525,12 +531,10 @@ err_t do_command_or_setting(const char *key, char *value, level_authenticate_typ
             lcTest.toLowerCase();
 
             if (lcTest.indexOf(lcKey) >= 0) {
-                if (auth_failed(s, value, auth_level)) {
-                    // When searching for matching names, we just skip ones
-                    // that we are not permitted to read.
-                    continue;
-                }
-                show_setting(s->getName(), s->getStringValue(), out);
+                const char *displayValue = auth_failed(s, value, auth_level)
+                        ? "<Authentication required>"
+                        : s->getStringValue();
+                show_setting(s->getName(), displayValue, out);
                 found = true;
             }
         }
@@ -542,7 +546,7 @@ err_t do_command_or_setting(const char *key, char *value, level_authenticate_typ
 }
 
 void remove_password(char *str, level_authenticate_type& auth_level) {
-    #ifdef ENABLE_AUTHENTICATION
+#ifdef ENABLE_AUTHENTICATION
     String paramStr = String((const char*)str);
     int pos = paramStr.indexOf("pwd=");
     if (pos == -1) {
@@ -570,7 +574,9 @@ void remove_password(char *str, level_authenticate_type& auth_level) {
             auth_level = LEVEL_ADMIN;
         }
     }
-    #endif
+#else
+    auth_level = LEVEL_ADMIN;
+#endif
 }
 
 uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authenticate_type auth_level) {
@@ -599,6 +605,7 @@ uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authentica
     }
 
     char *key = normalize_key(line);
+
     // At this point there are three possibilities for value
     // NULL - $xxx without =
     // NULL - [ESPxxx] with nothing after ]
@@ -606,18 +613,19 @@ uint8_t system_execute_line(char* line, ESPResponseStream* out, level_authentica
     // non-empty string - [ESPxxx]yyy or $xxx=yyy
     return do_command_or_setting(key, value, auth_level, out);
 }
-uint8_t system_execute_line(char* line, uint8_t client) {
-    return system_execute_line(line, new ESPResponseStream(client, true), LEVEL_GUEST);
+uint8_t system_execute_line(char* line, uint8_t client, level_authenticate_type auth_level) {
+    return system_execute_line(line, new ESPResponseStream(client, true), auth_level);
 }
 
 void system_execute_startup(char* line) {
     err_t status_code;
-    const char *gcline = startup_line_0->get();
+    char gcline[256];
+    strncpy(gcline, startup_line_0->get(), 255);
     if (*gcline) {
         status_code = gc_execute_line(gcline, CLIENT_SERIAL);
         report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);
     }
-    gcline = startup_line_1->get();
+    strncpy(gcline, startup_line_1->get(), 255);
     if (*gcline) {
         status_code = gc_execute_line(gcline, CLIENT_SERIAL);
         report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);

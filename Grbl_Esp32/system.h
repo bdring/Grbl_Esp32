@@ -192,8 +192,9 @@ void system_clear_exec_accessory_overrides();
 
 // Execute the startup script lines stored in EEPROM upon initialization
 void system_execute_startup(char* line);
+uint8_t execute_line(char* line, uint8_t client, level_authenticate_type auth_level);
 uint8_t system_execute_line(char* line, ESPResponseStream*, level_authenticate_type);
-uint8_t system_execute_line(char* line, uint8_t client);
+uint8_t system_execute_line(char* line, uint8_t client, level_authenticate_type);
 uint8_t do_command_or_setting(const char *key, char *value, level_authenticate_type auth_level, ESPResponseStream*);
 void system_flag_wco_change();
 

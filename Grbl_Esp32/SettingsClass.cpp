@@ -358,8 +358,10 @@ const char* StringSetting::getStringValue() {
     // If the string is a password do not display it
     if (_checker &&
         (_checker == (bool (*)(char *))WiFiConfig::isPasswordValid
+#ifdef ENABLE_AUTHENTICATION
          ||
          _checker == (bool (*)(char *))COMMANDS::isLocalPasswordValid
+#endif
          )) {
         return "******";
     }
@@ -602,5 +604,5 @@ err_t GrblCommand::action(char* value, level_authenticate_type auth_type, ESPRes
     if (sys.state & _disallowedStates) {
         return STATUS_IDLE_ERROR;
     }
-    return _action((const char*)value, out->client());
+    return _action((const char*)value, auth_type, out);
 };

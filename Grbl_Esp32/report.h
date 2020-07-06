@@ -84,6 +84,10 @@
 #define STATUS_NVS_SET_FAILED 100
 
 #define STATUS_AUTHENTICATION_FAILED 110
+#define STATUS_EOL 111
+
+typedef uint8_t err_t; // For status codes
+const char* errorString(err_t errorNumber);
 
 // Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
 #define ALARM_HARD_LIMIT_ERROR      EXEC_ALARM_HARD_LIMIT

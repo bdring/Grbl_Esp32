@@ -4,8 +4,6 @@
 #include <nvs.h>
 #include "espresponse.h"
 
-typedef uint8_t err_t; // For status codes
-
 // Command::List is a linked list of all settings,
 // so common code can enumerate them.
 class Command;
@@ -69,7 +67,7 @@ public:
     // Derived classes may override it to do something.
     virtual void addWebui(JSONencoder *) {};
 
-    virtual err_t action(char* value, level_authenticate_type auth_type, ESPResponseStream* out) =0;
+    virtual err_t action(char* value, level_authenticate_type auth_level, ESPResponseStream* out) =0;
 };
 
 class Setting : public Word {
@@ -89,7 +87,25 @@ public:
 
     err_t check(char *s);
 
-    static err_t eraseNVS(const char* value, uint8_t client) {
+    static err_t report_nvs_stats(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+        nvs_stats_t stats;
+        if (err_t err = nvs_get_stats(NULL, &stats))
+            return err;
+        grbl_sendf(out->client(), "[MSG: NVS Used: %d Free: %d Total: %d]\r\n",
+                   stats.used_entries, stats.free_entries, stats.total_entries);
+#if 0  // The SDK we use does not have this yet
+        nvs_iterator_t it = nvs_entry_find(NULL, NULL, NVS_TYPE_ANY);
+        while (it != NULL) {
+            nvs_entry_info_t info;
+            nvs_entry_info(it, &info);
+            it = nvs_entry_next(it);
+            grbl_sendf(out->client(), "namespace %s key '%s', type '%d' \n", info.namespace_name, info.key, info.type);
+        }
+#endif
+        return STATUS_OK;
+    }
+
+    static err_t eraseNVS(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
         nvs_erase_all(_handle);
         //        return STATUS_OK;
         return 0;
@@ -162,7 +178,7 @@ public:
     const char* getCompatibleValue();
     const char* getStringValue();
 
-    int32_t get() {  return _currentValue;  }
+    int32_t get() { return _currentValue;  }
 };
 
 class FloatSetting : public Setting {
@@ -309,7 +325,7 @@ class WebCommand : public Command {
         Command(description, type, permissions, grblName, name),
         _action(action)
     {}
-    err_t action(char* value, level_authenticate_type auth_type, ESPResponseStream* response);
+    err_t action(char* value, level_authenticate_type auth_level, ESPResponseStream* response);
 };
 
 enum : uint8_t {
@@ -321,13 +337,13 @@ enum : uint8_t {
 
 class GrblCommand : public Command {
     private:
-        err_t (*_action)(const char *, uint8_t);
+        err_t (*_action)(const char *, level_authenticate_type, ESPResponseStream*);
         uint8_t _disallowedStates;
     public:
-    GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, uint8_t), uint8_t disallowedStates)
+    GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, level_authenticate_type, ESPResponseStream*), uint8_t disallowedStates)
         : Command(NULL, GRBLCMD, WG, grblName, name)
         , _action(action)
         , _disallowedStates(disallowedStates)
     {}
-    err_t action(char* value, level_authenticate_type auth_type, ESPResponseStream* response);
+    err_t action(char* value, level_authenticate_type auth_level, ESPResponseStream* response);
 };

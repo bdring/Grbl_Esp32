@@ -488,16 +488,22 @@ void Web_Server::_handle_web_command (bool silent)
         char line[256];
         strncpy(line, cmd.c_str(), 255);
         ESPResponseStream* espresponse = silent ? NULL : new ESPResponseStream(_webserver);
-        const char* answer = system_execute_line(line, espresponse, LEVEL_GUEST) ? "error" : "ok";
-        if (silent) {
-            _webserver->send (200, "text/plain", answer);
+        err_t err = system_execute_line(line, espresponse, auth_level);
+        String answer;
+        if (err == STATUS_OK) {
+            answer = "ok";
         } else {
-            // If the handler has already generated response output,
-            // we let that be the complete response; otherwise we say
-            // either "ok" or "error"
-            if (!espresponse->anyOutput()) {
-                espresponse->println(answer);
+            const char* msg = errorString(err);
+            answer = "Error: ";
+            if (msg) {
+                answer += msg;
+            } else {
+                answer += err;
             }
+        }
+        if (silent || !espresponse->anyOutput()) {
+            _webserver->send (err ? 401 : 200, "text/plain", answer.c_str());
+        } else {
             espresponse->flush();
         }
     } else { //execute GCODE

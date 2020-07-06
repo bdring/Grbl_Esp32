@@ -354,17 +354,24 @@ static err_t runFile(char *parameter, level_authenticate_type auth_level) { // E
         return STATUS_SD_FAILED_OPEN_FILE;
     }
     //until no line in file
+    err_t err;
+    err_t accumErr = STATUS_OK;
     while (currentfile.available()) {
         String currentline = currentfile.readStringUntil('\n');
-        currentline.replace("\n", "");
-        currentline.replace("\r", "");
         if (currentline.length() > 0) {
+            byte line[256];
+            currentline.getBytes(line, 255);
             // TODO Settings - feed into command interpreter
             // while accumulating error codes
+            err = execute_line((char *)line, CLIENT_WEBUI, auth_level);
+            if (err != STATUS_OK) {
+                accumErr = err;
+            }
+            COMMANDS::wait(1);
         }
     }
     currentfile.close();
-    return STATUS_OK;
+    return accumErr;
 }
 
 #ifdef ENABLE_NOTIFICATIONS
@@ -656,7 +663,8 @@ static err_t setWebSetting(char *parameter, level_authenticate_type auth_level) 
         webPrintln("Missing parameter");
         return STATUS_INVALID_VALUE;
     }
-    return do_command_or_setting(spos, sval, auth_level, espresponse);
+    err_t ret = do_command_or_setting(spos, sval, auth_level, espresponse);
+    return ret;
 }
 
 static err_t listSettings(char *parameter, level_authenticate_type auth_level) { // ESP400
@@ -810,6 +818,9 @@ static err_t listLocalFilesJSON(char *parameter, level_authenticate_type auth_le
     j->begin_array("files");
     listDirJSON(SPIFFS, "/", 4, j);
     j->end_array();
+    j->member("total", SPIFFS.totalBytes());
+    j->member("used", SPIFFS.usedBytes());
+    j->member("occupation", String(100 * SPIFFS.usedBytes() / SPIFFS.totalBytes()));
     webPrint(j->end());
     if (espresponse->client() != CLIENT_WEBUI) {
         webPrintln("");

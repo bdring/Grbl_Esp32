@@ -1,8 +1,6 @@
 #pragma once
 extern bool motorSettingChanged;
 
-extern err_t report_nvs_stats(const char* value, uint8_t client);
-
 extern AxisSettings* x_axis_settings;
 extern AxisSettings* y_axis_settings;
 extern AxisSettings* z_axis_settings;

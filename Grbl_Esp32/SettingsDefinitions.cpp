@@ -160,17 +160,6 @@ static const char *makename(const char *axisName, const char *tail) {
 static bool checkStartupLine(char* value) {
     if (sys.state != STATE_IDLE)
         return STATUS_IDLE_ERROR;
-    // We pass in strlen+1 because this is an in-place conversion.
-    // If no characters are removed, the end of the input string
-    // will be reached at the same time as there is no more space
-    // for new characters in the output string.  We do not want
-    // to treat that as an error, so we say the output string
-    // is longer than it really is, i.e. we count the space
-    // for the null terminator.
-    static GCodePreprocessor gcpp;
-    gcpp.begin(value, strlen(value) + 1);
-    if (gcpp.convertString(value))
-        return STATUS_INVALID_STATEMENT;
     return gc_execute_line(value, CLIENT_SERIAL) == 0;
 }
 
@@ -323,22 +312,4 @@ void make_settings() {
     pulse_microseconds = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_type = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", SPINDLE_TYPE_NONE, &spindleTypes);
     stallguard_debug_mask = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
-}
-
-err_t report_nvs_stats(const char* value, uint8_t client) {
-    nvs_stats_t stats;
-    if (err_t err = nvs_get_stats(NULL, &stats))
-        return err;
-    grbl_sendf(client, "[MSG: NVS Used: %d Free: %d Total: %d]\r\n",
-               stats.used_entries, stats.free_entries, stats.total_entries);
-#if 0  // The SDK we use does not have this yet
-    nvs_iterator_t it = nvs_entry_find(NULL, NULL, NVS_TYPE_ANY);
-    while (it != NULL) {
-        nvs_entry_info_t info;
-        nvs_entry_info(it, &info);
-        it = nvs_entry_next(it);
-        grbl_sendf(client, "namespace %s key '%s', type '%d' \n", info.namespace_name, info.key, info.type);
-    }
-#endif
-    return STATUS_OK;
 }
