@@ -349,7 +349,7 @@ static err_t runFile(char *parameter, level_authenticate_type auth_level) { // E
         webPrintln("Error: No such file!");
         return STATUS_SD_FILE_NOT_FOUND;
     }
-    File currentfile = SPIFFS.open(parameter, FILE_READ);
+    File currentfile = SPIFFS.open(path, FILE_READ);
     if (!currentfile) {//if file open success
         return STATUS_SD_FAILED_OPEN_FILE;
     }
