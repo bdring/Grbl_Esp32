@@ -24,13 +24,6 @@
 
 #include "grbl.h"
 
-// Define line flags. Includes comment type tracking and line overflow detection.
-#define LINE_FLAG_OVERFLOW bit(0)
-#define LINE_FLAG_COMMENT_PARENTHESES bit(1)
-#define LINE_FLAG_COMMENT_SEMICOLON bit(2)
-#define LINE_FLAG_BRACKET bit(3) // square bracket for WebUI commands
-
-
 static void protocol_exec_rt_suspend();
 
 static char line[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
@@ -77,7 +70,7 @@ err_t add_char_to_line(char c, uint8_t client)
     return STATUS_OK;
 }
 
-err_t execute_line(char* line, uint8_t client, level_authenticate_type auth_level)
+err_t execute_line(char* line, uint8_t client, auth_t auth_level)
 {
     err_t result = STATUS_OK;
     // Empty or comment line. For syncing purposes.

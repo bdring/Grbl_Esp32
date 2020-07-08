@@ -134,7 +134,17 @@ Some features should not be changed. See notes below.
 #define ENABLE_SERIAL2SOCKET_IN
 #define ENABLE_SERIAL2SOCKET_OUT
 
+// Captive portal is used when WiFi is in access point mode.  It lets the
+// WebUI come up automatically in the browser, instead of requiring the user
+// to browse manually to a default URL.  It works like airport and hotel
+// WiFi that takes you a special page as soon as you connect to that AP.
 #define ENABLE_CAPTIVE_PORTAL
+
+// Warning! The current authentication implementation is too weak to provide
+// security against an attacker, since passwords are stored and transmitted
+// "in the clear" over unsecured channels.  It should be treated as a
+// "friendly suggestion" to prevent unwitting dangerous actions, rather than
+// as effective security against malice.
 //#define ENABLE_AUTHENTICATION
 //CONFIGURE_EYECATCH_END (DO NOT MODIFY THIS LINE)
 #define NAMESPACE "GRBL"
@@ -142,11 +152,8 @@ Some features should not be changed. See notes below.
 #ifdef ENABLE_AUTHENTICATION
     #define DEFAULT_ADMIN_PWD "admin"
     #define DEFAULT_USER_PWD  "user"
-    #define DEFAULT_ADMIN_LOGIN  "admin"
-    #define DEFAULT_USER_LOGIN "user"
-    #define AUTH_ENTRY_NB 20
-    #define MAX_LOCAL_PASSWORD_LENGTH   16
-    #define MIN_LOCAL_PASSWORD_LENGTH   1
+    #define DEFAULT_ADMIN_LOGIN "admin"
+    #define DEFAULT_USER_LOGIN  "user"
 #endif
 
 //Radio Mode

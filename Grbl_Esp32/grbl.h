@@ -41,6 +41,7 @@
 
 #include "defaults.h"
 #include "settings.h"
+#include "authentication.h"
 #include "system.h"
 
 #include "planner.h"
@@ -63,13 +64,13 @@
 #include "commands.h"
 #include "SettingsClass.h"
 #include "SettingsDefinitions.h"
+#include "WebSettings.h"
+
+// Do not guard this because it is needed for local files too
+#include "grbl_sd.h"
 
 #ifdef ENABLE_BLUETOOTH
     #include "BTconfig.h"
-#endif
-
-#ifdef ENABLE_SD_CARD
-    #include "grbl_sd.h"
 #endif
 
 #ifdef ENABLE_WIFI

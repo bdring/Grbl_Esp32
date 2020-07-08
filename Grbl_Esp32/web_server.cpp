@@ -471,7 +471,7 @@ void Web_Server::_handle_web_command (bool silent)
     //       }
     //    }
     //}
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
     String cmd = "";
     if (_webserver->hasArg ("plain")) {
         cmd = _webserver->arg ("plain");
@@ -568,7 +568,7 @@ void Web_Server::handle_login()
         return;
     }
 
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
    if (auth_level == LEVEL_GUEST) auths = "guest";
     else if (auth_level == LEVEL_USER) auths = "user";
     else if (auth_level == LEVEL_ADMIN) auths = "admin";
@@ -625,7 +625,7 @@ void Web_Server::handle_login()
             }
         }
    if ((code == 200) || (code == 500)) {
-      level_authenticate_type current_auth_level;
+      auth_t current_auth_level;
       if(sUser == DEFAULT_ADMIN_LOGIN) {
             current_auth_level = LEVEL_ADMIN;
         } else  if(sUser == DEFAULT_USER_LOGIN){
@@ -702,7 +702,7 @@ void Web_Server::handle_login()
 //SPIFFS files list and file commands
 void Web_Server::handleFileList ()
 {
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
     if (auth_level == LEVEL_GUEST) {
         _upload_status = UPLOAD_STATUS_NONE;
         _webserver->send (401, "text/plain", "Authentication failed!\n");
@@ -931,7 +931,7 @@ void Web_Server::SPIFFSFileupload ()
     static String filename;
     static File fsUploadFile = (File)0;
      //get authentication status
-    level_authenticate_type auth_level= is_authenticated();
+    auth_t auth_level= is_authenticated();
     //Guest cannot upload - only admin
     if (auth_level == LEVEL_GUEST) {
         _upload_status = UPLOAD_STATUS_FAILED;
@@ -1054,7 +1054,7 @@ void Web_Server::SPIFFSFileupload ()
 //Web Update handler 
 void Web_Server::handleUpdate ()
 {
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
     if (auth_level != LEVEL_ADMIN) {
         _upload_status = UPLOAD_STATUS_NONE;
         _webserver->send (403, "text/plain", "Not allowed, log in first!\n");
@@ -1664,7 +1664,7 @@ String Web_Server::getContentType (String filename)
 }
 
 //check authentification
-level_authenticate_type Web_Server::is_authenticated()
+auth_t Web_Server::is_authenticated()
 {
 #ifdef ENABLE_AUTHENTICATION
     if (_webserver->hasHeader ("Cookie") ) {
@@ -1767,7 +1767,7 @@ auth_ip * Web_Server::GetAuth (IPAddress ip, const char * sessionID)
 }
 
 //Review all IP to reset timers
-level_authenticate_type Web_Server::ResetAuthIP (IPAddress ip, const char * sessionID)
+auth_t Web_Server::ResetAuthIP (IPAddress ip, const char * sessionID)
 {
     auth_ip * current = _head;
     auth_ip * previous = NULL;
@@ -1792,7 +1792,7 @@ level_authenticate_type Web_Server::ResetAuthIP (IPAddress ip, const char * sess
                 if (strcmp (sessionID, current->sessionID) == 0) {
                     //reset time
                     current->last_time = millis();
-                    return (level_authenticate_type) current->level;
+                    return (auth_t) current->level;
                 }
             }
             previous = current;

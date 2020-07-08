@@ -66,7 +66,7 @@ public:
     // Derived classes may override it to do something.
     virtual void addWebui(JSONencoder *) {};
 
-    virtual err_t action(char* value, level_authenticate_type auth_level, ESPResponseStream* out) =0;
+    virtual err_t action(char* value, auth_t auth_level, ESPResponseStream* out) =0;
 };
 
 class Setting : public Word {
@@ -86,7 +86,7 @@ public:
 
     err_t check(char *s);
 
-    static err_t report_nvs_stats(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    static err_t report_nvs_stats(const char* value, auth_t auth_level, ESPResponseStream* out) {
         nvs_stats_t stats;
         if (err_t err = nvs_get_stats(NULL, &stats))
             return err;
@@ -104,7 +104,7 @@ public:
         return STATUS_OK;
     }
 
-    static err_t eraseNVS(const char* value, level_authenticate_type auth_level, ESPResponseStream* out) {
+    static err_t eraseNVS(const char* value, auth_t auth_level, ESPResponseStream* out) {
         nvs_erase_all(_handle);
         //        return STATUS_OK;
         return 0;
@@ -316,14 +316,14 @@ public:
 };
 class WebCommand : public Command {
     private:
-        err_t (*_action)(char *, level_authenticate_type);
+        err_t (*_action)(char *, auth_t);
         const char* password;
     public:
-    WebCommand(const char* description, type_t type, permissions_t permissions, const char * grblName, const char* name, err_t (*action)(char *, level_authenticate_type)) :
+    WebCommand(const char* description, type_t type, permissions_t permissions, const char * grblName, const char* name, err_t (*action)(char *, auth_t)) :
         Command(description, type, permissions, grblName, name),
         _action(action)
     {}
-    err_t action(char* value, level_authenticate_type auth_level, ESPResponseStream* response);
+    err_t action(char* value, auth_t auth_level, ESPResponseStream* response);
 };
 
 enum : uint8_t {
@@ -335,17 +335,17 @@ enum : uint8_t {
 
 class GrblCommand : public Command {
     private:
-        err_t (*_action)(const char *, level_authenticate_type, ESPResponseStream*);
+        err_t (*_action)(const char *, auth_t, ESPResponseStream*);
         uint8_t _disallowedStates;
     public:
-        GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, level_authenticate_type, ESPResponseStream*), uint8_t disallowedStates, permissions_t auth)
+        GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, auth_t, ESPResponseStream*), uint8_t disallowedStates, permissions_t auth)
         : Command(NULL, GRBLCMD, auth, grblName, name)
         , _action(action)
         , _disallowedStates(disallowedStates)
     {}
 
-    GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, level_authenticate_type, ESPResponseStream*), uint8_t disallowedStates)
+    GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, auth_t, ESPResponseStream*), uint8_t disallowedStates)
         : GrblCommand(grblName, name, action, disallowedStates, WG)
     {}
-    err_t action(char* value, level_authenticate_type auth_level, ESPResponseStream* response);
+    err_t action(char* value, auth_t auth_level, ESPResponseStream* response);
 };

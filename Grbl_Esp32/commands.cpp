@@ -40,8 +40,6 @@ void COMMANDS::wait(uint32_t milliseconds) {
         esp_task_wdt_reset();
 }
 
-#ifdef ENABLE_AUTHENTICATION
-
 bool COMMANDS::isLocalPasswordValid(char* password) {
     char c;
     //limited size
@@ -55,7 +53,6 @@ bool COMMANDS::isLocalPasswordValid(char* password) {
     }
     return true;
 }
-#endif
 
 /**
  * Restart ESP

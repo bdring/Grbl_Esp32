@@ -357,18 +357,17 @@ err_t StringSetting::setStringValue(char* s) {
 }
 
 const char* StringSetting::getStringValue() {
-    #ifdef ENABLE_WIFI
     // If the string is a password do not display it
     if (_checker &&
-        (_checker == (bool (*)(char *))WiFiConfig::isPasswordValid
-#ifdef ENABLE_AUTHENTICATION
+        (
+       #ifdef ENABLE_WIFI
+         _checker == (bool (*)(char *))WiFiConfig::isPasswordValid
          ||
+       #endif
          _checker == (bool (*)(char *))COMMANDS::isLocalPasswordValid
-#endif
          )) {
         return "******";
     }
-    #endif
     return _currentValue.c_str();
 }
 
@@ -606,7 +605,7 @@ void IPaddrSetting::addWebui(JSONencoder *j) {
     name(axisName)
 {}
 
-err_t GrblCommand::action(char* value, level_authenticate_type auth_type, ESPResponseStream* out) {
+err_t GrblCommand::action(char* value, auth_t auth_type, ESPResponseStream* out) {
     if (sys.state & _disallowedStates) {
         return STATUS_IDLE_ERROR;
     }
