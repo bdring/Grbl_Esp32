@@ -23,8 +23,12 @@ bool auth_failed(Word* w, const char* value, level_authenticate_type auth_level)
     }
 }
 
-void show_setting(const char* name, const char* value, ESPResponseStream* out) {
-    grbl_sendf(out->client(), "$%s=%s\n", name, value);
+void show_setting(const char* name, const char* value, const char* description, ESPResponseStream* out) {
+    grbl_sendf(out->client(), "$%s=%s", name, value);
+    if (description) {
+        grbl_sendf(out->client(), "    %s", description);
+    }
+    grbl_sendf(out->client(), "\r\n");
 }
 
 void settings_restore(uint8_t restore_flag) {
@@ -117,7 +121,7 @@ void show_grbl_settings(ESPResponseStream* out, type_t type, bool wantAxis) {
             // The following test could be expressed more succinctly with XOR,
             // but is arguably clearer when written out
             if ((wantAxis && isAxis) || (!wantAxis && !isAxis)) {
-                show_setting(s->getGrblName(), s->getCompatibleValue(), out);
+                show_setting(s->getGrblName(), s->getCompatibleValue(), NULL, out);
             }
         }
     }
@@ -150,7 +154,25 @@ err_t list_settings(const char* value, level_authenticate_type auth_level, ESPRe
         const char *displayValue = auth_failed(s, value, auth_level)
                 ? "<Authentication required>"
                 : s->getStringValue();
-        show_setting(s->getName(), displayValue, out);
+        show_setting(s->getName(), displayValue, NULL, out);
+    }
+    return STATUS_OK;
+}
+err_t list_commands(const char* value, level_authenticate_type auth_level, ESPResponseStream* out)
+{
+    for (Command *cp = Command::List; cp; cp = cp->next()) {
+        const char* name = cp->getName();
+        const char* oldName = cp->getGrblName();
+        if (oldName) {
+            grbl_sendf(out->client(), "$%s or $%s", name, oldName);
+        } else {
+            grbl_sendf(out->client(), "$%s", name);
+        }
+        const char* description = cp->getDescription();
+        if (description) {
+            grbl_sendf(out->client(), " =%s", description);
+        }
+        grbl_sendf(out->client(), "\r\n");
     }
     return STATUS_OK;
 }
@@ -364,10 +386,10 @@ err_t listErrorCodes(const char* value, level_authenticate_type auth_level, ESPR
         const char* errorName = errorString(errorNumber);
         if (errorName) {
             grbl_sendf(out->client(), "%d: %s\r\n", errorNumber, errorName);
-            return STATUS_INVALID_VALUE;
+            return STATUS_OK;
         } else {
             grbl_sendf(out->client(), "Unknown error number: %d\r\n", errorNumber);
-            return STATUS_OK;
+            return STATUS_INVALID_VALUE;
         }
     }
 
@@ -386,40 +408,41 @@ err_t listErrorCodes(const char* value, level_authenticate_type auth_level, ESPR
 // to performing some system state change.  Each command is responsible
 // for decoding its own value string, if it needs one.
 void make_grbl_commands() {
-    new GrblCommand("",    "showGrblHelp", show_grbl_help, ANY_STATE);
+    new GrblCommand("",    "Help",  show_grbl_help, ANY_STATE);
     new GrblCommand("T",   "State", showState, ANY_STATE);
-    new GrblCommand("J",   "Jog", doJog, IDLE_OR_JOG);
+    new GrblCommand("J",   "Jog",   doJog, IDLE_OR_JOG);
 
-    new GrblCommand("$",   "listGrblSettings", report_normal_settings, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("+",   "listExtendedSettings", report_extended_settings, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("L",   "listGrblNames", list_grbl_names, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("S",   "listSettings",  list_settings, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("G",   "showGCodeModes", report_gcode, ANY_STATE);
-    new GrblCommand("C",   "toggleCheckMode", toggle_check_mode, ANY_STATE);
-    new GrblCommand("X",   "disableAlarmLock", disable_alarm_lock, ANY_STATE);
-    new GrblCommand("NVX", "eraseNVS",        Setting::eraseNVS, IDLE_OR_ALARM);
-    new GrblCommand("V",   "showNvsStats",    Setting::report_nvs_stats, IDLE_OR_ALARM);
-    new GrblCommand("#",   "reportNgc", report_ngc, IDLE_OR_ALARM);
-    new GrblCommand("H",   "homeAll", home_all, IDLE_OR_ALARM);
+    new GrblCommand("$",   "GrblSettings/List", report_normal_settings, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("+",   "ExtendedSettings/List", report_extended_settings, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("L",   "GrblNames/List", list_grbl_names, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("S",   "Settings/List",  list_settings, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("CMD", "Commands/List",  list_commands, NOT_CYCLE_OR_HOLD);
+    new GrblCommand("E",   "ErrorCodes/List",listErrorCodes, ANY_STATE);
+    new GrblCommand("G",   "GCode/Modes",    report_gcode, ANY_STATE);
+    new GrblCommand("C",   "GCode/Check",    toggle_check_mode, ANY_STATE);
+    new GrblCommand("X",   "Alarm/Disable",  disable_alarm_lock, ANY_STATE);
+    new GrblCommand("NVX", "Settings/Erase", Setting::eraseNVS, IDLE_OR_ALARM, WA);
+    new GrblCommand("V",   "Settings/Stats", Setting::report_nvs_stats, IDLE_OR_ALARM);
+    new GrblCommand("#",   "GCode/Offsets",  report_ngc, IDLE_OR_ALARM);
+    new GrblCommand("H",   "Home",           home_all, IDLE_OR_ALARM);
     #ifdef HOMING_SINGLE_AXIS_COMMANDS
-        new GrblCommand("HX",  "homeX", home_x, IDLE_OR_ALARM);
-        new GrblCommand("HY",  "homeY", home_y, IDLE_OR_ALARM);
-        new GrblCommand("HZ",  "homeZ", home_z, IDLE_OR_ALARM);
+        new GrblCommand("HX",  "Home/X", home_x, IDLE_OR_ALARM);
+        new GrblCommand("HY",  "Home/Y", home_y, IDLE_OR_ALARM);
+        new GrblCommand("HZ",  "Home/Z", home_z, IDLE_OR_ALARM);
         #if (N_AXIS > 3)
-            new GrblCommand("HA",  "homeA", home_a, IDLE_OR_ALARM);
+            new GrblCommand("HA",  "Home/A", home_a, IDLE_OR_ALARM);
         #endif
         #if (N_AXIS > 4)
-            new GrblCommand("HB",  "homeB", home_b, IDLE_OR_ALARM);
+            new GrblCommand("HB",  "Home/B", home_b, IDLE_OR_ALARM);
         #endif
         #if (N_AXIS > 5)
-            new GrblCommand("HC",  "homeC", home_c, IDLE_OR_ALARM);
+            new GrblCommand("HC",  "Home/C", home_c, IDLE_OR_ALARM);
         #endif
     #endif
-    new GrblCommand("SLP", "sleep", sleep_grbl, IDLE_OR_ALARM);
-    new GrblCommand("I",   "showBuild", get_report_build_info, IDLE_OR_ALARM);
-    new GrblCommand("N",   "showStartupLines", report_startup_lines, IDLE_OR_ALARM);
-    new GrblCommand("RST", "restoreSettings", restore_settings, IDLE_OR_ALARM);
-    new GrblCommand("E",   "listErrorCodes",  listErrorCodes, ANY_STATE);
+    new GrblCommand("SLP", "System/Sleep", sleep_grbl, IDLE_OR_ALARM);
+    new GrblCommand("I",   "Build/Info", get_report_build_info, IDLE_OR_ALARM);
+    new GrblCommand("N",   "GCode/StartupLines", report_startup_lines, IDLE_OR_ALARM);
+    new GrblCommand("RST", "Settings/Restore", restore_settings, IDLE_OR_ALARM, WA);
 };
 
 // normalize_key puts a key string into canonical form -
@@ -474,7 +497,7 @@ err_t do_command_or_setting(const char *key, char *value, level_authenticate_typ
             if (value) {
                 return s->setStringValue(value);
             } else {
-                show_setting(s->getName(), s->getStringValue(), out);
+                show_setting(s->getName(), s->getStringValue(), NULL, out);
                 return STATUS_OK;
             }
         }
@@ -490,7 +513,7 @@ err_t do_command_or_setting(const char *key, char *value, level_authenticate_typ
             if (value) {
                 return s->setStringValue(value);
             } else {
-                show_setting(s->getGrblName(), s->getCompatibleValue(), out);
+                show_setting(s->getGrblName(), s->getCompatibleValue(), NULL, out);
                 return STATUS_OK;
             }
         }
@@ -534,7 +557,7 @@ err_t do_command_or_setting(const char *key, char *value, level_authenticate_typ
                 const char *displayValue = auth_failed(s, value, auth_level)
                         ? "<Authentication required>"
                         : s->getStringValue();
-                show_setting(s->getName(), displayValue, out);
+                show_setting(s->getName(), displayValue, NULL, out);
                 found = true;
             }
         }

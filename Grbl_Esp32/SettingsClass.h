@@ -61,7 +61,6 @@ public:
 
     ~Command() {}
     Command(const char *description, type_t type, permissions_t permissions, const char * grblName, const char* fullName);
-    // group_t getGroup() { return _group; }
 
     // The default implementation of addWebui() does nothing.
     // Derived classes may override it to do something.
@@ -114,7 +113,6 @@ public:
     ~Setting() {}
     // Setting(const char *description, group_t group, const char * grblName, const char* fullName, bool (*checker)(char *));
     Setting(const char *description, type_t type, permissions_t permissions, const char * grblName, const char* fullName, bool (*checker)(char *));
-    // group_t getGroup() { return _group; }
     axis_t getAxis() { return _axis; }
     void setAxis(axis_t axis) { _axis = axis; }
 
@@ -340,10 +338,14 @@ class GrblCommand : public Command {
         err_t (*_action)(const char *, level_authenticate_type, ESPResponseStream*);
         uint8_t _disallowedStates;
     public:
-    GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, level_authenticate_type, ESPResponseStream*), uint8_t disallowedStates)
-        : Command(NULL, GRBLCMD, WG, grblName, name)
+        GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, level_authenticate_type, ESPResponseStream*), uint8_t disallowedStates, permissions_t auth)
+        : Command(NULL, GRBLCMD, auth, grblName, name)
         , _action(action)
         , _disallowedStates(disallowedStates)
+    {}
+
+    GrblCommand(const char * grblName, const char* name, err_t (*action)(const char*, level_authenticate_type, ESPResponseStream*), uint8_t disallowedStates)
+        : GrblCommand(grblName, name, action, disallowedStates, WG)
     {}
     err_t action(char* value, level_authenticate_type auth_level, ESPResponseStream* response);
 };
