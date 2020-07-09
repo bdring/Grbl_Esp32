@@ -89,6 +89,12 @@
 
 #define PROBE_PIN               GPIO_NUM_25
 
+// 0-10v CNC Module in Socket #3
+#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
+#define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
+#define SPINDLE_ENABLE_PIN      GPIO_NUM_4
+#define SPINDLE_DIR_PIN         GPIO_NUM_16
+
 
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE

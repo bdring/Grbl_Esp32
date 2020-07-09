@@ -88,11 +88,11 @@
 #define C_RSENSE                X_RSENSE
 
 
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM // only one spindle at a time
+// 0-10v CNC Module in Socket #3
+#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 #define SPINDLE_DIR_PIN         GPIO_NUM_16
-
 
 #define X_LIMIT_PIN             GPIO_NUM_33
 #define Y_LIMIT_PIN             GPIO_NUM_32
