@@ -108,6 +108,7 @@ void vfd_cmd_task(void* pvParameters) {
 void HuanyangSpindle :: init() {
 
     if (! _task_running) { // init can happen many times, we only want to start one task
+        hy_cmd_queue = xQueueCreate(5, sizeof(hy_command_t));
         xTaskCreatePinnedToCore(vfd_cmd_task,      // task
                                 "vfd_cmdTaskHandle", // name for task
                                 2048,   // size of task stack
@@ -115,8 +116,7 @@ void HuanyangSpindle :: init() {
                                 1, // priority
                                 &vfd_cmdTaskHandle,
                                 0 // core
-                               );
-        hy_cmd_queue = xQueueCreate(5, sizeof(hy_command_t));
+                               );       
         _task_running = true;
     }
 
@@ -211,8 +211,6 @@ void HuanyangSpindle :: config_message() {
     0x01    0x03    0x01    0x11    0x30 0x44                   Start spindle counter-clockwise
 */
 void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Set state");
-
     if (sys.abort)
         return;   // Block during abort.
 

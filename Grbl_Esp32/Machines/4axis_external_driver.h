@@ -1,5 +1,5 @@
 /*
-    external_driver_4x.h
+    4axis_external_driver_4x.h
     Part of Grbl_ESP32
 
     Pin assignments for the buildlog.net 4-axis external driver board

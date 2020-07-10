@@ -38,6 +38,12 @@ void PWMSpindle :: init() {
         return; // We cannot continue without the output pin
     }
 
+    if (_output_pin >= I2S_OUT_PIN_BASE) {
+
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Spindle output pin %s cannot do PWM", pinName(_output_pin).c_str());
+        return;
+    }
+
     ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, _pwm_precision); // setup the channel
     ledcAttachPin(_output_pin, _spindle_pwm_chan_num); // attach the PWM to the pin
 

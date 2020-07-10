@@ -78,22 +78,48 @@
 //#define C_CS_PIN                I2SO(22)
 #define C_DISABLE_PIN           I2SO(23)
 
+#define X_LIMIT_PIN             GPIO_NUM_33
+#define Y_LIMIT_PIN             GPIO_NUM_32
+#define Z_LIMIT_PIN             GPIO_NUM_35
+#define A_LIMIT_PIN             GPIO_NUM_34
+#define B_LIMIT_PIN             GPIO_NUM_39
+#define C_LIMIT_PIN             GPIO_NUM_36
 
-#define X_LIMIT_PIN             GPIO_NUM_36
-#define Y_LIMIT_PIN             GPIO_NUM_39
-#define Z_LIMIT_PIN             GPIO_NUM_34
-#define A_LIMIT_PIN             GPIO_NUM_35
-#define B_LIMIT_PIN             GPIO_NUM_32
-#define C_LIMIT_PIN             GPIO_NUM_33
 #define LIMIT_MASK              B111111
 
 #define PROBE_PIN               GPIO_NUM_25
 
 // 0-10v CNC Module in Socket #3
+/*
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 #define SPINDLE_DIR_PIN         GPIO_NUM_16
+*/
+
+// Example 5V output CNC module in socket #3
+/*
+#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
+#define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
+#define SPINDLE_ENABLE_PIN      GPIO_NUM_4
+#define SPINDLE_DIR_PIN         GPIO_NUM_16
+*/
+//#define COOLANT_MIST_PIN        GPIO_NUM_27
+
+
+// Example (4x) 5V Buffer Output on socket #5
+/*
+#define SPINDLE_OUTPUT_PIN      I2SO(24)
+#define COOLANT_MIST_PIN        I2SO(25)
+#define COOLANT_FLOOD_PIN       I2SO(26)
+*/
+
+
+// RS485 In socket #3
+#define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG // only one spindle at a time
+#define HUANYANG_TXD_PIN        GPIO_NUM_26
+#define HUANYANG_RTS_PIN        GPIO_NUM_4
+#define HUANYANG_RXD_PIN        GPIO_NUM_16
 
 
 // === Default settings
