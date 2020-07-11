@@ -20,21 +20,15 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "config.h"
+#include "grbl.h"
 
 #if defined (ENABLE_WIFI) &&  defined (ENABLE_TELNET)
 
 #include "wifiservices.h"
 
-#include "grbl.h"
-
 #include "telnet_server.h"
 #include "wificonfig.h"
 #include <WiFi.h>
-#include <Preferences.h>
-#include "report.h"
-#include "commands.h"
-
 
 Telnet_Server telnet_server;
 bool Telnet_Server::_setupdone = false;

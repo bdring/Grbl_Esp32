@@ -134,19 +134,26 @@ Some features should not be changed. See notes below.
 #define ENABLE_SERIAL2SOCKET_IN
 #define ENABLE_SERIAL2SOCKET_OUT
 
+// Captive portal is used when WiFi is in access point mode.  It lets the
+// WebUI come up automatically in the browser, instead of requiring the user
+// to browse manually to a default URL.  It works like airport and hotel
+// WiFi that takes you a special page as soon as you connect to that AP.
 #define ENABLE_CAPTIVE_PORTAL
+
+// Warning! The current authentication implementation is too weak to provide
+// security against an attacker, since passwords are stored and transmitted
+// "in the clear" over unsecured channels.  It should be treated as a
+// "friendly suggestion" to prevent unwitting dangerous actions, rather than
+// as effective security against malice.
 //#define ENABLE_AUTHENTICATION
 //CONFIGURE_EYECATCH_END (DO NOT MODIFY THIS LINE)
 #define NAMESPACE "GRBL"
 
 #ifdef ENABLE_AUTHENTICATION
     #define DEFAULT_ADMIN_PWD "admin"
-    #define DEFAULT_USER_PWD  "user";
-    #define DEFAULT_ADMIN_LOGIN  "admin"
-    #define DEFAULT_USER_LOGIN "user"
-    #define AUTH_ENTRY_NB 20
-    #define MAX_LOCAL_PASSWORD_LENGTH   16
-    #define MIN_LOCAL_PASSWORD_LENGTH   1
+    #define DEFAULT_USER_PWD  "user"
+    #define DEFAULT_ADMIN_LOGIN "admin"
+    #define DEFAULT_USER_LOGIN  "user"
 #endif
 
 //Radio Mode
@@ -450,10 +457,16 @@ Some features should not be changed. See notes below.
 // removed, capitalized letters, no comments) and is to be immediately executed by Grbl. Echoes will not be
 // sent upon a line buffer overflow, but should for all normal lines sent to Grbl. For example, if a user
 // sendss the line 'g1 x1.032 y2.45 (test comment)', Grbl will echo back in the form '[echo: G1X1.032Y2.45]'.
+// Only GCode lines are echoed, not command lines starting with $ or [ESP.
 // NOTE: Only use this for debugging purposes!! When echoing, this takes up valuable resources and can effect
 // performance. If absolutely needed for normal operation, the serial write buffer should be greatly increased
 // to help minimize transmission waiting within the serial write protocol.
 //#define REPORT_ECHO_LINE_RECEIVED // Default disabled. Uncomment to enable.
+
+// This is similar to REPORT_ECHO_LINE_RECEIVED and subject to all its caveats,
+// but instead of echoing the pre-parsed line, it echos the raw line exactly as
+// received, including not only GCode lines, but also $ and [ESP commands.
+//#define REPORT_ECHO_RAW_LINE_RECEIVED // Default disabled. Uncomment to enable.
 
 // Minimum planner junction speed. Sets the default minimum junction speed the planner plans to at
 // every buffer block junction, except for starting from rest and end of the buffer, which are always
@@ -493,7 +506,7 @@ Some features should not be changed. See notes below.
 #define DWELL_TIME_STEP 50 // Integer (1-255) (milliseconds)
 
 
-// For test use only. This uses the ESP32's RMT perifieral to generate step pulses
+// For test use only. This uses the ESP32's RMT peripheral to generate step pulses
 // It allows the use of the STEP_PULSE_DELAY (see below) and it automatically ends the
 // pulse in one operation.
 // Dir Pin  ____|--------------------

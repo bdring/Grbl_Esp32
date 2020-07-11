@@ -192,9 +192,10 @@ void system_clear_exec_accessory_overrides();
 
 // Execute the startup script lines stored in EEPROM upon initialization
 void system_execute_startup(char* line);
-uint8_t system_execute_line(char* line, ESPResponseStream*, level_authenticate_type);
-uint8_t system_execute_line(char* line, uint8_t client);
-uint8_t do_command_or_setting(const char *key, char *value, ESPResponseStream*);
+uint8_t execute_line(char* line, uint8_t client, auth_t auth_level);
+uint8_t system_execute_line(char* line, ESPResponseStream*, auth_t);
+uint8_t system_execute_line(char* line, uint8_t client, auth_t);
+uint8_t do_command_or_setting(const char *key, char *value, auth_t auth_level, ESPResponseStream*);
 void system_flag_wco_change();
 
 // Returns machine position of axis 'idx'. Must be sent a 'step' array.

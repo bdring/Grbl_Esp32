@@ -17,34 +17,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include "config.h"
-#include "commands.h"
-#include "espresponse.h"
-#include <Preferences.h>
-#include "report.h"
-#ifdef ENABLE_SD_CARD
-    #include "grbl_sd.h"
-#endif
-#ifdef ENABLE_BLUETOOTH
-    #include "BTconfig.h"
-#endif
-#ifdef ENABLE_WIFI
-    #include "wificonfig.h"
-    #if defined (ENABLE_HTTP)
-        #include "web_server.h"
-    #endif
-    #ifdef ENABLE_TELNET
-        #include "telnet_server.h"
-    #endif
-#endif
-#ifdef ENABLE_NOTIFICATIONS
-    #include "notifications_service.h"
-#endif
-#include <WiFi.h>
-#include <FS.h>
-#include <SPIFFS.h>
-#include <esp_wifi.h>
-#include <esp_ota_ops.h>
+#include "grbl.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,9 +40,7 @@ void COMMANDS::wait(uint32_t milliseconds) {
         esp_task_wdt_reset();
 }
 
-#ifdef ENABLE_AUTHENTICATION
-
-bool COMMANDS::isLocalPasswordValid(const char* password) {
+bool COMMANDS::isLocalPasswordValid(char* password) {
     char c;
     //limited size
     if ((strlen(password) > MAX_LOCAL_PASSWORD_LENGTH) || (strlen(password) < MIN_LOCAL_PASSWORD_LENGTH))
@@ -82,29 +53,6 @@ bool COMMANDS::isLocalPasswordValid(const char* password) {
     }
     return true;
 }
-
-//check admin password
-bool COMMANDS::isadmin(String& cmd_params) {
-    String adminpassword;
-    String sadminPassword = admin_password->get();
-    adminpassword = get_param(cmd_params, "pwd=", true);
-    if (!sadminPassword.equals(adminpassword))
-        return false;
-    else
-        return true;
-}
-//check user password - admin password is also valid
-bool COMMANDS::isuser(String& cmd_params) {
-    String suserPassword = user_password->get();
-    String userpassword = get_param(cmd_params, "pwd=", true);
-    //it is not user password
-    if (!suserPassword.equals(userpassword)) {
-        //check admin password
-        return isadmin(cmd_params);
-    } else
-        return true;
-}
-#endif
 
 /**
  * Restart ESP
