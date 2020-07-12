@@ -309,6 +309,7 @@ err_t doJog(const char* value, auth_t auth_level, ESPResponseStream* out) {
     }
     char jogLine[LINE_BUFFER_SIZE];
     strcpy(jogLine, "$J=");
+    strcat(jogLine, value);
     return gc_execute_line(jogLine, out->client());
 }
 
