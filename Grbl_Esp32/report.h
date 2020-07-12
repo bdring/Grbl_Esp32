@@ -21,8 +21,6 @@
 #ifndef report_h
 #define report_h
 
-#include "grbl.h"
-
 // Define Grbl status codes. Valid values (0-255)
 #define STATUS_OK 0
 #define STATUS_EXPECTED_COMMAND_LETTER 1
@@ -84,6 +82,12 @@
 #define STATUS_MESSAGE_FAILED 90
 
 #define STATUS_NVS_SET_FAILED 100
+
+#define STATUS_AUTHENTICATION_FAILED 110
+#define STATUS_EOL 111
+
+typedef uint8_t err_t; // For status codes
+const char* errorString(err_t errorNumber);
 
 // Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
 #define ALARM_HARD_LIMIT_ERROR      EXEC_ALARM_HARD_LIMIT

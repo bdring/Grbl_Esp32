@@ -57,12 +57,76 @@ void gc_sync_position() {
 }
 
 
-// Executes one line of 0-terminated G-Code. The line is assumed to contain only uppercase
-// characters and signed floating point values (no whitespace). Comments and block delete
-// characters have been removed. In this function, all units and positions are converted and
+// Edit GCode line in-place, removing whitespace and comments and
+// converting to uppercase
+void collapseGCode(char *line) {
+    // parenPtr, if non-NULL, is the address of the character after (
+    char* parenPtr = NULL;
+    // outPtr is the address where newly-processed characters will be placed.
+    // outPtr is alway less than or equal to inPtr.
+    char* outPtr = line;
+    char c;
+    for (char* inPtr = line; (c = *inPtr) != '\0'; inPtr++) {
+        if (isspace(c)) {
+            continue;
+        }
+        switch (c) {
+            case ')':
+                if (parenPtr) {
+                    // Terminate comment by replacing ) with NUL
+                    *inPtr = '\0';
+                    report_gcode_comment(parenPtr);
+                    parenPtr = NULL;
+                }
+                // Strip out ) that does not follow a (
+                break;
+            case '(':
+                // Start the comment at the character after (
+                parenPtr = inPtr + 1;
+                break;
+            case ';':
+                // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
+#ifdef REPORT_SEMICOLON_COMMENTS
+                report_gcode_comment(inPtr + 1);
+#endif
+                *outPtr = '\0';
+                return;
+            case '%':
+                // TODO: Install '%' feature
+                // Program start-end percent sign NOT SUPPORTED.
+                // NOTE: This maybe installed to tell Grbl when a program is running vs manual input,
+                // where, during a program, the system auto-cycle start will continue to execute
+                // everything until the next '%' sign. This will help fix resuming issues with certain
+                // functions that empty the planner buffer to execute its task on-time.
+                break;
+            case '\r':
+                // In case one sneaks in
+                break;
+            default:
+                *outPtr++ = toupper(c); // make upper case
+        }
+    }
+    // On loop exit, *inPtr is '\0'
+    if (parenPtr) {
+        // Handle unterminated ( comments
+        report_gcode_comment(parenPtr);
+    }
+    *outPtr = '\0';
+}
+
+// Executes one line of NUL-terminated G-Code.
+// The line may contain whitespace and comments, which are first removed,
+// and lower case characters, which are converted to upper case.
+// In this function, all units and positions are converted and
 // exported to grbl's internal functions in terms of (mm, mm/min) and absolute machine
 // coordinates, respectively.
-uint8_t gc_execute_line(const char* line, uint8_t client) {
+uint8_t gc_execute_line(char* line, uint8_t client) {
+    // Step 0 - remove whitespace and comments and convert to upper case
+    collapseGCode(line);
+#ifdef REPORT_ECHO_LINE_RECEIVED
+    report_echo_line_received(line, client);
+#endif
+
     /* -------------------------------------------------------------------------------------
        STEP 1: Initialize parser block struct and copy current g-code state modes. The parser
        updates these modes and commands as the block line is parser and will only be used and

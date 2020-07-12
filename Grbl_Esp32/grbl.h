@@ -22,7 +22,7 @@
 // Grbl versioning system
 
 #define GRBL_VERSION "1.3a"
-#define GRBL_VERSION_BUILD "20200704"
+#define GRBL_VERSION_BUILD "20200707"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -41,7 +41,7 @@
 
 #include "defaults.h"
 #include "settings.h"
-#include "SettingsDefinitions.h"
+#include "authentication.h"
 #include "system.h"
 
 #include "planner.h"
@@ -61,13 +61,16 @@
 #include "stepper.h"
 #include "jog.h"
 #include "inputbuffer.h"
+#include "commands.h"
+#include "SettingsClass.h"
+#include "SettingsDefinitions.h"
+#include "WebSettings.h"
+
+// Do not guard this because it is needed for local files too
+#include "grbl_sd.h"
 
 #ifdef ENABLE_BLUETOOTH
     #include "BTconfig.h"
-#endif
-
-#ifdef ENABLE_SD_CARD
-    #include "grbl_sd.h"
 #endif
 
 #ifdef ENABLE_WIFI

@@ -20,20 +20,16 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "config.h"
+#include "grbl.h"
 
 #if defined (ENABLE_WIFI) &&  defined (ENABLE_HTTP)
 
 #include "wifiservices.h"
 
-#include "grbl.h"
-
-#include "commands.h"
 #include "espresponse.h"
 #include "serial2socket.h"
 #include "web_server.h"
 #include <WebSocketsServer.h>
-#include "wificonfig.h"
 #include <WiFi.h>
 #include <FS.h>
 #include <SPIFFS.h>
@@ -41,7 +37,6 @@
 #include <SD.h>
 #include "grbl_sd.h"
 #endif
-#include "report.h"
 #include <WebServer.h>
 #include <ESP32SSDP.h>
 #include <StreamString.h>
@@ -476,7 +471,7 @@ void Web_Server::_handle_web_command (bool silent)
     //       }
     //    }
     //}
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
     String cmd = "";
     if (_webserver->hasArg ("plain")) {
         cmd = _webserver->arg ("plain");
@@ -493,16 +488,22 @@ void Web_Server::_handle_web_command (bool silent)
         char line[256];
         strncpy(line, cmd.c_str(), 255);
         ESPResponseStream* espresponse = silent ? NULL : new ESPResponseStream(_webserver);
-        const char* answer = system_execute_line(line, espresponse, LEVEL_GUEST) ? "error" : "ok";
-        if (silent) {
-            _webserver->send (200, "text/plain", answer);
+        err_t err = system_execute_line(line, espresponse, auth_level);
+        String answer;
+        if (err == STATUS_OK) {
+            answer = "ok";
         } else {
-            // If the handler has already generated response output,
-            // we let that be the complete response; otherwise we say
-            // either "ok" or "error"
-            if (!espresponse->anyOutput()) {
-                espresponse->println(answer);
+            const char* msg = errorString(err);
+            answer = "Error: ";
+            if (msg) {
+                answer += msg;
+            } else {
+                answer += err;
             }
+        }
+        if (silent || !espresponse->anyOutput()) {
+            _webserver->send (err ? 401 : 200, "text/plain", answer.c_str());
+        } else {
             espresponse->flush();
         }
     } else { //execute GCODE
@@ -567,7 +568,7 @@ void Web_Server::handle_login()
         return;
     }
 
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
    if (auth_level == LEVEL_GUEST) auths = "guest";
     else if (auth_level == LEVEL_USER) auths = "user";
     else if (auth_level == LEVEL_ADMIN) auths = "admin";
@@ -587,8 +588,8 @@ void Web_Server::handle_login()
             if (msg_alert_error == false) {
                 //Password
                 sPassword = _webserver->arg("PASSWORD");
-                String sadminPassword = admin_password.get();
-                String suserPassword = user_password.get();
+                String sadminPassword = admin_password->get();
+                String suserPassword = user_password->get();
 
                 if(!(((sUser == DEFAULT_ADMIN_LOGIN) && (strcmp(sPassword.c_str(),sadminPassword.c_str()) == 0)) ||
                         ((sUser == DEFAULT_USER_LOGIN) && (strcmp(sPassword.c_str(),suserPassword.c_str()) == 0)))) {
@@ -605,12 +606,12 @@ void Web_Server::handle_login()
         //change password
         if (_webserver->hasArg("PASSWORD") && _webserver->hasArg("USER") && _webserver->hasArg("NEWPASSWORD") && (msg_alert_error==false) ) {
             String newpassword =  _webserver->arg("NEWPASSWORD");
-            if (COMMANDS::isLocalPasswordValid(newpassword.c_str())) {
+            if (COMMANDS::isLocalPasswordValid((char *)newpassword.c_str())) {
                 err_t err;
                 if (sUser == DEFAULT_ADMIN_LOGIN) {
-                    err = admin_password.setStringValue(newpassword);
+                    err = admin_password->setStringValue((char *)newpassword.c_str());
                 } else {
-                    err = user_password.setStringValue(newpassword);
+                    err = user_password->setStringValue((char *)newpassword.c_str());
                 }
                 if (err) {
                      msg_alert_error = true;
@@ -624,7 +625,7 @@ void Web_Server::handle_login()
             }
         }
    if ((code == 200) || (code == 500)) {
-      level_authenticate_type current_auth_level;
+      auth_t current_auth_level;
       if(sUser == DEFAULT_ADMIN_LOGIN) {
             current_auth_level = LEVEL_ADMIN;
         } else  if(sUser == DEFAULT_USER_LOGIN){
@@ -701,7 +702,7 @@ void Web_Server::handle_login()
 //SPIFFS files list and file commands
 void Web_Server::handleFileList ()
 {
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
     if (auth_level == LEVEL_GUEST) {
         _upload_status = UPLOAD_STATUS_NONE;
         _webserver->send (401, "text/plain", "Authentication failed!\n");
@@ -930,7 +931,7 @@ void Web_Server::SPIFFSFileupload ()
     static String filename;
     static File fsUploadFile = (File)0;
      //get authentication status
-    level_authenticate_type auth_level= is_authenticated();
+    auth_t auth_level= is_authenticated();
     //Guest cannot upload - only admin
     if (auth_level == LEVEL_GUEST) {
         _upload_status = UPLOAD_STATUS_FAILED;
@@ -1053,7 +1054,7 @@ void Web_Server::SPIFFSFileupload ()
 //Web Update handler 
 void Web_Server::handleUpdate ()
 {
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
     if (auth_level != LEVEL_ADMIN) {
         _upload_status = UPLOAD_STATUS_NONE;
         _webserver->send (403, "text/plain", "Not allowed, log in first!\n");
@@ -1663,7 +1664,7 @@ String Web_Server::getContentType (String filename)
 }
 
 //check authentification
-level_authenticate_type Web_Server::is_authenticated()
+auth_t Web_Server::is_authenticated()
 {
 #ifdef ENABLE_AUTHENTICATION
     if (_webserver->hasHeader ("Cookie") ) {
@@ -1766,7 +1767,7 @@ auth_ip * Web_Server::GetAuth (IPAddress ip, const char * sessionID)
 }
 
 //Review all IP to reset timers
-level_authenticate_type Web_Server::ResetAuthIP (IPAddress ip, const char * sessionID)
+auth_t Web_Server::ResetAuthIP (IPAddress ip, const char * sessionID)
 {
     auth_ip * current = _head;
     auth_ip * previous = NULL;
@@ -1791,7 +1792,7 @@ level_authenticate_type Web_Server::ResetAuthIP (IPAddress ip, const char * sess
                 if (strcmp (sessionID, current->sessionID) == 0) {
                     //reset time
                     current->last_time = millis();
-                    return (level_authenticate_type) current->level;
+                    return (auth_t) current->level;
                 }
             }
             previous = current;

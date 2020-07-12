@@ -28,14 +28,11 @@
 // - https://github.com/CosmicBoris/ESP8266SMTP
 // - https://www.electronicshub.org/send-an-email-using-esp8266/
 
-#include "config.h"
-#ifdef ENABLE_NOTIFICATIONS
 #include "grbl.h"
-#include "commands.h"
+#ifdef ENABLE_NOTIFICATIONS
 #include "notifications_service.h"
 #include <WiFiClientSecure.h>
 #include <base64.h>
-#include "wificonfig.h"
 
 #define PUSHOVERTIMEOUT 5000
 #define PUSHOVERSERVER "api.pushover.net"

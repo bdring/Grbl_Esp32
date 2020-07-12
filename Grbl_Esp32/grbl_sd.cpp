@@ -19,7 +19,6 @@
 */
 
 #include "grbl_sd.h"
-#include "GCodePreprocessor.h"
 
 File myFile;
 bool SD_ready_next = false; // Grbl has processed a line and is waiting for another
@@ -82,26 +81,31 @@ boolean closeFile() {
 }
 
 /*
- read a line from the SD card
- strip whitespace
- strip comments per http://linuxcnc.org/docs/ja/html/gcode/overview.html#gcode:comments
- make uppercase
- return true if a line is
+  read a line from the SD card
+  strip whitespace
+  strip comments per http://linuxcnc.org/docs/ja/html/gcode/overview.html#gcode:comments
+  make uppercase
+  return true if a line is
 */
 boolean readFileLine(char* line, int maxlen) {
-    static GCodePreprocessor gcpp;
     if (!myFile) {
         report_status_message(STATUS_SD_FAILED_READ, SD_client);
         return false;
     }
-    gcpp.begin(line, maxlen);
     sd_current_line_number += 1;
+    int len = 0;
     while (myFile.available()) {
-        if (gcpp.next(myFile.read())) {
-            return gcpp.end() != maxlen;
+        if (len >= maxlen) {
+            return false;
         }
+        char c = myFile.read();
+        if (c == '\n') {
+            break;
+        }
+        line[len++] = c;
     }
-    return gcpp.end() != 0;
+    line[len] = '\0';
+    return true;
 }
 
 // return a percentage complete 50.5 = 50.5%
