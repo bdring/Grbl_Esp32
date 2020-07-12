@@ -88,6 +88,9 @@
 #define PROBE_PIN               GPIO_NUM_25
 
 // 0-10v CNC Module in Socket #3
+// Control...Set PD001 to 1 if enable is connected 0 is panel should be used
+// Freq...Set PD002 to 0 
+// Freq input...Set PD070 to 0 for 0-10V
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
