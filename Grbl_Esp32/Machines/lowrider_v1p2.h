@@ -63,8 +63,6 @@
 #define Y_LIMIT_PIN             GPIO_NUM_4
 #define Z_LIMIT_PIN             GPIO_NUM_17
 
-#define LIMIT_MASK              B111
-
 #ifndef ENABLE_SOFTWARE_DEBOUNCE   // V1P2 does not have R/C filters
     #define ENABLE_SOFTWARE_DEBOUNCE
 #endif

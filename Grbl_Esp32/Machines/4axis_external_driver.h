@@ -56,11 +56,8 @@
 #define Y_LIMIT_PIN             GPIO_NUM_35
 #define Z_LIMIT_PIN             GPIO_NUM_36
 
-#if (N_AXIS == 3)
-        #define LIMIT_MASK      B0111
-#else
+#if (N_AXIS != 3)
         #define A_LIMIT_PIN     GPIO_NUM_39
-        #define LIMIT_MASK      B1111
 #endif
 
 #define PROBE_PIN               GPIO_NUM_32

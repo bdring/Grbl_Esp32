@@ -63,7 +63,6 @@
 #endif
 
 #define REED_SW_PIN GPIO_NUM_17
-#define LIMIT_MASK 0
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE

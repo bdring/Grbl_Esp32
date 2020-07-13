@@ -50,7 +50,6 @@
 #define X_LIMIT_PIN             GPIO_NUM_13
 #define Y_LIMIT_PIN             GPIO_NUM_5
 #define Z_LIMIT_PIN             GPIO_NUM_19
-#define LIMIT_MASK              B111
 
 #define PROBE_PIN               GPIO_NUM_39
 

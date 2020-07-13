@@ -309,9 +309,9 @@ static void stepper_pulse_func() {
     st.counter_x += st.exec_block->steps[X_AXIS];
 #endif
     if (st.counter_x > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << X_STEP_BIT);
+        st.step_outbits |= (1 << X_AXIS);
         st.counter_x -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << X_DIRECTION_BIT))
+        if (st.exec_block->direction_bits & (1 << X_AXIS))
             sys_position[X_AXIS]--;
         else
             sys_position[X_AXIS]++;
@@ -322,9 +322,9 @@ static void stepper_pulse_func() {
     st.counter_y += st.exec_block->steps[Y_AXIS];
 #endif
     if (st.counter_y > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << Y_STEP_BIT);
+        st.step_outbits |= (1 << Y_AXIS);
         st.counter_y -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << Y_DIRECTION_BIT))
+        if (st.exec_block->direction_bits & (1 << Y_AXIS))
             sys_position[Y_AXIS]--;
         else
             sys_position[Y_AXIS]++;
@@ -335,9 +335,9 @@ static void stepper_pulse_func() {
     st.counter_z += st.exec_block->steps[Z_AXIS];
 #endif
     if (st.counter_z > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << Z_STEP_BIT);
+        st.step_outbits |= (1 << Z_AXIS);
         st.counter_z -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << Z_DIRECTION_BIT))
+        if (st.exec_block->direction_bits & (1 << Z_AXIS))
             sys_position[Z_AXIS]--;
         else
             sys_position[Z_AXIS]++;
@@ -349,9 +349,9 @@ static void stepper_pulse_func() {
     st.counter_a += st.exec_block->steps[A_AXIS];
 #endif
     if (st.counter_a > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << A_STEP_BIT);
+        st.step_outbits |= (1 << A_AXIS);
         st.counter_a -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << A_DIRECTION_BIT))  sys_position[A_AXIS]--;
+        if (st.exec_block->direction_bits & (1 << A_AXIS))  sys_position[A_AXIS]--;
         else  sys_position[A_AXIS]++;
     }
 #endif
@@ -362,9 +362,9 @@ static void stepper_pulse_func() {
     st.counter_b += st.exec_block->steps[B_AXIS];
 #endif
     if (st.counter_b > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << B_STEP_BIT);
+        st.step_outbits |= (1 << B_AXIS);
         st.counter_b -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << B_DIRECTION_BIT))  sys_position[B_AXIS]--;
+        if (st.exec_block->direction_bits & (1 << B_AXIS))  sys_position[B_AXIS]--;
         else  sys_position[B_AXIS]++;
     }
 #endif
@@ -375,9 +375,9 @@ static void stepper_pulse_func() {
     st.counter_c += st.exec_block->steps[C_AXIS];
 #endif
     if (st.counter_c > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << C_STEP_BIT);
+        st.step_outbits |= (1 << C_AXIS);
         st.counter_c -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << C_DIRECTION_BIT))  sys_position[C_AXIS]--;
+        if (st.exec_block->direction_bits & (1 << C_AXIS))  sys_position[C_AXIS]--;
         else  sys_position[C_AXIS]++;
     }
 #endif

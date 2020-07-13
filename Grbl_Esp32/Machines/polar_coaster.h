@@ -50,7 +50,6 @@
 #define Z_SERVO_RANGE_MAX       5.0
 
 #define X_LIMIT_PIN             GPIO_NUM_4
-#define LIMIT_MASK              B1
 
 #define SPINDLE_TYPE SPINDLE_TYPE_NONE
 
