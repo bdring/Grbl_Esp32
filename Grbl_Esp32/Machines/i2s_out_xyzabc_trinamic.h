@@ -96,7 +96,6 @@
 #define A_LIMIT_PIN             GPIO_NUM_34
 #define B_LIMIT_PIN             GPIO_NUM_39
 #define C_LIMIT_PIN             GPIO_NUM_36
-#define LIMIT_MASK              B111111
 
 #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
 #define SPINDLE_OUTPUT_PIN GPIO_NUM_26

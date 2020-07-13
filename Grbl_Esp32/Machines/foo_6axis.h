@@ -69,7 +69,6 @@
 #define Y_LIMIT_PIN             GPIO_NUM_17
 #define A_LIMIT_PIN             GPIO_NUM_16
 #define B_LIMIT_PIN             GPIO_NUM_4
-#define LIMIT_MASK              B11011
 
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13

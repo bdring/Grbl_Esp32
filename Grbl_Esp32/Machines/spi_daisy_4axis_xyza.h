@@ -85,5 +85,4 @@
 #define X_LIMIT_PIN             GPIO_NUM_36
 #define Y_LIMIT_PIN             GPIO_NUM_39
 #define Z_LIMIT_PIN             GPIO_NUM_34
-#define A_LIMIT_PIN     GPIO_NUM_35
-#define LIMIT_MASK      B1111
+#define A_LIMIT_PIN             GPIO_NUM_35

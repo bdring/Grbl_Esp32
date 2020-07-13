@@ -258,69 +258,35 @@ void limits_go_home(uint8_t cycle_mask) {
     sys.step_control = STEP_CONTROL_NORMAL_OP; // Return step control to normal operation.
 }
 
+uint8_t limit_pins[] = {
+    X_LIMIT_PIN,
+    Y_LIMIT_PIN,
+    Z_LIMIT_PIN,
+    A_LIMIT_PIN,
+    B_LIMIT_PIN,
+    C_LIMIT_PIN,
+};
+
+uint8_t limit_mask = 0;
 
 void limits_init() {
-#ifndef DISABLE_LIMIT_PIN_PULL_UP
-#ifdef X_LIMIT_PIN
-    pinMode(X_LIMIT_PIN, INPUT_PULLUP);  // input with pullup
+    int mode = INPUT_PULLUP;
+#ifdef DISABLE_LIMIT_PIN_PULL_UP
+    mode = INPUT;
 #endif
-#ifdef Y_LIMIT_PIN
-    pinMode(Y_LIMIT_PIN, INPUT_PULLUP);
-#endif
-#ifdef Z_LIMIT_PIN
-    pinMode(Z_LIMIT_PIN, INPUT_PULLUP);
-#endif
-#ifdef A_LIMIT_PIN
-    pinMode(A_LIMIT_PIN, INPUT_PULLUP);
-#endif
-#ifdef B_LIMIT_PIN
-    pinMode(B_LIMIT_PIN, INPUT_PULLUP);
-#endif
-#ifdef C_LIMIT_PIN
-    pinMode(C_LIMIT_PIN, INPUT_PULLUP);
-#endif
-#else
-#ifdef X_LIMIT_PIN
-    pinMode(X_LIMIT_PIN, INPUT); // input no pullup
-#endif
-#ifdef Y_LIMIT_PIN
-    pinMode(Y_LIMIT_PIN, INPUT);
-#endif
-#ifdef Z_LIMIT_PIN
-    pinMode(Z_LIMIT_PIN, INPUT);
-#endif
-#ifdef A_LIMIT_PIN
-    pinMode(A_LIMIT_PIN, INPUT); // input no pullup
-#endif
-#ifdef B_LIMIT_PIN
-    pinMode(B_LIMIT_PIN, INPUT);
-#endif
-#ifdef C_LIMIT_PIN
-    pinMode(C_LIMIT_PIN, INPUT);
-#endif
-#endif
-    if (hard_limits->get()) {
-        // attach interrupt to them
-#ifdef X_LIMIT_PIN
-        attachInterrupt(digitalPinToInterrupt(X_LIMIT_PIN), isr_limit_switches, CHANGE);
-#endif
-#ifdef Y_LIMIT_PIN
-        attachInterrupt(digitalPinToInterrupt(Y_LIMIT_PIN), isr_limit_switches, CHANGE);
-#endif
-#ifdef Z_LIMIT_PIN
-        attachInterrupt(digitalPinToInterrupt(Z_LIMIT_PIN), isr_limit_switches, CHANGE);
-#endif
-#ifdef A_LIMIT_PIN
-        attachInterrupt(digitalPinToInterrupt(A_LIMIT_PIN), isr_limit_switches, CHANGE);
-#endif
-#ifdef B_LIMIT_PIN
-        attachInterrupt(digitalPinToInterrupt(B_LIMIT_PIN), isr_limit_switches, CHANGE);
-#endif
-#ifdef C_LIMIT_PIN
-        attachInterrupt(digitalPinToInterrupt(C_LIMIT_PIN), isr_limit_switches, CHANGE);
-#endif
-    } else
-        limits_disable();
+    for (int i=0; i<N_AXIS; i++) {
+        uint8_t pin;
+        if ((pin = limit_pins[i]) != UNDEFINED_PIN) {
+            limit_mask += 1<<i;
+            pinMode(pin, mode);
+            if (hard_limits->get()) {
+                attachInterrupt(pin, isr_limit_switches, CHANGE);
+            } else {
+                detachInterrupt(pin);
+            }
+        }
+    }
+
     // setup task used for debouncing
     limit_sw_queue = xQueueCreate(10, sizeof(int));
     xTaskCreate(limitCheckTask,
@@ -331,55 +297,34 @@ void limits_init() {
                 NULL);
 }
 
-
 // Disables hard limits.
 void limits_disable() {
-    detachInterrupt(X_LIMIT_BIT);
-    detachInterrupt(Y_LIMIT_BIT);
-    detachInterrupt(Z_LIMIT_BIT);
-    detachInterrupt(A_LIMIT_BIT);
-    detachInterrupt(B_LIMIT_BIT);
-    detachInterrupt(C_LIMIT_BIT);
+    for (int i=0; i<N_AXIS; i++) {
+        if (limit_pins[i] != UNDEFINED_PIN) {
+            detachInterrupt(i);
+        }
+    }
 }
-
 
 // Returns limit state as a bit-wise uint8 variable. Each bit indicates an axis limit, where
 // triggered is 1 and not triggered is 0. Invert mask is applied. Axes are defined by their
 // number in bit position, i.e. Z_AXIS is (1<<2) or bit 2, and Y_AXIS is (1<<1) or bit 1.
 uint8_t limits_get_state() {
-    uint8_t limit_state = 0;
-    uint8_t pin = 0;
-#ifdef X_LIMIT_PIN
-    pin += digitalRead(X_LIMIT_PIN);
-#endif
-#ifdef Y_LIMIT_PIN
-    pin += (digitalRead(Y_LIMIT_PIN) << Y_AXIS);
-#endif
-#ifdef Z_LIMIT_PIN
-    pin += (digitalRead(Z_LIMIT_PIN) << Z_AXIS);
-#endif
-#ifdef A_LIMIT_PIN
-    pin += (digitalRead(A_LIMIT_PIN) << A_AXIS);
-#endif
-#ifdef B_LIMIT_PIN
-    pin += (digitalRead(B_LIMIT_PIN) << B_AXIS);
-#endif
-#ifdef C_LIMIT_PIN
-    pin += (digitalRead(C_LIMIT_PIN) << C_AXIS);
-#endif
-#ifdef INVERT_LIMIT_PIN_MASK // not normally used..unless you have both normal and inverted switches
-    pin ^= INVERT_LIMIT_PIN_MASK;
-#endif
-    if (limit_invert->get())
-        pin ^= LIMIT_MASK;
-    if (pin) {
-        uint8_t idx;
-        for (idx = 0; idx < N_AXIS; idx++) {
-            if (pin & get_limit_pin_mask(idx))
-                limit_state |= (1 << idx);
+    uint8_t pinMask = 0;
+    for (int i=0; i<N_AXIS; i++) {
+        uint8_t pin;
+        if ((pin = limit_pins[i]) != UNDEFINED_PIN) {
+            pinMask += digitalRead(pin) << i;
         }
     }
-    return (limit_state);
+
+#ifdef INVERT_LIMIT_PIN_MASK // not normally used..unless you have both normal and inverted switches
+    pinMask ^= INVERT_LIMIT_PIN_MASK;
+#endif
+    if (limit_invert->get()) {
+        pinMask ^= limit_mask;
+    }
+    return (pinMask);
 }
 
 // Performs a soft limit check. Called from mc_line() only. Assumes the machine has been homed,
@@ -388,11 +333,11 @@ uint8_t limits_get_state() {
 void limits_soft_check(float* target) {
     if (system_check_travel_limits(target)) {
         // TODO for debugging only 3 axes right now
-        grbl_msg_sendf(CLIENT_SERIAL, 
-                        MSG_LEVEL_INFO, 
-                        "Soft limit error target WPOS X:%5.2f Y:%5.2f Z:%5.2f", 
+        grbl_msg_sendf(CLIENT_SERIAL,
+                        MSG_LEVEL_INFO,
+                        "Soft limit error target WPOS X:%5.2f Y:%5.2f Z:%5.2f",
                         target[X_AXIS] - gc_state.coord_system[X_AXIS],
-                        target[Y_AXIS] - gc_state.coord_system[Y_AXIS], 
+                        target[Y_AXIS] - gc_state.coord_system[Y_AXIS],
                         target[Z_AXIS] - gc_state.coord_system[Z_AXIS]);
 
         sys.soft_limit = true;

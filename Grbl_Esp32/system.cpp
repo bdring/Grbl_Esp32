@@ -296,17 +296,6 @@ uint8_t system_control_get_state() {
     return (control_state);
 }
 
-// Returns limit pin mask according to Grbl internal axis indexing.
-uint8_t get_limit_pin_mask(uint8_t axis_idx) {
-    if (axis_idx == X_AXIS)  return ((1 << X_LIMIT_BIT));
-    if (axis_idx == Y_AXIS)  return ((1 << Y_LIMIT_BIT));
-    if (axis_idx == Z_AXIS)  return ((1 << Z_LIMIT_BIT));
-    if (axis_idx == A_AXIS)  return ((1 << A_LIMIT_BIT));
-    if (axis_idx == B_AXIS)  return ((1 << B_LIMIT_BIT));
-    if (axis_idx == C_AXIS)  return ((1 << C_LIMIT_BIT));
-    return 0;
-}
-
 // execute the function of the control pin
 void system_exec_control_pin(uint8_t pin) {
     if (bit_istrue(pin, CONTROL_PIN_INDEX_RESET)) {

@@ -86,11 +86,6 @@
 #define A_STEP_PIN              I2SO(12)
 #define A_DIRECTION_PIN         I2SO(13)
 
-// The 1 bits in LIMIT_MASK set the axes that have limit switches
-// For example, if the Y axis has no limit switches but the
-// X, Z, A and B axes do, the LIMIT_MASK value would be B11101
-#define LIMIT_MASK              B001
-
 #define X_LIMIT_PIN             GPIO_NUM_34
 //#define Y_LIMIT_PIN             GPIO_NUM_35
 //#define Z_LIMIT_PIN             GPIO_NUM_32

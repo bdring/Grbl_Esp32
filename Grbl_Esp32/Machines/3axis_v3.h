@@ -32,7 +32,6 @@
 #define Z_STEP_PIN              GPIO_NUM_27
 #define Z_DIRECTION_PIN         GPIO_NUM_33
 
-#define LIMIT_MASK              B111
 #define X_LIMIT_PIN             GPIO_NUM_2  // labeled X Limit
 #define Y_LIMIT_PIN             GPIO_NUM_4  // labeled Y Limit
 #define Z_LIMIT_PIN             GPIO_NUM_15 // labeled Z Limit

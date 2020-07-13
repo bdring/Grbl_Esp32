@@ -36,7 +36,6 @@
 #define SPINDLE_OUTPUT_PIN         GPIO_NUM_2
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_22
 
-#define LIMIT_MASK              B11
 #define X_LIMIT_PIN             GPIO_NUM_17
 #define Y_LIMIT_PIN             GPIO_NUM_4
 // #define Z_LIMIT_PIN          GPIO_NUM_16
