@@ -423,7 +423,7 @@ void readSgTask(void* pvParameters) {
         if (stallguard_debug_mask->get() != 0) {
             if (sys.state == STATE_CYCLE || sys.state == STATE_HOMING || sys.state == STATE_JOG) {
                 for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
-                    if (stallguard_debug_mask->get() & 1 << axis) {
+                    if (stallguard_debug_mask->get() & bit(axis)) {
                         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SG:%d", stallguard_debug_mask->get());
                         for (uint8_t gang_index = 0; gang_index < 2; gang_index++)
                             myMotor[axis][gang_index]->debug_message();

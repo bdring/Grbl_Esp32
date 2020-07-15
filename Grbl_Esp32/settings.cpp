@@ -67,12 +67,12 @@ uint8_t settings_read_build_info(char* line) {
 // Returns step pin mask according to Grbl internal axis indexing.
 uint8_t get_step_pin_mask(uint8_t axis_idx) {
     // todo clean this up further up stream
-    return (1 << axis_idx);
+    return bit(axis_idx);
 }
 
 // Returns direction pin mask according to Grbl internal axis indexing.
 uint8_t get_direction_pin_mask(uint8_t axis_idx) {
-    return (1 << axis_idx);
+    return bit(axis_idx);
 }
 
 // this allows a conditional re-init of the trinamic settings

@@ -150,7 +150,7 @@ void TrinamicDriver :: set_mode() {
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set TMC mode");
 
-    if ((_homing_mask & 1 << axis_index)  && (_homing_mode ==  TRINAMIC_HOMING_STALLGUARD))
+    if ((_homing_mask & bit(axis_index))  && (_homing_mode ==  TRINAMIC_HOMING_STALLGUARD))
         _mode = TRINAMIC_RUN_MODE_STALLGUARD;
     else
         _mode = TRINAMIC_RUN_MODE;

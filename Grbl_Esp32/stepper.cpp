@@ -309,9 +309,9 @@ static void stepper_pulse_func() {
     st.counter_x += st.exec_block->steps[X_AXIS];
 #endif
     if (st.counter_x > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << X_AXIS);
+        st.step_outbits |= bit(X_AXIS);
         st.counter_x -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << X_AXIS))
+        if (st.exec_block->direction_bits & bit(X_AXIS))
             sys_position[X_AXIS]--;
         else
             sys_position[X_AXIS]++;
@@ -322,9 +322,9 @@ static void stepper_pulse_func() {
     st.counter_y += st.exec_block->steps[Y_AXIS];
 #endif
     if (st.counter_y > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << Y_AXIS);
+        st.step_outbits |= bit(Y_AXIS);
         st.counter_y -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << Y_AXIS))
+        if (st.exec_block->direction_bits & bit(Y_AXIS))
             sys_position[Y_AXIS]--;
         else
             sys_position[Y_AXIS]++;
@@ -335,9 +335,9 @@ static void stepper_pulse_func() {
     st.counter_z += st.exec_block->steps[Z_AXIS];
 #endif
     if (st.counter_z > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << Z_AXIS);
+        st.step_outbits |= bit(Z_AXIS);
         st.counter_z -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << Z_AXIS))
+        if (st.exec_block->direction_bits & bit(Z_AXIS))
             sys_position[Z_AXIS]--;
         else
             sys_position[Z_AXIS]++;
@@ -349,9 +349,9 @@ static void stepper_pulse_func() {
     st.counter_a += st.exec_block->steps[A_AXIS];
 #endif
     if (st.counter_a > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << A_AXIS);
+        st.step_outbits |= bit(A_AXIS);
         st.counter_a -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << A_AXIS))  sys_position[A_AXIS]--;
+        if (st.exec_block->direction_bits & bit(A_AXIS))  sys_position[A_AXIS]--;
         else  sys_position[A_AXIS]++;
     }
 #endif
@@ -362,9 +362,9 @@ static void stepper_pulse_func() {
     st.counter_b += st.exec_block->steps[B_AXIS];
 #endif
     if (st.counter_b > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << B_AXIS);
+        st.step_outbits |= bit(B_AXIS);
         st.counter_b -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << B_AXIS))  sys_position[B_AXIS]--;
+        if (st.exec_block->direction_bits & bit(B_AXIS))  sys_position[B_AXIS]--;
         else  sys_position[B_AXIS]++;
     }
 #endif
@@ -375,9 +375,9 @@ static void stepper_pulse_func() {
     st.counter_c += st.exec_block->steps[C_AXIS];
 #endif
     if (st.counter_c > st.exec_block->step_event_count) {
-        st.step_outbits |= (1 << C_AXIS);
+        st.step_outbits |= bit(C_AXIS);
         st.counter_c -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & (1 << C_AXIS))  sys_position[C_AXIS]--;
+        if (st.exec_block->direction_bits & bit(C_AXIS))  sys_position[C_AXIS]--;
         else  sys_position[C_AXIS]++;
     }
 #endif
@@ -496,66 +496,66 @@ void set_stepper_pins_on(uint8_t onMask) {
     onMask ^= step_invert_mask->get(); // invert pins as required by invert mask
 #ifdef X_STEP_PIN
 #ifndef X2_STEP_PIN // if not a ganged axis
-    digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+    digitalWrite(X_STEP_PIN, (onMask & bit(X_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(X_STEP_PIN, (onMask & (1 << X_AXIS)));
+        digitalWrite(X_STEP_PIN, (onMask & bit(X_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(X2_STEP_PIN, (onMask & (1 << X_AXIS)));
+        digitalWrite(X2_STEP_PIN, (onMask & bit(X_AXIS)));
 #endif
 #endif
 #ifdef Y_STEP_PIN
 #ifndef Y2_STEP_PIN // if not a ganged axis
-    digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+    digitalWrite(Y_STEP_PIN, (onMask & bit(Y_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(Y_STEP_PIN, (onMask & (1 << Y_AXIS)));
+        digitalWrite(Y_STEP_PIN, (onMask & bit(Y_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(Y2_STEP_PIN, (onMask & (1 << Y_AXIS)));
+        digitalWrite(Y2_STEP_PIN, (onMask & bit(Y_AXIS)));
 #endif
 #endif
 
 #ifdef Z_STEP_PIN
 #ifndef Z2_STEP_PIN // if not a ganged axis
-    digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+    digitalWrite(Z_STEP_PIN, (onMask & bit(Z_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(Z_STEP_PIN, (onMask & (1 << Z_AXIS)));
+        digitalWrite(Z_STEP_PIN, (onMask & bit(Z_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(Z2_STEP_PIN, (onMask & (1 << Z_AXIS)));
+        digitalWrite(Z2_STEP_PIN, (onMask & bit(Z_AXIS)));
 #endif
 #endif
 
 #ifdef A_STEP_PIN
 #ifndef A2_STEP_PIN // if not a ganged axis
-    digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
+    digitalWrite(A_STEP_PIN, (onMask & bit(A_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(A_STEP_PIN, (onMask & (1 << A_AXIS)));
+        digitalWrite(A_STEP_PIN, (onMask & bit(A_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(A2_STEP_PIN, (onMask & (1 << A_AXIS)));
+        digitalWrite(A2_STEP_PIN, (onMask & bit(A_AXIS)));
 #endif
 #endif
 
 #ifdef B_STEP_PIN
 #ifndef B2_STEP_PIN // if not a ganged axis
-    digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
+    digitalWrite(B_STEP_PIN, (onMask & bit(B_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(B_STEP_PIN, (onMask & (1 << B_AXIS)));
+        digitalWrite(B_STEP_PIN, (onMask & bit(B_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(B2_STEP_PIN, (onMask & (1 << B_AXIS)));
+        digitalWrite(B2_STEP_PIN, (onMask & bit(B_AXIS)));
 #endif
 #endif
 
 #ifdef C_STEP_PIN
 #ifndef C2_STEP_PIN // if not a ganged axis
-    digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
+    digitalWrite(C_STEP_PIN, (onMask & bit(C_AXIS)));
 #else // is a ganged axis
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_A))
-        digitalWrite(C_STEP_PIN, (onMask & (1 << C_AXIS)));
+        digitalWrite(C_STEP_PIN, (onMask & bit(C_AXIS)));
     if ((ganged_mode == SQUARING_MODE_DUAL) || (ganged_mode == SQUARING_MODE_B))
-        digitalWrite(C2_STEP_PIN, (onMask & (1 << C_AXIS)));
+        digitalWrite(C2_STEP_PIN, (onMask & bit(C_AXIS)));
 #endif
 #endif
 }
@@ -564,7 +564,7 @@ void set_stepper_pins_on(uint8_t onMask) {
 #ifdef USE_RMT_STEPS
 inline IRAM_ATTR static void stepperRMT_Outputs() {
 #ifdef  X_STEP_PIN
-    if (st.step_outbits & (1 << X_AXIS)) {
+    if (st.step_outbits & bit(X_AXIS)) {
 #ifndef X2_STEP_PIN // if not a ganged axis
         RMT.conf_ch[rmt_chan_num[X_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
         RMT.conf_ch[rmt_chan_num[X_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
@@ -581,7 +581,7 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
     }
 #endif
 #ifdef  Y_STEP_PIN
-    if (st.step_outbits & (1 << Y_AXIS)) {
+    if (st.step_outbits & bit(Y_AXIS)) {
 #ifndef Y2_STEP_PIN // if not a ganged axis
         RMT.conf_ch[rmt_chan_num[Y_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
         RMT.conf_ch[rmt_chan_num[Y_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
@@ -599,7 +599,7 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
 #endif
 
 #ifdef  Z_STEP_PIN
-    if (st.step_outbits & (1 << Z_AXIS)) {
+    if (st.step_outbits & bit(Z_AXIS)) {
 #ifndef Z2_STEP_PIN // if not a ganged axis
         RMT.conf_ch[rmt_chan_num[Z_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
         RMT.conf_ch[rmt_chan_num[Z_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
@@ -617,7 +617,7 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
 #endif
 
 #ifdef  A_STEP_PIN
-    if (st.step_outbits & (1 << A_AXIS)) {
+    if (st.step_outbits & bit(A_AXIS)) {
 #ifndef A2_STEP_PIN // if not a ganged axis
         RMT.conf_ch[rmt_chan_num[A_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
         RMT.conf_ch[rmt_chan_num[A_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
@@ -635,7 +635,7 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
 #endif
 
 #ifdef  B_STEP_PIN
-    if (st.step_outbits & (1 << B_AXIS)) {
+    if (st.step_outbits & bit(B_AXIS)) {
 #ifndef Z2_STEP_PIN // if not a ganged axis
         RMT.conf_ch[rmt_chan_num[B_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
         RMT.conf_ch[rmt_chan_num[B_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;
@@ -653,7 +653,7 @@ inline IRAM_ATTR static void stepperRMT_Outputs() {
 #endif
 
 #ifdef  C_STEP_PIN
-    if (st.step_outbits & (1 << C_AXIS)) {
+    if (st.step_outbits & bit(C_AXIS)) {
 #ifndef Z2_STEP_PIN // if not a ganged axis
         RMT.conf_ch[rmt_chan_num[C_AXIS][PRIMARY_MOTOR]].conf1.mem_rd_rst = 1;
         RMT.conf_ch[rmt_chan_num[C_AXIS][PRIMARY_MOTOR]].conf1.tx_start = 1;

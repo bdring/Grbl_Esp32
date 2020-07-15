@@ -155,7 +155,7 @@ void limits_go_home(uint8_t cycle_mask) {
                 limit_state = limits_get_state();
                 for (idx = 0; idx < N_AXIS; idx++) {
                     if (axislock & step_pin[idx]) {
-                        if (limit_state & (1 << idx)) {
+                        if (limit_state & bit(idx)) {
 #ifdef COREXY
                             if (idx == Z_AXIS)  axislock &= ~(step_pin[Z_AXIS]);
                             else  axislock &= ~(step_pin[A_MOTOR] | step_pin[B_MOTOR]);
@@ -277,7 +277,7 @@ void limits_init() {
     for (int i=0; i<N_AXIS; i++) {
         uint8_t pin;
         if ((pin = limit_pins[i]) != UNDEFINED_PIN) {
-            limit_mask += 1<<i;
+            limit_mask += bit(i);
             pinMode(pin, mode);
             if (hard_limits->get()) {
                 attachInterrupt(pin, isr_limit_switches, CHANGE);
@@ -308,7 +308,7 @@ void limits_disable() {
 
 // Returns limit state as a bit-wise uint8 variable. Each bit indicates an axis limit, where
 // triggered is 1 and not triggered is 0. Invert mask is applied. Axes are defined by their
-// number in bit position, i.e. Z_AXIS is (1<<2) or bit 2, and Y_AXIS is (1<<1) or bit 1.
+// number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 uint8_t limits_get_state() {
     uint8_t pinMask = 0;
     for (int i=0; i<N_AXIS; i++) {

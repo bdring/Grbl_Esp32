@@ -151,7 +151,7 @@
 #ifdef HOMING_CYCLE_0
     #undef HOMING_CYCLE_0
 #endif
-#define HOMING_CYCLE_0 (1<<X_AXIS) // this 'bot only homes the X axis
+#define HOMING_CYCLE_0 bit(X_AXIS) // this 'bot only homes the X axis
 #ifdef HOMING_CYCLE_1
     #undef HOMING_CYCLE_1
 #endif

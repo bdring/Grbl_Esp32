@@ -146,10 +146,10 @@
 // not at all.
 
 // #undef HOMING_CYCLE_0
-// #define HOMING_CYCLE_0 ((1<<X_AXIS)|(1<<Y_AXIS))
+// #define HOMING_CYCLE_0 (bit(X_AXIS)|bit(Y_AXIS))
 
 // #undef HOMING_CYCLE_1
-// #define HOMING_CYCLE_1 ((1<<A_AXIS)|(1<<B_AXIS))
+// #define HOMING_CYCLE_1 (bit(A_AXIS)|bit(B_AXIS))
 
 // #undef HOMING_CYCLE_2
 // #endif

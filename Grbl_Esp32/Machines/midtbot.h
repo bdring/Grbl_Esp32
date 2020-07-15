@@ -50,13 +50,13 @@
     #undef HOMING_CYCLE_0
 #endif
 
-#define HOMING_CYCLE_0 (1<<Y_AXIS)
+#define HOMING_CYCLE_0 bit(Y_AXIS)
 
 #ifdef HOMING_CYCLE_1
     #undef HOMING_CYCLE_1
 #endif
 
-#define HOMING_CYCLE_1 (1<<X_AXIS)
+#define HOMING_CYCLE_1 bit(X_AXIS)
 
 #ifdef HOMING_CYCLE_2
     #undef HOMING_CYCLE_2

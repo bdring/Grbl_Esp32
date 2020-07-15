@@ -81,19 +81,19 @@ void system_ini() { // Renamed from system_init() due to conflict with esp32 fil
     // Setup USER_DIGITAL_PINs controlled by M62 and M63
 #ifdef USER_DIGITAL_PIN_1
     pinMode(USER_DIGITAL_PIN_1, OUTPUT);
-    sys_io_control(1 << 1, false); // turn off
+    sys_io_control(bit(1), false); // turn off
 #endif
 #ifdef USER_DIGITAL_PIN_2
     pinMode(USER_DIGITAL_PIN_2, OUTPUT);
-    sys_io_control(1 << 2, false); // turn off
+    sys_io_control(bit(2), false); // turn off
 #endif
 #ifdef USER_DIGITAL_PIN_3
     pinMode(USER_DIGITAL_PIN_3, OUTPUT);
-    sys_io_control(1 << 3, false); // turn off
+    sys_io_control(bit(3), false); // turn off
 #endif
 #ifdef USER_DIGITAL_PIN_4
     pinMode(USER_DIGITAL_PIN_4, OUTPUT);
-    sys_io_control(1 << 4, false); // turn off
+    sys_io_control(bit(4), false); // turn off
 #endif
 }
 
@@ -342,25 +342,25 @@ int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps) {
 void sys_io_control(uint8_t io_num_mask, bool turnOn) {
     protocol_buffer_synchronize();
 #ifdef USER_DIGITAL_PIN_1
-    if (io_num_mask & 1 << 1) {
+    if (io_num_mask & bit(1)) {
         digitalWrite(USER_DIGITAL_PIN_1, turnOn);
         return;
     }
 #endif
 #ifdef USER_DIGITAL_PIN_2
-    if (io_num_mask & 1 << 2) {
+    if (io_num_mask & bit(2)) {
         digitalWrite(USER_DIGITAL_PIN_2, turnOn);
         return;
     }
 #endif
 #ifdef USER_DIGITAL_PIN_3
-    if (io_num_mask & 1 << 3) {
+    if (io_num_mask & bit(3)) {
         digitalWrite(USER_DIGITAL_PIN_3, turnOn);
         return;
     }
 #endif
 #ifdef USER_DIGITAL_PIN_4
-    if (io_num_mask & 1 << 4) {
+    if (io_num_mask & bit(4)) {
         digitalWrite(USER_DIGITAL_PIN_4, turnOn);
         return;
     }

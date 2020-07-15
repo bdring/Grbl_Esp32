@@ -442,21 +442,21 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             case 'A':
                 word_bit = WORD_A;
                 gc_block.values.xyz[A_AXIS] = value;
-                axis_words |= (1 << A_AXIS);
+                axis_words |= bit(A_AXIS);
                 break;
 #endif
 #if (N_AXIS > B_AXIS)
             case 'B':
                 word_bit = WORD_B;
                 gc_block.values.xyz[B_AXIS] = value;
-                axis_words |= (1 << B_AXIS);
+                axis_words |= bit(B_AXIS);
                 break;
 #endif
 #if (N_AXIS > C_AXIS)
             case 'C':
                 word_bit = WORD_C;
                 gc_block.values.xyz[C_AXIS] = value;
-                axis_words |= (1 << C_AXIS);
+                axis_words |= bit(C_AXIS);
                 break;
 #endif
             // case 'D': // Not supported
@@ -468,17 +468,17 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             case 'I':
                 word_bit = WORD_I;
                 gc_block.values.ijk[X_AXIS] = value;
-                ijk_words |= (1 << X_AXIS);
+                ijk_words |= bit(X_AXIS);
                 break;
             case 'J':
                 word_bit = WORD_J;
                 gc_block.values.ijk[Y_AXIS] = value;
-                ijk_words |= (1 << Y_AXIS);
+                ijk_words |= bit(Y_AXIS);
                 break;
             case 'K':
                 word_bit = WORD_K;
                 gc_block.values.ijk[Z_AXIS] = value;
-                ijk_words |= (1 << Z_AXIS);
+                ijk_words |= bit(Z_AXIS);
                 break;
             case 'L':
                 word_bit = WORD_L;
@@ -512,17 +512,17 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             case 'X':
                 word_bit = WORD_X;
                 gc_block.values.xyz[X_AXIS] = value;
-                axis_words |= (1 << X_AXIS);
+                axis_words |= bit(X_AXIS);
                 break;
             case 'Y':
                 word_bit = WORD_Y;
                 gc_block.values.xyz[Y_AXIS] = value;
-                axis_words |= (1 << Y_AXIS);
+                axis_words |= bit(Y_AXIS);
                 break;
             case 'Z':
                 word_bit = WORD_Z;
                 gc_block.values.xyz[Z_AXIS] = value;
-                axis_words |= (1 << Z_AXIS);
+                axis_words |= bit(Z_AXIS);
                 break;
             default:
                 FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
@@ -699,7 +699,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     //   is absent or if any of the other axis words are present.
     if (axis_command == AXIS_COMMAND_TOOL_LENGTH_OFFSET) {  // Indicates called in block.
         if (gc_block.modal.tool_length == TOOL_LENGTH_OFFSET_ENABLE_DYNAMIC) {
-            if (axis_words ^ (1 << TOOL_LENGTH_OFFSET_AXIS))
+            if (axis_words ^ bit(TOOL_LENGTH_OFFSET_AXIS))
                 FAIL(STATUS_GCODE_G43_DYNAMIC_AXIS_ERROR);
         }
     }
@@ -735,7 +735,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         if (!axis_words) {
             FAIL(STATUS_GCODE_NO_AXIS_WORDS)
         }; // [No axis words]
-        if (bit_isfalse(value_words, ((1 << WORD_P) | (1 << WORD_L)))) {
+        if (bit_isfalse(value_words, (bit(WORD_P) | bit(WORD_L)))) {
             FAIL(STATUS_GCODE_VALUE_WORD_MISSING);    // [P/L word missing]
         }
         coord_select = trunc(gc_block.values.p); // Convert p value to int.
@@ -840,7 +840,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             if (axis_words) {
                 // Move only the axes specified in secondary move.
                 for (idx = 0; idx < N_AXIS; idx++) {
-                    if (!(axis_words & (1 << idx)))
+                    if (!(axis_words & bit(idx)))
                         gc_block.values.ijk[idx] = gc_state.position[idx];
                 }
             } else {
@@ -1189,7 +1189,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // turn on/off an i/o pin
     if ((gc_block.modal.io_control == NON_MODAL_IO_ENABLE) || (gc_block.modal.io_control == NON_MODAL_IO_DISABLE)) {
         if (gc_block.values.p <= MAX_USER_DIGITAL_PIN)
-            sys_io_control(1 << (int)gc_block.values.p, (gc_block.modal.io_control == NON_MODAL_IO_ENABLE));
+            sys_io_control(bit((int)gc_block.values.p), (gc_block.modal.io_control == NON_MODAL_IO_ENABLE));
         else
             FAIL(STATUS_P_PARAM_MAX_EXCEEDED);
     }
