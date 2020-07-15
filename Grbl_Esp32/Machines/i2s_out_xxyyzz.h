@@ -55,8 +55,6 @@
 
 #define STEPPER_RESET           GPIO_NUM_19
 
-#define USE_GANGED_AXES // allow two motors on an axis
-
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)
 #define X_STEP_PIN              I2SO(2)

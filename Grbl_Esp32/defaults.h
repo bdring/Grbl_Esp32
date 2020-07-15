@@ -114,6 +114,10 @@
         #define DEFAULT_HOMING_PULLOFF 1.0 // $27 mm
     #endif
 
+    #ifndef  DEFAULT_HOMING_SQUARED_AXES
+        #define DEFAULT_HOMING_SQUARED_AXES 0
+    #endif
+
     // ======== SPINDLE STUFF ====================
     #ifndef  DEFAULT_SPINDLE_RPM_MIN // $31
         #define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm

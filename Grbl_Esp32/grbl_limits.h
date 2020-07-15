@@ -30,9 +30,11 @@
 
 extern uint8_t n_homing_locate_cycle;
 
-#define SQUARING_MODE_DUAL	0  // both motors run
-#define SQUARING_MODE_A			1  // A motor runs
-#define SQUARING_MODE_B			2  // B motor runs
+typedef enum {
+    SQUARING_MODE_DUAL=0,  // both motors run
+    SQUARING_MODE_A,       // A motor runs
+    SQUARING_MODE_B,       // B motor runs
+} squaring_mode_t;
 
 // Initialize the limits module
 void limits_init();
@@ -50,8 +52,6 @@ void limits_go_home(uint8_t cycle_mask);
 void limits_soft_check(float* target);
 
 void isr_limit_switches();
-
-bool axis_is_squared(uint8_t axis_mask);
 
 // A task that runs after a limit switch interrupt.
 void limitCheckTask(void* pvParameters);

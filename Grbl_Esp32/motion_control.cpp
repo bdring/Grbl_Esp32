@@ -31,7 +31,7 @@
     #define M_PI 3.14159265358979323846
 #endif
 
-uint8_t ganged_mode = SQUARING_MODE_DUAL;
+squaring_mode_t ganged_mode = SQUARING_MODE_DUAL;
 
 
 // this allows kinematics to be used.
@@ -212,6 +212,31 @@ void mc_dwell(float seconds) {
     delay_sec(seconds, DELAY_MODE_DWELL);
 }
 
+// return true if the mask has exactly one bit set,
+// so it refers to exactly one axis
+static bool mask_is_single_axis(uint8_t axis_mask) {
+    // This code depends on the fact that, for binary numberes
+    // with only one bit set - and only for such numbers -
+    // the bits in one less than the number are disjoint
+    // with that bit.  For a number like B100, if you
+    // subtract one, the low order 00 bits will have to
+    // borrow from the high 1 bit and thus clear it.
+    // If any lower bits are 1, then there will be no
+    // borrow to clear the highest 1 bit.
+    return axis_mask && ((axis_mask & (axis_mask-1)) == 0);
+}
+
+// return true if the axis is defined as a squared axis
+// Squaring: is used on gantry type axes that have two motors
+// Each motor with touch off its own switch to square the axis
+static bool mask_has_squared_axis(uint8_t axis_mask) {
+    return axis_mask & homing_squared_axes->get();
+}
+
+// return true if axis_mask refers to a single squared axis
+static bool axis_is_squared(uint8_t axis_mask) {
+    return mask_is_single_axis(axis_mask) && mask_has_squared_axis(axis_mask);
+}
 
 // Perform homing cycle to locate and set machine zero. Only '$H' executes this command.
 // NOTE: There should be no motions in the buffer and Grbl must be in an idle state before

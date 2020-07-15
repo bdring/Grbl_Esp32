@@ -19,6 +19,7 @@ extern IntSetting* stepper_idle_lock_time;
 extern AxisMaskSetting* step_invert_mask;
 extern AxisMaskSetting* dir_invert_mask;
 extern AxisMaskSetting* homing_dir_mask;
+extern AxisMaskSetting* homing_squared_axes;
 
 extern FlagSetting* step_enable_invert;
 extern FlagSetting* limit_invert;

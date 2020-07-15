@@ -28,15 +28,13 @@
 
 #define MACHINE_NAME "MPCNC_V1P2"
 
-#define USE_GANGED_AXES // allow two motors on an axis
+#define DEFAULT_HOMING_SQUARED_AXES (bit(X_AXIS) | bit(Y_AXIS))
 
 #define X_STEP_PIN      GPIO_NUM_12
 #define X2_STEP_PIN     GPIO_NUM_22      // ganged motor
-#define X_AXIS_SQUARING
 
 #define Y_STEP_PIN      GPIO_NUM_14
 #define Y2_STEP_PIN     GPIO_NUM_21  // ganged motor
-#define Y_AXIS_SQUARING
 
 #define Z_STEP_PIN      GPIO_NUM_27
 
