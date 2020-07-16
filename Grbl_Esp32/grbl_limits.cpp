@@ -270,6 +270,7 @@ uint8_t limit_pins[] = {
 uint8_t limit_mask = 0;
 
 void limits_init() {
+    limit_mask = 0;
     int mode = INPUT_PULLUP;
 #ifdef DISABLE_LIMIT_PIN_PULL_UP
     mode = INPUT;
@@ -277,7 +278,7 @@ void limits_init() {
     for (int i=0; i<N_AXIS; i++) {
         uint8_t pin;
         if ((pin = limit_pins[i]) != UNDEFINED_PIN) {
-            limit_mask += bit(i);
+            limit_mask |= bit(i);
             pinMode(pin, mode);
             if (hard_limits->get()) {
                 attachInterrupt(pin, isr_limit_switches, CHANGE);
