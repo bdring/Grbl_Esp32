@@ -105,7 +105,7 @@ boolean readFileLine(char* line, int maxlen) {
         line[len++] = c;
     }
     line[len] = '\0';
-    return true;
+    return len || myFile.available();
 }
 
 // return a percentage complete 50.5 = 50.5%
