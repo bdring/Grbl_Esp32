@@ -99,7 +99,7 @@ void StandardStepper :: config_message() {
 }
 
 void StandardStepper :: set_direction_pins(uint8_t onMask) {
-    digitalWrite(dir_pin, (onMask & (1 << axis_index)));
+    digitalWrite(dir_pin, (onMask & bit(axis_index)));
 }
 
 void StandardStepper :: set_disable(bool disable) {

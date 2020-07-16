@@ -34,8 +34,6 @@
 
 #define MACHINE_NAME "Test Drive - Demo Only No I/O!"
 
-#define LIMIT_MASK 0  // no limit pins
-
 #define SPINDLE_TYPE    SPINDLE_TYPE_NONE
 
 #ifdef USE_RMT_STEPS

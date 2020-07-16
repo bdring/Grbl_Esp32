@@ -84,11 +84,6 @@
 // #define Z_STEP_PIN              GPIO_NUM_27
 // #define Z_DIRECTION_PIN         GPIO_NUM_33
 
-// The 1 bits in LIMIT_MASK set the axes that have limit switches
-// For example, if the Y axis has no limit switches but the
-// X, Z, A and B axes do, the LIMIT_MASK value would be B11101
-// #define LIMIT_MASK              B111
-
 // #define X_LIMIT_PIN             GPIO_NUM_17
 // #define Y_LIMIT_PIN             GPIO_NUM_4
 // #define Z_LIMIT_PIN             GPIO_NUM_16
@@ -151,10 +146,10 @@
 // not at all.
 
 // #undef HOMING_CYCLE_0
-// #define HOMING_CYCLE_0 ((1<<X_AXIS)|(1<<Y_AXIS))
+// #define HOMING_CYCLE_0 (bit(X_AXIS)|bit(Y_AXIS))
 
 // #undef HOMING_CYCLE_1
-// #define HOMING_CYCLE_1 ((1<<A_AXIS)|(1<<B_AXIS))
+// #define HOMING_CYCLE_1 (bit(A_AXIS)|bit(B_AXIS))
 
 // #undef HOMING_CYCLE_2
 // #endif

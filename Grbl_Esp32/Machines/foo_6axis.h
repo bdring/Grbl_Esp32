@@ -69,7 +69,6 @@
 #define Y_LIMIT_PIN             GPIO_NUM_17
 #define A_LIMIT_PIN             GPIO_NUM_16
 #define B_LIMIT_PIN             GPIO_NUM_4
-#define LIMIT_MASK              B11011
 
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
@@ -77,26 +76,26 @@
 #ifdef HOMING_CYCLE_0   // undefine from config.h
     #undef HOMING_CYCLE_0
 #endif
-//#define HOMING_CYCLE_0 (1<<X_AXIS)
-#define HOMING_CYCLE_0 ((1<<X_AXIS)|(1<<Y_AXIS))
-//#define HOMING_CYCLE_0 ((1<<X_AXIS)|(1<<Y_AXIS) |(1<<A_AXIS)|(1<<B_AXIS))
+//#define HOMING_CYCLE_0 bit(X_AXIS)
+#define HOMING_CYCLE_0 (bit(X_AXIS)|bit(Y_AXIS))
+//#define HOMING_CYCLE_0 (bit(X_AXIS)|bit(Y_AXIS) |bit(A_AXIS)|bit(B_AXIS))
 
 #ifdef HOMING_CYCLE_1   // undefine from config.h
     #undef HOMING_CYCLE_1
 #endif
-//#define HOMING_CYCLE_1 (1<<A_AXIS)
-#define HOMING_CYCLE_1 ((1<<A_AXIS)|(1<<B_AXIS))
+//#define HOMING_CYCLE_1 bit(A_AXIS)
+#define HOMING_CYCLE_1 (bit(A_AXIS)|bit(B_AXIS))
 
 #ifdef HOMING_CYCLE_2   // undefine from config.h
     #undef HOMING_CYCLE_2
 #endif
 /*
-#define HOMING_CYCLE_2 (1<<Y_AXIS)
+#define HOMING_CYCLE_2 bit(Y_AXIS)
 
 #ifdef HOMING_CYCLE_3   // undefine from config.h
         #undef HOMING_CYCLE_3
 #endif
-#define HOMING_CYCLE_3 (1<<B_AXIS)
+#define HOMING_CYCLE_3 bit(B_AXIS)
 */
 
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3

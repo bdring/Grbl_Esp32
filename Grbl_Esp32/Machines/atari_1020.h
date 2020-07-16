@@ -54,7 +54,7 @@
 #ifdef HOMING_CYCLE_0
     #undef HOMING_CYCLE_0
 #endif
-#define HOMING_CYCLE_0 (1 << X_AXIS) // this 'bot only homes the X axis
+#define HOMING_CYCLE_0 bit(X_AXIS) // this 'bot only homes the X axis
 #ifdef HOMING_CYCLE_1
     #undef HOMING_CYCLE_1
 #endif
@@ -63,7 +63,6 @@
 #endif
 
 #define REED_SW_PIN GPIO_NUM_17
-#define LIMIT_MASK 0
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE

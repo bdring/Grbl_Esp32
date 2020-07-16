@@ -405,7 +405,23 @@
     #define C2_DISABLE_PIN   UNDEFINED_PIN
 #endif
 
-
-
+#ifndef X_LIMIT_PIN
+    #define X_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef Y_LIMIT_PIN
+    #define Y_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef Z_LIMIT_PIN
+    #define Z_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef A_LIMIT_PIN
+    #define A_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef B_LIMIT_PIN
+    #define B_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef C_LIMIT_PIN
+    #define C_LIMIT_PIN UNDEFINED_PIN
+#endif
 
 #endif

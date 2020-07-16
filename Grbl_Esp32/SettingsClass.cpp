@@ -174,7 +174,7 @@ err_t AxisMaskSetting::setStringValue(char* s) {
                 if (index < 0) {
                     return STATUS_BAD_NUMBER_FORMAT;
                 }
-                convertedValue |= 1 << index;
+                convertedValue |= bit(index);
             }
         }
     }
@@ -203,7 +203,7 @@ const char* AxisMaskSetting::getStringValue() {
     char *s = strval;
     uint32_t mask = get();
     for (int i = 0; i < MAX_N_AXIS; i++) {
-        if (mask & (1<<i)) {
+        if (mask & bit(i)) {
             *s++ = "XYZABC"[i];
         }
     }

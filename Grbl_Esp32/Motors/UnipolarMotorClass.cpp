@@ -52,7 +52,7 @@ void UnipolarMotor::step(uint8_t step_mask, uint8_t dir_mask) {
     uint8_t _phase[8] = {0, 0, 0, 0, 0, 0, 0, 0}; // temporary phase values...all start as off
     uint8_t phase_max;
 
-    if (!(step_mask & (1 << axis_index)))
+    if (!(step_mask & bit(axis_index)))
         return;	// a step is not required on this interrupt
 
     if (!_enabled)
@@ -63,7 +63,7 @@ void UnipolarMotor::step(uint8_t step_mask, uint8_t dir_mask) {
     else
         phase_max = 3;
 
-    if (dir_mask & (1 << axis_index)) { // count up
+    if (dir_mask & bit(axis_index)) { // count up
         if (_current_phase == phase_max)
             _current_phase = 0;
         else

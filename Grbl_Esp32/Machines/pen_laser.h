@@ -47,7 +47,6 @@
     #define X_LIMIT_PIN     GPIO_NUM_15
 #endif
 #define Y_LIMIT_PIN             GPIO_NUM_4
-#define LIMIT_MASK              B11
 
 #define USING_SERVO  // uncomment to use this feature
 //#define USING_SOLENOID // uncomment to use this feature

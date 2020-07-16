@@ -93,7 +93,6 @@
 #define A_LIMIT_PIN             GPIO_NUM_35
 #define B_LIMIT_PIN             GPIO_NUM_32
 #define C_LIMIT_PIN             GPIO_NUM_33
-#define LIMIT_MASK              B111111
 
 #define PROBE_PIN               GPIO_NUM_25
 

@@ -1,7 +1,7 @@
 #ifndef _machine_common_h
 #define _machine_common_h
 
-#ifndef SPINDLE_TYPE 
+#ifndef SPINDLE_TYPE
     #define SPINDLE_TYPE SPINDLE_TYPE_PWM
 #endif
 
@@ -31,30 +31,8 @@
 // =============== Don't change or comment these out ======================
 // They are for legacy purposes and will not affect your I/O
 
-#define X_STEP_BIT 0
-#define Y_STEP_BIT 1
-#define Z_STEP_BIT 2
-#define A_STEP_BIT 3
-#define B_STEP_BIT 4
-#define C_STEP_BIT 5
 #define STEP_MASK B111111
 
-#define X_DIRECTION_BIT 0
-#define Y_DIRECTION_BIT 1
-#define Z_DIRECTION_BIT 2
-#define A_DIRECTION_BIT 3
-#define B_DIRECTION_BIT 4
-#define C_DIRECTION_BIT 5
-
-#define X_LIMIT_BIT 0
-#define Y_LIMIT_BIT 1
-#define Z_LIMIT_BIT 2
-#define A_LIMIT_BIT 3
-#define B_LIMIT_BIT 4
-#define C_LIMIT_BIT 5
-
 #define PROBE_MASK 1
-
-#define CONTROL_MASK B1111
 
 #endif // _machine_common_h

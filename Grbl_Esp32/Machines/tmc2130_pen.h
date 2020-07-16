@@ -70,7 +70,6 @@
 
 // #define X_LIMIT_PIN          See version section at beginning of file
 #define Y_LIMIT_PIN             GPIO_NUM_4
-#define LIMIT_MASK              B11
 
 // defaults
 #define DEFAULT_Z_STEPS_PER_MM 100.0    // This is used as the servo calibration

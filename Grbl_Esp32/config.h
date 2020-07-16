@@ -62,13 +62,13 @@ Some features should not be changed. See notes below.
 // NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
 // These homing cycle definitions precede the machine.h file so that the machine
 // definition can undefine them if necessary.
-#define HOMING_CYCLE_0 (1<<Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
-#define HOMING_CYCLE_1 (1<<X_AXIS)
-#define HOMING_CYCLE_2 (1<<Y_AXIS)
+#define HOMING_CYCLE_0 bit(Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
+#define HOMING_CYCLE_1 bit(X_AXIS)
+#define HOMING_CYCLE_2 bit(Y_AXIS)
 
 // NOTE: The following is for for homing X and Y at the same time
-// #define HOMING_CYCLE_0 (1<<Z_AXIS) // first home z by itself
-// #define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
+// #define HOMING_CYCLE_0 bit(Z_AXIS) // first home z by itself
+// #define HOMING_CYCLE_1 (bit(X_AXIS)|bit(Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
 
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
@@ -302,7 +302,7 @@ Some features should not be changed. See notes below.
 
 // Enable CoreXY kinematics. Use ONLY with CoreXY machines.
 // IMPORTANT: If homing is enabled, you must reconfigure the homing cycle #defines above to
-// #define HOMING_CYCLE_0 (1<<X_AXIS) and #define HOMING_CYCLE_1 (1<<Y_AXIS)
+// #define HOMING_CYCLE_0 bit(X_AXIS) and #define HOMING_CYCLE_1 bit(Y_AXIS)
 // NOTE: This configuration option alters the motion of the X and Y axes to principle of operation
 // defined at (http://corexy.com/theory.html). Motors are assumed to positioned and wired exactly as
 // described, if not, motions may move in strange directions. Grbl requires the CoreXY A and B motors
@@ -315,7 +315,7 @@ Some features should not be changed. See notes below.
 // will be applied to all of them. This is useful when a user has a mixed set of limit pins with both
 // normally-open(NO) and normally-closed(NC) switches installed on their machine.
 // NOTE: PLEASE DO NOT USE THIS, unless you have a situation that needs it.
-// #define INVERT_LIMIT_PIN_MASK ((1<<X_LIMIT_BIT)|(1<<Y_LIMIT_BIT)) // Default disabled. Uncomment to enable.
+// #define INVERT_LIMIT_PIN_MASK (bit(X_AXIS)|bit(Y_AXIS)) // Default disabled. Uncomment to enable.
 
 // Inverts the spindle enable pin from low-disabled/high-enabled to low-enabled/high-disabled. Useful
 // for some pre-built electronic boards.

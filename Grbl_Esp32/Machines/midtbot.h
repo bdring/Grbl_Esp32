@@ -40,7 +40,6 @@
 
 #define X_LIMIT_PIN     GPIO_NUM_2
 #define Y_LIMIT_PIN     GPIO_NUM_4
-#define LIMIT_MASK      B11
 
 #define Z_SERVO_PIN             GPIO_NUM_27
 #define Z_SERVO_RANGE_MIN       0.0
@@ -51,13 +50,13 @@
     #undef HOMING_CYCLE_0
 #endif
 
-#define HOMING_CYCLE_0 (1<<Y_AXIS)
+#define HOMING_CYCLE_0 bit(Y_AXIS)
 
 #ifdef HOMING_CYCLE_1
     #undef HOMING_CYCLE_1
 #endif
 
-#define HOMING_CYCLE_1 (1<<X_AXIS)
+#define HOMING_CYCLE_1 bit(X_AXIS)
 
 #ifdef HOMING_CYCLE_2
     #undef HOMING_CYCLE_2
