@@ -103,7 +103,9 @@ void collapseGCode(char *line) {
                 // In case one sneaks in
                 break;
             default:
-                *outPtr++ = toupper(c); // make upper case
+                if (!parenPtr) {
+                    *outPtr++ = toupper(c); // make upper case
+                }
         }
     }
     // On loop exit, *inPtr is '\0'
