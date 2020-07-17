@@ -99,7 +99,7 @@ void RcServo::set_disable(bool disable) {
         _write_pwm(0);
 }
 
-void RcServo::set_homing_mode(bool is_homing) {
+void RcServo::set_homing_mode(bool is_homing, bool isHoming) {
     float home_pos = 0.0;
 
     if (!is_homing)

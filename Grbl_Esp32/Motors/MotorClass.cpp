@@ -360,11 +360,12 @@ void motors_read_settings() {
 
 // use this to tell all the motors what the current homing mode is
 // They can use this to setup things like Stall
-void motors_set_homing_mode(uint8_t homing_mask) {
+void motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_homing_mode(%d)", is_homing);
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
-            myMotor[axis][gang_index]->set_homing_mode(homing_mask);
+            if (bit(axis) & homing_mask)
+                myMotor[axis][gang_index]->set_homing_mode(homing_mask, isHoming);
     }
 }
 
@@ -471,6 +472,6 @@ void Motor :: set_axis_name() {
     sprintf(_axis_name, "%c%s", report_get_axis_letter(axis_index), dual_axis_index ? "2" : "");
 }
 
-void Motor :: set_homing_mode(uint8_t homing_mask) {
+void Motor :: set_homing_mode(uint8_t homing_mask, bool isHoming) {
     _homing_mask = homing_mask;
 }

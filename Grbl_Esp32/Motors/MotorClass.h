@@ -56,7 +56,7 @@ uint8_t get_next_trinamic_driver_index();
 bool motors_have_type_id(motor_class_id_t id);
 void readSgTask(void* pvParameters);
 void motors_read_settings();
-void motors_set_homing_mode(uint8_t homing_mask);
+void motors_set_homing_mode(uint8_t homing_mask, bool isHoming);
 void motors_set_disable(bool disable);
 void motors_set_direction_pins(uint8_t onMask);
 void motors_step(uint8_t step_mask, uint8_t dir_mask);
@@ -74,7 +74,7 @@ class Motor {
     virtual void config_message();
     virtual void debug_message();
     virtual void read_settings();
-    virtual void set_homing_mode(uint8_t homing_mask);
+    virtual void set_homing_mode(uint8_t homing_mask, bool isHoming);
     virtual void set_disable(bool disable);
     virtual void set_direction_pins(uint8_t onMask);
     virtual void step(uint8_t step_mask, uint8_t dir_mask); // only used on Unipolar right now
@@ -130,12 +130,12 @@ class TrinamicDriver : public StandardStepper {
 
     void config_message();
     void init();
-    void set_mode();
+    void set_mode(bool isHoming);
     void read_settings();
     void trinamic_test_response();
     void trinamic_stepper_enable(bool enable);
     void debug_message();
-    void set_homing_mode(uint8_t homing_mask);
+    void set_homing_mode(uint8_t homing_mask, bool ishoming);
     void set_disable(bool disable);
     bool test();
 
@@ -183,7 +183,7 @@ class RcServo : public Motor {
     virtual void set_disable(bool disable);
     virtual void update();
     void read_settings();
-    void set_homing_mode(bool is_homing);
+    void set_homing_mode(bool is_homing, bool isHoming);
 
   protected:
     void set_location();

@@ -353,10 +353,7 @@
         #define DEFAULT_C_STALLGUARD 16 // $175 stallguard (extended set)
     #endif
 
-    #ifndef TRINAMIC_HOMING_MODE
-        #define TRINAMIC_HOMING_MODE    TRINAMIC_HOMING_NONE
-    #endif
-
+   
 // ==================  pin defaults ========================
 
 // Here is a place to default pins to UNDEFINED_PIN.

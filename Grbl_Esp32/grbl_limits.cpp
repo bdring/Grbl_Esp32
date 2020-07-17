@@ -77,6 +77,7 @@ void IRAM_ATTR isr_limit_switches() {
 void limits_go_home(uint8_t cycle_mask) {
     if (sys.abort)  return;   // Block if system reset has been issued.
     // Initialize plan data struct for homing motion. Spindle and coolant are disabled.
+    motors_set_homing_mode(cycle_mask, true); // tell motors homing is about to start
     plan_line_data_t plan_data;
     plan_line_data_t* pl_data = &plan_data;
     memset(pl_data, 0, sizeof(plan_line_data_t));
@@ -179,7 +180,8 @@ void limits_go_home(uint8_t cycle_mask) {
                 if (!approach && (limits_get_state() & cycle_mask))  system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_PULLOFF);
                 // Homing failure condition: Limit switch not found during approach.
                 if (approach && (rt_exec & EXEC_CYCLE_STOP))  system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_APPROACH);
-                if (sys_rt_exec_alarm) {
+                if (sys_rt_exec_alarm) { 
+                    motors_set_homing_mode(cycle_mask, false); // tell motors homing is done...failed   
                     mc_reset(); // Stop motors, if they are running.
                     protocol_execute_realtime();
                     return;
@@ -256,6 +258,7 @@ void limits_go_home(uint8_t cycle_mask) {
         }
     }
     sys.step_control = STEP_CONTROL_NORMAL_OP; // Return step control to normal operation.
+    motors_set_homing_mode(cycle_mask, false); // tell motors homing is done
 }
 
 uint8_t limit_pins[] = {

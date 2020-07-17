@@ -74,7 +74,7 @@ void TrinamicDriver :: init() {
     tmcstepper->begin();
     test(); // Try communicating with motor. Prints an error if there is a problem.
     read_settings(); // pull info from settings
-    set_mode();
+    set_mode(false);
 
     _homing_mask = 0;
     is_active = true;  // as opposed to NullMotors, this is a real motor
@@ -136,9 +136,9 @@ void TrinamicDriver :: read_settings() {
     tmcstepper->sgt(axis_settings[axis_index]->stallguard->get());
 }
 
-void TrinamicDriver :: set_homing_mode(uint8_t homing_mask) {
+void TrinamicDriver :: set_homing_mode(uint8_t homing_mask, bool isHoming) {
     _homing_mask = homing_mask;
-    set_mode();
+    set_mode(isHoming);
 }
 
 /*
@@ -146,40 +146,37 @@ void TrinamicDriver :: set_homing_mode(uint8_t homing_mask) {
     Many people will want quiet and stallgaurd homing. Stallguard only run in
     Coolstep mode, so it will need to switch to Coolstep when homing
 */
-void TrinamicDriver :: set_mode() {
-
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set TMC mode");
-
-    if ((_homing_mask & bit(axis_index))  && (_homing_mode ==  TRINAMIC_HOMING_STALLGUARD))
-        _mode = TRINAMIC_RUN_MODE_STALLGUARD;
+void TrinamicDriver :: set_mode(bool isHoming) {
+   
+    if (isHoming)
+        _mode = TRINAMIC_HOMING_MODE;         
     else
         _mode = TRINAMIC_RUN_MODE;
-
 
     if (_lastMode == _mode)
         return;
 
-    _lastMode = _mode;
+    _lastMode = _mode;    
 
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s TMC Mode: %d", _axis_name, _mode);
-
-    if (_mode == TRINAMIC_RUN_MODE_STEALTHCHOP) {
-
-        tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
-        tmcstepper->en_pwm_mode(1);      // Enable extremely quiet stepping
-        tmcstepper->pwm_autoscale(1);
-    } else  {  // if (mode == TRINAMIC_RUN_MODE_COOLSTEP || mode == TRINAMIC_RUN_MODE_STALLGUARD)
+    if (_mode == TRINAMIC_MODE_STEALTHCHOP) {
+        tmcstepper->TCOOLTHRS(0);
+        //tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
+        tmcstepper->en_pwm_mode(true);      // Enable extremely quiet stepping
+        //tmcstepper->pwm_autoscale(true);
+    } else  {  // coolstep or stallguard
+        // a few items are common between modes
+        tmcstepper->en_pwm_mode(false);
         tmcstepper->tbl(1);
         tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
         tmcstepper->hysteresis_start(4);
         tmcstepper->hysteresis_end(-2);
         tmcstepper->sfilt(1);
         tmcstepper->diag1_pushpull(0); // 0 = active low
-        tmcstepper->diag1_stall(1); // stallguard i/o is on diag1
-        if (_mode == TRINAMIC_RUN_MODE_COOLSTEP) {
+        tmcstepper->diag1_stall(true); // stallguard i/o is on diag1
+        if (_mode == TRINAMIC_MODE_COOLSTEP) {
             tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
             tmcstepper->THIGH(NORMAL_THIGH);
-        } else {
+        } else { // TRINAMIC_MODE_STALLGUARD
             uint32_t tcoolthrs = calc_tstep(homing_feed_rate->get(), 150.0);
             uint32_t thigh = calc_tstep(homing_feed_rate->get(), 60.0);
             //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Tstep range %d - %d SGV:%d", thigh, tcoolthrs, tmcstepper->sgt());
@@ -233,7 +230,7 @@ void TrinamicDriver :: set_disable(bool disable) {
     if (disable)
         tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
     else {
-        if (_mode == TRINAMIC_TOFF_STEALTHCHOP)
+        if (_mode == TRINAMIC_MODE_STEALTHCHOP)
             tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
         else
             tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
