@@ -163,9 +163,9 @@ def changeConfig(src, enabled, disabled, verbose=False):
                 if len(enabled) > 0:
                     for name in enabled:
                         s = enablePrefix + name
-                        m = re.match(r'^s*//\s*#define\s+(' + s + r'.*)$', line)
+                        m = re.match(r'^s*(//)*\s*#define\s+(' + s + r'.*)$', line)
                         if m:
-                            dstLine = "#define " + m.group(1) + '\n'
+                            dstLine = "#define " + m.group(2) + '\n'
                             numEnabledDic[name] += 1
                             break
                 if len(disabled) > 0:
