@@ -72,6 +72,7 @@
     #define ENABLE_SOFTWARE_DEBOUNCE
 #endif
 
+#define PROBE_PIN               GPIO_NUM_35
 
 // The default value in config.h is wrong for this controller
 #ifdef INVERT_CONTROL_PIN_MASK
