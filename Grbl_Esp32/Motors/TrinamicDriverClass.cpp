@@ -118,9 +118,8 @@ bool TrinamicDriver :: test() {
     float hold (as a percentage of run)
 */
 void TrinamicDriver :: read_settings() {
-    
     uint16_t run_i_ma = (uint16_t)(axis_settings[axis_index]->run_current->get() * 1000.0);
-    float hold_i_percent;    
+    float hold_i_percent;
 
     if (axis_settings[axis_index]->run_current->get() == 0)
         hold_i_percent = 0;
@@ -133,7 +132,7 @@ void TrinamicDriver :: read_settings() {
 
     tmcstepper->microsteps(axis_settings[axis_index]->microsteps->get());
     tmcstepper->rms_current(run_i_ma, hold_i_percent);
-    tmcstepper->sgt(axis_settings[axis_index]->stallguard->get());
+    
 }
 
 void TrinamicDriver :: set_homing_mode(uint8_t homing_mask, bool isHoming) {
@@ -147,43 +146,44 @@ void TrinamicDriver :: set_homing_mode(uint8_t homing_mask, bool isHoming) {
     Coolstep mode, so it will need to switch to Coolstep when homing
 */
 void TrinamicDriver :: set_mode(bool isHoming) {
-   
+
     if (isHoming)
-        _mode = TRINAMIC_HOMING_MODE;         
+        _mode = TRINAMIC_HOMING_MODE;
     else
         _mode = TRINAMIC_RUN_MODE;
 
     if (_lastMode == _mode)
         return;
+    _lastMode = _mode;
 
-    _lastMode = _mode;    
-
-    if (_mode == TRINAMIC_MODE_STEALTHCHOP) {
-        tmcstepper->TCOOLTHRS(0);
-        //tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
-        tmcstepper->en_pwm_mode(true);      // Enable extremely quiet stepping
-        //tmcstepper->pwm_autoscale(true);
-    } else  {  // coolstep or stallguard
-        // a few items are common between modes
+    switch (_mode) {
+    case TRINAMIC_MODE_STEALTHCHOP:
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_STEALTHCHOP");
+        tmcstepper->en_pwm_mode(true);
+        tmcstepper->pwm_autoscale(true);
+        tmcstepper->diag1_stall(false);
+        break;
+    case TRINAMIC_MODE_COOLSTEP:
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_COOLSTEP");
         tmcstepper->en_pwm_mode(false);
-        tmcstepper->tbl(1);
-        tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
-        tmcstepper->hysteresis_start(4);
-        tmcstepper->hysteresis_end(-2);
+        tmcstepper->pwm_autoscale(false);
+        tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
+        tmcstepper->THIGH(NORMAL_THIGH);
+        break;
+    case TRINAMIC_MODE_STALLGUARD:
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_STALLGUARD");
+        tmcstepper->en_pwm_mode(false);
+        tmcstepper->pwm_autoscale(false);       
+        tmcstepper->TCOOLTHRS(calc_tstep(homing_feed_rate->get(), 150.0));
+        tmcstepper->THIGH(calc_tstep(homing_feed_rate->get(), 60.0));
         tmcstepper->sfilt(1);
-        tmcstepper->diag1_pushpull(0); // 0 = active low
         tmcstepper->diag1_stall(true); // stallguard i/o is on diag1
-        if (_mode == TRINAMIC_MODE_COOLSTEP) {
-            tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS); // when to turn on coolstep
-            tmcstepper->THIGH(NORMAL_THIGH);
-        } else { // TRINAMIC_MODE_STALLGUARD
-            uint32_t tcoolthrs = calc_tstep(homing_feed_rate->get(), 150.0);
-            uint32_t thigh = calc_tstep(homing_feed_rate->get(), 60.0);
-            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Tstep range %d - %d SGV:%d", thigh, tcoolthrs, tmcstepper->sgt());
-            tmcstepper->TCOOLTHRS(tcoolthrs);
-            tmcstepper->THIGH(thigh);
-        }
+        tmcstepper->sgt(axis_settings[axis_index]->stallguard->get());
+        break;
+    default:
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_UNDEFINED");
     }
+    
 }
 
 /*

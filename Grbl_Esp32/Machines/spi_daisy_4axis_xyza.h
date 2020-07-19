@@ -33,7 +33,6 @@
 #define TRINAMIC_DAISY_CHAIN
 
 #define TRINAMIC_RUN_MODE           TRINAMIC_MODE_STEALTHCHOP
-#define TRINAMIC_HOMING_MODE        TRINAMIC_MODE_STEALTHCHOP
 
 // Use SPI enable instead of the enable pin
 // The hardware enable pin is tied to ground
