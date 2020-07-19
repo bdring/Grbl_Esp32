@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 # Compile Grbl_ESP32 for each of the machines defined in Machines/ .
 # Add-on files are built on top of a single base.
