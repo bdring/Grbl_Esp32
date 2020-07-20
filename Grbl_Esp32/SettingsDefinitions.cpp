@@ -55,6 +55,7 @@ enum_opt_t spindleTypes = {
     { "DAC", SPINDLE_TYPE_DAC, },
     { "HUANYANG", SPINDLE_TYPE_HUANYANG, },
     { "BESC", SPINDLE_TYPE_BESC, },
+    { "10V", SPINDLE_TYPE_10V, },
 };
 
 AxisSettings* x_axis_settings;

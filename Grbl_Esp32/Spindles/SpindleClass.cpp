@@ -34,6 +34,7 @@
 #include "Laser.cpp"
 #include "HuanyangSpindle.cpp"
 #include "BESCSpindle.cpp"
+#include "10vSpindle.cpp"
 
 
 // An instance of each type of spindle is created here.
@@ -45,6 +46,7 @@ Laser laser;
 DacSpindle dac_spindle;
 HuanyangSpindle huanyang_spindle;
 BESCSpindle besc_spindle;
+_10vSpindle _10v_spindle;
 
 
 void spindle_select() {
@@ -67,6 +69,9 @@ void spindle_select() {
         break;
     case SPINDLE_TYPE_BESC:
         spindle = &besc_spindle;
+        break;
+    case SPINDLE_TYPE_10V:
+        spindle = &_10v_spindle;
         break;
     case SPINDLE_TYPE_NONE:
     default:

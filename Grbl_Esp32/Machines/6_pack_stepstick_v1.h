@@ -1,5 +1,8 @@
 /*
     6_pack_stepstick_v1.h
+
+    Covers all V1 versions V1p0, V1p1, etc
+
     Part of Grbl_ESP32
     Pin assignments for the ESP32 I2S 6-axis board
     2018    - Bart Dring
@@ -85,14 +88,16 @@
 
 #define PROBE_PIN               GPIO_NUM_25
 
+
 // 0-10v CNC Module in Socket #3
 // Control...Set PD001 to 1 if enable is connected 0 is panel should be used
-// Freq...Set PD002 to 0 
+// Freq...Set PD002 to 0
 // Freq input...Set PD070 to 0 for 0-10V
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
+#define SPINDLE_TYPE            SPINDLE_TYPE_10V
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
-#define SPINDLE_ENABLE_PIN      GPIO_NUM_4
-//#define SPINDLE_DIR_PIN         GPIO_NUM_16
+#define SPINDLE_FORWARD_PIN     GPIO_NUM_4
+#define SPINDLE_REVERSE_PIN     GPIO_NUM_16
+
 
 // Example 5V output CNC module in socket #3
 /*
@@ -100,15 +105,16 @@
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 #define SPINDLE_DIR_PIN         GPIO_NUM_16
+#define COOLANT_MIST_PIN        GPIO_NUM_27
 */
-//#define COOLANT_MIST_PIN        GPIO_NUM_27
 
-
-// Example (4x) 5V Buffer Output on socket #5
 /*
+// Example (4x) 5V Buffer Output on socket #5
+#define SPINDLE_TYPE            SPINDLE_TYPE_RELAY
 #define SPINDLE_OUTPUT_PIN      I2SO(24)
-#define COOLANT_MIST_PIN        I2SO(25)
-#define COOLANT_FLOOD_PIN       I2SO(26)
+#define SPINDLE_DIR_PIN         I2SO(25)
+#define COOLANT_MIST_PIN        I2SO(26)
+#define COOLANT_FLOOD_PIN       I2SO(27)
 */
 
 /*
