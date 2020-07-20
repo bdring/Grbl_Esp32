@@ -116,7 +116,7 @@ void HuanyangSpindle :: init() {
                                 1, // priority
                                 &vfd_cmdTaskHandle,
                                 0 // core
-                               );       
+                               );
         _task_running = true;
     }
 
