@@ -228,24 +228,25 @@
     #endif
 
     // ============== Axis Acceleration =========
-
+    #define SEC_PER_MIN_SQ  (60.0*60.0)  // Seconds Per Minute Squared, for acceleration conversion
+    // Default accelerations are expressed in mm/sec^2
     #ifndef  DEFAULT_X_ACCELERATION
-        #define DEFAULT_X_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_X_ACCELERATION 200.0
     #endif
     #ifndef  DEFAULT_Y_ACCELERATION
-        #define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_Y_ACCELERATION 200.0
     #endif
     #ifndef  DEFAULT_Z_ACCELERATION
-        #define DEFAULT_Z_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_Z_ACCELERATION 200.0
     #endif
     #ifndef  DEFAULT_A_ACCELERATION
-        #define DEFAULT_A_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_A_ACCELERATION 200.0
     #endif
     #ifndef  DEFAULT_B_ACCELERATION
-        #define DEFAULT_B_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_B_ACCELERATION 200.0
     #endif
     #ifndef  DEFAULT_C_ACCELERATION
-        #define DEFAULT_C_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+        #define DEFAULT_C_ACCELERATION 200.0
     #endif
 
     // ========= AXIS MAX TRAVEL ============
@@ -292,22 +293,22 @@
     // ========== Motor hold current (SPI Drivers ) =============
 
     #ifndef  DEFAULT_X_HOLD_CURRENT
-        #define DEFAULT_X_HOLD_CURRENT 50 // $150 percent of run current (extended set)
+        #define DEFAULT_X_HOLD_CURRENT 0.125 // $150 current in amps (extended set)
     #endif
     #ifndef  DEFAULT_Y_HOLD_CURRENT
-        #define DEFAULT_Y_HOLD_CURRENT 50 // $151 percent of run current (extended set)
+        #define DEFAULT_Y_HOLD_CURRENT 0.125 // $151 current in amps (extended set)
     #endif
     #ifndef  DEFAULT_Z_HOLD_CURRENT
-        #define DEFAULT_Z_HOLD_CURRENT 50 // $152 percent of run current (extended set)
+        #define DEFAULT_Z_HOLD_CURRENT 0.125 // $152 current in amps (extended set)
     #endif
     #ifndef  DEFAULT_A_HOLD_CURRENT
-        #define DEFAULT_A_HOLD_CURRENT 50 // $153 percent of run current (extended set)
+        #define DEFAULT_A_HOLD_CURRENT 0.125 // $153 current in amps (extended set)
     #endif
     #ifndef  DEFAULT_B_HOLD_CURRENT
-        #define DEFAULT_B_HOLD_CURRENT 50 // $154 percent of run current (extended set)
+        #define DEFAULT_B_HOLD_CURRENT 0.125 // $154 current in amps (extended set)
     #endif
     #ifndef  DEFAULT_C_HOLD_CURRENT
-        #define DEFAULT_C_HOLD_CURRENT 50 // $154 percent of run current (extended set)
+        #define DEFAULT_C_HOLD_CURRENT 0.125 // $154 current in amps (extended set)
     #endif
 
     // ========== Microsteps (SPI Drivers ) ================
@@ -352,8 +353,72 @@
         #define DEFAULT_C_STALLGUARD 16 // $175 stallguard (extended set)
     #endif
 
+   
+// ==================  pin defaults ========================
 
+// Here is a place to default pins to UNDEFINED_PIN.
+// This can eliminate checking to see if the pin is defined because
+// the overridden pinMode and digitalWrite functions will deal with it.
 
+#ifndef STEPPERS_DISABLE_PIN
+    #define STEPPERS_DISABLE_PIN    UNDEFINED_PIN
+#endif
 
+#ifndef X_DISABLE_PIN
+    #define X_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef Y_DISABLE_PIN
+    #define Y_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef Z_DISABLE_PIN
+    #define Z_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef A_DISABLE_PIN
+    #define A_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef B_DISABLE_PIN
+    #define B_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef C_DISABLE_PIN
+    #define C_DISABLE_PIN   UNDEFINED_PIN
+#endif
+
+#ifndef X2_DISABLE_PIN
+    #define X2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef Y2_DISABLE_PIN
+    #define Y2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef Z2_DISABLE_PIN
+    #define Z2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef A2_DISABLE_PIN
+    #define A2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef B2_DISABLE_PIN
+    #define B2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+#ifndef C2_DISABLE_PIN
+    #define C2_DISABLE_PIN   UNDEFINED_PIN
+#endif
+
+#ifndef X_LIMIT_PIN
+    #define X_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef Y_LIMIT_PIN
+    #define Y_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef Z_LIMIT_PIN
+    #define Z_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef A_LIMIT_PIN
+    #define A_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef B_LIMIT_PIN
+    #define B_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef C_LIMIT_PIN
+    #define C_LIMIT_PIN UNDEFINED_PIN
+#endif
 
 #endif

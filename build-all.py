@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 # Note: If you experience random errors running this script within
 # VSCode, try running it from a regular terminal window.  Some VSCode

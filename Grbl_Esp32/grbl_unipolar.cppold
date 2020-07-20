@@ -61,13 +61,13 @@ void unipolar_init() {
 
 void unipolar_step(uint8_t step_mask, uint8_t dir_mask) {
 #ifdef X_UNIPOLAR
-    X_Unipolar.step(step_mask & (1 << X_AXIS), dir_mask & (1 << X_AXIS));
+    X_Unipolar.step(step_mask & bit(X_AXIS), dir_mask & bit(X_AXIS));
 #endif
 #ifdef Y_UNIPOLAR
-    Y_Unipolar.step(step_mask & (1 << Y_AXIS), dir_mask & (1 << Y_AXIS));
+    Y_Unipolar.step(step_mask & bit(Y_AXIS), dir_mask & bit(Y_AXIS));
 #endif
 #ifdef Z_UNIPOLAR
-    Z_Unipolar.step(step_mask & (1 << Z_AXIS), dir_mask & (1 << ZX_AXIS));
+    Z_Unipolar.step(step_mask & bit(Z_AXIS), dir_mask & bit(ZX_AXIS));
 #endif
 }
 

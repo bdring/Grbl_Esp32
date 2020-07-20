@@ -36,6 +36,7 @@
 #define SPINDLE_TYPE_DAC        4
 #define SPINDLE_TYPE_HUANYANG   5
 #define SPINDLE_TYPE_BESC       6
+#define SPINDLE_TYPE_10V        7
 
 #ifndef SPINDLE_CLASS_H
 #define SPINDLE_CLASS_H
@@ -85,12 +86,11 @@ class PWMSpindle : public Spindle {
     void stop();
     void config_message();
 
-  private:
-
-    int32_t _current_pwm_duty;
+  private:   
     void set_spindle_dir_pin(bool Clockwise);
 
   protected:
+    int32_t _current_pwm_duty;
     uint32_t _min_rpm;
     uint32_t _max_rpm;
     uint32_t _pwm_off_value;
@@ -178,6 +178,22 @@ class BESCSpindle : public PWMSpindle {
     uint32_t set_rpm(uint32_t rpm);
 };
 
+class _10vSpindle : public PWMSpindle {
+  public:
+    void init();
+    void config_message();
+    uint32_t set_rpm(uint32_t rpm);
+    uint8_t _forward_pin;
+    uint8_t _reverse_pin;
+    void set_state(uint8_t state, uint32_t rpm);
+    uint8_t get_state();
+    void stop();
+ protected:
+    void set_enable_pin(bool enable_pin);
+    void set_spindle_dir_pin(bool Clockwise);
+
+};
+
 extern Spindle* spindle;
 
 
@@ -188,8 +204,9 @@ extern Laser laser;
 extern DacSpindle dac_spindle;
 extern HuanyangSpindle huanyang_spindle;
 extern BESCSpindle besc_spindle;
+extern _10vSpindle _10v_spindle;
 
-void spindle_select(uint8_t spindletype);
+void spindle_select();
 
 // in HuanyangSpindle.cpp
 void vfd_cmd_task(void* pvParameters);

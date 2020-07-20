@@ -267,18 +267,18 @@ void ServoAxis::set_location() {
     // 5. Apply the calibrarion
     servo_pulse_min = SERVO_MIN_PULSE;
     servo_pulse_max = SERVO_MAX_PULSE;
-    if (bit_istrue(settings.dir_invert_mask, bit(_axis)))  // this allows the user to change the direction via settings
+    if (bit_istrue(dir_invert_mask->get(), bit(_axis)))  // this allows the user to change the direction via settings
         swap(servo_pulse_min, servo_pulse_max);
     // get the calibration values
     if (_cal_is_valid()) { // if calibration settings are OK then apply them
         // apply a calibration
         // the cals apply differently if the direction is reverse (i.e. longer pulse is lower position)
-        if (bit_isfalse(settings.dir_invert_mask, bit(_axis))) {	// normal direction
-            min_pulse_cal = 2.0 - (settings.steps_per_mm[_axis] / 100.0);
-            max_pulse_cal = (settings.max_travel[_axis] / -100.0);
+        if (bit_isfalse(dir_invert_mask->get(), bit(_axis))) {	// normal direction
+            min_pulse_cal = 2.0 - (axis_settings[_axis]->steps_per_mm->get() / 100.0);
+            max_pulse_cal = (axis_settings[_axis]->max_travel->get() / 100.0);
         } else { // inverted direction
-            min_pulse_cal = (settings.steps_per_mm[_axis] / 100.0);
-            max_pulse_cal = 2.0 - (settings.max_travel[_axis] / -100.0);
+            min_pulse_cal = (axis_settings[_axis]->steps_per_mm->get() / 100.0);
+            max_pulse_cal = 2.0 - (axis_settings[_axis]->max_travel->get() / -100.0);
         }
     } else { // settings are not valid so don't apply any calibration
         min_pulse_cal = 1.0;
@@ -306,27 +306,25 @@ void ServoAxis::disable() {
 // vebose = true if you want an error sent to serial port
 bool ServoAxis::_cal_is_valid() {
     bool settingsOK = true;
-    if ((settings.steps_per_mm[_axis] < SERVO_CAL_MIN) || (settings.steps_per_mm[_axis] > SERVO_CAL_MAX)) {
+    if ((axis_settings[_axis]->steps_per_mm->get() < SERVO_CAL_MIN) || (axis_settings[_axis]->steps_per_mm->get() > SERVO_CAL_MAX)) {
         if (_showError) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($10%d) value error. Reset to 100", _axis);
-            settings.steps_per_mm[_axis] = 100;
-            write_global_settings();
+            char reset_val[] = "100";
+            axis_settings[_axis]->steps_per_mm->setStringValue(reset_val);
         }
         settingsOK = false;
     }
     // Note: Max travel is set positive via $$, but stored as a negative number
-    if ((settings.max_travel[_axis] < -SERVO_CAL_MAX) || (settings.max_travel[_axis] > -SERVO_CAL_MIN)) {
+    auto travel = -axis_settings[_axis]->max_travel->get();
+    if ((travel < -SERVO_CAL_MAX) || travel > -SERVO_CAL_MIN) {
         if (_showError) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($13%d) value error. Reset to 100", _axis);
-            settings.max_travel[_axis] = -100;
-            write_global_settings();
+            char reset_val[] = "-100"; // stored as a negative
+            axis_settings[_axis]->max_travel->setStringValue(reset_val);
         }
         settingsOK = false;
     }
     _showError = false;  // to show error once
-    if (! settingsOK) {
-        write_global_settings(); // they were changed so write them to
-    }
     return settingsOK;
 }
 

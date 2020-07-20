@@ -32,7 +32,6 @@
 #define Z_STEP_PIN              GPIO_NUM_27
 #define Z_DIRECTION_PIN         GPIO_NUM_33
 
-#define LIMIT_MASK              B111
 #define X_LIMIT_PIN             GPIO_NUM_17
 #define Y_LIMIT_PIN             GPIO_NUM_4
 #define Z_LIMIT_PIN             GPIO_NUM_16
@@ -40,12 +39,12 @@
 #ifdef HOMING_CYCLE_0
     #undef HOMING_CYCLE_0
 #endif
-#define HOMING_CYCLE_0 (1<<Z_AXIS) // Z first
+#define HOMING_CYCLE_0 bit(Z_AXIS) // Z first
 
 #ifdef HOMING_CYCLE_1
     #undef HOMING_CYCLE_1
 #endif
-#define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))
+#define HOMING_CYCLE_1 (bit(X_AXIS)|bit(Y_AXIS))
 
 #ifdef HOMING_CYCLE_2
     #undef HOMING_CYCLE_2

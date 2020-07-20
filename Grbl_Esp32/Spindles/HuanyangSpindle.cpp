@@ -116,7 +116,7 @@ void HuanyangSpindle :: init() {
                                 1, // priority
                                 &vfd_cmdTaskHandle,
                                 0 // core
-                               );        
+                               );
         _task_running = true;
     }
 
@@ -196,12 +196,12 @@ bool HuanyangSpindle :: get_pins_and_settings() {
 }
 
 void HuanyangSpindle :: config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, 
-                    MSG_LEVEL_INFO, 
-                    "Huanyang Spindle Tx:%d Rx:%d RTS:%d", 
-                    report_pin_number(_txd_pin),
-                    report_pin_number(_rxd_pin), 
-                    report_pin_number(_rts_pin));
+    grbl_msg_sendf(CLIENT_SERIAL,
+                    MSG_LEVEL_INFO,
+                    "Huanyang Spindle Tx:%s Rx:%s RTS:%s",
+                    pinName(_txd_pin).c_str(),
+                    pinName(_rxd_pin).c_str(),
+                    pinName(_rts_pin).c_str());
 }
 
 /*
@@ -211,8 +211,6 @@ void HuanyangSpindle :: config_message() {
     0x01    0x03    0x01    0x11    0x30 0x44                   Start spindle counter-clockwise
 */
 void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Set state");
-
     if (sys.abort)
         return;   // Block during abort.
 

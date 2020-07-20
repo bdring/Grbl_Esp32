@@ -28,15 +28,11 @@
 // - https://github.com/CosmicBoris/ESP8266SMTP
 // - https://www.electronicshub.org/send-an-email-using-esp8266/
 
-#include "config.h"
-#ifdef ENABLE_NOTIFICATIONS
 #include "grbl.h"
-#include "commands.h"
+#ifdef ENABLE_NOTIFICATIONS
 #include "notifications_service.h"
 #include <WiFiClientSecure.h>
-#include <Preferences.h>
 #include <base64.h>
-#include "wificonfig.h"
 
 #define PUSHOVERTIMEOUT 5000
 #define PUSHOVERSERVER "api.pushover.net"
@@ -273,28 +269,17 @@ bool NotificationsService::sendLineMSG(const char* title, const char* message) {
 }
 //Email#serveraddress:port
 bool NotificationsService::getPortFromSettings() {
-    Preferences prefs;
-    String defV = DEFAULT_TOKEN;
-    prefs.begin(NAMESPACE, true);
-    String tmp = prefs.getString(NOTIFICATION_TS, defV);
-    prefs.end();
+    String tmp = notification_ts->get();
     int pos = tmp.lastIndexOf(':');
     if (pos == -1)
         return false;
     _port = tmp.substring(pos + 1).toInt();
     log_d("port : %d", _port);
-    if (_port > 0)
-        return true;
-    else
-        return false;
+    return _port > 0;
 }
 //Email#serveraddress:port
 bool NotificationsService::getServerAddressFromSettings() {
-    Preferences prefs;
-    String defV = DEFAULT_TOKEN;
-    prefs.begin(NAMESPACE, true);
-    String tmp = prefs.getString(NOTIFICATION_TS, defV);
-    prefs.end();
+    String tmp = notification_ts->get();
     int pos1 = tmp.indexOf('#');
     int pos2 = tmp.lastIndexOf(':');
     if ((pos1 == -1) || (pos2 == -1))
@@ -306,11 +291,7 @@ bool NotificationsService::getServerAddressFromSettings() {
 }
 //Email#serveraddress:port
 bool NotificationsService::getEmailFromSettings() {
-    Preferences prefs;
-    String defV = DEFAULT_TOKEN;
-    prefs.begin(NAMESPACE, true);
-    String tmp = prefs.getString(NOTIFICATION_TS, defV);
-    prefs.end();
+    String tmp = notification_ts->get();
     int pos = tmp.indexOf('#');
     if (pos == -1)
         return false;
@@ -322,42 +303,34 @@ bool NotificationsService::getEmailFromSettings() {
 
 
 bool NotificationsService::begin() {
-    bool res = true;
     end();
-    Preferences prefs;
-    String defV = DEFAULT_TOKEN;
-    prefs.begin(NAMESPACE, true);
-    _notificationType = prefs.getChar(NOTIFICATION_TYPE, DEFAULT_NOTIFICATION_TYPE);
+    _notificationType = notification_type->get();
     switch (_notificationType) {
     case 0: //no notification = no error but no start
         return true;
     case ESP_PUSHOVER_NOTIFICATION:
-        _token1 = prefs.getString(NOTIFICATION_T1, defV);
-        _token2 = prefs.getString(NOTIFICATION_T2, defV);
+        _token1 = notification_t1->get();
+        _token2 = notification_t2->get();
         _port = PUSHOVERPORT;
         _serveraddress = PUSHOVERSERVER;
         break;
     case ESP_LINE_NOTIFICATION:
-        _token1 = prefs.getString(NOTIFICATION_T1, defV);
+        _token1 = notification_t1->get();
         _port = LINEPORT;
         _serveraddress = LINESERVER;
         break;
     case ESP_EMAIL_NOTIFICATION:
-        _token1 = base64::encode(prefs.getString(NOTIFICATION_T1, defV));
-        _token2 = base64::encode(prefs.getString(NOTIFICATION_T2, defV));
-        //log_d("%s",Settings_ESP3D::read_string(ESP_NOTIFICATION_TOKEN1));
-        //log_d("%s",Settings_ESP3D::read_string(ESP_NOTIFICATION_TOKEN2));
+        _token1 = base64::encode(notification_t1->get());
+        _token2 = base64::encode(notification_t2->get());
         if (!getEmailFromSettings() || !getPortFromSettings() || !getServerAddressFromSettings()) {
-            prefs.end();
             return false;
         }
         break;
     default:
-        prefs.end();
         return false;
         break;
     }
-    prefs.end();
+    bool res = true;
     if (WiFi.getMode() != WIFI_STA)
         res = false;
     if (!res)

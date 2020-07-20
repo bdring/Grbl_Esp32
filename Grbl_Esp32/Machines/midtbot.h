@@ -22,7 +22,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "midTbot"
+#define MACHINE_NAME "MIDTBOT"
 
 #define SPINDLE_TYPE    SPINDLE_TYPE_NONE
 
@@ -40,29 +40,23 @@
 
 #define X_LIMIT_PIN     GPIO_NUM_2
 #define Y_LIMIT_PIN     GPIO_NUM_4
-#define LIMIT_MASK      B11
 
-#define USE_SERVO_AXES
-
-#define SERVO_Z_PIN             GPIO_NUM_27
-#define SERVO_Z_RANGE_MIN       0.0
-#define SERVO_Z_RANGE_MAX       5.0
-#define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-#define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
-#define SERVO_Z_MPOS            false   // will not use mpos, uses work coordinates
+#define Z_SERVO_PIN             GPIO_NUM_27
+#define Z_SERVO_RANGE_MIN       0.0
+#define Z_SERVO_RANGE_MAX       5.0
 
 // redefine some stuff from config.h
 #ifdef HOMING_CYCLE_0
     #undef HOMING_CYCLE_0
 #endif
 
-#define HOMING_CYCLE_0 (1<<Y_AXIS)
+#define HOMING_CYCLE_0 bit(Y_AXIS)
 
 #ifdef HOMING_CYCLE_1
     #undef HOMING_CYCLE_1
 #endif
 
-#define HOMING_CYCLE_1 (1<<X_AXIS)
+#define HOMING_CYCLE_1 bit(X_AXIS)
 
 #ifdef HOMING_CYCLE_2
     #undef HOMING_CYCLE_2
@@ -106,9 +100,9 @@
 #define DEFAULT_Y_MAX_RATE 8000.0 // mm/min
 #define DEFAULT_Z_MAX_RATE 5000.0 // mm/min
 
-#define DEFAULT_X_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
-#define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
-#define DEFAULT_Z_ACCELERATION (100.0*60*60)
+#define DEFAULT_X_ACCELERATION 200.0 // mm/sec^2. 200 mm/sec^2 = 720000 mm/min^2
+#define DEFAULT_Y_ACCELERATION 200.0 // mm/sec^2
+#define DEFAULT_Z_ACCELERATION 100.0 // mm/sec^2
 
 #define DEFAULT_X_MAX_TRAVEL 100.0 // mm NOTE: Must be a positive value.
 #define DEFAULT_Y_MAX_TRAVEL 100.0 // mm NOTE: Must be a positive value.

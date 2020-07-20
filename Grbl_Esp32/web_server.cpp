@@ -20,20 +20,16 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "config.h"
+#include "grbl.h"
 
 #if defined (ENABLE_WIFI) &&  defined (ENABLE_HTTP)
 
 #include "wifiservices.h"
 
-#include "grbl.h"
-
-#include "commands.h"
 #include "espresponse.h"
 #include "serial2socket.h"
 #include "web_server.h"
 #include <WebSocketsServer.h>
-#include "wificonfig.h"
 #include <WiFi.h>
 #include <FS.h>
 #include <SPIFFS.h>
@@ -41,8 +37,6 @@
 #include <SD.h>
 #include "grbl_sd.h"
 #endif
-#include <Preferences.h>
-#include "report.h"
 #include <WebServer.h>
 #include <ESP32SSDP.h>
 #include <StreamString.h>
@@ -115,13 +109,11 @@ bool Web_Server::begin(){
    
     bool no_error = true;
     _setupdone = false;
-    Preferences prefs;
-    prefs.begin(NAMESPACE, true);
-    int8_t penabled = prefs.getChar(HTTP_ENABLE_ENTRY, DEFAULT_HTTP_STATE);
-    //Get http port
-    _port = prefs.getUShort(HTTP_PORT_ENTRY, DEFAULT_WEBSERVER_PORT);
-    prefs.end();
-    if (penabled == 0) return false;
+    if (http_enable->get() == 0) {
+        return false;
+    }
+    _port = http_port->get();
+
     //create instance
     _webserver= new WebServer(_port);
 #ifdef ENABLE_AUTHENTICATION
@@ -468,8 +460,7 @@ bool Web_Server::is_realtime_cmd(char c){
     return false;
 }
 
-//Handle web command query and send answer//////////////////////////////
-void Web_Server::handle_web_command ()
+void Web_Server::_handle_web_command (bool silent)
 {
     //to save time if already disconnected
     //if (_webserver->hasArg ("PAGEID") ) {
@@ -480,14 +471,12 @@ void Web_Server::handle_web_command ()
     //       }
     //    }
     //}
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
     String cmd = "";
-    if (_webserver->hasArg ("plain") || _webserver->hasArg ("commandText") ) {
-        if (_webserver->hasArg ("plain") ) {
-            cmd = _webserver->arg ("plain");
-        } else {
-            cmd = _webserver->arg ("commandText");
-        }
+    if (_webserver->hasArg ("plain")) {
+        cmd = _webserver->arg ("plain");
+    } else if (_webserver->hasArg ("commandText")) {
+        cmd = _webserver->arg ("commandText");
     } else {
         _webserver->send (200, "text/plain", "Invalid command");
         return;
@@ -496,105 +485,26 @@ void Web_Server::handle_web_command ()
     cmd.trim();
     int ESPpos = cmd.indexOf ("[ESP");
     if (ESPpos > -1) {
-        //is there the second part?
-        int ESPpos2 = cmd.indexOf ("]", ESPpos);
-        if (ESPpos2 > -1) {
-            //Split in command and parameters
-            String cmd_part1 = cmd.substring (ESPpos + 4, ESPpos2);
-            String cmd_part2 = "";
-            //only [ESP800] is allowed login free if authentication is enabled
-            if ( (auth_level == LEVEL_GUEST)  && (cmd_part1.toInt() != 800) ) {
-                _webserver->send (401, "text/plain", "Authentication failed!\n");
-                return;
-            }
-            //is there space for parameters?
-            if (ESPpos2 < cmd.length() ) {
-                cmd_part2 = cmd.substring (ESPpos2 + 1);
-            }
-            //if command is a valid number then execute command
-            if (cmd_part1.toInt() >= 0) {
-                ESPResponseStream espresponse(_webserver);
-                //commmand is web only 
-                COMMANDS::execute_internal_command (cmd_part1.toInt(), cmd_part2, auth_level, &espresponse);
-                //flush
-                espresponse.flush();
-            }
-            //if not is not a valid [ESPXXX] command
-        }
-    } else { //execute GCODE
-        if (auth_level == LEVEL_GUEST) {
-            _webserver->send (401, "text/plain", "Authentication failed!\n");
-            return;
-        }
-        //Instead of send several commands one by one by web  / send full set and split here
-        String scmd;
-        String res = "";
-        uint8_t sindex = 0;
-        scmd = get_Splited_Value(cmd,'\n', sindex);
-        while ( scmd != "" ){
-        if ((scmd.length() == 2) && (scmd[0] == 0xC2)){
-              scmd[0]=scmd[1];
-              scmd.remove(1,1);
-            }  
-        if (scmd.length() > 1)scmd += "\n";
-        else if (!is_realtime_cmd(scmd[0]) )scmd += "\n";
-        if (!Serial2Socket.push(scmd.c_str()))res = "Error";
-        sindex++;
-        scmd = get_Splited_Value(cmd,'\n', sindex);
-        }
-        _webserver->send (200, "text/plain", res.c_str());
-    }
-}
-//Handle web command query and send answer//////////////////////////////
-void Web_Server::handle_web_command_silent ()
-{
-     //to save time if already disconnected
-     //if (_webserver->hasArg ("PAGEID") ) {
-     //   if (_webserver->arg ("PAGEID").length() > 0 ) {
-     //      if (_webserver->arg ("PAGEID").toInt() != _id_connection) {
-     //      _webserver->send (200, "text/plain", "Invalid command");
-     //      return;
-     //      }
-     //   }
-     //}
-    level_authenticate_type auth_level = is_authenticated();
-    String cmd = "";
-    if (_webserver->hasArg ("plain") || _webserver->hasArg ("commandText") ) {
-        if (_webserver->hasArg ("plain") ) {
-            cmd = _webserver->arg ("plain");
+        char line[256];
+        strncpy(line, cmd.c_str(), 255);
+        ESPResponseStream* espresponse = silent ? NULL : new ESPResponseStream(_webserver);
+        err_t err = system_execute_line(line, espresponse, auth_level);
+        String answer;
+        if (err == STATUS_OK) {
+            answer = "ok";
         } else {
-            cmd = _webserver->arg ("commandText");
+            const char* msg = errorString(err);
+            answer = "Error: ";
+            if (msg) {
+                answer += msg;
+            } else {
+                answer += err;
+            }
         }
-    } else {
-        _webserver->send (200, "text/plain", "Invalid command");
-        return;
-    }
-    //if it is internal command [ESPXXX]<parameter>
-    cmd.trim();
-    int ESPpos = cmd.indexOf ("[ESP");
-    if (ESPpos > -1) {
-        //is there the second part?
-        int ESPpos2 = cmd.indexOf ("]", ESPpos);
-        if (ESPpos2 > -1) {
-            //Split in command and parameters
-            String cmd_part1 = cmd.substring (ESPpos + 4, ESPpos2);
-            String cmd_part2 = "";
-            //only [ESP800] is allowed login free if authentication is enabled
-            if ( (auth_level == LEVEL_GUEST)  && (cmd_part1.toInt() != 800) ) {
-                _webserver->send (401, "text/plain", "Authentication failed!\n");
-                return;
-            }
-            //is there space for parameters?
-            if (ESPpos2 < cmd.length() ) {
-                cmd_part2 = cmd.substring (ESPpos2 + 1);
-            }
-            //if command is a valid number then execute command
-            if (cmd_part1.toInt() >= 0) {
-                //commmand is web only 
-                if(COMMANDS::execute_internal_command (cmd_part1.toInt(), cmd_part2, auth_level, NULL)) _webserver->send (200, "text/plain", "ok");
-                else  _webserver->send (200, "text/plain", "error");
-            }
-            //if not is not a valid [ESPXXX] command
+        if (silent || !espresponse->anyOutput()) {
+            _webserver->send (err ? 401 : 200, "text/plain", answer.c_str());
+        } else {
+            espresponse->flush();
         }
     } else { //execute GCODE
         if (auth_level == LEVEL_GUEST) {
@@ -603,20 +513,33 @@ void Web_Server::handle_web_command_silent ()
         }
         //Instead of send several commands one by one by web  / send full set and split here
         String scmd;
+        const char *res = "";
         uint8_t sindex = 0;
-        scmd = get_Splited_Value(cmd,'\n', sindex);
-        String res = "";
-        while ( scmd != "" ){
-        if (scmd.length() > 1)scmd+="\n";
-        else if (!is_realtime_cmd(scmd[0]) )scmd+="\n";
-        if (!Serial2Socket.push(scmd.c_str()))res = "Error";
-        sindex++;
-        scmd = get_Splited_Value(cmd,'\n', sindex);
+        // TODO Settings - this is very inefficient.  get_Splited_Value() is O(n^2)
+        // when it could easily be O(n).  Also, it would be just as easy to push
+        // the entire string into Serial2Socket and pull off lines from there.
+        for (uint8_t sindex = 0;
+             (scmd = get_Splited_Value(cmd,'\n', sindex)) != "";
+             sindex++) {
+            // 0xC2 is an HTML encoding prefix that, in UTF-8 mode,
+            // precede 0x90 and 0xa0-0bf, which are GRBL realtime commands.
+            // There are other encodings for 0x91-0x9f, so I am not sure
+            // how - or whether - those commands work.
+            // Ref: https://www.w3schools.com/tags/ref_urlencode.ASP
+            if (!silent && (scmd.length() == 2) && (scmd[0] == 0xC2)) {
+                scmd[0]=scmd[1];
+                scmd.remove(1,1);
+            }
+            if (scmd.length() > 1)
+                scmd += "\n";
+            else if (!is_realtime_cmd(scmd[0]) )
+                scmd += "\n";
+            if (!Serial2Socket.push(scmd.c_str()))
+                res = "Error";
         }
-        _webserver->send (200, "text/plain", res.c_str());
+        _webserver->send (200, "text/plain", res);
     }
 }
-
 
 //login status check
 void Web_Server::handle_login()
@@ -645,7 +568,7 @@ void Web_Server::handle_login()
         return;
     }
 
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
    if (auth_level == LEVEL_GUEST) auths = "guest";
     else if (auth_level == LEVEL_USER) auths = "user";
     else if (auth_level == LEVEL_ADMIN) auths = "admin";
@@ -665,16 +588,8 @@ void Web_Server::handle_login()
             if (msg_alert_error == false) {
                 //Password
                 sPassword = _webserver->arg("PASSWORD");
-                String sadminPassword;
-
-                Preferences prefs;
-                prefs.begin(NAMESPACE, true);
-                String defV = DEFAULT_ADMIN_PWD;
-                sadminPassword = prefs.getString(ADMIN_PWD_ENTRY, defV);
-                String suserPassword;
-                defV = DEFAULT_USER_PWD;
-                suserPassword = prefs.getString(USER_PWD_ENTRY, defV);
-                prefs.end();
+                String sadminPassword = admin_password->get();
+                String suserPassword = user_password->get();
 
                 if(!(((sUser == DEFAULT_ADMIN_LOGIN) && (strcmp(sPassword.c_str(),sadminPassword.c_str()) == 0)) ||
                         ((sUser == DEFAULT_USER_LOGIN) && (strcmp(sPassword.c_str(),suserPassword.c_str()) == 0)))) {
@@ -691,19 +606,18 @@ void Web_Server::handle_login()
         //change password
         if (_webserver->hasArg("PASSWORD") && _webserver->hasArg("USER") && _webserver->hasArg("NEWPASSWORD") && (msg_alert_error==false) ) {
             String newpassword =  _webserver->arg("NEWPASSWORD");
-            if (COMMANDS::isLocalPasswordValid(newpassword.c_str())) {
-                String spos;
-                if(sUser == DEFAULT_ADMIN_LOGIN) spos = ADMIN_PWD_ENTRY;
-                else spos = USER_PWD_ENTRY;
-                
-                Preferences prefs;
-                prefs.begin(NAMESPACE, false);
-                if (prefs.putString(spos.c_str(), newpassword) != newpassword.length()) {
+            if (COMMANDS::isLocalPasswordValid((char *)newpassword.c_str())) {
+                err_t err;
+                if (sUser == DEFAULT_ADMIN_LOGIN) {
+                    err = admin_password->setStringValue((char *)newpassword.c_str());
+                } else {
+                    err = user_password->setStringValue((char *)newpassword.c_str());
+                }
+                if (err) {
                      msg_alert_error = true;
                      smsg = "Error: Cannot apply changes";
                      code = 500;
                 }
-                prefs.end();
             } else {
                 msg_alert_error=true;
                 smsg = "Error: Incorrect password";
@@ -711,7 +625,7 @@ void Web_Server::handle_login()
             }
         }
    if ((code == 200) || (code == 500)) {
-      level_authenticate_type current_auth_level;
+      auth_t current_auth_level;
       if(sUser == DEFAULT_ADMIN_LOGIN) {
             current_auth_level = LEVEL_ADMIN;
         } else  if(sUser == DEFAULT_USER_LOGIN){
@@ -788,7 +702,7 @@ void Web_Server::handle_login()
 //SPIFFS files list and file commands
 void Web_Server::handleFileList ()
 {
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
     if (auth_level == LEVEL_GUEST) {
         _upload_status = UPLOAD_STATUS_NONE;
         _webserver->send (401, "text/plain", "Authentication failed!\n");
@@ -1017,7 +931,7 @@ void Web_Server::SPIFFSFileupload ()
     static String filename;
     static File fsUploadFile = (File)0;
      //get authentication status
-    level_authenticate_type auth_level= is_authenticated();
+    auth_t auth_level= is_authenticated();
     //Guest cannot upload - only admin
     if (auth_level == LEVEL_GUEST) {
         _upload_status = UPLOAD_STATUS_FAILED;
@@ -1140,7 +1054,7 @@ void Web_Server::SPIFFSFileupload ()
 //Web Update handler 
 void Web_Server::handleUpdate ()
 {
-    level_authenticate_type auth_level = is_authenticated();
+    auth_t auth_level = is_authenticated();
     if (auth_level != LEVEL_ADMIN) {
         _upload_status = UPLOAD_STATUS_NONE;
         _webserver->send (403, "text/plain", "Not allowed, log in first!\n");
@@ -1399,6 +1313,7 @@ void Web_Server::handle_direct_SDFileList()
             list_files = false;
         }
     }
+    // TODO Settings - consider using the JSONEncoder class
     String jsonfile = "{" ;
     jsonfile+="\"files\":[";
 
@@ -1688,6 +1603,10 @@ void Web_Server::handle_Websocket_Event(uint8_t num, uint8_t type, uint8_t * pay
 
 }
 
+// The separator that is passed in to this function is always '\n'
+// The string that is returned does not contain the separator
+// The calling code adds back the separator, unless the string is
+// a one-character realtime command.
 String Web_Server::get_Splited_Value(String data, char separator, int index)
 {
   int found = 0;
@@ -1745,7 +1664,7 @@ String Web_Server::getContentType (String filename)
 }
 
 //check authentification
-level_authenticate_type Web_Server::is_authenticated()
+auth_t Web_Server::is_authenticated()
 {
 #ifdef ENABLE_AUTHENTICATION
     if (_webserver->hasHeader ("Cookie") ) {
@@ -1848,7 +1767,7 @@ auth_ip * Web_Server::GetAuth (IPAddress ip, const char * sessionID)
 }
 
 //Review all IP to reset timers
-level_authenticate_type Web_Server::ResetAuthIP (IPAddress ip, const char * sessionID)
+auth_t Web_Server::ResetAuthIP (IPAddress ip, const char * sessionID)
 {
     auth_ip * current = _head;
     auth_ip * previous = NULL;
@@ -1873,7 +1792,7 @@ level_authenticate_type Web_Server::ResetAuthIP (IPAddress ip, const char * sess
                 if (strcmp (sessionID, current->sessionID) == 0) {
                     //reset time
                     current->last_time = millis();
-                    return (level_authenticate_type) current->level;
+                    return (auth_t) current->level;
                 }
             }
             previous = current;

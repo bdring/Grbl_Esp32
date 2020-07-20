@@ -65,10 +65,6 @@ static float last_radius = 0;
 // return false to complete normal home
 // return true to exit normal homing
 bool kinematics_pre_homing(uint8_t cycle_mask) {
-    // cycle mask not used for polar coaster
-    // zero the axes that are not homed
-    sys_position[Y_AXIS] = 0.0f;
-    sys_position[Z_AXIS] = SERVO_Z_RANGE_MAX * settings.steps_per_mm[Z_AXIS];  // Move pen up.
     return false;                                                              // finish normal homing cycle
 }
 

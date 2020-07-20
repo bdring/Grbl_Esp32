@@ -1,5 +1,5 @@
 /*
-    spi_daisy_4axis.h
+    spi_daisy_4axis_xyz.h
     Part of Grbl_ESP32
 
     Pin assignments for a 4-axis machine using Triaminic drivers
@@ -23,39 +23,38 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "SPI Daisy 4x XYZ"
+#define MACHINE_NAME "SPI_DAISY_4X_XYZ"
 
 #ifdef N_AXIS
         #undef N_AXIS
 #endif
 #define N_AXIS 3
 
-#define USE_TRINAMIC
 #define TRINAMIC_DAISY_CHAIN
+
+#define TRINAMIC_RUN_MODE           TRINAMIC_MODE_COOLSTEP
+#define TRINAMIC_HOMING_MODE        TRINAMIC_MODE_COOLSTEP
 
 // Use SPI enable instead of the enable pin
 // The hardware enable pin is tied to ground
 #define USE_TRINAMIC_ENABLE
 
-#define X_DRIVER_TMC2130        // Which Driver Type?
+#define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_14
-#define X_TRINAMIC              // using SPI control
 #define X_CS_PIN                GPIO_NUM_17  // Daisy Chain, all share same CS pin
 
-#define Y_DRIVER_TMC2130        // Which Driver Type?
+#define Y_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define Y_RSENSE                TMC2130_RSENSE_DEFAULT
 #define Y_STEP_PIN              GPIO_NUM_27
 #define Y_DIRECTION_PIN         GPIO_NUM_26
-#define Y_TRINAMIC              // using SPI control
 #define Y_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
-#define Z_DRIVER_TMC2130        // Which Driver Type?
+#define Z_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define Z_RSENSE                TMC2130_RSENSE_DEFAULT
 #define Z_STEP_PIN              GPIO_NUM_15
 #define Z_DIRECTION_PIN         GPIO_NUM_2
-#define Z_TRINAMIC              // using SPI control
 #define Z_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 
@@ -79,5 +78,4 @@
 #define X_LIMIT_PIN             GPIO_NUM_36
 #define Y_LIMIT_PIN             GPIO_NUM_39
 #define Z_LIMIT_PIN             GPIO_NUM_34
-#define LIMIT_MASK              B0111
 

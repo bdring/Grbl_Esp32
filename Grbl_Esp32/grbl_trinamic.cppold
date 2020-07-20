@@ -164,7 +164,7 @@
 
 #ifdef C_TRINAMIC
     #ifdef C_DRIVER_TMC2130
-        TMC2130Stepper TRINAMIC_c = TMC2130Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
+        TMC2130Stepper TRINAMIC_C = TMC2130Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
     #endif
     #ifdef C_DRIVER_TMC2209
         TMC2209Stepper TRINAMIC_C = TMC2209Stepper(C_CS_PIN, C_RSENSE, get_next_trinamic_driver_index());
@@ -187,26 +187,102 @@
 
 void Trinamic_Init() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TMCStepper Init using Library Ver 0x%06x", TMCSTEPPER_VERSION);
+
+    // On Slack Grbl_Esp32 channel, Mitch Bradley suggested.
+    // "Any pin that could possibly be implemented with a GPIO pin needs
+    //  a pinMode before the first active use. pinMode(OUTPUT) does not have to
+    //  precede digitalWrite(HIGH), as the following sequence is useful:
+    //    digitalWrite(GPIOn, HIGH);
+    //    pinMode(GPIOn, OUTPUT);
+    //  The reason for that sequence is that, for pins that default to input mode/tri-state,
+    //  setting it HIGH first prevents a low-going transition if the pin output register
+    //  happens to be LOW when you select OUTPUT mode."
+
+    // Notes on using I2S out:
+    //  The TMC connected to the I2S out requires SPI clocking down (approximately 100 KHz)
+    //  to work in concert with slow CS operations by I2S out.
+
+#ifdef X_DRIVER_TMC2130
+    digitalWrite(X_CS_PIN, HIGH);
+    pinMode(X_CS_PIN, OUTPUT);
+    TRINAMIC_X.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef X2_DRIVER_TMC2130
+    digitalWrite(X2_CS_PIN, HIGH);
+    pinMode(X2_CS_PIN, OUTPUT);
+    TRINAMIC_X2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef Y_DRIVER_TMC2130
+    digitalWrite(Y_CS_PIN, HIGH);
+    pinMode(Y_CS_PIN, OUTPUT);
+    TRINAMIC_Y.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef Y2_DRIVER_TMC2130
+    digitalWrite(Y2_CS_PIN, HIGH);
+    pinMode(Y2_CS_PIN, OUTPUT);
+    TRINAMIC_Y2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef Z_DRIVER_TMC2130
+    digitalWrite(Z_CS_PIN, HIGH);
+    pinMode(Z_CS_PIN, OUTPUT);
+    TRINAMIC_Z.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef Z2_DRIVER_TMC2130
+    digitalWrite(Z2_CS_PIN, HIGH);
+    pinMode(Z2_CS_PIN, OUTPUT);
+    TRINAMIC_Z2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef A_DRIVER_TMC2130
+    digitalWrite(A_CS_PIN, HIGH);
+    pinMode(A_CS_PIN, OUTPUT);
+    TRINAMIC_A.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef A2_DRIVER_TMC2130
+    digitalWrite(A2_CS_PIN, HIGH);
+    pinMode(A2_CS_PIN, OUTPUT);
+    TRINAMIC_A2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef B_DRIVER_TMC2130
+    digitalWrite(B_CS_PIN, HIGH);
+    pinMode(B_CS_PIN, OUTPUT);
+    TRINAMIC_B.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef B2_DRIVER_TMC2130
+    digitalWrite(B2_CS_PIN, HIGH);
+    pinMode(B2_CS_PIN, OUTPUT);
+    TRINAMIC_B2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef C_DRIVER_TMC2130
+    digitalWrite(C_CS_PIN, HIGH);
+    pinMode(C_CS_PIN, OUTPUT);
+    TRINAMIC_C.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+#ifdef C2_DRIVER_TMC2130
+    digitalWrite(C2_CS_PIN, HIGH);
+    pinMode(C2_CS_PIN, OUTPUT);
+    TRINAMIC_C2.setSPISpeed(TRINAMIC_SPI_FREQ);
+#endif
+
     SPI.begin();
 #ifdef USE_MACHINE_TRINAMIC_INIT
     machine_trinamic_setup();
     return;
 #endif
-#ifdef X_TRINAMIC    
+#ifdef X_TRINAMIC
     TRINAMIC_X.begin(); // Initiate pins and registries
-    trinamic_test_response(TRINAMIC_X.test_connection(), "X");    
+    trinamic_test_response(TRINAMIC_X.test_connection(), "X");
     TRINAMIC_X.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);
-    TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
+    TRINAMIC_X.microsteps(axis_settings[X_AXIS]->microsteps->get());
+    TRINAMIC_X.rms_current(axis_settings[X_AXIS]->run_current->get() * 1000.0, axis_settings[X_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_X.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_X.pwm_autoscale(1);
 #endif
-#ifdef X2_TRINAMIC    
+#ifdef X2_TRINAMIC
     TRINAMIC_X2.begin(); // Initiate pins and registries
-    trinamic_test_response(TRINAMIC_X2.test_connection(), "X2");    
+    trinamic_test_response(TRINAMIC_X2.test_connection(), "X2");
     TRINAMIC_X2.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_X2.microsteps(settings.microsteps[X_AXIS]);
-    TRINAMIC_X2.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
+    TRINAMIC_X2.microsteps(axis_settings[X_AXIS]->microsteps->get());
+    TRINAMIC_X2.rms_current(axis_settings[X_AXIS]->run_current->get() * 1000.0, axis_settings[X_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_X2.en_pwm_mode(1);    // Enable extremely quiet stepping
     TRINAMIC_X2.pwm_autoscale(1);
 #endif
@@ -215,8 +291,8 @@ void Trinamic_Init() {
     TRINAMIC_Y.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_Y.test_connection(), "Y");
     TRINAMIC_Y.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
-    TRINAMIC_Y.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS] / 100.0);
+    TRINAMIC_Y.microsteps(axis_settings[Y_AXIS]->microsteps->get());
+    TRINAMIC_Y.rms_current(axis_settings[Y_AXIS]->run_current->get() * 1000.0, axis_settings[Y_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_Y.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_Y.pwm_autoscale(1);
 #endif
@@ -224,8 +300,8 @@ void Trinamic_Init() {
     TRINAMIC_Y2.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_Y2.test_connection(), "Y2");
     TRINAMIC_Y2.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_Y2.microsteps(settings.microsteps[Y_AXIS]);
-    TRINAMIC_Y2.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS] / 100.0);
+    TRINAMIC_Y2.microsteps(axis_settings[Y_AXIS]->microsteps->get());
+    TRINAMIC_Y2.rms_current(axis_settings[Y_AXIS]->run_current->get() * 1000.0, axis_settings[Y_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_Y2.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_Y2.pwm_autoscale(1);
 #endif
@@ -234,8 +310,8 @@ void Trinamic_Init() {
     TRINAMIC_Z.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_Z.test_connection(), "Z");
     TRINAMIC_Z.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_Z.microsteps(settings.microsteps[Z_AXIS]);
-    TRINAMIC_Z.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS] / 100.0);
+    TRINAMIC_Z.microsteps(axis_settings[Z_AXIS]->microsteps->get());
+    TRINAMIC_Z.rms_current(axis_settings[Z_AXIS]->run_current->get() * 1000.0, axis_settings[Z_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_Z.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_Z.pwm_autoscale(1);
 #endif
@@ -243,8 +319,8 @@ void Trinamic_Init() {
     TRINAMIC_Z2.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_Z2.test_connection(), "Z2");
     TRINAMIC_Z2.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_Z2.microsteps(settings.microsteps[Z_AXIS]);
-    TRINAMIC_Z2.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS] / 100.0);
+    TRINAMIC_Z2.microsteps(axis_settings[Z_AXIS]->microsteps->get());
+    TRINAMIC_Z2.rms_current(axis_settings[Z_AXIS]->run_current->get() * 1000.0, axis_settings[Z_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_Z2.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_Z2.pwm_autoscale(1);
 #endif
@@ -253,8 +329,8 @@ void Trinamic_Init() {
     TRINAMIC_A.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_A.test_connection(), "A");
     TRINAMIC_A.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_A.microsteps(settings.microsteps[A_AXIS]);
-    TRINAMIC_A.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS] / 100.0);
+    TRINAMIC_A.microsteps(axis_settings[A_AXIS]->microsteps->get());
+    TRINAMIC_A.rms_current(axis_settings[A_AXIS]->run_current->get() * 1000.0, axis_settings[A_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_A.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_A.pwm_autoscale(1);
 #endif
@@ -262,8 +338,8 @@ void Trinamic_Init() {
     TRINAMIC_A2.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_A2.test_connection(), "A2");
     TRINAMIC_A2.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_A2.microsteps(settings.microsteps[A_AXIS]);
-    TRINAMIC_A2.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS] / 100.0);
+    TRINAMIC_A2.microsteps(axis_settings[A_AXIS]->microsteps->get());
+    TRINAMIC_A2.rms_current(axis_settings[A_AXIS]->run_current->get() * 1000.0, axis_settings[A_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_A2.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_A2.pwm_autoscale(1);
 #endif
@@ -272,8 +348,8 @@ void Trinamic_Init() {
     TRINAMIC_B.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_B.test_connection(), "B");
     TRINAMIC_B.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_B.microsteps(settings.microsteps[B_AXIS]);
-    TRINAMIC_B.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
+    TRINAMIC_B.microsteps(axis_settings[B_AXIS]->microsteps->get());
+    TRINAMIC_B.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_B.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_B.pwm_autoscale(1);
 #endif
@@ -281,8 +357,8 @@ void Trinamic_Init() {
     TRINAMIC_B2.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_B2.test_connection(), "B2");
     TRINAMIC_B2.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_B2.microsteps(settings.microsteps[B_AXIS]);
-    TRINAMIC_B2.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
+    TRINAMIC_B2.microsteps(axis_settings[B_AXIS]->microsteps->get());
+    TRINAMIC_B2.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_B2.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_B2.pwm_autoscale(1);
 #endif
@@ -291,8 +367,8 @@ void Trinamic_Init() {
     TRINAMIC_C.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_C.test_connection(), "C");
     TRINAMIC_C.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_C.microsteps(settings.microsteps[C_AXIS]);
-    TRINAMIC_C.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS] / 100.0);
+    TRINAMIC_C.microsteps(axis_settings[C_AXIS]->microsteps->get());
+    TRINAMIC_C.rms_current(axis_settings[C_AXIS]->run_current->get() * 1000.0, axis_settings[C_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_C.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_C.pwm_autoscale(1);
 #endif
@@ -300,8 +376,8 @@ void Trinamic_Init() {
     TRINAMIC_C2.begin(); // Initiate pins and registries
     trinamic_test_response(TRINAMIC_C2.test_connection(), "C2");
     TRINAMIC_C2.toff(TRINAMIC_DEFAULT_TOFF);
-    TRINAMIC_C2.microsteps(settings.microsteps[C_AXIS]);
-    TRINAMIC_C2.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS] / 100.0);
+    TRINAMIC_C2.microsteps(axis_settings[C_AXIS]->microsteps->get());
+    TRINAMIC_C2.rms_current(axis_settings[C_AXIS]->run_current->get() * 1000.0, axis_settings[C_AXIS]->hold_current->get() / 100.0);
     TRINAMIC_C2.en_pwm_mode(1);      // Enable extremely quiet stepping
     TRINAMIC_C2.pwm_autoscale(1);
 #endif
@@ -310,58 +386,58 @@ void Trinamic_Init() {
 // Call this function called whenever $$ settings that affect the drivers are changed
 void trinamic_change_settings() {
 #ifdef X_TRINAMIC
-    TRINAMIC_X.microsteps(settings.microsteps[X_AXIS]);
-    TRINAMIC_X.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
+  TRINAMIC_X.microsteps(axis_settings[X_AXIS]->microsteps->get());
+  TRINAMIC_X.rms_current(axis_settings[X_AXIS]->run_current->get() * 1000.0, axis_settings[X_AXIS]->hold_current->get() / 100.0);
 #endif
 #ifdef X2_TRINAMIC
-    TRINAMIC_X2.microsteps(settings.microsteps[X_AXIS]);
-    TRINAMIC_X2.rms_current(settings.current[X_AXIS] * 1000.0, settings.hold_current[X_AXIS] / 100.0);
+    TRINAMIC_X2.microsteps(axis_settings[X_AXIS]->microsteps->get());
+    TRINAMIC_X2.rms_current(axis_settings[X_AXIS]->run_current->get() * 1000.0, axis_settings[X_AXIS]->hold_current->get() / 100.0);
 #endif
 
 #ifdef Y_TRINAMIC
-    TRINAMIC_Y.microsteps(settings.microsteps[Y_AXIS]);
-    TRINAMIC_Y.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS] / 100.0);
+    TRINAMIC_Y.microsteps(axis_settings[Y_AXIS]->microsteps->get());
+    TRINAMIC_Y.rms_current(axis_settings[Y_AXIS]->run_current->get() * 1000.0, axis_settings[Y_AXIS]->hold_current->get() / 100.0);
 #endif
 #ifdef Y2_TRINAMIC
-    TRINAMIC_Y2.microsteps(settings.microsteps[Y_AXIS]);
-    TRINAMIC_Y2.rms_current(settings.current[Y_AXIS] * 1000.0, settings.hold_current[Y_AXIS] / 100.0);
+    TRINAMIC_Y2.microsteps(axis_settings[Y_AXIS]->microsteps->get());
+    TRINAMIC_Y2.rms_current(axis_settings[Y_AXIS]->run_current->get() * 1000.0, axis_settings[Y_AXIS]->hold_current->get() / 100.0);
 #endif
 
 
 #ifdef Z_TRINAMIC
-    TRINAMIC_Z.microsteps(settings.microsteps[Z_AXIS]);
-    TRINAMIC_Z.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS] / 100.0);
+    TRINAMIC_Z.microsteps(axis_settings[Z_AXIS]->microsteps->get());
+    TRINAMIC_Z.rms_current(axis_settings[Z_AXIS]->run_current->get() * 1000.0, axis_settings[Z_AXIS]->hold_current->get() / 100.0);
 #endif
 #ifdef Z2_TRINAMIC
-    TRINAMIC_Z2.microsteps(settings.microsteps[Z_AXIS]);
-    TRINAMIC_Z2.rms_current(settings.current[Z_AXIS] * 1000.0, settings.hold_current[Z_AXIS] / 100.0);
+    TRINAMIC_Z2.microsteps(axis_settings[Z_AXIS]->microsteps->get());
+    TRINAMIC_Z2.rms_current(axis_settings[Z_AXIS]->run_current->get() * 1000.0, axis_settings[Z_AXIS]->hold_current->get() / 100.0);
 #endif
 
 #ifdef A_TRINAMIC
-    TRINAMIC_A.microsteps(settings.microsteps[A_AXIS]);
-    TRINAMIC_A.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS] / 100.0);
+    TRINAMIC_A.microsteps(axis_settings[A_AXIS]->microsteps->get());
+    TRINAMIC_A.rms_current(axis_settings[A_AXIS]->run_current->get() * 1000.0, axis_settings[A_AXIS]->hold_current->get() / 100.0);
 #endif
 #ifdef A2_TRINAMIC
-    TRINAMIC_A2.microsteps(settings.microsteps[A_AXIS]);
-    TRINAMIC_A2.rms_current(settings.current[A_AXIS] * 1000.0, settings.hold_current[A_AXIS] / 100.0);
+    TRINAMIC_A2.microsteps(axis_settings[A_AXIS]->microsteps->get());
+    TRINAMIC_A2.rms_current(axis_settings[A_AXIS]->run_current->get() * 1000.0, axis_settings[A_AXIS]->hold_current->get() / 100.0);
 #endif
 
 #ifdef B_TRINAMIC
-    TRINAMIC_B.microsteps(settings.microsteps[B_AXIS]);
-    TTRINAMIC_B.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
+    TRINAMIC_B.microsteps(axis_settings[B_AXIS]->microsteps->get());
+    TRINAMIC_B.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
 #endif
 #ifdef B2_TRINAMIC
-    TRINAMIC_B2.microsteps(settings.microsteps[B_AXIS]);
-    TTRINAMIC_B2.rms_current(settings.current[B_AXIS] * 1000.0, settings.hold_current[B_AXIS] / 100.0);
+    TRINAMIC_B2.microsteps(axis_settings[B_AXIS]->microsteps->get());
+    TRINAMIC_B2.rms_current(axis_settings[B_AXIS]->run_current->get() * 1000.0, axis_settings[B_AXIS]->hold_current->get() / 100.0);
 #endif
 
 #ifdef C_TRINAMIC
-    TRINAMIC_C.microsteps(settings.microsteps[C_AXIS]);
-    TRINAMIC_C.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS] / 100.0);
+    TRINAMIC_C.microsteps(axis_settings[C_AXIS]->microsteps->get());
+    TRINAMIC_C.rms_current(axis_settings[C_AXIS]->run_current->get() * 1000.0, axis_settings[C_AXIS]->hold_current->get() / 100.0);
 #endif
 #ifdef C2_TRINAMIC
-    TRINAMIC_C2.microsteps(settings.microsteps[C_AXIS]);
-    TRINAMIC_C2.rms_current(settings.current[C_AXIS] * 1000.0, settings.hold_current[C_AXIS] / 100.0);
+    TRINAMIC_C2.microsteps(axis_settings[C_AXIS]->microsteps->get());
+    TRINAMIC_C2.rms_current(axis_settings[C_AXIS]->run_current->get() * 1000.0, axis_settings[C_AXIS]->hold_current->get() / 100.0);
 #endif
 
 }
@@ -440,12 +516,21 @@ void trinamic_stepper_enable(bool enable) {
 // returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
 // need to be inserted into the order of axes.
 uint8_t get_next_trinamic_driver_index() {
+#ifdef TRINAMIC_DAISY_CHAIN
     static uint8_t index = 1; // they start at 1
-    #ifndef TRINAMIC_DAISY_CHAIN
-        return -1;
-    #else
-        return index++;
-    #endif
+    return index++;
+#else
+    return -1;
+#endif
 }
+#ifdef USE_I2S_OUT
+//
+// Override default function and insert a short delay
+//
+void TMC2130Stepper::switchCSpin(bool state) {
+    digitalWrite(_pinCS, state);
+    delay(I2S_OUT_DELAY_MS);
+}
+#endif
 
 #endif

@@ -56,7 +56,6 @@
 */
 
 #include "grbl.h"
-#include "commands.h"
 
 portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 

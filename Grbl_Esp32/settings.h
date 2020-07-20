@@ -28,21 +28,7 @@
 #include "grbl.h"
 
 
-// Version of the EEPROM data. Will be used to migrate existing data from older versions of Grbl
-// when firmware is upgraded. Always stored in byte 0 of eeprom
-#define SETTINGS_VERSION 12  // NOTE: Check settings_reset() when moving to next version.
-
-// Define bit flag masks for the boolean settings in settings.flag.
-#define BITFLAG_REPORT_INCHES      bit(0)
-#define BITFLAG_LASER_MODE         bit(1)
-#define BITFLAG_INVERT_ST_ENABLE   bit(2)
-#define BITFLAG_HARD_LIMIT_ENABLE  bit(3)
-#define BITFLAG_HOMING_ENABLE      bit(4)
-#define BITFLAG_SOFT_LIMIT_ENABLE  bit(5)
-#define BITFLAG_INVERT_LIMIT_PINS  bit(6)
-#define BITFLAG_INVERT_PROBE_PIN   bit(7)
-
-// Define status reporting boolean enable bit flags in settings.status_report_mask
+// Define status reporting boolean enable bit flags in status_report_mask
 #define BITFLAG_RT_STATUS_POSITION_TYPE     bit(0)
 #define BITFLAG_RT_STATUS_BUFFER_STATE      bit(1)
 
@@ -61,9 +47,7 @@
 // the startup script. The lower half contains the global settings and space for future
 // developments.
 #define EEPROM_SIZE				   1024U
-#define EEPROM_ADDR_GLOBAL         1U
 #define EEPROM_ADDR_PARAMETERS     512U
-#define EEPROM_ADDR_STARTUP_BLOCK  768U
 #define EEPROM_ADDR_BUILD_INFO     942U
 
 // Define EEPROM address indexing for coordinate parameters
@@ -74,70 +58,15 @@
 #define SETTING_INDEX_G30    N_COORDINATE_SYSTEM+1  // Home position 2
 // #define SETTING_INDEX_G92    N_COORDINATE_SYSTEM+2  // Coordinate offset (G92.2,G92.3 not supported)
 
-// Define Grbl axis settings numbering scheme. Starts at START_VAL, every INCREMENT, over N_SETTINGS.
-#define AXIS_N_SETTINGS          8 // includes extended settings
-
-#define AXIS_SETTINGS_START_VAL  100 // NOTE: Reserving settings values >= 100 for axis settings. Up to 255.
-#define AXIS_SETTINGS_INCREMENT  10  // Must be greater than the number of axis settings
-
 #define USER_SETTING_COUNT 5 // for user to define for their machine
-
-// Global persistent settings (Stored from byte EEPROM_ADDR_GLOBAL onwards)
-typedef struct {
-    // Axis settings
-    float steps_per_mm[N_AXIS];
-    float max_rate[N_AXIS];
-    float acceleration[N_AXIS];
-    float max_travel[N_AXIS];
-    float current[N_AXIS]; //  $140... run current (extended set)
-    float hold_current[N_AXIS]; // $150 percent of run current (extended set)
-    uint16_t microsteps[N_AXIS]; // $160... (extended set)
-    uint8_t stallguard[N_AXIS]; // $170... (extended set)
-
-    // Remaining Grbl settings
-    uint8_t pulse_microseconds;
-    uint8_t step_invert_mask;
-    uint8_t dir_invert_mask;
-    uint8_t stepper_idle_lock_time; // If max value 255, steppers do not disable.
-    uint8_t status_report_mask; // Mask to indicate desired report data.
-    float junction_deviation;
-    float arc_tolerance;
-
-    float spindle_pwm_freq;      // $33 Hz (extended set)
-    float spindle_pwm_off_value; // $34 Percent (extended set)
-    float spindle_pwm_min_value; // $35 Percent (extended set)
-    float spindle_pwm_max_value; // $36 Percent (extended set)
-
-    float rpm_max;
-    float rpm_min;
-
-    uint8_t flags;  // Contains default boolean settings
-
-    uint8_t homing_dir_mask;
-    float homing_feed_rate;
-    float homing_seek_rate;
-    uint16_t homing_debounce_delay;
-    float homing_pulloff;
-
-    int16_t machine_int16[USER_SETTING_COUNT]; // settings starting at 80 to be defined by the user
-    float machine_float[USER_SETTING_COUNT];    // settings starting at 80 to be defined by the user
-
-} settings_t;
-extern settings_t settings;
 
 // Initialize the configuration subsystem (load settings from EEPROM)
 void settings_init();
 void settings_restore(uint8_t restore_flag);
 void write_global_settings();
-uint8_t read_global_settings();
-
-uint8_t settings_read_startup_line(uint8_t n, char* line);
-void settings_store_startup_line(uint8_t n, char* line);
 
 uint8_t settings_read_build_info(char* line);
-void settings_store_build_info(char* line);
-
-uint8_t settings_store_global_setting(uint8_t parameter, float value);
+void settings_store_build_info(const char* line);
 
 // Writes selected coordinate data to EEPROM
 void settings_write_coord_data(uint8_t coord_select, float* coord_data);

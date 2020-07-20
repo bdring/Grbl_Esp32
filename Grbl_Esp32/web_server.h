@@ -31,13 +31,12 @@ class WebServer;
 #ifdef ENABLE_AUTHENTICATION
 struct auth_ip {
     IPAddress ip;
-    level_authenticate_type level;
+    auth_t level;
     char userID[17];
     char sessionID[17];
     uint32_t last_time;
     auth_ip* _next;
 };
-
 #endif
 
 class Web_Server {
@@ -58,7 +57,7 @@ class Web_Server {
     static uint8_t _upload_status;
     static String getContentType(String filename);
     static String get_Splited_Value(String data, char separator, int index);
-    static level_authenticate_type  is_authenticated();
+    static auth_t  is_authenticated();
 #ifdef ENABLE_AUTHENTICATION
     static auth_ip* _head;
     static uint8_t _nb_ip;
@@ -66,7 +65,7 @@ class Web_Server {
     static char* create_session_ID();
     static bool ClearAuthIP(IPAddress ip, const char* sessionID);
     static auth_ip* GetAuth(IPAddress ip, const char* sessionID);
-    static level_authenticate_type ResetAuthIP(IPAddress ip, const char* sessionID);
+    static auth_t ResetAuthIP(IPAddress ip, const char* sessionID);
 #endif
 #ifdef ENABLE_SSDP
     static void handle_SSDP();
@@ -74,8 +73,9 @@ class Web_Server {
     static void handle_root();
     static void handle_login();
     static void handle_not_found();
-    static void handle_web_command();
-    static void handle_web_command_silent();
+    static void _handle_web_command(bool);
+    static void handle_web_command() { _handle_web_command(false); }
+    static void handle_web_command_silent() { _handle_web_command(true); }
     static void handle_Websocket_Event(uint8_t num, uint8_t type, uint8_t* payload, size_t length);
     static void SPIFFSFileupload();
     static void handleFileList();

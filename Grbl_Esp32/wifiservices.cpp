@@ -20,16 +20,13 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "config.h"
+#include "grbl.h"
 
 #ifdef ENABLE_WIFI
 
 #include <WiFi.h>
 #include <FS.h>
 #include <SPIFFS.h>
-#include <Preferences.h>
-#include "report.h"
-#include "wificonfig.h"
 #include "wifiservices.h"
 #ifdef ENABLE_MDNS
     #include <ESPmDNS.h>
@@ -60,13 +57,8 @@ bool WiFiServices::begin() {
     bool no_error = true;
     //Sanity check
     if (WiFi.getMode() == WIFI_OFF) return false;
-    String h;
-    Preferences prefs;
-    //Get hostname
-    String defV = DEFAULT_HOSTNAME;
-    prefs.begin(NAMESPACE, true);
-    h = prefs.getString(HOSTNAME_ENTRY, defV);
-    prefs.end();
+    String h = wifi_hostname->get();
+
     //Start SPIFFS
     SPIFFS.begin(true);
 #ifdef ENABLE_OTA
@@ -148,8 +140,12 @@ void WiFiServices::handle() {
     COMMANDS::wait(0);
     //to avoid mixed mode due to scan network
     if (WiFi.getMode() == WIFI_AP_STA) {
-        if (WiFi.scanComplete() != WIFI_SCAN_RUNNING)
+        // In principle it should be sufficient to check for != WIFI_SCAN_RUNNING,
+        // but that does not work well.  Doing so makes scans in AP mode unreliable.
+        // Sometimes the first try works, but subsequent scans fail.
+        if (WiFi.scanComplete() >= 0) {
             WiFi.enableSTA(false);
+        }
     }
 #ifdef ENABLE_OTA
     ArduinoOTA.handle();

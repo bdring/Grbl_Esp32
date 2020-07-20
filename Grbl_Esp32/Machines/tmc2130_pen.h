@@ -1,5 +1,5 @@
 /*
-    tmc21340_pen.h
+    tmc2130_pen.h
     Part of Grbl_ESP32
 
     Pin assignments for the TMC2130 Pen/Laser controller
@@ -35,19 +35,18 @@
     #define X_LIMIT_PIN     GPIO_NUM_32
 #endif
 
-#define USE_TRINAMIC // Using at least 1 trinamic driver
+#define TRINAMIC_RUN_MODE           TRINAMIC_MODE_COOLSTEP
+#define TRINAMIC_HOMING_MODE        TRINAMIC_MODE_COOLSTEP
 
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_26
-#define X_TRINAMIC              // using SPI control
-#define X_DRIVER_TMC2130        // Which Driver Type?
+#define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define X_CS_PIN                GPIO_NUM_17  //chip select
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
 
 #define Y_STEP_PIN              GPIO_NUM_14
 #define Y_DIRECTION_PIN         GPIO_NUM_25
-#define Y_TRINAMIC              // using SPI control
-#define Y_DRIVER_TMC2130        // Which Driver Type?
+#define Y_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define Y_CS_PIN                GPIO_NUM_16  //chip select
 #define Y_RSENSE                TMC2130_RSENSE_DEFAULT
 
@@ -63,12 +62,9 @@
 #ifdef USE_SERVO_AXES
     #define SPINDLE_TYPE            SPINDLE_TYPE_NONE
 
-    #define SERVO_Z_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
-    #define SERVO_Z_RANGE_MIN               0.0
-    #define SERVO_Z_RANGE_MAX               5.0
-    #define SERVO_Z_HOMING_TYPE             SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-    #define SERVO_Z_HOME_POS                SERVO_Z_RANGE_MAX // move to max during homing
-    #define SERVO_Z_MPOS                    false           // will not use mpos, uses work coordinates
+    #define Z_SERVO_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
+    #define Z_SERVO_RANGE_MIN               0.0
+    #define Z_SERVO_RANGE_MAX               5.0
 #else
 
     #define SPINDLE_TYPE        SPINDLE_TYPE_PWM
@@ -77,7 +73,6 @@
 
 // #define X_LIMIT_PIN          See version section at beginning of file
 #define Y_LIMIT_PIN             GPIO_NUM_4
-#define LIMIT_MASK              B11
 
 // defaults
 #define DEFAULT_Z_STEPS_PER_MM 100.0    // This is used as the servo calibration
