@@ -57,6 +57,7 @@ uint32_t RelaySpindle::set_rpm(uint32_t rpm) {
     sys.spindle_speed = rpm;
     set_output(rpm != 0);    
 
+
     return rpm;
 }
 

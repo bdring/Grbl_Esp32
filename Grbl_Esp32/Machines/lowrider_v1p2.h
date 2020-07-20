@@ -25,8 +25,8 @@
 
 #define USE_GANGED_AXES // allow two motors on an axis
 
-#define X_STEP_PIN          GPIO_NUM_27     // use Z labeled connector
-#define X_DIRECTION_PIN     GPIO_NUM_33     // use Z labeled connector
+#define Y_STEP_PIN          GPIO_NUM_27     // use Z labeled connector
+#define Y_DIRECTION_PIN     GPIO_NUM_33     // use Z labeled connector
 
 #define Y_STEP_PIN          GPIO_NUM_14
 #define Y2_STEP_PIN         GPIO_NUM_21     // ganged motor
@@ -38,7 +38,13 @@
 #define Z2_STEP_PIN         GPIO_NUM_22     // use X labeled connector
 #define Z_DIRECTION_PIN     GPIO_NUM_26     // use X labeled connector
 #define Z2_DIRECTION_PIN    Z_DIRECTION_PIN
+
 #define Z_AXIS_SQUARING
+
+#define X_STEP_PIN          GPIO_NUM_12     // use X labeled connector
+#define X2_STEP_PIN         GPIO_NUM_22     // ganged motor
+#define X_DIRECTION_PIN     GPIO_NUM_26     // use X labeled connector
+#define X_AXIS_SQUARING
 
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
@@ -52,21 +58,22 @@
 #else
     #define SPINDLE_TYPE SPINDLE_TYPE_PWM
     #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
-    #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
+    #define SPINDLE_ENABLE_PIN         GPIO_NUM_32
 #endif
 
 // Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
 // Relay can be used for Spindle or Coolant
 //#define COOLANT_FLOOD_PIN             GPIO_NUM_17
 
-#define X_LIMIT_PIN             GPIO_NUM_15
-#define Y_LIMIT_PIN             GPIO_NUM_4
-#define Z_LIMIT_PIN             GPIO_NUM_17
+#define Y_LIMIT_PIN             GPIO_NUM_15
+#define Z_LIMIT_PIN             GPIO_NUM_4
+#define X_LIMIT_PIN             GPIO_NUM_17
 
 #ifndef ENABLE_SOFTWARE_DEBOUNCE   // V1P2 does not have R/C filters
     #define ENABLE_SOFTWARE_DEBOUNCE
 #endif
 
+#define PROBE_PIN               GPIO_NUM_35
 
 // The default value in config.h is wrong for this controller
 #ifdef INVERT_CONTROL_PIN_MASK

@@ -2,7 +2,7 @@
 
 # Grbl (CNC Controller) For ESP32
 
-![ESP32](http://www.buildlog.net/blog/wp-content/uploads/2018/10/20181007_153826.jpg)
+<img src="https://github.com/bdring/6-Pack_CNC_Controller/blob/master/images/20200711_120633.jpg" width="600">
 
 ### Project Overview
 
@@ -15,6 +15,7 @@ Grbl_ESP32 started as a port of [Grbl](https://github.com/gnea/grbl) to the ESP3
   - Motor drivers can be dynamically assigned to axes, so a 4 motor XYZA controller could be converted to a XYYZ (dual motor Y axis) without any hardware changes.
   - Step rates up to 120,000 per/second.
   - Trinamic (SPI controlled) stepper motors are supported including StealthChop, CoolStep and StallGuard modes. Sensorless homing can be used.
+  - Unipolar stepper motor can be directly driven
   - RC hobby servos can be used as coordinated motors with acceleration and speed control. 
 - **Peripherals**
   - Limit/Homing Switches with debouncing

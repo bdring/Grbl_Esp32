@@ -218,11 +218,16 @@ void PWMSpindle::set_output(uint32_t duty) {
 
 void PWMSpindle::set_enable_pin(bool enable) {
 
-if (_off_with_zero_speed &&  sys.spindle_speed == 0)
+    if (_enable_pin == UNDEFINED_PIN)
+        return;
+
+    if (_off_with_zero_speed &&  sys.spindle_speed == 0)
         enable = false;
 
-#ifdef INVERT_SPINDLE_ENABLE_PIN
-    enable = !enable;
+#ifndef INVERT_SPINDLE_ENABLE_PIN
+    digitalWrite(_enable_pin, enable);
+#else
+    digitalWrite(_enable_pin, !enable);
 #endif
     digitalWrite(_enable_pin, enable);
 }
