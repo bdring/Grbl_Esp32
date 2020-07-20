@@ -57,12 +57,78 @@ void gc_sync_position() {
 }
 
 
-// Executes one line of 0-terminated G-Code. The line is assumed to contain only uppercase
-// characters and signed floating point values (no whitespace). Comments and block delete
-// characters have been removed. In this function, all units and positions are converted and
+// Edit GCode line in-place, removing whitespace and comments and
+// converting to uppercase
+void collapseGCode(char *line) {
+    // parenPtr, if non-NULL, is the address of the character after (
+    char* parenPtr = NULL;
+    // outPtr is the address where newly-processed characters will be placed.
+    // outPtr is alway less than or equal to inPtr.
+    char* outPtr = line;
+    char c;
+    for (char* inPtr = line; (c = *inPtr) != '\0'; inPtr++) {
+        if (isspace(c)) {
+            continue;
+        }
+        switch (c) {
+            case ')':
+                if (parenPtr) {
+                    // Terminate comment by replacing ) with NUL
+                    *inPtr = '\0';
+                    report_gcode_comment(parenPtr);
+                    parenPtr = NULL;
+                }
+                // Strip out ) that does not follow a (
+                break;
+            case '(':
+                // Start the comment at the character after (
+                parenPtr = inPtr + 1;
+                break;
+            case ';':
+                // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
+#ifdef REPORT_SEMICOLON_COMMENTS
+                report_gcode_comment(inPtr + 1);
+#endif
+                *outPtr = '\0';
+                return;
+            case '%':
+                // TODO: Install '%' feature
+                // Program start-end percent sign NOT SUPPORTED.
+                // NOTE: This maybe installed to tell Grbl when a program is running vs manual input,
+                // where, during a program, the system auto-cycle start will continue to execute
+                // everything until the next '%' sign. This will help fix resuming issues with certain
+                // functions that empty the planner buffer to execute its task on-time.
+                break;
+            case '\r':
+                // In case one sneaks in
+                break;
+            default:
+                if (!parenPtr) {
+                    *outPtr++ = toupper(c); // make upper case
+                }
+        }
+    }
+    // On loop exit, *inPtr is '\0'
+    if (parenPtr) {
+        // Handle unterminated ( comments
+        report_gcode_comment(parenPtr);
+    }
+    *outPtr = '\0';
+}
+
+// Executes one line of NUL-terminated G-Code.
+// The line may contain whitespace and comments, which are first removed,
+// and lower case characters, which are converted to upper case.
+// In this function, all units and positions are converted and
 // exported to grbl's internal functions in terms of (mm, mm/min) and absolute machine
 // coordinates, respectively.
 uint8_t gc_execute_line(char* line, uint8_t client) {
+    // Step 0 - remove whitespace and comments and convert to upper case
+    collapseGCode(line);
+#ifdef REPORT_ECHO_LINE_RECEIVED
+    report_echo_line_received(line, client);
+#endif
+
     /* -------------------------------------------------------------------------------------
        STEP 1: Initialize parser block struct and copy current g-code state modes. The parser
        updates these modes and commands as the block line is parser and will only be used and
@@ -301,7 +367,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                     gc_block.modal.spindle = SPINDLE_ENABLE_CW;
                     break;
                 case 4: // Supported if SPINDLE_DIR_PIN is defined or laser mode is on.
-                    if (spindle->is_reversable || bit_istrue(settings.flags, BITFLAG_LASER_MODE))
+                    if (spindle->is_reversable || laser_mode->get())
                         gc_block.modal.spindle = SPINDLE_ENABLE_CCW;
                     else
                         FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
@@ -378,21 +444,21 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             case 'A':
                 word_bit = WORD_A;
                 gc_block.values.xyz[A_AXIS] = value;
-                axis_words |= (1 << A_AXIS);
+                axis_words |= bit(A_AXIS);
                 break;
 #endif
 #if (N_AXIS > B_AXIS)
             case 'B':
                 word_bit = WORD_B;
                 gc_block.values.xyz[B_AXIS] = value;
-                axis_words |= (1 << B_AXIS);
+                axis_words |= bit(B_AXIS);
                 break;
 #endif
 #if (N_AXIS > C_AXIS)
             case 'C':
                 word_bit = WORD_C;
                 gc_block.values.xyz[C_AXIS] = value;
-                axis_words |= (1 << C_AXIS);
+                axis_words |= bit(C_AXIS);
                 break;
 #endif
             // case 'D': // Not supported
@@ -404,17 +470,17 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             case 'I':
                 word_bit = WORD_I;
                 gc_block.values.ijk[X_AXIS] = value;
-                ijk_words |= (1 << X_AXIS);
+                ijk_words |= bit(X_AXIS);
                 break;
             case 'J':
                 word_bit = WORD_J;
                 gc_block.values.ijk[Y_AXIS] = value;
-                ijk_words |= (1 << Y_AXIS);
+                ijk_words |= bit(Y_AXIS);
                 break;
             case 'K':
                 word_bit = WORD_K;
                 gc_block.values.ijk[Z_AXIS] = value;
-                ijk_words |= (1 << Z_AXIS);
+                ijk_words |= bit(Z_AXIS);
                 break;
             case 'L':
                 word_bit = WORD_L;
@@ -448,17 +514,17 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             case 'X':
                 word_bit = WORD_X;
                 gc_block.values.xyz[X_AXIS] = value;
-                axis_words |= (1 << X_AXIS);
+                axis_words |= bit(X_AXIS);
                 break;
             case 'Y':
                 word_bit = WORD_Y;
                 gc_block.values.xyz[Y_AXIS] = value;
-                axis_words |= (1 << Y_AXIS);
+                axis_words |= bit(Y_AXIS);
                 break;
             case 'Z':
                 word_bit = WORD_Z;
                 gc_block.values.xyz[Z_AXIS] = value;
-                axis_words |= (1 << Z_AXIS);
+                axis_words |= bit(Z_AXIS);
                 break;
             default:
                 FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
@@ -635,7 +701,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     //   is absent or if any of the other axis words are present.
     if (axis_command == AXIS_COMMAND_TOOL_LENGTH_OFFSET) {  // Indicates called in block.
         if (gc_block.modal.tool_length == TOOL_LENGTH_OFFSET_ENABLE_DYNAMIC) {
-            if (axis_words ^ (1 << TOOL_LENGTH_OFFSET_AXIS))
+            if (axis_words ^ bit(TOOL_LENGTH_OFFSET_AXIS))
                 FAIL(STATUS_GCODE_G43_DYNAMIC_AXIS_ERROR);
         }
     }
@@ -671,7 +737,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         if (!axis_words) {
             FAIL(STATUS_GCODE_NO_AXIS_WORDS)
         }; // [No axis words]
-        if (bit_isfalse(value_words, ((1 << WORD_P) | (1 << WORD_L)))) {
+        if (bit_isfalse(value_words, (bit(WORD_P) | bit(WORD_L)))) {
             FAIL(STATUS_GCODE_VALUE_WORD_MISSING);    // [P/L word missing]
         }
         coord_select = trunc(gc_block.values.p); // Convert p value to int.
@@ -776,7 +842,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             if (axis_words) {
                 // Move only the axes specified in secondary move.
                 for (idx = 0; idx < N_AXIS; idx++) {
-                    if (!(axis_words & (1 << idx)))
+                    if (!(axis_words & bit(idx)))
                         gc_block.values.ijk[idx] = gc_state.position[idx];
                 }
             } else {
@@ -1037,7 +1103,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         return (status);
     }
     // If in laser mode, setup laser power based on current and past parser conditions.
-    if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
+    if (laser_mode->get()) {
         if (!((gc_block.modal.motion == MOTION_MODE_LINEAR) || (gc_block.modal.motion == MOTION_MODE_CW_ARC)
                 || (gc_block.modal.motion == MOTION_MODE_CCW_ARC)))
             gc_parser_flags |= GC_PARSER_LASER_DISABLE;
@@ -1125,7 +1191,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // turn on/off an i/o pin
     if ((gc_block.modal.io_control == NON_MODAL_IO_ENABLE) || (gc_block.modal.io_control == NON_MODAL_IO_DISABLE)) {
         if (gc_block.values.p <= MAX_USER_DIGITAL_PIN)
-            sys_io_control(1 << (int)gc_block.values.p, (gc_block.modal.io_control == NON_MODAL_IO_ENABLE));
+            sys_io_control(bit((int)gc_block.values.p), (gc_block.modal.io_control == NON_MODAL_IO_ENABLE));
         else
             FAIL(STATUS_P_PARAM_MAX_EXCEEDED);
     }

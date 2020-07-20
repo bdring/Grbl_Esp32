@@ -40,7 +40,9 @@
 #define Z_STEP_PIN      GPIO_NUM_27
 
 #define X_DIRECTION_PIN GPIO_NUM_26
+#define X2_DIRECTION_PIN X_DIRECTION_PIN
 #define Y_DIRECTION_PIN GPIO_NUM_25
+#define Y2_DIRECTION_PIN Y_DIRECTION_PIN
 #define Z_DIRECTION_PIN GPIO_NUM_33
 
 // OK to comment out to use pin for other features
@@ -68,7 +70,6 @@
 #define X_LIMIT_PIN             GPIO_NUM_2
 #define Y_LIMIT_PIN             GPIO_NUM_4
 #define Z_LIMIT_PIN             GPIO_NUM_15
-#define LIMIT_MASK              B111
 
 #define PROBE_PIN               GPIO_NUM_35
 
@@ -126,9 +127,9 @@
 #define DEFAULT_Y_MAX_RATE 8000.0 // mm/min
 #define DEFAULT_Z_MAX_RATE 3000.0 // mm/min
 
-#define DEFAULT_X_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
-#define DEFAULT_Y_ACCELERATION (200.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
-#define DEFAULT_Z_ACCELERATION (100.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
+#define DEFAULT_X_ACCELERATION 200.0 // mm/sec^2
+#define DEFAULT_Y_ACCELERATION 200.0 // mm/sec^2
+#define DEFAULT_Z_ACCELERATION 100.0 // mm/sec^2
 
 #define DEFAULT_X_MAX_TRAVEL 500.0 // mm NOTE: Must be a positive value.
 #define DEFAULT_Y_MAX_TRAVEL 500.0 // mm NOTE: Must be a positive value.

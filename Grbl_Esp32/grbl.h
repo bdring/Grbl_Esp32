@@ -21,8 +21,8 @@
 #pragma once
 // Grbl versioning system
 
-#define GRBL_VERSION "1.2a"
-#define GRBL_VERSION_BUILD "20200710"
+#define GRBL_VERSION "1.3a"
+#define GRBL_VERSION_BUILD "20200720"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -41,6 +41,7 @@
 
 #include "defaults.h"
 #include "settings.h"
+#include "authentication.h"
 #include "system.h"
 
 #include "planner.h"
@@ -54,17 +55,22 @@
 #include "protocol.h"
 #include "report.h"
 #include "serial.h"
+#include "Pins.h"
 #include "Spindles/SpindleClass.h"
+#include "Motors/MotorClass.h"
 #include "stepper.h"
 #include "jog.h"
 #include "inputbuffer.h"
+#include "commands.h"
+#include "SettingsClass.h"
+#include "SettingsDefinitions.h"
+#include "WebSettings.h"
+
+// Do not guard this because it is needed for local files too
+#include "grbl_sd.h"
 
 #ifdef ENABLE_BLUETOOTH
     #include "BTconfig.h"
-#endif
-
-#ifdef ENABLE_SD_CARD
-    #include "grbl_sd.h"
 #endif
 
 #ifdef ENABLE_WIFI
@@ -92,6 +98,10 @@
 
 #ifdef USE_UNIPOLAR
     #include "grbl_unipolar.h"
+#endif
+
+#ifdef USE_I2S_OUT
+    #include "i2s_out.h"
 #endif
 
 // Called if USE_MACHINE_INIT is defined

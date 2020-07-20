@@ -30,8 +30,8 @@ void DacSpindle :: init() {
     if (_output_pin == UNDEFINED_PIN)
         return;
 
-    _min_rpm = settings.rpm_min;
-    _max_rpm = settings.rpm_max;
+    _min_rpm = rpm_min->get();
+    _max_rpm = rpm_max->get();
     _pwm_min_value = 0;     // not actually PWM...DAC counts
     _pwm_max_value = 255;   // not actually PWM...DAC counts
     _gpio_ok = true;
@@ -42,12 +42,8 @@ void DacSpindle :: init() {
         return;
     }
 
-    if (_enable_pin != UNDEFINED_PIN)
-        pinMode(_enable_pin, OUTPUT);
-
-    if (_direction_pin != UNDEFINED_PIN) {
-        pinMode(_direction_pin, OUTPUT);
-    }
+    pinMode(_enable_pin, OUTPUT);
+    pinMode(_direction_pin, OUTPUT);
 
     is_reversable = (_direction_pin != UNDEFINED_PIN);
 
@@ -57,17 +53,17 @@ void DacSpindle :: init() {
 void DacSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "DAC spindle Output:%d, Enbl:%d, Dir:%d, Res:8bits",
-                   report_pin_number(_output_pin),
-                   report_pin_number(_enable_pin), // 255 means pin not defined
-                   report_pin_number(_direction_pin)); // 255 means pin not defined                  
+                   "DAC spindle Output:%s, Enbl:%s, Dir:%s, Res:8bits",
+                   pinName(_output_pin).c_str(),
+                   pinName(_enable_pin).c_str(),
+                   pinName(_direction_pin).c_str());
 }
 
 uint32_t DacSpindle::set_rpm(uint32_t rpm) {
     if (_output_pin == UNDEFINED_PIN)
         return rpm;
 
-    uint32_t pwm_value;    
+    uint32_t pwm_value;
 
     // apply overrides and limits
     rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle speed override value (percent)

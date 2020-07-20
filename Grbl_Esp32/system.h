@@ -22,6 +22,7 @@
 #define system_h
 #include "grbl.h"
 #include "tdef.h"
+#include "commands.h"
 
 // Define global system variables
 typedef struct {
@@ -153,8 +154,6 @@ extern system_t sys;
 #define SPINDLE_STOP_OVR_RESTORE        bit(2)
 #define SPINDLE_STOP_OVR_RESTORE_CYCLE  bit(3)
 
-#define UNDEFINED_PIN 255  // Can be used to show a pin has no i/O assigned
-
 // NOTE: These position variables may need to be declared as volatiles, if problems arise.
 extern int32_t sys_position[N_AXIS];      // Real-time machine (aka home) position vector in steps.
 extern int32_t sys_probe_position[N_AXIS]; // Last probe position in machine coordinates and steps.
@@ -193,8 +192,10 @@ void system_clear_exec_accessory_overrides();
 
 // Execute the startup script lines stored in EEPROM upon initialization
 void system_execute_startup(char* line);
-uint8_t system_execute_line(char* line, uint8_t client);
-
+uint8_t execute_line(char* line, uint8_t client, auth_t auth_level);
+uint8_t system_execute_line(char* line, ESPResponseStream*, auth_t);
+uint8_t system_execute_line(char* line, uint8_t client, auth_t);
+uint8_t do_command_or_setting(const char *key, char *value, auth_t auth_level, ESPResponseStream*);
 void system_flag_wco_change();
 
 // Returns machine position of axis 'idx'. Must be sent a 'step' array.
@@ -205,7 +206,6 @@ void system_convert_array_steps_to_mpos(float* position, int32_t* steps);
 
 // Checks and reports if target array exceeds machine travel limits.
 uint8_t system_check_travel_limits(float* target);
-uint8_t get_limit_pin_mask(uint8_t axis_idx);
 
 // Special handlers for setting and clearing Grbl's real-time execution flags.
 void system_set_exec_state_flag(uint8_t mask);

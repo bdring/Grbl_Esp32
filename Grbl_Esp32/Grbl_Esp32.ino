@@ -22,6 +22,7 @@
 #include "WiFi.h"
 
 #include "Spindles/SpindleClass.cpp"
+#include "Motors/MotorClass.cpp"
 
 // Declare system global variable structure
 system_t sys;
@@ -41,6 +42,9 @@ Spindle *spindle;
 
 
 void setup() {
+#ifdef USE_I2S_OUT
+    i2s_out_init();    // The I2S out must be initialized before it can access the expanded GPIO port
+#endif
     WiFi.persistent(false);
     WiFi.disconnect(true);
     WiFi.enableSTA(false);
@@ -60,6 +64,7 @@ void setup() {
 #endif
     settings_init(); // Load Grbl settings from EEPROM
     stepper_init();  // Configure stepper pins and interrupt timers
+    init_motors();
     system_ini();   // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
     memset(sys_position, 0, sizeof(sys_position)); // Clear machine position.
 #ifdef USE_PEN_SERVO
@@ -89,9 +94,9 @@ void setup() {
     // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
     // things uncontrollably. Very bad.
 #ifdef HOMING_INIT_LOCK
-    if (bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE))  sys.state = STATE_ALARM;
+    if (homing_enable->get())  sys.state = STATE_ALARM;
 #endif
-    spindle_select(SPINDLE_TYPE);
+    spindle_select();
 #ifdef ENABLE_WIFI
     wifi_config.begin();
 #endif

@@ -38,6 +38,18 @@
 #define B_AXIS 4
 #define C_AXIS 5
 
+#define MAX_AXES 6
+#define MAX_GANGED 2
+
+#define PRIMARY_MOTOR    0
+#define GANGED_MOTOR     1
+
+#define X2_AXIS (X_AXIS + MAX_AXES)
+#define Y2_AXIS (Y_AXIS + MAX_AXES)
+#define Z2_AXIS (Z_AXIS + MAX_AXES)
+#define A2_AXIS (A_AXIS + MAX_AXES)
+#define B2_AXIS (B_AXIS + MAX_AXES)
+#define C2_AXIS (C_AXIS + MAX_AXES)
 
 // CoreXY motor assignments. DO NOT ALTER.
 // NOTE: If the A and B motor axis bindings are changed, this effects the CoreXY equations.
@@ -73,7 +85,7 @@
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is
 // a pointer to the result variable. Returns true when it succeeds
-uint8_t read_float(char* line, uint8_t* char_counter, float* float_ptr);
+uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr);
 
 // Non-blocking delay function used for general operation and suspend features.
 void delay_sec(float seconds, uint8_t mode);
@@ -85,13 +97,15 @@ void delay_ms(uint16_t ms);
 float hypot_f(float x, float y);
 
 float convert_delta_vector_to_unit_vector(float* vector);
-float limit_value_by_axis_maximum(float* max_value, float* unit_vec);
+float limit_acceleration_by_axis_maximum(float* unit_vec);
+float limit_rate_by_axis_maximum(float* unit_vec);
 
 float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
 float map_float(float x, float in_min, float in_max, float out_min, float out_max);
 uint32_t map_uint32_t(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max);
 float constrain_float(float in, float min, float max);
 bool char_is_numeric(char value);
+char* trim(char* value);
 
 template <class T> void swap(T& a, T& b) {
     T c(a); a = b; b = c;

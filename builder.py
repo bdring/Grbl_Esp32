@@ -22,6 +22,7 @@ def buildMachine(baseName, verbose=True, extraArgs=None):
     else:
         app = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1)
         for line in app.stdout:
+            line = line.decode('utf8')
             if "Took" in line or 'Uploading' in line or "error" in line.lower():
                 print(line, end='')
     app.wait()

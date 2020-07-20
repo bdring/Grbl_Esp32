@@ -23,22 +23,70 @@
 */
 
 #include "grbl.h"
-#include "config.h"
-#include "commands.h"
-#include "espresponse.h"
-
-// Define line flags. Includes comment type tracking and line overflow detection.
-#define LINE_FLAG_OVERFLOW bit(0)
-#define LINE_FLAG_COMMENT_PARENTHESES bit(1)
-#define LINE_FLAG_COMMENT_SEMICOLON bit(2)
-#define LINE_FLAG_BRACKET bit(3) // square bracket for WebUI commands
-
-
-static char line[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
-static char comment[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
 
 static void protocol_exec_rt_suspend();
 
+static char line[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
+static char comment[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
+static uint8_t line_flags = 0;
+static uint8_t char_counter = 0;
+static uint8_t comment_char_counter = 0;
+
+typedef struct {
+    char buffer[LINE_BUFFER_SIZE];
+    int  len;
+    int  line_number;
+} client_line_t;
+client_line_t client_lines[CLIENT_COUNT];
+
+void empty_line(uint8_t client)
+{
+    client_line_t* cl = &client_lines[client];
+    cl->len = 0;
+    cl->buffer[0] = '\0';
+}
+err_t add_char_to_line(char c, uint8_t client)
+{
+    client_line_t* cl = &client_lines[client];
+    // Simple editing for interactive input
+    if (c == '\b') {
+        // Backspace erases
+        if (cl->len) {
+            --cl->len;
+            cl->buffer[cl->len] = '\0';
+        }
+        return STATUS_OK;
+    }
+    if (cl->len == (LINE_BUFFER_SIZE - 1)) {
+        return STATUS_OVERFLOW;
+    }
+    if (c == '\r' || c == '\n') {
+        cl->len = 0;
+        cl->line_number++;
+        return STATUS_EOL;
+    }
+    cl->buffer[cl->len++] = c;
+    cl->buffer[cl->len] = '\0';
+    return STATUS_OK;
+}
+
+err_t execute_line(char* line, uint8_t client, auth_t auth_level)
+{
+    err_t result = STATUS_OK;
+    // Empty or comment line. For syncing purposes.
+    if (line[0] == 0) {
+        return STATUS_OK;
+    }
+    // Grbl '$' or WebUI '[ESPxxx]' system command
+    if (line[0] == '$' || line[0] == '[') {
+        return system_execute_line(line, client, auth_level);
+    }
+    // Everything else is gcode. Block if in alarm or jog mode.
+    if (sys.state & (STATE_ALARM | STATE_JOG)) {
+        return STATUS_SYSTEM_GC_LOCK;
+    }
+    return gc_execute_line(line, client);
+}
 
 /*
   GRBL PRIMARY LOOP:
@@ -47,7 +95,7 @@ void protocol_main_loop() {
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
 #ifdef CHECK_LIMITS_AT_INIT
-    if (bit_istrue(settings.flags, BITFLAG_HARD_LIMIT_ENABLE)) {
+    if (hard_limits->get()) {
         if (limits_get_state()) {
             sys.state = STATE_ALARM; // Ensure alarm state is active.
             report_feedback_message(MESSAGE_CHECK_LIMITS);
@@ -74,15 +122,12 @@ void protocol_main_loop() {
     // Primary loop! Upon a system abort, this exits back to main() to reset the system.
     // This is also where Grbl idles while waiting for something to do.
     // ---------------------------------------------------------------------------------
-    uint8_t line_flags = 0;
-    uint8_t char_counter = 0;
-    uint8_t comment_char_counter = 0;
     uint8_t c;
     for (;;) {
 #ifdef ENABLE_SD_CARD
         if (SD_ready_next) {
             char fileLine[255];
-            if (readFileLine(fileLine)) {
+            if (readFileLine(fileLine, 255)) {
                 SD_ready_next = false;
                 report_status_message(gc_execute_line(fileLine, SD_client), SD_client);
             } else {
@@ -93,102 +138,34 @@ void protocol_main_loop() {
             }
         }
 #endif
-        // Process one line of incoming serial data, as the data becomes available. Performs an
-        // initial filtering by removing spaces and comments and capitalizing all letters.
+        // Receive one line of incoming serial data, as the data becomes available.
+        // Filtering, if necessary, is done later in gc_execute_line(), so the
+        // filtering is the same with serial and file input.
         uint8_t client = CLIENT_SERIAL;
+        char* line;
         for (client = 0; client < CLIENT_COUNT; client++) {
             while ((c = serial_read(client)) != SERIAL_NO_DATA) {
-                if ((c == '\n') || (c == '\r')) { // End of line reached
-                    protocol_execute_realtime(); // Runtime command check point.
-                    if (sys.abort)  return;   // Bail to calling function upon system abort
-                    line[char_counter] = 0; // Set string termination character.
-#ifdef REPORT_ECHO_LINE_RECEIVED
-                    report_echo_line_received(line, client);
+                err_t res = add_char_to_line(c, client);
+                switch (res) {
+                    case STATUS_OK:
+                        break;
+                    case STATUS_EOL:
+                        protocol_execute_realtime(); // Runtime command check point.
+                        if (sys.abort) {
+                            return;   // Bail to calling function upon system abort
+                        }
+                        line = client_lines[client].buffer;
+#ifdef REPORT_ECHO_RAW_LINE_RECEIVED
+                        report_echo_line_received(line, client);
 #endif
-                    // Direct and execute one line of formatted input, and report status of execution.
-                    if (line_flags & LINE_FLAG_OVERFLOW) {
-                        // Report line overflow error.
+                        // auth_level can be upgraded by supplying a password on the command line
+                        report_status_message(execute_line(line, client, LEVEL_GUEST), client);
+                        empty_line(client);
+                        break;
+                    case STATUS_OVERFLOW:
                         report_status_message(STATUS_OVERFLOW, client);
-                    } else if (line[0] == 0) {
-                        // Empty or comment line. For syncing purposes.
-                        report_status_message(STATUS_OK, client);
-                    } else if (line[0] == '$') {
-                        // Grbl '$' system command
-                        report_status_message(system_execute_line(line, client), client);
-                    } else if (line[0] == '[') {
-                        int cmd = 0;
-                        String cmd_params;
-                        if (COMMANDS::check_command(line, &cmd, cmd_params)) {
-                            ESPResponseStream espresponse(client, true);
-                            if (!COMMANDS::execute_internal_command(cmd, cmd_params, LEVEL_GUEST, &espresponse))
-                                report_status_message(STATUS_GCODE_UNSUPPORTED_COMMAND, CLIENT_ALL);
-                        } else grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Unknow Command...%s", line);
-                    } else if (sys.state & (STATE_ALARM | STATE_JOG)) {
-                        // Everything else is gcode. Block if in alarm or jog mode.
-                        report_status_message(STATUS_SYSTEM_GC_LOCK, client);
-                    } else {
-                        // Parse and execute g-code block
-                        report_status_message(gc_execute_line(line, client), client);
-                    }
-                    // Reset tracking data for next line.
-                    line_flags = 0;
-                    char_counter = 0;
-                    comment_char_counter = 0;
-                } else {
-                    if (line_flags) {
-                        if (line_flags & LINE_FLAG_BRACKET)    // in bracket mode all characters are accepted
-                            line[char_counter++] = c;
-                        // Throw away all (except EOL) comment characters and overflow characters.
-                        if (c == ')') {
-                            // End of '()' comment. Resume line allowed.
-                            if (line_flags & LINE_FLAG_COMMENT_PARENTHESES) {
-                                line_flags &= ~(LINE_FLAG_COMMENT_PARENTHESES);
-                                comment[comment_char_counter] = 0; // null terminate
-                                report_gcode_comment(comment);
-                            }
-                        }
-                        if (line_flags & LINE_FLAG_COMMENT_PARENTHESES)    // capture all characters into a comment buffer
-                            comment[comment_char_counter++] = c;
-                    } else {
-                        if (c <= ' ') {
-                            // Throw away whitepace and control characters
-                        }
-                        /*
-                        else if (c == '/') {
-                        	// Block delete NOT SUPPORTED. Ignore character.
-                        	// NOTE: If supported, would simply need to check the system if block delete is enabled.
-                        }
-                        */
-                        else if (c == '(') {
-                            // Enable comments flag and ignore all characters until ')' or EOL.
-                            // NOTE: This doesn't follow the NIST definition exactly, but is good enough for now.
-                            // In the future, we could simply remove the items within the comments, but retain the
-                            // comment control characters, so that the g-code parser can error-check it.
-                            line_flags |= LINE_FLAG_COMMENT_PARENTHESES;
-                            comment_char_counter = 0;
-                        } else if (c == ';') {
-                            // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
-                            line_flags |= LINE_FLAG_COMMENT_SEMICOLON;
-                        } else if (c == '[') {
-                            // For ESP3D bracket commands like [ESP100]<SSID>pwd=<admin password>
-                            // prevents spaces being striped and converting to uppercase
-                            line_flags |= LINE_FLAG_BRACKET;
-                            line[char_counter++] = c; // capture this character
-                            // TODO: Install '%' feature
-                        } else if (c == '%') {
-                            // Program start-end percent sign NOT SUPPORTED.
-                            // NOTE: This maybe installed to tell Grbl when a program is running vs manual input,
-                            // where, during a program, the system auto-cycle start will continue to execute
-                            // everything until the next '%' sign. This will help fix resuming issues with certain
-                            // functions that empty the planner buffer to execute its task on-time.
-                        } else if (char_counter >= (LINE_BUFFER_SIZE - 1)) {
-                            // Detect line buffer overflow and set flag.
-                            line_flags |= LINE_FLAG_OVERFLOW;
-                        } else if (c >= 'a' && c <= 'z')   // Upcase lowercase
-                            line[char_counter++] = c - 'a' + 'A';
-                        else
-                            line[char_counter++] = c;
-                    }
+                        empty_line(client);
+                        break;
                 }
             } // while serial read
         } // for clients
@@ -197,11 +174,14 @@ void protocol_main_loop() {
         // completed. In either case, auto-cycle start, if enabled, any queued moves.
         protocol_auto_cycle_start();
         protocol_execute_realtime();  // Runtime command check point.
-        if (sys.abort)  return;   // Bail to main() program loop to reset system.
+        if (sys.abort) {
+            return;   // Bail to main() program loop to reset system.
+        }
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
         if (stepper_idle) {
-            if (esp_timer_get_time() > stepper_idle_counter)
-                set_stepper_disable(true);
+            if (esp_timer_get_time() > stepper_idle_counter) {
+                motors_set_disable(true);
+            }
         }
     }
     return; /* Never reached */
@@ -544,7 +524,7 @@ static void protocol_exec_rt_suspend() {
         restore_spindle_speed = block->spindle_speed;
     }
 #ifdef DISABLE_LASER_DURING_HOLD
-    if (bit_istrue(settings.flags, BITFLAG_LASER_MODE))
+    if (laser_mode->get())
         system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP);
 #endif
 
@@ -574,14 +554,14 @@ static void protocol_exec_rt_suspend() {
                     // current location not exceeding the parking target location, and laser mode disabled.
                     // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                    if ((bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE)) &&
-                            (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
-                            bit_isfalse(settings.flags, BITFLAG_LASER_MODE) &&
-                            (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
+                    if (homing_enable->get() &&
+                        (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
+                        laser_mode->get() &&
+                        (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
-                    if ((bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE)) &&
+                        if (homing_enable->get() &&
                             (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
-                            bit_isfalse(settings.flags, BITFLAG_LASER_MODE)) {
+                            laser_mode->get()) {
 #endif
                         // Retract spindle by pullout distance. Ensure retraction motion moves away from
                         // the workpiece and waypoint motion doesn't exceed the parking target location.
@@ -634,10 +614,10 @@ static void protocol_exec_rt_suspend() {
                         // Execute fast restore motion to the pull-out position. Parking requires homing enabled.
                         // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                        if (((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) &&
+                        if (homing_enable->get() && !laser_mode->get()) &&
                                 (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
-                        if ((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) {
+                        if (homing_enable->get() && !laser_mode->get()) {
 #endif
                             // Check to ensure the motion doesn't move below pull-out position.
                             if (parking_target[PARKING_AXIS] <= PARKING_TARGET) {
@@ -651,7 +631,7 @@ static void protocol_exec_rt_suspend() {
                         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
                             // Block if safety door re-opened during prior restore actions.
                             if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
-                                if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
+                                if (laser_mode->get()) {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                     bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                                 } else {
@@ -671,10 +651,10 @@ static void protocol_exec_rt_suspend() {
 #ifdef PARKING_ENABLE
                         // Execute slow plunge motion from pull-out position to resume position.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                        if (((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) &&
+                        if (homing_enable->get() && !laser_mode->get()) &&
                                 (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
-                        if ((settings.flags & (BITFLAG_HOMING_ENABLE | BITFLAG_LASER_MODE)) == BITFLAG_HOMING_ENABLE) {
+                        if (homing_enable->get() && !laser_mode->get()) {
 #endif
                             // Block if safety door re-opened during prior restore actions.
                             if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
@@ -710,7 +690,7 @@ static void protocol_exec_rt_suspend() {
                     } else if (sys.spindle_stop_ovr & (SPINDLE_STOP_OVR_RESTORE | SPINDLE_STOP_OVR_RESTORE_CYCLE)) {
                         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
                             report_feedback_message(MESSAGE_SPINDLE_RESTORE);
-                            if (bit_istrue(settings.flags, BITFLAG_LASER_MODE)) {
+                            if (laser_mode->get()) {
                                 // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                 bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
                             } else

@@ -47,16 +47,14 @@
     #define X_LIMIT_PIN     GPIO_NUM_15
 #endif
 #define Y_LIMIT_PIN             GPIO_NUM_4
-#define LIMIT_MASK              B11
 
 #define USING_SERVO  // uncomment to use this feature
 //#define USING_SOLENOID // uncomment to use this feature
 
 #ifdef USING_SERVO
-    #define USE_SERVO_AXES
-    #define SERVO_Z_PIN     GPIO_NUM_27
-    #define SERVO_Z_RANGE_MIN 0.0
-    #define SERVO_Z_RANGE_MAX 10.0
+    #define Z_SERVO_PIN             GPIO_NUM_27
+    #define Z_SERVO_RANGE_MIN       0.0
+    #define Z_SERVO_RANGE_MAX       10.0
 #endif
 
 #ifdef USING_SOLENOID
@@ -105,9 +103,9 @@
 #define DEFAULT_Y_MAX_RATE 5000.0 // mm/min
 #define DEFAULT_Z_MAX_RATE 5000.0 // mm/min
 
-#define DEFAULT_X_ACCELERATION (50.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
-#define DEFAULT_Y_ACCELERATION (50.0*60*60) // 10*60*60 mm/min^2 = 10 mm/sec^2
-#define DEFAULT_Z_ACCELERATION (50.0*60*60)
+#define DEFAULT_X_ACCELERATION 50.0 // mm/sec^2. 50 mm/sec^2 = 180000 mm/min^2
+#define DEFAULT_Y_ACCELERATION 50.0 // mm/sec^2
+#define DEFAULT_Z_ACCELERATION 50.0 // mm/sec^2
 
 #define DEFAULT_X_MAX_TRAVEL 300.0 // mm NOTE: Must be a positive value.
 #define DEFAULT_Y_MAX_TRAVEL 300.0 // mm NOTE: Must be a positive value.

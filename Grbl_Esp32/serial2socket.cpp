@@ -21,8 +21,7 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-//#include "grbl.h"
-#include "config.h"
+#include "grbl.h"
 
 #if defined (ENABLE_WIFI) && defined(ENABLE_HTTP)
 

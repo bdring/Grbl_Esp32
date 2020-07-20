@@ -1,25 +1,20 @@
 /*
-    lowrider.h
+    lowrider_v1p2.h
     Part of Grbl_ESP32
-
     Pin assignments for the Buildlog.net MPCNC controller
     used in lowrider mode. Low rider has (2) Y and Z and one X motor
     These will not match the silkscreen or schematic descriptions...see definitions below
     https://github.com/bdring/Grbl_ESP32_MPCNC_Controller
-
     2019    - Bart Dring
     2020    - Mitch Bradley
-
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     Grbl is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -33,15 +28,18 @@
 #define Y_STEP_PIN          GPIO_NUM_27     // use Z labeled connector
 #define Y_DIRECTION_PIN     GPIO_NUM_33     // use Z labeled connector
 
-#define Z_STEP_PIN          GPIO_NUM_14     // use Y labeled connector 
-#define Z2_STEP_PIN         GPIO_NUM_21     // ganged motor
-#define Z_DIRECTION_PIN     GPIO_NUM_25     // use Y labeled connector
+#define Z_STEP_PIN          GPIO_NUM_12     // use X labeled connector
+#define Z2_STEP_PIN         GPIO_NUM_22     // use X labeled connector
+#define Z_DIRECTION_PIN     GPIO_NUM_26     // use X labeled connector
+#define Z2_DIRECTION_PIN    Z_DIRECTION_PIN
 #define Z_AXIS_SQUARING
 
 #define X_STEP_PIN          GPIO_NUM_12     // use X labeled connector
 #define X2_STEP_PIN         GPIO_NUM_22     // ganged motor
 #define X_DIRECTION_PIN     GPIO_NUM_26     // use X labeled connector
-#define X_AXIS_SQUARING
+#define X2_DIRECTION_PIN    X_DIRECTION_PIN
+
+#define X_AXIS_SQUARING 
 
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
@@ -65,8 +63,6 @@
 #define Y_LIMIT_PIN             GPIO_NUM_15
 #define Z_LIMIT_PIN             GPIO_NUM_4
 #define X_LIMIT_PIN             GPIO_NUM_17
-
-#define LIMIT_MASK              B111
 
 #ifndef ENABLE_SOFTWARE_DEBOUNCE   // V1P2 does not have R/C filters
     #define ENABLE_SOFTWARE_DEBOUNCE

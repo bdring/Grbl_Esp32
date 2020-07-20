@@ -304,8 +304,8 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
 #endif
     } else  memcpy(position_steps, pl.position, sizeof(pl.position));
 #ifdef COREXY
-    target_steps[A_MOTOR] = lround(target[A_MOTOR] * settings.steps_per_mm[A_MOTOR]);
-    target_steps[B_MOTOR] = lround(target[B_MOTOR] * settings.steps_per_mm[B_MOTOR]);
+    target_steps[A_MOTOR] = lround(target[A_MOTOR] * axis_settings[A_MOTOR]->steps_per_mm->get());
+    target_steps[B_MOTOR] = lround(target[B_MOTOR] * axis_settings[B_MOTOR]->steps_per_mm->get());
     block->steps[A_MOTOR] = labs((target_steps[X_AXIS] - position_steps[X_AXIS]) + (target_steps[Y_AXIS] - position_steps[Y_AXIS]));
     block->steps[B_MOTOR] = labs((target_steps[X_AXIS] - position_steps[X_AXIS]) - (target_steps[Y_AXIS] - position_steps[Y_AXIS]));
 #endif
@@ -315,21 +315,21 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
         // NOTE: Computes true distance from converted step values.
 #ifdef COREXY
         if (!(idx == A_MOTOR) && !(idx == B_MOTOR)) {
-            target_steps[idx] = lround(target[idx] * settings.steps_per_mm[idx]);
+            target_steps[idx] = lround(target[idx] * axis_settings[idx]->steps_per_mm->get());
             block->steps[idx] = labs(target_steps[idx] - position_steps[idx]);
         }
         block->step_event_count = MAX(block->step_event_count, block->steps[idx]);
         if (idx == A_MOTOR)
-            delta_mm = (target_steps[X_AXIS] - position_steps[X_AXIS] + target_steps[Y_AXIS] - position_steps[Y_AXIS]) / settings.steps_per_mm[idx];
+            delta_mm = (target_steps[X_AXIS] - position_steps[X_AXIS] + target_steps[Y_AXIS] - position_steps[Y_AXIS]) / axis_settings[idx]->steps_per_mm->get();
         else if (idx == B_MOTOR)
-            delta_mm = (target_steps[X_AXIS] - position_steps[X_AXIS] - target_steps[Y_AXIS] + position_steps[Y_AXIS]) / settings.steps_per_mm[idx];
+            delta_mm = (target_steps[X_AXIS] - position_steps[X_AXIS] - target_steps[Y_AXIS] + position_steps[Y_AXIS]) / axis_settings[idx]->steps_per_mm->get();
         else
-            delta_mm = (target_steps[idx] - position_steps[idx]) / settings.steps_per_mm[idx];
+            delta_mm = (target_steps[idx] - position_steps[idx]) / axis_settings[idx]->steps_per_mm->get();
 #else
-        target_steps[idx] = lround(target[idx] * settings.steps_per_mm[idx]);
+        target_steps[idx] = lround(target[idx] * axis_settings[idx]->steps_per_mm->get());
         block->steps[idx] = labs(target_steps[idx] - position_steps[idx]);
         block->step_event_count = MAX(block->step_event_count, block->steps[idx]);
-        delta_mm = (target_steps[idx] - position_steps[idx]) / settings.steps_per_mm[idx];
+        delta_mm = (target_steps[idx] - position_steps[idx]) / axis_settings[idx]->steps_per_mm->get();
 #endif
         unit_vec[idx] = delta_mm; // Store unit vector numerator
         // Set direction bits. Bit enabled always means direction is negative.
@@ -342,8 +342,8 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     // NOTE: This calculation assumes all axes are orthogonal (Cartesian) and works with ABC-axes,
     // if they are also orthogonal/independent. Operates on the absolute value of the unit vector.
     block->millimeters = convert_delta_vector_to_unit_vector(unit_vec);
-    block->acceleration = limit_value_by_axis_maximum(settings.acceleration, unit_vec);
-    block->rapid_rate = limit_value_by_axis_maximum(settings.max_rate, unit_vec);
+    block->acceleration = limit_acceleration_by_axis_maximum(unit_vec);
+    block->rapid_rate = limit_rate_by_axis_maximum(unit_vec);
     // Store programmed rate.
     if (block->condition & PL_COND_FLAG_RAPID_MOTION)  block->programmed_rate = block->rapid_rate;
     else {
@@ -394,10 +394,10 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
                 block->max_junction_speed_sqr = SOME_LARGE_VALUE;
             } else {
                 convert_delta_vector_to_unit_vector(junction_unit_vec);
-                float junction_acceleration = limit_value_by_axis_maximum(settings.acceleration, junction_unit_vec);
+                float junction_acceleration = limit_acceleration_by_axis_maximum(junction_unit_vec);
                 float sin_theta_d2 = sqrt(0.5 * (1.0 - junction_cos_theta)); // Trig half angle identity. Always positive.
                 block->max_junction_speed_sqr = MAX(MINIMUM_JUNCTION_SPEED * MINIMUM_JUNCTION_SPEED,
-                                                    (junction_acceleration * settings.junction_deviation * sin_theta_d2) / (1.0 - sin_theta_d2));
+                                                    (junction_acceleration * junction_deviation->get() * sin_theta_d2) / (1.0 - sin_theta_d2));
             }
         }
     }

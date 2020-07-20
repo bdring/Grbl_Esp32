@@ -32,12 +32,8 @@ void RelaySpindle::init() {
         return;
 
     pinMode(_output_pin, OUTPUT);
-
-    if (_enable_pin != UNDEFINED_PIN)
-        pinMode(_enable_pin, OUTPUT);
-
-    if (_direction_pin != UNDEFINED_PIN)
-        pinMode(_direction_pin, OUTPUT);
+    pinMode(_enable_pin, OUTPUT);
+    pinMode(_direction_pin, OUTPUT);
 
     is_reversable = (_direction_pin != UNDEFINED_PIN);
 
@@ -45,13 +41,13 @@ void RelaySpindle::init() {
 }
 
 // prints the startup message of the spindle config
-void RelaySpindle :: config_message() {    
+void RelaySpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "Relay spindle Output:%d, Enbl:%d, Dir:%d",
-                   report_pin_number(_output_pin),
-                   report_pin_number(_enable_pin), // 255 means pin not defined
-                   report_pin_number(_direction_pin)); // 255 means pin not defined
+                   "Relay spindle Output:%s, Enbl:%s, Dir:%s",
+                   pinName(_output_pin).c_str(),
+                   pinName(_enable_pin).c_str(),
+                   pinName(_direction_pin).c_str());
 }
 
 uint32_t RelaySpindle::set_rpm(uint32_t rpm) {
@@ -59,12 +55,8 @@ uint32_t RelaySpindle::set_rpm(uint32_t rpm) {
         return rpm;
 
     sys.spindle_speed = rpm;
+    set_output(rpm != 0);    
 
-    if (rpm == 0) {
-        set_output(0);
-    } else {
-        set_output(1);
-    }
 
     return rpm;
 }

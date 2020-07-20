@@ -47,7 +47,9 @@
 */
 
 #include "grbl.h"
-
+#ifdef REPORT_HEAP
+EspClass esp;
+#endif
 #define DEFAULTBUFFERSIZE 64
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
@@ -151,10 +153,10 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
     char axisVal[20];
     float unit_conv = 1.0; // unit conversion multiplier..default is mm
     rpt[0] = '\0';
-    if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
+    if (report_inches->get())
         unit_conv = 1.0 / MM_PER_INCH;
     for (idx = 0; idx < N_AXIS; idx++) {
-        if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
+        if (report_inches->get())
             sprintf(axisVal, "%4.4f", axis_value[idx] * unit_conv);  // Report inches to 4 decimals
         else
             sprintf(axisVal, "%4.3f", axis_value[idx] * unit_conv);  // Report mm to 3 decimals
@@ -272,79 +274,8 @@ void report_init_message(uint8_t client) {
 
 // Grbl help message
 void report_grbl_help(uint8_t client) {
-    grbl_send(client, "[HLP:$$ $+ $# $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H $F ~ ! ? ctrl-x]\r\n");
+    grbl_send(client, "[HLP:$$ $+ $# $S $L $G $I $N $x=val $Nx=line $J=line $SLP $C $X $H $F $E=err ~ ! ? ctrl-x]\r\n");
 }
-
-
-// Grbl global settings print out.
-// NOTE: The numbering scheme here must correlate to storing in settings.c
-// Extended setting will be displayed if force_extended is true or #ifdef SHOW_EXTENDED_SETTINGS
-void report_grbl_settings(uint8_t client, uint8_t show_extended) {
-    // Print Grbl settings.
-    char setting[20];
-    char rpt[1000];
-#ifdef SHOW_EXTENDED_SETTINGS
-    show_extended = true;
-#endif
-    rpt[0] = '\0';
-    sprintf(setting, "$0=%d\r\n", settings.pulse_microseconds); strcat(rpt, setting);
-    sprintf(setting, "$1=%d\r\n", settings.stepper_idle_lock_time);  strcat(rpt, setting);
-    sprintf(setting, "$2=%d\r\n", settings.step_invert_mask);  strcat(rpt, setting);
-    sprintf(setting, "$3=%d\r\n", settings.dir_invert_mask);  strcat(rpt, setting);
-    sprintf(setting, "$4=%d\r\n", bit_istrue(settings.flags, BITFLAG_INVERT_ST_ENABLE));  strcat(rpt, setting);
-    sprintf(setting, "$5=%d\r\n", bit_istrue(settings.flags, BITFLAG_INVERT_LIMIT_PINS));  strcat(rpt, setting);
-    sprintf(setting, "$6=%d\r\n", bit_istrue(settings.flags, BITFLAG_INVERT_PROBE_PIN));  strcat(rpt, setting);
-    sprintf(setting, "$10=%d\r\n", settings.status_report_mask);  strcat(rpt, setting);
-    sprintf(setting, "$11=%4.3f\r\n", settings.junction_deviation);   strcat(rpt, setting);
-    sprintf(setting, "$12=%4.3f\r\n", settings.arc_tolerance);   strcat(rpt, setting);
-    sprintf(setting, "$13=%d\r\n", bit_istrue(settings.flags, BITFLAG_REPORT_INCHES));   strcat(rpt, setting);
-    sprintf(setting, "$20=%d\r\n", bit_istrue(settings.flags, BITFLAG_SOFT_LIMIT_ENABLE));   strcat(rpt, setting);
-    sprintf(setting, "$21=%d\r\n", bit_istrue(settings.flags, BITFLAG_HARD_LIMIT_ENABLE));   strcat(rpt, setting);
-    sprintf(setting, "$22=%d\r\n", bit_istrue(settings.flags, BITFLAG_HOMING_ENABLE));   strcat(rpt, setting);
-    sprintf(setting, "$23=%d\r\n", settings.homing_dir_mask);   strcat(rpt, setting);
-    sprintf(setting, "$24=%4.3f\r\n", settings.homing_feed_rate);   strcat(rpt, setting);
-    sprintf(setting, "$25=%4.3f\r\n", settings.homing_seek_rate);   strcat(rpt, setting);
-    sprintf(setting, "$26=%d\r\n", settings.homing_debounce_delay);   strcat(rpt, setting);
-    sprintf(setting, "$27=%4.3f\r\n", settings.homing_pulloff);   strcat(rpt, setting);
-    sprintf(setting, "$30=%4.3f\r\n", settings.rpm_max);   strcat(rpt, setting);
-    sprintf(setting, "$31=%4.3f\r\n", settings.rpm_min);   strcat(rpt, setting);
-    sprintf(setting, "$32=%d\r\n", bit_istrue(settings.flags, BITFLAG_LASER_MODE));  strcat(rpt, setting);
-
-    if (show_extended) {
-        sprintf(setting, "$33=%5.3f\r\n", settings.spindle_pwm_freq);   strcat(rpt, setting);
-        sprintf(setting, "$34=%3.3f\r\n", settings.spindle_pwm_off_value);   strcat(rpt, setting);
-        sprintf(setting, "$35=%3.3f\r\n", settings.spindle_pwm_min_value);   strcat(rpt, setting);
-        sprintf(setting, "$36=%3.3f\r\n", settings.spindle_pwm_max_value);   strcat(rpt, setting);
-        for (uint8_t index = 0; index < USER_SETTING_COUNT; index++) {
-            sprintf(setting, "$%d=%d\r\n", 80 + index, settings.machine_int16[index]);   strcat(rpt, setting);
-        }
-        for (uint8_t index = 0; index < USER_SETTING_COUNT; index++) {
-            sprintf(setting, "$%d=%5.3f\r\n", 90 + index, settings.machine_float[index]);   strcat(rpt, setting);
-        }
-    }
-    // Print axis settings
-    uint8_t idx, set_idx;
-    uint8_t val = AXIS_SETTINGS_START_VAL;
-    for (set_idx = 0; set_idx < AXIS_N_SETTINGS; set_idx++) {
-        for (idx = 0; idx < N_AXIS; idx++) {
-            switch (set_idx) {
-            case 0: sprintf(setting, "$%d=%4.3f\r\n", val + idx, settings.steps_per_mm[idx]);   strcat(rpt, setting);	 break;
-            case 1: sprintf(setting, "$%d=%4.3f\r\n", val + idx, settings.max_rate[idx]);   strcat(rpt, setting);	 break;
-            case 2: sprintf(setting, "$%d=%4.3f\r\n", val + idx, settings.acceleration[idx] / (60 * 60));   strcat(rpt, setting);	 break;
-            case 3: sprintf(setting, "$%d=%4.3f\r\n", val + idx, -settings.max_travel[idx]);   strcat(rpt, setting);	 break;
-            case 4: if (show_extended) {sprintf(setting, "$%d=%4.3f\r\n", val + idx, settings.current[idx]);   strcat(rpt, setting);}	 break;
-            case 5: if (show_extended) {sprintf(setting, "$%d=%4.3f\r\n", val + idx, settings.hold_current[idx]);   strcat(rpt, setting);}	 break;
-            case 6: if (show_extended) {sprintf(setting, "$%d=%d\r\n", val + idx, settings.microsteps[idx]);   strcat(rpt, setting);}	 break;
-            case 7: if (show_extended) {sprintf(setting, "$%d=%d\r\n", val + idx, settings.stallguard[idx]);   strcat(rpt, setting);}	 break;
-            }
-        }
-        val += AXIS_SETTINGS_INCREMENT;
-    }
-    grbl_send(client, rpt);
-}
-
-
-
 
 
 
@@ -401,7 +332,7 @@ void report_ngc_parameters(uint8_t client) {
     strcat(ngc_rpt, temp);
     strcat(ngc_rpt, "]\r\n");
     strcat(ngc_rpt, "[TLO:"); // Print tool length offset value
-    if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
+    if (report_inches->get())
         sprintf(temp, "%4.3f]\r\n", gc_state.tool_length_offset * INCH_PER_MM);
     else
         sprintf(temp, "%4.3f]\r\n", gc_state.tool_length_offset);
@@ -463,10 +394,7 @@ void report_gcode_modes(uint8_t client) {
 
     sprintf(temp, " T%d", gc_state.tool);
     strcat(modes_rpt, temp);
-    if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
-        sprintf(temp, " F%.1f", gc_state.feed_rate);
-    else
-        sprintf(temp, " F%.0f", gc_state.feed_rate);
+    sprintf(temp, report_inches->get() ? " F%.1f" : " F%.0f", gc_state.feed_rate);
     strcat(modes_rpt, temp);
     sprintf(temp, " S%4.3f", gc_state.spindle_speed);
     strcat(modes_rpt, temp);
@@ -477,11 +405,11 @@ void report_gcode_modes(uint8_t client) {
 
 
 // Prints specified startup line
-void report_startup_line(uint8_t n, char* line, uint8_t client) {
+void report_startup_line(uint8_t n, const char* line, uint8_t client) {
     grbl_sendf(client, "$N%d=%s\r\n", n, line);	// OK to send to all
 }
 
-void report_execute_startup_message(char* line, uint8_t status_code, uint8_t client) {
+void report_execute_startup_message(const char* line, uint8_t status_code, uint8_t client) {
     grbl_sendf(client, ">%s:", line);  	// OK to send to all
     report_status_message(status_code, client);
 }
@@ -558,9 +486,6 @@ void report_build_info(char* line, uint8_t client) {
 #endif
 }
 
-
-
-
 // Prints the character string line Grbl has received from the user, which has been pre-parsed,
 // and has been sent into protocol_execute_line() routine to be executed by Grbl.
 void report_echo_line_received(char* line, uint8_t client) {
@@ -615,18 +540,18 @@ void report_realtime_status(uint8_t client) {
     case STATE_SLEEP: strcat(status, "Sleep"); break;
     }
     float wco[N_AXIS];
-    if (bit_isfalse(settings.status_report_mask, BITFLAG_RT_STATUS_POSITION_TYPE) ||
+    if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE) ||
             (sys.report_wco_counter == 0)) {
         for (idx = 0; idx < N_AXIS; idx++) {
             // Apply work coordinate offsets and tool length offset to current position.
             wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];
             if (idx == TOOL_LENGTH_OFFSET_AXIS)  wco[idx] += gc_state.tool_length_offset;
-            if (bit_isfalse(settings.status_report_mask, BITFLAG_RT_STATUS_POSITION_TYPE))
+            if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE))
                 print_position[idx] -= wco[idx];
         }
     }
     // Report machine position
-    if (bit_istrue(settings.status_report_mask, BITFLAG_RT_STATUS_POSITION_TYPE))
+    if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE))
         strcat(status, "|MPos:");
     else {
 #ifdef USE_FWD_KINEMATIC
@@ -638,7 +563,7 @@ void report_realtime_status(uint8_t client) {
     strcat(status, temp);
     // Returns planner and serial read buffer states.
 #ifdef REPORT_FIELD_BUFFER_STATE
-    if (bit_istrue(settings.status_report_mask, BITFLAG_RT_STATUS_BUFFER_STATE)) {
+    if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_BUFFER_STATE)) {
         int bufsize = DEFAULTBUFFERSIZE;
 #if defined (ENABLE_WIFI) && defined(ENABLE_TELNET)
         if (client == CLIENT_TELNET)
@@ -671,7 +596,7 @@ void report_realtime_status(uint8_t client) {
 #endif
     // Report realtime feed speed
 #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
-    if (bit_istrue(settings.flags, BITFLAG_REPORT_INCHES))
+    if (report_inches->get())
         sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate()/ MM_PER_INCH, sys.spindle_speed);
     else
         sprintf(temp, "|FS:%.0f,%d", st_get_realtime_rate(), sys.spindle_speed);
@@ -751,6 +676,10 @@ void report_realtime_status(uint8_t client) {
         strcat(status, temp);
     }
 #endif
+#ifdef REPORT_HEAP
+    sprintf(temp, "|Heap:%d", esp.getHeapSize());
+    strcat(status, temp);
+#endif
     strcat(status, ">\r\n");
     grbl_send(client, status);
 }
@@ -816,12 +745,4 @@ char report_get_axis_letter(uint8_t axis) {
     default:
         return '?';
     }
-}
-
-// used to report the pin nhumber or -1 for undefined.
-int16_t report_pin_number(uint8_t pin_number) {
-    if (pin_number == UNDEFINED_PIN)
-        return -1;
-    else
-        return (int16_t)pin_number;
 }

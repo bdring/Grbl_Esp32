@@ -21,8 +21,6 @@
 #ifndef report_h
 #define report_h
 
-#include "grbl.h"
-
 // Define Grbl status codes. Valid values (0-255)
 #define STATUS_OK 0
 #define STATUS_EXPECTED_COMMAND_LETTER 1
@@ -69,10 +67,27 @@
 #define STATUS_SD_FAILED_OPEN_DIR 62 // SD card failed to open directory
 #define STATUS_SD_DIR_NOT_FOUND 63 // SD Card directory not found
 #define STATUS_SD_FILE_EMPTY 64 // SD Card directory not found
+#define STATUS_SD_FILE_NOT_FOUND 65 // SD Card file not found
+#define STATUS_SD_FAILED_OPEN_FILE 66 // SD card failed to open file
+#define STATUS_SD_FAILED_BUSY 67 // SD card is busy
+#define STATUS_SD_FAILED_DEL_DIR 68
+#define STATUS_SD_FAILED_DEL_FILE 69
 
 #define STATUS_BT_FAIL_BEGIN 70  // Bluetooth failed to start
+#define STATUS_WIFI_FAIL_BEGIN 71  // WiFi failed to start
 
+#define STATUS_NUMBER_RANGE 80 // Setting number range problem
+#define STATUS_INVALID_VALUE 81 // Setting string problem
 
+#define STATUS_MESSAGE_FAILED 90
+
+#define STATUS_NVS_SET_FAILED 100
+
+#define STATUS_AUTHENTICATION_FAILED 110
+#define STATUS_EOL 111
+
+typedef uint8_t err_t; // For status codes
+const char* errorString(err_t errorNumber);
 
 // Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
 #define ALARM_HARD_LIMIT_ERROR      EXEC_ALARM_HARD_LIMIT
@@ -158,8 +173,8 @@ void report_ngc_parameters(uint8_t client);
 void report_gcode_modes(uint8_t client);
 
 // Prints startup line when requested and executed.
-void report_startup_line(uint8_t n, char* line, uint8_t client);
-void report_execute_startup_message(char* line, uint8_t status_code, uint8_t client);
+void report_startup_line(uint8_t n, const char* line, uint8_t client);
+void report_execute_startup_message(const char* line, uint8_t status_code, uint8_t client);
 
 // Prints build info and user info
 void report_build_info(char* line, uint8_t client);
@@ -175,6 +190,5 @@ void report_machine_type(uint8_t client);
 void report_hex_msg(char* buf, const char *prefix, int len);
 
 char report_get_axis_letter(uint8_t axis);
-int16_t report_pin_number(uint8_t pin_number);
 
 #endif

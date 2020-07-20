@@ -73,8 +73,7 @@ void BESCSpindle :: init() {
     ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, _pwm_precision); // setup the channel
     ledcAttachPin(_output_pin, _spindle_pwm_chan_num); // attach the PWM to the pin
 
-    if (_enable_pin != UNDEFINED_PIN)
-        pinMode(_enable_pin, OUTPUT);
+    pinMode(_enable_pin, OUTPUT);
 
     set_rpm(0);
 
@@ -85,12 +84,12 @@ void BESCSpindle :: init() {
 void BESCSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
-                   "BESC spindle on Pin:%d Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
-                   report_pin_number(_output_pin),
+                   "BESC spindle on Pin:%s Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
+                   pinName(_output_pin).c_str(),
                    BESC_MIN_PULSE_SECS * 1000.0, // convert to milliseconds
                    BESC_MAX_PULSE_SECS * 1000.0, // convert to milliseconds
-                   report_pin_number(_pwm_freq),
-                   report_pin_number(_pwm_precision));
+                   _pwm_freq,
+                   _pwm_precision);
 }
 
 uint32_t BESCSpindle::set_rpm(uint32_t rpm) {
@@ -108,7 +107,7 @@ uint32_t BESCSpindle::set_rpm(uint32_t rpm) {
     else if (rpm != 0 && rpm <= _min_rpm)
         rpm = _min_rpm;
     sys.spindle_speed = rpm;
-   
+
     // determine the pwm value
  if (rpm == 0) {
         pwm_value = _pwm_off_value;

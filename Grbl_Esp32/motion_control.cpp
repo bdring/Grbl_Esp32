@@ -24,6 +24,13 @@
 
 #include "grbl.h"
 
+// M_PI is not defined in standard C/C++ but some compilers
+// support it anyway.  The following suppresses Intellisense
+// problem reports.
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
+
 uint8_t ganged_mode = SQUARING_MODE_DUAL;
 
 
@@ -46,7 +53,7 @@ void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
 void mc_line(float* target, plan_line_data_t* pl_data) {
     // If enabled, check for soft limit violations. Placed here all line motions are picked up
     // from everywhere in Grbl.
-    if (bit_istrue(settings.flags, BITFLAG_SOFT_LIMIT_ENABLE)) {
+    if (soft_limits->get()) {
         // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
         if (sys.state != STATE_JOG)  limits_soft_check(target);
     }
@@ -84,7 +91,7 @@ void mc_line(float* target, plan_line_data_t* pl_data) {
 // the direction of helical travel, radius == circle radius, isclockwise boolean. Used
 // for vector transformation direction.
 // The arc is approximated by generating a huge number of tiny, linear segments. The chordal tolerance
-// of each segment is configured in settings.arc_tolerance, which is defined to be the maximum normal
+// of each segment is configured in the arc_tolerance setting, which is defined to be the maximum normal
 // distance from segment to the circle when the end points both lie on the circle.
 void mc_arc(float* target, plan_line_data_t* pl_data, float* position, float* offset, float radius,
             uint8_t axis_0, uint8_t axis_1, uint8_t axis_linear, uint8_t is_clockwise_arc) {
@@ -108,11 +115,11 @@ void mc_arc(float* target, plan_line_data_t* pl_data, float* position, float* of
         if (angular_travel <= ARC_ANGULAR_TRAVEL_EPSILON)  angular_travel += 2 * M_PI;
     }
     // NOTE: Segment end points are on the arc, which can lead to the arc diameter being smaller by up to
-    // (2x) settings.arc_tolerance. For 99% of users, this is just fine. If a different arc segment fit
+    // (2x) arc_tolerance. For 99% of users, this is just fine. If a different arc segment fit
     // is desired, i.e. least-squares, midpoint on arc, just change the mm_per_arc_segment calculation.
     // For the intended uses of Grbl, this value shouldn't exceed 2000 for the strictest of cases.
     uint16_t segments = floor(fabs(0.5 * angular_travel * radius) /
-                              sqrt(settings.arc_tolerance * (2 * radius - settings.arc_tolerance)));
+                              sqrt(arc_tolerance->get() * (2 * radius - arc_tolerance->get())));
     if (segments) {
         // Multiply inverse feed_rate to compensate for the fact that this movement is approximated
         // by a number of discrete segments. The inverse feed_rate should be correct for the sum of
@@ -312,12 +319,14 @@ void mc_homing_cycle(uint8_t cycle_mask) {
 #endif
     }
     protocol_execute_realtime(); // Check for reset and set system abort.
-    if (sys.abort)  return;   // Did not complete. Alarm state set by mc_alarm.
+    if (sys.abort)  {
+        return;   // Did not complete. Alarm state set by mc_alarm.
+    }
     // Homing cycle complete! Setup system for normal operation.
     // -------------------------------------------------------------------------------------
     // Sync gcode parser and planner positions to homed position.
     gc_sync_position();
-    plan_sync_position();
+    plan_sync_position();    
 #ifdef USE_KINEMATICS
     // This give kinematics a chance to do something after normal homing
     kinematics_post_homing();
@@ -447,8 +456,10 @@ void mc_reset() {
             } else  system_set_exec_alarm(EXEC_ALARM_ABORT_CYCLE);
             st_go_idle(); // Force kill steppers. Position has likely been lost.
         }
-#ifdef USE_GANGED_AXES
         ganged_mode = SQUARING_MODE_DUAL; // in case an error occurred during squaring
+
+#ifdef USE_I2S_OUT_STREAM
+        i2s_out_reset();
 #endif
     }
 }
