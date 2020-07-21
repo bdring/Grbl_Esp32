@@ -43,13 +43,14 @@ void settings_restore(uint8_t restore_flag) {
         }
     #endif
     if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {
-        for (Setting *s = Setting::List; s; s = s->next()) {
-            bool restore_startup = restore_flag & SETTINGS_RESTORE_STARTUP_LINES;
+        bool restore_startup = restore_flag & SETTINGS_RESTORE_STARTUP_LINES;
+        for (Setting* s = Setting::List; s; s = s->next()) {
             if (!s->getDescription()) {
-                const char *name = s->getName();
-                if (restore_startup || ((strcmp(name, "N0") != 0) && (strcmp(name, "N1") == 0))) {
+                const char* name = s->getName();
+                if (restore_startup) // all settings get restored
+                    s->setDefault(); 
+                else if ((strcmp(name, "Line0") != 0) && (strcmp(name, "Line1") != 0)) // non startup settings get restored
                     s->setDefault();
-                }
             }
         }
     }
