@@ -80,6 +80,5 @@ uint8_t get_step_pin_mask(uint8_t i);
 // Returns the direction pin mask according to Grbl's internal axis numbering
 uint8_t get_direction_pin_mask(uint8_t i);
 
-void settings_spi_driver_init();
 #endif
 

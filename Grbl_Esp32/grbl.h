@@ -22,7 +22,7 @@
 // Grbl versioning system
 
 #define GRBL_VERSION "1.3a"
-#define GRBL_VERSION_BUILD "20200720"
+#define GRBL_VERSION_BUILD "20200721"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -90,10 +90,6 @@
 
 #ifdef USE_SERVO_AXES
     #include "servo_axis.h"
-#endif
-
-#ifdef USE_TRINAMIC
-    #include "grbl_trinamic.h"
 #endif
 
 #ifdef USE_UNIPOLAR
