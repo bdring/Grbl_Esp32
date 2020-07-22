@@ -115,6 +115,10 @@
     #endif
 
     // ======== SPINDLE STUFF ====================
+    #ifndef SPINDLE_TYPE
+        #define SPINDLE_TYPE SPINDLE_TYPE_NONE
+    #endif
+
     #ifndef  DEFAULT_SPINDLE_RPM_MIN // $31
         #define DEFAULT_SPINDLE_RPM_MIN 0.0 // rpm
     #endif
