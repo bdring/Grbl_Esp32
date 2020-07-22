@@ -311,6 +311,6 @@ void make_settings() {
     step_invert_mask = new AxisMaskSetting(GRBL, WG, "2", "Stepper/StepInvert", DEFAULT_STEPPING_INVERT_MASK);
     stepper_idle_lock_time = new IntSetting(GRBL, WG, "1", "Stepper/IdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
     pulse_microseconds = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
-    spindle_type = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", SPINDLE_TYPE_NONE, &spindleTypes);
+    spindle_type = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", SPINDLE_TYPE, &spindleTypes);
     stallguard_debug_mask = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
 }
