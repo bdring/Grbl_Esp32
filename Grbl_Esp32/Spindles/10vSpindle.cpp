@@ -65,6 +65,7 @@ void _10vSpindle :: init() {
     config_message();
 
     is_reversable = true; // these VFDs are always reversable
+    use_delays = true;
 }
 
 // prints the startup message of the spindle config
@@ -108,6 +109,7 @@ uint32_t _10vSpindle::set_rpm(uint32_t rpm) {
     return rpm;
 }
 
+/*
 void _10vSpindle::set_state(uint8_t state, uint32_t rpm) {
     if (sys.abort)
         return;   // Block during abort.
@@ -124,6 +126,7 @@ void _10vSpindle::set_state(uint8_t state, uint32_t rpm) {
 
     sys.report_ovr_counter = 0; // Set to report change immediately
 }
+*/
 
 uint8_t _10vSpindle::get_state() {
     if (_current_pwm_duty == 0  || _output_pin == UNDEFINED_PIN)

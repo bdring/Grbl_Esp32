@@ -26,6 +26,7 @@
 
 void NullSpindle :: init() {
     is_reversable = false;
+    use_delays = false;
     config_message();
 }
 uint32_t NullSpindle :: set_rpm(uint32_t rpm) {

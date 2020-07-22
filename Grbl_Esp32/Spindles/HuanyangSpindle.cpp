@@ -157,6 +157,7 @@ void HuanyangSpindle :: init() {
     uart_set_mode(HUANYANG_UART_PORT, UART_MODE_RS485_HALF_DUPLEX);
 
     is_reversable = true; // these VFDs are always reversable
+    use_delays = true;
 
     //
     _current_pwm_rpm = 0;
