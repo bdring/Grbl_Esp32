@@ -140,7 +140,7 @@ void _10vSpindle::stop() {
 }
 
 void _10vSpindle::set_enable_pin(bool enable) {
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "_10vSpindle::set_enable_pin");
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "_10vSpindle::set_enable_pin");
     if (_off_with_zero_speed &&  sys.spindle_speed == 0)
         enable = false;
 
@@ -157,11 +157,11 @@ void _10vSpindle::set_enable_pin(bool enable) {
     }
 
 
+}
 
-
-    void _10vSpindle::set_spindle_dir_pin(bool Clockwise) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "_10vSpindle::set_spindle_dir_pin");
-        digitalWrite(_direction_pin, Clockwise);
-        digitalWrite(_forward_pin, Clockwise);
-        digitalWrite(_reverse_pin, ! Clockwise);
-    }
+void _10vSpindle::set_spindle_dir_pin(bool Clockwise) {
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "_10vSpindle::set_spindle_dir_pin");
+    digitalWrite(_direction_pin, Clockwise);
+    digitalWrite(_forward_pin, Clockwise);
+    digitalWrite(_reverse_pin, ! Clockwise);
+}

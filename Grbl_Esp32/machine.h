@@ -17,7 +17,7 @@ PWM
 // !!! For initial testing, start with test_drive.h which disables
 // all I/O pins
 // #include "Machines/atari_1020.h"
-#include "Machines/spi_daisy_4axis_xyza.h"
+#include "Machines/test_drive.h"
 
 // !!! For actual use, change the line above to select a board
 // from Machines/, for example:

@@ -88,7 +88,7 @@
 
 #define PROBE_PIN               GPIO_NUM_25
 
-
+/*
 // 0-10v CNC Module in Socket #3
 // Control...Set PD001 to 1 if enable is connected 0 is panel should be used
 // Freq...Set PD002 to 0
@@ -97,7 +97,7 @@
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
 #define SPINDLE_FORWARD_PIN     GPIO_NUM_4
 #define SPINDLE_REVERSE_PIN     GPIO_NUM_16
-
+*/
 
 // Example 5V output CNC module in socket #3
 /*
@@ -117,13 +117,13 @@
 #define COOLANT_FLOOD_PIN       I2SO(27)
 */
 
-/*
+
 // RS485 In socket #3
 #define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG // only one spindle at a time
 #define HUANYANG_TXD_PIN        GPIO_NUM_26
 #define HUANYANG_RTS_PIN        GPIO_NUM_4
 #define HUANYANG_RXD_PIN        GPIO_NUM_16
-*/
+
 
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE

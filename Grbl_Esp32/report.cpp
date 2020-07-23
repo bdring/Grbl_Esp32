@@ -728,6 +728,19 @@ void report_hex_msg(char* buf, const char* prefix, int len) {
 
 }
 
+void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
+    char report[200];
+    char temp[20];
+    sprintf(report, "%s", prefix);
+    for (int i = 0; i < len; i++) {
+        sprintf(temp, " 0x%02X", buf[i]);
+        strcat(report, temp);
+    }
+
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
+
+}
+
 char report_get_axis_letter(uint8_t axis) {
     switch (axis) {
     case X_AXIS:
