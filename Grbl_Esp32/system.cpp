@@ -339,8 +339,15 @@ int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps) {
 
 // io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
 // It uses a mask so all can be turned of in ms_reset
+// This version waits until realtime commands have been executed
 void sys_io_control(uint8_t io_num_mask, bool turnOn) {
     protocol_buffer_synchronize();
+    fast_sys_io_control(io_num_mask, turnOn);
+}
+
+// This version works immediately, without waiting, to prevent deadlocks.
+// It is used when resetting via mc_reset()
+void fast_sys_io_control(uint8_t io_num_mask, bool turnOn) {
 #ifdef USER_DIGITAL_PIN_1
     if (io_num_mask & bit(1)) {
         digitalWrite(USER_DIGITAL_PIN_1, turnOn);

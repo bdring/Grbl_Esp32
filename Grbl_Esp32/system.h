@@ -226,6 +226,7 @@ void controlCheckTask(void* pvParameters);
 void system_exec_control_pin(uint8_t pin);
 
 void sys_io_control(uint8_t io_num_mask, bool turnOn);
+void fast_sys_io_control(uint8_t io_num_mask, bool turnOn);
 
 //
 int8_t sys_get_next_RMT_chan_num();
