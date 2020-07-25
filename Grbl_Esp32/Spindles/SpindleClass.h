@@ -62,6 +62,8 @@ class Spindle {
     virtual void spindle_sync(uint8_t state, uint32_t rpm);
 
     bool is_reversable;
+    bool use_delays;    // will SpinUp and SpinDown delays be used.
+    uint8_t _current_state;
 };
 
 // This is a dummy spindle that has no I/O.
@@ -89,7 +91,10 @@ class PWMSpindle : public Spindle {
   private:   
     void set_spindle_dir_pin(bool Clockwise);
 
-  protected:
+
+  
+  protected:    
+  
     int32_t _current_pwm_duty;
     uint32_t _min_rpm;
     uint32_t _max_rpm;
@@ -146,11 +151,12 @@ class DacSpindle : public PWMSpindle {
 class HuanyangSpindle : public Spindle {
   private:
     uint16_t  ModRTU_CRC(char* buf, int len);
-    void add_ModRTU_CRC(char* buf, int full_msg_len);
-    bool set_mode(uint8_t mode);
+    
+    bool set_mode(uint8_t mode, bool critical);
+    
     bool get_pins_and_settings();
 
-    uint32_t _current_pwm_rpm;
+    uint32_t _current_rpm;
     uint8_t _txd_pin;
     uint8_t _rxd_pin;
     uint8_t _rts_pin;
@@ -167,6 +173,9 @@ class HuanyangSpindle : public Spindle {
     uint8_t get_state();
     uint32_t set_rpm(uint32_t rpm);
     void stop();
+    static uint16_t read_rpm();
+    static void add_ModRTU_CRC(char* buf, int full_msg_len);
+    
 
 
 };
@@ -185,7 +194,9 @@ class _10vSpindle : public PWMSpindle {
     uint32_t set_rpm(uint32_t rpm);
     uint8_t _forward_pin;
     uint8_t _reverse_pin;
-    void set_state(uint8_t state, uint32_t rpm);
+
+    //void set_state(uint8_t state, uint32_t rpm);
+
     uint8_t get_state();
     void stop();
  protected:

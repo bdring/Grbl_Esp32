@@ -147,6 +147,14 @@
         #define DEFAULT_SPINDLE_MAX_VALUE 100.0 // $36 Percent of full period (extended set)
     #endif
 
+    #ifndef DEFAULT_SPINDLE_DELAY_SPINUP
+        #define DEFAULT_SPINDLE_DELAY_SPINUP 0
+    #endif
+
+    #ifndef DEFAULT_SPINDLE_DELAY_SPINDOWN
+        #define DEFAULT_SPINDLE_DELAY_SPINDOWN 0
+    #endif
+
     // ================  user settings =====================
     #ifndef DEFAULT_USER_INT_80
         #define DEFAULT_USER_INT_80 0 // $80 User integer setting
@@ -359,6 +367,7 @@
 
    
 // ==================  pin defaults ========================
+
 
 // Here is a place to default pins to UNDEFINED_PIN.
 // This can eliminate checking to see if the pin is defined because

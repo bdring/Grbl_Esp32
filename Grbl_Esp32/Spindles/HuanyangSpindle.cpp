@@ -55,7 +55,7 @@
 #define ECHO_TEST_CTS           UART_PIN_NO_CHANGE // CTS pin is not used
 #define HUANYANG_BUF_SIZE       127
 #define RESPONSE_WAIT_TICKS     50 // how long to wait for a response
-#define HUANYANG_MAX_MSG_SIZE   10   // more than enough for a modbus message
+#define HUANYANG_MAX_MSG_SIZE   16   // more than enough for a modbus message
 
 // OK to change these
 // #define them in your machine definition file if you want different values
@@ -71,6 +71,7 @@
 typedef struct {
     uint8_t tx_length;
     uint8_t rx_length;
+    bool critical;
     char msg[HUANYANG_MAX_MSG_SIZE];
 } hy_command_t;
 
@@ -85,21 +86,26 @@ void vfd_cmd_task(void* pvParameters) {
 
     while (true) {
         if (xQueueReceive(hy_cmd_queue, &next_cmd, 0) == pdTRUE) {
-            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "queue send %d !!!", next_cmd.tx_length);
-            //report_hex_msg(next_cmd.msg, "To VFD:", next_cmd.tx_length);  // TODO for debugging comment out
+
+            uart_flush(HUANYANG_UART_PORT);
             uart_write_bytes(HUANYANG_UART_PORT, next_cmd.msg, next_cmd.tx_length);
 
             uint16_t read_length = uart_read_bytes(HUANYANG_UART_PORT, rx_message, next_cmd.rx_length, RESPONSE_WAIT_TICKS);
 
             if (read_length < next_cmd.rx_length) {
                 grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RS485 Unresponsive");
+                if (next_cmd.critical)
+                    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Critical Spindle RS485 Unresponsive");
                 // TODO Do something with this error
-                // system_set_exec_alarm(EXEC_ALARM_SPINDLE_CONTROL);
+                system_set_exec_alarm(EXEC_ALARM_SPINDLE_CONTROL);
+            } else {
+                
             }
         } else {
             // TODO: Should we ping the spindle here to make sure it does not go off line?
+            // But there is virtually no real documentation on how to do this.
         }
-        vTaskDelay(200); // TODO: What is the best value here?
+        vTaskDelay(100); // TODO: What is the best value here?
     }
 }
 
@@ -157,9 +163,10 @@ void HuanyangSpindle :: init() {
     uart_set_mode(HUANYANG_UART_PORT, UART_MODE_RS485_HALF_DUPLEX);
 
     is_reversable = true; // these VFDs are always reversable
+    use_delays = true;
 
     //
-    _current_pwm_rpm = 0;
+    _current_rpm = 0;
     _state = SPINDLE_DISABLE;
 
     config_message();
@@ -197,11 +204,12 @@ bool HuanyangSpindle :: get_pins_and_settings() {
 
 void HuanyangSpindle :: config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
-                    MSG_LEVEL_INFO,
-                    "Huanyang Spindle Tx:%s Rx:%s RTS:%s",
-                    pinName(_txd_pin).c_str(),
-                    pinName(_rxd_pin).c_str(),
-                    pinName(_rts_pin).c_str());
+                   MSG_LEVEL_INFO,
+                   "Huanyang Spindle Tx:%s Rx:%s RTS:%s",
+                   pinName(_txd_pin).c_str(),
+                   pinName(_rxd_pin).c_str(),
+                   pinName(_rts_pin).c_str());
+
 }
 
 /*
@@ -209,27 +217,40 @@ void HuanyangSpindle :: config_message() {
     0x01    0x03    0x01    0x01    0x31 0x88                   Start spindle clockwise
     0x01    0x03    0x01    0x08    0xF1 0x8E                   Stop spindle
     0x01    0x03    0x01    0x11    0x30 0x44                   Start spindle counter-clockwise
+
+
+    0x01    0x04    0x03    0x00    0x00 0x00   0xF0 0x4E       Read Frequency
 */
-void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) {
+void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) 
     if (sys.abort)
         return;   // Block during abort.
 
-    if (state != _state) { // already at the desired state. This function gets called a lot.
-        _state = state; // store locally for faster get_state()
-        set_mode(state);
+    bool critical = (sys.state == STATE_CYCLE || state != SPINDLE_DISABLE);
+    
+    if (_current_state != state) { // already at the desired state. This function gets called a lot.
+        set_mode(state, critical); // critical if we are in a job
+        set_rpm(rpm);
         if (state == SPINDLE_DISABLE) {
             sys.spindle_speed = 0;
-            return;
+            if (_current_state != state)
+                mc_dwell(spindle_delay_spindown->get());
+        } else {
+            if (_current_state != state)
+                mc_dwell(spindle_delay_spinup->get());
         }
+    } else {
+        if (_current_rpm != rpm)
+            set_rpm(rpm);
     }
 
-    set_rpm(rpm);
+    _current_state = state; // store locally for faster get_state()
+
     sys.report_ovr_counter = 0; // Set to report change immediately
 
     return;
 }
 
-bool HuanyangSpindle :: set_mode(uint8_t mode) {
+bool HuanyangSpindle :: set_mode(uint8_t mode, bool critical) {
     hy_command_t mode_cmd;
 
     mode_cmd.tx_length = 6;
@@ -248,6 +269,8 @@ bool HuanyangSpindle :: set_mode(uint8_t mode) {
 
     add_ModRTU_CRC(mode_cmd.msg, mode_cmd.rx_length);
 
+    mode_cmd.critical = critical;
+    ;
     if (xQueueSend(hy_cmd_queue, &mode_cmd, 0) != pdTRUE)
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
 
@@ -261,10 +284,10 @@ bool HuanyangSpindle :: set_mode(uint8_t mode) {
 uint32_t HuanyangSpindle :: set_rpm(uint32_t rpm) {
     hy_command_t rpm_cmd;
 
-    if (rpm == _current_pwm_rpm) // prevent setting same RPM twice
+    if (rpm == _current_rpm) // prevent setting same RPM twice
         return rpm;
 
-    _current_pwm_rpm = rpm;
+    _current_rpm = rpm;
 
     // TODO add the speed modifiers override, linearization, etc.
 
@@ -282,14 +305,53 @@ uint32_t HuanyangSpindle :: set_rpm(uint32_t rpm) {
 
     add_ModRTU_CRC(rpm_cmd.msg, rpm_cmd.tx_length);
 
+    rpm_cmd.critical = (sys.state == STATE_CYCLE);
+
     if (xQueueSend(hy_cmd_queue, &rpm_cmd, 0) != pdTRUE)
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
 
     return rpm;
 }
 
+// 0x01    0x04    0x03    0x00    0x00 0x00   0xF0 0x4E       Read Frequency
+// This appears to read the control register and will return an RPM running or not.
+uint16_t HuanyangSpindle :: read_rpm() {
+    hy_command_t read_cmd;
+    uint8_t rx_message[HUANYANG_MAX_MSG_SIZE];
+
+    read_cmd.tx_length = 8;
+    read_cmd.rx_length = 6;
+
+    read_cmd.msg[0] = HUANYANG_ADDR;
+    read_cmd.msg[1] = 0x04;
+    read_cmd.msg[2] = 0x03;
+
+    read_cmd.msg[3] = 0x00;
+
+    read_cmd.msg[4] = 0x00;
+    read_cmd.msg[5] = 0x00;
+
+    add_ModRTU_CRC(read_cmd.msg, read_cmd.tx_length);
+
+    uart_flush(HUANYANG_UART_PORT);
+    uart_write_bytes(HUANYANG_UART_PORT, read_cmd.msg, read_cmd.tx_length);
+
+    uint16_t read_length = uart_read_bytes(HUANYANG_UART_PORT, rx_message, read_cmd.rx_length, RESPONSE_WAIT_TICKS);
+
+    if (read_length < read_cmd.rx_length)
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Read RPM Spindle RS485 Unresponsive");
+    else {
+        uint32_t hz = ((uint32_t)rx_message[4] << 8) + rx_message[5];
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "speed %d", (hz * 60) / 100);
+
+        report_hex_msg(rx_message, "Rx:", read_length);
+    }
+
+    return 0;
+}
+
 void HuanyangSpindle ::stop() {
-    set_mode(SPINDLE_DISABLE);
+    set_mode(SPINDLE_DISABLE, false);
 }
 
 // state is cached rather than read right now to prevent delays

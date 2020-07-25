@@ -36,4 +36,6 @@ void Laser :: config_message() {
                    _pwm_freq,
                    _pwm_precision,
                    isRateAdjusted());  // the current mode
+
+    use_delays = false; // this will override the value set in PWMSpindle intit()
 }
