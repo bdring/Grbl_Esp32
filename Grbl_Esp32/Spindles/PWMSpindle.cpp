@@ -48,9 +48,9 @@ void PWMSpindle :: init() {
 
     pinMode(_enable_pin, OUTPUT);
     pinMode(_direction_pin, OUTPUT);
-
+  
     use_delays = true;
-
+  
     config_message();
 }
 
@@ -222,7 +222,7 @@ void PWMSpindle::set_output(uint32_t duty) {
 
     _current_pwm_duty = duty;
 
-    if (_invert_pwm)
+     if (_invert_pwm)
         duty = (1 << _pwm_precision) - duty;
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "set_output(%d)", duty);

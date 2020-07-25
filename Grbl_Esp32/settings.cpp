@@ -75,4 +75,3 @@ uint8_t get_direction_pin_mask(uint8_t axis_idx) {
     return bit(axis_idx);
 }
 
-

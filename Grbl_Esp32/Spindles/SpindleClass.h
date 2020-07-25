@@ -91,7 +91,10 @@ class PWMSpindle : public Spindle {
   private:   
     void set_spindle_dir_pin(bool Clockwise);
 
+
+  
   protected:    
+  
     int32_t _current_pwm_duty;
     uint32_t _min_rpm;
     uint32_t _max_rpm;
@@ -191,7 +194,9 @@ class _10vSpindle : public PWMSpindle {
     uint32_t set_rpm(uint32_t rpm);
     uint8_t _forward_pin;
     uint8_t _reverse_pin;
+
     //void set_state(uint8_t state, uint32_t rpm);
+
     uint8_t get_state();
     void stop();
  protected:

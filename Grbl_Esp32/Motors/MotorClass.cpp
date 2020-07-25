@@ -384,7 +384,6 @@ void motors_set_direction_pins(uint8_t onMask) {
     }
 }
 
-
 // returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
 // need to be inserted into the order of axes.
 uint8_t get_next_trinamic_driver_index() {
@@ -445,6 +444,7 @@ void TMC2130Stepper::switchCSpin(bool state) {
     i2s_out_delay();
 }
 #endif
+
 
 
 // ============================== Class Methods ================================================

@@ -1,12 +1,14 @@
 /*
     10vSpindle.cpp
 
+
     This is basically a PWM spindle with some changes, so a separate forward and
     reverse signal can be sent.
 
     The direction pins will act as enables for the 2 directions. There is usually
     a min RPM with VFDs, that speed will remain even if speed is 0. You
     must turn off both direction pins when enable is off.
+
 
     Part of Grbl_ESP32
     2020 -	Bart Dring
@@ -46,6 +48,7 @@ void _10vSpindle :: init() {
     _reverse_pin = UNDEFINED_PIN;
 #endif
 
+
     if (_output_pin == UNDEFINED_PIN) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: BESC output pin not defined");
         return; // We cannot continue without the output pin
@@ -65,6 +68,7 @@ void _10vSpindle :: init() {
 
     is_reversable = true; // these VFDs are always reversable
     use_delays = true;
+
 }
 
 // prints the startup message of the spindle config
@@ -102,11 +106,11 @@ uint32_t _10vSpindle::set_rpm(uint32_t rpm) {
         pwm_value = _pwm_off_value;
     else
         pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
+
     set_output(pwm_value);
     return rpm;
 }
 
-/*
 void _10vSpindle::set_state(uint8_t state, uint32_t rpm) {
     if (sys.abort)
         return;   // Block during abort.
@@ -123,7 +127,9 @@ void _10vSpindle::set_state(uint8_t state, uint32_t rpm) {
 
     sys.report_ovr_counter = 0; // Set to report change immediately
 }
+
 */
+
 
 uint8_t _10vSpindle::get_state() {
     if (_current_pwm_duty == 0  || _output_pin == UNDEFINED_PIN)
@@ -155,8 +161,6 @@ void _10vSpindle::set_enable_pin(bool enable) {
         digitalWrite(_forward_pin, enable);
         digitalWrite(_reverse_pin, enable);
     }
-
-
 }
 
 void _10vSpindle::set_spindle_dir_pin(bool Clockwise) {
@@ -165,3 +169,4 @@ void _10vSpindle::set_spindle_dir_pin(bool Clockwise) {
     digitalWrite(_forward_pin, Clockwise);
     digitalWrite(_reverse_pin, ! Clockwise);
 }
+

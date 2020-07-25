@@ -435,6 +435,7 @@ void mc_reset() {
         // Kill spindle and coolant.
         spindle->stop();
         coolant_stop();        
+
         // turn off all digital I/O immediately
         fast_sys_io_control(0xFF, false);
 #ifdef ENABLE_SD_CARD

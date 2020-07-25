@@ -513,6 +513,7 @@ void set_stepper_pins_on(uint8_t onMask) {
 #endif
 #endif
 
+
 #ifdef Z_STEP_PIN
 #ifndef Z2_STEP_PIN // if not a ganged axis
     digitalWrite(Z_STEP_PIN, (onMask & bit(Z_AXIS)));

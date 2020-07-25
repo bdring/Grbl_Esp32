@@ -209,6 +209,7 @@ void HuanyangSpindle :: config_message() {
                    pinName(_txd_pin).c_str(),
                    pinName(_rxd_pin).c_str(),
                    pinName(_rts_pin).c_str());
+
 }
 
 /*
@@ -220,8 +221,7 @@ void HuanyangSpindle :: config_message() {
 
     0x01    0x04    0x03    0x00    0x00 0x00   0xF0 0x4E       Read Frequency
 */
-void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) {
-
+void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) 
     if (sys.abort)
         return;   // Block during abort.
 
