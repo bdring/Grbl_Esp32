@@ -39,12 +39,19 @@ typedef struct {
 } client_line_t;
 client_line_t client_lines[CLIENT_COUNT];
 
-void empty_line(uint8_t client)
+static void empty_line(uint8_t client)
 {
     client_line_t* cl = &client_lines[client];
     cl->len = 0;
     cl->buffer[0] = '\0';
 }
+static void empty_lines() {
+    for (uint8_t client = 0; client < CLIENT_COUNT; client++) {
+        empty_line(client);
+    }
+}
+
+
 err_t add_char_to_line(char c, uint8_t client)
 {
     client_line_t* cl = &client_lines[client];
@@ -92,6 +99,8 @@ err_t execute_line(char* line, uint8_t client, auth_t auth_level)
   GRBL PRIMARY LOOP:
 */
 void protocol_main_loop() {
+    empty_client_buffers();
+    empty_lines();
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
 #ifdef CHECK_LIMITS_AT_INIT

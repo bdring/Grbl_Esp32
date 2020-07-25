@@ -110,7 +110,7 @@ uint32_t _10vSpindle::set_rpm(uint32_t rpm) {
     set_output(pwm_value);
     return rpm;
 }
-
+/*
 void _10vSpindle::set_state(uint8_t state, uint32_t rpm) {
     if (sys.abort)
         return;   // Block during abort.
