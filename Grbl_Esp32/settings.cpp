@@ -74,12 +74,3 @@ uint8_t get_step_pin_mask(uint8_t axis_idx) {
 uint8_t get_direction_pin_mask(uint8_t axis_idx) {
     return bit(axis_idx);
 }
-
-// this allows a conditional re-init of the trinamic settings
-void settings_spi_driver_init() {
-#ifdef USE_TRINAMIC
-    trinamic_change_settings();
-#else
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No SPI drivers setup");
-#endif
-}
