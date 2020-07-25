@@ -367,6 +367,35 @@ void sys_io_control(uint8_t io_num_mask, bool turnOn) {
 #endif
 }
 
+// This version works immediately, without waiting, to prevent deadlocks.
+// It is used when resetting via mc_reset()
+void fast_sys_io_control(uint8_t io_num_mask, bool turnOn) {
+#ifdef USER_DIGITAL_PIN_1
+    if (io_num_mask & bit(1)) {
+        digitalWrite(USER_DIGITAL_PIN_1, turnOn);
+        return;
+    }
+#endif
+#ifdef USER_DIGITAL_PIN_2
+    if (io_num_mask & bit(2)) {
+        digitalWrite(USER_DIGITAL_PIN_2, turnOn);
+        return;
+    }
+#endif
+#ifdef USER_DIGITAL_PIN_3
+    if (io_num_mask & bit(3)) {
+        digitalWrite(USER_DIGITAL_PIN_3, turnOn);
+        return;
+    }
+#endif
+#ifdef USER_DIGITAL_PIN_4
+    if (io_num_mask & bit(4)) {
+        digitalWrite(USER_DIGITAL_PIN_4, turnOn);
+        return;
+    }
+#endif
+}
+
 // Call this function to get an RMT channel number
 // returns -1 for error
 int8_t sys_get_next_RMT_chan_num() {
