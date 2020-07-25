@@ -1,11 +1,12 @@
 /*
     10vSpindle.cpp
 
-    This is basically a PWM spindle with some changes, so a forward and 
+
+    This is basically a PWM spindle with some changes, so a separate forward and
     reverse signal can be sent.
 
-    The direction pins will act as enables for the 2 directions. There is usually 
-    a min RPM with VFDs, that speed will remain even if speed is 0. You 
+    The direction pins will act as enables for the 2 directions. There is usually
+    a min RPM with VFDs, that speed will remain even if speed is 0. You
     must turn off both direction pins when enable is off.
 
 
@@ -23,7 +24,7 @@
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
-    
+
 
 */
 #include "SpindleClass.h"
@@ -35,17 +36,18 @@ void _10vSpindle :: init() {
     get_pins_and_settings(); // these gets the standard PWM settings, but many need to be changed for BESC
 
     // a couple more pins not inherited from PWM Spindle
-    #ifdef SPINDLE_FORWARD_PIN
-        _forward_pin = SPINDLE_FORWARD_PIN;
-    #else
-        _forward_pin = UNDEFINED_PIN;
-    #endif
+#ifdef SPINDLE_FORWARD_PIN
+    _forward_pin = SPINDLE_FORWARD_PIN;
+#else
+    _forward_pin = UNDEFINED_PIN;
+#endif
 
-    #ifdef SPINDLE_REVERSE_PIN
-        _reverse_pin = SPINDLE_REVERSE_PIN;
-    #else
-        _reverse_pin = UNDEFINED_PIN;
-    #endif
+#ifdef SPINDLE_REVERSE_PIN
+    _reverse_pin = SPINDLE_REVERSE_PIN;
+#else
+    _reverse_pin = UNDEFINED_PIN;
+#endif
+
 
     if (_output_pin == UNDEFINED_PIN) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: BESC output pin not defined");
@@ -65,6 +67,8 @@ void _10vSpindle :: init() {
     config_message();
 
     is_reversable = true; // these VFDs are always reversable
+    use_delays = true;
+
 }
 
 // prints the startup message of the spindle config
@@ -98,11 +102,10 @@ uint32_t _10vSpindle::set_rpm(uint32_t rpm) {
     sys.spindle_speed = rpm;
 
     // determine the pwm value
- if (rpm == 0) {
+    if (rpm == 0)
         pwm_value = _pwm_off_value;
-    } else {
+    else
         pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
-    }
 
     set_output(pwm_value);
     return rpm;
@@ -125,6 +128,9 @@ void _10vSpindle::set_state(uint8_t state, uint32_t rpm) {
     sys.report_ovr_counter = 0; // Set to report change immediately
 }
 
+*/
+
+
 uint8_t _10vSpindle::get_state() {
     if (_current_pwm_duty == 0  || _output_pin == UNDEFINED_PIN)
         return (SPINDLE_STATE_DISABLE);
@@ -140,8 +146,8 @@ void _10vSpindle::stop() {
 }
 
 void _10vSpindle::set_enable_pin(bool enable) {
-grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "_10vSpindle::set_enable_pin");
-if (_off_with_zero_speed &&  sys.spindle_speed == 0)
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "_10vSpindle::set_enable_pin");
+    if (_off_with_zero_speed &&  sys.spindle_speed == 0)
         enable = false;
 
 #ifdef INVERT_SPINDLE_ENABLE_PIN
@@ -155,13 +161,12 @@ if (_off_with_zero_speed &&  sys.spindle_speed == 0)
         digitalWrite(_forward_pin, enable);
         digitalWrite(_reverse_pin, enable);
     }
-    
-
 }
 
-void _10vSpindle::set_spindle_dir_pin(bool Clockwise) {    
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "_10vSpindle::set_spindle_dir_pin");
+void _10vSpindle::set_spindle_dir_pin(bool Clockwise) {
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "_10vSpindle::set_spindle_dir_pin");
     digitalWrite(_direction_pin, Clockwise);
     digitalWrite(_forward_pin, Clockwise);
     digitalWrite(_reverse_pin, ! Clockwise);
 }
+

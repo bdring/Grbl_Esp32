@@ -445,6 +445,8 @@ void TMC2130Stepper::switchCSpin(bool state) {
 }
 #endif
 
+
+
 // ============================== Class Methods ================================================
 
 Motor :: Motor() {

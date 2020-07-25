@@ -40,6 +40,8 @@ extern FloatSetting* homing_pulloff;
 extern FloatSetting* spindle_pwm_freq;
 extern FloatSetting* rpm_max;
 extern FloatSetting* rpm_min;
+extern FloatSetting* spindle_delay_spinup;
+extern FloatSetting* spindle_delay_spindown;
 
 extern FloatSetting* spindle_pwm_off_value;
 extern FloatSetting* spindle_pwm_min_value;

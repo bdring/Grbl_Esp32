@@ -39,7 +39,6 @@ void PWMSpindle :: init() {
     }
 
     if (_output_pin >= I2S_OUT_PIN_BASE) {
-
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Spindle output pin %s cannot do PWM", pinName(_output_pin).c_str());
         return;
     }
@@ -49,7 +48,9 @@ void PWMSpindle :: init() {
 
     pinMode(_enable_pin, OUTPUT);
     pinMode(_direction_pin, OUTPUT);
-
+  
+    use_delays = true;
+  
     config_message();
 }
 
@@ -123,7 +124,7 @@ uint32_t PWMSpindle::set_rpm(uint32_t rpm) {
     if (_output_pin == UNDEFINED_PIN)
         return rpm;
 
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set rpm %d", rpm);
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "set_rpm(%d)", rpm);
 
     // apply override
     rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle speed override value (uint8_t percent)
@@ -160,12 +161,23 @@ void PWMSpindle::set_state(uint8_t state, uint32_t rpm) {
     if (state == SPINDLE_DISABLE) { // Halt or set spindle direction and rpm.
         sys.spindle_speed = 0;
         stop();
+        if (use_delays && (_current_state != state)) {
+            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SpinDown Start ");
+            mc_dwell(spindle_delay_spindown->get());
+            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SpinDown Done");
+        }
     } else {
         set_spindle_dir_pin(state == SPINDLE_ENABLE_CW);
         set_rpm(rpm);
+        set_enable_pin(state != SPINDLE_DISABLE); // must be done after setting rpm for enable features to work
+        if (use_delays && (_current_state != state)) {
+            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SpinUp Start %d", rpm);
+            mc_dwell(spindle_delay_spinup->get());
+            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SpinUp Done");
+        }
     }
 
-    set_enable_pin(state != SPINDLE_DISABLE);
+    _current_state = state;
 
     sys.report_ovr_counter = 0; // Set to report change immediately
 }
@@ -182,6 +194,7 @@ void PWMSpindle::stop() {
     // inverts are delt with in methods
     set_enable_pin(false);
     set_output(_pwm_off_value);
+
 }
 
 // prints the startup message of the spindle config
@@ -198,10 +211,10 @@ void PWMSpindle :: config_message() {
 
 
 void PWMSpindle::set_output(uint32_t duty) {
+
+
     if (_output_pin == UNDEFINED_PIN)
         return;
-
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set output %d", duty);
 
     // to prevent excessive calls to ledcWrite, make sure duty hass changed
     if (duty == _current_pwm_duty)
@@ -212,8 +225,9 @@ void PWMSpindle::set_output(uint32_t duty) {
      if (_invert_pwm)
         duty = (1 << _pwm_precision) - duty;
 
-    ledcWrite(_spindle_pwm_chan_num, duty);
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "set_output(%d)", duty);
 
+    ledcWrite(_spindle_pwm_chan_num, duty);
 }
 
 void PWMSpindle::set_enable_pin(bool enable) {

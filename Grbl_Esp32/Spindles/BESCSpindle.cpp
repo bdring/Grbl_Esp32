@@ -77,6 +77,8 @@ void BESCSpindle :: init() {
 
     set_rpm(0);
 
+    use_delays = true;
+
     config_message();
 }
 
