@@ -92,10 +92,6 @@
     #include "servo_axis.h"
 #endif
 
-#ifdef USE_TRINAMIC
-    #include "grbl_trinamic.h"
-#endif
-
 #ifdef USE_UNIPOLAR
     #include "grbl_unipolar.h"
 #endif

@@ -441,9 +441,6 @@ void stepper_init() {
     timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
     timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
 #endif
-#ifdef USE_TRINAMIC
-    Trinamic_Init();
-#endif
 }
 
 
