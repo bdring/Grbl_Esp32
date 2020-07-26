@@ -63,12 +63,6 @@ static TaskHandle_t serialCheckTaskHandle = 0;
 
 InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each client
 
-void empty_client_buffers() {
-    for (uint8_t i = 0; i < CLIENT_COUNT; i++) {
-        client_buffer[i].end();
-    }
-}
-
 // Returns the number of bytes available in a client buffer.
 uint8_t serial_get_rx_buffer_available(uint8_t client) {
     return client_buffer[client].availableforwrite();
@@ -160,7 +154,7 @@ void serialCheckTask(void* pvParameters) {
 void serial_reset_read_buffer(uint8_t client) {
     for (uint8_t client_num = 0; client_num < CLIENT_COUNT; client_num++) {
         if (client == client_num || client == CLIENT_ALL)
-            client_buffer[client].begin();
+            client_buffer[client_num].begin();
     }
 }
 
