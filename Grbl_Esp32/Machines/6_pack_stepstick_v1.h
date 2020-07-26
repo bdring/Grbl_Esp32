@@ -83,8 +83,8 @@
 #define Y_LIMIT_PIN             GPIO_NUM_32
 #define Z_LIMIT_PIN             GPIO_NUM_35
 #define A_LIMIT_PIN             GPIO_NUM_34
-#define B_LIMIT_PIN             GPIO_NUM_39
-#define C_LIMIT_PIN             GPIO_NUM_36
+//#define B_LIMIT_PIN             GPIO_NUM_39
+//#define C_LIMIT_PIN             GPIO_NUM_36
 
 #define PROBE_PIN               GPIO_NUM_25
 
@@ -117,13 +117,13 @@
 #define COOLANT_FLOOD_PIN       I2SO(27)
 */
 
-/*
+
 // RS485 In socket #3
 #define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG // only one spindle at a time
 #define HUANYANG_TXD_PIN        GPIO_NUM_26
 #define HUANYANG_RTS_PIN        GPIO_NUM_4
 #define HUANYANG_RXD_PIN        GPIO_NUM_16
-*/
+
 
 
 // === Default settings
