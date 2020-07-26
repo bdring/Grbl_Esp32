@@ -32,23 +32,42 @@
     PD015   10  Deceleration time (Test to optimize)
     PD023   1   Reverse run enabled
     PD142   3.7 Max current Amps (0.8kw=3.7 1.5kw=7.0, 2.2kw=??)
+    PD143   2   Poles most are 2 (I think this is only used for RPM calc from Hz)
     PD163   1   RS485 Address: 1 (Typical. OK to change...see below)
     PD164   1   RS485 Baud rate: 9600 (Typical. OK to change...see below)
     PD165   3   RS485 Mode: RTU, 8N1
 
-    Some references....
-    Manual: http://www.hy-electrical.com/bf/inverter.pdf
+    The official documentation of the RS485 is horrible. I had to piece it together from
+    a lot of different sources
+
+    Manuals: https://github.com/RobertOlechowski/Huanyang_VFD/tree/master/Documentations/pdf
     Reference: https://github.com/Smoothieware/Smoothieware/blob/edge/src/modules/tools/spindle/HuanyangSpindleControl.cpp
     Refernece: https://gist.github.com/Bouni/803492ed0aab3f944066
     VFD settings: https://www.hobbytronics.co.za/Content/external/1159/Spindle_Settings.pdf
     Spindle Talker 2 https://github.com/GilchristT/SpindleTalker2/releases
     Python https://github.com/RobertOlechowski/Huanyang_VFD
 
+    Commands
+    ADDR    CMD     LEN     DATA    CRC    
+    0x01    0x03    0x01    0x01    0x31 0x88                   Start spindle clockwise
+    0x01    0x03    0x01    0x08    0xF1 0x8E                   Stop spindle
+    0x01    0x03    0x01    0x11    0x30 0x44                   Start spindle counter-clockwise    
 
-    TODO
-        Returning errors to Grbl and handling them in Grbl.
-        What happens if the VFD does not respond
-        Add periodic pinging of VFD in run mode to see if it is still at correct RPM
+    Setting RPM    
+    ADDR    CMD     LEN     DATA        CRC
+    0x01    0x05    0x02    0x09 0xC4   0xBF 0x0F               Write Frequency (0x9C4 = 2500 = 25.00HZ)
+
+    Status registers
+    Addr    Read    Len     Reg     Data    Data    CRC     CRC
+    0x01    0x04    0x03    0x00    0x00    0x00                     //  Set Frequency
+    0x01    0x04    0x03    0x01                                    //  Ouput Frequency
+    0x01    0x04    0x03    0x02                                    //  Ouput Amps
+    0x01    0x04    0x03    0x03    0x00    0x00    0xF0    0x4E    //  Read RPM
+    0x01    0x04    0x03    0x04                                    //  DC voltage
+    0x01    0x04    0x03    0x05                                    //  AC voltage
+    0x01    0x04    0x03    0x06                                    //  Cont
+    0x01    0x04    0x03    0x07                                    //  VFD Temp
+
 */
 #include "SpindleClass.h"
 
@@ -244,15 +263,7 @@ void HuanyangSpindle :: config_message() {
 
 }
 
-/*
-    ADDR    CMD     LEN     DATA    CRC
-    0x01    0x03    0x01    0x01    0x31 0x88                   Start spindle clockwise
-    0x01    0x03    0x01    0x08    0xF1 0x8E                   Stop spindle
-    0x01    0x03    0x01    0x11    0x30 0x44                   Start spindle counter-clockwise
 
-
-    0x01    0x04    0x03    0x00    0x00 0x00   0xF0 0x4E       Read Frequency
-*/
 void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) {
     if (sys.abort)
         return;   // Block during abort.
@@ -309,10 +320,7 @@ bool HuanyangSpindle :: set_mode(uint8_t mode, bool critical) {
     return true;
 }
 
-/*
-    ADDR    CMD     LEN     DATA        CRC
-    0x01    0x05    0x02    0x09 0xC4   0xBF 0x0F               Write Frequency (0x9C4 = 2500 = 25.00HZ)
-*/
+
 uint32_t HuanyangSpindle :: set_rpm(uint32_t rpm) {
     hy_command_t rpm_cmd;
 
@@ -345,18 +353,7 @@ uint32_t HuanyangSpindle :: set_rpm(uint32_t rpm) {
     return rpm;
 }
 
-/*
 
-    0x01    0x04    0x00    Set Frequency
-    0x01    0x04    0x01    Ouput Frequency
-    0x01    0x04    0x02    Ouput Amps
-    0x01    0x04    0x03    0x00    0x00 0x00   0xF0 0x4E       Read RPM
-    0x01    0x04    0x04    DC voltage
-    0x01    0x04    0x05    AC voltage
-    0x01    0x04    0x06    Cont
-    0x01    0x04    0x07    VFD Temp
-
-*/
 // This appears to read the control register and will return an RPM running or not.
 void HuanyangSpindle :: read_value(uint8_t reg) {
     uint16_t ret_value = 0;
@@ -375,7 +372,7 @@ void HuanyangSpindle :: read_value(uint8_t reg) {
     read_cmd.msg[4] = 0x00;
     read_cmd.msg[5] = 0x00;
 
-    read_cmd.critical = (sys.state == STATE_CYCLE); // only critical if running a job TBD
+    read_cmd.critical = (sys.state == STATE_CYCLE); // only critical if running a job TBD.... maybe spindle on?
 
     add_ModRTU_CRC(read_cmd.msg, read_cmd.tx_length);
 
