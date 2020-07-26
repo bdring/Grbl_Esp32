@@ -56,6 +56,4 @@ void execute_realtime_command(uint8_t command, uint8_t client);
 bool any_client_has_data();
 bool is_realtime_command(uint8_t data);
 
-void empty_client_buffers();
-
 #endif
