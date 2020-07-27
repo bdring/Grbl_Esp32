@@ -2,6 +2,8 @@
     HuanyangSpindle.cpp
 
     This is for a Huanyang VFD based spindle via RS485 Modbus.
+    Sorry for the lengthy comments, but finding the details on this
+    VFD was a PITA. I am just trying to help the next person.
 
     Part of Grbl_ESP32
     2020 -	Bart Dring
@@ -20,6 +22,21 @@
                          WARNING!!!!
     VFDs are very dangerous. They have high voltages and are very powerful
     Remove power before changing bits.
+
+    ==============================================================================
+
+    If a user changes state or RPM level, the command to do that is sent. If
+    the command is not responded to a message is sent to serial that there was 
+    a timeout. If the Grbl is in a critical state, an alarm will be generated and 
+    the machine stopped.
+
+    If there are no commands to execute, various status items will be polled. If there
+    is no response, it will behave as described above. It will stop any running jobs with
+    an alarm.
+
+    ===============================================================================
+
+    Protocol Details
 
     VFD frequencies are in Hz. Multiply by 60 for RPM
 
@@ -47,26 +64,49 @@
     Spindle Talker 2 https://github.com/GilchristT/SpindleTalker2/releases
     Python https://github.com/RobertOlechowski/Huanyang_VFD
 
+    =========================================================================
+
     Commands
     ADDR    CMD     LEN     DATA    CRC    
     0x01    0x03    0x01    0x01    0x31 0x88                   Start spindle clockwise
     0x01    0x03    0x01    0x08    0xF1 0x8E                   Stop spindle
-    0x01    0x03    0x01    0x11    0x30 0x44                   Start spindle counter-clockwise    
+    0x01    0x03    0x01    0x11    0x30 0x44                   Start spindle counter-clockwise
+
+    Return values are
+    0 = run
+    1 = jog
+    2 = r/f
+    3 = running
+    4 = jogging
+    5 = r/f
+    6 = Braking
+    7 = Track start
+
+    ==========================================================================
 
     Setting RPM    
     ADDR    CMD     LEN     DATA        CRC
     0x01    0x05    0x02    0x09 0xC4   0xBF 0x0F               Write Frequency (0x9C4 = 2500 = 25.00HZ)
 
+    Response is same as data sent
+
+    ==========================================================================
+
     Status registers
-    Addr    Read    Len     Reg     Data    Data    CRC     CRC
-    0x01    0x04    0x03    0x00    0x00    0x00                     //  Set Frequency
-    0x01    0x04    0x03    0x01                                    //  Ouput Frequency
-    0x01    0x04    0x03    0x02                                    //  Ouput Amps
-    0x01    0x04    0x03    0x03    0x00    0x00    0xF0    0x4E    //  Read RPM
-    0x01    0x04    0x03    0x04                                    //  DC voltage
-    0x01    0x04    0x03    0x05                                    //  AC voltage
-    0x01    0x04    0x03    0x06                                    //  Cont
-    0x01    0x04    0x03    0x07                                    //  VFD Temp
+    Addr    Read    Len     Reg     DataH   DataL   CRC     CRC
+    0x01    0x04    0x03    0x00    0x00    0x00    CRC     CRC     //  Set Frequency * 100 (25Hz = 2500)
+    0x01    0x04    0x03    0x01    0x00    0x00    CRC     CRC     //  Ouput Frequency * 100
+    0x01    0x04    0x03    0x02    0x00    0x00    CRC     CRC     //  Ouput Amps * 10
+    0x01    0x04    0x03    0x03    0x00    0x00    0xF0    0x4E    //  Read RPM (example CRC shown)
+    0x01    0x04    0x03    0x0     0x00    0x00    CRC     CRC     //  DC voltage
+    0x01    0x04    0x03    0x05    0x00    0x00    CRC     CRC     //  AC voltage
+    0x01    0x04    0x03    0x06    0x00    0x00    CRC     CRC     //  Cont
+    0x01    0x04    0x03    0x07    0x00    0x00    CRC     CRC     //  VFD Temp
+    Message is returned with requested value = (DataH * 16) + DataL (see decimal offset above)
+
+    TODO:
+        Move CRC Calc to task to free up main task
+
 
 */
 #include "SpindleClass.h"
@@ -76,6 +116,7 @@
 #define HUANYANG_UART_PORT      UART_NUM_2      // hard coded for this port right now
 #define ECHO_TEST_CTS           UART_PIN_NO_CHANGE // CTS pin is not used
 #define HUANYANG_BUF_SIZE       127
+#define HUANYANG_QUEUE_SIZE     10   // numv\ber of commands that can be queued up.
 #define RESPONSE_WAIT_TICKS     50 // how long to wait for a response
 #define HUANYANG_MAX_MSG_SIZE   16   // more than enough for a modbus message
 #define HUANYANG_POLL_RATE      200  // in milliseconds betwwen commands
@@ -112,6 +153,8 @@ typedef enum : uint8_t {
 QueueHandle_t hy_cmd_queue;
 
 static TaskHandle_t vfd_cmdTaskHandle = 0;
+
+bool hy_spindle_ok = true;
 
 // The communications task
 void vfd_cmd_task(void* pvParameters) {
@@ -163,9 +206,16 @@ void vfd_cmd_task(void* pvParameters) {
 // ================== Class methods ==================================
 
 void HuanyangSpindle :: init() {
+    hy_spindle_ok = true;  // initialize
+
+    // fail if required items are not defined
+    if (!get_pins_and_settings()) {
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Huanyang spindle errors");
+        return;
+    }
 
     if (! _task_running) { // init can happen many times, we only want to start one task
-        hy_cmd_queue = xQueueCreate(5, sizeof(hy_command_t));
+        hy_cmd_queue = xQueueCreate(HUANYANG_QUEUE_SIZE, sizeof(hy_command_t));
         xTaskCreatePinnedToCore(vfd_cmd_task,      // task
                                 "vfd_cmdTaskHandle", // name for task
                                 2048,   // size of task stack
@@ -175,13 +225,7 @@ void HuanyangSpindle :: init() {
                                 0 // core
                                );
         _task_running = true;
-    }
-
-    // fail if required items are not defined
-    if (!get_pins_and_settings()) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Huanyang spindle errors");
-        return;
-    }
+    }    
 
     // this allows us to init() again later.
     // If you change certain settings, init() gets called agian
@@ -227,30 +271,38 @@ void HuanyangSpindle :: init() {
 // It returns a message for each missing pin
 // Returns true if all pins are defined.
 bool HuanyangSpindle :: get_pins_and_settings() {
-    bool pins_ok = true;
+    
 
 #ifdef HUANYANG_TXD_PIN
     _txd_pin = HUANYANG_TXD_PIN;
 #else
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Missing HUANYANG_TXD_PIN");
-    pins_ok = false;
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined HUANYANG_TXD_PIN");
+    hy_spindle_ok = false;
 #endif
 
 #ifdef HUANYANG_RXD_PIN
     _rxd_pin = HUANYANG_RXD_PIN;
 #else
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No HUANYANG_RXD_PIN");
-    pins_ok = false;
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined HUANYANG_RXD_PIN");
+    hy_spindle_ok = false;
 #endif
 
 #ifdef HUANYANG_RTS_PIN
     _rts_pin = HUANYANG_RTS_PIN;
 #else
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No HUANYANG_RTS_PIN");
-    pins_ok = false;
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined HUANYANG_RTS_PIN");
+    hy_spindle_ok = false;
 #endif
 
-    return pins_ok;
+    if (laser_mode->get()) {
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Huanyang spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");
+        hy_spindle_ok = false;        
+    }
+
+    _min_rpm = rpm_min->get();
+    _max_rpm = rpm_max->get();   
+
+    return hy_spindle_ok;
 }
 
 void HuanyangSpindle :: config_message() {
@@ -260,7 +312,6 @@ void HuanyangSpindle :: config_message() {
                    pinName(_txd_pin).c_str(),
                    pinName(_rxd_pin).c_str(),
                    pinName(_rts_pin).c_str());
-
 }
 
 
@@ -294,6 +345,9 @@ void HuanyangSpindle :: set_state(uint8_t state, uint32_t rpm) {
 }
 
 bool HuanyangSpindle :: set_mode(uint8_t mode, bool critical) {
+
+    if (!hy_spindle_ok) return false;
+
     hy_command_t mode_cmd;
 
     mode_cmd.tx_length = 6;
@@ -303,12 +357,17 @@ bool HuanyangSpindle :: set_mode(uint8_t mode, bool critical) {
     mode_cmd.msg[1] = 0x03;
     mode_cmd.msg[2] = 0x01;
 
-    if (mode == SPINDLE_ENABLE_CW)
+   if (mode == SPINDLE_ENABLE_CW)
         mode_cmd.msg[3] = 0x01;
     else if (mode == SPINDLE_ENABLE_CCW)
         mode_cmd.msg[3] = 0x11;
-    else    //SPINDLE_DISABLE
-        mode_cmd.msg[3] = 0x08;
+    else {    //SPINDLE_DISABLE
+        mode_cmd.msg[3] = 0x08;   
+         
+        if (! xQueueReset(hy_cmd_queue)) {
+            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD spindle off, queue could not be reset");
+        }
+    }
 
     add_ModRTU_CRC(mode_cmd.msg, mode_cmd.rx_length);
 
@@ -322,10 +381,23 @@ bool HuanyangSpindle :: set_mode(uint8_t mode, bool critical) {
 
 
 uint32_t HuanyangSpindle :: set_rpm(uint32_t rpm) {
+    if (!hy_spindle_ok) return 0;
+
     hy_command_t rpm_cmd;
 
+    // apply override
+    rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle speed override value (uint8_t percent)
+
+    // apply limits
+    if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
+        rpm = _max_rpm;
+    else if (rpm != 0 && rpm <= _min_rpm)
+        rpm = _min_rpm;
+
+    sys.spindle_speed = rpm;
+
     if (rpm == _current_rpm) // prevent setting same RPM twice
-        return rpm;
+        return rpm;    
 
     _current_rpm = rpm;
 
@@ -380,7 +452,7 @@ void HuanyangSpindle :: read_value(uint8_t reg) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
 }
 
-void HuanyangSpindle ::stop() {
+void HuanyangSpindle ::stop() {    
     set_mode(SPINDLE_DISABLE, false);
 }
 
