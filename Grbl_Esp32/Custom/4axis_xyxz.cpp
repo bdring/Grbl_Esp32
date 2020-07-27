@@ -67,22 +67,36 @@ void machine_init()
 #endif
 
 void zProbeSyncTask(void* pvParameters) {
-    int32_t current_position[N_AXIS]; // copy of current location
+    int32_t sys_POS_steps[N_AXIS], sys_PROBE_steps[N_AXIS];
+    float sys_POS[N_AXIS], sys_PROBEPOS[N_AXIS];
     float m_pos[N_AXIS];			  // machine position in mm
     TickType_t xLastWakeTime;
     char temp[200];
 
     const TickType_t xProbeFrequency = ZPROBE_TASK_FREQ; // in ticks (typically ms)
     xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
+
     while (true) {
         // don't ever return from this or the task dies
        
+        memcpy(sys_POS_steps, sys_position, sizeof(sys_position));
+        memcpy(sys_PROBE_steps, sys_probe_position, sizeof(sys_probe_position));
 
+        system_convert_array_steps_to_mpos(sys_POS, sys_POS_steps);
+        system_convert_array_steps_to_mpos(sys_PROBEPOS, sys_PROBE_steps);
 
+        //sprintf(temp, "lprobegestate=%d\r\n", probe_get_state());
+        //grbl_send(CLIENT_ALL, temp);
 
+        if ( (probe_get_state()==1) )
+        {
+            grbl_send(CLIENT_ALL, "Button pressed !");
 
-        sprintf(temp, "bla=%d\r\n", 4711);
-        grbl_send(CLIENT_ALL, temp);
+            sprintf(temp, "syspos/Z=%4.3f, probepos/Z=%4.3f\r\n", sys_POS[Z_AXIS], sys_PROBEPOS[Z_AXIS]);
+
+            //sprintf(temp, "last probe/Z =%4.3f\r\n", ZPosNew);
+            grbl_send(CLIENT_ALL, temp);
+        }
 
         vTaskDelayUntil(&xLastWakeTime, xProbeFrequency);
     }
@@ -180,6 +194,7 @@ void user_tool_change(uint8_t new_tool)
 
     // Z probe again
     inputBuffer.push("G38.2 Z-2 F30\r\n");
+    inputBuffer.push("G4 P2.0\r\n");
     protocol_buffer_synchronize(); // wait for all previous moves to complete
 
     // Clean up
