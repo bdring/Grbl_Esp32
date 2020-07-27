@@ -5,6 +5,8 @@
 
 uint8_t AmountOfToolChanges; //  Each new tool increases this by 1. Before first tool, it´s 0.
 float ZPosOld, ZPosNew;
+static TaskHandle_t zProbeSyncTaskHandle = 0;
+
 
 // return current Z machine position
 float getCurrentZPos()
@@ -52,8 +54,39 @@ void machine_init()
     // We start with no tool changes yet
     AmountOfToolChanges=0;
     ZPosOld=0;
+
+    xTaskCreatePinnedToCore(zProbeSyncTask,   // task
+                            "zProbeSyncTask", // name for task
+                            4096,				// size of task stack
+                            NULL,				// parameters
+                            1,					// priority
+                            &zProbeSyncTaskHandle,
+                            0 // core
+                           );
  }
 #endif
+
+void zProbeSyncTask(void* pvParameters) {
+    int32_t current_position[N_AXIS]; // copy of current location
+    float m_pos[N_AXIS];			  // machine position in mm
+    TickType_t xLastWakeTime;
+    char temp[200];
+
+    const TickType_t xProbeFrequency = ZPROBE_TASK_FREQ; // in ticks (typically ms)
+    xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
+    while (true) {
+        // don't ever return from this or the task dies
+       
+
+
+
+
+        sprintf(temp, "bla=%d\r\n", 4711);
+        grbl_send(CLIENT_ALL, temp);
+
+        vTaskDelayUntil(&xLastWakeTime, xProbeFrequency);
+    }
+}
 
 #ifdef USE_TOOL_CHANGE
 /*

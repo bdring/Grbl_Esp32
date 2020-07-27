@@ -10,3 +10,4 @@ embedded/dist
 .vscode/
 .history/
 *.pyc
+/.vs/VSWorkspaceState.json

@@ -4,6 +4,7 @@
  */
  
 #define MACHINE_NAME            "MACHINE_ESP32 Jens XYZA"
+#define ZPROBE_TASK_FREQ 1000 // this is milliseconds
 
 #ifdef N_AXIS
         #undef N_AXIS
@@ -75,3 +76,5 @@
 
 #define USE_MACHINE_INIT
 #define USE_TOOL_CHANGE
+
+void zProbeSyncTask(void* pvParameters);
