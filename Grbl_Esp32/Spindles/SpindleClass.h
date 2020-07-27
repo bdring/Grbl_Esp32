@@ -175,6 +175,10 @@ class HuanyangSpindle : public Spindle {
     void stop();
     static void read_value(uint8_t reg);
     static void add_ModRTU_CRC(char* buf, int full_msg_len);  
+
+  protected:
+    uint32_t _min_rpm;
+    uint32_t _max_rpm;
     
 
 
