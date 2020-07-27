@@ -63,12 +63,12 @@ Some features should not be changed. See notes below.
 // These homing cycle definitions precede the machine.h file so that the machine
 // definition can undefine them if necessary.
 #define HOMING_CYCLE_0 bit(Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
-#define HOMING_CYCLE_1 bit(X_AXIS)
-#define HOMING_CYCLE_2 bit(Y_AXIS)
+//#define HOMING_CYCLE_1 bit(X_AXIS)
+//#define HOMING_CYCLE_2 bit(Y_AXIS)
 
 // NOTE: The following is for for homing X and Y at the same time
 // #define HOMING_CYCLE_0 bit(Z_AXIS) // first home z by itself
-// #define HOMING_CYCLE_1 (bit(X_AXIS)|bit(Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
+#define HOMING_CYCLE_1 (bit(X_AXIS)|bit(Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
 
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
@@ -222,7 +222,7 @@ Some features should not be changed. See notes below.
 // If homing is enabled, homing init lock sets Grbl into an alarm state upon power up. This forces
 // the user to perform the homing cycle (or override the locks) before doing anything else. This is
 // mainly a safety feature to remind the user to home, since position is unknown to Grbl.
-#define HOMING_INIT_LOCK // Comment to disable
+//#define HOMING_INIT_LOCK // Comment to disable
 
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
@@ -567,8 +567,8 @@ Some features should not be changed. See notes below.
 // A simple software debouncing feature for hard limit switches. When enabled, the limit
 // switch interrupt unblock a waiting task which will recheck the limit switch pins after
 // a short delay. Default disabled
-//#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
-#define DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
+#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
+#define DEBOUNCE_PERIOD 50 // in milliseconds default 32 microseconds
 
 // Configures the position after a probing cycle during Grbl's check mode. Disabled sets
 // the position to the probe target, when enabled sets the position to the start position.
