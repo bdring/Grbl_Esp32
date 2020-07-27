@@ -65,7 +65,7 @@ void user_tool_change(uint8_t new_tool)
     // Start of function
     // AmountOfToolChanges=AmountOfToolChanges+1 each time.
 
-    AmountOfToolChanges=+1;
+    AmountOfToolChanges++;
 
     sprintf(temp, "Tool change amount=%d\r\n", AmountOfToolChanges);
     grbl_send(CLIENT_ALL, temp);
