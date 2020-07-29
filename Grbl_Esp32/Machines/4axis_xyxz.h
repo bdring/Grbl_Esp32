@@ -4,7 +4,6 @@
  */
  
 #define MACHINE_NAME            "MACHINE_ESP32 Jens XYZA"
-#define ZPROBE_TASK_FREQ 1000 // this is milliseconds
 
 #ifdef N_AXIS
         #undef N_AXIS
