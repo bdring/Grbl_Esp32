@@ -259,7 +259,7 @@ void user_tool_change(uint8_t new_tool)
     }
 
 	//TODO
-	// Nach Aufruf dieser Function wird gleich wieder zurcügkegeben in die aufrufende Function.
+	// Nach Aufruf dieser Function wird gleich wieder zurückgkegeben in die aufrufende Function.
 	// Ziel: Erst return, wenn wirklich beendet (RTOS!)
 	return;
 }
