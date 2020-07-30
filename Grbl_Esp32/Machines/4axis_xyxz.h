@@ -2,15 +2,15 @@
  * 4 Achsen CNC Fräse von Jens
  * Infos zur Benutzung einer Spindel mit Relais https://github.com/bdring/Grbl_Esp32/wiki/Spindle-Types
  */
- 
+
 #define MACHINE_NAME            "MACHINE_ESP32 Jens XYZA"
 
 #ifdef N_AXIS
-        #undef N_AXIS
+#undef N_AXIS
 #endif
 
-// Möchte ich mit 3 oder 4 Achsen arbeiten?
-// Beides ist eingerichtet.
+ // Möchte ich mit 3 oder 4 Achsen arbeiten?
+ // Beides ist eingerichtet.
 #define N_AXIS 3
 
 #define CUSTOM_CODE_FILENAME "Custom/4axis_xyxz.cpp"
@@ -27,10 +27,10 @@
 
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_13 //ok
 
-// Falls die 4. Achse genutzt wird
+ // Falls die 4. Achse genutzt wird
 #if (N_AXIS == 4)
-    #define A_STEP_PIN              GPIO_NUM_25
-    #define A_DIRECTION_PIN         GPIO_NUM_22
+#define A_STEP_PIN              GPIO_NUM_25
+#define A_DIRECTION_PIN         GPIO_NUM_22
 #endif
 
 #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
@@ -48,13 +48,13 @@
 #define Y_LIMIT_PIN             GPIO_NUM_4  //ok
 #define Z_LIMIT_PIN             GPIO_NUM_16 //ok
 
-// Falls die 4. Achse genutzt wird
+ // Falls die 4. Achse genutzt wird
 #if (N_AXIS == 4)
-    #define A_LIMIT_PIN         GPIO_NUM_21 //ok
-    #define LIMIT_MASK          B1111
+#define A_LIMIT_PIN         GPIO_NUM_21 //ok
+#define LIMIT_MASK          B1111
 #else
     // bei 3 Achsen
-    #define LIMIT_MASK          B111
+#define LIMIT_MASK          B111
 #endif
 
 /*
@@ -63,7 +63,7 @@
 #define PROBE_PIN               GPIO_NUM_35 //ok
 #define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_36  // needs external pullup
 #define CONTROL_RESET_PIN       GPIO_NUM_34  // needs external pullup
-// #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_35  // needs external pullup
+ // #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_35  // needs external pullup
 #define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // needs external pullup
 
 /* Normally Grbl_ESP32 ignores tool changes.
@@ -72,5 +72,8 @@
  * it will call a function void user_tool_change(uint8_t new_tool) when it sees the M6 gcode command.
  */
 
+
 #define USE_MACHINE_INIT
 #define USE_TOOL_CHANGE
+
+void zProbeSyncTask(void* pvParameters);
