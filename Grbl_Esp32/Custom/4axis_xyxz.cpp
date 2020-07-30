@@ -22,9 +22,8 @@
    VARIABLES
 */
 uint8_t AmountOfToolChanges; //  Each new tool increases this by 1. Before first tool, it´s 0.
-uint8_t currenttoolNo, newtoolNo;
-float firstZPos, newZPos, Zdiff;
-static TaskHandle_t zProbeSyncTaskHandle = NULL;
+uint8_t currenttoolNo;
+float firstZPos, newZPos;
 
 // Finite state machine and sequence of steps
 uint8_t tc_state; // tool change (tc) state machine
@@ -34,8 +33,8 @@ uint8_t tc_state; // tool change (tc) state machine
 #define TOOLCHANGE_ZPROBE_1a  3 // Z probe #1. Send order to press the Z probe button
 #define TOOLCHANGE_ZPROBE_1b  4 // Z probe #1. After button press
 #define TOOLCHANGE_MANUAL     5 // Go to tool change position
-#define TOOLCHANGE_ZPROBE_2  6 // Z probe #2. Send order to press the Z probe button
-#define TOOLCHANGE_FINISH    99 // tool change finish. do some reporting, clean up, etc.
+#define TOOLCHANGE_ZPROBE_2   6 // Z probe #2. Send order to press the Z probe button
+#define TOOLCHANGE_FINISH    90 // tool change finish. do some reporting, clean up, etc.
 
 // declare functions
 float getLastZProbePos();
@@ -57,58 +56,57 @@ void machine_init()
 
 	// Initialize state machine
 	tc_state=TOOLCHANGE_IDLE;
-
-	// TODO this task runs permanently. Alternative?
-	xTaskCreatePinnedToCore(zProbeSyncTask,         // task
-							"zProbeSyncTask",       // name for task
-							4096,				    // size of task stack
-							NULL,				    // parameters
-							1,					    // priority
-							&zProbeSyncTaskHandle,  // handle
-							0                       // core
-						   );
- }
+}
 #endif
 
-// state machine
-void zProbeSyncTask(void* pvParameters)
-{
-	TickType_t xLastWakeTime;
+#ifdef USE_TOOL_CHANGE
+/*
+	user_tool_change() is called when tool change gcode is received,
+	to perform appropriate actions for your machine.
 
-	const TickType_t xProbeFrequency = 100; // in ticks
-	xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
+	Prerequisite: add "#define USE_TOOL_CHANGE" to your machine.h file
+*/
+void user_tool_change(uint8_t new_tool)
+{
+	// let´s start with the state machine	
+	tc_state = TOOLCHANGE_INIT;
+
+	// TODO
+	// if (new_tool == current_tool)
+	//    return;
 
 	//protocol_buffer_synchronize(); // wait for all previous moves to complete
+	grbl_send (CLIENT_ALL, "we started\r\n");
 
-	for ( ;; )
+	do
 	{
 		switch ( tc_state )
 		{
-
 			case TOOLCHANGE_INIT:
 				// TODO set AmountOfToolChanges to 0 after job finish
 				// Set amount of tool changes
 				AmountOfToolChanges++; 
 				
 				#ifdef DEBUG
-					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_INIT. State=%d\r", tc_state);
-					grbl_sendf (CLIENT_ALL, "This is the %d. tool change in this job\r", AmountOfToolChanges);
-					grbl_sendf (CLIENT_ALL, "Old tool is #%d (0 means unknown), new tool is #%d\r", currenttoolNo, newtoolNo);
+					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_INIT. State=%d\r\n", tc_state);
+					grbl_sendf (CLIENT_ALL, "This is the %d. tool change in this job\r\n", AmountOfToolChanges);
+					grbl_sendf (CLIENT_ALL, "Old tool is #%d (0 means unknown), new tool is #%d\r\n", currenttoolNo, new_tool);
 				#endif
-				
-				// Init. Safe start block. XY plane, mm mode, absolute addressing mode
-//				inputBuffer.push("G90 G94\r");
-//				inputBuffer.push("G17 G21\r");
 
+				// Init
+				inputBuffer.push("G90 G94\r\n");
+				inputBuffer.push("G17\r\n");
+				inputBuffer.push("G21\r\n");
+	
 				// Switch off spindle
-				inputBuffer.push("M05\r");
+				inputBuffer.push("M05\r\n");
 
 				tc_state = TOOLCHANGE_START;
 				break;
 			
 			case TOOLCHANGE_START:
 				#ifdef DEBUG
-					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_START. State=%d\r", tc_state);
+					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_START. State=%d\r\n", tc_state);
 				#endif
 
 				// Measure firstZPos only once. Then adjust G43.2 by comparing firstZPos and newZPos.
@@ -121,35 +119,35 @@ void zProbeSyncTask(void* pvParameters)
 			// First Z Probe 
 			case TOOLCHANGE_ZPROBE_1a:
 				#ifdef DEBUG
-					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_ZPROBE_1a. State=%d\r", tc_state);
+					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_ZPROBE_1a. State=%d\r\n", tc_state);
 				#endif
 
 				// Place spindle directly above button in X/Y and at high Z
-				inputBuffer.push("G53 G0 Z-5\r");
-				inputBuffer.push("G53 G0 X-29 Y-410\r");
+				inputBuffer.push("G53 G0 Z-5\r\n");
+				inputBuffer.push("G53 G0 X-29 Y-410\r\n");
 
 				// Z probe
-				inputBuffer.push("G91 G38.2 Z-100 F500\r");
+				inputBuffer.push("G38.2 Z-100 F500\r\n");
 
 				tc_state = TOOLCHANGE_ZPROBE_1b;
 				break;
 
 			case TOOLCHANGE_ZPROBE_1b: // wait for button press
 				#ifdef DEBUG
-					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_ZPROBE_1b. State=%d\r", tc_state);
+					//grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_ZPROBE_1b. State=%d\r\n", tc_state);
 				#endif
 
 				// wait until we hit Z probe button
 				// TODO Error handling. What happens in case the button is not pressed?
-				if ( probe_get_state() ) 
+				if ( probe_get_state() )
 				{
 					if (AmountOfToolChanges == 1)
 						firstZPos = getLastZProbePos(); // save Z pos for comparison later
 
 					// hit the probe
-					grbl_sendf(CLIENT_ALL, "Button pressed first time. Z probe pos=%4.3f\r", firstZPos);
+					grbl_sendf(CLIENT_ALL, "Button pressed first time. Z probe pos=%4.3f\r\n", firstZPos);
 
-					inputBuffer.push("G53 G0 Z-5\r");
+					inputBuffer.push("G53 G0 Z-5\r\n");
 
 					tc_state = TOOLCHANGE_MANUAL;
 				}
@@ -158,23 +156,23 @@ void zProbeSyncTask(void* pvParameters)
 			// go to manual tool change position
 			case TOOLCHANGE_MANUAL:
 				#ifdef DEBUG
-					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_MANUAL. State=%d\r", tc_state);
+					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_MANUAL. State=%d\r\n", tc_state);
 				#endif
 
 				if ( !probe_get_state() ) // button released now
 				{
 					// Go to tool change position
-					inputBuffer.push("G53 G0 X-5 Y-210\r");
+					inputBuffer.push("G53 G0 X-5 Y-210\r\n");
 
 					// Hold
-					inputBuffer.push("M0\r");
+					inputBuffer.push("M0\r\n");
 
 					// Place spindle directly above button in X/Y and a few mm above Z
-					inputBuffer.push("G53 G0 Z-5\r");
-					inputBuffer.push("G53 G0 X-29 Y-410\r");
+					inputBuffer.push("G53 G0 Z-5\r\n");
+					inputBuffer.push("G53 G0 X-29 Y-410\r\n");
 
 					// Z probe, max. 50mm to press button, quick
-					inputBuffer.push("G91 G38.2 Z-100 F500\r");
+					inputBuffer.push("G91 G38.2 Z-100 F500\r\n");
 			
 					tc_state = TOOLCHANGE_ZPROBE_2;
 				}
@@ -183,7 +181,7 @@ void zProbeSyncTask(void* pvParameters)
 
 			case TOOLCHANGE_ZPROBE_2: // wait for button press
 				#ifdef DEBUG
-					// grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_ZPROBE_2. State=%d\r", tc_state);
+					// grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_ZPROBE_2. State=%d\r\n", tc_state);
 				#endif
 
 				// TODO Error handling. What happens in case the button is not pressed?
@@ -193,17 +191,17 @@ void zProbeSyncTask(void* pvParameters)
 
 					// hit the probe
 					#ifdef DEBUG
-						grbl_sendf (CLIENT_ALL, "Button pressed second time. new Z probe pos=%4.3f\r", newZPos);
+						grbl_sendf (CLIENT_ALL, "Button pressed second time. new Z probe pos=%4.3f\r\n", newZPos);
 					#endif
 
 					// calculate and send out G43.1 adjustment
 					char gcode_line[20];
-					sprintf(gcode_line, "G43.1 Z%4.3f\r", newZPos-firstZPos);
+					sprintf(gcode_line, "G43.1 Z%4.3f\r\n", newZPos-firstZPos);
 					inputBuffer.push(gcode_line);
 					grbl_sendf (CLIENT_ALL, gcode_line);
 
 					// go up
-					inputBuffer.push("G53 G0 Z-5\r");
+					inputBuffer.push("G53 G0 Z-5\r\n");
 
 					tc_state = TOOLCHANGE_FINISH;
 				}
@@ -212,7 +210,7 @@ void zProbeSyncTask(void* pvParameters)
 			// That´s it
 			case TOOLCHANGE_FINISH:
 				#ifdef DEBUG
-					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_FINISH. State=%d\r", tc_state);
+					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_FINISH. State=%d\r\n", tc_state);
 				#endif
 
 				// button released, we lift up
@@ -220,48 +218,21 @@ void zProbeSyncTask(void* pvParameters)
 				{
 					//vTaskDelay (1 / portTICK_RATE_MS); // 1 sec.
 	
-					grbl_send (CLIENT_ALL, "Tool change procedure finished.\r");
-					grbl_send (CLIENT_ALL, "Go to current WCS origin after hold.\r");
+					grbl_send (CLIENT_ALL, "Tool change procedure finished.\r\n");
+					grbl_send (CLIENT_ALL, "Go to current WCS origin after hold.\r\n");
 
 					// go to current WCS origin. This could be G54, but also another one
-					inputBuffer.push("G0 X0 Y0\r");
-					inputBuffer.push("G0 Z0\r");
-
-				    //protocol_buffer_synchronize(); // wait for all previous moves to complete
+					inputBuffer.push("G0 X0 Y0\r\n");
+					inputBuffer.push("G0 Z0\r\n");
 				}
 
 				tc_state = TOOLCHANGE_IDLE;
 				break;
 		}
 
-		vTaskDelayUntil(&xLastWakeTime, xProbeFrequency);
-	}
-}
+		
+	} while (tc_state != TOOLCHANGE_IDLE);
 
-#ifdef USE_TOOL_CHANGE
-/*
-	user_tool_change() is called when tool change gcode is received,
-	to perform appropriate actions for your machine.
-
-	Prerequisite: add "#define USE_TOOL_CHANGE" to your machine.h file
-*/
-void user_tool_change(uint8_t new_tool)
-{
-	// let´s start with the state machine
-
-	newtoolNo = new_tool;
-	tc_state = TOOLCHANGE_INIT;
-	sleep(2500);
-
-	while ( zProbeSyncTaskHandle != NULL )
-    {
-     vTaskDelete( xHandle );
-    }
-
-	//TODO
-	// Nach Aufruf dieser Function wird gleich wieder zurückgkegeben in die aufrufende Function.
-	// Ziel: Erst return, wenn wirklich beendet (RTOS!)
-	return;
 }
 #endif
 
