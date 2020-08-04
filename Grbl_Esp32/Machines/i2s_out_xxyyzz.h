@@ -16,6 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+// clang-format off
+
 #define MACHINE_NAME            "ESP32 I2S XXYYZZ Axis Driver Board (StepStick)"
 
 #ifdef N_AXIS

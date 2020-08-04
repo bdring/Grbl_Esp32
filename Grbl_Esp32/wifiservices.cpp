@@ -20,35 +20,35 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "grbl.h"
+#    include "grbl.h"
 
-#ifdef ENABLE_WIFI
+#    ifdef ENABLE_WIFI
 
-#include <WiFi.h>
-#include <FS.h>
-#include <SPIFFS.h>
-#include "wifiservices.h"
-#ifdef ENABLE_MDNS
-    #include <ESPmDNS.h>
-#endif
-#ifdef ENABLE_OTA
-    #include <ArduinoOTA.h>
-#endif
-#ifdef ENABLE_HTTP
-    #include "web_server.h"
-#endif
-#ifdef ENABLE_TELNET
-    #include "telnet_server.h"
-#endif
-#ifdef ENABLE_NOTIFICATIONS
-    #include "notifications_service.h"
-#endif
-#include "commands.h"
+#        include "wifiservices.h"
+
+#        include <FS.h>
+#        include <SPIFFS.h>
+#        include <WiFi.h>
+#        ifdef ENABLE_MDNS
+#            include <ESPmDNS.h>
+#        endif
+#        ifdef ENABLE_OTA
+#            include <ArduinoOTA.h>
+#        endif
+#        ifdef ENABLE_HTTP
+#            include "web_server.h"
+#        endif
+#        ifdef ENABLE_TELNET
+#            include "telnet_server.h"
+#        endif
+#        ifdef ENABLE_NOTIFICATIONS
+#            include "notifications_service.h"
+#        endif
+#        include "commands.h"
 
 WiFiServices wifi_services;
 
-WiFiServices::WiFiServices() {
-}
+WiFiServices::WiFiServices() {}
 WiFiServices::~WiFiServices() {
     end();
 }
@@ -56,41 +56,45 @@ WiFiServices::~WiFiServices() {
 bool WiFiServices::begin() {
     bool no_error = true;
     //Sanity check
-    if (WiFi.getMode() == WIFI_OFF) return false;
+    if (WiFi.getMode() == WIFI_OFF)
+        return false;
     String h = wifi_hostname->get();
 
     //Start SPIFFS
     SPIFFS.begin(true);
-#ifdef ENABLE_OTA
+#        ifdef ENABLE_OTA
     ArduinoOTA
-    .onStart([]() {
-        String type;
-        if (ArduinoOTA.getCommand() == U_FLASH)
-            type = "sketch";
-        else {// U_SPIFFS
-            // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-            type = "filesystem";
-            SPIFFS.end();
-        }
-        grbl_sendf(CLIENT_ALL, "[MSG:Start OTA updating %s]\r\n", type.c_str());
-    })
-    .onEnd([]() {
-        grbl_sendf(CLIENT_ALL, "[MSG:End OTA]\r\n");
-    })
-    .onProgress([](unsigned int progress, unsigned int total) {
-        grbl_sendf(CLIENT_ALL, "[MSG:OTA Progress: %u%%]\r\n", (progress / (total / 100)));
-    })
-    .onError([](ota_error_t error) {
-        grbl_sendf(CLIENT_ALL, "[MSG:OTA Error(%u):]\r\n", error);
-        if (error == OTA_AUTH_ERROR) grbl_send(CLIENT_ALL, "[MSG:Auth Failed]\r\n");
-        else if (error == OTA_BEGIN_ERROR) grbl_send(CLIENT_ALL, "[MSG:Begin Failed]\r\n");
-        else if (error == OTA_CONNECT_ERROR) grbl_send(CLIENT_ALL, "[MSG:Connect Failed]\r\n");
-        else if (error == OTA_RECEIVE_ERROR) grbl_send(CLIENT_ALL, "[MSG:Receive Failed]\r\n");
-        else if (error == OTA_END_ERROR) grbl_send(CLIENT_ALL, "[MSG:End Failed]\r\n");
-    });
+        .onStart([]() {
+            String type;
+            if (ArduinoOTA.getCommand() == U_FLASH)
+                type = "sketch";
+            else {  // U_SPIFFS
+                // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+                type = "filesystem";
+                SPIFFS.end();
+            }
+            grbl_sendf(CLIENT_ALL, "[MSG:Start OTA updating %s]\r\n", type.c_str());
+        })
+        .onEnd([]() { grbl_sendf(CLIENT_ALL, "[MSG:End OTA]\r\n"); })
+        .onProgress([](unsigned int progress, unsigned int total) {
+            grbl_sendf(CLIENT_ALL, "[MSG:OTA Progress: %u%%]\r\n", (progress / (total / 100)));
+        })
+        .onError([](ota_error_t error) {
+            grbl_sendf(CLIENT_ALL, "[MSG:OTA Error(%u):]\r\n", error);
+            if (error == OTA_AUTH_ERROR)
+                grbl_send(CLIENT_ALL, "[MSG:Auth Failed]\r\n");
+            else if (error == OTA_BEGIN_ERROR)
+                grbl_send(CLIENT_ALL, "[MSG:Begin Failed]\r\n");
+            else if (error == OTA_CONNECT_ERROR)
+                grbl_send(CLIENT_ALL, "[MSG:Connect Failed]\r\n");
+            else if (error == OTA_RECEIVE_ERROR)
+                grbl_send(CLIENT_ALL, "[MSG:Receive Failed]\r\n");
+            else if (error == OTA_END_ERROR)
+                grbl_send(CLIENT_ALL, "[MSG:End Failed]\r\n");
+        });
     ArduinoOTA.begin();
-#endif
-#ifdef ENABLE_MDNS
+#        endif
+#        ifdef ENABLE_MDNS
     //no need in AP mode
     if (WiFi.getMode() == WIFI_STA) {
         //start mDns
@@ -100,40 +104,40 @@ bool WiFiServices::begin() {
         } else
             grbl_sendf(CLIENT_ALL, "[MSG:Start mDNS with hostname:http://%s.local/]\r\n", h.c_str());
     }
-#endif
-#ifdef ENABLE_HTTP
+#        endif
+#        ifdef ENABLE_HTTP
     web_server.begin();
-#endif
-#ifdef ENABLE_TELNET
+#        endif
+#        ifdef ENABLE_TELNET
     telnet_server.begin();
-#endif
-#ifdef ENABLE_NOTIFICATIONS
+#        endif
+#        ifdef ENABLE_NOTIFICATIONS
     notificationsservice.begin();
-#endif
+#        endif
     //be sure we are not is mixed mode in setup
     WiFi.scanNetworks(true);
     return no_error;
 }
 void WiFiServices::end() {
-#ifdef ENABLE_NOTIFICATIONS
+#        ifdef ENABLE_NOTIFICATIONS
     notificationsservice.end();
-#endif
-#ifdef ENABLE_TELNET
+#        endif
+#        ifdef ENABLE_TELNET
     telnet_server.end();
-#endif
-#ifdef ENABLE_HTTP
+#        endif
+#        ifdef ENABLE_HTTP
     web_server.end();
-#endif
+#        endif
     //stop OTA
-#ifdef ENABLE_OTA
+#        ifdef ENABLE_OTA
     ArduinoOTA.end();
-#endif
+#        endif
     //Stop SPIFFS
     SPIFFS.end();
-#ifdef ENABLE_MDNS
+#        ifdef ENABLE_MDNS
     //Stop mDNS
     MDNS.end();
-#endif
+#        endif
 }
 
 void WiFiServices::handle() {
@@ -147,17 +151,17 @@ void WiFiServices::handle() {
             WiFi.enableSTA(false);
         }
     }
-#ifdef ENABLE_OTA
+#        ifdef ENABLE_OTA
     ArduinoOTA.handle();
-#endif
-#ifdef ENABLE_HTTP
+#        endif
+#        ifdef ENABLE_HTTP
     web_server.handle();
-#endif
-#ifdef ENABLE_TELNET
+#        endif
+#        ifdef ENABLE_TELNET
     telnet_server.handle();
-#endif
+#        endif
 }
 
-#endif // ENABLE_WIFI
+#    endif  // ENABLE_WIFI
 
-#endif // ARDUINO_ARCH_ESP32
+#endif  // ARDUINO_ARCH_ESP32

@@ -32,6 +32,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #define MACHINE_NAME "Test Drive - Demo Only No I/O!"
 
 #define SPINDLE_TYPE    SPINDLE_TYPE_NONE

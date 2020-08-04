@@ -23,6 +23,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #define MACHINE_NAME "SPI_DAISY_4X XYZA"
 
 #ifdef N_AXIS

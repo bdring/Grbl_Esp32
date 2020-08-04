@@ -17,7 +17,7 @@ PWM
 // !!! For initial testing, start with test_drive.h which disables
 // all I/O pins
 // #include "Machines/atari_1020.h"
-#include "Machines/test_drive.h"
+#    include "Machines/test_drive.h"
 
 // !!! For actual use, change the line above to select a board
 // from Machines/, for example:
@@ -48,10 +48,10 @@ PWM
 // supplied automatically.
 
 // MACHINE_PATHNAME_QUOTED constructs a path that is suitable for #include
-#define MACHINE_PATHNAME_QUOTED(name) <Machines/name>
+#    define MACHINE_PATHNAME_QUOTED(name) <Machines/name>
 
-#include MACHINE_PATHNAME_QUOTED(MACHINE_FILENAME)
+#    include MACHINE_PATHNAME_QUOTED(MACHINE_FILENAME)
 
-#endif // MACHINE_FILENAME
+#endif  // MACHINE_FILENAME
 
-#endif // _machine_h
+#endif  // _machine_h

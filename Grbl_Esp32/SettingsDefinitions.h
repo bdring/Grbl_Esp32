@@ -1,4 +1,7 @@
 #pragma once
+
+#include "SettingsClass.h"
+
 extern bool motorSettingChanged;
 
 extern AxisSettings* x_axis_settings;
@@ -29,7 +32,7 @@ extern FlagSetting* hard_limits;
 extern FlagSetting* homing_enable;
 extern FlagSetting* laser_mode;
 
-extern IntSetting* status_mask;
+extern IntSetting*   status_mask;
 extern FloatSetting* junction_deviation;
 extern FloatSetting* arc_tolerance;
 
@@ -46,7 +49,7 @@ extern FloatSetting* spindle_delay_spindown;
 extern FloatSetting* spindle_pwm_off_value;
 extern FloatSetting* spindle_pwm_min_value;
 extern FloatSetting* spindle_pwm_max_value;
-extern IntSetting* spindle_pwm_bit_precision;
+extern IntSetting*   spindle_pwm_bit_precision;
 
 extern EnumSetting* spindle_type;
 

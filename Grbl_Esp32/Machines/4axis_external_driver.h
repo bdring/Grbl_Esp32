@@ -22,6 +22,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #define MACHINE_NAME            "External 4 Axis Driver Board V2"
 
 #ifdef N_AXIS

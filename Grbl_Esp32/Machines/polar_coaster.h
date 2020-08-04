@@ -22,6 +22,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #define MACHINE_NAME "POLAR_COASTER"
 
 // This causes the custom code file to be included in the build

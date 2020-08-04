@@ -18,42 +18,41 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
-    #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#    error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
 
 //defaults values
 #define DEFAULT_BT_NAME "btgrblesp"
 
-
 //boundaries
-#define MAX_BTNAME_LENGTH     32
-#define MIN_BTNAME_LENGTH     1
+#define MAX_BTNAME_LENGTH 32
+#define MIN_BTNAME_LENGTH 1
 
 #define BT_EVENT_DISCONNECTED 0
 #define BT_EVENT_CONNECTED 1
 
-
 #ifndef _BT_CONFIG_H
-#define _BT_CONFIG_H
-#include "BluetoothSerial.h"
+#    define _BT_CONFIG_H
+#    include "BluetoothSerial.h"
 extern BluetoothSerial SerialBT;
 
 class BTConfig {
-  public:
+public:
     BTConfig();
     ~BTConfig();
     static const char* info();
-    static void BTEvent(uint8_t event);
-    static bool isBTnameValid(const char* hostname);
-    static String BTname() {return _btname;}
+    static void        BTEvent(uint8_t event);
+    static bool        isBTnameValid(const char* hostname);
+    static String      BTname() { return _btname; }
     static const char* device_address();
-    static void begin();
-    static void end();
-    static void handle();
-    static void reset_settings();
-    static bool Is_BT_on();
-    static String _btclient;
-  private :
+    static void        begin();
+    static void        end();
+    static void        handle();
+    static void        reset_settings();
+    static bool        Is_BT_on();
+    static String      _btclient;
+
+private:
     static String _btname;
 };
 

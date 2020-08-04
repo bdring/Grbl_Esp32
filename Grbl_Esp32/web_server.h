@@ -1,3 +1,4 @@
+#pragma once
 /*
   web_server.h -  wifi services functions class
 
@@ -18,54 +19,53 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-#ifndef _WEB_SERVER_H
-#define _WEB_SERVER_H
-
-
-#include "config.h"
 #include "commands.h"
+#include "config.h"
+
+#include <WebServer.h>
+
 class WebSocketsServer;
 class WebServer;
 
 #ifdef ENABLE_AUTHENTICATION
 struct auth_ip {
     IPAddress ip;
-    auth_t level;
-    char userID[17];
-    char sessionID[17];
-    uint32_t last_time;
-    auth_ip* _next;
+    auth_t    level;
+    char      userID[17];
+    char      sessionID[17];
+    uint32_t  last_time;
+    auth_ip*  _next;
 };
 #endif
 
 class Web_Server {
-  public:
+public:
     Web_Server();
     ~Web_Server();
-    bool begin();
-    void end();
-    void handle();
-    static long get_client_ID();
-    static uint16_t port() {return _port;}
-  private:
-    static bool _setupdone;
-    static WebServer* _webserver;
-    static long _id_connection;
+    bool            begin();
+    void            end();
+    void            handle();
+    static long     get_client_ID();
+    static uint16_t port() { return _port; }
+
+private:
+    static bool              _setupdone;
+    static WebServer*        _webserver;
+    static long              _id_connection;
     static WebSocketsServer* _socket_server;
-    static uint16_t _port;
-    static uint8_t _upload_status;
-    static String getContentType(String filename);
-    static String get_Splited_Value(String data, char separator, int index);
-    static auth_t  is_authenticated();
+    static uint16_t          _port;
+    static uint8_t           _upload_status;
+    static String            getContentType(String filename);
+    static String            get_Splited_Value(String data, char separator, int index);
+    static auth_t            is_authenticated();
 #ifdef ENABLE_AUTHENTICATION
     static auth_ip* _head;
-    static uint8_t _nb_ip;
-    static bool AddAuthIP(auth_ip* item);
-    static char* create_session_ID();
-    static bool ClearAuthIP(IPAddress ip, const char* sessionID);
+    static uint8_t  _nb_ip;
+    static bool     AddAuthIP(auth_ip* item);
+    static char*    create_session_ID();
+    static bool     ClearAuthIP(IPAddress ip, const char* sessionID);
     static auth_ip* GetAuth(IPAddress ip, const char* sessionID);
-    static auth_t ResetAuthIP(IPAddress ip, const char* sessionID);
+    static auth_t   ResetAuthIP(IPAddress ip, const char* sessionID);
 #endif
 #ifdef ENABLE_SSDP
     static void handle_SSDP();
@@ -82,7 +82,7 @@ class Web_Server {
     static void handleUpdate();
     static void WebUpdateUpload();
     static bool is_realtime_cmd(char c);
-    static void pushError(int code, const char* st,  bool web_error = 500, uint16_t timeout = 1000);
+    static void pushError(int code, const char* st, bool web_error = 500, uint16_t timeout = 1000);
     static void cancelUpload();
 #ifdef ENABLE_SD_CARD
     static void handle_direct_SDFileList();
@@ -92,6 +92,3 @@ class Web_Server {
 };
 
 extern Web_Server web_server;
-
-#endif
-

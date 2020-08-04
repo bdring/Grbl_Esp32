@@ -26,16 +26,14 @@
 #define stepper_h
 
 #ifndef SEGMENT_BUFFER_SIZE
-    #define SEGMENT_BUFFER_SIZE 6
+#    define SEGMENT_BUFFER_SIZE 6
 #endif
 
-
-
-#include "grbl.h"
 #include "config.h"
+#include "grbl.h"
 
 // Some useful constants.
-#define DT_SEGMENT (1.0/(ACCELERATION_TICKS_PER_SECOND*60.0)) // min/segment
+#define DT_SEGMENT (1.0 / (ACCELERATION_TICKS_PER_SECOND * 60.0))  // min/segment
 #define REQ_MM_INCREMENT_SCALAR 1.25
 #define RAMP_ACCEL 0
 #define RAMP_CRUISE 1
@@ -60,21 +58,21 @@
 #define MAX_AMASS_LEVEL 3
 // AMASS_LEVEL0: Normal operation. No AMASS. No upper cutoff frequency. Starts at LEVEL1 cutoff frequency.
 // Note ESP32 use F_STEPPER_TIMER rather than the AVR F_CPU
-#define AMASS_LEVEL1 (F_STEPPER_TIMER/8000) // Over-drives ISR (x2). Defined as F_CPU/(Cutoff frequency in Hz)
-#define AMASS_LEVEL2 (F_STEPPER_TIMER/4000) // Over-drives ISR (x4)
-#define AMASS_LEVEL3 (F_STEPPER_TIMER/2000) // Over-drives ISR (x8)
+#define AMASS_LEVEL1 (F_STEPPER_TIMER / 8000)  // Over-drives ISR (x2). Defined as F_CPU/(Cutoff frequency in Hz)
+#define AMASS_LEVEL2 (F_STEPPER_TIMER / 4000)  // Over-drives ISR (x4)
+#define AMASS_LEVEL3 (F_STEPPER_TIMER / 2000)  // Over-drives ISR (x8)
 
 #if MAX_AMASS_LEVEL <= 0
-    error "AMASS must have 1 or more levels to operate correctly."
+error "AMASS must have 1 or more levels to operate correctly."
 #endif
 //#endif
 
 #define STEP_TIMER_GROUP TIMER_GROUP_0
 #define STEP_TIMER_INDEX TIMER_0
 
-// esp32 work around for diable in main loop
-extern uint64_t stepper_idle_counter;
-extern bool stepper_idle;
+    // esp32 work around for diable in main loop
+    extern uint64_t stepper_idle_counter;
+extern bool         stepper_idle;
 
 extern uint8_t ganged_mode;
 
@@ -112,7 +110,7 @@ void st_update_plan_block_parameters();
 float st_get_realtime_rate();
 
 // disable (or enable) steppers via STEPPERS_DISABLE_PIN
-bool get_stepper_disable(); // returns the state of the pin
+bool get_stepper_disable();  // returns the state of the pin
 
 void set_stepper_pins_on(uint8_t onMask);
 void set_direction_pins_on(uint8_t onMask);

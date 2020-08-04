@@ -16,6 +16,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 // This contains a long list of things that might possibly be
 // configured.  Most machines - especially simple cartesian machines
 // that use stepper motors - will only need to define a few of the

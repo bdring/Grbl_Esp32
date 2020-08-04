@@ -18,39 +18,36 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-
 #ifndef _NOTIFICATIONS_SERVICE_H
 #define _NOTIFICATIONS_SERVICE_H
 
-
 class NotificationsService {
-  public:
+public:
     NotificationsService();
     ~NotificationsService();
-    bool begin();
-    void end();
-    void handle();
-    bool sendMSG(const char* title, const char* message);
+    bool        begin();
+    void        end();
+    void        handle();
+    bool        sendMSG(const char* title, const char* message);
     const char* getTypeString();
-    bool started();
-  private:
-    bool _started;
-    uint8_t _notificationType;
-    String _token1;
-    String _token2;
-    String _settings;
-    String _serveraddress;
+    bool        started();
+
+private:
+    bool     _started;
+    uint8_t  _notificationType;
+    String   _token1;
+    String   _token2;
+    String   _settings;
+    String   _serveraddress;
     uint16_t _port;
-    bool sendPushoverMSG(const char* title, const char* message);
-    bool sendEmailMSG(const char* title, const char* message);
-    bool sendLineMSG(const char* title, const char* message);
-    bool getPortFromSettings();
-    bool getServerAddressFromSettings();
-    bool getEmailFromSettings();
+    bool     sendPushoverMSG(const char* title, const char* message);
+    bool     sendEmailMSG(const char* title, const char* message);
+    bool     sendLineMSG(const char* title, const char* message);
+    bool     getPortFromSettings();
+    bool     getServerAddressFromSettings();
+    bool     getEmailFromSettings();
 };
 
 extern NotificationsService notificationsservice;
 
-#endif //_NOTIFICATIONS_SERVICE_H
-
+#endif  //_NOTIFICATIONS_SERVICE_H

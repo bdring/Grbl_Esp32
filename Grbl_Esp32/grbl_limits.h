@@ -30,9 +30,9 @@
 
 extern uint8_t n_homing_locate_cycle;
 
-#define SQUARING_MODE_DUAL	0  // both motors run
-#define SQUARING_MODE_A			1  // A motor runs
-#define SQUARING_MODE_B			2  // B motor runs
+#define SQUARING_MODE_DUAL 0  // both motors run
+#define SQUARING_MODE_A 1     // A motor runs
+#define SQUARING_MODE_B 2     // B motor runs
 
 // Initialize the limits module
 void limits_init();

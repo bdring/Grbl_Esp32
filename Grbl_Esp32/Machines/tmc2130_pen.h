@@ -22,6 +22,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
 
 // Select a version to match your PCB
 //#define MACHINE_V1 // version 1 PCB

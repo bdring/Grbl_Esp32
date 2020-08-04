@@ -25,6 +25,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #define MACHINE_NAME "ESPDUINO_32"
 
 #define X_STEP_PIN              GPIO_NUM_26

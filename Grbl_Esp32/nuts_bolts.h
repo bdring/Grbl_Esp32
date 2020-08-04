@@ -19,68 +19,66 @@
 */
 
 #ifndef nuts_bolts_h
-#define nuts_bolts_h
+#    define nuts_bolts_h
 
-#include "config.h"
+#    include "config.h"
 
-#define false 0
-#define true 1
+#    define false 0
+#    define true 1
 
-#define SOME_LARGE_VALUE 1.0E+38
+#    define SOME_LARGE_VALUE 1.0E+38
 
 // Axis array index values. Must start with 0 and be continuous.
 // Note: You set the number of axes used by changing N_AXIS.
 // Be sure to define pins or servos in the machine definition file.
-#define X_AXIS 0 // Axis indexing value.
-#define Y_AXIS 1
-#define Z_AXIS 2
-#define A_AXIS 3
-#define B_AXIS 4
-#define C_AXIS 5
+#    define X_AXIS 0  // Axis indexing value.
+#    define Y_AXIS 1
+#    define Z_AXIS 2
+#    define A_AXIS 3
+#    define B_AXIS 4
+#    define C_AXIS 5
 
-#define MAX_AXES 6
-#define MAX_GANGED 2
+#    define MAX_AXES 6
+#    define MAX_GANGED 2
 
-#define PRIMARY_MOTOR    0
-#define GANGED_MOTOR     1
+#    define PRIMARY_MOTOR 0
+#    define GANGED_MOTOR 1
 
-#define X2_AXIS (X_AXIS + MAX_AXES)
-#define Y2_AXIS (Y_AXIS + MAX_AXES)
-#define Z2_AXIS (Z_AXIS + MAX_AXES)
-#define A2_AXIS (A_AXIS + MAX_AXES)
-#define B2_AXIS (B_AXIS + MAX_AXES)
-#define C2_AXIS (C_AXIS + MAX_AXES)
+#    define X2_AXIS (X_AXIS + MAX_AXES)
+#    define Y2_AXIS (Y_AXIS + MAX_AXES)
+#    define Z2_AXIS (Z_AXIS + MAX_AXES)
+#    define A2_AXIS (A_AXIS + MAX_AXES)
+#    define B2_AXIS (B_AXIS + MAX_AXES)
+#    define C2_AXIS (C_AXIS + MAX_AXES)
 
 // CoreXY motor assignments. DO NOT ALTER.
 // NOTE: If the A and B motor axis bindings are changed, this effects the CoreXY equations.
-#define A_MOTOR X_AXIS // Must be X_AXIS
-#define B_MOTOR Y_AXIS // Must be Y_AXIS
-
-
+#    define A_MOTOR X_AXIS  // Must be X_AXIS
+#    define B_MOTOR Y_AXIS  // Must be Y_AXIS
 
 // Conversions
-#define MM_PER_INCH (25.40)
-#define INCH_PER_MM (0.0393701)
-#define TICKS_PER_MICROSECOND (F_STEPPER_TIMER/1000000) // Different from AVR version 
+#    define MM_PER_INCH (25.40)
+#    define INCH_PER_MM (0.0393701)
+#    define TICKS_PER_MICROSECOND (F_STEPPER_TIMER / 1000000)  // Different from AVR version
 
-#define DELAY_MODE_DWELL       0
-#define DELAY_MODE_SYS_SUSPEND 1
+#    define DELAY_MODE_DWELL 0
+#    define DELAY_MODE_SYS_SUSPEND 1
 
 // Useful macros
-#define clear_vector(a) memset(a, 0, sizeof(a))
-#define clear_vector_float(a) memset(a, 0.0, sizeof(float)*N_AXIS)
+#    define clear_vector(a) memset(a, 0, sizeof(a))
+#    define clear_vector_float(a) memset(a, 0.0, sizeof(float) * N_AXIS)
 // #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*N_AXIS)
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
-#define isequal_position_vector(a,b) !(memcmp(a, b, sizeof(float)*N_AXIS))
+#    define MAX(a, b) (((a) > (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
+#    define MIN(a, b) (((a) < (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
+#    define isequal_position_vector(a, b) !(memcmp(a, b, sizeof(float) * N_AXIS))
 
 // Bit field and masking macros
 //Arduino.h:104:0: note: this is the location of the previous definition
 //#define bit(n) (1 << n)
-#define bit_true(x,mask) (x) |= (mask)
-#define bit_false(x,mask) (x) &= ~(mask)
-#define bit_istrue(x,mask) ((x & mask) != 0)
-#define bit_isfalse(x,mask) ((x & mask) == 0)
+#    define bit_true(x, mask) (x) |= (mask)
+#    define bit_false(x, mask) (x) &= ~(mask)
+#    define bit_istrue(x, mask) ((x & mask) != 0)
+#    define bit_isfalse(x, mask) ((x & mask) == 0)
 
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is
@@ -100,15 +98,18 @@ float convert_delta_vector_to_unit_vector(float* vector);
 float limit_acceleration_by_axis_maximum(float* unit_vec);
 float limit_rate_by_axis_maximum(float* unit_vec);
 
-float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
-float map_float(float x, float in_min, float in_max, float out_min, float out_max);
+float    mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
+float    map_float(float x, float in_min, float in_max, float out_min, float out_max);
 uint32_t map_uint32_t(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max);
-float constrain_float(float in, float min, float max);
-bool char_is_numeric(char value);
-char* trim(char* value);
+float    constrain_float(float in, float min, float max);
+bool     char_is_numeric(char value);
+char*    trim(char* value);
 
-template <class T> void swap(T& a, T& b) {
-    T c(a); a = b; b = c;
+template <class T>
+void swap(T& a, T& b) {
+    T c(a);
+    a = b;
+    b = c;
 }
 
 #endif

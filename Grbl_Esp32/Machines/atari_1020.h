@@ -28,6 +28,8 @@
         along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #define MACHINE_NAME "MACHINE_ATARI_1020"
 
 #define CUSTOM_CODE_FILENAME "Custom/atari_1020.cpp"

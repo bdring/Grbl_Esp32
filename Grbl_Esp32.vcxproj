@@ -73,7 +73,6 @@
     <ClInclude Include="Grbl_Esp32\nuts_bolts.h" />
     <ClInclude Include="Grbl_Esp32\Pins.h" />
     <ClInclude Include="Grbl_Esp32\planner.h" />
-    <ClInclude Include="Grbl_Esp32\print.h" />
     <ClInclude Include="Grbl_Esp32\probe.h" />
     <ClInclude Include="Grbl_Esp32\protocol.h" />
     <ClInclude Include="Grbl_Esp32\report.h" />
@@ -119,7 +118,6 @@
     <ClCompile Include="Grbl_Esp32\nuts_bolts.cpp" />
     <ClCompile Include="Grbl_Esp32\Pins.cpp" />
     <ClCompile Include="Grbl_Esp32\planner.cpp" />
-    <ClCompile Include="Grbl_Esp32\print.cpp" />
     <ClCompile Include="Grbl_Esp32\probe.cpp" />
     <ClCompile Include="Grbl_Esp32\ProcessSettings.cpp" />
     <ClCompile Include="Grbl_Esp32\protocol.cpp" />
@@ -150,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Grbl_Esp32\Grbl_Esp32.ino" />
+    <None Include="_CodingStyle.md" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -199,7 +198,7 @@
     <NMakeBuildCommandLine>platformio --force run</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>platformio --force run -t clean</NMakeCleanCommandLine>
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(HOMEDRIVE)$(HOMEPATH)\.platformio\packages\toolchain-atmelavr\avr\include;$(HOMEDRIVE)$(HOMEPATH)\.platformio\packages\framework-arduinoavr\cores\arduino;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>$(HOMEDRIVE)$(HOMEPATH)\.platformio\packages\toolchain-xtensa32\xtensa-esp32-elf\include;$(HOMEDRIVE)$(HOMEPATH)\.platformio\packages\framework-arduinoespressif32\cores\esp32;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <NMakeBuildCommandLine>platformio --force run</NMakeBuildCommandLine>

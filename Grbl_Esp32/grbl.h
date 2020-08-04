@@ -24,82 +24,87 @@
 #define GRBL_VERSION "1.3a"
 #define GRBL_VERSION_BUILD "20200727"
 
+// clang-format off
+
+// Until the includes are fixed properly, it's best to use this 
+// include order; otherwise things will probably break:
 
 //#include <sdkconfig.h>
-#include <Arduino.h>
-#include <EEPROM.h>
-#include <driver/rmt.h>
-#include <esp_task_wdt.h>
-#include <freertos/task.h>
-#include <Preferences.h>
-
 #include "driver/timer.h"
 
+#include <driver/rmt.h>
+#include <freertos/task.h>
+
+#include <Arduino.h>
+#include <EEPROM.h>
+#include <Preferences.h>
+#include <esp_task_wdt.h>
+
 // Define the Grbl system include files. NOTE: Do not alter organization.
-#include "config.h"
-#include "nuts_bolts.h"
-#include "tdef.h"
-
-#include "defaults.h"
-#include "settings.h"
+#include "Motors/MotorClass.h"
+#include "Pins.h"
+#include "SettingsClass.h"
+#include "SettingsDefinitions.h"
+#include "Spindles/SpindleClass.h"
+#include "WebSettings.h"
 #include "authentication.h"
-#include "system.h"
-
-#include "planner.h"
+#include "commands.h"
+#include "config.h"
 #include "coolant_control.h"
-#include "grbl_eeprom.h"
+#include "defaults.h"
 #include "gcode.h"
+#include "grbl_eeprom.h"
 #include "grbl_limits.h"
+#include "inputbuffer.h"
+#include "jog.h"
 #include "motion_control.h"
+#include "nuts_bolts.h"
+#include "planner.h"
 #include "print.h"
 #include "probe.h"
 #include "protocol.h"
 #include "report.h"
 #include "serial.h"
-#include "Pins.h"
-#include "Spindles/SpindleClass.h"
-#include "Motors/MotorClass.h"
+#include "settings.h"
 #include "stepper.h"
-#include "jog.h"
-#include "inputbuffer.h"
-#include "commands.h"
-#include "SettingsClass.h"
-#include "SettingsDefinitions.h"
-#include "WebSettings.h"
+#include "system.h"
+#include "tdef.h"
 
 // Do not guard this because it is needed for local files too
 #include "grbl_sd.h"
 
 #ifdef ENABLE_BLUETOOTH
-    #include "BTconfig.h"
+#    include "BTconfig.h"
 #endif
 
 #ifdef ENABLE_WIFI
-    #include "wificonfig.h"
-    #ifdef ENABLE_HTTP
-        #include "serial2socket.h"
-    #endif
-    #ifdef ENABLE_TELNET
-        #include "telnet_server.h"
-    #endif
-    #ifdef ENABLE_NOTIFICATIONS
-        #include "notifications_service.h"
-    #endif
+#    include "wificonfig.h"
+#    ifdef ENABLE_HTTP
+#        include "serial2socket.h"
+#    endif
+#    ifdef ENABLE_TELNET
+#        include "telnet_server.h"
+#    endif
+#    ifdef ENABLE_NOTIFICATIONS
+#        include "notifications_service.h"
+#    endif
 #endif
 
 #include "solenoid_pen.h"
 
 #ifdef USE_SERVO_AXES
-    #include "servo_axis.h"
+#    include "servo_axis.h"
 #endif
 
 #ifdef USE_UNIPOLAR
-    #include "grbl_unipolar.h"
+#    include "grbl_unipolar.h"
 #endif
 
 #ifdef USE_I2S_OUT
-    #include "i2s_out.h"
+#    include "i2s_out.h"
 #endif
+
+// clang-format on
 
 // Called if USE_MACHINE_INIT is defined
 void machine_init();

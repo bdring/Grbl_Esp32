@@ -20,11 +20,11 @@
 
 #include "grbl_sd.h"
 
-File myFile;
-bool SD_ready_next = false; // Grbl has processed a line and is waiting for another
-uint8_t SD_client = CLIENT_SERIAL;
-uint32_t sd_current_line_number; // stores the most recent line number read from the SD
-static char comment[LINE_BUFFER_SIZE]; // Line to be executed. Zero-terminated.
+File        myFile;
+bool        SD_ready_next = false;  // Grbl has processed a line and is waiting for another
+uint8_t     SD_client     = CLIENT_SERIAL;
+uint32_t    sd_current_line_number;     // stores the most recent line number read from the SD
+static char comment[LINE_BUFFER_SIZE];  // Line to be executed. Zero-terminated.
 
 // attempt to mount the SD card
 /*bool sd_mount()
@@ -65,7 +65,7 @@ boolean openFile(fs::FS& fs, const char* path) {
         return false;
     }
     set_sd_state(SDCARD_BUSY_PRINTING);
-    SD_ready_next = false; // this will get set to true when Grbl issues "ok" message
+    SD_ready_next          = false;  // this will get set to true when Grbl issues "ok" message
     sd_current_line_number = 0;
     return true;
 }
@@ -74,7 +74,7 @@ boolean closeFile() {
     if (!myFile)
         return false;
     set_sd_state(SDCARD_IDLE);
-    SD_ready_next = false;
+    SD_ready_next          = false;
     sd_current_line_number = 0;
     myFile.close();
     return true;
@@ -119,7 +119,6 @@ uint32_t sd_get_current_line_number() {
     return sd_current_line_number;
 }
 
-
 uint8_t sd_state = SDCARD_IDLE;
 
 uint8_t get_sd_state(bool refresh) {
@@ -142,13 +141,14 @@ uint8_t get_sd_state(bool refresh) {
     //using default value for speed ? should be parameter
     //refresh content if card was removed
     if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ)) {
-        if (SD.cardSize() > 0)sd_state = SDCARD_IDLE;
+        if (SD.cardSize() > 0)
+            sd_state = SDCARD_IDLE;
     }
     return sd_state;
 }
 
 uint8_t set_sd_state(uint8_t flag) {
-    sd_state =  flag;
+    sd_state = flag;
     return sd_state;
 }
 
@@ -158,5 +158,3 @@ void sd_get_current_filename(char* name) {
     else
         name[0] = 0;
 }
-
-

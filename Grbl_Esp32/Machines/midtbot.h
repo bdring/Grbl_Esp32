@@ -22,6 +22,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #define MACHINE_NAME "MIDTBOT"
 
 #define SPINDLE_TYPE    SPINDLE_TYPE_NONE

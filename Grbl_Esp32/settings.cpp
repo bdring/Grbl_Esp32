@@ -24,11 +24,10 @@
 
 #include "grbl.h"
 
-
 // Read selected coordinate data from EEPROM. Updates pointed coord_data value.
 uint8_t settings_read_coord_data(uint8_t coord_select, float* coord_data) {
     uint32_t addr = coord_select * (sizeof(float) * N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
-    if (!(memcpy_from_eeprom_with_checksum((char*)coord_data, addr, sizeof(float)*N_AXIS))) {
+    if (!(memcpy_from_eeprom_with_checksum((char*)coord_data, addr, sizeof(float) * N_AXIS))) {
         // Reset with default zero vector
         clear_vector_float(coord_data);
         settings_write_coord_data(coord_select, coord_data);
@@ -43,7 +42,7 @@ void settings_write_coord_data(uint8_t coord_select, float* coord_data) {
     protocol_buffer_synchronize();
 #endif
     uint32_t addr = coord_select * (sizeof(float) * N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
-    memcpy_to_eeprom_with_checksum(addr, (char*)coord_data, sizeof(float)*N_AXIS);
+    memcpy_to_eeprom_with_checksum(addr, (char*)coord_data, sizeof(float) * N_AXIS);
 }
 
 // Method to store build info into EEPROM
@@ -57,7 +56,7 @@ void settings_store_build_info(const char* line) {
 uint8_t settings_read_build_info(char* line) {
     if (!(memcpy_from_eeprom_with_checksum((char*)line, EEPROM_ADDR_BUILD_INFO, LINE_BUFFER_SIZE))) {
         // Reset line with default value
-        line[0] = 0; // Empty line
+        line[0] = 0;  // Empty line
         settings_store_build_info(line);
         return (false);
     }
@@ -74,4 +73,3 @@ uint8_t get_step_pin_mask(uint8_t axis_idx) {
 uint8_t get_direction_pin_mask(uint8_t axis_idx) {
     return bit(axis_idx);
 }
-

@@ -20,28 +20,28 @@
 
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "grbl.h"
+#    include "grbl.h"
 
-#if defined (ENABLE_WIFI) &&  defined (ENABLE_TELNET)
+#    if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
 
-#include "wifiservices.h"
+#        include "telnet_server.h"
+#        include "wificonfig.h"
+#        include "wifiservices.h"
 
-#include "telnet_server.h"
-#include "wificonfig.h"
-#include <WiFi.h>
+#        include <WiFi.h>
 
 Telnet_Server telnet_server;
-bool Telnet_Server::_setupdone = false;
-uint16_t Telnet_Server::_port = 0;
-WiFiServer* Telnet_Server::_telnetserver = NULL;
-WiFiClient Telnet_Server::_telnetClients[MAX_TLNT_CLIENTS];
-#ifdef ENABLE_TELNET_WELCOME_MSG
-    IPAddress Telnet_Server::_telnetClientsIP[MAX_TLNT_CLIENTS];
-#endif
+bool          Telnet_Server::_setupdone    = false;
+uint16_t      Telnet_Server::_port         = 0;
+WiFiServer*   Telnet_Server::_telnetserver = NULL;
+WiFiClient    Telnet_Server::_telnetClients[MAX_TLNT_CLIENTS];
+#        ifdef ENABLE_TELNET_WELCOME_MSG
+IPAddress Telnet_Server::_telnetClientsIP[MAX_TLNT_CLIENTS];
+#        endif
 
 Telnet_Server::Telnet_Server() {
     _RXbufferSize = 0;
-    _RXbufferpos = 0;
+    _RXbufferpos  = 0;
 }
 Telnet_Server::~Telnet_Server() {
     end();
@@ -51,7 +51,8 @@ bool Telnet_Server::begin() {
     bool no_error = true;
     end();
     _RXbufferSize = 0;
-    _RXbufferpos = 0;;
+    _RXbufferpos  = 0;
+    ;
     if (telnet_enable->get() == 0) {
         return false;
     }
@@ -69,9 +70,9 @@ bool Telnet_Server::begin() {
 }
 
 void Telnet_Server::end() {
-    _setupdone = false;
+    _setupdone    = false;
     _RXbufferSize = 0;
-    _RXbufferpos = 0;
+    _RXbufferpos  = 0;
     if (_telnetserver) {
         delete _telnetserver;
         _telnetserver = NULL;
@@ -85,10 +86,11 @@ void Telnet_Server::clearClients() {
         for (i = 0; i < MAX_TLNT_CLIENTS; i++) {
             //find free/disconnected spot
             if (!_telnetClients[i] || !_telnetClients[i].connected()) {
-#ifdef ENABLE_TELNET_WELCOME_MSG
+#        ifdef ENABLE_TELNET_WELCOME_MSG
                 _telnetClientsIP[i] = IPAddress(0, 0, 0, 0);
-#endif
-                if (_telnetClients[i]) _telnetClients[i].stop();
+#        endif
+                if (_telnetClients[i])
+                    _telnetClients[i].stop();
                 _telnetClients[i] = _telnetserver->available();
                 break;
             }
@@ -129,19 +131,21 @@ void Telnet_Server::handle() {
     //uint8_t c;
     for (uint8_t i = 0; i < MAX_TLNT_CLIENTS; i++) {
         if (_telnetClients[i] && _telnetClients[i].connected()) {
-#ifdef ENABLE_TELNET_WELCOME_MSG
+#        ifdef ENABLE_TELNET_WELCOME_MSG
             if (_telnetClientsIP[i] != _telnetClients[i].remoteIP()) {
                 report_init_message(CLIENT_TELNET);
                 _telnetClientsIP[i] = _telnetClients[i].remoteIP();
             }
-#endif
+#        endif
             if (_telnetClients[i].available()) {
                 uint8_t buf[1024];
                 COMMANDS::wait(0);
-                int readlen = _telnetClients[i].available();
+                int readlen  = _telnetClients[i].available();
                 int writelen = TELNETRXBUFFERSIZE - available();
-                if (readlen > 1024) readlen = 1024;
-                if (readlen > writelen) readlen = writelen;
+                if (readlen > 1024)
+                    readlen = 1024;
+                if (readlen > writelen)
+                    readlen = writelen;
                 if (readlen > 0) {
                     _telnetClients[i].read(buf, readlen);
                     push(buf, readlen);
@@ -150,9 +154,9 @@ void Telnet_Server::handle() {
             }
         } else {
             if (_telnetClients[i]) {
-#ifdef ENABLE_TELNET_WELCOME_MSG
+#        ifdef ENABLE_TELNET_WELCOME_MSG
                 _telnetClientsIP[i] = IPAddress(0, 0, 0, 0);
-#endif
+#        endif
                 _telnetClients[i].stop();
             }
         }
@@ -161,8 +165,10 @@ void Telnet_Server::handle() {
 }
 
 int Telnet_Server::peek(void) {
-    if (_RXbufferSize > 0)return _RXbuffer[_RXbufferpos];
-    else return -1;
+    if (_RXbufferSize > 0)
+        return _RXbuffer[_RXbufferpos];
+    else
+        return -1;
 }
 
 int Telnet_Server::available() {
@@ -177,8 +183,10 @@ bool Telnet_Server::push(uint8_t data) {
     log_i("[TELNET]push %c", data);
     if ((1 + _RXbufferSize) <= TELNETRXBUFFERSIZE) {
         int current = _RXbufferpos + _RXbufferSize;
-        if (current > TELNETRXBUFFERSIZE) current = current - TELNETRXBUFFERSIZE;
-        if (current > (TELNETRXBUFFERSIZE - 1)) current = 0;
+        if (current > TELNETRXBUFFERSIZE)
+            current = current - TELNETRXBUFFERSIZE;
+        if (current > (TELNETRXBUFFERSIZE - 1))
+            current = 0;
         _RXbuffer[current] = data;
         _RXbufferSize++;
         log_i("[TELNET]buffer size %d", _RXbufferSize);
@@ -190,13 +198,15 @@ bool Telnet_Server::push(uint8_t data) {
 bool Telnet_Server::push(const uint8_t* data, int data_size) {
     if ((data_size + _RXbufferSize) <= TELNETRXBUFFERSIZE) {
         int data_processed = 0;
-        int current = _RXbufferpos + _RXbufferSize;
-        if (current > TELNETRXBUFFERSIZE) current = current - TELNETRXBUFFERSIZE;
+        int current        = _RXbufferpos + _RXbufferSize;
+        if (current > TELNETRXBUFFERSIZE)
+            current = current - TELNETRXBUFFERSIZE;
         for (int i = 0; i < data_size; i++) {
-            if (current > (TELNETRXBUFFERSIZE - 1)) current = 0;
+            if (current > (TELNETRXBUFFERSIZE - 1))
+                current = 0;
             if (char(data[i]) != '\r') {
                 _RXbuffer[current] = data[i];
-                current ++;
+                current++;
                 data_processed++;
             }
             COMMANDS::wait(0);
@@ -213,12 +223,14 @@ int Telnet_Server::read(void) {
         int v = _RXbuffer[_RXbufferpos];
         //log_d("[TELNET]read %c",char(v));
         _RXbufferpos++;
-        if (_RXbufferpos > (TELNETRXBUFFERSIZE - 1))_RXbufferpos = 0;
+        if (_RXbufferpos > (TELNETRXBUFFERSIZE - 1))
+            _RXbufferpos = 0;
         _RXbufferSize--;
         return v;
-    } else return -1;
+    } else
+        return -1;
 }
 
-#endif // Enable TELNET && ENABLE_WIFI
+#    endif  // Enable TELNET && ENABLE_WIFI
 
-#endif // ARDUINO_ARCH_ESP32
+#endif  // ARDUINO_ARCH_ESP32

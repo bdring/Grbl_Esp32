@@ -24,6 +24,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #define MACHINE_NAME            "ESP32_V4_XYX"
 #define X_STEP_PIN              GPIO_NUM_26  /* labeled Y */
 #define X_DIRECTION_PIN         GPIO_NUM_15  /* labeled Y */

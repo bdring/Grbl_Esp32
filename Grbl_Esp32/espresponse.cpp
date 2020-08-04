@@ -17,42 +17,41 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include "grbl.h"
-#include "espresponse.h"
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
-    #include "web_server.h"
-    #include <WebServer.h>
-#endif
 
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
+#include "espresponse.h"
+
+#include "grbl.h"
+#include "web_server.h"
+
 ESPResponseStream::ESPResponseStream(WebServer* webserver) {
     _header_sent = false;
-    _webserver = webserver;
-    _client = CLIENT_WEBUI;
+    _webserver   = webserver;
+    _client      = CLIENT_WEBUI;
 }
-#endif
 
 ESPResponseStream::ESPResponseStream() {
     _client = CLIENT_INPUT;
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
+#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
     _header_sent = false;
-    _webserver = NULL;
+    _webserver   = NULL;
 #endif
 }
 
 ESPResponseStream::ESPResponseStream(uint8_t client, bool byid) {
-    (void)byid; //fake parameter to avoid confusion with pointer one (NULL == 0)
+    (void)byid;  //fake parameter to avoid confusion with pointer one (NULL == 0)
     _client = client;
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
+#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
     _header_sent = false;
-    _webserver = NULL;
+    _webserver   = NULL;
 #endif
 }
 
 void ESPResponseStream::println(const char* data) {
     print(data);
-    if (_client == CLIENT_TELNET) print("\r\n");
-    else print("\n");
+    if (_client == CLIENT_TELNET)
+        print("\r\n");
+    else
+        print("\n");
 }
 
 //helper to format size to readable string
@@ -68,8 +67,9 @@ String ESPResponseStream::formatBytes(uint64_t bytes) {
 }
 
 void ESPResponseStream::print(const char* data) {
-    if (_client == CLIENT_INPUT) return;
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
+    if (_client == CLIENT_INPUT)
+        return;
+#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
     if (_webserver) {
         if (!_header_sent) {
             _webserver->setContentLength(CONTENT_LENGTH_UNKNOWN);
@@ -88,21 +88,23 @@ void ESPResponseStream::print(const char* data) {
         return;
     }
 #endif
-    if (_client == CLIENT_WEBUI) return; //this is sanity check
+    if (_client == CLIENT_WEBUI)
+        return;  //this is sanity check
     grbl_send(_client, data);
 }
 
 void ESPResponseStream::flush() {
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
+#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
     if (_webserver) {
         if (_header_sent) {
             //send data
-            if (_buffer.length() > 0)_webserver->sendContent(_buffer);
+            if (_buffer.length() > 0)
+                _webserver->sendContent(_buffer);
             //close connection
             _webserver->sendContent("");
         }
         _header_sent = false;
-        _buffer = "";
+        _buffer      = "";
     }
 #endif
 }

@@ -22,8 +22,9 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// // Pin assignments for the Buildlog.net MPCNC controller
+// clang-format off
 
+// // Pin assignments for the Buildlog.net MPCNC controller
 
 #define MACHINE_NAME "MPCNC_V1P1"
 

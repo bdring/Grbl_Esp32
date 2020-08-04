@@ -56,21 +56,20 @@
 
 #include "Motors/RcServoClass.h"
 
-#define SERVO_HOMING_OFF 0 // servo is off during homing
-#define SERVO_HOMING_TARGET 1 // servo is send to a location during homing
+#define SERVO_HOMING_OFF 0     // servo is off during homing
+#define SERVO_HOMING_TARGET 1  // servo is send to a location during homing
 
 extern float my_location;
 
 void init_servos();
 void servosSyncTask(void* pvParameters);
 
-
 class ServoAxis {
-  public:
-    ServoAxis(uint8_t axis, uint8_t pin_num); // constructor
+public:
+    ServoAxis(uint8_t axis, uint8_t pin_num);  // constructor
     void init();
     void set_location();
-    void disable(); // sets PWM to 0% duty cycle. Most servos can be manually moved in this state
+    void disable();  // sets PWM to 0% duty cycle. Most servos can be manually moved in this state
     void set_range(float min, float max);
     void set_homing_type(uint8_t homing_type);
     void set_homing_position(float homing_position);
@@ -78,30 +77,28 @@ class ServoAxis {
     void set_disable_with_steppers(bool disable_with_steppers);
     void set_use_mpos(bool use_mpos);
 
-  private:
-    int _axis; // these should be assign in constructor using Grbl X_AXIS type values
-    int _pin_num; // The GPIO pin being used
-    int _channel_num; // The PWM channel
+private:
+    int  _axis;         // these should be assign in constructor using Grbl X_AXIS type values
+    int  _pin_num;      // The GPIO pin being used
+    int  _channel_num;  // The PWM channel
     bool _showError;
 
-    uint32_t _pwm_freq = SERVO_PULSE_FREQ;
+    uint32_t _pwm_freq            = SERVO_PULSE_FREQ;
     uint32_t _pwm_resolution_bits = SERVO_PULSE_RES_BITS;
-    float _pulse_min = SERVO_MIN_PULSE; // in pwm counts
-    float _pulse_max = SERVO_MAX_PULSE; // in pwm counts
-    float _position_min = SERVO_POSITION_MIN_DEFAULT; // position in millimeters
-    float _position_max = SERVO_POSITION_MAX_DEFAULT; // position in millimeters
+    float    _pulse_min           = SERVO_MIN_PULSE;             // in pwm counts
+    float    _pulse_max           = SERVO_MAX_PULSE;             // in pwm counts
+    float    _position_min        = SERVO_POSITION_MIN_DEFAULT;  // position in millimeters
+    float    _position_max        = SERVO_POSITION_MAX_DEFAULT;  // position in millimeters
 
-
-    uint8_t _homing_type = SERVO_HOMING_OFF;
-    float _homing_position = SERVO_POSITION_MAX_DEFAULT;
-    bool _disable_on_alarm = true;
-    bool _disable_with_steppers = false;
-    bool _use_mpos = true;
+    uint8_t _homing_type           = SERVO_HOMING_OFF;
+    float   _homing_position       = SERVO_POSITION_MAX_DEFAULT;
+    bool    _disable_on_alarm      = true;
+    bool    _disable_with_steppers = false;
+    bool    _use_mpos              = true;
 
     bool _validate_cal_settings();
     void _write_pwm(uint32_t duty);
-    bool _cal_is_valid(); // checks to see if calibration values are in acceptable range
-
+    bool _cal_is_valid();  // checks to see if calibration values are in acceptable range
 };
 
 #endif

@@ -25,12 +25,13 @@
 class ESPResponseStream;
 
 class COMMANDS {
-  public:
+public:
     static void wait(uint32_t milliseconds);
     static void handle();
     static void restart_ESP();
     static bool isLocalPasswordValid(char* password);
-  private :
+
+private:
     static bool restart_ESP_module;
 };
 

@@ -1,3 +1,4 @@
+#pragma once
 /*
   espresponse.h - GRBL_ESP response class
 
@@ -18,33 +19,25 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef ESPRESPONSE_h
-#define ESPRESPONSE_h
+#include <Arduino.h>  // for String
 
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
-    class WebServer;
-#endif
+class WebServer;
 
 class ESPResponseStream {
-  public:
-    void print(const char* data);
-    void println(const char* data);
-    void flush();
-    bool anyOutput() { return _header_sent; }
+public:
+    void          print(const char* data);
+    void          println(const char* data);
+    void          flush();
+    bool          anyOutput() { return _header_sent; }
     static String formatBytes(uint64_t bytes);
-    uint8_t client() {return _client;}
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
+    uint8_t       client() { return _client; }
     ESPResponseStream(WebServer* webserver);
-#endif
     ESPResponseStream(uint8_t client, bool byid = true);
     ESPResponseStream();
-  private:
-    uint8_t _client;
-    bool _header_sent;
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
-    WebServer* _webserver;
-    String _buffer;
-#endif
-};
 
-#endif
+private:
+    uint8_t    _client;
+    bool       _header_sent;
+    WebServer* _webserver;
+    String     _buffer;
+};

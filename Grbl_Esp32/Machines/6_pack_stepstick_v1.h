@@ -19,6 +19,9 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+// clang-format off
+
 #define MACHINE_NAME            "6 Pack Controller V1 (StepStick)"
 
 #ifdef N_AXIS

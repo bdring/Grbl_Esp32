@@ -26,6 +26,8 @@
         along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #define MACHINE_NAME "PEN_LASER"
 
 // Pick a board version

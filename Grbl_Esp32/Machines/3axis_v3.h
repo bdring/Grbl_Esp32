@@ -23,6 +23,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
+
 #define MACHINE_NAME            "ESP32_V3.5"
 
 #define X_STEP_PIN              GPIO_NUM_12

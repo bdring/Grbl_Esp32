@@ -5,9 +5,9 @@
 StringSetting* user_password;
 StringSetting* admin_password;
 
-void remove_password(char *str, auth_t& auth_level) {
+void remove_password(char* str, auth_t& auth_level) {
     String paramStr = String((const char*)str);
-    int pos = paramStr.indexOf("pwd=");
+    int    pos      = paramStr.indexOf("pwd=");
     if (pos == -1) {
         return;
     }
@@ -15,7 +15,7 @@ void remove_password(char *str, auth_t& auth_level) {
     // Truncate the str string at the pwd= .
     // If the pwd= is preceded by a space, take off that space too.
     int endpos = pos;
-    if (endpos && str[endpos-1] == ' ') {
+    if (endpos && str[endpos - 1] == ' ') {
         --endpos;
     }
     str[endpos] = '\0';
@@ -35,7 +35,7 @@ void remove_password(char *str, auth_t& auth_level) {
     }
 }
 #else
-void remove_password(char *str, auth_t& auth_level) {
+void remove_password(char* str, auth_t& auth_level) {
     auth_level = LEVEL_ADMIN;
 }
 #endif
