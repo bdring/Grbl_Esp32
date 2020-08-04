@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Grbl_Esp32\Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Grbl_Esp32\Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Grbl_Esp32\Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Grbl_Esp32\Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Grbl_Esp32\authentication.h" />
+    <ClInclude Include="Grbl_Esp32\BTconfig.h" />
+    <ClInclude Include="Grbl_Esp32\commands.h" />
+    <ClInclude Include="Grbl_Esp32\config.h" />
+    <ClInclude Include="Grbl_Esp32\coolant_control.h" />
+    <ClInclude Include="Grbl_Esp32\cpu_map.h" />
+    <ClInclude Include="Grbl_Esp32\defaults.h" />
+    <ClInclude Include="Grbl_Esp32\espresponse.h" />
+    <ClInclude Include="Grbl_Esp32\gcode.h" />
+    <ClInclude Include="Grbl_Esp32\grbl.h" />
+    <ClInclude Include="Grbl_Esp32\grbl_eeprom.h" />
+    <ClInclude Include="Grbl_Esp32\grbl_limits.h" />
+    <ClInclude Include="Grbl_Esp32\grbl_sd.h" />
+    <ClInclude Include="Grbl_Esp32\i2s_out.h" />
+    <ClInclude Include="Grbl_Esp32\inputbuffer.h" />
+    <ClInclude Include="Grbl_Esp32\jog.h" />
+    <ClInclude Include="Grbl_Esp32\JSONencoder.h" />
+    <ClInclude Include="Grbl_Esp32\machine.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\3axis_v3.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\3axis_v4.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\3axis_xyx.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\4axis_external_driver.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\6_pack_stepstick_v1.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\6_pack_trinamic_V1.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\atari_1020.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\esp32_printer_controller.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\espduino.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\foo_6axis.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\i2s_out_xxyyzz.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\i2s_out_xyzabc.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\i2s_out_xyzabc_trinamic.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\lowrider_v1p2.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\midtbot.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\mpcnc_v1p1.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\mpcnc_v1p2.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\pen_laser.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\polar_coaster.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\spindle_class_test.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\spi_daisy_4axis_xyyz.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\spi_daisy_4axis_xyz.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\spi_daisy_4axis_xyza.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\template.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\test_drive.h" />
+    <ClInclude Include="Grbl_Esp32\Machines\tmc2130_pen.h" />
+    <ClInclude Include="Grbl_Esp32\machine_common.h" />
+    <ClInclude Include="Grbl_Esp32\motion_control.h" />
+    <ClInclude Include="Grbl_Esp32\Motors\MotorClass.h" />
+    <ClInclude Include="Grbl_Esp32\Motors\RcServoClass.h" />
+    <ClInclude Include="Grbl_Esp32\Motors\TrinamicDriverClass.h" />
+    <ClInclude Include="Grbl_Esp32\nofile.h" />
+    <ClInclude Include="Grbl_Esp32\notifications_service.h" />
+    <ClInclude Include="Grbl_Esp32\nuts_bolts.h" />
+    <ClInclude Include="Grbl_Esp32\Pins.h" />
+    <ClInclude Include="Grbl_Esp32\planner.h" />
+    <ClInclude Include="Grbl_Esp32\print.h" />
+    <ClInclude Include="Grbl_Esp32\probe.h" />
+    <ClInclude Include="Grbl_Esp32\protocol.h" />
+    <ClInclude Include="Grbl_Esp32\report.h" />
+    <ClInclude Include="Grbl_Esp32\serial.h" />
+    <ClInclude Include="Grbl_Esp32\serial2socket.h" />
+    <ClInclude Include="Grbl_Esp32\servo_axis.h" />
+    <ClInclude Include="Grbl_Esp32\settings.h" />
+    <ClInclude Include="Grbl_Esp32\SettingsClass.h" />
+    <ClInclude Include="Grbl_Esp32\SettingsDefinitions.h" />
+    <ClInclude Include="Grbl_Esp32\solenoid_pen.h" />
+    <ClInclude Include="Grbl_Esp32\Spindles\SpindleClass.h" />
+    <ClInclude Include="Grbl_Esp32\stepper.h" />
+    <ClInclude Include="Grbl_Esp32\system.h" />
+    <ClInclude Include="Grbl_Esp32\tdef.h" />
+    <ClInclude Include="Grbl_Esp32\telnet_server.h" />
+    <ClInclude Include="Grbl_Esp32\WebSettings.h" />
+    <ClInclude Include="Grbl_Esp32\web_server.h" />
+    <ClInclude Include="Grbl_Esp32\wificonfig.h" />
+    <ClInclude Include="Grbl_Esp32\wifiservices.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Grbl_Esp32\authentication.cpp" />
+    <ClCompile Include="Grbl_Esp32\BTconfig.cpp" />
+    <ClCompile Include="Grbl_Esp32\commands.cpp" />
+    <ClCompile Include="Grbl_Esp32\coolant_control.cpp" />
+    <ClCompile Include="Grbl_Esp32\custom_code.cpp" />
+    <ClCompile Include="Grbl_Esp32\espresponse.cpp" />
+    <ClCompile Include="Grbl_Esp32\gcode.cpp" />
+    <ClCompile Include="Grbl_Esp32\grbl_eeprom.cpp" />
+    <ClCompile Include="Grbl_Esp32\grbl_limits.cpp" />
+    <ClCompile Include="Grbl_Esp32\grbl_sd.cpp" />
+    <ClCompile Include="Grbl_Esp32\i2s_out.cpp" />
+    <ClCompile Include="Grbl_Esp32\inputbuffer.cpp" />
+    <ClCompile Include="Grbl_Esp32\jog.cpp" />
+    <ClCompile Include="Grbl_Esp32\JSONencoder.cpp" />
+    <ClCompile Include="Grbl_Esp32\motion_control.cpp" />
+    <ClCompile Include="Grbl_Esp32\Motors\MotorClass.cpp" />
+    <ClCompile Include="Grbl_Esp32\Motors\RcServoClass.cpp" />
+    <ClCompile Include="Grbl_Esp32\Motors\StandardStepperClass.cpp" />
+    <ClCompile Include="Grbl_Esp32\Motors\TrinamicDriverClass.cpp" />
+    <ClCompile Include="Grbl_Esp32\Motors\UnipolarMotorClass.cpp" />
+    <ClCompile Include="Grbl_Esp32\notifications_service.cpp" />
+    <ClCompile Include="Grbl_Esp32\nuts_bolts.cpp" />
+    <ClCompile Include="Grbl_Esp32\Pins.cpp" />
+    <ClCompile Include="Grbl_Esp32\planner.cpp" />
+    <ClCompile Include="Grbl_Esp32\print.cpp" />
+    <ClCompile Include="Grbl_Esp32\probe.cpp" />
+    <ClCompile Include="Grbl_Esp32\ProcessSettings.cpp" />
+    <ClCompile Include="Grbl_Esp32\protocol.cpp" />
+    <ClCompile Include="Grbl_Esp32\report.cpp" />
+    <ClCompile Include="Grbl_Esp32\serial.cpp" />
+    <ClCompile Include="Grbl_Esp32\serial2socket.cpp" />
+    <ClCompile Include="Grbl_Esp32\servo_axis.cpp" />
+    <ClCompile Include="Grbl_Esp32\settings.cpp" />
+    <ClCompile Include="Grbl_Esp32\SettingsClass.cpp" />
+    <ClCompile Include="Grbl_Esp32\SettingsDefinitions.cpp" />
+    <ClCompile Include="Grbl_Esp32\solenoid_pen.cpp" />
+    <ClCompile Include="Grbl_Esp32\Spindles\10vSpindle.cpp" />
+    <ClCompile Include="Grbl_Esp32\Spindles\BESCSpindle.cpp" />
+    <ClCompile Include="Grbl_Esp32\Spindles\DacSpindle.cpp" />
+    <ClCompile Include="Grbl_Esp32\Spindles\HuanyangSpindle.cpp" />
+    <ClCompile Include="Grbl_Esp32\Spindles\Laser.cpp" />
+    <ClCompile Include="Grbl_Esp32\Spindles\NullSpindle.cpp" />
+    <ClCompile Include="Grbl_Esp32\Spindles\PWMSpindle.cpp" />
+    <ClCompile Include="Grbl_Esp32\Spindles\RelaySpindle.cpp" />
+    <ClCompile Include="Grbl_Esp32\Spindles\SpindleClass.cpp" />
+    <ClCompile Include="Grbl_Esp32\stepper.cpp" />
+    <ClCompile Include="Grbl_Esp32\system.cpp" />
+    <ClCompile Include="Grbl_Esp32\telnet_server.cpp" />
+    <ClCompile Include="Grbl_Esp32\WebSettings.cpp" />
+    <ClCompile Include="Grbl_Esp32\web_server.cpp" />
+    <ClCompile Include="Grbl_Esp32\wificonfig.cpp" />
+    <ClCompile Include="Grbl_Esp32\wifiservices.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Grbl_Esp32\Grbl_Esp32.ino" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{11C8A44F-A303-4885-B5AD-5B65F7FE41C0}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <NMakeBuildCommandLine>platformio --force run</NMakeBuildCommandLine>
+    <NMakeCleanCommandLine>platformio --force run -t clean</NMakeCleanCommandLine>
+    <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>$(HOMEDRIVE)$(HOMEPATH)\.platformio\packages\toolchain-atmelavr\avr\include;$(HOMEDRIVE)$(HOMEPATH)\.platformio\packages\framework-arduinoavr\cores\arduino;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <NMakeBuildCommandLine>platformio --force run</NMakeBuildCommandLine>
+    <NMakeCleanCommandLine>platformio --force run -t clean</NMakeCleanCommandLine>
+    <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <NMakeBuildCommandLine>platformio --force run</NMakeBuildCommandLine>
+    <NMakeCleanCommandLine>platformio --force run -t clean</NMakeCleanCommandLine>
+    <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <NMakeBuildCommandLine>platformio --force run</NMakeBuildCommandLine>
+    <NMakeCleanCommandLine>platformio --force run -t clean</NMakeCleanCommandLine>
+    <NMakePreprocessorDefinitions>NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties config.Debug.customdebug_esp32_esp32_debugger_type="universal" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
