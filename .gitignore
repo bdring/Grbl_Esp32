@@ -10,3 +10,11 @@ embedded/dist
 .vscode/
 .history/
 *.pyc
+.vs/
+Debug/
+Release/
+*.vsarduino.h
+__vm/
+*.user
+*.vcxproj
+*.suo
