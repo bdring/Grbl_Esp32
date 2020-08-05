@@ -577,7 +577,7 @@ static void protocol_exec_rt_suspend() {
                         // NOTE: Clear accessory state after retract and after an aborted restore motion.
                         pl_data->condition = (PL_COND_FLAG_SYSTEM_MOTION | PL_COND_FLAG_NO_FEED_OVERRIDE);
                         pl_data->spindle_speed = 0.0;
-                        spindle->set_state((SPINDLE_DISABLE, 0); // De-energize
+                        spindle->set_state(SPINDLE_DISABLE, 0); // De-energize
                                            coolant_set_state(COOLANT_DISABLE); // De-energize
                                            // Execute fast parking retract motion to parking target location.
                         if (parking_target[PARKING_AXIS] < PARKING_TARGET) {
@@ -588,9 +588,9 @@ static void protocol_exec_rt_suspend() {
                     } else {
                         // Parking motion not possible. Just disable the spindle and coolant.
                         // NOTE: Laser mode does not start a parking motion to ensure the laser stops immediately.
-                        ->set_state((SPINDLE_DISABLE, 0.0); // De-energize
-                            coolant_set_state(COOLANT_DISABLE);     // De-energize
-                        }
+                        spindle->set_state(SPINDLE_DISABLE, 0); // De-energize
+                        coolant_set_state(COOLANT_DISABLE);     // De-energize
+                    }
 #endif
                     sys.suspend &= ~(SUSPEND_RESTART_RETRACT);
                     sys.suspend |= SUSPEND_RETRACT_COMPLETE;
