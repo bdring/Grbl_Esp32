@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
   serial.cpp - Header for system level commands and real-time processes
   Part of Grbl
@@ -74,55 +72,54 @@ void serial_init() {
     Serial.begin(BAUD_RATE);
     // reset all buffers
     serial_reset_read_buffer(CLIENT_ALL);
-    grbl_send(CLIENT_SERIAL, "\r\n"); // create some white space after ESP32 boot info
+    grbl_send(CLIENT_SERIAL, "\r\n");  // create some white space after ESP32 boot info
     serialCheckTaskHandle = 0;
     // create a task to check for incoming data
-    xTaskCreatePinnedToCore(serialCheckTask,     // task
-                            "serialCheckTask", // name for task
-                            8192,   // size of task stack
-                            NULL,   // parameters
-                            1, // priority
+    xTaskCreatePinnedToCore(serialCheckTask,    // task
+                            "serialCheckTask",  // name for task
+                            8192,               // size of task stack
+                            NULL,               // parameters
+                            1,                  // priority
                             &serialCheckTaskHandle,
-                            1 // core
-                           );
+                            1  // core
+    );
 }
-
 
 // this task runs and checks for data on all interfaces
 // REaltime stuff is acted upon, then characters are added to the appropriate buffer
 void serialCheckTask(void* pvParameters) {
-    uint8_t data = 0;
-    uint8_t client = CLIENT_ALL; // who sent the data
-    while (true) { // run continuously
+    uint8_t data   = 0;
+    uint8_t client = CLIENT_ALL;  // who sent the data
+    while (true) {                // run continuously
         while (any_client_has_data()) {
             if (Serial.available()) {
                 client = CLIENT_SERIAL;
-                data = Serial.read();
+                data   = Serial.read();
             } else if (inputBuffer.available()) {
                 client = CLIENT_INPUT;
-                data = inputBuffer.read();
+                data   = inputBuffer.read();
             } else {
                 //currently is wifi or BT but better to prepare both can be live
 #ifdef ENABLE_BLUETOOTH
                 if (SerialBT.hasClient() && SerialBT.available()) {
                     client = CLIENT_BT;
-                    data = SerialBT.read();
+                    data   = SerialBT.read();
                     //Serial.write(data);  // echo all data to serial
                 } else {
 #endif
-#if defined (ENABLE_WIFI) && defined(ENABLE_HTTP)  && defined(ENABLE_SERIAL2SOCKET_IN)
+#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
                     if (Serial2Socket.available()) {
                         client = CLIENT_WEBUI;
-                        data = Serial2Socket.read();
+                        data   = Serial2Socket.read();
                     } else {
 #endif
-#if defined (ENABLE_WIFI) && defined(ENABLE_TELNET)
+#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
                         if (telnet_server.available()) {
                             client = CLIENT_TELNET;
-                            data = telnet_server.read();
+                            data   = telnet_server.read();
                         }
 #endif
-#if defined (ENABLE_WIFI) && defined(ENABLE_HTTP)  && defined(ENABLE_SERIAL2SOCKET_IN)
+#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
                     }
 #endif
 #ifdef ENABLE_BLUETOOTH
@@ -146,11 +143,11 @@ void serialCheckTask(void* pvParameters) {
 #ifdef ENABLE_BLUETOOTH
         bt_config.handle();
 #endif
-#if defined (ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
+#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
         Serial2Socket.handle_flush();
 #endif
         vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
-    }  // while(true)
+    }                                      // while(true)
 }
 
 void serial_reset_read_buffer(uint8_t client) {
@@ -185,13 +182,13 @@ bool any_client_has_data() {
 #ifdef ENABLE_BLUETOOTH
             || (SerialBT.hasClient() && SerialBT.available())
 #endif
-#if defined (ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
+#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
             || Serial2Socket.available()
 #endif
-#if defined (ENABLE_WIFI) && defined(ENABLE_TELNET)
+#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
             || telnet_server.available()
 #endif
-           );
+    );
 }
 
 // checks to see if a character is a realtime character
@@ -202,48 +199,50 @@ bool is_realtime_command(uint8_t data) {
 // Act upon a realtime character
 void execute_realtime_command(uint8_t command, uint8_t client) {
     switch (command) {
-    case CMD_RESET:
-        mc_reset();	// Call motion control reset routine.
-        break;
-    case CMD_STATUS_REPORT:
-        report_realtime_status(client); // direct call instead of setting flag
-        break;
-    case CMD_CYCLE_START:
-        system_set_exec_state_flag(EXEC_CYCLE_START); // Set as true
-        break;
-    case CMD_FEED_HOLD:
-        system_set_exec_state_flag(EXEC_FEED_HOLD); // Set as true
-        break;
-    case CMD_SAFETY_DOOR:
-        system_set_exec_state_flag(EXEC_SAFETY_DOOR);
-        break; // Set as true
-    case CMD_JOG_CANCEL:
-        if (sys.state & STATE_JOG)   // Block all other states from invoking motion cancel.
-            system_set_exec_state_flag(EXEC_MOTION_CANCEL);
-        break;
+        case CMD_RESET:
+            mc_reset();  // Call motion control reset routine.
+            break;
+        case CMD_STATUS_REPORT:
+            report_realtime_status(client);  // direct call instead of setting flag
+            break;
+        case CMD_CYCLE_START:
+            system_set_exec_state_flag(EXEC_CYCLE_START);  // Set as true
+            break;
+        case CMD_FEED_HOLD:
+            system_set_exec_state_flag(EXEC_FEED_HOLD);  // Set as true
+            break;
+        case CMD_SAFETY_DOOR: system_set_exec_state_flag(EXEC_SAFETY_DOOR); break;  // Set as true
+        case CMD_JOG_CANCEL:
+            if (sys.state & STATE_JOG)  // Block all other states from invoking motion cancel.
+                system_set_exec_state_flag(EXEC_MOTION_CANCEL);
+            break;
 #ifdef DEBUG
-    case CMD_DEBUG_REPORT: {uint8_t sreg = SREG; cli(); bit_true(sys_rt_exec_debug, EXEC_DEBUG_REPORT); SREG = sreg;} break;
+        case CMD_DEBUG_REPORT: {
+            uint8_t sreg = SREG;
+            cli();
+            bit_true(sys_rt_exec_debug, EXEC_DEBUG_REPORT);
+            SREG = sreg;
+        } break;
 #endif
-    case CMD_FEED_OVR_RESET: system_set_exec_motion_override_flag(EXEC_FEED_OVR_RESET); break;
-    case CMD_FEED_OVR_COARSE_PLUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_PLUS); break;
-    case CMD_FEED_OVR_COARSE_MINUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_MINUS); break;
-    case CMD_FEED_OVR_FINE_PLUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_PLUS); break;
-    case CMD_FEED_OVR_FINE_MINUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_MINUS); break;
-    case CMD_RAPID_OVR_RESET: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_RESET); break;
-    case CMD_RAPID_OVR_MEDIUM: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_MEDIUM); break;
-    case CMD_RAPID_OVR_LOW: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_LOW); break;
-    case CMD_SPINDLE_OVR_RESET: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_RESET); break;
-    case CMD_SPINDLE_OVR_COARSE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_PLUS); break;
-    case CMD_SPINDLE_OVR_COARSE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_MINUS); break;
-    case CMD_SPINDLE_OVR_FINE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_PLUS); break;
-    case CMD_SPINDLE_OVR_FINE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_MINUS); break;
-    case CMD_SPINDLE_OVR_STOP: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP); break;
+        case CMD_FEED_OVR_RESET: system_set_exec_motion_override_flag(EXEC_FEED_OVR_RESET); break;
+        case CMD_FEED_OVR_COARSE_PLUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_PLUS); break;
+        case CMD_FEED_OVR_COARSE_MINUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_MINUS); break;
+        case CMD_FEED_OVR_FINE_PLUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_PLUS); break;
+        case CMD_FEED_OVR_FINE_MINUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_MINUS); break;
+        case CMD_RAPID_OVR_RESET: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_RESET); break;
+        case CMD_RAPID_OVR_MEDIUM: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_MEDIUM); break;
+        case CMD_RAPID_OVR_LOW: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_LOW); break;
+        case CMD_SPINDLE_OVR_RESET: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_RESET); break;
+        case CMD_SPINDLE_OVR_COARSE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_PLUS); break;
+        case CMD_SPINDLE_OVR_COARSE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_MINUS); break;
+        case CMD_SPINDLE_OVR_FINE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_PLUS); break;
+        case CMD_SPINDLE_OVR_FINE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_MINUS); break;
+        case CMD_SPINDLE_OVR_STOP: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP); break;
 #ifdef COOLANT_FLOOD_PIN
-    case CMD_COOLANT_FLOOD_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_FLOOD_OVR_TOGGLE); break;
+        case CMD_COOLANT_FLOOD_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_FLOOD_OVR_TOGGLE); break;
 #endif
 #ifdef COOLANT_MIST_PIN
-    case CMD_COOLANT_MIST_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_MIST_OVR_TOGGLE); break;
+        case CMD_COOLANT_MIST_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_MIST_OVR_TOGGLE); break;
 #endif
     }
 }
-

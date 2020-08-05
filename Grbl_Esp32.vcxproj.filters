@@ -171,9 +171,6 @@
     <ClInclude Include="Grbl_Esp32\Machines\espduino.h">
       <Filter>Machines</Filter>
     </ClInclude>
-    <ClInclude Include="Grbl_Esp32\Spindles\SpindleClass.h">
-      <Filter>Spindles</Filter>
-    </ClInclude>
     <ClInclude Include="Grbl_Esp32\tdef.h">
       <Filter>
       </Filter>
@@ -274,6 +271,9 @@
     <ClInclude Include="Grbl_Esp32\Motors\Motor.h">
       <Filter>Motors</Filter>
     </ClInclude>
+    <ClInclude Include="Grbl_Esp32\Spindles\Spindle.h">
+      <Filter>Spindles</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Grbl_Esp32\espresponse.cpp">
@@ -289,9 +289,6 @@
       </Filter>
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\Spindles\10vSpindle.cpp">
-      <Filter>Spindles</Filter>
-    </ClCompile>
-    <ClCompile Include="Grbl_Esp32\Spindles\SpindleClass.cpp">
       <Filter>Spindles</Filter>
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\Spindles\DacSpindle.cpp">
@@ -465,6 +462,9 @@
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\Motors\Motor.cpp">
       <Filter>Motors</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\Spindles\Spindle.cpp">
+      <Filter>Spindles</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

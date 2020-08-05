@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
   commands.cpp - GRBL_ESP command class
 
@@ -36,7 +34,7 @@ bool COMMANDS::restart_ESP_module = false;
  */
 void COMMANDS::wait(uint32_t milliseconds) {
     uint32_t timeout = millis();
-    esp_task_wdt_reset(); //for a wait 0;
+    esp_task_wdt_reset();  //for a wait 0;
     //wait feeding WDT
     while ((millis() - timeout) < milliseconds)
         esp_task_wdt_reset();
@@ -44,7 +42,8 @@ void COMMANDS::wait(uint32_t milliseconds) {
 
 bool COMMANDS::isLocalPasswordValid(char* password) {
     char c;
-    //limited size
+
+    // limited size
     if ((strlen(password) > MAX_LOCAL_PASSWORD_LENGTH) || (strlen(password) < MIN_LOCAL_PASSWORD_LENGTH))
         return false;
     //no space allowed
@@ -71,6 +70,7 @@ void COMMANDS::handle() {
     //in case of restart requested
     if (restart_ESP_module) {
         ESP.restart();
-        while (1)  ;
+        while (1)
+            ;
     }
 }

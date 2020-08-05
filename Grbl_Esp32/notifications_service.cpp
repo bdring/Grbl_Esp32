@@ -1,4 +1,3 @@
-// clang-format off
 
 /*
   notifications_service.cpp -  notifications service functions class
@@ -31,26 +30,29 @@
 // - https://www.electronicshub.org/send-an-email-using-esp8266/
 
 #include "grbl.h"
+
 #ifdef ENABLE_NOTIFICATIONS
+// clang-format off
 #include "notifications_service.h"
 #include <WiFiClientSecure.h>
 #include <base64.h>
+// clang-format on
 
-#define PUSHOVERTIMEOUT 5000
-#define PUSHOVERSERVER "api.pushover.net"
-#define PUSHOVERPORT	443
+#    define PUSHOVERTIMEOUT 5000
+#    define PUSHOVERSERVER "api.pushover.net"
+#    define PUSHOVERPORT 443
 
-#define LINETIMEOUT 5000
-#define LINESERVER "notify-api.line.me"
-#define LINEPORT	443
+#    define LINETIMEOUT 5000
+#    define LINESERVER "notify-api.line.me"
+#    define LINEPORT 443
 
-#define EMAILTIMEOUT 5000
+#    define EMAILTIMEOUT 5000
 
 NotificationsService notificationsservice;
 
-bool Wait4Answer(WiFiClientSecure& client, const char* linetrigger, const char* expected_answer,  uint32_t timeout) {
+bool Wait4Answer(WiFiClientSecure& client, const char* linetrigger, const char* expected_answer, uint32_t timeout) {
     if (client.connected()) {
-        String answer;
+        String   answer;
         uint32_t starttimeout = millis();
         while (client.connected() && ((millis() - starttimeout) < timeout)) {
             answer = client.readStringUntil('\n');
@@ -76,11 +78,11 @@ bool Wait4Answer(WiFiClientSecure& client, const char* linetrigger, const char* 
 }
 
 NotificationsService::NotificationsService() {
-    _started = false;
+    _started          = false;
     _notificationType = 0;
-    _token1 = "";
-    _token1 = "";
-    _settings = "";
+    _token1           = "";
+    _token1           = "";
+    _settings         = "";
 }
 NotificationsService::~NotificationsService() {
     end();
@@ -92,33 +94,23 @@ bool NotificationsService::started() {
 
 const char* NotificationsService::getTypeString() {
     switch (_notificationType) {
-    case ESP_PUSHOVER_NOTIFICATION:
-        return "Pushover";
-    case ESP_EMAIL_NOTIFICATION:
-        return "Email";
-    case ESP_LINE_NOTIFICATION:
-        return "Line";
-    default:
-        break;
+        case ESP_PUSHOVER_NOTIFICATION: return "Pushover";
+        case ESP_EMAIL_NOTIFICATION: return "Email";
+        case ESP_LINE_NOTIFICATION: return "Line";
+        default: break;
     }
     return "None";
 }
 
 bool NotificationsService::sendMSG(const char* title, const char* message) {
-    if (!_started) return false;
+    if (!_started)
+        return false;
     if (!((strlen(title) == 0) && (strlen(message) == 0))) {
         switch (_notificationType) {
-        case ESP_PUSHOVER_NOTIFICATION:
-            return sendPushoverMSG(title, message);
-            break;
-        case ESP_EMAIL_NOTIFICATION:
-            return sendEmailMSG(title, message);
-            break;
-        case ESP_LINE_NOTIFICATION :
-            return sendLineMSG(title, message);
-            break;
-        default:
-            break;
+            case ESP_PUSHOVER_NOTIFICATION: return sendPushoverMSG(title, message); break;
+            case ESP_EMAIL_NOTIFICATION: return sendEmailMSG(title, message); break;
+            case ESP_LINE_NOTIFICATION: return sendLineMSG(title, message); break;
+            default: break;
         }
     }
     return false;
@@ -126,9 +118,9 @@ bool NotificationsService::sendMSG(const char* title, const char* message) {
 //Messages are currently limited to 1024 4-byte UTF-8 characters
 //but we do not do any check
 bool NotificationsService::sendPushoverMSG(const char* title, const char* message) {
-    String data;
-    String postcmd;
-    bool res;
+    String           data;
+    String           postcmd;
+    bool             res;
     WiFiClientSecure Notificationclient;
     if (!Notificationclient.connect(_serveraddress.c_str(), _port)) {
         log_d("Error connecting  server %s:%d", _serveraddress.c_str(), _port);
@@ -138,7 +130,8 @@ bool NotificationsService::sendPushoverMSG(const char* title, const char* messag
     data = "user=";
     data += _token1;
     data += "&token=";
-    data += _token2;;
+    data += _token2;
+    ;
     data += "&title=";
     data += title;
     data += "&message=";
@@ -146,14 +139,15 @@ bool NotificationsService::sendPushoverMSG(const char* title, const char* messag
     data += "&device=";
     data += wifi_config.Hostname();
     //build post query
-    postcmd  = "POST /1/messages.json HTTP/1.1\r\nHost: api.pushover.net\r\nConnection: close\r\nCache-Control: no-cache\r\nUser-Agent: ESP3D\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nContent-Length: ";
-    postcmd  += data.length();
-    postcmd  += "\r\n\r\n";
-    postcmd  += data;
+    postcmd = "POST /1/messages.json HTTP/1.1\r\nHost: api.pushover.net\r\nConnection: close\r\nCache-Control: no-cache\r\nUser-Agent: "
+              "ESP3D\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nContent-Length: ";
+    postcmd += data.length();
+    postcmd += "\r\n\r\n";
+    postcmd += data;
     log_d("Query: %s", postcmd.c_str());
     //send query
     Notificationclient.print(postcmd);
-    res = Wait4Answer(Notificationclient, "{", "\"status\":1",  PUSHOVERTIMEOUT);
+    res = Wait4Answer(Notificationclient, "{", "\"status\":1", PUSHOVERTIMEOUT);
     Notificationclient.stop();
     return res;
 }
@@ -242,9 +236,9 @@ bool NotificationsService::sendEmailMSG(const char* title, const char* message) 
     return true;
 }
 bool NotificationsService::sendLineMSG(const char* title, const char* message) {
-    String data;
-    String postcmd;
-    bool res;
+    String           data;
+    String           postcmd;
+    bool             res;
     WiFiClientSecure Notificationclient;
     (void)title;
     if (!Notificationclient.connect(_serveraddress.c_str(), _port)) {
@@ -255,24 +249,26 @@ bool NotificationsService::sendLineMSG(const char* title, const char* message) {
     data = "message=";
     data += message;
     //build post query
-    postcmd  = "POST /api/notify HTTP/1.1\r\nHost: notify-api.line.me\r\nConnection: close\r\nCache-Control: no-cache\r\nUser-Agent: ESP3D\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nContent-Type: application/x-www-form-urlencoded\r\n";
-    postcmd  += "Authorization: Bearer ";
-    postcmd  += _token1 + "\r\n";
-    postcmd  += "Content-Length: ";
-    postcmd  += data.length();
-    postcmd  += "\r\n\r\n";
-    postcmd  += data;
+    postcmd = "POST /api/notify HTTP/1.1\r\nHost: notify-api.line.me\r\nConnection: close\r\nCache-Control: no-cache\r\nUser-Agent: "
+              "ESP3D\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nContent-Type: "
+              "application/x-www-form-urlencoded\r\n";
+    postcmd += "Authorization: Bearer ";
+    postcmd += _token1 + "\r\n";
+    postcmd += "Content-Length: ";
+    postcmd += data.length();
+    postcmd += "\r\n\r\n";
+    postcmd += data;
     log_d("Query: %s", postcmd.c_str());
     //send query
     Notificationclient.print(postcmd);
-    res = Wait4Answer(Notificationclient, "{", "\"status\":200",  LINETIMEOUT);
+    res = Wait4Answer(Notificationclient, "{", "\"status\":200", LINETIMEOUT);
     Notificationclient.stop();
     return res;
 }
 //Email#serveraddress:port
 bool NotificationsService::getPortFromSettings() {
     String tmp = notification_ts->get();
-    int pos = tmp.lastIndexOf(':');
+    int    pos = tmp.lastIndexOf(':');
     if (pos == -1)
         return false;
     _port = tmp.substring(pos + 1).toInt();
@@ -281,9 +277,9 @@ bool NotificationsService::getPortFromSettings() {
 }
 //Email#serveraddress:port
 bool NotificationsService::getServerAddressFromSettings() {
-    String tmp = notification_ts->get();
-    int pos1 = tmp.indexOf('#');
-    int pos2 = tmp.lastIndexOf(':');
+    String tmp  = notification_ts->get();
+    int    pos1 = tmp.indexOf('#');
+    int    pos2 = tmp.lastIndexOf(':');
     if ((pos1 == -1) || (pos2 == -1))
         return false;
     //TODO add a check for valid email ?
@@ -294,7 +290,7 @@ bool NotificationsService::getServerAddressFromSettings() {
 //Email#serveraddress:port
 bool NotificationsService::getEmailFromSettings() {
     String tmp = notification_ts->get();
-    int pos = tmp.indexOf('#');
+    int    pos = tmp.indexOf('#');
     if (pos == -1)
         return false;
     _settings = tmp.substring(0, pos);
@@ -303,34 +299,31 @@ bool NotificationsService::getEmailFromSettings() {
     return true;
 }
 
-
 bool NotificationsService::begin() {
     end();
     _notificationType = notification_type->get();
     switch (_notificationType) {
-    case 0: //no notification = no error but no start
-        return true;
-    case ESP_PUSHOVER_NOTIFICATION:
-        _token1 = notification_t1->get();
-        _token2 = notification_t2->get();
-        _port = PUSHOVERPORT;
-        _serveraddress = PUSHOVERSERVER;
-        break;
-    case ESP_LINE_NOTIFICATION:
-        _token1 = notification_t1->get();
-        _port = LINEPORT;
-        _serveraddress = LINESERVER;
-        break;
-    case ESP_EMAIL_NOTIFICATION:
-        _token1 = base64::encode(notification_t1->get());
-        _token2 = base64::encode(notification_t2->get());
-        if (!getEmailFromSettings() || !getPortFromSettings() || !getServerAddressFromSettings()) {
-            return false;
-        }
-        break;
-    default:
-        return false;
-        break;
+        case 0:  //no notification = no error but no start
+            return true;
+        case ESP_PUSHOVER_NOTIFICATION:
+            _token1        = notification_t1->get();
+            _token2        = notification_t2->get();
+            _port          = PUSHOVERPORT;
+            _serveraddress = PUSHOVERSERVER;
+            break;
+        case ESP_LINE_NOTIFICATION:
+            _token1        = notification_t1->get();
+            _port          = LINEPORT;
+            _serveraddress = LINESERVER;
+            break;
+        case ESP_EMAIL_NOTIFICATION:
+            _token1 = base64::encode(notification_t1->get());
+            _token2 = base64::encode(notification_t2->get());
+            if (!getEmailFromSettings() || !getPortFromSettings() || !getServerAddressFromSettings()) {
+                return false;
+            }
+            break;
+        default: return false; break;
     }
     bool res = true;
     if (WiFi.getMode() != WIFI_STA)
@@ -343,18 +336,17 @@ bool NotificationsService::begin() {
 void NotificationsService::end() {
     if (!_started)
         return;
-    _started = false;
+    _started          = false;
     _notificationType = 0;
-    _token1 = "";
-    _token1 = "";
-    _settings = "";
-    _serveraddress = "";
-    _port = 0;
+    _token1           = "";
+    _token1           = "";
+    _settings         = "";
+    _serveraddress    = "";
+    _port             = 0;
 }
 
 void NotificationsService::handle() {
-    if (_started) {
-    }
+    if (_started) {}
 }
 
-#endif //ENABLE_NOTIFICATIONS
+#endif  //ENABLE_NOTIFICATIONS

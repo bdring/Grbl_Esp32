@@ -45,6 +45,7 @@ PWM
 // MACHINE_FILENAME must not include the Machines/ path prefix; it is
 // supplied automatically.
 
+// TODO FIXME: this is wrong. Should use "quotes" instead of <quotes>.
 // MACHINE_PATHNAME_QUOTED constructs a path that is suitable for #include
 #define MACHINE_PATHNAME_QUOTED(name) <Machines/name>
 

@@ -1,4 +1,3 @@
-// clang-format off
 
 /*
   BTconfig.cpp -  Bluetooth functions class
@@ -20,29 +19,28 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifdef ARDUINO_ARCH_ESP32
-
 #include "grbl.h"
 
 #ifdef ENABLE_BLUETOOTH
+// clang-format off
 #include "BluetoothSerial.h"
 #include "BTconfig.h"
+// clang-format on
 
-BTConfig bt_config;
+BTConfig        bt_config;
 BluetoothSerial SerialBT;
-#ifdef __cplusplus
+#    ifdef __cplusplus
 extern "C" {
-#endif
+#    endif
 const uint8_t* esp_bt_dev_get_address(void);
-#ifdef __cplusplus
+#    ifdef __cplusplus
 }
-#endif
+#    endif
 
-String BTConfig::_btname = "";
+String BTConfig::_btname   = "";
 String BTConfig::_btclient = "";
 
-BTConfig::BTConfig() {
-}
+BTConfig::BTConfig() {}
 
 BTConfig::~BTConfig() {
     end();
@@ -50,27 +48,25 @@ BTConfig::~BTConfig() {
 
 static void my_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t* param) {
     switch (event) {
-    case ESP_SPP_SRV_OPEN_EVT: { //Server connection open
-        char str[18];
-        str[17] = '\0';
-        uint8_t* addr = param->srv_open.rem_bda;
-        sprintf(str, "%02X:%02X:%02X:%02X:%02X:%02X", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
-        BTConfig::_btclient = str;
-        grbl_sendf(CLIENT_ALL, "[MSG:BT Connected with %s]\r\n", str);
-    }
-    break;
-    case ESP_SPP_CLOSE_EVT://Client connection closed
-        grbl_send(CLIENT_ALL, "[MSG:BT Disconnected]\r\n");
-        BTConfig::_btclient = "";
-        break;
-    default:
-        break;
+        case ESP_SPP_SRV_OPEN_EVT: {  //Server connection open
+            char str[18];
+            str[17]       = '\0';
+            uint8_t* addr = param->srv_open.rem_bda;
+            sprintf(str, "%02X:%02X:%02X:%02X:%02X:%02X", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+            BTConfig::_btclient = str;
+            grbl_sendf(CLIENT_ALL, "[MSG:BT Connected with %s]\r\n", str);
+        } break;
+        case ESP_SPP_CLOSE_EVT:  //Client connection closed
+            grbl_send(CLIENT_ALL, "[MSG:BT Disconnected]\r\n");
+            BTConfig::_btclient = "";
+            break;
+        default: break;
     }
 }
 
 const char* BTConfig::info() {
     static String result;
-    String tmp;
+    String        tmp;
     result = "[MSG:";
     if (Is_BT_on()) {
         result += "Mode=BT:Name=";
@@ -80,8 +76,10 @@ const char* BTConfig::info() {
         result += "):Status=";
         if (SerialBT.hasClient())
             result += "Connected with " + _btclient;
-        else result += "Not connected";
-    } else result += "No BT";
+        else
+            result += "Not connected";
+    } else
+        result += "No BT";
     result += "]\r\n";
     return result.c_str();
 }
@@ -104,7 +102,7 @@ bool BTConfig::isBTnameValid(const char* hostname) {
 
 const char* BTConfig::device_address() {
     const uint8_t* point = esp_bt_dev_get_address();
-    static char str[18];
+    static char    str[18];
     str[17] = '\0';
     sprintf(str, "%02X:%02X:%02X:%02X:%02X:%02X", (int)point[0], (int)point[1], (int)point[2], (int)point[3], (int)point[4], (int)point[5]);
     return str;
@@ -124,7 +122,8 @@ void BTConfig::begin() {
             SerialBT.register_callback(&my_spp_cb);
             grbl_sendf(CLIENT_ALL, "[MSG:BT Started with %s]\r\n", _btname.c_str());
         }
-    } else end();
+    } else
+        end();
 }
 
 /**
@@ -158,7 +157,4 @@ void BTConfig::handle() {
     COMMANDS::wait(0);
 }
 
-
-#endif // ENABLE_BLUETOOTH
-
-#endif // ARDUINO_ARCH_ESP32
+#endif  // ENABLE_BLUETOOTH

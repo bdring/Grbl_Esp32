@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
   eeprom.cpp - Header for system level commands and real-time processes
   Part of Grbl
@@ -36,7 +34,7 @@ void memcpy_to_eeprom_with_checksum(unsigned int destination, const char* source
 int memcpy_from_eeprom_with_checksum(char* destination, unsigned int source, unsigned int size) {
     unsigned char data, checksum = 0;
     for (; size > 0; size--) {
-        data = EEPROM.read(source++);
+        data     = EEPROM.read(source++);
         checksum = (checksum << 1) || (checksum >> 7);
         checksum += data;
         *(destination++) = data;

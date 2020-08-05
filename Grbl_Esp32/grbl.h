@@ -1,5 +1,4 @@
 #pragma once
-// clang-format off
 
 /*
   grbl.h - Header for system level commands and real-time processes
@@ -26,6 +25,7 @@
 #define GRBL_VERSION "1.3a"
 #define GRBL_VERSION_BUILD "20200727"
 
+// clang-format off
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -59,7 +59,7 @@
 #include "report.h"
 #include "serial.h"
 #include "Pins.h"
-#include "Spindles/SpindleClass.h"
+#include "Spindles/Spindle.h"
 #include "Motors/Motor.h"
 #include "stepper.h"
 #include "jog.h"
@@ -102,6 +102,8 @@
 #ifdef USE_I2S_OUT
     #include "i2s_out.h"
 #endif
+
+// clang-format on
 
 // Called if USE_MACHINE_INIT is defined
 void machine_init();

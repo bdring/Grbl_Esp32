@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
   solenoid_pen.cpp
   Part of Grbl_ESP32
@@ -30,28 +28,28 @@ int8_t solenoid_pwm_chan_num;
 static TaskHandle_t solenoidSyncTaskHandle = 0;
 
 // used to delay turn on
-bool solenoid_pen_enable;
+bool     solenoid_pen_enable;
 uint16_t solenoide_hold_count;
 
 void solenoid_init() {
     grbl_send(CLIENT_SERIAL, "[MSG:Solenoid Mode]\r\n");  // startup message
     //validate_servo_settings(true); // display any calibration errors
-    solenoid_pen_enable = false;  // start delay has not completed yet.
-    solenoide_hold_count = 0; // initialize
+    solenoid_pen_enable  = false;  // start delay has not completed yet.
+    solenoide_hold_count = 0;      // initialize
     // setup PWM channel
     solenoid_pwm_chan_num = sys_get_next_PWM_chan_num();
     ledcSetup(solenoid_pwm_chan_num, SOLENOID_PWM_FREQ, SOLENOID_PWM_RES_BITS);
     ledcAttachPin(SOLENOID_PEN_PIN, solenoid_pwm_chan_num);
-    solenoid_disable(); // start it it off
+    solenoid_disable();  // start it it off
     // setup a task that will calculate the determine and set the servo position
-    xTaskCreatePinnedToCore(solenoidSyncTask,     // task
-                            "solenoidSyncTask", // name for task
-                            4096,   // size of task stack
-                            NULL,   // parameters
-                            1, // priority
+    xTaskCreatePinnedToCore(solenoidSyncTask,    // task
+                            "solenoidSyncTask",  // name for task
+                            4096,                // size of task stack
+                            NULL,                // parameters
+                            1,                   // priority
                             &solenoidSyncTaskHandle,
-                            0 // core
-                           );
+                            0  // core
+    );
 }
 
 // turn off the PWM (0 duty)
@@ -61,20 +59,20 @@ void solenoid_disable() {
 
 // this is the task
 void solenoidSyncTask(void* pvParameters) {
-    int32_t current_position[N_AXIS]; // copy of current location
-    float m_pos[N_AXIS];   // machine position in mm
-    TickType_t xLastWakeTime;
-    const TickType_t xSolenoidFrequency = SOLENOID_TIMER_INT_FREQ;  // in ticks (typically ms)
-    uint16_t solenoid_delay_counter = 0;
-    xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
-    while (true) { // don't ever return from this or the task dies
+    int32_t          current_position[N_AXIS];  // copy of current location
+    float            m_pos[N_AXIS];             // machine position in mm
+    TickType_t       xLastWakeTime;
+    const TickType_t xSolenoidFrequency     = SOLENOID_TIMER_INT_FREQ;  // in ticks (typically ms)
+    uint16_t         solenoid_delay_counter = 0;
+    xLastWakeTime                           = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
+    while (true) {                                                  // don't ever return from this or the task dies
         if (!solenoid_pen_enable) {
             solenoid_delay_counter++;
             solenoid_pen_enable = (solenoid_delay_counter > SOLENOID_TURNON_DELAY);
         } else {
-            memcpy(current_position, sys_position, sizeof(sys_position)); // get current position in step
-            system_convert_array_steps_to_mpos(m_pos, current_position); // convert to millimeters
-            calc_solenoid(m_pos[Z_AXIS]); // calculate kinematics and move the servos
+            memcpy(current_position, sys_position, sizeof(sys_position));  // get current position in step
+            system_convert_array_steps_to_mpos(m_pos, current_position);   // convert to millimeters
+            calc_solenoid(m_pos[Z_AXIS]);                                  // calculate kinematics and move the servos
         }
         vTaskDelayUntil(&xLastWakeTime, xSolenoidFrequency);
     }
@@ -83,11 +81,11 @@ void solenoidSyncTask(void* pvParameters) {
 // calculate and set the PWM value for the servo
 void calc_solenoid(float penZ) {
     uint32_t solenoid_pen_pulse_len;
-    if (!solenoid_pen_enable) // only proceed if startup delay as expired
+    if (!solenoid_pen_enable)  // only proceed if startup delay as expired
         return;
     if (penZ < 0 && (sys.state != STATE_ALARM)) {  // alarm also makes it go up
-        solenoide_hold_count = 0; // reset this count
-        solenoid_pen_pulse_len = 0; //
+        solenoide_hold_count   = 0;                // reset this count
+        solenoid_pen_pulse_len = 0;                //
     } else {
         if (solenoide_hold_count < SOLENOID_PULSE_LEN_HOLD) {
             solenoid_pen_pulse_len = SOLENOID_PULSE_LEN_UP;
@@ -107,4 +105,3 @@ void calc_solenoid(float penZ) {
 }
 
 #endif
-

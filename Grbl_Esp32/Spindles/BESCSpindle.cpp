@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
     BESCSpindle.cpp
 
@@ -32,38 +30,37 @@
     BESC_MAX_PULSE_SECS is typically 2ms (0.002 sec) or more
 
 */
-#include "SpindleClass.h"
+#include "Spindle.h"
 
 // don't change these
-#define BESC_PWM_FREQ           50.0f // Hz
-#define BESC_PWM_BIT_PRECISION  16   // bits
-#define BESC_PULSE_PERIOD       (1.0 / BESC_PWM_FREQ)
+#define BESC_PWM_FREQ 50.0f        // Hz
+#define BESC_PWM_BIT_PRECISION 16  // bits
+#define BESC_PULSE_PERIOD (1.0 / BESC_PWM_FREQ)
 
 // Ok to tweak. These are the pulse lengths in seconds
 // #define them in your machine definition file if you want different values
 #ifndef BESC_MIN_PULSE_SECS
-    #define BESC_MIN_PULSE_SECS     0.0009f // in seconds
+#    define BESC_MIN_PULSE_SECS 0.0009f  // in seconds
 #endif
 
 #ifndef BESC_MAX_PULSE_SECS
-    #define BESC_MAX_PULSE_SECS     0.0022f  // in seconds
+#    define BESC_MAX_PULSE_SECS 0.0022f  // in seconds
 #endif
 
 //calculations...don't change
-#define BESC_MIN_PULSE_CNT      (uint16_t)(BESC_MIN_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0)
-#define BESC_MAX_PULSE_CNT      (uint16_t)(BESC_MAX_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0)
+#define BESC_MIN_PULSE_CNT (uint16_t)(BESC_MIN_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0)
+#define BESC_MAX_PULSE_CNT (uint16_t)(BESC_MAX_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0)
 
-void BESCSpindle :: init() {
-
-    get_pins_and_settings(); // these gets the standard PWM settings, but many need to be changed for BESC
+void BESCSpindle::init() {
+    get_pins_and_settings();  // these gets the standard PWM settings, but many need to be changed for BESC
 
     if (_output_pin == UNDEFINED_PIN) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: BESC output pin not defined");
-        return; // We cannot continue without the output pin
+        return;  // We cannot continue without the output pin
     }
 
     // override some settings to what is required for a BESC
-    _pwm_freq = (uint32_t)BESC_PWM_FREQ;
+    _pwm_freq      = (uint32_t)BESC_PWM_FREQ;
     _pwm_precision = 16;
 
     // override these settings
@@ -71,8 +68,8 @@ void BESCSpindle :: init() {
     _pwm_min_value = _pwm_off_value;
     _pwm_max_value = BESC_MAX_PULSE_CNT;
 
-    ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, _pwm_precision); // setup the channel
-    ledcAttachPin(_output_pin, _spindle_pwm_chan_num); // attach the PWM to the pin
+    ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
+    ledcAttachPin(_output_pin, _spindle_pwm_chan_num);                    // attach the PWM to the pin
 
     pinMode(_enable_pin, OUTPUT);
 
@@ -84,13 +81,13 @@ void BESCSpindle :: init() {
 }
 
 // prints the startup message of the spindle config
-void BESCSpindle :: config_message() {
+void BESCSpindle::config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "BESC spindle on Pin:%s Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
                    pinName(_output_pin).c_str(),
-                   BESC_MIN_PULSE_SECS * 1000.0, // convert to milliseconds
-                   BESC_MAX_PULSE_SECS * 1000.0, // convert to milliseconds
+                   BESC_MIN_PULSE_SECS * 1000.0,  // convert to milliseconds
+                   BESC_MAX_PULSE_SECS * 1000.0,  // convert to milliseconds
                    _pwm_freq,
                    _pwm_precision);
 }
@@ -102,7 +99,7 @@ uint32_t BESCSpindle::set_rpm(uint32_t rpm) {
         return rpm;
 
     // apply speed overrides
-    rpm = rpm * sys.spindle_speed_ovr / 100; // Scale by spindle speed override value (percent)
+    rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (percent)
 
     // apply limits limits
     if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
@@ -112,7 +109,7 @@ uint32_t BESCSpindle::set_rpm(uint32_t rpm) {
     sys.spindle_speed = rpm;
 
     // determine the pwm value
- if (rpm == 0) {
+    if (rpm == 0) {
         pwm_value = _pwm_off_value;
     } else {
         pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);

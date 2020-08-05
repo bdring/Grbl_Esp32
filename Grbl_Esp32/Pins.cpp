@@ -1,7 +1,7 @@
 // clang-format off
-
 #include "grbl.h"
 #include "i2s_out.h"
+// clang-format on
 
 String pinName(uint8_t pin) {
     if (pin == UNDEFINED_PIN) {

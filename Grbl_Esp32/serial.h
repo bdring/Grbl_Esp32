@@ -1,5 +1,4 @@
 #pragma once
-// clang-format off
 
 /*
   serial.h - Header for system level commands and real-time processes
@@ -24,14 +23,14 @@
 #include "grbl.h"
 
 #ifndef RX_BUFFER_SIZE
-    #define RX_BUFFER_SIZE 128
+#    define RX_BUFFER_SIZE 128
 #endif
 #ifndef TX_BUFFER_SIZE
-    #ifdef USE_LINE_NUMBERS
-        #define TX_BUFFER_SIZE 112
-    #else
-        #define TX_BUFFER_SIZE 104
-    #endif
+#    ifdef USE_LINE_NUMBERS
+#        define TX_BUFFER_SIZE 112
+#    else
+#        define TX_BUFFER_SIZE 104
+#    endif
 #endif
 
 #define SERIAL_NO_DATA 0xff
@@ -55,4 +54,3 @@ uint8_t serial_get_rx_buffer_available(uint8_t client);
 void execute_realtime_command(uint8_t command, uint8_t client);
 bool any_client_has_data();
 bool is_realtime_command(uint8_t data);
-

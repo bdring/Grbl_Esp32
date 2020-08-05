@@ -1,4 +1,3 @@
-// clang-format off
-#pragma once 
+#pragma once
 
 #include "grbl.h"

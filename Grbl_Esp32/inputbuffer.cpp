@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
   inputbuffer.cpp -  inputbuffer functions class
 
@@ -20,31 +18,29 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-#ifdef ARDUINO_ARCH_ESP32
-
+// clang-format off
 #include "config.h"
 #include "inputbuffer.h"
+// clang-format on
 
 InputBuffer inputBuffer;
 
-
 InputBuffer::InputBuffer() {
     _RXbufferSize = 0;
-    _RXbufferpos = 0;
+    _RXbufferpos  = 0;
 }
 InputBuffer::~InputBuffer() {
     _RXbufferSize = 0;
-    _RXbufferpos = 0;
+    _RXbufferpos  = 0;
 }
 void InputBuffer::begin() {
     _RXbufferSize = 0;
-    _RXbufferpos = 0;
+    _RXbufferpos  = 0;
 }
 
 void InputBuffer::end() {
     _RXbufferSize = 0;
-    _RXbufferpos = 0;
+    _RXbufferpos  = 0;
 }
 
 InputBuffer::operator bool() const {
@@ -67,7 +63,7 @@ size_t InputBuffer::write(uint8_t c) {
         if (current > (RXBUFFERSIZE - 1))
             current = 0;
         _RXbuffer[current] = c;
-        current ++;
+        current++;
         _RXbufferSize += 1;
         return 1;
     }
@@ -81,19 +77,23 @@ size_t InputBuffer::write(const uint8_t* buffer, size_t size) {
 }
 
 int InputBuffer::peek(void) {
-    if (_RXbufferSize > 0)return _RXbuffer[_RXbufferpos];
-    else return -1;
+    if (_RXbufferSize > 0)
+        return _RXbuffer[_RXbufferpos];
+    else
+        return -1;
 }
 
 bool InputBuffer::push(const char* data) {
     int data_size = strlen(data);
     if ((data_size + _RXbufferSize) <= RXBUFFERSIZE) {
         int current = _RXbufferpos + _RXbufferSize;
-        if (current > RXBUFFERSIZE) current = current - RXBUFFERSIZE;
+        if (current > RXBUFFERSIZE)
+            current = current - RXBUFFERSIZE;
         for (int i = 0; i < data_size; i++) {
-            if (current > (RXBUFFERSIZE - 1)) current = 0;
+            if (current > (RXBUFFERSIZE - 1))
+                current = 0;
             _RXbuffer[current] = data[i];
-            current ++;
+            current++;
         }
         _RXbufferSize += strlen(data);
         return true;
@@ -105,16 +105,15 @@ int InputBuffer::read(void) {
     if (_RXbufferSize > 0) {
         int v = _RXbuffer[_RXbufferpos];
         _RXbufferpos++;
-        if (_RXbufferpos > (RXBUFFERSIZE - 1))_RXbufferpos = 0;
+        if (_RXbufferpos > (RXBUFFERSIZE - 1))
+            _RXbufferpos = 0;
         _RXbufferSize--;
         return v;
-    } else return -1;
+    } else
+        return -1;
 }
 
 void InputBuffer::flush(void) {
     //No need currently
     //keep for compatibility
 }
-
-
-#endif // ARDUINO_ARCH_ESP32

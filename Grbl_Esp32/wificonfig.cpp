@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
   wificonfig.cpp -  wifi functions class
 
@@ -20,34 +18,32 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifdef ARDUINO_ARCH_ESP32
-
 #include "grbl.h"
 
 #ifdef ENABLE_WIFI
 
+// clang-format off
 #include <WiFi.h>
 #include <esp_wifi.h>
 #include <ESPmDNS.h>
 #include <FS.h>
 #include <SPIFFS.h>
 #include "wifiservices.h"
-
+// clang-format on
 
 WiFiConfig wifi_config;
 
-String WiFiConfig::_hostname = "";
-bool WiFiConfig::_events_registered = false;
-WiFiConfig::WiFiConfig() {
-}
+String WiFiConfig::_hostname          = "";
+bool   WiFiConfig::_events_registered = false;
+WiFiConfig::WiFiConfig() {}
 
 WiFiConfig::~WiFiConfig() {
     end();
 }
 
 //just simple helper to convert mac address to string
-char* WiFiConfig::mac2str(uint8_t mac [8]) {
-    static char macstr [18];
+char* WiFiConfig::mac2str(uint8_t mac[8]) {
+    static char macstr[18];
     if (0 > sprintf(macstr, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]))
         strcpy(macstr, "00:00:00:00:00:00");
     return macstr;
@@ -55,7 +51,7 @@ char* WiFiConfig::mac2str(uint8_t mac [8]) {
 
 const char* WiFiConfig::info() {
     static String result;
-    String tmp;
+    String        tmp;
     result = "[MSG:";
     if ((WiFi.getMode() == WIFI_MODE_STA) || (WiFi.getMode() == WIFI_MODE_APSTA)) {
         result += "Mode=STA:SSID=";
@@ -83,7 +79,8 @@ const char* WiFiConfig::info() {
         tmp.replace(":", "-");
         result += tmp;
     }
-    if (WiFi.getMode() == WIFI_MODE_NULL)result += "No Wifi";
+    if (WiFi.getMode() == WIFI_MODE_NULL)
+        result += "No Wifi";
     result += "]\r\n";
     return result.c_str();
 }
@@ -93,9 +90,10 @@ const char* WiFiConfig::info() {
  */
 
 uint32_t WiFiConfig::IP_int_from_string(String& s) {
-    uint32_t ip_int = 0;
+    uint32_t  ip_int = 0;
     IPAddress ipaddr;
-    if (ipaddr.fromString(s)) ip_int = ipaddr;
+    if (ipaddr.fromString(s))
+        ip_int = ipaddr;
     return ip_int;
 }
 
@@ -127,7 +125,6 @@ bool WiFiConfig::isHostnameValid(const char* hostname) {
     return true;
 }
 
-
 /**
  * Check if SSID string is valid
  */
@@ -149,7 +146,8 @@ bool WiFiConfig::isSSIDValid(const char* ssid) {
  */
 
 bool WiFiConfig::isPasswordValid(const char* password) {
-    if (strlen(password) == 0) return true;  //open network
+    if (strlen(password) == 0)
+        return true;  //open network
     //limited size
     // length is checked automatically by string setting
     //no space allowed ?
@@ -167,7 +165,6 @@ bool WiFiConfig::isValidIP(const char* string) {
     IPAddress ip;
     return ip.fromString(string);
 }
-
 
 /**
  * WiFi events
@@ -200,14 +197,9 @@ bool WiFiConfig::isValidIP(const char* string) {
 
 void WiFiConfig::WiFiEvent(WiFiEvent_t event) {
     switch (event) {
-    case SYSTEM_EVENT_STA_GOT_IP:
-        grbl_sendf(CLIENT_ALL, "[MSG:Connected with %s]\r\n", WiFi.localIP().toString().c_str());
-        break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-        grbl_send(CLIENT_ALL, "[MSG:Disconnected]\r\n");
-        break;
-    default:
-        break;
+        case SYSTEM_EVENT_STA_GOT_IP: grbl_sendf(CLIENT_ALL, "[MSG:Connected with %s]\r\n", WiFi.localIP().toString().c_str()); break;
+        case SYSTEM_EVENT_STA_DISCONNECTED: grbl_send(CLIENT_ALL, "[MSG:Disconnected]\r\n"); break;
+        default: break;
     }
 }
 
@@ -227,29 +219,24 @@ int32_t WiFiConfig::getSignal(int32_t RSSI) {
  */
 
 bool WiFiConfig::ConnectSTA2AP() {
-    String msg, msg_out;
-    uint8_t count = 0;
-    uint8_t dot = 0;
+    String      msg, msg_out;
+    uint8_t     count  = 0;
+    uint8_t     dot    = 0;
     wl_status_t status = WiFi.status();
     while (status != WL_CONNECTED && count < 40) {
         switch (status) {
-        case WL_NO_SSID_AVAIL:
-            msg = "No SSID";
-            break;
-        case WL_CONNECT_FAILED:
-            msg = "Connection failed";
-            break;
-        case WL_CONNECTED:
-            break;
-        default:
-            if ((dot > 3) || (dot == 0)) {
-                dot = 0;
-                msg_out = "Connecting";
-            }
-            msg_out += ".";
-            msg = msg_out;
-            dot++;
-            break;
+            case WL_NO_SSID_AVAIL: msg = "No SSID"; break;
+            case WL_CONNECT_FAILED: msg = "Connection failed"; break;
+            case WL_CONNECTED: break;
+            default:
+                if ((dot > 3) || (dot == 0)) {
+                    dot     = 0;
+                    msg_out = "Connecting";
+                }
+                msg_out += ".";
+                msg = msg_out;
+                dot++;
+                break;
         }
         grbl_sendf(CLIENT_ALL, "[MSG:%s]\r\n", msg.c_str());
         COMMANDS::wait(500);
@@ -267,8 +254,10 @@ bool WiFiConfig::StartSTA() {
     //stop active service
     wifi_services.end();
     //Sanity check
-    if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA))WiFi.disconnect();
-    if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA))WiFi.softAPdisconnect();
+    if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA))
+        WiFi.disconnect();
+    if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA))
+        WiFi.softAPdisconnect();
     WiFi.enableAP(false);
     WiFi.mode(WIFI_STA);
     //Get parameters for STA
@@ -276,13 +265,14 @@ bool WiFiConfig::StartSTA() {
     WiFi.setHostname(h.c_str());
     //SSID
     String SSID = wifi_sta_ssid->get();
-    if (SSID.length() == 0) SSID = DEFAULT_STA_SSID;
+    if (SSID.length() == 0)
+        SSID = DEFAULT_STA_SSID;
     //password
-    String password = wifi_sta_password->get();
-    int8_t IP_mode = wifi_sta_mode->get();
-    int32_t IP = wifi_sta_ip->get();
-    int32_t GW = wifi_sta_gateway->get();
-    int32_t MK = wifi_sta_netmask->get();
+    String  password = wifi_sta_password->get();
+    int8_t  IP_mode  = wifi_sta_mode->get();
+    int32_t IP       = wifi_sta_ip->get();
+    int32_t GW       = wifi_sta_gateway->get();
+    int32_t MK       = wifi_sta_netmask->get();
     //if not DHCP
     if (IP_mode != DHCP_MODE) {
         IPAddress ip(IP), mask(MK), gateway(GW);
@@ -306,21 +296,25 @@ bool WiFiConfig::StartAP() {
     //stop active services
     wifi_services.end();
     //Sanity check
-    if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA))WiFi.disconnect();
-    if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA))WiFi.softAPdisconnect();
+    if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA))
+        WiFi.disconnect();
+    if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA))
+        WiFi.softAPdisconnect();
     WiFi.enableSTA(false);
     WiFi.mode(WIFI_AP);
     //Get parameters for AP
     //SSID
     String SSID = wifi_ap_ssid->get();
-    if (SSID.length() == 0) SSID = DEFAULT_AP_SSID;
+    if (SSID.length() == 0)
+        SSID = DEFAULT_AP_SSID;
 
     String password = wifi_ap_password->get();
 
     int8_t channel = wifi_ap_channel->get();
-    if (channel == 0) channel = DEFAULT_AP_CHANNEL;
+    if (channel == 0)
+        channel = DEFAULT_AP_CHANNEL;
 
-    int32_t IP = wifi_ap_ip->get();
+    int32_t   IP = wifi_ap_ip->get();
     IPAddress ip(IP);
     IPAddress mask;
     mask.fromString(DEFAULT_AP_MK);
@@ -342,8 +336,10 @@ bool WiFiConfig::StartAP() {
 
 void WiFiConfig::StopWiFi() {
     //Sanity check
-    if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA))WiFi.disconnect(true);
-    if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA))WiFi.softAPdisconnect(true);
+    if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA))
+        WiFi.disconnect(true);
+    if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA))
+        WiFi.softAPdisconnect(true);
     wifi_services.end();
     WiFi.enableSTA(false);
     WiFi.enableAP(false);
@@ -364,7 +360,7 @@ void WiFiConfig::begin() {
         _events_registered = true;
     }
     //Get hostname
-    _hostname = wifi_hostname->get();
+    _hostname       = wifi_hostname->get();
     int8_t wifiMode = wifi_radio_mode->get();
     if (wifiMode == ESP_WIFI_AP) {
         StartAP();
@@ -377,7 +373,8 @@ void WiFiConfig::begin() {
         }
         //start services
         wifi_services.begin();
-    } else WiFi.mode(WIFI_OFF);
+    } else
+        WiFi.mode(WIFI_OFF);
 }
 
 /**
@@ -392,12 +389,12 @@ void WiFiConfig::end() {
  */
 void WiFiConfig::reset_settings() {
     bool error = false;
-    for (Setting *s = Setting::List; s; s = s->next()) {
+    for (Setting* s = Setting::List; s; s = s->next()) {
         if (s->getDescription()) {
             s->setDefault();
         }
-   }
-   // TODO commit the changes and check that for errors
+    }
+    // TODO commit the changes and check that for errors
     if (error)
         grbl_send(CLIENT_ALL, "[MSG:WiFi reset error]\r\n");
     grbl_send(CLIENT_ALL, "[MSG:WiFi reset done]\r\n");
@@ -415,7 +412,4 @@ void WiFiConfig::handle() {
     wifi_services.handle();
 }
 
-
-#endif // ENABLE_WIFI
-
-#endif // ARDUINO_ARCH_ESP32
+#endif  // ENABLE_WIFI

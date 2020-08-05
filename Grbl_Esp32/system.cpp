@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
   system.cpp - Header for system level commands and real-time processes
   Part of Grbl
@@ -20,13 +18,15 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// clang-format off
 #include "grbl.h"
 #include "config.h"
+// clang-format on
 
-xQueueHandle control_sw_queue;  // used by control switch debouncing
-bool debouncing = false;  // debouncing in process
+xQueueHandle control_sw_queue;    // used by control switch debouncing
+bool         debouncing = false;  // debouncing in process
 
-void system_ini() { // Renamed from system_init() due to conflict with esp32 files
+void system_ini() {  // Renamed from system_init() due to conflict with esp32 files
     // setup control inputs
 
 #ifdef CONTROL_SAFETY_DOOR_PIN
@@ -72,7 +72,7 @@ void system_ini() { // Renamed from system_init() due to conflict with esp32 fil
                 "controlCheckTask",
                 2048,
                 NULL,
-                5, // priority
+                5,  // priority
                 NULL);
 #endif
 
@@ -83,19 +83,19 @@ void system_ini() { // Renamed from system_init() due to conflict with esp32 fil
     // Setup USER_DIGITAL_PINs controlled by M62 and M63
 #ifdef USER_DIGITAL_PIN_1
     pinMode(USER_DIGITAL_PIN_1, OUTPUT);
-    sys_io_control(bit(1), false); // turn off
+    sys_io_control(bit(1), false);  // turn off
 #endif
 #ifdef USER_DIGITAL_PIN_2
     pinMode(USER_DIGITAL_PIN_2, OUTPUT);
-    sys_io_control(bit(2), false); // turn off
+    sys_io_control(bit(2), false);  // turn off
 #endif
 #ifdef USER_DIGITAL_PIN_3
     pinMode(USER_DIGITAL_PIN_3, OUTPUT);
-    sys_io_control(bit(3), false); // turn off
+    sys_io_control(bit(3), false);  // turn off
 #endif
 #ifdef USER_DIGITAL_PIN_4
     pinMode(USER_DIGITAL_PIN_4, OUTPUT);
-    sys_io_control(bit(4), false); // turn off
+    sys_io_control(bit(4), false);  // turn off
 #endif
 }
 
@@ -104,8 +104,8 @@ void system_ini() { // Renamed from system_init() due to conflict with esp32 fil
 void controlCheckTask(void* pvParameters) {
     while (true) {
         int evt;
-        xQueueReceive(control_sw_queue, &evt, portMAX_DELAY); // block until receive queue
-        vTaskDelay(CONTROL_SW_DEBOUNCE_PERIOD); // delay a while
+        xQueueReceive(control_sw_queue, &evt, portMAX_DELAY);  // block until receive queue
+        vTaskDelay(CONTROL_SW_DEBOUNCE_PERIOD);                // delay a while
         uint8_t pin = system_control_get_state();
         if (pin)
             system_exec_control_pin(pin);
@@ -118,7 +118,7 @@ void IRAM_ATTR isr_control_inputs() {
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
     // we will start a task that will recheck the switches after a small delay
     int evt;
-    if (!debouncing) { // prevent resending until debounce is done
+    if (!debouncing) {  // prevent resending until debounce is done
         debouncing = true;
         xQueueSendFromISR(control_sw_queue, &evt, NULL);
     }
@@ -133,7 +133,7 @@ uint8_t system_check_safety_door_ajar() {
 #ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
     return (system_control_get_state() & CONTROL_PIN_INDEX_SAFETY_DOOR);
 #else
-    return (false); // Input pin not enabled, so just return that it's closed.
+    return (false);  // Input pin not enabled, so just return that it's closed.
 #endif
 }
 
@@ -194,14 +194,12 @@ void system_clear_exec_accessory_overrides() {
     //SREG = sreg;
 }
 
-
 void system_flag_wco_change() {
 #ifdef FORCE_BUFFER_SYNC_DURING_WCO_CHANGE
     protocol_buffer_synchronize();
 #endif
     sys.report_wco_counter = 0;
 }
-
 
 // Returns machine position of axis 'idx'. Must be sent a 'step' array.
 // NOTE: If motor steps and machine position are not in the same coordinate frame, this function
@@ -238,16 +236,20 @@ uint8_t system_check_travel_limits(float* target) {
         uint8_t mask = homing_dir_mask->get();
         // When homing forced set origin is enabled, soft limits checks need to account for directionality.
         if (bit_istrue(mask, bit(idx))) {
-            if (target[idx] < 0 || target[idx] > travel)  return (true);
+            if (target[idx] < 0 || target[idx] > travel)
+                return (true);
         } else {
-            if (target[idx] > 0 || target[idx] < -travel)  return (true);
+            if (target[idx] > 0 || target[idx] < -travel)
+                return (true);
         }
 #else
-#ifdef HOMING_FORCE_POSITIVE_SPACE
-        if (target[idx] < 0 || target[idx] > travel)  return (true);
-#else
-        if (target[idx] > 0 || target[idx] < -travel)  return (true);
-#endif
+#    ifdef HOMING_FORCE_POSITIVE_SPACE
+        if (target[idx] < 0 || target[idx] > travel)
+            return (true);
+#    else
+        if (target[idx] > 0 || target[idx] < -travel)
+            return (true);
+#    endif
 #endif
     }
     return (false);
@@ -257,40 +259,48 @@ uint8_t system_check_travel_limits(float* target) {
 // triggered is 1 and not triggered is 0. Invert mask is applied. Bitfield organization is
 // defined by the CONTROL_PIN_INDEX in the header file.
 uint8_t system_control_get_state() {
-    uint8_t defined_pin_mask = 0; // a mask of defined pins
-    uint8_t control_state = 0;
-    
+    uint8_t defined_pin_mask = 0;  // a mask of defined pins
+    uint8_t control_state    = 0;
+
 #ifdef CONTROL_SAFETY_DOOR_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_SAFETY_DOOR;
-    if (digitalRead(CONTROL_SAFETY_DOOR_PIN))  control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR;
+    if (digitalRead(CONTROL_SAFETY_DOOR_PIN))
+        control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR;
 #endif
 #ifdef CONTROL_RESET_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_RESET;
-    if (digitalRead(CONTROL_RESET_PIN))  control_state |= CONTROL_PIN_INDEX_RESET;
+    if (digitalRead(CONTROL_RESET_PIN))
+        control_state |= CONTROL_PIN_INDEX_RESET;
 #endif
 #ifdef CONTROL_FEED_HOLD_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_FEED_HOLD;
-    if (digitalRead(CONTROL_FEED_HOLD_PIN))  control_state |= CONTROL_PIN_INDEX_FEED_HOLD;
+    if (digitalRead(CONTROL_FEED_HOLD_PIN))
+        control_state |= CONTROL_PIN_INDEX_FEED_HOLD;
 #endif
 #ifdef CONTROL_CYCLE_START_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_CYCLE_START;
-    if (digitalRead(CONTROL_CYCLE_START_PIN))  control_state |= CONTROL_PIN_INDEX_CYCLE_START;
+    if (digitalRead(CONTROL_CYCLE_START_PIN))
+        control_state |= CONTROL_PIN_INDEX_CYCLE_START;
 #endif
 #ifdef MACRO_BUTTON_0_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_0;
-    if (digitalRead(MACRO_BUTTON_0_PIN))  control_state |= CONTROL_PIN_INDEX_MACRO_0;
+    if (digitalRead(MACRO_BUTTON_0_PIN))
+        control_state |= CONTROL_PIN_INDEX_MACRO_0;
 #endif
 #ifdef MACRO_BUTTON_1_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_1;
-    if (digitalRead(MACRO_BUTTON_1_PIN))  control_state |= CONTROL_PIN_INDEX_MACRO_1;
+    if (digitalRead(MACRO_BUTTON_1_PIN))
+        control_state |= CONTROL_PIN_INDEX_MACRO_1;
 #endif
 #ifdef MACRO_BUTTON_2_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_2;
-    if (digitalRead(MACRO_BUTTON_2_PIN))  control_state |= CONTROL_PIN_INDEX_MACRO_2;
+    if (digitalRead(MACRO_BUTTON_2_PIN))
+        control_state |= CONTROL_PIN_INDEX_MACRO_2;
 #endif
 #ifdef MACRO_BUTTON_3_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_3;
-    if (digitalRead(MACRO_BUTTON_3_PIN))  control_state |= CONTROL_PIN_INDEX_MACRO_3;
+    if (digitalRead(MACRO_BUTTON_3_PIN))
+        control_state |= CONTROL_PIN_INDEX_MACRO_3;
 #endif
 #ifdef INVERT_CONTROL_PIN_MASK
     control_state ^= (INVERT_CONTROL_PIN_MASK & defined_pin_mask);
@@ -311,22 +321,22 @@ void system_exec_control_pin(uint8_t pin) {
         bit_true(sys_rt_exec_state, EXEC_SAFETY_DOOR);
 #ifdef MACRO_BUTTON_0_PIN
     else if (bit_istrue(pin, CONTROL_PIN_INDEX_MACRO_0)) {
-        user_defined_macro(CONTROL_PIN_INDEX_MACRO_0); // function must be implemented by user
+        user_defined_macro(CONTROL_PIN_INDEX_MACRO_0);  // function must be implemented by user
     }
 #endif
 #ifdef MACRO_BUTTON_1_PIN
     else if (bit_istrue(pin, CONTROL_PIN_INDEX_MACRO_1)) {
-        user_defined_macro(CONTROL_PIN_INDEX_MACRO_1); // function must be implemented by user
+        user_defined_macro(CONTROL_PIN_INDEX_MACRO_1);  // function must be implemented by user
     }
 #endif
 #ifdef MACRO_BUTTON_2_PIN
     else if (bit_istrue(pin, CONTROL_PIN_INDEX_MACRO_2)) {
-        user_defined_macro(CONTROL_PIN_INDEX_MACRO_2); // function must be implemented by user
+        user_defined_macro(CONTROL_PIN_INDEX_MACRO_2);  // function must be implemented by user
     }
 #endif
 #ifdef MACRO_BUTTON_3_PIN
     else if (bit_istrue(pin, CONTROL_PIN_INDEX_MACRO_3)) {
-        user_defined_macro(CONTROL_PIN_INDEX_MACRO_3); // function must be implemented by user
+        user_defined_macro(CONTROL_PIN_INDEX_MACRO_3);  // function must be implemented by user
     }
 #endif
 }
@@ -376,19 +386,17 @@ void fast_sys_io_control(uint8_t io_num_mask, bool turnOn) {
 #endif
 }
 
-
 // Call this function to get an RMT channel number
 // returns -1 for error
 int8_t sys_get_next_RMT_chan_num() {
-    static uint8_t next_RMT_chan_num = 0; // channels 0-7 are valid
-    if (next_RMT_chan_num < 8)  // 7 is the max PWM channel number
+    static uint8_t next_RMT_chan_num = 0;  // channels 0-7 are valid
+    if (next_RMT_chan_num < 8)             // 7 is the max PWM channel number
         return next_RMT_chan_num++;
     else {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_ERROR, "Error: out of RMT channels");
         return -1;
     }
 }
-
 
 /*
     This returns an unused pwm channel.
@@ -400,8 +408,8 @@ int8_t sys_get_next_RMT_chan_num() {
     TODO: Make this more robust.
 */
 int8_t sys_get_next_PWM_chan_num() {
-    static uint8_t next_PWM_chan_num = 2; // start at 2 to avoid spindle
-    if (next_PWM_chan_num < 8)  // 7 is the max PWM channel number
+    static uint8_t next_PWM_chan_num = 2;  // start at 2 to avoid spindle
+    if (next_PWM_chan_num < 8)             // 7 is the max PWM channel number
         return next_PWM_chan_num++;
     else {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_ERROR, "Error: out of PWM channels");

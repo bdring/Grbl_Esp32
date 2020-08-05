@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
   nuts_bolts.c - Shared functions
   Part of Grbl
@@ -26,10 +24,7 @@
 
 #include "grbl.h"
 
-
-
-
-#define MAX_INT_DIGITS 8 // Maximum number of digits in int32 (and float)
+#define MAX_INT_DIGITS 8  // Maximum number of digits in int32 (and float)
 
 // Extracts a floating point value from a string. The following code is based loosely on
 // the avr-libc strtod() function by Michael Stumpf and Dmitry Xmelkov and many freely
@@ -39,7 +34,7 @@
 // be a g-code word on some CNC systems. So, 'E' notation will not be recognized.
 // NOTE: Thanks to Radu-Eosif Mihailescu for identifying the issues with using strtod().
 uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr) {
-    const char* ptr = line + *char_counter;
+    const char*   ptr = line + *char_counter;
     unsigned char c;
     // Grab first character and increment pointer. No spaces assumed in line.
     c = *ptr++;
@@ -47,32 +42,36 @@ uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr) {
     bool isnegative = false;
     if (c == '-') {
         isnegative = true;
-        c = *ptr++;
+        c          = *ptr++;
     } else if (c == '+')
         c = *ptr++;
     // Extract number into fast integer. Track decimal in terms of exponent value.
-    uint32_t intval = 0;
-    int8_t exp = 0;
-    uint8_t ndigit = 0;
-    bool isdecimal = false;
+    uint32_t intval    = 0;
+    int8_t   exp       = 0;
+    uint8_t  ndigit    = 0;
+    bool     isdecimal = false;
     while (1) {
         c -= '0';
         if (c <= 9) {
             ndigit++;
             if (ndigit <= MAX_INT_DIGITS) {
-                if (isdecimal)  exp--;
-                intval = (((intval << 2) + intval) << 1) + c; // intval*10 + c
+                if (isdecimal)
+                    exp--;
+                intval = (((intval << 2) + intval) << 1) + c;  // intval*10 + c
             } else {
-                if (!(isdecimal))  exp++;    // Drop overflow digits
+                if (!(isdecimal))
+                    exp++;  // Drop overflow digits
             }
-        } else if (c == (('.' - '0') & 0xff)  &&  !(isdecimal))
+        } else if (c == (('.' - '0') & 0xff) && !(isdecimal))
             isdecimal = true;
         else
             break;
         c = *ptr++;
     }
     // Return if no digits have been read.
-    if (!ndigit)  return (false);  ;
+    if (!ndigit)
+        return (false);
+    ;
     // Convert integer into floating point.
     float fval;
     fval = (float)intval;
@@ -96,7 +95,7 @@ uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr) {
         *float_ptr = -fval;
     else
         *float_ptr = fval;
-    *char_counter = ptr - line - 1; // Set char_counter to next statement
+    *char_counter = ptr - line - 1;  // Set char_counter to next statement
     return (true);
 }
 
@@ -108,40 +107,44 @@ void delay_ms(uint16_t ms) {
 void delay_sec(float seconds, uint8_t mode) {
     uint16_t i = ceil(1000 / DWELL_TIME_STEP * seconds);
     while (i-- > 0) {
-        if (sys.abort)  return;
+        if (sys.abort)
+            return;
         if (mode == DELAY_MODE_DWELL)
             protocol_execute_realtime();
-        else { // DELAY_MODE_SYS_SUSPEND
+        else {  // DELAY_MODE_SYS_SUSPEND
             // Execute rt_system() only to avoid nesting suspend loops.
             protocol_exec_rt_system();
-            if (sys.suspend & SUSPEND_RESTART_RETRACT)  return;   // Bail, if safety door reopens.
+            if (sys.suspend & SUSPEND_RESTART_RETRACT)
+                return;  // Bail, if safety door reopens.
         }
-        delay(DWELL_TIME_STEP); // Delay DWELL_TIME_STEP increment
+        delay(DWELL_TIME_STEP);  // Delay DWELL_TIME_STEP increment
     }
 }
 
 // Simple hypotenuse computation function.
-float hypot_f(float x, float y) { return (sqrt(x * x + y * y)); }
-
+float hypot_f(float x, float y) {
+    return (sqrt(x * x + y * y));
+}
 
 float convert_delta_vector_to_unit_vector(float* vector) {
     uint8_t idx;
-    float magnitude = 0.0;
+    float   magnitude = 0.0;
     for (idx = 0; idx < N_AXIS; idx++) {
         if (vector[idx] != 0.0)
             magnitude += vector[idx] * vector[idx];
     }
-    magnitude = sqrt(magnitude);
+    magnitude           = sqrt(magnitude);
     float inv_magnitude = 1.0 / magnitude;
-    for (idx = 0; idx < N_AXIS; idx++)  vector[idx] *= inv_magnitude;
+    for (idx = 0; idx < N_AXIS; idx++)
+        vector[idx] *= inv_magnitude;
     return (magnitude);
 }
 
 float limit_acceleration_by_axis_maximum(float* unit_vec) {
     uint8_t idx;
-    float limit_value = SOME_LARGE_VALUE;
+    float   limit_value = SOME_LARGE_VALUE;
     for (idx = 0; idx < N_AXIS; idx++) {
-        if (unit_vec[idx] != 0)    // Avoid divide by zero.
+        if (unit_vec[idx] != 0)  // Avoid divide by zero.
             limit_value = MIN(limit_value, fabs(axis_settings[idx]->acceleration->get() / unit_vec[idx]));
     }
     // The acceleration setting is stored and displayed in units of mm/sec^2,
@@ -153,15 +156,15 @@ float limit_acceleration_by_axis_maximum(float* unit_vec) {
 
 float limit_rate_by_axis_maximum(float* unit_vec) {
     uint8_t idx;
-    float limit_value = SOME_LARGE_VALUE;
+    float   limit_value = SOME_LARGE_VALUE;
     for (idx = 0; idx < N_AXIS; idx++) {
-        if (unit_vec[idx] != 0)    // Avoid divide by zero.
+        if (unit_vec[idx] != 0)  // Avoid divide by zero.
             limit_value = MIN(limit_value, fabs(axis_settings[idx]->max_rate->get() / unit_vec[idx]));
     }
     return (limit_value);
 }
 
-float map_float(float x, float in_min, float in_max, float out_min, float out_max) { // DrawBot_Badge
+float map_float(float x, float in_min, float in_max, float out_min, float out_max) {  // DrawBot_Badge
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
@@ -169,7 +172,7 @@ uint32_t map_uint32_t(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-float constrain_float(float in, float min, float max) { // DrawBot_Badge
+float constrain_float(float in, float min, float max) {  // DrawBot_Badge
     if (in < min)
         return min;
     if (in > max)
@@ -183,7 +186,5 @@ float mapConstrain(float x, float in_min, float in_max, float out_min, float out
 }
 
 bool char_is_numeric(char value) {
-    return (value >= '0' && value <='9');
+    return (value >= '0' && value <= '9');
 }
-
-

@@ -1,4 +1,3 @@
-// clang-format off
 #pragma once
 
 /*
@@ -22,7 +21,7 @@
 */
 
 class WiFiServices {
-  public:
+public:
     WiFiServices();
     ~WiFiServices();
     static bool begin();

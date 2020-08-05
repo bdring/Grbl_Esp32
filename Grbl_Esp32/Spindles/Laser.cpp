@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
     Laser.cpp
 
@@ -22,16 +20,15 @@
 
 */
 
-#include "SpindleClass.h"
+#include "Spindle.h"
 
 // ===================================== Laser ==============================================
 
-
-bool Laser :: isRateAdjusted() {
-    return true; // can use M4 (CCW) laser mode.
+bool Laser::isRateAdjusted() {
+    return true;  // can use M4 (CCW) laser mode.
 }
 
-void Laser :: config_message() {
+void Laser::config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "Laser spindle on Pin:%s, Freq:%.2fHz, Res:%dbits Laser mode:$32=%d",
@@ -40,5 +37,5 @@ void Laser :: config_message() {
                    _pwm_precision,
                    isRateAdjusted());  // the current mode
 
-    use_delays = false; // this will override the value set in PWMSpindle intit()
+    use_delays = false;  // this will override the value set in PWMSpindle intit()
 }

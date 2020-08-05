@@ -1,18 +1,14 @@
-// clang-format off
-
 // Class for creating JSON-encoded strings.
 
+// clang-format off
 #include "grbl.h"
 
 #include "JSONencoder.h"
+// clang-format on
 
 // Constructor.  If _pretty is true, newlines are
 // inserted into the JSON string for easy reading.
-JSONencoder::JSONencoder(bool pretty) :
-    pretty(pretty),
-    level(0),
-    str("")
-{
+JSONencoder::JSONencoder(bool pretty) : pretty(pretty), level(0), str("") {
     count[level] = 0;
 }
 
@@ -40,8 +36,7 @@ void JSONencoder::comma() {
 }
 
 // Private function to add a name enclosed with quotes.
-void JSONencoder::quoted(const char *s)
-{
+void JSONencoder::quoted(const char* s) {
     add('"');
     str.concat(s);
     add('"');
@@ -67,17 +62,14 @@ void JSONencoder::dec_level() {
 void JSONencoder::line() {
     if (pretty) {
         add('\n');
-        for (int i=0; i < 2*level; i++) {
+        for (int i = 0; i < 2 * level; i++) {
             add(' ');
         }
     }
 }
 
 // Constructor that supplies a default falue for "pretty"
-JSONencoder::JSONencoder() :
-    JSONencoder(false)
-{ }
-
+JSONencoder::JSONencoder() : JSONencoder(false) {}
 
 // Begins the JSON encoding process, creating an unnamed object
 void JSONencoder::begin() {
@@ -92,14 +84,14 @@ String JSONencoder::end() {
 }
 
 // Starts a member element.
-void JSONencoder::begin_member(const char *tag) {
+void JSONencoder::begin_member(const char* tag) {
     comma_line();
     quoted(tag);
     add(':');
 }
 
 // Starts an array with "tag":[
-void JSONencoder::begin_array(const char *tag) {
+void JSONencoder::begin_array(const char* tag) {
     begin_member(tag);
     add('[');
     inc_level();
@@ -124,32 +116,32 @@ void JSONencoder::begin_object() {
 // Ends an object with }.
 void JSONencoder::end_object() {
     dec_level();
-    if (count[level+1] > 1) {
+    if (count[level + 1] > 1) {
         line();
     }
     add('}');
 }
 
 // Creates a "tag":"value" member from a C-style string
-void JSONencoder::member(const char *tag, const char *value) {
+void JSONencoder::member(const char* tag, const char* value) {
     begin_member(tag);
     quoted(value);
 }
 
 // Creates a "tag":"value" member from an Arduino string
-void JSONencoder::member(const char *tag, String value) {
+void JSONencoder::member(const char* tag, String value) {
     begin_member(tag);
     quoted(value.c_str());
 }
 
 // Creates a "tag":"value" member from an integer
-void JSONencoder::member(const char *tag, int value) {
+void JSONencoder::member(const char* tag, int value) {
     member(tag, String(value));
 }
 
 // Creates an Esp32_WebUI configuration item specification from
 // a value passed in as a C-style string.
-void JSONencoder::begin_webui(const char *p, const char *help, const char *type, const char *val) {
+void JSONencoder::begin_webui(const char* p, const char* help, const char* type, const char* val) {
     begin_object();
     member("F", "network");
     member("P", p);
@@ -160,13 +152,13 @@ void JSONencoder::begin_webui(const char *p, const char *help, const char *type,
 
 // Creates an Esp32_WebUI configuration item specification from
 // an integer value.
-void JSONencoder::begin_webui(const char *p, const char *help, const char *type, int val) {
+void JSONencoder::begin_webui(const char* p, const char* help, const char* type, int val) {
     begin_webui(p, help, type, String(val).c_str());
 }
 
 // Creates an Esp32_WebUI configuration item specification from
 // a C-style string value, with additional min and max arguments.
-void JSONencoder::begin_webui(const char *p, const char *help, const char *type, const char *val, int min, int max) {
+void JSONencoder::begin_webui(const char* p, const char* help, const char* type, const char* val, int min, int max) {
     begin_webui(p, help, type, val);
     member("S", max);
     member("M", min);

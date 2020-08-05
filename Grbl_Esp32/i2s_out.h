@@ -1,5 +1,4 @@
 #pragma once
-// clang-format off
 
 /*
     i2s_out.h
@@ -46,34 +45,34 @@
 // but the prerequisite USE_I2S_OUT is not defined,
 // it is forced to be defined.
 #ifdef USE_I2S_OUT_STREAM
-  #ifndef USE_I2S_OUT
-    #define USE_I2S_OUT
-  #endif
+#    ifndef USE_I2S_OUT
+#        define USE_I2S_OUT
+#    endif
 #endif
 
 #ifdef USE_I2S_OUT
-#include <stdint.h>
+#    include <stdint.h>
 
 /* Assert */
-#if defined(I2S_OUT_NUM_BITS)
-  #if (I2S_OUT_NUM_BITS != 16) && (I2S_OUT_NUM_BITS != 32)
-    #error "I2S_OUT_NUM_BITS should be 16 or 32"
-  #endif
-#else
-  #define I2S_OUT_NUM_BITS 32
-#endif
+#    if defined(I2S_OUT_NUM_BITS)
+#        if (I2S_OUT_NUM_BITS != 16) && (I2S_OUT_NUM_BITS != 32)
+#            error "I2S_OUT_NUM_BITS should be 16 or 32"
+#        endif
+#    else
+#        define I2S_OUT_NUM_BITS 32
+#    endif
 
-#define I2SO(n) (I2S_OUT_PIN_BASE + n)
+#    define I2SO(n) (I2S_OUT_PIN_BASE + n)
 
 /* 16-bit mode: 1000000 usec / ((160000000 Hz) / 10 / 2) x 16 bit/pulse x 2(stereo) = 4 usec/pulse */
 /* 32-bit mode: 1000000 usec / ((160000000 Hz) /  5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
-#define I2S_OUT_USEC_PER_PULSE 4
+#    define I2S_OUT_USEC_PER_PULSE 4
 
-#define I2S_OUT_DMABUF_COUNT 5     /* number of DMA buffers to store data */
-#define I2S_OUT_DMABUF_LEN   2000  /* maximum size in bytes (4092 is DMA's limit) */
+#    define I2S_OUT_DMABUF_COUNT 5  /* number of DMA buffers to store data */
+#    define I2S_OUT_DMABUF_LEN 2000 /* maximum size in bytes (4092 is DMA's limit) */
 
-#define I2S_OUT_DELAY_DMABUF_MS (I2S_OUT_DMABUF_LEN / sizeof(uint32_t) * I2S_OUT_USEC_PER_PULSE / 1000)
-#define I2S_OUT_DELAY_MS        (I2S_OUT_DELAY_DMABUF_MS * (I2S_OUT_DMABUF_COUNT + 1))
+#    define I2S_OUT_DELAY_DMABUF_MS (I2S_OUT_DMABUF_LEN / sizeof(uint32_t) * I2S_OUT_USEC_PER_PULSE / 1000)
+#    define I2S_OUT_DELAY_MS (I2S_OUT_DELAY_DMABUF_MS * (I2S_OUT_DMABUF_COUNT + 1))
 
 typedef void (*i2s_out_pulse_func_t)(void);
 
@@ -91,19 +90,19 @@ typedef struct {
         If I2S_OUT_PIN_BASE is set to 128,
         bit0:Expanded GPIO 128, 1: Expanded GPIO 129, ..., v: Expanded GPIO 159
     */
-    uint8_t ws_pin;
-    uint8_t bck_pin;
-    uint8_t data_pin;
+    uint8_t              ws_pin;
+    uint8_t              bck_pin;
+    uint8_t              data_pin;
     i2s_out_pulse_func_t pulse_func;
-    uint32_t pulse_period; // aka step rate.
-    uint32_t init_val;
+    uint32_t             pulse_period;  // aka step rate.
+    uint32_t             init_val;
 } i2s_out_init_t;
 
 /*
   Initialize I2S out by parameters.
   return -1 ... already initialized
 */
-int i2s_out_init(i2s_out_init_t &init_param);
+int i2s_out_init(i2s_out_init_t& init_param);
 
 /*
   Initialize I2S out by default parameters.

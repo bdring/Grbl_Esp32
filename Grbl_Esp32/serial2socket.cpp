@@ -1,5 +1,3 @@
-// clang-format off
-
 /*
   serial2socket.cpp -  serial 2 socket functions class
 
@@ -20,43 +18,43 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-#ifdef ARDUINO_ARCH_ESP32
-
 #include "grbl.h"
 
-#if defined (ENABLE_WIFI) && defined(ENABLE_HTTP)
+#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
 
+// clang-format off
 
 #include "serial2socket.h"
 #include "web_server.h"
 #include <WebSocketsServer.h>
 #include <WiFi.h>
+// clang-format on
+
 Serial_2_Socket Serial2Socket;
 
-
 Serial_2_Socket::Serial_2_Socket() {
-    _web_socket = NULL;
+    _web_socket   = NULL;
     _TXbufferSize = 0;
     _RXbufferSize = 0;
-    _RXbufferpos = 0;
+    _RXbufferpos  = 0;
 }
 Serial_2_Socket::~Serial_2_Socket() {
-    if (_web_socket) detachWS();
+    if (_web_socket)
+        detachWS();
     _TXbufferSize = 0;
     _RXbufferSize = 0;
-    _RXbufferpos = 0;
+    _RXbufferpos  = 0;
 }
 void Serial_2_Socket::begin(long speed) {
     _TXbufferSize = 0;
     _RXbufferSize = 0;
-    _RXbufferpos = 0;
+    _RXbufferpos  = 0;
 }
 
 void Serial_2_Socket::end() {
     _TXbufferSize = 0;
     _RXbufferSize = 0;
-    _RXbufferpos = 0;
+    _RXbufferpos  = 0;
 }
 
 long Serial_2_Socket::baudRate() {
@@ -65,7 +63,7 @@ long Serial_2_Socket::baudRate() {
 
 bool Serial_2_Socket::attachWS(void* web_socket) {
     if (web_socket) {
-        _web_socket = web_socket;
+        _web_socket   = web_socket;
         _TXbufferSize = 0;
         return true;
     }
@@ -84,9 +82,9 @@ int Serial_2_Socket::available() {
     return _RXbufferSize;
 }
 
-
 size_t Serial_2_Socket::write(uint8_t c) {
-    if (!_web_socket) return 0;
+    if (!_web_socket)
+        return 0;
     write(&c, 1);
     return 1;
 }
@@ -99,10 +97,12 @@ size_t Serial_2_Socket::write(const uint8_t* buffer, size_t size) {
             log_i("[SOCKET]No socket");
         return 0;
     }
-#if defined(ENABLE_SERIAL2SOCKET_OUT)
-    if (_TXbufferSize == 0)_lastflush = millis();
+#    if defined(ENABLE_SERIAL2SOCKET_OUT)
+    if (_TXbufferSize == 0)
+        _lastflush = millis();
     //send full line
-    if (_TXbufferSize + size > TXBUFFERSIZE) flush();
+    if (_TXbufferSize + size > TXBUFFERSIZE)
+        flush();
     //need periodic check to force to flush in case of no end
     for (int i = 0; i < size; i++) {
         _TXbuffer[_TXbufferSize] = buffer[i];
@@ -110,43 +110,49 @@ size_t Serial_2_Socket::write(const uint8_t* buffer, size_t size) {
     }
     log_i("[SOCKET]buffer size %d", _TXbufferSize);
     handle_flush();
-#endif
+#    endif
     return size;
 }
 
 int Serial_2_Socket::peek(void) {
-    if (_RXbufferSize > 0)return _RXbuffer[_RXbufferpos];
-    else return -1;
+    if (_RXbufferSize > 0)
+        return _RXbuffer[_RXbufferpos];
+    else
+        return -1;
 }
 
 bool Serial_2_Socket::push(const char* data) {
-#if defined(ENABLE_SERIAL2SOCKET_IN)
+#    if defined(ENABLE_SERIAL2SOCKET_IN)
     int data_size = strlen(data);
     if ((data_size + _RXbufferSize) <= RXBUFFERSIZE) {
         int current = _RXbufferpos + _RXbufferSize;
-        if (current > RXBUFFERSIZE) current = current - RXBUFFERSIZE;
+        if (current > RXBUFFERSIZE)
+            current = current - RXBUFFERSIZE;
         for (int i = 0; i < data_size; i++) {
-            if (current > (RXBUFFERSIZE - 1)) current = 0;
+            if (current > (RXBUFFERSIZE - 1))
+                current = 0;
             _RXbuffer[current] = data[i];
-            current ++;
+            current++;
         }
         _RXbufferSize += strlen(data);
         return true;
     }
     return false;
-#else
+#    else
     return true;
-#endif
+#    endif
 }
 
 int Serial_2_Socket::read(void) {
     if (_RXbufferSize > 0) {
         int v = _RXbuffer[_RXbufferpos];
         _RXbufferpos++;
-        if (_RXbufferpos > (RXBUFFERSIZE - 1))_RXbufferpos = 0;
+        if (_RXbufferpos > (RXBUFFERSIZE - 1))
+            _RXbufferpos = 0;
         _RXbufferSize--;
         return v;
-    } else return -1;
+    } else
+        return -1;
 }
 
 void Serial_2_Socket::handle_flush() {
@@ -172,6 +178,4 @@ void Serial_2_Socket::flush(void) {
     }
 }
 
-#endif // ENABLE_WIFI
-
-#endif // ARDUINO_ARCH_ESP32
+#endif  // ENABLE_WIFI
