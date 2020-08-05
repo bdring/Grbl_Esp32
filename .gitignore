@@ -17,4 +17,5 @@ Release/
 __vm/
 *.user
 *.vcxproj
+*.vcxproj.filters
 *.suo
