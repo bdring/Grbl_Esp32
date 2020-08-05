@@ -1,5 +1,5 @@
 /*
- * 4 Achsen CNC Fräse von Jens
+ * 4 Achsen CNC Frï¿½se von Jens
  * Infos zur Benutzung einer Spindel mit Relais https://github.com/bdring/Grbl_Esp32/wiki/Spindle-Types
  */
 
@@ -9,7 +9,7 @@
 #undef N_AXIS
 #endif
 
- // Möchte ich mit 3 oder 4 Achsen arbeiten?
+ // Mï¿½chte ich mit 3 oder 4 Achsen arbeiten?
  // Beides ist eingerichtet.
 #define N_AXIS 3
 
@@ -61,9 +61,9 @@
  * Control pins
  */
 #define PROBE_PIN               GPIO_NUM_35 //ok
-#define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_36  // needs external pullup
+//#define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_36  // needs external pullup
 #define CONTROL_RESET_PIN       GPIO_NUM_34  // needs external pullup
- // #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_35  // needs external pullup
+#define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // needs external pullup
 #define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // needs external pullup
 
 /* Normally Grbl_ESP32 ignores tool changes.
@@ -73,7 +73,7 @@
  */
 
 
-#define USE_MACHINE_INIT
-#define USE_TOOL_CHANGE
+//#define USE_MACHINE_INIT
+//#define USE_TOOL_CHANGE
 
 void zProbeSyncTask(void* pvParameters);
