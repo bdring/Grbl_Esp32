@@ -558,12 +558,12 @@ static void protocol_exec_rt_suspend() {
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
                     if (homing_enable->get() &&
                             (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
-                            laser_mode->get() &&
+                            !laser_mode->get() &&
                             (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
                     if (homing_enable->get() &&
                             (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
-                            laser_mode->get()) {
+                            !laser_mode->get()) {
 #endif
                         // Retract spindle by pullout distance. Ensure retraction motion moves away from
                         // the workpiece and waypoint motion doesn't exceed the parking target location.
