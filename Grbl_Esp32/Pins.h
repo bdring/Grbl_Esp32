@@ -1,4 +1,7 @@
+// clang-format off
+
 #pragma once
+
 #include "Arduino.h"
 
 #define UNDEFINED_PIN 255  // Can be used to show a pin has no i/O assigned

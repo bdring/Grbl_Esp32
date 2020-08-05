@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
     HuanyangSpindle.cpp
 

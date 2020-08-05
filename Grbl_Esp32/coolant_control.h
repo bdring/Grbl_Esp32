@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   coolant_control.h - spindle control methods
   Part of Grbl

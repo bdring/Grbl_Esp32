@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   WebSettings.cpp - Settings and Commands for Grbl_ESP32's interface
   to ESP3D_WebUI.  Code snippets extracted from commands.cpp in the

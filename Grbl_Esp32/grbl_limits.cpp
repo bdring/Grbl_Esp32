@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   limits.c - code pertaining to limit-switches and performing the homing cycle
   Part of Grbl

@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
  * Connect the SD card to the following pins:
  *

@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   WebSettings.h - Definitions for WebUI-related settings.
 

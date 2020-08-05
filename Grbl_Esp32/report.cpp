@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   report.c - reporting and messaging methods
   Part of Grbl

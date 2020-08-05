@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     3axis_v3.h
     Part of Grbl_ESP32

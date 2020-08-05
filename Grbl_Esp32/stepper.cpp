@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   stepper.c - stepper motor driver: executes motion plans using stepper motors
   Part of Grbl

@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   gcode.h - rs274/ngc parser.
   Part of Grbl

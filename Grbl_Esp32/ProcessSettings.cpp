@@ -1,3 +1,5 @@
+// clang-format off
+
 #include "grbl.h"
 #include <map>
 

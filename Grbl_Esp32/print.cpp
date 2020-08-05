@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   print.c - Functions for formatting output strings
   Part of Grbl

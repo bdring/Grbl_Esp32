@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   protocol.h - controls Grbl execution protocol and procedures
   Part of Grbl

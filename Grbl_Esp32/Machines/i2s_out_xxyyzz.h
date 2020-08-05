@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     i2s_out_xxyyzz.h
     Part of Grbl_ESP32

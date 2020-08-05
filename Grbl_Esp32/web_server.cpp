@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   web_server.cpp -  web server functions class
 

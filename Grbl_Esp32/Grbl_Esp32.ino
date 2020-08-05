@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   Grbl_ESP32.ino - Header for system level commands and real-time processes
   Part of Grbl

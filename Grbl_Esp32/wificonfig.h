@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   wificonfig.h -  wifi functions class
 

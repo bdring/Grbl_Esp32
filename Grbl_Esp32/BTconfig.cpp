@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   BTconfig.cpp -  Bluetooth functions class
 

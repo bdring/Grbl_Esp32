@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   nuts_bolts.c - Shared functions
   Part of Grbl

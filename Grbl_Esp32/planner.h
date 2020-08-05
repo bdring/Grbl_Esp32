@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   planner.h - buffers movement commands and manages the acceleration profile plan
   Part of Grbl

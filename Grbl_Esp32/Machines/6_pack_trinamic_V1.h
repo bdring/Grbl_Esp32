@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     6_pack_trinamic_V1.h
     Part of Grbl_ESP32

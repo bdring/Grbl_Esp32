@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     esp32_printer_controller.h
     Part of Grbl_ESP32

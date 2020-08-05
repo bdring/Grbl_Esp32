@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   inputbuffer.cpp -  inputbuffer functions class
 

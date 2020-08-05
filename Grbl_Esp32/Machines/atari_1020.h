@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
         atari_1020.h
         Part of Grbl_ESP32

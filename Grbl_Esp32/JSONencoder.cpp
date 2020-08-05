@@ -1,3 +1,5 @@
+// clang-format off
+
 // Class for creating JSON-encoded strings.
 
 #include "grbl.h"

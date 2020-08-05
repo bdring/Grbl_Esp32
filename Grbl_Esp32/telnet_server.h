@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   telnet_server.h -  telnet service functions class
 

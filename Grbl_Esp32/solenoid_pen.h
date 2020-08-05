@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   solenoid_pen.h
   Part of Grbl_ESP32

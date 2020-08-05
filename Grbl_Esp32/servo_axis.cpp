@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   servo_axis.cpp
   Part of Grbl_ESP32

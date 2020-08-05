@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   jog.h - Jogging methods
   Part of Grbl

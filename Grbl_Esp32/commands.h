@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   commands.h - ESP3D configuration class
 

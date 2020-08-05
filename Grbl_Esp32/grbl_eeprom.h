@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   eeprom.h - Header for system level commands and real-time processes
   Part of Grbl

@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   commands.cpp - GRBL_ESP command class
 

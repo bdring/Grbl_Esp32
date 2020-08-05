@@ -1,3 +1,5 @@
+// clang-format off
+
 #ifndef tdef_h
 #define tdef_h
 

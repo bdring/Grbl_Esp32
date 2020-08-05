@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
     BESCSpindle.cpp
 
@@ -31,7 +33,6 @@
 
 */
 #include "SpindleClass.h"
-
 
 // don't change these
 #define BESC_PWM_FREQ           50.0f // Hz

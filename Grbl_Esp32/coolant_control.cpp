@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   coolant_control.c - coolant control methods
   Part of Grbl

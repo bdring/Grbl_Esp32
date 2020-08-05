@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   motion_control.h - high level interface for issuing motion commands
   Part of Grbl

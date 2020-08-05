@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   telnet_server.cpp -  telnet server functions class
 

@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   config.h - compile time configuration
   Part of Grbl

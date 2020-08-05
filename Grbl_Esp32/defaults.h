@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   defaults.h - defaults settings configuration file
   Part of Grbl

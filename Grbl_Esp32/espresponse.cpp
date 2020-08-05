@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   espresponse.cpp - GRBL_ESP response class
 

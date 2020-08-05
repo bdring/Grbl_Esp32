@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
     i2s_out.h
     Part of Grbl_ESP32

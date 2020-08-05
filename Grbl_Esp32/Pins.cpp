@@ -1,3 +1,5 @@
+// clang-format off
+
 #include "grbl.h"
 #include "i2s_out.h"
 

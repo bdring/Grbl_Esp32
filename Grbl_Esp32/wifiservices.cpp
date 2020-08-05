@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   wifiservices.cpp -  wifi services functions class
 

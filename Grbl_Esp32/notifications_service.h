@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   notifications_service.h -  notifications service functions class
 

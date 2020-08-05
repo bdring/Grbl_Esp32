@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   probe.c - code pertaining to probing methods
   Part of Grbl

@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   grbl_sd.cpp - Adds SD Card Features to Grbl_ESP32
   Part of Grbl_ESP32

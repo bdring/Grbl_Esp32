@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   serial2socket.cpp -  serial 2 socket functions class
 

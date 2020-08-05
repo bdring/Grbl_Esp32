@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<ItemGroup>
+	<Filter Include="Motors">
+	  <UniqueIdentifier>{DF05445D-C9F9-3B61-8430-D0EE29AB86E1}</UniqueIdentifier>
+	</Filter>
+	<Filter Include="Machines">
+	  <UniqueIdentifier>{ADA9E643-CC6A-37DF-8879-9C388B50D8E9}</UniqueIdentifier>
+	</Filter>
+	<Filter Include="Spindles">
+	  <UniqueIdentifier>{E9C58977-7F3A-30CA-8B05-1027341BF384}</UniqueIdentifier>
+	</Filter>
+</ItemGroup>
+<ItemGroup>
+	<ClInclude Include="Grbl_Esp32\Machines\6_pack_trinamic_V1.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\i2s_out_xyzabc.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\test_drive.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\protocol.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\espresponse.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\machine.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\3axis_xyx.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\grbl_limits.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\spindle_class_test.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\web_server.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Motors\MotorClass.h">
+	  <Filter>Motors</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\serial2socket.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\system.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\3axis_v4.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\espduino.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\esp32_printer_controller.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\i2s_out_xyzabc_trinamic.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\polar_coaster.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\6_pack_stepstick_v1.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\machine_common.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\motion_control.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\lowrider_v1p2.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\i2s_out.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\spi_daisy_4axis_xyz.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\SettingsClass.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\commands.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\authentication.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\i2s_out_xxyyzz.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Pins.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\probe.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\atari_1020.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\settings.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\wifiservices.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\grbl_sd.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\foo_6axis.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\grbl_eeprom.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\inputbuffer.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\serial.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\midtbot.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Motors\TrinamicDriverClass.h">
+	  <Filter>Motors</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\tmc2130_pen.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\gcode.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\solenoid_pen.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Spindles\SpindleClass.h">
+	  <Filter>Spindles</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\notifications_service.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\planner.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\report.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\WebSettings.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\3axis_v3.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\mpcnc_v1p1.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\tdef.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\print.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\wificonfig.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\defaults.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\JSONencoder.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\4axis_external_driver.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\grbl.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Motors\RcServoClass.h">
+	  <Filter>Motors</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\SettingsDefinitions.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\servo_axis.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\BTconfig.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\cpu_map.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\spi_daisy_4axis_xyyz.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\nuts_bolts.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\config.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\nofile.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\template.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\pen_laser.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\stepper.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\telnet_server.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\spi_daisy_4axis_xyza.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\jog.h">
+	  <Filter></Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\Machines\mpcnc_v1p2.h">
+	  <Filter>Machines</Filter>
+	</ClInclude>
+	<ClInclude Include="Grbl_Esp32\coolant_control.h">
+	  <Filter></Filter>
+	</ClInclude>
+</ItemGroup>
+<ItemGroup>
+	<ClCompile Include="Grbl_Esp32\nuts_bolts.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\WebSettings.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\gcode.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\custom_code.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\espresponse.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\notifications_service.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\planner.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\grbl_sd.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\protocol.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Motors\UnipolarMotorClass.cpp">
+	  <Filter>Motors</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\probe.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\jog.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\telnet_server.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\authentication.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\web_server.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\wificonfig.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\JSONencoder.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\commands.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\serial2socket.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\stepper.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Spindles\HuanyangSpindle.cpp">
+	  <Filter>Spindles</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\wifiservices.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\ProcessSettings.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Pins.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\coolant_control.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Spindles\10vSpindle.cpp">
+	  <Filter>Spindles</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\serial.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\grbl_eeprom.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\settings.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\BTconfig.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Motors\TrinamicDriverClass.cpp">
+	  <Filter>Motors</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\system.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Spindles\Laser.cpp">
+	  <Filter>Spindles</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Spindles\BESCSpindle.cpp">
+	  <Filter>Spindles</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Spindles\PWMSpindle.cpp">
+	  <Filter>Spindles</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\SettingsDefinitions.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Spindles\SpindleClass.cpp">
+	  <Filter>Spindles</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\report.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\solenoid_pen.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Spindles\DacSpindle.cpp">
+	  <Filter>Spindles</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\motion_control.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\SettingsClass.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Motors\MotorClass.cpp">
+	  <Filter>Motors</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\i2s_out.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\grbl_limits.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\inputbuffer.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Spindles\RelaySpindle.cpp">
+	  <Filter>Spindles</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\print.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Motors\StandardStepperClass.cpp">
+	  <Filter>Motors</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Spindles\NullSpindle.cpp">
+	  <Filter>Spindles</Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\servo_axis.cpp">
+	  <Filter></Filter>
+	</ClCompile>
+	<ClCompile Include="Grbl_Esp32\Motors\RcServoClass.cpp">
+	  <Filter>Motors</Filter>
+	</ClCompile>
+</ItemGroup>
+<ItemGroup>
+	<None Include="Grbl_Esp32\Grbl_Esp32.ino">
+	  <Filter></Filter>
+	</None>
+</ItemGroup>
+</Project>

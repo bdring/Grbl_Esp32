@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
     10vSpindle.cpp
 
@@ -28,8 +30,6 @@
 
 */
 #include "SpindleClass.h"
-
-
 
 void _10vSpindle :: init() {
 

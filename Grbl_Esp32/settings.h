@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   settings.h - eeprom configuration handling
   Part of Grbl

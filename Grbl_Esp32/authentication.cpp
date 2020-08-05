@@ -1,3 +1,5 @@
+// clang-format off
+
 #include "grbl.h"
 
 #ifdef ENABLE_AUTHENTICATION

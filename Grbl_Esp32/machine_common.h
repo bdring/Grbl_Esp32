@@ -1,3 +1,5 @@
+// clang-format off
+
 #ifndef _machine_common_h
 #define _machine_common_h
 

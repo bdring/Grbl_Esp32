@@ -1,3 +1,5 @@
+// clang-format off
+
 /*
   nofile.h - ESP3D data file
 
