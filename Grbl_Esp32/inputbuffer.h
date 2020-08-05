@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -21,10 +22,8 @@
 */
 
 
-#ifndef _INPUT_BUFFER_H_
-#define _INPUT_BUFFER_H_
+#include <Print.h>
 
-#include "Print.h"
 #define RXBUFFERSIZE 128
 class InputBuffer: public Print {
   public:
@@ -66,4 +65,3 @@ class InputBuffer: public Print {
 
 extern InputBuffer inputBuffer;
 
-#endif

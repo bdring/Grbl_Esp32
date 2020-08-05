@@ -1,4 +1,5 @@
 // clang-format off
+#pragma once
 
 /*
   web_server.h -  wifi services functions class
@@ -21,12 +22,9 @@
 */
 
 
-#ifndef _WEB_SERVER_H
-#define _WEB_SERVER_H
-
-
 #include "config.h"
 #include "commands.h"
+
 class WebSocketsServer;
 class WebServer;
 
@@ -94,6 +92,3 @@ class Web_Server {
 };
 
 extern Web_Server web_server;
-
-#endif
-

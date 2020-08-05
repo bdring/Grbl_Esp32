@@ -1,6 +1,6 @@
+#pragma once
 // clang-format off
 
-#pragma once
 #include "JSONencoder.h"
 #include <map>
 #include <nvs.h>

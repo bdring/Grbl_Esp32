@@ -1,9 +1,4 @@
 // clang-format off
-
-#ifndef tdef_h
-#define tdef_h
+#pragma once 
 
 #include "grbl.h"
-
-
-#endif

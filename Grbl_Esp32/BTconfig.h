@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -26,7 +27,6 @@
 //defaults values
 #define DEFAULT_BT_NAME "btgrblesp"
 
-
 //boundaries
 #define MAX_BTNAME_LENGTH     32
 #define MIN_BTNAME_LENGTH     1
@@ -34,9 +34,6 @@
 #define BT_EVENT_DISCONNECTED 0
 #define BT_EVENT_CONNECTED 1
 
-
-#ifndef _BT_CONFIG_H
-#define _BT_CONFIG_H
 #include "BluetoothSerial.h"
 extern BluetoothSerial SerialBT;
 
@@ -60,5 +57,3 @@ class BTConfig {
 };
 
 extern BTConfig bt_config;
-
-#endif

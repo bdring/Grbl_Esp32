@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -21,14 +22,13 @@
 */
 
 
-#ifndef _SERIAL_2_SOCKET_H_
-#define _SERIAL_2_SOCKET_H_
+#include <Print.h>
 
-#include "Print.h"
 #define TXBUFFERSIZE 1200
 #define RXBUFFERSIZE 128
 #define FLUSHTIMEOUT 500
-class Serial_2_Socket: public Print {
+
+class Serial_2_Socket : public Print {
   public:
     Serial_2_Socket();
     ~Serial_2_Socket();
@@ -72,7 +72,4 @@ class Serial_2_Socket: public Print {
     uint16_t _RXbufferpos;
 };
 
-
 extern Serial_2_Socket Serial2Socket;
-
-#endif

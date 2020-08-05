@@ -1,6 +1,5 @@
-// clang-format off
-
 #pragma once
+// clang-format off
 
 #include "Arduino.h"
 

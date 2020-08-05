@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -37,8 +38,6 @@ Some features should not be changed. See notes below.
 
 */
 
-#ifndef config_h
-#define config_h
 #include <Arduino.h>
 
 // It is no longer necessary to edit this file to choose
@@ -731,4 +730,3 @@ Some features should not be changed. See notes below.
 #define RPM_LINE_A3 9.528342e-03
 #define RPM_LINE_B3 3.306286e+01
 
-#endif

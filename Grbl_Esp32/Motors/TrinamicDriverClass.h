@@ -54,6 +54,6 @@
 #    define TRINAMIC_TOFF_COOLSTEP 3
 #endif
 
-#include "MotorClass.h"
+#include "Motor.h"
 
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper

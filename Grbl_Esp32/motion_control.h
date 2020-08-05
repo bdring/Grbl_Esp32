@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -23,11 +24,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
-
-#ifndef motion_control_h
-#define motion_control_h
 
 #include "grbl.h"
 
@@ -76,4 +72,3 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data);
 // Performs system reset. If in motion state, kills all motion and sets system alarm.
 void mc_reset();
 
-#endif

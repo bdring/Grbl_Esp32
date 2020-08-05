@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -19,9 +20,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef report_h
-#define report_h
 
 // Define Grbl status codes. Valid values (0-255)
 #define STATUS_OK 0
@@ -194,4 +192,3 @@ void report_hex_msg(uint8_t* buf, const char *prefix, int len);
 
 char report_get_axis_letter(uint8_t axis);
 
-#endif

@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -27,9 +28,6 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef grbl_limits_h
-#define grbl_limits_h
-
 extern uint8_t n_homing_locate_cycle;
 
 #define SQUARING_MODE_DUAL	0  // both motors run
@@ -57,5 +55,3 @@ bool axis_is_squared(uint8_t axis_mask);
 
 // A task that runs after a limit switch interrupt.
 void limitCheckTask(void* pvParameters);
-
-#endif

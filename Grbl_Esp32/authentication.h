@@ -1,6 +1,5 @@
-// clang-format off
-
 #pragma once
+// clang-format off
 
 //Authentication level
 typedef enum {

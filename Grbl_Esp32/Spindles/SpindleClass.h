@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -40,13 +41,9 @@
 #define SPINDLE_TYPE_BESC       6
 #define SPINDLE_TYPE_10V        7
 
-#ifndef SPINDLE_CLASS_H
-#define SPINDLE_CLASS_H
-
 #include "../grbl.h"
 #include <driver/dac.h>
 #include "driver/uart.h"
-
 
 // ===============  No floats! ===========================
 // ================ NO FLOATS! ==========================
@@ -227,5 +224,3 @@ void spindle_select();
 
 // in HuanyangSpindle.cpp
 void vfd_cmd_task(void* pvParameters);
-
-#endif

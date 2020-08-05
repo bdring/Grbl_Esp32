@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -24,11 +25,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef settings_h
-#define settings_h
-
 #include "grbl.h"
-
 
 // Define status reporting boolean enable bit flags in status_report_mask
 #define BITFLAG_RT_STATUS_POSITION_TYPE     bit(0)
@@ -81,6 +78,4 @@ uint8_t get_step_pin_mask(uint8_t i);
 
 // Returns the direction pin mask according to Grbl's internal axis numbering
 uint8_t get_direction_pin_mask(uint8_t i);
-
-#endif
 

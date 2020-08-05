@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -14,10 +15,6 @@
  *    D0       MISO
  *    D1       -
  */
-
-#ifndef grbl_sd_h
-#define grbl_sd_h
-
 
 #include "grbl.h"
 #include "FS.h"
@@ -52,4 +49,3 @@ float sd_report_perc_complete();
 uint32_t sd_get_current_line_number();
 void sd_get_current_filename(char* name);
 
-#endif

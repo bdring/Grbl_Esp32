@@ -1,8 +1,8 @@
+#pragma once
 // clang-format off
 
 // Class for creating JSON-encoded strings.
 
-#pragma once
 #define MAX_JSON_LEVEL 16
 class JSONencoder {
   private:

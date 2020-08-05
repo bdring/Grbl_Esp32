@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -23,9 +24,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef protocol_h
-#define protocol_h
 
 // Line buffer size from the serial input stream to be executed.
 // NOTE: Not a problem except for extreme cases, but the line buffer size can be too small
@@ -53,6 +51,4 @@ void protocol_buffer_synchronize();
 
 // Executes the auto cycle feature, if enabled.
 void protocol_auto_cycle_start();
-
-#endif
 

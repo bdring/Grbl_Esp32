@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -20,7 +21,6 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
 // Grbl versioning system
 
 #define GRBL_VERSION "1.3a"
@@ -60,7 +60,7 @@
 #include "serial.h"
 #include "Pins.h"
 #include "Spindles/SpindleClass.h"
-#include "Motors/MotorClass.h"
+#include "Motors/Motor.h"
 #include "stepper.h"
 #include "jog.h"
 #include "inputbuffer.h"

@@ -1,4 +1,5 @@
 // clang-format off
+#pragma once
 
 /*
   telnet_server.h -  telnet service functions class
@@ -23,11 +24,8 @@
 //how many clients should be able to telnet to this ESP32
 #define MAX_TLNT_CLIENTS 1
 
-#ifndef _TELNET_SERVER_H
-#define _TELNET_SERVER_H
-
-
 #include "config.h"
+
 class WiFiServer;
 class WiFiClient;
 
@@ -65,6 +63,3 @@ class Telnet_Server {
 };
 
 extern Telnet_Server telnet_server;
-
-#endif
-

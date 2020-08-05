@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -53,9 +54,6 @@
 
 */
 
-#ifndef servo_axis_h
-#define servo_axis_h
-
 #include "Motors/RcServoClass.h"
 
 #define SERVO_HOMING_OFF 0 // servo is off during homing
@@ -65,7 +63,6 @@ extern float my_location;
 
 void init_servos();
 void servosSyncTask(void* pvParameters);
-
 
 class ServoAxis {
   public:
@@ -106,4 +103,3 @@ class ServoAxis {
 
 };
 
-#endif

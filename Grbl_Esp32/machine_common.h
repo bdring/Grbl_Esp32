@@ -1,7 +1,5 @@
+#pragma once
 // clang-format off
-
-#ifndef _machine_common_h
-#define _machine_common_h
 
 #ifndef SPINDLE_TYPE
     #define SPINDLE_TYPE SPINDLE_TYPE_PWM
@@ -36,5 +34,3 @@
 #define STEP_MASK B111111
 
 #define PROBE_MASK 1
-
-#endif // _machine_common_h

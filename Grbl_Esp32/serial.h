@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -19,9 +20,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef serial_h
-#define serial_h
 
 #include "grbl.h"
 
@@ -58,4 +56,3 @@ void execute_realtime_command(uint8_t command, uint8_t client);
 bool any_client_has_data();
 bool is_realtime_command(uint8_t data);
 
-#endif

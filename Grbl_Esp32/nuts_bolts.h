@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -19,9 +20,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef nuts_bolts_h
-#define nuts_bolts_h
 
 #include "config.h"
 
@@ -57,8 +55,6 @@
 // NOTE: If the A and B motor axis bindings are changed, this effects the CoreXY equations.
 #define A_MOTOR X_AXIS // Must be X_AXIS
 #define B_MOTOR Y_AXIS // Must be Y_AXIS
-
-
 
 // Conversions
 #define MM_PER_INCH (25.40)
@@ -112,5 +108,3 @@ char* trim(char* value);
 template <class T> void swap(T& a, T& b) {
     T c(a); a = b; b = c;
 }
-
-#endif

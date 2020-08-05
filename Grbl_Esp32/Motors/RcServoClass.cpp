@@ -1,6 +1,6 @@
 #include "RcServoClass.h"
 
-#include "MotorClass.h"
+#include "Motor.h"
 
 /*
     RcServoServoClass.cpp

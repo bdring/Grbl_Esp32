@@ -18,7 +18,7 @@
 
 */
 
-#include "MotorClass.h"
+#include "Motor.h"
 
 UnipolarMotor::UnipolarMotor() {}
 

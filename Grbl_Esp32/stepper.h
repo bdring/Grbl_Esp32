@@ -1,3 +1,4 @@
+#pragma once
 // clang-format off
 
 /*
@@ -24,14 +25,9 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef stepper_h
-#define stepper_h
-
 #ifndef SEGMENT_BUFFER_SIZE
     #define SEGMENT_BUFFER_SIZE 6
 #endif
-
-
 
 #include "grbl.h"
 #include "config.h"
@@ -123,4 +119,3 @@ void Stepper_Timer_WritePeriod(uint64_t alarm_val);
 void Stepper_Timer_Start();
 void Stepper_Timer_Stop();
 
-#endif
