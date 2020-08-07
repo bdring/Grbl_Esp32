@@ -18,18 +18,16 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifdef ARDUINO_ARCH_ESP32
+#include "grbl.h"
 
-#    include "grbl.h"
+#ifdef ENABLE_WIFI
 
-#    ifdef ENABLE_WIFI
-
-#        include <WiFi.h>
-#        include <esp_wifi.h>
-#        include <ESPmDNS.h>
-#        include <FS.h>
-#        include <SPIFFS.h>
-#        include "wifiservices.h"
+#    include <WiFi.h>
+#    include <esp_wifi.h>
+#    include <ESPmDNS.h>
+#    include <FS.h>
+#    include <SPIFFS.h>
+#    include "wifiservices.h"
 
 WiFiConfig wifi_config;
 
@@ -412,6 +410,4 @@ void WiFiConfig::handle() {
     wifi_services.handle();
 }
 
-#    endif  // ENABLE_WIFI
-
-#endif  // ARDUINO_ARCH_ESP32
+#endif  // ENABLE_WIFI

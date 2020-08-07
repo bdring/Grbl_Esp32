@@ -18,10 +18,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifdef ARDUINO_ARCH_ESP32
-
-#    include "config.h"
-#    include "inputbuffer.h"
+#include "config.h"
+#include "inputbuffer.h"
 
 InputBuffer inputBuffer;
 
@@ -117,5 +115,3 @@ void InputBuffer::flush(void) {
     //No need currently
     //keep for compatibility
 }
-
-#endif  // ARDUINO_ARCH_ESP32

@@ -18,23 +18,21 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifdef ARDUINO_ARCH_ESP32
+#include "grbl.h"
 
-#    include "grbl.h"
-
-#    ifdef ENABLE_BLUETOOTH
-#        include "BluetoothSerial.h"
-#        include "BTconfig.h"
+#ifdef ENABLE_BLUETOOTH
+#    include "BluetoothSerial.h"
+#    include "BTconfig.h"
 
 BTConfig        bt_config;
 BluetoothSerial SerialBT;
-#        ifdef __cplusplus
+#    ifdef __cplusplus
 extern "C" {
-#        endif
+#    endif
 const uint8_t* esp_bt_dev_get_address(void);
-#        ifdef __cplusplus
+#    ifdef __cplusplus
 }
-#        endif
+#    endif
 
 String BTConfig::_btname   = "";
 String BTConfig::_btclient = "";
@@ -156,6 +154,4 @@ void BTConfig::handle() {
     COMMANDS::wait(0);
 }
 
-#    endif  // ENABLE_BLUETOOTH
-
-#endif  // ARDUINO_ARCH_ESP32
+#endif  // ENABLE_BLUETOOTH

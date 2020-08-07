@@ -18,26 +18,24 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifdef ARDUINO_ARCH_ESP32
+#include "grbl.h"
 
-#    include "grbl.h"
+#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
 
-#    if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
+#    include "wifiservices.h"
 
-#        include "wifiservices.h"
-
-#        include "telnet_server.h"
-#        include "wificonfig.h"
-#        include <WiFi.h>
+#    include "telnet_server.h"
+#    include "wificonfig.h"
+#    include <WiFi.h>
 
 Telnet_Server telnet_server;
 bool          Telnet_Server::_setupdone    = false;
 uint16_t      Telnet_Server::_port         = 0;
 WiFiServer*   Telnet_Server::_telnetserver = NULL;
 WiFiClient    Telnet_Server::_telnetClients[MAX_TLNT_CLIENTS];
-#        ifdef ENABLE_TELNET_WELCOME_MSG
+#    ifdef ENABLE_TELNET_WELCOME_MSG
 IPAddress Telnet_Server::_telnetClientsIP[MAX_TLNT_CLIENTS];
-#        endif
+#    endif
 
 Telnet_Server::Telnet_Server() {
     _RXbufferSize = 0;
@@ -86,9 +84,9 @@ void Telnet_Server::clearClients() {
         for (i = 0; i < MAX_TLNT_CLIENTS; i++) {
             //find free/disconnected spot
             if (!_telnetClients[i] || !_telnetClients[i].connected()) {
-#        ifdef ENABLE_TELNET_WELCOME_MSG
+#    ifdef ENABLE_TELNET_WELCOME_MSG
                 _telnetClientsIP[i] = IPAddress(0, 0, 0, 0);
-#        endif
+#    endif
                 if (_telnetClients[i])
                     _telnetClients[i].stop();
                 _telnetClients[i] = _telnetserver->available();
@@ -131,12 +129,12 @@ void Telnet_Server::handle() {
     //uint8_t c;
     for (uint8_t i = 0; i < MAX_TLNT_CLIENTS; i++) {
         if (_telnetClients[i] && _telnetClients[i].connected()) {
-#        ifdef ENABLE_TELNET_WELCOME_MSG
+#    ifdef ENABLE_TELNET_WELCOME_MSG
             if (_telnetClientsIP[i] != _telnetClients[i].remoteIP()) {
                 report_init_message(CLIENT_TELNET);
                 _telnetClientsIP[i] = _telnetClients[i].remoteIP();
             }
-#        endif
+#    endif
             if (_telnetClients[i].available()) {
                 uint8_t buf[1024];
                 COMMANDS::wait(0);
@@ -154,9 +152,9 @@ void Telnet_Server::handle() {
             }
         } else {
             if (_telnetClients[i]) {
-#        ifdef ENABLE_TELNET_WELCOME_MSG
+#    ifdef ENABLE_TELNET_WELCOME_MSG
                 _telnetClientsIP[i] = IPAddress(0, 0, 0, 0);
-#        endif
+#    endif
                 _telnetClients[i].stop();
             }
         }
@@ -231,6 +229,4 @@ int Telnet_Server::read(void) {
         return -1;
 }
 
-#    endif  // Enable TELNET && ENABLE_WIFI
-
-#endif  // ARDUINO_ARCH_ESP32
+#endif  // Enable TELNET && ENABLE_WIFI

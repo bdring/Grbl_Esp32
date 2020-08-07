@@ -18,45 +18,43 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifdef ARDUINO_ARCH_ESP32
+#include "grbl.h"
 
-#    include "grbl.h"
+#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
 
-#    if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
+#    include "wifiservices.h"
 
-#        include "wifiservices.h"
-
-#        include "espresponse.h"
-#        include "serial2socket.h"
-#        include "web_server.h"
-#        include <WebSocketsServer.h>
-#        include <WiFi.h>
-#        include <FS.h>
-#        include <SPIFFS.h>
-#        ifdef ENABLE_SD_CARD
-#            include <SD.h>
-#            include "grbl_sd.h"
-#        endif
-#        include <WebServer.h>
+#    include "espresponse.h"
+#    include "serial2socket.h"
+#    include "web_server.h"
+#    include <WebSocketsServer.h>
+#    include <WiFi.h>
+#    include <FS.h>
+#    include <SPIFFS.h>
+#    ifdef ENABLE_SD_CARD
+#        include <SD.h>
+#        include "grbl_sd.h"
+#    endif
+#    include <WebServer.h>
+#    include <ESP32SSDP.h>
+#    include <StreamString.h>
+#    include <Update.h>
+#    include <esp_wifi_types.h>
+#    ifdef ENABLE_MDNS
+#        include <ESPmDNS.h>
+#    endif
+#    ifdef ENABLE_SSDP
 #        include <ESP32SSDP.h>
-#        include <StreamString.h>
-#        include <Update.h>
-#        include <esp_wifi_types.h>
-#        ifdef ENABLE_MDNS
-#            include <ESPmDNS.h>
-#        endif
-#        ifdef ENABLE_SSDP
-#            include <ESP32SSDP.h>
-#        endif
-#        ifdef ENABLE_CAPTIVE_PORTAL
-#            include <DNSServer.h>
+#    endif
+#    ifdef ENABLE_CAPTIVE_PORTAL
+#        include <DNSServer.h>
 const byte DNS_PORT = 53;
 DNSServer  dnsServer;
-#        endif
-#        include <esp_ota_ops.h>
+#    endif
+#    include <esp_ota_ops.h>
 
 //embedded response file if no files on SPIFFS
-#        include "nofile.h"
+#    include "nofile.h"
 
 //Upload status
 typedef enum {
@@ -82,14 +80,14 @@ const char PAGE_CAPTIVE[] =
     "\n{\nclearInterval(interval);\nwindow.location.href='/';\n}\n},1000);\n</script>\n</CENTER>\n</BODY>\n</HTML>\n\n";
 
 //error codes fo upload
-#        define ESP_ERROR_AUTHENTICATION 1
-#        define ESP_ERROR_FILE_CREATION 2
-#        define ESP_ERROR_FILE_WRITE 3
-#        define ESP_ERROR_UPLOAD 4
-#        define ESP_ERROR_NOT_ENOUGH_SPACE 5
-#        define ESP_ERROR_UPLOAD_CANCELLED 6
-#        define ESP_ERROR_FILE_CLOSE 7
-#        define ESP_ERROR_NO_SD 8
+#    define ESP_ERROR_AUTHENTICATION 1
+#    define ESP_ERROR_FILE_CREATION 2
+#    define ESP_ERROR_FILE_WRITE 3
+#    define ESP_ERROR_UPLOAD 4
+#    define ESP_ERROR_NOT_ENOUGH_SPACE 5
+#    define ESP_ERROR_UPLOAD_CANCELLED 6
+#    define ESP_ERROR_FILE_CLOSE 7
+#    define ESP_ERROR_NO_SD 8
 
 Web_Server        web_server;
 bool              Web_Server::_setupdone     = false;
@@ -98,11 +96,11 @@ long              Web_Server::_id_connection = 0;
 uint8_t           Web_Server::_upload_status = UPLOAD_STATUS_NONE;
 WebServer*        Web_Server::_webserver     = NULL;
 WebSocketsServer* Web_Server::_socket_server = NULL;
-#        ifdef ENABLE_AUTHENTICATION
+#    ifdef ENABLE_AUTHENTICATION
 auth_ip* Web_Server::_head  = NULL;
 uint8_t  Web_Server::_nb_ip = 0;
-#            define MAX_AUTH_IP 10
-#        endif
+#        define MAX_AUTH_IP 10
+#    endif
 Web_Server::Web_Server() {}
 Web_Server::~Web_Server() {
     end();
@@ -122,13 +120,13 @@ bool Web_Server::begin() {
 
     //create instance
     _webserver = new WebServer(_port);
-#        ifdef ENABLE_AUTHENTICATION
+#    ifdef ENABLE_AUTHENTICATION
     //here the list of headers to be recorded
     const char* headerkeys[]   = { "Cookie" };
     size_t      headerkeyssize = sizeof(headerkeys) / sizeof(char*);
     //ask server to track these headers
     _webserver->collectHeaders(headerkeys, headerkeyssize);
-#        endif
+#    endif
     _socket_server = new WebSocketsServer(_port + 1);
     _socket_server->begin();
     _socket_server->onEvent(handle_Websocket_Event);
@@ -166,13 +164,13 @@ bool Web_Server::begin() {
     //web update
     _webserver->on("/updatefw", HTTP_ANY, handleUpdate, WebUpdateUpload);
 
-#        ifdef ENABLE_SD_CARD
+#    ifdef ENABLE_SD_CARD
     //Direct SD management
     _webserver->on("/upload", HTTP_ANY, handle_direct_SDFileList, SDFile_direct_upload);
     //_webserver->on("/SD", HTTP_ANY, handle_SDCARD);
-#        endif
+#    endif
 
-#        ifdef ENABLE_CAPTIVE_PORTAL
+#    ifdef ENABLE_CAPTIVE_PORTAL
     if (WiFi.getMode() == WIFI_AP) {
         // if DNSServer is started with "*" for domain name, it will reply with
         // provided IP to all DNS request
@@ -183,9 +181,9 @@ bool Web_Server::begin() {
         //do not forget the / at the end
         _webserver->on("/fwlink/", HTTP_ANY, handle_root);
     }
-#        endif
+#    endif
 
-#        ifdef ENABLE_SSDP
+#    ifdef ENABLE_SSDP
     //SSDP service presentation
     if (WiFi.getMode() == WIFI_STA) {
         _webserver->on("/description.xml", HTTP_GET, handle_SSDP);
@@ -207,29 +205,29 @@ bool Web_Server::begin() {
         grbl_send(CLIENT_ALL, "[MSG:SSDP Started]\r\n");
         SSDP.begin();
     }
-#        endif
+#    endif
     grbl_send(CLIENT_ALL, "[MSG:HTTP Started]\r\n");
     //start webserver
     _webserver->begin();
-#        ifdef ENABLE_MDNS
+#    ifdef ENABLE_MDNS
     //add mDNS
     if (WiFi.getMode() == WIFI_STA) {
         MDNS.addService("http", "tcp", _port);
     }
-#        endif
+#    endif
     _setupdone = true;
     return no_error;
 }
 
 void Web_Server::end() {
     _setupdone = false;
-#        ifdef ENABLE_SSDP
+#    ifdef ENABLE_SSDP
     SSDP.end();
-#        endif  //ENABLE_SSDP
-#        ifdef ENABLE_MDNS
+#    endif  //ENABLE_SSDP
+#    ifdef ENABLE_MDNS
     //remove mDNS
     mdns_service_remove("_http", "_tcp");
-#        endif
+#    endif
     if (_socket_server) {
         delete _socket_server;
         _socket_server = NULL;
@@ -238,14 +236,14 @@ void Web_Server::end() {
         delete _webserver;
         _webserver = NULL;
     }
-#        ifdef ENABLE_AUTHENTICATION
+#    ifdef ENABLE_AUTHENTICATION
     while (_head) {
         auth_ip* current = _head;
         _head            = _head->_next;
         delete current;
     }
     _nb_ip = 0;
-#        endif
+#    endif
 }
 
 //Root of Webserver/////////////////////////////////////////////////////
@@ -282,7 +280,7 @@ void Web_Server::handle_not_found() {
     String contentType    = getContentType(path);
     String pathWithGz     = path + ".gz";
 
-#        ifdef ENABLE_SD_CARD
+#    ifdef ENABLE_SD_CARD
     if ((path.substring(0, 4) == "/SD/")) {
         //remove /SD
         path = path.substring(3);
@@ -323,7 +321,7 @@ void Web_Server::handle_not_found() {
         _webserver->send(404, "text/plain", content.c_str());
         return;
     } else
-#        endif
+#    endif
         if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
         if (SPIFFS.exists(pathWithGz)) {
             path = pathWithGz;
@@ -337,7 +335,7 @@ void Web_Server::handle_not_found() {
     }
 
     if (page_not_found) {
-#        ifdef ENABLE_CAPTIVE_PORTAL
+#    ifdef ENABLE_CAPTIVE_PORTAL
         if (WiFi.getMode() == WIFI_AP) {
             String contentType = PAGE_CAPTIVE;
             String stmp        = WiFi.softAPIP().toString();
@@ -356,7 +354,7 @@ void Web_Server::handle_not_found() {
             //_webserver->client().stop();
             return;
         }
-#        endif
+#    endif
         path        = "/404.htm";
         contentType = getContentType(path);
         pathWithGz  = path + ".gz";
@@ -391,7 +389,7 @@ void Web_Server::handle_not_found() {
     }
 }
 
-#        ifdef ENABLE_SSDP
+#    ifdef ENABLE_SSDP
 //http SSDP xml presentation
 void Web_Server::handle_SSDP() {
     StreamString sschema;
@@ -432,7 +430,7 @@ void Web_Server::handle_SSDP() {
         _webserver->send(500);
     }
 }
-#        endif
+#    endif
 
 bool Web_Server::is_realtime_cmd(char c) {
     if (c == CMD_STATUS_REPORT)
@@ -562,7 +560,7 @@ void Web_Server::_handle_web_command(bool silent) {
 
 //login status check
 void Web_Server::handle_login() {
-#        ifdef ENABLE_AUTHENTICATION
+#    ifdef ENABLE_AUTHENTICATION
     String smsg;
     String sUser, sPassword;
     String auths;
@@ -710,10 +708,10 @@ void Web_Server::handle_login() {
         buffer2send += "\"}";
         _webserver->send(code, "application/json", buffer2send);
     }
-#        else
+#    else
     _webserver->sendHeader("Cache-Control", "no-cache");
     _webserver->send(200, "application/json", "{\"status\":\"Ok\",\"authentication_lvl\":\"admin\"}");
-#        endif
+#    endif
 }
 //SPIFFS
 //SPIFFS files list and file commands
@@ -1182,7 +1180,7 @@ void Web_Server::WebUpdateUpload() {
     COMMANDS::wait(0);
 }
 
-#        ifdef ENABLE_SD_CARD
+#    ifdef ENABLE_SD_CARD
 
 //Function to delete not empty directory on SD card
 bool Web_Server::deleteRecursive(String path) {
@@ -1550,16 +1548,16 @@ void Web_Server::SDFile_direct_upload() {
     }
     COMMANDS::wait(0);
 }
-#        endif
+#    endif
 
 void Web_Server::handle() {
     static uint32_t timeout = millis();
     COMMANDS::wait(0);
-#        ifdef ENABLE_CAPTIVE_PORTAL
+#    ifdef ENABLE_CAPTIVE_PORTAL
     if (WiFi.getMode() == WIFI_AP) {
         dnsServer.processNextRequest();
     }
-#        endif
+#    endif
     if (_webserver)
         _webserver->handleClient();
     if (_socket_server && _setupdone)
@@ -1668,7 +1666,7 @@ String Web_Server::getContentType(String filename) {
 
 //check authentification
 auth_t Web_Server::is_authenticated() {
-#        ifdef ENABLE_AUTHENTICATION
+#    ifdef ENABLE_AUTHENTICATION
     if (_webserver->hasHeader("Cookie")) {
         String cookie = _webserver->header("Cookie");
         int    pos    = cookie.indexOf("ESPSESSIONID=");
@@ -1681,12 +1679,12 @@ auth_t Web_Server::is_authenticated() {
         }
     }
     return LEVEL_GUEST;
-#        else
+#    else
     return LEVEL_ADMIN;
-#        endif
+#    endif
 }
 
-#        ifdef ENABLE_AUTHENTICATION
+#    ifdef ENABLE_AUTHENTICATION
 
 //add the information in the linked list if possible
 bool Web_Server::AddAuthIP(auth_ip* item) {
@@ -1806,8 +1804,6 @@ auth_t Web_Server::ResetAuthIP(IPAddress ip, const char* sessionID) {
     }
     return LEVEL_GUEST;
 }
-#        endif
+#    endif
 
-#    endif  // Enable HTTP && ENABLE_WIFI
-
-#endif  // ARDUINO_ARCH_ESP32
+#endif  // Enable HTTP && ENABLE_WIFI

@@ -18,16 +18,14 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifdef ARDUINO_ARCH_ESP32
+#include "grbl.h"
 
-#    include "grbl.h"
+#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
 
-#    if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
-
-#        include "serial2socket.h"
-#        include "web_server.h"
-#        include <WebSocketsServer.h>
-#        include <WiFi.h>
+#    include "serial2socket.h"
+#    include "web_server.h"
+#    include <WebSocketsServer.h>
+#    include <WiFi.h>
 Serial_2_Socket Serial2Socket;
 
 Serial_2_Socket::Serial_2_Socket() {
@@ -95,7 +93,7 @@ size_t Serial_2_Socket::write(const uint8_t* buffer, size_t size) {
             log_i("[SOCKET]No socket");
         return 0;
     }
-#        if defined(ENABLE_SERIAL2SOCKET_OUT)
+#    if defined(ENABLE_SERIAL2SOCKET_OUT)
     if (_TXbufferSize == 0)
         _lastflush = millis();
     //send full line
@@ -108,7 +106,7 @@ size_t Serial_2_Socket::write(const uint8_t* buffer, size_t size) {
     }
     log_i("[SOCKET]buffer size %d", _TXbufferSize);
     handle_flush();
-#        endif
+#    endif
     return size;
 }
 
@@ -120,7 +118,7 @@ int Serial_2_Socket::peek(void) {
 }
 
 bool Serial_2_Socket::push(const char* data) {
-#        if defined(ENABLE_SERIAL2SOCKET_IN)
+#    if defined(ENABLE_SERIAL2SOCKET_IN)
     int data_size = strlen(data);
     if ((data_size + _RXbufferSize) <= RXBUFFERSIZE) {
         int current = _RXbufferpos + _RXbufferSize;
@@ -136,9 +134,9 @@ bool Serial_2_Socket::push(const char* data) {
         return true;
     }
     return false;
-#        else
+#    else
     return true;
-#        endif
+#    endif
 }
 
 int Serial_2_Socket::read(void) {
@@ -176,6 +174,4 @@ void Serial_2_Socket::flush(void) {
     }
 }
 
-#    endif  // ENABLE_WIFI
-
-#endif  // ARDUINO_ARCH_ESP32
+#endif  // ENABLE_WIFI
