@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   BTconfig.h -  Bluetooth functions class
 
@@ -33,8 +35,6 @@
 #define BT_EVENT_CONNECTED 1
 
 
-#ifndef _BT_CONFIG_H
-#define _BT_CONFIG_H
 #include "BluetoothSerial.h"
 extern BluetoothSerial SerialBT;
 
@@ -58,5 +58,3 @@ class BTConfig {
 };
 
 extern BTConfig bt_config;
-
-#endif

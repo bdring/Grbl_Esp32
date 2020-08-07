@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   inputbuffer.h -  inputbuffer functions class
 
@@ -18,9 +20,6 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-#ifndef _INPUT_BUFFER_H_
-#define _INPUT_BUFFER_H_
 
 #include "Print.h"
 #define RXBUFFERSIZE 128
@@ -63,5 +62,3 @@ class InputBuffer: public Print {
 
 
 extern InputBuffer inputBuffer;
-
-#endif

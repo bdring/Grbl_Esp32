@@ -1,3 +1,5 @@
+#pragma once
+
 /*
     TrinamicDriverClass.h
     
@@ -55,10 +57,5 @@
 
 
 
-#ifndef TRINAMICDRIVERCLASS_H
-#define TRINAMICDRIVERCLASS_H
-
 #include "MotorClass.h"
 #include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
-
-#endif

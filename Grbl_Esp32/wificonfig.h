@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   wificonfig.h -  wifi functions class
 
@@ -77,8 +79,6 @@
 #define MAX_NOTIFICATION_TOKEN_LENGTH	63
 #define MAX_NOTIFICATION_SETTING_LENGTH	127
 
-#ifndef _WIFI_CONFIG_H
-#define _WIFI_CONFIG_H
 #include "WiFi.h"
 
 class WiFiConfig {
@@ -111,5 +111,3 @@ class WiFiConfig {
 };
 
 extern WiFiConfig wifi_config;
-
-#endif

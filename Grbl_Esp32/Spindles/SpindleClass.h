@@ -1,3 +1,5 @@
+#pragma once
+
 /*
     SpindleClass.h
 
@@ -37,9 +39,6 @@
 #define SPINDLE_TYPE_HUANYANG   5
 #define SPINDLE_TYPE_BESC       6
 #define SPINDLE_TYPE_10V        7
-
-#ifndef SPINDLE_CLASS_H
-#define SPINDLE_CLASS_H
 
 #include "../grbl.h"
 #include <driver/dac.h>
@@ -225,5 +224,3 @@ void spindle_select();
 
 // in HuanyangSpindle.cpp
 void vfd_cmd_task(void* pvParameters);
-
-#endif

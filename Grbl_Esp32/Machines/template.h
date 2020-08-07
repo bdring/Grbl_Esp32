@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     template.h
     Part of Grbl_ESP32

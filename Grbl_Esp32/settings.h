@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   settings.h - eeprom configuration handling
   Part of Grbl
@@ -21,9 +23,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef settings_h
-#define settings_h
 
 #include "grbl.h"
 
@@ -79,6 +78,3 @@ uint8_t get_step_pin_mask(uint8_t i);
 
 // Returns the direction pin mask according to Grbl's internal axis numbering
 uint8_t get_direction_pin_mask(uint8_t i);
-
-#endif
-

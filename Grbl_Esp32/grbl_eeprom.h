@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   eeprom.h - Header for system level commands and real-time processes
   Part of Grbl
@@ -18,14 +20,9 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef eeprom_memcpy_h
-#define eeprom_memcpy_h
-
 #include "grbl.h"
 
 //unsigned char eeprom_get_char(unsigned int addr);
 //void eeprom_put_char(unsigned int addr, unsigned char new_value);
 void memcpy_to_eeprom_with_checksum(unsigned int destination, const char* source, unsigned int size);
 int memcpy_from_eeprom_with_checksum(char* destination, unsigned int source, unsigned int size);
-
-#endif

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   defaults.h - defaults settings configuration file
   Part of Grbl
@@ -27,8 +29,6 @@
    give you a good starting point as you get to know your machine and tweak the settings for
    your nefarious needs.
    NOTE: Ensure one and only one of these DEFAULTS_XXX values is defined in config.h */
-
-#ifndef defaults_h
 
     /*
     All of these settings check to see if they have been defined already
@@ -432,6 +432,4 @@
 #endif
 #ifndef C_LIMIT_PIN
     #define C_LIMIT_PIN UNDEFINED_PIN
-#endif
-
 #endif

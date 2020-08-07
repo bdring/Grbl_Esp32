@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   nuts_bolts.h - Header for system level commands and real-time processes
   Part of Grbl
@@ -17,9 +19,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef nuts_bolts_h
-#define nuts_bolts_h
 
 #include "config.h"
 
@@ -110,5 +109,3 @@ char* trim(char* value);
 template <class T> void swap(T& a, T& b) {
     T c(a); a = b; b = c;
 }
-
-#endif

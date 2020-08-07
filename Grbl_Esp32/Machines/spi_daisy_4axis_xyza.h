@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     spi_daisy_4axis_xyza.h
     Part of Grbl_ESP32

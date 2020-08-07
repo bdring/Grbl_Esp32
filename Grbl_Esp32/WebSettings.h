@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   WebSettings.h - Definitions for WebUI-related settings.
 
@@ -17,8 +19,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#pragma once
 
 extern StringSetting* wifi_sta_ssid;
 extern StringSetting* wifi_sta_password;
