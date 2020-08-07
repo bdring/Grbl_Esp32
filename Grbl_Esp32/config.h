@@ -62,7 +62,7 @@ Some features should not be changed. See notes below.
 // NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
 // These homing cycle definitions precede the machine.h file so that the machine
 // definition can undefine them if necessary.
-#define HOMING_CYCLE_0 bit(Z_AXIS)	// TYPICALLY REQUIRED: First move Z to clear workspace.
+#define HOMING_CYCLE_0 bit(Z_AXIS)  // TYPICALLY REQUIRED: First move Z to clear workspace.
 #define HOMING_CYCLE_1 bit(X_AXIS)
 #define HOMING_CYCLE_2 bit(Y_AXIS)
 
@@ -74,10 +74,10 @@ Some features should not be changed. See notes below.
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
 // The mask order is Cycle Start | Feed Hold | Reset | Safety Door
 // For example B1101 will invert the function of the Reset pin.
-#define INVERT_CONTROL_PIN_MASK   B1111
+#define INVERT_CONTROL_PIN_MASK B1111
 
-#define ENABLE_CONTROL_SW_DEBOUNCE // Default disabled. Uncomment to enable.
-#define CONTROL_SW_DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
+#define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
+#define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
 
 #define USE_RMT_STEPS
 
@@ -93,15 +93,15 @@ Some features should not be changed. See notes below.
 // Number of axes defined (steppers, servos, etc) (valid range: 3 to 6)
 // Even if your machine only uses less than the minimum of 3, you should select 3
 #ifndef N_AXIS
-    #define N_AXIS 3
+#    define N_AXIS 3
 #endif
 
 #ifndef LIMIT_MASK
-    #define LIMIT_MASK B0
+#    define LIMIT_MASK B0
 #endif
 
-#define VERBOSE_HELP // Currently this doesn't do anything
-#define GRBL_MSG_LEVEL MSG_LEVEL_INFO // what level of [MSG:....] do you want to see 0=all off
+#define VERBOSE_HELP                   // Currently this doesn't do anything
+#define GRBL_MSG_LEVEL MSG_LEVEL_INFO  // what level of [MSG:....] do you want to see 0=all off
 
 // Serial baud rate
 // OK to change, but the ESP32 boot text is 115200, so you will not see that is your
@@ -112,24 +112,23 @@ Some features should not be changed. See notes below.
 //#define CONNECT_TO_SSID  "your SSID"
 //#define SSID_PASSWORD  "your SSID password"
 //CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
-#define ENABLE_BLUETOOTH // enable bluetooth
+#define ENABLE_BLUETOOTH  // enable bluetooth
 
-#define ENABLE_SD_CARD // enable use of SD Card to run jobs
+#define ENABLE_SD_CARD  // enable use of SD Card to run jobs
 
-#define ENABLE_WIFI //enable wifi
+#define ENABLE_WIFI  //enable wifi
 
 #if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
-#define WIFI_OR_BLUETOOTH
+#    define WIFI_OR_BLUETOOTH
 #endif
 
-
-#define ENABLE_HTTP //enable HTTP and all related services
-#define ENABLE_OTA  //enable OTA
-#define ENABLE_TELNET //enable telnet
-#define ENABLE_TELNET_WELCOME_MSG //display welcome string when connect to telnet
-#define ENABLE_MDNS //enable mDNS discovery
-#define ENABLE_SSDP //enable UPNP discovery
-#define ENABLE_NOTIFICATIONS //enable notifications
+#define ENABLE_HTTP                //enable HTTP and all related services
+#define ENABLE_OTA                 //enable OTA
+#define ENABLE_TELNET              //enable telnet
+#define ENABLE_TELNET_WELCOME_MSG  //display welcome string when connect to telnet
+#define ENABLE_MDNS                //enable mDNS discovery
+#define ENABLE_SSDP                //enable UPNP discovery
+#define ENABLE_NOTIFICATIONS       //enable notifications
 
 #define ENABLE_SERIAL2SOCKET_IN
 #define ENABLE_SERIAL2SOCKET_OUT
@@ -150,32 +149,32 @@ Some features should not be changed. See notes below.
 #define NAMESPACE "GRBL"
 
 #ifdef ENABLE_AUTHENTICATION
-    #define DEFAULT_ADMIN_PWD "admin"
-    #define DEFAULT_USER_PWD  "user"
-    #define DEFAULT_ADMIN_LOGIN "admin"
-    #define DEFAULT_USER_LOGIN  "user"
+#    define DEFAULT_ADMIN_PWD "admin"
+#    define DEFAULT_USER_PWD "user"
+#    define DEFAULT_ADMIN_LOGIN "admin"
+#    define DEFAULT_USER_LOGIN "user"
 #endif
 
 //Radio Mode
 #define ESP_RADIO_OFF 0
 #define ESP_WIFI_STA 1
-#define ESP_WIFI_AP  2
-#define ESP_BT       3
+#define ESP_WIFI_AP 2
+#define ESP_BT 3
 
 //Default mode
 #ifdef ENABLE_WIFI
-    #ifdef CONNECT_TO_SSID
-        #define DEFAULT_RADIO_MODE ESP_WIFI_STA
-    #else
-        #define DEFAULT_RADIO_MODE ESP_WIFI_AP
-    #endif //CONNECT_TO_SSID
+#    ifdef CONNECT_TO_SSID
+#        define DEFAULT_RADIO_MODE ESP_WIFI_STA
+#    else
+#        define DEFAULT_RADIO_MODE ESP_WIFI_AP
+#    endif  //CONNECT_TO_SSID
 #else
-    #undef ENABLE_NOTIFICATIONS
-    #ifdef ENABLE_BLUETOOTH
-        #define DEFAULT_RADIO_MODE ESP_BT
-    #else
-        #define DEFAULT_RADIO_MODE ESP_RADIO_OFF
-    #endif
+#    undef ENABLE_NOTIFICATIONS
+#    ifdef ENABLE_BLUETOOTH
+#        define DEFAULT_RADIO_MODE ESP_BT
+#    else
+#        define DEFAULT_RADIO_MODE ESP_RADIO_OFF
+#    endif
 #endif
 
 // Define realtime command special characters. These characters are 'picked-off' directly from the
@@ -185,7 +184,7 @@ Some features should not be changed. See notes below.
 // g-code programs, maybe selected for interface programs.
 // NOTE: If changed, manually update help message in report.c.
 
-#define CMD_RESET 0x18 // ctrl-x.
+#define CMD_RESET 0x18  // ctrl-x.
 #define CMD_STATUS_REPORT '?'
 #define CMD_CYCLE_START '~'
 #define CMD_FEED_HOLD '!'
@@ -199,19 +198,19 @@ Some features should not be changed. See notes below.
 // #define CMD_CYCLE_START 0x82
 // #define CMD_FEED_HOLD 0x83
 #define CMD_SAFETY_DOOR 0x84
-#define CMD_JOG_CANCEL  0x85
-#define CMD_DEBUG_REPORT 0x86 // Only when DEBUG enabled, sends debug report in '{}' braces.
-#define CMD_FEED_OVR_RESET 0x90         // Restores feed override value to 100%.
+#define CMD_JOG_CANCEL 0x85
+#define CMD_DEBUG_REPORT 0x86    // Only when DEBUG enabled, sends debug report in '{}' braces.
+#define CMD_FEED_OVR_RESET 0x90  // Restores feed override value to 100%.
 #define CMD_FEED_OVR_COARSE_PLUS 0x91
 #define CMD_FEED_OVR_COARSE_MINUS 0x92
-#define CMD_FEED_OVR_FINE_PLUS  0x93
-#define CMD_FEED_OVR_FINE_MINUS  0x94
-#define CMD_RAPID_OVR_RESET 0x95        // Restores rapid override value to 100%.
+#define CMD_FEED_OVR_FINE_PLUS 0x93
+#define CMD_FEED_OVR_FINE_MINUS 0x94
+#define CMD_RAPID_OVR_RESET 0x95  // Restores rapid override value to 100%.
 #define CMD_RAPID_OVR_MEDIUM 0x96
 #define CMD_RAPID_OVR_LOW 0x97
 // #define CMD_RAPID_OVR_EXTRA_LOW 0x98 // *NOT SUPPORTED*
-#define CMD_SPINDLE_OVR_RESET 0x99      // Restores spindle override value to 100%.
-#define CMD_SPINDLE_OVR_COARSE_PLUS 0x9A // 154
+#define CMD_SPINDLE_OVR_RESET 0x99        // Restores spindle override value to 100%.
+#define CMD_SPINDLE_OVR_COARSE_PLUS 0x9A  // 154
 #define CMD_SPINDLE_OVR_COARSE_MINUS 0x9B
 #define CMD_SPINDLE_OVR_FINE_PLUS 0x9C
 #define CMD_SPINDLE_OVR_FINE_MINUS 0x9D
@@ -222,18 +221,18 @@ Some features should not be changed. See notes below.
 // If homing is enabled, homing init lock sets Grbl into an alarm state upon power up. This forces
 // the user to perform the homing cycle (or override the locks) before doing anything else. This is
 // mainly a safety feature to remind the user to home, since position is unknown to Grbl.
-#define HOMING_INIT_LOCK // Comment to disable
+#define HOMING_INIT_LOCK  // Comment to disable
 
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
 // greater.
-#define N_HOMING_LOCATE_CYCLE 1 // Integer (1-128)
+#define N_HOMING_LOCATE_CYCLE 1  // Integer (1-128)
 
 // Enables single axis homing commands. $HX, $HY, and $HZ for X, Y, and Z-axis homing. The full homing
 // cycle is still invoked by the $H command. This is disabled by default. It's here only to address
 // users that need to switch between a two-axis and three-axis machine. This is actually very rare.
 // If you have a two-axis machine, DON'T USE THIS. Instead, just alter the homing cycle for two-axes.
-#define HOMING_SINGLE_AXIS_COMMANDS // Default disabled. Uncomment to enable.
+#define HOMING_SINGLE_AXIS_COMMANDS  // Default disabled. Uncomment to enable.
 
 // After homing, Grbl will set by default the entire machine space into negative space, as is typical
 // for professional CNC machines, regardless of where the limit switches are located. Uncomment this
@@ -250,7 +249,7 @@ Some features should not be changed. See notes below.
 // and addresses are defined in settings.h. With the current settings, up to 2 startup blocks may
 // be stored and executed in order. These startup blocks would typically be used to set the g-code
 // parser state depending on user preferences.
-#define N_STARTUP_LINE 2 // Integer (1-2)
+#define N_STARTUP_LINE 2  // Integer (1-2)
 
 // Number of floating decimal points printed by Grbl for certain value types. These settings are
 // determined by realistic and commonly observed values in CNC machines. For example, position
@@ -258,12 +257,12 @@ Some features should not be changed. See notes below.
 // precise this. So, there is likely no need to change these, but you can if you need to here.
 // NOTE: Must be an integer value from 0 to ~4. More than 4 may exhibit round-off errors.
 // ESP32 Note: These are mostly hard coded, so these values will not change anything
-#define N_DECIMAL_COORDVALUE_INCH 4 // Coordinate or position value in inches
-#define N_DECIMAL_COORDVALUE_MM   3 // Coordinate or position value in mm
-#define N_DECIMAL_RATEVALUE_INCH  1 // Rate or velocity value in in/min
-#define N_DECIMAL_RATEVALUE_MM    0 // Rate or velocity value in mm/min
-#define N_DECIMAL_SETTINGVALUE    3 // Decimals for floating point setting values
-#define N_DECIMAL_RPMVALUE        0 // RPM value in rotations per min.
+#define N_DECIMAL_COORDVALUE_INCH 4  // Coordinate or position value in inches
+#define N_DECIMAL_COORDVALUE_MM 3    // Coordinate or position value in mm
+#define N_DECIMAL_RATEVALUE_INCH 1   // Rate or velocity value in in/min
+#define N_DECIMAL_RATEVALUE_MM 0     // Rate or velocity value in mm/min
+#define N_DECIMAL_SETTINGVALUE 3     // Decimals for floating point setting values
+#define N_DECIMAL_RPMVALUE 0         // RPM value in rotations per min.
 
 // If your machine has two limits switches wired in parallel to one axis, you will need to enable
 // this feature. Since the two switches are sharing a single pin, there is no way for Grbl to tell
@@ -280,7 +279,7 @@ Some features should not be changed. See notes below.
 // Upon a successful probe cycle, this option provides immediately feedback of the probe coordinates
 // through an automatically generated message. If disabled, users can still access the last probe
 // coordinates through Grbl '$#' print parameters.
-#define MESSAGE_PROBE_COORDINATES // Enabled by default. Comment to disable.
+#define MESSAGE_PROBE_COORDINATES  // Enabled by default. Comment to disable.
 
 // Enables a second coolant control pin via the mist coolant g-code command M7 on the Arduino Uno
 // analog pin 4. Only use this option if you require a second coolant control pin.
@@ -293,12 +292,12 @@ Some features should not be changed. See notes below.
 // immediately forces a feed hold and then safely de-energizes the machine. Resuming is blocked until
 // the safety door is re-engaged. When it is, Grbl will re-energize the machine and then resume on the
 // previous tool path, as if nothing happened.
-#define ENABLE_SAFETY_DOOR_INPUT_PIN // ESP32 Leave this enabled for now .. code for undefined not ready
+#define ENABLE_SAFETY_DOOR_INPUT_PIN  // ESP32 Leave this enabled for now .. code for undefined not ready
 
 // After the safety door switch has been toggled and restored, this setting sets the power-up delay
 // between restoring the spindle and coolant and resuming the cycle.
-#define SAFETY_DOOR_SPINDLE_DELAY 4.0 // Float (seconds)
-#define SAFETY_DOOR_COOLANT_DELAY 1.0 // Float (seconds)
+#define SAFETY_DOOR_SPINDLE_DELAY 4.0  // Float (seconds)
+#define SAFETY_DOOR_COOLANT_DELAY 1.0  // Float (seconds)
 
 // Enable CoreXY kinematics. Use ONLY with CoreXY machines.
 // IMPORTANT: If homing is enabled, you must reconfigure the homing cycle #defines above to
@@ -352,27 +351,27 @@ Some features should not be changed. See notes below.
 // Configure rapid, feed, and spindle override settings. These values define the max and min
 // allowable override values and the coarse and fine increments per command received. Please
 // note the allowable values in the descriptions following each define.
-#define DEFAULT_FEED_OVERRIDE           100 // 100%. Don't change this value.
-#define MAX_FEED_RATE_OVERRIDE          200 // Percent of programmed feed rate (100-255). Usually 120% or 200%
-#define MIN_FEED_RATE_OVERRIDE           10 // Percent of programmed feed rate (1-100). Usually 50% or 1%
-#define FEED_OVERRIDE_COARSE_INCREMENT   10 // (1-99). Usually 10%.
-#define FEED_OVERRIDE_FINE_INCREMENT      1 // (1-99). Usually 1%.
+#define DEFAULT_FEED_OVERRIDE 100          // 100%. Don't change this value.
+#define MAX_FEED_RATE_OVERRIDE 200         // Percent of programmed feed rate (100-255). Usually 120% or 200%
+#define MIN_FEED_RATE_OVERRIDE 10          // Percent of programmed feed rate (1-100). Usually 50% or 1%
+#define FEED_OVERRIDE_COARSE_INCREMENT 10  // (1-99). Usually 10%.
+#define FEED_OVERRIDE_FINE_INCREMENT 1     // (1-99). Usually 1%.
 
-#define DEFAULT_RAPID_OVERRIDE  100 // 100%. Don't change this value.
-#define RAPID_OVERRIDE_MEDIUM    50 // Percent of rapid (1-99). Usually 50%.
-#define RAPID_OVERRIDE_LOW       25 // Percent of rapid (1-99). Usually 25%.
+#define DEFAULT_RAPID_OVERRIDE 100  // 100%. Don't change this value.
+#define RAPID_OVERRIDE_MEDIUM 50    // Percent of rapid (1-99). Usually 50%.
+#define RAPID_OVERRIDE_LOW 25       // Percent of rapid (1-99). Usually 25%.
 // #define RAPID_OVERRIDE_EXTRA_LOW 5 // *NOT SUPPORTED* Percent of rapid (1-99). Usually 5%.
 
-#define DEFAULT_SPINDLE_SPEED_OVERRIDE    100 // 100%. Don't change this value.
-#define MAX_SPINDLE_SPEED_OVERRIDE        200 // Percent of programmed spindle speed (100-255). Usually 200%.
-#define MIN_SPINDLE_SPEED_OVERRIDE         10 // Percent of programmed spindle speed (1-100). Usually 10%.
-#define SPINDLE_OVERRIDE_COARSE_INCREMENT  10 // (1-99). Usually 10%.
-#define SPINDLE_OVERRIDE_FINE_INCREMENT     1 // (1-99). Usually 1%.
+#define DEFAULT_SPINDLE_SPEED_OVERRIDE 100    // 100%. Don't change this value.
+#define MAX_SPINDLE_SPEED_OVERRIDE 200        // Percent of programmed spindle speed (100-255). Usually 200%.
+#define MIN_SPINDLE_SPEED_OVERRIDE 10         // Percent of programmed spindle speed (1-100). Usually 10%.
+#define SPINDLE_OVERRIDE_COARSE_INCREMENT 10  // (1-99). Usually 10%.
+#define SPINDLE_OVERRIDE_FINE_INCREMENT 1     // (1-99). Usually 1%.
 
 // When a M2 or M30 program end command is executed, most g-code states are restored to their defaults.
 // This compile-time option includes the restoring of the feed, rapid, and spindle speed override values
 // to their default values at program end.
-#define RESTORE_OVERRIDES_AFTER_PROGRAM_END // Default enabled. Comment to disable.
+#define RESTORE_OVERRIDES_AFTER_PROGRAM_END  // Default enabled. Comment to disable.
 
 // The status report change for Grbl v1.1 and after also removed the ability to disable/enable most data
 // fields from the report. This caused issues for GUI developers, who've had to manage several scenarios
@@ -380,12 +379,12 @@ Some features should not be changed. See notes below.
 // be sent without potential performance issues.
 // NOTE: The options below are here only provide a way to disable certain data fields if a unique
 // situation demands it, but be aware GUIs may depend on this data. If disabled, it may not be compatible.
-#define REPORT_FIELD_BUFFER_STATE // Default enabled. Comment to disable.
-#define REPORT_FIELD_PIN_STATE // Default enabled. Comment to disable.
-#define REPORT_FIELD_CURRENT_FEED_SPEED // Default enabled. Comment to disable.
-#define REPORT_FIELD_WORK_COORD_OFFSET // Default enabled. Comment to disable.
-#define REPORT_FIELD_OVERRIDES // Default enabled. Comment to disable.
-#define REPORT_FIELD_LINE_NUMBERS // Default enabled. Comment to disable.
+#define REPORT_FIELD_BUFFER_STATE        // Default enabled. Comment to disable.
+#define REPORT_FIELD_PIN_STATE           // Default enabled. Comment to disable.
+#define REPORT_FIELD_CURRENT_FEED_SPEED  // Default enabled. Comment to disable.
+#define REPORT_FIELD_WORK_COORD_OFFSET   // Default enabled. Comment to disable.
+#define REPORT_FIELD_OVERRIDES           // Default enabled. Comment to disable.
+#define REPORT_FIELD_LINE_NUMBERS        // Default enabled. Comment to disable.
 
 // Some status report data isn't necessary for realtime, only intermittently, because the values don't
 // change often. The following macros configures how many times a status report needs to be called before
@@ -444,14 +443,14 @@ Some features should not be changed. See notes below.
 // Sets which axis the tool length offset is applied. Assumes the spindle is always parallel with
 // the selected axis with the tool oriented toward the negative direction. In other words, a positive
 // tool length offset value is subtracted from the current location.
-#define TOOL_LENGTH_OFFSET_AXIS Z_AXIS // Default z-axis. Valid values are X_AXIS, Y_AXIS, or Z_AXIS.
+#define TOOL_LENGTH_OFFSET_AXIS Z_AXIS  // Default z-axis. Valid values are X_AXIS, Y_AXIS, or Z_AXIS.
 
 // Alters the behavior of the spindle enable pin. By default Grbl will not disable the enable pin if
 // spindle speed is zero and M3/4 is active, but still sets the PWM output to zero. This allows the users
 // to know if the spindle is active and use it as an additional control input.
 // However, in some use cases, user may want the enable pin to disable with a zero spindle speed and
 // re-enable when spindle speed is greater than zero. This option does that.
-#define SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED // Default enabled. Comment to disable.
+#define SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED  // Default enabled. Comment to disable.
 
 // With this enabled, Grbl sends back an echo of the line it has received, which has been pre-parsed (spaces
 // removed, capitalized letters, no comments) and is to be immediately executed by Grbl. Echoes will not be
@@ -474,19 +473,19 @@ Some features should not be changed. See notes below.
 // limits or angle between neighboring block line move directions. This is useful for machines that can't
 // tolerate the tool dwelling for a split second, i.e. 3d printers or laser cutters. If used, this value
 // should not be much greater than zero or to the minimum value necessary for the machine to work.
-#define MINIMUM_JUNCTION_SPEED 0.0 // (mm/min)
+#define MINIMUM_JUNCTION_SPEED 0.0  // (mm/min)
 
 // Sets the minimum feed rate the planner will allow. Any value below it will be set to this minimum
 // value. This also ensures that a planned motion always completes and accounts for any floating-point
 // round-off errors. Although not recommended, a lower value than 1.0 mm/min will likely work in smaller
 // machines, perhaps to 0.1mm/min, but your success may vary based on multiple factors.
-#define MINIMUM_FEED_RATE 1.0 // (mm/min)
+#define MINIMUM_FEED_RATE 1.0  // (mm/min)
 
 // Number of arc generation iterations by small angle approximation before exact arc trajectory
 // correction with expensive sin() and cos() calcualtions. This parameter maybe decreased if there
 // are issues with the accuracy of the arc generations, or increased if arc execution is getting
 // bogged down by too many trig calculations.
-#define N_ARC_CORRECTION 12 // Integer (1-255)
+#define N_ARC_CORRECTION 12  // Integer (1-255)
 
 // The arc G2/3 g-code standard is problematic by definition. Radius-based arcs have horrible numerical
 // errors when arc at semi-circles(pi) or full-circles(2*pi). Offset-based arcs are much more accurate
@@ -496,15 +495,14 @@ Some features should not be changed. See notes below.
 // This define value sets the machine epsilon cutoff to determine if the arc is a full-circle or not.
 // NOTE: Be very careful when adjusting this value. It should always be greater than 1.2e-7 but not too
 // much greater than this. The default setting should capture most, if not all, full arc error situations.
-#define ARC_ANGULAR_TRAVEL_EPSILON 5E-7 // Float (radians)
+#define ARC_ANGULAR_TRAVEL_EPSILON 5E-7  // Float (radians)
 
 // Time delay increments performed during a dwell. The default value is set at 50ms, which provides
 // a maximum time delay of roughly 55 minutes, more than enough for most any application. Increasing
 // this delay will increase the maximum dwell time linearly, but also reduces the responsiveness of
 // run-time command executions, like status reports, since these are performed between each dwell
 // time step. Also, keep in mind that the Arduino delay timer is not very accurate for long delays.
-#define DWELL_TIME_STEP 50 // Integer (1-255) (milliseconds)
-
+#define DWELL_TIME_STEP 50  // Integer (1-255) (milliseconds)
 
 // For test use only. This uses the ESP32's RMT peripheral to generate step pulses
 // It allows the use of the STEP_PULSE_DELAY (see below) and it automatically ends the
@@ -568,7 +566,7 @@ Some features should not be changed. See notes below.
 // switch interrupt unblock a waiting task which will recheck the limit switch pins after
 // a short delay. Default disabled
 //#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
-#define DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
+#define DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
 
 // Configures the position after a probing cycle during Grbl's check mode. Disabled sets
 // the position to the probe target, when enabled sets the position to the start position.
@@ -597,9 +595,9 @@ Some features should not be changed. See notes below.
 // Enable the '$RST=*', '$RST=$', and '$RST=#' eeprom restore commands. There are cases where
 // these commands may be undesirable. Simply comment the desired macro to disable it.
 // NOTE: See SETTINGS_RESTORE_ALL macro for customizing the `$RST=*` command.
-#define ENABLE_RESTORE_EEPROM_WIPE_ALL         // '$RST=*' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_EEPROM_DEFAULT_SETTINGS // '$RST=$' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_EEPROM_CLEAR_PARAMETERS // '$RST=#' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_EEPROM_WIPE_ALL          // '$RST=*' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_EEPROM_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_EEPROM_CLEAR_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
 
 // Defines the EEPROM data restored upon a settings version change and `$RST=*` command. Whenever the
 // the settings or other EEPROM data structure changes between Grbl versions, Grbl will automatically
@@ -622,7 +620,7 @@ Some features should not be changed. See notes below.
 // NOTE: If disabled and to ensure Grbl can never alter the build info line, you'll also need to enable
 // the SETTING_RESTORE_ALL macro above and remove SETTINGS_RESTORE_BUILD_INFO from the mask.
 // NOTE: See the included grblWrite_BuildInfo.ino example file to write this string seperately.
-#define ENABLE_BUILD_INFO_WRITE_COMMAND // '$I=' Default enabled. Comment to disable.
+#define ENABLE_BUILD_INFO_WRITE_COMMAND  // '$I=' Default enabled. Comment to disable.
 
 // AVR processors require all interrupts to be disabled during an EEPROM write. This includes both
 // the stepper ISRs and serial comm ISRs. In the event of a long EEPROM write, this ISR pause can
@@ -636,7 +634,7 @@ Some features should not be changed. See notes below.
 // NOTE: Most EEPROM write commands are implicitly blocked during a job (all '$' commands). However,
 // coordinate set g-code commands (G10,G28/30.1) are not, since they are part of an active streaming
 // job. At this time, this option only forces a planner buffer sync with these g-code commands.
-#define FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE // Default enabled. Comment to disable.
+#define FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE  // Default enabled. Comment to disable.
 
 // In Grbl v0.9 and prior, there is an old outstanding bug where the `WPos:` work position reported
 // may not correlate to what is executing, because `WPos:` is based on the g-code parser state, which
@@ -644,7 +642,7 @@ Some features should not be changed. See notes below.
 // motion whenever there is a command that alters the work coordinate offsets `G10,G43.1,G92,G54-59`.
 // This is the simplest way to ensure `WPos:` is always correct. Fortunately, it's exceedingly rare
 // that any of these commands are used need continuous motions through them.
-#define FORCE_BUFFER_SYNC_DURING_WCO_CHANGE // Default enabled. Comment to disable.
+#define FORCE_BUFFER_SYNC_DURING_WCO_CHANGE  // Default enabled. Comment to disable.
 
 // By default, Grbl disables feed rate overrides for all G38.x probe cycle commands. Although this
 // may be different than some pro-class machine control, it's arguable that it should be this way.
@@ -669,11 +667,11 @@ Some features should not be changed. See notes below.
 //#define PARKING_ENABLE  // Default disabled. Uncomment to enable
 
 // Configure options for the parking motion, if enabled.
-#define PARKING_AXIS Z_AXIS // Define which axis that performs the parking motion
-#define PARKING_TARGET -5.0 // Parking axis target. In mm, as machine coordinate [-max_travel,0].
-#define PARKING_RATE 500.0 // Parking fast rate after pull-out in mm/min.
-#define PARKING_PULLOUT_RATE 100.0 // Pull-out/plunge slow feed rate in mm/min.
-#define PARKING_PULLOUT_INCREMENT 5.0 // Spindle pull-out and plunge distance in mm. Incremental distance.
+#define PARKING_AXIS Z_AXIS            // Define which axis that performs the parking motion
+#define PARKING_TARGET -5.0            // Parking axis target. In mm, as machine coordinate [-max_travel,0].
+#define PARKING_RATE 500.0             // Parking fast rate after pull-out in mm/min.
+#define PARKING_PULLOUT_RATE 100.0     // Pull-out/plunge slow feed rate in mm/min.
+#define PARKING_PULLOUT_INCREMENT 5.0  // Spindle pull-out and plunge distance in mm. Incremental distance.
 // Must be positive value or equal to zero.
 
 // Enables a special set of M-code commands that enables and disables the parking motion.
@@ -689,7 +687,7 @@ Some features should not be changed. See notes below.
 // override immediately after coming to a stop. However, this also means that the laser still may
 // be reenabled by disabling the spindle stop override, if needed. This is purely a safety feature
 // to ensure the laser doesn't inadvertently remain powered while at a stop and cause a fire.
-#define DISABLE_LASER_DURING_HOLD // Default enabled. Comment to disable.
+#define DISABLE_LASER_DURING_HOLD  // Default enabled. Comment to disable.
 
 // Enables a piecewise linear model of the spindle PWM/speed output. Requires a solution by the
 // 'fit_nonlinear_spindle.py' script in the /doc/script folder of the repo. See file comments

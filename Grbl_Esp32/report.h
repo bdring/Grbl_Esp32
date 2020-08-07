@@ -61,22 +61,22 @@
 #define STATUS_GCODE_MAX_VALUE_EXCEEDED 38
 #define STATUS_P_PARAM_MAX_EXCEEDED 39
 
-#define STATUS_SD_FAILED_MOUNT 60 // SD Failed to mount
-#define STATUS_SD_FAILED_READ 61 // SD Failed to read file
-#define STATUS_SD_FAILED_OPEN_DIR 62 // SD card failed to open directory
-#define STATUS_SD_DIR_NOT_FOUND 63 // SD Card directory not found
-#define STATUS_SD_FILE_EMPTY 64 // SD Card directory not found
-#define STATUS_SD_FILE_NOT_FOUND 65 // SD Card file not found
-#define STATUS_SD_FAILED_OPEN_FILE 66 // SD card failed to open file
-#define STATUS_SD_FAILED_BUSY 67 // SD card is busy
+#define STATUS_SD_FAILED_MOUNT 60      // SD Failed to mount
+#define STATUS_SD_FAILED_READ 61       // SD Failed to read file
+#define STATUS_SD_FAILED_OPEN_DIR 62   // SD card failed to open directory
+#define STATUS_SD_DIR_NOT_FOUND 63     // SD Card directory not found
+#define STATUS_SD_FILE_EMPTY 64        // SD Card directory not found
+#define STATUS_SD_FILE_NOT_FOUND 65    // SD Card file not found
+#define STATUS_SD_FAILED_OPEN_FILE 66  // SD card failed to open file
+#define STATUS_SD_FAILED_BUSY 67       // SD card is busy
 #define STATUS_SD_FAILED_DEL_DIR 68
 #define STATUS_SD_FAILED_DEL_FILE 69
 
-#define STATUS_BT_FAIL_BEGIN 70  // Bluetooth failed to start
+#define STATUS_BT_FAIL_BEGIN 70    // Bluetooth failed to start
 #define STATUS_WIFI_FAIL_BEGIN 71  // WiFi failed to start
 
-#define STATUS_NUMBER_RANGE 80 // Setting number range problem
-#define STATUS_INVALID_VALUE 81 // Setting string problem
+#define STATUS_NUMBER_RANGE 80   // Setting number range problem
+#define STATUS_INVALID_VALUE 81  // Setting string problem
 
 #define STATUS_MESSAGE_FAILED 90
 
@@ -85,19 +85,19 @@
 #define STATUS_AUTHENTICATION_FAILED 110
 #define STATUS_EOL 111
 
-typedef uint8_t err_t; // For status codes
-const char* errorString(err_t errorNumber);
+typedef uint8_t err_t;  // For status codes
+const char*     errorString(err_t errorNumber);
 
 // Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
-#define ALARM_HARD_LIMIT_ERROR      EXEC_ALARM_HARD_LIMIT
-#define ALARM_SOFT_LIMIT_ERROR      EXEC_ALARM_SOFT_LIMIT
-#define ALARM_ABORT_CYCLE           EXEC_ALARM_ABORT_CYCLE
-#define ALARM_PROBE_FAIL_INITIAL    EXEC_ALARM_PROBE_FAIL_INITIAL
-#define ALARM_PROBE_FAIL_CONTACT    EXEC_ALARM_PROBE_FAIL_CONTACT
-#define ALARM_HOMING_FAIL_RESET     EXEC_ALARM_HOMING_FAIL_RESET
-#define ALARM_HOMING_FAIL_DOOR      EXEC_ALARM_HOMING_FAIL_DOOR
-#define ALARM_HOMING_FAIL_PULLOFF   EXEC_ALARM_HOMING_FAIL_PULLOFF
-#define ALARM_HOMING_FAIL_APPROACH  EXEC_ALARM_HOMING_FAIL_APPROACH
+#define ALARM_HARD_LIMIT_ERROR EXEC_ALARM_HARD_LIMIT
+#define ALARM_SOFT_LIMIT_ERROR EXEC_ALARM_SOFT_LIMIT
+#define ALARM_ABORT_CYCLE EXEC_ALARM_ABORT_CYCLE
+#define ALARM_PROBE_FAIL_INITIAL EXEC_ALARM_PROBE_FAIL_INITIAL
+#define ALARM_PROBE_FAIL_CONTACT EXEC_ALARM_PROBE_FAIL_CONTACT
+#define ALARM_HOMING_FAIL_RESET EXEC_ALARM_HOMING_FAIL_RESET
+#define ALARM_HOMING_FAIL_DOOR EXEC_ALARM_HOMING_FAIL_DOOR
+#define ALARM_HOMING_FAIL_PULLOFF EXEC_ALARM_HOMING_FAIL_PULLOFF
+#define ALARM_HOMING_FAIL_APPROACH EXEC_ALARM_HOMING_FAIL_APPROACH
 
 // Define Grbl feedback message codes. Valid values (0-255).
 #define MESSAGE_CRITICAL_EVENT 1
@@ -111,22 +111,22 @@ const char* errorString(err_t errorNumber);
 #define MESSAGE_RESTORE_DEFAULTS 9
 #define MESSAGE_SPINDLE_RESTORE 10
 #define MESSAGE_SLEEP_MODE 11
-#define MESSAGE_SD_FILE_QUIT 60 // mc_reset was called during an SD job
+#define MESSAGE_SD_FILE_QUIT 60  // mc_reset was called during an SD job
 
-#define CLIENT_SERIAL 		0
-#define CLIENT_BT 			1
-#define CLIENT_WEBUI		2
-#define CLIENT_TELNET		3
-#define CLIENT_INPUT        4
-#define CLIENT_ALL			0xFF
-#define CLIENT_COUNT    	5 // total number of client types regardless if they are used
+#define CLIENT_SERIAL 0
+#define CLIENT_BT 1
+#define CLIENT_WEBUI 2
+#define CLIENT_TELNET 3
+#define CLIENT_INPUT 4
+#define CLIENT_ALL 0xFF
+#define CLIENT_COUNT 5  // total number of client types regardless if they are used
 
-#define MSG_LEVEL_NONE		0 // set GRBL_MSG_LEVEL in config.h to the level you want to see
-#define MSG_LEVEL_ERROR		1
-#define MSG_LEVEL_WARNING	2
-#define MSG_LEVEL_INFO		3
-#define MSG_LEVEL_DEBUG		4
-#define MSG_LEVEL_VERBOSE	5
+#define MSG_LEVEL_NONE 0  // set GRBL_MSG_LEVEL in config.h to the level you want to see
+#define MSG_LEVEL_ERROR 1
+#define MSG_LEVEL_WARNING 2
+#define MSG_LEVEL_INFO 3
+#define MSG_LEVEL_DEBUG 4
+#define MSG_LEVEL_VERBOSE 5
 
 // functions to send data to the user.
 void grbl_send(uint8_t client, const char* text);
@@ -181,12 +181,12 @@ void report_build_info(char* line, uint8_t client);
 void report_gcode_comment(char* comment);
 
 #ifdef DEBUG
-    void report_realtime_debug();
+void report_realtime_debug();
 #endif
 
 void report_machine_type(uint8_t client);
 
-void report_hex_msg(char* buf, const char *prefix, int len);
-void report_hex_msg(uint8_t* buf, const char *prefix, int len);
+void report_hex_msg(char* buf, const char* prefix, int len);
+void report_hex_msg(uint8_t* buf, const char* prefix, int len);
 
 char report_get_axis_letter(uint8_t axis);
