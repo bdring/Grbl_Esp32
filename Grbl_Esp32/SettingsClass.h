@@ -392,7 +392,8 @@ public:
                const char*   grblName,
                const char*   name,
                err_t (*action)(char*, auth_t)) :
-        Command(description, type, permissions, grblName, name), _action(action) {}
+        Command(description, type, permissions, grblName, name),
+        _action(action) {}
     err_t action(char* value, auth_t auth_level, ESPResponseStream* response);
 };
 
@@ -414,7 +415,9 @@ public:
                 err_t (*action)(const char*, auth_t, ESPResponseStream*),
                 uint8_t       disallowedStates,
                 permissions_t auth) :
-        Command(NULL, GRBLCMD, auth, grblName, name), _action(action), _disallowedStates(disallowedStates) {}
+        Command(NULL, GRBLCMD, auth, grblName, name),
+        _action(action),
+        _disallowedStates(disallowedStates) {}
 
     GrblCommand(const char* grblName, const char* name, err_t (*action)(const char*, auth_t, ESPResponseStream*), uint8_t disallowedStates) :
         GrblCommand(grblName, name, action, disallowedStates, WG) {}

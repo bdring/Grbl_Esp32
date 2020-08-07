@@ -4,7 +4,11 @@
 #include "nvs.h"
 
 Word::Word(type_t type, permissions_t permissions, const char* description, const char* grblName, const char* fullName) :
-    _description(description), _grblName(grblName), _fullName(fullName), _type(type), _permissions(permissions) {}
+    _description(description),
+    _grblName(grblName),
+    _fullName(fullName),
+    _type(type),
+    _permissions(permissions) {}
 
 Command* Command::List = NULL;
 
@@ -18,7 +22,8 @@ Setting* Setting::List = NULL;
 
 Setting::Setting(
     const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName, bool (*checker)(char*)) :
-    Word(type, permissions, description, grblName, fullName), _checker(checker) {
+    Word(type, permissions, description, grblName, fullName),
+    _checker(checker) {
     link = List;
     List = this;
 
@@ -138,7 +143,9 @@ AxisMaskSetting::AxisMaskSetting(const char*   description,
                                  const char*   name,
                                  int32_t       defVal,
                                  bool (*checker)(char*) = NULL) :
-    Setting(description, type, permissions, grblName, name, checker), _defaultValue(defVal), _currentValue(defVal) {}
+    Setting(description, type, permissions, grblName, name, checker),
+    _defaultValue(defVal),
+    _currentValue(defVal) {}
 
 void AxisMaskSetting::load() {
     esp_err_t err = nvs_get_i32(_handle, _keyName, &_storedValue);
@@ -397,7 +404,9 @@ EnumSetting::EnumSetting(
     const char* description, type_t type, permissions_t permissions, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts)
     // No checker function because enumerations have an exact set of value
     :
-    Setting(description, type, permissions, grblName, name, NULL), _defaultValue(defVal), _options(opts) {}
+    Setting(description, type, permissions, grblName, name, NULL),
+    _defaultValue(defVal),
+    _options(opts) {}
 
 void EnumSetting::load() {
     esp_err_t err = nvs_get_i8(_handle, _keyName, &_storedValue);
@@ -490,7 +499,8 @@ FlagSetting::FlagSetting(const char*   description,
                          const char*   name,
                          bool          defVal,
                          bool (*checker)(char*) = NULL) :
-    Setting(description, type, permissions, grblName, name, checker), _defaultValue(defVal) {}
+    Setting(description, type, permissions, grblName, name, checker),
+    _defaultValue(defVal) {}
 
 void FlagSetting::load() {
     esp_err_t err = nvs_get_i8(_handle, _keyName, &_storedValue);
