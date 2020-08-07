@@ -1,5 +1,4 @@
 #pragma once
-// clang-format off
 
 // This file is where you choose the machine type, by including
 // one or more machine definition files as described below.
