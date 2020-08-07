@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   gcode.h - rs274/ngc parser.
   Part of Grbl
@@ -21,9 +23,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef gcode_h
-#define gcode_h
-
 
 // Define modal group internal numbers for checking multiple command violations and tracking the
 // type of command that is called in the block. A modal group is a group of g-code commands that are
@@ -264,5 +263,3 @@ uint8_t gc_execute_line(char* line, uint8_t client);
 
 // Set g-code parser position. Input in steps.
 void gc_sync_position();
-
-#endif

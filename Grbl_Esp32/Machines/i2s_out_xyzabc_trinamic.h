@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     i2s_out_xyzabc_trinamic.h
     Part of Grbl_ESP32

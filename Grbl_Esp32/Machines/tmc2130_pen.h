@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     tmc2130_pen.h
     Part of Grbl_ESP32

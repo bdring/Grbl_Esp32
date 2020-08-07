@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   wifiservices.h -  wifi services functions class
 
@@ -18,12 +20,6 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-
-#ifndef _WIFI_SERVICES_H
-#define _WIFI_SERVICES_H
-
-
 class WiFiServices {
   public:
     WiFiServices();
@@ -34,6 +30,3 @@ class WiFiServices {
 };
 
 extern WiFiServices wifi_services;
-
-#endif
-

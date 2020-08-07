@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   notifications_service.h -  notifications service functions class
 
@@ -17,12 +19,6 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
-
-
-#ifndef _NOTIFICATIONS_SERVICE_H
-#define _NOTIFICATIONS_SERVICE_H
-
 
 class NotificationsService {
   public:
@@ -51,6 +47,3 @@ class NotificationsService {
 };
 
 extern NotificationsService notificationsservice;
-
-#endif //_NOTIFICATIONS_SERVICE_H
-

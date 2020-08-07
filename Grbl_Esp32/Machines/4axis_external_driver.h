@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     4axis_external_driver_4x.h
     Part of Grbl_ESP32

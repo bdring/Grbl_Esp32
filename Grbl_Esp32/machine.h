@@ -1,8 +1,8 @@
+#pragma once
+// clang-format off
+
 // This file is where you choose the machine type, by including
 // one or more machine definition files as described below.
-
-#ifndef _machine_h
-#define _machine_h
 
 /*
 PWM
@@ -53,5 +53,3 @@ PWM
 #include MACHINE_PATHNAME_QUOTED(MACHINE_FILENAME)
 
 #endif // MACHINE_FILENAME
-
-#endif // _machine_h

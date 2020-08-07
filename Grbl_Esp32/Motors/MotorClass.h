@@ -1,3 +1,5 @@
+#pragma once
+
 /*
     MotorClass.h
     Header file for Motor Classes
@@ -26,9 +28,6 @@
     You should have received a copy of the GNU General Public License
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef MOTORCLASS_H
-#define MOTORCLASS_H
 
 #include "../grbl.h"
 #include <TMCStepper.h> // https://github.com/teemuatlut/TMCStepper
@@ -214,5 +213,3 @@ class Solenoid : public RcServo {
     
     float _transition_poiont;
 };
-
-#endif

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   solenoid_pen.h
   Part of Grbl_ESP32
@@ -60,12 +62,7 @@
     #define SOLENOID_TIMER_INT_FREQ 50
 #endif
 
-#ifndef solenoid_h
-    #define solenoid_h
-
     void solenoid_init();
     void solenoid_disable();
     void solenoidSyncTask(void* pvParameters);
     void calc_solenoid(float penZ);
-
-#endif
