@@ -34,7 +34,7 @@ bool COMMANDS::restart_ESP_module = false;
  */
 void COMMANDS::wait(uint32_t milliseconds) {
     uint32_t timeout = millis();
-    esp_task_wdt_reset(); //for a wait 0;
+    esp_task_wdt_reset();  //for a wait 0;
     //wait feeding WDT
     while ((millis() - timeout) < milliseconds)
         esp_task_wdt_reset();
@@ -69,6 +69,7 @@ void COMMANDS::handle() {
     //in case of restart requested
     if (restart_ESP_module) {
         ESP.restart();
-        while (1)  ;
+        while (1)
+            ;
     }
 }

@@ -45,32 +45,30 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-RcServo :: RcServo() {
+RcServo ::RcServo() {}
 
-}
-
-RcServo :: RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max) {
-    type_id = RC_SERVO_MOTOR;
-    this->axis_index = axis_index % MAX_AXES;
-    this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1; // 0 = primary 1 = ganged
-    this->_pwm_pin = pwm_pin;
-    _position_min = min;
-    _position_max = max;
+RcServo ::RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max) {
+    type_id               = RC_SERVO_MOTOR;
+    this->axis_index      = axis_index % MAX_AXES;
+    this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
+    this->_pwm_pin        = pwm_pin;
+    _position_min         = min;
+    _position_max         = max;
     init();
 }
 
-void RcServo :: init() {
+void RcServo ::init() {
     read_settings();
     _channel_num = sys_get_next_PWM_chan_num();
     ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
     ledcAttachPin(_pwm_pin, _channel_num);
     _current_pwm_duty = 0;
-    is_active = true;  // as opposed to NullMotors, this is a real motor
+    is_active         = true;  // as opposed to NullMotors, this is a real motor
     set_axis_name();
     config_message();
 }
 
-void RcServo :: config_message() {
+void RcServo ::config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "%s Axis RC Servo motor Output:%d Min:%5.3fmm Max:%5.3fmm",
@@ -106,13 +104,12 @@ void RcServo::set_homing_mode(bool is_homing, bool isHoming) {
         return;
 
     if (bit_istrue(homing_dir_mask->get(), bit(axis_index)))
-        home_pos =  _position_min;
+        home_pos = _position_min;
     else
         home_pos = _position_max;
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo set home %d %3.2f", is_homing, home_pos);
-    sys_position[axis_index] = home_pos * axis_settings[axis_index]->steps_per_mm->get(); // convert to steps
-
+    sys_position[axis_index] = home_pos * axis_settings[axis_index]->steps_per_mm->get();  // convert to steps
 }
 
 void RcServo::update() {
@@ -121,7 +118,7 @@ void RcServo::update() {
 
 void RcServo::set_location() {
     uint32_t servo_pulse_len;
-    float servo_pos, mpos, offset;
+    float    servo_pos, mpos, offset;
     // skip location if we are in alarm mode
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "locate");
@@ -132,15 +129,14 @@ void RcServo::set_location() {
         return;
     }
 
-    mpos = system_convert_axis_steps_to_mpos(sys_position, axis_index);  // get the axis machine position in mm
-    offset = gc_state.coord_system[axis_index] + gc_state.coord_offset[axis_index]; // get the current axis work offset
-    servo_pos = mpos - offset; // determine the current work position
+    mpos      = system_convert_axis_steps_to_mpos(sys_position, axis_index);            // get the axis machine position in mm
+    offset    = gc_state.coord_system[axis_index] + gc_state.coord_offset[axis_index];  // get the current axis work offset
+    servo_pos = mpos - offset;                                                          // determine the current work position
 
     // determine the pulse length
     servo_pulse_len = (uint32_t)mapConstrain(servo_pos, _position_min, _position_max, _pwm_pulse_min, _pwm_pulse_max);
 
     _write_pwm(servo_pulse_len);
-
 }
 
 void RcServo::read_settings() {
@@ -164,7 +160,11 @@ void RcServo::_get_calibration() {
     // make sure the max is in range
     // Note: Max travel is set positive via $$, but stored as a negative number
     if ((axis_settings[axis_index]->max_travel->get() < SERVO_CAL_MIN) || (axis_settings[axis_index]->max_travel->get() > SERVO_CAL_MAX)) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($13%d) value error. %3.2f Reset to 100", axis_index, axis_settings[axis_index]->max_travel->get());
+        grbl_msg_sendf(CLIENT_SERIAL,
+                       MSG_LEVEL_INFO,
+                       "Servo calibration ($13%d) value error. %3.2f Reset to 100",
+                       axis_index,
+                       axis_settings[axis_index]->max_travel->get());
         char reset_val[] = "100";
         axis_settings[axis_index]->max_travel->setStringValue(reset_val);
     }
@@ -172,12 +172,11 @@ void RcServo::_get_calibration() {
     _pwm_pulse_min = SERVO_MIN_PULSE;
     _pwm_pulse_max = SERVO_MAX_PULSE;
 
-
-    if (bit_istrue(dir_invert_mask->get(), bit(axis_index))) {	// normal direction
+    if (bit_istrue(dir_invert_mask->get(), bit(axis_index))) {  // normal direction
         _cal_min = 2.0 - (axis_settings[axis_index]->steps_per_mm->get() / 100.0);
         _cal_max = 2.0 - (axis_settings[axis_index]->max_travel->get() / 100.0);
         swap(_pwm_pulse_min, _pwm_pulse_max);
-    } else { // inverted direction
+    } else {  // inverted direction
         _cal_min = (axis_settings[axis_index]->steps_per_mm->get() / 100.0);
         _cal_max = (axis_settings[axis_index]->max_travel->get() / 100.0);
     }
@@ -186,5 +185,4 @@ void RcServo::_get_calibration() {
     _pwm_pulse_max *= _cal_max;
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration min:%1.2f max %1.2f", _pwm_pulse_min, _pwm_pulse_max);
-
 }

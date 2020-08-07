@@ -20,28 +20,29 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
-    class WebServer;
+#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
+class WebServer;
 #endif
 
 class ESPResponseStream {
-  public:
-    void print(const char* data);
-    void println(const char* data);
-    void flush();
-    bool anyOutput() { return _header_sent; }
+public:
+    void          print(const char* data);
+    void          println(const char* data);
+    void          flush();
+    bool          anyOutput() { return _header_sent; }
     static String formatBytes(uint64_t bytes);
-    uint8_t client() {return _client;}
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
+    uint8_t       client() { return _client; }
+#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
     ESPResponseStream(WebServer* webserver);
 #endif
     ESPResponseStream(uint8_t client, bool byid = true);
     ESPResponseStream();
-  private:
+
+private:
     uint8_t _client;
-    bool _header_sent;
-#if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
+    bool    _header_sent;
+#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
     WebServer* _webserver;
-    String _buffer;
+    String     _buffer;
 #endif
 };
