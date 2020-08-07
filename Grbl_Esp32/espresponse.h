@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   espresponse.h - GRBL_ESP response class
 
@@ -17,9 +19,6 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
-#ifndef ESPRESPONSE_h
-#define ESPRESPONSE_h
 
 #if defined (ENABLE_HTTP) && defined(ENABLE_WIFI)
     class WebServer;
@@ -46,5 +45,3 @@ class ESPResponseStream {
     String _buffer;
 #endif
 };
-
-#endif

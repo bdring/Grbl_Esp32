@@ -1,3 +1,5 @@
+#pragma once
+
 /*
     i2s_out.h
     Part of Grbl_ESP32
@@ -35,8 +37,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef i2s_out_h
-#define i2s_out_h
 
 // It should be included at the outset to know the machine configuration.
 #include "config.h"
@@ -188,4 +188,3 @@ int i2s_out_reset();
    Reference: "ESP32 Technical Reference Manual" by Espressif Systems
      https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf
  */
-#endif

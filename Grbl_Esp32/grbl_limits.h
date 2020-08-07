@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   limits.h - code pertaining to limit-switches and performing the homing cycle
   Part of Grbl
@@ -24,9 +26,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef grbl_limits_h
-#define grbl_limits_h
 
 extern uint8_t n_homing_locate_cycle;
 
@@ -55,5 +54,3 @@ bool axis_is_squared(uint8_t axis_mask);
 
 // A task that runs after a limit switch interrupt.
 void limitCheckTask(void* pvParameters);
-
-#endif

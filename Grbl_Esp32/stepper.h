@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   stepper.h - stepper motor driver: executes motion plans of planner.c using the stepper motors
   Part of Grbl
@@ -21,9 +23,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef stepper_h
-#define stepper_h
 
 #ifndef SEGMENT_BUFFER_SIZE
     #define SEGMENT_BUFFER_SIZE 6
@@ -120,5 +119,3 @@ void set_direction_pins_on(uint8_t onMask);
 void Stepper_Timer_WritePeriod(uint64_t alarm_val);
 void Stepper_Timer_Start();
 void Stepper_Timer_Stop();
-
-#endif

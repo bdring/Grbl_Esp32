@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     polar_coaster.h
     Part of Grbl_ESP32

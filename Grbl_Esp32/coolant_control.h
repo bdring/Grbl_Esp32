@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   coolant_control.h - spindle control methods
   Part of Grbl
@@ -21,9 +23,6 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef coolant_control_h
-#define coolant_control_h
-
 #define COOLANT_NO_SYNC     false
 #define COOLANT_FORCE_SYNC  true
 
@@ -46,5 +45,3 @@ void coolant_set_state(uint8_t mode);
 
 // G-code parser entry-point for setting coolant states. Checks for and executes additional conditions.
 void coolant_sync(uint8_t mode);
-
-#endif

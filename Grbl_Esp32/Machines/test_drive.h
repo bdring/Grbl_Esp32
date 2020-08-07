@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     test_drive.h
     Part of Grbl_ESP32

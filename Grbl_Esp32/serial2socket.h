@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   serial2socket.h -  serial 2 socket functions class
 
@@ -18,9 +20,6 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-#ifndef _SERIAL_2_SOCKET_H_
-#define _SERIAL_2_SOCKET_H_
 
 #include "Print.h"
 #define TXBUFFERSIZE 1200
@@ -72,5 +71,3 @@ class Serial_2_Socket: public Print {
 
 
 extern Serial_2_Socket Serial2Socket;
-
-#endif

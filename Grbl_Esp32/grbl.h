@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   grbl.h - Header for system level commands and real-time processes
   Part of Grbl
@@ -18,7 +20,6 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
 // Grbl versioning system
 
 #define GRBL_VERSION "1.3a"

@@ -1,5 +1,4 @@
-#ifndef _machine_common_h
-#define _machine_common_h
+#pragma once
 
 #ifndef SPINDLE_TYPE
     #define SPINDLE_TYPE SPINDLE_TYPE_PWM
@@ -34,5 +33,3 @@
 #define STEP_MASK B111111
 
 #define PROBE_MASK 1
-
-#endif // _machine_common_h

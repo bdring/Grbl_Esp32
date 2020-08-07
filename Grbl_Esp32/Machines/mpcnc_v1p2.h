@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     mpcnc_v1p2.h
     Part of Grbl_ESP32

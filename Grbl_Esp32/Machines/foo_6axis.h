@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     foo_6axis.h
     Part of Grbl_ESP32
