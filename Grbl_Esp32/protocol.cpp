@@ -86,6 +86,14 @@ err_t execute_line(char* line, uint8_t client, auth_t auth_level) {
     return gc_execute_line(line, client);
 }
 
+bool can_park() {
+    return
+#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+        sys.override_ctrl == OVERRIDE_PARKING_MOTION &&
+#endif
+        homing_enable->get() && !laser_mode->get();
+}
+
 /*
   GRBL PRIMARY LOOP:
 */
@@ -574,12 +582,7 @@ static void protocol_exec_rt_suspend() {
                     // Execute slow pull-out parking retract motion. Parking requires homing enabled, the
                     // current location not exceeding the parking target location, and laser mode disabled.
                     // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
-#    ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                    if (homing_enable->get() && (parking_target[PARKING_AXIS] < PARKING_TARGET) && !laser_mode->get() &&
-                        (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
-#    else
-                    if (homing_enable->get() && (parking_target[PARKING_AXIS] < PARKING_TARGET) && !laser_mode->get()) {
-#    endif
+                    if (can_park() && parking_target[PARKING_AXIS] < PARKING_TARGET) {
                         // Retract spindle by pullout distance. Ensure retraction motion moves away from
                         // the workpiece and waypoint motion doesn't exceed the parking target location.
                         if (parking_target[PARKING_AXIS] < retract_waypoint) {
@@ -631,19 +634,14 @@ static void protocol_exec_rt_suspend() {
 #ifdef PARKING_ENABLE
                         // Execute fast restore motion to the pull-out position. Parking requires homing enabled.
                         // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
-#    ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                        if (homing_enable->get() && !laser_mode->get()) &&
-                            (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
-#    else
-                        if (homing_enable->get() && !laser_mode->get()) {
-#    endif
-                                // Check to ensure the motion doesn't move below pull-out position.
-                                if (parking_target[PARKING_AXIS] <= PARKING_TARGET) {
-                                    parking_target[PARKING_AXIS] = retract_waypoint;
-                                    pl_data->feed_rate           = PARKING_RATE;
-                                    mc_parking_motion(parking_target, pl_data);
-                                }
+                        if (can_park()) {
+                            // Check to ensure the motion doesn't move below pull-out position.
+                            if (parking_target[PARKING_AXIS] <= PARKING_TARGET) {
+                                parking_target[PARKING_AXIS] = retract_waypoint;
+                                pl_data->feed_rate           = PARKING_RATE;
+                                mc_parking_motion(parking_target, pl_data);
                             }
+                        }
 #endif
                         // Delayed Tasks: Restart spindle and coolant, delay to power-up, then resume cycle.
                         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
@@ -669,23 +667,18 @@ static void protocol_exec_rt_suspend() {
                         }
 #ifdef PARKING_ENABLE
                         // Execute slow plunge motion from pull-out position to resume position.
-#    ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-                        if (homing_enable->get() && !laser_mode->get()) &&
-                            (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
-#    else
-                        if (homing_enable->get() && !laser_mode->get()) {
-#    endif
-                                // Block if safety door re-opened during prior restore actions.
-                                if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
-                                    // Regardless if the retract parking motion was a valid/safe motion or not, the
-                                    // restore parking motion should logically be valid, either by returning to the
-                                    // original position through valid machine space or by not moving at all.
-                                    pl_data->feed_rate = PARKING_PULLOUT_RATE;
-                                    pl_data->condition |= (restore_condition & PL_COND_ACCESSORY_MASK);  // Restore accessory state
-                                    pl_data->spindle_speed = restore_spindle_speed;
-                                    mc_parking_motion(restore_target, pl_data);
-                                }
+                        if (can_park()) {
+                            // Block if safety door re-opened during prior restore actions.
+                            if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
+                                // Regardless if the retract parking motion was a valid/safe motion or not, the
+                                // restore parking motion should logically be valid, either by returning to the
+                                // original position through valid machine space or by not moving at all.
+                                pl_data->feed_rate = PARKING_PULLOUT_RATE;
+                                pl_data->condition |= (restore_condition & PL_COND_ACCESSORY_MASK);  // Restore accessory state
+                                pl_data->spindle_speed = restore_spindle_speed;
+                                mc_parking_motion(restore_target, pl_data);
                             }
+                        }
 #endif
                         if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
                             sys.suspend |= SUSPEND_RESTORE_COMPLETE;
