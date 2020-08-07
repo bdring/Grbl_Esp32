@@ -20,7 +20,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "Print.h"
+#include <print.h>
 #define RXBUFFERSIZE 128
 class InputBuffer : public Print {
 public:

@@ -51,7 +51,6 @@
 #include "gcode.h"
 #include "grbl_limits.h"
 #include "motion_control.h"
-#include "print.h"
 #include "probe.h"
 #include "protocol.h"
 #include "report.h"
