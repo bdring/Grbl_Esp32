@@ -6,7 +6,6 @@ AlignConsecutiveDeclarations: 'true'
 AlignEscapedNewlines: Right
 AlignOperands: 'true'
 AlignTrailingComments: 'true'
-AllowAllConstructorInitializersOnNextLine: 'false'
 AllowShortBlocksOnASingleLine: 'true'
 AllowShortCaseLabelsOnASingleLine: 'true'
 AllowShortFunctionsOnASingleLine: Inline
@@ -39,7 +38,6 @@ BreakInheritanceList: AfterColon
 ColumnLimit: '140'
 CommentPragmas: '^ :: '
 CompactNamespaces: 'false'
-ConstructorInitializerAllOnOneLineOrOnePerLine: 'true'
 Cpp11BracedListStyle: 'false'
 FixNamespaceComments: 'false'
 IncludeCategories:

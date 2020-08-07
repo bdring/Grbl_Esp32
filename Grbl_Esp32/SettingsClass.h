@@ -416,8 +416,7 @@ public:
                 uint8_t       disallowedStates,
                 permissions_t auth) :
         Command(NULL, GRBLCMD, auth, grblName, name),
-        _action(action),
-        _disallowedStates(disallowedStates) {}
+        _action(action), _disallowedStates(disallowedStates) {}
 
     GrblCommand(const char* grblName, const char* name, err_t (*action)(const char*, auth_t, ESPResponseStream*), uint8_t disallowedStates) :
         GrblCommand(grblName, name, action, disallowedStates, WG) {}

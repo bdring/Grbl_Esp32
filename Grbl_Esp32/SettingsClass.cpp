@@ -4,11 +4,7 @@
 #include "nvs.h"
 
 Word::Word(type_t type, permissions_t permissions, const char* description, const char* grblName, const char* fullName) :
-    _description(description),
-    _grblName(grblName),
-    _fullName(fullName),
-    _type(type),
-    _permissions(permissions) {}
+    _description(description), _grblName(grblName), _fullName(fullName), _type(type), _permissions(permissions) {}
 
 Command* Command::List = NULL;
 
@@ -74,10 +70,7 @@ IntSetting::IntSetting(const char*   description,
                        int32_t       maxVal,
                        bool (*checker)(char*) = NULL) :
     Setting(description, type, permissions, grblName, name, checker),
-    _defaultValue(defVal),
-    _currentValue(defVal),
-    _minValue(minVal),
-    _maxValue(maxVal) {}
+    _defaultValue(defVal), _currentValue(defVal), _minValue(minVal), _maxValue(maxVal) {}
 
 void IntSetting::load() {
     esp_err_t err = nvs_get_i32(_handle, _keyName, &_storedValue);
@@ -144,8 +137,7 @@ AxisMaskSetting::AxisMaskSetting(const char*   description,
                                  int32_t       defVal,
                                  bool (*checker)(char*) = NULL) :
     Setting(description, type, permissions, grblName, name, checker),
-    _defaultValue(defVal),
-    _currentValue(defVal) {}
+    _defaultValue(defVal), _currentValue(defVal) {}
 
 void AxisMaskSetting::load() {
     esp_err_t err = nvs_get_i32(_handle, _keyName, &_storedValue);
@@ -238,10 +230,7 @@ FloatSetting::FloatSetting(const char*   description,
                            float         maxVal,
                            bool (*checker)(char*) = NULL) :
     Setting(description, type, permissions, grblName, name, checker),
-    _defaultValue(defVal),
-    _currentValue(defVal),
-    _minValue(minVal),
-    _maxValue(maxVal) {}
+    _defaultValue(defVal), _currentValue(defVal), _minValue(minVal), _maxValue(maxVal) {}
 
 void FloatSetting::load() {
     union {
@@ -405,8 +394,7 @@ EnumSetting::EnumSetting(
     // No checker function because enumerations have an exact set of value
     :
     Setting(description, type, permissions, grblName, name, NULL),
-    _defaultValue(defVal),
-    _options(opts) {}
+    _defaultValue(defVal), _options(opts) {}
 
 void EnumSetting::load() {
     esp_err_t err = nvs_get_i8(_handle, _keyName, &_storedValue);
@@ -554,8 +542,7 @@ IPaddrSetting::IPaddrSetting(const char*   description,
                              bool (*checker)(char*) = NULL) :
     Setting(description, type, permissions, grblName, name, checker)  // There are no GRBL IP settings.
     ,
-    _defaultValue(defVal),
-    _currentValue(defVal) {}
+    _defaultValue(defVal), _currentValue(defVal) {}
 
 IPaddrSetting::IPaddrSetting(const char*   description,
                              type_t        type,
