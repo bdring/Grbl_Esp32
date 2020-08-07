@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   system.h - Header for system level commands and real-time processes
   Part of Grbl
@@ -18,8 +20,6 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef system_h
-#define system_h
 #include "grbl.h"
 #include "tdef.h"
 #include "commands.h"
@@ -231,5 +231,3 @@ void fast_sys_io_control(uint8_t io_num_mask, bool turnOn);
 //
 int8_t sys_get_next_RMT_chan_num();
 int8_t sys_get_next_PWM_chan_num();
-
-#endif

@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
         pen_laser.h
         Part of Grbl_ESP32

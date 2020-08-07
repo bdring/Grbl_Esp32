@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  grbl_unipolar.h
   Part of Grbl_ESP32
@@ -27,8 +29,6 @@
 	To take a step simply call the step(direction) function. It will take
 
 */
-#ifndef grbl_unipolar_h
-#define grbl_unipolar_h
 
 void unipolar_init();
 void unipolar_step(uint8_t step_mask, uint8_t dir_mask);
@@ -51,4 +51,3 @@ class Unipolar {
     uint8_t _pin_phase3;
 
 };
-#endif

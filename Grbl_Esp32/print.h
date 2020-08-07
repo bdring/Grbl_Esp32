@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   print.h - Functions for formatting output strings
   Part of Grbl
@@ -21,10 +23,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef print_h
-#define print_h
-
 
 void printString(const char* s);
 
@@ -50,5 +48,3 @@ void printFloat_RateValue(float n);
 
 // Debug tool to print free memory in bytes at the called point. Not used otherwise.
 void printFreeMemory();
-
-#endif

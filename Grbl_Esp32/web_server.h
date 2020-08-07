@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   web_server.h -  wifi services functions class
 
@@ -17,11 +19,6 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
-
-#ifndef _WEB_SERVER_H
-#define _WEB_SERVER_H
-
 
 #include "config.h"
 #include "commands.h"
@@ -92,6 +89,3 @@ class Web_Server {
 };
 
 extern Web_Server web_server;
-
-#endif
-

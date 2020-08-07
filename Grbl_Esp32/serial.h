@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   serial.h - Header for system level commands and real-time processes
   Part of Grbl
@@ -17,9 +19,6 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#ifndef serial_h
-#define serial_h
 
 #include "grbl.h"
 
@@ -55,5 +54,3 @@ uint8_t serial_get_rx_buffer_available(uint8_t client);
 void execute_realtime_command(uint8_t command, uint8_t client);
 bool any_client_has_data();
 bool is_realtime_command(uint8_t data);
-
-#endif

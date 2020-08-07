@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   commands.h - ESP3D configuration class
 
@@ -18,8 +20,6 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef COMMANDS_h
-#define COMMANDS_h
 #include "config.h"
 
 class ESPResponseStream;
@@ -33,5 +33,3 @@ class COMMANDS {
   private :
     static bool restart_ESP_module;
 };
-
-#endif

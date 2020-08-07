@@ -1,4 +1,5 @@
 #pragma once
+
 extern bool motorSettingChanged;
 
 extern AxisSettings* x_axis_settings;

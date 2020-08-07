@@ -1,3 +1,5 @@
+#pragma once
+
 /*
   solenoid_pen.h
   Part of Grbl_ESP32
@@ -51,9 +53,6 @@
 
 */
 
-#ifndef servo_axis_h
-#define servo_axis_h
-
 #include "Motors/RcServoClass.h"
 
 #define SERVO_HOMING_OFF 0 // servo is off during homing
@@ -103,5 +102,3 @@ class ServoAxis {
     bool _cal_is_valid(); // checks to see if calibration values are in acceptable range
 
 };
-
-#endif

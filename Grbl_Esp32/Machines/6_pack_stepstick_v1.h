@@ -1,3 +1,6 @@
+#pragma once
+// clang-format off
+
 /*
     6_pack_stepstick_v1.h
 
