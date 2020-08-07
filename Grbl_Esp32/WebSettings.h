@@ -37,10 +37,10 @@ extern IPaddrSetting* wifi_ap_ip;
 extern IntSetting* wifi_ap_channel;
 
 extern StringSetting* wifi_hostname;
-extern EnumSetting* http_enable;
-extern IntSetting* http_port;
-extern EnumSetting* telnet_enable;
-extern IntSetting* telnet_port;
+extern EnumSetting*   http_enable;
+extern IntSetting*    http_port;
+extern EnumSetting*   telnet_enable;
+extern IntSetting*    telnet_port;
 #endif
 
 #ifdef WIFI_OR_BLUETOOTH
@@ -57,7 +57,7 @@ extern StringSetting* admin_password;
 #endif
 
 #ifdef ENABLE_NOTIFICATIONS
-extern EnumSetting* notification_type;
+extern EnumSetting*   notification_type;
 extern StringSetting* notification_t1;
 extern StringSetting* notification_t2;
 extern StringSetting* notification_ts;

@@ -36,61 +36,42 @@
 #include "BESCSpindle.cpp"
 #include "10vSpindle.cpp"
 
-
 // An instance of each type of spindle is created here.
 // This allows the spindle to be dynamicly switched
-NullSpindle null_spindle;
-PWMSpindle pwm_spindle;
-RelaySpindle relay_spindle;
-Laser laser;
-DacSpindle dac_spindle;
+NullSpindle     null_spindle;
+PWMSpindle      pwm_spindle;
+RelaySpindle    relay_spindle;
+Laser           laser;
+DacSpindle      dac_spindle;
 HuanyangSpindle huanyang_spindle;
-BESCSpindle besc_spindle;
-_10vSpindle _10v_spindle;
-
+BESCSpindle     besc_spindle;
+_10vSpindle     _10v_spindle;
 
 void spindle_select() {
-    
     switch (spindle_type->get()) {
-    case SPINDLE_TYPE_PWM:
-        spindle = &pwm_spindle;
-        break;
-    case SPINDLE_TYPE_RELAY:
-        spindle = &relay_spindle;
-        break;
-    case SPINDLE_TYPE_LASER:
-        spindle = &laser;
-        break;
-    case SPINDLE_TYPE_DAC:
-        spindle = &dac_spindle;
-        break;
-    case SPINDLE_TYPE_HUANYANG:
-        spindle = &huanyang_spindle;
-        break;
-    case SPINDLE_TYPE_BESC:
-        spindle = &besc_spindle;
-        break;
-    case SPINDLE_TYPE_10V:
-        spindle = &_10v_spindle;
-        break;
-    case SPINDLE_TYPE_NONE:
-    default:
-        spindle = &null_spindle;
-        break;
+        case SPINDLE_TYPE_PWM: spindle = &pwm_spindle; break;
+        case SPINDLE_TYPE_RELAY: spindle = &relay_spindle; break;
+        case SPINDLE_TYPE_LASER: spindle = &laser; break;
+        case SPINDLE_TYPE_DAC: spindle = &dac_spindle; break;
+        case SPINDLE_TYPE_HUANYANG: spindle = &huanyang_spindle; break;
+        case SPINDLE_TYPE_BESC: spindle = &besc_spindle; break;
+        case SPINDLE_TYPE_10V: spindle = &_10v_spindle; break;
+        case SPINDLE_TYPE_NONE:
+        default: spindle = &null_spindle; break;
     }
-    
+
     spindle->init();
 }
 
 // ========================= Spindle ==================================
 
 bool Spindle::isRateAdjusted() {
-    return false; // default for basic spindle is false
+    return false;  // default for basic spindle is false
 }
 
-void Spindle :: spindle_sync(uint8_t state, uint32_t rpm) {
+void Spindle ::spindle_sync(uint8_t state, uint32_t rpm) {
     if (sys.state == STATE_CHECK_MODE)
         return;
-    protocol_buffer_synchronize(); // Empty planner buffer to ensure spindle is set when programmed.
+    protocol_buffer_synchronize();  // Empty planner buffer to ensure spindle is set when programmed.
     set_state(state, rpm);
 }

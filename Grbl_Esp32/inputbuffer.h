@@ -20,45 +20,34 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-#include "Print.h"
+#include <print.h>
 #define RXBUFFERSIZE 128
-class InputBuffer: public Print {
-  public:
+class InputBuffer : public Print {
+public:
     InputBuffer();
     ~InputBuffer();
     size_t write(uint8_t c);
     size_t write(const uint8_t* buffer, size_t size);
 
-    inline size_t write(const char* s) {
-        return write((uint8_t*) s, strlen(s));
-    }
-    inline size_t write(unsigned long n) {
-        return write((uint8_t) n);
-    }
-    inline size_t write(long n) {
-        return write((uint8_t) n);
-    }
-    inline size_t write(unsigned int n) {
-        return write((uint8_t) n);
-    }
-    inline size_t write(int n) {
-        return write((uint8_t) n);
-    }
-    void begin();
-    void end();
-    int available();
-    int availableforwrite();
-    int peek(void);
-    int read(void);
-    bool push(const char* data);
-    void flush(void);
-    operator bool() const;
-  private:
-    uint8_t _RXbuffer[RXBUFFERSIZE];
+    inline size_t write(const char* s) { return write((uint8_t*)s, strlen(s)); }
+    inline size_t write(unsigned long n) { return write((uint8_t)n); }
+    inline size_t write(long n) { return write((uint8_t)n); }
+    inline size_t write(unsigned int n) { return write((uint8_t)n); }
+    inline size_t write(int n) { return write((uint8_t)n); }
+    void          begin();
+    void          end();
+    int           available();
+    int           availableforwrite();
+    int           peek(void);
+    int           read(void);
+    bool          push(const char* data);
+    void          flush(void);
+                  operator bool() const;
+
+private:
+    uint8_t  _RXbuffer[RXBUFFERSIZE];
     uint16_t _RXbufferSize;
     uint16_t _RXbufferpos;
 };
-
 
 extern InputBuffer inputBuffer;
