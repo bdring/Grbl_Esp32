@@ -101,8 +101,8 @@ static portMUX_TYPE i2s_out_spinlock = portMUX_INITIALIZER_UNLOCKED;
 static int i2s_out_initialized = 0;
 
 #    ifdef USE_I2S_OUT_STREAM
-static volatile uint32_t             i2s_out_pulse_period;
-static uint32_t                      i2s_out_remain_time_until_next_pulse;  // Time remaining until the next pulse (μsec)
+static volatile uint64_t             i2s_out_pulse_period;
+static uint64_t                      i2s_out_remain_time_until_next_pulse;  // Time remaining until the next pulse (μsec)
 static volatile i2s_out_pulse_func_t i2s_out_pulse_func;
 #    endif
 
@@ -339,10 +339,12 @@ static int IRAM_ATTR i2s_fillout_dma_buffer(lldesc_t* dma_desc) {
                 if (i2s_out_pulser_status == STEPPING) {
                     // fillout future DMA buffer (tail of the DMA buffer chains)
                     if (i2s_out_pulse_func != NULL) {
+                        uint32_t old_rw_pos = o_dma.rw_pos;
                         I2S_OUT_PULSER_EXIT_CRITICAL();   // Temporarily unlocked status lock as it may be locked in pulse callback.
                         (*i2s_out_pulse_func)();          // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT
                         I2S_OUT_PULSER_ENTER_CRITICAL();  // Lock again.
-                        i2s_out_remain_time_until_next_pulse = i2s_out_pulse_period;
+                        // Calculate pulse period. About magic number 2, refer to the st_wake_up(). (Ad hoc delay value)
+                        i2s_out_remain_time_until_next_pulse = i2s_out_pulse_period - I2S_OUT_USEC_PER_PULSE * (o_dma.rw_pos - old_rw_pos) + 2;
                         if (i2s_out_pulser_status == WAITING) {
                             // i2s_out_set_passthrough() has called from the pulse function.
                             // It needs to go into pass-through mode.
@@ -610,9 +612,10 @@ int IRAM_ATTR i2s_out_set_stepping() {
     return 0;
 }
 
-int IRAM_ATTR i2s_out_set_pulse_period(uint32_t period) {
+int IRAM_ATTR i2s_out_set_pulse_period(uint64_t period) {
 #    ifdef USE_I2S_OUT_STREAM
-    i2s_out_pulse_period = period;
+    // Use 64-bit values to avoid overflowing during the calculation.
+    i2s_out_pulse_period = period * 1000000 / F_STEPPER_TIMER;
 #    endif
     return 0;
 }
