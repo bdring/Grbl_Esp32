@@ -1176,7 +1176,7 @@ void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {
 #ifdef USE_I2S_OUT_STREAM
     // 1 tick = F_TIMERS / F_STEPPER_TIMER
     // Pulse ISR is called for each tick of alarm_val.
-    i2s_out_set_pulse_period(alarm_val / 60);
+    i2s_out_set_pulse_period(alarm_val);
 #else
     timer_set_alarm_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, alarm_val);
 #endif
