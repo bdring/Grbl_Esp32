@@ -2,4 +2,6 @@
 
 #include "Motor.h"
 
-class Nullmotor : public Motor {};
+namespace Motors {
+    class Nullmotor : public Motor {};
+}

@@ -33,29 +33,21 @@
 
 #include "Motor.h"
 
-Motor::Motor() {
-    type_id = MOTOR;
-}
+namespace Motors {
+    Motor::Motor() { type_id = MOTOR; }
 
-void Motor::init() {
-    _homing_mask = 0;
-}
+    void Motor::init() { _homing_mask = 0; }
 
-void Motor::config_message() {}
-void Motor::debug_message() {}
-void Motor::read_settings() {}
-void Motor::set_disable(bool disable) {}
-void Motor::set_direction_pins(uint8_t onMask) {}
-void Motor::step(uint8_t step_mask, uint8_t dir_mask) {}
-bool Motor::test() {
-    return true;
-};  // true = OK
-void Motor::update() {}
+    void Motor::config_message() {}
+    void Motor::debug_message() {}
+    void Motor::read_settings() {}
+    void Motor::set_disable(bool disable) {}
+    void Motor::set_direction_pins(uint8_t onMask) {}
+    void Motor::step(uint8_t step_mask, uint8_t dir_mask) {}
+    bool Motor::test() { return true; };  // true = OK
+    void Motor::update() {}
 
-void Motor::set_axis_name() {
-    sprintf(_axis_name, "%c%s", report_get_axis_letter(axis_index), dual_axis_index ? "2" : "");
-}
+    void Motor::set_axis_name() { sprintf(_axis_name, "%c%s", report_get_axis_letter(axis_index), dual_axis_index ? "2" : ""); }
 
-void Motor::set_homing_mode(uint8_t homing_mask, bool isHoming) {
-    _homing_mask = homing_mask;
+    void Motor::set_homing_mode(uint8_t homing_mask, bool isHoming) { _homing_mask = homing_mask; }
 }

@@ -58,39 +58,41 @@
 #    define TRINAMIC_TOFF_COOLSTEP 3
 #endif
 
-class TrinamicDriver : public StandardStepper {
-public:
-	TrinamicDriver(uint8_t  axis_index,
-		uint8_t  step_pin,
-		uint8_t  dir_pin,
-		uint8_t  disable_pin,
-		uint8_t  cs_pin,
-		uint16_t driver_part_number,
-		float    r_sense,
-		int8_t   spi_index);
+namespace Motors {
+    class TrinamicDriver : public StandardStepper {
+    public:
+        TrinamicDriver(uint8_t  axis_index,
+                       uint8_t  step_pin,
+                       uint8_t  dir_pin,
+                       uint8_t  disable_pin,
+                       uint8_t  cs_pin,
+                       uint16_t driver_part_number,
+                       float    r_sense,
+                       int8_t   spi_index);
 
-	void config_message();
-	void init();
-	void set_mode(bool isHoming);
-	void read_settings();
-	void trinamic_test_response();
-	void trinamic_stepper_enable(bool enable);
-	void debug_message();
-	void set_homing_mode(uint8_t homing_mask, bool ishoming);
-	void set_disable(bool disable);
-	bool test();
+        void config_message();
+        void init();
+        void set_mode(bool isHoming);
+        void read_settings();
+        void trinamic_test_response();
+        void trinamic_stepper_enable(bool enable);
+        void debug_message();
+        void set_homing_mode(uint8_t homing_mask, bool ishoming);
+        void set_disable(bool disable);
+        bool test();
 
-private:
-	uint32_t calc_tstep(float speed, float percent);
+    private:
+        uint32_t calc_tstep(float speed, float percent);
 
-	TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
-	uint8_t         _homing_mode;
-	uint8_t         cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
-	uint16_t        _driver_part_number;     // example: use 2130 for TMC2130
-	float           _r_sense;
-	int8_t          spi_index;
+        TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
+        uint8_t         _homing_mode;
+        uint8_t         cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
+        uint16_t        _driver_part_number;     // example: use 2130 for TMC2130
+        float           _r_sense;
+        int8_t          spi_index;
 
-protected:
-	uint8_t _mode;
-	uint8_t _lastMode = 255;
-};
+    protected:
+        uint8_t _mode;
+        uint8_t _lastMode = 255;
+    };
+}
