@@ -22,7 +22,7 @@ cmd = ['platformio','run']
 verbose = '-v' in sys.argv
 
 numErrors = 0
-for name in os.listdir('Grbl_Esp32/Machines'):
+for name in os.listdir('Grbl_Esp32/src/Machines'):
     exitCode = buildMachine(name, verbose=verbose)
     if exitCode != 0:
         numErrors += 1

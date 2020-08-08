@@ -27,14 +27,7 @@
         SPINDLE_DIR_PIN
 
 */
-#include "NullSpindle.cpp"
-#include "PWMSpindle.cpp"
-#include "DacSpindle.cpp"
-#include "RelaySpindle.cpp"
-#include "Laser.cpp"
-#include "HuanyangSpindle.cpp"
-#include "BESCSpindle.cpp"
-#include "10vSpindle.cpp"
+#include "SpindleClass.h"
 
 // An instance of each type of spindle is created here.
 // This allows the spindle to be dynamicly switched

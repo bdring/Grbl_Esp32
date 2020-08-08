@@ -21,6 +21,8 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "MotorClass.h"
+
 StandardStepper ::StandardStepper() {}
 
 StandardStepper ::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) {

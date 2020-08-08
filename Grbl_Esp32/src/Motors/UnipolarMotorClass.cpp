@@ -1,3 +1,5 @@
+#include "MotorClass.h"
+
 UnipolarMotor ::UnipolarMotor() {}
 
 UnipolarMotor ::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3) {

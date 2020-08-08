@@ -17,6 +17,7 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
+#include "MotorClass.h"
 #include <TMCStepper.h>
 #include "TrinamicDriverClass.h"
 

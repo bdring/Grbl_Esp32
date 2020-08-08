@@ -33,7 +33,7 @@ BuildMachine () {
 }
 
 # Build all the machines
-for file in `ls ./Grbl_Esp32/Machines/*`; do
+for file in `ls ./Grbl_Esp32/src/Machines/*`; do
     base=`basename $file`
     BuildMachine $base ""
 done

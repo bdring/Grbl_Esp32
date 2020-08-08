@@ -15,7 +15,7 @@ Function BuildMachine($names) {
 }
 
 # Build all the machines
-foreach ($filepath in Get-ChildItem -file .\Grbl_Esp32\Machines\*) {
+foreach ($filepath in Get-ChildItem -file .\Grbl_Esp32\src\Machines\*) {
     BuildMachine($filepath.name, "")
 }
 
