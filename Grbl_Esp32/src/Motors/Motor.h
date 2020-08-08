@@ -29,30 +29,9 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../grbl.h"
-#include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
+#include "Motors.h"
 
-extern uint8_t      rmt_chan_num[MAX_AXES][2];
-extern rmt_item32_t rmtItem[2];
-extern rmt_config_t rmtConfig;
-
-typedef enum { MOTOR, NULL_MOTOR, STANDARD_MOTOR, TRINAMIC_SPI_MOTOR, UNIPOLAR_MOTOR, RC_SERVO_MOTOR, SOLENOID } motor_class_id_t;
-
-// These are used for setup and to talk to the motors as a group.
-void    init_motors();
-uint8_t get_next_trinamic_driver_index();
-bool    motors_have_type_id(motor_class_id_t id);
-void    readSgTask(void* pvParameters);
-void    motors_read_settings();
-void    motors_set_homing_mode(uint8_t homing_mask, bool isHoming);
-void    motors_set_disable(bool disable);
-void    motors_set_direction_pins(uint8_t onMask);
-void    motors_step(uint8_t step_mask, uint8_t dir_mask);
-void    servoUpdateTask(void* pvParameters);
-
-extern bool motor_class_steps;  // true if at least one motor class is handling steps
-
-// ==================== Motor Classes ====================
+#include <cstdint>
 
 class Motor {
 public:
