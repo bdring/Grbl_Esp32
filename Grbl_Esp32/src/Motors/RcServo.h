@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-    RcServoClass.h
+    RcServo.h
     
     Part of Grbl_ESP32
 

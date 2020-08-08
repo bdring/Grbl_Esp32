@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-    TrinamicDriverClass.h
+    TrinamicDriver.h
     
     Part of Grbl_ESP32
 
