@@ -19,6 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #define MACHINE_NAME            "ESP32 I2S XXYYZZ Axis Driver Board (StepStick)"
 
 #ifdef N_AXIS
@@ -57,8 +58,6 @@
 #define STEPPER_C_MS3           I2SO(22)  // C_CS
 
 #define STEPPER_RESET           GPIO_NUM_19
-
-#define USE_GANGED_AXES // allow two motors on an axis
 
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)
