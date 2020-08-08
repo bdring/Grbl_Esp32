@@ -39,21 +39,17 @@ typedef struct {
 } client_line_t;
 client_line_t client_lines[CLIENT_COUNT];
 
-static void empty_line(uint8_t client)
-{
+static void empty_line(uint8_t client) {
     client_line_t* cl = &client_lines[client];
     cl->len = 0;
     cl->buffer[0] = '\0';
 }
 static void empty_lines() {
-    for (uint8_t client = 0; client < CLIENT_COUNT; client++) {
+    for (uint8_t client = 0; client < CLIENT_COUNT; client++)
         empty_line(client);
-    }
 }
 
-
-err_t add_char_to_line(char c, uint8_t client)
-{
+err_t add_char_to_line(char c, uint8_t client) {
     client_line_t* cl = &client_lines[client];
     // Simple editing for interactive input
     if (c == '\b') {
@@ -64,9 +60,8 @@ err_t add_char_to_line(char c, uint8_t client)
         }
         return STATUS_OK;
     }
-    if (cl->len == (LINE_BUFFER_SIZE - 1)) {
+    if (cl->len == (LINE_BUFFER_SIZE - 1))
         return STATUS_OVERFLOW;
-    }
     if (c == '\r' || c == '\n') {
         cl->len = 0;
         cl->line_number++;
@@ -77,21 +72,17 @@ err_t add_char_to_line(char c, uint8_t client)
     return STATUS_OK;
 }
 
-err_t execute_line(char* line, uint8_t client, auth_t auth_level)
-{
+err_t execute_line(char* line, uint8_t client, auth_t auth_level) {
     err_t result = STATUS_OK;
     // Empty or comment line. For syncing purposes.
-    if (line[0] == 0) {
+    if (line[0] == 0)
         return STATUS_OK;
-    }
     // Grbl '$' or WebUI '[ESPxxx]' system command
-    if (line[0] == '$' || line[0] == '[') {
+    if (line[0] == '$' || line[0] == '[')
         return system_execute_line(line, client, auth_level);
-    }
     // Everything else is gcode. Block if in alarm or jog mode.
-    if (sys.state & (STATE_ALARM | STATE_JOG)) {
+    if (sys.state & (STATE_ALARM | STATE_JOG))
         return STATUS_SYSTEM_GC_LOCK;
-    }
     return gc_execute_line(line, client);
 }
 
@@ -99,7 +90,7 @@ err_t execute_line(char* line, uint8_t client, auth_t auth_level)
   GRBL PRIMARY LOOP:
 */
 void protocol_main_loop() {
-    empty_client_buffers();
+    serial_reset_read_buffer(CLIENT_ALL);
     empty_lines();
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
@@ -156,25 +147,25 @@ void protocol_main_loop() {
             while ((c = serial_read(client)) != SERIAL_NO_DATA) {
                 err_t res = add_char_to_line(c, client);
                 switch (res) {
-                    case STATUS_OK:
-                        break;
-                    case STATUS_EOL:
-                        protocol_execute_realtime(); // Runtime command check point.
-                        if (sys.abort) {
-                            return;   // Bail to calling function upon system abort
-                        }
-                        line = client_lines[client].buffer;
+                case STATUS_OK:
+                    break;
+                case STATUS_EOL:
+                    protocol_execute_realtime(); // Runtime command check point.
+                    if (sys.abort) {
+                        return;   // Bail to calling function upon system abort
+                    }
+                    line = client_lines[client].buffer;
 #ifdef REPORT_ECHO_RAW_LINE_RECEIVED
-                        report_echo_line_received(line, client);
+                    report_echo_line_received(line, client);
 #endif
-                        // auth_level can be upgraded by supplying a password on the command line
-                        report_status_message(execute_line(line, client, LEVEL_GUEST), client);
-                        empty_line(client);
-                        break;
-                    case STATUS_OVERFLOW:
-                        report_status_message(STATUS_OVERFLOW, client);
-                        empty_line(client);
-                        break;
+                    // auth_level can be upgraded by supplying a password on the command line
+                    report_status_message(execute_line(line, client, LEVEL_GUEST), client);
+                    empty_line(client);
+                    break;
+                case STATUS_OVERFLOW:
+                    report_status_message(STATUS_OVERFLOW, client);
+                    empty_line(client);
+                    break;
                 }
             } // while serial read
         } // for clients
@@ -188,9 +179,8 @@ void protocol_main_loop() {
         }
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
         if (stepper_idle) {
-            if (esp_timer_get_time() > stepper_idle_counter) {
+            if (esp_timer_get_time() > stepper_idle_counter)
                 motors_set_disable(true);
-            }
         }
     }
     return; /* Never reached */
@@ -456,6 +446,9 @@ void protocol_exec_rt_system() {
             bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
             sys.spindle_speed_ovr = last_s_override;
             sys.report_ovr_counter = 0; // Set to report change immediately
+            // If spinlde is on, tell it the rpm has been overridden
+            if (gc_state.modal.spindle != SPINDLE_DISABLE)
+                spindle->set_rpm(gc_state.spindle_speed);
         }
         if (rt_exec & EXEC_SPINDLE_OVR_STOP) {
             // Spindle stop override allowed only while in HOLD state.
@@ -564,13 +557,13 @@ static void protocol_exec_rt_suspend() {
                     // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
                     if (homing_enable->get() &&
-                        (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
-                        laser_mode->get() &&
-                        (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
-#else
-                        if (homing_enable->get() &&
                             (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
-                            laser_mode->get()) {
+                            !laser_mode->get() &&
+                            (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
+#else
+                    if (homing_enable->get() &&
+                            (parking_target[PARKING_AXIS] < PARKING_TARGET) &&
+                            !laser_mode->get()) {
 #endif
                         // Retract spindle by pullout distance. Ensure retraction motion moves away from
                         // the workpiece and waypoint motion doesn't exceed the parking target location.
@@ -584,9 +577,9 @@ static void protocol_exec_rt_suspend() {
                         // NOTE: Clear accessory state after retract and after an aborted restore motion.
                         pl_data->condition = (PL_COND_FLAG_SYSTEM_MOTION | PL_COND_FLAG_NO_FEED_OVERRIDE);
                         pl_data->spindle_speed = 0.0;
-                        spindle->set_state((SPINDLE_DISABLE, 0); // De-energize
-                                              coolant_set_state(COOLANT_DISABLE); // De-energize
-                                              // Execute fast parking retract motion to parking target location.
+                        spindle->set_state(SPINDLE_DISABLE, 0); // De-energize
+                                           coolant_set_state(COOLANT_DISABLE); // De-energize
+                                           // Execute fast parking retract motion to parking target location.
                         if (parking_target[PARKING_AXIS] < PARKING_TARGET) {
                         parking_target[PARKING_AXIS] = PARKING_TARGET;
                             pl_data->feed_rate = PARKING_RATE;
@@ -595,9 +588,9 @@ static void protocol_exec_rt_suspend() {
                     } else {
                         // Parking motion not possible. Just disable the spindle and coolant.
                         // NOTE: Laser mode does not start a parking motion to ensure the laser stops immediately.
-                        ->set_state((SPINDLE_DISABLE, 0.0); // De-energize
-                            coolant_set_state(COOLANT_DISABLE);     // De-energize
-                        }
+                        spindle->set_state(SPINDLE_DISABLE, 0); // De-energize
+                        coolant_set_state(COOLANT_DISABLE);     // De-energize
+                    }
 #endif
                     sys.suspend &= ~(SUSPEND_RESTART_RETRACT);
                     sys.suspend |= SUSPEND_RETRACT_COMPLETE;
@@ -624,7 +617,7 @@ static void protocol_exec_rt_suspend() {
                         // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
                         if (homing_enable->get() && !laser_mode->get()) &&
-                                (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
+                            (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
                         if (homing_enable->get() && !laser_mode->get()) {
 #endif
@@ -638,8 +631,8 @@ static void protocol_exec_rt_suspend() {
 #endif
                         // Delayed Tasks: Restart spindle and coolant, delay to power-up, then resume cycle.
                         if (gc_state.modal.spindle != SPINDLE_DISABLE) {
-                            // Block if safety door re-opened during prior restore actions.
-                            if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
+                        // Block if safety door re-opened during prior restore actions.
+                        if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
                                 if (laser_mode->get()) {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                     bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
@@ -650,8 +643,8 @@ static void protocol_exec_rt_suspend() {
                             }
                         }
                         if (gc_state.modal.coolant != COOLANT_DISABLE) {
-                            // Block if safety door re-opened during prior restore actions.
-                            if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
+                        // Block if safety door re-opened during prior restore actions.
+                        if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.
                                 coolant_set_state((restore_condition & (PL_COND_FLAG_COOLANT_FLOOD | PL_COND_FLAG_COOLANT_FLOOD)));
                                 delay_sec(SAFETY_DOOR_COOLANT_DELAY, DELAY_MODE_SYS_SUSPEND);
@@ -661,7 +654,7 @@ static void protocol_exec_rt_suspend() {
                         // Execute slow plunge motion from pull-out position to resume position.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
                         if (homing_enable->get() && !laser_mode->get()) &&
-                                (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
+                            (sys.override_ctrl == OVERRIDE_PARKING_MOTION)) {
 #else
                         if (homing_enable->get() && !laser_mode->get()) {
 #endif
@@ -678,8 +671,8 @@ static void protocol_exec_rt_suspend() {
                         }
 #endif
                         if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
-                            sys.suspend |= SUSPEND_RESTORE_COMPLETE;
-                            system_set_exec_state_flag(EXEC_CYCLE_START); // Set to resume program.
+                        sys.suspend |= SUSPEND_RESTORE_COMPLETE;
+                        system_set_exec_state_flag(EXEC_CYCLE_START); // Set to resume program.
                         }
                     }
                 }
