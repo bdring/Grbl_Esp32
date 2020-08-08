@@ -51,3 +51,10 @@ extern IntSetting* spindle_pwm_bit_precision;
 extern EnumSetting* spindle_type;
 
 extern AxisMaskSetting* stallguard_debug_mask;
+//Plasma Torch Height Control Settings
+extern FlagSetting* thc_debug_setting;
+extern FloatSetting* thc_voltage_setting;
+extern IntSetting* thc_debugprint_millis;
+extern IntSetting* thc_arc_delay_time;
+extern FloatSetting* thc_voltage_filter_value;
+extern IntSetting* thc_iter_freq;

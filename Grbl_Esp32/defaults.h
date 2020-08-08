@@ -114,6 +114,32 @@
         #define DEFAULT_HOMING_PULLOFF 1.0 // $27 mm
     #endif
 
+    // =========== THC Stuff ===================
+	#ifndef  DEFAULT_THC_DEBUG
+        #define DEFAULT_THC_DEBUG 0 //Boolean//If true this will print torch height debug information out
+    #endif
+	
+	#ifndef  DEFAULT_THC_TARGET_VOLTAGE
+        #define DEFAULT_THC_TARGET_VOLTAGE 0 //Volts// default target voltage (a real value would be 100 volts)
+    #endif
+	
+	#ifndef  DEFAULT_THC_DEBUG_PRINT_MILLIS
+        #define DEFAULT_THC_DEBUG_PRINT_MILLIS 1000 //milliseconds// debug print time in milliseconds
+    #endif
+	
+    #ifndef  DEFAULT_THC_ARC_DELAY_TIME
+        #define DEFAULT_THC_ARC_DELAY_TIME 250 //milliseconds// Time for Arc to Start before running THC
+    #endif
+	
+    #ifndef  DEFAULT_THC_VOLTAGE_FILTER_VALUE
+        #define DEFAULT_THC_VOLTAGE_FILTER_VALUE 0.5 //ND// Torch Voltage Filter Time Constant,a higher value represents more ...
+        //...filtering on the volatage signal
+    #endif	
+	
+	  #ifndef  DEFAULT_THC_ITER_FREQ
+        #define DEFAULT_THC_ITER_FREQ 20 //milliseconds// Torch Height Control Time Between Calls, this will directly effect ...
+		// ... the rate at which the Z axis moves, the machine must be restarted after changing this
+    #endif	
     // ======== SPINDLE STUFF ====================
     #ifndef SPINDLE_TYPE
         #define SPINDLE_TYPE SPINDLE_TYPE_NONE

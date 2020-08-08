@@ -49,6 +49,7 @@ IntSetting* spindle_pwm_bit_precision;
 
 EnumSetting* spindle_type;
 
+
 enum_opt_t spindleTypes = {
     { "NONE", SPINDLE_TYPE_NONE, },
     { "PWM", SPINDLE_TYPE_PWM, },
@@ -59,6 +60,13 @@ enum_opt_t spindleTypes = {
     { "BESC", SPINDLE_TYPE_BESC, },
     { "10V", SPINDLE_TYPE_10V, },
 };
+//Torch Height Control Settings
+FlagSetting* thc_debug_setting;
+FloatSetting* thc_voltage_setting;
+IntSetting* thc_debugprint_millis;
+IntSetting* thc_arc_delay_time;
+FloatSetting* thc_voltage_filter_value;
+IntSetting* thc_iter_freq;
 
 AxisSettings* x_axis_settings;
 AxisSettings* y_axis_settings;
@@ -317,4 +325,11 @@ void make_settings() {
     pulse_microseconds = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_type = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", SPINDLE_TYPE, &spindleTypes);
     stallguard_debug_mask = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
+	//Register THC Settings
+    thc_debug_setting = new FlagSetting(EXTENDED, WG, "300", "THCDebug(0/1)", DEFAULT_THC_DEBUG);
+    thc_debugprint_millis = new IntSetting(EXTENDED, WG, "301", "THCDebugPrintTime(ms)", DEFAULT_THC_DEBUG_PRINT_MILLIS, 500, 10000);
+    thc_voltage_setting = new FloatSetting(EXTENDED, WG, "302", "THCVoltageTarget(volts)", DEFAULT_THC_TARGET_VOLTAGE, 0, 200);
+    thc_arc_delay_time = new IntSetting(EXTENDED, WG, "303", "THCArcOnDelayTime(ms)", DEFAULT_THC_ARC_DELAY_TIME, 0, 1000);
+    thc_voltage_filter_value = new FloatSetting(EXTENDED, WG, "304", "THCVoltageFilterTc", DEFAULT_THC_VOLTAGE_FILTER_VALUE, 0.0, 0.999);
+    thc_iter_freq = new IntSetting(EXTENDED, WG, "305", "THCIterFreq(ms)", DEFAULT_THC_ITER_FREQ, 1, 1000);
 }

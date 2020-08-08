@@ -79,7 +79,7 @@ Some features should not be changed. See notes below.
 #define ENABLE_CONTROL_SW_DEBOUNCE // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
 
-#define USE_RMT_STEPS
+//#define USE_RMT_STEPS
 
 // Include the file that loads the machine-specific config file.
 // machine.h must be edited to choose the desired file.
@@ -319,7 +319,7 @@ Some features should not be changed. See notes below.
 
 // Inverts the spindle enable pin from low-disabled/high-enabled to low-enabled/high-disabled. Useful
 // for some pre-built electronic boards.
-// #define INVERT_SPINDLE_ENABLE_PIN // Default disabled. Uncomment to enable.
+ #define INVERT_SPINDLE_ENABLE_PIN // Default disabled. Uncomment to enable.
 
 // Inverts the spindle PWM output pin from low-disabled/high-enabled to low-enabled/high-disabled.
 // #define INVERT_SPINDLE_OUTPUT_PIN // Default disabled. Uncomment to enable.
