@@ -45,6 +45,8 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "MotorClass.h"
+
 RcServo ::RcServo() {}
 
 RcServo ::RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max) {
