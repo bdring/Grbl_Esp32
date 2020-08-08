@@ -42,9 +42,6 @@
 // The hardware enable pin is tied to ground
 #define USE_TRINAMIC_ENABLE
 
-// allow two motors on an axis
-#define USE_GANGED_AXES
-
 // Y motor connects to the 1st driver
 #define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
