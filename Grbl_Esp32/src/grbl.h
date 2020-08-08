@@ -57,7 +57,7 @@
 #include "serial.h"
 #include "Pins.h"
 #include "Spindles/SpindleClass.h"
-#include "Motors/MotorClass.h"
+#include "Motors/Motor.h"
 #include "stepper.h"
 #include "jog.h"
 #include "inputbuffer.h"

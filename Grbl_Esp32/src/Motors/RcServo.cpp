@@ -45,11 +45,11 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "MotorClass.h"
+#include "RcServo.h"
 
-RcServo ::RcServo() {}
+RcServo::RcServo() {}
 
-RcServo ::RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max) {
+RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max) {
     type_id               = RC_SERVO_MOTOR;
     this->axis_index      = axis_index % MAX_AXES;
     this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
@@ -59,7 +59,7 @@ RcServo ::RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max) {
     init();
 }
 
-void RcServo ::init() {
+void RcServo::init() {
     read_settings();
     _channel_num = sys_get_next_PWM_chan_num();
     ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
@@ -70,7 +70,7 @@ void RcServo ::init() {
     config_message();
 }
 
-void RcServo ::config_message() {
+void RcServo::config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "%s Axis RC Servo motor Output:%d Min:%5.3fmm Max:%5.3fmm",

@@ -17,11 +17,11 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "MotorClass.h"
-#include <TMCStepper.h>
-#include "TrinamicDriverClass.h"
+#include "TrinamicDriver.h"
 
-TrinamicDriver ::TrinamicDriver(uint8_t  axis_index,
+#include <TMCStepper.h>
+
+TrinamicDriver::TrinamicDriver(uint8_t  axis_index,
                                 uint8_t  step_pin,
                                 uint8_t  dir_pin,
                                 uint8_t  disable_pin,
@@ -68,7 +68,7 @@ TrinamicDriver ::TrinamicDriver(uint8_t  axis_index,
     // init() must be called later, after all TMC drivers have CS pins setup.
 }
 
-void TrinamicDriver ::init() {
+void TrinamicDriver::init() {
     SPI.begin();  // this will get called for each motor, but does not seem to hurt anything
 
     tmcstepper->begin();
@@ -83,7 +83,7 @@ void TrinamicDriver ::init() {
 /*
     This is the startup message showing the basic definition
 */
-void TrinamicDriver ::config_message() {
+void TrinamicDriver::config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "%s Axis Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d",
@@ -96,7 +96,7 @@ void TrinamicDriver ::config_message() {
                    spi_index);
 }
 
-bool TrinamicDriver ::test() {
+bool TrinamicDriver::test() {
     switch (tmcstepper->test_connection()) {
         case 1: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection", _axis_name); return false;
         case 2:
@@ -112,7 +112,7 @@ bool TrinamicDriver ::test() {
     uint16_t run (mA)
     float hold (as a percentage of run)
 */
-void TrinamicDriver ::read_settings() {
+void TrinamicDriver::read_settings() {
     uint16_t run_i_ma = (uint16_t)(axis_settings[axis_index]->run_current->get() * 1000.0);
     float    hold_i_percent;
 
@@ -129,7 +129,7 @@ void TrinamicDriver ::read_settings() {
     tmcstepper->rms_current(run_i_ma, hold_i_percent);
 }
 
-void TrinamicDriver ::set_homing_mode(uint8_t homing_mask, bool isHoming) {
+void TrinamicDriver::set_homing_mode(uint8_t homing_mask, bool isHoming) {
     _homing_mask = homing_mask;
     set_mode(isHoming);
 }
@@ -139,7 +139,7 @@ void TrinamicDriver ::set_homing_mode(uint8_t homing_mask, bool isHoming) {
     Many people will want quiet and stallgaurd homing. Stallguard only run in
     Coolstep mode, so it will need to switch to Coolstep when homing
 */
-void TrinamicDriver ::set_mode(bool isHoming) {
+void TrinamicDriver::set_mode(bool isHoming) {
     if (isHoming)
         _mode = TRINAMIC_HOMING_MODE;
     else
@@ -180,7 +180,7 @@ void TrinamicDriver ::set_mode(bool isHoming) {
 /*
     This is the stallguard tuning info. It is call debug, so it could be generic across all classes.
 */
-void TrinamicDriver ::debug_message() {
+void TrinamicDriver::debug_message() {
     uint32_t tstep = tmcstepper->TSTEP();
 
     if (tstep == 0xFFFFF || tstep < 1)  // if axis is not moving return
@@ -201,7 +201,7 @@ void TrinamicDriver ::debug_message() {
 // tstep = TRINAMIC_FCLK / (time between 1/256 steps)
 // This is used to set the stallguard window from the homing speed.
 // The percent is the offset on the window
-uint32_t TrinamicDriver ::calc_tstep(float speed, float percent) {
+uint32_t TrinamicDriver::calc_tstep(float speed, float percent) {
     float tstep = speed / 60.0 * axis_settings[axis_index]->steps_per_mm->get() * (float)(256 / axis_settings[axis_index]->microsteps->get());
     tstep       = TRINAMIC_FCLK / tstep * percent / 100.0;
 
@@ -210,7 +210,7 @@ uint32_t TrinamicDriver ::calc_tstep(float speed, float percent) {
 
 // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,
 // but that can be hardwired that way.
-void TrinamicDriver ::set_disable(bool disable) {
+void TrinamicDriver::set_disable(bool disable) {
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis disable %d", _axis_name, disable);
 
     digitalWrite(disable_pin, disable);

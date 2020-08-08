@@ -21,11 +21,11 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "MotorClass.h"
+#include "StandardStepper.h"
 
-StandardStepper ::StandardStepper() {}
+StandardStepper::StandardStepper() {}
 
-StandardStepper ::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) {
+StandardStepper::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) {
     type_id               = STANDARD_MOTOR;
     this->axis_index      = axis_index % MAX_AXES;
     this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
@@ -35,7 +35,7 @@ StandardStepper ::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t 
     init();
 }
 
-void StandardStepper ::init() {
+void StandardStepper::init() {
     _homing_mask = 0;
     is_active    = true;  // as opposed to NullMotors, this is a real motor
     set_axis_name();
@@ -43,7 +43,7 @@ void StandardStepper ::init() {
     config_message();
 }
 
-void StandardStepper ::init_step_dir_pins() {
+void StandardStepper::init_step_dir_pins() {
     // TODO Step pin, but RMT complicates things
     _invert_step_pin = bit_istrue(step_invert_mask->get(), bit(axis_index));
     pinMode(dir_pin, OUTPUT);
@@ -86,7 +86,7 @@ void StandardStepper ::init_step_dir_pins() {
     pinMode(disable_pin, OUTPUT);
 }
 
-void StandardStepper ::config_message() {
+void StandardStepper::config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "%s Axis standard stepper motor Step:%s Dir:%s Disable:%s",
@@ -96,10 +96,10 @@ void StandardStepper ::config_message() {
                    pinName(disable_pin).c_str());
 }
 
-void StandardStepper ::set_direction_pins(uint8_t onMask) {
+void StandardStepper::set_direction_pins(uint8_t onMask) {
     digitalWrite(dir_pin, (onMask & bit(axis_index)));
 }
 
-void StandardStepper ::set_disable(bool disable) {
+void StandardStepper::set_disable(bool disable) {
     digitalWrite(disable_pin, disable);
 }

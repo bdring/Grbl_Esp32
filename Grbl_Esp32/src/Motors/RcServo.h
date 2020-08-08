@@ -19,6 +19,8 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Motor.h"
+
 // this is the pulse range of a the servo. Typical servos are 0.001 to 0.002 seconds
 // some servos have a wider range. You can adjust this here or in the calibration feature
 #define SERVO_MIN_PULSE_SEC 0.001  // min pulse in seconds
@@ -43,3 +45,33 @@
 #define SERVO_CAL_MAX 180.0  // Percent: the maximum allowable calibration value
 
 #define SERVO_TIMER_INT_FREQ 50.0  // Hz This is the task frequency
+
+
+class RcServo : public Motor {
+public:
+	RcServo();
+	RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max);
+	virtual void config_message();
+	virtual void init();
+	void         _write_pwm(uint32_t duty);
+	virtual void set_disable(bool disable);
+	virtual void update();
+	void         read_settings();
+	void         set_homing_mode(bool is_homing, bool isHoming);
+
+protected:
+	void set_location();
+	void _get_calibration();
+
+	uint8_t  _pwm_pin;
+	uint8_t  _channel_num;
+	uint32_t _current_pwm_duty;
+	bool     _disabled;
+
+	float _position_min;
+	float _position_max;  // position in millimeters
+	float _homing_position;
+
+	float _pwm_pulse_min;
+	float _pwm_pulse_max;
+};

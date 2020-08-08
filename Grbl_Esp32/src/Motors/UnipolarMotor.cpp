@@ -1,8 +1,8 @@
-#include "MotorClass.h"
+#include "UnipolarMotor.h"
 
-UnipolarMotor ::UnipolarMotor() {}
+UnipolarMotor::UnipolarMotor() {}
 
-UnipolarMotor ::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3) {
+UnipolarMotor::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3) {
     type_id               = UNIPOLAR_MOTOR;
     this->axis_index      = axis_index % MAX_AXES;
     this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
@@ -18,7 +18,7 @@ UnipolarMotor ::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pi
     config_message();
 }
 
-void UnipolarMotor ::init() {
+void UnipolarMotor::init() {
     pinMode(_pin_phase0, OUTPUT);
     pinMode(_pin_phase1, OUTPUT);
     pinMode(_pin_phase2, OUTPUT);
@@ -26,7 +26,7 @@ void UnipolarMotor ::init() {
     _current_phase = 0;
 }
 
-void UnipolarMotor ::config_message() {
+void UnipolarMotor::config_message() {
     grbl_msg_sendf(CLIENT_SERIAL,
                    MSG_LEVEL_INFO,
                    "%s Axis unipolar stepper motor Ph0:%s Ph1:%s Ph2:%s Ph3:%s",
@@ -37,7 +37,7 @@ void UnipolarMotor ::config_message() {
                    pinName(_pin_phase3).c_str());
 }
 
-void UnipolarMotor ::set_disable(bool disable) {
+void UnipolarMotor::set_disable(bool disable) {
     if (disable) {
         digitalWrite(_pin_phase0, 0);
         digitalWrite(_pin_phase1, 0);
