@@ -53,7 +53,7 @@
 
 */
 
-#include "Motors/RcServoClass.h"
+#include "Motors/RcServoSettings.h"
 
 #define SERVO_HOMING_OFF 0     // servo is off during homing
 #define SERVO_HOMING_TARGET 1  // servo is send to a location during homing
