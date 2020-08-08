@@ -31,8 +31,6 @@
 
 #define MACHINE_NAME "MPCNC_V1P2"
 
-#define USE_GANGED_AXES // allow two motors on an axis
-
 #define X_STEP_PIN      GPIO_NUM_12
 #define X2_STEP_PIN     GPIO_NUM_22      // ganged motor
 #define X_AXIS_SQUARING

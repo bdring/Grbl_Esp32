@@ -22,11 +22,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #define MACHINE_NAME "LOWRIDER_V1P2"
-
-#define USE_GANGED_AXES // allow two motors on an axis
 
 #define X_STEP_PIN          GPIO_NUM_27     // use Z labeled connector
 #define X_DIRECTION_PIN     GPIO_NUM_33     // use Z labeled connector
