@@ -24,6 +24,8 @@
 
 #include "grbl.h"
 
+#include "servo_axis.h"
+
 #ifdef USE_SERVO_AXES
 
 static TaskHandle_t servosSyncTaskHandle = 0;
