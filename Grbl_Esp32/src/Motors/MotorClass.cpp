@@ -32,11 +32,7 @@
 */
 
 #include "../grbl.h"
-#include "TrinamicDriverClass.cpp"
-#include "StandardStepperClass.cpp"
-#include "UnipolarMotorClass.cpp"
-#include "RcServoClass.cpp"
-//#include "SolenoidClass.cpp"
+#include "MotorClass.h"
 
 Motor*              myMotor[MAX_AXES][MAX_GANGED];  // number of axes (normal and ganged)
 static TaskHandle_t readSgTaskHandle      = 0;      // for realtime stallguard data diaplay
