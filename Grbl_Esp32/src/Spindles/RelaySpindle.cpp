@@ -19,51 +19,54 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "SpindleClass.h"
+#include "RelaySpindle.h"
 
 // ========================= RelaySpindle ==================================
-/*
+
+namespace Spindles {
+    /*
     This is a sub class of PWMSpindle but is a digital rather than PWM output
 */
-void RelaySpindle::init() {
-    get_pins_and_settings();
+    void RelaySpindle::init() {
+        get_pins_and_settings();
 
-    if (_output_pin == UNDEFINED_PIN)
-        return;
+        if (_output_pin == UNDEFINED_PIN)
+            return;
 
-    pinMode(_output_pin, OUTPUT);
-    pinMode(_enable_pin, OUTPUT);
-    pinMode(_direction_pin, OUTPUT);
+        pinMode(_output_pin, OUTPUT);
+        pinMode(_enable_pin, OUTPUT);
+        pinMode(_direction_pin, OUTPUT);
 
-    is_reversable = (_direction_pin != UNDEFINED_PIN);
-    use_delays    = true;
+        is_reversable = (_direction_pin != UNDEFINED_PIN);
+        use_delays    = true;
 
-    config_message();
-}
+        config_message();
+    }
 
-// prints the startup message of the spindle config
-void RelaySpindle ::config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL,
-                   MSG_LEVEL_INFO,
-                   "Relay spindle Output:%s, Enbl:%s, Dir:%s",
-                   pinName(_output_pin).c_str(),
-                   pinName(_enable_pin).c_str(),
-                   pinName(_direction_pin).c_str());
-}
+    // prints the startup message of the spindle config
+    void RelaySpindle ::config_message() {
+        grbl_msg_sendf(CLIENT_SERIAL,
+                       MSG_LEVEL_INFO,
+                       "Relay spindle Output:%s, Enbl:%s, Dir:%s",
+                       pinName(_output_pin).c_str(),
+                       pinName(_enable_pin).c_str(),
+                       pinName(_direction_pin).c_str());
+    }
 
-uint32_t RelaySpindle::set_rpm(uint32_t rpm) {
-    if (_output_pin == UNDEFINED_PIN)
+    uint32_t RelaySpindle::set_rpm(uint32_t rpm) {
+        if (_output_pin == UNDEFINED_PIN)
+            return rpm;
+
+        sys.spindle_speed = rpm;
+        set_output(rpm != 0);
+
         return rpm;
+    }
 
-    sys.spindle_speed = rpm;
-    set_output(rpm != 0);
-
-    return rpm;
-}
-
-void RelaySpindle::set_output(uint32_t duty) {
+    void RelaySpindle::set_output(uint32_t duty) {
 #ifdef INVERT_SPINDLE_PWM
-    duty = (duty == 0);  // flip duty
+        duty = (duty == 0);  // flip duty
 #endif
-    digitalWrite(_output_pin, duty > 0);  // anything greater
+        digitalWrite(_output_pin, duty > 0);  // anything greater
+    }
 }

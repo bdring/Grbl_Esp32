@@ -56,7 +56,7 @@
 #include "report.h"
 #include "serial.h"
 #include "Pins.h"
-#include "Spindles/SpindleClass.h"
+#include "Spindles/Spindle.h"
 #include "Motors/Motors.h"
 #include "stepper.h"
 #include "jog.h"

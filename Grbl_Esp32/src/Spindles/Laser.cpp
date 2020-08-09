@@ -19,22 +19,24 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "SpindleClass.h"
+#include "Laser.h"
 
 // ===================================== Laser ==============================================
 
-bool Laser ::isRateAdjusted() {
-    return true;  // can use M4 (CCW) laser mode.
-}
+namespace Spindles {
+    bool Laser::isRateAdjusted() {
+        return true;  // can use M4 (CCW) laser mode.
+    }
 
-void Laser ::config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL,
-                   MSG_LEVEL_INFO,
-                   "Laser spindle on Pin:%s, Freq:%.2fHz, Res:%dbits Laser mode:$32=%d",
-                   pinName(_output_pin).c_str(),
-                   _pwm_freq,
-                   _pwm_precision,
-                   isRateAdjusted());  // the current mode
+    void Laser::config_message() {
+        grbl_msg_sendf(CLIENT_SERIAL,
+                       MSG_LEVEL_INFO,
+                       "Laser spindle on Pin:%s, Freq:%.2fHz, Res:%dbits Laser mode:$32=%d",
+                       pinName(_output_pin).c_str(),
+                       _pwm_freq,
+                       _pwm_precision,
+                       isRateAdjusted());  // the current mode
 
-    use_delays = false;  // this will override the value set in PWMSpindle intit()
+        use_delays = false;  // this will override the value set in PWMSpindle intit()
+    }
 }
