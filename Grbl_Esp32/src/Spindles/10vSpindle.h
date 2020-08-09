@@ -52,7 +52,7 @@ namespace Spindles {
         uint8_t _reverse_pin;
 
     protected:
-        void set_enable_pin(bool enable_pin);
-        void set_spindle_dir_pin(bool Clockwise);
+        void set_enable_pin(bool enable_pin) override;
+        void set_spindle_dir_pin(bool Clockwise) override;
     };
 }

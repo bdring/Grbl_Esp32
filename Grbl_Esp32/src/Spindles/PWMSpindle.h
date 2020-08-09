@@ -43,9 +43,6 @@ namespace Spindles {
 
         virtual ~PWMSpindle() {}
 
-    private:
-        void set_spindle_dir_pin(bool Clockwise);
-
     protected:
         int32_t  _current_pwm_duty;
         uint32_t _min_rpm;
@@ -65,8 +62,10 @@ namespace Spindles {
         bool     _invert_pwm;
         //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
+        virtual void set_spindle_dir_pin(bool Clockwise);
         virtual void set_output(uint32_t duty);
-        void         set_enable_pin(bool enable_pin);
+        virtual void set_enable_pin(bool enable_pin);
+
         void         get_pins_and_settings();
         uint8_t      calc_pwm_precision(uint32_t freq);
     };
