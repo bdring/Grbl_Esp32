@@ -31,13 +31,13 @@
 namespace Spindles {
     class _10vSpindle : public PWMSpindle {
     public:
-		_10vSpindle() = default;
+        _10vSpindle() = default;
 
-		_10vSpindle(const _10vSpindle&) = delete;
-		_10vSpindle(_10vSpindle&&) = delete;
-		_10vSpindle& operator=(const _10vSpindle&) = delete;
-		_10vSpindle& operator=(_10vSpindle&&) = delete;
-		
+        _10vSpindle(const _10vSpindle&) = delete;
+        _10vSpindle(_10vSpindle&&)      = delete;
+        _10vSpindle& operator=(const _10vSpindle&) = delete;
+        _10vSpindle& operator=(_10vSpindle&&) = delete;
+
         void     init() override;
         void     config_message() override;
         uint32_t set_rpm(uint32_t rpm) override;
@@ -46,10 +46,10 @@ namespace Spindles {
         uint8_t get_state() override;
         void    stop() override;
 
-		virtual ~_10vSpindle() {}
+        virtual ~_10vSpindle() {}
 
-		uint8_t  _forward_pin;
-		uint8_t  _reverse_pin;
+        uint8_t _forward_pin;
+        uint8_t _reverse_pin;
 
     protected:
         void set_enable_pin(bool enable_pin);

@@ -39,10 +39,10 @@ namespace Spindles {
     public:
         HuanyangSpindle() : _task_running(false) {}
 
-		HuanyangSpindle(const HuanyangSpindle&) = delete;
-		HuanyangSpindle(HuanyangSpindle&&) = delete;
-		HuanyangSpindle& operator=(const HuanyangSpindle&) = delete;
-		HuanyangSpindle& operator=(HuanyangSpindle&&) = delete;
+        HuanyangSpindle(const HuanyangSpindle&) = delete;
+        HuanyangSpindle(HuanyangSpindle&&)      = delete;
+        HuanyangSpindle& operator=(const HuanyangSpindle&) = delete;
+        HuanyangSpindle& operator=(HuanyangSpindle&&) = delete;
 
         void        init();
         void        config_message();

@@ -50,23 +50,23 @@ namespace Spindles {
     // This is the base class. Do not use this as your spindle
     class Spindle {
     public:
-		Spindle() = default;
-		
-		Spindle(const Spindle&) = delete;
-		Spindle(Spindle&&) = delete;
-		Spindle& operator=(const Spindle&) = delete;
-		Spindle& operator=(Spindle&&) = delete;
+        Spindle() = default;
 
-        virtual void     init() = 0;  // not in constructor because this also gets called when $$ settings change
+        Spindle(const Spindle&) = delete;
+        Spindle(Spindle&&)      = delete;
+        Spindle& operator=(const Spindle&) = delete;
+        Spindle& operator=(Spindle&&) = delete;
+
+        virtual void     init()                = 0;  // not in constructor because this also gets called when $$ settings change
         virtual uint32_t set_rpm(uint32_t rpm) = 0;
         virtual void     set_state(uint8_t state, uint32_t rpm) = 0;
-        virtual uint8_t  get_state() = 0;
-        virtual void     stop() = 0;
-        virtual void     config_message() = 0;
+        virtual uint8_t  get_state()                            = 0;
+        virtual void     stop()                                 = 0;
+        virtual void     config_message()                       = 0;
         virtual bool     isRateAdjusted();
         virtual void     spindle_sync(uint8_t state, uint32_t rpm);
 
-		virtual ~Spindle() {}
+        virtual ~Spindle() {}
 
         bool    is_reversable;
         bool    use_delays;  // will SpinUp and SpinDown delays be used.
