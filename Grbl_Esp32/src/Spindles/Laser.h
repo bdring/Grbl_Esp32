@@ -27,7 +27,16 @@ namespace Spindles {
     // this is the same as a PWM spindle but the M4 compensation is supported.
     class Laser : public PWMSpindle {
     public:
-        bool isRateAdjusted();
-        void config_message();
+		Laser() = default;
+
+		Laser(const Laser&) = delete;
+		Laser(Laser&&) = delete;
+		Laser& operator=(const Laser&) = delete;
+		Laser& operator=(Laser&&) = delete;
+
+        bool isRateAdjusted() override;
+        void config_message() override;
+
+		virtual ~Laser() {}
     };
 }

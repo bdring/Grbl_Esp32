@@ -27,9 +27,18 @@ namespace Spindles {
     // This is for an on/off spindle all RPMs above 0 are on
     class RelaySpindle : public PWMSpindle {
     public:
-        void     init();
-        void     config_message();
-        uint32_t set_rpm(uint32_t rpm);
+        RelaySpindle() = default;
+
+        RelaySpindle(const RelaySpindle&) = delete;
+        RelaySpindle(RelaySpindle&&)      = delete;
+        RelaySpindle& operator=(const RelaySpindle&) = delete;
+        RelaySpindle& operator=(RelaySpindle&&) = delete;
+
+        void     init() override;
+        void     config_message() override;
+        uint32_t set_rpm(uint32_t rpm) override;
+
+        virtual ~RelaySpindle() {}
 
     protected:
         void set_output(uint32_t duty);

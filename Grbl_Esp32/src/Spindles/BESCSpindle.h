@@ -38,8 +38,17 @@
 namespace Spindles {
     class BESCSpindle : public PWMSpindle {
     public:
-        void     init();
-        void     config_message();
-        uint32_t set_rpm(uint32_t rpm);
+        BESCSpindle() = default;
+
+        BESCSpindle(const BESCSpindle&) = delete;
+        BESCSpindle(BESCSpindle&&)      = delete;
+        BESCSpindle& operator=(const BESCSpindle&) = delete;
+        BESCSpindle& operator=(BESCSpindle&&) = delete;
+
+        void     init() override;
+        void     config_message() override;
+        uint32_t set_rpm(uint32_t rpm) override;
+
+        virtual ~BESCSpindle() {}
     };
 }

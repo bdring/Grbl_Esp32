@@ -27,12 +27,21 @@ namespace Spindles {
     // This adds support for PWM
     class PWMSpindle : public Spindle {
     public:
-        void             init();
-        virtual uint32_t set_rpm(uint32_t rpm);
-        void             set_state(uint8_t state, uint32_t rpm);
-        uint8_t          get_state();
-        void             stop();
-        void             config_message();
+        PWMSpindle() = default;
+
+        PWMSpindle(const PWMSpindle&) = delete;
+        PWMSpindle(PWMSpindle&&)      = delete;
+        PWMSpindle& operator=(const PWMSpindle&) = delete;
+        PWMSpindle& operator=(PWMSpindle&&) = delete;
+
+        void             init() override;
+        virtual uint32_t set_rpm(uint32_t rpm) override;
+        void             set_state(uint8_t state, uint32_t rpm) override;
+        uint8_t          get_state() override;
+        void             stop() override;
+        void             config_message() override;
+
+        virtual ~PWMSpindle() {}
 
     private:
         void set_spindle_dir_pin(bool Clockwise);

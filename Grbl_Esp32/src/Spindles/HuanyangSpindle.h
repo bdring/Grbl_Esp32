@@ -37,7 +37,13 @@ namespace Spindles {
         bool     _task_running;
 
     public:
-        HuanyangSpindle() { _task_running = false; }
+        HuanyangSpindle() : _task_running(false) {}
+
+		HuanyangSpindle(const HuanyangSpindle&) = delete;
+		HuanyangSpindle(HuanyangSpindle&&) = delete;
+		HuanyangSpindle& operator=(const HuanyangSpindle&) = delete;
+		HuanyangSpindle& operator=(HuanyangSpindle&&) = delete;
+
         void        init();
         void        config_message();
         void        set_state(uint8_t state, uint32_t rpm);
@@ -46,6 +52,8 @@ namespace Spindles {
         void        stop();
         static void read_value(uint8_t reg);
         static void add_ModRTU_CRC(char* buf, int full_msg_len);
+
+        virtual ~HuanyangSpindle() {}
 
     protected:
         uint32_t _min_rpm;
