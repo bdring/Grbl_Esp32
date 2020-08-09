@@ -33,7 +33,7 @@ unsigned long lastDebugPrintTimeMillis; //For debugging only, last time debug in
 unsigned long arcOnTime; //milliseconds at which plasma arc was turned on
 bool thcRunning;
 //int numberIters = 50;
-int thcIterationMs = 4;
+int thcIterationMs = 20;
 int directionDownPinState = 1;
 int directionUpPinState = 0;
 float thcPinVoltage;
@@ -60,13 +60,13 @@ void thcStepZDown(){
 			directionDifference = true;
 			//Set Z Direction Pin
 			digitalWrite(Z_DIRECTION_PIN,directionDownPinState);  
-            delay_ms(STEP_PULSE_DELAY); ///Delay setting the step pin high
+            ets_delay_us(STEP_PULSE_DELAY*3); ///Delay setting the step pin high
 		}
-		for (int i = 1; i <= (thc_iter_freq -> get()); i++) {
-		if(i>1){delay_ms(pulse_microseconds->get());} //if this isn't the first pass then wait to pulse again
+		for (int i = 1; i <= 2; i++) {
+		if(i>1){ets_delay_us(pulse_microseconds->get());} //if this isn't the first pass then wait to pulse again
         //Pulse Z Step Pin High
         digitalWrite(Z_STEP_PIN,1);
-        delay_ms(pulse_microseconds->get()); //Leave Step pin high for 10ms
+        ets_delay_us(pulse_microseconds->get()); //Leave Step pin high for 10ms
         //Pulse Z Step Pin Low
         digitalWrite(Z_STEP_PIN,0);  
 		//Break for loop if plasma has been turned off
@@ -97,14 +97,14 @@ void thcStepZUp(){
 			directionDifference = true;
 			//Set Z Direction Pin
 			digitalWrite(Z_DIRECTION_PIN,directionUpPinState);
-            delay_ms(STEP_PULSE_DELAY); ///Delay setting the step pin high  
+            ets_delay_us(STEP_PULSE_DELAY*3); ///Delay setting the step pin high  
 		} 
-		for (int i = 1; i <= (thc_iter_freq -> get()); i++) {
-		if(i>1){delay_ms(pulse_microseconds->get());} //if this isn't the first pass then wait to pulse again
+		for (int i = 1; i <= 2; i++) {
+		if(i>1){ets_delay_us(pulse_microseconds->get());} //if this isn't the first pass then wait to pulse again
         //Pulse Z Step Pin
         digitalWrite(Z_STEP_PIN,1);
         //Pulse Z Step Pin High
-        delay_ms(pulse_microseconds->get()); //Leave Step pin high for 4ms
+        ets_delay_us(pulse_microseconds->get()); //Leave Step pin high for 4ms
         //Pulse Z Step Pin Low
         digitalWrite(Z_STEP_PIN,0); 
 		//Break for loop if plasma has been turned off
@@ -191,7 +191,7 @@ void THCSyncTask(void* pvParameters) {
         THCCounter ++;
 		voltageSetpoint = (thc_voltage_setting -> get());
 		
-        vTaskDelayUntil(&xthcWakeTime, thcIterationMs);//(thc_iter_freq -> get())+ 1);
+        vTaskDelayUntil(&xthcWakeTime, thc_iter_freq -> get() + 1);//(thc_iter_freq -> get())+ 1);
     }
 }
 
