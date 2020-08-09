@@ -76,7 +76,7 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data);
 // Performs system reset. If in motion state, kills all motion and sets system alarm.
 void mc_reset();
 
-enum class SquaringMode {
+enum class SquaringMode : uint8_t {
     Dual,  // both motors run
     A,     // A motor runs
     B,     // B motor runs
