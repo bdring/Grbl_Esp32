@@ -19,24 +19,20 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "SpindleClass.h"
+#include "NullSpindle.h"
 
-// ======================= NullSpindle ==============================
-// NullSpindle is just bunch of do nothing (ignore) methods to be used when you don't want a spindle
+namespace Spindles {
+    // ======================= NullSpindle ==============================
+    // NullSpindle is just bunch of do nothing (ignore) methods to be used when you don't want a spindle
 
-void NullSpindle ::init() {
-    is_reversable = false;
-    use_delays    = false;
-    config_message();
-}
-uint32_t NullSpindle ::set_rpm(uint32_t rpm) {
-    return rpm;
-}
-void    NullSpindle ::set_state(uint8_t state, uint32_t rpm) {}
-uint8_t NullSpindle ::get_state() {
-    return (SPINDLE_STATE_DISABLE);
-}
-void NullSpindle ::stop() {}
-void NullSpindle ::config_message() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No spindle");
+    void NullSpindle::init() {
+        is_reversable = false;
+        use_delays    = false;
+        config_message();
+    }
+    uint32_t NullSpindle::set_rpm(uint32_t rpm) { return rpm; }
+    void     NullSpindle::set_state(uint8_t state, uint32_t rpm) {}
+    uint8_t  NullSpindle::get_state() { return (SPINDLE_STATE_DISABLE); }
+    void     NullSpindle::stop() {}
+    void     NullSpindle::config_message() { grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No spindle"); }
 }

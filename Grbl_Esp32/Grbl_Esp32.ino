@@ -34,7 +34,7 @@ volatile uint8_t sys_rt_exec_accessory_override;  // Global realtime executor bi
 volatile uint8_t sys_rt_exec_debug;
 #endif
 
-Spindle* spindle;
+Spindles::Spindle* spindle;
 
 void setup() {
 #ifdef USE_I2S_OUT
@@ -87,7 +87,7 @@ void setup() {
     if (homing_enable->get())
         sys.state = STATE_ALARM;
 #endif
-    spindle_select();
+    Spindles::Spindle::spindle_select();
 #ifdef ENABLE_WIFI
     wifi_config.begin();
 #endif
