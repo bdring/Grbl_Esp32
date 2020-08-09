@@ -8,7 +8,7 @@
     2018    - Bart Dring
     2020    - Mitch Bradley
     2020    - Michiyasu Odaki
-	2020    - William Curry 
+	2020    - William Curry - Plasma Torch Height Control
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
