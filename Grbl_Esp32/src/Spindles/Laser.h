@@ -3,7 +3,7 @@
 /*
 	Laser.h
 
-	This is similar the the PWM Spindle except that it allows the
+	This is similar to the PWM Spindle except that it allows the
 	M4 speed vs. power copensation.
 
 	Part of Grbl_ESP32
@@ -25,7 +25,7 @@
 
 namespace Spindles {
     // this is the same as a PWM spindle but the M4 compensation is supported.
-    class Laser : public PWMSpindle {
+    class Laser : public PWM {
     public:
         Laser() = default;
 

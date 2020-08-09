@@ -36,19 +36,19 @@
 #include "PWMSpindle.h"
 
 namespace Spindles {
-    class BESCSpindle : public PWMSpindle {
+    class BESC : public PWM {
     public:
-        BESCSpindle() = default;
+        BESC() = default;
 
-        BESCSpindle(const BESCSpindle&) = delete;
-        BESCSpindle(BESCSpindle&&)      = delete;
-        BESCSpindle& operator=(const BESCSpindle&) = delete;
-        BESCSpindle& operator=(BESCSpindle&&) = delete;
+        BESC(const BESC&) = delete;
+        BESC(BESC&&)      = delete;
+        BESC& operator=(const BESC&) = delete;
+        BESC& operator=(BESC&&) = delete;
 
         void     init() override;
         void     config_message() override;
         uint32_t set_rpm(uint32_t rpm) override;
 
-        virtual ~BESCSpindle() {}
+        virtual ~BESC() {}
     };
 }

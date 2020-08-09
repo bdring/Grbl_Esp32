@@ -21,7 +21,7 @@
 */
 #include "PWMSpindle.h"
 
-// ======================= PWMSpindle ==============================
+// ======================= PWM ==============================
 /*
     This gets called at startup or whenever a spindle setting changes
     If the spindle is running it will stop and need to be restarted with M3Snnnn
@@ -30,7 +30,7 @@
 //#include "grbl.h"
 
 namespace Spindles {
-    void PWMSpindle::init() {
+    void PWM::init() {
         get_pins_and_settings();
 
         if (_output_pin == UNDEFINED_PIN) {
@@ -43,8 +43,8 @@ namespace Spindles {
             return;
         }
 
-        ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(_output_pin, _spindle_pwm_chan_num);                    // attach the PWM to the pin
+        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
+        ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
 
         pinMode(_enable_pin, OUTPUT);
         pinMode(_direction_pin, OUTPUT);
@@ -55,7 +55,7 @@ namespace Spindles {
     }
 
     // Get the GPIO from the machine definition
-    void PWMSpindle::get_pins_and_settings() {
+    void PWM::get_pins_and_settings() {
         // setup all the pins
 
 #ifdef SPINDLE_OUTPUT_PIN
@@ -112,10 +112,10 @@ namespace Spindles {
         // The pwm_gradient is the pwm duty cycle units per rpm
         // _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
 
-        _spindle_pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
+        _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
     }
 
-    uint32_t PWMSpindle::set_rpm(uint32_t rpm) {
+    uint32_t PWM::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
         if (_output_pin == UNDEFINED_PIN)
@@ -151,7 +151,7 @@ namespace Spindles {
         return 0;
     }
 
-    void PWMSpindle::set_state(uint8_t state, uint32_t rpm) {
+    void PWM::set_state(uint8_t state, uint32_t rpm) {
         if (sys.abort)
             return;  // Block during abort.
 
@@ -164,7 +164,7 @@ namespace Spindles {
                 //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SpinDown Done");
             }
         } else {
-            set_spindle_dir_pin(state == SPINDLE_ENABLE_CW);
+            set_dir_pin(state == SPINDLE_ENABLE_CW);
             set_rpm(rpm);
             set_enable_pin(state != SPINDLE_DISABLE);  // must be done after setting rpm for enable features to work
             if (use_delays && (_current_state != state)) {
@@ -179,7 +179,7 @@ namespace Spindles {
         sys.report_ovr_counter = 0;  // Set to report change immediately
     }
 
-    uint8_t PWMSpindle::get_state() {
+    uint8_t PWM::get_state() {
         if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN)
             return (SPINDLE_STATE_DISABLE);
         if (_direction_pin != UNDEFINED_PIN)
@@ -187,14 +187,14 @@ namespace Spindles {
         return (SPINDLE_STATE_CW);
     }
 
-    void PWMSpindle::stop() {
+    void PWM::stop() {
         // inverts are delt with in methods
         set_enable_pin(false);
         set_output(_pwm_off_value);
     }
 
     // prints the startup message of the spindle config
-    void PWMSpindle::config_message() {
+    void PWM::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
                        "PWM spindle Output:%s, Enbl:%s, Dir:%s, Freq:%dHz, Res:%dbits",
@@ -205,7 +205,7 @@ namespace Spindles {
                        _pwm_precision);
     }
 
-    void PWMSpindle::set_output(uint32_t duty) {
+    void PWM::set_output(uint32_t duty) {
         if (_output_pin == UNDEFINED_PIN)
             return;
 
@@ -220,10 +220,10 @@ namespace Spindles {
 
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "set_output(%d)", duty);
 
-        ledcWrite(_spindle_pwm_chan_num, duty);
+        ledcWrite(_pwm_chan_num, duty);
     }
 
-    void PWMSpindle::set_enable_pin(bool enable) {
+    void PWM::set_enable_pin(bool enable) {
         if (_enable_pin == UNDEFINED_PIN)
             return;
 
@@ -238,7 +238,7 @@ namespace Spindles {
         digitalWrite(_enable_pin, enable);
     }
 
-    void PWMSpindle::set_spindle_dir_pin(bool Clockwise) { digitalWrite(_direction_pin, Clockwise); }
+    void PWM::set_dir_pin(bool Clockwise) { digitalWrite(_direction_pin, Clockwise); }
 
     /*
 		Calculate the highest precision of a PWM based on the frequency in bits
@@ -246,7 +246,7 @@ namespace Spindles {
 		80,000,000 / freq = period
 		determine the highest precision where (1 << precision) < period
 	*/
-    uint8_t PWMSpindle::calc_pwm_precision(uint32_t freq) {
+    uint8_t PWM::calc_pwm_precision(uint32_t freq) {
         uint8_t precision = 0;
 
         // increase the precision (bits) until it exceeds allow by frequency the max or is 16
