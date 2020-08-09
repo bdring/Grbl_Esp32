@@ -66,8 +66,9 @@ namespace Spindles {
         static void spindle_select();
     };
 
-    extern Spindle* spindle;
 }
+
+extern Spindles::Spindle* spindle;
 
 // extern NullSpindle     null_spindle;
 // extern PWMSpindle      pwm_spindle;
