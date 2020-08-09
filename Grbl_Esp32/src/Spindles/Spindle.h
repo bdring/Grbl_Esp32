@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-    SpindleClass.h
+    Spindle.h
 
     Header file for a Spindle Class
     See SpindleClass.cpp for more details
@@ -46,172 +46,37 @@
 // ===============  No floats! ===========================
 // ================ NO FLOATS! ==========================
 
-// This is the base class. Do not use this as your spindle
-class Spindle {
-public:
-    virtual void     init();  // not in constructor because this also gets called when $$ settings change
-    virtual uint32_t set_rpm(uint32_t rpm);
-    virtual void     set_state(uint8_t state, uint32_t rpm);
-    virtual uint8_t  get_state();
-    virtual void     stop();
-    virtual void     config_message();
-    virtual bool     isRateAdjusted();
-    virtual void     spindle_sync(uint8_t state, uint32_t rpm);
+namespace Spindles {
+    // This is the base class. Do not use this as your spindle
+    class Spindle {
+    public:
+        virtual void     init();  // not in constructor because this also gets called when $$ settings change
+        virtual uint32_t set_rpm(uint32_t rpm);
+        virtual void     set_state(uint8_t state, uint32_t rpm);
+        virtual uint8_t  get_state();
+        virtual void     stop();
+        virtual void     config_message();
+        virtual bool     isRateAdjusted();
+        virtual void     spindle_sync(uint8_t state, uint32_t rpm);
 
-    bool    is_reversable;
-    bool    use_delays;  // will SpinUp and SpinDown delays be used.
-    uint8_t _current_state;
-};
+        bool    is_reversable;
+        bool    use_delays;  // will SpinUp and SpinDown delays be used.
+        uint8_t _current_state;
 
-// This is a dummy spindle that has no I/O.
-// It is used to ignore spindle commands when no spinde is desired
-class NullSpindle : public Spindle {
-public:
-    void     init();
-    uint32_t set_rpm(uint32_t rpm);
-    void     set_state(uint8_t state, uint32_t rpm);
-    uint8_t  get_state();
-    void     stop();
-    void     config_message();
-};
+        static void spindle_select();
+    };
 
-// This adds support for PWM
-class PWMSpindle : public Spindle {
-public:
-    void             init();
-    virtual uint32_t set_rpm(uint32_t rpm);
-    void             set_state(uint8_t state, uint32_t rpm);
-    uint8_t          get_state();
-    void             stop();
-    void             config_message();
+    extern Spindle* spindle;
+}
 
-private:
-    void set_spindle_dir_pin(bool Clockwise);
-
-protected:
-    int32_t  _current_pwm_duty;
-    uint32_t _min_rpm;
-    uint32_t _max_rpm;
-    uint32_t _pwm_off_value;
-    uint32_t _pwm_min_value;
-    uint32_t _pwm_max_value;
-    uint8_t  _output_pin;
-    uint8_t  _enable_pin;
-    uint8_t  _direction_pin;
-    uint8_t  _spindle_pwm_chan_num;
-    uint32_t _pwm_freq;
-    uint32_t _pwm_period;  // how many counts in 1 period
-    uint8_t  _pwm_precision;
-    bool     _piecewide_linear;
-    bool     _off_with_zero_speed;
-    bool     _invert_pwm;
-    //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
-
-    virtual void set_output(uint32_t duty);
-    void         set_enable_pin(bool enable_pin);
-    void         get_pins_and_settings();
-    uint8_t      calc_pwm_precision(uint32_t freq);
-};
-
-// This is for an on/off spindle all RPMs above 0 are on
-class RelaySpindle : public PWMSpindle {
-public:
-    void     init();
-    void     config_message();
-    uint32_t set_rpm(uint32_t rpm);
-
-protected:
-    void set_output(uint32_t duty);
-};
-
-// this is the same as a PWM spindle but the M4 compensation is supported.
-class Laser : public PWMSpindle {
-public:
-    bool isRateAdjusted();
-    void config_message();
-};
-
-// This uses one of the (2) DAC pins on ESP32 to output a voltage
-class DacSpindle : public PWMSpindle {
-public:
-    void     init();
-    void     config_message();
-    uint32_t set_rpm(uint32_t rpm);
-
-private:
-    bool _gpio_ok;  // DAC is on a valid pin
-protected:
-    void set_output(uint32_t duty);  // sets DAC instead of PWM
-};
-
-class HuanyangSpindle : public Spindle {
-private:
-    uint16_t ModRTU_CRC(char* buf, int len);
-
-    bool set_mode(uint8_t mode, bool critical);
-
-    bool get_pins_and_settings();
-
-    uint32_t _current_rpm;
-    uint8_t  _txd_pin;
-    uint8_t  _rxd_pin;
-    uint8_t  _rts_pin;
-    uint8_t  _state;
-    bool     _task_running;
-
-public:
-    HuanyangSpindle() { _task_running = false; }
-    void        init();
-    void        config_message();
-    void        set_state(uint8_t state, uint32_t rpm);
-    uint8_t     get_state();
-    uint32_t    set_rpm(uint32_t rpm);
-    void        stop();
-    static void read_value(uint8_t reg);
-    static void add_ModRTU_CRC(char* buf, int full_msg_len);
-
-protected:
-    uint32_t _min_rpm;
-    uint32_t _max_rpm;
-};
-
-class BESCSpindle : public PWMSpindle {
-public:
-    void     init();
-    void     config_message();
-    uint32_t set_rpm(uint32_t rpm);
-};
-
-class _10vSpindle : public PWMSpindle {
-public:
-    void     init();
-    void     config_message();
-    uint32_t set_rpm(uint32_t rpm);
-    uint8_t  _forward_pin;
-    uint8_t  _reverse_pin;
-
-    //void set_state(uint8_t state, uint32_t rpm);
-
-    uint8_t get_state();
-    void    stop();
-
-protected:
-    void set_enable_pin(bool enable_pin);
-    void set_spindle_dir_pin(bool Clockwise);
-};
-
-extern Spindle* spindle;
-
-extern NullSpindle     null_spindle;
-extern PWMSpindle      pwm_spindle;
-extern RelaySpindle    relay_spindle;
-extern Laser           laser;
-extern DacSpindle      dac_spindle;
-extern HuanyangSpindle huanyang_spindle;
-extern BESCSpindle     besc_spindle;
-extern _10vSpindle     _10v_spindle;
-
-void spindle_select();
+// extern NullSpindle     null_spindle;
+// extern PWMSpindle      pwm_spindle;
+// extern RelaySpindle    relay_spindle;
+// extern Laser           laser;
+// extern DacSpindle      dac_spindle;
+// extern HuanyangSpindle huanyang_spindle;
+// extern BESCSpindle     besc_spindle;
+// extern _10vSpindle     _10v_spindle;
 
 // in HuanyangSpindle.cpp
-void vfd_cmd_task(void* pvParameters);
+// void vfd_cmd_task(void* pvParameters);
