@@ -69,15 +69,3 @@ namespace Spindles {
 }
 
 extern Spindles::Spindle* spindle;
-
-// extern NullSpindle     null_spindle;
-// extern PWMSpindle      pwm_spindle;
-// extern RelaySpindle    relay_spindle;
-// extern Laser           laser;
-// extern DacSpindle      dac_spindle;
-// extern HuanyangSpindle huanyang_spindle;
-// extern BESCSpindle     besc_spindle;
-// extern _10vSpindle     _10v_spindle;
-
-// in HuanyangSpindle.cpp
-// void vfd_cmd_task(void* pvParameters);
