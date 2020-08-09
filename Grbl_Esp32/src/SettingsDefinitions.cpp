@@ -13,6 +13,7 @@ AxisMaskSetting* step_invert_mask;
 AxisMaskSetting* dir_invert_mask;
 // TODO Settings - need to call st_generate_step_invert_masks;
 AxisMaskSetting* homing_dir_mask;
+AxisMaskSetting* homing_squared_axes;
 AxisMaskSetting* stallguard_debug_mask;
 
 FlagSetting* step_enable_invert;
@@ -285,6 +286,7 @@ void make_settings() {
     homing_debounce  = new FloatSetting(GRBL, WG, "26", "Homing/Debounce", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
     homing_seek_rate = new FloatSetting(GRBL, WG, "25", "Homing/Seek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
     homing_feed_rate = new FloatSetting(GRBL, WG, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
+    homing_squared_axes = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Squared", DEFAULT_HOMING_SQUARED_AXES);
 
     // TODO Settings - need to call st_generate_step_invert_masks()
     homing_dir_mask = new AxisMaskSetting(GRBL, WG, "23", "Homing/DirInvert", DEFAULT_HOMING_DIR_MASK);
