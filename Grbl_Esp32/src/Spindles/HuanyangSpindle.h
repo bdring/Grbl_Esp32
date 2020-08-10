@@ -21,7 +21,7 @@
 #include "Spindle.h"
 
 namespace Spindles {
-    class HuanyangSpindle : public Spindle {
+    class Huanyang : public Spindle {
     private:
         uint16_t ModRTU_CRC(char* buf, int len);
 
@@ -37,12 +37,12 @@ namespace Spindles {
         bool     _task_running;
 
     public:
-        HuanyangSpindle() : _task_running(false) {}
+        Huanyang() : _task_running(false) {}
 
-        HuanyangSpindle(const HuanyangSpindle&) = delete;
-        HuanyangSpindle(HuanyangSpindle&&)      = delete;
-        HuanyangSpindle& operator=(const HuanyangSpindle&) = delete;
-        HuanyangSpindle& operator=(HuanyangSpindle&&) = delete;
+        Huanyang(const Huanyang&) = delete;
+        Huanyang(Huanyang&&)      = delete;
+        Huanyang& operator=(const Huanyang&) = delete;
+        Huanyang& operator=(Huanyang&&) = delete;
 
         void        init();
         void        config_message();
@@ -53,7 +53,7 @@ namespace Spindles {
         static void read_value(uint8_t reg);
         static void add_ModRTU_CRC(char* buf, int full_msg_len);
 
-        virtual ~HuanyangSpindle() {}
+        virtual ~Huanyang() {}
 
     protected:
         uint32_t _min_rpm;

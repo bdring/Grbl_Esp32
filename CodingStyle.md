@@ -51,7 +51,7 @@ have a single class.
 - Class names and namespace names are named `CamelCase`. Note that 
   class and namespace names should only start with an `_` if they are 
   (A) not in the global namespace and (b) should otherwise start with a digit.
-  For example `_10VSpindle`.
+  For example `_10V`.
 - Class member functions should be `snake_case`
 - Class member variables should be `_snake_case` with a leading `_`.
  

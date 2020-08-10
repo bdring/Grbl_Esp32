@@ -25,20 +25,20 @@
 
 namespace Spindles {
     // This is for an on/off spindle all RPMs above 0 are on
-    class RelaySpindle : public PWMSpindle {
+    class Relay : public PWM {
     public:
-        RelaySpindle() = default;
+        Relay() = default;
 
-        RelaySpindle(const RelaySpindle&) = delete;
-        RelaySpindle(RelaySpindle&&)      = delete;
-        RelaySpindle& operator=(const RelaySpindle&) = delete;
-        RelaySpindle& operator=(RelaySpindle&&) = delete;
+        Relay(const Relay&) = delete;
+        Relay(Relay&&)      = delete;
+        Relay& operator=(const Relay&) = delete;
+        Relay& operator=(Relay&&) = delete;
 
         void     init() override;
         void     config_message() override;
         uint32_t set_rpm(uint32_t rpm) override;
 
-        virtual ~RelaySpindle() {}
+        virtual ~Relay() {}
 
     protected:
         void set_output(uint32_t duty);

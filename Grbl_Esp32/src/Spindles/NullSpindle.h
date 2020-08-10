@@ -26,14 +26,14 @@
 namespace Spindles {
     // This is a dummy spindle that has no I/O.
     // It is used to ignore spindle commands when no spinde is desired
-    class NullSpindle : public Spindle {
+    class Null : public Spindle {
     public:
-        NullSpindle() = default;
+        Null() = default;
 
-        NullSpindle(const NullSpindle&) = delete;
-        NullSpindle(NullSpindle&&)      = delete;
-        NullSpindle& operator=(const NullSpindle&) = delete;
-        NullSpindle& operator=(NullSpindle&&) = delete;
+        Null(const Null&) = delete;
+        Null(Null&&)      = delete;
+        Null& operator=(const Null&) = delete;
+        Null& operator=(Null&&) = delete;
 
         void     init() override;
         uint32_t set_rpm(uint32_t rpm) override;
@@ -42,6 +42,6 @@ namespace Spindles {
         void     stop() override;
         void     config_message() override;
 
-        virtual ~NullSpindle() {}
+        virtual ~Null() {}
     };
 }

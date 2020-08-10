@@ -87,7 +87,7 @@ void setup() {
     if (homing_enable->get())
         sys.state = STATE_ALARM;
 #endif
-    Spindles::Spindle::spindle_select();
+    Spindles::Spindle::select();
 #ifdef ENABLE_WIFI
     wifi_config.begin();
 #endif

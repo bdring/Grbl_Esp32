@@ -64,7 +64,7 @@ namespace Spindles {
         virtual void     stop()                                 = 0;
         virtual void     config_message()                       = 0;
         virtual bool     isRateAdjusted();
-        virtual void     spindle_sync(uint8_t state, uint32_t rpm);
+        virtual void     sync(uint8_t state, uint32_t rpm);
 
         virtual ~Spindle() {}
 
@@ -72,7 +72,7 @@ namespace Spindles {
         bool    use_delays;  // will SpinUp and SpinDown delays be used.
         uint8_t _current_state;
 
-        static void spindle_select();
+        static void select();
     };
 
 }

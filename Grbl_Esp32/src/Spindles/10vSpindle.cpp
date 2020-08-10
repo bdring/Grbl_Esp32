@@ -27,7 +27,7 @@
 #include "10vSpindle.h"
 
 namespace Spindles {
-    void _10vSpindle::init() {
+    void _10v::init() {
         get_pins_and_settings();  // these gets the standard PWM settings, but many need to be changed for BESC
 
         // a couple more pins not inherited from PWM Spindle
@@ -48,8 +48,8 @@ namespace Spindles {
             return;  // We cannot continue without the output pin
         }
 
-        ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(_output_pin, _spindle_pwm_chan_num);                    // attach the PWM to the pin
+        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
+        ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
 
         pinMode(_enable_pin, OUTPUT);
         pinMode(_direction_pin, OUTPUT);
@@ -65,7 +65,7 @@ namespace Spindles {
     }
 
     // prints the startup message of the spindle config
-    void _10vSpindle::config_message() {
+    void _10v::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
                        "0-10V spindle Out:%s Enbl:%s, Dir:%s, Fwd:%s, Rev:%s, Freq:%dHz Res:%dbits",
@@ -78,7 +78,7 @@ namespace Spindles {
                        _pwm_precision);
     }
 
-    uint32_t _10vSpindle::set_rpm(uint32_t rpm) {
+    uint32_t _10v::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
         if (_output_pin == UNDEFINED_PIN)
@@ -104,7 +104,7 @@ namespace Spindles {
         return rpm;
     }
     /*
-	void _10vSpindle::set_state(uint8_t state, uint32_t rpm) {
+	void _10v::set_state(uint8_t state, uint32_t rpm) {
 		if (sys.abort)
 			return;   // Block during abort.
 
@@ -112,7 +112,7 @@ namespace Spindles {
 			sys.spindle_speed = 0;
 			stop();
 		} else {
-			set_spindle_dir_pin(state == SPINDLE_ENABLE_CW);
+			set_dir_pin(state == SPINDLE_ENABLE_CW);
 			set_rpm(rpm);
 		}
 
@@ -123,7 +123,7 @@ namespace Spindles {
 
 	*/
 
-    uint8_t _10vSpindle::get_state() {
+    uint8_t _10v::get_state() {
         if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN)
             return (SPINDLE_STATE_DISABLE);
         if (_direction_pin != UNDEFINED_PIN)
@@ -131,14 +131,14 @@ namespace Spindles {
         return (SPINDLE_STATE_CW);
     }
 
-    void _10vSpindle::stop() {
+    void _10v::stop() {
         // inverts are delt with in methods
         set_enable_pin(false);
         set_output(_pwm_off_value);
     }
 
-    void _10vSpindle::set_enable_pin(bool enable) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "_10vSpindle::set_enable_pin");
+    void _10v::set_enable_pin(bool enable) {
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle::_10v::set_enable_pin");
         if (_off_with_zero_speed && sys.spindle_speed == 0)
             enable = false;
 
@@ -155,8 +155,8 @@ namespace Spindles {
         }
     }
 
-    void _10vSpindle::set_spindle_dir_pin(bool Clockwise) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "_10vSpindle::set_spindle_dir_pin");
+    void _10v::set_dir_pin(bool Clockwise) {
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle::_10v::set_dir_pin");
         digitalWrite(_direction_pin, Clockwise);
         digitalWrite(_forward_pin, Clockwise);
         digitalWrite(_reverse_pin, !Clockwise);

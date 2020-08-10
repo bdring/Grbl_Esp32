@@ -28,20 +28,20 @@
 
 namespace Spindles {
     // This uses one of the (2) DAC pins on ESP32 to output a voltage
-    class DacSpindle : public PWMSpindle {
+    class Dac : public PWM {
     public:
-        DacSpindle() = default;
+        Dac() = default;
 
-        DacSpindle(const DacSpindle&) = delete;
-        DacSpindle(DacSpindle&&)      = delete;
-        DacSpindle& operator=(const DacSpindle&) = delete;
-        DacSpindle& operator=(DacSpindle&&) = delete;
+        Dac(const Dac&) = delete;
+        Dac(Dac&&)      = delete;
+        Dac& operator=(const Dac&) = delete;
+        Dac& operator=(Dac&&) = delete;
 
         void     init() override;
         void     config_message() override;
         uint32_t set_rpm(uint32_t rpm) override;
 
-        virtual ~DacSpindle() {}
+        virtual ~Dac() {}
 
     private:
         bool _gpio_ok;  // DAC is on a valid pin
