@@ -155,7 +155,7 @@ namespace Spindles {
 
     static TaskHandle_t vfd_cmdTaskHandle = 0;
 
-    bool hy_spindle_ok = true;
+    bool hy_ok = true;
 
     // The communications task
     void vfd_cmd_task(void* pvParameters) {
@@ -190,7 +190,7 @@ namespace Spindles {
                 }
 
             } else {
-                HuanyangSpindle::read_value(reg_item);  // only this appears to work all the time. Other registers are flakey.
+                Huanyang::read_value(reg_item);  // only this appears to work all the time. Other registers are flakey.
                 if (reg_item < 0x03)
                     reg_item++;
                 else {
@@ -203,8 +203,8 @@ namespace Spindles {
 
     // ================== Class methods ==================================
 
-    void HuanyangSpindle::init() {
-        hy_spindle_ok = true;  // initialize
+    void Huanyang::init() {
+        hy_ok = true;  // initialize
 
         // fail if required items are not defined
         if (!get_pins_and_settings()) {
@@ -259,49 +259,49 @@ namespace Spindles {
     // Checks for all the required pin definitions
     // It returns a message for each missing pin
     // Returns true if all pins are defined.
-    bool HuanyangSpindle::get_pins_and_settings() {
+    bool Huanyang::get_pins_and_settings() {
 #ifdef HUANYANG_TXD_PIN
         _txd_pin = HUANYANG_TXD_PIN;
 #else
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined HUANYANG_TXD_PIN");
-        hy_spindle_ok = false;
+        hy_ok = false;
 #endif
 
 #ifdef HUANYANG_RXD_PIN
         _rxd_pin = HUANYANG_RXD_PIN;
 #else
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined HUANYANG_RXD_PIN");
-        hy_spindle_ok = false;
+        hy_ok = false;
 #endif
 
 #ifdef HUANYANG_RTS_PIN
         _rts_pin = HUANYANG_RTS_PIN;
 #else
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined HUANYANG_RTS_PIN");
-        hy_spindle_ok = false;
+        hy_ok = false;
 #endif
 
         if (laser_mode->get()) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Huanyang spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");
-            hy_spindle_ok = false;
+            hy_ok = false;
         }
 
         _min_rpm = rpm_min->get();
         _max_rpm = rpm_max->get();
 
-        return hy_spindle_ok;
+        return hy_ok;
     }
 
-    void HuanyangSpindle::config_message() {
+    void Huanyang::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
-                       "Huanyang Spindle Tx:%s Rx:%s RTS:%s",
+                       "Huanyang  Tx:%s Rx:%s RTS:%s",
                        pinName(_txd_pin).c_str(),
                        pinName(_rxd_pin).c_str(),
                        pinName(_rts_pin).c_str());
     }
 
-    void HuanyangSpindle::set_state(uint8_t state, uint32_t rpm) {
+    void Huanyang::set_state(uint8_t state, uint32_t rpm) {
         if (sys.abort)
             return;  // Block during abort.
 
@@ -330,8 +330,8 @@ namespace Spindles {
         return;
     }
 
-    bool HuanyangSpindle::set_mode(uint8_t mode, bool critical) {
-        if (!hy_spindle_ok)
+    bool Huanyang::set_mode(uint8_t mode, bool critical) {
+        if (!hy_ok)
             return false;
 
         hy_command_t mode_cmd;
@@ -365,8 +365,8 @@ namespace Spindles {
         return true;
     }
 
-    uint32_t HuanyangSpindle::set_rpm(uint32_t rpm) {
-        if (!hy_spindle_ok)
+    uint32_t Huanyang::set_rpm(uint32_t rpm) {
+        if (!hy_ok)
             return 0;
 
         hy_command_t rpm_cmd;
@@ -412,7 +412,7 @@ namespace Spindles {
     }
 
     // This appears to read the control register and will return an RPM running or not.
-    void HuanyangSpindle::read_value(uint8_t reg) {
+    void Huanyang::read_value(uint8_t reg) {
         uint16_t     ret_value = 0;
         hy_command_t read_cmd;
         uint8_t      rx_message[HUANYANG_MAX_MSG_SIZE];
@@ -437,16 +437,16 @@ namespace Spindles {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
     }
 
-    void HuanyangSpindle::stop() { set_mode(SPINDLE_DISABLE, false); }
+    void Huanyang::stop() { set_mode(SPINDLE_DISABLE, false); }
 
     // state is cached rather than read right now to prevent delays
-    uint8_t HuanyangSpindle::get_state() { return _state; }
+    uint8_t Huanyang::get_state() { return _state; }
 
     // Calculate the CRC on all of the byte except the last 2
     // It then added the CRC to those last 2 bytes
     // full_msg_len This is the length of the message including the 2 crc bytes
     // Source: https://ctlsys.com/support/how_to_compute_the_modbus_rtu_message_crc/
-    void HuanyangSpindle::add_ModRTU_CRC(char* buf, int full_msg_len) {
+    void Huanyang::add_ModRTU_CRC(char* buf, int full_msg_len) {
         uint16_t crc = 0xFFFF;
         for (int pos = 0; pos < full_msg_len - 2; pos++) {
             crc ^= (uint16_t)buf[pos];      // XOR byte into least sig. byte of crc

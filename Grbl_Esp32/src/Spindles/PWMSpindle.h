@@ -25,14 +25,14 @@
 
 namespace Spindles {
     // This adds support for PWM
-    class PWMSpindle : public Spindle {
+    class PWM : public Spindle {
     public:
-        PWMSpindle() = default;
+        PWM() = default;
 
-        PWMSpindle(const PWMSpindle&) = delete;
-        PWMSpindle(PWMSpindle&&)      = delete;
-        PWMSpindle& operator=(const PWMSpindle&) = delete;
-        PWMSpindle& operator=(PWMSpindle&&) = delete;
+        PWM(const PWM&) = delete;
+        PWM(PWM&&)      = delete;
+        PWM& operator=(const PWM&) = delete;
+        PWM& operator=(PWM&&) = delete;
 
         void             init() override;
         virtual uint32_t set_rpm(uint32_t rpm) override;
@@ -41,7 +41,7 @@ namespace Spindles {
         void             stop() override;
         void             config_message() override;
 
-        virtual ~PWMSpindle() {}
+        virtual ~PWM() {}
 
     protected:
         int32_t  _current_pwm_duty;
@@ -53,7 +53,7 @@ namespace Spindles {
         uint8_t  _output_pin;
         uint8_t  _enable_pin;
         uint8_t  _direction_pin;
-        uint8_t  _spindle_pwm_chan_num;
+        uint8_t  _pwm_chan_num;
         uint32_t _pwm_freq;
         uint32_t _pwm_period;  // how many counts in 1 period
         uint8_t  _pwm_precision;
@@ -62,7 +62,7 @@ namespace Spindles {
         bool     _invert_pwm;
         //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
-        virtual void set_spindle_dir_pin(bool Clockwise);
+        virtual void set_dir_pin(bool Clockwise);
         virtual void set_output(uint32_t duty);
         virtual void set_enable_pin(bool enable_pin);
 

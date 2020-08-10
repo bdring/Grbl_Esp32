@@ -52,7 +52,7 @@
 #define BESC_MAX_PULSE_CNT (uint16_t)(BESC_MAX_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0)
 
 namespace Spindles {
-    void BESCSpindle::init() {
+    void BESC::init() {
         get_pins_and_settings();  // these gets the standard PWM settings, but many need to be changed for BESC
 
         if (_output_pin == UNDEFINED_PIN) {
@@ -69,8 +69,8 @@ namespace Spindles {
         _pwm_min_value = _pwm_off_value;
         _pwm_max_value = BESC_MAX_PULSE_CNT;
 
-        ledcSetup(_spindle_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(_output_pin, _spindle_pwm_chan_num);                    // attach the PWM to the pin
+        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
+        ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
 
         pinMode(_enable_pin, OUTPUT);
 
@@ -82,7 +82,7 @@ namespace Spindles {
     }
 
     // prints the startup message of the spindle config
-    void BESCSpindle::config_message() {
+    void BESC::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
                        "BESC spindle on Pin:%s Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
@@ -93,7 +93,7 @@ namespace Spindles {
                        _pwm_precision);
     }
 
-    uint32_t BESCSpindle::set_rpm(uint32_t rpm) {
+    uint32_t BESC::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
         if (_output_pin == UNDEFINED_PIN)

@@ -21,13 +21,13 @@
 */
 #include "RelaySpindle.h"
 
-// ========================= RelaySpindle ==================================
+// ========================= Relay ==================================
 
 namespace Spindles {
     /*
-    This is a sub class of PWMSpindle but is a digital rather than PWM output
+    This is a sub class of PWM but is a digital rather than PWM output
 */
-    void RelaySpindle::init() {
+    void Relay::init() {
         get_pins_and_settings();
 
         if (_output_pin == UNDEFINED_PIN)
@@ -44,7 +44,7 @@ namespace Spindles {
     }
 
     // prints the startup message of the spindle config
-    void RelaySpindle ::config_message() {
+    void Relay ::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
                        "Relay spindle Output:%s, Enbl:%s, Dir:%s",
@@ -53,7 +53,7 @@ namespace Spindles {
                        pinName(_direction_pin).c_str());
     }
 
-    uint32_t RelaySpindle::set_rpm(uint32_t rpm) {
+    uint32_t Relay::set_rpm(uint32_t rpm) {
         if (_output_pin == UNDEFINED_PIN)
             return rpm;
 
@@ -63,7 +63,7 @@ namespace Spindles {
         return rpm;
     }
 
-    void RelaySpindle::set_output(uint32_t duty) {
+    void Relay::set_output(uint32_t duty) {
 #ifdef INVERT_SPINDLE_PWM
         duty = (duty == 0);  // flip duty
 #endif

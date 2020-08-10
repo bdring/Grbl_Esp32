@@ -24,8 +24,8 @@
 #include "DacSpindle.h"
 
 namespace Spindles {
-    // ======================================== DacSpindle ======================================
-    void DacSpindle::init() {
+    // ======================================== Dac ======================================
+    void Dac::init() {
         get_pins_and_settings();
 
         if (_output_pin == UNDEFINED_PIN)
@@ -52,7 +52,7 @@ namespace Spindles {
         config_message();
     }
 
-    void DacSpindle::config_message() {
+    void Dac::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
                        "DAC spindle Output:%s, Enbl:%s, Dir:%s, Res:8bits",
@@ -61,7 +61,7 @@ namespace Spindles {
                        pinName(_direction_pin).c_str());
     }
 
-    uint32_t DacSpindle::set_rpm(uint32_t rpm) {
+    uint32_t Dac::set_rpm(uint32_t rpm) {
         if (_output_pin == UNDEFINED_PIN)
             return rpm;
 
@@ -98,7 +98,7 @@ namespace Spindles {
         return rpm;
     }
 
-    void DacSpindle::set_output(uint32_t duty) {
+    void Dac::set_output(uint32_t duty) {
         if (_gpio_ok) {
             dacWrite(_output_pin, (uint8_t)duty);
         }
