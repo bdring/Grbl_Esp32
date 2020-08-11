@@ -29,7 +29,7 @@
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../grbl.h"
+#include "../Grbl.h"
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 
 extern uint8_t      rmt_chan_num[MAX_AXES][2];

@@ -18,8 +18,8 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "src/grbl.h"
-#include "WiFi.h"
+#include "src/Grbl.h"
+#include <WiFi.h>
 
 // Declare system global variable structure
 system_t         sys;

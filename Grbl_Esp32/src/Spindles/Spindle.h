@@ -39,7 +39,7 @@
 #define SPINDLE_TYPE_BESC 6
 #define SPINDLE_TYPE_10V 7
 
-#include "../grbl.h"
+#include "../Grbl.h"
 #include <driver/dac.h>
 #include <driver/uart.h>
 

@@ -1,4 +1,4 @@
-#include "grbl.h"
+#include "Grbl.h"
 
 bool motorSettingChanged = false;
 
