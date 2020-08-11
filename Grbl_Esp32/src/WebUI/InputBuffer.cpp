@@ -1,5 +1,5 @@
 /*
-  inputbuffer.cpp -  inputbuffer functions class
+  InputBuffer.cpp -  inputbuffer functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  espresponse.h - GRBL_ESP response class
+  ESPResponse.h - GRBL_ESP response class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

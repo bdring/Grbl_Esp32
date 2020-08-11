@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  solenoid_pen.h
+  ServoAxis.h
   Part of Grbl_ESP32
 
 	copyright (c) 2019 -	Bart Dring. This file was intended for use on the ESP32

@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  defaults.h - defaults settings configuration file
+  Defaults.h - defaults settings configuration file
   Part of Grbl
 
   Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC

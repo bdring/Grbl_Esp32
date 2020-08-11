@@ -2,7 +2,7 @@
 // clang-format off
 
 /*
-  nofile.h - ESP3D data file
+  NoFile.h - ESP3D data file
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

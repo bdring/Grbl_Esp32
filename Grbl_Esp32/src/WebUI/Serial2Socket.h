@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  serial2socket.h -  serial 2 socket functions class
+  Serial2Socket.h -  serial 2 socket functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

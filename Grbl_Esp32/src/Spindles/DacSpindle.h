@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-	DacSpindle.cpp
+	DacSpindle.h
 
 	This uses the Analog DAC in the ESP32 to generate a voltage
 	proportional to the GCode S value desired. Some spindle uses

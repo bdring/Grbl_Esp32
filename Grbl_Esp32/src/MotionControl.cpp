@@ -1,5 +1,5 @@
 /*
-  motion_control.c - high level interface for issuing motion commands
+  MotionControl.c - high level interface for issuing motion commands
   Part of Grbl
 
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC

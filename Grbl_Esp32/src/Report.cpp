@@ -1,5 +1,5 @@
 /*
-  report.c - reporting and messaging methods
+  Report.c - reporting and messaging methods
   Part of Grbl
 
   Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC
