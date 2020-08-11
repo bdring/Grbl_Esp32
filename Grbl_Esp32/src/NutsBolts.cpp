@@ -1,5 +1,5 @@
 /*
-  nuts_bolts.c - Shared functions
+  NutsBolts.cpp - Shared functions
   Part of Grbl
 
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC

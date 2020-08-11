@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-	BESCSpindle.cpp
+	BESCSpindle.h
 
 	This a special type of PWM spindle for RC type Brushless DC Speed
 	controllers. They use a short pulse for off and a longer pulse for

@@ -3,14 +3,6 @@
 // This file is where you choose the machine type, by including
 // one or more machine definition files as described below.
 
-/*
-PWM
-    Tested on arc_arrow.nc
-    
-
-
-*/
-
 #ifndef MACHINE_FILENAME
 
 // !!! For initial testing, start with test_drive.h which disables

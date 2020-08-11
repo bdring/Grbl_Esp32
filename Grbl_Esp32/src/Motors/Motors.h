@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-	Motor.h
+	Motors.h
 	Header file for Motor Classes
 	Here is the hierarchy
 		Motor

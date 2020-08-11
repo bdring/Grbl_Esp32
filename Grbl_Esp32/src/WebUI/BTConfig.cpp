@@ -1,5 +1,5 @@
 /*
-  BTconfig.cpp -  Bluetooth functions class
+  BTConfig.cpp -  Bluetooth functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

@@ -1,5 +1,5 @@
 /*
-  motion_control.c - high level interface for issuing motion commands
+  MotionControl.cpp - high level interface for issuing motion commands
   Part of Grbl
 
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
@@ -240,7 +240,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
 #endif
         // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
         // with machines with limits wired on both ends of travel to one limit pin.
-        // TODO: Move the pin-specific LIMIT_PIN call to limits.c as a function.
+        // TODO: Move the pin-specific LIMIT_PIN call to Limits.cpp as a function.
 #ifdef LIMITS_TWO_SWITCHES_ON_AXES
     if (limits_get_state()) {
         mc_reset();  // Issue system reset and ensure spindle and coolant are shutdown.

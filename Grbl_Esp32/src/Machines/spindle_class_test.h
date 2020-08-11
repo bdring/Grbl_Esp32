@@ -2,7 +2,7 @@
 // clang-format off
 
 /*
-    3axis_v4.h
+    spindle_class_test.h
     Part of Grbl_ESP32
 
     Pin assignments for the ESP32 Development Controller, v4.1 and later.

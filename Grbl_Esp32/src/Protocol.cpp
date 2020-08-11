@@ -1,5 +1,5 @@
 /*
-  protocol.c - controls Grbl execution protocol and procedures
+  Protocol.cpp - controls Grbl execution protocol and procedures
   Part of Grbl
 
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC

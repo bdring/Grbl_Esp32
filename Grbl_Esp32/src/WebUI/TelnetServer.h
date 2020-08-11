@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  telnet_server.h -  telnet service functions class
+  TelnetServer.h -  telnet service functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

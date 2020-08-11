@@ -1,5 +1,5 @@
 /*
-  commands.cpp - GRBL_ESP command class
+  Commands.cpp - GRBL_ESP command class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
