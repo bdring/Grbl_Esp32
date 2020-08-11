@@ -1,5 +1,5 @@
 /*
-    TrinamicDriverClass.cpp
+    TrinamicDriver.cpp
     This is used for Trinamic SPI controlled stepper motor drivers.
 
     Part of Grbl_ESP32

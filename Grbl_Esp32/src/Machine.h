@@ -6,9 +6,6 @@
 /*
 PWM
     Tested on arc_arrow.nc
-    
-
-
 */
 
 #ifndef MACHINE_FILENAME

@@ -1,5 +1,5 @@
 /*
-  web_server.cpp -  web server functions class
+  WebServer.cpp -  web server functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

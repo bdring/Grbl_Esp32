@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  wifiservices.h -  wifi services functions class
+  WifiServices.h -  wifi services functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

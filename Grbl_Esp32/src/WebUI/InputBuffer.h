@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  inputbuffer.h -  inputbuffer functions class
+  InputBuffer.h -  inputbuffer functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

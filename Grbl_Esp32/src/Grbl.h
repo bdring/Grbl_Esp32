@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  grbl.h - Header for system level commands and real-time processes
+  Grbl.h - Header for system level commands and real-time processes
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 
@@ -38,7 +38,6 @@
 // Define the Grbl system include files. NOTE: Do not alter organization.
 #include "Config.h"
 #include "NutsBolts.h"
-#include "TDef.h"
 
 #include "Defaults.h"
 #include "SettingsStorage.h"

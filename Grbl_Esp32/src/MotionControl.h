@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  motion_control.h - high level interface for issuing motion commands
+  MotionControl.h - high level interface for issuing motion commands
   Part of Grbl
 
   Copyright (c) 2011-2015 Sungeun K. Jeon

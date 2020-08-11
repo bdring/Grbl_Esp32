@@ -1,5 +1,5 @@
 /*
-  notifications_service.cpp -  notifications service functions class
+  NotificationsService.cpp -  notifications service functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

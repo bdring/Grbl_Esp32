@@ -1,5 +1,5 @@
 /*
-  solenoid_pen.cpp
+  SolenoidPen.cpp
   Part of Grbl_ESP32
 
 	copyright (c) 2018 -	Bart Dring This file was modified for use on the ESP32

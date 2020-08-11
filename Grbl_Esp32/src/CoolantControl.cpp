@@ -1,5 +1,5 @@
 /*
-  coolant_control.c - coolant control methods
+  CoolantControl.c - coolant control methods
   Part of Grbl
 
   Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC

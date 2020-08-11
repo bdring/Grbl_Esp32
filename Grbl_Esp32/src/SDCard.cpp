@@ -1,5 +1,5 @@
 /*
-  grbl_sd.cpp - Adds SD Card Features to Grbl_ESP32
+  SDCard.cpp - Adds SD Card Features to Grbl_ESP32
   Part of Grbl_ESP32
 
   Copyright (c) 2018 Barton Dring Buildlog.net
