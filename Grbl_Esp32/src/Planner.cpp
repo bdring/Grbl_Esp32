@@ -1,5 +1,5 @@
 /*
-  Planner.c - buffers movement commands and manages the acceleration profile plan
+  Planner.cpp - buffers movement commands and manages the acceleration profile plan
   Part of Grbl
 
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
