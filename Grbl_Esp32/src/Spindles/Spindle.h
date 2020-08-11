@@ -4,7 +4,7 @@
     Spindle.h
 
     Header file for a Spindle Class
-    See SpindleClass.cpp for more details
+    See Spindle.cpp for more details
 
     Part of Grbl_ESP32
 

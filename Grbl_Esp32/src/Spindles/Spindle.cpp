@@ -1,5 +1,5 @@
 /*
-    SpindleClass.cpp
+    Spindle.cpp
 
     A Base class for spindles and spinsle like things such as lasers
 
