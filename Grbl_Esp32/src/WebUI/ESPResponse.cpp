@@ -1,5 +1,5 @@
 /*
-  espresponse.cpp - GRBL_ESP response class
+  ESPResponse.cpp - GRBL_ESP response class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

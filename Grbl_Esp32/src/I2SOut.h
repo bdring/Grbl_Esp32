@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-    i2s_out.h
+    I2SOut.h
     Part of Grbl_ESP32
     Header for basic GPIO expander using the ESP32 I2S peripheral
     2020    - Michiyasu Odaki

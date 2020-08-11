@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  notifications_service.h -  notifications service functions class
+  NotificationsService.h -  notifications service functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

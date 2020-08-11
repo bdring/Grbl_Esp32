@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  gcode.h - rs274/ngc parser.
+  GCode.h - rs274/ngc parser.
   Part of Grbl
 
   Copyright (c) 2011-2015 Sungeun K. Jeon

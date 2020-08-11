@@ -1,5 +1,5 @@
 /*
-  stepper.c - stepper motor driver: executes motion plans using stepper motors
+  Stepper.cpp - stepper motor driver: executes motion plans using stepper motors
   Part of Grbl
 
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC

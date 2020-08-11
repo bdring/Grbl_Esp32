@@ -2,7 +2,7 @@
 // clang-format off
 
 /*
-    mpcnc.h
+    mpcnc_v1p1.h
     Part of Grbl_ESP32
 
     Pin assignments for the Buildlog.net MPCNC controller

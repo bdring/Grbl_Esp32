@@ -21,7 +21,6 @@
 */
 
 #include "Grbl.h"
-#include "TDef.h"
 
 // Define global system variables
 typedef struct {

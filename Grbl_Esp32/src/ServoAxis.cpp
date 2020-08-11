@@ -1,5 +1,5 @@
 /*
-  servo_axis.cpp
+  ServoAxis.cpp
   Part of Grbl_ESP32
 
 	copyright (c) 2018 -	Bart Dring. This file was intended for use on the ESP32
@@ -18,7 +18,7 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
-	See servo_axis.h for more details
+	See ServoAxis.h for more details
 
 */
 
