@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  config.h - compile time configuration
+  Config.h - compile time configuration
   Part of Grbl
 
   Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC
@@ -413,7 +413,7 @@ Some features should not be changed. See notes below.
 // smoothing the stepping of multi-axis motions. This feature smooths motion particularly at low step
 // frequencies below 10kHz, where the aliasing between axes of multi-axis motions can cause audible
 // noise and shake your machine. At even lower step frequencies, AMASS adapts and provides even better
-// step smoothing. See stepper.c for more details on the AMASS system works.
+// step smoothing. See Stepper.c for more details on the AMASS system works.
 #define ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING  // Default enabled. Comment to disable.
 
 // Sets the maximum step rate allowed to be written as a Grbl setting. This option enables an error

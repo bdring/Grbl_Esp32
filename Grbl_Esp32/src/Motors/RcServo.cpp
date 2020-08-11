@@ -1,5 +1,5 @@
 /*
-    RcServoServoClass.cpp
+    RcServo.cpp
 
     This allows an RcServo to be used like any other motor. Serrvos
     do have limitation in travel and speed, so you do need to respect that.

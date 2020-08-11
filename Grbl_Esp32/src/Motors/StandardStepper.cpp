@@ -1,5 +1,5 @@
 /*
-    StandardStepperClass.cpp
+    StandardStepper.cpp
 
     This is used for a stepper motor that just requires step and direction
     pins.

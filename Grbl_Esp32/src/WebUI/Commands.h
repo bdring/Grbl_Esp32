@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  commands.h - ESP3D configuration class
+  Commands.h - ESP3D configuration class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 

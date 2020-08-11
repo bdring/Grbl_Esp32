@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-  probe.h - code pertaining to probing methods
+  Probe.h - code pertaining to probing methods
   Part of Grbl
 
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC

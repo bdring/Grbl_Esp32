@@ -1,5 +1,5 @@
 /*
-	custom_code_template.cpp (copy and use your machine name)
+	esp32_printer_controller.cpp (copy and use your machine name)
 	Part of Grbl_ESP32
 
 	copyright (c) 2020 -	Bart Dring. This file was intended for use on the ESP32

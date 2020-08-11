@@ -1,5 +1,5 @@
 /*
-    i2s_out.cpp
+    I2SOut.cpp
     Part of Grbl_ESP32
 
     Basic GPIO expander using the ESP32 I2S peripheral (output)

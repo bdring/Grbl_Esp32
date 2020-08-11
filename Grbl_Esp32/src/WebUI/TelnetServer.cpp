@@ -1,5 +1,5 @@
 /*
-  telnet_server.cpp -  telnet server functions class
+  TelnetServer.cpp -  telnet server functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
