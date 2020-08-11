@@ -34,7 +34,7 @@
 #include "Motors.h"
 
 #include "Motor.h"
-#include "../grbl.h"
+#include "../Grbl.h"
 
 #include "NullMotor.h"
 #include "StandardStepper.h"
