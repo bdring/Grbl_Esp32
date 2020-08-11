@@ -1,7 +1,7 @@
 #include "Grbl.h"
 #include "WebUI/JSONEncoder.h"
 #include <map>
-#include "nvs.h"
+#include <nvs.h>
 
 Word::Word(type_t type, permissions_t permissions, const char* description, const char* grblName, const char* fullName) :
     _description(description), _grblName(grblName), _fullName(fullName), _type(type), _permissions(permissions) {}

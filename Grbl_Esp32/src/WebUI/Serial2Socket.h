@@ -20,10 +20,12 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "Print.h"
+#include <Print.h>
+
 #define TXBUFFERSIZE 1200
 #define RXBUFFERSIZE 128
 #define FLUSHTIMEOUT 500
+
 class Serial_2_Socket : public Print {
 public:
     Serial_2_Socket();

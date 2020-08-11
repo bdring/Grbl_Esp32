@@ -16,9 +16,9 @@
  */
 
 #include "Grbl.h"
-#include "FS.h"
-#include "SD.h"
-#include "SPI.h"
+#include <FS.h>
+#include <SD.h>
+#include <SPI.h>
 
 #define FILE_TYPE_COUNT 5  // number of acceptable gcode file types in array
 

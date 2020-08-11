@@ -79,7 +79,7 @@
 #define MAX_NOTIFICATION_TOKEN_LENGTH 63
 #define MAX_NOTIFICATION_SETTING_LENGTH 127
 
-#include "WiFi.h"
+#include <WiFi.h>
 
 class WiFiConfig {
 public:

@@ -30,7 +30,7 @@
 
 #include "ESPResponse.h"
 #include "WebServer.h"
-#include "string.h"
+#include <string.h>
 
 #ifdef ENABLE_WIFI
 StringSetting* wifi_sta_ssid;

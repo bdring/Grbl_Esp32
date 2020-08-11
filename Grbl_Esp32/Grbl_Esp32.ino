@@ -19,7 +19,7 @@
 */
 
 #include "src/Grbl.h"
-#include "WiFi.h"
+#include <WiFi.h>
 
 // Declare system global variable structure
 system_t         sys;

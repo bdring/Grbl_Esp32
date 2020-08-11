@@ -33,7 +33,7 @@
 #define BT_EVENT_DISCONNECTED 0
 #define BT_EVENT_CONNECTED 1
 
-#include "BluetoothSerial.h"
+#include <BluetoothSerial.h>
 extern BluetoothSerial SerialBT;
 
 class BTConfig {

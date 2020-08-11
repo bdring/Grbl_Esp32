@@ -21,7 +21,7 @@
 #include "Grbl.h"
 
 #ifdef ENABLE_BLUETOOTH
-#    include "BluetoothSerial.h"
+#    include <BluetoothSerial.h>
 #    include "BTConfig.h"
 
 BTConfig        bt_config;

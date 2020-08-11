@@ -33,7 +33,7 @@
 #include <freertos/task.h>
 #include <Preferences.h>
 
-#include "driver/timer.h"
+#include <driver/timer.h>
 
 // Define the Grbl system include files. NOTE: Do not alter organization.
 #include "Config.h"
@@ -90,10 +90,6 @@
 
 #ifdef USE_SERVO_AXES
 #    include "ServoAxis.h"
-#endif
-
-#ifdef USE_UNIPOLAR
-#    include "grbl_unipolar.h"
 #endif
 
 #ifdef USE_I2S_OUT
