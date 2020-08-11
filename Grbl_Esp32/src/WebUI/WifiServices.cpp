@@ -41,7 +41,7 @@
 #    ifdef ENABLE_NOTIFICATIONS
 #        include "NotificationsService.h"
 #    endif
-#    include "../Commands.h"
+#    include "Commands.h"
 
 WiFiServices wifi_services;
 
