@@ -21,7 +21,7 @@
 */
 
 #include "../Config.h"
-#include "../Commands.h"
+#include "Commands.h"
 class WebSocketsServer;
 class WebServer;
 
