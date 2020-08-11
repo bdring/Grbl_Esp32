@@ -18,12 +18,12 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "grbl.h"
+#include "../Grbl.h"
 
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
 
-#    include "serial2socket.h"
-#    include "web_server.h"
+#    include "Serial2Socket.h"
+#    include "WebServer.h"
 #    include <WebSocketsServer.h>
 #    include <WiFi.h>
 Serial_2_Socket Serial2Socket;

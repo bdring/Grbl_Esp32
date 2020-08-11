@@ -40,7 +40,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "config.h"
+#include "Config.h"
 
 #ifdef USE_I2S_OUT
 
@@ -53,7 +53,7 @@
 #    include <stdatomic.h>
 
 #    include "Pins.h"
-#    include "i2s_out.h"
+#    include "I2SOut.h"
 
 //
 // Configrations for DMA connected I2S

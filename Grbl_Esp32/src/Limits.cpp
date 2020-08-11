@@ -25,7 +25,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl.h"
+#include "Grbl.h"
 
 uint8_t n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;
 

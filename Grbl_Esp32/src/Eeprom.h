@@ -20,7 +20,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl.h"
+#include "Grbl.h"
 
 //unsigned char eeprom_get_char(unsigned int addr);
 //void eeprom_put_char(unsigned int addr, unsigned char new_value);

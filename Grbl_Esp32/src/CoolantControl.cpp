@@ -21,7 +21,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl.h"
+#include "Grbl.h"
 
 void coolant_init() {
 #ifdef COOLANT_FLOOD_PIN

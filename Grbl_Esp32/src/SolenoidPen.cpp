@@ -19,7 +19,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "grbl.h"
+#include "Grbl.h"
 
 #ifdef USE_PEN_SOLENOID
 

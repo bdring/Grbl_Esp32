@@ -83,10 +83,10 @@ Some features should not be changed. See notes below.
 
 // Include the file that loads the machine-specific config file.
 // machine.h must be edited to choose the desired file.
-#include "machine.h"
+#include "Machine.h"
 
 // machine_common.h contains settings that do not change
-#include "machine_common.h"
+#include "MachineCommon.h"
 
 #define MAX_N_AXIS 6
 

@@ -28,8 +28,8 @@
 #    define SEGMENT_BUFFER_SIZE 6
 #endif
 
-#include "grbl.h"
-#include "config.h"
+#include "Grbl.h"
+#include "Config.h"
 
 // Some useful constants.
 #define DT_SEGMENT (1.0 / (ACCELERATION_TICKS_PER_SECOND * 60.0))  // min/segment

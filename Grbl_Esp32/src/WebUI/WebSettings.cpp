@@ -20,7 +20,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl.h"
+#include "../Grbl.h"
 
 #include <WiFi.h>
 #include <FS.h>
@@ -28,8 +28,8 @@
 #include <esp_wifi.h>
 #include <esp_ota_ops.h>
 
-#include "espresponse.h"
-#include "web_server.h"
+#include "ESPResponse.h"
+#include "WebServer.h"
 #include "string.h"
 
 #ifdef ENABLE_WIFI

@@ -23,7 +23,7 @@
 //how many clients should be able to telnet to this ESP32
 #define MAX_TLNT_CLIENTS 1
 
-#include "config.h"
+#include "../Config.h"
 class WiFiServer;
 class WiFiClient;
 

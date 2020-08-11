@@ -18,22 +18,22 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "grbl.h"
+#include "../Grbl.h"
 
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
 
-#    include "wifiservices.h"
+#    include "WifiServices.h"
 
-#    include "espresponse.h"
-#    include "serial2socket.h"
-#    include "web_server.h"
+#    include "ESPResponse.h"
+#    include "Serial2Socket.h"
+#    include "WebServer.h"
 #    include <WebSocketsServer.h>
 #    include <WiFi.h>
 #    include <FS.h>
 #    include <SPIFFS.h>
 #    ifdef ENABLE_SD_CARD
 #        include <SD.h>
-#        include "grbl_sd.h"
+#        include "../SDCard.h"
 #    endif
 #    include <WebServer.h>
 #    include <ESP32SSDP.h>
@@ -54,7 +54,7 @@ DNSServer  dnsServer;
 #    include <esp_ota_ops.h>
 
 //embedded response file if no files on SPIFFS
-#    include "nofile.h"
+#    include "../NoFile.h"
 
 //Upload status
 typedef enum {

@@ -20,9 +20,9 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl.h"
-#include "tdef.h"
-#include "commands.h"
+#include "Grbl.h"
+#include "TDef.h"
+#include "Commands.h"
 
 // Define global system variables
 typedef struct {

@@ -20,7 +20,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl.h"
+#include "Grbl.h"
 
 #ifndef RX_BUFFER_SIZE
 #    define RX_BUFFER_SIZE 128

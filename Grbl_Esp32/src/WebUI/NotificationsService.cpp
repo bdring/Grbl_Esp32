@@ -28,9 +28,9 @@
 // - https://github.com/CosmicBoris/ESP8266SMTP
 // - https://www.electronicshub.org/send-an-email-using-esp8266/
 
-#include "grbl.h"
+#include "../Grbl.h"
 #ifdef ENABLE_NOTIFICATIONS
-#    include "notifications_service.h"
+#    include "NotificationsService.h"
 #    include <WiFiClientSecure.h>
 #    include <base64.h>
 

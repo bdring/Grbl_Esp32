@@ -18,7 +18,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl_sd.h"
+#include "SDCard.h"
 
 File        myFile;
 bool        SD_ready_next = false;  // Grbl has processed a line and is waiting for another

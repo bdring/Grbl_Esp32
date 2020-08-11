@@ -1,4 +1,4 @@
-#include "grbl.h"
+#include "../Grbl.h"
 
 #ifdef ENABLE_AUTHENTICATION
 // TODO Settings - need ADMIN_ONLY and if it is called without a parameter it sets the default

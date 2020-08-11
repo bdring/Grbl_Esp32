@@ -22,7 +22,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl.h"
+#include "Grbl.h"
 
 // System motion line numbers must be zero.
 #define JOG_LINE_NUMBER 0

@@ -18,8 +18,8 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl.h"
-#include "config.h"
+#include "Grbl.h"
+#include "Config.h"
 
 xQueueHandle control_sw_queue;    // used by control switch debouncing
 bool         debouncing = false;  // debouncing in process

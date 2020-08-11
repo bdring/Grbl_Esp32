@@ -1,5 +1,5 @@
-#include "grbl.h"
-#include "JSONencoder.h"
+#include "Grbl.h"
+#include "WebUI/JSONEncoder.h"
 #include <map>
 #include "nvs.h"
 

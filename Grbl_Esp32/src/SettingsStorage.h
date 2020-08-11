@@ -24,7 +24,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl.h"
+#include "Grbl.h"
 
 // Define status reporting boolean enable bit flags in status_report_mask
 #define BITFLAG_RT_STATUS_POSITION_TYPE bit(0)

@@ -22,9 +22,9 @@
 
 */
 
-#include "grbl.h"
+#include "Grbl.h"
 
-#include "servo_axis.h"
+#include "ServoAxis.h"
 
 #ifdef USE_SERVO_AXES
 

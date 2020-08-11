@@ -15,7 +15,7 @@
  *    D1       -
  */
 
-#include "grbl.h"
+#include "Grbl.h"
 #include "FS.h"
 #include "SD.h"
 #include "SPI.h"

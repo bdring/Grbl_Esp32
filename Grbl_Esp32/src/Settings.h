@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JSONencoder.h"
+#include "WebUI/JSONEncoder.h"
 #include <map>
 #include <nvs.h>
-#include "espresponse.h"
+#include "WebUI/ESPResponse.h"
 
 // Command::List is a linked list of all settings,
 // so common code can enumerate them.

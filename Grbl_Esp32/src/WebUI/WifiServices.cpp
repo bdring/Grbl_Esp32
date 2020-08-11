@@ -18,14 +18,14 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "grbl.h"
+#include "../Grbl.h"
 
 #ifdef ENABLE_WIFI
 
 #    include <WiFi.h>
 #    include <FS.h>
 #    include <SPIFFS.h>
-#    include "wifiservices.h"
+#    include "WifiServices.h"
 #    ifdef ENABLE_MDNS
 #        include <ESPmDNS.h>
 #    endif
@@ -33,15 +33,15 @@
 #        include <ArduinoOTA.h>
 #    endif
 #    ifdef ENABLE_HTTP
-#        include "web_server.h"
+#        include "WebServer.h"
 #    endif
 #    ifdef ENABLE_TELNET
-#        include "telnet_server.h"
+#        include "TelnetServer.h"
 #    endif
 #    ifdef ENABLE_NOTIFICATIONS
-#        include "notifications_service.h"
+#        include "NotificationsService.h"
 #    endif
-#    include "commands.h"
+#    include "../Commands.h"
 
 WiFiServices wifi_services;
 

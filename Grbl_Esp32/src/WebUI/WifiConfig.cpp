@@ -18,7 +18,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "grbl.h"
+#include "../Grbl.h"
 
 #ifdef ENABLE_WIFI
 
@@ -27,7 +27,7 @@
 #    include <ESPmDNS.h>
 #    include <FS.h>
 #    include <SPIFFS.h>
-#    include "wifiservices.h"
+#    include "WifiServices.h"
 
 WiFiConfig wifi_config;
 

@@ -1,5 +1,5 @@
-#include "grbl.h"
-#include "i2s_out.h"
+#include "Grbl.h"
+#include "I2SOut.h"
 
 String pinName(uint8_t pin) {
     if (pin == UNDEFINED_PIN) {

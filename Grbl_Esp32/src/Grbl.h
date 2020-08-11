@@ -36,60 +36,60 @@
 #include "driver/timer.h"
 
 // Define the Grbl system include files. NOTE: Do not alter organization.
-#include "config.h"
-#include "nuts_bolts.h"
-#include "tdef.h"
+#include "Config.h"
+#include "NutsBolts.h"
+#include "TDef.h"
 
-#include "defaults.h"
-#include "settings.h"
-#include "authentication.h"
-#include "system.h"
+#include "Defaults.h"
+#include "SettingsStorage.h"
+#include "WebUI/Authentication.h"
+#include "System.h"
 
-#include "planner.h"
-#include "coolant_control.h"
-#include "grbl_eeprom.h"
-#include "gcode.h"
-#include "grbl_limits.h"
-#include "motion_control.h"
-#include "probe.h"
-#include "protocol.h"
-#include "report.h"
-#include "serial.h"
+#include "Planner.h"
+#include "CoolantControl.h"
+#include "Eeprom.h"
+#include "GCode.h"
+#include "Limits.h"
+#include "MotionControl.h"
+#include "Probe.h"
+#include "Protocol.h"
+#include "Report.h"
+#include "Serial.h"
 #include "Pins.h"
 #include "Spindles/Spindle.h"
 #include "Motors/Motors.h"
-#include "stepper.h"
-#include "jog.h"
-#include "inputbuffer.h"
-#include "commands.h"
-#include "SettingsClass.h"
+#include "Stepper.h"
+#include "Jog.h"
+#include "WebUI/InputBuffer.h"
+#include "Commands.h"
+#include "Settings.h"
 #include "SettingsDefinitions.h"
-#include "WebSettings.h"
+#include "WebUI/WebSettings.h"
 
 // Do not guard this because it is needed for local files too
-#include "grbl_sd.h"
+#include "SDCard.h"
 
 #ifdef ENABLE_BLUETOOTH
-#    include "BTconfig.h"
+#    include "BTConfig.h"
 #endif
 
 #ifdef ENABLE_WIFI
-#    include "wificonfig.h"
+#    include "WebUI/WifiConfig.h"
 #    ifdef ENABLE_HTTP
-#        include "serial2socket.h"
+#        include "WebUI/Serial2Socket.h"
 #    endif
 #    ifdef ENABLE_TELNET
-#        include "telnet_server.h"
+#        include "WebUI/TelnetServer.h"
 #    endif
 #    ifdef ENABLE_NOTIFICATIONS
-#        include "notifications_service.h"
+#        include "WebUI/NotificationsService.h"
 #    endif
 #endif
 
-#include "solenoid_pen.h"
+#include "SolenoidPen.h"
 
 #ifdef USE_SERVO_AXES
-#    include "servo_axis.h"
+#    include "ServoAxis.h"
 #endif
 
 #ifdef USE_UNIPOLAR
@@ -97,7 +97,7 @@
 #endif
 
 #ifdef USE_I2S_OUT
-#    include "i2s_out.h"
+#    include "I2SOut.h"
 #endif
 
 // Called if USE_MACHINE_INIT is defined

@@ -18,14 +18,14 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "grbl.h"
+#include "../Grbl.h"
 
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
 
-#    include "wifiservices.h"
+#    include "WifiServices.h"
 
-#    include "telnet_server.h"
-#    include "wificonfig.h"
+#    include "TelnetServer.h"
+#    include "WifiConfig.h"
 #    include <WiFi.h>
 
 Telnet_Server telnet_server;

@@ -1,8 +1,8 @@
 // Class for creating JSON-encoded strings.
 
-#include "grbl.h"
+#include "../Grbl.h"
 
-#include "JSONencoder.h"
+#include "JSONEncoder.h"
 
 // Constructor.  If _pretty is true, newlines are
 // inserted into the JSON string for easy reading.

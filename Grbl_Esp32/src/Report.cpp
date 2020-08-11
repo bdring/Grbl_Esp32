@@ -46,7 +46,7 @@
 
 */
 
-#include "grbl.h"
+#include "Grbl.h"
 #ifdef REPORT_HEAP
 EspClass esp;
 #endif

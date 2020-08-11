@@ -24,7 +24,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "grbl.h"
+#include "Grbl.h"
 
 // System motion commands must have a line number of zero.
 #define HOMING_CYCLE_LINE_NUMBER 0

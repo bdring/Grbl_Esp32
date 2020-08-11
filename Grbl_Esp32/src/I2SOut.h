@@ -39,7 +39,7 @@
  */
 
 // It should be included at the outset to know the machine configuration.
-#include "config.h"
+#include "Config.h"
 
 // If USE_I2S_OUT_STREAM is defined
 // but the prerequisite USE_I2S_OUT is not defined,
