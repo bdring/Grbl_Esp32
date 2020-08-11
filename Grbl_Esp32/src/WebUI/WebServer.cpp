@@ -54,7 +54,7 @@ DNSServer  dnsServer;
 #    include <esp_ota_ops.h>
 
 //embedded response file if no files on SPIFFS
-#    include "../NoFile.h"
+#    include "NoFile.h"
 
 //Upload status
 typedef enum {

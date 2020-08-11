@@ -42,6 +42,7 @@
 #include "Defaults.h"
 #include "SettingsStorage.h"
 #include "WebUI/Authentication.h"
+#include "WebUI/Commands.h"
 #include "System.h"
 
 #include "Planner.h"
@@ -60,7 +61,6 @@
 #include "Stepper.h"
 #include "Jog.h"
 #include "WebUI/InputBuffer.h"
-#include "Commands.h"
 #include "Settings.h"
 #include "SettingsDefinitions.h"
 #include "WebUI/WebSettings.h"
@@ -69,7 +69,7 @@
 #include "SDCard.h"
 
 #ifdef ENABLE_BLUETOOTH
-#    include "BTConfig.h"
+#    include "WebUI/BTConfig.h"
 #endif
 
 #ifdef ENABLE_WIFI
