@@ -1,5 +1,5 @@
 /*
-  Report.c - reporting and messaging methods
+  Report.cpp - reporting and messaging methods
   Part of Grbl
 
   Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC
@@ -24,7 +24,7 @@
 /*
   This file functions as the primary feedback interface for Grbl. Any outgoing data, such
   as the protocol status messages, feedback messages, and status reports, are stored here.
-  For the most part, these functions primarily are called from protocol.c methods. If a
+  For the most part, these functions primarily are called from Protocol.cpp methods. If a
   different style feedback is desired (i.e. JSON), then a user can change these following
   methods to accommodate their needs.
 

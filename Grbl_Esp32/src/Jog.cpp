@@ -1,5 +1,5 @@
 /*
-  Jog.h - Jogging methods
+  Jog.cpp - Jogging methods
   Part of Grbl
 
   Copyright (c) 2016 Sungeun K. Jeon for Gnea Research LLC

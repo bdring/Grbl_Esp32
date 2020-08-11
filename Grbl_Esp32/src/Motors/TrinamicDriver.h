@@ -5,7 +5,7 @@
 
     Part of Grbl_ESP32
 
-    Copyright 2020 -	Bart Dring
+    2020 -	Bart Dring
 
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
