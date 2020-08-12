@@ -42,6 +42,8 @@
 // The hardware enable pin is tied to ground
 #define USE_TRINAMIC_ENABLE
 
+#define DEFAULT_HOMING_SQUARED_AXES bit(Y_AXIS)
+
 // Y motor connects to the 1st driver
 #define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
@@ -62,8 +64,6 @@
 #define Y2_STEP_PIN              GPIO_NUM_15  // Z on schem
 #define Y2_DIRECTION_PIN         GPIO_NUM_2   // Z on schem
 #define Y2_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
-
-#define Y_AXIS_SQUARING // optional
 
 // Z Axis motor connects to the 4th driver
 #define Z_TRINAMIC_DRIVER       2130        // Which Driver Type?

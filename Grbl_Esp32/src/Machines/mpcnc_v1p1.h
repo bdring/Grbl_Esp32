@@ -27,16 +27,15 @@
 
 // // Pin assignments for the Buildlog.net MPCNC controller
 
-
 #define MACHINE_NAME "MPCNC_V1P1"
 
+#define DEFAULT_HOMING_SQUARED_AXES (bit(X_AXIS) | bit(Y_AXIS))
+
 #define X_STEP_PIN      GPIO_NUM_12
-#define X2_STEP_PIN     GPIO_NUM_22      // ganged motor
-#define X_AXIS_SQUARING
+#define X2_STEP_PIN     GPIO_NUM_22  // ganged motor
 
 #define Y_STEP_PIN      GPIO_NUM_14
 #define Y2_STEP_PIN     GPIO_NUM_21  // ganged motor
-#define Y_AXIS_SQUARING
 
 #define Z_STEP_PIN      GPIO_NUM_27
 
@@ -57,9 +56,9 @@
     #define SPINDLE_OUTPUT_PIN GPIO_NUM_17
 #else
     #define SPINDLE_TYPE SPINDLE_TYPE_PWM
-    #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
+    #define SPINDLE_OUTPUT_PIN GPIO_NUM_16
 
-    #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
+    #define SPINDLE_ENABLE_PIN GPIO_NUM_32
 #endif
 
 // Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
