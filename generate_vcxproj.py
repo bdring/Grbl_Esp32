@@ -66,7 +66,7 @@ class Vcxproj:
 		'		<NMakeBuildCommandLine>platformio --force run</NMakeBuildCommandLine>',
 		'		<NMakeCleanCommandLine>platformio --force run -t clean</NMakeCleanCommandLine>',
 		'		<NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>',
-		'		<NMakeIncludeSearchPath>$(HOMEDRIVE)$(HOMEPATH)\\.platformio\\packages\\toolchain-xtensa32\\xtensa-esp32-elf\\include;$(HOMEDRIVE)$(HOMEPATH)\\.platformio\\packages\\framework-arduinoespressif32\\cores\\esp32;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>',
+		'		<NMakeIncludeSearchPath>$(HOMEDRIVE)$(HOMEPATH)\\.platformio\\packages\\framework-arduinoespressif32\\tools\\sdk\\include\\freertos;$(HOMEDRIVE)$(HOMEPATH)\\.platformio\\packages\\toolchain-xtensa32\\xtensa-esp32-elf\\include;$(HOMEDRIVE)$(HOMEPATH)\\.platformio\\packages\\framework-arduinoespressif32\\cores\\esp32;$(HOMEDRIVE)$(HOMEPATH)\\.platformio\\packages\\framework-arduinoespressif32\\tools\\sdk\\include\\driver;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>',
 		'	</PropertyGroup>'
 	])
 

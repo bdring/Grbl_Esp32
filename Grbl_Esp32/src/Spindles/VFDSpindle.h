@@ -1,10 +1,11 @@
 #pragma once
 
 /*
-	HuanyangSpindle.h
+	VFDSpindle.h
 
 	Part of Grbl_ESP32
 	2020 -	Bart Dring
+	2020 -  Stefan de Bruijn
 
 	Grbl is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -20,29 +21,62 @@
 */
 #include "Spindle.h"
 
+#include <driver/uart.h>
+
 namespace Spindles {
-    class Huanyang : public Spindle {
+
+    class VFD : public Spindle {
     private:
-        uint16_t ModRTU_CRC(char* buf, int len);
+        static const int VFD_RS485_MAX_MSG_SIZE = 16;  // more than enough for a modbus message
+		static const int MAX_RETRIES = 3; // otherwise the spindle is marked 'unresponsive'
 
         bool set_mode(uint8_t mode, bool critical);
-
         bool get_pins_and_settings();
 
-        uint32_t _current_rpm;
-        uint8_t  _txd_pin;
-        uint8_t  _rxd_pin;
-        uint8_t  _rts_pin;
-        uint8_t  _state;
-        bool     _task_running;
+        uint8_t _txd_pin;
+        uint8_t _rxd_pin;
+        uint8_t _rts_pin;
+
+        uint32_t _current_rpm  = 0;
+        uint8_t  _state        = SPINDLE_DISABLE;
+        bool     _task_running = false;
+        bool     vfd_ok        = true;
+
+        static QueueHandle_t vfd_cmd_queue;
+        static TaskHandle_t  vfd_cmdTaskHandle;
+        static void          vfd_cmd_task(void* pvParameters);
+
+        static uint16_t ModRTU_CRC(uint8_t* buf, int msg_len);
+
+    protected:
+        struct ModbusCommand {
+			bool    critical; // TODO SdB: change into `uint8_t critical : 1;`: We want more flags...
+
+            uint8_t tx_length;
+            uint8_t rx_length;
+            uint8_t msg[VFD_RS485_MAX_MSG_SIZE];
+        };
+
+        virtual void default_modbus_settings(uart_config_t& uart);
+
+        // Commands:
+        virtual void direction_command(uint8_t mode, ModbusCommand& data) = 0;
+        virtual void set_speed_command(uint32_t rpm, ModbusCommand& data) = 0;
+
+        // Commands that return the status. Returns nullptr if unavailable by this VFD (default):
+        using response_parser = bool (*)(const uint8_t* response, VFD* spindle);
+
+        virtual response_parser get_max_rpm(ModbusCommand& data) { return nullptr; }
+        virtual response_parser get_current_rpm(ModbusCommand& data) { return nullptr; }
+        virtual response_parser get_current_direction(ModbusCommand& data) { return nullptr; }
+		virtual response_parser get_status_ok(ModbusCommand& data) = 0;
 
     public:
-        Huanyang() : _task_running(false) {}
-
-        Huanyang(const Huanyang&) = delete;
-        Huanyang(Huanyang&&)      = delete;
-        Huanyang& operator=(const Huanyang&) = delete;
-        Huanyang& operator=(Huanyang&&) = delete;
+        VFD()           = default;
+        VFD(const VFD&) = delete;
+        VFD(VFD&&)      = delete;
+        VFD& operator=(const VFD&) = delete;
+        VFD& operator=(VFD&&) = delete;
 
         void        init();
         void        config_message();
@@ -50,10 +84,8 @@ namespace Spindles {
         uint8_t     get_state();
         uint32_t    set_rpm(uint32_t rpm);
         void        stop();
-        static void read_value(uint8_t reg);
-        static void add_ModRTU_CRC(char* buf, int full_msg_len);
 
-        virtual ~Huanyang() {}
+        virtual ~VFD() {}
 
     protected:
         uint32_t _min_rpm;

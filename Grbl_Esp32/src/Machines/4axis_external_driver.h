@@ -51,9 +51,9 @@
 
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG // only one spindle at a time
-#define HUANYANG_TXD_PIN        GPIO_NUM_17
-#define HUANYANG_RXD_PIN        GPIO_NUM_4
-#define HUANYANG_RTS_PIN        GPIO_NUM_16
+#define VFD_RS485_TXD_PIN		GPIO_NUM_17
+#define VFD_RS485_RXD_PIN		GPIO_NUM_4
+#define VFD_RS485_RTS_PIN		GPIO_NUM_16
 
 #define X_LIMIT_PIN             GPIO_NUM_34
 #define Y_LIMIT_PIN             GPIO_NUM_35
