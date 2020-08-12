@@ -95,6 +95,9 @@
 #    include "I2SOut.h"
 #endif
 
+void init();
+void run_once();
+
 // Called if USE_MACHINE_INIT is defined
 void machine_init();
 
