@@ -146,6 +146,7 @@ namespace Spindles {
                 pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
         }
 
+        set_enable_pin(gc_state.modal.spindle != SPINDLE_DISABLE);
         set_output(pwm_value);
 
         return 0;

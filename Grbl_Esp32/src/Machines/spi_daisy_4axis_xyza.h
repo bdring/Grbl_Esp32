@@ -77,7 +77,7 @@
 // Install Jumper near relay
 // For PWM remove jumper to prevent relay damage
 // Interlock jumper along top edge needs to be installed for both versions
-#define USE_RELAY  // comment out to use PWM
+//#define USE_RELAY  // comment out to use PWM
 
 #ifdef USE_RELAY
     #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
