@@ -107,10 +107,6 @@
 	0x01    0x04    0x03    0x07    0x00    0x00    CRC     CRC     //  VFD Temp
 	Message is returned with requested value = (DataH * 16) + DataL (see decimal offset above)
 
-	TODO:
-		Move CRC Calc to task to free up main task
-
-
 */
 
 #include <driver/uart.h>

@@ -71,7 +71,7 @@ namespace Spindles {
             if (parser == nullptr && 
 				xQueueReceive(vfd_cmd_queue, &next_cmd, 0) != pdTRUE) { 
                 // We poll in a cycle. Note that the switch will fall through unless we encounter a hit.
-                // The weakest form here is 'get_status_ok' which should always be implemented.
+                // The weakest form here is 'get_status_ok' which should be implemented if the rest fails.
                 switch (pollidx) {
                     case 1:
                         parser = instance->get_current_rpm(next_cmd);
@@ -88,6 +88,9 @@ namespace Spindles {
                     case 3:
                         parser  = instance->get_status_ok(next_cmd);
                         pollidx = 1;
+
+						// we could complete this in case parser == nullptr with some ifs, but let's 
+						// just keep it easy and wait an iteration.
                         break;
                 }
 

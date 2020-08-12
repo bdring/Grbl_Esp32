@@ -38,6 +38,7 @@
 #define SPINDLE_TYPE_HUANYANG 5
 #define SPINDLE_TYPE_BESC 6
 #define SPINDLE_TYPE_10V 7
+#define SPINDLE_TYPE_H2A 8
 
 #include "../Grbl.h"
 #include <driver/dac.h>
