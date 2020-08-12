@@ -2,7 +2,7 @@
 // clang-format off
 
 /*
-    6_pack_stepstick_v1.h
+    6_pack_MPCNC_stepstick_v1.h
 
     Covers all V1 versions V1p0, V1p1, etc
 
@@ -22,12 +22,12 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define MACHINE_NAME            "6 Pack Controller V1 (StepStick)"
+#define MACHINE_NAME            "6 Pack MPCNC XYZXY V1 (StepStick)"
 
 #ifdef N_AXIS
         #undef N_AXIS
 #endif
-#define N_AXIS 6
+#define N_AXIS 3
 
 #ifdef ENABLE_SD_CARD
     #undef ENABLE_SD_CARD
@@ -49,83 +49,45 @@
 #define I2S_OUT_DATA     GPIO_NUM_21
 
 
-#define X_STEPPER_MS3           I2SO(3)   // X_CS
+#define X_STEPPER_MS3           I2SO(3)   // Labeled X_CS
 #define Y_STEPPER_MS3           I2SO(6)   // Y_CS
 #define Z_STEPPER_MS3           I2SO(11)  // Z_CS
-#define A_STEPPER_MS3           I2SO(14)  // A_CS
-#define B_STEPPER_MS3           I2SO(19)  // B_CS
-#define C_STEPPER_MS3           I2SO(22)  // C_CS
+#define X2_STEPPER_MS3          I2SO(14)  // A_CS
+#define Y2_STEPPER_MS3          I2SO(19)  // B_CS
 
 #define STEPPER_RESET           GPIO_NUM_19
 
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)
 #define X_STEP_PIN              I2SO(2)
+#define X_AXIS_SQUARING
 
 #define Y_DIRECTION_PIN         I2SO(4)
 #define Y_STEP_PIN              I2SO(5)
 #define Y_DISABLE_PIN           I2SO(7)
+#define Y_AXIS_SQUARING
 
 #define Z_DISABLE_PIN           I2SO(8)
 #define Z_DIRECTION_PIN         I2SO(9)
 #define Z_STEP_PIN              I2SO(10)
 
-#define A_DIRECTION_PIN         I2SO(12)
-#define A_STEP_PIN              I2SO(13)
-#define A_DISABLE_PIN           I2SO(15)
+// labeled A on controller
+#define X2_DIRECTION_PIN         I2SO(12)
+#define X2_STEP_PIN              I2SO(13)
+#define X2_DISABLE_PIN           I2SO(15)
 
-#define B_DISABLE_PIN           I2SO(16)
-#define B_DIRECTION_PIN         I2SO(17)
-#define B_STEP_PIN              I2SO(18)
+// labeled B on controller
+#define Y2_DISABLE_PIN           I2SO(16)
+#define Y2_DIRECTION_PIN         I2SO(17)
+#define Y2_STEP_PIN              I2SO(18)
 
-#define C_DIRECTION_PIN         I2SO(20)
-#define C_STEP_PIN              I2SO(21)
-#define C_DISABLE_PIN           I2SO(23)
+// stepper C unused
 
 #define X_LIMIT_PIN             GPIO_NUM_33
 #define Y_LIMIT_PIN             GPIO_NUM_32
 #define Z_LIMIT_PIN             GPIO_NUM_35
-#define A_LIMIT_PIN             GPIO_NUM_34
-//#define B_LIMIT_PIN             GPIO_NUM_39
-//#define C_LIMIT_PIN             GPIO_NUM_36
-
-#define PROBE_PIN               GPIO_NUM_25
-
-/*
-// 0-10v CNC Module in Socket #3
-// Control...Set PD001 to 1 if enable is connected 0 is panel should be used
-// Freq...Set PD002 to 0
-// Freq input...Set PD070 to 0 for 0-10V
-#define SPINDLE_TYPE            SPINDLE_TYPE_10V
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
-#define SPINDLE_FORWARD_PIN     GPIO_NUM_4
-#define SPINDLE_REVERSE_PIN     GPIO_NUM_16
-*/
-
-// Example 5V output CNC module in socket #3
-/*
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
-#define SPINDLE_ENABLE_PIN      GPIO_NUM_4
-#define SPINDLE_DIR_PIN         GPIO_NUM_16
-#define COOLANT_MIST_PIN        GPIO_NUM_27
-*/
-
-/*
-// Example (4x) 5V Buffer Output on socket #5
-#define SPINDLE_TYPE            SPINDLE_TYPE_RELAY
-#define SPINDLE_OUTPUT_PIN      I2SO(24)
-#define SPINDLE_DIR_PIN         I2SO(25)
-#define COOLANT_MIST_PIN        I2SO(26)
-#define COOLANT_FLOOD_PIN       I2SO(27)
-*/
-
-
-// RS485 In socket #3
-#define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG // only one spindle at a time
-#define HUANYANG_TXD_PIN        GPIO_NUM_26
-#define HUANYANG_RTS_PIN        GPIO_NUM_4
-#define HUANYANG_RXD_PIN        GPIO_NUM_16
+#define X2_LIMIT_PIN            GPIO_NUM_34 // labeled A
+#define Y2_LIMIT_PIN            GPIO_NUM_39 // labeled B
 
 
 

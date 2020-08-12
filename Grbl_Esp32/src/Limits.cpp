@@ -273,9 +273,8 @@ void limits_go_home(uint8_t cycle_mask) {
     motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done
 }
 
-uint8_t limit_pins[] = {
-    X_LIMIT_PIN, Y_LIMIT_PIN, Z_LIMIT_PIN, A_LIMIT_PIN, B_LIMIT_PIN, C_LIMIT_PIN,
-};
+uint8_t limit_pins[MAX_N_AXIS][2] = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
+                                      { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
 
 uint8_t limit_mask = 0;
 
@@ -285,18 +284,28 @@ void limits_init() {
 #ifdef DISABLE_LIMIT_PIN_PULL_UP
     mode = INPUT;
 #endif
-    for (int i = 0; i < N_AXIS; i++) {
-        uint8_t pin;
-        if ((pin = limit_pins[i]) != UNDEFINED_PIN) {
-            limit_mask |= bit(i);
-            pinMode(pin, mode);
-            if (hard_limits->get()) {
-                attachInterrupt(pin, isr_limit_switches, CHANGE);
-            } else {
-                detachInterrupt(pin);
+    for (int axis = 0; axis < N_AXIS; axis++) {
+        for (int gang_index = 0; gang_index < 2; gang_index++) {
+            uint8_t pin;
+            if ((pin = limit_pins[axis][gang_index]) != UNDEFINED_PIN) {
+                pinMode(pin, mode);
+                limit_mask |= bit(axis);
+                if (hard_limits->get()) {
+                    attachInterrupt(pin, isr_limit_switches, CHANGE);
+                } else {
+                    detachInterrupt(pin);
+                }
+                grbl_msg_sendf(CLIENT_SERIAL,
+                               MSG_LEVEL_INFO,
+                               "%c%s Axis limit switch on pin %s",
+                               report_get_axis_letter(axis),
+                               gang_index ? "2" : " ",
+                               pinName(pin).c_str());
             }
         }
     }
+
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Limit Mask %d", limit_mask);
 
     // setup task used for debouncing
     limit_sw_queue = xQueueCreate(10, sizeof(int));
@@ -310,9 +319,12 @@ void limits_init() {
 
 // Disables hard limits.
 void limits_disable() {
-    for (int i = 0; i < N_AXIS; i++) {
-        if (limit_pins[i] != UNDEFINED_PIN) {
-            detachInterrupt(i);
+    for (int axis = 0; axis < N_AXIS; axis++) {
+        for (int gang_index = 0; gang_index < 2; gang_index++) {
+            uint8_t pin = limit_pins[axis][gang_index];
+            if (pin != UNDEFINED_PIN) {
+                detachInterrupt(pin);
+            }
         }
     }
 }
@@ -322,10 +334,12 @@ void limits_disable() {
 // number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 uint8_t limits_get_state() {
     uint8_t pinMask = 0;
-    for (int i = 0; i < N_AXIS; i++) {
-        uint8_t pin;
-        if ((pin = limit_pins[i]) != UNDEFINED_PIN) {
-            pinMask += digitalRead(pin) << i;
+    for (int axis = 0; axis < N_AXIS; axis++) {
+        for (int gang_index = 0; gang_index < 2; gang_index++) {
+            uint8_t pin = limit_pins[axis][gang_index];
+            if (pin != UNDEFINED_PIN) {
+                pinMask |= (digitalRead(pin) << axis);
+            }
         }
     }
 
@@ -379,7 +393,7 @@ void limitCheckTask(void* pvParameters) {
         uint8_t switch_state;
         switch_state = limits_get_state();
         if (switch_state) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Limit Switch State %08d", switch_state);
+            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Limit Switch State %08d", switch_state);
             mc_reset();                                    // Initiate system kill.
             system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);  // Indicate hard limit critical event
         }

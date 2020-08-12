@@ -47,7 +47,7 @@ namespace Motors {
     bool Motor::test() { return true; };  // true = OK
     void Motor::update() {}
 
-    void Motor::set_axis_name() { sprintf(_axis_name, "%c%s", report_get_axis_letter(axis_index), dual_axis_index ? "2" : ""); }
+    void Motor::set_axis_name() { sprintf(_axis_name, "%c%s", report_get_axis_letter(axis_index), dual_axis_index ? "2" : " "); }
 
     void Motor::set_homing_mode(uint8_t homing_mask, bool isHoming) { _homing_mask = homing_mask; }
 }

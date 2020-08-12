@@ -430,3 +430,60 @@
 #ifndef C_LIMIT_PIN
 #    define C_LIMIT_PIN UNDEFINED_PIN
 #endif
+#ifndef X2_LIMIT_PIN
+#    define X2_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef Y2_LIMIT_PIN
+#    define Y2_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef Z2_LIMIT_PIN
+#    define Z2_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef A2_LIMIT_PIN
+#    define A2_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef B2_LIMIT_PIN
+#    define B2_LIMIT_PIN UNDEFINED_PIN
+#endif
+#ifndef C2_LIMIT_PIN
+#    define C2_LIMIT_PIN UNDEFINED_PIN
+#endif
+
+// assigned all MS3 (microstep pin 3) to UNDEFINED_PIN
+
+#ifndef X_STEPPER_MS3
+#    define X_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef Y_STEPPER_MS3
+#    define Y_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef Z_STEPPER_MS3
+#    define Z_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef A_STEPPER_MS3
+#    define A_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef B_STEPPER_MS3
+#    define B_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef C_STEPPER_MS3
+#    define C_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef X2_STEPPER_MS3
+#    define X2_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef Y2_STEPPER_MS3
+#    define Y2_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef Z2_STEPPER_MS3
+#    define Z2_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef A2_STEPPER_MS3
+#    define A2_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef B2_STEPPER_MS3
+#    define B2_STEPPER_MS3 UNDEFINED_PIN
+#endif
+#ifndef C2_STEPPER_MS3
+#    define C2_STEPPER_MS3 UNDEFINED_PIN
+#endif
