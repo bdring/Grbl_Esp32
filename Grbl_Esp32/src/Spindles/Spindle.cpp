@@ -79,3 +79,5 @@ namespace Spindles {
         set_state(state, rpm);
     }
 }
+
+Spindles::Spindle* spindle;
