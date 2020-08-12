@@ -61,29 +61,23 @@ namespace Spindles {
 #ifdef SPINDLE_OUTPUT_PIN
         _output_pin = SPINDLE_OUTPUT_PIN;
 #else
-        _output_pin          = UNDEFINED_PIN;
+        _output_pin       = UNDEFINED_PIN;
 #endif
 
-#ifdef INVERT_SPINDLE_OUTPUT_PIN
-        _invert_pwm = true;
-#else
-        _invert_pwm          = false;
-#endif
+        _invert_pwm = spindle_output_invert->get();
 
 #ifdef SPINDLE_ENABLE_PIN
         _enable_pin = SPINDLE_ENABLE_PIN;
-#    ifdef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
-        _off_with_zero_speed = true;
-#    endif
 #else
-        _enable_pin          = UNDEFINED_PIN;
-        _off_with_zero_speed = false;
+        _enable_pin       = UNDEFINED_PIN;
 #endif
+
+        _off_with_zero_speed = spindle_enbl_off_with_zero_speed->get();
 
 #ifdef SPINDLE_DIR_PIN
         _direction_pin = SPINDLE_DIR_PIN;
 #else
-        _direction_pin       = UNDEFINED_PIN;
+        _direction_pin    = UNDEFINED_PIN;
 #endif
 
         is_reversable = (_direction_pin != UNDEFINED_PIN);
@@ -105,9 +99,9 @@ namespace Spindles {
         _max_rpm          = RPM_MAX;
         _piecewide_linear = true;
 #else
-        _min_rpm             = rpm_min->get();
-        _max_rpm             = rpm_max->get();
-        _piecewide_linear    = false;
+        _min_rpm          = rpm_min->get();
+        _max_rpm          = rpm_max->get();
+        _piecewide_linear = false;
 #endif
         // The pwm_gradient is the pwm duty cycle units per rpm
         // _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
@@ -146,7 +140,7 @@ namespace Spindles {
                 pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
         }
 
-        set_enable_pin(gc_state.modal.spindle != SPINDLE_DISABLE);
+        set_enable_pin(_current_state != SPINDLE_DISABLE);
         set_output(pwm_value);
 
         return 0;
@@ -156,7 +150,9 @@ namespace Spindles {
         if (sys.abort)
             return;  // Block during abort.
 
-        if (state == SPINDLE_DISABLE) {  // Halt or set spindle direction and rpm.
+        _current_state = state;
+
+        if (_current_state == SPINDLE_DISABLE) {  // Halt or set spindle direction and rpm.
             sys.spindle_speed = 0;
             stop();
             if (use_delays && (_current_state != state)) {
@@ -165,9 +161,9 @@ namespace Spindles {
                 //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SpinDown Done");
             }
         } else {
-            set_dir_pin(state == SPINDLE_ENABLE_CW);
+            set_dir_pin(_current_state == SPINDLE_ENABLE_CW);
             set_rpm(rpm);
-            set_enable_pin(state != SPINDLE_DISABLE);  // must be done after setting rpm for enable features to work
+            set_enable_pin(_current_state != SPINDLE_DISABLE);  // must be done after setting rpm for enable features to work
             if (use_delays && (_current_state != state)) {
                 //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SpinUp Start %d", rpm);
                 mc_dwell(spindle_delay_spinup->get());
@@ -231,11 +227,9 @@ namespace Spindles {
         if (_off_with_zero_speed && sys.spindle_speed == 0)
             enable = false;
 
-#ifndef INVERT_SPINDLE_ENABLE_PIN
-        digitalWrite(_enable_pin, enable);
-#else
-        digitalWrite(_enable_pin, !enable);
-#endif
+        if (spindle_enable_invert->get())
+            enable = !enable;
+
         digitalWrite(_enable_pin, enable);
     }
 
