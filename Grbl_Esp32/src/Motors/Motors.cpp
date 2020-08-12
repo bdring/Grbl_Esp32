@@ -219,39 +219,22 @@ void init_motors() {
 #endif
 
 #ifdef USE_STEPSTICK
+
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using StepStick Mode");
-#    ifdef STEPPER_MS1
-    digitalWrite(STEPPER_MS1, HIGH);
-    pinMode(STEPPER_MS1, OUTPUT);
-#    endif
-#    ifdef STEPPER_MS2
-    digitalWrite(STEPPER_MS2, HIGH);
-    pinMode(STEPPER_MS2, OUTPUT);
-#    endif
-#    ifdef STEPPER_X_MS3
-    digitalWrite(STEPPER_X_MS3, HIGH);
-    pinMode(STEPPER_X_MS3, OUTPUT);
-#    endif
-#    ifdef STEPPER_Y_MS3
-    digitalWrite(STEPPER_Y_MS3, HIGH);
-    pinMode(STEPPER_Y_MS3, OUTPUT);
-#    endif
-#    ifdef STEPPER_Z_MS3
-    digitalWrite(STEPPER_Z_MS3, HIGH);
-    pinMode(STEPPER_Z_MS3, OUTPUT);
-#    endif
-#    ifdef STEPPER_A_MS3
-    digitalWrite(STEPPER_A_MS3, HIGH);
-    pinMode(STEPPER_A_MS3, OUTPUT);
-#    endif
-#    ifdef STEPPER_B_MS3
-    digitalWrite(STEPPER_B_MS3, HIGH);
-    pinMode(STEPPER_B_MS3, OUTPUT);
-#    endif
-#    ifdef STEPPER_C_MS3
-    digitalWrite(STEPPER_C_MS3, HIGH);
-    pinMode(STEPPER_C_MS3, OUTPUT);
-#    endif
+
+    uint8_t ms3_pins[MAX_N_AXIS][2] = { { X_STEPPER_MS3, X2_STEPPER_MS3 }, { Y_STEPPER_MS3, Y2_STEPPER_MS3 }, { Z_STEPPER_MS3, Z2_STEPPER_MS3 },
+                                 { A_STEPPER_MS3, A2_STEPPER_MS3 }, { B_STEPPER_MS3, B2_STEPPER_MS3 }, { C_STEPPER_MS3, C2_STEPPER_MS3 } };
+
+    for (int axis = 0; axis < N_AXIS; axis++) {
+        for (int gang_index = 0; gang_index < 2; gang_index++) {
+            uint8_t pin = ms3_pins[axis][gang_index];
+            if (pin != UNDEFINED_PIN) {
+                digitalWrite(pin, HIGH);
+                pinMode(pin, OUTPUT);
+            }
+        }
+    }
+
 #    ifdef STEPPER_RESET
     // !RESET pin on steppers  (MISO On Schematic)
     digitalWrite(STEPPER_RESET, HIGH);
