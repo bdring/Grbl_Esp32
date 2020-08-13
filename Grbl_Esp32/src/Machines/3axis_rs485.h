@@ -68,4 +68,4 @@
 #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_26  // labeled Hold
 #define CONTROL_CYCLE_START_PIN GPIO_NUM_25  // labeled Start
 
-#define VFD_DEBUG_MODE
+// #define VFD_DEBUG_MODE

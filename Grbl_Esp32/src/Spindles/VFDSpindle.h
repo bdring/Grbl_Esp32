@@ -79,8 +79,8 @@ namespace Spindles {
         VFD& operator=(VFD&&) = delete;
 
 		// TODO FIXME: Have to make these public because of the parsers. 
-		uint32_t _min_rpm;
-		uint32_t _max_rpm;
+		volatile uint32_t _min_rpm;
+		volatile uint32_t _max_rpm;
 
         void        init();
         void        config_message();

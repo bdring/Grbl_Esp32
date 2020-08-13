@@ -83,7 +83,7 @@ namespace Spindles {
     H2A::response_parser H2A::get_max_rpm(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
-        data.rx_length = 6;
+        data.rx_length = 8;
 
         // Send: 01 03 B005 0002
         data.msg[1] = 0x03;  // READ
@@ -92,11 +92,13 @@ namespace Spindles {
         data.msg[4] = 0x00;  // Read 2 values
         data.msg[5] = 0x02;
 
-        //  Recv: 01 03 00 04 5D C0 [03 F6]
+        //  Recv: 01 03 00 04 5D C0 03 F6
         //                    -- -- = 24000 (val #1)
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
             uint16_t rpm  = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
             vfd->_max_rpm = rpm;
+
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "H2A spindle is initialized at %d RPM", int(rpm));
 
             return true;
         };
@@ -105,7 +107,7 @@ namespace Spindles {
     H2A::response_parser H2A::get_current_rpm(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
-        data.rx_length = 6;
+        data.rx_length = 8;
 
         // Send: 01 03 700C 0002
         data.msg[1] = 0x03;  // READ
@@ -120,8 +122,7 @@ namespace Spindles {
         // TODO: What are we going to do with this? Update sys.spindle_speed? Update vfd state?
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
             uint16_t rpm  = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
-            vfd->_max_rpm = rpm;
-
+			// Set current RPM value? Somewhere?
             return true;
         };
     }

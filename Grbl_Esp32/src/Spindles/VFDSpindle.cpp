@@ -61,11 +61,17 @@ namespace Spindles {
         while (true) {
             response_parser parser = nullptr;
 
-            // First check if we should ask the VFD for the max RPM value:
-            if (pollidx == 0) {
+			next_cmd.msg[0] = VFD_RS485_ADDR; // Always default to this
+
+			// First check if we should ask the VFD for the max RPM value as part of the initialization:
+			if (pollidx == 0) {
                 pollidx = 1;
+				next_cmd.critical = true;
                 parser  = instance->get_max_rpm(next_cmd);
             }
+			else {
+				next_cmd.critical = false;
+			}
 
             // If we don't have a parser, the queue goes first. During idle, we can grab a parser.
             if (parser == nullptr && xQueueReceive(vfd_cmd_queue, &next_cmd, 0) != pdTRUE) {
@@ -111,11 +117,13 @@ namespace Spindles {
                 // add the calculated Crc to the message
                 next_cmd.msg[next_cmd.tx_length - 1] = (crc16 & 0xFF00) >> 8;
                 next_cmd.msg[next_cmd.tx_length - 2] = (crc16 & 0xFF);
-            }
 
 #ifdef VFD_DEBUG_MODE
-            report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
+                if (parser == nullptr) {
+                    report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
+                }
 #endif
+            }
 
             // Assume for the worst, and retry...
             int retry_count = 0;
@@ -130,48 +138,46 @@ namespace Spindles {
                 // Generate crc16 for the response:
                 auto crc16response = ModRTU_CRC(rx_message, next_cmd.rx_length - 2);
 
-#ifdef VFD_DEBUG_MODE
-                report_hex_msg(rx_message, "RS485 Rx: ", read_length);
-#endif
-
                 if (read_length == next_cmd.rx_length &&                             // check expected length
                     rx_message[0] == VFD_RS485_ADDR &&                               // check address
                     rx_message[read_length - 1] == (crc16response & 0xFF00) >> 8 &&  // check CRC byte 1
                     rx_message[read_length - 2] == (crc16response & 0xFF)) {         // check CRC byte 1
 
-#ifdef VFD_DEBUG_MODE
-					report_hex_msg(rx_message, "RS485 Rx: ", read_length);
-#endif
-
                     // success
                     unresponsive = false;
                     retry_count  = MAX_RETRIES + 1;  // stop retry'ing
 
-#ifdef VFD_DEBUG_MODE
-                    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 command successful");
-#endif
-
                     // Should we parse this?
                     if (parser != nullptr && !parser(rx_message, instance)) {
+#ifdef VFD_DEBUG_MODE
+                        report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
+                        report_hex_msg(rx_message, "RS485 Rx: ", read_length);
+
+#endif
                         // Not succesful! Now what?
                         unresponsive = true;
                         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RS485 did not give a satisfying response");
                     }
                 } else {
 #ifdef VFD_DEBUG_MODE
-					if (read_length != 0) {
+                    report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
+                    report_hex_msg(rx_message, "RS485 Rx: ", read_length);
+
+                    if (read_length != 0) {
                         if (rx_message[0] != VFD_RS485_ADDR) {
                             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 received message from other modbus device");
                         } else if (read_length == next_cmd.rx_length) {
-                            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 received message of unexpected length");
+                            grbl_msg_sendf(CLIENT_SERIAL,
+                                           MSG_LEVEL_INFO,
+                                           "RS485 received message of unexpected length; expected %d, got %d",
+                                           int(next_cmd.rx_length),
+                                           int(read_length));
                         } else {
                             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 CRC check failed");
                         }
+                    } else {
+                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 No response");
                     }
-					else
-					{
-						grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 No response");
-					}
 #endif
 
                     // Wait a bit before we retry. Set the delay to poll-rate. Not sure
@@ -383,13 +389,25 @@ namespace Spindles {
         if (!vfd_ok) {
             return 0;
         }
+		if (_max_rpm == 0) {
+			// That means initialization went wrong; could be because the VFD is 
+			// started at a later time than the ESP32. We have to try again.
+			// 
+			// TODO FIXME: Add re-init flag to message!
+		}
+
+#ifdef VFD_DEBUG_MODE
+		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
+#endif
 
         // apply override
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
 
         // apply limits
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
-            rpm = _max_rpm;
+		if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
+		{
+			rpm = _max_rpm;
+		}
         else if (rpm != 0 && rpm <= _min_rpm)
             rpm = _min_rpm;
 
