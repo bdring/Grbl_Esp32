@@ -73,17 +73,7 @@
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_25
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 
-// Relay operation
-// Install Jumper near relay
-// For PWM remove jumper to prevent relay damage
-// Interlock jumper along top edge needs to be installed for both versions
-#define USE_RELAY  // comment out to use PWM
-
-#ifdef USE_RELAY
-    #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
-#else
-    #define SPINDLE_TYPE SPINDLE_TYPE_PWM
-#endif
+#define SPINDLE_TYPE            SPINDLE_TYPE_RELAY // default use $Spindle/Type=PWM or $Spindle/Type=Laser
 
 #define PROBE_PIN               GPIO_NUM_22
 
