@@ -360,3 +360,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+.vs/slnx.sqlite
+.vs/Grbl_Esp32_JH/v16/.suo
