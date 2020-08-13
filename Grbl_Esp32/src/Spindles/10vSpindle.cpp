@@ -142,9 +142,10 @@ namespace Spindles {
         if (_off_with_zero_speed && sys.spindle_speed == 0)
             enable = false;
 
-#ifdef INVERT_SPINDLE_ENABLE_PIN
-        enable = !enable;
-#endif
+
+        if (spindle_enable_invert->get())
+            enable = !enable;
+
         digitalWrite(_enable_pin, enable);
 
         // turn off anything that acts like an enable

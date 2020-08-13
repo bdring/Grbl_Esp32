@@ -316,13 +316,6 @@ Some features should not be changed. See notes below.
 // NOTE: PLEASE DO NOT USE THIS, unless you have a situation that needs it.
 // #define INVERT_LIMIT_PIN_MASK (bit(X_AXIS)|bit(Y_AXIS)) // Default disabled. Uncomment to enable.
 
-// Inverts the spindle enable pin from low-disabled/high-enabled to low-enabled/high-disabled. Useful
-// for some pre-built electronic boards.
-// #define INVERT_SPINDLE_ENABLE_PIN // Default disabled. Uncomment to enable.
-
-// Inverts the spindle PWM output pin from low-disabled/high-enabled to low-enabled/high-disabled.
-// #define INVERT_SPINDLE_OUTPUT_PIN // Default disabled. Uncomment to enable.
-
 // Inverts the selected coolant pin from low-disabled/high-enabled to low-enabled/high-disabled. Useful
 // for some pre-built electronic boards.
 // #define INVERT_COOLANT_FLOOD_PIN // Default disabled. Uncomment to enable.
@@ -444,13 +437,6 @@ Some features should not be changed. See notes below.
 // the selected axis with the tool oriented toward the negative direction. In other words, a positive
 // tool length offset value is subtracted from the current location.
 #define TOOL_LENGTH_OFFSET_AXIS Z_AXIS  // Default z-axis. Valid values are X_AXIS, Y_AXIS, or Z_AXIS.
-
-// Alters the behavior of the spindle enable pin. By default Grbl will not disable the enable pin if
-// spindle speed is zero and M3/4 is active, but still sets the PWM output to zero. This allows the users
-// to know if the spindle is active and use it as an additional control input.
-// However, in some use cases, user may want the enable pin to disable with a zero spindle speed and
-// re-enable when spindle speed is greater than zero. This option does that.
-#define SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED  // Default enabled. Comment to disable.
 
 // With this enabled, Grbl sends back an echo of the line it has received, which has been pre-parsed (spaces
 // removed, capitalized letters, no comments) and is to be immediately executed by Grbl. Echoes will not be
