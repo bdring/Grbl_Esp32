@@ -1,5 +1,5 @@
 /*
- * 4 Achsen CNC Fr�se von Jens
+ * 4 Achsen CNC Fraese von Jens
  * Infos zur Benutzung einer Spindel mit Relais https://github.com/bdring/Grbl_Esp32/wiki/Spindle-Types
  */
 
@@ -9,7 +9,7 @@
 #undef N_AXIS
 #endif
 
- // M�chte ich mit 3 oder 4 Achsen arbeiten?
+ // Moechte ich mit 3 oder 4 Achsen arbeiten?
  // Beides ist eingerichtet.
 #define N_AXIS 3
 
