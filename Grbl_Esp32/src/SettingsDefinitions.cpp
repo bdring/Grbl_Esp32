@@ -59,6 +59,7 @@ enum_opt_t spindleTypes = {
     { "HUANYANG", SPINDLE_TYPE_HUANYANG },
     { "BESC", SPINDLE_TYPE_BESC },
     { "10V", SPINDLE_TYPE_10V },
+	{ "H2A", SPINDLE_TYPE_H2A },
     // clang-format on
 };
 

@@ -90,6 +90,5 @@ namespace Spindles {
         void        stop();
 
         virtual ~VFD() {}
-
     };
 }

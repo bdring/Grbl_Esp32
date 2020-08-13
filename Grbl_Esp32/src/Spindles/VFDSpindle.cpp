@@ -117,7 +117,7 @@ namespace Spindles {
 
                 // Flush the UART and write the data:
                 uart_flush(VFD_RS485_UART_PORT);
-                //report_hex_msg(next_cmd.msg, "Tx: ", next_cmd.tx_length);
+                report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
                 uart_write_bytes(VFD_RS485_UART_PORT, reinterpret_cast<const char*>(next_cmd.msg), next_cmd.tx_length);
 
                 // Read the response
@@ -125,6 +125,8 @@ namespace Spindles {
 
                 // Generate crc16 for the response:
                 auto crc16response = ModRTU_CRC(rx_message, next_cmd.rx_length - 2);
+
+				report_hex_msg(rx_message, "RS485 Rx: ", read_length);
 
                 if (read_length == next_cmd.rx_length &&                             // check expected length
                     rx_message[read_length - 1] == (crc16response & 0xFF00) >> 8 &&  // check CRC byte 1
@@ -134,8 +136,7 @@ namespace Spindles {
                     unresponsive = false;
                     retry_count  = MAX_RETRIES + 1;  // stop retry'ing
 
-                    //report_hex_msg(rx_message, "Rx: ", read_length);
-                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Item:%d value:%05d ", rx_message[3], ret_value);
+                    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 command successful");
 
                     // Should we parse this?
                     if (parser != nullptr && !parser(rx_message, instance))
@@ -145,6 +146,11 @@ namespace Spindles {
 						grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RS485 did not give a satisfying response");
                     }
                 }
+				else {
+					// Wait a bit before we retry. Set the delay to poll-rate. Not sure 
+					// if we should use a different value...
+					vTaskDelay(VFD_RS485_POLL_RATE);  
+				}
             }
 
             if (retry_count == MAX_RETRIES) {

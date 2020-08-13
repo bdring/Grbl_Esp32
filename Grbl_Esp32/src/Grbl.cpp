@@ -21,7 +21,7 @@
 #include "Grbl.h"
 #include <WiFi.h>
 
-void init() {
+void grbl_init() {
 #ifdef USE_I2S_OUT
     i2s_out_init();  // The I2S out must be initialized before it can access the expanded GPIO port
 #endif

@@ -95,7 +95,7 @@
 #    include "I2SOut.h"
 #endif
 
-void init();
+void grbl_init();
 void run_once();
 
 // Called if USE_MACHINE_INIT is defined
