@@ -295,17 +295,18 @@ void limits_init() {
                 } else {
                     detachInterrupt(pin);
                 }
+                /* 
+                // Change to do this once. limits_init() happens often
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MSG_LEVEL_INFO,
                                "%c%s Axis limit switch on pin %s",
                                report_get_axis_letter(axis),
                                gang_index ? "2" : " ",
                                pinName(pin).c_str());
+                */
             }
         }
     }
-
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Limit Mask %d", limit_mask);
 
     // setup task used for debouncing
     limit_sw_queue = xQueueCreate(10, sizeof(int));
