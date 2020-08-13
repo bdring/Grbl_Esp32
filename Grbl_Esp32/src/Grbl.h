@@ -23,7 +23,7 @@
 // Grbl versioning system
 
 #define GRBL_VERSION "1.3a"
-#define GRBL_VERSION_BUILD "20200812"
+#define GRBL_VERSION_BUILD "20200813"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -95,7 +95,7 @@
 #    include "I2SOut.h"
 #endif
 
-void init();
+void grbl_init();
 void run_once();
 
 // Called if USE_MACHINE_INIT is defined

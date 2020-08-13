@@ -21,7 +21,7 @@
 #include "src/Grbl.h"
 
 void setup() {
-    init();
+    grbl_init();
 }
 
 void loop() {
