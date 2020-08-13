@@ -67,9 +67,8 @@ namespace Spindles {
                 parser  = instance->get_max_rpm(next_cmd);
             }
 
-			// If we don't have a parser, the queue goes first. During idle, we can grab a parser.
-            if (parser == nullptr && 
-				xQueueReceive(vfd_cmd_queue, &next_cmd, 0) != pdTRUE) { 
+            // If we don't have a parser, the queue goes first. During idle, we can grab a parser.
+            if (parser == nullptr && xQueueReceive(vfd_cmd_queue, &next_cmd, 0) != pdTRUE) {
                 // We poll in a cycle. Note that the switch will fall through unless we encounter a hit.
                 // The weakest form here is 'get_status_ok' which should be implemented if the rest fails.
                 switch (pollidx) {
@@ -89,8 +88,8 @@ namespace Spindles {
                         parser  = instance->get_status_ok(next_cmd);
                         pollidx = 1;
 
-						// we could complete this in case parser == nullptr with some ifs, but let's 
-						// just keep it easy and wait an iteration.
+                        // we could complete this in case parser == nullptr with some ifs, but let's
+                        // just keep it easy and wait an iteration.
                         break;
                 }
 
@@ -102,9 +101,7 @@ namespace Spindles {
                 }
             }
 
-            // Assume for the worst, and retry...
-            int retry_count = 0;
-            for (; retry_count < MAX_RETRIES; ++retry_count) {
+            {
                 // Grabbed the command. Add the CRC16 checksum:
                 auto crc16 = ModRTU_CRC(next_cmd.msg, next_cmd.tx_length);
 
@@ -114,10 +111,17 @@ namespace Spindles {
                 // add the calculated Crc to the message
                 next_cmd.msg[next_cmd.tx_length - 1] = (crc16 & 0xFF00) >> 8;
                 next_cmd.msg[next_cmd.tx_length - 2] = (crc16 & 0xFF);
+            }
 
+#ifdef VFD_DEBUG_MODE
+            report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
+#endif
+
+            // Assume for the worst, and retry...
+            int retry_count = 0;
+            for (; retry_count < MAX_RETRIES; ++retry_count) {
                 // Flush the UART and write the data:
                 uart_flush(VFD_RS485_UART_PORT);
-                report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
                 uart_write_bytes(VFD_RS485_UART_PORT, reinterpret_cast<const char*>(next_cmd.msg), next_cmd.tx_length);
 
                 // Read the response
@@ -126,31 +130,54 @@ namespace Spindles {
                 // Generate crc16 for the response:
                 auto crc16response = ModRTU_CRC(rx_message, next_cmd.rx_length - 2);
 
-				report_hex_msg(rx_message, "RS485 Rx: ", read_length);
+#ifdef VFD_DEBUG_MODE
+                report_hex_msg(rx_message, "RS485 Rx: ", read_length);
+#endif
 
                 if (read_length == next_cmd.rx_length &&                             // check expected length
+                    rx_message[0] == VFD_RS485_ADDR &&                               // check address
                     rx_message[read_length - 1] == (crc16response & 0xFF00) >> 8 &&  // check CRC byte 1
                     rx_message[read_length - 2] == (crc16response & 0xFF)) {         // check CRC byte 1
+
+#ifdef VFD_DEBUG_MODE
+					report_hex_msg(rx_message, "RS485 Rx: ", read_length);
+#endif
 
                     // success
                     unresponsive = false;
                     retry_count  = MAX_RETRIES + 1;  // stop retry'ing
 
+#ifdef VFD_DEBUG_MODE
                     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 command successful");
+#endif
 
                     // Should we parse this?
-                    if (parser != nullptr && !parser(rx_message, instance))
-					{
-						// Not succesful! Now what?
-						unresponsive = true;
-						grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RS485 did not give a satisfying response");
+                    if (parser != nullptr && !parser(rx_message, instance)) {
+                        // Not succesful! Now what?
+                        unresponsive = true;
+                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RS485 did not give a satisfying response");
                     }
+                } else {
+#ifdef VFD_DEBUG_MODE
+					if (read_length != 0) {
+                        if (rx_message[0] != VFD_RS485_ADDR) {
+                            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 received message from other modbus device");
+                        } else if (read_length == next_cmd.rx_length) {
+                            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 received message of unexpected length");
+                        } else {
+                            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 CRC check failed");
+                        }
+                    }
+					else
+					{
+						grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 No response");
+					}
+#endif
+
+                    // Wait a bit before we retry. Set the delay to poll-rate. Not sure
+                    // if we should use a different value...
+                    vTaskDelay(VFD_RS485_POLL_RATE);
                 }
-				else {
-					// Wait a bit before we retry. Set the delay to poll-rate. Not sure 
-					// if we should use a different value...
-					vTaskDelay(VFD_RS485_POLL_RATE);  
-				}
             }
 
             if (retry_count == MAX_RETRIES) {
@@ -180,8 +207,11 @@ namespace Spindles {
     void VFD::init() {
         vfd_ok = false;  // initialize
 
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Initializing RS485 VFD spindle");
+
         // fail if required items are not defined
         if (!get_pins_and_settings()) {
+            vfd_ok = false;
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 VFD spindle errors");
             return;
         }
@@ -252,36 +282,38 @@ namespace Spindles {
     // It returns a message for each missing pin
     // Returns true if all pins are defined.
     bool VFD::get_pins_and_settings() {
+        bool pins_settings_ok = true;
+
 #ifdef VFD_RS485_TXD_PIN
         _txd_pin = VFD_RS485_TXD_PIN;
 #else
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined VFD_RS485_TXD_PIN");
-        vfd_ok = false;
+        pins_settings_ok = false;
 #endif
 
 #ifdef VFD_RS485_RXD_PIN
         _rxd_pin = VFD_RS485_RXD_PIN;
 #else
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined VFD_RS485_RXD_PIN");
-        vfd_ok = false;
+        pins_settings_ok = false;
 #endif
 
 #ifdef VFD_RS485_RTS_PIN
         _rts_pin = VFD_RS485_RTS_PIN;
 #else
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined VFD_RS485_RTS_PIN");
-        vfd_ok = false;
+        pins_settings_ok = false;
 #endif
 
         if (laser_mode->get()) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");
-            vfd_ok = false;
+            pins_settings_ok = false;
         }
 
         _min_rpm = rpm_min->get();
         _max_rpm = rpm_max->get();
 
-        return vfd_ok;
+        return pins_settings_ok;
     }
 
     void VFD::config_message() {
