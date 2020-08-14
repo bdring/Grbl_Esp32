@@ -61,17 +61,16 @@ namespace Spindles {
         while (true) {
             response_parser parser = nullptr;
 
-			next_cmd.msg[0] = VFD_RS485_ADDR; // Always default to this
+            next_cmd.msg[0] = VFD_RS485_ADDR;  // Always default to this
 
-			// First check if we should ask the VFD for the max RPM value as part of the initialization:
-			if (pollidx == 0) {
-                pollidx = 1;
-				next_cmd.critical = true;
-                parser  = instance->get_max_rpm(next_cmd);
+            // First check if we should ask the VFD for the max RPM value as part of the initialization:
+            if (pollidx == 0) {
+                pollidx           = 1;
+                next_cmd.critical = true;
+                parser            = instance->get_max_rpm(next_cmd);
+            } else {
+                next_cmd.critical = false;
             }
-			else {
-				next_cmd.critical = false;
-			}
 
             // If we don't have a parser, the queue goes first. During idle, we can grab a parser.
             if (parser == nullptr && xQueueReceive(vfd_cmd_queue, &next_cmd, 0) != pdTRUE) {
@@ -222,19 +221,6 @@ namespace Spindles {
             return;
         }
 
-        if (!_task_running) {  // init can happen many times, we only want to start one task
-            vfd_cmd_queue = xQueueCreate(VFD_RS485_QUEUE_SIZE, sizeof(ModbusCommand));
-            xTaskCreatePinnedToCore(vfd_cmd_task,         // task
-                                    "vfd_cmdTaskHandle",  // name for task
-                                    2048,                 // size of task stack
-                                    this,                 // parameters
-                                    1,                    // priority
-                                    &vfd_cmdTaskHandle,
-                                    0  // core
-            );
-            _task_running = true;
-        }
-
         // this allows us to init() again later.
         // If you change certain settings, init() gets called agian
         uart_driver_delete(VFD_RS485_UART_PORT);
@@ -271,6 +257,20 @@ namespace Spindles {
         if (uart_set_mode(VFD_RS485_UART_PORT, UART_MODE_RS485_HALF_DUPLEX) != ESP_OK) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 VFD uart set half duplex failed");
             return;
+        }
+
+        // Initialization is complete, so now it's okay to run the queue task:
+        if (!_task_running) {  // init can happen many times, we only want to start one task
+            vfd_cmd_queue = xQueueCreate(VFD_RS485_QUEUE_SIZE, sizeof(ModbusCommand));
+            xTaskCreatePinnedToCore(vfd_cmd_task,         // task
+                                    "vfd_cmdTaskHandle",  // name for task
+                                    2048,                 // size of task stack
+                                    this,                 // parameters
+                                    1,                    // priority
+                                    &vfd_cmdTaskHandle,
+                                    0  // core
+            );
+            _task_running = true;
         }
 
         is_reversable = true;  // these VFDs are always reversable
@@ -389,26 +389,24 @@ namespace Spindles {
         if (!vfd_ok) {
             return 0;
         }
-		if (_max_rpm == 0) {
-			// That means initialization went wrong; could be because the VFD is 
-			// started at a later time than the ESP32. We have to try again.
-			// 
-			// TODO FIXME: Add re-init flag to message!
-		}
+        if (_max_rpm == 0) {
+            // That means initialization went wrong; could be because the VFD is
+            // started at a later time than the ESP32. We have to try again.
+            //
+            // TODO FIXME: Add re-init flag to message!
+        }
 
 #ifdef VFD_DEBUG_MODE
-		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
 #endif
 
         // apply override
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
 
         // apply limits
-		if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
-		{
-			rpm = _max_rpm;
-		}
-        else if (rpm != 0 && rpm <= _min_rpm)
+        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
+            rpm = _max_rpm;
+        } else if (rpm != 0 && rpm <= _min_rpm)
             rpm = _min_rpm;
 
         sys.spindle_speed = rpm;
