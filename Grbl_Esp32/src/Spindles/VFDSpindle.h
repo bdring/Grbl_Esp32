@@ -38,7 +38,6 @@ namespace Spindles {
         uint8_t _rts_pin;
 
         uint32_t _current_rpm  = 0;
-        uint8_t  _state        = SPINDLE_DISABLE;
         bool     _task_running = false;
         bool     vfd_ok        = true;
 
@@ -79,6 +78,7 @@ namespace Spindles {
         VFD& operator=(VFD&&) = delete;
 
 		// TODO FIXME: Have to make these public because of the parsers. 
+		// Should hide them and use a member function.
 		volatile uint32_t _min_rpm;
 		volatile uint32_t _max_rpm;
 

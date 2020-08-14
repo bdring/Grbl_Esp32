@@ -26,8 +26,10 @@
     Remove power before changing bits.
 
     TODO:
-        Move CRC Calc to task to free up main task
-
+      - We can report spindle_state and rpm better with VFD's that support 
+	    either mode, register RPM or actual RPM.
+	  - Destructor should break down the task.
+	  - Move min/max RPM to protected members.
 
 */
 #include "VFDSpindle.h"
@@ -377,6 +379,7 @@ namespace Spindles {
         }
 
         mode_cmd.critical = critical;
+		_current_state = mode;
 
         if (xQueueSend(vfd_cmd_queue, &mode_cmd, 0) != pdTRUE) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
@@ -436,7 +439,9 @@ namespace Spindles {
     void VFD::stop() { set_mode(SPINDLE_DISABLE, false); }
 
     // state is cached rather than read right now to prevent delays
-    uint8_t VFD::get_state() { return _state; }
+    uint8_t VFD::get_state() {
+		return _current_state; 
+	}
 
     // Calculate the CRC on all of the byte except the last 2
     // It then added the CRC to those last 2 bytes
