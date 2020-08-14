@@ -165,7 +165,7 @@ namespace Spindles {
                     if (read_length != 0) {
                         if (rx_message[0] != VFD_RS485_ADDR) {
                             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 received message from other modbus device");
-                        } else if (read_length == next_cmd.rx_length) {
+                        } else if (read_length != next_cmd.rx_length) {
                             grbl_msg_sendf(CLIENT_SERIAL,
                                            MSG_LEVEL_INFO,
                                            "RS485 received message of unexpected length; expected %d, got %d",
