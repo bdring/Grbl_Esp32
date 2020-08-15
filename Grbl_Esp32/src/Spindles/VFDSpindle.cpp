@@ -63,17 +63,16 @@ namespace Spindles {
         while (true) {
             response_parser parser = nullptr;
 
-			next_cmd.msg[0] = VFD_RS485_ADDR; // Always default to this
+            next_cmd.msg[0] = VFD_RS485_ADDR;  // Always default to this
 
-			// First check if we should ask the VFD for the max RPM value as part of the initialization:
-			if (pollidx == 0) {
-                pollidx = 1;
-				next_cmd.critical = true;
-                parser  = instance->get_max_rpm(next_cmd);
+            // First check if we should ask the VFD for the max RPM value as part of the initialization. We 
+			// should also query this is max_rpm is 0, because that means a previous initialization failed:
+            if (pollidx == 0 || (instance->_max_rpm == 0 && (parser = instance->get_max_rpm(next_cmd)) != nullptr)) {
+                pollidx           = 1;
+                next_cmd.critical = true;
+            } else {
+                next_cmd.critical = false;
             }
-			else {
-				next_cmd.critical = false;
-			}
 
             // If we don't have a parser, the queue goes first. During idle, we can grab a parser.
             if (parser == nullptr && xQueueReceive(vfd_cmd_queue, &next_cmd, 0) != pdTRUE) {
@@ -280,8 +279,8 @@ namespace Spindles {
         vfd_ok        = true;
 
         //
-        _current_rpm = 0;
-        _state       = SPINDLE_DISABLE;
+        _current_rpm   = 0;
+        _current_state = SPINDLE_DISABLE;
 
         config_message();
     }
@@ -379,7 +378,7 @@ namespace Spindles {
         }
 
         mode_cmd.critical = critical;
-		_current_state = mode;
+        _current_state    = mode;
 
         if (xQueueSend(vfd_cmd_queue, &mode_cmd, 0) != pdTRUE) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
@@ -392,26 +391,18 @@ namespace Spindles {
         if (!vfd_ok) {
             return 0;
         }
-		if (_max_rpm == 0) {
-			// That means initialization went wrong; could be because the VFD is 
-			// started at a later time than the ESP32. We have to try again.
-			// 
-			// TODO FIXME: Add re-init flag to message!
-		}
 
 #ifdef VFD_DEBUG_MODE
-		grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
 #endif
 
         // apply override
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
 
         // apply limits
-		if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
-		{
-			rpm = _max_rpm;
-		}
-        else if (rpm != 0 && rpm <= _min_rpm)
+        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
+            rpm = _max_rpm;
+        } else if (rpm != 0 && rpm <= _min_rpm)
             rpm = _min_rpm;
 
         sys.spindle_speed = rpm;
@@ -439,9 +430,7 @@ namespace Spindles {
     void VFD::stop() { set_mode(SPINDLE_DISABLE, false); }
 
     // state is cached rather than read right now to prevent delays
-    uint8_t VFD::get_state() {
-		return _current_state; 
-	}
+    uint8_t VFD::get_state() { return _current_state; }
 
     // Calculate the CRC on all of the byte except the last 2
     // It then added the CRC to those last 2 bytes
