@@ -48,7 +48,7 @@ int IRAM_ATTR digitalRead(uint8_t pin) {
         return __digitalRead(pin);
     }
 #ifdef USE_I2S_OUT
-    return i2s_out_state(pin - I2S_OUT_PIN_BASE);
+    return i2s_out_read(pin - I2S_OUT_PIN_BASE);
 #else
     return 0;
 #endif

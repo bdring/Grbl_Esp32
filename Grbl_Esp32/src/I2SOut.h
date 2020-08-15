@@ -41,16 +41,8 @@
 // It should be included at the outset to know the machine configuration.
 #include "Config.h"
 
-// If USE_I2S_OUT_STREAM is defined
-// but the prerequisite USE_I2S_OUT is not defined,
-// it is forced to be defined.
-#ifdef USE_I2S_OUT_STREAM
-#    ifndef USE_I2S_OUT
-#        define USE_I2S_OUT
-#    endif
-#endif
-
 #ifdef USE_I2S_OUT
+
 #    include <stdint.h>
 
 /* Assert */
@@ -119,10 +111,10 @@ int i2s_out_init(i2s_out_init_t& init_param);
 int i2s_out_init();
 
 /*
-  Get a bit state from the internal pin state var.
+  Read a bit state from the internal pin state var.
   pin: expanded pin No. (0..31)
 */
-uint8_t i2s_out_state(uint8_t pin);
+uint8_t i2s_out_read(uint8_t pin);
 
 /*
    Set a bit in the internal pin state var. (not written electrically)
@@ -173,6 +165,16 @@ int i2s_out_set_pulse_period(uint64_t period);
    Register a callback function to generate pulse data
  */
 int i2s_out_set_pulse_callback(i2s_out_pulse_func_t func);
+
+/*
+   Get current pulser mode
+ */
+enum i2s_out_pulser_status_t {
+    PASSTHROUGH = 0,  // Static I2S mode.The i2s_out_write() reflected with very little delay
+    STEPPING,         // Streaming step data.
+    WAITING,          // Waiting for the step DMA completion
+};
+i2s_out_pulser_status_t IRAM_ATTR i2s_out_get_pulser_status();
 
 /*
    Reset i2s I/O expander

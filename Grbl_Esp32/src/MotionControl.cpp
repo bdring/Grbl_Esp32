@@ -479,8 +479,10 @@ void mc_reset() {
         }
         ganged_mode = SQUARING_MODE_DUAL;  // in case an error occurred during squaring
 
-#ifdef USE_I2S_OUT_STREAM
-        i2s_out_reset();
+#ifdef USE_I2S_STEPS
+        if (current_stepper == ST_I2S_STREAM) {
+            i2s_out_reset();
+        }
 #endif
     }
 }
