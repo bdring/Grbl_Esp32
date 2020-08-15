@@ -65,8 +65,8 @@ namespace Spindles {
 
             next_cmd.msg[0] = VFD_RS485_ADDR;  // Always default to this
 
-            // First check if we should ask the VFD for the max RPM value as part of the initialization. We 
-			// should also query this is max_rpm is 0, because that means a previous initialization failed:
+            // First check if we should ask the VFD for the max RPM value as part of the initialization. We
+            // should also query this is max_rpm is 0, because that means a previous initialization failed:
             if (pollidx == 0 || (instance->_max_rpm == 0 && (parser = instance->get_max_rpm(next_cmd)) != nullptr)) {
                 pollidx           = 1;
                 next_cmd.critical = true;
@@ -167,7 +167,7 @@ namespace Spindles {
                     if (read_length != 0) {
                         if (rx_message[0] != VFD_RS485_ADDR) {
                             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 received message from other modbus device");
-                        } else if (read_length == next_cmd.rx_length) {
+                        } else if (read_length != next_cmd.rx_length) {
                             grbl_msg_sendf(CLIENT_SERIAL,
                                            MSG_LEVEL_INFO,
                                            "RS485 received message of unexpected length; expected %d, got %d",
@@ -223,19 +223,6 @@ namespace Spindles {
             return;
         }
 
-        if (!_task_running) {  // init can happen many times, we only want to start one task
-            vfd_cmd_queue = xQueueCreate(VFD_RS485_QUEUE_SIZE, sizeof(ModbusCommand));
-            xTaskCreatePinnedToCore(vfd_cmd_task,         // task
-                                    "vfd_cmdTaskHandle",  // name for task
-                                    2048,                 // size of task stack
-                                    this,                 // parameters
-                                    1,                    // priority
-                                    &vfd_cmdTaskHandle,
-                                    0  // core
-            );
-            _task_running = true;
-        }
-
         // this allows us to init() again later.
         // If you change certain settings, init() gets called agian
         uart_driver_delete(VFD_RS485_UART_PORT);
@@ -272,6 +259,20 @@ namespace Spindles {
         if (uart_set_mode(VFD_RS485_UART_PORT, UART_MODE_RS485_HALF_DUPLEX) != ESP_OK) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 VFD uart set half duplex failed");
             return;
+        }
+
+        // Initialization is complete, so now it's okay to run the queue task:
+        if (!_task_running) {  // init can happen many times, we only want to start one task
+            vfd_cmd_queue = xQueueCreate(VFD_RS485_QUEUE_SIZE, sizeof(ModbusCommand));
+            xTaskCreatePinnedToCore(vfd_cmd_task,         // task
+                                    "vfd_cmdTaskHandle",  // name for task
+                                    2048,                 // size of task stack
+                                    this,                 // parameters
+                                    1,                    // priority
+                                    &vfd_cmdTaskHandle,
+                                    0  // core
+            );
+            _task_running = true;
         }
 
         is_reversable = true;  // these VFDs are always reversable

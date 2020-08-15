@@ -141,7 +141,7 @@ namespace Spindles {
     void Huanyang::set_speed_command(uint32_t rpm, ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 5;
-        data.rx_length = 4;
+        data.rx_length = 5;
 
         // data.msg[0] is omitted (modbus address is filled in later)
         data.msg[1] = 0x05;
@@ -165,10 +165,9 @@ namespace Spindles {
         data.msg[4] = 0x00;
         data.msg[5] = 0x00;
 
-		if (reg < 0x03) {
-			reg++;
-		}
-        else {
+        if (reg < 0x03) {
+            reg++;
+        } else {
             reg = 0x00;
         }
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool { return true; };
