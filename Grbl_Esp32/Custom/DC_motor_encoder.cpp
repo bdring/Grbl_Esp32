@@ -35,9 +35,47 @@ enabled with USE_ defines in Machines/my_machine.h
 /*
 machine_init() is called when Grbl_ESP32 first starts. You can use it to do any
 special things your machine needs at startup.
+
+Setup the pins
+
 */
 void machine_init()
 {
+//PIN INITIALIZATION
+pinMode(X_STEP_PIN,OUTPUT);              
+pinMode(X_DIRECTION_PIN,OUTPUT);        
+pinMode(Y_STEP_PIN,OUTPUT);              
+pinMode(Y_DIRECTION_PIN,OUTPUT);          
+pinMode(Z_STEP_PIN,OUTPUT);             
+pinMode(Z_DIRECTION_PIN,OUTPUT);        
+pinMode(A_STEP_PIN,OUTPUT);              
+pinMode(A_DIRECTION_PIN,OUTPUT);         
+
+pinMode(X_HOMED_PIN,INPUT);            
+pinMode(Y_HOMED_PIN,INPUT);           
+pinMode(Z_HOMED_PIN,INPUT);           
+pinMode(A_HOMED_PIN,INPUT); 
+          
+pinMode(X_LIMIT_PIN,INPUT);           
+pinMode(X_two_LIMIT_PIN,INPUT);       
+
+pinMode(Y_LIMIT_PIN,INPUT);             
+pinMode(Y_two_LIMIT_PIN,INPUT);       
+
+pinMode(Z_LIMIT_PIN,INPUT);         
+pinMode(Z_two_LIMIT_PIN,INPUT);     
+
+pinMode(A_LIMIT_PIN,INPUT);     
+pinMode(A_two_LIMIT_PIN,INPUT);      
+
+pinMode(SPINDLE_OUTPUT_PIN,OUTPUT);  
+
+pinMode(COOLANT_MIST_PIN,OUTPUT);     
+pinMode(COOLANT_FLOOD_PIN,OUTPUT);  
+pinMode(PROBE_PIN,INPUT_PULLUP);  
+
+
+
 }
 #endif
 
@@ -52,6 +90,7 @@ void machine_init()
 bool user_defined_homing()
 {
   // True = done with homing, false = continue with normal Grbl_ESP32 homing
+  
   return true;
 }
 #endif
