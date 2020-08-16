@@ -26,9 +26,9 @@
 
 */
 
-#define SPINDLE_STATE_DISABLE 0  // Must be zero.
-#define SPINDLE_STATE_CW bit(0)
-#define SPINDLE_STATE_CCW bit(1)
+#define SPINDLE_STATE_DISABLE 0   // Must be zero.
+#define SPINDLE_STATE_CW bit(4)   // matches PL_COND_FLAG_SPINDLE_CW
+#define SPINDLE_STATE_CCW bit(5)  // matches PL_COND_FLAG_SPINDLE_CCW
 
 #define SPINDLE_TYPE_NONE 0
 #define SPINDLE_TYPE_PWM 1
@@ -38,6 +38,7 @@
 #define SPINDLE_TYPE_HUANYANG 5
 #define SPINDLE_TYPE_BESC 6
 #define SPINDLE_TYPE_10V 7
+#define SPINDLE_TYPE_H2A 8
 
 #include "../Grbl.h"
 #include <driver/dac.h>
@@ -68,9 +69,9 @@ namespace Spindles {
 
         virtual ~Spindle() {}
 
-        bool    is_reversable;
-        bool    use_delays;  // will SpinUp and SpinDown delays be used.
-        uint8_t _current_state;
+        bool             is_reversable;
+        bool             use_delays;  // will SpinUp and SpinDown delays be used.
+        volatile uint8_t _current_state = SPINDLE_DISABLE;
 
         static void select();
     };

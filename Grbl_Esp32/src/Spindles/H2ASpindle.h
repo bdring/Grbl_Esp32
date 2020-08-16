@@ -3,10 +3,9 @@
 #include "VFDSpindle.h"
 
 /*
-    HuanyangSpindle.h
+    H2ASpindle.h
 
     Part of Grbl_ESP32
-    2020 -    Bart Dring
     2020 -  Stefan de Bruijn
 
     Grbl is free software: you can redistribute it and/or modify
@@ -23,16 +22,16 @@
 */
 
 namespace Spindles {
-    class Huanyang : public VFD {
-    private:
-        int reg;
-
+    class H2A : public VFD {
     protected:
         void default_modbus_settings(uart_config_t& uart) override;
 
         void direction_command(uint8_t mode, ModbusCommand& data) override;
         void set_speed_command(uint32_t rpm, ModbusCommand& data) override;
 
-        response_parser get_status_ok(ModbusCommand& data) override;
+        response_parser get_max_rpm(ModbusCommand& data) override;
+        response_parser get_current_rpm(ModbusCommand& data) override;
+        response_parser get_current_direction(ModbusCommand& data) override;
+        response_parser get_status_ok(ModbusCommand& data) override { return nullptr; }
     };
 }
