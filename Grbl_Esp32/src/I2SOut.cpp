@@ -369,9 +369,8 @@ static int IRAM_ATTR i2s_fillout_dma_buffer(lldesc_t* dma_desc) {
                         I2S_OUT_PULSER_EXIT_CRITICAL();   // Temporarily unlocked status lock as it may be locked in pulse callback.
                         (*i2s_out_pulse_func)();          // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT
                         I2S_OUT_PULSER_ENTER_CRITICAL();  // Lock again.
-                        // Calculate pulse period. About magic number 2, refer to the st_wake_up(). (Ad hoc delay value)
-                        i2s_out_remain_time_until_next_pulse =
-                            i2s_out_pulse_period - I2S_OUT_USEC_PER_PULSE * (o_dma.rw_pos - old_rw_pos) + 2;
+                        // Calculate pulse period.
+                        i2s_out_remain_time_until_next_pulse += i2s_out_pulse_period - I2S_OUT_USEC_PER_PULSE * (o_dma.rw_pos - old_rw_pos);
                         if (i2s_out_pulser_status == WAITING) {
                             // i2s_out_set_passthrough() has called from the pulse function.
                             // It needs to go into pass-through mode.
@@ -394,8 +393,6 @@ static int IRAM_ATTR i2s_fillout_dma_buffer(lldesc_t* dma_desc) {
             buf[o_dma.rw_pos++] = atomic_load(&i2s_out_port_data);
             if (i2s_out_remain_time_until_next_pulse >= I2S_OUT_USEC_PER_PULSE) {
                 i2s_out_remain_time_until_next_pulse -= I2S_OUT_USEC_PER_PULSE;
-            } else {
-                i2s_out_remain_time_until_next_pulse = 0;
             }
         }
         // set filled length to the DMA descriptor
@@ -408,7 +405,8 @@ static int IRAM_ATTR i2s_fillout_dma_buffer(lldesc_t* dma_desc) {
         // Stepper paused (passthrough state, static I2S control mode)
         // In the passthrough mode, there is no need to fill the buffer with port_data.
         i2s_clear_dma_buffer(dma_desc, 0);  // Essentially, no clearing is required. I'll make sure I know when I've written something.
-        o_dma.rw_pos = 0;                   // If someone calls i2s_out_push_sample, make sure there is no buffer overflow
+        o_dma.rw_pos                         = 0;  // If someone calls i2s_out_push_sample, make sure there is no buffer overflow
+        i2s_out_remain_time_until_next_pulse = 0;
     }
     I2S_OUT_PULSER_EXIT_CRITICAL();  // Unlock pulser status
 
