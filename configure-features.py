@@ -22,7 +22,7 @@
 from __future__ import print_function
 import os, sys, argparse, re
 
-configDirName = r'Grbl_Esp32'
+configDirName = r'Grbl_Esp32/src'
 configFileName = r'Config.h'
 
 validFeatureList = [
