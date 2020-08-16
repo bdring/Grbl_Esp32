@@ -40,9 +40,9 @@
 #define Z_DIRECTION_PIN         GPIO_NUM_23  // labeled Z
 
 #define SPINDLE_TYPE            SPINDLE_TYPE_H2A
-#define VFD_RS485_TXD_PIN		GPIO_NUM_13 // RS485 TX
-#define VFD_RS485_RTS_PIN		GPIO_NUM_15 // RS485 RTS
-#define VFD_RS485_RXD_PIN		GPIO_NUM_2  // RS485 RX
+#define VFD_RS485_TXD_PIN       GPIO_NUM_13 // RS485 TX
+#define VFD_RS485_RTS_PIN       GPIO_NUM_15 // RS485 RTS
+#define VFD_RS485_RXD_PIN       GPIO_NUM_2  // RS485 RX
 
 #define X_LIMIT_PIN             GPIO_NUM_33
 #define Y_LIMIT_PIN             GPIO_NUM_32
@@ -50,17 +50,17 @@
 #define Z_LIMIT_PIN             GPIO_NUM_34
 
 #ifdef HOMING_CYCLE_0
-	#undef HOMING_CYCLE_0
+    #undef HOMING_CYCLE_0
 #endif
-#define HOMING_CYCLE_0 (1<<Z_AXIS) // Z first
+#define HOMING_CYCLE_0 bit(Z_AXIS) // Z first
 
 #ifdef HOMING_CYCLE_1
-	#undef HOMING_CYCLE_1
+    #undef HOMING_CYCLE_1
 #endif
-#define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))
+#define HOMING_CYCLE_1 (bit(X_AXIS)|bit(Y_AXIS))
 
 #ifdef HOMING_CYCLE_2
-	#undef HOMING_CYCLE_2
+    #undef HOMING_CYCLE_2
 #endif
 
 #define PROBE_PIN               GPIO_NUM_14  // labeled Probe

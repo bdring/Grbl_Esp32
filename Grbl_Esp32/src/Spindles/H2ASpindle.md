@@ -1,9 +1,9 @@
 # P2A/P2B/P2C VFD protocol
 
-The manual can be quite confusing at times about how the RS485
-protocol should be implemented. First off, wiring:
+The H2A/H2B/H2C user manual can be quite confusing at times about 
+how the RS485 protocol should be implemented. 
 
-Use a MAX-485 and wire it like this:
+First off, wiring. Use a MAX-485 and wire it like this:
 
 - GND = GND of Arduino
 - A = RS+485
@@ -14,11 +14,8 @@ Use a MAX-485 and wire it like this:
 - RE 
 - RO = RX (can be any D pin, 3.3V or 5V)
 
-If you're not sure if your board can handle the RX signal (which 
-can be a bit higher than 3.3V), you should add a voltage level 
-converter (or a simple voltage divider). The normal Arduino's handle
-the RX signal just fine in my test setup, but the DUE needed a 
-voltage level converter.
+An ESP32 cannot handle 5V unfortunately. So you either have to use 
+a voltage level converter for that, or use a 3.3V RS485 board.
 
 ## VFD settings
 

@@ -1,31 +1,31 @@
 #include "H2ASpindle.h"
 
 /*
-	H2ASpindle.cpp
+    H2ASpindle.cpp
 
-	This is for the new H2A H2A VFD based spindle via RS485 Modbus.
+    This is for the new H2A H2A VFD based spindle via RS485 Modbus.
 
-	Part of Grbl_ESP32
-	2020 -  Stefan de Bruijn
+    Part of Grbl_ESP32
+    2020 -  Stefan de Bruijn
 
-	Grbl is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-	Grbl is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	You should have received a copy of the GNU General Public License
-	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
+    Grbl is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    Grbl is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
-						 WARNING!!!!
-	VFDs are very dangerous. They have high voltages and are very powerful
-	Remove power before changing bits.
+                         WARNING!!!!
+    VFDs are very dangerous. They have high voltages and are very powerful
+    Remove power before changing bits.
 
-	The documentation is okay once you get how it works, but unfortunately
-	incomplete... See H2ASpindle.md for the remainder of the docs that I 
-	managed to piece together.
+    The documentation is okay once you get how it works, but unfortunately
+    incomplete... See H2ASpindle.md for the remainder of the docs that I 
+    managed to piece together.
 */
 
 #include <driver/uart.h>
@@ -98,7 +98,7 @@ namespace Spindles {
             uint16_t rpm  = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
             vfd->_max_rpm = rpm;
 
-			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "H2A spindle is initialized at %d RPM", int(rpm));
+            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "H2A spindle is initialized at %d RPM", int(rpm));
 
             return true;
         };
@@ -121,8 +121,8 @@ namespace Spindles {
 
         // TODO: What are we going to do with this? Update sys.spindle_speed? Update vfd state?
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-            uint16_t rpm  = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
-			// Set current RPM value? Somewhere?
+            uint16_t rpm = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
+            // Set current RPM value? Somewhere?
             return true;
         };
     }

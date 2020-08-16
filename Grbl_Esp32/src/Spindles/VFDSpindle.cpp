@@ -2,13 +2,13 @@
     VFDSpindle.cpp
 
     This is for a VFD based spindles via RS485 Modbus. The details of the 
-	VFD protocol heavily depend on the VFD in question here. We have some 
-	implementations, but if yours is not here, the place to start is the 
-	manual. This VFD class implements the modbus functionality.
+    VFD protocol heavily depend on the VFD in question here. We have some 
+    implementations, but if yours is not here, the place to start is the 
+    manual. This VFD class implements the modbus functionality.
 
     Part of Grbl_ESP32
-    2020 -	Bart Dring
-	2020 -  Stefan de Bruijn
+    2020 -  Bart Dring
+    2020 -  Stefan de Bruijn
 
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@
 
     TODO:
       - We can report spindle_state and rpm better with VFD's that support 
-	    either mode, register RPM or actual RPM.
-	  - Destructor should break down the task.
-	  - Move min/max RPM to protected members.
+        either mode, register RPM or actual RPM.
+      - Destructor should break down the task.
+      - Move min/max RPM to protected members.
 
 */
 #include "VFDSpindle.h"
@@ -85,12 +85,14 @@ namespace Spindles {
                             pollidx = 2;
                             break;
                         }
+                        // fall through intentionally:
                     case 2:
                         parser = instance->get_current_direction(next_cmd);
                         if (parser) {
                             pollidx = 3;
                             break;
                         }
+                        // fall through intentionally:
                     case 3:
                         parser  = instance->get_status_ok(next_cmd);
                         pollidx = 1;
@@ -153,8 +155,8 @@ namespace Spindles {
 #ifdef VFD_DEBUG_MODE
                         report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
                         report_hex_msg(rx_message, "RS485 Rx: ", read_length);
-
 #endif
+
                         // Not succesful! Now what?
                         unresponsive = true;
                         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RS485 did not give a satisfying response");
@@ -279,7 +281,7 @@ namespace Spindles {
         use_delays    = true;
         vfd_ok        = true;
 
-        //
+        // Initially we initialize this to 0; over time, we might poll better information from the VFD.
         _current_rpm   = 0;
         _current_state = SPINDLE_DISABLE;
 
@@ -334,8 +336,9 @@ namespace Spindles {
     }
 
     void VFD::set_state(uint8_t state, uint32_t rpm) {
-        if (sys.abort)
+        if (sys.abort) {
             return;  // Block during abort.
+        }
 
         bool critical = (sys.state == STATE_CYCLE || state != SPINDLE_DISABLE);
 
@@ -344,15 +347,18 @@ namespace Spindles {
             set_rpm(rpm);
             if (state == SPINDLE_DISABLE) {
                 sys.spindle_speed = 0;
-                if (_current_state != state)
+                if (_current_state != state) {
                     mc_dwell(spindle_delay_spindown->get());
+                }
             } else {
-                if (_current_state != state)
+                if (_current_state != state) {
                     mc_dwell(spindle_delay_spinup->get());
+                }
             }
         } else {
-            if (_current_rpm != rpm)
+            if (_current_rpm != rpm) {
                 set_rpm(rpm);
+            }
         }
 
         _current_state = state;  // store locally for faster get_state()
@@ -403,13 +409,15 @@ namespace Spindles {
         // apply limits
         if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
             rpm = _max_rpm;
-        } else if (rpm != 0 && rpm <= _min_rpm)
+        } else if (rpm != 0 && rpm <= _min_rpm) {
             rpm = _min_rpm;
+        }
 
         sys.spindle_speed = rpm;
 
-        if (rpm == _current_rpm)  // prevent setting same RPM twice
+        if (rpm == _current_rpm) {  // prevent setting same RPM twice
             return rpm;
+        }
 
         _current_rpm = rpm;
 
@@ -422,8 +430,9 @@ namespace Spindles {
 
         rpm_cmd.critical = false;
 
-        if (xQueueSend(vfd_cmd_queue, &rpm_cmd, 0) != pdTRUE)
+        if (xQueueSend(vfd_cmd_queue, &rpm_cmd, 0) != pdTRUE) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
+        }
 
         return rpm;
     }
@@ -446,8 +455,9 @@ namespace Spindles {
                 if ((crc & 0x0001) != 0) {  // If the LSB is set
                     crc >>= 1;              // Shift right and XOR 0xA001
                     crc ^= 0xA001;
-                } else          // Else LSB is not set
+                } else {        // Else LSB is not set
                     crc >>= 1;  // Just shift right
+                }
             }
         }
 

@@ -5,7 +5,7 @@
 
     Part of Grbl_ESP32
 
-    2020 -	Bart Dring
+    2020 -  Bart Dring
 
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ namespace Spindles {
             case SPINDLE_TYPE_HUANYANG: spindle = &huanyang; break;
             case SPINDLE_TYPE_BESC: spindle = &besc; break;
             case SPINDLE_TYPE_10V: spindle = &_10v; break;
-			case SPINDLE_TYPE_H2A: spindle = &h2a; break;
+            case SPINDLE_TYPE_H2A: spindle = &h2a; break;
             case SPINDLE_TYPE_NONE:
             default: spindle = &null; break;
         }
