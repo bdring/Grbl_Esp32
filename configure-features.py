@@ -3,7 +3,7 @@
 #
 # Grbl_Esp32 configurator
 #   Copyright (C) 2020 Michiyasu Odaki
-# 
+#
 # This is useful for automated testing, to make sure you haven't broken something
 #
 #  Grbl_Esp32 is free software: you can redistribute it and/or modify
@@ -22,8 +22,8 @@
 from __future__ import print_function
 import os, sys, argparse, re
 
-configDirName = r'Grbl_Esp32'
-configFileName = r'config.h'
+configDirName = r'Grbl_Esp32/src'
+configFileName = r'Config.h'
 
 validFeatureList = [
     'BLUETOOTH',
@@ -88,7 +88,7 @@ def checkFeatureList(optname, features, verbose=False):
                 return -1
     else:
         #if verbose:
-        #    print(optname + " is not specified")  
+        #    print(optname + " is not specified")
         return 0
 
     return len(features)
