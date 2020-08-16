@@ -30,9 +30,15 @@ namespace Spindles {
         use_delays    = false;
         config_message();
     }
-    uint32_t Null::set_rpm(uint32_t rpm) { return rpm; }
-    void     Null::set_state(uint8_t state, uint32_t rpm) {}
-    uint8_t  Null::get_state() { return (SPINDLE_STATE_DISABLE); }
-    void     Null::stop() {}
-    void     Null::config_message() { grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No spindle"); }
+    uint32_t Null::set_rpm(uint32_t rpm) {
+        sys.spindle_speed = rpm;
+        return rpm;
+    }
+    void Null::set_state(uint8_t state, uint32_t rpm) {
+        _current_state    = state;
+        sys.spindle_speed = rpm;
+    }
+    uint8_t Null::get_state() { return _current_state; }
+    void    Null::stop() {}
+    void    Null::config_message() { grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No spindle"); }
 }

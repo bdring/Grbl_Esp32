@@ -386,7 +386,7 @@ void report_gcode_modes(uint8_t client) {
     strcat(modes_rpt, temp);
     sprintf(temp, report_inches->get() ? " F%.1f" : " F%.0f", gc_state.feed_rate);
     strcat(modes_rpt, temp);
-    sprintf(temp, " S%4.3f", gc_state.spindle_speed);
+    sprintf(temp, " S%d", uint32_t(gc_state.spindle_speed));
     strcat(modes_rpt, temp);
     strcat(modes_rpt, "]\r\n");
     grbl_send(client, modes_rpt);

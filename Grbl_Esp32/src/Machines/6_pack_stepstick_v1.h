@@ -121,9 +121,9 @@
 
 // RS485 In socket #3
 #define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG // only one spindle at a time
-#define HUANYANG_TXD_PIN        GPIO_NUM_26
-#define HUANYANG_RTS_PIN        GPIO_NUM_4
-#define HUANYANG_RXD_PIN        GPIO_NUM_16
+#define VFD_RS485_TXD_PIN       GPIO_NUM_26
+#define VFD_RS485_RTS_PIN       GPIO_NUM_4
+#define VFD_RS485_RXD_PIN       GPIO_NUM_16
 
 
 
