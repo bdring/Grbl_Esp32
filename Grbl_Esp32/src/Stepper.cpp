@@ -414,9 +414,7 @@ static void stepper_pulse_func() {
             segment_buffer_tail = 0;
     }
 
-#ifdef USE_RMT_STEPS
-    return;
-#elif defined(USE_I2S_STEPS)
+#ifdef USE_I2S_STEPS
     if (current_stepper == ST_I2S_STREAM) {
         //
         // Generate pulse (at least one pulse)
@@ -427,6 +425,9 @@ static void stepper_pulse_func() {
         set_stepper_pins_on(0);  // turn all off
         return;
     }
+#endif
+#ifdef USE_RMT_STEPS
+    return;
 #else
     st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
     // wait for step pulse time to complete...some of it should have expired during code above
