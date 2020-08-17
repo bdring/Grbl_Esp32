@@ -368,14 +368,12 @@ err_t StringSetting::setStringValue(char* s) {
 }
 
 const char* StringSetting::getStringValue() {
-    using namespace WebUI;
-
     // If the string is a password do not display it
     if (_checker && (
 #ifdef ENABLE_WIFI
-                        _checker == (bool (*)(char*))WiFiConfig::isPasswordValid ||
+                        _checker == (bool (*)(char*))WebUI::WiFiConfig::isPasswordValid ||
 #endif
-                        _checker == (bool (*)(char*))COMMANDS::isLocalPasswordValid)) {
+                        _checker == (bool (*)(char*))WebUI::COMMANDS::isLocalPasswordValid)) {
         return "******";
     }
     return _currentValue.c_str();

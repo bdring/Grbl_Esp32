@@ -54,32 +54,32 @@ EspClass esp;
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char* text) {
-    using namespace WebUI;
-
     if (client == CLIENT_INPUT)
         return;
 #ifdef ENABLE_BLUETOOTH
-    if (SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
-        SerialBT.print(text);
+    if (WebUI::SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
+        WebUI::SerialBT.print(text);
         //delay(10); // possible fix for dropped characters
     }
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_OUT)
     if (client == CLIENT_WEBUI || client == CLIENT_ALL)
-        Serial2Socket.write((const uint8_t*)text, strlen(text));
+        WebUI::Serial2Socket.write((const uint8_t*)text, strlen(text));
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
     if (client == CLIENT_TELNET || client == CLIENT_ALL)
-        telnet_server.write((const uint8_t*)text, strlen(text));
+        WebUI::telnet_server.write((const uint8_t*)text, strlen(text));
 #endif
-    if (client == CLIENT_SERIAL || client == CLIENT_ALL)
+    if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
         Serial.print(text);
+    }
 }
 
 // This is a formating version of the grbl_send(CLIENT_ALL,...) function that work like printf
 void grbl_sendf(uint8_t client, const char* format, ...) {
-    if (client == CLIENT_INPUT)
+    if (client == CLIENT_INPUT) {
         return;
+    }
     char    loc_buf[64];
     char*   temp = loc_buf;
     va_list arg;
@@ -90,8 +90,9 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
     va_end(copy);
     if (len >= sizeof(loc_buf)) {
         temp = new char[len + 1];
-        if (temp == NULL)
+        if (temp == NULL) {
             return;
+        }
     }
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_send(client, temp);
@@ -101,10 +102,12 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
 }
 // Use to send [MSG:xxxx] Type messages. The level allows messages to be easily suppressed
 void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
-    if (client == CLIENT_INPUT)
+    if (client == CLIENT_INPUT) {
         return;
-    if (level > GRBL_MSG_LEVEL)
+    }
+    if (level > GRBL_MSG_LEVEL) {
         return;
+    }
     char    loc_buf[100];
     char*   temp = loc_buf;
     va_list arg;
@@ -121,8 +124,9 @@ void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_sendf(client, "[MSG:%s]\r\n", temp);
     va_end(arg);
-    if (len > 100)
+    if (len > 100) {
         delete[] temp;
+    }
 }
 
 //function to notify
@@ -143,14 +147,16 @@ void grbl_notifyf(const char* title, const char* format, ...) {
     va_end(copy);
     if (len >= sizeof(loc_buf)) {
         temp = new char[len + 1];
-        if (temp == NULL)
+        if (temp == NULL) {
             return;
+        }
     }
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_notify(title, temp);
     va_end(arg);
-    if (len > 64)
+    if (len > 64) {
         delete[] temp;
+    }
 }
 
 // formats axis values into a string and returns that string in rpt
@@ -162,23 +168,22 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
     if (report_inches->get())
         unit_conv = 1.0 / MM_PER_INCH;
     for (idx = 0; idx < N_AXIS; idx++) {
-        if (report_inches->get())
+        if (report_inches->get()) {
             sprintf(axisVal, "%4.4f", axis_value[idx] * unit_conv);  // Report inches to 4 decimals
-        else
+        } else {
             sprintf(axisVal, "%4.3f", axis_value[idx] * unit_conv);  // Report mm to 3 decimals
+        }
         strcat(rpt, axisVal);
-        if (idx < (N_AXIS - 1))
+        if (idx < (N_AXIS - 1)) {
             strcat(rpt, ",");
+        }
     }
 }
 
 void get_state(char* foo) {
     // pad them to same length
     switch (sys.state) {
-        case STATE_IDLE:
-            strcpy(foo, " Idle ");
-            ;
-            break;
+        case STATE_IDLE: strcpy(foo, " Idle "); break;
         case STATE_CYCLE: strcpy(foo, " Run  "); break;
         case STATE_HOLD: strcpy(foo, " Hold "); break;
         case STATE_HOMING: strcpy(foo, " Home "); break;
@@ -199,10 +204,11 @@ void report_status_message(uint8_t status_code, uint8_t client) {
     switch (status_code) {
         case STATUS_OK:  // STATUS_OK
 #ifdef ENABLE_SD_CARD
-            if (get_sd_state(false) == SDCARD_BUSY_PRINTING)
+            if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
                 SD_ready_next = true;  // flag so system_execute_line() will send the next line
-            else
+            } else {
                 grbl_send(client, "ok\r\n");
+            }
 #else
             grbl_send(client, "ok\r\n");
 #endif
@@ -249,10 +255,7 @@ void report_feedback_message(uint8_t message_code) {  // OK to send to all clien
         case MESSAGE_CHECK_LIMITS: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Check limits"); break;
         case MESSAGE_PROGRAM_END: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Program End"); break;
         case MESSAGE_RESTORE_DEFAULTS: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Restoring defaults"); break;
-        case MESSAGE_SPINDLE_RESTORE:
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Restoring spindle");
-            ;
-            break;
+        case MESSAGE_SPINDLE_RESTORE: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Restoring spindle"); break;
         case MESSAGE_SLEEP_MODE: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Sleeping"); break;
 #ifdef ENABLE_SD_CARD
         case MESSAGE_SD_FILE_QUIT:
