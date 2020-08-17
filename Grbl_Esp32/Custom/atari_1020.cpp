@@ -153,7 +153,7 @@ void atari_home_task(void* pvParameters) {
                         sprintf(gcode_line, "G0X%3.2f\r", -ATARI_HOME_POS);
                         WebUI::inputBuffer.push(gcode_line);
                         sprintf(gcode_line, "G0X%3.2f\r", ATARI_HOME_POS);
-                        inputBuffer.push(gcode_line);
+                        WebUI::inputBuffer.push(gcode_line);
                         homing_phase = HOMING_PHASE_CHECK;
                         break;
                     default:
