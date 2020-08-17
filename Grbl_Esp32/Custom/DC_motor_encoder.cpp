@@ -178,20 +178,34 @@ bool user_defined_homing()
 
 
 #ifdef USE_CALIBRATION_PROCEDURE
-/* My mashine got 2 proximiti switches for every axis. 
+/* My mashine got 2 proximity switches for every axis. 
 	I want it to calibrate like an elevator. Then it should print out mesuring how much steps it takes to cover distance between switches. 
 	Calibration algorithm:
-1. Rise Z axis to hit proximity switch 
-2. Move X and Y to hit proximity switches
-3. 
+1. Rise Z axis til hit proximity switch 
+2. Move X and Y til hit proximity switches
+3. Rotate A axis
+3. Compute max feedrate of every axis. 
 
+If during calibration I've get keepin up from homing pin, stop designed axis and then retract by few steps and try again. 
 
   */
 
 
 void print_calibration(){
 { 
- grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "X distance");
+	unsigned int delay_betwen_steps_x = 1; //Variable used to count max feedrate
+	unsigned int delay_betwen_steps_y = 1; //is rised everytime *_HOMED_PIN is rising by 1
+	unsigned int delay_betwen_steps_z = 1; //i still need to find formula for feedrate from this xD
+	unsigned int delay_betwen_steps_a = 1;
+	
+ grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Calibration!");
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rising Z axis");
+	while(digitalRead(
+	
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Moving X axis");
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Moving Y axis");
+	//grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Moving A axis");
+	
 }
 #endif
 
