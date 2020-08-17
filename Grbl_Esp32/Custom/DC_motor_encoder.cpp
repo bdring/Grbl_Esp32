@@ -45,6 +45,7 @@ special things your machine needs at startup.
 */
 void machine_init()
 {
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DCServo cnc initialization");
 //PIN INITIALIZATION
 pinMode(X_STEP_PIN,OUTPUT);              
 pinMode(X_DIRECTION_PIN,OUTPUT);        
@@ -72,7 +73,7 @@ pinMode(Z_two_LIMIT_PIN,INPUT);
 pinMode(A_LIMIT_PIN,INPUT);     
 pinMode(A_two_LIMIT_PIN,INPUT);      
 
-pinMode(SPINDLE_OUTPUT_PIN,OUTPUT);  
+pinMode(SPINDLE_OUTPUT_PIN,OUTPUT);  //now im using SSR to run vacom and spindel
 
 pinMode(COOLANT_MIST_PIN,OUTPUT);     
 pinMode(COOLANT_FLOOD_PIN,OUTPUT);  
@@ -156,26 +157,44 @@ void motor_test(){
 #endif
 	
 
+
 #ifdef USE_CUSTOM_HOMING
 /*
   user_defined_homing() is called at the begining of the normal Grbl_ESP32 homing
-  sequence.  If user_defined_homing() returns false, the rest of normal Grbl_ESP32
+  sequence.  If user_defined_homing() returns true, the rest of normal Grbl_ESP32
   homing is skipped if it returns false, other normal homing continues.  For
   example, if you need to manually prep the machine for homing, you could implement
   user_defined_homing() to wait for some button to be pressed, then return true.
   
-  1. Move slowly to the corner untill hit proximity sensor
-  1st move Z axis UP than both X and Y axis to corner.
-  2. When all axis stand on proximity sensors move them out untill it get out of range. Let me know if there is better method (I'm green dabudi dabu da di dabu dii dabu day dabudidabudaj) 
-
+  It's prepared for using mostly with EASEL Online. It got botom left start position. I don't know how homing will work jet, but i think default function is OK.
 */
 bool user_defined_homing()
 {
   // True = done with homing, false = continue with normal Grbl_ESP32 homing
   
-  return true;
+  return false;
 }
 #endif
+
+
+#ifdef USE_CALIBRATION_PROCEDURE
+/* My mashine got 2 proximiti switches for every axis. 
+	I want it to calibrate like an elevator. Then it should print out mesuring how much steps it takes to cover distance between switches. 
+	Calibration algorithm:
+1. Rise Z axis to hit proximity switch 
+2. Move X and Y to hit proximity switches
+3. 
+
+
+  */
+
+
+void print_calibration(){
+{ 
+ grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "X distance");
+}
+#endif
+
 
 #ifdef USE_KINEMATICS
 /*
