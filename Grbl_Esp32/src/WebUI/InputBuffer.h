@@ -21,16 +21,16 @@
 */
 
 #include <Print.h>
+#include <cstring>
 
 namespace WebUI {
     class InputBuffer : public Print {
     public:
         InputBuffer();
-        ~InputBuffer();
-        size_t write(uint8_t c);
-        size_t write(const uint8_t* buffer, size_t size);
 
-        inline size_t write(const char* s) { return write((uint8_t*)s, strlen(s)); }
+        size_t        write(uint8_t c);
+        size_t        write(const uint8_t* buffer, size_t size);
+        inline size_t write(const char* s) { return write((uint8_t*)s, ::strlen(s)); }
         inline size_t write(unsigned long n) { return write((uint8_t)n); }
         inline size_t write(long n) { return write((uint8_t)n); }
         inline size_t write(unsigned int n) { return write((uint8_t)n); }
@@ -43,7 +43,10 @@ namespace WebUI {
         int           read(void);
         bool          push(const char* data);
         void          flush(void);
-                      operator bool() const;
+
+        operator bool() const;
+
+        ~InputBuffer();
 
     private:
         static const int RXBUFFERSIZE = 128;

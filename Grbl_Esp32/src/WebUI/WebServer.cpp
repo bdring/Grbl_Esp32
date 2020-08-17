@@ -93,8 +93,8 @@ namespace WebUI {
     WebServer*        Web_Server::_webserver     = NULL;
     WebSocketsServer* Web_Server::_socket_server = NULL;
 #    ifdef ENABLE_AUTHENTICATION
-    auth_ip* Web_Server::_head  = NULL;
-    uint8_t  Web_Server::_nb_ip = 0;
+    AuthenticationIP* Web_Server::_head  = NULL;
+    uint8_t           Web_Server::_nb_ip = 0;
 #        define MAX_AUTH_IP 10
 #    endif
     Web_Server::Web_Server() {}
@@ -224,14 +224,16 @@ namespace WebUI {
             delete _socket_server;
             _socket_server = NULL;
         }
+
         if (_webserver) {
             delete _webserver;
             _webserver = NULL;
         }
+
 #    ifdef ENABLE_AUTHENTICATION
         while (_head) {
-            auth_ip* current = _head;
-            _head            = _head->_next;
+            AuthenticationIP* current = _head;
+            _head                     = _head->_next;
             delete current;
         }
         _nb_ip = 0;
@@ -255,6 +257,7 @@ namespace WebUI {
             file.close();
             return;
         }
+
         //if no lets launch the default content
         _webserver->sendHeader("Content-Encoding", "gzip");
         _webserver->send_P(200, "text/html", PAGE_NOFILES, PAGE_NOFILES_SIZE);
@@ -262,11 +265,12 @@ namespace WebUI {
 
     //Handle not registred path on SPIFFS neither SD ///////////////////////
     void Web_Server::handle_not_found() {
-        if (is_authenticated() == auth_t::LEVEL_GUEST) {
+        if (is_authenticated() == AuthenticationLevel::LEVEL_GUEST) {
             _webserver->sendContent_P("HTTP/1.1 301 OK\r\nLocation: /\r\nCache-Control: no-cache\r\n\r\n");
             //_webserver->client().stop();
             return;
         }
+
         bool   page_not_found = false;
         String path           = _webserver->urlDecode(_webserver->uri());
         String contentType    = getContentType(path);
@@ -298,8 +302,9 @@ namespace WebUI {
                             _webserver->client().write(buf, 1024);
                             i += v;
                         }
-                        if (i >= totalFileSize)
+                        if (i >= totalFileSize) {
                             done = true;
+                        }
                     }
                     datafile.close();
                     if (i != totalFileSize) {
@@ -425,51 +430,31 @@ namespace WebUI {
 #    endif
 
     bool Web_Server::is_realtime_cmd(char c) {
-        if (c == CMD_STATUS_REPORT)
-            return true;
-        if (c == CMD_CYCLE_START)
-            return true;
-        if (c == CMD_RESET)
-            return true;
-        if (c == CMD_FEED_HOLD)
-            return true;
-        if (c == CMD_SAFETY_DOOR)
-            return true;
-        if (c == CMD_JOG_CANCEL)
-            return true;
-        if (c == CMD_DEBUG_REPORT)
-            return true;
-        if (c == CMD_FEED_OVR_RESET)
-            return true;
-        if (c == CMD_FEED_OVR_COARSE_PLUS)
-            return true;
-        if (c == CMD_FEED_OVR_COARSE_MINUS)
-            return true;
-        if (c == CMD_FEED_OVR_FINE_PLUS)
-            return true;
-        if (c == CMD_FEED_OVR_FINE_MINUS)
-            return true;
-        if (c == CMD_RAPID_OVR_RESET)
-            return true;
-        if (c == CMD_RAPID_OVR_MEDIUM)
-            return true;
-        if (c == CMD_RAPID_OVR_LOW)
-            return true;
-        if (c == CMD_SPINDLE_OVR_COARSE_PLUS)
-            return true;
-        if (c == CMD_SPINDLE_OVR_COARSE_MINUS)
-            return true;
-        if (c == CMD_SPINDLE_OVR_FINE_PLUS)
-            return true;
-        if (c == CMD_SPINDLE_OVR_FINE_MINUS)
-            return true;
-        if (c == CMD_SPINDLE_OVR_STOP)
-            return true;
-        if (c == CMD_COOLANT_FLOOD_OVR_TOGGLE)
-            return true;
-        if (c == CMD_COOLANT_MIST_OVR_TOGGLE)
-            return true;
-        return false;
+        switch (c) {
+            case CMD_STATUS_REPORT:
+            case CMD_CYCLE_START:
+            case CMD_RESET:
+            case CMD_FEED_HOLD:
+            case CMD_SAFETY_DOOR:
+            case CMD_JOG_CANCEL:
+            case CMD_DEBUG_REPORT:
+            case CMD_FEED_OVR_RESET:
+            case CMD_FEED_OVR_COARSE_PLUS:
+            case CMD_FEED_OVR_COARSE_MINUS:
+            case CMD_FEED_OVR_FINE_PLUS:
+            case CMD_FEED_OVR_FINE_MINUS:
+            case CMD_RAPID_OVR_RESET:
+            case CMD_RAPID_OVR_MEDIUM:
+            case CMD_RAPID_OVR_LOW:
+            case CMD_SPINDLE_OVR_COARSE_PLUS:
+            case CMD_SPINDLE_OVR_COARSE_MINUS:
+            case CMD_SPINDLE_OVR_FINE_PLUS:
+            case CMD_SPINDLE_OVR_FINE_MINUS:
+            case CMD_SPINDLE_OVR_STOP:
+            case CMD_COOLANT_FLOOD_OVR_TOGGLE:
+            case CMD_COOLANT_MIST_OVR_TOGGLE: return true;
+            default: return false;
+        }
     }
 
     void Web_Server::_handle_web_command(bool silent) {
@@ -482,8 +467,8 @@ namespace WebUI {
         //       }
         //    }
         //}
-        auth_t auth_level = is_authenticated();
-        String cmd        = "";
+        AuthenticationLevel auth_level = is_authenticated();
+        String              cmd        = "";
         if (_webserver->hasArg("plain")) {
             cmd = _webserver->arg("plain");
         } else if (_webserver->hasArg("commandText")) {
@@ -518,7 +503,7 @@ namespace WebUI {
                 espresponse->flush();
             }
         } else {  //execute GCODE
-            if (auth_level == auth_t::LEVEL_GUEST) {
+            if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
                 _webserver->send(401, "text/plain", "Authentication failed!\n");
                 return;
             }
@@ -539,12 +524,14 @@ namespace WebUI {
                     scmd[0] = scmd[1];
                     scmd.remove(1, 1);
                 }
-                if (scmd.length() > 1)
+                if (scmd.length() > 1) {
                     scmd += "\n";
-                else if (!is_realtime_cmd(scmd[0]))
+                } else if (!is_realtime_cmd(scmd[0])) {
                     scmd += "\n";
-                if (!Serial2Socket.push(scmd.c_str()))
+                }
+                if (!Serial2Socket.push(scmd.c_str())) {
                     res = "Error";
+                }
             }
             _webserver->send(200, "text/plain", res);
         }
@@ -576,15 +563,16 @@ namespace WebUI {
             return;
         }
 
-        auth_t auth_level = is_authenticated();
-        if (auth_level == auth_t::LEVEL_GUEST)
+        AuthenticationLevel auth_level = is_authenticated();
+        if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
             auths = "guest";
-        else if (auth_level == auth_t::LEVEL_USER)
+        } else if (auth_level == AuthenticationLevel::LEVEL_USER) {
             auths = "user";
-        else if (auth_level == auth_t::LEVEL_ADMIN)
+        } else if (auth_level == AuthenticationLevel::LEVEL_ADMIN) {
             auths = "admin";
-        else
+        } else {
             auths = "???";
+        }
 
         //check is it is a submission or a query
         if (_webserver->hasArg("SUBMIT")) {
@@ -597,6 +585,7 @@ namespace WebUI {
                     smsg            = "Error : Incorrect User";
                     code            = 401;
                 }
+
                 if (msg_alert_error == false) {
                     //Password
                     sPassword             = _webserver->arg("PASSWORD");
@@ -638,19 +627,19 @@ namespace WebUI {
                 }
             }
             if ((code == 200) || (code == 500)) {
-                auth_t current_auth_level;
+                AuthenticationLevel current_auth_level;
                 if (sUser == DEFAULT_ADMIN_LOGIN) {
-                    current_auth_level = auth_t::LEVEL_ADMIN;
+                    current_auth_level = AuthenticationLevel::LEVEL_ADMIN;
                 } else if (sUser == DEFAULT_USER_LOGIN) {
-                    current_auth_level = auth_t::LEVEL_USER;
+                    current_auth_level = AuthenticationLevel::LEVEL_USER;
                 } else {
-                    current_auth_level = auth_t::LEVEL_GUEST;
+                    current_auth_level = AuthenticationLevel::LEVEL_GUEST;
                 }
                 //create Session
-                if ((current_auth_level != auth_level) || (auth_level == auth_t::LEVEL_GUEST)) {
-                    auth_ip* current_auth = new auth_ip;
-                    current_auth->level   = current_auth_level;
-                    current_auth->ip      = _webserver->client().remoteIP();
+                if ((current_auth_level != auth_level) || (auth_level == AuthenticationLevel::LEVEL_GUEST)) {
+                    AuthenticationIP* current_auth = new AuthenticationIP;
+                    current_auth->level            = current_auth_level;
+                    current_auth->ip               = _webserver->client().remoteIP();
                     strcpy(current_auth->sessionID, create_session_ID());
                     strcpy(current_auth->userID, sUser.c_str());
                     current_auth->last_time = millis();
@@ -660,8 +649,8 @@ namespace WebUI {
                         _webserver->sendHeader("Set-Cookie", tmps);
                         _webserver->sendHeader("Cache-Control", "no-cache");
                         switch (current_auth->level) {
-                            case auth_t::LEVEL_ADMIN: auths = "admin"; break;
-                            case auth_t::LEVEL_USER: auths = "user"; break;
+                            case AuthenticationLevel::LEVEL_ADMIN: auths = "admin"; break;
+                            case AuthenticationLevel::LEVEL_USER: auths = "user"; break;
                             default: auths = "guest"; break;
                         }
                     } else {
@@ -672,8 +661,9 @@ namespace WebUI {
                     }
                 }
             }
-            if (code == 200)
+            if (code == 200) {
                 smsg = "Ok";
+            }
 
             //build  JSON
             String buffer2send = "{\"status\":\"" + smsg + "\",\"authentication_lvl\":\"";
@@ -681,14 +671,14 @@ namespace WebUI {
             buffer2send += "\"}";
             _webserver->send(code, "application/json", buffer2send);
         } else {
-            if (auth_level != auth_t::LEVEL_GUEST) {
+            if (auth_level != AuthenticationLevel::LEVEL_GUEST) {
                 String cookie = _webserver->header("Cookie");
                 int    pos    = cookie.indexOf("ESPSESSIONID=");
                 String sessionID;
                 if (pos != -1) {
-                    int pos2                   = cookie.indexOf(";", pos);
-                    sessionID                  = cookie.substring(pos + strlen("ESPSESSIONID="), pos2);
-                    auth_ip* current_auth_info = GetAuth(_webserver->client().remoteIP(), sessionID.c_str());
+                    int pos2                            = cookie.indexOf(";", pos);
+                    sessionID                           = cookie.substring(pos + strlen("ESPSESSIONID="), pos2);
+                    AuthenticationIP* current_auth_info = GetAuth(_webserver->client().remoteIP(), sessionID.c_str());
                     if (current_auth_info != NULL) {
                         sUser = current_auth_info->userID;
                     }
@@ -709,12 +699,13 @@ namespace WebUI {
     //SPIFFS
     //SPIFFS files list and file commands
     void Web_Server::handleFileList() {
-        auth_t auth_level = is_authenticated();
-        if (auth_level == auth_t::LEVEL_GUEST) {
+        AuthenticationLevel auth_level = is_authenticated();
+        if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
             _upload_status = UploadStatusType::NONE;
             _webserver->send(401, "text/plain", "Authentication failed!\n");
             return;
         }
+
         String path;
         String status = "Ok";
         if (_upload_status == UploadStatusType::FAILED) {
@@ -722,22 +713,26 @@ namespace WebUI {
             _upload_status = UploadStatusType::NONE;
         }
         _upload_status = UploadStatusType::NONE;
+
         //be sure root is correct according authentication
-        if (auth_level == auth_t::LEVEL_ADMIN) {
+        if (auth_level == AuthenticationLevel::LEVEL_ADMIN) {
             path = "/";
         } else {
             path = "/user";
         }
+
         //get current path
         if (_webserver->hasArg("path")) {
             path += _webserver->arg("path");
         }
+
         //to have a clean path
         path.trim();
         path.replace("//", "/");
         if (path[path.length() - 1] != '/') {
             path += "/";
         }
+
         //check if query need some action
         if (_webserver->hasArg("action")) {
             //delete a file
@@ -757,6 +752,7 @@ namespace WebUI {
                         if ((path != "/") && (path[path.length() - 1] = '/')) {
                             ptmp = path.substring(0, path.length() - 1);
                         }
+
                         File dir        = SPIFFS.open(ptmp);
                         File dircontent = dir.openNextFile();
                         if (!dircontent) {
@@ -801,6 +797,7 @@ namespace WebUI {
                     }
                 }
             }
+
             //create a directory
             if (_webserver->arg("action") == "createdir" && _webserver->hasArg("filename")) {
                 String filename;
@@ -822,11 +819,13 @@ namespace WebUI {
                 }
             }
         }
+
         String jsonfile = "{";
         String ptmp     = path;
         if ((path != "/") && (path[path.length() - 1] = '/')) {
             ptmp = path.substring(0, path.length() - 1);
         }
+
         File dir = SPIFFS.open(ptmp);
         jsonfile += "\"files\":[";
         bool   firstentry = true;
@@ -904,13 +903,10 @@ namespace WebUI {
             String s = "ERROR:" + String(code) + ":";
             s += st;
             _socket_server->sendTXT(_id_connection, s);
-            if (web_error != 0) {
-                if (_webserver) {
-                    if (_webserver->client().available() > 0) {
-                        _webserver->send(web_error, "text/xml", st);
-                    }
-                }
+            if (web_error != 0 && _webserver && _webserver->client().available() > 0) {
+                _webserver->send(web_error, "text/xml", st);
             }
+
             uint32_t t = millis();
             while (millis() - t < timeout) {
                 _socket_server->loop();
@@ -921,14 +917,12 @@ namespace WebUI {
 
     //abort reception of packages
     void Web_Server::cancelUpload() {
-        if (_webserver) {
-            if (_webserver->client().available() > 0) {
-                HTTPUpload& upload = _webserver->upload();
-                upload.status      = UPLOAD_FILE_ABORTED;
-                errno              = ECONNABORTED;
-                _webserver->client().stop();
-                delay(100);
-            }
+        if (_webserver && _webserver->client().available() > 0) {
+            HTTPUpload& upload = _webserver->upload();
+            upload.status      = UPLOAD_FILE_ABORTED;
+            errno              = ECONNABORTED;
+            _webserver->client().stop();
+            delay(100);
         }
     }
 
@@ -936,10 +930,11 @@ namespace WebUI {
     void Web_Server::SPIFFSFileupload() {
         static String filename;
         static File   fsUploadFile = (File)0;
+
         //get authentication status
-        auth_t auth_level = is_authenticated();
+        AuthenticationLevel auth_level = is_authenticated();
         //Guest cannot upload - only admin
-        if (auth_level == auth_t::LEVEL_GUEST) {
+        if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
             _upload_status = UploadStatusType::FAILED;
             grbl_send(CLIENT_ALL, "[MSG:Upload rejected]\r\n");
             pushError(ESP_ERROR_AUTHENTICATION, "Upload rejected", 401);
@@ -951,12 +946,14 @@ namespace WebUI {
                 if (upload.status == UPLOAD_FILE_START) {
                     _upload_status         = UploadStatusType::ONGOING;
                     String upload_filename = upload.filename;
-                    if (upload_filename[0] != '/')
+                    if (upload_filename[0] != '/') {
                         filename = "/" + upload_filename;
-                    else
+                    } else {
                         filename = upload.filename;
+                    }
+
                     //according User or Admin the root is different as user is isolate to /user when admin has full access
-                    if (auth_level != auth_t::LEVEL_ADMIN) {
+                    if (auth_level != AuthenticationLevel::LEVEL_ADMIN) {
                         upload_filename = filename;
                         filename        = "/user" + upload_filename;
                     }
@@ -977,6 +974,7 @@ namespace WebUI {
                             pushError(ESP_ERROR_NOT_ENOUGH_SPACE, "Upload rejected, not enough space");
                         }
                     }
+
                     if (_upload_status != UploadStatusType::FAILED) {
                         //create file
                         fsUploadFile = SPIFFS.open(filename, FILE_WRITE);
@@ -1021,11 +1019,11 @@ namespace WebUI {
                         fsUploadFile       = SPIFFS.open(filename, FILE_READ);
                         uint32_t filesize  = fsUploadFile.size();
                         fsUploadFile.close();
-                        if (_webserver->hasArg(sizeargname.c_str())) {
-                            if (_webserver->arg(sizeargname.c_str()) != String(filesize)) {
-                                _upload_status = UploadStatusType::FAILED;
-                            }
+
+                        if (_webserver->hasArg(sizeargname.c_str()) && _webserver->arg(sizeargname.c_str()) != String(filesize)) {
+                            _upload_status = UploadStatusType::FAILED;
                         }
+
                         if (_upload_status == UploadStatusType::ONGOING) {
                             _upload_status = UploadStatusType::SUCCESSFUL;
                         } else {
@@ -1059,18 +1057,21 @@ namespace WebUI {
 
     //Web Update handler
     void Web_Server::handleUpdate() {
-        auth_t auth_level = is_authenticated();
-        if (auth_level != auth_t::LEVEL_ADMIN) {
+        AuthenticationLevel auth_level = is_authenticated();
+        if (auth_level != AuthenticationLevel::LEVEL_ADMIN) {
             _upload_status = UploadStatusType::NONE;
             _webserver->send(403, "text/plain", "Not allowed, log in first!\n");
             return;
         }
+
         String jsonfile = "{\"status\":\"";
         jsonfile += String(int32_t(uint8_t(_upload_status)));
         jsonfile += "\"}";
+
         //send status
         _webserver->sendHeader("Cache-Control", "no-cache");
         _webserver->send(200, "application/json", jsonfile);
+
         //if success restart
         if (_upload_status == UploadStatusType::SUCCESSFUL) {
             COMMANDS::wait(1000);
@@ -1084,8 +1085,9 @@ namespace WebUI {
     void Web_Server::WebUpdateUpload() {
         static size_t   last_upload_update;
         static uint32_t maxSketchSpace = 0;
+
         //only admin can update FW
-        if (is_authenticated() != auth_t::LEVEL_ADMIN) {
+        if (is_authenticated() != AuthenticationLevel::LEVEL_ADMIN) {
             _upload_status = UploadStatusType::FAILED;
             grbl_send(CLIENT_ALL, "[MSG:Upload rejected]\r\n");
             pushError(ESP_ERROR_AUTHENTICATION, "Upload rejected", 401);
@@ -1132,10 +1134,12 @@ namespace WebUI {
                     //check if no error
                     if (_upload_status == UploadStatusType::ONGOING) {
                         if (((100 * upload.totalSize) / maxSketchSpace) != last_upload_update) {
-                            if (maxSketchSpace > 0)
+                            if (maxSketchSpace > 0) {
                                 last_upload_update = (100 * upload.totalSize) / maxSketchSpace;
-                            else
+                            } else {
                                 last_upload_update = upload.totalSize;
+                            }
+
                             String s = "Update ";
                             s += String(last_upload_update);
                             s += "%";
@@ -1166,10 +1170,12 @@ namespace WebUI {
                 }
             }
         }
+
         if (_upload_status == UploadStatusType::FAILED) {
             cancelUpload();
             Update.end();
         }
+
         COMMANDS::wait(0);
     }
 
@@ -1210,16 +1216,17 @@ namespace WebUI {
             COMMANDS::wait(0);  //wdtFeed
         }
         file.close();
-        if (result)
+        if (result) {
             return SD.rmdir((char*)path.c_str());
-        else
+        } else {
             return false;
+        }
     }
 
     //direct SD files list//////////////////////////////////////////////////
     void Web_Server::handle_direct_SDFileList() {
         //this is only for admin and user
-        if (is_authenticated() == auth_t::LEVEL_GUEST) {
+        if (is_authenticated() == AuthenticationLevel::LEVEL_GUEST) {
             _upload_status = UploadStatusType::NONE;
             _webserver->send(401, "application/json", "{\"status\":\"Authentication failed!\"}");
             return;
@@ -1240,10 +1247,12 @@ namespace WebUI {
             return;
         }
         set_sd_state(SDCARD_BUSY_PARSING);
+
         //get current path
         if (_webserver->hasArg("path")) {
             path += _webserver->arg("path");
         }
+
         //to have a clean path
         path.trim();
         path.replace("//", "/");
@@ -1313,17 +1322,17 @@ namespace WebUI {
             }
         }
         //check if no need build file list
-        if (_webserver->hasArg("dontlist")) {
-            if (_webserver->arg("dontlist") == "yes") {
-                list_files = false;
-            }
+        if (_webserver->hasArg("dontlist") && _webserver->arg("dontlist") == "yes") {
+            list_files = false;
         }
+
         // TODO Settings - consider using the JSONEncoder class
         String jsonfile = "{";
         jsonfile += "\"files\":[";
 
-        if (path != "/")
+        if (path != "/") {
             path = path.substring(0, path.length() - 1);
+        }
         if (path != "/" && !SD.exists((char*)path.c_str())) {
             String s = "{\"status\":\" ";
             s += path;
@@ -1333,7 +1342,6 @@ namespace WebUI {
         }
         if (list_files) {
             File dir = SD.open((char*)path.c_str());
-            if (!dir) {}
             if (!dir.isDirectory()) {
                 dir.close();
             }
@@ -1415,7 +1423,7 @@ namespace WebUI {
         static String filename;
         static File   sdUploadFile;
         //this is only for admin and user
-        if (is_authenticated() == auth_t::LEVEL_GUEST) {
+        if (is_authenticated() == AuthenticationLevel::LEVEL_GUEST) {
             _upload_status = UploadStatusType::FAILED;
             _webserver->send(401, "application/json", "{\"status\":\"Authentication failed!\"}");
             pushError(ESP_ERROR_AUTHENTICATION, "Upload rejected", 401);
@@ -1551,17 +1559,17 @@ namespace WebUI {
             dnsServer.processNextRequest();
         }
 #    endif
-        if (_webserver)
+        if (_webserver) {
             _webserver->handleClient();
-        if (_socket_server && _setupdone)
+        }
+        if (_socket_server && _setupdone) {
             _socket_server->loop();
-        if ((millis() - timeout) > 10000) {
-            if (_socket_server) {
-                String s = "PING:";
-                s += String(_id_connection);
-                _socket_server->broadcastTXT(s);
-                timeout = millis();
-            }
+        }
+        if ((millis() - timeout) > 10000 && _socket_server) {
+            String s = "PING:";
+            s += String(_id_connection);
+            _socket_server->broadcastTXT(s);
+            timeout = millis();
         }
     }
 
@@ -1658,7 +1666,7 @@ namespace WebUI {
     }
 
     //check authentification
-    auth_t Web_Server::is_authenticated() {
+    AuthenticationLevel Web_Server::is_authenticated() {
 #    ifdef ENABLE_AUTHENTICATION
         if (_webserver->hasHeader("Cookie")) {
             String cookie = _webserver->header("Cookie");
@@ -1671,16 +1679,16 @@ namespace WebUI {
                 return ResetAuthIP(ip, sessionID.c_str());
             }
         }
-        return auth_t::LEVEL_GUEST;
+        return AuthenticationLevel::LEVEL_GUEST;
 #    else
-        return auth_t::LEVEL_ADMIN;
+        return AuthenticationLevel::LEVEL_ADMIN;
 #    endif
     }
 
 #    ifdef ENABLE_AUTHENTICATION
 
     //add the information in the linked list if possible
-    bool Web_Server::AddAuthIP(auth_ip* item) {
+    bool Web_Server::AddAuthIP(AuthenticationIP* item) {
         if (_nb_ip > MAX_AUTH_IP) {
             return false;
         }
@@ -1718,9 +1726,9 @@ namespace WebUI {
     }
 
     bool Web_Server::ClearAuthIP(IPAddress ip, const char* sessionID) {
-        auth_ip* current  = _head;
-        auth_ip* previous = NULL;
-        bool     done     = false;
+        AuthenticationIP* current  = _head;
+        AuthenticationIP* previous = NULL;
+        bool              done     = false;
         while (current) {
             if ((ip == current->ip) && (strcmp(sessionID, current->sessionID) == 0)) {
                 //remove
@@ -1745,9 +1753,9 @@ namespace WebUI {
     }
 
     //Get info
-    auth_ip* Web_Server::GetAuth(IPAddress ip, const char* sessionID) {
-        auth_ip* current = _head;
-        //auth_ip * previous = NULL;
+    AuthenticationIP* Web_Server::GetAuth(IPAddress ip, const char* sessionID) {
+        AuthenticationIP* current = _head;
+        //AuthenticationIP * previous = NULL;
         //get time
         //uint32_t now = millis();
         while (current) {
@@ -1764,9 +1772,9 @@ namespace WebUI {
     }
 
     //Review all IP to reset timers
-    auth_t Web_Server::ResetAuthIP(IPAddress ip, const char* sessionID) {
-        auth_ip* current  = _head;
-        auth_ip* previous = NULL;
+    AuthenticationLevel Web_Server::ResetAuthIP(IPAddress ip, const char* sessionID) {
+        AuthenticationIP* current  = _head;
+        AuthenticationIP* previous = NULL;
         //get time
         //uint32_t now = millis();
         while (current) {
@@ -1784,18 +1792,16 @@ namespace WebUI {
                     current = previous->_next;
                 }
             } else {
-                if (ip == current->ip) {
-                    if (strcmp(sessionID, current->sessionID) == 0) {
-                        //reset time
-                        current->last_time = millis();
-                        return (auth_t)current->level;
-                    }
+                if (ip == current->ip && strcmp(sessionID, current->sessionID) == 0) {
+                    //reset time
+                    current->last_time = millis();
+                    return (AuthenticationLevel)current->level;
                 }
                 previous = current;
                 current  = current->_next;
             }
         }
-        return auth_t::LEVEL_GUEST;
+        return AuthenticationLevel::LEVEL_GUEST;
     }
 #    endif
 }

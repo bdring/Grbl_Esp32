@@ -48,6 +48,14 @@ namespace WebUI {
 
     NotificationsService notificationsservice;
 
+    NotificationsService::NotificationsService() {
+        _started          = false;
+        _notificationType = 0;
+        _token1           = "";
+        _token1           = "";
+        _settings         = "";
+    }
+
     bool Wait4Answer(WiFiClientSecure& client, const char* linetrigger, const char* expected_answer, uint32_t timeout) {
         if (client.connected()) {
             String   answer;
@@ -75,15 +83,6 @@ namespace WebUI {
         return false;
     }
 
-    NotificationsService::NotificationsService() {
-        _started          = false;
-        _notificationType = 0;
-        _token1           = "";
-        _token1           = "";
-        _settings         = "";
-    }
-    NotificationsService::~NotificationsService() { end(); }
-
     bool NotificationsService::started() { return _started; }
 
     const char* NotificationsService::getTypeString() {
@@ -91,9 +90,8 @@ namespace WebUI {
             case ESP_PUSHOVER_NOTIFICATION: return "Pushover";
             case ESP_EMAIL_NOTIFICATION: return "Email";
             case ESP_LINE_NOTIFICATION: return "Line";
-            default: break;
+            default: return "None";
         }
-        return "None";
     }
 
     bool NotificationsService::sendMSG(const char* title, const char* message) {
@@ -109,6 +107,7 @@ namespace WebUI {
         }
         return false;
     }
+
     //Messages are currently limited to 1024 4-byte UTF-8 characters
     //but we do not do any check
     bool NotificationsService::sendPushoverMSG(const char* title, const char* message) {
@@ -343,5 +342,6 @@ namespace WebUI {
         if (_started) {}
     }
 
+    NotificationsService::~NotificationsService() { end(); }
 }
 #endif  //ENABLE_NOTIFICATIONS

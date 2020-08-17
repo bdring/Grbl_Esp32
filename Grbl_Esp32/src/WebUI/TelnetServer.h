@@ -35,18 +35,21 @@ namespace WebUI {
 
     public:
         Telnet_Server();
-        ~Telnet_Server();
-        bool            begin();
-        void            end();
-        void            handle();
-        size_t          write(const uint8_t* buffer, size_t size);
-        int             read(void);
-        int             peek(void);
-        int             available();
-        int             get_rx_buffer_available();
-        bool            push(uint8_t data);
-        bool            push(const uint8_t* data, int datasize);
+
+        bool   begin();
+        void   end();
+        void   handle();
+        size_t write(const uint8_t* buffer, size_t size);
+        int    read(void);
+        int    peek(void);
+        int    available();
+        int    get_rx_buffer_available();
+        bool   push(uint8_t data);
+        bool   push(const uint8_t* data, int datasize);
+
         static uint16_t port() { return _port; }
+
+        ~Telnet_Server();
 
     private:
         static bool        _setupdone;
@@ -56,11 +59,13 @@ namespace WebUI {
         static IPAddress _telnetClientsIP[MAX_TLNT_CLIENTS];
 #endif
         static uint16_t _port;
-        void            clearClients();
-        uint32_t        _lastflush;
-        uint8_t         _RXbuffer[TELNETRXBUFFERSIZE];
-        uint16_t        _RXbufferSize;
-        uint16_t        _RXbufferpos;
+
+        void clearClients();
+
+        uint32_t _lastflush;
+        uint8_t  _RXbuffer[TELNETRXBUFFERSIZE];
+        uint16_t _RXbufferSize;
+        uint16_t _RXbufferpos;
     };
 
     extern Telnet_Server telnet_server;

@@ -43,14 +43,13 @@ namespace WebUI {
         _RXbufferSize = 0;
         _RXbufferpos  = 0;
     }
-    Telnet_Server::~Telnet_Server() { end(); }
 
     bool Telnet_Server::begin() {
         bool no_error = true;
         end();
         _RXbufferSize = 0;
         _RXbufferpos  = 0;
-        ;
+
         if (telnet_enable->get() == 0) {
             return false;
         }
@@ -87,8 +86,9 @@ namespace WebUI {
 #    ifdef ENABLE_TELNET_WELCOME_MSG
                     _telnetClientsIP[i] = IPAddress(0, 0, 0, 0);
 #    endif
-                    if (_telnetClients[i])
+                    if (_telnetClients[i]) {
                         _telnetClients[i].stop();
+                    }
                     _telnetClients[i] = _telnetserver->available();
                     break;
                 }
@@ -106,7 +106,9 @@ namespace WebUI {
             log_d("[TELNET out blocked]");
             return 0;
         }
+
         clearClients();
+
         //log_d("[TELNET out]");
         //push UART data to all connected telnet clients
         for (uint8_t i = 0; i < MAX_TLNT_CLIENTS; i++) {
@@ -122,8 +124,9 @@ namespace WebUI {
     void Telnet_Server::handle() {
         COMMANDS::wait(0);
         //check if can read
-        if (!_setupdone || _telnetserver == NULL)
+        if (!_setupdone || _telnetserver == NULL) {
             return;
+        }
         clearClients();
         //check clients for data
         //uint8_t c;
@@ -140,10 +143,12 @@ namespace WebUI {
                     COMMANDS::wait(0);
                     int readlen  = _telnetClients[i].available();
                     int writelen = TELNETRXBUFFERSIZE - available();
-                    if (readlen > 1024)
+                    if (readlen > 1024) {
                         readlen = 1024;
-                    if (readlen > writelen)
+                    }
+                    if (readlen > writelen) {
                         readlen = writelen;
+                    }
                     if (readlen > 0) {
                         _telnetClients[i].read(buf, readlen);
                         push(buf, readlen);
@@ -163,10 +168,11 @@ namespace WebUI {
     }
 
     int Telnet_Server::peek(void) {
-        if (_RXbufferSize > 0)
+        if (_RXbufferSize > 0) {
             return _RXbuffer[_RXbufferpos];
-        else
+        } else {
             return -1;
+        }
     }
 
     int Telnet_Server::available() { return _RXbufferSize; }
@@ -177,10 +183,12 @@ namespace WebUI {
         log_i("[TELNET]push %c", data);
         if ((1 + _RXbufferSize) <= TELNETRXBUFFERSIZE) {
             int current = _RXbufferpos + _RXbufferSize;
-            if (current > TELNETRXBUFFERSIZE)
+            if (current > TELNETRXBUFFERSIZE) {
                 current = current - TELNETRXBUFFERSIZE;
-            if (current > (TELNETRXBUFFERSIZE - 1))
+            }
+            if (current > (TELNETRXBUFFERSIZE - 1)) {
                 current = 0;
+            }
             _RXbuffer[current] = data;
             _RXbufferSize++;
             log_i("[TELNET]buffer size %d", _RXbufferSize);
@@ -193,11 +201,13 @@ namespace WebUI {
         if ((data_size + _RXbufferSize) <= TELNETRXBUFFERSIZE) {
             int data_processed = 0;
             int current        = _RXbufferpos + _RXbufferSize;
-            if (current > TELNETRXBUFFERSIZE)
+            if (current > TELNETRXBUFFERSIZE) {
                 current = current - TELNETRXBUFFERSIZE;
+            }
             for (int i = 0; i < data_size; i++) {
-                if (current > (TELNETRXBUFFERSIZE - 1))
+                if (current > (TELNETRXBUFFERSIZE - 1)) {
                     current = 0;
+                }
                 if (char(data[i]) != '\r') {
                     _RXbuffer[current] = data[i];
                     current++;
@@ -217,12 +227,16 @@ namespace WebUI {
             int v = _RXbuffer[_RXbufferpos];
             //log_d("[TELNET]read %c",char(v));
             _RXbufferpos++;
-            if (_RXbufferpos > (TELNETRXBUFFERSIZE - 1))
+            if (_RXbufferpos > (TELNETRXBUFFERSIZE - 1)) {
                 _RXbufferpos = 0;
+            }
             _RXbufferSize--;
             return v;
-        } else
+        } else {
             return -1;
+        }
     }
+
+    Telnet_Server::~Telnet_Server() { end(); }
 }
 #endif  // Enable TELNET && ENABLE_WIFI

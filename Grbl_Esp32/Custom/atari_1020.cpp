@@ -113,6 +113,8 @@ bool user_defined_homing() {
 
 */
 void atari_home_task(void* pvParameters) {
+    using namespace WebUI;
+
     uint8_t          homing_attempt = 0;  // how many times have we tried to home
     TickType_t       xLastWakeTime;
     const TickType_t xHomingTaskFrequency = 100;  // in ticks (typically ms) .... need to make sure there is enough time to get out of idle
@@ -165,7 +167,7 @@ void atari_home_task(void* pvParameters) {
                 if (homing_attempt > ATARI_HOMING_ATTEMPTS) {
                     // try all positions plus 1
                     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Atari homing failed");
-                    inputBuffer.push("G90\r");
+                    WebUI::inputBuffer.push("G90\r");
                     atari_homing = false;
                     ;
                 }
@@ -213,6 +215,8 @@ void calc_solenoid(float penZ) {
 	position change. Pen 1-4 is valid range.
 */
 void user_tool_change(uint8_t new_tool) {
+    using namespace WebUI;
+
     uint8_t move_count;
     char    gcode_line[20];
     protocol_buffer_synchronize();  // wait for all previous moves to complete
@@ -248,6 +252,8 @@ void atari_next_pen() {
 
 // Polar coaster has macro buttons, this handles those button pushes.
 void user_defined_macro(uint8_t index) {
+    using namespace WebUI;
+
     char gcode_line[20];
     switch (index) {
 #ifdef MACRO_BUTTON_0_PIN
@@ -282,5 +288,5 @@ void user_defined_macro(uint8_t index) {
 void user_m30() {
     char gcode_line[20];
     sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  //
-    inputBuffer.push(gcode_line);
+    WebUI::inputBuffer.push(gcode_line);
 }

@@ -6,7 +6,7 @@ namespace WebUI {
     StringSetting* user_password;
     StringSetting* admin_password;
 
-    void remove_password(char* str, auth_t& auth_level) {
+    void remove_password(char* str, AuthenticationLevel& auth_level) {
         String paramStr = String((const char*)str);
         int    pos      = paramStr.indexOf("pwd=");
         if (pos == -1) {
@@ -24,18 +24,18 @@ namespace WebUI {
         // Upgrade the authentication level if a password
         // for a higher level is present.
         const char* password = str + pos + strlen("pwd=");
-        if (auth_level < auth_t::LEVEL_USER) {
+        if (auth_level < AuthenticationLevel::LEVEL_USER) {
             if (!strcmp(password, user_password->get())) {
-                auth_level = auth_t::LEVEL_USER;
+                auth_level = AuthenticationLevel::LEVEL_USER;
             }
         }
-        if (auth_level < auth_t::LEVEL_ADMIN) {
+        if (auth_level < AuthenticationLevel::LEVEL_ADMIN) {
             if (!strcmp(password, admin_password->get())) {
-                auth_level = auth_t::LEVEL_ADMIN;
+                auth_level = AuthenticationLevel::LEVEL_ADMIN;
             }
         }
     }
 #else
-    void remove_password(char* str, auth_t& auth_level) { auth_level = auth_t::LEVEL_ADMIN; }
+    void remove_password(char* str, AuthenticationLevel& auth_level) { auth_level = AuthenticationLevel::LEVEL_ADMIN; }
 #endif
 }

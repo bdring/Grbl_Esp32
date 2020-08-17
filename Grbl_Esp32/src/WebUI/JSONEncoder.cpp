@@ -5,6 +5,9 @@
 #include "JSONEncoder.h"
 
 namespace WebUI {
+    // Constructor that supplies a default falue for "pretty"
+    JSONencoder::JSONencoder() : JSONencoder(false) {}
+
     // Constructor.  If _pretty is true, newlines are
     // inserted into the JSON string for easy reading.
     JSONencoder::JSONencoder(bool pretty) : pretty(pretty), level(0), str("") { count[level] = 0; }
@@ -62,9 +65,6 @@ namespace WebUI {
             }
         }
     }
-
-    // Constructor that supplies a default falue for "pretty"
-    JSONencoder::JSONencoder() : JSONencoder(false) {}
 
     // Begins the JSON encoding process, creating an unnamed object
     void JSONencoder::begin() { begin_object(); }

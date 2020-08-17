@@ -24,10 +24,12 @@ namespace WebUI {
     class WiFiServices {
     public:
         WiFiServices();
-        ~WiFiServices();
+
         static bool begin();
         static void end();
         static void handle();
+
+        ~WiFiServices();
     };
 
     extern WiFiServices wifi_services;

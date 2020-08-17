@@ -222,6 +222,8 @@ float abs_angle(float ang) {
 
 // Polar coaster has macro buttons, this handles those button pushes.
 void user_defined_macro(uint8_t index) {
+    using namespace WebUI;
+
     switch (index) {
 #ifdef MACRO_BUTTON_0_PIN
         case CONTROL_PIN_INDEX_MACRO_0:
@@ -247,5 +249,5 @@ void user_defined_macro(uint8_t index) {
 
 // handle the M30 command
 void user_m30() {
-    inputBuffer.push("$H\r");
+    WebUI::inputBuffer.push("$H\r");
 }

@@ -24,13 +24,15 @@ namespace WebUI {
     class NotificationsService {
     public:
         NotificationsService();
-        ~NotificationsService();
+
         bool        begin();
         void        end();
         void        handle();
         bool        sendMSG(const char* title, const char* message);
         const char* getTypeString();
         bool        started();
+
+        ~NotificationsService();
 
     private:
         bool     _started;
@@ -40,12 +42,13 @@ namespace WebUI {
         String   _settings;
         String   _serveraddress;
         uint16_t _port;
-        bool     sendPushoverMSG(const char* title, const char* message);
-        bool     sendEmailMSG(const char* title, const char* message);
-        bool     sendLineMSG(const char* title, const char* message);
-        bool     getPortFromSettings();
-        bool     getServerAddressFromSettings();
-        bool     getEmailFromSettings();
+
+        bool sendPushoverMSG(const char* title, const char* message);
+        bool sendEmailMSG(const char* title, const char* message);
+        bool sendLineMSG(const char* title, const char* message);
+        bool getPortFromSettings();
+        bool getServerAddressFromSettings();
+        bool getEmailFromSettings();
     };
 
     extern NotificationsService notificationsservice;

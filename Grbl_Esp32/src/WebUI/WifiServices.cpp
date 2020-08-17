@@ -52,8 +52,9 @@ namespace WebUI {
     bool WiFiServices::begin() {
         bool no_error = true;
         //Sanity check
-        if (WiFi.getMode() == WIFI_OFF)
+        if (WiFi.getMode() == WIFI_OFF) {
             return false;
+        }
         String h = wifi_hostname->get();
 
         //Start SPIFFS
@@ -62,9 +63,9 @@ namespace WebUI {
         ArduinoOTA
             .onStart([]() {
                 String type;
-                if (ArduinoOTA.getCommand() == U_FLASH)
+                if (ArduinoOTA.getCommand() == U_FLASH) {
                     type = "sketch";
-                else {  // U_SPIFFS
+                } else {  // U_SPIFFS
                     // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
                     type = "filesystem";
                     SPIFFS.end();
@@ -77,16 +78,13 @@ namespace WebUI {
             })
             .onError([](ota_error_t error) {
                 grbl_sendf(CLIENT_ALL, "[MSG:OTA Error(%u):]\r\n", error);
-                if (error == OTA_AUTH_ERROR)
-                    grbl_send(CLIENT_ALL, "[MSG:Auth Failed]\r\n");
-                else if (error == OTA_BEGIN_ERROR)
-                    grbl_send(CLIENT_ALL, "[MSG:Begin Failed]\r\n");
-                else if (error == OTA_CONNECT_ERROR)
-                    grbl_send(CLIENT_ALL, "[MSG:Connect Failed]\r\n");
-                else if (error == OTA_RECEIVE_ERROR)
-                    grbl_send(CLIENT_ALL, "[MSG:Receive Failed]\r\n");
-                else if (error == OTA_END_ERROR)
-                    grbl_send(CLIENT_ALL, "[MSG:End Failed]\r\n");
+                switch (error) {
+                    case OTA_AUTH_ERROR: grbl_send(CLIENT_ALL, "[MSG:Auth Failed]\r\n"); break;
+                    case OTA_BEGIN_ERROR: grbl_send(CLIENT_ALL, "[MSG:Begin Failed]\r\n"); break;
+                    case OTA_CONNECT_ERROR: grbl_send(CLIENT_ALL, "[MSG:Connect Failed]\r\n"); break;
+                    case OTA_RECEIVE_ERROR: grbl_send(CLIENT_ALL, "[MSG:Receive Failed]\r\n"); break;
+                    case OTA_END_ERROR: grbl_send(CLIENT_ALL, "[MSG:End Failed]\r\n"); break;
+                }
             });
         ArduinoOTA.begin();
 #    endif

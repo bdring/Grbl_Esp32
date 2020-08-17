@@ -38,6 +38,7 @@ namespace WebUI {
         static const int MIN_BTNAME_LENGTH = 1;
 
         BTConfig();
+
         static const char* info();
         static bool        isBTnameValid(const char* hostname);
         static String      BTname() { return _btname; }
@@ -48,6 +49,7 @@ namespace WebUI {
         static void        reset_settings();
         static bool        Is_BT_on();
         static String      _btclient;
+
         ~BTConfig();
 
     private:

@@ -21,6 +21,9 @@
 */
 
 #include <Print.h>
+#include <cstring>
+
+class WebSocketsServer;
 
 namespace WebUI {
     class Serial_2_Socket : public Print {
@@ -30,33 +33,39 @@ namespace WebUI {
 
     public:
         Serial_2_Socket();
-        ~Serial_2_Socket();
+
         size_t write(uint8_t c);
         size_t write(const uint8_t* buffer, size_t size);
 
-        inline size_t write(const char* s) { return write((uint8_t*)s, strlen(s)); }
+        inline size_t write(const char* s) { return write((uint8_t*)s, ::strlen(s)); }
         inline size_t write(unsigned long n) { return write((uint8_t)n); }
         inline size_t write(long n) { return write((uint8_t)n); }
         inline size_t write(unsigned int n) { return write((uint8_t)n); }
         inline size_t write(int n) { return write((uint8_t)n); }
-        long          baudRate();
-        void          begin(long speed);
-        void          end();
-        int           available();
-        int           peek(void);
-        int           read(void);
-        bool          push(const char* data);
-        void          flush(void);
-        void          handle_flush();
-                      operator bool() const;
-        bool          attachWS(void* web_socket);
-        bool          detachWS();
+
+        long baudRate();
+        void begin(long speed);
+        void end();
+        int  available();
+        int  peek(void);
+        int  read(void);
+        bool push(const char* data);
+        void flush(void);
+        void handle_flush();
+        bool attachWS(WebSocketsServer* web_socket);
+        bool detachWS();
+
+        operator bool() const;
+
+        ~Serial_2_Socket();
 
     private:
-        uint32_t _lastflush;
-        void*    _web_socket;
+        uint32_t          _lastflush;
+        WebSocketsServer* _web_socket;
+
         uint8_t  _TXbuffer[TXBUFFERSIZE];
         uint16_t _TXbufferSize;
+
         uint8_t  _RXbuffer[RXBUFFERSIZE];
         uint16_t _RXbufferSize;
         uint16_t _RXbufferpos;

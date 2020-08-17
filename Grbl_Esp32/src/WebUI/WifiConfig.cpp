@@ -27,6 +27,7 @@
 #    include <ESPmDNS.h>
 #    include <FS.h>
 #    include <SPIFFS.h>
+#    include <cstring>
 #    include "WifiServices.h"
 
 namespace WebUI {
@@ -34,15 +35,15 @@ namespace WebUI {
 
     String WiFiConfig::_hostname          = "";
     bool   WiFiConfig::_events_registered = false;
-    WiFiConfig::WiFiConfig() {}
 
-    WiFiConfig::~WiFiConfig() { end(); }
+    WiFiConfig::WiFiConfig() {}
 
     //just simple helper to convert mac address to string
     char* WiFiConfig::mac2str(uint8_t mac[8]) {
         static char macstr[18];
-        if (0 > sprintf(macstr, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]))
+        if (0 > sprintf(macstr, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])) {
             strcpy(macstr, "00:00:00:00:00:00");
+        }
         return macstr;
     }
 
@@ -50,6 +51,7 @@ namespace WebUI {
         static String result;
         String        tmp;
         result = "[MSG:";
+
         if ((WiFi.getMode() == WIFI_MODE_STA) || (WiFi.getMode() == WIFI_MODE_APSTA)) {
             result += "Mode=STA:SSID=";
             result += WiFi.SSID();
@@ -62,9 +64,11 @@ namespace WebUI {
             tmp.replace(":", "-");
             result += tmp;
         }
+
         if ((WiFi.getMode() == WIFI_MODE_AP) || (WiFi.getMode() == WIFI_MODE_APSTA)) {
-            if (WiFi.getMode() == WIFI_MODE_APSTA)
+            if (WiFi.getMode() == WIFI_MODE_APSTA) {
                 result += "]\r\n[MSG:";
+            }
             result += "Mode=AP:SSDI=";
             wifi_config_t conf;
             esp_wifi_get_config(ESP_IF_WIFI_AP, &conf);
@@ -76,8 +80,9 @@ namespace WebUI {
             tmp.replace(":", "-");
             result += tmp;
         }
-        if (WiFi.getMode() == WIFI_MODE_NULL)
+        if (WiFi.getMode() == WIFI_MODE_NULL) {
             result += "No Wifi";
+        }
         result += "]\r\n";
         return result.c_str();
     }
@@ -89,8 +94,9 @@ namespace WebUI {
     uint32_t WiFiConfig::IP_int_from_string(String& s) {
         uint32_t  ip_int = 0;
         IPAddress ipaddr;
-        if (ipaddr.fromString(s))
+        if (ipaddr.fromString(s)) {
             ip_int = ipaddr;
+        }
         return ip_int;
     }
 
@@ -114,10 +120,12 @@ namespace WebUI {
         //only letter and digit
         for (int i = 0; i < strlen(hostname); i++) {
             c = hostname[i];
-            if (!(isdigit(c) || isalpha(c) || c == '-'))
+            if (!(isdigit(c) || isalpha(c) || c == '-')) {
                 return false;
-            if (c == ' ')
+            }
+            if (c == ' ') {
                 return false;
+            }
         }
         return true;
     }
@@ -132,8 +140,9 @@ namespace WebUI {
         // length is checked automatically by string setting
         //only printable
         for (int i = 0; i < strlen(ssid); i++) {
-            if (!isPrintable(ssid[i]))
+            if (!isPrintable(ssid[i])) {
                 return false;
+            }
         }
         return true;
     }
@@ -143,15 +152,12 @@ namespace WebUI {
      */
 
     bool WiFiConfig::isPasswordValid(const char* password) {
-        if (strlen(password) == 0)
+        if (strlen(password) == 0) {
             return true;  //open network
-        //limited size
-        // length is checked automatically by string setting
-        //no space allowed ?
-        /*  for (int i = 0; i < strlen (password); i++)
-              if (password[i] == ' ') {
-                  return false;
-              }*/
+        }
+
+        // Limited size. Length is checked automatically by string setting
+
         return true;
     }
 
@@ -204,10 +210,12 @@ namespace WebUI {
      * Get WiFi signal strength
      */
     int32_t WiFiConfig::getSignal(int32_t RSSI) {
-        if (RSSI <= -100)
+        if (RSSI <= -100) {
             return 0;
-        if (RSSI >= -50)
+        }
+        if (RSSI >= -50) {
             return 100;
+        }
         return (2 * (RSSI + 100));
     }
 
@@ -251,10 +259,12 @@ namespace WebUI {
         //stop active service
         wifi_services.end();
         //Sanity check
-        if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA))
+        if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.disconnect();
-        if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA))
+        }
+        if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.softAPdisconnect();
+        }
         WiFi.enableAP(false);
         WiFi.mode(WIFI_STA);
         //Get parameters for STA
@@ -262,8 +272,9 @@ namespace WebUI {
         WiFi.setHostname(h.c_str());
         //SSID
         String SSID = wifi_sta_ssid->get();
-        if (SSID.length() == 0)
+        if (SSID.length() == 0) {
             SSID = DEFAULT_STA_SSID;
+        }
         //password
         String  password = wifi_sta_password->get();
         int8_t  IP_mode  = wifi_sta_mode->get();
@@ -293,23 +304,27 @@ namespace WebUI {
         //stop active services
         wifi_services.end();
         //Sanity check
-        if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA))
+        if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.disconnect();
-        if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA))
+        }
+        if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.softAPdisconnect();
+        }
         WiFi.enableSTA(false);
         WiFi.mode(WIFI_AP);
         //Get parameters for AP
         //SSID
         String SSID = wifi_ap_ssid->get();
-        if (SSID.length() == 0)
+        if (SSID.length() == 0) {
             SSID = DEFAULT_AP_SSID;
+        }
 
         String password = wifi_ap_password->get();
 
         int8_t channel = wifi_ap_channel->get();
-        if (channel == 0)
+        if (channel == 0) {
             channel = DEFAULT_AP_CHANNEL;
+        }
 
         int32_t   IP = wifi_ap_ip->get();
         IPAddress ip(IP);
@@ -333,10 +348,12 @@ namespace WebUI {
 
     void WiFiConfig::StopWiFi() {
         //Sanity check
-        if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA))
+        if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.disconnect(true);
-        if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA))
+        }
+        if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.softAPdisconnect(true);
+        }
         wifi_services.end();
         WiFi.enableSTA(false);
         WiFi.enableAP(false);
@@ -390,8 +407,9 @@ namespace WebUI {
             }
         }
         // TODO commit the changes and check that for errors
-        if (error)
+        if (error) {
             grbl_send(CLIENT_ALL, "[MSG:WiFi reset error]\r\n");
+        }
         grbl_send(CLIENT_ALL, "[MSG:WiFi reset done]\r\n");
     }
     bool WiFiConfig::Is_WiFi_on() { return !(WiFi.getMode() == WIFI_MODE_NULL); }
@@ -404,5 +422,7 @@ namespace WebUI {
         COMMANDS::wait(0);
         wifi_services.handle();
     }
+
+    WiFiConfig::~WiFiConfig() { end(); }
 }
 #endif  // ENABLE_WIFI

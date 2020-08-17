@@ -50,13 +50,15 @@ namespace WebUI {
 
     IntSetting* wifi_ap_channel;
 
-    StringSetting*                                 wifi_hostname;
-    EnumSetting*                                   http_enable;
-    IntSetting*                                    http_port;
-    EnumSetting*                                   telnet_enable;
-    IntSetting*                                    telnet_port;
+    StringSetting* wifi_hostname;
+    EnumSetting*   http_enable;
+    IntSetting*    http_port;
+    EnumSetting*   telnet_enable;
+    IntSetting*    telnet_port;
+
     typedef std::map<const char*, int8_t, cmp_str> enum_opt_t;
-    enum_opt_t                                     staModeOptions = {
+
+    enum_opt_t staModeOptions = {
         { "DHCP", DHCP_MODE },
         { "Static", STATIC_MODE },
     };
@@ -160,7 +162,7 @@ namespace WebUI {
     }
 }
 
-err_t WebCommand::action(char* value, WebUI::auth_t auth_level, WebUI::ESPResponseStream* out) {
+err_t WebCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     char empty = '\0';
     if (!value) {
         value = &empty;
@@ -221,7 +223,7 @@ namespace WebUI {
         webPrintln(")");
     }
 
-    static err_t showFwInfo(char* parameter, auth_t auth_level) {  // ESP800
+    static err_t showFwInfo(char* parameter, AuthenticationLevel auth_level) {  // ESP800
         webPrint("FW version:" GRBL_VERSION " (" GRBL_VERSION_BUILD ")"
                  " # FW target:grbl-embedded  # FW HW:");
 #ifdef ENABLE_SD_CARD
@@ -256,14 +258,14 @@ namespace WebUI {
         return STATUS_OK;
     }
 
-    static err_t SPIFFSSize(char* parameter, auth_t auth_level) {  // ESP720
+    static err_t SPIFFSSize(char* parameter, AuthenticationLevel auth_level) {  // ESP720
         webPrint(parameter);
         webPrint("SPIFFS  Total:", ESPResponseStream::formatBytes(SPIFFS.totalBytes()));
         webPrintln(" Used:", ESPResponseStream::formatBytes(SPIFFS.usedBytes()));
         return STATUS_OK;
     }
 
-    static err_t formatSpiffs(char* parameter, auth_t auth_level) {  // ESP710
+    static err_t formatSpiffs(char* parameter, AuthenticationLevel auth_level) {  // ESP710
         if (strcmp(parameter, "FORMAT") != 0) {
             webPrintln("Parameter must be FORMAT");
             return STATUS_INVALID_VALUE;
@@ -274,7 +276,7 @@ namespace WebUI {
         return STATUS_OK;
     }
 
-    static err_t runFile(char* parameter, auth_t auth_level) {  // ESP700
+    static err_t runFile(char* parameter, AuthenticationLevel auth_level) {  // ESP700
         String path = trim(parameter);
         if ((path.length() > 0) && (path[0] != '/')) {
             path = "/" + path;
@@ -309,7 +311,7 @@ namespace WebUI {
     }
 
 #ifdef ENABLE_NOTIFICATIONS
-    static err_t showSetNotification(char* parameter, auth_t auth_level) {  // ESP610
+    static err_t showSetNotification(char* parameter, AuthenticationLevel auth_level) {  // ESP610
         if (*parameter == '\0') {
             webPrint("", notification_type->getStringValue());
             webPrintln(" ", notification_ts->getStringValue());
@@ -335,7 +337,7 @@ namespace WebUI {
         return err;
     }
 
-    static err_t sendMessage(char* parameter, auth_t auth_level) {  // ESP600
+    static err_t sendMessage(char* parameter, AuthenticationLevel auth_level) {  // ESP600
         if (*parameter == '\0') {
             webPrintln("Invalid message!");
             return STATUS_INVALID_VALUE;
@@ -349,7 +351,7 @@ namespace WebUI {
 #endif
 
 #ifdef ENABLE_AUTHENTICATION
-    static err_t setUserPassword(char* parameter, auth_t auth_level) {  // ESP555
+    static err_t setUserPassword(char* parameter, AuthenticationLevel auth_level) {  // ESP555
         if (*parameter == '\0') {
             user_password->setDefault();
             return STATUS_OK;
@@ -362,7 +364,7 @@ namespace WebUI {
     }
 #endif
 
-    static err_t setSystemMode(char* parameter, auth_t auth_level) {  // ESP444
+    static err_t setSystemMode(char* parameter, AuthenticationLevel auth_level) {  // ESP444
         parameter = trim(parameter);
         if (strcasecmp(parameter, "RESTART") != 0) {
             webPrintln("Incorrect command");
@@ -373,7 +375,7 @@ namespace WebUI {
         return STATUS_OK;
     }
 
-    static err_t showSysStats(char* parameter, auth_t auth_level) {  // ESP420
+    static err_t showSysStats(char* parameter, AuthenticationLevel auth_level) {  // ESP420
         webPrintln("Chip ID: ", String((uint16_t)(ESP.getEfuseMac() >> 32)));
         webPrintln("CPU Frequency: ", String(ESP.getCpuFreqMHz()) + "Mhz");
         webPrintln("CPU Temperature: ", String(temperatureRead(), 1) + "C");
@@ -536,7 +538,7 @@ namespace WebUI {
     }
 
 #ifdef ENABLE_WIFI
-    static err_t listAPs(char* parameter, auth_t auth_level) {  // ESP410
+    static err_t listAPs(char* parameter, AuthenticationLevel auth_level) {  // ESP410
         JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
         j->begin();
         j->begin_array("AP_LIST");
@@ -577,7 +579,7 @@ namespace WebUI {
     }
 #endif
 
-    static err_t setWebSetting(char* parameter, auth_t auth_level) {  // ESP401
+    static err_t setWebSetting(char* parameter, AuthenticationLevel auth_level) {  // ESP401
         // We do not need the "T=" (type) parameter because the
         // Setting objects know their own type
         if (!split_params(parameter)) {
@@ -593,7 +595,7 @@ namespace WebUI {
         return ret;
     }
 
-    static err_t listSettings(char* parameter, auth_t auth_level) {  // ESP400
+    static err_t listSettings(char* parameter, AuthenticationLevel auth_level) {  // ESP400
         JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
         j->begin();
         j->begin_array("EEPROM");
@@ -609,7 +611,7 @@ namespace WebUI {
     }
 
 #ifdef ENABLE_SD_CARD
-    static err_t runSDFile(char* parameter, auth_t auth_level) {  // ESP220
+    static err_t runSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP220
         parameter = trim(parameter);
         if (*parameter == '\0') {
             webPrintln("Missing file name!");
@@ -649,7 +651,7 @@ namespace WebUI {
         return STATUS_OK;
     }
 
-    static err_t deleteSDObject(char* parameter, auth_t auth_level) {  // ESP215
+    static err_t deleteSDObject(char* parameter, AuthenticationLevel auth_level) {  // ESP215
         parameter = trim(parameter);
         if (*parameter == '\0') {
             webPrintln("Missing file name!");
@@ -686,7 +688,7 @@ namespace WebUI {
         return STATUS_OK;
     }
 
-    static err_t listSDFiles(char* parameter, auth_t auth_level) {  // ESP210
+    static err_t listSDFiles(char* parameter, AuthenticationLevel auth_level) {  // ESP210
         int8_t state = get_sd_state(true);
         if (state != SDCARD_IDLE) {
             if (state == SDCARD_NOT_PRESENT) {
@@ -708,7 +710,7 @@ namespace WebUI {
     }
 #endif
 
-    static err_t listLocalFiles(char* parameter, auth_t auth_level) {  // No ESP command
+    static err_t listLocalFiles(char* parameter, AuthenticationLevel auth_level) {  // No ESP command
         webPrintln("");
         listDir(SPIFFS, "/", 10, espresponse->client());
         String ssd = "[Local FS Free:" + ESPResponseStream::formatBytes(SPIFFS.totalBytes() - SPIFFS.usedBytes());
@@ -739,7 +741,7 @@ namespace WebUI {
         }
     }
 
-    static err_t listLocalFilesJSON(char* parameter, auth_t auth_level) {  // No ESP command
+    static err_t listLocalFilesJSON(char* parameter, AuthenticationLevel auth_level) {  // No ESP command
         JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
         j->begin();
         j->begin_array("files");
@@ -755,7 +757,7 @@ namespace WebUI {
         return STATUS_OK;
     }
 
-    static err_t showSDStatus(char* parameter, auth_t auth_level) {  // ESP200
+    static err_t showSDStatus(char* parameter, AuthenticationLevel auth_level) {  // ESP200
         const char* resp = "No SD card";
 #ifdef ENABLE_SD_CARD
         switch (get_sd_state(true)) {
@@ -768,7 +770,7 @@ namespace WebUI {
         return STATUS_OK;
     }
 
-    static err_t setRadioState(char* parameter, auth_t auth_level) {  // ESP115
+    static err_t setRadioState(char* parameter, AuthenticationLevel auth_level) {  // ESP115
         parameter = trim(parameter);
         if (*parameter == '\0') {
             // Display the radio state
@@ -838,12 +840,12 @@ namespace WebUI {
     }
 
 #ifdef ENABLE_WIFI
-    static err_t showIP(char* parameter, auth_t auth_level) {  // ESP111
+    static err_t showIP(char* parameter, AuthenticationLevel auth_level) {  // ESP111
         webPrintln(parameter, WiFi.getMode() == WIFI_STA ? WiFi.localIP() : WiFi.softAPIP());
         return STATUS_OK;
     }
 
-    static err_t showSetStaParams(char* parameter, auth_t auth_level) {  // ESP103
+    static err_t showSetStaParams(char* parameter, AuthenticationLevel auth_level) {  // ESP103
         if (*parameter == '\0') {
             webPrint("IP:", wifi_sta_ip->getStringValue());
             webPrint(" GW:", wifi_sta_gateway->getStringValue());
@@ -868,7 +870,7 @@ namespace WebUI {
     }
 #endif
 
-    static err_t showWebHelp(char* parameter, auth_t auth_level) {  // ESP0
+    static err_t showWebHelp(char* parameter, AuthenticationLevel auth_level) {  // ESP0
         webPrintln("Persistent web settings - $name to show, $name=value to set");
         webPrintln("ESPname FullName         Description");
         webPrintln("------- --------         -----------");

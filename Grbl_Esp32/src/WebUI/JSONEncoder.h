@@ -20,10 +20,11 @@ namespace WebUI {
         void   line();
 
     public:
-        // Constructor; set _pretty true for pretty printing
-        JSONencoder(bool pretty);
         // If you don't set _pretty it defaults to false
         JSONencoder();
+
+        // Constructor; set _pretty true for pretty printing
+        JSONencoder(bool pretty);
 
         // begin() starts the encoding process.
         void begin();

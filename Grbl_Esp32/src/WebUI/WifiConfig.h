@@ -25,7 +25,7 @@
 #include <WiFi.h>
 
 namespace WebUI {
-    // TODO FIXME: Clean these constants up. Some of them don't belong here.
+    // TODO: Clean these constants up. Some of them don't belong here.
 
     //Notifications
     static const int ESP_PUSHOVER_NOTIFICATION = 1;
@@ -87,7 +87,7 @@ namespace WebUI {
     class WiFiConfig {
     public:
         WiFiConfig();
-        ~WiFiConfig();
+
         static const char* info();
         static bool        isValidIP(const char* string);
         static bool        isPasswordValid(const char* password);
@@ -106,6 +106,8 @@ namespace WebUI {
         static void        handle();
         static void        reset_settings();
         static bool        Is_WiFi_on();
+
+        ~WiFiConfig();
 
     private:
         static bool   ConnectSTA2AP();

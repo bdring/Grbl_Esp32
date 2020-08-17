@@ -28,10 +28,7 @@ namespace WebUI {
         _RXbufferSize = 0;
         _RXbufferpos  = 0;
     }
-    InputBuffer::~InputBuffer() {
-        _RXbufferSize = 0;
-        _RXbufferpos  = 0;
-    }
+
     void InputBuffer::begin() {
         _RXbufferSize = 0;
         _RXbufferpos  = 0;
@@ -109,5 +106,10 @@ namespace WebUI {
     void InputBuffer::flush(void) {
         //No need currently
         //keep for compatibility
+    }
+
+    InputBuffer::~InputBuffer() {
+        _RXbufferSize = 0;
+        _RXbufferpos  = 0;
     }
 }
