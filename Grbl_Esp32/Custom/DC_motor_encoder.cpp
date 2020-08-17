@@ -291,7 +291,7 @@ void print_calibration(){
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, steps_x);
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "between two limit switches at X axis");
 	
-	// 2nd X axis
+	// 2nd Y axis
 	digitalWrite(Y_DIRECTION_PIN,LOW);
 	while(digitalRead(Y_two_LIMIT_PIN)==LOW){ 
 		digitalWrite(Y_STEP_PIN,HIGH);  
@@ -322,13 +322,13 @@ void print_calibration(){
 	while(digitalRead(Z_HOMED_PIN)==HIGH){
 		delay_betwen_steps_z++;
 		if (delay_betwen_steps_z>delay_betwen_steps_treshold){
-			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with Y axis");
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with Z axis");
 			break(2);
 			}
 		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
 	}
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is");
-	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, steps_y);
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, steps_z);
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "between two limit switches at Z axis");
 	
 	//Retract Z axis to avoid colision with table
@@ -342,24 +342,24 @@ void print_calibration(){
 	
 
 	//4th A axis
-	digitalWrite(Z_DIRECTION_PIN,LOW);
-	while(digitalRead(Z_two_LIMIT_PIN)==LOW){ 
-		digitalWrite(Z_STEP_PIN,HIGH);  
-		 delay(delay_betwen_steps_z);
-		digitalWrite(Z_STEP_PIN,LOW);  
-		 delay(delay_betwen_steps_z);
-		steps_z++;
+	digitalWrite(A_DIRECTION_PIN,LOW);
+	while(digitalRead(A_two_LIMIT_PIN)==LOW){ 
+		digitalWrite(A_STEP_PIN,HIGH);  
+		 delay(delay_betwen_steps_a);
+		digitalWrite(A_STEP_PIN,LOW);  
+		 delay(delay_betwen_steps_a);
+		steps_a++;
 	while(digitalRead(Z_HOMED_PIN)==HIGH){
-		delay_betwen_steps_z++;
-		if (delay_betwen_steps_z>delay_betwen_steps_treshold){
-			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with Y axis");
+		delay_betwen_steps_a++;
+		if (delay_betwen_steps_a>delay_betwen_steps_treshold){
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with A axis");
 			break(2);
 			}
 		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
 	}
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is");
-	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, steps_y);
-	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "between two limit switches at Z axis");
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, steps_a);
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "between two limit switches at A axis");
 	
 	
 	
