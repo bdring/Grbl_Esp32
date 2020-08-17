@@ -193,18 +193,83 @@ If during calibration I've get keepin up from homing pin, stop designed axis and
 
 void print_calibration(){
 { 
-	unsigned int delay_betwen_steps_x = 1; //Variable used to count max feedrate
-	unsigned int delay_betwen_steps_y = 1; //is rised everytime *_HOMED_PIN is rising by 1
-	unsigned int delay_betwen_steps_z = 1; //i still need to find formula for feedrate from this xD
-	unsigned int delay_betwen_steps_a = 1;
+	unsinged int delay_betwen_steps_x = 1; //Variable used to count max feedrate
+	unsinged int delay_betwen_steps_y = 1; //is rised everytime *_HOMED_PIN is rising by 1
+	unsinged int delay_betwen_steps_z = 1; //i still need to find formula for feedrate from this xD
+	unsinged int delay_betwen_steps_a = 1; //using while loops is scarry here becouse of watchdog, or not??
+	unsinged int delay_betwen_steps_treshold = 1000; //max delay when You can see that there is engine blocked. 
 	
  grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Calibration!");
-	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rising Z axis");
-	while(digitalRead(
 	
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rising Z axis"); 
+	digitalWrite(Z_DIRECTION_PIN,HIGH);      
+	while(digitalRead(Z_LIMIT_PIN)==LOW){ 
+		digitalWrite(Z_DIRECTION_PIN,HIGH);  
+		 delay(delay_betwen_steps_z);
+		digitalWrite(Z_DIRECTION_PIN,LOW);  
+		 delay(delay_betwen_steps_z);
+	while(digitalRead(Z_HOMED_PIN)==HIGH){
+		delay_betwen_steps_z++;
+		if (delay_betwen_steps_z>delay_betwen_steps_treshold){
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with Z axis");
+			break(2);
+			}
+		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
+	}	
+			
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Moving X axis");
+	digitalWrite(X_DIRECTION_PIN,HIGH);      
+	while(digitalRead(X_LIMIT_PIN)==LOW){ 
+		digitalWrite(X_DIRECTION_PIN,HIGH);  
+		 delay(delay_betwen_steps_x);
+		digitalWrite(X_DIRECTION_PIN,LOW);  
+		 delay(delay_betwen_steps_x);
+	while(digitalRead(X_HOMED_PIN)==HIGH){
+		delay_betwen_steps_x++;
+		if (delay_betwen_steps_x>delay_betwen_steps_treshold){
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with X axis");
+			break(2);
+			}
+		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
+	}
+	
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Moving Y axis");
-	//grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Moving A axis");
+	digitalWrite(Y_DIRECTION_PIN,HIGH);      
+	while(digitalRead(Y_LIMIT_PIN)==LOW){ 
+		digitalWrite(Y_DIRECTION_PIN,HIGH);  
+		 delay(delay_betwen_steps_y);
+		digitalWrite(X_DIRECTION_PIN,LOW);  
+		 delay(delay_betwen_steps_y);
+	while(digitalRead(X_HOMED_PIN)==HIGH){
+		delay_betwen_steps_y++;
+		if (delay_betwen_steps_y>delay_betwen_steps_treshold){
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with Y axis");
+			break(2);
+			}
+		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
+	}
+	
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Moving A axis");
+		digitalWrite(A_DIRECTION_PIN,HIGH);      
+	while(digitalRead(A_LIMIT_PIN)==LOW){ 
+		digitalWrite(A_DIRECTION_PIN,HIGH);  
+		 delay(delay_betwen_steps_a);
+		digitalWrite(A_DIRECTION_PIN,LOW);  
+		 delay(delay_betwen_steps_a);
+	while(digitalRead(A_HOMED_PIN)==HIGH){
+		delay_betwen_steps_a++;
+		if (delay_betwen_steps_a>delay_betwen_steps_treshold){
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with A axis");
+			break(2);
+			}
+		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
+	}
+	
+	unsinged long steps_x=0;
+	unsinged long steps_y=0;
+	unsinged long steps_z=0;
+	unsinged long steps_a=0;
+	
 	
 }
 #endif
