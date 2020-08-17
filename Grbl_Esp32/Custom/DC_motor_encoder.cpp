@@ -3,6 +3,7 @@
 	Normal Flat CNC working with steper motor driver.
 	I want Homing positions in 4 courners for 4 part mashining. 
 	My stepper drivers got "I can't keep up" signalisation. 
+	Name "Homed" pins can be not suitable for that purpouse but still. 
 
 	Part of Grbl_ESP32
 	copyright (c) 2020 -	Bart Dring. This file was intended for use on the ESP32
@@ -204,9 +205,9 @@ void print_calibration(){
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rising Z axis"); 
 	digitalWrite(Z_DIRECTION_PIN,HIGH);      
 	while(digitalRead(Z_LIMIT_PIN)==LOW){ 
-		digitalWrite(Z_DIRECTION_PIN,HIGH);  
+		digitalWrite(Z_STEP_PIN,HIGH);  
 		 delay(delay_betwen_steps_z);
-		digitalWrite(Z_DIRECTION_PIN,LOW);  
+		digitalWrite(Z_STEP_PIN,LOW);  
 		 delay(delay_betwen_steps_z);
 	while(digitalRead(Z_HOMED_PIN)==HIGH){
 		delay_betwen_steps_z++;
@@ -215,14 +216,14 @@ void print_calibration(){
 			break(2);
 			}
 		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
-	}	
-			
+	}
+				
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Moving X axis");
 	digitalWrite(X_DIRECTION_PIN,HIGH);      
 	while(digitalRead(X_LIMIT_PIN)==LOW){ 
-		digitalWrite(X_DIRECTION_PIN,HIGH);  
+		digitalWrite(X_STEP_PIN,HIGH);  
 		 delay(delay_betwen_steps_x);
-		digitalWrite(X_DIRECTION_PIN,LOW);  
+		digitalWrite(X_STEP_PIN,LOW);  
 		 delay(delay_betwen_steps_x);
 	while(digitalRead(X_HOMED_PIN)==HIGH){
 		delay_betwen_steps_x++;
@@ -236,9 +237,9 @@ void print_calibration(){
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Moving Y axis");
 	digitalWrite(Y_DIRECTION_PIN,HIGH);      
 	while(digitalRead(Y_LIMIT_PIN)==LOW){ 
-		digitalWrite(Y_DIRECTION_PIN,HIGH);  
+		digitalWrite(Y_STEP_PIN,HIGH);  
 		 delay(delay_betwen_steps_y);
-		digitalWrite(X_DIRECTION_PIN,LOW);  
+		digitalWrite(X_STEP_PIN,LOW);  
 		 delay(delay_betwen_steps_y);
 	while(digitalRead(X_HOMED_PIN)==HIGH){
 		delay_betwen_steps_y++;
@@ -252,9 +253,9 @@ void print_calibration(){
 	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Moving A axis");
 		digitalWrite(A_DIRECTION_PIN,HIGH);      
 	while(digitalRead(A_LIMIT_PIN)==LOW){ 
-		digitalWrite(A_DIRECTION_PIN,HIGH);  
+		digitalWrite(A_STEP_PIN,HIGH);  
 		 delay(delay_betwen_steps_a);
-		digitalWrite(A_DIRECTION_PIN,LOW);  
+		digitalWrite(A_STEP_PIN,LOW);  
 		 delay(delay_betwen_steps_a);
 	while(digitalRead(A_HOMED_PIN)==HIGH){
 		delay_betwen_steps_a++;
@@ -269,6 +270,97 @@ void print_calibration(){
 	unsinged long steps_y=0;
 	unsinged long steps_z=0;
 	unsinged long steps_a=0;
+	
+	// 1st X axis
+	digitalWrite(X_DIRECTION_PIN,LOW);
+	while(digitalRead(X_two_LIMIT_PIN)==LOW){ 
+		digitalWrite(X_STEP_PIN,HIGH);  
+		 delay(delay_betwen_steps_x);
+		digitalWrite(X_STEP_PIN,LOW);  
+		 delay(delay_betwen_steps_x);
+		steps_x++;
+	while(digitalRead(X_HOMED_PIN)==HIGH){
+		delay_betwen_steps_x++;
+		if (delay_betwen_steps_x>delay_betwen_steps_treshold){
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with X axis");
+			break(2);
+			}
+		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
+	}
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is");
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, steps_x);
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "between two limit switches at X axis");
+	
+	// 2nd X axis
+	digitalWrite(Y_DIRECTION_PIN,LOW);
+	while(digitalRead(Y_two_LIMIT_PIN)==LOW){ 
+		digitalWrite(Y_STEP_PIN,HIGH);  
+		 delay(delay_betwen_steps_y);
+		digitalWrite(Y_STEP_PIN,LOW);  
+		 delay(delay_betwen_steps_y);
+		steps_y++;
+	while(digitalRead(Y_HOMED_PIN)==HIGH){
+		delay_betwen_steps_y++;
+		if (delay_betwen_steps_x>delay_betwen_steps_treshold){
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with Y axis");
+			break(2);
+			}
+		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
+	}
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is");
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, steps_y);
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "between two limit switches at Y axis");
+	
+	// 3rd Z axis
+	digitalWrite(Z_DIRECTION_PIN,LOW);
+	while(digitalRead(Z_two_LIMIT_PIN)==LOW){ 
+		digitalWrite(Z_STEP_PIN,HIGH);  
+		 delay(delay_betwen_steps_z);
+		digitalWrite(Z_STEP_PIN,LOW);  
+		 delay(delay_betwen_steps_z);
+		steps_z++;
+	while(digitalRead(Z_HOMED_PIN)==HIGH){
+		delay_betwen_steps_z++;
+		if (delay_betwen_steps_z>delay_betwen_steps_treshold){
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with Y axis");
+			break(2);
+			}
+		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
+	}
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is");
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, steps_y);
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "between two limit switches at Z axis");
+	
+	//Retract Z axis to avoid colision with table
+	digitalWrite(Z_DIRECTION_PIN,HIGH);
+	for(int i =0; i<steps_z;i++){
+		digitalWrite(Z_STEP_PIN,HIGH);  
+		 delay(delay_betwen_steps_z);
+		digitalWrite(Z_STEP_PIN,LOW);  
+		 delay(delay_betwen_steps_z);
+	}
+	
+
+	//4th A axis
+	digitalWrite(Z_DIRECTION_PIN,LOW);
+	while(digitalRead(Z_two_LIMIT_PIN)==LOW){ 
+		digitalWrite(Z_STEP_PIN,HIGH);  
+		 delay(delay_betwen_steps_z);
+		digitalWrite(Z_STEP_PIN,LOW);  
+		 delay(delay_betwen_steps_z);
+		steps_z++;
+	while(digitalRead(Z_HOMED_PIN)==HIGH){
+		delay_betwen_steps_z++;
+		if (delay_betwen_steps_z>delay_betwen_steps_treshold){
+			grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is problem with Y axis");
+			break(2);
+			}
+		} //if there is no keeping up problem, this loop will be skiped, and max feedrate will be given.
+	}
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "There is");
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, steps_y);
+	grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "between two limit switches at Z axis");
+	
 	
 	
 }
