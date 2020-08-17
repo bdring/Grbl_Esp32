@@ -3,6 +3,8 @@
     Part of Grbl_ESP32
     
     Pin assignments for a 4 axis flat cnc
+    https://easyeda.com/polaski/esp32-cnc-shield_copy
+    
     
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
