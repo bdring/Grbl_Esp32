@@ -36,8 +36,8 @@ enabled with USE_ defines in Machines/my_machine.h
 machine_init() is called when Grbl_ESP32 first starts. You can use it to do any
 special things your machine needs at startup.
 
-Setup the pins
-
+1.Setup the pins
+2.Do nothing more
 */
 void machine_init()
 {
@@ -74,10 +74,81 @@ pinMode(COOLANT_MIST_PIN,OUTPUT);
 pinMode(COOLANT_FLOOD_PIN,OUTPUT);  
 pinMode(PROBE_PIN,INPUT_PULLUP);  
 
+}
+#endif
 
+
+#ifdef USE_MOTOR_TEST
+/*DCServo got 2400PPR encoder (600 positions) so 2400 pulses will rotate it by 360*
+1. Run motor X for 2400 steps back and fwd
+2. Run motor Y for 2400 steps back and fwd
+3. Run motor Z for 2400 steps back and fwd
+4. Run motor A for 2400 steps back and fwd
+*/
+void motor_test(){
+	pinMode(X_DIRECTION_PIN,HIGH);
+	for(int i=0;i<2400;i++){
+		pinMode(X_STEP_PIN,HIGH);
+		delay(10);
+		pinMode(X_STEP_PIN,LOW);
+		delay(10);
+	}
+	pinMode(X_DIRECTION_PIN,LOW);
+	for(int i=0;i<2400;i++){
+		pinMode(X_STEP_PIN,HIGH);
+		delay(10);
+		pinMode(X_STEP_PIN,LOW);
+		delay(10);
+	}
+	
+	pinMode(Y_DIRECTION_PIN,HIGH);
+	for(int i=0;i<2400;i++){
+		pinMode(Y_STEP_PIN,HIGH);
+		delay(10);
+		pinMode(Y_STEP_PIN,LOW);
+		delay(10);
+	}
+	pinMode(Y_DIRECTION_PIN,LOW);
+	for(int i=0;i<2400;i++){
+		pinMode(Y_STEP_PIN,HIGH);
+		delay(10);
+		pinMode(Y_STEP_PIN,LOW);
+		delay(10);
+	}
+	
+	pinMode(Z_DIRECTION_PIN,HIGH);
+	for(int i=0;i<2400;i++){
+		pinMode(Z_STEP_PIN,HIGH);
+		delay(10);
+		pinMode(Z_STEP_PIN,LOW);
+		delay(10);
+	}
+	pinMode(Z_DIRECTION_PIN,LOW);
+	for(int i=0;i<2400;i++){
+		pinMode(Z_STEP_PIN,HIGH);
+		delay(10);
+		pinMode(Z_STEP_PIN,LOW);
+		delay(10);
+	}
+	
+	pinMode(A_DIRECTION_PIN,HIGH);
+	for(int i=0;i<2400;i++){
+		pinMode(A_STEP_PIN,HIGH);
+		delay(10);
+		pinMode(A_STEP_PIN,LOW);
+		delay(10);
+	}
+	pinMode(A_DIRECTION_PIN,LOW);
+	for(int i=0;i<2400;i++){
+		pinMode(A_STEP_PIN,HIGH);
+		delay(10);
+		pinMode(A_STEP_PIN,LOW);
+		delay(10);
+	}
 
 }
 #endif
+	
 
 #ifdef USE_CUSTOM_HOMING
 /*
@@ -186,6 +257,8 @@ void machine_trinamic_setup()
 {
 }
 #endif
+
+#ifdef USE_MOTOR_TEST
 
 // If you add any additional functions specific to your machine that
 // require calls from common code, guard their calls in the common code with
