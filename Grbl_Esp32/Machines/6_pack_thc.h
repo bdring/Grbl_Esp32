@@ -21,7 +21,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 	This 6-Pack Torch Height Control Custom File Was Created By: William Curry
 */
-#define MACHINE_NAME            "6 Pack Controller with Plasma Torch Height Control"
+#define MACHINE_NAME "6 Pack Controller with Plasma Torch Height Control"
 #define CUSTOM_CODE_FILENAME "Custom/torchHeightControl.cpp"//define the torch height control custom code file
 // tells grbl we have some special functions to call
 #define USE_MACHINE_INIT
@@ -33,19 +33,19 @@
 #ifndef ENABLE_SD_CARD
     #define ENABLE_SD_CARD
 #endif
-///Additional THC Setting, these can be displayed in G Code Sender by Typing $S or $+ to show numbers like shown below
+/// THC Settings, these can be displayed in G Code Sender by Typing $S to show strings or $+ to show numbers like shown below
 #define SHOW_EXTENDED_SETTINGS
-#define DEFAULT_THC_DEBUG 1 //$300=1// Boolean //If true this will print torch height debug information out
+#define DEFAULT_THC_DEBUG 0 //$300=1// Boolean //If true this will print torch height debug information out
 #define DEFAULT_THC_DEBUG_PRINT_MILLIS 5000 //$301=1000//milliseconds // debug print time in milliseconds
-#define DEFAULT_THC_TARGET_VOLTAGE 0 //$302=0// Volts // default target voltage (a real value would be 100 volts)
-#define DEFAULT_THC_ARC_DELAY_TIME 500 //$303=750//milliseconds // Time for Arc to Start before running THC
+#define DEFAULT_THC_TARGET_VOLTAGE 0 //$302=0// Volts // default target voltage (a real value would be 100 volts) this must be greater than 30 volts for THC to run
+#define DEFAULT_THC_ARC_DELAY_TIME 750 //$303=750//milliseconds // Time for Arc to Start before running THC
 #define DEFAULT_THC_VOLTAGE_FILTER_VALUE 0.98 //$304=0.98//ND// Torch Voltage Filter Time Constant
 #define DEFAULT_THC_ITER_FREQ 5 //$305=5//milliseconds// Torch Height Control Time Between Calls, this will directly effect ...
-// ... the rate at which the Z axis moves, the machine must be restarted after changing this for it to take effect
+// ... the rate at which the Z axis moves. A higher muber means the Z axis will move slower since THC is called less often
 
 // === Special Features
 
-// I2S (steppers & other output-only pins)
+/// I2S (steppers & other output-only pins)
 #define USE_I2S_OUT
 // Define USE_I2S_OUT_STREAM if buffering is used.
 // (there will be a delay between the specified I/O operation and the actual I/O execution)
@@ -53,15 +53,15 @@
 #undef USE_RMT_STEPS
 #define STEP_PULSE_DELAY 10 //Mircoseconds to delay between setting direction pin and setting step pin high
 //#define USE_STEPSTICK   //Bill comment makes sure MS1,2,3 !reset and !sleep are set
-#ifdef ENABLE_WIFI
+/* #ifdef ENABLE_WIFI
  #undef ENABLE_WIFI ///Turn off wifi since this blocks the ADC Channel 2 Pins from Reading in Voltage Which is needed for THC
-#endif
+#endif */
 
 #define I2S_OUT_BCK      GPIO_NUM_22
 #define I2S_OUT_WS       GPIO_NUM_17
 #define I2S_OUT_DATA     GPIO_NUM_21
 
-///Axis Data 
+/// Axis Data 
 #define USE_GANGED_AXES // allow two motors on an axis
 
 #define STEPPER_Z_MS3           I2SO(3)   // Z_CS
@@ -77,7 +77,7 @@
 #define Z_STEP_PIN              I2SO(2)
 
 //Y Is a Ganged Motor
-//#define Y_AXIS_SQUARING
+#define Y_AXIS_SQUARING
 //Terminal 2
 #define Y_DIRECTION_PIN         I2SO(4)
 #define Y_STEP_PIN              I2SO(5)
@@ -101,7 +101,8 @@
 #define C_STEP_PIN              I2SO(21)
 #define C_DISABLE_PIN           I2SO(23)
 */
-///CNC Socket # 1 Opto Isolated
+/// CNC Modules
+//CNC Module # 1 Opto Isolated
 #define X_LIMIT_PIN             GPIO_NUM_33
 #define Y_LIMIT_PIN             GPIO_NUM_32
 #define Z_LIMIT_PIN             GPIO_NUM_35
@@ -110,20 +111,23 @@
 //#define B_LIMIT_PIN             GPIO_NUM_39
 //#define C_LIMIT_PIN             GPIO_NUM_36
 
-///CNC Socket #2 THC Voltage
+///CNC Module #2 THC Voltage
 #define THC_VOLTAGE_PIN         GPIO_NUM_36
 ///Resistance Values needed to determine arc voltage i.e. Vout = (Vs*R2)/(R1+R2)
 #define VOLTAGE_DIVIDER_R1      470 ///470K Ohms
 #define VOLTAGE_DIVIDER_R2      7.6 ///7.6K Ohms
 
 
-///CNC Socket # 3 Spindle Relay
+///CNC Module # 3 Spindle Relay
 #define SPINDLE_TYPE            SPINDLE_TYPE_RELAY
 #define SPINDLE_OUTPUT_PIN       GPIO_NUM_26
-
-///CNC Socket # 4 Plasma Torch Relay  AKA Coolant Flood Pin 
+//#define COOLANT_MIST_PIN       GPIO_NUM_26
+///CNC Module # 4 Plasma Torch Relay  AKA Coolant Flood Pin 
 #define COOLANT_FLOOD_PIN       GPIO_NUM_14
 
+///CNC Module # 5 Empty
+
+///Torch Height Control Custom Functions
 void THCSyncTask(void* pvParameters); //Task called for Torch height controlled thats defined in torchHeightControl.cpp
 void THCVoltageTask(void* pvParameters); //Task called for Torch height controlled thats defined in torchHeightControl.cpp
 // === Default settings
