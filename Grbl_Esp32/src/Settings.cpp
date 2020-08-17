@@ -617,9 +617,9 @@ void IPaddrSetting::addWebui(WebUI::JSONencoder* j) {
 
 AxisSettings::AxisSettings(const char* axisName) : name(axisName) {}
 
-err_t GrblCommand::action(char* value, WebUI::AuthenticationLevel AuthenticationLevelype, WebUI::ESPResponseStream* out) {
+err_t GrblCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (sys.state & _disallowedStates) {
         return STATUS_IDLE_ERROR;
     }
-    return _action((const char*)value, AuthenticationLevelype, out);
+    return _action((const char*)value, auth_level, out);
 };
