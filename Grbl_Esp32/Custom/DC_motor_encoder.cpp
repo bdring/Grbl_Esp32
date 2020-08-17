@@ -1,5 +1,9 @@
 /*
-	custom_code_template.cpp (copy and use your machine name)
+	DCServo.cpp 
+	Normal Flat CNC working with steper motor driver.
+	I want Homing positions in 4 courners for 4 part mashining. 
+	My stepper drivers got "I can't keep up" signalisation. 
+
 	Part of Grbl_ESP32
 	copyright (c) 2020 -	Bart Dring. This file was intended for use on the ESP32
   ...add your date and name here.
@@ -84,6 +88,8 @@ pinMode(PROBE_PIN,INPUT_PULLUP);
 2. Run motor Y for 2400 steps back and fwd
 3. Run motor Z for 2400 steps back and fwd
 4. Run motor A for 2400 steps back and fwd
+
+In case it hits a wall or somth just break procedure. 
 */
 void motor_test(){
 	pinMode(X_DIRECTION_PIN,HIGH);
@@ -157,6 +163,11 @@ void motor_test(){
   homing is skipped if it returns false, other normal homing continues.  For
   example, if you need to manually prep the machine for homing, you could implement
   user_defined_homing() to wait for some button to be pressed, then return true.
+  
+  1. Move slowly to the corner untill hit proximity sensor
+  1st move Z axis UP than both X and Y axis to corner.
+  2. When all axis stand on proximity sensors move them out untill it get out of range. Let me know if there is better method (I'm green dabudi dabu da di dabu dii dabu day dabudidabudaj) 
+
 */
 bool user_defined_homing()
 {
