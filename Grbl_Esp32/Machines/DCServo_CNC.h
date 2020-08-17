@@ -29,7 +29,7 @@
 #define A_STEP_PIN              GPIO_NUM_2
 #define A_DIRECTION_PIN         GPIO_NUM_15
 
-#define X_HOMED_PIN             GPIO_NUM_23
+#define X_HOMED_PIN             GPIO_NUM_23 //This pins are used as "I can't keep up" message from DCServo addon
 #define Y_HOMED_PIN             GPIO_NUM_22
 #define Z_HOMED_PIN             GPIO_NUM_1
 #define A_HOMED_PIN             GPIO_NUM_21
