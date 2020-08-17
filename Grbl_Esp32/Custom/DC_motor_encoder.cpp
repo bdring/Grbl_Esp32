@@ -187,7 +187,7 @@ bool user_defined_homing()
 3. Rotate A axis
 3. Compute max feedrate of every axis. 
 
-If during calibration I've get keepin up from homing pin, stop designed axis and then retract by few steps and try again. 
+#TO_DO If during calibration I've get keepin up from homing pin, stop designed axis and then retract by few steps and try again. 
 
   */
 
