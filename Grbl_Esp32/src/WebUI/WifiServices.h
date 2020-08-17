@@ -20,13 +20,15 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-class WiFiServices {
-public:
-    WiFiServices();
-    ~WiFiServices();
-    static bool begin();
-    static void end();
-    static void handle();
-};
+namespace WebUI {
+    class WiFiServices {
+    public:
+        WiFiServices();
+        ~WiFiServices();
+        static bool begin();
+        static void end();
+        static void handle();
+    };
 
-extern WiFiServices wifi_services;
+    extern WiFiServices wifi_services;
+}

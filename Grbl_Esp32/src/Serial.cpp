@@ -61,7 +61,7 @@ portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 
 static TaskHandle_t serialCheckTaskHandle = 0;
 
-InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each client
+WebUI::InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each client
 
 // Returns the number of bytes available in a client buffer.
 uint8_t serial_get_rx_buffer_available(uint8_t client) {
@@ -88,6 +88,8 @@ void serial_init() {
 // this task runs and checks for data on all interfaces
 // REaltime stuff is acted upon, then characters are added to the appropriate buffer
 void serialCheckTask(void* pvParameters) {
+    using namespace WebUI;
+
     uint8_t data   = 0;
     uint8_t client = CLIENT_ALL;  // who sent the data
     while (true) {                // run continuously
@@ -178,6 +180,8 @@ uint8_t serial_read(uint8_t client) {
 }
 
 bool any_client_has_data() {
+    using namespace WebUI;
+
     return (Serial.available() || inputBuffer.available()
 #ifdef ENABLE_BLUETOOTH
             || (SerialBT.hasClient() && SerialBT.available())

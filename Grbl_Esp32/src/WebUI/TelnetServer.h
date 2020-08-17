@@ -20,45 +20,48 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-//how many clients should be able to telnet to this ESP32
-#define MAX_TLNT_CLIENTS 1
-
 #include "../Config.h"
+
 class WiFiServer;
 class WiFiClient;
 
-#define TELNETRXBUFFERSIZE 1200
-#define FLUSHTIMEOUT 500
+namespace WebUI {
+    class Telnet_Server {
+        //how many clients should be able to telnet to this ESP32
+        static const int MAX_TLNT_CLIENTS = 1;
 
-class Telnet_Server {
-public:
-    Telnet_Server();
-    ~Telnet_Server();
-    bool            begin();
-    void            end();
-    void            handle();
-    size_t          write(const uint8_t* buffer, size_t size);
-    int             read(void);
-    int             peek(void);
-    int             available();
-    int             get_rx_buffer_available();
-    bool            push(uint8_t data);
-    bool            push(const uint8_t* data, int datasize);
-    static uint16_t port() { return _port; }
+        static const int TELNETRXBUFFERSIZE = 1200;
+        static const int FLUSHTIMEOUT       = 500;
 
-private:
-    static bool        _setupdone;
-    static WiFiServer* _telnetserver;
-    static WiFiClient  _telnetClients[MAX_TLNT_CLIENTS];
+    public:
+        Telnet_Server();
+        ~Telnet_Server();
+        bool            begin();
+        void            end();
+        void            handle();
+        size_t          write(const uint8_t* buffer, size_t size);
+        int             read(void);
+        int             peek(void);
+        int             available();
+        int             get_rx_buffer_available();
+        bool            push(uint8_t data);
+        bool            push(const uint8_t* data, int datasize);
+        static uint16_t port() { return _port; }
+
+    private:
+        static bool        _setupdone;
+        static WiFiServer* _telnetserver;
+        static WiFiClient  _telnetClients[MAX_TLNT_CLIENTS];
 #ifdef ENABLE_TELNET_WELCOME_MSG
-    static IPAddress _telnetClientsIP[MAX_TLNT_CLIENTS];
+        static IPAddress _telnetClientsIP[MAX_TLNT_CLIENTS];
 #endif
-    static uint16_t _port;
-    void            clearClients();
-    uint32_t        _lastflush;
-    uint8_t         _RXbuffer[TELNETRXBUFFERSIZE];
-    uint16_t        _RXbufferSize;
-    uint16_t        _RXbufferpos;
-};
+        static uint16_t _port;
+        void            clearClients();
+        uint32_t        _lastflush;
+        uint8_t         _RXbuffer[TELNETRXBUFFERSIZE];
+        uint16_t        _RXbufferSize;
+        uint16_t        _RXbufferpos;
+    };
 
-extern Telnet_Server telnet_server;
+    extern Telnet_Server telnet_server;
+}

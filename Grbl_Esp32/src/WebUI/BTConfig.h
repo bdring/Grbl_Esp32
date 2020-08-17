@@ -26,34 +26,33 @@
 //defaults values
 #define DEFAULT_BT_NAME "btgrblesp"
 
-//boundaries
-#define MAX_BTNAME_LENGTH 32
-#define MIN_BTNAME_LENGTH 1
-
-#define BT_EVENT_DISCONNECTED 0
-#define BT_EVENT_CONNECTED 1
-
 #include <BluetoothSerial.h>
-extern BluetoothSerial SerialBT;
 
-class BTConfig {
-public:
-    BTConfig();
-    ~BTConfig();
-    static const char* info();
-    static void        BTEvent(uint8_t event);
-    static bool        isBTnameValid(const char* hostname);
-    static String      BTname() { return _btname; }
-    static const char* device_address();
-    static void        begin();
-    static void        end();
-    static void        handle();
-    static void        reset_settings();
-    static bool        Is_BT_on();
-    static String      _btclient;
+namespace WebUI {
+    extern BluetoothSerial SerialBT;
 
-private:
-    static String _btname;
-};
+    class BTConfig {
+        //boundaries
+    public:
+        static const int MAX_BTNAME_LENGTH = 32;
+        static const int MIN_BTNAME_LENGTH = 1;
 
-extern BTConfig bt_config;
+        BTConfig();
+        static const char* info();
+        static bool        isBTnameValid(const char* hostname);
+        static String      BTname() { return _btname; }
+        static const char* device_address();
+        static void        begin();
+        static void        end();
+        static void        handle();
+        static void        reset_settings();
+        static bool        Is_BT_on();
+        static String      _btclient;
+        ~BTConfig();
+
+    private:
+        static String _btname;
+    };
+
+    extern BTConfig bt_config;
+}

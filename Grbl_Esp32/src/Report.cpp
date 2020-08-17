@@ -54,6 +54,8 @@ EspClass esp;
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char* text) {
+    using namespace WebUI;
+
     if (client == CLIENT_INPUT)
         return;
 #ifdef ENABLE_BLUETOOTH
@@ -126,7 +128,7 @@ void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
 //function to notify
 void grbl_notify(const char* title, const char* msg) {
 #ifdef ENABLE_NOTIFICATIONS
-    notificationsservice.sendMSG(title, msg);
+    WebUI::notificationsservice.sendMSG(title, msg);
 #endif
 }
 
@@ -467,10 +469,10 @@ void report_build_info(char* line, uint8_t client) {
     grbl_send(client, build_info);  // ok to send to all
     report_machine_type(client);
 #if defined(ENABLE_WIFI)
-    grbl_send(client, (char*)wifi_config.info());
+    grbl_send(client, (char*)WebUI::wifi_config.info());
 #endif
 #if defined(ENABLE_BLUETOOTH)
-    grbl_send(client, (char*)bt_config.info());
+    grbl_send(client, (char*)WebUI::bt_config.info());
 #endif
 }
 
@@ -557,12 +559,12 @@ void report_realtime_status(uint8_t client) {
         int bufsize = DEFAULTBUFFERSIZE;
 #    if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
         if (client == CLIENT_TELNET)
-            bufsize = telnet_server.get_rx_buffer_available();
+            bufsize = WebUI::telnet_server.get_rx_buffer_available();
 #    endif  //ENABLE_WIFI && ENABLE_TELNET
 #    if defined(ENABLE_BLUETOOTH)
         if (client == CLIENT_BT) {
             //TODO FIXME
-            bufsize = 512 - SerialBT.available();
+            bufsize = 512 - WebUI::SerialBT.available();
         }
 #    endif  //ENABLE_BLUETOOTH
         if (client == CLIENT_SERIAL)

@@ -122,7 +122,7 @@ const char* IntSetting::getStringValue() {
     return strval;
 }
 
-void IntSetting::addWebui(JSONencoder* j) {
+void IntSetting::addWebui(WebUI::JSONencoder* j) {
     if (getDescription()) {
         j->begin_webui(getName(), getDescription(), "I", getStringValue(), _minValue, _maxValue);
         j->end_object();
@@ -213,7 +213,7 @@ const char* AxisMaskSetting::getStringValue() {
     return strval;
 }
 
-void AxisMaskSetting::addWebui(JSONencoder* j) {
+void AxisMaskSetting::addWebui(WebUI::JSONencoder* j) {
     if (getDescription()) {
         j->begin_webui(getName(), getDescription(), "I", getStringValue(), 0, (1 << MAX_N_AXIS) - 1);
         j->end_object();
@@ -368,6 +368,8 @@ err_t StringSetting::setStringValue(char* s) {
 }
 
 const char* StringSetting::getStringValue() {
+    using namespace WebUI;
+
     // If the string is a password do not display it
     if (_checker && (
 #ifdef ENABLE_WIFI
@@ -379,7 +381,7 @@ const char* StringSetting::getStringValue() {
     return _currentValue.c_str();
 }
 
-void StringSetting::addWebui(JSONencoder* j) {
+void StringSetting::addWebui(WebUI::JSONencoder* j) {
     if (!getDescription()) {
         return;
     }
@@ -465,7 +467,7 @@ const char* EnumSetting::getStringValue() {
     return "???";
 }
 
-void EnumSetting::addWebui(JSONencoder* j) {
+void EnumSetting::addWebui(WebUI::JSONencoder* j) {
     if (!getDescription()) {
         return;
     }
@@ -608,7 +610,7 @@ const char* IPaddrSetting::getStringValue() {
     return s.c_str();
 }
 
-void IPaddrSetting::addWebui(JSONencoder* j) {
+void IPaddrSetting::addWebui(WebUI::JSONencoder* j) {
     if (getDescription()) {
         j->begin_webui(getName(), getDescription(), "A", getStringValue());
         j->end_object();
@@ -617,7 +619,7 @@ void IPaddrSetting::addWebui(JSONencoder* j) {
 
 AxisSettings::AxisSettings(const char* axisName) : name(axisName) {}
 
-err_t GrblCommand::action(char* value, auth_t auth_type, ESPResponseStream* out) {
+err_t GrblCommand::action(char* value, WebUI::auth_t auth_type, WebUI::ESPResponseStream* out) {
     if (sys.state & _disallowedStates) {
         return STATUS_IDLE_ERROR;
     }
