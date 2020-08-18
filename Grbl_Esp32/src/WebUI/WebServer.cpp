@@ -280,11 +280,11 @@ namespace WebUI {
         if ((path.substring(0, 4) == "/SD/")) {
             //remove /SD
             path = path.substring(3);
-            if (SD.exists((char*)pathWithGz.c_str()) || SD.exists((char*)path.c_str())) {
-                if (SD.exists((char*)pathWithGz.c_str())) {
+            if (SD.exists(pathWithGz) || SD.exists(path)) {
+                if (SD.exists(pathWithGz)) {
                     path = pathWithGz;
                 }
-                File datafile = SD.open((char*)path.c_str());
+                File datafile = SD.open(path);
                 if (datafile) {
                     vTaskDelay(1 / portTICK_RATE_MS);
                     size_t totalFileSize = datafile.size();
@@ -315,7 +315,7 @@ namespace WebUI {
             }
             String content = "cannot find ";
             content += path;
-            _webserver->send(404, "text/plain", content.c_str());
+            _webserver->send(404, "text/plain", content);
             return;
         } else
 #    endif
@@ -498,7 +498,7 @@ namespace WebUI {
                 }
             }
             if (silent || !espresponse->anyOutput()) {
-                _webserver->send(err ? 401 : 200, "text/plain", answer.c_str());
+                _webserver->send(err ? 401 : 200, "text/plain", answer);
             } else {
                 espresponse->flush();
             }
@@ -592,8 +592,8 @@ namespace WebUI {
                     String sadminPassword = admin_password->get();
                     String suserPassword  = user_password->get();
 
-                    if (!(((sUser == DEFAULT_ADMIN_LOGIN) && (strcmp(sPassword.c_str(), sadminPassword.c_str()) == 0)) ||
-                          ((sUser == DEFAULT_USER_LOGIN) && (strcmp(sPassword.c_str(), suserPassword.c_str()) == 0)))) {
+                    if (!((sUser == DEFAULT_ADMIN_LOGIN && sPassword == sadminPassword) ||
+                          (sUser == DEFAULT_USER_LOGIN && sPassword == suserPassword)) {
                         msg_alert_error = true;
                         smsg            = "Error: Incorrect password";
                         code            = 401;
@@ -611,9 +611,9 @@ namespace WebUI {
                 if (COMMANDS::isLocalPasswordValid((char*)newpassword.c_str())) {
                     err_t err;
                     if (sUser == DEFAULT_ADMIN_LOGIN) {
-                        err = admin_password->setStringValue((char*)newpassword.c_str());
+                        err = admin_password->setStringValue(newpassword);
                     } else {
-                        err = user_password->setStringValue((char*)newpassword.c_str());
+                        err = user_password->setStringValue(newpassword);
                     }
                     if (err) {
                         msg_alert_error = true;
@@ -965,8 +965,8 @@ namespace WebUI {
                         fsUploadFile.close();
                     }
                     String sizeargname = upload.filename + "S";
-                    if (_webserver->hasArg(sizeargname.c_str())) {
-                        uint32_t filesize  = _webserver->arg(sizeargname.c_str()).toInt();
+                    if (_webserver->hasArg(sizeargname)) {
+                        uint32_t filesize  = _webserver->arg(sizeargname).toInt();
                         uint32_t freespace = SPIFFS.totalBytes() - SPIFFS.usedBytes();
                         if (filesize > freespace) {
                             _upload_status = UploadStatusType::FAILED;
@@ -1020,7 +1020,7 @@ namespace WebUI {
                         uint32_t filesize  = fsUploadFile.size();
                         fsUploadFile.close();
 
-                        if (_webserver->hasArg(sizeargname.c_str()) && _webserver->arg(sizeargname.c_str()) != String(filesize)) {
+                        if (_webserver->hasArg(sizeargname) && _webserver->arg(sizeargname) != String(filesize)) {
                             _upload_status = UploadStatusType::FAILED;
                         }
 
@@ -1101,7 +1101,7 @@ namespace WebUI {
                     grbl_send(CLIENT_ALL, "[MSG:Update Firmware]\r\n");
                     _upload_status     = UploadStatusType::ONGOING;
                     String sizeargname = upload.filename + "S";
-                    if (_webserver->hasArg(sizeargname.c_str())) {
+                    if (_webserver->hasArg(sizeargname)) {
                         maxSketchSpace = _webserver->arg(sizeargname).toInt();
                     }
                     //check space
@@ -1184,7 +1184,7 @@ namespace WebUI {
     //Function to delete not empty directory on SD card
     bool Web_Server::deleteRecursive(String path) {
         bool result = true;
-        File file   = SD.open((char*)path.c_str());
+        File file   = SD.open(path);
         //failed
         if (!file) {
             return false;
@@ -1192,7 +1192,7 @@ namespace WebUI {
         if (!file.isDirectory()) {
             file.close();
             //return if success or not
-            return SD.remove((char*)path.c_str());
+            return SD.remove(path);
         }
         file.rewindDirectory();
         while (true) {
@@ -1208,7 +1208,7 @@ namespace WebUI {
                 }
             } else {
                 entry.close();
-                if (!SD.remove((char*)entryPath.c_str())) {
+                if (!SD.remove(entryPath)) {
                     result = false;
                     break;
                 }
@@ -1217,7 +1217,7 @@ namespace WebUI {
         }
         file.close();
         if (result) {
-            return SD.rmdir((char*)path.c_str());
+            return SD.rmdir(path);
         } else {
             return false;
         }
@@ -1268,10 +1268,10 @@ namespace WebUI {
                 filename         = path + shortname;
                 shortname.replace("/", "");
                 filename.replace("//", "/");
-                if (!SD.exists((char*)filename.c_str())) {
+                if (!SD.exists(filename)) {
                     sstatus = shortname + " does not exist!";
                 } else {
-                    if (SD.remove((char*)filename.c_str())) {
+                    if (SD.remove(filename)) {
                         sstatus = shortname + " deleted";
                     } else {
                         sstatus = "Cannot deleted ";
@@ -1287,7 +1287,7 @@ namespace WebUI {
                 filename = path + "/" + shortname;
                 filename.replace("//", "/");
                 if (filename != "/") {
-                    if (!SD.exists((char*)filename.c_str())) {
+                    if (!SD.exists(filename)) {
                         sstatus = shortname + " does not exist!";
                     } else {
                         if (!deleteRecursive(filename)) {
@@ -1309,10 +1309,10 @@ namespace WebUI {
                 filename         = path + shortname;
                 shortname.replace("/", "");
                 filename.replace("//", "/");
-                if (SD.exists((char*)filename.c_str())) {
+                if (SD.exists(filename)) {
                     sstatus = shortname + " already exists!";
                 } else {
-                    if (!SD.mkdir((char*)filename.c_str())) {
+                    if (!SD.mkdir(filename)) {
                         sstatus = "Cannot create ";
                         sstatus += shortname;
                     } else {
@@ -1333,15 +1333,15 @@ namespace WebUI {
         if (path != "/") {
             path = path.substring(0, path.length() - 1);
         }
-        if (path != "/" && !SD.exists((char*)path.c_str())) {
+        if (path != "/" && !SD.exists(path)) {
             String s = "{\"status\":\" ";
             s += path;
             s += " does not exist on SD Card\"}";
-            _webserver->send(200, "application/json", s.c_str());
+            _webserver->send(200, "application/json", s);
             return;
         }
         if (list_files) {
-            File dir = SD.open((char*)path.c_str());
+            File dir = SD.open(path);
             if (!dir.isDirectory()) {
                 dir.close();
             }
@@ -1413,7 +1413,7 @@ namespace WebUI {
         jsonfile += sstatus + "\"";
         jsonfile += "}";
         _webserver->sendHeader("Cache-Control", "no-cache");
-        _webserver->send(200, "application/json", jsonfile.c_str());
+        _webserver->send(200, "application/json", jsonfile);
         _upload_status = UploadStatusType::NONE;
         set_sd_state(SDCARD_IDLE);
     }
@@ -1449,12 +1449,12 @@ namespace WebUI {
                     } else {
                         set_sd_state(SDCARD_BUSY_UPLOADING);
                         //delete file on SD Card if already present
-                        if (SD.exists((char*)filename.c_str())) {
-                            SD.remove((char*)filename.c_str());
+                        if (SD.exists(filename)) {
+                            SD.remove(filename);
                         }
                         String sizeargname = upload.filename + "S";
-                        if (_webserver->hasArg(sizeargname.c_str())) {
-                            uint32_t filesize  = _webserver->arg(sizeargname.c_str()).toInt();
+                        if (_webserver->hasArg(sizeargname)) {
+                            uint32_t filesize  = _webserver->arg(sizeargname).toInt();
                             uint64_t freespace = SD.totalBytes() - SD.usedBytes();
                             if (filesize > freespace) {
                                 _upload_status = UploadStatusType::FAILED;
@@ -1464,7 +1464,7 @@ namespace WebUI {
                         }
                         if (_upload_status != UploadStatusType::FAILED) {
                             //Create file for writing
-                            sdUploadFile = SD.open((char*)filename.c_str(), FILE_WRITE);
+                            sdUploadFile = SD.open(filename, FILE_WRITE);
                             //check if creation succeed
                             if (!sdUploadFile) {
                                 //if creation failed
@@ -1502,12 +1502,12 @@ namespace WebUI {
                         sdUploadFile.close();
                         //TODO Check size
                         String sizeargname = upload.filename + "S";
-                        if (_webserver->hasArg(sizeargname.c_str())) {
+                        if (_webserver->hasArg(sizeargname)) {
                             uint32_t filesize = 0;
-                            sdUploadFile      = SD.open(filename.c_str(), FILE_READ);
+                            sdUploadFile      = SD.open(filename, FILE_READ);
                             filesize          = sdUploadFile.size();
                             sdUploadFile.close();
-                            if (_webserver->arg(sizeargname.c_str()) != String(filesize)) {
+                            if (_webserver->arg(sizeargname) != String(filesize)) {
                                 _upload_status = UploadStatusType::FAILED;
                                 pushError(ESP_ERROR_UPLOAD, "File upload mismatch");
                                 grbl_send(CLIENT_ALL, "[MSG:Upload failed]\r\n");
@@ -1542,8 +1542,8 @@ namespace WebUI {
             if (sdUploadFile) {
                 sdUploadFile.close();
             }
-            if (SD.exists((char*)filename.c_str())) {
-                SD.remove((char*)filename.c_str());
+            if (SD.exists(filename)) {
+                SD.remove(filename);
             }
             set_sd_state(SDCARD_IDLE);
         }
