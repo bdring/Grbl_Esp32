@@ -61,7 +61,7 @@ portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 
 static TaskHandle_t serialCheckTaskHandle = 0;
 
-InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each client
+WebUI::InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each client
 
 // Returns the number of bytes available in a client buffer.
 uint8_t serial_get_rx_buffer_available(uint8_t client) {
@@ -95,28 +95,28 @@ void serialCheckTask(void* pvParameters) {
             if (Serial.available()) {
                 client = CLIENT_SERIAL;
                 data   = Serial.read();
-            } else if (inputBuffer.available()) {
+            } else if (WebUI::inputBuffer.available()) {
                 client = CLIENT_INPUT;
-                data   = inputBuffer.read();
+                data   = WebUI::inputBuffer.read();
             } else {
                 //currently is wifi or BT but better to prepare both can be live
 #ifdef ENABLE_BLUETOOTH
-                if (SerialBT.hasClient() && SerialBT.available()) {
+                if (WebUI::SerialBT.hasClient() && WebUI::SerialBT.available()) {
                     client = CLIENT_BT;
-                    data   = SerialBT.read();
+                    data   = WebUI::SerialBT.read();
                     //Serial.write(data);  // echo all data to serial
                 } else {
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
-                    if (Serial2Socket.available()) {
+                    if (WebUI::Serial2Socket.available()) {
                         client = CLIENT_WEBUI;
-                        data   = Serial2Socket.read();
+                        data   = WebUI::Serial2Socket.read();
                     } else {
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
-                        if (telnet_server.available()) {
+                        if (WebUI::telnet_server.available()) {
                             client = CLIENT_TELNET;
-                            data   = telnet_server.read();
+                            data   = WebUI::telnet_server.read();
                         }
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
@@ -136,15 +136,15 @@ void serialCheckTask(void* pvParameters) {
                 vTaskExitCritical(&myMutex);
             }
         }  // if something available
-        COMMANDS::handle();
+        WebUI::COMMANDS::handle();
 #ifdef ENABLE_WIFI
-        wifi_config.handle();
+        WebUI::wifi_config.handle();
 #endif
 #ifdef ENABLE_BLUETOOTH
-        bt_config.handle();
+        WebUI::bt_config.handle();
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
-        Serial2Socket.handle_flush();
+        WebUI::Serial2Socket.handle_flush();
 #endif
         vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
     }                                      // while(true)
@@ -152,8 +152,9 @@ void serialCheckTask(void* pvParameters) {
 
 void serial_reset_read_buffer(uint8_t client) {
     for (uint8_t client_num = 0; client_num < CLIENT_COUNT; client_num++) {
-        if (client == client_num || client == CLIENT_ALL)
+        if (client == client_num || client == CLIENT_ALL) {
             client_buffer[client_num].begin();
+        }
     }
 }
 
@@ -178,15 +179,15 @@ uint8_t serial_read(uint8_t client) {
 }
 
 bool any_client_has_data() {
-    return (Serial.available() || inputBuffer.available()
+    return (Serial.available() || WebUI::inputBuffer.available()
 #ifdef ENABLE_BLUETOOTH
-            || (SerialBT.hasClient() && SerialBT.available())
+            || (WebUI::SerialBT.hasClient() && WebUI::SerialBT.available())
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
-            || Serial2Socket.available()
+            || WebUI::Serial2Socket.available()
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
-            || telnet_server.available()
+            || WebUI::telnet_server.available()
 #endif
     );
 }

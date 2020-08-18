@@ -27,49 +27,49 @@ esp_err_t esp_task_wdt_reset();
 }
 #endif
 
-bool COMMANDS::restart_ESP_module = false;
+namespace WebUI {
+    bool COMMANDS::restart_ESP_module = false;
 
-/*
- * delay is to avoid with asyncwebserver and may need to wait sometimes
- */
-void COMMANDS::wait(uint32_t milliseconds) {
-    uint32_t timeout = millis();
-    esp_task_wdt_reset();  //for a wait 0;
-    //wait feeding WDT
-    while ((millis() - timeout) < milliseconds)
-        esp_task_wdt_reset();
-}
-
-bool COMMANDS::isLocalPasswordValid(char* password) {
-    char c;
-    //limited size
-    if ((strlen(password) > MAX_LOCAL_PASSWORD_LENGTH) || (strlen(password) < MIN_LOCAL_PASSWORD_LENGTH))
-        return false;
-    //no space allowed
-    for (int i = 0; i < strlen(password); i++) {
-        c = password[i];
-        if (c == ' ')
-            return false;
+    /*
+     * delay is to avoid with asyncwebserver and may need to wait sometimes
+     */
+    void COMMANDS::wait(uint32_t milliseconds) {
+        uint32_t timeout = millis();
+        esp_task_wdt_reset();  //for a wait 0;
+        //wait feeding WDT
+        while ((millis() - timeout) < milliseconds)
+            esp_task_wdt_reset();
     }
-    return true;
-}
 
-/**
- * Restart ESP
- */
-void COMMANDS::restart_ESP() {
-    restart_ESP_module = true;
-}
+    bool COMMANDS::isLocalPasswordValid(char* password) {
+        char c;
+        //limited size
+        if ((strlen(password) > MAX_LOCAL_PASSWORD_LENGTH) || (strlen(password) < MIN_LOCAL_PASSWORD_LENGTH))
+            return false;
+        //no space allowed
+        for (int i = 0; i < strlen(password); i++) {
+            c = password[i];
+            if (c == ' ')
+                return false;
+        }
+        return true;
+    }
 
-/**
- * Handle not critical actions that must be done in sync environement
- */
-void COMMANDS::handle() {
-    COMMANDS::wait(0);
-    //in case of restart requested
-    if (restart_ESP_module) {
-        ESP.restart();
-        while (1)
-            ;
+    /**
+     * Restart ESP
+     */
+    void COMMANDS::restart_ESP() { restart_ESP_module = true; }
+
+    /**
+     * Handle not critical actions that must be done in sync environement
+     */
+    void COMMANDS::handle() {
+        COMMANDS::wait(0);
+        //in case of restart requested
+        if (restart_ESP_module) {
+            ESP.restart();
+            while (1)
+                ;
+        }
     }
 }

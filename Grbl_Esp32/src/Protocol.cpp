@@ -72,7 +72,7 @@ err_t add_char_to_line(char c, uint8_t client) {
     return STATUS_OK;
 }
 
-err_t execute_line(char* line, uint8_t client, auth_t auth_level) {
+err_t execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level) {
     err_t result = STATUS_OK;
     // Empty or comment line. For syncing purposes.
     if (line[0] == 0)
@@ -166,7 +166,7 @@ void protocol_main_loop() {
                         report_echo_line_received(line, client);
 #endif
                         // auth_level can be upgraded by supplying a password on the command line
-                        report_status_message(execute_line(line, client, LEVEL_GUEST), client);
+                        report_status_message(execute_line(line, client, WebUI::AuthenticationLevel::LEVEL_GUEST), client);
                         empty_line(client);
                         break;
                     case STATUS_OVERFLOW:
