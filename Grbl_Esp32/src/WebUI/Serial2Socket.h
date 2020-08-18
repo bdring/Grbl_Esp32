@@ -21,44 +21,55 @@
 */
 
 #include <Print.h>
+#include <cstring>
 
-#define TXBUFFERSIZE 1200
-#define RXBUFFERSIZE 128
-#define FLUSHTIMEOUT 500
+class WebSocketsServer;
 
-class Serial_2_Socket : public Print {
-public:
-    Serial_2_Socket();
-    ~Serial_2_Socket();
-    size_t write(uint8_t c);
-    size_t write(const uint8_t* buffer, size_t size);
+namespace WebUI {
+    class Serial_2_Socket : public Print {
+        static const int TXBUFFERSIZE = 1200;
+        static const int RXBUFFERSIZE = 128;
+        static const int FLUSHTIMEOUT = 500;
 
-    inline size_t write(const char* s) { return write((uint8_t*)s, strlen(s)); }
-    inline size_t write(unsigned long n) { return write((uint8_t)n); }
-    inline size_t write(long n) { return write((uint8_t)n); }
-    inline size_t write(unsigned int n) { return write((uint8_t)n); }
-    inline size_t write(int n) { return write((uint8_t)n); }
-    long          baudRate();
-    void          begin(long speed);
-    void          end();
-    int           available();
-    int           peek(void);
-    int           read(void);
-    bool          push(const char* data);
-    void          flush(void);
-    void          handle_flush();
-                  operator bool() const;
-    bool          attachWS(void* web_socket);
-    bool          detachWS();
+    public:
+        Serial_2_Socket();
 
-private:
-    uint32_t _lastflush;
-    void*    _web_socket;
-    uint8_t  _TXbuffer[TXBUFFERSIZE];
-    uint16_t _TXbufferSize;
-    uint8_t  _RXbuffer[RXBUFFERSIZE];
-    uint16_t _RXbufferSize;
-    uint16_t _RXbufferpos;
-};
+        size_t write(uint8_t c);
+        size_t write(const uint8_t* buffer, size_t size);
 
-extern Serial_2_Socket Serial2Socket;
+        inline size_t write(const char* s) { return write((uint8_t*)s, ::strlen(s)); }
+        inline size_t write(unsigned long n) { return write((uint8_t)n); }
+        inline size_t write(long n) { return write((uint8_t)n); }
+        inline size_t write(unsigned int n) { return write((uint8_t)n); }
+        inline size_t write(int n) { return write((uint8_t)n); }
+
+        long baudRate();
+        void begin(long speed);
+        void end();
+        int  available();
+        int  peek(void);
+        int  read(void);
+        bool push(const char* data);
+        void flush(void);
+        void handle_flush();
+        bool attachWS(WebSocketsServer* web_socket);
+        bool detachWS();
+
+        operator bool() const;
+
+        ~Serial_2_Socket();
+
+    private:
+        uint32_t          _lastflush;
+        WebSocketsServer* _web_socket;
+
+        uint8_t  _TXbuffer[TXBUFFERSIZE];
+        uint16_t _TXbufferSize;
+
+        uint8_t  _RXbuffer[RXBUFFERSIZE];
+        uint16_t _RXbufferSize;
+        uint16_t _RXbufferpos;
+    };
+
+    extern Serial_2_Socket Serial2Socket;
+}

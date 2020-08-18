@@ -74,12 +74,12 @@ void grbl_init() {
 #endif
     Spindles::Spindle::select();
 #ifdef ENABLE_WIFI
-    wifi_config.begin();
+    WebUI::wifi_config.begin();
 #endif
 #ifdef ENABLE_BLUETOOTH
-    bt_config.begin();
+    WebUI::bt_config.begin();
 #endif
-    inputBuffer.begin();
+    WebUI::inputBuffer.begin();
 }
 
 static void reset_variables() {
