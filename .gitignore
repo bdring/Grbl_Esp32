@@ -19,3 +19,4 @@ __vm/
 *.vcxproj
 *.vcxproj.filters
 *.suo
+Grbl_Esp32.ino.cpp
