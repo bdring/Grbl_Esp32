@@ -666,19 +666,19 @@ namespace WebUI {
         if (parameter[0] != '/') {
             path = "/" + path;
         }
-        File file2del = SD.open(path.c_str());
+        File file2del = SD.open(path);
         if (!file2del) {
             webPrintln("Cannot stat file!");
             return STATUS_SD_FILE_NOT_FOUND;
         }
         if (file2del.isDirectory()) {
-            if (!SD.rmdir((char*)path.c_str())) {
+            if (!SD.rmdir(path)) {
                 webPrintln("Cannot delete directory! Is directory empty?");
                 return STATUS_SD_FAILED_DEL_DIR;
             }
             webPrintln("Directory deleted.");
         } else {
-            if (!SD.remove((char*)path.c_str())) {
+            if (!SD.remove(path)) {
                 webPrintln("Cannot delete file!");
                 return STATUS_SD_FAILED_DEL_FILE;
             }
