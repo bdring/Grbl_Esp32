@@ -239,12 +239,7 @@ void user_tool_change(uint8_t new_tool) {
 
 // move from current tool to next tool....
 void atari_next_pen() {
-    if (current_tool < MAX_PEN_NUMBER) {
-        gc_state.tool = current_tool + 1;
-    }
-    else {
-        gc_state.tool = 1;
-    }
+    gc_state.tool = current_tool < MAX_PEN_NUMBER ? current_tool + 1 : 1;
     user_tool_change(gc_state.tool);
 }
 
