@@ -43,8 +43,8 @@
 #define USE_TRINAMIC_ENABLE
 
 // Y motor connects to the 1st driver
-#define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
-#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X_TRINAMIC_DRIVER       5160        // Which Driver Type?
+#define X_RSENSE                TMC5160_RSENSE_DEFAULT
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_14
 #define X_CS_PIN                GPIO_NUM_17  // Daisy Chain, all share same CS pin

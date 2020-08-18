@@ -65,6 +65,7 @@ namespace Motors {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
 
         config_message();
+        status_message();
 
         // init() must be called later, after all TMC drivers have CS pins setup.
     }
@@ -231,5 +232,16 @@ namespace Motors {
 #endif
         // the pin based enable could be added here.
         // This would be for individual motors, not the single pin for all motors.
+    }
+
+    void TrinamicDriver::status_message() {
+        grbl_msg_sendf(CLIENT_SERIAL,
+                       MSG_LEVEL_INFO,
+                       "%s Driver Status Open A:%d Open B:%d Short A:%d Short B:%d",
+                       _axis_name,
+                       tmcstepper->ola(),
+                       tmcstepper->olb(),
+                       tmcstepper->s2ga(),
+                       tmcstepper->s2gb());
     }
 }
