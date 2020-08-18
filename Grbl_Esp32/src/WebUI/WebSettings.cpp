@@ -666,7 +666,7 @@ namespace WebUI {
         if (parameter[0] != '/') {
             path = "/" + path;
         }
-        File file2del = SD.open(path.c_str());
+        File file2del = SD.open(path);
         if (!file2del) {
             webPrintln("Cannot stat file!");
             return STATUS_SD_FILE_NOT_FOUND;
