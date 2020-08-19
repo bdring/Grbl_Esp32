@@ -23,7 +23,7 @@
 // Grbl versioning system
 
 #define GRBL_VERSION "1.3a"
-#define GRBL_VERSION_BUILD "20200813"
+#define GRBL_VERSION_BUILD "20200819"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
