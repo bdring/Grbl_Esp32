@@ -42,7 +42,7 @@ void InputBuffer::push(uint8_t c) {
 }
 
 int InputBuffer::read(void) {
-    if (_bufferSize) {
+    if (!_bufferSize) {
         return -1;
     }
     int data = _buffer[_bufferpos];
