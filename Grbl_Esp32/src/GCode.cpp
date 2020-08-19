@@ -1248,6 +1248,9 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     if (gc_state.modal.motion != MOTION_MODE_NONE) {
         if (axis_command == AXIS_COMMAND_MOTION_MODE) {
             uint8_t gc_update_pos = GC_UPDATE_POS_TARGET;
+#ifdef USE_I2S_STEPS
+            stepper_id_t save_stepper = current_stepper;
+#endif
             if (gc_state.modal.motion == MOTION_MODE_LINEAR) {
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
@@ -1271,6 +1274,12 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
 #ifndef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
                 pl_data->condition |= PL_COND_FLAG_NO_FEED_OVERRIDE;
 #endif
+#ifdef USE_I2S_STEPS
+                save_stepper = current_stepper;  // remember the stepper
+                if (save_stepper == ST_I2S_STREAM) {
+                    stepper_switch(ST_I2S_STATIC);  // Change the stepper to reduce the delay for accurate probing.
+                }
+#endif
                 gc_update_pos = mc_probe_cycle(gc_block.values.xyz, pl_data, gc_parser_flags);
             }
             // As far as the parser is concerned, the position is now == target. In reality the
@@ -1281,6 +1290,11 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             } else if (gc_update_pos == GC_UPDATE_POS_SYSTEM) {
                 gc_sync_position();  // gc_state.position[] = sys_position
             }                        // == GC_UPDATE_POS_NONE
+#ifdef USE_I2S_STEPS
+            if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {
+                stepper_switch(ST_I2S_STREAM);  // Put the stepper back on.
+            }
+#endif
         }
     }
     // [21. Program flow ]:
