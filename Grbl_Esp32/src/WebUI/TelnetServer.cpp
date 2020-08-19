@@ -100,6 +100,27 @@ namespace WebUI {
         }
     }
 
+    size_t Telnet_Server::write(uint8_t data) {
+        size_t wsize = 0;
+        if (!_setupdone || _telnetserver == NULL) {
+            log_d("[TELNET out blocked]");
+            return 0;
+        }
+
+        clearClients();
+
+        //log_d("[TELNET out]");
+        //push UART data to all connected telnet clients
+        for (uint8_t i = 0; i < MAX_TLNT_CLIENTS; i++) {
+            if (_telnetClients[i] && _telnetClients[i].connected()) {
+                //log_d("[TELNET out connected]");
+                wsize = _telnetClients[i].write(&data, 1);
+                COMMANDS::wait(0);
+            }
+        }
+        return wsize;
+    }
+
     size_t Telnet_Server::write(const uint8_t* buffer, size_t size) {
         size_t wsize = 0;
         if (!_setupdone || _telnetserver == NULL) {

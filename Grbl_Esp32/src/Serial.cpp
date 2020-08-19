@@ -61,11 +61,11 @@ portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 
 static TaskHandle_t serialCheckTaskHandle = 0;
 
-WebUI::InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each client
+InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each client
 
 // Returns the number of bytes available in a client buffer.
 uint8_t serial_get_rx_buffer_available(uint8_t client) {
-    return client_buffer[client].availableforwrite();
+    return client_buffer[client].availableForPush();
 }
 
 void serial_init() {
@@ -95,9 +95,9 @@ void serialCheckTask(void* pvParameters) {
             if (Serial.available()) {
                 client = CLIENT_SERIAL;
                 data   = Serial.read();
-            } else if (WebUI::inputBuffer.available()) {
+            } else if (macroBuffer.available()) {
                 client = CLIENT_INPUT;
-                data   = WebUI::inputBuffer.read();
+                data   = macroBuffer.read();
             } else {
                 //currently is wifi or BT but better to prepare both can be live
 #ifdef ENABLE_BLUETOOTH
@@ -132,7 +132,7 @@ void serialCheckTask(void* pvParameters) {
                 execute_realtime_command(data, client);
             else {
                 vTaskEnterCritical(&myMutex);
-                client_buffer[client].write(data);
+                client_buffer[client].push(data);
                 vTaskExitCritical(&myMutex);
             }
         }  // if something available
@@ -179,7 +179,7 @@ uint8_t serial_read(uint8_t client) {
 }
 
 bool any_client_has_data() {
-    return (Serial.available() || WebUI::inputBuffer.available()
+    return (Serial.available() || macroBuffer.available()
 #ifdef ENABLE_BLUETOOTH
             || (WebUI::SerialBT.hasClient() && WebUI::SerialBT.available())
 #endif
