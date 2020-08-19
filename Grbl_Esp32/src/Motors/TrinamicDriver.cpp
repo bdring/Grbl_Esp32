@@ -105,7 +105,39 @@ namespace Motors {
             case 2:
                 grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power", _axis_name);
                 return false;
-            default: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed", _axis_name); return true;
+            default:
+                // driver responded, so check for other errors from the DRV_STATUS register
+
+                TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
+                status.sr = tmcstepper->DRV_STATUS();
+
+                bool err = false;
+                // look for open loan or short 2 ground on a and b
+                if (status.s2ga || status.s2gb) {
+                    grbl_msg_sendf(CLIENT_SERIAL,
+                                   MSG_LEVEL_INFO,
+                                   "%s Motor Short Coil a:%s b:%s",
+                                   _axis_name,
+                                   status.s2ga ? "Y" : "N",
+                                   status.s2gb ? "Y" : "N");
+                    err = true;
+                }
+                // check for over temp or pre-warning
+                if (status.ot || status.otpw) {
+                    grbl_msg_sendf(CLIENT_SERIAL,
+                                   MSG_LEVEL_INFO,
+                                   "%s Driver Temp Warning:%s Fault:%s",
+                                   _axis_name,
+                                   status.otpw ? "Y" : "N",
+                                   status.ot ? "Y" : "N");
+                    err = true;
+                }
+
+                if (err)
+                    return false;
+
+                grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed", _axis_name);
+                return true;
         }
     }
 
