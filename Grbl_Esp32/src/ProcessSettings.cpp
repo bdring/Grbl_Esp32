@@ -211,7 +211,20 @@ err_t home(int cycle) {
     if (system_check_safety_door_ajar())
         return (STATUS_CHECK_DOOR);  // Block if safety door is ajar.
     sys.state = STATE_HOMING;        // Set system state variable
+#ifdef USE_I2S_STEPS
+    stepper_id_t save_stepper = current_stepper;
+    if (save_stepper == ST_I2S_STREAM) {
+        stepper_switch(ST_I2S_STATIC);
+    }
+
     mc_homing_cycle(cycle);
+
+    if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {
+        stepper_switch(ST_I2S_STREAM);
+    }
+#else
+    mc_homing_cycle(cycle);
+#endif
     if (!sys.abort) {            // Execute startup scripts after successful homing.
         sys.state = STATE_IDLE;  // Set to IDLE when complete.
         st_go_idle();            // Set steppers to the settings idle state before returning.
