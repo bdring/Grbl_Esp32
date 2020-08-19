@@ -20,17 +20,19 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "Config.h"
+#include "../Config.h"
 
-class ESPResponseStream;
+namespace WebUI {
+    class ESPResponseStream;
 
-class COMMANDS {
-public:
-    static void wait(uint32_t milliseconds);
-    static void handle();
-    static void restart_ESP();
-    static bool isLocalPasswordValid(char* password);
+    class COMMANDS {
+    public:
+        static void wait(uint32_t milliseconds);
+        static void handle();
+        static void restart_ESP();
+        static bool isLocalPasswordValid(char* password);
 
-private:
-    static bool restart_ESP_module;
-};
+    private:
+        static bool restart_ESP_module;
+    };
+}

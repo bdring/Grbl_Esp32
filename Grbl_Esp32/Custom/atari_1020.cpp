@@ -124,23 +124,23 @@ void atari_home_task(void* pvParameters) {
             if (sys.state == STATE_IDLE) {
                 switch (homing_phase) {
                     case HOMING_PHASE_FULL_APPROACH:    // a full width move to insure it hits left end
-                        inputBuffer.push("G90G0Z1\r");  // lift the pen
+                        WebUI::inputBuffer.push("G90G0Z1\r");  // lift the pen
                         sprintf(gcode_line, "G91G0X%3.2f\r", -ATARI_PAPER_WIDTH + ATARI_HOME_POS - 3.0);  // plus a little extra
-                        inputBuffer.push(gcode_line);
+                        WebUI::inputBuffer.push(gcode_line);
                         homing_attempt = 1;
                         homing_phase   = HOMING_PHASE_CHECK;
                         break;
                     case HOMING_PHASE_CHECK:  // check the limits switch
                         if (digitalRead(REED_SW_PIN) == 0) {
                             // see if reed switch is grounded
-                            inputBuffer.push("G4P0.1\n");  // dramtic pause
+                            WebUI::inputBuffer.push("G4P0.1\n");  // dramtic pause
                             sys_position[X_AXIS] = ATARI_HOME_POS * axis_settings[X_AXIS]->steps_per_mm->get();
                             sys_position[Y_AXIS] = 0.0;
                             sys_position[Z_AXIS] = 1.0 * axis_settings[Y_AXIS]->steps_per_mm->get();
                             gc_sync_position();
                             plan_sync_position();
                             sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  // alway return to right side to reduce home travel stalls
-                            inputBuffer.push(gcode_line);
+                            WebUI::inputBuffer.push(gcode_line);
                             current_tool  = 1;  // local copy for reference...until actual M6 change
                             gc_state.tool = current_tool;
                             atari_homing  = false;  // done with homing sequence
@@ -151,23 +151,23 @@ void atari_home_task(void* pvParameters) {
                         break;
                     case HOMING_PHASE_RETRACT:
                         sprintf(gcode_line, "G0X%3.2f\r", -ATARI_HOME_POS);
-                        inputBuffer.push(gcode_line);
+                        WebUI::inputBuffer.push(gcode_line);
                         sprintf(gcode_line, "G0X%3.2f\r", ATARI_HOME_POS);
-                        inputBuffer.push(gcode_line);
+                        WebUI::inputBuffer.push(gcode_line);
                         homing_phase = HOMING_PHASE_CHECK;
                         break;
                     default:
                         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Homing phase error %d", homing_phase);
                         atari_homing = false;
-                        ;  // kills task
+                        
+                        // kills task
                         break;
                 }
                 if (homing_attempt > ATARI_HOMING_ATTEMPTS) {
                     // try all positions plus 1
                     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Atari homing failed");
-                    inputBuffer.push("G90\r");
+                    WebUI::inputBuffer.push("G90\r");
                     atari_homing = false;
-                    ;
                 }
             }
         }
@@ -227,11 +227,11 @@ void user_tool_change(uint8_t new_tool) {
     else
         move_count = BUMPS_PER_PEN_CHANGE * ((MAX_PEN_NUMBER - current_tool) + new_tool);
     sprintf(gcode_line, "G0Z%3.2f\r", ATARI_TOOL_CHANGE_Z);  // go to tool change height
-    inputBuffer.push(gcode_line);
+    WebUI::inputBuffer.push(gcode_line);
     for (uint8_t i = 0; i < move_count; i++) {
         sprintf(gcode_line, "G0X%3.2f\r", ATARI_HOME_POS);  //
-        inputBuffer.push(gcode_line);
-        inputBuffer.push("G0X0\r");
+        WebUI::inputBuffer.push(gcode_line);
+        WebUI::inputBuffer.push("G0X0\r");
     }
     current_tool = new_tool;
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Change to Pen#%d", current_tool);
@@ -239,10 +239,7 @@ void user_tool_change(uint8_t new_tool) {
 
 // move from current tool to next tool....
 void atari_next_pen() {
-    if (current_tool < MAX_PEN_NUMBER)
-        gc_state.tool = current_tool + 1;
-    else
-        gc_state.tool = 1;
+    gc_state.tool = current_tool < MAX_PEN_NUMBER ? current_tool + 1 : 1;
     user_tool_change(gc_state.tool);
 }
 
@@ -253,7 +250,7 @@ void user_defined_macro(uint8_t index) {
 #ifdef MACRO_BUTTON_0_PIN
         case CONTROL_PIN_INDEX_MACRO_0:
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Pen switch");
-            inputBuffer.push("$H\r");
+            WebUI::inputBuffer.push("$H\r");
             break;
 #endif
 #ifdef MACRO_BUTTON_1_PIN
@@ -261,15 +258,15 @@ void user_defined_macro(uint8_t index) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Color switch");
             atari_next_pen();
             sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  // alway return to right side to reduce home travel stalls
-            inputBuffer.push(gcode_line);
+            WebUI::inputBuffer.push(gcode_line);
             break;
 #endif
 #ifdef MACRO_BUTTON_2_PIN
         case CONTROL_PIN_INDEX_MACRO_2:
             // feed out some paper and reset the Y 0
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Paper switch");
-            inputBuffer.push("G0Y-25\r");
-            inputBuffer.push("G4P0.1\r");  // sync...forces wait for planner to clear
+            WebUI::inputBuffer.push("G0Y-25\r");
+            WebUI::inputBuffer.push("G4P0.1\r");  // sync...forces wait for planner to clear
             sys_position[Y_AXIS] = 0.0;    // reset the Y position
             gc_sync_position();
             plan_sync_position();
@@ -282,5 +279,5 @@ void user_defined_macro(uint8_t index) {
 void user_m30() {
     char gcode_line[20];
     sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  //
-    inputBuffer.push(gcode_line);
+    WebUI::inputBuffer.push(gcode_line);
 }

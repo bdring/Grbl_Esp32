@@ -66,9 +66,9 @@ public:
 
     // The default implementation of addWebui() does nothing.
     // Derived classes may override it to do something.
-    virtual void addWebui(JSONencoder*) {};
+    virtual void addWebui(WebUI::JSONencoder*) {};
 
-    virtual err_t action(char* value, auth_t auth_level, ESPResponseStream* out) = 0;
+    virtual err_t action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) = 0;
 };
 
 class Setting : public Word {
@@ -89,7 +89,7 @@ public:
 
     err_t check(char* s);
 
-    static err_t report_nvs_stats(const char* value, auth_t auth_level, ESPResponseStream* out) {
+    static err_t report_nvs_stats(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
         nvs_stats_t stats;
         if (err_t err = nvs_get_stats(NULL, &stats))
             return err;
@@ -106,7 +106,7 @@ public:
         return STATUS_OK;
     }
 
-    static err_t eraseNVS(const char* value, auth_t auth_level, ESPResponseStream* out) {
+    static err_t eraseNVS(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
         nvs_erase_all(_handle);
         //        return STATUS_OK;
         return 0;
@@ -126,7 +126,7 @@ public:
 
     // The default implementation of addWebui() does nothing.
     // Derived classes may override it to do something.
-    virtual void addWebui(JSONencoder*) {};
+    virtual void addWebui(WebUI::JSONencoder*) {};
 
     virtual err_t       setStringValue(char* value) = 0;
     err_t               setStringValue(String s) { return setStringValue(s.c_str()); }
@@ -165,7 +165,7 @@ public:
 
     void        load();
     void        setDefault();
-    void        addWebui(JSONencoder*);
+    void        addWebui(WebUI::JSONencoder*);
     err_t       setStringValue(char* value);
     const char* getStringValue();
 
@@ -193,7 +193,7 @@ public:
 
     void        load();
     void        setDefault();
-    void        addWebui(JSONencoder*);
+    void        addWebui(WebUI::JSONencoder*);
     err_t       setStringValue(char* value);
     const char* getCompatibleValue();
     const char* getStringValue();
@@ -233,7 +233,7 @@ public:
     void load();
     void setDefault();
     // There are no Float settings in WebUI
-    void        addWebui(JSONencoder*) {}
+    void        addWebui(WebUI::JSONencoder*) {}
     err_t       setStringValue(char* value);
     const char* getStringValue();
 
@@ -267,7 +267,7 @@ public:
 
     void        load();
     void        setDefault();
-    void        addWebui(JSONencoder*);
+    void        addWebui(WebUI::JSONencoder*);
     err_t       setStringValue(char* value);
     const char* getStringValue();
 
@@ -299,7 +299,7 @@ public:
 
     void        load();
     void        setDefault();
-    void        addWebui(JSONencoder*);
+    void        addWebui(WebUI::JSONencoder*);
     err_t       setStringValue(char* value);
     const char* getStringValue();
 
@@ -327,7 +327,7 @@ public:
     void setDefault();
     // There are no Flag settings in WebUI
     // The booleans are expressed as Enums
-    void        addWebui(JSONencoder*) {}
+    void        addWebui(WebUI::JSONencoder*) {}
     err_t       setStringValue(char* value);
     const char* getCompatibleValue();
     const char* getStringValue();
@@ -359,7 +359,7 @@ public:
 
     void        load();
     void        setDefault();
-    void        addWebui(JSONencoder*);
+    void        addWebui(WebUI::JSONencoder*);
     err_t       setStringValue(char* value);
     const char* getStringValue();
 
@@ -382,7 +382,7 @@ public:
 };
 class WebCommand : public Command {
 private:
-    err_t (*_action)(char*, auth_t);
+    err_t (*_action)(char*, WebUI::AuthenticationLevel);
     const char* password;
 
 public:
@@ -391,10 +391,10 @@ public:
                permissions_t permissions,
                const char*   grblName,
                const char*   name,
-               err_t (*action)(char*, auth_t)) :
+               err_t (*action)(char*, WebUI::AuthenticationLevel)) :
         Command(description, type, permissions, grblName, name),
         _action(action) {}
-    err_t action(char* value, auth_t auth_level, ESPResponseStream* response);
+    err_t action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
 
 enum : uint8_t {
@@ -406,19 +406,22 @@ enum : uint8_t {
 
 class GrblCommand : public Command {
 private:
-    err_t (*_action)(const char*, auth_t, ESPResponseStream*);
+    err_t (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
     uint8_t _disallowedStates;
 
 public:
     GrblCommand(const char* grblName,
                 const char* name,
-                err_t (*action)(const char*, auth_t, ESPResponseStream*),
+                err_t (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
                 uint8_t       disallowedStates,
                 permissions_t auth) :
         Command(NULL, GRBLCMD, auth, grblName, name),
         _action(action), _disallowedStates(disallowedStates) {}
 
-    GrblCommand(const char* grblName, const char* name, err_t (*action)(const char*, auth_t, ESPResponseStream*), uint8_t disallowedStates) :
+    GrblCommand(const char* grblName,
+                const char* name,
+                err_t (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
+                uint8_t disallowedStates) :
         GrblCommand(grblName, name, action, disallowedStates, WG) {}
-    err_t action(char* value, auth_t auth_level, ESPResponseStream* response);
+    err_t action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };

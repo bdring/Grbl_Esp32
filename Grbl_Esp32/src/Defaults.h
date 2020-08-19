@@ -159,6 +159,18 @@
 #    define DEFAULT_SPINDLE_DELAY_SPINDOWN 0
 #endif
 
+#ifndef DEFAULT_INVERT_SPINDLE_OUTPUT_PIN
+#    define DEFAULT_INVERT_SPINDLE_OUTPUT_PIN 0
+#endif
+
+#ifndef DEFAULT_INVERT_SPINDLE_ENABLE_PIN
+#    define DEFAULT_INVERT_SPINDLE_ENABLE_PIN 0
+#endif
+
+#ifndef DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
+#    define DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED 0
+#endif
+
 // ================  user settings =====================
 #ifndef DEFAULT_USER_INT_80
 #    define DEFAULT_USER_INT_80 0  // $80 User integer setting

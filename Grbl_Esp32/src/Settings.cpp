@@ -122,7 +122,7 @@ const char* IntSetting::getStringValue() {
     return strval;
 }
 
-void IntSetting::addWebui(JSONencoder* j) {
+void IntSetting::addWebui(WebUI::JSONencoder* j) {
     if (getDescription()) {
         j->begin_webui(getName(), getDescription(), "I", getStringValue(), _minValue, _maxValue);
         j->end_object();
@@ -213,7 +213,7 @@ const char* AxisMaskSetting::getStringValue() {
     return strval;
 }
 
-void AxisMaskSetting::addWebui(JSONencoder* j) {
+void AxisMaskSetting::addWebui(WebUI::JSONencoder* j) {
     if (getDescription()) {
         j->begin_webui(getName(), getDescription(), "I", getStringValue(), 0, (1 << MAX_N_AXIS) - 1);
         j->end_object();
@@ -371,15 +371,15 @@ const char* StringSetting::getStringValue() {
     // If the string is a password do not display it
     if (_checker && (
 #ifdef ENABLE_WIFI
-                        _checker == (bool (*)(char*))WiFiConfig::isPasswordValid ||
+                        _checker == (bool (*)(char*))WebUI::WiFiConfig::isPasswordValid ||
 #endif
-                        _checker == (bool (*)(char*))COMMANDS::isLocalPasswordValid)) {
+                        _checker == (bool (*)(char*))WebUI::COMMANDS::isLocalPasswordValid)) {
         return "******";
     }
     return _currentValue.c_str();
 }
 
-void StringSetting::addWebui(JSONencoder* j) {
+void StringSetting::addWebui(WebUI::JSONencoder* j) {
     if (!getDescription()) {
         return;
     }
@@ -465,7 +465,7 @@ const char* EnumSetting::getStringValue() {
     return "???";
 }
 
-void EnumSetting::addWebui(JSONencoder* j) {
+void EnumSetting::addWebui(WebUI::JSONencoder* j) {
     if (!getDescription()) {
         return;
     }
@@ -608,7 +608,7 @@ const char* IPaddrSetting::getStringValue() {
     return s.c_str();
 }
 
-void IPaddrSetting::addWebui(JSONencoder* j) {
+void IPaddrSetting::addWebui(WebUI::JSONencoder* j) {
     if (getDescription()) {
         j->begin_webui(getName(), getDescription(), "A", getStringValue());
         j->end_object();
@@ -617,9 +617,9 @@ void IPaddrSetting::addWebui(JSONencoder* j) {
 
 AxisSettings::AxisSettings(const char* axisName) : name(axisName) {}
 
-err_t GrblCommand::action(char* value, auth_t auth_type, ESPResponseStream* out) {
+err_t GrblCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (sys.state & _disallowedStates) {
         return STATUS_IDLE_ERROR;
     }
-    return _action((const char*)value, auth_type, out);
+    return _action((const char*)value, auth_level, out);
 };

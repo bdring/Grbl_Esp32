@@ -32,7 +32,7 @@
 #define Y_STEP_PIN          GPIO_NUM_14     // use Y labeled connector
 #define Y2_STEP_PIN         GPIO_NUM_21     // ganged motor
 #define Y_DIRECTION_PIN     GPIO_NUM_25     // use Y labeled connector
-#define Y2_DIRECTION_PIN    X_DIRECTION_PIN
+#define Y2_DIRECTION_PIN    Y_DIRECTION_PIN
 
 #define Z_STEP_PIN          GPIO_NUM_12     // use X labeled connector
 #define Z2_STEP_PIN         GPIO_NUM_22     // ganged motor

@@ -73,11 +73,23 @@ error "AMASS must have 1 or more levels to operate correctly."
     extern uint64_t stepper_idle_counter;
 extern bool         stepper_idle;
 
+extern uint8_t ganged_mode;
+
+enum stepper_id_t {
+    ST_TIMED = 0,
+    ST_RMT,
+    ST_I2S_STREAM,
+    ST_I2S_STATIC,
+};
+extern const char*  stepper_names[];
+extern stepper_id_t current_stepper;
+
 // -- Task handles for use in the notifications
 void IRAM_ATTR onSteppertimer();
 void IRAM_ATTR onStepperOffTimer();
 
 void stepper_init();
+void stepper_switch(stepper_id_t new_stepper);
 
 // Enable steppers, but cycle does not start unless called by motion control or realtime command.
 void st_wake_up();
@@ -113,5 +125,6 @@ void set_stepper_pins_on(uint8_t onMask);
 void set_direction_pins_on(uint8_t onMask);
 
 void Stepper_Timer_WritePeriod(uint64_t alarm_val);
+void Stepper_Timer_Init();
 void Stepper_Timer_Start();
 void Stepper_Timer_Stop();

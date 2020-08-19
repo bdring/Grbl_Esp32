@@ -37,10 +37,8 @@
 
 // I2S (steppers & other output-only pins)
 #define USE_I2S_OUT
-// Define USE_I2S_OUT_STREAM if buffering is used.
-// (there will be a delay between the specified I/O operation and the actual I/O execution)
-#define USE_I2S_OUT_STREAM
-#undef USE_RMT_STEPS
+#define USE_I2S_STEPS
+//#define DEFAULT_STEPPER ST_I2S_STATIC
 
 #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 
@@ -82,52 +80,66 @@
 #define C_STEP_PIN              I2SO(21)
 #define C_DISABLE_PIN           I2SO(23)
 
+
+/*
+    Socket I/O reference
+    The list of modules is here...
+    https://github.com/bdring/6-Pack_CNC_Controller/wiki/CNC-I-O-Module-List
+    Click on each module to get example for using the modules in the sockets
+*/
+
+ 
+// Socket #1
+// #1 GPIO_NUM_33 
+// #2 GPIO_NUM_32
+// #3 GPIO_NUM_35 (input only)
+// #4 GPIO_NUM_34 (input only)
+
+
+// Socket #2
+// #1 GPIO_NUM_2
+// #2 GPIO_NUM_25
+// #3 GPIO_NUM_39 (input only)
+// #4 GPIO_NUM_36 (input only)
+
+// Socket #3
+// #1 GPIO_NUM_26
+// #2 GPIO_NUM_4
+// #3 GPIO_NUM_16
+// #4 GPIO_NUM_27
+
+
+// Socket #4
+// #1 GPIO_NUM_14
+// #2 GPIO_NUM_13
+// #3 GPIO_NUM_15
+// #4 GPIO_NUM_12
+
+
+// Socket #5
+// #1 GPIO_NUM_24  (output only)
+// #2 GPIO_NUM_25  (output only)
+// #3 GPIO_NUM_26  (output only)
+// #4 GPIO_NUM_27  (output only)
+ 
 #define X_LIMIT_PIN             GPIO_NUM_33
 #define Y_LIMIT_PIN             GPIO_NUM_32
 #define Z_LIMIT_PIN             GPIO_NUM_35
-#define A_LIMIT_PIN             GPIO_NUM_34
+//#define A_LIMIT_PIN             GPIO_NUM_34
 //#define B_LIMIT_PIN             GPIO_NUM_39
 //#define C_LIMIT_PIN             GPIO_NUM_36
 
-#define PROBE_PIN               GPIO_NUM_25
+#define PROBE_PIN               GPIO_NUM_34
 
-/*
-// 0-10v CNC Module in Socket #3
-// Control...Set PD001 to 1 if enable is connected 0 is panel should be used
-// Freq...Set PD002 to 0
-// Freq input...Set PD070 to 0 for 0-10V
-#define SPINDLE_TYPE            SPINDLE_TYPE_10V
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
-#define SPINDLE_FORWARD_PIN     GPIO_NUM_4
-#define SPINDLE_REVERSE_PIN     GPIO_NUM_16
-*/
 
-// Example 5V output CNC module in socket #3
-/*
+
+
+// 5V output CNC module in socket #3
 #define SPINDLE_TYPE            SPINDLE_TYPE_PWM
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 #define SPINDLE_DIR_PIN         GPIO_NUM_16
 #define COOLANT_MIST_PIN        GPIO_NUM_27
-*/
-
-/*
-// Example (4x) 5V Buffer Output on socket #5
-#define SPINDLE_TYPE            SPINDLE_TYPE_RELAY
-#define SPINDLE_OUTPUT_PIN      I2SO(24)
-#define SPINDLE_DIR_PIN         I2SO(25)
-#define COOLANT_MIST_PIN        I2SO(26)
-#define COOLANT_FLOOD_PIN       I2SO(27)
-*/
-
-
-// RS485 In socket #3
-#define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG // only one spindle at a time
-#define HUANYANG_TXD_PIN        GPIO_NUM_26
-#define HUANYANG_RTS_PIN        GPIO_NUM_4
-#define HUANYANG_RXD_PIN        GPIO_NUM_16
-
-
 
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE

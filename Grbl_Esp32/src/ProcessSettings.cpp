@@ -6,23 +6,23 @@
 // WA Readable as user and admin, writable as admin
 
 // If authentication is disabled, auth_level will be LEVEL_ADMIN
-bool auth_failed(Word* w, const char* value, auth_t auth_level) {
+bool auth_failed(Word* w, const char* value, WebUI::AuthenticationLevel auth_level) {
     permissions_t permissions = w->getPermissions();
     switch (auth_level) {
-        case LEVEL_ADMIN:              // Admin can do anything
-            return false;              // Nothing is an Admin auth fail
-        case LEVEL_GUEST:              // Guest can only access open settings
-            return permissions != WG;  // Anything other than RG is Guest auth fail
-        case LEVEL_USER:               // User is complicated...
-            if (!value) {              // User can read anything
-                return false;          // No read is a User auth fail
+        case WebUI::AuthenticationLevel::LEVEL_ADMIN:  // Admin can do anything
+            return false;                 // Nothing is an Admin auth fail
+        case WebUI::AuthenticationLevel::LEVEL_GUEST:  // Guest can only access open settings
+            return permissions != WG;     // Anything other than RG is Guest auth fail
+        case WebUI::AuthenticationLevel::LEVEL_USER:   // User is complicated...
+            if (!value) {                 // User can read anything
+                return false;             // No read is a User auth fail
             }
             return permissions == WA;  // User cannot write WA
         default: return true;
     }
 }
 
-void show_setting(const char* name, const char* value, const char* description, ESPResponseStream* out) {
+void show_setting(const char* name, const char* value, const char* description, WebUI::ESPResponseStream* out) {
     grbl_sendf(out->client(), "$%s=%s", name, value);
     if (description) {
         grbl_sendf(out->client(), "    %s", description);
@@ -34,10 +34,10 @@ void settings_restore(uint8_t restore_flag) {
 #ifdef WIFI_OR_BLUETOOTH
     if (restore_flag & SETTINGS_RESTORE_WIFI_SETTINGS) {
 #    ifdef ENABLE_WIFI
-        wifi_config.reset_settings();
+        WebUI::wifi_config.reset_settings();
 #    endif
 #    ifdef ENABLE_BLUETOOTH
-        bt_config.reset_settings();
+        WebUI::bt_config.reset_settings();
 #    endif
     }
 #endif
@@ -76,11 +76,15 @@ void load_settings() {
 
 extern void make_settings();
 extern void make_grbl_commands();
-extern void make_web_settings();
-void        settings_init() {
+
+namespace WebUI {
+    extern void make_web_settings();
+}
+
+void settings_init() {
     EEPROM.begin(EEPROM_SIZE);
     make_settings();
-    make_web_settings();
+    WebUI::make_web_settings();
     make_grbl_commands();
     load_settings();
 }
@@ -90,7 +94,7 @@ void        settings_init() {
 // sent to gc_execute_line.  It is probably also more time-critical
 // than actual settings, which change infrequently, so handling
 // it early is probably prudent.
-uint8_t jog_set(uint8_t* value, auth_t auth_level, ESPResponseStream* out) {
+uint8_t jog_set(uint8_t* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     // Execute only if in IDLE or JOG states.
     if (sys.state != STATE_IDLE && sys.state != STATE_JOG)
         return STATUS_IDLE_ERROR;
@@ -104,17 +108,17 @@ uint8_t jog_set(uint8_t* value, auth_t auth_level, ESPResponseStream* out) {
     return gc_execute_line(line, out->client());  // NOTE: $J= is ignored inside g-code parser and used to detect jog motions.
 }
 
-err_t show_grbl_help(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t show_grbl_help(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     report_grbl_help(out->client());
     return STATUS_OK;
 }
 
-err_t report_gcode(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t report_gcode(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     report_gcode_modes(out->client());
     return STATUS_OK;
 }
 
-void show_grbl_settings(ESPResponseStream* out, type_t type, bool wantAxis) {
+void show_grbl_settings(WebUI::ESPResponseStream* out, type_t type, bool wantAxis) {
     for (Setting* s = Setting::List; s; s = s->next()) {
         if (s->getType() == type && s->getGrblName()) {
             bool isAxis = s->getAxis() != NO_AXIS;
@@ -126,19 +130,19 @@ void show_grbl_settings(ESPResponseStream* out, type_t type, bool wantAxis) {
         }
     }
 }
-err_t report_normal_settings(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t report_normal_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     show_grbl_settings(out, GRBL, false);  // GRBL non-axis settings
     show_grbl_settings(out, GRBL, true);   // GRBL axis settings
     return STATUS_OK;
 }
-err_t report_extended_settings(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t report_extended_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     show_grbl_settings(out, GRBL, false);      // GRBL non-axis settings
     show_grbl_settings(out, EXTENDED, false);  // Extended non-axis settings
     show_grbl_settings(out, GRBL, true);       // GRBL axis settings
     show_grbl_settings(out, EXTENDED, true);   // Extended axis settings
     return STATUS_OK;
 }
-err_t list_grbl_names(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t list_grbl_names(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Setting* s = Setting::List; s; s = s->next()) {
         const char* gn = s->getGrblName();
         if (gn) {
@@ -147,14 +151,14 @@ err_t list_grbl_names(const char* value, auth_t auth_level, ESPResponseStream* o
     }
     return STATUS_OK;
 }
-err_t list_settings(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t list_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Setting* s = Setting::List; s; s = s->next()) {
         const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
         show_setting(s->getName(), displayValue, NULL, out);
     }
     return STATUS_OK;
 }
-err_t list_commands(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t list_commands(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Command* cp = Command::List; cp; cp = cp->next()) {
         const char* name    = cp->getName();
         const char* oldName = cp->getGrblName();
@@ -171,7 +175,7 @@ err_t list_commands(const char* value, auth_t auth_level, ESPResponseStream* out
     }
     return STATUS_OK;
 }
-err_t toggle_check_mode(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     // Perform reset when toggling off. Check g-code mode should only work if Grbl
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
     // simple and consistent.
@@ -186,7 +190,7 @@ err_t toggle_check_mode(const char* value, auth_t auth_level, ESPResponseStream*
     }
     return STATUS_OK;
 }
-err_t disable_alarm_lock(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t disable_alarm_lock(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (sys.state == STATE_ALARM) {
         // Block if safety door is ajar.
         if (system_check_safety_door_ajar())
@@ -197,7 +201,7 @@ err_t disable_alarm_lock(const char* value, auth_t auth_level, ESPResponseStream
     }  // Otherwise, no effect.
     return STATUS_OK;
 }
-err_t report_ngc(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t report_ngc(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     report_ngc_parameters(out->client());
     return STATUS_OK;
 }
@@ -207,7 +211,20 @@ err_t home(int cycle) {
     if (system_check_safety_door_ajar())
         return (STATUS_CHECK_DOOR);  // Block if safety door is ajar.
     sys.state = STATE_HOMING;        // Set system state variable
+#ifdef USE_I2S_STEPS
+    stepper_id_t save_stepper = current_stepper;
+    if (save_stepper == ST_I2S_STREAM) {
+        stepper_switch(ST_I2S_STATIC);
+    }
+
     mc_homing_cycle(cycle);
+
+    if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {
+        stepper_switch(ST_I2S_STREAM);
+    }
+#else
+    mc_homing_cycle(cycle);
+#endif
     if (!sys.abort) {            // Execute startup scripts after successful homing.
         sys.state = STATE_IDLE;  // Set to IDLE when complete.
         st_go_idle();            // Set steppers to the settings idle state before returning.
@@ -218,32 +235,32 @@ err_t home(int cycle) {
     }
     return STATUS_OK;
 }
-err_t home_all(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t home_all(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     return home(HOMING_CYCLE_ALL);
 }
-err_t home_x(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t home_x(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     return home(HOMING_CYCLE_X);
 }
-err_t home_y(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t home_y(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     return home(HOMING_CYCLE_Y);
 }
-err_t home_z(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t home_z(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     return home(HOMING_CYCLE_Z);
 }
-err_t home_a(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t home_a(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     return home(HOMING_CYCLE_A);
 }
-err_t home_b(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t home_b(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     return home(HOMING_CYCLE_B);
 }
-err_t home_c(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     return home(HOMING_CYCLE_C);
 }
-err_t sleep_grbl(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t sleep_grbl(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     system_set_exec_state_flag(EXEC_SLEEP);
     return STATUS_OK;
 }
-err_t get_report_build_info(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t get_report_build_info(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (!value) {
         char line[128];
         settings_read_build_info(line);
@@ -257,7 +274,7 @@ err_t get_report_build_info(const char* value, auth_t auth_level, ESPResponseStr
     return STATUS_INVALID_STATEMENT;
 #endif
 }
-err_t report_startup_lines(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t report_startup_lines(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     report_startup_line(0, startup_line_0->get(), out->client());
     report_startup_line(1, startup_line_1->get(), out->client());
     return STATUS_OK;
@@ -275,7 +292,7 @@ std::map<const char*, uint8_t, cmp_str> restoreCommands = {
 #endif
     { "@", SETTINGS_RESTORE_WIFI_SETTINGS }, { "wifi", SETTINGS_RESTORE_WIFI_SETTINGS },
 };
-err_t restore_settings(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t restore_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (!value) {
         return STATUS_INVALID_STATEMENT;
     }
@@ -287,11 +304,11 @@ err_t restore_settings(const char* value, auth_t auth_level, ESPResponseStream* 
     return STATUS_OK;
 }
 
-err_t showState(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t showState(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     grbl_sendf(out->client(), "State 0x%x\r\n", sys.state);
     return STATUS_OK;
 }
-err_t doJog(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t doJog(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     // For jogging, you must give gc_execute_line() a line that
     // begins with $J=.  There are several ways we can get here,
     // including  $J, $J=xxx, [J]xxx.  For any form other than
@@ -368,7 +385,7 @@ const char* errorString(err_t errorNumber) {
     return it == ErrorCodes.end() ? NULL : it->second;
 }
 
-err_t listErrorCodes(const char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t listErrorCodes(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (value) {
         char*   endptr      = NULL;
         uint8_t errorNumber = strtol(value, &endptr, 10);
@@ -469,7 +486,7 @@ char* normalize_key(char* start) {
 
 // This is the handler for all forms of settings commands,
 // $..= and [..], with and without a value.
-err_t do_command_or_setting(const char* key, char* value, auth_t auth_level, ESPResponseStream* out) {
+err_t do_command_or_setting(const char* key, char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     // If value is NULL, it means that there was no value string, i.e.
     // $key without =, or [key] with nothing following.
     // If value is not NULL, but the string is empty, that is the form
@@ -551,7 +568,7 @@ err_t do_command_or_setting(const char* key, char* value, auth_t auth_level, ESP
     return STATUS_INVALID_STATEMENT;
 }
 
-uint8_t system_execute_line(char* line, ESPResponseStream* out, auth_t auth_level) {
+uint8_t system_execute_line(char* line, WebUI::ESPResponseStream* out, WebUI::AuthenticationLevel auth_level) {
     remove_password(line, auth_level);
 
     char* value;
@@ -585,8 +602,8 @@ uint8_t system_execute_line(char* line, ESPResponseStream* out, auth_t auth_leve
     // non-empty string - [ESPxxx]yyy or $xxx=yyy
     return do_command_or_setting(key, value, auth_level, out);
 }
-uint8_t system_execute_line(char* line, uint8_t client, auth_t auth_level) {
-    return system_execute_line(line, new ESPResponseStream(client, true), auth_level);
+uint8_t system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level) {
+    return system_execute_line(line, new WebUI::ESPResponseStream(client, true), auth_level);
 }
 
 void system_execute_startup(char* line) {

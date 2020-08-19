@@ -35,10 +35,8 @@
 
 // I2S (steppers & other output-only pins)
 #define USE_I2S_OUT
-// Define USE_I2S_OUT_STREAM if buffering is used.
-// (there will be a delay between the specified I/O operation and the actual I/O execution)
-#define USE_I2S_OUT_STREAM
-#undef USE_RMT_STEPS
+#define USE_I2S_STEPS
+//#define DEFAULT_STEPPER ST_I2S_STATIC
 
 #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 

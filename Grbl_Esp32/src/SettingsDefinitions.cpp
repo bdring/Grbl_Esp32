@@ -42,6 +42,9 @@ FloatSetting* rpm_max;
 FloatSetting* rpm_min;
 FloatSetting* spindle_delay_spinup;
 FloatSetting* spindle_delay_spindown;
+FlagSetting*  spindle_enbl_off_with_zero_speed;
+FlagSetting*  spindle_enable_invert;
+FlagSetting*  spindle_output_invert;
 
 FloatSetting* spindle_pwm_off_value;
 FloatSetting* spindle_pwm_min_value;
@@ -60,6 +63,7 @@ enum_opt_t spindleTypes = {
     { "HUANYANG", SPINDLE_TYPE_HUANYANG },
     { "BESC", SPINDLE_TYPE_BESC },
     { "10V", SPINDLE_TYPE_10V },
+    { "H2A", SPINDLE_TYPE_H2A },
     // clang-format on
 };
 
@@ -268,9 +272,16 @@ void make_settings() {
     spindle_pwm_off_value =
         new FloatSetting(EXTENDED, WG, "34", "Spindle/PWM/Off", DEFAULT_SPINDLE_OFF_VALUE, 0.0, 100.0);  // these are percentages
     // IntSetting spindle_pwm_bit_precision(EXTENDED, WG, "Spindle/PWM/Precision", DEFAULT_SPINDLE_BIT_PRECISION, 1, 16);
-    spindle_pwm_freq       = new FloatSetting(EXTENDED, WG, "33", "Spindle/PWM/Frequency", DEFAULT_SPINDLE_FREQ, 0, 100000);
+    spindle_pwm_freq      = new FloatSetting(EXTENDED, WG, "33", "Spindle/PWM/Frequency", DEFAULT_SPINDLE_FREQ, 0, 100000);
+    spindle_output_invert = new FlagSetting(GRBL, WG, NULL, "Spindle/PWM/Invert", DEFAULT_INVERT_SPINDLE_OUTPUT_PIN);
+
     spindle_delay_spinup   = new FloatSetting(EXTENDED, WG, NULL, "Spindle/Delay/SpinUp", DEFAULT_SPINDLE_DELAY_SPINUP, 0, 30);
     spindle_delay_spindown = new FloatSetting(EXTENDED, WG, NULL, "Spindle/Delay/SpinDown", DEFAULT_SPINDLE_DELAY_SPINUP, 0, 30);
+
+    spindle_enbl_off_with_zero_speed =
+        new FlagSetting(GRBL, WG, NULL, "Spindle/Enable/OffWithSpeed", DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED);
+
+    spindle_enable_invert = new FlagSetting(GRBL, WG, NULL, "Spindle/Enable/Invert", DEFAULT_INVERT_SPINDLE_ENABLE_PIN);
 
     // GRBL Non-numbered settings
     startup_line_0 = new StringSetting(GRBL, WG, "N0", "GCode/Line0", "", checkStartupLine);

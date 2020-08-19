@@ -218,24 +218,16 @@
 #endif
 #define INVERT_CONTROL_PIN_MASK B11111111
 
-// Grbl_ESP32 use the ESP32's special RMT (IR remote control) hardware
-// engine to achieve more precise high step rates than can be done
-// in software.  That feature is enabled by default, but there are
-// some machines that might not want to use it, such as machines that
-// do not use ordinary stepper motors.  To turn it off, do this:
-#undef USE_RMT_STEPS
-
 //
 // I2S (steppers & other output-only pins)
 //
 #define USE_I2S_OUT
+#define USE_I2S_STEPS
+//#define DEFAULT_STEPPER ST_I2S_STATIC
 #define I2S_OUT_BCK      GPIO_NUM_22
 #define I2S_OUT_WS       GPIO_NUM_17
 #define I2S_OUT_DATA     GPIO_NUM_21
-// Define USE_I2S_OUT_STREAM if buffering is used.
-// (there will be a delay between the specified I/O operation and the actual I/O execution)
 #define I2S_OUT_NUM_BITS 16
-#define USE_I2S_OUT_STREAM
 
 // === Special Features
 // Grbl_ESP32 can support non-Cartesian machines and some other

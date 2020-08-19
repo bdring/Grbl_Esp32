@@ -23,6 +23,7 @@
 */
 
 #include "Grbl.h"
+#include <cstring>
 
 #define MAX_INT_DIGITS 8  // Maximum number of digits in int32 (and float)
 
@@ -187,4 +188,23 @@ float mapConstrain(float x, float in_min, float in_max, float out_min, float out
 
 bool char_is_numeric(char value) {
     return (value >= '0' && value <= '9');
+}
+
+char* trim(char* str) {
+    char* end;
+    // Trim leading space
+    while (::isspace((unsigned char)*str)) {
+        str++;
+    }
+    if (*str == 0) {  // All spaces?
+        return str;
+    }
+    // Trim trailing space
+    end = str + ::strlen(str) - 1;
+    while (end > str && ::isspace((unsigned char)*end)) {
+        end--;
+    }
+    // Write new null terminator character
+    end[1] = '\0';
+    return str;
 }

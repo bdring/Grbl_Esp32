@@ -204,9 +204,11 @@ void limits_go_home(uint8_t cycle_mask) {
                 }
             }
         } while (STEP_MASK & axislock);
-#ifdef USE_I2S_OUT_STREAM
-        if (!approach) {
-            delay_ms(I2S_OUT_DELAY_MS);
+#ifdef USE_I2S_STEPS
+        if (current_stepper == ST_I2S_STREAM) {
+            if (!approach) {
+                delay_ms(I2S_OUT_DELAY_MS);
+            }
         }
 #endif
         st_reset();                        // Immediately force kill steppers and reset step segment buffer.
@@ -295,17 +297,18 @@ void limits_init() {
                 } else {
                     detachInterrupt(pin);
                 }
+                /* 
+                // Change to do this once. limits_init() happens often
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MSG_LEVEL_INFO,
                                "%c%s Axis limit switch on pin %s",
                                report_get_axis_letter(axis),
                                gang_index ? "2" : " ",
                                pinName(pin).c_str());
+                */
             }
         }
     }
-
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Limit Mask %d", limit_mask);
 
     // setup task used for debouncing
     limit_sw_queue = xQueueCreate(10, sizeof(int));
