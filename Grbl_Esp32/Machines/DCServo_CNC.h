@@ -46,8 +46,8 @@
 //#define A_LIMIT_PIN             GPIO_NUM_25
 //#define A_two_LIMIT_PIN         GPIO_NUM_27 
 
-#define COOLANT_MIST_PIN        GPIO_NUM_14  // labeled Mist
-#define COOLANT_FLOOD_PIN       GPIO_NUM_12  // labeled Flood
+#define COOLANT_MIST_PIN        GPIO_NUM_8  // labeled Mist
+#define COOLANT_FLOOD_PIN       GPIO_NUM_7  // labeled Flood
 #define PROBE_PIN               GPIO_NUM_13  // labeled Probe
 
 
