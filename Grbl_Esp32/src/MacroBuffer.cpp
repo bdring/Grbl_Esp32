@@ -1,5 +1,5 @@
 /*
-  InputBuffer.cpp -  inputbuffer functions class
+  MacroBuffer.cpp -  for injecting macro data as an input stream
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
 
