@@ -27,24 +27,22 @@
 
 // // Pin assignments for the Buildlog.net MPCNC controller
 
-
-
 #define MACHINE_NAME "MPCNC_V1P2"
 
+#define DEFAULT_HOMING_SQUARED_AXES (bit(X_AXIS) | bit(Y_AXIS))
+
 #define X_STEP_PIN      GPIO_NUM_12
-#define X2_STEP_PIN     GPIO_NUM_22      // ganged motor
-#define X_AXIS_SQUARING
+#define X2_STEP_PIN     GPIO_NUM_22  // ganged motor
 
 #define Y_STEP_PIN      GPIO_NUM_14
 #define Y2_STEP_PIN     GPIO_NUM_21  // ganged motor
-#define Y_AXIS_SQUARING
 
 #define Z_STEP_PIN      GPIO_NUM_27
 
 #define X_DIRECTION_PIN GPIO_NUM_26
-#define X2_DIRECTION_PIN    X_DIRECTION_PIN
+#define X2_DIRECTION_PIN X_DIRECTION_PIN
 #define Y_DIRECTION_PIN GPIO_NUM_25
-#define Y2_DIRECTION_PIN    Y_DIRECTION_PIN
+#define Y2_DIRECTION_PIN Y_DIRECTION_PIN
 #define Z_DIRECTION_PIN GPIO_NUM_33
 
 // OK to comment out to use pin for other features
@@ -58,9 +56,9 @@
     #define SPINDLE_OUTPUT_PIN GPIO_NUM_2
 #else
     #define SPINDLE_TYPE SPINDLE_TYPE_PWM
-    #define SPINDLE_OUTPUT_PIN         GPIO_NUM_16
+    #define SPINDLE_OUTPUT_PIN GPIO_NUM_16
 
-    #define SPINDLE_ENABLE_PIN      GPIO_NUM_32
+    #define SPINDLE_ENABLE_PIN GPIO_NUM_32
 #endif
 
 // Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
@@ -77,7 +75,6 @@
     #define ENABLE_SOFTWARE_DEBOUNCE
 #endif
 
-
 #define PROBE_PIN               GPIO_NUM_35
 
 // The default value in config.h is wrong for this controller
@@ -86,7 +83,6 @@
 #endif
 
 #define INVERT_CONTROL_PIN_MASK B1110
-
 
 #define CONTROL_RESET_PIN           GPIO_NUM_34  // needs external pullup
 #define CONTROL_FEED_HOLD_PIN       GPIO_NUM_36  // needs external pullup
@@ -101,7 +97,7 @@
 #define DEFAULT_INVERT_LIMIT_PINS       1 // boolean
 #define DEFAULT_INVERT_PROBE_PIN        0 // boolean
 
-#define DEFAULT_STATUS_REPORT_MASK      1
+#define DEFAULT_STATUS_REPORT_MASK 1
 
 #define DEFAULT_JUNCTION_DEVIATION  0.01 // mm
 #define DEFAULT_ARC_TOLERANCE       0.002 // mm
