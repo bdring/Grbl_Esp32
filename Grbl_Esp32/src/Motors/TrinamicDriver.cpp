@@ -23,10 +23,10 @@
 
 namespace Motors {
     TrinamicDriver::TrinamicDriver(uint8_t  axis_index,
-                                   uint8_t  step_pin,
-                                   uint8_t  dir_pin,
-                                   uint8_t  disable_pin,
-                                   uint8_t  cs_pin,
+                                   Pin      step_pin,
+                                   Pin      dir_pin,
+                                   Pin      disable_pin,
+                                   Pin      cs_pin,
                                    uint16_t driver_part_number,
                                    float    r_sense,
                                    int8_t   spi_index) {
@@ -57,8 +57,8 @@ namespace Motors {
 
         init_step_dir_pins();  // from StandardStepper
 
-        digitalWrite(cs_pin, HIGH);
-        pinMode(cs_pin, OUTPUT);
+        cs_pin.write(HIGH);
+        cs_pin.setMode(OUTPUT);
 
         // use slower speed if I2S
         if (cs_pin >= I2S_OUT_PIN_BASE)
@@ -90,10 +90,10 @@ namespace Motors {
                        "%s Axis Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d",
                        _axis_name,
                        _driver_part_number,
-                       pinName(step_pin).c_str(),
-                       pinName(dir_pin).c_str(),
-                       pinName(cs_pin).c_str(),
-                       pinName(disable_pin).c_str(),
+                       step_pin.name().c_str(),
+                       dir_pin.name().c_str(),
+                       cs_pin.name().c_str(),
+                       disable_pin.name().c_str(),
                        spi_index);
     }
 
@@ -217,16 +217,17 @@ namespace Motors {
     void TrinamicDriver::set_disable(bool disable) {
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis disable %d", _axis_name, disable);
 
-        digitalWrite(disable_pin, disable);
+        disable_pin.write(disable);
 
 #ifdef USE_TRINAMIC_ENABLE
         if (disable)
             tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
         else {
-            if (_mode == TRINAMIC_MODE_STEALTHCHOP)
+            if (_mode == TRINAMIC_MODE_STEALTHCHOP) {
                 tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
-            else
+            } else {
                 tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
+            }
         }
 #endif
         // the pin based enable could be added here.

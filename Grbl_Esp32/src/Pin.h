@@ -66,6 +66,11 @@ public:
         return detail->setPWMDuty(duty);
     }
 
+    inline String name() const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        return detail->toString();
+    }
+
     inline ~Pin() = default;
 
     static Pin Create(String str);

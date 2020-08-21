@@ -22,6 +22,7 @@
 
 */
 #include "Spindle.h"
+#include "../Pin.h"
 
 namespace Spindles {
     // This adds support for PWM
@@ -50,9 +51,9 @@ namespace Spindles {
         uint32_t _pwm_off_value;
         uint32_t _pwm_min_value;
         uint32_t _pwm_max_value;
-        uint8_t  _output_pin;
-        uint8_t  _enable_pin;
-        uint8_t  _direction_pin;
+        Pin      _output_pin;
+        Pin      _enable_pin;
+        Pin      _direction_pin;
         uint8_t  _pwm_chan_num;
         uint32_t _pwm_freq;
         uint32_t _pwm_period;  // how many counts in 1 period
@@ -66,7 +67,7 @@ namespace Spindles {
         virtual void set_output(uint32_t duty);
         virtual void set_enable_pin(bool enable_pin);
 
-        void         get_pins_and_settings();
-        uint8_t      calc_pwm_precision(uint32_t freq);
+        void    get_pins_and_settings();
+        uint8_t calc_pwm_precision(uint32_t freq);
     };
 }
