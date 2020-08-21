@@ -48,8 +48,8 @@ namespace Spindles {
 
         virtual ~_10v() {}
 
-        uint8_t _forward_pin;
-        uint8_t _reverse_pin;
+        Pin _forward_pin;
+        Pin _reverse_pin;
 
     protected:
         void set_enable_pin(bool enable_pin) override;

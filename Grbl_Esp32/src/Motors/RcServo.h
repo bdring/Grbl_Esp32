@@ -20,6 +20,7 @@
 */
 
 #include "Motor.h"
+#include "../Pin.h"
 
 #include "RcServoSettings.h"
 
@@ -28,6 +29,7 @@ namespace Motors {
     public:
         RcServo();
         RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max);
+
         virtual void config_message();
         virtual void init();
         void         _write_pwm(uint32_t duty);
@@ -40,7 +42,7 @@ namespace Motors {
         void set_location();
         void _get_calibration();
 
-        uint8_t  _pwm_pin;
+        Pin      _pwm_pin;
         uint8_t  _channel_num;
         uint32_t _current_pwm_duty;
         bool     _disabled;

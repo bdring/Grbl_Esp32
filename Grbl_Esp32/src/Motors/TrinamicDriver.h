@@ -21,6 +21,8 @@
 
 #include "Motor.h"
 #include "StandardStepper.h"
+#include "../Pin.h"
+
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 
 #define TRINAMIC_MODE_STEALTHCHOP 0  // very quiet
@@ -62,10 +64,10 @@ namespace Motors {
     class TrinamicDriver : public StandardStepper {
     public:
         TrinamicDriver(uint8_t  axis_index,
-                       uint8_t  step_pin,
-                       uint8_t  dir_pin,
-                       uint8_t  disable_pin,
-                       uint8_t  cs_pin,
+                       Pin      step_pin,
+                       Pin      dir_pin,
+                       Pin      disable_pin,
+                       Pin      cs_pin,
                        uint16_t driver_part_number,
                        float    r_sense,
                        int8_t   spi_index);
@@ -86,7 +88,7 @@ namespace Motors {
 
         TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
         uint8_t         _homing_mode;
-        uint8_t         cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
+        Pin             cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
         uint16_t        _driver_part_number;     // example: use 2130 for TMC2130
         float           _r_sense;
         int8_t          spi_index;
