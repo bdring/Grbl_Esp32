@@ -2,6 +2,7 @@
 
 #include "Pins/PinLookup.h"
 #include "Pins/PinDetail.h"
+#include "Pins/PinTraits.h"
 
 #include <cstdint>
 #include <cstring>
@@ -14,11 +15,19 @@ class Pin {
     inline Pin(uint8_t index) : _index(index) {}
 
 public:
+    using Traits = Pins::PinTraits;
+
     inline Pin(const Pin& o) = default;
     inline Pin(Pin&& o)      = default;
 
     inline Pin& operator=(const Pin& o) = default;
     inline Pin& operator=(Pin&& o) = default;
+
+    inline uint8_t getNative(Traits expectedBehavior) const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        Assert(detail->traits().has(expectedBehavior), "Requested pin does not have the expected behavior.");
+        return _index;
+    }
 
     inline void write(bool high) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
