@@ -1,11 +1,14 @@
 #pragma once
 
 #include "PinTraits.h"
+#include "PinOptionsParser.h"
 
 #include <WString.h>
 #include <cstdint>
+#include <cstring>
 
 namespace Pins {
+
     class PinDetail {
     public:
         PinDetail()                   = default;
@@ -16,21 +19,26 @@ namespace Pins {
 
         virtual PinTraits traits() const = 0;
 
+        // I/O:
         virtual void write(bool high)    = 0;
         virtual int  read()              = 0;
         virtual void mode(uint8_t value) = 0;
 
+        // ISR's.
+        virtual void attachInterrupt(void (*callback)(void*), void* arg, int mode);
+        virtual void detachInterrupt();
+
         // PWM
         // Returns true if successful  Deassign if frequency == 0 ?
-        virtual bool initPWM(uint32_t frequency, uint32_t maxDuty) = 0;
+        virtual bool initPWM(uint32_t frequency, uint32_t maxDuty);
 
         // Returns actual frequency which might not be exactly the same as requested(nearest supported value)
-        virtual uint32_t getPWMFrequency() = 0;
+        virtual uint32_t getPWMFrequency();
 
         // Returns actual maxDuty which might not be exactly the same as requested(nearest supported value)
-        virtual uint32_t getPWMMaxDuty() = 0;
+        virtual uint32_t getPWMMaxDuty();
 
-        virtual void setPWMDuty(uint32_t duty) = 0;
+        virtual void setPWMDuty(uint32_t duty);
 
         virtual String toString() const = 0;
 

@@ -226,7 +226,7 @@ void init_motors() {
     for (int axis = 0; axis < N_AXIS; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin = ms3_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
+            if (pin != Pin::UNDEFINED) {
                 digitalWrite(pin, HIGH);
                 pinMode(pin, OUTPUT);
             }
@@ -241,9 +241,9 @@ void init_motors() {
 
 #endif
 
-    if (STEPPERS_DISABLE_PIN != UNDEFINED_PIN) {
-        pinMode(STEPPERS_DISABLE_PIN, OUTPUT);  // global motor enable pin
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Global stepper disable pin:%s", pinName(STEPPERS_DISABLE_PIN));
+    if (STEPPERS_DISABLE_PIN != Pin::UNDEFINED) {
+        STEPPERS_DISABLE_PIN.setMode(OUTPUT);  // global motor enable pin
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Global stepper disable pin:%s", STEPPERS_DISABLE_PIN.name().c_str());
     }
 
     // certain motors need features to be turned on. Check them here
@@ -329,7 +329,7 @@ void motors_set_disable(bool disable) {
         disable = !disable;  // Apply pin invert.
     }
 
-    digitalWrite(STEPPERS_DISABLE_PIN, disable);
+    STEPPERS_DISABLE_PIN.write(disable);
 
     // now loop through all the motors to see if they can individually diable
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {

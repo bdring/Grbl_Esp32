@@ -28,7 +28,7 @@ namespace Motors {
     class RcServo : public Motor {
     public:
         RcServo();
-        RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max);
+        RcServo(uint8_t axis_index, Pin pwm_pin, float min, float max);
 
         virtual void config_message();
         virtual void init();

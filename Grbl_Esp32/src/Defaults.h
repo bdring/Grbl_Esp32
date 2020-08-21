@@ -378,124 +378,124 @@
 
 // ==================  pin defaults ========================
 
-// Here is a place to default pins to UNDEFINED_PIN.
+// Here is a place to default pins to Pin::UNDEFINED.
 // This can eliminate checking to see if the pin is defined because
 // the overridden pinMode and digitalWrite functions will deal with it.
 
 #ifndef STEPPERS_DISABLE_PIN
-#    define STEPPERS_DISABLE_PIN UNDEFINED_PIN
+#    define STEPPERS_DISABLE_PIN Pin::UNDEFINED
 #endif
 
 #ifndef X_DISABLE_PIN
-#    define X_DISABLE_PIN UNDEFINED_PIN
+#    define X_DISABLE_PIN Pin::UNDEFINED
 #endif
 #ifndef Y_DISABLE_PIN
-#    define Y_DISABLE_PIN UNDEFINED_PIN
+#    define Y_DISABLE_PIN Pin::UNDEFINED
 #endif
 #ifndef Z_DISABLE_PIN
-#    define Z_DISABLE_PIN UNDEFINED_PIN
+#    define Z_DISABLE_PIN Pin::UNDEFINED
 #endif
 #ifndef A_DISABLE_PIN
-#    define A_DISABLE_PIN UNDEFINED_PIN
+#    define A_DISABLE_PIN Pin::UNDEFINED
 #endif
 #ifndef B_DISABLE_PIN
-#    define B_DISABLE_PIN UNDEFINED_PIN
+#    define B_DISABLE_PIN Pin::UNDEFINED
 #endif
 #ifndef C_DISABLE_PIN
-#    define C_DISABLE_PIN UNDEFINED_PIN
+#    define C_DISABLE_PIN Pin::UNDEFINED
 #endif
 
 #ifndef X2_DISABLE_PIN
-#    define X2_DISABLE_PIN UNDEFINED_PIN
+#    define X2_DISABLE_PIN Pin::UNDEFINED
 #endif
 #ifndef Y2_DISABLE_PIN
-#    define Y2_DISABLE_PIN UNDEFINED_PIN
+#    define Y2_DISABLE_PIN Pin::UNDEFINED
 #endif
 #ifndef Z2_DISABLE_PIN
-#    define Z2_DISABLE_PIN UNDEFINED_PIN
+#    define Z2_DISABLE_PIN Pin::UNDEFINED
 #endif
 #ifndef A2_DISABLE_PIN
-#    define A2_DISABLE_PIN UNDEFINED_PIN
+#    define A2_DISABLE_PIN Pin::UNDEFINED
 #endif
 #ifndef B2_DISABLE_PIN
-#    define B2_DISABLE_PIN UNDEFINED_PIN
+#    define B2_DISABLE_PIN Pin::UNDEFINED
 #endif
 #ifndef C2_DISABLE_PIN
-#    define C2_DISABLE_PIN UNDEFINED_PIN
+#    define C2_DISABLE_PIN Pin::UNDEFINED
 #endif
 
 #ifndef X_LIMIT_PIN
-#    define X_LIMIT_PIN UNDEFINED_PIN
+#    define X_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef Y_LIMIT_PIN
-#    define Y_LIMIT_PIN UNDEFINED_PIN
+#    define Y_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef Z_LIMIT_PIN
-#    define Z_LIMIT_PIN UNDEFINED_PIN
+#    define Z_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef A_LIMIT_PIN
-#    define A_LIMIT_PIN UNDEFINED_PIN
+#    define A_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef B_LIMIT_PIN
-#    define B_LIMIT_PIN UNDEFINED_PIN
+#    define B_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef C_LIMIT_PIN
-#    define C_LIMIT_PIN UNDEFINED_PIN
+#    define C_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef X2_LIMIT_PIN
-#    define X2_LIMIT_PIN UNDEFINED_PIN
+#    define X2_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef Y2_LIMIT_PIN
-#    define Y2_LIMIT_PIN UNDEFINED_PIN
+#    define Y2_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef Z2_LIMIT_PIN
-#    define Z2_LIMIT_PIN UNDEFINED_PIN
+#    define Z2_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef A2_LIMIT_PIN
-#    define A2_LIMIT_PIN UNDEFINED_PIN
+#    define A2_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef B2_LIMIT_PIN
-#    define B2_LIMIT_PIN UNDEFINED_PIN
+#    define B2_LIMIT_PIN Pin::UNDEFINED
 #endif
 #ifndef C2_LIMIT_PIN
-#    define C2_LIMIT_PIN UNDEFINED_PIN
+#    define C2_LIMIT_PIN Pin::UNDEFINED
 #endif
 
-// assigned all MS3 (microstep pin 3) to UNDEFINED_PIN
+// assigned all MS3 (microstep pin 3) to Pin::UNDEFINED
 
 #ifndef X_STEPPER_MS3
-#    define X_STEPPER_MS3 UNDEFINED_PIN
+#    define X_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef Y_STEPPER_MS3
-#    define Y_STEPPER_MS3 UNDEFINED_PIN
+#    define Y_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef Z_STEPPER_MS3
-#    define Z_STEPPER_MS3 UNDEFINED_PIN
+#    define Z_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef A_STEPPER_MS3
-#    define A_STEPPER_MS3 UNDEFINED_PIN
+#    define A_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef B_STEPPER_MS3
-#    define B_STEPPER_MS3 UNDEFINED_PIN
+#    define B_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef C_STEPPER_MS3
-#    define C_STEPPER_MS3 UNDEFINED_PIN
+#    define C_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef X2_STEPPER_MS3
-#    define X2_STEPPER_MS3 UNDEFINED_PIN
+#    define X2_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef Y2_STEPPER_MS3
-#    define Y2_STEPPER_MS3 UNDEFINED_PIN
+#    define Y2_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef Z2_STEPPER_MS3
-#    define Z2_STEPPER_MS3 UNDEFINED_PIN
+#    define Z2_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef A2_STEPPER_MS3
-#    define A2_STEPPER_MS3 UNDEFINED_PIN
+#    define A2_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef B2_STEPPER_MS3
-#    define B2_STEPPER_MS3 UNDEFINED_PIN
+#    define B2_STEPPER_MS3 Pin::UNDEFINED
 #endif
 #ifndef C2_STEPPER_MS3
-#    define C2_STEPPER_MS3 UNDEFINED_PIN
+#    define C2_STEPPER_MS3 Pin::UNDEFINED
 #endif

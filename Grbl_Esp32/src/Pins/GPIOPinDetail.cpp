@@ -9,11 +9,23 @@ extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 // TODO FIXME: ISR, PWM, etc
 
 namespace Pins {
-    GPIOPinDetail::GPIOPinDetail(uint8_t index, const String& options) : _index(index) {}
+    GPIOPinDetail::GPIOPinDetail(uint8_t index, const PinOptionsParser& options) : _index(index) {
+        // TODO: Handle options...
+    }
+
+    PinTraits GPIOPinDetail::traits() const {
+        // TODO FIXME: Depending on the pin info, we might want to add information like
+        // internal pullups.
+
+        return PinTraits::Native | PinTraits::Input | PinTraits::Output | PinTraits::PWM | PinTraits::ISR;
+    }
 
     void GPIOPinDetail::write(bool high) { __digitalWrite(_index, high); }
     int  GPIOPinDetail::read() { return __digitalRead(_index); }
     void GPIOPinDetail::mode(uint8_t value) { __pinMode(_index, value); }
+
+    void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) { ::attachInterruptArg(_index, callback, arg, mode); }
+    void GPIOPinDetail::detachInterrupt() { ::detachInterrupt(_index); }
 
     bool GPIOPinDetail::initPWM(uint32_t frequency, uint32_t maxDuty) {
         // TODO FIXME: Implement
@@ -37,6 +49,6 @@ namespace Pins {
         throw "Notimplemented";
     }
 
-    String GPIOPinDetail::toString() { return "GPIO." + int(_index); }
+    String GPIOPinDetail::toString() const { return "GPIO." + int(_index); }
 
 }

@@ -1,6 +1,8 @@
 #include "Pin.h"
 #include "I2SOut.h"
 
+#include "Pins/PinOptionsParser.h"
+
 // Pins:
 #include "Pins/GPIOPinDetail.h"
 #include "Pins/I2SPinDetail.h"
@@ -34,14 +36,23 @@ Pin Pin::Create(String str) {
         options = str.substring(idx - str.begin());
     }
 
+    // What would be a simple, practical way to parse the options? I figured, why not 
+    // just use the C-style string, convert it to lower case, and change the separators 
+    // into 'nul' tokens. We then pass the number of 'nul' tokens, and the first char*
+    // which is pretty easy to parse.
+
     // Build this pin:
     Pins::PinDetail* pinImplementation = nullptr;
+
+    // Build an options parser:
+    Pins::PinOptionsParser parser(options.begin(), options.end());
+
     if (prefix == "gpio") {
-        pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), options);
+        pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
     }
 #ifdef USE_I2S_OUT
     else if (prefix == "i2s") {
-        pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), options);
+        pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), parser);
     }
 #endif
 
@@ -50,3 +61,6 @@ Pin Pin::Create(String str) {
 
     return Pin(uint8_t(pinNumber));
 }
+
+Pin Pin::ERROR(255);
+Pin Pin::UNDEFINED(254);

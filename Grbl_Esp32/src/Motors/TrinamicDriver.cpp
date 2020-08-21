@@ -44,11 +44,13 @@ namespace Motors {
         _homing_mode = TRINAMIC_HOMING_MODE;
         _homing_mask = 0;  // no axes homing
 
-        if (_driver_part_number == 2130)
-            tmcstepper = new TMC2130Stepper(cs_pin, _r_sense, spi_index);
-        else if (_driver_part_number == 5160)
-            tmcstepper = new TMC5160Stepper(cs_pin, _r_sense, spi_index);
-        else {
+        if (_driver_part_number == 2130) {
+            auto native_cs_pin = cs_pin.getNative(Pin::Traits::Output);
+            tmcstepper         = new TMC2130Stepper(native_cs_pin, _r_sense, spi_index);
+        } else if (_driver_part_number == 5160) {
+            auto native_cs_pin = cs_pin.getNative(Pin::Traits::Output);
+            tmcstepper         = new TMC5160Stepper(native_cs_pin, _r_sense, spi_index);
+        } else {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Trinamic unsupported p/n:%d", _driver_part_number);
             return;
         }
@@ -61,8 +63,9 @@ namespace Motors {
         cs_pin.setMode(OUTPUT);
 
         // use slower speed if I2S
-        if (cs_pin >= I2S_OUT_PIN_BASE)
+        if (cs_pin.traits().has(Pin::Traits::I2S)) {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
+        }
 
         config_message();
 

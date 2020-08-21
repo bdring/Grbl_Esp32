@@ -88,7 +88,7 @@ namespace Motors {
 
         TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
         uint8_t         _homing_mode;
-        Pin             cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
+        Pin             cs_pin = Pin::UNDEFINED;  // The chip select pin (can be the same for daisy chain)
         uint16_t        _driver_part_number;     // example: use 2130 for TMC2130
         float           _r_sense;
         int8_t          spi_index;
