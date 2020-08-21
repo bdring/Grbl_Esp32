@@ -1,117 +1,63 @@
 #pragma once
 
+#include "Pins/PinLookup.h"
+#include "Pins/PinDetail.h"
+
 #include <cstdint>
 #include <cstring>
-#include <string>
 
-class Pin;
-
-namespace Pins {
-    class PinDetail {
-    private:
-        friend class Pin;
-        int referenceCount_ = 0;
-
-    public:
-        PinDetail()                   = default;
-        PinDetail(const PinDetail& o) = delete;
-        PinDetail(PinDetail&& o)      = delete;
-        PinDetail& operator=(const PinDetail& o) = delete;
-        PinDetail& operator=(PinDetail&& o) = delete;
-
-        virtual void Write(bool high)    = 0;
-        virtual int  Read()              = 0;
-        virtual void Mode(uint8_t value) = 0;
-
-        virtual String ToString() = 0;
-
-        virtual ~PinDetail() {}
-    };
-}
+class String;
 
 class Pin {
-    Pins::PinDetail* detail = nullptr;
+    uint8_t _index;
 
-    inline Pin(Pins::PinDetail* detail) {
-        this->detail = detail;
-        ++detail->referenceCount_;
-    }
-
-    static uint8_t ParseUI8(const char* str, const char* end) {
-        // Parses while ignoring '_', '(' and ')'. Kinda retains backward compatibility
-        uint8_t value = 0;
-        for (; str != end; ++str) {
-            if (*str >= '0' && *str <= '9') {
-                value = value * 10 + uint8_t(*str - '0');
-            } else if (*str == '(' || *str == ')' || *str == '_') {
-            } else {
-                // Some error.
-            }
-        }
-        return value;
-    }
+    inline Pin(uint8_t index) : _index(index) {}
 
 public:
-    inline Pin(const Pin& o) {}
+    inline Pin(const Pin& o) = default;
+    inline Pin(Pin&& o)      = default;
 
-    inline Pin(Pin&& o) {
-        // Swap
-        auto tmp = o.detail;
-        o.detail = detail;
-        detail   = tmp;
+    inline Pin& operator=(const Pin& o) = default;
+    inline Pin& operator=(Pin&& o) = default;
+
+    inline void write(bool high) const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        detail->write(high);
     }
 
-    inline Pin& operator=(const Pin& o) {
-        if (this != &o) {
-            if (o.detail != nullptr) {
-                o.detail->referenceCount_++;
-            }
-
-            this->~Pin();
-
-            this->detail = o.detail;
-        }
-        return *this;
+    inline int read() const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        return detail->read();
     }
 
-    inline Pin& operator=(Pin&& o) {
-        // Swap
-        auto tmp = o.detail;
-        o.detail = detail;
-        detail   = tmp;
+    inline void setMode(uint8_t value) const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        detail->mode(value);
     }
 
-    inline void Write(bool high) {
-        if (detail) {
-            detail->Write(high);
-        } else {
-            // ???
-        }
+    inline bool initPWM(uint32_t frequency, uint32_t maxDuty) const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        detail->initPWM(frequency, maxDuty);
     }
 
-    inline int Read() {
-        if (detail) {
-            return detail->Read();
-        } else {
-            // ???
-            return -1;
-        }
+    // Returns actual frequency which might not be exactly the same as requested(nearest supported value)
+    inline uint32_t getPWMFrequency() const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        return detail->getPWMFrequency();
     }
 
-    inline void Mode(uint8_t value) {
-        if (detail) {
-            detail->Mode(value);
-        }
+    // Returns actual maxDuty which might not be exactly the same as requested(nearest supported value)
+    inline uint32_t getPWMMaxDuty() const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        return detail->getPWMMaxDuty();
     }
 
-    inline ~Pin() {
-        if (detail != nullptr) {
-            --detail->referenceCount_;
-            if (detail->referenceCount_ == 0) {
-                delete detail;
-            }
-        }
+    inline void setPWMDuty(uint32_t duty) const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        return detail->setPWMDuty(duty);
     }
+
+    inline ~Pin() = default;
 
     static Pin Create(String str);
 };
