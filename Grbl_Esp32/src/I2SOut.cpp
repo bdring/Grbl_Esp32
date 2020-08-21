@@ -52,7 +52,7 @@
 
 #    include <stdatomic.h>
 
-#    include "Pins.h"
+#    include "Pin.h"
 #    include "I2SOut.h"
 
 //
@@ -344,7 +344,8 @@ static int IRAM_ATTR i2s_fillout_dma_buffer(lldesc_t* dma_desc) {
                         (*i2s_out_pulse_func)();          // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT
                         I2S_OUT_PULSER_ENTER_CRITICAL();  // Lock again.
                         // Calculate pulse period. About magic number 2, refer to the st_wake_up(). (Ad hoc delay value)
-                        i2s_out_remain_time_until_next_pulse = i2s_out_pulse_period - I2S_OUT_USEC_PER_PULSE * (o_dma.rw_pos - old_rw_pos) + 2;
+                        i2s_out_remain_time_until_next_pulse =
+                            i2s_out_pulse_period - I2S_OUT_USEC_PER_PULSE * (o_dma.rw_pos - old_rw_pos) + 2;
                         if (i2s_out_pulser_status == WAITING) {
                             // i2s_out_set_passthrough() has called from the pulse function.
                             // It needs to go into pass-through mode.

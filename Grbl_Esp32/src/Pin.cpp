@@ -1,63 +1,52 @@
 #include "Pin.h"
 #include "I2SOut.h"
 
-#define I2S_OUT_PIN_BASE 128
-
-extern "C" int  __digitalRead(uint8_t pin);
-extern "C" void __pinMode(uint8_t pin, uint8_t mode);
-extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
-
-namespace Pins {
-    class GPIOPinDetail : public PinDetail {
-        uint8_t _index;
-
-    public:
-        GPIOPinDetail(uint8_t index) : _index(index) {}
-
-        // GPIO_NUM_3 maps to 3, so we can simply do it like this:
-        void Write(bool high) override { __digitalWrite(_index, high); }
-        int  Read() override { return __digitalRead(_index); }
-        void Mode(uint8_t value) override { __pinMode(_index, value); }
-
-        String ToString() override { return "GPIO_" + int(_index); }
-
-        ~GPIOPinDetail() override {}
-    };
-
-#ifdef USE_I2S_OUT
-    class I2SPinDetail : public PinDetail {
-        uint8_t _index;
-
-    public:
-        I2SPinDetail(uint8_t index) : _index(index) {}
-
-        // GPIO_NUM_3 maps to 3, so we can simply do it like this:
-        void Write(bool high) override { i2s_out_write(pin, val); }
-        int  Read() override { return i2s_out_state(pin); }
-        void Mode(uint8_t value) override {
-            // I2S out pins cannot be configured, hence there
-            // is nothing to do here for them.
-        }
-
-        String ToString() override { return "I2S_" + int(_index); }
-
-        ~I2SPinDetail() override {}
-    };
-#endif
-}
+// Pins:
+#include "Pins/GPIOPinDetail.h"
+#include "Pins/I2SPinDetail.h"
 
 Pin Pin::Create(String str) {
-    if (str.startsWith("GPIO_NUM")) {  // For compatibility
-        return Pin(new Pins::GPIOPinDetail(ParseUI8(str.begin() + 8, str.end())));
-    } else if (str.startsWith("GPIO")) {
-        return Pin(new Pins::GPIOPinDetail(ParseUI8(str.begin() + 4, str.end())));
+    // Parse the definition: [GPIO].[pinNumber]:[attributes]
+
+    auto nameStart = str.begin();
+    auto idx       = nameStart;
+    for (; idx != str.end() && *idx != '.' && *idx != ':'; ++idx) {
+        *idx = char(::tolower(*idx));
+    }
+    String prefix = str.substring(0, idx - str.begin());
+
+    if (idx != str.end()) {  // skip '.'
+        ++idx;
+    }
+    Assert(idx != str.end(), "Incorrect pin definition.");
+
+    int pinNumber = 0;
+    for (; idx != str.end() && *idx >= '0' && *idx <= '9'; ++idx) {
+        pinNumber = pinNumber * 10 + int(*idx - '0');
+    }
+    Assert(pinNumber >= 0 && pinNumber <= 255, "Pin number has to be between [0,255].");
+
+    String options;
+    if (idx != str.end()) {
+        Assert(*idx == ':', "Pin definition attributes or EOF expected.");
+        ++idx;
+
+        options = str.substring(idx - str.begin());
+    }
+
+    // Build this pin:
+    Pins::PinDetail* pinImplementation = nullptr;
+    if (prefix == "gpio") {
+        pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), options);
     }
 #ifdef USE_I2S_OUT
-    else if (str.startsWith("I2S")) {
-        return Pin(new Pins::I2SPinDetail(ParseUI8(str.begin() + 3, str.end())));
+    else if (prefix == "i2s") {
+        pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), options);
     }
 #endif
-    else {
-        // Some fancy error
-    }
+
+    // Register:
+    Pins::PinLookup::_instance.SetPin(uint8_t(pinNumber), pinImplementation);
+
+    return Pin(uint8_t(pinNumber));
 }

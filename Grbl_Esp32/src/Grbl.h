@@ -55,7 +55,7 @@
 #include "Protocol.h"
 #include "Report.h"
 #include "Serial.h"
-#include "Pins.h"
+#include "Pin.h"
 #include "Spindles/Spindle.h"
 #include "Motors/Motors.h"
 #include "Stepper.h"
