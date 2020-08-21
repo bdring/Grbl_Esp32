@@ -46,7 +46,7 @@ public:
 
     inline bool initPWM(uint32_t frequency, uint32_t maxDuty) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        detail->initPWM(frequency, maxDuty);
+        return detail->initPWM(frequency, maxDuty);
     }
 
     // Returns actual frequency which might not be exactly the same as requested(nearest supported value)

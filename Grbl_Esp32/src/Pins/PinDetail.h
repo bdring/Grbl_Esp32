@@ -5,14 +5,8 @@
 #include <WString.h>
 #include <cstdint>
 
-class Pin;
-
 namespace Pins {
     class PinDetail {
-    private:
-        friend class Pin;
-        int referenceCount_ = 0;
-
     public:
         PinDetail()                   = default;
         PinDetail(const PinDetail& o) = delete;

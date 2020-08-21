@@ -13,22 +13,38 @@ namespace Pins {
     private:
         // There are 2^^8 instances max (uint8_t limits), so this is the complete set. We could
         // probably do with less, but this is as safe as it gets.
-        PinDetail* pins[256];
+        PinDetail* _pins[256];
+
+        // Should be plenty for the GPIO _pins:
+        static const int NumberNativePins = 64;
 
     public:
-        PinLookup() { memset(pins, 0, sizeof(pins)); }
+        PinLookup() { memset(_pins, 0, sizeof(_pins)); }
 
-        void SetPin(uint8_t index, PinDetail* value) {
-            // TODO FIXME: Map GPIO pins to [index], map all other pins to the first available slot (>= 32)
+        uint8_t SetPin(uint8_t suggestedIndex, PinDetail* value) {
+            int realIndex = -1;
+            if (value->traits().has(Pins::PinTraits::Native)) {
+                realIndex = suggestedIndex;
+            } else {
+                // Search for the first available pin index:
+                int i;
+                for (i = NumberNativePins; i <= 255 && _pins[i] != nullptr; ++i) {}
+                if (i != 256) {
+                    realIndex = i;
+                }
+            }
+
             // TODO FIXME: Check if this pin is not already mapped to something else.
 
-            Assert(pins[index] == nullptr, "Pin is defined multiple times.");
-            pins[index] = value;
+            Assert(suggestedIndex >= 0 && suggestedIndex <= 255, "Pin index out of range.");
+            Assert(_pins[realIndex] == nullptr, "Pin is defined multiple times.");
+
+            _pins[realIndex] = value;
         }
 
         PinDetail* GetPin(uint8_t index) const {
-            Assert(pins[index] != nullptr, "Pin is not defined. Cannot use this pin.");
-            return pins[index];
+            Assert(_pins[index] != nullptr, "Pin is not defined. Cannot use this pin.");
+            return _pins[index];
         }
 
         PinLookup(const PinLookup&) = delete;
