@@ -29,6 +29,6 @@ namespace Pins {
 
         inline operator bool() { return _value != 0; }
 
-        inline bool Has(PinTraits t) { return (*this & t).operator bool(); }
+        inline bool has(PinTraits t) { return (*this & t).operator bool(); }
     };
 }
