@@ -248,7 +248,11 @@ namespace Spindles {
             return;
         }
 
-        if (uart_set_pin(VFD_RS485_UART_PORT, _txd_pin, _rxd_pin, _rts_pin, UART_PIN_NO_CHANGE) != ESP_OK) {
+        auto txd_pin = _txd_pin.getNative(Pin::Traits::Native);
+        auto rxd_pin = _rxd_pin.getNative(Pin::Traits::Native);
+        auto rts_pin = _rts_pin.getNative(Pin::Traits::Native);
+
+        if (uart_set_pin(VFD_RS485_UART_PORT, txd_pin, rxd_pin, rts_pin, UART_PIN_NO_CHANGE) != ESP_OK) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 VFD uart pin config failed");
             return;
         }
@@ -330,9 +334,9 @@ namespace Spindles {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
                        "VFD RS485  Tx:%s Rx:%s RTS:%s",
-                       pinName(_txd_pin).c_str(),
-                       pinName(_rxd_pin).c_str(),
-                       pinName(_rts_pin).c_str());
+                       _txd_pin.name().c_str(),
+                       _rxd_pin.name().c_str(),
+                       _rts_pin.name().c_str());
     }
 
     void VFD::set_state(uint8_t state, uint32_t rpm) {

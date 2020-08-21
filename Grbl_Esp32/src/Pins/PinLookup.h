@@ -34,12 +34,15 @@ namespace Pins {
                 }
             }
 
-            // TODO FIXME: Check if this pin is not already mapped to something else.
+            // TODO FIXME: Check if this pin is not defined multiple times!
 
-            Assert(suggestedIndex >= 0 && suggestedIndex <= 255, "Pin index out of range.");
+            // NOTE: 254 and 255 are reserved pins for 'undefined' and 'error'
+            Assert(suggestedIndex >= 0 && suggestedIndex <= 253, "Pin index out of range.");
             Assert(_pins[realIndex] == nullptr, "Pin is defined multiple times.");
 
             _pins[realIndex] = value;
+
+            return uint8_t(realIndex);
         }
 
         PinDetail* GetPin(uint8_t index) const {

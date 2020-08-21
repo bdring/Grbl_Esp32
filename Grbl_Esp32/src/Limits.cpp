@@ -39,7 +39,7 @@ xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 #    define HOMING_AXIS_LOCATE_SCALAR 5.0  // Must be > 1 to ensure limit switch is cleared.
 #endif
 
-void IRAM_ATTR isr_limit_switches() {
+void IRAM_ATTR isr_limit_switches(void* /*unused*/) {
     // Ignore limit switches if already in an alarm state or in-process of executing an alarm.
     // When in the alarm state, Grbl should have been reset or will force a reset, so any pending
     // moves in the planner and serial buffers are all cleared and newly sent blocks will be
@@ -273,8 +273,8 @@ void limits_go_home(uint8_t cycle_mask) {
     motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done
 }
 
-uint8_t limit_pins[MAX_N_AXIS][2] = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
-                                      { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
+Pin limit_pins[MAX_N_AXIS][2] = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
+                                  { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
 
 uint8_t limit_mask = 0;
 
@@ -286,14 +286,14 @@ void limits_init() {
 #endif
     for (int axis = 0; axis < N_AXIS; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin;
-            if ((pin = limit_pins[axis][gang_index]) != UNDEFINED_PIN) {
-                pinMode(pin, mode);
+            Pin pin;
+            if ((pin = limit_pins[axis][gang_index]) != Pin::UNDEFINED) {
+                pin.setMode(mode);
                 limit_mask |= bit(axis);
                 if (hard_limits->get()) {
-                    attachInterrupt(pin, isr_limit_switches, CHANGE);
+                    pin.attachInterrupt(isr_limit_switches, CHANGE);
                 } else {
-                    detachInterrupt(pin);
+                    pin.detachInterrupt();
                 }
                 /* 
                 // Change to do this once. limits_init() happens often
@@ -322,9 +322,9 @@ void limits_init() {
 void limits_disable() {
     for (int axis = 0; axis < N_AXIS; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin = limit_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
-                detachInterrupt(pin);
+            auto pin = limit_pins[axis][gang_index];
+            if (pin != Pin::UNDEFINED) {
+                pin.detachInterrupt();
             }
         }
     }
@@ -337,9 +337,9 @@ uint8_t limits_get_state() {
     uint8_t pinMask = 0;
     for (int axis = 0; axis < N_AXIS; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin = limit_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
-                pinMask |= (digitalRead(pin) << axis);
+            auto pin = limit_pins[axis][gang_index];
+            if (pin != Pin::UNDEFINED) {
+                pinMask |= (pin.read() << axis);
             }
         }
     }

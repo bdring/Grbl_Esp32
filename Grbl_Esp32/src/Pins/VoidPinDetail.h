@@ -3,11 +3,12 @@
 #include "PinDetail.h"
 
 namespace Pins {
-    class GPIOPinDetail : public PinDetail {
-        uint8_t _index;
+    class VoidPinDetail : public PinDetail {
+        uint32_t _frequency;
+        uint32_t _maxDuty;
 
     public:
-        GPIOPinDetail(uint8_t index, const PinOptionsParser& options);
+        VoidPinDetail(const String& options);
 
         PinTraits traits() const override;
 
@@ -15,10 +16,6 @@ namespace Pins {
         void write(bool high) override;
         int  read() override;
         void mode(uint8_t value) override;
-
-        // ISR's:
-        void attachInterrupt(void (*callback)(void*), void* arg, int mode) override;
-        void detachInterrupt() override;
 
         // PWM
         bool     initPWM(uint32_t frequency, uint32_t maxDuty) override;
@@ -28,7 +25,7 @@ namespace Pins {
 
         String toString() const override;
 
-        ~GPIOPinDetail() override {}
+        ~VoidPinDetail() override {}
     };
 
 }

@@ -1214,7 +1214,7 @@ void IRAM_ATTR Stepper_Timer_Stop() {
 bool get_stepper_disable() {  // returns true if steppers are disabled
     bool disabled = false;
 #ifdef STEPPERS_DISABLE_PIN
-    disabled = digitalRead(STEPPERS_DISABLE_PIN);
+    disabled = STEPPERS_DISABLE_PIN.read();
 #else
     return false;  // thery are never disabled if there is no pin defined
 #endif

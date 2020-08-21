@@ -34,22 +34,24 @@ namespace Spindles {
 #ifdef SPINDLE_FORWARD_PIN
         _forward_pin = SPINDLE_FORWARD_PIN;
 #else
-        _forward_pin = UNDEFINED_PIN;
+        _forward_pin = Pin::UNDEFINED;
 #endif
 
 #ifdef SPINDLE_REVERSE_PIN
         _reverse_pin = SPINDLE_REVERSE_PIN;
 #else
-        _reverse_pin = UNDEFINED_PIN;
+        _reverse_pin = Pin::UNDEFINED;
 #endif
 
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: BESC output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
+        auto native_output = _output_pin.getNative(Pin::Traits::PWM);  // TODO FIXME: Use Pin::PWM!
+
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
+        ledcAttachPin(native_output, _pwm_chan_num);                  // attach the PWM to the pin
 
         _enable_pin.setMode(OUTPUT);
         _direction_pin.setMode(OUTPUT);
@@ -81,7 +83,7 @@ namespace Spindles {
     uint32_t _10v::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
-        if (_output_pin == UNDEFINED_PIN)
+        if (_output_pin == Pin::UNDEFINED)
             return rpm;
 
         // apply speed overrides
@@ -124,9 +126,9 @@ namespace Spindles {
 	*/
 
     uint8_t _10v::get_state() {
-        if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN)
+        if (_current_pwm_duty == 0 || _output_pin == Pin::UNDEFINED)
             return (SPINDLE_STATE_DISABLE);
-        if (_direction_pin != UNDEFINED_PIN)
+        if (_direction_pin != Pin::UNDEFINED)
             return _direction_pin.read() ? SPINDLE_STATE_CW : SPINDLE_STATE_CCW;
         return (SPINDLE_STATE_CW);
     }

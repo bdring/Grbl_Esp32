@@ -23,9 +23,13 @@ namespace Pins {
         static PinTraits PullUp;
         static PinTraits PullDown;
         static PinTraits PWM;
+        static PinTraits ISR;
+        static PinTraits I2S;
 
         inline PinTraits operator|(PinTraits rhs) { return PinTraits(_value | rhs._value); }
         inline PinTraits operator&(PinTraits rhs) { return PinTraits(_value & rhs._value); }
+        inline bool      operator==(PinTraits rhs) const { return _value == rhs._value; }
+        inline bool      operator!=(PinTraits rhs) const { return _value != rhs._value; }
 
         inline operator bool() { return _value != 0; }
 

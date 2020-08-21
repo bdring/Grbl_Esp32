@@ -48,7 +48,7 @@ void limits_go_home(uint8_t cycle_mask);
 // Check for soft limit violations
 void limits_soft_check(float* target);
 
-void isr_limit_switches();
+void isr_limit_switches(void* /*unused*/);
 
 bool axis_is_squared(uint8_t axis_mask);
 

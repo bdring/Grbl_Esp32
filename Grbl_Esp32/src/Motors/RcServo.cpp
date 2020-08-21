@@ -62,9 +62,12 @@ namespace Motors {
 
     void RcServo::init() {
         read_settings();
+
+        auto pwm_pin = _pwm_pin.getNative(Pin::Traits::PWM); // TODO FIXME: Call PWM functionality directly on pin!
+
         _channel_num = sys_get_next_PWM_chan_num();
         ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
-        ledcAttachPin(_pwm_pin, _channel_num);
+        ledcAttachPin(pwm_pin, _channel_num);
         _current_pwm_duty = 0;
         is_active         = true;  // as opposed to NullMotors, this is a real motor
         set_axis_name();
@@ -76,7 +79,7 @@ namespace Motors {
                        MSG_LEVEL_INFO,
                        "%s Axis RC Servo motor Output:%d Min:%5.3fmm Max:%5.3fmm",
                        _axis_name,
-                       _pwm_pin,
+                       _pwm_pin.name().c_str(),
                        _position_min,
                        _position_max);
     }
