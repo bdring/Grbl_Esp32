@@ -592,8 +592,8 @@ namespace WebUI {
                     String sadminPassword = admin_password->get();
                     String suserPassword  = user_password->get();
 
-                    if (!((sUser == DEFAULT_ADMIN_LOGIN && sPassword == sadminPassword) ||
-                          (sUser == DEFAULT_USER_LOGIN && sPassword == suserPassword)) {
+                    if (!(sUser == DEFAULT_ADMIN_LOGIN && sPassword == sadminPassword) ||
+                         (sUser == DEFAULT_USER_LOGIN && sPassword == suserPassword)) {
                         msg_alert_error = true;
                         smsg            = "Error: Incorrect password";
                         code            = 401;
@@ -610,10 +610,14 @@ namespace WebUI {
                 String newpassword = _webserver->arg("NEWPASSWORD");
                 if (COMMANDS::isLocalPasswordValid((char*)newpassword.c_str())) {
                     err_t err;
+
+                    char pwdbuf[MAX_LOCAL_PASSWORD_LENGTH + 1];
+                    newpassword.toCharArray(pwdbuf, MAX_LOCAL_PASSWORD_LENGTH + 1);
+                    
                     if (sUser == DEFAULT_ADMIN_LOGIN) {
-                        err = admin_password->setStringValue(newpassword);
+                        err = admin_password->setStringValue(pwdbuf);
                     } else {
-                        err = user_password->setStringValue(newpassword);
+                        err = user_password->setStringValue(pwdbuf);
                     }
                     if (err) {
                         msg_alert_error = true;
