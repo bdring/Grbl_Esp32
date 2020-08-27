@@ -607,13 +607,15 @@ namespace WebUI {
             //change password
             if (_webserver->hasArg("PASSWORD") && _webserver->hasArg("USER") && _webserver->hasArg("NEWPASSWORD") &&
                 (msg_alert_error == false)) {
+
                 String newpassword = _webserver->arg("NEWPASSWORD");
-                if (COMMANDS::isLocalPasswordValid((char*)newpassword.c_str())) {
+
+                char pwdbuf[MAX_LOCAL_PASSWORD_LENGTH + 1];
+                newpassword.toCharArray(pwdbuf, MAX_LOCAL_PASSWORD_LENGTH + 1);
+
+                if (COMMANDS::isLocalPasswordValid(pwdbuf)) {
                     err_t err;
 
-                    char pwdbuf[MAX_LOCAL_PASSWORD_LENGTH + 1];
-                    newpassword.toCharArray(pwdbuf, MAX_LOCAL_PASSWORD_LENGTH + 1);
-                    
                     if (sUser == DEFAULT_ADMIN_LOGIN) {
                         err = admin_password->setStringValue(pwdbuf);
                     } else {
