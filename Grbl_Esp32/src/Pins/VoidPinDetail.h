@@ -11,7 +11,7 @@ namespace Pins {
     public:
         VoidPinDetail(const PinOptionsParser& options);
 
-        PinCapabilities traits() const override;
+        PinCapabilities capabilities() const override;
 
         // I/O:
         void write(bool high) override;

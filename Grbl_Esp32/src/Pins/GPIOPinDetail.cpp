@@ -9,16 +9,79 @@ extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 // TODO FIXME: ISR, PWM, etc
 
 namespace Pins {
-    GPIOPinDetail::GPIOPinDetail(uint8_t index, const PinOptionsParser& options) : _index(index) {
-        // TODO: Handle options...
+    PinCapabilities GPIOPinDetail::GetDefaultCapabilities(uint8_t index) {
+        // See https://randomnerdtutorials.com/esp32-pinout-reference-gpios/ for an overview:
+        switch (index) {
+            case 0:  // Outputs PWM signal at boot
+                return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::Output | PinCapabilities::PullUp |
+                       PinCapabilities::PullDown | PinCapabilities::ADC | PinCapabilities::PWM | PinCapabilities::ISR;
+
+            case 1:  // TX pin
+                return PinCapabilities::Native | PinCapabilities::Output;
+
+            case 3:  // RX pin
+                return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::ISR;
+
+            case 5:
+            case 16:
+            case 17:
+            case 18:
+            case 19:
+            case 21:
+            case 22:
+            case 23:
+            case 29:
+                return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::Output | PinCapabilities::PullUp |
+                       PinCapabilities::PullDown | PinCapabilities::PWM | PinCapabilities::ISR;
+
+            case 2:  // Normal pins
+            case 4:
+            case 12:  // Boot fail if pulled high
+            case 13:
+            case 14:  // Outputs PWM signal at boot
+            case 15:  // Outputs PWM signal at boot
+            case 27:
+            case 32:
+            case 33:
+                return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::Output | PinCapabilities::PullUp |
+                       PinCapabilities::PullDown | PinCapabilities::ADC | PinCapabilities::PWM | PinCapabilities::ISR;
+
+            case 25:
+            case 26:
+                return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::Output | PinCapabilities::PullUp |
+                       PinCapabilities::PullDown | PinCapabilities::ADC | PinCapabilities::DAC | PinCapabilities::PWM | PinCapabilities::ISR;
+
+            case 6:  // SPI flash integrated
+            case 7:
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+                return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::Output | PinCapabilities::PWM |
+                       PinCapabilities::ISR;
+
+            case 34:  // Input only pins
+            case 35:
+            case 36:
+            case 39: return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::ADC | PinCapabilities::ISR; break;
+
+            default:  // Not mapped to actual GPIO pins
+                return PinCapabilities::Native;
+        }
     }
 
-    PinCapabilities GPIOPinDetail::traits() const {
-        // TODO FIXME: Depending on the pin info, we might want to add information like
-        // internal pullups.
-
-        return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::Output | PinCapabilities::PWM | PinCapabilities::ISR;
+    GPIOPinDetail::GPIOPinDetail(uint8_t index, PinOptionsParser options) : _index(index), _capabilities(GetDefaultCapabilities(index)) {
+        // User defined pin capabilities
+        for (auto opt : options) {
+            if (opt.is("pu")) {
+                _capabilities = _capabilities | PinCapabilities::PullUp;
+            } else if (opt.is("pd")) {
+                _capabilities = _capabilities | PinCapabilities::PullDown;
+            }
+        }
     }
+
+    PinCapabilities GPIOPinDetail::capabilities() const { return _capabilities; }
 
     void GPIOPinDetail::write(bool high) { __digitalWrite(_index, high); }
     int  GPIOPinDetail::read() { return __digitalRead(_index); }

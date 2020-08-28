@@ -3,7 +3,7 @@
 namespace Pins {
     VoidPinDetail::VoidPinDetail(const PinOptionsParser& options) {}
 
-    PinCapabilities VoidPinDetail::traits() const { return PinCapabilities::None; }  // Should we?
+    PinCapabilities VoidPinDetail::capabilities() const { return PinCapabilities::None; }  // Should we?
 
     void VoidPinDetail::write(bool high) { /* void */
     }

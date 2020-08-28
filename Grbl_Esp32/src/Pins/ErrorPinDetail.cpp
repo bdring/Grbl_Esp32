@@ -4,7 +4,7 @@
 namespace Pins {
     ErrorPinDetail::ErrorPinDetail(const String& options) {}
 
-    PinCapabilities ErrorPinDetail::traits() const { return PinCapabilities::None; }
+    PinCapabilities ErrorPinDetail::capabilities() const { return PinCapabilities::None; }
 
     void ErrorPinDetail::write(bool high) { Assert(false, "Cannot write to an error pin."); }
     int  ErrorPinDetail::read() { Assert(false, "Cannot read from an error pin."); }

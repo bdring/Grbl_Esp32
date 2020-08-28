@@ -5,7 +5,7 @@
 namespace Pins {
     PinOption::PinOption(char* start, const char* end) : _start(start) {}
 
-    bool PinOption ::is(const char* option) const { return !::strcmp(option, _start); }
+    bool PinOption::is(const char* option) const { return !::strcmp(option, _start); }
 
     PinOption PinOption ::operator++() const {
         if (_start == _end) {

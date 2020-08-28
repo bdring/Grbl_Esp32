@@ -59,7 +59,7 @@ public:
 
     inline uint8_t getNative(Capabilities expectedBehavior) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        Assert(detail->traits().has(expectedBehavior), "Requested pin does not have the expected behavior.");
+        Assert(detail->capabilities().has(expectedBehavior), "Requested pin does not have the expected behavior.");
         return _index;
     }
 
@@ -120,9 +120,9 @@ public:
     }
 
     // Other functions:
-    Capabilities traits() const {
+    Capabilities capabilities() const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        return detail->traits();
+        return detail->capabilities();
     }
 
     inline String name() const {

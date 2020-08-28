@@ -38,7 +38,7 @@ namespace Spindles {
             return;  // We cannot continue without the output pin
         }
 
-        if (!_output_pin.traits().has(Pin::Capabilities::PWM)) {
+        if (!_output_pin.capabilities().has(Pin::Capabilities::PWM)) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Spindle output pin %s cannot do PWM", _output_pin.name().c_str());
             return;
         }
