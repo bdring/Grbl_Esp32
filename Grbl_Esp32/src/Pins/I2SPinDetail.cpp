@@ -10,7 +10,7 @@ namespace Pins {
     PinTraits I2SPinDetail::traits() const { return PinTraits::Input | PinTraits::Output | PinTraits::I2S; }
 
     void I2SPinDetail::write(bool high) { i2s_out_write(pin, val); }
-    int  I2SPinDetail::read() { return i2s_out_state(pin); }
+    int  I2SPinDetail::read() { return i2s_out_read(pin); }
     void I2SPinDetail::mode(uint8_t value) {
         // I2S out pins cannot be configured, hence there
         // is nothing to do here for them.

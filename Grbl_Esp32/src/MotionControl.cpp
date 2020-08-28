@@ -31,7 +31,7 @@
 #    define M_PI 3.14159265358979323846
 #endif
 
-uint8_t ganged_mode = SQUARING_MODE_DUAL;
+SquaringMode ganged_mode = SquaringMode::Dual;
 
 // this allows kinematics to be used.
 void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
@@ -224,6 +224,32 @@ void mc_dwell(float seconds) {
     delay_sec(seconds, DELAY_MODE_DWELL);
 }
 
+// return true if the mask has exactly one bit set,
+// so it refers to exactly one axis
+static bool mask_is_single_axis(uint8_t axis_mask) {
+    // This code depends on the fact that, for binary numberes
+    // with only one bit set - and only for such numbers -
+    // the bits in one less than the number are disjoint
+    // with that bit.  For a number like B100, if you
+    // subtract one, the low order 00 bits will have to
+    // borrow from the high 1 bit and thus clear it.
+    // If any lower bits are 1, then there will be no
+    // borrow to clear the highest 1 bit.
+    return axis_mask && ((axis_mask & (axis_mask - 1)) == 0);
+}
+
+// return true if the axis is defined as a squared axis
+// Squaring: is used on gantry type axes that have two motors
+// Each motor with touch off its own switch to square the axis
+static bool mask_has_squared_axis(uint8_t axis_mask) {
+    return axis_mask & homing_squared_axes->get();
+}
+
+// return true if axis_mask refers to a single squared axis
+static bool axis_is_squared(uint8_t axis_mask) {
+    return mask_is_single_axis(axis_mask) && mask_has_squared_axis(axis_mask);
+}
+
 // Perform homing cycle to locate and set machine zero. Only '$H' executes this command.
 // NOTE: There should be no motions in the buffer and Grbl must be in an idle state before
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
@@ -261,15 +287,15 @@ void mc_homing_cycle(uint8_t cycle_mask) {
         if (!axis_is_squared(cycle_mask))
             limits_go_home(cycle_mask);  // Homing cycle 0
         else {
-            ganged_mode           = SQUARING_MODE_DUAL;
+            ganged_mode           = SquaringMode::Dual;
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(cycle_mask);
-            ganged_mode           = SQUARING_MODE_A;
+            ganged_mode           = SquaringMode::A;
             n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
             limits_go_home(cycle_mask);
-            ganged_mode = SQUARING_MODE_B;
+            ganged_mode = SquaringMode::B;
             limits_go_home(cycle_mask);
-            ganged_mode = SQUARING_MODE_DUAL;  // always return to dual
+            ganged_mode = SquaringMode::Dual;  // always return to dual
         }
     }  // Perform homing cycle based on mask.
     else
@@ -279,44 +305,44 @@ void mc_homing_cycle(uint8_t cycle_mask) {
         if (!axis_is_squared(HOMING_CYCLE_0))
             limits_go_home(HOMING_CYCLE_0);  // Homing cycle 0
         else {
-            ganged_mode           = SQUARING_MODE_DUAL;
+            ganged_mode           = SquaringMode::Dual;
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(HOMING_CYCLE_0);
-            ganged_mode           = SQUARING_MODE_A;
+            ganged_mode           = SquaringMode::A;
             n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
             limits_go_home(HOMING_CYCLE_0);
-            ganged_mode = SQUARING_MODE_B;
+            ganged_mode = SquaringMode::B;
             limits_go_home(HOMING_CYCLE_0);
-            ganged_mode = SQUARING_MODE_DUAL;  // always return to dual
+            ganged_mode = SquaringMode::Dual;  // always return to dual
         }
 #ifdef HOMING_CYCLE_1
         if (!axis_is_squared(HOMING_CYCLE_1))
             limits_go_home(HOMING_CYCLE_1);
         else {
-            ganged_mode           = SQUARING_MODE_DUAL;
+            ganged_mode           = SquaringMode::Dual;
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(HOMING_CYCLE_1);
-            ganged_mode           = SQUARING_MODE_A;
+            ganged_mode           = SquaringMode::A;
             n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
             limits_go_home(HOMING_CYCLE_1);
-            ganged_mode = SQUARING_MODE_B;
+            ganged_mode = SquaringMode::B;
             limits_go_home(HOMING_CYCLE_1);
-            ganged_mode = SQUARING_MODE_DUAL;  // always return to dual
+            ganged_mode = SquaringMode::Dual;  // always return to dual
         }
 #endif
 #ifdef HOMING_CYCLE_2
         if (!axis_is_squared(HOMING_CYCLE_2))
             limits_go_home(HOMING_CYCLE_2);
         else {
-            ganged_mode           = SQUARING_MODE_DUAL;
+            ganged_mode           = SquaringMode::Dual;
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(HOMING_CYCLE_2);
-            ganged_mode           = SQUARING_MODE_A;
+            ganged_mode           = SquaringMode::A;
             n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
             limits_go_home(HOMING_CYCLE_2);
-            ganged_mode = SQUARING_MODE_B;
+            ganged_mode = SquaringMode::B;
             limits_go_home(HOMING_CYCLE_2);
-            ganged_mode = SQUARING_MODE_DUAL;  // always return to dual
+            ganged_mode = SquaringMode::Dual;  // always return to dual
         }
 #endif
 #ifdef HOMING_CYCLE_3
@@ -477,10 +503,12 @@ void mc_reset() {
                 system_set_exec_alarm(EXEC_ALARM_ABORT_CYCLE);
             st_go_idle();  // Force kill steppers. Position has likely been lost.
         }
-        ganged_mode = SQUARING_MODE_DUAL;  // in case an error occurred during squaring
+        ganged_mode = SquaringMode::Dual;  // in case an error occurred during squaring
 
-#ifdef USE_I2S_OUT_STREAM
-        i2s_out_reset();
+#ifdef USE_I2S_STEPS
+        if (current_stepper == ST_I2S_STREAM) {
+            i2s_out_reset();
+        }
 #endif
     }
 }
