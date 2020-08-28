@@ -220,8 +220,9 @@ void init_motors() {
 
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using StepStick Mode");
 
-    uint8_t ms3_pins[MAX_N_AXIS][2] = { { X_STEPPER_MS3, X2_STEPPER_MS3 }, { Y_STEPPER_MS3, Y2_STEPPER_MS3 }, { Z_STEPPER_MS3, Z2_STEPPER_MS3 },
-                                 { A_STEPPER_MS3, A2_STEPPER_MS3 }, { B_STEPPER_MS3, B2_STEPPER_MS3 }, { C_STEPPER_MS3, C2_STEPPER_MS3 } };
+    uint8_t ms3_pins[MAX_N_AXIS][2] = { { X_STEPPER_MS3, X2_STEPPER_MS3 }, { Y_STEPPER_MS3, Y2_STEPPER_MS3 },
+                                        { Z_STEPPER_MS3, Z2_STEPPER_MS3 }, { A_STEPPER_MS3, A2_STEPPER_MS3 },
+                                        { B_STEPPER_MS3, B2_STEPPER_MS3 }, { C_STEPPER_MS3, C2_STEPPER_MS3 } };
 
     for (int axis = 0; axis < N_AXIS; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
@@ -333,8 +334,9 @@ void motors_set_disable(bool disable) {
 
     // now loop through all the motors to see if they can individually diable
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
             myMotor[axis][gang_index]->set_disable(disable);
+        }
     }
 }
 

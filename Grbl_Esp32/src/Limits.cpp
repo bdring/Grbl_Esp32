@@ -204,9 +204,11 @@ void limits_go_home(uint8_t cycle_mask) {
                 }
             }
         } while (STEP_MASK & axislock);
-#ifdef USE_I2S_OUT_STREAM
-        if (!approach) {
-            delay_ms(I2S_OUT_DELAY_MS);
+#ifdef USE_I2S_STEPS
+        if (current_stepper == ST_I2S_STREAM) {
+            if (!approach) {
+                delay_ms(I2S_OUT_DELAY_MS);
+            }
         }
 #endif
         st_reset();                        // Immediately force kill steppers and reset step segment buffer.
@@ -399,42 +401,4 @@ void limitCheckTask(void* pvParameters) {
             system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);  // Indicate hard limit critical event
         }
     }
-}
-
-// return true if the axis is defined as a squared axis
-// Squaring: is used on gantry type axes that have two motors
-// Each motor with touch off its own switch to square the axis
-bool axis_is_squared(uint8_t axis_mask) {
-    // Note: multi-axis homing returns false because it will not match any of the following
-    if (axis_mask == (1 << X_AXIS)) {
-#ifdef X_AXIS_SQUARING
-        return true;
-#endif
-    }
-    if (axis_mask == (1 << Y_AXIS)) {
-#ifdef Y_AXIS_SQUARING
-        return true;
-#endif
-    }
-    if (axis_mask == (1 << Z_AXIS)) {
-#ifdef Z_AXIS_SQUARING
-        return true;
-#endif
-    }
-    if (axis_mask == (1 << A_AXIS)) {
-#ifdef A_AXIS_SQUARING
-        return true;
-#endif
-    }
-    if (axis_mask == (1 << B_AXIS)) {
-#ifdef B_AXIS_SQUARING
-        return true;
-#endif
-    }
-    if (axis_mask == (1 << C_AXIS)) {
-#ifdef C_AXIS_SQUARING
-        return true;
-#endif
-    }
-    return false;
 }

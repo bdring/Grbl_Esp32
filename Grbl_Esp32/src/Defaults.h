@@ -114,6 +114,10 @@
 #    define DEFAULT_HOMING_PULLOFF 1.0  // $27 mm
 #endif
 
+#ifndef  DEFAULT_HOMING_SQUARED_AXES
+#    define DEFAULT_HOMING_SQUARED_AXES 0
+#endif
+
 // ======== SPINDLE STUFF ====================
 #ifndef SPINDLE_TYPE
 #    define SPINDLE_TYPE SPINDLE_TYPE_NONE

@@ -22,22 +22,28 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "LOWRIDER_V1P2"
+#define MACHINE_NAME "LOWRIDER YYZZX V1P2 "
+
+#define DEFAULT_HOMING_SQUARED_AXES (bit(Y_AXIS) | bit(Z_AXIS))
+
+#define Y_STEP_PIN          GPIO_NUM_12     // use Y labeled connector
+#define Y_DIRECTION_PIN     GPIO_NUM_26     // use Y labeled connector
+
+#define Y2_STEP_PIN         GPIO_NUM_22     // ganged motor
+#define Y2_DIRECTION_PIN    Y_DIRECTION_PIN
+
+#define Z_STEP_PIN          GPIO_NUM_14     // use X labeled connector
+#define Z_DIRECTION_PIN     GPIO_NUM_25     // use X labeled connector
+
+#define Z2_STEP_PIN         GPIO_NUM_21     // ganged motor
+#define Z2_DIRECTION_PIN    Z_DIRECTION_PIN
 
 #define X_STEP_PIN          GPIO_NUM_27     // use Z labeled connector
 #define X_DIRECTION_PIN     GPIO_NUM_33     // use Z labeled connector
 
-#define Y_STEP_PIN          GPIO_NUM_14     // use Y labeled connector 
-#define Y2_STEP_PIN         GPIO_NUM_21     // ganged motor
-#define Y_DIRECTION_PIN     GPIO_NUM_25     // use Y labeled connector
-#define Y2_DIRECTION_PIN    Y_DIRECTION_PIN
-#define Y_AXIS_SQUARING
 
-#define Z_STEP_PIN          GPIO_NUM_12     // use X labeled connector
-#define Z2_STEP_PIN         GPIO_NUM_22     // ganged motor
-#define Z_DIRECTION_PIN     GPIO_NUM_26     // use X labeled connector
-#define Z2_DIRECTION_PIN    Z_DIRECTION_PIN
-#define Z_AXIS_SQUARING
+
+
 
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13

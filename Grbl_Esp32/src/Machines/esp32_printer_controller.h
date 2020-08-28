@@ -132,14 +132,10 @@
 // === Servos
 // To use a servo motor on an axis, do not define step and direction
 // pins for that axis, but instead include a block like this:
-//#define USE_SERVO_AXES
 
 //#define SERVO_Z_PIN             GPIO_NUM_15  // It cannot be used when JTAG debugging
 //#define SERVO_Z_RANGE_MIN       0.0
 //#define SERVO_Z_RANGE_MAX       5.0
-//#define SERVO_Z_HOMING_TYPE     SERVO_HOMING_TARGET // during homing it will instantly move to a target value
-//#define SERVO_Z_HOME_POS        SERVO_Z_RANGE_MAX // move to max during homing
-//#define SERVO_Z_MPOS            false           // will not use mpos, uses work coordinates
 
 // === Homing cycles
 // The default homing order is Z first (HOMING_CYCLE_0),
@@ -218,24 +214,16 @@
 #endif
 #define INVERT_CONTROL_PIN_MASK B11111111
 
-// Grbl_ESP32 use the ESP32's special RMT (IR remote control) hardware
-// engine to achieve more precise high step rates than can be done
-// in software.  That feature is enabled by default, but there are
-// some machines that might not want to use it, such as machines that
-// do not use ordinary stepper motors.  To turn it off, do this:
-#undef USE_RMT_STEPS
-
 //
 // I2S (steppers & other output-only pins)
 //
 #define USE_I2S_OUT
+#define USE_I2S_STEPS
+//#define DEFAULT_STEPPER ST_I2S_STATIC
 #define I2S_OUT_BCK      GPIO_NUM_22
 #define I2S_OUT_WS       GPIO_NUM_17
 #define I2S_OUT_DATA     GPIO_NUM_21
-// Define USE_I2S_OUT_STREAM if buffering is used.
-// (there will be a delay between the specified I/O operation and the actual I/O execution)
 #define I2S_OUT_NUM_BITS 16
-#define USE_I2S_OUT_STREAM
 
 // === Special Features
 // Grbl_ESP32 can support non-Cartesian machines and some other

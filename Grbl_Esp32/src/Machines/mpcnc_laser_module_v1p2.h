@@ -27,7 +27,12 @@
 
 // // Pin assignments for the Buildlog.net MPCNC controller
 
-#define MACHINE_NAME "MPCNC_V1P2"
+#define MACHINE_NAME "MPCNC_V1P2 with Laser Module"
+
+// The laser module fires without a low signal. This keeps the enable on
+#define USE_MACHINE_INIT
+#define LVL_SHIFT_ENABLE        GPIO_NUM_32
+#define CUSTOM_CODE_FILENAME    "Custom/mpcnc_laser_module.cpp"
 
 #define DEFAULT_HOMING_SQUARED_AXES (bit(X_AXIS) | bit(Y_AXIS))
 
@@ -48,24 +53,10 @@
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
 
-// Note: if you use PWM rather than relay, you could map GPIO_NUM_2 to mist or flood
-//#define USE_SPINDLE_RELAY
+#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
+#define SPINDLE_OUTPUT_PIN      GPIO_NUM_16
 
-#ifdef USE_SPINDLE_RELAY
-    #define SPINDLE_TYPE SPINDLE_TYPE_RELAY
-    #define SPINDLE_OUTPUT_PIN GPIO_NUM_2
-#else
-    #define SPINDLE_TYPE SPINDLE_TYPE_PWM
-    #define SPINDLE_OUTPUT_PIN GPIO_NUM_16
-
-    #define SPINDLE_ENABLE_PIN GPIO_NUM_32
-#endif
-
-// Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
-// Relay can be used for spindle or either coolant
-//#define COOLANT_FLOOD_PIN     GPIO_NUM_2
-//#define COOLANT_MIST_PIN      GPIO_NUM_2
-
+#define COOLANT_MIST_PIN      GPIO_NUM_2
 
 #define X_LIMIT_PIN             GPIO_NUM_17
 #define Y_LIMIT_PIN             GPIO_NUM_4

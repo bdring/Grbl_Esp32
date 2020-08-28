@@ -88,6 +88,13 @@ Some features should not be changed. See notes below.
 // machine_common.h contains settings that do not change
 #include "MachineCommon.h"
 
+// Adjust exclusive definitions for steppers
+#ifdef USE_I2S_STEPS
+#    ifdef USE_RMT_STEPS
+#        undef USE_RMT_STEPS
+#    endif
+#endif
+
 #define MAX_N_AXIS 6
 
 // Number of axes defined (steppers, servos, etc) (valid range: 3 to 6)

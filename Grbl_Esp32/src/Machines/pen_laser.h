@@ -52,17 +52,11 @@
 #define Y_LIMIT_PIN             GPIO_NUM_4
 
 #define USING_SERVO  // uncomment to use this feature
-//#define USING_SOLENOID // uncomment to use this feature
 
 #ifdef USING_SERVO
     #define Z_SERVO_PIN             GPIO_NUM_27
     #define Z_SERVO_RANGE_MIN       0.0
     #define Z_SERVO_RANGE_MAX       10.0
-#endif
-
-#ifdef USING_SOLENOID
-    #define USE_PEN_SOLENOID
-    #define SOLENOID_PEN_PIN GPIO_NUM_16
 #endif
 
 #define SPINDLE_TYPE SPINDLE_TYPE_NONE
