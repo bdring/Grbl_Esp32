@@ -63,7 +63,7 @@ namespace Motors {
     void RcServo::init() {
         read_settings();
 
-        auto pwm_pin = _pwm_pin.getNative(Pin::Traits::PWM); // TODO FIXME: Call PWM functionality directly on pin!
+        auto pwm_pin = _pwm_pin.getNative(Pin::Capabilities::PWM);  // TODO FIXME: Call PWM functionality directly on pin!
 
         _channel_num = sys_get_next_PWM_chan_num();
         ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);

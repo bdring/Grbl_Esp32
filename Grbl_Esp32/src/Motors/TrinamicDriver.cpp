@@ -44,7 +44,7 @@ namespace Motors {
         _homing_mode = TRINAMIC_HOMING_MODE;
         _homing_mask = 0;  // no axes homing
 
-        auto native_cs_pin = cs_pin.getNative(Pin::Traits::Output);
+        auto native_cs_pin = cs_pin.getNative(Pin::Capabilities::Output);
 
         set_axis_name();
 
@@ -64,7 +64,7 @@ namespace Motors {
         cs_pin.setMode(OUTPUT);
 
         // use slower speed if I2S
-        if (cs_pin.traits().has(Pin::Traits::I2S)) {
+        if (cs_pin.traits().has(Pin::Capabilities::I2S)) {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
         }
 

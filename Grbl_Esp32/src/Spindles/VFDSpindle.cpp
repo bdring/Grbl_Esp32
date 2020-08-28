@@ -248,9 +248,9 @@ namespace Spindles {
             return;
         }
 
-        auto txd_pin = _txd_pin.getNative(Pin::Traits::Native);
-        auto rxd_pin = _rxd_pin.getNative(Pin::Traits::Native);
-        auto rts_pin = _rts_pin.getNative(Pin::Traits::Native);
+        auto txd_pin = _txd_pin.getNative(Pin::Capabilities::Native);
+        auto rxd_pin = _rxd_pin.getNative(Pin::Capabilities::Native);
+        auto rts_pin = _rts_pin.getNative(Pin::Capabilities::Native);
 
         if (uart_set_pin(VFD_RS485_UART_PORT, txd_pin, rxd_pin, rts_pin, UART_PIN_NO_CHANGE) != ESP_OK) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 VFD uart pin config failed");

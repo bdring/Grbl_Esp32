@@ -37,7 +37,7 @@ namespace Spindles {
         _pwm_max_value = 255;  // not actually PWM...DAC counts
         _gpio_ok       = true;
 
-        auto output_pin = _output_pin.getNative(Pin::Traits::Native);
+        auto output_pin = _output_pin.getNative(Pin::Capabilities::Native);
 
         if (output_pin != GPIO_NUM_25 && output_pin != GPIO_NUM_26) {  // DAC can only be used on these pins
             _gpio_ok = false;
@@ -102,7 +102,7 @@ namespace Spindles {
 
     void Dac::set_output(uint32_t duty) {
         if (_gpio_ok) {
-            auto output_pin = _output_pin.getNative(Pin::Traits::Native);
+            auto output_pin = _output_pin.getNative(Pin::Capabilities::Native);
 
             dacWrite(output_pin, (uint8_t)duty);
         }

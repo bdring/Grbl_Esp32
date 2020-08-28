@@ -9,7 +9,7 @@ namespace Pins {
     public:
         GPIOPinDetail(uint8_t index, const PinOptionsParser& options);
 
-        PinTraits traits() const override;
+        PinCapabilities traits() const override;
 
         // I/O:
         void write(bool high) override;

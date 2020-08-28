@@ -13,11 +13,11 @@ namespace Pins {
         // TODO: Handle options...
     }
 
-    PinTraits GPIOPinDetail::traits() const {
+    PinCapabilities GPIOPinDetail::traits() const {
         // TODO FIXME: Depending on the pin info, we might want to add information like
         // internal pullups.
 
-        return PinTraits::Native | PinTraits::Input | PinTraits::Output | PinTraits::PWM | PinTraits::ISR;
+        return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::Output | PinCapabilities::PWM | PinCapabilities::ISR;
     }
 
     void GPIOPinDetail::write(bool high) { __digitalWrite(_index, high); }

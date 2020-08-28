@@ -2,7 +2,7 @@
 
 #include "Pins/PinLookup.h"
 #include "Pins/PinDetail.h"
-#include "Pins/PinTraits.h"
+#include "Pins/PinCapabilities.h"
 
 #include <Arduino.h>  // for IRAM_ATTR
 #include <cstdint>
@@ -37,7 +37,7 @@ class Pin {
     static bool parse(String str, Pins::PinDetail*& detail, int& pinNumber);
 
 public:
-    using Traits = Pins::PinTraits;
+    using Capabilities = Pins::PinCapabilities;
 
     static Pin UNDEFINED;
     static Pin ERROR;
@@ -57,7 +57,7 @@ public:
     inline bool operator==(Pin o) const { return _index == _index; }
     inline bool operator!=(Pin o) const { return _index != _index; }
 
-    inline uint8_t getNative(Traits expectedBehavior) const {
+    inline uint8_t getNative(Capabilities expectedBehavior) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
         Assert(detail->traits().has(expectedBehavior), "Requested pin does not have the expected behavior.");
         return _index;
@@ -120,7 +120,7 @@ public:
     }
 
     // Other functions:
-    Traits traits() const {
+    Capabilities traits() const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
         return detail->traits();
     }

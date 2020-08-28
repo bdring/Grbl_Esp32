@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PinTraits.h"
+#include "PinCapabilities.h"
 #include "PinOptionsParser.h"
 
 #include <WString.h>
@@ -17,7 +17,7 @@ namespace Pins {
         PinDetail& operator=(const PinDetail& o) = delete;
         PinDetail& operator=(PinDetail&& o) = delete;
 
-        virtual PinTraits traits() const = 0;
+        virtual PinCapabilities traits() const = 0;
 
         // I/O:
         virtual void write(bool high)    = 0;
