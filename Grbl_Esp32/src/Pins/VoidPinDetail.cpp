@@ -5,10 +5,9 @@ namespace Pins {
 
     PinCapabilities VoidPinDetail::capabilities() const { return PinCapabilities::None; }  // Should we?
 
-    void VoidPinDetail::write(bool high) { /* void */
-    }
+    void VoidPinDetail::write(int high) {}
     int  VoidPinDetail::read() { return 0; }
-    void VoidPinDetail::mode(uint8_t value) {}
+    void VoidPinDetail::setAttr(PinAttributes value) {}
 
     bool VoidPinDetail::initPWM(uint32_t frequency, uint32_t maxDuty) {
         // We just set frequency and maxDuty to ensure we at least return values

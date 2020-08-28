@@ -14,9 +14,9 @@ namespace Pins {
         PinCapabilities capabilities() const override;
 
         // I/O:
-        void write(bool high) override;
+        void write(int high) override;
         int  read() override;
-        void mode(uint8_t value) override;
+        void setAttr(PinAttributes value) override;
 
         // PWM
         bool     initPWM(uint32_t frequency, uint32_t maxDuty) override;

@@ -56,3 +56,7 @@ extern IntSetting*   spindle_pwm_bit_precision;
 extern EnumSetting* spindle_type;
 
 extern AxisMaskSetting* stallguard_debug_mask;
+
+extern PinSetting* coolant_flood_pin;
+extern PinSetting* coolant_mist_pin;
+extern PinSetting* limit_pins[MAX_N_AXIS][2];

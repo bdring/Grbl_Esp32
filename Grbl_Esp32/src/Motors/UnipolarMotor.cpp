@@ -21,10 +21,10 @@ namespace Motors {
     }
 
     void UnipolarMotor::init() {
-        _pin_phase0.setMode(OUTPUT);
-        _pin_phase1.setMode(OUTPUT);
-        _pin_phase2.setMode(OUTPUT);
-        _pin_phase3.setMode(OUTPUT);
+        _pin_phase0.setAttr(Pin::Attr::Output);
+        _pin_phase1.setAttr(Pin::Attr::Output);
+        _pin_phase2.setAttr(Pin::Attr::Output);
+        _pin_phase3.setAttr(Pin::Attr::Output);
         _current_phase = 0;
     }
 

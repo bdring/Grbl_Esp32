@@ -243,7 +243,7 @@ void init_motors() {
 #endif
 
     if (STEPPERS_DISABLE_PIN != Pin::UNDEFINED) {
-        STEPPERS_DISABLE_PIN.setMode(OUTPUT);  // global motor enable pin
+        STEPPERS_DISABLE_PIN.setAttr(Pin::Attr::Output);  // global motor enable pin
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Global stepper disable pin:%s", STEPPERS_DISABLE_PIN.name().c_str());
     }
 

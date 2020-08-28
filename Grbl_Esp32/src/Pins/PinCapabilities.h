@@ -3,10 +3,13 @@
 #include <cstdint>
 
 namespace Pins {
+    class PinAttributes;
     class PinCapabilities {
         uint32_t _value;
 
         constexpr PinCapabilities(const uint32_t value) : _value(value) {}
+
+        friend class PinAttributes;  // Wants access to _value for validation
 
     public:
         PinCapabilities(const PinCapabilities&) = default;
@@ -17,11 +20,14 @@ namespace Pins {
 
         // All the capabilities we use and test:
         static PinCapabilities None;
+
+        static PinCapabilities Input;     // NOTE: Mapped in PinAttributes!
+        static PinCapabilities Output;    // NOTE: Mapped in PinAttributes!
+        static PinCapabilities PullUp;    // NOTE: Mapped in PinAttributes!
+        static PinCapabilities PullDown;  // NOTE: Mapped in PinAttributes!
+
+        static PinCapabilities ActiveLow;
         static PinCapabilities Native;
-        static PinCapabilities Input;
-        static PinCapabilities Output;
-        static PinCapabilities PullUp;
-        static PinCapabilities PullDown;
         static PinCapabilities ADC;
         static PinCapabilities DAC;
         static PinCapabilities PWM;

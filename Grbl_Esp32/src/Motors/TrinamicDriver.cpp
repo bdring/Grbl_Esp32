@@ -61,7 +61,7 @@ namespace Motors {
         init_step_dir_pins();  // from StandardStepper
 
         cs_pin.write(HIGH);
-        cs_pin.setMode(OUTPUT);
+        cs_pin.setAttr(Pin::Attr::Output);
 
         // use slower speed if I2S
         if (cs_pin.capabilities().has(Pin::Capabilities::I2S)) {

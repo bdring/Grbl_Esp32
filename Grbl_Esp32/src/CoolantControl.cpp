@@ -24,56 +24,31 @@
 #include "Grbl.h"
 
 void coolant_init() {
-#ifdef COOLANT_FLOOD_PIN
-    pinMode(COOLANT_FLOOD_PIN, OUTPUT);
-#endif
-#ifdef COOLANT_MIST_PIN
-    pinMode(COOLANT_MIST_PIN, OUTPUT);
-#endif
+    coolant_flood_pin->get().setAttr(Pin::Attr::Output);
+    coolant_mist_pin->get().setAttr(Pin::Attr::Output);
     coolant_stop();
 }
 
 // Returns current coolant output state. Overrides may alter it from programmed state.
 uint8_t coolant_get_state() {
     uint8_t cl_state = COOLANT_STATE_DISABLE;
-#ifdef COOLANT_FLOOD_PIN
-#    ifdef INVERT_COOLANT_FLOOD_PIN
-    if (!digitalRead(COOLANT_FLOOD_PIN)) {
-#    else
-    if (digitalRead(COOLANT_FLOOD_PIN)) {
-#    endif
+
+    if (coolant_flood_pin->get().read()) {
         cl_state |= COOLANT_STATE_FLOOD;
     }
-#endif
-#ifdef COOLANT_MIST_PIN
-#    ifdef INVERT_COOLANT_MIST_PIN
-    if (!digitalRead(COOLANT_MIST_PIN)) {
-#    else
-    if (digitalRead(COOLANT_MIST_PIN)) {
-#    endif
+
+    if (coolant_mist_pin->get().read()) {
         cl_state |= COOLANT_STATE_MIST;
     }
-#endif
+
     return (cl_state);
 }
 
 // Directly called by coolant_init(), coolant_set_state(), and mc_reset(), which can be at
 // an interrupt-level. No report flag set, but only called by routines that don't need it.
 void coolant_stop() {
-#ifdef COOLANT_FLOOD_PIN
-#    ifdef INVERT_COOLANT_FLOOD_PIN
-    digitalWrite(COOLANT_FLOOD_PIN, 1);
-#    else
-    digitalWrite(COOLANT_FLOOD_PIN, 0);
-#    endif
-#endif
-#ifdef COOLANT_MIST_PIN
-#    ifdef INVERT_COOLANT_MIST_PIN
-    digitalWrite(COOLANT_MIST_PIN, 1);
-#    else
-    digitalWrite(COOLANT_MIST_PIN, 0);
-#    endif
-#endif
+    coolant_flood_pin->get().write(Pin::Off);
+    coolant_mist_pin->get().write(Pin::Off);
 }
 
 // Main program only. Immediately sets flood coolant running state and also mist coolant,
@@ -88,25 +63,15 @@ void coolant_set_state(uint8_t mode) {
     if (mode == COOLANT_DISABLE) {
         coolant_stop();
     } else {
-#ifdef COOLANT_FLOOD_PIN
         if (mode & COOLANT_FLOOD_ENABLE) {
-#    ifdef INVERT_COOLANT_FLOOD_PIN
-            digitalWrite(COOLANT_FLOOD_PIN, 0);
-#    else
-            digitalWrite(COOLANT_FLOOD_PIN, 1);
-#    endif
+            coolant_flood_pin->get().write(Pin::On);
         }
-#endif
-#ifdef COOLANT_MIST_PIN
+
         if (mode & COOLANT_MIST_ENABLE) {
-#    ifdef INVERT_COOLANT_MIST_PIN
-            digitalWrite(COOLANT_MIST_PIN, 0);
-#    else
-            digitalWrite(COOLANT_MIST_PIN, 1);
-#    endif
+            coolant_mist_pin->get().write(Pin::Off);
         }
-#endif
     }
+
     sys.report_ovr_counter = 0;  // Set to report change immediately
 }
 
@@ -116,6 +81,7 @@ void coolant_sync(uint8_t mode) {
     if (sys.state == STATE_CHECK_MODE) {
         return;
     }
+
     protocol_buffer_synchronize();  // Ensure coolant turns on when specified in program.
     coolant_set_state(mode);
 }
