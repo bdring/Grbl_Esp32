@@ -4,6 +4,7 @@
 #include <map>
 #include <nvs.h>
 #include "WebUI/ESPResponse.h"
+#include "Pin.h"
 
 // Command::List is a linked list of all settings,
 // so common code can enumerate them.
@@ -240,7 +241,6 @@ public:
     float get() { return _currentValue; }
 };
 
-#define MAX_SETTING_STRING 256
 class StringSetting : public Setting {
 private:
     String _defaultValue;
@@ -248,7 +248,6 @@ private:
     String _storedValue;
     int    _minLength;
     int    _maxLength;
-    void   _setStoredValue(const char* s);
 
 public:
     StringSetting(const char*   description,
@@ -277,6 +276,29 @@ struct cmp_str {
     bool operator()(char const* a, char const* b) const { return strcasecmp(a, b) < 0; }
 };
 typedef std::map<const char*, int8_t, cmp_str> enum_opt_t;
+
+class PinSetting : public Setting {
+private:
+    // We don't want Pin to claim an actual pin for default and stored value. Hence, these are
+    // stored as a string.
+    const char* _defaultValue;
+    String      _storedValue;
+    Pin         _currentValue;
+
+public:
+    PinSetting(const char* description, type_t type, permissions_t permissions, const char* name, const char* defVal, bool (*checker)(char*));
+
+    PinSetting(type_t type, permissions_t permissions, const char* name, const char* defVal, bool (*checker)(char*) = NULL) :
+        PinSetting(NULL, type, permissions, name, defVal, checker) {};
+
+    void        load();
+    void        setDefault();
+    void        addWebui(WebUI::JSONencoder*);
+    err_t       setStringValue(char* value);
+    const char* getStringValue();
+
+    const Pin& get() { return _currentValue; }
+};
 
 class EnumSetting : public Setting {
 private:

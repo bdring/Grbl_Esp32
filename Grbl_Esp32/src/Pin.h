@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <cstring>
 
+// Forward declarations:
 class String;
 
 class Pin {
@@ -33,8 +34,16 @@ class Pin {
 
     inline Pin(uint8_t index) : _index(index) {}
 
+    static bool parse(String str, Pins::PinDetail*& detail, int& pinNumber);
+
 public:
     using Traits = Pins::PinTraits;
+
+    static Pin UNDEFINED;
+    static Pin ERROR;
+
+    static Pin  create(const String& str);
+    static bool validate(const String& str);
 
     inline Pin() : _index(255) {}
 
@@ -122,9 +131,4 @@ public:
     }
 
     inline ~Pin() = default;
-
-    static Pin Create(String str);
-
-    static Pin UNDEFINED;
-    static Pin ERROR;
 };

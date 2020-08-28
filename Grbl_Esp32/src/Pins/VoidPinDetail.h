@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PinDetail.h"
+#include "PinOptionsParser.h"
 
 namespace Pins {
     class VoidPinDetail : public PinDetail {
@@ -8,7 +9,7 @@ namespace Pins {
         uint32_t _maxDuty;
 
     public:
-        VoidPinDetail(const String& options);
+        VoidPinDetail(const PinOptionsParser& options);
 
         PinTraits traits() const override;
 
@@ -27,5 +28,4 @@ namespace Pins {
 
         ~VoidPinDetail() override {}
     };
-
 }
