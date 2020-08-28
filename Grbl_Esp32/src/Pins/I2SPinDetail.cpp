@@ -7,7 +7,7 @@
 namespace Pins {
     I2SPinDetail::I2SPinDetail(uint8_t index, const PinOptionsParser& options) : _index(index) {}
 
-    PinTraits I2SPinDetail::traits() const { return PinTraits::Input | PinTraits::Output | PinTraits::I2S; }
+    PinCapabilities I2SPinDetail::traits() const { return PinCapabilities::Input | PinCapabilities::Output | PinCapabilities::I2S; }
 
     void I2SPinDetail::write(bool high) { i2s_out_write(pin, val); }
     int  I2SPinDetail::read() { return i2s_out_read(pin); }

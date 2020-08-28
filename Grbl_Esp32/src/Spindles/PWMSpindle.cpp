@@ -38,12 +38,12 @@ namespace Spindles {
             return;  // We cannot continue without the output pin
         }
 
-        if (!_output_pin.traits().has(Pin::Traits::PWM)) {
+        if (!_output_pin.traits().has(Pin::Capabilities::PWM)) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Spindle output pin %s cannot do PWM", _output_pin.name().c_str());
             return;
         }
 
-        auto native_output = _output_pin.getNative(Pin::Traits::PWM);  // TODO FIXME: Use Pin::PWM!
+        auto native_output = _output_pin.getNative(Pin::Capabilities::PWM);  // TODO FIXME: Use Pin::PWM!
 
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
         ledcAttachPin(native_output, _pwm_chan_num);                  // attach the PWM to the pin

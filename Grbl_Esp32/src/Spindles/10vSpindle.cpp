@@ -48,7 +48,7 @@ namespace Spindles {
             return;  // We cannot continue without the output pin
         }
 
-        auto native_output = _output_pin.getNative(Pin::Traits::PWM);  // TODO FIXME: Use Pin::PWM!
+        auto native_output = _output_pin.getNative(Pin::Capabilities::PWM);  // TODO FIXME: Use Pin::PWM!
 
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
         ledcAttachPin(native_output, _pwm_chan_num);                  // attach the PWM to the pin
