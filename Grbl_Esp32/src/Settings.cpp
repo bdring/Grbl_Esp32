@@ -387,6 +387,70 @@ void StringSetting::addWebui(WebUI::JSONencoder* j) {
     j->end_object();
 }
 
+PinSetting::PinSetting(
+    const char* description, type_t type, permissions_t permissions, const char* name, const char* defVal, bool (*checker)(char*)) :
+    Setting(description, type, permissions, NULL, name, checker) {
+    _defaultValue = defVal;
+};
+
+void PinSetting::load() {
+    size_t    len = 0;
+    esp_err_t err = nvs_get_str(_handle, _keyName, NULL, &len);
+    if (err) {
+        _storedValue  = _defaultValue;
+        _currentValue = Pin::create(_defaultValue);
+        return;
+    }
+    char buf[len];
+    err = nvs_get_str(_handle, _keyName, buf, &len);
+    if (err) {
+        _storedValue  = _defaultValue;
+        _currentValue = Pin::create(_defaultValue);
+        return;
+    }
+    _storedValue  = String(buf);
+    _currentValue = Pin::create(_storedValue);
+}
+
+void PinSetting::setDefault() {
+    nvs_erase_key(_handle, _keyName);
+}
+
+err_t PinSetting::setStringValue(char* s) {
+    if (!Pin::validate(s)) {
+        return STATUS_BAD_NUMBER_FORMAT;
+    }
+
+    if (err_t err = check(s)) {
+        return err;
+    }
+    if (_storedValue != s) {
+        if (s == _defaultValue) {
+            nvs_erase_key(_handle, _keyName);
+            _storedValue = _defaultValue;
+        } else {
+            if (nvs_set_str(_handle, _keyName, s)) {
+                return STATUS_NVS_SET_FAILED;
+            }
+            _storedValue = s;
+        }
+    }
+    return STATUS_OK;
+}
+
+const char* PinSetting::getStringValue() {
+    // If the string is a password do not display it
+    return _storedValue.c_str();
+}
+
+void PinSetting::addWebui(WebUI::JSONencoder* j) {
+    if (!getDescription()) {
+        return;
+    }
+    j->begin_webui(getName(), getDescription(), "S", getStringValue(), 0, 255);
+    j->end_object();
+}
+
 typedef std::map<const char*, int8_t, cmp_str> enum_opt_t;
 
 EnumSetting::EnumSetting(
