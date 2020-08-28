@@ -15,21 +15,23 @@ namespace Pins {
         PinCapabilities& operator=(const PinCapabilities&) = default;
         PinCapabilities& operator=(PinCapabilities&) = default;
 
-        // All the traits we use and test:
+        // All the capabilities we use and test:
         static PinCapabilities None;
         static PinCapabilities Native;
         static PinCapabilities Input;
         static PinCapabilities Output;
         static PinCapabilities PullUp;
         static PinCapabilities PullDown;
+        static PinCapabilities ADC;
+        static PinCapabilities DAC;
         static PinCapabilities PWM;
         static PinCapabilities ISR;
         static PinCapabilities I2S;
 
         inline PinCapabilities operator|(PinCapabilities rhs) { return PinCapabilities(_value | rhs._value); }
         inline PinCapabilities operator&(PinCapabilities rhs) { return PinCapabilities(_value & rhs._value); }
-        inline bool      operator==(PinCapabilities rhs) const { return _value == rhs._value; }
-        inline bool      operator!=(PinCapabilities rhs) const { return _value != rhs._value; }
+        inline bool            operator==(PinCapabilities rhs) const { return _value == rhs._value; }
+        inline bool            operator!=(PinCapabilities rhs) const { return _value != rhs._value; }
 
         inline operator bool() { return _value != 0; }
 

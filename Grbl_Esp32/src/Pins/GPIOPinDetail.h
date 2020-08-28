@@ -4,12 +4,15 @@
 
 namespace Pins {
     class GPIOPinDetail : public PinDetail {
-        uint8_t _index;
+        uint8_t         _index;
+        PinCapabilities _capabilities;
+
+        static PinCapabilities GetDefaultCapabilities(uint8_t index);
 
     public:
-        GPIOPinDetail(uint8_t index, const PinOptionsParser& options);
+        GPIOPinDetail(uint8_t index, PinOptionsParser options);
 
-        PinCapabilities traits() const override;
+        PinCapabilities capabilities() const override;
 
         // I/O:
         void write(bool high) override;

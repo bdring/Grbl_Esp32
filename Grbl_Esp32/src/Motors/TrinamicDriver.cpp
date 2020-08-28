@@ -64,7 +64,7 @@ namespace Motors {
         cs_pin.setMode(OUTPUT);
 
         // use slower speed if I2S
-        if (cs_pin.traits().has(Pin::Capabilities::I2S)) {
+        if (cs_pin.capabilities().has(Pin::Capabilities::I2S)) {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
         }
 

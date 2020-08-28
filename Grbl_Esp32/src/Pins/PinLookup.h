@@ -23,7 +23,7 @@ namespace Pins {
 
         uint8_t SetPin(uint8_t suggestedIndex, PinDetail* value) {
             int realIndex = -1;
-            if (value->traits().has(Pins::PinCapabilities::Native)) {
+            if (value->capabilities().has(Pins::PinCapabilities::Native)) {
                 realIndex = suggestedIndex;
             } else {
                 // Search for the first available pin index:

@@ -1,6 +1,6 @@
 #pragma once
 
-class Pin; // Forward declaration
+class Pin;  // Forward declaration
 
 namespace Pins {
     // Pin options are passed as PinOption object. This is a simple C++ forward iterator,
@@ -30,12 +30,15 @@ namespace Pins {
     public:
         inline const char* operator()() const { return _start; }
 
-        inline bool is(const char* option) const;
+        bool is(const char* option) const;
 
         // Iterator support:
         inline PinOption const* operator->() const { return this; }
         inline PinOption        operator*() const { return *this; }
         PinOption               operator++() const;
+
+        bool operator==(const PinOption& o) const { return _start == o._start; }
+        bool operator!=(const PinOption& o) const { return _start != o._start; }
     };
 
     // Options parser. This basically parses the options passed to the Pin class. Destroys
@@ -48,7 +51,7 @@ namespace Pins {
     public:
         PinOptionsParser(char* buffer, char* endBuffer);
 
-        inline PinOption begin() { return PinOption(_buffer, _bufferEnd); }
-        inline PinOption end() { return PinOption(_bufferEnd, _bufferEnd); }
+        inline PinOption begin() const { return PinOption(_buffer, _bufferEnd); }
+        inline PinOption end() const { return PinOption(_bufferEnd, _bufferEnd); }
     };
 }

@@ -17,7 +17,7 @@ namespace Pins {
         PinDetail& operator=(const PinDetail& o) = delete;
         PinDetail& operator=(PinDetail&& o) = delete;
 
-        virtual PinCapabilities traits() const = 0;
+        virtual PinCapabilities capabilities() const = 0;
 
         // I/O:
         virtual void write(bool high)    = 0;

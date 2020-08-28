@@ -12,6 +12,8 @@ namespace Pins {
     PinCapabilities PinCapabilities::PullUp(1 << (__LINE__ - START_LINE));
     PinCapabilities PinCapabilities::PullDown(1 << (__LINE__ - START_LINE));
     PinCapabilities PinCapabilities::PWM(1 << (__LINE__ - START_LINE));
+    PinCapabilities PinCapabilities::ADC(1 << (__LINE__ - START_LINE));
+    PinCapabilities PinCapabilities::DAC(1 << (__LINE__ - START_LINE));
     PinCapabilities PinCapabilities::ISR(1 << (__LINE__ - START_LINE));
     PinCapabilities PinCapabilities::I2S(1 << (__LINE__ - START_LINE));  // I did *NOT* want I2S, but TrinamicDriver needs it because of speeds...
 #undef START_LINE

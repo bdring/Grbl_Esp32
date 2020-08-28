@@ -7,7 +7,7 @@ namespace Pins {
     public:
         ErrorPinDetail(const String& options);
 
-        PinCapabilities traits() const override;
+        PinCapabilities capabilities() const override;
 
         // I/O will all give an error:
         void write(bool high) override;
