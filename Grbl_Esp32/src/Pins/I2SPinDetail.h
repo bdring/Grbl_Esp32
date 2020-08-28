@@ -6,7 +6,9 @@
 
 namespace Pins {
     class I2SPinDetail : public PinDetail {
-        uint8_t _index;
+        uint8_t         _index;
+        PinCapabilities _capabilities;
+        PinAttributes   _attributes;
 
     public:
         I2SPinDetail(uint8_t index, const PinOptionsParser& options);
@@ -14,9 +16,9 @@ namespace Pins {
         PinCapabilities capabilities() const override;
 
         // I/O:
-        void write(bool high) override;
+        void write(int high) override;
         int  read() override;
-        void mode(uint8_t value) override;
+        void setAttr(PinAttributes value) override;
 
         String toString() override;
 

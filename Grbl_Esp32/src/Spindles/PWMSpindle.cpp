@@ -48,8 +48,8 @@ namespace Spindles {
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
         ledcAttachPin(native_output, _pwm_chan_num);                  // attach the PWM to the pin
 
-        _enable_pin.setMode(OUTPUT);
-        _direction_pin.setMode(OUTPUT);
+        _enable_pin.setAttr(Pin::Attr::Output);
+        _direction_pin.setAttr(Pin::Attr::Output);
 
         use_delays = true;
 

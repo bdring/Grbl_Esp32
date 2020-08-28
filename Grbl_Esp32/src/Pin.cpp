@@ -23,18 +23,22 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber)
     if (idx != str.end()) {  // skip '.'
         ++idx;
     }
-    if (idx == str.end()) {
-        // Incorrect pin definition.
-        return false;
-    }
 
-    pinNumber = 0;
-    for (; idx != str.end() && *idx >= '0' && *idx <= '9'; ++idx) {
-        pinNumber = pinNumber * 10 + int(*idx - '0');
-    }
-    if (pinNumber < 0 || pinNumber > 255) {
-        // Pin number has to be between [0,255].
-        return false;
+    if (prefix != "undef")
+    {
+        if (idx == str.end()) {
+            // Incorrect pin definition.
+            return false;
+        }
+
+        pinNumber = 0;
+        for (; idx != str.end() && *idx >= '0' && *idx <= '9'; ++idx) {
+            pinNumber = pinNumber * 10 + int(*idx - '0');
+        }
+        if (pinNumber < 0 || pinNumber > 253) {
+            // Pin number has to be between [0,253].
+            return false;
+        }
     }
 
     String options;

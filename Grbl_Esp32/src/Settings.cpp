@@ -387,9 +387,8 @@ void StringSetting::addWebui(WebUI::JSONencoder* j) {
     j->end_object();
 }
 
-PinSetting::PinSetting(
-    const char* description, type_t type, permissions_t permissions, const char* name, const char* defVal, bool (*checker)(char*)) :
-    Setting(description, type, permissions, NULL, name, checker) {
+PinSetting::PinSetting(const char* description, const char* name, const char* defVal, bool (*checker)(char*)) :
+    Setting(description, WEBSET, WA, NULL, name, checker) {
     _defaultValue = defVal;
 };
 

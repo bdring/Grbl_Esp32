@@ -3,6 +3,7 @@
 #include "Pins/PinLookup.h"
 #include "Pins/PinDetail.h"
 #include "Pins/PinCapabilities.h"
+#include "Pins/PinAttributes.h"
 
 #include <Arduino.h>  // for IRAM_ATTR
 #include <cstdint>
@@ -38,9 +39,13 @@ class Pin {
 
 public:
     using Capabilities = Pins::PinCapabilities;
+    using Attr         = Pins::PinAttributes;
 
     static Pin UNDEFINED;
     static Pin ERROR;
+
+    static const bool On = true;
+    static const bool Off = false;
 
     static Pin  create(const String& str);
     static bool validate(const String& str);
@@ -63,20 +68,25 @@ public:
         return _index;
     }
 
-    inline void write(bool high) const {
+    inline void write(bool value) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        detail->write(high);
+        detail->write(value ? 1 : 0);
     }
 
-    inline int read() const {
+    inline bool read() const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        return detail->read();
+        return detail->read() != 0;
     }
 
-    inline void setMode(uint8_t value) const {
+    inline void setAttr(Attr attributes) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        detail->mode(value);
+        detail->setAttr(attributes);
     }
+
+    inline void on() const { write(1); }
+    inline void off() const { write(0); }
+
+    // PWM
 
     inline bool initPWM(uint32_t frequency, uint32_t maxDuty) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
@@ -109,12 +119,12 @@ public:
     }
 
     // Backward compatibility ISR handler:
-    void attachInterrupt(void (*callback)(void*), int mode) {
+    void attachInterrupt(void (*callback)(void*), int mode) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
         detail->attachInterrupt(callback, nullptr, mode);
     }
 
-    void detachInterrupt() {
+    void detachInterrupt() const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
         detail->detachInterrupt();
     }

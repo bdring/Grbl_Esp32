@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "GPIOPinDetail.h"
+#include "../Assert.h"
 
 extern "C" int  __digitalRead(uint8_t pin);
 extern "C" void __pinMode(uint8_t pin, uint8_t mode);
@@ -70,22 +71,64 @@ namespace Pins {
         }
     }
 
-    GPIOPinDetail::GPIOPinDetail(uint8_t index, PinOptionsParser options) : _index(index), _capabilities(GetDefaultCapabilities(index)) {
+    GPIOPinDetail::GPIOPinDetail(uint8_t index, PinOptionsParser options) :
+        _index(index), _capabilities(GetDefaultCapabilities(index)), _attributes(Pins::PinAttributes::Undefined), _readWriteMask(0) {
         // User defined pin capabilities
         for (auto opt : options) {
             if (opt.is("pu")) {
                 _capabilities = _capabilities | PinCapabilities::PullUp;
             } else if (opt.is("pd")) {
                 _capabilities = _capabilities | PinCapabilities::PullDown;
+            } else if (opt.is("low")) {
+                _capabilities = _capabilities | PinCapabilities::ActiveLow;
+            } else if (opt.is("high")) {
+                // Default: Active HIGH.
             }
+        }
+
+        // Update the R/W mask for ActiveLow setting
+        if (_capabilities.has(PinCapabilities::ActiveLow)) {
+            // TODO FIXME: Does this require __pinMode first? Or can we forget that?
+            __digitalWrite(_index, HIGH);
+            _readWriteMask = HIGH;
+        } else {
+            _readWriteMask = LOW;
         }
     }
 
     PinCapabilities GPIOPinDetail::capabilities() const { return _capabilities; }
 
-    void GPIOPinDetail::write(bool high) { __digitalWrite(_index, high); }
-    int  GPIOPinDetail::read() { return __digitalRead(_index); }
-    void GPIOPinDetail::mode(uint8_t value) { __pinMode(_index, value); }
+    void GPIOPinDetail::write(int high) {
+        int value = _readWriteMask ^ high;
+        __digitalWrite(_index, value);
+    }
+    int GPIOPinDetail::read() {
+        auto raw = __digitalRead(_index);
+        return raw ^ _readWriteMask;
+    }
+
+    void GPIOPinDetail::setAttr(PinAttributes value) {
+        // Check the attributes first:
+        Assert(!value.validateWith(this->_capabilities), "The requested attributes don't match the pin capabilities");
+        Assert(!_attributes.conflictsWith(value), "Attributes on this pin have been set before, and there's a conflict.");
+
+        _attributes = value;
+
+        // Handle attributes:
+        uint8_t pinModeValue = 0;
+
+        if (value.has(PinAttributes::PullUp)) {
+            pinModeValue |= PULLUP;
+        } else if (value.has(PinAttributes::PullDown)) {
+            pinModeValue |= PULLDOWN;
+        } else if (value.has(PinAttributes::Input)) {
+            pinModeValue |= INPUT;
+        } else if (value.has(PinAttributes::Input)) {
+            pinModeValue |= OUTPUT;
+        }
+
+        __pinMode(_index, pinModeValue);
+    }
 
     void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) { ::attachInterruptArg(_index, callback, arg, mode); }
     void GPIOPinDetail::detachInterrupt() { ::detachInterrupt(_index); }

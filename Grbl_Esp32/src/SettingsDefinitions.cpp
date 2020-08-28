@@ -142,6 +142,15 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_C_MICROSTEPS,
                                       DEFAULT_C_STALLGUARD } };
 
+// Pins:
+
+PinSetting* coolant_flood_pin;
+PinSetting* coolant_mist_pin;
+PinSetting* limit_pins[MAX_N_AXIS][2];
+
+// Pin limit_pins[MAX_N_AXIS][2] = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
+//                                   { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
+
 // Construct e.g. X_MAX_RATE from axisName "X" and tail "_MAX_RATE"
 // in dynamically allocated memory that will not be freed.
 
@@ -323,4 +332,12 @@ void make_settings() {
     pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_type           = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", SPINDLE_TYPE, &spindleTypes);
     stallguard_debug_mask  = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
+
+    // Pins:
+    coolant_flood_pin = new PinSetting("Coolant/FloodPin", "undef", NULL);
+    coolant_mist_pin  = new PinSetting("Coolant/MistPin", "undef", NULL);
+
+    // TODO FIXME:
+    // limit_pins = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
+    //                { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
 }

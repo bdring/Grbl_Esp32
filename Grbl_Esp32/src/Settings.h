@@ -286,10 +286,10 @@ private:
     Pin         _currentValue;
 
 public:
-    PinSetting(const char* description, type_t type, permissions_t permissions, const char* name, const char* defVal, bool (*checker)(char*));
+    PinSetting(const char* description, const char* name, const char* defVal, bool (*checker)(char*));
 
-    PinSetting(type_t type, permissions_t permissions, const char* name, const char* defVal, bool (*checker)(char*) = NULL) :
-        PinSetting(NULL, type, permissions, name, defVal, checker) {};
+    PinSetting( const char* name, const char* defVal, bool (*checker)(char*) = NULL) :
+        PinSetting(NULL, name, defVal, checker) {};
 
     void        load();
     void        setDefault();

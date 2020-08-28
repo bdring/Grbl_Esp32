@@ -275,22 +275,24 @@ void limits_go_home(uint8_t cycle_mask) {
     motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done
 }
 
-Pin limit_pins[MAX_N_AXIS][2] = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
-                                  { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
+// Pin limit_pins[MAX_N_AXIS][2] = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
+//                                   { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
 
 uint8_t limit_mask = 0;
 
 void limits_init() {
     limit_mask = 0;
-    int mode   = INPUT_PULLUP;
+    Pin::Attr mode   = Pin::Attr::Input | Pin::Attr::PullUp;
+
 #ifdef DISABLE_LIMIT_PIN_PULL_UP
-    mode = INPUT;
+    mode = Pin::Attr::Input
 #endif
+
     for (int axis = 0; axis < N_AXIS; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            Pin pin;
-            if ((pin = limit_pins[axis][gang_index]) != Pin::UNDEFINED) {
-                pin.setMode(mode);
+            const Pin& pin = limit_pins[axis][gang_index]->get();
+            if (pin != Pin::UNDEFINED) {
+                pin.setAttr(mode);
                 limit_mask |= bit(axis);
                 if (hard_limits->get()) {
                     pin.attachInterrupt(isr_limit_switches, CHANGE);
@@ -324,7 +326,7 @@ void limits_init() {
 void limits_disable() {
     for (int axis = 0; axis < N_AXIS; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            auto pin = limit_pins[axis][gang_index];
+            const auto& pin = limit_pins[axis][gang_index]->get();
             if (pin != Pin::UNDEFINED) {
                 pin.detachInterrupt();
             }
@@ -339,7 +341,7 @@ uint8_t limits_get_state() {
     uint8_t pinMask = 0;
     for (int axis = 0; axis < N_AXIS; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            auto pin = limit_pins[axis][gang_index];
+            const auto &pin = limit_pins[axis][gang_index]->get();
             if (pin != Pin::UNDEFINED) {
                 pinMask |= (pin.read() << axis);
             }

@@ -45,8 +45,8 @@ namespace Spindles {
             return;
         }
 
-        _enable_pin.setMode(OUTPUT);
-        _direction_pin.setMode(OUTPUT);
+        _enable_pin.setAttr(Pin::Attr::Output);
+        _direction_pin.setAttr(Pin::Attr::Output);
 
         is_reversable = (_direction_pin != Pin::UNDEFINED);
         use_delays    = true;
