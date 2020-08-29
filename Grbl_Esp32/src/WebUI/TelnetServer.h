@@ -22,11 +22,13 @@
 
 #include "../Config.h"
 
+#include <Stream.h>
+
 class WiFiServer;
 class WiFiClient;
 
 namespace WebUI {
-    class Telnet_Server {
+    class Telnet_Server : public Stream {
         //how many clients should be able to telnet to this ESP32
         static const int MAX_TLNT_CLIENTS = 1;
 
@@ -39,13 +41,19 @@ namespace WebUI {
         bool   begin();
         void   end();
         void   handle();
-        size_t write(const uint8_t* buffer, size_t size);
-        int    read(void);
-        int    peek(void);
-        int    available();
         int    get_rx_buffer_available();
         bool   push(uint8_t data);
         bool   push(const uint8_t* data, int datasize);
+
+        // Overloaded method of Print class
+        size_t write(const uint8_t* buffer, size_t size);
+        // Virtual method of Print class
+        size_t write(uint8_t);
+        // Virtual methods of Stream class
+        int    read(void);
+        int    peek(void);
+        int    available();
+        void   flush() { }
 
         static uint16_t port() { return _port; }
 

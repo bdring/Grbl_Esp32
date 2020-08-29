@@ -74,7 +74,7 @@ void grbl_init() {
 #ifdef ENABLE_BLUETOOTH
     WebUI::bt_config.begin();
 #endif
-    WebUI::inputBuffer.begin();
+    macroBuffer.begin();
 }
 
 static void reset_variables() {

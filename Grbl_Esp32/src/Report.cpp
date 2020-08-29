@@ -64,11 +64,11 @@ void grbl_send(uint8_t client, const char* text) {
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_OUT)
     if (client == CLIENT_WEBUI || client == CLIENT_ALL)
-        WebUI::Serial2Socket.write((const uint8_t*)text, strlen(text));
+        WebUI::Serial2Socket.print(text);
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
     if (client == CLIENT_TELNET || client == CLIENT_ALL)
-        WebUI::telnet_server.write((const uint8_t*)text, strlen(text));
+        WebUI::telnet_server.print(text);
 #endif
     if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
         Serial.print(text);

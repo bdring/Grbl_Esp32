@@ -26,7 +26,7 @@
 class WebSocketsServer;
 
 namespace WebUI {
-    class Serial_2_Socket : public Print {
+    class Serial_2_Socket : public Stream {
         static const int TXBUFFERSIZE = 1200;
         static const int RXBUFFERSIZE = 128;
         static const int FLUSHTIMEOUT = 500;
@@ -46,14 +46,15 @@ namespace WebUI {
         long baudRate();
         void begin(long speed);
         void end();
-        int  available();
-        int  peek(void);
-        int  read(void);
         bool push(const char* data);
-        void flush(void);
         void handle_flush();
         bool attachWS(WebSocketsServer* web_socket);
         bool detachWS();
+        // Virtual methods of Stream
+        int  available();
+        int  peek(void);
+        int  read(void);
+        void flush(void);
 
         operator bool() const;
 
