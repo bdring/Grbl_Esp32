@@ -98,10 +98,6 @@ static volatile uint8_t segment_buffer_tail;
 static uint8_t          segment_buffer_head;
 static uint8_t          segment_next_head;
 
-// Step and direction port invert masks.
-static uint8_t step_port_invert_mask;
-static uint8_t dir_port_invert_mask;
-
 // Used to avoid ISR nesting of the "Stepper Driver Interrupt". Should never occur though.
 static volatile uint8_t busy;
 
@@ -420,7 +416,6 @@ static void stepper_pulse_func() {
         // Generate pulse (at least one pulse)
         // The pulse resolution is limited by I2S_OUT_USEC_PER_PULSE
         //
-        st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
         i2s_out_push_sample(pulse_microseconds->get() / I2S_OUT_USEC_PER_PULSE);
         set_stepper_pins_on(0);  // turn all off
         return;
@@ -429,7 +424,6 @@ static void stepper_pulse_func() {
 #ifdef USE_RMT_STEPS
     return;
 #else
-    st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
     // wait for step pulse time to complete...some of it should have expired during code above
     while (esp_timer_get_time() - step_pulse_start_time < pulse_microseconds->get()) {
         NOP();  // spin here until time to turn off step
@@ -476,8 +470,6 @@ void st_wake_up() {
     // Enable stepper drivers.
     motors_set_disable(false);
     stepper_idle = false;
-    // Initialize stepper output bits to ensure first ISR call does not step.
-    st.step_outbits = step_port_invert_mask;
     // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
 #ifdef STEP_PULSE_DELAY
     // Step pulse delay handling is not require with ESP32...the RMT function does it.
@@ -510,8 +502,8 @@ void st_reset() {
     segment_buffer_head = 0;  // empty = tail
     segment_next_head   = 1;
     busy                = false;
-    st_generate_step_dir_invert_masks();
-    st.dir_outbits = dir_port_invert_mask;  // Initialize direction bits to default.
+    st.step_outbits = 0;
+    st.dir_outbits = dir_invert_mask->get();  // Initialize direction bits to default.
     // TODO do we need to turn step pins off?
 }
 
@@ -716,6 +708,7 @@ void st_go_idle() {
         motors_set_disable(false);
 
     set_stepper_pins_on(0);
+    st.step_outbits = 0;
 }
 
 // Called by planner_recalculate() when the executing block is updated by the new plan.
@@ -759,22 +752,6 @@ void st_parking_restore_buffer() {
     pl_block = NULL;  // Set to reload next block.
 }
 #endif
-
-// Generates the step and direction port invert masks used in the Stepper Interrupt Driver.
-void st_generate_step_dir_invert_masks() {
-    /*
-    uint8_t idx;
-    step_port_invert_mask = 0;
-    dir_port_invert_mask = 0;
-    for (idx=0; idx<N_AXIS; idx++) {
-      if (bit_istrue(step_invert_mask->get(),bit(idx))) { step_port_invert_mask |= get_step_pin_mask(idx); }
-      if (bit_istrue(dir_invert_mask->get(),bit(idx))) { dir_port_invert_mask |= get_direction_pin_mask(idx); }
-    }
-    */
-    // simpler with ESP32, but let's do it here for easier change management
-    step_port_invert_mask = step_invert_mask->get();
-    dir_port_invert_mask  = dir_invert_mask->get();
-}
 
 // Increments the step segment buffer block data ring buffer.
 static uint8_t st_next_block_index(uint8_t block_index) {
