@@ -427,3 +427,24 @@ int8_t sys_get_next_PWM_chan_num() {
         return -1;
     }
 }
+
+/*
+    This returns an unused pwm channel.
+    The 8 channels share 4 timers, so pairs 0,1 & 2,3 , etc
+    have to be the same frequency. The spindle always uses channel 0
+    so we start counting from 2.
+
+    There are still possible issues if requested channels use different frequencies
+    TODO: Make this more robust.
+*/
+int8_t sys_get_next_uart_num() {
+    static int8_t next_uart_num = 1;  // start at 1 to avoid USB/UART
+    if (next_uart_num < UART_NUM_MAX)             // 2 is the max PWM channel number
+        return next_uart_num++;
+    else {
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_ERROR, "Error: out of uarts");
+        return UART_NUM_MAX;
+    }
+}
+
+
