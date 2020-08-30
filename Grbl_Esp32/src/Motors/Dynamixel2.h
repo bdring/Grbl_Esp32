@@ -24,6 +24,43 @@
 #define DYNAMIXEL_BUF_SIZE            127
 #define DYNAMIXEL_BAUD_RATE           1000000
 
+#define DXL_RESPONSE_WAIT_TICKS 20  // how long to wait for a response
+
+// protocol 2 byte positions
+#define DXL_MSG_HDR1 0
+#define DXL_MSG_HDR2 1
+#define DXL_MSG_HDR3 2
+#define DXL_MSG_RSRV 3  // reserved byte
+#define DXL_MSG_ID 4
+#define DXL_MSG_LEN_L 5
+#define DXL_MSG_LEN_H 6
+#define DXL_MSG_INSTR 7
+#define DXL_MSG_START 8
+
+#define DXL_BROADCAST_ID 0xFE
+
+// protocol 2 instruction numbers
+#define DXL_INSTR_PING 0x01
+#define PING_RSP_LEN 14
+#define DXL_READ 0x02
+#define DXL_WRITE 0x03
+#define DXL_SYNC_WRITE 0x83
+#define DXL_BULK_WRITE 0x93
+
+// protocol 2 register locations
+#define DXL_OPERATING_MODE 11
+#define DXL_MOVING_THRESHOLD 24
+#define DXL_ADDR_TORQUE_EN 64
+#define DXL_ADDR_LED_ON 65
+#define DXL_GOAL_POSITION 116  // 0x74
+#define DXL_PRESENT_POSITION 132
+
+// control modes
+#define DXL_CONTROL_MODE_VELOCITY 1
+#define DXL_CONTROL_MODE_POSITION 3
+#define DXL_CONTROL_MODE_EXT_POSITION 4
+#define DXL_CONTROL_MODE_PWM 16
+
 #include "Motor.h"
 
 namespace Motors {
@@ -37,15 +74,21 @@ namespace Motors {
         virtual void update();
         void         read_settings();
 
-        static bool uart_ready;
+        
 
     protected:
         void set_location();
         void _get_calibration();
 
-        static bool init_uart(uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin);
+        char    dxl_tx_message[50];  // outgoing to dynamixel
+        uint8_t dxl_rx_message[50];  // received from dynamixel
 
-        bool     _disabled;
+        bool test();
+        uint16_t dxl_get_response(uint16_t length);     
+        void     dxl_finish_message(char* msg, uint8_t servo_id, uint16_t msg_len);
+        uint16_t dxl_update_crc(uint16_t crc_accum, char* data_blk_ptr, uint8_t data_blk_size);
+
+        bool _disabled;
 
         float _position_min;
         float _position_max;  // position in millimeters
@@ -59,6 +102,6 @@ namespace Motors {
         uint8_t _rts_pin;
         uart_port_t _uart_num;
 
-        uint8_t _address;        
+        uint8_t _id;        
     };
 }

@@ -54,9 +54,7 @@ rmt_config_t rmtConfig;
 bool motor_class_steps;  // true if at least one motor class is handling steps
 
 void init_motors() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Init Motors");
-
-    //Motors::Dynamixel2::uart_ready = false; // initialize static
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Init Motors");    
 
 #ifdef X_TRINAMIC_DRIVER
     myMotor[X_AXIS][0] = new Motors::TrinamicDriver(
