@@ -37,11 +37,13 @@ namespace Motors {
         virtual void update();
         void         read_settings();
 
-        static bool _uart_ready;
+        static bool uart_ready;
 
     protected:
         void set_location();
-        void _get_calibration();        
+        void _get_calibration();
+
+        static bool init_uart(uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin);
 
         bool     _disabled;
 

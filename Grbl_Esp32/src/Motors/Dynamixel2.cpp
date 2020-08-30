@@ -68,16 +68,15 @@ namespace Motors {
         is_active = true;  // as opposed to NullMotors, this is a real motor
         set_axis_name();
 
-        /*
-            _uart_num = sys_get_next_uart_num();
+        if (!uart_ready) {
+            init_uart(_tx_pin, _rx_pin, _rts_pin);
+        }
 
-            if (_uart_num == UART_NUM_MAX) {
-                grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No avialable UART for Dynamixel Motors");
-                return;
-            }
-            */
+        config_message();
+    }
 
-        _uart_num = UART_NUM_2;
+    bool Dynamixel2::init_uart(uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin) {
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel UART Init");
 
         // setup the comm port as half duplex
         uart_config_t uart_config = {
@@ -90,12 +89,14 @@ namespace Motors {
         };
 
         // Configure UART parameters
-        uart_param_config(_uart_num, &uart_config);
-        uart_set_pin(_uart_num, _tx_pin, _rx_pin, _rts_pin, UART_PIN_NO_CHANGE);
-        uart_driver_install(_uart_num, DYNAMIXEL_BUF_SIZE * 2, 0, 0, NULL, 0);
-        uart_set_mode(_uart_num, UART_MODE_RS485_HALF_DUPLEX);
+        uart_param_config(UART_NUM_2, &uart_config);
+        uart_set_pin(UART_NUM_2, tx_pin, rx_pin, rts_pin, UART_PIN_NO_CHANGE);
+        uart_driver_install(UART_NUM_2, DYNAMIXEL_BUF_SIZE * 2, 0, 0, NULL, 0);
+        uart_set_mode(UART_NUM_2, UART_MODE_RS485_HALF_DUPLEX);
 
-        config_message();
+        //uart_ready = true;
+
+        return true;
     }
 
     void Dynamixel2::config_message() {}
