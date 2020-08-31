@@ -76,6 +76,7 @@ namespace Motors {
         virtual void set_disable(bool disable);
         virtual void update();
         void         read_settings();
+        static bool  uart_ready;
 
     protected:
         void set_location();

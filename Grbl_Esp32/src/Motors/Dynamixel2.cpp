@@ -59,9 +59,7 @@ namespace Motors {
         //dxl_LED_on(false);
     }
 
-    void Dynamixel2::init_uart() {
-        static bool uart_ready = false;
-
+    void Dynamixel2::init_uart() {        
         if (uart_ready)
             return;
 

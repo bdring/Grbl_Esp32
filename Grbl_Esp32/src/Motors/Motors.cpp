@@ -47,6 +47,8 @@ Motors::Motor*      myMotor[MAX_AXES][MAX_GANGED];  // number of axes (normal an
 static TaskHandle_t readSgTaskHandle      = 0;      // for realtime stallguard data diaplay
 static TaskHandle_t servoUpdateTaskHandle = 0;
 
+bool Motors::Dynamixel2::uart_ready = false;
+
 uint8_t      rmt_chan_num[MAX_AXES][MAX_GANGED];
 rmt_item32_t rmtItem[2];
 rmt_config_t rmtConfig;
