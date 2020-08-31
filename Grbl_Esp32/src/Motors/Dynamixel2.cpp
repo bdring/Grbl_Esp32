@@ -8,31 +8,6 @@
 
     2020 -	Bart Dring
 
-    Servos have a limited travel, so they map the travel across a range in
-    the current work coordinatee system. The servo can only travel as far
-    as the range, but the internal axis value can keep going.
-
-    Range: The range is specified in the machine definition file with...
-    #define X_SERVO_RANGE_MIN       0.0
-    #define X_SERVO_RANGE_MAX       5.0
-
-    Direction: The direction can be changed using the $3 setting for the axis
-
-    Homing: During homing, the servo will move to one of the endpoints. The
-    endpoint is determined by the $23 or $HomingDirInvertMask setting for the axis.
-    Do not define a homing cycle for the axis with the servo.
-    You do need at least 1 homing cycle.  TODO: Fix this
-
-    Calibration. You can tweak the endpoints using the $10n or nStepsPerMm and
-    $13n or $xMaxTravel setting, where n is the axis.
-    The value is a percent. If you secify a percent outside the
-    the range specified by the values below, it will be reset to 100.0 (100% ... no change)
-    The calibration adjusts in direction of positive momement, so a value above 100% moves
-    towards the higher axis value.
-
-    #define SERVO_CAL_MIN
-    #define SERVO_CAL_MAX
-
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -50,25 +25,47 @@
 namespace Motors {
     Dynamixel2::Dynamixel2() {}
 
-    Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin, float min, float max) {
+    Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin) {
         type_id               = DYNAMIXEL2;
         this->axis_index      = axis_index % MAX_AXES;
         this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
-        _position_min         = min;
-        _position_max         = max;
-        _id                   = id;
-        _tx_pin               = tx_pin;
-        _rx_pin               = rx_pin;
-        _rts_pin              = rts_pin;
+
+        _id      = id;
+        _tx_pin  = tx_pin;
+        _rx_pin  = rx_pin;
+        _rts_pin = rts_pin;
+
+        set_axis_name();
+        read_settings();
+
         init();
     }
 
     void Dynamixel2::init() {
-        read_settings();
         is_active = true;  // as opposed to NullMotors, this is a real motor
-        set_axis_name();
 
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel UART TX:%d RX:%d RTS:%d", _tx_pin, _rx_pin, _rts_pin);
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel UART TX:%d RX:%d RTS:%d", _tx_pin, _rx_pin, _rts_pin);
+
+        init_uart();
+
+        config_message();
+
+        test();
+
+        set_disable(true);  // turn off torque so we can set EEPROM registers
+        set_operating_mode(DXL_CONTROL_MODE_POSITION);
+        //LED_on(true);
+        //vTaskDelay(100);
+        //dxl_LED_on(false);
+    }
+
+    void Dynamixel2::init_uart() {
+        static bool uart_ready = false;
+
+        if (uart_ready)
+            return;
+
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel UART TX:%d RX:%d RTS:%d", DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 
         uart_driver_delete(UART_NUM_2);
 
@@ -84,11 +81,11 @@ namespace Motors {
 
         // Configure UART parameters
         uart_param_config(UART_NUM_2, &uart_config);
-        uart_set_pin(UART_NUM_2, _tx_pin, _rx_pin, _rts_pin, UART_PIN_NO_CHANGE);
+        uart_set_pin(UART_NUM_2, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS, UART_PIN_NO_CHANGE);
         uart_driver_install(UART_NUM_2, DYNAMIXEL_BUF_SIZE * 2, 0, 0, NULL, 0);
         uart_set_mode(UART_NUM_2, UART_MODE_RS485_HALF_DUPLEX);
-        config_message();
-        test();
+
+        uart_ready = true;
     }
 
     void Dynamixel2::config_message() {
@@ -101,7 +98,7 @@ namespace Motors {
 
         dxl_tx_message[DXL_MSG_INSTR] = DXL_INSTR_PING;
 
-        dxl_finish_message(dxl_tx_message, _id, len);
+        dxl_finish_message(dxl_tx_message, len);
 
         len = dxl_get_response(PING_RSP_LEN);  // wait for and get response
 
@@ -120,30 +117,154 @@ namespace Motors {
                                "%s Axis Dynamixel Detected ID %d M/N %d F/W Rev %x",
                                _axis_name,
                                _id,
-                               dxl_rx_message[11]);               
+                               model_num,
+                               dxl_rx_message[11]);
             }
 
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis Dynamixel Dynamixel Servo ID %d Ping failed", _axis_name, _id);
+            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis Dynamixel Servo ID %d Ping failed", _axis_name, _id);
         }
+
+        return true;
     }
 
     // sets the PWM to zero. This allows most servos to be manually moved
-    void Dynamixel2::set_disable(bool disable) {}
+    void Dynamixel2::set_disable(bool disable) {
+        uint8_t param_count = 1;
+
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis %s", _axis_name, disable ? "Disable" : "Enable");
+
+        if (disable)
+            dxl_write(DXL_ADDR_TORQUE_EN, param_count, 0);
+        else
+            dxl_write(DXL_ADDR_TORQUE_EN, param_count, 1);
+    }
+
+    void Dynamixel2::set_operating_mode(uint8_t mode) {
+        uint8_t param_count = 1;
+        dxl_write(DXL_OPERATING_MODE, param_count, mode);
+    }
 
     void Dynamixel2::update() { set_location(); }
 
-    void Dynamixel2::set_location() {}
+    void Dynamixel2::set_location() {
+        uint32_t servo_position;  // dynamixel postion index
+        float    work_pos, mpos, offset;
+
+        _get_calibration();
+
+        //return;
+
+        // skip location if we are in alarm mode
+        if (sys.state == STATE_ALARM) {
+            set_disable(true);
+            return;
+        }
+
+        mpos = system_convert_axis_steps_to_mpos(sys_position, axis_index);  // get the axis machine position in mm
+        // TBD working in MPos
+        offset   = 0;  // gc_state.coord_system[axis_index] + gc_state.coord_offset[axis_index];  // get the current axis work offset
+        work_pos = mpos - offset;  // determine the current work position
+
+        // determine the pulse length
+        servo_position = (uint32_t)mapConstrain(work_pos, _position_min, _position_max, _dxl_count_min, _dxl_count_max);
+
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set Loc %d %5.3f", servo_position, work_pos);
+
+        dxl_goal_position(servo_position);
+    }
 
     void Dynamixel2::read_settings() { _get_calibration(); }
 
     // this should change to use its own settings.
-    void Dynamixel2::_get_calibration() {}
+    void Dynamixel2::_get_calibration() {
+#ifndef HOMING_FORCE_POSITIVE_SPACE
+        _position_min = -axis_settings[axis_index]->max_travel->get();
+        _position_max = 0;
+#else
+        _position_min = 0;
+        _position_max = axis_settings[axis_index]->max_travel->get();
+#endif
+
+        _dxl_count_min = DXL_COUNT_MIN;
+        _dxl_count_max = DXL_COUNT_MAX;
+
+        if (bit_istrue(dir_invert_mask->get(), bit(axis_index))) {  // normal direction
+            swap(_dxl_count_min, _dxl_count_max);
+            //_pwm_pulse_min *= (2.0 - _cal_min);
+            //_pwm_pulse_max *= (2.0 - _cal_max);
+
+        } else {  // inverted direction
+            //_pwm_pulse_min *= _cal_min;
+            //_pwm_pulse_max *= _cal_max;
+        }
+    }
+
+    void Dynamixel2::dxl_goal_position(int32_t position) {
+        uint8_t param_count = 4;
+
+        dxl_write(DXL_GOAL_POSITION,
+                  param_count,
+                  (position & 0xFF),
+                  (position & 0xFF00) >> 8,
+                  (position & 0xFF0000) >> 16,
+                  (position & 0xFF000000) >> 24);
+    }
+
+    void Dynamixel2::LED_on(bool on) {
+        uint8_t param_count = 1;
+
+        if (on)
+            dxl_write(DXL_ADDR_LED_ON, param_count, 1);
+        else
+            dxl_write(DXL_ADDR_LED_ON, param_count, 0);
+    }
 
     // wait for and get the servo response
     uint16_t Dynamixel2::dxl_get_response(uint16_t length) {
         length = uart_read_bytes(UART_NUM_2, dxl_rx_message, length, DXL_RESPONSE_WAIT_TICKS);
         return length;
+    }
+
+    void Dynamixel2::dxl_write(uint16_t address, uint8_t paramCount, ...) {
+        dxl_tx_message[DXL_MSG_INSTR]     = DXL_WRITE;
+        dxl_tx_message[DXL_MSG_START]     = (address & 0xFF);           // low-order address value
+        dxl_tx_message[DXL_MSG_START + 1] = ((address & 0xFF00) >> 8);  // High-order address value
+
+        uint8_t msg_offset = 1;  // this is the offset from DXL_MSG_START in the message
+
+        va_list valist;
+
+        /* Initializing arguments  */
+        va_start(valist, paramCount);
+
+        for (int x = 0; x < paramCount; x++) {
+            msg_offset++;
+            dxl_tx_message[DXL_MSG_START + msg_offset] = (uint8_t)va_arg(valist, int);
+        }
+        va_end(valist);  // Cleans up the list
+
+        dxl_finish_message(dxl_tx_message, msg_offset + 4);
+
+        uint16_t len = 11;  // response length
+        len          = dxl_get_response(len);
+
+        if (len == 11) {
+            uint8_t err = dxl_rx_message[8];
+            switch (err) {
+                case 1: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write fail error", _id); break;
+                case 2: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write instruction error", _id); break;
+                case 3: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write access error", _id); break;
+                case 4: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write data range error", _id); break;
+                case 5: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write data length error", _id); break;
+                case 6: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write data limit error", _id); break;
+                case 7: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write access error", _id); break;
+                default: break;
+            }
+        } else {
+            // timeout
+            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Timeout", _id);
+        }
     }
 
     /*
@@ -153,7 +274,7 @@ namespace Motors {
     This function will add the header, length bytes and CRC
     It will then send the message
 */
-    void Dynamixel2::dxl_finish_message(char* msg, uint8_t servo_id, uint16_t msg_len) {
+    void Dynamixel2::dxl_finish_message(char* msg, uint16_t msg_len) {
         //uint16_t msg_len;
         uint16_t crc = 0;
         // header
@@ -163,7 +284,7 @@ namespace Motors {
         //
         // reserved
         msg[DXL_MSG_RSRV] = 0x00;
-        msg[DXL_MSG_ID]   = servo_id;
+        msg[DXL_MSG_ID]   = _id;
         // length
         msg[DXL_MSG_LEN_L] = msg_len & 0xFF;
         msg[DXL_MSG_LEN_H] = (msg_len & 0xFF00) >> 8;

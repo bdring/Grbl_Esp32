@@ -114,7 +114,7 @@
 #    define DEFAULT_HOMING_PULLOFF 1.0  // $27 mm
 #endif
 
-#ifndef  DEFAULT_HOMING_SQUARED_AXES
+#ifndef DEFAULT_HOMING_SQUARED_AXES
 #    define DEFAULT_HOMING_SQUARED_AXES 0
 #endif
 
@@ -502,4 +502,8 @@
 #endif
 #ifndef C2_STEPPER_MS3
 #    define C2_STEPPER_MS3 UNDEFINED_PIN
+#endif
+
+#ifndef SERVO_TIMER_INT_FREQ
+#    define SERVO_TIMER_INT_FREQ 50.0  // Hz This is the task frequency
 #endif

@@ -21,8 +21,8 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define DYNAMIXEL_BUF_SIZE            127
-#define DYNAMIXEL_BAUD_RATE           1000000
+#define DYNAMIXEL_BUF_SIZE 127
+#define DYNAMIXEL_BAUD_RATE 1000000
 
 #define DXL_RESPONSE_WAIT_TICKS 20  // how long to wait for a response
 
@@ -61,20 +61,21 @@
 #define DXL_CONTROL_MODE_EXT_POSITION 4
 #define DXL_CONTROL_MODE_PWM 16
 
+#define DXL_COUNT_MIN 1024
+#define DXL_COUNT_MAX 3072
+
 #include "Motor.h"
 
 namespace Motors {
     class Dynamixel2 : public Motor {
     public:
         Dynamixel2();
-        Dynamixel2(uint8_t axis_index, uint8_t address, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin, float min, float max);
+        Dynamixel2(uint8_t axis_index, uint8_t address, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin);
         virtual void config_message();
         virtual void init();
         virtual void set_disable(bool disable);
         virtual void update();
         void         read_settings();
-
-        
 
     protected:
         void set_location();
@@ -83,25 +84,30 @@ namespace Motors {
         char    dxl_tx_message[50];  // outgoing to dynamixel
         uint8_t dxl_rx_message[50];  // received from dynamixel
 
-        bool test();
-        uint16_t dxl_get_response(uint16_t length);     
-        void     dxl_finish_message(char* msg, uint8_t servo_id, uint16_t msg_len);
+        bool     test();
+        uint16_t dxl_get_response(uint16_t length);
+        void     dxl_finish_message(char* msg, uint16_t msg_len);
         uint16_t dxl_update_crc(uint16_t crc_accum, char* data_blk_ptr, uint8_t data_blk_size);
-
+        void     dxl_write(uint16_t address, uint8_t paramCount, ...);
+        void     dxl_goal_position(int32_t position);
+        void     set_operating_mode(uint8_t mode);
+        void     LED_on(bool on);
+        static void     init_uart();
+        
         bool _disabled;
 
         float _position_min;
         float _position_max;  // position in millimeters
         float _homing_position;
 
-        float _pwm_pulse_min;
-        float _pwm_pulse_max;
+        float _dxl_count_min;
+        float _dxl_count_max;
 
-        uint8_t _tx_pin;          
-        uint8_t _rx_pin;           
-        uint8_t _rts_pin;
+        uint8_t     _tx_pin;
+        uint8_t     _rx_pin;
+        uint8_t     _rts_pin;
         uart_port_t _uart_num;
 
-        uint8_t _id;        
+        uint8_t _id;
     };
 }

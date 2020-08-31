@@ -4,7 +4,6 @@
 /*
     dxl_delta.h
 
-
     2020    - Bart Dring
 
     Grbl_ESP32 is free software: you can redistribute it and/or modify
@@ -23,6 +22,8 @@
 #define DYNAMIXEL_TXD           GPIO_NUM_4
 #define DYNAMIXEL_RXD           GPIO_NUM_13
 #define DYNAMIXEL_RTS           GPIO_NUM_17
+
+#define SERVO_TIMER_INT_FREQ    75
 
 #define X_DYNAMIXEL_ID          1 // protocol ID
 #define Y_DYNAMIXEL_ID          2 // protocol ID

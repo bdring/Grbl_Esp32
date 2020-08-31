@@ -66,7 +66,7 @@ void init_motors() {
 #elif defined(X_STEP_PIN)
     myMotor[X_AXIS][0] = new Motors::StandardStepper(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_DISABLE_PIN);
 #elif defined(X_DYNAMIXEL_ID)
-    myMotor[X_AXIS][0] = new Motors::Dynamixel2(X_AXIS, X_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS, 0, 360);
+    myMotor[X_AXIS][0] = new Motors::Dynamixel2(X_AXIS, X_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
     myMotor[X_AXIS][0] = new Motors::Nullmotor();
 #endif
@@ -95,7 +95,7 @@ void init_motors() {
 #elif defined(Y_STEP_PIN)
     myMotor[Y_AXIS][0] = new Motors::StandardStepper(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN);
 #elif defined(Y_DYNAMIXEL_ID)
-    myMotor[Y_AXIS][0] = new Motors::Dynamixel2(Y_AXIS, Y_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS, 0, 360);
+    myMotor[Y_AXIS][0] = new Motors::Dynamixel2(Y_AXIS, Y_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
     myMotor[Y_AXIS][0] = new Motors::Nullmotor();
 #endif
@@ -123,6 +123,8 @@ void init_motors() {
     myMotor[Z_AXIS][0] = new Motors::UnipolarMotor(Z_AXIS, Z_PIN_PHASE_0, Z_PIN_PHASE_1, Z_PIN_PHASE_2, Z_PIN_PHASE_3);
 #elif defined(Z_STEP_PIN)
     myMotor[Z_AXIS][0] = new Motors::StandardStepper(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN);
+#elif defined(Z_DYNAMIXEL_ID)
+    myMotor[Z_AXIS][0] = new Motors::Dynamixel2(Z_AXIS, Z_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
     myMotor[Z_AXIS][0] = new Motors::Nullmotor();
 #endif
@@ -282,7 +284,7 @@ void init_motors() {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
     }
 
-    if (motors_have_type_id(RC_SERVO_MOTOR)) {
+    if (motors_have_type_id(RC_SERVO_MOTOR) || motors_have_type_id(DYNAMIXEL2)) { 
         xTaskCreatePinnedToCore(servoUpdateTask,    // task
                                 "servoUpdateTask",  // name for task
                                 4096,               // size of task stack
@@ -299,10 +301,8 @@ void servoUpdateTask(void* pvParameters) {
     const TickType_t xUpdate = SERVO_TIMER_INT_FREQ;  // in ticks (typically ms)
 
     xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
+    vTaskDelay(2000); // initial delay
     while (true) {                        // don't ever return from this or the task dies
-
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo update");
-
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
             for (uint8_t gang_index = 0; gang_index < 2; gang_index++)
                 myMotor[axis][gang_index]->update();
