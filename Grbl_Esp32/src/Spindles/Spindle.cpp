@@ -75,7 +75,7 @@ namespace Spindles {
         return false;  // default for basic spindle is false
     }
 
-    void Spindle::sync(uint8_t state, uint32_t rpm) {
+    void Spindle::sync(SpindleState state, uint32_t rpm) {
         if (sys.state == STATE_CHECK_MODE)
             return;
         protocol_buffer_synchronize();  // Empty planner buffer to ensure spindle is set when programmed.

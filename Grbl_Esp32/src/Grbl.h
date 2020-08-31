@@ -46,9 +46,9 @@
 #include "System.h"
 
 #include "Planner.h"
-#include "CoolantControl.h"
 #include "Eeprom.h"
 #include "GCode.h"
+#include "CoolantControl.h"
 #include "Limits.h"
 #include "MotionControl.h"
 #include "Probe.h"

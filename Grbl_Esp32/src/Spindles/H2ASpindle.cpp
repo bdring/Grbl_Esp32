@@ -41,7 +41,7 @@ namespace Spindles {
         uart.stop_bits = UART_STOP_BITS_1;
     }
 
-    void H2A::direction_command(uint8_t mode, ModbusCommand& data) {
+    void H2A::direction_command(SpindleState mode, ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
         data.rx_length = 6;
@@ -50,7 +50,7 @@ namespace Spindles {
         data.msg[2] = 0x20;  // Command ID 0x2000
         data.msg[3] = 0x00;
         data.msg[4] = 0x00;
-        data.msg[5] = (mode == SPINDLE_ENABLE_CCW) ? 0x02 : (mode == SPINDLE_ENABLE_CW ? 0x01 : 0x06);
+        data.msg[5] = (mode == SpindleState::Ccw) ? 0x02 : (mode == SpindleState::Cw ? 0x01 : 0x06);
     }
 
     void H2A::set_speed_command(uint32_t rpm, ModbusCommand& data) {
