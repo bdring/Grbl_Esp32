@@ -834,7 +834,7 @@ void st_prep_buffer() {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
 
                 if (spindle->isRateAdjusted()) {  //   laser_mode->get() {
-                    if (pl_block->condition & PL_COND_FLAG_SPINDLE_CCW) {
+                    if (pl_block->spindle == SpindleState::Ccw) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
                         prep.inv_rate                       = 1.0 / pl_block->programmed_rate;
                         st_prep_block->is_pwm_rate_adjusted = true;
@@ -1034,7 +1034,7 @@ void st_prep_buffer() {
           Compute spindle speed PWM output for step segment
         */
         if (st_prep_block->is_pwm_rate_adjusted || (sys.step_control & STEP_CONTROL_UPDATE_SPINDLE_RPM)) {
-            if (pl_block->condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)) {
+            if (pl_block->spindle != SpindleState::Disable) {
                 float rpm = pl_block->spindle_speed;
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
                 if (st_prep_block->is_pwm_rate_adjusted) {

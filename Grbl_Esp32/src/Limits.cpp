@@ -27,7 +27,7 @@
 
 #include "Grbl.h"
 
-uint8_t n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;
+uint8_t n_homing_locate_cycle = NHomingLocateCycle;
 
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 
@@ -82,7 +82,7 @@ void limits_go_home(uint8_t cycle_mask) {
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
     memset(pl_data, 0, sizeof(plan_line_data_t));
-    pl_data->condition = (PL_COND_FLAG_SYSTEM_MOTION | PL_COND_FLAG_NO_FEED_OVERRIDE);
+    pl_data->motion = (PL_MOTION_SYSTEM_MOTION | PL_MOTION_NO_FEED_OVERRIDE);
 #ifdef USE_LINE_NUMBERS
     pl_data->line_number = HOMING_CYCLE_LINE_NUMBER;
 #endif

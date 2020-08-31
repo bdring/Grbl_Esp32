@@ -22,8 +22,8 @@
 
 #include "Config.h"
 
-#define false 0
-#define true 1
+// #define false 0
+// #define true 1
 
 #define SOME_LARGE_VALUE 1.0E+38
 

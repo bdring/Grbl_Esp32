@@ -140,16 +140,16 @@ enum class ControlMode : uint8_t {
 
 // Modal Group M7: Spindle control
 enum class SpindleState : uint8_t {
-    Disable = 0,                        // M5 (Default: Must be zero)
-    Cw      = PL_COND_FLAG_SPINDLE_CW,  // M3 (NOTE: Uses planner condition bit flag)
-    Ccw     = PL_COND_FLAG_SPINDLE_CCW  // M4 (NOTE: Uses planner condition bit flag)
+    Disable = 0,  // M5 (Default: Must be zero)
+    Cw      = 1,  // M3
+    Ccw     = 2,  // M4
 };
 
 // Modal Group M8: Coolant control
 enum class CoolantMode : uint8_t {
-    Disable = 0,                           // M9 (Default: Must be zero)
-    Flood   = PL_COND_FLAG_COOLANT_FLOOD,  // M8 (NOTE: Uses planner condition bit flag)
-    Mist    = PL_COND_FLAG_COOLANT_MIST,   // M7 (NOTE: Uses planner condition bit flag)
+    Disable = 0,  // M9 (Default: Must be zero)
+    Flood   = 1,  // M8
+    Mist    = 2,  // M7
 };
 
 // Modal Group M9: Override control
@@ -283,6 +283,13 @@ typedef struct {
     gc_modal_t  modal;
     gc_values_t values;
 } parser_block_t;
+
+enum class AxisCommand : uint8_t {
+    None             = 0,
+    NonModal         = 1,
+    MotionMode       = 2,
+    ToolLengthOffset = 3,
+};
 
 // Initialize the parser
 void gc_init();

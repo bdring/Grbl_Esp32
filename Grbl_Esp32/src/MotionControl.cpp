@@ -135,9 +135,9 @@ void mc_arc(float*            target,
         // Multiply inverse feed_rate to compensate for the fact that this movement is approximated
         // by a number of discrete segments. The inverse feed_rate should be correct for the sum of
         // all segments.
-        if (pl_data->condition & PL_COND_FLAG_INVERSE_TIME) {
+        if (pl_data->motion & PL_MOTION_INVERSE_TIME) {
             pl_data->feed_rate *= segments;
-            bit_false(pl_data->condition, PL_COND_FLAG_INVERSE_TIME);  // Force as feed absolute mode over arc segments.
+            bit_false(pl_data->motion, PL_MOTION_INVERSE_TIME);  // Force as feed absolute mode over arc segments.
         }
         float theta_per_segment  = angular_travel / segments;
         float linear_per_segment = (target[axis_linear] - position[axis_linear]) / segments;
@@ -277,7 +277,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     limits_disable();  // Disable hard limits pin change register for cycle duration
     // -------------------------------------------------------------------------------------
     // Perform homing routine. NOTE: Special motion case. Only system reset works.
-    n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;
+    n_homing_locate_cycle = NHomingLocateCycle;
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
     /*
     if (cycle_mask) { limits_go_home(cycle_mask); } // Perform homing cycle based on mask.
@@ -291,7 +291,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(cycle_mask);
             ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
+            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
             limits_go_home(cycle_mask);
             ganged_mode = SquaringMode::B;
             limits_go_home(cycle_mask);
@@ -309,7 +309,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(HOMING_CYCLE_0);
             ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
+            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
             limits_go_home(HOMING_CYCLE_0);
             ganged_mode = SquaringMode::B;
             limits_go_home(HOMING_CYCLE_0);
@@ -323,7 +323,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(HOMING_CYCLE_1);
             ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
+            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
             limits_go_home(HOMING_CYCLE_1);
             ganged_mode = SquaringMode::B;
             limits_go_home(HOMING_CYCLE_1);
@@ -338,7 +338,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(HOMING_CYCLE_2);
             ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
+            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
             limits_go_home(HOMING_CYCLE_2);
             ganged_mode = SquaringMode::B;
             limits_go_home(HOMING_CYCLE_2);

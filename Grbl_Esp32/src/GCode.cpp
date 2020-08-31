@@ -27,13 +27,8 @@
 // NOTE: Max line number is defined by the g-code standard to be 99999. It seems to be an
 // arbitrary value, and some GUIs may require more. So we increased it based on a max safe
 // value when converting a float (7.2 digit precision)s to an integer.
-#define MAX_LINE_NUMBER 10000000
-#define MAX_TOOL_NUMBER 255  // Limited by max unsigned 8-bit value
-
-#define AXIS_COMMAND_NONE 0
-#define AXIS_COMMAND_NON_MODAL 1
-#define AXIS_COMMAND_MOTION_MODE 2
-#define AXIS_COMMAND_TOOL_LENGTH_OFFSET 3  // *Undefined but required
+static const int MaxLineNumber=10000000;
+static const int MaxToolNumber=255;  // Limited by max unsigned 8-bit value
 
 // Declare gc extern struct
 parser_state_t gc_state;
@@ -134,7 +129,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
        block. This struct contains all of the necessary information to execute the block. */
     memset(&gc_block, 0, sizeof(parser_block_t));                  // Initialize the parser block struct.
     memcpy(&gc_block.modal, &gc_state.modal, sizeof(gc_modal_t));  // Copy current modes
-    uint8_t axis_command = AXIS_COMMAND_NONE;
+    AxisCommand axis_command = AxisCommand::None;
     uint8_t axis_0, axis_1, axis_linear;
     uint8_t coord_select = 0;  // Tracks G10 P coordinate selection for execution
     // Initialize bitflag tracking variables for axis indices compatible operations.
@@ -209,10 +204,10 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                         // * G43.1 is also an axis command but is not explicitly defined this way.
                         switch (mantissa) {
                             case 0:  // Ignore G28.1, G30.1, and G92.1
-                                if (axis_command) {
+                                if (axis_command != AxisCommand::None) {
                                     FAIL(STATUS_GCODE_AXIS_COMMAND_CONFLICT);  // [Axis word/command conflict]
                                 }
-                                axis_command = AXIS_COMMAND_NON_MODAL;
+                                axis_command = AxisCommand::NonModal;
                                 break;
                             case 10:
                                 mantissa = 0;  // Set to zero to indicate valid non-integer G command.
@@ -234,37 +229,47 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                         break;
 
                     // Modal Group G1 - motion commands
-                    case 0:   // G0 - linear rapid traverse
-                    case 1:   // G1 - linear feedrate move
-                    case 2:   // G2 - clockwise arc
-                    case 3:   // G3 - counterclockwise arc
+                    case 0:  // G0 - linear rapid traverse
+                        gc_block.modal.motion = Motion::Seek;
+                        mg_word_bit           = ModalGroup::MG1;
+                        break;
+                    case 1:  // G1 - linear feedrate move
+                        gc_block.modal.motion = Motion::Linear;
+                        mg_word_bit           = ModalGroup::MG1;
+                        break;
+                    case 2:  // G2 - clockwise arc
+                        gc_block.modal.motion = Motion::CwArc;
+                        mg_word_bit           = ModalGroup::MG1;
+                        break;
+                    case 3:  // G3 - counterclockwise arc
+                        gc_block.modal.motion = Motion::CcwArc;
+                        mg_word_bit           = ModalGroup::MG1;
+                        break;
                     case 38:  // G38 - probe
 #ifndef PROBE_PIN             //only allow G38 "Probe" commands if a probe pin is defined.
-                        if (int_value == 38) {
-                            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No probe pin defined");
-                            FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);  // [Unsupported G command]
-                        }
+                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No probe pin defined");
+                        FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);  // [Unsupported G command]
 #endif
                         // Check for G0/1/2/3/38 being called with G10/28/30/92 on same block.
                         // * G43.1 is also an axis command but is not explicitly defined this way.
-                        if (axis_command) {
+                        if (axis_command != AxisCommand::None) {
                             FAIL(STATUS_GCODE_AXIS_COMMAND_CONFLICT);  // [Axis word/command conflict]
                         }
-                        axis_command = AXIS_COMMAND_MOTION_MODE;
-                    // No break. Continues to next line.
-                    case 80:  // G80 - cancel canned cycle
-                        gc_block.modal.motion = static_cast<Motion>(int_value);
-                        if (int_value == 38) {
-                            switch (mantissa) {
-                                case 20: gc_block.modal.motion = Motion::ProbeToward; break;
-                                case 30: gc_block.modal.motion = Motion::ProbeTowardNoError; break;
-                                case 40: gc_block.modal.motion = Motion::ProbeAway; break;
-                                case 50: gc_block.modal.motion = Motion::ProbeAway; break;
-                                default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); break;  // [Unsupported G38.x command]
-                            }
-                            mantissa = 0;  // Set to zero to indicate valid non-integer G command.
+                        axis_command = AxisCommand::MotionMode;
+                        switch (mantissa) {
+                            case 20: gc_block.modal.motion = Motion::ProbeToward; break;
+                            case 30: gc_block.modal.motion = Motion::ProbeTowardNoError; break;
+                            case 40: gc_block.modal.motion = Motion::ProbeAway; break;
+                            case 50: gc_block.modal.motion = Motion::ProbeAway; break;
+                            default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); break;  // [Unsupported G38.x command]
                         }
+                        mantissa    = 0;  // Set to zero to indicate valid non-integer G command.
                         mg_word_bit = ModalGroup::MG1;
+                        break;
+
+                    case 80:  // G80 - cancel canned cycle
+                        gc_block.modal.motion = Motion::None;
+                        mg_word_bit           = ModalGroup::MG1;
                         break;
                     case 17:
                         gc_block.modal.plane_select = Plane::XY;
@@ -334,10 +339,10 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                         // NOTE: The NIST g-code standard vaguely states that when a tool length offset is changed,
                         // there cannot be any axis motion or coordinate offsets updated. Meaning G43, G43.1, and G49
                         // all are explicit axis commands, regardless if they require axis words or not.
-                        if (axis_command)
+                        if (axis_command != AxisCommand::None)
                             FAIL(STATUS_GCODE_AXIS_COMMAND_CONFLICT);
                         // [Axis word/command conflict] }
-                        axis_command = AXIS_COMMAND_TOOL_LENGTH_OFFSET;
+                        axis_command = AxisCommand::ToolLengthOffset;
                         if (int_value == 49)  // G49
                             gc_block.modal.tool_length = ToolLengthOffset::Cancel;
                         else if (mantissa == 10)  // G43.1
@@ -458,7 +463,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                 }
                 // Check for more than one command per modal group violations in the current block
                 // NOTE: Variable 'mg_word_bit' is always assigned, if the command is valid.
-                bitmask = bit(static_cast<uint8_t>(mg_word_bit));
+                bitmask = bit(mg_word_bit);
                 if (bit_istrue(command_words, bitmask))
                     FAIL(STATUS_GCODE_MODAL_GROUP_VIOLATION);
                 command_words |= bitmask;
@@ -536,7 +541,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 'T':
                         axis_word_bit = GCodeWord::T;
-                        if (value > MAX_TOOL_NUMBER)
+                        if (value > MaxToolNumber)
                             FAIL(STATUS_GCODE_MAX_VALUE_EXCEEDED);
                         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Tool No: %d", int_value);
                         gc_state.tool = int_value;
@@ -602,14 +607,14 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // Determine implicit axis command conditions. Axis words have been passed, but no explicit axis
     // command has been sent. If so, set axis command to current motion mode.
     if (axis_words) {
-        if (!axis_command) {
-            axis_command = AXIS_COMMAND_MOTION_MODE;  // Assign implicit motion-mode
+        if (axis_command == AxisCommand::None) {
+            axis_command = AxisCommand::MotionMode;  // Assign implicit motion-mode
         }
     }
     // Check for valid line number N value.
     if (bit_istrue(value_words, bit(GCodeWord::N))) {
         // Line number value cannot be less than zero (done) or greater than max line number.
-        if (gc_block.values.n > MAX_LINE_NUMBER) {
+        if (gc_block.values.n > MaxLineNumber) {
             FAIL(STATUS_GCODE_INVALID_LINE_NUMBER);  // [Exceeds max line number]
         }
     }
@@ -632,7 +637,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     } else {
         if (gc_block.modal.feed_rate == FeedRate::InverseTime) {  // = G93
             // NOTE: G38 can also operate in inverse time, but is undefined as an error. Missing F word check added here.
-            if (axis_command == AXIS_COMMAND_MOTION_MODE) {
+            if (axis_command == AxisCommand::MotionMode) {
                 if ((gc_block.modal.motion != Motion::None) || (gc_block.modal.motion != Motion::Seek)) {
                     if (bit_isfalse(value_words, bit(GCodeWord::F))) {
                         FAIL(STATUS_GCODE_UNDEFINED_FEED_RATE);  // [F word missing]
@@ -730,7 +735,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     //   NOTE: Although not explicitly stated so, G43.1 should be applied to only one valid
     //   axis that is configured (in config.h). There should be an error if the configured axis
     //   is absent or if any of the other axis words are present.
-    if (axis_command == AXIS_COMMAND_TOOL_LENGTH_OFFSET) {  // Indicates called in block.
+    if (axis_command == AxisCommand::ToolLengthOffset) {  // Indicates called in block.
         if (gc_block.modal.tool_length == ToolLengthOffset::EnableDynamic) {
             if (axis_words ^ bit(TOOL_LENGTH_OFFSET_AXIS))
                 FAIL(STATUS_GCODE_G43_DYNAMIC_AXIS_ERROR);
@@ -743,7 +748,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // in memory and written to EEPROM only when there is not a cycle active.
     float block_coord_system[N_AXIS];
     memcpy(block_coord_system, gc_state.coord_system, sizeof(gc_state.coord_system));
-    if (bit_istrue(command_words, bit(static_cast<uint8_t>(ModalGroup::MG12)))) {  // Check if called in block
+    if (bit_istrue(command_words, bit(ModalGroup::MG12))) {  // Check if called in block
         if (gc_block.modal.coord_select > N_COORDINATE_SYSTEM) {
             FAIL(STATUS_GCODE_UNSUPPORTED_COORD_SYS);  // [Greater than N sys]
         }
@@ -835,7 +840,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             // target position with the coordinate system offsets, G92 offsets, absolute override, and distance
             // modes applied. This includes the motion mode commands. We can now pre-compute the target position.
             // NOTE: Tool offsets may be appended to these conversions when/if this feature is added.
-            if (axis_command != AXIS_COMMAND_TOOL_LENGTH_OFFSET) {  // TLO block any axis command.
+            if (axis_command != AxisCommand::ToolLengthOffset) {  // TLO block any axis command.
                 if (axis_words) {
                     for (idx = 0; idx < N_AXIS; idx++) {  // Axes indices are consistent, so loop may be used to save flash space.
                         if (bit_isfalse(axis_words, bit(idx))) {
@@ -877,7 +882,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                                 gc_block.values.ijk[idx] = gc_state.position[idx];
                         }
                     } else {
-                        axis_command = AXIS_COMMAND_NONE;  // Set to none if no intermediate motion.
+                        axis_command = AxisCommand::None;  // Set to none if no intermediate motion.
                     }
                     break;
                 case NonModal::SetHome0:  // G28.1
@@ -907,12 +912,12 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         }
         // Check remaining motion modes, if axis word are implicit (exist and not used by G10/28/30/92), or
         // was explicitly commanded in the g-code block.
-    } else if (axis_command == AXIS_COMMAND_MOTION_MODE) {
+    } else if (axis_command == AxisCommand::MotionMode) {
         if (gc_block.modal.motion == Motion::Seek) {
             // [G0 Errors]: Axis letter not configured or without real value (done.)
             // Axis words are optional. If missing, set axis command flag to ignore execution.
             if (!axis_words)
-                axis_command = AXIS_COMMAND_NONE;
+                axis_command = AxisCommand::None;
             // All remaining motion modes (all but G0 and G80), require a valid feed rate value. In units per mm mode,
             // the value must be positive. In inverse time mode, a positive value must be passed with each block.
         } else {
@@ -927,7 +932,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                     // [G1 Errors]: Feed rate undefined. Axis letter not configured or without real value.
                     // Axis words are optional. If missing, set axis command flag to ignore execution.
                     if (!axis_words)
-                        axis_command = AXIS_COMMAND_NONE;
+                        axis_command = AxisCommand::None;
                     break;
                 case Motion::CwArc: gc_parser_flags |= GCParserArcIsClockwise;  // No break intentional.
                 case Motion::CcwArc:
@@ -1099,7 +1104,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         bit_false(value_words,
                   (bit(GCodeWord::N) | bit(GCodeWord::F) | bit(GCodeWord::S) | bit(GCodeWord::T)));  // Remove single-meaning value words.
     }
-    if (axis_command) {
+    if (axis_command != AxisCommand::None) {
         bit_false(value_words,
                   (bit(GCodeWord::X) | bit(GCodeWord::Y) | bit(GCodeWord::Z) | bit(GCodeWord::A) | bit(GCodeWord::B) |
                    bit(GCodeWord::C)));  // Remove axis words.
@@ -1130,8 +1135,9 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             FAIL(STATUS_INVALID_JOG_COMMAND);
         // Initialize planner data to current spindle and coolant modal state.
         pl_data->spindle_speed = gc_state.spindle_speed;
-        plan_data.condition    = (static_cast<uint8_t>(gc_state.modal.spindle) | static_cast<uint8_t>(gc_state.modal.coolant));
-        uint8_t status         = jog_execute(&plan_data, &gc_block);
+        pl_data->spindle       = gc_state.modal.spindle;
+        pl_data->coolant       = gc_state.modal.coolant;
+        uint8_t status         = jog_execute(pl_data, &gc_block);
         if (status == STATUS_OK)
             memcpy(gc_state.position, gc_block.values.xyz, sizeof(gc_block.values.xyz));
         return (status);
@@ -1144,7 +1150,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         // Any motion mode with axis words is allowed to be passed from a spindle speed update.
         // NOTE: G1 and G0 without axis words sets axis_command to none. G28/30 are intentionally omitted.
         // TODO: Check sync conditions for M3 enabled motions that don't enter the planner. (zero length).
-        if (axis_words && (axis_command == AXIS_COMMAND_MOTION_MODE))
+        if (axis_words && (axis_command == AxisCommand::MotionMode))
             gc_parser_flags |= GCParserLaserIsMotion;
         else {
             // M3 constant power laser requires planner syncs to update the laser when changing between
@@ -1173,7 +1179,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // [2. Set feed rate mode ]:
     gc_state.modal.feed_rate = gc_block.modal.feed_rate;
     if (gc_state.modal.feed_rate == FeedRate::InverseTime) {
-        pl_data->condition |= PL_COND_FLAG_INVERSE_TIME;  // Set condition flag for planner use.
+        pl_data->motion |= PL_MOTION_INVERSE_TIME;  // Set condition flag for planner use.
     }
     // [3. Set feed rate ]:
     gc_state.feed_rate = gc_block.values.f;   // Always copy this value. See feed rate error-checking.
@@ -1210,7 +1216,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         spindle->sync(gc_block.modal.spindle, (uint32_t)pl_data->spindle_speed);
         gc_state.modal.spindle = gc_block.modal.spindle;
     }
-    pl_data->condition |= static_cast<uint8_t>(gc_state.modal.spindle);  // Set condition flag for planner use.
+    pl_data->spindle = gc_state.modal.spindle;
     // [8. Coolant control ]:
     if (gc_state.modal.coolant != gc_block.modal.coolant) {
         // NOTE: Coolant M-codes are modal. Only one command per line is allowed. But, multiple states
@@ -1222,7 +1228,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             gc_state.modal.coolant =
                 static_cast<CoolantMode>(static_cast<uint8_t>(gc_state.modal.coolant) | static_cast<uint8_t>(gc_block.modal.coolant));
     }
-    pl_data->condition |= static_cast<uint8_t>(gc_state.modal.coolant);  // Set condition flag for planner use.
+    pl_data->coolant = gc_state.modal.coolant;  // Set state for planner use.
     // turn on/off an i/o pin
     if ((gc_block.modal.io_control == IoControl::Enable) || (gc_block.modal.io_control == IoControl::Disable)) {
         if (gc_block.values.p <= MaxUserDigitalPin)
@@ -1250,7 +1256,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // NOTE: If G43 were supported, its operation wouldn't be any different from G43.1 in terms
     // of execution. The error-checking step would simply load the offset value into the correct
     // axis of the block XYZ value array.
-    if (axis_command == AXIS_COMMAND_TOOL_LENGTH_OFFSET) {  // Indicates a change.
+    if (axis_command == AxisCommand::ToolLengthOffset) {  // Indicates a change.
         gc_state.modal.tool_length = gc_block.modal.tool_length;
         if (gc_state.modal.tool_length == ToolLengthOffset::Cancel)  // G49
             gc_block.values.xyz[TOOL_LENGTH_OFFSET_AXIS] = 0.0;
@@ -1285,8 +1291,8 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         case NonModal::GoHome1:
             // Move to intermediate position before going home. Obeys current coordinate system and offsets
             // and absolute and incremental modes.
-            pl_data->condition |= PL_COND_FLAG_RAPID_MOTION;  // Set rapid motion condition flag.
-            if (axis_command) {
+            pl_data->motion |= PL_MOTION_RAPID_MOTION;  // Set rapid motion flag.
+            if (axis_command != AxisCommand::None) {
                 mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
             }
             mc_line(gc_block.values.ijk, pl_data);
@@ -1309,7 +1315,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // Enter motion modes only if there are axis words or a motion mode command word in the block.
     gc_state.modal.motion = gc_block.modal.motion;
     if (gc_state.modal.motion != Motion::None) {
-        if (axis_command == AXIS_COMMAND_MOTION_MODE) {
+        if (axis_command == AxisCommand::MotionMode) {
             GCUpdatePos gc_update_pos = GCUpdatePos::Target;
 #ifdef USE_I2S_STEPS
             stepper_id_t save_stepper = current_stepper;
@@ -1318,7 +1324,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
             } else if (gc_state.modal.motion == Motion::Seek) {
-                pl_data->condition |= PL_COND_FLAG_RAPID_MOTION;  // Set rapid motion condition flag.
+                pl_data->motion |= PL_MOTION_RAPID_MOTION;  // Set rapid motion flag.
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
             } else if ((gc_state.modal.motion == Motion::CwArc) || (gc_state.modal.motion == Motion::CcwArc)) {
@@ -1335,7 +1341,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                 // NOTE: gc_block.values.xyz is returned from mc_probe_cycle with the updated position value. So
                 // upon a successful probing cycle, the machine position and the returned value should be the same.
 #ifndef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
-                pl_data->condition |= PL_COND_FLAG_NO_FEED_OVERRIDE;
+                pl_data->motion |= PL_MOTION_NO_FEED_OVERRIDE;
 #endif
 #ifdef USE_I2S_STEPS
                 save_stepper = current_stepper;  // remember the stepper

@@ -23,9 +23,6 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define COOLANT_NO_SYNC false
-#define COOLANT_FORCE_SYNC true
-
 // Initializes coolant control pins.
 void coolant_init();
 

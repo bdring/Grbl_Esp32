@@ -45,9 +45,9 @@
 #include "WebUI/Commands.h"
 #include "System.h"
 
+#include "GCode.h"
 #include "Planner.h"
 #include "Eeprom.h"
-#include "GCode.h"
 #include "CoolantControl.h"
 #include "Limits.h"
 #include "MotionControl.h"

@@ -239,22 +239,22 @@ err_t home_all(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::
     return home(HOMING_CYCLE_ALL);
 }
 err_t home_x(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(HOMING_CYCLE_X);
+    return home(X_AXIS);
 }
 err_t home_y(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(HOMING_CYCLE_Y);
+    return home(Y_AXIS);
 }
 err_t home_z(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(HOMING_CYCLE_Z);
+    return home(Z_AXIS);
 }
 err_t home_a(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(HOMING_CYCLE_A);
+    return home(A_AXIS);
 }
 err_t home_b(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(HOMING_CYCLE_B);
+    return home(B_AXIS);
 }
 err_t home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(HOMING_CYCLE_C);
+    return home(C_AXIS);
 }
 err_t sleep_grbl(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     system_set_exec_state_flag(EXEC_SLEEP);
