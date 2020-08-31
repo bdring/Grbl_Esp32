@@ -27,6 +27,15 @@
 
 #define USE_TRINAMIC // Using at least 1 trinamic driver
 
+/* Define SW_SERIAL_MOTORS or HW_SERIAL_MOTORS */
+//#define SW_SERIAL_MOTORS
+#define HW_SERIAL_MOTORS
+
+#ifdef SW_SERIAL_MOTORS
+#define RX_SW_SERIAL_MOTORS     GPIO_NUM_16
+#define TX_SW_SERIAL_MOTORS     GPIO_NUM_17
+#endif
+
 #define X_STEP_PIN              GPIO_NUM_18
 #define X_DIRECTION_PIN         GPIO_NUM_26
 #define X_TRINAMIC              // using SPI control
@@ -59,6 +68,3 @@
 #define X_LIMIT_PIN             GPIO_NUM_39
 #define LIMIT_MASK              B1 //TODO: to be checked
 
-// defaults
-#define DEFAULT_Z_STEPS_PER_MM 100.0    // This is used as the servo calibration
-#define DEFAULT_Z_MAX_TRAVEL 300.0      // This is used as the servo calibration

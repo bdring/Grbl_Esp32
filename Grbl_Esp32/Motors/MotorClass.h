@@ -75,6 +75,7 @@ typedef enum {
 
 // These are used for setup and to talk to the motors as a group.
 void init_motors();
+uint8_t get_trinamic_driver_uart_address(uint8_t axis);
 uint8_t get_next_trinamic_driver_index();
 void readSgTask(void* pvParameters);
 void motor_read_settings();
@@ -168,9 +169,12 @@ class TrinamicDriver : public StandardStepper {
 class TrinamicUartDriver : public StandardStepper {
   public:
     void config_message();
+    void hw_serial_init();
+    void sw_serial_init();
     void init();
     void set_mode();
     void read_settings();
+    void set_settings();
     void trinamic_test_response();
     void trinamic_stepper_enable(bool enable);
     void debug_message();
@@ -180,8 +184,11 @@ class TrinamicUartDriver : public StandardStepper {
 
     uint8_t _homing_mode;
     uint8_t addr;
+    uint16_t SW_RX_pin;
+    uint16_t SW_TX_pin;
 
-    TrinamicUartDriver( uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_sense /*,uint16_t SW_RX_pin, uint16_t SW_TX_pin*/, uint8_t addr);
+    TrinamicUartDriver( uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_senseS, HardwareSerial *serial,uint8_t addr);
+    TrinamicUartDriver( uint8_t axis_index, gpio_num_t step_pin, uint8_t dir_pin, uint16_t driver_part_number, float r_sense ,uint16_t SW_RX_pin, uint16_t SW_TX_pin, uint8_t addr);
 
   private:
     TMC2208Stepper* tmcstepper;  // all other driver types are subclasses of this one

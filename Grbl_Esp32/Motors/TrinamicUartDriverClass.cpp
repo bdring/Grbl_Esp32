@@ -3,8 +3,6 @@
 
     This is used for Trinamic UART controlled stepper motor drivers.
 
-    TODO: everything :)
-
     Part of Grbl_ESP32
     2020 -	The Ant Team
     2020 -	Bart Dring
@@ -24,19 +22,20 @@
 
 #include <TMCStepper.h>
 #include "MotorClass.h"
+// #include <ESP32SwSerial.h>
 
 //add ESP32 to define SW_CAPABLE_PLATFORM to use SW UART
-//TODO: important notes: add library ESPSoftwareSerial for ESP32 in platformio.ini
+//TODO: important notes: add library ESPSoftwareSerial for ESP32 in platformio.ini.
 
 #define TRINAMIC_FCLK       12700000.0 // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
 
+/* HW Serial Constructor. */
 TrinamicUartDriver :: TrinamicUartDriver( uint8_t axis_index, 
                                           gpio_num_t step_pin,
                                           uint8_t dir_pin,
                                           uint16_t driver_part_number,
                                           float r_sense, 
-                                        //   uint16_t SW_RX_pin, //only for SW_SERIAL
-                                        //   uint16_t SW_TX_pin, //only for SW_SERIAL
+                                          HardwareSerial *serial, 
                                           uint8_t addr) {
     this->axis_index = axis_index;
     this->dual_axis_index = axis_index < 6 ? 0 : 1; // 0 = primary 1 = ganged
@@ -44,17 +43,36 @@ TrinamicUartDriver :: TrinamicUartDriver( uint8_t axis_index,
     _r_sense = r_sense;
     this->step_pin = step_pin;
     this->dir_pin  = dir_pin;
-    // this->SW_RX_pin = SW_RX_pin; //only for SW_SERIAL
-    // this->SW_TX_pin = SW_TX_pin; //only for SW_SERIAL
     this->addr = addr;
-    Serial2.begin(115200, SERIAL_8N1, 16 , 17);
-    Serial2.setRxBufferSize(128);
+    serial->begin(115200, SERIAL_8N1, -1 , -1);
+    serial->setRxBufferSize(128);
+    hw_serial_init();
     init();
 }
 
-void TrinamicUartDriver :: init() {
+/* SW Serial Constructor. */
+TrinamicUartDriver :: TrinamicUartDriver( uint8_t axis_index, 
+                                          gpio_num_t step_pin,
+                                          uint8_t dir_pin,
+                                          uint16_t driver_part_number,
+                                          float r_sense, 
+                                          uint16_t SW_RX_pin,
+                                          uint16_t SW_TX_pin,
+                                          uint8_t addr) {
+    this->axis_index = axis_index;
+    this->dual_axis_index = axis_index < 6 ? 0 : 1; // 0 = primary 1 = ganged
+    _driver_part_number = driver_part_number;
+    _r_sense = r_sense;
+    this->step_pin = step_pin;
+    this->dir_pin  = dir_pin;
+    this->SW_RX_pin = SW_RX_pin;
+    this->SW_TX_pin = SW_TX_pin;
+    this->addr = addr;
+    sw_serial_init();
+    init();
+}
 
-
+void TrinamicUartDriver::hw_serial_init() {
     if (_driver_part_number == 2208)
         // TMC 2208 does not use address, this field is 0, differently from 2209
         //tmcstepper = new TMC2208Stepper(SW_RX_pin, SW_TX_pin, _r_sense);//, addr);
@@ -65,27 +83,50 @@ void TrinamicUartDriver :: init() {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Trinamic Uart unsupported p/n:%d", _driver_part_number);
         return;
     }
-    config_message();
-    // grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "config_message done/n"); 
+}
+void TrinamicUartDriver::sw_serial_init() {
+    if (_driver_part_number == 2208)
+        // TMC 2208 does not use address, this field is 0, differently from 2209
+        tmcstepper = new TMC2208Stepper(SW_RX_pin, SW_TX_pin, _r_sense);
+    else if (_driver_part_number == 2209)
+        // tmcstepper = new TMC2209Stepper(sw_serial, _r_sense, addr);
+        tmcstepper = new TMC2209Stepper(SW_RX_pin, SW_TX_pin, _r_sense, addr);
+    else {
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Trinamic Uart unsupported p/n:%d", _driver_part_number);
+        return;
+    }
+    // grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "New SW SERIAL created."); 
     
-    // TODO step pins
-    init_step_dir_pins(); // from StandardStepper
-    // grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "init_step_dir_pins done/n");
-    tmcstepper->begin();
-    // grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "begin done/n");
-    tmcstepper->senddelay(5); //NOTE: this was to test on OSCILLOSCOPE that the write was effective
-    // grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "senddelay done/n");
-    trinamic_test_response(); // Try communicating with motor. Prints an error if there is a problem.
-    // grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "trinamic_test_response done/n");
+    // Set PDN DISABLE to ensure UART pin is available to use.
+    tmcstepper->beginSerial(57600);
+    
+	tmcstepper->pdn_disable(true);
+    
+    tmcstepper->senddelay(15);
+}
 
-    read_settings(); // pull info from settings
-    // // grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "read_settings done/n");
-    set_mode();
-    // grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "set_mode done/n");
+void TrinamicUartDriver :: init() {
+    config_message();
+    
+    init_step_dir_pins(); // from StandardStepper
+
+    /* If communication with the driver is working, read the 
+       main settings, apply new driver settings and then read 
+       them back. */
+    if(test()) {
+        read_settings();
+        set_settings();
+        read_settings();    
+    }
+    else {
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Driver %c is off, cannot set motor.", report_get_axis_letter(axis_index));
+    }
+
+    // Should we move it to the set settings?
+    // set_mode();
     
     _is_homing = false;    
     is_active = true;  // as opposed to NullMotors, this is a real motor
-
 }
 
 /*
@@ -114,6 +155,8 @@ void TrinamicUartDriver :: config_message() {
 
 bool TrinamicUartDriver :: test() {
     uint32_t driver_status = tmcstepper->test_connection();
+    
+    // grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "DRV_STATUS: 0x%x", tmcstepper->DRV_STATUS()); //debug
     switch (driver_status) {
     case 1:
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Trinamic driver test failed. Check connection", report_get_axis_letter(axis_index));
@@ -147,16 +190,49 @@ void TrinamicUartDriver :: trinamic_test_response() {
 }
 
 /*
+    Set setting of the driver. Called at init() and whenever related settings change
+*/
+void TrinamicUartDriver :: set_settings() {
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis set_settings() ", report_get_axis_letter(axis_index));
+
+    tmcstepper->I_scale_analog(false);
+    tmcstepper->internal_Rsense(false);
+
+	tmcstepper->mstep_reg_select(true);
+
+    tmcstepper->microsteps(settings.microsteps[axis_index]);//(uint16_t)16);//
+
+    tmcstepper->TPOWERDOWN((uint8_t)20);
+    tmcstepper->iholddelay((uint8_t)1);
+    
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis current request is %f mA ", report_get_axis_letter(axis_index), settings.current[axis_index] * 1000.0);
+    tmcstepper->rms_current(settings.current[axis_index] * 1000.0 , settings.hold_current[axis_index] / 100.0);
+    
+    //TODO: call set mode???
+    tmcstepper->en_spreadCycle(true);
+    
+    // #ifdef TMC2209
+    //     tmcstepper->sgt(settings.stallguard[axis_index]);
+    // #endif
+}
+
+
+
+/*
     Read setting and send them to the driver. Called at init() and whenever related settings change
 */
 void TrinamicUartDriver :: read_settings() {
     grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis read_settings() ", report_get_axis_letter(axis_index));
 
-    tmcstepper->microsteps(settings.microsteps[axis_index]);
-    tmcstepper->rms_current(settings.current[axis_index] * 1000.0, settings.hold_current[axis_index] / 100.0);
-    #ifdef TMC2209
-        tmcstepper->sgt(settings.stallguard[axis_index]);
-    #endif
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis GCONF REG 0x%x ", report_get_axis_letter(axis_index), tmcstepper->GCONF());
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis GSTAT REG 0x%x ", report_get_axis_letter(axis_index), tmcstepper->GSTAT());
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "IFCNT %d ", tmcstepper->IFCNT());
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis IHOLD_IRUN register 0x%x ", report_get_axis_letter(axis_index), tmcstepper->IHOLD_IRUN());
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis CHOPCONF REG 0x%x ", report_get_axis_letter(axis_index), tmcstepper->CHOPCONF());
+
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Axis RMS current %d mA", report_get_axis_letter(axis_index), tmcstepper->rms_current());
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%c Microsteps %d ", report_get_axis_letter(axis_index), tmcstepper->microsteps());
+
 }
 
 void TrinamicUartDriver :: set_homing_mode(bool is_homing) {
@@ -188,6 +264,7 @@ void TrinamicUartDriver :: set_mode() {
         tmcstepper->pwm_autoscale(1);
     } else  {  // if (mode == TRINAMIC_RUN_MODE_COOLSTEP || mode == TRINAMIC_RUN_MODE_STALLGUARD)
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "COOLSTEP");   
+        // tmcstepper->en_spreadCycle(true);
         // tmcstepper->tbl(1);
         // tmcstepper->toff(3);
         // tmcstepper->hstrt(4);//hysteresis_start(4);

@@ -69,14 +69,15 @@ void init_motors() {
     {
     myMotor[X_AXIS][0] = new TrinamicDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_TRINAMIC_DRIVER, X_RSENSE, X_CS_PIN, get_next_trinamic_driver_index());
     }
-    #endif
-    #if(X_TRINAMIC_DRIVER == 2208)
+    #elif(X_TRINAMIC_DRIVER == 2208 || X_TRINAMIC_DRIVER == 2209)
     {
-        //HW_SERIAL version
-        myMotor[X_AXIS][0] = new TrinamicUartDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_TRINAMIC_DRIVER, X_RSENSE, 0);
-
-        //SW_SERIAL version
-        // myMotor[X_AXIS][0] = new TrinamicUartDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_TRINAMIC_DRIVER, X_RSENSE, GPIO_NUM_16,GPIO_NUM_17, 0); 
+        #ifdef HW_SERIAL_MOTORS
+        myMotor[X_AXIS][0] = new TrinamicUartDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_TRINAMIC_DRIVER, X_RSENSE, SERIAL_FOR_MOTORS, get_trinamic_driver_uart_address(X_AXIS));
+        #elif defined(SW_SERIAL_MOTORS)
+        myMotor[X_AXIS][0] = new TrinamicUartDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_TRINAMIC_DRIVER, X_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS, get_trinamic_driver_uart_address(X_AXIS)); 
+        #else
+        #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
+        #endif
     }
     #endif
 #elif defined(X_SERVO_PIN)
@@ -94,10 +95,15 @@ void init_motors() {
     {
     myMotor[X_AXIS][1] = new TrinamicDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, X2_CS_PIN, get_next_trinamic_driver_index());
     }
-    #endif
-    #if(X_TRINAMIC_DRIVER == 2208)
+    #elif(X2_TRINAMIC_DRIVER == 2208 || X2_TRINAMIC_DRIVER == 2209)
     {
-        myMotor[X_AXIS][1] = new TrinamicUartDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, 0);
+        #ifdef HW_SERIAL_MOTORS
+        myMotor[X_AXIS][1] = new TrinamicUartDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, SERIAL_FOR_MOTORS, get_trinamic_driver_uart_address(X2_AXIS));
+        #elif defined(SW_SERIAL_MOTORS)
+        myMotor[X_AXIS][1] = new TrinamicUartDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS, get_trinamic_driver_uart_address(X2_AXIS)); 
+        #else
+        #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
+        #endif
     }
     #endif
 #elif defined(X2_SERVO_PIN)
@@ -117,10 +123,15 @@ void init_motors() {
     {
     myMotor[Y_AXIS][0] = new TrinamicDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, Y_CS_PIN, get_next_trinamic_driver_index());
     }
-    #endif
-    #if(X_TRINAMIC_DRIVER == 2208)
+    #elif(Y_TRINAMIC_DRIVER == 2208 || Y_TRINAMIC_DRIVER == 2209)
     {
-        myMotor[Y_AXIS][0] = new TrinamicUartDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, 0);
+        #ifdef HW_SERIAL_MOTORS
+        myMotor[Y_AXIS][0] = new TrinamicUartDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, SERIAL_FOR_MOTORS, get_trinamic_driver_uart_address(Y_AXIS));
+        #elif defined(SW_SERIAL_MOTORS)
+        myMotor[Y_AXIS][0] = new TrinamicUartDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS, get_trinamic_driver_uart_address(Y_AXIS)); 
+        #else
+        #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
+        #endif
     }
     #endif
 #elif defined(Y_SERVO_PIN)
@@ -138,10 +149,15 @@ void init_motors() {
     {
     myMotor[Y_AXIS][1] = new TrinamicDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, Y2_CS_PIN, get_next_trinamic_driver_index());
     }
-    #endif
-    #if(X_TRINAMIC_DRIVER == 2208)
+    #elif(Y2_TRINAMIC_DRIVER == 2208 || Y2_TRINAMIC_DRIVER == 2209)
     {
-        myMotor[Y_AXIS][1] = new TrinamicUartDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, 0);
+        #ifdef HW_SERIAL_MOTORS
+        myMotor[Y_AXIS][1] = new TrinamicUartDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, SERIAL_FOR_MOTORS, get_trinamic_driver_uart_address(Y2_AXIS));
+        #elif defined(SW_SERIAL_MOTORS)
+        myMotor[Y_AXIS][1] = new TrinamicUartDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS, get_trinamic_driver_uart_address(Y2_AXIS)); 
+        #else
+        #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
+        #endif
     }
     #endif
 #elif defined(Y2_SERVO_PIN)
@@ -160,10 +176,15 @@ void init_motors() {
     {
     myMotor[Z_AXIS][0] = new TrinamicDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, Z_CS_PIN, get_next_trinamic_driver_index());
     }
-    #endif
-    #if(X_TRINAMIC_DRIVER == 2208)
+    #elif(Z_TRINAMIC_DRIVER == 2208 || Z_TRINAMIC_DRIVER == 2209)
     {
-        myMotor[Z_AXIS][0] = new TrinamicUartDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, 0);
+        #ifdef HW_SERIAL_MOTORS
+        myMotor[Z_AXIS][0] = new TrinamicUartDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, SERIAL_FOR_MOTORS, get_trinamic_driver_uart_address(Z_AXIS));
+        #elif defined(SW_SERIAL_MOTORS)
+        myMotor[Z_AXIS][0] = new TrinamicUartDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS, get_trinamic_driver_uart_address(Z_AXIS)); 
+        #else
+        #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
+        #endif
     }
     #endif
 #elif defined(Z_SERVO_PIN)
@@ -183,10 +204,15 @@ void init_motors() {
     {
     myMotor[Z_AXIS][1] = new TrinamicDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, Z2_CS_PIN, get_next_trinamic_driver_index());
     }
-    #endif
-    #if(X_TRINAMIC_DRIVER == 2208)
+    #elif(Z2_TRINAMIC_DRIVER == 2208 || Z2_TRINAMIC_DRIVER == 2209) 
     {
-        myMotor[Z_AXIS][1] = new TrinamicUartDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, 0);
+        #ifdef HW_SERIAL_MOTORS
+        myMotor[Z_AXIS][1] = new TrinamicUartDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, SERIAL_FOR_MOTORS, get_trinamic_driver_uart_address(Z2_AXIS));
+        #elif defined(SW_SERIAL_MOTORS)
+        myMotor[Z_AXIS][1] = new TrinamicUartDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS, get_trinamic_driver_uart_address(Z2_AXIS)); 
+        #else
+        #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
+        #endif
     }
     #endif
 #elif defined(Z2_SERVO_PIN)
@@ -326,8 +352,51 @@ void init_motors() {
     }
 }
 
-
-
+uint8_t get_trinamic_driver_uart_address(uint8_t axis) {
+    if(axis == X_AXIS) {
+        #if(X_TRINAMIC_DRIVER == 2208)
+        return 0;
+        #elif defined(X_DRIVER_ADDRESS)
+        return X_DRIVER_ADDRESS;
+        #endif
+    }
+    else if(axis == X2_AXIS){
+        #if(X2_TRINAMIC_DRIVER == 2208)
+        return 0;
+        #elif defined(X2_DRIVER_ADDRESS)
+        return X2_DRIVER_ADDRESS;
+        #endif
+    }
+    else if(axis == Y_AXIS){
+        #if(Y_TRINAMIC_DRIVER == 2208)
+        return 0;
+        #elif defined(Y_DRIVER_ADDRESS)
+        return Y_DRIVER_ADDRESS;
+        #endif
+    }
+    else if(axis == Y2_AXIS){
+        #if(Y2_TRINAMIC_DRIVER == 2208)
+        return 0;
+        #elif defined(Y2_DRIVER_ADDRESS)
+        return Y2_DRIVER_ADDRESS;
+        #endif
+    }
+    else if(axis == Z_AXIS){
+        #if(Z_TRINAMIC_DRIVER == 2208)
+        return 0;
+        #elif defined(Z_DRIVER_ADDRESS)
+        return Z_DRIVER_ADDRESS;
+        #endif
+    }
+    else if(axis == Z2_AXIS){
+        #if(Z2_TRINAMIC_DRIVER == 2208)
+        return 0;
+        #elif defined(Z2_DRIVER_ADDRESS)
+        return Z2_DRIVER_ADDRESS;
+        #endif
+    }
+    return 0;
+}
 
 // returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
 // need to be inserted into the order of axes.
