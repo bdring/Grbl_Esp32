@@ -27,8 +27,8 @@
 // NOTE: Max line number is defined by the g-code standard to be 99999. It seems to be an
 // arbitrary value, and some GUIs may require more. So we increased it based on a max safe
 // value when converting a float (7.2 digit precision)s to an integer.
-static const int MaxLineNumber=10000000;
-static const int MaxToolNumber=255;  // Limited by max unsigned 8-bit value
+static const int32_t MaxLineNumber = 10000000;
+static const uint8_t MaxToolNumber = 255;  // Limited by max unsigned 8-bit value
 
 // Declare gc extern struct
 parser_state_t gc_state;
@@ -194,7 +194,17 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                 // Determine 'G' command and its modal group
                 switch (int_value) {
                     // Modal Group G0 - non-modal actions
-                    case 10: gc_block.non_modal_command = NonModal::SetCoordinateData; goto check_mantissa;
+                    case 10:
+                        gc_block.non_modal_command = NonModal::SetCoordinateData;
+                        if (mantissa == 0) {
+                            if (axis_command != AxisCommand::None) {
+                                FAIL(STATUS_GCODE_AXIS_COMMAND_CONFLICT);  // [Axis word/command conflict]
+                            }
+                            axis_command = AxisCommand::NonModal;
+                        }
+                        mg_word_bit = ModalGroup::MG0;
+                        break;
+
                     case 28: gc_block.non_modal_command = mantissa ? NonModal::SetHome0 : NonModal::GoHome0; goto check_mantissa;
                     case 30: gc_block.non_modal_command = mantissa ? NonModal::SetHome1 : NonModal::GoHome1; goto check_mantissa;
                     case 92:
@@ -339,8 +349,9 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                         // NOTE: The NIST g-code standard vaguely states that when a tool length offset is changed,
                         // there cannot be any axis motion or coordinate offsets updated. Meaning G43, G43.1, and G49
                         // all are explicit axis commands, regardless if they require axis words or not.
-                        if (axis_command != AxisCommand::None)
+                        if (axis_command != AxisCommand::None) {
                             FAIL(STATUS_GCODE_AXIS_COMMAND_CONFLICT);
+                        }
                         // [Axis word/command conflict] }
                         axis_command = AxisCommand::ToolLengthOffset;
                         if (int_value == 49)  // G49
@@ -450,13 +461,11 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                         break;
 #endif
                     case 62:
+                        gc_block.modal.io_control = IoControl::Enable;
+                        mg_word_bit = ModalGroup::MM10;
+                        break;
                     case 63:
-                        //grbl_sendf(CLIENT_SERIAL,"M%d...\r\n", int_value);
-                        switch (int_value) {
-                            case 62: gc_block.modal.io_control = IoControl::Enable; break;
-                            case 63: gc_block.modal.io_control = IoControl::Disable; break;
-                            default: break;
-                        }
+                        gc_block.modal.io_control = IoControl::Disable;
                         mg_word_bit = ModalGroup::MM10;
                         break;
                     default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);  // [Unsupported M command]
@@ -464,8 +473,9 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                 // Check for more than one command per modal group violations in the current block
                 // NOTE: Variable 'mg_word_bit' is always assigned, if the command is valid.
                 bitmask = bit(mg_word_bit);
-                if (bit_istrue(command_words, bitmask))
+                if (bit_istrue(command_words, bitmask)) {
                     FAIL(STATUS_GCODE_MODAL_GROUP_VIOLATION);
+                }
                 command_words |= bitmask;
                 break;
             // NOTE: All remaining letters assign values.
@@ -630,10 +640,12 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     //   is not defined after switching to G94 from G93.
     // NOTE: For jogging, ignore prior feed rate mode. Enforce G94 and check for required F word.
     if (gc_parser_flags & GCParserJogMotion) {
-        if (bit_isfalse(value_words, bit(GCodeWord::F)))
+        if (bit_isfalse(value_words, bit(GCodeWord::F))) {
             FAIL(STATUS_GCODE_UNDEFINED_FEED_RATE);
-        if (gc_block.modal.units == Units::Inches)
+        }
+        if (gc_block.modal.units == Units::Inches) {
             gc_block.values.f *= MM_PER_INCH;
+        }
     } else {
         if (gc_block.modal.feed_rate == FeedRate::InverseTime) {  // = G93
             // NOTE: G38 can also operate in inverse time, but is undefined as an error. Missing F word check added here.
@@ -659,8 +671,9 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             // - In units per mm mode: If F word passed, ensure value is in mm/min, otherwise push last state value.
             if (gc_state.modal.feed_rate == FeedRate::UnitsPerMin) {  // Last state is also G94
                 if (bit_istrue(value_words, bit(GCodeWord::F))) {
-                    if (gc_block.modal.units == Units::Inches)
+                    if (gc_block.modal.units == Units::Inches) {
                         gc_block.values.f *= MM_PER_INCH;
+                    }
                 } else {
                     gc_block.values.f = gc_state.feed_rate;  // Push last state feed rate
                 }
@@ -681,8 +694,9 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
     if (bit_istrue(command_words, bit(ModalGroup::MM9))) {  // Already set as enabled in parser.
         if (bit_istrue(value_words, bit(GCodeWord::P))) {
-            if (gc_block.values.p == 0.0)
+            if (gc_block.values.p == 0.0) {
                 gc_block.modal.override = Override::Disabled;
+            }
             bit_false(value_words, bit(GCodeWord::P));
         }
     }
@@ -852,8 +866,9 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                                 // Apply coordinate offsets based on distance mode.
                                 if (gc_block.modal.distance == Distance::Absolute) {
                                     gc_block.values.xyz[idx] += block_coord_system[idx] + gc_state.coord_offset[idx];
-                                    if (idx == TOOL_LENGTH_OFFSET_AXIS)
+                                    if (idx == TOOL_LENGTH_OFFSET_AXIS) {
                                         gc_block.values.xyz[idx] += gc_state.tool_length_offset;
+                                    }
                                 } else  // Incremental mode
                                     gc_block.values.xyz[idx] += gc_state.position[idx];
                             }
@@ -916,8 +931,9 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         if (gc_block.modal.motion == Motion::Seek) {
             // [G0 Errors]: Axis letter not configured or without real value (done.)
             // Axis words are optional. If missing, set axis command flag to ignore execution.
-            if (!axis_words)
+            if (!axis_words) {
                 axis_command = AxisCommand::None;
+            }
             // All remaining motion modes (all but G0 and G80), require a valid feed rate value. In units per mm mode,
             // the value must be positive. In inverse time mode, a positive value must be passed with each block.
         } else {
@@ -1258,8 +1274,9 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // axis of the block XYZ value array.
     if (axis_command == AxisCommand::ToolLengthOffset) {  // Indicates a change.
         gc_state.modal.tool_length = gc_block.modal.tool_length;
-        if (gc_state.modal.tool_length == ToolLengthOffset::Cancel)  // G49
+        if (gc_state.modal.tool_length == ToolLengthOffset::Cancel) {  // G49
             gc_block.values.xyz[TOOL_LENGTH_OFFSET_AXIS] = 0.0;
+        }
         // else G43.1
         if (gc_state.tool_length_offset != gc_block.values.xyz[TOOL_LENGTH_OFFSET_AXIS]) {
             gc_state.tool_length_offset = gc_block.values.xyz[TOOL_LENGTH_OFFSET_AXIS];
@@ -1370,14 +1387,24 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // M0,M1,M2,M30: Perform non-running program flow actions. During a program pause, the buffer may
     // refill and can only be resumed by the cycle start run-time command.
     gc_state.modal.program_flow = gc_block.modal.program_flow;
-    if (gc_state.modal.program_flow != ProgramFlow::Running) {
-        protocol_buffer_synchronize();  // Sync and finish all remaining buffered motions before moving on.
-        if (gc_state.modal.program_flow == ProgramFlow::Paused) {
+    switch (gc_state.modal.program_flow) {
+        case ProgramFlow::Running:
+            break;
+        case ProgramFlow::OptionalStop:
+            // TODO - to support M1 we would need some code to determine whether to stop
+            // Then either break or fall through to actually stop.
+            break;
+        case ProgramFlow::Paused:
+            protocol_buffer_synchronize();  // Sync and finish all remaining buffered motions before moving on.
             if (sys.state != STATE_CHECK_MODE) {
                 system_set_exec_state_flag(EXEC_FEED_HOLD);  // Use feed hold for program pause.
                 protocol_execute_realtime();                 // Execute suspend.
             }
-        } else {  // == ProgramFlow::Completed
+            break;
+        case ProgramFlow::CompletedM2:
+        case ProgramFlow::CompletedM30:
+            protocol_buffer_synchronize();  // Sync and finish all remaining buffered motions before moving on.
+
             // Upon program complete, only a subset of g-codes reset to certain defaults, according to
             // LinuxCNC's program end descriptions and testing. Only modal groups [G-code 1,2,3,5,7,12]
             // and [M-code 7,8,9] reset to [G1,G17,G90,G94,G40,G54,M5,M9,M48]. The remaining modal groups
@@ -1386,7 +1413,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             gc_state.modal.plane_select = Plane::XY;
             gc_state.modal.distance     = Distance::Absolute;
             gc_state.modal.feed_rate    = FeedRate::UnitsPerMin;
-            // gc_state.modal.cutter_comp = CUTTER_COMP_DISABLE; // Not supported.
+            // gc_state.modal.cutter_comp = CutterComp::Disable; // Not supported.
             gc_state.modal.coord_select = 0;  // G54
             gc_state.modal.spindle      = SpindleState::Disable;
             gc_state.modal.coolant      = CoolantMode::Disable;
@@ -1415,9 +1442,10 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
 #ifdef USE_M30
             user_m30();
 #endif
-        }
-        gc_state.modal.program_flow = ProgramFlow::Running;  // Reset program flow.
+            break;
     }
+    gc_state.modal.program_flow = ProgramFlow::Running;  // Reset program flow.
+
     // TODO: % to denote start of program.
     return (STATUS_OK);
 }

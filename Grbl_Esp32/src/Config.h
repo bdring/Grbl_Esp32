@@ -233,7 +233,7 @@ Some features should not be changed. See notes below.
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
 // greater.
-static const int NHomingLocateCycle=1;  // Integer (1-128)
+static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 
 // Enables single axis homing commands. $HX, $HY, and $HZ for X, Y, and Z-axis homing. The full homing
 // cycle is still invoked by the $H command. This is disabled by default. It's here only to address

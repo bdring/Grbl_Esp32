@@ -343,7 +343,7 @@ void report_gcode_modes(uint8_t client) {
     strcpy(modes_rpt, "[GC:");
 
     switch (gc_state.modal.motion) {
-        case Motion::None: mode = ""; break;
+        case Motion::None: mode = "G80"; break;
         case Motion::Seek: mode = "G0"; break;
         case Motion::Linear: mode = "G1"; break;
         case Motion::CwArc: mode = "G2"; break;
@@ -359,35 +359,35 @@ void report_gcode_modes(uint8_t client) {
     strcat(modes_rpt, temp);
 
     switch (gc_state.modal.plane_select) {
-        case Plane::XY: mode = "G17"; break;
-        case Plane::ZX: mode = "G18"; break;
-        case Plane::YZ: mode = "G19"; break;
+        case Plane::XY: mode = " G17"; break;
+        case Plane::ZX: mode = " G18"; break;
+        case Plane::YZ: mode = " G19"; break;
     }
     strcat(modes_rpt, mode);
 
     switch (gc_state.modal.units) {
-        case Units::Inches: mode = "G20"; break;
-        case Units::Mm: mode = "G21"; break;
+        case Units::Inches: mode = " G20"; break;
+        case Units::Mm: mode = " G21"; break;
     }
     strcat(modes_rpt, mode);
 
     switch (gc_state.modal.distance) {
-        case Distance::Absolute: mode = "G90"; break;
-        case Distance::Incremental: mode = "G91"; break;
+        case Distance::Absolute: mode = " G90"; break;
+        case Distance::Incremental: mode = " G91"; break;
     }
     strcat(modes_rpt, mode);
 
 #if 0
     switch (gc_state.modal.arc_distance) {
-        case ArcDistance::Absolute: mode = "G90.1"; break;
-        case ArcDistance::Incremental: mode = "G91.1"; break;
+        case ArcDistance::Absolute: mode = " G90.1"; break;
+        case ArcDistance::Incremental: mode = " G91.1"; break;
     }
     strcat(modes_rpt, mode);
 #endif
 
     switch (gc_state.modal.feed_rate) {
-        case FeedRate::UnitsPerMin: mode = "G94"; break;
-        case FeedRate::InverseTime: mode = "G93"; break;
+        case FeedRate::UnitsPerMin: mode = " G94"; break;
+        case FeedRate::InverseTime: mode = " G93"; break;
     }
     strcat(modes_rpt, mode);
 

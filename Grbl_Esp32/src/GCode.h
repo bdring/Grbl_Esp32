@@ -31,8 +31,7 @@
 // and are similar/identical to other g-code interpreters by manufacturers (Haas,Fanuc,Mazak,etc).
 // NOTE: Modal group define values must be sequential and starting from zero.
 
-// Non-scoped enum so that bit(ModalGroup::G1) will work
-enum ModalGroup : uint8_t {
+enum class ModalGroup : uint8_t {
     MG0  = 0,   // [G4,G10,G28,G28.1,G30,G30.1,G53,G92,G92.1] Non-modal
     MG1  = 1,   // [G0,G1,G2,G3,G38.2,G38.3,G38.4,G38.5,G80] Motion
     MG2  = 2,   // [G17,G18,G19] Plane selection
@@ -186,9 +185,7 @@ enum class ToolChange : uint8_t {
 // N/A: Stores coordinate system value (54-59) to change to.
 
 // Define parameter word mapping.
-// This is a non-scoped enum so that bit(GCodeWord::I) will work.
-// C++ scoped enums cannot be converted to integers without a lot of bother
-enum GCodeWord : uint8_t {
+enum class GCodeWord : uint8_t {
     F = 0,
     I = 1,
     J = 2,
@@ -215,7 +212,7 @@ enum class GCUpdatePos : uint8_t {
 };
 
 // Define gcode parser flags for handling special cases.
-typedef enum {
+enum GCParserFlags {
     GCParserNone           = 0,  // Must be zero.
     GCParserJogMotion      = bit(0),
     GCParserCheckMantissa  = bit(1),
@@ -225,7 +222,7 @@ typedef enum {
     GCParserLaserForceSync = bit(5),
     GCParserLaserDisable   = bit(6),
     GCParserLaserIsMotion  = bit(7),
-} GCParserFlags;
+};
 
 // NOTE: When this struct is zeroed, the above defines set the defaults for the system.
 typedef struct {
