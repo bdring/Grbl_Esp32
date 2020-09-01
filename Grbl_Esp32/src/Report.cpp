@@ -393,7 +393,7 @@ void report_gcode_modes(uint8_t client) {
 
     //report_util_gcode_modes_M();
     switch (gc_state.modal.program_flow) {
-        case ProgramFlow::Running: mode = "";
+        case ProgramFlow::Running: mode = ""; break;
         case ProgramFlow::Paused: mode = " M0"; break;
         case ProgramFlow::OptionalStop: mode = " M1"; break;
         case ProgramFlow::CompletedM2: mode = " M2"; break;

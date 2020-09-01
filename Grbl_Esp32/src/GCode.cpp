@@ -240,18 +240,22 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
 
                     // Modal Group G1 - motion commands
                     case 0:  // G0 - linear rapid traverse
+                        axis_command = AxisCommand::MotionMode;
                         gc_block.modal.motion = Motion::Seek;
                         mg_word_bit           = ModalGroup::MG1;
                         break;
                     case 1:  // G1 - linear feedrate move
+                        axis_command = AxisCommand::MotionMode;
                         gc_block.modal.motion = Motion::Linear;
                         mg_word_bit           = ModalGroup::MG1;
                         break;
                     case 2:  // G2 - clockwise arc
+                        axis_command = AxisCommand::MotionMode;
                         gc_block.modal.motion = Motion::CwArc;
                         mg_word_bit           = ModalGroup::MG1;
                         break;
                     case 3:  // G3 - counterclockwise arc
+                        axis_command = AxisCommand::MotionMode;
                         gc_block.modal.motion = Motion::CcwArc;
                         mg_word_bit           = ModalGroup::MG1;
                         break;
