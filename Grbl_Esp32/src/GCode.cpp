@@ -131,8 +131,8 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     memset(&gc_block, 0, sizeof(parser_block_t));                  // Initialize the parser block struct.
     memcpy(&gc_block.modal, &gc_state.modal, sizeof(gc_modal_t));  // Copy current modes
     AxisCommand axis_command = AxisCommand::None;
-    uint8_t axis_0, axis_1, axis_linear;
-    uint8_t coord_select = 0;  // Tracks G10 P coordinate selection for execution
+    uint8_t     axis_0, axis_1, axis_linear;
+    uint8_t     coord_select = 0;  // Tracks G10 P coordinate selection for execution
     // Initialize bitflag tracking variables for axis indices compatible operations.
     uint8_t axis_words = 0;  // XYZ tracking
     uint8_t ijk_words  = 0;  // IJK tracking
@@ -242,22 +242,22 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
 
                     // Modal Group G1 - motion commands
                     case 0:  // G0 - linear rapid traverse
-                        axis_command = AxisCommand::MotionMode;
+                        axis_command          = AxisCommand::MotionMode;
                         gc_block.modal.motion = Motion::Seek;
                         mg_word_bit           = ModalGroup::MG1;
                         break;
                     case 1:  // G1 - linear feedrate move
-                        axis_command = AxisCommand::MotionMode;
+                        axis_command          = AxisCommand::MotionMode;
                         gc_block.modal.motion = Motion::Linear;
                         mg_word_bit           = ModalGroup::MG1;
                         break;
                     case 2:  // G2 - clockwise arc
-                        axis_command = AxisCommand::MotionMode;
+                        axis_command          = AxisCommand::MotionMode;
                         gc_block.modal.motion = Motion::CwArc;
                         mg_word_bit           = ModalGroup::MG1;
                         break;
                     case 3:  // G3 - counterclockwise arc
-                        axis_command = AxisCommand::MotionMode;
+                        axis_command          = AxisCommand::MotionMode;
                         gc_block.modal.motion = Motion::CcwArc;
                         mg_word_bit           = ModalGroup::MG1;
                         break;
@@ -360,9 +360,9 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                         }
                         // [Axis word/command conflict] }
                         axis_command = AxisCommand::ToolLengthOffset;
-                        if (int_value == 49) { // G49
+                        if (int_value == 49) {  // G49
                             gc_block.modal.tool_length = ToolLengthOffset::Cancel;
-                        } else if (mantissa == 10) { // G43.1
+                        } else if (mantissa == 10) {  // G43.1
                             gc_block.modal.tool_length = ToolLengthOffset::EnableDynamic;
                         } else {
                             FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);  // [Unsupported G43.x command]
@@ -470,11 +470,11 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
 #endif
                     case 62:
                         gc_block.modal.io_control = IoControl::Enable;
-                        mg_word_bit = ModalGroup::MM10;
+                        mg_word_bit               = ModalGroup::MM10;
                         break;
                     case 63:
                         gc_block.modal.io_control = IoControl::Disable;
-                        mg_word_bit = ModalGroup::MM10;
+                        mg_word_bit               = ModalGroup::MM10;
                         break;
                     default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);  // [Unsupported M command]
                 }
@@ -1421,8 +1421,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     // refill and can only be resumed by the cycle start run-time command.
     gc_state.modal.program_flow = gc_block.modal.program_flow;
     switch (gc_state.modal.program_flow) {
-        case ProgramFlow::Running:
-            break;
+        case ProgramFlow::Running: break;
         case ProgramFlow::OptionalStop:
             // TODO - to support M1 we would need some code to determine whether to stop
             // Then either break or fall through to actually stop.

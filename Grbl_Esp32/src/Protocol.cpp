@@ -678,9 +678,9 @@ static void protocol_exec_rt_suspend() {
                                 // Regardless if the retract parking motion was a valid/safe motion or not, the
                                 // restore parking motion should logically be valid, either by returning to the
                                 // original position through valid machine space or by not moving at all.
-                                pl_data->feed_rate = PARKING_PULLOUT_RATE;
-                                pl_data->spindle = restore_spindle;
-                                pl_data->coolant = restore_coolant;
+                                pl_data->feed_rate     = PARKING_PULLOUT_RATE;
+                                pl_data->spindle       = restore_spindle;
+                                pl_data->coolant       = restore_coolant;
                                 pl_data->spindle_speed = restore_spindle_speed;
                                 mc_parking_motion(restore_target, pl_data);
                             }

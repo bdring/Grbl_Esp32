@@ -502,8 +502,8 @@ void st_reset() {
     segment_buffer_head = 0;  // empty = tail
     segment_next_head   = 1;
     busy                = false;
-    st.step_outbits = 0;
-    st.dir_outbits = dir_invert_mask->get();  // Initialize direction bits to default.
+    st.step_outbits     = 0;
+    st.dir_outbits      = dir_invert_mask->get();  // Initialize direction bits to default.
     // TODO do we need to turn step pins off?
 }
 

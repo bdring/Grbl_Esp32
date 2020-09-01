@@ -10,12 +10,12 @@ bool auth_failed(Word* w, const char* value, WebUI::AuthenticationLevel auth_lev
     permissions_t permissions = w->getPermissions();
     switch (auth_level) {
         case WebUI::AuthenticationLevel::LEVEL_ADMIN:  // Admin can do anything
-            return false;                 // Nothing is an Admin auth fail
+            return false;                              // Nothing is an Admin auth fail
         case WebUI::AuthenticationLevel::LEVEL_GUEST:  // Guest can only access open settings
-            return permissions != WG;     // Anything other than RG is Guest auth fail
+            return permissions != WG;                  // Anything other than RG is Guest auth fail
         case WebUI::AuthenticationLevel::LEVEL_USER:   // User is complicated...
-            if (!value) {                 // User can read anything
-                return false;             // No read is a User auth fail
+            if (!value) {                              // User can read anything
+                return false;                          // No read is a User auth fail
             }
             return permissions == WA;  // User cannot write WA
         default: return true;

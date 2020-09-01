@@ -398,7 +398,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         system_set_exec_alarm(EXEC_ALARM_PROBE_FAIL_INITIAL);
         protocol_execute_realtime();
         probe_configure_invert_mask(false);  // Re-initialize invert mask before returning.
-        return (GCUpdatePos::None);         // Nothing else to do but bail.
+        return (GCUpdatePos::None);          // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
     mc_line(target, pl_data);
