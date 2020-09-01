@@ -47,7 +47,8 @@ Motors::Motor*      myMotor[MAX_AXES][MAX_GANGED];  // number of axes (normal an
 static TaskHandle_t readSgTaskHandle      = 0;      // for realtime stallguard data diaplay
 static TaskHandle_t servoUpdateTaskHandle = 0;
 
-bool Motors::Dynamixel2::uart_ready = false;
+bool    Motors::Dynamixel2::uart_ready         = false;
+uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
 
 uint8_t      rmt_chan_num[MAX_AXES][MAX_GANGED];
 rmt_item32_t rmtItem[2];
@@ -56,7 +57,7 @@ rmt_config_t rmtConfig;
 bool motor_class_steps;  // true if at least one motor class is handling steps
 
 void init_motors() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Init Motors");    
+    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Init Motors");
 
 #ifdef X_TRINAMIC_DRIVER
     myMotor[X_AXIS][0] = new Motors::TrinamicDriver(
@@ -286,7 +287,7 @@ void init_motors() {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
     }
 
-    if (motors_have_type_id(RC_SERVO_MOTOR) || motors_have_type_id(DYNAMIXEL2)) { 
+    if (motors_have_type_id(RC_SERVO_MOTOR) || motors_have_type_id(DYNAMIXEL2)) {
         xTaskCreatePinnedToCore(servoUpdateTask,    // task
                                 "servoUpdateTask",  // name for task
                                 4096,               // size of task stack
@@ -300,10 +301,10 @@ void init_motors() {
 
 void servoUpdateTask(void* pvParameters) {
     TickType_t       xLastWakeTime;
-    const TickType_t xUpdate = SERVO_TIMER_INT_FREQ;  // in ticks (typically ms)
+    const TickType_t xUpdate = SERVO_TIMER_INTERVAL;  // in ticks (typically ms)
 
     xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
-    vTaskDelay(2000); // initial delay
+    vTaskDelay(2000);                     // initial delay
     while (true) {                        // don't ever return from this or the task dies
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
             for (uint8_t gang_index = 0; gang_index < 2; gang_index++)

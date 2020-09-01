@@ -53,7 +53,7 @@
 #define DXL_ADDR_TORQUE_EN 64
 #define DXL_ADDR_LED_ON 65
 #define DXL_GOAL_POSITION 116  // 0x74
-#define DXL_PRESENT_POSITION 132
+#define DXL_PRESENT_POSITION 132  // 0x84
 
 // control modes
 #define DXL_CONTROL_MODE_VELOCITY 1
@@ -71,30 +71,35 @@ namespace Motors {
     public:
         Dynamixel2();
         Dynamixel2(uint8_t axis_index, uint8_t address, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin);
-        virtual void config_message();
-        virtual void init();
-        virtual void set_disable(bool disable);
-        virtual void update();
-        void         read_settings();
-        static bool  uart_ready;
+        virtual void   config_message();
+        virtual void   init();
+        virtual void   set_disable(bool disable);
+        virtual void   update();
+        //void           read_settings();
+        static bool    uart_ready;
+        static uint8_t ids[MAX_N_AXIS][2];
 
     protected:
         void set_location();
-        void _get_calibration();
+        //void _get_calibration();
 
         char    dxl_tx_message[50];  // outgoing to dynamixel
         uint8_t dxl_rx_message[50];  // received from dynamixel
 
-        bool     test();
-        uint16_t dxl_get_response(uint16_t length);
-        void     dxl_finish_message(char* msg, uint16_t msg_len);
-        uint16_t dxl_update_crc(uint16_t crc_accum, char* data_blk_ptr, uint8_t data_blk_size);
-        void     dxl_write(uint16_t address, uint8_t paramCount, ...);
-        void     dxl_goal_position(int32_t position);
-        void     set_operating_mode(uint8_t mode);
-        void     LED_on(bool on);
-        static void     init_uart();
-        
+        bool            test();
+        uint16_t        dxl_get_response(uint16_t length);
+        static void     dxl_finish_message(uint8_t id, char* msg, uint16_t msg_len);
+        static uint16_t dxl_update_crc(uint16_t crc_accum, char* data_blk_ptr, uint8_t data_blk_size);
+        static void     dxl_bulk_goal_position();
+        uint32_t        dxl_read_position();
+        void            dxl_read(uint16_t address, uint16_t data_len);
+
+        void        dxl_write(uint16_t address, uint8_t paramCount, ...);
+        void        dxl_goal_position(int32_t position);
+        void        set_operating_mode(uint8_t mode);
+        void        LED_on(bool on);
+        static void init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
+
         bool _disabled;
 
         float _position_min;

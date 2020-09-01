@@ -4,9 +4,16 @@
     This allows an Dynamixel sero to be used like any other motor. Servos
     do have limitation in travel and speed, so you do need to respect that.
 
+    Protocol 2
+
+    Each tick of the task will call the update once pre axis defined, so set the 
+    update rate accordinly.
+
     Part of Grbl_ESP32
 
     2020 -	Bart Dring
+
+    https://emanual.robotis.com/docs/en/dxl/protocol2/
 
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,31 +44,39 @@ namespace Motors {
 
         set_axis_name();
         read_settings();
-
         init();
     }
 
     void Dynamixel2::init() {
         is_active = true;  // as opposed to NullMotors, this is a real motor
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel UART TX:%d RX:%d RTS:%d", _tx_pin, _rx_pin, _rts_pin);
+        init_uart(_id, axis_index, dual_axis_index);
 
-        init_uart();
+        config_message();  // print the config
 
-        config_message();
-
-        test();
+        test();  // ping the motor
 
         set_disable(true);  // turn off torque so we can set EEPROM registers
         set_operating_mode(DXL_CONTROL_MODE_POSITION);
-        //LED_on(true);
-        //vTaskDelay(100);
-        //dxl_LED_on(false);
+
+        // servos will blink in axis order
+        LED_on(true);
+        vTaskDelay(100);
+        LED_on(false);
     }
 
-    void Dynamixel2::init_uart() {        
+    /*
+        Static
+
+        This will be called by each axis, but only the first call will setup the serial port.
+        It will store the IDs and Axes in an array for later group processing
+
+    */
+    void Dynamixel2::init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index) {
+        ids[axis_index][dual_axis_index] = id;  // learn all the ids
+
         if (uart_ready)
-            return;
+            return;  // UART already setup
 
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel UART TX:%d RX:%d RTS:%d", DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 
@@ -96,7 +111,7 @@ namespace Motors {
 
         dxl_tx_message[DXL_MSG_INSTR] = DXL_INSTR_PING;
 
-        dxl_finish_message(dxl_tx_message, len);
+        dxl_finish_message(_id, dxl_tx_message, len);
 
         len = dxl_get_response(PING_RSP_LEN);  // wait for and get response
 
@@ -130,9 +145,11 @@ namespace Motors {
     void Dynamixel2::set_disable(bool disable) {
         uint8_t param_count = 1;
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis %s", _axis_name, disable ? "Disable" : "Enable");
+        _disabled = disable;
 
-        if (disable)
+        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis %s", _axis_name, disable ? "Disable" : "Enable");
+
+        if (_disabled)
             dxl_write(DXL_ADDR_TORQUE_EN, param_count, 0);
         else
             dxl_write(DXL_ADDR_TORQUE_EN, param_count, 1);
@@ -143,61 +160,24 @@ namespace Motors {
         dxl_write(DXL_OPERATING_MODE, param_count, mode);
     }
 
-    void Dynamixel2::update() { set_location(); }
-
-    void Dynamixel2::set_location() {
-        uint32_t servo_position;  // dynamixel postion index
-        float    work_pos, mpos, offset;
-
-        _get_calibration();
-
-        //return;
-
-        // skip location if we are in alarm mode
-        if (sys.state == STATE_ALARM) {
-            set_disable(true);
-            return;
+    void Dynamixel2::update() {
+        if (_disabled) {
+            if (axis_index == X_AXIS)
+                dxl_read_position();
+        } else {
+            dxl_bulk_goal_position();  // call the static method that updates all at once
         }
-
-        mpos = system_convert_axis_steps_to_mpos(sys_position, axis_index);  // get the axis machine position in mm
-        // TBD working in MPos
-        offset   = 0;  // gc_state.coord_system[axis_index] + gc_state.coord_offset[axis_index];  // get the current axis work offset
-        work_pos = mpos - offset;  // determine the current work position
-
-        // determine the pulse length
-        servo_position = (uint32_t)mapConstrain(work_pos, _position_min, _position_max, _dxl_count_min, _dxl_count_max);
-
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set Loc %d %5.3f", servo_position, work_pos);
-
-        dxl_goal_position(servo_position);
     }
 
+    void Dynamixel2::set_location() {}
+    /*
     void Dynamixel2::read_settings() { _get_calibration(); }
 
     // this should change to use its own settings.
     void Dynamixel2::_get_calibration() {
-#ifndef HOMING_FORCE_POSITIVE_SPACE
-        _position_min = -axis_settings[axis_index]->max_travel->get();
-        _position_max = 0;
-#else
-        _position_min = 0;
-        _position_max = axis_settings[axis_index]->max_travel->get();
-#endif
-
-        _dxl_count_min = DXL_COUNT_MIN;
-        _dxl_count_max = DXL_COUNT_MAX;
-
-        if (bit_istrue(dir_invert_mask->get(), bit(axis_index))) {  // normal direction
-            swap(_dxl_count_min, _dxl_count_max);
-            //_pwm_pulse_min *= (2.0 - _cal_min);
-            //_pwm_pulse_max *= (2.0 - _cal_max);
-
-        } else {  // inverted direction
-            //_pwm_pulse_min *= _cal_min;
-            //_pwm_pulse_max *= _cal_max;
-        }
+        // done at the static bulk update now
     }
-
+*/
     void Dynamixel2::dxl_goal_position(int32_t position) {
         uint8_t param_count = 4;
 
@@ -207,6 +187,65 @@ namespace Motors {
                   (position & 0xFF00) >> 8,
                   (position & 0xFF0000) >> 16,
                   (position & 0xFF000000) >> 24);
+    }
+
+    uint32_t Dynamixel2::dxl_read_position() {
+        uint8_t data_len = 4;
+        int32_t mpos_range_min, mpos_range_max;  // in steps
+        int32_t dxl_position, dxl_count_min, dxl_count_max;
+
+        dxl_read(DXL_PRESENT_POSITION, data_len);
+
+        data_len = dxl_get_response(15);
+
+        if (data_len == 15) {
+            dxl_position = dxl_rx_message[9] | (dxl_rx_message[10] << 8) | (dxl_rx_message[11] << 16) | (dxl_rx_message[12] << 24);
+
+            //grbl_msg_sendf(
+            //  CLIENT_SERIAL, MSG_LEVEL_INFO, "DXL:%x %x %x %x", dxl_rx_message[9], dxl_rx_message[10], dxl_rx_message[11], dxl_rx_message[12]);
+
+            //report_hex_msg(dxl_rx_message, "Rx:", 15);
+
+#ifndef HOMING_FORCE_POSITIVE_SPACE
+            mpos_range_min = -axis_settings[axis_index]->max_travel->get() * axis_settings[axis_index]->steps_per_mm->get();
+            mpos_range_max = 0;
+#else
+            mpos_range_min = 0;
+            mpos_range_max = axis_settings[axis]->max_travel->get() * axis_settings[axis_index]->steps_per_mm->get();
+#endif
+
+            // determine the range of the servo .... these may be a setting one day.
+            dxl_count_min = DXL_COUNT_MIN;
+            dxl_count_max = DXL_COUNT_MAX;
+            /*
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MSG_LEVEL_INFO,
+                           "DXL:%d Min:%d Max:%d MPos Min:%d Max%d Cal:%d",
+                           dxl_position,
+                           dxl_count_min,
+                           dxl_count_max,
+                           mpos_range_min,
+                           mpos_range_max,
+                           map(dxl_position, dxl_count_min, dxl_count_max, mpos_range_min, mpos_range_max));
+*/
+            sys_position[axis_index] = map(dxl_position, dxl_count_min, dxl_count_max, mpos_range_min, mpos_range_max);
+
+            return dxl_position;
+        } else {
+            return 0;
+        }
+    }
+
+    void Dynamixel2::dxl_read(uint16_t address, uint16_t data_len) {
+        uint8_t msg_len = 3 + 4;
+
+        dxl_tx_message[DXL_MSG_INSTR]     = DXL_READ;
+        dxl_tx_message[DXL_MSG_START]     = (address & 0xFF);            // low-order address value
+        dxl_tx_message[DXL_MSG_START + 1] = ((address & 0xFF00) >> 8);   // High-order address value
+        dxl_tx_message[DXL_MSG_START + 2] = (data_len & 0xFF);           // low-order data length value
+        dxl_tx_message[DXL_MSG_START + 3] = ((data_len & 0xFF00) >> 8);  // high-order address value
+
+        dxl_finish_message(_id, dxl_tx_message, msg_len);
     }
 
     void Dynamixel2::LED_on(bool on) {
@@ -242,7 +281,7 @@ namespace Motors {
         }
         va_end(valist);  // Cleans up the list
 
-        dxl_finish_message(dxl_tx_message, msg_offset + 4);
+        dxl_finish_message(_id, dxl_tx_message, msg_offset + 4);
 
         uint16_t len = 11;  // response length
         len          = dxl_get_response(len);
@@ -266,13 +305,88 @@ namespace Motors {
     }
 
     /*
+        This will sync all the motors in one command
+        It looks for IDs in the array of axes
+
+
+    */
+    void Dynamixel2::dxl_bulk_goal_position() {
+        char     tx_message[100];  // outgoing to dynamixel
+        float    mpos, offset, work_pos;
+        float    position_min, position_max;
+        uint32_t dxl_count_min, dxl_count_max;
+
+        uint16_t msg_index = DXL_MSG_INSTR;  // index of the byte in the message we are currently filling
+        uint32_t position;
+        uint8_t  count = 0;
+        uint8_t  current_id;
+
+        tx_message[msg_index]   = DXL_SYNC_WRITE;
+        tx_message[++msg_index] = DXL_GOAL_POSITION & 0xFF;           // low order address
+        tx_message[++msg_index] = (DXL_GOAL_POSITION & 0xFF00) >> 8;  // high order address
+        tx_message[++msg_index] = 4;                                  // low order data length
+        tx_message[++msg_index] = 0;                                  // high order data length
+
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+            for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
+                current_id = ids[axis][gang_index];
+                if (current_id != 0) {
+                    count++;  // keep track of the count for the message length
+
+                    //determine the location of the axis
+                    mpos = system_convert_axis_steps_to_mpos(sys_position, axis);  // get the axis machine position in mm
+                    // TBD working in MPos
+                    offset = 0;  // gc_state.coord_system[axis_index] + gc_state.coord_offset[axis_index];  // get the current axis work offset
+                    work_pos = mpos - offset;  // determine the current work position
+
+                    // determine the range of motion
+#ifndef HOMING_FORCE_POSITIVE_SPACE
+                    position_min = -axis_settings[axis]->max_travel->get();
+                    position_max = 0;
+#else
+                    position_min = 0;
+                    position_max = axis_settings[axis]->max_travel->get();
+#endif
+                    // determine the range of the servo
+                    dxl_count_min = DXL_COUNT_MIN;
+                    dxl_count_max = DXL_COUNT_MAX;
+
+                    // apply the invert
+                    if (bit_istrue(dir_invert_mask->get(), bit(axis))) {  // normal direction
+                        swap(dxl_count_min, dxl_count_max);
+                        // TBD calibration...wait for settings
+                        //_pwm_pulse_min *= (2.0 - _cal_min);
+                        //_pwm_pulse_max *= (2.0 - _cal_max);
+
+                    } else {  // inverted direction
+                        //_pwm_pulse_min *= _cal_min;
+                        //_pwm_pulse_max *= _cal_max;
+                    }
+
+                    // map the mm range to the servo range
+                    position = (uint32_t)mapConstrain(work_pos, position_min, position_max, dxl_count_min, dxl_count_max);
+
+                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Update %d %d", current_id, position);
+
+                    tx_message[++msg_index] = current_id;                     // ID of the servo
+                    tx_message[++msg_index] = position & 0xFF;                // data
+                    tx_message[++msg_index] = (position & 0xFF00) >> 8;       // data
+                    tx_message[++msg_index] = (position & 0xFF0000) >> 16;    // data
+                    tx_message[++msg_index] = (position & 0xFF000000) >> 24;  // data
+                }
+            }
+        }
+        dxl_finish_message(DXL_BROADCAST_ID, tx_message, (count * 5) + 7);
+    }
+
+    /*
     This is a helper function to complete and send the message
     The body of the message should be in msg, at the correct location
     before calling this function.
     This function will add the header, length bytes and CRC
     It will then send the message
 */
-    void Dynamixel2::dxl_finish_message(char* msg, uint16_t msg_len) {
+    void Dynamixel2::dxl_finish_message(uint8_t id, char* msg, uint16_t msg_len) {
         //uint16_t msg_len;
         uint16_t crc = 0;
         // header
@@ -282,7 +396,7 @@ namespace Motors {
         //
         // reserved
         msg[DXL_MSG_RSRV] = 0x00;
-        msg[DXL_MSG_ID]   = _id;
+        msg[DXL_MSG_ID]   = id;
         // length
         msg[DXL_MSG_LEN_L] = msg_len & 0xFF;
         msg[DXL_MSG_LEN_H] = (msg_len & 0xFF00) >> 8;
@@ -302,7 +416,7 @@ namespace Motors {
     }
     grbl_sendf(CLIENT_SERIAL, "]\r\n");
 	*/
-
+        uart_flush(UART_NUM_2);
         uart_write_bytes(UART_NUM_2, msg, msg_len + 7);
     }
 
@@ -336,3 +450,48 @@ namespace Motors {
         return crc_accum;
     }
 }
+
+/*
+
+void dxl_bulk_goal_position(uint8_t *ids, int32_t *positions, uint8_t count)
+{
+    uint16_t msg_index = DXL_MSG_INSTR; // index of the byte in the message we are currently filling
+    
+    dxl_tx_message[msg_index] = DXL_BULK_WRITE;
+
+    for (uint8_t id=0; id<count; id++) {
+        grbl_sendf(CLIENT_SERIAL, "-ID:%d-", id);
+        dxl_tx_message[++msg_index] = ids[id]; // ID of the servo
+        dxl_tx_message[++msg_index] = DXL_GOAL_POSITION & 0xFF; // low order address
+        dxl_tx_message[++msg_index] = (DXL_GOAL_POSITION & 0xFF00) >> 8;// high order address
+        dxl_tx_message[++msg_index] = 4; // low order data length
+        dxl_tx_message[++msg_index] = 0; // high order data length
+        dxl_tx_message[++msg_index] = positions[id] & 0xFF;// data
+        dxl_tx_message[++msg_index] = (positions[id] & 0xFF00) >> 8;  // data
+        dxl_tx_message[++msg_index] = (positions[id] & 0xFF0000) >> 16;  // data
+        dxl_tx_message[++msg_index] = (positions[id] & 0xFF000000) >> 24;  // data
+    }    
+	dxl_finish_message(dxl_tx_message, DXL_BROADCAST_ID, (count * 9)+3);
+}
+
+void dxl_sync_goal_position(uint8_t *ids, int32_t *positions, uint8_t count)
+{
+    uint16_t msg_index = DXL_MSG_INSTR; // index of the byte in the message we are currently filling
+    
+    dxl_tx_message[msg_index] = DXL_SYNC_WRITE;
+    dxl_tx_message[++msg_index] = DXL_GOAL_POSITION & 0xFF; // low order address
+    dxl_tx_message[++msg_index] = (DXL_GOAL_POSITION & 0xFF00) >> 8;// high order address
+    dxl_tx_message[++msg_index] = 4; // low order data length
+    dxl_tx_message[++msg_index] = 0; // high order data length
+
+    for (uint8_t id=0; id<count; id++) {        
+        dxl_tx_message[++msg_index] = ids[id]; // ID of the servo        
+        dxl_tx_message[++msg_index] = positions[id] & 0xFF;// data
+        dxl_tx_message[++msg_index] = (positions[id] & 0xFF00) >> 8;  // data
+        dxl_tx_message[++msg_index] = (positions[id] & 0xFF0000) >> 16;  // data
+        dxl_tx_message[++msg_index] = (positions[id] & 0xFF000000) >> 24;  // data
+    }    
+	dxl_finish_message(dxl_tx_message, DXL_BROADCAST_ID, (count * 5)+7);
+}
+
+*/

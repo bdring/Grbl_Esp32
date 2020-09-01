@@ -504,6 +504,6 @@
 #    define C2_STEPPER_MS3 UNDEFINED_PIN
 #endif
 
-#ifndef SERVO_TIMER_INT_FREQ
-#    define SERVO_TIMER_INT_FREQ 50.0  // Hz This is the task frequency
+#ifndef SERVO_TIMER_INTERVAL
+#    define SERVO_TIMER_INTERVAL 50.0  // Hz This is the update inveral in milliseconds
 #endif
