@@ -37,6 +37,10 @@
 
 #define TRINAMIC_RUN_MODE           TRINAMIC_MODE_STEALTHCHOP
 
+#define TRINAMIC_TOFF_COOLSTEP 4
+#define TRINAMIC_HEND_COOLSTEP 5
+#define TRINAMIC_HSTRT_COOLSTEP 0
+
 // Use SPI enable instead of the enable pin
 // The hardware enable pin is tied to ground
 #define USE_TRINAMIC_ENABLE

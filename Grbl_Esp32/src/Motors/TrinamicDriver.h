@@ -55,7 +55,15 @@
 #endif
 
 #ifndef TRINAMIC_TOFF_COOLSTEP
-#    define TRINAMIC_TOFF_COOLSTEP 3
+#    define TRINAMIC_TOFF_COOLSTEP 4
+#endif
+
+#ifndef TRINAMIC_HEND_COOLSTEP
+#    define TRINAMIC_HEND_COOLSTEP 5
+#endif
+
+#ifndef TRINAMIC_HSTRT_COOLSTEP
+#    define TRINAMIC_HSTRT_COOLSTEP 0
 #endif
 
 namespace Motors {

@@ -54,7 +54,7 @@ namespace Motors {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis Unsupported Trinamic part number TMC%d", _axis_name, _driver_part_number);
             has_errors = true;  // as opposed to NullMotors, this is a real motor
             return;
-        }       
+        }
 
         init_step_dir_pins();  // from StandardStepper
 
@@ -82,7 +82,6 @@ namespace Motors {
         set_mode(false);
 
         _homing_mask = 0;
-        
     }
 
     /*
@@ -207,6 +206,9 @@ namespace Motors {
                 tmcstepper->pwm_autoscale(false);
                 tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS);  // when to turn on coolstep
                 tmcstepper->THIGH(NORMAL_THIGH);
+                tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
+                tmcstepper->hend(TRINAMIC_TOFF_COOLSTEP);
+                tmcstepper->hstrt(TRINAMIC_HSTRT_COOLSTEP);
                 break;
             case TRINAMIC_MODE_STALLGUARD:
                 //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_STALLGUARD");
@@ -260,7 +262,7 @@ namespace Motors {
     // but that can be hardwired that way.
     void TrinamicDriver::set_disable(bool disable) {
         if (has_errors)
-            return;      
+            return;
 
         digitalWrite(disable_pin, disable);
 
