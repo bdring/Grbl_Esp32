@@ -1,4 +1,4 @@
-; paste with a terminal emulator with a 100 ms delay between lines
+; paste with a terminal emulator with a 200 ms delay between lines
 $rst=gcode
 $rst=#
 $#
