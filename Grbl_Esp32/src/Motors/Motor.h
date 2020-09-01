@@ -52,10 +52,11 @@ namespace Motors {
 
         motor_class_id_t type_id;
         uint8_t          is_active = false;
+        uint8_t          has_errors = false;
 
     protected:
-        uint8_t axis_index;       // X_AXIS, etc
-        uint8_t dual_axis_index;  // 0 = primary 1=ganged
+        uint8_t                 axis_index;       // X_AXIS, etc
+        uint8_t                 dual_axis_index;  // 0 = primary 1=ganged
 
         bool    _showError;
         bool    _use_mpos = true;

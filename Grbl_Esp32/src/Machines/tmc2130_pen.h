@@ -57,22 +57,10 @@
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
 
 
-
 // Define one of these 2 options for spindle or servo
-#define USE_SERVO_AXES
-//#define USE_SPINDLE
-
-#ifdef USE_SERVO_AXES
-    #define SPINDLE_TYPE            SPINDLE_TYPE_NONE
-
-    #define Z_SERVO_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
-    #define Z_SERVO_RANGE_MIN               0.0
-    #define Z_SERVO_RANGE_MAX               5.0
-#else
-
-    #define SPINDLE_TYPE        SPINDLE_TYPE_PWM
-    #define SPINDLE_OUTPUT_PIN     GPIO_NUM_27
-#endif
+#define Z_SERVO_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
+#define Z_SERVO_RANGE_MIN               0.0
+#define Z_SERVO_RANGE_MAX               5.0
 
 // #define X_LIMIT_PIN          See version section at beginning of file
 #define Y_LIMIT_PIN             GPIO_NUM_4
