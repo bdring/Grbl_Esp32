@@ -63,6 +63,17 @@ void init_motors() {
     // Should move all inits to the end and conditionally turn on SPI
     SPI.begin(); // Yes, I know about the SD issue
 
+#ifdef STEPPERS_DISABLE_PIN
+    grbl_msg_sendf(CLIENT_SERIAL,
+                   MSG_LEVEL_INFO,
+                   "Global stepper enable pin:%d",
+                   STEPPERS_DISABLE_PIN);
+    pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
+
+#endif
+    motors_set_disable(true);
+
+
     // this WILL be done better with settings
 #ifdef X_TRINAMIC_DRIVER
     #if(X_TRINAMIC_DRIVER == 2130)
@@ -305,15 +316,7 @@ void init_motors() {
             myMotor[axis][gang_index]->test();
     }
 
-#ifdef STEPPERS_DISABLE_PIN
-    grbl_msg_sendf(CLIENT_SERIAL,
-                   MSG_LEVEL_INFO,
-                   "Global stepper enable pin:%d",
-                   STEPPERS_DISABLE_PIN);
-    pinMode(STEPPERS_DISABLE_PIN, OUTPUT); // global motor enable pin
 
-#endif
-    motors_set_disable(true);
 
     // tuning gets turned on if this is defined and laser mode is on at boot time.
 #ifdef ENABLE_STALLGUARD_TUNING  // TODO move this to a setting
@@ -451,8 +454,9 @@ void servoUpdateTask(void* pvParameters) {
     }
 }
 
+
+static bool _current_disable = false;
 void motors_set_disable(bool disable) {
-    static bool _current_disable = true;
 
     if (disable == _current_disable)
         return;
