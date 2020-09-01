@@ -36,6 +36,10 @@
 #define TX_SW_SERIAL_MOTORS     GPIO_NUM_17
 #endif
 
+#ifdef HW_SERIAL_MOTORS
+#define SERIAL_FOR_MOTORS       &Serial2
+#endif
+
 #define X_STEP_PIN              GPIO_NUM_18
 #define X_DIRECTION_PIN         GPIO_NUM_26
 #define X_TRINAMIC              // using SPI control

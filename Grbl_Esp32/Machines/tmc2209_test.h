@@ -30,12 +30,16 @@
 #define USE_TRINAMIC // Using at least 1 trinamic driver
 
 /* Define SW_SERIAL_MOTORS or HW_SERIAL_MOTORS */
-#define SW_SERIAL_MOTORS
-//#define HW_SERIAL_MOTORS
+//#define SW_SERIAL_MOTORS
+#define HW_SERIAL_MOTORS
 
 #ifdef SW_SERIAL_MOTORS
 #define RX_SW_SERIAL_MOTORS     GPIO_NUM_5
 #define TX_SW_SERIAL_MOTORS     GPIO_NUM_5
+#endif
+
+#ifdef HW_SERIAL_MOTORS
+#define SERIAL_FOR_MOTORS       &Serial2
 #endif
 
 #define X_DRIVER_ADDRESS        0
