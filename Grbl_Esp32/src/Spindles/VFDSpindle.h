@@ -27,9 +27,9 @@ namespace Spindles {
     class VFD : public Spindle {
     private:
         static const int VFD_RS485_MAX_MSG_SIZE = 16;  // more than enough for a modbus message
-        static const int MAX_RETRIES = 3; // otherwise the spindle is marked 'unresponsive'
+        static const int MAX_RETRIES            = 3;   // otherwise the spindle is marked 'unresponsive'
 
-        bool set_mode(uint8_t mode, bool critical);
+        bool set_mode(SpindleState mode, bool critical);
         bool get_pins_and_settings();
 
         uint8_t _txd_pin;
@@ -48,7 +48,7 @@ namespace Spindles {
 
     protected:
         struct ModbusCommand {
-            bool    critical; // TODO SdB: change into `uint8_t critical : 1;`: We want more flags...
+            bool critical;  // TODO SdB: change into `uint8_t critical : 1;`: We want more flags...
 
             uint8_t tx_length;
             uint8_t rx_length;
@@ -58,8 +58,8 @@ namespace Spindles {
         virtual void default_modbus_settings(uart_config_t& uart);
 
         // Commands:
-        virtual void direction_command(uint8_t mode, ModbusCommand& data) = 0;
-        virtual void set_speed_command(uint32_t rpm, ModbusCommand& data) = 0;
+        virtual void direction_command(SpindleState mode, ModbusCommand& data) = 0;
+        virtual void set_speed_command(uint32_t rpm, ModbusCommand& data)      = 0;
 
         // Commands that return the status. Returns nullptr if unavailable by this VFD (default):
         using response_parser = bool (*)(const uint8_t* response, VFD* spindle);
@@ -76,17 +76,17 @@ namespace Spindles {
         VFD& operator=(const VFD&) = delete;
         VFD& operator=(VFD&&) = delete;
 
-        // TODO FIXME: Have to make these public because of the parsers. 
+        // TODO FIXME: Have to make these public because of the parsers.
         // Should hide them and use a member function.
         volatile uint32_t _min_rpm;
         volatile uint32_t _max_rpm;
 
-        void        init();
-        void        config_message();
-        void        set_state(uint8_t state, uint32_t rpm);
-        uint8_t     get_state();
-        uint32_t    set_rpm(uint32_t rpm);
-        void        stop();
+        void         init();
+        void         config_message();
+        void         set_state(SpindleState state, uint32_t rpm);
+        SpindleState get_state();
+        uint32_t     set_rpm(uint32_t rpm);
+        void         stop();
 
         virtual ~VFD() {}
     };
