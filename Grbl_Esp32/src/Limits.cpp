@@ -270,8 +270,13 @@ void limits_go_home(uint8_t cycle_mask) {
                 max_mpos = mpos;
             }
 
-            grbl_msg_sendf(
-                CLIENT_SERIAL, MSG_LEVEL_INFO, "%d MPos %5.3f Min:%5.3f Max:%5.3f", idx, (sys_position[idx] / steps), min_mpos, max_mpos);
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MSG_LEVEL_INFO,
+                           "%c Axis MPos %5.3f Min:%5.3f Max:%5.3f",
+                           report_get_axis_letter(idx),
+                           (sys_position[idx] / steps),
+                           min_mpos,
+                           max_mpos);
 
 #endif
         }
