@@ -372,11 +372,12 @@ public:
     FloatSetting* steps_per_mm;
     FloatSetting* max_rate;
     FloatSetting* acceleration;
-    FloatSetting* max_travel;
+    FloatSetting* travel;
     FloatSetting* run_current;
     FloatSetting* hold_current;
+    FloatSetting* home_mpos;
     IntSetting*   microsteps;
-    IntSetting*   stallguard;
+    IntSetting*   stallguard;    
 
     AxisSettings(const char* axisName);
 };

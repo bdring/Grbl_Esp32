@@ -23,10 +23,14 @@
 #define DYNAMIXEL_RXD           GPIO_NUM_13
 #define DYNAMIXEL_RTS           GPIO_NUM_17
 
-#define SERVO_TIMER_INTerval    1000   // milliseconds
+#define SERVO_TIMER_INTerval    75   // milliseconds
 
 #define X_DYNAMIXEL_ID          1 // protocol ID
 #define Y_DYNAMIXEL_ID          2 // protocol ID
 #define Z_DYNAMIXEL_ID          3 // protocol ID
+
+// limit servo to 180 degree motion
+#define DXL_COUNT_MIN 1024      
+#define DXL_COUNT_MAX 3072
 
 #define SPINDLE_TYPE    SPINDLE_TYPE_NONE

@@ -81,7 +81,8 @@ typedef struct {
     float       steps_per_mm;
     float       max_rate;
     float       acceleration;
-    float       max_travel;
+    float       travel;
+    float       home_mpos;
     float       run_current;
     float       hold_current;
     uint16_t    microsteps;
@@ -91,7 +92,8 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_X_STEPS_PER_MM,
                                       DEFAULT_X_MAX_RATE,
                                       DEFAULT_X_ACCELERATION,
-                                      DEFAULT_X_MAX_TRAVEL,
+                                      DEFAULT_X_TRAVEL,
+                                      DEFAULT_X_HOMING_MPOS,
                                       DEFAULT_X_CURRENT,
                                       DEFAULT_X_HOLD_CURRENT,
                                       DEFAULT_X_MICROSTEPS,
@@ -100,7 +102,8 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_Y_STEPS_PER_MM,
                                       DEFAULT_Y_MAX_RATE,
                                       DEFAULT_Y_ACCELERATION,
-                                      DEFAULT_Y_MAX_TRAVEL,
+                                      DEFAULT_Y_TRAVEL,
+                                      DEFAULT_Y_HOMING_MPOS,
                                       DEFAULT_Y_CURRENT,
                                       DEFAULT_Y_HOLD_CURRENT,
                                       DEFAULT_Y_MICROSTEPS,
@@ -109,7 +112,8 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_Z_STEPS_PER_MM,
                                       DEFAULT_Z_MAX_RATE,
                                       DEFAULT_Z_ACCELERATION,
-                                      DEFAULT_Z_MAX_TRAVEL,
+                                      DEFAULT_Z_TRAVEL,
+                                      DEFAULT_Z_HOMING_MPOS,
                                       DEFAULT_Z_CURRENT,
                                       DEFAULT_Z_HOLD_CURRENT,
                                       DEFAULT_Z_MICROSTEPS,
@@ -118,7 +122,8 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_A_STEPS_PER_MM,
                                       DEFAULT_A_MAX_RATE,
                                       DEFAULT_A_ACCELERATION,
-                                      DEFAULT_A_MAX_TRAVEL,
+                                      DEFAULT_A_TRAVEL,
+                                      DEFAULT_A_HOMING_MPOS,
                                       DEFAULT_A_CURRENT,
                                       DEFAULT_A_HOLD_CURRENT,
                                       DEFAULT_A_MICROSTEPS,
@@ -127,7 +132,8 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_B_STEPS_PER_MM,
                                       DEFAULT_B_MAX_RATE,
                                       DEFAULT_B_ACCELERATION,
-                                      DEFAULT_B_MAX_TRAVEL,
+                                      DEFAULT_B_TRAVEL,
+                                      DEFAULT_B_HOMING_MPOS,
                                       DEFAULT_B_CURRENT,
                                       DEFAULT_B_HOLD_CURRENT,
                                       DEFAULT_B_MICROSTEPS,
@@ -136,7 +142,8 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_C_STEPS_PER_MM,
                                       DEFAULT_C_MAX_RATE,
                                       DEFAULT_C_ACCELERATION,
-                                      DEFAULT_C_MAX_TRAVEL,
+                                      DEFAULT_C_TRAVEL,
+                                      DEFAULT_C_HOMING_MPOS,
                                       DEFAULT_C_CURRENT,
                                       DEFAULT_C_HOLD_CURRENT,
                                       DEFAULT_C_MICROSTEPS,
@@ -241,10 +248,18 @@ void make_settings() {
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
-        auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 130), makename(def->name, "MaxTravel"), def->max_travel, 1.0, 100000.0);
+        auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 130), makename(def->name, "Travel"), def->travel, 1.0, 100000.0);
         setting->setAxis(axis);
-        axis_settings[axis]->max_travel = setting;
+        axis_settings[axis]->travel = setting;
     }
+
+    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+        def          = &axis_defaults[axis];
+        auto setting = new FloatSetting(EXTENDED, WG, NULL, makename(def->name, "Home/Mpos"), def->home_mpos, -100000.0, 100000.0);
+        setting->setAxis(axis);
+        axis_settings[axis]->home_mpos = setting;
+    }
+
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting =
@@ -293,10 +308,10 @@ void make_settings() {
     rpm_min = new FloatSetting(GRBL, WG, "31", "GCode/MinS", DEFAULT_SPINDLE_RPM_MIN, 0, 100000);
     rpm_max = new FloatSetting(GRBL, WG, "30", "GCode/MaxS", DEFAULT_SPINDLE_RPM_MAX, 0, 100000);
 
-    homing_pulloff   = new FloatSetting(GRBL, WG, "27", "Homing/Pulloff", DEFAULT_HOMING_PULLOFF, 0, 1000);
-    homing_debounce  = new FloatSetting(GRBL, WG, "26", "Homing/Debounce", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
-    homing_seek_rate = new FloatSetting(GRBL, WG, "25", "Homing/Seek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
-    homing_feed_rate = new FloatSetting(GRBL, WG, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
+    homing_pulloff      = new FloatSetting(GRBL, WG, "27", "Homing/Pulloff", DEFAULT_HOMING_PULLOFF, 0, 1000);
+    homing_debounce     = new FloatSetting(GRBL, WG, "26", "Homing/Debounce", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
+    homing_seek_rate    = new FloatSetting(GRBL, WG, "25", "Homing/Seek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
+    homing_feed_rate    = new FloatSetting(GRBL, WG, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
     homing_squared_axes = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Squared", DEFAULT_HOMING_SQUARED_AXES);
 
     // TODO Settings - need to call st_generate_step_invert_masks()

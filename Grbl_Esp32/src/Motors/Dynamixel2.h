@@ -24,7 +24,19 @@
 #define DYNAMIXEL_BUF_SIZE 127
 #define DYNAMIXEL_BAUD_RATE 1000000
 
-#define DXL_RESPONSE_WAIT_TICKS 20  // how long to wait for a response
+#ifndef DYNAMIXEL_TXD
+#    define DYNAMIXEL_TXD UNDEFINED_PIN
+#endif
+
+#ifndef DYNAMIXEL_RXD
+#    define DYNAMIXEL_RXD UNDEFINED_PIN
+#endif
+
+#ifndef DYNAMIXEL_RTS
+#    define DYNAMIXEL_RTS UNDEFINED_PIN
+#endif
+
+#    define DXL_RESPONSE_WAIT_TICKS 20  // how long to wait for a response
 
 // protocol 2 byte positions
 #define DXL_MSG_HDR1 0
@@ -52,7 +64,7 @@
 #define DXL_MOVING_THRESHOLD 24
 #define DXL_ADDR_TORQUE_EN 64
 #define DXL_ADDR_LED_ON 65
-#define DXL_GOAL_POSITION 116  // 0x74
+#define DXL_GOAL_POSITION 116     // 0x74
 #define DXL_PRESENT_POSITION 132  // 0x84
 
 // control modes
@@ -61,44 +73,56 @@
 #define DXL_CONTROL_MODE_EXT_POSITION 4
 #define DXL_CONTROL_MODE_PWM 16
 
-#define DXL_COUNT_MIN 1024
-#define DXL_COUNT_MAX 3072
+#ifndef DXL_COUNT_MIN
+#    define DXL_COUNT_MIN 1024
+#endif
 
-#include "Motor.h"
+#ifndef DXL_COUNT_MAX
+#    define DXL_COUNT_MAX 3072
+#endif
+
+#ifndef DYNAMIXEL_FULL_MOVE_TIME
+#    define DYNAMIXEL_FULL_MOVE_TIME 1000 // time in milliseconds to do a full DYNAMIXEL_FULL_MOVE_TIME
+#endif
+
+#    include "Motor.h"
 
 namespace Motors {
     class Dynamixel2 : public Motor {
     public:
         Dynamixel2();
         Dynamixel2(uint8_t axis_index, uint8_t address, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin);
-        virtual void   config_message();
-        virtual void   init();
-        virtual void   set_disable(bool disable);
-        virtual void   update();
-        //void           read_settings();
+
+        virtual void config_message();
+        virtual void init();
+        virtual void set_disable(bool disable);
+        virtual void update();
+
         static bool    uart_ready;
         static uint8_t ids[MAX_N_AXIS][2];
 
+        void set_homing_mode(uint8_t homing_mask, bool isHoming) override;
+
     protected:
         void set_location();
-        //void _get_calibration();
 
+        uint8_t _id;
         char    dxl_tx_message[50];  // outgoing to dynamixel
         uint8_t dxl_rx_message[50];  // received from dynamixel
 
-        bool            test();
-        uint16_t        dxl_get_response(uint16_t length);
+        bool     test();
+        uint16_t dxl_get_response(uint16_t length);
+        uint32_t dxl_read_position();
+        void     dxl_read(uint16_t address, uint16_t data_len);
+        void     dxl_write(uint16_t address, uint8_t paramCount, ...);
+        void     dxl_goal_position(int32_t position);  // set one motor
+        void     set_operating_mode(uint8_t mode);
+        void     LED_on(bool on);
+
+        static void     init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
         static void     dxl_finish_message(uint8_t id, char* msg, uint16_t msg_len);
         static uint16_t dxl_update_crc(uint16_t crc_accum, char* data_blk_ptr, uint8_t data_blk_size);
-        static void     dxl_bulk_goal_position();
-        uint32_t        dxl_read_position();
-        void            dxl_read(uint16_t address, uint16_t data_len);
-
-        void        dxl_write(uint16_t address, uint8_t paramCount, ...);
-        void        dxl_goal_position(int32_t position);
-        void        set_operating_mode(uint8_t mode);
-        void        LED_on(bool on);
-        static void init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
+        static void     dxl_bulk_goal_position();  // set all motorsd init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
 
         bool _disabled;
 
@@ -113,7 +137,5 @@ namespace Motors {
         uint8_t     _rx_pin;
         uint8_t     _rts_pin;
         uart_port_t _uart_num;
-
-        uint8_t _id;
     };
 }

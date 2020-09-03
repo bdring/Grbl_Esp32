@@ -90,7 +90,7 @@ void limits_go_home(uint8_t cycle_mask) {
     uint8_t n_cycle = (2 * n_homing_locate_cycle + 1);
     uint8_t step_pin[N_AXIS];
     float   target[N_AXIS];
-    float   max_travel = 0.0;
+    float   travel = 0.0;
     uint8_t idx;
     for (idx = 0; idx < N_AXIS; idx++) {
         // Initialize step pin masks
@@ -100,8 +100,8 @@ void limits_go_home(uint8_t cycle_mask) {
             step_pin[idx] = (get_step_pin_mask(X_AXIS) | get_step_pin_mask(Y_AXIS));
 #endif
         if (bit_istrue(cycle_mask, bit(idx))) {
-            // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.
-            max_travel = MAX(max_travel, (HOMING_AXIS_SEARCH_SCALAR)*axis_settings[idx]->max_travel->get());
+            // Set target based on travel setting. Ensure homing switches engaged with search scalar.
+            travel = MAX(travel, (HOMING_AXIS_SEARCH_SCALAR)*axis_settings[idx]->travel->get());
         }
     }
     // Set search mode with approach at seek rate to quickly engage the specified cycle_mask limit switches.
@@ -135,14 +135,14 @@ void limits_go_home(uint8_t cycle_mask) {
                 auto mask = homing_dir_mask->get();
                 if (bit_istrue(mask, bit(idx))) {
                     if (approach)
-                        target[idx] = -max_travel;
+                        target[idx] = -travel;
                     else
-                        target[idx] = max_travel;
+                        target[idx] = travel;
                 } else {
                     if (approach)
-                        target[idx] = max_travel;
+                        target[idx] = travel;
                     else
-                        target[idx] = -max_travel;
+                        target[idx] = -travel;
                 }
                 // Apply axislock to the step port pins active in this cycle.
                 axislock |= step_pin[idx];
@@ -217,10 +217,10 @@ void limits_go_home(uint8_t cycle_mask) {
         approach = !approach;
         // After first cycle, homing enters locating phase. Shorten search to pull-off distance.
         if (approach) {
-            max_travel  = homing_pulloff->get() * HOMING_AXIS_LOCATE_SCALAR;
+            travel      = homing_pulloff->get() * HOMING_AXIS_LOCATE_SCALAR;
             homing_rate = homing_feed_rate->get();
         } else {
-            max_travel  = homing_pulloff->get();
+            travel      = homing_pulloff->get();
             homing_rate = homing_seek_rate->get();
         }
     } while (n_cycle-- > 0);
@@ -237,24 +237,15 @@ void limits_go_home(uint8_t cycle_mask) {
     for (idx = 0; idx < N_AXIS; idx++) {
         auto steps = axis_settings[idx]->steps_per_mm->get();
         if (cycle_mask & bit(idx)) {
-#ifdef HOMING_FORCE_SET_ORIGIN
-            set_axis_position = 0;
-#else
-            auto travel = axis_settings[idx]->max_travel->get();
-            if (bit_istrue(mask, bit(idx))) {
-#    ifdef HOMING_FORCE_POSITIVE_SPACE
-                set_axis_position = 0;  //lround(settings.homing_pulloff*settings.steps_per_mm[idx]);
-#    else
-                set_axis_position = lround((-travel + pulloff) * steps);
-#    endif
+            float travel = axis_settings[idx]->travel->get();
+            float mpos   = axis_settings[idx]->home_mpos->get();
+
+            if (bit_istrue(homing_dir_mask->get(), bit(idx))) {
+                sys_position[idx] = (mpos + pulloff) * steps;
             } else {
-#    ifdef HOMING_FORCE_POSITIVE_SPACE
-                set_axis_position = lround((-travel - pulloff) * steps);
-#    else
-                set_axis_position = lround(-pulloff * steps);
-#    endif
+                sys_position[idx] = (mpos - pulloff) * steps;
             }
-#endif
+
 #ifdef COREXY
             if (idx == X_AXIS) {
                 int32_t off_axis_position = system_convert_corexy_to_y_axis_steps(sys_position);
@@ -267,7 +258,21 @@ void limits_go_home(uint8_t cycle_mask) {
             } else
                 sys_position[idx] = set_axis_position;
 #else
-            sys_position[idx] = set_axis_position;
+            //sys_position[idx] = set_axis_position;
+
+            float max_mpos, min_mpos;
+
+            if (bit_istrue(homing_dir_mask->get(), bit(idx))) {
+                min_mpos = mpos;
+                max_mpos = mpos + travel;
+            } else {
+                min_mpos = mpos - travel;
+                max_mpos = mpos;
+            }
+
+            grbl_msg_sendf(
+                CLIENT_SERIAL, MSG_LEVEL_INFO, "%d MPos %5.3f Min:%5.3f Max:%5.3f", idx, (sys_position[idx] / steps), min_mpos, max_mpos);
+
 #endif
         }
     }
