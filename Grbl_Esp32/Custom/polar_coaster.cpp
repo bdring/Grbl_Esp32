@@ -105,7 +105,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     // calculate the total X,Y axis move distance
     // Z axis is the same in both coord systems, so it is ignored
     dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
-    if (pl_data->condition & PL_COND_FLAG_RAPID_MOTION) {
+    if (pl_data->motion & PL_MOTION_RAPID_MOTION) {
         segment_count = 1;  // rapid G0 motion is not used to draw, so skip the segmentation
     } else {
         segment_count = ceil(dist / SEGMENT_LENGTH);  // determine the number of segments we need	... round up so there is at least 1

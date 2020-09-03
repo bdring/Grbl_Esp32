@@ -38,16 +38,10 @@
 #define PLAN_EMPTY_BLOCK false
 
 // Define planner data condition flags. Used to denote running conditions of a block.
-#define PL_COND_FLAG_RAPID_MOTION bit(0)
-#define PL_COND_FLAG_SYSTEM_MOTION bit(1)     // Single motion. Circumvents planner state. Used by home/park.
-#define PL_COND_FLAG_NO_FEED_OVERRIDE bit(2)  // Motion does not honor feed override.
-#define PL_COND_FLAG_INVERSE_TIME bit(3)      // Interprets feed rate value as inverse time when set.
-#define PL_COND_FLAG_SPINDLE_CW bit(4)
-#define PL_COND_FLAG_SPINDLE_CCW bit(5)
-#define PL_COND_FLAG_COOLANT_FLOOD bit(6)
-#define PL_COND_FLAG_COOLANT_MIST bit(7)
-#define PL_COND_MOTION_MASK (PL_COND_FLAG_RAPID_MOTION | PL_COND_FLAG_SYSTEM_MOTION | PL_COND_FLAG_NO_FEED_OVERRIDE)
-#define PL_COND_ACCESSORY_MASK (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW | PL_COND_FLAG_COOLANT_FLOOD | PL_COND_FLAG_COOLANT_MIST)
+#define PL_MOTION_RAPID_MOTION bit(0)
+#define PL_MOTION_SYSTEM_MOTION bit(1)     // Single motion. Circumvents planner state. Used by home/park.
+#define PL_MOTION_NO_FEED_OVERRIDE bit(2)  // Motion does not honor feed override.
+#define PL_MOTION_INVERSE_TIME bit(3)      // Interprets feed rate value as inverse time when set.
 
 // This struct stores a linear movement of a g-code block motion with its critical "nominal" values
 // are as specified in the source g-code.
@@ -59,7 +53,9 @@ typedef struct {
     uint8_t  direction_bits;    // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
 
     // Block condition data to ensure correct execution depending on states and overrides.
-    uint8_t condition;  // Block bitflag variable defining block run conditions. Copied from pl_line_data.
+    uint8_t      motion;   // Block bitflag motion conditions. Copied from pl_line_data.
+    SpindleState spindle;  // Spindle enable state
+    CoolantMode  coolant;  // Coolant state
 #ifdef USE_LINE_NUMBERS
     int32_t line_number;  // Block line number for real-time reporting. Copied from pl_line_data.
 #endif
@@ -85,9 +81,11 @@ typedef struct {
 
 // Planner data prototype. Must be used when passing new motions to the planner.
 typedef struct {
-    float    feed_rate;      // Desired feed rate for line motion. Value is ignored, if rapid motion.
-    uint32_t spindle_speed;  // Desired spindle speed through line motion.
-    uint8_t  condition;      // Bitflag variable to indicate planner conditions. See defines above.
+    float        feed_rate;      // Desired feed rate for line motion. Value is ignored, if rapid motion.
+    uint32_t     spindle_speed;  // Desired spindle speed through line motion.
+    uint8_t      motion;         // Bitflag variable to indicate motion conditions. See defines above.
+    SpindleState spindle;        // Spindle enable state
+    CoolantMode  coolant;        // Coolant state
 #ifdef USE_LINE_NUMBERS
     int32_t line_number;  // Desired line number to report when executing.
 #endif

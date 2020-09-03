@@ -34,15 +34,15 @@ void coolant_init() {
 }
 
 // Returns current coolant output state. Overrides may alter it from programmed state.
-uint8_t coolant_get_state() {
-    uint8_t cl_state = COOLANT_STATE_DISABLE;
+CoolantMode coolant_get_state() {
+    CoolantMode cl_state = CoolantMode::Disable;
 #ifdef COOLANT_FLOOD_PIN
 #    ifdef INVERT_COOLANT_FLOOD_PIN
     if (!digitalRead(COOLANT_FLOOD_PIN)) {
 #    else
     if (digitalRead(COOLANT_FLOOD_PIN)) {
 #    endif
-        cl_state |= COOLANT_STATE_FLOOD;
+        cl_state |= CoolantMode::Flood;
     }
 #endif
 #ifdef COOLANT_MIST_PIN
@@ -51,7 +51,7 @@ uint8_t coolant_get_state() {
 #    else
     if (digitalRead(COOLANT_MIST_PIN)) {
 #    endif
-        cl_state |= COOLANT_STATE_MIST;
+        cl_state |= CoolantMode::Mist;
     }
 #endif
     return (cl_state);
@@ -80,14 +80,14 @@ void coolant_stop() {
 // if enabled. Also sets a flag to report an update to a coolant state.
 // Called by coolant toggle override, parking restore, parking retract, sleep mode, g-code
 // parser program end, and g-code parser coolant_sync().
-void coolant_set_state(uint8_t mode) {
+void coolant_set_state(CoolantMode mode) {
     if (sys.abort)
         return;  // Block during abort.
-    if (mode == COOLANT_DISABLE)
+    if (mode == CoolantMode::Disable)
         coolant_stop();
     else {
 #ifdef COOLANT_FLOOD_PIN
-        if (mode & COOLANT_FLOOD_ENABLE) {
+        if (mode & CoolantMode::Enable) {
 #    ifdef INVERT_COOLANT_FLOOD_PIN
             digitalWrite(COOLANT_FLOOD_PIN, 0);
 #    else
@@ -96,7 +96,7 @@ void coolant_set_state(uint8_t mode) {
         }
 #endif
 #ifdef COOLANT_MIST_PIN
-        if (mode & COOLANT_MIST_ENABLE) {
+        if (mode & CoolantMode::Mist) {
 #    ifdef INVERT_COOLANT_MIST_PIN
             digitalWrite(COOLANT_MIST_PIN, 0);
 #    else
@@ -110,7 +110,7 @@ void coolant_set_state(uint8_t mode) {
 
 // G-code parser entry-point for setting coolant state. Forces a planner buffer sync and bails
 // if an abort or check-mode is active.
-void coolant_sync(uint8_t mode) {
+void coolant_sync(CoolantMode mode) {
     if (sys.state == STATE_CHECK_MODE)
         return;
     protocol_buffer_synchronize();  // Ensure coolant turns on when specified in program.

@@ -135,9 +135,9 @@ void mc_arc(float*            target,
         // Multiply inverse feed_rate to compensate for the fact that this movement is approximated
         // by a number of discrete segments. The inverse feed_rate should be correct for the sum of
         // all segments.
-        if (pl_data->condition & PL_COND_FLAG_INVERSE_TIME) {
+        if (pl_data->motion & PL_MOTION_INVERSE_TIME) {
             pl_data->feed_rate *= segments;
-            bit_false(pl_data->condition, PL_COND_FLAG_INVERSE_TIME);  // Force as feed absolute mode over arc segments.
+            bit_false(pl_data->motion, PL_MOTION_INVERSE_TIME);  // Force as feed absolute mode over arc segments.
         }
         float theta_per_segment  = angular_travel / segments;
         float linear_per_segment = (target[axis_linear] - position[axis_linear]) / segments;
@@ -277,7 +277,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     limits_disable();  // Disable hard limits pin change register for cycle duration
     // -------------------------------------------------------------------------------------
     // Perform homing routine. NOTE: Special motion case. Only system reset works.
-    n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;
+    n_homing_locate_cycle = NHomingLocateCycle;
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
     /*
     if (cycle_mask) { limits_go_home(cycle_mask); } // Perform homing cycle based on mask.
@@ -291,7 +291,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(cycle_mask);
             ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
+            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
             limits_go_home(cycle_mask);
             ganged_mode = SquaringMode::B;
             limits_go_home(cycle_mask);
@@ -309,7 +309,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(HOMING_CYCLE_0);
             ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
+            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
             limits_go_home(HOMING_CYCLE_0);
             ganged_mode = SquaringMode::B;
             limits_go_home(HOMING_CYCLE_0);
@@ -323,7 +323,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(HOMING_CYCLE_1);
             ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
+            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
             limits_go_home(HOMING_CYCLE_1);
             ganged_mode = SquaringMode::B;
             limits_go_home(HOMING_CYCLE_1);
@@ -338,7 +338,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(HOMING_CYCLE_2);
             ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;  // restore to default value
+            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
             limits_go_home(HOMING_CYCLE_2);
             ganged_mode = SquaringMode::B;
             limits_go_home(HOMING_CYCLE_2);
@@ -374,17 +374,22 @@ void mc_homing_cycle(uint8_t cycle_mask) {
 
 // Perform tool length probe cycle. Requires probe switch.
 // NOTE: Upon probe failure, the program will be stopped and placed into ALARM state.
-uint8_t mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_flags) {
+GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_flags) {
     // TODO: Need to update this cycle so it obeys a non-auto cycle start.
-    if (sys.state == STATE_CHECK_MODE)
-        return (GC_PROBE_CHECK_MODE);
+    if (sys.state == STATE_CHECK_MODE) {
+#ifdef SET_CHECK_MODE_PROBE_TO_START
+        return (GCUpdatePos::None);
+#else
+        return (GCUpdatePos::Target);
+#endif
+    }
     // Finish all queued commands and empty planner buffer before starting probe cycle.
     protocol_buffer_synchronize();
     if (sys.abort)
-        return (GC_PROBE_ABORT);  // Return if system reset has been issued.
+        return (GCUpdatePos::None);  // Return if system reset has been issued.
     // Initialize probing control variables
-    uint8_t is_probe_away = bit_istrue(parser_flags, GC_PARSER_PROBE_IS_AWAY);
-    uint8_t is_no_error   = bit_istrue(parser_flags, GC_PARSER_PROBE_IS_NO_ERROR);
+    uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
+    uint8_t is_no_error   = bit_istrue(parser_flags, GCParserProbeIsNoError);
     sys.probe_succeeded   = false;  // Re-initialize probe history before beginning cycle.
     probe_configure_invert_mask(is_probe_away);
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
@@ -393,7 +398,7 @@ uint8_t mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_
         system_set_exec_alarm(EXEC_ALARM_PROBE_FAIL_INITIAL);
         protocol_execute_realtime();
         probe_configure_invert_mask(false);  // Re-initialize invert mask before returning.
-        return (GC_PROBE_FAIL_INIT);         // Nothing else to do but bail.
+        return (GCUpdatePos::None);          // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
     mc_line(target, pl_data);
@@ -404,7 +409,7 @@ uint8_t mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_
     do {
         protocol_execute_realtime();
         if (sys.abort)
-            return (GC_PROBE_ABORT);  // Check for system abort
+            return (GCUpdatePos::None);  // Check for system abort
     } while (sys.state != STATE_IDLE);
     // Probing cycle complete!
     // Set state variables and error out, if the probe failed and cycle with error is enabled.
@@ -428,9 +433,9 @@ uint8_t mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_
     report_probe_parameters(CLIENT_ALL);
 #endif
     if (sys.probe_succeeded)
-        return (GC_PROBE_FOUND);  // Successful probe cycle.
+        return (GCUpdatePos::System);  // Successful probe cycle.
     else
-        return (GC_PROBE_FAIL_END);  // Failed to trigger probe within travel. With or without error.
+        return (GCUpdatePos::Target);  // Failed to trigger probe within travel. With or without error.
 }
 
 // Plans and executes the single special motion case for parking. Independent of main planner buffer.

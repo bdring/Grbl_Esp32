@@ -140,19 +140,19 @@ namespace Spindles {
                 pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
         }
 
-        set_enable_pin(_current_state != SPINDLE_DISABLE);
+        set_enable_pin(_current_state != SpindleState::Disable);
         set_output(pwm_value);
 
         return 0;
     }
 
-    void PWM::set_state(uint8_t state, uint32_t rpm) {
+    void PWM::set_state(SpindleState state, uint32_t rpm) {
         if (sys.abort)
             return;  // Block during abort.
 
         _current_state = state;
 
-        if (_current_state == SPINDLE_DISABLE) {  // Halt or set spindle direction and rpm.
+        if (_current_state == SpindleState::Disable) {  // Halt or set spindle direction and rpm.
             sys.spindle_speed = 0;
             stop();
             if (use_delays && (_current_state != state)) {
@@ -161,9 +161,9 @@ namespace Spindles {
                 //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SpinDown Done");
             }
         } else {
-            set_dir_pin(_current_state == SPINDLE_ENABLE_CW);
+            set_dir_pin(_current_state == SpindleState::Cw);
             set_rpm(rpm);
-            set_enable_pin(_current_state != SPINDLE_DISABLE);  // must be done after setting rpm for enable features to work
+            set_enable_pin(_current_state != SpindleState::Disable);  // must be done after setting rpm for enable features to work
             if (use_delays && (_current_state != state)) {
                 //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SpinUp Start %d", rpm);
                 mc_dwell(spindle_delay_spinup->get());
@@ -176,12 +176,12 @@ namespace Spindles {
         sys.report_ovr_counter = 0;  // Set to report change immediately
     }
 
-    uint8_t PWM::get_state() {
+    SpindleState PWM::get_state() {
         if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN)
-            return (SPINDLE_STATE_DISABLE);
+            return (SpindleState::Disable);
         if (_direction_pin != UNDEFINED_PIN)
-            return digitalRead(_direction_pin) ? SPINDLE_STATE_CW : SPINDLE_STATE_CCW;
-        return (SPINDLE_STATE_CW);
+            return digitalRead(_direction_pin) ? SpindleState::Cw : SpindleState::Ccw;
+        return (SpindleState::Cw);
     }
 
     void PWM::stop() {

@@ -23,7 +23,7 @@
 // Grbl versioning system
 
 #define GRBL_VERSION "1.3a"
-#define GRBL_VERSION_BUILD "20200828"
+#define GRBL_VERSION_BUILD "20200831"
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -45,10 +45,10 @@
 #include "WebUI/Commands.h"
 #include "System.h"
 
-#include "Planner.h"
-#include "CoolantControl.h"
-#include "Eeprom.h"
 #include "GCode.h"
+#include "Planner.h"
+#include "Eeprom.h"
+#include "CoolantControl.h"
 #include "Limits.h"
 #include "MotionControl.h"
 #include "Probe.h"

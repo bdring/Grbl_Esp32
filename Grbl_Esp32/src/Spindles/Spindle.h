@@ -26,10 +26,6 @@
 
 */
 
-#define SPINDLE_STATE_DISABLE 0   // Must be zero.
-#define SPINDLE_STATE_CW bit(4)   // matches PL_COND_FLAG_SPINDLE_CW
-#define SPINDLE_STATE_CCW bit(5)  // matches PL_COND_FLAG_SPINDLE_CCW
-
 #define SPINDLE_TYPE_NONE 0
 #define SPINDLE_TYPE_PWM 1
 #define SPINDLE_TYPE_RELAY 2
@@ -58,20 +54,20 @@ namespace Spindles {
         Spindle& operator=(const Spindle&) = delete;
         Spindle& operator=(Spindle&&) = delete;
 
-        virtual void     init()                = 0;  // not in constructor because this also gets called when $$ settings change
-        virtual uint32_t set_rpm(uint32_t rpm) = 0;
-        virtual void     set_state(uint8_t state, uint32_t rpm) = 0;
-        virtual uint8_t  get_state()                            = 0;
-        virtual void     stop()                                 = 0;
-        virtual void     config_message()                       = 0;
-        virtual bool     isRateAdjusted();
-        virtual void     sync(uint8_t state, uint32_t rpm);
+        virtual void         init()                = 0;  // not in constructor because this also gets called when $$ settings change
+        virtual uint32_t     set_rpm(uint32_t rpm) = 0;
+        virtual void         set_state(SpindleState state, uint32_t rpm) = 0;
+        virtual SpindleState get_state()                                 = 0;
+        virtual void         stop()                                      = 0;
+        virtual void         config_message()                            = 0;
+        virtual bool         isRateAdjusted();
+        virtual void         sync(SpindleState state, uint32_t rpm);
 
         virtual ~Spindle() {}
 
-        bool             is_reversable;
-        bool             use_delays;  // will SpinUp and SpinDown delays be used.
-        volatile uint8_t _current_state = SPINDLE_DISABLE;
+        bool                  is_reversable;
+        bool                  use_delays;  // will SpinUp and SpinDown delays be used.
+        volatile SpindleState _current_state = SpindleState::Disable;
 
         static void select();
     };

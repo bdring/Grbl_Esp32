@@ -36,8 +36,8 @@ namespace Spindles {
 
         void             init() override;
         virtual uint32_t set_rpm(uint32_t rpm) override;
-        void             set_state(uint8_t state, uint32_t rpm) override;
-        uint8_t          get_state() override;
+        void             set_state(SpindleState state, uint32_t rpm) override;
+        SpindleState     get_state() override;
         void             stop() override;
         void             config_message() override;
 
@@ -66,7 +66,7 @@ namespace Spindles {
         virtual void set_output(uint32_t duty);
         virtual void set_enable_pin(bool enable_pin);
 
-        void         get_pins_and_settings();
-        uint8_t      calc_pwm_precision(uint32_t freq);
+        void    get_pins_and_settings();
+        uint8_t calc_pwm_precision(uint32_t freq);
     };
 }
