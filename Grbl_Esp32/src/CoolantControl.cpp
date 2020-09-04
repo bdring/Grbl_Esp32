@@ -35,14 +35,14 @@ void coolant_init() {
 
 // Returns current coolant output state. Overrides may alter it from programmed state.
 CoolantMode coolant_get_state() {
-    CoolantMode cl_state = CoolantMode::Disable;
+    CoolantMode cl_state = {};
 #ifdef COOLANT_FLOOD_PIN
 #    ifdef INVERT_COOLANT_FLOOD_PIN
     if (!digitalRead(COOLANT_FLOOD_PIN)) {
 #    else
     if (digitalRead(COOLANT_FLOOD_PIN)) {
 #    endif
-        cl_state |= CoolantMode::Flood;
+        cl_state.Flood = 1;
     }
 #endif
 #ifdef COOLANT_MIST_PIN
@@ -51,7 +51,7 @@ CoolantMode coolant_get_state() {
 #    else
     if (digitalRead(COOLANT_MIST_PIN)) {
 #    endif
-        cl_state |= CoolantMode::Mist;
+        cl_state.Mist = 1;
     }
 #endif
     return cl_state;
@@ -84,11 +84,11 @@ void coolant_set_state(CoolantMode mode) {
     if (sys.abort) {
         return;  // Block during abort.
     }
-    if (mode == CoolantMode::Disable) {
+    if (mode.IsDisabled()) {
         coolant_stop();
     } else {
 #ifdef COOLANT_FLOOD_PIN
-        if (mode & CoolantMode::Enable) {
+        if (mode.Flood) {
 #    ifdef INVERT_COOLANT_FLOOD_PIN
             digitalWrite(COOLANT_FLOOD_PIN, 0);
 #    else
@@ -97,7 +97,7 @@ void coolant_set_state(CoolantMode mode) {
         }
 #endif
 #ifdef COOLANT_MIST_PIN
-        if (mode & CoolantMode::Mist) {
+        if (mode.Mist) {
 #    ifdef INVERT_COOLANT_MIST_PIN
             digitalWrite(COOLANT_MIST_PIN, 0);
 #    else

@@ -453,12 +453,18 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                     case 9:
                         switch (int_value) {
 #ifdef COOLANT_MIST_PIN
-                            case 7: gc_block.modal.coolant = CoolantMode::Mist; break;
+                            case 7:
+                                gc_block.modal.coolant      = {};
+                                gc_block.modal.coolant.Mist = 1;
+                                break;
 #endif
 #ifdef COOLANT_FLOOD_PIN
-                            case 8: gc_block.modal.coolant = CoolantMode::Flood; break;
+                            case 8:
+                                gc_block.modal.coolant       = {};
+                                gc_block.modal.coolant.Flood = 1;
+                                break;
 #endif
-                            case 9: gc_block.modal.coolant = CoolantMode::Disable; break;
+                            case 9: gc_block.modal.coolant = {}; break;
                         }
                         mg_word_bit = ModalGroup::MM8;
                         break;
@@ -1268,11 +1274,10 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         // NOTE: Coolant M-codes are modal. Only one command per line is allowed. But, multiple states
         // can exist at the same time, while coolant disable clears all states.
         coolant_sync(gc_block.modal.coolant);
-        if (gc_block.modal.coolant == CoolantMode::Disable) {
-            gc_state.modal.coolant = CoolantMode::Disable;
+        if (gc_block.modal.coolant.IsDisabled()) {
+            gc_state.modal.coolant = {};
         } else {
-            gc_state.modal.coolant =
-                static_cast<CoolantMode>(static_cast<uint8_t>(gc_state.modal.coolant) | static_cast<uint8_t>(gc_block.modal.coolant));
+            gc_state.modal.coolant = CoolantMode(gc_state.modal.coolant, gc_block.modal.coolant);
         }
     }
     pl_data->coolant = gc_state.modal.coolant;  // Set state for planner use.
@@ -1448,7 +1453,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
             // gc_state.modal.cutter_comp = CutterComp::Disable; // Not supported.
             gc_state.modal.coord_select = 0;  // G54
             gc_state.modal.spindle      = SpindleState::Disable;
-            gc_state.modal.coolant      = CoolantMode::Disable;
+            gc_state.modal.coolant      = {};
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
 #    ifdef DEACTIVATE_PARKING_UPON_INIT
             gc_state.modal.override = Override::Disabled;
@@ -1469,7 +1474,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                 }
                 system_flag_wco_change();  // Set to refresh immediately just in case something altered.
                 spindle->set_state(SpindleState::Disable, 0);
-                coolant_set_state(CoolantMode::Disable);
+                coolant_set_state(CoolantMode());
             }
             report_feedback_message(MESSAGE_PROGRAM_END);
 #ifdef USE_M30

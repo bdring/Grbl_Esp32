@@ -522,19 +522,19 @@ void protocol_exec_rt_system() {
                 CoolantMode coolant_state = gc_state.modal.coolant;
 #ifdef COOLANT_FLOOD_PIN
                 if (rt_exec & EXEC_COOLANT_FLOOD_OVR_TOGGLE) {
-                    if (coolant_state & CoolantMode::Flood) {
-                        bit_false(coolant_state, CoolantMode::Flood);
+                    if (coolant_state.Flood) {
+                        coolant_state.Flood = 0;
                     } else {
-                        coolant_state |= CoolantMode::Flood;
+                        coolant_state.Flood = 1;
                     }
                 }
 #endif
 #ifdef COOLANT_MIST_PIN
                 if (rt_exec & EXEC_COOLANT_MIST_OVR_TOGGLE) {
-                    if (coolant_state & CoolantMode::Mist) {
-                        bit_false(coolant_state, CoolantMode::Mist);
+                    if (coolant_state.Mist) {
+                        coolant_state.Mist = 0;
                     } else {
-                        coolant_state |= CoolantMode::Mist;
+                        coolant_state.Mist = 1;
                     }
                 }
 #endif
@@ -608,7 +608,7 @@ static void protocol_exec_rt_suspend() {
                     sys.spindle_stop_ovr = SPINDLE_STOP_OVR_DISABLED;
 #ifndef PARKING_ENABLE
                     spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                    coolant_set_state(CoolantMode::Disable);       // De-energize
+                    coolant_set_state(CoolantMode());              // De-energize
 #else
                     // Get current position and store restore location and spindle retract waypoint.
                     system_convert_array_steps_to_mpos(parking_target, sys_position);
@@ -633,11 +633,11 @@ static void protocol_exec_rt_suspend() {
                         }
                         // NOTE: Clear accessory state after retract and after an aborted restore motion.
                         pl_data->spindle       = SpindleState::Disable;
-                        pl_data->coolant       = CoolantMode::Disable;
+                        pl_data->coolant       = CoolantMode();
                         pl_data->motion        = (PL_MOTION_SYSTEM_MOTION | PL_MOTION_NO_FEED_OVERRIDE);
                         pl_data->spindle_speed = 0.0;
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                        coolant_set_state(CoolantMode::Disable);       // De-energize
+                        coolant_set_state(CoolantMode());              // De-energize
                                                                        // Execute fast parking retract motion to parking target location.
                         if (parking_target[PARKING_AXIS] < PARKING_TARGET) {
                             parking_target[PARKING_AXIS] = PARKING_TARGET;
@@ -648,7 +648,7 @@ static void protocol_exec_rt_suspend() {
                         // Parking motion not possible. Just disable the spindle and coolant.
                         // NOTE: Laser mode does not start a parking motion to ensure the laser stops immediately.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                        coolant_set_state(CoolantMode::Disable);       // De-energize
+                        coolant_set_state(CoolantMode());              // De-energize
                     }
 #endif
                     sys.suspend &= ~(SUSPEND_RESTART_RETRACT);
@@ -658,7 +658,7 @@ static void protocol_exec_rt_suspend() {
                         report_feedback_message(MESSAGE_SLEEP_MODE);
                         // Spindle and coolant should already be stopped, but do it again just to be sure.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                        coolant_set_state(CoolantMode::Disable);       // De-energize
+                        coolant_set_state(CoolantMode());              // De-energize
                         st_go_idle();                                  // Disable steppers
                         while (!(sys.abort)) {
                             protocol_exec_rt_system();  // Do nothing until reset.
@@ -698,7 +698,7 @@ static void protocol_exec_rt_suspend() {
                                 }
                             }
                         }
-                        if (gc_state.modal.coolant != CoolantMode::Disable) {
+                        if (!gc_state.modal.coolant.IsDisabled()) {
                             // Block if safety door re-opened during prior restore actions.
                             if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.

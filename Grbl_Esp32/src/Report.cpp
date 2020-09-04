@@ -417,15 +417,15 @@ void report_gcode_modes(uint8_t client) {
     strcat(modes_rpt, mode);
 
     //report_util_gcode_modes_M();  // optional M7 and M8 should have been dealt with by here
-    if (gc_state.modal.coolant == CoolantMode::Disable) {
+    if (gc_state.modal.coolant.IsDisabled()) {
         mode = " M9";
     } else {
-        uint8_t coolant = static_cast<uint8_t>(gc_state.modal.coolant);
+        auto coolant = gc_state.modal.coolant;
         // Note: Multiple coolant states may be active at the same time.
-        if (coolant & static_cast<uint8_t>(CoolantMode::Mist)) {
+        if (coolant.Mist) {
             mode = " M7";
         }
-        if (coolant & static_cast<uint8_t>(CoolantMode::Flood)) {
+        if (coolant.Flood) {
             mode = " M8";
         }
     }
@@ -737,7 +737,7 @@ void report_realtime_status(uint8_t client) {
         strcat(status, temp);
         SpindleState sp_state      = spindle->get_state();
         CoolantMode  coolant_state = coolant_get_state();
-        if (sp_state != SpindleState::Disable || coolant_state != CoolantMode::Disable) {
+        if (sp_state != SpindleState::Disable || !coolant_state.IsDisabled()) {
             strcat(status, "|A:");
             switch (sp_state) {
                 case SpindleState::Disable: break;
@@ -745,12 +745,12 @@ void report_realtime_status(uint8_t client) {
                 case SpindleState::Ccw: strcat(status, "C"); break;
             }
 
-            uint8_t coolant = static_cast<uint8_t>(coolant_state);
-            if (coolant & static_cast<uint8_t>(CoolantMode::Flood)) {
+            auto coolant = coolant_state;
+            if (coolant.Flood) {
                 strcat(status, "F");
             }
 #    ifdef COOLANT_MIST_PIN  // TODO Deal with M8 - Flood
-            if (coolant & static_cast<uint8_t>(CoolantMode::Mist)) {
+            if (coolant.Mist) {
                 strcat(status, "M");
             }
 #    endif
