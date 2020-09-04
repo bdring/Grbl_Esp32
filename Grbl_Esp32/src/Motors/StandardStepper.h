@@ -13,6 +13,7 @@ namespace Motors {
         virtual void set_direction_pins(uint8_t onMask);
         void         init_step_dir_pins();
         virtual void set_disable(bool disable);
+        
         uint8_t      step_pin;
 
     protected:

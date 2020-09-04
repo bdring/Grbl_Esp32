@@ -44,6 +44,8 @@ namespace Motors {
         config_message();
     }
 
+    //void StandardStepper::read_settings() {}
+
     void StandardStepper::init_step_dir_pins() {
         // TODO Step pin, but RMT complicates things
         _invert_step_pin = bit_istrue(step_invert_mask->get(), bit(axis_index));

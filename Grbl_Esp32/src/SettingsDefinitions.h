@@ -61,3 +61,7 @@ extern IntSetting* trinamic_toff;
 extern IntSetting* trinamic_hend;
 extern IntSetting* trinamic_hstrt;
 extern IntSetting* trinamic_tcoolthrs;
+extern IntSetting* trinamic_thigh;
+extern IntSetting* trinamic_tbl;
+extern FlagSetting* trinamic_en_pwm_mode;
+extern FlagSetting*  trinamic_pwm_auto_scale;

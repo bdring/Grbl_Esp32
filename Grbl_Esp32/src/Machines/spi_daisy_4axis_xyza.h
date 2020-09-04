@@ -35,7 +35,7 @@
 
 #define TRINAMIC_DAISY_CHAIN
 
-#define TRINAMIC_RUN_MODE           TRINAMIC_MODE_STEALTHCHOP
+#define TRINAMIC_RUN_MODE           TRINAMIC_MODE_COOLSTEP
 
 #define TRINAMIC_TOFF_COOLSTEP 4
 #define TRINAMIC_HEND_COOLSTEP 5
@@ -45,27 +45,27 @@
 // The hardware enable pin is tied to ground
 #define USE_TRINAMIC_ENABLE
 
-#define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
-#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X_TRINAMIC_DRIVER       5160        // Which Driver Type?
+#define X_RSENSE                TMC5160_RSENSE_DEFAULT
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_14
 #define X_CS_PIN                GPIO_NUM_17  // Daisy Chain, all share same CS pin
 
-#define Y_TRINAMIC_DRIVER       2130        // Which Driver Type?
-#define Y_RSENSE                TMC2130_RSENSE_DEFAULT
+#define Y_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER        // Which Driver Type?
+#define Y_RSENSE                X_RSENSE
 #define Y_STEP_PIN              GPIO_NUM_27
 #define Y_DIRECTION_PIN         GPIO_NUM_26
 #define Y_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
-#define Z_TRINAMIC_DRIVER       2130        // Which Driver Type?
-#define Z_RSENSE                TMC2130_RSENSE_DEFAULT
+#define Z_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER        // Which Driver Type?
+#define Z_RSENSE                X_RSENSE
 #define Z_STEP_PIN              GPIO_NUM_15
 #define Z_DIRECTION_PIN         GPIO_NUM_2
 #define Z_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 
-#define A_TRINAMIC_DRIVER       2130        // Which Driver Type?
-#define A_RSENSE                TMC2130_RSENSE_DEFAULT
+#define A_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER        // Which Driver Type?
+#define A_RSENSE                X_RSENSE
 #define A_STEP_PIN              GPIO_NUM_33
 #define A_DIRECTION_PIN         GPIO_NUM_32
 #define A_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin

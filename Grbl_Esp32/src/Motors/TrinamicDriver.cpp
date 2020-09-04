@@ -44,6 +44,8 @@ namespace Motors {
         _homing_mode = TRINAMIC_HOMING_MODE;
         _homing_mask = 0;  // no axes homing
 
+        has_errors   = false;
+
         set_axis_name();
 
         if (_driver_part_number == 2130)
@@ -155,6 +157,7 @@ namespace Motors {
     void TrinamicDriver::read_settings() {
         if (has_errors)
             return;
+
         uint16_t run_i_ma = (uint16_t)(axis_settings[axis_index]->run_current->get() * 1000.0);
         float    hold_i_percent;
 
@@ -169,6 +172,13 @@ namespace Motors {
 
         tmcstepper->microsteps(axis_settings[axis_index]->microsteps->get());
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
+        tmcstepper->en_pwm_mode(trinamic_en_pwm_mode->get());
+        tmcstepper->pwm_autoscale(trinamic_pwm_auto_scale->get());
+        tmcstepper->TCOOLTHRS(trinamic_tcoolthrs->get());  // when to turn on coolstep
+        tmcstepper->THIGH(trinamic_thigh->get());
+        tmcstepper->toff(trinamic_toff->get());
+        tmcstepper->hend(trinamic_hend->get());
+        tmcstepper->hstrt(trinamic_hstrt->get());
     }
 
     void TrinamicDriver::set_homing_mode(uint8_t homing_mask, bool isHoming) {
@@ -182,6 +192,8 @@ namespace Motors {
     Coolstep mode, so it will need to switch to Coolstep when homing
 */
     void TrinamicDriver::set_mode(bool isHoming) {
+
+        
         if (has_errors)
             return;
         if (isHoming)
@@ -202,10 +214,10 @@ namespace Motors {
                 break;
             case TRINAMIC_MODE_COOLSTEP:
                 //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_COOLSTEP");
-                tmcstepper->en_pwm_mode(false);
-                tmcstepper->pwm_autoscale(false);
+                tmcstepper->en_pwm_mode(trinamic_en_pwm_mode->get());
+                tmcstepper->pwm_autoscale(trinamic_pwm_auto_scale->get());
                 tmcstepper->TCOOLTHRS(trinamic_tcoolthrs->get());  // when to turn on coolstep
-                tmcstepper->THIGH(NORMAL_THIGH);
+                tmcstepper->THIGH(trinamic_thigh->get());
                 tmcstepper->toff(trinamic_toff->get());
                 tmcstepper->hend(trinamic_hend->get());
                 tmcstepper->hstrt(trinamic_hstrt->get());                             
@@ -228,6 +240,9 @@ namespace Motors {
     This is the stallguard tuning info. It is call debug, so it could be generic across all classes.
 */
     void TrinamicDriver::debug_message() {
+        error_check();
+        return;
+
         if (has_errors)
             return;
         uint32_t tstep = tmcstepper->TSTEP();
@@ -244,6 +259,44 @@ namespace Motors {
                        tmcstepper->sg_result(),
                        feedrate,
                        axis_settings[axis_index]->stallguard->get());
+    }
+
+    void TrinamicDriver::error_check()    {
+        
+
+        TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
+        status.sr = tmcstepper->DRV_STATUS();
+
+        
+
+        bool err = false;
+
+        if (status.s2ga || status.s2gb) {
+            grbl_msg_sendf(
+                CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Motor Short Coil a:%s b:%s", _axis_name, status.s2ga ? "Y" : "N", status.s2gb ? "Y" : "N");
+            err = true;
+        }
+        // check for over temp or pre-warning
+        if (status.ot || status.otpw) {
+            grbl_msg_sendf(
+                CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Driver Temp Warning:%s Fault:%s", _axis_name, status.otpw ? "Y" : "N", status.ot ? "Y" : "N");
+            err = true;
+
+        }
+
+        if (status.ola || status.olb) {
+            grbl_msg_sendf(
+                CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Motor open load a:%s b:%s", _axis_name, status.ola ? "Y" : "N", status.olb ? "Y" : "N");
+            err = true;
+        }
+
+        return;
+
+        if (!err) {
+            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Motor OK status %x", status);
+        }
+
+
     }
 
     // calculate a tstep from a rate

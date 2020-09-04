@@ -53,10 +53,14 @@ IntSetting*   spindle_pwm_bit_precision;
 
 EnumSetting* spindle_type;
 
-IntSetting* trinamic_toff;
-IntSetting* trinamic_hend;
-IntSetting* trinamic_hstrt;
-IntSetting* trinamic_tcoolthrs;
+IntSetting*  trinamic_toff;
+IntSetting*  trinamic_hend;
+IntSetting*  trinamic_hstrt;
+IntSetting*  trinamic_tcoolthrs;
+IntSetting*  trinamic_thigh;
+IntSetting*  trinamic_tbl;
+FlagSetting* trinamic_en_pwm_mode;
+FlagSetting* trinamic_pwm_auto_scale;
 
 enum_opt_t spindleTypes = {
     // clang-format off
@@ -165,6 +169,11 @@ static bool checkStartupLine(char* value) {
 }
 
 static bool checkStallguard(char* value) {
+    motorSettingChanged = true;
+    return true;
+}
+
+static bool trinamic_change(char* value) {
     motorSettingChanged = true;
     return true;
 }
@@ -298,10 +307,10 @@ void make_settings() {
     rpm_min = new FloatSetting(GRBL, WG, "31", "GCode/MinS", DEFAULT_SPINDLE_RPM_MIN, 0, 100000);
     rpm_max = new FloatSetting(GRBL, WG, "30", "GCode/MaxS", DEFAULT_SPINDLE_RPM_MAX, 0, 100000);
 
-    homing_pulloff   = new FloatSetting(GRBL, WG, "27", "Homing/Pulloff", DEFAULT_HOMING_PULLOFF, 0, 1000);
-    homing_debounce  = new FloatSetting(GRBL, WG, "26", "Homing/Debounce", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
-    homing_seek_rate = new FloatSetting(GRBL, WG, "25", "Homing/Seek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
-    homing_feed_rate = new FloatSetting(GRBL, WG, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
+    homing_pulloff      = new FloatSetting(GRBL, WG, "27", "Homing/Pulloff", DEFAULT_HOMING_PULLOFF, 0, 1000);
+    homing_debounce     = new FloatSetting(GRBL, WG, "26", "Homing/Debounce", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
+    homing_seek_rate    = new FloatSetting(GRBL, WG, "25", "Homing/Seek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
+    homing_feed_rate    = new FloatSetting(GRBL, WG, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
     homing_squared_axes = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Squared", DEFAULT_HOMING_SQUARED_AXES);
 
     // TODO Settings - need to call st_generate_step_invert_masks()
@@ -329,11 +338,15 @@ void make_settings() {
     spindle_type           = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", SPINDLE_TYPE, &spindleTypes);
     stallguard_debug_mask  = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
 
+    trinamic_toff           = new IntSetting(GRBL, WG, NULL, "Trinamic/toff", 4, 0, 255, trinamic_change);
+    trinamic_hend           = new IntSetting(GRBL, WG, NULL, "Trinamic/hend", 5, 0, 255, trinamic_change);
+    trinamic_hstrt          = new IntSetting(GRBL, WG, NULL, "Trinamic/hstrt", 0, 0, 255, trinamic_change);
+    trinamic_tcoolthrs      = new IntSetting(GRBL, WG, NULL, "Trinamic/tcoolthrs", 0, 1000, 0xFFFFF, trinamic_change);
+    trinamic_thigh          = new IntSetting(GRBL, WG, NULL, "Trinamic/thigh", 0, 1000, 0xFFFFF, trinamic_change);
+    trinamic_tbl            = new IntSetting(GRBL, WG, NULL, "Trinamic/tbl", 1, 0, 3, trinamic_change);
+    trinamic_en_pwm_mode    = new FlagSetting(GRBL, WG, NULL, "Trinamic/EnPwmMode", 1, trinamic_change);
+    trinamic_pwm_auto_scale = new FlagSetting(GRBL, WG, NULL, "Trinamic/PwmAutoScale", 1, trinamic_change);
 
-    trinamic_toff = new IntSetting(GRBL, WG, NULL, "Trinamic/toff", 4, 0, 255);
-    trinamic_hend = new IntSetting(GRBL, WG, NULL, "Trinamic/hend", 5, 0, 255);
-    trinamic_hstrt = new IntSetting(GRBL, WG, NULL, "Trinamic/hstrt", 0, 0, 255);
-    trinamic_tcoolthrs = new IntSetting(GRBL, WG, NULL, "Trinamic/tcoolthrs", 0, 1000, 0xFFFFF);
     //trinamic_s2vs = new IntSetting(GRBL, WG, NULL, "Trinamic/s2vs", 0, 1000, 0xFFFFF);
     //trinamic_s2g = new IntSetting(GRBL, WG, NULL, "Trinamic/s2g", 0, 1000, 0xFFFFF);
 }

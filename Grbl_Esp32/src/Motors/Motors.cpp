@@ -341,8 +341,7 @@ void motors_set_disable(bool disable) {
 }
 
 void motors_read_settings() {
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Read Settings");
-    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
+    for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
             myMotor[axis][gang_index]->read_settings();
     }

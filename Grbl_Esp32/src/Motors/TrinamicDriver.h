@@ -85,6 +85,7 @@ namespace Motors {
         void trinamic_test_response();
         void trinamic_stepper_enable(bool enable);
         void debug_message();
+        void error_check();
         void set_homing_mode(uint8_t homing_mask, bool ishoming);
         void set_disable(bool disable);
         bool test();
