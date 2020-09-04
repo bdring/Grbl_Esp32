@@ -204,11 +204,11 @@ namespace Motors {
                 //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_COOLSTEP");
                 tmcstepper->en_pwm_mode(false);
                 tmcstepper->pwm_autoscale(false);
-                tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS);  // when to turn on coolstep
+                tmcstepper->TCOOLTHRS(trinamic_tcoolthrs->get());  // when to turn on coolstep
                 tmcstepper->THIGH(NORMAL_THIGH);
-                tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
-                tmcstepper->hend(TRINAMIC_TOFF_COOLSTEP);
-                tmcstepper->hstrt(TRINAMIC_HSTRT_COOLSTEP);
+                tmcstepper->toff(trinamic_toff->get());
+                tmcstepper->hend(trinamic_hend->get());
+                tmcstepper->hstrt(trinamic_hstrt->get());                             
                 break;
             case TRINAMIC_MODE_STALLGUARD:
                 //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_STALLGUARD");

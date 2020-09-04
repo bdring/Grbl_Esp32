@@ -56,3 +56,8 @@ extern IntSetting*   spindle_pwm_bit_precision;
 extern EnumSetting* spindle_type;
 
 extern AxisMaskSetting* stallguard_debug_mask;
+
+extern IntSetting* trinamic_toff;
+extern IntSetting* trinamic_hend;
+extern IntSetting* trinamic_hstrt;
+extern IntSetting* trinamic_tcoolthrs;

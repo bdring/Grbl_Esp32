@@ -53,6 +53,11 @@ IntSetting*   spindle_pwm_bit_precision;
 
 EnumSetting* spindle_type;
 
+IntSetting* trinamic_toff;
+IntSetting* trinamic_hend;
+IntSetting* trinamic_hstrt;
+IntSetting* trinamic_tcoolthrs;
+
 enum_opt_t spindleTypes = {
     // clang-format off
     { "NONE", SPINDLE_TYPE_NONE },
@@ -323,4 +328,12 @@ void make_settings() {
     pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_type           = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", SPINDLE_TYPE, &spindleTypes);
     stallguard_debug_mask  = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
+
+
+    trinamic_toff = new IntSetting(GRBL, WG, NULL, "Trinamic/toff", 4, 0, 255);
+    trinamic_hend = new IntSetting(GRBL, WG, NULL, "Trinamic/hend", 5, 0, 255);
+    trinamic_hstrt = new IntSetting(GRBL, WG, NULL, "Trinamic/hstrt", 0, 0, 255);
+    trinamic_tcoolthrs = new IntSetting(GRBL, WG, NULL, "Trinamic/tcoolthrs", 0, 1000, 0xFFFFF);
+    //trinamic_s2vs = new IntSetting(GRBL, WG, NULL, "Trinamic/s2vs", 0, 1000, 0xFFFFF);
+    //trinamic_s2g = new IntSetting(GRBL, WG, NULL, "Trinamic/s2g", 0, 1000, 0xFFFFF);
 }
