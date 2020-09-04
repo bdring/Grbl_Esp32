@@ -11,6 +11,8 @@
 
     It also allows only one call to setup the UART
 
+    mPos is set as positive space from 0 to travel
+
     TODO: 
         Use a get_next_uart funtion
         Allow each axis to set a dxl count range
@@ -182,28 +184,16 @@ namespace Motors {
     void Dynamixel2::set_location() {}
 
     // Homing justs sets the new system position and the servo will move there
-    void Dynamixel2::set_homing_mode(uint8_t homing_mask, bool isHoming) {
-        float home_pos = 0.0;
+    void Dynamixel2::set_homing_mode(uint8_t homing_mask, bool isHoming) {        
 
-/*
-        if (homing_force_positive->get()) {
-            _position_min = -axis_settings[axis_index]->travel->get();
-            _position_max = 0;
-        } else {
-            _position_min = 0;
-            _position_max = axis_settings[axis_index]->travel->get();
-        }
-*/
-        if (homing_dir_mask->get() & bit(axis_index))
-            home_pos = _position_min;
-        else
-            home_pos = _position_max;
-
-        sys_position[axis_index] = home_pos * axis_settings[axis_index]->steps_per_mm->get();  // convert to steps
+        if (bit_istrue(homing_mask, bit(axis_index))) {
+            sys_position[axis_index] =
+                axis_settings[axis_index]->home_mpos->get() * axis_settings[axis_index]->steps_per_mm->get();  // convert to steps
+        }       
 
         set_location();  // force the PWM to update now
 
-        vTaskDelay(DYNAMIXEL_FULL_MOVE_TIME);  // give time to move
+        vTaskDelay(DYNAMIXEL_FULL_MOVE_TIME);  // give time to move TODO Does this work?
     }
 
     void Dynamixel2::dxl_goal_position(int32_t position) {
@@ -229,21 +219,19 @@ namespace Motors {
         if (data_len == 15) {
             dxl_position = dxl_rx_message[9] | (dxl_rx_message[10] << 8) | (dxl_rx_message[11] << 16) | (dxl_rx_message[12] << 24);
 
-            // determine the range of motion
-            /*
-            if (homing_force_positive->get()) {
-                mpos_range_min = -axis_settings[axis_index]->travel->get() * axis_settings[axis_index]->steps_per_mm->get();
-                mpos_range_max = 0;
-            } else {
-                mpos_range_min = 0;
-                mpos_range_max = axis_settings[axis_index]->travel->get() * axis_settings[axis_index]->steps_per_mm->get();
-            }
-*/
-            // determine the range of the servo .... these may be a setting one day.
+            int32_t min_mpos = 0;
+            int32_t max_mpos = axis_settings[axis_index]->travel->get() * axis_settings[axis_index]->steps_per_mm->get();
+            
+
+            // determine the range of the servo
             dxl_count_min = DXL_COUNT_MIN;
             dxl_count_max = DXL_COUNT_MAX;
 
-            sys_position[axis_index] = map(dxl_position, dxl_count_min, dxl_count_max, mpos_range_min, mpos_range_max);
+            // apply the invert
+            if (bit_istrue(dir_invert_mask->get(), bit(axis_index)))  // normal direction
+                swap(dxl_count_min, dxl_count_max);
+
+            sys_position[axis_index] = map(dxl_position, dxl_count_min, dxl_count_max, min_mpos, max_mpos);
 
             return dxl_position;
         } else {
@@ -351,17 +339,11 @@ namespace Motors {
 
                     //determine the location of the axis
                     mpos = system_convert_axis_steps_to_mpos(sys_position, axis);  // get the axis machine position in mm
+             
 
-/*
-                    // determine the range of motion
-                    if (homing_force_positive->get()) {
-                        position_min = -axis_settings[axis]->travel->get();
-                        position_max = 0;
-                    }else {
-                        position_min = 0;
-                        position_max = axis_settings[axis]->travel->get();
-                    }
-  */                      
+                    float min_mpos = 0;
+                    float max_mpos = axis_settings[axis]->travel->get();
+         
                     // determine the range of the servo
                     dxl_count_min = DXL_COUNT_MIN;
                     dxl_count_max = DXL_COUNT_MAX;
@@ -371,7 +353,7 @@ namespace Motors {
                         swap(dxl_count_min, dxl_count_max);
 
                     // map the mm range to the servo range
-                    position = (uint32_t)mapConstrain(mpos, position_min, position_max, dxl_count_min, dxl_count_max);
+                    position = (uint32_t)mapConstrain(mpos, min_mpos, max_mpos, dxl_count_min, dxl_count_max);
 
                     tx_message[++msg_index] = current_id;                     // ID of the servo
                     tx_message[++msg_index] = position & 0xFF;                // data

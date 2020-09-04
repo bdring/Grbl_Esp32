@@ -24,17 +24,7 @@
 #define DYNAMIXEL_BUF_SIZE 127
 #define DYNAMIXEL_BAUD_RATE 1000000
 
-#ifndef DYNAMIXEL_TXD
-#    define DYNAMIXEL_TXD UNDEFINED_PIN
-#endif
 
-#ifndef DYNAMIXEL_RXD
-#    define DYNAMIXEL_RXD UNDEFINED_PIN
-#endif
-
-#ifndef DYNAMIXEL_RTS
-#    define DYNAMIXEL_RTS UNDEFINED_PIN
-#endif
 
 #    define DXL_RESPONSE_WAIT_TICKS 20  // how long to wait for a response
 

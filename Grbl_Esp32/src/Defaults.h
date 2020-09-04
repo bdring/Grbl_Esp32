@@ -526,3 +526,15 @@
 #ifndef SERVO_TIMER_INTERVAL
 #    define SERVO_TIMER_INTERVAL 50.0  // Hz This is the update inveral in milliseconds
 #endif
+
+#ifndef DYNAMIXEL_TXD
+#    define DYNAMIXEL_TXD UNDEFINED_PIN
+#endif
+
+#ifndef DYNAMIXEL_RXD
+#    define DYNAMIXEL_RXD UNDEFINED_PIN
+#endif
+
+#ifndef DYNAMIXEL_RTS
+#    define DYNAMIXEL_RTS UNDEFINED_PIN
+#endif
