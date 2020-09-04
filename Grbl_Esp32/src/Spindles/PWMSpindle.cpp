@@ -86,8 +86,9 @@ namespace Spindles {
         _pwm_precision = calc_pwm_precision(_pwm_freq);  // detewrmine the best precision
         _pwm_period    = (1 << _pwm_precision);
 
-        if (spindle_pwm_min_value->get() > spindle_pwm_min_value->get())
+        if (spindle_pwm_min_value->get() > spindle_pwm_min_value->get()) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Spindle min pwm is greater than max. Check $35 and $36");
+        }
 
         // pre-caculate some PWM count values
         _pwm_off_value = (_pwm_period * spindle_pwm_off_value->get() / 100.0);
@@ -112,8 +113,9 @@ namespace Spindles {
     uint32_t PWM::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
-        if (_output_pin == UNDEFINED_PIN)
+        if (_output_pin == UNDEFINED_PIN) {
             return rpm;
+        }
 
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "set_rpm(%d)", rpm);
 
@@ -121,10 +123,11 @@ namespace Spindles {
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
 
         // apply limits
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
+        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
             rpm = _max_rpm;
-        else if (rpm != 0 && rpm <= _min_rpm)
+        } else if (rpm != 0 && rpm <= _min_rpm) {
             rpm = _min_rpm;
+        }
 
         sys.spindle_speed = rpm;
 
@@ -134,10 +137,11 @@ namespace Spindles {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: Linear fit not implemented yet.");
 
         } else {
-            if (rpm == 0)
+            if (rpm == 0) {
                 pwm_value = _pwm_off_value;
-            else
+            } else {
                 pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
+            }
         }
 
         set_enable_pin(_current_state != SpindleState::Disable);
@@ -147,8 +151,9 @@ namespace Spindles {
     }
 
     void PWM::set_state(SpindleState state, uint32_t rpm) {
-        if (sys.abort)
+        if (sys.abort) {
             return;  // Block during abort.
+        }
 
         _current_state = state;
 
@@ -177,10 +182,12 @@ namespace Spindles {
     }
 
     SpindleState PWM::get_state() {
-        if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN)
+        if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN) {
             return (SpindleState::Disable);
-        if (_direction_pin != UNDEFINED_PIN)
+        }
+        if (_direction_pin != UNDEFINED_PIN) {
             return digitalRead(_direction_pin) ? SpindleState::Cw : SpindleState::Ccw;
+        }
         return (SpindleState::Cw);
     }
 
@@ -203,17 +210,20 @@ namespace Spindles {
     }
 
     void PWM::set_output(uint32_t duty) {
-        if (_output_pin == UNDEFINED_PIN)
+        if (_output_pin == UNDEFINED_PIN) {
             return;
+        }
 
         // to prevent excessive calls to ledcWrite, make sure duty hass changed
-        if (duty == _current_pwm_duty)
+        if (duty == _current_pwm_duty) {
             return;
+        }
 
         _current_pwm_duty = duty;
 
-        if (_invert_pwm)
+        if (_invert_pwm) {
             duty = (1 << _pwm_precision) - duty;
+        }
 
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "set_output(%d)", duty);
 
@@ -221,14 +231,17 @@ namespace Spindles {
     }
 
     void PWM::set_enable_pin(bool enable) {
-        if (_enable_pin == UNDEFINED_PIN)
+        if (_enable_pin == UNDEFINED_PIN) {
             return;
+        }
 
-        if (_off_with_zero_speed && sys.spindle_speed == 0)
+        if (_off_with_zero_speed && sys.spindle_speed == 0) {
             enable = false;
+        }
 
-        if (spindle_enable_invert->get())
+        if (spindle_enable_invert->get()) {
             enable = !enable;
+        }
 
         digitalWrite(_enable_pin, enable);
     }
@@ -245,8 +258,9 @@ namespace Spindles {
         uint8_t precision = 0;
 
         // increase the precision (bits) until it exceeds allow by frequency the max or is 16
-        while ((1 << precision) < (uint32_t)(80000000 / freq) && precision <= 16)
+        while ((1 << precision) < (uint32_t)(80000000 / freq) && precision <= 16) {
             precision++;
+        }
 
         return precision - 1;
     }

@@ -52,27 +52,32 @@ namespace Motors {
         uint8_t _phase[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // temporary phase values...all start as off
         uint8_t phase_max;
 
-        if (!(step_mask & bit(axis_index)))
+        if (!(step_mask & bit(axis_index))) {
             return;  // a step is not required on this interrupt
+        }
 
-        if (!_enabled)
+        if (!_enabled) {
             return;  // don't do anything, phase is not changed or lost
+        }
 
-        if (_half_step)
+        if (_half_step) {
             phase_max = 7;
-        else
+        } else {
             phase_max = 3;
+        }
 
         if (dir_mask & bit(axis_index)) {  // count up
-            if (_current_phase == phase_max)
+            if (_current_phase == phase_max) {
                 _current_phase = 0;
-            else
+            } else {
                 _current_phase++;
+            }
         } else {  // count down
-            if (_current_phase == 0)
+            if (_current_phase == 0) {
                 _current_phase = phase_max;
-            else
+            } else {
                 _current_phase--;
+            }
         }
         /*
 			8 Step : A – AB – B – BC – C – CD – D – DA

@@ -46,10 +46,11 @@ void settings_restore(uint8_t restore_flag) {
         for (Setting* s = Setting::List; s; s = s->next()) {
             if (!s->getDescription()) {
                 const char* name = s->getName();
-                if (restore_startup)  // all settings get restored
+                if (restore_startup) {  // all settings get restored
                     s->setDefault();
-                else if ((strcmp(name, "Line0") != 0) && (strcmp(name, "Line1") != 0))  // non startup settings get restored
+                } else if ((strcmp(name, "Line0") != 0) && (strcmp(name, "Line1") != 0)) {  // non startup settings get restored
                     s->setDefault();
+                }
             }
         }
     }
@@ -57,8 +58,9 @@ void settings_restore(uint8_t restore_flag) {
         uint8_t idx;
         float   coord_data[N_AXIS];
         memset(&coord_data, 0, sizeof(coord_data));
-        for (idx = 0; idx <= SETTING_INDEX_NCOORD; idx++)
+        for (idx = 0; idx <= SETTING_INDEX_NCOORD; idx++) {
             settings_write_coord_data(idx, coord_data);
+        }
     }
     if (restore_flag & SETTINGS_RESTORE_BUILD_INFO) {
         EEPROM.write(EEPROM_ADDR_BUILD_INFO, 0);
@@ -96,10 +98,11 @@ void settings_init() {
 // it early is probably prudent.
 uint8_t jog_set(uint8_t* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     // Execute only if in IDLE or JOG states.
-    if (sys.state != STATE_IDLE && sys.state != STATE_JOG)
+    if (sys.state != STATE_IDLE && sys.state != STATE_JOG) {
         return STATUS_IDLE_ERROR;
+    }
 
-        // restore the $J= prefix because gc_execute_line() expects it
+    // restore the $J= prefix because gc_execute_line() expects it
 #define MAXLINE 128
     char line[MAXLINE];
     strcpy(line, "$J=");
@@ -183,8 +186,9 @@ err_t toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
         mc_reset();
         report_feedback_message(MESSAGE_DISABLED);
     } else {
-        if (sys.state)
+        if (sys.state) {
             return (STATUS_IDLE_ERROR);  // Requires no alarm mode.
+        }
         sys.state = STATE_CHECK_MODE;
         report_feedback_message(MESSAGE_ENABLED);
     }
@@ -193,8 +197,9 @@ err_t toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
 err_t disable_alarm_lock(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (sys.state == STATE_ALARM) {
         // Block if safety door is ajar.
-        if (system_check_safety_door_ajar())
+        if (system_check_safety_door_ajar()) {
             return (STATUS_CHECK_DOOR);
+        }
         report_feedback_message(MESSAGE_ALARM_UNLOCK);
         sys.state = STATE_IDLE;
         // Don't run startup script. Prevents stored moves in startup from causing accidents.
@@ -206,11 +211,13 @@ err_t report_ngc(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
     return STATUS_OK;
 }
 err_t home(int cycle) {
-    if (homing_enable->get() == false)
+    if (homing_enable->get() == false) {
         return (STATUS_SETTING_DISABLED);
-    if (system_check_safety_door_ajar())
+    }
+    if (system_check_safety_door_ajar()) {
         return (STATUS_CHECK_DOOR);  // Block if safety door is ajar.
-    sys.state = STATE_HOMING;        // Set system state variable
+    }
+    sys.state = STATE_HOMING;  // Set system state variable
 #ifdef USE_I2S_STEPS
     stepper_id_t save_stepper = current_stepper;
     if (save_stepper == ST_I2S_STREAM) {

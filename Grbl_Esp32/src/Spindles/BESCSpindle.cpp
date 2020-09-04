@@ -96,17 +96,19 @@ namespace Spindles {
     uint32_t BESC::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
-        if (_output_pin == UNDEFINED_PIN)
+        if (_output_pin == UNDEFINED_PIN) {
             return rpm;
+        }
 
         // apply speed overrides
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (percent)
 
         // apply limits limits
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
+        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
             rpm = _max_rpm;
-        else if (rpm != 0 && rpm <= _min_rpm)
+        } else if (rpm != 0 && rpm <= _min_rpm) {
             rpm = _min_rpm;
+        }
         sys.spindle_speed = rpm;
 
         // determine the pwm value

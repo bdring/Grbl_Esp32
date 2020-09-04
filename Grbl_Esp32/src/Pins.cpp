@@ -34,8 +34,9 @@ void IRAM_ATTR pinMode(uint8_t pin, uint8_t mode) {
     if (pin == UNDEFINED_PIN) {
         return;
     }
-    if (pin < I2S_OUT_PIN_BASE)
+    if (pin < I2S_OUT_PIN_BASE) {
         __pinMode(pin, mode);
+    }
     // I2S out pins cannot be configured, hence there
     // is nothing to do here for them.
 }

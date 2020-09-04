@@ -54,8 +54,9 @@ EspClass esp;
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char* text) {
-    if (client == CLIENT_INPUT)
+    if (client == CLIENT_INPUT) {
         return;
+    }
 #ifdef ENABLE_BLUETOOTH
     if (WebUI::SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
         WebUI::SerialBT.print(text);
@@ -63,12 +64,14 @@ void grbl_send(uint8_t client, const char* text) {
     }
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_OUT)
-    if (client == CLIENT_WEBUI || client == CLIENT_ALL)
+    if (client == CLIENT_WEBUI || client == CLIENT_ALL) {
         WebUI::Serial2Socket.write((const uint8_t*)text, strlen(text));
+    }
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
-    if (client == CLIENT_TELNET || client == CLIENT_ALL)
+    if (client == CLIENT_TELNET || client == CLIENT_ALL) {
         WebUI::telnet_server.write((const uint8_t*)text, strlen(text));
+    }
 #endif
     if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
         Serial.print(text);
@@ -97,8 +100,9 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_send(client, temp);
     va_end(arg);
-    if (len > 64)
+    if (len > 64) {
         delete[] temp;
+    }
 }
 // Use to send [MSG:xxxx] Type messages. The level allows messages to be easily suppressed
 void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
@@ -118,8 +122,9 @@ void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
     va_end(copy);
     if (len >= sizeof(loc_buf)) {
         temp = new char[len + 1];
-        if (temp == NULL)
+        if (temp == NULL) {
             return;
+        }
     }
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_sendf(client, "[MSG:%s]\r\n", temp);
@@ -165,8 +170,9 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
     char    axisVal[20];
     float   unit_conv = 1.0;  // unit conversion multiplier..default is mm
     rpt[0]            = '\0';
-    if (report_inches->get())
+    if (report_inches->get()) {
         unit_conv = 1.0 / MM_PER_INCH;
+    }
     for (idx = 0; idx < N_AXIS; idx++) {
         if (report_inches->get()) {
             sprintf(axisVal, "%4.4f", axis_value[idx] * unit_conv);  // Report inches to 4 decimals
@@ -326,10 +332,11 @@ void report_ngc_parameters(uint8_t client) {
     strcat(ngc_rpt, temp);
     strcat(ngc_rpt, "]\r\n");
     strcat(ngc_rpt, "[TLO:");  // Print tool length offset value
-    if (report_inches->get())
+    if (report_inches->get()) {
         sprintf(temp, "%4.3f]\r\n", gc_state.tool_length_offset * INCH_PER_MM);
-    else
+    } else {
         sprintf(temp, "%4.3f]\r\n", gc_state.tool_length_offset);
+    }
     strcat(ngc_rpt, temp);
     grbl_send(client, ngc_rpt);
     report_probe_parameters(client);
@@ -425,8 +432,9 @@ void report_gcode_modes(uint8_t client) {
     strcat(modes_rpt, mode);
 
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    if (sys.override_ctrl == OVERRIDE_PARKING_MOTION)
+    if (sys.override_ctrl == OVERRIDE_PARKING_MOTION) {
         strcat(modes_rpt, " M56");
+    }
 #endif
 
     sprintf(temp, " T%d", gc_state.tool);
@@ -548,10 +556,11 @@ void report_realtime_status(uint8_t client) {
         case STATE_HOLD:
             if (!(sys.suspend & SUSPEND_JOG_CANCEL)) {
                 strcat(status, "Hold:");
-                if (sys.suspend & SUSPEND_HOLD_COMPLETE)
+                if (sys.suspend & SUSPEND_HOLD_COMPLETE) {
                     strcat(status, "0");  // Ready to resume
-                else
+                } else {
                     strcat(status, "1");  // Actively holding
+                }
                 break;
             }  // Continues to print jog state during jog cancel.
         case STATE_JOG: strcat(status, "Jog"); break;
@@ -566,8 +575,9 @@ void report_realtime_status(uint8_t client) {
                 if (sys.suspend & SUSPEND_RETRACT_COMPLETE) {
                     if (sys.suspend & SUSPEND_SAFETY_DOOR_AJAR) {
                         strcat(status, "1");  // Door ajar
-                    } else
+                    } else {
                         strcat(status, "0");
+                    }
                     // Door closed and ready to resume
                 } else {
                     strcat(status, "2");  // Retracting
@@ -581,16 +591,18 @@ void report_realtime_status(uint8_t client) {
         for (idx = 0; idx < N_AXIS; idx++) {
             // Apply work coordinate offsets and tool length offset to current position.
             wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];
-            if (idx == TOOL_LENGTH_OFFSET_AXIS)
+            if (idx == TOOL_LENGTH_OFFSET_AXIS) {
                 wco[idx] += gc_state.tool_length_offset;
-            if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE))
+            }
+            if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
                 print_position[idx] -= wco[idx];
+            }
         }
     }
     // Report machine position
-    if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE))
+    if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
         strcat(status, "|MPos:");
-    else {
+    } else {
 #ifdef USE_FWD_KINEMATIC
         forward_kinematics(print_position);
 #endif
@@ -603,8 +615,9 @@ void report_realtime_status(uint8_t client) {
     if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_BUFFER_STATE)) {
         int bufsize = DEFAULTBUFFERSIZE;
 #    if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
-        if (client == CLIENT_TELNET)
+        if (client == CLIENT_TELNET) {
             bufsize = WebUI::telnet_server.get_rx_buffer_available();
+        }
 #    endif  //ENABLE_WIFI && ENABLE_TELNET
 #    if defined(ENABLE_BLUETOOTH)
         if (client == CLIENT_BT) {
@@ -612,8 +625,9 @@ void report_realtime_status(uint8_t client) {
             bufsize = 512 - WebUI::SerialBT.available();
         }
 #    endif  //ENABLE_BLUETOOTH
-        if (client == CLIENT_SERIAL)
+        if (client == CLIENT_SERIAL) {
             bufsize = serial_get_rx_buffer_available(CLIENT_SERIAL);
+        }
         sprintf(temp, "|Bf:%d,%d", plan_get_block_buffer_available(), bufsize);
         strcat(status, temp);
     }
@@ -633,10 +647,11 @@ void report_realtime_status(uint8_t client) {
 #endif
     // Report realtime feed speed
 #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
-    if (report_inches->get())
+    if (report_inches->get()) {
         sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate() / MM_PER_INCH, sys.spindle_speed);
-    else
+    } else {
         sprintf(temp, "|FS:%.0f,%d", st_get_realtime_rate(), sys.spindle_speed);
+    }
     strcat(status, temp);
 #endif
 #ifdef REPORT_FIELD_PIN_STATE
@@ -645,65 +660,79 @@ void report_realtime_status(uint8_t client) {
     uint8_t prb_pin_state  = probe_get_state();
     if (lim_pin_state | ctrl_pin_state | prb_pin_state) {
         strcat(status, "|Pn:");
-        if (prb_pin_state)
+        if (prb_pin_state) {
             strcat(status, "P");
+        }
         if (lim_pin_state) {
-            if (bit_istrue(lim_pin_state, bit(X_AXIS)))
+            if (bit_istrue(lim_pin_state, bit(X_AXIS))) {
                 strcat(status, "X");
-            if (bit_istrue(lim_pin_state, bit(Y_AXIS)))
+            }
+            if (bit_istrue(lim_pin_state, bit(Y_AXIS))) {
                 strcat(status, "Y");
-            if (bit_istrue(lim_pin_state, bit(Z_AXIS)))
+            }
+            if (bit_istrue(lim_pin_state, bit(Z_AXIS))) {
                 strcat(status, "Z");
+            }
 #    if (N_AXIS > A_AXIS)
-            if (bit_istrue(lim_pin_state, bit(A_AXIS)))
+            if (bit_istrue(lim_pin_state, bit(A_AXIS))) {
                 strcat(status, "A");
+            }
 #    endif
 #    if (N_AXIS > B_AXIS)
-            if (bit_istrue(lim_pin_state, bit(B_AXIS)))
+            if (bit_istrue(lim_pin_state, bit(B_AXIS))) {
                 strcat(status, "B");
+            }
 #    endif
 #    if (N_AXIS > C_AXIS)
-            if (bit_istrue(lim_pin_state, bit(C_AXIS)))
+            if (bit_istrue(lim_pin_state, bit(C_AXIS))) {
                 strcat(status, "C");
+            }
 #    endif
         }
         if (ctrl_pin_state) {
 #    ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_SAFETY_DOOR))
+            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_SAFETY_DOOR)) {
                 strcat(status, "D");
+            }
 #    endif
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_RESET))
+            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_RESET)) {
                 strcat(status, "R");
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_FEED_HOLD))
+            }
+            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_FEED_HOLD)) {
                 strcat(status, "H");
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_CYCLE_START))
+            }
+            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_CYCLE_START)) {
                 strcat(status, "S");
+            }
         }
     }
 #endif
 #ifdef REPORT_FIELD_WORK_COORD_OFFSET
-    if (sys.report_wco_counter > 0)
+    if (sys.report_wco_counter > 0) {
         sys.report_wco_counter--;
-    else {
+    } else {
         if (sys.state & (STATE_HOMING | STATE_CYCLE | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) {
             sys.report_wco_counter = (REPORT_WCO_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
-        } else
+        } else {
             sys.report_wco_counter = (REPORT_WCO_REFRESH_IDLE_COUNT - 1);
-        if (sys.report_ovr_counter == 0)
+        }
+        if (sys.report_ovr_counter == 0) {
             sys.report_ovr_counter = 1;  // Set override on next report.
+        }
         strcat(status, "|WCO:");
         report_util_axis_values(wco, temp);
         strcat(status, temp);
     }
 #endif
 #ifdef REPORT_FIELD_OVERRIDES
-    if (sys.report_ovr_counter > 0)
+    if (sys.report_ovr_counter > 0) {
         sys.report_ovr_counter--;
-    else {
+    } else {
         if (sys.state & (STATE_HOMING | STATE_CYCLE | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) {
             sys.report_ovr_counter = (REPORT_OVR_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
-        } else
+        } else {
             sys.report_ovr_counter = (REPORT_OVR_REFRESH_IDLE_COUNT - 1);
+        }
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
         SpindleState sp_state      = spindle->get_state();
@@ -717,11 +746,13 @@ void report_realtime_status(uint8_t client) {
             }
 
             uint8_t coolant = static_cast<uint8_t>(coolant_state);
-            if (coolant & static_cast<uint8_t>(CoolantMode::Flood))
+            if (coolant & static_cast<uint8_t>(CoolantMode::Flood)) {
                 strcat(status, "F");
+            }
 #    ifdef COOLANT_MIST_PIN  // TODO Deal with M8 - Flood
-            if (coolant & static_cast<uint8_t>(CoolantMode::Mist))
+            if (coolant & static_cast<uint8_t>(CoolantMode::Mist)) {
                 strcat(status, "M");
+            }
 #    endif
         }
     }

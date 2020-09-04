@@ -387,8 +387,9 @@ namespace WebUI {
             }
             //start services
             wifi_services.begin();
-        } else
+        } else {
             WiFi.mode(WIFI_OFF);
+        }
     }
 
     /**

@@ -46,15 +46,15 @@ namespace Motors {
 
         set_axis_name();
 
-        if (_driver_part_number == 2130)
+        if (_driver_part_number == 2130) {
             tmcstepper = new TMC2130Stepper(cs_pin, _r_sense, spi_index);
-        else if (_driver_part_number == 5160)
+        } else if (_driver_part_number == 5160) {
             tmcstepper = new TMC5160Stepper(cs_pin, _r_sense, spi_index);
-        else {
+        } else {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis Unsupported Trinamic part number TMC%d", _axis_name, _driver_part_number);
             has_errors = true;  // as opposed to NullMotors, this is a real motor
             return;
-        }       
+        }
 
         init_step_dir_pins();  // from StandardStepper
 
@@ -62,8 +62,9 @@ namespace Motors {
         pinMode(cs_pin, OUTPUT);
 
         // use slower speed if I2S
-        if (cs_pin >= I2S_OUT_PIN_BASE)
+        if (cs_pin >= I2S_OUT_PIN_BASE) {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
+        }
 
         config_message();
 
@@ -71,8 +72,9 @@ namespace Motors {
     }
 
     void TrinamicDriver::init() {
-        if (has_errors)
+        if (has_errors) {
             return;
+        }
 
         SPI.begin();  // this will get called for each motor, but does not seem to hurt anything
 
@@ -82,7 +84,6 @@ namespace Motors {
         set_mode(false);
 
         _homing_mask = 0;
-        
     }
 
     /*
@@ -102,8 +103,9 @@ namespace Motors {
     }
 
     bool TrinamicDriver::test() {
-        if (has_errors)
+        if (has_errors) {
             return false;
+        }
         switch (tmcstepper->test_connection()) {
             case 1:
                 grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection", _axis_name);
@@ -139,8 +141,9 @@ namespace Motors {
                     err = true;
                 }
 
-                if (err)
+                if (err) {
                     return false;
+                }
 
                 grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed", _axis_name);
                 return true;
@@ -154,17 +157,19 @@ namespace Motors {
     float hold (as a percentage of run)
 */
     void TrinamicDriver::read_settings() {
-        if (has_errors)
+        if (has_errors) {
             return;
+        }
         uint16_t run_i_ma = (uint16_t)(axis_settings[axis_index]->run_current->get() * 1000.0);
         float    hold_i_percent;
 
-        if (axis_settings[axis_index]->run_current->get() == 0)
+        if (axis_settings[axis_index]->run_current->get() == 0) {
             hold_i_percent = 0;
-        else {
+        } else {
             hold_i_percent = axis_settings[axis_index]->hold_current->get() / axis_settings[axis_index]->run_current->get();
-            if (hold_i_percent > 1.0)
+            if (hold_i_percent > 1.0) {
                 hold_i_percent = 1.0;
+            }
         }
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Current run %d hold %f", _axis_name, run_i_ma, hold_i_percent);
 
@@ -183,15 +188,18 @@ namespace Motors {
     Coolstep mode, so it will need to switch to Coolstep when homing
 */
     void TrinamicDriver::set_mode(bool isHoming) {
-        if (has_errors)
+        if (has_errors) {
             return;
-        if (isHoming)
+        }
+        if (isHoming) {
             _mode = TRINAMIC_HOMING_MODE;
-        else
+        } else {
             _mode = TRINAMIC_RUN_MODE;
+        }
 
-        if (_lastMode == _mode)
+        if (_lastMode == _mode) {
             return;
+        }
         _lastMode = _mode;
 
         switch (_mode) {
@@ -226,12 +234,14 @@ namespace Motors {
     This is the stallguard tuning info. It is call debug, so it could be generic across all classes.
 */
     void TrinamicDriver::debug_message() {
-        if (has_errors)
+        if (has_errors) {
             return;
+        }
         uint32_t tstep = tmcstepper->TSTEP();
 
-        if (tstep == 0xFFFFF || tstep < 1)  // if axis is not moving return
+        if (tstep == 0xFFFFF || tstep < 1) {  // if axis is not moving return
             return;
+        }
         float feedrate = st_get_realtime_rate();  //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
         grbl_msg_sendf(CLIENT_SERIAL,
@@ -259,19 +269,21 @@ namespace Motors {
     // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,
     // but that can be hardwired that way.
     void TrinamicDriver::set_disable(bool disable) {
-        if (has_errors)
-            return;      
+        if (has_errors) {
+            return;
+        }
 
         digitalWrite(disable_pin, disable);
 
 #ifdef USE_TRINAMIC_ENABLE
-        if (disable)
+        if (disable) {
             tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
-        else {
-            if (_mode == TRINAMIC_MODE_STEALTHCHOP)
+        } else {
+            if (_mode == TRINAMIC_MODE_STEALTHCHOP) {
                 tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
-            else
+            } else {
                 tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
+            }
         }
 #endif
         // the pin based enable could be added here.
