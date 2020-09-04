@@ -49,5 +49,6 @@ void    motors_set_disable(bool disable);
 void    motors_set_direction_pins(uint8_t onMask);
 void    motors_step(uint8_t step_mask, uint8_t dir_mask);
 void    servoUpdateTask(void* pvParameters);
+bool    motor_can_home(uint8_t index);
 
 extern bool motor_class_steps;  // true if at least one motor class is handling steps

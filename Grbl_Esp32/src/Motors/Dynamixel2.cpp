@@ -61,6 +61,7 @@ namespace Motors {
 
     void Dynamixel2::init() {
         is_active = true;  // as opposed to NullMotors, this is a real motor
+        _can_home = false;  // this axis cannot be conventionally homed
 
         init_uart(_id, axis_index, dual_axis_index);
 
@@ -78,8 +79,15 @@ namespace Motors {
     }
 
     void Dynamixel2::config_message() {
-        grbl_msg_sendf(
-            CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis Dynamixel Servo ID:%d Min:%5.3fmm Max:%5.3fmm", _axis_name, _id, _position_min, _position_max);
+        grbl_msg_sendf(CLIENT_SERIAL,
+                       MSG_LEVEL_INFO,
+                       "%s Axis Dynamixel Servo ID:%d Min:%5.3fmm Max:%5.3fmm Home:%5.3fmm",
+                       _axis_name,
+                       _id,
+                       0.0,
+                       axis_settings[axis_index]->travel->get(),
+                       axis_settings[axis_index]->home_mpos->get());
+
     }
 
     bool Dynamixel2::test() {
@@ -183,7 +191,8 @@ namespace Motors {
 
     void Dynamixel2::set_location() {}
 
-    // Homing justs sets the new system position and the servo will move there
+    // This motor will not do a standard home to a limit switch (maybe future)
+    // If it is in the homing mask it will a quick move to $<axis>/Home/Mpos
     void Dynamixel2::set_homing_mode(uint8_t homing_mask, bool isHoming) {        
 
         if (bit_istrue(homing_mask, bit(axis_index))) {

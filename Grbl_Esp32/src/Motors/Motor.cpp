@@ -46,6 +46,7 @@ namespace Motors {
     void Motor::step(uint8_t step_mask, uint8_t dir_mask) {}
     bool Motor::test() { return true; };  // true = OK
     void Motor::update() {}
+    bool Motor::can_home() { return _can_home; };
 
     void Motor::set_axis_name() { sprintf(_axis_name, "%c%s", report_get_axis_letter(axis_index), dual_axis_index ? "2" : " "); }
 
