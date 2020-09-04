@@ -341,7 +341,7 @@ void make_settings() {
     trinamic_toff           = new IntSetting(GRBL, WG, NULL, "Trinamic/toff", 4, 0, 255, trinamic_change);
     trinamic_hend           = new IntSetting(GRBL, WG, NULL, "Trinamic/hend", 5, 0, 255, trinamic_change);
     trinamic_hstrt          = new IntSetting(GRBL, WG, NULL, "Trinamic/hstrt", 0, 0, 255, trinamic_change);
-    trinamic_tcoolthrs      = new IntSetting(GRBL, WG, NULL, "Trinamic/tcoolthrs", 0, 1000, 0xFFFFF, trinamic_change);
+    trinamic_tcoolthrs      = new IntSetting(GRBL, WG, NULL, "Trinamic/tcoolthrs", 0, 0, 0xFFFFF, trinamic_change);
     trinamic_thigh          = new IntSetting(GRBL, WG, NULL, "Trinamic/thigh", 0, 1000, 0xFFFFF, trinamic_change);
     trinamic_tbl            = new IntSetting(GRBL, WG, NULL, "Trinamic/tbl", 1, 0, 3, trinamic_change);
     trinamic_en_pwm_mode    = new FlagSetting(GRBL, WG, NULL, "Trinamic/EnPwmMode", 1, trinamic_change);

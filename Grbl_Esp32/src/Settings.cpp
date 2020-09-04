@@ -42,7 +42,7 @@ Setting::Setting(
 
 err_t Setting::check(char* s) {
     if (sys.state != STATE_IDLE && !(sys.state & STATE_ALARM)) {
-        return STATUS_IDLE_ERROR;
+        //return STATUS_IDLE_ERROR;
     }
     if (!_checker) {
         return STATUS_OK;
