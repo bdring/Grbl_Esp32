@@ -57,7 +57,7 @@ static uint8_t plan_prev_block_index(uint8_t block_index) {
         block_index = BLOCK_BUFFER_SIZE;
     }
     block_index--;
-    return (block_index);
+    return block_index;
 }
 
 /*                            PLANNER SPEED DEFINITION
@@ -220,31 +220,31 @@ void plan_discard_current_block() {
 
 // Returns address of planner buffer block used by system motions. Called by segment generator.
 plan_block_t* plan_get_system_motion_block() {
-    return (&block_buffer[block_buffer_head]);
+    return &block_buffer[block_buffer_head];
 }
 
 // Returns address of first planner block, if available. Called by various main program functions.
 plan_block_t* plan_get_current_block() {
     if (block_buffer_head == block_buffer_tail) {
-        return (NULL);  // Buffer empty
+        return NULL;  // Buffer empty
     }
-    return (&block_buffer[block_buffer_tail]);
+    return &block_buffer[block_buffer_tail];
 }
 
 float plan_get_exec_block_exit_speed_sqr() {
     uint8_t block_index = plan_next_block_index(block_buffer_tail);
     if (block_index == block_buffer_head) {
-        return (0.0);
+        return 0.0f;
     }
-    return (block_buffer[block_index].entry_speed_sqr);
+    return block_buffer[block_index].entry_speed_sqr;
 }
 
 // Returns the availability status of the block ring buffer. True, if full.
 uint8_t plan_check_full_buffer() {
     if (block_buffer_tail == next_buffer_head) {
-        return (true);
+        return true;
     }
-    return (false);
+    return false;
 }
 
 // Computes and returns block nominal speed based on running condition and override values.
@@ -262,9 +262,9 @@ float plan_compute_profile_nominal_speed(plan_block_t* block) {
         }
     }
     if (nominal_speed > MINIMUM_FEED_RATE) {
-        return (nominal_speed);
+        return nominal_speed;
     }
-    return (MINIMUM_FEED_RATE);
+    return MINIMUM_FEED_RATE;
 }
 
 // Computes and updates the max entry speed (sqr) of the block, based on the minimum of the junction's
@@ -365,7 +365,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     }
     // Bail if this is a zero-length block. Highly unlikely to occur.
     if (block->step_event_count == 0) {
-        return (PLAN_EMPTY_BLOCK);
+        return PLAN_EMPTY_BLOCK;
     }
 
     // Calculate the unit vector of the line move and the block maximum feed rate and acceleration scaled
@@ -450,7 +450,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
         // Finish up by recalculating the plan with the new block.
         planner_recalculate();
     }
-    return (PLAN_OK);
+    return PLAN_OK;
 }
 
 // Reset the planner position vectors. Called by the system abort/initialization routine.
@@ -476,9 +476,9 @@ void plan_sync_position() {
 // Returns the number of available blocks are in the planner buffer.
 uint8_t plan_get_block_buffer_available() {
     if (block_buffer_head >= block_buffer_tail) {
-        return ((BLOCK_BUFFER_SIZE - 1) - (block_buffer_head - block_buffer_tail));
+        return (BLOCK_BUFFER_SIZE - 1) - (block_buffer_head - block_buffer_tail);
     } else {
-        return ((block_buffer_tail - block_buffer_head - 1));
+        return block_buffer_tail - block_buffer_head - 1;
     }
 }
 
@@ -486,9 +486,9 @@ uint8_t plan_get_block_buffer_available() {
 // NOTE: Deprecated. Not used unless classic status reports are enabled in config.h
 uint8_t plan_get_block_buffer_count() {
     if (block_buffer_head >= block_buffer_tail) {
-        return (block_buffer_head - block_buffer_tail);
+        return block_buffer_head - block_buffer_tail;
     } else {
-        return (BLOCK_BUFFER_SIZE - (block_buffer_tail - block_buffer_head));
+        return BLOCK_BUFFER_SIZE - (block_buffer_tail - block_buffer_head);
     }
 }
 

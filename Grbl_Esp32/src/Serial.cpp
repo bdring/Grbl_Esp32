@@ -194,7 +194,7 @@ bool any_client_has_data() {
 
 // checks to see if a character is a realtime character
 bool is_realtime_command(uint8_t data) {
-    return (data == CMD_RESET || data == CMD_STATUS_REPORT || data == CMD_CYCLE_START || data == CMD_FEED_HOLD || data > 0x7F);
+    return data == CMD_RESET || data == CMD_STATUS_REPORT || data == CMD_CYCLE_START || data == CMD_FEED_HOLD || data > 0x7F;
 }
 
 // Act upon a realtime character

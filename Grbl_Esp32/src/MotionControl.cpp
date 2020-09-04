@@ -389,15 +389,15 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     // TODO: Need to update this cycle so it obeys a non-auto cycle start.
     if (sys.state == STATE_CHECK_MODE) {
 #ifdef SET_CHECK_MODE_PROBE_TO_START
-        return (GCUpdatePos::None);
+        return GCUpdatePos::None;
 #else
-        return (GCUpdatePos::Target);
+        return GCUpdatePos::Target;
 #endif
     }
     // Finish all queued commands and empty planner buffer before starting probe cycle.
     protocol_buffer_synchronize();
     if (sys.abort) {
-        return (GCUpdatePos::None);  // Return if system reset has been issued.
+        return GCUpdatePos::None;  // Return if system reset has been issued.
     }
     // Initialize probing control variables
     uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
@@ -410,7 +410,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         system_set_exec_alarm(EXEC_ALARM_PROBE_FAIL_INITIAL);
         protocol_execute_realtime();
         probe_configure_invert_mask(false);  // Re-initialize invert mask before returning.
-        return (GCUpdatePos::None);          // Nothing else to do but bail.
+        return GCUpdatePos::None;            // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
     mc_line(target, pl_data);
@@ -421,7 +421,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     do {
         protocol_execute_realtime();
         if (sys.abort) {
-            return (GCUpdatePos::None);  // Check for system abort
+            return GCUpdatePos::None;  // Check for system abort
         }
     } while (sys.state != STATE_IDLE);
     // Probing cycle complete!
@@ -447,9 +447,9 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     report_probe_parameters(CLIENT_ALL);
 #endif
     if (sys.probe_succeeded) {
-        return (GCUpdatePos::System);  // Successful probe cycle.
+        return GCUpdatePos::System;  // Successful probe cycle.
     } else {
-        return (GCUpdatePos::Target);  // Failed to trigger probe within travel. With or without error.
+        return GCUpdatePos::Target;  // Failed to trigger probe within travel. With or without error.
     }
 }
 

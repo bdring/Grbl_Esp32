@@ -783,9 +783,9 @@ void st_parking_restore_buffer() {
 static uint8_t st_next_block_index(uint8_t block_index) {
     block_index++;
     if (block_index == (SEGMENT_BUFFER_SIZE - 1)) {
-        return (0);
+        return 0;
     } else {
-        return (block_index);
+        return block_index;
     }
 }
 

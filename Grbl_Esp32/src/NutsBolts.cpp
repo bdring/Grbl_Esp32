@@ -133,7 +133,7 @@ void delay_sec(float seconds, uint8_t mode) {
 
 // Simple hypotenuse computation function.
 float hypot_f(float x, float y) {
-    return (sqrt(x * x + y * y));
+    return sqrt(x * x + y * y);
 }
 
 float convert_delta_vector_to_unit_vector(float* vector) {
@@ -149,7 +149,7 @@ float convert_delta_vector_to_unit_vector(float* vector) {
     for (idx = 0; idx < N_AXIS; idx++) {
         vector[idx] *= inv_magnitude;
     }
-    return (magnitude);
+    return magnitude;
 }
 
 float limit_acceleration_by_axis_maximum(float* unit_vec) {
@@ -164,7 +164,7 @@ float limit_acceleration_by_axis_maximum(float* unit_vec) {
     // but used in units of mm/min^2.  It suffices to perform the conversion once on
     // exit, since the limit computation above is independent of units - it simply
     // finds the smallest value.
-    return (limit_value * SEC_PER_MIN_SQ);
+    return limit_value * SEC_PER_MIN_SQ;
 }
 
 float limit_rate_by_axis_maximum(float* unit_vec) {
@@ -202,7 +202,7 @@ float mapConstrain(float x, float in_min, float in_max, float out_min, float out
 }
 
 bool char_is_numeric(char value) {
-    return (value >= '0' && value <= '9');
+    return value >= '0' && value <= '9';
 }
 
 char* trim(char* str) {

@@ -364,7 +364,7 @@ uint8_t limits_get_state() {
     if (limit_invert->get()) {
         pinMask ^= limit_mask;
     }
-    return (pinMask);
+    return pinMask;
 }
 
 // Performs a soft limit check. Called from mc_line() only. Assumes the machine has been homed,

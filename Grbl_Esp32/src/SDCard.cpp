@@ -116,7 +116,7 @@ float sd_report_perc_complete() {
     if (!myFile) {
         return 0.0;
     }
-    return ((float)myFile.position() / (float)myFile.size() * 100.0);
+    return (float)myFile.position() / (float)myFile.size() * 100.0f;
 }
 
 uint32_t sd_get_current_line_number() {

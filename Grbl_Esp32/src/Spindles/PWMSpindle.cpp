@@ -183,12 +183,12 @@ namespace Spindles {
 
     SpindleState PWM::get_state() {
         if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN) {
-            return (SpindleState::Disable);
+            return SpindleState::Disable;
         }
         if (_direction_pin != UNDEFINED_PIN) {
             return digitalRead(_direction_pin) ? SpindleState::Cw : SpindleState::Ccw;
         }
-        return (SpindleState::Cw);
+        return SpindleState::Cw;
     }
 
     void PWM::stop() {

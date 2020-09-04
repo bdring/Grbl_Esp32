@@ -43,7 +43,7 @@ namespace WebUI {
 
     int InputBuffer::available() { return _RXbufferSize; }
 
-    int InputBuffer::availableforwrite() { return (RXBUFFERSIZE - _RXbufferSize); }
+    int InputBuffer::availableforwrite() { return RXBUFFERSIZE - _RXbufferSize; }
 
     size_t InputBuffer::write(uint8_t c) {
         if ((1 + _RXbufferSize) <= RXBUFFERSIZE) {

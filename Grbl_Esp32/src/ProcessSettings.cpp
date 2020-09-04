@@ -187,7 +187,7 @@ err_t toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
         report_feedback_message(MESSAGE_DISABLED);
     } else {
         if (sys.state) {
-            return (STATUS_IDLE_ERROR);  // Requires no alarm mode.
+            return STATUS_IDLE_ERROR;  // Requires no alarm mode.
         }
         sys.state = STATE_CHECK_MODE;
         report_feedback_message(MESSAGE_ENABLED);
@@ -198,7 +198,7 @@ err_t disable_alarm_lock(const char* value, WebUI::AuthenticationLevel auth_leve
     if (sys.state == STATE_ALARM) {
         // Block if safety door is ajar.
         if (system_check_safety_door_ajar()) {
-            return (STATUS_CHECK_DOOR);
+            return STATUS_CHECK_DOOR;
         }
         report_feedback_message(MESSAGE_ALARM_UNLOCK);
         sys.state = STATE_IDLE;
@@ -212,10 +212,10 @@ err_t report_ngc(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
 }
 err_t home(int cycle) {
     if (homing_enable->get() == false) {
-        return (STATUS_SETTING_DISABLED);
+        return STATUS_SETTING_DISABLED;
     }
     if (system_check_safety_door_ajar()) {
-        return (STATUS_CHECK_DOOR);  // Block if safety door is ajar.
+        return STATUS_CHECK_DOOR;  // Block if safety door is ajar.
     }
     sys.state = STATE_HOMING;  // Set system state variable
 #ifdef USE_I2S_STEPS

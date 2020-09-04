@@ -143,9 +143,9 @@ void IRAM_ATTR isr_control_inputs() {
 // Returns if safety door is ajar(T) or closed(F), based on pin state.
 uint8_t system_check_safety_door_ajar() {
 #ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-    return (system_control_get_state() & CONTROL_PIN_INDEX_SAFETY_DOOR);
+    return system_control_get_state() & CONTROL_PIN_INDEX_SAFETY_DOOR;
 #else
-    return (false);  // Input pin not enabled, so just return that it's closed.
+    return false;  // Input pin not enabled, so just return that it's closed.
 #endif
 }
 
@@ -230,7 +230,7 @@ float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
 #else
     pos = steps[idx] / steps_per_mm;
 #endif
-    return (pos);
+    return pos;
 }
 
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
@@ -251,26 +251,26 @@ uint8_t system_check_travel_limits(float* target) {
         // When homing forced set origin is enabled, soft limits checks need to account for directionality.
         if (bit_istrue(mask, bit(idx))) {
             if (target[idx] < 0 || target[idx] > travel) {
-                return (true);
+                return true;
             }
         } else {
             if (target[idx] > 0 || target[idx] < -travel) {
-                return (true);
+                return true;
             }
         }
 #else
 #    ifdef HOMING_FORCE_POSITIVE_SPACE
         if (target[idx] < 0 || target[idx] > travel) {
-            return (true);
+            return true;
         }
 #    else
         if (target[idx] > 0 || target[idx] < -travel) {
-            return (true);
+            return true;
         }
 #    endif
 #endif
     }
-    return (false);
+    return false;
 }
 
 // Returns control pin state as a uint8 bitfield. Each bit indicates the input pin state, where
@@ -371,10 +371,11 @@ void system_exec_control_pin(uint8_t pin) {
 
 // CoreXY calculation only. Returns x or y-axis "steps" based on CoreXY motor steps.
 int32_t system_convert_corexy_to_x_axis_steps(int32_t* steps) {
-    return ((steps[A_MOTOR] + steps[B_MOTOR]) / 2);
+    return (steps[A_MOTOR] + steps[B_MOTOR]) / 2;
 }
+
 int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps) {
-    return ((steps[A_MOTOR] - steps[B_MOTOR]) / 2);
+    return (steps[A_MOTOR] - steps[B_MOTOR]) / 2;
 }
 
 // io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx

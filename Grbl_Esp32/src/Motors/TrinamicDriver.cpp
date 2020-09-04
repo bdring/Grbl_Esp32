@@ -263,7 +263,7 @@ namespace Motors {
             speed / 60.0 * axis_settings[axis_index]->steps_per_mm->get() * (float)(256 / axis_settings[axis_index]->microsteps->get());
         tstep = TRINAMIC_FCLK / tstep * percent / 100.0;
 
-        return (uint32_t)tstep;
+        return static_cast<uint32_t>(tstep);
     }
 
     // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,

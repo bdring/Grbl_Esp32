@@ -54,7 +54,7 @@ CoolantMode coolant_get_state() {
         cl_state |= CoolantMode::Mist;
     }
 #endif
-    return (cl_state);
+    return cl_state;
 }
 
 // Directly called by coolant_init(), coolant_set_state(), and mc_reset(), which can be at

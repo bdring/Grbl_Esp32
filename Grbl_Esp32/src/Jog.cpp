@@ -34,7 +34,7 @@ uint8_t jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block) {
 #endif
     if (soft_limits->get()) {
         if (system_check_travel_limits(gc_block->values.xyz)) {
-            return (STATUS_TRAVEL_EXCEEDED);
+            return STATUS_TRAVEL_EXCEEDED;
         }
     }
     // Valid jog command. Plan, set state, and execute.
@@ -46,5 +46,5 @@ uint8_t jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block) {
             st_wake_up();  // NOTE: Manual start. No state machine required.
         }
     }
-    return (STATUS_OK);
+    return STATUS_OK;
 }

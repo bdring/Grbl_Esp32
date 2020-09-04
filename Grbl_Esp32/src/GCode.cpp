@@ -1183,7 +1183,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
         if (status == STATUS_OK) {
             memcpy(gc_state.position, gc_block.values.xyz, sizeof(gc_block.values.xyz));
         }
-        return (status);
+        return status;
     }
     // If in laser mode, setup laser power based on current and past parser conditions.
     if (laser_mode->get()) {
@@ -1480,7 +1480,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     gc_state.modal.program_flow = ProgramFlow::Running;  // Reset program flow.
 
     // TODO: % to denote start of program.
-    return (STATUS_OK);
+    return STATUS_OK;
 }
 
 /*
