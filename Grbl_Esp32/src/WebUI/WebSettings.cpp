@@ -394,8 +394,9 @@ namespace WebUI {
             size_t flashsize = 0;
             if (esp_ota_get_running_partition()) {
                 const esp_partition_t* partition = esp_ota_get_next_update_partition(NULL);
-                if (partition)
+                if (partition) {
                     flashsize = partition->size;
+                }
             }
             webPrintln("Available Size for update: ", ESPResponseStream::formatBytes(flashsize));
             webPrintln("Available Size for SPIFFS: ", ESPResponseStream::formatBytes(SPIFFS.totalBytes()));
@@ -513,10 +514,12 @@ namespace WebUI {
             webPrint("Status: ");
             if (SerialBT.hasClient()) {
                 webPrintln("Connected with ", bt_config._btclient);
-            } else
+            } else {
                 webPrintln("Not connected");
-        } else
+            }
+        } else {
             webPrintln("Off");
+        }
 #endif
 #ifdef ENABLE_NOTIFICATIONS
         webPrint("Notifications: ");
@@ -776,12 +779,14 @@ namespace WebUI {
             // Display the radio state
             bool on = false;
 #if defined(ENABLE_WIFI)
-            if (WiFi.getMode() != WIFI_MODE_NULL)
+            if (WiFi.getMode() != WIFI_MODE_NULL) {
                 on = true;
+            }
 #endif
 #if defined(ENABLE_BLUETOOTH)
-            if (bt_config.Is_BT_on())
+            if (bt_config.Is_BT_on()) {
                 on = true;
+            }
 #endif
             webPrintln(on ? "ON" : "OFF");
             return STATUS_OK;
@@ -796,6 +801,7 @@ namespace WebUI {
             webPrintln("only ON or OFF mode supported!");
             return STATUS_INVALID_VALUE;
         }
+
         //Stop everything
 #if defined(ENABLE_WIFI)
         if (WiFi.getMode() != WIFI_MODE_NULL) {

@@ -83,8 +83,9 @@ namespace Motors {
 
     void RcServo::_write_pwm(uint32_t duty) {
         // to prevent excessive calls to ledcWrite, make sure duty hass changed
-        if (duty == _current_pwm_duty)
+        if (duty == _current_pwm_duty) {
             return;
+        }
 
         _current_pwm_duty = duty;
 
@@ -96,20 +97,23 @@ namespace Motors {
     void RcServo::set_disable(bool disable) {
         return;
         _disabled = disable;
-        if (_disabled)
+        if (_disabled) {
             _write_pwm(0);
+        }
     }
 
     void RcServo::set_homing_mode(bool is_homing, bool isHoming) {
         float home_pos = 0.0;
 
-        if (!is_homing)
+        if (!is_homing) {
             return;
+        }
 
-        if (bit_istrue(homing_dir_mask->get(), bit(axis_index)))
+        if (bit_istrue(homing_dir_mask->get(), bit(axis_index))) {
             home_pos = _position_min;
-        else
+        } else {
             home_pos = _position_max;
+        }
 
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo set home %d %3.2f", is_homing, home_pos);
         sys_position[axis_index] = home_pos * axis_settings[axis_index]->steps_per_mm->get();  // convert to steps

@@ -216,7 +216,7 @@ namespace WebUI {
         if (RSSI >= -50) {
             return 100;
         }
-        return (2 * (RSSI + 100));
+        return 2 * (RSSI + 100);
     }
 
     /*
@@ -248,7 +248,7 @@ namespace WebUI {
             count++;
             status = WiFi.status();
         }
-        return (status == WL_CONNECTED);
+        return status == WL_CONNECTED;
     }
 
     /*
@@ -387,8 +387,9 @@ namespace WebUI {
             }
             //start services
             wifi_services.begin();
-        } else
+        } else {
             WiFi.mode(WIFI_OFF);
+        }
     }
 
     /**

@@ -46,16 +46,18 @@ void probe_init() {
 // and the probing cycle modes for toward-workpiece/away-from-workpiece.
 void probe_configure_invert_mask(uint8_t is_probe_away) {
     probe_invert_mask = 0;  // Initialize as zero.
-    if (probe_invert->get())
+    if (probe_invert->get()) {
         probe_invert_mask ^= PROBE_MASK;
-    if (is_probe_away)
+    }
+    if (is_probe_away) {
         probe_invert_mask ^= PROBE_MASK;
+    }
 }
 
 // Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
 uint8_t probe_get_state() {
 #ifdef PROBE_PIN
-    return ((digitalRead(PROBE_PIN)) ^ probe_invert_mask);
+    return digitalRead(PROBE_PIN) ^ probe_invert_mask;
 #else
     return false;
 #endif

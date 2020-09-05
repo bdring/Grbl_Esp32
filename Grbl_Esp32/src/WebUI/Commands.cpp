@@ -37,20 +37,24 @@ namespace WebUI {
         uint32_t timeout = millis();
         esp_task_wdt_reset();  //for a wait 0;
         //wait feeding WDT
-        while ((millis() - timeout) < milliseconds)
+        while ((millis() - timeout) < milliseconds) {
             esp_task_wdt_reset();
+        }
     }
 
     bool COMMANDS::isLocalPasswordValid(char* password) {
         char c;
         //limited size
-        if ((strlen(password) > MAX_LOCAL_PASSWORD_LENGTH) || (strlen(password) < MIN_LOCAL_PASSWORD_LENGTH))
+        if ((strlen(password) > MAX_LOCAL_PASSWORD_LENGTH) || (strlen(password) < MIN_LOCAL_PASSWORD_LENGTH)) {
             return false;
+        }
+
         //no space allowed
         for (int i = 0; i < strlen(password); i++) {
             c = password[i];
-            if (c == ' ')
+            if (c == ' ') {
                 return false;
+            }
         }
         return true;
     }
@@ -68,8 +72,7 @@ namespace WebUI {
         //in case of restart requested
         if (restart_ESP_module) {
             ESP.restart();
-            while (1)
-                ;
+            while (1) {}
         }
     }
 }

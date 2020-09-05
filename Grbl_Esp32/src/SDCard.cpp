@@ -50,10 +50,12 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
     File file = root.openNextFile();
     while (file) {
         if (file.isDirectory()) {
-            if (levels)
+            if (levels) {
                 listDir(fs, file.name(), levels - 1, client);
-        } else
+            }
+        } else {
             grbl_sendf(CLIENT_ALL, "[FILE:%s|SIZE:%d]\r\n", file.name(), file.size());
+        }
         file = root.openNextFile();
     }
 }
@@ -71,8 +73,9 @@ boolean openFile(fs::FS& fs, const char* path) {
 }
 
 boolean closeFile() {
-    if (!myFile)
+    if (!myFile) {
         return false;
+    }
     set_sd_state(SDCARD_IDLE);
     SD_ready_next          = false;
     sd_current_line_number = 0;
@@ -110,9 +113,10 @@ boolean readFileLine(char* line, int maxlen) {
 
 // return a percentage complete 50.5 = 50.5%
 float sd_report_perc_complete() {
-    if (!myFile)
+    if (!myFile) {
         return 0.0;
-    return ((float)myFile.position() / (float)myFile.size() * 100.0);
+    }
+    return (float)myFile.position() / (float)myFile.size() * 100.0f;
 }
 
 uint32_t sd_get_current_line_number() {
@@ -130,19 +134,22 @@ uint8_t get_sd_state(bool refresh) {
     }
 #endif
     //if busy doing something return state
-    if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE)))
+    if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE))) {
         return sd_state;
+    }
     if (!refresh) {
         return sd_state;  //to avoid refresh=true + busy to reset SD and waste time
     }
+
     //SD is idle or not detected, let see if still the case
     SD.end();
     sd_state = SDCARD_NOT_PRESENT;
     //using default value for speed ? should be parameter
     //refresh content if card was removed
     if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ)) {
-        if (SD.cardSize() > 0)
+        if (SD.cardSize() > 0) {
             sd_state = SDCARD_IDLE;
+        }
     }
     return sd_state;
 }
@@ -153,8 +160,9 @@ uint8_t set_sd_state(uint8_t flag) {
 }
 
 void sd_get_current_filename(char* name) {
-    if (myFile)
+    if (myFile) {
         strcpy(name, myFile.name());
-    else
+    } else {
         name[0] = 0;
+    }
 }

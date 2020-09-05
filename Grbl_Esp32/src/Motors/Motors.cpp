@@ -250,13 +250,15 @@ void init_motors() {
     // certain motors need features to be turned on. Check them here
     for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
         for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            if (myMotor[axis][gang_index]->type_id == UNIPOLAR_MOTOR)
+            if (myMotor[axis][gang_index]->type_id == UNIPOLAR_MOTOR) {
                 motor_class_steps = true;
+            }
 
             // CS Pins of all TMC motors need to be setup before any can be talked to
             // ...so init cannot be called via the constructors. This inits them all.
-            if (myMotor[axis][gang_index]->type_id == TRINAMIC_SPI_MOTOR)
+            if (myMotor[axis][gang_index]->type_id == TRINAMIC_SPI_MOTOR) {
                 myMotor[axis][gang_index]->init();
+            }
         }
     }
 
@@ -273,8 +275,9 @@ void init_motors() {
                                 &readSgTaskHandle,
                                 0  // core
         );
-        if (stallguard_debug_mask->get() != 0)
+        if (stallguard_debug_mask->get() != 0) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
+        }
     }
 
     if (motors_have_type_id(RC_SERVO_MOTOR)) {
@@ -299,8 +302,9 @@ void servoUpdateTask(void* pvParameters) {
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo update");
 
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
-            for (uint8_t gang_index = 0; gang_index < 2; gang_index++)
+            for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
                 myMotor[axis][gang_index]->update();
+            }
         }
 
         vTaskDelayUntil(&xLastWakeTime, xUpdate);
@@ -311,8 +315,9 @@ void servoUpdateTask(void* pvParameters) {
 bool motors_have_type_id(motor_class_id_t id) {
     for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
         for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            if (myMotor[axis][gang_index]->type_id == id)
+            if (myMotor[axis][gang_index]->type_id == id) {
                 return true;
+            }
         }
     }
     return false;
@@ -321,8 +326,9 @@ bool motors_have_type_id(motor_class_id_t id) {
 void motors_set_disable(bool disable) {
     static bool previous_state = false;
 
-    if (previous_state == disable)
+    if (previous_state == disable) {
         return;
+    }
 
     previous_state = disable;
 
@@ -343,8 +349,9 @@ void motors_set_disable(bool disable) {
 void motors_read_settings() {
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Read Settings");
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
             myMotor[axis][gang_index]->read_settings();
+        }
     }
 }
 
@@ -353,23 +360,27 @@ void motors_read_settings() {
 void motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_homing_mode(%d)", is_homing);
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
-            if (bit(axis) & homing_mask)
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+            if (bit(axis) & homing_mask) {
                 myMotor[axis][gang_index]->set_homing_mode(homing_mask, isHoming);
+            }
+        }
     }
 }
 
 void motors_set_direction_pins(uint8_t onMask) {
     static uint8_t previous_val = 255;  // should never be this value
-    if (previous_val == onMask)
+    if (previous_val == onMask) {
         return;
+    }
     previous_val = onMask;
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_direction_pins:0x%02X", onMask);
 
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
+        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
             myMotor[axis][gang_index]->set_direction_pins(onMask);
+        }
     }
 }
 
@@ -388,8 +399,9 @@ uint8_t get_next_trinamic_driver_index() {
 void motors_step(uint8_t step_mask, uint8_t dir_mask) {
     if (motor_class_steps) {  // determined in init_motors if any motors need to handle steps
         for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
+            for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
                 myMotor[axis][gang_index]->step(step_mask, dir_mask);
+            }
         }
     }
 }
@@ -413,8 +425,9 @@ void readSgTask(void* pvParameters) {
                 for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
                     if (stallguard_debug_mask->get() & bit(axis)) {
                         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SG:%d", stallguard_debug_mask->get());
-                        for (uint8_t gang_index = 0; gang_index < 2; gang_index++)
+                        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
                             myMotor[axis][gang_index]->debug_message();
+                        }
                     }
                 }
             }  // sys.state

@@ -75,8 +75,9 @@ void IRAM_ATTR isr_limit_switches() {
 // NOTE: Only the abort realtime command can interrupt this process.
 // TODO: Move limit pin-specific calls to a general function for portability.
 void limits_go_home(uint8_t cycle_mask) {
-    if (sys.abort)
+    if (sys.abort) {
         return;  // Block if system reset has been issued.
+    }
     // Initialize plan data struct for homing motion. Spindle and coolant are disabled.
     motors_set_homing_mode(cycle_mask, true);  // tell motors homing is about to start
     plan_line_data_t  plan_data;
@@ -96,8 +97,9 @@ void limits_go_home(uint8_t cycle_mask) {
         // Initialize step pin masks
         step_pin[idx] = get_step_pin_mask(idx);
 #ifdef COREXY
-        if ((idx == A_MOTOR) || (idx == B_MOTOR))
+        if ((idx == A_MOTOR) || (idx == B_MOTOR)) {
             step_pin[idx] = (get_step_pin_mask(X_AXIS) | get_step_pin_mask(Y_AXIS));
+        }
 #endif
         if (bit_istrue(cycle_mask, bit(idx))) {
             // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.
@@ -125,8 +127,9 @@ void limits_go_home(uint8_t cycle_mask) {
                 } else if (idx == Y_AXIS) {
                     int32_t axis_position = system_convert_corexy_to_x_axis_steps(sys_position);
                     sys_position[A_MOTOR] = sys_position[B_MOTOR] = axis_position;
-                } else
+                } else {
                     sys_position[Z_AXIS] = 0;
+                }
 #else
                 sys_position[idx] = 0;
 #endif
@@ -134,15 +137,17 @@ void limits_go_home(uint8_t cycle_mask) {
                 // NOTE: This happens to compile smaller than any other implementation tried.
                 auto mask = homing_dir_mask->get();
                 if (bit_istrue(mask, bit(idx))) {
-                    if (approach)
+                    if (approach) {
                         target[idx] = -max_travel;
-                    else
+                    } else {
                         target[idx] = max_travel;
+                    }
                 } else {
-                    if (approach)
+                    if (approach) {
                         target[idx] = max_travel;
-                    else
+                    } else {
                         target[idx] = -max_travel;
+                    }
                 }
                 // Apply axislock to the step port pins active in this cycle.
                 axislock |= step_pin[idx];
@@ -164,10 +169,11 @@ void limits_go_home(uint8_t cycle_mask) {
                     if (axislock & step_pin[idx]) {
                         if (limit_state & bit(idx)) {
 #ifdef COREXY
-                            if (idx == Z_AXIS)
+                            if (idx == Z_AXIS) {
                                 axislock &= ~(step_pin[Z_AXIS]);
-                            else
+                            } else {
                                 axislock &= ~(step_pin[A_MOTOR] | step_pin[B_MOTOR]);
+                            }
 #else
                             axislock &= ~(step_pin[idx]);
 #endif
@@ -181,17 +187,22 @@ void limits_go_home(uint8_t cycle_mask) {
             if (sys_rt_exec_state & (EXEC_SAFETY_DOOR | EXEC_RESET | EXEC_CYCLE_STOP)) {
                 uint8_t rt_exec = sys_rt_exec_state;
                 // Homing failure condition: Reset issued during cycle.
-                if (rt_exec & EXEC_RESET)
+                if (rt_exec & EXEC_RESET) {
                     system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_RESET);
+                }
                 // Homing failure condition: Safety door was opened.
-                if (rt_exec & EXEC_SAFETY_DOOR)
+                if (rt_exec & EXEC_SAFETY_DOOR) {
                     system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_DOOR);
+                }
                 // Homing failure condition: Limit switch still engaged after pull-off motion
-                if (!approach && (limits_get_state() & cycle_mask))
+                if (!approach && (limits_get_state() & cycle_mask)) {
                     system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_PULLOFF);
+                }
                 // Homing failure condition: Limit switch not found during approach.
-                if (approach && (rt_exec & EXEC_CYCLE_STOP))
+                if (approach && (rt_exec & EXEC_CYCLE_STOP)) {
                     system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_APPROACH);
+                }
+
                 if (sys_rt_exec_alarm) {
                     motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
                     mc_reset();                                 // Stop motors, if they are running.
@@ -264,8 +275,9 @@ void limits_go_home(uint8_t cycle_mask) {
                 int32_t off_axis_position = system_convert_corexy_to_x_axis_steps(sys_position);
                 sys_position[A_MOTOR]     = off_axis_position + set_axis_position;
                 sys_position[B_MOTOR]     = off_axis_position - set_axis_position;
-            } else
+            } else {
                 sys_position[idx] = set_axis_position;
+            }
 #else
             sys_position[idx] = set_axis_position;
 #endif
@@ -352,7 +364,7 @@ uint8_t limits_get_state() {
     if (limit_invert->get()) {
         pinMask ^= limit_mask;
     }
-    return (pinMask);
+    return pinMask;
 }
 
 // Performs a soft limit check. Called from mc_line() only. Assumes the machine has been homed,
@@ -376,8 +388,9 @@ void limits_soft_check(float* target) {
             system_set_exec_state_flag(EXEC_FEED_HOLD);
             do {
                 protocol_execute_realtime();
-                if (sys.abort)
+                if (sys.abort) {
                     return;
+                }
             } while (sys.state != STATE_IDLE);
         }
         mc_reset();                                    // Issue system reset and ensure spindle and coolant are shutdown.

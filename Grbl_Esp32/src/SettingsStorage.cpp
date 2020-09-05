@@ -31,9 +31,9 @@ uint8_t settings_read_coord_data(uint8_t coord_select, float* coord_data) {
         // Reset with default zero vector
         clear_vector_float(coord_data);
         settings_write_coord_data(coord_select, coord_data);
-        return (false);
+        return false;
     }
-    return (true);
+    return true;
 }
 
 // Method to store coord data parameters into EEPROM
@@ -58,9 +58,9 @@ uint8_t settings_read_build_info(char* line) {
         // Reset line with default value
         line[0] = 0;  // Empty line
         settings_store_build_info(line);
-        return (false);
+        return false;
     }
-    return (true);
+    return true;
 }
 
 // Returns step pin mask according to Grbl internal axis indexing.

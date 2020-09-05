@@ -64,8 +64,9 @@ void grbl_init() {
     // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
     // things uncontrollably. Very bad.
 #ifdef HOMING_INIT_LOCK
-    if (homing_enable->get())
+    if (homing_enable->get()) {
         sys.state = STATE_ALARM;
+    }
 #endif
     Spindles::Spindle::select();
 #ifdef ENABLE_WIFI
