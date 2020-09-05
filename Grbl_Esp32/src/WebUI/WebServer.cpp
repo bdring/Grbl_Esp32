@@ -1223,11 +1223,7 @@ namespace WebUI {
             COMMANDS::wait(0);  //wdtFeed
         }
         file.close();
-        if (result) {
-            return SD.rmdir(path);
-        } else {
-            return false;
-        }
+        return result ? SD.rmdir(path) : false;
     }
 
     //direct SD files list//////////////////////////////////////////////////
