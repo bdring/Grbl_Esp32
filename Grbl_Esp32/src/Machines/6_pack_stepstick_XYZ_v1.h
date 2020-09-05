@@ -86,8 +86,8 @@
 
 // Servo in socket #4
 #define A_SERVO_PIN             GPIO_NUM_14
-#define A_SERVO_RANGE_MIN       1.00
-#define A_SERVO_RANGE_MAX       1.00
+#define A_SERVO_CAL_MIN         1.00 // the calibration for the lower PWM duty 
+#define A_SERVO_CAL_MAX         1.00 // the calibration for the upper PWM duty
 
 
 /*

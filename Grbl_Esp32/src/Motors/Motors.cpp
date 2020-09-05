@@ -63,7 +63,7 @@ void init_motors() {
     myMotor[X_AXIS][0] = new Motors::TrinamicDriver(
         X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_DISABLE_PIN, X_CS_PIN, X_TRINAMIC_DRIVER, X_RSENSE, get_next_trinamic_driver_index());
 #elif defined(X_SERVO_PIN)
-    myMotor[X_AXIS][0] = new Motors::RcServo(X_AXIS, X_SERVO_PIN, X_SERVO_RANGE_MIN, X_SERVO_RANGE_MAX);
+    myMotor[X_AXIS][0] = new Motors::RcServo(X_AXIS, X_SERVO_PIN, X_SERVO_CAL_MIN, X_SERVO_CAL_MAX);
 #elif defined(X_UNIPOLAR)
     myMotor[X_AXIS][0] = new Motors::UnipolarMotor(X_AXIS, X_PIN_PHASE_0, X_PIN_PHASE_1, X_PIN_PHASE_2, X_PIN_PHASE_3);
 #elif defined(X_STEP_PIN)
@@ -78,7 +78,7 @@ void init_motors() {
     myMotor[X_AXIS][1] = new Motors::TrinamicDriver(
         X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN, X2_CS_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, get_next_trinamic_driver_index());
 #elif defined(X2_SERVO_PIN)
-    myMotor[X_AXIS][1] = new Motors::RcServo(X2_AXIS, X2_SERVO_PIN, X2_SERVO_RANGE_MIN, X2_SERVO_RANGE_MAX);
+    myMotor[X_AXIS][1] = new Motors::RcServo(X2_AXIS, X2_SERVO_PIN, X2_SERVO_CAL_MIN, X2_SERVO_CAL_MAX);
 #elif defined(X2_UNIPOLAR)
     myMotor[X_AXIS][1] = new Motors::UnipolarMotor(X2_AXIS, X2_PIN_PHASE_0, X2_PIN_PHASE_1, X2_PIN_PHASE_2, X2_PIN_PHASE_3);
 #elif defined(X2_STEP_PIN)
@@ -92,7 +92,7 @@ void init_motors() {
     myMotor[Y_AXIS][0] = new Motors::TrinamicDriver(
         Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN, Y_CS_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, get_next_trinamic_driver_index());
 #elif defined(Y_SERVO_PIN)
-    myMotor[Y_AXIS][0] = new Motors::RcServo(Y_AXIS, Y_SERVO_PIN, Y_SERVO_RANGE_MIN, Y_SERVO_RANGE_MAX);
+    myMotor[Y_AXIS][0] = new Motors::RcServo(Y_AXIS, Y_SERVO_PIN, Y_SERVO_CAL_MIN, Y_SERVO_CAL_MAX);
 #elif defined(Y_UNIPOLAR)
     myMotor[Y_AXIS][0] = new Motors::UnipolarMotor(Y_AXIS, Y_PIN_PHASE_0, Y_PIN_PHASE_1, Y_PIN_PHASE_2, Y_PIN_PHASE_3);
 #elif defined(Y_STEP_PIN)
@@ -107,7 +107,7 @@ void init_motors() {
     myMotor[Y_AXIS][1] = new Motors::TrinamicDriver(
         Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN, Y2_CS_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, get_next_trinamic_driver_index());
 #elif defined(Y2_SERVO_PIN)
-    myMotor[Y_AXIS][1] = new Motors::RcServo(Y2_AXIS, Y2_SERVO_PIN, Y2_SERVO_RANGE_MIN, Y2_SERVO_RANGE_MAX);
+    myMotor[Y_AXIS][1] = new Motors::RcServo(Y2_AXIS, Y2_SERVO_PIN, Y2_SERVO_CAL_MIN, Y2_SERVO_CAL_MAX);
 #elif defined(Y2_UNIPOLAR)
     myMotor[Y_AXIS][1] = new Motors::UnipolarMotor(Y2_AXIS, Y2_PIN_PHASE_0, Y2_PIN_PHASE_1, Y2_PIN_PHASE_2, Y2_PIN_PHASE_3);
 #elif defined(Y2_STEP_PIN)
@@ -121,7 +121,7 @@ void init_motors() {
     myMotor[Z_AXIS][0] = new Motors::TrinamicDriver(
         Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN, Z_CS_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, get_next_trinamic_driver_index());
 #elif defined(Z_SERVO_PIN)
-    myMotor[Z_AXIS][0] = new Motors::RcServo(Z_AXIS, Z_SERVO_PIN, Z_SERVO_RANGE_MIN, Z_SERVO_RANGE_MAX);
+    myMotor[Z_AXIS][0] = new Motors::RcServo(Z_AXIS, Z_SERVO_PIN, Z_SERVO_CAL_MIN, Z_SERVO_CAL_MAX);
 #elif defined(Z_UNIPOLAR)
     myMotor[Z_AXIS][0] = new Motors::UnipolarMotor(Z_AXIS, Z_PIN_PHASE_0, Z_PIN_PHASE_1, Z_PIN_PHASE_2, Z_PIN_PHASE_3);
 #elif defined(Z_STEP_PIN)
@@ -136,7 +136,7 @@ void init_motors() {
     myMotor[Z_AXIS][1] = new Motors::TrinamicDriver(
         Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN, Z2_CS_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, get_next_trinamic_driver_index());
 #elif defined(Z2_SERVO_PIN)
-    myMotor[Z_AXIS][1] = new Motors::RcServo(Z2_AXIS, Z2_SERVO_PIN, Z2_SERVO_RANGE_MIN, Z2_SERVO_RANGE_MAX);
+    myMotor[Z_AXIS][1] = new Motors::RcServo(Z2_AXIS, Z2_SERVO_PIN, Z2_SERVO_CAL_MIN, Z2_SERVO_CAL_MAX);
 #elif defined(Z2_UNIPOLAR)
     myMotor[Z_AXIS][1] = new Motors::UnipolarMotor(Z2_AXIS, Z2_PIN_PHASE_0, Z2_PIN_PHASE_1, Z2_PIN_PHASE_2, Z2_PIN_PHASE_3);
 #elif defined(Z2_STEP_PIN)
@@ -150,7 +150,7 @@ void init_motors() {
     myMotor[A_AXIS][0] = new Motors::TrinamicDriver(
         A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN, A_CS_PIN, A_TRINAMIC_DRIVER, A_RSENSE, get_next_trinamic_driver_index());
 #elif defined(A_SERVO_PIN)
-    myMotor[A_AXIS][0] = new Motors::RcServo(A_AXIS, A_SERVO_PIN, A_SERVO_RANGE_MIN, A_SERVO_RANGE_MAX);
+    myMotor[A_AXIS][0] = new Motors::RcServo(A_AXIS, A_SERVO_PIN, A_SERVO_CAL_MIN, A_SERVO_CAL_MAX);
 #elif defined(A_UNIPOLAR)
     myMotor[A_AXIS][0] = new Motors::UnipolarMotor(A_AXIS, A_PIN_PHASE_0, A_PIN_PHASE_1, A_PIN_PHASE_2, A_PIN_PHASE_3);
 #elif defined(A_STEP_PIN)
@@ -163,7 +163,7 @@ void init_motors() {
     myMotor[A_AXIS][1] = new Motors::TrinamicDriver(
         A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN, A2_CS_PIN, A2_TRINAMIC_DRIVER, A2_RSENSE, get_next_trinamic_driver_index());
 #elif defined(A2_SERVO_PIN)
-    myMotor[A_AXIS][1] = new Motors::RcServo(A2_AXIS, A2_SERVO_PIN, A2_SERVO_RANGE_MIN, A2_SERVO_RANGE_MAX);
+    myMotor[A_AXIS][1] = new Motors::RcServo(A2_AXIS, A2_SERVO_PIN, A2_SERVO_CAL_MIN, A2_SERVO_CAL_MAX);
 #elif defined(A2_UNIPOLAR)
     myMotor[A_AXIS][1] = new Motors::UnipolarMotor(A2_AXIS, A2_PIN_PHASE_0, A2_PIN_PHASE_1, A2_PIN_PHASE_2, A2_PIN_PHASE_3);
 #elif defined(A2_STEP_PIN)
@@ -177,7 +177,7 @@ void init_motors() {
     myMotor[B_AXIS][0] = new Motors::TrinamicDriver(
         B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN, B_CS_PIN, B_TRINAMIC_DRIVER, B_RSENSE, get_next_trinamic_driver_index());
 #elif defined(B_SERVO_PIN)
-    myMotor[B_AXIS][0] = new Motors::RcServo(B_AXIS, B_SERVO_PIN, B_SERVO_RANGE_MIN, B_SERVO_RANGE_MAX);
+    myMotor[B_AXIS][0] = new Motors::RcServo(B_AXIS, B_SERVO_PIN, B_SERVO_CAL_MIN, B_SERVO_CAL_MAX);
 #elif defined(B_UNIPOLAR)
     myMotor[B_AXIS][0] = new Motors::UnipolarMotor(B_AXIS, B_PIN_PHASE_0, B_PIN_PHASE_1, B_PIN_PHASE_2, B_PIN_PHASE_3);
 #elif defined(B_STEP_PIN)
@@ -190,7 +190,7 @@ void init_motors() {
     myMotor[B_AXIS][1] = new Motors::TrinamicDriver(
         B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN, B2_CS_PIN, B2_TRINAMIC_DRIVER, B2_RSENSE, get_next_trinamic_driver_index());
 #elif defined(B2_SERVO_PIN)
-    myMotor[B_AXIS][1] = new Motors::RcServo(B2_AXIS, B2_SERVO_PIN, B2_SERVO_RANGE_MIN, B2_SERVO_RANGE_MAX);
+    myMotor[B_AXIS][1] = new Motors::RcServo(B2_AXIS, B2_SERVO_PIN, B2_SERVO_CAL_MIN, B2_SERVO_CAL_MAX);
 #elif defined(B2_UNIPOLAR)
     myMotor[B_AXIS][1] = new Motors::UnipolarMotor(B2_AXIS, B2_PIN_PHASE_0, B2_PIN_PHASE_1, B2_PIN_PHASE_2, B2_PIN_PHASE_3);
 #elif defined(B2_STEP_PIN)
@@ -204,7 +204,7 @@ void init_motors() {
     myMotor[C_AXIS][0] = new Motors::TrinamicDriver(
         C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN, C_CS_PIN, C_TRINAMIC_DRIVER, C_RSENSE, get_next_trinamic_driver_index());
 #elif defined(C_SERVO_PIN)
-    myMotor[C_AXIS][0] = new Motors::RcServo(C_AXIS, C_SERVO_PIN, C_SERVO_RANGE_MIN, C_SERVO_RANGE_MAX);
+    myMotor[C_AXIS][0] = new Motors::RcServo(C_AXIS, C_SERVO_PIN, C_SERVO_CAL_MIN, C_SERVO_CAL_MAX);
 #elif defined(C_UNIPOLAR)
     myMotor[C_AXIS][0] = new Motors::UnipolarMotor(C_AXIS, C_PIN_PHASE_0, C_PIN_PHASE_1, C_PIN_PHASE_2, C_PIN_PHASE_3);
 #elif defined(C_STEP_PIN)
@@ -217,7 +217,7 @@ void init_motors() {
     myMotor[C_AXIS][1] = new Motors::TrinamicDriver(
         C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN, C2_CS_PIN, C2_TRINAMIC_DRIVER, C2_RSENSE, get_next_trinamic_driver_index());
 #elif defined(C2_SERVO_PIN)
-    myMotor[C_AXIS][1] = new Motors::RcServo(C2_AXIS, C2_SERVO_PIN, C2_SERVO_RANGE_MIN, C2_SERVO_RANGE_MAX);
+    myMotor[C_AXIS][1] = new Motors::RcServo(C2_AXIS, C2_SERVO_PIN, C2_SERVO_CAL_MIN, C2_SERVO_CAL_MAX);
 #elif defined(C2_UNIPOLAR)
     myMotor[C_AXIS][1] = new Motors::UnipolarMotor(C2_AXIS, C2_PIN_PHASE_0, C2_PIN_PHASE_1, C2_PIN_PHASE_2, C2_PIN_PHASE_3);
 #elif defined(C2_STEP_PIN)
