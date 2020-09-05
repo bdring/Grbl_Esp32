@@ -144,21 +144,23 @@ enum class SpindleState : uint8_t {
     Ccw     = 2,  // M4
 };
 
-// Modal Group M8: Coolant control
-class CoolantMode {
-public:
-    inline CoolantMode() : Flood(0), Mist(0) {}  // M9 (Default: Must be zero)
-    inline CoolantMode(CoolantMode lhs, CoolantMode rhs) : Flood(lhs.Flood | rhs.Flood), Mist(lhs.Mist | rhs.Mist) {}
-
-    uint8_t Flood : 1;  // M8
-    uint8_t Mist : 1;   // M7
-
-    inline bool IsDisabled() const { return Flood == 0 && Mist == 0; }
-
-    inline bool operator==(const CoolantMode& o) const { return Flood == o.Flood && Mist == o.Mist; }
-    inline bool operator!=(const CoolantMode& o) const { return !operator==(o); }
+// GCodeCoolantMode is used for the parser, where you can
+// specify at most one of M7, M8, M9.
+enum class GCodeCoolantMode : uint8_t {
+    None = 0,
+    M7,
+    M8,
+    M9,
 };
 
+// CoolantState is used for the runtime state, where either of
+// the Mist and Flood state bits can be set independently
+struct CoolantState {
+    uint8_t Mist : 1;
+    uint8_t Flood : 1;
+};
+
+// Modal Group M8: Coolant control
 // Modal Group M9: Override control
 enum class Override : uint8_t {
 #ifdef DEACTIVATE_PARKING_UPON_INIT
@@ -245,7 +247,7 @@ typedef struct {
     uint8_t          coord_select;  // {G54,G55,G56,G57,G58,G59}
     // uint8_t control;      // {G61} NOTE: Don't track. Only default supported.
     ProgramFlow  program_flow;  // {M0,M1,M2,M30}
-    CoolantMode  coolant;       // {M7,M8,M9}
+    CoolantState coolant;       // {M7,M8,M9}
     SpindleState spindle;       // {M3,M4,M5}
     ToolChange   tool_change;   // {M6}
     IoControl    io_control;    // {M62, M63}
@@ -287,6 +289,7 @@ typedef struct {
     NonModal    non_modal_command;
     gc_modal_t  modal;
     gc_values_t values;
+    GCodeCoolantMode coolant;
 } parser_block_t;
 
 enum class AxisCommand : uint8_t {

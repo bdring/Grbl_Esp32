@@ -34,8 +34,8 @@ void coolant_init() {
 }
 
 // Returns current coolant output state. Overrides may alter it from programmed state.
-CoolantMode coolant_get_state() {
-    CoolantMode cl_state = {};
+CoolantState coolant_get_state() {
+    CoolantState cl_state = {};
 #ifdef COOLANT_FLOOD_PIN
 #    ifdef INVERT_COOLANT_FLOOD_PIN
     if (!digitalRead(COOLANT_FLOOD_PIN)) {
@@ -80,41 +80,41 @@ void coolant_stop() {
 // if enabled. Also sets a flag to report an update to a coolant state.
 // Called by coolant toggle override, parking restore, parking retract, sleep mode, g-code
 // parser program end, and g-code parser coolant_sync().
-void coolant_set_state(CoolantMode mode) {
+void coolant_off() {
     if (sys.abort) {
         return;  // Block during abort.
     }
-    if (mode.IsDisabled()) {
-        coolant_stop();
-    } else {
+    coolant_stop();
+    sys.report_ovr_counter = 0;  // Set to report change immediately
+}
+
+void coolant_set_state(CoolantState state) {
+    if (sys.abort) {
+        return;  // Block during abort.
+    }
 #ifdef COOLANT_FLOOD_PIN
-        if (mode.Flood) {
 #    ifdef INVERT_COOLANT_FLOOD_PIN
-            digitalWrite(COOLANT_FLOOD_PIN, 0);
+    digitalWrite(COOLANT_FLOOD_PIN, !state.Flood);
 #    else
-            digitalWrite(COOLANT_FLOOD_PIN, 1);
+    digitalWrite(COOLANT_FLOOD_PIN, state.Flood);
 #    endif
-        }
 #endif
 #ifdef COOLANT_MIST_PIN
-        if (mode.Mist) {
 #    ifdef INVERT_COOLANT_MIST_PIN
-            digitalWrite(COOLANT_MIST_PIN, 0);
+    digitalWrite(COOLANT_MIST_PIN, !state.Mist);
 #    else
-            digitalWrite(COOLANT_MIST_PIN, 1);
+    digitalWrite(COOLANT_MIST_PIN, state.Mist);
 #    endif
-        }
 #endif
-    }
     sys.report_ovr_counter = 0;  // Set to report change immediately
 }
 
 // G-code parser entry-point for setting coolant state. Forces a planner buffer sync and bails
 // if an abort or check-mode is active.
-void coolant_sync(CoolantMode mode) {
+void coolant_sync(CoolantState state) {
     if (sys.state == STATE_CHECK_MODE) {
         return;
     }
     protocol_buffer_synchronize();  // Ensure coolant turns on when specified in program.
-    coolant_set_state(mode);
+    coolant_set_state(state);
 }

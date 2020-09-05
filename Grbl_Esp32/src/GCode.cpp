@@ -454,17 +454,17 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                         switch (int_value) {
 #ifdef COOLANT_MIST_PIN
                             case 7:
-                                gc_block.modal.coolant      = {};
-                                gc_block.modal.coolant.Mist = 1;
+                                gc_block.coolant = GCodeCoolantMode::M7;
                                 break;
 #endif
 #ifdef COOLANT_FLOOD_PIN
                             case 8:
-                                gc_block.modal.coolant       = {};
-                                gc_block.modal.coolant.Flood = 1;
+                                gc_block.coolant = GCodeCoolantMode::M8;
                                 break;
 #endif
-                            case 9: gc_block.modal.coolant = {}; break;
+                            case 9:
+                                gc_block.coolant = GCodeCoolantMode::M9;
+                                break;
                         }
                         mg_word_bit = ModalGroup::MM8;
                         break;
@@ -1270,15 +1270,24 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
     }
     pl_data->spindle = gc_state.modal.spindle;
     // [8. Coolant control ]:
-    if (gc_state.modal.coolant != gc_block.modal.coolant) {
-        // NOTE: Coolant M-codes are modal. Only one command per line is allowed. But, multiple states
-        // can exist at the same time, while coolant disable clears all states.
-        coolant_sync(gc_block.modal.coolant);
-        if (gc_block.modal.coolant.IsDisabled()) {
+    // At most one of M7, M8, M9 can appear in a GCode block, but the overall coolant
+    // state can have both mist (M7) and flood (M8) on at once, by issuing M7 and M8
+    // in separate blocks.  There is no GCode way to turn them off separately, but
+    // you can turn them off simultaneously with M9.
+    switch (gc_block.coolant) {
+        case GCodeCoolantMode::None: break;
+        case GCodeCoolantMode::M7:
+            gc_state.modal.coolant.Mist = 1;
+            coolant_sync(gc_state.modal.coolant);
+            break;
+        case GCodeCoolantMode::M8:
+            gc_state.modal.coolant.Flood = 1;
+            coolant_sync(gc_state.modal.coolant);
+            break;
+        case GCodeCoolantMode::M9:
             gc_state.modal.coolant = {};
-        } else {
-            gc_state.modal.coolant = CoolantMode(gc_state.modal.coolant, gc_block.modal.coolant);
-        }
+            coolant_sync(gc_state.modal.coolant);
+            break;
     }
     pl_data->coolant = gc_state.modal.coolant;  // Set state for planner use.
     // turn on/off an i/o pin
@@ -1474,7 +1483,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                 }
                 system_flag_wco_change();  // Set to refresh immediately just in case something altered.
                 spindle->set_state(SpindleState::Disable, 0);
-                coolant_set_state(CoolantMode());
+                coolant_off();
             }
             report_feedback_message(MESSAGE_PROGRAM_END);
 #ifdef USE_M30

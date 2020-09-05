@@ -55,7 +55,7 @@ typedef struct {
     // Block condition data to ensure correct execution depending on states and overrides.
     uint8_t      motion;   // Block bitflag motion conditions. Copied from pl_line_data.
     SpindleState spindle;  // Spindle enable state
-    CoolantMode  coolant;  // Coolant state
+    CoolantState coolant;  // Coolant state
 #ifdef USE_LINE_NUMBERS
     int32_t line_number;  // Block line number for real-time reporting. Copied from pl_line_data.
 #endif
@@ -85,7 +85,7 @@ typedef struct {
     uint32_t     spindle_speed;  // Desired spindle speed through line motion.
     uint8_t      motion;         // Bitflag variable to indicate motion conditions. See defines above.
     SpindleState spindle;        // Spindle enable state
-    CoolantMode  coolant;        // Coolant state
+    CoolantState coolant;        // Coolant state
 #ifdef USE_LINE_NUMBERS
     int32_t line_number;  // Desired line number to report when executing.
 #endif
