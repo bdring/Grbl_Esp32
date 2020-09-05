@@ -4,18 +4,7 @@
     This allows an Dynamixel sero to be used like any other motor. Servos
     do have limitation in travel and speed, so you do need to respect that.
 
-    Protocol 2
-
-    Some functions are statis. This allows one function to set the position of all
-    motors in one command. This gives a great perfomance increase. 
-
-    It also allows only one call to setup the UART
-
-    mPos is set as positive space from 0 to travel
-
-    TODO: 
-        Use a get_next_uart funtion
-        Allow each axis to set a dxl count range
+    Protocol 2   
 
     Part of Grbl_ESP32
 
@@ -50,7 +39,7 @@ namespace Motors {
         _rx_pin  = rx_pin;
         _rts_pin = rts_pin;
 
-        if (_tx_pin == UNDEFINED_PIN || _rx_pin== UNDEFINED_PIN || _rts_pin == UNDEFINED_PIN) {
+        if (_tx_pin == UNDEFINED_PIN || _rx_pin == UNDEFINED_PIN || _rts_pin == UNDEFINED_PIN) {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dymanixel Error. Missing pin definitions");
             return;
         }
@@ -60,7 +49,7 @@ namespace Motors {
     }
 
     void Dynamixel2::init() {
-        is_active = true;  // as opposed to NullMotors, this is a real motor
+        is_active = true;   // as opposed to NullMotors, this is a real motor
         _can_home = false;  // this axis cannot be conventionally homed
 
         init_uart(_id, axis_index, dual_axis_index);
@@ -87,7 +76,6 @@ namespace Motors {
                        0.0,
                        axis_settings[axis_index]->travel->get(),
                        axis_settings[axis_index]->home_mpos->get());
-
     }
 
     bool Dynamixel2::test() {
@@ -131,7 +119,7 @@ namespace Motors {
 
         _disabled = disable;
 
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis %s", _axis_name, disable ? "Disable" : "Enable");
+        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis %s", _axis_name, disable ? "Disable" : "Enable");
 
         if (_disabled)
             dxl_write(DXL_ADDR_TORQUE_EN, param_count, 0);
@@ -146,8 +134,7 @@ namespace Motors {
 
     void Dynamixel2::update() {
         if (_disabled) {
-            if (axis_index == X_AXIS)
-                dxl_read_position();
+            dxl_read_position();
         } else {
             dxl_bulk_goal_position();  // call the static method that updates all at once
         }
@@ -193,17 +180,13 @@ namespace Motors {
 
     // This motor will not do a standard home to a limit switch (maybe future)
     // If it is in the homing mask it will a quick move to $<axis>/Home/Mpos
-    void Dynamixel2::set_homing_mode(uint8_t homing_mask, bool isHoming) {        
+    void Dynamixel2::set_homing_mode(uint8_t homing_mask, bool isHoming) {
+        sys_position[axis_index] =
+            axis_settings[axis_index]->home_mpos->get() * axis_settings[axis_index]->steps_per_mm->get();  // convert to steps
 
-        if (bit_istrue(homing_mask, bit(axis_index))) {
-            sys_position[axis_index] =
-                axis_settings[axis_index]->home_mpos->get() * axis_settings[axis_index]->steps_per_mm->get();  // convert to steps
-        }       
-
+        set_disable(false);
         set_location();  // force the PWM to update now
-
-        vTaskDelay(DYNAMIXEL_FULL_MOVE_TIME);  // give time to move TODO Does this work?
-    }
+        }
 
     void Dynamixel2::dxl_goal_position(int32_t position) {
         uint8_t param_count = 4;
@@ -229,8 +212,7 @@ namespace Motors {
             dxl_position = dxl_rx_message[9] | (dxl_rx_message[10] << 8) | (dxl_rx_message[11] << 16) | (dxl_rx_message[12] << 24);
 
             int32_t min_mpos = 0;
-            int32_t max_mpos = axis_settings[axis_index]->travel->get() * axis_settings[axis_index]->steps_per_mm->get();
-            
+            float   max_mpos = axis_settings[axis_index]->travel->get() * axis_settings[axis_index]->steps_per_mm->get();
 
             // determine the range of the servo
             dxl_count_min = DXL_COUNT_MIN;
@@ -240,10 +222,11 @@ namespace Motors {
             if (bit_istrue(dir_invert_mask->get(), bit(axis_index)))  // normal direction
                 swap(dxl_count_min, dxl_count_max);
 
-            sys_position[axis_index] = map(dxl_position, dxl_count_min, dxl_count_max, min_mpos, max_mpos);
+            sys_position[axis_index] = map(dxl_position, dxl_count_min, dxl_count_max, min_mpos, (int32_t)max_mpos);
 
             return dxl_position;
         } else {
+            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Data len arror: %d", data_len);
             return 0;
         }
     }
@@ -348,11 +331,10 @@ namespace Motors {
 
                     //determine the location of the axis
                     mpos = system_convert_axis_steps_to_mpos(sys_position, axis);  // get the axis machine position in mm
-             
 
                     float min_mpos = 0;
                     float max_mpos = axis_settings[axis]->travel->get();
-         
+
                     // determine the range of the servo
                     dxl_count_min = DXL_COUNT_MIN;
                     dxl_count_max = DXL_COUNT_MAX;

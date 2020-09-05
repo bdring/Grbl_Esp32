@@ -27,14 +27,14 @@ namespace Motors {
     class RcServo : public Motor {
     public:
         RcServo();
-        RcServo(uint8_t axis_index, uint8_t pwm_pin, float min, float max);
+        RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max);
         virtual void config_message();
         virtual void init();
         void         _write_pwm(uint32_t duty);
         virtual void set_disable(bool disable);
         virtual void update();
         void         read_settings();
-        void         set_homing_mode(bool is_homing, bool isHoming);
+        void         set_homing_mode(uint8_t homing_mask, bool isHoming) override;
 
     protected:
         void set_location();
@@ -51,5 +51,8 @@ namespace Motors {
 
         float _pwm_pulse_min;
         float _pwm_pulse_max;
+
+        float _cal_min = 1.0;
+        float _cal_max = 1.0;
     };
 }
