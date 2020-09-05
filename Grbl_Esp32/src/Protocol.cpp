@@ -45,8 +45,9 @@ static void empty_line(uint8_t client) {
     cl->buffer[0]     = '\0';
 }
 static void empty_lines() {
-    for (uint8_t client = 0; client < CLIENT_COUNT; client++)
+    for (uint8_t client = 0; client < CLIENT_COUNT; client++) {
         empty_line(client);
+    }
 }
 
 err_t add_char_to_line(char c, uint8_t client) {
@@ -60,8 +61,9 @@ err_t add_char_to_line(char c, uint8_t client) {
         }
         return STATUS_OK;
     }
-    if (cl->len == (LINE_BUFFER_SIZE - 1))
+    if (cl->len == (LINE_BUFFER_SIZE - 1)) {
         return STATUS_OVERFLOW;
+    }
     if (c == '\r' || c == '\n') {
         cl->len = 0;
         cl->line_number++;
@@ -75,14 +77,17 @@ err_t add_char_to_line(char c, uint8_t client) {
 err_t execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level) {
     err_t result = STATUS_OK;
     // Empty or comment line. For syncing purposes.
-    if (line[0] == 0)
+    if (line[0] == 0) {
         return STATUS_OK;
+    }
     // Grbl '$' or WebUI '[ESPxxx]' system command
-    if (line[0] == '$' || line[0] == '[')
+    if (line[0] == '$' || line[0] == '[') {
         return system_execute_line(line, client, auth_level);
+    }
     // Everything else is gcode. Block if in alarm or jog mode.
-    if (sys.state & (STATE_ALARM | STATE_JOG))
+    if (sys.state & (STATE_ALARM | STATE_JOG)) {
         return STATUS_SYSTEM_GC_LOCK;
+    }
     return gc_execute_line(line, client);
 }
 
@@ -186,8 +191,9 @@ void protocol_main_loop() {
         }
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
         if (stepper_idle) {
-            if (esp_timer_get_time() > stepper_idle_counter)
+            if (esp_timer_get_time() > stepper_idle_counter) {
                 motors_set_disable(true);
+            }
         }
     }
     return; /* Never reached */
@@ -200,8 +206,9 @@ void protocol_buffer_synchronize() {
     protocol_auto_cycle_start();
     do {
         protocol_execute_realtime();  // Check and execute run-time commands
-        if (sys.abort)
+        if (sys.abort) {
             return;  // Check for system abort
+        }
     } while (plan_get_current_block() || (sys.state == STATE_CYCLE));
 }
 
@@ -230,8 +237,9 @@ void protocol_auto_cycle_start() {
 // limit switches, or the main program.
 void protocol_execute_realtime() {
     protocol_exec_rt_system();
-    if (sys.suspend)
+    if (sys.suspend) {
         protocol_exec_rt_suspend();
+    }
 }
 
 // Executes run-time commands, when required. This function primarily operates as Grbl's state
@@ -283,28 +291,32 @@ void protocol_exec_rt_system() {
                         st_update_plan_block_parameters();             // Notify stepper module to recompute for hold deceleration.
                         sys.step_control = STEP_CONTROL_EXECUTE_HOLD;  // Initiate suspend state with active flag.
                         if (sys.state == STATE_JOG) {                  // Jog cancelled upon any hold event, except for sleeping.
-                            if (!(rt_exec & EXEC_SLEEP))
+                            if (!(rt_exec & EXEC_SLEEP)) {
                                 sys.suspend |= SUSPEND_JOG_CANCEL;
+                            }
                         }
                     }
                 }
                 // If IDLE, Grbl is not in motion. Simply indicate suspend state and hold is complete.
-                if (sys.state == STATE_IDLE)
+                if (sys.state == STATE_IDLE) {
                     sys.suspend = SUSPEND_HOLD_COMPLETE;
+                }
                 // Execute and flag a motion cancel with deceleration and return to idle. Used primarily by probing cycle
                 // to halt and cancel the remainder of the motion.
                 if (rt_exec & EXEC_MOTION_CANCEL) {
                     // MOTION_CANCEL only occurs during a CYCLE, but a HOLD and SAFETY_DOOR may been initiated beforehand
                     // to hold the CYCLE. Motion cancel is valid for a single planner block motion only, while jog cancel
                     // will handle and clear multiple planner block motions.
-                    if (!(sys.state & STATE_JOG))
+                    if (!(sys.state & STATE_JOG)) {
                         sys.suspend |= SUSPEND_MOTION_CANCEL;  // NOTE: State is STATE_CYCLE.
+                    }
                 }
                 // Execute a feed hold with deceleration, if required. Then, suspend system.
                 if (rt_exec & EXEC_FEED_HOLD) {
                     // Block SAFETY_DOOR, JOG, and SLEEP states from changing to HOLD state.
-                    if (!(sys.state & (STATE_SAFETY_DOOR | STATE_JOG | STATE_SLEEP)))
+                    if (!(sys.state & (STATE_SAFETY_DOOR | STATE_JOG | STATE_SLEEP))) {
                         sys.state = STATE_HOLD;
+                    }
                 }
                 // Execute a safety door stop with a feed hold and disable spindle/coolant.
                 // NOTE: Safety door differs from feed holds by stopping everything no matter state, disables powered
@@ -329,8 +341,9 @@ void protocol_exec_rt_system() {
                                 sys.suspend |= SUSPEND_RESTART_RETRACT;
                             }
                         }
-                        if (sys.state != STATE_SLEEP)
+                        if (sys.state != STATE_SLEEP) {
                             sys.state = STATE_SAFETY_DOOR;
+                        }
                     }
                     // NOTE: This flag doesn't change when the door closes, unlike sys.state. Ensures any parking motions
                     // are executed if the door switch closes and the state returns to HOLD.
@@ -338,8 +351,9 @@ void protocol_exec_rt_system() {
                 }
             }
             if (rt_exec & EXEC_SLEEP) {
-                if (sys.state == STATE_ALARM)
+                if (sys.state == STATE_ALARM) {
                     sys.suspend |= (SUSPEND_RETRACT_COMPLETE | SUSPEND_HOLD_COMPLETE);
+                }
                 sys.state = STATE_SLEEP;
             }
             system_clear_exec_state_flag((EXEC_MOTION_CANCEL | EXEC_FEED_HOLD | EXEC_SAFETY_DOOR | EXEC_SLEEP));
@@ -393,8 +407,9 @@ void protocol_exec_rt_system() {
                 // Hold complete. Set to indicate ready to resume.  Remain in HOLD or DOOR states until user
                 // has issued a resume command or reset.
                 plan_cycle_reinitialize();
-                if (sys.step_control & STEP_CONTROL_EXECUTE_HOLD)
+                if (sys.step_control & STEP_CONTROL_EXECUTE_HOLD) {
                     sys.suspend |= SUSPEND_HOLD_COMPLETE;
+                }
                 bit_false(sys.step_control, (STEP_CONTROL_EXECUTE_HOLD | STEP_CONTROL_EXECUTE_SYS_MOTION));
             } else {
                 // Motion complete. Includes CYCLE/JOG/HOMING states and jog cancel/motion cancel/soft limit events.
@@ -423,25 +438,33 @@ void protocol_exec_rt_system() {
     if (rt_exec) {
         system_clear_exec_motion_overrides();  // Clear all motion override flags.
         uint8_t new_f_override = sys.f_override;
-        if (rt_exec & EXEC_FEED_OVR_RESET)
+        if (rt_exec & EXEC_FEED_OVR_RESET) {
             new_f_override = DEFAULT_FEED_OVERRIDE;
-        if (rt_exec & EXEC_FEED_OVR_COARSE_PLUS)
+        }
+        if (rt_exec & EXEC_FEED_OVR_COARSE_PLUS) {
             new_f_override += FEED_OVERRIDE_COARSE_INCREMENT;
-        if (rt_exec & EXEC_FEED_OVR_COARSE_MINUS)
+        }
+        if (rt_exec & EXEC_FEED_OVR_COARSE_MINUS) {
             new_f_override -= FEED_OVERRIDE_COARSE_INCREMENT;
-        if (rt_exec & EXEC_FEED_OVR_FINE_PLUS)
+        }
+        if (rt_exec & EXEC_FEED_OVR_FINE_PLUS) {
             new_f_override += FEED_OVERRIDE_FINE_INCREMENT;
-        if (rt_exec & EXEC_FEED_OVR_FINE_MINUS)
+        }
+        if (rt_exec & EXEC_FEED_OVR_FINE_MINUS) {
             new_f_override -= FEED_OVERRIDE_FINE_INCREMENT;
+        }
         new_f_override         = MIN(new_f_override, MAX_FEED_RATE_OVERRIDE);
         new_f_override         = MAX(new_f_override, MIN_FEED_RATE_OVERRIDE);
         uint8_t new_r_override = sys.r_override;
-        if (rt_exec & EXEC_RAPID_OVR_RESET)
+        if (rt_exec & EXEC_RAPID_OVR_RESET) {
             new_r_override = DEFAULT_RAPID_OVERRIDE;
-        if (rt_exec & EXEC_RAPID_OVR_MEDIUM)
+        }
+        if (rt_exec & EXEC_RAPID_OVR_MEDIUM) {
             new_r_override = RAPID_OVERRIDE_MEDIUM;
-        if (rt_exec & EXEC_RAPID_OVR_LOW)
+        }
+        if (rt_exec & EXEC_RAPID_OVR_LOW) {
             new_r_override = RAPID_OVERRIDE_LOW;
+        }
         if ((new_f_override != sys.f_override) || (new_r_override != sys.r_override)) {
             sys.f_override         = new_f_override;
             sys.r_override         = new_r_override;
@@ -455,16 +478,21 @@ void protocol_exec_rt_system() {
         system_clear_exec_accessory_overrides();  // Clear all accessory override flags.
         // NOTE: Unlike motion overrides, spindle overrides do not require a planner reinitialization.
         uint8_t last_s_override = sys.spindle_speed_ovr;
-        if (rt_exec & EXEC_SPINDLE_OVR_RESET)
+        if (rt_exec & EXEC_SPINDLE_OVR_RESET) {
             last_s_override = DEFAULT_SPINDLE_SPEED_OVERRIDE;
-        if (rt_exec & EXEC_SPINDLE_OVR_COARSE_PLUS)
+        }
+        if (rt_exec & EXEC_SPINDLE_OVR_COARSE_PLUS) {
             last_s_override += SPINDLE_OVERRIDE_COARSE_INCREMENT;
-        if (rt_exec & EXEC_SPINDLE_OVR_COARSE_MINUS)
+        }
+        if (rt_exec & EXEC_SPINDLE_OVR_COARSE_MINUS) {
             last_s_override -= SPINDLE_OVERRIDE_COARSE_INCREMENT;
-        if (rt_exec & EXEC_SPINDLE_OVR_FINE_PLUS)
+        }
+        if (rt_exec & EXEC_SPINDLE_OVR_FINE_PLUS) {
             last_s_override += SPINDLE_OVERRIDE_FINE_INCREMENT;
-        if (rt_exec & EXEC_SPINDLE_OVR_FINE_MINUS)
+        }
+        if (rt_exec & EXEC_SPINDLE_OVR_FINE_MINUS) {
             last_s_override -= SPINDLE_OVERRIDE_FINE_INCREMENT;
+        }
         last_s_override = MIN(last_s_override, MAX_SPINDLE_SPEED_OVERRIDE);
         last_s_override = MAX(last_s_override, MIN_SPINDLE_SPEED_OVERRIDE);
         if (last_s_override != sys.spindle_speed_ovr) {
@@ -472,17 +500,19 @@ void protocol_exec_rt_system() {
             sys.spindle_speed_ovr  = last_s_override;
             sys.report_ovr_counter = 0;  // Set to report change immediately
             // If spinlde is on, tell it the rpm has been overridden
-            if (gc_state.modal.spindle != SpindleState::Disable)
+            if (gc_state.modal.spindle != SpindleState::Disable) {
                 spindle->set_rpm(gc_state.spindle_speed);
+            }
         }
         if (rt_exec & EXEC_SPINDLE_OVR_STOP) {
             // Spindle stop override allowed only while in HOLD state.
             // NOTE: Report counters are set in spindle_set_state() when spindle stop is executed.
             if (sys.state == STATE_HOLD) {
-                if (!(sys.spindle_stop_ovr))
+                if (!(sys.spindle_stop_ovr)) {
                     sys.spindle_stop_ovr = SPINDLE_STOP_OVR_INITIATE;
-                else if (sys.spindle_stop_ovr & SPINDLE_STOP_OVR_ENABLED)
+                } else if (sys.spindle_stop_ovr & SPINDLE_STOP_OVR_ENABLED) {
                     sys.spindle_stop_ovr |= SPINDLE_STOP_OVR_RESTORE;
+                }
             }
         }
         // NOTE: Since coolant state always performs a planner sync whenever it changes, the current
@@ -492,18 +522,20 @@ void protocol_exec_rt_system() {
                 CoolantMode coolant_state = gc_state.modal.coolant;
 #ifdef COOLANT_FLOOD_PIN
                 if (rt_exec & EXEC_COOLANT_FLOOD_OVR_TOGGLE) {
-                    if (coolant_state & CoolantMode::Flood)
-                        bit_false(coolant_state, CoolantMode::Flood);
-                    else
-                        coolant_state |= CoolantMode::Flood;
+                    if (coolant_state.Flood) {
+                        coolant_state.Flood = 0;
+                    } else {
+                        coolant_state.Flood = 1;
+                    }
                 }
 #endif
 #ifdef COOLANT_MIST_PIN
                 if (rt_exec & EXEC_COOLANT_MIST_OVR_TOGGLE) {
-                    if (coolant_state & CoolantMode::Mist)
-                        bit_false(coolant_state, CoolantMode::Mist);
-                    else
-                        coolant_state |= CoolantMode::Mist;
+                    if (coolant_state.Mist) {
+                        coolant_state.Mist = 0;
+                    } else {
+                        coolant_state.Mist = 1;
+                    }
                 }
 #endif
                 coolant_set_state(coolant_state);  // Report counter set in coolant_set_state().
@@ -518,8 +550,9 @@ void protocol_exec_rt_system() {
     }
 #endif
     // Reload step segment buffer
-    if (sys.state & (STATE_CYCLE | STATE_HOLD | STATE_SAFETY_DOOR | STATE_HOMING | STATE_SLEEP | STATE_JOG))
+    if (sys.state & (STATE_CYCLE | STATE_HOLD | STATE_SAFETY_DOOR | STATE_HOMING | STATE_SLEEP | STATE_JOG)) {
         st_prep_buffer();
+    }
 }
 
 // Handles Grbl system suspend procedures, such as feed hold, safety door, and parking motion.
@@ -555,13 +588,15 @@ static void protocol_exec_rt_suspend() {
         restore_spindle_speed = block->spindle_speed;
     }
 #ifdef DISABLE_LASER_DURING_HOLD
-    if (laser_mode->get())
+    if (laser_mode->get()) {
         system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP);
+    }
 #endif
 
     while (sys.suspend) {
-        if (sys.abort)
+        if (sys.abort) {
             return;
+        }
         // Block until initial hold is complete and the machine has stopped motion.
         if (sys.suspend & SUSPEND_HOLD_COMPLETE) {
             // Parking manager. Handles de/re-energizing, switch state checks, and parking motions for
@@ -573,7 +608,7 @@ static void protocol_exec_rt_suspend() {
                     sys.spindle_stop_ovr = SPINDLE_STOP_OVR_DISABLED;
 #ifndef PARKING_ENABLE
                     spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                    coolant_set_state(CoolantMode::Disable);       // De-energize
+                    coolant_set_state(CoolantMode());              // De-energize
 #else
                     // Get current position and store restore location and spindle retract waypoint.
                     system_convert_array_steps_to_mpos(parking_target, sys_position);
@@ -598,11 +633,11 @@ static void protocol_exec_rt_suspend() {
                         }
                         // NOTE: Clear accessory state after retract and after an aborted restore motion.
                         pl_data->spindle       = SpindleState::Disable;
-                        pl_data->coolant       = CoolantMode::Disable;
+                        pl_data->coolant       = CoolantMode();
                         pl_data->motion        = (PL_MOTION_SYSTEM_MOTION | PL_MOTION_NO_FEED_OVERRIDE);
                         pl_data->spindle_speed = 0.0;
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                        coolant_set_state(CoolantMode::Disable);       // De-energize
+                        coolant_set_state(CoolantMode());              // De-energize
                                                                        // Execute fast parking retract motion to parking target location.
                         if (parking_target[PARKING_AXIS] < PARKING_TARGET) {
                             parking_target[PARKING_AXIS] = PARKING_TARGET;
@@ -613,7 +648,7 @@ static void protocol_exec_rt_suspend() {
                         // Parking motion not possible. Just disable the spindle and coolant.
                         // NOTE: Laser mode does not start a parking motion to ensure the laser stops immediately.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                        coolant_set_state(CoolantMode::Disable);       // De-energize
+                        coolant_set_state(CoolantMode());              // De-energize
                     }
 #endif
                     sys.suspend &= ~(SUSPEND_RESTART_RETRACT);
@@ -623,11 +658,12 @@ static void protocol_exec_rt_suspend() {
                         report_feedback_message(MESSAGE_SLEEP_MODE);
                         // Spindle and coolant should already be stopped, but do it again just to be sure.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                        coolant_set_state(CoolantMode::Disable);       // De-energize
+                        coolant_set_state(CoolantMode());              // De-energize
                         st_go_idle();                                  // Disable steppers
-                        while (!(sys.abort))
+                        while (!(sys.abort)) {
                             protocol_exec_rt_system();  // Do nothing until reset.
-                        return;                         // Abort received. Return to re-initialize.
+                        }
+                        return;  // Abort received. Return to re-initialize.
                     }
                     // Allows resuming from parking/safety door. Actively checks if safety door is closed and ready to resume.
                     if (sys.state == STATE_SAFETY_DOOR) {
@@ -662,7 +698,7 @@ static void protocol_exec_rt_suspend() {
                                 }
                             }
                         }
-                        if (gc_state.modal.coolant != CoolantMode::Disable) {
+                        if (!gc_state.modal.coolant.IsDisabled()) {
                             // Block if safety door re-opened during prior restore actions.
                             if (bit_isfalse(sys.suspend, SUSPEND_RESTART_RETRACT)) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.

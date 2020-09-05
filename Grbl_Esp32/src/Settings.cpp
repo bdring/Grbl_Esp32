@@ -375,8 +375,9 @@ const char* StringSetting::getStringValue() {
 #endif
                         _checker == (bool (*)(char*))WebUI::COMMANDS::isLocalPasswordValid)) {
         return "******";
+    } else {
+        return _currentValue.c_str();
     }
-    return _currentValue.c_str();
 }
 
 void StringSetting::addWebui(WebUI::JSONencoder* j) {

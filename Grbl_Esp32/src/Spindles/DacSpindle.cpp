@@ -28,8 +28,9 @@ namespace Spindles {
     void Dac::init() {
         get_pins_and_settings();
 
-        if (_output_pin == UNDEFINED_PIN)
+        if (_output_pin == UNDEFINED_PIN) {
             return;
+        }
 
         _min_rpm       = rpm_min->get();
         _max_rpm       = rpm_max->get();
@@ -62,8 +63,9 @@ namespace Spindles {
     }
 
     uint32_t Dac::set_rpm(uint32_t rpm) {
-        if (_output_pin == UNDEFINED_PIN)
+        if (_output_pin == UNDEFINED_PIN) {
             return rpm;
+        }
 
         uint32_t pwm_value;
 

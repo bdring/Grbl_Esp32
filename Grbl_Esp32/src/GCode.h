@@ -145,10 +145,18 @@ enum class SpindleState : uint8_t {
 };
 
 // Modal Group M8: Coolant control
-enum class CoolantMode : uint8_t {
-    Disable = 0,  // M9 (Default: Must be zero)
-    Flood   = 1,  // M8
-    Mist    = 2,  // M7
+class CoolantMode {
+public:
+    inline CoolantMode() : Flood(0), Mist(0) {}  // M9 (Default: Must be zero)
+    inline CoolantMode(CoolantMode lhs, CoolantMode rhs) : Flood(lhs.Flood | rhs.Flood), Mist(lhs.Mist | rhs.Mist) {}
+
+    uint8_t Flood : 1;  // M8
+    uint8_t Mist : 1;   // M7
+
+    inline bool IsDisabled() const { return Flood == 0 && Mist == 0; }
+
+    inline bool operator==(const CoolantMode& o) const { return Flood == o.Flood && Mist == o.Mist; }
+    inline bool operator!=(const CoolantMode& o) const { return !operator==(o); }
 };
 
 // Modal Group M9: Override control
