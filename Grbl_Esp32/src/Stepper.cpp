@@ -782,11 +782,7 @@ void st_parking_restore_buffer() {
 // Increments the step segment buffer block data ring buffer.
 static uint8_t st_next_block_index(uint8_t block_index) {
     block_index++;
-    if (block_index == (SEGMENT_BUFFER_SIZE - 1)) {
-        return 0;
-    } else {
-        return block_index;
-    }
+    return block_index == (SEGMENT_BUFFER_SIZE - 1) ? 0 : block_index;
 }
 
 /* Prepares step segment buffer. Continuously called from main program.
@@ -1227,11 +1223,7 @@ void st_prep_buffer() {
 // in the segment buffer. It will always be behind by up to the number of segment blocks (-1)
 // divided by the ACCELERATION TICKS PER SECOND in seconds.
 float st_get_realtime_rate() {
-    if (sys.state & (STATE_CYCLE | STATE_HOMING | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) {
-        return prep.current_speed;
-    } else {
-        return 0.0f;
-    }
+    return sys.state & (STATE_CYCLE | STATE_HOMING | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR) ? prep.current_speed : 0.0f;
 }
 
 void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {
