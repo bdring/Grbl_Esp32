@@ -24,12 +24,12 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Define modal group internal numbers for checking multiple command violations and tracking the
+// Modal group internal numbers for checking multiple command violations and tracking the
 // type of command that is called in the block. A modal group is a group of g-code commands that are
 // mutually exclusive, or cannot exist on the same line, because they each toggle a state or execute
 // a unique motion. These are defined in the NIST RS274-NGC v3 g-code standard, available online,
 // and are similar/identical to other g-code interpreters by manufacturers (Haas,Fanuc,Mazak,etc).
-// NOTE: Modal group define values must be sequential and starting from zero.
+// NOTE: Modal group values must be sequential and starting from zero.
 
 enum class ModalGroup : uint8_t {
     MG0  = 0,   // [G4,G10,G28,G28.1,G30,G30.1,G53,G92,G92.1] Non-modal
@@ -51,7 +51,7 @@ enum class ModalGroup : uint8_t {
     MM10 = 15,  // [M62, M63] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
 };
 
-// Define command actions for within execution-type modal groups (motion, stopping, non-modal). Used
+// Command actions for within execution-type modal groups (motion, stopping, non-modal). Used
 // internally by the parser to know which command to execute.
 // NOTE: Some macro values are assigned specific values to make g-code state reporting and parsing
 // compile a litte smaller. Necessary due to being completely out of flash on the 328p. Although not
@@ -144,21 +144,24 @@ enum class SpindleState : uint8_t {
     Ccw     = 2,  // M4
 };
 
-// Modal Group M8: Coolant control
-class CoolantMode {
-public:
-    inline CoolantMode() : Flood(0), Mist(0) {}  // M9 (Default: Must be zero)
-    inline CoolantMode(CoolantMode lhs, CoolantMode rhs) : Flood(lhs.Flood | rhs.Flood), Mist(lhs.Mist | rhs.Mist) {}
-
-    uint8_t Flood : 1;  // M8
-    uint8_t Mist : 1;   // M7
-
-    inline bool IsDisabled() const { return Flood == 0 && Mist == 0; }
-
-    inline bool operator==(const CoolantMode& o) const { return Flood == o.Flood && Mist == o.Mist; }
-    inline bool operator!=(const CoolantMode& o) const { return !operator==(o); }
+// GCodeCoolant is used by the parser, where at most one of
+// M7, M8, M9 may be present in a GCode block
+enum class GCodeCoolant : uint8_t {
+    None = 0,
+    M7,
+    M8,
+    M9,
 };
 
+// CoolantState is used for the runtime state, where either of
+// the Mist and Flood state bits can be set independently.
+// Unlike GCode, overrides permit individual turn-off.
+struct CoolantState {
+    uint8_t Mist : 1;
+    uint8_t Flood : 1;
+};
+
+// Modal Group M8: Coolant control
 // Modal Group M9: Override control
 enum class Override : uint8_t {
 #ifdef DEACTIVATE_PARKING_UPON_INIT
@@ -170,7 +173,7 @@ enum class Override : uint8_t {
 #endif
 };
 
-// modal Group M10: User I/O control
+// Modal Group M10: User I/O control
 enum class IoControl : uint8_t {
     Enable  = 1,
     Disable = 2,
@@ -192,7 +195,7 @@ enum class ToolChange : uint8_t {
 // Modal Group G12: Active work coordinate system
 // N/A: Stores coordinate system value (54-59) to change to.
 
-// Define parameter word mapping.
+// Parameter word mapping.
 enum class GCodeWord : uint8_t {
     F = 0,
     I = 1,
@@ -212,14 +215,14 @@ enum class GCodeWord : uint8_t {
     C = 15,
 };
 
-// Define g-code parser position updating flags
+// GCode parser position updating flags
 enum class GCUpdatePos : uint8_t {
     Target = 0,  // Must be zero
     System = 1,
     None   = 2,
 };
 
-// Define gcode parser flags for handling special cases.
+// GCode parser flags for handling special cases.
 enum GCParserFlags {
     GCParserNone           = 0,  // Must be zero.
     GCParserJogMotion      = bit(0),
@@ -232,7 +235,7 @@ enum GCParserFlags {
     GCParserLaserIsMotion  = bit(7),
 };
 
-// NOTE: When this struct is zeroed, the above defines set the defaults for the system.
+// NOTE: When this struct is zeroed, the 0 values in the above types set the system defaults.
 typedef struct {
     Motion   motion;     // {G0,G1,G2,G3,G38.2,G80}
     FeedRate feed_rate;  // {G93,G94}
@@ -245,7 +248,7 @@ typedef struct {
     uint8_t          coord_select;  // {G54,G55,G56,G57,G58,G59}
     // uint8_t control;      // {G61} NOTE: Don't track. Only default supported.
     ProgramFlow  program_flow;  // {M0,M1,M2,M30}
-    CoolantMode  coolant;       // {M7,M8,M9}
+    CoolantState coolant;       // {M7,M8,M9}
     SpindleState spindle;       // {M3,M4,M5}
     ToolChange   tool_change;   // {M6}
     IoControl    io_control;    // {M62, M63}
@@ -284,9 +287,10 @@ typedef struct {
 extern parser_state_t gc_state;
 
 typedef struct {
-    NonModal    non_modal_command;
-    gc_modal_t  modal;
-    gc_values_t values;
+    NonModal     non_modal_command;
+    gc_modal_t   modal;
+    gc_values_t  values;
+    GCodeCoolant coolant;
 } parser_block_t;
 
 enum class AxisCommand : uint8_t {
