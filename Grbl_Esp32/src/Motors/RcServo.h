@@ -38,7 +38,6 @@ namespace Motors {
 
     protected:
         void set_location();
-        void _get_calibration();
 
         uint8_t  _pwm_pin;
         uint8_t  _channel_num;

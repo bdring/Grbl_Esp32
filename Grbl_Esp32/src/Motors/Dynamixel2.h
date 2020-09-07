@@ -92,6 +92,7 @@ namespace Motors {
         static uint8_t ids[MAX_N_AXIS][2];
 
         void set_homing_mode(uint8_t homing_mask, bool isHoming) override;
+        void read_settings();
 
     protected:
         void set_location();
@@ -116,8 +117,8 @@ namespace Motors {
 
         bool _disabled;
 
-        float _position_min;
-        float _position_max;  // position in millimeters
+        float _position_min = 0;
+        float _position_max = 0;  // position in millimeters
         float _homing_position;
 
         float _dxl_count_min;

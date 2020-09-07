@@ -104,7 +104,7 @@ namespace Motors {
         uint32_t servo_pulse_len;
         float    servo_pos, mpos, offset;
 
-        _get_calibration();
+        read_settings();
 
         // skip location if we are in alarm mode
         if (sys.state == STATE_ALARM) {
@@ -123,10 +123,7 @@ namespace Motors {
         _write_pwm(servo_pulse_len);
     }
 
-    void RcServo::read_settings() { _get_calibration(); }
-
-    // this should change to use its own settings.
-    void RcServo::_get_calibration() {
+    void RcServo::read_settings() {
         float travel = axis_settings[axis_index]->travel->get();
         float mpos   = axis_settings[axis_index]->home_mpos->get();
         //float max_mpos, min_mpos;
@@ -145,4 +142,6 @@ namespace Motors {
         if (bit_istrue(dir_invert_mask->get(), bit(axis_index)))  // normal direction
             swap(_pwm_pulse_min, _pwm_pulse_max);
     }
+
+    
 }

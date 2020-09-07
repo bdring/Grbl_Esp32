@@ -248,7 +248,7 @@ void make_settings() {
     }
     for (axis = N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
-        auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 130), makename(def->name, "Travel"), def->travel, 1.0, 100000.0);
+        auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 130), makename(def->name, "MaxTravel"), def->travel, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->travel = setting;
     }

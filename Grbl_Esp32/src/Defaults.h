@@ -524,7 +524,7 @@
 #endif
 
 #ifndef SERVO_TIMER_INTERVAL
-#    define SERVO_TIMER_INTERVAL 50.0  // Hz This is the update inveral in milliseconds
+#    define SERVO_TIMER_INTERVAL 75.0  // Hz This is the update inveral in milliseconds
 #endif
 
 #ifndef DYNAMIXEL_TXD
