@@ -206,9 +206,9 @@ void get_state(char* foo) {
 // operation. Errors events can originate from the g-code parser, settings module, or asynchronously
 // from a critical error, such as a triggered hard limit. Interface should always monitor for these
 // responses.
-void report_status_message(uint8_t status_code, uint8_t client) {
+void report_status_message(Error status_code, uint8_t client) {
     switch (status_code) {
-        case STATUS_OK:  // STATUS_OK
+        case Error::Ok:  // Error::Ok
 #ifdef ENABLE_SD_CARD
             if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
                 SD_ready_next = true;  // flag so system_execute_line() will send the next line
@@ -223,7 +223,7 @@ void report_status_message(uint8_t status_code, uint8_t client) {
 #ifdef ENABLE_SD_CARD
             // do we need to stop a running SD job?
             if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
-                if (status_code == STATUS_GCODE_UNSUPPORTED_COMMAND) {
+                if (status_code == Error::GcodeUnsupportedCommand) {
                     grbl_sendf(client, "error:%d\r\n", status_code);  // most senders seem to tolerate this error and keep on going
                     grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
                     // don't close file
@@ -235,7 +235,7 @@ void report_status_message(uint8_t status_code, uint8_t client) {
                 return;
             }
 #endif
-            grbl_sendf(client, "error:%d\r\n", status_code);
+            grbl_sendf(client, "error:%d\r\n", static_cast<int>(status_code));
     }
 }
 
@@ -310,7 +310,7 @@ void report_ngc_parameters(uint8_t client) {
     ngc_rpt[0] = '\0';
     for (coord_select = 0; coord_select <= SETTING_INDEX_NCOORD; coord_select++) {
         if (!(settings_read_coord_data(coord_select, coord_data))) {
-            report_status_message(STATUS_SETTING_READ_FAIL, CLIENT_SERIAL);
+            report_status_message(Error::SettingReadFail, CLIENT_SERIAL);
             return;
         }
         strcat(ngc_rpt, "[G");
@@ -451,7 +451,7 @@ void report_startup_line(uint8_t n, const char* line, uint8_t client) {
     grbl_sendf(client, "$N%d=%s\r\n", n, line);  // OK to send to all
 }
 
-void report_execute_startup_message(const char* line, uint8_t status_code, uint8_t client) {
+void report_execute_startup_message(const char* line, Error status_code, uint8_t client) {
     grbl_sendf(client, ">%s:", line);  // OK to send to all
     report_status_message(status_code, client);
 }
