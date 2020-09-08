@@ -27,12 +27,12 @@ namespace Motors {
     StandardStepper::StandardStepper() {}
 
     StandardStepper::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) {
-        type_id               = STANDARD_MOTOR;
-        this->axis_index      = axis_index % MAX_AXES;
-        this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
-        this->step_pin        = step_pin;
-        this->dir_pin         = dir_pin;
-        this->disable_pin     = disable_pin;
+        type_id                = STANDARD_MOTOR;
+        this->_axis_index      = axis_index % MAX_AXES;
+        this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
+        this->step_pin         = step_pin;
+        this->dir_pin          = dir_pin;
+        this->disable_pin      = disable_pin;
         init();
     }
 
@@ -41,12 +41,13 @@ namespace Motors {
         is_active    = true;  // as opposed to NullMotors, this is a real motor
         set_axis_name();
         init_step_dir_pins();
+        read_settings();
         config_message();
     }
 
     void StandardStepper::init_step_dir_pins() {
         // TODO Step pin, but RMT complicates things
-        _invert_step_pin = bit_istrue(step_invert_mask->get(), bit(axis_index));
+        _invert_step_pin = bit_istrue(step_invert_mask->get(), bit(_axis_index));
         pinMode(dir_pin, OUTPUT);
 
 #ifdef USE_RMT_STEPS
@@ -70,9 +71,9 @@ namespace Motors {
         rmtItem[1].duration0 = 0;
         rmtItem[1].duration1 = 0;
 
-        rmt_chan_num[axis_index][dual_axis_index] = sys_get_next_RMT_chan_num();
-        rmt_set_source_clk((rmt_channel_t)rmt_chan_num[axis_index][dual_axis_index], RMT_BASECLK_APB);
-        rmtConfig.channel              = (rmt_channel_t)rmt_chan_num[axis_index][dual_axis_index];
+        rmt_chan_num[_axis_index][_dual_axis_index] = sys_get_next_RMT_chan_num();
+        rmt_set_source_clk((rmt_channel_t)rmt_chan_num[_axis_index][_dual_axis_index], RMT_BASECLK_APB);
+        rmtConfig.channel              = (rmt_channel_t)rmt_chan_num[_axis_index][_dual_axis_index];
         rmtConfig.tx_config.idle_level = _invert_step_pin ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
         rmtConfig.gpio_num             = gpio_num_t(step_pin);  // c is a wacky lang
         rmtItem[0].level0              = rmtConfig.tx_config.idle_level;
@@ -90,14 +91,16 @@ namespace Motors {
     void StandardStepper::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
-                       "%s Axis standard stepper motor Step:%s Dir:%s Disable:%s",
+                       "%s Axis Standard Stepper Step:%s Dir:%s Disable:%s Limits(%0.3f,%0.3f)",
                        _axis_name,
                        pinName(step_pin).c_str(),
                        pinName(dir_pin).c_str(),
-                       pinName(disable_pin).c_str());
+                       pinName(disable_pin).c_str(),
+                       _position_min,
+                       _position_max);
     }
 
-    void StandardStepper::set_direction_pins(uint8_t onMask) { digitalWrite(dir_pin, (onMask & bit(axis_index))); }
+    void StandardStepper::set_direction_pins(uint8_t onMask) { digitalWrite(dir_pin, (onMask & bit(_axis_index))); }
 
     void StandardStepper::set_disable(bool disable) { digitalWrite(disable_pin, disable); }
 }

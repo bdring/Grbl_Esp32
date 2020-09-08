@@ -36,7 +36,16 @@ extern uint8_t      rmt_chan_num[MAX_AXES][2];
 extern rmt_item32_t rmtItem[2];
 extern rmt_config_t rmtConfig;
 
-typedef enum { MOTOR, NULL_MOTOR, STANDARD_MOTOR, TRINAMIC_SPI_MOTOR, UNIPOLAR_MOTOR, RC_SERVO_MOTOR, SOLENOID } motor_class_id_t;
+typedef enum {
+    MOTOR,
+    NULL_MOTOR,
+    STANDARD_MOTOR,
+    TRINAMIC_SPI_MOTOR,
+    UNIPOLAR_MOTOR,
+    RC_SERVO_MOTOR,
+    SOLENOID,
+    DYNAMIXEL2
+} motor_class_id_t;
 
 // These are used for setup and to talk to the motors as a group.
 void    init_motors();
@@ -49,5 +58,6 @@ void    motors_set_disable(bool disable);
 void    motors_set_direction_pins(uint8_t onMask);
 void    motors_step(uint8_t step_mask, uint8_t dir_mask);
 void    servoUpdateTask(void* pvParameters);
+bool    motor_can_home(uint8_t index);
 
 extern bool motor_class_steps;  // true if at least one motor class is handling steps

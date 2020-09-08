@@ -132,8 +132,8 @@
 // pins for that axis, but instead include a block like this:
 
 // #define SERVO_Z_PIN             GPIO_NUM_22
-// #define SERVO_Z_RANGE_MIN       0.0
-// #define SERVO_Z_RANGE_MAX       5.0
+// #define Z_SERVO_CAL_MIN       1.0 // calibration factor for the minimum PWM duty
+// #define Z_SERVO_CAL_MIN       1.0 // calibration factor for the maximum PWM duty
 
 // === Homing cycles
 // The default homing order is Z first (HOMING_CYCLE_0),
