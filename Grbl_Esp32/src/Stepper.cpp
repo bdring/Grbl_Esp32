@@ -443,8 +443,8 @@ static void stepper_pulse_func() {
 }
 
 void stepper_init() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", stepper_names[current_stepper]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", N_AXIS);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepper_names[current_stepper]);
 
 #ifdef USE_I2S_STEPS
     // I2S stepper stream mode use callback but timer interrupt
@@ -455,7 +455,7 @@ void stepper_init() {
 }
 
 void stepper_switch(stepper_id_t new_stepper) {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_DEBUG, "Switch stepper: %s -> %s", stepper_names[current_stepper], stepper_names[new_stepper]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Switch stepper: %s -> %s", stepper_names[current_stepper], stepper_names[new_stepper]);
     if (current_stepper == new_stepper) {
         // do not need to change
         return;
@@ -465,7 +465,7 @@ void stepper_switch(stepper_id_t new_stepper) {
         if (i2s_out_get_pulser_status() != PASSTHROUGH) {
             // This switching function should not be called during streaming.
             // However, if it is called, it will stop streaming.
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_WARNING, "Stop the I2S streaming and switch to the passthrough mode.");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Warning, "Stop the I2S streaming and switch to the passthrough mode.");
             i2s_out_set_passthrough();
             i2s_out_delay();
         }
@@ -476,7 +476,7 @@ void stepper_switch(stepper_id_t new_stepper) {
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void st_wake_up() {
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "st_wake_up");
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "st_wake_up");
     // Enable stepper drivers.
     motors_set_disable(false);
     stepper_idle = false;
@@ -1084,8 +1084,8 @@ void st_prep_buffer() {
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
                 if (st_prep_block->is_pwm_rate_adjusted) {
                     rpm *= (prep.current_speed * prep.inv_rate);
-                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RPM %.2f", rpm);
-                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RPM %.2f", rpm);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
                 }
                 // If current_speed is zero, then may need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE)
                 // but this would be instantaneous only and during a motion. May not matter at all.

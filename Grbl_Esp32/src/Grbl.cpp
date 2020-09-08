@@ -31,8 +31,8 @@ void grbl_init() {
     WiFi.enableAP(false);
     WiFi.mode(WIFI_OFF);
     serial_init();  // Setup serial baud rate and interrupts
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
 // show the map name at startup
 #ifdef MACHINE_NAME
     report_machine_type(CLIENT_SERIAL);

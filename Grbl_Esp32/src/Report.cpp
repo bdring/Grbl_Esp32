@@ -47,6 +47,8 @@
 */
 
 #include "Grbl.h"
+#include <map>
+
 #ifdef REPORT_HEAP
 EspClass esp;
 #endif
@@ -105,7 +107,7 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
     }
 }
 // Use to send [MSG:xxxx] Type messages. The level allows messages to be easily suppressed
-void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
+void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...) {
     if (client == CLIENT_INPUT) {
         return;
     }
@@ -245,30 +247,36 @@ void report_alarm_message(uint8_t alarm_code) {
     delay_ms(500);                                       // Force delay to ensure message clears serial write buffer.
 }
 
+std::map<Message, const char*> MessageText = {
+    { Message::CriticalEvent, "Reset to continue" },
+    { Message::AlarmLock, "'$H'|'$X' to unlock" },
+    { Message::AlarmUnlock, "Caution: Unlocked" },
+    { Message::Enabled, "Enabled" },
+    { Message::Disabled, "Disabled" },
+    { Message::SafetyDoorAjar, "Check door" },
+    { Message::CheckLimits, "Check limits" },
+    { Message::ProgramEnd, "Program End" },
+    { Message::RestoreDefaults, "Restoring defaults" },
+    { Message::SpindleRestore, "Restoring spindle" },
+    { Message::SleepMode, "Sleeping" },
+    // Handled separately due to numeric argument
+    // { Message::SdFileQuit, "Reset during SD file at line: %d" },
+};
+
 // Prints feedback messages. This serves as a centralized method to provide additional
 // user feedback for things that are not of the status/alarm message protocol. These are
 // messages such as setup warnings, switch toggling, and how to exit alarms.
 // NOTE: For interfaces, messages are always placed within brackets. And if silent mode
 // is installed, the message number codes are less than zero.
-void report_feedback_message(uint8_t message_code) {  // OK to send to all clients
-    switch (message_code) {
-        case MESSAGE_CRITICAL_EVENT: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset to continue"); break;
-        case MESSAGE_ALARM_LOCK: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "'$H'|'$X' to unlock"); break;
-        case MESSAGE_ALARM_UNLOCK: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Caution: Unlocked"); break;
-        case MESSAGE_ENABLED: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Enabled"); break;
-        case MESSAGE_DISABLED: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Disabled"); break;
-        case MESSAGE_SAFETY_DOOR_AJAR: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Check door"); break;
-        case MESSAGE_CHECK_LIMITS: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Check limits"); break;
-        case MESSAGE_PROGRAM_END: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Program End"); break;
-        case MESSAGE_RESTORE_DEFAULTS: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Restoring defaults"); break;
-        case MESSAGE_SPINDLE_RESTORE: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Restoring spindle"); break;
-        case MESSAGE_SLEEP_MODE: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Sleeping"); break;
-#ifdef ENABLE_SD_CARD
-        case MESSAGE_SD_FILE_QUIT:
-            grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset during SD file at line: %d", sd_get_current_line_number());
-            break;
-#endif
+void report_feedback_message(Message message) {  // ok to send to all clients
+    if (message == Message::SdFileQuit) {
+        grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset during SD file at line: %d", sd_get_current_line_number());
+    } else {
+        auto it = MessageText.find(message);
+        if (it != MessageText.end()) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, it->second);
+        }
     }
 }
 
@@ -789,12 +797,12 @@ void report_gcode_comment(char* comment) {
             index++;
         }
         msg[index - offset] = 0;  // null terminate
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "GCode Comment...%s", msg);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "GCode Comment...%s", msg);
     }
 }
 
 void report_machine_type(uint8_t client) {
-    grbl_msg_sendf(client, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_NAME);
+    grbl_msg_sendf(client, MsgLevel::Info, "Using machine:%s", MACHINE_NAME);
 }
 
 /*
@@ -811,7 +819,7 @@ void report_hex_msg(char* buf, const char* prefix, int len) {
         strcat(report, temp);
     }
 
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", report);
 }
 
 void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
@@ -823,7 +831,7 @@ void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
         strcat(report, temp);
     }
 
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", report);
 }
 
 char report_get_axis_letter(uint8_t axis) {

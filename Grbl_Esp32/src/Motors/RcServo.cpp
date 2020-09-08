@@ -73,7 +73,7 @@ namespace Motors {
 
     void RcServo::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "%s Axis RC Servo motor Output:%d Min:%5.3fmm Max:%5.3fmm",
                        _axis_name,
                        _pwm_pin,
@@ -89,7 +89,7 @@ namespace Motors {
 
         _current_pwm_duty = duty;
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Servo Pwm %d", _axis_name, duty);
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Servo Pwm %d", _axis_name, duty);
         ledcWrite(_channel_num, duty);
     }
 
@@ -115,7 +115,7 @@ namespace Motors {
             home_pos = _position_max;
         }
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo set home %d %3.2f", is_homing, home_pos);
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Servo set home %d %3.2f", is_homing, home_pos);
         sys_position[axis_index] = home_pos * axis_settings[axis_index]->steps_per_mm->get();  // convert to steps
     }
 
@@ -126,7 +126,7 @@ namespace Motors {
         float    servo_pos, mpos, offset;
         // skip location if we are in alarm mode
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "locate");
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "locate");
         _get_calibration();
 
         if (sys.state == STATE_ALARM) {
@@ -151,12 +151,12 @@ namespace Motors {
         float _cal_min = 1.0;
         float _cal_max = 1.0;
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Read settings");
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Read settings");
 
         // make sure the min is in range
         if ((axis_settings[axis_index]->steps_per_mm->get() < SERVO_CAL_MIN) ||
             (axis_settings[axis_index]->steps_per_mm->get() > SERVO_CAL_MAX)) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration ($10%d) value error. Reset to 100", axis_index);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Servo calibration ($10%d) value error. Reset to 100", axis_index);
             char reset_val[] = "100";
             axis_settings[axis_index]->steps_per_mm->setStringValue(reset_val);
         }
@@ -165,7 +165,7 @@ namespace Motors {
         // Note: Max travel is set positive via $$, but stored as a negative number
         if ((axis_settings[axis_index]->max_travel->get() < SERVO_CAL_MIN) || (axis_settings[axis_index]->max_travel->get() > SERVO_CAL_MAX)) {
             grbl_msg_sendf(CLIENT_SERIAL,
-                           MSG_LEVEL_INFO,
+                           MsgLevel::Info,
                            "Servo calibration ($13%d) value error. %3.2f Reset to 100",
                            axis_index,
                            axis_settings[axis_index]->max_travel->get());
@@ -188,6 +188,6 @@ namespace Motors {
         _pwm_pulse_min *= _cal_min;
         _pwm_pulse_max *= _cal_max;
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo calibration min:%1.2f max %1.2f", _pwm_pulse_min, _pwm_pulse_max);
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Servo calibration min:%1.2f max %1.2f", _pwm_pulse_min, _pwm_pulse_max);
     }
 }

@@ -312,7 +312,7 @@ void limits_init() {
                 /* 
                 // Change to do this once. limits_init() happens often
                 grbl_msg_sendf(CLIENT_SERIAL,
-                               MSG_LEVEL_INFO,
+                               MsgLevel::Info,
                                "%c%s Axis limit switch on pin %s",
                                report_get_axis_letter(axis),
                                gang_index ? "2" : " ",
@@ -374,7 +374,7 @@ void limits_soft_check(float* target) {
     if (system_check_travel_limits(target)) {
         // TODO for debugging only 3 axes right now
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "Soft limit error target WPOS X:%5.2f Y:%5.2f Z:%5.2f",
                        target[X_AXIS] - gc_state.coord_system[X_AXIS],
                        target[Y_AXIS] - gc_state.coord_system[Y_AXIS],
@@ -409,7 +409,7 @@ void limitCheckTask(void* pvParameters) {
         uint8_t switch_state;
         switch_state = limits_get_state();
         if (switch_state) {
-            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Limit Switch State %08d", switch_state);
+            //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Limit Switch State %08d", switch_state);
             mc_reset();                                    // Initiate system kill.
             system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);  // Indicate hard limit critical event
         }
