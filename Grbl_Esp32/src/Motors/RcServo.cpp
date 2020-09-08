@@ -13,8 +13,8 @@
     as the range, but the internal axis value can keep going.
 
     Range: The range is specified in the machine definition file with...
-    #define X_SERVO_RANGE_MIN       0.0
-    #define X_SERVO_RANGE_MAX       5.0
+const double X_SERVO_RANGE_MIN = 0.0; 
+const double X_SERVO_RANGE_MAX = 5.0; 
 
     Direction: The direction can be changed using the $3 setting for the axis
 
@@ -30,8 +30,8 @@
     The calibration adjusts in direction of positive momement, so a value above 100% moves
     towards the higher axis value.
 
-    #define SERVO_CAL_MIN
-    #define SERVO_CAL_MAX
+const bool SERVO_CAL_MIN = true;
+const bool SERVO_CAL_MAX = true;
 
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

@@ -61,16 +61,16 @@ extern system_t sys;
 #define EXEC_SLEEP bit(7)          // bitmask 10000000
 
 // Alarm executor codes. Valid values (1-255). Zero is reserved.
-#define EXEC_ALARM_HARD_LIMIT 1
-#define EXEC_ALARM_SOFT_LIMIT 2
-#define EXEC_ALARM_ABORT_CYCLE 3
-#define EXEC_ALARM_PROBE_FAIL_INITIAL 4
-#define EXEC_ALARM_PROBE_FAIL_CONTACT 5
-#define EXEC_ALARM_HOMING_FAIL_RESET 6
-#define EXEC_ALARM_HOMING_FAIL_DOOR 7
-#define EXEC_ALARM_HOMING_FAIL_PULLOFF 8
-#define EXEC_ALARM_HOMING_FAIL_APPROACH 9
-#define EXEC_ALARM_SPINDLE_CONTROL 10
+const int EXEC_ALARM_HARD_LIMIT = 1; 
+const int EXEC_ALARM_SOFT_LIMIT = 2; 
+const int EXEC_ALARM_ABORT_CYCLE = 3; 
+const int EXEC_ALARM_PROBE_FAIL_INITIAL = 4; 
+const int EXEC_ALARM_PROBE_FAIL_CONTACT = 5; 
+const int EXEC_ALARM_HOMING_FAIL_RESET = 6; 
+const int EXEC_ALARM_HOMING_FAIL_DOOR = 7; 
+const int EXEC_ALARM_HOMING_FAIL_PULLOFF = 8; 
+const int EXEC_ALARM_HOMING_FAIL_APPROACH = 9; 
+const int EXEC_ALARM_SPINDLE_CONTROL = 10; 
 
 // Override bit maps. Realtime bitflags to control feed, rapid, spindle, and coolant overrides.
 // Spindle/coolant and feed/rapids are separated into two controlling flag variables.
@@ -96,7 +96,7 @@ extern system_t sys;
 // Define system state bit map. The state variable primarily tracks the individual functions
 // of Grbl to manage each without overlapping. It is also used as a messaging flag for
 // critical events.
-#define STATE_IDLE 0              // Must be zero. No flags.
+const int STATE_IDLE = 0; // Must be zero. No flags.
 #define STATE_ALARM bit(0)        // In alarm state. Locks out all g-code processes. Allows settings access.
 #define STATE_CHECK_MODE bit(1)   // G-code check mode. Locks out planner and motion only.
 #define STATE_HOMING bit(2)       // Performing homing cycle
@@ -107,7 +107,7 @@ extern system_t sys;
 #define STATE_SLEEP bit(7)        // Sleep state.
 
 // Define system suspend flags. Used in various ways to manage suspend states and procedures.
-#define SUSPEND_DISABLE 0                // Must be zero.
+const int SUSPEND_DISABLE = 0; // Must be zero.
 #define SUSPEND_HOLD_COMPLETE bit(0)     // Indicates initial feed hold is complete.
 #define SUSPEND_RESTART_RETRACT bit(1)   // Flag to indicate a retract from a restore parking motion.
 #define SUSPEND_RETRACT_COMPLETE bit(2)  // (Safety door only) Indicates retraction and de-energizing is complete.
@@ -118,7 +118,7 @@ extern system_t sys;
 #define SUSPEND_JOG_CANCEL bit(7)        // Indicates a jog cancel in process and to reset buffers when complete.
 
 // Define step segment generator state flags.
-#define STEP_CONTROL_NORMAL_OP 0  // Must be zero.
+const int STEP_CONTROL_NORMAL_OP = 0; // Must be zero.
 #define STEP_CONTROL_END_MOTION bit(0)
 #define STEP_CONTROL_EXECUTE_HOLD bit(1)
 #define STEP_CONTROL_EXECUTE_SYS_MOTION bit(2)
@@ -143,7 +143,7 @@ extern system_t sys;
 //#endif
 
 // Define spindle stop override control states.
-#define SPINDLE_STOP_OVR_DISABLED 0  // Must be zero.
+const int SPINDLE_STOP_OVR_DISABLED = 0; // Must be zero.
 #define SPINDLE_STOP_OVR_ENABLED bit(0)
 #define SPINDLE_STOP_OVR_INITIATE bit(1)
 #define SPINDLE_STOP_OVR_RESTORE bit(2)

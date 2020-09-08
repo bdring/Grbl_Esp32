@@ -25,7 +25,7 @@
 
 // Values that define the probing state machine.
 #define PROBE_OFF 0     // Probing disabled or not in use. (Must be zero.)
-#define PROBE_ACTIVE 1  // Actively watching the input pin.
+const int PROBE_ACTIVE = 1; // Actively watching the input pin.
 
 // Probe pin initialization routine.
 void probe_init();

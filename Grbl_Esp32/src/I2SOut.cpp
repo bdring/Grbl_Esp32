@@ -74,8 +74,8 @@
 // Reference information:
 //   FreeRTOS task time slice = portTICK_PERIOD_MS = 1 ms (ESP32 FreeRTOS port)
 //
-#    define I2S_SAMPLE_SIZE 4                                     /* 4 bytes, 32 bits per sample */
-#    define DMA_SAMPLE_COUNT I2S_OUT_DMABUF_LEN / I2S_SAMPLE_SIZE /* number of samples per buffer */
+const int I2S_SAMPLE_SIZE = 4; /* 4 bytes, 32 bits per sample */
+const double DMA_SAMPLE_COUNT = I2S_OUT_DMABUF_LEN; / I2S_SAMPLE_SIZE /* number of samples per buffer */
 #    define SAMPLE_SAFE_COUNT (20 / I2S_OUT_USEC_PER_PULSE)       /* prevent buffer overrun (GRBL's $0 should be less than or equal 20) */
 
 #    ifdef USE_I2S_OUT_STREAM_IMPL
@@ -222,7 +222,7 @@ static int IRAM_ATTR i2s_out_gpio_attach(uint8_t ws, uint8_t bck, uint8_t data) 
     return 0;
 }
 
-#    define I2S_OUT_DETACH_PORT_IDX 0x100
+const int I2S_OUT_DETACH_PORT_IDX = 0x100; 
 
 static int IRAM_ATTR i2s_out_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) {
     // Route the i2s pins to the appropriate GPIO

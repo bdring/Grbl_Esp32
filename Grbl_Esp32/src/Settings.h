@@ -241,7 +241,6 @@ public:
     float get() { return _currentValue; }
 };
 
-#define MAX_SETTING_STRING 256
 class StringSetting : public Setting {
 private:
     String _defaultValue;

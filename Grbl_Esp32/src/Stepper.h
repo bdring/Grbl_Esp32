@@ -33,11 +33,11 @@
 
 // Some useful constants.
 #define DT_SEGMENT (1.0 / (ACCELERATION_TICKS_PER_SECOND * 60.0))  // min/segment
-#define REQ_MM_INCREMENT_SCALAR 1.25
-#define RAMP_ACCEL 0
-#define RAMP_CRUISE 1
-#define RAMP_DECEL 2
-#define RAMP_DECEL_OVERRIDE 3
+const double REQ_MM_INCREMENT_SCALAR = 1.25;
+const int    RAMP_ACCEL              = 0;
+const int    RAMP_CRUISE             = 1;
+const int    RAMP_DECEL              = 2;
+const int    RAMP_DECEL_OVERRIDE     = 3;
 
 #define PREP_FLAG_RECALCULATE bit(0)
 #define PREP_FLAG_HOLD_PARTIAL_BLOCK bit(1)
@@ -61,17 +61,15 @@
 #define AMASS_LEVEL2 (F_STEPPER_TIMER / 4000)  // Over-drives ISR (x4)
 #define AMASS_LEVEL3 (F_STEPPER_TIMER / 2000)  // Over-drives ISR (x8)
 
-#if MAX_AMASS_LEVEL <= 0
-error "AMASS must have 1 or more levels to operate correctly."
-#endif
+static_assert(MAX_AMASS_LEVEL > 0, "AMASS must have 1 or more levels to operate correctly.");
 //#endif
 
-#define STEP_TIMER_GROUP TIMER_GROUP_0
-#define STEP_TIMER_INDEX TIMER_0
+const timer_group_t STEP_TIMER_GROUP = TIMER_GROUP_0;
+const timer_idx_t   STEP_TIMER_INDEX = TIMER_0;
 
-    // esp32 work around for diable in main loop
-    extern uint64_t stepper_idle_counter;
-extern bool         stepper_idle;
+// esp32 work around for diable in main loop
+extern uint64_t stepper_idle_counter;
+extern bool     stepper_idle;
 
 //extern uint8_t ganged_mode;
 

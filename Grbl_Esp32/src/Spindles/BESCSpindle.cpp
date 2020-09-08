@@ -33,8 +33,7 @@
 #include "BESCSpindle.h"
 
 // don't change these
-#define BESC_PWM_FREQ 50.0f        // Hz
-#define BESC_PWM_BIT_PRECISION 16  // bits
+const float BESC_PWM_FREQ = 50.0f; // Hz
 #define BESC_PULSE_PERIOD (1.0 / BESC_PWM_FREQ)
 
 // Ok to tweak. These are the pulse lengths in seconds

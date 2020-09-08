@@ -50,7 +50,7 @@
 #ifdef REPORT_HEAP
 EspClass esp;
 #endif
-#define DEFAULTBUFFERSIZE 64
+const int DEFAULTBUFFERSIZE = 64; 
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char* text) {
