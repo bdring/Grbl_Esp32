@@ -36,7 +36,16 @@ extern uint8_t      rmt_chan_num[MAX_AXES][2];
 extern rmt_item32_t rmtItem[2];
 extern rmt_config_t rmtConfig;
 
-typedef enum { MOTOR, NULL_MOTOR, STANDARD_MOTOR, TRINAMIC_SPI_MOTOR, UNIPOLAR_MOTOR, RC_SERVO_MOTOR, SOLENOID, DYNAMIXEL2 } motor_class_id_t;
+typedef enum {
+    MOTOR,
+    NULL_MOTOR,
+    STANDARD_MOTOR,
+    TRINAMIC_SPI_MOTOR,
+    UNIPOLAR_MOTOR,
+    RC_SERVO_MOTOR,
+    SOLENOID,
+    DYNAMIXEL2
+} motor_class_id_t;
 
 // These are used for setup and to talk to the motors as a group.
 void    init_motors();

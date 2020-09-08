@@ -115,7 +115,7 @@ void limits_go_home(uint8_t cycle_mask) {
             step_pin[idx] = (get_step_pin_mask(X_AXIS) | get_step_pin_mask(Y_AXIS));
 #endif
         if (bit_istrue(cycle_mask, bit(idx))) {
-            // Set target based on travel setting. Ensure homing switches engaged with search scalar.
+            // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.
             max_travel = MAX(max_travel, (HOMING_AXIS_SEARCH_SCALAR)*axis_settings[idx]->max_travel->get());
         }
     }
@@ -232,10 +232,10 @@ void limits_go_home(uint8_t cycle_mask) {
         approach = !approach;
         // After first cycle, homing enters locating phase. Shorten search to pull-off distance.
         if (approach) {
-            max_travel      = homing_pulloff->get() * HOMING_AXIS_LOCATE_SCALAR;
+            max_travel  = homing_pulloff->get() * HOMING_AXIS_LOCATE_SCALAR;
             homing_rate = homing_feed_rate->get();
         } else {
-            max_travel      = homing_pulloff->get();
+            max_travel  = homing_pulloff->get();
             homing_rate = homing_seek_rate->get();
         }
     } while (n_cycle-- > 0);

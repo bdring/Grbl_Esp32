@@ -24,9 +24,7 @@
 #define DYNAMIXEL_BUF_SIZE 127
 #define DYNAMIXEL_BAUD_RATE 1000000
 
-
-
-#    define DXL_RESPONSE_WAIT_TICKS 20  // how long to wait for a response
+#define DXL_RESPONSE_WAIT_TICKS 20  // how long to wait for a response
 
 // protocol 2 byte positions
 #define DXL_MSG_HDR1 0
@@ -72,10 +70,10 @@
 #endif
 
 #ifndef DYNAMIXEL_FULL_MOVE_TIME
-#    define DYNAMIXEL_FULL_MOVE_TIME 1000 // time in milliseconds to do a full DYNAMIXEL_FULL_MOVE_TIME
+#    define DYNAMIXEL_FULL_MOVE_TIME 1000  // time in milliseconds to do a full DYNAMIXEL_FULL_MOVE_TIME
 #endif
 
-#    include "Motor.h"
+#include "Motor.h"
 
 namespace Motors {
     class Dynamixel2 : public Motor {
@@ -117,7 +115,6 @@ namespace Motors {
 
         bool _disabled;
 
-        
         float _homing_position;
 
         float _dxl_count_min;

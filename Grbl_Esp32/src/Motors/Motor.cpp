@@ -42,14 +42,14 @@ namespace Motors {
     void Motor::debug_message() {}
 
     void Motor::read_settings() {
-        float travel = axis_settings[axis_index]->max_travel->get();
-        float mpos   = axis_settings[axis_index]->home_mpos->get();
+        float max_travel = axis_settings[axis_index]->max_travel->get();
+        float mpos       = axis_settings[axis_index]->home_mpos->get();
 
         if (bit_istrue(homing_dir_mask->get(), bit(axis_index))) {
             _position_min = mpos;
-            _position_max = mpos + travel;
+            _position_max = mpos + max_travel;
         } else {
-            _position_min = mpos - travel;
+            _position_min = mpos - max_travel;
             _position_max = mpos;
         }
     }

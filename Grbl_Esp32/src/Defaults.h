@@ -276,7 +276,7 @@
 #    define DEFAULT_C_ACCELERATION 200.0
 #endif
 
-// ========= AXIS TRAVEL ============
+// ========= AXIS MAX TRAVEL ============
 
 #ifndef DEFAULT_X_MAX_TRAVEL
 #    define DEFAULT_X_MAX_TRAVEL 300.0  // $130 mm NOTE: Must be a positive value.

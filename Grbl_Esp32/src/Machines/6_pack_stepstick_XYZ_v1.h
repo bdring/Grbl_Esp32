@@ -27,7 +27,6 @@
 #ifdef N_AXIS
         #undef N_AXIS
 #endif
-#define N_AXIS 4
 
 #ifdef ENABLE_SD_CARD
     #undef ENABLE_SD_CARD
@@ -41,12 +40,7 @@
 #ifdef HOMING_CYCLE_1
     #undef HOMING_CYCLE_1
 #endif
-#define HOMING_CYCLE_1 bit(A_AXIS)
-
-#ifdef HOMING_CYCLE_2
-    #undef HOMING_CYCLE_2
-#endif
-#define HOMING_CYCLE_2 (bit(X_AXIS)|bit(Y_AXIS))
+#define HOMING_CYCLE_1 (bit(X_AXIS)|bit(Y_AXIS))
 
 // === Special Features
 
@@ -83,12 +77,6 @@
 #define Z_DISABLE_PIN           I2SO(8)
 #define Z_DIRECTION_PIN         I2SO(9)
 #define Z_STEP_PIN              I2SO(10)
-
-// Servo in socket #4
-#define A_SERVO_PIN             GPIO_NUM_14
-#define A_SERVO_CAL_MIN         1.00 // the calibration for the lower PWM duty 
-#define A_SERVO_CAL_MAX         1.00 // the calibration for the upper PWM duty
-
 
 /*
     Socket I/O reference
@@ -134,7 +122,6 @@
 #define X_LIMIT_PIN                 GPIO_NUM_33
 #define Y_LIMIT_PIN                 GPIO_NUM_32
 #define Z_LIMIT_PIN                 GPIO_NUM_35
-#define CONTROL_SAFETY_DOOR_PIN     GPIO_NUM_34
 
 #define DEFAULT_X_STEPS_PER_MM  800
 #define DEFAULT_Y_STEPS_PER_MM  800
