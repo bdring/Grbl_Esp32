@@ -27,13 +27,14 @@
 void coolant_init();
 
 // Returns current coolant output state. Overrides may alter it from programmed state.
-CoolantMode coolant_get_state();
+CoolantState coolant_get_state();
 
 // Immediately disables coolant pins.
 void coolant_stop();
 
 // Sets the coolant pins according to state specified.
-void coolant_set_state(CoolantMode mode);
+void coolant_off();
+void coolant_set_state(CoolantState state);
 
 // G-code parser entry-point for setting coolant states. Checks for and executes additional conditions.
-void coolant_sync(CoolantMode mode);
+void coolant_sync(CoolantState state);
