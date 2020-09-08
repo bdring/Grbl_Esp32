@@ -242,8 +242,8 @@ void report_status_message(uint8_t status_code, uint8_t client) {
 }
 
 // Prints alarm messages.
-void report_alarm_message(uint8_t alarm_code) {
-    grbl_sendf(CLIENT_ALL, "ALARM:%d\r\n", alarm_code);  // OK to send to all clients
+void report_alarm_message(ExecAlarm alarm_code) {
+    grbl_sendf(CLIENT_ALL, "ALARM:%d\r\n", static_cast<int>(alarm_code));  // OK to send to all clients
     delay_ms(500);                                       // Force delay to ensure message clears serial write buffer.
 }
 

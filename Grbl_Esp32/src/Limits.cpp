@@ -46,7 +46,7 @@ void IRAM_ATTR isr_limit_switches() {
     // locked out until a homing cycle or a kill lock command. Allows the user to disable the hard
     // limit setting if their limits are constantly triggering after a reset and move their axes.
     if ((sys.state != STATE_ALARM) & (bit_isfalse(sys.state, STATE_HOMING))) {
-        if (!(sys_rt_exec_alarm)) {
+        if (sys_rt_exec_alarm == ExecAlarm::None) {
 #ifdef ENABLE_SOFTWARE_DEBOUNCE
             // we will start a task that will recheck the switches after a small delay
             int evt;
@@ -56,11 +56,11 @@ void IRAM_ATTR isr_limit_switches() {
             // Check limit pin state.
             if (limits_get_state()) {
                 mc_reset();                                    // Initiate system kill.
-                system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);  // Indicate hard limit critical event
+                system_set_exec_alarm(ExecAlarm::HardLimit);  // Indicate hard limit critical event
             }
 #    else
             mc_reset();                                    // Initiate system kill.
-            system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);  // Indicate hard limit critical event
+            system_set_exec_alarm(ExecAlarm::HardLimit);  // Indicate hard limit critical event
 #    endif
 #endif
         }
@@ -188,22 +188,22 @@ void limits_go_home(uint8_t cycle_mask) {
                 uint8_t rt_exec = sys_rt_exec_state;
                 // Homing failure condition: Reset issued during cycle.
                 if (rt_exec & EXEC_RESET) {
-                    system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_RESET);
+                    system_set_exec_alarm(ExecAlarm::HomingFailReset);
                 }
                 // Homing failure condition: Safety door was opened.
                 if (rt_exec & EXEC_SAFETY_DOOR) {
-                    system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_DOOR);
+                    system_set_exec_alarm(ExecAlarm::HomingFailDoor);
                 }
                 // Homing failure condition: Limit switch still engaged after pull-off motion
                 if (!approach && (limits_get_state() & cycle_mask)) {
-                    system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_PULLOFF);
+                    system_set_exec_alarm(ExecAlarm::HomingFailPulloff);
                 }
                 // Homing failure condition: Limit switch not found during approach.
                 if (approach && (rt_exec & EXEC_CYCLE_STOP)) {
-                    system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_APPROACH);
+                    system_set_exec_alarm(ExecAlarm::HomingFailApproach);
                 }
 
-                if (sys_rt_exec_alarm) {
+                if (sys_rt_exec_alarm != ExecAlarm::None) {
                     motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
                     mc_reset();                                 // Stop motors, if they are running.
                     protocol_execute_realtime();
@@ -394,7 +394,7 @@ void limits_soft_check(float* target) {
             } while (sys.state != STATE_IDLE);
         }
         mc_reset();                                    // Issue system reset and ensure spindle and coolant are shutdown.
-        system_set_exec_alarm(EXEC_ALARM_SOFT_LIMIT);  // Indicate soft limit critical event
+        system_set_exec_alarm(ExecAlarm::SoftLimit);  // Indicate soft limit critical event
         protocol_execute_realtime();                   // Execute to enter critical event loop and system abort
         return;
     }
@@ -411,7 +411,7 @@ void limitCheckTask(void* pvParameters) {
         if (switch_state) {
             //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Limit Switch State %08d", switch_state);
             mc_reset();                                    // Initiate system kill.
-            system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);  // Indicate hard limit critical event
+            system_set_exec_alarm(ExecAlarm::HardLimit);  // Indicate hard limit critical event
         }
     }
 }

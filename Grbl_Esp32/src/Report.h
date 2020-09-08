@@ -88,17 +88,6 @@
 typedef uint8_t err_t;  // For status codes
 const char*     errorString(err_t errorNumber);
 
-// Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
-#define ALARM_HARD_LIMIT_ERROR EXEC_ALARM_HARD_LIMIT
-#define ALARM_SOFT_LIMIT_ERROR EXEC_ALARM_SOFT_LIMIT
-#define ALARM_ABORT_CYCLE EXEC_ALARM_ABORT_CYCLE
-#define ALARM_PROBE_FAIL_INITIAL EXEC_ALARM_PROBE_FAIL_INITIAL
-#define ALARM_PROBE_FAIL_CONTACT EXEC_ALARM_PROBE_FAIL_CONTACT
-#define ALARM_HOMING_FAIL_RESET EXEC_ALARM_HOMING_FAIL_RESET
-#define ALARM_HOMING_FAIL_DOOR EXEC_ALARM_HOMING_FAIL_DOOR
-#define ALARM_HOMING_FAIL_PULLOFF EXEC_ALARM_HOMING_FAIL_PULLOFF
-#define ALARM_HOMING_FAIL_APPROACH EXEC_ALARM_HOMING_FAIL_APPROACH
-
 // Define Grbl feedback message codes. Valid values (0-255).
 enum class Message : uint8_t {
     CriticalEvent   = 1,
@@ -146,7 +135,7 @@ void report_status_message(uint8_t status_code, uint8_t client);
 void report_realtime_steps();
 
 // Prints system alarm messages.
-void report_alarm_message(uint8_t alarm_code);
+void report_alarm_message(ExecAlarm alarm_code);
 
 // Prints miscellaneous feedback messages.
 void report_feedback_message(Message message);
