@@ -263,7 +263,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 38:  // G38 - probe
 #ifndef PROBE_PIN             //only allow G38 "Probe" commands if a probe pin is defined.
-                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No probe pin defined");
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
                         FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);  // [Unsupported G command]
 #endif
                         // Check for G0/1/2/3/38 being called with G10/28/30/92 on same block.
@@ -453,18 +453,12 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                     case 9:
                         switch (int_value) {
 #ifdef COOLANT_MIST_PIN
-                            case 7:
-                                gc_block.coolant = GCodeCoolant::M7;
-                                break;
+                            case 7: gc_block.coolant = GCodeCoolant::M7; break;
 #endif
 #ifdef COOLANT_FLOOD_PIN
-                            case 8:
-                                gc_block.coolant = GCodeCoolant::M8;
-                                break;
+                            case 8: gc_block.coolant = GCodeCoolant::M8; break;
 #endif
-                            case 9:
-                                gc_block.coolant = GCodeCoolant::M9;
-                                break;
+                            case 9: gc_block.coolant = GCodeCoolant::M9; break;
                         }
                         mg_word_bit = ModalGroup::MM8;
                         break;
@@ -568,7 +562,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                         if (value > MaxToolNumber) {
                             FAIL(STATUS_GCODE_MAX_VALUE_EXCEEDED);
                         }
-                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Tool No: %d", int_value);
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Tool No: %d", int_value);
                         gc_state.tool = int_value;
                         break;
                     case 'X':
@@ -1486,7 +1480,7 @@ uint8_t gc_execute_line(char* line, uint8_t client) {
                 spindle->set_state(SpindleState::Disable, 0);
                 coolant_off();
             }
-            report_feedback_message(MESSAGE_PROGRAM_END);
+            report_feedback_message(Message::ProgramEnd);
 #ifdef USE_M30
             user_m30();
 #endif

@@ -44,7 +44,7 @@ namespace Spindles {
 #endif
 
         if (_output_pin == UNDEFINED_PIN) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: BESC output pin not defined");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: BESC output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
@@ -67,7 +67,7 @@ namespace Spindles {
     // prints the startup message of the spindle config
     void _10v::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "0-10V spindle Out:%s Enbl:%s, Dir:%s, Fwd:%s, Rev:%s, Freq:%dHz Res:%dbits",
                        pinName(_output_pin).c_str(),
                        pinName(_enable_pin).c_str(),
@@ -144,7 +144,7 @@ namespace Spindles {
     }
 
     void _10v::set_enable_pin(bool enable) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle::_10v::set_enable_pin");
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle::_10v::set_enable_pin");
         if (_off_with_zero_speed && sys.spindle_speed == 0) {
             enable = false;
         }
@@ -164,7 +164,7 @@ namespace Spindles {
     }
 
     void _10v::set_dir_pin(bool Clockwise) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle::_10v::set_dir_pin");
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle::_10v::set_dir_pin");
         digitalWrite(_direction_pin, Clockwise);
         digitalWrite(_forward_pin, Clockwise);
         digitalWrite(_reverse_pin, !Clockwise);

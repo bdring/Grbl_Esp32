@@ -57,22 +57,22 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_0_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 0");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 0");
     pinMode(MACRO_BUTTON_0_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_0_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_1_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 1");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 1");
     pinMode(MACRO_BUTTON_1_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_1_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_2_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 2");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 2");
     pinMode(MACRO_BUTTON_2_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_2_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_3_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Macro Pin 3");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 3");
     pinMode(MACRO_BUTTON_3_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_3_PIN), isr_control_inputs, CHANGE);
 #endif
@@ -338,7 +338,7 @@ uint8_t system_control_get_state() {
 // execute the function of the control pin
 void system_exec_control_pin(uint8_t pin) {
     if (bit_istrue(pin, CONTROL_PIN_INDEX_RESET)) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset via control pin");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset via control pin");
         mc_reset();
     } else if (bit_istrue(pin, CONTROL_PIN_INDEX_CYCLE_START)) {
         bit_true(sys_rt_exec_state, EXEC_CYCLE_START);
@@ -422,7 +422,7 @@ int8_t sys_get_next_RMT_chan_num() {
     if (next_RMT_chan_num < 8) {           // 7 is the max PWM channel number
         return next_RMT_chan_num++;
     } else {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_ERROR, "Error: out of RMT channels");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of RMT channels");
         return -1;
     }
 }
@@ -441,7 +441,7 @@ int8_t sys_get_next_PWM_chan_num() {
     if (next_PWM_chan_num < 8) {           // 7 is the max PWM channel number
         return next_PWM_chan_num++;
     } else {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_ERROR, "Error: out of PWM channels");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of PWM channels");
         return -1;
     }
 }

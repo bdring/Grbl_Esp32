@@ -53,7 +53,7 @@ rmt_config_t rmtConfig;
 bool motor_class_steps;  // true if at least one motor class is handling steps
 
 void init_motors() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Init Motors");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Motors");
 
 #ifdef X_TRINAMIC_DRIVER
     myMotor[X_AXIS][0] = new Motors::TrinamicDriver(
@@ -218,7 +218,7 @@ void init_motors() {
 
 #ifdef USE_STEPSTICK
 
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Using StepStick Mode");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Using StepStick Mode");
 
     uint8_t ms3_pins[MAX_N_AXIS][2] = { { X_STEPPER_MS3, X2_STEPPER_MS3 }, { Y_STEPPER_MS3, Y2_STEPPER_MS3 },
                                         { Z_STEPPER_MS3, Z2_STEPPER_MS3 }, { A_STEPPER_MS3, A2_STEPPER_MS3 },
@@ -244,7 +244,7 @@ void init_motors() {
 
     if (STEPPERS_DISABLE_PIN != UNDEFINED_PIN) {
         pinMode(STEPPERS_DISABLE_PIN, OUTPUT);  // global motor enable pin
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Global stepper disable pin:%s", pinName(STEPPERS_DISABLE_PIN));
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Global stepper disable pin:%s", pinName(STEPPERS_DISABLE_PIN));
     }
 
     // certain motors need features to be turned on. Check them here
@@ -266,7 +266,7 @@ void init_motors() {
     motor_class_steps = motors_have_type_id(UNIPOLAR_MOTOR);
 
     if (motors_have_type_id(TRINAMIC_SPI_MOTOR)) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
         xTaskCreatePinnedToCore(readSgTask,    // task
                                 "readSgTask",  // name for task
                                 4096,          // size of task stack
@@ -276,7 +276,7 @@ void init_motors() {
                                 0  // core
         );
         if (stallguard_debug_mask->get() != 0) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
         }
     }
 
@@ -299,7 +299,7 @@ void servoUpdateTask(void* pvParameters) {
     xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
     while (true) {                        // don't ever return from this or the task dies
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Servo update");
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Servo update");
 
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
             for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
@@ -347,7 +347,7 @@ void motors_set_disable(bool disable) {
 }
 
 void motors_read_settings() {
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Read Settings");
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Read Settings");
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
             myMotor[axis][gang_index]->read_settings();
@@ -358,7 +358,7 @@ void motors_read_settings() {
 // use this to tell all the motors what the current homing mode is
 // They can use this to setup things like Stall
 void motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_homing_mode(%d)", is_homing);
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_homing_mode(%d)", is_homing);
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
             if (bit(axis) & homing_mask) {
@@ -375,7 +375,7 @@ void motors_set_direction_pins(uint8_t onMask) {
     }
     previous_val = onMask;
 
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "motors_set_direction_pins:0x%02X", onMask);
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
 
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
@@ -424,7 +424,7 @@ void readSgTask(void* pvParameters) {
             if (sys.state == STATE_CYCLE || sys.state == STATE_HOMING || sys.state == STATE_JOG) {
                 for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
                     if (stallguard_debug_mask->get() & bit(axis)) {
-                        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "SG:%d", stallguard_debug_mask->get());
+                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
                         for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
                             myMotor[axis][gang_index]->debug_message();
                         }

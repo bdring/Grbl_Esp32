@@ -36,7 +36,7 @@ void probe_init() {
 #    endif
     probe_configure_invert_mask(false);  // Initialize invert mask.
 
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Probe on pin %s Inverted:%s", pinName(PROBE_PIN).c_str(), probe_invert->get() ? "Y" : "N");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe on pin %s Inverted:%s", pinName(PROBE_PIN).c_str(), probe_invert->get() ? "Y" : "N");
 
 #endif
 }

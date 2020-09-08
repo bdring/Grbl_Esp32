@@ -111,7 +111,7 @@ void protocol_main_loop() {
     if (hard_limits->get()) {
         if (limits_get_state()) {
             sys.state = STATE_ALARM;  // Ensure alarm state is active.
-            report_feedback_message(MESSAGE_CHECK_LIMITS);
+            report_feedback_message(Message::CheckLimits);
         }
     }
 #endif
@@ -119,7 +119,7 @@ void protocol_main_loop() {
     // NOTE: Sleep mode disables the stepper drivers and position can't be guaranteed.
     // Re-initialize the sleep state as an ALARM mode to ensure user homes or acknowledges.
     if (sys.state & (STATE_ALARM | STATE_SLEEP)) {
-        report_feedback_message(MESSAGE_ALARM_LOCK);
+        report_feedback_message(Message::AlarmLock);
         sys.state = STATE_ALARM;  // Ensure alarm state is set.
     } else {
         // Check if the safety door is open.
@@ -256,7 +256,7 @@ void protocol_exec_rt_system() {
         report_alarm_message(rt_exec);
         // Halt everything upon a critical event flag. Currently hard and soft limits flag this.
         if ((rt_exec == EXEC_ALARM_HARD_LIMIT) || (rt_exec == EXEC_ALARM_SOFT_LIMIT)) {
-            report_feedback_message(MESSAGE_CRITICAL_EVENT);
+            report_feedback_message(Message::CriticalEvent);
             system_clear_exec_state_flag(EXEC_RESET);  // Disable any existing reset
             do {
                 // Block everything, except reset and status reports, until user issues reset or power
@@ -322,7 +322,7 @@ void protocol_exec_rt_system() {
                 // NOTE: Safety door differs from feed holds by stopping everything no matter state, disables powered
                 // devices (spindle/coolant), and blocks resuming until switch is re-engaged.
                 if (rt_exec & EXEC_SAFETY_DOOR) {
-                    report_feedback_message(MESSAGE_SAFETY_DOOR_AJAR);
+                    report_feedback_message(Message::SafetyDoorAjar);
                     // If jogging, block safety door methods until jog cancel is complete. Just flag that it happened.
                     if (!(sys.suspend & SUSPEND_JOG_CANCEL)) {
                         // Check if the safety re-opened during a restore parking motion only. Ignore if
@@ -655,7 +655,7 @@ static void protocol_exec_rt_suspend() {
                     sys.suspend |= SUSPEND_RETRACT_COMPLETE;
                 } else {
                     if (sys.state == STATE_SLEEP) {
-                        report_feedback_message(MESSAGE_SLEEP_MODE);
+                        report_feedback_message(Message::SleepMode);
                         // Spindle and coolant should already be stopped, but do it again just to be sure.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
                         coolant_off();
@@ -743,7 +743,7 @@ static void protocol_exec_rt_suspend() {
                         // Handles restoring of spindle state
                     } else if (sys.spindle_stop_ovr & (SPINDLE_STOP_OVR_RESTORE | SPINDLE_STOP_OVR_RESTORE_CYCLE)) {
                         if (gc_state.modal.spindle != SpindleState::Disable) {
-                            report_feedback_message(MESSAGE_SPINDLE_RESTORE);
+                            report_feedback_message(Message::SpindleRestore);
                             if (laser_mode->get()) {
                                 // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                 bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);

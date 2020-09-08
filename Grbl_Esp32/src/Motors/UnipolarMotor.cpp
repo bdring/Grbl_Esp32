@@ -29,7 +29,7 @@ namespace Motors {
 
     void UnipolarMotor::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "%s Axis unipolar stepper motor Ph0:%s Ph1:%s Ph2:%s Ph3:%s",
                        _axis_name,
                        pinName(_pin_phase0).c_str(),

@@ -184,13 +184,13 @@ err_t toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
     // simple and consistent.
     if (sys.state == STATE_CHECK_MODE) {
         mc_reset();
-        report_feedback_message(MESSAGE_DISABLED);
+        report_feedback_message(Message::Disabled);
     } else {
         if (sys.state) {
             return STATUS_IDLE_ERROR;  // Requires no alarm mode.
         }
         sys.state = STATE_CHECK_MODE;
-        report_feedback_message(MESSAGE_ENABLED);
+        report_feedback_message(Message::Enabled);
     }
     return STATUS_OK;
 }
@@ -200,7 +200,7 @@ err_t disable_alarm_lock(const char* value, WebUI::AuthenticationLevel auth_leve
         if (system_check_safety_door_ajar()) {
             return STATUS_CHECK_DOOR;
         }
-        report_feedback_message(MESSAGE_ALARM_UNLOCK);
+        report_feedback_message(Message::AlarmUnlock);
         sys.state = STATE_IDLE;
         // Don't run startup script. Prevents stored moves in startup from causing accidents.
     }  // Otherwise, no effect.

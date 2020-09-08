@@ -509,7 +509,7 @@ void mc_reset() {
         // do we need to stop a running SD job?
         if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
             //Report print stopped
-            report_feedback_message(MESSAGE_SD_FILE_QUIT);
+            report_feedback_message(Message::SdFileQuit);
             closeFile();
         }
 #endif
