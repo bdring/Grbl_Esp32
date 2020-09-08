@@ -30,12 +30,14 @@ namespace Motors {
     void UnipolarMotor::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
-                       "%s Axis unipolar stepper motor Ph0:%s Ph1:%s Ph2:%s Ph3:%s",
+                       "%s Axis Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s Limits(%0.3f,%0.3f)",
                        _axis_name,
                        pinName(_pin_phase0).c_str(),
                        pinName(_pin_phase1).c_str(),
                        pinName(_pin_phase2).c_str(),
-                       pinName(_pin_phase3).c_str());
+                       pinName(_pin_phase3).c_str(),
+                       _position_min,
+                       _position_max);
     }
 
     void UnipolarMotor::set_disable(bool disable) {

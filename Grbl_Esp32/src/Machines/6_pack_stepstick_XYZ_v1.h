@@ -131,10 +131,10 @@
 // #3 GPIO_NUM_26  (output only)
 // #4 GPIO_NUM_27  (output only)
  
-#define X_LIMIT_PIN             GPIO_NUM_33
-#define Y_LIMIT_PIN             GPIO_NUM_32
-#define Z_LIMIT_PIN             GPIO_NUM_35
-#define PROBE_PIN               GPIO_NUM_34
+#define X_LIMIT_PIN                 GPIO_NUM_33
+#define Y_LIMIT_PIN                 GPIO_NUM_32
+#define Z_LIMIT_PIN                 GPIO_NUM_35
+#define CONTROL_SAFETY_DOOR_PIN     GPIO_NUM_34
 
 #define DEFAULT_X_STEPS_PER_MM  800
 #define DEFAULT_Y_STEPS_PER_MM  800

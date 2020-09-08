@@ -424,9 +424,6 @@ void report_build_info(char* line, uint8_t client) {
 #ifdef PARKING_ENABLE
     strcat(build_info, "P");
 #endif
-#if (defined(HOMING_FORCE_SET_ORIGIN) || defined(HOMING_FORCE_POSITIVE_SPACE))
-    strcat(build_info, "Z");  // homing MPOS bahavior is not the default behavior
-#endif
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
     strcat(build_info, "H");
 #endif

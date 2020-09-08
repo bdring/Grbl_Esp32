@@ -72,14 +72,13 @@ namespace Motors {
     void Dynamixel2::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
-                       "%s Axis Dynamixel Servo ID:%d Count Range:%5.0f/%5.0f MPos Range:%5.3fmm/%5.3fmm Home:%5.3fmm",
+                       "%s Axis Dynamixel Servo ID:%d Count(%5.0f,%5.0f) Limits(%0.3fmm,%5.3f)",
                        _axis_name,
                        _id,
                        _dxl_count_min,
                        _dxl_count_max,
                        _position_min,
-                       _position_max,
-                       axis_settings[axis_index]->home_mpos->get());
+                       _position_max);
     }
 
     bool Dynamixel2::test() {

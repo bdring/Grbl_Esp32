@@ -41,6 +41,7 @@ namespace Motors {
         is_active    = true;  // as opposed to NullMotors, this is a real motor
         set_axis_name();
         init_step_dir_pins();
+        read_settings();
         config_message();
     }
 
@@ -90,11 +91,13 @@ namespace Motors {
     void StandardStepper::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
-                       "%s Axis standard stepper motor Step:%s Dir:%s Disable:%s",
+                       "%s Axis Standard Stepper Step:%s Dir:%s Disable:%s Limits(%0.3f,%0.3f)",
                        _axis_name,
                        pinName(step_pin).c_str(),
                        pinName(dir_pin).c_str(),
-                       pinName(disable_pin).c_str());
+                       pinName(disable_pin).c_str(),
+                       _position_min,
+                       _position_max);
     }
 
     void StandardStepper::set_direction_pins(uint8_t onMask) { digitalWrite(dir_pin, (onMask & bit(axis_index))); }

@@ -59,7 +59,7 @@ namespace Motors {
     void RcServo::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
-                       "%s Axis RC Servo motor Output:%d Pulse:%.0f/%.0f MPos:%.3f/%.3fmm",
+                       "%s Axis RC Servo Pin:%d Pulse Len(%.0f,%.0f) Limits(%.3f,%.3f)",
                        _axis_name,
                        _pwm_pin,
                        _pwm_pulse_min,
@@ -143,5 +143,4 @@ namespace Motors {
             swap(_pwm_pulse_min, _pwm_pulse_max);
     }
 
-    
 }

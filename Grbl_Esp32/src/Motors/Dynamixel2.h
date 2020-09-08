@@ -117,8 +117,7 @@ namespace Motors {
 
         bool _disabled;
 
-        float _position_min = 0;
-        float _position_max = 0;  // position in millimeters
+        
         float _homing_position;
 
         float _dxl_count_min;

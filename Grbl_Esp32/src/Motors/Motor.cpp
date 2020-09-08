@@ -40,7 +40,20 @@ namespace Motors {
 
     void Motor::config_message() {}
     void Motor::debug_message() {}
-    void Motor::read_settings() {}
+
+    void Motor::read_settings() {
+        float travel = axis_settings[axis_index]->travel->get();
+        float mpos   = axis_settings[axis_index]->home_mpos->get();
+
+        if (bit_istrue(homing_dir_mask->get(), bit(axis_index))) {
+            _position_min = mpos;
+            _position_max = mpos + travel;
+        } else {
+            _position_min = mpos - travel;
+            _position_max = mpos;
+        }
+    }
+
     void Motor::set_disable(bool disable) {}
     void Motor::set_direction_pins(uint8_t onMask) {}
     void Motor::step(uint8_t step_mask, uint8_t dir_mask) {}

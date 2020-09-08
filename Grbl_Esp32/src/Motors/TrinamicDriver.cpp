@@ -54,7 +54,7 @@ namespace Motors {
             grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis Unsupported Trinamic part number TMC%d", _axis_name, _driver_part_number);
             has_errors = true;  // as opposed to NullMotors, this is a real motor
             return;
-        }       
+        }
 
         init_step_dir_pins();  // from StandardStepper
 
@@ -82,7 +82,6 @@ namespace Motors {
         set_mode(false);
 
         _homing_mask = 0;
-        
     }
 
     /*
@@ -91,14 +90,16 @@ namespace Motors {
     void TrinamicDriver::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MSG_LEVEL_INFO,
-                       "%s Axis Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d",
+                       "%s Axis Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d Limits(%0.3f,%0.3f)",
                        _axis_name,
                        _driver_part_number,
                        pinName(step_pin).c_str(),
                        pinName(dir_pin).c_str(),
                        pinName(cs_pin).c_str(),
                        pinName(disable_pin).c_str(),
-                       spi_index);
+                       spi_index,
+                       _position_min,
+                       _position_max);
     }
 
     bool TrinamicDriver::test() {
@@ -260,7 +261,7 @@ namespace Motors {
     // but that can be hardwired that way.
     void TrinamicDriver::set_disable(bool disable) {
         if (has_errors)
-            return;      
+            return;
 
         digitalWrite(disable_pin, disable);
 
