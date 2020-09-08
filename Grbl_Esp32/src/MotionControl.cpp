@@ -281,7 +281,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
 #ifdef LIMITS_TWO_SWITCHES_ON_AXES
     if (limits_get_state()) {
         mc_reset();  // Issue system reset and ensure spindle and coolant are shutdown.
-        system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);
+        system_set_exec_alarm(ExecAlarm::HardLimit);
         return;
     }
 #endif
@@ -407,7 +407,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
     if (probe_get_state()) {  // Check probe pin state.
-        system_set_exec_alarm(EXEC_ALARM_PROBE_FAIL_INITIAL);
+        system_set_exec_alarm(ExecAlarm::ProbeFailInitial);
         protocol_execute_realtime();
         probe_configure_invert_mask(false);  // Re-initialize invert mask before returning.
         return GCUpdatePos::None;            // Nothing else to do but bail.
@@ -430,7 +430,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         if (is_no_error) {
             memcpy(sys_probe_position, sys_position, sizeof(sys_position));
         } else {
-            system_set_exec_alarm(EXEC_ALARM_PROBE_FAIL_CONTACT);
+            system_set_exec_alarm(ExecAlarm::ProbeFailContact);
         }
     } else {
         sys.probe_succeeded = true;  // Indicate to system the probing cycle completed successfully.
@@ -520,11 +520,11 @@ void mc_reset() {
         if ((sys.state & (STATE_CYCLE | STATE_HOMING | STATE_JOG)) ||
             (sys.step_control & (STEP_CONTROL_EXECUTE_HOLD | STEP_CONTROL_EXECUTE_SYS_MOTION))) {
             if (sys.state == STATE_HOMING) {
-                if (!sys_rt_exec_alarm) {
-                    system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_RESET);
+                if (sys_rt_exec_alarm == ExecAlarm::None) {
+                    system_set_exec_alarm(ExecAlarm::HomingFailReset);
                 }
             } else {
-                system_set_exec_alarm(EXEC_ALARM_ABORT_CYCLE);
+                system_set_exec_alarm(ExecAlarm::AbortCycle);
             }
             st_go_idle();  // Force kill steppers. Position has likely been lost.
         }

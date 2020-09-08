@@ -246,16 +246,15 @@ void protocol_execute_realtime() {
 // machine and controls the various real-time features Grbl has to offer.
 // NOTE: Do not alter this unless you know exactly what you are doing!
 void protocol_exec_rt_system() {
-    uint8_t rt_exec;              // Temp variable to avoid calling volatile multiple times.
-    rt_exec = sys_rt_exec_alarm;  // Copy volatile sys_rt_exec_alarm.
-    if (rt_exec) {                // Enter only if any bit flag is true
+    ExecAlarm alarm = sys_rt_exec_alarm;   // Temp variable to avoid calling volatile multiple times.
+    if (alarm != ExecAlarm::None) {        // Enter only if an alarm is pending
         // System alarm. Everything has shutdown by something that has gone severely wrong. Report
         // the source of the error to the user. If critical, Grbl disables by entering an infinite
         // loop until system reset/abort.
         sys.state = STATE_ALARM;  // Set system alarm state
-        report_alarm_message(rt_exec);
+        report_alarm_message(alarm);
         // Halt everything upon a critical event flag. Currently hard and soft limits flag this.
-        if ((rt_exec == EXEC_ALARM_HARD_LIMIT) || (rt_exec == EXEC_ALARM_SOFT_LIMIT)) {
+        if ((alarm == ExecAlarm::HardLimit) || (alarm == ExecAlarm::SoftLimit)) {
             report_feedback_message(Message::CriticalEvent);
             system_clear_exec_state_flag(EXEC_RESET);  // Disable any existing reset
             do {
@@ -268,7 +267,7 @@ void protocol_exec_rt_system() {
         }
         system_clear_exec_alarm();  // Clear alarm
     }
-    rt_exec = sys_rt_exec_state;  // Copy volatile sys_rt_exec_state.
+    uint8_t rt_exec = sys_rt_exec_state;  // Copy volatile sys_rt_exec_state.
     if (rt_exec) {
         // Execute system abort.
         if (rt_exec & EXEC_RESET) {
