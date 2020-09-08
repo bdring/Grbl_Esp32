@@ -486,9 +486,9 @@ namespace WebUI {
             char line[256];
             strncpy(line, cmd.c_str(), 255);
             ESPResponseStream* espresponse = silent ? NULL : new ESPResponseStream(_webserver);
-            err_t              err         = system_execute_line(line, espresponse, auth_level);
+            Error              err         = system_execute_line(line, espresponse, auth_level);
             String             answer;
-            if (err == STATUS_OK) {
+            if (err == Error::Ok) {
                 answer = "ok";
             } else {
                 const char* msg = errorString(err);
@@ -496,11 +496,11 @@ namespace WebUI {
                 if (msg) {
                     answer += msg;
                 } else {
-                    answer += err;
+                    answer += static_cast<int>(err);
                 }
             }
             if (silent || !espresponse->anyOutput()) {
-                _webserver->send(err ? 401 : 200, "text/plain", answer);
+                _webserver->send(err != Error::Ok ? 401 : 200, "text/plain", answer);
             } else {
                 espresponse->flush();
             }
@@ -615,14 +615,14 @@ namespace WebUI {
                 newpassword.toCharArray(pwdbuf, MAX_LOCAL_PASSWORD_LENGTH + 1);
 
                 if (COMMANDS::isLocalPasswordValid(pwdbuf)) {
-                    err_t err;
+                    Error err;
 
                     if (sUser == DEFAULT_ADMIN_LOGIN) {
                         err = admin_password->setStringValue(pwdbuf);
                     } else {
                         err = user_password->setStringValue(pwdbuf);
                     }
-                    if (err) {
+                    if (err != Error::Ok) {
                         msg_alert_error = true;
                         smsg            = "Error: Cannot apply changes";
                         code            = 500;

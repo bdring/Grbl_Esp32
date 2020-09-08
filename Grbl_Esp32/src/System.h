@@ -185,12 +185,12 @@ void system_clear_exec_motion_overrides();
 void system_clear_exec_accessory_overrides();
 
 // Execute the startup script lines stored in EEPROM upon initialization
-void    system_execute_startup(char* line);
-uint8_t execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level);
-uint8_t system_execute_line(char* line, WebUI::ESPResponseStream*, WebUI::AuthenticationLevel);
-uint8_t system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel);
-uint8_t do_command_or_setting(const char* key, char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream*);
-void    system_flag_wco_change();
+void  system_execute_startup(char* line);
+Error execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level);
+Error system_execute_line(char* line, WebUI::ESPResponseStream*, WebUI::AuthenticationLevel);
+Error system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel);
+Error do_command_or_setting(const char* key, char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream*);
+void  system_flag_wco_change();
 
 // Returns machine position of axis 'idx'. Must be sent a 'step' array.
 float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx);

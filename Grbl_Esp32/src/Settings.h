@@ -68,7 +68,7 @@ public:
     // Derived classes may override it to do something.
     virtual void addWebui(WebUI::JSONencoder*) {};
 
-    virtual err_t action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) = 0;
+    virtual Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) = 0;
 };
 
 class Setting : public Word {
@@ -87,12 +87,12 @@ public:
     static Setting* List;
     Setting*        next() { return link; }
 
-    err_t check(char* s);
+    Error check(char* s);
 
-    static err_t report_nvs_stats(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    static Error report_nvs_stats(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
         nvs_stats_t stats;
-        if (err_t err = nvs_get_stats(NULL, &stats)) {
-            return err;
+        if (esp_err_t err = nvs_get_stats(NULL, &stats)) {
+            return Error::NvsGetStatsFailed;
         }
         grbl_sendf(out->client(), "[MSG: NVS Used: %d Free: %d Total: %d]\r\n", stats.used_entries, stats.free_entries, stats.total_entries);
 #if 0  // The SDK we use does not have this yet
@@ -104,13 +104,12 @@ public:
             grbl_sendf(out->client(), "namespace %s key '%s', type '%d' \n", info.namespace_name, info.key, info.type);
         }
 #endif
-        return STATUS_OK;
+        return Error::Ok;
     }
 
-    static err_t eraseNVS(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    static Error eraseNVS(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
         nvs_erase_all(_handle);
-        //        return STATUS_OK;
-        return 0;
+        return Error::Ok;
     }
 
     ~Setting() {}
@@ -129,8 +128,8 @@ public:
     // Derived classes may override it to do something.
     virtual void addWebui(WebUI::JSONencoder*) {};
 
-    virtual err_t       setStringValue(char* value) = 0;
-    err_t               setStringValue(String s) { return setStringValue(s.c_str()); }
+    virtual Error       setStringValue(char* value) = 0;
+    Error               setStringValue(String s) { return setStringValue(s.c_str()); }
     virtual const char* getStringValue() = 0;
     virtual const char* getCompatibleValue() { return getStringValue(); }
 };
@@ -167,7 +166,7 @@ public:
     void        load();
     void        setDefault();
     void        addWebui(WebUI::JSONencoder*);
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getStringValue();
 
     int32_t get() { return _currentValue; }
@@ -195,7 +194,7 @@ public:
     void        load();
     void        setDefault();
     void        addWebui(WebUI::JSONencoder*);
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getCompatibleValue();
     const char* getStringValue();
 
@@ -235,7 +234,7 @@ public:
     void setDefault();
     // There are no Float settings in WebUI
     void        addWebui(WebUI::JSONencoder*) {}
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getStringValue();
 
     float get() { return _currentValue; }
@@ -269,7 +268,7 @@ public:
     void        load();
     void        setDefault();
     void        addWebui(WebUI::JSONencoder*);
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getStringValue();
 
     const char* get() { return _currentValue.c_str(); }
@@ -301,7 +300,7 @@ public:
     void        load();
     void        setDefault();
     void        addWebui(WebUI::JSONencoder*);
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getStringValue();
 
     int8_t get() { return _currentValue; }
@@ -329,7 +328,7 @@ public:
     // There are no Flag settings in WebUI
     // The booleans are expressed as Enums
     void        addWebui(WebUI::JSONencoder*) {}
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getCompatibleValue();
     const char* getStringValue();
 
@@ -361,7 +360,7 @@ public:
     void        load();
     void        setDefault();
     void        addWebui(WebUI::JSONencoder*);
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getStringValue();
 
     uint32_t get() { return _currentValue; }
@@ -383,7 +382,7 @@ public:
 };
 class WebCommand : public Command {
 private:
-    err_t (*_action)(char*, WebUI::AuthenticationLevel);
+    Error (*_action)(char*, WebUI::AuthenticationLevel);
     const char* password;
 
 public:
@@ -392,10 +391,10 @@ public:
                permissions_t permissions,
                const char*   grblName,
                const char*   name,
-               err_t (*action)(char*, WebUI::AuthenticationLevel)) :
+               Error (*action)(char*, WebUI::AuthenticationLevel)) :
         Command(description, type, permissions, grblName, name),
         _action(action) {}
-    err_t action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
+    Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
 
 enum : uint8_t {
@@ -407,13 +406,13 @@ enum : uint8_t {
 
 class GrblCommand : public Command {
 private:
-    err_t (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
+    Error (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
     uint8_t _disallowedStates;
 
 public:
     GrblCommand(const char* grblName,
                 const char* name,
-                err_t (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
+                Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
                 uint8_t       disallowedStates,
                 permissions_t auth) :
         Command(NULL, GRBLCMD, auth, grblName, name),
@@ -421,8 +420,8 @@ public:
 
     GrblCommand(const char* grblName,
                 const char* name,
-                err_t (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
+                Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
                 uint8_t disallowedStates) :
         GrblCommand(grblName, name, action, disallowedStates, WG) {}
-    err_t action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
+    Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };

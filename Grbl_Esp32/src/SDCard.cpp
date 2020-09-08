@@ -30,7 +30,7 @@ static char comment[LINE_BUFFER_SIZE];  // Line to be executed. Zero-terminated.
 /*bool sd_mount()
 {
   if(!SD.begin()) {
-    report_status_message(STATUS_SD_FAILED_MOUNT, CLIENT_SERIAL);
+    report_status_message(Error::SdFailedMount, CLIENT_SERIAL);
     return false;
   }
   return true;
@@ -40,11 +40,11 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
     //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
     File root = fs.open(dirname);
     if (!root) {
-        report_status_message(STATUS_SD_FAILED_OPEN_DIR, client);
+        report_status_message(Error::SdFailedOpenDir, client);
         return;
     }
     if (!root.isDirectory()) {
-        report_status_message(STATUS_SD_DIR_NOT_FOUND, client);
+        report_status_message(Error::SdDirNotFound, client);
         return;
     }
     File file = root.openNextFile();
@@ -63,7 +63,7 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
 boolean openFile(fs::FS& fs, const char* path) {
     myFile = fs.open(path);
     if (!myFile) {
-        //report_status_message(STATUS_SD_FAILED_READ, CLIENT_SERIAL);
+        //report_status_message(Error::SdFailedRead, CLIENT_SERIAL);
         return false;
     }
     set_sd_state(SDCARD_BUSY_PRINTING);
@@ -92,7 +92,7 @@ boolean closeFile() {
 */
 boolean readFileLine(char* line, int maxlen) {
     if (!myFile) {
-        report_status_message(STATUS_SD_FAILED_READ, SD_client);
+        report_status_message(Error::SdFailedRead, SD_client);
         return false;
     }
     sd_current_line_number += 1;

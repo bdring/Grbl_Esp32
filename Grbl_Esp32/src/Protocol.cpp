@@ -50,7 +50,7 @@ static void empty_lines() {
     }
 }
 
-err_t add_char_to_line(char c, uint8_t client) {
+Error add_char_to_line(char c, uint8_t client) {
     client_line_t* cl = &client_lines[client];
     // Simple editing for interactive input
     if (c == '\b') {
@@ -59,26 +59,26 @@ err_t add_char_to_line(char c, uint8_t client) {
             --cl->len;
             cl->buffer[cl->len] = '\0';
         }
-        return STATUS_OK;
+        return Error::Ok;
     }
     if (cl->len == (LINE_BUFFER_SIZE - 1)) {
-        return STATUS_OVERFLOW;
+        return Error::Overflow;
     }
     if (c == '\r' || c == '\n') {
         cl->len = 0;
         cl->line_number++;
-        return STATUS_EOL;
+        return Error::Eol;
     }
     cl->buffer[cl->len++] = c;
     cl->buffer[cl->len]   = '\0';
-    return STATUS_OK;
+    return Error::Ok;
 }
 
-err_t execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level) {
-    err_t result = STATUS_OK;
+Error execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level) {
+    Error result = Error::Ok;
     // Empty or comment line. For syncing purposes.
     if (line[0] == 0) {
-        return STATUS_OK;
+        return Error::Ok;
     }
     // Grbl '$' or WebUI '[ESPxxx]' system command
     if (line[0] == '$' || line[0] == '[') {
@@ -86,7 +86,7 @@ err_t execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_l
     }
     // Everything else is gcode. Block if in alarm or jog mode.
     if (sys.state & (STATE_ALARM | STATE_JOG)) {
-        return STATUS_SYSTEM_GC_LOCK;
+        return Error::SystemGcLock;
     }
     return gc_execute_line(line, client);
 }
@@ -158,10 +158,10 @@ void protocol_main_loop() {
         char*   line;
         for (client = 0; client < CLIENT_COUNT; client++) {
             while ((c = serial_read(client)) != SERIAL_NO_DATA) {
-                err_t res = add_char_to_line(c, client);
+                Error res = add_char_to_line(c, client);
                 switch (res) {
-                    case STATUS_OK: break;
-                    case STATUS_EOL:
+                    case Error::Ok: break;
+                    case Error::Eol:
                         protocol_execute_realtime();  // Runtime command check point.
                         if (sys.abort) {
                             return;  // Bail to calling function upon system abort
@@ -174,10 +174,11 @@ void protocol_main_loop() {
                         report_status_message(execute_line(line, client, WebUI::AuthenticationLevel::LEVEL_GUEST), client);
                         empty_line(client);
                         break;
-                    case STATUS_OVERFLOW:
-                        report_status_message(STATUS_OVERFLOW, client);
+                    case Error::Overflow:
+                        report_status_message(Error::Overflow, client);
                         empty_line(client);
                         break;
+                    default: break;
                 }
             }  // while serial read
         }      // for clients
@@ -638,7 +639,7 @@ static void protocol_exec_rt_suspend() {
                         pl_data->spindle_speed = 0.0;
                         spindle->set_state(pl_data->spindle, 0);  // De-energize
                         coolant_set_state(pl_data->coolant);
-                                                                       // Execute fast parking retract motion to parking target location.
+                        // Execute fast parking retract motion to parking target location.
                         if (parking_target[PARKING_AXIS] < PARKING_TARGET) {
                             parking_target[PARKING_AXIS] = PARKING_TARGET;
                             pl_data->feed_rate           = PARKING_RATE;
@@ -659,7 +660,7 @@ static void protocol_exec_rt_suspend() {
                         // Spindle and coolant should already be stopped, but do it again just to be sure.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
                         coolant_off();
-                        st_go_idle();                                  // Disable steppers
+                        st_go_idle();  // Disable steppers
                         while (!(sys.abort)) {
                             protocol_exec_rt_system();  // Do nothing until reset.
                         }

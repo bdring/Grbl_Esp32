@@ -40,6 +40,7 @@
 #include "NutsBolts.h"
 
 #include "Defaults.h"
+#include "Error.h"
 #include "SettingsStorage.h"
 #include "WebUI/Authentication.h"
 #include "WebUI/Commands.h"
