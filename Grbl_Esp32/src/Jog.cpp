@@ -28,13 +28,14 @@ uint8_t jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block) {
     // Initialize planner data struct for jogging motions.
     // NOTE: Spindle and coolant are allowed to fully function with overrides during a jog.
     pl_data->feed_rate = gc_block->values.f;
-    pl_data->condition |= PL_COND_FLAG_NO_FEED_OVERRIDE;
+    pl_data->motion |= PL_MOTION_NO_FEED_OVERRIDE;
 #ifdef USE_LINE_NUMBERS
     pl_data->line_number = gc_block->values.n;
 #endif
     if (soft_limits->get()) {
-        if (system_check_travel_limits(gc_block->values.xyz))
-            return (STATUS_TRAVEL_EXCEEDED);
+        if (system_check_travel_limits(gc_block->values.xyz)) {
+            return STATUS_TRAVEL_EXCEEDED;
+        }
     }
     // Valid jog command. Plan, set state, and execute.
     mc_line(gc_block->values.xyz, pl_data);
@@ -45,5 +46,5 @@ uint8_t jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block) {
             st_wake_up();  // NOTE: Manual start. No state machine required.
         }
     }
-    return (STATUS_OK);
+    return STATUS_OK;
 }

@@ -22,8 +22,8 @@
 
 #include "Config.h"
 
-#define false 0
-#define true 1
+// #define false 0
+// #define true 1
 
 #define SOME_LARGE_VALUE 1.0E+38
 
@@ -72,8 +72,11 @@
 #define isequal_position_vector(a, b) !(memcmp(a, b, sizeof(float) * N_AXIS))
 
 // Bit field and masking macros
-//Arduino.h:104:0: note: this is the location of the previous definition
-//#define bit(n) (1 << n)
+// bit(n) is defined in Arduino.h.  We redefine it here so we can apply
+// the static_cast, thus making it work with scoped enums
+#undef bit
+#define bit(n) (1 << static_cast<unsigned int>(n))
+
 #define bit_true(x, mask) (x) |= (mask)
 #define bit_false(x, mask) (x) &= ~(mask)
 #define bit_istrue(x, mask) ((x & mask) != 0)

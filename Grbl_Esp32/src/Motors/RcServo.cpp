@@ -70,8 +70,9 @@ namespace Motors {
 
     void RcServo::_write_pwm(uint32_t duty) {
         // to prevent excessive calls to ledcWrite, make sure duty hass changed
-        if (duty == _current_pwm_duty)
+        if (duty == _current_pwm_duty) {
             return;
+        }
 
         _current_pwm_duty = duty;
 
@@ -82,8 +83,9 @@ namespace Motors {
     void RcServo::set_disable(bool disable) {
         return;
         _disabled = disable;
-        if (_disabled)
+        if (_disabled) {
             _write_pwm(0);
+        }
     }
 
     // Homing justs sets the new system position and the servo will move there

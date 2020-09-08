@@ -118,8 +118,9 @@ void controlCheckTask(void* pvParameters) {
         xQueueReceive(control_sw_queue, &evt, portMAX_DELAY);  // block until receive queue
         vTaskDelay(CONTROL_SW_DEBOUNCE_PERIOD);                // delay a while
         uint8_t pin = system_control_get_state();
-        if (pin)
+        if (pin) {
             system_exec_control_pin(pin);
+        }
         debouncing = false;
     }
 }
@@ -142,9 +143,9 @@ void IRAM_ATTR isr_control_inputs() {
 // Returns if safety door is ajar(T) or closed(F), based on pin state.
 uint8_t system_check_safety_door_ajar() {
 #ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-    return (system_control_get_state() & CONTROL_PIN_INDEX_SAFETY_DOOR);
+    return system_control_get_state() & CONTROL_PIN_INDEX_SAFETY_DOOR;
 #else
-    return (false);  // Input pin not enabled, so just return that it's closed.
+    return false;  // Input pin not enabled, so just return that it's closed.
 #endif
 }
 
@@ -219,22 +220,24 @@ float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
     float pos;
     float steps_per_mm = axis_settings[idx]->steps_per_mm->get();
 #ifdef COREXY
-    if (idx == X_AXIS)
+    if (idx == X_AXIS) {
         pos = (float)system_convert_corexy_to_x_axis_steps(steps) / steps_per_mm;
-    else if (idx == Y_AXIS)
+    } else if (idx == Y_AXIS) {
         pos = (float)system_convert_corexy_to_y_axis_steps(steps) / steps_per_mm;
-    else
+    } else {
         pos = steps[idx] / steps_per_mm;
+    }
 #else
     pos = steps[idx] / steps_per_mm;
 #endif
-    return (pos);
+    return pos;
 }
 
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     uint8_t idx;
-    for (idx = 0; idx < N_AXIS; idx++)
+    for (idx = 0; idx < N_AXIS; idx++) {
         position[idx] = system_convert_axis_steps_to_mpos(steps, idx);
+    }
     return;
 }
 
@@ -258,7 +261,7 @@ uint8_t system_check_travel_limits(float* target) {
         if (target[idx] < min_mpos || target[idx] > max_mpos)
             return true;
     }
-    return (false);
+    return false;
 }
 
 // Returns control pin state as a uint8 bitfield. Each bit indicates the input pin state, where
@@ -270,48 +273,57 @@ uint8_t system_control_get_state() {
 
 #ifdef CONTROL_SAFETY_DOOR_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_SAFETY_DOOR;
-    if (digitalRead(CONTROL_SAFETY_DOOR_PIN))
+    if (digitalRead(CONTROL_SAFETY_DOOR_PIN)) {
         control_state |= CONTROL_PIN_INDEX_SAFETY_DOOR;
+    }
 #endif
 #ifdef CONTROL_RESET_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_RESET;
-    if (digitalRead(CONTROL_RESET_PIN))
+    if (digitalRead(CONTROL_RESET_PIN)) {
         control_state |= CONTROL_PIN_INDEX_RESET;
+    }
 #endif
 #ifdef CONTROL_FEED_HOLD_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_FEED_HOLD;
-    if (digitalRead(CONTROL_FEED_HOLD_PIN))
+    if (digitalRead(CONTROL_FEED_HOLD_PIN)) {
         control_state |= CONTROL_PIN_INDEX_FEED_HOLD;
+    }
 #endif
 #ifdef CONTROL_CYCLE_START_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_CYCLE_START;
-    if (digitalRead(CONTROL_CYCLE_START_PIN))
+    if (digitalRead(CONTROL_CYCLE_START_PIN)) {
         control_state |= CONTROL_PIN_INDEX_CYCLE_START;
+    }
 #endif
 #ifdef MACRO_BUTTON_0_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_0;
-    if (digitalRead(MACRO_BUTTON_0_PIN))
+    if (digitalRead(MACRO_BUTTON_0_PIN)) {
         control_state |= CONTROL_PIN_INDEX_MACRO_0;
+    }
 #endif
 #ifdef MACRO_BUTTON_1_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_1;
-    if (digitalRead(MACRO_BUTTON_1_PIN))
+    if (digitalRead(MACRO_BUTTON_1_PIN)) {
         control_state |= CONTROL_PIN_INDEX_MACRO_1;
+    }
 #endif
 #ifdef MACRO_BUTTON_2_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_2;
-    if (digitalRead(MACRO_BUTTON_2_PIN))
+    if (digitalRead(MACRO_BUTTON_2_PIN)) {
         control_state |= CONTROL_PIN_INDEX_MACRO_2;
+    }
 #endif
 #ifdef MACRO_BUTTON_3_PIN
     defined_pin_mask |= CONTROL_PIN_INDEX_MACRO_3;
-    if (digitalRead(MACRO_BUTTON_3_PIN))
+    if (digitalRead(MACRO_BUTTON_3_PIN)) {
         control_state |= CONTROL_PIN_INDEX_MACRO_3;
+    }
 #endif
 #ifdef INVERT_CONTROL_PIN_MASK
     control_state ^= (INVERT_CONTROL_PIN_MASK & defined_pin_mask);
 #endif
-    return (control_state);
+
+    return control_state;
 }
 
 // execute the function of the control pin
@@ -319,12 +331,13 @@ void system_exec_control_pin(uint8_t pin) {
     if (bit_istrue(pin, CONTROL_PIN_INDEX_RESET)) {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset via control pin");
         mc_reset();
-    } else if (bit_istrue(pin, CONTROL_PIN_INDEX_CYCLE_START))
+    } else if (bit_istrue(pin, CONTROL_PIN_INDEX_CYCLE_START)) {
         bit_true(sys_rt_exec_state, EXEC_CYCLE_START);
-    else if (bit_istrue(pin, CONTROL_PIN_INDEX_FEED_HOLD))
+    } else if (bit_istrue(pin, CONTROL_PIN_INDEX_FEED_HOLD)) {
         bit_true(sys_rt_exec_state, EXEC_FEED_HOLD);
-    else if (bit_istrue(pin, CONTROL_PIN_INDEX_SAFETY_DOOR))
+    } else if (bit_istrue(pin, CONTROL_PIN_INDEX_SAFETY_DOOR)) {
         bit_true(sys_rt_exec_state, EXEC_SAFETY_DOOR);
+    }
 #ifdef MACRO_BUTTON_0_PIN
     else if (bit_istrue(pin, CONTROL_PIN_INDEX_MACRO_0)) {
         user_defined_macro(CONTROL_PIN_INDEX_MACRO_0);  // function must be implemented by user
@@ -349,10 +362,11 @@ void system_exec_control_pin(uint8_t pin) {
 
 // CoreXY calculation only. Returns x or y-axis "steps" based on CoreXY motor steps.
 int32_t system_convert_corexy_to_x_axis_steps(int32_t* steps) {
-    return ((steps[A_MOTOR] + steps[B_MOTOR]) / 2);
+    return (steps[A_MOTOR] + steps[B_MOTOR]) / 2;
 }
+
 int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps) {
-    return ((steps[A_MOTOR] - steps[B_MOTOR]) / 2);
+    return (steps[A_MOTOR] - steps[B_MOTOR]) / 2;
 }
 
 // io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
@@ -396,9 +410,9 @@ void fast_sys_io_control(uint8_t io_num_mask, bool turnOn) {
 // returns -1 for error
 int8_t sys_get_next_RMT_chan_num() {
     static uint8_t next_RMT_chan_num = 0;  // channels 0-7 are valid
-    if (next_RMT_chan_num < 8)             // 7 is the max PWM channel number
+    if (next_RMT_chan_num < 8) {           // 7 is the max PWM channel number
         return next_RMT_chan_num++;
-    else {
+    } else {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_ERROR, "Error: out of RMT channels");
         return -1;
     }
@@ -415,9 +429,9 @@ int8_t sys_get_next_RMT_chan_num() {
 */
 int8_t sys_get_next_PWM_chan_num() {
     static uint8_t next_PWM_chan_num = 2;  // start at 2 to avoid spindle
-    if (next_PWM_chan_num < 8)             // 7 is the max PWM channel number
+    if (next_PWM_chan_num < 8) {           // 7 is the max PWM channel number
         return next_PWM_chan_num++;
-    else {
+    } else {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_ERROR, "Error: out of PWM channels");
         return -1;
     }

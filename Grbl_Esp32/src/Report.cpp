@@ -54,8 +54,9 @@ EspClass esp;
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char* text) {
-    if (client == CLIENT_INPUT)
+    if (client == CLIENT_INPUT) {
         return;
+    }
 #ifdef ENABLE_BLUETOOTH
     if (WebUI::SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
         WebUI::SerialBT.print(text);
@@ -63,12 +64,14 @@ void grbl_send(uint8_t client, const char* text) {
     }
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_OUT)
-    if (client == CLIENT_WEBUI || client == CLIENT_ALL)
+    if (client == CLIENT_WEBUI || client == CLIENT_ALL) {
         WebUI::Serial2Socket.write((const uint8_t*)text, strlen(text));
+    }
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
-    if (client == CLIENT_TELNET || client == CLIENT_ALL)
+    if (client == CLIENT_TELNET || client == CLIENT_ALL) {
         WebUI::telnet_server.write((const uint8_t*)text, strlen(text));
+    }
 #endif
     if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
         Serial.print(text);
@@ -97,8 +100,9 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_send(client, temp);
     va_end(arg);
-    if (len > 64)
+    if (len > 64) {
         delete[] temp;
+    }
 }
 // Use to send [MSG:xxxx] Type messages. The level allows messages to be easily suppressed
 void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
@@ -118,8 +122,9 @@ void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
     va_end(copy);
     if (len >= sizeof(loc_buf)) {
         temp = new char[len + 1];
-        if (temp == NULL)
+        if (temp == NULL) {
             return;
+        }
     }
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_sendf(client, "[MSG:%s]\r\n", temp);
@@ -165,8 +170,9 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
     char    axisVal[20];
     float   unit_conv = 1.0;  // unit conversion multiplier..default is mm
     rpt[0]            = '\0';
-    if (report_inches->get())
+    if (report_inches->get()) {
         unit_conv = 1.0 / MM_PER_INCH;
+    }
     for (idx = 0; idx < N_AXIS; idx++) {
         if (report_inches->get()) {
             sprintf(axisVal, "%4.4f", axis_value[idx] * unit_conv);  // Report inches to 4 decimals
@@ -326,10 +332,11 @@ void report_ngc_parameters(uint8_t client) {
     strcat(ngc_rpt, temp);
     strcat(ngc_rpt, "]\r\n");
     strcat(ngc_rpt, "[TLO:");  // Print tool length offset value
-    if (report_inches->get())
+    if (report_inches->get()) {
         sprintf(temp, "%4.3f]\r\n", gc_state.tool_length_offset * INCH_PER_MM);
-    else
+    } else {
         sprintf(temp, "%4.3f]\r\n", gc_state.tool_length_offset);
+    }
     strcat(ngc_rpt, temp);
     grbl_send(client, ngc_rpt);
     report_probe_parameters(client);
@@ -337,54 +344,96 @@ void report_ngc_parameters(uint8_t client) {
 
 // Print current gcode parser mode state
 void report_gcode_modes(uint8_t client) {
-    char temp[20];
-    char modes_rpt[75];
-    strcpy(modes_rpt, "[GC:G");
-    if (gc_state.modal.motion >= MOTION_MODE_PROBE_TOWARD)
-        sprintf(temp, "38.%d", gc_state.modal.motion - (MOTION_MODE_PROBE_TOWARD - 2));
-    else
-        sprintf(temp, "%d", gc_state.modal.motion);
-    strcat(modes_rpt, temp);
+    char        temp[20];
+    char        modes_rpt[75];
+    const char* mode = "";
+    strcpy(modes_rpt, "[GC:");
+
+    switch (gc_state.modal.motion) {
+        case Motion::None: mode = "G80"; break;
+        case Motion::Seek: mode = "G0"; break;
+        case Motion::Linear: mode = "G1"; break;
+        case Motion::CwArc: mode = "G2"; break;
+        case Motion::CcwArc: mode = "G3"; break;
+        case Motion::ProbeToward: mode = "G38.1"; break;
+        case Motion::ProbeTowardNoError: mode = "G38.2"; break;
+        case Motion::ProbeAway: mode = "G38.3"; break;
+        case Motion::ProbeAwayNoError: mode = "G38.4"; break;
+    }
+    strcat(modes_rpt, mode);
+
     sprintf(temp, " G%d", gc_state.modal.coord_select + 54);
     strcat(modes_rpt, temp);
-    sprintf(temp, " G%d", gc_state.modal.plane_select + 17);
-    strcat(modes_rpt, temp);
-    sprintf(temp, " G%d", 21 - gc_state.modal.units);
-    strcat(modes_rpt, temp);
-    sprintf(temp, " G%d", gc_state.modal.distance + 90);
-    strcat(modes_rpt, temp);
-    sprintf(temp, " G%d", 94 - gc_state.modal.feed_rate);
-    strcat(modes_rpt, temp);
-    if (gc_state.modal.program_flow) {
-        //report_util_gcode_modes_M();
-        switch (gc_state.modal.program_flow) {
-            case PROGRAM_FLOW_PAUSED:
-                strcat(modes_rpt, " M0");  //serial_write('0'); break;
-            // case PROGRAM_FLOW_OPTIONAL_STOP : serial_write('1'); break; // M1 is ignored and not supported.
-            case PROGRAM_FLOW_COMPLETED_M2:
-            case PROGRAM_FLOW_COMPLETED_M30:
-                sprintf(temp, " M%d", gc_state.modal.program_flow);
-                strcat(modes_rpt, temp);
-                break;
+
+    switch (gc_state.modal.plane_select) {
+        case Plane::XY: mode = " G17"; break;
+        case Plane::ZX: mode = " G18"; break;
+        case Plane::YZ: mode = " G19"; break;
+    }
+    strcat(modes_rpt, mode);
+
+    switch (gc_state.modal.units) {
+        case Units::Inches: mode = " G20"; break;
+        case Units::Mm: mode = " G21"; break;
+    }
+    strcat(modes_rpt, mode);
+
+    switch (gc_state.modal.distance) {
+        case Distance::Absolute: mode = " G90"; break;
+        case Distance::Incremental: mode = " G91"; break;
+    }
+    strcat(modes_rpt, mode);
+
+#if 0
+    switch (gc_state.modal.arc_distance) {
+        case ArcDistance::Absolute: mode = " G90.1"; break;
+        case ArcDistance::Incremental: mode = " G91.1"; break;
+    }
+    strcat(modes_rpt, mode);
+#endif
+
+    switch (gc_state.modal.feed_rate) {
+        case FeedRate::UnitsPerMin: mode = " G94"; break;
+        case FeedRate::InverseTime: mode = " G93"; break;
+    }
+    strcat(modes_rpt, mode);
+
+    //report_util_gcode_modes_M();
+    switch (gc_state.modal.program_flow) {
+        case ProgramFlow::Running: mode = ""; break;
+        case ProgramFlow::Paused: mode = " M0"; break;
+        case ProgramFlow::OptionalStop: mode = " M1"; break;
+        case ProgramFlow::CompletedM2: mode = " M2"; break;
+        case ProgramFlow::CompletedM30: mode = " M30"; break;
+    }
+    strcat(modes_rpt, mode);
+
+    switch (gc_state.modal.spindle) {
+        case SpindleState::Cw: mode = " M3"; break;
+        case SpindleState::Ccw: mode = " M4"; break;
+        case SpindleState::Disable: mode = " M5"; break;
+        default: mode = "";
+    }
+    strcat(modes_rpt, mode);
+
+    //report_util_gcode_modes_M();  // optional M7 and M8 should have been dealt with by here
+    auto coolant = gc_state.modal.coolant;
+    if (!coolant.Mist && !coolant.Flood) {
+        strcat(modes_rpt, " M9");
+    } else {
+        // Note: Multiple coolant states may be active at the same time.
+        if (coolant.Mist) {
+            strcat(modes_rpt, " M7");
+        }
+        if (coolant.Flood) {
+            strcat(modes_rpt, " M8");
         }
     }
-    switch (gc_state.modal.spindle) {
-        case SPINDLE_ENABLE_CW: strcat(modes_rpt, " M3"); break;
-        case SPINDLE_ENABLE_CCW: strcat(modes_rpt, " M4"); break;
-        case SPINDLE_DISABLE: strcat(modes_rpt, " M5"); break;
-    }
-    //report_util_gcode_modes_M();  // optional M7 and M8 should have been dealt with by here
-    if (gc_state.modal.coolant) {  // Note: Multiple coolant states may be active at the same time.
-        if (gc_state.modal.coolant & PL_COND_FLAG_COOLANT_MIST)
-            strcat(modes_rpt, " M7");
-        if (gc_state.modal.coolant & PL_COND_FLAG_COOLANT_FLOOD)
-            strcat(modes_rpt, " M8");
-    } else
-        strcat(modes_rpt, " M9");
 
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    if (sys.override_ctrl == OVERRIDE_PARKING_MOTION)
+    if (sys.override_ctrl == OVERRIDE_PARKING_MOTION) {
         strcat(modes_rpt, " M56");
+    }
 #endif
 
     sprintf(temp, " T%d", gc_state.tool);
@@ -503,10 +552,11 @@ void report_realtime_status(uint8_t client) {
         case STATE_HOLD:
             if (!(sys.suspend & SUSPEND_JOG_CANCEL)) {
                 strcat(status, "Hold:");
-                if (sys.suspend & SUSPEND_HOLD_COMPLETE)
+                if (sys.suspend & SUSPEND_HOLD_COMPLETE) {
                     strcat(status, "0");  // Ready to resume
-                else
+                } else {
                     strcat(status, "1");  // Actively holding
+                }
                 break;
             }  // Continues to print jog state during jog cancel.
         case STATE_JOG: strcat(status, "Jog"); break;
@@ -521,8 +571,9 @@ void report_realtime_status(uint8_t client) {
                 if (sys.suspend & SUSPEND_RETRACT_COMPLETE) {
                     if (sys.suspend & SUSPEND_SAFETY_DOOR_AJAR) {
                         strcat(status, "1");  // Door ajar
-                    } else
+                    } else {
                         strcat(status, "0");
+                    }
                     // Door closed and ready to resume
                 } else {
                     strcat(status, "2");  // Retracting
@@ -536,16 +587,18 @@ void report_realtime_status(uint8_t client) {
         for (idx = 0; idx < N_AXIS; idx++) {
             // Apply work coordinate offsets and tool length offset to current position.
             wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];
-            if (idx == TOOL_LENGTH_OFFSET_AXIS)
+            if (idx == TOOL_LENGTH_OFFSET_AXIS) {
                 wco[idx] += gc_state.tool_length_offset;
-            if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE))
+            }
+            if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
                 print_position[idx] -= wco[idx];
+            }
         }
     }
     // Report machine position
-    if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE))
+    if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
         strcat(status, "|MPos:");
-    else {
+    } else {
 #ifdef USE_FWD_KINEMATIC
         forward_kinematics(print_position);
 #endif
@@ -558,8 +611,9 @@ void report_realtime_status(uint8_t client) {
     if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_BUFFER_STATE)) {
         int bufsize = DEFAULTBUFFERSIZE;
 #    if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
-        if (client == CLIENT_TELNET)
+        if (client == CLIENT_TELNET) {
             bufsize = WebUI::telnet_server.get_rx_buffer_available();
+        }
 #    endif  //ENABLE_WIFI && ENABLE_TELNET
 #    if defined(ENABLE_BLUETOOTH)
         if (client == CLIENT_BT) {
@@ -567,8 +621,9 @@ void report_realtime_status(uint8_t client) {
             bufsize = 512 - WebUI::SerialBT.available();
         }
 #    endif  //ENABLE_BLUETOOTH
-        if (client == CLIENT_SERIAL)
+        if (client == CLIENT_SERIAL) {
             bufsize = serial_get_rx_buffer_available(CLIENT_SERIAL);
+        }
         sprintf(temp, "|Bf:%d,%d", plan_get_block_buffer_available(), bufsize);
         strcat(status, temp);
     }
@@ -588,10 +643,11 @@ void report_realtime_status(uint8_t client) {
 #endif
     // Report realtime feed speed
 #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
-    if (report_inches->get())
+    if (report_inches->get()) {
         sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate() / MM_PER_INCH, sys.spindle_speed);
-    else
+    } else {
         sprintf(temp, "|FS:%.0f,%d", st_get_realtime_rate(), sys.spindle_speed);
+    }
     strcat(status, temp);
 #endif
 #ifdef REPORT_FIELD_PIN_STATE
@@ -600,82 +656,99 @@ void report_realtime_status(uint8_t client) {
     uint8_t prb_pin_state  = probe_get_state();
     if (lim_pin_state | ctrl_pin_state | prb_pin_state) {
         strcat(status, "|Pn:");
-        if (prb_pin_state)
+        if (prb_pin_state) {
             strcat(status, "P");
+        }
         if (lim_pin_state) {
-            if (bit_istrue(lim_pin_state, bit(X_AXIS)))
+            if (bit_istrue(lim_pin_state, bit(X_AXIS))) {
                 strcat(status, "X");
-            if (bit_istrue(lim_pin_state, bit(Y_AXIS)))
+            }
+            if (bit_istrue(lim_pin_state, bit(Y_AXIS))) {
                 strcat(status, "Y");
-            if (bit_istrue(lim_pin_state, bit(Z_AXIS)))
+            }
+            if (bit_istrue(lim_pin_state, bit(Z_AXIS))) {
                 strcat(status, "Z");
+            }
 #    if (N_AXIS > A_AXIS)
-            if (bit_istrue(lim_pin_state, bit(A_AXIS)))
+            if (bit_istrue(lim_pin_state, bit(A_AXIS))) {
                 strcat(status, "A");
+            }
 #    endif
 #    if (N_AXIS > B_AXIS)
-            if (bit_istrue(lim_pin_state, bit(B_AXIS)))
+            if (bit_istrue(lim_pin_state, bit(B_AXIS))) {
                 strcat(status, "B");
+            }
 #    endif
 #    if (N_AXIS > C_AXIS)
-            if (bit_istrue(lim_pin_state, bit(C_AXIS)))
+            if (bit_istrue(lim_pin_state, bit(C_AXIS))) {
                 strcat(status, "C");
+            }
 #    endif
         }
         if (ctrl_pin_state) {
 #    ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_SAFETY_DOOR))
+            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_SAFETY_DOOR)) {
                 strcat(status, "D");
+            }
 #    endif
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_RESET))
+            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_RESET)) {
                 strcat(status, "R");
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_FEED_HOLD))
+            }
+            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_FEED_HOLD)) {
                 strcat(status, "H");
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_CYCLE_START))
+            }
+            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_CYCLE_START)) {
                 strcat(status, "S");
+            }
         }
     }
 #endif
 #ifdef REPORT_FIELD_WORK_COORD_OFFSET
-    if (sys.report_wco_counter > 0)
+    if (sys.report_wco_counter > 0) {
         sys.report_wco_counter--;
-    else {
+    } else {
         if (sys.state & (STATE_HOMING | STATE_CYCLE | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) {
             sys.report_wco_counter = (REPORT_WCO_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
-        } else
+        } else {
             sys.report_wco_counter = (REPORT_WCO_REFRESH_IDLE_COUNT - 1);
-        if (sys.report_ovr_counter == 0)
+        }
+        if (sys.report_ovr_counter == 0) {
             sys.report_ovr_counter = 1;  // Set override on next report.
+        }
         strcat(status, "|WCO:");
         report_util_axis_values(wco, temp);
         strcat(status, temp);
     }
 #endif
 #ifdef REPORT_FIELD_OVERRIDES
-    if (sys.report_ovr_counter > 0)
+    if (sys.report_ovr_counter > 0) {
         sys.report_ovr_counter--;
-    else {
+    } else {
         if (sys.state & (STATE_HOMING | STATE_CYCLE | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) {
             sys.report_ovr_counter = (REPORT_OVR_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
-        } else
+        } else {
             sys.report_ovr_counter = (REPORT_OVR_REFRESH_IDLE_COUNT - 1);
+        }
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
-        uint8_t sp_state = spindle->get_state();
-        uint8_t cl_state = coolant_get_state();
-        if (sp_state || cl_state) {
+        SpindleState sp_state      = spindle->get_state();
+        CoolantState coolant_state = coolant_get_state();
+        if (sp_state != SpindleState::Disable || coolant_state.Mist || coolant_state.Flood) {
             strcat(status, "|A:");
-            if (sp_state) {  // != SPINDLE_STATE_DISABLE
-                if (sp_state == SPINDLE_STATE_CW)
-                    strcat(status, "S");  // CW
-                else
-                    strcat(status, "C");  // CCW
+            switch (sp_state) {
+                case SpindleState::Disable: break;
+                case SpindleState::Cw: strcat(status, "S"); break;
+                case SpindleState::Ccw: strcat(status, "C"); break;
             }
-            if (cl_state & COOLANT_STATE_FLOOD)
+
+            auto coolant = coolant_state;
+            if (coolant.Flood) {
                 strcat(status, "F");
+            }
 #    ifdef COOLANT_MIST_PIN  // TODO Deal with M8 - Flood
-            if (cl_state & COOLANT_STATE_MIST)
+            if (coolant.Mist) {
                 strcat(status, "M");
+            }
 #    endif
         }
     }

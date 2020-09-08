@@ -34,85 +34,84 @@ void coolant_init() {
 }
 
 // Returns current coolant output state. Overrides may alter it from programmed state.
-uint8_t coolant_get_state() {
-    uint8_t cl_state = COOLANT_STATE_DISABLE;
+CoolantState coolant_get_state() {
+    CoolantState cl_state = {};
+    bool pinState;
+
 #ifdef COOLANT_FLOOD_PIN
+    pinState = digitalRead(COOLANT_FLOOD_PIN);
 #    ifdef INVERT_COOLANT_FLOOD_PIN
-    if (!digitalRead(COOLANT_FLOOD_PIN)) {
-#    else
-    if (digitalRead(COOLANT_FLOOD_PIN)) {
+    pinState = !pinState;
 #    endif
-        cl_state |= COOLANT_STATE_FLOOD;
+    if (pinState) {
+        cl_state.Flood = 1;
     }
 #endif
+
 #ifdef COOLANT_MIST_PIN
+    pinState = digitalRead(COOLANT_MIST_PIN);
 #    ifdef INVERT_COOLANT_MIST_PIN
-    if (!digitalRead(COOLANT_MIST_PIN)) {
-#    else
-    if (digitalRead(COOLANT_MIST_PIN)) {
+    pinState = !pinState;
 #    endif
-        cl_state |= COOLANT_STATE_MIST;
+    if (pinState) {
+        cl_state.Mist = 1;
     }
 #endif
-    return (cl_state);
+
+    return cl_state;
+}
+
+static inline void coolant_write(CoolantState state) {
+    bool pinState;
+
+#ifdef COOLANT_FLOOD_PIN
+    pinState = state.Flood;
+#    ifdef INVERT_COOLANT_FLOOD_PIN
+    pinState = !pinState;
+#    endif
+    digitalWrite(COOLANT_FLOOD_PIN, pinState);
+#endif
+
+#ifdef COOLANT_MIST_PIN
+    pinState = state.Mist;
+#    ifdef INVERT_COOLANT_MIST_PIN
+    pinState = !pinState;
+#    endif
+    digitalWrite(COOLANT_MIST_PIN, pinState);
+#endif
 }
 
 // Directly called by coolant_init(), coolant_set_state(), and mc_reset(), which can be at
 // an interrupt-level. No report flag set, but only called by routines that don't need it.
 void coolant_stop() {
-#ifdef COOLANT_FLOOD_PIN
-#    ifdef INVERT_COOLANT_FLOOD_PIN
-    digitalWrite(COOLANT_FLOOD_PIN, 1);
-#    else
-    digitalWrite(COOLANT_FLOOD_PIN, 0);
-#    endif
-#endif
-#ifdef COOLANT_MIST_PIN
-#    ifdef INVERT_COOLANT_MIST_PIN
-    digitalWrite(COOLANT_MIST_PIN, 1);
-#    else
-    digitalWrite(COOLANT_MIST_PIN, 0);
-#    endif
-#endif
+    CoolantState disable = {};
+    coolant_write(disable);
 }
 
 // Main program only. Immediately sets flood coolant running state and also mist coolant,
 // if enabled. Also sets a flag to report an update to a coolant state.
 // Called by coolant toggle override, parking restore, parking retract, sleep mode, g-code
 // parser program end, and g-code parser coolant_sync().
-void coolant_set_state(uint8_t mode) {
-    if (sys.abort)
+
+void coolant_set_state(CoolantState state) {
+    if (sys.abort) {
         return;  // Block during abort.
-    if (mode == COOLANT_DISABLE)
-        coolant_stop();
-    else {
-#ifdef COOLANT_FLOOD_PIN
-        if (mode & COOLANT_FLOOD_ENABLE) {
-#    ifdef INVERT_COOLANT_FLOOD_PIN
-            digitalWrite(COOLANT_FLOOD_PIN, 0);
-#    else
-            digitalWrite(COOLANT_FLOOD_PIN, 1);
-#    endif
-        }
-#endif
-#ifdef COOLANT_MIST_PIN
-        if (mode & COOLANT_MIST_ENABLE) {
-#    ifdef INVERT_COOLANT_MIST_PIN
-            digitalWrite(COOLANT_MIST_PIN, 0);
-#    else
-            digitalWrite(COOLANT_MIST_PIN, 1);
-#    endif
-        }
-#endif
     }
+    coolant_write(state);
     sys.report_ovr_counter = 0;  // Set to report change immediately
+}
+
+void coolant_off() {
+    CoolantState disable = {};
+    coolant_set_state(disable);
 }
 
 // G-code parser entry-point for setting coolant state. Forces a planner buffer sync and bails
 // if an abort or check-mode is active.
-void coolant_sync(uint8_t mode) {
-    if (sys.state == STATE_CHECK_MODE)
+void coolant_sync(CoolantState state) {
+    if (sys.state == STATE_CHECK_MODE) {
         return;
+    }
     protocol_buffer_synchronize();  // Ensure coolant turns on when specified in program.
-    coolant_set_state(mode);
+    coolant_set_state(state);
 }

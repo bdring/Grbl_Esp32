@@ -283,7 +283,7 @@ namespace Spindles {
 
         // Initially we initialize this to 0; over time, we might poll better information from the VFD.
         _current_rpm   = 0;
-        _current_state = SPINDLE_DISABLE;
+        _current_state = SpindleState::Disable;
 
         config_message();
     }
@@ -335,17 +335,17 @@ namespace Spindles {
                        pinName(_rts_pin).c_str());
     }
 
-    void VFD::set_state(uint8_t state, uint32_t rpm) {
+    void VFD::set_state(SpindleState state, uint32_t rpm) {
         if (sys.abort) {
             return;  // Block during abort.
         }
 
-        bool critical = (sys.state == STATE_CYCLE || state != SPINDLE_DISABLE);
+        bool critical = (sys.state == STATE_CYCLE || state != SpindleState::Disable);
 
         if (_current_state != state) {  // already at the desired state. This function gets called a lot.
             set_mode(state, critical);  // critical if we are in a job
             set_rpm(rpm);
-            if (state == SPINDLE_DISABLE) {
+            if (state == SpindleState::Disable) {
                 sys.spindle_speed = 0;
                 if (_current_state != state) {
                     mc_dwell(spindle_delay_spindown->get());
@@ -368,7 +368,7 @@ namespace Spindles {
         return;
     }
 
-    bool VFD::set_mode(uint8_t mode, bool critical) {
+    bool VFD::set_mode(SpindleState mode, bool critical) {
         if (!vfd_ok) {
             return false;
         }
@@ -378,7 +378,7 @@ namespace Spindles {
 
         direction_command(mode, mode_cmd);
 
-        if (mode == SPINDLE_DISABLE) {
+        if (mode == SpindleState::Disable) {
             if (!xQueueReset(vfd_cmd_queue)) {
                 grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD spindle off, queue could not be reset");
             }
@@ -437,10 +437,10 @@ namespace Spindles {
         return rpm;
     }
 
-    void VFD::stop() { set_mode(SPINDLE_DISABLE, false); }
+    void VFD::stop() { set_mode(SpindleState::Disable, false); }
 
     // state is cached rather than read right now to prevent delays
-    uint8_t VFD::get_state() { return _current_state; }
+    SpindleState VFD::get_state() { return _current_state; }
 
     // Calculate the CRC on all of the byte except the last 2
     // It then added the CRC to those last 2 bytes

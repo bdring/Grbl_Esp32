@@ -81,54 +81,60 @@ namespace Spindles {
     uint32_t _10v::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
-        if (_output_pin == UNDEFINED_PIN)
+        if (_output_pin == UNDEFINED_PIN) {
             return rpm;
+        }
 
         // apply speed overrides
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (percent)
 
         // apply limits limits
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
+        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
             rpm = _max_rpm;
-        else if (rpm != 0 && rpm <= _min_rpm)
+        } else if (rpm != 0 && rpm <= _min_rpm) {
             rpm = _min_rpm;
+        }
         sys.spindle_speed = rpm;
 
         // determine the pwm value
-        if (rpm == 0)
+        if (rpm == 0) {
             pwm_value = _pwm_off_value;
-        else
+        } else {
             pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
+        }
 
         set_output(pwm_value);
         return rpm;
     }
-    /*
-	void _10v::set_state(uint8_t state, uint32_t rpm) {
-		if (sys.abort)
-			return;   // Block during abort.
 
-		if (state == SPINDLE_DISABLE) { // Halt or set spindle direction and rpm.
+    /*
+	void _10v::set_state(SpindleState state, uint32_t rpm) {
+		if (sys.abort) {
+            return;   // Block during abort.
+        }
+
+		if (state == SpindleState::Disable) { // Halt or set spindle direction and rpm.
 			sys.spindle_speed = 0;
 			stop();
 		} else {
-			set_dir_pin(state == SPINDLE_ENABLE_CW);
+			set_dir_pin(state == SpindleState:Cw);
 			set_rpm(rpm);
 		}
 
-		set_enable_pin(state != SPINDLE_DISABLE);
+		set_enable_pin(state != SpindleState::Disable);
 
 		sys.report_ovr_counter = 0; // Set to report change immediately
 	}
-
 	*/
 
-    uint8_t _10v::get_state() {
-        if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN)
-            return (SPINDLE_STATE_DISABLE);
-        if (_direction_pin != UNDEFINED_PIN)
-            return digitalRead(_direction_pin) ? SPINDLE_STATE_CW : SPINDLE_STATE_CCW;
-        return (SPINDLE_STATE_CW);
+    SpindleState _10v::get_state() {
+        if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN) {
+            return SpindleState::Disable;
+        }
+        if (_direction_pin != UNDEFINED_PIN) {
+            return digitalRead(_direction_pin) ? SpindleState::Cw : SpindleState::Ccw;
+        }
+        return SpindleState::Cw;
     }
 
     void _10v::stop() {
@@ -139,12 +145,13 @@ namespace Spindles {
 
     void _10v::set_enable_pin(bool enable) {
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle::_10v::set_enable_pin");
-        if (_off_with_zero_speed && sys.spindle_speed == 0)
+        if (_off_with_zero_speed && sys.spindle_speed == 0) {
             enable = false;
+        }
 
-
-        if (spindle_enable_invert->get())
+        if (spindle_enable_invert->get()) {
             enable = !enable;
+        }
 
         digitalWrite(_enable_pin, enable);
 

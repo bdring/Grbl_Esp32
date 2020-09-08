@@ -252,6 +252,7 @@ namespace WebUI {
             if (SPIFFS.exists(pathWithGz)) {
                 path = pathWithGz;
             }
+
             File file = SPIFFS.open(path, FILE_READ);
             _webserver->streamFile(file, contentType);
             file.close();
@@ -302,6 +303,7 @@ namespace WebUI {
                             _webserver->client().write(buf, 1024);
                             i += v;
                         }
+
                         if (i >= totalFileSize) {
                             done = true;
                         }
@@ -593,7 +595,7 @@ namespace WebUI {
                     String suserPassword  = user_password->get();
 
                     if (!(sUser == DEFAULT_ADMIN_LOGIN && sPassword == sadminPassword) ||
-                         (sUser == DEFAULT_USER_LOGIN && sPassword == suserPassword)) {
+                        (sUser == DEFAULT_USER_LOGIN && sPassword == suserPassword)) {
                         msg_alert_error = true;
                         smsg            = "Error: Incorrect password";
                         code            = 401;
@@ -607,7 +609,6 @@ namespace WebUI {
             //change password
             if (_webserver->hasArg("PASSWORD") && _webserver->hasArg("USER") && _webserver->hasArg("NEWPASSWORD") &&
                 (msg_alert_error == false)) {
-
                 String newpassword = _webserver->arg("NEWPASSWORD");
 
                 char pwdbuf[MAX_LOCAL_PASSWORD_LENGTH + 1];
@@ -1222,11 +1223,7 @@ namespace WebUI {
             COMMANDS::wait(0);  //wdtFeed
         }
         file.close();
-        if (result) {
-            return SD.rmdir(path);
-        } else {
-            return false;
-        }
+        return result ? SD.rmdir(path) : false;
     }
 
     //direct SD files list//////////////////////////////////////////////////

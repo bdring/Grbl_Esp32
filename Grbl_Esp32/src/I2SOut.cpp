@@ -457,8 +457,9 @@ static void IRAM_ATTR i2s_out_intr_handler(void* arg) {
         xQueueSendFromISR(o_dma.queue, &finish_desc, &high_priority_task_awoken);
     }
 
-    if (high_priority_task_awoken == pdTRUE)
+    if (high_priority_task_awoken == pdTRUE) {
         portYIELD_FROM_ISR();
+    }
 
     // clear interrupt
     I2S0.int_clr.val = I2S0.int_st.val;  //clear pending interrupt
@@ -724,26 +725,30 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
 #    ifdef USE_I2S_OUT_STREAM_IMPL
     // Allocate the array of pointers to the buffers
     o_dma.buffers = (uint32_t**)malloc(sizeof(uint32_t*) * I2S_OUT_DMABUF_COUNT);
-    if (o_dma.buffers == nullptr)
+    if (o_dma.buffers == nullptr) {
         return -1;
+    }
 
     // Allocate each buffer that can be used by the DMA controller
     for (int buf_idx = 0; buf_idx < I2S_OUT_DMABUF_COUNT; buf_idx++) {
         o_dma.buffers[buf_idx] = (uint32_t*)heap_caps_calloc(1, I2S_OUT_DMABUF_LEN, MALLOC_CAP_DMA);
-        if (o_dma.buffers[buf_idx] == nullptr)
+        if (o_dma.buffers[buf_idx] == nullptr) {
             return -1;
+        }
     }
 
     // Allocate the array of DMA descriptors
     o_dma.desc = (lldesc_t**)malloc(sizeof(lldesc_t*) * I2S_OUT_DMABUF_COUNT);
-    if (o_dma.desc == nullptr)
+    if (o_dma.desc == nullptr) {
         return -1;
+    }
 
     // Allocate each DMA descriptor that will be used by the DMA controller
     for (int buf_idx = 0; buf_idx < I2S_OUT_DMABUF_COUNT; buf_idx++) {
         o_dma.desc[buf_idx] = (lldesc_t*)heap_caps_malloc(sizeof(lldesc_t), MALLOC_CAP_DMA);
-        if (o_dma.desc[buf_idx] == nullptr)
+        if (o_dma.desc[buf_idx] == nullptr) {
             return -1;
+        }
     }
 
     // Initialize

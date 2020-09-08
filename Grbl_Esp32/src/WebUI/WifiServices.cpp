@@ -95,8 +95,9 @@ namespace WebUI {
             if (!MDNS.begin(h.c_str())) {
                 grbl_send(CLIENT_ALL, "[MSG:Cannot start mDNS]\r\n");
                 no_error = false;
-            } else
+            } else {
                 grbl_sendf(CLIENT_ALL, "[MSG:Start mDNS with hostname:http://%s.local/]\r\n", h.c_str());
+            }
         }
 #    endif
 #    ifdef ENABLE_HTTP
