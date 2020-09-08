@@ -162,9 +162,9 @@ static const char* makename(const char* axisName, const char* tail) {
 
 static bool checkStartupLine(char* value) {
     if (sys.state != STATE_IDLE) {
-        return STATUS_IDLE_ERROR;
+        return false;
     }
-    return gc_execute_line(value, CLIENT_SERIAL) == 0;
+    return gc_execute_line(value, CLIENT_SERIAL) == Error::Ok;
 }
 
 static bool checkStallguard(char* value) {
