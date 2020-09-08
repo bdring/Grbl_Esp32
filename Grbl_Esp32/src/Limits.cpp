@@ -80,6 +80,21 @@ void limits_go_home(uint8_t cycle_mask) {
     }
     // Initialize plan data struct for homing motion. Spindle and coolant are disabled.
     motors_set_homing_mode(cycle_mask, true);  // tell motors homing is about to start
+
+    // Remove any motor that cannot be homed from the mask
+    // Motors with non standard homing can do that during motors_set_homing_mode(...) above
+    for (uint8_t idx = 0; idx < N_AXIS; idx++) {
+        if (bit_istrue(cycle_mask, bit(idx))) {
+            if (!motor_can_home(idx)) {
+                bit_false(cycle_mask, bit(idx));
+            }
+        }
+    }
+    // see if any motors are left
+    if (cycle_mask == 0) {
+        return;
+    }
+
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
     memset(pl_data, 0, sizeof(plan_line_data_t));
@@ -92,8 +107,8 @@ void limits_go_home(uint8_t cycle_mask) {
     uint8_t step_pin[N_AXIS];
     float   target[N_AXIS];
     float   max_travel = 0.0;
-    uint8_t idx;
-    for (idx = 0; idx < N_AXIS; idx++) {
+
+    for (uint8_t idx = 0; idx < N_AXIS; idx++) {
         // Initialize step pin masks
         step_pin[idx] = get_step_pin_mask(idx);
 #ifdef COREXY
@@ -115,7 +130,7 @@ void limits_go_home(uint8_t cycle_mask) {
         // Initialize and declare variables needed for homing routine.
         axislock      = 0;
         n_active_axis = 0;
-        for (idx = 0; idx < N_AXIS; idx++) {
+        for (uint8_t idx = 0; idx < N_AXIS; idx++) {
             // Set target location for active axes and setup computation for homing rate.
             if (bit_istrue(cycle_mask, bit(idx))) {
                 n_active_axis++;
@@ -165,7 +180,7 @@ void limits_go_home(uint8_t cycle_mask) {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
                 limit_state = limits_get_state();
-                for (idx = 0; idx < N_AXIS; idx++) {
+                for (uint8_t idx = 0; idx < N_AXIS; idx++) {
                     if (axislock & step_pin[idx]) {
                         if (limit_state & bit(idx)) {
 #ifdef COREXY
@@ -245,27 +260,18 @@ void limits_go_home(uint8_t cycle_mask) {
     // Set machine positions for homed limit switches. Don't update non-homed axes.
     auto mask    = homing_dir_mask->get();
     auto pulloff = homing_pulloff->get();
-    for (idx = 0; idx < N_AXIS; idx++) {
+    for (uint8_t idx = 0; idx < N_AXIS; idx++) {
         auto steps = axis_settings[idx]->steps_per_mm->get();
         if (cycle_mask & bit(idx)) {
-#ifdef HOMING_FORCE_SET_ORIGIN
-            set_axis_position = 0;
-#else
-            auto travel = axis_settings[idx]->max_travel->get();
-            if (bit_istrue(mask, bit(idx))) {
-#    ifdef HOMING_FORCE_POSITIVE_SPACE
-                set_axis_position = 0;  //lround(settings.homing_pulloff*settings.steps_per_mm[idx]);
-#    else
-                set_axis_position = lround((-travel + pulloff) * steps);
-#    endif
+            float travel = axis_settings[idx]->max_travel->get();
+            float mpos   = axis_settings[idx]->home_mpos->get();
+
+            if (bit_istrue(homing_dir_mask->get(), bit(idx))) {
+                sys_position[idx] = (mpos + pulloff) * steps;
             } else {
-#    ifdef HOMING_FORCE_POSITIVE_SPACE
-                set_axis_position = lround((-travel - pulloff) * steps);
-#    else
-                set_axis_position = lround(-pulloff * steps);
-#    endif
+                sys_position[idx] = (mpos - pulloff) * steps;
             }
-#endif
+
 #ifdef COREXY
             if (idx == X_AXIS) {
                 int32_t off_axis_position = system_convert_corexy_to_y_axis_steps(sys_position);
@@ -279,7 +285,18 @@ void limits_go_home(uint8_t cycle_mask) {
                 sys_position[idx] = set_axis_position;
             }
 #else
-            sys_position[idx] = set_axis_position;
+            //sys_position[idx] = set_axis_position;
+            /*
+            float max_mpos, min_mpos;
+
+            if (bit_istrue(homing_dir_mask->get(), bit(idx))) {
+                min_mpos = mpos;
+                max_mpos = mpos + travel;
+            } else {
+                min_mpos = mpos - travel;
+                max_mpos = mpos;
+            }
+            */
 #endif
         }
     }
@@ -372,14 +389,6 @@ uint8_t limits_get_state() {
 // NOTE: Used by jogging to limit travel within soft-limit volume.
 void limits_soft_check(float* target) {
     if (system_check_travel_limits(target)) {
-        // TODO for debugging only 3 axes right now
-        grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
-                       "Soft limit error target WPOS X:%5.2f Y:%5.2f Z:%5.2f",
-                       target[X_AXIS] - gc_state.coord_system[X_AXIS],
-                       target[Y_AXIS] - gc_state.coord_system[Y_AXIS],
-                       target[Z_AXIS] - gc_state.coord_system[Z_AXIS]);
-
         sys.soft_limit = true;
         // Force feed hold if cycle is active. All buffered blocks are guaranteed to be within
         // workspace volume so just come to a controlled stop so position is not lost. When complete

@@ -45,8 +45,8 @@
 #define Y_LIMIT_PIN     GPIO_NUM_4
 
 #define Z_SERVO_PIN             GPIO_NUM_27
-#define Z_SERVO_RANGE_MIN       0.0
-#define Z_SERVO_RANGE_MAX       5.0
+#define Z_SERVO_CAL_MIN               1.0       // calibration factor for the minimum PWM duty
+#define Z_SERVO_CAL_MAX               1.0       // calibration factor for the maximum PWM duty
 
 // redefine some stuff from config.h
 #ifdef HOMING_CYCLE_0

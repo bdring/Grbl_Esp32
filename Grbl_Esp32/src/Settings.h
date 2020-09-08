@@ -376,8 +376,9 @@ public:
     FloatSetting* max_travel;
     FloatSetting* run_current;
     FloatSetting* hold_current;
+    FloatSetting* home_mpos;
     IntSetting*   microsteps;
-    IntSetting*   stallguard;
+    IntSetting*   stallguard;    
 
     AxisSettings(const char* axisName);
 };
