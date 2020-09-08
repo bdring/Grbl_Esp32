@@ -34,12 +34,12 @@ namespace Motors {
     RcServo::RcServo() {}
 
     RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max) {
-        type_id               = RC_SERVO_MOTOR;
-        this->axis_index      = axis_index % MAX_AXES;
-        this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
-        this->_pwm_pin        = pwm_pin;
-        _cal_min              = cal_min;
-        _cal_max              = cal_max;
+        type_id                = RC_SERVO_MOTOR;
+        this->_axis_index      = axis_index % MAX_AXES;
+        this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
+        this->_pwm_pin         = pwm_pin;
+        _cal_min               = cal_min;
+        _cal_max               = cal_max;
         init();
     }
 
@@ -90,8 +90,8 @@ namespace Motors {
     void RcServo::set_homing_mode(uint8_t homing_mask, bool isHoming) {
         float home_pos = 0.0;
 
-        sys_position[axis_index] =
-            axis_settings[axis_index]->home_mpos->get() * axis_settings[axis_index]->steps_per_mm->get();  // convert to steps
+        sys_position[_axis_index] =
+            axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
 
         set_location();  // force the PWM to update now
 
@@ -112,7 +112,7 @@ namespace Motors {
             return;
         }
 
-        mpos = system_convert_axis_steps_to_mpos(sys_position, axis_index);  // get the axis machine position in mm
+        mpos = system_convert_axis_steps_to_mpos(sys_position, _axis_index);  // get the axis machine position in mm
         // TBD working in MPos
         offset    = 0;  // gc_state.coord_system[axis_index] + gc_state.coord_offset[axis_index];  // get the current axis work offset
         servo_pos = mpos - offset;  // determine the current work position
@@ -124,11 +124,11 @@ namespace Motors {
     }
 
     void RcServo::read_settings() {
-        float travel = axis_settings[axis_index]->max_travel->get();
-        float mpos   = axis_settings[axis_index]->home_mpos->get();
+        float travel = axis_settings[_axis_index]->max_travel->get();
+        float mpos   = axis_settings[_axis_index]->home_mpos->get();
         //float max_mpos, min_mpos;
 
-        if (bit_istrue(homing_dir_mask->get(), bit(axis_index))) {
+        if (bit_istrue(homing_dir_mask->get(), bit(_axis_index))) {
             _position_min = mpos;
             _position_max = mpos + travel;
         } else {
@@ -139,7 +139,7 @@ namespace Motors {
         _pwm_pulse_min = SERVO_MIN_PULSE * _cal_min;
         _pwm_pulse_max = SERVO_MAX_PULSE * _cal_max;
 
-        if (bit_istrue(dir_invert_mask->get(), bit(axis_index)))  // normal direction
+        if (bit_istrue(dir_invert_mask->get(), bit(_axis_index)))  // normal direction
             swap(_pwm_pulse_min, _pwm_pulse_max);
     }
 

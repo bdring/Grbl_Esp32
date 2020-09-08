@@ -4,13 +4,13 @@ namespace Motors {
     UnipolarMotor::UnipolarMotor() {}
 
     UnipolarMotor::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3) {
-        type_id               = UNIPOLAR_MOTOR;
-        this->axis_index      = axis_index % MAX_AXES;
-        this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
-        _pin_phase0           = pin_phase0;
-        _pin_phase1           = pin_phase1;
-        _pin_phase2           = pin_phase2;
-        _pin_phase3           = pin_phase3;
+        type_id                = UNIPOLAR_MOTOR;
+        this->_axis_index      = axis_index % MAX_AXES;
+        this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
+        _pin_phase0            = pin_phase0;
+        _pin_phase1            = pin_phase1;
+        _pin_phase2            = pin_phase2;
+        _pin_phase3            = pin_phase3;
 
         _half_step = true;  // TODO read from settings ... microstep > 1 = half step
 
@@ -54,7 +54,7 @@ namespace Motors {
         uint8_t _phase[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // temporary phase values...all start as off
         uint8_t phase_max;
 
-        if (!(step_mask & bit(axis_index)))
+        if (!(step_mask & bit(_axis_index)))
             return;  // a step is not required on this interrupt
 
         if (!_enabled)
@@ -65,7 +65,7 @@ namespace Motors {
         else
             phase_max = 3;
 
-        if (dir_mask & bit(axis_index)) {  // count up
+        if (dir_mask & bit(_axis_index)) {  // count up
             if (_current_phase == phase_max)
                 _current_phase = 0;
             else

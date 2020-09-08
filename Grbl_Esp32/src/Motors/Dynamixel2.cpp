@@ -30,9 +30,9 @@ namespace Motors {
     Dynamixel2::Dynamixel2() {}
 
     Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin) {
-        type_id               = DYNAMIXEL2;
-        this->axis_index      = axis_index % MAX_AXES;
-        this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
+        type_id                = DYNAMIXEL2;
+        this->_axis_index      = axis_index % MAX_AXES;
+        this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
 
         _id      = id;
         _tx_pin  = tx_pin;
@@ -52,7 +52,7 @@ namespace Motors {
         is_active = true;   // as opposed to NullMotors, this is a real motor
         _can_home = false;  // this axis cannot be conventionally homed
 
-        init_uart(_id, axis_index, dual_axis_index);  // static and only allows one init
+        init_uart(_id, _axis_index, _dual_axis_index);  // static and only allows one init
 
         read_settings();
 
@@ -84,21 +84,21 @@ namespace Motors {
     bool Dynamixel2::test() {
         uint16_t len = 3;
 
-        dxl_tx_message[DXL_MSG_INSTR] = DXL_INSTR_PING;
+        _dxl_tx_message[DXL_MSG_INSTR] = DXL_INSTR_PING;
 
-        dxl_finish_message(_id, dxl_tx_message, len);
+        dxl_finish_message(_id, _dxl_tx_message, len);
 
         len = dxl_get_response(PING_RSP_LEN);  // wait for and get response
 
         if (len == PING_RSP_LEN) {
-            uint16_t model_num = dxl_rx_message[10] << 8 | dxl_rx_message[9];
+            uint16_t model_num = _dxl_rx_message[10] << 8 | _dxl_rx_message[9];
             if (model_num == 1060) {
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MSG_LEVEL_INFO,
                                "%s Axis Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
                                _axis_name,
                                _id,
-                               dxl_rx_message[11]);
+                               _dxl_rx_message[11]);
             } else {
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MSG_LEVEL_INFO,
@@ -106,7 +106,7 @@ namespace Motors {
                                _axis_name,
                                _id,
                                model_num,
-                               dxl_rx_message[11]);
+                               _dxl_rx_message[11]);
             }
 
         } else {
@@ -117,10 +117,10 @@ namespace Motors {
     }
 
     void Dynamixel2::read_settings() {
-        float travel = axis_settings[axis_index]->max_travel->get();
-        float mpos   = axis_settings[axis_index]->home_mpos->get();
+        float travel = axis_settings[_axis_index]->max_travel->get();
+        float mpos   = axis_settings[_axis_index]->home_mpos->get();
 
-        if (bit_istrue(homing_dir_mask->get(), bit(axis_index))) {
+        if (bit_istrue(homing_dir_mask->get(), bit(_axis_index))) {
             _position_min = mpos;
             _position_max = mpos + travel;
         } else {
@@ -131,7 +131,7 @@ namespace Motors {
         _dxl_count_min = DXL_COUNT_MIN;
         _dxl_count_max = DXL_COUNT_MAX;
 
-        if (bit_istrue(dir_invert_mask->get(), bit(axis_index)))  // normal direction
+        if (bit_istrue(dir_invert_mask->get(), bit(_axis_index)))  // normal direction
             swap(_dxl_count_min, _dxl_count_min);
     }
 
@@ -203,8 +203,8 @@ namespace Motors {
     // This motor will not do a standard home to a limit switch (maybe future)
     // If it is in the homing mask it will a quick move to $<axis>/Home/Mpos
     void Dynamixel2::set_homing_mode(uint8_t homing_mask, bool isHoming) {
-        sys_position[axis_index] =
-            axis_settings[axis_index]->home_mpos->get() * axis_settings[axis_index]->steps_per_mm->get();  // convert to steps
+        sys_position[_axis_index] =
+            axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
 
         set_disable(false);
         set_location();  // force the PWM to update now
@@ -231,14 +231,15 @@ namespace Motors {
         data_len = dxl_get_response(15);
 
         if (data_len == 15) {
-            uint32_t dxl_position = dxl_rx_message[9] | (dxl_rx_message[10] << 8) | (dxl_rx_message[11] << 16) | (dxl_rx_message[12] << 24);
+            uint32_t dxl_position = _dxl_rx_message[9] | (_dxl_rx_message[10] << 8) | (_dxl_rx_message[11] << 16) |
+                                    (_dxl_rx_message[12] << 24);
 
             read_settings();
 
-            int32_t pos_min_steps = lround(_position_min * axis_settings[axis_index]->steps_per_mm->get());
-            int32_t pos_max_steps = lround(_position_max * axis_settings[axis_index]->steps_per_mm->get());
+            int32_t pos_min_steps = lround(_position_min * axis_settings[_axis_index]->steps_per_mm->get());
+            int32_t pos_max_steps = lround(_position_max * axis_settings[_axis_index]->steps_per_mm->get());
 
-            sys_position[axis_index] = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
+            sys_position[_axis_index] = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
 
             return dxl_position;
         } else {
@@ -250,13 +251,13 @@ namespace Motors {
     void Dynamixel2::dxl_read(uint16_t address, uint16_t data_len) {
         uint8_t msg_len = 3 + 4;
 
-        dxl_tx_message[DXL_MSG_INSTR]     = DXL_READ;
-        dxl_tx_message[DXL_MSG_START]     = (address & 0xFF);            // low-order address value
-        dxl_tx_message[DXL_MSG_START + 1] = ((address & 0xFF00) >> 8);   // High-order address value
-        dxl_tx_message[DXL_MSG_START + 2] = (data_len & 0xFF);           // low-order data length value
-        dxl_tx_message[DXL_MSG_START + 3] = ((data_len & 0xFF00) >> 8);  // high-order address value
+        _dxl_tx_message[DXL_MSG_INSTR]     = DXL_READ;
+        _dxl_tx_message[DXL_MSG_START]     = (address & 0xFF);            // low-order address value
+        _dxl_tx_message[DXL_MSG_START + 1] = ((address & 0xFF00) >> 8);   // High-order address value
+        _dxl_tx_message[DXL_MSG_START + 2] = (data_len & 0xFF);           // low-order data length value
+        _dxl_tx_message[DXL_MSG_START + 3] = ((data_len & 0xFF00) >> 8);  // high-order address value
 
-        dxl_finish_message(_id, dxl_tx_message, msg_len);
+        dxl_finish_message(_id, _dxl_tx_message, msg_len);
     }
 
     void Dynamixel2::LED_on(bool on) {
@@ -270,14 +271,14 @@ namespace Motors {
 
     // wait for and get the servo response
     uint16_t Dynamixel2::dxl_get_response(uint16_t length) {
-        length = uart_read_bytes(UART_NUM_2, dxl_rx_message, length, DXL_RESPONSE_WAIT_TICKS);
+        length = uart_read_bytes(UART_NUM_2, _dxl_rx_message, length, DXL_RESPONSE_WAIT_TICKS);
         return length;
     }
 
     void Dynamixel2::dxl_write(uint16_t address, uint8_t paramCount, ...) {
-        dxl_tx_message[DXL_MSG_INSTR]     = DXL_WRITE;
-        dxl_tx_message[DXL_MSG_START]     = (address & 0xFF);           // low-order address value
-        dxl_tx_message[DXL_MSG_START + 1] = ((address & 0xFF00) >> 8);  // High-order address value
+        _dxl_tx_message[DXL_MSG_INSTR]     = DXL_WRITE;
+        _dxl_tx_message[DXL_MSG_START]     = (address & 0xFF);           // low-order address value
+        _dxl_tx_message[DXL_MSG_START + 1] = ((address & 0xFF00) >> 8);  // High-order address value
 
         uint8_t msg_offset = 1;  // this is the offset from DXL_MSG_START in the message
 
@@ -288,17 +289,17 @@ namespace Motors {
 
         for (int x = 0; x < paramCount; x++) {
             msg_offset++;
-            dxl_tx_message[DXL_MSG_START + msg_offset] = (uint8_t)va_arg(valist, int);
+            _dxl_tx_message[DXL_MSG_START + msg_offset] = (uint8_t)va_arg(valist, int);
         }
         va_end(valist);  // Cleans up the list
 
-        dxl_finish_message(_id, dxl_tx_message, msg_offset + 4);
+        dxl_finish_message(_id, _dxl_tx_message, msg_offset + 4);
 
         uint16_t len = 11;  // response length
         len          = dxl_get_response(len);
 
         if (len == 11) {
-            uint8_t err = dxl_rx_message[8];
+            uint8_t err = _dxl_rx_message[8];
             switch (err) {
                 case 1: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write fail error", _id); break;
                 case 2: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write instruction error", _id); break;

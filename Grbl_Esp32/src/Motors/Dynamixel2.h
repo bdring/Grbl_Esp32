@@ -96,8 +96,8 @@ namespace Motors {
         void set_location();
 
         uint8_t _id;
-        char    dxl_tx_message[50];  // outgoing to dynamixel
-        uint8_t dxl_rx_message[50];  // received from dynamixel
+        char    _dxl_tx_message[50];  // outgoing to dynamixel
+        uint8_t _dxl_rx_message[50];  // received from dynamixel
 
         bool     test();
         uint16_t dxl_get_response(uint16_t length);

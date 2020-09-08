@@ -361,7 +361,7 @@ void motors_read_settings() {
 void motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++)
-            if (bit(axis) & homing_mask && (myMotor[axis][gang_index]->is_active))
+            if (bit_istrue(homing_mask, bit(axis)) && (myMotor[axis][gang_index]->is_active))
                 myMotor[axis][gang_index]->set_homing_mode(homing_mask, isHoming);
     }
 }

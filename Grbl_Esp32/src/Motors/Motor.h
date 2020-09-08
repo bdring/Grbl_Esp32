@@ -56,8 +56,8 @@ namespace Motors {
         uint8_t          has_errors = false;
 
     protected:
-        uint8_t axis_index;       // X_AXIS, etc
-        uint8_t dual_axis_index;  // 0 = primary 1=ganged
+        uint8_t _axis_index;       // X_AXIS, etc
+        uint8_t _dual_axis_index;  // 0 = primary 1=ganged
 
         bool    _showError;
         bool    _use_mpos = true;
