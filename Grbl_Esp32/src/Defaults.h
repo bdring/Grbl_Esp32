@@ -278,23 +278,23 @@
 
 // ========= AXIS TRAVEL ============
 
-#ifndef DEFAULT_X_TRAVEL
-#    define DEFAULT_X_TRAVEL 300.0  // $130 mm NOTE: Must be a positive value.
+#ifndef DEFAULT_X_MAX_TRAVEL
+#    define DEFAULT_X_MAX_TRAVEL 300.0  // $130 mm NOTE: Must be a positive value.
 #endif
-#ifndef DEFAULT_Y_TRAVEL
-#    define DEFAULT_Y_TRAVEL 300.0  // mm NOTE: Must be a positive value.
+#ifndef DEFAULT_Y_MAX_TRAVEL
+#    define DEFAULT_Y_MAX_TRAVEL 300.0  // mm NOTE: Must be a positive value.
 #endif
-#ifndef DEFAULT_Z_TRAVEL
-#    define DEFAULT_Z_TRAVEL 300.0  // mm NOTE: Must be a positive value.
+#ifndef DEFAULT_Z_MAX_TRAVEL
+#    define DEFAULT_Z_MAX_TRAVEL 300.0  // mm NOTE: Must be a positive value.
 #endif
-#ifndef DEFAULT_A_TRAVEL
-#    define DEFAULT_A_TRAVEL 300.0  // mm NOTE: Must be a positive value.
+#ifndef DEFAULT_A_MAX_TRAVEL
+#    define DEFAULT_A_MAX_TRAVEL 300.0  // mm NOTE: Must be a positive value.
 #endif
-#ifndef DEFAULT_B_TRAVEL
-#    define DEFAULT_B_TRAVEL 300.0  // mm NOTE: Must be a positive value.
+#ifndef DEFAULT_B_MAX_TRAVEL
+#    define DEFAULT_B_MAX_TRAVEL 300.0  // mm NOTE: Must be a positive value.
 #endif
-#ifndef DEFAULT_C_TRAVEL
-#    define DEFAULT_C_TRAVEL 300.0  // mm NOTE: Must be a positive value.
+#ifndef DEFAULT_C_MAX_TRAVEL
+#    define DEFAULT_C_MAX_TRAVEL 300.0  // mm NOTE: Must be a positive value.
 #endif
 
 #ifndef DEFAULT_X_HOMING_MPOS

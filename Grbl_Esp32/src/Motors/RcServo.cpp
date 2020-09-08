@@ -124,7 +124,7 @@ namespace Motors {
     }
 
     void RcServo::read_settings() {
-        float travel = axis_settings[axis_index]->travel->get();
+        float travel = axis_settings[axis_index]->max_travel->get();
         float mpos   = axis_settings[axis_index]->home_mpos->get();
         //float max_mpos, min_mpos;
 

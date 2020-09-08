@@ -81,7 +81,7 @@ void limits_go_home(uint8_t cycle_mask) {
     motors_set_homing_mode(cycle_mask, true);  // tell motors homing is about to start
 
     // Remove any motor that cannot be homed from the mask
-    // Motors with non standard homing will do that during motors_set_homing_mode(...) above
+    // Motors with non standard homing can do that during motors_set_homing_mode(...) above
     for (uint8_t idx = 0; idx < N_AXIS; idx++) {
         if (bit_istrue(cycle_mask, bit(idx))) {
             if (!motor_can_home(idx)) {
@@ -105,7 +105,7 @@ void limits_go_home(uint8_t cycle_mask) {
     uint8_t n_cycle = (2 * n_homing_locate_cycle + 1);
     uint8_t step_pin[N_AXIS];
     float   target[N_AXIS];
-    float   travel = 0.0;
+    float   max_travel = 0.0;
 
     for (uint8_t idx = 0; idx < N_AXIS; idx++) {
         // Initialize step pin masks
@@ -116,7 +116,7 @@ void limits_go_home(uint8_t cycle_mask) {
 #endif
         if (bit_istrue(cycle_mask, bit(idx))) {
             // Set target based on travel setting. Ensure homing switches engaged with search scalar.
-            travel = MAX(travel, (HOMING_AXIS_SEARCH_SCALAR)*axis_settings[idx]->travel->get());
+            max_travel = MAX(max_travel, (HOMING_AXIS_SEARCH_SCALAR)*axis_settings[idx]->max_travel->get());
         }
     }
     // Set search mode with approach at seek rate to quickly engage the specified cycle_mask limit switches.
@@ -150,14 +150,14 @@ void limits_go_home(uint8_t cycle_mask) {
                 auto mask = homing_dir_mask->get();
                 if (bit_istrue(mask, bit(idx))) {
                     if (approach)
-                        target[idx] = -travel;
+                        target[idx] = -max_travel;
                     else
-                        target[idx] = travel;
+                        target[idx] = max_travel;
                 } else {
                     if (approach)
-                        target[idx] = travel;
+                        target[idx] = max_travel;
                     else
-                        target[idx] = -travel;
+                        target[idx] = -max_travel;
                 }
                 // Apply axislock to the step port pins active in this cycle.
                 axislock |= step_pin[idx];
@@ -232,10 +232,10 @@ void limits_go_home(uint8_t cycle_mask) {
         approach = !approach;
         // After first cycle, homing enters locating phase. Shorten search to pull-off distance.
         if (approach) {
-            travel      = homing_pulloff->get() * HOMING_AXIS_LOCATE_SCALAR;
+            max_travel      = homing_pulloff->get() * HOMING_AXIS_LOCATE_SCALAR;
             homing_rate = homing_feed_rate->get();
         } else {
-            travel      = homing_pulloff->get();
+            max_travel      = homing_pulloff->get();
             homing_rate = homing_seek_rate->get();
         }
     } while (n_cycle-- > 0);
@@ -252,7 +252,7 @@ void limits_go_home(uint8_t cycle_mask) {
     for (uint8_t idx = 0; idx < N_AXIS; idx++) {
         auto steps = axis_settings[idx]->steps_per_mm->get();
         if (cycle_mask & bit(idx)) {
-            float travel = axis_settings[idx]->travel->get();
+            float travel = axis_settings[idx]->max_travel->get();
             float mpos   = axis_settings[idx]->home_mpos->get();
 
             if (bit_istrue(homing_dir_mask->get(), bit(idx))) {

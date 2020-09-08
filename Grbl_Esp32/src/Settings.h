@@ -372,7 +372,7 @@ public:
     FloatSetting* steps_per_mm;
     FloatSetting* max_rate;
     FloatSetting* acceleration;
-    FloatSetting* travel;
+    FloatSetting* max_travel;
     FloatSetting* run_current;
     FloatSetting* hold_current;
     FloatSetting* home_mpos;

@@ -117,7 +117,7 @@ namespace Motors {
     }
 
     void Dynamixel2::read_settings() {
-        float travel = axis_settings[axis_index]->travel->get();
+        float travel = axis_settings[axis_index]->max_travel->get();
         float mpos   = axis_settings[axis_index]->home_mpos->get();
 
         if (bit_istrue(homing_dir_mask->get(), bit(axis_index))) {
@@ -346,7 +346,7 @@ namespace Motors {
 
                     //determine the location of the axis
                     float target = system_convert_axis_steps_to_mpos(sys_position, axis);  // get the axis machine position in mm
-                    float travel = axis_settings[axis]->travel->get();
+                    float travel = axis_settings[axis]->max_travel->get();
                     float mpos   = axis_settings[axis]->home_mpos->get();
 
                     if (bit_istrue(homing_dir_mask->get(), bit(axis))) {
