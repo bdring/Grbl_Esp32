@@ -417,19 +417,18 @@ void report_gcode_modes(uint8_t client) {
     strcat(modes_rpt, mode);
 
     //report_util_gcode_modes_M();  // optional M7 and M8 should have been dealt with by here
-    if (gc_state.modal.coolant.IsDisabled()) {
-        mode = " M9";
+    auto coolant = gc_state.modal.coolant;
+    if (!coolant.Mist && !coolant.Flood) {
+        strcat(modes_rpt, " M9");
     } else {
-        auto coolant = gc_state.modal.coolant;
         // Note: Multiple coolant states may be active at the same time.
         if (coolant.Mist) {
-            mode = " M7";
+            strcat(modes_rpt, " M7");
         }
         if (coolant.Flood) {
-            mode = " M8";
+            strcat(modes_rpt, " M8");
         }
     }
-    strcat(modes_rpt, mode);
 
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
     if (sys.override_ctrl == OVERRIDE_PARKING_MOTION) {
@@ -736,8 +735,8 @@ void report_realtime_status(uint8_t client) {
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
         SpindleState sp_state      = spindle->get_state();
-        CoolantMode  coolant_state = coolant_get_state();
-        if (sp_state != SpindleState::Disable || !coolant_state.IsDisabled()) {
+        CoolantState coolant_state = coolant_get_state();
+        if (sp_state != SpindleState::Disable || coolant_state.Mist || coolant_state.Flood) {
             strcat(status, "|A:");
             switch (sp_state) {
                 case SpindleState::Disable: break;
