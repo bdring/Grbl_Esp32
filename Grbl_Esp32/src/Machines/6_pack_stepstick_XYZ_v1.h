@@ -24,9 +24,7 @@
 */
 #define MACHINE_NAME            "6 Pack Controller StepStick XYZ"
 
-#ifdef N_AXIS
-        #undef N_AXIS
-#endif
+#define N_AXIS 3
 
 #ifdef ENABLE_SD_CARD
     #undef ENABLE_SD_CARD
@@ -60,9 +58,6 @@
 #define X_STEPPER_MS3           I2SO(3)   // X_CS
 #define Y_STEPPER_MS3           I2SO(6)   // Y_CS
 #define Z_STEPPER_MS3           I2SO(11)  // Z_CS
-#define A_STEPPER_MS3           I2SO(14)  // A_CS
-#define B_STEPPER_MS3           I2SO(19)  // B_CS
-#define C_STEPPER_MS3           I2SO(22)  // C_CS
 
 #define STEPPER_RESET           GPIO_NUM_19
 

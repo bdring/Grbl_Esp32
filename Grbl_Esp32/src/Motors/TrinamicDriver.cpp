@@ -273,10 +273,15 @@ namespace Motors {
         if (has_errors)
             return;
 
-        digitalWrite(disable_pin, disable);
+        if (_disabled == disable)
+            return;
+
+        _disabled = disable;
+
+        digitalWrite(disable_pin, _disabled);
 
 #ifdef USE_TRINAMIC_ENABLE
-        if (disable) {
+        if (_disabled) {
             tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
         } else {
             if (_mode == TRINAMIC_MODE_STEALTHCHOP) {
