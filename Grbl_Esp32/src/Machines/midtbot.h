@@ -27,7 +27,7 @@
 
 #define MACHINE_NAME "MIDTBOT"
 
-#define SPINDLE_TYPE    SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE    SpindleType::NONE
 
 #define X_STEP_PIN      GPIO_NUM_12
 #define Y_STEP_PIN      GPIO_NUM_14
@@ -67,7 +67,7 @@
 
 #define SERVO_PEN_PIN           GPIO_NUM_27
 
-#define SPINDLE_TYPE SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE SpindleType::NONE
 
 // defaults
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3

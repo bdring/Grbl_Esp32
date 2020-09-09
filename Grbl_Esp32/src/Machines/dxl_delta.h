@@ -30,7 +30,7 @@
 #define Z_DYNAMIXEL_ID          3 // protocol ID
 
 // limit servo to 180 degree motion
-#define DXL_COUNT_MIN 1024      
-#define DXL_COUNT_MAX 3072
+#define DXL_COUNT_MIN           1024      
+#define DXL_COUNT_MAX           3072
 
-#define SPINDLE_TYPE    SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE            SpindleType::NONE

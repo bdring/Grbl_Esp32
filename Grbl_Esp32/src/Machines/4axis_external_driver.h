@@ -43,14 +43,14 @@
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_13
 
 /*
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM // only one spindle at a time
+#define SPINDLE_TYPE            SpindleType::PWM // only one spindle at a time
 */
 
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_25
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_22
 
 
-#define SPINDLE_TYPE            SPINDLE_TYPE_HUANYANG // only one spindle at a time
+#define SPINDLE_TYPE            SpindleType::HUANYANG // only one spindle at a time
 #define VFD_RS485_TXD_PIN		GPIO_NUM_17
 #define VFD_RS485_RXD_PIN		GPIO_NUM_4
 #define VFD_RS485_RTS_PIN		GPIO_NUM_16

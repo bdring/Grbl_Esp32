@@ -34,8 +34,8 @@
 #endif
 
 // Returned status message from planner.
-#define PLAN_OK true
-#define PLAN_EMPTY_BLOCK false
+const int PLAN_OK = true; 
+const int PLAN_EMPTY_BLOCK = false; 
 
 // Define planner data condition flags. Used to denote running conditions of a block.
 #define PL_MOTION_RAPID_MOTION bit(0)

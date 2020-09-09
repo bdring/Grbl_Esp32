@@ -69,7 +69,7 @@
 
 /*
 // Socket #3 5V Output
-#define SPINDLE_TYPE            SPINDLE_TYPE_LASER
+#define SPINDLE_TYPE            SpindleType::LASER
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_14   // labeled SpinPWM
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_13  // labeled SpinEnbl
 #define COOLANT_MIST_PIN        GPIO_NUM_15

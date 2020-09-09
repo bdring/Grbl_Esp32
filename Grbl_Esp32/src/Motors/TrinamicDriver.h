@@ -21,21 +21,19 @@
 
 #include "Motor.h"
 #include "StandardStepper.h"
+
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 
 #define TRINAMIC_MODE_STEALTHCHOP 0  // very quiet
 #define TRINAMIC_MODE_COOLSTEP 1     // everything runs cooler so higher current possible
 #define TRINAMIC_MODE_STALLGUARD 2   // coolstep plus generates stall indication
 
-#define NORMAL_TCOOLTHRS 0xFFFFF  // 20 bit is max
-#define NORMAL_THIGH 0
+const int NORMAL_TCOOLTHRS = 0xFFFFF;  // 20 bit is max
+const int NORMAL_THIGH     = 0;
 
-#define TMC2130_RSENSE_DEFAULT 0.11f
-#define TMC5160_RSENSE_DEFAULT 0.075f
+const int TRINAMIC_SPI_FREQ = 100000;
 
-#define TRINAMIC_SPI_FREQ 100000
-
-#define TRINAMIC_FCLK 12700000.0  // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
+const double TRINAMIC_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
 
 // ==== defaults OK to define them in your machine definition ====
 #ifndef TRINAMIC_RUN_MODE

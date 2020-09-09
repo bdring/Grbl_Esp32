@@ -33,9 +33,8 @@
 #include "BESCSpindle.h"
 
 // don't change these
-#define BESC_PWM_FREQ 50.0f        // Hz
-#define BESC_PWM_BIT_PRECISION 16  // bits
-#define BESC_PULSE_PERIOD (1.0 / BESC_PWM_FREQ)
+const double BESC_PWM_FREQ     = 50.0;  // Hz
+const double BESC_PULSE_PERIOD = (1.0 / BESC_PWM_FREQ);
 
 // Ok to tweak. These are the pulse lengths in seconds
 // #define them in your machine definition file if you want different values
@@ -48,8 +47,8 @@
 #endif
 
 //calculations...don't change
-#define BESC_MIN_PULSE_CNT (uint16_t)(BESC_MIN_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0)
-#define BESC_MAX_PULSE_CNT (uint16_t)(BESC_MAX_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0)
+const uint16_t BESC_MIN_PULSE_CNT = static_cast<uint16_t>(BESC_MIN_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0);
+const uint16_t BESC_MAX_PULSE_CNT = static_cast<uint16_t>(BESC_MAX_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0);
 
 namespace Spindles {
     void BESC::init() {

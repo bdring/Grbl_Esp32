@@ -27,8 +27,8 @@
 #include "Grbl.h"
 
 // System motion commands must have a line number of zero.
-#define HOMING_CYCLE_LINE_NUMBER 0
-#define PARKING_MOTION_LINE_NUMBER 0
+const int HOMING_CYCLE_LINE_NUMBER = 0; 
+const int PARKING_MOTION_LINE_NUMBER = 0; 
 
 #define HOMING_CYCLE_ALL 0  // Must be zero.
 

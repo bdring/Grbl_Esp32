@@ -83,7 +83,7 @@
 #define C_DISABLE_PIN           I2SO(23)
 
 
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM // only one spindle at a time
+#define SPINDLE_TYPE            SpindleType::PWM // only one spindle at a time
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 #define SPINDLE_DIR_PIN         GPIO_NUM_16

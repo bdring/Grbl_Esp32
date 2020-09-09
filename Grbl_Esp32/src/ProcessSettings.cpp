@@ -103,7 +103,7 @@ Error jog_set(uint8_t* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPR
     }
 
     // restore the $J= prefix because gc_execute_line() expects it
-#define MAXLINE 128
+const int MAXLINE = 128; 
     char line[MAXLINE];
     strcpy(line, "$J=");
     strncat(line, (char*)value, MAXLINE - strlen("$J=") - 1);
