@@ -299,7 +299,7 @@ static void stepper_pulse_func() {
         } else {
             // Segment buffer empty. Shutdown.
             st_go_idle();
-            if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
+            if (sys.state != State::Jog) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
                 if (st.exec_block != NULL && st.exec_block->is_pwm_rate_adjusted) {
                     spindle->set_rpm(0);
@@ -408,7 +408,7 @@ static void stepper_pulse_func() {
     }
 #endif
     // During a homing cycle, lock out and prevent desired axes from moving.
-    if (sys.state == STATE_HOMING) {
+    if (sys.state == State::Homing) {
         st.step_outbits &= sys.homing_axis_lock;
     }
     st.step_count--;  // Decrement step events count
@@ -716,11 +716,11 @@ void st_go_idle() {
     busy = false;
 
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
-    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == STATE_SLEEP) && sys.state != STATE_HOMING) {
+    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) && sys.state != State::Homing) {
         // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
         // stop and not drift from residual inertial forces at the end of the last movement.
 
-        if (sys.state == STATE_SLEEP || sys_rt_exec_alarm != ExecAlarm::None) {
+        if (sys.state == State::Sleep || sys_rt_exec_alarm != ExecAlarm::None) {
             motors_set_disable(true);
         } else {
             stepper_idle         = true;  // esp32 work around for disable in main loop
@@ -1223,7 +1223,16 @@ void st_prep_buffer() {
 // in the segment buffer. It will always be behind by up to the number of segment blocks (-1)
 // divided by the ACCELERATION TICKS PER SECOND in seconds.
 float st_get_realtime_rate() {
-    return (sys.state & (STATE_CYCLE | STATE_HOMING | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) ? prep.current_speed : 0.0f;
+    switch (sys.state) {
+        case State::Cycle:
+        case State::Homing:
+        case State::Hold:
+        case State::Jog:
+        case State::SafetyDoor:
+            return prep.current_speed;
+        default:
+            return 0.0f;
+    }
 }
 
 void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {

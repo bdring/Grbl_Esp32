@@ -45,7 +45,7 @@ void IRAM_ATTR isr_limit_switches() {
     // moves in the planner and serial buffers are all cleared and newly sent blocks will be
     // locked out until a homing cycle or a kill lock command. Allows the user to disable the hard
     // limit setting if their limits are constantly triggering after a reset and move their axes.
-    if ((sys.state != STATE_ALARM) & (bit_isfalse(sys.state, STATE_HOMING))) {
+    if (sys.state != State::Alarm && sys.state != State::Homing) {
         if (sys_rt_exec_alarm == ExecAlarm::None) {
 #ifdef ENABLE_SOFTWARE_DEBOUNCE
             // we will start a task that will recheck the switches after a small delay
@@ -393,14 +393,14 @@ void limits_soft_check(float* target) {
         // Force feed hold if cycle is active. All buffered blocks are guaranteed to be within
         // workspace volume so just come to a controlled stop so position is not lost. When complete
         // enter alarm mode.
-        if (sys.state == STATE_CYCLE) {
+        if (sys.state == State::Cycle) {
             system_set_exec_state_flag(EXEC_FEED_HOLD);
             do {
                 protocol_execute_realtime();
                 if (sys.abort) {
                     return;
                 }
-            } while (sys.state != STATE_IDLE);
+            } while (sys.state != State::Idle);
         }
         mc_reset();                                    // Issue system reset and ensure spindle and coolant are shutdown.
         system_set_exec_alarm(ExecAlarm::SoftLimit);  // Indicate soft limit critical event

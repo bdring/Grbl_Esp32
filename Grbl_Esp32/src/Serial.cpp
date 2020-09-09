@@ -214,7 +214,7 @@ void execute_realtime_command(uint8_t command, uint8_t client) {
             break;
         case CMD_SAFETY_DOOR: system_set_exec_state_flag(EXEC_SAFETY_DOOR); break;  // Set as true
         case CMD_JOG_CANCEL:
-            if (sys.state & STATE_JOG) {  // Block all other states from invoking motion cancel.
+            if (sys.state == State::Jog) {  // Block all other states from invoking motion cancel.
                 system_set_exec_state_flag(EXEC_MOTION_CANCEL);
             }
             break;

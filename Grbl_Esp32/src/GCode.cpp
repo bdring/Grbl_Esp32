@@ -1437,7 +1437,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             break;
         case ProgramFlow::Paused:
             protocol_buffer_synchronize();  // Sync and finish all remaining buffered motions before moving on.
-            if (sys.state != STATE_CHECK_MODE) {
+            if (sys.state != State::CheckMode) {
                 system_set_exec_state_flag(EXEC_FEED_HOLD);  // Use feed hold for program pause.
                 protocol_execute_realtime();                 // Execute suspend.
             }
@@ -1472,7 +1472,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             sys.spindle_speed_ovr = DEFAULT_SPINDLE_SPEED_OVERRIDE;
 #endif
             // Execute coordinate change and spindle/coolant stop.
-            if (sys.state != STATE_CHECK_MODE) {
+            if (sys.state != State::CheckMode) {
                 if (!(settings_read_coord_data(gc_state.modal.coord_select, gc_state.coord_system))) {
                     FAIL(Error::SettingReadFail);
                 }

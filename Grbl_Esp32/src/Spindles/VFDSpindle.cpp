@@ -339,7 +339,7 @@ namespace Spindles {
             return;  // Block during abort.
         }
 
-        bool critical = (sys.state == STATE_CYCLE || state != SpindleState::Disable);
+        bool critical = (sys.state == State::Cycle || state != SpindleState::Disable);
 
         if (_current_state != state) {  // already at the desired state. This function gets called a lot.
             set_mode(state, critical);  // critical if we are in a job

@@ -54,12 +54,12 @@ void mc_line(float* target, plan_line_data_t* pl_data) {
     // from everywhere in Grbl.
     if (soft_limits->get()) {
         // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
-        if (sys.state != STATE_JOG) {
+        if (sys.state != State::Jog) {
             limits_soft_check(target);
         }
     }
     // If in check gcode mode, prevent motion by blocking planner. Soft limits still work.
-    if (sys.state == STATE_CHECK_MODE) {
+    if (sys.state == State::CheckMode) {
         return;
     }
     // NOTE: Backlash compensation may be installed here. It will need direction info to track when
@@ -226,7 +226,7 @@ void mc_arc(float*            target,
 
 // Execute dwell in seconds.
 void mc_dwell(float seconds) {
-    if (sys.state == STATE_CHECK_MODE) {
+    if (sys.state == State::CheckMode) {
         return;
     }
     protocol_buffer_synchronize();
@@ -387,7 +387,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
 // NOTE: Upon probe failure, the program will be stopped and placed into ALARM state.
 GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_flags) {
     // TODO: Need to update this cycle so it obeys a non-auto cycle start.
-    if (sys.state == STATE_CHECK_MODE) {
+    if (sys.state == State::CheckMode) {
 #ifdef SET_CHECK_MODE_PROBE_TO_START
         return GCUpdatePos::None;
 #else
@@ -423,7 +423,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         if (sys.abort) {
             return GCUpdatePos::None;  // Check for system abort
         }
-    } while (sys.state != STATE_IDLE);
+    } while (sys.state != State::Idle);
     // Probing cycle complete!
     // Set state variables and error out, if the probe failed and cycle with error is enabled.
     if (sys_probe_state == PROBE_ACTIVE) {
@@ -517,9 +517,9 @@ void mc_reset() {
         // NOTE: If steppers are kept enabled via the step idle delay setting, this also keeps
         // the steppers enabled by avoiding the go_idle call altogether, unless the motion state is
         // violated, by which, all bets are off.
-        if ((sys.state & (STATE_CYCLE | STATE_HOMING | STATE_JOG)) ||
+        if ((sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) ||
             (sys.step_control & (STEP_CONTROL_EXECUTE_HOLD | STEP_CONTROL_EXECUTE_SYS_MOTION))) {
-            if (sys.state == STATE_HOMING) {
+            if (sys.state == State::Homing) {
                 if (sys_rt_exec_alarm == ExecAlarm::None) {
                     system_set_exec_alarm(ExecAlarm::HomingFailReset);
                 }

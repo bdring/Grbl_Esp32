@@ -41,7 +41,7 @@ Setting::Setting(
 }
 
 Error Setting::check(char* s) {
-    if (sys.state != STATE_IDLE && !(sys.state & STATE_ALARM)) {
+    if (sys.state != State::Idle && sys.state != State::Alarm) {
         return Error::IdleError;
     }
     if (!_checker) {
@@ -624,7 +624,7 @@ void IPaddrSetting::addWebui(WebUI::JSONencoder* j) {
 AxisSettings::AxisSettings(const char* axisName) : name(axisName) {}
 
 Error GrblCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    if (sys.state & _disallowedStates) {
+    if (_checker && _checker()) {
         return Error::IdleError;
     }
     return _action((const char*)value, auth_level, out);

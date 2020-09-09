@@ -39,9 +39,9 @@ Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block) {
     }
     // Valid jog command. Plan, set state, and execute.
     mc_line(gc_block->values.xyz, pl_data);
-    if (sys.state == STATE_IDLE) {
+    if (sys.state == State::Idle) {
         if (plan_get_current_block() != NULL) {  // Check if there is a block to execute.
-            sys.state = STATE_JOG;
+            sys.state = State::Jog;
             st_prep_buffer();
             st_wake_up();  // NOTE: Manual start. No state machine required.
         }
