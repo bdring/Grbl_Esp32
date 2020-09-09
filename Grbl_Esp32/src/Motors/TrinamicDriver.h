@@ -28,6 +28,9 @@
 #define TRINAMIC_MODE_COOLSTEP 1     // everything runs cooler so higher current possible
 #define TRINAMIC_MODE_STALLGUARD 2   // coolstep plus generates stall indication
 
+const float TMC2130_RSENSE_DEFAULT = 0.11f;
+const float TMC5160_RSENSE_DEFAULT = 0.075f;
+
 const int NORMAL_TCOOLTHRS = 0xFFFFF;  // 20 bit is max
 const int NORMAL_THIGH     = 0;
 
