@@ -76,14 +76,13 @@ namespace WebUI {
         "\n{\nclearInterval(interval);\nwindow.location.href='/';\n}\n},1000);\n</script>\n</CENTER>\n</BODY>\n</HTML>\n\n";
 
 //error codes fo upload
-#    define ESP_ERROR_AUTHENTICATION 1
-#    define ESP_ERROR_FILE_CREATION 2
-#    define ESP_ERROR_FILE_WRITE 3
-#    define ESP_ERROR_UPLOAD 4
-#    define ESP_ERROR_NOT_ENOUGH_SPACE 5
-#    define ESP_ERROR_UPLOAD_CANCELLED 6
-#    define ESP_ERROR_FILE_CLOSE 7
-#    define ESP_ERROR_NO_SD 8
+const int ESP_ERROR_AUTHENTICATION = 1; 
+const int ESP_ERROR_FILE_CREATION = 2; 
+const int ESP_ERROR_FILE_WRITE = 3; 
+const int ESP_ERROR_UPLOAD = 4; 
+const int ESP_ERROR_NOT_ENOUGH_SPACE = 5; 
+const int ESP_ERROR_UPLOAD_CANCELLED = 6; 
+const int ESP_ERROR_FILE_CLOSE = 7; 
 
     Web_Server        web_server;
     bool              Web_Server::_setupdone     = false;
@@ -95,7 +94,7 @@ namespace WebUI {
 #    ifdef ENABLE_AUTHENTICATION
     AuthenticationIP* Web_Server::_head  = NULL;
     uint8_t           Web_Server::_nb_ip = 0;
-#        define MAX_AUTH_IP 10
+const int MAX_AUTH_IP = 10; 
 #    endif
     Web_Server::Web_Server() {}
     Web_Server::~Web_Server() { end(); }

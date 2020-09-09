@@ -26,15 +26,19 @@
 
 */
 
-#define SPINDLE_TYPE_NONE 0
-#define SPINDLE_TYPE_PWM 1
-#define SPINDLE_TYPE_RELAY 2
-#define SPINDLE_TYPE_LASER 3
-#define SPINDLE_TYPE_DAC 4
-#define SPINDLE_TYPE_HUANYANG 5
-#define SPINDLE_TYPE_BESC 6
-#define SPINDLE_TYPE_10V 7
-#define SPINDLE_TYPE_H2A 8
+#include <cstdint>
+
+enum class SpindleType : int8_t {
+    NONE = 0,
+    PWM,
+    RELAY,
+    LASER,
+    DAC,
+    HUANYANG,
+    BESC,
+    _10V,
+    H2A,
+};
 
 #include "../Grbl.h"
 #include <driver/dac.h>

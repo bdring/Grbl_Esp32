@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef SPINDLE_TYPE
-#    define SPINDLE_TYPE SPINDLE_TYPE_PWM
+#    define SPINDLE_TYPE SpindleType::PWM
 #endif
 
 // Grbl setting that are common to all machines
@@ -19,17 +19,12 @@
 #endif
 
 // ESP32 CPU Settings
-#define F_TIMERS 80000000             // a reference to the speed of ESP32 timers
-#define F_STEPPER_TIMER 20000000      // frequency of step pulse timer
-#define STEPPER_OFF_TIMER_PRESCALE 8  // gives a frequency of 10MHz
-#define STEPPER_OFF_PERIOD_uSEC 3     // each tick is
-
-#define STEP_PULSE_MIN 2   // uSeconds
-#define STEP_PULSE_MAX 10  // uSeconds
+const int32_t F_TIMERS = 80000000;  // a reference to the speed of ESP32 timers
+#define F_STEPPER_TIMER 20000000    // frequency of step pulse timer
 
 // =============== Don't change or comment these out ======================
 // They are for legacy purposes and will not affect your I/O
 
-#define STEP_MASK B111111
+const int STEP_MASK = B111111;
 
-#define PROBE_MASK 1
+const int PROBE_MASK = 1;
