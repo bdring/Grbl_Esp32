@@ -241,17 +241,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // If you have a two-axis machine, DON'T USE THIS. Instead, just alter the homing cycle for two-axes.
 #define HOMING_SINGLE_AXIS_COMMANDS  // Default disabled. Uncomment to enable.
 
-// After homing, Grbl will set by default the entire machine space into negative space, as is typical
-// for professional CNC machines, regardless of where the limit switches are located. Uncomment this
-// define to force Grbl to always set the machine origin at the homed location despite switch orientation.
-// #define HOMING_FORCE_SET_ORIGIN // Uncomment to enable.
-
-// Uncomment this define to force Grbl to always set the machine origin at minimum travel positions of
-// the axes. Note: The $23 setting determines the direction of travel during homing. If an axes homes towards the
-// minimum, it will set the machine position to 0. If it homes towards the maximum it will set the
-// machine position to the max travel ($13x), minus the switch pull off ($27).
-// #define HOMING_FORCE_POSITIVE_SPACE // Uncomment to enable.
-
 // Number of blocks Grbl executes upon startup. These blocks are stored in EEPROM, where the size
 // and addresses are defined in settings.h. With the current settings, up to 2 startup blocks may
 // be stored and executed in order. These startup blocks would typically be used to set the g-code
@@ -654,14 +643,11 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // Restoring to the resume position follows these set motions in reverse: fast restore to
 // pull-out position, power-up with a time-out, and plunge back to the original position at the
 // slower pull-out rate.
-// NOTE: Still a work-in-progress. Machine coordinates must be in all negative space and
-// does not work with HOMING_FORCE_SET_ORIGIN enabled. Parking motion also moves only in
-// positive direction.
-//#define PARKING_ENABLE  // Default disabled. Uncomment to enable
+#define PARKING_ENABLE  // Default disabled. Uncomment to enable
 
 // Configure options for the parking motion, if enabled.
 #define PARKING_AXIS Z_AXIS            // Define which axis that performs the parking motion
-#define PARKING_TARGET -5.0            // Parking axis target. In mm, as machine coordinate [-max_travel,0].
+#define PARKING_TARGET -5.0            // Parking axis target. In mm, as machine coordinate.
 #define PARKING_RATE 500.0             // Parking fast rate after pull-out in mm/min.
 #define PARKING_PULLOUT_RATE 100.0     // Pull-out/plunge slow feed rate in mm/min.
 #define PARKING_PULLOUT_INCREMENT 5.0  // Spindle pull-out and plunge distance in mm. Incremental distance.

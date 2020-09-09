@@ -24,3 +24,5 @@
 #define SERVO_CAL_MAX 180.0  // Percent: the maximum allowable calibration value
 
 #define SERVO_TIMER_INT_FREQ 50.0  // Hz This is the task frequency
+
+#define SERVO_FULL_MOVE_TIME 750  // rtos ticks

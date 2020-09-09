@@ -115,7 +115,7 @@ namespace WebUI {
         _btname = bt_name->get();
         if (wifi_radio_mode->get() == ESP_BT) {
             if (!SerialBT.begin(_btname)) {
-                report_status_message(STATUS_BT_FAIL_BEGIN, CLIENT_ALL);
+                report_status_message(Error::BtFailBegin, CLIENT_ALL);
             } else {
                 SerialBT.register_callback(&my_spp_cb);
                 grbl_sendf(CLIENT_ALL, "[MSG:BT Started with %s]\r\n", _btname.c_str());
