@@ -224,7 +224,11 @@ namespace WebUI {
     }
 
     static Error showFwInfo(char* parameter, AuthenticationLevel auth_level) {  // ESP800
-        webPrint("FW version:" GRBL_VERSION " (" GRBL_VERSION_BUILD ")"
+        webPrint("FW version:");
+        webPrint(GRBL_VERSION);
+        webPrint(" (");
+        webPrint(GRBL_VERSION_BUILD);
+        webPrint(")"
                  " # FW target:grbl-embedded  # FW HW:");
 #ifdef ENABLE_SD_CARD
         webPrint("Direct SD");

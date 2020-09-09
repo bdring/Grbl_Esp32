@@ -52,7 +52,7 @@
 #ifdef REPORT_HEAP
 EspClass esp;
 #endif
-#define DEFAULTBUFFERSIZE 64
+const int DEFAULTBUFFERSIZE = 64;
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char* text) {
@@ -282,7 +282,7 @@ void report_feedback_message(Message message) {  // ok to send to all clients
 
 // Welcome message
 void report_init_message(uint8_t client) {
-    grbl_send(client, "\r\nGrbl " GRBL_VERSION " ['$' for help]\r\n");
+    grbl_sendf(client, "\r\nGrbl %s ['$' for help]\r\n", GRBL_VERSION);
 }
 
 // Grbl help message
@@ -467,7 +467,11 @@ void report_execute_startup_message(const char* line, Error status_code, uint8_t
 // Prints build info line
 void report_build_info(char* line, uint8_t client) {
     char build_info[50];
-    strcpy(build_info, "[VER:" GRBL_VERSION "." GRBL_VERSION_BUILD ":");
+    strcpy(build_info, "[VER:");
+    strcat(build_info, GRBL_VERSION);
+    strcat(build_info, ".");
+    strcat(build_info, GRBL_VERSION_BUILD);
+    strcat(build_info, ":");
     strcat(build_info, line);
     strcat(build_info, "]\r\n[OPT:");
     strcat(build_info, "V");  // variable spindle..always on now

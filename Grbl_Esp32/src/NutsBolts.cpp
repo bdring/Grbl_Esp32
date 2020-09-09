@@ -25,7 +25,7 @@
 #include "Grbl.h"
 #include <cstring>
 
-#define MAX_INT_DIGITS 8  // Maximum number of digits in int32 (and float)
+const int MAX_INT_DIGITS = 8;  // Maximum number of digits in int32 (and float)
 
 // Extracts a floating point value from a string. The following code is based loosely on
 // the avr-libc strtod() function by Michael Stumpf and Dmitry Xmelkov and many freely

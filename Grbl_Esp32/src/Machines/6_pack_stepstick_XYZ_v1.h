@@ -53,9 +53,9 @@
 
 #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 
-#define I2S_OUT_BCK      GPIO_NUM_22
-#define I2S_OUT_WS       GPIO_NUM_17
-#define I2S_OUT_DATA     GPIO_NUM_21
+#define I2S_OUT_BCK             GPIO_NUM_22
+#define I2S_OUT_WS              GPIO_NUM_17
+#define I2S_OUT_DATA            GPIO_NUM_21
 
 #define X_STEPPER_MS3           I2SO(3)   // X_CS
 #define Y_STEPPER_MS3           I2SO(6)   // Y_CS
@@ -123,7 +123,7 @@
 #define Y_LIMIT_PIN                 GPIO_NUM_32
 #define Z_LIMIT_PIN                 GPIO_NUM_35
 
-#define DEFAULT_X_STEPS_PER_MM  800
-#define DEFAULT_Y_STEPS_PER_MM  800
-#define DEFAULT_Z_STEPS_PER_MM  800
+#define DEFAULT_X_STEPS_PER_MM      800
+#define DEFAULT_Y_STEPS_PER_MM      800
+#define DEFAULT_Z_STEPS_PER_MM      800
 

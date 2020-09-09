@@ -30,11 +30,13 @@ typedef enum : uint8_t {
     GRBLCMD,   // Non-persistent GRBL commands like $H
     WEBCMD,    // ESP3D_WebUI commands that are not directly settings
 } type_t;
+
 typedef enum : uint8_t {
     WG,  // Readable and writable as guest
     WU,  // Readable and writable as user and admin
     WA,  // Readable as user and admin, writable as admin
 } permissions_t;
+
 typedef uint8_t axis_t;
 
 class Word {
@@ -240,7 +242,6 @@ public:
     float get() { return _currentValue; }
 };
 
-#define MAX_SETTING_STRING 256
 class StringSetting : public Setting {
 private:
     String _defaultValue;
@@ -377,7 +378,7 @@ public:
     FloatSetting* hold_current;
     FloatSetting* home_mpos;
     IntSetting*   microsteps;
-    IntSetting*   stallguard;    
+    IntSetting*   stallguard;
 
     AxisSettings(const char* axisName);
 };
