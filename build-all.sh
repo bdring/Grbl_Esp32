@@ -10,7 +10,7 @@ trap "echo; exit 255" SIGINT
 if [ "$1" = "-v" ]; then
    FILTER="cat"
 else
-   FILTER="grep error\|Took"
+   FILTER="grep -v Compiling | grep error\|Took"
 fi
 set -o pipefail
 NUM_ERRORS=0
