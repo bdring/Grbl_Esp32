@@ -1224,7 +1224,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     // [2. Set feed rate mode ]:
     gc_state.modal.feed_rate = gc_block.modal.feed_rate;
     if (gc_state.modal.feed_rate == FeedRate::InverseTime) {
-        pl_data->motion |= PL_MOTION_INVERSE_TIME;  // Set condition flag for planner use.
+        pl_data->motion.inverseTime = 1;  // Set condition flag for planner use.
     }
     // [3. Set feed rate ]:
     gc_state.feed_rate = gc_block.values.f;   // Always copy this value. See feed rate error-checking.
@@ -1350,7 +1350,7 @@ Error gc_execute_line(char* line, uint8_t client) {
         case NonModal::GoHome1:
             // Move to intermediate position before going home. Obeys current coordinate system and offsets
             // and absolute and incremental modes.
-            pl_data->motion |= PL_MOTION_RAPID_MOTION;  // Set rapid motion flag.
+            pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
             if (axis_command != AxisCommand::None) {
                 mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
             }
@@ -1383,7 +1383,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
             } else if (gc_state.modal.motion == Motion::Seek) {
-                pl_data->motion |= PL_MOTION_RAPID_MOTION;  // Set rapid motion flag.
+                pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
             } else if ((gc_state.modal.motion == Motion::CwArc) || (gc_state.modal.motion == Motion::CcwArc)) {
@@ -1400,7 +1400,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 // NOTE: gc_block.values.xyz is returned from mc_probe_cycle with the updated position value. So
                 // upon a successful probing cycle, the machine position and the returned value should be the same.
 #ifndef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
-                pl_data->motion |= PL_MOTION_NO_FEED_OVERRIDE;
+                pl_data->motion.noFeedOverride = 1;
 #endif
 #ifdef USE_I2S_STEPS
                 save_stepper = current_stepper;  // remember the stepper

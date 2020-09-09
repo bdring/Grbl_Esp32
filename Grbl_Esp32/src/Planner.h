@@ -34,14 +34,16 @@
 #endif
 
 // Returned status message from planner.
-const int PLAN_OK = true; 
-const int PLAN_EMPTY_BLOCK = false; 
+const int PLAN_OK          = true;
+const int PLAN_EMPTY_BLOCK = false;
 
 // Define planner data condition flags. Used to denote running conditions of a block.
-#define PL_MOTION_RAPID_MOTION bit(0)
-#define PL_MOTION_SYSTEM_MOTION bit(1)     // Single motion. Circumvents planner state. Used by home/park.
-#define PL_MOTION_NO_FEED_OVERRIDE bit(2)  // Motion does not honor feed override.
-#define PL_MOTION_INVERSE_TIME bit(3)      // Interprets feed rate value as inverse time when set.
+struct PlMotion {
+    uint8_t rapidMotion : 1;
+    uint8_t systemMotion : 1;    // Single motion. Circumvents planner state. Used by home/park.
+    uint8_t noFeedOverride : 1;  // Motion does not honor feed override.
+    uint8_t inverseTime : 1;     // Interprets feed rate value as inverse time when set.
+};
 
 // This struct stores a linear movement of a g-code block motion with its critical "nominal" values
 // are as specified in the source g-code.
@@ -53,7 +55,7 @@ typedef struct {
     uint8_t  direction_bits;    // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
 
     // Block condition data to ensure correct execution depending on states and overrides.
-    uint8_t      motion;   // Block bitflag motion conditions. Copied from pl_line_data.
+    PlMotion     motion;   // Block bitflag motion conditions. Copied from pl_line_data.
     SpindleState spindle;  // Spindle enable state
     CoolantState coolant;  // Coolant state
 #ifdef USE_LINE_NUMBERS
@@ -83,7 +85,7 @@ typedef struct {
 typedef struct {
     float        feed_rate;      // Desired feed rate for line motion. Value is ignored, if rapid motion.
     uint32_t     spindle_speed;  // Desired spindle speed through line motion.
-    uint8_t      motion;         // Bitflag variable to indicate motion conditions. See defines above.
+    PlMotion     motion;         // Bitflag variable to indicate motion conditions. See defines above.
     SpindleState spindle;        // Spindle enable state
     CoolantState coolant;        // Coolant state
 #ifdef USE_LINE_NUMBERS

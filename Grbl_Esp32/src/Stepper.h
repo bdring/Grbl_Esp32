@@ -39,10 +39,12 @@ const int    RAMP_CRUISE             = 1;
 const int    RAMP_DECEL              = 2;
 const int    RAMP_DECEL_OVERRIDE     = 3;
 
-#define PREP_FLAG_RECALCULATE bit(0)
-#define PREP_FLAG_HOLD_PARTIAL_BLOCK bit(1)
-#define PREP_FLAG_PARKING bit(2)
-#define PREP_FLAG_DECEL_OVERRIDE bit(3)
+struct PrepFlag {
+    uint8_t recalculate : 1;
+    uint8_t holdPartialBlock : 1;
+    uint8_t parking : 1;
+    uint8_t decelOverride : 1;
+};
 
 // Define Adaptive Multi-Axis Step-Smoothing(AMASS) levels and cutoff frequencies. The highest level
 // frequency bin starts at 0Hz and ends at its cutoff frequency. The next lower level frequency bin

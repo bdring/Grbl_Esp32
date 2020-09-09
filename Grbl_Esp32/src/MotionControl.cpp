@@ -142,9 +142,9 @@ void mc_arc(float*            target,
         // Multiply inverse feed_rate to compensate for the fact that this movement is approximated
         // by a number of discrete segments. The inverse feed_rate should be correct for the sum of
         // all segments.
-        if (pl_data->motion & PL_MOTION_INVERSE_TIME) {
+        if (pl_data->motion.inverseTime) {
             pl_data->feed_rate *= segments;
-            bit_false(pl_data->motion, PL_MOTION_INVERSE_TIME);  // Force as feed absolute mode over arc segments.
+            pl_data->motion.inverseTime = 0;  // Force as feed absolute mode over arc segments.
         }
         float theta_per_segment  = angular_travel / segments;
         float linear_per_segment = (target[axis_linear] - position[axis_linear]) / segments;

@@ -576,7 +576,9 @@ static void protocol_exec_rt_suspend() {
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
     memset(pl_data, 0, sizeof(plan_line_data_t));
-    pl_data->motion = (PL_MOTION_SYSTEM_MOTION | PL_MOTION_NO_FEED_OVERRIDE);
+    pl_data->motion = {};
+    pl_data->motion.systemMotion = 1;
+    pl_data->motion.noFeedOverride = 1;
 #    ifdef USE_LINE_NUMBERS
     pl_data->line_number = PARKING_MOTION_LINE_NUMBER;
 #    endif
@@ -641,7 +643,9 @@ static void protocol_exec_rt_suspend() {
                         // NOTE: Clear accessory state after retract and after an aborted restore motion.
                         pl_data->spindle       = SpindleState::Disable;
                         pl_data->coolant       = {};
-                        pl_data->motion        = (PL_MOTION_SYSTEM_MOTION | PL_MOTION_NO_FEED_OVERRIDE);
+                        pl_data->motion = {};
+                        pl_data->motion.systemMotion = 1;
+                        pl_data->motion.noFeedOverride = 1;
                         pl_data->spindle_speed = 0.0;
                         spindle->set_state(pl_data->spindle, 0);  // De-energize
                         coolant_set_state(pl_data->coolant);
