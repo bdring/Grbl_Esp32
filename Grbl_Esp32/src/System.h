@@ -22,9 +22,24 @@
 
 #include "Grbl.h"
 
+// System states. The state variable primarily tracks the individual functions
+// of Grbl to manage each without overlapping. It is also used as a messaging flag for
+// critical events.
+enum class State : uint8_t {
+    Idle = 0,    // Must be zero.
+    Alarm,       // In alarm state. Locks out all g-code processes. Allows settings access.
+    CheckMode,   // G-code check mode. Locks out planner and motion only.
+    Homing,      // Performing homing cycle
+    Cycle,       // Cycle is running or motions are being executed.
+    Hold,        // Active feed hold
+    Jog,         // Jogging mode.
+    SafetyDoor,  // Safety door is ajar. Feed holds and de-energizes system.
+    Sleep,       // Sleep state.
+};
+
 // Define global system variables
 typedef struct {
-    uint8_t state;               // Tracks the current system state of Grbl.
+    State   state;               // Tracks the current system state of Grbl.
     uint8_t abort;               // System abort flag. Forces exit back to main loop for reset.
     uint8_t suspend;             // System suspend bitflag variable that manages holds, cancels, and safety door.
     uint8_t soft_limit;          // Tracks soft limit errors for the state machine. (boolean)
@@ -95,19 +110,6 @@ enum class ExecAlarm : uint8_t {
 #define EXEC_SPINDLE_OVR_STOP bit(5)
 #define EXEC_COOLANT_FLOOD_OVR_TOGGLE bit(6)
 #define EXEC_COOLANT_MIST_OVR_TOGGLE bit(7)
-
-// Define system state bit map. The state variable primarily tracks the individual functions
-// of Grbl to manage each without overlapping. It is also used as a messaging flag for
-// critical events.
-#define STATE_IDLE 0              // Must be zero. No flags.
-#define STATE_ALARM bit(0)        // In alarm state. Locks out all g-code processes. Allows settings access.
-#define STATE_CHECK_MODE bit(1)   // G-code check mode. Locks out planner and motion only.
-#define STATE_HOMING bit(2)       // Performing homing cycle
-#define STATE_CYCLE bit(3)        // Cycle is running or motions are being executed.
-#define STATE_HOLD bit(4)         // Active feed hold
-#define STATE_JOG bit(5)          // Jogging mode.
-#define STATE_SAFETY_DOOR bit(6)  // Safety door is ajar. Feed holds and de-energizes system.
-#define STATE_SLEEP bit(7)        // Sleep state.
 
 // Define system suspend flags. Used in various ways to manage suspend states and procedures.
 #define SUSPEND_DISABLE 0                // Must be zero.

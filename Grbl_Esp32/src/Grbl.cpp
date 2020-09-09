@@ -49,9 +49,9 @@ void grbl_init() {
     // Initialize system state.
 #ifdef FORCE_INITIALIZATION_ALARM
     // Force Grbl into an ALARM state upon a power-cycle or hard reset.
-    sys.state = STATE_ALARM;
+    sys.state = State::Alarm;
 #else
-    sys.state = STATE_IDLE;
+    sys.state = State::Idle;
 #endif
     // Check for power-up and set system alarm if homing is enabled to force homing cycle
     // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
@@ -62,7 +62,7 @@ void grbl_init() {
     // things uncontrollably. Very bad.
 #ifdef HOMING_INIT_LOCK
     if (homing_enable->get()) {
-        sys.state = STATE_ALARM;
+        sys.state = State::Alarm;
     }
 #endif
     Spindles::Spindle::select();
@@ -77,7 +77,7 @@ void grbl_init() {
 
 static void reset_variables() {
     // Reset system variables.
-    uint8_t prior_state = sys.state;
+    State prior_state = sys.state;
     memset(&sys, 0, sizeof(system_t));  // Clear system struct variable.
     sys.state             = prior_state;
     sys.f_override        = DEFAULT_FEED_OVERRIDE;              // Set to 100%

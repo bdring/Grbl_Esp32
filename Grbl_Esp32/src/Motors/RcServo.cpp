@@ -107,8 +107,7 @@ namespace Motors {
 
         read_settings();
 
-        // skip location if we are in alarm mode
-        if (sys.state == STATE_ALARM) {
+        if (sys.state == State::Alarm) {
             set_disable(true);
             return;
         }

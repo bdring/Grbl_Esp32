@@ -428,7 +428,7 @@ void readSgTask(void* pvParameters) {
         }
 
         if (stallguard_debug_mask->get() != 0) {
-            if (sys.state == STATE_CYCLE || sys.state == STATE_HOMING || sys.state == STATE_JOG) {
+            if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
                 for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
                     if (stallguard_debug_mask->get() & bit(axis)) {
                         //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
