@@ -22,9 +22,24 @@
 
 #include "Grbl.h"
 
+// System states. The state variable primarily tracks the individual functions
+// of Grbl to manage each without overlapping. It is also used as a messaging flag for
+// critical events.
+enum class State : uint8_t {
+    Idle = 0,    // Must be zero.
+    Alarm,       // In alarm state. Locks out all g-code processes. Allows settings access.
+    CheckMode,   // G-code check mode. Locks out planner and motion only.
+    Homing,      // Performing homing cycle
+    Cycle,       // Cycle is running or motions are being executed.
+    Hold,        // Active feed hold
+    Jog,         // Jogging mode.
+    SafetyDoor,  // Safety door is ajar. Feed holds and de-energizes system.
+    Sleep,       // Sleep state.
+};
+
 // Define global system variables
 typedef struct {
-    uint8_t state;               // Tracks the current system state of Grbl.
+    State   state;               // Tracks the current system state of Grbl.
     uint8_t abort;               // System abort flag. Forces exit back to main loop for reset.
     uint8_t suspend;             // System suspend bitflag variable that manages holds, cancels, and safety door.
     uint8_t soft_limit;          // Tracks soft limit errors for the state machine. (boolean)
@@ -61,16 +76,19 @@ extern system_t sys;
 #define EXEC_SLEEP bit(7)          // bitmask 10000000
 
 // Alarm executor codes. Valid values (1-255). Zero is reserved.
-#define EXEC_ALARM_HARD_LIMIT 1
-#define EXEC_ALARM_SOFT_LIMIT 2
-#define EXEC_ALARM_ABORT_CYCLE 3
-#define EXEC_ALARM_PROBE_FAIL_INITIAL 4
-#define EXEC_ALARM_PROBE_FAIL_CONTACT 5
-#define EXEC_ALARM_HOMING_FAIL_RESET 6
-#define EXEC_ALARM_HOMING_FAIL_DOOR 7
-#define EXEC_ALARM_HOMING_FAIL_PULLOFF 8
-#define EXEC_ALARM_HOMING_FAIL_APPROACH 9
-#define EXEC_ALARM_SPINDLE_CONTROL 10
+enum class ExecAlarm : uint8_t {
+    None               = 0,
+    HardLimit          = 1,
+    SoftLimit          = 2,
+    AbortCycle         = 3,
+    ProbeFailInitial   = 4,
+    ProbeFailContact   = 5,
+    HomingFailReset    = 6,
+    HomingFailDoor     = 7,
+    HomingFailPulloff  = 8,
+    HomingFailApproach = 9,
+    SpindleControl     = 10,
+};
 
 // Override bit maps. Realtime bitflags to control feed, rapid, spindle, and coolant overrides.
 // Spindle/coolant and feed/rapids are separated into two controlling flag variables.
@@ -92,19 +110,6 @@ extern system_t sys;
 #define EXEC_SPINDLE_OVR_STOP bit(5)
 #define EXEC_COOLANT_FLOOD_OVR_TOGGLE bit(6)
 #define EXEC_COOLANT_MIST_OVR_TOGGLE bit(7)
-
-// Define system state bit map. The state variable primarily tracks the individual functions
-// of Grbl to manage each without overlapping. It is also used as a messaging flag for
-// critical events.
-#define STATE_IDLE 0              // Must be zero. No flags.
-#define STATE_ALARM bit(0)        // In alarm state. Locks out all g-code processes. Allows settings access.
-#define STATE_CHECK_MODE bit(1)   // G-code check mode. Locks out planner and motion only.
-#define STATE_HOMING bit(2)       // Performing homing cycle
-#define STATE_CYCLE bit(3)        // Cycle is running or motions are being executed.
-#define STATE_HOLD bit(4)         // Active feed hold
-#define STATE_JOG bit(5)          // Jogging mode.
-#define STATE_SAFETY_DOOR bit(6)  // Safety door is ajar. Feed holds and de-energizes system.
-#define STATE_SLEEP bit(7)        // Sleep state.
 
 // Define system suspend flags. Used in various ways to manage suspend states and procedures.
 #define SUSPEND_DISABLE 0                // Must be zero.
@@ -153,11 +158,11 @@ extern system_t sys;
 extern int32_t sys_position[N_AXIS];        // Real-time machine (aka home) position vector in steps.
 extern int32_t sys_probe_position[N_AXIS];  // Last probe position in machine coordinates and steps.
 
-extern volatile uint8_t sys_probe_state;              // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
-extern volatile uint8_t sys_rt_exec_state;            // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
-extern volatile uint8_t sys_rt_exec_alarm;            // Global realtime executor bitflag variable for setting various alarms.
-extern volatile uint8_t sys_rt_exec_motion_override;  // Global realtime executor bitflag variable for motion-based overrides.
-extern volatile uint8_t sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
+extern volatile uint8_t   sys_probe_state;    // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
+extern volatile uint8_t   sys_rt_exec_state;  // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
+extern volatile ExecAlarm sys_rt_exec_alarm;  // Global realtime executor bitflag variable for setting various alarms.
+extern volatile uint8_t   sys_rt_exec_motion_override;     // Global realtime executor bitflag variable for motion-based overrides.
+extern volatile uint8_t   sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
 
 #ifdef DEBUG
 #    define EXEC_DEBUG_REPORT bit(0)
@@ -177,7 +182,7 @@ void isr_control_inputs();
 // Special handlers for setting and clearing Grbl's real-time execution flags.
 void system_set_exec_state_flag(uint8_t mask);
 void system_clear_exec_state_flag(uint8_t mask);
-void system_set_exec_alarm(uint8_t code);
+void system_set_exec_alarm(ExecAlarm code);
 void system_clear_exec_alarm();
 void system_set_exec_motion_override_flag(uint8_t mask);
 void system_set_exec_accessory_override_flag(uint8_t mask);
@@ -204,7 +209,7 @@ uint8_t system_check_travel_limits(float* target);
 // Special handlers for setting and clearing Grbl's real-time execution flags.
 void system_set_exec_state_flag(uint8_t mask);
 void system_clear_exec_state_flag(uint8_t mask);
-void system_set_exec_alarm(uint8_t code);
+void system_set_exec_alarm(ExecAlarm code);
 void system_clear_exec_alarm();
 void system_set_exec_motion_override_flag(uint8_t mask);
 void system_set_exec_accessory_override_flag(uint8_t mask);

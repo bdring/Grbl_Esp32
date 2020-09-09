@@ -76,7 +76,7 @@ namespace Spindles {
     }
 
     void Spindle::sync(SpindleState state, uint32_t rpm) {
-        if (sys.state == STATE_CHECK_MODE) {
+        if (sys.state == State::CheckMode) {
             return;
         }
         protocol_buffer_synchronize();  // Empty planner buffer to ensure spindle is set when programmed.

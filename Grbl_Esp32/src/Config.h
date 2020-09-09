@@ -109,7 +109,7 @@ const int MAX_N_AXIS = 6;
 #    define LIMIT_MASK B0
 #endif
 
-#define GRBL_MSG_LEVEL MSG_LEVEL_INFO  // what level of [MSG:....] do you want to see 0=all off;
+#define GRBL_MSG_LEVEL MsgLevel::Info  // what level of [MSG:....] do you want to see 0=all off
 
 // Serial baud rate
 // OK to change, but the ESP32 boot text is 115200, so you will not see that is your

@@ -40,7 +40,7 @@ namespace Motors {
         _rts_pin = rts_pin;
 
         if (_tx_pin == UNDEFINED_PIN || _rx_pin == UNDEFINED_PIN || _rts_pin == UNDEFINED_PIN) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dymanixel Error. Missing pin definitions");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dymanixel Error. Missing pin definitions");
             return;
         }
 
@@ -71,7 +71,7 @@ namespace Motors {
 
     void Dynamixel2::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "%s Axis Dynamixel Servo ID:%d Count(%5.0f,%5.0f) Limits(%0.3fmm,%5.3f)",
                        _axis_name,
                        _id,
@@ -94,14 +94,14 @@ namespace Motors {
             uint16_t model_num = _dxl_rx_message[10] << 8 | _dxl_rx_message[9];
             if (model_num == 1060) {
                 grbl_msg_sendf(CLIENT_SERIAL,
-                               MSG_LEVEL_INFO,
+                               MsgLevel::Info,
                                "%s Axis Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
                                _axis_name,
                                _id,
                                _dxl_rx_message[11]);
             } else {
                 grbl_msg_sendf(CLIENT_SERIAL,
-                               MSG_LEVEL_INFO,
+                               MsgLevel::Info,
                                "%s Axis Dynamixel Detected ID %d M/N %d F/W Rev %x",
                                _axis_name,
                                _id,
@@ -110,7 +110,7 @@ namespace Motors {
             }
 
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis Dynamixel Servo ID %d Ping failed", _axis_name, _id);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Axis Dynamixel Servo ID %d Ping failed", _axis_name, _id);
         }
 
         return true;
@@ -141,7 +141,7 @@ namespace Motors {
 
         _disabled = disable;
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis %s", _axis_name, disable ? "Disable" : "Enable");
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Axis %s", _axis_name, disable ? "Disable" : "Enable");
 
         if (_disabled)
             dxl_write(DXL_ADDR_TORQUE_EN, param_count, 0);
@@ -175,7 +175,7 @@ namespace Motors {
         if (uart_ready)
             return;  // UART already setup
 
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel UART TX:%d RX:%d RTS:%d", DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel UART TX:%d RX:%d RTS:%d", DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 
         uart_driver_delete(UART_NUM_2);
 
@@ -243,7 +243,7 @@ namespace Motors {
 
             return dxl_position;
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Data len arror: %d", data_len);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Data len arror: %d", data_len);
             return 0;
         }
     }
@@ -301,18 +301,18 @@ namespace Motors {
         if (len == 11) {
             uint8_t err = _dxl_rx_message[8];
             switch (err) {
-                case 1: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write fail error", _id); break;
-                case 2: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write instruction error", _id); break;
-                case 3: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write access error", _id); break;
-                case 4: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write data range error", _id); break;
-                case 5: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write data length error", _id); break;
-                case 6: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write data limit error", _id); break;
-                case 7: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Write access error", _id); break;
+                case 1: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write fail error", _id); break;
+                case 2: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write instruction error", _id); break;
+                case 3: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write access error", _id); break;
+                case 4: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data range error", _id); break;
+                case 5: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data length error", _id); break;
+                case 6: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data limit error", _id); break;
+                case 7: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write access error", _id); break;
                 default: break;
             }
         } else {
             // timeout
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Dynamixel Servo ID %d Timeout", _id);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Timeout", _id);
         }
     }
 
@@ -367,7 +367,7 @@ namespace Motors {
                     // map the mm range to the servo range
                     dxl_position = (uint32_t)mapConstrain(target, position_min, position_max, dxl_count_min, dxl_count_max);
 
-                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Range: %5.3f/%5.3f Target:%5.3f Pos %d", position_min, position_max, target, dxl_position);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Range: %5.3f/%5.3f Target:%5.3f Pos %d", position_min, position_max, target, dxl_position);
 
                     tx_message[++msg_index] = current_id;                         // ID of the servo
                     tx_message[++msg_index] = dxl_position & 0xFF;                // data

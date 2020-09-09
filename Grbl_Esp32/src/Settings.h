@@ -399,31 +399,23 @@ public:
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
 
-enum : uint8_t {
-    ANY_STATE         = 0,
-    IDLE_OR_ALARM     = 0xff & ~STATE_ALARM,
-    IDLE_OR_JOG       = 0xff & ~STATE_JOG,
-    NOT_CYCLE_OR_HOLD = STATE_CYCLE | STATE_HOLD,
-};
-
 class GrblCommand : public Command {
 private:
     Error (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
-    uint8_t _disallowedStates;
-
+    bool (*_checker)();
 public:
     GrblCommand(const char* grblName,
                 const char* name,
                 Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
-                uint8_t       disallowedStates,
+                bool (*checker)(),
                 permissions_t auth) :
         Command(NULL, GRBLCMD, auth, grblName, name),
-        _action(action), _disallowedStates(disallowedStates) {}
+                _action(action), _checker(checker) {}
 
     GrblCommand(const char* grblName,
                 const char* name,
                 Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
-                uint8_t disallowedStates) :
-        GrblCommand(grblName, name, action, disallowedStates, WG) {}
+                bool (*checker)(void)) :
+        GrblCommand(grblName, name, action, checker, WG) {}
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };

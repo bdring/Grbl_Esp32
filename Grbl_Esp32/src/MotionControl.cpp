@@ -54,12 +54,12 @@ void mc_line(float* target, plan_line_data_t* pl_data) {
     // from everywhere in Grbl.
     if (soft_limits->get()) {
         // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
-        if (sys.state != STATE_JOG) {
+        if (sys.state != State::Jog) {
             limits_soft_check(target);
         }
     }
     // If in check gcode mode, prevent motion by blocking planner. Soft limits still work.
-    if (sys.state == STATE_CHECK_MODE) {
+    if (sys.state == State::CheckMode) {
         return;
     }
     // NOTE: Backlash compensation may be installed here. It will need direction info to track when
@@ -142,9 +142,9 @@ void mc_arc(float*            target,
         // Multiply inverse feed_rate to compensate for the fact that this movement is approximated
         // by a number of discrete segments. The inverse feed_rate should be correct for the sum of
         // all segments.
-        if (pl_data->motion & PL_MOTION_INVERSE_TIME) {
+        if (pl_data->motion.inverseTime) {
             pl_data->feed_rate *= segments;
-            bit_false(pl_data->motion, PL_MOTION_INVERSE_TIME);  // Force as feed absolute mode over arc segments.
+            pl_data->motion.inverseTime = 0;  // Force as feed absolute mode over arc segments.
         }
         float theta_per_segment  = angular_travel / segments;
         float linear_per_segment = (target[axis_linear] - position[axis_linear]) / segments;
@@ -226,7 +226,7 @@ void mc_arc(float*            target,
 
 // Execute dwell in seconds.
 void mc_dwell(float seconds) {
-    if (sys.state == STATE_CHECK_MODE) {
+    if (sys.state == State::CheckMode) {
         return;
     }
     protocol_buffer_synchronize();
@@ -281,7 +281,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
 #ifdef LIMITS_TWO_SWITCHES_ON_AXES
     if (limits_get_state()) {
         mc_reset();  // Issue system reset and ensure spindle and coolant are shutdown.
-        system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);
+        system_set_exec_alarm(ExecAlarm::HardLimit);
         return;
     }
 #endif
@@ -387,7 +387,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
 // NOTE: Upon probe failure, the program will be stopped and placed into ALARM state.
 GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_flags) {
     // TODO: Need to update this cycle so it obeys a non-auto cycle start.
-    if (sys.state == STATE_CHECK_MODE) {
+    if (sys.state == State::CheckMode) {
 #ifdef SET_CHECK_MODE_PROBE_TO_START
         return GCUpdatePos::None;
 #else
@@ -407,7 +407,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
     if (probe_get_state()) {  // Check probe pin state.
-        system_set_exec_alarm(EXEC_ALARM_PROBE_FAIL_INITIAL);
+        system_set_exec_alarm(ExecAlarm::ProbeFailInitial);
         protocol_execute_realtime();
         probe_configure_invert_mask(false);  // Re-initialize invert mask before returning.
         return GCUpdatePos::None;            // Nothing else to do but bail.
@@ -423,14 +423,14 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         if (sys.abort) {
             return GCUpdatePos::None;  // Check for system abort
         }
-    } while (sys.state != STATE_IDLE);
+    } while (sys.state != State::Idle);
     // Probing cycle complete!
     // Set state variables and error out, if the probe failed and cycle with error is enabled.
     if (sys_probe_state == PROBE_ACTIVE) {
         if (is_no_error) {
             memcpy(sys_probe_position, sys_position, sizeof(sys_position));
         } else {
-            system_set_exec_alarm(EXEC_ALARM_PROBE_FAIL_CONTACT);
+            system_set_exec_alarm(ExecAlarm::ProbeFailContact);
         }
     } else {
         sys.probe_succeeded = true;  // Indicate to system the probing cycle completed successfully.
@@ -509,7 +509,7 @@ void mc_reset() {
         // do we need to stop a running SD job?
         if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
             //Report print stopped
-            report_feedback_message(MESSAGE_SD_FILE_QUIT);
+            report_feedback_message(Message::SdFileQuit);
             closeFile();
         }
 #endif
@@ -517,14 +517,14 @@ void mc_reset() {
         // NOTE: If steppers are kept enabled via the step idle delay setting, this also keeps
         // the steppers enabled by avoiding the go_idle call altogether, unless the motion state is
         // violated, by which, all bets are off.
-        if ((sys.state & (STATE_CYCLE | STATE_HOMING | STATE_JOG)) ||
+        if ((sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) ||
             (sys.step_control & (STEP_CONTROL_EXECUTE_HOLD | STEP_CONTROL_EXECUTE_SYS_MOTION))) {
-            if (sys.state == STATE_HOMING) {
-                if (!sys_rt_exec_alarm) {
-                    system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_RESET);
+            if (sys.state == State::Homing) {
+                if (sys_rt_exec_alarm == ExecAlarm::None) {
+                    system_set_exec_alarm(ExecAlarm::HomingFailReset);
                 }
             } else {
-                system_set_exec_alarm(EXEC_ALARM_ABORT_CYCLE);
+                system_set_exec_alarm(ExecAlarm::AbortCycle);
             }
             st_go_idle();  // Force kill steppers. Position has likely been lost.
         }

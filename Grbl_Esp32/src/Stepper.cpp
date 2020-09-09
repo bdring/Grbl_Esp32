@@ -114,7 +114,7 @@ bool     stepper_idle;
 // based on the current executing planner block.
 typedef struct {
     uint8_t st_block_index;  // Index of stepper common data block being prepped
-    uint8_t recalculate_flag;
+    PrepFlag recalculate_flag;
 
     float dt_remainder;
     float steps_remaining;
@@ -299,7 +299,7 @@ static void stepper_pulse_func() {
         } else {
             // Segment buffer empty. Shutdown.
             st_go_idle();
-            if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
+            if (sys.state != State::Jog) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
                 if (st.exec_block != NULL && st.exec_block->is_pwm_rate_adjusted) {
                     spindle->set_rpm(0);
@@ -408,7 +408,7 @@ static void stepper_pulse_func() {
     }
 #endif
     // During a homing cycle, lock out and prevent desired axes from moving.
-    if (sys.state == STATE_HOMING) {
+    if (sys.state == State::Homing) {
         st.step_outbits &= sys.homing_axis_lock;
     }
     st.step_count--;  // Decrement step events count
@@ -443,8 +443,8 @@ static void stepper_pulse_func() {
 }
 
 void stepper_init() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", stepper_names[current_stepper]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", N_AXIS);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepper_names[current_stepper]);
 
 #ifdef USE_I2S_STEPS
     // I2S stepper stream mode use callback but timer interrupt
@@ -455,7 +455,7 @@ void stepper_init() {
 }
 
 void stepper_switch(stepper_id_t new_stepper) {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_DEBUG, "Switch stepper: %s -> %s", stepper_names[current_stepper], stepper_names[new_stepper]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Switch stepper: %s -> %s", stepper_names[current_stepper], stepper_names[new_stepper]);
     if (current_stepper == new_stepper) {
         // do not need to change
         return;
@@ -465,7 +465,7 @@ void stepper_switch(stepper_id_t new_stepper) {
         if (i2s_out_get_pulser_status() != PASSTHROUGH) {
             // This switching function should not be called during streaming.
             // However, if it is called, it will stop streaming.
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_WARNING, "Stop the I2S streaming and switch to the passthrough mode.");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Warning, "Stop the I2S streaming and switch to the passthrough mode.");
             i2s_out_set_passthrough();
             i2s_out_delay();
         }
@@ -476,7 +476,7 @@ void stepper_switch(stepper_id_t new_stepper) {
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void st_wake_up() {
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "st_wake_up");
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "st_wake_up");
     // Enable stepper drivers.
     motors_set_disable(false);
     stepper_idle = false;
@@ -716,11 +716,11 @@ void st_go_idle() {
     busy = false;
 
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
-    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm || sys.state == STATE_SLEEP) && sys.state != STATE_HOMING) {
+    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) && sys.state != State::Homing) {
         // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
         // stop and not drift from residual inertial forces at the end of the last movement.
 
-        if (sys.state == STATE_SLEEP || sys_rt_exec_alarm) {
+        if (sys.state == State::Sleep || sys_rt_exec_alarm != ExecAlarm::None) {
             motors_set_disable(true);
         } else {
             stepper_idle         = true;  // esp32 work around for disable in main loop
@@ -738,7 +738,7 @@ void st_go_idle() {
 // Called by planner_recalculate() when the executing block is updated by the new plan.
 void st_update_plan_block_parameters() {
     if (pl_block != NULL) {  // Ignore if at start of a new block.
-        prep.recalculate_flag |= PREP_FLAG_RECALCULATE;
+        prep.recalculate_flag.recalculate = 1;
         pl_block->entry_speed_sqr = prep.current_speed * prep.current_speed;  // Update entry speed.
         pl_block                  = NULL;  // Flag st_prep_segment() to load and check active velocity profile.
     }
@@ -748,31 +748,32 @@ void st_update_plan_block_parameters() {
 // Changes the run state of the step segment buffer to execute the special parking motion.
 void st_parking_setup_buffer() {
     // Store step execution data of partially completed block, if necessary.
-    if (prep.recalculate_flag & PREP_FLAG_HOLD_PARTIAL_BLOCK) {
+    if (prep.recalculate_flag.holdPartialBlock) {
         prep.last_st_block_index  = prep.st_block_index;
         prep.last_steps_remaining = prep.steps_remaining;
         prep.last_dt_remainder    = prep.dt_remainder;
         prep.last_step_per_mm     = prep.step_per_mm;
     }
     // Set flags to execute a parking motion
-    prep.recalculate_flag |= PREP_FLAG_PARKING;
-    prep.recalculate_flag &= ~(PREP_FLAG_RECALCULATE);
+    prep.recalculate_flag.parking = 1;
+    prep.recalculate_flag.recalculate = 0;
     pl_block = NULL;  // Always reset parking motion to reload new block.
 }
 
 // Restores the step segment buffer to the normal run state after a parking motion.
 void st_parking_restore_buffer() {
     // Restore step execution data and flags of partially completed block, if necessary.
-    if (prep.recalculate_flag & PREP_FLAG_HOLD_PARTIAL_BLOCK) {
+    if (prep.recalculate_flag.holdPartialBlock) {
         st_prep_block         = &st_block_buffer[prep.last_st_block_index];
         prep.st_block_index   = prep.last_st_block_index;
         prep.steps_remaining  = prep.last_steps_remaining;
         prep.dt_remainder     = prep.last_dt_remainder;
         prep.step_per_mm      = prep.last_step_per_mm;
-        prep.recalculate_flag = (PREP_FLAG_HOLD_PARTIAL_BLOCK | PREP_FLAG_RECALCULATE);
+        prep.recalculate_flag.holdPartialBlock = 1;
+        prep.recalculate_flag.recalculate = 1;
         prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;  // Recompute this value.
     } else {
-        prep.recalculate_flag = false;
+        prep.recalculate_flag = {};
     }
 
     pl_block = NULL;  // Set to reload next block.
@@ -819,15 +820,15 @@ void st_prep_buffer() {
             }
 
             // Check if we need to only recompute the velocity profile or load a new block.
-            if (prep.recalculate_flag & PREP_FLAG_RECALCULATE) {
+            if (prep.recalculate_flag.recalculate) {
 #ifdef PARKING_ENABLE
-                if (prep.recalculate_flag & PREP_FLAG_PARKING) {
-                    prep.recalculate_flag &= ~(PREP_FLAG_RECALCULATE);
+                if (prep.recalculate_flag.parking) {
+                    prep.recalculate_flag.recalculate = 0;
                 } else {
-                    prep.recalculate_flag = false;
+                    prep.recalculate_flag = {};
                 }
 #else
-                prep.recalculate_flag = false;
+                prep.recalculate_flag = {};
 #endif
             } else {
                 // Load the Bresenham stepping data for the block.
@@ -857,11 +858,11 @@ void st_prep_buffer() {
                 prep.step_per_mm      = prep.steps_remaining / pl_block->millimeters;
                 prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;
                 prep.dt_remainder     = 0.0;  // Reset for new segment block
-                if ((sys.step_control & STEP_CONTROL_EXECUTE_HOLD) || (prep.recalculate_flag & PREP_FLAG_DECEL_OVERRIDE)) {
+                if ((sys.step_control & STEP_CONTROL_EXECUTE_HOLD) || prep.recalculate_flag.decelOverride) {
                     // New block loaded mid-hold. Override planner block entry speed to enforce deceleration.
                     prep.current_speed        = prep.exit_speed;
                     pl_block->entry_speed_sqr = prep.exit_speed * prep.exit_speed;
-                    prep.recalculate_flag &= ~(PREP_FLAG_DECEL_OVERRIDE);
+                    prep.recalculate_flag.decelOverride = 0;
                 } else {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
                 }
@@ -919,7 +920,7 @@ void st_prep_buffer() {
                         // prep.maximum_speed = prep.current_speed;
                         // Compute override block exit speed since it doesn't match the planner exit speed.
                         prep.exit_speed = sqrt(pl_block->entry_speed_sqr - 2 * pl_block->acceleration * pl_block->millimeters);
-                        prep.recalculate_flag |= PREP_FLAG_DECEL_OVERRIDE;  // Flag to load next block as deceleration override.
+                        prep.recalculate_flag.decelOverride = 1;  // Flag to load next block as deceleration override.
                         // TODO: Determine correct handling of parameters in deceleration-only.
                         // Can be tricky since entry speed will be current speed, as in feed holds.
                         // Also, look into near-zero speed handling issues with this.
@@ -1084,8 +1085,8 @@ void st_prep_buffer() {
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
                 if (st_prep_block->is_pwm_rate_adjusted) {
                     rpm *= (prep.current_speed * prep.inv_rate);
-                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RPM %.2f", rpm);
-                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RPM %.2f", rpm);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
                 }
                 // If current_speed is zero, then may need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE)
                 // but this would be instantaneous only and during a motion. May not matter at all.
@@ -1121,8 +1122,8 @@ void st_prep_buffer() {
                 // requires full steps to execute. So, just bail.
                 bit_true(sys.step_control, STEP_CONTROL_END_MOTION);
 #ifdef PARKING_ENABLE
-                if (!(prep.recalculate_flag & PREP_FLAG_PARKING)) {
-                    prep.recalculate_flag |= PREP_FLAG_HOLD_PARTIAL_BLOCK;
+                if (!(prep.recalculate_flag.parking)) {
+                    prep.recalculate_flag.holdPartialBlock = 1;
                 }
 #endif
                 return;  // Segment not generated, but current step data still retained.
@@ -1200,8 +1201,8 @@ void st_prep_buffer() {
                 // cycle stop flag from the ISR. Prep_segment is blocked until then.
                 bit_true(sys.step_control, STEP_CONTROL_END_MOTION);
 #ifdef PARKING_ENABLE
-                if (!(prep.recalculate_flag & PREP_FLAG_PARKING)) {
-                    prep.recalculate_flag |= PREP_FLAG_HOLD_PARTIAL_BLOCK;
+                if (!(prep.recalculate_flag.parking)) {
+                    prep.recalculate_flag.holdPartialBlock = 1;
                 }
 #endif
                 return;  // Bail!
@@ -1223,7 +1224,16 @@ void st_prep_buffer() {
 // in the segment buffer. It will always be behind by up to the number of segment blocks (-1)
 // divided by the ACCELERATION TICKS PER SECOND in seconds.
 float st_get_realtime_rate() {
-    return (sys.state & (STATE_CYCLE | STATE_HOMING | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) ? prep.current_speed : 0.0f;
+    switch (sys.state) {
+        case State::Cycle:
+        case State::Homing:
+        case State::Hold:
+        case State::Jog:
+        case State::SafetyDoor:
+            return prep.current_speed;
+        default:
+            return 0.0f;
+    }
 }
 
 void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {
