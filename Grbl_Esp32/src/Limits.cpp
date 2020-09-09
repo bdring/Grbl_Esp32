@@ -98,7 +98,9 @@ void limits_go_home(uint8_t cycle_mask) {
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
     memset(pl_data, 0, sizeof(plan_line_data_t));
-    pl_data->motion = (PL_MOTION_SYSTEM_MOTION | PL_MOTION_NO_FEED_OVERRIDE);
+    pl_data->motion = {};
+    pl_data->motion.systemMotion = 1;
+    pl_data->motion.noFeedOverride = 1;
 #ifdef USE_LINE_NUMBERS
     pl_data->line_number = HOMING_CYCLE_LINE_NUMBER;
 #endif

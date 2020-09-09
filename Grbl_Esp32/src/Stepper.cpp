@@ -114,7 +114,7 @@ bool     stepper_idle;
 // based on the current executing planner block.
 typedef struct {
     uint8_t st_block_index;  // Index of stepper common data block being prepped
-    uint8_t recalculate_flag;
+    PrepFlag recalculate_flag;
 
     float dt_remainder;
     float steps_remaining;
@@ -738,7 +738,7 @@ void st_go_idle() {
 // Called by planner_recalculate() when the executing block is updated by the new plan.
 void st_update_plan_block_parameters() {
     if (pl_block != NULL) {  // Ignore if at start of a new block.
-        prep.recalculate_flag |= PREP_FLAG_RECALCULATE;
+        prep.recalculate_flag.recalculate = 1;
         pl_block->entry_speed_sqr = prep.current_speed * prep.current_speed;  // Update entry speed.
         pl_block                  = NULL;  // Flag st_prep_segment() to load and check active velocity profile.
     }
@@ -748,31 +748,32 @@ void st_update_plan_block_parameters() {
 // Changes the run state of the step segment buffer to execute the special parking motion.
 void st_parking_setup_buffer() {
     // Store step execution data of partially completed block, if necessary.
-    if (prep.recalculate_flag & PREP_FLAG_HOLD_PARTIAL_BLOCK) {
+    if (prep.recalculate_flag.holdPartialBlock) {
         prep.last_st_block_index  = prep.st_block_index;
         prep.last_steps_remaining = prep.steps_remaining;
         prep.last_dt_remainder    = prep.dt_remainder;
         prep.last_step_per_mm     = prep.step_per_mm;
     }
     // Set flags to execute a parking motion
-    prep.recalculate_flag |= PREP_FLAG_PARKING;
-    prep.recalculate_flag &= ~(PREP_FLAG_RECALCULATE);
+    prep.recalculate_flag.parking = 1;
+    prep.recalculate_flag.recalculate = 0;
     pl_block = NULL;  // Always reset parking motion to reload new block.
 }
 
 // Restores the step segment buffer to the normal run state after a parking motion.
 void st_parking_restore_buffer() {
     // Restore step execution data and flags of partially completed block, if necessary.
-    if (prep.recalculate_flag & PREP_FLAG_HOLD_PARTIAL_BLOCK) {
+    if (prep.recalculate_flag.holdPartialBlock) {
         st_prep_block         = &st_block_buffer[prep.last_st_block_index];
         prep.st_block_index   = prep.last_st_block_index;
         prep.steps_remaining  = prep.last_steps_remaining;
         prep.dt_remainder     = prep.last_dt_remainder;
         prep.step_per_mm      = prep.last_step_per_mm;
-        prep.recalculate_flag = (PREP_FLAG_HOLD_PARTIAL_BLOCK | PREP_FLAG_RECALCULATE);
+        prep.recalculate_flag.holdPartialBlock = 1;
+        prep.recalculate_flag.recalculate = 1;
         prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;  // Recompute this value.
     } else {
-        prep.recalculate_flag = false;
+        prep.recalculate_flag = {};
     }
 
     pl_block = NULL;  // Set to reload next block.
@@ -819,15 +820,15 @@ void st_prep_buffer() {
             }
 
             // Check if we need to only recompute the velocity profile or load a new block.
-            if (prep.recalculate_flag & PREP_FLAG_RECALCULATE) {
+            if (prep.recalculate_flag.recalculate) {
 #ifdef PARKING_ENABLE
-                if (prep.recalculate_flag & PREP_FLAG_PARKING) {
-                    prep.recalculate_flag &= ~(PREP_FLAG_RECALCULATE);
+                if (prep.recalculate_flag.parking) {
+                    prep.recalculate_flag.recalculate = 0;
                 } else {
-                    prep.recalculate_flag = false;
+                    prep.recalculate_flag = {};
                 }
 #else
-                prep.recalculate_flag = false;
+                prep.recalculate_flag = {};
 #endif
             } else {
                 // Load the Bresenham stepping data for the block.
@@ -857,11 +858,11 @@ void st_prep_buffer() {
                 prep.step_per_mm      = prep.steps_remaining / pl_block->millimeters;
                 prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;
                 prep.dt_remainder     = 0.0;  // Reset for new segment block
-                if ((sys.step_control & STEP_CONTROL_EXECUTE_HOLD) || (prep.recalculate_flag & PREP_FLAG_DECEL_OVERRIDE)) {
+                if ((sys.step_control & STEP_CONTROL_EXECUTE_HOLD) || prep.recalculate_flag.decelOverride) {
                     // New block loaded mid-hold. Override planner block entry speed to enforce deceleration.
                     prep.current_speed        = prep.exit_speed;
                     pl_block->entry_speed_sqr = prep.exit_speed * prep.exit_speed;
-                    prep.recalculate_flag &= ~(PREP_FLAG_DECEL_OVERRIDE);
+                    prep.recalculate_flag.decelOverride = 0;
                 } else {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
                 }
@@ -919,7 +920,7 @@ void st_prep_buffer() {
                         // prep.maximum_speed = prep.current_speed;
                         // Compute override block exit speed since it doesn't match the planner exit speed.
                         prep.exit_speed = sqrt(pl_block->entry_speed_sqr - 2 * pl_block->acceleration * pl_block->millimeters);
-                        prep.recalculate_flag |= PREP_FLAG_DECEL_OVERRIDE;  // Flag to load next block as deceleration override.
+                        prep.recalculate_flag.decelOverride = 1;  // Flag to load next block as deceleration override.
                         // TODO: Determine correct handling of parameters in deceleration-only.
                         // Can be tricky since entry speed will be current speed, as in feed holds.
                         // Also, look into near-zero speed handling issues with this.
@@ -1121,8 +1122,8 @@ void st_prep_buffer() {
                 // requires full steps to execute. So, just bail.
                 bit_true(sys.step_control, STEP_CONTROL_END_MOTION);
 #ifdef PARKING_ENABLE
-                if (!(prep.recalculate_flag & PREP_FLAG_PARKING)) {
-                    prep.recalculate_flag |= PREP_FLAG_HOLD_PARTIAL_BLOCK;
+                if (!(prep.recalculate_flag.parking)) {
+                    prep.recalculate_flag.holdPartialBlock = 1;
                 }
 #endif
                 return;  // Segment not generated, but current step data still retained.
@@ -1200,8 +1201,8 @@ void st_prep_buffer() {
                 // cycle stop flag from the ISR. Prep_segment is blocked until then.
                 bit_true(sys.step_control, STEP_CONTROL_END_MOTION);
 #ifdef PARKING_ENABLE
-                if (!(prep.recalculate_flag & PREP_FLAG_PARKING)) {
-                    prep.recalculate_flag |= PREP_FLAG_HOLD_PARTIAL_BLOCK;
+                if (!(prep.recalculate_flag.parking)) {
+                    prep.recalculate_flag.holdPartialBlock = 1;
                 }
 #endif
                 return;  // Bail!
