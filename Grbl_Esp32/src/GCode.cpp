@@ -263,7 +263,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 38:  // G38 - probe
 #ifndef PROBE_PIN             //only allow G38 "Probe" commands if a probe pin is defined.
-                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No probe pin defined");
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
                         FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
 #endif
                         // Check for G0/1/2/3/38 being called with G10/28/30/92 on same block.
@@ -562,7 +562,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         if (value > MaxToolNumber) {
                             FAIL(Error::GcodeMaxValueExceeded);
                         }
-                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Tool No: %d", int_value);
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Tool No: %d", int_value);
                         gc_state.tool = int_value;
                         break;
                     case 'X':
@@ -1224,7 +1224,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     // [2. Set feed rate mode ]:
     gc_state.modal.feed_rate = gc_block.modal.feed_rate;
     if (gc_state.modal.feed_rate == FeedRate::InverseTime) {
-        pl_data->motion |= PL_MOTION_INVERSE_TIME;  // Set condition flag for planner use.
+        pl_data->motion.inverseTime = 1;  // Set condition flag for planner use.
     }
     // [3. Set feed rate ]:
     gc_state.feed_rate = gc_block.values.f;   // Always copy this value. See feed rate error-checking.
@@ -1350,7 +1350,7 @@ Error gc_execute_line(char* line, uint8_t client) {
         case NonModal::GoHome1:
             // Move to intermediate position before going home. Obeys current coordinate system and offsets
             // and absolute and incremental modes.
-            pl_data->motion |= PL_MOTION_RAPID_MOTION;  // Set rapid motion flag.
+            pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
             if (axis_command != AxisCommand::None) {
                 mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
             }
@@ -1383,7 +1383,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
             } else if (gc_state.modal.motion == Motion::Seek) {
-                pl_data->motion |= PL_MOTION_RAPID_MOTION;  // Set rapid motion flag.
+                pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
             } else if ((gc_state.modal.motion == Motion::CwArc) || (gc_state.modal.motion == Motion::CcwArc)) {
@@ -1400,7 +1400,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 // NOTE: gc_block.values.xyz is returned from mc_probe_cycle with the updated position value. So
                 // upon a successful probing cycle, the machine position and the returned value should be the same.
 #ifndef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
-                pl_data->motion |= PL_MOTION_NO_FEED_OVERRIDE;
+                pl_data->motion.noFeedOverride = 1;
 #endif
 #ifdef USE_I2S_STEPS
                 save_stepper = current_stepper;  // remember the stepper
@@ -1437,7 +1437,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             break;
         case ProgramFlow::Paused:
             protocol_buffer_synchronize();  // Sync and finish all remaining buffered motions before moving on.
-            if (sys.state != STATE_CHECK_MODE) {
+            if (sys.state != State::CheckMode) {
                 system_set_exec_state_flag(EXEC_FEED_HOLD);  // Use feed hold for program pause.
                 protocol_execute_realtime();                 // Execute suspend.
             }
@@ -1472,7 +1472,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             sys.spindle_speed_ovr = DEFAULT_SPINDLE_SPEED_OVERRIDE;
 #endif
             // Execute coordinate change and spindle/coolant stop.
-            if (sys.state != STATE_CHECK_MODE) {
+            if (sys.state != State::CheckMode) {
                 if (!(settings_read_coord_data(gc_state.modal.coord_select, gc_state.coord_system))) {
                     FAIL(Error::SettingReadFail);
                 }
@@ -1480,7 +1480,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 spindle->set_state(SpindleState::Disable, 0);
                 coolant_off();
             }
-            report_feedback_message(MESSAGE_PROGRAM_END);
+            report_feedback_message(Message::ProgramEnd);
 #ifdef USE_M30
             user_m30();
 #endif

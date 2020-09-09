@@ -161,7 +161,7 @@ static const char* makename(const char* axisName, const char* tail) {
 }
 
 static bool checkStartupLine(char* value) {
-    if (sys.state != STATE_IDLE) {
+    if (sys.state != State::Idle) {
         return false;
     }
     return gc_execute_line(value, CLIENT_SERIAL) == Error::Ok;

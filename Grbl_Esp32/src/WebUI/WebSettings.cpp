@@ -634,7 +634,7 @@ namespace WebUI {
                 return Error::SdFailedBusy;
             }
         }
-        if (sys.state != STATE_IDLE) {
+        if (sys.state != State::Idle) {
             webPrintln("Busy");
             return Error::IdleError;
         }

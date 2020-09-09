@@ -35,7 +35,6 @@ void probe_init() {
     pinMode(PROBE_PIN, INPUT_PULLUP);  // Enable internal pull-up resistors. Normal high operation.
 #    endif
     probe_configure_invert_mask(false);  // Initialize invert mask.
-
 #endif
 }
 

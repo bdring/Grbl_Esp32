@@ -22,28 +22,21 @@
 
 const char* errorString(Error errorNumber);
 
-// Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
-const int ALARM_ABORT_CYCLE = EXEC_ALARM_ABORT_CYCLE; 
-const int ALARM_PROBE_FAIL_INITIAL = EXEC_ALARM_PROBE_FAIL_INITIAL; 
-const int ALARM_PROBE_FAIL_CONTACT = EXEC_ALARM_PROBE_FAIL_CONTACT; 
-const int ALARM_HOMING_FAIL_RESET = EXEC_ALARM_HOMING_FAIL_RESET; 
-const int ALARM_HOMING_FAIL_DOOR = EXEC_ALARM_HOMING_FAIL_DOOR; 
-const int ALARM_HOMING_FAIL_PULLOFF = EXEC_ALARM_HOMING_FAIL_PULLOFF; 
-const int ALARM_HOMING_FAIL_APPROACH = EXEC_ALARM_HOMING_FAIL_APPROACH; 
-
 // Define Grbl feedback message codes. Valid values (0-255).
-#define MESSAGE_CRITICAL_EVENT 1
-#define MESSAGE_ALARM_LOCK 2
-#define MESSAGE_ALARM_UNLOCK 3
-#define MESSAGE_ENABLED 4
-#define MESSAGE_DISABLED 5
-#define MESSAGE_SAFETY_DOOR_AJAR 6
-#define MESSAGE_CHECK_LIMITS 7
-#define MESSAGE_PROGRAM_END 8
-#define MESSAGE_RESTORE_DEFAULTS 9
-#define MESSAGE_SPINDLE_RESTORE 10
-#define MESSAGE_SLEEP_MODE 11
-#define MESSAGE_SD_FILE_QUIT 60  // mc_reset was called during an SD job
+enum class Message : uint8_t {
+    CriticalEvent   = 1,
+    AlarmLock       = 2,
+    AlarmUnlock     = 3,
+    Enabled         = 4,
+    Disabled        = 5,
+    SafetyDoorAjar  = 6,
+    CheckLimits     = 7,
+    ProgramEnd      = 8,
+    RestoreDefaults = 9,
+    SpindleRestore  = 10,
+    SleepMode       = 11,
+    SdFileQuit      = 60,  // mc_reset was called during an SD job
+};
 
 #define CLIENT_SERIAL 0
 #define CLIENT_BT 1
@@ -53,17 +46,19 @@ const int ALARM_HOMING_FAIL_APPROACH = EXEC_ALARM_HOMING_FAIL_APPROACH;
 #define CLIENT_ALL 0xFF
 #define CLIENT_COUNT 5  // total number of client types regardless if they are used
 
-#define MSG_LEVEL_NONE 0  // set GRBL_MSG_LEVEL in config.h to the level you want to see
-#define MSG_LEVEL_ERROR 1
-#define MSG_LEVEL_WARNING 2
-#define MSG_LEVEL_INFO 3
-#define MSG_LEVEL_DEBUG 4
-#define MSG_LEVEL_VERBOSE 5
+enum class MsgLevel : uint8_t {
+    None    = 0,  // set GRBL_MSG_LEVEL in config.h to the level you want to see
+    Error   = 1,
+    Warning = 2,
+    Info    = 3,
+    Debug   = 4,
+    Verbose = 5,
+};
 
 // functions to send data to the user.
 void grbl_send(uint8_t client, const char* text);
 void grbl_sendf(uint8_t client, const char* format, ...);
-void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...);
+void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...);
 
 //function to notify
 void grbl_notify(const char* title, const char* msg);
@@ -74,10 +69,10 @@ void report_status_message(Error status_code, uint8_t client);
 void report_realtime_steps();
 
 // Prints system alarm messages.
-void report_alarm_message(uint8_t alarm_code);
+void report_alarm_message(ExecAlarm alarm_code);
 
 // Prints miscellaneous feedback messages.
-void report_feedback_message(uint8_t message_code);
+void report_feedback_message(Message message);
 
 // Prints welcome message
 void report_init_message(uint8_t client);

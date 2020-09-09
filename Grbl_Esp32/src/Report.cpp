@@ -47,6 +47,8 @@
 */
 
 #include "Grbl.h"
+#include <map>
+
 #ifdef REPORT_HEAP
 EspClass esp;
 #endif
@@ -105,7 +107,7 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
     }
 }
 // Use to send [MSG:xxxx] Type messages. The level allows messages to be easily suppressed
-void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
+void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...) {
     if (client == CLIENT_INPUT) {
         return;
     }
@@ -186,20 +188,6 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
     }
 }
 
-void get_state(char* foo) {
-    // pad them to same length
-    switch (sys.state) {
-        case STATE_IDLE: strcpy(foo, " Idle "); break;
-        case STATE_CYCLE: strcpy(foo, " Run  "); break;
-        case STATE_HOLD: strcpy(foo, " Hold "); break;
-        case STATE_HOMING: strcpy(foo, " Home "); break;
-        case STATE_ALARM: strcpy(foo, " Alarm"); break;
-        case STATE_CHECK_MODE: strcpy(foo, " Check"); break;
-        case STATE_SAFETY_DOOR: strcpy(foo, " Door "); break;
-        default: strcpy(foo, "  ?  "); break;
-    }
-}
-
 // Handles the primary confirmation protocol response for streaming interfaces and human-feedback.
 // For every incoming line, this method responds with an 'ok' for a successful command or an
 // 'error:'  to indicate some error event with the line or some critical system error during
@@ -240,35 +228,41 @@ void report_status_message(Error status_code, uint8_t client) {
 }
 
 // Prints alarm messages.
-void report_alarm_message(uint8_t alarm_code) {
-    grbl_sendf(CLIENT_ALL, "ALARM:%d\r\n", alarm_code);  // OK to send to all clients
+void report_alarm_message(ExecAlarm alarm_code) {
+    grbl_sendf(CLIENT_ALL, "ALARM:%d\r\n", static_cast<int>(alarm_code));  // OK to send to all clients
     delay_ms(500);                                       // Force delay to ensure message clears serial write buffer.
 }
+
+std::map<Message, const char*> MessageText = {
+    { Message::CriticalEvent, "Reset to continue" },
+    { Message::AlarmLock, "'$H'|'$X' to unlock" },
+    { Message::AlarmUnlock, "Caution: Unlocked" },
+    { Message::Enabled, "Enabled" },
+    { Message::Disabled, "Disabled" },
+    { Message::SafetyDoorAjar, "Check door" },
+    { Message::CheckLimits, "Check limits" },
+    { Message::ProgramEnd, "Program End" },
+    { Message::RestoreDefaults, "Restoring defaults" },
+    { Message::SpindleRestore, "Restoring spindle" },
+    { Message::SleepMode, "Sleeping" },
+    // Handled separately due to numeric argument
+    // { Message::SdFileQuit, "Reset during SD file at line: %d" },
+};
 
 // Prints feedback messages. This serves as a centralized method to provide additional
 // user feedback for things that are not of the status/alarm message protocol. These are
 // messages such as setup warnings, switch toggling, and how to exit alarms.
 // NOTE: For interfaces, messages are always placed within brackets. And if silent mode
 // is installed, the message number codes are less than zero.
-void report_feedback_message(uint8_t message_code) {  // OK to send to all clients
-    switch (message_code) {
-        case MESSAGE_CRITICAL_EVENT: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset to continue"); break;
-        case MESSAGE_ALARM_LOCK: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "'$H'|'$X' to unlock"); break;
-        case MESSAGE_ALARM_UNLOCK: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Caution: Unlocked"); break;
-        case MESSAGE_ENABLED: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Enabled"); break;
-        case MESSAGE_DISABLED: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Disabled"); break;
-        case MESSAGE_SAFETY_DOOR_AJAR: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Check door"); break;
-        case MESSAGE_CHECK_LIMITS: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Check limits"); break;
-        case MESSAGE_PROGRAM_END: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Program End"); break;
-        case MESSAGE_RESTORE_DEFAULTS: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Restoring defaults"); break;
-        case MESSAGE_SPINDLE_RESTORE: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Restoring spindle"); break;
-        case MESSAGE_SLEEP_MODE: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Sleeping"); break;
-#ifdef ENABLE_SD_CARD
-        case MESSAGE_SD_FILE_QUIT:
-            grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset during SD file at line: %d", sd_get_current_line_number());
-            break;
-#endif
+void report_feedback_message(Message message) {  // ok to send to all clients
+    if (message == Message::SdFileQuit) {
+        grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset during SD file at line: %d", sd_get_current_line_number());
+    } else {
+        auto it = MessageText.find(message);
+        if (it != MessageText.end()) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, it->second);
+        }
     }
 }
 
@@ -551,9 +545,9 @@ void report_realtime_status(uint8_t client) {
     // Report current machine state and sub-states
     strcpy(status, "<");
     switch (sys.state) {
-        case STATE_IDLE: strcat(status, "Idle"); break;
-        case STATE_CYCLE: strcat(status, "Run"); break;
-        case STATE_HOLD:
+        case State::Idle: strcat(status, "Idle"); break;
+        case State::Cycle: strcat(status, "Run"); break;
+        case State::Hold:
             if (!(sys.suspend & SUSPEND_JOG_CANCEL)) {
                 strcat(status, "Hold:");
                 if (sys.suspend & SUSPEND_HOLD_COMPLETE) {
@@ -563,11 +557,11 @@ void report_realtime_status(uint8_t client) {
                 }
                 break;
             }  // Continues to print jog state during jog cancel.
-        case STATE_JOG: strcat(status, "Jog"); break;
-        case STATE_HOMING: strcat(status, "Home"); break;
-        case STATE_ALARM: strcat(status, "Alarm"); break;
-        case STATE_CHECK_MODE: strcat(status, "Check"); break;
-        case STATE_SAFETY_DOOR:
+        case State::Jog: strcat(status, "Jog"); break;
+        case State::Homing: strcat(status, "Home"); break;
+        case State::Alarm: strcat(status, "Alarm"); break;
+        case State::CheckMode: strcat(status, "Check"); break;
+        case State::SafetyDoor:
             strcat(status, "Door:");
             if (sys.suspend & SUSPEND_INITIATE_RESTORE) {
                 strcat(status, "3");  // Restoring
@@ -584,7 +578,7 @@ void report_realtime_status(uint8_t client) {
                 }
             }
             break;
-        case STATE_SLEEP: strcat(status, "Sleep"); break;
+        case State::Sleep: strcat(status, "Sleep"); break;
     }
     float wco[N_AXIS];
     if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE) || (sys.report_wco_counter == 0)) {
@@ -711,10 +705,16 @@ void report_realtime_status(uint8_t client) {
     if (sys.report_wco_counter > 0) {
         sys.report_wco_counter--;
     } else {
-        if (sys.state & (STATE_HOMING | STATE_CYCLE | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) {
-            sys.report_wco_counter = (REPORT_WCO_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
-        } else {
-            sys.report_wco_counter = (REPORT_WCO_REFRESH_IDLE_COUNT - 1);
+        switch (sys.state) {
+            case State::Homing:
+            case State::Cycle:
+            case State::Hold:
+            case State::Jog:
+            case State::SafetyDoor:
+                sys.report_wco_counter = (REPORT_WCO_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
+            default:
+                sys.report_wco_counter = (REPORT_WCO_REFRESH_IDLE_COUNT - 1);
+                break;
         }
         if (sys.report_ovr_counter == 0) {
             sys.report_ovr_counter = 1;  // Set override on next report.
@@ -728,11 +728,18 @@ void report_realtime_status(uint8_t client) {
     if (sys.report_ovr_counter > 0) {
         sys.report_ovr_counter--;
     } else {
-        if (sys.state & (STATE_HOMING | STATE_CYCLE | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) {
-            sys.report_ovr_counter = (REPORT_OVR_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
-        } else {
-            sys.report_ovr_counter = (REPORT_OVR_REFRESH_IDLE_COUNT - 1);
+        switch (sys.state) {
+            case State::Homing:
+            case State::Cycle:
+            case State::Hold:
+            case State::Jog:
+            case State::SafetyDoor:
+                sys.report_ovr_counter = (REPORT_OVR_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
+            default:
+                sys.report_ovr_counter = (REPORT_OVR_REFRESH_IDLE_COUNT - 1);
+                break;
         }
+
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
         SpindleState sp_state      = spindle->get_state();
@@ -790,12 +797,12 @@ void report_gcode_comment(char* comment) {
             index++;
         }
         msg[index - offset] = 0;  // null terminate
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "GCode Comment...%s", msg);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "GCode Comment...%s", msg);
     }
 }
 
 void report_machine_type(uint8_t client) {
-    grbl_msg_sendf(client, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_NAME);
+    grbl_msg_sendf(client, MsgLevel::Info, "Using machine:%s", MACHINE_NAME);
 }
 
 /*
@@ -812,7 +819,7 @@ void report_hex_msg(char* buf, const char* prefix, int len) {
         strcat(report, temp);
     }
 
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", report);
 }
 
 void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
@@ -824,7 +831,7 @@ void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
         strcat(report, temp);
     }
 
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", report);
 }
 
 char report_get_axis_letter(uint8_t axis) {
