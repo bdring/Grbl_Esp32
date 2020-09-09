@@ -39,7 +39,7 @@
 #define Z_STEP_PIN              GPIO_NUM_22  // labeled Z
 #define Z_DIRECTION_PIN         GPIO_NUM_23  // labeled Z
 
-#define SPINDLE_TYPE            SPINDLE_TYPE_H2A
+#define SPINDLE_TYPE            SpindleType::H2A
 #define VFD_RS485_TXD_PIN       GPIO_NUM_13 // RS485 TX
 #define VFD_RS485_RTS_PIN       GPIO_NUM_15 // RS485 RTS
 #define VFD_RS485_RXD_PIN       GPIO_NUM_2  // RS485 RX

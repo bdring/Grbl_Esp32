@@ -34,12 +34,11 @@
 */
 #include "VFDSpindle.h"
 
-#define VFD_RS485_UART_PORT UART_NUM_2    // hard coded for this port right now
-#define ECHO_TEST_CTS UART_PIN_NO_CHANGE  // CTS pin is not used
-#define VFD_RS485_BUF_SIZE 127
-#define VFD_RS485_QUEUE_SIZE 10  // numv\ber of commands that can be queued up.
-#define RESPONSE_WAIT_TICKS 50   // how long to wait for a response
-#define VFD_RS485_POLL_RATE 200  // in milliseconds between commands
+const uart_port_t VFD_RS485_UART_PORT  = UART_NUM_2;  // hard coded for this port right now
+const int         VFD_RS485_BUF_SIZE   = 127;
+const int         VFD_RS485_QUEUE_SIZE = 10;   // numv\ber of commands that can be queued up.
+const int         RESPONSE_WAIT_TICKS  = 50;   // how long to wait for a response
+const int         VFD_RS485_POLL_RATE  = 200;  // in milliseconds between commands
 
 // OK to change these
 // #define them in your machine definition file if you want different values

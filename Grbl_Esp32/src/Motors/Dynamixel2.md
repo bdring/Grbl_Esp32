@@ -20,8 +20,8 @@ You should set the the axis speed and acceleration to what the servo can handle.
 #define Z_DYNAMIXEL_ID          3 // protocol ID
 
 #define SERVO_TIMER_INTERVAL    75   // milliseconds (an override...not required)
-#define DXL_COUNT_MIN 			1024 // (an override...not required)
-#define DXL_COUNT_MAX 			3072 // (an override...not required)
+#define DXL_COUNT_MIN           1024 // (an override...not required)
+#define DXL_COUNT_MAX           3072 // (an override...not required)
 ```
 
 
@@ -52,4 +52,3 @@ The resolution is 4096 units per 360°. This is likely to be a lot coarser than 
 
 
 
- 
