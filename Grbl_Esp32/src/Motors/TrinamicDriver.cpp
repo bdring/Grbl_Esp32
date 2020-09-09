@@ -159,8 +159,9 @@ namespace Motors {
     float hold (as a percentage of run)
 */
     void TrinamicDriver::read_settings() {
-        if (has_errors) {
+        if (has_errors)
             return;
+
         uint16_t run_i_ma = (uint16_t)(axis_settings[_axis_index]->run_current->get() * 1000.0);
         float    hold_i_percent;
 
@@ -170,7 +171,6 @@ namespace Motors {
             hold_i_percent = axis_settings[_axis_index]->hold_current->get() / axis_settings[_axis_index]->run_current->get();
             if (hold_i_percent > 1.0)
                 hold_i_percent = 1.0;
-            }
         }
         //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Current run %d hold %f", _axis_name, run_i_ma, hold_i_percent);
 
