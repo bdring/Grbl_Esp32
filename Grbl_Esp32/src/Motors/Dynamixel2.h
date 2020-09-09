@@ -21,45 +21,40 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define DYNAMIXEL_BUF_SIZE 127
-#define DYNAMIXEL_BAUD_RATE 1000000
+const int DYNAMIXEL_BUF_SIZE  = 127;
+const int DYNAMIXEL_BAUD_RATE = 1000000;
 
-#define DXL_RESPONSE_WAIT_TICKS 20  // how long to wait for a response
+const int DXL_RESPONSE_WAIT_TICKS = 20;  // how long to wait for a response
 
 // protocol 2 byte positions
-#define DXL_MSG_HDR1 0
-#define DXL_MSG_HDR2 1
-#define DXL_MSG_HDR3 2
-#define DXL_MSG_RSRV 3  // reserved byte
-#define DXL_MSG_ID 4
-#define DXL_MSG_LEN_L 5
-#define DXL_MSG_LEN_H 6
-#define DXL_MSG_INSTR 7
-#define DXL_MSG_START 8
+const int DXL_MSG_HDR1  = 0;
+const int DXL_MSG_HDR2  = 1;
+const int DXL_MSG_HDR3  = 2;
+const int DXL_MSG_RSRV  = 3;  // reserved byte
+const int DXL_MSG_ID    = 4;
+const int DXL_MSG_LEN_L = 5;
+const int DXL_MSG_LEN_H = 6;
+const int DXL_MSG_INSTR = 7;
+const int DXL_MSG_START = 8;
 
-#define DXL_BROADCAST_ID 0xFE
+const int DXL_BROADCAST_ID = 0xFE;
 
 // protocol 2 instruction numbers
-#define DXL_INSTR_PING 0x01
-#define PING_RSP_LEN 14
-#define DXL_READ 0x02
-#define DXL_WRITE 0x03
-#define DXL_SYNC_WRITE 0x83
-#define DXL_BULK_WRITE 0x93
+const int DXL_INSTR_PING = 0x01;
+const int PING_RSP_LEN   = 14;
+const int DXL_READ       = 0x02;
+const int DXL_WRITE      = 0x03;
+const int DXL_SYNC_WRITE = 0x83;
 
 // protocol 2 register locations
-#define DXL_OPERATING_MODE 11
-#define DXL_MOVING_THRESHOLD 24
-#define DXL_ADDR_TORQUE_EN 64
-#define DXL_ADDR_LED_ON 65
-#define DXL_GOAL_POSITION 116     // 0x74
-#define DXL_PRESENT_POSITION 132  // 0x84
+const int DXL_OPERATING_MODE   = 11;
+const int DXL_ADDR_TORQUE_EN   = 64;
+const int DXL_ADDR_LED_ON      = 65;
+const int DXL_GOAL_POSITION    = 116;  // 0x74
+const int DXL_PRESENT_POSITION = 132;  // 0x84
 
 // control modes
-#define DXL_CONTROL_MODE_VELOCITY 1
-#define DXL_CONTROL_MODE_POSITION 3
-#define DXL_CONTROL_MODE_EXT_POSITION 4
-#define DXL_CONTROL_MODE_PWM 16
+const int DXL_CONTROL_MODE_POSITION = 3;
 
 #ifndef DXL_COUNT_MIN
 #    define DXL_COUNT_MIN 1024

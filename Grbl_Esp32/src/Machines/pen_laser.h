@@ -59,7 +59,7 @@
     #define Z_SERVO_CAL_MAX               1.0       // calibration factor for the maximum PWM duty
 #endif
 
-#define SPINDLE_TYPE SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE SpindleType::NONE
 
 // defaults
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3

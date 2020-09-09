@@ -32,7 +32,7 @@
 #endif
 #define N_AXIS 6
 
-#define SPINDLE_TYPE SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE    SpindleType::NONE
 
 // stepper motors
 #define X_STEP_PIN      GPIO_NUM_12
