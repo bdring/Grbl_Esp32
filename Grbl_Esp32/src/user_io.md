@@ -1,6 +1,6 @@
 ## User I/O Commands
 
-Users will always have special requirements that need I/O control. These could be for cooling fans, clamping, valves, etc. These could be digital (on/off) or analog (PWM). Many of these can be done via gcode rather than special coding.
+This is for generic I/O control. These could be for cooling fans, clamping, valves, etc. These could be digital (on/off) or analog (PWM). This allows you to do gcode rather than special coding.
 
 ### Types
 
@@ -20,6 +20,12 @@ M64 Immediate Digital Output On
 M65 Immediate Digital Output Off
 
 Use P word to indicate digital output number (0-3)
+
+Examples:
+
+M62 P0
+
+M63 P0
 
 #### M67 - M68 Digital Output Control 
 
@@ -43,9 +49,7 @@ Each pin will be given a number starting at 0. The numbers for the digital and a
 
 ### Synchronized
 
-Initially all commands will be synchronized. In Grbl_ESP32 means all buffered motion must complete before the command is executed. See `protocol_buffer_synchronize()`
-
-
+Synchronized means all steps in the buffers must complete before the I/O is changed. Immediate does not wait. With streaming gcode, you should use the synchronized commands. There is no timing guarantee with immediate versions of the commands.
 
 ## Special Behaviors
 
@@ -64,4 +68,25 @@ M62 - M65
 #define USER_DIGITAL_PIN_1   GPIO_NUM_xx
 #define USER_DIGITAL_PIN_2   GPIO_NUM_xx
 #define USER_DIGITAL_PIN_3   GPIO_NUM_xx
+
+#define USER_ANALOG_PIN_0      GPIO_NUM_xx
+#define USER_ANALOG_PIN_1      GPIO_NUM_xx
+#define USER_ANALOG_PIN_2      GPIO_NUM_xx
+#define USER_ANALOG_PIN_3      GPIO_NUM_xx
+
+#define USER_ANALOG_PIN_1_FREQ      50  // Hz
 ```
+
+### Frequency
+
+Defining a frequency is optional. If you do not define one for a pin the default of 5000 will be used. If you are using the PWM to control an RC Servo, you should set it to something around 50. 
+
+### Resolution
+
+The resolution is dependent on the frequency used. The PWM is based on a 80MHz timer. If you have a 10KHz frequency, you have 80,000,000 / 10,000 you have a maximum of an 8,000 count resolution. The resolution is based on bits so you need to round down to the nearest bit value which would be 14 bit or 4096. The highest bit value allowed is 13 bits.
+
+This is all done behind the scenes, you only have to provide the frequency and duty.
+
+### Duty
+
+The duty is a percentage of the period. It you are looking for a specific pulse width, you need to determine the period, which is 1/freq. If your frequency is 100Hz  your period is 10ms. If you want a 1ms pulse, you would set the duty to 0.10%.

@@ -1321,24 +1321,21 @@ Error gc_execute_line(char* line, uint8_t client) {
     if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync) ||
         (gc_block.modal.io_control == IoControl::DigitalOnImmediate) || (gc_block.modal.io_control == IoControl::DigitalOffImmediate)) {
         if (gc_block.values.p < MaxUserDigitalPin) {
-            sys_io_control(
+            if (!sys_io_control(
                 bit((int)gc_block.values.p),
                 (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOnImmediate),
-                (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync));
+                (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync))) {
+                FAIL(Error::PParamMaxExceeded);
+                }
         } else {
             FAIL(Error::PParamMaxExceeded);
         }
     }
     if ((gc_block.modal.io_control == IoControl::SetAnalogSync) || (gc_block.modal.io_control == IoControl::SetAnalogImmediate)) {
-        grbl_msg_sendf(CLIENT_SERIAL,
-                       MsgLevel::Info,
-                       "Set analog pin:%d value%2.2f%",
-                       gc_block.values.e,
-                       gc_block.values.q);
-
         if (gc_block.values.e < MaxUserDigitalPin) {
             gc_block.values.q = constrain(gc_block.values.q, 0.0, 100.0); // force into valid range
-            sys_pwm_control(bit((int)gc_block.values.e), gc_block.values.q, (gc_block.modal.io_control == IoControl::SetAnalogSync));
+            if (!sys_pwm_control(bit((int)gc_block.values.e), gc_block.values.q, (gc_block.modal.io_control == IoControl::SetAnalogSync)))
+                FAIL(Error::PParamMaxExceeded);
         } else {
             FAIL(Error::PParamMaxExceeded);
         }

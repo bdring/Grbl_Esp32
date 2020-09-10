@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-    AnalogOutput.h
+    UserOutput.h
 
     Part of Grbl_ESP32
 
@@ -22,21 +22,36 @@
 #include "Grbl.h"
 
 namespace UserOutput {
+    class DigitalOutput {
+    public:
+        DigitalOutput();
+        DigitalOutput(uint8_t number, uint8_t pin);
+
+        bool set_level(bool isOn);
+
+    protected:
+        void init();
+        void config_message();
+
+        uint8_t _number = UNDEFINED_PIN;
+        uint8_t _pin    = UNDEFINED_PIN;
+    };
+
     class AnalogOutput {
     public:
         AnalogOutput();
         AnalogOutput(uint8_t number, uint8_t pin, float pwm_frequency);
-        void disable();
-        void set_level(float percent);
+        bool set_level(float percent);
 
     protected:
         void init();
+        void config_message();
 
-        uint8_t _number;
-        uint8_t _pin;
-        uint8_t _pwm_channel = -1;   // -1 means invalid or not setup
+        uint8_t _number      = UNDEFINED_PIN;
+        uint8_t _pin         = UNDEFINED_PIN;
+        uint8_t _pwm_channel = -1;  // -1 means invalid or not setup
         float   _pwm_frequency;
         uint8_t _resolution_bits;
         float   _current_value;
-        };
+    };
 }

@@ -35,6 +35,7 @@ volatile uint8_t sys_rt_exec_debug;
 #endif
 
 UserOutput::AnalogOutput* myAnalogOutputs[MaxUserDigitalPin];
+UserOutput::DigitalOutput* myDigitalOutputs[MaxUserDigitalPin];
 
 xQueueHandle control_sw_queue;    // used by control switch debouncing
 bool         debouncing = false;  // debouncing in process
@@ -93,24 +94,31 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
 #if (GRBL_SPI_SS != -1) || (GRBL_SPI_MISO != -1) || (GRBL_SPI_MOSI != -1) || (GRBL_SPI_SCK != -1)
     SPI.begin(GRBL_SPI_SCK, GRBL_SPI_MISO, GRBL_SPI_MOSI, GRBL_SPI_SS);
 #endif
+
+
     // Setup USER_DIGITAL_PINs controlled by M62, M63, M64, & M65
 #ifdef USER_DIGITAL_PIN_0
-    pinMode(USER_DIGITAL_PIN_0, OUTPUT);
-    sys_io_control(bit(1), false, false);  // turn off
+    myDigitalOutputs[0] = new UserOutput::DigitalOutput(0, USER_DIGITAL_PIN_0);
+#else
+    myDigitalOutputs[0] = new UserOutput::DigitalOutput();
 #endif
 #ifdef USER_DIGITAL_PIN_1
-    pinMode(USER_DIGITAL_PIN_1, OUTPUT);
-    sys_io_control(bit(2), false, false);  // turn off
+    myDigitalOutputs[1] = new UserOutput::DigitalOutput(1, USER_DIGITAL_PIN_1);
+#else
+    myDigitalOutputs[1] = new UserOutput::DigitalOutput();
 #endif
 #ifdef USER_DIGITAL_PIN_2
-    pinMode(USER_DIGITAL_PIN_2, OUTPUT);
-    sys_io_control(bit(3), false, false);  // turn off
+    myDigitalOutputs[2] = new UserOutput::DigitalOutput(2, USER_DIGITAL_PIN_2);
+#else
+    myDigitalOutputs[2] = new UserOutput::DigitalOutput();
 #endif
 #ifdef USER_DIGITAL_PIN_3
-    pinMode(USER_DIGITAL_PIN_3, OUTPUT);
-    sys_io_control(bit(4), false, false);  // turn off
+    myDigitalOutputs[3] = new UserOutput::DigitalOutput(3, USER_DIGITAL_PIN_3);
+#else
+    myDigitalOutputs[3] = new UserOutput::DigitalOutput();
 #endif
 
+// Setup M67 Pins
 #ifdef USER_ANALOG_PIN_0
     myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, USER_ANALOG_PIN_0, USER_ANALOG_PIN_0_FREQ);
 #else
@@ -133,8 +141,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, USER_ANALOG_PIN_3, USER_ANALOG_PIN_3_FREQ);
 #else
     myAnalogOutputs[3] = new UserOutput::AnalogOutput();
-#endif
-    fast_sys_pwm_control(0xFF, 0);
+#endif    
 }
 
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
@@ -398,56 +405,38 @@ int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps) {
 
 // io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
 // It uses a mask so all can be turned of in ms_reset
-void sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized) {
+bool sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized) {
+    bool cmd_ok = true;
     if (synchronized)
         protocol_buffer_synchronize();
 
-    fast_sys_io_control(io_num_mask, turnOn);
+    for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {
+        if (io_num_mask & bit(io_num)) {
+            if (!myDigitalOutputs[io_num]->set_level(turnOn))
+                cmd_ok = false;
+        }
+    }
+    return cmd_ok;
 }
 
 // io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
 // It uses a mask so all can be turned of in ms_reset
-void sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized) {
+bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized) {
+    bool cmd_ok = true;
     if (synchronized)
         protocol_buffer_synchronize();
 
-    fast_sys_pwm_control(io_num_mask, duty);
-}
-
-// This version works immediately, without waiting, to prevent deadlocks.
-// It is used when resetting via mc_reset()
-void fast_sys_io_control(uint8_t io_num_mask, bool turnOn) {
-#ifdef USER_DIGITAL_PIN_0
-    if (io_num_mask & bit(0)) {
-        digitalWrite(USER_DIGITAL_PIN_0, turnOn);        
-    }
-#endif
-#ifdef USER_DIGITAL_PIN_1    
-    if (io_num_mask & bit(1)) {
-        digitalWrite(USER_DIGITAL_PIN_1, turnOn);        
-    }
-#endif
-#ifdef USER_DIGITAL_PIN_2
-    if (io_num_mask & bit(2)) {
-        digitalWrite(USER_DIGITAL_PIN_2, turnOn);
-    }
-#endif
-#ifdef USER_DIGITAL_PIN_3
-    if (io_num_mask & bit(3)) {
-        digitalWrite(USER_DIGITAL_PIN_3, turnOn);
-    }
-#endif
-}
-
-// This version works immediately, without waiting, to prevent deadlocks.
-// It is used when resetting via mc_reset()
-void fast_sys_pwm_control(uint8_t io_num_mask, float duty) {
     for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {
         if (io_num_mask & bit(io_num)) {
-            myAnalogOutputs[io_num]->set_level(duty);
+            if (!myAnalogOutputs[io_num]->set_level(duty))
+                cmd_ok = false;
         }
     }
+    return cmd_ok;
 }
+
+
+
 
 // Call this function to get an RMT channel number
 // returns -1 for error

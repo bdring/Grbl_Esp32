@@ -1,10 +1,10 @@
 /*
-    AnalogOutput.cpp
+    UserOutput.cpp
 
     Part of Grbl_ESP32
 
     2020 -	Bart Dring
-    
+
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -20,6 +20,37 @@
 #include "Grbl.h"
 
 namespace UserOutput {
+    DigitalOutput::DigitalOutput() {}
+
+    DigitalOutput::DigitalOutput(uint8_t number, uint8_t pin) {
+        _number = number;
+        _pin    = pin;
+
+        init();
+    }
+
+    void DigitalOutput::init() {
+        pinMode(_pin, OUTPUT);
+        digitalWrite(_pin, LOW);
+
+        config_message();
+    }
+
+    void DigitalOutput::config_message() {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "User Digital Output:%d on Pin:%s", _number, pinName(_pin).c_str());
+    }
+
+    bool DigitalOutput::set_level(bool isOn) {
+        if (_number == UNDEFINED_PIN && isOn) {
+            return false;
+        }
+
+        digitalWrite(_pin, isOn);
+        return true;
+    }
+
+    // ==================================================================
+
     AnalogOutput::AnalogOutput() {}
 
     AnalogOutput::AnalogOutput(uint8_t number, uint8_t pin, float pwm_frequency) {
@@ -40,29 +71,39 @@ namespace UserOutput {
         } else {
             ledcSetup(_pwm_channel, _pwm_frequency, _resolution_bits);
             ledcAttachPin(_pin, _pwm_channel);
+            ledcWrite(_pwm_channel, 0);
+
+            config_message();
         }
     }
 
-    void AnalogOutput::disable() {
-        if (_pwm_channel == -1)
-            return;
-
-        ledcWrite(_pwm_channel, 0);
+    void AnalogOutput::config_message() {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "User Analog Output:%d on Pin:%s", _number, pinName(_pin).c_str());
     }
 
-    void AnalogOutput::set_level(float percent) {
+    // returns true if able to set value
+    bool AnalogOutput::set_level(float percent) {
         float duty;
 
-        if (_pwm_channel == -1)
-            return;
+        // look for errors, but ignore if turning off to prevent mask turn off from generating errors
+        if (_number == UNDEFINED_PIN && percent != 0.0) {
+            return false;
+        }
+
+        if (_pwm_channel == -1) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "M67 PWM channel error");
+            return false;
+        }
 
         if (_current_value == percent)
-            return;
+            return true;
 
         _current_value = percent;
 
         duty = (percent / 100.0) * (1 << _resolution_bits);
 
         ledcWrite(_pwm_channel, duty);
+
+        return true;
     }
 }

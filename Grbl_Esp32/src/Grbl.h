@@ -66,7 +66,7 @@ const char* const GRBL_VERSION_BUILD = "20200908";
 #include "SettingsDefinitions.h"
 #include "WebUI/WebSettings.h"
 
-#include "AnalogOutput.h"
+#include "UserOutput.h"
 
 // Do not guard this because it is needed for local files too
 #include "SDCard.h"

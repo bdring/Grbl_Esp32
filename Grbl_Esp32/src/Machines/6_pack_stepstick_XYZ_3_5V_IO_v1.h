@@ -125,8 +125,8 @@
 #define USER_ANALOG_PIN_0      GPIO_NUM_15
 #define USER_ANALOG_PIN_1      GPIO_NUM_12
 
-#define USER_ANALOG_PIN_0_FREQ      50
-#define USER_ANALOG_PIN_1_FREQ      50
+#define USER_ANALOG_PIN_0_FREQ      5000
+#define USER_ANALOG_PIN_1_FREQ      5000
  
 #define X_LIMIT_PIN                 GPIO_NUM_33
 #define Y_LIMIT_PIN                 GPIO_NUM_32
@@ -135,4 +135,6 @@
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800
 #define DEFAULT_Z_STEPS_PER_MM      800
+
+#define REPORT_SEMICOLON_COMMENTS
 
