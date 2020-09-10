@@ -476,8 +476,20 @@ Error gc_execute_line(char* line, uint8_t client) {
                         gc_block.modal.io_control = IoControl::DigitalOffSync;
                         mg_word_bit               = ModalGroup::MM10;
                         break;
+                    case 64:
+                        gc_block.modal.io_control = IoControl::DigitalOnImmediate;
+                        mg_word_bit               = ModalGroup::MM10;
+                        break;
+                    case 65:
+                        gc_block.modal.io_control = IoControl::DigitalOffImmediate;
+                        mg_word_bit               = ModalGroup::MM10;
+                        break;
                     case 67:
                         gc_block.modal.io_control = IoControl::SetAnalogSync;
+                        mg_word_bit               = ModalGroup::MM10;
+                        break;
+                    case 68:
+                        gc_block.modal.io_control = IoControl::SetAnalogImmediate;
                         mg_word_bit               = ModalGroup::MM10;
                         break;
                     default: FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported M command]
@@ -730,13 +742,14 @@ Error gc_execute_line(char* line, uint8_t client) {
         }
         bit_false(value_words, bit(GCodeWord::P));
     }
-    if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync)) {
+    if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync) ||
+        (gc_block.modal.io_control == IoControl::DigitalOnImmediate) || (gc_block.modal.io_control == IoControl::DigitalOffImmediate)) {
         if (bit_isfalse(value_words, bit(GCodeWord::P))) {
             FAIL(Error::GcodeValueWordMissing);  // [P word missing]
         }
         bit_false(value_words, bit(GCodeWord::P));
     }
-    if (gc_block.modal.io_control == IoControl::SetAnalogSync) {
+    if ((gc_block.modal.io_control == IoControl::SetAnalogSync) || (gc_block.modal.io_control == IoControl::SetAnalogImmediate)) {
         if (bit_isfalse(value_words, bit(GCodeWord::E)) || bit_isfalse(value_words, bit(GCodeWord::Q))) {
             FAIL(Error::GcodeValueWordMissing);
         }
@@ -1305,15 +1318,24 @@ Error gc_execute_line(char* line, uint8_t client) {
     }
     pl_data->coolant = gc_state.modal.coolant;  // Set state for planner use.
     // turn on/off an i/o pin
-    if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync)) {
+    if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync) ||
+        (gc_block.modal.io_control == IoControl::DigitalOnImmediate) || (gc_block.modal.io_control == IoControl::DigitalOffImmediate)) {
         if (gc_block.values.p <= MaxUserDigitalPin) {
-            sys_io_control(bit((int)gc_block.values.p), (gc_block.modal.io_control == IoControl::DigitalOnSync));
+            sys_io_control(
+                bit((int)gc_block.values.p),
+                (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOnImmediate),
+                (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync));
         } else {
             FAIL(Error::PParamMaxExceeded);
         }
     }
-    if (gc_block.modal.io_control == IoControl::SetAnalogSync) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Set analog pin:%d value%2.2f%", gc_block.values.e, gc_block.values.q);
+    if ((gc_block.modal.io_control == IoControl::SetAnalogSync) || (gc_block.modal.io_control == IoControl::SetAnalogImmediate)) {
+        grbl_msg_sendf(CLIENT_SERIAL,
+                       MsgLevel::Info,
+                       "Set analog pin:%d value%2.2f%",
+                       gc_block.values.e,
+                       gc_block.values.q);
+
         if (gc_block.values.e <= MaxUserDigitalPin) {
         } else {
             FAIL(Error::PParamMaxExceeded);

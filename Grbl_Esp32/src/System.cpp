@@ -94,19 +94,19 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     // Setup USER_DIGITAL_PINs controlled by M62 and M63
 #ifdef USER_DIGITAL_PIN_1
     pinMode(USER_DIGITAL_PIN_1, OUTPUT);
-    sys_io_control(bit(1), false);  // turn off
+    sys_io_control(bit(1), false, false);  // turn off
 #endif
 #ifdef USER_DIGITAL_PIN_2
     pinMode(USER_DIGITAL_PIN_2, OUTPUT);
-    sys_io_control(bit(2), false);  // turn off
+    sys_io_control(bit(2), false, false);  // turn off
 #endif
 #ifdef USER_DIGITAL_PIN_3
     pinMode(USER_DIGITAL_PIN_3, OUTPUT);
-    sys_io_control(bit(3), false);  // turn off
+    sys_io_control(bit(3), false, false);  // turn off
 #endif
 #ifdef USER_DIGITAL_PIN_4
     pinMode(USER_DIGITAL_PIN_4, OUTPUT);
-    sys_io_control(bit(4), false);  // turn off
+    sys_io_control(bit(4), false, false);  // turn off
 #endif
 }
 
@@ -371,9 +371,10 @@ int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps) {
 
 // io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
 // It uses a mask so all can be turned of in ms_reset
-// This version waits until realtime commands have been executed
-void sys_io_control(uint8_t io_num_mask, bool turnOn) {
-    protocol_buffer_synchronize();
+void sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized) {
+    if (synchronized)
+        protocol_buffer_synchronize();
+
     fast_sys_io_control(io_num_mask, turnOn);
 }
 
