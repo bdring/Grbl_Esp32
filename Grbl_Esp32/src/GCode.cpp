@@ -138,7 +138,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     uint8_t ijk_words  = 0;  // IJK tracking
     // Initialize command and value words and parser flags variables.
     uint16_t command_words   = 0;  // Tracks G and M command words. Also used for modal group violations.
-    uint16_t value_words     = 0;  // Tracks value words.
+    uint32_t value_words     = 0;  // Tracks value words.
     uint8_t  gc_parser_flags = GCParserNone;
     // Determine if the line is a jogging motion or a normal g-code block.
     if (line[0] == '$') {  // NOTE: `$J=` already parsed when passed to this function.
@@ -469,11 +469,15 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
 #endif
                     case 62:
-                        gc_block.modal.io_control = IoControl::Enable;
+                        gc_block.modal.io_control = IoControl::DigitalOnSync;
                         mg_word_bit               = ModalGroup::MM10;
                         break;
                     case 63:
-                        gc_block.modal.io_control = IoControl::Disable;
+                        gc_block.modal.io_control = IoControl::DigitalOffSync;
+                        mg_word_bit               = ModalGroup::MM10;
+                        break;
+                    case 67:
+                        gc_block.modal.io_control = IoControl::SetAnalogSync;
                         mg_word_bit               = ModalGroup::MM10;
                         break;
                     default: FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported M command]
@@ -515,6 +519,11 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
 #endif
                     // case 'D': // Not supported
+                    case 'E':
+                        axis_word_bit     = GCodeWord::E;
+                        gc_block.values.e = int_value;
+                        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "E %d", gc_block.values.e);
+                        break;
                     case 'F':
                         axis_word_bit     = GCodeWord::F;
                         gc_block.values.f = value;
@@ -547,8 +556,11 @@ Error gc_execute_line(char* line, uint8_t client) {
                         axis_word_bit     = GCodeWord::P;
                         gc_block.values.p = value;
                         break;
-                    // NOTE: For certain commands, P value must be an integer, but none of these commands are supported.
-                    // case 'Q': // Not supported
+                    case 'Q':
+                        axis_word_bit     = GCodeWord::Q;
+                        gc_block.values.q = value;
+                        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Q %2.2f", value);
+                        break;
                     case 'R':
                         axis_word_bit     = GCodeWord::R;
                         gc_block.values.r = value;
@@ -583,7 +595,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                     default: FAIL(Error::GcodeUnsupportedCommand);
                 }
                 // NOTE: Variable 'axis_word_bit' is always assigned, if the non-command letter is valid.
-                bitmask = bit(axis_word_bit);
+                uint32_t bitmask = bit(axis_word_bit);
                 if (bit_istrue(value_words, bitmask)) {
                     FAIL(Error::GcodeWordRepeated);  // [Word repeated]
                 }
@@ -718,11 +730,18 @@ Error gc_execute_line(char* line, uint8_t client) {
         }
         bit_false(value_words, bit(GCodeWord::P));
     }
-    if ((gc_block.modal.io_control == IoControl::Enable) || (gc_block.modal.io_control == IoControl::Disable)) {
+    if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync)) {
         if (bit_isfalse(value_words, bit(GCodeWord::P))) {
             FAIL(Error::GcodeValueWordMissing);  // [P word missing]
         }
         bit_false(value_words, bit(GCodeWord::P));
+    }
+    if (gc_block.modal.io_control == IoControl::SetAnalogSync) {
+        if (bit_isfalse(value_words, bit(GCodeWord::E)) || bit_isfalse(value_words, bit(GCodeWord::Q))) {
+            FAIL(Error::GcodeValueWordMissing);
+        }
+        bit_false(value_words, bit(GCodeWord::E));
+        bit_false(value_words, bit(GCodeWord::Q));
     }
     // [11. Set active plane ]: N/A
     switch (gc_block.modal.plane_select) {
@@ -1286,13 +1305,21 @@ Error gc_execute_line(char* line, uint8_t client) {
     }
     pl_data->coolant = gc_state.modal.coolant;  // Set state for planner use.
     // turn on/off an i/o pin
-    if ((gc_block.modal.io_control == IoControl::Enable) || (gc_block.modal.io_control == IoControl::Disable)) {
+    if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync)) {
         if (gc_block.values.p <= MaxUserDigitalPin) {
-            sys_io_control(bit((int)gc_block.values.p), (gc_block.modal.io_control == IoControl::Enable));
+            sys_io_control(bit((int)gc_block.values.p), (gc_block.modal.io_control == IoControl::DigitalOnSync));
         } else {
             FAIL(Error::PParamMaxExceeded);
         }
     }
+    if (gc_block.modal.io_control == IoControl::SetAnalogSync) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Set analog pin:%d value%2.2f%", gc_block.values.e, gc_block.values.q);
+        if (gc_block.values.e <= MaxUserDigitalPin) {
+        } else {
+            FAIL(Error::PParamMaxExceeded);
+        }
+    }
+
     // [9. Override control ]: NOT SUPPORTED. Always enabled. Except for a Grbl-only parking control.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
     if (gc_state.modal.override != gc_block.modal.override) {
