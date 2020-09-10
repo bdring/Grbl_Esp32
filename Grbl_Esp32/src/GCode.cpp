@@ -1320,7 +1320,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     // turn on/off an i/o pin
     if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync) ||
         (gc_block.modal.io_control == IoControl::DigitalOnImmediate) || (gc_block.modal.io_control == IoControl::DigitalOffImmediate)) {
-        if (gc_block.values.p <= MaxUserDigitalPin) {
+        if (gc_block.values.p < MaxUserDigitalPin) {
             sys_io_control(
                 bit((int)gc_block.values.p),
                 (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOnImmediate),
@@ -1336,7 +1336,9 @@ Error gc_execute_line(char* line, uint8_t client) {
                        gc_block.values.e,
                        gc_block.values.q);
 
-        if (gc_block.values.e <= MaxUserDigitalPin) {
+        if (gc_block.values.e < MaxUserDigitalPin) {
+            gc_block.values.q = constrain(gc_block.values.q, 0.0, 100.0); // force into valid range
+            sys_pwm_control(bit((int)gc_block.values.e), gc_block.values.q, (gc_block.modal.io_control == IoControl::SetAnalogSync));
         } else {
             FAIL(Error::PParamMaxExceeded);
         }

@@ -224,9 +224,12 @@ void controlCheckTask(void* pvParameters);
 void system_exec_control_pin(uint8_t pin);
 
 void sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized);
+void sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized);
 void fast_sys_io_control(uint8_t io_num_mask, bool turnOn);
+void fast_sys_pwm_control(uint8_t io_num_mask, float duty);
 
 //
 int8_t sys_get_next_RMT_chan_num();
-int8_t sys_get_next_PWM_chan_num();
 
+int8_t sys_get_next_PWM_chan_num();
+uint8_t sys_calc_pwm_precision(uint32_t freq);

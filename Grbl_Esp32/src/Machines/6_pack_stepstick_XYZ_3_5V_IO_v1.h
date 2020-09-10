@@ -120,10 +120,13 @@
 // #4 GPIO_NUM_27  (output only)
 
 // 5V Output Module in Socket #4
-#define USER_DIGITAL_PIN_1      GPIO_NUM_14
-#define USER_DIGITAL_PIN_2      GPIO_NUM_13
-#define USER_DIGITAL_PIN_3      GPIO_NUM_15
-#define USER_DIGITAL_PIN_4      GPIO_NUM_12
+#define USER_DIGITAL_PIN_0      GPIO_NUM_14
+#define USER_DIGITAL_PIN_1      GPIO_NUM_13
+#define USER_ANALOG_PIN_0      GPIO_NUM_15
+#define USER_ANALOG_PIN_1      GPIO_NUM_12
+
+#define USER_ANALOG_PIN_0_FREQ      50
+#define USER_ANALOG_PIN_1_FREQ      50
  
 #define X_LIMIT_PIN                 GPIO_NUM_33
 #define Y_LIMIT_PIN                 GPIO_NUM_32
