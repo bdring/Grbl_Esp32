@@ -137,7 +137,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     uint8_t axis_words = 0;  // XYZ tracking
     uint8_t ijk_words  = 0;  // IJK tracking
     // Initialize command and value words and parser flags variables.
-    uint16_t command_words   = 0;  // Tracks G and M command words. Also used for modal group violations.
+    uint32_t command_words   = 0;  // Tracks G and M command words. Also used for modal group violations.
     uint32_t value_words     = 0;  // Tracks value words.
     uint8_t  gc_parser_flags = GCParserNone;
     // Determine if the line is a jogging motion or a normal g-code block.
@@ -156,7 +156,7 @@ Error gc_execute_line(char* line, uint8_t client) {
        perform initial error-checks for command word modal group violations, for any repeated
        words, and for negative values set for the value words F, N, P, T, and S. */
     ModalGroup mg_word_bit;  // Bit-value for assigning tracking variables
-    uint8_t    bitmask = 0;
+    uint32_t   bitmask = 0;
     uint8_t    char_counter;
     char       letter;
     float      value;
@@ -207,8 +207,12 @@ Error gc_execute_line(char* line, uint8_t client) {
                         mg_word_bit = ModalGroup::MG0;
                         break;
 
-                    case 28: gc_block.non_modal_command = mantissa ? NonModal::SetHome0 : NonModal::GoHome0; goto check_mantissa;
-                    case 30: gc_block.non_modal_command = mantissa ? NonModal::SetHome1 : NonModal::GoHome1; goto check_mantissa;
+                    case 28:
+                        gc_block.non_modal_command = mantissa ? NonModal::SetHome0 : NonModal::GoHome0;
+                        goto check_mantissa;
+                    case 30:
+                        gc_block.non_modal_command = mantissa ? NonModal::SetHome1 : NonModal::GoHome1;
+                        goto check_mantissa;
                     case 92:
                         gc_block.non_modal_command = mantissa ? NonModal::ResetCoordinateOffset : NonModal::SetCoordinateOffset;
                     check_mantissa:
@@ -263,7 +267,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 38:  // G38 - probe
 #ifndef PROBE_PIN             //only allow G38 "Probe" commands if a probe pin is defined.
-                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No probe pin defined");
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
                         FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
 #endif
                         // Check for G0/1/2/3/38 being called with G10/28/30/92 on same block.
@@ -273,11 +277,21 @@ Error gc_execute_line(char* line, uint8_t client) {
                         }
                         axis_command = AxisCommand::MotionMode;
                         switch (mantissa) {
-                            case 20: gc_block.modal.motion = Motion::ProbeToward; break;
-                            case 30: gc_block.modal.motion = Motion::ProbeTowardNoError; break;
-                            case 40: gc_block.modal.motion = Motion::ProbeAway; break;
-                            case 50: gc_block.modal.motion = Motion::ProbeAway; break;
-                            default: FAIL(Error::GcodeUnsupportedCommand); break;  // [Unsupported G38.x command]
+                            case 20:
+                                gc_block.modal.motion = Motion::ProbeToward;
+                                break;
+                            case 30:
+                                gc_block.modal.motion = Motion::ProbeTowardNoError;
+                                break;
+                            case 40:
+                                gc_block.modal.motion = Motion::ProbeAway;
+                                break;
+                            case 50:
+                                gc_block.modal.motion = Motion::ProbeAway;
+                                break;
+                            default:
+                                FAIL(Error::GcodeUnsupportedCommand);
+                                break;  // [Unsupported G38.x command]
                         }
                         mantissa    = 0;  // Set to zero to indicate valid non-integer G command.
                         mg_word_bit = ModalGroup::MG1;
@@ -310,7 +324,9 @@ Error gc_execute_line(char* line, uint8_t client) {
                                 // mg_word_bit = ModalGroup::MG4;
                                 // gc_block.modal.distance_arc = ArcDistance::Absolute;
                                 break;
-                            default: FAIL(Error::GcodeUnsupportedCommand); break;
+                            default:
+                                FAIL(Error::GcodeUnsupportedCommand);
+                                break;
                         }
                         break;
                     case 91:
@@ -325,7 +341,9 @@ Error gc_execute_line(char* line, uint8_t client) {
                                 // gc_block.modal.distance_arc = ArcDistance::Incremental;
                                 mg_word_bit = ModalGroup::MG4;
                                 break;
-                            default: FAIL(Error::GcodeUnsupportedCommand); break;
+                            default:
+                                FAIL(Error::GcodeUnsupportedCommand);
+                                break;
                         }
                         break;
                     case 93:
@@ -387,7 +405,8 @@ Error gc_execute_line(char* line, uint8_t client) {
                         // gc_block.modal.control = ControlMode::ExactPath; // G61
                         mg_word_bit = ModalGroup::MG13;
                         break;
-                    default: FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
+                    default:
+                        FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
                 }
                 if (mantissa > 0) {
                     FAIL(Error::GcodeCommandValueNotInteger);  // [Unsupported or invalid Gxx.x command]
@@ -429,7 +448,9 @@ Error gc_execute_line(char* line, uint8_t client) {
                     case 4:
                     case 5:
                         switch (int_value) {
-                            case 3: gc_block.modal.spindle = SpindleState::Cw; break;
+                            case 3:
+                                gc_block.modal.spindle = SpindleState::Cw;
+                                break;
                             case 4:  // Supported if SPINDLE_DIR_PIN is defined or laser mode is on.
                                 if (spindle->is_reversable || laser_mode->get()) {
                                     gc_block.modal.spindle = SpindleState::Ccw;
@@ -437,7 +458,9 @@ Error gc_execute_line(char* line, uint8_t client) {
                                     FAIL(Error::GcodeUnsupportedCommand);
                                 }
                                 break;
-                            case 5: gc_block.modal.spindle = SpindleState::Disable; break;
+                            case 5:
+                                gc_block.modal.spindle = SpindleState::Disable;
+                                break;
                         }
                         mg_word_bit = ModalGroup::MM7;
                         break;
@@ -453,12 +476,18 @@ Error gc_execute_line(char* line, uint8_t client) {
                     case 9:
                         switch (int_value) {
 #ifdef COOLANT_MIST_PIN
-                            case 7: gc_block.coolant = GCodeCoolant::M7; break;
+                            case 7:
+                                gc_block.coolant = GCodeCoolant::M7;
+                                break;
 #endif
 #ifdef COOLANT_FLOOD_PIN
-                            case 8: gc_block.coolant = GCodeCoolant::M8; break;
+                            case 8:
+                                gc_block.coolant = GCodeCoolant::M8;
+                                break;
 #endif
-                            case 9: gc_block.coolant = GCodeCoolant::M9; break;
+                            case 9:
+                                gc_block.coolant = GCodeCoolant::M9;
+                                break;
                         }
                         mg_word_bit = ModalGroup::MM8;
                         break;
@@ -469,18 +498,31 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
 #endif
                     case 62:
-                        gc_block.modal.io_control = IoControl::Enable;
+                        gc_block.modal.io_control = IoControl::DigitalOnSync;
                         mg_word_bit               = ModalGroup::MM10;
                         break;
                     case 63:
-                        gc_block.modal.io_control = IoControl::Disable;
+                        gc_block.modal.io_control = IoControl::DigitalOffSync;
+                        mg_word_bit               = ModalGroup::MM10;
+                        break;
+                    case 64:
+                        gc_block.modal.io_control = IoControl::DigitalOnImmediate;
+                        mg_word_bit               = ModalGroup::MM10;
+                        break;
+                    case 65:
+                        gc_block.modal.io_control = IoControl::DigitalOffImmediate;
                         mg_word_bit               = ModalGroup::MM10;
                         break;
                     case 67:
-                        gc_block.modal.io_control = IoControl::SetAnalog;
+                        gc_block.modal.io_control = IoControl::SetAnalogSync;
                         mg_word_bit               = ModalGroup::MM10;
                         break;
-                    default: FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported M command]
+                    case 68:
+                        gc_block.modal.io_control = IoControl::SetAnalogImmediate;
+                        mg_word_bit               = ModalGroup::MM10;
+                        break;
+                    default:
+                        FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported M command]
                 }
                 // Check for more than one command per modal group violations in the current block
                 // NOTE: Variable 'mg_word_bit' is always assigned, if the command is valid.
@@ -574,7 +616,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         if (value > MaxToolNumber) {
                             FAIL(Error::GcodeMaxValueExceeded);
                         }
-                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Tool No: %d", int_value);
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Tool No: %d", int_value);
                         gc_state.tool = int_value;
                         break;
                     case 'X':
@@ -592,7 +634,8 @@ Error gc_execute_line(char* line, uint8_t client) {
                         gc_block.values.xyz[Z_AXIS] = value;
                         axis_words |= bit(Z_AXIS);
                         break;
-                    default: FAIL(Error::GcodeUnsupportedCommand);
+                    default:
+                        FAIL(Error::GcodeUnsupportedCommand);
                 }
                 // NOTE: Variable 'axis_word_bit' is always assigned, if the non-command letter is valid.
                 uint32_t bitmask = bit(axis_word_bit);
@@ -730,13 +773,14 @@ Error gc_execute_line(char* line, uint8_t client) {
         }
         bit_false(value_words, bit(GCodeWord::P));
     }
-    if ((gc_block.modal.io_control == IoControl::Enable) || (gc_block.modal.io_control == IoControl::Disable)) {
+    if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync) ||
+        (gc_block.modal.io_control == IoControl::DigitalOnImmediate) || (gc_block.modal.io_control == IoControl::DigitalOffImmediate)) {
         if (bit_isfalse(value_words, bit(GCodeWord::P))) {
             FAIL(Error::GcodeValueWordMissing);  // [P word missing]
         }
         bit_false(value_words, bit(GCodeWord::P));
     }
-    if (gc_block.modal.io_control == IoControl::SetAnalog) {
+    if ((gc_block.modal.io_control == IoControl::SetAnalogSync) || (gc_block.modal.io_control == IoControl::SetAnalogImmediate)) {
         if (bit_isfalse(value_words, bit(GCodeWord::E)) || bit_isfalse(value_words, bit(GCodeWord::Q))) {
             FAIL(Error::GcodeValueWordMissing);
         }
@@ -954,7 +998,8 @@ Error gc_execute_line(char* line, uint8_t client) {
                         FAIL(Error::GcodeG53InvalidMotionMode);  // [G53 G0/1 not active]
                     }
                     break;
-                default: break;
+                default:
+                    break;
             }
     }
     // [20. Motion modes ]:
@@ -981,8 +1026,10 @@ Error gc_execute_line(char* line, uint8_t client) {
                 FAIL(Error::GcodeUndefinedFeedRate);  // [Feed rate undefined]
             }
             switch (gc_block.modal.motion) {
-                case Motion::None: break;  // Feed rate is unnecessary
-                case Motion::Seek: break;  // Feed rate is unnecessary
+                case Motion::None:
+                    break;  // Feed rate is unnecessary
+                case Motion::Seek:
+                    break;  // Feed rate is unnecessary
                 case Motion::Linear:
                     // [G1 Errors]: Feed rate undefined. Axis letter not configured or without real value.
                     // Axis words are optional. If missing, set axis command flag to ignore execution.
@@ -990,7 +1037,8 @@ Error gc_execute_line(char* line, uint8_t client) {
                         axis_command = AxisCommand::None;
                     }
                     break;
-                case Motion::CwArc: gc_parser_flags |= GCParserArcIsClockwise;  // No break intentional.
+                case Motion::CwArc:
+                    gc_parser_flags |= GCParserArcIsClockwise;  // No break intentional.
                 case Motion::CcwArc:
                     // [G2/3 Errors All-Modes]: Feed rate undefined.
                     // [G2/3 Radius-Mode Errors]: No axis words in selected plane. Target point is same as current.
@@ -1134,7 +1182,8 @@ Error gc_execute_line(char* line, uint8_t client) {
                     }
                     break;
                 case Motion::ProbeTowardNoError:
-                case Motion::ProbeAwayNoError: gc_parser_flags |= GCParserProbeIsNoError;  // No break intentional.
+                case Motion::ProbeAwayNoError:
+                    gc_parser_flags |= GCParserProbeIsNoError;  // No break intentional.
                 case Motion::ProbeToward:
                 case Motion::ProbeAway:
                     if ((gc_block.modal.motion == Motion::ProbeAway) || (gc_block.modal.motion == Motion::ProbeAwayNoError)) {
@@ -1243,7 +1292,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     // [2. Set feed rate mode ]:
     gc_state.modal.feed_rate = gc_block.modal.feed_rate;
     if (gc_state.modal.feed_rate == FeedRate::InverseTime) {
-        pl_data->motion |= PL_MOTION_INVERSE_TIME;  // Set condition flag for planner use.
+        pl_data->motion.inverseTime = 1;  // Set condition flag for planner use.
     }
     // [3. Set feed rate ]:
     gc_state.feed_rate = gc_block.values.f;   // Always copy this value. See feed rate error-checking.
@@ -1289,7 +1338,8 @@ Error gc_execute_line(char* line, uint8_t client) {
     // you can turn them off simultaneously with M9.  You can turn them off separately
     // with real-time overrides, but that is out of the scope of GCode.
     switch (gc_block.coolant) {
-        case GCodeCoolant::None: break;
+        case GCodeCoolant::None:
+            break;
         case GCodeCoolant::M7:
             gc_state.modal.coolant.Mist = 1;
             coolant_sync(gc_state.modal.coolant);
@@ -1305,16 +1355,24 @@ Error gc_execute_line(char* line, uint8_t client) {
     }
     pl_data->coolant = gc_state.modal.coolant;  // Set state for planner use.
     // turn on/off an i/o pin
-    if ((gc_block.modal.io_control == IoControl::Enable) || (gc_block.modal.io_control == IoControl::Disable)) {
-        if (gc_block.values.p <= MaxUserDigitalPin) {
-            sys_io_control(bit((int)gc_block.values.p), (gc_block.modal.io_control == IoControl::Enable));
+    if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync) ||
+        (gc_block.modal.io_control == IoControl::DigitalOnImmediate) || (gc_block.modal.io_control == IoControl::DigitalOffImmediate)) {
+        if (gc_block.values.p < MaxUserDigitalPin) {
+            if (!sys_io_control(
+                    bit((int)gc_block.values.p),
+                    (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOnImmediate),
+                    (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync))) {
+                FAIL(Error::PParamMaxExceeded);
+            }
         } else {
             FAIL(Error::PParamMaxExceeded);
         }
     }
-    if (gc_block.modal.io_control == IoControl::SetAnalog) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Set analog pin:%d value%2.2f%", gc_block.values.e, gc_block.values.q);
-        if (gc_block.values.e <= MaxUserDigitalPin) {
+    if ((gc_block.modal.io_control == IoControl::SetAnalogSync) || (gc_block.modal.io_control == IoControl::SetAnalogImmediate)) {
+        if (gc_block.values.e < MaxUserDigitalPin) {
+            gc_block.values.q = constrain(gc_block.values.q, 0.0, 100.0);  // force into valid range
+            if (!sys_pwm_control(bit((int)gc_block.values.e), gc_block.values.q, (gc_block.modal.io_control == IoControl::SetAnalogSync)))
+                FAIL(Error::PParamMaxExceeded);
         } else {
             FAIL(Error::PParamMaxExceeded);
         }
@@ -1377,15 +1435,19 @@ Error gc_execute_line(char* line, uint8_t client) {
         case NonModal::GoHome1:
             // Move to intermediate position before going home. Obeys current coordinate system and offsets
             // and absolute and incremental modes.
-            pl_data->motion |= PL_MOTION_RAPID_MOTION;  // Set rapid motion flag.
+            pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
             if (axis_command != AxisCommand::None) {
                 mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
             }
             mc_line(gc_block.values.ijk, pl_data);
             memcpy(gc_state.position, gc_block.values.ijk, N_AXIS * sizeof(float));
             break;
-        case NonModal::SetHome0: settings_write_coord_data(SETTING_INDEX_G28, gc_state.position); break;
-        case NonModal::SetHome1: settings_write_coord_data(SETTING_INDEX_G30, gc_state.position); break;
+        case NonModal::SetHome0:
+            settings_write_coord_data(SETTING_INDEX_G28, gc_state.position);
+            break;
+        case NonModal::SetHome1:
+            settings_write_coord_data(SETTING_INDEX_G30, gc_state.position);
+            break;
         case NonModal::SetCoordinateOffset:
             memcpy(gc_state.coord_offset, gc_block.values.xyz, sizeof(gc_block.values.xyz));
             system_flag_wco_change();
@@ -1394,7 +1456,8 @@ Error gc_execute_line(char* line, uint8_t client) {
             clear_vector(gc_state.coord_offset);  // Disable G92 offsets by zeroing offset vector.
             system_flag_wco_change();
             break;
-        default: break;
+        default:
+            break;
     }
     // [20. Motion modes ]:
     // NOTE: Commands G10,G28,G30,G92 lock out and prevent axis words from use in motion modes.
@@ -1410,7 +1473,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
             } else if (gc_state.modal.motion == Motion::Seek) {
-                pl_data->motion |= PL_MOTION_RAPID_MOTION;  // Set rapid motion flag.
+                pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
             } else if ((gc_state.modal.motion == Motion::CwArc) || (gc_state.modal.motion == Motion::CcwArc)) {
@@ -1427,7 +1490,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 // NOTE: gc_block.values.xyz is returned from mc_probe_cycle with the updated position value. So
                 // upon a successful probing cycle, the machine position and the returned value should be the same.
 #ifndef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
-                pl_data->motion |= PL_MOTION_NO_FEED_OVERRIDE;
+                pl_data->motion.noFeedOverride = 1;
 #endif
 #ifdef USE_I2S_STEPS
                 save_stepper = current_stepper;  // remember the stepper
@@ -1457,14 +1520,15 @@ Error gc_execute_line(char* line, uint8_t client) {
     // refill and can only be resumed by the cycle start run-time command.
     gc_state.modal.program_flow = gc_block.modal.program_flow;
     switch (gc_state.modal.program_flow) {
-        case ProgramFlow::Running: break;
+        case ProgramFlow::Running:
+            break;
         case ProgramFlow::OptionalStop:
             // TODO - to support M1 we would need some code to determine whether to stop
             // Then either break or fall through to actually stop.
             break;
         case ProgramFlow::Paused:
             protocol_buffer_synchronize();  // Sync and finish all remaining buffered motions before moving on.
-            if (sys.state != STATE_CHECK_MODE) {
+            if (sys.state != State::CheckMode) {
                 system_set_exec_state_flag(EXEC_FEED_HOLD);  // Use feed hold for program pause.
                 protocol_execute_realtime();                 // Execute suspend.
             }
@@ -1499,7 +1563,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             sys.spindle_speed_ovr = DEFAULT_SPINDLE_SPEED_OVERRIDE;
 #endif
             // Execute coordinate change and spindle/coolant stop.
-            if (sys.state != STATE_CHECK_MODE) {
+            if (sys.state != State::CheckMode) {
                 if (!(settings_read_coord_data(gc_state.modal.coord_select, gc_state.coord_system))) {
                     FAIL(Error::SettingReadFail);
                 }
@@ -1507,7 +1571,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 spindle->set_state(SpindleState::Disable, 0);
                 coolant_off();
             }
-            report_feedback_message(MESSAGE_PROGRAM_END);
+            report_feedback_message(Message::ProgramEnd);
 #ifdef USE_M30
             user_m30();
 #endif

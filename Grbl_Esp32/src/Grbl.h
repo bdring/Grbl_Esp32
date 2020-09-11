@@ -22,8 +22,8 @@
 
 // Grbl versioning system
 
-#define GRBL_VERSION "1.3a"
-#define GRBL_VERSION_BUILD "20200908"
+const char* const GRBL_VERSION       = "1.3a";
+const char* const GRBL_VERSION_BUILD = "20200910";
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -65,6 +65,8 @@
 #include "Settings.h"
 #include "SettingsDefinitions.h"
 #include "WebUI/WebSettings.h"
+
+#include "UserOutput.h"
 
 // Do not guard this because it is needed for local files too
 #include "SDCard.h"

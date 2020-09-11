@@ -88,10 +88,14 @@ namespace WebUI {
 
     const char* NotificationsService::getTypeString() {
         switch (_notificationType) {
-            case ESP_PUSHOVER_NOTIFICATION: return "Pushover";
-            case ESP_EMAIL_NOTIFICATION: return "Email";
-            case ESP_LINE_NOTIFICATION: return "Line";
-            default: return "None";
+            case ESP_PUSHOVER_NOTIFICATION:
+                return "Pushover";
+            case ESP_EMAIL_NOTIFICATION:
+                return "Email";
+            case ESP_LINE_NOTIFICATION:
+                return "Line";
+            default:
+                return "None";
         }
     }
 
@@ -101,10 +105,17 @@ namespace WebUI {
         }
         if (!((strlen(title) == 0) && (strlen(message) == 0))) {
             switch (_notificationType) {
-                case ESP_PUSHOVER_NOTIFICATION: return sendPushoverMSG(title, message); break;
-                case ESP_EMAIL_NOTIFICATION: return sendEmailMSG(title, message); break;
-                case ESP_LINE_NOTIFICATION: return sendLineMSG(title, message); break;
-                default: break;
+                case ESP_PUSHOVER_NOTIFICATION:
+                    return sendPushoverMSG(title, message);
+                    break;
+                case ESP_EMAIL_NOTIFICATION:
+                    return sendEmailMSG(title, message);
+                    break;
+                case ESP_LINE_NOTIFICATION:
+                    return sendLineMSG(title, message);
+                    break;
+                default:
+                    break;
             }
         }
         return false;
@@ -323,7 +334,9 @@ namespace WebUI {
                     return false;
                 }
                 break;
-            default: return false; break;
+            default:
+                return false;
+                break;
         }
         bool res = true;
         if (WiFi.getMode() != WIFI_STA) {

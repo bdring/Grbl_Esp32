@@ -75,15 +75,14 @@ namespace WebUI {
         "interval=setInterval(function(){\ni=i+1; \nvar x = document.getElementById(\"prg\"); \nx.value=i; \nif (i>5) "
         "\n{\nclearInterval(interval);\nwindow.location.href='/';\n}\n},1000);\n</script>\n</CENTER>\n</BODY>\n</HTML>\n\n";
 
-//error codes fo upload
-#    define ESP_ERROR_AUTHENTICATION 1
-#    define ESP_ERROR_FILE_CREATION 2
-#    define ESP_ERROR_FILE_WRITE 3
-#    define ESP_ERROR_UPLOAD 4
-#    define ESP_ERROR_NOT_ENOUGH_SPACE 5
-#    define ESP_ERROR_UPLOAD_CANCELLED 6
-#    define ESP_ERROR_FILE_CLOSE 7
-#    define ESP_ERROR_NO_SD 8
+    // Error codes for upload
+    const int ESP_ERROR_AUTHENTICATION   = 1;
+    const int ESP_ERROR_FILE_CREATION    = 2;
+    const int ESP_ERROR_FILE_WRITE       = 3;
+    const int ESP_ERROR_UPLOAD           = 4;
+    const int ESP_ERROR_NOT_ENOUGH_SPACE = 5;
+    const int ESP_ERROR_UPLOAD_CANCELLED = 6;
+    const int ESP_ERROR_FILE_CLOSE       = 7;
 
     Web_Server        web_server;
     bool              Web_Server::_setupdone     = false;
@@ -95,7 +94,7 @@ namespace WebUI {
 #    ifdef ENABLE_AUTHENTICATION
     AuthenticationIP* Web_Server::_head  = NULL;
     uint8_t           Web_Server::_nb_ip = 0;
-#        define MAX_AUTH_IP 10
+    const int         MAX_AUTH_IP        = 10;
 #    endif
     Web_Server::Web_Server() {}
     Web_Server::~Web_Server() { end(); }
@@ -454,8 +453,10 @@ namespace WebUI {
             case CMD_SPINDLE_OVR_FINE_MINUS:
             case CMD_SPINDLE_OVR_STOP:
             case CMD_COOLANT_FLOOD_OVR_TOGGLE:
-            case CMD_COOLANT_MIST_OVR_TOGGLE: return true;
-            default: return false;
+            case CMD_COOLANT_MIST_OVR_TOGGLE:
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -656,9 +657,15 @@ namespace WebUI {
                         _webserver->sendHeader("Set-Cookie", tmps);
                         _webserver->sendHeader("Cache-Control", "no-cache");
                         switch (current_auth->level) {
-                            case AuthenticationLevel::LEVEL_ADMIN: auths = "admin"; break;
-                            case AuthenticationLevel::LEVEL_USER: auths = "user"; break;
-                            default: auths = "guest"; break;
+                            case AuthenticationLevel::LEVEL_ADMIN:
+                                auths = "admin";
+                                break;
+                            case AuthenticationLevel::LEVEL_USER:
+                                auths = "user";
+                                break;
+                            default:
+                                auths = "guest";
+                                break;
                         }
                     } else {
                         delete current_auth;
@@ -1607,7 +1614,8 @@ namespace WebUI {
                 // send message to client
                 // webSocket.sendBIN(num, payload, length);
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 

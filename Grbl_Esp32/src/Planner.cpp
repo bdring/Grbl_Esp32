@@ -248,10 +248,10 @@ uint8_t plan_check_full_buffer() {
 // NOTE: All system motion commands, such as homing/parking, are not subject to overrides.
 float plan_compute_profile_nominal_speed(plan_block_t* block) {
     float nominal_speed = block->programmed_rate;
-    if (block->motion & PL_MOTION_RAPID_MOTION) {
+    if (block->motion.rapidMotion) {
         nominal_speed *= (0.01 * sys.r_override);
     } else {
-        if (!(block->motion & PL_MOTION_NO_FEED_OVERRIDE)) {
+        if (!(block->motion.noFeedOverride)) {
             nominal_speed *= (0.01 * sys.f_override);
         }
         if (nominal_speed > block->rapid_rate) {
@@ -312,7 +312,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     float   unit_vec[N_AXIS], delta_mm;
     uint8_t idx;
     // Copy position data based on type of motion being planned.
-    if (block->motion & PL_MOTION_SYSTEM_MOTION) {
+    if (block->motion.systemMotion) {
 #ifdef COREXY
         position_steps[X_AXIS] = system_convert_corexy_to_x_axis_steps(sys_position);
         position_steps[Y_AXIS] = system_convert_corexy_to_y_axis_steps(sys_position);
@@ -373,16 +373,16 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     block->acceleration = limit_acceleration_by_axis_maximum(unit_vec);
     block->rapid_rate   = limit_rate_by_axis_maximum(unit_vec);
     // Store programmed rate.
-    if (block->motion & PL_MOTION_RAPID_MOTION) {
+    if (block->motion.rapidMotion) {
         block->programmed_rate = block->rapid_rate;
     } else {
         block->programmed_rate = pl_data->feed_rate;
-        if (block->motion & PL_MOTION_INVERSE_TIME) {
+        if (block->motion.inverseTime) {
             block->programmed_rate *= block->millimeters;
         }
     }
     // TODO: Need to check this method handling zero junction speeds when starting from rest.
-    if ((block_buffer_head == block_buffer_tail) || (block->motion & PL_MOTION_SYSTEM_MOTION)) {
+    if ((block_buffer_head == block_buffer_tail) || (block->motion.systemMotion)) {
         // Initialize block entry speed as zero. Assume it will be starting from rest. Planner will correct this later.
         // If system motion, the system motion block always is assumed to start from rest and end at a complete stop.
         block->entry_speed_sqr        = 0.0;
@@ -434,7 +434,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
         }
     }
     // Block system motion from updating this data to ensure next g-code motion is computed correctly.
-    if (!(block->motion & PL_MOTION_SYSTEM_MOTION)) {
+    if (!(block->motion.systemMotion)) {
         float nominal_speed = plan_compute_profile_nominal_speed(block);
         plan_compute_profile_parameters(block, nominal_speed, pl.previous_nominal_speed);
         pl.previous_nominal_speed = nominal_speed;

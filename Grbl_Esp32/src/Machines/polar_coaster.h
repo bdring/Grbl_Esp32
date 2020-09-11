@@ -31,7 +31,7 @@
 // via ../custom_code.cpp
 #define CUSTOM_CODE_FILENAME "Custom/polar_coaster.cpp"
 
-#define SPINDLE_TYPE SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE SpindleType::NONE
 
 #define RADIUS_AXIS 0
 #define POLAR_AXIS 1
@@ -54,7 +54,7 @@
 
 #define X_LIMIT_PIN             GPIO_NUM_4
 
-#define SPINDLE_TYPE SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE SpindleType::NONE
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE

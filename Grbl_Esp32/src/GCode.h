@@ -48,7 +48,7 @@ enum class ModalGroup : uint8_t {
     MM7  = 12,  // [M3,M4,M5] Spindle turning
     MM8  = 13,  // [M7,M8,M9] Coolant control
     MM9  = 14,  // [M56] Override control
-    MM10 = 15,  // [M62, M63, M67] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
+    MM10 = 15,  // [M62, M63, M64, M65, M67, M68] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
 };
 
 // Command actions for within execution-type modal groups (motion, stopping, non-modal). Used
@@ -175,9 +175,12 @@ enum class Override : uint8_t {
 
 // Modal Group M10: User I/O control
 enum class IoControl : uint8_t {
-    Enable    = 1,
-    Disable   = 2,
-    SetAnalog = 3,
+    DigitalOnSync       = 1,  // M62
+    DigitalOffSync      = 2,  // M63
+    DigitalOnImmediate  = 3,  // M64
+    DigitalOffImmediate = 4,  // M65
+    SetAnalogSync       = 5,  // M67
+    SetAnalogImmediate  = 6,  // M68
 };
 
 static const int MaxUserDigitalPin = 4;
@@ -259,13 +262,13 @@ typedef struct {
 } gc_modal_t;
 
 typedef struct {
-    uint8_t e;
+    uint8_t e;            // M67
     float   f;            // Feed
     float   ijk[N_AXIS];  // I,J,K Axis arc offsets
     uint8_t l;            // G10 or canned cycles parameters
     int32_t n;            // Line number
     float   p;            // G10 or dwell parameters
-    float   q;            // G82 peck drilling
+    float   q;            // M67
     float   r;            // Arc radius
     float   s;            // Spindle speed
     uint8_t t;            // Tool selection

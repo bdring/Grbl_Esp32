@@ -33,7 +33,7 @@
 #    endif
 #endif
 
-#define SERIAL_NO_DATA 0xff
+const float SERIAL_NO_DATA = 0xff;
 
 // a task to read for incoming data from serial port
 void serialCheckTask(void* pvParameters);

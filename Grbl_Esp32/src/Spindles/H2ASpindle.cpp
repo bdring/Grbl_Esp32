@@ -98,7 +98,7 @@ namespace Spindles {
             uint16_t rpm  = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
             vfd->_max_rpm = rpm;
 
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "H2A spindle is initialized at %d RPM", int(rpm));
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "H2A spindle is initialized at %d RPM", int(rpm));
 
             return true;
         };

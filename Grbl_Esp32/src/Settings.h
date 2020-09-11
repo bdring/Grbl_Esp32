@@ -30,11 +30,13 @@ typedef enum : uint8_t {
     GRBLCMD,   // Non-persistent GRBL commands like $H
     WEBCMD,    // ESP3D_WebUI commands that are not directly settings
 } type_t;
+
 typedef enum : uint8_t {
     WG,  // Readable and writable as guest
     WU,  // Readable and writable as user and admin
     WA,  // Readable as user and admin, writable as admin
 } permissions_t;
+
 typedef uint8_t axis_t;
 
 class Word {
@@ -240,7 +242,6 @@ public:
     float get() { return _currentValue; }
 };
 
-#define MAX_SETTING_STRING 256
 class StringSetting : public Setting {
 private:
     String _defaultValue;
@@ -377,7 +378,7 @@ public:
     FloatSetting* hold_current;
     FloatSetting* home_mpos;
     IntSetting*   microsteps;
-    IntSetting*   stallguard;    
+    IntSetting*   stallguard;
 
     AxisSettings(const char* axisName);
 };
@@ -398,31 +399,24 @@ public:
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
 
-enum : uint8_t {
-    ANY_STATE         = 0,
-    IDLE_OR_ALARM     = 0xff & ~STATE_ALARM,
-    IDLE_OR_JOG       = 0xff & ~STATE_JOG,
-    NOT_CYCLE_OR_HOLD = STATE_CYCLE | STATE_HOLD,
-};
-
 class GrblCommand : public Command {
 private:
     Error (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
-    uint8_t _disallowedStates;
+    bool (*_checker)();
 
 public:
     GrblCommand(const char* grblName,
                 const char* name,
                 Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
-                uint8_t       disallowedStates,
+                bool (*checker)(),
                 permissions_t auth) :
         Command(NULL, GRBLCMD, auth, grblName, name),
-        _action(action), _disallowedStates(disallowedStates) {}
+        _action(action), _checker(checker) {}
 
     GrblCommand(const char* grblName,
                 const char* name,
                 Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
-                uint8_t disallowedStates) :
-        GrblCommand(grblName, name, action, disallowedStates, WG) {}
+                bool (*checker)(void)) :
+        GrblCommand(grblName, name, action, checker, WG) {}
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };

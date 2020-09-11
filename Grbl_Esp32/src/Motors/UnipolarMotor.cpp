@@ -29,7 +29,7 @@ namespace Motors {
 
     void UnipolarMotor::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "%s Axis Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s Limits(%0.3f,%0.3f)",
                        _axis_name,
                        pinName(_pin_phase0).c_str(),
@@ -92,22 +92,30 @@ namespace Motors {
 		*/
         if (_half_step) {
             switch (_current_phase) {
-                case 0: _phase[0] = 1; break;
+                case 0:
+                    _phase[0] = 1;
+                    break;
                 case 1:
                     _phase[0] = 1;
                     _phase[1] = 1;
                     break;
-                case 2: _phase[1] = 1; break;
+                case 2:
+                    _phase[1] = 1;
+                    break;
                 case 3:
                     _phase[1] = 1;
                     _phase[2] = 1;
                     break;
-                case 4: _phase[2] = 1; break;
+                case 4:
+                    _phase[2] = 1;
+                    break;
                 case 5:
                     _phase[2] = 1;
                     _phase[3] = 1;
                     break;
-                case 6: _phase[3] = 1; break;
+                case 6:
+                    _phase[3] = 1;
+                    break;
                 case 7:
                     _phase[3] = 1;
                     _phase[0] = 1;

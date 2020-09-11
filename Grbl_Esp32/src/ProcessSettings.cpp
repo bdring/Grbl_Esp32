@@ -18,7 +18,8 @@ bool auth_failed(Word* w, const char* value, WebUI::AuthenticationLevel auth_lev
                 return false;                          // No read is a User auth fail
             }
             return permissions == WA;  // User cannot write WA
-        default: return true;
+        default:
+            return true;
     }
 }
 
@@ -98,13 +99,13 @@ void settings_init() {
 // it early is probably prudent.
 Error jog_set(uint8_t* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     // Execute only if in IDLE or JOG states.
-    if (sys.state != STATE_IDLE && sys.state != STATE_JOG) {
+    if (sys.state != State::Idle && sys.state != State::Jog) {
         return Error::IdleError;
     }
 
     // restore the $J= prefix because gc_execute_line() expects it
-#define MAXLINE 128
-    char line[MAXLINE];
+    const int MAXLINE = 128;
+    char      line[MAXLINE];
     strcpy(line, "$J=");
     strncat(line, (char*)value, MAXLINE - strlen("$J=") - 1);
 
@@ -182,26 +183,26 @@ Error toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
     // Perform reset when toggling off. Check g-code mode should only work if Grbl
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
     // simple and consistent.
-    if (sys.state == STATE_CHECK_MODE) {
+    if (sys.state == State::CheckMode) {
         mc_reset();
-        report_feedback_message(MESSAGE_DISABLED);
+        report_feedback_message(Message::Disabled);
     } else {
-        if (sys.state) {
+        if (sys.state != State::Idle) {
             return Error::IdleError;  // Requires no alarm mode.
         }
-        sys.state = STATE_CHECK_MODE;
-        report_feedback_message(MESSAGE_ENABLED);
+        sys.state = State::CheckMode;
+        report_feedback_message(Message::Enabled);
     }
     return Error::Ok;
 }
 Error disable_alarm_lock(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    if (sys.state == STATE_ALARM) {
+    if (sys.state == State::Alarm) {
         // Block if safety door is ajar.
         if (system_check_safety_door_ajar()) {
             return Error::CheckDoor;
         }
-        report_feedback_message(MESSAGE_ALARM_UNLOCK);
-        sys.state = STATE_IDLE;
+        report_feedback_message(Message::AlarmUnlock);
+        sys.state = State::Idle;
         // Don't run startup script. Prevents stored moves in startup from causing accidents.
     }  // Otherwise, no effect.
     return Error::Ok;
@@ -217,7 +218,7 @@ Error home(int cycle) {
     if (system_check_safety_door_ajar()) {
         return Error::CheckDoor;  // Block if safety door is ajar.
     }
-    sys.state = STATE_HOMING;  // Set system state variable
+    sys.state = State::Homing;  // Set system state variable
 #ifdef USE_I2S_STEPS
     stepper_id_t save_stepper = current_stepper;
     if (save_stepper == ST_I2S_STREAM) {
@@ -232,9 +233,9 @@ Error home(int cycle) {
 #else
     mc_homing_cycle(cycle);
 #endif
-    if (!sys.abort) {            // Execute startup scripts after successful homing.
-        sys.state = STATE_IDLE;  // Set to IDLE when complete.
-        st_go_idle();            // Set steppers to the settings idle state before returning.
+    if (!sys.abort) {             // Execute startup scripts after successful homing.
+        sys.state = State::Idle;  // Set to IDLE when complete.
+        st_go_idle();             // Set steppers to the settings idle state before returning.
         if (cycle == HOMING_CYCLE_ALL) {
             char line[128];
             system_execute_startup(line);
@@ -358,47 +359,60 @@ Error listErrorCodes(const char* value, WebUI::AuthenticationLevel auth_level, W
     return Error::Ok;
 }
 
+static bool anyState() {
+    return false;
+}
+static bool idleOrJog() {
+    return sys.state != State::Idle && sys.state != State::Jog;
+}
+static bool idleOrAlarm() {
+    return sys.state != State::Idle && sys.state != State::Alarm;
+}
+static bool notCycleOrHold() {
+    return sys.state == State::Cycle && sys.state == State::Hold;
+}
+
 // Commands use the same syntax as Settings, but instead of setting or
 // displaying a persistent value, a command causes some action to occur.
 // That action could be anything, from displaying a run-time parameter
 // to performing some system state change.  Each command is responsible
 // for decoding its own value string, if it needs one.
 void make_grbl_commands() {
-    new GrblCommand("", "Help", show_grbl_help, ANY_STATE);
-    new GrblCommand("T", "State", showState, ANY_STATE);
-    new GrblCommand("J", "Jog", doJog, IDLE_OR_JOG);
+    new GrblCommand("", "Help", show_grbl_help, anyState);
+    new GrblCommand("T", "State", showState, anyState);
+    new GrblCommand("J", "Jog", doJog, idleOrJog);
 
-    new GrblCommand("$", "GrblSettings/List", report_normal_settings, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("+", "ExtendedSettings/List", report_extended_settings, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("L", "GrblNames/List", list_grbl_names, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("S", "Settings/List", list_settings, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("CMD", "Commands/List", list_commands, NOT_CYCLE_OR_HOLD);
-    new GrblCommand("E", "ErrorCodes/List", listErrorCodes, ANY_STATE);
-    new GrblCommand("G", "GCode/Modes", report_gcode, ANY_STATE);
-    new GrblCommand("C", "GCode/Check", toggle_check_mode, ANY_STATE);
-    new GrblCommand("X", "Alarm/Disable", disable_alarm_lock, ANY_STATE);
-    new GrblCommand("NVX", "Settings/Erase", Setting::eraseNVS, IDLE_OR_ALARM, WA);
-    new GrblCommand("V", "Settings/Stats", Setting::report_nvs_stats, IDLE_OR_ALARM);
-    new GrblCommand("#", "GCode/Offsets", report_ngc, IDLE_OR_ALARM);
-    new GrblCommand("H", "Home", home_all, IDLE_OR_ALARM);
+    new GrblCommand("$", "GrblSettings/List", report_normal_settings, notCycleOrHold);
+    new GrblCommand("+", "ExtendedSettings/List", report_extended_settings, notCycleOrHold);
+    new GrblCommand("L", "GrblNames/List", list_grbl_names, notCycleOrHold);
+    new GrblCommand("S", "Settings/List", list_settings, notCycleOrHold);
+    new GrblCommand("CMD", "Commands/List", list_commands, notCycleOrHold);
+    new GrblCommand("E", "ErrorCodes/List", listErrorCodes, anyState);
+    new GrblCommand("G", "GCode/Modes", report_gcode, anyState);
+    new GrblCommand("C", "GCode/Check", toggle_check_mode, anyState);
+    new GrblCommand("X", "Alarm/Disable", disable_alarm_lock, anyState);
+    new GrblCommand("NVX", "Settings/Erase", Setting::eraseNVS, idleOrAlarm, WA);
+    new GrblCommand("V", "Settings/Stats", Setting::report_nvs_stats, idleOrAlarm);
+    new GrblCommand("#", "GCode/Offsets", report_ngc, idleOrAlarm);
+    new GrblCommand("H", "Home", home_all, idleOrAlarm);
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
-    new GrblCommand("HX", "Home/X", home_x, IDLE_OR_ALARM);
-    new GrblCommand("HY", "Home/Y", home_y, IDLE_OR_ALARM);
-    new GrblCommand("HZ", "Home/Z", home_z, IDLE_OR_ALARM);
+    new GrblCommand("HX", "Home/X", home_x, idleOrAlarm);
+    new GrblCommand("HY", "Home/Y", home_y, idleOrAlarm);
+    new GrblCommand("HZ", "Home/Z", home_z, idleOrAlarm);
 #    if (N_AXIS > 3)
-    new GrblCommand("HA", "Home/A", home_a, IDLE_OR_ALARM);
+    new GrblCommand("HA", "Home/A", home_a, idleOrAlarm);
 #    endif
 #    if (N_AXIS > 4)
-    new GrblCommand("HB", "Home/B", home_b, IDLE_OR_ALARM);
+    new GrblCommand("HB", "Home/B", home_b, idleOrAlarm);
 #    endif
 #    if (N_AXIS > 5)
-    new GrblCommand("HC", "Home/C", home_c, IDLE_OR_ALARM);
+    new GrblCommand("HC", "Home/C", home_c, idleOrAlarm);
 #    endif
 #endif
-    new GrblCommand("SLP", "System/Sleep", sleep_grbl, IDLE_OR_ALARM);
-    new GrblCommand("I", "Build/Info", get_report_build_info, IDLE_OR_ALARM);
-    new GrblCommand("N", "GCode/StartupLines", report_startup_lines, IDLE_OR_ALARM);
-    new GrblCommand("RST", "Settings/Restore", restore_settings, IDLE_OR_ALARM, WA);
+    new GrblCommand("SLP", "System/Sleep", sleep_grbl, idleOrAlarm);
+    new GrblCommand("I", "Build/Info", get_report_build_info, idleOrAlarm);
+    new GrblCommand("N", "GCode/StartupLines", report_startup_lines, idleOrAlarm);
+    new GrblCommand("RST", "Settings/Restore", restore_settings, idleOrAlarm, WA);
 };
 
 // normalize_key puts a key string into canonical form -

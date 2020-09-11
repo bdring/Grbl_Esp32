@@ -36,7 +36,7 @@ void coolant_init() {
 // Returns current coolant output state. Overrides may alter it from programmed state.
 CoolantState coolant_get_state() {
     CoolantState cl_state = {};
-    bool pinState;
+    bool         pinState;
 
 #ifdef COOLANT_FLOOD_PIN
     pinState = digitalRead(COOLANT_FLOOD_PIN);
@@ -109,7 +109,7 @@ void coolant_off() {
 // G-code parser entry-point for setting coolant state. Forces a planner buffer sync and bails
 // if an abort or check-mode is active.
 void coolant_sync(CoolantState state) {
-    if (sys.state == STATE_CHECK_MODE) {
+    if (sys.state == State::CheckMode) {
         return;
     }
     protocol_buffer_synchronize();  // Ensure coolant turns on when specified in program.

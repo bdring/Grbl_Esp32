@@ -47,10 +47,12 @@
 */
 
 #include "Grbl.h"
+#include <map>
+
 #ifdef REPORT_HEAP
 EspClass esp;
 #endif
-#define DEFAULTBUFFERSIZE 64
+const int DEFAULTBUFFERSIZE = 64;
 
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char* text) {
@@ -105,7 +107,7 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
     }
 }
 // Use to send [MSG:xxxx] Type messages. The level allows messages to be easily suppressed
-void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...) {
+void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...) {
     if (client == CLIENT_INPUT) {
         return;
     }
@@ -186,20 +188,6 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
     }
 }
 
-void get_state(char* foo) {
-    // pad them to same length
-    switch (sys.state) {
-        case STATE_IDLE: strcpy(foo, " Idle "); break;
-        case STATE_CYCLE: strcpy(foo, " Run  "); break;
-        case STATE_HOLD: strcpy(foo, " Hold "); break;
-        case STATE_HOMING: strcpy(foo, " Home "); break;
-        case STATE_ALARM: strcpy(foo, " Alarm"); break;
-        case STATE_CHECK_MODE: strcpy(foo, " Check"); break;
-        case STATE_SAFETY_DOOR: strcpy(foo, " Door "); break;
-        default: strcpy(foo, "  ?  "); break;
-    }
-}
-
 // Handles the primary confirmation protocol response for streaming interfaces and human-feedback.
 // For every incoming line, this method responds with an 'ok' for a successful command or an
 // 'error:'  to indicate some error event with the line or some critical system error during
@@ -240,41 +228,47 @@ void report_status_message(Error status_code, uint8_t client) {
 }
 
 // Prints alarm messages.
-void report_alarm_message(uint8_t alarm_code) {
-    grbl_sendf(CLIENT_ALL, "ALARM:%d\r\n", alarm_code);  // OK to send to all clients
-    delay_ms(500);                                       // Force delay to ensure message clears serial write buffer.
+void report_alarm_message(ExecAlarm alarm_code) {
+    grbl_sendf(CLIENT_ALL, "ALARM:%d\r\n", static_cast<int>(alarm_code));  // OK to send to all clients
+    delay_ms(500);                                                         // Force delay to ensure message clears serial write buffer.
 }
+
+std::map<Message, const char*> MessageText = {
+    { Message::CriticalEvent, "Reset to continue" },
+    { Message::AlarmLock, "'$H'|'$X' to unlock" },
+    { Message::AlarmUnlock, "Caution: Unlocked" },
+    { Message::Enabled, "Enabled" },
+    { Message::Disabled, "Disabled" },
+    { Message::SafetyDoorAjar, "Check door" },
+    { Message::CheckLimits, "Check limits" },
+    { Message::ProgramEnd, "Program End" },
+    { Message::RestoreDefaults, "Restoring defaults" },
+    { Message::SpindleRestore, "Restoring spindle" },
+    { Message::SleepMode, "Sleeping" },
+    // Handled separately due to numeric argument
+    // { Message::SdFileQuit, "Reset during SD file at line: %d" },
+};
 
 // Prints feedback messages. This serves as a centralized method to provide additional
 // user feedback for things that are not of the status/alarm message protocol. These are
 // messages such as setup warnings, switch toggling, and how to exit alarms.
 // NOTE: For interfaces, messages are always placed within brackets. And if silent mode
 // is installed, the message number codes are less than zero.
-void report_feedback_message(uint8_t message_code) {  // OK to send to all clients
-    switch (message_code) {
-        case MESSAGE_CRITICAL_EVENT: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset to continue"); break;
-        case MESSAGE_ALARM_LOCK: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "'$H'|'$X' to unlock"); break;
-        case MESSAGE_ALARM_UNLOCK: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Caution: Unlocked"); break;
-        case MESSAGE_ENABLED: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Enabled"); break;
-        case MESSAGE_DISABLED: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Disabled"); break;
-        case MESSAGE_SAFETY_DOOR_AJAR: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Check door"); break;
-        case MESSAGE_CHECK_LIMITS: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Check limits"); break;
-        case MESSAGE_PROGRAM_END: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Program End"); break;
-        case MESSAGE_RESTORE_DEFAULTS: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Restoring defaults"); break;
-        case MESSAGE_SPINDLE_RESTORE: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Restoring spindle"); break;
-        case MESSAGE_SLEEP_MODE: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Sleeping"); break;
-#ifdef ENABLE_SD_CARD
-        case MESSAGE_SD_FILE_QUIT:
-            grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Reset during SD file at line: %d", sd_get_current_line_number());
-            break;
-#endif
+void report_feedback_message(Message message) {  // ok to send to all clients
+    if (message == Message::SdFileQuit) {
+        grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset during SD file at line: %d", sd_get_current_line_number());
+    } else {
+        auto it = MessageText.find(message);
+        if (it != MessageText.end()) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, it->second);
+        }
     }
 }
 
 // Welcome message
 void report_init_message(uint8_t client) {
-    grbl_send(client, "\r\nGrbl " GRBL_VERSION " ['$' for help]\r\n");
+    grbl_sendf(client, "\r\nGrbl %s ['$' for help]\r\n", GRBL_VERSION);
 }
 
 // Grbl help message
@@ -315,8 +309,12 @@ void report_ngc_parameters(uint8_t client) {
         }
         strcat(ngc_rpt, "[G");
         switch (coord_select) {
-            case 6: strcat(ngc_rpt, "28"); break;
-            case 7: strcat(ngc_rpt, "30"); break;
+            case 6:
+                strcat(ngc_rpt, "28");
+                break;
+            case 7:
+                strcat(ngc_rpt, "30");
+                break;
             default:
                 sprintf(temp, "%d", coord_select + 54);
                 strcat(ngc_rpt, temp);
@@ -350,15 +348,33 @@ void report_gcode_modes(uint8_t client) {
     strcpy(modes_rpt, "[GC:");
 
     switch (gc_state.modal.motion) {
-        case Motion::None: mode = "G80"; break;
-        case Motion::Seek: mode = "G0"; break;
-        case Motion::Linear: mode = "G1"; break;
-        case Motion::CwArc: mode = "G2"; break;
-        case Motion::CcwArc: mode = "G3"; break;
-        case Motion::ProbeToward: mode = "G38.1"; break;
-        case Motion::ProbeTowardNoError: mode = "G38.2"; break;
-        case Motion::ProbeAway: mode = "G38.3"; break;
-        case Motion::ProbeAwayNoError: mode = "G38.4"; break;
+        case Motion::None:
+            mode = "G80";
+            break;
+        case Motion::Seek:
+            mode = "G0";
+            break;
+        case Motion::Linear:
+            mode = "G1";
+            break;
+        case Motion::CwArc:
+            mode = "G2";
+            break;
+        case Motion::CcwArc:
+            mode = "G3";
+            break;
+        case Motion::ProbeToward:
+            mode = "G38.1";
+            break;
+        case Motion::ProbeTowardNoError:
+            mode = "G38.2";
+            break;
+        case Motion::ProbeAway:
+            mode = "G38.3";
+            break;
+        case Motion::ProbeAwayNoError:
+            mode = "G38.4";
+            break;
     }
     strcat(modes_rpt, mode);
 
@@ -366,21 +382,35 @@ void report_gcode_modes(uint8_t client) {
     strcat(modes_rpt, temp);
 
     switch (gc_state.modal.plane_select) {
-        case Plane::XY: mode = " G17"; break;
-        case Plane::ZX: mode = " G18"; break;
-        case Plane::YZ: mode = " G19"; break;
+        case Plane::XY:
+            mode = " G17";
+            break;
+        case Plane::ZX:
+            mode = " G18";
+            break;
+        case Plane::YZ:
+            mode = " G19";
+            break;
     }
     strcat(modes_rpt, mode);
 
     switch (gc_state.modal.units) {
-        case Units::Inches: mode = " G20"; break;
-        case Units::Mm: mode = " G21"; break;
+        case Units::Inches:
+            mode = " G20";
+            break;
+        case Units::Mm:
+            mode = " G21";
+            break;
     }
     strcat(modes_rpt, mode);
 
     switch (gc_state.modal.distance) {
-        case Distance::Absolute: mode = " G90"; break;
-        case Distance::Incremental: mode = " G91"; break;
+        case Distance::Absolute:
+            mode = " G90";
+            break;
+        case Distance::Incremental:
+            mode = " G91";
+            break;
     }
     strcat(modes_rpt, mode);
 
@@ -393,26 +423,47 @@ void report_gcode_modes(uint8_t client) {
 #endif
 
     switch (gc_state.modal.feed_rate) {
-        case FeedRate::UnitsPerMin: mode = " G94"; break;
-        case FeedRate::InverseTime: mode = " G93"; break;
+        case FeedRate::UnitsPerMin:
+            mode = " G94";
+            break;
+        case FeedRate::InverseTime:
+            mode = " G93";
+            break;
     }
     strcat(modes_rpt, mode);
 
     //report_util_gcode_modes_M();
     switch (gc_state.modal.program_flow) {
-        case ProgramFlow::Running: mode = ""; break;
-        case ProgramFlow::Paused: mode = " M0"; break;
-        case ProgramFlow::OptionalStop: mode = " M1"; break;
-        case ProgramFlow::CompletedM2: mode = " M2"; break;
-        case ProgramFlow::CompletedM30: mode = " M30"; break;
+        case ProgramFlow::Running:
+            mode = "";
+            break;
+        case ProgramFlow::Paused:
+            mode = " M0";
+            break;
+        case ProgramFlow::OptionalStop:
+            mode = " M1";
+            break;
+        case ProgramFlow::CompletedM2:
+            mode = " M2";
+            break;
+        case ProgramFlow::CompletedM30:
+            mode = " M30";
+            break;
     }
     strcat(modes_rpt, mode);
 
     switch (gc_state.modal.spindle) {
-        case SpindleState::Cw: mode = " M3"; break;
-        case SpindleState::Ccw: mode = " M4"; break;
-        case SpindleState::Disable: mode = " M5"; break;
-        default: mode = "";
+        case SpindleState::Cw:
+            mode = " M3";
+            break;
+        case SpindleState::Ccw:
+            mode = " M4";
+            break;
+        case SpindleState::Disable:
+            mode = " M5";
+            break;
+        default:
+            mode = "";
     }
     strcat(modes_rpt, mode);
 
@@ -459,7 +510,11 @@ void report_execute_startup_message(const char* line, Error status_code, uint8_t
 // Prints build info line
 void report_build_info(char* line, uint8_t client) {
     char build_info[50];
-    strcpy(build_info, "[VER:" GRBL_VERSION "." GRBL_VERSION_BUILD ":");
+    strcpy(build_info, "[VER:");
+    strcat(build_info, GRBL_VERSION);
+    strcat(build_info, ".");
+    strcat(build_info, GRBL_VERSION_BUILD);
+    strcat(build_info, ":");
     strcat(build_info, line);
     strcat(build_info, "]\r\n[OPT:");
     strcat(build_info, "V");  // variable spindle..always on now
@@ -547,9 +602,13 @@ void report_realtime_status(uint8_t client) {
     // Report current machine state and sub-states
     strcpy(status, "<");
     switch (sys.state) {
-        case STATE_IDLE: strcat(status, "Idle"); break;
-        case STATE_CYCLE: strcat(status, "Run"); break;
-        case STATE_HOLD:
+        case State::Idle:
+            strcat(status, "Idle");
+            break;
+        case State::Cycle:
+            strcat(status, "Run");
+            break;
+        case State::Hold:
             if (!(sys.suspend & SUSPEND_JOG_CANCEL)) {
                 strcat(status, "Hold:");
                 if (sys.suspend & SUSPEND_HOLD_COMPLETE) {
@@ -559,11 +618,19 @@ void report_realtime_status(uint8_t client) {
                 }
                 break;
             }  // Continues to print jog state during jog cancel.
-        case STATE_JOG: strcat(status, "Jog"); break;
-        case STATE_HOMING: strcat(status, "Home"); break;
-        case STATE_ALARM: strcat(status, "Alarm"); break;
-        case STATE_CHECK_MODE: strcat(status, "Check"); break;
-        case STATE_SAFETY_DOOR:
+        case State::Jog:
+            strcat(status, "Jog");
+            break;
+        case State::Homing:
+            strcat(status, "Home");
+            break;
+        case State::Alarm:
+            strcat(status, "Alarm");
+            break;
+        case State::CheckMode:
+            strcat(status, "Check");
+            break;
+        case State::SafetyDoor:
             strcat(status, "Door:");
             if (sys.suspend & SUSPEND_INITIATE_RESTORE) {
                 strcat(status, "3");  // Restoring
@@ -580,7 +647,9 @@ void report_realtime_status(uint8_t client) {
                 }
             }
             break;
-        case STATE_SLEEP: strcat(status, "Sleep"); break;
+        case State::Sleep:
+            strcat(status, "Sleep");
+            break;
     }
     float wco[N_AXIS];
     if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE) || (sys.report_wco_counter == 0)) {
@@ -707,10 +776,16 @@ void report_realtime_status(uint8_t client) {
     if (sys.report_wco_counter > 0) {
         sys.report_wco_counter--;
     } else {
-        if (sys.state & (STATE_HOMING | STATE_CYCLE | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) {
-            sys.report_wco_counter = (REPORT_WCO_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
-        } else {
-            sys.report_wco_counter = (REPORT_WCO_REFRESH_IDLE_COUNT - 1);
+        switch (sys.state) {
+            case State::Homing:
+            case State::Cycle:
+            case State::Hold:
+            case State::Jog:
+            case State::SafetyDoor:
+                sys.report_wco_counter = (REPORT_WCO_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
+            default:
+                sys.report_wco_counter = (REPORT_WCO_REFRESH_IDLE_COUNT - 1);
+                break;
         }
         if (sys.report_ovr_counter == 0) {
             sys.report_ovr_counter = 1;  // Set override on next report.
@@ -724,11 +799,18 @@ void report_realtime_status(uint8_t client) {
     if (sys.report_ovr_counter > 0) {
         sys.report_ovr_counter--;
     } else {
-        if (sys.state & (STATE_HOMING | STATE_CYCLE | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR)) {
-            sys.report_ovr_counter = (REPORT_OVR_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
-        } else {
-            sys.report_ovr_counter = (REPORT_OVR_REFRESH_IDLE_COUNT - 1);
+        switch (sys.state) {
+            case State::Homing:
+            case State::Cycle:
+            case State::Hold:
+            case State::Jog:
+            case State::SafetyDoor:
+                sys.report_ovr_counter = (REPORT_OVR_REFRESH_BUSY_COUNT - 1);  // Reset counter for slow refresh
+            default:
+                sys.report_ovr_counter = (REPORT_OVR_REFRESH_IDLE_COUNT - 1);
+                break;
         }
+
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
         SpindleState sp_state      = spindle->get_state();
@@ -736,9 +818,14 @@ void report_realtime_status(uint8_t client) {
         if (sp_state != SpindleState::Disable || coolant_state.Mist || coolant_state.Flood) {
             strcat(status, "|A:");
             switch (sp_state) {
-                case SpindleState::Disable: break;
-                case SpindleState::Cw: strcat(status, "S"); break;
-                case SpindleState::Ccw: strcat(status, "C"); break;
+                case SpindleState::Disable:
+                    break;
+                case SpindleState::Cw:
+                    strcat(status, "S");
+                    break;
+                case SpindleState::Ccw:
+                    strcat(status, "C");
+                    break;
             }
 
             auto coolant = coolant_state;
@@ -786,12 +873,12 @@ void report_gcode_comment(char* comment) {
             index++;
         }
         msg[index - offset] = 0;  // null terminate
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "GCode Comment...%s", msg);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "GCode Comment...%s", msg);
     }
 }
 
 void report_machine_type(uint8_t client) {
-    grbl_msg_sendf(client, MSG_LEVEL_INFO, "Using machine:%s", MACHINE_NAME);
+    grbl_msg_sendf(client, MsgLevel::Info, "Using machine:%s", MACHINE_NAME);
 }
 
 /*
@@ -808,7 +895,7 @@ void report_hex_msg(char* buf, const char* prefix, int len) {
         strcat(report, temp);
     }
 
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", report);
 }
 
 void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
@@ -820,17 +907,24 @@ void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
         strcat(report, temp);
     }
 
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", report);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", report);
 }
 
 char report_get_axis_letter(uint8_t axis) {
     switch (axis) {
-        case X_AXIS: return 'X';
-        case Y_AXIS: return 'Y';
-        case Z_AXIS: return 'Z';
-        case A_AXIS: return 'A';
-        case B_AXIS: return 'B';
-        case C_AXIS: return 'C';
-        default: return '?';
+        case X_AXIS:
+            return 'X';
+        case Y_AXIS:
+            return 'Y';
+        case Z_AXIS:
+            return 'Z';
+        case A_AXIS:
+            return 'A';
+        case B_AXIS:
+            return 'B';
+        case C_AXIS:
+            return 'C';
+        default:
+            return '?';
     }
 }

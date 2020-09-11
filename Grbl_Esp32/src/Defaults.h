@@ -120,7 +120,7 @@
 
 // ======== SPINDLE STUFF ====================
 #ifndef SPINDLE_TYPE
-#    define SPINDLE_TYPE SPINDLE_TYPE_NONE
+#    define SPINDLE_TYPE SpindleType::NONE
 #endif
 
 #ifndef DEFAULT_SPINDLE_RPM_MIN          // $31
@@ -537,4 +537,17 @@
 
 #ifndef DYNAMIXEL_RTS
 #    define DYNAMIXEL_RTS UNDEFINED_PIN
+#endif
+
+#ifndef USER_ANALOG_PIN_0_FREQ
+#    define USER_ANALOG_PIN_0_FREQ 5000
+#endif
+#ifndef USER_ANALOG_PIN_1_FREQ
+#    define USER_ANALOG_PIN_1_FREQ 5000
+#endif
+#ifndef USER_ANALOG_PIN_2_FREQ
+#    define USER_ANALOG_PIN_2_FREQ 5000
+#endif
+#ifndef USER_ANALOG_PIN_3_FREQ
+#    define USER_ANALOG_PIN_3_FREQ 5000
 #endif

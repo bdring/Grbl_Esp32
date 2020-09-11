@@ -55,15 +55,15 @@ EnumSetting* spindle_type;
 
 enum_opt_t spindleTypes = {
     // clang-format off
-    { "NONE", SPINDLE_TYPE_NONE },
-    { "PWM", SPINDLE_TYPE_PWM },
-    { "RELAY", SPINDLE_TYPE_RELAY },
-    { "LASER", SPINDLE_TYPE_LASER },
-    { "DAC", SPINDLE_TYPE_DAC },
-    { "HUANYANG", SPINDLE_TYPE_HUANYANG },
-    { "BESC", SPINDLE_TYPE_BESC },
-    { "10V", SPINDLE_TYPE_10V },
-    { "H2A", SPINDLE_TYPE_H2A },
+    { "NONE", int8_t(SpindleType::NONE) },
+    { "PWM", int8_t(SpindleType::PWM) },
+    { "RELAY", int8_t(SpindleType::RELAY) },
+    { "LASER", int8_t(SpindleType::LASER) },
+    { "DAC", int8_t(SpindleType::DAC) },
+    { "HUANYANG", int8_t(SpindleType::HUANYANG) },
+    { "BESC", int8_t(SpindleType::BESC) },
+    { "10V", int8_t(SpindleType::_10V) },
+    { "H2A", int8_t(SpindleType::H2A) },
     // clang-format on
 };
 
@@ -161,7 +161,7 @@ static const char* makename(const char* axisName, const char* tail) {
 }
 
 static bool checkStartupLine(char* value) {
-    if (sys.state != STATE_IDLE) {
+    if (sys.state != State::Idle) {
         return false;
     }
     return gc_execute_line(value, CLIENT_SERIAL) == Error::Ok;
@@ -337,6 +337,6 @@ void make_settings() {
     step_invert_mask       = new AxisMaskSetting(GRBL, WG, "2", "Stepper/StepInvert", DEFAULT_STEPPING_INVERT_MASK);
     stepper_idle_lock_time = new IntSetting(GRBL, WG, "1", "Stepper/IdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
     pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
-    spindle_type           = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", SPINDLE_TYPE, &spindleTypes);
+    spindle_type           = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", static_cast<int8_t>(SPINDLE_TYPE), &spindleTypes);
     stallguard_debug_mask  = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
 }

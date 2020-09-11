@@ -58,7 +58,7 @@ namespace Motors {
 
     void RcServo::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "%s Axis RC Servo Pin:%d Pulse Len(%.0f,%.0f) Limits(%.3f,%.3f)",
                        _axis_name,
                        _pwm_pin,
@@ -75,7 +75,6 @@ namespace Motors {
         }
 
         _current_pwm_duty = duty;
-
         ledcWrite(_channel_num, duty);
     }
 
@@ -108,8 +107,7 @@ namespace Motors {
 
         read_settings();
 
-        // skip location if we are in alarm mode
-        if (sys.state == STATE_ALARM) {
+        if (sys.state == State::Alarm) {
             set_disable(true);
             return;
         }

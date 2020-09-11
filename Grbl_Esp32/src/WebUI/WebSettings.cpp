@@ -224,7 +224,11 @@ namespace WebUI {
     }
 
     static Error showFwInfo(char* parameter, AuthenticationLevel auth_level) {  // ESP800
-        webPrint("FW version:" GRBL_VERSION " (" GRBL_VERSION_BUILD ")"
+        webPrint("FW version:");
+        webPrint(GRBL_VERSION);
+        webPrint(" (");
+        webPrint(GRBL_VERSION_BUILD);
+        webPrint(")"
                  " # FW target:grbl-embedded  # FW HW:");
 #ifdef ENABLE_SD_CARD
         webPrint("Direct SD");
@@ -242,10 +246,18 @@ namespace WebUI {
         webPrint(" # webcommunication: Sync: ", String(web_server.port() + 1));
         webPrint(":");
         switch (WiFi.getMode()) {
-            case WIFI_MODE_AP: webPrint(WiFi.softAPIP().toString()); break;
-            case WIFI_MODE_STA: webPrint(WiFi.localIP().toString()); break;
-            case WIFI_MODE_APSTA: webPrint(WiFi.softAPIP().toString()); break;
-            default: webPrint("0.0.0.0"); break;
+            case WIFI_MODE_AP:
+                webPrint(WiFi.softAPIP().toString());
+                break;
+            case WIFI_MODE_STA:
+                webPrint(WiFi.localIP().toString());
+                break;
+            case WIFI_MODE_APSTA:
+                webPrint(WiFi.softAPIP().toString());
+                break;
+            default:
+                webPrint("0.0.0.0");
+                break;
         }
 #    endif
         webPrint(" # hostname:", wifi_config.Hostname());
@@ -424,10 +436,17 @@ namespace WebUI {
                     esp_wifi_get_protocol(ESP_IF_WIFI_STA, &PhyMode);
                     const char* modeName;
                     switch (PhyMode) {
-                        case WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N: modeName = "11n"; break;
-                        case WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G: modeName = "11g"; break;
-                        case WIFI_PROTOCOL_11B: modeName = "11b"; break;
-                        default: modeName = "???";
+                        case WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N:
+                            modeName = "11n";
+                            break;
+                        case WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G:
+                            modeName = "11g";
+                            break;
+                        case WIFI_PROTOCOL_11B:
+                            modeName = "11b";
+                            break;
+                        default:
+                            modeName = "???";
                     }
                     webPrintln("Phy Mode: ", modeName);
 
@@ -455,11 +474,20 @@ namespace WebUI {
 
                 const char* mode;
                 switch (conf.ap.authmode) {
-                    case WIFI_AUTH_OPEN: mode = "None"; break;
-                    case WIFI_AUTH_WEP: mode = "WEP"; break;
-                    case WIFI_AUTH_WPA_PSK: mode = "WPA"; break;
-                    case WIFI_AUTH_WPA2_PSK: mode = "WPA2"; break;
-                    default: mode = "WPA/WPA2";
+                    case WIFI_AUTH_OPEN:
+                        mode = "None";
+                        break;
+                    case WIFI_AUTH_WEP:
+                        mode = "WEP";
+                        break;
+                    case WIFI_AUTH_WPA_PSK:
+                        mode = "WPA";
+                        break;
+                    case WIFI_AUTH_WPA2_PSK:
+                        mode = "WPA2";
+                        break;
+                    default:
+                        mode = "WPA/WPA2";
                 }
 
                 webPrintln("Authentication: ", mode);
@@ -630,7 +658,7 @@ namespace WebUI {
                 return Error::SdFailedBusy;
             }
         }
-        if (sys.state != STATE_IDLE) {
+        if (sys.state != State::Idle) {
             webPrintln("Busy");
             return Error::IdleError;
         }
@@ -764,9 +792,14 @@ namespace WebUI {
         const char* resp = "No SD card";
 #ifdef ENABLE_SD_CARD
         switch (get_sd_state(true)) {
-            case SDCARD_IDLE: resp = "SD card detected"; break;
-            case SDCARD_NOT_PRESENT: resp = "No SD card"; break;
-            default: resp = "Busy";
+            case SDCARD_IDLE:
+                resp = "SD card detected";
+                break;
+            case SDCARD_NOT_PRESENT:
+                resp = "No SD card";
+                break;
+            default:
+                resp = "Busy";
         }
 #endif
         webPrintln(resp);
@@ -839,7 +872,9 @@ namespace WebUI {
                 bt_config.begin();
                 return Error::Ok;
 #    endif
-            default: webPrintln("[MSG: Radio is Off]"); return Error::Ok;
+            default:
+                webPrintln("[MSG: Radio is Off]");
+                return Error::Ok;
         }
 #endif
         return Error::Ok;

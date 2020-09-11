@@ -31,8 +31,8 @@ void grbl_init() {
     WiFi.enableAP(false);
     WiFi.mode(WIFI_OFF);
     serial_init();  // Setup serial baud rate and interrupts
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
 // show the map name at startup
 #ifdef MACHINE_NAME
     report_machine_type(CLIENT_SERIAL);
@@ -49,9 +49,9 @@ void grbl_init() {
     // Initialize system state.
 #ifdef FORCE_INITIALIZATION_ALARM
     // Force Grbl into an ALARM state upon a power-cycle or hard reset.
-    sys.state = STATE_ALARM;
+    sys.state = State::Alarm;
 #else
-    sys.state = STATE_IDLE;
+    sys.state = State::Idle;
 #endif
     // Check for power-up and set system alarm if homing is enabled to force homing cycle
     // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
@@ -62,7 +62,7 @@ void grbl_init() {
     // things uncontrollably. Very bad.
 #ifdef HOMING_INIT_LOCK
     if (homing_enable->get()) {
-        sys.state = STATE_ALARM;
+        sys.state = State::Alarm;
     }
 #endif
     Spindles::Spindle::select();
@@ -77,7 +77,7 @@ void grbl_init() {
 
 static void reset_variables() {
     // Reset system variables.
-    uint8_t prior_state = sys.state;
+    State prior_state = sys.state;
     memset(&sys, 0, sizeof(system_t));  // Clear system struct variable.
     sys.state             = prior_state;
     sys.f_override        = DEFAULT_FEED_OVERRIDE;              // Set to 100%
@@ -86,9 +86,9 @@ static void reset_variables() {
     memset(sys_probe_position, 0, sizeof(sys_probe_position));  // Clear probe position.
     sys_probe_state                = 0;
     sys_rt_exec_state              = 0;
-    sys_rt_exec_alarm              = 0;
     sys_rt_exec_motion_override    = 0;
     sys_rt_exec_accessory_override = 0;
+    system_clear_exec_alarm();
     // Reset Grbl primary systems.
     serial_reset_read_buffer(CLIENT_ALL);  // Clear serial read buffer
     gc_init();                             // Set g-code parser to default state

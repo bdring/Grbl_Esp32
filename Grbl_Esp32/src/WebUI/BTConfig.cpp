@@ -54,7 +54,8 @@ namespace WebUI {
                 grbl_send(CLIENT_ALL, "[MSG:BT Disconnected]\r\n");
                 BTConfig::_btclient = "";
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 

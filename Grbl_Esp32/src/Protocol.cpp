@@ -85,7 +85,7 @@ Error execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_l
         return system_execute_line(line, client, auth_level);
     }
     // Everything else is gcode. Block if in alarm or jog mode.
-    if (sys.state & (STATE_ALARM | STATE_JOG)) {
+    if (sys.state == State::Alarm || sys.state == State::Jog) {
         return Error::SystemGcLock;
     }
     return gc_execute_line(line, client);
@@ -110,20 +110,20 @@ void protocol_main_loop() {
 #ifdef CHECK_LIMITS_AT_INIT
     if (hard_limits->get()) {
         if (limits_get_state()) {
-            sys.state = STATE_ALARM;  // Ensure alarm state is active.
-            report_feedback_message(MESSAGE_CHECK_LIMITS);
+            sys.state = State::Alarm;  // Ensure alarm state is active.
+            report_feedback_message(Message::CheckLimits);
         }
     }
 #endif
     // Check for and report alarm state after a reset, error, or an initial power up.
     // NOTE: Sleep mode disables the stepper drivers and position can't be guaranteed.
     // Re-initialize the sleep state as an ALARM mode to ensure user homes or acknowledges.
-    if (sys.state & (STATE_ALARM | STATE_SLEEP)) {
-        report_feedback_message(MESSAGE_ALARM_LOCK);
-        sys.state = STATE_ALARM;  // Ensure alarm state is set.
+    if (sys.state == State::Alarm || sys.state == State::Sleep) {
+        report_feedback_message(Message::AlarmLock);
+        sys.state = State::Alarm;  // Ensure alarm state is set.
     } else {
         // Check if the safety door is open.
-        sys.state = STATE_IDLE;
+        sys.state = State::Idle;
         if (system_check_safety_door_ajar()) {
             bit_true(sys_rt_exec_state, EXEC_SAFETY_DOOR);
             protocol_execute_realtime();  // Enter safety door mode. Should return as IDLE state.
@@ -160,7 +160,8 @@ void protocol_main_loop() {
             while ((c = serial_read(client)) != SERIAL_NO_DATA) {
                 Error res = add_char_to_line(c, client);
                 switch (res) {
-                    case Error::Ok: break;
+                    case Error::Ok:
+                        break;
                     case Error::Eol:
                         protocol_execute_realtime();  // Runtime command check point.
                         if (sys.abort) {
@@ -178,7 +179,8 @@ void protocol_main_loop() {
                         report_status_message(Error::Overflow, client);
                         empty_line(client);
                         break;
-                    default: break;
+                    default:
+                        break;
                 }
             }  // while serial read
         }      // for clients
@@ -210,7 +212,7 @@ void protocol_buffer_synchronize() {
         if (sys.abort) {
             return;  // Check for system abort
         }
-    } while (plan_get_current_block() || (sys.state == STATE_CYCLE));
+    } while (plan_get_current_block() || (sys.state == State::Cycle));
 }
 
 // Auto-cycle start triggers when there is a motion ready to execute and if the main program is not
@@ -247,17 +249,16 @@ void protocol_execute_realtime() {
 // machine and controls the various real-time features Grbl has to offer.
 // NOTE: Do not alter this unless you know exactly what you are doing!
 void protocol_exec_rt_system() {
-    uint8_t rt_exec;              // Temp variable to avoid calling volatile multiple times.
-    rt_exec = sys_rt_exec_alarm;  // Copy volatile sys_rt_exec_alarm.
-    if (rt_exec) {                // Enter only if any bit flag is true
+    ExecAlarm alarm = sys_rt_exec_alarm;  // Temp variable to avoid calling volatile multiple times.
+    if (alarm != ExecAlarm::None) {       // Enter only if an alarm is pending
         // System alarm. Everything has shutdown by something that has gone severely wrong. Report
         // the source of the error to the user. If critical, Grbl disables by entering an infinite
         // loop until system reset/abort.
-        sys.state = STATE_ALARM;  // Set system alarm state
-        report_alarm_message(rt_exec);
+        sys.state = State::Alarm;  // Set system alarm state
+        report_alarm_message(alarm);
         // Halt everything upon a critical event flag. Currently hard and soft limits flag this.
-        if ((rt_exec == EXEC_ALARM_HARD_LIMIT) || (rt_exec == EXEC_ALARM_SOFT_LIMIT)) {
-            report_feedback_message(MESSAGE_CRITICAL_EVENT);
+        if ((alarm == ExecAlarm::HardLimit) || (alarm == ExecAlarm::SoftLimit)) {
+            report_feedback_message(Message::CriticalEvent);
             system_clear_exec_state_flag(EXEC_RESET);  // Disable any existing reset
             do {
                 // Block everything, except reset and status reports, until user issues reset or power
@@ -269,7 +270,7 @@ void protocol_exec_rt_system() {
         }
         system_clear_exec_alarm();  // Clear alarm
     }
-    rt_exec = sys_rt_exec_state;  // Copy volatile sys_rt_exec_state.
+    uint8_t rt_exec = sys_rt_exec_state;  // Copy volatile sys_rt_exec_state.
     if (rt_exec) {
         // Execute system abort.
         if (rt_exec & EXEC_RESET) {
@@ -285,13 +286,13 @@ void protocol_exec_rt_system() {
         // main program processes until either reset or resumed. This ensures a hold completes safely.
         if (rt_exec & (EXEC_MOTION_CANCEL | EXEC_FEED_HOLD | EXEC_SAFETY_DOOR | EXEC_SLEEP)) {
             // State check for allowable states for hold methods.
-            if (!(sys.state & (STATE_ALARM | STATE_CHECK_MODE))) {
+            if (!(sys.state == State::Alarm || sys.state == State::CheckMode)) {
                 // If in CYCLE or JOG states, immediately initiate a motion HOLD.
-                if (sys.state & (STATE_CYCLE | STATE_JOG)) {
+                if (sys.state == State::Cycle || sys.state == State::Jog) {
                     if (!(sys.suspend & (SUSPEND_MOTION_CANCEL | SUSPEND_JOG_CANCEL))) {  // Block, if already holding.
                         st_update_plan_block_parameters();             // Notify stepper module to recompute for hold deceleration.
                         sys.step_control = STEP_CONTROL_EXECUTE_HOLD;  // Initiate suspend state with active flag.
-                        if (sys.state == STATE_JOG) {                  // Jog cancelled upon any hold event, except for sleeping.
+                        if (sys.state == State::Jog) {                 // Jog cancelled upon any hold event, except for sleeping.
                             if (!(rt_exec & EXEC_SLEEP)) {
                                 sys.suspend |= SUSPEND_JOG_CANCEL;
                             }
@@ -299,7 +300,7 @@ void protocol_exec_rt_system() {
                     }
                 }
                 // If IDLE, Grbl is not in motion. Simply indicate suspend state and hold is complete.
-                if (sys.state == STATE_IDLE) {
+                if (sys.state == State::Idle) {
                     sys.suspend = SUSPEND_HOLD_COMPLETE;
                 }
                 // Execute and flag a motion cancel with deceleration and return to idle. Used primarily by probing cycle
@@ -308,27 +309,27 @@ void protocol_exec_rt_system() {
                     // MOTION_CANCEL only occurs during a CYCLE, but a HOLD and SAFETY_DOOR may been initiated beforehand
                     // to hold the CYCLE. Motion cancel is valid for a single planner block motion only, while jog cancel
                     // will handle and clear multiple planner block motions.
-                    if (!(sys.state & STATE_JOG)) {
-                        sys.suspend |= SUSPEND_MOTION_CANCEL;  // NOTE: State is STATE_CYCLE.
+                    if (sys.state != State::Jog) {
+                        sys.suspend |= SUSPEND_MOTION_CANCEL;  // NOTE: State is State::Cycle.
                     }
                 }
                 // Execute a feed hold with deceleration, if required. Then, suspend system.
                 if (rt_exec & EXEC_FEED_HOLD) {
                     // Block SAFETY_DOOR, JOG, and SLEEP states from changing to HOLD state.
-                    if (!(sys.state & (STATE_SAFETY_DOOR | STATE_JOG | STATE_SLEEP))) {
-                        sys.state = STATE_HOLD;
+                    if (!(sys.state == State::SafetyDoor || sys.state == State::Jog || sys.state == State::Sleep)) {
+                        sys.state = State::Hold;
                     }
                 }
                 // Execute a safety door stop with a feed hold and disable spindle/coolant.
                 // NOTE: Safety door differs from feed holds by stopping everything no matter state, disables powered
                 // devices (spindle/coolant), and blocks resuming until switch is re-engaged.
                 if (rt_exec & EXEC_SAFETY_DOOR) {
-                    report_feedback_message(MESSAGE_SAFETY_DOOR_AJAR);
+                    report_feedback_message(Message::SafetyDoorAjar);
                     // If jogging, block safety door methods until jog cancel is complete. Just flag that it happened.
                     if (!(sys.suspend & SUSPEND_JOG_CANCEL)) {
                         // Check if the safety re-opened during a restore parking motion only. Ignore if
                         // already retracting, parked or in sleep state.
-                        if (sys.state == STATE_SAFETY_DOOR) {
+                        if (sys.state == State::SafetyDoor) {
                             if (sys.suspend & SUSPEND_INITIATE_RESTORE) {  // Actively restoring
 #ifdef PARKING_ENABLE
                                 // Set hold and reset appropriate control flags to restart parking sequence.
@@ -342,8 +343,8 @@ void protocol_exec_rt_system() {
                                 sys.suspend |= SUSPEND_RESTART_RETRACT;
                             }
                         }
-                        if (sys.state != STATE_SLEEP) {
-                            sys.state = STATE_SAFETY_DOOR;
+                        if (sys.state != State::Sleep) {
+                            sys.state = State::SafetyDoor;
                         }
                     }
                     // NOTE: This flag doesn't change when the door closes, unlike sys.state. Ensures any parking motions
@@ -352,10 +353,10 @@ void protocol_exec_rt_system() {
                 }
             }
             if (rt_exec & EXEC_SLEEP) {
-                if (sys.state == STATE_ALARM) {
+                if (sys.state == State::Alarm) {
                     sys.suspend |= (SUSPEND_RETRACT_COMPLETE | SUSPEND_HOLD_COMPLETE);
                 }
-                sys.state = STATE_SLEEP;
+                sys.state = State::Sleep;
             }
             system_clear_exec_state_flag((EXEC_MOTION_CANCEL | EXEC_FEED_HOLD | EXEC_SAFETY_DOOR | EXEC_SLEEP));
         }
@@ -365,9 +366,9 @@ void protocol_exec_rt_system() {
             // Ensures auto-cycle-start doesn't resume a hold without an explicit user-input.
             if (!(rt_exec & (EXEC_FEED_HOLD | EXEC_MOTION_CANCEL | EXEC_SAFETY_DOOR))) {
                 // Resume door state when parking motion has retracted and door has been closed.
-                if ((sys.state == STATE_SAFETY_DOOR) && !(sys.suspend & SUSPEND_SAFETY_DOOR_AJAR)) {
+                if ((sys.state == State::SafetyDoor) && !(sys.suspend & SUSPEND_SAFETY_DOOR_AJAR)) {
                     if (sys.suspend & SUSPEND_RESTORE_COMPLETE) {
-                        sys.state = STATE_IDLE;  // Set to IDLE to immediately resume the cycle.
+                        sys.state = State::Idle;  // Set to IDLE to immediately resume the cycle.
                     } else if (sys.suspend & SUSPEND_RETRACT_COMPLETE) {
                         // Flag to re-energize powered components and restore original position, if disabled by SAFETY_DOOR.
                         // NOTE: For a safety door to resume, the switch must be closed, as indicated by HOLD state, and
@@ -378,20 +379,20 @@ void protocol_exec_rt_system() {
                     }
                 }
                 // Cycle start only when IDLE or when a hold is complete and ready to resume.
-                if ((sys.state == STATE_IDLE) || ((sys.state & STATE_HOLD) && (sys.suspend & SUSPEND_HOLD_COMPLETE))) {
-                    if (sys.state == STATE_HOLD && sys.spindle_stop_ovr) {
+                if ((sys.state == State::Idle) || ((sys.state == State::Hold) && (sys.suspend & SUSPEND_HOLD_COMPLETE))) {
+                    if (sys.state == State::Hold && sys.spindle_stop_ovr) {
                         sys.spindle_stop_ovr |= SPINDLE_STOP_OVR_RESTORE_CYCLE;  // Set to restore in suspend routine and cycle start after.
                     } else {
                         // Start cycle only if queued motions exist in planner buffer and the motion is not canceled.
                         sys.step_control = STEP_CONTROL_NORMAL_OP;  // Restore step control to normal operation
                         if (plan_get_current_block() && bit_isfalse(sys.suspend, SUSPEND_MOTION_CANCEL)) {
                             sys.suspend = SUSPEND_DISABLE;  // Break suspend state.
-                            sys.state   = STATE_CYCLE;
+                            sys.state   = State::Cycle;
                             st_prep_buffer();  // Initialize step segment buffer before beginning cycle.
                             st_wake_up();
                         } else {                            // Otherwise, do nothing. Set and resume IDLE state.
                             sys.suspend = SUSPEND_DISABLE;  // Break suspend state.
-                            sys.state   = STATE_IDLE;
+                            sys.state   = State::Idle;
                         }
                     }
                 }
@@ -404,7 +405,8 @@ void protocol_exec_rt_system() {
             // NOTE: Bresenham algorithm variables are still maintained through both the planner and stepper
             // cycle reinitializations. The stepper path should continue exactly as if nothing has happened.
             // NOTE: EXEC_CYCLE_STOP is set by the stepper subsystem when a cycle or feed hold completes.
-            if ((sys.state & (STATE_HOLD | STATE_SAFETY_DOOR | STATE_SLEEP)) && !(sys.soft_limit) && !(sys.suspend & SUSPEND_JOG_CANCEL)) {
+            if ((sys.state == State::Hold || sys.state == State::SafetyDoor || sys.state == State::Sleep) && !(sys.soft_limit) &&
+                !(sys.suspend & SUSPEND_JOG_CANCEL)) {
                 // Hold complete. Set to indicate ready to resume.  Remain in HOLD or DOOR states until user
                 // has issued a resume command or reset.
                 plan_cycle_reinitialize();
@@ -425,10 +427,10 @@ void protocol_exec_rt_system() {
                 if (sys.suspend & SUSPEND_SAFETY_DOOR_AJAR) {  // Only occurs when safety door opens during jog.
                     sys.suspend &= ~(SUSPEND_JOG_CANCEL);
                     sys.suspend |= SUSPEND_HOLD_COMPLETE;
-                    sys.state = STATE_SAFETY_DOOR;
+                    sys.state = State::SafetyDoor;
                 } else {
                     sys.suspend = SUSPEND_DISABLE;
-                    sys.state   = STATE_IDLE;
+                    sys.state   = State::Idle;
                 }
             }
             system_clear_exec_state_flag(EXEC_CYCLE_STOP);
@@ -508,7 +510,7 @@ void protocol_exec_rt_system() {
         if (rt_exec & EXEC_SPINDLE_OVR_STOP) {
             // Spindle stop override allowed only while in HOLD state.
             // NOTE: Report counters are set in spindle_set_state() when spindle stop is executed.
-            if (sys.state == STATE_HOLD) {
+            if (sys.state == State::Hold) {
                 if (!(sys.spindle_stop_ovr)) {
                     sys.spindle_stop_ovr = SPINDLE_STOP_OVR_INITIATE;
                 } else if (sys.spindle_stop_ovr & SPINDLE_STOP_OVR_ENABLED) {
@@ -519,7 +521,7 @@ void protocol_exec_rt_system() {
         // NOTE: Since coolant state always performs a planner sync whenever it changes, the current
         // run state can be determined by checking the parser state.
         if (rt_exec & (EXEC_COOLANT_FLOOD_OVR_TOGGLE | EXEC_COOLANT_MIST_OVR_TOGGLE)) {
-            if ((sys.state == STATE_IDLE) || (sys.state & (STATE_CYCLE | STATE_HOLD))) {
+            if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
                 CoolantState coolant_state = gc_state.modal.coolant;
 #ifdef COOLANT_FLOOD_PIN
                 if (rt_exec & EXEC_COOLANT_FLOOD_OVR_TOGGLE) {
@@ -551,8 +553,17 @@ void protocol_exec_rt_system() {
     }
 #endif
     // Reload step segment buffer
-    if (sys.state & (STATE_CYCLE | STATE_HOLD | STATE_SAFETY_DOOR | STATE_HOMING | STATE_SLEEP | STATE_JOG)) {
-        st_prep_buffer();
+    switch (sys.state) {
+        case State::Cycle:
+        case State::Hold:
+        case State::SafetyDoor:
+        case State::Homing:
+        case State::Sleep:
+        case State::Jog:
+            st_prep_buffer();
+            break;
+        default:
+            break;
     }
 }
 
@@ -570,7 +581,9 @@ static void protocol_exec_rt_suspend() {
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
     memset(pl_data, 0, sizeof(plan_line_data_t));
-    pl_data->motion = (PL_MOTION_SYSTEM_MOTION | PL_MOTION_NO_FEED_OVERRIDE);
+    pl_data->motion                = {};
+    pl_data->motion.systemMotion   = 1;
+    pl_data->motion.noFeedOverride = 1;
 #    ifdef USE_LINE_NUMBERS
     pl_data->line_number = PARKING_MOTION_LINE_NUMBER;
 #    endif
@@ -602,7 +615,7 @@ static void protocol_exec_rt_suspend() {
         if (sys.suspend & SUSPEND_HOLD_COMPLETE) {
             // Parking manager. Handles de/re-energizing, switch state checks, and parking motions for
             // the safety door and sleep states.
-            if (sys.state & (STATE_SAFETY_DOOR | STATE_SLEEP)) {
+            if (sys.state == State::SafetyDoor || sys.state == State::Sleep) {
                 // Handles retraction motions and de-energizing.
                 if (bit_isfalse(sys.suspend, SUSPEND_RETRACT_COMPLETE)) {
                     // Ensure any prior spindle stop override is disabled at start of safety door routine.
@@ -633,10 +646,12 @@ static void protocol_exec_rt_suspend() {
                             mc_parking_motion(parking_target, pl_data);
                         }
                         // NOTE: Clear accessory state after retract and after an aborted restore motion.
-                        pl_data->spindle       = SpindleState::Disable;
-                        pl_data->coolant       = {};
-                        pl_data->motion        = (PL_MOTION_SYSTEM_MOTION | PL_MOTION_NO_FEED_OVERRIDE);
-                        pl_data->spindle_speed = 0.0;
+                        pl_data->spindle               = SpindleState::Disable;
+                        pl_data->coolant               = {};
+                        pl_data->motion                = {};
+                        pl_data->motion.systemMotion   = 1;
+                        pl_data->motion.noFeedOverride = 1;
+                        pl_data->spindle_speed         = 0.0;
                         spindle->set_state(pl_data->spindle, 0);  // De-energize
                         coolant_set_state(pl_data->coolant);
                         // Execute fast parking retract motion to parking target location.
@@ -655,8 +670,8 @@ static void protocol_exec_rt_suspend() {
                     sys.suspend &= ~(SUSPEND_RESTART_RETRACT);
                     sys.suspend |= SUSPEND_RETRACT_COMPLETE;
                 } else {
-                    if (sys.state == STATE_SLEEP) {
-                        report_feedback_message(MESSAGE_SLEEP_MODE);
+                    if (sys.state == State::Sleep) {
+                        report_feedback_message(Message::SleepMode);
                         // Spindle and coolant should already be stopped, but do it again just to be sure.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
                         coolant_off();
@@ -667,7 +682,7 @@ static void protocol_exec_rt_suspend() {
                         return;  // Abort received. Return to re-initialize.
                     }
                     // Allows resuming from parking/safety door. Actively checks if safety door is closed and ready to resume.
-                    if (sys.state == STATE_SAFETY_DOOR) {
+                    if (sys.state == State::SafetyDoor) {
                         if (!(system_check_safety_door_ajar())) {
                             sys.suspend &= ~(SUSPEND_SAFETY_DOOR_AJAR);  // Reset door ajar flag to denote ready to resume.
                         }
@@ -744,7 +759,7 @@ static void protocol_exec_rt_suspend() {
                         // Handles restoring of spindle state
                     } else if (sys.spindle_stop_ovr & (SPINDLE_STOP_OVR_RESTORE | SPINDLE_STOP_OVR_RESTORE_CYCLE)) {
                         if (gc_state.modal.spindle != SpindleState::Disable) {
-                            report_feedback_message(MESSAGE_SPINDLE_RESTORE);
+                            report_feedback_message(Message::SpindleRestore);
                             if (laser_mode->get()) {
                                 // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                 bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);

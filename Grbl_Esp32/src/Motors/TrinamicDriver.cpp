@@ -51,7 +51,7 @@ namespace Motors {
         } else if (_driver_part_number == 5160) {
             tmcstepper = new TMC5160Stepper(cs_pin, _r_sense, spi_index);
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Axis Unsupported Trinamic part number TMC%d", _axis_name, _driver_part_number);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Axis Unsupported Trinamic part number TMC%d", _axis_name, _driver_part_number);
             has_errors = true;  // as opposed to NullMotors, this is a real motor
             return;
         }
@@ -91,7 +91,7 @@ namespace Motors {
 */
     void TrinamicDriver::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "%s Axis Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d Limits(%0.3f,%0.3f)",
                        _axis_name,
                        _driver_part_number,
@@ -110,10 +110,10 @@ namespace Motors {
         }
         switch (tmcstepper->test_connection()) {
             case 1:
-                grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check connection", _axis_name);
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Trinamic driver test failed. Check connection", _axis_name);
                 return false;
             case 2:
-                grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test failed. Check motor power", _axis_name);
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Trinamic driver test failed. Check motor power", _axis_name);
                 return false;
             default:
                 // driver responded, so check for other errors from the DRV_STATUS register
@@ -125,7 +125,7 @@ namespace Motors {
                 // look for open loan or short 2 ground on a and b
                 if (status.s2ga || status.s2gb) {
                     grbl_msg_sendf(CLIENT_SERIAL,
-                                   MSG_LEVEL_INFO,
+                                   MsgLevel::Info,
                                    "%s Motor Short Coil a:%s b:%s",
                                    _axis_name,
                                    status.s2ga ? "Y" : "N",
@@ -135,7 +135,7 @@ namespace Motors {
                 // check for over temp or pre-warning
                 if (status.ot || status.otpw) {
                     grbl_msg_sendf(CLIENT_SERIAL,
-                                   MSG_LEVEL_INFO,
+                                   MsgLevel::Info,
                                    "%s Driver Temp Warning:%s Fault:%s",
                                    _axis_name,
                                    status.otpw ? "Y" : "N",
@@ -147,7 +147,7 @@ namespace Motors {
                     return false;
                 }
 
-                grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Trinamic driver test passed", _axis_name);
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Trinamic driver test passed", _axis_name);
                 return true;
         }
     }
@@ -172,7 +172,7 @@ namespace Motors {
             if (hold_i_percent > 1.0)
                 hold_i_percent = 1.0;
         }
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s Current run %d hold %f", _axis_name, run_i_ma, hold_i_percent);
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Current run %d hold %f", _axis_name, run_i_ma, hold_i_percent);
 
         tmcstepper->microsteps(axis_settings[_axis_index]->microsteps->get());
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
@@ -205,20 +205,20 @@ namespace Motors {
 
         switch (_mode) {
             case TRINAMIC_MODE_STEALTHCHOP:
-                //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_STEALTHCHOP");
+                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_STEALTHCHOP");
                 tmcstepper->en_pwm_mode(true);
                 tmcstepper->pwm_autoscale(true);
                 tmcstepper->diag1_stall(false);
                 break;
             case TRINAMIC_MODE_COOLSTEP:
-                //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_COOLSTEP");
+                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_COOLSTEP");
                 tmcstepper->en_pwm_mode(false);
                 tmcstepper->pwm_autoscale(false);
                 tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS);  // when to turn on coolstep
                 tmcstepper->THIGH(NORMAL_THIGH);
                 break;
             case TRINAMIC_MODE_STALLGUARD:
-                //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_STALLGUARD");
+                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_STALLGUARD");
                 tmcstepper->en_pwm_mode(false);
                 tmcstepper->pwm_autoscale(false);
                 tmcstepper->TCOOLTHRS(calc_tstep(homing_feed_rate->get(), 150.0));
@@ -227,7 +227,8 @@ namespace Motors {
                 tmcstepper->diag1_stall(true);  // stallguard i/o is on diag1
                 tmcstepper->sgt(axis_settings[_axis_index]->stallguard->get());
                 break;
-            default: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "TRINAMIC_MODE_UNDEFINED");
+            default:
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_UNDEFINED");
         }
     }
 
@@ -246,7 +247,7 @@ namespace Motors {
         float feedrate = st_get_realtime_rate();  //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "%s Stallguard %d   SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
                        _axis_name,
                        tmcstepper->stallguard(),

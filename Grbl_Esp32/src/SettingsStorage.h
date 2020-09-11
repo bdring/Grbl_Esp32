@@ -44,19 +44,17 @@
 // NOTE: The Atmega328p has 1KB EEPROM. The upper half is reserved for parameters and
 // the startup script. The lower half contains the global settings and space for future
 // developments.
-#define EEPROM_SIZE 1024U
-#define EEPROM_ADDR_PARAMETERS 512U
-#define EEPROM_ADDR_BUILD_INFO 942U
+const int EEPROM_SIZE            = 1024U;
+const int EEPROM_ADDR_PARAMETERS = 512U;
+const int EEPROM_ADDR_BUILD_INFO = 942U;
 
 // Define EEPROM address indexing for coordinate parameters
-#define N_COORDINATE_SYSTEM 6                         // Number of supported work coordinate systems (from index 1)
-#define SETTING_INDEX_NCOORD N_COORDINATE_SYSTEM + 1  // Total number of system stored (from index 0)
+const int N_COORDINATE_SYSTEM  = 6;                        // Number of supported work coordinate systems (from index 1)
+const int SETTING_INDEX_NCOORD = N_COORDINATE_SYSTEM + 1;  // Total number of system stored (from index 0)
 // NOTE: Work coordinate indices are (0=G54, 1=G55, ... , 6=G59)
-#define SETTING_INDEX_G28 N_COORDINATE_SYSTEM      // Home position 1
-#define SETTING_INDEX_G30 N_COORDINATE_SYSTEM + 1  // Home position 2
-// #define SETTING_INDEX_G92    N_COORDINATE_SYSTEM+2  // Coordinate offset (G92.2,G92.3 not supported)
-
-#define USER_SETTING_COUNT 5  // for user to define for their machine
+const int SETTING_INDEX_G28 = N_COORDINATE_SYSTEM;      // Home position 1
+const int SETTING_INDEX_G30 = N_COORDINATE_SYSTEM + 1;  // Home position 2
+// const int  SETTING_INDEX_G92 = N_COORDINATE_SYSTEM+2;  // Coordinate offset (G92.2,G92.3 not supported)
 
 // Initialize the configuration subsystem (load settings from EEPROM)
 void settings_init();
