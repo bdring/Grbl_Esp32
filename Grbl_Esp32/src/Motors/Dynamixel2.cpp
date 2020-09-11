@@ -301,14 +301,29 @@ namespace Motors {
         if (len == 11) {
             uint8_t err = _dxl_rx_message[8];
             switch (err) {
-                case 1: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write fail error", _id); break;
-                case 2: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write instruction error", _id); break;
-                case 3: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write access error", _id); break;
-                case 4: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data range error", _id); break;
-                case 5: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data length error", _id); break;
-                case 6: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data limit error", _id); break;
-                case 7: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write access error", _id); break;
-                default: break;
+                case 1:
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write fail error", _id);
+                    break;
+                case 2:
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write instruction error", _id);
+                    break;
+                case 3:
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write access error", _id);
+                    break;
+                case 4:
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data range error", _id);
+                    break;
+                case 5:
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data length error", _id);
+                    break;
+                case 6:
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data limit error", _id);
+                    break;
+                case 7:
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write access error", _id);
+                    break;
+                default:
+                    break;
             }
         } else {
             // timeout

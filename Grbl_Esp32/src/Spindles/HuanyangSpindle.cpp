@@ -130,8 +130,12 @@ namespace Spindles {
         data.msg[2] = 0x01;
 
         switch (mode) {
-            case SpindleState::Cw: data.msg[3] = 0x01; break;
-            case SpindleState::Ccw: data.msg[3] = 0x11; break;
+            case SpindleState::Cw:
+                data.msg[3] = 0x01;
+                break;
+            case SpindleState::Ccw:
+                data.msg[3] = 0x11;
+                break;
             default:  // SpindleState::Disable
                 data.msg[3] = 0x08;
                 break;
