@@ -227,7 +227,8 @@ namespace Motors {
                 tmcstepper->diag1_stall(true);  // stallguard i/o is on diag1
                 tmcstepper->sgt(axis_settings[_axis_index]->stallguard->get());
                 break;
-            default: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_UNDEFINED");
+            default:
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_UNDEFINED");
         }
     }
 

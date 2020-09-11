@@ -36,7 +36,7 @@ void coolant_init() {
 // Returns current coolant output state. Overrides may alter it from programmed state.
 CoolantState coolant_get_state() {
     CoolantState cl_state = {};
-    bool pinState;
+    bool         pinState;
 
 #ifdef COOLANT_FLOOD_PIN
     pinState = digitalRead(COOLANT_FLOOD_PIN);

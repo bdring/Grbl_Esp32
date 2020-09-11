@@ -92,22 +92,30 @@ namespace Motors {
 		*/
         if (_half_step) {
             switch (_current_phase) {
-                case 0: _phase[0] = 1; break;
+                case 0:
+                    _phase[0] = 1;
+                    break;
                 case 1:
                     _phase[0] = 1;
                     _phase[1] = 1;
                     break;
-                case 2: _phase[1] = 1; break;
+                case 2:
+                    _phase[1] = 1;
+                    break;
                 case 3:
                     _phase[1] = 1;
                     _phase[2] = 1;
                     break;
-                case 4: _phase[2] = 1; break;
+                case 4:
+                    _phase[2] = 1;
+                    break;
                 case 5:
                     _phase[2] = 1;
                     _phase[3] = 1;
                     break;
-                case 6: _phase[3] = 1; break;
+                case 6:
+                    _phase[3] = 1;
+                    break;
                 case 7:
                     _phase[3] = 1;
                     _phase[0] = 1;
