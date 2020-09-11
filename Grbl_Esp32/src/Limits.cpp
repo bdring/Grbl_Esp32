@@ -55,11 +55,11 @@ void IRAM_ATTR isr_limit_switches() {
 #    ifdef HARD_LIMIT_FORCE_STATE_CHECK
             // Check limit pin state.
             if (limits_get_state()) {
-                mc_reset();                                    // Initiate system kill.
+                mc_reset();                                   // Initiate system kill.
                 system_set_exec_alarm(ExecAlarm::HardLimit);  // Indicate hard limit critical event
             }
 #    else
-            mc_reset();                                    // Initiate system kill.
+            mc_reset();                                   // Initiate system kill.
             system_set_exec_alarm(ExecAlarm::HardLimit);  // Indicate hard limit critical event
 #    endif
 #endif
@@ -98,8 +98,8 @@ void limits_go_home(uint8_t cycle_mask) {
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
     memset(pl_data, 0, sizeof(plan_line_data_t));
-    pl_data->motion = {};
-    pl_data->motion.systemMotion = 1;
+    pl_data->motion                = {};
+    pl_data->motion.systemMotion   = 1;
     pl_data->motion.noFeedOverride = 1;
 #ifdef USE_LINE_NUMBERS
     pl_data->line_number = HOMING_CYCLE_LINE_NUMBER;
@@ -404,9 +404,9 @@ void limits_soft_check(float* target) {
                 }
             } while (sys.state != State::Idle);
         }
-        mc_reset();                                    // Issue system reset and ensure spindle and coolant are shutdown.
+        mc_reset();                                   // Issue system reset and ensure spindle and coolant are shutdown.
         system_set_exec_alarm(ExecAlarm::SoftLimit);  // Indicate soft limit critical event
-        protocol_execute_realtime();                   // Execute to enter critical event loop and system abort
+        protocol_execute_realtime();                  // Execute to enter critical event loop and system abort
         return;
     }
 }
@@ -421,7 +421,7 @@ void limitCheckTask(void* pvParameters) {
         switch_state = limits_get_state();
         if (switch_state) {
             //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Limit Switch State %08d", switch_state);
-            mc_reset();                                    // Initiate system kill.
+            mc_reset();                                   // Initiate system kill.
             system_set_exec_alarm(ExecAlarm::HardLimit);  // Indicate hard limit critical event
         }
     }
