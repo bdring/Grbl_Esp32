@@ -77,7 +77,7 @@
 */
 
 // Socket #3 5V Output
-#define USER_DIGITAL_PIN_1        GPIO_NUM_14   
-#define USER_DIGITAL_PIN_2        GPIO_NUM_13  
-#define USER_DIGITAL_PIN_3        GPIO_NUM_15
-#define USER_DIGITAL_PIN_4        GPIO_NUM_12
+#define USER_DIGITAL_PIN_0        GPIO_NUM_14   
+#define USER_DIGITAL_PIN_1        GPIO_NUM_13  
+#define USER_DIGITAL_PIN_2        GPIO_NUM_15
+#define USER_DIGITAL_PIN_3        GPIO_NUM_12

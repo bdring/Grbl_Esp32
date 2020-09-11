@@ -179,7 +179,7 @@ void atari_home_task(void* pvParameters) {
 void calc_solenoid(float penZ) {
     bool        isPenUp;
     static bool previousPenState = false;
-    uint32_t    solenoid_pen_pulse_len;                     // duty cycle of solenoid
+    uint32_t    solenoid_pen_pulse_len;                    // duty cycle of solenoid
     isPenUp = ((penZ > 0) || (sys.state == State::Alarm));  // is pen above Z0 or is there an alarm
     // if the state has not change, we only count down to the pull time
     if (previousPenState == isPenUp) {
