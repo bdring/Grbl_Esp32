@@ -137,7 +137,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     uint8_t axis_words = 0;  // XYZ tracking
     uint8_t ijk_words  = 0;  // IJK tracking
     // Initialize command and value words and parser flags variables.
-    uint16_t command_words   = 0;  // Tracks G and M command words. Also used for modal group violations.
+    uint32_t command_words   = 0;  // Tracks G and M command words. Also used for modal group violations.
     uint32_t value_words     = 0;  // Tracks value words.
     uint8_t  gc_parser_flags = GCParserNone;
     // Determine if the line is a jogging motion or a normal g-code block.
@@ -156,7 +156,7 @@ Error gc_execute_line(char* line, uint8_t client) {
        perform initial error-checks for command word modal group violations, for any repeated
        words, and for negative values set for the value words F, N, P, T, and S. */
     ModalGroup mg_word_bit;  // Bit-value for assigning tracking variables
-    uint8_t    bitmask = 0;
+    uint32_t   bitmask = 0;
     uint8_t    char_counter;
     char       letter;
     float      value;
@@ -1322,18 +1322,18 @@ Error gc_execute_line(char* line, uint8_t client) {
         (gc_block.modal.io_control == IoControl::DigitalOnImmediate) || (gc_block.modal.io_control == IoControl::DigitalOffImmediate)) {
         if (gc_block.values.p < MaxUserDigitalPin) {
             if (!sys_io_control(
-                bit((int)gc_block.values.p),
-                (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOnImmediate),
-                (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync))) {
+                    bit((int)gc_block.values.p),
+                    (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOnImmediate),
+                    (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync))) {
                 FAIL(Error::PParamMaxExceeded);
-                }
+            }
         } else {
             FAIL(Error::PParamMaxExceeded);
         }
     }
     if ((gc_block.modal.io_control == IoControl::SetAnalogSync) || (gc_block.modal.io_control == IoControl::SetAnalogImmediate)) {
         if (gc_block.values.e < MaxUserDigitalPin) {
-            gc_block.values.q = constrain(gc_block.values.q, 0.0, 100.0); // force into valid range
+            gc_block.values.q = constrain(gc_block.values.q, 0.0, 100.0);  // force into valid range
             if (!sys_pwm_control(bit((int)gc_block.values.e), gc_block.values.q, (gc_block.modal.io_control == IoControl::SetAnalogSync)))
                 FAIL(Error::PParamMaxExceeded);
         } else {
