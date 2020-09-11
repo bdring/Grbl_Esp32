@@ -54,16 +54,34 @@ namespace Spindles {
 
     void Spindle::select() {
         switch (static_cast<SpindleType>(spindle_type->get())) {
-            case SpindleType::PWM: spindle = &pwm; break;
-            case SpindleType::RELAY: spindle = &relay; break;
-            case SpindleType::LASER: spindle = &laser; break;
-            case SpindleType::DAC: spindle = &dac; break;
-            case SpindleType::HUANYANG: spindle = &huanyang; break;
-            case SpindleType::BESC: spindle = &besc; break;
-            case SpindleType::_10V: spindle = &_10v; break;
-            case SpindleType::H2A: spindle = &h2a; break;
+            case SpindleType::PWM:
+                spindle = &pwm;
+                break;
+            case SpindleType::RELAY:
+                spindle = &relay;
+                break;
+            case SpindleType::LASER:
+                spindle = &laser;
+                break;
+            case SpindleType::DAC:
+                spindle = &dac;
+                break;
+            case SpindleType::HUANYANG:
+                spindle = &huanyang;
+                break;
+            case SpindleType::BESC:
+                spindle = &besc;
+                break;
+            case SpindleType::_10V:
+                spindle = &_10v;
+                break;
+            case SpindleType::H2A:
+                spindle = &h2a;
+                break;
             case SpindleType::NONE:
-            default: spindle = &null; break;
+            default:
+                spindle = &null;
+                break;
         }
 
         spindle->init();

@@ -20,15 +20,14 @@
 #include <SD.h>
 #include <SPI.h>
 
-
 #define SDCARD_DET_PIN -1
-const int SDCARD_DET_VAL = 0; 
+const int SDCARD_DET_VAL = 0;
 
-const int SDCARD_IDLE = 0; 
-const int SDCARD_NOT_PRESENT = 1; 
-const int SDCARD_BUSY_PRINTING = 2; 
-const int SDCARD_BUSY_UPLOADING = 4; 
-const int SDCARD_BUSY_PARSING = 8; 
+const int SDCARD_IDLE           = 0;
+const int SDCARD_NOT_PRESENT    = 1;
+const int SDCARD_BUSY_PRINTING  = 2;
+const int SDCARD_BUSY_UPLOADING = 4;
+const int SDCARD_BUSY_PARSING   = 8;
 
 extern bool    SD_ready_next;  // Grbl has processed a line and is waiting for another
 extern uint8_t SD_client;

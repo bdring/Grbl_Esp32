@@ -113,7 +113,7 @@ bool     stepper_idle;
 // Segment preparation data struct. Contains all the necessary information to compute new segments
 // based on the current executing planner block.
 typedef struct {
-    uint8_t st_block_index;  // Index of stepper common data block being prepped
+    uint8_t  st_block_index;  // Index of stepper common data block being prepped
     PrepFlag recalculate_flag;
 
     float dt_remainder;
@@ -716,7 +716,8 @@ void st_go_idle() {
     busy = false;
 
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
-    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) && sys.state != State::Homing) {
+    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) &&
+        sys.state != State::Homing) {
         // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
         // stop and not drift from residual inertial forces at the end of the last movement.
 
@@ -739,8 +740,8 @@ void st_go_idle() {
 void st_update_plan_block_parameters() {
     if (pl_block != NULL) {  // Ignore if at start of a new block.
         prep.recalculate_flag.recalculate = 1;
-        pl_block->entry_speed_sqr = prep.current_speed * prep.current_speed;  // Update entry speed.
-        pl_block                  = NULL;  // Flag st_prep_segment() to load and check active velocity profile.
+        pl_block->entry_speed_sqr         = prep.current_speed * prep.current_speed;  // Update entry speed.
+        pl_block                          = NULL;  // Flag st_prep_segment() to load and check active velocity profile.
     }
 }
 
@@ -755,23 +756,23 @@ void st_parking_setup_buffer() {
         prep.last_step_per_mm     = prep.step_per_mm;
     }
     // Set flags to execute a parking motion
-    prep.recalculate_flag.parking = 1;
+    prep.recalculate_flag.parking     = 1;
     prep.recalculate_flag.recalculate = 0;
-    pl_block = NULL;  // Always reset parking motion to reload new block.
+    pl_block                          = NULL;  // Always reset parking motion to reload new block.
 }
 
 // Restores the step segment buffer to the normal run state after a parking motion.
 void st_parking_restore_buffer() {
     // Restore step execution data and flags of partially completed block, if necessary.
     if (prep.recalculate_flag.holdPartialBlock) {
-        st_prep_block         = &st_block_buffer[prep.last_st_block_index];
-        prep.st_block_index   = prep.last_st_block_index;
-        prep.steps_remaining  = prep.last_steps_remaining;
-        prep.dt_remainder     = prep.last_dt_remainder;
-        prep.step_per_mm      = prep.last_step_per_mm;
+        st_prep_block                          = &st_block_buffer[prep.last_st_block_index];
+        prep.st_block_index                    = prep.last_st_block_index;
+        prep.steps_remaining                   = prep.last_steps_remaining;
+        prep.dt_remainder                      = prep.last_dt_remainder;
+        prep.step_per_mm                       = prep.last_step_per_mm;
         prep.recalculate_flag.holdPartialBlock = 1;
-        prep.recalculate_flag.recalculate = 1;
-        prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;  // Recompute this value.
+        prep.recalculate_flag.recalculate      = 1;
+        prep.req_mm_increment                  = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;  // Recompute this value.
     } else {
         prep.recalculate_flag = {};
     }
@@ -860,8 +861,8 @@ void st_prep_buffer() {
                 prep.dt_remainder     = 0.0;  // Reset for new segment block
                 if ((sys.step_control & STEP_CONTROL_EXECUTE_HOLD) || prep.recalculate_flag.decelOverride) {
                     // New block loaded mid-hold. Override planner block entry speed to enforce deceleration.
-                    prep.current_speed        = prep.exit_speed;
-                    pl_block->entry_speed_sqr = prep.exit_speed * prep.exit_speed;
+                    prep.current_speed                  = prep.exit_speed;
+                    pl_block->entry_speed_sqr           = prep.exit_speed * prep.exit_speed;
                     prep.recalculate_flag.decelOverride = 0;
                 } else {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);

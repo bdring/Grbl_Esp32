@@ -403,6 +403,7 @@ class GrblCommand : public Command {
 private:
     Error (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
     bool (*_checker)();
+
 public:
     GrblCommand(const char* grblName,
                 const char* name,
@@ -410,7 +411,7 @@ public:
                 bool (*checker)(),
                 permissions_t auth) :
         Command(NULL, GRBLCMD, auth, grblName, name),
-                _action(action), _checker(checker) {}
+        _action(action), _checker(checker) {}
 
     GrblCommand(const char* grblName,
                 const char* name,
