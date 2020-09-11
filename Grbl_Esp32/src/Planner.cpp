@@ -329,7 +329,8 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     block->steps[A_MOTOR] = labs((target_steps[X_AXIS] - position_steps[X_AXIS]) + (target_steps[Y_AXIS] - position_steps[Y_AXIS]));
     block->steps[B_MOTOR] = labs((target_steps[X_AXIS] - position_steps[X_AXIS]) - (target_steps[Y_AXIS] - position_steps[Y_AXIS]));
 #endif
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
         // Calculate target position in absolute steps, number of steps for each axis, and determine max step events.
         // Also, compute individual axes distance for move and prep unit vector calculations.
         // NOTE: Computes true distance from converted step values.
@@ -411,7 +412,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
         // change the overall maximum entry speed conditions of all blocks.
         float junction_unit_vec[MAX_N_AXIS];
         float junction_cos_theta = 0.0;
-        for (idx = 0; idx < N_AXIS; idx++) {
+        for (idx = 0; idx < n_axis; idx++) {
             junction_cos_theta -= pl.previous_unit_vec[idx] * unit_vec[idx];
             junction_unit_vec[idx] = unit_vec[idx] - pl.previous_unit_vec[idx];
         }
@@ -455,7 +456,8 @@ void plan_sync_position() {
     // TODO: For motor configurations not in the same coordinate frame as the machine position,
     // this function needs to be updated to accomodate the difference.
     uint8_t idx;
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
 #ifdef COREXY
         if (idx == X_AXIS) {
             pl.position[X_AXIS] = system_convert_corexy_to_x_axis_steps(sys_position);

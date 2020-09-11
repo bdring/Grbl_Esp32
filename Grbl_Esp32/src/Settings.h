@@ -143,6 +143,7 @@ private:
     int32_t _storedValue;
     int32_t _minValue;
     int32_t _maxValue;
+    bool _currentIsNvm;
 
 public:
     IntSetting(const char*   description,
@@ -153,7 +154,8 @@ public:
                int32_t       defVal,
                int32_t       minVal,
                int32_t       maxVal,
-               bool (*checker)(char*));
+               bool (*checker)(char*),
+               bool currentIsNvm = false);
 
     IntSetting(type_t        type,
                permissions_t permissions,
@@ -162,8 +164,9 @@ public:
                int32_t       defVal,
                int32_t       minVal,
                int32_t       maxVal,
-               bool (*checker)(char*) = NULL) :
-        IntSetting(NULL, type, permissions, grblName, name, defVal, minVal, maxVal, checker) {}
+               bool (*checker)(char*) = NULL,
+               bool currentIsNvm      = false) :
+        IntSetting(NULL, type, permissions, grblName, name, defVal, minVal, maxVal, checker, currentIsNvm) {}
 
     void        load();
     void        setDefault();
@@ -403,6 +406,7 @@ class GrblCommand : public Command {
 private:
     Error (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
     bool (*_checker)();
+
 public:
     GrblCommand(const char* grblName,
                 const char* name,
@@ -410,7 +414,7 @@ public:
                 bool (*checker)(),
                 permissions_t auth) :
         Command(NULL, GRBLCMD, auth, grblName, name),
-                _action(action), _checker(checker) {}
+        _action(action), _checker(checker) {}
 
     GrblCommand(const char* grblName,
                 const char* name,

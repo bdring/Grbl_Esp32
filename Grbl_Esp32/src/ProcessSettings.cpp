@@ -398,15 +398,9 @@ void make_grbl_commands() {
     new GrblCommand("HX", "Home/X", home_x, idleOrAlarm);
     new GrblCommand("HY", "Home/Y", home_y, idleOrAlarm);
     new GrblCommand("HZ", "Home/Z", home_z, idleOrAlarm);
-#    if (N_AXIS > 3)
     new GrblCommand("HA", "Home/A", home_a, idleOrAlarm);
-#    endif
-#    if (N_AXIS > 4)
     new GrblCommand("HB", "Home/B", home_b, idleOrAlarm);
-#    endif
-#    if (N_AXIS > 5)
     new GrblCommand("HC", "Home/C", home_c, idleOrAlarm);
-#    endif
 #endif
     new GrblCommand("SLP", "System/Sleep", sleep_grbl, idleOrAlarm);
     new GrblCommand("I", "Build/Info", get_report_build_info, idleOrAlarm);

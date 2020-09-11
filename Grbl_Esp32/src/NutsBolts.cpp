@@ -139,14 +139,15 @@ float hypot_f(float x, float y) {
 float convert_delta_vector_to_unit_vector(float* vector) {
     uint8_t idx;
     float   magnitude = 0.0;
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto    n_axis    = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
         if (vector[idx] != 0.0) {
             magnitude += vector[idx] * vector[idx];
         }
     }
     magnitude           = sqrt(magnitude);
     float inv_magnitude = 1.0 / magnitude;
-    for (idx = 0; idx < N_AXIS; idx++) {
+    for (idx = 0; idx < n_axis; idx++) {
         vector[idx] *= inv_magnitude;
     }
     return magnitude;
@@ -155,7 +156,8 @@ float convert_delta_vector_to_unit_vector(float* vector) {
 float limit_acceleration_by_axis_maximum(float* unit_vec) {
     uint8_t idx;
     float   limit_value = SOME_LARGE_VALUE;
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto    n_axis      = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
         if (unit_vec[idx] != 0) {  // Avoid divide by zero.
             limit_value = MIN(limit_value, fabs(axis_settings[idx]->acceleration->get() / unit_vec[idx]));
         }
@@ -170,7 +172,8 @@ float limit_acceleration_by_axis_maximum(float* unit_vec) {
 float limit_rate_by_axis_maximum(float* unit_vec) {
     uint8_t idx;
     float   limit_value = SOME_LARGE_VALUE;
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto    n_axis      = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
         if (unit_vec[idx] != 0) {  // Avoid divide by zero.
             limit_value = MIN(limit_value, fabs(axis_settings[idx]->max_rate->get() / unit_vec[idx]));
         }

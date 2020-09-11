@@ -59,21 +59,9 @@ static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 // Stepper ISR data struct. Contains the running data for the main stepper ISR.
 typedef struct {
     // Used by the bresenham line algorithm
-    uint32_t counter_x,  // Counter variables for the bresenham line tracer
-        counter_y, counter_z
-#if (N_AXIS > A_AXIS)
-        ,
-        counter_a
-#endif
-#if (N_AXIS > B_AXIS)
-        ,
-        counter_b
-#endif
-#if (N_AXIS > C_AXIS)
-        ,
-        counter_c
-#endif
-        ;
+
+    uint32_t counter_x, counter_y, counter_z, counter_a, counter_b, counter_c;  // Counter variables for the bresenham line tracer
+
 #ifdef STEP_PULSE_DELAY
     uint8_t step_bits;  // Stores out_bits output to complete the step pulse delay
 #endif
@@ -113,7 +101,7 @@ bool     stepper_idle;
 // Segment preparation data struct. Contains all the necessary information to compute new segments
 // based on the current executing planner block.
 typedef struct {
-    uint8_t st_block_index;  // Index of stepper common data block being prepped
+    uint8_t  st_block_index;  // Index of stepper common data block being prepped
     PrepFlag recalculate_flag;
 
     float dt_remainder;
@@ -249,6 +237,8 @@ void IRAM_ATTR onStepperDriverTimer(
  * is to keep pulse timing as regular as possible.
  */
 static void stepper_pulse_func() {
+    auto n_axis = number_axis->get();
+
     motors_set_direction_pins(st.dir_outbits);
 #ifdef USE_RMT_STEPS
     stepperRMT_Outputs();
@@ -284,15 +274,16 @@ static void stepper_pulse_func() {
             st.steps[X_AXIS] = st.exec_block->steps[X_AXIS] >> st.exec_segment->amass_level;
             st.steps[Y_AXIS] = st.exec_block->steps[Y_AXIS] >> st.exec_segment->amass_level;
             st.steps[Z_AXIS] = st.exec_block->steps[Z_AXIS] >> st.exec_segment->amass_level;
-#    if (N_AXIS > A_AXIS)
-            st.steps[A_AXIS] = st.exec_block->steps[A_AXIS] >> st.exec_segment->amass_level;
-#    endif
-#    if (N_AXIS > B_AXIS)
-            st.steps[B_AXIS] = st.exec_block->steps[B_AXIS] >> st.exec_segment->amass_level;
-#    endif
-#    if (N_AXIS > C_AXIS)
-            st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
-#    endif
+
+            if (n_axis > A_AXIS) {
+                st.steps[A_AXIS] = st.exec_block->steps[A_AXIS] >> st.exec_segment->amass_level;
+                if (n_axis > B_AXIS) {
+                    st.steps[B_AXIS] = st.exec_block->steps[B_AXIS] >> st.exec_segment->amass_level;
+                    if (n_axis > C_AXIS) {
+                        st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
+                    }
+                }
+            }
 #endif
             // Set real-time spindle output as segment is loaded, just prior to the first step.
             spindle->set_rpm(st.exec_segment->spindle_rpm);
@@ -359,54 +350,61 @@ static void stepper_pulse_func() {
             sys_position[Z_AXIS]++;
         }
     }
-#if (N_AXIS > A_AXIS)
-#    ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_a += st.steps[A_AXIS];
-#    else
-    st.counter_a += st.exec_block->steps[A_AXIS];
-#    endif
-    if (st.counter_a > st.exec_block->step_event_count) {
-        st.step_outbits |= bit(A_AXIS);
-        st.counter_a -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & bit(A_AXIS)) {
-            sys_position[A_AXIS]--;
-        } else {
-            sys_position[A_AXIS]++;
+
+    if (n_axis > A_AXIS) {
+#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+        st.counter_a += st.steps[A_AXIS];
+#else
+        st.counter_a += st.exec_block->steps[A_AXIS];
+#endif
+        if (st.counter_a > st.exec_block->step_event_count) {
+            st.step_outbits |= bit(A_AXIS);
+            st.counter_a -= st.exec_block->step_event_count;
+            if (st.exec_block->direction_bits & bit(A_AXIS)) {
+                sys_position[A_AXIS]--;
+            }
+            else {
+                sys_position[A_AXIS]++;
+            }
+        }
+
+        if (n_axis > B_AXIS) {
+#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+            st.counter_b += st.steps[B_AXIS];
+#else
+            st.counter_b += st.exec_block->steps[B_AXIS];
+#endif
+            if (st.counter_b > st.exec_block->step_event_count) {
+                st.step_outbits |= bit(B_AXIS);
+                st.counter_b -= st.exec_block->step_event_count;
+                if (st.exec_block->direction_bits & bit(B_AXIS)) {
+                    sys_position[B_AXIS]--;
+                }
+                else {
+                    sys_position[B_AXIS]++;
+                }
+            }
+
+            if (n_axis > C_AXIS) {
+#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+                st.counter_c += st.steps[C_AXIS];
+#else
+                st.counter_c += st.exec_block->steps[C_AXIS];
+#endif
+                if (st.counter_c > st.exec_block->step_event_count) {
+                    st.step_outbits |= bit(C_AXIS);
+                    st.counter_c -= st.exec_block->step_event_count;
+                    if (st.exec_block->direction_bits & bit(C_AXIS)) {
+                        sys_position[C_AXIS]--;
+                    }
+                    else {
+                        sys_position[C_AXIS]++;
+                    }
+                }
+            }
         }
     }
-#endif
-#if (N_AXIS > B_AXIS)
-#    ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_b += st.steps[B_AXIS];
-#    else
-    st.counter_b += st.exec_block->steps[B_AXIS];
-#    endif
-    if (st.counter_b > st.exec_block->step_event_count) {
-        st.step_outbits |= bit(B_AXIS);
-        st.counter_b -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & bit(B_AXIS)) {
-            sys_position[B_AXIS]--;
-        } else {
-            sys_position[B_AXIS]++;
-        }
-    }
-#endif
-#if (N_AXIS > C_AXIS)
-#    ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_c += st.steps[C_AXIS];
-#    else
-    st.counter_c += st.exec_block->steps[C_AXIS];
-#    endif
-    if (st.counter_c > st.exec_block->step_event_count) {
-        st.step_outbits |= bit(C_AXIS);
-        st.counter_c -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & bit(C_AXIS)) {
-            sys_position[C_AXIS]--;
-        } else {
-            sys_position[C_AXIS]++;
-        }
-    }
-#endif
+
     // During a homing cycle, lock out and prevent desired axes from moving.
     if (sys.state == State::Homing) {
         st.step_outbits &= sys.homing_axis_lock;
@@ -443,7 +441,7 @@ static void stepper_pulse_func() {
 }
 
 void stepper_init() {
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", N_AXIS);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", number_axis->get());
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepper_names[current_stepper]);
 
 #ifdef USE_I2S_STEPS
@@ -716,7 +714,8 @@ void st_go_idle() {
     busy = false;
 
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
-    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) && sys.state != State::Homing) {
+    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) &&
+        sys.state != State::Homing) {
         // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
         // stop and not drift from residual inertial forces at the end of the last movement.
 
@@ -739,8 +738,8 @@ void st_go_idle() {
 void st_update_plan_block_parameters() {
     if (pl_block != NULL) {  // Ignore if at start of a new block.
         prep.recalculate_flag.recalculate = 1;
-        pl_block->entry_speed_sqr = prep.current_speed * prep.current_speed;  // Update entry speed.
-        pl_block                  = NULL;  // Flag st_prep_segment() to load and check active velocity profile.
+        pl_block->entry_speed_sqr         = prep.current_speed * prep.current_speed;  // Update entry speed.
+        pl_block                          = NULL;  // Flag st_prep_segment() to load and check active velocity profile.
     }
 }
 
@@ -755,23 +754,23 @@ void st_parking_setup_buffer() {
         prep.last_step_per_mm     = prep.step_per_mm;
     }
     // Set flags to execute a parking motion
-    prep.recalculate_flag.parking = 1;
+    prep.recalculate_flag.parking     = 1;
     prep.recalculate_flag.recalculate = 0;
-    pl_block = NULL;  // Always reset parking motion to reload new block.
+    pl_block                          = NULL;  // Always reset parking motion to reload new block.
 }
 
 // Restores the step segment buffer to the normal run state after a parking motion.
 void st_parking_restore_buffer() {
     // Restore step execution data and flags of partially completed block, if necessary.
     if (prep.recalculate_flag.holdPartialBlock) {
-        st_prep_block         = &st_block_buffer[prep.last_st_block_index];
-        prep.st_block_index   = prep.last_st_block_index;
-        prep.steps_remaining  = prep.last_steps_remaining;
-        prep.dt_remainder     = prep.last_dt_remainder;
-        prep.step_per_mm      = prep.last_step_per_mm;
+        st_prep_block                          = &st_block_buffer[prep.last_st_block_index];
+        prep.st_block_index                    = prep.last_st_block_index;
+        prep.steps_remaining                   = prep.last_steps_remaining;
+        prep.dt_remainder                      = prep.last_dt_remainder;
+        prep.step_per_mm                       = prep.last_step_per_mm;
         prep.recalculate_flag.holdPartialBlock = 1;
-        prep.recalculate_flag.recalculate = 1;
-        prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;  // Recompute this value.
+        prep.recalculate_flag.recalculate      = 1;
+        prep.req_mm_increment                  = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;  // Recompute this value.
     } else {
         prep.recalculate_flag = {};
     }
@@ -839,8 +838,9 @@ void st_prep_buffer() {
                 st_prep_block                 = &st_block_buffer[prep.st_block_index];
                 st_prep_block->direction_bits = pl_block->direction_bits;
                 uint8_t idx;
+                auto    n_axis = number_axis->get();
 #ifndef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-                for (idx = 0; idx < N_AXIS; idx++) {
+                for (idx = 0; idx < n_axis; idx++) {
                     st_prep_block->steps[idx] = pl_block->steps[idx];
                 }
                 st_prep_block->step_event_count = pl_block->step_event_count;
@@ -848,7 +848,7 @@ void st_prep_buffer() {
                 // With AMASS enabled, simply bit-shift multiply all Bresenham data by the max AMASS
                 // level, such that we never divide beyond the original data anywhere in the algorithm.
                 // If the original data is divided, we can lose a step from integer roundoff.
-                for (idx = 0; idx < N_AXIS; idx++) {
+                for (idx = 0; idx < n_axis; idx++) {
                     st_prep_block->steps[idx] = pl_block->steps[idx] << MAX_AMASS_LEVEL;
                 }
                 st_prep_block->step_event_count = pl_block->step_event_count << MAX_AMASS_LEVEL;
@@ -860,8 +860,8 @@ void st_prep_buffer() {
                 prep.dt_remainder     = 0.0;  // Reset for new segment block
                 if ((sys.step_control & STEP_CONTROL_EXECUTE_HOLD) || prep.recalculate_flag.decelOverride) {
                     // New block loaded mid-hold. Override planner block entry speed to enforce deceleration.
-                    prep.current_speed        = prep.exit_speed;
-                    pl_block->entry_speed_sqr = prep.exit_speed * prep.exit_speed;
+                    prep.current_speed                  = prep.exit_speed;
+                    pl_block->entry_speed_sqr           = prep.exit_speed * prep.exit_speed;
                     prep.recalculate_flag.decelOverride = 0;
                 } else {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
@@ -1229,10 +1229,8 @@ float st_get_realtime_rate() {
         case State::Homing:
         case State::Hold:
         case State::Jog:
-        case State::SafetyDoor:
-            return prep.current_speed;
-        default:
-            return 0.0f;
+        case State::SafetyDoor: return prep.current_speed;
+        default: return 0.0f;
     }
 }
 

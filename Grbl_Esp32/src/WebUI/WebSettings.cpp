@@ -258,7 +258,7 @@ namespace WebUI {
         }
 #endif
         //to save time in decoding `?`
-        webPrintln(" # axis:", String(N_AXIS));
+        webPrintln(" # axis:", String(number_axis->get()));
         return Error::Ok;
     }
 

@@ -2,6 +2,8 @@
 
 bool motorSettingChanged = false;
 
+IntSetting* number_axis;
+
 StringSetting* startup_line_0;
 StringSetting* startup_line_1;
 StringSetting* build_info;
@@ -205,11 +207,13 @@ static const char* makeGrblName(int axisNum, int base) {
 void make_settings() {
     Setting::init();
 
+    number_axis = new IntSetting(EXTENDED, WG, NULL, "NumberAxis", N_AXIS, 0, 6, NULL, true);
+
     // Create the axis settings in the order that people are
     // accustomed to seeing.
     int              axis;
     axis_defaults_t* def;
-    for (axis = 0; axis < N_AXIS; axis++) {
+    for (axis = 0; axis < MAX_N_AXIS; axis++) {
         def                 = &axis_defaults[axis];
         axis_settings[axis] = new AxisSettings(def->name);
     }
@@ -219,62 +223,62 @@ void make_settings() {
     a_axis_settings = axis_settings[A_AXIS];
     b_axis_settings = axis_settings[B_AXIS];
     c_axis_settings = axis_settings[C_AXIS];
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new IntSetting(
             EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, checkStallguard);
         setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new IntSetting(
             EXTENDED, WG, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, checkMicrosteps);
         setting->setAxis(axis);
         axis_settings[axis]->microsteps = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(
             EXTENDED, WG, makeGrblName(axis, 150), makename(def->name, "Current/Hold"), def->hold_current, 0.05, 20.0, checkHoldcurrent);  // Amps
         setting->setAxis(axis);
         axis_settings[axis]->hold_current = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(
             EXTENDED, WG, makeGrblName(axis, 140), makename(def->name, "Current/Run"), def->run_current, 0.0, 20.0, checkRunCurrent);  // Amps
         setting->setAxis(axis);
         axis_settings[axis]->run_current = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 130), makename(def->name, "MaxTravel"), def->max_travel, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->max_travel = setting;
     }
 
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(EXTENDED, WG, NULL, makename(def->name, "Home/Mpos"), def->home_mpos, -100000.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->home_mpos = setting;
     }
 
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting =
             new FloatSetting(GRBL, WG, makeGrblName(axis, 120), makename(def->name, "Acceleration"), def->acceleration, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->acceleration = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 110), makename(def->name, "MaxRate"), def->max_rate, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->max_rate = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting =
             new FloatSetting(GRBL, WG, makeGrblName(axis, 100), makename(def->name, "StepsPerMm"), def->steps_per_mm, 1.0, 100000.0);
