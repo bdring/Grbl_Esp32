@@ -31,7 +31,7 @@
 // and are similar/identical to other g-code interpreters by manufacturers (Haas,Fanuc,Mazak,etc).
 // NOTE: Modal group values must be sequential and starting from zero.
 
-enum class ModalGroup : uint8_t {
+enum ModalGroup : uint8_t {
     MG0  = 0,   // [G4,G10,G28,G28.1,G30,G30.1,G53,G92,G92.1] Non-modal
     MG1  = 1,   // [G0,G1,G2,G3,G38.2,G38.3,G38.4,G38.5,G80] Motion
     MG2  = 2,   // [G17,G18,G19] Plane selection
@@ -49,6 +49,7 @@ enum class ModalGroup : uint8_t {
     MM8  = 13,  // [M7,M8,M9] Coolant control
     MM9  = 14,  // [M56] Override control
     MM10 = 15,  // [M62, M63, M64, M65, M67, M68] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
+    MGCount = 16,
 };
 
 // Command actions for within execution-type modal groups (motion, stopping, non-modal). Used
@@ -200,7 +201,7 @@ enum class ToolChange : uint8_t {
 // N/A: Stores coordinate system value (54-59) to change to.
 
 // Parameter word mapping.
-enum class GCodeWord : uint8_t {
+enum GCodeWord : uint8_t {
     E = 0,
     F = 1,
     I = 2,
@@ -219,6 +220,7 @@ enum class GCodeWord : uint8_t {
     A = 15,
     B = 16,
     C = 17,
+    GCWCount = 18,
 };
 
 // GCode parser position updating flags

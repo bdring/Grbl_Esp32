@@ -23,6 +23,7 @@
 */
 
 #include "Grbl.h"
+#include <bitset>
 
 // NOTE: Max line number is defined by the g-code standard to be 99999. It seems to be an
 // arbitrary value, and some GUIs may require more. So we increased it based on a max safe
@@ -137,8 +138,8 @@ Error gc_execute_line(char* line, uint8_t client) {
     uint8_t axis_words = 0;  // XYZ tracking
     uint8_t ijk_words  = 0;  // IJK tracking
     // Initialize command and value words and parser flags variables.
-    uint32_t command_words   = 0;  // Tracks G and M command words. Also used for modal group violations.
-    uint32_t value_words     = 0;  // Tracks value words.
+    std::bitset<ModalGroup::MGCount> modal_groups;  // Tracks G and M command words. Also used for modal group violations.
+    std::bitset<GCodeWord::GCWCount> value_words;
     uint8_t  gc_parser_flags = GCParserNone;
     // Determine if the line is a jogging motion or a normal g-code block.
     if (line[0] == '$') {  // NOTE: `$J=` already parsed when passed to this function.
@@ -413,11 +414,10 @@ Error gc_execute_line(char* line, uint8_t client) {
                 }
                 // Check for more than one command per modal group violations in the current block
                 // NOTE: Variable 'mg_word_bit' is always assigned, if the command is valid.
-                bitmask = bit(mg_word_bit);
-                if (bit_istrue(command_words, bitmask)) {
+                if (modal_groups.test(mg_word_bit)) {
                     FAIL(Error::GcodeModalGroupViolation);
                 }
-                command_words |= bitmask;
+                modal_groups.set(mg_word_bit);
                 break;
             case 'M':
                 // Determine 'M' command and its modal group
@@ -526,11 +526,10 @@ Error gc_execute_line(char* line, uint8_t client) {
                 }
                 // Check for more than one command per modal group violations in the current block
                 // NOTE: Variable 'mg_word_bit' is always assigned, if the command is valid.
-                bitmask = bit(mg_word_bit);
-                if (bit_istrue(command_words, bitmask)) {
+                if (modal_groups.test(mg_word_bit)) {
                     FAIL(Error::GcodeModalGroupViolation);
                 }
-                command_words |= bitmask;
+                    modal_groups.set(mg_word_bit);
                 break;
             // NOTE: All remaining letters assign values.
             default:
@@ -638,18 +637,25 @@ Error gc_execute_line(char* line, uint8_t client) {
                         FAIL(Error::GcodeUnsupportedCommand);
                 }
                 // NOTE: Variable 'axis_word_bit' is always assigned, if the non-command letter is valid.
-                uint32_t bitmask = bit(axis_word_bit);
-                if (bit_istrue(value_words, bitmask)) {
+                if (value_words.test(axis_word_bit)) {
                     FAIL(Error::GcodeWordRepeated);  // [Word repeated]
                 }
-                // Check for invalid negative values for words F, N, P, T, and S.
-                // NOTE: Negative value check is done here simply for code-efficiency.
-                if (bitmask & (bit(GCodeWord::F) | bit(GCodeWord::N) | bit(GCodeWord::P) | bit(GCodeWord::T) | bit(GCodeWord::S))) {
-                    if (value < 0.0) {
-                        FAIL(Error::NegativeValue);  // [Word value cannot be negative]
-                    }
+                switch (axis_word_bit) {
+                    case GCodeWord::F:
+                    case GCodeWord::N:
+                    case GCodeWord::P:
+                    case GCodeWord::T:
+                    case GCodeWord::S:
+                        // Check for invalid negative values for words F, N, P, T, and S.
+                        // NOTE: Negative value check is done here simply for code-efficiency.
+                        if (value < 0.0) {
+                            FAIL(Error::NegativeValue);  // [Word value cannot be negative]
+                        }
+                        break;
+                    default:
+                        break;
                 }
-                value_words |= bitmask;  // Flag to indicate parameter assigned.
+                value_words.set(axis_word_bit);  // Flag to indicate parameter assigned.
         }
     }
     // Parsing complete!
@@ -686,13 +692,13 @@ Error gc_execute_line(char* line, uint8_t client) {
         }
     }
     // Check for valid line number N value.
-    if (bit_istrue(value_words, bit(GCodeWord::N))) {
+    if (value_words.test(GCodeWord::N)) {
         // Line number value cannot be less than zero (done) or greater than max line number.
         if (gc_block.values.n > MaxLineNumber) {
             FAIL(Error::GcodeInvalidLineNumber);  // [Exceeds max line number]
         }
     }
-    // bit_false(value_words,bit(GCodeWord::N)); // NOTE: Single-meaning value word. Set at end of error-checking.
+    // !value_words,testGCodeWord::N); // NOTE: Single-meaning value word. Set at end of error-checking.
     // Track for unused words at the end of error-checking.
     // NOTE: Single-meaning value words are removed all at once at the end of error-checking, because
     // they are always used when present. This was done to save a few bytes of flash. For clarity, the
@@ -704,7 +710,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     //   is not defined after switching to G94 from G93.
     // NOTE: For jogging, ignore prior feed rate mode. Enforce G94 and check for required F word.
     if (gc_parser_flags & GCParserJogMotion) {
-        if (bit_isfalse(value_words, bit(GCodeWord::F))) {
+        if (!value_words.test(GCodeWord::F)) {
             FAIL(Error::GcodeUndefinedFeedRate);
         }
         if (gc_block.modal.units == Units::Inches) {
@@ -715,7 +721,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             // NOTE: G38 can also operate in inverse time, but is undefined as an error. Missing F word check added here.
             if (axis_command == AxisCommand::MotionMode) {
                 if ((gc_block.modal.motion != Motion::None) || (gc_block.modal.motion != Motion::Seek)) {
-                    if (bit_isfalse(value_words, bit(GCodeWord::F))) {
+                    if (!value_words.test(GCodeWord::F)) {
                         FAIL(Error::GcodeUndefinedFeedRate);  // [F word missing]
                     }
                 }
@@ -734,7 +740,7 @@ Error gc_execute_line(char* line, uint8_t client) {
         } else {  // = G94
             // - In units per mm mode: If F word passed, ensure value is in mm/min, otherwise push last state value.
             if (gc_state.modal.feed_rate == FeedRate::UnitsPerMin) {  // Last state is also G94
-                if (bit_istrue(value_words, bit(GCodeWord::F))) {
+                if (value_words.test(GCodeWord::F)) {
                     if (gc_block.modal.units == Units::Inches) {
                         gc_block.values.f *= MM_PER_INCH;
                     }
@@ -744,41 +750,41 @@ Error gc_execute_line(char* line, uint8_t client) {
             }  // Else, switching to G94 from G93, so don't push last state feed rate. Its undefined or the passed F word value.
         }
     }
-    // bit_false(value_words,bit(GCodeWord::F)); // NOTE: Single-meaning value word. Set at end of error-checking.
+    // !value_words.test(GCodeWord::F); // NOTE: Single-meaning value word. Set at end of error-checking.
     // [4. Set spindle speed ]: S is negative (done.)
-    if (bit_isfalse(value_words, bit(GCodeWord::S))) {
+    if (!value_words.test(GCodeWord::S)) {
         gc_block.values.s = gc_state.spindle_speed;
-        // bit_false(value_words,bit(GCodeWord::S)); // NOTE: Single-meaning value word. Set at end of error-checking.
+        // !value_words.test(GCodeWord::S); // NOTE: Single-meaning value word. Set at end of error-checking.
         // [5. Select tool ]: NOT SUPPORTED. Only tracks value. T is negative (done.) Not an integer. Greater than max tool value.
-        // bit_false(value_words,bit(GCodeWord::T)); // NOTE: Single-meaning value word. Set at end of error-checking.
+        // !value_words.test(GCodeWord::T); // NOTE: Single-meaning value word. Set at end of error-checking.
         // [6. Change tool ]: N/A
         // [7. Spindle control ]: N/A
         // [8. Coolant control ]: N/A
         // [9. Enable/disable feed rate or spindle overrides ]: NOT SUPPORTED.
     }
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    if (bit_istrue(command_words, bit(ModalGroup::MM9))) {  // Already set as enabled in parser.
-        if (bit_istrue(value_words, bit(GCodeWord::P))) {
+    if (modal_groups.test(ModalGroup::MM9)) {  // Already set as enabled in parser.
+        if (value_words.test(GCodeWord::P)) {
             if (gc_block.values.p == 0.0) {
                 gc_block.modal.override = Override::Disabled;
             }
-            bit_false(value_words, bit(GCodeWord::P));
+            value_words.reset(GCodeWord::P);
         }
     }
 #endif
     // [10. Dwell ]: P value missing. P is negative (done.) NOTE: See below.
     if (gc_block.non_modal_command == NonModal::Dwell) {
-        if (bit_isfalse(value_words, bit(GCodeWord::P))) {
+        if (!value_words.test(GCodeWord::P)) {
             FAIL(Error::GcodeValueWordMissing);  // [P word missing]
         }
-        bit_false(value_words, bit(GCodeWord::P));
+        value_words.reset(GCodeWord::P);
     }
     if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync) ||
         (gc_block.modal.io_control == IoControl::DigitalOnImmediate) || (gc_block.modal.io_control == IoControl::DigitalOffImmediate)) {
-        if (bit_isfalse(value_words, bit(GCodeWord::P))) {
+        if (!value_words.test(GCodeWord::P)) {
             FAIL(Error::GcodeValueWordMissing);  // [P word missing]
         }
-        bit_false(value_words, bit(GCodeWord::P));
+        value_words.reset(GCodeWord::P);
     }
     if ((gc_block.modal.io_control == IoControl::SetAnalogSync) || (gc_block.modal.io_control == IoControl::SetAnalogImmediate)) {
         if (bit_isfalse(value_words, bit(GCodeWord::E)) || bit_isfalse(value_words, bit(GCodeWord::Q))) {
@@ -837,7 +843,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     // in memory and written to EEPROM only when there is not a cycle active.
     float block_coord_system[N_AXIS];
     memcpy(block_coord_system, gc_state.coord_system, sizeof(gc_state.coord_system));
-    if (bit_istrue(command_words, bit(ModalGroup::MG12))) {  // Check if called in block
+    if (modal_groups.test(ModalGroup::MG12)) {  // Check if called in block
         if (gc_block.modal.coord_select > N_COORDINATE_SYSTEM) {
             FAIL(Error::GcodeUnsupportedCoordSys);  // [Greater than N sys]
         }
@@ -863,7 +869,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             if (!axis_words) {
                 FAIL(Error::GcodeNoAxisWords)
             };  // [No axis words]
-            if (bit_isfalse(value_words, (bit(GCodeWord::P) | bit(GCodeWord::L)))) {
+            if (!value_words.test(GCodeWord::P) || !value_words.test(GCodeWord::L)) {
                 FAIL(Error::GcodeValueWordMissing);  // [P/L word missing]
             }
             coord_select = trunc(gc_block.values.p);  // Convert p value to int.
@@ -872,14 +878,15 @@ Error gc_execute_line(char* line, uint8_t client) {
             }
             if (gc_block.values.l != 20) {
                 if (gc_block.values.l == 2) {
-                    if (bit_istrue(value_words, bit(GCodeWord::R))) {
+                    if (value_words.test(GCodeWord::R)) {
                         FAIL(Error::GcodeUnsupportedCommand);  // [G10 L2 R not supported]
                     }
                 } else {
                     FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported L]
                 }
             }
-            bit_false(value_words, (bit(GCodeWord::L) | bit(GCodeWord::P)));
+            value_words.reset(GCodeWord::L);
+            value_words.reset(GCodeWord::P);
             // Determine coordinate system to change and try to load from EEPROM.
             if (coord_select > 0) {
                 coord_select--;  // Adjust P1-P6 index to EEPROM coordinate data indexing.
@@ -1056,8 +1063,8 @@ Error gc_execute_line(char* line, uint8_t client) {
                     float x, y;
                     x = gc_block.values.xyz[axis_0] - gc_state.position[axis_0];  // Delta x between current position and target
                     y = gc_block.values.xyz[axis_1] - gc_state.position[axis_1];  // Delta y between current position and target
-                    if (value_words & bit(GCodeWord::R)) {                        // Arc Radius Mode
-                        bit_false(value_words, bit(GCodeWord::R));
+                    if (value_words.test(GCodeWord::R)) {                        // Arc Radius Mode
+                        value_words.reset(GCodeWord::R);
                         if (isequal_position_vector(gc_state.position, gc_block.values.xyz)) {
                             FAIL(Error::GcodeInvalidTarget);  // [Invalid target]
                         }
@@ -1154,7 +1161,9 @@ Error gc_execute_line(char* line, uint8_t client) {
                         if (!(ijk_words & (bit(axis_0) | bit(axis_1)))) {
                             FAIL(Error::GcodeNoOffsetsInPlane);  // [No offsets in plane]
                         }
-                        bit_false(value_words, (bit(GCodeWord::I) | bit(GCodeWord::J) | bit(GCodeWord::K)));
+                        value_words.reset(GCodeWord::I);
+                        value_words.reset(GCodeWord::J);
+                        value_words.reset(GCodeWord::K);
                         // Convert IJK values to proper units.
                         if (gc_block.modal.units == Units::Inches) {
                             for (idx = 0; idx < N_AXIS; idx++) {  // Axes indices are consistent, so loop may be used to save flash space.
@@ -1208,17 +1217,24 @@ Error gc_execute_line(char* line, uint8_t client) {
     // radius mode, or axis words that aren't used in the block.
     if (gc_parser_flags & GCParserJogMotion) {
         // Jogging only uses the F feed rate and XYZ value words. N is valid, but S and T are invalid.
-        bit_false(value_words, (bit(GCodeWord::N) | bit(GCodeWord::F)));
+        value_words.reset(GCodeWord::N);
+        value_words.reset(GCodeWord::F);
     } else {
-        bit_false(value_words,
-                  (bit(GCodeWord::N) | bit(GCodeWord::F) | bit(GCodeWord::S) | bit(GCodeWord::T)));  // Remove single-meaning value words.
+        value_words.reset(GCodeWord::N);
+        value_words.reset(GCodeWord::F);
+        value_words.reset(GCodeWord::S);
+        value_words.reset(GCodeWord::T);
     }
     if (axis_command != AxisCommand::None) {
-        bit_false(value_words,
-                  (bit(GCodeWord::X) | bit(GCodeWord::Y) | bit(GCodeWord::Z) | bit(GCodeWord::A) | bit(GCodeWord::B) |
-                   bit(GCodeWord::C)));  // Remove axis words.
+        // Remove axis words.
+        value_words.reset(GCodeWord::X);
+        value_words.reset(GCodeWord::Y);
+        value_words.reset(GCodeWord::Z);
+        value_words.reset(GCodeWord::A);
+        value_words.reset(GCodeWord::B);
+        value_words.reset(GCodeWord::C);
     }
-    if (value_words) {
+    if (value_words.any()) {
         FAIL(Error::GcodeUnusedWords);  // [Unused words]
     }
     /* -------------------------------------------------------------------------------------
@@ -1237,7 +1253,10 @@ Error gc_execute_line(char* line, uint8_t client) {
     if (gc_parser_flags & GCParserJogMotion) {
         // Only distance and unit modal commands and G53 absolute override command are allowed.
         // NOTE: Feed rate word and axis word checks have already been performed in STEP 3.
-        if (command_words & ~(bit(ModalGroup::MG3) | bit(ModalGroup::MG6) | bit(ModalGroup::MG0))) {
+        modal_groups.reset(ModalGroup::MG3);
+        modal_groups.reset(ModalGroup::MG6);
+        modal_groups.reset(ModalGroup::MG0);
+        if (modal_groups.any()) {
             FAIL(Error::InvalidJogCommand)
         };
         if (!(gc_block.non_modal_command == NonModal::AbsoluteOverride || gc_block.non_modal_command == NonModal::NoAction)) {
