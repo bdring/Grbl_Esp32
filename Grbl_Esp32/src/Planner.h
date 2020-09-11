@@ -50,7 +50,7 @@ struct PlMotion {
 typedef struct {
     // Fields used by the bresenham algorithm for tracing the line
     // NOTE: Used by stepper algorithm to execute the block correctly. Do not alter these values.
-    uint32_t steps[N_AXIS];     // Step count along each axis
+    uint32_t steps[MAX_N_AXIS];     // Step count along each axis
     uint32_t step_event_count;  // The maximum step axis count and number of steps required to complete this block.
     uint8_t  direction_bits;    // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
 
@@ -97,7 +97,7 @@ typedef struct {
 void plan_reset();         // Reset all
 void plan_reset_buffer();  // Reset buffer only.
 
-// Add a new linear movement to the buffer. target[N_AXIS] is the signed, absolute target position
+// Add a new linear movement to the buffer. target[MAX_N_AXIS] is the signed, absolute target position
 // in millimeters. Feed rate specifies the speed of the motion. If feed rate is inverted, the feed
 // rate is taken to mean "frequency" and would complete the operation in 1/feed_rate minutes.
 uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data);

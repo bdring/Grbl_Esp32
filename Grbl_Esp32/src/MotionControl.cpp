@@ -116,7 +116,7 @@ void mc_arc(float*            target,
     float rt_axis0     = target[axis_0] - center_axis0;
     float rt_axis1     = target[axis_1] - center_axis1;
 #ifdef USE_KINEMATICS
-    float    previous_position[N_AXIS];
+    float    previous_position[MAX_N_AXIS];
     uint16_t n;
     for (n = 0; n < N_AXIS; n++) {
         previous_position[n] = position[n];

@@ -570,8 +570,8 @@ void protocol_exec_rt_system() {
 static void protocol_exec_rt_suspend() {
 #ifdef PARKING_ENABLE
     // Declare and initialize parking local variables
-    float             restore_target[N_AXIS];
-    float             parking_target[N_AXIS];
+    float             restore_target[MAX_N_AXIS];
+    float             parking_target[MAX_N_AXIS];
     float             retract_waypoint = PARKING_PULLOUT_INCREMENT;
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;

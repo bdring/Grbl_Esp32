@@ -772,7 +772,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     // is active. The read pauses the processor temporarily and may cause a rare crash. For
     // future versions on processors with enough memory, all coordinate data should be stored
     // in memory and written to EEPROM only when there is not a cycle active.
-    float block_coord_system[N_AXIS];
+    float block_coord_system[MAX_N_AXIS];
     memcpy(block_coord_system, gc_state.coord_system, sizeof(gc_state.coord_system));
     if (bit_istrue(command_words, bit(ModalGroup::MG12))) {  // Check if called in block
         if (gc_block.modal.coord_select > N_COORDINATE_SYSTEM) {
@@ -824,7 +824,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 coord_select = gc_block.modal.coord_select;  // Index P0 as the active coordinate system
             }
             // NOTE: Store parameter data in IJK values. By rule, they are not in use with this command.
-            // FIXME: Instead of IJK, we'd better use: float vector[N_AXIS]; // [DG]
+            // FIXME: Instead of IJK, we'd better use: float vector[MAX_N_AXIS]; // [DG]
             if (!settings_read_coord_data(coord_select, gc_block.values.ijk)) {
                 FAIL(Error::SettingReadFail);  // [EEPROM read fail]
             }
@@ -1328,7 +1328,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     // [15. Coordinate system selection ]:
     if (gc_state.modal.coord_select != gc_block.modal.coord_select) {
         gc_state.modal.coord_select = gc_block.modal.coord_select;
-        memcpy(gc_state.coord_system, block_coord_system, N_AXIS * sizeof(float));
+        memcpy(gc_state.coord_system, block_coord_system, MAX_N_AXIS * sizeof(float));
         system_flag_wco_change();
     }
     // [16. Set path control mode ]: G61.1/G64 NOT SUPPORTED
@@ -1342,7 +1342,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             settings_write_coord_data(coord_select, gc_block.values.ijk);
             // Update system coordinate system if currently active.
             if (gc_state.modal.coord_select == coord_select) {
-                memcpy(gc_state.coord_system, gc_block.values.ijk, N_AXIS * sizeof(float));
+                memcpy(gc_state.coord_system, gc_block.values.ijk, MAX_N_AXIS * sizeof(float));
                 system_flag_wco_change();
             }
             break;
@@ -1355,7 +1355,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
             }
             mc_line(gc_block.values.ijk, pl_data);
-            memcpy(gc_state.position, gc_block.values.ijk, N_AXIS * sizeof(float));
+            memcpy(gc_state.position, gc_block.values.ijk, MAX_N_AXIS * sizeof(float));
             break;
         case NonModal::SetHome0: settings_write_coord_data(SETTING_INDEX_G28, gc_state.position); break;
         case NonModal::SetHome1: settings_write_coord_data(SETTING_INDEX_G30, gc_state.position); break;

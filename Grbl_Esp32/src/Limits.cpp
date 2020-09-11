@@ -106,8 +106,8 @@ void limits_go_home(uint8_t cycle_mask) {
 #endif
     // Initialize variables used for homing computations.
     uint8_t n_cycle = (2 * n_homing_locate_cycle + 1);
-    uint8_t step_pin[N_AXIS];
-    float   target[N_AXIS];
+    uint8_t step_pin[MAX_N_AXIS];
+    float   target[MAX_N_AXIS];
     float   max_travel = 0.0;
 
     for (uint8_t idx = 0; idx < N_AXIS; idx++) {

@@ -34,10 +34,10 @@ static uint8_t      block_buffer_planned;             // Index of the optimally 
 
 // Define planner variables
 typedef struct {
-    int32_t position[N_AXIS];  // The planner position of the tool in absolute steps. Kept separate
+    int32_t position[MAX_N_AXIS];  // The planner position of the tool in absolute steps. Kept separate
     // from g-code position for movements requiring multiple line motions,
     // i.e. arcs, canned cycles, and backlash compensation.
-    float previous_unit_vec[N_AXIS];  // Unit vector of previous path line segment
+    float previous_unit_vec[MAX_N_AXIS];  // Unit vector of previous path line segment
     float previous_nominal_speed;     // Nominal speed of previous path line segment
 } planner_t;
 static planner_t pl;
@@ -308,8 +308,8 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     block->line_number = pl_data->line_number;
 #endif
     // Compute and store initial move distance data.
-    int32_t target_steps[N_AXIS], position_steps[N_AXIS];
-    float   unit_vec[N_AXIS], delta_mm;
+    int32_t target_steps[MAX_N_AXIS], position_steps[MAX_N_AXIS];
+    float   unit_vec[MAX_N_AXIS], delta_mm;
     uint8_t idx;
     // Copy position data based on type of motion being planned.
     if (block->motion.systemMotion) {
@@ -409,7 +409,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
         // changed dynamically during operation nor can the line move geometry. This must be kept in
         // memory in the event of a feedrate override changing the nominal speeds of blocks, which can
         // change the overall maximum entry speed conditions of all blocks.
-        float junction_unit_vec[N_AXIS];
+        float junction_unit_vec[MAX_N_AXIS];
         float junction_cos_theta = 0.0;
         for (idx = 0; idx < N_AXIS; idx++) {
             junction_cos_theta -= pl.previous_unit_vec[idx] * unit_vec[idx];

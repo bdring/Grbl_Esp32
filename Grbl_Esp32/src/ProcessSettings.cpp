@@ -56,7 +56,7 @@ void settings_restore(uint8_t restore_flag) {
     }
     if (restore_flag & SETTINGS_RESTORE_PARAMETERS) {
         uint8_t idx;
-        float   coord_data[N_AXIS];
+        float   coord_data[MAX_N_AXIS];
         memset(&coord_data, 0, sizeof(coord_data));
         for (idx = 0; idx <= SETTING_INDEX_NCOORD; idx++) {
             settings_write_coord_data(idx, coord_data);

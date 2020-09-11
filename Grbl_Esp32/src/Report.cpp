@@ -281,7 +281,7 @@ void report_grbl_help(uint8_t client) {
 // These values are retained until Grbl is power-cycled, whereby they will be re-zeroed.
 void report_probe_parameters(uint8_t client) {
     // Report in terms of machine position.
-    float print_position[N_AXIS];
+    float print_position[MAX_N_AXIS];
     char  probe_rpt[100];  // the probe report we are building here
     char  temp[60];
     strcpy(probe_rpt, "[PRB:");  // initialize the string with the first characters
@@ -297,7 +297,7 @@ void report_probe_parameters(uint8_t client) {
 
 // Prints Grbl NGC parameters (coordinate offsets, probing)
 void report_ngc_parameters(uint8_t client) {
-    float   coord_data[N_AXIS];
+    float   coord_data[MAX_N_AXIS];
     uint8_t coord_select;
     char    temp[60];
     char    ngc_rpt[500];
@@ -536,9 +536,9 @@ void report_echo_line_received(char* line, uint8_t client) {
 // especially during g-code programs with fast, short line segments and high frequency reports (5-20Hz).
 void report_realtime_status(uint8_t client) {
     uint8_t idx;
-    int32_t current_position[N_AXIS];  // Copy current state of the system position variable
+    int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
     memcpy(current_position, sys_position, sizeof(sys_position));
-    float print_position[N_AXIS];
+    float print_position[MAX_N_AXIS];
     char  status[200];
     char  temp[80];
     system_convert_array_steps_to_mpos(print_position, current_position);
@@ -580,7 +580,7 @@ void report_realtime_status(uint8_t client) {
             break;
         case State::Sleep: strcat(status, "Sleep"); break;
     }
-    float wco[N_AXIS];
+    float wco[MAX_N_AXIS];
     if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE) || (sys.report_wco_counter == 0)) {
         for (idx = 0; idx < N_AXIS; idx++) {
             // Apply work coordinate offsets and tool length offset to current position.

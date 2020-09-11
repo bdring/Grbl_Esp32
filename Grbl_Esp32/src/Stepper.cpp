@@ -32,7 +32,7 @@
 // discarded when entirely consumed and completed by the segment buffer. Also, AMASS alters this
 // data for its own use.
 typedef struct {
-    uint32_t steps[N_AXIS];
+    uint32_t steps[MAX_N_AXIS];
     uint32_t step_event_count;
     uint8_t  direction_bits;
     uint8_t  is_pwm_rate_adjusted;  // Tracks motions that require constant laser power/rate
@@ -83,7 +83,7 @@ typedef struct {
     uint8_t step_outbits;     // The next stepping-bits to be output
     uint8_t dir_outbits;
 #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    uint32_t steps[N_AXIS];
+    uint32_t steps[MAX_N_AXIS];
 #endif
 
     uint16_t    step_count;        // Steps remaining in line segment motion

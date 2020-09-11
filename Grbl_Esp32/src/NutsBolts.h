@@ -28,7 +28,7 @@
 const double SOME_LARGE_VALUE = 1.0E+38;
 
 // Axis array index values. Must start with 0 and be continuous.
-// Note: You set the number of axes used by changing N_AXIS.
+// Note: You set the number of axes used by changing MAX_N_AXIS.
 // Be sure to define pins or servos in the machine definition file.
 const int X_AXIS = 0;  // Axis indexing value.
 const int Y_AXIS = 1;
@@ -65,11 +65,11 @@ const int DELAY_MODE_SYS_SUSPEND = 1;
 
 // Useful macros
 #define clear_vector(a) memset(a, 0, sizeof(a))
-#define clear_vector_float(a) memset(a, 0.0, sizeof(float) * N_AXIS)
-// #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*N_AXIS)
+#define clear_vector_float(a) memset(a, 0.0, sizeof(float) * MAX_N_AXIS)
+// #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*MAX_N_AXIS)
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
-#define isequal_position_vector(a, b) !(memcmp(a, b, sizeof(float) * N_AXIS))
+#define isequal_position_vector(a, b) !(memcmp(a, b, sizeof(float) * MAX_N_AXIS))
 
 // Bit field and masking macros
 // bit(n) is defined in Arduino.h.  We redefine it here so we can apply
