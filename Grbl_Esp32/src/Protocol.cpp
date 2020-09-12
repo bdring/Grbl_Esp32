@@ -457,9 +457,6 @@ void protocol_exec_rt_system() {
         plan_cycle_reinitialize();
     }
 
-    ExecAccessory rt_exec_accessory;
-    rt_exec_accessory.value = sys_rt_exec_accessory_override.value;
-
     // NOTE: Unlike motion overrides, spindle overrides do not require a planner reinitialization.
     if (sys_rt_s_override != sys.spindle_speed_ovr) {
         sys.step_control.updateSpindleRpm = true;
@@ -469,37 +466,42 @@ void protocol_exec_rt_system() {
         if (gc_state.modal.spindle != SpindleState::Disable) {
             spindle->set_rpm(gc_state.spindle_speed);
         }
-        if (rt_exec_accessory.bit.spindleOvrStop) {
-            // Spindle stop override allowed only while in HOLD state.
-            // NOTE: Report counters are set in spindle_set_state() when spindle stop is executed.
-            if (sys.state == State::Hold) {
-                if (sys.spindle_stop_ovr.value == 0) {
-                    sys.spindle_stop_ovr.bit.initiate = true;
-                } else if (sys.spindle_stop_ovr.bit.enabled) {
-                    sys.spindle_stop_ovr.bit.restore = true;
-                }
-            }
-        }
-        // NOTE: Since coolant state always performs a planner sync whenever it changes, the current
-        // run state can be determined by checking the parser state.
-        if (rt_exec_accessory.bit.coolantFloodOvrToggle || rt_exec_accessory.bit.coolantMistOvrToggle) {
-            if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
-                CoolantState coolant_state = gc_state.modal.coolant;
-#ifdef COOLANT_FLOOD_PIN
-                if (rt_exec_accessory.bit.coolantFloodOvrToggle) {
-                    coolant_state.Flood = !coolant_state.Flood;
-                }
-#endif
-#ifdef COOLANT_MIST_PIN
-                if (rt_exec_accessory.bit.coolantMistOvrToggle) {
-                    coolant_state.Mist = !coolant_state.Mist;
-                }
-#endif
-                coolant_set_state(coolant_state);  // Report counter set in coolant_set_state().
-                gc_state.modal.coolant = coolant_state;
+    }
+
+    if (sys_rt_exec_accessory_override.bit.spindleOvrStop) {
+        sys_rt_exec_accessory_override.bit.spindleOvrStop = false;
+        // Spindle stop override allowed only while in HOLD state.
+        // NOTE: Report counters are set in spindle_set_state() when spindle stop is executed.
+        if (sys.state == State::Hold) {
+            if (sys.spindle_stop_ovr.value == 0) {
+                sys.spindle_stop_ovr.bit.initiate = true;
+            } else if (sys.spindle_stop_ovr.bit.enabled) {
+                sys.spindle_stop_ovr.bit.restore = true;
             }
         }
     }
+
+    // NOTE: Since coolant state always performs a planner sync whenever it changes, the current
+    // run state can be determined by checking the parser state.
+    if (sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle) {
+        sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle = false;
+#ifdef COOLANT_FLOOD_PIN
+        if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
+            gc_state.modal.coolant.Flood = !gc_state.modal.coolant.Flood;
+            coolant_set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+        }
+#endif
+    }
+    if (sys_rt_exec_accessory_override.bit.coolantMistOvrToggle) {
+        sys_rt_exec_accessory_override.bit.coolantMistOvrToggle = false;
+#ifdef COOLANT_MIST_PIN
+        if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
+            gc_state.modal.coolant.Mist = !gc_state.modal.coolant.Mist;
+            coolant_set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+        }
+#endif
+    }
+
 #ifdef DEBUG
     if (sys_rt_exec_debug) {
         report_realtime_debug();
