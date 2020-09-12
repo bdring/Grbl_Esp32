@@ -163,15 +163,6 @@ struct CoolantState {
 
 // Modal Group M8: Coolant control
 // Modal Group M9: Override control
-enum class Override : uint8_t {
-#ifdef DEACTIVATE_PARKING_UPON_INIT
-    Disabled      = 0,  // (Default: Must be zero)
-    ParkingMotion = 1,  // M56
-#else
-    ParkingMotion = 0,  // M56 (Default: Must be zero)
-    Disabled      = 1,  // Parking disabled.
-#endif
-};
 
 // Modal Group M10: User I/O control
 enum class IoControl : uint8_t {

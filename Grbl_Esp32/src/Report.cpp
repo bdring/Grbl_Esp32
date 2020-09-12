@@ -482,7 +482,7 @@ void report_gcode_modes(uint8_t client) {
     }
 
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    if (sys.override_ctrl == OVERRIDE_PARKING_MOTION) {
+    if (sys.override_ctrl == Override::ParkingMotion) {
         strcat(modes_rpt, " M56");
     }
 #endif
@@ -609,13 +609,9 @@ void report_realtime_status(uint8_t client) {
             strcat(status, "Run");
             break;
         case State::Hold:
-            if (!(sys.suspend & SUSPEND_JOG_CANCEL)) {
+            if (!(sys.suspend.bit.jogCancel)) {
                 strcat(status, "Hold:");
-                if (sys.suspend & SUSPEND_HOLD_COMPLETE) {
-                    strcat(status, "0");  // Ready to resume
-                } else {
-                    strcat(status, "1");  // Actively holding
-                }
+                strcat(status, sys.suspend.bit.holdComplete ? "0" : "1");  // Ready to resume
                 break;
             }  // Continues to print jog state during jog cancel.
         case State::Jog:
@@ -632,15 +628,11 @@ void report_realtime_status(uint8_t client) {
             break;
         case State::SafetyDoor:
             strcat(status, "Door:");
-            if (sys.suspend & SUSPEND_INITIATE_RESTORE) {
+            if (sys.suspend.bit.initiateRestore) {
                 strcat(status, "3");  // Restoring
             } else {
-                if (sys.suspend & SUSPEND_RETRACT_COMPLETE) {
-                    if (sys.suspend & SUSPEND_SAFETY_DOOR_AJAR) {
-                        strcat(status, "1");  // Door ajar
-                    } else {
-                        strcat(status, "0");
-                    }
+                if (sys.suspend.bit.retractComplete) {
+                    strcat(status, sys.suspend.bit.safetyDoorAjar ? "1" : "0");  // Door ajar
                     // Door closed and ready to resume
                 } else {
                     strcat(status, "2");  // Retracting
@@ -720,10 +712,10 @@ void report_realtime_status(uint8_t client) {
     strcat(status, temp);
 #endif
 #ifdef REPORT_FIELD_PIN_STATE
-    uint8_t lim_pin_state  = limits_get_state();
-    uint8_t ctrl_pin_state = system_control_get_state();
-    uint8_t prb_pin_state  = probe_get_state();
-    if (lim_pin_state | ctrl_pin_state | prb_pin_state) {
+    AxisMask    lim_pin_state  = limits_get_state();
+    ControlPins ctrl_pin_state = system_control_get_state();
+    bool        prb_pin_state  = probe_get_state();
+    if (lim_pin_state || ctrl_pin_state.value || prb_pin_state) {
         strcat(status, "|Pn:");
         if (prb_pin_state) {
             strcat(status, "P");
@@ -754,20 +746,30 @@ void report_realtime_status(uint8_t client) {
             }
 #    endif
         }
-        if (ctrl_pin_state) {
-#    ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_SAFETY_DOOR)) {
+        if (ctrl_pin_state.value) {
+            if (ctrl_pin_state.bit.safetyDoor) {
                 strcat(status, "D");
             }
-#    endif
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_RESET)) {
+            if (ctrl_pin_state.bit.reset) {
                 strcat(status, "R");
             }
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_FEED_HOLD)) {
+            if (ctrl_pin_state.bit.feedHold) {
                 strcat(status, "H");
             }
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_CYCLE_START)) {
+            if (ctrl_pin_state.bit.cycleStart) {
                 strcat(status, "S");
+            }
+            if (ctrl_pin_state.bit.macro0) {
+                strcat(status, "M0");
+            }
+            if (ctrl_pin_state.bit.macro1) {
+                strcat(status, "M1");
+            }
+            if (ctrl_pin_state.bit.macro2) {
+                strcat(status, "M2");
+            }
+            if (ctrl_pin_state.bit.macro3) {
+                strcat(status, "M3");
             }
         }
     }

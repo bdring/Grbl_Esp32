@@ -430,35 +430,7 @@ namespace WebUI {
     }
 #    endif
 
-    bool Web_Server::is_realtime_cmd(char c) {
-        switch (c) {
-            case CMD_STATUS_REPORT:
-            case CMD_CYCLE_START:
-            case CMD_RESET:
-            case CMD_FEED_HOLD:
-            case CMD_SAFETY_DOOR:
-            case CMD_JOG_CANCEL:
-            case CMD_DEBUG_REPORT:
-            case CMD_FEED_OVR_RESET:
-            case CMD_FEED_OVR_COARSE_PLUS:
-            case CMD_FEED_OVR_COARSE_MINUS:
-            case CMD_FEED_OVR_FINE_PLUS:
-            case CMD_FEED_OVR_FINE_MINUS:
-            case CMD_RAPID_OVR_RESET:
-            case CMD_RAPID_OVR_MEDIUM:
-            case CMD_RAPID_OVR_LOW:
-            case CMD_SPINDLE_OVR_COARSE_PLUS:
-            case CMD_SPINDLE_OVR_COARSE_MINUS:
-            case CMD_SPINDLE_OVR_FINE_PLUS:
-            case CMD_SPINDLE_OVR_FINE_MINUS:
-            case CMD_SPINDLE_OVR_STOP:
-            case CMD_COOLANT_FLOOD_OVR_TOGGLE:
-            case CMD_COOLANT_MIST_OVR_TOGGLE:
-                return true;
-            default:
-                return false;
-        }
-    }
+    bool Web_Server::is_realtime_cmd(char c) { return is_realtime_cmd(c); }
 
     void Web_Server::_handle_web_command(bool silent) {
         //to save time if already disconnected
