@@ -106,7 +106,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 bool kinematics_pre_homing(uint8_t cycle_mask);
 void kinematics_post_homing();
 
-// Called if USE_FWD_KINEMATIC is defined
+// Called if USE_FWD_KINEMATICS is defined
 void forward_kinematics(float* position);
 
 // Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined

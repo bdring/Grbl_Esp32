@@ -253,7 +253,10 @@ namespace Motors {
             int32_t pos_min_steps = lround(_position_min * axis_settings[_axis_index]->steps_per_mm->get());
             int32_t pos_max_steps = lround(_position_max * axis_settings[_axis_index]->steps_per_mm->get());
 
-            sys_position[_axis_index] = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
+            int32_t temp  = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
+
+            sys_position[_axis_index] = temp;
+            
             plan_sync_position();
 
             return dxl_position;
