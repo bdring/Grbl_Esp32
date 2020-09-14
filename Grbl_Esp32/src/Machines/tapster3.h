@@ -52,7 +52,7 @@
 #define DXL_COUNT_MIN           1024      
 #define DXL_COUNT_MAX           3072
 
-#define SERVO_TIMER_INTERVAL 70
+#define SERVO_TIMER_INTERVAL 50
 
 #define USER_DIGITAL_PIN_0      GPIO_NUM_25
 #define USER_DIGITAL_PIN_1      GPIO_NUM_26

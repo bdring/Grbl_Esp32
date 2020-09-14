@@ -10,7 +10,7 @@
   ==================== How it Works ====================================
 
   On a delta machine, Grbl axis units are in radians
-  The kinematics converts cartesian moves in gcode into
+  The kinematics converts the cartesian moves in gcode into
   the radians to move the arms. The Grbl motion planner never sees
   the actual cartesian values.
 
@@ -22,8 +22,8 @@
   arm angles. The MPos will report in cartesian values using forward kinematics. 
 
   The arm 0 values (angle) are the arms at horizontal.
-  Negative angles above horizontal.
-  The machine Z zero point in the kinematics is parallel to the arm axes.
+  Positive angles are below horizontal.
+  The machine's Z zero point in the kinematics is parallel to the arm axes.
   Delta_z_offset is the offset to the end effector joints at arm angle zero.
   The is calculated at startup and used in the forward kinematics
 
@@ -86,22 +86,21 @@ void machine_init() {
     float angles[N_AXIS]    = { 0.0, 0.0, 0.0 };
     float cartesian[N_AXIS] = { 0.0, 0.0, 0.0 };
 
-    calc_forward_kinematics(angles, cartesian);
+    calc_forward_kinematics(angles, cartesian);  // Sets the cartesian values
 
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Machine Init: %s Z Offset:%4.3f", MACHINE_NAME, cartesian[Z_AXIS]);  // print a message
+    // print a startup message to show the kinematics are enables
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delata Kinematics Init: %s Z Offset:%4.3f", MACHINE_NAME, cartesian[Z_AXIS]);
 }
 
 bool user_defined_homing() {  // true = do not continue with normal Grbl homing
     return true;
 }
 
-void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in machine space
+void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
 {
-    float dx, dy, dz;              // distances in each cartesian axis
-    float theta1, theta2, theta3;  // returned angles from calculations
+    float dx, dy, dz;  // distances in each cartesian axis
     float motor_angles[N_AXIS];
 
-    float delta_distance;                             // the"distance" from prev angle to next angle
     float seg_target[N_AXIS];                         // The target of the current segment
     float feed_rate            = pl_data->feed_rate;  // save original feed rate
     bool  start_position_erorr = false;
@@ -129,17 +128,15 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
     // calculate cartesian move distance for each axis
 
-    dx = target[X_AXIS] - position[X_AXIS];
-    dy = target[Y_AXIS] - position[Y_AXIS];
-    dz = target[Z_AXIS] - position[Z_AXIS];
-
-    // calculate the total X,Y,Z axis move distance
+    dx         = target[X_AXIS] - position[X_AXIS];
+    dy         = target[Y_AXIS] - position[Y_AXIS];
+    dz         = target[Z_AXIS] - position[Z_AXIS];
     float dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
 
     // determine the number of segments we need	... round up so there is at least 1 (except when dist is 0)
     uint32_t segment_count = ceil(dist / SEGMENT_LENGTH);
 
-    float segment_dist = dist / ((float)segment_count);  // distanse of each segment...will be used for feedrate conversion
+    float segment_dist = dist / ((float)segment_count);  // distance of each segment...will be used for feedrate conversion
 
     for (uint32_t segment = 1; segment <= segment_count; segment++) {
         // determine this segment's target
@@ -147,18 +144,11 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
         seg_target[Y_AXIS] = position[Y_AXIS] + (dy / float(segment_count) * segment);
         seg_target[Z_AXIS] = position[Z_AXIS] + (dz / float(segment_count) * segment);
 
-        /*
-        grbl_sendf(CLIENT_SERIAL,
-                   "[MSG:Kin Segment Target Cart X:%4.3f Y:%4.3f Z:%4.3f]\r\n",
-                   seg_target[X_AXIS],
-                   seg_target[Y_AXIS],
-                   seg_target[Z_AXIS]);
-*/
         // calculate the delta motor angles
         KinematicError status = delta_calcInverse(seg_target, motor_angles);
 
         if (status == KinematicError ::NONE) {
-            delta_distance = three_axis_dist(motor_angles, last_angle);
+            float delta_distance = three_axis_dist(motor_angles, last_angle);
 
             // save angles for next distance calc
             memcpy(last_angle, motor_angles, sizeof(motor_angles));
@@ -186,7 +176,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     }
 }
 
-// inverse kinematics: (x0, y0, z0) -> (theta1, theta2, theta3)
+// inverse kinematics: cartesian -> angles
 // returned status: 0=OK, -1=non-existing position
 KinematicError delta_calcInverse(float* cartesian, float* angles) {
     angles[0] = angles[1] = angles[2] = 0;
@@ -217,6 +207,7 @@ KinematicError delta_calcInverse(float* cartesian, float* angles) {
     return status;
 }
 
+// inverse kinematics: angles -> cartesian
 int calc_forward_kinematics(float* angles, float* catesian) {
     float t = (f - e) * tan30 / 2;
 
@@ -288,7 +279,7 @@ float three_axis_dist(float* point1, float* point2) {
     return sqrt(((point1[0] - point2[0]) * (point1[0] - point2[0])) + ((point1[1] - point2[1]) * (point1[1] - point2[1])) +
                 ((point1[2] - point2[2]) * (point1[2] - point2[2])));
 }
-
+// called by reporting for WPos status
 void forward_kinematics(float* position) {
     float calc_fwd[N_AXIS];
     int   status;
@@ -301,8 +292,6 @@ void forward_kinematics(float* position) {
 
     // detmine the position of the end effector joint center.
     status = calc_forward_kinematics(position_radians, calc_fwd);
-
-    //grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Fwd Kin 2....%4.3f %4.3f %4.3f", calc_fwd[X_AXIS], calc_fwd[Y_AXIS], calc_fwd[Z_AXIS]);
 
     if (status == 0) {
         // apply offsets and set the returned values
