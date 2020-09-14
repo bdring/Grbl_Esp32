@@ -687,7 +687,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     }
     // Check for valid line number N value.
     if (bit_istrue(value_words, bit(GCodeWord::N))) {
-        // Line number value 62 be less than zero (done) or greater than max line number.
+        // Line number value cannot be less than zero (done) or greater than max line number.
         if (gc_block.values.n > MaxLineNumber) {
             FAIL(Error::GcodeInvalidLineNumber);  // [Exceeds max line number]
         }
