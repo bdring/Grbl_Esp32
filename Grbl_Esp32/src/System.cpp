@@ -97,9 +97,9 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
 
     // Setup M62,M63,M64,M65 pins
     myDigitalOutputs[0] = new UserOutput::DigitalOutput(0, USER_DIGITAL_PIN_0);
-    myDigitalOutputs[0] = new UserOutput::DigitalOutput(1, USER_DIGITAL_PIN_1);
-    myDigitalOutputs[0] = new UserOutput::DigitalOutput(2, USER_DIGITAL_PIN_2);
-    myDigitalOutputs[0] = new UserOutput::DigitalOutput(3, USER_DIGITAL_PIN_3);
+    myDigitalOutputs[1] = new UserOutput::DigitalOutput(1, USER_DIGITAL_PIN_1);
+    myDigitalOutputs[2] = new UserOutput::DigitalOutput(2, USER_DIGITAL_PIN_2);
+    myDigitalOutputs[3] = new UserOutput::DigitalOutput(3, USER_DIGITAL_PIN_3);
 
     // Setup M67 Pins
     myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, USER_ANALOG_PIN_0, USER_ANALOG_PIN_0_FREQ);
