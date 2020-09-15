@@ -143,7 +143,7 @@ private:
     int32_t _storedValue;
     int32_t _minValue;
     int32_t _maxValue;
-    bool _currentIsNvm;
+    bool    _currentIsNvm;
 
 public:
     IntSetting(const char*   description,
@@ -422,4 +422,15 @@ public:
                 bool (*checker)(void)) :
         GrblCommand(grblName, name, action, checker, WG) {}
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
+};
+
+template <typename T>
+class FakeSetting {
+private:
+    T _value;
+
+public:
+    FakeSetting(T value) : _value(value) {}
+
+    T get() { return _value; }
 };

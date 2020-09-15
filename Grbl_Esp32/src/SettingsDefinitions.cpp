@@ -2,7 +2,7 @@
 
 bool motorSettingChanged = false;
 
-IntSetting* number_axis;
+FakeSetting<int>* number_axis;
 
 StringSetting* startup_line_0;
 StringSetting* startup_line_1;
@@ -207,7 +207,8 @@ static const char* makeGrblName(int axisNum, int base) {
 void make_settings() {
     Setting::init();
 
-    number_axis = new IntSetting(EXTENDED, WG, NULL, "NumberAxis", N_AXIS, 0, 6, NULL, true);
+    // number_axis = new IntSetting(EXTENDED, WG, NULL, "NumberAxis", N_AXIS, 0, 6, NULL, true);
+    number_axis = new FakeSetting<int>(N_AXIS);
 
     // Create the axis settings in the order that people are
     // accustomed to seeing.
