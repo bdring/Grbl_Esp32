@@ -668,7 +668,7 @@ void report_realtime_status(uint8_t client) {
     if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
         strcat(status, "|MPos:");
     } else {
-#ifdef USE_FWD_KINEMATIC
+#ifdef USE_FWD_KINEMATICS        
         forward_kinematics(print_position);
 #endif
         strcat(status, "|WPos:");

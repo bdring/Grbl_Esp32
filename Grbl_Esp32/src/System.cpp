@@ -34,7 +34,7 @@ volatile uint8_t   sys_rt_exec_accessory_override;  // Global realtime executor 
 volatile uint8_t sys_rt_exec_debug;
 #endif
 
-UserOutput::AnalogOutput* myAnalogOutputs[MaxUserDigitalPin];
+UserOutput::AnalogOutput*  myAnalogOutputs[MaxUserDigitalPin];
 UserOutput::DigitalOutput* myDigitalOutputs[MaxUserDigitalPin];
 
 xQueueHandle control_sw_queue;    // used by control switch debouncing
@@ -95,53 +95,17 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     SPI.begin(GRBL_SPI_SCK, GRBL_SPI_MISO, GRBL_SPI_MOSI, GRBL_SPI_SS);
 #endif
 
-
-    // Setup USER_DIGITAL_PINs controlled by M62, M63, M64, & M65
-#ifdef USER_DIGITAL_PIN_0
+    // Setup M62,M63,M64,M65 pins
     myDigitalOutputs[0] = new UserOutput::DigitalOutput(0, USER_DIGITAL_PIN_0);
-#else
-    myDigitalOutputs[0] = new UserOutput::DigitalOutput();
-#endif
-#ifdef USER_DIGITAL_PIN_1
-    myDigitalOutputs[1] = new UserOutput::DigitalOutput(1, USER_DIGITAL_PIN_1);
-#else
-    myDigitalOutputs[1] = new UserOutput::DigitalOutput();
-#endif
-#ifdef USER_DIGITAL_PIN_2
-    myDigitalOutputs[2] = new UserOutput::DigitalOutput(2, USER_DIGITAL_PIN_2);
-#else
-    myDigitalOutputs[2] = new UserOutput::DigitalOutput();
-#endif
-#ifdef USER_DIGITAL_PIN_3
-    myDigitalOutputs[3] = new UserOutput::DigitalOutput(3, USER_DIGITAL_PIN_3);
-#else
-    myDigitalOutputs[3] = new UserOutput::DigitalOutput();
-#endif
+    myDigitalOutputs[0] = new UserOutput::DigitalOutput(1, USER_DIGITAL_PIN_1);
+    myDigitalOutputs[0] = new UserOutput::DigitalOutput(2, USER_DIGITAL_PIN_2);
+    myDigitalOutputs[0] = new UserOutput::DigitalOutput(3, USER_DIGITAL_PIN_3);
 
-// Setup M67 Pins
-#ifdef USER_ANALOG_PIN_0
+    // Setup M67 Pins
     myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, USER_ANALOG_PIN_0, USER_ANALOG_PIN_0_FREQ);
-#else
-    myAnalogOutputs[0] = new UserOutput::AnalogOutput();
-#endif
-
-#ifdef USER_ANALOG_PIN_1
     myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, USER_ANALOG_PIN_1, USER_ANALOG_PIN_1_FREQ);
-#else
-    myAnalogOutputs[1] = new UserOutput::AnalogOutput();
-#endif
-
-#ifdef USER_ANALOG_PIN_2
     myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, USER_ANALOG_PIN_2, USER_ANALOG_PIN_2_FREQ);
-#else
-    myAnalogOutputs[2] = new UserOutput::AnalogOutput();
-#endif
-
-#ifdef USER_ANALOG_PIN_3
     myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, USER_ANALOG_PIN_3, USER_ANALOG_PIN_3_FREQ);
-#else
-    myAnalogOutputs[3] = new UserOutput::AnalogOutput();
-#endif    
 }
 
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
@@ -169,7 +133,7 @@ void IRAM_ATTR isr_control_inputs() {
         xQueueSendFromISR(control_sw_queue, &evt, NULL);
     }
 #else
-    uint8_t pin        = system_control_get_state();
+    uint8_t pin = system_control_get_state();
     system_exec_control_pin(pin);
 #endif
 }
@@ -434,9 +398,6 @@ bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized) {
     }
     return cmd_ok;
 }
-
-
-
 
 // Call this function to get an RMT channel number
 // returns -1 for error
