@@ -150,8 +150,6 @@ namespace Motors {
 
         _disabled = disable;
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Axis %s", _axis_name, disable ? "Disable" : "Enable");
-
         if (_disabled)
             dxl_write(DXL_ADDR_TORQUE_EN, param_count, 0);
         else
@@ -235,10 +233,6 @@ namespace Motors {
 
     uint32_t Dynamixel2::dxl_read_position() {
         uint8_t data_len = 4;
-        //int32_t pos_min_steps, pos_max_steps;  // in steps
-        //int32_t dxl_position, dxl_count_min, dxl_count_max;
-
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Read position");
 
         dxl_read(DXL_PRESENT_POSITION, data_len);
 
@@ -253,15 +247,14 @@ namespace Motors {
             int32_t pos_min_steps = lround(_position_min * axis_settings[_axis_index]->steps_per_mm->get());
             int32_t pos_max_steps = lround(_position_max * axis_settings[_axis_index]->steps_per_mm->get());
 
-            int32_t temp  = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
+            int32_t temp = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
 
             sys_position[_axis_index] = temp;
-            
+
             plan_sync_position();
 
             return dxl_position;
         } else {
-            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Data len arror: %d", data_len);
             return 0;
         }
     }
@@ -365,8 +358,6 @@ namespace Motors {
         uint32_t dxl_position;
         uint8_t  count = 0;
         uint8_t  current_id;
-
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "dxl_bulk_goal_position() ");
 
         tx_message[msg_index]   = DXL_SYNC_WRITE;
         tx_message[++msg_index] = DXL_GOAL_POSITION & 0xFF;           // low order address
