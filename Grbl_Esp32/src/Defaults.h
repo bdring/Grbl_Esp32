@@ -538,3 +538,52 @@
 #ifndef DYNAMIXEL_RTS
 #    define DYNAMIXEL_RTS UNDEFINED_PIN
 #endif
+
+// ================ User Digital I/O ==============================
+
+#ifndef USER_DIGITAL_PIN_0
+#    define USER_DIGITAL_PIN_0 UNDEFINED_PIN
+#endif
+
+#ifndef USER_DIGITAL_PIN_1
+#    define USER_DIGITAL_PIN_1 UNDEFINED_PIN
+#endif
+
+#ifndef USER_DIGITAL_PIN_2
+#    define USER_DIGITAL_PIN_2 UNDEFINED_PIN
+#endif
+
+#ifndef USER_DIGITAL_PIN_3
+#    define USER_DIGITAL_PIN_3 UNDEFINED_PIN
+#endif
+
+// ================ User Analog I/O ==============================
+
+#ifndef USER_ANALOG_PIN_0
+#    define USER_ANALOG_PIN_0 UNDEFINED_PIN
+#endif
+
+#ifndef USER_ANALOG_PIN_1
+#    define USER_ANALOG_PIN_1 UNDEFINED_PIN
+#endif
+
+#ifndef USER_ANALOG_PIN_2
+#    define USER_ANALOG_PIN_2 UNDEFINED_PIN
+#endif
+
+#ifndef USER_ANALOG_PIN_3
+#    define USER_ANALOG_PIN_3 UNDEFINED_PIN
+#endif
+
+#ifndef USER_ANALOG_PIN_0_FREQ
+#    define USER_ANALOG_PIN_0_FREQ 5000
+#endif
+#ifndef USER_ANALOG_PIN_1_FREQ
+#    define USER_ANALOG_PIN_1_FREQ 5000
+#endif
+#ifndef USER_ANALOG_PIN_2_FREQ
+#    define USER_ANALOG_PIN_2_FREQ 5000
+#endif
+#ifndef USER_ANALOG_PIN_3_FREQ
+#    define USER_ANALOG_PIN_3_FREQ 5000
+#endif

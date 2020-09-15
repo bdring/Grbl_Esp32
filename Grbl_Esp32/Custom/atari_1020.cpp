@@ -121,7 +121,7 @@ void atari_home_task(void* pvParameters) {
         // this task will only last as long as it is homing
         if (atari_homing) {
             // must be in idle or alarm state
-            if (sys.state == STATE_IDLE) {
+            if (sys.state == State::Idle) {
                 switch (homing_phase) {
                     case HOMING_PHASE_FULL_APPROACH:           // a full width move to insure it hits left end
                         WebUI::inputBuffer.push("G90G0Z1\r");  // lift the pen
@@ -180,7 +180,7 @@ void calc_solenoid(float penZ) {
     bool        isPenUp;
     static bool previousPenState = false;
     uint32_t    solenoid_pen_pulse_len;                    // duty cycle of solenoid
-    isPenUp = ((penZ > 0) || (sys.state == STATE_ALARM));  // is pen above Z0 or is there an alarm
+    isPenUp = ((penZ > 0) || (sys.state == State::Alarm));  // is pen above Z0 or is there an alarm
     // if the state has not change, we only count down to the pull time
     if (previousPenState == isPenUp) {
         // if state is unchanged

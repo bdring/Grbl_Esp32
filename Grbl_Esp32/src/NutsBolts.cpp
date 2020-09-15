@@ -199,6 +199,11 @@ float constrain_float(float in, float min, float max) {  // DrawBot_Badge
     return in;
 }
 
+long mapConstrain(long x, long in_min, long in_max, long out_min, long out_max) {
+    x = constrain(x, in_min, in_max);
+    return map(x, in_min, in_max, out_min, out_max);
+}
+
 float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max) {
     x = constrain_float(x, in_min, in_max);
     return map_float(x, in_min, in_max, out_min, out_max);

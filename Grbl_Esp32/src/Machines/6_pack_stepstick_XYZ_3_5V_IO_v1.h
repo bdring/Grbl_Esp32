@@ -2,7 +2,7 @@
 // clang-format off
 
 /*
-    6_pack_stepstick_XYZ_v1.h
+    6_pack_stepstick_XYZ_3_5V_IO_v1.h
 
     Covers all V1 versions V1p0, V1p1, etc
 
@@ -24,7 +24,9 @@
 */
 #define MACHINE_NAME            "6 Pack Controller StepStick XYZ"
 
-#define N_AXIS 3
+#ifdef N_AXIS
+        #undef N_AXIS
+#endif
 
 #ifdef ENABLE_SD_CARD
     #undef ENABLE_SD_CARD
@@ -58,6 +60,9 @@
 #define X_STEPPER_MS3           I2SO(3)   // X_CS
 #define Y_STEPPER_MS3           I2SO(6)   // Y_CS
 #define Z_STEPPER_MS3           I2SO(11)  // Z_CS
+#define A_STEPPER_MS3           I2SO(14)  // A_CS
+#define B_STEPPER_MS3           I2SO(19)  // B_CS
+#define C_STEPPER_MS3           I2SO(22)  // C_CS
 
 #define STEPPER_RESET           GPIO_NUM_19
 
@@ -113,6 +118,15 @@
 // #2 GPIO_NUM_25  (output only)
 // #3 GPIO_NUM_26  (output only)
 // #4 GPIO_NUM_27  (output only)
+
+// 5V Output Module in Socket #4
+#define USER_DIGITAL_PIN_0      GPIO_NUM_14
+#define USER_DIGITAL_PIN_1      GPIO_NUM_13
+#define USER_ANALOG_PIN_0      GPIO_NUM_15
+#define USER_ANALOG_PIN_1      GPIO_NUM_12
+
+#define USER_ANALOG_PIN_0_FREQ      5000
+#define USER_ANALOG_PIN_1_FREQ      5000
  
 #define X_LIMIT_PIN                 GPIO_NUM_33
 #define Y_LIMIT_PIN                 GPIO_NUM_32
@@ -121,4 +135,6 @@
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800
 #define DEFAULT_Z_STEPS_PER_MM      800
+
+#define REPORT_SEMICOLON_COMMENTS
 

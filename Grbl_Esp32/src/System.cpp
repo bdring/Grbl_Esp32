@@ -34,6 +34,9 @@ volatile uint8_t   sys_rt_exec_accessory_override;  // Global realtime executor 
 volatile uint8_t sys_rt_exec_debug;
 #endif
 
+UserOutput::AnalogOutput*  myAnalogOutputs[MaxUserDigitalPin];
+UserOutput::DigitalOutput* myDigitalOutputs[MaxUserDigitalPin];
+
 xQueueHandle control_sw_queue;    // used by control switch debouncing
 bool         debouncing = false;  // debouncing in process
 
@@ -91,23 +94,18 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
 #if (GRBL_SPI_SS != -1) || (GRBL_SPI_MISO != -1) || (GRBL_SPI_MOSI != -1) || (GRBL_SPI_SCK != -1)
     SPI.begin(GRBL_SPI_SCK, GRBL_SPI_MISO, GRBL_SPI_MOSI, GRBL_SPI_SS);
 #endif
-    // Setup USER_DIGITAL_PINs controlled by M62 and M63
-#ifdef USER_DIGITAL_PIN_1
-    pinMode(USER_DIGITAL_PIN_1, OUTPUT);
-    sys_io_control(bit(1), false);  // turn off
-#endif
-#ifdef USER_DIGITAL_PIN_2
-    pinMode(USER_DIGITAL_PIN_2, OUTPUT);
-    sys_io_control(bit(2), false);  // turn off
-#endif
-#ifdef USER_DIGITAL_PIN_3
-    pinMode(USER_DIGITAL_PIN_3, OUTPUT);
-    sys_io_control(bit(3), false);  // turn off
-#endif
-#ifdef USER_DIGITAL_PIN_4
-    pinMode(USER_DIGITAL_PIN_4, OUTPUT);
-    sys_io_control(bit(4), false);  // turn off
-#endif
+
+    // Setup M62,M63,M64,M65 pins
+    myDigitalOutputs[0] = new UserOutput::DigitalOutput(0, USER_DIGITAL_PIN_0);
+    myDigitalOutputs[0] = new UserOutput::DigitalOutput(1, USER_DIGITAL_PIN_1);
+    myDigitalOutputs[0] = new UserOutput::DigitalOutput(2, USER_DIGITAL_PIN_2);
+    myDigitalOutputs[0] = new UserOutput::DigitalOutput(3, USER_DIGITAL_PIN_3);
+
+    // Setup M67 Pins
+    myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, USER_ANALOG_PIN_0, USER_ANALOG_PIN_0_FREQ);
+    myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, USER_ANALOG_PIN_1, USER_ANALOG_PIN_1_FREQ);
+    myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, USER_ANALOG_PIN_2, USER_ANALOG_PIN_2_FREQ);
+    myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, USER_ANALOG_PIN_3, USER_ANALOG_PIN_3_FREQ);
 }
 
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
@@ -373,39 +371,34 @@ int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps) {
 
 // io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
 // It uses a mask so all can be turned of in ms_reset
-// This version waits until realtime commands have been executed
-void sys_io_control(uint8_t io_num_mask, bool turnOn) {
-    protocol_buffer_synchronize();
-    fast_sys_io_control(io_num_mask, turnOn);
+bool sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized) {
+    bool cmd_ok = true;
+    if (synchronized)
+        protocol_buffer_synchronize();
+
+    for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {
+        if (io_num_mask & bit(io_num)) {
+            if (!myDigitalOutputs[io_num]->set_level(turnOn))
+                cmd_ok = false;
+        }
+    }
+    return cmd_ok;
 }
 
-// This version works immediately, without waiting, to prevent deadlocks.
-// It is used when resetting via mc_reset()
-void fast_sys_io_control(uint8_t io_num_mask, bool turnOn) {
-#ifdef USER_DIGITAL_PIN_1
-    if (io_num_mask & bit(1)) {
-        digitalWrite(USER_DIGITAL_PIN_1, turnOn);
-        return;
+// io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
+// It uses a mask so all can be turned of in ms_reset
+bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized) {
+    bool cmd_ok = true;
+    if (synchronized)
+        protocol_buffer_synchronize();
+
+    for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {
+        if (io_num_mask & bit(io_num)) {
+            if (!myAnalogOutputs[io_num]->set_level(duty))
+                cmd_ok = false;
+        }
     }
-#endif
-#ifdef USER_DIGITAL_PIN_2
-    if (io_num_mask & bit(2)) {
-        digitalWrite(USER_DIGITAL_PIN_2, turnOn);
-        return;
-    }
-#endif
-#ifdef USER_DIGITAL_PIN_3
-    if (io_num_mask & bit(3)) {
-        digitalWrite(USER_DIGITAL_PIN_3, turnOn);
-        return;
-    }
-#endif
-#ifdef USER_DIGITAL_PIN_4
-    if (io_num_mask & bit(4)) {
-        digitalWrite(USER_DIGITAL_PIN_4, turnOn);
-        return;
-    }
-#endif
+    return cmd_ok;
 }
 
 // Call this function to get an RMT channel number
@@ -437,4 +430,21 @@ int8_t sys_get_next_PWM_chan_num() {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of PWM channels");
         return -1;
     }
+}
+
+/*
+		Calculate the highest precision of a PWM based on the frequency in bits
+
+		80,000,000 / freq = period
+		determine the highest precision where (1 << precision) < period
+	*/
+uint8_t sys_calc_pwm_precision(uint32_t freq) {
+    uint8_t precision = 0;
+
+    // increase the precision (bits) until it exceeds allow by frequency the max or is 16
+    while ((1 << precision) < (uint32_t)(80000000 / freq) && precision <= 16) {  // TODO is there a named value for the 80MHz?
+        precision++;
+    }
+
+    return precision - 1;
 }

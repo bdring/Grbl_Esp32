@@ -239,9 +239,11 @@ void user_defined_macro(uint8_t index) {
             break;
 #endif
 #ifdef MACRO_BUTTON_3_PIN
-        case CONTROL_PIN_INDEX_MACRO_3: break;
+        case CONTROL_PIN_INDEX_MACRO_3:
+            break;
 #endif
-        default: break;
+        default:
+            break;
     }
 }
 

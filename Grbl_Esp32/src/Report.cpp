@@ -231,7 +231,7 @@ void report_status_message(Error status_code, uint8_t client) {
 // Prints alarm messages.
 void report_alarm_message(ExecAlarm alarm_code) {
     grbl_sendf(CLIENT_ALL, "ALARM:%d\r\n", static_cast<int>(alarm_code));  // OK to send to all clients
-    delay_ms(500);                                       // Force delay to ensure message clears serial write buffer.
+    delay_ms(500);                                                         // Force delay to ensure message clears serial write buffer.
 }
 
 std::map<Message, const char*> MessageText = {
@@ -310,8 +310,12 @@ void report_ngc_parameters(uint8_t client) {
         }
         strcat(ngc_rpt, "[G");
         switch (coord_select) {
-            case 6: strcat(ngc_rpt, "28"); break;
-            case 7: strcat(ngc_rpt, "30"); break;
+            case 6:
+                strcat(ngc_rpt, "28");
+                break;
+            case 7:
+                strcat(ngc_rpt, "30");
+                break;
             default:
                 sprintf(temp, "%d", coord_select + 54);
                 strcat(ngc_rpt, temp);
@@ -345,15 +349,33 @@ void report_gcode_modes(uint8_t client) {
     strcpy(modes_rpt, "[GC:");
 
     switch (gc_state.modal.motion) {
-        case Motion::None: mode = "G80"; break;
-        case Motion::Seek: mode = "G0"; break;
-        case Motion::Linear: mode = "G1"; break;
-        case Motion::CwArc: mode = "G2"; break;
-        case Motion::CcwArc: mode = "G3"; break;
-        case Motion::ProbeToward: mode = "G38.1"; break;
-        case Motion::ProbeTowardNoError: mode = "G38.2"; break;
-        case Motion::ProbeAway: mode = "G38.3"; break;
-        case Motion::ProbeAwayNoError: mode = "G38.4"; break;
+        case Motion::None:
+            mode = "G80";
+            break;
+        case Motion::Seek:
+            mode = "G0";
+            break;
+        case Motion::Linear:
+            mode = "G1";
+            break;
+        case Motion::CwArc:
+            mode = "G2";
+            break;
+        case Motion::CcwArc:
+            mode = "G3";
+            break;
+        case Motion::ProbeToward:
+            mode = "G38.1";
+            break;
+        case Motion::ProbeTowardNoError:
+            mode = "G38.2";
+            break;
+        case Motion::ProbeAway:
+            mode = "G38.3";
+            break;
+        case Motion::ProbeAwayNoError:
+            mode = "G38.4";
+            break;
     }
     strcat(modes_rpt, mode);
 
@@ -361,21 +383,35 @@ void report_gcode_modes(uint8_t client) {
     strcat(modes_rpt, temp);
 
     switch (gc_state.modal.plane_select) {
-        case Plane::XY: mode = " G17"; break;
-        case Plane::ZX: mode = " G18"; break;
-        case Plane::YZ: mode = " G19"; break;
+        case Plane::XY:
+            mode = " G17";
+            break;
+        case Plane::ZX:
+            mode = " G18";
+            break;
+        case Plane::YZ:
+            mode = " G19";
+            break;
     }
     strcat(modes_rpt, mode);
 
     switch (gc_state.modal.units) {
-        case Units::Inches: mode = " G20"; break;
-        case Units::Mm: mode = " G21"; break;
+        case Units::Inches:
+            mode = " G20";
+            break;
+        case Units::Mm:
+            mode = " G21";
+            break;
     }
     strcat(modes_rpt, mode);
 
     switch (gc_state.modal.distance) {
-        case Distance::Absolute: mode = " G90"; break;
-        case Distance::Incremental: mode = " G91"; break;
+        case Distance::Absolute:
+            mode = " G90";
+            break;
+        case Distance::Incremental:
+            mode = " G91";
+            break;
     }
     strcat(modes_rpt, mode);
 
@@ -388,26 +424,47 @@ void report_gcode_modes(uint8_t client) {
 #endif
 
     switch (gc_state.modal.feed_rate) {
-        case FeedRate::UnitsPerMin: mode = " G94"; break;
-        case FeedRate::InverseTime: mode = " G93"; break;
+        case FeedRate::UnitsPerMin:
+            mode = " G94";
+            break;
+        case FeedRate::InverseTime:
+            mode = " G93";
+            break;
     }
     strcat(modes_rpt, mode);
 
     //report_util_gcode_modes_M();
     switch (gc_state.modal.program_flow) {
-        case ProgramFlow::Running: mode = ""; break;
-        case ProgramFlow::Paused: mode = " M0"; break;
-        case ProgramFlow::OptionalStop: mode = " M1"; break;
-        case ProgramFlow::CompletedM2: mode = " M2"; break;
-        case ProgramFlow::CompletedM30: mode = " M30"; break;
+        case ProgramFlow::Running:
+            mode = "";
+            break;
+        case ProgramFlow::Paused:
+            mode = " M0";
+            break;
+        case ProgramFlow::OptionalStop:
+            mode = " M1";
+            break;
+        case ProgramFlow::CompletedM2:
+            mode = " M2";
+            break;
+        case ProgramFlow::CompletedM30:
+            mode = " M30";
+            break;
     }
     strcat(modes_rpt, mode);
 
     switch (gc_state.modal.spindle) {
-        case SpindleState::Cw: mode = " M3"; break;
-        case SpindleState::Ccw: mode = " M4"; break;
-        case SpindleState::Disable: mode = " M5"; break;
-        default: mode = "";
+        case SpindleState::Cw:
+            mode = " M3";
+            break;
+        case SpindleState::Ccw:
+            mode = " M4";
+            break;
+        case SpindleState::Disable:
+            mode = " M5";
+            break;
+        default:
+            mode = "";
     }
     strcat(modes_rpt, mode);
 
@@ -546,8 +603,12 @@ void report_realtime_status(uint8_t client) {
     // Report current machine state and sub-states
     strcpy(status, "<");
     switch (sys.state) {
-        case State::Idle: strcat(status, "Idle"); break;
-        case State::Cycle: strcat(status, "Run"); break;
+        case State::Idle:
+            strcat(status, "Idle");
+            break;
+        case State::Cycle:
+            strcat(status, "Run");
+            break;
         case State::Hold:
             if (!(sys.suspend & SUSPEND_JOG_CANCEL)) {
                 strcat(status, "Hold:");
@@ -558,10 +619,18 @@ void report_realtime_status(uint8_t client) {
                 }
                 break;
             }  // Continues to print jog state during jog cancel.
-        case State::Jog: strcat(status, "Jog"); break;
-        case State::Homing: strcat(status, "Home"); break;
-        case State::Alarm: strcat(status, "Alarm"); break;
-        case State::CheckMode: strcat(status, "Check"); break;
+        case State::Jog:
+            strcat(status, "Jog");
+            break;
+        case State::Homing:
+            strcat(status, "Home");
+            break;
+        case State::Alarm:
+            strcat(status, "Alarm");
+            break;
+        case State::CheckMode:
+            strcat(status, "Check");
+            break;
         case State::SafetyDoor:
             strcat(status, "Door:");
             if (sys.suspend & SUSPEND_INITIATE_RESTORE) {
@@ -579,7 +648,9 @@ void report_realtime_status(uint8_t client) {
                 }
             }
             break;
-        case State::Sleep: strcat(status, "Sleep"); break;
+        case State::Sleep:
+            strcat(status, "Sleep");
+            break;
     }
     float wco[MAX_N_AXIS];
     if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE) || (sys.report_wco_counter == 0)) {
@@ -599,7 +670,7 @@ void report_realtime_status(uint8_t client) {
     if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
         strcat(status, "|MPos:");
     } else {
-#ifdef USE_FWD_KINEMATIC
+#ifdef USE_FWD_KINEMATICS        
         forward_kinematics(print_position);
 #endif
         strcat(status, "|WPos:");
@@ -744,9 +815,14 @@ void report_realtime_status(uint8_t client) {
         if (sp_state != SpindleState::Disable || coolant_state.Mist || coolant_state.Flood) {
             strcat(status, "|A:");
             switch (sp_state) {
-                case SpindleState::Disable: break;
-                case SpindleState::Cw: strcat(status, "S"); break;
-                case SpindleState::Ccw: strcat(status, "C"); break;
+                case SpindleState::Disable:
+                    break;
+                case SpindleState::Cw:
+                    strcat(status, "S");
+                    break;
+                case SpindleState::Ccw:
+                    strcat(status, "C");
+                    break;
             }
 
             auto coolant = coolant_state;
@@ -834,12 +910,19 @@ void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
 
 char report_get_axis_letter(uint8_t axis) {
     switch (axis) {
-        case X_AXIS: return 'X';
-        case Y_AXIS: return 'Y';
-        case Z_AXIS: return 'Z';
-        case A_AXIS: return 'A';
-        case B_AXIS: return 'B';
-        case C_AXIS: return 'C';
-        default: return '?';
+        case X_AXIS:
+            return 'X';
+        case Y_AXIS:
+            return 'Y';
+        case Z_AXIS:
+            return 'Z';
+        case A_AXIS:
+            return 'A';
+        case B_AXIS:
+            return 'B';
+        case C_AXIS:
+            return 'C';
+        default:
+            return '?';
     }
 }

@@ -18,7 +18,8 @@ bool auth_failed(Word* w, const char* value, WebUI::AuthenticationLevel auth_lev
                 return false;                          // No read is a User auth fail
             }
             return permissions == WA;  // User cannot write WA
-        default: return true;
+        default:
+            return true;
     }
 }
 
@@ -104,7 +105,7 @@ Error jog_set(uint8_t* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPR
 
     // restore the $J= prefix because gc_execute_line() expects it
     const int MAXLINE = 128;
-    char line[MAXLINE];
+    char      line[MAXLINE];
     strcpy(line, "$J=");
     strncat(line, (char*)value, MAXLINE - strlen("$J=") - 1);
 
@@ -232,9 +233,9 @@ Error home(int cycle) {
 #else
     mc_homing_cycle(cycle);
 #endif
-    if (!sys.abort) {            // Execute startup scripts after successful homing.
+    if (!sys.abort) {             // Execute startup scripts after successful homing.
         sys.state = State::Idle;  // Set to IDLE when complete.
-        st_go_idle();            // Set steppers to the settings idle state before returning.
+        st_go_idle();             // Set steppers to the settings idle state before returning.
         if (cycle == HOMING_CYCLE_ALL) {
             char line[128];
             system_execute_startup(line);

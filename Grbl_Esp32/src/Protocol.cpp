@@ -160,7 +160,8 @@ void protocol_main_loop() {
             while ((c = serial_read(client)) != SERIAL_NO_DATA) {
                 Error res = add_char_to_line(c, client);
                 switch (res) {
-                    case Error::Ok: break;
+                    case Error::Ok:
+                        break;
                     case Error::Eol:
                         protocol_execute_realtime();  // Runtime command check point.
                         if (sys.abort) {
@@ -178,7 +179,8 @@ void protocol_main_loop() {
                         report_status_message(Error::Overflow, client);
                         empty_line(client);
                         break;
-                    default: break;
+                    default:
+                        break;
                 }
             }  // while serial read
         }      // for clients
@@ -557,8 +559,11 @@ void protocol_exec_rt_system() {
         case State::SafetyDoor:
         case State::Homing:
         case State::Sleep:
-        case State::Jog: st_prep_buffer(); break;
-        default: break;
+        case State::Jog:
+            st_prep_buffer();
+            break;
+        default:
+            break;
     }
 }
 
@@ -576,8 +581,8 @@ static void protocol_exec_rt_suspend() {
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
     memset(pl_data, 0, sizeof(plan_line_data_t));
-    pl_data->motion = {};
-    pl_data->motion.systemMotion = 1;
+    pl_data->motion                = {};
+    pl_data->motion.systemMotion   = 1;
     pl_data->motion.noFeedOverride = 1;
 #    ifdef USE_LINE_NUMBERS
     pl_data->line_number = PARKING_MOTION_LINE_NUMBER;
@@ -641,12 +646,12 @@ static void protocol_exec_rt_suspend() {
                             mc_parking_motion(parking_target, pl_data);
                         }
                         // NOTE: Clear accessory state after retract and after an aborted restore motion.
-                        pl_data->spindle       = SpindleState::Disable;
-                        pl_data->coolant       = {};
-                        pl_data->motion = {};
-                        pl_data->motion.systemMotion = 1;
+                        pl_data->spindle               = SpindleState::Disable;
+                        pl_data->coolant               = {};
+                        pl_data->motion                = {};
+                        pl_data->motion.systemMotion   = 1;
                         pl_data->motion.noFeedOverride = 1;
-                        pl_data->spindle_speed = 0.0;
+                        pl_data->spindle_speed         = 0.0;
                         spindle->set_state(pl_data->spindle, 0);  // De-energize
                         coolant_set_state(pl_data->coolant);
                         // Execute fast parking retract motion to parking target location.

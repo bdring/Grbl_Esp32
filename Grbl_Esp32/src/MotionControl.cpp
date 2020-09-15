@@ -504,11 +504,12 @@ void mc_reset() {
         spindle->stop();
         coolant_stop();
 
-        // turn off all digital I/O immediately
-        fast_sys_io_control(0xFF, false);
+        // turn off all User I/O immediately
+        sys_io_control(0xFF, LOW, false);
+        sys_pwm_control(0xFF, 0, false);
 #ifdef ENABLE_SD_CARD
-        // do we need to stop a running SD job?
-        if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+            // do we need to stop a running SD job?
+            if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
             //Report print stopped
             report_feedback_message(Message::SdFileQuit);
             closeFile();

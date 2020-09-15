@@ -227,7 +227,8 @@ namespace Motors {
                 tmcstepper->diag1_stall(true);  // stallguard i/o is on diag1
                 tmcstepper->sgt(axis_settings[_axis_index]->stallguard->get());
                 break;
-            default: grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_UNDEFINED");
+            default:
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_UNDEFINED");
         }
     }
 
@@ -273,10 +274,15 @@ namespace Motors {
         if (has_errors)
             return;
 
-        digitalWrite(disable_pin, disable);
+        if (_disabled == disable)
+            return;
+
+        _disabled = disable;
+
+        digitalWrite(disable_pin, _disabled);
 
 #ifdef USE_TRINAMIC_ENABLE
-        if (disable) {
+        if (_disabled) {
             tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
         } else {
             if (_mode == TRINAMIC_MODE_STEALTHCHOP) {
