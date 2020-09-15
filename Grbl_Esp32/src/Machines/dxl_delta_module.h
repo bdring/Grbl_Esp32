@@ -2,7 +2,7 @@
 // clang-format off
 
 /*
-    dxl_delta.h
+    dxl_delta_module.h
 
     2020    - Bart Dring
 
@@ -19,9 +19,16 @@
 */
 #define MACHINE_NAME            "Dynamixel Delta"
 
+// In Socket #3
+#define DYNAMIXEL_RXD           GPIO_NUM_26
+#define DYNAMIXEL_RTS           GPIO_NUM_4
+#define DYNAMIXEL_TXD           GPIO_NUM_16
+
+/*
 #define DYNAMIXEL_TXD           GPIO_NUM_4
 #define DYNAMIXEL_RXD           GPIO_NUM_13
 #define DYNAMIXEL_RTS           GPIO_NUM_17
+*/
 
 #define SERVO_TIMER_INTerval    100   // milliseconds
 
@@ -30,7 +37,7 @@
 #define Z_DYNAMIXEL_ID          3 // protocol ID
 
 // limit servo to 180 degree motion
-#define DXL_COUNT_MIN           1024      
-#define DXL_COUNT_MAX           3072
+#define DXL_COUNT_MIN 1024      
+#define DXL_COUNT_MAX 3072
 
-#define SPINDLE_TYPE            SpindleType::NONE
+#define SPINDLE_TYPE    SpindleType::PWM

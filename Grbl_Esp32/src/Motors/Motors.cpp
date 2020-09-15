@@ -332,19 +332,16 @@ bool motors_have_type_id(motor_class_id_t id) {
 }
 
 void motors_set_disable(bool disable) {
-    static bool previous_state = false;
+    static bool previous_state = true;
 
+    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Motors disable %d", disable);
+
+/*
     if (previous_state == disable) {
         return;
     }
-
-    previous_state = disable;
-
-    if (step_enable_invert->get()) {
-        disable = !disable;  // Apply pin invert.
-    }
-
-    digitalWrite(STEPPERS_DISABLE_PIN, disable);
+    previous_state = disable;    
+*/
 
     // now loop through all the motors to see if they can individually diable
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
@@ -352,6 +349,13 @@ void motors_set_disable(bool disable) {
             myMotor[axis][gang_index]->set_disable(disable);
         }
     }
+
+    // invert only inverts the global stepper disable pin.
+    if (step_enable_invert->get()) {
+        disable = !disable;  // Apply pin invert.
+    }
+    digitalWrite(STEPPERS_DISABLE_PIN, disable);
+    
 }
 
 void motors_read_settings() {

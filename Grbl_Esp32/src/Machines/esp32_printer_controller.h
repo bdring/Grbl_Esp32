@@ -245,10 +245,10 @@
 // so non-Cartesian machines can be implemented.
 // #define USE_KINEMATICS
 
-// USE_FWD_KINEMATIC enables the forward_kinematics() function
+// USE_FWD_KINEMATICS enables the forward_kinematics() function
 // that converts motor positions in non-Cartesian coordinate
 // systems back to Cartesian form, for status reports.
-//#define USE_FWD_KINEMATIC
+//#define USE_FWD_KINEMATICS
 
 // USE_TOOL_CHANGE enables the user_tool_change() function
 // that implements custom tool change procedures.

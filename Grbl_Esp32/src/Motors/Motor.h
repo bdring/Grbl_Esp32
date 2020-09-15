@@ -68,5 +68,6 @@ namespace Motors {
         float _position_max = 0;  // position in millimeters
 
         bool _can_home = true;
+        bool _disabled;
     };
 }

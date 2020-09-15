@@ -108,7 +108,7 @@ bool kinematics_pre_homing(uint8_t cycle_mask))
 void kinematics_post_homing() {}
 #endif
 
-#ifdef USE_FWD_KINEMATIC
+#ifdef USE_FWD_KINEMATICS
 /*
   The status command uses forward_kinematics() to convert
   your motor positions to cartesian X,Y,Z... coordinates.

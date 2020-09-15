@@ -42,7 +42,7 @@ namespace Motors {
         uint8_t  _pwm_pin;
         uint8_t  _channel_num;
         uint32_t _current_pwm_duty;
-        bool     _disabled;
+        
 
         float _homing_position;
 

@@ -78,7 +78,8 @@ namespace UserOutput {
     }
 
     void AnalogOutput::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "User Analog Output:%d on Pin:%s", _number, pinName(_pin).c_str());
+        grbl_msg_sendf(
+            CLIENT_SERIAL, MsgLevel::Info, "User Analog Output:%d on Pin:%s Freq:%0.0fHz", _number, pinName(_pin).c_str(), _pwm_frequency);
     }
 
     // returns true if able to set value
