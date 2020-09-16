@@ -26,6 +26,9 @@ namespace UserOutput {
         _number = number;
         _pin    = pin;
 
+        if (_pin == UNDEFINED_PIN)
+            return;
+
         init();
     }
 
@@ -90,7 +93,7 @@ namespace UserOutput {
         float duty;
 
         // look for errors, but ignore if turning off to prevent mask turn off from generating errors
-        if (_number == UNDEFINED_PIN) {
+        if (_pin == UNDEFINED_PIN) {
             return false;
         }
 

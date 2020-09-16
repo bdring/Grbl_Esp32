@@ -23,8 +23,8 @@
 
 // Declare system global variable structure
 system_t           sys;
-int32_t            sys_position[N_AXIS];            // Real-time machine (aka home) position vector in steps.
-int32_t            sys_probe_position[N_AXIS];      // Last probe position in machine coordinates and steps.
+int32_t            sys_position[MAX_N_AXIS];        // Real-time machine (aka home) position vector in steps.
+int32_t            sys_probe_position[MAX_N_AXIS];  // Last probe position in machine coordinates and steps.
 volatile uint8_t   sys_probe_state;                 // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
 volatile uint8_t   sys_rt_exec_state;               // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
 volatile ExecAlarm sys_rt_exec_alarm;               // Global realtime executor bitflag variable for setting various alarms.
@@ -233,7 +233,8 @@ float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
 
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     uint8_t idx;
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto    n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
         position[idx] = system_convert_axis_steps_to_mpos(steps, idx);
     }
     return;
@@ -243,7 +244,8 @@ void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
 // Return true if exceeding limits
 uint8_t system_check_travel_limits(float* target) {
     uint8_t idx;
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto    n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
         float travel = axis_settings[idx]->max_travel->get();
         float mpos   = axis_settings[idx]->home_mpos->get();
         float max_mpos, min_mpos;

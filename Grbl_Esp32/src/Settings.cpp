@@ -68,9 +68,12 @@ IntSetting::IntSetting(const char*   description,
                        int32_t       defVal,
                        int32_t       minVal,
                        int32_t       maxVal,
-                       bool (*checker)(char*) = NULL) :
+                       bool (*checker)(char*) = NULL,
+                       bool currentIsNvm) :
     Setting(description, type, permissions, grblName, name, checker),
-    _defaultValue(defVal), _currentValue(defVal), _minValue(minVal), _maxValue(maxVal) {}
+    _defaultValue(defVal), _currentValue(defVal), _minValue(minVal), _maxValue(maxVal), _currentIsNvm(currentIsNvm) {
+    _storedValue = std::numeric_limits<int32_t>::min();
+}
 
 void IntSetting::load() {
     esp_err_t err = nvs_get_i32(_handle, _keyName, &_storedValue);
@@ -83,9 +86,13 @@ void IntSetting::load() {
 }
 
 void IntSetting::setDefault() {
-    _currentValue = _defaultValue;
-    if (_storedValue != _currentValue) {
+    if (_currentIsNvm) {
         nvs_erase_key(_handle, _keyName);
+    } else {
+        _currentValue = _defaultValue;
+        if (_storedValue != _currentValue) {
+            nvs_erase_key(_handle, _keyName);
+        }
     }
 }
 
@@ -103,15 +110,20 @@ Error IntSetting::setStringValue(char* s) {
     if (convertedValue < _minValue || convertedValue > _maxValue) {
         return Error::NumberRange;
     }
-    _currentValue = convertedValue;
-    if (_storedValue != _currentValue) {
-        if (_currentValue == _defaultValue) {
+
+    // If we don't see the NVM state, we have to make this the live value:
+    if (!_currentIsNvm) {
+        _currentValue = convertedValue;
+    }
+
+    if (_storedValue != convertedValue) {
+        if (convertedValue == _defaultValue) {
             nvs_erase_key(_handle, _keyName);
         } else {
-            if (nvs_set_i32(_handle, _keyName, _currentValue)) {
+            if (nvs_set_i32(_handle, _keyName, convertedValue)) {
                 return Error::NvsSetFailed;
             }
-            _storedValue = _currentValue;
+            _storedValue = convertedValue;
         }
     }
     return Error::Ok;
@@ -119,7 +131,19 @@ Error IntSetting::setStringValue(char* s) {
 
 const char* IntSetting::getStringValue() {
     static char strval[32];
-    sprintf(strval, "%d", get());
+
+    int currentSettingValue;
+    if (_currentIsNvm) {
+        if (std::numeric_limits<int32_t>::min() == _storedValue) {
+            currentSettingValue = _defaultValue;
+        } else {
+            currentSettingValue = _storedValue;
+        }
+    } else {
+        currentSettingValue = get();
+    }
+
+    sprintf(strval, "%d", currentSettingValue);
     return strval;
 }
 

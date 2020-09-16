@@ -26,8 +26,8 @@
 
 // Read selected coordinate data from EEPROM. Updates pointed coord_data value.
 uint8_t settings_read_coord_data(uint8_t coord_select, float* coord_data) {
-    uint32_t addr = coord_select * (sizeof(float) * N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
-    if (!(memcpy_from_eeprom_with_checksum((char*)coord_data, addr, sizeof(float) * N_AXIS))) {
+    uint32_t addr = coord_select * (sizeof(float) * MAX_N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
+    if (!(memcpy_from_eeprom_with_checksum((char*)coord_data, addr, sizeof(float) * MAX_N_AXIS))) {
         // Reset with default zero vector
         clear_vector_float(coord_data);
         settings_write_coord_data(coord_select, coord_data);
@@ -41,8 +41,8 @@ void settings_write_coord_data(uint8_t coord_select, float* coord_data) {
 #ifdef FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE
     protocol_buffer_synchronize();
 #endif
-    uint32_t addr = coord_select * (sizeof(float) * N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
-    memcpy_to_eeprom_with_checksum(addr, (char*)coord_data, sizeof(float) * N_AXIS);
+    uint32_t addr = coord_select * (sizeof(float) * MAX_N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
+    memcpy_to_eeprom_with_checksum(addr, (char*)coord_data, sizeof(float) * MAX_N_AXIS);
 }
 
 // Method to store build info into EEPROM

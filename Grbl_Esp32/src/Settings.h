@@ -143,6 +143,7 @@ private:
     int32_t _storedValue;
     int32_t _minValue;
     int32_t _maxValue;
+    bool    _currentIsNvm;
 
 public:
     IntSetting(const char*   description,
@@ -153,7 +154,8 @@ public:
                int32_t       defVal,
                int32_t       minVal,
                int32_t       maxVal,
-               bool (*checker)(char*));
+               bool (*checker)(char*),
+               bool currentIsNvm = false);
 
     IntSetting(type_t        type,
                permissions_t permissions,
@@ -162,8 +164,9 @@ public:
                int32_t       defVal,
                int32_t       minVal,
                int32_t       maxVal,
-               bool (*checker)(char*) = NULL) :
-        IntSetting(NULL, type, permissions, grblName, name, defVal, minVal, maxVal, checker) {}
+               bool (*checker)(char*) = NULL,
+               bool currentIsNvm      = false) :
+        IntSetting(NULL, type, permissions, grblName, name, defVal, minVal, maxVal, checker, currentIsNvm) {}
 
     void        load();
     void        setDefault();
@@ -419,4 +422,15 @@ public:
                 bool (*checker)(void)) :
         GrblCommand(grblName, name, action, checker, WG) {}
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
+};
+
+template <typename T>
+class FakeSetting {
+private:
+    T _value;
+
+public:
+    FakeSetting(T value) : _value(value) {}
+
+    T get() { return _value; }
 };

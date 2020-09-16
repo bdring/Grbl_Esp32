@@ -84,6 +84,7 @@ namespace Motors {
         set_mode(false);
 
         _homing_mask = 0;
+        is_active    = true;
     }
 
     /*
