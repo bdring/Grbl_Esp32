@@ -175,14 +175,15 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
     if (report_inches->get()) {
         unit_conv = 1.0 / MM_PER_INCH;
     }
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
         if (report_inches->get()) {
             sprintf(axisVal, "%4.4f", axis_value[idx] * unit_conv);  // Report inches to 4 decimals
         } else {
             sprintf(axisVal, "%4.3f", axis_value[idx] * unit_conv);  // Report mm to 3 decimals
         }
         strcat(rpt, axisVal);
-        if (idx < (N_AXIS - 1)) {
+        if (idx < (number_axis->get() - 1)) {
             strcat(rpt, ",");
         }
     }
@@ -281,7 +282,7 @@ void report_grbl_help(uint8_t client) {
 // These values are retained until Grbl is power-cycled, whereby they will be re-zeroed.
 void report_probe_parameters(uint8_t client) {
     // Report in terms of machine position.
-    float print_position[N_AXIS];
+    float print_position[MAX_N_AXIS];
     char  probe_rpt[100];  // the probe report we are building here
     char  temp[60];
     strcpy(probe_rpt, "[PRB:");  // initialize the string with the first characters
@@ -297,7 +298,7 @@ void report_probe_parameters(uint8_t client) {
 
 // Prints Grbl NGC parameters (coordinate offsets, probing)
 void report_ngc_parameters(uint8_t client) {
-    float   coord_data[N_AXIS];
+    float   coord_data[MAX_N_AXIS];
     uint8_t coord_select;
     char    temp[60];
     char    ngc_rpt[500];
@@ -593,9 +594,9 @@ void report_echo_line_received(char* line, uint8_t client) {
 // especially during g-code programs with fast, short line segments and high frequency reports (5-20Hz).
 void report_realtime_status(uint8_t client) {
     uint8_t idx;
-    int32_t current_position[N_AXIS];  // Copy current state of the system position variable
+    int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
     memcpy(current_position, sys_position, sizeof(sys_position));
-    float print_position[N_AXIS];
+    float print_position[MAX_N_AXIS];
     char  status[200];
     char  temp[80];
     system_convert_array_steps_to_mpos(print_position, current_position);
@@ -651,9 +652,10 @@ void report_realtime_status(uint8_t client) {
             strcat(status, "Sleep");
             break;
     }
-    float wco[N_AXIS];
+    float wco[MAX_N_AXIS];
     if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE) || (sys.report_wco_counter == 0)) {
-        for (idx = 0; idx < N_AXIS; idx++) {
+        auto n_axis = number_axis->get();
+        for (idx = 0; idx < n_axis; idx++) {
             // Apply work coordinate offsets and tool length offset to current position.
             wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];
             if (idx == TOOL_LENGTH_OFFSET_AXIS) {
@@ -729,30 +731,25 @@ void report_realtime_status(uint8_t client) {
             strcat(status, "P");
         }
         if (lim_pin_state) {
-            if (bit_istrue(lim_pin_state, bit(X_AXIS))) {
+            auto n_axis = number_axis->get();
+            if (n_axis >= 1 && bit_istrue(lim_pin_state, bit(X_AXIS))) {
                 strcat(status, "X");
             }
-            if (bit_istrue(lim_pin_state, bit(Y_AXIS))) {
+            if (n_axis >= 2 && bit_istrue(lim_pin_state, bit(Y_AXIS))) {
                 strcat(status, "Y");
             }
-            if (bit_istrue(lim_pin_state, bit(Z_AXIS))) {
+            if (n_axis >= 3 && bit_istrue(lim_pin_state, bit(Z_AXIS))) {
                 strcat(status, "Z");
             }
-#    if (N_AXIS > A_AXIS)
-            if (bit_istrue(lim_pin_state, bit(A_AXIS))) {
+            if (n_axis >= 4 && bit_istrue(lim_pin_state, bit(A_AXIS))) {
                 strcat(status, "A");
             }
-#    endif
-#    if (N_AXIS > B_AXIS)
-            if (bit_istrue(lim_pin_state, bit(B_AXIS))) {
+            if (n_axis >= 5 && bit_istrue(lim_pin_state, bit(B_AXIS))) {
                 strcat(status, "B");
             }
-#    endif
-#    if (N_AXIS > C_AXIS)
-            if (bit_istrue(lim_pin_state, bit(C_AXIS))) {
+            if (n_axis >= 6 && bit_istrue(lim_pin_state, bit(C_AXIS))) {
                 strcat(status, "C");
             }
-#    endif
         }
         if (ctrl_pin_state) {
 #    ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
@@ -858,7 +855,8 @@ void report_realtime_status(uint8_t client) {
 
 void report_realtime_steps() {
     uint8_t idx;
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
         grbl_sendf(CLIENT_ALL, "%ld\n", sys_position[idx]);  // OK to send to all ... debug stuff
     }
 }

@@ -2,6 +2,8 @@
 
 extern bool motorSettingChanged;
 
+extern FakeSetting<int>* number_axis;
+
 extern AxisSettings* x_axis_settings;
 extern AxisSettings* y_axis_settings;
 extern AxisSettings* z_axis_settings;

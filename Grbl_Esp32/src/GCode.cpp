@@ -140,6 +140,8 @@ Error gc_execute_line(char* line, uint8_t client) {
     uint32_t command_words   = 0;  // Tracks G and M command words. Also used for modal group violations.
     uint32_t value_words     = 0;  // Tracks value words.
     uint8_t  gc_parser_flags = GCParserNone;
+    auto     n_axis          = number_axis->get();
+
     // Determine if the line is a jogging motion or a normal g-code block.
     if (line[0] == '$') {  // NOTE: `$J=` already parsed when passed to this function.
         // Set G1 and G94 enforced modes to ensure accurate error checks.
@@ -150,6 +152,7 @@ Error gc_execute_line(char* line, uint8_t client) {
         gc_block.values.n = JOG_LINE_NUMBER;  // Initialize default line number reported during jog.
 #endif
     }
+
     /* -------------------------------------------------------------------------------------
        STEP 2: Import all g-code words in the block line. A g-code word is a letter followed by
        a number, which can either be a 'G'/'M' command or sets/assigns a command value. Also,
@@ -539,27 +542,33 @@ Error gc_execute_line(char* line, uint8_t client) {
                words (I,J,K,L,P,R) have multiple connotations and/or depend on the issued commands. */
                 GCodeWord axis_word_bit;
                 switch (letter) {
-#if (N_AXIS > A_AXIS)
                     case 'A':
-                        axis_word_bit               = GCodeWord::A;
-                        gc_block.values.xyz[A_AXIS] = value;
-                        axis_words |= bit(A_AXIS);
+                        if (n_axis > A_AXIS) {
+                            axis_word_bit               = GCodeWord::A;
+                            gc_block.values.xyz[A_AXIS] = value;
+                            axis_words |= bit(A_AXIS);
+                        } else {
+                            FAIL(Error::GcodeUnsupportedCommand);
+                        }
                         break;
-#endif
-#if (N_AXIS > B_AXIS)
                     case 'B':
-                        axis_word_bit               = GCodeWord::B;
-                        gc_block.values.xyz[B_AXIS] = value;
-                        axis_words |= bit(B_AXIS);
+                        if (n_axis > B_AXIS) {
+                            axis_word_bit               = GCodeWord::B;
+                            gc_block.values.xyz[B_AXIS] = value;
+                            axis_words |= bit(B_AXIS);
+                        } else {
+                            FAIL(Error::GcodeUnsupportedCommand);
+                        }
                         break;
-#endif
-#if (N_AXIS > C_AXIS)
                     case 'C':
-                        axis_word_bit               = GCodeWord::C;
-                        gc_block.values.xyz[C_AXIS] = value;
-                        axis_words |= bit(C_AXIS);
+                        if (n_axis > C_AXIS) {
+                            axis_word_bit               = GCodeWord::C;
+                            gc_block.values.xyz[C_AXIS] = value;
+                            axis_words |= bit(C_AXIS);
+                        } else {
+                            FAIL(Error::GcodeUnsupportedCommand);
+                        }
                         break;
-#endif
                     // case 'D': // Not supported
                     case 'E':
                         axis_word_bit     = GCodeWord::E;
@@ -620,19 +629,32 @@ Error gc_execute_line(char* line, uint8_t client) {
                         gc_state.tool = int_value;
                         break;
                     case 'X':
-                        axis_word_bit               = GCodeWord::X;
-                        gc_block.values.xyz[X_AXIS] = value;
-                        axis_words |= bit(X_AXIS);
+                        if (n_axis > X_AXIS) {
+                            axis_word_bit               = GCodeWord::X;
+                            gc_block.values.xyz[X_AXIS] = value;
+                            axis_words |= bit(X_AXIS);
+
+                        } else {
+                            FAIL(Error::GcodeUnsupportedCommand);
+                        }
                         break;
                     case 'Y':
-                        axis_word_bit               = GCodeWord::Y;
-                        gc_block.values.xyz[Y_AXIS] = value;
-                        axis_words |= bit(Y_AXIS);
+                        if (n_axis > Y_AXIS) {
+                            axis_word_bit               = GCodeWord::Y;
+                            gc_block.values.xyz[Y_AXIS] = value;
+                            axis_words |= bit(Y_AXIS);
+                        } else {
+                            FAIL(Error::GcodeUnsupportedCommand);
+                        }
                         break;
                     case 'Z':
-                        axis_word_bit               = GCodeWord::Z;
-                        gc_block.values.xyz[Z_AXIS] = value;
-                        axis_words |= bit(Z_AXIS);
+                        if (n_axis > Z_AXIS) {
+                            axis_word_bit               = GCodeWord::Z;
+                            gc_block.values.xyz[Z_AXIS] = value;
+                            axis_words |= bit(Z_AXIS);
+                        } else {
+                            FAIL(Error::GcodeUnsupportedCommand);
+                        }
                         break;
                     default:
                         FAIL(Error::GcodeUnsupportedCommand);
@@ -804,16 +826,18 @@ Error gc_execute_line(char* line, uint8_t client) {
             axis_1      = Z_AXIS;
             axis_linear = X_AXIS;
     }
+
     // [12. Set length units ]: N/A
     // Pre-convert XYZ coordinate values to millimeters, if applicable.
     uint8_t idx;
     if (gc_block.modal.units == Units::Inches) {
-        for (idx = 0; idx < N_AXIS; idx++) {  // Axes indices are consistent, so loop may be used.
+        for (idx = 0; idx < n_axis; idx++) {  // Axes indices are consistent, so loop may be used.
             if (bit_istrue(axis_words, bit(idx))) {
                 gc_block.values.xyz[idx] *= MM_PER_INCH;
             }
         }
     }
+
     // [13. Cutter radius compensation ]: G41/42 NOT SUPPORTED. Error, if enabled while G53 is active.
     // [G40 Errors]: G2/3 arc is programmed after a G40. The linear move after disabling is less than tool diameter.
     //   NOTE: Since cutter radius compensation is never enabled, these G40 errors don't apply. Grbl supports G40
@@ -835,7 +859,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     // is active. The read pauses the processor temporarily and may cause a rare crash. For
     // future versions on processors with enough memory, all coordinate data should be stored
     // in memory and written to EEPROM only when there is not a cycle active.
-    float block_coord_system[N_AXIS];
+    float block_coord_system[MAX_N_AXIS];
     memcpy(block_coord_system, gc_state.coord_system, sizeof(gc_state.coord_system));
     if (bit_istrue(command_words, bit(ModalGroup::MG12))) {  // Check if called in block
         if (gc_block.modal.coord_select > N_COORDINATE_SYSTEM) {
@@ -887,12 +911,12 @@ Error gc_execute_line(char* line, uint8_t client) {
                 coord_select = gc_block.modal.coord_select;  // Index P0 as the active coordinate system
             }
             // NOTE: Store parameter data in IJK values. By rule, they are not in use with this command.
-            // FIXME: Instead of IJK, we'd better use: float vector[N_AXIS]; // [DG]
+            // FIXME: Instead of IJK, we'd better use: float vector[MAX_N_AXIS]; // [DG]
             if (!settings_read_coord_data(coord_select, gc_block.values.ijk)) {
                 FAIL(Error::SettingReadFail);  // [EEPROM read fail]
             }
             // Pre-calculate the coordinate data changes.
-            for (idx = 0; idx < N_AXIS; idx++) {  // Axes indices are consistent, so loop may be used.
+            for (idx = 0; idx < n_axis; idx++) {  // Axes indices are consistent, so loop may be used.
                 // Update axes defined only in block. Always in machine coordinates. Can change non-active system.
                 if (bit_istrue(axis_words, bit(idx))) {
                     if (gc_block.values.l == 20) {
@@ -916,7 +940,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             }
             // Update axes defined only in block. Offsets current system to defined value. Does not update when
             // active coordinate system is selected, but is still active unless G92.1 disables it.
-            for (idx = 0; idx < N_AXIS; idx++) {  // Axes indices are consistent, so loop may be used.
+            for (idx = 0; idx < n_axis; idx++) {  // Axes indices are consistent, so loop may be used.
                 if (bit_istrue(axis_words, bit(idx))) {
                     // WPos = MPos - WCS - G92 - TLO  ->  G92 = MPos - WCS - TLO - WPos
                     gc_block.values.xyz[idx] = gc_state.position[idx] - block_coord_system[idx] - gc_block.values.xyz[idx];
@@ -935,7 +959,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             // NOTE: Tool offsets may be appended to these conversions when/if this feature is added.
             if (axis_command != AxisCommand::ToolLengthOffset) {  // TLO block any axis command.
                 if (axis_words) {
-                    for (idx = 0; idx < N_AXIS; idx++) {  // Axes indices are consistent, so loop may be used to save flash space.
+                    for (idx = 0; idx < n_axis; idx++) {  // Axes indices are consistent, so loop may be used to save flash space.
                         if (bit_isfalse(axis_words, bit(idx))) {
                             gc_block.values.xyz[idx] = gc_state.position[idx];  // No axis word in block. Keep same axis position.
                         } else {
@@ -974,7 +998,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                     }
                     if (axis_words) {
                         // Move only the axes specified in secondary move.
-                        for (idx = 0; idx < N_AXIS; idx++) {
+                        for (idx = 0; idx < n_axis; idx++) {
                             if (!(axis_words & bit(idx))) {
                                 gc_block.values.ijk[idx] = gc_state.position[idx];
                             }
@@ -1157,7 +1181,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         bit_false(value_words, (bit(GCodeWord::I) | bit(GCodeWord::J) | bit(GCodeWord::K)));
                         // Convert IJK values to proper units.
                         if (gc_block.modal.units == Units::Inches) {
-                            for (idx = 0; idx < N_AXIS; idx++) {  // Axes indices are consistent, so loop may be used to save flash space.
+                            for (idx = 0; idx < n_axis; idx++) {  // Axes indices are consistent, so loop may be used to save flash space.
                                 if (ijk_words & bit(idx)) {
                                     gc_block.values.ijk[idx] *= MM_PER_INCH;
                                 }
@@ -1413,7 +1437,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     // [15. Coordinate system selection ]:
     if (gc_state.modal.coord_select != gc_block.modal.coord_select) {
         gc_state.modal.coord_select = gc_block.modal.coord_select;
-        memcpy(gc_state.coord_system, block_coord_system, N_AXIS * sizeof(float));
+        memcpy(gc_state.coord_system, block_coord_system, MAX_N_AXIS * sizeof(float));
         system_flag_wco_change();
     }
     // [16. Set path control mode ]: G61.1/G64 NOT SUPPORTED
@@ -1427,7 +1451,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             settings_write_coord_data(coord_select, gc_block.values.ijk);
             // Update system coordinate system if currently active.
             if (gc_state.modal.coord_select == coord_select) {
-                memcpy(gc_state.coord_system, gc_block.values.ijk, N_AXIS * sizeof(float));
+                memcpy(gc_state.coord_system, gc_block.values.ijk, MAX_N_AXIS * sizeof(float));
                 system_flag_wco_change();
             }
             break;
@@ -1440,7 +1464,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
             }
             mc_line(gc_block.values.ijk, pl_data);
-            memcpy(gc_state.position, gc_block.values.ijk, N_AXIS * sizeof(float));
+            memcpy(gc_state.position, gc_block.values.ijk, MAX_N_AXIS * sizeof(float));
             break;
         case NonModal::SetHome0:
             settings_write_coord_data(SETTING_INDEX_G28, gc_state.position);
