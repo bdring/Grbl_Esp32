@@ -26,6 +26,9 @@ namespace UserOutput {
         _number = number;
         _pin    = pin;
 
+        if (_pin == UNDEFINED_PIN)
+            return;
+
         init();
     }
 
@@ -58,6 +61,9 @@ namespace UserOutput {
         _pin           = pin;
         _pwm_frequency = pwm_frequency;
 
+        if (pin == UNDEFINED_PIN)
+            return;
+
         // determine the highest bit precision allowed by frequency
         _resolution_bits = sys_calc_pwm_precision(_pwm_frequency);
 
@@ -87,7 +93,7 @@ namespace UserOutput {
         float duty;
 
         // look for errors, but ignore if turning off to prevent mask turn off from generating errors
-        if (_number == UNDEFINED_PIN && percent != 0.0) {
+        if (_pin == UNDEFINED_PIN) {
             return false;
         }
 

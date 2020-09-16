@@ -247,22 +247,22 @@ Error home_all(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::
     return home(HOMING_CYCLE_ALL);
 }
 Error home_x(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(X_AXIS);
+    return home(bit(X_AXIS));
 }
 Error home_y(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(Y_AXIS);
+    return home(bit(Y_AXIS));
 }
 Error home_z(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(Z_AXIS);
+    return home(bit(Z_AXIS));
 }
 Error home_a(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(A_AXIS);
+    return home(bit(A_AXIS));
 }
 Error home_b(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(B_AXIS);
+    return home(bit(B_AXIS));
 }
 Error home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(C_AXIS);
+    return home(bit(C_AXIS));
 }
 Error sleep_grbl(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     system_set_exec_state_flag(EXEC_SLEEP);
