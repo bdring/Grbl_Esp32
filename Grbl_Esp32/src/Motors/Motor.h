@@ -49,18 +49,25 @@ namespace Motors {
         virtual bool test();
         virtual void set_axis_name();
         virtual void update();
+        virtual bool can_home();
 
         motor_class_id_t type_id;
-        uint8_t          is_active = false;
+        uint8_t          is_active  = false;
         uint8_t          has_errors = false;
 
     protected:
-        uint8_t                 axis_index;       // X_AXIS, etc
-        uint8_t                 dual_axis_index;  // 0 = primary 1=ganged
+        uint8_t _axis_index;       // X_AXIS, etc
+        uint8_t _dual_axis_index;  // 0 = primary 1=ganged
 
         bool    _showError;
         bool    _use_mpos = true;
         uint8_t _homing_mask;
         char    _axis_name[10];  // this the name to use when reporting like "X" or "X2"
+
+        float _position_min = 0;
+        float _position_max = 0;  // position in millimeters
+
+        bool _can_home = true;
+        bool _disabled;
     };
 }

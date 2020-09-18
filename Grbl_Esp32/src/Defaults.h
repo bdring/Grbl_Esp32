@@ -114,13 +114,13 @@
 #    define DEFAULT_HOMING_PULLOFF 1.0  // $27 mm
 #endif
 
-#ifndef  DEFAULT_HOMING_SQUARED_AXES
+#ifndef DEFAULT_HOMING_SQUARED_AXES
 #    define DEFAULT_HOMING_SQUARED_AXES 0
 #endif
 
 // ======== SPINDLE STUFF ====================
 #ifndef SPINDLE_TYPE
-#    define SPINDLE_TYPE SPINDLE_TYPE_NONE
+#    define SPINDLE_TYPE SpindleType::NONE
 #endif
 
 #ifndef DEFAULT_SPINDLE_RPM_MIN          // $31
@@ -295,6 +295,25 @@
 #endif
 #ifndef DEFAULT_C_MAX_TRAVEL
 #    define DEFAULT_C_MAX_TRAVEL 300.0  // mm NOTE: Must be a positive value.
+#endif
+
+#ifndef DEFAULT_X_HOMING_MPOS
+#    define DEFAULT_X_HOMING_MPOS 0.0
+#endif
+#ifndef DEFAULT_Y_HOMING_MPOS
+#    define DEFAULT_Y_HOMING_MPOS 0.0
+#endif
+#ifndef DEFAULT_Z_HOMING_MPOS
+#    define DEFAULT_Z_HOMING_MPOS 0.0
+#endif
+#ifndef DEFAULT_A_HOMING_MPOS
+#    define DEFAULT_A_HOMING_MPOS 0.0
+#endif
+#ifndef DEFAULT_B_HOMING_MPOS
+#    define DEFAULT_B_HOMING_MPOS 0.0
+#endif
+#ifndef DEFAULT_C_HOMING_MPOS
+#    define DEFAULT_C_HOMING_MPOS 0.0
 #endif
 
 // ========== Motor current (SPI Drivers ) =============
@@ -502,4 +521,69 @@
 #endif
 #ifndef C2_STEPPER_MS3
 #    define C2_STEPPER_MS3 UNDEFINED_PIN
+#endif
+
+#ifndef SERVO_TIMER_INTERVAL
+#    define SERVO_TIMER_INTERVAL 75.0  // Hz This is the update inveral in milliseconds
+#endif
+
+#ifndef DYNAMIXEL_TXD
+#    define DYNAMIXEL_TXD UNDEFINED_PIN
+#endif
+
+#ifndef DYNAMIXEL_RXD
+#    define DYNAMIXEL_RXD UNDEFINED_PIN
+#endif
+
+#ifndef DYNAMIXEL_RTS
+#    define DYNAMIXEL_RTS UNDEFINED_PIN
+#endif
+
+// ================ User Digital I/O ==============================
+
+#ifndef USER_DIGITAL_PIN_0
+#    define USER_DIGITAL_PIN_0 UNDEFINED_PIN
+#endif
+
+#ifndef USER_DIGITAL_PIN_1
+#    define USER_DIGITAL_PIN_1 UNDEFINED_PIN
+#endif
+
+#ifndef USER_DIGITAL_PIN_2
+#    define USER_DIGITAL_PIN_2 UNDEFINED_PIN
+#endif
+
+#ifndef USER_DIGITAL_PIN_3
+#    define USER_DIGITAL_PIN_3 UNDEFINED_PIN
+#endif
+
+// ================ User Analog I/O ==============================
+
+#ifndef USER_ANALOG_PIN_0
+#    define USER_ANALOG_PIN_0 UNDEFINED_PIN
+#endif
+
+#ifndef USER_ANALOG_PIN_1
+#    define USER_ANALOG_PIN_1 UNDEFINED_PIN
+#endif
+
+#ifndef USER_ANALOG_PIN_2
+#    define USER_ANALOG_PIN_2 UNDEFINED_PIN
+#endif
+
+#ifndef USER_ANALOG_PIN_3
+#    define USER_ANALOG_PIN_3 UNDEFINED_PIN
+#endif
+
+#ifndef USER_ANALOG_PIN_0_FREQ
+#    define USER_ANALOG_PIN_0_FREQ 5000
+#endif
+#ifndef USER_ANALOG_PIN_1_FREQ
+#    define USER_ANALOG_PIN_1_FREQ 5000
+#endif
+#ifndef USER_ANALOG_PIN_2_FREQ
+#    define USER_ANALOG_PIN_2_FREQ 5000
+#endif
+#ifndef USER_ANALOG_PIN_3_FREQ
+#    define USER_ANALOG_PIN_3_FREQ 5000
 #endif

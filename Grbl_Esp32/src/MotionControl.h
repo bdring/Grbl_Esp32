@@ -27,16 +27,10 @@
 #include "Grbl.h"
 
 // System motion commands must have a line number of zero.
-#define HOMING_CYCLE_LINE_NUMBER 0
-#define PARKING_MOTION_LINE_NUMBER 0
+const int HOMING_CYCLE_LINE_NUMBER   = 0;
+const int PARKING_MOTION_LINE_NUMBER = 0;
 
 #define HOMING_CYCLE_ALL 0  // Must be zero.
-#define HOMING_CYCLE_X bit(X_AXIS)
-#define HOMING_CYCLE_Y bit(Y_AXIS)
-#define HOMING_CYCLE_Z bit(Z_AXIS)
-#define HOMING_CYCLE_A bit(A_AXIS)
-#define HOMING_CYCLE_B bit(B_AXIS)
-#define HOMING_CYCLE_C bit(C_AXIS)
 
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
@@ -65,7 +59,7 @@ void mc_dwell(float seconds);
 void mc_homing_cycle(uint8_t cycle_mask);
 
 // Perform tool length probe cycle. Requires probe switch.
-uint8_t mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_flags);
+GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_flags);
 
 // Handles updating the override control state.
 void mc_override_ctrl_update(uint8_t override_state);

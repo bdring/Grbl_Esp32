@@ -32,7 +32,7 @@
 // discarded when entirely consumed and completed by the segment buffer. Also, AMASS alters this
 // data for its own use.
 typedef struct {
-    uint32_t steps[N_AXIS];
+    uint32_t steps[MAX_N_AXIS];
     uint32_t step_event_count;
     uint8_t  direction_bits;
     uint8_t  is_pwm_rate_adjusted;  // Tracks motions that require constant laser power/rate
@@ -59,21 +59,9 @@ static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 // Stepper ISR data struct. Contains the running data for the main stepper ISR.
 typedef struct {
     // Used by the bresenham line algorithm
-    uint32_t counter_x,  // Counter variables for the bresenham line tracer
-        counter_y, counter_z
-#if (N_AXIS > A_AXIS)
-        ,
-        counter_a
-#endif
-#if (N_AXIS > B_AXIS)
-        ,
-        counter_b
-#endif
-#if (N_AXIS > C_AXIS)
-        ,
-        counter_c
-#endif
-        ;
+
+    uint32_t counter_x, counter_y, counter_z, counter_a, counter_b, counter_c;  // Counter variables for the bresenham line tracer
+
 #ifdef STEP_PULSE_DELAY
     uint8_t step_bits;  // Stores out_bits output to complete the step pulse delay
 #endif
@@ -83,7 +71,7 @@ typedef struct {
     uint8_t step_outbits;     // The next stepping-bits to be output
     uint8_t dir_outbits;
 #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    uint32_t steps[N_AXIS];
+    uint32_t steps[MAX_N_AXIS];
 #endif
 
     uint16_t    step_count;        // Steps remaining in line segment motion
@@ -113,8 +101,8 @@ bool     stepper_idle;
 // Segment preparation data struct. Contains all the necessary information to compute new segments
 // based on the current executing planner block.
 typedef struct {
-    uint8_t st_block_index;  // Index of stepper common data block being prepped
-    uint8_t recalculate_flag;
+    uint8_t  st_block_index;  // Index of stepper common data block being prepped
+    PrepFlag recalculate_flag;
 
     float dt_remainder;
     float steps_remaining;
@@ -249,6 +237,8 @@ void IRAM_ATTR onStepperDriverTimer(
  * is to keep pulse timing as regular as possible.
  */
 static void stepper_pulse_func() {
+    auto n_axis = number_axis->get();
+
     motors_set_direction_pins(st.dir_outbits);
 #ifdef USE_RMT_STEPS
     stepperRMT_Outputs();
@@ -284,25 +274,27 @@ static void stepper_pulse_func() {
             st.steps[X_AXIS] = st.exec_block->steps[X_AXIS] >> st.exec_segment->amass_level;
             st.steps[Y_AXIS] = st.exec_block->steps[Y_AXIS] >> st.exec_segment->amass_level;
             st.steps[Z_AXIS] = st.exec_block->steps[Z_AXIS] >> st.exec_segment->amass_level;
-#    if (N_AXIS > A_AXIS)
-            st.steps[A_AXIS] = st.exec_block->steps[A_AXIS] >> st.exec_segment->amass_level;
-#    endif
-#    if (N_AXIS > B_AXIS)
-            st.steps[B_AXIS] = st.exec_block->steps[B_AXIS] >> st.exec_segment->amass_level;
-#    endif
-#    if (N_AXIS > C_AXIS)
-            st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
-#    endif
+
+            if (n_axis > A_AXIS) {
+                st.steps[A_AXIS] = st.exec_block->steps[A_AXIS] >> st.exec_segment->amass_level;
+                if (n_axis > B_AXIS) {
+                    st.steps[B_AXIS] = st.exec_block->steps[B_AXIS] >> st.exec_segment->amass_level;
+                    if (n_axis > C_AXIS) {
+                        st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
+                    }
+                }
+            }
 #endif
             // Set real-time spindle output as segment is loaded, just prior to the first step.
             spindle->set_rpm(st.exec_segment->spindle_rpm);
         } else {
             // Segment buffer empty. Shutdown.
             st_go_idle();
-            if (!(sys.state & STATE_JOG)) {  // added to prevent ... jog after probing crash
+            if (sys.state != State::Jog) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
-                if (st.exec_block != NULL && st.exec_block->is_pwm_rate_adjusted)
+                if (st.exec_block != NULL && st.exec_block->is_pwm_rate_adjusted) {
                     spindle->set_rpm(0);
+                }
             }
 
             system_set_exec_state_flag(EXEC_CYCLE_STOP);  // Flag main program for cycle end
@@ -310,8 +302,9 @@ static void stepper_pulse_func() {
         }
     }
     // Check probing state.
-    if (sys_probe_state == PROBE_ACTIVE)
+    if (sys_probe_state == PROBE_ACTIVE) {
         probe_state_monitor();
+    }
     // Reset step out bits.
     st.step_outbits = 0;
     // Execute step displacement profile by Bresenham line algorithm
@@ -323,10 +316,11 @@ static void stepper_pulse_func() {
     if (st.counter_x > st.exec_block->step_event_count) {
         st.step_outbits |= bit(X_AXIS);
         st.counter_x -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & bit(X_AXIS))
+        if (st.exec_block->direction_bits & bit(X_AXIS)) {
             sys_position[X_AXIS]--;
-        else
+        } else {
             sys_position[X_AXIS]++;
+        }
     }
 #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
     st.counter_y += st.steps[Y_AXIS];
@@ -336,10 +330,11 @@ static void stepper_pulse_func() {
     if (st.counter_y > st.exec_block->step_event_count) {
         st.step_outbits |= bit(Y_AXIS);
         st.counter_y -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & bit(Y_AXIS))
+        if (st.exec_block->direction_bits & bit(Y_AXIS)) {
             sys_position[Y_AXIS]--;
-        else
+        } else {
             sys_position[Y_AXIS]++;
+        }
     }
 #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
     st.counter_z += st.steps[Z_AXIS];
@@ -349,65 +344,78 @@ static void stepper_pulse_func() {
     if (st.counter_z > st.exec_block->step_event_count) {
         st.step_outbits |= bit(Z_AXIS);
         st.counter_z -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & bit(Z_AXIS))
+        if (st.exec_block->direction_bits & bit(Z_AXIS)) {
             sys_position[Z_AXIS]--;
-        else
+        } else {
             sys_position[Z_AXIS]++;
+        }
     }
-#if (N_AXIS > A_AXIS)
-#    ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_a += st.steps[A_AXIS];
-#    else
-    st.counter_a += st.exec_block->steps[A_AXIS];
-#    endif
-    if (st.counter_a > st.exec_block->step_event_count) {
-        st.step_outbits |= bit(A_AXIS);
-        st.counter_a -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & bit(A_AXIS))
-            sys_position[A_AXIS]--;
-        else
-            sys_position[A_AXIS]++;
-    }
+
+    if (n_axis > A_AXIS) {
+#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+        st.counter_a += st.steps[A_AXIS];
+#else
+        st.counter_a += st.exec_block->steps[A_AXIS];
 #endif
-#if (N_AXIS > B_AXIS)
-#    ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_b += st.steps[B_AXIS];
-#    else
-    st.counter_b += st.exec_block->steps[B_AXIS];
-#    endif
-    if (st.counter_b > st.exec_block->step_event_count) {
-        st.step_outbits |= bit(B_AXIS);
-        st.counter_b -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & bit(B_AXIS))
-            sys_position[B_AXIS]--;
-        else
-            sys_position[B_AXIS]++;
-    }
+        if (st.counter_a > st.exec_block->step_event_count) {
+            st.step_outbits |= bit(A_AXIS);
+            st.counter_a -= st.exec_block->step_event_count;
+            if (st.exec_block->direction_bits & bit(A_AXIS)) {
+                sys_position[A_AXIS]--;
+            }
+            else {
+                sys_position[A_AXIS]++;
+            }
+        }
+
+        if (n_axis > B_AXIS) {
+#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+            st.counter_b += st.steps[B_AXIS];
+#else
+            st.counter_b += st.exec_block->steps[B_AXIS];
 #endif
-#if (N_AXIS > C_AXIS)
-#    ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_c += st.steps[C_AXIS];
-#    else
-    st.counter_c += st.exec_block->steps[C_AXIS];
-#    endif
-    if (st.counter_c > st.exec_block->step_event_count) {
-        st.step_outbits |= bit(C_AXIS);
-        st.counter_c -= st.exec_block->step_event_count;
-        if (st.exec_block->direction_bits & bit(C_AXIS))
-            sys_position[C_AXIS]--;
-        else
-            sys_position[C_AXIS]++;
-    }
+            if (st.counter_b > st.exec_block->step_event_count) {
+                st.step_outbits |= bit(B_AXIS);
+                st.counter_b -= st.exec_block->step_event_count;
+                if (st.exec_block->direction_bits & bit(B_AXIS)) {
+                    sys_position[B_AXIS]--;
+                }
+                else {
+                    sys_position[B_AXIS]++;
+                }
+            }
+
+            if (n_axis > C_AXIS) {
+#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+                st.counter_c += st.steps[C_AXIS];
+#else
+                st.counter_c += st.exec_block->steps[C_AXIS];
 #endif
+                if (st.counter_c > st.exec_block->step_event_count) {
+                    st.step_outbits |= bit(C_AXIS);
+                    st.counter_c -= st.exec_block->step_event_count;
+                    if (st.exec_block->direction_bits & bit(C_AXIS)) {
+                        sys_position[C_AXIS]--;
+                    }
+                    else {
+                        sys_position[C_AXIS]++;
+                    }
+                }
+            }
+        }
+    }
+
     // During a homing cycle, lock out and prevent desired axes from moving.
-    if (sys.state == STATE_HOMING)
+    if (sys.state == State::Homing) {
         st.step_outbits &= sys.homing_axis_lock;
+    }
     st.step_count--;  // Decrement step events count
     if (st.step_count == 0) {
         // Segment is complete. Discard current segment and advance segment indexing.
         st.exec_segment = NULL;
-        if (++segment_buffer_tail == SEGMENT_BUFFER_SIZE)
+        if (++segment_buffer_tail == SEGMENT_BUFFER_SIZE) {
             segment_buffer_tail = 0;
+        }
     }
 
 #ifdef USE_I2S_STEPS
@@ -433,8 +441,8 @@ static void stepper_pulse_func() {
 }
 
 void stepper_init() {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Axis count %d", N_AXIS);
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "%s", stepper_names[current_stepper]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", number_axis->get());
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepper_names[current_stepper]);
 
 #ifdef USE_I2S_STEPS
     // I2S stepper stream mode use callback but timer interrupt
@@ -445,7 +453,7 @@ void stepper_init() {
 }
 
 void stepper_switch(stepper_id_t new_stepper) {
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_DEBUG, "Switch stepper: %s -> %s", stepper_names[current_stepper], stepper_names[new_stepper]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Switch stepper: %s -> %s", stepper_names[current_stepper], stepper_names[new_stepper]);
     if (current_stepper == new_stepper) {
         // do not need to change
         return;
@@ -455,7 +463,7 @@ void stepper_switch(stepper_id_t new_stepper) {
         if (i2s_out_get_pulser_status() != PASSTHROUGH) {
             // This switching function should not be called during streaming.
             // However, if it is called, it will stop streaming.
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_WARNING, "Stop the I2S streaming and switch to the passthrough mode.");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Warning, "Stop the I2S streaming and switch to the passthrough mode.");
             i2s_out_set_passthrough();
             i2s_out_delay();
         }
@@ -466,7 +474,7 @@ void stepper_switch(stepper_id_t new_stepper) {
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void st_wake_up() {
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "st_wake_up");
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "st_wake_up");
     // Enable stepper drivers.
     motors_set_disable(false);
     stepper_idle = false;
@@ -502,8 +510,8 @@ void st_reset() {
     segment_buffer_head = 0;  // empty = tail
     segment_next_head   = 1;
     busy                = false;
-    st.step_outbits = 0;
-    st.dir_outbits = dir_invert_mask->get();  // Initialize direction bits to default.
+    st.step_outbits     = 0;
+    st.dir_outbits      = dir_invert_mask->get();  // Initialize direction bits to default.
     // TODO do we need to turn step pins off?
 }
 
@@ -513,20 +521,24 @@ void set_stepper_pins_on(uint8_t onMask) {
 #    ifndef X2_STEP_PIN  // if not a ganged axis
     digitalWrite(X_STEP_PIN, (onMask & bit(X_AXIS)));
 #    else  // is a ganged axis
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A))
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
         digitalWrite(X_STEP_PIN, (onMask & bit(X_AXIS)));
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B))
+    }
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
         digitalWrite(X2_STEP_PIN, (onMask & bit(X_AXIS)));
+    }
 #    endif
 #endif
 #ifdef Y_STEP_PIN
 #    ifndef Y2_STEP_PIN  // if not a ganged axis
     digitalWrite(Y_STEP_PIN, (onMask & bit(Y_AXIS)));
 #    else  // is a ganged axis
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A))
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
         digitalWrite(Y_STEP_PIN, (onMask & bit(Y_AXIS)));
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B))
+    }
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
         digitalWrite(Y2_STEP_PIN, (onMask & bit(Y_AXIS)));
+    }
 #    endif
 #endif
 
@@ -534,10 +546,12 @@ void set_stepper_pins_on(uint8_t onMask) {
 #    ifndef Z2_STEP_PIN  // if not a ganged axis
     digitalWrite(Z_STEP_PIN, (onMask & bit(Z_AXIS)));
 #    else  // is a ganged axis
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A))
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
         digitalWrite(Z_STEP_PIN, (onMask & bit(Z_AXIS)));
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B))
+    }
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
         digitalWrite(Z2_STEP_PIN, (onMask & bit(Z_AXIS)));
+    }
 #    endif
 #endif
 
@@ -545,10 +559,12 @@ void set_stepper_pins_on(uint8_t onMask) {
 #    ifndef A2_STEP_PIN  // if not a ganged axis
     digitalWrite(A_STEP_PIN, (onMask & bit(A_AXIS)));
 #    else  // is a ganged axis
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A))
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
         digitalWrite(A_STEP_PIN, (onMask & bit(A_AXIS)));
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B))
+    }
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
         digitalWrite(A2_STEP_PIN, (onMask & bit(A_AXIS)));
+    }
 #    endif
 #endif
 
@@ -556,10 +572,12 @@ void set_stepper_pins_on(uint8_t onMask) {
 #    ifndef B2_STEP_PIN  // if not a ganged axis
     digitalWrite(B_STEP_PIN, (onMask & bit(B_AXIS)));
 #    else  // is a ganged axis
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A))
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
         digitalWrite(B_STEP_PIN, (onMask & bit(B_AXIS)));
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B))
+    }
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
         digitalWrite(B2_STEP_PIN, (onMask & bit(B_AXIS)));
+    }
 #    endif
 #endif
 
@@ -567,10 +585,12 @@ void set_stepper_pins_on(uint8_t onMask) {
 #    ifndef C2_STEP_PIN  // if not a ganged axis
     digitalWrite(C_STEP_PIN, (onMask & bit(C_AXIS)));
 #    else  // is a ganged axis
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A))
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
         digitalWrite(C_STEP_PIN, (onMask & bit(C_AXIS)));
-    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B))
+    }
+    if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
         digitalWrite(C2_STEP_PIN, (onMask & bit(C_AXIS)));
+    }
 #    endif
 #endif
 }
@@ -692,20 +712,23 @@ void st_go_idle() {
     // Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
     Stepper_Timer_Stop();
     busy = false;
+
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
-    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm || sys.state == STATE_SLEEP) && sys.state != STATE_HOMING) {
+    if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) &&
+        sys.state != State::Homing) {
         // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
         // stop and not drift from residual inertial forces at the end of the last movement.
 
-        if (sys.state == STATE_SLEEP || sys_rt_exec_alarm) {
+        if (sys.state == State::Sleep || sys_rt_exec_alarm != ExecAlarm::None) {
             motors_set_disable(true);
         } else {
             stepper_idle         = true;  // esp32 work around for disable in main loop
             stepper_idle_counter = esp_timer_get_time() + (stepper_idle_lock_time->get() * 1000);  // * 1000 because the time is in uSecs
             // after idle countdown will be disabled in protocol loop
         }
-    } else
+    } else {
         motors_set_disable(false);
+    }
 
     set_stepper_pins_on(0);
     st.step_outbits = 0;
@@ -714,9 +737,9 @@ void st_go_idle() {
 // Called by planner_recalculate() when the executing block is updated by the new plan.
 void st_update_plan_block_parameters() {
     if (pl_block != NULL) {  // Ignore if at start of a new block.
-        prep.recalculate_flag |= PREP_FLAG_RECALCULATE;
-        pl_block->entry_speed_sqr = prep.current_speed * prep.current_speed;  // Update entry speed.
-        pl_block                  = NULL;  // Flag st_prep_segment() to load and check active velocity profile.
+        prep.recalculate_flag.recalculate = 1;
+        pl_block->entry_speed_sqr         = prep.current_speed * prep.current_speed;  // Update entry speed.
+        pl_block                          = NULL;  // Flag st_prep_segment() to load and check active velocity profile.
     }
 }
 
@@ -724,31 +747,34 @@ void st_update_plan_block_parameters() {
 // Changes the run state of the step segment buffer to execute the special parking motion.
 void st_parking_setup_buffer() {
     // Store step execution data of partially completed block, if necessary.
-    if (prep.recalculate_flag & PREP_FLAG_HOLD_PARTIAL_BLOCK) {
+    if (prep.recalculate_flag.holdPartialBlock) {
         prep.last_st_block_index  = prep.st_block_index;
         prep.last_steps_remaining = prep.steps_remaining;
         prep.last_dt_remainder    = prep.dt_remainder;
         prep.last_step_per_mm     = prep.step_per_mm;
     }
     // Set flags to execute a parking motion
-    prep.recalculate_flag |= PREP_FLAG_PARKING;
-    prep.recalculate_flag &= ~(PREP_FLAG_RECALCULATE);
-    pl_block = NULL;  // Always reset parking motion to reload new block.
+    prep.recalculate_flag.parking     = 1;
+    prep.recalculate_flag.recalculate = 0;
+    pl_block                          = NULL;  // Always reset parking motion to reload new block.
 }
 
 // Restores the step segment buffer to the normal run state after a parking motion.
 void st_parking_restore_buffer() {
     // Restore step execution data and flags of partially completed block, if necessary.
-    if (prep.recalculate_flag & PREP_FLAG_HOLD_PARTIAL_BLOCK) {
-        st_prep_block         = &st_block_buffer[prep.last_st_block_index];
-        prep.st_block_index   = prep.last_st_block_index;
-        prep.steps_remaining  = prep.last_steps_remaining;
-        prep.dt_remainder     = prep.last_dt_remainder;
-        prep.step_per_mm      = prep.last_step_per_mm;
-        prep.recalculate_flag = (PREP_FLAG_HOLD_PARTIAL_BLOCK | PREP_FLAG_RECALCULATE);
-        prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;  // Recompute this value.
-    } else
-        prep.recalculate_flag = false;
+    if (prep.recalculate_flag.holdPartialBlock) {
+        st_prep_block                          = &st_block_buffer[prep.last_st_block_index];
+        prep.st_block_index                    = prep.last_st_block_index;
+        prep.steps_remaining                   = prep.last_steps_remaining;
+        prep.dt_remainder                      = prep.last_dt_remainder;
+        prep.step_per_mm                       = prep.last_step_per_mm;
+        prep.recalculate_flag.holdPartialBlock = 1;
+        prep.recalculate_flag.recalculate      = 1;
+        prep.req_mm_increment                  = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;  // Recompute this value.
+    } else {
+        prep.recalculate_flag = {};
+    }
+
     pl_block = NULL;  // Set to reload next block.
 }
 #endif
@@ -756,9 +782,7 @@ void st_parking_restore_buffer() {
 // Increments the step segment buffer block data ring buffer.
 static uint8_t st_next_block_index(uint8_t block_index) {
     block_index++;
-    if (block_index == (SEGMENT_BUFFER_SIZE - 1))
-        return (0);
-    return (block_index);
+    return block_index == (SEGMENT_BUFFER_SIZE - 1) ? 0 : block_index;
 }
 
 /* Prepares step segment buffer. Continuously called from main program.
@@ -776,28 +800,34 @@ static uint8_t st_next_block_index(uint8_t block_index) {
 */
 void st_prep_buffer() {
     // Block step prep buffer, while in a suspend state and there is no suspend motion to execute.
-    if (bit_istrue(sys.step_control, STEP_CONTROL_END_MOTION))
+    if (bit_istrue(sys.step_control, STEP_CONTROL_END_MOTION)) {
         return;
+    }
+
     while (segment_buffer_tail != segment_next_head) {  // Check if we need to fill the buffer.
         // Determine if we need to load a new planner block or if the block needs to be recomputed.
         if (pl_block == NULL) {
             // Query planner for a queued block
-            if (sys.step_control & STEP_CONTROL_EXECUTE_SYS_MOTION)
+            if (sys.step_control & STEP_CONTROL_EXECUTE_SYS_MOTION) {
                 pl_block = plan_get_system_motion_block();
-            else
+            } else {
                 pl_block = plan_get_current_block();
+            }
+
             if (pl_block == NULL) {
                 return;  // No planner blocks. Exit.
             }
+
             // Check if we need to only recompute the velocity profile or load a new block.
-            if (prep.recalculate_flag & PREP_FLAG_RECALCULATE) {
+            if (prep.recalculate_flag.recalculate) {
 #ifdef PARKING_ENABLE
-                if (prep.recalculate_flag & PREP_FLAG_PARKING)
-                    prep.recalculate_flag &= ~(PREP_FLAG_RECALCULATE);
-                else
-                    prep.recalculate_flag = false;
+                if (prep.recalculate_flag.parking) {
+                    prep.recalculate_flag.recalculate = 0;
+                } else {
+                    prep.recalculate_flag = {};
+                }
 #else
-                prep.recalculate_flag = false;
+                prep.recalculate_flag = {};
 #endif
             } else {
                 // Load the Bresenham stepping data for the block.
@@ -808,16 +838,19 @@ void st_prep_buffer() {
                 st_prep_block                 = &st_block_buffer[prep.st_block_index];
                 st_prep_block->direction_bits = pl_block->direction_bits;
                 uint8_t idx;
+                auto    n_axis = number_axis->get();
 #ifndef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-                for (idx = 0; idx < N_AXIS; idx++)
+                for (idx = 0; idx < n_axis; idx++) {
                     st_prep_block->steps[idx] = pl_block->steps[idx];
+                }
                 st_prep_block->step_event_count = pl_block->step_event_count;
 #else
                 // With AMASS enabled, simply bit-shift multiply all Bresenham data by the max AMASS
                 // level, such that we never divide beyond the original data anywhere in the algorithm.
                 // If the original data is divided, we can lose a step from integer roundoff.
-                for (idx = 0; idx < N_AXIS; idx++)
+                for (idx = 0; idx < n_axis; idx++) {
                     st_prep_block->steps[idx] = pl_block->steps[idx] << MAX_AMASS_LEVEL;
+                }
                 st_prep_block->step_event_count = pl_block->step_event_count << MAX_AMASS_LEVEL;
 #endif
                 // Initialize segment buffer data for generating the segments.
@@ -825,16 +858,17 @@ void st_prep_buffer() {
                 prep.step_per_mm      = prep.steps_remaining / pl_block->millimeters;
                 prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;
                 prep.dt_remainder     = 0.0;  // Reset for new segment block
-                if ((sys.step_control & STEP_CONTROL_EXECUTE_HOLD) || (prep.recalculate_flag & PREP_FLAG_DECEL_OVERRIDE)) {
+                if ((sys.step_control & STEP_CONTROL_EXECUTE_HOLD) || prep.recalculate_flag.decelOverride) {
                     // New block loaded mid-hold. Override planner block entry speed to enforce deceleration.
-                    prep.current_speed        = prep.exit_speed;
-                    pl_block->entry_speed_sqr = prep.exit_speed * prep.exit_speed;
-                    prep.recalculate_flag &= ~(PREP_FLAG_DECEL_OVERRIDE);
-                } else
+                    prep.current_speed                  = prep.exit_speed;
+                    pl_block->entry_speed_sqr           = prep.exit_speed * prep.exit_speed;
+                    prep.recalculate_flag.decelOverride = 0;
+                } else {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
+                }
 
                 if (spindle->isRateAdjusted()) {  //   laser_mode->get() {
-                    if (pl_block->condition & PL_COND_FLAG_SPINDLE_CCW) {
+                    if (pl_block->spindle == SpindleState::Ccw) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
                         prep.inv_rate                       = 1.0 / pl_block->programmed_rate;
                         st_prep_block->is_pwm_rate_adjusted = true;
@@ -874,6 +908,7 @@ void st_prep_buffer() {
                     exit_speed_sqr  = plan_get_exec_block_exit_speed_sqr();
                     prep.exit_speed = sqrt(exit_speed_sqr);
                 }
+
                 nominal_speed            = plan_compute_profile_nominal_speed(pl_block);
                 float nominal_speed_sqr  = nominal_speed * nominal_speed;
                 float intersect_distance = 0.5 * (pl_block->millimeters + inv_2_accel * (pl_block->entry_speed_sqr - exit_speed_sqr));
@@ -885,7 +920,7 @@ void st_prep_buffer() {
                         // prep.maximum_speed = prep.current_speed;
                         // Compute override block exit speed since it doesn't match the planner exit speed.
                         prep.exit_speed = sqrt(pl_block->entry_speed_sqr - 2 * pl_block->acceleration * pl_block->millimeters);
-                        prep.recalculate_flag |= PREP_FLAG_DECEL_OVERRIDE;  // Flag to load next block as deceleration override.
+                        prep.recalculate_flag.decelOverride = 1;  // Flag to load next block as deceleration override.
                         // TODO: Determine correct handling of parameters in deceleration-only.
                         // Can be tricky since entry speed will be current speed, as in feed holds.
                         // Also, look into near-zero speed handling issues with this.
@@ -927,10 +962,13 @@ void st_prep_buffer() {
 
             bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);  // Force update whenever updating block.
         }
+
         // Initialize new segment
         segment_t* prep_segment = &segment_buffer[segment_buffer_head];
+
         // Set new segment to point to the current segment data block.
         prep_segment->st_block_index = prep.st_block_index;
+
         /*------------------------------------------------------------------------------------
             Compute the average velocity of this new segment by determining the total distance
           traveled over the segment time DT_SEGMENT. The following code first attempts to create
@@ -952,8 +990,11 @@ void st_prep_buffer() {
         float speed_var;                                            // Speed worker variable
         float mm_remaining = pl_block->millimeters;                 // New segment distance from end of block.
         float minimum_mm   = mm_remaining - prep.req_mm_increment;  // Guarantee at least one step.
-        if (minimum_mm < 0.0)
+
+        if (minimum_mm < 0.0) {
             minimum_mm = 0.0;
+        }
+
         do {
             switch (prep.ramp_type) {
                 case RAMP_DECEL_OVERRIDE:
@@ -966,8 +1007,9 @@ void st_prep_buffer() {
                         time_var           = 2.0 * (pl_block->millimeters - mm_remaining) / (prep.current_speed + prep.maximum_speed);
                         prep.ramp_type     = RAMP_CRUISE;
                         prep.current_speed = prep.maximum_speed;
-                    } else  // Mid-deceleration override ramp.
+                    } else {  // Mid-deceleration override ramp.
                         prep.current_speed -= speed_var;
+                    }
                     break;
                 case RAMP_ACCEL:
                     // NOTE: Acceleration ramp only computes during first do-while loop.
@@ -977,13 +1019,15 @@ void st_prep_buffer() {
                         // Acceleration-cruise, acceleration-deceleration ramp junction, or end of block.
                         mm_remaining = prep.accelerate_until;  // NOTE: 0.0 at EOB
                         time_var     = 2.0 * (pl_block->millimeters - mm_remaining) / (prep.current_speed + prep.maximum_speed);
-                        if (mm_remaining == prep.decelerate_after)
+                        if (mm_remaining == prep.decelerate_after) {
                             prep.ramp_type = RAMP_DECEL;
-                        else
+                        } else {
                             prep.ramp_type = RAMP_CRUISE;
+                        }
                         prep.current_speed = prep.maximum_speed;
-                    } else  // Acceleration only.
+                    } else {  // Acceleration only.
                         prep.current_speed += speed_var;
+                    }
                     break;
                 case RAMP_CRUISE:
                     // NOTE: mm_var used to retain the last mm_remaining for incomplete segment time_var calculations.
@@ -995,8 +1039,9 @@ void st_prep_buffer() {
                         time_var       = (mm_remaining - prep.decelerate_after) / prep.maximum_speed;
                         mm_remaining   = prep.decelerate_after;  // NOTE: 0.0 at EOB
                         prep.ramp_type = RAMP_DECEL;
-                    } else  // Cruising only.
+                    } else {  // Cruising only.
                         mm_remaining = mm_var;
+                    }
                     break;
                 default:  // case RAMP_DECEL:
                     // NOTE: mm_var used as a misc worker variable to prevent errors when near zero speed.
@@ -1015,6 +1060,7 @@ void st_prep_buffer() {
                     mm_remaining       = prep.mm_complete;
                     prep.current_speed = prep.exit_speed;
             }
+
             dt += time_var;  // Add computed ramp time to total segment time.
             if (dt < dt_max) {
                 time_var = dt_max - dt;  // **Incomplete** At ramp junction.
@@ -1034,13 +1080,13 @@ void st_prep_buffer() {
           Compute spindle speed PWM output for step segment
         */
         if (st_prep_block->is_pwm_rate_adjusted || (sys.step_control & STEP_CONTROL_UPDATE_SPINDLE_RPM)) {
-            if (pl_block->condition & (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW)) {
+            if (pl_block->spindle != SpindleState::Disable) {
                 float rpm = pl_block->spindle_speed;
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
                 if (st_prep_block->is_pwm_rate_adjusted) {
                     rpm *= (prep.current_speed * prep.inv_rate);
-                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RPM %.2f", rpm);
-                    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RPM %.2f", rpm);
+                    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
                 }
                 // If current_speed is zero, then may need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE)
                 // but this would be instantaneous only and during a motion. May not matter at all.
@@ -1068,6 +1114,7 @@ void st_prep_buffer() {
         float n_steps_remaining      = ceil(step_dist_remaining);                   // Round-up current steps remaining
         float last_n_steps_remaining = ceil(prep.steps_remaining);                  // Round-up last steps remaining
         prep_segment->n_step         = last_n_steps_remaining - n_steps_remaining;  // Compute number of steps to execute.
+
         // Bail if we are at the end of a feed hold and don't have a step to execute.
         if (prep_segment->n_step == 0) {
             if (sys.step_control & STEP_CONTROL_EXECUTE_HOLD) {
@@ -1075,12 +1122,14 @@ void st_prep_buffer() {
                 // requires full steps to execute. So, just bail.
                 bit_true(sys.step_control, STEP_CONTROL_END_MOTION);
 #ifdef PARKING_ENABLE
-                if (!(prep.recalculate_flag & PREP_FLAG_PARKING))
-                    prep.recalculate_flag |= PREP_FLAG_HOLD_PARTIAL_BLOCK;
+                if (!(prep.recalculate_flag.parking)) {
+                    prep.recalculate_flag.holdPartialBlock = 1;
+                }
 #endif
                 return;  // Segment not generated, but current step data still retained.
             }
         }
+
         // Compute segment step rate. Since steps are integers and mm distances traveled are not,
         // the end of every segment can have a partial step of varying magnitudes that are not
         // executed, because the stepper ISR requires whole steps due to the AMASS algorithm. To
@@ -1089,22 +1138,26 @@ void st_prep_buffer() {
         // adjusts the whole segment rate to keep step output exact. These rate adjustments are
         // typically very small and do not adversely effect performance, but ensures that Grbl
         // outputs the exact acceleration and velocity profiles as computed by the planner.
+
         dt += prep.dt_remainder;                                               // Apply previous segment partial step execute time
         float inv_rate = dt / (last_n_steps_remaining - step_dist_remaining);  // Compute adjusted step rate inverse
+
         // Compute CPU cycles per step for the prepped segment.
         uint32_t cycles = ceil((TICKS_PER_MICROSECOND * 1000000 * 60) * inv_rate);  // (cycles/step)
+
 #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
         // Compute step timing and multi-axis smoothing level.
         // NOTE: AMASS overdrives the timer with each level, so only one prescalar is required.
-        if (cycles < AMASS_LEVEL1)
+        if (cycles < AMASS_LEVEL1) {
             prep_segment->amass_level = 0;
-        else {
-            if (cycles < AMASS_LEVEL2)
+        } else {
+            if (cycles < AMASS_LEVEL2) {
                 prep_segment->amass_level = 1;
-            else if (cycles < AMASS_LEVEL3)
+            } else if (cycles < AMASS_LEVEL3) {
                 prep_segment->amass_level = 2;
-            else
+            } else {
                 prep_segment->amass_level = 3;
+            }
             cycles >>= prep_segment->amass_level;
             prep_segment->n_step <<= prep_segment->amass_level;
         }
@@ -1123,16 +1176,18 @@ void st_prep_buffer() {
             prep_segment->cycles_per_tick = cycles >> 3;
         } else {
             prep_segment->prescaler = 3;  // prescaler: 64
-            if (cycles < (1UL << 22))     // < 4194304 (262ms@16MHz)
+            if (cycles < (1UL << 22)) {   // < 4194304 (262ms@16MHz)
                 prep_segment->cycles_per_tick = cycles >> 6;
-            else  // Just set the slowest speed possible. (Around 4 step/sec.)
+            } else {  // Just set the slowest speed possible. (Around 4 step/sec.)
                 prep_segment->cycles_per_tick = 0xffff;
+            }
         }
 #endif
         // Segment complete! Increment segment buffer indices, so stepper ISR can immediately execute it.
         segment_buffer_head = segment_next_head;
-        if (++segment_next_head == SEGMENT_BUFFER_SIZE)
+        if (++segment_next_head == SEGMENT_BUFFER_SIZE) {
             segment_next_head = 0;
+        }
         // Update the appropriate planner and segment data.
         pl_block->millimeters = mm_remaining;
         prep.steps_remaining  = n_steps_remaining;
@@ -1146,8 +1201,9 @@ void st_prep_buffer() {
                 // cycle stop flag from the ISR. Prep_segment is blocked until then.
                 bit_true(sys.step_control, STEP_CONTROL_END_MOTION);
 #ifdef PARKING_ENABLE
-                if (!(prep.recalculate_flag & PREP_FLAG_PARKING))
-                    prep.recalculate_flag |= PREP_FLAG_HOLD_PARTIAL_BLOCK;
+                if (!(prep.recalculate_flag.parking)) {
+                    prep.recalculate_flag.holdPartialBlock = 1;
+                }
 #endif
                 return;  // Bail!
             } else {     // End of planner block
@@ -1168,9 +1224,14 @@ void st_prep_buffer() {
 // in the segment buffer. It will always be behind by up to the number of segment blocks (-1)
 // divided by the ACCELERATION TICKS PER SECOND in seconds.
 float st_get_realtime_rate() {
-    if (sys.state & (STATE_CYCLE | STATE_HOMING | STATE_HOLD | STATE_JOG | STATE_SAFETY_DOOR))
-        return prep.current_speed;
-    return 0.0f;
+    switch (sys.state) {
+        case State::Cycle:
+        case State::Homing:
+        case State::Hold:
+        case State::Jog:
+        case State::SafetyDoor: return prep.current_speed;
+        default: return 0.0f;
+    }
 }
 
 void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {

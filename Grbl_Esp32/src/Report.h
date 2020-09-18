@@ -20,98 +20,23 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Define Grbl status codes. Valid values (0-255)
-#define STATUS_OK 0
-#define STATUS_EXPECTED_COMMAND_LETTER 1
-#define STATUS_BAD_NUMBER_FORMAT 2
-#define STATUS_INVALID_STATEMENT 3
-#define STATUS_NEGATIVE_VALUE 4
-#define STATUS_SETTING_DISABLED 5
-#define STATUS_SETTING_STEP_PULSE_MIN 6
-#define STATUS_SETTING_READ_FAIL 7
-#define STATUS_IDLE_ERROR 8
-#define STATUS_SYSTEM_GC_LOCK 9
-#define STATUS_SOFT_LIMIT_ERROR 10
-#define STATUS_OVERFLOW 11
-#define STATUS_MAX_STEP_RATE_EXCEEDED 12
-#define STATUS_CHECK_DOOR 13
-#define STATUS_LINE_LENGTH_EXCEEDED 14
-#define STATUS_TRAVEL_EXCEEDED 15
-#define STATUS_INVALID_JOG_COMMAND 16
-#define STATUS_SETTING_DISABLED_LASER 17
-
-#define STATUS_GCODE_UNSUPPORTED_COMMAND 20
-#define STATUS_GCODE_MODAL_GROUP_VIOLATION 21
-#define STATUS_GCODE_UNDEFINED_FEED_RATE 22
-#define STATUS_GCODE_COMMAND_VALUE_NOT_INTEGER 23
-#define STATUS_GCODE_AXIS_COMMAND_CONFLICT 24
-#define STATUS_GCODE_WORD_REPEATED 25
-#define STATUS_GCODE_NO_AXIS_WORDS 26
-#define STATUS_GCODE_INVALID_LINE_NUMBER 27
-#define STATUS_GCODE_VALUE_WORD_MISSING 28
-#define STATUS_GCODE_UNSUPPORTED_COORD_SYS 29
-#define STATUS_GCODE_G53_INVALID_MOTION_MODE 30
-#define STATUS_GCODE_AXIS_WORDS_EXIST 31
-#define STATUS_GCODE_NO_AXIS_WORDS_IN_PLANE 32
-#define STATUS_GCODE_INVALID_TARGET 33
-#define STATUS_GCODE_ARC_RADIUS_ERROR 34
-#define STATUS_GCODE_NO_OFFSETS_IN_PLANE 35
-#define STATUS_GCODE_UNUSED_WORDS 36
-#define STATUS_GCODE_G43_DYNAMIC_AXIS_ERROR 37
-#define STATUS_GCODE_MAX_VALUE_EXCEEDED 38
-#define STATUS_P_PARAM_MAX_EXCEEDED 39
-
-#define STATUS_SD_FAILED_MOUNT 60      // SD Failed to mount
-#define STATUS_SD_FAILED_READ 61       // SD Failed to read file
-#define STATUS_SD_FAILED_OPEN_DIR 62   // SD card failed to open directory
-#define STATUS_SD_DIR_NOT_FOUND 63     // SD Card directory not found
-#define STATUS_SD_FILE_EMPTY 64        // SD Card directory not found
-#define STATUS_SD_FILE_NOT_FOUND 65    // SD Card file not found
-#define STATUS_SD_FAILED_OPEN_FILE 66  // SD card failed to open file
-#define STATUS_SD_FAILED_BUSY 67       // SD card is busy
-#define STATUS_SD_FAILED_DEL_DIR 68
-#define STATUS_SD_FAILED_DEL_FILE 69
-
-#define STATUS_BT_FAIL_BEGIN 70    // Bluetooth failed to start
-#define STATUS_WIFI_FAIL_BEGIN 71  // WiFi failed to start
-
-#define STATUS_NUMBER_RANGE 80   // Setting number range problem
-#define STATUS_INVALID_VALUE 81  // Setting string problem
-
-#define STATUS_MESSAGE_FAILED 90
-
-#define STATUS_NVS_SET_FAILED 100
-
-#define STATUS_AUTHENTICATION_FAILED 110
-#define STATUS_EOL 111
-
-typedef uint8_t err_t;  // For status codes
-const char*     errorString(err_t errorNumber);
-
-// Define Grbl alarm codes. Valid values (1-255). 0 is reserved.
-#define ALARM_HARD_LIMIT_ERROR EXEC_ALARM_HARD_LIMIT
-#define ALARM_SOFT_LIMIT_ERROR EXEC_ALARM_SOFT_LIMIT
-#define ALARM_ABORT_CYCLE EXEC_ALARM_ABORT_CYCLE
-#define ALARM_PROBE_FAIL_INITIAL EXEC_ALARM_PROBE_FAIL_INITIAL
-#define ALARM_PROBE_FAIL_CONTACT EXEC_ALARM_PROBE_FAIL_CONTACT
-#define ALARM_HOMING_FAIL_RESET EXEC_ALARM_HOMING_FAIL_RESET
-#define ALARM_HOMING_FAIL_DOOR EXEC_ALARM_HOMING_FAIL_DOOR
-#define ALARM_HOMING_FAIL_PULLOFF EXEC_ALARM_HOMING_FAIL_PULLOFF
-#define ALARM_HOMING_FAIL_APPROACH EXEC_ALARM_HOMING_FAIL_APPROACH
+const char* errorString(Error errorNumber);
 
 // Define Grbl feedback message codes. Valid values (0-255).
-#define MESSAGE_CRITICAL_EVENT 1
-#define MESSAGE_ALARM_LOCK 2
-#define MESSAGE_ALARM_UNLOCK 3
-#define MESSAGE_ENABLED 4
-#define MESSAGE_DISABLED 5
-#define MESSAGE_SAFETY_DOOR_AJAR 6
-#define MESSAGE_CHECK_LIMITS 7
-#define MESSAGE_PROGRAM_END 8
-#define MESSAGE_RESTORE_DEFAULTS 9
-#define MESSAGE_SPINDLE_RESTORE 10
-#define MESSAGE_SLEEP_MODE 11
-#define MESSAGE_SD_FILE_QUIT 60  // mc_reset was called during an SD job
+enum class Message : uint8_t {
+    CriticalEvent   = 1,
+    AlarmLock       = 2,
+    AlarmUnlock     = 3,
+    Enabled         = 4,
+    Disabled        = 5,
+    SafetyDoorAjar  = 6,
+    CheckLimits     = 7,
+    ProgramEnd      = 8,
+    RestoreDefaults = 9,
+    SpindleRestore  = 10,
+    SleepMode       = 11,
+    SdFileQuit      = 60,  // mc_reset was called during an SD job
+};
 
 #define CLIENT_SERIAL 0
 #define CLIENT_BT 1
@@ -121,31 +46,33 @@ const char*     errorString(err_t errorNumber);
 #define CLIENT_ALL 0xFF
 #define CLIENT_COUNT 5  // total number of client types regardless if they are used
 
-#define MSG_LEVEL_NONE 0  // set GRBL_MSG_LEVEL in config.h to the level you want to see
-#define MSG_LEVEL_ERROR 1
-#define MSG_LEVEL_WARNING 2
-#define MSG_LEVEL_INFO 3
-#define MSG_LEVEL_DEBUG 4
-#define MSG_LEVEL_VERBOSE 5
+enum class MsgLevel : uint8_t {
+    None    = 0,  // set GRBL_MSG_LEVEL in config.h to the level you want to see
+    Error   = 1,
+    Warning = 2,
+    Info    = 3,
+    Debug   = 4,
+    Verbose = 5,
+};
 
 // functions to send data to the user.
 void grbl_send(uint8_t client, const char* text);
 void grbl_sendf(uint8_t client, const char* format, ...);
-void grbl_msg_sendf(uint8_t client, uint8_t level, const char* format, ...);
+void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...);
 
 //function to notify
 void grbl_notify(const char* title, const char* msg);
 void grbl_notifyf(const char* title, const char* format, ...);
 
 // Prints system status messages.
-void report_status_message(uint8_t status_code, uint8_t client);
+void report_status_message(Error status_code, uint8_t client);
 void report_realtime_steps();
 
 // Prints system alarm messages.
-void report_alarm_message(uint8_t alarm_code);
+void report_alarm_message(ExecAlarm alarm_code);
 
 // Prints miscellaneous feedback messages.
-void report_feedback_message(uint8_t message_code);
+void report_feedback_message(Message message);
 
 // Prints welcome message
 void report_init_message(uint8_t client);
@@ -173,7 +100,7 @@ void report_gcode_modes(uint8_t client);
 
 // Prints startup line when requested and executed.
 void report_startup_line(uint8_t n, const char* line, uint8_t client);
-void report_execute_startup_message(const char* line, uint8_t status_code, uint8_t client);
+void report_execute_startup_message(const char* line, Error status_code, uint8_t client);
 
 // Prints build info and user info
 void report_build_info(char* line, uint8_t client);

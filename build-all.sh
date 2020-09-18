@@ -9,8 +9,10 @@ trap "echo; exit 255" SIGINT
 # With -v, show all output.  Otherwise, show just the result
 if [ "$1" = "-v" ]; then
    FILTER="cat"
+   FILTER2="cat"
 else
-   FILTER="grep error\|Took"
+   FILTER="grep -v Compiling"
+   FILTER2="grep error\|Took"
 fi
 set -o pipefail
 NUM_ERRORS=0
@@ -20,7 +22,7 @@ BuildMachine () {
     BF="\"-DMACHINE_FILENAME=$basename\""
     displayname=$basename
     echo "Building machine $displayname"
-    PLATFORMIO_BUILD_FLAGS=$BF platformio run 2>&1 | $FILTER
+    PLATFORMIO_BUILD_FLAGS=$BF platformio run 2>&1 | $FILTER | $FILTER2
     local re=$?
     # check result
     if [ $re -ne 0 ]; then

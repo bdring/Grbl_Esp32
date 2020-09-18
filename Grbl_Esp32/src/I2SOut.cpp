@@ -74,9 +74,9 @@
 // Reference information:
 //   FreeRTOS task time slice = portTICK_PERIOD_MS = 1 ms (ESP32 FreeRTOS port)
 //
-#    define I2S_SAMPLE_SIZE 4                                     /* 4 bytes, 32 bits per sample */
-#    define DMA_SAMPLE_COUNT I2S_OUT_DMABUF_LEN / I2S_SAMPLE_SIZE /* number of samples per buffer */
-#    define SAMPLE_SAFE_COUNT (20 / I2S_OUT_USEC_PER_PULSE)       /* prevent buffer overrun (GRBL's $0 should be less than or equal 20) */
+const int I2S_SAMPLE_SIZE   = 4;                                    /* 4 bytes, 32 bits per sample */
+const int DMA_SAMPLE_COUNT  = I2S_OUT_DMABUF_LEN / I2S_SAMPLE_SIZE; /* number of samples per buffer */
+const int SAMPLE_SAFE_COUNT = (20 / I2S_OUT_USEC_PER_PULSE);        /* prevent buffer overrun (GRBL's $0 should be less than or equal 20) */
 
 #    ifdef USE_I2S_OUT_STREAM_IMPL
 typedef struct {
@@ -222,7 +222,7 @@ static int IRAM_ATTR i2s_out_gpio_attach(uint8_t ws, uint8_t bck, uint8_t data) 
     return 0;
 }
 
-#    define I2S_OUT_DETACH_PORT_IDX 0x100
+const int I2S_OUT_DETACH_PORT_IDX = 0x100;
 
 static int IRAM_ATTR i2s_out_gpio_detach(uint8_t ws, uint8_t bck, uint8_t data) {
     // Route the i2s pins to the appropriate GPIO
@@ -457,8 +457,9 @@ static void IRAM_ATTR i2s_out_intr_handler(void* arg) {
         xQueueSendFromISR(o_dma.queue, &finish_desc, &high_priority_task_awoken);
     }
 
-    if (high_priority_task_awoken == pdTRUE)
+    if (high_priority_task_awoken == pdTRUE) {
         portYIELD_FROM_ISR();
+    }
 
     // clear interrupt
     I2S0.int_clr.val = I2S0.int_st.val;  //clear pending interrupt
@@ -724,26 +725,30 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
 #    ifdef USE_I2S_OUT_STREAM_IMPL
     // Allocate the array of pointers to the buffers
     o_dma.buffers = (uint32_t**)malloc(sizeof(uint32_t*) * I2S_OUT_DMABUF_COUNT);
-    if (o_dma.buffers == nullptr)
+    if (o_dma.buffers == nullptr) {
         return -1;
+    }
 
     // Allocate each buffer that can be used by the DMA controller
     for (int buf_idx = 0; buf_idx < I2S_OUT_DMABUF_COUNT; buf_idx++) {
         o_dma.buffers[buf_idx] = (uint32_t*)heap_caps_calloc(1, I2S_OUT_DMABUF_LEN, MALLOC_CAP_DMA);
-        if (o_dma.buffers[buf_idx] == nullptr)
+        if (o_dma.buffers[buf_idx] == nullptr) {
             return -1;
+        }
     }
 
     // Allocate the array of DMA descriptors
     o_dma.desc = (lldesc_t**)malloc(sizeof(lldesc_t*) * I2S_OUT_DMABUF_COUNT);
-    if (o_dma.desc == nullptr)
+    if (o_dma.desc == nullptr) {
         return -1;
+    }
 
     // Allocate each DMA descriptor that will be used by the DMA controller
     for (int buf_idx = 0; buf_idx < I2S_OUT_DMABUF_COUNT; buf_idx++) {
         o_dma.desc[buf_idx] = (lldesc_t*)heap_caps_malloc(sizeof(lldesc_t), MALLOC_CAP_DMA);
-        if (o_dma.desc[buf_idx] == nullptr)
+        if (o_dma.desc[buf_idx] == nullptr) {
             return -1;
+        }
     }
 
     // Initialize

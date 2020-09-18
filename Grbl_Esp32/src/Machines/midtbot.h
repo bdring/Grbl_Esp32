@@ -27,7 +27,7 @@
 
 #define MACHINE_NAME "MIDTBOT"
 
-#define SPINDLE_TYPE    SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE    SpindleType::NONE
 
 #define X_STEP_PIN      GPIO_NUM_12
 #define Y_STEP_PIN      GPIO_NUM_14
@@ -45,8 +45,8 @@
 #define Y_LIMIT_PIN     GPIO_NUM_4
 
 #define Z_SERVO_PIN             GPIO_NUM_27
-#define Z_SERVO_RANGE_MIN       0.0
-#define Z_SERVO_RANGE_MAX       5.0
+#define Z_SERVO_CAL_MIN               1.0       // calibration factor for the minimum PWM duty
+#define Z_SERVO_CAL_MAX               1.0       // calibration factor for the maximum PWM duty
 
 // redefine some stuff from config.h
 #ifdef HOMING_CYCLE_0
@@ -67,7 +67,7 @@
 
 #define SERVO_PEN_PIN           GPIO_NUM_27
 
-#define SPINDLE_TYPE SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE SpindleType::NONE
 
 // defaults
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3

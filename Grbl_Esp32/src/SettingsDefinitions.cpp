@@ -2,6 +2,8 @@
 
 bool motorSettingChanged = false;
 
+FakeSetting<int>* number_axis;
+
 StringSetting* startup_line_0;
 StringSetting* startup_line_1;
 StringSetting* build_info;
@@ -55,15 +57,15 @@ EnumSetting* spindle_type;
 
 enum_opt_t spindleTypes = {
     // clang-format off
-    { "NONE", SPINDLE_TYPE_NONE },
-    { "PWM", SPINDLE_TYPE_PWM },
-    { "RELAY", SPINDLE_TYPE_RELAY },
-    { "LASER", SPINDLE_TYPE_LASER },
-    { "DAC", SPINDLE_TYPE_DAC },
-    { "HUANYANG", SPINDLE_TYPE_HUANYANG },
-    { "BESC", SPINDLE_TYPE_BESC },
-    { "10V", SPINDLE_TYPE_10V },
-    { "H2A", SPINDLE_TYPE_H2A },
+    { "NONE", int8_t(SpindleType::NONE) },
+    { "PWM", int8_t(SpindleType::PWM) },
+    { "RELAY", int8_t(SpindleType::RELAY) },
+    { "LASER", int8_t(SpindleType::LASER) },
+    { "DAC", int8_t(SpindleType::DAC) },
+    { "HUANYANG", int8_t(SpindleType::HUANYANG) },
+    { "BESC", int8_t(SpindleType::BESC) },
+    { "10V", int8_t(SpindleType::_10V) },
+    { "H2A", int8_t(SpindleType::H2A) },
     // clang-format on
 };
 
@@ -82,6 +84,7 @@ typedef struct {
     float       max_rate;
     float       acceleration;
     float       max_travel;
+    float       home_mpos;
     float       run_current;
     float       hold_current;
     uint16_t    microsteps;
@@ -92,6 +95,7 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_X_MAX_RATE,
                                       DEFAULT_X_ACCELERATION,
                                       DEFAULT_X_MAX_TRAVEL,
+                                      DEFAULT_X_HOMING_MPOS,
                                       DEFAULT_X_CURRENT,
                                       DEFAULT_X_HOLD_CURRENT,
                                       DEFAULT_X_MICROSTEPS,
@@ -101,6 +105,7 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_Y_MAX_RATE,
                                       DEFAULT_Y_ACCELERATION,
                                       DEFAULT_Y_MAX_TRAVEL,
+                                      DEFAULT_Y_HOMING_MPOS,
                                       DEFAULT_Y_CURRENT,
                                       DEFAULT_Y_HOLD_CURRENT,
                                       DEFAULT_Y_MICROSTEPS,
@@ -110,6 +115,7 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_Z_MAX_RATE,
                                       DEFAULT_Z_ACCELERATION,
                                       DEFAULT_Z_MAX_TRAVEL,
+                                      DEFAULT_Z_HOMING_MPOS,
                                       DEFAULT_Z_CURRENT,
                                       DEFAULT_Z_HOLD_CURRENT,
                                       DEFAULT_Z_MICROSTEPS,
@@ -119,6 +125,7 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_A_MAX_RATE,
                                       DEFAULT_A_ACCELERATION,
                                       DEFAULT_A_MAX_TRAVEL,
+                                      DEFAULT_A_HOMING_MPOS,
                                       DEFAULT_A_CURRENT,
                                       DEFAULT_A_HOLD_CURRENT,
                                       DEFAULT_A_MICROSTEPS,
@@ -128,6 +135,7 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_B_MAX_RATE,
                                       DEFAULT_B_ACCELERATION,
                                       DEFAULT_B_MAX_TRAVEL,
+                                      DEFAULT_B_HOMING_MPOS,
                                       DEFAULT_B_CURRENT,
                                       DEFAULT_B_HOLD_CURRENT,
                                       DEFAULT_B_MICROSTEPS,
@@ -137,6 +145,7 @@ axis_defaults_t axis_defaults[] = { { "X",
                                       DEFAULT_C_MAX_RATE,
                                       DEFAULT_C_ACCELERATION,
                                       DEFAULT_C_MAX_TRAVEL,
+                                      DEFAULT_C_HOMING_MPOS,
                                       DEFAULT_C_CURRENT,
                                       DEFAULT_C_HOLD_CURRENT,
                                       DEFAULT_C_MICROSTEPS,
@@ -154,9 +163,10 @@ static const char* makename(const char* axisName, const char* tail) {
 }
 
 static bool checkStartupLine(char* value) {
-    if (sys.state != STATE_IDLE)
-        return STATUS_IDLE_ERROR;
-    return gc_execute_line(value, CLIENT_SERIAL) == 0;
+    if (sys.state != State::Idle) {
+        return false;
+    }
+    return gc_execute_line(value, CLIENT_SERIAL) == Error::Ok;
 }
 
 static bool checkStallguard(char* value) {
@@ -197,11 +207,14 @@ static const char* makeGrblName(int axisNum, int base) {
 void make_settings() {
     Setting::init();
 
+    // number_axis = new IntSetting(EXTENDED, WG, NULL, "NumberAxis", N_AXIS, 0, 6, NULL, true);
+    number_axis = new FakeSetting<int>(N_AXIS);
+
     // Create the axis settings in the order that people are
     // accustomed to seeing.
     int              axis;
     axis_defaults_t* def;
-    for (axis = 0; axis < N_AXIS; axis++) {
+    for (axis = 0; axis < MAX_N_AXIS; axis++) {
         def                 = &axis_defaults[axis];
         axis_settings[axis] = new AxisSettings(def->name);
     }
@@ -211,54 +224,62 @@ void make_settings() {
     a_axis_settings = axis_settings[A_AXIS];
     b_axis_settings = axis_settings[B_AXIS];
     c_axis_settings = axis_settings[C_AXIS];
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new IntSetting(
             EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, checkStallguard);
         setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new IntSetting(
             EXTENDED, WG, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, checkMicrosteps);
         setting->setAxis(axis);
         axis_settings[axis]->microsteps = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(
             EXTENDED, WG, makeGrblName(axis, 150), makename(def->name, "Current/Hold"), def->hold_current, 0.05, 20.0, checkHoldcurrent);  // Amps
         setting->setAxis(axis);
         axis_settings[axis]->hold_current = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(
             EXTENDED, WG, makeGrblName(axis, 140), makename(def->name, "Current/Run"), def->run_current, 0.0, 20.0, checkRunCurrent);  // Amps
         setting->setAxis(axis);
         axis_settings[axis]->run_current = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 130), makename(def->name, "MaxTravel"), def->max_travel, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->max_travel = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+        def          = &axis_defaults[axis];
+        auto setting = new FloatSetting(EXTENDED, WG, NULL, makename(def->name, "Home/Mpos"), def->home_mpos, -100000.0, 100000.0);
+        setting->setAxis(axis);
+        axis_settings[axis]->home_mpos = setting;
+    }
+
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting =
             new FloatSetting(GRBL, WG, makeGrblName(axis, 120), makename(def->name, "Acceleration"), def->acceleration, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->acceleration = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 110), makename(def->name, "MaxRate"), def->max_rate, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->max_rate = setting;
     }
-    for (axis = N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting =
             new FloatSetting(GRBL, WG, makeGrblName(axis, 100), makename(def->name, "StepsPerMm"), def->steps_per_mm, 1.0, 100000.0);
@@ -293,10 +314,10 @@ void make_settings() {
     rpm_min = new FloatSetting(GRBL, WG, "31", "GCode/MinS", DEFAULT_SPINDLE_RPM_MIN, 0, 100000);
     rpm_max = new FloatSetting(GRBL, WG, "30", "GCode/MaxS", DEFAULT_SPINDLE_RPM_MAX, 0, 100000);
 
-    homing_pulloff   = new FloatSetting(GRBL, WG, "27", "Homing/Pulloff", DEFAULT_HOMING_PULLOFF, 0, 1000);
-    homing_debounce  = new FloatSetting(GRBL, WG, "26", "Homing/Debounce", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
-    homing_seek_rate = new FloatSetting(GRBL, WG, "25", "Homing/Seek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
-    homing_feed_rate = new FloatSetting(GRBL, WG, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
+    homing_pulloff      = new FloatSetting(GRBL, WG, "27", "Homing/Pulloff", DEFAULT_HOMING_PULLOFF, 0, 1000);
+    homing_debounce     = new FloatSetting(GRBL, WG, "26", "Homing/Debounce", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
+    homing_seek_rate    = new FloatSetting(GRBL, WG, "25", "Homing/Seek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
+    homing_feed_rate    = new FloatSetting(GRBL, WG, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
     homing_squared_axes = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Squared", DEFAULT_HOMING_SQUARED_AXES);
 
     // TODO Settings - need to call st_generate_step_invert_masks()
@@ -312,7 +333,7 @@ void make_settings() {
     // TODO Settings - also need to clear, but not set, soft_limits
     arc_tolerance      = new FloatSetting(GRBL, WG, "12", "GCode/ArcTolerance", DEFAULT_ARC_TOLERANCE, 0, 1);
     junction_deviation = new FloatSetting(GRBL, WG, "11", "GCode/JunctionDeviation", DEFAULT_JUNCTION_DEVIATION, 0, 10);
-    status_mask        = new IntSetting(GRBL, WG, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 2);
+    status_mask        = new IntSetting(GRBL, WG, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 3);
 
     probe_invert           = new FlagSetting(GRBL, WG, "6", "Probe/Invert", DEFAULT_INVERT_PROBE_PIN);
     limit_invert           = new FlagSetting(GRBL, WG, "5", "Limits/Invert", DEFAULT_INVERT_LIMIT_PINS);
@@ -321,6 +342,6 @@ void make_settings() {
     step_invert_mask       = new AxisMaskSetting(GRBL, WG, "2", "Stepper/StepInvert", DEFAULT_STEPPING_INVERT_MASK);
     stepper_idle_lock_time = new IntSetting(GRBL, WG, "1", "Stepper/IdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
     pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
-    spindle_type           = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", SPINDLE_TYPE, &spindleTypes);
+    spindle_type           = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", static_cast<int8_t>(SPINDLE_TYPE), &spindleTypes);
     stallguard_debug_mask  = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
 }

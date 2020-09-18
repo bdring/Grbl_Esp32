@@ -37,7 +37,7 @@
 
 #define MACHINE_NAME "Test Drive - Demo Only No I/O!"
 
-#define SPINDLE_TYPE    SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE    SpindleType::NONE
 
 #ifdef USE_RMT_STEPS
 #undef USE_RMT_STEPS  // Suppress unused variable warning

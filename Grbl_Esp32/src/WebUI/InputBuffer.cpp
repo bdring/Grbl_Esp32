@@ -43,15 +43,17 @@ namespace WebUI {
 
     int InputBuffer::available() { return _RXbufferSize; }
 
-    int InputBuffer::availableforwrite() { return (RXBUFFERSIZE - _RXbufferSize); }
+    int InputBuffer::availableforwrite() { return RXBUFFERSIZE - _RXbufferSize; }
 
     size_t InputBuffer::write(uint8_t c) {
         if ((1 + _RXbufferSize) <= RXBUFFERSIZE) {
             int current = _RXbufferpos + _RXbufferSize;
-            if (current > RXBUFFERSIZE)
+            if (current > RXBUFFERSIZE) {
                 current = current - RXBUFFERSIZE;
-            if (current > (RXBUFFERSIZE - 1))
+            }
+            if (current > (RXBUFFERSIZE - 1)) {
                 current = 0;
+            }
             _RXbuffer[current] = c;
             current++;
             _RXbufferSize += 1;
@@ -67,21 +69,24 @@ namespace WebUI {
     }
 
     int InputBuffer::peek(void) {
-        if (_RXbufferSize > 0)
+        if (_RXbufferSize > 0) {
             return _RXbuffer[_RXbufferpos];
-        else
+        } else {
             return -1;
+        }
     }
 
     bool InputBuffer::push(const char* data) {
         int data_size = strlen(data);
         if ((data_size + _RXbufferSize) <= RXBUFFERSIZE) {
             int current = _RXbufferpos + _RXbufferSize;
-            if (current > RXBUFFERSIZE)
+            if (current > RXBUFFERSIZE) {
                 current = current - RXBUFFERSIZE;
+            }
             for (int i = 0; i < data_size; i++) {
-                if (current > (RXBUFFERSIZE - 1))
+                if (current > (RXBUFFERSIZE - 1)) {
                     current = 0;
+                }
                 _RXbuffer[current] = data[i];
                 current++;
             }
@@ -95,12 +100,14 @@ namespace WebUI {
         if (_RXbufferSize > 0) {
             int v = _RXbuffer[_RXbufferpos];
             _RXbufferpos++;
-            if (_RXbufferpos > (RXBUFFERSIZE - 1))
+            if (_RXbufferpos > (RXBUFFERSIZE - 1)) {
                 _RXbufferpos = 0;
+            }
             _RXbufferSize--;
             return v;
-        } else
+        } else {
             return -1;
+        }
     }
 
     void InputBuffer::flush(void) {

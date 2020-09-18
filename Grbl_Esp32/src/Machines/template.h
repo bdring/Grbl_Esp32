@@ -132,8 +132,8 @@
 // pins for that axis, but instead include a block like this:
 
 // #define SERVO_Z_PIN             GPIO_NUM_22
-// #define SERVO_Z_RANGE_MIN       0.0
-// #define SERVO_Z_RANGE_MAX       5.0
+// #define Z_SERVO_CAL_MIN       1.0 // calibration factor for the minimum PWM duty
+// #define Z_SERVO_CAL_MIN       1.0 // calibration factor for the maximum PWM duty
 
 // === Homing cycles
 // The default homing order is Z first (HOMING_CYCLE_0),
@@ -208,10 +208,10 @@
 // so non-Cartesian machines can be implemented.
 // #define USE_KINEMATICS
 
-// USE_FWD_KINEMATIC enables the forward_kinematics() function
+// USE_FWD_KINEMATICS enables the forward_kinematics() function
 // that converts motor positions in non-Cartesian coordinate
 // systems back to Cartesian form, for status reports.
-//#define USE_FWD_KINEMATIC
+//#define USE_FWD_KINEMATICS
 
 // USE_TOOL_CHANGE enables the user_tool_change() function
 // that implements custom tool change procedures.
