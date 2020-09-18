@@ -31,14 +31,14 @@
 // via ../custom_code.cpp
 #define CUSTOM_CODE_FILENAME "Custom/polar_coaster.cpp"
 
-#define SPINDLE_TYPE SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE SpindleType::NONE
 
 #define RADIUS_AXIS 0
 #define POLAR_AXIS 1
 
 #define SEGMENT_LENGTH 0.5 // segment length in mm
 #define USE_KINEMATICS
-#define USE_FWD_KINEMATIC // report in cartesian
+#define USE_FWD_KINEMATICS // report in cartesian
 #define USE_M30
 
 #define X_STEP_PIN              GPIO_NUM_15
@@ -49,12 +49,12 @@
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_17
 
 #define Z_SERVO_PIN             GPIO_NUM_16
-#define Z_SERVO_RANGE_MIN       0.0
-#define Z_SERVO_RANGE_MAX       5.0
+#define Z_SERVO_CAL_MIN               1.0       // calibration factor for the minimum PWM duty
+#define Z_SERVO_CAL_MAX               1.0       // calibration factor for the maximum PWM duty
 
 #define X_LIMIT_PIN             GPIO_NUM_4
 
-#define SPINDLE_TYPE SPINDLE_TYPE_NONE
+#define SPINDLE_TYPE SpindleType::NONE
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE

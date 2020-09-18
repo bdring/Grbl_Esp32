@@ -33,9 +33,8 @@
 #include "BESCSpindle.h"
 
 // don't change these
-#define BESC_PWM_FREQ 50.0f        // Hz
-#define BESC_PWM_BIT_PRECISION 16  // bits
-#define BESC_PULSE_PERIOD (1.0 / BESC_PWM_FREQ)
+const double BESC_PWM_FREQ     = 50.0;  // Hz
+const double BESC_PULSE_PERIOD = (1.0 / BESC_PWM_FREQ);
 
 // Ok to tweak. These are the pulse lengths in seconds
 // #define them in your machine definition file if you want different values
@@ -48,15 +47,15 @@
 #endif
 
 //calculations...don't change
-#define BESC_MIN_PULSE_CNT (uint16_t)(BESC_MIN_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0)
-#define BESC_MAX_PULSE_CNT (uint16_t)(BESC_MAX_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0)
+const uint16_t BESC_MIN_PULSE_CNT = static_cast<uint16_t>(BESC_MIN_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0);
+const uint16_t BESC_MAX_PULSE_CNT = static_cast<uint16_t>(BESC_MAX_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0);
 
 namespace Spindles {
     void BESC::init() {
         get_pins_and_settings();  // these gets the standard PWM settings, but many need to be changed for BESC
 
         if (_output_pin == UNDEFINED_PIN) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: BESC output pin not defined");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: BESC output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
@@ -84,7 +83,7 @@ namespace Spindles {
     // prints the startup message of the spindle config
     void BESC::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "BESC spindle on Pin:%s Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
                        pinName(_output_pin).c_str(),
                        BESC_MIN_PULSE_SECS * 1000.0,  // convert to milliseconds
@@ -96,17 +95,19 @@ namespace Spindles {
     uint32_t BESC::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
-        if (_output_pin == UNDEFINED_PIN)
+        if (_output_pin == UNDEFINED_PIN) {
             return rpm;
+        }
 
         // apply speed overrides
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (percent)
 
         // apply limits limits
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
+        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
             rpm = _max_rpm;
-        else if (rpm != 0 && rpm <= _min_rpm)
+        } else if (rpm != 0 && rpm <= _min_rpm) {
             rpm = _min_rpm;
+        }
         sys.spindle_speed = rpm;
 
         // determine the pwm value

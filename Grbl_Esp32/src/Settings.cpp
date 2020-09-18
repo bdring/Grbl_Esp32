@@ -40,14 +40,14 @@ Setting::Setting(
     }
 }
 
-err_t Setting::check(char* s) {
-    if (sys.state != STATE_IDLE && !(sys.state & STATE_ALARM)) {
-        return STATUS_IDLE_ERROR;
+Error Setting::check(char* s) {
+    if (sys.state != State::Idle && sys.state != State::Alarm) {
+        return Error::IdleError;
     }
     if (!_checker) {
-        return STATUS_OK;
+        return Error::Ok;
     }
-    return _checker(s) ? STATUS_OK : STATUS_INVALID_VALUE;
+    return _checker(s) ? Error::Ok : Error::InvalidValue;
 }
 
 nvs_handle Setting::_handle = 0;
@@ -68,9 +68,12 @@ IntSetting::IntSetting(const char*   description,
                        int32_t       defVal,
                        int32_t       minVal,
                        int32_t       maxVal,
-                       bool (*checker)(char*) = NULL) :
+                       bool (*checker)(char*) = NULL,
+                       bool currentIsNvm) :
     Setting(description, type, permissions, grblName, name, checker),
-    _defaultValue(defVal), _currentValue(defVal), _minValue(minVal), _maxValue(maxVal) {}
+    _defaultValue(defVal), _currentValue(defVal), _minValue(minVal), _maxValue(maxVal), _currentIsNvm(currentIsNvm) {
+    _storedValue = std::numeric_limits<int32_t>::min();
+}
 
 void IntSetting::load() {
     esp_err_t err = nvs_get_i32(_handle, _keyName, &_storedValue);
@@ -83,42 +86,64 @@ void IntSetting::load() {
 }
 
 void IntSetting::setDefault() {
-    _currentValue = _defaultValue;
-    if (_storedValue != _currentValue) {
+    if (_currentIsNvm) {
         nvs_erase_key(_handle, _keyName);
+    } else {
+        _currentValue = _defaultValue;
+        if (_storedValue != _currentValue) {
+            nvs_erase_key(_handle, _keyName);
+        }
     }
 }
 
-err_t IntSetting::setStringValue(char* s) {
-    s = trim(s);
-    if (err_t err = check(s)) {
+Error IntSetting::setStringValue(char* s) {
+    s         = trim(s);
+    Error err = check(s);
+    if (err != Error::Ok) {
         return err;
     }
     char*   endptr;
     int32_t convertedValue = strtol(s, &endptr, 10);
     if (endptr == s || *endptr != '\0') {
-        return STATUS_BAD_NUMBER_FORMAT;
+        return Error::BadNumberFormat;
     }
     if (convertedValue < _minValue || convertedValue > _maxValue) {
-        return STATUS_NUMBER_RANGE;
+        return Error::NumberRange;
     }
-    _currentValue = convertedValue;
-    if (_storedValue != _currentValue) {
-        if (_currentValue == _defaultValue) {
+
+    // If we don't see the NVM state, we have to make this the live value:
+    if (!_currentIsNvm) {
+        _currentValue = convertedValue;
+    }
+
+    if (_storedValue != convertedValue) {
+        if (convertedValue == _defaultValue) {
             nvs_erase_key(_handle, _keyName);
         } else {
-            if (nvs_set_i32(_handle, _keyName, _currentValue)) {
-                return STATUS_NVS_SET_FAILED;
+            if (nvs_set_i32(_handle, _keyName, convertedValue)) {
+                return Error::NvsSetFailed;
             }
-            _storedValue = _currentValue;
+            _storedValue = convertedValue;
         }
     }
-    return STATUS_OK;
+    return Error::Ok;
 }
 
 const char* IntSetting::getStringValue() {
     static char strval[32];
-    sprintf(strval, "%d", get());
+
+    int currentSettingValue;
+    if (_currentIsNvm) {
+        if (std::numeric_limits<int32_t>::min() == _storedValue) {
+            currentSettingValue = _defaultValue;
+        } else {
+            currentSettingValue = _storedValue;
+        }
+    } else {
+        currentSettingValue = get();
+    }
+
+    sprintf(strval, "%d", currentSettingValue);
     return strval;
 }
 
@@ -156,9 +181,10 @@ void AxisMaskSetting::setDefault() {
     }
 }
 
-err_t AxisMaskSetting::setStringValue(char* s) {
-    s = trim(s);
-    if (err_t err = check(s)) {
+Error AxisMaskSetting::setStringValue(char* s) {
+    s         = trim(s);
+    Error err = check(s);
+    if (err != Error::Ok) {
         return err;
     }
     int32_t convertedValue;
@@ -174,7 +200,7 @@ err_t AxisMaskSetting::setStringValue(char* s) {
             while (*s) {
                 int index = axisNames.indexOf(toupper(*s++));
                 if (index < 0) {
-                    return STATUS_BAD_NUMBER_FORMAT;
+                    return Error::BadNumberFormat;
                 }
                 convertedValue |= bit(index);
             }
@@ -186,12 +212,12 @@ err_t AxisMaskSetting::setStringValue(char* s) {
             nvs_erase_key(_handle, _keyName);
         } else {
             if (nvs_set_i32(_handle, _keyName, _currentValue)) {
-                return STATUS_NVS_SET_FAILED;
+                return Error::NvsSetFailed;
             }
             _storedValue = _currentValue;
         }
     }
-    return STATUS_OK;
+    return Error::Ok;
 }
 
 const char* AxisMaskSetting::getCompatibleValue() {
@@ -251,9 +277,10 @@ void FloatSetting::setDefault() {
     }
 }
 
-err_t FloatSetting::setStringValue(char* s) {
-    s = trim(s);
-    if (err_t err = check(s)) {
+Error FloatSetting::setStringValue(char* s) {
+    s         = trim(s);
+    Error err = check(s);
+    if (err != Error::Ok) {
         return err;
     }
 
@@ -261,10 +288,10 @@ err_t FloatSetting::setStringValue(char* s) {
     uint8_t len    = strlen(s);
     uint8_t retlen = 0;
     if (!read_float(s, &retlen, &convertedValue) || retlen != len) {
-        return STATUS_BAD_NUMBER_FORMAT;
+        return Error::BadNumberFormat;
     }
     if (convertedValue < _minValue || convertedValue > _maxValue) {
-        return STATUS_NUMBER_RANGE;
+        return Error::NumberRange;
     }
     _currentValue = convertedValue;
     if (_storedValue != _currentValue) {
@@ -277,12 +304,12 @@ err_t FloatSetting::setStringValue(char* s) {
             } v;
             v.fval = _currentValue;
             if (nvs_set_i32(_handle, _keyName, v.ival)) {
-                return STATUS_NVS_SET_FAILED;
+                return Error::NvsSetFailed;
             }
             _storedValue = _currentValue;
         }
     }
-    return STATUS_OK;
+    return Error::Ok;
 }
 
 const char* FloatSetting::getStringValue() {
@@ -345,11 +372,12 @@ void StringSetting::setDefault() {
     }
 }
 
-err_t StringSetting::setStringValue(char* s) {
+Error StringSetting::setStringValue(char* s) {
     if (_minLength && _maxLength && (strlen(s) < _minLength || strlen(s) > _maxLength)) {
-        return STATUS_BAD_NUMBER_FORMAT;
+        return Error::BadNumberFormat;
     }
-    if (err_t err = check(s)) {
+    Error err = check(s);
+    if (err != Error::Ok) {
         return err;
     }
     _currentValue = s;
@@ -359,12 +387,12 @@ err_t StringSetting::setStringValue(char* s) {
             _storedValue = _defaultValue;
         } else {
             if (nvs_set_str(_handle, _keyName, _currentValue.c_str())) {
-                return STATUS_NVS_SET_FAILED;
+                return Error::NvsSetFailed;
             }
             _storedValue = _currentValue;
         }
     }
-    return STATUS_OK;
+    return Error::Ok;
 }
 
 const char* StringSetting::getStringValue() {
@@ -375,8 +403,9 @@ const char* StringSetting::getStringValue() {
 #endif
                         _checker == (bool (*)(char*))WebUI::COMMANDS::isLocalPasswordValid)) {
         return "******";
+    } else {
+        return _currentValue.c_str();
     }
-    return _currentValue.c_str();
 }
 
 void StringSetting::addWebui(WebUI::JSONencoder* j) {
@@ -417,7 +446,7 @@ void EnumSetting::setDefault() {
 // either with the string name or the numeric value.
 // This is necessary for WebUI, which uses the number
 // for setting.
-err_t EnumSetting::setStringValue(char* s) {
+Error EnumSetting::setStringValue(char* s) {
     s                       = trim(s);
     enum_opt_t::iterator it = _options->find(s);
     if (it == _options->end()) {
@@ -425,13 +454,13 @@ err_t EnumSetting::setStringValue(char* s) {
 
         // Disallow empty string
         if (!s || !*s) {
-            return STATUS_BAD_NUMBER_FORMAT;
+            return Error::BadNumberFormat;
         }
         char*   endptr;
         uint8_t num = strtol(s, &endptr, 10);
         // Disallow non-numeric characters in string
         if (*endptr) {
-            return STATUS_BAD_NUMBER_FORMAT;
+            return Error::BadNumberFormat;
         }
         for (it = _options->begin(); it != _options->end(); it++) {
             if (it->second == num) {
@@ -439,7 +468,7 @@ err_t EnumSetting::setStringValue(char* s) {
             }
         }
         if (it == _options->end()) {
-            return STATUS_BAD_NUMBER_FORMAT;
+            return Error::BadNumberFormat;
         }
     }
     _currentValue = it->second;
@@ -448,12 +477,12 @@ err_t EnumSetting::setStringValue(char* s) {
             nvs_erase_key(_handle, _keyName);
         } else {
             if (nvs_set_i8(_handle, _keyName, _currentValue)) {
-                return STATUS_NVS_SET_FAILED;
+                return Error::NvsSetFailed;
             }
             _storedValue = _currentValue;
         }
     }
-    return STATUS_OK;
+    return Error::Ok;
 }
 
 const char* EnumSetting::getStringValue() {
@@ -506,7 +535,7 @@ void FlagSetting::setDefault() {
     }
 }
 
-err_t FlagSetting::setStringValue(char* s) {
+Error FlagSetting::setStringValue(char* s) {
     s             = trim(s);
     _currentValue = (strcasecmp(s, "on") == 0) || (strcasecmp(s, "true") == 0) || (strcasecmp(s, "enabled") == 0) ||
                     (strcasecmp(s, "yes") == 0) || (strcasecmp(s, "1") == 0);
@@ -517,12 +546,12 @@ err_t FlagSetting::setStringValue(char* s) {
             nvs_erase_key(_handle, _keyName);
         } else {
             if (nvs_set_i8(_handle, _keyName, _currentValue)) {
-                return STATUS_NVS_SET_FAILED;
+                return Error::NvsSetFailed;
             }
             _storedValue = _currentValue;
         }
     }
-    return STATUS_OK;
+    return Error::Ok;
 }
 const char* FlagSetting::getStringValue() {
     return get() ? "On" : "Off";
@@ -578,14 +607,15 @@ void IPaddrSetting::setDefault() {
     }
 }
 
-err_t IPaddrSetting::setStringValue(char* s) {
-    s = trim(s);
-    if (err_t err = check(s)) {
+Error IPaddrSetting::setStringValue(char* s) {
+    s         = trim(s);
+    Error err = check(s);
+    if (err != Error::Ok) {
         return err;
     }
     IPAddress ipaddr;
     if (!ipaddr.fromString(s)) {
-        return STATUS_INVALID_VALUE;
+        return Error::InvalidValue;
     }
     _currentValue = ipaddr;
     if (_storedValue != _currentValue) {
@@ -593,12 +623,12 @@ err_t IPaddrSetting::setStringValue(char* s) {
             nvs_erase_key(_handle, _keyName);
         } else {
             if (nvs_set_i32(_handle, _keyName, (int32_t)_currentValue)) {
-                return STATUS_NVS_SET_FAILED;
+                return Error::NvsSetFailed;
             }
             _storedValue = _currentValue;
         }
     }
-    return STATUS_OK;
+    return Error::Ok;
 }
 
 const char* IPaddrSetting::getStringValue() {
@@ -617,9 +647,9 @@ void IPaddrSetting::addWebui(WebUI::JSONencoder* j) {
 
 AxisSettings::AxisSettings(const char* axisName) : name(axisName) {}
 
-err_t GrblCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    if (sys.state & _disallowedStates) {
-        return STATUS_IDLE_ERROR;
+Error GrblCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    if (_checker && _checker()) {
+        return Error::IdleError;
     }
     return _action((const char*)value, auth_level, out);
 };

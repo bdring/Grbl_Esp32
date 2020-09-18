@@ -30,11 +30,13 @@ typedef enum : uint8_t {
     GRBLCMD,   // Non-persistent GRBL commands like $H
     WEBCMD,    // ESP3D_WebUI commands that are not directly settings
 } type_t;
+
 typedef enum : uint8_t {
     WG,  // Readable and writable as guest
     WU,  // Readable and writable as user and admin
     WA,  // Readable as user and admin, writable as admin
 } permissions_t;
+
 typedef uint8_t axis_t;
 
 class Word {
@@ -68,7 +70,7 @@ public:
     // Derived classes may override it to do something.
     virtual void addWebui(WebUI::JSONencoder*) {};
 
-    virtual err_t action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) = 0;
+    virtual Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) = 0;
 };
 
 class Setting : public Word {
@@ -87,12 +89,13 @@ public:
     static Setting* List;
     Setting*        next() { return link; }
 
-    err_t check(char* s);
+    Error check(char* s);
 
-    static err_t report_nvs_stats(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    static Error report_nvs_stats(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
         nvs_stats_t stats;
-        if (err_t err = nvs_get_stats(NULL, &stats))
-            return err;
+        if (esp_err_t err = nvs_get_stats(NULL, &stats)) {
+            return Error::NvsGetStatsFailed;
+        }
         grbl_sendf(out->client(), "[MSG: NVS Used: %d Free: %d Total: %d]\r\n", stats.used_entries, stats.free_entries, stats.total_entries);
 #if 0  // The SDK we use does not have this yet
         nvs_iterator_t it = nvs_entry_find(NULL, NULL, NVS_TYPE_ANY);
@@ -103,13 +106,12 @@ public:
             grbl_sendf(out->client(), "namespace %s key '%s', type '%d' \n", info.namespace_name, info.key, info.type);
         }
 #endif
-        return STATUS_OK;
+        return Error::Ok;
     }
 
-    static err_t eraseNVS(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    static Error eraseNVS(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
         nvs_erase_all(_handle);
-        //        return STATUS_OK;
-        return 0;
+        return Error::Ok;
     }
 
     ~Setting() {}
@@ -128,8 +130,8 @@ public:
     // Derived classes may override it to do something.
     virtual void addWebui(WebUI::JSONencoder*) {};
 
-    virtual err_t       setStringValue(char* value) = 0;
-    err_t               setStringValue(String s) { return setStringValue(s.c_str()); }
+    virtual Error       setStringValue(char* value) = 0;
+    Error               setStringValue(String s) { return setStringValue(s.c_str()); }
     virtual const char* getStringValue() = 0;
     virtual const char* getCompatibleValue() { return getStringValue(); }
 };
@@ -141,6 +143,7 @@ private:
     int32_t _storedValue;
     int32_t _minValue;
     int32_t _maxValue;
+    bool    _currentIsNvm;
 
 public:
     IntSetting(const char*   description,
@@ -151,7 +154,8 @@ public:
                int32_t       defVal,
                int32_t       minVal,
                int32_t       maxVal,
-               bool (*checker)(char*));
+               bool (*checker)(char*),
+               bool currentIsNvm = false);
 
     IntSetting(type_t        type,
                permissions_t permissions,
@@ -160,13 +164,14 @@ public:
                int32_t       defVal,
                int32_t       minVal,
                int32_t       maxVal,
-               bool (*checker)(char*) = NULL) :
-        IntSetting(NULL, type, permissions, grblName, name, defVal, minVal, maxVal, checker) {}
+               bool (*checker)(char*) = NULL,
+               bool currentIsNvm      = false) :
+        IntSetting(NULL, type, permissions, grblName, name, defVal, minVal, maxVal, checker, currentIsNvm) {}
 
     void        load();
     void        setDefault();
     void        addWebui(WebUI::JSONencoder*);
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getStringValue();
 
     int32_t get() { return _currentValue; }
@@ -194,7 +199,7 @@ public:
     void        load();
     void        setDefault();
     void        addWebui(WebUI::JSONencoder*);
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getCompatibleValue();
     const char* getStringValue();
 
@@ -234,13 +239,12 @@ public:
     void setDefault();
     // There are no Float settings in WebUI
     void        addWebui(WebUI::JSONencoder*) {}
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getStringValue();
 
     float get() { return _currentValue; }
 };
 
-#define MAX_SETTING_STRING 256
 class StringSetting : public Setting {
 private:
     String _defaultValue;
@@ -268,7 +272,7 @@ public:
     void        load();
     void        setDefault();
     void        addWebui(WebUI::JSONencoder*);
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getStringValue();
 
     const char* get() { return _currentValue.c_str(); }
@@ -300,7 +304,7 @@ public:
     void        load();
     void        setDefault();
     void        addWebui(WebUI::JSONencoder*);
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getStringValue();
 
     int8_t get() { return _currentValue; }
@@ -328,7 +332,7 @@ public:
     // There are no Flag settings in WebUI
     // The booleans are expressed as Enums
     void        addWebui(WebUI::JSONencoder*) {}
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getCompatibleValue();
     const char* getStringValue();
 
@@ -360,7 +364,7 @@ public:
     void        load();
     void        setDefault();
     void        addWebui(WebUI::JSONencoder*);
-    err_t       setStringValue(char* value);
+    Error       setStringValue(char* value);
     const char* getStringValue();
 
     uint32_t get() { return _currentValue; }
@@ -375,6 +379,7 @@ public:
     FloatSetting* max_travel;
     FloatSetting* run_current;
     FloatSetting* hold_current;
+    FloatSetting* home_mpos;
     IntSetting*   microsteps;
     IntSetting*   stallguard;
 
@@ -382,7 +387,7 @@ public:
 };
 class WebCommand : public Command {
 private:
-    err_t (*_action)(char*, WebUI::AuthenticationLevel);
+    Error (*_action)(char*, WebUI::AuthenticationLevel);
     const char* password;
 
 public:
@@ -391,37 +396,41 @@ public:
                permissions_t permissions,
                const char*   grblName,
                const char*   name,
-               err_t (*action)(char*, WebUI::AuthenticationLevel)) :
+               Error (*action)(char*, WebUI::AuthenticationLevel)) :
         Command(description, type, permissions, grblName, name),
         _action(action) {}
-    err_t action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
-};
-
-enum : uint8_t {
-    ANY_STATE         = 0,
-    IDLE_OR_ALARM     = 0xff & ~STATE_ALARM,
-    IDLE_OR_JOG       = 0xff & ~STATE_JOG,
-    NOT_CYCLE_OR_HOLD = STATE_CYCLE | STATE_HOLD,
+    Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
 
 class GrblCommand : public Command {
 private:
-    err_t (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
-    uint8_t _disallowedStates;
+    Error (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
+    bool (*_checker)();
 
 public:
     GrblCommand(const char* grblName,
                 const char* name,
-                err_t (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
-                uint8_t       disallowedStates,
+                Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
+                bool (*checker)(),
                 permissions_t auth) :
         Command(NULL, GRBLCMD, auth, grblName, name),
-        _action(action), _disallowedStates(disallowedStates) {}
+        _action(action), _checker(checker) {}
 
     GrblCommand(const char* grblName,
                 const char* name,
-                err_t (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
-                uint8_t disallowedStates) :
-        GrblCommand(grblName, name, action, disallowedStates, WG) {}
-    err_t action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
+                Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
+                bool (*checker)(void)) :
+        GrblCommand(grblName, name, action, checker, WG) {}
+    Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
+};
+
+template <typename T>
+class FakeSetting {
+private:
+    T _value;
+
+public:
+    FakeSetting(T value) : _value(value) {}
+
+    T get() { return _value; }
 };

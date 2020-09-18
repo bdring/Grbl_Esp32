@@ -30,8 +30,9 @@ namespace Spindles {
     void Relay::init() {
         get_pins_and_settings();
 
-        if (_output_pin == UNDEFINED_PIN)
+        if (_output_pin == UNDEFINED_PIN) {
             return;
+        }
 
         pinMode(_output_pin, OUTPUT);
         pinMode(_enable_pin, OUTPUT);
@@ -46,7 +47,7 @@ namespace Spindles {
     // prints the startup message of the spindle config
     void Relay ::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "Relay spindle Output:%s, Enbl:%s, Dir:%s",
                        pinName(_output_pin).c_str(),
                        pinName(_enable_pin).c_str(),
@@ -54,8 +55,9 @@ namespace Spindles {
     }
 
     uint32_t Relay::set_rpm(uint32_t rpm) {
-        if (_output_pin == UNDEFINED_PIN)
+        if (_output_pin == UNDEFINED_PIN) {
             return rpm;
+        }
 
         sys.spindle_speed = rpm;
         set_output(rpm != 0);

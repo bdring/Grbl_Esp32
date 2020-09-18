@@ -200,9 +200,14 @@ namespace WebUI {
 
     void WiFiConfig::WiFiEvent(WiFiEvent_t event) {
         switch (event) {
-            case SYSTEM_EVENT_STA_GOT_IP: grbl_sendf(CLIENT_ALL, "[MSG:Connected with %s]\r\n", WiFi.localIP().toString().c_str()); break;
-            case SYSTEM_EVENT_STA_DISCONNECTED: grbl_send(CLIENT_ALL, "[MSG:Disconnected]\r\n"); break;
-            default: break;
+            case SYSTEM_EVENT_STA_GOT_IP:
+                grbl_sendf(CLIENT_ALL, "[MSG:Connected with %s]\r\n", WiFi.localIP().toString().c_str());
+                break;
+            case SYSTEM_EVENT_STA_DISCONNECTED:
+                grbl_send(CLIENT_ALL, "[MSG:Disconnected]\r\n");
+                break;
+            default:
+                break;
         }
     }
 
@@ -216,7 +221,7 @@ namespace WebUI {
         if (RSSI >= -50) {
             return 100;
         }
-        return (2 * (RSSI + 100));
+        return 2 * (RSSI + 100);
     }
 
     /*
@@ -230,9 +235,14 @@ namespace WebUI {
         wl_status_t status = WiFi.status();
         while (status != WL_CONNECTED && count < 40) {
             switch (status) {
-                case WL_NO_SSID_AVAIL: msg = "No SSID"; break;
-                case WL_CONNECT_FAILED: msg = "Connection failed"; break;
-                case WL_CONNECTED: break;
+                case WL_NO_SSID_AVAIL:
+                    msg = "No SSID";
+                    break;
+                case WL_CONNECT_FAILED:
+                    msg = "Connection failed";
+                    break;
+                case WL_CONNECTED:
+                    break;
                 default:
                     if ((dot > 3) || (dot == 0)) {
                         dot     = 0;
@@ -248,7 +258,7 @@ namespace WebUI {
             count++;
             status = WiFi.status();
         }
-        return (status == WL_CONNECTED);
+        return status == WL_CONNECTED;
     }
 
     /*
@@ -387,8 +397,9 @@ namespace WebUI {
             }
             //start services
             wifi_services.begin();
-        } else
+        } else {
             WiFi.mode(WIFI_OFF);
+        }
     }
 
     /**

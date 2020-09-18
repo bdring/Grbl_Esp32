@@ -22,26 +22,26 @@
 
 #include "Config.h"
 
-#define false 0
-#define true 1
+// #define false 0
+// #define true 1
 
-#define SOME_LARGE_VALUE 1.0E+38
+const double SOME_LARGE_VALUE = 1.0E+38;
 
 // Axis array index values. Must start with 0 and be continuous.
-// Note: You set the number of axes used by changing N_AXIS.
+// Note: You set the number of axes used by changing MAX_N_AXIS.
 // Be sure to define pins or servos in the machine definition file.
-#define X_AXIS 0  // Axis indexing value.
-#define Y_AXIS 1
-#define Z_AXIS 2
+const int X_AXIS = 0;  // Axis indexing value.
+const int Y_AXIS = 1;
+const int Z_AXIS = 2;
 #define A_AXIS 3
 #define B_AXIS 4
 #define C_AXIS 5
 
-#define MAX_AXES 6
-#define MAX_GANGED 2
+const int MAX_AXES   = 6;
+const int MAX_GANGED = 2;
 
-#define PRIMARY_MOTOR 0
-#define GANGED_MOTOR 1
+const int PRIMARY_MOTOR = 0;
+const int GANGED_MOTOR  = 1;
 
 #define X2_AXIS (X_AXIS + MAX_AXES)
 #define Y2_AXIS (Y_AXIS + MAX_AXES)
@@ -56,24 +56,27 @@
 #define B_MOTOR Y_AXIS  // Must be Y_AXIS
 
 // Conversions
-#define MM_PER_INCH (25.40)
-#define INCH_PER_MM (0.0393701)
+const double MM_PER_INCH = (25.40);
+const double INCH_PER_MM = (0.0393701);
 #define TICKS_PER_MICROSECOND (F_STEPPER_TIMER / 1000000)  // Different from AVR version
 
-#define DELAY_MODE_DWELL 0
-#define DELAY_MODE_SYS_SUSPEND 1
+const int DELAY_MODE_DWELL       = 0;
+const int DELAY_MODE_SYS_SUSPEND = 1;
 
 // Useful macros
 #define clear_vector(a) memset(a, 0, sizeof(a))
-#define clear_vector_float(a) memset(a, 0.0, sizeof(float) * N_AXIS)
-// #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*N_AXIS)
+#define clear_vector_float(a) memset(a, 0.0, sizeof(float) * MAX_N_AXIS)
+// #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*MAX_N_AXIS)
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
-#define isequal_position_vector(a, b) !(memcmp(a, b, sizeof(float) * N_AXIS))
+#define isequal_position_vector(a, b) !(memcmp(a, b, sizeof(float) * MAX_N_AXIS))
 
 // Bit field and masking macros
-//Arduino.h:104:0: note: this is the location of the previous definition
-//#define bit(n) (1 << n)
+// bit(n) is defined in Arduino.h.  We redefine it here so we can apply
+// the static_cast, thus making it work with scoped enums
+#undef bit
+#define bit(n) (1 << static_cast<unsigned int>(n))
+
 #define bit_true(x, mask) (x) |= (mask)
 #define bit_false(x, mask) (x) &= ~(mask)
 #define bit_istrue(x, mask) ((x & mask) != 0)

@@ -27,7 +27,7 @@
 
 #include "Grbl.h"
 
-uint8_t n_homing_locate_cycle = N_HOMING_LOCATE_CYCLE;
+uint8_t n_homing_locate_cycle = NHomingLocateCycle;
 
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 
@@ -45,8 +45,8 @@ void IRAM_ATTR isr_limit_switches() {
     // moves in the planner and serial buffers are all cleared and newly sent blocks will be
     // locked out until a homing cycle or a kill lock command. Allows the user to disable the hard
     // limit setting if their limits are constantly triggering after a reset and move their axes.
-    if ((sys.state != STATE_ALARM) & (bit_isfalse(sys.state, STATE_HOMING))) {
-        if (!(sys_rt_exec_alarm)) {
+    if (sys.state != State::Alarm && sys.state != State::Homing) {
+        if (sys_rt_exec_alarm == ExecAlarm::None) {
 #ifdef ENABLE_SOFTWARE_DEBOUNCE
             // we will start a task that will recheck the switches after a small delay
             int evt;
@@ -55,12 +55,12 @@ void IRAM_ATTR isr_limit_switches() {
 #    ifdef HARD_LIMIT_FORCE_STATE_CHECK
             // Check limit pin state.
             if (limits_get_state()) {
-                mc_reset();                                    // Initiate system kill.
-                system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);  // Indicate hard limit critical event
+                mc_reset();                                   // Initiate system kill.
+                system_set_exec_alarm(ExecAlarm::HardLimit);  // Indicate hard limit critical event
             }
 #    else
-            mc_reset();                                    // Initiate system kill.
-            system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);  // Indicate hard limit critical event
+            mc_reset();                                   // Initiate system kill.
+            system_set_exec_alarm(ExecAlarm::HardLimit);  // Indicate hard limit critical event
 #    endif
 #endif
         }
@@ -75,29 +75,49 @@ void IRAM_ATTR isr_limit_switches() {
 // NOTE: Only the abort realtime command can interrupt this process.
 // TODO: Move limit pin-specific calls to a general function for portability.
 void limits_go_home(uint8_t cycle_mask) {
-    if (sys.abort)
+    if (sys.abort) {
         return;  // Block if system reset has been issued.
+    }
     // Initialize plan data struct for homing motion. Spindle and coolant are disabled.
     motors_set_homing_mode(cycle_mask, true);  // tell motors homing is about to start
+
+    // Remove any motor that cannot be homed from the mask
+    // Motors with non standard homing can do that during motors_set_homing_mode(...) above
+    auto n_axis = number_axis->get();
+    for (uint8_t idx = 0; idx < n_axis; idx++) {
+        if (bit_istrue(cycle_mask, bit(idx))) {
+            if (!motor_can_home(idx)) {
+                bit_false(cycle_mask, bit(idx));
+            }
+        }
+    }
+    // see if any motors are left
+    if (cycle_mask == 0) {
+        return;
+    }
+
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
     memset(pl_data, 0, sizeof(plan_line_data_t));
-    pl_data->condition = (PL_COND_FLAG_SYSTEM_MOTION | PL_COND_FLAG_NO_FEED_OVERRIDE);
+    pl_data->motion                = {};
+    pl_data->motion.systemMotion   = 1;
+    pl_data->motion.noFeedOverride = 1;
 #ifdef USE_LINE_NUMBERS
     pl_data->line_number = HOMING_CYCLE_LINE_NUMBER;
 #endif
     // Initialize variables used for homing computations.
     uint8_t n_cycle = (2 * n_homing_locate_cycle + 1);
-    uint8_t step_pin[N_AXIS];
-    float   target[N_AXIS];
+    uint8_t step_pin[MAX_N_AXIS];
+    float   target[MAX_N_AXIS];
     float   max_travel = 0.0;
-    uint8_t idx;
-    for (idx = 0; idx < N_AXIS; idx++) {
+
+    for (uint8_t idx = 0; idx < n_axis; idx++) {
         // Initialize step pin masks
         step_pin[idx] = get_step_pin_mask(idx);
 #ifdef COREXY
-        if ((idx == A_MOTOR) || (idx == B_MOTOR))
+        if ((idx == A_MOTOR) || (idx == B_MOTOR)) {
             step_pin[idx] = (get_step_pin_mask(X_AXIS) | get_step_pin_mask(Y_AXIS));
+        }
 #endif
         if (bit_istrue(cycle_mask, bit(idx))) {
             // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.
@@ -113,7 +133,7 @@ void limits_go_home(uint8_t cycle_mask) {
         // Initialize and declare variables needed for homing routine.
         axislock      = 0;
         n_active_axis = 0;
-        for (idx = 0; idx < N_AXIS; idx++) {
+        for (uint8_t idx = 0; idx < n_axis; idx++) {
             // Set target location for active axes and setup computation for homing rate.
             if (bit_istrue(cycle_mask, bit(idx))) {
                 n_active_axis++;
@@ -125,8 +145,9 @@ void limits_go_home(uint8_t cycle_mask) {
                 } else if (idx == Y_AXIS) {
                     int32_t axis_position = system_convert_corexy_to_x_axis_steps(sys_position);
                     sys_position[A_MOTOR] = sys_position[B_MOTOR] = axis_position;
-                } else
+                } else {
                     sys_position[Z_AXIS] = 0;
+                }
 #else
                 sys_position[idx] = 0;
 #endif
@@ -134,21 +155,23 @@ void limits_go_home(uint8_t cycle_mask) {
                 // NOTE: This happens to compile smaller than any other implementation tried.
                 auto mask = homing_dir_mask->get();
                 if (bit_istrue(mask, bit(idx))) {
-                    if (approach)
+                    if (approach) {
                         target[idx] = -max_travel;
-                    else
+                    } else {
                         target[idx] = max_travel;
+                    }
                 } else {
-                    if (approach)
+                    if (approach) {
                         target[idx] = max_travel;
-                    else
+                    } else {
                         target[idx] = -max_travel;
+                    }
                 }
                 // Apply axislock to the step port pins active in this cycle.
                 axislock |= step_pin[idx];
             }
         }
-        homing_rate *= sqrt(n_active_axis);  // [sqrt(N_AXIS)] Adjust so individual axes all move at homing rate.
+        homing_rate *= sqrt(n_active_axis);  // [sqrt(number of active axis)] Adjust so individual axes all move at homing rate.
         sys.homing_axis_lock = axislock;
         // Perform homing cycle. Planner buffer should be empty, as required to initiate the homing cycle.
         pl_data->feed_rate = homing_rate;                    // Set current homing rate.
@@ -160,14 +183,15 @@ void limits_go_home(uint8_t cycle_mask) {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
                 limit_state = limits_get_state();
-                for (idx = 0; idx < N_AXIS; idx++) {
+                for (uint8_t idx = 0; idx < n_axis; idx++) {
                     if (axislock & step_pin[idx]) {
                         if (limit_state & bit(idx)) {
 #ifdef COREXY
-                            if (idx == Z_AXIS)
+                            if (idx == Z_AXIS) {
                                 axislock &= ~(step_pin[Z_AXIS]);
-                            else
+                            } else {
                                 axislock &= ~(step_pin[A_MOTOR] | step_pin[B_MOTOR]);
+                            }
 #else
                             axislock &= ~(step_pin[idx]);
 #endif
@@ -181,18 +205,23 @@ void limits_go_home(uint8_t cycle_mask) {
             if (sys_rt_exec_state & (EXEC_SAFETY_DOOR | EXEC_RESET | EXEC_CYCLE_STOP)) {
                 uint8_t rt_exec = sys_rt_exec_state;
                 // Homing failure condition: Reset issued during cycle.
-                if (rt_exec & EXEC_RESET)
-                    system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_RESET);
+                if (rt_exec & EXEC_RESET) {
+                    system_set_exec_alarm(ExecAlarm::HomingFailReset);
+                }
                 // Homing failure condition: Safety door was opened.
-                if (rt_exec & EXEC_SAFETY_DOOR)
-                    system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_DOOR);
+                if (rt_exec & EXEC_SAFETY_DOOR) {
+                    system_set_exec_alarm(ExecAlarm::HomingFailDoor);
+                }
                 // Homing failure condition: Limit switch still engaged after pull-off motion
-                if (!approach && (limits_get_state() & cycle_mask))
-                    system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_PULLOFF);
+                if (!approach && (limits_get_state() & cycle_mask)) {
+                    system_set_exec_alarm(ExecAlarm::HomingFailPulloff);
+                }
                 // Homing failure condition: Limit switch not found during approach.
-                if (approach && (rt_exec & EXEC_CYCLE_STOP))
-                    system_set_exec_alarm(EXEC_ALARM_HOMING_FAIL_APPROACH);
-                if (sys_rt_exec_alarm) {
+                if (approach && (rt_exec & EXEC_CYCLE_STOP)) {
+                    system_set_exec_alarm(ExecAlarm::HomingFailApproach);
+                }
+
+                if (sys_rt_exec_alarm != ExecAlarm::None) {
                     motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
                     mc_reset();                                 // Stop motors, if they are running.
                     protocol_execute_realtime();
@@ -234,27 +263,18 @@ void limits_go_home(uint8_t cycle_mask) {
     // Set machine positions for homed limit switches. Don't update non-homed axes.
     auto mask    = homing_dir_mask->get();
     auto pulloff = homing_pulloff->get();
-    for (idx = 0; idx < N_AXIS; idx++) {
+    for (uint8_t idx = 0; idx < n_axis; idx++) {
         auto steps = axis_settings[idx]->steps_per_mm->get();
         if (cycle_mask & bit(idx)) {
-#ifdef HOMING_FORCE_SET_ORIGIN
-            set_axis_position = 0;
-#else
-            auto travel = axis_settings[idx]->max_travel->get();
-            if (bit_istrue(mask, bit(idx))) {
-#    ifdef HOMING_FORCE_POSITIVE_SPACE
-                set_axis_position = 0;  //lround(settings.homing_pulloff*settings.steps_per_mm[idx]);
-#    else
-                set_axis_position = lround((-travel + pulloff) * steps);
-#    endif
+            float travel = axis_settings[idx]->max_travel->get();
+            float mpos   = axis_settings[idx]->home_mpos->get();
+
+            if (bit_istrue(homing_dir_mask->get(), bit(idx))) {
+                sys_position[idx] = (mpos + pulloff) * steps;
             } else {
-#    ifdef HOMING_FORCE_POSITIVE_SPACE
-                set_axis_position = lround((-travel - pulloff) * steps);
-#    else
-                set_axis_position = lround(-pulloff * steps);
-#    endif
+                sys_position[idx] = (mpos - pulloff) * steps;
             }
-#endif
+
 #ifdef COREXY
             if (idx == X_AXIS) {
                 int32_t off_axis_position = system_convert_corexy_to_y_axis_steps(sys_position);
@@ -264,10 +284,22 @@ void limits_go_home(uint8_t cycle_mask) {
                 int32_t off_axis_position = system_convert_corexy_to_x_axis_steps(sys_position);
                 sys_position[A_MOTOR]     = off_axis_position + set_axis_position;
                 sys_position[B_MOTOR]     = off_axis_position - set_axis_position;
-            } else
+            } else {
                 sys_position[idx] = set_axis_position;
+            }
 #else
-            sys_position[idx] = set_axis_position;
+            //sys_position[idx] = set_axis_position;
+            /*
+            float max_mpos, min_mpos;
+
+            if (bit_istrue(homing_dir_mask->get(), bit(idx))) {
+                min_mpos = mpos;
+                max_mpos = mpos + travel;
+            } else {
+                min_mpos = mpos - travel;
+                max_mpos = mpos;
+            }
+            */
 #endif
         }
     }
@@ -286,7 +318,8 @@ void limits_init() {
 #ifdef DISABLE_LIMIT_PIN_PULL_UP
     mode = INPUT;
 #endif
-    for (int axis = 0; axis < N_AXIS; axis++) {
+    auto n_axis = number_axis->get();
+    for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin;
             if ((pin = limit_pins[axis][gang_index]) != UNDEFINED_PIN) {
@@ -300,7 +333,7 @@ void limits_init() {
                 /* 
                 // Change to do this once. limits_init() happens often
                 grbl_msg_sendf(CLIENT_SERIAL,
-                               MSG_LEVEL_INFO,
+                               MsgLevel::Info,
                                "%c%s Axis limit switch on pin %s",
                                report_get_axis_letter(axis),
                                gang_index ? "2" : " ",
@@ -322,7 +355,8 @@ void limits_init() {
 
 // Disables hard limits.
 void limits_disable() {
-    for (int axis = 0; axis < N_AXIS; axis++) {
+    auto n_axis = number_axis->get();
+    for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin = limit_pins[axis][gang_index];
             if (pin != UNDEFINED_PIN) {
@@ -337,7 +371,8 @@ void limits_disable() {
 // number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 uint8_t limits_get_state() {
     uint8_t pinMask = 0;
-    for (int axis = 0; axis < N_AXIS; axis++) {
+    auto n_axis = number_axis->get();
+    for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin = limit_pins[axis][gang_index];
             if (pin != UNDEFINED_PIN) {
@@ -352,7 +387,7 @@ uint8_t limits_get_state() {
     if (limit_invert->get()) {
         pinMask ^= limit_mask;
     }
-    return (pinMask);
+    return pinMask;
 }
 
 // Performs a soft limit check. Called from mc_line() only. Assumes the machine has been homed,
@@ -360,29 +395,22 @@ uint8_t limits_get_state() {
 // NOTE: Used by jogging to limit travel within soft-limit volume.
 void limits_soft_check(float* target) {
     if (system_check_travel_limits(target)) {
-        // TODO for debugging only 3 axes right now
-        grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
-                       "Soft limit error target WPOS X:%5.2f Y:%5.2f Z:%5.2f",
-                       target[X_AXIS] - gc_state.coord_system[X_AXIS],
-                       target[Y_AXIS] - gc_state.coord_system[Y_AXIS],
-                       target[Z_AXIS] - gc_state.coord_system[Z_AXIS]);
-
         sys.soft_limit = true;
         // Force feed hold if cycle is active. All buffered blocks are guaranteed to be within
         // workspace volume so just come to a controlled stop so position is not lost. When complete
         // enter alarm mode.
-        if (sys.state == STATE_CYCLE) {
+        if (sys.state == State::Cycle) {
             system_set_exec_state_flag(EXEC_FEED_HOLD);
             do {
                 protocol_execute_realtime();
-                if (sys.abort)
+                if (sys.abort) {
                     return;
-            } while (sys.state != STATE_IDLE);
+                }
+            } while (sys.state != State::Idle);
         }
-        mc_reset();                                    // Issue system reset and ensure spindle and coolant are shutdown.
-        system_set_exec_alarm(EXEC_ALARM_SOFT_LIMIT);  // Indicate soft limit critical event
-        protocol_execute_realtime();                   // Execute to enter critical event loop and system abort
+        mc_reset();                                   // Issue system reset and ensure spindle and coolant are shutdown.
+        system_set_exec_alarm(ExecAlarm::SoftLimit);  // Indicate soft limit critical event
+        protocol_execute_realtime();                  // Execute to enter critical event loop and system abort
         return;
     }
 }
@@ -396,9 +424,9 @@ void limitCheckTask(void* pvParameters) {
         uint8_t switch_state;
         switch_state = limits_get_state();
         if (switch_state) {
-            //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Limit Switch State %08d", switch_state);
-            mc_reset();                                    // Initiate system kill.
-            system_set_exec_alarm(EXEC_ALARM_HARD_LIMIT);  // Indicate hard limit critical event
+            //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Limit Switch State %08d", switch_state);
+            mc_reset();                                   // Initiate system kill.
+            system_set_exec_alarm(ExecAlarm::HardLimit);  // Indicate hard limit critical event
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Spindles {
     protected:
         void default_modbus_settings(uart_config_t& uart) override;
 
-        void direction_command(uint8_t mode, ModbusCommand& data) override;
+        void direction_command(SpindleState mode, ModbusCommand& data) override;
         void set_speed_command(uint32_t rpm, ModbusCommand& data) override;
 
         response_parser get_max_rpm(ModbusCommand& data) override;
