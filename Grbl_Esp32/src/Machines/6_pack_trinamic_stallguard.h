@@ -19,7 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define MACHINE_NAME            "6 Pack Controller V1 (Trinamic)"
+#define MACHINE_NAME            "6 Pack Controller V1 (Trinamic Stallguard)"
 
 #define N_AXIS 6
 
@@ -34,9 +34,9 @@
 
 
 #define TRINAMIC_RUN_MODE           TRINAMIC_MODE_COOLSTEP
-#define TRINAMIC_HOMING_MODE        TRINAMIC_MODE_COOLSTEP
+#define TRINAMIC_HOMING_MODE        TRINAMIC_MODE_STALLGUARD
 
-
+// Motor Socket #1
 #define X_TRINAMIC_DRIVER       2130
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)
@@ -44,6 +44,7 @@
 #define X_CS_PIN                I2SO(3)
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
 
+// Motor Socket #2
 #define Y_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
 #define Y_DIRECTION_PIN         I2SO(4)
 #define Y_STEP_PIN              I2SO(5)
@@ -51,6 +52,7 @@
 #define Y_CS_PIN                I2SO(6)
 #define Y_RSENSE                X_RSENSE
 
+// Motor Socket #3
 #define Z_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
 #define Z_DISABLE_PIN           I2SO(8)
 #define Z_DIRECTION_PIN         I2SO(9)
@@ -58,6 +60,7 @@
 #define Z_CS_PIN                I2SO(11)
 #define Z_RSENSE                X_RSENSE
 
+// Motor Socket #4
 #define A_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
 #define A_DIRECTION_PIN         I2SO(12)
 #define A_STEP_PIN              I2SO(13)
@@ -65,6 +68,7 @@
 #define A_CS_PIN                I2SO(14)
 #define A_RSENSE                X_RSENSE
 
+// Motor Socket #5
 #define B_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
 #define B_DISABLE_PIN           I2SO(16)
 #define B_DIRECTION_PIN         I2SO(17)
@@ -72,6 +76,7 @@
 #define B_CS_PIN                I2SO(19)
 #define B_RSENSE                X_RSENSE
 
+// Motor Socket #6
 #define C_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
 #define C_DIRECTION_PIN         I2SO(20)
 #define C_STEP_PIN              I2SO(21)
@@ -116,18 +121,16 @@ Socket #5
 
 */
 
-// 4x Input Module in Socket #1
-// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define X_LIMIT_PIN             GPIO_NUM_33
-#define Y_LIMIT_PIN             GPIO_NUM_32
-#define Z_LIMIT_PIN             GPIO_NUM_35
-#define A_LIMIT_PIN             GPIO_NUM_34
+// Socket #1 (Empty)
+#define X_LIMIT_PIN             GPIO_NUM_33  // Sg1
+#define Y_LIMIT_PIN             GPIO_NUM_32  // Sg2
+#define Z_LIMIT_PIN             GPIO_NUM_35  // Sg3
+#define A_LIMIT_PIN             GPIO_NUM_34  // Sg4
 
-// 4x Input Module in Socket #2
-// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define B_LIMIT_PIN             GPIO_NUM_2
-#define C_LIMIT_PIN             GPIO_NUM_25
-#define PROBE_PIN               GPIO_NUM_39
+// Socket #2 (Empty)
+#define B_LIMIT_PIN               GPIO_NUM_39  // Sg5
+#define C_LIMIT_PIN               GPIO_NUM_36  // Sg6
+
 
 // 0-10v CNC Module in Socket #3
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/0-10V-Output-Module

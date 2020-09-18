@@ -26,10 +26,6 @@
 
 #define N_AXIS 3
 
-#ifdef ENABLE_SD_CARD
-    #undef ENABLE_SD_CARD
-#endif
-
 #ifdef HOMING_CYCLE_0
     #undef HOMING_CYCLE_0
 #endif
@@ -61,14 +57,17 @@
 
 #define STEPPER_RESET           GPIO_NUM_19
 
+// Motor Socket #1
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)
 #define X_STEP_PIN              I2SO(2)
 
+// Motor Socket #2
 #define Y_DIRECTION_PIN         I2SO(4)
 #define Y_STEP_PIN              I2SO(5)
 #define Y_DISABLE_PIN           I2SO(7)
 
+// Motor Socket #3
 #define Z_DISABLE_PIN           I2SO(8)
 #define Z_DIRECTION_PIN         I2SO(9)
 #define Z_STEP_PIN              I2SO(10)
@@ -78,46 +77,47 @@
     The list of modules is here...
     https://github.com/bdring/6-Pack_CNC_Controller/wiki/CNC-I-O-Module-List
     Click on each module to get example for using the modules in the sockets
+
+
+Socket #1
+#1 GPIO_NUM_33 
+#2 GPIO_NUM_32
+#3 GPIO_NUM_35 (input only)
+#4 GPIO_NUM_34 (input only)
+
+Socket #2
+#1 GPIO_NUM_2
+#2 GPIO_NUM_25
+#3 GPIO_NUM_39 (input only)
+#4 GPIO_NUM_36 (input only)
+
+Socket #3
+#1 GPIO_NUM_26
+#2 GPIO_NUM_4
+#3 GPIO_NUM_16
+#4 GPIO_NUM_27
+
+Socket #4
+#1 GPIO_NUM_14
+#2 GPIO_NUM_13
+#3 GPIO_NUM_15
+#4 GPIO_NUM_12
+
+Socket #5
+#1 I2SO(24)  (output only)
+#2 I2SO(25)  (output only)
+#3 I2SO26)  (output only)
+
 */
 
- 
-// Socket #1
-// #1 GPIO_NUM_33 
-// #2 GPIO_NUM_32
-// #3 GPIO_NUM_35 (input only)
-// #4 GPIO_NUM_34 (input only)
-
-
-// Socket #2
-// #1 GPIO_NUM_2
-// #2 GPIO_NUM_25
-// #3 GPIO_NUM_39 (input only)
-// #4 GPIO_NUM_36 (input only)
-
-// Socket #3
-// #1 GPIO_NUM_26
-// #2 GPIO_NUM_4
-// #3 GPIO_NUM_16
-// #4 GPIO_NUM_27
-
-
-// Socket #4
-// #1 GPIO_NUM_14
-// #2 GPIO_NUM_13
-// #3 GPIO_NUM_15
-// #4 GPIO_NUM_12
-
-
-// Socket #5
-// #1 GPIO_NUM_24  (output only)
-// #2 GPIO_NUM_25  (output only)
-// #3 GPIO_NUM_26  (output only)
-// #4 GPIO_NUM_27  (output only)
- 
+ // 4x Input Module in Socket #1
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
 #define X_LIMIT_PIN                 GPIO_NUM_33
 #define Y_LIMIT_PIN                 GPIO_NUM_32
 #define Z_LIMIT_PIN                 GPIO_NUM_35
 
+
+// ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800
 #define DEFAULT_Z_STEPS_PER_MM      800
