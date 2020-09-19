@@ -167,6 +167,7 @@ void grbl_notifyf(const char* title, const char* format, ...) {
 }
 
 // formats axis values into a string and returns that string in rpt
+// NOTE: rpt should have at least size: 20 * MAX_N_AXIS
 static void report_util_axis_values(float* axis_value, char* rpt) {
     uint8_t idx;
     char    axisVal[20];
@@ -178,9 +179,9 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
     auto n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {
         if (report_inches->get()) {
-            sprintf(axisVal, "%4.4f", axis_value[idx] * unit_conv);  // Report inches to 4 decimals
+            snprintf(axisVal, 19, "%4.4f", axis_value[idx] * unit_conv);  // Report inches to 4 decimals
         } else {
-            sprintf(axisVal, "%4.3f", axis_value[idx] * unit_conv);  // Report mm to 3 decimals
+            snprintf(axisVal, 19, "%4.3f", axis_value[idx] * unit_conv);  // Report mm to 3 decimals
         }
         strcat(rpt, axisVal);
         if (idx < (number_axis->get() - 1)) {
@@ -283,8 +284,8 @@ void report_grbl_help(uint8_t client) {
 void report_probe_parameters(uint8_t client) {
     // Report in terms of machine position.
     float print_position[MAX_N_AXIS];
-    char  probe_rpt[100];  // the probe report we are building here
-    char  temp[60];
+    char  probe_rpt[(MAX_N_AXIS * 20 + 13 + 6 + 1)];  // the probe report we are building here
+    char  temp[MAX_N_AXIS * 20];
     strcpy(probe_rpt, "[PRB:");  // initialize the string with the first characters
     // get the machine position and put them into a string and append to the probe report
     system_convert_array_steps_to_mpos(print_position, sys_probe_position);
@@ -300,8 +301,8 @@ void report_probe_parameters(uint8_t client) {
 void report_ngc_parameters(uint8_t client) {
     float   coord_data[MAX_N_AXIS];
     uint8_t coord_select;
-    char    temp[60];
-    char    ngc_rpt[500];
+    char    temp[MAX_N_AXIS * 20];
+    char    ngc_rpt[((8 + (MAX_N_AXIS * 20)) * SETTING_INDEX_NCOORD + 4 + MAX_N_AXIS * 20 + 8 + 2 * 20)];
     ngc_rpt[0] = '\0';
     for (coord_select = 0; coord_select <= SETTING_INDEX_NCOORD; coord_select++) {
         if (!(settings_read_coord_data(coord_select, coord_data))) {
@@ -332,9 +333,9 @@ void report_ngc_parameters(uint8_t client) {
     strcat(ngc_rpt, "]\r\n");
     strcat(ngc_rpt, "[TLO:");  // Print tool length offset value
     if (report_inches->get()) {
-        sprintf(temp, "%4.3f]\r\n", gc_state.tool_length_offset * INCH_PER_MM);
+        snprintf(temp, 20, "%4.3f]\r\n", gc_state.tool_length_offset * INCH_PER_MM);
     } else {
-        sprintf(temp, "%4.3f]\r\n", gc_state.tool_length_offset);
+        snprintf(temp, 20, "%4.3f]\r\n", gc_state.tool_length_offset);
     }
     strcat(ngc_rpt, temp);
     grbl_send(client, ngc_rpt);
@@ -598,7 +599,7 @@ void report_realtime_status(uint8_t client) {
     memcpy(current_position, sys_position, sizeof(sys_position));
     float print_position[MAX_N_AXIS];
     char  status[200];
-    char  temp[80];
+    char  temp[MAX_N_AXIS * 20];
     system_convert_array_steps_to_mpos(print_position, current_position);
     // Report current machine state and sub-states
     strcpy(status, "<");
@@ -670,7 +671,7 @@ void report_realtime_status(uint8_t client) {
     if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
         strcat(status, "|MPos:");
     } else {
-#ifdef USE_FWD_KINEMATICS        
+#ifdef USE_FWD_KINEMATICS
         forward_kinematics(print_position);
 #endif
         strcat(status, "|WPos:");
@@ -855,7 +856,7 @@ void report_realtime_status(uint8_t client) {
 
 void report_realtime_steps() {
     uint8_t idx;
-    auto n_axis = number_axis->get();
+    auto    n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {
         grbl_sendf(CLIENT_ALL, "%ld\n", sys_position[idx]);  // OK to send to all ... debug stuff
     }
