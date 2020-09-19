@@ -42,10 +42,14 @@ void gc_init() {
     float coord_system[MAX_N_AXIS];
 
     // g54 - g59 is 6 coordinate systems, plus 2 for G28 and G30 reference positions
+    bool      reported_error    = false;
     const int MAX_COORD_SYSTEMS = 8;
     for (uint8_t i = 0; i < MAX_COORD_SYSTEMS; ++i) {
         if (!(settings_read_coord_data(i, coord_system))) {
-            report_status_message(Error::SettingReadFail, CLIENT_SERIAL);
+            if (!reported_error) {
+                reported_error = true;
+                report_status_message(Error::SettingReadFail, CLIENT_SERIAL);
+            }
         }
     }
 
