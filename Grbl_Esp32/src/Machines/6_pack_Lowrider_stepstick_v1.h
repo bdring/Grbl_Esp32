@@ -2,15 +2,15 @@
 // clang-format off
 
 /*
-    6_pack_MPCNC_stepstick_v1.h
+    6_pack_Lowrider_stepstick_v1.h
 
     Covers all V1 versions V1p0, V1p1, etc
 
     Part of Grbl_ESP32
     Pin assignments for the ESP32 I2S 6-axis board
-    2018    - Bart Dring
-    2020    - Mitch Bradley
-    2020    - Michiyasu Odaki
+    
+    2020 B. Dring
+    
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -22,7 +22,7 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define MACHINE_NAME            "6 Pack MPCNC XYZXY V1 (StepStick)"
+#define MACHINE_NAME            "6 Pack Lowrider XYYZZ V1 (StepStick)"
 
 #define N_AXIS 3
 
@@ -60,19 +60,19 @@
 #define Y_AXIS_SQUARING
 
 // Mosor Socket #3
-#define Z_DISABLE_PIN           I2SO(8)
-#define Z_DIRECTION_PIN         I2SO(9)
-#define Z_STEP_PIN              I2SO(10)
+#define Y2_DISABLE_PIN           I2SO(8)
+#define Y2_DIRECTION_PIN         I2SO(9)
+#define Y2_STEP_PIN              I2SO(10)
 
 // Mosor Socket #4
-#define X2_DIRECTION_PIN         I2SO(12)
-#define X2_STEP_PIN              I2SO(13)
-#define X2_DISABLE_PIN           I2SO(15)
+#define Z_DIRECTION_PIN         I2SO(12)
+#define Z_STEP_PIN              I2SO(13)
+#define Z_DISABLE_PIN           I2SO(15)
 
 // Mosor Socket #5
-#define Y2_DISABLE_PIN           I2SO(16)
-#define Y2_DIRECTION_PIN         I2SO(17)
-#define Y2_STEP_PIN              I2SO(18)
+#define Z2_DISABLE_PIN           I2SO(16)
+#define Z2_DIRECTION_PIN         I2SO(17)
+#define Z2_STEP_PIN              I2SO(18)
 
 
 /*
@@ -116,12 +116,12 @@ Socket #5
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
 #define X_LIMIT_PIN             GPIO_NUM_33
 #define Y_LIMIT_PIN             GPIO_NUM_32
-#define Z_LIMIT_PIN             GPIO_NUM_35
-#define X2_LIMIT_PIN            GPIO_NUM_34
+#define Y2_LIMIT_PIN             GPIO_NUM_35
+#define Z_LIMIT_PIN            GPIO_NUM_34
 
 // 4x Input Module in Socket #2
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define Y2_LIMIT_PIN            GPIO_NUM_2
+#define Z2_LIMIT_PIN            GPIO_NUM_2
 
 
 // === Default settings
