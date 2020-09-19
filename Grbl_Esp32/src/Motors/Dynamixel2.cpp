@@ -365,7 +365,8 @@ namespace Motors {
         tx_message[++msg_index] = 4;                                  // low order data length
         tx_message[++msg_index] = 0;                                  // high order data length
 
-        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+        auto n_axis = number_axis->get();
+        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
             for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
                 current_id = ids[axis][gang_index];
                 if (current_id != 0) {
