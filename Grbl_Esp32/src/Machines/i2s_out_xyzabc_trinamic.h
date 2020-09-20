@@ -37,8 +37,8 @@
 #define I2S_OUT_WS              GPIO_NUM_17
 #define I2S_OUT_DATA            GPIO_NUM_21
 
-#define TRINAMIC_RUN_MODE           TRINAMIC_MODE_COOLSTEP
-#define TRINAMIC_HOMING_MODE        TRINAMIC_MODE_COOLSTEP
+#define TRINAMIC_RUN_MODE           TrinamicMode :: CoolStep
+#define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
 
 #define X_TRINAMIC_DRIVER       2130
 #define X_DISABLE_PIN           I2SO(0)
