@@ -23,7 +23,7 @@
 // Grbl versioning system
 
 const char* const GRBL_VERSION       = "1.3a";
-const char* const GRBL_VERSION_BUILD = "20200910";
+const char* const GRBL_VERSION_BUILD = "20200919";
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
