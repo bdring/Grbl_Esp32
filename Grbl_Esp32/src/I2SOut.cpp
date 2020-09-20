@@ -291,9 +291,27 @@ static int IRAM_ATTR i2s_out_start() {
 
     // Attach I2S to specified GPIO pin
     i2s_out_gpio_attach(i2s_out_ws_pin, i2s_out_bck_pin, i2s_out_data_pin);
-    //start DMA link
+
+    // reest TX/RX module
+    I2S0.conf.tx_reset = 1;
+    I2S0.conf.tx_reset = 0;
+    I2S0.conf.rx_reset = 1;
+    I2S0.conf.rx_reset = 0;
+
+#    ifdef USE_I2S_OUT_STREAM_IMPL
+    // reset DMA
+    I2S0.lc_conf.in_rst  = 1;
+    I2S0.lc_conf.in_rst  = 0;
+    I2S0.lc_conf.out_rst = 1;
+    I2S0.lc_conf.out_rst = 0;
+
+    I2S0.out_link.addr = (uint32_t)o_dma.desc[0];
+#    endif
+
+    // reset FIFO
     i2s_out_reset_fifo_without_lock();
 
+    // start DMA link
 #    ifdef USE_I2S_OUT_STREAM_IMPL
     if (i2s_out_pulser_status == PASSTHROUGH) {
         I2S0.conf_chan.tx_chan_mod = 3;  // 3:right+constant 4:left+constant (when tx_msb_right = 1)
@@ -303,21 +321,6 @@ static int IRAM_ATTR i2s_out_start() {
         I2S0.conf_single_data      = 0;
     }
 #    endif
-
-#    ifdef USE_I2S_OUT_STREAM_IMPL
-    //reset DMA
-    I2S0.lc_conf.in_rst  = 1;
-    I2S0.lc_conf.in_rst  = 0;
-    I2S0.lc_conf.out_rst = 1;
-    I2S0.lc_conf.out_rst = 0;
-
-    I2S0.out_link.addr = (uint32_t)o_dma.desc[0];
-#    endif
-
-    I2S0.conf.tx_reset = 1;
-    I2S0.conf.tx_reset = 0;
-    I2S0.conf.rx_reset = 1;
-    I2S0.conf.rx_reset = 0;
 
     I2S0.conf1.tx_stop_en = 1;  // BCK and WCK are suppressed while FIFO is empty
 
@@ -339,13 +342,14 @@ static int IRAM_ATTR i2s_out_start() {
 }
 
 #    ifdef USE_I2S_OUT_STREAM_IMPL
-
+// Fill out one DMA buffer
+// Call with the I2S_OUT_PULSER lock acquired.
+// Note that the lock is temporarily released while calling the callback function.
 static int IRAM_ATTR i2s_fillout_dma_buffer(lldesc_t* dma_desc) {
     uint32_t* buf = (uint32_t*)dma_desc->buf;
     o_dma.rw_pos  = 0;
     // It reuses the oldest (just transferred) buffer with the name "current"
     // and fills the buffer for later DMA.
-    I2S_OUT_PULSER_ENTER_CRITICAL();  // Lock pulser status
     if (i2s_out_pulser_status == STEPPING) {
         //
         // Fillout the buffer for pulse
@@ -408,7 +412,6 @@ static int IRAM_ATTR i2s_fillout_dma_buffer(lldesc_t* dma_desc) {
         o_dma.rw_pos                         = 0;  // If someone calls i2s_out_push_sample, make sure there is no buffer overflow
         i2s_out_remain_time_until_next_pulse = 0;
     }
-    I2S_OUT_PULSER_EXIT_CRITICAL();  // Unlock pulser status
 
     return 0;
 }
@@ -772,7 +775,6 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
     //
 
     // configure I2S data port interface.
-    i2s_out_reset_fifo();
 
     //reset i2s
     I2S0.conf.tx_reset = 1;
@@ -785,6 +787,8 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
     I2S0.lc_conf.in_rst  = 0;
     I2S0.lc_conf.out_rst = 1;  // Set this bit to reset out DMA FSM. (R/W)
     I2S0.lc_conf.out_rst = 0;
+
+    i2s_out_reset_fifo_without_lock();
 
     //Enable and configure DMA
     I2S0.lc_conf.check_owner        = 0;
