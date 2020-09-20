@@ -118,7 +118,7 @@ void mc_arc(float*            target,
 #ifdef USE_KINEMATICS
     float    previous_position[MAX_N_AXIS];
     uint16_t n;
-    auto n_axis = number_axis->get();
+    auto     n_axis = number_axis->get();
     for (n = 0; n < n_axis; n++) {
         previous_position[n] = position[n];
     }
@@ -260,6 +260,25 @@ static bool axis_is_squared(uint8_t axis_mask) {
     return mask_is_single_axis(axis_mask) && mask_has_squared_axis(axis_mask);
 }
 
+#ifdef USE_I2S_STEPS
+#    define BACKUP_STEPPER(save_stepper)                                                                                                   \
+        do {                                                                                                                               \
+            if (save_stepper == ST_I2S_STREAM) {                                                                                           \
+                stepper_switch(ST_I2S_STATIC); /* Change the stepper to reduce the delay for accurate probing. */                          \
+            }                                                                                                                              \
+        } while (0)
+
+#    define RESTORE_STEPPER(save_stepper)                                                                                                  \
+        do {                                                                                                                               \
+            if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {                                                       \
+                stepper_switch(ST_I2S_STREAM); /* Put the stepper back on. */                                                              \
+            }                                                                                                                              \
+        } while (0)
+#else
+#    define BACKUP_STEPPER(save_stepper)
+#    define RESTORE_STEPPER(save_stepper)
+#endif
+
 // Perform homing cycle to locate and set machine zero. Only '$H' executes this command.
 // NOTE: There should be no motions in the buffer and Grbl must be in an idle state before
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
@@ -400,6 +419,13 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     if (sys.abort) {
         return GCUpdatePos::None;  // Return if system reset has been issued.
     }
+
+#ifdef USE_I2S_STEPS
+    stepper_id_t save_stepper = current_stepper; /* remember the stepper */
+#endif
+    // Switch stepper mode to the I2S static (realtime mode)
+    BACKUP_STEPPER(save_stepper);
+
     // Initialize probing control variables
     uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
     uint8_t is_no_error   = bit_istrue(parser_flags, GCParserProbeIsNoError);
@@ -411,6 +437,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         system_set_exec_alarm(ExecAlarm::ProbeFailInitial);
         protocol_execute_realtime();
         probe_configure_invert_mask(false);  // Re-initialize invert mask before returning.
+        RESTORE_STEPPER(save_stepper);       // Switch the stepper mode to the previous mode
         return GCUpdatePos::None;            // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
@@ -422,9 +449,14 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     do {
         protocol_execute_realtime();
         if (sys.abort) {
-            return GCUpdatePos::None;  // Check for system abort
+            RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
+            return GCUpdatePos::None;       // Check for system abort
         }
     } while (sys.state != State::Idle);
+
+    // Switch the stepper mode to the previous mode
+    RESTORE_STEPPER(save_stepper);
+
     // Probing cycle complete!
     // Set state variables and error out, if the probe failed and cycle with error is enabled.
     if (sys_probe_state == PROBE_ACTIVE) {
@@ -508,8 +540,8 @@ void mc_reset() {
         sys_io_control(0xFF, LOW, false);
         sys_pwm_control(0xFF, 0, false);
 #ifdef ENABLE_SD_CARD
-            // do we need to stop a running SD job?
-            if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+        // do we need to stop a running SD job?
+        if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
             //Report print stopped
             report_feedback_message(Message::SdFileQuit);
             closeFile();

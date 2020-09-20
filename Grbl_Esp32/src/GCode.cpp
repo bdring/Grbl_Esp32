@@ -1507,9 +1507,6 @@ Error gc_execute_line(char* line, uint8_t client) {
     if (gc_state.modal.motion != Motion::None) {
         if (axis_command == AxisCommand::MotionMode) {
             GCUpdatePos gc_update_pos = GCUpdatePos::Target;
-#ifdef USE_I2S_STEPS
-            stepper_id_t save_stepper = current_stepper;
-#endif
             if (gc_state.modal.motion == Motion::Linear) {
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
@@ -1533,12 +1530,6 @@ Error gc_execute_line(char* line, uint8_t client) {
 #ifndef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
                 pl_data->motion.noFeedOverride = 1;
 #endif
-#ifdef USE_I2S_STEPS
-                save_stepper = current_stepper;  // remember the stepper
-                if (save_stepper == ST_I2S_STREAM) {
-                    stepper_switch(ST_I2S_STATIC);  // Change the stepper to reduce the delay for accurate probing.
-                }
-#endif
                 gc_update_pos = mc_probe_cycle(gc_block.values.xyz, pl_data, gc_parser_flags);
             }
             // As far as the parser is concerned, the position is now == target. In reality the
@@ -1549,11 +1540,6 @@ Error gc_execute_line(char* line, uint8_t client) {
             } else if (gc_update_pos == GCUpdatePos::System) {
                 gc_sync_position();  // gc_state.position[] = sys_position
             }                        // == GCUpdatePos::None
-#ifdef USE_I2S_STEPS
-            if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {
-                stepper_switch(ST_I2S_STREAM);  // Put the stepper back on.
-            }
-#endif
         }
     }
     // [21. Program flow ]:
