@@ -362,8 +362,7 @@ static void stepper_pulse_func() {
             st.counter_a -= st.exec_block->step_event_count;
             if (st.exec_block->direction_bits & bit(A_AXIS)) {
                 sys_position[A_AXIS]--;
-            }
-            else {
+            } else {
                 sys_position[A_AXIS]++;
             }
         }
@@ -379,8 +378,7 @@ static void stepper_pulse_func() {
                 st.counter_b -= st.exec_block->step_event_count;
                 if (st.exec_block->direction_bits & bit(B_AXIS)) {
                     sys_position[B_AXIS]--;
-                }
-                else {
+                } else {
                     sys_position[B_AXIS]++;
                 }
             }
@@ -396,8 +394,7 @@ static void stepper_pulse_func() {
                     st.counter_c -= st.exec_block->step_event_count;
                     if (st.exec_block->direction_bits & bit(C_AXIS)) {
                         sys_position[C_AXIS]--;
-                    }
-                    else {
+                    } else {
                         sys_position[C_AXIS]++;
                     }
                 }
@@ -463,7 +460,7 @@ void stepper_switch(stepper_id_t new_stepper) {
         if (i2s_out_get_pulser_status() != PASSTHROUGH) {
             // This switching function should not be called during streaming.
             // However, if it is called, it will stop streaming.
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Warning, "Stop the I2S streaming and switch to the passthrough mode.");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Stop the I2S streaming and switch to the passthrough mode.");
             i2s_out_set_passthrough();
             i2s_out_delay();
         }
@@ -1229,8 +1226,10 @@ float st_get_realtime_rate() {
         case State::Homing:
         case State::Hold:
         case State::Jog:
-        case State::SafetyDoor: return prep.current_speed;
-        default: return 0.0f;
+        case State::SafetyDoor:
+            return prep.current_speed;
+        default:
+            return 0.0f;
     }
 }
 
