@@ -38,8 +38,8 @@
     #define X_LIMIT_PIN     GPIO_NUM_32
 #endif
 
-#define TRINAMIC_RUN_MODE           TRINAMIC_MODE_COOLSTEP
-#define TRINAMIC_HOMING_MODE        TRINAMIC_MODE_COOLSTEP
+#define TRINAMIC_RUN_MODE           TrinamicMode :: CoolStep
+#define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
 
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_26
