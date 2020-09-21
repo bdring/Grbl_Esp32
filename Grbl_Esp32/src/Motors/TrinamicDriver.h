@@ -24,9 +24,9 @@
 
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 
-#define TRINAMIC_MODE_STEALTHCHOP 0  // very quiet
-#define TRINAMIC_MODE_COOLSTEP 1     // everything runs cooler so higher current possible
-#define TRINAMIC_MODE_STALLGUARD 2   // coolstep plus generates stall indication
+//#define TRINAMIC_MODE_STEALTHCHOP 0  // very quiet
+//#define TRINAMIC_MODE_COOLSTEP 1     // everything runs cooler so higher current possible
+//#define TRINAMIC_MODE_STALLGUARD 2   // coolstep plus generates stall indication
 
 const float TMC2130_RSENSE_DEFAULT = 0.11f;
 const float TMC5160_RSENSE_DEFAULT = 0.075f;
@@ -39,8 +39,9 @@ const int TRINAMIC_SPI_FREQ = 100000;
 const double TRINAMIC_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
 
 // ==== defaults OK to define them in your machine definition ====
+
 #ifndef TRINAMIC_RUN_MODE
-#    define TRINAMIC_RUN_MODE TRINAMIC_MODE_COOLSTEP
+#    define TRINAMIC_RUN_MODE TrinamicMode ::StealthChop
 #endif
 
 #ifndef TRINAMIC_HOMING_MODE
@@ -60,6 +61,14 @@ const double TRINAMIC_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to 
 #endif
 
 namespace Motors {
+
+    enum class TrinamicMode : uint8_t {
+        None            = 0, // not for machine defs!
+        StealthChop     = 1, 
+        CoolStep        = 2,
+        StallGuard      = 3,
+    };
+
     class TrinamicDriver : public StandardStepper {
     public:
         TrinamicDriver(uint8_t  axis_index,
@@ -86,14 +95,14 @@ namespace Motors {
         uint32_t calc_tstep(float speed, float percent);
 
         TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
-        uint8_t         _homing_mode;
+        TrinamicMode    _homing_mode;
         uint8_t         cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
         uint16_t        _driver_part_number;     // example: use 2130 for TMC2130
         float           _r_sense;
         int8_t          spi_index;
 
     protected:
-        uint8_t _mode;
-        uint8_t _lastMode = 255;
+        TrinamicMode _mode;
+        TrinamicMode _lastMode = TrinamicMode::None;
     };
 }

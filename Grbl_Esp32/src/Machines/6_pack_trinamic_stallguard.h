@@ -32,9 +32,8 @@
 #define I2S_OUT_WS       GPIO_NUM_17
 #define I2S_OUT_DATA     GPIO_NUM_21
 
-
-#define TRINAMIC_RUN_MODE           TRINAMIC_MODE_COOLSTEP
-#define TRINAMIC_HOMING_MODE        TRINAMIC_MODE_STALLGUARD
+#define TRINAMIC_RUN_MODE           Motors::TrinamicMode::CoolStep
+#define TRINAMIC_HOMING_MODE        Motors::TrinamicMode::StallGuard
 
 // Motor Socket #1
 #define X_TRINAMIC_DRIVER       2130
@@ -91,16 +90,16 @@
     Click on each module to get example for using the modules in the sockets
 
 Socket #1
-#1 GPIO_NUM_33 
-#2 GPIO_NUM_32
-#3 GPIO_NUM_35 (input only)
-#4 GPIO_NUM_34 (input only)
+#1 GPIO_NUM_33 (Sg1)
+#2 GPIO_NUM_32 (Sg2)
+#3 GPIO_NUM_35 (Sg3) (input only)
+#4 GPIO_NUM_34 (Sg4) (input only)
 
 Socket #2
 #1 GPIO_NUM_2
 #2 GPIO_NUM_25
-#3 GPIO_NUM_39 (input only)
-#4 GPIO_NUM_36 (input only)
+#3 GPIO_NUM_39 (Sg5) (input only)
+#4 GPIO_NUM_36 (Sg6) (input only)
 
 Socket #3
 #1 GPIO_NUM_26
@@ -122,12 +121,14 @@ Socket #5
 */
 
 // Socket #1 (Empty)
+// Install StallGuard Jumpers
 #define X_LIMIT_PIN             GPIO_NUM_33  // Sg1
 #define Y_LIMIT_PIN             GPIO_NUM_32  // Sg2
 #define Z_LIMIT_PIN             GPIO_NUM_35  // Sg3
 #define A_LIMIT_PIN             GPIO_NUM_34  // Sg4
 
 // Socket #2 (Empty)
+// Install StallGuard Jumpers
 #define B_LIMIT_PIN               GPIO_NUM_39  // Sg5
 #define C_LIMIT_PIN               GPIO_NUM_36  // Sg6
 
