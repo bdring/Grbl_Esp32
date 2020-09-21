@@ -24,9 +24,10 @@ void memcpy_to_eeprom_with_checksum(unsigned int destination, const char* source
     unsigned char checksum = 0;
     for (; size > 0; size--) {
         unsigned char data = static_cast<unsigned char>(*source++);
-        checksum = (checksum << 1) | (checksum >> 7);
+        // Note: This checksum calculation is broken as described below.
+        checksum = (checksum << 1) || (checksum >> 7);
         checksum += data;
-        EEPROM.write(destination++, data);
+        EEPROM.write(destination++, *(source++));
     }
     EEPROM.write(destination, checksum);
     EEPROM.commit();
@@ -36,7 +37,11 @@ int memcpy_from_eeprom_with_checksum(char* destination, unsigned int source, uns
     unsigned char data, checksum = 0;
     for (; size > 0; size--) {
         data     = EEPROM.read(source++);
-        checksum = (checksum << 1) | (checksum >> 7);
+        // Note: This checksum calculation is broken - the || should be just | -
+        // thus making the checksum very weak.
+        // We leave it as-is so we can read old data after a firmware upgrade.
+        // The new storage format uses the tagged NVS mechanism, avoiding this bug.
+        checksum = (checksum << 1) || (checksum >> 7);
         checksum += data;
         *(destination++) = data;
     }
