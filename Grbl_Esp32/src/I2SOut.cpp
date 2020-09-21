@@ -594,10 +594,18 @@ i2s_out_pulser_status_t IRAM_ATTR i2s_out_get_pulser_status() {
 int IRAM_ATTR i2s_out_set_passthrough() {
     I2S_OUT_PULSER_ENTER_CRITICAL();
 #    ifdef USE_I2S_OUT_STREAM_IMPL
+    // Triggers a change of mode if it is compiled to use I2S stream.
+    // The mode is not changed directly by this function.
+    // Pull the trigger
     if (i2s_out_pulser_status == STEPPING) {
-        i2s_out_pulser_status = WAITING;  // Start stopping the pulser
+        i2s_out_pulser_status = WAITING;  // Start stopping the pulser (trigger)
     }
+    // It is a function that may be called via i2sOutTask().
+    // (i2sOutTask() -> stepper_pulse_func() -> st_go_idle() -> Stepper_Timer_Stop() -> this function)
+    // And only i2sOutTask() can change the state to PASSTHROUGH.
+    // So, to change the state, you need to return to i2sOutTask() as soon as possible.
 #    else
+    // If it is compiled to not use I2S streams, change the mode directly.
     i2s_out_pulser_status = PASSTHROUGH;
 #    endif
     I2S_OUT_PULSER_EXIT_CRITICAL();
@@ -630,6 +638,7 @@ int IRAM_ATTR i2s_out_set_stepping() {
             I2S_OUT_PULSER_EXIT_CRITICAL();
             return 0;
         }
+        // Now, DMA completed. Fallthrough.
     }
 
     // Change I2S state from PASSTHROUGH to STEPPING
