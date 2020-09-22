@@ -68,7 +68,7 @@ extern system_t sys;
 // know when there is a realtime command to execute.
 #define EXEC_STATUS_REPORT bit(0)  // bitmask 00000001
 #define EXEC_CYCLE_START bit(1)    // bitmask 00000010
-#define EXEC_CYCLE_STOP bit(2)     // bitmask 00000100
+// #define EXEC_CYCLE_STOP bit(2)  // bitmask 00000100 moved to cycle_stop
 #define EXEC_FEED_HOLD bit(3)      // bitmask 00001000
 #define EXEC_RESET bit(4)          // bitmask 00010000
 #define EXEC_SAFETY_DOOR bit(5)    // bitmask 00100000
@@ -163,6 +163,7 @@ extern volatile uint8_t   sys_rt_exec_state;  // Global realtime executor bitfla
 extern volatile ExecAlarm sys_rt_exec_alarm;  // Global realtime executor bitflag variable for setting various alarms.
 extern volatile uint8_t   sys_rt_exec_motion_override;     // Global realtime executor bitflag variable for motion-based overrides.
 extern volatile uint8_t   sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
+extern volatile bool      cycle_stop;
 
 #ifdef DEBUG
 #    define EXEC_DEBUG_REPORT bit(0)
@@ -228,5 +229,5 @@ bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized);
 
 int8_t sys_get_next_RMT_chan_num();
 
-int8_t sys_get_next_PWM_chan_num();
+int8_t  sys_get_next_PWM_chan_num();
 uint8_t sys_calc_pwm_precision(uint32_t freq);

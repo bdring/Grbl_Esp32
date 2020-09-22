@@ -271,7 +271,7 @@ void protocol_exec_rt_system() {
         system_clear_exec_alarm();  // Clear alarm
     }
     uint8_t rt_exec = sys_rt_exec_state;  // Copy volatile sys_rt_exec_state.
-    if (rt_exec) {
+    if (rt_exec || cycle_stop) {
         // Execute system abort.
         if (rt_exec & EXEC_RESET) {
             sys.abort = true;  // Only place this is set true.
@@ -399,12 +399,12 @@ void protocol_exec_rt_system() {
             }
             system_clear_exec_state_flag(EXEC_CYCLE_START);
         }
-        if (rt_exec & EXEC_CYCLE_STOP) {
+        if (cycle_stop) {
             // Reinitializes the cycle plan and stepper system after a feed hold for a resume. Called by
             // realtime command execution in the main program, ensuring that the planner re-plans safely.
             // NOTE: Bresenham algorithm variables are still maintained through both the planner and stepper
             // cycle reinitializations. The stepper path should continue exactly as if nothing has happened.
-            // NOTE: EXEC_CYCLE_STOP is set by the stepper subsystem when a cycle or feed hold completes.
+            // NOTE: cycle_stop is set by the stepper subsystem when a cycle or feed hold completes.
             if ((sys.state == State::Hold || sys.state == State::SafetyDoor || sys.state == State::Sleep) && !(sys.soft_limit) &&
                 !(sys.suspend & SUSPEND_JOG_CANCEL)) {
                 // Hold complete. Set to indicate ready to resume.  Remain in HOLD or DOOR states until user
@@ -433,7 +433,7 @@ void protocol_exec_rt_system() {
                     sys.state   = State::Idle;
                 }
             }
-            system_clear_exec_state_flag(EXEC_CYCLE_STOP);
+            cycle_stop = false;
         }
     }
     // Execute overrides.
