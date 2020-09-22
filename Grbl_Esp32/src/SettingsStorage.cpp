@@ -29,7 +29,8 @@
 // in the old EEPROM format to the new tagged NVS format.
 bool old_settings_read_coord_data(uint8_t coord_select, float* coord_data) {
     uint32_t addr = coord_select * (sizeof(float) * N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
-    if (!(memcpy_from_eeprom_with_checksum((char*)coord_data, addr, sizeof(float) * N_AXIS))) {
+    if (!(memcpy_from_eeprom_with_old_checksum((char*)coord_data, addr, sizeof(float) * N_AXIS)) &&
+        !(memcpy_from_eeprom_with_checksum((char*)coord_data, addr, sizeof(float) * MAX_N_AXIS))) {
         // Reset with default zero vector
         clear_vector_float(coord_data);
         // The old code used to rewrite the zeroed data but now that is done
