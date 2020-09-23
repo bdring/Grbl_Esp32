@@ -86,6 +86,7 @@ static void reset_variables() {
     memset(sys_probe_position, 0, sizeof(sys_probe_position));  // Clear probe position.
     sys_probe_state                = 0;
     sys_rt_exec_state              = 0;
+    cycle_stop                     = false;
     sys_rt_exec_motion_override    = 0;
     sys_rt_exec_accessory_override = 0;
     system_clear_exec_alarm();
