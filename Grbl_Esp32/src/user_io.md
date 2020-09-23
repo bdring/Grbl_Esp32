@@ -57,11 +57,9 @@ Synchronized means all steps in the buffers must complete before the I/O is chan
 - Reset - All pins will be set to the off state
 - Alarm Mode - No change in pin state
 - Error - No change in pins state
-- End of File - TBD
+- End of File - No change in pins state
 
 ### Setup
-
-M62 - M65
 
 ```
 #define USER_DIGITAL_PIN_0   GPIO_NUM_xx
@@ -79,14 +77,24 @@ M62 - M65
 
 ### Frequency
 
-Defining a frequency is optional. If you do not define one for a pin the default of 5000 will be used. If you are using the PWM to control an RC Servo, you should set it to something around 50. 
+Defining a frequency is optional. If you do not define one for a pin the default of 5000 will be used.
 
 ### Resolution
 
-The resolution is dependent on the frequency used. The PWM is based on a 80MHz timer. If you have a 10KHz frequency, you have 80,000,000 / 10,000 you have a maximum of an 8,000 count resolution. The resolution is based on bits so you need to round down to the nearest bit value which would be 14 bit or 4096. The highest bit value allowed is 13 bits.
+The resolution is dependent on the frequency used. The PWM is based on a 80MHz timer. If you have a 10KHz frequency, 80,000,000 / 10,000 gives you a maximum of an 8,000 count resolution. The resolution is based on bits so you need to round down to the nearest bit value which would be 12 bit or 4096. The highest bit value allowed is 13 bits.
 
 This is all done behind the scenes, you only have to provide the frequency and duty.
 
 ### Duty
 
-The duty is a percentage of the period. It you are looking for a specific pulse width, you need to determine the period, which is 1/freq. If your frequency is 100Hz  your period is 10ms. If you want a 1ms pulse, you would set the duty to 0.10%.
+The duty is a percentage of the period. It you are looking for a specific pulse width, you need to determine the period, which is 1/freq. If your frequency is 100Hz  your period is 10ms. If you want a 1ms pulse, you would set the duty to 0.10%. Duty is a floating point number. A value of XX.XX will get you the highest resolution. Values above 100% are set at 100%. Negative numbers are set to 0%. 
+
+### Use With RC Servos
+
+RC Servos set their position based on the pulse length of a PWM signal. The standard frequency for RC servos PWM is 50Hz, some digital servos can handle a higher rate, but it will not improve performance in this application and could overheat some servos.
+
+The standard pulse range for RC servos is 1ms to 2ms. Some servos have a wider range.
+
+With a 50Hz frequency the period is 20ms. Therefore a 1ms pulse is 5% duty and a 2ms pulse is 10% duty. Use the 2 values to to go from one end of travel to the other. You can use values in between to go to other positions. You can experiment with a little less or more if you servos have a bigger range.
+
+You can also set the duty to 0%. This generally turns a servo off and allows it to free wheel and not draw much power.

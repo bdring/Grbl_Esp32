@@ -41,6 +41,8 @@ namespace Motors {
 
         if (_tx_pin == UNDEFINED_PIN || _rx_pin == UNDEFINED_PIN || _rts_pin == UNDEFINED_PIN) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dymanixel Error. Missing pin definitions");
+            is_active = false;
+
             return;
         }
 
@@ -58,7 +60,10 @@ namespace Motors {
 
         config_message();  // print the config
 
-        test();  // ping the motor
+        if (!test()) {  // ping the motor
+            is_active = false;
+            return;
+        }
 
         set_disable(true);                              // turn off torque so we can set EEPROM registers
         set_operating_mode(DXL_CONTROL_MODE_POSITION);  // set it in the right control mode
@@ -111,6 +116,7 @@ namespace Motors {
 
         } else {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Axis Dynamixel Servo ID %d Ping failed", _axis_name, _id);
+            return false;
         }
 
         return true;
@@ -139,9 +145,10 @@ namespace Motors {
     void Dynamixel2::set_disable(bool disable) {
         uint8_t param_count = 1;
 
-        _disabled = disable;
+        if (_disabled == disable)
+            return;
 
-        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Axis %s", _axis_name, disable ? "Disable" : "Enable");
+        _disabled = disable;
 
         if (_disabled)
             dxl_write(DXL_ADDR_TORQUE_EN, param_count, 0);
@@ -155,6 +162,9 @@ namespace Motors {
     }
 
     void Dynamixel2::update() {
+        if (!is_active)
+            return;
+
         if (_disabled) {
             dxl_read_position();
         } else {
@@ -223,8 +233,6 @@ namespace Motors {
 
     uint32_t Dynamixel2::dxl_read_position() {
         uint8_t data_len = 4;
-        //int32_t pos_min_steps, pos_max_steps;  // in steps
-        //int32_t dxl_position, dxl_count_min, dxl_count_max;
 
         dxl_read(DXL_PRESENT_POSITION, data_len);
 
@@ -239,11 +247,14 @@ namespace Motors {
             int32_t pos_min_steps = lround(_position_min * axis_settings[_axis_index]->steps_per_mm->get());
             int32_t pos_max_steps = lround(_position_max * axis_settings[_axis_index]->steps_per_mm->get());
 
-            sys_position[_axis_index] = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
+            int32_t temp = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
+
+            sys_position[_axis_index] = temp;
+
+            plan_sync_position();
 
             return dxl_position;
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Data len arror: %d", data_len);
             return 0;
         }
     }
@@ -354,7 +365,8 @@ namespace Motors {
         tx_message[++msg_index] = 4;                                  // low order data length
         tx_message[++msg_index] = 0;                                  // high order data length
 
-        for (uint8_t axis = X_AXIS; axis < N_AXIS; axis++) {
+        auto n_axis = number_axis->get();
+        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
             for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
                 current_id = ids[axis][gang_index];
                 if (current_id != 0) {
@@ -362,6 +374,7 @@ namespace Motors {
 
                     //determine the location of the axis
                     float target = system_convert_axis_steps_to_mpos(sys_position, axis);  // get the axis machine position in mm
+
                     float travel = axis_settings[axis]->max_travel->get();
                     float mpos   = axis_settings[axis]->home_mpos->get();
 
@@ -381,8 +394,6 @@ namespace Motors {
 
                     // map the mm range to the servo range
                     dxl_position = (uint32_t)mapConstrain(target, position_min, position_max, dxl_count_min, dxl_count_max);
-
-                    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Range: %5.3f/%5.3f Target:%5.3f Pos %d", position_min, position_max, target, dxl_position);
 
                     tx_message[++msg_index] = current_id;                         // ID of the servo
                     tx_message[++msg_index] = dxl_position & 0xFF;                // data

@@ -83,7 +83,8 @@ void limits_go_home(uint8_t cycle_mask) {
 
     // Remove any motor that cannot be homed from the mask
     // Motors with non standard homing can do that during motors_set_homing_mode(...) above
-    for (uint8_t idx = 0; idx < N_AXIS; idx++) {
+    auto n_axis = number_axis->get();
+    for (uint8_t idx = 0; idx < n_axis; idx++) {
         if (bit_istrue(cycle_mask, bit(idx))) {
             if (!motor_can_home(idx)) {
                 bit_false(cycle_mask, bit(idx));
@@ -106,11 +107,11 @@ void limits_go_home(uint8_t cycle_mask) {
 #endif
     // Initialize variables used for homing computations.
     uint8_t n_cycle = (2 * n_homing_locate_cycle + 1);
-    uint8_t step_pin[N_AXIS];
-    float   target[N_AXIS];
+    uint8_t step_pin[MAX_N_AXIS];
+    float   target[MAX_N_AXIS];
     float   max_travel = 0.0;
 
-    for (uint8_t idx = 0; idx < N_AXIS; idx++) {
+    for (uint8_t idx = 0; idx < n_axis; idx++) {
         // Initialize step pin masks
         step_pin[idx] = get_step_pin_mask(idx);
 #ifdef COREXY
@@ -133,7 +134,7 @@ void limits_go_home(uint8_t cycle_mask) {
         // Initialize and declare variables needed for homing routine.
         axislock      = 0;
         n_active_axis = 0;
-        for (uint8_t idx = 0; idx < N_AXIS; idx++) {
+        for (uint8_t idx = 0; idx < n_axis; idx++) {
             // Set target location for active axes and setup computation for homing rate.
             if (bit_istrue(cycle_mask, bit(idx))) {
                 n_active_axis++;
@@ -171,7 +172,7 @@ void limits_go_home(uint8_t cycle_mask) {
                 axislock |= step_pin[idx];
             }
         }
-        homing_rate *= sqrt(n_active_axis);  // [sqrt(N_AXIS)] Adjust so individual axes all move at homing rate.
+        homing_rate *= sqrt(n_active_axis);  // [sqrt(number of active axis)] Adjust so individual axes all move at homing rate.
         sys.homing_axis_lock = axislock;
         // Perform homing cycle. Planner buffer should be empty, as required to initiate the homing cycle.
         pl_data->feed_rate = homing_rate;   // Set current homing rate.
@@ -184,7 +185,7 @@ void limits_go_home(uint8_t cycle_mask) {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
                 limit_state = limits_get_state();
-                for (uint8_t idx = 0; idx < N_AXIS; idx++) {
+                for (uint8_t idx = 0; idx < n_axis; idx++) {
                     if (axislock & step_pin[idx]) {
                         if (limit_state & bit(idx)) {
 #ifdef COREXY
@@ -203,7 +204,7 @@ void limits_go_home(uint8_t cycle_mask) {
             }
             st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
             // Exit routines: No time to run protocol_execute_realtime() in this loop.
-            if (sys_rt_exec_state.bit.safetyDoor || sys_rt_exec_state.bit.reset || sys_rt_exec_state.bit.cycleStop) {
+            if (sys_rt_exec_state.bit.safetyDoor || sys_rt_exec_state.bit.reset || cycle_stop) {
                 ExecState rt_exec_state;
                 rt_exec_state.value = sys_rt_exec_state.value;
                 // Homing failure condition: Reset issued during cycle.
@@ -219,7 +220,7 @@ void limits_go_home(uint8_t cycle_mask) {
                     sys_rt_exec_alarm = ExecAlarm::HomingFailPulloff;
                 }
                 // Homing failure condition: Limit switch not found during approach.
-                if (approach && (rt_exec_state.bit.cycleStop)) {
+                if (approach && cycle_stop)) {
                     sys_rt_exec_alarm = ExecAlarm::HomingFailApproach;
                 }
 
@@ -230,7 +231,7 @@ void limits_go_home(uint8_t cycle_mask) {
                     return;
                 } else {
                     // Pull-off motion complete. Disable CYCLE_STOP from executing.
-                    sys_rt_exec_state.bit.cycleStop = false;
+                    cycle_stop = false;
                     break;
                 }
             }
@@ -265,7 +266,7 @@ void limits_go_home(uint8_t cycle_mask) {
     // Set machine positions for homed limit switches. Don't update non-homed axes.
     auto mask    = homing_dir_mask->get();
     auto pulloff = homing_pulloff->get();
-    for (uint8_t idx = 0; idx < N_AXIS; idx++) {
+    for (uint8_t idx = 0; idx < n_axis; idx++) {
         auto steps = axis_settings[idx]->steps_per_mm->get();
         if (cycle_mask & bit(idx)) {
             float travel = axis_settings[idx]->max_travel->get();
@@ -320,7 +321,8 @@ void limits_init() {
 #ifdef DISABLE_LIMIT_PIN_PULL_UP
     mode = INPUT;
 #endif
-    for (int axis = 0; axis < N_AXIS; axis++) {
+    auto n_axis = number_axis->get();
+    for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin;
             if ((pin = limit_pins[axis][gang_index]) != UNDEFINED_PIN) {
@@ -356,7 +358,8 @@ void limits_init() {
 
 // Disables hard limits.
 void limits_disable() {
-    for (int axis = 0; axis < N_AXIS; axis++) {
+    auto n_axis = number_axis->get();
+    for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin = limit_pins[axis][gang_index];
             if (pin != UNDEFINED_PIN) {
@@ -371,7 +374,8 @@ void limits_disable() {
 // number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 AxisMask limits_get_state() {
     AxisMask pinMask = 0;
-    for (int axis = 0; axis < N_AXIS; axis++) {
+    auto    n_axis  = number_axis->get();
+    for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin = limit_pins[axis][gang_index];
             if (pin != UNDEFINED_PIN) {

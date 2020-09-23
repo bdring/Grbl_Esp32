@@ -23,12 +23,13 @@
 
 // Declare system global variable structure
 system_t               sys;
-int32_t                sys_position[N_AXIS];        // Real-time machine (aka home) position vector in steps.
-int32_t                sys_probe_position[N_AXIS];  // Last probe position in machine coordinates and steps.
-volatile Probe         sys_probe_state;             // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
-volatile ExecState     sys_rt_exec_state;           // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
-volatile ExecAlarm     sys_rt_exec_alarm;           // Global realtime executor bitflag variable for setting various alarms.
+int32_t                sys_position[N_AXIS];            // Real-time machine (aka home) position vector in steps.
+int32_t                sys_probe_position[N_AXIS];      // Last probe position in machine coordinates and steps.
+volatile Probe         sys_probe_state;                 // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
+volatile ExecState     sys_rt_exec_state;               // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
+volatile ExecAlarm     sys_rt_exec_alarm;               // Global realtime executor bitflag variable for setting various alarms.
 volatile ExecAccessory sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
+volatile bool          cycle_stop;                      // For state transitions, instead of bitflag
 #ifdef DEBUG
 volatile bool sys_rt_exec_debug;
 #endif
@@ -97,52 +98,18 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     SPI.begin(GRBL_SPI_SCK, GRBL_SPI_MISO, GRBL_SPI_MOSI, GRBL_SPI_SS);
 #endif
 
-    // Setup USER_DIGITAL_PINs controlled by M62, M63, M64, & M65
-#ifdef USER_DIGITAL_PIN_0
+    // Setup M62,M63,M64,M65 pins
     myDigitalOutputs[0] = new UserOutput::DigitalOutput(0, USER_DIGITAL_PIN_0);
-#else
-    myDigitalOutputs[0] = new UserOutput::DigitalOutput();
-#endif
-#ifdef USER_DIGITAL_PIN_1
     myDigitalOutputs[1] = new UserOutput::DigitalOutput(1, USER_DIGITAL_PIN_1);
-#else
-    myDigitalOutputs[1] = new UserOutput::DigitalOutput();
-#endif
-#ifdef USER_DIGITAL_PIN_2
     myDigitalOutputs[2] = new UserOutput::DigitalOutput(2, USER_DIGITAL_PIN_2);
-#else
-    myDigitalOutputs[2] = new UserOutput::DigitalOutput();
-#endif
-#ifdef USER_DIGITAL_PIN_3
     myDigitalOutputs[3] = new UserOutput::DigitalOutput(3, USER_DIGITAL_PIN_3);
-#else
-    myDigitalOutputs[3] = new UserOutput::DigitalOutput();
-#endif
 
-// Setup M67 Pins
-#ifdef USER_ANALOG_PIN_0
+    // Setup M67 Pins
+    // Setup USER_DIGITAL_PINs controlled by M62, M63, M64, & M65
     myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, USER_ANALOG_PIN_0, USER_ANALOG_PIN_0_FREQ);
-#else
-    myAnalogOutputs[0]  = new UserOutput::AnalogOutput();
-#endif
-
-#ifdef USER_ANALOG_PIN_1
     myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, USER_ANALOG_PIN_1, USER_ANALOG_PIN_1_FREQ);
-#else
-    myAnalogOutputs[1]  = new UserOutput::AnalogOutput();
-#endif
-
-#ifdef USER_ANALOG_PIN_2
     myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, USER_ANALOG_PIN_2, USER_ANALOG_PIN_2_FREQ);
-#else
-    myAnalogOutputs[2]  = new UserOutput::AnalogOutput();
-#endif
-
-#ifdef USER_ANALOG_PIN_3
     myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, USER_ANALOG_PIN_3, USER_ANALOG_PIN_3_FREQ);
-#else
-    myAnalogOutputs[3]  = new UserOutput::AnalogOutput();
-#endif
 }
 
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
@@ -170,7 +137,7 @@ void IRAM_ATTR isr_control_inputs() {
         xQueueSendFromISR(control_sw_queue, &evt, NULL);
     }
 #else
-    ControlPins pins    = system_control_get_state();
+    ControlPins pins = system_control_get_state();
     system_exec_control_pin(pins);
 #endif
 }
@@ -213,7 +180,8 @@ float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
 
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     uint8_t idx;
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto    n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
         position[idx] = system_convert_axis_steps_to_mpos(steps, idx);
     }
     return;
@@ -223,7 +191,8 @@ void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
 // Return true if exceeding limits
 uint8_t system_check_travel_limits(float* target) {
     uint8_t idx;
-    for (idx = 0; idx < N_AXIS; idx++) {
+    auto    n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
         float travel = axis_settings[idx]->max_travel->get();
         float mpos   = axis_settings[idx]->home_mpos->get();
         float max_mpos, min_mpos;

@@ -272,7 +272,7 @@ void protocol_exec_rt_system() {
     }
     ExecState rt_exec_state;
     rt_exec_state.value = sys_rt_exec_state.value;  // Copy volatile sys_rt_exec_state.
-    if (rt_exec_state.value != 0) {                 // Test if any bits are on
+    if (rt_exec_state.value != 0 || cycle_stop) {                 // Test if any bits are on
         // Execute system abort.
         if (rt_exec_state.bit.reset) {
             sys.abort = true;  // Only place this is set true.
@@ -410,12 +410,12 @@ void protocol_exec_rt_system() {
             }
             sys_rt_exec_state.bit.cycleStart = false;
         }
-        if (rt_exec_state.bit.cycleStop) {
+        if (cycle_stop) {
             // Reinitializes the cycle plan and stepper system after a feed hold for a resume. Called by
             // realtime command execution in the main program, ensuring that the planner re-plans safely.
             // NOTE: Bresenham algorithm variables are still maintained through both the planner and stepper
             // cycle reinitializations. The stepper path should continue exactly as if nothing has happened.
-            // NOTE: cycleStop is set by the stepper subsystem when a cycle or feed hold completes.
+            // NOTE: cycle_stop is set by the stepper subsystem when a cycle or feed hold completes.
             if ((sys.state == State::Hold || sys.state == State::SafetyDoor || sys.state == State::Sleep) && !(sys.soft_limit) &&
                 !(sys.suspend.bit.jogCancel)) {
                 // Hold complete. Set to indicate ready to resume.  Remain in HOLD or DOOR states until user
@@ -445,7 +445,7 @@ void protocol_exec_rt_system() {
                     sys.state         = State::Idle;
                 }
             }
-            sys_rt_exec_state.bit.cycleStop = false;
+            cycle_stop = false;
         }
     }
     // Execute overrides.
@@ -531,8 +531,8 @@ void protocol_exec_rt_system() {
 static void protocol_exec_rt_suspend() {
 #ifdef PARKING_ENABLE
     // Declare and initialize parking local variables
-    float             restore_target[N_AXIS];
-    float             parking_target[N_AXIS];
+    float             restore_target[MAX_N_AXIS];
+    float             parking_target[MAX_N_AXIS];
     float             retract_waypoint = PARKING_PULLOUT_INCREMENT;
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;

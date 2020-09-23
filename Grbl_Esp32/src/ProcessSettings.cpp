@@ -57,7 +57,7 @@ void settings_restore(uint8_t restore_flag) {
     }
     if (restore_flag & SETTINGS_RESTORE_PARAMETERS) {
         uint8_t idx;
-        float   coord_data[N_AXIS];
+        float   coord_data[MAX_N_AXIS];
         memset(&coord_data, 0, sizeof(coord_data));
         for (idx = 0; idx <= SETTING_INDEX_NCOORD; idx++) {
             settings_write_coord_data(idx, coord_data);
@@ -247,22 +247,22 @@ Error home_all(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::
     return home(HOMING_CYCLE_ALL);
 }
 Error home_x(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(X_AXIS);
+    return home(bit(X_AXIS));
 }
 Error home_y(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(Y_AXIS);
+    return home(bit(Y_AXIS));
 }
 Error home_z(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(Z_AXIS);
+    return home(bit(Z_AXIS));
 }
 Error home_a(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(A_AXIS);
+    return home(bit(A_AXIS));
 }
 Error home_b(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(B_AXIS);
+    return home(bit(B_AXIS));
 }
 Error home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    return home(C_AXIS);
+    return home(bit(C_AXIS));
 }
 Error sleep_grbl(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     sys_rt_exec_state.bit.sleep = true;
@@ -399,15 +399,9 @@ void make_grbl_commands() {
     new GrblCommand("HX", "Home/X", home_x, idleOrAlarm);
     new GrblCommand("HY", "Home/Y", home_y, idleOrAlarm);
     new GrblCommand("HZ", "Home/Z", home_z, idleOrAlarm);
-#    if (N_AXIS > 3)
     new GrblCommand("HA", "Home/A", home_a, idleOrAlarm);
-#    endif
-#    if (N_AXIS > 4)
     new GrblCommand("HB", "Home/B", home_b, idleOrAlarm);
-#    endif
-#    if (N_AXIS > 5)
     new GrblCommand("HC", "Home/C", home_c, idleOrAlarm);
-#    endif
 #endif
     new GrblCommand("SLP", "System/Sleep", sleep_grbl, idleOrAlarm);
     new GrblCommand("I", "Build/Info", get_report_build_info, idleOrAlarm);

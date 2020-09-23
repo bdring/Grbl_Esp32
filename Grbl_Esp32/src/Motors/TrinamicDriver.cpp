@@ -84,6 +84,7 @@ namespace Motors {
         set_mode(false);
 
         _homing_mask = 0;
+        is_active    = true;
     }
 
     /*
@@ -204,21 +205,21 @@ namespace Motors {
         _lastMode = _mode;
 
         switch (_mode) {
-            case TRINAMIC_MODE_STEALTHCHOP:
-                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_STEALTHCHOP");
+            case TrinamicMode ::StealthChop:
+                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "StealthChop");
                 tmcstepper->en_pwm_mode(true);
                 tmcstepper->pwm_autoscale(true);
                 tmcstepper->diag1_stall(false);
                 break;
-            case TRINAMIC_MODE_COOLSTEP:
-                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_COOLSTEP");
+            case TrinamicMode :: CoolStep:
+                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Coolstep");
                 tmcstepper->en_pwm_mode(false);
                 tmcstepper->pwm_autoscale(false);
                 tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS);  // when to turn on coolstep
                 tmcstepper->THIGH(NORMAL_THIGH);
                 break;
-            case TRINAMIC_MODE_STALLGUARD:
-                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_STALLGUARD");
+            case TrinamicMode ::StallGuard:
+                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard");
                 tmcstepper->en_pwm_mode(false);
                 tmcstepper->pwm_autoscale(false);
                 tmcstepper->TCOOLTHRS(calc_tstep(homing_feed_rate->get(), 150.0));
@@ -274,13 +275,18 @@ namespace Motors {
         if (has_errors)
             return;
 
-        digitalWrite(disable_pin, disable);
+        if (_disabled == disable)
+            return;
+
+        _disabled = disable;
+
+        digitalWrite(disable_pin, _disabled);
 
 #ifdef USE_TRINAMIC_ENABLE
-        if (disable) {
+        if (_disabled) {
             tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
         } else {
-            if (_mode == TRINAMIC_MODE_STEALTHCHOP) {
+            if (_mode == TrinamicMode::StealthChop) {
                 tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
             } else {
                 tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);

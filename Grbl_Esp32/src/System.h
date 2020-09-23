@@ -89,7 +89,7 @@ union SpindleStop {
 
 // Global system variables
 typedef struct {
-    State       state;               // Tracks the current system state of Grbl.
+    volatile State state;            // Tracks the current system state of Grbl.
     bool        abort;               // System abort flag. Forces exit back to main loop for reset.
     Suspend     suspend;             // System suspend bitflag variable that manages holds, cancels, and safety door.
     bool        soft_limit;          // Tracks soft limit errors for the state machine. (boolean)
@@ -117,7 +117,7 @@ extern system_t sys;
 struct ExecStateBits {
     uint8_t statusReport : 1;
     uint8_t cycleStart : 1;
-    uint8_t cycleStop : 1;
+    uint8_t cycleStop : 1;  // Unused, per cycle_stop variable
     uint8_t feedHold : 1;
     uint8_t reset : 1;
     uint8_t safetyDoor : 1;
@@ -176,8 +176,8 @@ union ControlPins {
 };
 
 // NOTE: These position variables may need to be declared as volatiles, if problems arise.
-extern int32_t sys_position[N_AXIS];        // Real-time machine (aka home) position vector in steps.
-extern int32_t sys_probe_position[N_AXIS];  // Last probe position in machine coordinates and steps.
+extern int32_t sys_position[MAX_N_AXIS];        // Real-time machine (aka home) position vector in steps.
+extern int32_t sys_probe_position[MAX_N_AXIS];  // Last probe position in machine coordinates and steps.
 
 extern volatile Probe         sys_probe_state;    // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
 extern volatile ExecState     sys_rt_exec_state;  // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
@@ -186,6 +186,7 @@ extern volatile ExecAccessory sys_rt_exec_accessory_override;  // Global realtim
 extern volatile Percent       sys_rt_f_override;               // Feed override value in percent
 extern volatile Percent       sys_rt_r_override;               // Rapid feed override value in percent
 extern volatile Percent       sys_rt_s_override;               // Spindle override value in percent
+extern volatile bool          cycle_stop;
 #ifdef DEBUG
 extern volatile bool sys_rt_exec_debug;
 #endif
