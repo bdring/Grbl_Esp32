@@ -39,7 +39,7 @@ enum class State : uint8_t {
 
 // Define global system variables
 typedef struct {
-    State   state;               // Tracks the current system state of Grbl.
+    volatile State   state;      // Tracks the current system state of Grbl.
     uint8_t abort;               // System abort flag. Forces exit back to main loop for reset.
     uint8_t suspend;             // System suspend bitflag variable that manages holds, cancels, and safety door.
     uint8_t soft_limit;          // Tracks soft limit errors for the state machine. (boolean)
