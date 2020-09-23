@@ -39,6 +39,7 @@ FloatSetting* homing_feed_rate;
 FloatSetting* homing_seek_rate;
 FloatSetting* homing_debounce;
 FloatSetting* homing_pulloff;
+AxisMaskSetting* homing_cycle[MAX_N_AXIS];
 FloatSetting* spindle_pwm_freq;
 FloatSetting* rpm_max;
 FloatSetting* rpm_min;
@@ -344,4 +345,10 @@ void make_settings() {
     pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_type           = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", static_cast<int8_t>(SPINDLE_TYPE), &spindleTypes);
     stallguard_debug_mask  = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
+
+    const char* homing_names[] = { "Homing/Cycle0", "Homing/Cycle1", "Homing/Cycle2",
+                                   "Homing/Cycle3", "Homing/Cycle4", "Homing/Cycle5" };
+    for (uint8_t i = 0; i < MAX_N_AXIS; i++) {        
+        homing_cycle[i] = new AxisMaskSetting(EXTENDED, WG, NULL, homing_names[i], 0);
+    }
 }

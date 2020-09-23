@@ -118,7 +118,7 @@ void mc_arc(float*            target,
 #ifdef USE_KINEMATICS
     float    previous_position[MAX_N_AXIS];
     uint16_t n;
-    auto n_axis = number_axis->get();
+    auto     n_axis = number_axis->get();
     for (n = 0; n < n_axis; n++) {
         previous_position[n] = position[n];
     }
@@ -313,59 +313,24 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     else
 #endif
     {
-        // Search to engage all axes limit switches at faster homing seek rate.
-        if (!axis_is_squared(HOMING_CYCLE_0)) {
-            limits_go_home(HOMING_CYCLE_0);  // Homing cycle 0
-        } else {
-            ganged_mode           = SquaringMode::Dual;
-            n_homing_locate_cycle = 0;  // don't do a second touch cycle
-            limits_go_home(HOMING_CYCLE_0);
-            ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
-            limits_go_home(HOMING_CYCLE_0);
-            ganged_mode = SquaringMode::B;
-            limits_go_home(HOMING_CYCLE_0);
-            ganged_mode = SquaringMode::Dual;  // always return to dual
+        for (uint8_t cycle = 0; cycle < MAX_N_AXIS; cycle++) {
+            uint8_t homing_mask = homing_cycle[cycle]->get();
+            if (homing_mask) {  // if there are some axes in this cycle
+                if (!axis_is_squared(homing_mask)) {
+                    limits_go_home(homing_mask);  // Homing cycle 0
+                } else {
+                    ganged_mode           = SquaringMode::Dual;
+                    n_homing_locate_cycle = 0;  // don't do a second touch cycle
+                    limits_go_home(homing_mask);
+                    ganged_mode           = SquaringMode::A;
+                    n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
+                    limits_go_home(homing_mask);
+                    ganged_mode = SquaringMode::B;
+                    limits_go_home(homing_mask);
+                    ganged_mode = SquaringMode::Dual;  // always return to dual
+                }
+            }
         }
-#ifdef HOMING_CYCLE_1
-        if (!axis_is_squared(HOMING_CYCLE_1)) {
-            limits_go_home(HOMING_CYCLE_1);
-        } else {
-            ganged_mode           = SquaringMode::Dual;
-            n_homing_locate_cycle = 0;  // don't do a second touch cycle
-            limits_go_home(HOMING_CYCLE_1);
-            ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
-            limits_go_home(HOMING_CYCLE_1);
-            ganged_mode = SquaringMode::B;
-            limits_go_home(HOMING_CYCLE_1);
-            ganged_mode = SquaringMode::Dual;  // always return to dual
-        }
-#endif
-#ifdef HOMING_CYCLE_2
-        if (!axis_is_squared(HOMING_CYCLE_2)) {
-            limits_go_home(HOMING_CYCLE_2);
-        } else {
-            ganged_mode           = SquaringMode::Dual;
-            n_homing_locate_cycle = 0;  // don't do a second touch cycle
-            limits_go_home(HOMING_CYCLE_2);
-            ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
-            limits_go_home(HOMING_CYCLE_2);
-            ganged_mode = SquaringMode::B;
-            limits_go_home(HOMING_CYCLE_2);
-            ganged_mode = SquaringMode::Dual;  // always return to dual
-        }
-#endif
-#ifdef HOMING_CYCLE_3
-        limits_go_home(HOMING_CYCLE_3);  // Homing cycle 3
-#endif
-#ifdef HOMING_CYCLE_4
-        limits_go_home(HOMING_CYCLE_4);  // Homing cycle 4
-#endif
-#ifdef HOMING_CYCLE_5
-        limits_go_home(HOMING_CYCLE_5);  // Homing cycle 5
-#endif
     }
     protocol_execute_realtime();  // Check for reset and set system abort.
     if (sys.abort) {
@@ -508,8 +473,8 @@ void mc_reset() {
         sys_io_control(0xFF, LOW, false);
         sys_pwm_control(0xFF, 0, false);
 #ifdef ENABLE_SD_CARD
-            // do we need to stop a running SD job?
-            if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+        // do we need to stop a running SD job?
+        if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
             //Report print stopped
             report_feedback_message(Message::SdFileQuit);
             closeFile();
