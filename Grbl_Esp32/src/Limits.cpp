@@ -376,7 +376,10 @@ uint8_t limits_get_state() {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin = limit_pins[axis][gang_index];
             if (pin != UNDEFINED_PIN) {
-                pinMask |= (digitalRead(pin) << axis);
+                if (limit_invert->get())
+                    pinMask |= (!digitalRead(pin) << axis);
+                else
+                    pinMask |= (digitalRead(pin) << axis);
             }
         }
     }
@@ -384,9 +387,6 @@ uint8_t limits_get_state() {
 #ifdef INVERT_LIMIT_PIN_MASK  // not normally used..unless you have both normal and inverted switches
     pinMask ^= INVERT_LIMIT_PIN_MASK;
 #endif
-    if (limit_invert->get()) {
-        pinMask ^= limit_mask;
-    }
     return pinMask;
 }
 
