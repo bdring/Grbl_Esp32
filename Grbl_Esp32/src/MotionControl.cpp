@@ -313,8 +313,8 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     else
 #endif
     {
-        for (uint8_t cycle = 0; cycle < MAX_N_AXIS; cycle++) {
-            uint8_t homing_mask = homing_cycle[cycle]->get();
+        for (int cycle = 0; cycle < MAX_N_AXIS; cycle++) {
+            auto homing_mask = homing_cycle[cycle]->get();
             if (homing_mask) {  // if there are some axes in this cycle
                 if (!axis_is_squared(homing_mask)) {
                     limits_go_home(homing_mask);  // Homing cycle 0
