@@ -37,6 +37,23 @@ parser_block_t gc_block;
 #define FAIL(status) return (status);
 
 void gc_init() {
+    // First thing we do here is iterate through the coord systems and read them all, so that
+    // we get all our coord system errors here, and not while we're busy:
+    float coord_system[MAX_N_AXIS];
+
+    // g54 - g59 is 6 coordinate systems, plus 2 for G28 and G30 reference positions
+    bool      reported_error    = false;
+    const int MAX_COORD_SYSTEMS = 8;
+    for (uint8_t i = 0; i < MAX_COORD_SYSTEMS; ++i) {
+        if (!(settings_read_coord_data(i, coord_system))) {
+            if (!reported_error) {
+                reported_error = true;
+                report_status_message(Error::SettingReadFail, CLIENT_SERIAL);
+            }
+        }
+    }
+
+    // Reset parser state:
     memset(&gc_state, 0, sizeof(parser_state_t));
     // Load default G54 coordinate system.
     if (!(settings_read_coord_data(gc_state.modal.coord_select, gc_state.coord_system))) {
