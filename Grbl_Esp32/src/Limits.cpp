@@ -384,11 +384,9 @@ uint8_t limits_get_state() {
         }
     }
 
-    grbl_sendf(CLIENT_SERIAL, "Pin Mask:%d\r\n", pinMask);
-
 #ifdef INVERT_LIMIT_PIN_MASK  // not normally used..unless you have both normal and inverted switches
-        pinMask ^= INVERT_LIMIT_PIN_MASK;
-#endif    
+    pinMask ^= INVERT_LIMIT_PIN_MASK;
+#endif
     return pinMask;
 }
 
