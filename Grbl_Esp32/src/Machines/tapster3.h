@@ -27,16 +27,17 @@
 
 #define USE_KINEMATICS				// there are kinematic equations for this machine
 #define USE_FWD_KINEMATICS   // report in cartesian
-#define USE_MACHINE_INIT			// There is some custom initialization for this machine	
+#define USE_MACHINE_INIT			// There is some custom initialization for this machine
+#define USE_CUSTOM_HOMING
 	
 // ================== Delta Geometry ===========================
 
-#define RADIUS_FIXED    70.0;   // radius of the fixed side (length of motor cranks)
-#define RADIUS_EFF      133.5;  // radius of end effector side (length of linkages)
-#define LENGTH_FIXED_SIDE   179.437f;  // sized of fixed side triangel
-#define LENGTH_EFF_SIDE     86.6025f;  // size of end effector side triangle
-#define SEGMENT_LENGTH 0.5 // segment length in mm
-#define MAX_NEGATIVE_ANGLE -45 // in negative radians how far can the arms go up before damaging machine (max pi/2) 
+#define RADIUS_FIXED            70.0;       // radius of the fixed side (length of motor cranks)
+#define RADIUS_EFF              133.5;      // radius of end effector side (length of linkages)
+#define LENGTH_FIXED_SIDE       173.205f;   // sized of fixed side triangel
+#define LENGTH_EFF_SIDE         86.6025f;   // size of end effector side triangle
+#define SEGMENT_LENGTH          0.5         // segment length in mm
+#define MAX_NEGATIVE_ANGLE      -45         // 
 
 // =================== Machine Hardware Definition =============
 
@@ -98,8 +99,8 @@
 #define DEFAULT_Y_ACCELERATION      DEFAULT_X_ACCELERATION // 10*60*60 mm/min^2 = 10 mm/sec^2
 #define DEFAULT_Z_ACCELERATION      DEFAULT_X_ACCELERATION
 
-#define DEFAULT_X_MAX_TRAVEL 3.14159265 // 180° in radians 
-#define DEFAULT_Y_MAX_TRAVEL DEFAULT_X_MAX_TRAVEL // 
+#define DEFAULT_X_MAX_TRAVEL 3.14159265 // 180° in radians
+#define DEFAULT_Y_MAX_TRAVEL DEFAULT_X_MAX_TRAVEL //
 #define DEFAULT_Z_MAX_TRAVEL DEFAULT_X_MAX_TRAVEL // 
 
 #define ARM_INTERNAL_ANGLE 2.866  // due to mounting angle 
@@ -108,4 +109,4 @@
 #define DEFAULT_Y_HOMING_MPOS DEFAULT_X_HOMING_MPOS
 #define DEFAULT_Z_HOMING_MPOS DEFAULT_X_HOMING_MPOS
 
-#define SPINDLE_TYPE    SpindleType::NONE
+
