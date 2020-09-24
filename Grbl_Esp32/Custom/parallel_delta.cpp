@@ -89,11 +89,16 @@ void machine_init() {
     calc_forward_kinematics(angles, cartesian);  // Sets the cartesian values
 
     // print a startup message to show the kinematics are enables
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delata Kinematics Init: %s Z Offset:%4.3f", MACHINE_NAME, cartesian[Z_AXIS]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Kinematics Init: %s Z Offset:%4.3f", MACHINE_NAME, cartesian[Z_AXIS]);
 }
 
 bool user_defined_homing() {  // true = do not continue with normal Grbl homing
+#ifdef USE_CUSTOM_HOMING
     return true;
+#else
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "User defined homing");
+    return false;
+#endif
 }
 
 void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
@@ -290,6 +295,9 @@ void forward_kinematics(float* position) {
     memcpy(position_steps, sys_position, sizeof(sys_position));
     system_convert_array_steps_to_mpos(position_radians, position_steps);
 
+    grbl_msg_sendf(
+        CLIENT_SERIAL, MsgLevel::Info, "Fwd Kin Angs %1.3f, %1.3f, %1.3f ", position_radians[0], position_radians[1], position_radians[2]);
+
     // detmine the position of the end effector joint center.
     status = calc_forward_kinematics(position_radians, calc_fwd);
 
@@ -303,10 +311,21 @@ void forward_kinematics(float* position) {
     }
 }
 
-bool kinematics_pre_homing(uint8_t cycle_mask) {
+bool kinematics_pre_homing(uint8_t cycle_mask) {  // true = do not continue with normal Grbl homing
+#ifdef USE_CUSTOM_HOMING
     return true;
+#else
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "kinematics_pre_homing");
+    return false;
+#endif
 }
 
-void kinematics_post_homing() {}
+void kinematics_post_homing() {
+#ifdef USE_CUSTOM_HOMING
+
+#else
+
+#endif
+}
 
 void user_m30() {}
