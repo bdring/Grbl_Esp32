@@ -296,9 +296,8 @@ static void stepper_pulse_func() {
                     spindle->set_rpm(0);
                 }
             }
-
-            system_set_exec_state_flag(EXEC_CYCLE_STOP);  // Flag main program for cycle end
-            return;                                       // Nothing to do but exit.
+            cycle_stop = true;
+            return;  // Nothing to do but exit.
         }
     }
     // Check probing state.
