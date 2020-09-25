@@ -653,3 +653,32 @@ Error GrblCommand::action(char* value, WebUI::AuthenticationLevel auth_level, We
     }
     return _action((const char*)value, auth_level, out);
 };
+Coordinates* coords[CoordIndex::End];
+
+bool Coordinates::load() {
+    size_t len;
+    switch (nvs_get_blob(Setting::_handle, _name, _currentValue, &len)) {
+        case ESP_OK:
+            return true;
+        case ESP_ERR_NVS_INVALID_LENGTH:
+            // This could happen if the stored value is longer than the buffer.
+            // That is highly unlikely since we always store MAX_N_AXIS coordinates.
+            // It would indicate that we have decreased MAX_N_AXIS since the
+            // value was stored.  We don't flag it as an error, but rather
+            // accept the initial coordinates and ignore the residue.
+            // We could issue a warning message if we were so inclined.
+            return true;
+        case ESP_ERR_NVS_INVALID_NAME:
+        case ESP_ERR_NVS_INVALID_HANDLE:
+        default:
+            return false;
+    }
+};
+
+void Coordinates::set(float value[MAX_N_AXIS]) {
+    memcpy(&_currentValue, value, sizeof(_currentValue));
+#ifdef FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE
+    protocol_buffer_synchronize();
+#endif
+    nvs_set_blob(Setting::_handle, _name, _currentValue, sizeof(_currentValue));
+}
