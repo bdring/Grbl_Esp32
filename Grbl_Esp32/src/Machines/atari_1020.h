@@ -54,16 +54,8 @@
 #define SOLENOID_DIRECTION_PIN GPIO_NUM_4
 #define SOLENOID_PEN_PIN GPIO_NUM_2
 
-#ifdef HOMING_CYCLE_0
-    #undef HOMING_CYCLE_0
-#endif
-#define HOMING_CYCLE_0 bit(X_AXIS) // this 'bot only homes the X axis
-#ifdef HOMING_CYCLE_1
-    #undef HOMING_CYCLE_1
-#endif
-#ifdef HOMING_CYCLE_2
-    #undef HOMING_CYCLE_2
-#endif
+// this 'bot only homes the X axis
+// Set $Homing/Cycle0=0 
 
 #define REED_SW_PIN GPIO_NUM_17
 
