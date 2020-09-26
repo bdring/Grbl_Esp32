@@ -72,6 +72,7 @@ const float f  = LENGTH_FIXED_SIDE;  // sized of fixed side triangel
 const float e  = LENGTH_EFF_SIDE;    // size of end effector side triangle
 
 static float last_angle[N_AXIS] = { 0.0, 0.0, 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
+static float last_cartesian[N_AXIS] = { 0.0, 0.0, 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
 float        delta_z_offset;                          // Z offset of the effector from the arm centers
 
 // prototypes for helper functions
@@ -114,21 +115,34 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     float          pos_cart[N_AXIS];
     KinematicError status;
 
-    // convert the current position to cartesian
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, Target:  %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position:  %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
 
-    calc_forward_kinematics(position, pos_cart);
+    // Look for unchanged axes. If there is no position change on an axis in gcode, it will send the angle
+    // G0Z10 will send the Z10 and the previous values for other axes. Unfortunately those are in angles
+    // we need to restore them for our previous postision copy.
+    for (int axis = X_AXIS; axis <= Z_AXIS; axis++) {
+        if (target[axis] == last_angle[axis]) {
+            target[axis] == last_cartesian[axis];            
+        }
+    }
+
+        // convert the current position to cartesian
+
+        calc_forward_kinematics(position, pos_cart);
 
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "From Angs:  %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "From Cart:  %3.3f %3.3f %3.3f", pos_cart[0], pos_cart[1], pos_cart[2]);
 
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Raw Target: %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+    /*
     grbl_msg_sendf(CLIENT_SERIAL,
                    MsgLevel::Info,
-                   "Offsets: %3.3f %3.3f %3.3f",
+                   "Z Offsets: %3.3f %3.3f %3.3f",
                    delta_z_offset,
                    gc_state.coord_offset[Z_AXIS],
                    gc_state.coord_system[Z_AXIS]);
-
+*/
     //target[Z_AXIS] += delta_z_offset + (gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS]);
 
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "To: %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
@@ -362,12 +376,21 @@ void kinematics_post_homing() {
     last_angle[Y_AXIS] = sys_position[Y_AXIS] / axis_settings[Y_AXIS]->steps_per_mm->get();
     last_angle[Z_AXIS] = sys_position[Z_AXIS] / axis_settings[Z_AXIS]->steps_per_mm->get();
 
+    calc_forward_kinematics(last_angle, last_cartesian);
+
     grbl_msg_sendf(CLIENT_SERIAL,
                    MsgLevel::Info,
-                   "kinematics_post_homing: %3.3f, %3.3f, %3.3f",
+                   "kinematics_post_homing Angles: %3.3f, %3.3f, %3.3f",
                    last_angle[X_AXIS],
                    last_angle[Y_AXIS],
                    last_angle[Z_AXIS]);
+
+    grbl_msg_sendf(CLIENT_SERIAL,
+                   MsgLevel::Info,
+                   "kinematics_post_homing Cartesian: %3.3f, %3.3f, %3.3f",
+                   last_cartesian[X_AXIS],
+                   last_cartesian[Y_AXIS],
+                   last_cartesian[Z_AXIS]);
 
 #endif
 }
