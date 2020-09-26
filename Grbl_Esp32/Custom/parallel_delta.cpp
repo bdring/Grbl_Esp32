@@ -24,10 +24,10 @@
   The arm 0 values (angle) are the arms at horizontal.
   Positive angles are below horizontal.
   The machine's Z zero point in the kinematics is parallel to the arm axes.
-  Delta_z_offset is the offset to the end effector joints at arm angle zero.
-  The is calculated at startup and used in the forward kinematics
+  Delta_z_offset is the Z distance from the arm axes to the end effector joints 
+  at arm angle zero. The is calculated at startup and used in the forward kinematics
 
-  Feedrate in gcode is in the cartesian uints. This must be converted to the
+  Feedrate in gcode is in the cartesian units. This must be converted to the
   angles. This is done by calculating the segment move distance and the angle 
   move distance and applying that ration to the feedrate. 
 
@@ -87,9 +87,10 @@ void machine_init() {
     float cartesian[N_AXIS] = { 0.0, 0.0, 0.0 };
 
     calc_forward_kinematics(angles, cartesian);  // Sets the cartesian values
+    delta_z_offset = cartesian[Z_AXIS];
 
     // print a startup message to show the kinematics are enables
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Kinematics Init: %s Z Offset:%4.3f", MACHINE_NAME, cartesian[Z_AXIS]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Kinematics Init: %s Z Offset:%4.3f", MACHINE_NAME, delta_z_offset);
 }
 
 bool user_defined_homing() {  // true = do not continue with normal Grbl homing
@@ -106,13 +107,36 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     float dx, dy, dz;  // distances in each cartesian axis
     float motor_angles[N_AXIS];
 
-    float seg_target[N_AXIS];                         // The target of the current segment
-    float feed_rate            = pl_data->feed_rate;  // save original feed rate
-    bool  start_position_erorr = false;
-    bool  show_error           = true;  // shows error once
+    float          seg_target[N_AXIS];                         // The target of the current segment
+    float          feed_rate            = pl_data->feed_rate;  // save original feed rate
+    bool           start_position_erorr = false;
+    bool           show_error           = true;  // shows error once
+    float          pos_cart[N_AXIS];
+    KinematicError status;
+
+    // convert the current position to cartesian
+
+    calc_forward_kinematics(position, pos_cart);
+
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "From Angs:  %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "From Cart:  %3.3f %3.3f %3.3f", pos_cart[0], pos_cart[1], pos_cart[2]);
+
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Raw Target: %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+    grbl_msg_sendf(CLIENT_SERIAL,
+                   MsgLevel::Info,
+                   "Offsets: %3.3f %3.3f %3.3f",
+                   delta_z_offset,
+                   gc_state.coord_offset[Z_AXIS],
+                   gc_state.coord_system[Z_AXIS]);
+
+    //target[Z_AXIS] += delta_z_offset + (gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS]);
+
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "To: %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+    status = delta_calcInverse(target, motor_angles);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Angles: %3.3f %3.3f %3.3f", motor_angles[0], motor_angles[1], motor_angles[2]);
 
     // see if start is in work area...if not skip segments and try to go to target
-    KinematicError status = delta_calcInverse(position, motor_angles);
+    status = delta_calcInverse(position, motor_angles);
 
     if (status == KinematicError::OUT_OF_RANGE) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error");
@@ -126,6 +150,14 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target unreachable");
         return;
     }
+
+    target[Z_AXIS] -= delta_z_offset;  // restore it
+    memcpy(position, target, sizeof(target));
+
+    memcpy(last_angle, motor_angles, sizeof(motor_angles));
+
+    mc_line(motor_angles, pl_data);
+    return;
 
     position[X_AXIS] += gc_state.coord_offset[X_AXIS];
     position[Y_AXIS] += gc_state.coord_offset[Y_AXIS];
@@ -324,6 +356,18 @@ void kinematics_post_homing() {
 #ifdef USE_CUSTOM_HOMING
 
 #else
+    //sys_position[Z_AXIS] = delta_z_offset * axis_settings[Z_AXIS]->steps_per_mm->get();
+    //plan_sync_position();
+    last_angle[X_AXIS] = sys_position[X_AXIS] / axis_settings[X_AXIS]->steps_per_mm->get();
+    last_angle[Y_AXIS] = sys_position[Y_AXIS] / axis_settings[Y_AXIS]->steps_per_mm->get();
+    last_angle[Z_AXIS] = sys_position[Z_AXIS] / axis_settings[Z_AXIS]->steps_per_mm->get();
+
+    grbl_msg_sendf(CLIENT_SERIAL,
+                   MsgLevel::Info,
+                   "kinematics_post_homing: %3.3f, %3.3f, %3.3f",
+                   last_angle[X_AXIS],
+                   last_angle[Y_AXIS],
+                   last_angle[Z_AXIS]);
 
 #endif
 }

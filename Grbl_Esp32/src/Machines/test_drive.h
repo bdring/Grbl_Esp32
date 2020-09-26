@@ -37,6 +37,8 @@
 
 #define MACHINE_NAME "Test Drive - Demo Only No I/O!"
 
+#define N_AXIS 3
+
 #define SPINDLE_TYPE    SpindleType::NONE
 
 #ifdef USE_RMT_STEPS
