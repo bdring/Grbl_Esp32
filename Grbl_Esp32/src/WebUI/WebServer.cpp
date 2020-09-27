@@ -1517,6 +1517,7 @@ namespace WebUI {
                             sdUploadFile      = SD.open(filename, FILE_READ);
                             filesize          = sdUploadFile.size();
                             sdUploadFile.close();
+                            sd_close();
                             if (_webserver->arg(sizeargname) != String(filesize)) {
                                 _upload_status = UploadStatusType::FAILED;
                                 pushError(ESP_ERROR_UPLOAD, "File upload mismatch");
@@ -1542,6 +1543,7 @@ namespace WebUI {
                     grbl_send(CLIENT_ALL, "[MSG:Upload failed]\r\n");
                     if (sdUploadFile) {
                         sdUploadFile.close();
+                        sd_close();
                     }
                     return;
                 }
@@ -1556,6 +1558,7 @@ namespace WebUI {
                 SD.remove(filename);
             }
             set_sd_state(SDCARD_IDLE);
+            sd_close();
         }
         COMMANDS::wait(0);
     }

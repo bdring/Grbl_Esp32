@@ -43,3 +43,4 @@ void     readFile(fs::FS& fs, const char* path);
 float    sd_report_perc_complete();
 uint32_t sd_get_current_line_number();
 void     sd_get_current_filename(char* name);
+void     sd_close();  // Release SD resources

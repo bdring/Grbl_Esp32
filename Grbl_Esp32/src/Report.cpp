@@ -243,6 +243,7 @@ void report_status_message(Error status_code, uint8_t client) {
                     grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sd_get_current_line_number());
                     grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
                     closeFile();
+                    sd_close();
                 }
                 return;
             }
@@ -929,4 +930,8 @@ char report_get_axis_letter(uint8_t axis) {
         default:
             return '?';
     }
+}
+
+void report_heap(const char* prefix) {
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "heap %s %d", prefix, xPortGetFreeHeapSize());
 }

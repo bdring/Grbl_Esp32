@@ -125,6 +125,11 @@ uint32_t sd_get_current_line_number() {
 
 uint8_t sd_state = SDCARD_IDLE;
 
+void sd_close() {
+    SD.end();
+    report_heap("]");
+}
+
 uint8_t get_sd_state(bool refresh) {
 #if defined(SDCARD_DET_PIN) && SDCARD_SD_PIN != -1
     //no need to go further if SD detect is not correct
@@ -146,11 +151,13 @@ uint8_t get_sd_state(bool refresh) {
     sd_state = SDCARD_NOT_PRESENT;
     //using default value for speed ? should be parameter
     //refresh content if card was removed
+    report_heap("[");
     if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ)) {
         if (SD.cardSize() > 0) {
             sd_state = SDCARD_IDLE;
         }
     }
+    report_heap("|");
     return sd_state;
 }
 

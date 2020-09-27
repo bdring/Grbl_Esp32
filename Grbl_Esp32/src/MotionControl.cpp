@@ -478,6 +478,7 @@ void mc_reset() {
             //Report print stopped
             report_feedback_message(Message::SdFileQuit);
             closeFile();
+            sd_close();
         }
 #endif
         // Kill steppers only if in any motion state, i.e. cycle, actively holding, or homing.

@@ -660,11 +660,13 @@ namespace WebUI {
         }
         if (sys.state != State::Idle) {
             webPrintln("Busy");
+            sd_close();
             return Error::IdleError;
         }
         if (!openFile(SD, parameter)) {
             report_status_message(Error::SdFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
             webPrintln("");
+            sd_close();
             return Error::Ok;
         }
         char fileLine[255];
@@ -672,6 +674,7 @@ namespace WebUI {
             //No need notification here it is just a macro
             closeFile();
             webPrintln("");
+            sd_close();
             return Error::Ok;
         }
         SD_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
@@ -679,6 +682,7 @@ namespace WebUI {
                               (espresponse) ? espresponse->client() : CLIENT_ALL);  // execute the first line
         report_realtime_status((espresponse) ? espresponse->client() : CLIENT_ALL);
         webPrintln("");
+        sd_close();
         return Error::Ok;
     }
 
@@ -700,22 +704,26 @@ namespace WebUI {
         File file2del = SD.open(path);
         if (!file2del) {
             webPrintln("Cannot stat file!");
+            sd_close();
             return Error::SdFileNotFound;
         }
         if (file2del.isDirectory()) {
             if (!SD.rmdir(path)) {
                 webPrintln("Cannot delete directory! Is directory empty?");
+                sd_close();
                 return Error::SdFailedDelDir;
             }
             webPrintln("Directory deleted.");
         } else {
             if (!SD.remove(path)) {
                 webPrintln("Cannot delete file!");
+                sd_close();
                 return Error::SdFailedDelFile;
             }
             webPrintln("File deleted.");
         }
         file2del.close();
+        sd_close();
         return Error::Ok;
     }
 
@@ -732,6 +740,7 @@ namespace WebUI {
         }
         webPrintln("");
         listDir(SD, "/", 10, espresponse->client());
+        sd_close();
         String ssd = "[SD Free:" + ESPResponseStream::formatBytes(SD.totalBytes() - SD.usedBytes());
         ssd += " Used:" + ESPResponseStream::formatBytes(SD.usedBytes());
         ssd += " Total:" + ESPResponseStream::formatBytes(SD.totalBytes());
@@ -803,6 +812,7 @@ namespace WebUI {
         }
 #endif
         webPrintln(resp);
+        sd_close();
         return Error::Ok;
     }
 

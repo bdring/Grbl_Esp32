@@ -208,6 +208,10 @@ Error report_ngc(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
     report_ngc_parameters(out->client());
     return Error::Ok;
 }
+Error show_heap(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    report_heap("");
+    return Error::Ok;
+}
 Error home(int cycle) {
     if (homing_enable->get() == false) {
         return Error::SettingDisabled;
@@ -391,6 +395,7 @@ void make_grbl_commands() {
     new GrblCommand("NVX", "Settings/Erase", Setting::eraseNVS, idleOrAlarm, WA);
     new GrblCommand("V", "Settings/Stats", Setting::report_nvs_stats, idleOrAlarm);
     new GrblCommand("#", "GCode/Offsets", report_ngc, idleOrAlarm);
+    new GrblCommand("M", "Memory", show_heap, anyState);
     new GrblCommand("H", "Home", home_all, idleOrAlarm);
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
     new GrblCommand("HX", "Home/X", home_x, idleOrAlarm);

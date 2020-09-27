@@ -68,7 +68,20 @@ uint8_t serial_get_rx_buffer_available(uint8_t client) {
     return client_buffer[client].availableforwrite();
 }
 
+static TaskHandle_t heapCheckTaskHandle = 0;
+
+//#include <esp_heap_caps.h>
+void heapCheckTask(void* pvParameters) {
+    while (true) {
+        vTaskDelay(3000 / portTICK_RATE_MS);  // Yield to other tasks
+        report_heap("");
+    }
+}
+
 void serial_init() {
+    // heapCheckTaskHandle = 0;
+    // xTaskCreatePinnedToCore(heapCheckTask, "heapTask", 8192, NULL, 1, &heapCheckTaskHandle, 1);
+
     Serial.begin(BAUD_RATE);
     // reset all buffers
     serial_reset_read_buffer(CLIENT_ALL);
@@ -86,7 +99,7 @@ void serial_init() {
 }
 
 // this task runs and checks for data on all interfaces
-// REaltime stuff is acted upon, then characters are added to the appropriate buffer
+// Handles realtime stuff then adds characters to the appropriate buffer
 void serialCheckTask(void* pvParameters) {
     uint8_t data   = 0;
     uint8_t client = CLIENT_ALL;  // who sent the data
