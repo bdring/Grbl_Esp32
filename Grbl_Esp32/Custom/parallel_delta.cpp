@@ -115,9 +115,18 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     float          pos_cart[N_AXIS];
     KinematicError status;
 
+    position[X_AXIS] += gc_state.coord_system[X_AXIS];
+    position[Y_AXIS] += gc_state.coord_system[Y_AXIS];
+    position[Z_AXIS] += gc_state.coord_system[Z_AXIS];
+
+
+
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target:  %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Sys Po:  %3.3f %3.3f %3.3f", sys_position[0], sys_position[1], sys_position[2]);
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position:  %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
 
+
+/*
     // Look for unchanged axes. If there is no position change on an axis in gcode, it will send the angle
     // G0Z10 will send the Z10 and the previous values for other axes. Unfortunately those are in angles
     // we need to restore them for our previous postision copy.
@@ -126,10 +135,10 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
             target[axis] == last_cartesian[axis];            
         }
     }
-
+*/
         // convert the current position to cartesian
 
-        calc_forward_kinematics(position, pos_cart);
+    calc_forward_kinematics(position, pos_cart);
 
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "From Angs:  %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "From Cart:  %3.3f %3.3f %3.3f", pos_cart[0], pos_cart[1], pos_cart[2]);
@@ -151,15 +160,16 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
     // see if start is in work area...if not skip segments and try to go to target
 
+/*
     float start_pos[N_AXIS];
     start_pos[X_AXIS] = position[X_AXIS] + gc_state.coord_system[X_AXIS];
     start_pos[Y_AXIS] = position[Y_AXIS] + gc_state.coord_system[Y_AXIS];
     start_pos[Z_AXIS] = position[Z_AXIS] + gc_state.coord_system[Z_AXIS];
-
-    status = delta_calcInverse(start_pos, motor_angles);
+*/
+    status = delta_calcInverse(position, motor_angles);
 
     if (status == KinematicError::OUT_OF_RANGE) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", start_pos[0], start_pos[1], start_pos[2]);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
         start_position_erorr = true;
     }
 
@@ -167,11 +177,11 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     status = delta_calcInverse(target, motor_angles);
 
     if (status == KinematicError::OUT_OF_RANGE) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target unreachable");
-        return;
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target unreachable  error %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+        //return;
     }
 
-    target[Z_AXIS] -= delta_z_offset;  // restore it
+    //target[Z_AXIS] -= delta_z_offset;  // restore it
     memcpy(position, target, sizeof(target));
 
     memcpy(last_angle, motor_angles, sizeof(motor_angles));
