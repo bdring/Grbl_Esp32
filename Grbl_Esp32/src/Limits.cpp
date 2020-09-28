@@ -202,7 +202,7 @@ void limits_go_home(uint8_t cycle_mask) {
             }
             st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
             // Exit routines: No time to run protocol_execute_realtime() in this loop.
-            if (sys_rt_exec_state & (EXEC_SAFETY_DOOR | EXEC_RESET | EXEC_CYCLE_STOP)) {
+            if ((sys_rt_exec_state & (EXEC_SAFETY_DOOR | EXEC_RESET)) || cycle_stop) {
                 uint8_t rt_exec = sys_rt_exec_state;
                 // Homing failure condition: Reset issued during cycle.
                 if (rt_exec & EXEC_RESET) {
@@ -217,7 +217,7 @@ void limits_go_home(uint8_t cycle_mask) {
                     system_set_exec_alarm(ExecAlarm::HomingFailPulloff);
                 }
                 // Homing failure condition: Limit switch not found during approach.
-                if (approach && (rt_exec & EXEC_CYCLE_STOP)) {
+                if (approach && cycle_stop) {
                     system_set_exec_alarm(ExecAlarm::HomingFailApproach);
                 }
 
@@ -228,7 +228,7 @@ void limits_go_home(uint8_t cycle_mask) {
                     return;
                 } else {
                     // Pull-off motion complete. Disable CYCLE_STOP from executing.
-                    system_clear_exec_state_flag(EXEC_CYCLE_STOP);
+                    cycle_stop = false;
                     break;
                 }
             }
@@ -330,27 +330,29 @@ void limits_init() {
                 } else {
                     detachInterrupt(pin);
                 }
-                /* 
-                // Change to do this once. limits_init() happens often
-                grbl_msg_sendf(CLIENT_SERIAL,
-                               MsgLevel::Info,
-                               "%c%s Axis limit switch on pin %s",
-                               report_get_axis_letter(axis),
-                               gang_index ? "2" : " ",
-                               pinName(pin).c_str());
-                */
+
+                if (limit_sw_queue == NULL) {
+                    grbl_msg_sendf(CLIENT_SERIAL,
+                                   MsgLevel::Info,
+                                   "%c%s Axis limit switch on pin %s",
+                                   report_get_axis_letter(axis),
+                                   gang_index ? "2" : " ",
+                                   pinName(pin).c_str());
+                }
             }
         }
     }
 
     // setup task used for debouncing
-    limit_sw_queue = xQueueCreate(10, sizeof(int));
-    xTaskCreate(limitCheckTask,
-                "limitCheckTask",
-                2048,
-                NULL,
-                5,  // priority
-                NULL);
+    if (limit_sw_queue == NULL) {
+        limit_sw_queue = xQueueCreate(10, sizeof(int));
+        xTaskCreate(limitCheckTask,
+                    "limitCheckTask",
+                    2048,
+                    NULL,
+                    5,  // priority
+                    NULL);
+    }
 }
 
 // Disables hard limits.
@@ -371,12 +373,15 @@ void limits_disable() {
 // number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 uint8_t limits_get_state() {
     uint8_t pinMask = 0;
-    auto n_axis = number_axis->get();
+    auto    n_axis  = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin = limit_pins[axis][gang_index];
             if (pin != UNDEFINED_PIN) {
-                pinMask |= (digitalRead(pin) << axis);
+                if (limit_invert->get())
+                    pinMask |= (!digitalRead(pin) << axis);
+                else
+                    pinMask |= (digitalRead(pin) << axis);
             }
         }
     }
@@ -384,9 +389,6 @@ uint8_t limits_get_state() {
 #ifdef INVERT_LIMIT_PIN_MASK  // not normally used..unless you have both normal and inverted switches
     pinMask ^= INVERT_LIMIT_PIN_MASK;
 #endif
-    if (limit_invert->get()) {
-        pinMask ^= limit_mask;
-    }
     return pinMask;
 }
 

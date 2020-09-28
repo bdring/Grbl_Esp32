@@ -296,9 +296,8 @@ static void stepper_pulse_func() {
                     spindle->set_rpm(0);
                 }
             }
-
-            system_set_exec_state_flag(EXEC_CYCLE_STOP);  // Flag main program for cycle end
-            return;                                       // Nothing to do but exit.
+            cycle_stop = true;
+            return;  // Nothing to do but exit.
         }
     }
     // Check probing state.
@@ -362,8 +361,7 @@ static void stepper_pulse_func() {
             st.counter_a -= st.exec_block->step_event_count;
             if (st.exec_block->direction_bits & bit(A_AXIS)) {
                 sys_position[A_AXIS]--;
-            }
-            else {
+            } else {
                 sys_position[A_AXIS]++;
             }
         }
@@ -379,8 +377,7 @@ static void stepper_pulse_func() {
                 st.counter_b -= st.exec_block->step_event_count;
                 if (st.exec_block->direction_bits & bit(B_AXIS)) {
                     sys_position[B_AXIS]--;
-                }
-                else {
+                } else {
                     sys_position[B_AXIS]++;
                 }
             }
@@ -396,8 +393,7 @@ static void stepper_pulse_func() {
                     st.counter_c -= st.exec_block->step_event_count;
                     if (st.exec_block->direction_bits & bit(C_AXIS)) {
                         sys_position[C_AXIS]--;
-                    }
-                    else {
+                    } else {
                         sys_position[C_AXIS]++;
                     }
                 }
@@ -1229,8 +1225,10 @@ float st_get_realtime_rate() {
         case State::Homing:
         case State::Hold:
         case State::Jog:
-        case State::SafetyDoor: return prep.current_speed;
-        default: return 0.0f;
+        case State::SafetyDoor:
+            return prep.current_speed;
+        default:
+            return 0.0f;
     }
 }
 
