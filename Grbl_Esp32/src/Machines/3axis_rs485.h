@@ -49,19 +49,7 @@
 #define Y2_LIMIT_PIN            GPIO_NUM_35
 #define Z_LIMIT_PIN             GPIO_NUM_34
 
-#ifdef HOMING_CYCLE_0
-    #undef HOMING_CYCLE_0
-#endif
-#define HOMING_CYCLE_0 bit(Z_AXIS) // Z first
-
-#ifdef HOMING_CYCLE_1
-    #undef HOMING_CYCLE_1
-#endif
-#define HOMING_CYCLE_1 (bit(X_AXIS)|bit(Y_AXIS))
-
-#ifdef HOMING_CYCLE_2
-    #undef HOMING_CYCLE_2
-#endif
+// Set $Homing/Cycle0=X and $Homing/Cycle=XY
 
 #define PROBE_PIN               GPIO_NUM_14  // labeled Probe
 #define CONTROL_RESET_PIN       GPIO_NUM_27  // labeled Reset

@@ -25,24 +25,19 @@
 #include "Grbl.h"
 
 // Read selected coordinate data from EEPROM. Updates pointed coord_data value.
-uint8_t settings_read_coord_data(uint8_t coord_select, float* coord_data) {
-    uint32_t addr = coord_select * (sizeof(float) * MAX_N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
-    if (!(memcpy_from_eeprom_with_checksum((char*)coord_data, addr, sizeof(float) * MAX_N_AXIS))) {
+// This is now a compatibility routine that is used to propagate coordinate data
+// in the old EEPROM format to the new tagged NVS format.
+bool old_settings_read_coord_data(uint8_t coord_select, float* coord_data) {
+    uint32_t addr = coord_select * (sizeof(float) * N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
+    if (!(memcpy_from_eeprom_with_old_checksum((char*)coord_data, addr, sizeof(float) * N_AXIS)) &&
+        !(memcpy_from_eeprom_with_checksum((char*)coord_data, addr, sizeof(float) * MAX_N_AXIS))) {
         // Reset with default zero vector
         clear_vector_float(coord_data);
-        settings_write_coord_data(coord_select, coord_data);
+        // The old code used to rewrite the zeroed data but now that is done
+        // elsewhere, in a different format.
         return false;
     }
     return true;
-}
-
-// Method to store coord data parameters into EEPROM
-void settings_write_coord_data(uint8_t coord_select, float* coord_data) {
-#ifdef FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE
-    protocol_buffer_synchronize();
-#endif
-    uint32_t addr = coord_select * (sizeof(float) * MAX_N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
-    memcpy_to_eeprom_with_checksum(addr, (char*)coord_data, sizeof(float) * MAX_N_AXIS);
 }
 
 // Method to store build info into EEPROM
@@ -72,4 +67,10 @@ uint8_t get_step_pin_mask(uint8_t axis_idx) {
 // Returns direction pin mask according to Grbl internal axis indexing.
 uint8_t get_direction_pin_mask(uint8_t axis_idx) {
     return bit(axis_idx);
+}
+
+// Allow iteration over CoordIndex values
+CoordIndex& operator ++ (CoordIndex& i) {
+    i = static_cast<CoordIndex>(static_cast<uint8_t>(i) + 1);
+    return i;
 }
