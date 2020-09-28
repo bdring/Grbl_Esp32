@@ -558,10 +558,8 @@ Error system_execute_line(char* line, WebUI::ESPResponseStream* out, WebUI::Auth
 }
 
 Error system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level) {
-    auto resp = new WebUI::ESPResponseStream(client, true);
-    auto ret  = system_execute_line(line, resp, auth_level);
-    delete resp;
-    return ret;
+    WebUI::ESPResponseStream stream(client, true);
+    return system_execute_line(line, &stream, auth_level);
 }
 
 void system_execute_startup(char* line) {
