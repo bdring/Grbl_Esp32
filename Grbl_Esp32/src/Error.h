@@ -43,6 +43,7 @@ enum class Error : uint8_t {
     TravelExceeded              = 15,
     InvalidJogCommand           = 16,
     SettingDisabledLaser        = 17,
+    HomingNoCycles              = 18,
     GcodeUnsupportedCommand     = 20,
     GcodeModalGroupViolation    = 21,
     GcodeUndefinedFeedRate      = 22,
