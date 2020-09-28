@@ -330,27 +330,29 @@ void limits_init() {
                 } else {
                     detachInterrupt(pin);
                 }
-                /* 
-                // Change to do this once. limits_init() happens often
-                grbl_msg_sendf(CLIENT_SERIAL,
-                               MsgLevel::Info,
-                               "%c%s Axis limit switch on pin %s",
-                               report_get_axis_letter(axis),
-                               gang_index ? "2" : " ",
-                               pinName(pin).c_str());
-                */
+
+                if (limit_sw_queue == NULL) {
+                    grbl_msg_sendf(CLIENT_SERIAL,
+                                   MsgLevel::Info,
+                                   "%c%s Axis limit switch on pin %s",
+                                   report_get_axis_letter(axis),
+                                   gang_index ? "2" : " ",
+                                   pinName(pin).c_str());
+                }
             }
         }
     }
 
     // setup task used for debouncing
-    limit_sw_queue = xQueueCreate(10, sizeof(int));
-    xTaskCreate(limitCheckTask,
-                "limitCheckTask",
-                2048,
-                NULL,
-                5,  // priority
-                NULL);
+    if (limit_sw_queue == NULL) {
+        limit_sw_queue = xQueueCreate(10, sizeof(int));
+        xTaskCreate(limitCheckTask,
+                    "limitCheckTask",
+                    2048,
+                    NULL,
+                    5,  // priority
+                    NULL);
+    }
 }
 
 // Disables hard limits.

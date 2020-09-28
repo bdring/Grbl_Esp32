@@ -556,8 +556,12 @@ Error system_execute_line(char* line, WebUI::ESPResponseStream* out, WebUI::Auth
     // non-empty string - [ESPxxx]yyy or $xxx=yyy
     return do_command_or_setting(key, value, auth_level, out);
 }
+
 Error system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level) {
-    return system_execute_line(line, new WebUI::ESPResponseStream(client, true), auth_level);
+    auto resp = new WebUI::ESPResponseStream(client, true);
+    auto ret  = system_execute_line(line, resp, auth_level);
+    delete resp;
+    return ret;
 }
 
 void system_execute_startup(char* line) {
