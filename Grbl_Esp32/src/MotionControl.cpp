@@ -370,8 +370,8 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     // This give kinematics a chance to do something after normal homing
     kinematics_post_homing();
 #endif
-        // If hard limits feature enabled, re-enable hard limits pin change register after homing cycle.
-        limits_init();
+    // If hard limits feature enabled, re-enable hard limits pin change register after homing cycle.
+    limits_init();
 }
 
 // Perform tool length probe cycle. Requires probe switch.
