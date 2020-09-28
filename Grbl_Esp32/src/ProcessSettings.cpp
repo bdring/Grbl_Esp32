@@ -56,11 +56,8 @@ void settings_restore(uint8_t restore_flag) {
         }
     }
     if (restore_flag & SETTINGS_RESTORE_PARAMETERS) {
-        uint8_t idx;
-        float   coord_data[MAX_N_AXIS];
-        memset(&coord_data, 0, sizeof(coord_data));
-        for (idx = 0; idx <= SETTING_INDEX_NCOORD; idx++) {
-            settings_write_coord_data(idx, coord_data);
+        for (auto idx = CoordIndex::Begin; idx < CoordIndex::End; ++idx) {
+            coords[idx]->setDefault();
         }
     }
     if (restore_flag & SETTINGS_RESTORE_BUILD_INFO) {
@@ -559,8 +556,12 @@ Error system_execute_line(char* line, WebUI::ESPResponseStream* out, WebUI::Auth
     // non-empty string - [ESPxxx]yyy or $xxx=yyy
     return do_command_or_setting(key, value, auth_level, out);
 }
+
 Error system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level) {
-    return system_execute_line(line, new WebUI::ESPResponseStream(client, true), auth_level);
+    auto resp = new WebUI::ESPResponseStream(client, true);
+    auto ret  = system_execute_line(line, resp, auth_level);
+    delete resp;
+    return ret;
 }
 
 void system_execute_startup(char* line) {
