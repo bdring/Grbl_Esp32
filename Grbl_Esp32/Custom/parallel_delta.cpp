@@ -113,16 +113,21 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     bool           start_position_erorr = false;
     bool           show_error           = true;  // shows error once
     float          pos_cart[N_AXIS];
+    float          inital_position[N_AXIS];
+
     KinematicError status;
 
-    position[X_AXIS] += gc_state.coord_system[X_AXIS];
-    position[Y_AXIS] += gc_state.coord_system[Y_AXIS];
-    position[Z_AXIS] += gc_state.coord_system[Z_AXIS];
+    memcpy(inital_position, position, sizeof(position));
 
+    inital_position[X_AXIS] += gc_state.coord_system[X_AXIS];
+    inital_position[Y_AXIS] += gc_state.coord_system[Y_AXIS];
+    inital_position[Z_AXIS] += gc_state.coord_system[Z_AXIS];
 
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Pos:  %3.3f %3.3f %3.3f", inital_position[0], inital_position[1], inital_position[2]);
 
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target:  %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Sys Po:  %3.3f %3.3f %3.3f", sys_position[0], sys_position[1], sys_position[2]);
+
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position:  %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
 
 
@@ -138,7 +143,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 */
         // convert the current position to cartesian
 
-    calc_forward_kinematics(position, pos_cart);
+    calc_forward_kinematics(inital_position, pos_cart);
 
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "From Angs:  %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "From Cart:  %3.3f %3.3f %3.3f", pos_cart[0], pos_cart[1], pos_cart[2]);
@@ -166,7 +171,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     start_pos[Y_AXIS] = position[Y_AXIS] + gc_state.coord_system[Y_AXIS];
     start_pos[Z_AXIS] = position[Z_AXIS] + gc_state.coord_system[Z_AXIS];
 */
-    status = delta_calcInverse(position, motor_angles);
+    status = delta_calcInverse(inital_position, motor_angles);
 
     if (status == KinematicError::OUT_OF_RANGE) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
