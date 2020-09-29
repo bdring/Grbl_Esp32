@@ -96,11 +96,11 @@ const int MAX_N_AXIS = 6;
 //#define CONNECT_TO_SSID  "your SSID"
 //#define SSID_PASSWORD  "your SSID password"
 //CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
-//#define ENABLE_BLUETOOTH  // enable bluetooth
+#define ENABLE_BLUETOOTH  // enable bluetooth
 
 #define ENABLE_SD_CARD  // enable use of SD Card to run jobs
 
-//#define ENABLE_WIFI  //enable wifi
+#define ENABLE_WIFI  //enable wifi
 
 #if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
 #    define WIFI_OR_BLUETOOTH

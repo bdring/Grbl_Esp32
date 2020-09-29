@@ -48,12 +48,14 @@
 
 // ================== Delta Geometry ===========================
 
-#define RADIUS_FIXED        100.0f         // radius of the fixed side (length of motor cranks)
-#define RADIUS_EFF          220.0f           // radius of end effector side (length of linkages)
-#define LENGTH_FIXED_SIDE   294.449f  // sized of fixed side triangel
-#define LENGTH_EFF_SIDE     86.6025f    // size of end effector side triangle
-#define SEGMENT_LENGTH      0.5f         // segment length in mm
-#define MAX_NEGATIVE_ANGLE  -0.75f   //
+#define RADIUS_FIXED                100.0f          // radius of the fixed side (length of motor cranks)
+#define RADIUS_EFF                  220.0f          // radius of end effector side (length of linkages)
+#define LENGTH_FIXED_SIDE           294.449f        // sized of fixed side triangel
+#define LENGTH_EFF_SIDE             86.6025f        // size of end effector side triangle
+#define KINEMATIC_SEGMENT_LENGTH    0.5f            // segment length in mm
+#define MAX_NEGATIVE_ANGLE          -0.75f          //
+#define MAX_POSITIVE_ANGLE          (M_PI / 2.0)    //
+
 
 // ================== Config ======================
 
