@@ -71,7 +71,7 @@ const float re = RADIUS_EFF;         // radius of end effector side (length of l
 const float f  = LENGTH_FIXED_SIDE;  // sized of fixed side triangel
 const float e  = LENGTH_EFF_SIDE;    // size of end effector side triangle
 
-static float last_angle[N_AXIS]     = { 0.0, 0.0, 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
+static float last_angle[3]          = { 0.0, 0.0, 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
 static float last_cartesian[N_AXIS] = { 0.0, 0.0, 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
 float        delta_z_offset;                              // Z offset of the effector from the arm centers
 
@@ -110,6 +110,93 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
     float seg_target[3];                   // The target of the current segment
     float feed_rate = pl_data->feed_rate;  // save original feed rate
+    bool           start_position_erorr = false;
+    bool  show_error = true;  // shows error once
+
+    KinematicError status;
+    
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target:  %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position:  %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+
+    status = delta_calcInverse(position, motor_angles);
+    if (status == KinematicError::OUT_OF_RANGE) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+        //start_position_erorr = true;
+    }
+
+    // Check the destination to see if it is in work area
+    status = delta_calcInverse(target, motor_angles);
+    if (status == KinematicError::OUT_OF_RANGE) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target unreachable  error %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+        //return;
+    }
+
+    position[X_AXIS] += gc_state.coord_offset[X_AXIS];
+    position[Y_AXIS] += gc_state.coord_offset[Y_AXIS];
+    position[Z_AXIS] += gc_state.coord_offset[Z_AXIS];
+
+    dx         = target[X_AXIS] - position[X_AXIS];
+    dy         = target[Y_AXIS] - position[Y_AXIS];
+    dz         = target[Z_AXIS] - position[Z_AXIS];
+    float dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
+
+    // determine the number of segments we need	... round up so there is at least 1 (except when dist is 0)
+    uint32_t segment_count = ceil(dist / KINEMATIC_SEGMENT_LENGTH);
+
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dist %3.3f Segemnts %d", dist, segment_count);
+
+    float segment_dist = dist / ((float)segment_count);  // distance of each segment...will be used for feedrate conversion
+
+
+    for (uint32_t segment = 1; segment <= segment_count; segment++) {
+        // determine this segment's target
+        seg_target[X_AXIS] = position[X_AXIS] + (dx / float(segment_count) * segment);
+        seg_target[Y_AXIS] = position[Y_AXIS] + (dy / float(segment_count) * segment);
+        seg_target[Z_AXIS] = position[Z_AXIS] + (dz / float(segment_count) * segment);
+
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Segment Target: %3.3f %3.3f %3.3f", seg_target[0], seg_target[1], seg_target[2]);
+
+        // calculate the delta motor angles
+        KinematicError status = delta_calcInverse(seg_target, motor_angles);
+
+        if (status == KinematicError ::NONE) {
+            float delta_distance = three_axis_dist(motor_angles, last_angle);
+
+            // save angles for next distance calc
+            memcpy(last_angle, motor_angles, sizeof(motor_angles));
+
+            if (pl_data->motion.rapidMotion) {
+                pl_data->feed_rate = feed_rate;
+            } else {
+                pl_data->feed_rate = (feed_rate * delta_distance / segment_dist);
+            }
+
+           
+            mc_line(motor_angles, pl_data);
+
+        } else {
+            if (show_error) {
+                grbl_msg_sendf(CLIENT_SERIAL,
+                               MsgLevel::Info,
+                               "Error:%d, Angs X:%4.3f Y:%4.3f Z:%4.3f",
+                               status,
+                               motor_angles[0],
+                               motor_angles[1],
+                               motor_angles[2]);
+                show_error = false;
+            }
+        }
+    }
+    
+}
+
+void inverse_kinematic2(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
+{
+    float dx, dy, dz;  // distances in each cartesian axis
+    float motor_angles[3];
+
+    float seg_target[3];                   // The target of the current segment
+    float feed_rate = pl_data->feed_rate;  // save original feed rate
     //bool           start_position_erorr = false;
     bool  show_error = true;  // shows error once
     float pos_cart[3];
@@ -124,7 +211,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     inital_position[Y_AXIS] = position[Y_AXIS] + gc_state.coord_system[Y_AXIS];
     inital_position[Z_AXIS] = position[Z_AXIS] + gc_state.coord_system[Z_AXIS];
 
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Pos:  %3.3f %3.3f %3.3f", inital_position[0], inital_position[1], inital_position[2]);
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Pos:  %3.3f %3.3f %3.3f", inital_position[0], inital_position[1], inital_position[2]);
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target:  %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position:  %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
 
@@ -143,17 +230,12 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
         //return;
     }
 
-    position[X_AXIS] = target[X_AXIS] + gc_state.coord_system[X_AXIS];
-    position[Y_AXIS] = target[Y_AXIS] + gc_state.coord_system[Y_AXIS];
-    position[Z_AXIS] = target[Z_AXIS] + gc_state.coord_system[Z_AXIS];
-
     //target[Z_AXIS] -= delta_z_offset;  // restore it
     //memcpy(position, target, sizeof(target));
     //memcpy(last_angle, motor_angles, sizeof(motor_angles));
-    mc_line(motor_angles, pl_data);
 
     // calculate cartesian move distance for each axis
-    return;
+    //return;
     dx         = target[X_AXIS] - inital_position[X_AXIS];
     dy         = target[Y_AXIS] - inital_position[Y_AXIS];
     dz         = target[Z_AXIS] - inital_position[Z_AXIS];
@@ -166,11 +248,24 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
     float segment_dist = dist / ((float)segment_count);  // distance of each segment...will be used for feedrate conversion
 
+    //position[X_AXIS] = target[X_AXIS] + gc_state.coord_system[X_AXIS];
+    //position[Y_AXIS] = target[Y_AXIS] + gc_state.coord_system[Y_AXIS];
+    //position[Z_AXIS] = target[Z_AXIS] + gc_state.coord_system[Z_AXIS];
+    // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position Return: %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+    // mc_line(motor_angles, pl_data);
+    // return;
+
     for (uint32_t segment = 1; segment <= segment_count; segment++) {
         // determine this segment's target
         seg_target[X_AXIS] = inital_position[X_AXIS] + (dx / float(segment_count) * segment);
         seg_target[Y_AXIS] = inital_position[Y_AXIS] + (dy / float(segment_count) * segment);
         seg_target[Z_AXIS] = inital_position[Z_AXIS] + (dz / float(segment_count) * segment);
+
+        // seg_target[X_AXIS] = target[X_AXIS] + (dx / float(segment_count) * segment);
+        // seg_target[Y_AXIS] = target[Y_AXIS] + (dy / float(segment_count) * segment);
+        // seg_target[Z_AXIS] = target[Z_AXIS] + (dz / float(segment_count) * segment);
+
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Segment Target: %3.3f %3.3f %3.3f", seg_target[0], seg_target[1], seg_target[2]);
 
         // calculate the delta motor angles
         KinematicError status = delta_calcInverse(seg_target, motor_angles);
@@ -187,6 +282,10 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
                 pl_data->feed_rate = (feed_rate * delta_distance / segment_dist);
             }
 
+            //position[X_AXIS] = seg_target[X_AXIS] + gc_state.coord_system[X_AXIS];
+            //position[Y_AXIS] = seg_target[Y_AXIS] + gc_state.coord_system[Y_AXIS];
+            //position[Z_AXIS] = seg_target[Z_AXIS] + gc_state.coord_system[Z_AXIS];
+
             mc_line(motor_angles, pl_data);
 
         } else {
@@ -202,6 +301,14 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
             }
         }
     }
+    position[X_AXIS] = target[X_AXIS] - gc_state.coord_system[X_AXIS];
+    position[Y_AXIS] = target[Y_AXIS] - gc_state.coord_system[Y_AXIS];
+    position[Z_AXIS] = target[Z_AXIS] - gc_state.coord_system[Z_AXIS];
+
+    // position[X_AXIS] = target[X_AXIS];
+    // position[Y_AXIS] = target[Y_AXIS];
+    // position[Z_AXIS] = target[Z_AXIS];
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position Return: %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
 }
 
 // inverse kinematics: cartesian -> angles
@@ -353,19 +460,23 @@ void kinematics_post_homing() {
 
     calc_forward_kinematics(last_angle, last_cartesian);
 
-    grbl_msg_sendf(CLIENT_SERIAL,
-                   MsgLevel::Info,
-                   "kinematics_post_homing Angles: %3.3f, %3.3f, %3.3f",
-                   last_angle[X_AXIS],
-                   last_angle[Y_AXIS],
-                   last_angle[Z_AXIS]);
+    // grbl_msg_sendf(CLIENT_SERIAL,
+    //                MsgLevel::Info,
+    //                "kinematics_post_homing Angles: %3.3f, %3.3f, %3.3f",
+    //                last_angle[X_AXIS],
+    //                last_angle[Y_AXIS],
+    //                last_angle[Z_AXIS]);
 
-    grbl_msg_sendf(CLIENT_SERIAL,
-                   MsgLevel::Info,
-                   "kinematics_post_homing Cartesian: %3.3f, %3.3f, %3.3f",
-                   last_cartesian[X_AXIS],
-                   last_cartesian[Y_AXIS],
-                   last_cartesian[Z_AXIS]);
+    // grbl_msg_sendf(CLIENT_SERIAL,
+    //                MsgLevel::Info,
+    //                "kinematics_post_homing Cartesian: %3.3f, %3.3f, %3.3f",
+    //                last_cartesian[X_AXIS],
+    //                last_cartesian[Y_AXIS],
+    //                last_cartesian[Z_AXIS]);
+
+    gc_state.position[X_AXIS] = last_cartesian[X_AXIS];
+    gc_state.position[Y_AXIS] = last_cartesian[Y_AXIS];
+    gc_state.position[Z_AXIS] = last_cartesian[Z_AXIS];
 
 #endif
 }
