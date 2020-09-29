@@ -52,7 +52,7 @@
 #define RADIUS_EFF                  220.0f          // radius of end effector side (length of linkages)
 #define LENGTH_FIXED_SIDE           294.449f        // sized of fixed side triangel
 #define LENGTH_EFF_SIDE             86.6025f        // size of end effector side triangle
-#define KINEMATIC_SEGMENT_LENGTH    0.5f            // segment length in mm
+#define KINEMATIC_SEGMENT_LENGTH    1.0f            // segment length in mm
 #define MAX_NEGATIVE_ANGLE          -0.75f          //
 #define MAX_POSITIVE_ANGLE          (M_PI / 2.0)    //
 
@@ -65,8 +65,8 @@
 
 #define TRINAMIC_DAISY_CHAIN
 
-#define TRINAMIC_RUN_MODE       TrinamicMode ::StealthChop
-#define TRINAMIC_HOMING_MODE    TrinamicMode ::StealthChop
+#define TRINAMIC_RUN_MODE       TrinamicMode ::CoolStep
+#define TRINAMIC_HOMING_MODE    TrinamicMode ::CoolStep
 
 // Use SPI enable instead of the enable pin
 // The hardware enable pin is tied to ground
