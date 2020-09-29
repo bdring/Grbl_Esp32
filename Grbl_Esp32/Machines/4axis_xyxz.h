@@ -13,7 +13,7 @@
  // Beides ist eingerichtet.
 #define N_AXIS 3
 
-#define CUSTOM_CODE_FILENAME "Custom/4axis_xyxz.cpp"
+//#define CUSTOM_CODE_FILENAME "Custom/4axis_xyxz.cpp"
 
 /*
  * Zuordnung Schrittmotoren
@@ -43,18 +43,17 @@
  * The 1 bits in LIMIT_MASK set the axes that have limit switches
  * X, Y, Z, A do, the LIMIT_MASK value would be B1111
  */
-#define LIMIT_MASK              B1111
 #define X_LIMIT_PIN             GPIO_NUM_17 //ok
 #define Y_LIMIT_PIN             GPIO_NUM_4  //ok
 #define Z_LIMIT_PIN             GPIO_NUM_16 //ok
 
  // Falls die 4. Achse genutzt wird
 #if (N_AXIS == 4)
-#define A_LIMIT_PIN         GPIO_NUM_21 //ok
-#define LIMIT_MASK          B1111
+    #define A_LIMIT_PIN         GPIO_NUM_21 //ok
+    #define LIMIT_MASK          B1111
 #else
     // bei 3 Achsen
-#define LIMIT_MASK          B111
+    #define LIMIT_MASK          B111
 #endif
 
 /*
