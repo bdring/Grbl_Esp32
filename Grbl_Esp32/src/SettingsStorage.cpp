@@ -1,0 +1,76 @@
+/*
+  SettingsStorage.cpp - EEPROM configuration handling
+  Part of Grbl
+
+  Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
+  Copyright (c) 2009-2011 Simen Svale Skogsrud
+
+	2018 -	Bart Dring This file was modifed for use on the ESP32
+					CPU. Do not use this with Grbl for atMega328P
+
+  Grbl is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Grbl is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "Grbl.h"
+
+// Read selected coordinate data from EEPROM. Updates pointed coord_data value.
+// This is now a compatibility routine that is used to propagate coordinate data
+// in the old EEPROM format to the new tagged NVS format.
+bool old_settings_read_coord_data(uint8_t coord_select, float* coord_data) {
+    uint32_t addr = coord_select * (sizeof(float) * N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
+    if (!(memcpy_from_eeprom_with_old_checksum((char*)coord_data, addr, sizeof(float) * N_AXIS)) &&
+        !(memcpy_from_eeprom_with_checksum((char*)coord_data, addr, sizeof(float) * MAX_N_AXIS))) {
+        // Reset with default zero vector
+        clear_vector_float(coord_data);
+        // The old code used to rewrite the zeroed data but now that is done
+        // elsewhere, in a different format.
+        return false;
+    }
+    return true;
+}
+
+// Method to store build info into EEPROM
+// NOTE: This function can only be called in IDLE state.
+void settings_store_build_info(const char* line) {
+    // Build info can only be stored when state is IDLE.
+    memcpy_to_eeprom_with_checksum(EEPROM_ADDR_BUILD_INFO, (char*)line, LINE_BUFFER_SIZE);
+}
+
+// Reads startup line from EEPROM. Updated pointed line string data.
+uint8_t settings_read_build_info(char* line) {
+    if (!(memcpy_from_eeprom_with_checksum((char*)line, EEPROM_ADDR_BUILD_INFO, LINE_BUFFER_SIZE))) {
+        // Reset line with default value
+        line[0] = 0;  // Empty line
+        settings_store_build_info(line);
+        return false;
+    }
+    return true;
+}
+
+// Returns step pin mask according to Grbl internal axis indexing.
+uint8_t get_step_pin_mask(uint8_t axis_idx) {
+    // todo clean this up further up stream
+    return bit(axis_idx);
+}
+
+// Returns direction pin mask according to Grbl internal axis indexing.
+uint8_t get_direction_pin_mask(uint8_t axis_idx) {
+    return bit(axis_idx);
+}
+
+// Allow iteration over CoordIndex values
+CoordIndex& operator ++ (CoordIndex& i) {
+    i = static_cast<CoordIndex>(static_cast<uint8_t>(i) + 1);
+    return i;
+}

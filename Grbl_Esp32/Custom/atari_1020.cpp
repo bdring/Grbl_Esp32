@@ -28,60 +28,60 @@
 // in Machines/atari_1020.h, thus causing this file to be included
 // from ../custom_code.cpp
 
-#define HOMING_PHASE_FULL_APPROACH 0  // move to right end
-#define HOMING_PHASE_CHECK 1		  // check reed switch
-#define HOMING_PHASE_RETRACT 2		  // retract
-#define HOMING_PHASE_SHORT_APPROACH 3 // retract
+#define HOMING_PHASE_FULL_APPROACH 0   // move to right end
+#define HOMING_PHASE_CHECK 1           // check reed switch
+#define HOMING_PHASE_RETRACT 2         // retract
+#define HOMING_PHASE_SHORT_APPROACH 3  // retract
 
 static TaskHandle_t solenoidSyncTaskHandle = 0;
-static TaskHandle_t atariHomingTaskHandle = 0;
-int8_t solenoid_pwm_chan_num;
-uint16_t solenoid_pull_count;
-bool atari_homing = false;
-uint8_t homing_phase = HOMING_PHASE_FULL_APPROACH;
-uint8_t current_tool;
+static TaskHandle_t atariHomingTaskHandle  = 0;
+int8_t              solenoid_pwm_chan_num;
+uint16_t            solenoid_pull_count;
+bool                atari_homing = false;
+uint8_t             homing_phase = HOMING_PHASE_FULL_APPROACH;
+uint8_t             current_tool;
 
 void machine_init() {
-    solenoid_pull_count = 0; // initialize
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Atari 1020 Solenoid");
+    solenoid_pull_count = 0;  // initialize
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Atari 1020 Solenoid");
     // setup PWM channel
     solenoid_pwm_chan_num = sys_get_next_PWM_chan_num();
     ledcSetup(solenoid_pwm_chan_num, SOLENOID_PWM_FREQ, SOLENOID_PWM_RES_BITS);
     ledcAttachPin(SOLENOID_PEN_PIN, solenoid_pwm_chan_num);
-    pinMode(SOLENOID_DIRECTION_PIN, OUTPUT); // this sets the direction of the solenoid current
-    pinMode(REED_SW_PIN, INPUT_PULLUP);		 // external pullup required
+    pinMode(SOLENOID_DIRECTION_PIN, OUTPUT);  // this sets the direction of the solenoid current
+    pinMode(REED_SW_PIN, INPUT_PULLUP);       // external pullup required
     // setup a task that will calculate solenoid position
-    xTaskCreatePinnedToCore(solenoidSyncTask,   // task
-                            "solenoidSyncTask", // name for task
-                            4096,				// size of task stack
-                            NULL,				// parameters
-                            1,					// priority
+    xTaskCreatePinnedToCore(solenoidSyncTask,    // task
+                            "solenoidSyncTask",  // name for task
+                            4096,                // size of task stack
+                            NULL,                // parameters
+                            1,                   // priority
                             &solenoidSyncTaskHandle,
-                            0 // core
-                           );
+                            0  // core
+    );
     // setup a task that will do the custom homing sequence
-    xTaskCreatePinnedToCore(atari_home_task,   // task
-                            "atari_home_task", // name for task
-                            4096,			   // size of task stack
-                            NULL,			   // parameters
-                            1,				   // priority
+    xTaskCreatePinnedToCore(atari_home_task,    // task
+                            "atari_home_task",  // name for task
+                            4096,               // size of task stack
+                            NULL,               // parameters
+                            1,                  // priority
                             &atariHomingTaskHandle,
-                            0 // core
-                           );
+                            0  // core
+    );
 }
 
 // this task tracks the Z position and sets the solenoid
 void solenoidSyncTask(void* pvParameters) {
-    int32_t current_position[N_AXIS]; // copy of current location
-    float m_pos[N_AXIS];			  // machine position in mm
-    TickType_t xLastWakeTime;
-    const TickType_t xSolenoidFrequency = SOLENOID_TASK_FREQ; // in ticks (typically ms)
-    xLastWakeTime = xTaskGetTickCount(); // Initialise the xLastWakeTime variable with the current time.
+    int32_t          current_position[N_AXIS];  // copy of current location
+    float            m_pos[N_AXIS];             // machine position in mm
+    TickType_t       xLastWakeTime;
+    const TickType_t xSolenoidFrequency = SOLENOID_TASK_FREQ;   // in ticks (typically ms)
+    xLastWakeTime                       = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
     while (true) {
         // don't ever return from this or the task dies
-        memcpy(current_position, sys_position, sizeof(sys_position)); // get current position in step
-        system_convert_array_steps_to_mpos(m_pos, current_position);  // convert to millimeters
-        calc_solenoid(m_pos[Z_AXIS]);								  // calculate kinematics and move the servos
+        memcpy(current_position, sys_position, sizeof(sys_position));  // get current position in step
+        system_convert_array_steps_to_mpos(m_pos, current_position);   // convert to millimeters
+        calc_solenoid(m_pos[Z_AXIS]);                                  // calculate kinematics and move the servos
         vTaskDelayUntil(&xLastWakeTime, xSolenoidFrequency);
     }
 }
@@ -94,7 +94,7 @@ bool user_defined_homing() {
     // create and start a task to do the special homing
     homing_phase = HOMING_PHASE_FULL_APPROACH;
     atari_homing = true;
-    return true; // this does it...skip the rest of mc_homing_cycle(...)
+    return true;  // this does it...skip the rest of mc_homing_cycle(...)
 }
 
 /*
@@ -113,61 +113,61 @@ bool user_defined_homing() {
 
 */
 void atari_home_task(void* pvParameters) {
-    uint8_t homing_attempt = 0; // how many times have we tried to home
-    TickType_t xLastWakeTime;
-    const TickType_t xHomingTaskFrequency = 100; // in ticks (typically ms) .... need to make sure there is enough time to get out of idle
-    char gcode_line[20];
+    uint8_t          homing_attempt = 0;  // how many times have we tried to home
+    TickType_t       xLastWakeTime;
+    const TickType_t xHomingTaskFrequency = 100;  // in ticks (typically ms) .... need to make sure there is enough time to get out of idle
+    char             gcode_line[20];
     while (true) {
         // this task will only last as long as it is homing
         if (atari_homing) {
             // must be in idle or alarm state
-            if (sys.state == STATE_IDLE) {
+            if (sys.state == State::Idle) {
                 switch (homing_phase) {
-                case HOMING_PHASE_FULL_APPROACH:													 // a full width move to insure it hits left end
-                    inputBuffer.push("G90G0Z1\r");													 // lift the pen
-                    sprintf(gcode_line, "G91G0X%3.2f\r", -ATARI_PAPER_WIDTH + ATARI_HOME_POS - 3.0); // plus a little extra
-                    inputBuffer.push(gcode_line);
-                    homing_attempt = 1;
-                    homing_phase = HOMING_PHASE_CHECK;
-                    break;
-                case HOMING_PHASE_CHECK: // check the limits switch
-                    if (digitalRead(REED_SW_PIN) == 0) {
-                        // see if reed switch is grounded
-                        inputBuffer.push("G4P0.1\n"); // dramtic pause
-                        sys_position[X_AXIS] = ATARI_HOME_POS * axis_settings[X_AXIS]->steps_per_mm->get();
-                        sys_position[Y_AXIS] = 0.0;
-                        sys_position[Z_AXIS] = 1.0 * axis_settings[Y_AXIS]->steps_per_mm->get();
-                        gc_sync_position();
-                        plan_sync_position();
-                        sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH); // alway return to right side to reduce home travel stalls
-                        inputBuffer.push(gcode_line);
-                        current_tool = 1; // local copy for reference...until actual M6 change
-                        gc_state.tool = current_tool;
-                        atari_homing = false; // done with homing sequence
-                    } else {
-                        homing_phase = HOMING_PHASE_RETRACT;
-                        homing_attempt++;
-                    }
-                    break;
-                case HOMING_PHASE_RETRACT:
-                    sprintf(gcode_line, "G0X%3.2f\r", -ATARI_HOME_POS);
-                    inputBuffer.push(gcode_line);
-                    sprintf(gcode_line, "G0X%3.2f\r", ATARI_HOME_POS);
-                    inputBuffer.push(gcode_line);
-                    homing_phase = HOMING_PHASE_CHECK;
-                    break;
-                default:
-                    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Homing phase error %d", homing_phase);
-                    atari_homing = false;
-                    ; // kills task
-                    break;
+                    case HOMING_PHASE_FULL_APPROACH:           // a full width move to insure it hits left end
+                        WebUI::inputBuffer.push("G90G0Z1\r");  // lift the pen
+                        sprintf(gcode_line, "G91G0X%3.2f\r", -ATARI_PAPER_WIDTH + ATARI_HOME_POS - 3.0);  // plus a little extra
+                        WebUI::inputBuffer.push(gcode_line);
+                        homing_attempt = 1;
+                        homing_phase   = HOMING_PHASE_CHECK;
+                        break;
+                    case HOMING_PHASE_CHECK:  // check the limits switch
+                        if (digitalRead(REED_SW_PIN) == 0) {
+                            // see if reed switch is grounded
+                            WebUI::inputBuffer.push("G4P0.1\n");  // dramtic pause
+                            sys_position[X_AXIS] = ATARI_HOME_POS * axis_settings[X_AXIS]->steps_per_mm->get();
+                            sys_position[Y_AXIS] = 0.0;
+                            sys_position[Z_AXIS] = 1.0 * axis_settings[Y_AXIS]->steps_per_mm->get();
+                            gc_sync_position();
+                            plan_sync_position();
+                            sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  // alway return to right side to reduce home travel stalls
+                            WebUI::inputBuffer.push(gcode_line);
+                            current_tool  = 1;  // local copy for reference...until actual M6 change
+                            gc_state.tool = current_tool;
+                            atari_homing  = false;  // done with homing sequence
+                        } else {
+                            homing_phase = HOMING_PHASE_RETRACT;
+                            homing_attempt++;
+                        }
+                        break;
+                    case HOMING_PHASE_RETRACT:
+                        sprintf(gcode_line, "G0X%3.2f\r", -ATARI_HOME_POS);
+                        WebUI::inputBuffer.push(gcode_line);
+                        sprintf(gcode_line, "G0X%3.2f\r", ATARI_HOME_POS);
+                        WebUI::inputBuffer.push(gcode_line);
+                        homing_phase = HOMING_PHASE_CHECK;
+                        break;
+                    default:
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Homing phase error %d", homing_phase);
+                        atari_homing = false;
+
+                        // kills task
+                        break;
                 }
                 if (homing_attempt > ATARI_HOMING_ATTEMPTS) {
                     // try all positions plus 1
-                    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Atari homing failed");
-                    inputBuffer.push("G90\r");
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Atari homing failed");
+                    WebUI::inputBuffer.push("G90\r");
                     atari_homing = false;
-                    ;
                 }
             }
         }
@@ -177,25 +177,25 @@ void atari_home_task(void* pvParameters) {
 
 // calculate and set the PWM value for the servo
 void calc_solenoid(float penZ) {
-    bool isPenUp;
+    bool        isPenUp;
     static bool previousPenState = false;
-    uint32_t solenoid_pen_pulse_len; // duty cycle of solenoid
-    isPenUp = ((penZ > 0) || (sys.state == STATE_ALARM)); // is pen above Z0 or is there an alarm
+    uint32_t    solenoid_pen_pulse_len;                    // duty cycle of solenoid
+    isPenUp = ((penZ > 0) || (sys.state == State::Alarm));  // is pen above Z0 or is there an alarm
     // if the state has not change, we only count down to the pull time
     if (previousPenState == isPenUp) {
         // if state is unchanged
         if (solenoid_pull_count > 0) {
             solenoid_pull_count--;
-            solenoid_pen_pulse_len = SOLENOID_PULSE_LEN_PULL; // stay at full power while counting down
+            solenoid_pen_pulse_len = SOLENOID_PULSE_LEN_PULL;  // stay at full power while counting down
         } else {
-            solenoid_pen_pulse_len = SOLENOID_PULSE_LEN_HOLD; // pull in delay has expired so lower duty cycle
+            solenoid_pen_pulse_len = SOLENOID_PULSE_LEN_HOLD;  // pull in delay has expired so lower duty cycle
         }
     } else {
         // pen direction has changed
-        solenoid_pen_pulse_len = SOLENOID_PULSE_LEN_PULL; // go to full power
-        solenoid_pull_count = SOLENOID_PULL_DURATION;	 // set the time to count down
+        solenoid_pen_pulse_len = SOLENOID_PULSE_LEN_PULL;  // go to full power
+        solenoid_pull_count    = SOLENOID_PULL_DURATION;   // set the time to count down
     }
-    previousPenState = isPenUp; // save the prev state
+    previousPenState = isPenUp;  // save the prev state
     digitalWrite(SOLENOID_DIRECTION_PIN, isPenUp);
     // skip setting value if it is unchanged
     if (ledcRead(solenoid_pwm_chan_num) == solenoid_pen_pulse_len)
@@ -214,10 +214,10 @@ void calc_solenoid(float penZ) {
 */
 void user_tool_change(uint8_t new_tool) {
     uint8_t move_count;
-    char gcode_line[20];
-    protocol_buffer_synchronize(); // wait for all previous moves to complete
+    char    gcode_line[20];
+    protocol_buffer_synchronize();  // wait for all previous moves to complete
     if ((new_tool < 1) || (new_tool > MAX_PEN_NUMBER)) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Requested Pen#%d is out of 1-4 range", new_tool);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Requested Pen#%d is out of 1-4 range", new_tool);
         return;
     }
     if (new_tool == current_tool)
@@ -226,23 +226,20 @@ void user_tool_change(uint8_t new_tool) {
         move_count = BUMPS_PER_PEN_CHANGE * (new_tool - current_tool);
     else
         move_count = BUMPS_PER_PEN_CHANGE * ((MAX_PEN_NUMBER - current_tool) + new_tool);
-    sprintf(gcode_line, "G0Z%3.2f\r", ATARI_TOOL_CHANGE_Z); // go to tool change height
-    inputBuffer.push(gcode_line);
+    sprintf(gcode_line, "G0Z%3.2f\r", ATARI_TOOL_CHANGE_Z);  // go to tool change height
+    WebUI::inputBuffer.push(gcode_line);
     for (uint8_t i = 0; i < move_count; i++) {
-        sprintf(gcode_line, "G0X%3.2f\r", ATARI_HOME_POS); //
-        inputBuffer.push(gcode_line);
-        inputBuffer.push("G0X0\r");
+        sprintf(gcode_line, "G0X%3.2f\r", ATARI_HOME_POS);  //
+        WebUI::inputBuffer.push(gcode_line);
+        WebUI::inputBuffer.push("G0X0\r");
     }
     current_tool = new_tool;
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Change to Pen#%d", current_tool);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Change to Pen#%d", current_tool);
 }
 
 // move from current tool to next tool....
 void atari_next_pen() {
-    if (current_tool < MAX_PEN_NUMBER)
-        gc_state.tool = current_tool + 1;
-    else
-        gc_state.tool = 1;
+    gc_state.tool = current_tool < MAX_PEN_NUMBER ? current_tool + 1 : 1;
     user_tool_change(gc_state.tool);
 }
 
@@ -251,38 +248,38 @@ void user_defined_macro(uint8_t index) {
     char gcode_line[20];
     switch (index) {
 #ifdef MACRO_BUTTON_0_PIN
-    case CONTROL_PIN_INDEX_MACRO_0:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Pen switch");
-        inputBuffer.push("$H\r");
-        break;
+        case CONTROL_PIN_INDEX_MACRO_0:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Pen switch");
+            WebUI::inputBuffer.push("$H\r");
+            break;
 #endif
 #ifdef MACRO_BUTTON_1_PIN
-    case CONTROL_PIN_INDEX_MACRO_1:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Color switch");
-        atari_next_pen();
-        sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH); // alway return to right side to reduce home travel stalls
-        inputBuffer.push(gcode_line);
-        break;
+        case CONTROL_PIN_INDEX_MACRO_1:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Color switch");
+            atari_next_pen();
+            sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  // alway return to right side to reduce home travel stalls
+            WebUI::inputBuffer.push(gcode_line);
+            break;
 #endif
 #ifdef MACRO_BUTTON_2_PIN
-    case CONTROL_PIN_INDEX_MACRO_2:
-        // feed out some paper and reset the Y 0
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Paper switch");
-        inputBuffer.push("G0Y-25\r");
-        inputBuffer.push("G4P0.1\r"); // sync...forces wait for planner to clear
-        sys_position[Y_AXIS] = 0.0;   // reset the Y position
-        gc_sync_position();
-        plan_sync_position();
-        break;
+        case CONTROL_PIN_INDEX_MACRO_2:
+            // feed out some paper and reset the Y 0
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Paper switch");
+            WebUI::inputBuffer.push("G0Y-25\r");
+            WebUI::inputBuffer.push("G4P0.1\r");  // sync...forces wait for planner to clear
+            sys_position[Y_AXIS] = 0.0;           // reset the Y position
+            gc_sync_position();
+            plan_sync_position();
+            break;
 #endif
-    default:
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Unknown Switch %d", index);
-        break;
+        default:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Unknown Switch %d", index);
+            break;
     }
 }
 
 void user_m30() {
     char gcode_line[20];
-    sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH); //
-    inputBuffer.push(gcode_line);
+    sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  //
+    WebUI::inputBuffer.push(gcode_line);
 }

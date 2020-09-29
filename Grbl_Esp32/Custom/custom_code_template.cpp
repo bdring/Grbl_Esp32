@@ -51,9 +51,7 @@ enabled with USE_ defines in Machines/my_machine.h
 machine_init() is called when Grbl_ESP32 first starts. You can use it to do any
 special things your machine needs at startup.
 */
-void machine_init()
-{
-}
+void machine_init() {}
 #endif
 
 #ifdef USE_CUSTOM_HOMING
@@ -64,10 +62,9 @@ void machine_init()
   example, if you need to manually prep the machine for homing, you could implement
   user_defined_homing() to wait for some button to be pressed, then return true.
 */
-bool user_defined_homing()
-{
-  // True = done with homing, false = continue with normal Grbl_ESP32 homing
-  return true;
+bool user_defined_homing() {
+    // True = done with homing, false = continue with normal Grbl_ESP32 homing
+    return true;
 }
 #endif
 
@@ -89,10 +86,9 @@ bool user_defined_homing()
     pl_data = planner data (see the definition of this type to see what it is)
     position = an N_AXIS array of where the machine is starting from for this move
 */
-void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *position)
-{
-  // this simply moves to the target. Replace with your kinematics.
-  mc_line(target, pl_data);
+void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
+    // this simply moves to the target. Replace with your kinematics.
+    mc_line(target, pl_data);
 }
 
 /*
@@ -103,28 +99,25 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
 */
 bool kinematics_pre_homing(uint8_t cycle_mask))
 {
-  return false; // finish normal homing cycle
+    return false;  // finish normal homing cycle
 }
 
 /*
   kinematics_post_homing() is called at the end of normal homing
 */
-void kinematics_post_homing()
-{
-}
+void kinematics_post_homing() {}
 #endif
 
-#ifdef USE_FWD_KINEMATIC
+#ifdef USE_FWD_KINEMATICS
 /*
   The status command uses forward_kinematics() to convert
   your motor positions to cartesian X,Y,Z... coordinates.
 
   Convert the N_AXIS array of motor positions to cartesian in your code.
 */
-void forward_kinematics(float *position)
-{
-  // position[X_AXIS] =
-  // position[Y_AXIS] =
+void forward_kinematics(float* position) {
+    // position[X_AXIS] =
+    // position[Y_AXIS] =
 }
 #endif
 
@@ -133,9 +126,7 @@ void forward_kinematics(float *position)
   user_tool_change() is called when tool change gcode is received,
   to perform appropriate actions for your machine.
 */
-void user_tool_change(uint8_t new_tool)
-{
-}
+void user_tool_change(uint8_t new_tool) {}
 #endif
 
 #if defined(MACRO_BUTTON_0_PIN) || defined(MACRO_BUTTON_1_PIN) || defined(MACRO_BUTTON_2_PIN)
@@ -143,18 +134,14 @@ void user_tool_change(uint8_t new_tool)
   options.  user_defined_macro() is called with the button number to
   perform whatever actions you choose.
 */
-void user_defined_macro(uint8_t index)
-{
-}
+void user_defined_macro(uint8_t index) {}
 #endif
 
 #ifdef USE_M30
 /*
   user_m30() is called when an M30 gcode signals the end of a gcode file.
 */
-void user_m30()
-{
-}
+void user_m30() {}
 #endif
 
 #ifdef USE_MACHINE_TRINAMIC_INIT
@@ -162,9 +149,7 @@ void user_m30()
   machine_triaminic_setup() replaces the normal setup of trinamic
   drivers with your own code.  For example, you could setup StallGuard
 */
-void machine_trinamic_setup()
-{
-}
+void machine_trinamic_setup() {}
 #endif
 
 // If you add any additional functions specific to your machine that

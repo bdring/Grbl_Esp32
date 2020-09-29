@@ -54,18 +54,17 @@
 // in Machines/polar_coaster.h, thus causing this file to be included
 // from ../custom_code.cpp
 
-
-void calc_polar(float *target_xyz, float *polar, float last_angle);
+void  calc_polar(float* target_xyz, float* polar, float last_angle);
 float abs_angle(float ang);
 
-static float last_angle = 0;
+static float last_angle  = 0;
 static float last_radius = 0;
 
 // this get called before homing
 // return false to complete normal home
 // return true to exit normal homing
 bool kinematics_pre_homing(uint8_t cycle_mask) {
-    return false;                                                              // finish normal homing cycle
+    return false;  // finish normal homing cycle
 }
 
 void kinematics_post_homing() {
@@ -86,17 +85,17 @@ void kinematics_post_homing() {
 
 
 */
-void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *position) {
+void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
     //static float last_angle = 0;
     //static float last_radius = 0;
-    float dx, dy, dz;                                                                // distances in each cartesian axis
-    float p_dx, p_dy, p_dz;                                                          // distances in each polar axis
-    float dist, polar_dist;                                                          // the distances in both systems...used to determine feed rate
-    uint32_t segment_count;                                                          // number of segments the move will be broken in to.
-    float seg_target[N_AXIS];                                                        // The target of the current segment
-    float polar[N_AXIS];                                                             // target location in polar coordinates
-    float x_offset = gc_state.coord_system[X_AXIS] + gc_state.coord_offset[X_AXIS];  // offset from machine coordinate system
-    float z_offset = gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS];  // offset from machine coordinate system
+    float    dx, dy, dz;          // distances in each cartesian axis
+    float    p_dx, p_dy, p_dz;    // distances in each polar axis
+    float    dist, polar_dist;    // the distances in both systems...used to determine feed rate
+    uint32_t segment_count;       // number of segments the move will be broken in to.
+    float    seg_target[N_AXIS];  // The target of the current segment
+    float    polar[N_AXIS];       // target location in polar coordinates
+    float    x_offset = gc_state.coord_system[X_AXIS] + gc_state.coord_offset[X_AXIS];  // offset from machine coordinate system
+    float    z_offset = gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS];  // offset from machine coordinate system
     //grbl_sendf(CLIENT_SERIAL, "Position: %4.2f %4.2f %4.2f \r\n", position[X_AXIS] - x_offset, position[Y_AXIS], position[Z_AXIS]);
     //grbl_sendf(CLIENT_SERIAL, "Target: %4.2f %4.2f %4.2f \r\n", target[X_AXIS] - x_offset, target[Y_AXIS], target[Z_AXIS]);
     // calculate cartesian move distance for each axis
@@ -106,7 +105,7 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
     // calculate the total X,Y axis move distance
     // Z axis is the same in both coord systems, so it is ignored
     dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
-    if (pl_data->condition & PL_COND_FLAG_RAPID_MOTION) {
+    if (pl_data->motion.rapidMotion) {
         segment_count = 1;  // rapid G0 motion is not used to draw, so skip the segmentation
     } else {
         segment_count = ceil(dist / SEGMENT_LENGTH);  // determine the number of segments we need	... round up so there is at least 1
@@ -120,11 +119,11 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
         calc_polar(seg_target, polar, last_angle);
         // begin determining new feed rate
         // calculate move distance for each axis
-        p_dx = polar[RADIUS_AXIS] - last_radius;
-        p_dy = polar[POLAR_AXIS] - last_angle;
-        p_dz = dz;
-        polar_dist = sqrt((p_dx * p_dx) + (p_dy * p_dy) + (p_dz * p_dz));  // calculate the total move distance
-        float polar_rate_multiply = 1.0;                                   // fail safe rate
+        p_dx                      = polar[RADIUS_AXIS] - last_radius;
+        p_dy                      = polar[POLAR_AXIS] - last_angle;
+        p_dz                      = dz;
+        polar_dist                = sqrt((p_dx * p_dx) + (p_dy * p_dy) + (p_dz * p_dz));  // calculate the total move distance
+        float polar_rate_multiply = 1.0;                                                  // fail safe rate
         if (polar_dist == 0 || dist == 0) {
             // prevent 0 feed rate and division by 0
             polar_rate_multiply = 1.0;  // default to same feed rate
@@ -141,7 +140,7 @@ void inverse_kinematics(float *target, plan_line_data_t *pl_data, float *positio
         polar[RADIUS_AXIS] += x_offset;
         polar[Z_AXIS] += z_offset;
         last_radius = polar[RADIUS_AXIS];
-        last_angle = polar[POLAR_AXIS];
+        last_angle  = polar[POLAR_AXIS];
         mc_line(polar, pl_data);
     }
     // TO DO don't need a feedrate for rapids
@@ -160,18 +159,18 @@ position = the current machine position
 converted = position with forward kinematics applied.
 
 */
-void forward_kinematics(float *position) {
-    float original_position[N_AXIS];  // temporary storage of original
-    float print_position[N_AXIS];
+void forward_kinematics(float* position) {
+    float   original_position[N_AXIS];  // temporary storage of original
+    float   print_position[N_AXIS];
     int32_t current_position[N_AXIS];  // Copy current state of the system position variable
     memcpy(current_position, sys_position, sizeof(sys_position));
     system_convert_array_steps_to_mpos(print_position, current_position);
     original_position[X_AXIS] = print_position[X_AXIS] - gc_state.coord_system[X_AXIS] + gc_state.coord_offset[X_AXIS];
     original_position[Y_AXIS] = print_position[Y_AXIS] - gc_state.coord_system[Y_AXIS] + gc_state.coord_offset[Y_AXIS];
     original_position[Z_AXIS] = print_position[Z_AXIS] - gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS];
-    position[X_AXIS] = cos(radians(original_position[Y_AXIS])) * original_position[X_AXIS] * -1;
-    position[Y_AXIS] = sin(radians(original_position[Y_AXIS])) * original_position[X_AXIS];
-    position[Z_AXIS] = original_position[Z_AXIS];  // unchanged
+    position[X_AXIS]          = cos(radians(original_position[Y_AXIS])) * original_position[X_AXIS] * -1;
+    position[Y_AXIS]          = sin(radians(original_position[Y_AXIS])) * original_position[X_AXIS];
+    position[Z_AXIS]          = original_position[Z_AXIS];  // unchanged
 }
 
 // helper functions
@@ -189,7 +188,7 @@ void forward_kinematics(float *position) {
 *   a long job.
 *
 */
-void calc_polar(float *target_xyz, float *polar, float last_angle) {
+void calc_polar(float* target_xyz, float* polar, float last_angle) {
     float delta_ang;  // the difference from the last and next angle
     polar[RADIUS_AXIS] = hypot_f(target_xyz[X_AXIS], target_xyz[Y_AXIS]);
     if (polar[RADIUS_AXIS] == 0) {
@@ -200,7 +199,7 @@ void calc_polar(float *target_xyz, float *polar, float last_angle) {
         polar[POLAR_AXIS] = abs_angle(polar[POLAR_AXIS]);
     }
     polar[Z_AXIS] = target_xyz[Z_AXIS];  // Z is unchanged
-    delta_ang = polar[POLAR_AXIS] - abs_angle(last_angle);
+    delta_ang     = polar[POLAR_AXIS] - abs_angle(last_angle);
     // if the delta is above 180 degrees it means we are crossing the 0 degree line
     if (fabs(delta_ang) <= 180.0)
         polar[POLAR_AXIS] = last_angle + delta_ang;
@@ -225,30 +224,30 @@ float abs_angle(float ang) {
 void user_defined_macro(uint8_t index) {
     switch (index) {
 #ifdef MACRO_BUTTON_0_PIN
-    case CONTROL_PIN_INDEX_MACRO_0:
-        inputBuffer.push("$H\r");  // home machine
-        break;
+        case CONTROL_PIN_INDEX_MACRO_0:
+            WebUI::inputBuffer.push("$H\r");  // home machine
+            break;
 #endif
 #ifdef MACRO_BUTTON_1_PIN
-    case CONTROL_PIN_INDEX_MACRO_1:
-        inputBuffer.push("[ESP220]/1.nc\r");  // run SD card file 1.nc
-        break;
+        case CONTROL_PIN_INDEX_MACRO_1:
+            WebUI::inputBuffer.push("[ESP220]/1.nc\r");  // run SD card file 1.nc
+            break;
 #endif
 #ifdef MACRO_BUTTON_2_PIN
-    case CONTROL_PIN_INDEX_MACRO_2:
-        inputBuffer.push("[ESP220]/2.nc\r");  // run SD card file 2.nc
-        break;
+        case CONTROL_PIN_INDEX_MACRO_2:
+            WebUI::inputBuffer.push("[ESP220]/2.nc\r");  // run SD card file 2.nc
+            break;
 #endif
 #ifdef MACRO_BUTTON_3_PIN
-    case CONTROL_PIN_INDEX_MACRO_3:
-        break;
+        case CONTROL_PIN_INDEX_MACRO_3:
+            break;
 #endif
-    default:
-        break;
+        default:
+            break;
     }
 }
 
 // handle the M30 command
 void user_m30() {
-    inputBuffer.push("$H\r");
+    WebUI::inputBuffer.push("$H\r");
 }
