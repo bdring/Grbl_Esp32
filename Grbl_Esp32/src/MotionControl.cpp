@@ -283,6 +283,7 @@ static bool axis_is_squared(uint8_t axis_mask) {
 // NOTE: There should be no motions in the buffer and Grbl must be in an idle state before
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
 void mc_homing_cycle(uint8_t cycle_mask) {
+    bool no_cycles_defined = true;
 #ifdef USE_CUSTOM_HOMING
     if (user_defined_homing()) {
         return;
@@ -335,6 +336,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
         for (int cycle = 0; cycle < MAX_N_AXIS; cycle++) {
             auto homing_mask = homing_cycle[cycle]->get();
             if (homing_mask) {  // if there are some axes in this cycle
+                no_cycles_defined = false;
                 if (!axis_is_squared(homing_mask)) {
                     limits_go_home(homing_mask);  // Homing cycle 0
                 } else {
@@ -349,6 +351,10 @@ void mc_homing_cycle(uint8_t cycle_mask) {
                     ganged_mode = SquaringMode::Dual;  // always return to dual
                 }
             }
+        }
+
+        if (no_cycles_defined) {
+            report_status_message(Error::HomingNoCycles, CLIENT_ALL);
         }
     }
     protocol_execute_realtime();  // Check for reset and set system abort.

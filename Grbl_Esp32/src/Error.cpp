@@ -40,6 +40,7 @@ std::map<Error, const char*> ErrorCodes = {
     { Error::TravelExceeded, "Max travel exceeded during jog" },
     { Error::InvalidJogCommand, "Invalid jog command" },
     { Error::SettingDisabledLaser, "Laser mode requires PWM output" },
+    { Error::HomingNoCycles, "No Homing/Cycle defined in settings" },
     { Error::GcodeUnsupportedCommand, "Unsupported GCode command" },
     { Error::GcodeModalGroupViolation, "Gcode modal group violation" },
     { Error::GcodeUndefinedFeedRate, "Gcode undefined feed rate" },
