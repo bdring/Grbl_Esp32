@@ -1005,9 +1005,25 @@ Error gc_execute_line(char* line, uint8_t client) {
                     // Retreive G28/30 go-home position data (in machine coordinates) from EEPROM
                     // NOTE: Store parameter data in IJK values. By rule, they are not in use with this command.
                     if (gc_block.non_modal_command == NonModal::GoHome0) {
+#ifdef USE_KINEMATICS_FOO
+                        // read the data into a temporary array, so we can apply kinematics
+                        float G28_Pos[MAX_N_AXIS];
+                        if (!settings_read_coord_data(SETTING_INDEX_G28, G28_Pos)) {
+                            FAIL(Error::SettingReadFail);
+                        }
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "G28 Cartesian: %3.3f %3.3f %3.3f", G28_Pos[0], G28_Pos[1], G28_Pos[2]);
+                        inverse_kinematics(G28_Pos);  // change G28_Pos from cartesian to angles
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "G28 Angle: %3.3f %3.3f %3.3f", G28_Pos[0], G28_Pos[1], G28_Pos[2]);
+                        memcpy(gc_block.values.ijk, G28_Pos, sizeof(G28_Pos));
+                        memcpy(gc_state.position, G28_Pos, sizeof(G28_Pos)); // update position for next move reference                                          
+                        mc_line_kins(G28_Pos, pl_data , gc_state.position);
+
+#else
                         if (!settings_read_coord_data(SETTING_INDEX_G28, gc_block.values.ijk)) {
                             FAIL(Error::SettingReadFail);
                         }
+#endif
+
                     } else {  // == NonModal::GoHome1
                         if (!settings_read_coord_data(SETTING_INDEX_G30, gc_block.values.ijk)) {
                             FAIL(Error::SettingReadFail);
@@ -1480,7 +1496,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             if (axis_command != AxisCommand::None) {
                 mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
             }
-            mc_line(gc_block.values.ijk, pl_data);
+            mc_line_kins(gc_block.values.ijk, pl_data, gc_state.position);
             memcpy(gc_state.position, gc_block.values.ijk, MAX_N_AXIS * sizeof(float));
             break;
         case NonModal::SetHome0:
