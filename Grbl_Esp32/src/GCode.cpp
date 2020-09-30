@@ -142,7 +142,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     uint8_t  gc_parser_flags = GCParserNone;
     auto     n_axis          = number_axis->get();
     float    coord_data[MAX_N_AXIS];  // Used by WCO-related commands
-    uint8_t  pValue;  // Integer value of P word
+    uint8_t  pValue;                  // Integer value of P word
 
     // Determine if the line is a jogging motion or a normal g-code block.
     if (line[0] == '$') {  // NOTE: `$J=` already parsed when passed to this function.
@@ -1478,10 +1478,10 @@ Error gc_execute_line(char* line, uint8_t client) {
             memcpy(gc_state.position, coord_data, sizeof(gc_state.position));
             break;
         case NonModal::SetHome0:
-            coords[CoordIndex::G28]->set(coord_data);
+            coords[CoordIndex::G28]->set(gc_state.position);
             break;
         case NonModal::SetHome1:
-            coords[CoordIndex::G30]->set(coord_data);
+            coords[CoordIndex::G30]->set(gc_state.position);
             break;
         case NonModal::SetCoordinateOffset:
             memcpy(gc_state.coord_offset, gc_block.values.xyz, sizeof(gc_block.values.xyz));
