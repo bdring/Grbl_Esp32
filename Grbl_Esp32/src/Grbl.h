@@ -99,11 +99,13 @@ void machine_init();
 bool user_defined_homing();
 
 // Called if USE_KINEMATICS is defined
+
 void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
 bool kinematics_pre_homing(uint8_t cycle_mask);
 void kinematics_post_homing();
 
 // Called if USE_FWD_KINEMATICS is defined
+void inverse_kinematics(float* position);  // used to return a converted value
 void forward_kinematics(float* position);
 
 // Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined

@@ -1477,6 +1477,8 @@ Error gc_execute_line(char* line, uint8_t client) {
             }
             mc_line(coord_data, pl_data);
             memcpy(gc_state.position, coord_data, sizeof(gc_state.position));
+            == == == = mc_line_kins(gc_block.values.ijk, pl_data, gc_state.position);
+            memcpy(gc_state.position, gc_block.values.ijk, MAX_N_AXIS * sizeof(float));
             break;
         case NonModal::SetHome0:
             coords[CoordIndex::G28]->set(gc_state.position);
