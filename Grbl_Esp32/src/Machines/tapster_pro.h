@@ -94,6 +94,13 @@
 #define Y_LIMIT_PIN     GPIO_NUM_39
 #define Z_LIMIT_PIN     GPIO_NUM_34
 
+// Example (4x) 5V Buffer Output on socket #5
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
+#define COOLANT_MIST_PIN      I2SO(24) // No PWM
+#define COOLANT_FLOOD_PIN         I2SO(25)
+#define USER_DIGITAL_PIN_0        I2SO(26)
+#define USER_DIGITAL_PIN_1       I2SO(27)
+
 // ================= defaults ===========================
 
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME 255  // keep them on, the trinamics will reduce power at idle

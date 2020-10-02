@@ -35,19 +35,19 @@ IntSetting*   status_mask;
 FloatSetting* junction_deviation;
 FloatSetting* arc_tolerance;
 
-FloatSetting* homing_feed_rate;
-FloatSetting* homing_seek_rate;
-FloatSetting* homing_debounce;
-FloatSetting* homing_pulloff;
+FloatSetting*    homing_feed_rate;
+FloatSetting*    homing_seek_rate;
+FloatSetting*    homing_debounce;
+FloatSetting*    homing_pulloff;
 AxisMaskSetting* homing_cycle[MAX_N_AXIS];
-FloatSetting* spindle_pwm_freq;
-FloatSetting* rpm_max;
-FloatSetting* rpm_min;
-FloatSetting* spindle_delay_spinup;
-FloatSetting* spindle_delay_spindown;
-FlagSetting*  spindle_enbl_off_with_zero_speed;
-FlagSetting*  spindle_enable_invert;
-FlagSetting*  spindle_output_invert;
+FloatSetting*    spindle_pwm_freq;
+FloatSetting*    rpm_max;
+FloatSetting*    rpm_min;
+FloatSetting*    spindle_delay_spinup;
+FloatSetting*    spindle_delay_spindown;
+FlagSetting*     spindle_enbl_off_with_zero_speed;
+FlagSetting*     spindle_enable_invert;
+FlagSetting*     spindle_output_invert;
 
 FloatSetting* spindle_pwm_off_value;
 FloatSetting* spindle_pwm_min_value;
@@ -346,9 +346,10 @@ void make_settings() {
     spindle_type           = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", static_cast<int8_t>(SPINDLE_TYPE), &spindleTypes);
     stallguard_debug_mask  = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
 
-    const char* homing_names[] = { "Homing/Cycle0", "Homing/Cycle1", "Homing/Cycle2",
-                                   "Homing/Cycle3", "Homing/Cycle4", "Homing/Cycle5" };
-    for (uint8_t i = 0; i < MAX_N_AXIS; i++) {        
-        homing_cycle[i] = new AxisMaskSetting(EXTENDED, WG, NULL, homing_names[i], 0);
-    }
+    homing_cycle[0] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle0", DEFAULT_HOMING_CYCLE_0);
+    homing_cycle[1] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle1", DEFAULT_HOMING_CYCLE_1);
+    homing_cycle[2] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle2", DEFAULT_HOMING_CYCLE_2);
+    homing_cycle[3] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle3", DEFAULT_HOMING_CYCLE_3);
+    homing_cycle[4] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle4", DEFAULT_HOMING_CYCLE_4);
+    homing_cycle[5] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle5", DEFAULT_HOMING_CYCLE_5);
 }

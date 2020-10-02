@@ -316,6 +316,30 @@
 #    define DEFAULT_C_HOMING_MPOS 0.0
 #endif
 
+#ifndef DEFAULT_HOMING_CYCLE_0
+#    define DEFAULT_HOMING_CYCLE_0 bit(Z_AXIS)
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_1
+#    define DEFAULT_HOMING_CYCLE_1 (bit(X_AXIS) | bit(Y_AXIS))
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_2
+#    define DEFAULT_HOMING_CYCLE_2 0
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_3
+#    define DEFAULT_HOMING_CYCLE_3 0
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_4
+#    define DEFAULT_HOMING_CYCLE_4 0
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_5
+#    define DEFAULT_HOMING_CYCLE_5 0
+#endif
+
 // ========== Motor current (SPI Drivers ) =============
 #ifndef DEFAULT_X_CURRENT
 #    define DEFAULT_X_CURRENT 0.25  // $140 current in amps (extended set)
