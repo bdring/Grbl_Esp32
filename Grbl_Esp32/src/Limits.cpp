@@ -175,7 +175,7 @@ void limits_go_home(uint8_t cycle_mask) {
         sys.homing_axis_lock = axislock;
         // Perform homing cycle. Planner buffer should be empty, as required to initiate the homing cycle.
         pl_data->feed_rate = homing_rate;                    // Set current homing rate.
-        plan_buffer_line(target, pl_data);                   // Bypass mc_line(). Directly plan homing motion.
+        plan_buffer_line(target, pl_data);                   // Bypass mcline(). Directly plan homing motion.
         sys.step_control = STEP_CONTROL_EXECUTE_SYS_MOTION;  // Set to execute homing motion and clear existing flags.
         st_prep_buffer();                                    // Prep and fill segment buffer from newly planned block.
         st_wake_up();                                        // Initiate motion
@@ -392,7 +392,7 @@ uint8_t limits_get_state() {
     return pinMask;
 }
 
-// Performs a soft limit check. Called from mc_line() only. Assumes the machine has been homed,
+// Performs a soft limit check. Called from mcline() only. Assumes the machine has been homed,
 // the workspace volume is in all negative space, and the system is in normal operation.
 // NOTE: Used by jogging to limit travel within soft-limit volume.
 void limits_soft_check(float* target) {

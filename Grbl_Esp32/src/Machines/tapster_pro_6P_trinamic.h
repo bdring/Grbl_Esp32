@@ -19,7 +19,6 @@
 */
 
 #define MACHINE_NAME "Tapster Pro Delta 6P Trinamic"
-
 #define CUSTOM_CODE_FILENAME "Custom/parallel_delta.cpp"
 /*
 // enable these special machine functions to be called from the main program
@@ -108,11 +107,17 @@
 #define Z_CS_PIN                I2SO(11)
 #define Z_RSENSE                X_RSENSE
 
-// 4x Switch input module on CNC I/O module Socket #1
+// // 4x Switch input module on CNC I/O module Socket #1
+// // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
+// #define X_LIMIT_PIN     GPIO_NUM_33
+// #define Y_LIMIT_PIN     GPIO_NUM_32
+// #define Z_LIMIT_PIN     GPIO_NUM_35
+
+// 4x Switch input module on CNC I/O module Socket #2
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define X_LIMIT_PIN     GPIO_NUM_33
-#define Y_LIMIT_PIN     GPIO_NUM_32
-#define Z_LIMIT_PIN     GPIO_NUM_35
+#define X_LIMIT_PIN     GPIO_NUM_2
+#define Y_LIMIT_PIN     GPIO_NUM_25
+#define Z_LIMIT_PIN     GPIO_NUM_39
 
 //Example Quad MOSFET module on socket #5
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
@@ -154,7 +159,7 @@
 #define DEFAULT_HOMING_DIR_MASK     (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS))  // all axes home negative
 #define DEFAULT_HOMING_ENABLE       1
 #define DEFAULT_INVERT_LIMIT_PINS   0
-#define DEFAULT_HOMING_CYCLE_0      #define DEFAULT_HOMING_CYCLE_0      (bit(X_AXIS) | bit(Y_AXIS) | bit(Y_AXIS)) 
+#define DEFAULT_HOMING_CYCLE_0      (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS)) 
 #define DEFAULT_HOMING_CYCLE_1      0  // override this one in defaults.h
 
 // The machine homes up and above center. MPos is the axis angle in radians
