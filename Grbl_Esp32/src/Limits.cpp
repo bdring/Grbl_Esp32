@@ -386,7 +386,7 @@ AxisMask limits_get_state() {
     return pinMask;
 }
 
-// Performs a soft limit check. Called from mc_line() only. Assumes the machine has been homed,
+// Performs a soft limit check. Called from mcline() only. Assumes the machine has been homed,
 // the workspace volume is in all negative space, and the system is in normal operation.
 // NOTE: Used by jogging to limit travel within soft-limit volume.
 void limits_soft_check(float* target) {
