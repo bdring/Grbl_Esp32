@@ -18,7 +18,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME "Tapster Pro Delta (StepStick)"
+#define MACHINE_NAME "Tapster Pro Delta 6P Trinamic"
 
 #define CUSTOM_CODE_FILENAME "Custom/parallel_delta.cpp"
 /*
@@ -61,7 +61,7 @@
 
 // Set $Homing/Cycle0=XYZ
 
-// === Special Features
+
 
 // I2S (steppers & other output-only pins)
 #define USE_I2S_OUT
@@ -85,31 +85,48 @@
 #define STEPPER_RESET           GPIO_NUM_19
 
 // Motor Socket #1
+#define X_TRINAMIC_DRIVER       2130
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)
 #define X_STEP_PIN              I2SO(2)
+#define X_CS_PIN                I2SO(3)
+#define X_RSENSE                TMC2130_RSENSE_DEFAULT
 
 // Motor Socket #2
+#define Y_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
 #define Y_DIRECTION_PIN         I2SO(4)
 #define Y_STEP_PIN              I2SO(5)
 #define Y_DISABLE_PIN           I2SO(7)
+#define Y_CS_PIN                I2SO(6)
+#define Y_RSENSE                X_RSENSE
 
 // Motor Socket #3
+#define Z_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
 #define Z_DISABLE_PIN           I2SO(8)
 #define Z_DIRECTION_PIN         I2SO(9)
 #define Z_STEP_PIN              I2SO(10)
+#define Z_CS_PIN                I2SO(11)
+#define Z_RSENSE                X_RSENSE
 
-// CNC I/O Modules
-
+// 4x Switch input module on CNC I/O module Socket #1
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
 #define X_LIMIT_PIN     GPIO_NUM_33
 #define Y_LIMIT_PIN     GPIO_NUM_32
 #define Z_LIMIT_PIN     GPIO_NUM_35
+
+//Example Quad MOSFET module on socket #5
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
+#define USER_DIGITAL_PIN_0     I2SO(24)
+#define USER_DIGITAL_PIN_1     I2SO(25)
+#define USER_DIGITAL_PIN_2     I2SO(26)
+#define USER_DIGITAL_PIN_3     I2SO(27)
 
 // ================= defaults ===========================
 
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME 255  // keep them on, the trinamics will reduce power at idle
 
-#define DEFAULT_X_MICROSTEPS    32
+
+#define DEFAULT_X_MICROSTEPS    8
 #define DEFAULT_Y_MICROSTEPS    DEFAULT_X_MICROSTEPS
 #define DEFAULT_Z_MICROSTEPS    DEFAULT_X_MICROSTEPS
 
@@ -137,6 +154,8 @@
 #define DEFAULT_HOMING_DIR_MASK     (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS))  // all axes home negative
 #define DEFAULT_HOMING_ENABLE       1
 #define DEFAULT_INVERT_LIMIT_PINS   0
+#define DEFAULT_HOMING_CYCLE_0      #define DEFAULT_HOMING_CYCLE_0      (bit(X_AXIS) | bit(Y_AXIS) | bit(Y_AXIS)) 
+#define DEFAULT_HOMING_CYCLE_1      0  // override this one in defaults.h
 
 // The machine homes up and above center. MPos is the axis angle in radians
 // at the homing posiiton
