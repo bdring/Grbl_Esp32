@@ -37,6 +37,15 @@
 
 #define MACHINE_NAME "Test Drive - Demo Only No I/O!"
 
+// This cannot use homing because there are no switches
+#ifdef DEFAULT_HOMING_CYCLE_0
+    #undef DEFAULT_HOMING_CYCLE_0
+#endif
+
+#ifdef DEFAULT_HOMING_CYCLE_1
+    #undef DEFAULT_HOMING_CYCLE_1
+#endif
+
 #define SPINDLE_TYPE    SpindleType::NONE
 
 #ifdef USE_RMT_STEPS
