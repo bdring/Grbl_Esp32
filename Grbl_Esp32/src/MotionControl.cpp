@@ -35,7 +35,6 @@ SquaringMode ganged_mode = SquaringMode::Dual;
 
 // this allows kinematics to be used.
 void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "mc_line_kins");
 #ifndef USE_KINEMATICS
     mc_line(target, pl_data);
 #else  // else use kinematics
@@ -53,9 +52,7 @@ void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
 void mc_line(float* target, plan_line_data_t* pl_data) {
     // If enabled, check for soft limit violations. Placed here all line motions are picked up
     // from everywhere in Grbl.
-    throw "foo";
-
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "mc_line");
+    
     if (soft_limits->get()) {
         // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
         if (sys.state != State::Jog) {

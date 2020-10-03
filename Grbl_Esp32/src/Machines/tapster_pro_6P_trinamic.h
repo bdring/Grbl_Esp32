@@ -118,6 +118,7 @@
 #define X_LIMIT_PIN     GPIO_NUM_2
 #define Y_LIMIT_PIN     GPIO_NUM_25
 #define Z_LIMIT_PIN     GPIO_NUM_39
+#define PROBE_PIN       GPIO_NUM_36
 
 //Example Quad MOSFET module on socket #5
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
