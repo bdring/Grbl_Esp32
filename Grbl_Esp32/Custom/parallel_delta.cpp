@@ -50,11 +50,15 @@
     Better: http://hypertriangle.com/~alex/delta-robot-tutorial/
 */
 
+#include "../src/Settings.h" 
+
 enum class KinematicError : uint8_t {
     NONE               = 0,
     OUT_OF_RANGE       = 1,
     ANGLE_TOO_NEGATIVE = 2,
 };
+
+FloatSetting* kinematic_segment_len;
 
 // trigonometric constants to speed calculations
 const float sqrt3  = 1.732050807;
@@ -86,6 +90,8 @@ void machine_init() {
     // Z offset is the z distance from the motor axes to the end effector axes at zero angle
     float angles[N_AXIS]    = { 0.0, 0.0, 0.0 };
     float cartesian[N_AXIS] = { 0.0, 0.0, 0.0 };
+
+    kinematic_segment_len = new FloatSetting(EXTENDED, WG, NULL, "Kinematics/SegmentLength", KINEMATIC_SEGMENT_LENGTH, 0.2, 5.0);
 
     calc_forward_kinematics(angles, cartesian);  // Sets the cartesian values
     delta_z_offset = cartesian[Z_AXIS];
