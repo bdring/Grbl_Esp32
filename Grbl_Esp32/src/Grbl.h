@@ -106,6 +106,7 @@ bool user_defined_homing();
 void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
 bool kinematics_pre_homing(uint8_t cycle_mask);
 void kinematics_post_homing();
+uint8_t kinematic_limits_check(float* target);
 
 // Called if USE_FWD_KINEMATICS is defined
 void inverse_kinematics(float* position);  // used to return a converted value

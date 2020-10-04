@@ -50,7 +50,7 @@
     Better: http://hypertriangle.com/~alex/delta-robot-tutorial/
 */
 
-#include "../src/Settings.h" 
+#include "../src/Settings.h"
 
 enum class KinematicError : uint8_t {
     NONE               = 0,
@@ -130,7 +130,6 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
-    
 
     status = delta_calcInverse(position, motor_angles);
     if (status == KinematicError::OUT_OF_RANGE) {
@@ -196,6 +195,13 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
             }
         }
     }
+}
+
+// this is used used by soft limits to see if the range of the machine is exceeded.
+uint8_t kinematic_limits_check(float* target) {
+    float motor_angles[3];
+
+    return (delta_calcInverse(target, motor_angles) == KinematicError::NONE);
 }
 
 // inverse kinematics: cartesian -> angles

@@ -219,11 +219,7 @@ void mc_arc(float*            target,
         }
     }
     // Ensure last segment arrives at target location.
-#ifdef USE_KINEMATICS
     mc_line_kins(target, pl_data, previous_position);
-#else
-    mc_line(target, pl_data);
-#endif
 }
 
 // Execute dwell in seconds.
