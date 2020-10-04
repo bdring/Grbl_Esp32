@@ -27,8 +27,6 @@
 const int PROBE_OFF    = 0;  // Probing disabled or not in use. (Must be zero.)
 const int PROBE_ACTIVE = 1;  // Actively watching the input pin.
 
-extern bool is_probe_away;
-
 // Probe pin initialization routine.
 void probe_init();
 
@@ -36,7 +34,7 @@ void probe_init();
 void set_probe_direction(bool is_away);
 
 // Returns probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
-uint8_t probe_get_state();
+bool probe_get_state();
 
 // Monitors probe pin state and records the system position when detected. Called by the
 // stepper ISR per ISR tick.

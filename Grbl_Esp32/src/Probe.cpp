@@ -24,7 +24,7 @@
 #include "Grbl.h"
 
 // Inverts the probe pin state depending on user settings and probing cycle mode.
-bool is_probe_away;
+static bool is_probe_away;
 
 // Probe pin initialization routine.
 void probe_init() {
@@ -49,7 +49,7 @@ void set_probe_direction(bool is_away) {
 }
 
 // Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
-uint8_t probe_get_state() {
+bool probe_get_state() {
     return digitalRead(PROBE_PIN) ^ probe_invert->get();
 }
 
