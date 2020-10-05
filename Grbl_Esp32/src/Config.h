@@ -100,7 +100,7 @@ const int MAX_N_AXIS = 6;
 
 #define ENABLE_SD_CARD  // enable use of SD Card to run jobs
 
-//#define ENABLE_WIFI  //enable wifi
+#define ENABLE_WIFI  //enable wifi
 
 #if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
 #    define WIFI_OR_BLUETOOTH
