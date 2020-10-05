@@ -6,6 +6,9 @@
                         Jason Huggins, Tapster Robotics
 
   Kinematics for a parallel delta robot.
+
+  Note: You must do a clean before compiling whenever this file is altered!
+
       
   ==================== How it Works ====================================
 
@@ -24,8 +27,8 @@
   The arm 0 values (angle) are the arms at horizontal.
   Positive angles are below horizontal.
   The machine's Z zero point in the kinematics is parallel to the arm axes.
-  Delta_z_offset is the Z distance from the arm axes to the end effector joints 
-  at arm angle zero. The is calculated at startup and used in the forward kinematics
+  The offset of the Z distance from the arm axes to the end effector joints 
+  at arm angle zero will be printed at startup on the serial port.
 
   Feedrate in gcode is in the cartesian units. This must be converted to the
   angles. This is done by calculating the segment move distance and the angle 
@@ -33,7 +36,8 @@
 
   TODO Cleanup
   Update so extra axes get delt with ... passed through properly
-
+  Have MPos use kinematics too
+  
   ============================================================================
 
   Grbl is free software: you can redistribute it and/or modify
@@ -56,11 +60,13 @@ enum class KinematicError : uint8_t {
     NONE               = 0,
     OUT_OF_RANGE       = 1,
     ANGLE_TOO_NEGATIVE = 2,
+    ANGLE_TOO_POSITIVE = 3,
 };
 
+// Create custom run time $ settings
 FloatSetting* kinematic_segment_len;
 
-// trigonometric constants to speed calculations
+// trigonometric constants to speed up calculations
 const float sqrt3  = 1.732050807;
 const float dtr    = M_PI / (float)180.0;  // degrees to radians
 const float sin120 = sqrt3 / 2.0;
@@ -76,8 +82,9 @@ const float f  = LENGTH_FIXED_SIDE;  // sized of fixed side triangel
 const float e  = LENGTH_EFF_SIDE;    // size of end effector side triangle
 
 static float last_angle[3]          = { 0.0, 0.0, 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
-static float last_cartesian[N_AXIS] = { 0.0, 0.0, 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
-float        delta_z_offset;                              // Z offset of the effector from the arm centers
+static float last_cartesian[N_AXIS] = {
+    0.0, 0.0, 0.0
+};  // A place to save the previous motor angles for distance/feed rate calcs                             // Z offset of the effector from the arm centers
 
 // prototypes for helper functions
 int            calc_forward_kinematics(float* angles, float* cartesian);
@@ -86,18 +93,18 @@ KinematicError delta_calcAngleYZ(float x0, float y0, float z0, float& theta);
 float          three_axis_dist(float* point1, float* point2);
 
 void machine_init() {
-    // Calculate the Z offset at the motor zero angles ...
-    // Z offset is the z distance from the motor axes to the end effector axes at zero angle
     float angles[N_AXIS]    = { 0.0, 0.0, 0.0 };
     float cartesian[N_AXIS] = { 0.0, 0.0, 0.0 };
 
+    // Custom $ settings
     kinematic_segment_len = new FloatSetting(EXTENDED, WG, NULL, "Kinematics/SegmentLength", KINEMATIC_SEGMENT_LENGTH, 0.2, 5.0);
 
+    // Calculate the Z offset at the arm zero angles ...
+    // Z offset is the z distance from the motor axes to the end effector axes at zero angle
     calc_forward_kinematics(angles, cartesian);  // Sets the cartesian values
-    delta_z_offset = cartesian[Z_AXIS];
 
     // print a startup message to show the kinematics are enabled. Print the offset for reference
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Kinematics Init: %s Z Offset:%4.3f", MACHINE_NAME, delta_z_offset);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Kinematics Init: %s Z Offset:%4.3f", MACHINE_NAME, cartesian[Z_AXIS]);
 }
 
 bool user_defined_homing() {  // true = do not continue with normal Grbl homing
@@ -108,6 +115,7 @@ bool user_defined_homing() {  // true = do not continue with normal Grbl homing
 #endif
 }
 
+// This function is used by Grbl
 void inverse_kinematics(float* position) {
     float motor_angles[3];
     delta_calcInverse(position, motor_angles);
@@ -116,6 +124,7 @@ void inverse_kinematics(float* position) {
     position[2] = motor_angles[2];
 }
 
+// This function is used by Grbl
 void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
 {
     float dx, dy, dz;  // distances in each cartesian axis
@@ -128,20 +137,19 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
     KinematicError status;
 
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
 
     status = delta_calcInverse(position, motor_angles);
     if (status == KinematicError::OUT_OF_RANGE) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
         start_position_error = true;
-    }
+    }    
 
     // Check the destination to see if it is in work area
     status = delta_calcInverse(target, motor_angles);
     if (status == KinematicError::OUT_OF_RANGE) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target unreachable  error %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
-        return;
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target unreachable  error %3.3f %3.3f %3.3f", target[0], target[1], target[2]);        
     }
 
     position[X_AXIS] += gc_state.coord_offset[X_AXIS];
@@ -184,24 +192,40 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
         } else {
             if (show_error) {
-                grbl_msg_sendf(CLIENT_SERIAL,
-                               MsgLevel::Info,
-                               "Error:%d, Angs X:%4.3f Y:%4.3f Z:%4.3f",
-                               status,
-                               motor_angles[0],
-                               motor_angles[1],
-                               motor_angles[2]);
+                // grbl_msg_sendf(CLIENT_SERIAL,
+                //                MsgLevel::Info,
+                //                "Error:%d, Angs X:%4.3f Y:%4.3f Z:%4.3f",
+                //                status,
+                //                motor_angles[0],
+                //                motor_angles[1],
+                //                motor_angles[2]);
                 show_error = false;
             }
         }
     }
 }
 
-// this is used used by soft limits to see if the range of the machine is exceeded.
+// this is used used by Grbl soft limits to see if the range of the machine is exceeded.
 uint8_t kinematic_limits_check(float* target) {
     float motor_angles[3];
 
-    return (delta_calcInverse(target, motor_angles) == KinematicError::NONE);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin Soft Check %3.3f, %3.3f, %3.3f", target[0], target[1], target[2]);
+
+    KinematicError status = delta_calcInverse(target, motor_angles);
+
+    switch(status) {
+        case KinematicError::OUT_OF_RANGE:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target out of range");
+            break;
+        case KinematicError::ANGLE_TOO_NEGATIVE:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target max negative");
+            break;
+        case KinematicError::ANGLE_TOO_POSITIVE:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target max positive");
+            break;
+    }
+
+    return (status  == KinematicError::NONE);
 }
 
 // inverse kinematics: cartesian -> angles
@@ -299,6 +323,10 @@ KinematicError delta_calcAngleYZ(float x0, float y0, float z0, float& theta) {
         return KinematicError::ANGLE_TOO_NEGATIVE;
     }
 
+    if (theta > MAX_POSITIVE_ANGLE) {
+        return KinematicError::ANGLE_TOO_POSITIVE;
+    }
+
     return KinematicError::NONE;
 }
 
@@ -318,8 +346,8 @@ void forward_kinematics(float* position) {
     memcpy(position_steps, sys_position, sizeof(sys_position));
     system_convert_array_steps_to_mpos(position_radians, position_steps);
 
-    grbl_msg_sendf(
-        CLIENT_SERIAL, MsgLevel::Info, "Fwd Kin Angs %1.3f, %1.3f, %1.3f ", position_radians[0], position_radians[1], position_radians[2]);
+    // grbl_msg_sendf(
+    //     CLIENT_SERIAL, MsgLevel::Info, "Fwd Kin Angs %1.3f, %1.3f, %1.3f ", position_radians[0], position_radians[1], position_radians[2]);
 
     // detmine the position of the end effector joint center.
     status = calc_forward_kinematics(position_radians, calc_fwd);

@@ -246,11 +246,7 @@ void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
 uint8_t system_check_travel_limits(float* target) {
     uint8_t idx;
 
-#ifdef USE_KINEMATICS
-    return (!kinematic_limits_check(target));  // kinematic_limits_check(...) returns true if not exceeding limits
-#endif
-
-        auto n_axis = number_axis->get();
+    auto n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {
         float travel = axis_settings[idx]->max_travel->get();
         float mpos   = axis_settings[idx]->home_mpos->get();

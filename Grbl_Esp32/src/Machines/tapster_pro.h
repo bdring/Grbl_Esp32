@@ -21,24 +21,6 @@
 #define MACHINE_NAME "Tapster Pro Delta (Trinamic)"
 
 #define CUSTOM_CODE_FILENAME "Custom/parallel_delta.cpp"
-/*
-// enable these special machine functions to be called from the main program
-#define USE_KINEMATICS             // there are kinematic equations for this machine
-#define FWD_KINEMATICS_REPORTING   // report in cartesian
-#define USE_RMT_STEPS              // Use the RMT periferal to generate step pulses
-#define USE_TRINAMIC               // some Trinamic motors are used on this machine
-#define USE_MACHINE_TRINAMIC_INIT  // there is a machine specific setup for the drivers
-#define USE_MACHINE_INIT           // There is some custom initialization for this machine
-
-#define SEGMENT_LENGTH 0.5  // segment length in mm
-#define KIN_ANGLE_CALC_OK 0
-#define KIN_ANGLE_ERROR -1
-
-#define MAX_NEGATIVE_ANGLE -36  // in degrees how far can the arms go up?
-
-#define HOMING_CURRENT_REDUCTION 1.0
-
-*/
 
 #define N_AXIS 3
 
@@ -94,12 +76,20 @@
 #define Y_LIMIT_PIN     GPIO_NUM_39
 #define Z_LIMIT_PIN     GPIO_NUM_34
 
-// Example (4x) 5V Buffer Output on socket #5
-// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
-#define COOLANT_MIST_PIN      I2SO(24) // No PWM
-#define COOLANT_FLOOD_PIN         I2SO(25)
-#define USER_DIGITAL_PIN_0        I2SO(26)
-#define USER_DIGITAL_PIN_1       I2SO(27)
+// Example Quad MOSFET module in socket #3
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
+#define USER_DIGITAL_PIN_0       GPIO_NUM_26
+#define USER_DIGITAL_PIN_1       GPIO_NUM_4 
+#define USER_DIGITAL_PIN_2       GPIO_NUM_16
+#define USER_DIGITAL_PIN_3       GPIO_NUM_27
+
+// Example Servo module in socket #4
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/RC-Servo-BESC-CNC-I-O-Module
+// https://github.com/bdring/Grbl_Esp32/wiki/M62,-M63,-M64,-M65-&-M67-User-I-O-Commands
+#define USER_ANALOG_PIN_0       GPIO_NUM_14
+#define USER_ANALOG_PIN_1       GPIO_NUM_13 
+#define USER_ANALOG_PIN_2       GPIO_NUM_15
+#define USER_ANALOG_PIN_3       GPIO_NUM_12
 
 // ================= defaults ===========================
 

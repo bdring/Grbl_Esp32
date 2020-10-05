@@ -198,6 +198,7 @@ Error disable_alarm_lock(const char* value, WebUI::AuthenticationLevel auth_leve
         if (system_check_safety_door_ajar()) {
             return Error::CheckDoor;
         }
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "---Unlock---");
         report_feedback_message(Message::AlarmUnlock);
         sys.state = State::Idle;
         // Don't run startup script. Prevents stored moves in startup from causing accidents.

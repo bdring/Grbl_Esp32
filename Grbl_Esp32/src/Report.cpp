@@ -167,23 +167,23 @@ void grbl_notifyf(const char* title, const char* format, ...) {
 }
 
 static const int coordStringLen = 20;
-static const int axesStringLen = coordStringLen * MAX_N_AXIS;
+static const int axesStringLen  = coordStringLen * MAX_N_AXIS;
 
 // formats axis values into a string and returns that string in rpt
 // NOTE: rpt should have at least size: axesStringLen
 static void report_util_axis_values(float* axis_value, char* rpt) {
-    uint8_t idx;
-    char    axisVal[coordStringLen];
-    float   unit_conv = 1.0;  // unit conversion multiplier..default is mm
-    const char* format = "%4.3f";  // Default - report mm to 3 decimal places
-    rpt[0]            = '\0';
+    uint8_t     idx;
+    char        axisVal[coordStringLen];
+    float       unit_conv = 1.0;      // unit conversion multiplier..default is mm
+    const char* format    = "%4.3f";  // Default - report mm to 3 decimal places
+    rpt[0]                = '\0';
     if (report_inches->get()) {
         unit_conv = 1.0 / MM_PER_INCH;
-        format = "%4.4f";  // Report inches to 4 decimal places
+        format    = "%4.4f";  // Report inches to 4 decimal places
     }
     auto n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {
-        snprintf(axisVal, coordStringLen-1, format, axis_value[idx] * unit_conv);
+        snprintf(axisVal, coordStringLen - 1, format, axis_value[idx] * unit_conv);
         strcat(rpt, axisVal);
         if (idx < (number_axis->get() - 1)) {
             strcat(rpt, ",");
@@ -193,14 +193,14 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
 
 // This version returns the axis values as a String
 static String report_util_axis_values(const float* axis_value) {
-    String rpt = "";
+    String  rpt = "";
     uint8_t idx;
     char    axisVal[coordStringLen];
     float   unit_conv = 1.0;  // unit conversion multiplier..default is mm
-    int decimals = 3;  // Default - report mm to 3 decimal places
+    int     decimals  = 3;    // Default - report mm to 3 decimal places
     if (report_inches->get()) {
         unit_conv = 1.0 / MM_PER_INCH;
-        decimals = 4;  // Report inches to 4 decimal places
+        decimals  = 4;  // Report inches to 4 decimal places
     }
     auto n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {
@@ -321,7 +321,7 @@ void report_probe_parameters(uint8_t client) {
 
 // Prints Grbl NGC parameters (coordinate offsets, probing)
 void report_ngc_parameters(uint8_t client) {
-    String  ngc_rpt = "";
+    String ngc_rpt = "";
 
     // Print persistent offsets G54 - G59, G28, and G30
     for (auto coord_select = CoordIndex::Begin; coord_select < CoordIndex::End; ++coord_select) {
@@ -339,7 +339,8 @@ void report_ngc_parameters(uint8_t client) {
     if (report_inches->get()) {
         tlo *= INCH_PER_MM;
     }
-    ngc_rpt += String(tlo, 3);;
+    ngc_rpt += String(tlo, 3);
+    ;
     ngc_rpt += "]\r\n";
     grbl_send(client, ngc_rpt.c_str());
     report_probe_parameters(client);
