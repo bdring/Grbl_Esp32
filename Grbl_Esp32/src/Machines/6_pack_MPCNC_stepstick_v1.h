@@ -47,29 +47,27 @@
 
 #define STEPPER_RESET           GPIO_NUM_19
 
-// Mosor Socket #1
+// Motor Socket #1
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)
 #define X_STEP_PIN              I2SO(2)
-#define X_AXIS_SQUARING
 
-// Mosor Socket #2
+// Motor Socket #2
 #define Y_DIRECTION_PIN         I2SO(4)
 #define Y_STEP_PIN              I2SO(5)
 #define Y_DISABLE_PIN           I2SO(7)
-#define Y_AXIS_SQUARING
 
-// Mosor Socket #3
+// Motor Socket #3
 #define Z_DISABLE_PIN           I2SO(8)
 #define Z_DIRECTION_PIN         I2SO(9)
 #define Z_STEP_PIN              I2SO(10)
 
-// Mosor Socket #4
+// Motor Socket #4
 #define X2_DIRECTION_PIN         I2SO(12)
 #define X2_STEP_PIN              I2SO(13)
 #define X2_DISABLE_PIN           I2SO(15)
 
-// Mosor Socket #5
+// Motor Socket #5
 #define Y2_DISABLE_PIN           I2SO(16)
 #define Y2_DIRECTION_PIN         I2SO(17)
 #define Y2_STEP_PIN              I2SO(18)
