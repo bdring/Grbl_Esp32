@@ -102,9 +102,18 @@ void machine_init() {
     // Calculate the Z offset at the arm zero angles ...
     // Z offset is the z distance from the motor axes to the end effector axes at zero angle
     calc_forward_kinematics(angles, cartesian);  // Sets the cartesian values
-
     // print a startup message to show the kinematics are enabled. Print the offset for reference
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Kinematics Init: %s Z Offset:%4.3f", MACHINE_NAME, cartesian[Z_AXIS]);
+
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Angle Range %3.3f, %3.3f", MAX_NEGATIVE_ANGLE, MAX_POSITIVE_ANGLE);
+
+    grbl_msg_sendf(CLIENT_SERIAL,
+                   MsgLevel::Info,
+                   "DXL_COUNT_MIN %4.0f CENTER %d MAX %4.0f PER_RAD %d",
+                   DXL_COUNT_MIN,
+                   DXL_CENTER,
+                   DXL_COUNT_MAX,
+                   DXL_COUNT_PER_RADIAN);
 }
 
 bool user_defined_homing() {  // true = do not continue with normal Grbl homing
@@ -132,7 +141,6 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
     float seg_target[3];                              // The target of the current segment
     float feed_rate            = pl_data->feed_rate;  // save original feed rate
-    bool  start_position_error = false;
     bool  show_error           = true;  // shows error once
 
     KinematicError status;
@@ -143,7 +151,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     status = delta_calcInverse(position, motor_angles);
     if (status == KinematicError::OUT_OF_RANGE) {
         //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
-        start_position_error = true;
+        //start_position_error = true;
     }    
 
     // Check the destination to see if it is in work area
