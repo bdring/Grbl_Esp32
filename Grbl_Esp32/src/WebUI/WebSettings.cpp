@@ -288,7 +288,7 @@ namespace WebUI {
         return Error::Ok;
     }
 
-    static Error runFile(char* parameter, AuthenticationLevel auth_level) {  // ESP700
+    static Error runLocalFile(char* parameter, AuthenticationLevel auth_level) {  // ESP700
         String path = trim(parameter);
         if ((path.length() > 0) && (path[0] != '/')) {
             path = "/" + path;
@@ -304,14 +304,13 @@ namespace WebUI {
         //until no line in file
         Error err;
         Error accumErr = Error::Ok;
+        uint8_t client = (espresponse) ? espresponse->client() : CLIENT_ALL;
         while (currentfile.available()) {
             String currentline = currentfile.readStringUntil('\n');
             if (currentline.length() > 0) {
                 byte line[256];
                 currentline.getBytes(line, 255);
-                // TODO Settings - feed into command interpreter
-                // while accumulating error codes
-                err = execute_line((char*)line, CLIENT_WEBUI, auth_level);
+                err = execute_line((char*)line, client, auth_level);
                 if (err != Error::Ok) {
                     accumErr = err;
                 }
@@ -320,6 +319,30 @@ namespace WebUI {
         }
         currentfile.close();
         return accumErr;
+    }
+
+    static Error showLocalFile(char* parameter, AuthenticationLevel auth_level) {  // ESP701
+        String path = trim(parameter);
+        if ((path.length() > 0) && (path[0] != '/')) {
+            path = "/" + path;
+        }
+        if (!SPIFFS.exists(path)) {
+            webPrintln("Error: No such file!");
+            return Error::SdFileNotFound;
+        }
+        File currentfile = SPIFFS.open(path, FILE_READ);
+        if (!currentfile) {
+            return Error::SdFailedOpenFile;
+        }
+        while (currentfile.available()) {
+            // String currentline = currentfile.readStringUntil('\n');
+            //            if (currentline.length() > 0) {
+            //                webPrintln(currentline);
+            //            }
+            webPrintln(currentfile.readStringUntil('\n'));
+        }
+        currentfile.close();
+        return Error::Ok;
     }
 
 #ifdef ENABLE_NOTIFICATIONS
@@ -984,7 +1007,8 @@ namespace WebUI {
         new WebCommand(NULL, WEBCMD, WG, "ESP800", "Firmware/Info", showFwInfo);
         new WebCommand(NULL, WEBCMD, WU, "ESP720", "LocalFS/Size", SPIFFSSize);
         new WebCommand("FORMAT", WEBCMD, WA, "ESP710", "LocalFS/Format", formatSpiffs);
-        new WebCommand("path", WEBCMD, WU, "ESP700", "LocalFS/Run", runFile);
+        new WebCommand("path", WEBCMD, WU, "ESP701", "LocalFS/Show", showLocalFile);
+        new WebCommand("path", WEBCMD, WU, "ESP700", "LocalFS/Run", runLocalFile);
         new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/List", listLocalFiles);
         new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/ListJSON", listLocalFilesJSON);
 #endif
