@@ -666,10 +666,13 @@ namespace WebUI {
 
 #ifdef ENABLE_SD_CARD
     static Error openSDFile(char* parameter) {
-        parameter = trim(parameter);
         if (*parameter == '\0') {
             webPrintln("Missing file name!");
             return Error::InvalidValue;
+        }
+        String path = trim(parameter);
+        if (path[0] != '/') {
+            path = "/" + path;
         }
         int8_t state = get_sd_state(true);
         if (state != SDCARD_IDLE) {
@@ -685,7 +688,7 @@ namespace WebUI {
             webPrintln("Busy");
             return Error::IdleError;
         }
-        if (!openFile(SD, parameter)) {
+        if (!openFile(SD, path.c_str())) {
             report_status_message(Error::SdFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
             webPrintln("");
             return Error::SdFailedOpenFile;
