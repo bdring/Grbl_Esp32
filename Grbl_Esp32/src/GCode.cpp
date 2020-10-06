@@ -271,10 +271,11 @@ Error gc_execute_line(char* line, uint8_t client) {
                         mg_word_bit           = ModalGroup::MG1;
                         break;
                     case 38:  // G38 - probe
-#ifndef PROBE_PIN             //only allow G38 "Probe" commands if a probe pin is defined.
-                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
-                        FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
-#endif
+                        //only allow G38 "Probe" commands if a probe pin is defined.
+                        if (PROBE_PIN == UNDEFINED_PIN) {
+                            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
+                            FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
+                        }
                         // Check for G0/1/2/3/38 being called with G10/28/30/92 on same block.
                         // * G43.1 is also an axis command but is not explicitly defined this way.
                         if (axis_command != AxisCommand::None) {
