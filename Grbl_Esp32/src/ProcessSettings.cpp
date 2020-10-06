@@ -159,6 +159,16 @@ Error list_settings(const char* value, WebUI::AuthenticationLevel auth_level, We
     }
     return Error::Ok;
 }
+Error list_changed_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    for (Setting* s = Setting::List; s; s = s->next()) {
+        const char* value = s->getStringValue();
+        if (!auth_failed(s, value, auth_level) && strcmp(value, s->getDefaultString())) {
+            show_setting(s->getName(), value, NULL, out);
+        }
+    }
+    grbl_sendf(out->client(), "(Passwords not shown)\r\n");
+    return Error::Ok;
+}
 Error list_commands(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Command* cp = Command::List; cp; cp = cp->next()) {
         const char* name    = cp->getName();
@@ -383,6 +393,7 @@ void make_grbl_commands() {
     new GrblCommand("+", "ExtendedSettings/List", report_extended_settings, notCycleOrHold);
     new GrblCommand("L", "GrblNames/List", list_grbl_names, notCycleOrHold);
     new GrblCommand("S", "Settings/List", list_settings, notCycleOrHold);
+    new GrblCommand("SC","Settings/ListChanged", list_changed_settings, notCycleOrHold);
     new GrblCommand("CMD", "Commands/List", list_commands, notCycleOrHold);
     new GrblCommand("E", "ErrorCodes/List", listErrorCodes, anyState);
     new GrblCommand("G", "GCode/Modes", report_gcode, anyState);
