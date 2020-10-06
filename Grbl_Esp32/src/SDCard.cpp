@@ -23,6 +23,7 @@
 File        myFile;
 bool        SD_ready_next = false;  // Grbl has processed a line and is waiting for another
 uint8_t     SD_client     = CLIENT_SERIAL;
+WebUI::AuthenticationLevel SD_auth_level = WebUI::AuthenticationLevel::LEVEL_GUEST;
 uint32_t    sd_current_line_number;     // stores the most recent line number read from the SD
 static char comment[LINE_BUFFER_SIZE];  // Line to be executed. Zero-terminated.
 

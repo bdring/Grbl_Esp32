@@ -642,7 +642,7 @@ namespace WebUI {
     }
 
 #ifdef ENABLE_SD_CARD
-    static Error runSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP220
+    static Error openSDFile(char* parameter) {
         parameter = trim(parameter);
         if (*parameter == '\0') {
             webPrintln("Missing file name!");
@@ -665,7 +665,29 @@ namespace WebUI {
         if (!openFile(SD, parameter)) {
             report_status_message(Error::SdFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
             webPrintln("");
-            return Error::Ok;
+            return Error::SdFailedOpenFile;
+        }
+        return Error::Ok;
+    }
+    static Error showSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP221
+        Error err;
+        if ((err = openSDFile(parameter)) != Error::Ok) {
+            return err;
+        }
+        SD_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
+        char fileLine[255];
+        while (readFileLine(fileLine, 255)) {
+            webPrintln(fileLine);
+        }
+        webPrintln("");
+        closeFile();
+        return Error::Ok;
+    }
+
+    static Error runSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP220
+        Error err;
+        if ((err = openSDFile(parameter)) != Error::Ok) {
+            return err;
         }
         char fileLine[255];
         if (!readFileLine(fileLine, 255)) {
@@ -675,9 +697,10 @@ namespace WebUI {
             return Error::Ok;
         }
         SD_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
-        report_status_message(gc_execute_line(fileLine, (espresponse) ? espresponse->client() : CLIENT_ALL),
-                              (espresponse) ? espresponse->client() : CLIENT_ALL);  // execute the first line
-        report_realtime_status((espresponse) ? espresponse->client() : CLIENT_ALL);
+        SD_auth_level = auth_level;
+        // execute the first line now; Protocol.cpp handles later ones when SD_ready_next
+        report_status_message(execute_line(fileLine, SD_client, SD_auth_level), SD_client);
+        report_realtime_status(SD_client);
         webPrintln("");
         return Error::Ok;
     }
@@ -985,6 +1008,7 @@ namespace WebUI {
         new WebCommand(NULL, WEBCMD, WU, "ESP400", "WebUI/List", listSettings);
 #endif
 #ifdef ENABLE_SD_CARD
+        new WebCommand("path", WEBCMD, WU, "ESP221", "SD/Show", showSDFile);
         new WebCommand("path", WEBCMD, WU, "ESP220", "SD/Run", runSDFile);
         new WebCommand("file_or_directory_path", WEBCMD, WU, "ESP215", "SD/Delete", deleteSDObject);
         new WebCommand(NULL, WEBCMD, WU, "ESP210", "SD/List", listSDFiles);
