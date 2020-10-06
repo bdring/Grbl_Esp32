@@ -371,14 +371,13 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
     uint8_t is_no_error   = bit_istrue(parser_flags, GCParserProbeIsNoError);
     sys.probe_succeeded   = false;  // Re-initialize probe history before beginning cycle.
-    probe_configure_invert_mask(is_probe_away);
+    set_probe_direction(is_probe_away);
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
-    if (probe_get_state()) {  // Check probe pin state.
+    if (probe_get_state() ^ is_probe_away) {  // Check probe pin state.
         system_set_exec_alarm(ExecAlarm::ProbeFailInitial);
         protocol_execute_realtime();
-        probe_configure_invert_mask(false);  // Re-initialize invert mask before returning.
-        return GCUpdatePos::None;            // Nothing else to do but bail.
+        return GCUpdatePos::None;  // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Found");
@@ -404,9 +403,8 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     } else {
         sys.probe_succeeded = true;  // Indicate to system the probing cycle completed successfully.
     }
-    sys_probe_state = PROBE_OFF;         // Ensure probe state monitor is disabled.
-    probe_configure_invert_mask(false);  // Re-initialize invert mask.
-    protocol_execute_realtime();         // Check and execute run-time commands
+    sys_probe_state = PROBE_OFF;  // Ensure probe state monitor is disabled.
+    protocol_execute_realtime();  // Check and execute run-time commands
     // Reset the stepper and planner buffers to remove the remainder of the probe motion.
     st_reset();            // Reset step segment buffer.
     plan_reset();          // Reset planner buffer. Zero planner positions. Ensure probing motion is cleared.

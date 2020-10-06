@@ -537,6 +537,10 @@ void FlagSetting::setDefault() {
 
 Error FlagSetting::setStringValue(char* s) {
     s             = trim(s);
+    Error err = check(s);
+    if (err != Error::Ok) {
+        return err;
+    }
     _currentValue = (strcasecmp(s, "on") == 0) || (strcasecmp(s, "true") == 0) || (strcasecmp(s, "enabled") == 0) ||
                     (strcasecmp(s, "yes") == 0) || (strcasecmp(s, "1") == 0);
     // _storedValue is -1, 0, or 1
