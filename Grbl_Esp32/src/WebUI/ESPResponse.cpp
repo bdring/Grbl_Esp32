@@ -96,9 +96,6 @@ namespace WebUI {
             return;
         }
 #endif
-        if (_client == CLIENT_WEBUI) {
-            return;  //this is sanity check
-        }
         grbl_send(_client, data);
     }
 
