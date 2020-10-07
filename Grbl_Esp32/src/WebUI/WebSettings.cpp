@@ -684,10 +684,6 @@ namespace WebUI {
                 return Error::SdFailedBusy;
             }
         }
-        if (sys.state != State::Idle) {
-            webPrintln("Busy");
-            return Error::IdleError;
-        }
         if (!openFile(SD, path.c_str())) {
             report_status_message(Error::SdFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
             webPrintln("");
@@ -696,6 +692,9 @@ namespace WebUI {
         return Error::Ok;
     }
     static Error showSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP221
+        if (sys.state != State::Idle && sys.state != State::Alarm) {
+            return Error::IdleError;
+        }
         Error err;
         if ((err = openSDFile(parameter)) != Error::Ok) {
             return err;
@@ -712,6 +711,10 @@ namespace WebUI {
 
     static Error runSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP220
         Error err;
+        if (sys.state != State::Idle) {
+            webPrintln("Busy");
+            return Error::IdleError;
+        }
         if ((err = openSDFile(parameter)) != Error::Ok) {
             return err;
         }
