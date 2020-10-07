@@ -166,28 +166,50 @@ void grbl_notifyf(const char* title, const char* format, ...) {
     }
 }
 
+static const int coordStringLen = 20;
+static const int axesStringLen = coordStringLen * MAX_N_AXIS;
+
 // formats axis values into a string and returns that string in rpt
-// NOTE: rpt should have at least size: 20 * MAX_N_AXIS
+// NOTE: rpt should have at least size: axesStringLen
 static void report_util_axis_values(float* axis_value, char* rpt) {
     uint8_t idx;
-    char    axisVal[20];
+    char    axisVal[coordStringLen];
     float   unit_conv = 1.0;  // unit conversion multiplier..default is mm
+    const char* format = "%4.3f";  // Default - report mm to 3 decimal places
     rpt[0]            = '\0';
     if (report_inches->get()) {
         unit_conv = 1.0 / MM_PER_INCH;
+        format = "%4.4f";  // Report inches to 4 decimal places
     }
     auto n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {
-        if (report_inches->get()) {
-            snprintf(axisVal, 19, "%4.4f", axis_value[idx] * unit_conv);  // Report inches to 4 decimals
-        } else {
-            snprintf(axisVal, 19, "%4.3f", axis_value[idx] * unit_conv);  // Report mm to 3 decimals
-        }
+        snprintf(axisVal, coordStringLen-1, format, axis_value[idx] * unit_conv);
         strcat(rpt, axisVal);
         if (idx < (number_axis->get() - 1)) {
             strcat(rpt, ",");
         }
     }
+}
+
+// This version returns the axis values as a String
+static String report_util_axis_values(const float* axis_value) {
+    String rpt = "";
+    uint8_t idx;
+    char    axisVal[coordStringLen];
+    float   unit_conv = 1.0;  // unit conversion multiplier..default is mm
+    int decimals = 3;  // Default - report mm to 3 decimal places
+    if (report_inches->get()) {
+        unit_conv = 1.0 / MM_PER_INCH;
+        decimals = 4;  // Report inches to 4 decimal places
+    }
+    auto n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
+        rpt += String(axis_value[idx] * unit_conv, decimals);
+        if (idx < (number_axis->get() - 1)) {
+            rpt += ",";
+        }
+    }
+    return rpt;
 }
 
 // Handles the primary confirmation protocol response for streaming interfaces and human-feedback.
@@ -284,8 +306,8 @@ void report_grbl_help(uint8_t client) {
 void report_probe_parameters(uint8_t client) {
     // Report in terms of machine position.
     float print_position[MAX_N_AXIS];
-    char  probe_rpt[(MAX_N_AXIS * 20 + 13 + 6 + 1)];  // the probe report we are building here
-    char  temp[MAX_N_AXIS * 20];
+    char  probe_rpt[(axesStringLen + 13 + 6 + 1)];  // the probe report we are building here
+    char  temp[axesStringLen];
     strcpy(probe_rpt, "[PRB:");  // initialize the string with the first characters
     // get the machine position and put them into a string and append to the probe report
     system_convert_array_steps_to_mpos(print_position, sys_probe_position);
@@ -299,46 +321,27 @@ void report_probe_parameters(uint8_t client) {
 
 // Prints Grbl NGC parameters (coordinate offsets, probing)
 void report_ngc_parameters(uint8_t client) {
-    float   coord_data[MAX_N_AXIS];
-    uint8_t coord_select;
-    char    temp[MAX_N_AXIS * 20];
-    char    ngc_rpt[((8 + (MAX_N_AXIS * 20)) * SETTING_INDEX_NCOORD + 4 + MAX_N_AXIS * 20 + 8 + 2 * 20)];
-    ngc_rpt[0] = '\0';
-    for (coord_select = 0; coord_select <= SETTING_INDEX_NCOORD; coord_select++) {
-        if (!(settings_read_coord_data(coord_select, coord_data))) {
-            report_status_message(Error::SettingReadFail, CLIENT_SERIAL);
-            return;
-        }
-        strcat(ngc_rpt, "[G");
-        switch (coord_select) {
-            case 6:
-                strcat(ngc_rpt, "28");
-                break;
-            case 7:
-                strcat(ngc_rpt, "30");
-                break;
-            default:
-                sprintf(temp, "%d", coord_select + 54);
-                strcat(ngc_rpt, temp);
-                break;  // G54-G59
-        }
-        strcat(ngc_rpt, ":");
-        report_util_axis_values(coord_data, temp);
-        strcat(ngc_rpt, temp);
-        strcat(ngc_rpt, "]\r\n");
+    String  ngc_rpt = "";
+
+    // Print persistent offsets G54 - G59, G28, and G30
+    for (auto coord_select = CoordIndex::Begin; coord_select < CoordIndex::End; ++coord_select) {
+        ngc_rpt += "[";
+        ngc_rpt += coords[coord_select]->getName();
+        ngc_rpt += ":";
+        ngc_rpt += report_util_axis_values(coords[coord_select]->get());
+        ngc_rpt += "]\r\n";
     }
-    strcat(ngc_rpt, "[G92:");  // Print G92,G92.1 which are not persistent in memory
-    report_util_axis_values(gc_state.coord_offset, temp);
-    strcat(ngc_rpt, temp);
-    strcat(ngc_rpt, "]\r\n");
-    strcat(ngc_rpt, "[TLO:");  // Print tool length offset value
+    ngc_rpt += "[G92:";  // Print non-persistent G92,G92.1
+    ngc_rpt += report_util_axis_values(gc_state.coord_offset);
+    ngc_rpt += "]\r\n";
+    ngc_rpt += "[TLO:";  // Print tool length offset
+    float tlo = gc_state.tool_length_offset;
     if (report_inches->get()) {
-        snprintf(temp, 20, "%4.3f]\r\n", gc_state.tool_length_offset * INCH_PER_MM);
-    } else {
-        snprintf(temp, 20, "%4.3f]\r\n", gc_state.tool_length_offset);
+        tlo *= INCH_PER_MM;
     }
-    strcat(ngc_rpt, temp);
-    grbl_send(client, ngc_rpt);
+    ngc_rpt += String(tlo, 3);;
+    ngc_rpt += "]\r\n";
+    grbl_send(client, ngc_rpt.c_str());
     report_probe_parameters(client);
 }
 

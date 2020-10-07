@@ -76,7 +76,6 @@ public:
 class Setting : public Word {
 private:
 protected:
-    static nvs_handle _handle;
     // group_t _group;
     axis_t   _axis = NO_AXIS;
     Setting* link;  // linked list of setting objects
@@ -85,6 +84,7 @@ protected:
     const char* _keyName;
 
 public:
+    static nvs_handle _handle;
     static void     init();
     static Setting* List;
     Setting*        next() { return link; }
@@ -134,6 +134,7 @@ public:
     Error               setStringValue(String s) { return setStringValue(s.c_str()); }
     virtual const char* getStringValue() = 0;
     virtual const char* getCompatibleValue() { return getStringValue(); }
+    virtual const char* getDefaultString() = 0;
 };
 
 class IntSetting : public Setting {
@@ -173,6 +174,7 @@ public:
     void        addWebui(WebUI::JSONencoder*);
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     int32_t get() { return _currentValue; }
 };
@@ -202,9 +204,32 @@ public:
     Error       setStringValue(char* value);
     const char* getCompatibleValue();
     const char* getStringValue();
+    const char* getDefaultString();
 
     int32_t get() { return _currentValue; }
 };
+
+class Coordinates {
+private:
+    float _currentValue[MAX_N_AXIS];
+    const char* _name;
+public:
+    Coordinates(const char* name) : _name(name) {}
+
+    const char* getName() { return _name; }
+    bool load();
+    void setDefault() {
+        float zeros[MAX_N_AXIS] = { 0.0, };
+        set(zeros);
+    };
+    // Copy the value to an array
+    void get(float* value) { memcpy(value, _currentValue, sizeof(_currentValue)); }
+    // Return a pointer to the array
+    const float* get() { return _currentValue; }
+    void set(float *value);
+};
+
+extern Coordinates* coords[CoordIndex::End];
 
 class FloatSetting : public Setting {
 private:
@@ -241,6 +266,7 @@ public:
     void        addWebui(WebUI::JSONencoder*) {}
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     float get() { return _currentValue; }
 };
@@ -274,6 +300,7 @@ public:
     void        addWebui(WebUI::JSONencoder*);
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     const char* get() { return _currentValue.c_str(); }
 };
@@ -288,6 +315,7 @@ private:
     int8_t                                  _storedValue;
     int8_t                                  _currentValue;
     std::map<const char*, int8_t, cmp_str>* _options;
+    const char*                             enumToString(int8_t value);
 
 public:
     EnumSetting(const char*   description,
@@ -306,6 +334,7 @@ public:
     void        addWebui(WebUI::JSONencoder*);
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     int8_t get() { return _currentValue; }
 };
@@ -335,6 +364,7 @@ public:
     Error       setStringValue(char* value);
     const char* getCompatibleValue();
     const char* getStringValue();
+    const char* getDefaultString();
 
     bool get() { return _currentValue; }
 };
@@ -366,6 +396,7 @@ public:
     void        addWebui(WebUI::JSONencoder*);
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     uint32_t get() { return _currentValue; }
 };

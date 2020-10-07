@@ -70,6 +70,7 @@ uint8_t serial_get_rx_buffer_available(uint8_t client) {
 
 void serial_init() {
     Serial.begin(BAUD_RATE);
+    Serial.setRxBufferSize(256);
     // reset all buffers
     serial_reset_read_buffer(CLIENT_ALL);
     grbl_send(CLIENT_SERIAL, "\r\n");  // create some white space after ESP32 boot info
@@ -104,7 +105,8 @@ void serialCheckTask(void* pvParameters) {
                 if (WebUI::SerialBT.hasClient() && WebUI::SerialBT.available()) {
                     client = CLIENT_BT;
                     data   = WebUI::SerialBT.read();
-                    //Serial.write(data);  // echo all data to serial
+
+                    // Serial.write(data);  // echo all data to serial.
                 } else {
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)

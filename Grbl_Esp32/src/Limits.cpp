@@ -333,27 +333,29 @@ void limits_init() {
                 } else {
                     detachInterrupt(pin);
                 }
-                /* 
-                // Change to do this once. limits_init() happens often
-                grbl_msg_sendf(CLIENT_SERIAL,
-                               MsgLevel::Info,
-                               "%c%s Axis limit switch on pin %s",
-                               report_get_axis_letter(axis),
-                               gang_index ? "2" : " ",
-                               pinName(pin).c_str());
-                */
+
+                if (limit_sw_queue == NULL) {
+                    grbl_msg_sendf(CLIENT_SERIAL,
+                                   MsgLevel::Info,
+                                   "%c%s Axis limit switch on pin %s",
+                                   report_get_axis_letter(axis),
+                                   gang_index ? "2" : " ",
+                                   pinName(pin).c_str());
+                }
             }
         }
     }
 
     // setup task used for debouncing
-    limit_sw_queue = xQueueCreate(10, sizeof(int));
-    xTaskCreate(limitCheckTask,
-                "limitCheckTask",
-                2048,
-                NULL,
-                5,  // priority
-                NULL);
+    if (limit_sw_queue == NULL) {
+        limit_sw_queue = xQueueCreate(10, sizeof(int));
+        xTaskCreate(limitCheckTask,
+                    "limitCheckTask",
+                    2048,
+                    NULL,
+                    5,  // priority
+                    NULL);
+    }
 }
 
 // Disables hard limits.
@@ -379,7 +381,10 @@ AxisMask limits_get_state() {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin = limit_pins[axis][gang_index];
             if (pin != UNDEFINED_PIN) {
-                pinMask |= (digitalRead(pin) << axis);
+                if (limit_invert->get())
+                    pinMask |= (!digitalRead(pin) << axis);
+                else
+                    pinMask |= (digitalRead(pin) << axis);
             }
         }
     }
@@ -387,9 +392,6 @@ AxisMask limits_get_state() {
 #ifdef INVERT_LIMIT_PIN_MASK  // not normally used..unless you have both normal and inverted switches
     pinMask ^= INVERT_LIMIT_PIN_MASK;
 #endif
-    if (limit_invert->get()) {
-        pinMask ^= limit_mask;
-    }
     return pinMask;
 }
 

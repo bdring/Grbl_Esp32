@@ -23,7 +23,7 @@
 #include "Grbl.h"
 
 #ifndef RX_BUFFER_SIZE
-#    define RX_BUFFER_SIZE 128
+#    define RX_BUFFER_SIZE 256
 #endif
 #ifndef TX_BUFFER_SIZE
 #    ifdef USE_LINE_NUMBERS

@@ -37,28 +37,11 @@ parser_block_t gc_block;
 #define FAIL(status) return (status);
 
 void gc_init() {
-    // First thing we do here is iterate through the coord systems and read them all, so that
-    // we get all our coord system errors here, and not while we're busy:
-    float coord_system[MAX_N_AXIS];
-
-    // g54 - g59 is 6 coordinate systems, plus 2 for G28 and G30 reference positions
-    bool      reported_error    = false;
-    const int MAX_COORD_SYSTEMS = 8;
-    for (uint8_t i = 0; i < MAX_COORD_SYSTEMS; ++i) {
-        if (!(settings_read_coord_data(i, coord_system))) {
-            if (!reported_error) {
-                reported_error = true;
-                report_status_message(Error::SettingReadFail, CLIENT_SERIAL);
-            }
-        }
-    }
-
     // Reset parser state:
     memset(&gc_state, 0, sizeof(parser_state_t));
     // Load default G54 coordinate system.
-    if (!(settings_read_coord_data(gc_state.modal.coord_select, gc_state.coord_system))) {
-        report_status_message(Error::SettingReadFail, CLIENT_SERIAL);
-    }
+    gc_state.modal.coord_select = CoordIndex::G54;
+    coords[gc_state.modal.coord_select]->get(gc_state.coord_system);
 }
 
 // Sets g-code parser position in mm. Input in steps. Called by the system abort and hard
@@ -149,7 +132,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     memcpy(&gc_block.modal, &gc_state.modal, sizeof(gc_modal_t));  // Copy current modes
     AxisCommand axis_command = AxisCommand::None;
     uint8_t     axis_0, axis_1, axis_linear;
-    uint8_t     coord_select = 0;  // Tracks G10 P coordinate selection for execution
+    CoordIndex  coord_select = CoordIndex::G54;  // Tracks G10 P coordinate selection for execution
     // Initialize bitflag tracking variables for axis indices compatible operations.
     uint8_t axis_words = 0;  // XYZ tracking
     uint8_t ijk_words  = 0;  // IJK tracking
@@ -158,6 +141,8 @@ Error gc_execute_line(char* line, uint8_t client) {
     uint32_t value_words     = 0;  // Tracks value words.
     uint8_t  gc_parser_flags = GCParserNone;
     auto     n_axis          = number_axis->get();
+    float    coord_data[MAX_N_AXIS];  // Used by WCO-related commands
+    uint8_t  pValue;                  // Integer value of P word
 
     // Determine if the line is a jogging motion or a normal g-code block.
     if (line[0] == '$') {  // NOTE: `$J=` already parsed when passed to this function.
@@ -286,10 +271,11 @@ Error gc_execute_line(char* line, uint8_t client) {
                         mg_word_bit           = ModalGroup::MG1;
                         break;
                     case 38:  // G38 - probe
-#ifndef PROBE_PIN             //only allow G38 "Probe" commands if a probe pin is defined.
-                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
-                        FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
-#endif
+                        //only allow G38 "Probe" commands if a probe pin is defined.
+                        if (PROBE_PIN == UNDEFINED_PIN) {
+                            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
+                            FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
+                        }
                         // Check for G0/1/2/3/38 being called with G10/28/30/92 on same block.
                         // * G43.1 is also an axis command but is not explicitly defined this way.
                         if (axis_command != AxisCommand::None) {
@@ -409,15 +395,30 @@ Error gc_execute_line(char* line, uint8_t client) {
                         mg_word_bit = ModalGroup::MG8;
                         break;
                     case 54:
-                    case 55:
-                    case 56:
-                    case 57:
-                    case 58:
-                    case 59:
-                        // NOTE: G59.x are not supported. (But their int_values would be 60, 61, and 62.)
-                        gc_block.modal.coord_select = int_value - 54;  // Shift to array indexing.
+                        gc_block.modal.coord_select = CoordIndex::G54;
                         mg_word_bit                 = ModalGroup::MG12;
                         break;
+                    case 55:
+                        gc_block.modal.coord_select = CoordIndex::G55;
+                        mg_word_bit                 = ModalGroup::MG12;
+                        break;
+                    case 56:
+                        gc_block.modal.coord_select = CoordIndex::G56;
+                        mg_word_bit                 = ModalGroup::MG12;
+                        break;
+                    case 57:
+                        gc_block.modal.coord_select = CoordIndex::G57;
+                        mg_word_bit                 = ModalGroup::MG12;
+                        break;
+                    case 58:
+                        gc_block.modal.coord_select = CoordIndex::G58;
+                        mg_word_bit                 = ModalGroup::MG12;
+                        break;
+                    case 59:
+                        gc_block.modal.coord_select = CoordIndex::G59;
+                        mg_word_bit                 = ModalGroup::MG12;
+                        break;
+                        // NOTE: G59.x are not supported.
                     case 61:
                         if (mantissa != 0) {
                             FAIL(Error::GcodeUnsupportedCommand);  // [G61.1 not supported]
@@ -879,13 +880,13 @@ Error gc_execute_line(char* line, uint8_t client) {
     float block_coord_system[MAX_N_AXIS];
     memcpy(block_coord_system, gc_state.coord_system, sizeof(gc_state.coord_system));
     if (bit_istrue(command_words, bit(ModalGroup::MG12))) {  // Check if called in block
-        if (gc_block.modal.coord_select > N_COORDINATE_SYSTEM) {
+        // This error probably cannot happen because preceding code sets
+        // gc_block.modal.coord_select only to specific supported values
+        if (gc_block.modal.coord_select >= CoordIndex::NWCSystems) {
             FAIL(Error::GcodeUnsupportedCoordSys);  // [Greater than N sys]
         }
         if (gc_state.modal.coord_select != gc_block.modal.coord_select) {
-            if (!(settings_read_coord_data(gc_block.modal.coord_select, block_coord_system))) {
-                FAIL(Error::SettingReadFail);
-            }
+            coords[gc_block.modal.coord_select]->get(block_coord_system);
         }
     }
     // [16. Set path control mode ]: N/A. Only G61. G61.1 and G64 NOT SUPPORTED.
@@ -907,10 +908,6 @@ Error gc_execute_line(char* line, uint8_t client) {
             if (bit_isfalse(value_words, (bit(GCodeWord::P) | bit(GCodeWord::L)))) {
                 FAIL(Error::GcodeValueWordMissing);  // [P/L word missing]
             }
-            coord_select = trunc(gc_block.values.p);  // Convert p value to int.
-            if (coord_select > N_COORDINATE_SYSTEM) {
-                FAIL(Error::GcodeUnsupportedCoordSys);  // [Greater than N sys]
-            }
             if (gc_block.values.l != 20) {
                 if (gc_block.values.l == 2) {
                     if (bit_istrue(value_words, bit(GCodeWord::R))) {
@@ -920,18 +917,21 @@ Error gc_execute_line(char* line, uint8_t client) {
                     FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported L]
                 }
             }
-            bit_false(value_words, (bit(GCodeWord::L) | bit(GCodeWord::P)));
-            // Determine coordinate system to change and try to load from EEPROM.
-            if (coord_select > 0) {
-                coord_select--;  // Adjust P1-P6 index to EEPROM coordinate data indexing.
+            // Select the coordinate system based on the P word
+            pValue = trunc(gc_block.values.p);  // Convert p value to integer
+            if (pValue > 0) {
+                // P1 means G54, P2 means G55, etc.
+                coord_select = static_cast<CoordIndex>(pValue - 1 + CoordIndex::G54);
             } else {
-                coord_select = gc_block.modal.coord_select;  // Index P0 as the active coordinate system
+                // P0 means use currently-selected system
+                coord_select = gc_block.modal.coord_select;
             }
-            // NOTE: Store parameter data in IJK values. By rule, they are not in use with this command.
-            // FIXME: Instead of IJK, we'd better use: float vector[MAX_N_AXIS]; // [DG]
-            if (!settings_read_coord_data(coord_select, gc_block.values.ijk)) {
-                FAIL(Error::SettingReadFail);  // [EEPROM read fail]
+            if (coord_select >= CoordIndex::NWCSystems) {
+                FAIL(Error::GcodeUnsupportedCoordSys);  // [Greater than N sys]
             }
+            bit_false(value_words, (bit(GCodeWord::L) | bit(GCodeWord::P)));
+            coords[coord_select]->get(coord_data);
+
             // Pre-calculate the coordinate data changes.
             for (idx = 0; idx < n_axis; idx++) {  // Axes indices are consistent, so loop may be used.
                 // Update axes defined only in block. Always in machine coordinates. Can change non-active system.
@@ -939,13 +939,13 @@ Error gc_execute_line(char* line, uint8_t client) {
                     if (gc_block.values.l == 20) {
                         // L20: Update coordinate system axis at current position (with modifiers) with programmed value
                         // WPos = MPos - WCS - G92 - TLO  ->  WCS = MPos - G92 - TLO - WPos
-                        gc_block.values.ijk[idx] = gc_state.position[idx] - gc_state.coord_offset[idx] - gc_block.values.xyz[idx];
+                        coord_data[idx] = gc_state.position[idx] - gc_state.coord_offset[idx] - gc_block.values.xyz[idx];
                         if (idx == TOOL_LENGTH_OFFSET_AXIS) {
-                            gc_block.values.ijk[idx] -= gc_state.tool_length_offset;
+                            coord_data[idx] -= gc_state.tool_length_offset;
                         }
                     } else {
                         // L2: Update coordinate system axis to programmed value.
-                        gc_block.values.ijk[idx] = gc_block.values.xyz[idx];
+                        coord_data[idx] = gc_block.values.xyz[idx];
                     }
                 }  // Else, keep current stored value.
             }
@@ -1003,21 +1003,16 @@ Error gc_execute_line(char* line, uint8_t client) {
                 case NonModal::GoHome1:  // G30
                     // [G28/30 Errors]: Cutter compensation is enabled.
                     // Retreive G28/30 go-home position data (in machine coordinates) from EEPROM
-                    // NOTE: Store parameter data in IJK values. By rule, they are not in use with this command.
                     if (gc_block.non_modal_command == NonModal::GoHome0) {
-                        if (!settings_read_coord_data(SETTING_INDEX_G28, gc_block.values.ijk)) {
-                            FAIL(Error::SettingReadFail);
-                        }
+                        coords[CoordIndex::G28]->get(coord_data);
                     } else {  // == NonModal::GoHome1
-                        if (!settings_read_coord_data(SETTING_INDEX_G30, gc_block.values.ijk)) {
-                            FAIL(Error::SettingReadFail);
-                        }
+                        coords[CoordIndex::G30]->get(coord_data);
                     }
                     if (axis_words) {
                         // Move only the axes specified in secondary move.
                         for (idx = 0; idx < n_axis; idx++) {
                             if (!(axis_words & bit(idx))) {
-                                gc_block.values.ijk[idx] = gc_state.position[idx];
+                                coord_data[idx] = gc_state.position[idx];
                             }
                         }
                     } else {
@@ -1454,7 +1449,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     // [15. Coordinate system selection ]:
     if (gc_state.modal.coord_select != gc_block.modal.coord_select) {
         gc_state.modal.coord_select = gc_block.modal.coord_select;
-        memcpy(gc_state.coord_system, block_coord_system, MAX_N_AXIS * sizeof(float));
+        memcpy(gc_state.coord_system, block_coord_system, sizeof(gc_state.coord_system));
         system_flag_wco_change();
     }
     // [16. Set path control mode ]: G61.1/G64 NOT SUPPORTED
@@ -1465,10 +1460,10 @@ Error gc_execute_line(char* line, uint8_t client) {
     // [19. Go to predefined position, Set G10, or Set axis offsets ]:
     switch (gc_block.non_modal_command) {
         case NonModal::SetCoordinateData:
-            settings_write_coord_data(coord_select, gc_block.values.ijk);
+            coords[coord_select]->set(coord_data);
             // Update system coordinate system if currently active.
             if (gc_state.modal.coord_select == coord_select) {
-                memcpy(gc_state.coord_system, gc_block.values.ijk, MAX_N_AXIS * sizeof(float));
+                memcpy(gc_state.coord_system, coord_data, sizeof(gc_state.coord_system));
                 system_flag_wco_change();
             }
             break;
@@ -1480,14 +1475,14 @@ Error gc_execute_line(char* line, uint8_t client) {
             if (axis_command != AxisCommand::None) {
                 mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
             }
-            mc_line(gc_block.values.ijk, pl_data);
-            memcpy(gc_state.position, gc_block.values.ijk, MAX_N_AXIS * sizeof(float));
+            mc_line(coord_data, pl_data);
+            memcpy(gc_state.position, coord_data, sizeof(gc_state.position));
             break;
         case NonModal::SetHome0:
-            settings_write_coord_data(SETTING_INDEX_G28, gc_state.position);
+            coords[CoordIndex::G28]->set(gc_state.position);
             break;
         case NonModal::SetHome1:
-            settings_write_coord_data(SETTING_INDEX_G30, gc_state.position);
+            coords[CoordIndex::G30]->set(gc_state.position);
             break;
         case NonModal::SetCoordinateOffset:
             memcpy(gc_state.coord_offset, gc_block.values.xyz, sizeof(gc_block.values.xyz));
@@ -1587,7 +1582,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             gc_state.modal.distance     = Distance::Absolute;
             gc_state.modal.feed_rate    = FeedRate::UnitsPerMin;
             // gc_state.modal.cutter_comp = CutterComp::Disable; // Not supported.
-            gc_state.modal.coord_select = 0;  // G54
+            gc_state.modal.coord_select = CoordIndex::G54;
             gc_state.modal.spindle      = SpindleState::Disable;
             gc_state.modal.coolant      = {};
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
@@ -1605,9 +1600,7 @@ Error gc_execute_line(char* line, uint8_t client) {
 #endif
             // Execute coordinate change and spindle/coolant stop.
             if (sys.state != State::CheckMode) {
-                if (!(settings_read_coord_data(gc_state.modal.coord_select, gc_state.coord_system))) {
-                    FAIL(Error::SettingReadFail);
-                }
+                coords[gc_state.modal.coord_select]->get(gc_state.coord_system);
                 system_flag_wco_change();  // Set to refresh immediately just in case something altered.
                 spindle->set_state(SpindleState::Disable, 0);
                 coolant_off();

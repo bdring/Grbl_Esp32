@@ -142,7 +142,7 @@ void protocol_main_loop() {
             char fileLine[255];
             if (readFileLine(fileLine, 255)) {
                 SD_ready_next = false;
-                report_status_message(gc_execute_line(fileLine, SD_client), SD_client);
+                report_status_message(execute_line(fileLine, SD_client, SD_auth_level), SD_client);
             } else {
                 char temp[50];
                 sd_get_current_filename(temp);

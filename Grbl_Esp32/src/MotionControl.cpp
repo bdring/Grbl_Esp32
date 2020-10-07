@@ -118,7 +118,7 @@ void mc_arc(float*            target,
 #ifdef USE_KINEMATICS
     float    previous_position[MAX_N_AXIS];
     uint16_t n;
-    auto n_axis = number_axis->get();
+    auto     n_axis = number_axis->get();
     for (n = 0; n < n_axis; n++) {
         previous_position[n] = position[n];
     }
@@ -264,6 +264,7 @@ static bool axis_is_squared(uint8_t axis_mask) {
 // NOTE: There should be no motions in the buffer and Grbl must be in an idle state before
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
 void mc_homing_cycle(uint8_t cycle_mask) {
+    bool no_cycles_defined = true;
 #ifdef USE_CUSTOM_HOMING
     if (user_defined_homing()) {
         return;
@@ -313,59 +314,29 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     else
 #endif
     {
-        // Search to engage all axes limit switches at faster homing seek rate.
-        if (!axis_is_squared(HOMING_CYCLE_0)) {
-            limits_go_home(HOMING_CYCLE_0);  // Homing cycle 0
-        } else {
-            ganged_mode           = SquaringMode::Dual;
-            n_homing_locate_cycle = 0;  // don't do a second touch cycle
-            limits_go_home(HOMING_CYCLE_0);
-            ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
-            limits_go_home(HOMING_CYCLE_0);
-            ganged_mode = SquaringMode::B;
-            limits_go_home(HOMING_CYCLE_0);
-            ganged_mode = SquaringMode::Dual;  // always return to dual
+        for (int cycle = 0; cycle < MAX_N_AXIS; cycle++) {
+            auto homing_mask = homing_cycle[cycle]->get();
+            if (homing_mask) {  // if there are some axes in this cycle
+                no_cycles_defined = false;
+                if (!axis_is_squared(homing_mask)) {
+                    limits_go_home(homing_mask);  // Homing cycle 0
+                } else {
+                    ganged_mode           = SquaringMode::Dual;
+                    n_homing_locate_cycle = 0;  // don't do a second touch cycle
+                    limits_go_home(homing_mask);
+                    ganged_mode           = SquaringMode::A;
+                    n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
+                    limits_go_home(homing_mask);
+                    ganged_mode = SquaringMode::B;
+                    limits_go_home(homing_mask);
+                    ganged_mode = SquaringMode::Dual;  // always return to dual
+                }
+            }
         }
-#ifdef HOMING_CYCLE_1
-        if (!axis_is_squared(HOMING_CYCLE_1)) {
-            limits_go_home(HOMING_CYCLE_1);
-        } else {
-            ganged_mode           = SquaringMode::Dual;
-            n_homing_locate_cycle = 0;  // don't do a second touch cycle
-            limits_go_home(HOMING_CYCLE_1);
-            ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
-            limits_go_home(HOMING_CYCLE_1);
-            ganged_mode = SquaringMode::B;
-            limits_go_home(HOMING_CYCLE_1);
-            ganged_mode = SquaringMode::Dual;  // always return to dual
+
+        if (no_cycles_defined) {
+            report_status_message(Error::HomingNoCycles, CLIENT_ALL);
         }
-#endif
-#ifdef HOMING_CYCLE_2
-        if (!axis_is_squared(HOMING_CYCLE_2)) {
-            limits_go_home(HOMING_CYCLE_2);
-        } else {
-            ganged_mode           = SquaringMode::Dual;
-            n_homing_locate_cycle = 0;  // don't do a second touch cycle
-            limits_go_home(HOMING_CYCLE_2);
-            ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
-            limits_go_home(HOMING_CYCLE_2);
-            ganged_mode = SquaringMode::B;
-            limits_go_home(HOMING_CYCLE_2);
-            ganged_mode = SquaringMode::Dual;  // always return to dual
-        }
-#endif
-#ifdef HOMING_CYCLE_3
-        limits_go_home(HOMING_CYCLE_3);  // Homing cycle 3
-#endif
-#ifdef HOMING_CYCLE_4
-        limits_go_home(HOMING_CYCLE_4);  // Homing cycle 4
-#endif
-#ifdef HOMING_CYCLE_5
-        limits_go_home(HOMING_CYCLE_5);  // Homing cycle 5
-#endif
     }
     protocol_execute_realtime();  // Check for reset and set system abort.
     if (sys.abort) {
@@ -404,14 +375,13 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
     uint8_t is_no_error   = bit_istrue(parser_flags, GCParserProbeIsNoError);
     sys.probe_succeeded   = false;  // Re-initialize probe history before beginning cycle.
-    probe_configure_invert_mask(is_probe_away);
+    set_probe_direction(is_probe_away);
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
-    if (probe_get_state()) {  // Check probe pin state.
+    if (probe_get_state() ^ is_probe_away) {  // Check probe pin state.
         sys_rt_exec_alarm = ExecAlarm::ProbeFailInitial;
         protocol_execute_realtime();
-        probe_configure_invert_mask(false);  // Re-initialize invert mask before returning.
-        return GCUpdatePos::None;            // Nothing else to do but bail.
+        return GCUpdatePos::None;  // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
     mc_line(target, pl_data);
@@ -436,9 +406,8 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     } else {
         sys.probe_succeeded = true;  // Indicate to system the probing cycle completed successfully.
     }
-    sys_probe_state = Probe::Off;        // Ensure probe state monitor is disabled.
-    probe_configure_invert_mask(false);  // Re-initialize invert mask.
-    protocol_execute_realtime();         // Check and execute run-time commands
+    sys_probe_state = Probe::Off;  // Ensure probe state monitor is disabled.
+    protocol_execute_realtime();   // Check and execute run-time commands
     // Reset the stepper and planner buffers to remove the remainder of the probe motion.
     st_reset();            // Reset step segment buffer.
     plan_reset();          // Reset planner buffer. Zero planner positions. Ensure probing motion is cleared.

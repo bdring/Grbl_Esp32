@@ -242,7 +242,7 @@ typedef struct {
     Plane plane_select;  // {G17,G18,G19}
     // CutterCompensation cutter_comp;  // {G40} NOTE: Don't track. Only default supported.
     ToolLengthOffset tool_length;   // {G43.1,G49}
-    uint8_t          coord_select;  // {G54,G55,G56,G57,G58,G59}
+    CoordIndex       coord_select;  // {G54,G55,G56,G57,G58,G59}
     // uint8_t control;      // {G61} NOTE: Don't track. Only default supported.
     ProgramFlow  program_flow;  // {M0,M1,M2,M30}
     CoolantState coolant;       // {M7,M8,M9}
@@ -255,7 +255,7 @@ typedef struct {
 typedef struct {
     uint8_t e;                // M67
     float   f;                // Feed
-    float   ijk[MAX_N_AXIS];  // I,J,K Axis arc offsets
+    float   ijk[3];           // I,J,K Axis arc offsets - only 3 are possible
     uint8_t l;                // G10 or canned cycles parameters
     int32_t n;                // Line number
     float   p;                // G10 or dwell parameters

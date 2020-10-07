@@ -32,10 +32,8 @@ enum class Probe : uint8_t {
 // Probe pin initialization routine.
 void probe_init();
 
-// Called by probe_init() and the mc_probe() routines. Sets up the probe pin invert mask to
-// appropriately set the pin logic according to setting for normal-high/normal-low operation
-// and the probing cycle modes for toward-workpiece/away-from-workpiece.
-void probe_configure_invert_mask(uint8_t is_probe_away);
+// setup probing direction G38.2 vs. G38.4
+void set_probe_direction(bool is_away);
 
 // Returns probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
 bool probe_get_state();

@@ -74,17 +74,9 @@
 #define MACRO_BUTTON_1_PIN      GPIO_NUM_12
 #define MACRO_BUTTON_2_PIN      GPIO_NUM_14
 
-// redefine some stuff from config.h
-#ifdef HOMING_CYCLE_0
-    #undef HOMING_CYCLE_0
-#endif
-#define HOMING_CYCLE_0 bit(X_AXIS) // this 'bot only homes the X axis
-#ifdef HOMING_CYCLE_1
-    #undef HOMING_CYCLE_1
-#endif
-#ifdef HOMING_CYCLE_2
-    #undef HOMING_CYCLE_2
-#endif
+
+// this 'bot only homes the X axis
+// Set $Homing/Cycle0=X
 
 // ============= End CPU MAP ==================
 

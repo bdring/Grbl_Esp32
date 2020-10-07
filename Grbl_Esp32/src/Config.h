@@ -46,31 +46,7 @@ Some features should not be changed. See notes below.
 // machine.h is #included below, after some definitions
 // that the machine file might choose to undefine.
 
-// Define the homing cycle patterns with bitmasks. The homing cycle first performs a search mode
-// to quickly engage the limit switches, followed by a slower locate mode, and finished by a short
-// pull-off motion to disengage the limit switches. The following HOMING_CYCLE_x defines are executed
-// in order starting with suffix 0 and completes the homing routine for the specified-axes only. If
-// an axis is omitted from the defines, it will not home, nor will the system update its position.
-// Meaning that this allows for users with non-standard Cartesian machines, such as a lathe (x then z,
-// with no y), to configure the homing cycle behavior to their needs.
-// NOTE: The homing cycle is designed to allow sharing of limit pins, if the axes are not in the same
-// cycle, but this requires some pin settings changes in the machine definition file. For example, the default homing
-// cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
-// By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
-// may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
-// on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
-// will not be affected by pin sharing.
-
-// NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
-// These homing cycle definitions precede the machine.h file so that the machine
-// definition can undefine them if necessary.
-#define HOMING_CYCLE_0 bit(Z_AXIS)  // TYPICALLY REQUIRED: First move Z to clear workspace.
-#define HOMING_CYCLE_1 bit(X_AXIS)
-#define HOMING_CYCLE_2 bit(Y_AXIS)
-
-// NOTE: The following is for for homing X and Y at the same time
-// #define HOMING_CYCLE_0 bit(Z_AXIS) // first home z by itself
-// #define HOMING_CYCLE_1 (bit(X_AXIS)|bit(Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
+// Note: HOMING_CYCLES are now settings
 
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
@@ -288,8 +264,6 @@ const double SAFETY_DOOR_SPINDLE_DELAY = 4.0;  // Float (seconds)
 const double SAFETY_DOOR_COOLANT_DELAY = 1.0;  // Float (seconds)
 
 // Enable CoreXY kinematics. Use ONLY with CoreXY machines.
-// IMPORTANT: If homing is enabled, you must reconfigure the homing cycle #defines above to
-// #define HOMING_CYCLE_0 bit(X_AXIS) and #define HOMING_CYCLE_1 bit(Y_AXIS)
 // NOTE: This configuration option alters the motion of the X and Y axes to principle of operation
 // defined at (http://corexy.com/theory.html). Motors are assumed to positioned and wired exactly as
 // described, if not, motions may move in strange directions. Grbl requires the CoreXY A and B motors

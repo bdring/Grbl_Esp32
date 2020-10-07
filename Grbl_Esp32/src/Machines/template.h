@@ -136,22 +136,7 @@
 // #define Z_SERVO_CAL_MIN       1.0 // calibration factor for the maximum PWM duty
 
 // === Homing cycles
-// The default homing order is Z first (HOMING_CYCLE_0),
-// then X (HOMING_CYCLE_1), and finally Y (HOMING_CYCLE_2)
-// For machines that need different homing order, you can
-// undefine HOMING_CYCLE_n and redefine it accordingly.
-// For example, the following would first home X and Y
-// simultaneously, then A and B simultaneously, and Z
-// not at all.
-
-// #undef HOMING_CYCLE_0
-// #define HOMING_CYCLE_0 (bit(X_AXIS)|bit(Y_AXIS))
-
-// #undef HOMING_CYCLE_1
-// #define HOMING_CYCLE_1 (bit(A_AXIS)|bit(B_AXIS))
-
-// #undef HOMING_CYCLE_2
-// #endif
+// Set them using $Homing/Cycle0= optionally up to $Homing/Cycle5=
 
 // === Default settings
 // Grbl has many run-time settings that the user can changed by

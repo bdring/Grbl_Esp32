@@ -56,11 +56,8 @@ void settings_restore(uint8_t restore_flag) {
         }
     }
     if (restore_flag & SETTINGS_RESTORE_PARAMETERS) {
-        uint8_t idx;
-        float   coord_data[MAX_N_AXIS];
-        memset(&coord_data, 0, sizeof(coord_data));
-        for (idx = 0; idx <= SETTING_INDEX_NCOORD; idx++) {
-            settings_write_coord_data(idx, coord_data);
+        for (auto idx = CoordIndex::Begin; idx < CoordIndex::End; ++idx) {
+            coords[idx]->setDefault();
         }
     }
     if (restore_flag & SETTINGS_RESTORE_BUILD_INFO) {
@@ -160,6 +157,16 @@ Error list_settings(const char* value, WebUI::AuthenticationLevel auth_level, We
         const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
         show_setting(s->getName(), displayValue, NULL, out);
     }
+    return Error::Ok;
+}
+Error list_changed_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    for (Setting* s = Setting::List; s; s = s->next()) {
+        const char* value = s->getStringValue();
+        if (!auth_failed(s, value, auth_level) && strcmp(value, s->getDefaultString())) {
+            show_setting(s->getName(), value, NULL, out);
+        }
+    }
+    grbl_sendf(out->client(), "(Passwords not shown)\r\n");
     return Error::Ok;
 }
 Error list_commands(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
@@ -386,6 +393,7 @@ void make_grbl_commands() {
     new GrblCommand("+", "ExtendedSettings/List", report_extended_settings, notCycleOrHold);
     new GrblCommand("L", "GrblNames/List", list_grbl_names, notCycleOrHold);
     new GrblCommand("S", "Settings/List", list_settings, notCycleOrHold);
+    new GrblCommand("SC","Settings/ListChanged", list_changed_settings, notCycleOrHold);
     new GrblCommand("CMD", "Commands/List", list_commands, notCycleOrHold);
     new GrblCommand("E", "ErrorCodes/List", listErrorCodes, anyState);
     new GrblCommand("G", "GCode/Modes", report_gcode, anyState);
@@ -559,8 +567,10 @@ Error system_execute_line(char* line, WebUI::ESPResponseStream* out, WebUI::Auth
     // non-empty string - [ESPxxx]yyy or $xxx=yyy
     return do_command_or_setting(key, value, auth_level, out);
 }
+
 Error system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level) {
-    return system_execute_line(line, new WebUI::ESPResponseStream(client, true), auth_level);
+    WebUI::ESPResponseStream stream(client, true);
+    return system_execute_line(line, &stream, auth_level);
 }
 
 void system_execute_startup(char* line) {
