@@ -23,8 +23,8 @@
 
 // Declare system global variable structure
 system_t               sys;
-int32_t                sys_position[N_AXIS];            // Real-time machine (aka home) position vector in steps.
-int32_t                sys_probe_position[N_AXIS];      // Last probe position in machine coordinates and steps.
+int32_t                sys_position[MAX_N_AXIS];        // Real-time machine (aka home) position vector in steps.
+int32_t                sys_probe_position[MAX_N_AXIS];  // Last probe position in machine coordinates and steps.
 volatile Probe         sys_probe_state;                 // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
 volatile ExecState     sys_rt_exec_state;               // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
 volatile ExecAlarm     sys_rt_exec_alarm;               // Global realtime executor bitflag variable for setting various alarms.
@@ -105,7 +105,6 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     myDigitalOutputs[3] = new UserOutput::DigitalOutput(3, USER_DIGITAL_PIN_3);
 
     // Setup M67 Pins
-    // Setup USER_DIGITAL_PINs controlled by M62, M63, M64, & M65
     myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, USER_ANALOG_PIN_0, USER_ANALOG_PIN_0_FREQ);
     myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, USER_ANALOG_PIN_1, USER_ANALOG_PIN_1_FREQ);
     myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, USER_ANALOG_PIN_2, USER_ANALOG_PIN_2_FREQ);
