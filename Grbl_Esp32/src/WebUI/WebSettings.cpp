@@ -288,7 +288,11 @@ namespace WebUI {
         return Error::Ok;
     }
 
-    static Error runFile(char* parameter, AuthenticationLevel auth_level) {  // ESP700
+    static Error runLocalFile(char* parameter, AuthenticationLevel auth_level) {  // ESP700
+        if (sys.state != State::Idle) {
+            webPrintln("Busy");
+            return Error::IdleError;
+        }
         String path = trim(parameter);
         if ((path.length() > 0) && (path[0] != '/')) {
             path = "/" + path;
@@ -304,14 +308,13 @@ namespace WebUI {
         //until no line in file
         Error err;
         Error accumErr = Error::Ok;
+        uint8_t client = (espresponse) ? espresponse->client() : CLIENT_ALL;
         while (currentfile.available()) {
             String currentline = currentfile.readStringUntil('\n');
             if (currentline.length() > 0) {
                 byte line[256];
                 currentline.getBytes(line, 255);
-                // TODO Settings - feed into command interpreter
-                // while accumulating error codes
-                err = execute_line((char*)line, CLIENT_WEBUI, auth_level);
+                err = execute_line((char*)line, client, auth_level);
                 if (err != Error::Ok) {
                     accumErr = err;
                 }
@@ -320,6 +323,33 @@ namespace WebUI {
         }
         currentfile.close();
         return accumErr;
+    }
+
+    static Error showLocalFile(char* parameter, AuthenticationLevel auth_level) {  // ESP701
+        if (sys.state != State::Idle && sys.state != State::Alarm) {
+            return Error::IdleError;
+        }
+        String path = trim(parameter);
+        if ((path.length() > 0) && (path[0] != '/')) {
+            path = "/" + path;
+        }
+        if (!SPIFFS.exists(path)) {
+            webPrintln("Error: No such file!");
+            return Error::SdFileNotFound;
+        }
+        File currentfile = SPIFFS.open(path, FILE_READ);
+        if (!currentfile) {
+            return Error::SdFailedOpenFile;
+        }
+        while (currentfile.available()) {
+            // String currentline = currentfile.readStringUntil('\n');
+            //            if (currentline.length() > 0) {
+            //                webPrintln(currentline);
+            //            }
+            webPrintln(currentfile.readStringUntil('\n'));
+        }
+        currentfile.close();
+        return Error::Ok;
     }
 
 #ifdef ENABLE_NOTIFICATIONS
@@ -642,11 +672,14 @@ namespace WebUI {
     }
 
 #ifdef ENABLE_SD_CARD
-    static Error runSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP220
-        parameter = trim(parameter);
+    static Error openSDFile(char* parameter) {
         if (*parameter == '\0') {
             webPrintln("Missing file name!");
             return Error::InvalidValue;
+        }
+        String path = trim(parameter);
+        if (path[0] != '/') {
+            path = "/" + path;
         }
         int8_t state = get_sd_state(true);
         if (state != SDCARD_IDLE) {
@@ -658,14 +691,39 @@ namespace WebUI {
                 return Error::SdFailedBusy;
             }
         }
+        if (!openFile(SD, path.c_str())) {
+            report_status_message(Error::SdFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
+            webPrintln("");
+            return Error::SdFailedOpenFile;
+        }
+        return Error::Ok;
+    }
+    static Error showSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP221
+        if (sys.state != State::Idle && sys.state != State::Alarm) {
+            return Error::IdleError;
+        }
+        Error err;
+        if ((err = openSDFile(parameter)) != Error::Ok) {
+            return err;
+        }
+        SD_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
+        char fileLine[255];
+        while (readFileLine(fileLine, 255)) {
+            webPrintln(fileLine);
+        }
+        webPrintln("");
+        closeFile();
+        return Error::Ok;
+    }
+
+    static Error runSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP220
+        Error err;
         if (sys.state != State::Idle) {
             webPrintln("Busy");
             return Error::IdleError;
         }
-        if (!openFile(SD, parameter)) {
-            report_status_message(Error::SdFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
-            webPrintln("");
-            return Error::Ok;
+        if ((err = openSDFile(parameter)) != Error::Ok) {
+            return err;
         }
         char fileLine[255];
         if (!readFileLine(fileLine, 255)) {
@@ -675,9 +733,10 @@ namespace WebUI {
             return Error::Ok;
         }
         SD_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
-        report_status_message(gc_execute_line(fileLine, (espresponse) ? espresponse->client() : CLIENT_ALL),
-                              (espresponse) ? espresponse->client() : CLIENT_ALL);  // execute the first line
-        report_realtime_status((espresponse) ? espresponse->client() : CLIENT_ALL);
+        SD_auth_level = auth_level;
+        // execute the first line now; Protocol.cpp handles later ones when SD_ready_next
+        report_status_message(execute_line(fileLine, SD_client, SD_auth_level), SD_client);
+        report_realtime_status(SD_client);
         webPrintln("");
         return Error::Ok;
     }
@@ -962,7 +1021,8 @@ namespace WebUI {
         new WebCommand(NULL, WEBCMD, WG, "ESP800", "Firmware/Info", showFwInfo);
         new WebCommand(NULL, WEBCMD, WU, "ESP720", "LocalFS/Size", SPIFFSSize);
         new WebCommand("FORMAT", WEBCMD, WA, "ESP710", "LocalFS/Format", formatSpiffs);
-        new WebCommand("path", WEBCMD, WU, "ESP700", "LocalFS/Run", runFile);
+        new WebCommand("path", WEBCMD, WU, "ESP701", "LocalFS/Show", showLocalFile);
+        new WebCommand("path", WEBCMD, WU, "ESP700", "LocalFS/Run", runLocalFile);
         new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/List", listLocalFiles);
         new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/ListJSON", listLocalFilesJSON);
 #endif
@@ -986,6 +1046,7 @@ namespace WebUI {
         new WebCommand(NULL, WEBCMD, WU, "ESP400", "WebUI/List", listSettings);
 #endif
 #ifdef ENABLE_SD_CARD
+        new WebCommand("path", WEBCMD, WU, "ESP221", "SD/Show", showSDFile);
         new WebCommand("path", WEBCMD, WU, "ESP220", "SD/Run", runSDFile);
         new WebCommand("file_or_directory_path", WEBCMD, WU, "ESP215", "SD/Delete", deleteSDObject);
         new WebCommand(NULL, WEBCMD, WU, "ESP210", "SD/List", listSDFiles);
