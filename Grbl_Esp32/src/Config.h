@@ -162,9 +162,9 @@ const int DEFAULT_RADIO_MODE = ESP_RADIO_OFF;
 
 // Define realtime command special characters. These characters are 'picked-off' directly from the
 // serial read data stream and are not passed to the grbl line execution parser. Select characters
-// that do not and must not exist in the streamed g-code program. ASCII control characters may be
+// that do not and must not exist in the streamed GCode program. ASCII control characters may be
 // used, if they are available per user setup. Also, extended ASCII codes (>127), which are never in
-// g-code programs, maybe selected for interface programs.
+// GCode programs, maybe selected for interface programs.
 // NOTE: If changed, manually update help message in report.c.
 
 const uint8_t CMD_RESET         = 0x18;  // ctrl-x.
@@ -218,9 +218,9 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // If you have a two-axis machine, DON'T USE THIS. Instead, just alter the homing cycle for two-axes.
 #define HOMING_SINGLE_AXIS_COMMANDS  // Default disabled. Uncomment to enable.
 
-// Number of blocks Grbl executes upon startup. These blocks are stored in EEPROM, where the size
+// Number of blocks Grbl executes upon startup. These blocks are stored in non-volatile storage.
 // and addresses are defined in settings.h. With the current settings, up to 2 startup blocks may
-// be stored and executed in order. These startup blocks would typically be used to set the g-code
+// be stored and executed in order. These startup blocks would typically be used to set the GCode
 // parser state depending on user preferences.
 #define N_STARTUP_LINE 2  // Integer (1-2)
 
@@ -248,7 +248,7 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // coordinates through Grbl '$#' print parameters.
 #define MESSAGE_PROBE_COORDINATES  // Enabled by default. Comment to disable.
 
-// Enables a second coolant control pin via the mist coolant g-code command M7 on the Arduino Uno
+// Enables a second coolant control pin via the mist coolant GCode command M7 on the Arduino Uno
 // analog pin 4. Only use this option if you require a second coolant control pin.
 // NOTE: The M8 flood coolant control pin on analog pin 3 will still be functional regardless.
 // ESP32 NOTE! This is here for reference only. You enable both M7 and M8 by assigning them a GPIO Pin
@@ -326,7 +326,7 @@ const int MIN_SPINDLE_SPEED_OVERRIDE        = 10;   // Percent of programmed spi
 const int SPINDLE_OVERRIDE_COARSE_INCREMENT = 10;   // (1-99). Usually 10%.
 const int SPINDLE_OVERRIDE_FINE_INCREMENT   = 1;    // (1-99). Usually 1%.
 
-// When a M2 or M30 program end command is executed, most g-code states are restored to their defaults.
+// When a M2 or M30 program end command is executed, most GCode states are restored to their defaults.
 // This compile-time option includes the restoring of the feed, rapid, and spindle speed override values
 // to their default values at program end.
 #define RESTORE_OVERRIDES_AFTER_PROGRAM_END  // Default enabled. Comment to disable.
@@ -438,7 +438,7 @@ const double MINIMUM_FEED_RATE = 1.0;  // (mm/min)
 // bogged down by too many trig calculations.
 const int N_ARC_CORRECTION = 12;  // Integer (1-255)
 
-// The arc G2/3 g-code standard is problematic by definition. Radius-based arcs have horrible numerical
+// The arc G2/3 GCode standard is problematic by definition. Radius-based arcs have horrible numerical
 // errors when arc at semi-circles(pi) or full-circles(2*pi). Offset-based arcs are much more accurate
 // but still have a problem when arcs are full-circles (2*pi). This define accounts for the floating
 // point issues when offset-based arcs are commanded as full circles, but get interpreted as extremely
@@ -491,13 +491,10 @@ const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
 // #define SEGMENT_BUFFER_SIZE 6 // Uncomment to override default in stepper.h.
 
 // Line buffer size from the serial input stream to be executed. Also, governs the size of
-// each of the startup blocks, as they are each stored as a string of this size. Make sure
-// to account for the available EEPROM at the defined memory address in settings.h and for
-// the number of desired startup blocks.
+// each of the startup blocks, as they are each stored as a string of this size.
 // NOTE: 80 characters is not a problem except for extreme cases, but the line buffer size
-// can be too small and g-code blocks can get truncated. Officially, the g-code standards
-// support up to 256 characters. In future versions, this default will be increased, when
-// we know how much extra memory space we can re-invest into this.
+// can be too small and GCode blocks can get truncated. Officially, the GCode standards
+// support up to 256 characters.
 // #define LINE_BUFFER_SIZE 80  // Uncomment to override default in protocol.h
 
 // Serial send and receive buffer size. The receive buffer is often used as another streaming
@@ -545,19 +542,9 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 
 // Enable the '$RST=*', '$RST=$', and '$RST=#' eeprom restore commands. There are cases where
 // these commands may be undesirable. Simply comment the desired macro to disable it.
-// NOTE: See SETTINGS_RESTORE_ALL macro for customizing the `$RST=*` command.
-#define ENABLE_RESTORE_EEPROM_WIPE_ALL          // '$RST=*' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_EEPROM_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_EEPROM_CLEAR_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
-
-// Defines the EEPROM data restored upon a settings version change and `$RST=*` command. Whenever the
-// the settings or other EEPROM data structure changes between Grbl versions, Grbl will automatically
-// wipe and restore the EEPROM. This macro controls what data is wiped and restored. This is useful
-// particularily for OEMs that need to retain certain data. For example, the BUILD_INFO string can be
-// written into the Arduino EEPROM via a seperate .INO sketch to contain product data. Altering this
-// macro to not restore the build info EEPROM will ensure this data is retained after firmware upgrades.
-// NOTE: Uncomment to override defaults in settings.h
-// #define SETTINGS_RESTORE_ALL (SETTINGS_RESTORE_DEFAULTS | SETTINGS_RESTORE_PARAMETERS | SETTINGS_RESTORE_STARTUP_LINES | SETTINGS_RESTORE_BUILD_INFO)
+#define ENABLE_RESTORE_WIPE_ALL          // '$RST=*' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
 
 // Additional settings have been added to the original set that you see with the $$ command
 // Some senders may not be able to parse anything different from the original set
@@ -565,30 +552,20 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // Default is off to limit support issues...you can enable here or in your machine definition file
 // #define SHOW_EXTENDED_SETTINGS
 
-// Enable the '$I=(string)' build info write command. If disabled, any existing build info data must
-// be placed into EEPROM via external means with a valid checksum value. This macro option is useful
-// to prevent this data from being over-written by a user, when used to store OEM product data.
-// NOTE: If disabled and to ensure Grbl can never alter the build info line, you'll also need to enable
-// the SETTING_RESTORE_ALL macro above and remove SETTINGS_RESTORE_BUILD_INFO from the mask.
-// NOTE: See the included grblWrite_BuildInfo.ino example file to write this string seperately.
-#define ENABLE_BUILD_INFO_WRITE_COMMAND  // '$I=' Default enabled. Comment to disable.
-
-// AVR processors require all interrupts to be disabled during an EEPROM write. This includes both
-// the stepper ISRs and serial comm ISRs. In the event of a long EEPROM write, this ISR pause can
-// cause active stepping to lose position and serial receive data to be lost. This configuration
-// option forces the planner buffer to completely empty whenever the EEPROM is written to prevent
-// any chance of lost steps.
-// However, this doesn't prevent issues with lost serial RX data during an EEPROM write, especially
-// if a GUI is premptively filling up the serial RX buffer simultaneously. It's highly advised for
-// GUIs to flag these gcodes (G10,G28.1,G30.1) to always wait for an 'ok' after a block containing
-// one of these commands before sending more data to eliminate this issue.
-// NOTE: Most EEPROM write commands are implicitly blocked during a job (all '$' commands). However,
-// coordinate set g-code commands (G10,G28/30.1) are not, since they are part of an active streaming
-// job. At this time, this option only forces a planner buffer sync with these g-code commands.
-#define FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE  // Default enabled. Comment to disable.
+// Writing to non-volatile storage (NVS) can take a long time and interfere with timely instruction
+// execution, causing problems for the stepper ISRs and serial comm ISRs and subsequent loss of
+// stepper position and serial data. This configuration option forces the planner buffer to completely
+// empty whenever the NVS is written, to prevent any chance of lost steps.
+// It doesn't prevent loss of serial Rx data, especially if a GUI is premptively filling up the
+// serial Rx buffer.  GUIs should detect GCodes that write to NVS - notably G10,G28.1,G30.1 -
+// and wait for an 'ok' before sending more data.
+// NOTE: Most setting changes - $ commands - are blocked when a job is running. Coordinate setting
+// GCode commands (G10,G28/30.1) are not blocked, since they are part of an active streaming job.
+// This option forces a planner buffer sync only with such GCode commands.
+#define FORCE_BUFFER_SYNC_DURING_NVS_WRITE  // Default enabled. Comment to disable.
 
 // In Grbl v0.9 and prior, there is an old outstanding bug where the `WPos:` work position reported
-// may not correlate to what is executing, because `WPos:` is based on the g-code parser state, which
+// may not correlate to what is executing, because `WPos:` is based on the GCode parser state, which
 // can be several motions behind. This option forces the planner buffer to empty, sync, and stop
 // motion whenever there is a command that alters the work coordinate offsets `G10,G43.1,G92,G54-59`.
 // This is the simplest way to ensure `WPos:` is always correct. Fortunately, it's exceedingly rare
@@ -624,8 +601,8 @@ const double PARKING_PULLOUT_INCREMENT = 5.0;    // Spindle pull-out and plunge 
 
 // Enables a special set of M-code commands that enables and disables the parking motion.
 // These are controlled by `M56`, `M56 P1`, or `M56 Px` to enable and `M56 P0` to disable.
-// The command is modal and will be set after a planner sync. Since it is g-code, it is
-// executed in sync with g-code commands. It is not a real-time command.
+// The command is modal and will be set after a planner sync. Since it is GCode, it is
+// executed in sync with GCode commands. It is not a real-time command.
 // NOTE: PARKING_ENABLE is required. By default, M56 is active upon initialization. Use
 // DEACTIVATE_PARKING_UPON_INIT to set M56 P0 as the power-up default.
 // #define ENABLE_PARKING_OVERRIDE_CONTROL   // Default disabled. Uncomment to enable

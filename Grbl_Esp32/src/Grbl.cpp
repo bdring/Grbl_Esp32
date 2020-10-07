@@ -37,7 +37,7 @@ void grbl_init() {
 #ifdef MACHINE_NAME
     report_machine_type(CLIENT_SERIAL);
 #endif
-    settings_init();  // Load Grbl settings from EEPROM
+    settings_init();  // Load Grbl settings from non-volatile storage
     stepper_init();   // Configure stepper pins and interrupt timers
     init_motors();
     system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)

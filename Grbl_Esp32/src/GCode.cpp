@@ -873,10 +873,10 @@ Error gc_execute_line(char* line, uint8_t client) {
         }
     }
     // [15. Coordinate system selection ]: *N/A. Error, if cutter radius comp is active.
-    // TODO: An EEPROM read of the coordinate data may require a buffer sync when the cycle
+    // TODO: Reading the coordinate data may require a buffer sync when the cycle
     // is active. The read pauses the processor temporarily and may cause a rare crash. For
     // future versions on processors with enough memory, all coordinate data should be stored
-    // in memory and written to EEPROM only when there is not a cycle active.
+    // in memory and written to non-volatile storage only when there is not a cycle active.
     float block_coord_system[MAX_N_AXIS];
     memcpy(block_coord_system, gc_state.coord_system, sizeof(gc_state.coord_system));
     if (bit_istrue(command_words, bit(ModalGroup::MG12))) {  // Check if called in block
@@ -1002,7 +1002,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 case NonModal::GoHome0:  // G28
                 case NonModal::GoHome1:  // G30
                     // [G28/30 Errors]: Cutter compensation is enabled.
-                    // Retreive G28/30 go-home position data (in machine coordinates) from EEPROM
+                    // Retreive G28/30 go-home position data (in machine coordinates) from non-volatile storage
                     if (gc_block.non_modal_command == NonModal::GoHome0) {
                         coords[CoordIndex::G28]->get(coord_data);
                     } else {  // == NonModal::GoHome1
