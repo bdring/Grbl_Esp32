@@ -190,7 +190,7 @@ void system_set_exec_accessory_override_flag(uint8_t mask);
 void system_clear_exec_motion_overrides();
 void system_clear_exec_accessory_overrides();
 
-// Execute the startup script lines stored in EEPROM upon initialization
+// Execute the startup script lines stored in non-volatile storage upon initialization
 void  system_execute_startup(char* line);
 Error execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level);
 Error system_execute_line(char* line, WebUI::ESPResponseStream*, WebUI::AuthenticationLevel);

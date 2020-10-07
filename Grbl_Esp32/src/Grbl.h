@@ -41,14 +41,13 @@ const char* const GRBL_VERSION_BUILD = "20201004";
 
 #include "Defaults.h"
 #include "Error.h"
-#include "SettingsStorage.h"
+#include "Eeprom.h"
 #include "WebUI/Authentication.h"
 #include "WebUI/Commands.h"
 #include "System.h"
 
 #include "GCode.h"
 #include "Planner.h"
-#include "Eeprom.h"
 #include "CoolantControl.h"
 #include "Limits.h"
 #include "MotionControl.h"

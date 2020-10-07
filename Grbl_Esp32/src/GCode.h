@@ -286,7 +286,7 @@ typedef struct {
     float position[MAX_N_AXIS];  // Where the interpreter considers the tool to be at this point in the code
 
     float coord_system[MAX_N_AXIS];  // Current work coordinate system (G54+). Stores offset from absolute machine
-    // position in mm. Loaded from EEPROM when called.
+    // position in mm. Loaded from non-volatile storage when called.
     float coord_offset[MAX_N_AXIS];  // Retains the G92 coordinate offset (work coordinates) relative to
     // machine zero in mm. Non-persistent. Cleared upon reset and boot.
     float tool_length_offset;  // Tracks tool length offset value when enabled.
