@@ -220,7 +220,7 @@ void limits_go_home(uint8_t cycle_mask) {
                     sys_rt_exec_alarm = ExecAlarm::HomingFailPulloff;
                 }
                 // Homing failure condition: Limit switch not found during approach.
-                if (approach && cycle_stop)) {
+                if (approach && cycle_stop) {
                     sys_rt_exec_alarm = ExecAlarm::HomingFailApproach;
                 }
 
