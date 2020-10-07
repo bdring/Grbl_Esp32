@@ -513,69 +513,56 @@ void report_execute_startup_message(const char* line, Error status_code, uint8_t
 }
 
 // Prints build info line
-void report_build_info(char* line, uint8_t client) {
-    char build_info[50];
-    strcpy(build_info, "[VER:");
-    strcat(build_info, GRBL_VERSION);
-    strcat(build_info, ".");
-    strcat(build_info, GRBL_VERSION_BUILD);
-    strcat(build_info, ":");
-    strcat(build_info, line);
-    strcat(build_info, "]\r\n[OPT:");
-    strcat(build_info, "V");  // variable spindle..always on now
-    strcat(build_info, "N");
+void report_build_info(const char* line, uint8_t client) {
+    grbl_sendf(client, "[VER:%s.%s:%s]\r\n[OPT:", GRBL_VERSION, GRBL_VERSION_BUILD, line);
 #ifdef COOLANT_MIST_PIN
-    strcat(build_info, "M");  // TODO Need to deal with M8...it could be disabled
+    grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
 #endif
 #ifdef COREXY
-    strcat(build_info, "C");
+    grbl_send(client, "C");
 #endif
 #ifdef PARKING_ENABLE
-    strcat(build_info, "P");
+    grbl_send(client, "P");
 #endif
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
-    strcat(build_info, "H");
+    grbl_send(client, "H");
 #endif
 #ifdef LIMITS_TWO_SWITCHES_ON_AXES
-    strcat(build_info, "L");
+    grbl_send(client, "L");
 #endif
 #ifdef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
-    strcat(build_info, "A");
+    grbl_send(client, "A");
 #endif
 #ifdef ENABLE_BLUETOOTH
-    strcat(build_info, "B");
+    grbl_send(client, "B");
 #endif
 #ifdef ENABLE_SD_CARD
-    strcat(build_info, "S");
+    grbl_send(client, "S");
 #endif
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    serial_write('R');
+    grbl_send(client, "R");
 #endif
 #if defined(ENABLE_WIFI)
-    strcat(build_info, "W");
+    grbl_send(client, "W");
 #endif
-#ifndef ENABLE_RESTORE_EEPROM_WIPE_ALL  // NOTE: Shown when disabled.
-    strcat(build_info, "*");
+#ifndef ENABLE_RESTORE_WIPE_ALL  // NOTE: Shown when disabled.
+    grbl_send(client, "*");
 #endif
-#ifndef ENABLE_RESTORE_EEPROM_DEFAULT_SETTINGS  // NOTE: Shown when disabled.
-    strcat(build_info, "$");
+#ifndef ENABLE_RESTORE_DEFAULT_SETTINGS  // NOTE: Shown when disabled.
+    grbl_send(client, "$");
 #endif
-#ifndef ENABLE_RESTORE_EEPROM_CLEAR_PARAMETERS  // NOTE: Shown when disabled.
-    strcat(build_info, "#");
+#ifndef ENABLE_RESTORE_CLEAR_PARAMETERS  // NOTE: Shown when disabled.
+    grbl_send(client, "#");
 #endif
-#ifndef ENABLE_BUILD_INFO_WRITE_COMMAND  // NOTE: Shown when disabled.
-    strcat(build_info, "I");
-#endif
-#ifndef FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE  // NOTE: Shown when disabled.
-    strcat(build_info, "E");
+#ifndef FORCE_BUFFER_SYNC_DURING_NVS_WRITE  // NOTE: Shown when disabled.
+    grbl_send(client, "E");
 #endif
 #ifndef FORCE_BUFFER_SYNC_DURING_WCO_CHANGE  // NOTE: Shown when disabled.
-    strcat(build_info, "W");
+    grbl_send(client, "W");
 #endif
     // NOTE: Compiled values, like override increments/max/min values, may be added at some point later.
     // These will likely have a comma delimiter to separate them.
-    strcat(build_info, "]\r\n");
-    grbl_send(client, build_info);  // ok to send to all
+    grbl_send(client, "]\r\n");
     report_machine_type(client);
 #if defined(ENABLE_WIFI)
     grbl_send(client, (char*)WebUI::wifi_config.info());
@@ -649,7 +636,7 @@ void report_realtime_status(uint8_t client) {
             break;
     }
     float wco[MAX_N_AXIS];
-    if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE) || (sys.report_wco_counter == 0)) {
+    if (bit_isfalse(status_mask->get(), RtStatus::Position) || (sys.report_wco_counter == 0)) {
         auto n_axis = number_axis->get();
         for (idx = 0; idx < n_axis; idx++) {
             // Apply work coordinate offsets and tool length offset to current position.
@@ -657,13 +644,13 @@ void report_realtime_status(uint8_t client) {
             if (idx == TOOL_LENGTH_OFFSET_AXIS) {
                 wco[idx] += gc_state.tool_length_offset;
             }
-            if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
+            if (bit_isfalse(status_mask->get(), RtStatus::Position)) {
                 print_position[idx] -= wco[idx];
             }
         }
     }
     // Report machine position
-    if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
+    if (bit_istrue(status_mask->get(), RtStatus::Position)) {
         strcat(status, "|MPos:");
     } else {
 #ifdef USE_FWD_KINEMATICS
@@ -675,7 +662,7 @@ void report_realtime_status(uint8_t client) {
     strcat(status, temp);
     // Returns planner and serial read buffer states.
 #ifdef REPORT_FIELD_BUFFER_STATE
-    if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_BUFFER_STATE)) {
+    if (bit_istrue(status_mask->get(), RtStatus::Buffer)) {
         int bufsize = DEFAULTBUFFERSIZE;
 #    if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
         if (client == CLIENT_TELNET) {

@@ -5,6 +5,22 @@
 #include <nvs.h>
 #include "WebUI/ESPResponse.h"
 
+// Initialize the configuration subsystem
+void settings_init();
+
+// Define settings restore bitflags.
+enum SettingsRestore {
+    Defaults = bit(0),
+    Parameters = bit(1),
+    StartupLines = bit(2),
+    // BuildInfo = bit(3), // Obsolete
+    Wifi = bit(4),
+    All = 0xff,
+};
+
+// Restore subsets of settings to default values
+void settings_restore(uint8_t restore_flag);
+
 // Command::List is a linked list of all settings,
 // so common code can enumerate them.
 class Command;

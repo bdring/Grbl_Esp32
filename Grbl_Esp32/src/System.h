@@ -201,7 +201,7 @@ uint8_t system_check_safety_door_ajar();
 
 void isr_control_inputs();
 
-// Execute the startup script lines stored in EEPROM upon initialization
+// Execute the startup script lines stored in non-volatile storage upon initialization
 void  system_execute_startup(char* line);
 Error execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level);
 Error system_execute_line(char* line, WebUI::ESPResponseStream*, WebUI::AuthenticationLevel);
