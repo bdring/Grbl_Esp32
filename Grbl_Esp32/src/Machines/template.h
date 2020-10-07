@@ -140,8 +140,8 @@
 
 // === Default settings
 // Grbl has many run-time settings that the user can changed by
-// commands like $110=2000 .  Their values are stored in EEPROM
-// so they persist after the controller has been powered down.
+// commands like $110=2000 .  Their values are stored in non-volatile
+// storage so they persist after the controller has been powered down.
 // Those settings have default values that are used if the user
 // has not altered them, or if the settings are explicitly reset
 // to the default values wth $RST=$.

@@ -113,10 +113,10 @@ void limits_go_home(uint8_t cycle_mask) {
 
     for (uint8_t idx = 0; idx < n_axis; idx++) {
         // Initialize step pin masks
-        step_pin[idx] = get_step_pin_mask(idx);
+        step_pin[idx] = bit(idx);
 #ifdef COREXY
         if ((idx == A_MOTOR) || (idx == B_MOTOR)) {
-            step_pin[idx] = (get_step_pin_mask(X_AXIS) | get_step_pin_mask(Y_AXIS));
+            step_pin[idx] = (bit(X_AXIS) | bit(Y_AXIS));
         }
 #endif
         if (bit_istrue(cycle_mask, bit(idx))) {

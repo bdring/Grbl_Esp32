@@ -718,7 +718,7 @@ bool Coordinates::load() {
 
 void Coordinates::set(float value[MAX_N_AXIS]) {
     memcpy(&_currentValue, value, sizeof(_currentValue));
-#ifdef FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE
+#ifdef FORCE_BUFFER_SYNC_DURING_NVS_WRITE
     protocol_buffer_synchronize();
 #endif
     nvs_set_blob(Setting::_handle, _name, _currentValue, sizeof(_currentValue));
