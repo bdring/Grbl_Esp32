@@ -289,6 +289,10 @@ namespace WebUI {
     }
 
     static Error runLocalFile(char* parameter, AuthenticationLevel auth_level) {  // ESP700
+        if (sys.state != State::Idle) {
+            webPrintln("Busy");
+            return Error::IdleError;
+        }
         String path = trim(parameter);
         if ((path.length() > 0) && (path[0] != '/')) {
             path = "/" + path;
@@ -322,6 +326,9 @@ namespace WebUI {
     }
 
     static Error showLocalFile(char* parameter, AuthenticationLevel auth_level) {  // ESP701
+        if (sys.state != State::Idle && sys.state != State::Alarm) {
+            return Error::IdleError;
+        }
         String path = trim(parameter);
         if ((path.length() > 0) && (path[0] != '/')) {
             path = "/" + path;
