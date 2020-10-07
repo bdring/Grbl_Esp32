@@ -1348,7 +1348,7 @@ namespace WebUI {
             s += path;
             s += " does not exist on SD Card\"}";
             _webserver->send(200, "application/json", s);
-            sd_close();
+            SD.end();
             return;
         }
         if (list_files) {
@@ -1427,7 +1427,7 @@ namespace WebUI {
         _webserver->send(200, "application/json", jsonfile);
         _upload_status = UploadStatusType::NONE;
         set_sd_state(SDCARD_IDLE);
-        sd_close();
+        SD.end();
     }
 
     //SD File upload with direct access to SD///////////////////////////////
@@ -1545,7 +1545,7 @@ namespace WebUI {
                     if (sdUploadFile) {
                         sdUploadFile.close();
                     }
-                    sd_close();
+                    SD.end();
                     return;
                 }
             }

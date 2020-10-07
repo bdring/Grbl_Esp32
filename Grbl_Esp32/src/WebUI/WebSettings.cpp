@@ -796,7 +796,7 @@ namespace WebUI {
         ssd += " Total:" + ESPResponseStream::formatBytes(SD.totalBytes());
         ssd += "]";
         webPrintln(ssd);
-        sd_close();
+        SD.end();
         return Error::Ok;
     }
 #endif
