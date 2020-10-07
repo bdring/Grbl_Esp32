@@ -129,6 +129,12 @@ Error IntSetting::setStringValue(char* s) {
     return Error::Ok;
 }
 
+const char* IntSetting::getDefaultString() {
+    static char strval[32];
+    sprintf(strval, "%d", _defaultValue);
+    return strval;
+}
+
 const char* IntSetting::getStringValue() {
     static char strval[32];
 
@@ -226,10 +232,8 @@ const char* AxisMaskSetting::getCompatibleValue() {
     return strval;
 }
 
-const char* AxisMaskSetting::getStringValue() {
-    static char strval[32];
+static char* maskToString(uint32_t mask, char* strval) {
     char*       s    = strval;
-    uint32_t    mask = get();
     for (int i = 0; i < MAX_N_AXIS; i++) {
         if (mask & bit(i)) {
             *s++ = "XYZABC"[i];
@@ -237,6 +241,16 @@ const char* AxisMaskSetting::getStringValue() {
     }
     *s = '\0';
     return strval;
+}
+
+const char* AxisMaskSetting::getDefaultString() {
+    static char strval[32];
+    return maskToString(_defaultValue, strval);
+}
+
+const char* AxisMaskSetting::getStringValue() {
+    static char strval[32];
+    return maskToString(get(), strval);
 }
 
 void AxisMaskSetting::addWebui(WebUI::JSONencoder* j) {
@@ -310,6 +324,12 @@ Error FloatSetting::setStringValue(char* s) {
         }
     }
     return Error::Ok;
+}
+
+const char* FloatSetting::getDefaultString() {
+    static char strval[32];
+    (void)sprintf(strval, "%.3f", _defaultValue);
+    return strval;
 }
 
 const char* FloatSetting::getStringValue() {
@@ -395,17 +415,21 @@ Error StringSetting::setStringValue(char* s) {
     return Error::Ok;
 }
 
-const char* StringSetting::getStringValue() {
-    // If the string is a password do not display it
-    if (_checker && (
+static bool isPassword(bool (*_checker)(char*)) {
 #ifdef ENABLE_WIFI
-                        _checker == (bool (*)(char*))WebUI::WiFiConfig::isPasswordValid ||
-#endif
-                        _checker == (bool (*)(char*))WebUI::COMMANDS::isLocalPasswordValid)) {
-        return "******";
-    } else {
-        return _currentValue.c_str();
+    if (_checker == (bool (*)(char*))WebUI::WiFiConfig::isPasswordValid) {
+        return true;
     }
+#endif
+    return _checker == (bool (*)(char*))WebUI::COMMANDS::isLocalPasswordValid;
+}
+
+const char* StringSetting::getDefaultString() {
+    // If the string is a password do not display it
+    return (_checker && isPassword(_checker)) ? "******" : _defaultValue.c_str();
+}
+const char* StringSetting::getStringValue() {
+    return (_checker && isPassword(_checker)) ? "******" : get();
 }
 
 void StringSetting::addWebui(WebUI::JSONencoder* j) {
@@ -485,13 +509,19 @@ Error EnumSetting::setStringValue(char* s) {
     return Error::Ok;
 }
 
-const char* EnumSetting::getStringValue() {
+const char* EnumSetting::enumToString(int8_t value) {
     for (enum_opt_t::iterator it = _options->begin(); it != _options->end(); it++) {
-        if (it->second == _currentValue) {
+        if (it->second == value) {
             return it->first;
         }
     }
     return "???";
+}
+const char* EnumSetting::getDefaultString() {
+    return enumToString(_defaultValue);
+}
+const char* EnumSetting::getStringValue() {
+    return enumToString(get());
 }
 
 void EnumSetting::addWebui(WebUI::JSONencoder* j) {
@@ -556,6 +586,9 @@ Error FlagSetting::setStringValue(char* s) {
         }
     }
     return Error::Ok;
+}
+const char* FlagSetting::getDefaultString() {
+    return _defaultValue ? "On" : "Off";
 }
 const char* FlagSetting::getStringValue() {
     return get() ? "On" : "Off";
@@ -635,10 +668,14 @@ Error IPaddrSetting::setStringValue(char* s) {
     return Error::Ok;
 }
 
+const char* IPaddrSetting::getDefaultString() {
+    static String s;
+    s = IPAddress(_defaultValue).toString();
+    return s.c_str();
+}
 const char* IPaddrSetting::getStringValue() {
     static String s;
-    IPAddress     ipaddr(get());
-    s = ipaddr.toString();
+    s = IPAddress(get()).toString();
     return s.c_str();
 }
 
