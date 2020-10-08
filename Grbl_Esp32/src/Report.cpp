@@ -487,7 +487,7 @@ void report_gcode_modes(uint8_t client) {
     }
 
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    if (sys.override_ctrl == OVERRIDE_PARKING_MOTION) {
+    if (sys.override_ctrl == Override::ParkingMotion) {
         strcat(modes_rpt, " M56");
     }
 #endif
@@ -513,69 +513,56 @@ void report_execute_startup_message(const char* line, Error status_code, uint8_t
 }
 
 // Prints build info line
-void report_build_info(char* line, uint8_t client) {
-    char build_info[50];
-    strcpy(build_info, "[VER:");
-    strcat(build_info, GRBL_VERSION);
-    strcat(build_info, ".");
-    strcat(build_info, GRBL_VERSION_BUILD);
-    strcat(build_info, ":");
-    strcat(build_info, line);
-    strcat(build_info, "]\r\n[OPT:");
-    strcat(build_info, "V");  // variable spindle..always on now
-    strcat(build_info, "N");
+void report_build_info(const char* line, uint8_t client) {
+    grbl_sendf(client, "[VER:%s.%s:%s]\r\n[OPT:", GRBL_VERSION, GRBL_VERSION_BUILD, line);
 #ifdef COOLANT_MIST_PIN
-    strcat(build_info, "M");  // TODO Need to deal with M8...it could be disabled
+    grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
 #endif
 #ifdef COREXY
-    strcat(build_info, "C");
+    grbl_send(client, "C");
 #endif
 #ifdef PARKING_ENABLE
-    strcat(build_info, "P");
+    grbl_send(client, "P");
 #endif
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
-    strcat(build_info, "H");
+    grbl_send(client, "H");
 #endif
 #ifdef LIMITS_TWO_SWITCHES_ON_AXES
-    strcat(build_info, "L");
+    grbl_send(client, "L");
 #endif
 #ifdef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
-    strcat(build_info, "A");
+    grbl_send(client, "A");
 #endif
 #ifdef ENABLE_BLUETOOTH
-    strcat(build_info, "B");
+    grbl_send(client, "B");
 #endif
 #ifdef ENABLE_SD_CARD
-    strcat(build_info, "S");
+    grbl_send(client, "S");
 #endif
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    serial_write('R');
+    grbl_send(client, "R");
 #endif
 #if defined(ENABLE_WIFI)
-    strcat(build_info, "W");
+    grbl_send(client, "W");
 #endif
-#ifndef ENABLE_RESTORE_EEPROM_WIPE_ALL  // NOTE: Shown when disabled.
-    strcat(build_info, "*");
+#ifndef ENABLE_RESTORE_WIPE_ALL  // NOTE: Shown when disabled.
+    grbl_send(client, "*");
 #endif
-#ifndef ENABLE_RESTORE_EEPROM_DEFAULT_SETTINGS  // NOTE: Shown when disabled.
-    strcat(build_info, "$");
+#ifndef ENABLE_RESTORE_DEFAULT_SETTINGS  // NOTE: Shown when disabled.
+    grbl_send(client, "$");
 #endif
-#ifndef ENABLE_RESTORE_EEPROM_CLEAR_PARAMETERS  // NOTE: Shown when disabled.
-    strcat(build_info, "#");
+#ifndef ENABLE_RESTORE_CLEAR_PARAMETERS  // NOTE: Shown when disabled.
+    grbl_send(client, "#");
 #endif
-#ifndef ENABLE_BUILD_INFO_WRITE_COMMAND  // NOTE: Shown when disabled.
-    strcat(build_info, "I");
-#endif
-#ifndef FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE  // NOTE: Shown when disabled.
-    strcat(build_info, "E");
+#ifndef FORCE_BUFFER_SYNC_DURING_NVS_WRITE  // NOTE: Shown when disabled.
+    grbl_send(client, "E");
 #endif
 #ifndef FORCE_BUFFER_SYNC_DURING_WCO_CHANGE  // NOTE: Shown when disabled.
-    strcat(build_info, "W");
+    grbl_send(client, "W");
 #endif
     // NOTE: Compiled values, like override increments/max/min values, may be added at some point later.
     // These will likely have a comma delimiter to separate them.
-    strcat(build_info, "]\r\n");
-    grbl_send(client, build_info);  // ok to send to all
+    grbl_send(client, "]\r\n");
     report_machine_type(client);
 #if defined(ENABLE_WIFI)
     grbl_send(client, (char*)WebUI::wifi_config.info());
@@ -614,13 +601,9 @@ void report_realtime_status(uint8_t client) {
             strcat(status, "Run");
             break;
         case State::Hold:
-            if (!(sys.suspend & SUSPEND_JOG_CANCEL)) {
+            if (!(sys.suspend.bit.jogCancel)) {
                 strcat(status, "Hold:");
-                if (sys.suspend & SUSPEND_HOLD_COMPLETE) {
-                    strcat(status, "0");  // Ready to resume
-                } else {
-                    strcat(status, "1");  // Actively holding
-                }
+                strcat(status, sys.suspend.bit.holdComplete ? "0" : "1");  // Ready to resume
                 break;
             }  // Continues to print jog state during jog cancel.
         case State::Jog:
@@ -637,15 +620,11 @@ void report_realtime_status(uint8_t client) {
             break;
         case State::SafetyDoor:
             strcat(status, "Door:");
-            if (sys.suspend & SUSPEND_INITIATE_RESTORE) {
+            if (sys.suspend.bit.initiateRestore) {
                 strcat(status, "3");  // Restoring
             } else {
-                if (sys.suspend & SUSPEND_RETRACT_COMPLETE) {
-                    if (sys.suspend & SUSPEND_SAFETY_DOOR_AJAR) {
-                        strcat(status, "1");  // Door ajar
-                    } else {
-                        strcat(status, "0");
-                    }
+                if (sys.suspend.bit.retractComplete) {
+                    strcat(status, sys.suspend.bit.safetyDoorAjar ? "1" : "0");  // Door ajar
                     // Door closed and ready to resume
                 } else {
                     strcat(status, "2");  // Retracting
@@ -657,7 +636,7 @@ void report_realtime_status(uint8_t client) {
             break;
     }
     float wco[MAX_N_AXIS];
-    if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE) || (sys.report_wco_counter == 0)) {
+    if (bit_isfalse(status_mask->get(), RtStatus::Position) || (sys.report_wco_counter == 0)) {
         auto n_axis = number_axis->get();
         for (idx = 0; idx < n_axis; idx++) {
             // Apply work coordinate offsets and tool length offset to current position.
@@ -665,13 +644,13 @@ void report_realtime_status(uint8_t client) {
             if (idx == TOOL_LENGTH_OFFSET_AXIS) {
                 wco[idx] += gc_state.tool_length_offset;
             }
-            if (bit_isfalse(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
+            if (bit_isfalse(status_mask->get(), RtStatus::Position)) {
                 print_position[idx] -= wco[idx];
             }
         }
     }
     // Report machine position
-    if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_POSITION_TYPE)) {
+    if (bit_istrue(status_mask->get(), RtStatus::Position)) {
         strcat(status, "|MPos:");
     } else {
 #ifdef USE_FWD_KINEMATICS
@@ -683,7 +662,7 @@ void report_realtime_status(uint8_t client) {
     strcat(status, temp);
     // Returns planner and serial read buffer states.
 #ifdef REPORT_FIELD_BUFFER_STATE
-    if (bit_istrue(status_mask->get(), BITFLAG_RT_STATUS_BUFFER_STATE)) {
+    if (bit_istrue(status_mask->get(), RtStatus::Buffer)) {
         int bufsize = DEFAULTBUFFERSIZE;
 #    if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
         if (client == CLIENT_TELNET) {
@@ -726,10 +705,10 @@ void report_realtime_status(uint8_t client) {
     strcat(status, temp);
 #endif
 #ifdef REPORT_FIELD_PIN_STATE
-    uint8_t lim_pin_state  = limits_get_state();
-    uint8_t ctrl_pin_state = system_control_get_state();
-    uint8_t prb_pin_state  = probe_get_state();
-    if (lim_pin_state | ctrl_pin_state | prb_pin_state) {
+    AxisMask    lim_pin_state  = limits_get_state();
+    ControlPins ctrl_pin_state = system_control_get_state();
+    bool        prb_pin_state  = probe_get_state();
+    if (lim_pin_state || ctrl_pin_state.value || prb_pin_state) {
         strcat(status, "|Pn:");
         if (prb_pin_state) {
             strcat(status, "P");
@@ -755,20 +734,30 @@ void report_realtime_status(uint8_t client) {
                 strcat(status, "C");
             }
         }
-        if (ctrl_pin_state) {
-#    ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_SAFETY_DOOR)) {
+        if (ctrl_pin_state.value) {
+            if (ctrl_pin_state.bit.safetyDoor) {
                 strcat(status, "D");
             }
-#    endif
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_RESET)) {
+            if (ctrl_pin_state.bit.reset) {
                 strcat(status, "R");
             }
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_FEED_HOLD)) {
+            if (ctrl_pin_state.bit.feedHold) {
                 strcat(status, "H");
             }
-            if (bit_istrue(ctrl_pin_state, CONTROL_PIN_INDEX_CYCLE_START)) {
+            if (ctrl_pin_state.bit.cycleStart) {
                 strcat(status, "S");
+            }
+            if (ctrl_pin_state.bit.macro0) {
+                strcat(status, "M0");
+            }
+            if (ctrl_pin_state.bit.macro1) {
+                strcat(status, "M1");
+            }
+            if (ctrl_pin_state.bit.macro2) {
+                strcat(status, "M2");
+            }
+            if (ctrl_pin_state.bit.macro3) {
+                strcat(status, "M3");
             }
         }
     }

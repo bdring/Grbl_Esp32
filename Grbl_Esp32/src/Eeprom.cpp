@@ -1,5 +1,5 @@
 /*
-  Eeprom.cpp - Header for system level commands and real-time processes
+  Eeprom.cpp - Coordinate data stored in EEPROM
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 
@@ -56,4 +56,26 @@ int memcpy_from_eeprom_with_checksum(char* destination, unsigned int source, uns
         *(destination++) = data;
     }
     return (checksum == EEPROM.read(source));
+}
+
+// Read selected coordinate data from EEPROM. Updates pointed coord_data value.
+// This is now a compatibility routine that is used to propagate coordinate data
+// in the old EEPROM format to the new tagged NVS format.
+bool old_settings_read_coord_data(uint8_t coord_select, float* coord_data) {
+    uint32_t addr = coord_select * (sizeof(float) * N_AXIS + 1) + EEPROM_ADDR_PARAMETERS;
+    if (!(memcpy_from_eeprom_with_old_checksum((char*)coord_data, addr, sizeof(float) * N_AXIS)) &&
+        !(memcpy_from_eeprom_with_checksum((char*)coord_data, addr, sizeof(float) * MAX_N_AXIS))) {
+        // Reset with default zero vector
+        clear_vector_float(coord_data);
+        // The old code used to rewrite the zeroed data but now that is done
+        // elsewhere, in a different format.
+        return false;
+    }
+    return true;
+}
+
+// Allow iteration over CoordIndex values
+CoordIndex& operator ++ (CoordIndex& i) {
+    i = static_cast<CoordIndex>(static_cast<uint8_t>(i) + 1);
+    return i;
 }

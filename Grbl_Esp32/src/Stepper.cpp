@@ -301,7 +301,7 @@ static void stepper_pulse_func() {
         }
     }
     // Check probing state.
-    if (sys_probe_state == PROBE_ACTIVE) {
+    if (sys_probe_state == Probe::Active) {
         probe_state_monitor();
     }
     // Reset step out bits.
@@ -795,7 +795,7 @@ static uint8_t st_next_block_index(uint8_t block_index) {
 */
 void st_prep_buffer() {
     // Block step prep buffer, while in a suspend state and there is no suspend motion to execute.
-    if (bit_istrue(sys.step_control, STEP_CONTROL_END_MOTION)) {
+    if (sys.step_control.endMotion) {
         return;
     }
 
@@ -803,7 +803,7 @@ void st_prep_buffer() {
         // Determine if we need to load a new planner block or if the block needs to be recomputed.
         if (pl_block == NULL) {
             // Query planner for a queued block
-            if (sys.step_control & STEP_CONTROL_EXECUTE_SYS_MOTION) {
+            if (sys.step_control.executeSysMotion) {
                 pl_block = plan_get_system_motion_block();
             } else {
                 pl_block = plan_get_current_block();
@@ -853,7 +853,7 @@ void st_prep_buffer() {
                 prep.step_per_mm      = prep.steps_remaining / pl_block->millimeters;
                 prep.req_mm_increment = REQ_MM_INCREMENT_SCALAR / prep.step_per_mm;
                 prep.dt_remainder     = 0.0;  // Reset for new segment block
-                if ((sys.step_control & STEP_CONTROL_EXECUTE_HOLD) || prep.recalculate_flag.decelOverride) {
+                if ((sys.step_control.executeHold) || prep.recalculate_flag.decelOverride) {
                     // New block loaded mid-hold. Override planner block entry speed to enforce deceleration.
                     prep.current_speed                  = prep.exit_speed;
                     pl_block->entry_speed_sqr           = prep.exit_speed * prep.exit_speed;
@@ -878,7 +878,7 @@ void st_prep_buffer() {
             */
             prep.mm_complete  = 0.0;  // Default velocity profile complete at 0.0mm from end of block.
             float inv_2_accel = 0.5 / pl_block->acceleration;
-            if (sys.step_control & STEP_CONTROL_EXECUTE_HOLD) {  // [Forced Deceleration to Zero Velocity]
+            if (sys.step_control.executeHold) {  // [Forced Deceleration to Zero Velocity]
                 // Compute velocity profile parameters for a feed hold in-progress. This profile overrides
                 // the planner block profile, enforcing a deceleration to zero speed.
                 prep.ramp_type = RAMP_DECEL;
@@ -897,7 +897,7 @@ void st_prep_buffer() {
                 prep.accelerate_until = pl_block->millimeters;
                 float exit_speed_sqr;
                 float nominal_speed;
-                if (sys.step_control & STEP_CONTROL_EXECUTE_SYS_MOTION) {
+                if (sys.step_control.executeSysMotion) {
                     prep.exit_speed = exit_speed_sqr = 0.0;  // Enforce stop at end of system motion.
                 } else {
                     exit_speed_sqr  = plan_get_exec_block_exit_speed_sqr();
@@ -955,7 +955,7 @@ void st_prep_buffer() {
                 }
             }
 
-            bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);  // Force update whenever updating block.
+            sys.step_control.updateSpindleRpm = true;  // Force update whenever updating block.
         }
 
         // Initialize new segment
@@ -1074,7 +1074,7 @@ void st_prep_buffer() {
         /* -----------------------------------------------------------------------------------
           Compute spindle speed PWM output for step segment
         */
-        if (st_prep_block->is_pwm_rate_adjusted || (sys.step_control & STEP_CONTROL_UPDATE_SPINDLE_RPM)) {
+        if (st_prep_block->is_pwm_rate_adjusted || sys.step_control.updateSpindleRpm) {
             if (pl_block->spindle != SpindleState::Disable) {
                 float rpm = pl_block->spindle_speed;
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
@@ -1091,7 +1091,7 @@ void st_prep_buffer() {
                 sys.spindle_speed        = 0.0;
                 prep.current_spindle_rpm = 0.0;
             }
-            bit_false(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_RPM);
+            sys.step_control.updateSpindleRpm = false;
         }
         prep_segment->spindle_rpm = prep.current_spindle_rpm;  // Reload segment PWM value
 
@@ -1112,10 +1112,10 @@ void st_prep_buffer() {
 
         // Bail if we are at the end of a feed hold and don't have a step to execute.
         if (prep_segment->n_step == 0) {
-            if (sys.step_control & STEP_CONTROL_EXECUTE_HOLD) {
+            if (sys.step_control.executeHold) {
                 // Less than one step to decelerate to zero speed, but already very close. AMASS
                 // requires full steps to execute. So, just bail.
-                bit_true(sys.step_control, STEP_CONTROL_END_MOTION);
+                sys.step_control.endMotion = true;
 #ifdef PARKING_ENABLE
                 if (!(prep.recalculate_flag.parking)) {
                     prep.recalculate_flag.holdPartialBlock = 1;
@@ -1194,7 +1194,7 @@ void st_prep_buffer() {
                 // Reset prep parameters for resuming and then bail. Allow the stepper ISR to complete
                 // the segment queue, where realtime protocol will set new state upon receiving the
                 // cycle stop flag from the ISR. Prep_segment is blocked until then.
-                bit_true(sys.step_control, STEP_CONTROL_END_MOTION);
+                sys.step_control.endMotion = true;
 #ifdef PARKING_ENABLE
                 if (!(prep.recalculate_flag.parking)) {
                     prep.recalculate_flag.holdPartialBlock = 1;
@@ -1203,8 +1203,8 @@ void st_prep_buffer() {
                 return;  // Bail!
             } else {     // End of planner block
                 // The planner block is complete. All steps are set to be executed in the segment buffer.
-                if (sys.step_control & STEP_CONTROL_EXECUTE_SYS_MOTION) {
-                    bit_true(sys.step_control, STEP_CONTROL_END_MOTION);
+                if (sys.step_control.executeSysMotion) {
+                    sys.step_control.endMotion = true;
                     return;
                 }
                 pl_block = NULL;  // Set pointer to indicate check and load next planner block.

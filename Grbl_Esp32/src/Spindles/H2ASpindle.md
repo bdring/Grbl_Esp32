@@ -75,7 +75,8 @@ like to have. For example:
 If you want to query the current [running] status, that's 
 command 0x3000, and the status is 1 byte, so you might as 
 well add `0001` as parameter. There are exceptions here,
-obviously when writing data to the EEPROM or the speed. 
+such as when writing data to non-volatile storage or
+changing the speed.
 
 I hereby list the most important command sequences, and how
 they work:
