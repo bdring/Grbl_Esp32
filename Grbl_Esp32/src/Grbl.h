@@ -44,6 +44,7 @@ const char* const GRBL_VERSION_BUILD = "20201004";
 #include "Eeprom.h"
 #include "WebUI/Authentication.h"
 #include "WebUI/Commands.h"
+#include "Probe.h"
 #include "System.h"
 
 #include "GCode.h"
@@ -51,7 +52,6 @@ const char* const GRBL_VERSION_BUILD = "20201004";
 #include "CoolantControl.h"
 #include "Limits.h"
 #include "MotionControl.h"
-#include "Probe.h"
 #include "Protocol.h"
 #include "Report.h"
 #include "Serial.h"

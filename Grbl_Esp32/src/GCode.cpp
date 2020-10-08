@@ -1565,8 +1565,8 @@ Error gc_execute_line(char* line, uint8_t client) {
         case ProgramFlow::Paused:
             protocol_buffer_synchronize();  // Sync and finish all remaining buffered motions before moving on.
             if (sys.state != State::CheckMode) {
-                system_set_exec_state_flag(EXEC_FEED_HOLD);  // Use feed hold for program pause.
-                protocol_execute_realtime();                 // Execute suspend.
+                sys_rt_exec_state.bit.feedHold = true;  // Use feed hold for program pause.
+                protocol_execute_realtime();            // Execute suspend.
             }
             break;
         case ProgramFlow::CompletedM2:
@@ -1594,9 +1594,9 @@ Error gc_execute_line(char* line, uint8_t client) {
 #endif
             // gc_state.modal.override = OVERRIDE_DISABLE; // Not supported.
 #ifdef RESTORE_OVERRIDES_AFTER_PROGRAM_END
-            sys.f_override        = DEFAULT_FEED_OVERRIDE;
-            sys.r_override        = DEFAULT_RAPID_OVERRIDE;
-            sys.spindle_speed_ovr = DEFAULT_SPINDLE_SPEED_OVERRIDE;
+            sys.f_override        = FeedOverride::Default;
+            sys.r_override        = RapidOverride::Default;
+            sys.spindle_speed_ovr = SpindleSpeedOverride::Default;
 #endif
             // Execute coordinate change and spindle/coolant stop.
             if (sys.state != State::CheckMode) {

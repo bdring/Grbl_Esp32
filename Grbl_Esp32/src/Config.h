@@ -167,40 +167,37 @@ const int DEFAULT_RADIO_MODE = ESP_RADIO_OFF;
 // GCode programs, maybe selected for interface programs.
 // NOTE: If changed, manually update help message in report.c.
 
-const uint8_t CMD_RESET         = 0x18;  // ctrl-x.
-const uint8_t CMD_STATUS_REPORT = '?';
-const uint8_t CMD_CYCLE_START   = '~';
-const uint8_t CMD_FEED_HOLD     = '!';
-
 // NOTE: All override realtime commands must be in the extended ASCII character set, starting
 // at character value 128 (0x80) and up to 255 (0xFF). If the normal set of realtime commands,
 // such as status reports, feed hold, reset, and cycle start, are moved to the extended set
 // space, serial.c's RX ISR will need to be modified to accommodate the change.
 
-// const uint8_t CMD_RESET = 0x80;
-// const uint8_t CMD_STATUS_REPORT = 0x81;
-// const uint8_t CMD_CYCLE_START = 0x82;
-// const uint8_t CMD_FEED_HOLD = 0x83;
-const uint8_t CMD_SAFETY_DOOR           = 0x84;
-const uint8_t CMD_JOG_CANCEL            = 0x85;
-const uint8_t CMD_DEBUG_REPORT          = 0x86;  // Only when DEBUG enabled, sends debug report in '{}' braces.
-const uint8_t CMD_FEED_OVR_RESET        = 0x90;  // Restores feed override value to 100%.
-const uint8_t CMD_FEED_OVR_COARSE_PLUS  = 0x91;
-const uint8_t CMD_FEED_OVR_COARSE_MINUS = 0x92;
-const uint8_t CMD_FEED_OVR_FINE_PLUS    = 0x93;
-const uint8_t CMD_FEED_OVR_FINE_MINUS   = 0x94;
-const uint8_t CMD_RAPID_OVR_RESET       = 0x95;  // Restores rapid override value to 100%.
-const uint8_t CMD_RAPID_OVR_MEDIUM      = 0x96;
-const uint8_t CMD_RAPID_OVR_LOW         = 0x97;
-// const uint8_t CMD_RAPID_OVR_EXTRA_LOW = 0x98; // *NOT SUPPORTED*
-const uint8_t CMD_SPINDLE_OVR_RESET        = 0x99;  // Restores spindle override value to 100%.
-const uint8_t CMD_SPINDLE_OVR_COARSE_PLUS  = 0x9A;  // 154
-const uint8_t CMD_SPINDLE_OVR_COARSE_MINUS = 0x9B;
-const uint8_t CMD_SPINDLE_OVR_FINE_PLUS    = 0x9C;
-const uint8_t CMD_SPINDLE_OVR_FINE_MINUS   = 0x9D;
-const uint8_t CMD_SPINDLE_OVR_STOP         = 0x9E;
-const uint8_t CMD_COOLANT_FLOOD_OVR_TOGGLE = 0xA0;
-const uint8_t CMD_COOLANT_MIST_OVR_TOGGLE  = 0xA1;
+enum class Cmd : uint8_t {
+    Reset                 = 0x18,  // Ctrl-X
+    StatusReport          = '?',
+    CycleStart            = '~',
+    FeedHold              = '!',
+    SafetyDoor            = 0x84,
+    JogCancel             = 0x85,
+    DebugReport           = 0x86,  // Only when DEBUG enabled, sends debug report in '{}' braces.
+    FeedOvrReset          = 0x90,  // Restores feed override value to 100%.
+    FeedOvrCoarsePlus     = 0x91,
+    FeedOvrCoarseMinus    = 0x92,
+    FeedOvrFinePlus       = 0x93,
+    FeedOvrFineMinus      = 0x94,
+    RapidOvrReset         = 0x95,  // Restores rapid override value to 100%.
+    RapidOvrMedium        = 0x96,
+    RapidOvrLow           = 0x97,
+    RapidOvrExtraLow      = 0x98,  // *NOT SUPPORTED*
+    SpindleOvrReset       = 0x99,  // Restores spindle override value to 100%.
+    SpindleOvrCoarsePlus  = 0x9A,  // 154
+    SpindleOvrCoarseMinus = 0x9B,
+    SpindleOvrFinePlus    = 0x9C,
+    SpindleOvrFineMinus   = 0x9D,
+    SpindleOvrStop        = 0x9E,
+    CoolantFloodOvrToggle = 0xA0,
+    CoolantMistOvrToggle  = 0xA1,
+};
 
 // If homing is enabled, homing init lock sets Grbl into an alarm state upon power up. This forces
 // the user to perform the homing cycle (or override the locks) before doing anything else. This is
@@ -309,22 +306,27 @@ const double SAFETY_DOOR_COOLANT_DELAY = 1.0;  // Float (seconds)
 // Configure rapid, feed, and spindle override settings. These values define the max and min
 // allowable override values and the coarse and fine increments per command received. Please
 // note the allowable values in the descriptions following each define.
-const int DEFAULT_FEED_OVERRIDE          = 100;  // 100%. Don't change this value.
-const int MAX_FEED_RATE_OVERRIDE         = 200;  // Percent of programmed feed rate (100-255). Usually 120% or 200%
-const int MIN_FEED_RATE_OVERRIDE         = 10;   // Percent of programmed feed rate (1-100). Usually 50% or 1%
-const int FEED_OVERRIDE_COARSE_INCREMENT = 10;   // (1-99). Usually 10%.
-const int FEED_OVERRIDE_FINE_INCREMENT   = 1;    // (1-99). Usually 1%.
+namespace FeedOverride {
+    const int Default         = 100;  // 100%. Don't change this value.
+    const int Max             = 200;  // Percent of programmed feed rate (100-255). Usually 120% or 200%
+    const int Min             = 10;   // Percent of programmed feed rate (1-100). Usually 50% or 1%
+    const int CoarseIncrement = 10;   // (1-99). Usually 10%.
+    const int FineIncrement   = 1;    // (1-99). Usually 1%.
+};
+namespace RapidOverride {
+    const int Default  = 100;  // 100%. Don't change this value.
+    const int Medium   = 50;   // Percent of rapid (1-99). Usually 50%.
+    const int Low      = 25;   // Percent of rapid (1-99). Usually 25%.
+    const int ExtraLow = 5;    // Percent of rapid (1-99). Usually 5%.  Not Supported
+};
 
-const int DEFAULT_RAPID_OVERRIDE = 100;  // 100%. Don't change this value.
-const int RAPID_OVERRIDE_MEDIUM  = 50;   // Percent of rapid (1-99). Usually 50%.
-const int RAPID_OVERRIDE_LOW     = 25;   // Percent of rapid (1-99). Usually 25%.
-// const int RAPID_OVERRIDE_EXTRA_LOW = 5; // *NOT SUPPORTED* Percent of rapid (1-99). Usually 5%.
-
-const int DEFAULT_SPINDLE_SPEED_OVERRIDE    = 100;  // 100%. Don't change this value.
-const int MAX_SPINDLE_SPEED_OVERRIDE        = 200;  // Percent of programmed spindle speed (100-255). Usually 200%.
-const int MIN_SPINDLE_SPEED_OVERRIDE        = 10;   // Percent of programmed spindle speed (1-100). Usually 10%.
-const int SPINDLE_OVERRIDE_COARSE_INCREMENT = 10;   // (1-99). Usually 10%.
-const int SPINDLE_OVERRIDE_FINE_INCREMENT   = 1;    // (1-99). Usually 1%.
+namespace SpindleSpeedOverride {
+    const int Default         = 100;  // 100%. Don't change this value.
+    const int Max             = 200;  // Percent of programmed spindle speed (100-255). Usually 200%.
+    const int Min             = 10;   // Percent of programmed spindle speed (1-100). Usually 10%.
+    const int CoarseIncrement = 10;   // (1-99). Usually 10%.
+    const int FineIncrement   = 1;    // (1-99). Usually 1%.
+}
 
 // When a M2 or M30 program end command is executed, most GCode states are restored to their defaults.
 // This compile-time option includes the restoring of the feed, rapid, and spindle speed override values
