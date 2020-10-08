@@ -430,8 +430,6 @@ namespace WebUI {
     }
 #    endif
 
-    bool Web_Server::is_realtime_cmd(char c) { return is_realtime_cmd(c); }
-
     void Web_Server::_handle_web_command(bool silent) {
         //to save time if already disconnected
         //if (_webserver->hasArg ("PAGEID") ) {
@@ -501,7 +499,7 @@ namespace WebUI {
                 }
                 if (scmd.length() > 1) {
                     scmd += "\n";
-                } else if (!is_realtime_cmd(scmd[0])) {
+                } else if (!is_realtime_command(scmd[0])) {
                     scmd += "\n";
                 }
                 if (!Serial2Socket.push(scmd.c_str())) {
