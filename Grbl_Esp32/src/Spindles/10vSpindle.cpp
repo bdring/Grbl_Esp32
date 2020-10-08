@@ -34,16 +34,16 @@ namespace Spindles {
 #ifdef SPINDLE_FORWARD_PIN
         _forward_pin = SPINDLE_FORWARD_PIN;
 #else
-        _forward_pin = UNDEFINED_PIN;
+        _forward_pin = Pin::UNDEFINED;
 #endif
 
 #ifdef SPINDLE_REVERSE_PIN
         _reverse_pin = SPINDLE_REVERSE_PIN;
 #else
-        _reverse_pin = UNDEFINED_PIN;
+        _reverse_pin = Pin::UNDEFINED;
 #endif
 
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin not defined");
             return;  // We cannot continue without the output pin
         }
@@ -81,7 +81,7 @@ namespace Spindles {
     uint32_t _10v::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             return rpm;
         }
 
@@ -128,10 +128,10 @@ namespace Spindles {
 	*/
 
     SpindleState _10v::get_state() {
-        if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN) {
+        if (_current_pwm_duty == 0 || _output_pin == Pin::UNDEFINED) {
             return SpindleState::Disable;
         }
-        if (_direction_pin != UNDEFINED_PIN) {
+        if (_direction_pin != Pin::UNDEFINED) {
             return digitalRead(_direction_pin) ? SpindleState::Cw : SpindleState::Ccw;
         }
         return SpindleState::Cw;

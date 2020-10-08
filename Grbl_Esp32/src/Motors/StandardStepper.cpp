@@ -26,7 +26,7 @@
 namespace Motors {
     StandardStepper::StandardStepper() {}
 
-    StandardStepper::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) {
+    StandardStepper::StandardStepper(uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin) {
         type_id                = STANDARD_MOTOR;
         this->_axis_index      = axis_index % MAX_AXES;
         this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged

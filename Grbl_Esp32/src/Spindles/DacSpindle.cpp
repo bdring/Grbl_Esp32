@@ -28,7 +28,7 @@ namespace Spindles {
     void Dac::init() {
         get_pins_and_settings();
 
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             return;
         }
 
@@ -47,7 +47,7 @@ namespace Spindles {
         pinMode(_enable_pin, OUTPUT);
         pinMode(_direction_pin, OUTPUT);
 
-        is_reversable = (_direction_pin != UNDEFINED_PIN);
+        is_reversable = (_direction_pin != Pin::UNDEFINED);
         use_delays    = true;
 
         config_message();
@@ -63,7 +63,7 @@ namespace Spindles {
     }
 
     uint32_t Dac::set_rpm(uint32_t rpm) {
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             return rpm;
         }
 

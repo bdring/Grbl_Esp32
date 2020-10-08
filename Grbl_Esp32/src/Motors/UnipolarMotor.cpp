@@ -3,7 +3,7 @@
 namespace Motors {
     UnipolarMotor::UnipolarMotor() {}
 
-    UnipolarMotor::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3) {
+    UnipolarMotor::UnipolarMotor(uint8_t axis_index, Pin pin_phase0, Pin pin_phase1, Pin pin_phase2, Pin pin_phase3) {
         type_id                = UNIPOLAR_MOTOR;
         this->_axis_index      = axis_index % MAX_AXES;
         this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged

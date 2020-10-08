@@ -29,7 +29,7 @@
 namespace Motors {
     Dynamixel2::Dynamixel2() {}
 
-    Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin) {
+    Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, Pin tx_pin, Pin rx_pin, Pin rts_pin) {
         type_id                = DYNAMIXEL2;
         this->_axis_index      = axis_index % MAX_AXES;
         this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
@@ -39,7 +39,7 @@ namespace Motors {
         _rx_pin  = rx_pin;
         _rts_pin = rts_pin;
 
-        if (_tx_pin == UNDEFINED_PIN || _rx_pin == UNDEFINED_PIN || _rts_pin == UNDEFINED_PIN) {
+        if (_tx_pin == Pin::UNDEFINED || _rx_pin == Pin::UNDEFINED || _rts_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dymanixel Error. Missing pin definitions");
             is_active = false;
 
