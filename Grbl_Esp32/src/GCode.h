@@ -24,36 +24,34 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Define modal group internal numbers for checking multiple command violations and tracking the
+// Modal group internal numbers for checking multiple command violations and tracking the
 // type of command that is called in the block. A modal group is a group of g-code commands that are
 // mutually exclusive, or cannot exist on the same line, because they each toggle a state or execute
 // a unique motion. These are defined in the NIST RS274-NGC v3 g-code standard, available online,
 // and are similar/identical to other g-code interpreters by manufacturers (Haas,Fanuc,Mazak,etc).
-// NOTE: Modal group define values must be sequential and starting from zero.
-#define MODAL_GROUP_G0 0    // [G4,G10,G28,G28.1,G30,G30.1,G53,G92,G92.1] Non-modal
-#define MODAL_GROUP_G1 1    // [G0,G1,G2,G3,G38.2,G38.3,G38.4,G38.5,G80] Motion
-#define MODAL_GROUP_G2 2    // [G17,G18,G19] Plane selection
-#define MODAL_GROUP_G3 3    // [G90,G91] Distance mode
-#define MODAL_GROUP_G4 4    // [G91.1] Arc IJK distance mode
-#define MODAL_GROUP_G5 5    // [G93,G94] Feed rate mode
-#define MODAL_GROUP_G6 6    // [G20,G21] Units
-#define MODAL_GROUP_G7 7    // [G40] Cutter radius compensation mode. G41/42 NOT SUPPORTED.
-#define MODAL_GROUP_G8 8    // [G43.1,G49] Tool length offset
-#define MODAL_GROUP_G12 9   // [G54,G55,G56,G57,G58,G59] Coordinate system selection
-#define MODAL_GROUP_G13 10  // [G61] Control mode
+// NOTE: Modal group values must be sequential and starting from zero.
 
-#define MODAL_GROUP_M4 11   // [M0,M1,M2,M30] Stopping
-#define MODAL_GROUP_M6 14   // [M6] Tool change
-#define MODAL_GROUP_M7 12   // [M3,M4,M5] Spindle turning
-#define MODAL_GROUP_M8 13   // [M7,M8,M9] Coolant control
-#define MODAL_GROUP_M9 14   // [M56] Override control
-#define MODAL_GROUP_M10 15  // [M62, M63] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
+enum class ModalGroup : uint8_t {
+    MG0  = 0,   // [G4,G10,G28,G28.1,G30,G30.1,G53,G92,G92.1] Non-modal
+    MG1  = 1,   // [G0,G1,G2,G3,G38.2,G38.3,G38.4,G38.5,G80] Motion
+    MG2  = 2,   // [G17,G18,G19] Plane selection
+    MG3  = 3,   // [G90,G91] Distance mode
+    MG4  = 4,   // [G91.1] Arc IJK distance mode
+    MG5  = 5,   // [G93,G94] Feed rate mode
+    MG6  = 6,   // [G20,G21] Units
+    MG7  = 7,   // [G40] Cutter radius compensation mode. G41/42 NOT SUPPORTED.
+    MG8  = 8,   // [G43.1,G49] Tool length offset
+    MG12 = 9,   // [G54,G55,G56,G57,G58,G59] Coordinate system selection
+    MG13 = 10,  // [G61] Control mode
+    MM4  = 11,  // [M0,M1,M2,M30] Stopping
+    MM6  = 14,  // [M6] Tool change
+    MM7  = 12,  // [M3,M4,M5] Spindle turning
+    MM8  = 13,  // [M7,M8,M9] Coolant control
+    MM9  = 14,  // [M56] Override control
+    MM10 = 15,  // [M62, M63, M64, M65, M67, M68] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
+};
 
-// #define OTHER_INPUT_F 14
-// #define OTHER_INPUT_S 15
-// #define OTHER_INPUT_T 16
-
-// Define command actions for within execution-type modal groups (motion, stopping, non-modal). Used
+// Command actions for within execution-type modal groups (motion, stopping, non-modal). Used
 // internally by the parser to know which command to execute.
 // NOTE: Some macro values are assigned specific values to make g-code state reporting and parsing
 // compile a litte smaller. Necessary due to being completely out of flash on the 328p. Although not
@@ -61,170 +59,211 @@
 // to see how they are used, if you need to alter them.
 
 // Modal Group G0: Non-modal actions
-#define NON_MODAL_NO_ACTION 0                  // (Default: Must be zero)
-#define NON_MODAL_DWELL 4                      // G4 (Do not alter value)
-#define NON_MODAL_SET_COORDINATE_DATA 10       // G10 (Do not alter value)
-#define NON_MODAL_GO_HOME_0 28                 // G28 (Do not alter value)
-#define NON_MODAL_SET_HOME_0 38                // G28.1 (Do not alter value)
-#define NON_MODAL_GO_HOME_1 30                 // G30 (Do not alter value)
-#define NON_MODAL_SET_HOME_1 40                // G30.1 (Do not alter value)
-#define NON_MODAL_ABSOLUTE_OVERRIDE 53         // G53 (Do not alter value)
-#define NON_MODAL_SET_COORDINATE_OFFSET 92     // G92 (Do not alter value)
-#define NON_MODAL_RESET_COORDINATE_OFFSET 102  //G92.1 (Do not alter value)
+
+enum class NonModal : uint8_t {
+    NoAction              = 0,    // (Default: Must be zero)
+    Dwell                 = 4,    // G4 (Do not alter value)
+    SetCoordinateData     = 10,   // G10 (Do not alter value)
+    GoHome0               = 28,   // G28 (Do not alter value)
+    SetHome0              = 38,   // G28.1 (Do not alter value)
+    GoHome1               = 30,   // G30 (Do not alter value)
+    SetHome1              = 40,   // G30.1 (Do not alter value)
+    AbsoluteOverride      = 53,   // G53 (Do not alter value)
+    SetCoordinateOffset   = 92,   // G92 (Do not alter value)
+    ResetCoordinateOffset = 102,  //G92.1 (Do not alter value)
+};
 
 // Modal Group G1: Motion modes
-#define MOTION_MODE_SEEK 0                     // G0 (Default: Must be zero)
-#define MOTION_MODE_LINEAR 1                   // G1 (Do not alter value)
-#define MOTION_MODE_CW_ARC 2                   // G2 (Do not alter value)
-#define MOTION_MODE_CCW_ARC 3                  // G3 (Do not alter value)
-#define MOTION_MODE_PROBE_TOWARD 140           // G38.2 (Do not alter value)
-#define MOTION_MODE_PROBE_TOWARD_NO_ERROR 141  // G38.3 (Do not alter value)
-#define MOTION_MODE_PROBE_AWAY 142             // G38.4 (Do not alter value)
-#define MOTION_MODE_PROBE_AWAY_NO_ERROR 143    // G38.5 (Do not alter value)
-#define MOTION_MODE_NONE 80                    // G80 (Do not alter value)
+enum class Motion : uint8_t {
+    Seek               = 0,    // G0 (Default: Must be zero)
+    Linear             = 1,    // G1 (Do not alter value)
+    CwArc              = 2,    // G2 (Do not alter value)
+    CcwArc             = 3,    // G3 (Do not alter value)
+    ProbeToward        = 140,  // G38.2 (Do not alter value)
+    ProbeTowardNoError = 141,  // G38.3 (Do not alter value)
+    ProbeAway          = 142,  // G38.4 (Do not alter value)
+    ProbeAwayNoError   = 143,  // G38.5 (Do not alter value)
+    None               = 80,   // G80 (Do not alter value)
+};
 
 // Modal Group G2: Plane select
-#define PLANE_SELECT_XY 0  // G17 (Default: Must be zero)
-#define PLANE_SELECT_ZX 1  // G18 (Do not alter value)
-#define PLANE_SELECT_YZ 2  // G19 (Do not alter value)
+enum class Plane : uint8_t {
+    XY = 0,  // G17 (Default: Must be zero)
+    ZX = 1,  // G18 (Do not alter value)
+    YZ = 2,  // G19 (Do not alter value)
+};
 
 // Modal Group G3: Distance mode
-#define DISTANCE_MODE_ABSOLUTE 0     // G90 (Default: Must be zero)
-#define DISTANCE_MODE_INCREMENTAL 1  // G91 (Do not alter value)
+enum class Distance : uint8_t {
+    Absolute    = 0,  // G90 (Default: Must be zero)
+    Incremental = 1,  // G91 (Do not alter value)
+};
 
 // Modal Group G4: Arc IJK distance mode
-#define DISTANCE_ARC_MODE_INCREMENTAL 0  // G91.1 (Default: Must be zero)
+enum class ArcDistance : uint8_t {
+    Incremental = 0,  // G91.1 (Default: Must be zero)
+    Absolute    = 1,
+};
 
 // Modal Group M4: Program flow
-#define PROGRAM_FLOW_RUNNING 0         // (Default: Must be zero)
-#define PROGRAM_FLOW_PAUSED 3          // M0
-#define PROGRAM_FLOW_OPTIONAL_STOP 1   // M1 NOTE: Not supported, but valid and ignored.
-#define PROGRAM_FLOW_COMPLETED_M2 2    // M2 (Do not alter value)
-#define PROGRAM_FLOW_COMPLETED_M30 30  // M30 (Do not alter value)
+enum class ProgramFlow : uint8_t {
+    Running      = 0,   // (Default: Must be zero)
+    Paused       = 3,   // M0
+    OptionalStop = 1,   // M1 NOTE: Not supported, but valid and ignored.
+    CompletedM2  = 2,   // M2 (Do not alter value)
+    CompletedM30 = 30,  // M30 (Do not alter value)
+};
 
 // Modal Group G5: Feed rate mode
-#define FEED_RATE_MODE_UNITS_PER_MIN 0  // G94 (Default: Must be zero)
-#define FEED_RATE_MODE_INVERSE_TIME 1   // G93 (Do not alter value)
+enum class FeedRate : uint8_t {
+    UnitsPerMin = 0,  // G94 (Default: Must be zero)
+    InverseTime = 1,  // G93 (Do not alter value)
+};
 
 // Modal Group G6: Units mode
-#define UNITS_MODE_MM 0      // G21 (Default: Must be zero)
-#define UNITS_MODE_INCHES 1  // G20 (Do not alter value)
+enum class Units : uint8_t {
+    Mm     = 0,  // G21 (Default: Must be zero)
+    Inches = 1,  // G20 (Do not alter value)
+};
 
 // Modal Group G7: Cutter radius compensation mode
-#define CUTTER_COMP_DISABLE 0  // G40 (Default: Must be zero)
+enum class CutterCompensation : uint8_t {
+    Disable = 0,  // G40 (Default: Must be zero)
+    Enable  = 1,
+};
 
 // Modal Group G13: Control mode
-#define CONTROL_MODE_EXACT_PATH 0  // G61 (Default: Must be zero)
+enum class ControlMode : uint8_t {
+    ExactPath = 0,  // G61 (Default: Must be zero)
+};
 
 // Modal Group M7: Spindle control
-#define SPINDLE_DISABLE 0                            // M5 (Default: Must be zero)
-#define SPINDLE_ENABLE_CW PL_COND_FLAG_SPINDLE_CW    // M3 (NOTE: Uses planner condition bit flag)
-#define SPINDLE_ENABLE_CCW PL_COND_FLAG_SPINDLE_CCW  // M4 (NOTE: Uses planner condition bit flag)
+enum class SpindleState : uint8_t {
+    Disable = 0,  // M5 (Default: Must be zero)
+    Cw      = 1,  // M3
+    Ccw     = 2,  // M4
+};
+
+// GCodeCoolant is used by the parser, where at most one of
+// M7, M8, M9 may be present in a GCode block
+enum class GCodeCoolant : uint8_t {
+    None = 0,
+    M7,
+    M8,
+    M9,
+};
+
+// CoolantState is used for the runtime state, where either of
+// the Mist and Flood state bits can be set independently.
+// Unlike GCode, overrides permit individual turn-off.
+struct CoolantState {
+    uint8_t Mist : 1;
+    uint8_t Flood : 1;
+};
 
 // Modal Group M8: Coolant control
-#define COOLANT_DISABLE 0                                // M9 (Default: Must be zero)
-#define COOLANT_FLOOD_ENABLE PL_COND_FLAG_COOLANT_FLOOD  // M8 (NOTE: Uses planner condition bit flag)
-#define COOLANT_MIST_ENABLE PL_COND_FLAG_COOLANT_MIST    // M7 (NOTE: Uses planner condition bit flag)
-
 // Modal Group M9: Override control
-#ifdef DEACTIVATE_PARKING_UPON_INIT
-#    define OVERRIDE_DISABLED 0        // (Default: Must be zero)
-#    define OVERRIDE_PARKING_MOTION 1  // M56
-#else
-#    define OVERRIDE_PARKING_MOTION 0  // M56 (Default: Must be zero)
-#    define OVERRIDE_DISABLED 1        // Parking disabled.
-#endif
 
-// modal Group M10: User I/O control
-#define NON_MODAL_IO_ENABLE 1
-#define NON_MODAL_IO_DISABLE 2
-#define MAX_USER_DIGITAL_PIN 4
+// Modal Group M10: User I/O control
+enum class IoControl : uint8_t {
+    DigitalOnSync       = 1,  // M62
+    DigitalOffSync      = 2,  // M63
+    DigitalOnImmediate  = 3,  // M64
+    DigitalOffImmediate = 4,  // M65
+    SetAnalogSync       = 5,  // M67
+    SetAnalogImmediate  = 6,  // M68
+};
+
+static const int MaxUserDigitalPin = 4;
 
 // Modal Group G8: Tool length offset
-#define TOOL_LENGTH_OFFSET_CANCEL 0          // G49 (Default: Must be zero)
-#define TOOL_LENGTH_OFFSET_ENABLE_DYNAMIC 1  // G43.1
+enum class ToolLengthOffset : uint8_t {
+    Cancel        = 0,  // G49 (Default: Must be zero)
+    EnableDynamic = 1,  // G43.1
+};
 
-#define TOOL_CHANGE 1
+enum class ToolChange : uint8_t {
+    Disable = 0,
+    Enable  = 1,
+};
 
 // Modal Group G12: Active work coordinate system
 // N/A: Stores coordinate system value (54-59) to change to.
 
-// Define parameter word mapping.
-#define WORD_F 0
-#define WORD_I 1
-#define WORD_J 2
-#define WORD_K 3
-#define WORD_L 4
-#define WORD_N 5
-#define WORD_P 6
-#define WORD_R 7
-#define WORD_S 8
-#define WORD_T 9
-#define WORD_X 10
-#define WORD_Y 11
-#define WORD_Z 12
-#define WORD_A 13
-#define WORD_B 14
-#define WORD_C 15
+// Parameter word mapping.
+enum class GCodeWord : uint8_t {
+    E = 0,
+    F = 1,
+    I = 2,
+    J = 3,
+    K = 4,
+    L = 5,
+    N = 6,
+    P = 7,
+    Q = 8,
+    R = 9,
+    S = 10,
+    T = 11,
+    X = 12,
+    Y = 13,
+    Z = 14,
+    A = 15,
+    B = 16,
+    C = 17,
+};
 
-// Define g-code parser position updating flags
-#define GC_UPDATE_POS_TARGET 0  // Must be zero
-#define GC_UPDATE_POS_SYSTEM 1
-#define GC_UPDATE_POS_NONE 2
+// GCode parser position updating flags
+enum class GCUpdatePos : uint8_t {
+    Target = 0,  // Must be zero
+    System = 1,
+    None   = 2,
+};
 
-// Define probe cycle exit states and assign proper position updating.
-#define GC_PROBE_FOUND GC_UPDATE_POS_SYSTEM
-#define GC_PROBE_ABORT GC_UPDATE_POS_NONE
-#define GC_PROBE_FAIL_INIT GC_UPDATE_POS_NONE
-#define GC_PROBE_FAIL_END GC_UPDATE_POS_TARGET
-#ifdef SET_CHECK_MODE_PROBE_TO_START
-#    define GC_PROBE_CHECK_MODE GC_UPDATE_POS_NONE
-#else
-#    define GC_PROBE_CHECK_MODE GC_UPDATE_POS_TARGET
-#endif
+// GCode parser flags for handling special cases.
+enum GCParserFlags {
+    GCParserNone           = 0,  // Must be zero.
+    GCParserJogMotion      = bit(0),
+    GCParserCheckMantissa  = bit(1),
+    GCParserArcIsClockwise = bit(2),
+    GCParserProbeIsAway    = bit(3),
+    GCParserProbeIsNoError = bit(4),
+    GCParserLaserForceSync = bit(5),
+    GCParserLaserDisable   = bit(6),
+    GCParserLaserIsMotion  = bit(7),
+};
 
-// Define gcode parser flags for handling special cases.
-#define GC_PARSER_NONE 0  // Must be zero.
-#define GC_PARSER_JOG_MOTION bit(0)
-#define GC_PARSER_CHECK_MANTISSA bit(1)
-#define GC_PARSER_ARC_IS_CLOCKWISE bit(2)
-#define GC_PARSER_PROBE_IS_AWAY bit(3)
-#define GC_PARSER_PROBE_IS_NO_ERROR bit(4)
-#define GC_PARSER_LASER_FORCE_SYNC bit(5)
-#define GC_PARSER_LASER_DISABLE bit(6)
-#define GC_PARSER_LASER_ISMOTION bit(7)
-
-// NOTE: When this struct is zeroed, the above defines set the defaults for the system.
+// NOTE: When this struct is zeroed, the 0 values in the above types set the system defaults.
 typedef struct {
-    uint8_t motion;     // {G0,G1,G2,G3,G38.2,G80}
-    uint8_t feed_rate;  // {G93,G94}
-    uint8_t units;      // {G20,G21}
-    uint8_t distance;   // {G90,G91}
-    // uint8_t distance_arc; // {G91.1} NOTE: Don't track. Only default supported.
-    uint8_t plane_select;  // {G17,G18,G19}
-    // uint8_t cutter_comp;  // {G40} NOTE: Don't track. Only default supported.
-    uint8_t tool_length;   // {G43.1,G49}
-    uint8_t coord_select;  // {G54,G55,G56,G57,G58,G59}
+    Motion   motion;     // {G0,G1,G2,G3,G38.2,G80}
+    FeedRate feed_rate;  // {G93,G94}
+    Units    units;      // {G20,G21}
+    Distance distance;   // {G90,G91}
+    // ArcDistance distance_arc; // {G91.1} NOTE: Don't track. Only default supported.
+    Plane plane_select;  // {G17,G18,G19}
+    // CutterCompensation cutter_comp;  // {G40} NOTE: Don't track. Only default supported.
+    ToolLengthOffset tool_length;   // {G43.1,G49}
+    CoordIndex       coord_select;  // {G54,G55,G56,G57,G58,G59}
     // uint8_t control;      // {G61} NOTE: Don't track. Only default supported.
-    uint8_t program_flow;  // {M0,M1,M2,M30}
-    uint8_t coolant;       // {M7,M8,M9}
-    uint8_t spindle;       // {M3,M4,M5}
-    uint8_t tool_change;   // {M6}
-    uint8_t io_control;    // {M62, M63}
-    uint8_t override;      // {M56}
+    ProgramFlow  program_flow;  // {M0,M1,M2,M30}
+    CoolantState coolant;       // {M7,M8,M9}
+    SpindleState spindle;       // {M3,M4,M5}
+    ToolChange   tool_change;   // {M6}
+    IoControl    io_control;    // {M62, M63, M67}
+    Override     override;      // {M56}
 } gc_modal_t;
 
 typedef struct {
-    float   f;            // Feed
-    float   ijk[N_AXIS];  // I,J,K Axis arc offsets
-    uint8_t l;            // G10 or canned cycles parameters
-    int32_t n;            // Line number
-    float   p;            // G10 or dwell parameters
-    // float q;      // G82 peck drilling
-    float   r;            // Arc radius
-    float   s;            // Spindle speed
-    uint8_t t;            // Tool selection
-    float   xyz[N_AXIS];  // X,Y,Z Translational axes
+    uint8_t e;                // M67
+    float   f;                // Feed
+    float   ijk[3];           // I,J,K Axis arc offsets - only 3 are possible
+    uint8_t l;                // G10 or canned cycles parameters
+    int32_t n;                // Line number
+    float   p;                // G10 or dwell parameters
+    float   q;                // M67
+    float   r;                // Arc radius
+    float   s;                // Spindle speed
+    uint8_t t;                // Tool selection
+    float   xyz[MAX_N_AXIS];  // X,Y,Z Translational axes
 } gc_values_t;
 
 typedef struct {
@@ -235,27 +274,35 @@ typedef struct {
     uint8_t tool;           // Tracks tool number. NOT USED.
     int32_t line_number;    // Last line number sent
 
-    float position[N_AXIS];  // Where the interpreter considers the tool to be at this point in the code
+    float position[MAX_N_AXIS];  // Where the interpreter considers the tool to be at this point in the code
 
-    float coord_system[N_AXIS];  // Current work coordinate system (G54+). Stores offset from absolute machine
-    // position in mm. Loaded from EEPROM when called.
-    float coord_offset[N_AXIS];  // Retains the G92 coordinate offset (work coordinates) relative to
+    float coord_system[MAX_N_AXIS];  // Current work coordinate system (G54+). Stores offset from absolute machine
+    // position in mm. Loaded from non-volatile storage when called.
+    float coord_offset[MAX_N_AXIS];  // Retains the G92 coordinate offset (work coordinates) relative to
     // machine zero in mm. Non-persistent. Cleared upon reset and boot.
     float tool_length_offset;  // Tracks tool length offset value when enabled.
 } parser_state_t;
 extern parser_state_t gc_state;
 
 typedef struct {
-    uint8_t     non_modal_command;
-    gc_modal_t  modal;
-    gc_values_t values;
+    NonModal     non_modal_command;
+    gc_modal_t   modal;
+    gc_values_t  values;
+    GCodeCoolant coolant;
 } parser_block_t;
+
+enum class AxisCommand : uint8_t {
+    None             = 0,
+    NonModal         = 1,
+    MotionMode       = 2,
+    ToolLengthOffset = 3,
+};
 
 // Initialize the parser
 void gc_init();
 
 // Execute one block of rs275/ngc/g-code
-uint8_t gc_execute_line(char* line, uint8_t client);
+Error gc_execute_line(char* line, uint8_t client);
 
 // Set g-code parser position. Input in steps.
 void gc_sync_position();

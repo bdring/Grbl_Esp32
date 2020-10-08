@@ -30,14 +30,15 @@ namespace Spindles {
     void Relay::init() {
         get_pins_and_settings();
 
-        if (_output_pin == Pin::UNDEFINED)
+        if (_output_pin == UNDEFINED_PIN) {
             return;
+        }
 
-        _output_pin.setAttr(Pin::Attr::Output);
-        _enable_pin.setAttr(Pin::Attr::Output);
-        _direction_pin.setAttr(Pin::Attr::Output);
+        pinMode(_output_pin, OUTPUT);
+        pinMode(_enable_pin, OUTPUT);
+        pinMode(_direction_pin, OUTPUT);
 
-        is_reversable = (_direction_pin != Pin::UNDEFINED);
+        is_reversable = (_direction_pin != UNDEFINED_PIN);
         use_delays    = true;
 
         config_message();
@@ -46,16 +47,17 @@ namespace Spindles {
     // prints the startup message of the spindle config
     void Relay ::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "Relay spindle Output:%s, Enbl:%s, Dir:%s",
-                       _output_pin.name().c_str(),
-                       _enable_pin.name().c_str(),
-                       _direction_pin.name().c_str());
+                       pinName(_output_pin).c_str(),
+                       pinName(_enable_pin).c_str(),
+                       pinName(_direction_pin).c_str());
     }
 
     uint32_t Relay::set_rpm(uint32_t rpm) {
-        if (_output_pin == Pin::UNDEFINED)
+        if (_output_pin == UNDEFINED_PIN) {
             return rpm;
+        }
 
         sys.spindle_speed = rpm;
         set_output(rpm != 0);
@@ -67,6 +69,6 @@ namespace Spindles {
 #ifdef INVERT_SPINDLE_PWM
         duty = (duty == 0);  // flip duty
 #endif
-        _output_pin.write(duty > 0);  // anything greater
+        digitalWrite(_output_pin, duty > 0);  // anything greater
     }
 }

@@ -2,6 +2,8 @@
 
 extern bool motorSettingChanged;
 
+extern FakeSetting<int>* number_axis;
+
 extern AxisSettings* x_axis_settings;
 extern AxisSettings* y_axis_settings;
 extern AxisSettings* z_axis_settings;
@@ -21,6 +23,7 @@ extern AxisMaskSetting* step_invert_mask;
 extern AxisMaskSetting* dir_invert_mask;
 extern AxisMaskSetting* homing_dir_mask;
 extern AxisMaskSetting* homing_squared_axes;
+extern AxisMaskSetting* homing_cycle[MAX_N_AXIS];
 
 extern FlagSetting* step_enable_invert;
 extern FlagSetting* limit_invert;

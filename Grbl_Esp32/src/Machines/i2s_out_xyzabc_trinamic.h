@@ -33,12 +33,12 @@
 #define USE_I2S_STEPS
 //#define DEFAULT_STEPPER ST_I2S_STATIC
 
-#define I2S_OUT_BCK      GPIO_NUM_22
-#define I2S_OUT_WS       GPIO_NUM_17
-#define I2S_OUT_DATA     GPIO_NUM_21
+#define I2S_OUT_BCK             GPIO_NUM_22
+#define I2S_OUT_WS              GPIO_NUM_17
+#define I2S_OUT_DATA            GPIO_NUM_21
 
-#define TRINAMIC_RUN_MODE           TRINAMIC_MODE_COOLSTEP
-#define TRINAMIC_HOMING_MODE        TRINAMIC_MODE_COOLSTEP
+#define TRINAMIC_RUN_MODE           TrinamicMode :: CoolStep
+#define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
 
 #define X_TRINAMIC_DRIVER       2130
 #define X_DISABLE_PIN           I2SO(0)
@@ -83,7 +83,7 @@
 #define C_RSENSE                X_RSENSE
 
 /*
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM // only one spindle at a time
+#define SPINDLE_TYPE            SpindleType::PWM // only one spindle at a time
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 #define SPINDLE_DIR_PIN         GPIO_NUM_16
@@ -95,7 +95,7 @@
 #define B_LIMIT_PIN             GPIO_NUM_39
 #define C_LIMIT_PIN             GPIO_NUM_36
 
-#define SPINDLE_TYPE SPINDLE_TYPE_RELAY
+#define SPINDLE_TYPE SpindleType::RELAY
 #define SPINDLE_OUTPUT_PIN GPIO_NUM_26
 
 #define PROBE_PIN               GPIO_NUM_25

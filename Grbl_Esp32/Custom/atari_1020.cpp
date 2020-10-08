@@ -43,7 +43,7 @@ uint8_t             current_tool;
 
 void machine_init() {
     solenoid_pull_count = 0;  // initialize
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Atari 1020 Solenoid");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Atari 1020 Solenoid");
     // setup PWM channel
     solenoid_pwm_chan_num = sys_get_next_PWM_chan_num();
     ledcSetup(solenoid_pwm_chan_num, SOLENOID_PWM_FREQ, SOLENOID_PWM_RES_BITS);
@@ -121,9 +121,9 @@ void atari_home_task(void* pvParameters) {
         // this task will only last as long as it is homing
         if (atari_homing) {
             // must be in idle or alarm state
-            if (sys.state == STATE_IDLE) {
+            if (sys.state == State::Idle) {
                 switch (homing_phase) {
-                    case HOMING_PHASE_FULL_APPROACH:    // a full width move to insure it hits left end
+                    case HOMING_PHASE_FULL_APPROACH:           // a full width move to insure it hits left end
                         WebUI::inputBuffer.push("G90G0Z1\r");  // lift the pen
                         sprintf(gcode_line, "G91G0X%3.2f\r", -ATARI_PAPER_WIDTH + ATARI_HOME_POS - 3.0);  // plus a little extra
                         WebUI::inputBuffer.push(gcode_line);
@@ -157,15 +157,15 @@ void atari_home_task(void* pvParameters) {
                         homing_phase = HOMING_PHASE_CHECK;
                         break;
                     default:
-                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Homing phase error %d", homing_phase);
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Homing phase error %d", homing_phase);
                         atari_homing = false;
-                        
+
                         // kills task
                         break;
                 }
                 if (homing_attempt > ATARI_HOMING_ATTEMPTS) {
                     // try all positions plus 1
-                    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Atari homing failed");
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Atari homing failed");
                     WebUI::inputBuffer.push("G90\r");
                     atari_homing = false;
                 }
@@ -179,8 +179,8 @@ void atari_home_task(void* pvParameters) {
 void calc_solenoid(float penZ) {
     bool        isPenUp;
     static bool previousPenState = false;
-    uint32_t    solenoid_pen_pulse_len;                    // duty cycle of solenoid
-    isPenUp = ((penZ > 0) || (sys.state == STATE_ALARM));  // is pen above Z0 or is there an alarm
+    uint32_t    solenoid_pen_pulse_len;                     // duty cycle of solenoid
+    isPenUp = ((penZ > 0) || (sys.state == State::Alarm));  // is pen above Z0 or is there an alarm
     // if the state has not change, we only count down to the pull time
     if (previousPenState == isPenUp) {
         // if state is unchanged
@@ -217,7 +217,7 @@ void user_tool_change(uint8_t new_tool) {
     char    gcode_line[20];
     protocol_buffer_synchronize();  // wait for all previous moves to complete
     if ((new_tool < 1) || (new_tool > MAX_PEN_NUMBER)) {
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Requested Pen#%d is out of 1-4 range", new_tool);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Requested Pen#%d is out of 1-4 range", new_tool);
         return;
     }
     if (new_tool == current_tool)
@@ -234,7 +234,7 @@ void user_tool_change(uint8_t new_tool) {
         WebUI::inputBuffer.push("G0X0\r");
     }
     current_tool = new_tool;
-    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Change to Pen#%d", current_tool);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Change to Pen#%d", current_tool);
 }
 
 // move from current tool to next tool....
@@ -247,32 +247,26 @@ void atari_next_pen() {
 void user_defined_macro(uint8_t index) {
     char gcode_line[20];
     switch (index) {
-#ifdef MACRO_BUTTON_0_PIN
-        case CONTROL_PIN_INDEX_MACRO_0:
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Pen switch");
+        case 0:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Pen switch");
             WebUI::inputBuffer.push("$H\r");
             break;
-#endif
-#ifdef MACRO_BUTTON_1_PIN
-        case CONTROL_PIN_INDEX_MACRO_1:
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Color switch");
+        case 1:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Color switch");
             atari_next_pen();
             sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  // alway return to right side to reduce home travel stalls
             WebUI::inputBuffer.push(gcode_line);
             break;
-#endif
-#ifdef MACRO_BUTTON_2_PIN
-        case CONTROL_PIN_INDEX_MACRO_2:
-            // feed out some paper and reset the Y 0
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Paper switch");
+        case 2:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Paper switch");
             WebUI::inputBuffer.push("G0Y-25\r");
             WebUI::inputBuffer.push("G4P0.1\r");  // sync...forces wait for planner to clear
-            sys_position[Y_AXIS] = 0.0;    // reset the Y position
+            sys_position[Y_AXIS] = 0.0;           // reset the Y position
             gc_sync_position();
             plan_sync_position();
             break;
-#endif
-        default: grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Unknown Switch %d", index); break;
+        default:
+            break;
     }
 }
 

@@ -70,6 +70,7 @@ uint8_t serial_get_rx_buffer_available(uint8_t client) {
 
 void serial_init() {
     Serial.begin(BAUD_RATE);
+    Serial.setRxBufferSize(256);
     // reset all buffers
     serial_reset_read_buffer(CLIENT_ALL);
     grbl_send(CLIENT_SERIAL, "\r\n");  // create some white space after ESP32 boot info
@@ -104,7 +105,8 @@ void serialCheckTask(void* pvParameters) {
                 if (WebUI::SerialBT.hasClient() && WebUI::SerialBT.available()) {
                     client = CLIENT_BT;
                     data   = WebUI::SerialBT.read();
-                    //Serial.write(data);  // echo all data to serial
+
+                    // Serial.write(data);  // echo all data to serial.
                 } else {
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
@@ -128,9 +130,9 @@ void serialCheckTask(void* pvParameters) {
             }
             // Pick off realtime command characters directly from the serial stream. These characters are
             // not passed into the main buffer, but these set system state flag bits for realtime execution.
-            if (is_realtime_command(data))
-                execute_realtime_command(data, client);
-            else {
+            if (is_realtime_command(data)) {
+                execute_realtime_command(static_cast<Cmd>(data), client);
+            } else {
                 vTaskEnterCritical(&myMutex);
                 client_buffer[client].write(data);
                 vTaskExitCritical(&myMutex);
@@ -194,56 +196,115 @@ bool any_client_has_data() {
 
 // checks to see if a character is a realtime character
 bool is_realtime_command(uint8_t data) {
-    return (data == CMD_RESET || data == CMD_STATUS_REPORT || data == CMD_CYCLE_START || data == CMD_FEED_HOLD || data > 0x7F);
+    if (data >= 0x80) {
+        return true;
+    }
+    auto cmd = static_cast<Cmd>(data);
+    return cmd == Cmd::Reset || cmd == Cmd::StatusReport || cmd == Cmd::CycleStart || cmd == Cmd::FeedHold;
 }
 
 // Act upon a realtime character
-void execute_realtime_command(uint8_t command, uint8_t client) {
+void execute_realtime_command(Cmd command, uint8_t client) {
     switch (command) {
-        case CMD_RESET:
+        case Cmd::Reset:
             mc_reset();  // Call motion control reset routine.
             break;
-        case CMD_STATUS_REPORT:
+        case Cmd::StatusReport:
             report_realtime_status(client);  // direct call instead of setting flag
             break;
-        case CMD_CYCLE_START:
-            system_set_exec_state_flag(EXEC_CYCLE_START);  // Set as true
+        case Cmd::CycleStart:
+            sys_rt_exec_state.bit.cycleStart = true;
             break;
-        case CMD_FEED_HOLD:
-            system_set_exec_state_flag(EXEC_FEED_HOLD);  // Set as true
+        case Cmd::FeedHold:
+            sys_rt_exec_state.bit.feedHold = true;
             break;
-        case CMD_SAFETY_DOOR: system_set_exec_state_flag(EXEC_SAFETY_DOOR); break;  // Set as true
-        case CMD_JOG_CANCEL:
-            if (sys.state & STATE_JOG)  // Block all other states from invoking motion cancel.
-                system_set_exec_state_flag(EXEC_MOTION_CANCEL);
+        case Cmd::SafetyDoor:
+            sys_rt_exec_state.bit.safetyDoor = true;
             break;
+        case Cmd::JogCancel:
+            if (sys.state == State::Jog) {  // Block all other states from invoking motion cancel.
+                sys_rt_exec_state.bit.motionCancel = true;
+            }
+            break;
+        case Cmd::DebugReport:
 #ifdef DEBUG
-        case CMD_DEBUG_REPORT: {
-            uint8_t sreg = SREG;
-            cli();
-            bit_true(sys_rt_exec_debug, EXEC_DEBUG_REPORT);
-            SREG = sreg;
-        } break;
+            sys_rt_exec_debug = true;
 #endif
-        case CMD_FEED_OVR_RESET: system_set_exec_motion_override_flag(EXEC_FEED_OVR_RESET); break;
-        case CMD_FEED_OVR_COARSE_PLUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_PLUS); break;
-        case CMD_FEED_OVR_COARSE_MINUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_MINUS); break;
-        case CMD_FEED_OVR_FINE_PLUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_PLUS); break;
-        case CMD_FEED_OVR_FINE_MINUS: system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_MINUS); break;
-        case CMD_RAPID_OVR_RESET: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_RESET); break;
-        case CMD_RAPID_OVR_MEDIUM: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_MEDIUM); break;
-        case CMD_RAPID_OVR_LOW: system_set_exec_motion_override_flag(EXEC_RAPID_OVR_LOW); break;
-        case CMD_SPINDLE_OVR_RESET: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_RESET); break;
-        case CMD_SPINDLE_OVR_COARSE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_PLUS); break;
-        case CMD_SPINDLE_OVR_COARSE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_MINUS); break;
-        case CMD_SPINDLE_OVR_FINE_PLUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_PLUS); break;
-        case CMD_SPINDLE_OVR_FINE_MINUS: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_MINUS); break;
-        case CMD_SPINDLE_OVR_STOP: system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP); break;
-#ifdef COOLANT_FLOOD_PIN
-        case CMD_COOLANT_FLOOD_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_FLOOD_OVR_TOGGLE); break;
-#endif
-#ifdef COOLANT_MIST_PIN
-        case CMD_COOLANT_MIST_OVR_TOGGLE: system_set_exec_accessory_override_flag(EXEC_COOLANT_MIST_OVR_TOGGLE); break;
-#endif
+            break;
+        case Cmd::SpindleOvrStop:
+            sys_rt_exec_accessory_override.bit.spindleOvrStop = 1;
+            break;
+        case Cmd::FeedOvrReset:
+            sys_rt_f_override = FeedOverride::Default;
+            break;
+        case Cmd::FeedOvrCoarsePlus:
+            sys_rt_f_override += FeedOverride::CoarseIncrement;
+            if (sys_rt_f_override > FeedOverride::Max) {
+                sys_rt_f_override = FeedOverride::Max;
+            }
+            break;
+        case Cmd::FeedOvrCoarseMinus:
+            sys_rt_f_override -= FeedOverride::CoarseIncrement;
+            if (sys_rt_f_override < FeedOverride::Min) {
+                sys_rt_f_override = FeedOverride::Min;
+            }
+            break;
+        case Cmd::FeedOvrFinePlus:
+            sys_rt_f_override += FeedOverride::FineIncrement;
+            if (sys_rt_f_override > FeedOverride::Max) {
+                sys_rt_f_override = FeedOverride::Max;
+            }
+            break;
+        case Cmd::FeedOvrFineMinus:
+            sys_rt_f_override -= FeedOverride::FineIncrement;
+            if (sys_rt_f_override < FeedOverride::Min) {
+                sys_rt_f_override = FeedOverride::Min;
+            }
+            break;
+        case Cmd::RapidOvrReset:
+            sys_rt_r_override = RapidOverride::Default;
+            break;
+        case Cmd::RapidOvrMedium:
+            sys_rt_r_override = RapidOverride::Medium;
+            break;
+        case Cmd::RapidOvrLow:
+            sys_rt_r_override = RapidOverride::Low;
+            break;
+        case Cmd::RapidOvrExtraLow:
+            sys_rt_r_override = RapidOverride::ExtraLow;
+            break;
+        case Cmd::SpindleOvrReset:
+            sys_rt_s_override = SpindleSpeedOverride::Default;
+            break;
+        case Cmd::SpindleOvrCoarsePlus:
+            sys_rt_s_override += SpindleSpeedOverride::CoarseIncrement;
+            if (sys_rt_s_override > SpindleSpeedOverride::Max) {
+                sys_rt_s_override = SpindleSpeedOverride::Max;
+            }
+            break;
+        case Cmd::SpindleOvrCoarseMinus:
+            sys_rt_s_override -= SpindleSpeedOverride::CoarseIncrement;
+            if (sys_rt_s_override < SpindleSpeedOverride::Min) {
+                sys_rt_s_override = SpindleSpeedOverride::Min;
+            }
+            break;
+        case Cmd::SpindleOvrFinePlus:
+            sys_rt_s_override += SpindleSpeedOverride::FineIncrement;
+            if (sys_rt_s_override > SpindleSpeedOverride::Max) {
+                sys_rt_s_override = SpindleSpeedOverride::Max;
+            }
+            break;
+        case Cmd::SpindleOvrFineMinus:
+            sys_rt_s_override -= SpindleSpeedOverride::FineIncrement;
+            if (sys_rt_s_override < SpindleSpeedOverride::Min) {
+                sys_rt_s_override = SpindleSpeedOverride::Min;
+            }
+            break;
+        case Cmd::CoolantFloodOvrToggle:
+            sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle = 1;
+            break;
+        case Cmd::CoolantMistOvrToggle:
+            sys_rt_exec_accessory_override.bit.coolantMistOvrToggle = 1;
+            break;
     }
 }

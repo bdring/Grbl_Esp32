@@ -105,7 +105,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     // calculate the total X,Y axis move distance
     // Z axis is the same in both coord systems, so it is ignored
     dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
-    if (pl_data->condition & PL_COND_FLAG_RAPID_MOTION) {
+    if (pl_data->motion.rapidMotion) {
         segment_count = 1;  // rapid G0 motion is not used to draw, so skip the segmentation
     } else {
         segment_count = ceil(dist / SEGMENT_LENGTH);  // determine the number of segments we need	... round up so there is at least 1
@@ -223,25 +223,17 @@ float abs_angle(float ang) {
 // Polar coaster has macro buttons, this handles those button pushes.
 void user_defined_macro(uint8_t index) {
     switch (index) {
-#ifdef MACRO_BUTTON_0_PIN
-        case CONTROL_PIN_INDEX_MACRO_0:
+        case 0:
             WebUI::inputBuffer.push("$H\r");  // home machine
             break;
-#endif
-#ifdef MACRO_BUTTON_1_PIN
-        case CONTROL_PIN_INDEX_MACRO_1:
+        case 1:
             WebUI::inputBuffer.push("[ESP220]/1.nc\r");  // run SD card file 1.nc
             break;
-#endif
-#ifdef MACRO_BUTTON_2_PIN
-        case CONTROL_PIN_INDEX_MACRO_2:
+        case 2:
             WebUI::inputBuffer.push("[ESP220]/2.nc\r");  // run SD card file 2.nc
             break;
-#endif
-#ifdef MACRO_BUTTON_3_PIN
-        case CONTROL_PIN_INDEX_MACRO_3: break;
-#endif
-        default: break;
+        default:
+            break;
     }
 }
 

@@ -3,15 +3,14 @@
 namespace Motors {
     UnipolarMotor::UnipolarMotor() {}
 
-    UnipolarMotor::UnipolarMotor(uint8_t axis_index, Pin pin_phase0, Pin pin_phase1, Pin pin_phase2, Pin pin_phase3) {
-        type_id               = UNIPOLAR_MOTOR;
-        this->axis_index      = axis_index % MAX_AXES;
-        this->dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
-
-        _pin_phase0 = pin_phase0;
-        _pin_phase1 = pin_phase1;
-        _pin_phase2 = pin_phase2;
-        _pin_phase3 = pin_phase3;
+    UnipolarMotor::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3) {
+        type_id                = UNIPOLAR_MOTOR;
+        this->_axis_index      = axis_index % MAX_AXES;
+        this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
+        _pin_phase0            = pin_phase0;
+        _pin_phase1            = pin_phase1;
+        _pin_phase2            = pin_phase2;
+        _pin_phase3            = pin_phase3;
 
         _half_step = true;  // TODO read from settings ... microstep > 1 = half step
 
@@ -21,30 +20,32 @@ namespace Motors {
     }
 
     void UnipolarMotor::init() {
-        _pin_phase0.setAttr(Pin::Attr::Output);
-        _pin_phase1.setAttr(Pin::Attr::Output);
-        _pin_phase2.setAttr(Pin::Attr::Output);
-        _pin_phase3.setAttr(Pin::Attr::Output);
+        pinMode(_pin_phase0, OUTPUT);
+        pinMode(_pin_phase1, OUTPUT);
+        pinMode(_pin_phase2, OUTPUT);
+        pinMode(_pin_phase3, OUTPUT);
         _current_phase = 0;
     }
 
     void UnipolarMotor::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
-                       "%s Axis unipolar stepper motor Ph0:%s Ph1:%s Ph2:%s Ph3:%s",
+                       MsgLevel::Info,
+                       "%s Axis Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s Limits(%0.3f,%0.3f)",
                        _axis_name,
-                       _pin_phase0.name().c_str(),
-                       _pin_phase1.name().c_str(),
-                       _pin_phase2.name().c_str(),
-                       _pin_phase3.name().c_str());
+                       pinName(_pin_phase0).c_str(),
+                       pinName(_pin_phase1).c_str(),
+                       pinName(_pin_phase2).c_str(),
+                       pinName(_pin_phase3).c_str(),
+                       _position_min,
+                       _position_max);
     }
 
     void UnipolarMotor::set_disable(bool disable) {
         if (disable) {
-            _pin_phase0.write(0);
-            _pin_phase1.write(0);
-            _pin_phase2.write(0);
-            _pin_phase3.write(0);
+            digitalWrite(_pin_phase0, 0);
+            digitalWrite(_pin_phase1, 0);
+            digitalWrite(_pin_phase2, 0);
+            digitalWrite(_pin_phase3, 0);
         }
         _enabled = !disable;
     }
@@ -53,7 +54,7 @@ namespace Motors {
         uint8_t _phase[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // temporary phase values...all start as off
         uint8_t phase_max;
 
-        if (!(step_mask & bit(axis_index)))
+        if (!(step_mask & bit(_axis_index)))
             return;  // a step is not required on this interrupt
 
         if (!_enabled)
@@ -64,7 +65,7 @@ namespace Motors {
         else
             phase_max = 3;
 
-        if (dir_mask & bit(axis_index)) {  // count up
+        if (dir_mask & bit(_axis_index)) {  // count up
             if (_current_phase == phase_max)
                 _current_phase = 0;
             else
@@ -91,22 +92,30 @@ namespace Motors {
 		*/
         if (_half_step) {
             switch (_current_phase) {
-                case 0: _phase[0] = 1; break;
+                case 0:
+                    _phase[0] = 1;
+                    break;
                 case 1:
                     _phase[0] = 1;
                     _phase[1] = 1;
                     break;
-                case 2: _phase[1] = 1; break;
+                case 2:
+                    _phase[1] = 1;
+                    break;
                 case 3:
                     _phase[1] = 1;
                     _phase[2] = 1;
                     break;
-                case 4: _phase[2] = 1; break;
+                case 4:
+                    _phase[2] = 1;
+                    break;
                 case 5:
                     _phase[2] = 1;
                     _phase[3] = 1;
                     break;
-                case 6: _phase[3] = 1; break;
+                case 6:
+                    _phase[3] = 1;
+                    break;
                 case 7:
                     _phase[3] = 1;
                     _phase[0] = 1;
@@ -132,9 +141,9 @@ namespace Motors {
                     break;
             }
         }
-        _pin_phase0.write(_phase[0]);
-        _pin_phase1.write(_phase[1]);
-        _pin_phase2.write(_phase[2]);
-        _pin_phase3.write(_phase[3]);
+        digitalWrite(_pin_phase0, _phase[0]);
+        digitalWrite(_pin_phase1, _phase[1]);
+        digitalWrite(_pin_phase2, _phase[2]);
+        digitalWrite(_pin_phase3, _phase[3]);
     }
 }

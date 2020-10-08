@@ -40,9 +40,9 @@
 
 #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 
-#define I2S_OUT_BCK      GPIO_NUM_22
-#define I2S_OUT_WS       GPIO_NUM_17
-#define I2S_OUT_DATA     GPIO_NUM_21
+#define I2S_OUT_BCK             GPIO_NUM_22
+#define I2S_OUT_WS              GPIO_NUM_17
+#define I2S_OUT_DATA            GPIO_NUM_21
 
 
 #define STEPPER_MS1             GPIO_NUM_23 // MOSI
@@ -82,7 +82,7 @@
 #define Z2_DISABLE_PIN          I2SO(23)
 
 
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM // only one spindle at a time
+#define SPINDLE_TYPE            SpindleType::PWM // only one spindle at a time
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 #define SPINDLE_DIR_PIN         GPIO_NUM_16
@@ -97,8 +97,6 @@
 #define PROBE_PIN               GPIO_NUM_25
 
 #define COOLANT_MIST_PIN        GPIO_NUM_2
-
-
 
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE

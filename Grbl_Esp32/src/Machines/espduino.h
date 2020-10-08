@@ -42,7 +42,7 @@
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_12
 
-#define SPINDLE_TYPE SPINDLE_TYPE_PWM
+#define SPINDLE_TYPE SpindleType::PWM
 #define SPINDLE_OUTPUT_PIN         GPIO_NUM_19
 
 #define SPINDLE_DIR_PIN         GPIO_NUM_18

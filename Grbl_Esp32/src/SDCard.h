@@ -20,19 +20,18 @@
 #include <SD.h>
 #include <SPI.h>
 
-#define FILE_TYPE_COUNT 5  // number of acceptable gcode file types in array
-
 #define SDCARD_DET_PIN -1
-#define SDCARD_DET_VAL 0
+const int SDCARD_DET_VAL = 0;
 
-#define SDCARD_IDLE 0
-#define SDCARD_NOT_PRESENT 1
-#define SDCARD_BUSY_PRINTING 2
-#define SDCARD_BUSY_UPLOADING 4
-#define SDCARD_BUSY_PARSING 8
+const int SDCARD_IDLE           = 0;
+const int SDCARD_NOT_PRESENT    = 1;
+const int SDCARD_BUSY_PRINTING  = 2;
+const int SDCARD_BUSY_UPLOADING = 4;
+const int SDCARD_BUSY_PARSING   = 8;
 
 extern bool    SD_ready_next;  // Grbl has processed a line and is waiting for another
 extern uint8_t SD_client;
+extern WebUI::AuthenticationLevel SD_auth_level;
 
 //bool sd_mount();
 uint8_t  get_sd_state(bool refresh);

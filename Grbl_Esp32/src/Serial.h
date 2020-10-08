@@ -23,7 +23,7 @@
 #include "Grbl.h"
 
 #ifndef RX_BUFFER_SIZE
-#    define RX_BUFFER_SIZE 128
+#    define RX_BUFFER_SIZE 256
 #endif
 #ifndef TX_BUFFER_SIZE
 #    ifdef USE_LINE_NUMBERS
@@ -33,7 +33,7 @@
 #    endif
 #endif
 
-#define SERIAL_NO_DATA 0xff
+const float SERIAL_NO_DATA = 0xff;
 
 // a task to read for incoming data from serial port
 void serialCheckTask(void* pvParameters);
@@ -51,6 +51,6 @@ void serial_reset_read_buffer(uint8_t client);
 // Returns the number of bytes available in the RX serial buffer.
 uint8_t serial_get_rx_buffer_available(uint8_t client);
 
-void execute_realtime_command(uint8_t command, uint8_t client);
+void execute_realtime_command(Cmd command, uint8_t client);
 bool any_client_has_data();
 bool is_realtime_command(uint8_t data);

@@ -10,7 +10,7 @@ Function BuildMachine($names) {
     $env:PLATFORMIO_BUILD_FLAGS = "-DMACHINE_FILENAME=$basename"
     $displayname = $basename
     Write-Output "Building machine $displayname"
-    platformio run 2>&1 | Select-String error,Took
+    platformio run 2>&1 | Select-String Compiling -NotMatch | Select-String error,Took
     Write-Output " "
 }
 

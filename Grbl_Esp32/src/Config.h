@@ -39,36 +39,14 @@ Some features should not be changed. See notes below.
 
 #include <Arduino.h>
 
+#include "NutsBolts.h"
+
 // It is no longer necessary to edit this file to choose
 // a machine configuration; edit machine.h instead
 // machine.h is #included below, after some definitions
 // that the machine file might choose to undefine.
 
-// Define the homing cycle patterns with bitmasks. The homing cycle first performs a search mode
-// to quickly engage the limit switches, followed by a slower locate mode, and finished by a short
-// pull-off motion to disengage the limit switches. The following HOMING_CYCLE_x defines are executed
-// in order starting with suffix 0 and completes the homing routine for the specified-axes only. If
-// an axis is omitted from the defines, it will not home, nor will the system update its position.
-// Meaning that this allows for users with non-standard Cartesian machines, such as a lathe (x then z,
-// with no y), to configure the homing cycle behavior to their needs.
-// NOTE: The homing cycle is designed to allow sharing of limit pins, if the axes are not in the same
-// cycle, but this requires some pin settings changes in the machine definition file. For example, the default homing
-// cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
-// By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
-// may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
-// on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
-// will not be affected by pin sharing.
-
-// NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
-// These homing cycle definitions precede the machine.h file so that the machine
-// definition can undefine them if necessary.
-#define HOMING_CYCLE_0 bit(Z_AXIS)  // TYPICALLY REQUIRED: First move Z to clear workspace.
-#define HOMING_CYCLE_1 bit(X_AXIS)
-#define HOMING_CYCLE_2 bit(Y_AXIS)
-
-// NOTE: The following is for for homing X and Y at the same time
-// #define HOMING_CYCLE_0 bit(Z_AXIS) // first home z by itself
-// #define HOMING_CYCLE_1 (bit(X_AXIS)|bit(Y_AXIS))  // Homes both X-Y in one cycle. NOT COMPATIBLE WITH COREXY!!!
+// Note: HOMING_CYCLES are now settings
 
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
@@ -95,7 +73,7 @@ Some features should not be changed. See notes below.
 #    endif
 #endif
 
-#define MAX_N_AXIS 6
+const int MAX_N_AXIS = 6;
 
 // Number of axes defined (steppers, servos, etc) (valid range: 3 to 6)
 // Even if your machine only uses less than the minimum of 3, you should select 3
@@ -107,8 +85,7 @@ Some features should not be changed. See notes below.
 #    define LIMIT_MASK B0
 #endif
 
-#define VERBOSE_HELP                   // Currently this doesn't do anything
-#define GRBL_MSG_LEVEL MSG_LEVEL_INFO  // what level of [MSG:....] do you want to see 0=all off
+#define GRBL_MSG_LEVEL MsgLevel::Info  // what level of [MSG:....] do you want to see 0=all off
 
 // Serial baud rate
 // OK to change, but the ESP32 boot text is 115200, so you will not see that is your
@@ -153,77 +130,74 @@ Some features should not be changed. See notes below.
 // as effective security against malice.
 //#define ENABLE_AUTHENTICATION
 //CONFIGURE_EYECATCH_END (DO NOT MODIFY THIS LINE)
-#define NAMESPACE "GRBL"
 
 #ifdef ENABLE_AUTHENTICATION
-#    define DEFAULT_ADMIN_PWD "admin"
-#    define DEFAULT_USER_PWD "user"
-#    define DEFAULT_ADMIN_LOGIN "admin"
-#    define DEFAULT_USER_LOGIN "user"
+const char* const DEFAULT_ADMIN_PWD   = "admin";
+const char* const DEFAULT_USER_PWD    = "user";
+const char* const DEFAULT_ADMIN_LOGIN = "admin";
+const char* const DEFAULT_USER_LOGIN  = "user";
 #endif
 
 //Radio Mode
-#define ESP_RADIO_OFF 0
-#define ESP_WIFI_STA 1
-#define ESP_WIFI_AP 2
-#define ESP_BT 3
+const int ESP_RADIO_OFF = 0;
+const int ESP_WIFI_STA  = 1;
+const int ESP_WIFI_AP   = 2;
+const int ESP_BT        = 3;
 
 //Default mode
 #ifdef ENABLE_WIFI
 #    ifdef CONNECT_TO_SSID
-#        define DEFAULT_RADIO_MODE ESP_WIFI_STA
+const int DEFAULT_RADIO_MODE = ESP_WIFI_STA;
 #    else
-#        define DEFAULT_RADIO_MODE ESP_WIFI_AP
+const int DEFAULT_RADIO_MODE = ESP_WIFI_AP;
 #    endif  //CONNECT_TO_SSID
 #else
 #    undef ENABLE_NOTIFICATIONS
 #    ifdef ENABLE_BLUETOOTH
-#        define DEFAULT_RADIO_MODE ESP_BT
+const int DEFAULT_RADIO_MODE = ESP_BT;
 #    else
-#        define DEFAULT_RADIO_MODE ESP_RADIO_OFF
+const int DEFAULT_RADIO_MODE = ESP_RADIO_OFF;
 #    endif
 #endif
 
 // Define realtime command special characters. These characters are 'picked-off' directly from the
 // serial read data stream and are not passed to the grbl line execution parser. Select characters
-// that do not and must not exist in the streamed g-code program. ASCII control characters may be
+// that do not and must not exist in the streamed GCode program. ASCII control characters may be
 // used, if they are available per user setup. Also, extended ASCII codes (>127), which are never in
-// g-code programs, maybe selected for interface programs.
+// GCode programs, maybe selected for interface programs.
 // NOTE: If changed, manually update help message in report.c.
-
-#define CMD_RESET 0x18  // ctrl-x.
-#define CMD_STATUS_REPORT '?'
-#define CMD_CYCLE_START '~'
-#define CMD_FEED_HOLD '!'
 
 // NOTE: All override realtime commands must be in the extended ASCII character set, starting
 // at character value 128 (0x80) and up to 255 (0xFF). If the normal set of realtime commands,
 // such as status reports, feed hold, reset, and cycle start, are moved to the extended set
 // space, serial.c's RX ISR will need to be modified to accommodate the change.
-// #define CMD_RESET 0x80
-// #define CMD_STATUS_REPORT 0x81
-// #define CMD_CYCLE_START 0x82
-// #define CMD_FEED_HOLD 0x83
-#define CMD_SAFETY_DOOR 0x84
-#define CMD_JOG_CANCEL 0x85
-#define CMD_DEBUG_REPORT 0x86    // Only when DEBUG enabled, sends debug report in '{}' braces.
-#define CMD_FEED_OVR_RESET 0x90  // Restores feed override value to 100%.
-#define CMD_FEED_OVR_COARSE_PLUS 0x91
-#define CMD_FEED_OVR_COARSE_MINUS 0x92
-#define CMD_FEED_OVR_FINE_PLUS 0x93
-#define CMD_FEED_OVR_FINE_MINUS 0x94
-#define CMD_RAPID_OVR_RESET 0x95  // Restores rapid override value to 100%.
-#define CMD_RAPID_OVR_MEDIUM 0x96
-#define CMD_RAPID_OVR_LOW 0x97
-// #define CMD_RAPID_OVR_EXTRA_LOW 0x98 // *NOT SUPPORTED*
-#define CMD_SPINDLE_OVR_RESET 0x99        // Restores spindle override value to 100%.
-#define CMD_SPINDLE_OVR_COARSE_PLUS 0x9A  // 154
-#define CMD_SPINDLE_OVR_COARSE_MINUS 0x9B
-#define CMD_SPINDLE_OVR_FINE_PLUS 0x9C
-#define CMD_SPINDLE_OVR_FINE_MINUS 0x9D
-#define CMD_SPINDLE_OVR_STOP 0x9E
-#define CMD_COOLANT_FLOOD_OVR_TOGGLE 0xA0
-#define CMD_COOLANT_MIST_OVR_TOGGLE 0xA1
+
+enum class Cmd : uint8_t {
+    Reset                 = 0x18,  // Ctrl-X
+    StatusReport          = '?',
+    CycleStart            = '~',
+    FeedHold              = '!',
+    SafetyDoor            = 0x84,
+    JogCancel             = 0x85,
+    DebugReport           = 0x86,  // Only when DEBUG enabled, sends debug report in '{}' braces.
+    FeedOvrReset          = 0x90,  // Restores feed override value to 100%.
+    FeedOvrCoarsePlus     = 0x91,
+    FeedOvrCoarseMinus    = 0x92,
+    FeedOvrFinePlus       = 0x93,
+    FeedOvrFineMinus      = 0x94,
+    RapidOvrReset         = 0x95,  // Restores rapid override value to 100%.
+    RapidOvrMedium        = 0x96,
+    RapidOvrLow           = 0x97,
+    RapidOvrExtraLow      = 0x98,  // *NOT SUPPORTED*
+    SpindleOvrReset       = 0x99,  // Restores spindle override value to 100%.
+    SpindleOvrCoarsePlus  = 0x9A,  // 154
+    SpindleOvrCoarseMinus = 0x9B,
+    SpindleOvrFinePlus    = 0x9C,
+    SpindleOvrFineMinus   = 0x9D,
+    SpindleOvrStop        = 0x9E,
+    CoolantFloodOvrToggle = 0xA0,
+    CoolantMistOvrToggle  = 0xA1,
+};
 
 // If homing is enabled, homing init lock sets Grbl into an alarm state upon power up. This forces
 // the user to perform the homing cycle (or override the locks) before doing anything else. This is
@@ -233,7 +207,7 @@ Some features should not be changed. See notes below.
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
 // greater.
-#define N_HOMING_LOCATE_CYCLE 1  // Integer (1-128)
+static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 
 // Enables single axis homing commands. $HX, $HY, and $HZ for X, Y, and Z-axis homing. The full homing
 // cycle is still invoked by the $H command. This is disabled by default. It's here only to address
@@ -241,20 +215,9 @@ Some features should not be changed. See notes below.
 // If you have a two-axis machine, DON'T USE THIS. Instead, just alter the homing cycle for two-axes.
 #define HOMING_SINGLE_AXIS_COMMANDS  // Default disabled. Uncomment to enable.
 
-// After homing, Grbl will set by default the entire machine space into negative space, as is typical
-// for professional CNC machines, regardless of where the limit switches are located. Uncomment this
-// define to force Grbl to always set the machine origin at the homed location despite switch orientation.
-// #define HOMING_FORCE_SET_ORIGIN // Uncomment to enable.
-
-// Uncomment this define to force Grbl to always set the machine origin at minimum travel positions of
-// the axes. Note: The $23 setting determines the direction of travel during homing. If an axes homes towards the
-// minimum, it will set the machine position to 0. If it homes towards the maximum it will set the
-// machine position to the max travel ($13x), minus the switch pull off ($27).
-// #define HOMING_FORCE_POSITIVE_SPACE // Uncomment to enable.
-
-// Number of blocks Grbl executes upon startup. These blocks are stored in EEPROM, where the size
+// Number of blocks Grbl executes upon startup. These blocks are stored in non-volatile storage.
 // and addresses are defined in settings.h. With the current settings, up to 2 startup blocks may
-// be stored and executed in order. These startup blocks would typically be used to set the g-code
+// be stored and executed in order. These startup blocks would typically be used to set the GCode
 // parser state depending on user preferences.
 #define N_STARTUP_LINE 2  // Integer (1-2)
 
@@ -264,12 +227,6 @@ Some features should not be changed. See notes below.
 // precise this. So, there is likely no need to change these, but you can if you need to here.
 // NOTE: Must be an integer value from 0 to ~4. More than 4 may exhibit round-off errors.
 // ESP32 Note: These are mostly hard coded, so these values will not change anything
-#define N_DECIMAL_COORDVALUE_INCH 4  // Coordinate or position value in inches
-#define N_DECIMAL_COORDVALUE_MM 3    // Coordinate or position value in mm
-#define N_DECIMAL_RATEVALUE_INCH 1   // Rate or velocity value in in/min
-#define N_DECIMAL_RATEVALUE_MM 0     // Rate or velocity value in mm/min
-#define N_DECIMAL_SETTINGVALUE 3     // Decimals for floating point setting values
-#define N_DECIMAL_RPMVALUE 0         // RPM value in rotations per min.
 
 // If your machine has two limits switches wired in parallel to one axis, you will need to enable
 // this feature. Since the two switches are sharing a single pin, there is no way for Grbl to tell
@@ -288,7 +245,7 @@ Some features should not be changed. See notes below.
 // coordinates through Grbl '$#' print parameters.
 #define MESSAGE_PROBE_COORDINATES  // Enabled by default. Comment to disable.
 
-// Enables a second coolant control pin via the mist coolant g-code command M7 on the Arduino Uno
+// Enables a second coolant control pin via the mist coolant GCode command M7 on the Arduino Uno
 // analog pin 4. Only use this option if you require a second coolant control pin.
 // NOTE: The M8 flood coolant control pin on analog pin 3 will still be functional regardless.
 // ESP32 NOTE! This is here for reference only. You enable both M7 and M8 by assigning them a GPIO Pin
@@ -303,12 +260,10 @@ Some features should not be changed. See notes below.
 
 // After the safety door switch has been toggled and restored, this setting sets the power-up delay
 // between restoring the spindle and coolant and resuming the cycle.
-#define SAFETY_DOOR_SPINDLE_DELAY 4.0  // Float (seconds)
-#define SAFETY_DOOR_COOLANT_DELAY 1.0  // Float (seconds)
+const double SAFETY_DOOR_SPINDLE_DELAY = 4.0;  // Float (seconds)
+const double SAFETY_DOOR_COOLANT_DELAY = 1.0;  // Float (seconds)
 
 // Enable CoreXY kinematics. Use ONLY with CoreXY machines.
-// IMPORTANT: If homing is enabled, you must reconfigure the homing cycle #defines above to
-// #define HOMING_CYCLE_0 bit(X_AXIS) and #define HOMING_CYCLE_1 bit(Y_AXIS)
 // NOTE: This configuration option alters the motion of the X and Y axes to principle of operation
 // defined at (http://corexy.com/theory.html). Motors are assumed to positioned and wired exactly as
 // described, if not, motions may move in strange directions. Grbl requires the CoreXY A and B motors
@@ -351,24 +306,29 @@ Some features should not be changed. See notes below.
 // Configure rapid, feed, and spindle override settings. These values define the max and min
 // allowable override values and the coarse and fine increments per command received. Please
 // note the allowable values in the descriptions following each define.
-#define DEFAULT_FEED_OVERRIDE 100          // 100%. Don't change this value.
-#define MAX_FEED_RATE_OVERRIDE 200         // Percent of programmed feed rate (100-255). Usually 120% or 200%
-#define MIN_FEED_RATE_OVERRIDE 10          // Percent of programmed feed rate (1-100). Usually 50% or 1%
-#define FEED_OVERRIDE_COARSE_INCREMENT 10  // (1-99). Usually 10%.
-#define FEED_OVERRIDE_FINE_INCREMENT 1     // (1-99). Usually 1%.
+namespace FeedOverride {
+    const int Default         = 100;  // 100%. Don't change this value.
+    const int Max             = 200;  // Percent of programmed feed rate (100-255). Usually 120% or 200%
+    const int Min             = 10;   // Percent of programmed feed rate (1-100). Usually 50% or 1%
+    const int CoarseIncrement = 10;   // (1-99). Usually 10%.
+    const int FineIncrement   = 1;    // (1-99). Usually 1%.
+};
+namespace RapidOverride {
+    const int Default  = 100;  // 100%. Don't change this value.
+    const int Medium   = 50;   // Percent of rapid (1-99). Usually 50%.
+    const int Low      = 25;   // Percent of rapid (1-99). Usually 25%.
+    const int ExtraLow = 5;    // Percent of rapid (1-99). Usually 5%.  Not Supported
+};
 
-#define DEFAULT_RAPID_OVERRIDE 100  // 100%. Don't change this value.
-#define RAPID_OVERRIDE_MEDIUM 50    // Percent of rapid (1-99). Usually 50%.
-#define RAPID_OVERRIDE_LOW 25       // Percent of rapid (1-99). Usually 25%.
-// #define RAPID_OVERRIDE_EXTRA_LOW 5 // *NOT SUPPORTED* Percent of rapid (1-99). Usually 5%.
+namespace SpindleSpeedOverride {
+    const int Default         = 100;  // 100%. Don't change this value.
+    const int Max             = 200;  // Percent of programmed spindle speed (100-255). Usually 200%.
+    const int Min             = 10;   // Percent of programmed spindle speed (1-100). Usually 10%.
+    const int CoarseIncrement = 10;   // (1-99). Usually 10%.
+    const int FineIncrement   = 1;    // (1-99). Usually 1%.
+}
 
-#define DEFAULT_SPINDLE_SPEED_OVERRIDE 100    // 100%. Don't change this value.
-#define MAX_SPINDLE_SPEED_OVERRIDE 200        // Percent of programmed spindle speed (100-255). Usually 200%.
-#define MIN_SPINDLE_SPEED_OVERRIDE 10         // Percent of programmed spindle speed (1-100). Usually 10%.
-#define SPINDLE_OVERRIDE_COARSE_INCREMENT 10  // (1-99). Usually 10%.
-#define SPINDLE_OVERRIDE_FINE_INCREMENT 1     // (1-99). Usually 1%.
-
-// When a M2 or M30 program end command is executed, most g-code states are restored to their defaults.
+// When a M2 or M30 program end command is executed, most GCode states are restored to their defaults.
 // This compile-time option includes the restoring of the feed, rapid, and spindle speed override values
 // to their default values at program end.
 #define RESTORE_OVERRIDES_AFTER_PROGRAM_END  // Default enabled. Comment to disable.
@@ -395,10 +355,10 @@ Some features should not be changed. See notes below.
 // refreshes more often when its not doing anything important. With a good GUI, this data doesn't need
 // to be refreshed very often, on the order of a several seconds.
 // NOTE: WCO refresh must be 2 or greater. OVR refresh must be 1 or greater.
-#define REPORT_OVR_REFRESH_BUSY_COUNT 20  // (1-255)
-#define REPORT_OVR_REFRESH_IDLE_COUNT 10  // (1-255) Must be less than or equal to the busy count
-#define REPORT_WCO_REFRESH_BUSY_COUNT 30  // (2-255)
-#define REPORT_WCO_REFRESH_IDLE_COUNT 10  // (2-255) Must be less than or equal to the busy count
+const int REPORT_OVR_REFRESH_BUSY_COUNT = 20;  // (1-255)
+const int REPORT_OVR_REFRESH_IDLE_COUNT = 10;  // (1-255) Must be less than or equal to the busy count
+const int REPORT_WCO_REFRESH_BUSY_COUNT = 30;  // (2-255)
+const int REPORT_WCO_REFRESH_IDLE_COUNT = 10;  // (2-255) Must be less than or equal to the busy count
 
 // The temporal resolution of the acceleration management subsystem. A higher number gives smoother
 // acceleration, particularly noticeable on machines that run at very high feedrates, but may negatively
@@ -407,7 +367,7 @@ Some features should not be changed. See notes below.
 // NOTE: Changing this value also changes the execution time of a segment in the step segment buffer.
 // When increasing this value, this stores less overall time in the segment buffer and vice versa. Make
 // certain the step segment buffer is increased/decreased to account for these changes.
-#define ACCELERATION_TICKS_PER_SECOND 100
+const int ACCELERATION_TICKS_PER_SECOND = 100;
 
 // Adaptive Multi-Axis Step Smoothing (AMASS) is an advanced feature that does what its name implies,
 // smoothing the stepping of multi-axis motions. This feature smooths motion particularly at low step
@@ -443,7 +403,7 @@ Some features should not be changed. See notes below.
 // Sets which axis the tool length offset is applied. Assumes the spindle is always parallel with
 // the selected axis with the tool oriented toward the negative direction. In other words, a positive
 // tool length offset value is subtracted from the current location.
-#define TOOL_LENGTH_OFFSET_AXIS Z_AXIS  // Default z-axis. Valid values are X_AXIS, Y_AXIS, or Z_AXIS.
+const int TOOL_LENGTH_OFFSET_AXIS = Z_AXIS;  // Default z-axis. Valid values are X_AXIS, Y_AXIS, or Z_AXIS.
 
 // With this enabled, Grbl sends back an echo of the line it has received, which has been pre-parsed (spaces
 // removed, capitalized letters, no comments) and is to be immediately executed by Grbl. Echoes will not be
@@ -466,21 +426,21 @@ Some features should not be changed. See notes below.
 // limits or angle between neighboring block line move directions. This is useful for machines that can't
 // tolerate the tool dwelling for a split second, i.e. 3d printers or laser cutters. If used, this value
 // should not be much greater than zero or to the minimum value necessary for the machine to work.
-#define MINIMUM_JUNCTION_SPEED 0.0  // (mm/min)
+const double MINIMUM_JUNCTION_SPEED = 0.0;  // (mm/min)
 
 // Sets the minimum feed rate the planner will allow. Any value below it will be set to this minimum
 // value. This also ensures that a planned motion always completes and accounts for any floating-point
 // round-off errors. Although not recommended, a lower value than 1.0 mm/min will likely work in smaller
 // machines, perhaps to 0.1mm/min, but your success may vary based on multiple factors.
-#define MINIMUM_FEED_RATE 1.0  // (mm/min)
+const double MINIMUM_FEED_RATE = 1.0;  // (mm/min)
 
 // Number of arc generation iterations by small angle approximation before exact arc trajectory
 // correction with expensive sin() and cos() calcualtions. This parameter maybe decreased if there
 // are issues with the accuracy of the arc generations, or increased if arc execution is getting
 // bogged down by too many trig calculations.
-#define N_ARC_CORRECTION 12  // Integer (1-255)
+const int N_ARC_CORRECTION = 12;  // Integer (1-255)
 
-// The arc G2/3 g-code standard is problematic by definition. Radius-based arcs have horrible numerical
+// The arc G2/3 GCode standard is problematic by definition. Radius-based arcs have horrible numerical
 // errors when arc at semi-circles(pi) or full-circles(2*pi). Offset-based arcs are much more accurate
 // but still have a problem when arcs are full-circles (2*pi). This define accounts for the floating
 // point issues when offset-based arcs are commanded as full circles, but get interpreted as extremely
@@ -488,14 +448,14 @@ Some features should not be changed. See notes below.
 // This define value sets the machine epsilon cutoff to determine if the arc is a full-circle or not.
 // NOTE: Be very careful when adjusting this value. It should always be greater than 1.2e-7 but not too
 // much greater than this. The default setting should capture most, if not all, full arc error situations.
-#define ARC_ANGULAR_TRAVEL_EPSILON 5E-7  // Float (radians)
+const double ARC_ANGULAR_TRAVEL_EPSILON = 5E-7;  // Float (radians)
 
 // Time delay increments performed during a dwell. The default value is set at 50ms, which provides
 // a maximum time delay of roughly 55 minutes, more than enough for most any application. Increasing
 // this delay will increase the maximum dwell time linearly, but also reduces the responsiveness of
 // run-time command executions, like status reports, since these are performed between each dwell
 // time step. Also, keep in mind that the Arduino delay timer is not very accurate for long delays.
-#define DWELL_TIME_STEP 50  // Integer (1-255) (milliseconds)
+const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
 
 // For test use only. This uses the ESP32's RMT peripheral to generate step pulses
 // It allows the use of the STEP_PULSE_DELAY (see below) and it automatically ends the
@@ -533,13 +493,10 @@ Some features should not be changed. See notes below.
 // #define SEGMENT_BUFFER_SIZE 6 // Uncomment to override default in stepper.h.
 
 // Line buffer size from the serial input stream to be executed. Also, governs the size of
-// each of the startup blocks, as they are each stored as a string of this size. Make sure
-// to account for the available EEPROM at the defined memory address in settings.h and for
-// the number of desired startup blocks.
+// each of the startup blocks, as they are each stored as a string of this size.
 // NOTE: 80 characters is not a problem except for extreme cases, but the line buffer size
-// can be too small and g-code blocks can get truncated. Officially, the g-code standards
-// support up to 256 characters. In future versions, this default will be increased, when
-// we know how much extra memory space we can re-invest into this.
+// can be too small and GCode blocks can get truncated. Officially, the GCode standards
+// support up to 256 characters.
 // #define LINE_BUFFER_SIZE 80  // Uncomment to override default in protocol.h
 
 // Serial send and receive buffer size. The receive buffer is often used as another streaming
@@ -559,7 +516,7 @@ Some features should not be changed. See notes below.
 // switch interrupt unblock a waiting task which will recheck the limit switch pins after
 // a short delay. Default disabled
 //#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
-#define DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
+const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 
 // Configures the position after a probing cycle during Grbl's check mode. Disabled sets
 // the position to the probe target, when enabled sets the position to the start position.
@@ -587,19 +544,9 @@ Some features should not be changed. See notes below.
 
 // Enable the '$RST=*', '$RST=$', and '$RST=#' eeprom restore commands. There are cases where
 // these commands may be undesirable. Simply comment the desired macro to disable it.
-// NOTE: See SETTINGS_RESTORE_ALL macro for customizing the `$RST=*` command.
-#define ENABLE_RESTORE_EEPROM_WIPE_ALL          // '$RST=*' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_EEPROM_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_EEPROM_CLEAR_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
-
-// Defines the EEPROM data restored upon a settings version change and `$RST=*` command. Whenever the
-// the settings or other EEPROM data structure changes between Grbl versions, Grbl will automatically
-// wipe and restore the EEPROM. This macro controls what data is wiped and restored. This is useful
-// particularily for OEMs that need to retain certain data. For example, the BUILD_INFO string can be
-// written into the Arduino EEPROM via a seperate .INO sketch to contain product data. Altering this
-// macro to not restore the build info EEPROM will ensure this data is retained after firmware upgrades.
-// NOTE: Uncomment to override defaults in settings.h
-// #define SETTINGS_RESTORE_ALL (SETTINGS_RESTORE_DEFAULTS | SETTINGS_RESTORE_PARAMETERS | SETTINGS_RESTORE_STARTUP_LINES | SETTINGS_RESTORE_BUILD_INFO)
+#define ENABLE_RESTORE_WIPE_ALL          // '$RST=*' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
 
 // Additional settings have been added to the original set that you see with the $$ command
 // Some senders may not be able to parse anything different from the original set
@@ -607,30 +554,20 @@ Some features should not be changed. See notes below.
 // Default is off to limit support issues...you can enable here or in your machine definition file
 // #define SHOW_EXTENDED_SETTINGS
 
-// Enable the '$I=(string)' build info write command. If disabled, any existing build info data must
-// be placed into EEPROM via external means with a valid checksum value. This macro option is useful
-// to prevent this data from being over-written by a user, when used to store OEM product data.
-// NOTE: If disabled and to ensure Grbl can never alter the build info line, you'll also need to enable
-// the SETTING_RESTORE_ALL macro above and remove SETTINGS_RESTORE_BUILD_INFO from the mask.
-// NOTE: See the included grblWrite_BuildInfo.ino example file to write this string seperately.
-#define ENABLE_BUILD_INFO_WRITE_COMMAND  // '$I=' Default enabled. Comment to disable.
-
-// AVR processors require all interrupts to be disabled during an EEPROM write. This includes both
-// the stepper ISRs and serial comm ISRs. In the event of a long EEPROM write, this ISR pause can
-// cause active stepping to lose position and serial receive data to be lost. This configuration
-// option forces the planner buffer to completely empty whenever the EEPROM is written to prevent
-// any chance of lost steps.
-// However, this doesn't prevent issues with lost serial RX data during an EEPROM write, especially
-// if a GUI is premptively filling up the serial RX buffer simultaneously. It's highly advised for
-// GUIs to flag these gcodes (G10,G28.1,G30.1) to always wait for an 'ok' after a block containing
-// one of these commands before sending more data to eliminate this issue.
-// NOTE: Most EEPROM write commands are implicitly blocked during a job (all '$' commands). However,
-// coordinate set g-code commands (G10,G28/30.1) are not, since they are part of an active streaming
-// job. At this time, this option only forces a planner buffer sync with these g-code commands.
-#define FORCE_BUFFER_SYNC_DURING_EEPROM_WRITE  // Default enabled. Comment to disable.
+// Writing to non-volatile storage (NVS) can take a long time and interfere with timely instruction
+// execution, causing problems for the stepper ISRs and serial comm ISRs and subsequent loss of
+// stepper position and serial data. This configuration option forces the planner buffer to completely
+// empty whenever the NVS is written, to prevent any chance of lost steps.
+// It doesn't prevent loss of serial Rx data, especially if a GUI is premptively filling up the
+// serial Rx buffer.  GUIs should detect GCodes that write to NVS - notably G10,G28.1,G30.1 -
+// and wait for an 'ok' before sending more data.
+// NOTE: Most setting changes - $ commands - are blocked when a job is running. Coordinate setting
+// GCode commands (G10,G28/30.1) are not blocked, since they are part of an active streaming job.
+// This option forces a planner buffer sync only with such GCode commands.
+#define FORCE_BUFFER_SYNC_DURING_NVS_WRITE  // Default enabled. Comment to disable.
 
 // In Grbl v0.9 and prior, there is an old outstanding bug where the `WPos:` work position reported
-// may not correlate to what is executing, because `WPos:` is based on the g-code parser state, which
+// may not correlate to what is executing, because `WPos:` is based on the GCode parser state, which
 // can be several motions behind. This option forces the planner buffer to empty, sync, and stop
 // motion whenever there is a command that alters the work coordinate offsets `G10,G43.1,G92,G54-59`.
 // This is the simplest way to ensure `WPos:` is always correct. Fortunately, it's exceedingly rare
@@ -654,23 +591,20 @@ Some features should not be changed. See notes below.
 // Restoring to the resume position follows these set motions in reverse: fast restore to
 // pull-out position, power-up with a time-out, and plunge back to the original position at the
 // slower pull-out rate.
-// NOTE: Still a work-in-progress. Machine coordinates must be in all negative space and
-// does not work with HOMING_FORCE_SET_ORIGIN enabled. Parking motion also moves only in
-// positive direction.
-//#define PARKING_ENABLE  // Default disabled. Uncomment to enable
+#define PARKING_ENABLE  // Default disabled. Uncomment to enable
 
 // Configure options for the parking motion, if enabled.
-#define PARKING_AXIS Z_AXIS            // Define which axis that performs the parking motion
-#define PARKING_TARGET -5.0            // Parking axis target. In mm, as machine coordinate [-max_travel,0].
-#define PARKING_RATE 500.0             // Parking fast rate after pull-out in mm/min.
-#define PARKING_PULLOUT_RATE 100.0     // Pull-out/plunge slow feed rate in mm/min.
-#define PARKING_PULLOUT_INCREMENT 5.0  // Spindle pull-out and plunge distance in mm. Incremental distance.
+#define PARKING_AXIS Z_AXIS                      // Define which axis that performs the parking motion
+const double PARKING_TARGET            = -5.0;   // Parking axis target. In mm, as machine coordinate.
+const double PARKING_RATE              = 500.0;  // Parking fast rate after pull-out in mm/min.
+const double PARKING_PULLOUT_RATE      = 100.0;  // Pull-out/plunge slow feed rate in mm/min.
+const double PARKING_PULLOUT_INCREMENT = 5.0;    // Spindle pull-out and plunge distance in mm. Incremental distance.
 // Must be positive value or equal to zero.
 
 // Enables a special set of M-code commands that enables and disables the parking motion.
 // These are controlled by `M56`, `M56 P1`, or `M56 Px` to enable and `M56 P0` to disable.
-// The command is modal and will be set after a planner sync. Since it is g-code, it is
-// executed in sync with g-code commands. It is not a real-time command.
+// The command is modal and will be set after a planner sync. Since it is GCode, it is
+// executed in sync with GCode commands. It is not a real-time command.
 // NOTE: PARKING_ENABLE is required. By default, M56 is active upon initialization. Use
 // DEACTIVATE_PARKING_UPON_INIT to set M56 P0 as the power-up default.
 // #define ENABLE_PARKING_OVERRIDE_CONTROL   // Default disabled. Uncomment to enable
@@ -695,27 +629,9 @@ Some features should not be changed. See notes below.
 #define N_PIECES 4  // Integer (1-4). Number of piecewise lines used in script solution.
 #define RPM_MAX  11686.4  // Max RPM of model. $30 > RPM_MAX will be limited to RPM_MAX.
 #define RPM_MIN  202.5    // Min RPM of model. $31 < RPM_MIN will be limited to RPM_MIN.
-#define RPM_POINT12  6145.4  // Used N_PIECES >=2. Junction point between lines 1 and 2.
-#define RPM_POINT23  9627.8  // Used N_PIECES >=3. Junction point between lines 2 and 3.
-#define RPM_POINT34  10813.9 // Used N_PIECES = 4. Junction point between lines 3 and 4.
-#define RPM_LINE_A1  3.197101e-03  // Used N_PIECES >=1. A and B constants of line 1.
-#define RPM_LINE_B1  -3.526076e-1
-#define RPM_LINE_A2  1.722950e-2   // Used N_PIECES >=2. A and B constants of line 2.
-#define RPM_LINE_B2  8.588176e+01
-#define RPM_LINE_A3  5.901518e-02  // Used N_PIECES >=3. A and B constants of line 3.
-#define RPM_LINE_B3  4.881851e+02
-#define RPM_LINE_A4  1.203413e-01  // Used N_PIECES = 4. A and B constants of line 4.
-#define RPM_LINE_B4  1.151360e+03
 */
 
-#define N_PIECES 3
-#define RPM_MAX 23935.2
-#define RPM_MIN 2412.2
-#define RPM_POINT12 6283.9
-#define RPM_POINT23 11866.0
-#define RPM_LINE_A1 4.390865e-03
-#define RPM_LINE_B1 7.591787e+00
-#define RPM_LINE_A2 1.074874e-02
-#define RPM_LINE_B2 4.754411e+01
-#define RPM_LINE_A3 9.528342e-03
-#define RPM_LINE_B3 3.306286e+01
+const int N_PIECES = 3;
+
+const double RPM_MAX = 23935.2;
+const double RPM_MIN = 2412.2;

@@ -79,11 +79,21 @@ namespace WebUI {
             .onError([](ota_error_t error) {
                 grbl_sendf(CLIENT_ALL, "[MSG:OTA Error(%u):]\r\n", error);
                 switch (error) {
-                    case OTA_AUTH_ERROR: grbl_send(CLIENT_ALL, "[MSG:Auth Failed]\r\n"); break;
-                    case OTA_BEGIN_ERROR: grbl_send(CLIENT_ALL, "[MSG:Begin Failed]\r\n"); break;
-                    case OTA_CONNECT_ERROR: grbl_send(CLIENT_ALL, "[MSG:Connect Failed]\r\n"); break;
-                    case OTA_RECEIVE_ERROR: grbl_send(CLIENT_ALL, "[MSG:Receive Failed]\r\n"); break;
-                    case OTA_END_ERROR: grbl_send(CLIENT_ALL, "[MSG:End Failed]\r\n"); break;
+                    case OTA_AUTH_ERROR:
+                        grbl_send(CLIENT_ALL, "[MSG:Auth Failed]\r\n");
+                        break;
+                    case OTA_BEGIN_ERROR:
+                        grbl_send(CLIENT_ALL, "[MSG:Begin Failed]\r\n");
+                        break;
+                    case OTA_CONNECT_ERROR:
+                        grbl_send(CLIENT_ALL, "[MSG:Connect Failed]\r\n");
+                        break;
+                    case OTA_RECEIVE_ERROR:
+                        grbl_send(CLIENT_ALL, "[MSG:Receive Failed]\r\n");
+                        break;
+                    case OTA_END_ERROR:
+                        grbl_send(CLIENT_ALL, "[MSG:End Failed]\r\n");
+                        break;
                 }
             });
         ArduinoOTA.begin();
@@ -95,8 +105,9 @@ namespace WebUI {
             if (!MDNS.begin(h.c_str())) {
                 grbl_send(CLIENT_ALL, "[MSG:Cannot start mDNS]\r\n");
                 no_error = false;
-            } else
+            } else {
                 grbl_sendf(CLIENT_ALL, "[MSG:Start mDNS with hostname:http://%s.local/]\r\n", h.c_str());
+            }
         }
 #    endif
 #    ifdef ENABLE_HTTP

@@ -34,29 +34,27 @@ namespace Spindles {
 #ifdef SPINDLE_FORWARD_PIN
         _forward_pin = SPINDLE_FORWARD_PIN;
 #else
-        _forward_pin = Pin::UNDEFINED;
+        _forward_pin = UNDEFINED_PIN;
 #endif
 
 #ifdef SPINDLE_REVERSE_PIN
         _reverse_pin = SPINDLE_REVERSE_PIN;
 #else
-        _reverse_pin = Pin::UNDEFINED;
+        _reverse_pin = UNDEFINED_PIN;
 #endif
 
-        if (_output_pin == Pin::UNDEFINED) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Warning: BESC output pin not defined");
+        if (_output_pin == UNDEFINED_PIN) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
-        auto native_output = _output_pin.getNative(Pin::Capabilities::PWM);  // TODO FIXME: Use Pin::PWM!
-
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(native_output, _pwm_chan_num);                  // attach the PWM to the pin
+        ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
 
-        _enable_pin.setAttr(Pin::Attr::Output);
-        _direction_pin.setAttr(Pin::Attr::Output);
-        _forward_pin.setAttr(Pin::Attr::Output);
-        _reverse_pin.setAttr(Pin::Attr::Output);
+        pinMode(_enable_pin, OUTPUT);
+        pinMode(_direction_pin, OUTPUT);
+        pinMode(_forward_pin, OUTPUT);
+        pinMode(_reverse_pin, OUTPUT);
 
         set_rpm(0);
 
@@ -69,13 +67,13 @@ namespace Spindles {
     // prints the startup message of the spindle config
     void _10v::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "0-10V spindle Out:%s Enbl:%s, Dir:%s, Fwd:%s, Rev:%s, Freq:%dHz Res:%dbits",
-                       _output_pin.name().c_str(),
-                       _enable_pin.name().c_str(),
-                       _direction_pin.name().c_str(),
-                       _forward_pin.name().c_str(),
-                       _reverse_pin.name().c_str(),
+                       pinName(_output_pin).c_str(),
+                       pinName(_enable_pin).c_str(),
+                       pinName(_direction_pin).c_str(),
+                       pinName(_forward_pin).c_str(),
+                       pinName(_reverse_pin).c_str(),
                        _pwm_freq,
                        _pwm_precision);
     }
@@ -83,54 +81,60 @@ namespace Spindles {
     uint32_t _10v::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
-        if (_output_pin == Pin::UNDEFINED)
+        if (_output_pin == UNDEFINED_PIN) {
             return rpm;
+        }
 
         // apply speed overrides
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (percent)
 
         // apply limits limits
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm))
+        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
             rpm = _max_rpm;
-        else if (rpm != 0 && rpm <= _min_rpm)
+        } else if (rpm != 0 && rpm <= _min_rpm) {
             rpm = _min_rpm;
+        }
         sys.spindle_speed = rpm;
 
         // determine the pwm value
-        if (rpm == 0)
+        if (rpm == 0) {
             pwm_value = _pwm_off_value;
-        else
+        } else {
             pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
+        }
 
         set_output(pwm_value);
         return rpm;
     }
-    /*
-	void _10v::set_state(uint8_t state, uint32_t rpm) {
-		if (sys.abort)
-			return;   // Block during abort.
 
-		if (state == SPINDLE_DISABLE) { // Halt or set spindle direction and rpm.
+    /*
+	void _10v::set_state(SpindleState state, uint32_t rpm) {
+		if (sys.abort) {
+            return;   // Block during abort.
+        }
+
+		if (state == SpindleState::Disable) { // Halt or set spindle direction and rpm.
 			sys.spindle_speed = 0;
 			stop();
 		} else {
-			set_dir_pin(state == SPINDLE_ENABLE_CW);
+			set_dir_pin(state == SpindleState:Cw);
 			set_rpm(rpm);
 		}
 
-		set_enable_pin(state != SPINDLE_DISABLE);
+		set_enable_pin(state != SpindleState::Disable);
 
 		sys.report_ovr_counter = 0; // Set to report change immediately
 	}
-
 	*/
 
-    uint8_t _10v::get_state() {
-        if (_current_pwm_duty == 0 || _output_pin == Pin::UNDEFINED)
-            return (SPINDLE_STATE_DISABLE);
-        if (_direction_pin != Pin::UNDEFINED)
-            return _direction_pin.read() ? SPINDLE_STATE_CW : SPINDLE_STATE_CCW;
-        return (SPINDLE_STATE_CW);
+    SpindleState _10v::get_state() {
+        if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN) {
+            return SpindleState::Disable;
+        }
+        if (_direction_pin != UNDEFINED_PIN) {
+            return digitalRead(_direction_pin) ? SpindleState::Cw : SpindleState::Ccw;
+        }
+        return SpindleState::Cw;
     }
 
     void _10v::stop() {
@@ -140,27 +144,29 @@ namespace Spindles {
     }
 
     void _10v::set_enable_pin(bool enable) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle::_10v::set_enable_pin");
-        if (_off_with_zero_speed && sys.spindle_speed == 0)
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle::_10v::set_enable_pin");
+        if (_off_with_zero_speed && sys.spindle_speed == 0) {
             enable = false;
+        }
 
-        if (spindle_enable_invert->get())
+        if (spindle_enable_invert->get()) {
             enable = !enable;
+        }
 
-        _enable_pin.write(enable);
+        digitalWrite(_enable_pin, enable);
 
         // turn off anything that acts like an enable
         if (!enable) {
-            _direction_pin.write(enable);
-            _forward_pin.write(enable);
-            _reverse_pin.write(enable);
+            digitalWrite(_direction_pin, enable);
+            digitalWrite(_forward_pin, enable);
+            digitalWrite(_reverse_pin, enable);
         }
     }
 
     void _10v::set_dir_pin(bool Clockwise) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle::_10v::set_dir_pin");
-        _direction_pin.write(Clockwise);
-        _forward_pin.write(Clockwise);
-        _reverse_pin.write(!Clockwise);
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle::_10v::set_dir_pin");
+        digitalWrite(_direction_pin, Clockwise);
+        digitalWrite(_forward_pin, Clockwise);
+        digitalWrite(_reverse_pin, !Clockwise);
     }
 }

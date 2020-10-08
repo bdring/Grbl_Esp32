@@ -120,7 +120,7 @@ namespace Spindles {
         // Baud rate is set in the PD164 setting.
     }
 
-    void Huanyang::direction_command(uint8_t mode, ModbusCommand& data) {
+    void Huanyang::direction_command(SpindleState mode, ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 4;
         data.rx_length = 4;
@@ -130,9 +130,13 @@ namespace Spindles {
         data.msg[2] = 0x01;
 
         switch (mode) {
-            case SPINDLE_ENABLE_CW: data.msg[3] = 0x01; break;
-            case SPINDLE_ENABLE_CCW: data.msg[3] = 0x11; break;
-            default:  // SPINDLE_DISABLE
+            case SpindleState::Cw:
+                data.msg[3] = 0x01;
+                break;
+            case SpindleState::Ccw:
+                data.msg[3] = 0x11;
+                break;
+            default:  // SpindleState::Disable
                 data.msg[3] = 0x08;
                 break;
         }

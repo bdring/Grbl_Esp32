@@ -34,12 +34,11 @@
 */
 #include "VFDSpindle.h"
 
-#define VFD_RS485_UART_PORT UART_NUM_2    // hard coded for this port right now
-#define ECHO_TEST_CTS UART_PIN_NO_CHANGE  // CTS pin is not used
-#define VFD_RS485_BUF_SIZE 127
-#define VFD_RS485_QUEUE_SIZE 10  // numv\ber of commands that can be queued up.
-#define RESPONSE_WAIT_TICKS 50   // how long to wait for a response
-#define VFD_RS485_POLL_RATE 200  // in milliseconds between commands
+const uart_port_t VFD_RS485_UART_PORT  = UART_NUM_2;  // hard coded for this port right now
+const int         VFD_RS485_BUF_SIZE   = 127;
+const int         VFD_RS485_QUEUE_SIZE = 10;   // numv\ber of commands that can be queued up.
+const int         RESPONSE_WAIT_TICKS  = 50;   // how long to wait for a response
+const int         VFD_RS485_POLL_RATE  = 200;  // in milliseconds between commands
 
 // OK to change these
 // #define them in your machine definition file if you want different values
@@ -159,7 +158,7 @@ namespace Spindles {
 
                         // Not succesful! Now what?
                         unresponsive = true;
-                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RS485 did not give a satisfying response");
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle RS485 did not give a satisfying response");
                     }
                 } else {
 #ifdef VFD_DEBUG_MODE
@@ -168,18 +167,18 @@ namespace Spindles {
 
                     if (read_length != 0) {
                         if (rx_message[0] != VFD_RS485_ADDR) {
-                            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 received message from other modbus device");
+                            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RS485 received message from other modbus device");
                         } else if (read_length != next_cmd.rx_length) {
                             grbl_msg_sendf(CLIENT_SERIAL,
-                                           MSG_LEVEL_INFO,
+                                           MsgLevel::Info,
                                            "RS485 received message of unexpected length; expected %d, got %d",
                                            int(next_cmd.rx_length),
                                            int(read_length));
                         } else {
-                            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 CRC check failed");
+                            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RS485 CRC check failed");
                         }
                     } else {
-                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 No response");
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RS485 No response");
                     }
 #endif
 
@@ -191,10 +190,10 @@ namespace Spindles {
 
             if (retry_count == MAX_RETRIES) {
                 if (!unresponsive) {
-                    grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Spindle RS485 Unresponsive %d", next_cmd.rx_length);
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle RS485 Unresponsive %d", next_cmd.rx_length);
                     if (next_cmd.critical) {
-                        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Critical Spindle RS485 Unresponsive");
-                        system_set_exec_alarm(EXEC_ALARM_SPINDLE_CONTROL);
+                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Critical Spindle RS485 Unresponsive");
+                        sys_rt_exec_alarm = ExecAlarm::SpindleControl;
                     }
                     unresponsive = true;
                 }
@@ -216,12 +215,12 @@ namespace Spindles {
     void VFD::init() {
         vfd_ok = false;  // initialize
 
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Initializing RS485 VFD spindle");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing RS485 VFD spindle");
 
         // fail if required items are not defined
         if (!get_pins_and_settings()) {
             vfd_ok = false;
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 VFD spindle errors");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RS485 VFD spindle errors");
             return;
         }
 
@@ -244,26 +243,22 @@ namespace Spindles {
         uart_config.rx_flow_ctrl_thresh = 122;
 
         if (uart_param_config(VFD_RS485_UART_PORT, &uart_config) != ESP_OK) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 VFD uart parameters failed");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RS485 VFD uart parameters failed");
             return;
         }
 
-        auto txd_pin = _txd_pin.getNative(Pin::Capabilities::Native);
-        auto rxd_pin = _rxd_pin.getNative(Pin::Capabilities::Native);
-        auto rts_pin = _rts_pin.getNative(Pin::Capabilities::Native);
-
-        if (uart_set_pin(VFD_RS485_UART_PORT, txd_pin, rxd_pin, rts_pin, UART_PIN_NO_CHANGE) != ESP_OK) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 VFD uart pin config failed");
+        if (uart_set_pin(VFD_RS485_UART_PORT, _txd_pin, _rxd_pin, _rts_pin, UART_PIN_NO_CHANGE) != ESP_OK) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RS485 VFD uart pin config failed");
             return;
         }
 
         if (uart_driver_install(VFD_RS485_UART_PORT, VFD_RS485_BUF_SIZE * 2, 0, 0, NULL, 0) != ESP_OK) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 VFD uart driver install failed");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RS485 VFD uart driver install failed");
             return;
         }
 
         if (uart_set_mode(VFD_RS485_UART_PORT, UART_MODE_RS485_HALF_DUPLEX) != ESP_OK) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "RS485 VFD uart set half duplex failed");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RS485 VFD uart set half duplex failed");
             return;
         }
 
@@ -287,7 +282,7 @@ namespace Spindles {
 
         // Initially we initialize this to 0; over time, we might poll better information from the VFD.
         _current_rpm   = 0;
-        _current_state = SPINDLE_DISABLE;
+        _current_state = SpindleState::Disable;
 
         config_message();
     }
@@ -301,26 +296,26 @@ namespace Spindles {
 #ifdef VFD_RS485_TXD_PIN
         _txd_pin = VFD_RS485_TXD_PIN;
 #else
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined VFD_RS485_TXD_PIN");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_TXD_PIN");
         pins_settings_ok = false;
 #endif
 
 #ifdef VFD_RS485_RXD_PIN
         _rxd_pin = VFD_RS485_RXD_PIN;
 #else
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined VFD_RS485_RXD_PIN");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_RXD_PIN");
         pins_settings_ok = false;
 #endif
 
 #ifdef VFD_RS485_RTS_PIN
         _rts_pin = VFD_RS485_RTS_PIN;
 #else
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Undefined VFD_RS485_RTS_PIN");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_RTS_PIN");
         pins_settings_ok = false;
 #endif
 
         if (laser_mode->get()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");
             pins_settings_ok = false;
         }
 
@@ -332,24 +327,24 @@ namespace Spindles {
 
     void VFD::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "VFD RS485  Tx:%s Rx:%s RTS:%s",
-                       _txd_pin.name().c_str(),
-                       _rxd_pin.name().c_str(),
-                       _rts_pin.name().c_str());
+                       pinName(_txd_pin).c_str(),
+                       pinName(_rxd_pin).c_str(),
+                       pinName(_rts_pin).c_str());
     }
 
-    void VFD::set_state(uint8_t state, uint32_t rpm) {
+    void VFD::set_state(SpindleState state, uint32_t rpm) {
         if (sys.abort) {
             return;  // Block during abort.
         }
 
-        bool critical = (sys.state == STATE_CYCLE || state != SPINDLE_DISABLE);
+        bool critical = (sys.state == State::Cycle || state != SpindleState::Disable);
 
         if (_current_state != state) {  // already at the desired state. This function gets called a lot.
             set_mode(state, critical);  // critical if we are in a job
             set_rpm(rpm);
-            if (state == SPINDLE_DISABLE) {
+            if (state == SpindleState::Disable) {
                 sys.spindle_speed = 0;
                 if (_current_state != state) {
                     mc_dwell(spindle_delay_spindown->get());
@@ -372,7 +367,7 @@ namespace Spindles {
         return;
     }
 
-    bool VFD::set_mode(uint8_t mode, bool critical) {
+    bool VFD::set_mode(SpindleState mode, bool critical) {
         if (!vfd_ok) {
             return false;
         }
@@ -382,9 +377,9 @@ namespace Spindles {
 
         direction_command(mode, mode_cmd);
 
-        if (mode == SPINDLE_DISABLE) {
+        if (mode == SpindleState::Disable) {
             if (!xQueueReset(vfd_cmd_queue)) {
-                grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD spindle off, queue could not be reset");
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD spindle off, queue could not be reset");
             }
         }
 
@@ -392,7 +387,7 @@ namespace Spindles {
         _current_state    = mode;
 
         if (xQueueSend(vfd_cmd_queue, &mode_cmd, 0) != pdTRUE) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD Queue Full");
         }
 
         return true;
@@ -404,7 +399,7 @@ namespace Spindles {
         }
 
 #ifdef VFD_DEBUG_MODE
-        grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
 #endif
 
         // apply override
@@ -435,16 +430,16 @@ namespace Spindles {
         rpm_cmd.critical = false;
 
         if (xQueueSend(vfd_cmd_queue, &rpm_cmd, 0) != pdTRUE) {
-            grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "VFD Queue Full");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD Queue Full");
         }
 
         return rpm;
     }
 
-    void VFD::stop() { set_mode(SPINDLE_DISABLE, false); }
+    void VFD::stop() { set_mode(SpindleState::Disable, false); }
 
     // state is cached rather than read right now to prevent delays
-    uint8_t VFD::get_state() { return _current_state; }
+    SpindleState VFD::get_state() { return _current_state; }
 
     // Calculate the CRC on all of the byte except the last 2
     // It then added the CRC to those last 2 bytes

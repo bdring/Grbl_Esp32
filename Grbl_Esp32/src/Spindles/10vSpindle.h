@@ -41,10 +41,10 @@ namespace Spindles {
         void     init() override;
         void     config_message() override;
         uint32_t set_rpm(uint32_t rpm) override;
-        //void set_state(uint8_t state, uint32_t rpm);
+        //void set_state(SpindleState state, uint32_t rpm);
 
-        uint8_t get_state() override;
-        void    stop() override;
+        SpindleState get_state() override;
+        void         stop() override;
 
         virtual ~_10v() {}
 
