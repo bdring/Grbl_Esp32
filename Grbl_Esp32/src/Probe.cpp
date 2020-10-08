@@ -30,7 +30,7 @@ static bool is_probe_away;
 void probe_init() {
     static bool show_init_msg = true;  // used to show message only once.
 
-    if (PROBE_PIN != UNDEFINED_PIN) {
+    if (PROBE_PIN != Pin::UNDEFINED) {
 #ifdef DISABLE_PROBE_PIN_PULL_UP
         pinMode(PROBE_PIN, INPUT);
 #else

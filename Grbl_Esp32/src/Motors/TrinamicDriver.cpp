@@ -23,10 +23,10 @@
 
 namespace Motors {
     TrinamicDriver::TrinamicDriver(uint8_t  axis_index,
-                                   uint8_t  step_pin,
-                                   uint8_t  dir_pin,
-                                   uint8_t  disable_pin,
-                                   uint8_t  cs_pin,
+                                   Pin      step_pin,
+                                   Pin      dir_pin,
+                                   Pin      disable_pin,
+                                   Pin      cs_pin,
                                    uint16_t driver_part_number,
                                    float    r_sense,
                                    int8_t   spi_index) {
@@ -211,7 +211,7 @@ namespace Motors {
                 tmcstepper->pwm_autoscale(true);
                 tmcstepper->diag1_stall(false);
                 break;
-            case TrinamicMode :: CoolStep:
+            case TrinamicMode ::CoolStep:
                 //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Coolstep");
                 tmcstepper->en_pwm_mode(false);
                 tmcstepper->pwm_autoscale(false);

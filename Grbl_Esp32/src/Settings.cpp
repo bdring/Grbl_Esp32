@@ -233,7 +233,7 @@ const char* AxisMaskSetting::getCompatibleValue() {
 }
 
 static char* maskToString(uint32_t mask, char* strval) {
-    char*       s    = strval;
+    char* s = strval;
     for (int i = 0; i < MAX_N_AXIS; i++) {
         if (mask & bit(i)) {
             *s++ = "XYZABC"[i];
@@ -468,12 +468,12 @@ void PinSetting::setDefault() {
     nvs_erase_key(_handle, _keyName);
 }
 
-err_t PinSetting::setStringValue(char* s) {
+Error PinSetting::setStringValue(char* s) {
     if (!Pin::validate(s)) {
         return STATUS_BAD_NUMBER_FORMAT;
     }
 
-    if (err_t err = check(s)) {
+    if (Error err = check(s)) {
         return err;
     }
     if (_storedValue != s) {
@@ -629,7 +629,7 @@ void FlagSetting::setDefault() {
 }
 
 Error FlagSetting::setStringValue(char* s) {
-    s             = trim(s);
+    s         = trim(s);
     Error err = check(s);
     if (err != Error::Ok) {
         return err;

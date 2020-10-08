@@ -552,55 +552,55 @@
 #endif
 
 #ifndef DYNAMIXEL_TXD
-#    define DYNAMIXEL_TXD UNDEFINED_PIN
+#    define DYNAMIXEL_TXD Pin::UNDEFINED
 #endif
 
 #ifndef DYNAMIXEL_RXD
-#    define DYNAMIXEL_RXD UNDEFINED_PIN
+#    define DYNAMIXEL_RXD Pin::UNDEFINED
 #endif
 
 #ifndef DYNAMIXEL_RTS
-#    define DYNAMIXEL_RTS UNDEFINED_PIN
+#    define DYNAMIXEL_RTS Pin::UNDEFINED
 #endif
 
 // ================ User Digital I/O ==============================
 
 #ifndef USER_DIGITAL_PIN_0
-#    define USER_DIGITAL_PIN_0 UNDEFINED_PIN
+#    define USER_DIGITAL_PIN_0 Pin::UNDEFINED
 #endif
 
 #ifndef USER_DIGITAL_PIN_1
-#    define USER_DIGITAL_PIN_1 UNDEFINED_PIN
+#    define USER_DIGITAL_PIN_1 Pin::UNDEFINED
 #endif
 
 #ifndef USER_DIGITAL_PIN_2
-#    define USER_DIGITAL_PIN_2 UNDEFINED_PIN
+#    define USER_DIGITAL_PIN_2 Pin::UNDEFINED
 #endif
 
 #ifndef USER_DIGITAL_PIN_3
-#    define USER_DIGITAL_PIN_3 UNDEFINED_PIN
+#    define USER_DIGITAL_PIN_3 Pin::UNDEFINED
 #endif
 
 // ================ User Analog I/O ==============================
 
 #ifndef USER_ANALOG_PIN_0
-#    define USER_ANALOG_PIN_0 UNDEFINED_PIN
+#    define USER_ANALOG_PIN_0 Pin::UNDEFINED
 #endif
 
 #ifndef USER_ANALOG_PIN_1
-#    define USER_ANALOG_PIN_1 UNDEFINED_PIN
+#    define USER_ANALOG_PIN_1 Pin::UNDEFINED
 #endif
 
 #ifndef USER_ANALOG_PIN_2
-#    define USER_ANALOG_PIN_2 UNDEFINED_PIN
+#    define USER_ANALOG_PIN_2 Pin::UNDEFINED
 #endif
 
 #ifndef USER_ANALOG_PIN_3
-#    define USER_ANALOG_PIN_3 UNDEFINED_PIN
+#    define USER_ANALOG_PIN_3 Pin::UNDEFINED
 #endif
 
 #ifndef PROBE_PIN
-#    define PROBE_PIN UNDEFINED_PIN
+#    define PROBE_PIN Pin::UNDEFINED
 #endif
 
 #ifndef USER_ANALOG_PIN_0_FREQ

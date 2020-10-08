@@ -33,7 +33,7 @@
 namespace Motors {
     RcServo::RcServo() {}
 
-    RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max) {
+    RcServo::RcServo(uint8_t axis_index, Pin pwm_pin, float cal_min, float cal_max) {
         type_id                = RC_SERVO_MOTOR;
         this->_axis_index      = axis_index % MAX_AXES;
         this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged

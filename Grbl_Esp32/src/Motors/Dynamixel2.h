@@ -74,7 +74,7 @@ namespace Motors {
     class Dynamixel2 : public Motor {
     public:
         Dynamixel2();
-        Dynamixel2(uint8_t axis_index, uint8_t address, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin);
+        Dynamixel2(uint8_t axis_index, uint8_t address, Pin tx_pin, Pin rx_pin, Pin rts_pin);
 
         virtual void config_message();
         virtual void init();
@@ -108,15 +108,14 @@ namespace Motors {
         static uint16_t dxl_update_crc(uint16_t crc_accum, char* data_blk_ptr, uint8_t data_blk_size);
         static void     dxl_bulk_goal_position();  // set all motorsd init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
 
-        
         float _homing_position;
 
         float _dxl_count_min;
         float _dxl_count_max;
 
-        uint8_t     _tx_pin;
-        uint8_t     _rx_pin;
-        uint8_t     _rts_pin;
+        Pin         _tx_pin;
+        Pin         _rx_pin;
+        Pin         _rts_pin;
         uart_port_t _uart_num;
     };
 }

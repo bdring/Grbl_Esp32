@@ -310,8 +310,8 @@ void limits_go_home(uint8_t cycle_mask) {
     motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done
 }
 
-uint8_t limit_pins[MAX_N_AXIS][2] = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
-                                      { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
+// uint8_t limit_pins[MAX_N_AXIS][2] = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
+//                                       { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
 
 uint8_t limit_mask = 0;
 
@@ -324,14 +324,14 @@ void limits_init() {
     auto n_axis = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin;
-            if ((pin = limit_pins[axis][gang_index]) != UNDEFINED_PIN) {
+            auto pin = limit_pins[axis][gang_index]->get();
+            if (pin != Pin::UNDEFINED) {
                 pinMode(pin, mode);
                 limit_mask |= bit(axis);
                 if (hard_limits->get()) {
-                    attachInterrupt(pin, isr_limit_switches, CHANGE);
+                    pin.attachInterrupt(isr_limit_switches, CHANGE);
                 } else {
-                    detachInterrupt(pin);
+                    pin.detachInterrupt();
                 }
 
                 if (limit_sw_queue == NULL) {
@@ -340,7 +340,7 @@ void limits_init() {
                                    "%c%s Axis limit switch on pin %s",
                                    report_get_axis_letter(axis),
                                    gang_index ? "2" : " ",
-                                   pinName(pin).c_str());
+                                   pin.name().c_str());
                 }
             }
         }
@@ -363,9 +363,9 @@ void limits_disable() {
     auto n_axis = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin = limit_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
-                detachInterrupt(pin);
+            auto pin = limit_pins[axis][gang_index]->get();
+            if (pin != Pin::UNDEFINED) {
+                pin.detachInterrupt();
             }
         }
     }
@@ -379,8 +379,8 @@ AxisMask limits_get_state() {
     auto    n_axis  = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin = limit_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
+            auto pin = limit_pins[axis][gang_index]->get();
+            if (pin != Pin::UNDEFINED) {
                 if (limit_invert->get())
                     pinMask |= (!digitalRead(pin) << axis);
                 else

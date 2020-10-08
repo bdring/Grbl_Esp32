@@ -22,11 +22,11 @@
 namespace UserOutput {
     DigitalOutput::DigitalOutput() {}
 
-    DigitalOutput::DigitalOutput(uint8_t number, uint8_t pin) {
+    DigitalOutput::DigitalOutput(uint8_t number, Pin pin) {
         _number = number;
         _pin    = pin;
 
-        if (_pin == UNDEFINED_PIN)
+        if (_pin == Pin::UNDEFINED)
             return;
 
         init();
@@ -44,7 +44,7 @@ namespace UserOutput {
     }
 
     bool DigitalOutput::set_level(bool isOn) {
-        if (_number == UNDEFINED_PIN && isOn) {
+        if (_number == Pin::UNDEFINED && isOn) {
             return false;
         }
 
@@ -56,12 +56,12 @@ namespace UserOutput {
 
     AnalogOutput::AnalogOutput() {}
 
-    AnalogOutput::AnalogOutput(uint8_t number, uint8_t pin, float pwm_frequency) {
+    AnalogOutput::AnalogOutput(uint8_t number, Pin pin, float pwm_frequency) {
         _number        = number;
         _pin           = pin;
         _pwm_frequency = pwm_frequency;
 
-        if (pin == UNDEFINED_PIN)
+        if (pin == Pin::UNDEFINED)
             return;
 
         // determine the highest bit precision allowed by frequency
@@ -93,7 +93,7 @@ namespace UserOutput {
         float duty;
 
         // look for errors, but ignore if turning off to prevent mask turn off from generating errors
-        if (_pin == UNDEFINED_PIN) {
+        if (_pin == Pin::UNDEFINED) {
             return false;
         }
 

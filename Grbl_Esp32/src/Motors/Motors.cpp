@@ -269,7 +269,7 @@ void init_motors() {
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin = ms3_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
+            if (pin != Pin::UNDEFINED) {
                 digitalWrite(pin, HIGH);
                 pinMode(pin, OUTPUT);
             }
@@ -284,7 +284,7 @@ void init_motors() {
 
 #endif
 
-    if (STEPPERS_DISABLE_PIN != UNDEFINED_PIN) {
+    if (STEPPERS_DISABLE_PIN != Pin::UNDEFINED) {
         pinMode(STEPPERS_DISABLE_PIN, OUTPUT);  // global motor enable pin
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Global stepper disable pin:%s", pinName(STEPPERS_DISABLE_PIN));
     }
