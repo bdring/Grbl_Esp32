@@ -35,8 +35,8 @@
 
 #define TRINAMIC_DAISY_CHAIN
 
-#define TRINAMIC_RUN_MODE           TRINAMIC_MODE_COOLSTEP
-#define TRINAMIC_HOMING_MODE        TRINAMIC_MODE_COOLSTEP
+#define TRINAMIC_RUN_MODE           TrinamicMode :: CoolStep
+#define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
 
 // Use SPI enable instead of the enable pin
 // The hardware enable pin is tied to ground
@@ -65,7 +65,7 @@
 // Turn on with M7 and off with M9
 #define COOLANT_MIST_PIN        GPIO_NUM_21
 
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
+#define SPINDLE_TYPE            SpindleType::PWM
 #define SPINDLE_OUTPUT_PIN         GPIO_NUM_25
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4
 

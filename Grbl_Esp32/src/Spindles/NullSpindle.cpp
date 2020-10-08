@@ -34,11 +34,11 @@ namespace Spindles {
         sys.spindle_speed = rpm;
         return rpm;
     }
-    void Null::set_state(uint8_t state, uint32_t rpm) {
+    void Null::set_state(SpindleState state, uint32_t rpm) {
         _current_state    = state;
         sys.spindle_speed = rpm;
     }
-    uint8_t Null::get_state() { return _current_state; }
-    void    Null::stop() {}
-    void    Null::config_message() { grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "No spindle"); }
+    SpindleState Null::get_state() { return _current_state; }
+    void         Null::stop() {}
+    void         Null::config_message() { grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No spindle"); }
 }

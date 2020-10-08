@@ -63,8 +63,9 @@ namespace WebUI {
             while (client.connected() && ((millis() - starttimeout) < timeout)) {
                 answer = client.readStringUntil('\n');
                 log_d("Answer: %s", answer.c_str());
-                if ((answer.indexOf(linetrigger) != -1) || (strlen(linetrigger) == 0))
+                if ((answer.indexOf(linetrigger) != -1) || (strlen(linetrigger) == 0)) {
                     break;
+                }
                 COMMANDS::wait(10);
             }
             if (strlen(expected_answer) == 0) {
@@ -87,22 +88,34 @@ namespace WebUI {
 
     const char* NotificationsService::getTypeString() {
         switch (_notificationType) {
-            case ESP_PUSHOVER_NOTIFICATION: return "Pushover";
-            case ESP_EMAIL_NOTIFICATION: return "Email";
-            case ESP_LINE_NOTIFICATION: return "Line";
-            default: return "None";
+            case ESP_PUSHOVER_NOTIFICATION:
+                return "Pushover";
+            case ESP_EMAIL_NOTIFICATION:
+                return "Email";
+            case ESP_LINE_NOTIFICATION:
+                return "Line";
+            default:
+                return "None";
         }
     }
 
     bool NotificationsService::sendMSG(const char* title, const char* message) {
-        if (!_started)
+        if (!_started) {
             return false;
+        }
         if (!((strlen(title) == 0) && (strlen(message) == 0))) {
             switch (_notificationType) {
-                case ESP_PUSHOVER_NOTIFICATION: return sendPushoverMSG(title, message); break;
-                case ESP_EMAIL_NOTIFICATION: return sendEmailMSG(title, message); break;
-                case ESP_LINE_NOTIFICATION: return sendLineMSG(title, message); break;
-                default: break;
+                case ESP_PUSHOVER_NOTIFICATION:
+                    return sendPushoverMSG(title, message);
+                    break;
+                case ESP_EMAIL_NOTIFICATION:
+                    return sendEmailMSG(title, message);
+                    break;
+                case ESP_LINE_NOTIFICATION:
+                    return sendLineMSG(title, message);
+                    break;
+                default:
+                    break;
             }
         }
         return false;
@@ -262,8 +275,10 @@ namespace WebUI {
     bool NotificationsService::getPortFromSettings() {
         String tmp = notification_ts->get();
         int    pos = tmp.lastIndexOf(':');
-        if (pos == -1)
+        if (pos == -1) {
             return false;
+        }
+
         _port = tmp.substring(pos + 1).toInt();
         log_d("port : %d", _port);
         return _port > 0;
@@ -273,8 +288,10 @@ namespace WebUI {
         String tmp  = notification_ts->get();
         int    pos1 = tmp.indexOf('#');
         int    pos2 = tmp.lastIndexOf(':');
-        if ((pos1 == -1) || (pos2 == -1))
+        if ((pos1 == -1) || (pos2 == -1)) {
             return false;
+        }
+
         //TODO add a check for valid email ?
         _serveraddress = tmp.substring(pos1 + 1, pos2);
         log_d("server : %s", _serveraddress.c_str());
@@ -284,8 +301,9 @@ namespace WebUI {
     bool NotificationsService::getEmailFromSettings() {
         String tmp = notification_ts->get();
         int    pos = tmp.indexOf('#');
-        if (pos == -1)
+        if (pos == -1) {
             return false;
+        }
         _settings = tmp.substring(0, pos);
         log_d("email : %s", _settings.c_str());
         //TODO add a check for valid email ?
@@ -316,19 +334,26 @@ namespace WebUI {
                     return false;
                 }
                 break;
-            default: return false; break;
+            default:
+                return false;
+                break;
         }
         bool res = true;
-        if (WiFi.getMode() != WIFI_STA)
+        if (WiFi.getMode() != WIFI_STA) {
             res = false;
-        if (!res)
+        }
+        if (!res) {
             end();
+        }
         _started = res;
         return _started;
     }
+
     void NotificationsService::end() {
-        if (!_started)
+        if (!_started) {
             return;
+        }
+
         _started          = false;
         _notificationType = 0;
         _token1           = "";

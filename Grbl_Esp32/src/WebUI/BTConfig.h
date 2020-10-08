@@ -24,7 +24,7 @@
 #endif
 
 //defaults values
-#define DEFAULT_BT_NAME "btgrblesp"
+const char* const DEFAULT_BT_NAME = "btgrblesp";
 
 #include <BluetoothSerial.h>
 

@@ -34,32 +34,30 @@
 #endif
 
 // Returned status message from planner.
-#define PLAN_OK true
-#define PLAN_EMPTY_BLOCK false
+const int PLAN_OK          = true;
+const int PLAN_EMPTY_BLOCK = false;
 
 // Define planner data condition flags. Used to denote running conditions of a block.
-#define PL_COND_FLAG_RAPID_MOTION bit(0)
-#define PL_COND_FLAG_SYSTEM_MOTION bit(1)     // Single motion. Circumvents planner state. Used by home/park.
-#define PL_COND_FLAG_NO_FEED_OVERRIDE bit(2)  // Motion does not honor feed override.
-#define PL_COND_FLAG_INVERSE_TIME bit(3)      // Interprets feed rate value as inverse time when set.
-#define PL_COND_FLAG_SPINDLE_CW bit(4)
-#define PL_COND_FLAG_SPINDLE_CCW bit(5)
-#define PL_COND_FLAG_COOLANT_FLOOD bit(6)
-#define PL_COND_FLAG_COOLANT_MIST bit(7)
-#define PL_COND_MOTION_MASK (PL_COND_FLAG_RAPID_MOTION | PL_COND_FLAG_SYSTEM_MOTION | PL_COND_FLAG_NO_FEED_OVERRIDE)
-#define PL_COND_ACCESSORY_MASK (PL_COND_FLAG_SPINDLE_CW | PL_COND_FLAG_SPINDLE_CCW | PL_COND_FLAG_COOLANT_FLOOD | PL_COND_FLAG_COOLANT_MIST)
+struct PlMotion {
+    uint8_t rapidMotion : 1;
+    uint8_t systemMotion : 1;    // Single motion. Circumvents planner state. Used by home/park.
+    uint8_t noFeedOverride : 1;  // Motion does not honor feed override.
+    uint8_t inverseTime : 1;     // Interprets feed rate value as inverse time when set.
+};
 
 // This struct stores a linear movement of a g-code block motion with its critical "nominal" values
 // are as specified in the source g-code.
 typedef struct {
     // Fields used by the bresenham algorithm for tracing the line
     // NOTE: Used by stepper algorithm to execute the block correctly. Do not alter these values.
-    uint32_t steps[N_AXIS];     // Step count along each axis
+    uint32_t steps[MAX_N_AXIS];     // Step count along each axis
     uint32_t step_event_count;  // The maximum step axis count and number of steps required to complete this block.
     uint8_t  direction_bits;    // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
 
     // Block condition data to ensure correct execution depending on states and overrides.
-    uint8_t condition;  // Block bitflag variable defining block run conditions. Copied from pl_line_data.
+    PlMotion     motion;   // Block bitflag motion conditions. Copied from pl_line_data.
+    SpindleState spindle;  // Spindle enable state
+    CoolantState coolant;  // Coolant state
 #ifdef USE_LINE_NUMBERS
     int32_t line_number;  // Block line number for real-time reporting. Copied from pl_line_data.
 #endif
@@ -85,9 +83,11 @@ typedef struct {
 
 // Planner data prototype. Must be used when passing new motions to the planner.
 typedef struct {
-    float    feed_rate;      // Desired feed rate for line motion. Value is ignored, if rapid motion.
-    uint32_t spindle_speed;  // Desired spindle speed through line motion.
-    uint8_t  condition;      // Bitflag variable to indicate planner conditions. See defines above.
+    float        feed_rate;      // Desired feed rate for line motion. Value is ignored, if rapid motion.
+    uint32_t     spindle_speed;  // Desired spindle speed through line motion.
+    PlMotion     motion;         // Bitflag variable to indicate motion conditions. See defines above.
+    SpindleState spindle;        // Spindle enable state
+    CoolantState coolant;        // Coolant state
 #ifdef USE_LINE_NUMBERS
     int32_t line_number;  // Desired line number to report when executing.
 #endif
@@ -97,7 +97,7 @@ typedef struct {
 void plan_reset();         // Reset all
 void plan_reset_buffer();  // Reset buffer only.
 
-// Add a new linear movement to the buffer. target[N_AXIS] is the signed, absolute target position
+// Add a new linear movement to the buffer. target[MAX_N_AXIS] is the signed, absolute target position
 // in millimeters. Feed rate specifies the speed of the motion. If feed rate is inverted, the feed
 // rate is taken to mean "frequency" and would complete the operation in 1/feed_rate minutes.
 uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data);

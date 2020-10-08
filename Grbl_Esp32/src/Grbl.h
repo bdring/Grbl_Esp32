@@ -22,8 +22,8 @@
 
 // Grbl versioning system
 
-#define GRBL_VERSION "1.3a"
-#define GRBL_VERSION_BUILD "20200827"
+const char* const GRBL_VERSION       = "1.3a";
+const char* const GRBL_VERSION_BUILD = "20201004";
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -40,18 +40,18 @@
 #include "NutsBolts.h"
 
 #include "Defaults.h"
-#include "SettingsStorage.h"
+#include "Error.h"
+#include "Eeprom.h"
 #include "WebUI/Authentication.h"
 #include "WebUI/Commands.h"
+#include "Probe.h"
 #include "System.h"
 
+#include "GCode.h"
 #include "Planner.h"
 #include "CoolantControl.h"
-#include "Eeprom.h"
-#include "GCode.h"
 #include "Limits.h"
 #include "MotionControl.h"
-#include "Probe.h"
 #include "Protocol.h"
 #include "Report.h"
 #include "Serial.h"
@@ -64,6 +64,8 @@
 #include "Settings.h"
 #include "SettingsDefinitions.h"
 #include "WebUI/WebSettings.h"
+
+#include "UserOutput.h"
 
 // Do not guard this because it is needed for local files too
 #include "SDCard.h"
@@ -103,7 +105,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 bool kinematics_pre_homing(uint8_t cycle_mask);
 void kinematics_post_homing();
 
-// Called if USE_FWD_KINEMATIC is defined
+// Called if USE_FWD_KINEMATICS is defined
 void forward_kinematics(float* position);
 
 // Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined

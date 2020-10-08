@@ -30,7 +30,7 @@ namespace Spindles {
 
     void Laser::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
-                       MSG_LEVEL_INFO,
+                       MsgLevel::Info,
                        "Laser spindle on Pin:%s, Freq:%.2fHz, Res:%dbits Laser mode:$32=%d",
                        _output_pin.name().c_str(),
                        _pwm_freq,

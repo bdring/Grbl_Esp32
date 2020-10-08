@@ -75,15 +75,14 @@ namespace WebUI {
         "interval=setInterval(function(){\ni=i+1; \nvar x = document.getElementById(\"prg\"); \nx.value=i; \nif (i>5) "
         "\n{\nclearInterval(interval);\nwindow.location.href='/';\n}\n},1000);\n</script>\n</CENTER>\n</BODY>\n</HTML>\n\n";
 
-//error codes fo upload
-#    define ESP_ERROR_AUTHENTICATION 1
-#    define ESP_ERROR_FILE_CREATION 2
-#    define ESP_ERROR_FILE_WRITE 3
-#    define ESP_ERROR_UPLOAD 4
-#    define ESP_ERROR_NOT_ENOUGH_SPACE 5
-#    define ESP_ERROR_UPLOAD_CANCELLED 6
-#    define ESP_ERROR_FILE_CLOSE 7
-#    define ESP_ERROR_NO_SD 8
+    // Error codes for upload
+    const int ESP_ERROR_AUTHENTICATION   = 1;
+    const int ESP_ERROR_FILE_CREATION    = 2;
+    const int ESP_ERROR_FILE_WRITE       = 3;
+    const int ESP_ERROR_UPLOAD           = 4;
+    const int ESP_ERROR_NOT_ENOUGH_SPACE = 5;
+    const int ESP_ERROR_UPLOAD_CANCELLED = 6;
+    const int ESP_ERROR_FILE_CLOSE       = 7;
 
     Web_Server        web_server;
     bool              Web_Server::_setupdone     = false;
@@ -95,7 +94,7 @@ namespace WebUI {
 #    ifdef ENABLE_AUTHENTICATION
     AuthenticationIP* Web_Server::_head  = NULL;
     uint8_t           Web_Server::_nb_ip = 0;
-#        define MAX_AUTH_IP 10
+    const int         MAX_AUTH_IP        = 10;
 #    endif
     Web_Server::Web_Server() {}
     Web_Server::~Web_Server() { end(); }
@@ -252,6 +251,7 @@ namespace WebUI {
             if (SPIFFS.exists(pathWithGz)) {
                 path = pathWithGz;
             }
+
             File file = SPIFFS.open(path, FILE_READ);
             _webserver->streamFile(file, contentType);
             file.close();
@@ -302,6 +302,7 @@ namespace WebUI {
                             _webserver->client().write(buf, 1024);
                             i += v;
                         }
+
                         if (i >= totalFileSize) {
                             done = true;
                         }
@@ -429,34 +430,6 @@ namespace WebUI {
     }
 #    endif
 
-    bool Web_Server::is_realtime_cmd(char c) {
-        switch (c) {
-            case CMD_STATUS_REPORT:
-            case CMD_CYCLE_START:
-            case CMD_RESET:
-            case CMD_FEED_HOLD:
-            case CMD_SAFETY_DOOR:
-            case CMD_JOG_CANCEL:
-            case CMD_DEBUG_REPORT:
-            case CMD_FEED_OVR_RESET:
-            case CMD_FEED_OVR_COARSE_PLUS:
-            case CMD_FEED_OVR_COARSE_MINUS:
-            case CMD_FEED_OVR_FINE_PLUS:
-            case CMD_FEED_OVR_FINE_MINUS:
-            case CMD_RAPID_OVR_RESET:
-            case CMD_RAPID_OVR_MEDIUM:
-            case CMD_RAPID_OVR_LOW:
-            case CMD_SPINDLE_OVR_COARSE_PLUS:
-            case CMD_SPINDLE_OVR_COARSE_MINUS:
-            case CMD_SPINDLE_OVR_FINE_PLUS:
-            case CMD_SPINDLE_OVR_FINE_MINUS:
-            case CMD_SPINDLE_OVR_STOP:
-            case CMD_COOLANT_FLOOD_OVR_TOGGLE:
-            case CMD_COOLANT_MIST_OVR_TOGGLE: return true;
-            default: return false;
-        }
-    }
-
     void Web_Server::_handle_web_command(bool silent) {
         //to save time if already disconnected
         //if (_webserver->hasArg ("PAGEID") ) {
@@ -484,9 +457,9 @@ namespace WebUI {
             char line[256];
             strncpy(line, cmd.c_str(), 255);
             ESPResponseStream* espresponse = silent ? NULL : new ESPResponseStream(_webserver);
-            err_t              err         = system_execute_line(line, espresponse, auth_level);
+            Error              err         = system_execute_line(line, espresponse, auth_level);
             String             answer;
-            if (err == STATUS_OK) {
+            if (err == Error::Ok) {
                 answer = "ok";
             } else {
                 const char* msg = errorString(err);
@@ -494,11 +467,11 @@ namespace WebUI {
                 if (msg) {
                     answer += msg;
                 } else {
-                    answer += err;
+                    answer += static_cast<int>(err);
                 }
             }
             if (silent || !espresponse->anyOutput()) {
-                _webserver->send(err ? 401 : 200, "text/plain", answer);
+                _webserver->send(err != Error::Ok ? 401 : 200, "text/plain", answer);
             } else {
                 espresponse->flush();
             }
@@ -526,7 +499,7 @@ namespace WebUI {
                 }
                 if (scmd.length() > 1) {
                     scmd += "\n";
-                } else if (!is_realtime_cmd(scmd[0])) {
+                } else if (!is_realtime_command(scmd[0])) {
                     scmd += "\n";
                 }
                 if (!Serial2Socket.push(scmd.c_str())) {
@@ -593,7 +566,7 @@ namespace WebUI {
                     String suserPassword  = user_password->get();
 
                     if (!(sUser == DEFAULT_ADMIN_LOGIN && sPassword == sadminPassword) ||
-                         (sUser == DEFAULT_USER_LOGIN && sPassword == suserPassword)) {
+                        (sUser == DEFAULT_USER_LOGIN && sPassword == suserPassword)) {
                         msg_alert_error = true;
                         smsg            = "Error: Incorrect password";
                         code            = 401;
@@ -607,21 +580,20 @@ namespace WebUI {
             //change password
             if (_webserver->hasArg("PASSWORD") && _webserver->hasArg("USER") && _webserver->hasArg("NEWPASSWORD") &&
                 (msg_alert_error == false)) {
-
                 String newpassword = _webserver->arg("NEWPASSWORD");
 
                 char pwdbuf[MAX_LOCAL_PASSWORD_LENGTH + 1];
                 newpassword.toCharArray(pwdbuf, MAX_LOCAL_PASSWORD_LENGTH + 1);
 
                 if (COMMANDS::isLocalPasswordValid(pwdbuf)) {
-                    err_t err;
+                    Error err;
 
                     if (sUser == DEFAULT_ADMIN_LOGIN) {
                         err = admin_password->setStringValue(pwdbuf);
                     } else {
                         err = user_password->setStringValue(pwdbuf);
                     }
-                    if (err) {
+                    if (err != Error::Ok) {
                         msg_alert_error = true;
                         smsg            = "Error: Cannot apply changes";
                         code            = 500;
@@ -655,9 +627,15 @@ namespace WebUI {
                         _webserver->sendHeader("Set-Cookie", tmps);
                         _webserver->sendHeader("Cache-Control", "no-cache");
                         switch (current_auth->level) {
-                            case AuthenticationLevel::LEVEL_ADMIN: auths = "admin"; break;
-                            case AuthenticationLevel::LEVEL_USER: auths = "user"; break;
-                            default: auths = "guest"; break;
+                            case AuthenticationLevel::LEVEL_ADMIN:
+                                auths = "admin";
+                                break;
+                            case AuthenticationLevel::LEVEL_USER:
+                                auths = "user";
+                                break;
+                            default:
+                                auths = "guest";
+                                break;
                         }
                     } else {
                         delete current_auth;
@@ -1222,11 +1200,7 @@ namespace WebUI {
             COMMANDS::wait(0);  //wdtFeed
         }
         file.close();
-        if (result) {
-            return SD.rmdir(path);
-        } else {
-            return false;
-        }
+        return result ? SD.rmdir(path) : false;
     }
 
     //direct SD files list//////////////////////////////////////////////////
@@ -1344,6 +1318,7 @@ namespace WebUI {
             s += path;
             s += " does not exist on SD Card\"}";
             _webserver->send(200, "application/json", s);
+            SD.end();
             return;
         }
         if (list_files) {
@@ -1422,6 +1397,7 @@ namespace WebUI {
         _webserver->send(200, "application/json", jsonfile);
         _upload_status = UploadStatusType::NONE;
         set_sd_state(SDCARD_IDLE);
+        SD.end();
     }
 
     //SD File upload with direct access to SD///////////////////////////////
@@ -1539,6 +1515,7 @@ namespace WebUI {
                     if (sdUploadFile) {
                         sdUploadFile.close();
                     }
+                    SD.end();
                     return;
                 }
             }
@@ -1610,7 +1587,8 @@ namespace WebUI {
                 // send message to client
                 // webSocket.sendBIN(num, payload, length);
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 

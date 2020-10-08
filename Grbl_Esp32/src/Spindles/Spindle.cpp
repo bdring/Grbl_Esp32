@@ -53,17 +53,35 @@ namespace Spindles {
     _10v     _10v;
 
     void Spindle::select() {
-        switch (spindle_type->get()) {
-            case SPINDLE_TYPE_PWM: spindle = &pwm; break;
-            case SPINDLE_TYPE_RELAY: spindle = &relay; break;
-            case SPINDLE_TYPE_LASER: spindle = &laser; break;
-            case SPINDLE_TYPE_DAC: spindle = &dac; break;
-            case SPINDLE_TYPE_HUANYANG: spindle = &huanyang; break;
-            case SPINDLE_TYPE_BESC: spindle = &besc; break;
-            case SPINDLE_TYPE_10V: spindle = &_10v; break;
-            case SPINDLE_TYPE_H2A: spindle = &h2a; break;
-            case SPINDLE_TYPE_NONE:
-            default: spindle = &null; break;
+        switch (static_cast<SpindleType>(spindle_type->get())) {
+            case SpindleType::PWM:
+                spindle = &pwm;
+                break;
+            case SpindleType::RELAY:
+                spindle = &relay;
+                break;
+            case SpindleType::LASER:
+                spindle = &laser;
+                break;
+            case SpindleType::DAC:
+                spindle = &dac;
+                break;
+            case SpindleType::HUANYANG:
+                spindle = &huanyang;
+                break;
+            case SpindleType::BESC:
+                spindle = &besc;
+                break;
+            case SpindleType::_10V:
+                spindle = &_10v;
+                break;
+            case SpindleType::H2A:
+                spindle = &h2a;
+                break;
+            case SpindleType::NONE:
+            default:
+                spindle = &null;
+                break;
         }
 
         spindle->init();
@@ -75,9 +93,10 @@ namespace Spindles {
         return false;  // default for basic spindle is false
     }
 
-    void Spindle::sync(uint8_t state, uint32_t rpm) {
-        if (sys.state == STATE_CHECK_MODE)
+    void Spindle::sync(SpindleState state, uint32_t rpm) {
+        if (sys.state == State::CheckMode) {
             return;
+        }
         protocol_buffer_synchronize();  // Empty planner buffer to ensure spindle is set when programmed.
         set_state(state, rpm);
     }

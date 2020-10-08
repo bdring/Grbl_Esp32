@@ -54,7 +54,8 @@ namespace WebUI {
                 grbl_send(CLIENT_ALL, "[MSG:BT Disconnected]\r\n");
                 BTConfig::_btclient = "";
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 
@@ -68,12 +69,14 @@ namespace WebUI {
             result += "(";
             result += device_address();
             result += "):Status=";
-            if (SerialBT.hasClient())
+            if (SerialBT.hasClient()) {
                 result += "Connected with " + _btclient;
-            else
+            } else {
                 result += "Not connected";
-        } else
+            }
+        } else {
             result += "No BT";
+        }
         result += "]\r\n";
         return result.c_str();
     }
@@ -88,8 +91,9 @@ namespace WebUI {
         //only letter and digit
         for (int i = 0; i < strlen(hostname); i++) {
             c = hostname[i];
-            if (!(isdigit(c) || isalpha(c) || c == '_'))
+            if (!(isdigit(c) || isalpha(c) || c == '_')) {
                 return false;
+            }
         }
         return true;
     }
@@ -111,14 +115,15 @@ namespace WebUI {
         end();
         _btname = bt_name->get();
         if (wifi_radio_mode->get() == ESP_BT) {
-            if (!SerialBT.begin(_btname))
-                report_status_message(STATUS_BT_FAIL_BEGIN, CLIENT_ALL);
-            else {
+            if (!SerialBT.begin(_btname)) {
+                report_status_message(Error::BtFailBegin, CLIENT_ALL);
+            } else {
                 SerialBT.register_callback(&my_spp_cb);
                 grbl_sendf(CLIENT_ALL, "[MSG:BT Started with %s]\r\n", _btname.c_str());
             }
-        } else
+        } else {
             end();
+        }
     }
 
     /**

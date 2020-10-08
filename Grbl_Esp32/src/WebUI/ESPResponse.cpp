@@ -52,27 +52,30 @@ namespace WebUI {
 
     void ESPResponseStream::println(const char* data) {
         print(data);
-        if (_client == CLIENT_TELNET)
+        if (_client == CLIENT_TELNET) {
             print("\r\n");
-        else
+        } else {
             print("\n");
+        }
     }
 
     //helper to format size to readable string
     String ESPResponseStream::formatBytes(uint64_t bytes) {
-        if (bytes < 1024)
+        if (bytes < 1024) {
             return String((uint16_t)bytes) + " B";
-        else if (bytes < (1024 * 1024))
+        } else if (bytes < (1024 * 1024)) {
             return String((float)(bytes / 1024.0), 2) + " KB";
-        else if (bytes < (1024 * 1024 * 1024))
+        } else if (bytes < (1024 * 1024 * 1024)) {
             return String((float)(bytes / 1024.0 / 1024.0), 2) + " MB";
-        else
+        } else {
             return String((float)(bytes / 1024.0 / 1024.0 / 1024.0), 2) + " GB";
+        }
     }
 
     void ESPResponseStream::print(const char* data) {
-        if (_client == CLIENT_INPUT)
+        if (_client == CLIENT_INPUT) {
             return;
+        }
 #if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
         if (_webserver) {
             if (!_header_sent) {
@@ -82,6 +85,7 @@ namespace WebUI {
                 _webserver->send(200);
                 _header_sent = true;
             }
+
             _buffer += data;
             if (_buffer.length() > 1200) {
                 //send data
@@ -92,8 +96,6 @@ namespace WebUI {
             return;
         }
 #endif
-        if (_client == CLIENT_WEBUI)
-            return;  //this is sanity check
         grbl_send(_client, data);
     }
 
@@ -102,8 +104,10 @@ namespace WebUI {
         if (_webserver) {
             if (_header_sent) {
                 //send data
-                if (_buffer.length() > 0)
+                if (_buffer.length() > 0) {
                     _webserver->sendContent(_buffer);
+                }
+
                 //close connection
                 _webserver->sendContent("");
             }
