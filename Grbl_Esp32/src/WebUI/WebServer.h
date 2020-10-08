@@ -87,7 +87,6 @@ namespace WebUI {
         static void handleFileList();
         static void handleUpdate();
         static void WebUpdateUpload();
-        static bool is_realtime_cmd(char c);
         static void pushError(int code, const char* st, bool web_error = 500, uint16_t timeout = 1000);
         static void cancelUpload();
 #ifdef ENABLE_SD_CARD
