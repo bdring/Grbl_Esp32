@@ -120,12 +120,24 @@
 #define Z_LIMIT_PIN     GPIO_NUM_39
 #define PROBE_PIN       GPIO_NUM_36
 
-//Example Quad MOSFET module on socket #5
+//Example Quad MOSFET module on socket #3
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
-#define USER_DIGITAL_PIN_0     I2SO(24)
-#define USER_DIGITAL_PIN_1     I2SO(25)
-#define USER_DIGITAL_PIN_2     I2SO(26)
-#define USER_DIGITAL_PIN_3     I2SO(27)
+#define USER_DIGITAL_PIN_0     GPIO_NUM_26
+#define USER_DIGITAL_PIN_1     GPIO_NUM_4
+#define USER_DIGITAL_PIN_2     GPIO_NUM_16
+#define USER_DIGITAL_PIN_3     GPIO_NUM_27
+
+// Example Servo module in socket #4
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/RC-Servo-BESC-CNC-I-O-Module
+// https://github.com/bdring/Grbl_Esp32/wiki/M62,-M63,-M64,-M65-&-M67-User-I-O-Commands
+#define USER_ANALOG_PIN_0       GPIO_NUM_14 
+#define USER_ANALOG_PIN_1       GPIO_NUM_13 
+#define USER_ANALOG_PIN_2       GPIO_NUM_15
+#define USER_ANALOG_PIN_3       GPIO_NUM_12
+#define USER_ANALOG_PIN_0_FREQ  50             // for use with RC servos
+#define USER_ANALOG_PIN_1_FREQ  50
+#define USER_ANALOG_PIN_2_FREQ  50
+#define USER_ANALOG_PIN_3_FREQ  50
 
 // ================= defaults ===========================
 
@@ -176,5 +188,7 @@
 #define DEFAULT_Z_MAX_TRAVEL    DEFAULT_X_MAX_TRAVEL
 
 #define DEFAULT_HOMING_PULLOFF  -DEFAULT_X_HOMING_MPOS
+
+#define DEFAULT_INVERT_PROBE_PIN 1
 
 #define SPINDLE_TYPE    SpindleType::NONE

@@ -107,13 +107,14 @@ void machine_init() {
 
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Angle Range %3.3f, %3.3f", MAX_NEGATIVE_ANGLE, MAX_POSITIVE_ANGLE);
 
-    grbl_msg_sendf(CLIENT_SERIAL,
-                   MsgLevel::Info,
-                   "DXL_COUNT_MIN %4.0f CENTER %d MAX %4.0f PER_RAD %d",
-                   DXL_COUNT_MIN,
-                   DXL_CENTER,
-                   DXL_COUNT_MAX,
-                   DXL_COUNT_PER_RADIAN);
+//     grbl_msg_sendf(CLIENT_SERIAL,
+//                    MsgLevel::Info,
+//                    "DXL_COUNT_MIN %4.0f CENTER %d MAX %4.0f PER_RAD %d",
+//                    DXL_COUNT_MIN,
+//                    DXL_CENTER,
+//                    DXL_COUNT_MAX,
+//                    DXL_COUNT_PER_RADIAN);
+
 }
 
 bool user_defined_homing() {  // true = do not continue with normal Grbl homing
