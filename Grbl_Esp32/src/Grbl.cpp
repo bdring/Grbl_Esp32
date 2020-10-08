@@ -80,16 +80,20 @@ static void reset_variables() {
     State prior_state = sys.state;
     memset(&sys, 0, sizeof(system_t));  // Clear system struct variable.
     sys.state             = prior_state;
-    sys.f_override        = DEFAULT_FEED_OVERRIDE;              // Set to 100%
-    sys.r_override        = DEFAULT_RAPID_OVERRIDE;             // Set to 100%
-    sys.spindle_speed_ovr = DEFAULT_SPINDLE_SPEED_OVERRIDE;     // Set to 100%
+    sys.f_override        = FeedOverride::Default;              // Set to 100%
+    sys.r_override        = RapidOverride::Default;             // Set to 100%
+    sys.spindle_speed_ovr = SpindleSpeedOverride::Default;      // Set to 100%
     memset(sys_probe_position, 0, sizeof(sys_probe_position));  // Clear probe position.
-    sys_probe_state                = 0;
-    sys_rt_exec_state              = 0;
-    cycle_stop                     = false;
-    sys_rt_exec_motion_override    = 0;
-    sys_rt_exec_accessory_override = 0;
-    system_clear_exec_alarm();
+
+    sys_probe_state                      = Probe::Off;
+    sys_rt_exec_state.value              = 0;
+    sys_rt_exec_accessory_override.value = 0;
+    sys_rt_exec_alarm                    = ExecAlarm::None;
+    cycle_stop                           = false;
+    sys_rt_f_override                    = FeedOverride::Default;
+    sys_rt_r_override                    = RapidOverride::Default;
+    sys_rt_s_override                    = SpindleSpeedOverride::Default;
+
     // Reset Grbl primary systems.
     serial_reset_read_buffer(CLIENT_ALL);  // Clear serial read buffer
     gc_init();                             // Set g-code parser to default state
