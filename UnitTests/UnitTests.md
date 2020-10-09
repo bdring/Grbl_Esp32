@@ -12,3 +12,30 @@ Code here is split into two parts:
 1. A subset of the GRBL code is compiled. Over time, this will become more.
 2. Unit tests are executed on this code.
 
+## Prerequisites
+
+Google test framework.
+
+## Folders and how this works
+
+Support libraries are implemented that sort-of mimick the Arduino API where
+appropriate. This functionality might be extended in the future, and is by 
+no means intended to be or a complete or even a "working" version; it's 
+designed to be _testable_.
+
+Generally speaking that means that most features are simply not available. 
+Things like GPIO just put stuff in a buffer, things like pins can be logged
+for analysis and so forth. 
+
+The "Support" folder is the main thing that gives this mimicking ability,
+so that the code in the Grbl_Esp32 folder is able to compile. For example,
+when including `<Arduino.h>`, in fact `Support/Arduino.h` is included.
+
+The include folders that are relevant are:
+
+- Support
+- ..\Grbl_Esp32
+
+## Test code
+
+Google tests can be found in the `Tests` folder.

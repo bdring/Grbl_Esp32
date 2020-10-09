@@ -77,12 +77,12 @@ public:
 
         GetModuleFileNameEx(process, module, temp, sizeof(temp) / sizeof(WCHAR));
         for (int i = 0; i < buffer_length; ++i) {
-            temp2[i] = temp[i];
+            temp2[i] = char(temp[i]);
         }
         ret.image_name = temp2;
         GetModuleBaseName(process, module, temp, sizeof(temp));
         for (int i = 0; i < buffer_length; ++i) {
-            temp2[i] = temp[i];
+            temp2[i] = char(temp[i]);
         }
         ret.module_name = temp2;
         std::vector<char> img(ret.image_name.begin(), ret.image_name.end());
@@ -92,12 +92,6 @@ public:
     }
 };
 
-// if you use C++ exception handling: install a translator function
-// with set_se_translator(). In the context of that function (but *not*
-// afterwards), you can either do your stack dump, or save the CONTEXT
-// record as a local copy. Note that you must do the stack dump at the
-// earliest opportunity, to avoid the interesting stack-frames being gone
-// by the time you do the dump.
 void DumpStackTrace(std::ostringstream& builder) {
     HANDLE                   process            = GetCurrentProcess();
     HANDLE                   hThread            = GetCurrentThread();
@@ -109,8 +103,6 @@ void DumpStackTrace(std::ostringstream& builder) {
     std::vector<HMODULE>     module_handles(1);
 
     // Load the symbols:
-    // WARNING: You'll need to replace <pdb-search-path> with either NULL
-    // or some folder where your clients will be able to find the .pdb file.
     if (!SymInitialize(process, NULL, false)) {
         throw(std::logic_error("Unable to initialize symbol handler"));
     }
@@ -118,9 +110,9 @@ void DumpStackTrace(std::ostringstream& builder) {
     DWORD symOptions = SymGetOptions();
     symOptions |= SYMOPT_LOAD_LINES | SYMOPT_UNDNAME;
     SymSetOptions(symOptions);
-    EnumProcessModules(process, &module_handles[0], module_handles.size() * sizeof(HMODULE), &cbNeeded);
+    EnumProcessModules(process, &module_handles[0], DWORD(module_handles.size() * sizeof(HMODULE)), &cbNeeded);
     module_handles.resize(cbNeeded / sizeof(HMODULE));
-    EnumProcessModules(process, &module_handles[0], module_handles.size() * sizeof(HMODULE), &cbNeeded);
+    EnumProcessModules(process, &module_handles[0], DWORD(module_handles.size() * sizeof(HMODULE)), &cbNeeded);
     std::transform(module_handles.begin(), module_handles.end(), std::back_inserter(modules), get_mod_info(process));
     void* base = modules[0].base_address;
 
@@ -174,8 +166,7 @@ void DumpStackTrace(std::ostringstream& builder) {
                 builder << "  at " << fnName;
                 if (SymGetLineFromAddr64(process, frame.AddrPC.Offset, &offset_from_symbol, &line)) {
                     builder << " in " << line.FileName << ":line " << line.LineNumber << std::endl;
-                }
-                else {
+                } else {
                     builder << std::endl;
                 }
 
