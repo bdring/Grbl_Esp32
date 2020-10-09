@@ -457,11 +457,10 @@ void stepper_switch(stepper_id_t new_stepper) {
 #ifdef USE_I2S_STEPS
     if (current_stepper == ST_I2S_STREAM) {
         if (i2s_out_get_pulser_status() != PASSTHROUGH) {
-            // This switching function should not be called during streaming.
-            // However, if it is called, it will stop streaming.
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Warning, "Stop the I2S streaming and switch to the passthrough mode.");
+            // Called during streaming. Stop streaming.
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Stop the I2S streaming and switch to the passthrough mode.");
             i2s_out_set_passthrough();
-            i2s_out_delay();
+            i2s_out_delay();  // Wait for a change in mode.
         }
     }
 #endif
