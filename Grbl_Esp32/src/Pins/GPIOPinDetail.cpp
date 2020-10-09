@@ -64,7 +64,9 @@ namespace Pins {
             case 34:  // Input only pins
             case 35:
             case 36:
-            case 39: return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::ADC | PinCapabilities::ISR; break;
+            case 39:
+                return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::ADC | PinCapabilities::ISR;
+                break;
 
             default:  // Not mapped to actual GPIO pins
                 return PinCapabilities::Native;
@@ -156,5 +158,4 @@ namespace Pins {
     }
 
     String GPIOPinDetail::toString() const { return "GPIO." + int(_index); }
-
 }

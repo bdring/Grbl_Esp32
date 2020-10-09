@@ -44,7 +44,7 @@ public:
     static Pin UNDEFINED;
     static Pin ERROR;
 
-    static const bool On = true;
+    static const bool On  = true;
     static const bool Off = false;
 
     static Pin  create(const String& str);

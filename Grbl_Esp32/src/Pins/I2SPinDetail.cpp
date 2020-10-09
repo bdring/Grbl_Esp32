@@ -1,8 +1,9 @@
-#include "I2SPinDetail.h"
+#ifdef ESP32
+#    include "I2SPinDetail.h"
 
-#include "../I2SOut.h"
+#    include "../I2SOut.h"
 
-#ifdef USE_I2S_OUT
+#    ifdef USE_I2S_OUT
 
 namespace Pins {
     I2SPinDetail::I2SPinDetail(uint8_t index, const PinOptionsParser& options) : _index(index) {
@@ -34,7 +35,7 @@ namespace Pins {
         int value = _readWriteMask ^ high;
         i2s_out_write(_index, value);
     }
-    
+
     int I2SPinDetail::read() {
         auto raw = i2s_out_read(_index);
         return raw ^ _readWriteMask;
@@ -55,4 +56,5 @@ namespace Pins {
     String I2SPinDetail::toString() { return "I2S_" + int(_index); }
 }
 
+#    endif
 #endif

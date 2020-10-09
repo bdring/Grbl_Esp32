@@ -25,6 +25,6 @@ namespace Pins {
 
     void VoidPinDetail::setPWMDuty(uint32_t duty) {}
 
-    String VoidPinDetail::toString() const { return "Pin::UNDEFINED"; }
+    String VoidPinDetail::toString() const { return "UNDEFINED_PIN"; }
 
 }

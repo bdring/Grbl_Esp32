@@ -5,6 +5,15 @@
 #include "PinCapabilities.h"
 
 namespace Pins {
+    /*
+    Pin attributes are what a pin _should_ do in the current configuration. Note that there's 
+    an overlap with pin capabilities; in fact, pin attributes are validated with pin capabilities
+    to check if they are valid.
+
+    You should use pin attributes in the same way as 'set mode' in native Arduino. When setting pin
+    attributes, you basically specify some behavior that you want, and if the pin is capable of 
+    delivering these attributes, it will work. Otherwise... you will get a very nasty error.
+    */
     class PinAttributes {
         uint32_t _value;
         
@@ -12,10 +21,7 @@ namespace Pins {
 
     public:
         PinAttributes(const PinAttributes&) = default;
-        PinAttributes(PinAttributes&)       = default;
-
         PinAttributes& operator=(const PinAttributes&) = default;
-        PinAttributes& operator=(PinAttributes&) = default;
 
         // All the capabilities we use and test:
         static PinAttributes Undefined;
