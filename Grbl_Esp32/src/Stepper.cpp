@@ -47,12 +47,8 @@ typedef struct {
     uint16_t n_step;           // Number of step events to be executed for this segment
     uint16_t cycles_per_tick;  // Step distance traveled per ISR tick, aka step rate.
     uint8_t  st_block_index;   // Stepper block data index. Uses this information to execute this segment.
-#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    uint8_t amass_level;  // Indicates AMASS level for the ISR to execute this segment
-#else
-    uint8_t prescaler;  // Without AMASS, a prescaler is required to adjust for slow timing.
-#endif
-    uint16_t spindle_rpm;  // TODO get rid of this.
+    uint8_t  amass_level;      // AMASS level for the ISR to execute this segment
+    uint16_t spindle_rpm;      // TODO get rid of this.
 } segment_t;
 static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 
@@ -70,9 +66,7 @@ typedef struct {
     uint8_t step_pulse_time;  // Step pulse reset time after step rise
     uint8_t step_outbits;     // The next stepping-bits to be output
     uint8_t dir_outbits;
-#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
     uint32_t steps[MAX_N_AXIS];
-#endif
 
     uint16_t    step_count;        // Steps remaining in line segment motion
     uint8_t     exec_block_index;  // Tracks the current st_block index. Change indicates new block.
@@ -269,22 +263,10 @@ static void stepper_pulse_func() {
                 // TODO ABC
             }
             st.dir_outbits = st.exec_block->direction_bits ^ dir_invert_mask->get();
-#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-            // With AMASS enabled, adjust Bresenham axis increment counters according to AMASS level.
-            st.steps[X_AXIS] = st.exec_block->steps[X_AXIS] >> st.exec_segment->amass_level;
-            st.steps[Y_AXIS] = st.exec_block->steps[Y_AXIS] >> st.exec_segment->amass_level;
-            st.steps[Z_AXIS] = st.exec_block->steps[Z_AXIS] >> st.exec_segment->amass_level;
-
-            if (n_axis > A_AXIS) {
-                st.steps[A_AXIS] = st.exec_block->steps[A_AXIS] >> st.exec_segment->amass_level;
-                if (n_axis > B_AXIS) {
-                    st.steps[B_AXIS] = st.exec_block->steps[B_AXIS] >> st.exec_segment->amass_level;
-                    if (n_axis > C_AXIS) {
-                        st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
-                    }
-                }
+            // Adjust Bresenham axis increment counters according to AMASS level.
+            for (int i = 0; i < n_axis; i++) {
+                st.steps[i] = st.exec_block->steps[i] >> st.exec_segment->amass_level;
             }
-#endif
             // Set real-time spindle output as segment is loaded, just prior to the first step.
             spindle->set_rpm(st.exec_segment->spindle_rpm);
         } else {
@@ -307,11 +289,7 @@ static void stepper_pulse_func() {
     // Reset step out bits.
     st.step_outbits = 0;
     // Execute step displacement profile by Bresenham line algorithm
-#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
     st.counter_x += st.steps[X_AXIS];
-#else
-    st.counter_x += st.exec_block->steps[X_AXIS];
-#endif
     if (st.counter_x > st.exec_block->step_event_count) {
         st.step_outbits |= bit(X_AXIS);
         st.counter_x -= st.exec_block->step_event_count;
@@ -321,11 +299,7 @@ static void stepper_pulse_func() {
             sys_position[X_AXIS]++;
         }
     }
-#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
     st.counter_y += st.steps[Y_AXIS];
-#else
-    st.counter_y += st.exec_block->steps[Y_AXIS];
-#endif
     if (st.counter_y > st.exec_block->step_event_count) {
         st.step_outbits |= bit(Y_AXIS);
         st.counter_y -= st.exec_block->step_event_count;
@@ -351,11 +325,7 @@ static void stepper_pulse_func() {
     }
 
     if (n_axis > A_AXIS) {
-#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
         st.counter_a += st.steps[A_AXIS];
-#else
-        st.counter_a += st.exec_block->steps[A_AXIS];
-#endif
         if (st.counter_a > st.exec_block->step_event_count) {
             st.step_outbits |= bit(A_AXIS);
             st.counter_a -= st.exec_block->step_event_count;
@@ -367,11 +337,7 @@ static void stepper_pulse_func() {
         }
 
         if (n_axis > B_AXIS) {
-#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
             st.counter_b += st.steps[B_AXIS];
-#else
-            st.counter_b += st.exec_block->steps[B_AXIS];
-#endif
             if (st.counter_b > st.exec_block->step_event_count) {
                 st.step_outbits |= bit(B_AXIS);
                 st.counter_b -= st.exec_block->step_event_count;
@@ -383,11 +349,7 @@ static void stepper_pulse_func() {
             }
 
             if (n_axis > C_AXIS) {
-#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
                 st.counter_c += st.steps[C_AXIS];
-#else
-                st.counter_c += st.exec_block->steps[C_AXIS];
-#endif
                 if (st.counter_c > st.exec_block->step_event_count) {
                     st.step_outbits |= bit(C_AXIS);
                     st.counter_c -= st.exec_block->step_event_count;
@@ -478,7 +440,7 @@ void st_wake_up() {
     // Step pulse delay handling is not require with ESP32...the RMT function does it.
 #else  // Normal operation
     // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
-    st.step_pulse_time = -(((pulse_microseconds->get() - 2) * TICKS_PER_MICROSECOND) >> 3);
+    st.step_pulse_time = -(((pulse_microseconds->get() - 2) * ticksPerMicrosecond) >> 3);
 #endif
     // Enable Stepper Driver Interrupt
     Stepper_Timer_Start();
@@ -834,20 +796,15 @@ void st_prep_buffer() {
                 st_prep_block->direction_bits = pl_block->direction_bits;
                 uint8_t idx;
                 auto    n_axis = number_axis->get();
-#ifndef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-                for (idx = 0; idx < n_axis; idx++) {
-                    st_prep_block->steps[idx] = pl_block->steps[idx];
-                }
-                st_prep_block->step_event_count = pl_block->step_event_count;
-#else
-                // With AMASS enabled, simply bit-shift multiply all Bresenham data by the max AMASS
-                // level, such that we never divide beyond the original data anywhere in the algorithm.
+
+                // Bit-shift multiply all Bresenham data by the max AMASS level so that
+                // we never divide beyond the original data anywhere in the algorithm.
                 // If the original data is divided, we can lose a step from integer roundoff.
                 for (idx = 0; idx < n_axis; idx++) {
-                    st_prep_block->steps[idx] = pl_block->steps[idx] << MAX_AMASS_LEVEL;
+                    st_prep_block->steps[idx] = pl_block->steps[idx] << maxAmassLevel;
                 }
-                st_prep_block->step_event_count = pl_block->step_event_count << MAX_AMASS_LEVEL;
-#endif
+                st_prep_block->step_event_count = pl_block->step_event_count << maxAmassLevel;
+
                 // Initialize segment buffer data for generating the segments.
                 prep.steps_remaining  = (float)pl_block->step_event_count;
                 prep.step_per_mm      = prep.steps_remaining / pl_block->millimeters;
@@ -1138,46 +1095,21 @@ void st_prep_buffer() {
         float inv_rate = dt / (last_n_steps_remaining - step_dist_remaining);  // Compute adjusted step rate inverse
 
         // Compute CPU cycles per step for the prepped segment.
-        uint32_t cycles = ceil((TICKS_PER_MICROSECOND * 1000000 * 60) * inv_rate);  // (cycles/step)
+        uint32_t cycles = ceil((ticksPerMicrosecond * 1000000 * 60) * inv_rate);  // (cycles/step)
+        int level;
 
-#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
         // Compute step timing and multi-axis smoothing level.
-        // NOTE: AMASS overdrives the timer with each level, so only one prescalar is required.
-        if (cycles < AMASS_LEVEL1) {
-            prep_segment->amass_level = 0;
-        } else {
-            if (cycles < AMASS_LEVEL2) {
-                prep_segment->amass_level = 1;
-            } else if (cycles < AMASS_LEVEL3) {
-                prep_segment->amass_level = 2;
-            } else {
-                prep_segment->amass_level = 3;
+        for (level = 0; level < maxAmassLevel; level++) {
+            if (cycles < amassThreshold) {
+                break;
             }
-            cycles >>= prep_segment->amass_level;
-            prep_segment->n_step <<= prep_segment->amass_level;
+            cycles >>= 1;
         }
-        if (cycles < (1UL << 16)) {
-            prep_segment->cycles_per_tick = cycles;  // < 65536 (4.1ms @ 16MHz)
-        } else {
-            prep_segment->cycles_per_tick = 0xffff;  // Just set the slowest speed possible.
-        }
-#else
-        // Compute step timing and timer prescalar for normal step generation.
-        if (cycles < (1UL << 16)) {             // < 65536  (4.1ms @ 16MHz)
-            prep_segment->prescaler       = 1;  // prescaler: 0
-            prep_segment->cycles_per_tick = cycles;
-        } else if (cycles < (1UL << 19)) {      // < 524288 (32.8ms@16MHz)
-            prep_segment->prescaler       = 2;  // prescaler: 8
-            prep_segment->cycles_per_tick = cycles >> 3;
-        } else {
-            prep_segment->prescaler = 3;  // prescaler: 64
-            if (cycles < (1UL << 22)) {   // < 4194304 (262ms@16MHz)
-                prep_segment->cycles_per_tick = cycles >> 6;
-            } else {  // Just set the slowest speed possible. (Around 4 step/sec.)
-                prep_segment->cycles_per_tick = 0xffff;
-            }
-        }
-#endif
+        prep_segment->amass_level = level;
+        prep_segment->n_step <<= level;
+        // if cycles > 64k (4.1ms @ 16MHz), use the slowest possible speed
+        prep_segment->cycles_per_tick = cycles > 0xffff ? 0xffff : cycles;
+
         // Segment complete! Increment segment buffer indices, so stepper ISR can immediately execute it.
         segment_buffer_head = segment_next_head;
         if (++segment_next_head == SEGMENT_BUFFER_SIZE) {
@@ -1234,7 +1166,7 @@ float st_get_realtime_rate() {
 void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {
     if (current_stepper == ST_I2S_STREAM) {
 #ifdef USE_I2S_STEPS
-        // 1 tick = F_TIMERS / F_STEPPER_TIMER
+        // 1 tick = fTimers / fStepperTimer
         // Pulse ISR is called for each tick of alarm_val.
         i2s_out_set_pulse_period(alarm_val);
 #endif
@@ -1245,7 +1177,7 @@ void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {
 
 void IRAM_ATTR Stepper_Timer_Init() {
     timer_config_t config;
-    config.divider     = F_TIMERS / F_STEPPER_TIMER;
+    config.divider     = fTimers / fStepperTimer;
     config.counter_dir = TIMER_COUNT_UP;
     config.counter_en  = TIMER_PAUSE;
     config.alarm_en    = TIMER_ALARM_EN;

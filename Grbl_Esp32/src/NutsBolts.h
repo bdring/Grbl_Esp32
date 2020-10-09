@@ -58,7 +58,6 @@ const int GANGED_MOTOR  = 1;
 // Conversions
 const double MM_PER_INCH = (25.40);
 const double INCH_PER_MM = (0.0393701);
-#define TICKS_PER_MICROSECOND (F_STEPPER_TIMER / 1000000)  // Different from AVR version
 
 const int DELAY_MODE_DWELL       = 0;
 const int DELAY_MODE_SYS_SUSPEND = 1;
