@@ -1,4 +1,5 @@
 #pragma once
+#ifdef ESP32
 
 #include "PinDetail.h"
 
@@ -26,4 +27,5 @@ namespace Pins {
     };
 }
 
+#endif
 #endif

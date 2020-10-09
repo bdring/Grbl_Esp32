@@ -4,6 +4,12 @@
 
 namespace Pins {
     class PinAttributes;
+
+    /*
+    Pin capabilities are what a pin _can_ do using the internal hardware. For GPIO pins, these
+    are the internal hardware capabilities of the pins, such as the capability to pull-up from
+    hardware, wether or not a pin supports input/output, etc.
+    */
     class PinCapabilities {
         uint32_t _value;
 
@@ -13,10 +19,7 @@ namespace Pins {
 
     public:
         PinCapabilities(const PinCapabilities&) = default;
-        PinCapabilities(PinCapabilities&)       = default;
-
         PinCapabilities& operator=(const PinCapabilities&) = default;
-        PinCapabilities& operator=(PinCapabilities&) = default;
 
         // All the capabilities we use and test:
         static PinCapabilities None;

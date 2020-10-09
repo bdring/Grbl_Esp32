@@ -9,7 +9,7 @@
 #include <cstring>
 
 namespace Pins {
-
+    // Implementation details of pins. 
     class PinDetail {
     public:
         PinDetail()                   = default;
