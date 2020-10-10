@@ -45,7 +45,7 @@ static st_block_t st_block_buffer[SEGMENT_BUFFER_SIZE - 1];
 // the planner, where the remaining planner block steps still can.
 typedef struct {
     uint16_t n_step;           // Number of step events to be executed for this segment
-    uint16_t cycles_per_tick;  // Step distance traveled per ISR tick, aka step rate.
+    uint16_t isrPeriod;        // Time to next ISR tick, in units of timer ticks
     uint8_t  st_block_index;   // Stepper block data index. Uses this information to execute this segment.
     uint8_t  amass_level;      // AMASS level for the ISR to execute this segment
     uint16_t spindle_rpm;      // TODO get rid of this.
@@ -88,7 +88,7 @@ static volatile uint8_t busy;
 static plan_block_t* pl_block;       // Pointer to the planner block being prepped
 static st_block_t*   st_prep_block;  // Pointer to the stepper block data being prepped
 
-// esp32 work around for diable in main loop
+// esp32 work around for disable in main loop
 uint64_t stepper_idle_counter;  // used to count down until time to disable stepper drivers
 bool     stepper_idle;
 
@@ -251,7 +251,7 @@ static void stepper_pulse_func() {
             // Initialize new step segment and load number of steps to execute
             st.exec_segment = &segment_buffer[segment_buffer_tail];
             // Initialize step segment timing per step and load number of steps to execute.
-            Stepper_Timer_WritePeriod(st.exec_segment->cycles_per_tick);
+            Stepper_Timer_WritePeriod(st.exec_segment->isrPeriod);
             st.step_count = st.exec_segment->n_step;  // NOTE: Can sometimes be zero when moving slow.
             // If the new segment starts a new planner block, initialize stepper variables and counters.
             // NOTE: When the segment data index changes, this indicates a new planner block.
@@ -1092,23 +1092,27 @@ void st_prep_buffer() {
         // outputs the exact acceleration and velocity profiles as computed by the planner.
 
         dt += prep.dt_remainder;                                               // Apply previous segment partial step execute time
+        // dt is in minutes so inv_rate is in minutes
         float inv_rate = dt / (last_n_steps_remaining - step_dist_remaining);  // Compute adjusted step rate inverse
 
         // Compute CPU cycles per step for the prepped segment.
-        uint32_t cycles = ceil((ticksPerMicrosecond * 1000000 * 60) * inv_rate);  // (cycles/step)
+        // fStepperTimer is in units of timerTicks/sec, so the dimensional analysis is
+        // timerTicks/sec * 60 sec/minute * minutes = timerTicks
+        uint32_t timerTicks = ceil((fStepperTimer * 60) * inv_rate);  // (timerTicks/step)
         int level;
 
         // Compute step timing and multi-axis smoothing level.
         for (level = 0; level < maxAmassLevel; level++) {
-            if (cycles < amassThreshold) {
+            if (timerTicks < amassThreshold) {
                 break;
             }
-            cycles >>= 1;
+            timerTicks >>= 1;
         }
         prep_segment->amass_level = level;
         prep_segment->n_step <<= level;
-        // if cycles > 64k (4.1ms @ 16MHz), use the slowest possible speed
-        prep_segment->cycles_per_tick = cycles > 0xffff ? 0xffff : cycles;
+        // isrPeriod is stored as 16 bits, so limit timerTicks to the
+        // largest value that will fit in a uint16_t.
+        prep_segment->isrPeriod = timerTicks > 0xffff ? 0xffff : timerTicks;
 
         // Segment complete! Increment segment buffer indices, so stepper ISR can immediately execute it.
         segment_buffer_head = segment_next_head;
@@ -1163,15 +1167,17 @@ float st_get_realtime_rate() {
     }
 }
 
-void IRAM_ATTR Stepper_Timer_WritePeriod(uint64_t alarm_val) {
+// The argument is in units of ticks of the timer that generates ISRs
+void IRAM_ATTR Stepper_Timer_WritePeriod(uint16_t timerTicks) {
     if (current_stepper == ST_I2S_STREAM) {
 #ifdef USE_I2S_STEPS
         // 1 tick = fTimers / fStepperTimer
         // Pulse ISR is called for each tick of alarm_val.
-        i2s_out_set_pulse_period(alarm_val);
+        // The argument to i2s_out_set_pulse_period is in units of microseconds
+        i2s_out_set_pulse_period(((uint32_t)timerTicks) / ticksPerMicrosecond);
 #endif
     } else {
-        timer_set_alarm_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, alarm_val);
+        timer_set_alarm_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, (uint64_t)timerTicks);
     }
 }
 
