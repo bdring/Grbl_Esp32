@@ -101,17 +101,19 @@ namespace Pins {
     PinCapabilities GPIOPinDetail::capabilities() const { return _capabilities; }
 
     void GPIOPinDetail::write(int high) {
+        Assert(_attributes.has(PinAttributes::Output), "Pin has no output attribute defined. Cannot write to it.");
         int value = _readWriteMask ^ high;
         __digitalWrite(_index, value);
     }
     int GPIOPinDetail::read() {
+        Assert(_attributes.has(PinAttributes::Input), "Pin has no input attribute defined. Cannot read from it.");
         auto raw = __digitalRead(_index);
         return raw ^ _readWriteMask;
     }
 
     void GPIOPinDetail::setAttr(PinAttributes value) {
         // Check the attributes first:
-        Assert(!value.validateWith(this->_capabilities), "The requested attributes don't match the pin capabilities");
+        Assert(value.validateWith(this->_capabilities), "The requested attributes don't match the pin capabilities");
         Assert(!_attributes.conflictsWith(value), "Attributes on this pin have been set before, and there's a conflict.");
 
         _attributes = value;
@@ -132,8 +134,15 @@ namespace Pins {
         __pinMode(_index, pinModeValue);
     }
 
-    void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) { ::attachInterruptArg(_index, callback, arg, mode); }
-    void GPIOPinDetail::detachInterrupt() { ::detachInterrupt(_index); }
+    void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) {
+        Assert(_attributes.has(PinAttributes::ISR), "Pin has no ISR attribute defined. Cannot bind ISR.");
+        ::attachInterruptArg(_index, callback, arg, mode);
+    }
+
+    void GPIOPinDetail::detachInterrupt() {
+        Assert(_attributes.has(PinAttributes::ISR), "Pin has no ISR attribute defined. Cannot unbind ISR.");
+        ::detachInterrupt(_index);
+    }
 
     bool GPIOPinDetail::initPWM(uint32_t frequency, uint32_t maxDuty) {
         // TODO FIXME: Implement

@@ -4,12 +4,23 @@
 
 #define IRAM_ATTR
 
+// From Arduino.h:
+
+// Interrupt Modes
+#define RISING    0x01
+#define FALLING   0x02
+#define CHANGE    0x03
+#define ONLOW     0x04
+#define ONHIGH    0x05
+#define ONLOW_WE  0x0C
+#define ONHIGH_WE 0x0D
+
 // From esp32-hal-gpio.h:
 
 #define LOW               0x0
 #define HIGH              0x1
 
-//GPIO FUNCTIONS
+// GPIO FUNCTIONS
 #define INPUT             0x01
 #define OUTPUT            0x02
 #define PULLUP            0x04

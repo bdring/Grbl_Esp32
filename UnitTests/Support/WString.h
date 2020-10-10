@@ -32,7 +32,7 @@ class String {
 
 protected:
     inline const char* buffer() const { return backbuf.c_str(); }
-    inline char* wbuffer() { return &*backbuf.begin(); }
+    inline char*       wbuffer() { return &*backbuf.begin(); }
 
 public:
     String(const char* cstr = "") : backbuf(cstr) {}
@@ -46,8 +46,14 @@ public:
     explicit String(float fl, unsigned char decimalPlaces = 2) : backbuf(DecToString(fl, decimalPlaces)) {}
     explicit String(double fl, unsigned char decimalPlaces = 2) : backbuf(DecToString(fl, decimalPlaces)) {}
 
-    String& operator=(const String& rhs) { backbuf = rhs.backbuf; return *this; }
-    String& operator=(const char* cstr) { backbuf = cstr; return *this; }
+    String& operator=(const String& rhs) {
+        backbuf = rhs.backbuf;
+        return *this;
+    }
+    String& operator=(const char* cstr) {
+        backbuf = cstr;
+        return *this;
+    }
 
     unsigned char reserve(unsigned int size) {
         backbuf.reserve(size);
@@ -147,16 +153,16 @@ public:
         return (*this);
     }
 
-    friend StringSumHelper& operator +(const StringSumHelper& lhs, const String& rhs);
-    friend StringSumHelper& operator +(const StringSumHelper& lhs, const char* cstr);
-    friend StringSumHelper& operator +(const StringSumHelper& lhs, char c);
-    friend StringSumHelper& operator +(const StringSumHelper& lhs, unsigned char num);
-    friend StringSumHelper& operator +(const StringSumHelper& lhs, int num);
-    friend StringSumHelper& operator +(const StringSumHelper& lhs, unsigned int num);
-    friend StringSumHelper& operator +(const StringSumHelper& lhs, long num);
-    friend StringSumHelper& operator +(const StringSumHelper& lhs, unsigned long num);
-    friend StringSumHelper& operator +(const StringSumHelper& lhs, float num);
-    friend StringSumHelper& operator +(const StringSumHelper& lhs, double num);
+    friend StringSumHelper& operator+(const StringSumHelper& lhs, const String& rhs);
+    friend StringSumHelper& operator+(const StringSumHelper& lhs, const char* cstr);
+    friend StringSumHelper& operator+(const StringSumHelper& lhs, char c);
+    friend StringSumHelper& operator+(const StringSumHelper& lhs, unsigned char num);
+    friend StringSumHelper& operator+(const StringSumHelper& lhs, int num);
+    friend StringSumHelper& operator+(const StringSumHelper& lhs, unsigned int num);
+    friend StringSumHelper& operator+(const StringSumHelper& lhs, long num);
+    friend StringSumHelper& operator+(const StringSumHelper& lhs, unsigned long num);
+    friend StringSumHelper& operator+(const StringSumHelper& lhs, float num);
+    friend StringSumHelper& operator+(const StringSumHelper& lhs, double num);
 
     operator StringIfHelperType() const { return buffer() ? &String::StringIfHelper : 0; }
 
@@ -204,10 +210,10 @@ public:
     }
     void toCharArray(char* buf, unsigned int bufsize, unsigned int index = 0) const { getBytes((unsigned char*)buf, bufsize, index); }
     const char* c_str() const { return backbuf.c_str(); }
-    char*       begin() { return &*backbuf.begin(); }
-    char*       end() { return &*backbuf.end(); }
-    const char* begin() const { return &*backbuf.begin(); }
-    const char* end() const { return &*backbuf.end(); }
+    char*       begin() { return backbuf.size() == 0 ? nullptr : &*backbuf.begin(); }
+    char*       end() { return begin() + backbuf.size(); }
+    const char* begin() const { return backbuf.size() == 0 ? nullptr : &*backbuf.begin(); }
+    const char* end() const { return begin() + backbuf.size(); }
 
     // search
     int indexOf(char ch) const { return int(std::find(backbuf.begin(), backbuf.end(), ch) - backbuf.begin()); }
@@ -242,34 +248,14 @@ public:
 
 class StringSumHelper : public String {
 public:
-    StringSumHelper(const String& s) :
-        String(s) {
-    }
-    StringSumHelper(const char* p) :
-        String(p) {
-    }
-    StringSumHelper(char c) :
-        String(c) {
-    }
-    StringSumHelper(unsigned char num) :
-        String(num) {
-    }
-    StringSumHelper(int num) :
-        String(num) {
-    }
-    StringSumHelper(unsigned int num) :
-        String(num) {
-    }
-    StringSumHelper(long num) :
-        String(num) {
-    }
-    StringSumHelper(unsigned long num) :
-        String(num) {
-    }
-    StringSumHelper(float num) :
-        String(num) {
-    }
-    StringSumHelper(double num) :
-        String(num) {
-    }
+    StringSumHelper(const String& s) : String(s) {}
+    StringSumHelper(const char* p) : String(p) {}
+    StringSumHelper(char c) : String(c) {}
+    StringSumHelper(unsigned char num) : String(num) {}
+    StringSumHelper(int num) : String(num) {}
+    StringSumHelper(unsigned int num) : String(num) {}
+    StringSumHelper(long num) : String(num) {}
+    StringSumHelper(unsigned long num) : String(num) {}
+    StringSumHelper(float num) : String(num) {}
+    StringSumHelper(double num) : String(num) {}
 };

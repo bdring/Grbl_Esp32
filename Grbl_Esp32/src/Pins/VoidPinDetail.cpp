@@ -1,7 +1,7 @@
 #include "VoidPinDetail.h"
 
 namespace Pins {
-    VoidPinDetail::VoidPinDetail(const PinOptionsParser& options) {}
+    VoidPinDetail::VoidPinDetail(const PinOptionsParser& options) : _frequency(0), _maxDuty(0) {}
 
     PinCapabilities VoidPinDetail::capabilities() const { return PinCapabilities::None; }  // Should we?
 

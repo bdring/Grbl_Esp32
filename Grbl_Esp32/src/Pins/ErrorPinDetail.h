@@ -1,11 +1,12 @@
 #pragma once
 
 #include "PinDetail.h"
+#include "PinOptionsParser.h"
 
 namespace Pins {
     class ErrorPinDetail : public PinDetail {
     public:
-        ErrorPinDetail(const String& options);
+        ErrorPinDetail(const PinOptionsParser& options);
 
         PinCapabilities capabilities() const override;
 
