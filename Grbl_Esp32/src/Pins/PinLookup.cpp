@@ -1,10 +1,47 @@
 #include "PinLookup.h"
 #include "PinAttributes.h"
 
+#include "VoidPinDetail.h"
+#include "ErrorPinDetail.h"
+#include "PinOptionsParser.h"
+
 #include <Arduino.h>
 
 namespace Pins {
     PinLookup PinLookup::_instance;
+
+    PinLookup::PinLookup() {
+        // Initialize pins:
+        memset(_pins, 0, sizeof(_pins));
+        ResetAllPins();
+    }
+
+    void PinLookup::ResetAllPins()
+    {
+        auto& inst = _instance;
+
+        // Delete all pins in use:
+        for (auto i = 0; i <= 255; ++i)
+        {
+            if (inst._pins[i] != nullptr)
+            {
+                delete inst._pins[i];
+                inst._pins[i] = nullptr;
+            }
+        }
+
+        // There are a few special indices, which we always have
+        // to initialize:
+        //
+        // - 254 = undefined pin, maps to VoidPinDetail
+        // - 255 = fault pin (if you use it, it gives an error)
+
+        char stub;
+        PinOptionsParser parser(&stub, &stub);
+
+        inst._pins[254] = new Pins::VoidPinDetail(parser);
+        inst._pins[255] = new Pins::ErrorPinDetail(parser);
+    }
 }
 
 String pinName(uint8_t pin) {

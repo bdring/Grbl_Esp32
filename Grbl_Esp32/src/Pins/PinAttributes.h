@@ -26,10 +26,13 @@ namespace Pins {
         // All the capabilities we use and test:
         static PinAttributes Undefined;
         static PinAttributes None;
+
         static PinAttributes Input;
         static PinAttributes Output;
         static PinAttributes PullUp;
         static PinAttributes PullDown;
+        static PinAttributes ISR;
+
         static PinAttributes NonExclusive;
 
         inline PinAttributes operator|(PinAttributes rhs) { return PinAttributes(_value | rhs._value); }

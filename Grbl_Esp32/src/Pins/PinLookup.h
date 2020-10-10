@@ -19,7 +19,9 @@ namespace Pins {
         static const int NumberNativePins = 64;
 
     public:
-        PinLookup() { memset(_pins, 0, sizeof(_pins)); }
+        PinLookup();
+
+        static void ResetAllPins();
 
         uint8_t SetPin(uint8_t suggestedIndex, PinDetail* value) {
             int realIndex = -1;

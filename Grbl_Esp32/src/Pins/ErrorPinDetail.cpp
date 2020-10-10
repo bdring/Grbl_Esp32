@@ -2,7 +2,7 @@
 #include "../Assert.h"
 
 namespace Pins {
-    ErrorPinDetail::ErrorPinDetail(const String& options) {}
+    ErrorPinDetail::ErrorPinDetail(const PinOptionsParser& options) {}
 
     PinCapabilities ErrorPinDetail::capabilities() const { return PinCapabilities::None; }
 
