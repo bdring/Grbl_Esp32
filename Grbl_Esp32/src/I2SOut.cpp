@@ -660,7 +660,7 @@ int IRAM_ATTR i2s_out_set_stepping() {
 int IRAM_ATTR i2s_out_set_pulse_period(uint64_t period) {
 #    ifdef USE_I2S_OUT_STREAM_IMPL
     // Use 64-bit values to avoid overflowing during the calculation.
-    i2s_out_pulse_period = period * 1000000 / F_STEPPER_TIMER;
+    i2s_out_pulse_period = period / ticksPerMicrosecond;
 #    endif
     return 0;
 }
