@@ -2,16 +2,14 @@
 
 #include "StackTrace/AssertionFailed.h"
 
-#define Assert(condition, msg)                                                                                                             \
-    {                                                                                                                                      \
-        if (!(condition)) {                                                                                                                \
-            throw AssertionFailed(#condition, msg);                                                                                        \
-        }                                                                                                                                  \
-    }
+class AssertionFailed;
 
-#define Assert(condition)                                                                                                                  \
+#undef Assert
+
+#define Assert(condition, ...)                                                                                                             \
     {                                                                                                                                      \
         if (!(condition)) {                                                                                                                \
-            throw AssertionFailed(#condition, "Assertion failed.");                                                                        \
+            const char* ch = #condition;                                                                                                   \
+            throw AssertionFailed(ch, ##__VA_ARGS__);                                                                                        \
         }                                                                                                                                  \
     }

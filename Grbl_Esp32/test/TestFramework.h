@@ -6,6 +6,7 @@
 #    include "TestFactory.h"
 
 #    define TEST_CLASS_NAME(testCase, testName) testCase##_##testName##_Test
+#    define TEST_INST_NAME(testCase, testName) testCase##_##testName##_Test_Instance
 
 // Defines a single unit test. Basically creates a small test class.
 
@@ -18,7 +19,7 @@
             void        run() override;                                                                                                    \
         };                                                                                                                                 \
                                                                                                                                            \
-        TEST_CLASS_NAME(testCase, testName) TEST_CLASS_NAME(testCase, testName)##_instance;                                                \
+        TEST_CLASS_NAME(testCase, testName) TEST_INST_NAME(testCase, testName);                                                            \
                                                                                                                                            \
         void TEST_CLASS_NAME(testCase, testName)::run()
 
