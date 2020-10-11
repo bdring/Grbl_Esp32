@@ -190,18 +190,21 @@ namespace Motors {
         uart_driver_delete(UART_NUM_2);
 
         // setup the comm port as half duplex
-        uart_config_t uart_config = {
-            .baud_rate           = DYNAMIXEL_BAUD_RATE,
-            .data_bits           = UART_DATA_8_BITS,
-            .parity              = UART_PARITY_DISABLE,
-            .stop_bits           = UART_STOP_BITS_1,
-            .flow_ctrl           = UART_HW_FLOWCTRL_DISABLE,
-            .rx_flow_ctrl_thresh = 122,
-        };
+        uart_config_t uart_config;
+        uart_config.baud_rate           = DYNAMIXEL_BAUD_RATE;
+        uart_config.data_bits           = UART_DATA_8_BITS;
+        uart_config.parity              = UART_PARITY_DISABLE;
+        uart_config.stop_bits           = UART_STOP_BITS_1;
+        uart_config.flow_ctrl           = UART_HW_FLOWCTRL_DISABLE;
+        uart_config.rx_flow_ctrl_thresh = 122;
 
         // Configure UART parameters
         uart_param_config(UART_NUM_2, &uart_config);
-        uart_set_pin(UART_NUM_2, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS, UART_PIN_NO_CHANGE);
+        uart_set_pin(UART_NUM_2,
+                     DYNAMIXEL_TXD.getNative(Pin::Capabilities::Output),
+                     DYNAMIXEL_RXD.getNative(Pin::Capabilities::Output),
+                     DYNAMIXEL_RTS.getNative(Pin::Capabilities::Output),
+                     UART_PIN_NO_CHANGE);
         uart_driver_install(UART_NUM_2, DYNAMIXEL_BUF_SIZE * 2, 0, 0, NULL, 0);
         uart_set_mode(UART_NUM_2, UART_MODE_RS485_HALF_DUPLEX);
 

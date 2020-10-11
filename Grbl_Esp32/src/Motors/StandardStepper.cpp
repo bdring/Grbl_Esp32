@@ -48,7 +48,7 @@ namespace Motors {
     void StandardStepper::init_step_dir_pins() {
         // TODO Step pin, but RMT complicates things
         _invert_step_pin = bit_istrue(step_invert_mask->get(), bit(_axis_index));
-        pinMode(dir_pin, OUTPUT);
+        dir_pin.setAttr(Pin::Attr::Output);
 
 #ifdef USE_RMT_STEPS
         rmtConfig.rmt_mode                       = RMT_MODE_TX;
@@ -82,10 +82,10 @@ namespace Motors {
         rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
 
 #else
-        pinMode(step_pin, OUTPUT);
+        step_pin.setAttr(Pin::Attr::Output);
 
 #endif  // USE_RMT_STEPS
-        pinMode(disable_pin, OUTPUT);
+        disable_pin.setAttr(Pin::Attr::Output);
     }
 
     void StandardStepper::config_message() {
@@ -93,14 +93,14 @@ namespace Motors {
                        MsgLevel::Info,
                        "%s Axis Standard Stepper Step:%s Dir:%s Disable:%s Limits(%0.3f,%0.3f)",
                        _axis_name,
-                       pinName(step_pin).c_str(),
-                       pinName(dir_pin).c_str(),
-                       pinName(disable_pin).c_str(),
+                       step_pin.name().c_str(),
+                       dir_pin.name().c_str(),
+                       disable_pin.name().c_str(),
                        _position_min,
                        _position_max);
     }
 
-    void StandardStepper::set_direction_pins(uint8_t onMask) { digitalWrite(dir_pin, (onMask & bit(_axis_index))); }
+    void StandardStepper::set_direction_pins(uint8_t onMask) {dir_pin.write(onMask & bit(_axis_index)); } // TODO FIXME!
 
-    void StandardStepper::set_disable(bool disable) { digitalWrite(disable_pin, disable); }
+    void StandardStepper::set_disable(bool disable) { disable_pin.write(disable); }
 }

@@ -57,9 +57,9 @@ namespace Spindles {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
                        "DAC spindle Output:%s, Enbl:%s, Dir:%s, Res:8bits",
-                       pinName(_output_pin).c_str(),
-                       pinName(_enable_pin).c_str(),
-                       pinName(_direction_pin).c_str());
+                       _output_pin.name().c_str(),
+                       _enable_pin.name().c_str(),
+                       _direction_pin.name().c_str());
     }
 
     uint32_t Dac::set_rpm(uint32_t rpm) {

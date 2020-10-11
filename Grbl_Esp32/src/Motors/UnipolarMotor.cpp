@@ -20,10 +20,10 @@ namespace Motors {
     }
 
     void UnipolarMotor::init() {
-        pinMode(_pin_phase0, OUTPUT);
-        pinMode(_pin_phase1, OUTPUT);
-        pinMode(_pin_phase2, OUTPUT);
-        pinMode(_pin_phase3, OUTPUT);
+        _pin_phase0.setAttr(Pin::Attr::Output);
+        _pin_phase1.setAttr(Pin::Attr::Output);
+        _pin_phase2.setAttr(Pin::Attr::Output);
+        _pin_phase3.setAttr(Pin::Attr::Output);
         _current_phase = 0;
     }
 
@@ -32,20 +32,20 @@ namespace Motors {
                        MsgLevel::Info,
                        "%s Axis Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s Limits(%0.3f,%0.3f)",
                        _axis_name,
-                       pinName(_pin_phase0).c_str(),
-                       pinName(_pin_phase1).c_str(),
-                       pinName(_pin_phase2).c_str(),
-                       pinName(_pin_phase3).c_str(),
+                       _pin_phase0.name().c_str(),
+                       _pin_phase1.name().c_str(),
+                       _pin_phase2.name().c_str(),
+                       _pin_phase3.name().c_str(),
                        _position_min,
                        _position_max);
     }
 
     void UnipolarMotor::set_disable(bool disable) {
         if (disable) {
-            digitalWrite(_pin_phase0, 0);
-            digitalWrite(_pin_phase1, 0);
-            digitalWrite(_pin_phase2, 0);
-            digitalWrite(_pin_phase3, 0);
+            _pin_phase0.off();
+            _pin_phase1.off();
+            _pin_phase2.off();
+            _pin_phase3.off();
         }
         _enabled = !disable;
     }
@@ -141,9 +141,9 @@ namespace Motors {
                     break;
             }
         }
-        digitalWrite(_pin_phase0, _phase[0]);
-        digitalWrite(_pin_phase1, _phase[1]);
-        digitalWrite(_pin_phase2, _phase[2]);
-        digitalWrite(_pin_phase3, _phase[3]);
+        _pin_phase0.write(_phase[0]);
+        _pin_phase1.write(_phase[1]);
+        _pin_phase2.write(_phase[2]);
+        _pin_phase3.write(_phase[3]);
     }
 }

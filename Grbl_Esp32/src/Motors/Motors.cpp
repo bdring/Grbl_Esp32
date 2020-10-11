@@ -285,8 +285,8 @@ void init_motors() {
 #endif
 
     if (STEPPERS_DISABLE_PIN != Pin::UNDEFINED) {
-        pinMode(STEPPERS_DISABLE_PIN, OUTPUT);  // global motor enable pin
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Global stepper disable pin:%s", pinName(STEPPERS_DISABLE_PIN));
+        STEPPERS_DISABLE_PIN.setAttr(Pin::Attr::Output);  // global motor enable pin
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Global stepper disable pin:%s", STEPPERS_DISABLE_PIN.name());
     }
 
     // certain motors need features to be turned on. Check them here
@@ -370,7 +370,7 @@ void motors_set_disable(bool disable) {
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Motors disable %d", disable);
 
-/*
+    /*
     if (previous_state == disable) {
         return;
     }
@@ -386,11 +386,10 @@ void motors_set_disable(bool disable) {
     }
 
     // invert only inverts the global stepper disable pin.
-    if (step_enable_invert->get()) {
-        disable = !disable;  // Apply pin invert.
-    }
-    digitalWrite(STEPPERS_DISABLE_PIN, disable);
-    
+    // if (step_enable_invert->get()) {
+    //     disable = !disable;  // Apply pin invert.
+    // }
+    STEPPERS_DISABLE_PIN.write(disable);
 }
 
 void motors_read_settings() {
