@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+#include "../TestFramework.h"
 
 #include <src/Pin.h>
 #include "../Support/SoftwareGPIO.h"
@@ -9,17 +9,17 @@ namespace Pins {
 
         Pin errorPin = Pin::ERROR;
 
-        EXPECT_ANY_THROW(errorPin.write(true));
-        EXPECT_ANY_THROW(errorPin.read());
+        AssertThrow(errorPin.write(true));
+        AssertThrow(errorPin.read());
 
         errorPin.setAttr(Pin::Attr::None);
 
-        EXPECT_ANY_THROW(errorPin.write(true));
-        EXPECT_ANY_THROW(errorPin.read());
+        AssertThrow(errorPin.write(true));
+        AssertThrow(errorPin.read());
 
-        EXPECT_ANY_THROW(errorPin.attachInterrupt([](void* arg) {}, CHANGE));
-        EXPECT_ANY_THROW(errorPin.detachInterrupt());
+        AssertThrow(errorPin.attachInterrupt([](void* arg) {}, CHANGE));
+        AssertThrow(errorPin.detachInterrupt());
 
-        ASSERT_EQ(errorPin.capabilities(), Pin::Capabilities::None);
+        Assert(errorPin.capabilities() == Pin::Capabilities::None, "Incorrect caps");
     }
 }

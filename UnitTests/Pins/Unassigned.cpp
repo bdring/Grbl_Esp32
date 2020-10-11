@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+#include "../TestFramework.h"
 
 #include <src/Pin.h>
 #include "../Support/SoftwareGPIO.h"
@@ -8,21 +8,21 @@ namespace Pins {
         // Unassigned pins are not doing much...
 
         Pin unassigned = Pin::UNDEFINED;
-        EXPECT_EQ(Pin::UNDEFINED, unassigned);
+        Assert(Pin::UNDEFINED == unassigned, "Undefined has wrong pin id");
 
         {
             unassigned.write(true);
             auto result = unassigned.read();
-            EXPECT_EQ(0, result);
+            Assert(0 == result, "Result value incorrect");
         }
 
         {
             unassigned.write(false);
             auto result = unassigned.read();
-            EXPECT_EQ(0, result);
+            Assert(0 == result, "Result value incorrect");
         }
 
-        EXPECT_ANY_THROW(unassigned.attachInterrupt([](void* arg) {}, CHANGE));
-        EXPECT_ANY_THROW(unassigned.detachInterrupt());
+        AssertThrow(unassigned.attachInterrupt([](void* arg) {}, CHANGE));
+        AssertThrow(unassigned.detachInterrupt());
     }
 }
