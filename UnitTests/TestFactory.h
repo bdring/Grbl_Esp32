@@ -1,0 +1,38 @@
+#pragma once
+
+#include <src/Assert.h>
+
+struct TestBase {
+    TestBase() : next(nullptr) {}
+    TestBase* next;
+
+    virtual const char* unitTestCase() const = 0;
+    virtual const char* unitTestName() const = 0;
+
+    virtual void run() = 0;
+};
+
+class TestFactory {
+    TestBase* first;
+    TestBase* last;
+
+    TestFactory() : first(nullptr), last(nullptr) {}
+    TestFactory(const TestFactory& o) = default;
+
+public:
+    static TestFactory& instance() {
+        static TestFactory instance_;
+        return instance_;
+    }
+
+    void registerTest(TestBase* test) {
+        if (last == nullptr) {
+            first = last = test;
+        } else {
+            last->next = test;
+            last       = test;
+        }
+    }
+
+    void runAll();
+};

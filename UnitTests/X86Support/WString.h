@@ -1,30 +1,20 @@
 #pragma once
 
+// Basically this is an implementation of WString, like the WString API from Arduino itself. However, contrary
+// to Arduino, we use std::string as a backbuffer, thereby making it easy
+
 #include <WString.h>
 #include <string>
-#include <iomanip>
-#include <sstream>
-#pragma warning(disable : 4996)
 
-class StringSumHelper;
+class StringAppender;
 
 class String {
     std::string backbuf;
 
-    static std::string ValueToString(int value, int base) {
-        char        buffer[100] = { 0 };
-        int         number_base = 10;
-        std::string output      = itoa(value, buffer, base);
-        return output;
-    }
+    static std::string ValueToString(int value, int base);
+    static std::string DecToString(double value, int decimalPlaces);
 
-    static std::string DecToString(double value, int decimalPlaces) {
-        std::stringstream stream;
-        stream << std::fixed << std::setprecision(decimalPlaces) << value;
-        std::string s = stream.str();
-        return s;
-    }
-
+    // Operator bool helper. Needed for older compilers:
     typedef void (String::*StringIfHelperType)() const;
     void StringIfHelper() const {}
 
@@ -153,16 +143,16 @@ public:
         return (*this);
     }
 
-    friend StringSumHelper& operator+(const StringSumHelper& lhs, const String& rhs);
-    friend StringSumHelper& operator+(const StringSumHelper& lhs, const char* cstr);
-    friend StringSumHelper& operator+(const StringSumHelper& lhs, char c);
-    friend StringSumHelper& operator+(const StringSumHelper& lhs, unsigned char num);
-    friend StringSumHelper& operator+(const StringSumHelper& lhs, int num);
-    friend StringSumHelper& operator+(const StringSumHelper& lhs, unsigned int num);
-    friend StringSumHelper& operator+(const StringSumHelper& lhs, long num);
-    friend StringSumHelper& operator+(const StringSumHelper& lhs, unsigned long num);
-    friend StringSumHelper& operator+(const StringSumHelper& lhs, float num);
-    friend StringSumHelper& operator+(const StringSumHelper& lhs, double num);
+    friend StringAppender& operator+(const StringAppender& lhs, const String& rhs);
+    friend StringAppender& operator+(const StringAppender& lhs, const char* cstr);
+    friend StringAppender& operator+(const StringAppender& lhs, char c);
+    friend StringAppender& operator+(const StringAppender& lhs, unsigned char num);
+    friend StringAppender& operator+(const StringAppender& lhs, int num);
+    friend StringAppender& operator+(const StringAppender& lhs, unsigned int num);
+    friend StringAppender& operator+(const StringAppender& lhs, long num);
+    friend StringAppender& operator+(const StringAppender& lhs, unsigned long num);
+    friend StringAppender& operator+(const StringAppender& lhs, float num);
+    friend StringAppender& operator+(const StringAppender& lhs, double num);
 
     operator StringIfHelperType() const { return buffer() ? &String::StringIfHelper : 0; }
 
@@ -246,16 +236,16 @@ public:
     double toDouble() const { return std::stod(backbuf.c_str()); }
 };
 
-class StringSumHelper : public String {
+class StringAppender : public String {
 public:
-    StringSumHelper(const String& s) : String(s) {}
-    StringSumHelper(const char* p) : String(p) {}
-    StringSumHelper(char c) : String(c) {}
-    StringSumHelper(unsigned char num) : String(num) {}
-    StringSumHelper(int num) : String(num) {}
-    StringSumHelper(unsigned int num) : String(num) {}
-    StringSumHelper(long num) : String(num) {}
-    StringSumHelper(unsigned long num) : String(num) {}
-    StringSumHelper(float num) : String(num) {}
-    StringSumHelper(double num) : String(num) {}
+    StringAppender(const String& s) : String(s) {}
+    StringAppender(const char* p) : String(p) {}
+    StringAppender(char c) : String(c) {}
+    StringAppender(unsigned char num) : String(num) {}
+    StringAppender(int num) : String(num) {}
+    StringAppender(unsigned int num) : String(num) {}
+    StringAppender(long num) : String(num) {}
+    StringAppender(unsigned long num) : String(num) {}
+    StringAppender(float num) : String(num) {}
+    StringAppender(double num) : String(num) {}
 };
