@@ -30,7 +30,6 @@ namespace Motors {
     }
 
     void StandardStepper::init() {
-        _homing_mask = 0;
         is_active    = true;  // as opposed to NullMotors, this is a real motor
         init_step_dir_pins();
         read_settings();

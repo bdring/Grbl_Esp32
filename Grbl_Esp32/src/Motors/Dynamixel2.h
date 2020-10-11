@@ -83,7 +83,7 @@ namespace Motors {
         static bool    uart_ready;
         static uint8_t ids[MAX_N_AXIS][2];
 
-        void set_homing_mode(uint8_t homing_mask, bool isHoming) override;
+        void set_homing_mode(bool isHoming) override;
         void read_settings();
 
     protected:
@@ -116,5 +116,7 @@ namespace Motors {
         uint8_t     _rx_pin;
         uint8_t     _rts_pin;
         uart_port_t _uart_num;
+
+        bool _disabled;
     };
 }

@@ -87,7 +87,7 @@ namespace Motors {
         void trinamic_test_response();
         void trinamic_stepper_enable(bool enable);
         void debug_message();
-        void set_homing_mode(uint8_t homing_mask, bool ishoming);
+        void set_homing_mode(bool ishoming);
         void set_disable(bool disable);
         bool test();
 
@@ -100,9 +100,10 @@ namespace Motors {
         uint16_t        _driver_part_number;      // example: use 2130 for TMC2130
         float           _r_sense;
         int8_t          _spi_index;
+        bool            _has_errors;
+        bool            _disabled;
 
     protected:
-        TrinamicMode _mode;
-        TrinamicMode _lastMode = TrinamicMode::None;
+        TrinamicMode _mode = TrinamicMode::None;
     };
 }

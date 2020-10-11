@@ -35,13 +35,14 @@ namespace Motors {
         _spi_index(spi_index) {
         type_id = TRINAMIC_SPI_MOTOR;  // Override the value set by the StandardStepper() constructor
 
+        _has_errors = false;
         if (_driver_part_number == 2130) {
             tmcstepper = new TMC2130Stepper(_cs_pin, _r_sense, _spi_index);
         } else if (_driver_part_number == 5160) {
             tmcstepper = new TMC5160Stepper(_cs_pin, _r_sense, _spi_index);
         } else {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Axis Unsupported Trinamic part number TMC%d", axis_name(), _driver_part_number);
-            has_errors = true;  // as opposed to NullMotors, this is a real motor
+            _has_errors = true;  // This motor cannot be used
             return;
         }
 
@@ -61,7 +62,7 @@ namespace Motors {
     }
 
     void TrinamicDriver::init() {
-        if (has_errors) {
+        if (_has_errors) {
             return;
         }
 
@@ -72,7 +73,6 @@ namespace Motors {
         read_settings();  // pull info from settings
         set_mode(false);
 
-        _homing_mask = 0;
         is_active    = true;
     }
 
@@ -95,7 +95,7 @@ namespace Motors {
     }
 
     bool TrinamicDriver::test() {
-        if (has_errors) {
+        if (_has_errors) {
             return false;
         }
         switch (tmcstepper->test_connection()) {
@@ -150,8 +150,9 @@ namespace Motors {
 */
 
     void TrinamicDriver::read_settings() {
-        if (has_errors)
+        if (_has_errors) {
             return;
+        }
 
         uint16_t run_i_ma = (uint16_t)(axis_settings[_axis_index]->run_current->get() * 1000.0);
         float    hold_i_percent;
@@ -169,8 +170,7 @@ namespace Motors {
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
     }
 
-    void TrinamicDriver::set_homing_mode(uint8_t homing_mask, bool isHoming) {
-        _homing_mask = homing_mask;
+    void TrinamicDriver::set_homing_mode(bool isHoming) {
         set_mode(isHoming);
     }
 
@@ -180,19 +180,16 @@ namespace Motors {
     Coolstep mode, so it will need to switch to Coolstep when homing
 */
     void TrinamicDriver::set_mode(bool isHoming) {
-        if (has_errors) {
+        if (_has_errors) {
             return;
-        }
-        if (isHoming) {
-            _mode = TRINAMIC_HOMING_MODE;
-        } else {
-            _mode = TRINAMIC_RUN_MODE;
         }
 
-        if (_lastMode == _mode) {
+        TrinamicMode newMode = isHoming ? TRINAMIC_HOMING_MODE : TRINAMIC_RUN_MODE;
+
+        if (newMode == _mode) {
             return;
         }
-        _lastMode = _mode;
+        _mode = newMode;
 
         switch (_mode) {
             case TrinamicMode ::StealthChop:
@@ -227,7 +224,7 @@ namespace Motors {
     This is the stallguard tuning info. It is call debug, so it could be generic across all classes.
 */
     void TrinamicDriver::debug_message() {
-        if (has_errors) {
+        if (_has_errors) {
             return;
         }
         uint32_t tstep = tmcstepper->TSTEP();
@@ -262,7 +259,7 @@ namespace Motors {
     // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,
     // but that can be hardwired that way.
     void TrinamicDriver::set_disable(bool disable) {
-        if (has_errors)
+        if (_has_errors)
             return;
 
         if (_disabled == disable)

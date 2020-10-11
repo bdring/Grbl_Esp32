@@ -38,36 +38,120 @@ namespace Motors {
     public:
         Motor(motor_class_id_t type, uint8_t axis_index);
 
-        virtual void  init();  // not in constructor because this also gets called when $$ settings change
-        virtual void  config_message();
-        virtual void  debug_message();
-        virtual void  read_settings();
-        virtual void  set_homing_mode(uint8_t homing_mask, bool isHoming);
-        virtual void  set_disable(bool disable);
-        virtual void  set_direction(bool);
-        virtual void  step();
-        virtual void  unstep();
-        virtual bool  test();
-        virtual char* axis_name();
-        virtual void  update();
-        virtual bool  can_home();
+        // init() re-establishes configured motor parameters.  It is called
+        // during initial object construction and again when settings change.
+        virtual void init();
 
+        // config_message(), called from init(), displays a message describing
+        // the motor configuration - pins and other motor-specific items
+        // TODO Architecture: Should this be private or not in the base Motor
+        // class?  There is no external use of this method.
+        virtual void config_message();
+
+        // debug_message() displays motor-specific information that can be
+        // used to assist with motor configuration.  For many motor types,
+        // it is a no-op.
+        // TODO Architecture: Should this be private?  It only applies to
+        // Trinamic drivers so maybe there is a cleaner approach to solving
+        // the stallguard debugging problem.
+        virtual void debug_message();
+
+        // read_settings(), called from init() and motors_read_settings(),
+        // re-establishes the motor configuration parameters that come
+        // from $ settings.
+        virtual void read_settings();
+
+        // set_homing_mode() is called from motors_set_homing_mode(),
+        // which in turn is called at the beginning of a homing cycle
+        // with isHoming true, and at the end with isHoming false.
+        // Some motor types require differ setups for homing and
+        // normal operation.
+        virtual void set_homing_mode(bool isHoming);
+
+        // set_disable() disables or enables a motor.  It is used to
+        // make a motor transition between idle and non-idle states.
+        virtual void set_disable(bool disable);
+
+        // set_direction() sets the motor movement direction.  It is
+        // invoked for every motion segment.
+        virtual void set_direction(bool);
+
+        // step() initiates a step operation on a motor.  It is called
+        // from motors_step() for ever motor than needs to step now.
+        // For ordinary step/direction motors, it sets the step pin
+        // to the active state.
+        virtual void step();
+
+        // unstep() turns off the step pin, if applicable, for a motor.
+        // It is called from motors_unstep() for all motors, since
+        // motors_unstep() is used in many contexts where the previous
+        // states of the step pins are unknown.
+        virtual void unstep();
+
+        // test(), called from init(), checks to see if a motor is
+        // responsive, returning true on failure.  Typical
+        // implementations also display messages to show the result.
+        // TODO Architecture: Should this be private?
+        virtual bool test();
+
+        // axis_name() returns the string name of the axis associated
+        // with the motor, for example "X2".  It is used by many
+        // of the methods that display messages, to indicate the
+        // motor to which the message applies.
+        virtual char* axis_name();
+
+        // update() is used for some types of "smart" motors that
+        // can be told to move to a specific position.  It is
+        // called from a periodic task.
+        virtual void update();
+
+        // can_home() returns false if the motor is incapable of
+        // homing.  Homing cycles use it to exclude such motors
+        // from the homing process.  Most motors can be homed.
+        virtual bool can_home();
+
+        // type_id is an enumerated value that designates
+        // what kind of motor it is.  It is used to enable
+        // or disable various external features, for example
+        // the periodic task that is used for motors that
+        // implement the "update()" method.
+        // TODO Architecture: expose fine-grained capabilities
+        // so that the external code does not have to
+        // know which types implement which features.
         motor_class_id_t type_id;
-        uint8_t          is_active  = false;
-        uint8_t          has_errors = false;
+
+        // is_active is used to determine whether or not
+        // a given motor is active, so some operations
+        // can be skipped.
+        // TODO Architecture: Eliminate this and just
+        // no-op operations that cannot be performed.
+        uint8_t is_active = false;
 
     protected:
+        // _axis_index is the axis from XYZABC, while
+        // _dual_axis_index is 0 for the primary motor on that
+        // axis and 1 for the ganged motor.
+        // These variables are used for several purposes:
+        // * Displaying the axis name in messages
+        // * When reading settings, determining which setting
+        //   applies to this motor
+        // * For some motor types, it is necessary to maintain
+        //   tables of all the motors of that type; those
+        //   tables can be indexed by these variables.
+        // TODO Architecture: It might be useful to cache a
+        // reference to the axis settings entry.
         uint8_t _axis_index;       // X_AXIS, etc
         uint8_t _dual_axis_index;  // 0 = primary 1=ganged
 
-        bool    _showError;
-        bool    _use_mpos = true;
-        uint8_t _homing_mask;
-
+        // Limiting values for the axis position, based on homing
+        // position and soft limit values.  Used for reporting,
+        // and for some motors, computing allowed positions.
+        // TODO Architecture: This is really per-axis, not per-motor,
+        // so it might be better to put it in an Axis class.
         float _position_min = 0;
         float _position_max = 0;  // position in millimeters
 
+        // Storage for the can_home() method
         bool _can_home = true;
-        bool _disabled;
     };
 }

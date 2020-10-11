@@ -6,7 +6,7 @@
     Part of Grbl_ESP32
 
     2020 -	Bart Dring
-    
+
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -33,7 +33,7 @@ namespace Motors {
         virtual void set_disable(bool disable);
         virtual void update();
         void         read_settings();
-        void         set_homing_mode(uint8_t homing_mask, bool isHoming) override;
+        void         set_homing_mode(bool isHoming) override;
 
     protected:
         void set_location();
@@ -49,5 +49,7 @@ namespace Motors {
 
         float _cal_min = 1.0;
         float _cal_max = 1.0;
+
+        bool _disabled;
     };
 }

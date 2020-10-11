@@ -198,7 +198,7 @@ namespace Motors {
 
     // This motor will not do a standard home to a limit switch (maybe future)
     // If it is in the homing mask it will a quick move to $<axis>/Home/Mpos
-    void Dynamixel2::set_homing_mode(uint8_t homing_mask, bool isHoming) {
+    void Dynamixel2::set_homing_mode(bool isHoming) {
         sys_position[_axis_index] =
             axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
 

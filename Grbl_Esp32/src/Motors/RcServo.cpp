@@ -43,7 +43,7 @@ namespace Motors {
         ledcAttachPin(_pwm_pin, _channel_num);
         _current_pwm_duty = 0;
         is_active         = true;   // as opposed to NullMotors, this is a real motor
-        _can_home         = false;  // this axis cannot be confensionally homed
+        _can_home         = false;  // this axis cannot be conventionally homed
 
         config_message();
     }
@@ -80,7 +80,7 @@ namespace Motors {
     }
 
     // Homing justs sets the new system position and the servo will move there
-    void RcServo::set_homing_mode(uint8_t homing_mask, bool isHoming) {
+    void RcServo::set_homing_mode(bool isHoming) {
         float home_pos = 0.0;
 
         sys_position[_axis_index] =
