@@ -122,9 +122,9 @@ namespace Pins {
         uint8_t pinModeValue = 0;
 
         if (value.has(PinAttributes::PullUp)) {
-            pinModeValue |= PULLUP;
+            pinModeValue |= INPUT_PULLUP;
         } else if (value.has(PinAttributes::PullDown)) {
-            pinModeValue |= PULLDOWN;
+            pinModeValue |= INPUT_PULLDOWN;
         } else if (value.has(PinAttributes::Input)) {
             pinModeValue |= INPUT;
         } else if (value.has(PinAttributes::Input)) {
