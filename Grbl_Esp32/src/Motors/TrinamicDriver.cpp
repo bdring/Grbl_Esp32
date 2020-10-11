@@ -46,10 +46,12 @@ namespace Motors {
 
         set_axis_name();
 
+        cs_pin.setAttr(Pin::Attr::Output);
+
         if (_driver_part_number == 2130) {
-            tmcstepper = new TMC2130Stepper(cs_pin, _r_sense, spi_index);
+            tmcstepper = new TMC2130Stepper(cs_pin.getNative(Pin::Capabilities::Output), _r_sense, spi_index);
         } else if (_driver_part_number == 5160) {
-            tmcstepper = new TMC5160Stepper(cs_pin, _r_sense, spi_index);
+            tmcstepper = new TMC5160Stepper(cs_pin.getNative(Pin::Capabilities::Output), _r_sense, spi_index);
         } else {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Axis Unsupported Trinamic part number TMC%d", _axis_name, _driver_part_number);
             has_errors = true;  // as opposed to NullMotors, this is a real motor
@@ -58,11 +60,10 @@ namespace Motors {
 
         init_step_dir_pins();  // from StandardStepper
 
-        digitalWrite(cs_pin, HIGH);
-        pinMode(cs_pin, OUTPUT);
+        cs_pin.on();
 
         // use slower speed if I2S
-        if (cs_pin >= I2S_OUT_PIN_BASE) {
+        if (cs_pin.capabilities().has(Pin::Capabilities::I2S)) {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
         }
 
@@ -96,10 +97,10 @@ namespace Motors {
                        "%s Axis Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d Limits(%0.3f,%0.3f)",
                        _axis_name,
                        _driver_part_number,
-                       pinName(step_pin).c_str(),
-                       pinName(dir_pin).c_str(),
-                       pinName(cs_pin).c_str(),
-                       pinName(disable_pin).c_str(),
+                       step_pin.name().c_str(),
+                       dir_pin.name().c_str(),
+                       cs_pin.name().c_str(),
+                       disable_pin.name().c_str(),
                        spi_index,
                        _position_min,
                        _position_max);
@@ -280,7 +281,7 @@ namespace Motors {
 
         _disabled = disable;
 
-        digitalWrite(disable_pin, _disabled);
+        disable_pin.write(_disabled);
 
 #ifdef USE_TRINAMIC_ENABLE
         if (_disabled) {

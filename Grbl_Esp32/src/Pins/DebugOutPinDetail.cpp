@@ -2,7 +2,7 @@
 #include "../Assert.h"
 
 #ifdef ESP32
-#include "../Report.h"
+#include "../Grbl.h"
 #define DEBUGOUT(format, ...) grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, format "\r\n", __VA_ARGS__)
 #else
 #include <cstdio>

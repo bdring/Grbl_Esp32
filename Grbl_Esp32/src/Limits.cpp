@@ -317,16 +317,16 @@ uint8_t limit_mask = 0;
 
 void limits_init() {
     limit_mask = 0;
-    int mode   = INPUT_PULLUP;
+    auto mode   = Pin::Attr::PullUp;
 #ifdef DISABLE_LIMIT_PIN_PULL_UP
-    mode = INPUT;
+    mode = Pin::Attr::Input;
 #endif
     auto n_axis = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             auto pin = limit_pins[axis][gang_index]->get();
             if (pin != Pin::UNDEFINED) {
-                pinMode(pin, mode);
+                pin.setAttr(mode);
                 limit_mask |= bit(axis);
                 if (hard_limits->get()) {
                     pin.attachInterrupt(isr_limit_switches, CHANGE);
@@ -381,10 +381,7 @@ AxisMask limits_get_state() {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             auto pin = limit_pins[axis][gang_index]->get();
             if (pin != Pin::UNDEFINED) {
-                if (limit_invert->get())
-                    pinMask |= (!digitalRead(pin) << axis);
-                else
-                    pinMask |= (digitalRead(pin) << axis);
+                pinMask |= pin.read() << axis;
             }
         }
     }

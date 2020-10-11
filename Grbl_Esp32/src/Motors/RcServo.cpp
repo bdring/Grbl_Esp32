@@ -47,7 +47,7 @@ namespace Motors {
         read_settings();
         _channel_num = sys_get_next_PWM_chan_num();
         ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
-        ledcAttachPin(_pwm_pin, _channel_num);
+        ledcAttachPin(_pwm_pin.getNative(Pin::Capabilities::Output), _channel_num);
         _current_pwm_duty = 0;
         is_active         = true;   // as opposed to NullMotors, this is a real motor
         _can_home         = false;  // this axis cannot be confensionally homed
