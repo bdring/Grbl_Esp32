@@ -1,21 +1,10 @@
 #pragma once
 
-#ifdef ESP32
-#    define Assert(condition, msg)                                                                                                         \
-        {                                                                                                                                  \
-            if (!(condition)) {                                                                                                            \
-                throw msg;                                                                                                                 \
-            }                                                                                                                              \
-        }
-#else
-#    include <exception>
+#include "StackTrace/AssertionFailed.h"
 
-extern std::exception CreateException(const char* condition, const char* msg);
-
-#    define Assert(condition, msg)                                                                                                         \
-        {                                                                                                                                  \
-            if (!(condition)) {                                                                                                            \
-                throw CreateException(#condition, msg);                                                                                \
-            }                                                                                                                              \
-        }
-#endif
+#define Assert(condition, msg)                                                                                                             \
+    {                                                                                                                                      \
+        if (!(condition)) {                                                                                                                \
+            throw AssertionFailed(#condition, msg);                                                                                        \
+        }                                                                                                                                  \
+    }

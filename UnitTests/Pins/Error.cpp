@@ -1,10 +1,9 @@
 #include "../TestFramework.h"
 
 #include <src/Pin.h>
-#include "../Support/SoftwareGPIO.h"
 
 namespace Pins {
-    TEST(Pins, Error) {
+    Test(Pins, Error) {
         // Error pins should throw whenever they are used.
 
         Pin errorPin = Pin::ERROR;

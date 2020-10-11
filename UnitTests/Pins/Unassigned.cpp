@@ -1,10 +1,9 @@
 #include "../TestFramework.h"
 
 #include <src/Pin.h>
-#include "../Support/SoftwareGPIO.h"
 
 namespace Pins {
-    TEST(Pins, Unassigned) {
+    Test(Pins, Unassigned) {
         // Unassigned pins are not doing much...
 
         Pin unassigned = Pin::UNDEFINED;
