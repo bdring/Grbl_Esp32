@@ -26,8 +26,8 @@ system_t               sys;
 int32_t                sys_position[MAX_N_AXIS];        // Real-time machine (aka home) position vector in steps.
 int32_t                sys_probe_position[MAX_N_AXIS];  // Last probe position in machine coordinates and steps.
 volatile Probe         sys_probe_state;                 // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
-volatile ExecState     sys_rt_exec_state;               // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
-volatile ExecAlarm     sys_rt_exec_alarm;               // Global realtime executor bitflag variable for setting various alarms.
+volatile ExecState     sys_rt_exec_state;  // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
+volatile ExecAlarm     sys_rt_exec_alarm;  // Global realtime executor bitflag variable for setting various alarms.
 volatile ExecAccessory sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
 volatile bool          cycle_stop;                      // For state transitions, instead of bitflag
 #ifdef DEBUG
@@ -335,18 +335,6 @@ bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized) {
         }
     }
     return cmd_ok;
-}
-
-// Call this function to get an RMT channel number
-// returns -1 for error
-int8_t sys_get_next_RMT_chan_num() {
-    static uint8_t next_RMT_chan_num = 0;  // channels 0-7 are valid
-    if (next_RMT_chan_num < 8) {           // 7 is the max PWM channel number
-        return next_RMT_chan_num++;
-    } else {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of RMT channels");
-        return -1;
-    }
 }
 
 /*

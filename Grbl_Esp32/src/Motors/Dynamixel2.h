@@ -8,7 +8,7 @@
     Part of Grbl_ESP32
 
     2020 -	Bart Dring
-    
+
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -73,7 +73,6 @@ const int DXL_CONTROL_MODE_POSITION = 3;
 namespace Motors {
     class Dynamixel2 : public Motor {
     public:
-        Dynamixel2();
         Dynamixel2(uint8_t axis_index, uint8_t address, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin);
 
         virtual void config_message();
@@ -108,7 +107,6 @@ namespace Motors {
         static uint16_t dxl_update_crc(uint16_t crc_accum, char* data_blk_ptr, uint8_t data_blk_size);
         static void     dxl_bulk_goal_position();  // set all motorsd init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
 
-        
         float _homing_position;
 
         float _dxl_count_min;

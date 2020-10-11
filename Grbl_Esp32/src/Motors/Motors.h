@@ -32,9 +32,9 @@
 #include "../Grbl.h"
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 
-extern uint8_t      rmt_chan_num[MAX_AXES][2];
-extern rmt_item32_t rmtItem[2];
-extern rmt_config_t rmtConfig;
+extern rmt_item32_t  rmtItem[2];
+extern rmt_config_t  rmtConfig;
+extern rmt_channel_t sys_get_next_RMT_chan_num();
 
 typedef enum {
     MOTOR,
@@ -55,9 +55,8 @@ void    readSgTask(void* pvParameters);
 void    motors_read_settings();
 void    motors_set_homing_mode(uint8_t homing_mask, bool isHoming);
 void    motors_set_disable(bool disable);
-void    motors_set_direction_pins(uint8_t onMask);
 void    motors_step(uint8_t step_mask, uint8_t dir_mask);
-void    servoUpdateTask(void* pvParameters);
-bool    motor_can_home(uint8_t index);
+void    motors_unstep();
 
-extern bool motor_class_steps;  // true if at least one motor class is handling steps
+void servoUpdateTask(void* pvParameters);
+bool motor_can_home(uint8_t index);

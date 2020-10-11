@@ -50,7 +50,6 @@ static TaskHandle_t servoUpdateTaskHandle = 0;
 bool    Motors::Dynamixel2::uart_ready         = false;
 uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
 
-uint8_t      rmt_chan_num[MAX_AXES][MAX_GANGED];
 rmt_item32_t rmtItem[2];
 rmt_config_t rmtConfig;
 
@@ -74,7 +73,7 @@ void init_motors() {
 #elif defined(X_DYNAMIXEL_ID)
         myMotor[X_AXIS][0] = new Motors::Dynamixel2(X_AXIS, X_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
-        myMotor[X_AXIS][0] = new Motors::Nullmotor();
+        myMotor[X_AXIS][0] = new Motors::Nullmotor(X_AXIS);
 #endif
 
 #ifdef X2_TRINAMIC_DRIVER
@@ -87,11 +86,11 @@ void init_motors() {
 #elif defined(X2_STEP_PIN)
         myMotor[X_AXIS][1] = new Motors::StandardStepper(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN);
 #else
-        myMotor[X_AXIS][1] = new Motors::Nullmotor();
+        myMotor[X_AXIS][1] = new Motors::Nullmotor(X2_AXIS);
 #endif
     } else {
-        myMotor[X_AXIS][0] = new Motors::Nullmotor();
-        myMotor[X_AXIS][1] = new Motors::Nullmotor();
+        myMotor[X_AXIS][0] = new Motors::Nullmotor(X_AXIS);
+        myMotor[X_AXIS][1] = new Motors::Nullmotor(X2_AXIS);
     }
 
     if (n_axis >= 2) {
@@ -108,7 +107,7 @@ void init_motors() {
 #elif defined(Y_DYNAMIXEL_ID)
         myMotor[Y_AXIS][0] = new Motors::Dynamixel2(Y_AXIS, Y_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
-        myMotor[Y_AXIS][0] = new Motors::Nullmotor();
+        myMotor[Y_AXIS][0] = new Motors::Nullmotor(Y_AXIS);
 #endif
 
 #ifdef Y2_TRINAMIC_DRIVER
@@ -121,11 +120,11 @@ void init_motors() {
 #elif defined(Y2_STEP_PIN)
         myMotor[Y_AXIS][1] = new Motors::StandardStepper(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN);
 #else
-        myMotor[Y_AXIS][1] = new Motors::Nullmotor();
+        myMotor[Y_AXIS][1] = new Motors::Nullmotor(Y2_AXIS);
 #endif
     } else {
-        myMotor[Y_AXIS][0] = new Motors::Nullmotor();
-        myMotor[Y_AXIS][1] = new Motors::Nullmotor();
+        myMotor[Y_AXIS][0] = new Motors::Nullmotor(Y_AXIS);
+        myMotor[Y_AXIS][1] = new Motors::Nullmotor(Y2_AXIS);
     }
 
     if (n_axis >= 3) {
@@ -142,7 +141,7 @@ void init_motors() {
 #elif defined(Z_DYNAMIXEL_ID)
         myMotor[Z_AXIS][0] = new Motors::Dynamixel2(Z_AXIS, Z_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
-        myMotor[Z_AXIS][0] = new Motors::Nullmotor();
+        myMotor[Z_AXIS][0] = new Motors::Nullmotor(Z_AXIS);
 #endif
 
 #ifdef Z2_TRINAMIC_DRIVER
@@ -155,11 +154,11 @@ void init_motors() {
 #elif defined(Z2_STEP_PIN)
         myMotor[Z_AXIS][1] = new Motors::StandardStepper(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN);
 #else
-        myMotor[Z_AXIS][1] = new Motors::Nullmotor();
+        myMotor[Z_AXIS][1] = new Motors::Nullmotor(Z2_AXIS);
 #endif
     } else {
-        myMotor[Z_AXIS][0] = new Motors::Nullmotor();
-        myMotor[Z_AXIS][1] = new Motors::Nullmotor();
+        myMotor[Z_AXIS][0] = new Motors::Nullmotor(Z_AXIS);
+        myMotor[Z_AXIS][1] = new Motors::Nullmotor(Z2_AXIS);
     }
 
     if (n_axis >= 4) {
@@ -174,7 +173,7 @@ void init_motors() {
 #elif defined(A_STEP_PIN)
         myMotor[A_AXIS][0] = new Motors::StandardStepper(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN);
 #else
-        myMotor[A_AXIS][0] = new Motors::Nullmotor();
+        myMotor[A_AXIS][0] = new Motors::Nullmotor(A_AXIS);
 #endif
 
 #ifdef A2_TRINAMIC_DRIVER
@@ -187,11 +186,11 @@ void init_motors() {
 #elif defined(A2_STEP_PIN)
         myMotor[A_AXIS][1] = new Motors::StandardStepper(A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN);
 #else
-        myMotor[A_AXIS][1] = new Motors::Nullmotor();
+        myMotor[A_AXIS][1] = new Motors::Nullmotor(A2_AXIS);
 #endif
     } else {
-        myMotor[A_AXIS][0] = new Motors::Nullmotor();
-        myMotor[A_AXIS][1] = new Motors::Nullmotor();
+        myMotor[A_AXIS][0] = new Motors::Nullmotor(A_AXIS);
+        myMotor[A_AXIS][1] = new Motors::Nullmotor(A2_AXIS);
     }
 
     if (n_axis >= 5) {
@@ -206,7 +205,7 @@ void init_motors() {
 #elif defined(B_STEP_PIN)
         myMotor[B_AXIS][0] = new Motors::StandardStepper(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN);
 #else
-        myMotor[B_AXIS][0] = new Motors::Nullmotor();
+        myMotor[B_AXIS][0] = new Motors::Nullmotor(B_AXIS);
 #endif
 
 #ifdef B2_TRINAMIC_DRIVER
@@ -219,11 +218,11 @@ void init_motors() {
 #elif defined(B2_STEP_PIN)
         myMotor[B_AXIS][1] = new Motors::StandardStepper(B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN);
 #else
-        myMotor[B_AXIS][1] = new Motors::Nullmotor();
+        myMotor[B_AXIS][1] = new Motors::Nullmotor(B2_AXIS);
 #endif
     } else {
-        myMotor[B_AXIS][0] = new Motors::Nullmotor();
-        myMotor[B_AXIS][1] = new Motors::Nullmotor();
+        myMotor[B_AXIS][0] = new Motors::Nullmotor(B_AXIS);
+        myMotor[B_AXIS][1] = new Motors::Nullmotor(B2_AXIS);
     }
 
     if (n_axis >= 6) {
@@ -238,7 +237,7 @@ void init_motors() {
 #elif defined(C_STEP_PIN)
         myMotor[C_AXIS][0] = new Motors::StandardStepper(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN);
 #else
-        myMotor[C_AXIS][0] = new Motors::Nullmotor();
+        myMotor[C_AXIS][0] = new Motors::Nullmotor(C_AXIS);
 #endif
 
 #ifdef C2_TRINAMIC_DRIVER
@@ -251,11 +250,11 @@ void init_motors() {
 #elif defined(C2_STEP_PIN)
         myMotor[C_AXIS][1] = new Motors::StandardStepper(C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN);
 #else
-        myMotor[C_AXIS][1] = new Motors::Nullmotor();
+        myMotor[C_AXIS][1] = new Motors::Nullmotor(C2_AXIS);
 #endif
     } else {
-        myMotor[C_AXIS][0] = new Motors::Nullmotor();
-        myMotor[C_AXIS][1] = new Motors::Nullmotor();
+        myMotor[C_AXIS][0] = new Motors::Nullmotor(C_AXIS);
+        myMotor[C_AXIS][1] = new Motors::Nullmotor(C2_AXIS);
     }
 
 #ifdef USE_STEPSTICK
@@ -370,14 +369,14 @@ void motors_set_disable(bool disable) {
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Motors disable %d", disable);
 
-/*
+    /*
     if (previous_state == disable) {
         return;
     }
-    previous_state = disable;    
+    previous_state = disable;
 */
 
-    // now loop through all the motors to see if they can individually diable
+    // now loop through all the motors to see if they can individually disable
     auto n_axis = number_axis->get();
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
@@ -390,7 +389,6 @@ void motors_set_disable(bool disable) {
         disable = !disable;  // Apply pin invert.
     }
     digitalWrite(STEPPERS_DISABLE_PIN, disable);
-    
 }
 
 void motors_read_settings() {
@@ -409,26 +407,9 @@ void motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
     auto n_axis = number_axis->get();
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            if (bit_istrue(homing_mask, bit(axis)) && (myMotor[axis][gang_index]->is_active)) {
+            if (bitnum_istrue(homing_mask, axis) && (myMotor[axis][gang_index]->is_active)) {
                 myMotor[axis][gang_index]->set_homing_mode(homing_mask, isHoming);
             }
-        }
-    }
-}
-
-void motors_set_direction_pins(uint8_t onMask) {
-    static uint8_t previous_val = 255;  // should never be this value
-    if (previous_val == onMask) {
-        return;
-    }
-    previous_val = onMask;
-
-    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
-
-    auto n_axis = number_axis->get();
-    for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            myMotor[axis][gang_index]->set_direction_pins(onMask);
         }
     }
 }
@@ -444,16 +425,53 @@ uint8_t get_next_trinamic_driver_index() {
 #endif
 }
 
-// some motor objects, like unipolar need step signals
 void motors_step(uint8_t step_mask, uint8_t dir_mask) {
-    if (motor_class_steps) {  // determined in init_motors if any motors need to handle steps
-        auto n_axis = number_axis->get();
-        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-                myMotor[axis][gang_index]->step(step_mask, dir_mask);
+    auto n_axis = number_axis->get();
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
+
+    // Set the direction pins, but optimize for the common
+    // situation where the direction bits haven't changed.
+    static uint8_t previous_dir = 255;  // should never be this value
+    if (dir_mask != previous_dir) {
+        previous_dir = dir_mask;
+
+        for (int axis = X_AXIS; axis < n_axis; axis++) {
+            bool thisDir = bitnum_istrue(dir_mask, axis);
+            myMotor[axis][0]->set_direction(thisDir);
+            myMotor[axis][1]->set_direction(thisDir);
+        }
+    }
+    // Turn on step pulses for motors that are supposed to step now
+    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+        if (bitnum_istrue(step_mask, axis)) {
+            if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
+                myMotor[axis][0]->step();
+            }
+            if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
+                myMotor[axis][1]->step();
             }
         }
     }
+}
+// Turn all stepper pins off
+void motors_unstep() {
+    auto n_axis = number_axis->get();
+    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+        myMotor[axis][0]->unstep();
+        myMotor[axis][1]->unstep();
+    }
+}
+
+// Get an RMT channel number
+// returns RMT_CHANNEL_MAX for error
+rmt_channel_t sys_get_next_RMT_chan_num() {
+    static uint8_t next_RMT_chan_num = uint8_t(RMT_CHANNEL_0);  // channels 0-7 are valid
+    if (next_RMT_chan_num < RMT_CHANNEL_MAX) {
+        next_RMT_chan_num++;
+    } else {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of RMT channels");
+    }
+    return rmt_channel_t(next_RMT_chan_num);
 }
 
 /*

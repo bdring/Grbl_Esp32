@@ -63,10 +63,10 @@ const double TRINAMIC_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to 
 namespace Motors {
 
     enum class TrinamicMode : uint8_t {
-        None            = 0, // not for machine defs!
-        StealthChop     = 1, 
-        CoolStep        = 2,
-        StallGuard      = 3,
+        None        = 0,  // not for machine defs!
+        StealthChop = 1,
+        CoolStep    = 2,
+        StallGuard  = 3,
     };
 
     class TrinamicDriver : public StandardStepper {
@@ -96,10 +96,10 @@ namespace Motors {
 
         TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
         TrinamicMode    _homing_mode;
-        uint8_t         cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
-        uint16_t        _driver_part_number;     // example: use 2130 for TMC2130
+        uint8_t         _cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
+        uint16_t        _driver_part_number;      // example: use 2130 for TMC2130
         float           _r_sense;
-        int8_t          spi_index;
+        int8_t          _spi_index;
 
     protected:
         TrinamicMode _mode;

@@ -26,7 +26,6 @@
 namespace Motors {
     class RcServo : public Motor {
     public:
-        RcServo();
         RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max);
         virtual void config_message();
         virtual void init();
@@ -42,7 +41,6 @@ namespace Motors {
         uint8_t  _pwm_pin;
         uint8_t  _channel_num;
         uint32_t _current_pwm_duty;
-        
 
         float _homing_position;
 

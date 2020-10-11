@@ -36,20 +36,21 @@
 namespace Motors {
     class Motor {
     public:
-        Motor();
+        Motor(motor_class_id_t type, uint8_t axis_index);
 
-        virtual void init();  // not in constructor because this also gets called when $$ settings change
-        virtual void config_message();
-        virtual void debug_message();
-        virtual void read_settings();
-        virtual void set_homing_mode(uint8_t homing_mask, bool isHoming);
-        virtual void set_disable(bool disable);
-        virtual void set_direction_pins(uint8_t onMask);
-        virtual void step(uint8_t step_mask, uint8_t dir_mask);  // only used on Unipolar right now
-        virtual bool test();
-        virtual void set_axis_name();
-        virtual void update();
-        virtual bool can_home();
+        virtual void  init();  // not in constructor because this also gets called when $$ settings change
+        virtual void  config_message();
+        virtual void  debug_message();
+        virtual void  read_settings();
+        virtual void  set_homing_mode(uint8_t homing_mask, bool isHoming);
+        virtual void  set_disable(bool disable);
+        virtual void  set_direction(bool);
+        virtual void  step();
+        virtual void  unstep();
+        virtual bool  test();
+        virtual char* axis_name();
+        virtual void  update();
+        virtual bool  can_home();
 
         motor_class_id_t type_id;
         uint8_t          is_active  = false;
@@ -62,7 +63,6 @@ namespace Motors {
         bool    _showError;
         bool    _use_mpos = true;
         uint8_t _homing_mask;
-        char    _axis_name[10];  // this the name to use when reporting like "X" or "X2"
 
         float _position_min = 0;
         float _position_max = 0;  // position in millimeters

@@ -31,15 +31,8 @@
 #include "RcServo.h"
 
 namespace Motors {
-    RcServo::RcServo() {}
-
-    RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max) {
-        type_id                = RC_SERVO_MOTOR;
-        this->_axis_index      = axis_index % MAX_AXES;
-        this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
-        this->_pwm_pin         = pwm_pin;
-        _cal_min               = cal_min;
-        _cal_max               = cal_max;
+    RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max) :
+        Motor(RC_SERVO_MOTOR, axis_index), _pwm_pin(pwm_pin), _cal_min(cal_min), _cal_max(cal_max) {
         init();
     }
 
@@ -52,7 +45,6 @@ namespace Motors {
         is_active         = true;   // as opposed to NullMotors, this is a real motor
         _can_home         = false;  // this axis cannot be confensionally homed
 
-        set_axis_name();
         config_message();
     }
 
@@ -60,7 +52,7 @@ namespace Motors {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
                        "%s Axis RC Servo Pin:%d Pulse Len(%.0f,%.0f) Limits(%.3f,%.3f)",
-                       _axis_name,
+                       axis_name(),
                        _pwm_pin,
                        _pwm_pulse_min,
                        _pwm_pulse_max,
@@ -128,7 +120,7 @@ namespace Motors {
         float mpos   = axis_settings[_axis_index]->home_mpos->get();
         //float max_mpos, min_mpos;
 
-        if (bit_istrue(homing_dir_mask->get(), bit(_axis_index))) {
+        if (bitnum_istrue(homing_dir_mask->get(), _axis_index)) {
             _position_min = mpos;
             _position_max = mpos + travel;
         } else {
@@ -139,7 +131,7 @@ namespace Motors {
         _pwm_pulse_min = SERVO_MIN_PULSE * _cal_min;
         _pwm_pulse_max = SERVO_MAX_PULSE * _cal_max;
 
-        if (bit_istrue(dir_invert_mask->get(), bit(_axis_index)))  // normal direction
+        if (bitnum_istrue(dir_invert_mask->get(), _axis_index))  // normal direction
             swap(_pwm_pulse_min, _pwm_pulse_max);
     }
 
