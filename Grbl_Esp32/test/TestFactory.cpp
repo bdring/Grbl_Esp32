@@ -1,19 +1,19 @@
 #include "TestFactory.h"
 
+#include <src/Assert.h>
+#include <WString.h>
+
 #ifdef ESP32
 
-#    include "ESP32StackTrace/AssertionFailed.h"
 #    include <HardwareSerial.h>
 #    include <string.h>
 
 void TestFactory::runAll() {
-    Serial.begin(115200);
-
     const int Indent = 80;
 
     char spaces[Indent];
     memset(spaces, ' ', Indent - 1);
-    spaces[Indent] = '\0';
+    spaces[Indent - 1] = '\0';
 
     auto        current = first;
     const char* prev    = nullptr;
@@ -21,11 +21,13 @@ void TestFactory::runAll() {
         auto curTest = current->unitTestName();
 
         if (prev == nullptr || !strcmp(prev, curTest)) {
-            Serial.println("- Test: %s", curTest);
+            Serial.print("- Test: ");
+            Serial.println(curTest);
             prev = curTest;
         }
 
-        Serial.print("  - Case: %s", current->unitTestCase());
+        Serial.print("  - Case: ");
+        Serial.print(current->unitTestCase());
 
         int len = int(strlen(current->unitTestCase()));
         if (len >= (Indent - 5)) {
@@ -43,18 +45,20 @@ void TestFactory::runAll() {
         } catch (...) { Serial.println("FAILED!"); }
         current = current->next;
     }
+    Serial.println();
+    Serial.println("Done.");
 }
 
 #else
 
-#    include <src/Assert.h>
 #    include <iostream>
-#    include <string.h>
+#    include <cstring>
+#    include <cstdio>
 
 #    if defined _WIN32 || defined _WIN64
 #        define WIN32_LEAN_AND_MEAN
 #        include <Windows.h>
-void setColor(int colorIndex) { // 10 = green, 12 = red, 7 = gray, 15 = white
+void setColor(int colorIndex) {  // 10 = green, 12 = red, 7 = gray, 15 = white
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     // you can loop k higher to see more color choices
     // pick the colorattribute k you want
@@ -69,7 +73,7 @@ void TestFactory::runAll() {
 
     char spaces[Indent];
     memset(spaces, ' ', Indent - 1);
-    spaces[Indent] = '\0';
+    spaces[Indent - 1] = '\0';
 
     auto        current = first;
     const char* prev    = nullptr;
@@ -112,5 +116,7 @@ void TestFactory::runAll() {
 
         setColor(7);
     }
+
+    printf("\r\nDone.\r\n");
 }
 #endif

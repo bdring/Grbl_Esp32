@@ -3,7 +3,10 @@
 #include <src/Pin.h>
 
 #ifdef ESP32
-extern "C" int __digitalRead(uint8_t pin);
+
+extern "C" int  __digitalRead(uint8_t pin);
+extern "C" void __pinMode(uint8_t pin, uint8_t mode);
+extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 struct GPIOSupport {
     static void reset() {}
@@ -120,7 +123,7 @@ namespace Pins {
         Assert(hitCount == expected, "ISR hitcount error");
         Assert(true == pin.read(), "Read error");
 
-        SoftwareGPIO::instance().set(16, false);
+        GPIOSupport::setState(16, false);
         expected += deltaFalling;
         Assert(hitCount == expected, "ISR hitcount error");
         Assert(false == pin.read(), "Read error");
@@ -130,7 +133,7 @@ namespace Pins {
         pin.on();
         pin.off();
         GPIOSupport::setState(16, true);
-        SoftwareGPIO::instance().set(16, false);
+        GPIOSupport::setState(16, false);
         Assert(hitCount == expected, "ISR hitcount error");
     }
 
