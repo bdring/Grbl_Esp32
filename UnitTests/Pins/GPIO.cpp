@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+#include "../TestFramework.h"
 
 #include <src/Pin.h>
 #include "../Support/SoftwareGPIO.h"
@@ -15,25 +15,25 @@ namespace Pins {
         auto pin = Init();
 
         pin.setAttr(Pin::Attr::Input);
-        ASSERT_EQ(false, pin.read());
+        Assert(false == pin.read(), "Read has incorrect value.");
 
         SoftwareGPIO::instance().set(16, true);
 
-        ASSERT_EQ(true, pin.read());
+        Assert(true == pin.read(), "Read has incorrect value.");
     }
 
     TEST(ReadOutputPin, GPIO) {
         auto pin = Init();
 
         pin.setAttr(Pin::Attr::Output);
-        ASSERT_ANY_THROW(pin.read());
+        AssertThrow(pin.read());
     }
 
     TEST(WriteInputPin, GPIO) {
         auto pin = Init();
 
         pin.setAttr(Pin::Attr::Input);
-        ASSERT_ANY_THROW(pin.on());
+        AssertThrow(pin.on());
     }
 
     TEST(WriteOutputPin, GPIO) {
@@ -41,29 +41,29 @@ namespace Pins {
 
         pin.setAttr(Pin::Attr::Output);
 
-        ASSERT_EQ(false, SoftwareGPIO::instance().get(16));
+        Assert(false == SoftwareGPIO::instance().get(16), "Incorrect gpio value.");
 
         pin.on();
-        ASSERT_EQ(true, SoftwareGPIO::instance().get(16));
+        Assert(true == SoftwareGPIO::instance().get(16), "Incorrect gpio value.");
 
         pin.off();
-        ASSERT_EQ(false, SoftwareGPIO::instance().get(16));
+        Assert(false == SoftwareGPIO::instance().get(16), "Incorrect gpio value.");
     }
 
     TEST(ReadIOPin, GPIO) {
         auto pin = Init();
 
         pin.setAttr(Pin::Attr::Output | Pin::Attr::Input);
-        ASSERT_EQ(false, pin.read());
-        ASSERT_EQ(false, SoftwareGPIO::instance().get(16));
+        Assert(false == pin.read(), "Incorrect read");
+        Assert(false == SoftwareGPIO::instance().get(16), "Incorrect value");
 
         pin.on();
-        ASSERT_EQ(true, pin.read());
-        ASSERT_EQ(true, SoftwareGPIO::instance().get(16));
+        Assert(true == pin.read(), "Incorrect read");
+        Assert(true == SoftwareGPIO::instance().get(16), "Incorrect value");
 
         pin.off();
-        ASSERT_EQ(false, pin.read());
-        ASSERT_EQ(false, SoftwareGPIO::instance().get(16));
+        Assert(false == pin.read(), "Incorrect read");
+        Assert(false == SoftwareGPIO::instance().get(16), "Incorrect value");
     }
 
     void TestISR(int deltaRising, int deltaFalling, int mode) {
@@ -88,23 +88,23 @@ namespace Pins {
 
         pin.on();
         expected += deltaRising;
-        ASSERT_EQ(hitCount, expected);
-        ASSERT_EQ(true, pin.read());
+        Assert(hitCount == expected, "ISR hitcount error");
+        Assert(true == pin.read(), "Read error");
 
         pin.off();
         expected += deltaFalling;
-        ASSERT_EQ(hitCount, expected);
-        ASSERT_EQ(false, pin.read());
+        Assert(hitCount == expected, "ISR hitcount error");
+        Assert(false == pin.read(), "Read error");
 
         SoftwareGPIO::instance().set(16, true);
         expected += deltaRising;
-        ASSERT_EQ(hitCount, expected);
-        ASSERT_EQ(true, pin.read());
+        Assert(hitCount == expected, "ISR hitcount error");
+        Assert(true == pin.read(), "Read error");
 
         SoftwareGPIO::instance().set(16, false);
         expected += deltaFalling;
-        ASSERT_EQ(hitCount, expected);
-        ASSERT_EQ(false, pin.read());
+        Assert(hitCount == expected, "ISR hitcount error");
+        Assert(false == pin.read(), "Read error");
 
         // Detach interrupt. Regardless of what we do, it shouldn't change hitcount anymore.
         pin.detachInterrupt();
@@ -112,7 +112,7 @@ namespace Pins {
         pin.off();
         SoftwareGPIO::instance().set(16, true);
         SoftwareGPIO::instance().set(16, false);
-        ASSERT_EQ(hitCount, expected);
+        Assert(hitCount == expected, "ISR hitcount error");
     }
 
     TEST(ISRRisingPin, GPIO) { TestISR(1, 0, RISING); }
