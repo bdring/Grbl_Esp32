@@ -119,9 +119,9 @@ public:
     }
 
     // Backward compatibility ISR handler:
-    void attachInterrupt(void (*callback)(void*), int mode) const {
+    void attachInterrupt(void (*callback)(void*), int mode, void* arg = nullptr) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        detail->attachInterrupt(callback, nullptr, mode);
+        detail->attachInterrupt(callback, arg, mode);
     }
 
     void detachInterrupt() const {
