@@ -41,7 +41,7 @@ namespace Motors {
     void Motor::config_message() {}
     void Motor::debug_message() {}
 
-    void Motor::read_settings() {
+    void Motor::read_limits() {
         float max_travel = axis_settings[_axis_index]->max_travel->get();
         float mpos       = axis_settings[_axis_index]->home_mpos->get();
 
@@ -54,6 +54,7 @@ namespace Motors {
         }
     }
 
+    void Motor::read_settings() { read_limits(); }
     void Motor::set_disable(bool disable) {}
     void Motor::set_direction_pins(uint8_t onMask) {}
     void Motor::step(uint8_t step_mask, uint8_t dir_mask) {}

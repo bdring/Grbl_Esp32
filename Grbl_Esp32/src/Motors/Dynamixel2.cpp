@@ -77,7 +77,7 @@ namespace Motors {
     void Dynamixel2::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis Dynamixel Servo ID:%d Count(%5.0f,%5.0f) Limits(%0.3fmm,%5.3f)",
+                       "%s Axis Dynamixel Servo ID:%d Count(%5.0f,%5.0f) Limits(%0.3f,%5.3f)",
                        _axis_name,
                        _id,
                        _dxl_count_min,
@@ -123,16 +123,7 @@ namespace Motors {
     }
 
     void Dynamixel2::read_settings() {
-        float travel = axis_settings[_axis_index]->max_travel->get();
-        float mpos   = axis_settings[_axis_index]->home_mpos->get();
-
-        if (bit_istrue(homing_dir_mask->get(), bit(_axis_index))) {
-            _position_min = mpos;
-            _position_max = mpos + travel;
-        } else {
-            _position_min = mpos - travel;
-            _position_max = mpos;
-        }
+        read_limits();
 
         _dxl_count_min = DXL_COUNT_MIN;
         _dxl_count_max = DXL_COUNT_MAX;

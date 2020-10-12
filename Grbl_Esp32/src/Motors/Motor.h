@@ -42,6 +42,7 @@ namespace Motors {
         virtual void config_message();
         virtual void debug_message();
         virtual void read_settings();
+        virtual void read_limits();
         virtual void set_homing_mode(uint8_t homing_mask, bool isHoming);
         virtual void set_disable(bool disable);
         virtual void set_direction_pins(uint8_t onMask);

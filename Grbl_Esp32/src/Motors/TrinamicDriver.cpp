@@ -66,9 +66,10 @@ namespace Motors {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
         }
 
+        read_settings();  // pull info from settings
         config_message();
 
-        // init() must be called later, after all TMC drivers have CS pins setup.
+        // init() must be called by Motors.cpp after all TMC drivers have CS pins setup.
     }
 
     void TrinamicDriver::init() {
@@ -79,8 +80,8 @@ namespace Motors {
         SPI.begin();  // this will get called for each motor, but does not seem to hurt anything
 
         tmcstepper->begin();
-        test();           // Try communicating with motor. Prints an error if there is a problem.
-        read_settings();  // pull info from settings
+        test();  // Try communicating with motor. Prints an error if there is a problem.
+
         set_mode(false);
 
         _homing_mask = 0;
@@ -163,6 +164,8 @@ namespace Motors {
         if (has_errors)
             return;
 
+        read_limits();
+
         uint16_t run_i_ma = (uint16_t)(axis_settings[_axis_index]->run_current->get() * 1000.0);
         float    hold_i_percent;
 
@@ -211,7 +214,7 @@ namespace Motors {
                 tmcstepper->pwm_autoscale(true);
                 tmcstepper->diag1_stall(false);
                 break;
-            case TrinamicMode :: CoolStep:
+            case TrinamicMode ::CoolStep:
                 //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Coolstep");
                 tmcstepper->en_pwm_mode(false);
                 tmcstepper->pwm_autoscale(false);

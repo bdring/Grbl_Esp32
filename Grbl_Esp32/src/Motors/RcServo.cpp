@@ -124,17 +124,7 @@ namespace Motors {
     }
 
     void RcServo::read_settings() {
-        float travel = axis_settings[_axis_index]->max_travel->get();
-        float mpos   = axis_settings[_axis_index]->home_mpos->get();
-        //float max_mpos, min_mpos;
-
-        if (bit_istrue(homing_dir_mask->get(), bit(_axis_index))) {
-            _position_min = mpos;
-            _position_max = mpos + travel;
-        } else {
-            _position_min = mpos - travel;
-            _position_max = mpos;
-        }
+        read_limits();
 
         _pwm_pulse_min = SERVO_MIN_PULSE * _cal_min;
         _pwm_pulse_max = SERVO_MAX_PULSE * _cal_max;
