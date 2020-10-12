@@ -53,8 +53,6 @@ uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 },
 rmt_item32_t rmtItem[2];
 rmt_config_t rmtConfig;
 
-bool motor_class_steps;  // true if at least one motor class is handling steps
-
 void init_motors() {
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Motors");
 
@@ -291,20 +289,9 @@ void init_motors() {
     // certain motors need features to be turned on. Check them here
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            if (myMotor[axis][gang_index]->type_id == UNIPOLAR_MOTOR) {
-                motor_class_steps = true;
-            }
-
-            // CS Pins of all TMC motors need to be setup before any can be talked to
-            // ...so init cannot be called via the constructors. This inits them all.
-            if (myMotor[axis][gang_index]->type_id == TRINAMIC_SPI_MOTOR) {
-                myMotor[axis][gang_index]->init();
-            }
+            myMotor[axis][gang_index]->init();
         }
     }
-
-    // some motor objects require a step signal
-    motor_class_steps = motors_have_type_id(UNIPOLAR_MOTOR);
 
     if (motors_have_type_id(TRINAMIC_SPI_MOTOR)) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
@@ -407,7 +394,7 @@ void motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
     auto n_axis = number_axis->get();
     for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            if (bitnum_istrue(homing_mask, axis) && (myMotor[axis][gang_index]->is_active)) {
+            if (bitnum_istrue(homing_mask, axis)) {
                 myMotor[axis][gang_index]->set_homing_mode(isHoming);
             }
         }

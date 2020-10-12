@@ -118,5 +118,6 @@ namespace Motors {
         uart_port_t _uart_num;
 
         bool _disabled;
+        bool _has_errors;
     };
 }

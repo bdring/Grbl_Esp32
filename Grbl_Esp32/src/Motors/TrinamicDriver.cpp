@@ -46,6 +46,7 @@ namespace Motors {
             return;
         }
 
+        _has_errors = false;
         init_step_dir_pins();  // from StandardStepper
 
         digitalWrite(_cs_pin, HIGH);
@@ -55,8 +56,6 @@ namespace Motors {
         if (_cs_pin >= I2S_OUT_PIN_BASE) {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
         }
-
-        config_message();
 
         // init() must be called later, after all TMC drivers have CS pins setup.
     }
@@ -73,7 +72,7 @@ namespace Motors {
         read_settings();  // pull info from settings
         set_mode(false);
 
-        is_active    = true;
+        config_message();
     }
 
     /*

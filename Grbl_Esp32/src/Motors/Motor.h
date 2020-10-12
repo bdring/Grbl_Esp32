@@ -38,8 +38,8 @@ namespace Motors {
     public:
         Motor(motor_class_id_t type, uint8_t axis_index);
 
-        // init() re-establishes configured motor parameters.  It is called
-        // during initial object construction and again when settings change.
+        // init() establishes configured motor parameters.  It is called after
+        // all motor objects have been constructed.
         virtual void init();
 
         // config_message(), called from init(), displays a message describing
@@ -119,13 +119,6 @@ namespace Motors {
         // so that the external code does not have to
         // know which types implement which features.
         motor_class_id_t type_id;
-
-        // is_active is used to determine whether or not
-        // a given motor is active, so some operations
-        // can be skipped.
-        // TODO Architecture: Eliminate this and just
-        // no-op operations that cannot be performed.
-        uint8_t is_active = false;
 
     protected:
         // _axis_index is the axis from XYZABC, while

@@ -33,7 +33,6 @@
 namespace Motors {
     RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max) :
         Motor(RC_SERVO_MOTOR, axis_index), _pwm_pin(pwm_pin), _cal_min(cal_min), _cal_max(cal_max) {
-        init();
     }
 
     void RcServo::init() {
@@ -42,7 +41,6 @@ namespace Motors {
         ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
         ledcAttachPin(_pwm_pin, _channel_num);
         _current_pwm_duty = 0;
-        is_active         = true;   // as opposed to NullMotors, this is a real motor
         _can_home         = false;  // this axis cannot be conventionally homed
 
         config_message();

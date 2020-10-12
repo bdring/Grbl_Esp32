@@ -6,10 +6,7 @@ namespace Motors {
         _pin_phase3(pin_phase3),
 
         _half_step(true)  // TODO read from settings ... microstep > 1 = half step
-    {
-        init();
-        config_message();
-    }
+    {}
 
     void UnipolarMotor::init() {
         pinMode(_pin_phase0, OUTPUT);
@@ -17,6 +14,7 @@ namespace Motors {
         pinMode(_pin_phase2, OUTPUT);
         pinMode(_pin_phase3, OUTPUT);
         _current_phase = 0;
+        config_message();
     }
 
     void UnipolarMotor::config_message() {

@@ -30,17 +30,14 @@ namespace Motors {
     Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin) :
         Motor(DYNAMIXEL2, axis_index), _id(id), _tx_pin(tx_pin), _rx_pin(rx_pin), _rts_pin(rts_pin) {
         if (_tx_pin == UNDEFINED_PIN || _rx_pin == UNDEFINED_PIN || _rts_pin == UNDEFINED_PIN) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dymanixel Error. Missing pin definitions");
-            is_active = false;
-
-            return;
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Error. Missing pin definitions");
+            _has_errors = true;
+        } else {
+            _has_errors = false;   // The motor can be used
         }
-
-        init();
     }
 
     void Dynamixel2::init() {
-        is_active = true;   // as opposed to NullMotors, this is a real motor
         _can_home = false;  // this axis cannot be conventionally homed
 
         init_uart(_id, _axis_index, _dual_axis_index);  // static and only allows one init
@@ -50,7 +47,7 @@ namespace Motors {
         config_message();  // print the config
 
         if (!test()) {  // ping the motor
-            is_active = false;
+            _has_errors = true;
             return;
         }
 
@@ -136,8 +133,9 @@ namespace Motors {
     }
 
     void Dynamixel2::update() {
-        if (!is_active)
+        if (_has_errors) {
             return;
+        }
 
         if (_disabled) {
             dxl_read_position();
@@ -187,6 +185,9 @@ namespace Motors {
     // This motor will not do a standard home to a limit switch (maybe future)
     // If it is in the homing mask it will a quick move to $<axis>/Home/Mpos
     void Dynamixel2::set_homing_mode(bool isHoming) {
+        if (_has_errors) {
+            return;
+        }
         sys_position[_axis_index] =
             axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
 

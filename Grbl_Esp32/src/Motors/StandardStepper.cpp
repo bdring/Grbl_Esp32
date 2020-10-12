@@ -26,11 +26,9 @@
 namespace Motors {
     StandardStepper::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) :
         Motor(STANDARD_MOTOR, axis_index), _step_pin(step_pin), _dir_pin(dir_pin), _disable_pin(disable_pin) {
-        init();
     }
 
     void StandardStepper::init() {
-        is_active    = true;  // as opposed to NullMotors, this is a real motor
         init_step_dir_pins();
         read_settings();
         config_message();
