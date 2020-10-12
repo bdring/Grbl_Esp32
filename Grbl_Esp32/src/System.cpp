@@ -186,30 +186,6 @@ void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     return;
 }
 
-// Checks and reports if target array exceeds machine travel limits.
-// Return true if exceeding limits
-uint8_t system_check_travel_limits(float* target) {
-    uint8_t idx;
-    auto    n_axis = number_axis->get();
-    for (idx = 0; idx < n_axis; idx++) {
-        float travel = axis_settings[idx]->max_travel->get();
-        float mpos   = axis_settings[idx]->home_mpos->get();
-        float max_mpos, min_mpos;
-
-        if (bit_istrue(homing_dir_mask->get(), bit(idx))) {
-            min_mpos = mpos;
-            max_mpos = mpos + travel;
-        } else {
-            min_mpos = mpos - travel;
-            max_mpos = mpos;
-        }
-
-        if (target[idx] < min_mpos || target[idx] > max_mpos)
-            return true;
-    }
-    return false;
-}
-
 // Returns control pin state as a uint8 bitfield. Each bit indicates the input pin state, where
 // triggered is 1 and not triggered is 0. Invert mask is applied. Bitfield organization is
 // defined by the ControlPin in System.h.

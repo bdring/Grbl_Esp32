@@ -51,13 +51,12 @@ namespace Motors {
     void RcServo::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis RC Servo Pin:%d Pulse Len(%.0f,%.0f) Limits(%.3f,%.3f)",
+                       "%s Axis RC Servo Pin:%d Pulse Len(%.0f,%.0f) %s",
                        axis_name(),
                        _pwm_pin,
                        _pwm_pulse_min,
                        _pwm_pulse_max,
-                       _position_min,
-                       _position_max);
+                       reportAxisLimitsMsg(_axis_index));
     }
 
     void RcServo::_write_pwm(uint32_t duty) {
@@ -110,24 +109,13 @@ namespace Motors {
         servo_pos = mpos - offset;  // determine the current work position
 
         // determine the pulse length
-        servo_pulse_len = (uint32_t)mapConstrain(servo_pos, _position_min, _position_max, _pwm_pulse_min, _pwm_pulse_max);
+        servo_pulse_len = (uint32_t)mapConstrain(
+            servo_pos, limitsMinPosition(_axis_index), limitsMaxPosition(_axis_index), _pwm_pulse_min, _pwm_pulse_max);
 
         _write_pwm(servo_pulse_len);
     }
 
     void RcServo::read_settings() {
-        float travel = axis_settings[_axis_index]->max_travel->get();
-        float mpos   = axis_settings[_axis_index]->home_mpos->get();
-        //float max_mpos, min_mpos;
-
-        if (bitnum_istrue(homing_dir_mask->get(), _axis_index)) {
-            _position_min = mpos;
-            _position_max = mpos + travel;
-        } else {
-            _position_min = mpos - travel;
-            _position_max = mpos;
-        }
-
         _pwm_pulse_min = SERVO_MIN_PULSE * _cal_min;
         _pwm_pulse_max = SERVO_MAX_PULSE * _cal_max;
 

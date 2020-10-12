@@ -82,7 +82,7 @@ namespace Motors {
     void TrinamicDriver::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d Limits(%0.3f,%0.3f)",
+                       "%s Axis Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d %s",
                        axis_name(),
                        _driver_part_number,
                        pinName(_step_pin).c_str(),
@@ -90,8 +90,7 @@ namespace Motors {
                        pinName(_cs_pin).c_str(),
                        pinName(_disable_pin).c_str(),
                        _spi_index,
-                       _position_min,
-                       _position_max);
+                       reportAxisLimitsMsg(_axis_index));
     }
 
     bool TrinamicDriver::test() {

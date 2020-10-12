@@ -143,14 +143,6 @@ namespace Motors {
         uint8_t _axis_index;       // X_AXIS, etc
         uint8_t _dual_axis_index;  // 0 = primary 1=ganged
 
-        // Limiting values for the axis position, based on homing
-        // position and soft limit values.  Used for reporting,
-        // and for some motors, computing allowed positions.
-        // TODO Architecture: This is really per-axis, not per-motor,
-        // so it might be better to put it in an Axis class.
-        float _position_min = 0;
-        float _position_max = 0;  // position in millimeters
-
         // Storage for the can_home() method
         bool _can_home = true;
     };

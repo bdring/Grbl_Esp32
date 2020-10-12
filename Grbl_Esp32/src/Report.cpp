@@ -919,3 +919,9 @@ char report_get_axis_letter(uint8_t axis) {
             return '?';
     }
 }
+
+char* reportAxisLimitsMsg(uint8_t axis) {
+    static char msg[40];
+    sprintf(msg, "Limits(%0.3f,%0.3f)", limitsMinPosition(axis), limitsMaxPosition(axis));
+    return msg;
+}

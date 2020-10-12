@@ -48,3 +48,9 @@ void isr_limit_switches();
 
 // A task that runs after a limit switch interrupt.
 void limitCheckTask(void* pvParameters);
+
+float limitsMaxPosition(uint8_t axis);
+float limitsMinPosition(uint8_t axis);
+
+// Internal factor used by limits_soft_check
+bool limitsCheckTravel(float* target);

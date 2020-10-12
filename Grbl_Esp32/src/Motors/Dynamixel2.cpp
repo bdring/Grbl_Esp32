@@ -66,13 +66,12 @@ namespace Motors {
     void Dynamixel2::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis Dynamixel Servo ID:%d Count(%5.0f,%5.0f) Limits(%0.3fmm,%5.3f)",
+                       "%s Axis Dynamixel Servo ID:%d Count(%5.0f,%5.0f) %s",
                        axis_name(),
                        _id,
                        _dxl_count_min,
                        _dxl_count_max,
-                       _position_min,
-                       _position_max);
+                       reportAxisLimitsMsg(_axis_index));
     }
 
     bool Dynamixel2::test() {
@@ -112,17 +111,6 @@ namespace Motors {
     }
 
     void Dynamixel2::read_settings() {
-        float travel = axis_settings[_axis_index]->max_travel->get();
-        float mpos   = axis_settings[_axis_index]->home_mpos->get();
-
-        if (bitnum_istrue(homing_dir_mask->get(), _axis_index)) {
-            _position_min = mpos;
-            _position_max = mpos + travel;
-        } else {
-            _position_min = mpos - travel;
-            _position_max = mpos;
-        }
-
         _dxl_count_min = DXL_COUNT_MIN;
         _dxl_count_max = DXL_COUNT_MAX;
 
@@ -230,8 +218,8 @@ namespace Motors {
 
             read_settings();
 
-            int32_t pos_min_steps = lround(_position_min * axis_settings[_axis_index]->steps_per_mm->get());
-            int32_t pos_max_steps = lround(_position_max * axis_settings[_axis_index]->steps_per_mm->get());
+            int32_t pos_min_steps = lround(limitsMinPosition(_axis_index) * axis_settings[_axis_index]->steps_per_mm->get());
+            int32_t pos_max_steps = lround(limitsMaxPosition(_axis_index) * axis_settings[_axis_index]->steps_per_mm->get());
 
             int32_t temp = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
 
@@ -361,17 +349,6 @@ namespace Motors {
                     //determine the location of the axis
                     float target = system_convert_axis_steps_to_mpos(sys_position, axis);  // get the axis machine position in mm
 
-                    float travel = axis_settings[axis]->max_travel->get();
-                    float mpos   = axis_settings[axis]->home_mpos->get();
-
-                    if (bitnum_istrue(homing_dir_mask->get(), axis)) {
-                        position_min = mpos;
-                        position_max = mpos + travel;
-                    } else {
-                        position_min = mpos - travel;
-                        position_max = mpos;
-                    }
-
                     dxl_count_min = DXL_COUNT_MIN;
                     dxl_count_max = DXL_COUNT_MAX;
 
@@ -379,7 +356,7 @@ namespace Motors {
                         swap(dxl_count_min, dxl_count_max);
 
                     // map the mm range to the servo range
-                    dxl_position = (uint32_t)mapConstrain(target, position_min, position_max, dxl_count_min, dxl_count_max);
+                    dxl_position = (uint32_t)mapConstrain(target, limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max);
 
                     tx_message[++msg_index] = current_id;                         // ID of the servo
                     tx_message[++msg_index] = dxl_position & 0xFF;                // data

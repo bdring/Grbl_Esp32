@@ -42,18 +42,7 @@ namespace Motors {
     void Motor::config_message() {}
     void Motor::debug_message() {}
 
-    void Motor::read_settings() {
-        float max_travel = axis_settings[_axis_index]->max_travel->get();
-        float mpos       = axis_settings[_axis_index]->home_mpos->get();
-
-        if (bitnum_istrue(homing_dir_mask->get(), _axis_index)) {
-            _position_min = mpos;
-            _position_max = mpos + max_travel;
-        } else {
-            _position_min = mpos - max_travel;
-            _position_max = mpos;
-        }
-    }
+    void Motor::read_settings() {}
 
     void Motor::set_disable(bool disable) {}
     void Motor::set_direction(bool dir) {}

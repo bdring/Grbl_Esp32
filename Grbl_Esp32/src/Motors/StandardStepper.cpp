@@ -85,13 +85,12 @@ namespace Motors {
     void StandardStepper::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis Standard Stepper Step:%s Dir:%s Disable:%s Limits(%0.3f,%0.3f)",
+                       "%s Axis Standard Stepper Step:%s Dir:%s Disable:%s %s",
                        axis_name(),
                        pinName(_step_pin).c_str(),
                        pinName(_dir_pin).c_str(),
                        pinName(_disable_pin).c_str(),
-                       _position_min,
-                       _position_max);
+                       reportAxisLimitsMsg(_axis_index));
     }
 
     void StandardStepper::step() {

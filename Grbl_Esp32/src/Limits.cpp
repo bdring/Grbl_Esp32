@@ -399,7 +399,7 @@ AxisMask limits_get_state() {
 // the workspace volume is in all negative space, and the system is in normal operation.
 // NOTE: Used by jogging to limit travel within soft-limit volume.
 void limits_soft_check(float* target) {
-    if (system_check_travel_limits(target)) {
+    if (limitsCheckTravel(target)) {
         sys.soft_limit = true;
         // Force feed hold if cycle is active. All buffered blocks are guaranteed to be within
         // workspace volume so just come to a controlled stop so position is not lost. When complete
@@ -434,4 +434,31 @@ void limitCheckTask(void* pvParameters) {
             sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
         }
     }
+}
+
+float limitsMaxPosition(uint8_t axis) {
+    float mpos   = axis_settings[axis]->home_mpos->get();
+
+    return bitnum_istrue(homing_dir_mask->get(), axis) ? mpos + axis_settings[axis]->max_travel->get() : mpos;
+}
+
+float limitsMinPosition(uint8_t axis) {
+    float mpos   = axis_settings[axis]->home_mpos->get();
+
+    return bitnum_istrue(homing_dir_mask->get(), axis) ? mpos : mpos - axis_settings[axis]->max_travel->get();
+}
+
+// Checks and reports if target array exceeds machine travel limits.
+// Return true if exceeding limits
+bool limitsCheckTravel(float* target) {
+    uint8_t idx;
+    auto    n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
+        float max_mpos, min_mpos;
+
+        if (target[idx] < limitsMinPosition(idx) || target[idx] > limitsMaxPosition(idx)) {
+            return true;
+        }
+    }
+    return false;
 }
