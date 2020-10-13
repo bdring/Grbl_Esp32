@@ -139,15 +139,6 @@ const char* stepper_names[] = {
     "I2S Steps, Static",
 };
 
-#ifndef DEFAULT_STEPPER
-#    if defined(USE_I2S_STEPS)
-#        define DEFAULT_STEPPER ST_I2S_STREAM
-#    elif defined(USE_RMT_STEPS)
-#        define DEFAULT_STEPPER ST_RMT
-#    else
-#        define DEFAULT_STEPPER ST_TIMED
-#    endif
-#endif
 stepper_id_t current_stepper = DEFAULT_STEPPER;
 
 /* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
@@ -238,14 +229,12 @@ static void stepper_pulse_func() {
 
     motors_step(st.step_outbits, st.dir_outbits);
 
-#ifndef USE_RMT_STEPS
     // If we are using GPIO stepping as opposed to RMT, record the
     // time that we turned on the step pins so we can turn them off
     // at the end of this routine without incurring another interrupt.
     // This is unnecessary with RMT and I2S stepping since both of
     // those methods time the turn off automatically.
     uint64_t step_pulse_start_time = esp_timer_get_time();
-#endif
 
     // If there is no step segment, attempt to pop one from the stepper buffer
     if (st.exec_segment == NULL) {
@@ -325,15 +314,12 @@ static void stepper_pulse_func() {
     }
 
     switch (current_stepper) {
-        case ST_I2S_STATIC:
         case ST_I2S_STREAM:
-            //
-            // Generate pulse (at least one pulse)
-            // The pulse resolution is limited by I2S_OUT_USEC_PER_PULSE
-            //
-            i2s_out_push_sample(pulse_microseconds->get() / I2S_OUT_USEC_PER_PULSE);
+            // Generate the number of pulses needed to span pulse_microseconds
+            i2s_out_push_sample(pulse_microseconds->get());
             motors_unstep();
             break;
+        case ST_I2S_STATIC:
         case ST_TIMED:
             // wait for step pulse time to complete...some time expired during code above
             while (esp_timer_get_time() - step_pulse_start_time < pulse_microseconds->get()) {

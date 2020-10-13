@@ -566,12 +566,14 @@ uint8_t IRAM_ATTR i2s_out_read(uint8_t pin) {
     return (!!(port_data & bit(pin)));
 }
 
-uint32_t IRAM_ATTR i2s_out_push_sample(uint32_t num) {
+uint32_t IRAM_ATTR i2s_out_push_sample(uint32_t usec) {
+    uint32_t num = usec/I2S_OUT_USEC_PER_PULSE;
+
 #    ifdef USE_I2S_OUT_STREAM_IMPL
     if (num > SAMPLE_SAFE_COUNT) {
         return 0;
     }
-    // push at least one sample (even if num is zero)
+    // push at least one sample, even if num is zero)
     uint32_t port_data = atomic_load(&i2s_out_port_data);
     uint32_t n         = 0;
     do {

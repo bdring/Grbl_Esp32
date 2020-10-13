@@ -67,7 +67,7 @@ namespace Motors {
         rmt_set_source_clk(_rmt_chan_num, RMT_BASECLK_APB);
         rmtConfig.channel              = _rmt_chan_num;
         rmtConfig.tx_config.idle_level = _invert_step_pin ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-        rmtConfig.gpio_num             = gpio_num_t(step_pin);  // c is a wacky lang
+        rmtConfig.gpio_num             = gpio_num_t(_step_pin);
         rmtItem[0].level0              = rmtConfig.tx_config.idle_level;
         rmtItem[0].level1              = !rmtConfig.tx_config.idle_level;
         rmt_config(&rmtConfig);
@@ -93,8 +93,8 @@ namespace Motors {
 
     void StandardStepper::step() {
 #ifdef USE_RMT_STEPS
-        RMT.conf_ch[rmt_chan_num].conf1.mem_rd_rst = 1;
-        RMT.conf_ch[rmt_chan_num].conf1.tx_start   = 1;
+        RMT.conf_ch[_rmt_chan_num].conf1.mem_rd_rst = 1;
+        RMT.conf_ch[_rmt_chan_num].conf1.tx_start   = 1;
 #else
         digitalWrite(_step_pin, !_invert_step_pin);
 #endif  // USE_RMT_STEPS
