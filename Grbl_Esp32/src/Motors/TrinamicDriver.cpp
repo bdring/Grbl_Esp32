@@ -22,6 +22,8 @@
 #include <TMCStepper.h>
 
 namespace Motors {
+    TrinamicDriver* TrinamicDriver::List = NULL;
+
     TrinamicDriver::TrinamicDriver(uint8_t  axis_index,
                                    uint8_t  step_pin,
                                    uint8_t  dir_pin,
@@ -61,8 +63,8 @@ namespace Motors {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
         }
 
-        link = list;
-        list = this;
+        link = List;
+        List = this;
 
         // init() must be called later, after all TMC drivers have CS pins setup.
     }
@@ -90,8 +92,8 @@ namespace Motors {
         set_mode(false);
 
         // After initializing all of the TMC drivers, create a task to
-        // display StallGuard data.  list == this for the final instance.
-        if (list == this) {
+        // display StallGuard data.  List == this for the final instance.
+        if (List == this) {
             xTaskCreatePinnedToCore(readSgTask,    // task
                                     "readSgTask",  // name for task
                                     4096,          // size of task stack
@@ -99,12 +101,11 @@ namespace Motors {
                                     1,             // priority
                                     NULL,
                                     0  // core
-                                    );
+            );
             if (stallguard_debug_mask->get() != 0) {
                 grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
             }
         }
-
     }
 
     /*
@@ -324,30 +325,30 @@ namespace Motors {
         // This would be for individual motors, not the single pin for all motors.
     }
 
-// Prints StallGuard data that is useful for tuning.
-void TrinamicDriver::readSgTask(void* pvParameters) {
-    TickType_t       xLastWakeTime;
-    const TickType_t xreadSg = 200;  // in ticks (typically ms)
-    auto             n_axis  = number_axis->get();
+    // Prints StallGuard data that is useful for tuning.
+    void TrinamicDriver::readSgTask(void* pvParameters) {
+        TickType_t       xLastWakeTime;
+        const TickType_t xreadSg = 200;  // in ticks (typically ms)
+        auto             n_axis  = number_axis->get();
 
-    xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
-    while (true) {                        // don't ever return from this or the task dies
-        if (motorSettingChanged) {
-            motors_read_settings();
-            motorSettingChanged = false;
-        }
+        xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
+        while (true) {                        // don't ever return from this or the task dies
+            if (motorSettingChanged) {
+                motors_read_settings();
+                motorSettingChanged = false;
+            }
 
-        if (stallguard_debug_mask->get() != 0) {
-            if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
-                for (TrinamicDriver* p = list; p; p = p->link) {
-                    if (bitnum_istrue(stallguard_debug_mask->get(), p->_axis_index)) {
-                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
-                        p->debug_message();
+            if (stallguard_debug_mask->get() != 0) {
+                if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
+                    for (TrinamicDriver* p = List; p; p = p->link) {
+                        if (bitnum_istrue(stallguard_debug_mask->get(), p->_axis_index)) {
+                            //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
+                            p->debug_message();
+                        }
                     }
-                }
-            }  // sys.state
-        }      // if mask
-        vTaskDelayUntil(&xLastWakeTime, xreadSg);
+                }  // sys.state
+            }      // if mask
+            vTaskDelayUntil(&xLastWakeTime, xreadSg);
+        }
     }
-}
 }

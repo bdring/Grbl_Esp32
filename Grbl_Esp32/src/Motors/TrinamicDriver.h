@@ -108,7 +108,7 @@ namespace Motors {
 
         // Linked list of Trinamic driver instances, used by the
         // StallGuard reporting task.
-        static TrinamicDriver* list;
+        static TrinamicDriver* List;
         TrinamicDriver* link;
         static void readSgTask(void*);
 
