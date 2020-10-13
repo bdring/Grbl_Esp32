@@ -44,7 +44,6 @@
 #include "TrinamicDriver.h"
 
 Motors::Motor*      myMotor[MAX_AXES][MAX_GANGED];  // number of axes (normal and ganged)
-static TaskHandle_t readSgTaskHandle      = 0;      // for realtime stallguard data diaplay
 static TaskHandle_t servoUpdateTaskHandle = 0;
 
 bool    Motors::Dynamixel2::uart_ready         = false;
@@ -293,21 +292,6 @@ void init_motors() {
         }
     }
 
-    if (motors_have_type_id(TRINAMIC_SPI_MOTOR)) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
-        xTaskCreatePinnedToCore(readSgTask,    // task
-                                "readSgTask",  // name for task
-                                4096,          // size of task stack
-                                NULL,          // parameters
-                                1,             // priority
-                                &readSgTaskHandle,
-                                0  // core
-        );
-        if (stallguard_debug_mask->get() != 0) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
-        }
-    }
-
     if (motors_have_type_id(RC_SERVO_MOTOR) || motors_have_type_id(DYNAMIXEL2)) {
         xTaskCreatePinnedToCore(servoUpdateTask,    // task
                                 "servoUpdateTask",  // name for task
@@ -462,37 +446,6 @@ rmt_channel_t sys_get_next_RMT_chan_num() {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of RMT channels");
     }
     return rmt_channel_t(next_RMT_chan_num);
-}
-
-/*
-	This will print StallGuard data that is useful for tuning.
-*/
-void readSgTask(void* pvParameters) {
-    TickType_t       xLastWakeTime;
-    const TickType_t xreadSg = 200;  // in ticks (typically ms)
-    auto             n_axis  = number_axis->get();
-
-    xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
-    while (true) {                        // don't ever return from this or the task dies
-        if (motorSettingChanged) {
-            motors_read_settings();
-            motorSettingChanged = false;
-        }
-
-        if (stallguard_debug_mask->get() != 0) {
-            if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
-                for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-                    if (stallguard_debug_mask->get() & bit(axis)) {
-                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
-                        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-                            myMotor[axis][gang_index]->debug_message();
-                        }
-                    }
-                }
-            }  // sys.state
-        }      // if mask
-        vTaskDelayUntil(&xLastWakeTime, xreadSg);
-    }
 }
 
 #ifdef USE_I2S_OUT

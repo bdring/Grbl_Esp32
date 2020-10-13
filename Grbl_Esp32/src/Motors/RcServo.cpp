@@ -32,8 +32,7 @@
 
 namespace Motors {
     RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max) :
-        Motor(RC_SERVO_MOTOR, axis_index), _pwm_pin(pwm_pin), _cal_min(cal_min), _cal_max(cal_max) {
-    }
+        Motor(RC_SERVO_MOTOR, axis_index), _pwm_pin(pwm_pin), _cal_min(cal_min), _cal_max(cal_max) {}
 
     void RcServo::init() {
         read_settings();
@@ -57,7 +56,7 @@ namespace Motors {
     }
 
     void RcServo::_write_pwm(uint32_t duty) {
-        // to prevent excessive calls to ledcWrite, make sure duty hass changed
+        // to prevent excessive calls to ledcWrite, make sure duty has changed
         if (duty == _current_pwm_duty) {
             return;
         }
@@ -68,7 +67,10 @@ namespace Motors {
 
     // sets the PWM to zero. This allows most servos to be manually moved
     void RcServo::set_disable(bool disable) {
-        return;
+        if (_disabled == disable) {
+            return;
+        }
+
         _disabled = disable;
         if (_disabled) {
             _write_pwm(0);
@@ -93,12 +95,15 @@ namespace Motors {
         uint32_t servo_pulse_len;
         float    servo_pos, mpos, offset;
 
-        read_settings();
+        if (_disabled)
+            return;
 
         if (sys.state == State::Alarm) {
             set_disable(true);
             return;
         }
+
+        read_settings();
 
         mpos = system_convert_axis_steps_to_mpos(sys_position, _axis_index);  // get the axis machine position in mm
         // TBD working in MPos

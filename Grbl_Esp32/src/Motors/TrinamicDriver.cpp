@@ -61,12 +61,21 @@ namespace Motors {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
         }
 
+        link = list;
+        list = this;
+
         // init() must be called later, after all TMC drivers have CS pins setup.
     }
 
     void TrinamicDriver::init() {
         if (_has_errors) {
             return;
+        }
+
+        // Display the stepper library version message once, before the first
+        // TMC config message.  Link is NULL for the first TMC instance.
+        if (!link) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
         }
 
         config_message();
@@ -79,6 +88,23 @@ namespace Motors {
 
         read_settings();  // pull info from settings
         set_mode(false);
+
+        // After initializing all of the TMC drivers, create a task to
+        // display StallGuard data.  list == this for the final instance.
+        if (list == this) {
+            xTaskCreatePinnedToCore(readSgTask,    // task
+                                    "readSgTask",  // name for task
+                                    4096,          // size of task stack
+                                    NULL,          // parameters
+                                    1,             // priority
+                                    NULL,
+                                    0  // core
+                                    );
+            if (stallguard_debug_mask->get() != 0) {
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
+            }
+        }
+
     }
 
     /*
@@ -271,11 +297,13 @@ namespace Motors {
     // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,
     // but that can be hardwired that way.
     void TrinamicDriver::set_disable(bool disable) {
-        if (_has_errors)
+        if (_has_errors) {
             return;
+        }
 
-        if (_disabled == disable)
+        if (_disabled == disable) {
             return;
+        }
 
         _disabled = disable;
 
@@ -295,4 +323,31 @@ namespace Motors {
         // the pin based enable could be added here.
         // This would be for individual motors, not the single pin for all motors.
     }
+
+// Prints StallGuard data that is useful for tuning.
+void TrinamicDriver::readSgTask(void* pvParameters) {
+    TickType_t       xLastWakeTime;
+    const TickType_t xreadSg = 200;  // in ticks (typically ms)
+    auto             n_axis  = number_axis->get();
+
+    xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
+    while (true) {                        // don't ever return from this or the task dies
+        if (motorSettingChanged) {
+            motors_read_settings();
+            motorSettingChanged = false;
+        }
+
+        if (stallguard_debug_mask->get() != 0) {
+            if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
+                for (TrinamicDriver* p = list; p; p = p->link) {
+                    if (bitnum_istrue(stallguard_debug_mask->get(), p->_axis_index)) {
+                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
+                        p->debug_message();
+                    }
+                }
+            }  // sys.state
+        }      // if mask
+        vTaskDelayUntil(&xLastWakeTime, xreadSg);
+    }
+}
 }

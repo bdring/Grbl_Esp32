@@ -106,6 +106,12 @@ namespace Motors {
         void trinamic_test_response();
         void trinamic_stepper_enable(bool enable);
 
+        // Linked list of Trinamic driver instances, used by the
+        // StallGuard reporting task.
+        static TrinamicDriver* list;
+        TrinamicDriver* link;
+        static void readSgTask(void*);
+
     protected:
         void config_message() override;
     };
