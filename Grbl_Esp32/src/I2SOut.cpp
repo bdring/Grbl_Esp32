@@ -42,8 +42,6 @@
  */
 #include "Config.h"
 
-#ifdef USE_I2S_OUT
-
 #    include <FreeRTOS.h>
 #    include <driver/periph_ctrl.h>
 #    include <rom/lldesc.h>
@@ -962,5 +960,3 @@ int IRAM_ATTR i2s_out_init() {
     };
     return i2s_out_init(default_param);
 }
-
-#endif
