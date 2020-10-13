@@ -346,6 +346,7 @@ public:
     void        addWebui(WebUI::JSONencoder*);
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     const Pin& get() { return _currentValue; }
 };

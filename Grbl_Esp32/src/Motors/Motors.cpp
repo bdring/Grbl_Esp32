@@ -271,7 +271,7 @@ void init_motors() {
             uint8_t pin = ms3_pins[axis][gang_index];
             if (pin != Pin::UNDEFINED) {
                 digitalWrite(pin, HIGH);
-                pinMode(pin, OUTPUT);
+                pin.setAttr(Pin::Attr::Output);
             }
         }
     }
@@ -279,7 +279,7 @@ void init_motors() {
 #    ifdef STEPPER_RESET
     // !RESET pin on steppers  (MISO On Schematic)
     digitalWrite(STEPPER_RESET, HIGH);
-    pinMode(STEPPER_RESET, OUTPUT);
+    STEPPER_RESET.setAttr(Pin::Attr::Output);
 #    endif
 
 #endif

@@ -16,15 +16,12 @@ namespace Pins {
         ResetAllPins();
     }
 
-    void PinLookup::ResetAllPins()
-    {
+    void PinLookup::ResetAllPins() {
         auto& inst = _instance;
 
         // Delete all pins in use:
-        for (auto i = 0; i <= 255; ++i)
-        {
-            if (inst._pins[i] != nullptr)
-            {
+        for (auto i = 0; i <= 255; ++i) {
+            if (inst._pins[i] != nullptr) {
                 delete inst._pins[i];
                 inst._pins[i] = nullptr;
             }
@@ -36,7 +33,7 @@ namespace Pins {
         // - 254 = undefined pin, maps to VoidPinDetail
         // - 255 = fault pin (if you use it, it gives an error)
 
-        char stub;
+        char             stub;
         PinOptionsParser parser(&stub, &stub);
 
         inst._pins[254] = new Pins::VoidPinDetail(parser);
@@ -53,12 +50,19 @@ void IRAM_ATTR digitalWrite(uint8_t pin, uint8_t val) {
 }
 
 void IRAM_ATTR pinMode(uint8_t pin, uint8_t mode) {
-
     Pins::PinAttributes attr = Pins::PinAttributes::None;
-    if (mode & OUTPUT) { attr = attr | Pins::PinAttributes::Output; }
-    if (mode & INPUT) { attr = attr | Pins::PinAttributes::Input; }
-    if (mode & INPUT_PULLUP) { attr = attr | Pins::PinAttributes::PullUp; }
-    if (mode & INPUT_PULLDOWN) { attr = attr | Pins::PinAttributes::PullDown; }
+    if (mode & OUTPUT) {
+        attr = attr | Pins::PinAttributes::Output;
+    }
+    if (mode & INPUT) {
+        attr = attr | Pins::PinAttributes::Input;
+    }
+    if (mode & INPUT_PULLUP) {
+        attr = attr | Pins::PinAttributes::PullUp;
+    }
+    if (mode & INPUT_PULLDOWN) {
+        attr = attr | Pins::PinAttributes::PullDown;
+    }
 
     Pins::PinLookup::_instance.GetPin(pin)->setAttr(attr);
 }

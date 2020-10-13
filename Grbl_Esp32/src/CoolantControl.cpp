@@ -25,10 +25,10 @@
 
 void coolant_init() {
 #ifdef COOLANT_FLOOD_PIN
-    pinMode(COOLANT_FLOOD_PIN, OUTPUT);
+    COOLANT_FLOOD_PIN.setAttr(Pin::Attr::Output);
 #endif
 #ifdef COOLANT_MIST_PIN
-    pinMode(COOLANT_MIST_PIN, OUTPUT);
+    COOLANT_MIST_PIN.setAttr(Pin::Attr::Output);
 #endif
     coolant_stop();
 }
