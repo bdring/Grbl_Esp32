@@ -80,15 +80,16 @@ namespace Motors {
                        float    r_sense,
                        int8_t   spi_index);
 
-        void config_message();
-        void init();
+        // Overrides for inherited methods
+        void init() override;
+        void read_settings() override;
+        void set_homing_mode(bool ishoming) override;
+        void set_disable(bool disable) override;
+
         void set_mode(bool isHoming);
-        void read_settings();
         void trinamic_test_response();
         void trinamic_stepper_enable(bool enable);
         void debug_message();
-        void set_homing_mode(bool ishoming);
-        void set_disable(bool disable);
         bool test();
 
     private:
@@ -104,6 +105,7 @@ namespace Motors {
         bool            _disabled;
 
     protected:
+        void config_message() override;
         TrinamicMode _mode = TrinamicMode::None;
     };
 }

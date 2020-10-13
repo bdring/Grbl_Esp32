@@ -27,15 +27,19 @@ namespace Motors {
     class RcServo : public Motor {
     public:
         RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max);
-        virtual void config_message();
-        virtual void init();
-        void         _write_pwm(uint32_t duty);
-        virtual void set_disable(bool disable);
-        virtual void update();
-        void         read_settings();
-        void         set_homing_mode(bool isHoming) override;
+
+        // Overrides for inherited methods
+        void init() override;
+        void read_settings() override;
+        void set_homing_mode(bool isHoming) override;
+        void set_disable(bool disable) override;
+        void update() override;
+
+        void _write_pwm(uint32_t duty);
 
     protected:
+        void config_message() override;
+
         void set_location();
 
         uint8_t  _pwm_pin;

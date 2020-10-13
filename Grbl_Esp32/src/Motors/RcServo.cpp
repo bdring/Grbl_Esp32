@@ -10,9 +10,9 @@
 
     The servo's travel will be mapped against the axis with $X/MaxTravel
 
-    The rotation can be inverted with by $Stepper/DirInvert    
+    The rotation can be inverted with by $Stepper/DirInvert
 
-    Homing simply sets the axis Mpos to the endpoint as determined by $Homing/DirInver    
+    Homing simply sets the axis Mpos to the endpoint as determined by $Homing/DirInvert
 
     Calibration is part of the setting (TBD) fixed at 1.00 now
 

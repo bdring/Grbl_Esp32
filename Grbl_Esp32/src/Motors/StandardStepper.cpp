@@ -30,7 +30,6 @@ namespace Motors {
 
     void StandardStepper::init() {
         init_step_dir_pins();
-        read_settings();
         config_message();
     }
 

@@ -75,18 +75,21 @@ namespace Motors {
     public:
         Dynamixel2(uint8_t axis_index, uint8_t address, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin);
 
-        virtual void config_message();
-        virtual void init();
-        virtual void set_disable(bool disable);
-        virtual void update();
+
+        // Overrides for inherited methods
+        void init() override;
+        void read_settings() override;
+        void set_homing_mode(bool isHoming) override;
+        void set_disable(bool disable) override;
+        void update() override;
 
         static bool    uart_ready;
         static uint8_t ids[MAX_N_AXIS][2];
 
-        void set_homing_mode(bool isHoming) override;
-        void read_settings();
 
     protected:
+        void config_message() override;
+
         void set_location();
 
         uint8_t _id;

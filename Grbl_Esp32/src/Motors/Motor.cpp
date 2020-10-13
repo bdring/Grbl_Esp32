@@ -37,22 +37,11 @@ namespace Motors {
     Motor::Motor(motor_class_id_t type, uint8_t axis_index) :
         type_id(type), _axis_index(axis_index % MAX_AXES), _dual_axis_index(axis_index / MAX_AXES) {}
 
-    void Motor::init() {}
-
-    void Motor::config_message() {}
     void Motor::debug_message() {}
 
-    void Motor::read_settings() {}
-
-    void Motor::set_disable(bool disable) {}
-    void Motor::set_direction(bool dir) {}
-    void Motor::step() {}
-    void Motor::unstep() {}
     bool Motor::test() { return true; };  // true = OK
-    void Motor::update() {}
     bool Motor::can_home() { return _can_home; };
 
-    void  Motor::set_homing_mode(bool isHoming) {}
     char* Motor::axis_name() {
         static char name[10];
         sprintf(name, "%c%s", report_get_axis_letter(_axis_index), _dual_axis_index ? "2" : " ");

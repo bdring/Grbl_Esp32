@@ -40,13 +40,7 @@ namespace Motors {
 
         // init() establishes configured motor parameters.  It is called after
         // all motor objects have been constructed.
-        virtual void init();
-
-        // config_message(), called from init(), displays a message describing
-        // the motor configuration - pins and other motor-specific items
-        // TODO Architecture: Should this be private or not in the base Motor
-        // class?  There is no external use of this method.
-        virtual void config_message();
+        virtual void init() {}
 
         // debug_message() displays motor-specific information that can be
         // used to assist with motor configuration.  For many motor types,
@@ -59,34 +53,35 @@ namespace Motors {
         // read_settings(), called from init() and motors_read_settings(),
         // re-establishes the motor configuration parameters that come
         // from $ settings.
-        virtual void read_settings();
+        // TODO Architecture: Maybe this should be subsumed by init()
+        virtual void read_settings() {}
 
         // set_homing_mode() is called from motors_set_homing_mode(),
         // which in turn is called at the beginning of a homing cycle
         // with isHoming true, and at the end with isHoming false.
         // Some motor types require differ setups for homing and
         // normal operation.
-        virtual void set_homing_mode(bool isHoming);
+        virtual void set_homing_mode(bool isHoming) {}
 
         // set_disable() disables or enables a motor.  It is used to
         // make a motor transition between idle and non-idle states.
-        virtual void set_disable(bool disable);
+        virtual void set_disable(bool disable) {}
 
         // set_direction() sets the motor movement direction.  It is
         // invoked for every motion segment.
-        virtual void set_direction(bool);
+        virtual void set_direction(bool) {}
 
         // step() initiates a step operation on a motor.  It is called
         // from motors_step() for ever motor than needs to step now.
         // For ordinary step/direction motors, it sets the step pin
         // to the active state.
-        virtual void step();
+        virtual void step() {}
 
         // unstep() turns off the step pin, if applicable, for a motor.
         // It is called from motors_unstep() for all motors, since
         // motors_unstep() is used in many contexts where the previous
         // states of the step pins are unknown.
-        virtual void unstep();
+        virtual void unstep() {}
 
         // test(), called from init(), checks to see if a motor is
         // responsive, returning true on failure.  Typical
@@ -103,12 +98,12 @@ namespace Motors {
         // update() is used for some types of "smart" motors that
         // can be told to move to a specific position.  It is
         // called from a periodic task.
-        virtual void update();
+        virtual void update() {}
 
         // can_home() returns false if the motor is incapable of
         // homing.  Homing cycles use it to exclude such motors
         // from the homing process.  Most motors can be homed.
-        virtual bool can_home();
+        bool can_home();
 
         // type_id is an enumerated value that designates
         // what kind of motor it is.  It is used to enable
@@ -121,6 +116,10 @@ namespace Motors {
         motor_class_id_t type_id;
 
     protected:
+        // config_message(), called from init(), displays a message describing
+        // the motor configuration - pins and other motor-specific items
+        virtual void config_message() {}
+
         // _axis_index is the axis from XYZABC, while
         // _dual_axis_index is 0 for the primary motor on that
         // axis and 1 for the ganged motor.
