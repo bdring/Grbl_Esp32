@@ -9,6 +9,7 @@ namespace Motors {
 
         // Overrides for inherited methods
         void init() override;
+        bool set_homing_mode(bool isHoming) override { return true; }
         void set_disable(bool disable) override;
         void set_direction(bool) override;
         void step() override;

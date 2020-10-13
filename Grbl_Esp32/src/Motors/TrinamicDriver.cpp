@@ -69,14 +69,16 @@ namespace Motors {
             return;
         }
 
+        config_message();
+
         SPI.begin();  // this will get called for each motor, but does not seem to hurt anything
 
         tmcstepper->begin();
-        test();           // Try communicating with motor. Prints an error if there is a problem.
+
+        _has_errors = !test();  // Try communicating with motor. Prints an error if there is a problem.
+
         read_settings();  // pull info from settings
         set_mode(false);
-
-        config_message();
     }
 
     /*
@@ -120,7 +122,7 @@ namespace Motors {
                 status.sr = tmcstepper->DRV_STATUS();
 
                 bool err = false;
-                // look for open loan or short 2 ground on a and b
+                // look for open or short to ground on a and b
                 if (status.s2ga || status.s2gb) {
                     grbl_msg_sendf(CLIENT_SERIAL,
                                    MsgLevel::Info,

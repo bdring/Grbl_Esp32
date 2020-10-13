@@ -86,11 +86,7 @@ namespace Motors {
         bool set_homing_mode(bool ishoming) override;
         void set_disable(bool disable) override;
 
-        void set_mode(bool isHoming);
-        void trinamic_test_response();
-        void trinamic_stepper_enable(bool enable);
         void debug_message();
-        bool test();
 
     private:
         uint32_t calc_tstep(float speed, float percent);
@@ -104,8 +100,13 @@ namespace Motors {
         bool            _has_errors;
         bool            _disabled;
 
+        TrinamicMode _mode = TrinamicMode::None;
+        bool test();
+        void set_mode(bool isHoming);
+        void trinamic_test_response();
+        void trinamic_stepper_enable(bool enable);
+
     protected:
         void config_message() override;
-        TrinamicMode _mode = TrinamicMode::None;
     };
 }
