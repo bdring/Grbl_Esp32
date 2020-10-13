@@ -17,7 +17,7 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#ifndef UNIT_TEST
 #include "src/Grbl.h"
 
 void setup() {
@@ -27,3 +27,4 @@ void setup() {
 void loop() {
     run_once();
 }
+#endif

@@ -2,6 +2,9 @@
 
 #ifdef ESP32
 
+#    include <Arduino.h>
+#    include "unity.h"
+
 #    include <src/Assert.h>
 #    include "TestFactory.h"
 
@@ -16,14 +19,26 @@
                                                                                                                                            \
             const char* unitTestCase() const override { return #testCase; }                                                                \
             const char* unitTestName() const override { return #testName; }                                                                \
-            void        run() override;                                                                                                    \
+                                                                                                                                           \
+            static void runDetail();                                                                                                       \
+            static void runWrap() {                                                                                                        \
+                try {                                                                                                                      \
+                    runDetail();                                                                                                           \
+                } catch (AssertionFailed ex) { TEST_FAIL_MESSAGE(ex.stackTrace.c_str()); } catch (...) {                                   \
+                    TEST_FAIL_MESSAGE("Failed for unknown reason.");                                                                       \
+                }                                                                                                                          \
+            }                                                                                                                              \
+            void run() override { runWrap(); }                                                                                             \
+                                                                                                                                           \
+            TestFunction getFunction() override { return runWrap; }                                                                        \
         };                                                                                                                                 \
                                                                                                                                            \
         TEST_CLASS_NAME(testCase, testName) TEST_INST_NAME(testCase, testName);                                                            \
                                                                                                                                            \
-        void TEST_CLASS_NAME(testCase, testName)::run()
+        void TEST_CLASS_NAME(testCase, testName)::runDetail()
 
-// after Test we get { ... }
+#    define NativeTest(testCase, testName) TEST_INST_NAME(testCase, testName)
+#    define PlatformTest(testCase, testName) Test(testCase, testName)
 
 #    define AssertThrow(statement)                                                                                                         \
         try {                                                                                                                              \
@@ -31,7 +46,7 @@
             Assert(false, "Expected statement to throw.");                                                                                 \
         } catch (...) {}
 
-#else
+#elif defined _WIN32 || defined _WIN64
 
 #    include <src/Assert.h>
 
@@ -58,6 +73,41 @@
 
 #    define Test(test_case_name, test_name) GTEST_TEST(test_case_name, test_name)
 
+#    define NativeTest(testCase, testName) Test(testCase, testName)
+#    define PlatformTest(testCase, testName) TEST_INST_NAME(testCase, testName)
+
 #    define AssertThrow(statement) GTEST_TEST_ANY_THROW_(statement, GTEST_FATAL_FAILURE_)
+
+#else
+
+#    include <src/Assert.h>
+#    include "TestFactory.h"
+
+#    define TEST_CLASS_NAME(testCase, testName) testCase##_##testName##_Test
+#    define TEST_INST_NAME(testCase, testName) testCase##_##testName##_Test_Instance
+
+// Defines a single unit test. Basically creates a small test class.
+
+#    define Test(testCase, testName)                                                                                                       \
+        struct TEST_CLASS_NAME(testCase, testName) : TestBase {                                                                            \
+            TEST_CLASS_NAME(testCase, testName)() { TestFactory::instance().registerTest(this); }                                          \
+                                                                                                                                           \
+            const char* unitTestCase() const override { return #testCase; }                                                                \
+            const char* unitTestName() const override { return #testName; }                                                                \
+            void        run() override;                                                                                                    \
+        };                                                                                                                                 \
+                                                                                                                                           \
+        TEST_CLASS_NAME(testCase, testName) TEST_INST_NAME(testCase, testName);                                                            \
+                                                                                                                                           \
+        void TEST_CLASS_NAME(testCase, testName)::run()
+
+#    define NativeTest(testCase, testName) Test(testCase, testName)
+#    define PlatformTest(testCase, testName) TEST_INST_NAME(testCase, testName)
+
+#    define AssertThrow(statement)                                                                                                         \
+        try {                                                                                                                              \
+            statement;                                                                                                                     \
+            Assert(false, "Expected statement to throw.");                                                                                 \
+        } catch (...) {}
 
 #endif

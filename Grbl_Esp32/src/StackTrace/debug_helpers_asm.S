@@ -1,5 +1,5 @@
-#ifdef _DEBUG
 #ifdef ESP32
+#ifdef UNIT_TEST
 
 // Copyright 2015-2019 Espressif Systems (Shanghai) PTE LTD
 //

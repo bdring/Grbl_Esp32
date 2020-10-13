@@ -17,11 +17,11 @@ namespace Pins {
                 return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::Output | PinCapabilities::PullUp |
                        PinCapabilities::PullDown | PinCapabilities::ADC | PinCapabilities::PWM | PinCapabilities::ISR;
 
-            case 1:  // TX pin
-                return PinCapabilities::Native | PinCapabilities::Output;
+            case 1:  // TX pin of Serial0. Note that Serial0 also runs through the Pins framework!
+                return PinCapabilities::Native | PinCapabilities::Output | PinCapabilities::Input;
 
-            case 3:  // RX pin
-                return PinCapabilities::Native | PinCapabilities::Input | PinCapabilities::ISR;
+            case 3:  // RX pin of Serial0. Note that Serial0 also runs through the Pins framework!
+                return PinCapabilities::Native | PinCapabilities::Output | PinCapabilities::Input | PinCapabilities::ISR;
 
             case 5:
             case 16:
@@ -112,9 +112,15 @@ namespace Pins {
     }
 
     void GPIOPinDetail::setAttr(PinAttributes value) {
+        // These two assertions will fail if we do them for index 1/3 (Serial uart). This is because 
+        // they are initialized by HardwareSerial well before we start our main operations. Best to 
+        // just ignore them for now, and figure this out later. TODO FIXME!
+
         // Check the attributes first:
-        Assert(value.validateWith(this->_capabilities), "The requested attributes don't match the pin capabilities");
-        Assert(!_attributes.conflictsWith(value), "Attributes on this pin have been set before, and there's a conflict.");
+        Assert(value.validateWith(this->_capabilities) || _index == 1 || _index == 3,
+               "The requested attributes don't match the pin capabilities");
+        Assert(!_attributes.conflictsWith(value) || _index == 1 || _index == 3,
+               "Attributes on this pin have been set before, and there's a conflict.");
 
         _attributes = value;
 

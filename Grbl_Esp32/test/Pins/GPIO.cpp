@@ -9,9 +9,14 @@ extern "C" void __pinMode(uint8_t pin, uint8_t mode);
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 struct GPIOSupport {
-    static void reset() {}
-    static bool state(int index) { return __digitalRead(index); }
-    static void setState(int index, bool value) { return __digitalWrite(index, value); }
+    static void reset() {
+        __pinMode(16, INPUT | OUTPUT);
+        __pinMode(17, INPUT | OUTPUT);
+        __digitalWrite(16, LOW);
+        __digitalWrite(17, LOW);
+    }
+    static bool state(int index) { return __digitalRead(17) != LOW; }
+    static void setState(int index, bool value) { return __digitalWrite(17, value ? HIGH : LOW); }
 };
 
 #else
@@ -20,7 +25,7 @@ struct GPIOSupport {
 struct GPIOSupport {
     static void reset() { SoftwareGPIO::reset(); }
     static bool state(int index) { return SoftwareGPIO::instance().get(index); }
-    static void setState(int index, bool value) { SoftwareGPIO::instance().set(index, true); }
+    static void setState(int index, bool value) { SoftwareGPIO::instance().set(index, value); }
 };
 
 #endif

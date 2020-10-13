@@ -9,6 +9,11 @@ struct TestBase {
     virtual const char* unitTestCase() const = 0;
     virtual const char* unitTestName() const = 0;
 
+#ifdef ESP32
+    typedef void (*TestFunction)();
+    virtual TestFunction getFunction() = 0;
+#else
+#endif
     virtual void run() = 0;
 };
 

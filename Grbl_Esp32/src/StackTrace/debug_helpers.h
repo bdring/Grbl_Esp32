@@ -1,5 +1,5 @@
-#ifdef _DEBUG
-#    ifdef ESP32
+#ifdef ESP32
+#    ifdef UNIT_TEST
 // Copyright 2015-2019 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,6 +94,7 @@ bool esp_backtrace_get_next_frame(esp_backtrace_frame_t* frame);
      *      - ESP_OK    Backtrace successfully printed to completion or to depth limit
      *      - ESP_FAIL  Backtrace is corrupted
      */
+
 String esp_backtrace_print(int depth);
 
 #        endif

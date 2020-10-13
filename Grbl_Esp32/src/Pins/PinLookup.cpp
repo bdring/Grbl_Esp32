@@ -3,6 +3,7 @@
 
 #include "VoidPinDetail.h"
 #include "ErrorPinDetail.h"
+#include "GPIOPinDetail.h"
 #include "PinOptionsParser.h"
 
 #include <Arduino.h>
@@ -30,12 +31,19 @@ namespace Pins {
         // There are a few special indices, which we always have
         // to initialize:
         //
+        // - 1 = UART0 TX
+        // - 3 = UART0 RX
         // - 254 = undefined pin, maps to VoidPinDetail
         // - 255 = fault pin (if you use it, it gives an error)
 
         char             stub;
         PinOptionsParser parser(&stub, &stub);
 
+        // Set up pins for Serial:
+        inst._pins[1] = new Pins::GPIOPinDetail(1, parser);
+        inst._pins[3] = new Pins::GPIOPinDetail(3, parser);
+
+        // Setup void and error pins:
         inst._pins[254] = new Pins::VoidPinDetail(parser);
         inst._pins[255] = new Pins::ErrorPinDetail(parser);
     }

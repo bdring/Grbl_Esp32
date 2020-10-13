@@ -1,5 +1,5 @@
-#ifdef _DEBUG
-#    ifdef ESP32
+#ifdef ESP32
+#    ifdef UNIT_TEST
 
 // Copyright 2015-2019 Espressif Systems (Shanghai) PTE LTD
 //
@@ -43,8 +43,8 @@ bool IRAM_ATTR esp_backtrace_get_next_frame(esp_backtrace_frame_t* frame) {
     //Use frame(i-1)'s BS area located below frame(i)'s sp to get frame(i-1)'s sp and frame(i-2)'s pc
     void* base_save = (void*)frame->sp;  //Base save area consists of 4 words under SP
     frame->pc       = frame->next_pc;
-    frame->next_pc  = *((uint32_t*)(base_save - 16));  //If next_pc = 0, indicates frame(i-1) is the last frame on the stack
-    frame->sp       = *((uint32_t*)(base_save - 12));
+    frame->next_pc  = *((uint32_t*)(((char*)base_save) - 16));  //If next_pc = 0, indicates frame(i-1) is the last frame on the stack
+    frame->sp       = *((uint32_t*)(((char*)base_save) - 12));
 
     //Return true if both sp and pc of frame(i-1) are sane, false otherwise
     return (esp_stack_ptr_is_sane(frame->sp) && esp_ptr_executable((void*)esp_cpu_process_stack_pc(frame->pc)));

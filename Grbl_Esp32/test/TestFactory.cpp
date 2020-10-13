@@ -5,48 +5,26 @@
 
 #ifdef ESP32
 
-#    include <HardwareSerial.h>
-#    include <string.h>
+#include "unity.h"
+#include <cstdio>
 
 void TestFactory::runAll() {
-    const int Indent = 80;
-
-    char spaces[Indent];
-    memset(spaces, ' ', Indent - 1);
-    spaces[Indent - 1] = '\0';
-
+    int index = 0;
     auto        current = first;
-    const char* prev    = nullptr;
+    const char* prev = nullptr;
     while (current) {
-        auto curTest = current->unitTestName();
+        ++index;
+        auto curTestName = current->unitTestName();
+        auto curTestCase = current->unitTestCase();
 
-        if (prev == nullptr || !strcmp(prev, curTest)) {
-            Serial.print("- Test: ");
-            Serial.println(curTest);
-            prev = curTest;
-        }
+        char fullName[80];
+        snprintf(fullName, 80, "%s:%s", curTestName, curTestCase);
 
-        Serial.print("  - Case: ");
-        Serial.print(current->unitTestCase());
+        auto function = current->getFunction();
+        UnityDefaultTestRun(function, fullName, index);
 
-        int len = int(strlen(current->unitTestCase()));
-        if (len >= (Indent - 5)) {
-            len = (Indent - 5);
-        }
-        Serial.print(spaces + len);  // pad.
-        Serial.flush();
-
-        try {
-            current->run();
-            Serial.println("Passed.");
-        } catch (AssertionFailed& ex) {
-            Serial.println("FAILED!");
-            Serial.println(ex.stackTrace.c_str());
-        } catch (...) { Serial.println("FAILED!"); }
         current = current->next;
     }
-    Serial.println();
-    Serial.println("Done.");
 }
 
 #else
@@ -119,4 +97,5 @@ void TestFactory::runAll() {
 
     printf("\r\nDone.\r\n");
 }
+
 #endif

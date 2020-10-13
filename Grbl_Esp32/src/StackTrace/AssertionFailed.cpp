@@ -1,16 +1,14 @@
 #include "AssertionFailed.h"
 
-#ifdef _DEBUG
-
-#    ifdef ESP32
+#ifdef ESP32
+#    ifdef UNIT_TEST
 
 #        include "debug_helpers.h"
 #        include "WString.h"
 
 AssertionFailed::AssertionFailed(const char* condition, const char* msg) {
-    String st = "\r\nError ";
-    st += condition;
-    st += " failed: ";
+    String st = condition;
+    st += ": ";
     st += msg;
     st += " at: ";
     st += esp_backtrace_print(10);
@@ -20,10 +18,23 @@ AssertionFailed::AssertionFailed(const char* condition, const char* msg) {
 
 #    else
 
-#        include <iostream>
-#        include <string>
-#        include <sstream>
-#        include "WString.h"
+AssertionFailed::AssertionFailed(const char* condition, const char* msg) {
+    String st = "\r\nError ";
+    st += condition;
+    st += " failed: ";
+    st += msg;
+
+    stackTrace = st;
+}
+
+#    endif
+
+#else
+
+#    include <iostream>
+#    include <string>
+#    include <sstream>
+#    include "WString.h"
 
 extern void DumpStackTrace(std::ostringstream& builder);
 
@@ -37,19 +48,6 @@ AssertionFailed::AssertionFailed(const char* condition, const char* msg) {
     DumpStackTrace(oss);
 
     container = oss.str();
-}
-
-#    endif
-
-#else
-
-AssertionFailed::AssertionFailed(const char* condition, const char* msg) {
-    String st = "\r\nError ";
-    st += condition;
-    st += " failed: ";
-    st += msg;
-
-    stackTrace = st;
 }
 
 #endif
