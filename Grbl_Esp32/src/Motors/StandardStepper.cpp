@@ -82,8 +82,8 @@ namespace Motors {
     void StandardStepper::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis Standard Stepper Step:%s Dir:%s Disable:%s %s",
-                       axis_name(),
+                       "%s Standard Stepper Step:%s Dir:%s Disable:%s %s",
+                       reportAxisNameMsg(_axis_index, _dual_axis_index),
                        pinName(_step_pin).c_str(),
                        pinName(_dir_pin).c_str(),
                        pinName(_disable_pin).c_str(),

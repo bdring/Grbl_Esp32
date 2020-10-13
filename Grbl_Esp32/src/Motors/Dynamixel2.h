@@ -79,7 +79,7 @@ namespace Motors {
         // Overrides for inherited methods
         void init() override;
         void read_settings() override;
-        void set_homing_mode(bool isHoming) override;
+        bool set_homing_mode(bool isHoming) override;
         void set_disable(bool disable) override;
         void update() override;
 

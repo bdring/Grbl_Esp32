@@ -60,8 +60,8 @@ namespace Motors {
         // which in turn is called at the beginning of a homing cycle
         // with isHoming true, and at the end with isHoming false.
         // Some motor types require differ setups for homing and
-        // normal operation.
-        virtual void set_homing_mode(bool isHoming) {}
+        // normal operation.  Returns true if the motor can home
+        virtual bool set_homing_mode(bool isHoming) = 0;
 
         // set_disable() disables or enables a motor.  It is used to
         // make a motor transition between idle and non-idle states.
@@ -89,21 +89,10 @@ namespace Motors {
         // TODO Architecture: Should this be private?
         virtual bool test();
 
-        // axis_name() returns the string name of the axis associated
-        // with the motor, for example "X2".  It is used by many
-        // of the methods that display messages, to indicate the
-        // motor to which the message applies.
-        virtual char* axis_name();
-
         // update() is used for some types of "smart" motors that
         // can be told to move to a specific position.  It is
         // called from a periodic task.
         virtual void update() {}
-
-        // can_home() returns false if the motor is incapable of
-        // homing.  Homing cycles use it to exclude such motors
-        // from the homing process.  Most motors can be homed.
-        bool can_home();
 
         // type_id is an enumerated value that designates
         // what kind of motor it is.  It is used to enable
@@ -134,8 +123,5 @@ namespace Motors {
         // reference to the axis settings entry.
         uint8_t _axis_index;       // X_AXIS, etc
         uint8_t _dual_axis_index;  // 0 = primary 1=ganged
-
-        // Storage for the can_home() method
-        bool _can_home = true;
     };
 }

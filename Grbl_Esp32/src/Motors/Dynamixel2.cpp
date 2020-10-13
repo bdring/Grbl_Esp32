@@ -38,8 +38,6 @@ namespace Motors {
     }
 
     void Dynamixel2::init() {
-        _can_home = false;  // this axis cannot be conventionally homed
-
         init_uart(_id, _axis_index, _dual_axis_index);  // static and only allows one init
 
         read_settings();
@@ -63,8 +61,8 @@ namespace Motors {
     void Dynamixel2::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis Dynamixel Servo ID:%d Count(%5.0f,%5.0f) %s",
-                       axis_name(),
+                       "%s Dynamixel Servo ID:%d Count(%5.0f,%5.0f) %s",
+                       reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _id,
                        _dxl_count_min,
                        _dxl_count_max,
@@ -85,22 +83,23 @@ namespace Motors {
             if (model_num == 1060) {
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
-                               "%s Axis Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
-                               axis_name(),
+                               "%s Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
+                               reportAxisNameMsg(_axis_index, _dual_axis_index),
                                _id,
                                _dxl_rx_message[11]);
             } else {
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
-                               "%s Axis Dynamixel Detected ID %d M/N %d F/W Rev %x",
-                               axis_name(),
+                               "%s Dynamixel Detected ID %d M/N %d F/W Rev %x",
+                               reportAxisNameMsg(_axis_index, _dual_axis_index),
                                _id,
                                model_num,
                                _dxl_rx_message[11]);
             }
 
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Axis Dynamixel Servo ID %d Ping failed", axis_name(), _id);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(_axis_index, _dual_axis_index),
+_id);
             return false;
         }
 
@@ -184,15 +183,16 @@ namespace Motors {
 
     // This motor will not do a standard home to a limit switch (maybe future)
     // If it is in the homing mask it will a quick move to $<axis>/Home/Mpos
-    void Dynamixel2::set_homing_mode(bool isHoming) {
+    bool Dynamixel2::set_homing_mode(bool isHoming) {
         if (_has_errors) {
-            return;
+            return false;
         }
         sys_position[_axis_index] =
             axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
 
         set_disable(false);
         set_location();  // force the PWM to update now
+        return false;  // Cannot do conventional homing
     }
 
     void Dynamixel2::dxl_goal_position(int32_t position) {

@@ -20,8 +20,8 @@ namespace Motors {
     void UnipolarMotor::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s %s",
-                       axis_name(),
+                       "%s Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s %s",
+                       reportAxisNameMsg(_axis_index, _dual_axis_index),
                        pinName(_pin_phase0).c_str(),
                        pinName(_pin_phase1).c_str(),
                        pinName(_pin_phase2).c_str(),

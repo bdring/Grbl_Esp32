@@ -53,10 +53,11 @@ uint8_t get_next_trinamic_driver_index();
 bool    motors_have_type_id(motor_class_id_t id);
 void    readSgTask(void* pvParameters);
 void    motors_read_settings();
-void    motors_set_homing_mode(uint8_t homing_mask, bool isHoming);
+
+// The return value is a bitmask of axes that can home
+uint8_t motors_set_homing_mode(uint8_t homing_mask, bool isHoming);
 void    motors_set_disable(bool disable);
 void    motors_step(uint8_t step_mask, uint8_t dir_mask);
 void    motors_unstep();
 
 void servoUpdateTask(void* pvParameters);
-bool motor_can_home(uint8_t index);

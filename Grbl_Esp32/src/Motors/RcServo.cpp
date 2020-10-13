@@ -41,7 +41,6 @@ namespace Motors {
         ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
         ledcAttachPin(_pwm_pin, _channel_num);
         _current_pwm_duty = 0;
-        _can_home         = false;  // this axis cannot be conventionally homed
 
         config_message();
     }
@@ -49,8 +48,8 @@ namespace Motors {
     void RcServo::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis RC Servo Pin:%d Pulse Len(%.0f,%.0f) %s",
-                       axis_name(),
+                       "%s RC Servo Pin:%d Pulse Len(%.0f,%.0f) %s",
+                       reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _pwm_pin,
                        _pwm_pulse_min,
                        _pwm_pulse_max,
@@ -77,15 +76,15 @@ namespace Motors {
     }
 
     // Homing justs sets the new system position and the servo will move there
-    void RcServo::set_homing_mode(bool isHoming) {
+    bool RcServo::set_homing_mode(bool isHoming) {
         float home_pos = 0.0;
 
         sys_position[_axis_index] =
             axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
 
-        set_location();  // force the PWM to update now
-
+        set_location();   // force the PWM to update now
         vTaskDelay(750);  // give time to move
+        return false;     // Cannot be homed in the conventional way
     }
 
     void RcServo::update() { set_location(); }

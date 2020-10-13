@@ -40,11 +40,5 @@ namespace Motors {
     void Motor::debug_message() {}
 
     bool Motor::test() { return true; };  // true = OK
-    bool Motor::can_home() { return _can_home; };
 
-    char* Motor::axis_name() {
-        static char name[10];
-        sprintf(name, "%c%s", report_get_axis_letter(_axis_index), _dual_axis_index ? "2" : " ");
-        return name;
-    }
 }

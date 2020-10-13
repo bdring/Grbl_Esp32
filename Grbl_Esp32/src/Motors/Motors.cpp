@@ -390,15 +390,18 @@ void motors_read_settings() {
 
 // use this to tell all the motors what the current homing mode is
 // They can use this to setup things like Stall
-void motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
+uint8_t motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
+    uint8_t can_home = 0;
     auto n_axis = number_axis->get();
-    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            if (bitnum_istrue(homing_mask, axis)) {
-                myMotor[axis][gang_index]->set_homing_mode(isHoming);
+    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+        if (bitnum_istrue(homing_mask, axis)) {
+            if (myMotor[axis][0]->set_homing_mode(isHoming)) {
+                bitnum_true(can_home, axis);
             }
+            myMotor[axis][1]->set_homing_mode(isHoming);
         }
     }
+    return can_home;
 }
 
 // returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
@@ -490,10 +493,6 @@ void readSgTask(void* pvParameters) {
         }      // if mask
         vTaskDelayUntil(&xLastWakeTime, xreadSg);
     }
-}
-
-bool motor_can_home(uint8_t axis) {
-    return myMotor[axis][0]->can_home();
 }
 
 #ifdef USE_I2S_OUT
