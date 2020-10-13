@@ -33,8 +33,8 @@ namespace UserOutput {
         void init();
         void config_message();
 
-        Pin _number = Pin::UNDEFINED;
-        Pin _pin    = Pin::UNDEFINED;
+        uint8_t _number = -1;  // TODO FIXME! Undefined is wrong here; -1?
+        Pin     _pin    = Pin::UNDEFINED;
     };
 
     class AnalogOutput {
@@ -47,7 +47,7 @@ namespace UserOutput {
         void init();
         void config_message();
 
-        Pin     _number      = Pin::UNDEFINED;
+        int     _number      = -1;  // TODO FIXME! Undefined is wrong here; -1?
         Pin     _pin         = Pin::UNDEFINED;
         uint8_t _pwm_channel = -1;  // -1 means invalid or not setup
         float   _pwm_frequency;

@@ -68,10 +68,10 @@ namespace Spindles {
         _pwm_min_value = _pwm_off_value;
         _pwm_max_value = BESC_MAX_PULSE_CNT;
 
-        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
+        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);                     // setup the channel
+        ledcAttachPin(_output_pin.getNative(Pin::Capabilities::Output), _pwm_chan_num);  // attach the PWM to the pin
 
-        pinMode(_enable_pin, OUTPUT);
+        _enable_pin.setAttr(Pin::Attr::Output);
 
         set_rpm(0);
 

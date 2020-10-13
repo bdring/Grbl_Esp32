@@ -33,22 +33,22 @@ namespace UserOutput {
     }
 
     void DigitalOutput::init() {
-        pinMode(_pin, OUTPUT);
-        digitalWrite(_pin, LOW);
+        _pin.setAttr(Pin::Attr::Output);
+        _pin.off();  // TODO: or low?
 
         config_message();
     }
 
     void DigitalOutput::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "User Digital Output:%d on Pin:%s", _number, pinName(_pin).c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "User Digital Output:%d on Pin:%s", _number, _pin.name().c_str());
     }
 
     bool DigitalOutput::set_level(bool isOn) {
-        if (_number == Pin::UNDEFINED && isOn) {
+        if (_number < 0 && isOn) {  // TODO FIXME: Should this be || ?
             return false;
         }
 
-        digitalWrite(_pin, isOn);
+        _pin.write(isOn);
         return true;
     }
 
@@ -76,7 +76,7 @@ namespace UserOutput {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of PWM channels");
         } else {
             ledcSetup(_pwm_channel, _pwm_frequency, _resolution_bits);
-            ledcAttachPin(_pin, _pwm_channel);
+            ledcAttachPin(_pin.getNative(Pins::PinCapabilities::Output), _pwm_channel);
             ledcWrite(_pwm_channel, 0);
 
             config_message();
@@ -85,7 +85,7 @@ namespace UserOutput {
 
     void AnalogOutput::config_message() {
         grbl_msg_sendf(
-            CLIENT_SERIAL, MsgLevel::Info, "User Analog Output:%d on Pin:%s Freq:%0.0fHz", _number, pinName(_pin).c_str(), _pwm_frequency);
+            CLIENT_SERIAL, MsgLevel::Info, "User Analog Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
     }
 
     // returns true if able to set value

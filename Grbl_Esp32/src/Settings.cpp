@@ -470,10 +470,11 @@ void PinSetting::setDefault() {
 
 Error PinSetting::setStringValue(char* s) {
     if (!Pin::validate(s)) {
-        return STATUS_BAD_NUMBER_FORMAT;
+        return Error::BadNumberFormat;
     }
 
-    if (Error err = check(s)) {
+    Error err = check(s);
+    if (err != Error::Ok) {
         return err;
     }
     if (_storedValue != s) {
@@ -482,17 +483,20 @@ Error PinSetting::setStringValue(char* s) {
             _storedValue = _defaultValue;
         } else {
             if (nvs_set_str(_handle, _keyName, s)) {
-                return STATUS_NVS_SET_FAILED;
+                return Error::NvsSetFailed;
             }
             _storedValue = s;
         }
     }
-    return STATUS_OK;
+    return Error::Ok;
 }
 
 const char* PinSetting::getStringValue() {
     // If the string is a password do not display it
     return _storedValue.c_str();
+}
+const char* PinSetting::getDefaultString() {
+    return "undef";
 }
 
 void PinSetting::addWebui(WebUI::JSONencoder* j) {

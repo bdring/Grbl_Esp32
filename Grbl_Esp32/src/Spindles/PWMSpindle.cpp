@@ -38,16 +38,16 @@ namespace Spindles {
             return;  // We cannot continue without the output pin
         }
 
-        if (_output_pin >= I2S_OUT_PIN_BASE) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin %s cannot do PWM", pinName(_output_pin).c_str());
+        if (_output_pin.capabilities().has(Pins::PinCapabilities::I2S)) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin %s cannot do PWM", _output_pin.name().c_str());
             return;
         }
 
-        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
+        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);                     // setup the channel
+        ledcAttachPin(_output_pin.getNative(Pin::Capabilities::Output), _pwm_chan_num);  // attach the PWM to the pin
 
-        pinMode(_enable_pin, OUTPUT);
-        pinMode(_direction_pin, OUTPUT);
+        _enable_pin.setAttr(Pin::Attr::Output);
+        _direction_pin.setAttr(Pin::Attr::Output);
 
         use_delays = true;
 
@@ -186,7 +186,7 @@ namespace Spindles {
             return SpindleState::Disable;
         }
         if (_direction_pin != Pin::UNDEFINED) {
-            return digitalRead(_direction_pin) ? SpindleState::Cw : SpindleState::Ccw;
+            return _direction_pin.read() ? SpindleState::Cw : SpindleState::Ccw;
         }
         return SpindleState::Cw;
     }
@@ -202,9 +202,9 @@ namespace Spindles {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
                        "PWM spindle Output:%s, Enbl:%s, Dir:%s, Freq:%dHz, Res:%dbits",
-                       pinName(_output_pin).c_str(),
-                       pinName(_enable_pin).c_str(),
-                       pinName(_direction_pin).c_str(),
+                       _output_pin.name().c_str(),
+                       _enable_pin.name().c_str(),
+                       _direction_pin.name().c_str(),
                        _pwm_freq,
                        _pwm_precision);
     }
@@ -243,10 +243,10 @@ namespace Spindles {
             enable = !enable;
         }
 
-        digitalWrite(_enable_pin, enable);
+        _enable_pin.write(enable);
     }
 
-    void PWM::set_dir_pin(bool Clockwise) { digitalWrite(_direction_pin, Clockwise); }
+    void PWM::set_dir_pin(bool Clockwise) { _direction_pin.write(Clockwise); }
 
     /*
 		Calculate the highest precision of a PWM based on the frequency in bits
