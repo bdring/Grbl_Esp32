@@ -70,13 +70,13 @@ namespace Motors {
         }
 
         SPI.begin();  // this will get called for each motor, but does not seem to hurt anything
-
+        
+        read_settings();  // pull info from settings
+        config_message();
         tmcstepper->begin();
         test();           // Try communicating with motor. Prints an error if there is a problem.
-        read_settings();  // pull info from settings
-        set_mode(false);
-
-        config_message();
+        
+        set_mode(false);        
     }
 
     /*
