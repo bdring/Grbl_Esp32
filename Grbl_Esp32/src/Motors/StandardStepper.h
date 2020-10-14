@@ -29,5 +29,10 @@ namespace Motors {
         uint8_t _step_pin;
         uint8_t _dir_pin;
         uint8_t _disable_pin;
+
+    private:
+        static rmt_channel_t get_next_RMT_chan_num();
+        static rmt_item32_t  rmtItem[2];
+        static rmt_config_t  rmtConfig;
     };
 }

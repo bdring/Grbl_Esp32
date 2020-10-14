@@ -23,6 +23,6 @@
 
 namespace Motors {
    Nullmotor::Nullmotor(uint8_t axis_index) :
-       Motor(NULL_MOTOR, axis_index)
+       Motor(axis_index)
    {}
 }

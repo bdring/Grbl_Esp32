@@ -77,6 +77,17 @@ namespace Motors {
                        uint8_t  disable_pin,
                        uint8_t  cs_pin,
                        uint16_t driver_part_number,
+                       float    r_sense) :
+            TrinamicDriver(axis_index, step_pin, dir_pin, disable_pin,
+                           cs_pin, driver_part_number, r_sense, get_next_index())
+        {}
+
+        TrinamicDriver(uint8_t  axis_index,
+                       uint8_t  step_pin,
+                       uint8_t  dir_pin,
+                       uint8_t  disable_pin,
+                       uint8_t  cs_pin,
+                       uint16_t driver_part_number,
                        float    r_sense,
                        int8_t   spi_index);
 
@@ -105,6 +116,8 @@ namespace Motors {
         void set_mode(bool isHoming);
         void trinamic_test_response();
         void trinamic_stepper_enable(bool enable);
+
+        uint8_t get_next_index();
 
         // Linked list of Trinamic driver instances, used by the
         // StallGuard reporting task.

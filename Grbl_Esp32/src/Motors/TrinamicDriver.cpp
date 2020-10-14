@@ -21,7 +21,24 @@
 
 #include <TMCStepper.h>
 
+#ifdef USE_I2S_OUT
+
+// Override default function and insert a short delay
+void TMC2130Stepper::switchCSpin(bool state) {
+    digitalWrite(_pinCS, state);
+    i2s_out_delay();
+}
+#endif
+
 namespace Motors {
+    uint8_t TrinamicDriver::get_next_index() {
+#ifdef TRINAMIC_DAISY_CHAIN
+        static uint8_t index = 1;  // they start at 1
+        return index++;
+#else
+        return -1;
+#endif
+    }
     TrinamicDriver* TrinamicDriver::List = NULL;
 
     TrinamicDriver::TrinamicDriver(uint8_t  axis_index,
@@ -33,10 +50,8 @@ namespace Motors {
                                    float    r_sense,
                                    int8_t   spi_index) :
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin),
-        _homing_mode(TRINAMIC_HOMING_MODE), _cs_pin(cs_pin), _driver_part_number(driver_part_number), _r_sense(r_sense),
-        _spi_index(spi_index) {
-        type_id = TRINAMIC_SPI_MOTOR;  // Override the value set by the StandardStepper() constructor
-
+            _homing_mode(TRINAMIC_HOMING_MODE), _cs_pin(cs_pin), _driver_part_number(driver_part_number), _r_sense(r_sense), _spi_index(spi_index)
+    {
         _has_errors = false;
         if (_driver_part_number == 2130) {
             tmcstepper = new TMC2130Stepper(_cs_pin, _r_sense, _spi_index);

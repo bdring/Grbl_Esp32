@@ -2,7 +2,7 @@
 
 namespace Motors {
     UnipolarMotor::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3) :
-        Motor(UNIPOLAR_MOTOR, axis_index), _pin_phase0(pin_phase0), _pin_phase1(pin_phase1), _pin_phase2(pin_phase2),
+        Motor(axis_index), _pin_phase0(pin_phase0), _pin_phase1(pin_phase1), _pin_phase2(pin_phase2),
         _pin_phase3(pin_phase3),
 
         _half_step(true)  // TODO read from settings ... microstep > 1 = half step

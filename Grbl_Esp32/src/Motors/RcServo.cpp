@@ -1,7 +1,7 @@
 /*
     RcServo.cpp
 
-    This allows an RcServo to be used like any other motor. Serrvos
+    This allows an RcServo to be used like any other motor. Servos
     do have limitation in travel and speed, so you do need to respect that.
 
     Part of Grbl_ESP32
@@ -32,7 +32,7 @@
 
 namespace Motors {
     RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max) :
-        Motor(RC_SERVO_MOTOR, axis_index), _pwm_pin(pwm_pin), _cal_min(cal_min), _cal_max(cal_max) {}
+        Servo(axis_index), _pwm_pin(pwm_pin), _cal_min(cal_min), _cal_max(cal_max) {}
 
     void RcServo::init() {
         read_settings();
@@ -42,6 +42,7 @@ namespace Motors {
         _current_pwm_duty = 0;
 
         config_message();
+        startUpdateTask();
     }
 
     void RcServo::config_message() {

@@ -36,7 +36,7 @@
 namespace Motors {
     class Motor {
     public:
-        Motor(motor_class_id_t type, uint8_t axis_index);
+        Motor(uint8_t axis_index);
 
         // init() establishes configured motor parameters.  It is called after
         // all motor objects have been constructed.
@@ -93,16 +93,6 @@ namespace Motors {
         // can be told to move to a specific position.  It is
         // called from a periodic task.
         virtual void update() {}
-
-        // type_id is an enumerated value that designates
-        // what kind of motor it is.  It is used to enable
-        // or disable various external features, for example
-        // the periodic task that is used for motors that
-        // implement the "update()" method.
-        // TODO Architecture: expose fine-grained capabilities
-        // so that the external code does not have to
-        // know which types implement which features.
-        motor_class_id_t type_id;
 
     protected:
         // config_message(), called from init(), displays a message describing

@@ -24,8 +24,23 @@
 #include "StandardStepper.h"
 
 namespace Motors {
+    rmt_item32_t StandardStepper::rmtItem[2];
+    rmt_config_t StandardStepper::rmtConfig;
+
+    // Get an RMT channel number
+    // returns RMT_CHANNEL_MAX for error
+    rmt_channel_t StandardStepper::get_next_RMT_chan_num() {
+        static uint8_t next_RMT_chan_num = uint8_t(RMT_CHANNEL_0);  // channels 0-7 are valid
+        if (next_RMT_chan_num < RMT_CHANNEL_MAX) {
+            next_RMT_chan_num++;
+        } else {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of RMT channels");
+        }
+        return rmt_channel_t(next_RMT_chan_num);
+    }
+
     StandardStepper::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) :
-        Motor(STANDARD_MOTOR, axis_index), _step_pin(step_pin), _dir_pin(dir_pin), _disable_pin(disable_pin) {
+        Motor(axis_index), _step_pin(step_pin), _dir_pin(dir_pin), _disable_pin(disable_pin) {
     }
 
     void StandardStepper::init() {
@@ -59,7 +74,7 @@ namespace Motors {
         rmtItem[1].duration0 = 0;
         rmtItem[1].duration1 = 0;
 
-        _rmt_chan_num = sys_get_next_RMT_chan_num();
+        _rmt_chan_num = get_next_RMT_chan_num();
         if (_rmt_chan_num == RMT_CHANNEL_MAX) {
             return;
         }

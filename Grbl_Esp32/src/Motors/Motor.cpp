@@ -34,8 +34,8 @@
 #include "Motor.h"
 
 namespace Motors {
-    Motor::Motor(motor_class_id_t type, uint8_t axis_index) :
-        type_id(type), _axis_index(axis_index % MAX_AXES), _dual_axis_index(axis_index / MAX_AXES) {}
+    Motor::Motor(uint8_t axis_index) :
+        _axis_index(axis_index % MAX_AXES), _dual_axis_index(axis_index / MAX_AXES) {}
 
     void Motor::debug_message() {}
 

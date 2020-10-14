@@ -69,9 +69,10 @@ const int DXL_CONTROL_MODE_POSITION = 3;
 #endif
 
 #include "Motor.h"
+#include "Servo.h"
 
 namespace Motors {
-    class Dynamixel2 : public Motor {
+    class Dynamixel2 : public Servo {
     public:
         Dynamixel2(uint8_t axis_index, uint8_t address, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin);
 

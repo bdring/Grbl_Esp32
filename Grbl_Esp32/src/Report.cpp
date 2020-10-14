@@ -935,6 +935,6 @@ char* reportAxisNameMsg(uint8_t axis, uint8_t dual_axis) {
 
 char* reportAxisNameMsg(uint8_t axis) {
     static char name[10];
-    sprintf(name, "%c Axis", report_get_axis_letter(axis));
+    sprintf(name, "%c  Axis", report_get_axis_letter(axis));
     return name;
 }

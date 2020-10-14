@@ -30,27 +30,10 @@
 */
 
 #include "../Grbl.h"
-#include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
-
-extern rmt_item32_t  rmtItem[2];
-extern rmt_config_t  rmtConfig;
-extern rmt_channel_t sys_get_next_RMT_chan_num();
-
-typedef enum {
-    MOTOR,
-    NULL_MOTOR,
-    STANDARD_MOTOR,
-    TRINAMIC_SPI_MOTOR,
-    UNIPOLAR_MOTOR,
-    RC_SERVO_MOTOR,
-    SOLENOID,
-    DYNAMIXEL2
-} motor_class_id_t;
 
 // These are used for setup and to talk to the motors as a group.
 void    init_motors();
 uint8_t get_next_trinamic_driver_index();
-bool    motors_have_type_id(motor_class_id_t id);
 void    readSgTask(void* pvParameters);
 void    motors_read_settings();
 

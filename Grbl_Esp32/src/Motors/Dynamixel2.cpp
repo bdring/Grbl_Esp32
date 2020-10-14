@@ -27,8 +27,11 @@
 #include "Dynamixel2.h"
 
 namespace Motors {
+    bool    Motors::Dynamixel2::uart_ready         = false;
+    uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
+
     Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin) :
-        Motor(DYNAMIXEL2, axis_index), _id(id), _tx_pin(tx_pin), _rx_pin(rx_pin), _rts_pin(rts_pin) {
+        Servo(axis_index), _id(id), _tx_pin(tx_pin), _rx_pin(rx_pin), _rts_pin(rts_pin) {
         if (_tx_pin == UNDEFINED_PIN || _rx_pin == UNDEFINED_PIN || _rts_pin == UNDEFINED_PIN) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Error. Missing pin definitions");
             _has_errors = true;
@@ -56,6 +59,8 @@ namespace Motors {
         LED_on(true);
         vTaskDelay(100);
         LED_on(false);
+
+        startUpdateTask();
     }
 
     void Dynamixel2::config_message() {
