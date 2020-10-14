@@ -161,6 +161,8 @@ void init_motors() {
         myMotor[A_AXIS][0] = new Motors::UnipolarMotor(A_AXIS, A_PIN_PHASE_0, A_PIN_PHASE_1, A_PIN_PHASE_2, A_PIN_PHASE_3);
 #elif defined(A_STEP_PIN)
         myMotor[A_AXIS][0] = new Motors::StandardStepper(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN);
+#elif defined(A_DYNAMIXEL_ID)
+        myMotor[A_AXIS][0] = new Motors::Dynamixel2(A_AXIS, A_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
         myMotor[A_AXIS][0] = new Motors::Nullmotor(A_AXIS);
 #endif
@@ -193,6 +195,8 @@ void init_motors() {
         myMotor[B_AXIS][0] = new Motors::UnipolarMotor(B_AXIS, B_PIN_PHASE_0, B_PIN_PHASE_1, B_PIN_PHASE_2, B_PIN_PHASE_3);
 #elif defined(B_STEP_PIN)
         myMotor[B_AXIS][0] = new Motors::StandardStepper(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN);
+#elif defined(B_DYNAMIXEL_ID)
+        myMotor[B_AXIS][0] = new Motors::Dynamixel2(B_AXIS, B_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
         myMotor[B_AXIS][0] = new Motors::Nullmotor(B_AXIS);
 #endif
@@ -225,6 +229,8 @@ void init_motors() {
         myMotor[C_AXIS][0] = new Motors::UnipolarMotor(C_AXIS, C_PIN_PHASE_0, C_PIN_PHASE_1, C_PIN_PHASE_2, C_PIN_PHASE_3);
 #elif defined(C_STEP_PIN)
         myMotor[C_AXIS][0] = new Motors::StandardStepper(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN);
+#elif defined(C_DYNAMIXEL_ID)
+        myMotor[C_AXIS][0] = new Motors::Dynamixel2(C_AXIS, C_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
         myMotor[C_AXIS][0] = new Motors::Nullmotor(C_AXIS);
 #endif
