@@ -102,7 +102,7 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_send(client, temp);
     va_end(arg);
-    if (len > 64) {
+    if (temp != loc_buf) {
         delete[] temp;
     }
 }
@@ -131,7 +131,7 @@ void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...) {
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_sendf(client, "[MSG:%s]\r\n", temp);
     va_end(arg);
-    if (len > 100) {
+    if (temp != loc_buf) {
         delete[] temp;
     }
 }
@@ -161,7 +161,7 @@ void grbl_notifyf(const char* title, const char* format, ...) {
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_notify(title, temp);
     va_end(arg);
-    if (len > 64) {
+    if (temp != loc_buf) {
         delete[] temp;
     }
 }
