@@ -170,7 +170,7 @@ void DumpStackTrace(std::ostringstream& builder) {
                     builder << std::endl;
                 }
 
-            } else if (fnName.find("CreateException") != std::string::npos) {
+            } else if (fnName.find("AssertionFailed") != std::string::npos) {
                 foundCreateException = true;
             }
 

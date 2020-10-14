@@ -2,6 +2,9 @@
 
 #include "SoftwareGPIO.h"
 
+#include <chrono>
+#include <thread>
+
 void attachInterrupt(uint8_t pin, void (*callback)(void), int mode) {
     attachInterruptArg(
         pin,
@@ -24,7 +27,7 @@ void detachInterrupt(uint8_t pin) {
 extern "C" int __digitalRead(uint8_t pin) {
     auto& io = SoftwareGPIO::instance();
     io.testMode(pin, INPUT);
-    return io.get(pin) ? 1 : 0;
+    return io.getInput(pin) ? 1 : 0;
 }
 
 extern "C" void __pinMode(uint8_t pin, uint8_t mode) {
@@ -36,5 +39,9 @@ extern "C" void __pinMode(uint8_t pin, uint8_t mode) {
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val) {
     auto& io = SoftwareGPIO::instance();
     io.testMode(pin, OUTPUT);
-    return io.set(pin, val ? true : false);
+    return io.setOutput(pin, val ? true : false);
+}
+
+void delay(int ms) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }

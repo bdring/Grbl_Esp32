@@ -4,22 +4,24 @@
 #include <src/Assert.h>
 
 struct SoftwarePin {
-    SoftwarePin() : callback(), argument(nullptr), mode(0), value(false), pinMode(0) {}
+    SoftwarePin() : callback(), argument(nullptr), mode(0), inputValue(false), outputValue(false), pinMode(0) {}
 
     void (*callback)(void*);
     void* argument;
     int   mode;
 
-    bool value;
+    bool inputValue;
+    bool outputValue;
     int  pinMode;
 
     void handleISR() { callback(argument); }
     void reset() {
-        callback = nullptr;
-        argument = nullptr;
-        mode     = 0;
-        value    = false;
-        pinMode  = 0;
+        callback    = nullptr;
+        argument    = nullptr;
+        mode        = 0;
+        inputValue  = false;
+        outputValue = false;
+        pinMode     = 0;
     }
 };
 
@@ -52,10 +54,10 @@ public:
         pin.pinMode = mode;
     }
 
-    void set(int index, bool value) {
+    void setInput(int index, bool value) {
         auto& pin = pins[index];
-        auto  old = pin.value;
-        pin.value = value;
+        auto  old = pin.inputValue;
+        pin.inputValue = value;
 
         if (old != value) {
             switch (pin.mode) {
@@ -74,22 +76,18 @@ public:
                         pin.handleISR();
                     }
                     break;
-                    // These two are a bit weird I'd say:
-                    // case ONLOW:
-                    //     if (old && !value) {
-                    //         isr.handleISR();
-                    //     }
-                    //     break;
-                    // case ONHIGH:
-                    //     if (!old && value) {
-                    //         isr.handleISR();
-                    //     }
-                    //     break;
             }
         }
     }
 
-    bool get(int index) const { return pins[index].value; }
+    void setOutput(int index, bool value) {
+        auto& pin      = pins[index];
+        pin.outputValue = value;
+    }
+
+    bool getInput(int index) const { return pins[index].inputValue; }
+
+    bool getOutput(int index) const { return pins[index].inputValue; }
 
     void attachISR(int index, void (*callback)(void* arg), void* arg, int mode) {
         auto& pin = pins[index];

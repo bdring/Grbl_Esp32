@@ -40,6 +40,22 @@
 #    define NativeTest(testCase, testName) TEST_INST_NAME(testCase, testName)
 #    define PlatformTest(testCase, testName) Test(testCase, testName)
 
+inline void PrintSerial(const char* format, ...) {
+    va_list arg;
+    va_list copy;
+    va_start(arg, format);
+    va_copy(copy, arg);
+    size_t len = vsnprintf(NULL, 0, format, arg);
+    auto tmp = new char[len + 1];
+    va_end(copy);
+    len = vsnprintf(tmp, len + 1, format, arg);
+    Serial.println(tmp);
+    va_end(arg);
+    delete[] tmp;
+}
+
+#    define Debug(fmt, ...) PrintSerial(fmt, __VA_ARGS__);
+
 #    define AssertThrow(statement)                                                                                                         \
         try {                                                                                                                              \
             statement;                                                                                                                     \
@@ -76,6 +92,8 @@
 #    define NativeTest(testCase, testName) Test(testCase, testName)
 #    define PlatformTest(testCase, testName) TEST_INST_NAME(testCase, testName)
 
+#    define Debug(fmt, ...) printf(fmt, __VA_ARGS__); printf("\r\n");
+
 #    define AssertThrow(statement) GTEST_TEST_ANY_THROW_(statement, GTEST_FATAL_FAILURE_)
 
 #else
@@ -103,6 +121,8 @@
 
 #    define NativeTest(testCase, testName) Test(testCase, testName)
 #    define PlatformTest(testCase, testName) TEST_INST_NAME(testCase, testName)
+
+#    define Debug(fmt, ...) printf(fmt, __VA_ARGS__);
 
 #    define AssertThrow(statement)                                                                                                         \
         try {                                                                                                                              \

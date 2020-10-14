@@ -1,7 +1,7 @@
 #include "TestFramework.h"
 
-/*
-Normally you don't want these: 
+/* Normally you don't want these: 
+*/ 
 
 Test(PassingTest, TestFrameworkTest) {
     Assert(1 == 1);
@@ -18,5 +18,3 @@ Test(FailingTest2, TestFrameworkTest) {
 Test(FailingTest3, TestFrameworkTest) {
     throw "oops";
 }
-
-*/
