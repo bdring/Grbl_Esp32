@@ -23,7 +23,7 @@
 // Grbl versioning system
 
 const char* const GRBL_VERSION       = "1.3a";
-const char* const GRBL_VERSION_BUILD = "20201004";
+const char* const GRBL_VERSION_BUILD = "20201015";
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -87,7 +87,7 @@ const char* const GRBL_VERSION_BUILD = "20201004";
 #    endif
 #endif
 
-#    include "I2SOut.h"
+#include "I2SOut.h"
 
 void grbl_init();
 void run_once();
