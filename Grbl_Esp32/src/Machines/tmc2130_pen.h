@@ -59,9 +59,6 @@
 
 // Define one of these 2 options for spindle or servo
 #define Z_SERVO_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
-#define Z_SERVO_CAL_MIN               1.0       // calibration factor for the minimum PWM duty
-#define Z_SERVO_CAL_MAX               1.0       // calibration factor for the maximum PWM duty
-
 
 // #define X_LIMIT_PIN          See version section at beginning of file
 #define Y_LIMIT_PIN             GPIO_NUM_4
