@@ -123,3 +123,7 @@ void report_hex_msg(char* buf, const char* prefix, int len);
 void report_hex_msg(uint8_t* buf, const char* prefix, int len);
 
 char report_get_axis_letter(uint8_t axis);
+
+char* reportAxisLimitsMsg(uint8_t axis);
+char* reportAxisNameMsg(uint8_t axis);
+char* reportAxisNameMsg(uint8_t axis, uint8_t dual_axis);

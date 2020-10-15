@@ -1,7 +1,7 @@
 /*
     RcServo.cpp
 
-    This allows an RcServo to be used like any other motor. Serrvos
+    This allows an RcServo to be used like any other motor. Servos
     do have limitation in travel and speed, so you do need to respect that.
 
     Part of Grbl_ESP32
@@ -10,9 +10,9 @@
 
     The servo's travel will be mapped against the axis with $X/MaxTravel
 
-    The rotation can be inverted with by $Stepper/DirInvert    
+    The rotation can be inverted with by $Stepper/DirInvert
 
-    Homing simply sets the axis Mpos to the endpoint as determined by $Homing/DirInver    
+    Homing simply sets the axis Mpos to the endpoint as determined by $Homing/DirInvert
 
     Calibration is part of the setting (TBD) fixed at 1.00 now
 
@@ -31,45 +31,40 @@
 #include "RcServo.h"
 
 namespace Motors {
-    RcServo::RcServo() {}
-
-    RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max) {
-        type_id                = RC_SERVO_MOTOR;
-        this->_axis_index      = axis_index % MAX_AXES;
-        this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
-        this->_pwm_pin         = pwm_pin;
-        _cal_min               = cal_min;
-        _cal_max               = cal_max;
-        init();
-    }
+    RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin) : Servo(axis_index), _pwm_pin(pwm_pin) {}
 
     void RcServo::init() {
+        char* setting_cal_min = (char*)malloc(20);
+        sprintf(setting_cal_min, "%c/RcServo/Cal/Min", report_get_axis_letter(_axis_index));  //
+        rc_servo_cal_min = new FloatSetting(EXTENDED, WG, NULL, setting_cal_min, 1.0, 0.5, 2.0);
+
+        char* setting_cal_max = (char*)malloc(20);
+        sprintf(setting_cal_max, "%c/RcServo/Cal/Max", report_get_axis_letter(_axis_index));  //
+        rc_servo_cal_max = new FloatSetting(EXTENDED, WG, NULL, setting_cal_max, 1.0, 0.5, 2.0);
+
         read_settings();
         _channel_num = sys_get_next_PWM_chan_num();
         ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
         ledcAttachPin(_pwm_pin, _channel_num);
         _current_pwm_duty = 0;
-        is_active         = true;   // as opposed to NullMotors, this is a real motor
-        _can_home         = false;  // this axis cannot be confensionally homed
 
-        set_axis_name();
         config_message();
+        startUpdateTask();
     }
 
     void RcServo::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis RC Servo Pin:%d Pulse Len(%.0f,%.0f) Limits(%.3f,%.3f)",
-                       _axis_name,
+                       "%s RC Servo Pin:%d Pulse Len(%.0f,%.0f) %s",
+                       reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _pwm_pin,
                        _pwm_pulse_min,
                        _pwm_pulse_max,
-                       _position_min,
-                       _position_max);
+                       reportAxisLimitsMsg(_axis_index));
     }
 
     void RcServo::_write_pwm(uint32_t duty) {
-        // to prevent excessive calls to ledcWrite, make sure duty hass changed
+        // to prevent excessive calls to ledcWrite, make sure duty has changed
         if (duty == _current_pwm_duty) {
             return;
         }
@@ -80,7 +75,10 @@ namespace Motors {
 
     // sets the PWM to zero. This allows most servos to be manually moved
     void RcServo::set_disable(bool disable) {
-        return;
+        if (_disabled == disable) {
+            return;
+        }
+
         _disabled = disable;
         if (_disabled) {
             _write_pwm(0);
@@ -88,15 +86,15 @@ namespace Motors {
     }
 
     // Homing justs sets the new system position and the servo will move there
-    void RcServo::set_homing_mode(uint8_t homing_mask, bool isHoming) {
+    bool RcServo::set_homing_mode(bool isHoming) {
         float home_pos = 0.0;
 
         sys_position[_axis_index] =
             axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
 
-        set_location();  // force the PWM to update now
-
+        set_location();   // force the PWM to update now
         vTaskDelay(750);  // give time to move
+        return false;     // Cannot be homed in the conventional way
     }
 
     void RcServo::update() { set_location(); }
@@ -105,12 +103,15 @@ namespace Motors {
         uint32_t servo_pulse_len;
         float    servo_pos, mpos, offset;
 
-        read_settings();
+        if (_disabled)
+            return;
 
         if (sys.state == State::Alarm) {
             set_disable(true);
             return;
         }
+
+        read_settings();
 
         mpos = system_convert_axis_steps_to_mpos(sys_position, _axis_index);  // get the axis machine position in mm
         // TBD working in MPos
@@ -118,29 +119,17 @@ namespace Motors {
         servo_pos = mpos - offset;  // determine the current work position
 
         // determine the pulse length
-        servo_pulse_len = (uint32_t)mapConstrain(servo_pos, _position_min, _position_max, _pwm_pulse_min, _pwm_pulse_max);
+        servo_pulse_len = (uint32_t)mapConstrain(
+            servo_pos, limitsMinPosition(_axis_index), limitsMaxPosition(_axis_index), _pwm_pulse_min, _pwm_pulse_max);
 
         _write_pwm(servo_pulse_len);
     }
 
     void RcServo::read_settings() {
-        float travel = axis_settings[_axis_index]->max_travel->get();
-        float mpos   = axis_settings[_axis_index]->home_mpos->get();
-        //float max_mpos, min_mpos;
+        _pwm_pulse_min = SERVO_MIN_PULSE * rc_servo_cal_min->get();
+        _pwm_pulse_max = SERVO_MAX_PULSE * rc_servo_cal_max->get();
 
-        if (bit_istrue(homing_dir_mask->get(), bit(_axis_index))) {
-            _position_min = mpos;
-            _position_max = mpos + travel;
-        } else {
-            _position_min = mpos - travel;
-            _position_max = mpos;
-        }
-
-        _pwm_pulse_min = SERVO_MIN_PULSE * _cal_min;
-        _pwm_pulse_max = SERVO_MAX_PULSE * _cal_max;
-
-        if (bit_istrue(dir_invert_mask->get(), bit(_axis_index)))  // normal direction
+        if (bitnum_istrue(dir_invert_mask->get(), _axis_index))  // normal direction
             swap(_pwm_pulse_min, _pwm_pulse_max);
     }
-
 }

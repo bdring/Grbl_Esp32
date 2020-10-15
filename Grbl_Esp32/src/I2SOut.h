@@ -41,8 +41,6 @@
 // It should be included at the outset to know the machine configuration.
 #include "Config.h"
 
-#ifdef USE_I2S_OUT
-
 #    include <stdint.h>
 
 /* Assert */
@@ -126,12 +124,14 @@ void i2s_out_write(uint8_t pin, uint8_t val);
 /*
     Set current pin state to the I2S bitstream buffer
     (This call will generate a future I2S_OUT_USEC_PER_PULSE μs x N bitstream)
-    num: Number of samples to be generated
+    usec: The length of time that the pulse should be repeated.
+         That time will be converted to an integer number of pulses of
+         length I2S_OUT_USEC_PER_PULSE.
          The number of samples is limited to (20 / I2S_OUT_USEC_PER_PULSE).
-    return: number of puhsed samples
+    return: number of pushed samples
             0 .. no space for push
  */
-uint32_t i2s_out_push_sample(uint32_t num);
+uint32_t i2s_out_push_sample(uint32_t usec);
 
 /*
    Set pulser mode to passtrough
@@ -183,8 +183,6 @@ i2s_out_pulser_status_t IRAM_ATTR i2s_out_get_pulser_status();
    - Retart ISR/DMA
  */
 int i2s_out_reset();
-
-#endif
 
 /*
    Reference: "ESP32 Technical Reference Manual" by Espressif Systems

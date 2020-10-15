@@ -79,18 +79,12 @@ void limits_go_home(uint8_t cycle_mask) {
         return;  // Block if system reset has been issued.
     }
     // Initialize plan data struct for homing motion. Spindle and coolant are disabled.
-    motors_set_homing_mode(cycle_mask, true);  // tell motors homing is about to start
 
-    // Remove any motor that cannot be homed from the mask
-    // Motors with non standard homing can do that during motors_set_homing_mode(...) above
-    auto n_axis = number_axis->get();
-    for (uint8_t idx = 0; idx < n_axis; idx++) {
-        if (bit_istrue(cycle_mask, bit(idx))) {
-            if (!motor_can_home(idx)) {
-                bit_false(cycle_mask, bit(idx));
-            }
-        }
-    }
+    // Put motors on axes listed in cycle_mask in homing mode and
+    // replace cycle_mask with the list of motors that are ready for homing.
+    // Motors with non standard homing can home during motors_set_homing_mode(...)
+    cycle_mask = motors_set_homing_mode(cycle_mask, true);  // tell motors homing is about to start
+
     // see if any motors are left
     if (cycle_mask == 0) {
         return;
@@ -111,6 +105,7 @@ void limits_go_home(uint8_t cycle_mask) {
     float   target[MAX_N_AXIS];
     float   max_travel = 0.0;
 
+    auto n_axis = number_axis->get();
     for (uint8_t idx = 0; idx < n_axis; idx++) {
         // Initialize step pin masks
         step_pin[idx] = bit(idx);
@@ -337,9 +332,8 @@ void limits_init() {
                 if (limit_sw_queue == NULL) {
                     grbl_msg_sendf(CLIENT_SERIAL,
                                    MsgLevel::Info,
-                                   "%c%s Axis limit switch on pin %s",
-                                   report_get_axis_letter(axis),
-                                   gang_index ? "2" : " ",
+                                   "%s limit switch on pin %s",
+                                   reportAxisNameMsg(axis, gang_index),
                                    pinName(pin).c_str());
                 }
             }
@@ -376,7 +370,7 @@ void limits_disable() {
 // number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 AxisMask limits_get_state() {
     AxisMask pinMask = 0;
-    auto    n_axis  = number_axis->get();
+    auto     n_axis  = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin = limit_pins[axis][gang_index];
@@ -399,7 +393,7 @@ AxisMask limits_get_state() {
 // the workspace volume is in all negative space, and the system is in normal operation.
 // NOTE: Used by jogging to limit travel within soft-limit volume.
 void limits_soft_check(float* target) {
-    if (system_check_travel_limits(target)) {
+    if (limitsCheckTravel(target)) {
         sys.soft_limit = true;
         // Force feed hold if cycle is active. All buffered blocks are guaranteed to be within
         // workspace volume so just come to a controlled stop so position is not lost. When complete
@@ -434,4 +428,31 @@ void limitCheckTask(void* pvParameters) {
             sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
         }
     }
+}
+
+float limitsMaxPosition(uint8_t axis) {
+    float mpos   = axis_settings[axis]->home_mpos->get();
+
+    return bitnum_istrue(homing_dir_mask->get(), axis) ? mpos + axis_settings[axis]->max_travel->get() : mpos;
+}
+
+float limitsMinPosition(uint8_t axis) {
+    float mpos   = axis_settings[axis]->home_mpos->get();
+
+    return bitnum_istrue(homing_dir_mask->get(), axis) ? mpos : mpos - axis_settings[axis]->max_travel->get();
+}
+
+// Checks and reports if target array exceeds machine travel limits.
+// Return true if exceeding limits
+bool limitsCheckTravel(float* target) {
+    uint8_t idx;
+    auto    n_axis = number_axis->get();
+    for (idx = 0; idx < n_axis; idx++) {
+        float max_mpos, min_mpos;
+
+        if (target[idx] < limitsMinPosition(idx) || target[idx] > limitsMaxPosition(idx)) {
+            return true;
+        }
+    }
+    return false;
 }

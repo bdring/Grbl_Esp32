@@ -33,7 +33,7 @@ Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block) {
     pl_data->line_number = gc_block->values.n;
 #endif
     if (soft_limits->get()) {
-        if (system_check_travel_limits(gc_block->values.xyz)) {
+        if (limitsCheckTravel(gc_block->values.xyz)) {
             return Error::TravelExceeded;
         }
     }

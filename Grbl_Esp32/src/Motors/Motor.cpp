@@ -34,34 +34,11 @@
 #include "Motor.h"
 
 namespace Motors {
-    Motor::Motor() { type_id = MOTOR; }
+    Motor::Motor(uint8_t axis_index) :
+        _axis_index(axis_index % MAX_AXES), _dual_axis_index(axis_index / MAX_AXES) {}
 
-    void Motor::init() { _homing_mask = 0; }
-
-    void Motor::config_message() {}
     void Motor::debug_message() {}
 
-    void Motor::read_settings() {
-        float max_travel = axis_settings[_axis_index]->max_travel->get();
-        float mpos       = axis_settings[_axis_index]->home_mpos->get();
-
-        if (bit_istrue(homing_dir_mask->get(), bit(_axis_index))) {
-            _position_min = mpos;
-            _position_max = mpos + max_travel;
-        } else {
-            _position_min = mpos - max_travel;
-            _position_max = mpos;
-        }
-    }
-
-    void Motor::set_disable(bool disable) {}
-    void Motor::set_direction_pins(uint8_t onMask) {}
-    void Motor::step(uint8_t step_mask, uint8_t dir_mask) {}
     bool Motor::test() { return true; };  // true = OK
-    void Motor::update() {}
-    bool Motor::can_home() { return _can_home; };
 
-    void Motor::set_axis_name() { sprintf(_axis_name, "%c%s", report_get_axis_letter(_axis_index), _dual_axis_index ? "2" : " "); }
-
-    void Motor::set_homing_mode(uint8_t homing_mask, bool isHoming) { _homing_mask = homing_mask; }
 }

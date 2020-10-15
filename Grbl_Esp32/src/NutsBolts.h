@@ -49,6 +49,9 @@ const int GANGED_MOTOR  = 1;
 #define A2_AXIS (A_AXIS + MAX_AXES)
 #define B2_AXIS (B_AXIS + MAX_AXES)
 #define C2_AXIS (C_AXIS + MAX_AXES)
+static inline int toMotor2(int axis) {
+    return axis + MAX_AXES;
+}
 
 // CoreXY motor assignments. DO NOT ALTER.
 // NOTE: If the A and B motor axis bindings are changed, this effects the CoreXY equations.
@@ -81,6 +84,8 @@ const int DELAY_MODE_SYS_SUSPEND = 1;
 #define bit_false(x, mask) (x) &= ~(mask)
 #define bit_istrue(x, mask) ((x & mask) != 0)
 #define bit_isfalse(x, mask) ((x & mask) == 0)
+#define bitnum_true(x, num) (x) |= bit(num)
+#define bitnum_istrue(x, num) ((x & bit(num)) != 0)
 
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is
