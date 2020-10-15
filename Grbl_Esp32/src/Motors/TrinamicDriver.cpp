@@ -50,8 +50,8 @@ namespace Motors {
                                    float    r_sense,
                                    int8_t   spi_index) :
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin),
-            _homing_mode(TRINAMIC_HOMING_MODE), _cs_pin(cs_pin), _driver_part_number(driver_part_number), _r_sense(r_sense), _spi_index(spi_index)
-    {
+        _homing_mode(TRINAMIC_HOMING_MODE), _cs_pin(cs_pin), _driver_part_number(driver_part_number), _r_sense(r_sense),
+        _spi_index(spi_index) {
         _has_errors = false;
         if (_driver_part_number == 2130) {
             tmcstepper = new TMC2130Stepper(_cs_pin, _r_sense, _spi_index);
@@ -117,9 +117,6 @@ namespace Motors {
                                     NULL,
                                     0  // core
             );
-            if (stallguard_debug_mask->get() != 0) {
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
-            }
         }
     }
 
@@ -352,7 +349,6 @@ namespace Motors {
                 motors_read_settings();
                 motorSettingChanged = false;
             }
-
             if (stallguard_debug_mask->get() != 0) {
                 if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
                     for (TrinamicDriver* p = List; p; p = p->link) {
@@ -363,6 +359,13 @@ namespace Motors {
                     }
                 }  // sys.state
             }      // if mask
+
+            // static UBaseType_t uxHighWaterMark = 0;
+            // if (uxHighWaterMark != uxTaskGetStackHighWaterMark(NULL)) {
+            //     uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+            //     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG Task Stack Space: %d", uxHighWaterMark);
+            // }
+
             vTaskDelayUntil(&xLastWakeTime, xreadSg);
         }
     }

@@ -31,10 +31,17 @@
 #include "RcServo.h"
 
 namespace Motors {
-    RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin, float cal_min, float cal_max) :
-        Servo(axis_index), _pwm_pin(pwm_pin), _cal_min(cal_min), _cal_max(cal_max) {}
+    RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin) : Servo(axis_index), _pwm_pin(pwm_pin) {}
 
     void RcServo::init() {
+        char* setting_cal_min = (char*)malloc(20);
+        sprintf(setting_cal_min, "%c/RcServo/Cal/Min", report_get_axis_letter(_axis_index));  //
+        rc_servo_cal_min = new FloatSetting(EXTENDED, WG, NULL, setting_cal_min, 1.0, 0.5, 2.0);
+
+        char* setting_cal_max = (char*)malloc(20);
+        sprintf(setting_cal_max, "%c/RcServo/Cal/Max", report_get_axis_letter(_axis_index));  //
+        rc_servo_cal_min = new FloatSetting(EXTENDED, WG, NULL, setting_cal_max, 1.0, 0.5, 2.0);
+
         read_settings();
         _channel_num = sys_get_next_PWM_chan_num();
         ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
@@ -119,11 +126,10 @@ namespace Motors {
     }
 
     void RcServo::read_settings() {
-        _pwm_pulse_min = SERVO_MIN_PULSE * _cal_min;
-        _pwm_pulse_max = SERVO_MAX_PULSE * _cal_max;
+        _pwm_pulse_min = SERVO_MIN_PULSE * rc_servo_cal_min->get();
+        _pwm_pulse_max = SERVO_MAX_PULSE * rc_servo_cal_max->get();
 
         if (bitnum_istrue(dir_invert_mask->get(), _axis_index))  // normal direction
             swap(_pwm_pulse_min, _pwm_pulse_max);
     }
-
 }
