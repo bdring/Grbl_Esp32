@@ -1,9 +1,5 @@
 #pragma once
 
-#ifndef SPINDLE_TYPE
-#    define SPINDLE_TYPE SpindleType::PWM
-#endif
-
 // Grbl setting that are common to all machines
 // It should not be necessary to change anything herein
 

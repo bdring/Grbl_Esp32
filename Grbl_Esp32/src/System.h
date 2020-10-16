@@ -89,19 +89,19 @@ union SpindleStop {
 
 // Global system variables
 typedef struct {
-    volatile State state;            // Tracks the current system state of Grbl.
-    bool        abort;               // System abort flag. Forces exit back to main loop for reset.
-    Suspend     suspend;             // System suspend bitflag variable that manages holds, cancels, and safety door.
-    bool        soft_limit;          // Tracks soft limit errors for the state machine. (boolean)
-    StepControl step_control;        // Governs the step segment generator depending on system state.
-    bool        probe_succeeded;     // Tracks if last probing cycle was successful.
-    AxisMask    homing_axis_lock;    // Locks axes when limits engage. Used as an axis motion mask in the stepper ISR.
-    Percent     f_override;          // Feed rate override value in percent
-    Percent     r_override;          // Rapids override value in percent
-    Percent     spindle_speed_ovr;   // Spindle speed value in percent
-    SpindleStop spindle_stop_ovr;    // Tracks spindle stop override states
-    Counter     report_ovr_counter;  // Tracks when to add override data to status reports.
-    Counter     report_wco_counter;  // Tracks when to add work coordinate offset data to status reports.
+    volatile State state;               // Tracks the current system state of Grbl.
+    bool           abort;               // System abort flag. Forces exit back to main loop for reset.
+    Suspend        suspend;             // System suspend bitflag variable that manages holds, cancels, and safety door.
+    bool           soft_limit;          // Tracks soft limit errors for the state machine. (boolean)
+    StepControl    step_control;        // Governs the step segment generator depending on system state.
+    bool           probe_succeeded;     // Tracks if last probing cycle was successful.
+    AxisMask       homing_axis_lock;    // Locks axes when limits engage. Used as an axis motion mask in the stepper ISR.
+    Percent        f_override;          // Feed rate override value in percent
+    Percent        r_override;          // Rapids override value in percent
+    Percent        spindle_speed_ovr;   // Spindle speed value in percent
+    SpindleStop    spindle_stop_ovr;    // Tracks spindle stop override states
+    Counter        report_ovr_counter;  // Tracks when to add override data to status reports.
+    Counter        report_wco_counter;  // Tracks when to add work coordinate offset data to status reports.
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
     Override override_ctrl;  // Tracks override control states.
 #endif
@@ -215,9 +215,6 @@ float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx);
 // Updates a machine 'position' array based on the 'step' array sent.
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps);
 
-// Checks and reports if target array exceeds machine travel limits.
-uint8_t system_check_travel_limits(float* target);
-
 int32_t system_convert_corexy_to_x_axis_steps(int32_t* steps);
 int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps);
 
@@ -228,6 +225,5 @@ void system_exec_control_pin(ControlPins pins);
 bool sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized);
 bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized);
 
-int8_t  sys_get_next_RMT_chan_num();
 int8_t  sys_get_next_PWM_chan_num();
 uint8_t sys_calc_pwm_precision(uint32_t freq);

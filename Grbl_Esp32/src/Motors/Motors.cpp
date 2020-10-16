@@ -44,18 +44,6 @@
 #include "TrinamicDriver.h"
 
 Motors::Motor*      myMotor[MAX_AXES][MAX_GANGED];  // number of axes (normal and ganged)
-static TaskHandle_t readSgTaskHandle      = 0;      // for realtime stallguard data diaplay
-static TaskHandle_t servoUpdateTaskHandle = 0;
-
-bool    Motors::Dynamixel2::uart_ready         = false;
-uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
-
-uint8_t      rmt_chan_num[MAX_AXES][MAX_GANGED];
-rmt_item32_t rmtItem[2];
-rmt_config_t rmtConfig;
-
-bool motor_class_steps;  // true if at least one motor class is handling steps
-
 void init_motors() {
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Motors");
 
@@ -64,9 +52,9 @@ void init_motors() {
     if (n_axis >= 1) {
 #ifdef X_TRINAMIC_DRIVER
         myMotor[X_AXIS][0] = new Motors::TrinamicDriver(
-            X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_DISABLE_PIN, X_CS_PIN, X_TRINAMIC_DRIVER, X_RSENSE, get_next_trinamic_driver_index());
+            X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_DISABLE_PIN, X_CS_PIN, X_TRINAMIC_DRIVER, X_RSENSE);
 #elif defined(X_SERVO_PIN)
-        myMotor[X_AXIS][0] = new Motors::RcServo(X_AXIS, X_SERVO_PIN, X_SERVO_CAL_MIN, X_SERVO_CAL_MAX);
+        myMotor[X_AXIS][0] = new Motors::RcServo(X_AXIS, X_SERVO_PIN);
 #elif defined(X_UNIPOLAR)
         myMotor[X_AXIS][0] = new Motors::UnipolarMotor(X_AXIS, X_PIN_PHASE_0, X_PIN_PHASE_1, X_PIN_PHASE_2, X_PIN_PHASE_3);
 #elif defined(X_STEP_PIN)
@@ -74,33 +62,31 @@ void init_motors() {
 #elif defined(X_DYNAMIXEL_ID)
         myMotor[X_AXIS][0] = new Motors::Dynamixel2(X_AXIS, X_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
-        myMotor[X_AXIS][0] = new Motors::Nullmotor();
+        myMotor[X_AXIS][0] = new Motors::Nullmotor(X_AXIS);
 #endif
 
 #ifdef X2_TRINAMIC_DRIVER
         myMotor[X_AXIS][1] = new Motors::TrinamicDriver(
-            X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN, X2_CS_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, get_next_trinamic_driver_index());
-#elif defined(X2_SERVO_PIN)
-        myMotor[X_AXIS][1] = new Motors::RcServo(X2_AXIS, X2_SERVO_PIN, X2_SERVO_CAL_MIN, X2_SERVO_CAL_MAX);
+            X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN, X2_CS_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE);
 #elif defined(X2_UNIPOLAR)
         myMotor[X_AXIS][1] = new Motors::UnipolarMotor(X2_AXIS, X2_PIN_PHASE_0, X2_PIN_PHASE_1, X2_PIN_PHASE_2, X2_PIN_PHASE_3);
 #elif defined(X2_STEP_PIN)
         myMotor[X_AXIS][1] = new Motors::StandardStepper(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN);
 #else
-        myMotor[X_AXIS][1] = new Motors::Nullmotor();
+        myMotor[X_AXIS][1] = new Motors::Nullmotor(X2_AXIS);
 #endif
     } else {
-        myMotor[X_AXIS][0] = new Motors::Nullmotor();
-        myMotor[X_AXIS][1] = new Motors::Nullmotor();
+        myMotor[X_AXIS][0] = new Motors::Nullmotor(X_AXIS);
+        myMotor[X_AXIS][1] = new Motors::Nullmotor(X2_AXIS);
     }
 
     if (n_axis >= 2) {
         // this WILL be done better with settings
 #ifdef Y_TRINAMIC_DRIVER
         myMotor[Y_AXIS][0] = new Motors::TrinamicDriver(
-            Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN, Y_CS_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, get_next_trinamic_driver_index());
+            Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN, Y_CS_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE);
 #elif defined(Y_SERVO_PIN)
-        myMotor[Y_AXIS][0] = new Motors::RcServo(Y_AXIS, Y_SERVO_PIN, Y_SERVO_CAL_MIN, Y_SERVO_CAL_MAX);
+        myMotor[Y_AXIS][0] = new Motors::RcServo(Y_AXIS, Y_SERVO_PIN);
 #elif defined(Y_UNIPOLAR)
         myMotor[Y_AXIS][0] = new Motors::UnipolarMotor(Y_AXIS, Y_PIN_PHASE_0, Y_PIN_PHASE_1, Y_PIN_PHASE_2, Y_PIN_PHASE_3);
 #elif defined(Y_STEP_PIN)
@@ -108,33 +94,31 @@ void init_motors() {
 #elif defined(Y_DYNAMIXEL_ID)
         myMotor[Y_AXIS][0] = new Motors::Dynamixel2(Y_AXIS, Y_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
-        myMotor[Y_AXIS][0] = new Motors::Nullmotor();
+        myMotor[Y_AXIS][0] = new Motors::Nullmotor(Y_AXIS);
 #endif
 
 #ifdef Y2_TRINAMIC_DRIVER
         myMotor[Y_AXIS][1] = new Motors::TrinamicDriver(
-            Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN, Y2_CS_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, get_next_trinamic_driver_index());
-#elif defined(Y2_SERVO_PIN)
-        myMotor[Y_AXIS][1] = new Motors::RcServo(Y2_AXIS, Y2_SERVO_PIN, Y2_SERVO_CAL_MIN, Y2_SERVO_CAL_MAX);
+            Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN, Y2_CS_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE);
 #elif defined(Y2_UNIPOLAR)
         myMotor[Y_AXIS][1] = new Motors::UnipolarMotor(Y2_AXIS, Y2_PIN_PHASE_0, Y2_PIN_PHASE_1, Y2_PIN_PHASE_2, Y2_PIN_PHASE_3);
 #elif defined(Y2_STEP_PIN)
         myMotor[Y_AXIS][1] = new Motors::StandardStepper(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN);
 #else
-        myMotor[Y_AXIS][1] = new Motors::Nullmotor();
+        myMotor[Y_AXIS][1] = new Motors::Nullmotor(Y2_AXIS);
 #endif
     } else {
-        myMotor[Y_AXIS][0] = new Motors::Nullmotor();
-        myMotor[Y_AXIS][1] = new Motors::Nullmotor();
+        myMotor[Y_AXIS][0] = new Motors::Nullmotor(Y_AXIS);
+        myMotor[Y_AXIS][1] = new Motors::Nullmotor(Y2_AXIS);
     }
 
     if (n_axis >= 3) {
         // this WILL be done better with settings
 #ifdef Z_TRINAMIC_DRIVER
         myMotor[Z_AXIS][0] = new Motors::TrinamicDriver(
-            Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN, Z_CS_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, get_next_trinamic_driver_index());
+            Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN, Z_CS_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE);
 #elif defined(Z_SERVO_PIN)
-        myMotor[Z_AXIS][0] = new Motors::RcServo(Z_AXIS, Z_SERVO_PIN, Z_SERVO_CAL_MIN, Z_SERVO_CAL_MAX);
+        myMotor[Z_AXIS][0] = new Motors::RcServo(Z_AXIS, Z_SERVO_PIN);
 #elif defined(Z_UNIPOLAR)
         myMotor[Z_AXIS][0] = new Motors::UnipolarMotor(Z_AXIS, Z_PIN_PHASE_0, Z_PIN_PHASE_1, Z_PIN_PHASE_2, Z_PIN_PHASE_3);
 #elif defined(Z_STEP_PIN)
@@ -142,120 +126,118 @@ void init_motors() {
 #elif defined(Z_DYNAMIXEL_ID)
         myMotor[Z_AXIS][0] = new Motors::Dynamixel2(Z_AXIS, Z_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
-        myMotor[Z_AXIS][0] = new Motors::Nullmotor();
+        myMotor[Z_AXIS][0] = new Motors::Nullmotor(Z_AXIS);
 #endif
 
 #ifdef Z2_TRINAMIC_DRIVER
         myMotor[Z_AXIS][1] = new Motors::TrinamicDriver(
-            Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN, Z2_CS_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, get_next_trinamic_driver_index());
-#elif defined(Z2_SERVO_PIN)
-        myMotor[Z_AXIS][1] = new Motors::RcServo(Z2_AXIS, Z2_SERVO_PIN, Z2_SERVO_CAL_MIN, Z2_SERVO_CAL_MAX);
+            Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN, Z2_CS_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE);
 #elif defined(Z2_UNIPOLAR)
         myMotor[Z_AXIS][1] = new Motors::UnipolarMotor(Z2_AXIS, Z2_PIN_PHASE_0, Z2_PIN_PHASE_1, Z2_PIN_PHASE_2, Z2_PIN_PHASE_3);
 #elif defined(Z2_STEP_PIN)
         myMotor[Z_AXIS][1] = new Motors::StandardStepper(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN);
 #else
-        myMotor[Z_AXIS][1] = new Motors::Nullmotor();
+        myMotor[Z_AXIS][1] = new Motors::Nullmotor(Z2_AXIS);
 #endif
     } else {
-        myMotor[Z_AXIS][0] = new Motors::Nullmotor();
-        myMotor[Z_AXIS][1] = new Motors::Nullmotor();
+        myMotor[Z_AXIS][0] = new Motors::Nullmotor(Z_AXIS);
+        myMotor[Z_AXIS][1] = new Motors::Nullmotor(Z2_AXIS);
     }
 
     if (n_axis >= 4) {
         // this WILL be done better with settings
 #ifdef A_TRINAMIC_DRIVER
         myMotor[A_AXIS][0] = new Motors::TrinamicDriver(
-            A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN, A_CS_PIN, A_TRINAMIC_DRIVER, A_RSENSE, get_next_trinamic_driver_index());
+            A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN, A_CS_PIN, A_TRINAMIC_DRIVER, A_RSENSE);
 #elif defined(A_SERVO_PIN)
-        myMotor[A_AXIS][0] = new Motors::RcServo(A_AXIS, A_SERVO_PIN, A_SERVO_CAL_MIN, A_SERVO_CAL_MAX);
+        myMotor[A_AXIS][0] = new Motors::RcServo(A_AXIS, A_SERVO_PIN);
 #elif defined(A_UNIPOLAR)
         myMotor[A_AXIS][0] = new Motors::UnipolarMotor(A_AXIS, A_PIN_PHASE_0, A_PIN_PHASE_1, A_PIN_PHASE_2, A_PIN_PHASE_3);
 #elif defined(A_STEP_PIN)
         myMotor[A_AXIS][0] = new Motors::StandardStepper(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN);
+#elif defined(A_DYNAMIXEL_ID)
+        myMotor[A_AXIS][0] = new Motors::Dynamixel2(A_AXIS, A_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
-        myMotor[A_AXIS][0] = new Motors::Nullmotor();
+        myMotor[A_AXIS][0] = new Motors::Nullmotor(A_AXIS);
 #endif
 
 #ifdef A2_TRINAMIC_DRIVER
         myMotor[A_AXIS][1] = new Motors::TrinamicDriver(
-            A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN, A2_CS_PIN, A2_TRINAMIC_DRIVER, A2_RSENSE, get_next_trinamic_driver_index());
-#elif defined(A2_SERVO_PIN)
-        myMotor[A_AXIS][1] = new Motors::RcServo(A2_AXIS, A2_SERVO_PIN, A2_SERVO_CAL_MIN, A2_SERVO_CAL_MAX);
+            A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN, A2_CS_PIN, A2_TRINAMIC_DRIVER, A2_RSENSE);
 #elif defined(A2_UNIPOLAR)
         myMotor[A_AXIS][1] = new Motors::UnipolarMotor(A2_AXIS, A2_PIN_PHASE_0, A2_PIN_PHASE_1, A2_PIN_PHASE_2, A2_PIN_PHASE_3);
 #elif defined(A2_STEP_PIN)
         myMotor[A_AXIS][1] = new Motors::StandardStepper(A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN);
 #else
-        myMotor[A_AXIS][1] = new Motors::Nullmotor();
+        myMotor[A_AXIS][1] = new Motors::Nullmotor(A2_AXIS);
 #endif
     } else {
-        myMotor[A_AXIS][0] = new Motors::Nullmotor();
-        myMotor[A_AXIS][1] = new Motors::Nullmotor();
+        myMotor[A_AXIS][0] = new Motors::Nullmotor(A_AXIS);
+        myMotor[A_AXIS][1] = new Motors::Nullmotor(A2_AXIS);
     }
 
     if (n_axis >= 5) {
         // this WILL be done better with settings
 #ifdef B_TRINAMIC_DRIVER
         myMotor[B_AXIS][0] = new Motors::TrinamicDriver(
-            B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN, B_CS_PIN, B_TRINAMIC_DRIVER, B_RSENSE, get_next_trinamic_driver_index());
+            B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN, B_CS_PIN, B_TRINAMIC_DRIVER, B_RSENSE);
 #elif defined(B_SERVO_PIN)
-        myMotor[B_AXIS][0] = new Motors::RcServo(B_AXIS, B_SERVO_PIN, B_SERVO_CAL_MIN, B_SERVO_CAL_MAX);
+        myMotor[B_AXIS][0] = new Motors::RcServo(B_AXIS, B_SERVO_PIN);
 #elif defined(B_UNIPOLAR)
         myMotor[B_AXIS][0] = new Motors::UnipolarMotor(B_AXIS, B_PIN_PHASE_0, B_PIN_PHASE_1, B_PIN_PHASE_2, B_PIN_PHASE_3);
 #elif defined(B_STEP_PIN)
         myMotor[B_AXIS][0] = new Motors::StandardStepper(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN);
+#elif defined(B_DYNAMIXEL_ID)
+        myMotor[B_AXIS][0] = new Motors::Dynamixel2(B_AXIS, B_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
-        myMotor[B_AXIS][0] = new Motors::Nullmotor();
+        myMotor[B_AXIS][0] = new Motors::Nullmotor(B_AXIS);
 #endif
 
 #ifdef B2_TRINAMIC_DRIVER
         myMotor[B_AXIS][1] = new Motors::TrinamicDriver(
-            B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN, B2_CS_PIN, B2_TRINAMIC_DRIVER, B2_RSENSE, get_next_trinamic_driver_index());
-#elif defined(B2_SERVO_PIN)
-        myMotor[B_AXIS][1] = new Motors::RcServo(B2_AXIS, B2_SERVO_PIN, B2_SERVO_CAL_MIN, B2_SERVO_CAL_MAX);
+            B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN, B2_CS_PIN, B2_TRINAMIC_DRIVER, B2_RSENSE);
 #elif defined(B2_UNIPOLAR)
         myMotor[B_AXIS][1] = new Motors::UnipolarMotor(B2_AXIS, B2_PIN_PHASE_0, B2_PIN_PHASE_1, B2_PIN_PHASE_2, B2_PIN_PHASE_3);
 #elif defined(B2_STEP_PIN)
         myMotor[B_AXIS][1] = new Motors::StandardStepper(B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN);
 #else
-        myMotor[B_AXIS][1] = new Motors::Nullmotor();
+        myMotor[B_AXIS][1] = new Motors::Nullmotor(B2_AXIS);
 #endif
     } else {
-        myMotor[B_AXIS][0] = new Motors::Nullmotor();
-        myMotor[B_AXIS][1] = new Motors::Nullmotor();
+        myMotor[B_AXIS][0] = new Motors::Nullmotor(B_AXIS);
+        myMotor[B_AXIS][1] = new Motors::Nullmotor(B2_AXIS);
     }
 
     if (n_axis >= 6) {
         // this WILL be done better with settings
 #ifdef C_TRINAMIC_DRIVER
         myMotor[C_AXIS][0] = new Motors::TrinamicDriver(
-            C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN, C_CS_PIN, C_TRINAMIC_DRIVER, C_RSENSE, get_next_trinamic_driver_index());
+            C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN, C_CS_PIN, C_TRINAMIC_DRIVER, C_RSENSE);
 #elif defined(C_SERVO_PIN)
-        myMotor[C_AXIS][0] = new Motors::RcServo(C_AXIS, C_SERVO_PIN, C_SERVO_CAL_MIN, C_SERVO_CAL_MAX);
+        myMotor[C_AXIS][0] = new Motors::RcServo(C_AXIS, C_SERVO_PIN);
 #elif defined(C_UNIPOLAR)
         myMotor[C_AXIS][0] = new Motors::UnipolarMotor(C_AXIS, C_PIN_PHASE_0, C_PIN_PHASE_1, C_PIN_PHASE_2, C_PIN_PHASE_3);
 #elif defined(C_STEP_PIN)
         myMotor[C_AXIS][0] = new Motors::StandardStepper(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN);
+#elif defined(C_DYNAMIXEL_ID)
+        myMotor[C_AXIS][0] = new Motors::Dynamixel2(C_AXIS, C_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 #else
-        myMotor[C_AXIS][0] = new Motors::Nullmotor();
+        myMotor[C_AXIS][0] = new Motors::Nullmotor(C_AXIS);
 #endif
 
 #ifdef C2_TRINAMIC_DRIVER
         myMotor[C_AXIS][1] = new Motors::TrinamicDriver(
-            C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN, C2_CS_PIN, C2_TRINAMIC_DRIVER, C2_RSENSE, get_next_trinamic_driver_index());
-#elif defined(C2_SERVO_PIN)
-        myMotor[C_AXIS][1] = new Motors::RcServo(C2_AXIS, C2_SERVO_PIN, C2_SERVO_CAL_MIN, C2_SERVO_CAL_MAX);
+            C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN, C2_CS_PIN, C2_TRINAMIC_DRIVER, C2_RSENSE);
 #elif defined(C2_UNIPOLAR)
         myMotor[C_AXIS][1] = new Motors::UnipolarMotor(C2_AXIS, C2_PIN_PHASE_0, C2_PIN_PHASE_1, C2_PIN_PHASE_2, C2_PIN_PHASE_3);
 #elif defined(C2_STEP_PIN)
         myMotor[C_AXIS][1] = new Motors::StandardStepper(C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN);
 #else
-        myMotor[C_AXIS][1] = new Motors::Nullmotor();
+        myMotor[C_AXIS][1] = new Motors::Nullmotor(C2_AXIS);
 #endif
     } else {
-        myMotor[C_AXIS][0] = new Motors::Nullmotor();
-        myMotor[C_AXIS][1] = new Motors::Nullmotor();
+        myMotor[C_AXIS][0] = new Motors::Nullmotor(C_AXIS);
+        myMotor[C_AXIS][1] = new Motors::Nullmotor(C2_AXIS);
     }
 
 #ifdef USE_STEPSTICK
@@ -292,77 +274,9 @@ void init_motors() {
     // certain motors need features to be turned on. Check them here
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            if (myMotor[axis][gang_index]->type_id == UNIPOLAR_MOTOR) {
-                motor_class_steps = true;
-            }
-
-            // CS Pins of all TMC motors need to be setup before any can be talked to
-            // ...so init cannot be called via the constructors. This inits them all.
-            if (myMotor[axis][gang_index]->type_id == TRINAMIC_SPI_MOTOR) {
-                myMotor[axis][gang_index]->init();
-            }
+            myMotor[axis][gang_index]->init();
         }
     }
-
-    // some motor objects require a step signal
-    motor_class_steps = motors_have_type_id(UNIPOLAR_MOTOR);
-
-    if (motors_have_type_id(TRINAMIC_SPI_MOTOR)) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
-        xTaskCreatePinnedToCore(readSgTask,    // task
-                                "readSgTask",  // name for task
-                                4096,          // size of task stack
-                                NULL,          // parameters
-                                1,             // priority
-                                &readSgTaskHandle,
-                                0  // core
-        );
-        if (stallguard_debug_mask->get() != 0) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard debug enabled: %d", stallguard_debug_mask->get());
-        }
-    }
-
-    if (motors_have_type_id(RC_SERVO_MOTOR) || motors_have_type_id(DYNAMIXEL2)) {
-        xTaskCreatePinnedToCore(servoUpdateTask,    // task
-                                "servoUpdateTask",  // name for task
-                                4096,               // size of task stack
-                                NULL,               // parameters
-                                1,                  // priority
-                                &servoUpdateTaskHandle,
-                                0  // core
-        );
-    }
-}
-
-void servoUpdateTask(void* pvParameters) {
-    TickType_t       xLastWakeTime;
-    const TickType_t xUpdate = SERVO_TIMER_INTERVAL;  // in ticks (typically ms)
-    auto             n_axis  = number_axis->get();
-
-    xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
-    vTaskDelay(2000);                     // initial delay
-    while (true) {                        // don't ever return from this or the task dies
-        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-                myMotor[axis][gang_index]->update();
-            }
-        }
-
-        vTaskDelayUntil(&xLastWakeTime, xUpdate);
-    }
-}
-
-// do any motors match the type_id
-bool motors_have_type_id(motor_class_id_t id) {
-    auto n_axis = number_axis->get();
-    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            if (myMotor[axis][gang_index]->type_id == id) {
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 void motors_set_disable(bool disable) {
@@ -370,14 +284,14 @@ void motors_set_disable(bool disable) {
 
     //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Motors disable %d", disable);
 
-/*
+    /*
     if (previous_state == disable) {
         return;
     }
-    previous_state = disable;    
+    previous_state = disable;
 */
 
-    // now loop through all the motors to see if they can individually diable
+    // now loop through all the motors to see if they can individually disable
     auto n_axis = number_axis->get();
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
@@ -390,7 +304,6 @@ void motors_set_disable(bool disable) {
         disable = !disable;  // Apply pin invert.
     }
     digitalWrite(STEPPERS_DISABLE_PIN, disable);
-    
 }
 
 void motors_read_settings() {
@@ -405,98 +318,53 @@ void motors_read_settings() {
 
 // use this to tell all the motors what the current homing mode is
 // They can use this to setup things like Stall
-void motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
+uint8_t motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
+    uint8_t can_home = 0;
     auto n_axis = number_axis->get();
-    for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            if (bit_istrue(homing_mask, bit(axis)) && (myMotor[axis][gang_index]->is_active)) {
-                myMotor[axis][gang_index]->set_homing_mode(homing_mask, isHoming);
+    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+        if (bitnum_istrue(homing_mask, axis)) {
+            if (myMotor[axis][0]->set_homing_mode(isHoming)) {
+                bitnum_true(can_home, axis);
             }
+            myMotor[axis][1]->set_homing_mode(isHoming);
         }
     }
+    return can_home;
 }
 
-void motors_set_direction_pins(uint8_t onMask) {
-    static uint8_t previous_val = 255;  // should never be this value
-    if (previous_val == onMask) {
-        return;
-    }
-    previous_val = onMask;
-
+void motors_step(uint8_t step_mask, uint8_t dir_mask) {
+    auto n_axis = number_axis->get();
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
 
-    auto n_axis = number_axis->get();
-    for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            myMotor[axis][gang_index]->set_direction_pins(onMask);
+    // Set the direction pins, but optimize for the common
+    // situation where the direction bits haven't changed.
+    static uint8_t previous_dir = 255;  // should never be this value
+    if (dir_mask != previous_dir) {
+        previous_dir = dir_mask;
+
+        for (int axis = X_AXIS; axis < n_axis; axis++) {
+            bool thisDir = bitnum_istrue(dir_mask, axis);
+            myMotor[axis][0]->set_direction(thisDir);
+            myMotor[axis][1]->set_direction(thisDir);
         }
     }
-}
-
-// returns the next spi index. We cannot preassign to axes because ganged (X2 type axes) might
-// need to be inserted into the order of axes.
-uint8_t get_next_trinamic_driver_index() {
-#ifdef TRINAMIC_DAISY_CHAIN
-    static uint8_t index = 1;  // they start at 1
-    return index++;
-#else
-    return -1;
-#endif
-}
-
-// some motor objects, like unipolar need step signals
-void motors_step(uint8_t step_mask, uint8_t dir_mask) {
-    if (motor_class_steps) {  // determined in init_motors if any motors need to handle steps
-        auto n_axis = number_axis->get();
-        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-            for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-                myMotor[axis][gang_index]->step(step_mask, dir_mask);
+    // Turn on step pulses for motors that are supposed to step now
+    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+        if (bitnum_istrue(step_mask, axis)) {
+            if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
+                myMotor[axis][0]->step();
+            }
+            if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
+                myMotor[axis][1]->step();
             }
         }
     }
 }
-
-/*
-	This will print StallGuard data that is useful for tuning.
-*/
-void readSgTask(void* pvParameters) {
-    TickType_t       xLastWakeTime;
-    const TickType_t xreadSg = 200;  // in ticks (typically ms)
-    auto             n_axis  = number_axis->get();
-
-    xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
-    while (true) {                        // don't ever return from this or the task dies
-        if (motorSettingChanged) {
-            motors_read_settings();
-            motorSettingChanged = false;
-        }
-
-        if (stallguard_debug_mask->get() != 0) {
-            if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
-                for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-                    if (stallguard_debug_mask->get() & bit(axis)) {
-                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
-                        for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
-                            myMotor[axis][gang_index]->debug_message();
-                        }
-                    }
-                }
-            }  // sys.state
-        }      // if mask
-        vTaskDelayUntil(&xLastWakeTime, xreadSg);
+// Turn all stepper pins off
+void motors_unstep() {
+    auto n_axis = number_axis->get();
+    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+        myMotor[axis][0]->unstep();
+        myMotor[axis][1]->unstep();
     }
 }
-
-bool motor_can_home(uint8_t axis) {
-    return myMotor[axis][0]->can_home();
-}
-
-#ifdef USE_I2S_OUT
-//
-// Override default function and insert a short delay
-//
-void TMC2130Stepper::switchCSpin(bool state) {
-    digitalWrite(_pinCS, state);
-    i2s_out_delay();
-}
-#endif

@@ -20,9 +20,6 @@ const uint16_t SERVO_MAX_PULSE = (uint16_t)(SERVO_MAX_PULSE_SEC / SERVO_TIME_PER
 
 const uint16_t SERVO_PULSE_RANGE = (SERVO_MAX_PULSE - SERVO_MIN_PULSE);
 
-const double SERVO_CAL_MIN = 20.0;   // Percent: the minimum allowable calibration value
-const double SERVO_CAL_MAX = 180.0;  // Percent: the maximum allowable calibration value
-
 const double SERVO_TIMER_INT_FREQ = 50.0;  // Hz This is the task frequency
 
 const int SERVO_FULL_MOVE_TIME = 750;  // rtos ticks

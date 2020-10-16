@@ -1,7 +1,11 @@
 #pragma once
 
 /*
-    RcServo.h
+    Servo.h
+
+    This is a base class for servo-type motors - ones that autonomously
+    move to a specified position, instead of being moved incrementally
+    by stepping.  Specific kinds of servo motors inherit from it.
 
     Part of Grbl_ESP32
 
@@ -21,41 +25,30 @@
 
 #include "Motor.h"
 
-#include "Servo.h"
-#include "RcServoSettings.h"
-
 namespace Motors {
-    class RcServo : public Servo {
+    class Servo : public Motor {
     public:
-        RcServo(uint8_t axis_index, uint8_t pwm_pin);
-
+        Servo(uint8_t axis_index);
+#if 0
         // Overrides for inherited methods
         void init() override;
         void read_settings() override;
         bool set_homing_mode(bool isHoming) override;
         void set_disable(bool disable) override;
-        void update() override;
-
-        void _write_pwm(uint32_t duty);
-        
+#endif
+        virtual void update() = 0;  // This must be implemented by derived classes
 
     protected:
-        void config_message() override;
+        // Start the servo update task.  Each derived subclass instance calls this
+        // during init(), which happens after all objects have been constructed.
+        // startUpdateTask() ignores all such calls except for the last one, where
+        // it starts the task.
+        void startUpdateTask();
 
-        void set_location();
-
-        uint8_t  _pwm_pin;
-        uint8_t  _channel_num;
-        uint32_t _current_pwm_duty;
-
-        float _homing_position;
-
-        float _pwm_pulse_min;
-        float _pwm_pulse_max;
-
-        bool _disabled;
-
-        FloatSetting* rc_servo_cal_min;
-        FloatSetting* rc_servo_cal_max;
-        };
+    private:
+        // Linked list of servo instances, used by the servo task
+        static Servo* List;
+        Servo*        link;
+        static void   updateTask(void*);
+    };
 }

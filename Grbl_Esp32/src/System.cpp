@@ -26,8 +26,8 @@ system_t               sys;
 int32_t                sys_position[MAX_N_AXIS];        // Real-time machine (aka home) position vector in steps.
 int32_t                sys_probe_position[MAX_N_AXIS];  // Last probe position in machine coordinates and steps.
 volatile Probe         sys_probe_state;                 // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
-volatile ExecState     sys_rt_exec_state;               // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
-volatile ExecAlarm     sys_rt_exec_alarm;               // Global realtime executor bitflag variable for setting various alarms.
+volatile ExecState     sys_rt_exec_state;  // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
+volatile ExecAlarm     sys_rt_exec_alarm;  // Global realtime executor bitflag variable for setting various alarms.
 volatile ExecAccessory sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
 volatile bool          cycle_stop;                      // For state transitions, instead of bitflag
 #ifdef DEBUG
@@ -186,30 +186,6 @@ void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     return;
 }
 
-// Checks and reports if target array exceeds machine travel limits.
-// Return true if exceeding limits
-uint8_t system_check_travel_limits(float* target) {
-    uint8_t idx;
-    auto    n_axis = number_axis->get();
-    for (idx = 0; idx < n_axis; idx++) {
-        float travel = axis_settings[idx]->max_travel->get();
-        float mpos   = axis_settings[idx]->home_mpos->get();
-        float max_mpos, min_mpos;
-
-        if (bit_istrue(homing_dir_mask->get(), bit(idx))) {
-            min_mpos = mpos;
-            max_mpos = mpos + travel;
-        } else {
-            min_mpos = mpos - travel;
-            max_mpos = mpos;
-        }
-
-        if (target[idx] < min_mpos || target[idx] > max_mpos)
-            return true;
-    }
-    return false;
-}
-
 // Returns control pin state as a uint8 bitfield. Each bit indicates the input pin state, where
 // triggered is 1 and not triggered is 0. Invert mask is applied. Bitfield organization is
 // defined by the ControlPin in System.h.
@@ -335,18 +311,6 @@ bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized) {
         }
     }
     return cmd_ok;
-}
-
-// Call this function to get an RMT channel number
-// returns -1 for error
-int8_t sys_get_next_RMT_chan_num() {
-    static uint8_t next_RMT_chan_num = 0;  // channels 0-7 are valid
-    if (next_RMT_chan_num < 8) {           // 7 is the max PWM channel number
-        return next_RMT_chan_num++;
-    } else {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of RMT channels");
-        return -1;
-    }
 }
 
 /*
