@@ -107,18 +107,21 @@
 #define Z_CS_PIN                I2SO(11)
 #define Z_RSENSE                X_RSENSE
 
+// 6 Pack Pin Mapping
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/Socket-Pin-Number-Mapping
+
 // // 4x Switch input module on CNC I/O module Socket #1
 // // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-// #define X_LIMIT_PIN     GPIO_NUM_33
-// #define Y_LIMIT_PIN     GPIO_NUM_32
-// #define Z_LIMIT_PIN     GPIO_NUM_35
+#define X_LIMIT_PIN     GPIO_NUM_33
+#define Y_LIMIT_PIN     GPIO_NUM_32
+#define Z_LIMIT_PIN     GPIO_NUM_35
 
 // 4x Switch input module on CNC I/O module Socket #2
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define X_LIMIT_PIN     GPIO_NUM_2
-#define Y_LIMIT_PIN     GPIO_NUM_25
-#define Z_LIMIT_PIN     GPIO_NUM_39
-#define PROBE_PIN       GPIO_NUM_36
+// #define X_LIMIT_PIN     GPIO_NUM_2
+// #define Y_LIMIT_PIN     GPIO_NUM_25
+// #define Z_LIMIT_PIN     GPIO_NUM_39
+// #define PROBE_PIN       GPIO_NUM_36
 
 //Example Quad MOSFET module on socket #3
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
@@ -142,7 +145,6 @@
 // ================= defaults ===========================
 
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME 255  // keep them on, the trinamics will reduce power at idle
-
 
 #define DEFAULT_X_MICROSTEPS    8
 #define DEFAULT_Y_MICROSTEPS    DEFAULT_X_MICROSTEPS
