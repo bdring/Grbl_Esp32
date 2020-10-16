@@ -116,8 +116,8 @@ static portMUX_TYPE i2s_out_spinlock = portMUX_INITIALIZER_UNLOCKED;
 static int i2s_out_initialized = 0;
 
 #    ifdef USE_I2S_OUT_STREAM_IMPL
-static volatile uint64_t             i2s_out_pulse_period;
-static uint64_t                      i2s_out_remain_time_until_next_pulse;  // Time remaining until the next pulse (μsec)
+static volatile uint32_t             i2s_out_pulse_period;
+static uint32_t                      i2s_out_remain_time_until_next_pulse;  // Time remaining until the next pulse (μsec)
 static volatile i2s_out_pulse_func_t i2s_out_pulse_func;
 #    endif
 
@@ -657,10 +657,9 @@ int IRAM_ATTR i2s_out_set_stepping() {
     return 0;
 }
 
-int IRAM_ATTR i2s_out_set_pulse_period(uint64_t period) {
+int IRAM_ATTR i2s_out_set_pulse_period(uint32_t period) {
 #    ifdef USE_I2S_OUT_STREAM_IMPL
-    // Use 64-bit values to avoid overflowing during the calculation.
-    i2s_out_pulse_period = period * 1000000 / F_STEPPER_TIMER;
+    i2s_out_pulse_period = period;
 #    endif
     return 0;
 }

@@ -369,13 +369,6 @@ const int REPORT_WCO_REFRESH_IDLE_COUNT = 10;  // (2-255) Must be less than or e
 // certain the step segment buffer is increased/decreased to account for these changes.
 const int ACCELERATION_TICKS_PER_SECOND = 100;
 
-// Adaptive Multi-Axis Step Smoothing (AMASS) is an advanced feature that does what its name implies,
-// smoothing the stepping of multi-axis motions. This feature smooths motion particularly at low step
-// frequencies below 10kHz, where the aliasing between axes of multi-axis motions can cause audible
-// noise and shake your machine. At even lower step frequencies, AMASS adapts and provides even better
-// step smoothing. See Stepper.c for more details on the AMASS system works.
-#define ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING  // Default enabled. Comment to disable.
-
 // Sets the maximum step rate allowed to be written as a Grbl setting. This option enables an error
 // check in the settings module to prevent settings values that will exceed this limitation. The maximum
 // step rate is strictly limited by the CPU speed and will change if something other than an AVR running

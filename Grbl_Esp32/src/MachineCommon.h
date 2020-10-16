@@ -15,8 +15,7 @@
 #endif
 
 // ESP32 CPU Settings
-const int32_t F_TIMERS = 80000000;  // a reference to the speed of ESP32 timers
-#define F_STEPPER_TIMER 20000000    // frequency of step pulse timer
+const uint32_t fTimers = 80000000;  // a reference to the speed of ESP32 timers
 
 // =============== Don't change or comment these out ======================
 // They are for legacy purposes and will not affect your I/O
