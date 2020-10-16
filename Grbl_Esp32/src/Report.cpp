@@ -938,3 +938,13 @@ char* reportAxisNameMsg(uint8_t axis) {
     sprintf(name, "%c  Axis", report_get_axis_letter(axis));
     return name;
 }
+
+void reportTaskStackSize(UBaseType_t& saved) {
+#ifdef DEBUG_REPORT_STACK_FREE
+    UBaseType_t        newHighWater    = uxTaskGetStackHighWaterMark(NULL);
+    if (newHighWater != saved) {
+        saved = newHighWater;
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Min Stack Space: %d", pcTaskGetTaskName(NULL), saved);
+    }
+#endif
+}

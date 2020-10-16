@@ -127,3 +127,5 @@ char report_get_axis_letter(uint8_t axis);
 char* reportAxisLimitsMsg(uint8_t axis);
 char* reportAxisNameMsg(uint8_t axis);
 char* reportAxisNameMsg(uint8_t axis, uint8_t dual_axis);
+
+void  reportTaskStackSize(UBaseType_t& saved);

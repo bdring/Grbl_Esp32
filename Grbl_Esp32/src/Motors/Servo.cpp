@@ -60,18 +60,14 @@ namespace Motors {
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
         vTaskDelay(2000);                     // initial delay
         while (true) {                        // don't ever return from this or the task dies
-
-            // static UBaseType_t uxHighWaterMark = 0;
-            // if (uxHighWaterMark != uxTaskGetStackHighWaterMark(NULL)) {
-            //     uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
-            //     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Servo Task Min Stack Space: %d", uxHighWaterMark);
-            // }
-
             for (Servo* p = List; p; p = p->link) {
                 p->update();
             }
 
             vTaskDelayUntil(&xLastWakeTime, xUpdate);
+
+            static UBaseType_t uxHighWaterMark = 0;
+            reportTaskStackSize(uxHighWaterMark);
         }
     }
 

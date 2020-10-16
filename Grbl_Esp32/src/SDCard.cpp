@@ -81,6 +81,7 @@ boolean closeFile() {
     SD_ready_next          = false;
     sd_current_line_number = 0;
     myFile.close();
+    SD.end();
     return true;
 }
 
@@ -147,7 +148,7 @@ uint8_t get_sd_state(bool refresh) {
     sd_state = SDCARD_NOT_PRESENT;
     //using default value for speed ? should be parameter
     //refresh content if card was removed
-    if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ)) {
+    if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
         if (SD.cardSize() > 0) {
             sd_state = SDCARD_IDLE;
         }

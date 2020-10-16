@@ -68,7 +68,27 @@ uint8_t serial_get_rx_buffer_available(uint8_t client) {
     return client_buffer[client].availableforwrite();
 }
 
+void heapCheckTask(void* pvParameters) {
+    static uint32_t heapSize = 0;
+    while (true) {
+        uint32_t newHeapSize = xPortGetFreeHeapSize();
+        if (newHeapSize != heapSize) {
+            heapSize = newHeapSize;
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "heap %d", heapSize);
+        }
+        vTaskDelay(3000 / portTICK_RATE_MS);  // Yield to other tasks
+
+        static UBaseType_t uxHighWaterMark = 0;
+        reportTaskStackSize(uxHighWaterMark);
+    }
+}
+
 void serial_init() {
+#ifdef DEBUG_REPORT_HEAP_SIZE
+    // For a 2000-word stack, uxTaskGetStackHighWaterMark reports 288 words available
+    xTaskCreatePinnedToCore(heapCheckTask, "heapTask", 2000, NULL, 1, NULL, 1);
+#endif
+
     Serial.begin(BAUD_RATE);
     Serial.setRxBufferSize(256);
     // reset all buffers
@@ -76,9 +96,11 @@ void serial_init() {
     grbl_send(CLIENT_SERIAL, "\r\n");  // create some white space after ESP32 boot info
     serialCheckTaskHandle = 0;
     // create a task to check for incoming data
+    // For a 4096-word stack, uxTaskGetStackHighWaterMark reports 244 words available
+    // after WebUI attaches.
     xTaskCreatePinnedToCore(serialCheckTask,    // task
                             "serialCheckTask",  // name for task
-                            8192,               // size of task stack
+                            4096,               // size of task stack
                             NULL,               // parameters
                             1,                  // priority
                             &serialCheckTaskHandle,
@@ -89,9 +111,10 @@ void serial_init() {
 // this task runs and checks for data on all interfaces
 // REaltime stuff is acted upon, then characters are added to the appropriate buffer
 void serialCheckTask(void* pvParameters) {
-    uint8_t data   = 0;
-    uint8_t client = CLIENT_ALL;  // who sent the data
-    while (true) {                // run continuously
+    uint8_t            data            = 0;
+    uint8_t            client          = CLIENT_ALL;  // who sent the data
+    static UBaseType_t uxHighWaterMark = 0;
+    while (true) {  // run continuously
         while (any_client_has_data()) {
             if (Serial.available()) {
                 client = CLIENT_SERIAL;
@@ -149,7 +172,10 @@ void serialCheckTask(void* pvParameters) {
         WebUI::Serial2Socket.handle_flush();
 #endif
         vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
-    }                                      // while(true)
+
+        static UBaseType_t uxHighWaterMark = 0;
+        reportTaskStackSize(uxHighWaterMark);
+    }  // while(true)
 }
 
 void serial_reset_read_buffer(uint8_t client) {

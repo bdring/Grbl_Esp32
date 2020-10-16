@@ -330,11 +330,8 @@ void limits_init() {
                 }
 
                 if (limit_sw_queue == NULL) {
-                    grbl_msg_sendf(CLIENT_SERIAL,
-                                   MsgLevel::Info,
-                                   "%s limit switch on pin %s",
-                                   reportAxisNameMsg(axis, gang_index),
-                                   pinName(pin).c_str());
+                    grbl_msg_sendf(
+                        CLIENT_SERIAL, MsgLevel::Info, "%s limit switch on pin %s", reportAxisNameMsg(axis, gang_index), pinName(pin).c_str());
                 }
             }
         }
@@ -427,17 +424,19 @@ void limitCheckTask(void* pvParameters) {
             mc_reset();                                // Initiate system kill.
             sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
         }
+        static UBaseType_t uxHighWaterMark = 0;
+        reportTaskStackSize(uxHighWaterMark);
     }
 }
 
 float limitsMaxPosition(uint8_t axis) {
-    float mpos   = axis_settings[axis]->home_mpos->get();
+    float mpos = axis_settings[axis]->home_mpos->get();
 
     return bitnum_istrue(homing_dir_mask->get(), axis) ? mpos + axis_settings[axis]->max_travel->get() : mpos;
 }
 
 float limitsMinPosition(uint8_t axis) {
-    float mpos   = axis_settings[axis]->home_mpos->get();
+    float mpos = axis_settings[axis]->home_mpos->get();
 
     return bitnum_istrue(homing_dir_mask->get(), axis) ? mpos : mpos - axis_settings[axis]->max_travel->get();
 }

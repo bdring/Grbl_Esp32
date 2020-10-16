@@ -185,6 +185,9 @@ namespace Spindles {
                     // Wait a bit before we retry. Set the delay to poll-rate. Not sure
                     // if we should use a different value...
                     vTaskDelay(VFD_RS485_POLL_RATE);
+
+                    static UBaseType_t uxHighWaterMark = 0;
+                    reportTaskStackSize(uxHighWaterMark);
                 }
             }
 
