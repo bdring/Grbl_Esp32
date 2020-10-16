@@ -74,5 +74,3 @@
 
 //#define USE_MACHINE_INIT
 //#define USE_TOOL_CHANGE
-
-void zProbeSyncTask(void* pvParameters);

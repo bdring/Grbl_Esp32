@@ -8,7 +8,7 @@
 	
 	//TODO describe this
 	Tool change function called by G code "T[1..n] M06". Not triggered by G38.2 or ESP3D probe function :-)
-	first Z probe before tool change. Only executed once, because then we´ll know the initial Z height.
+	first Z probe before tool change. Only executed once, because then weï¿½ll know the initial Z height.
 	// second Z probe after tool change. Now we can compare
 
 	//TODO parameterise this
@@ -24,7 +24,7 @@
 /*
    VARIABLES
 */
-uint8_t AmountOfToolChanges; //  Each new tool increases this by 1. Before first tool, it´s 0.
+uint8_t AmountOfToolChanges; //  Each new tool increases this by 1. Before first tool, itï¿½s 0.
 uint8_t currenttoolNo, newtoolNo;
 float firstZPos, newZPos, Zdiff;
 static TaskHandle_t zProbeSyncTaskHandle = NULL;
@@ -74,6 +74,7 @@ void machine_init()
 #endif
 
 // state machine
+/*
 void zProbeSyncTask(void* pvParameters)
 {
 	TickType_t xLastWakeTime;
@@ -212,7 +213,7 @@ void zProbeSyncTask(void* pvParameters)
 				}
 				break;
 
-			// That´s it
+			// Thatï¿½s it
 			case TOOLCHANGE_FINISH:
 				#ifdef DEBUG
 					grbl_sendf (CLIENT_ALL, "zProbeSyncTask. TOOLCHANGE_FINISH. State=%d\r", tc_state);
@@ -240,21 +241,20 @@ void zProbeSyncTask(void* pvParameters)
 }
 
 #ifdef USE_TOOL_CHANGE
-/*
-	user_tool_change() is called when tool change gcode is received,
-	to perform appropriate actions for your machine.
+//
+//	user_tool_change() is called when tool change gcode is received,
+//	to perform appropriate actions for your machine.
 
-	Prerequisite: add "#define USE_TOOL_CHANGE" to your machine.h file
-*/
+//	Prerequisite: add "#define USE_TOOL_CHANGE" to your machine.h file
 void user_tool_change(uint8_t new_tool)
 {
-	// let´s start with the state machine
+	// letï¿½s start with the state machine
 
 	newtoolNo = new_tool;
 	tc_state = TOOLCHANGE_INIT;
 
 	//TODO
-	// Nach Aufruf dieser Function wird gleich wieder zurcügkegeben in die aufrufende Function.
+	// Nach Aufruf dieser Function wird gleich wieder zurcï¿½gkegeben in die aufrufende Function.
 	// Ziel: Erst return, wenn wirklich beendet (RTOS!)
 	return;
 }
@@ -272,3 +272,6 @@ float getLastZProbePos()
 
 	return m_pos[Z_AXIS];
 }
+
+
+*/
