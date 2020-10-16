@@ -517,7 +517,7 @@ const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
 // switch interrupt unblock a waiting task which will recheck the limit switch pins after
 // a short delay. Default disabled
 #define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
-#define DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
+#define DEBOUNCE_PERIOD 50 // in milliseconds default 32 microseconds
 
 // Configures the position after a probing cycle during Grbl's check mode. Disabled sets
 // the position to the probe target, when enabled sets the position to the start position.
