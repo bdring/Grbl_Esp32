@@ -26,16 +26,6 @@
 
 #define N_AXIS 3
 
-#ifdef HOMING_CYCLE_0
-    #undef HOMING_CYCLE_0
-#endif
-#define HOMING_CYCLE_0 bit(Z_AXIS) // Z first
-
-#ifdef HOMING_CYCLE_1
-    #undef HOMING_CYCLE_1
-#endif
-#define HOMING_CYCLE_1 (bit(X_AXIS)|bit(Y_AXIS))
-
 // === Special Features
 
 // I2S (steppers & other output-only pins)
@@ -110,27 +100,27 @@ Socket #5
 
 */
 
-/*
+
 // 4x Input Module in Socket #1
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
 #define X_LIMIT_PIN                 GPIO_NUM_33
 #define Y_LIMIT_PIN                 GPIO_NUM_32
 #define Z_LIMIT_PIN                 GPIO_NUM_35
-*/
 
-// 4x Input Module in Socket #2
-// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define X_LIMIT_PIN                 GPIO_NUM_2
-#define Y_LIMIT_PIN                 GPIO_NUM_25
-#define Z_LIMIT_PIN                 GPIO_NUM_39
 
-// 4x Input Module in Socket #3
-// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define CONTROL_CYCLE_START_PIN      GPIO_NUM_26
-#define CONTROL_FEED_HOLD_PIN        GPIO_NUM_4
-#define CONTROL_RESET_PIN            GPIO_NUM_16
-#define CONTROL_SAFETY_DOOR_PIN      GPIO_NUM_27
-//#define INVERT_CONTROL_PIN_MASK      B0000
+// // 4x Input Module in Socket #2
+// // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
+// #define X_LIMIT_PIN                 GPIO_NUM_2
+// #define Y_LIMIT_PIN                 GPIO_NUM_25
+// #define Z_LIMIT_PIN                 GPIO_NUM_39
+
+// // 4x Input Module in Socket #3
+// // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
+// #define CONTROL_CYCLE_START_PIN      GPIO_NUM_26
+// #define CONTROL_FEED_HOLD_PIN        GPIO_NUM_4
+// #define CONTROL_RESET_PIN            GPIO_NUM_16
+// #define CONTROL_SAFETY_DOOR_PIN      GPIO_NUM_27
+// //#define INVERT_CONTROL_PIN_MASK      B0000
 
 
 // ================= Setting Defaults ==========================

@@ -44,7 +44,7 @@ namespace Spindles {
 #endif
 
         if (_output_pin == UNDEFINED_PIN) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: BESC output pin not defined");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
