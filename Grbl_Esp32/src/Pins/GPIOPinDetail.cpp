@@ -90,7 +90,7 @@ namespace Pins {
 
         // Update the R/W mask for ActiveLow setting
         if (_capabilities.has(PinCapabilities::ActiveLow)) {
-            // TODO FIXME: Does this require __pinMode first? Or can we forget that?
+            __pinMode(_index, OUTPUT);
             __digitalWrite(_index, HIGH);
             _readWriteMask = HIGH;
         } else {

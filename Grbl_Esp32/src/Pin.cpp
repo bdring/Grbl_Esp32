@@ -5,7 +5,6 @@
 #include "Pins/VoidPinDetail.h"
 #include "Pins/GPIOPinDetail.h"
 #include "Pins/I2SPinDetail.h"
-#include "Pins/DebugOutPinDetail.h"
 
 bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber) {
     // Initialize pinImplementation first! Callers might want to delete it, and we don't want a random pointer.
@@ -23,8 +22,7 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber)
         ++idx;
     }
 
-    if (prefix != "undef")
-    {
+    if (prefix != "undef") {
         if (idx == str.end()) {
             // Incorrect pin definition.
             return false;
@@ -63,10 +61,7 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber)
 
     if (prefix == "gpio") {
         pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
-    } else if (prefix == "debugout") {
-        pinImplementation = new Pins::DebugOutPinDetail(uint8_t(pinNumber), parser);
-    }
-    else if (prefix == "undef") {
+    } else if (prefix == "undef") {
         pinImplementation = new Pins::VoidPinDetail(parser);
     }
 #ifdef USE_I2S_OUT
