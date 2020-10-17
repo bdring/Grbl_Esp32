@@ -24,12 +24,18 @@
 #include "Grbl.h"
 
 void coolant_init() {
+    static bool init_pins = true;  // used to show message only once.
+    if (init_pins) {
 #ifdef COOLANT_FLOOD_PIN
-    pinMode(COOLANT_FLOOD_PIN, OUTPUT);
+        pinMode(COOLANT_FLOOD_PIN, OUTPUT);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Flood coolant on pin %s", pinName(COOLANT_FLOOD_PIN).c_str());
 #endif
 #ifdef COOLANT_MIST_PIN
-    pinMode(COOLANT_MIST_PIN, OUTPUT);
+        pinMode(COOLANT_MIST_PIN, OUTPUT);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Mist coolant on pin %s", pinName(COOLANT_MIST_PIN).c_str());
 #endif
+        init_pins = false;
+    }
     coolant_stop();
 }
 
