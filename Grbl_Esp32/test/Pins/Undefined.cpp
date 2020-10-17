@@ -3,7 +3,7 @@
 #include <src/Pin.h>
 
 namespace Pins {
-    Test(Pins, Void) {
+    Test(Undefined, Pins) {
         // Unassigned pins are not doing much...
 
         Pin unassigned = Pin::UNDEFINED;

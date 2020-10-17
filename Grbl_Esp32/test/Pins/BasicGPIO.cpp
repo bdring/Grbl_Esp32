@@ -9,8 +9,7 @@ extern "C" void __pinMode(uint8_t pin, uint8_t mode);
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 namespace Pins {
-
-    Test(ReadGPIORaw, GPIO) {
+    Test(BasicGPIO, ReadGPIORaw) {
         auto pin = 26;
 
         // Enable driver, write high/low.
@@ -37,7 +36,6 @@ namespace Pins {
         value = __digitalRead(pin);
         Assert(value == 0);
     }
-
 }
 
 #endif

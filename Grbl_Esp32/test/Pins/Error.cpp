@@ -3,7 +3,7 @@
 #include <src/Pin.h>
 
 namespace Pins {
-    Test(Pins, Error) {
+    Test(Error, Pins) {
         // Error pins should throw whenever they are used.
 
         Pin errorPin = Pin::ERROR;

@@ -47,7 +47,7 @@ int    digitalRead(uint8_t pin);
 #endif
 
 namespace Pins {
-    Test(BasicInputOutput1, GPIO) {
+    Test(GPIO, BasicInputOutput1) {
         GPIONative::initialize();
         PinLookup::ResetAllPins();
 
@@ -77,7 +77,7 @@ namespace Pins {
         Assert(false == GPIONative::read(17));
     }
 
-    Test(BasicInputOutput2, GPIO) {
+    Test(GPIO, BasicInputOutput2) {
         GPIONative::initialize();
         PinLookup::ResetAllPins();
 
@@ -174,13 +174,13 @@ namespace Pins {
         Assert(oldCount == newCount, "ISR hitcount error");
     }
 
-    Test(ISRRisingPin, GPIO) { TestISR(1, 0, RISING); }
+    Test(GPIO, ISRRisingPin) { TestISR(1, 0, RISING); }
 
-    Test(ISRFallingPin, GPIO) { TestISR(0, 1, FALLING); }
+    Test(GPIO, ISRFallingPin) { TestISR(0, 1, FALLING); }
 
-    Test(ISRChangePin, GPIO) { TestISR(1, 1, CHANGE); }
+    Test(GPIO, ISRChangePin) { TestISR(1, 1, CHANGE); }
 
-    Test(NativeForwardingInput, GPIO) {
+    Test(GPIO, NativeForwardingInput) {
         GPIONative::initialize();
         PinLookup::ResetAllPins();
 
@@ -210,7 +210,7 @@ namespace Pins {
         Assert(false == GPIONative::read(17));
     }
 
-    Test(NativeForwardingOutput, GPIO) {
+    Test(GPIO, NativeForwardingOutput) {
         GPIONative::initialize();
         PinLookup::ResetAllPins();
 
@@ -241,7 +241,7 @@ namespace Pins {
         Assert(false == GPIONative::read(17));
     }
 
-    Test(Name, GPIO) {
+    Test(GPIO, Name) {
         GPIONative::initialize();
         PinLookup::ResetAllPins();
 
