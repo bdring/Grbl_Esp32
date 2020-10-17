@@ -3,8 +3,8 @@
 #include "GPIOPinDetail.h"
 #include "../Assert.h"
 
-extern "C" int  __digitalRead(uint8_t pin);
 extern "C" void __pinMode(uint8_t pin, uint8_t mode);
+extern "C" int  __digitalRead(uint8_t pin);
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 // TODO FIXME: ISR, PWM, etc
@@ -106,7 +106,6 @@ namespace Pins {
         __digitalWrite(_index, value);
     }
     int GPIOPinDetail::read() {
-        Assert(_attributes.has(PinAttributes::Input), "Pin has no input attribute defined. Cannot read from it.");
         auto raw = __digitalRead(_index);
         return raw ^ _readWriteMask;
     }
@@ -133,7 +132,7 @@ namespace Pins {
             pinModeValue |= INPUT_PULLDOWN;
         } else if (value.has(PinAttributes::Input)) {
             pinModeValue |= INPUT;
-        } else if (value.has(PinAttributes::Input)) {
+        } else if (value.has(PinAttributes::Output)) {
             pinModeValue |= OUTPUT;
         }
 

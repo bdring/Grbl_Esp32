@@ -26,20 +26,17 @@ void detachInterrupt(uint8_t pin) {
 
 extern "C" int __digitalRead(uint8_t pin) {
     auto& io = SoftwareGPIO::instance();
-    io.testMode(pin, INPUT);
-    return io.getInput(pin) ? 1 : 0;
+    return io.read(pin);
 }
 
 extern "C" void __pinMode(uint8_t pin, uint8_t mode) {
     auto& io = SoftwareGPIO::instance();
     io.setMode(pin, mode);
-    io.testMode(pin, mode);  // just to be sure we didn't make a bug.
 }
 
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val) {
     auto& io = SoftwareGPIO::instance();
-    io.testMode(pin, OUTPUT);
-    return io.setOutput(pin, val ? true : false);
+    return io.writeOutput(pin, val ? true : false);
 }
 
 void delay(int ms) {

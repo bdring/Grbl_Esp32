@@ -3,133 +3,117 @@
 #include <src/Pin.h>
 
 #ifdef ESP32
-
-// Pin tests require a user to wire pin 16 to 17.
-
-extern "C" int  __digitalRead(uint8_t pin);
 extern "C" void __pinMode(uint8_t pin, uint8_t mode);
+extern "C" int  __digitalRead(uint8_t pin);
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
-struct GPIOSupport {
-    static void reset() {
-        __pinMode(16, INPUT | OUTPUT);
-        __pinMode(17, INPUT | OUTPUT);
-        __digitalWrite(16, LOW);
-        __digitalWrite(17, LOW);
-        delay(10);
+struct GPIONative {
+    inline static void initialize() {
+        for (int i = 16; i <= 17; ++i) {
+            __pinMode(i, OUTPUT);
+            __digitalWrite(i, LOW);
+        }
     }
-    static bool state(int index) {
-        delay(10);
-        return __digitalRead(index) != LOW;
-    }
-    static void setState(int index, bool value) {
-        __digitalWrite(index, value ? HIGH : LOW);
-        delay(10);
-    }
+    inline static void mode(int pin, uint8_t mode) { __pinMode(pin, mode); }
+    inline static void write(int pin, bool val) { __digitalWrite(pin, val ? HIGH : LOW); }
+    inline static bool read(int pin) { return __digitalRead(pin) != LOW; }
 };
-
 #else
 #    include <SoftwareGPIO.h>
 
-struct GPIOSupport {
-    static void reset() { SoftwareGPIO::reset(); }
-    static bool state(int index) { return SoftwareGPIO::instance().getInput(index); }
-    static void setState(int index, bool value) {
-        // We wired pin 16 to pin 17:
-        if (index == 16) {
-            SoftwareGPIO::instance().setOutput(16, value);
-            SoftwareGPIO::instance().setInput(17, value);
-        } else if (index == 17) {
-            SoftwareGPIO::instance().setOutput(17, value);
-            SoftwareGPIO::instance().setInput(16, value);
-        } else {
-            SoftwareGPIO::instance().setOutput(index, value);
+struct GPIONative {
+    // We test GPIO pin 16 and 17, and GPIO 16 is wired directly to 17:
+    static void WriteVirtualCircuitHystesis(SoftwarePin* pins, int pin, bool value) {
+        switch (pin) {
+            case 16:
+            case 17:
+                pins[16].handlePadChange(value);
+                pins[17].handlePadChange(value);
+                break;
         }
     }
-};
 
+    inline static void initialize() { SoftwareGPIO::instance().reset(WriteVirtualCircuitHystesis, false); }
+    inline static void mode(int pin, uint8_t mode) { SoftwareGPIO::instance().setMode(pin, mode); }
+    inline static void write(int pin, bool val) { SoftwareGPIO::instance().writeOutput(pin, val); }
+    inline static bool read(int pin) { return SoftwareGPIO::instance().read(pin); }
+};
 #endif
 
 namespace Pins {
-    Pin Init() {
-        GPIOSupport::reset();
+    Test(BasicInputOutput1, GPIO) {
+        GPIONative::initialize();
         PinLookup::ResetAllPins();
-        Pin pin = Pin::create("GPIO.16");
-        return pin;
+
+        Pin gpio16 = Pin::create("gpio.16");
+        Pin gpio17 = Pin::create("gpio.17");
+
+        gpio16.setAttr(Pin::Attr::Output);
+        gpio17.setAttr(Pin::Attr::Input);
+
+        Assert(false == gpio16.read());
+        Assert(false == gpio17.read());
+        Assert(false == GPIONative::read(16));
+        Assert(false == GPIONative::read(17));
+
+        gpio16.on();
+
+        Assert(true == gpio16.read());
+        Assert(true == gpio17.read());
+        Assert(true == GPIONative::read(16));
+        Assert(true == GPIONative::read(17));
+
+        gpio16.off();
+
+        Assert(false == gpio16.read());
+        Assert(false == gpio17.read());
+        Assert(false == GPIONative::read(16));
+        Assert(false == GPIONative::read(17));
     }
 
-    void DebugWrite() {
-#ifdef ESP32
-        Debug("Pin 16: %d, Pin 17: %d", __digitalRead(16), __digitalRead(17));
-#endif
-    }
+    Test(BasicInputOutput2, GPIO) {
+        GPIONative::initialize();
+        PinLookup::ResetAllPins();
 
-    // We test GPIO pin 16:
+        Pin gpio16 = Pin::create("gpio.16");
+        Pin gpio17 = Pin::create("gpio.17");
 
-    Test(ReadInputPin, GPIO) {
-        auto pin = Init();
+        gpio16.setAttr(Pin::Attr::Input);
+        gpio17.setAttr(Pin::Attr::Output);
 
-        pin.setAttr(Pin::Attr::Input);
+        Assert(false == gpio16.read());
+        Assert(false == gpio17.read());
+        Assert(false == GPIONative::read(16));
+        Assert(false == GPIONative::read(17));
 
-        // Set 17 to false, which implicitly sets 16 to false.
-        GPIOSupport::setState(17, false);
-        Assert(false == pin.read(), "Read has incorrect value; expected false.");
+        gpio17.on();
 
-        GPIOSupport::setState(17, true);
-        Assert(true == pin.read(), "Read has incorrect value; expected true.");
-    }
+        Assert(true == gpio16.read());
+        Assert(true == gpio17.read());
+        Assert(true == GPIONative::read(16));
+        Assert(true == GPIONative::read(17));
 
-    Test(ReadOutputPin, GPIO) {
-        auto pin = Init();
+        gpio17.off();
 
-        pin.setAttr(Pin::Attr::Output);
-        AssertThrow(pin.read());
-    }
-
-    Test(WriteInputPin, GPIO) {
-        auto pin = Init();
-
-        pin.setAttr(Pin::Attr::Input);
-        AssertThrow(pin.on());
-    }
-
-    Test(WriteOutputPin, GPIO) {
-        auto pin = Init();
-
-        pin.setAttr(Pin::Attr::Output);
-
-        Assert(false == GPIOSupport::state(17), "Expected initial gpio value of 'false'.");
-
-        pin.on();
-        Assert(true == GPIOSupport::state(17), "17 is wired to 16, so we expect 'true'.");
-
-        pin.off();
-        Assert(false == GPIOSupport::state(17), "17 is wired to 16, so we expect 'false'.");
-    }
-
-    Test(ReadIOPin, GPIO) {
-        auto pin = Init();
-
-        pin.setAttr(Pin::Attr::Output | Pin::Attr::Input);
-        Assert(false == pin.read(), "Incorrect read");
-        Assert(false == GPIOSupport::state(16), "Incorrect value");
-
-        pin.on();
-        Assert(false == pin.read(), "Incorrect read");
-        Assert(false == GPIOSupport::state(16), "Incorrect value");
-
-        pin.off();
-        Assert(false == pin.read(), "Incorrect read");
-        Assert(false == GPIOSupport::state(16), "Incorrect value");
+        Assert(false == gpio16.read());
+        Assert(false == gpio17.read());
+        Assert(false == GPIONative::read(16));
+        Assert(false == GPIONative::read(17));
     }
 
     void TestISR(int deltaRising, int deltaFalling, int mode) {
-        auto pin = Init();
-        pin.setAttr(Pin::Attr::Input | Pin::Attr::Output | Pin::Attr::ISR);
+        GPIONative::initialize();
+        PinLookup::ResetAllPins();
+
+        Pin gpio16 = Pin::create("gpio.16");
+        Pin gpio17 = Pin::create("gpio.17");
+
+        gpio16.setAttr(Pin::Attr::Input | Pin::Attr::ISR);
+        gpio17.setAttr(Pin::Attr::Output);
 
         int hitCount = 0;
         int expected = 0;
-        pin.attachInterrupt(
+        gpio16.attachInterrupt(
             [](void* arg) {
                 int* hc = static_cast<int*>(arg);
                 ++(*hc);
@@ -151,43 +135,34 @@ namespace Pins {
         for (int i = 0; i < 10; ++i) {
             if (deltaRising) {
                 auto oldCount = hitCount;
-                GPIOSupport::setState(17, true);
-                delay(10);
+                gpio17.on();
+                delay(1);
                 auto newCount = hitCount;
 
-                if (deltaRising) {
-                    Assert(oldCount < newCount, "Expected rise after set state");
-                } else {
-                    Assert(oldCount == newCount, "Expected no change after set state");
-                }
-
-                DebugWrite();
+                Assert(oldCount < newCount, "Expected rise after set state");
             } else {
-                GPIOSupport::setState(17, true);
+                gpio17.on();
             }
 
             if (deltaFalling) {
                 auto oldCount = hitCount;
-                GPIOSupport::setState(17, false);
-                delay(10);
+                gpio17.off();
+                delay(1);
                 auto newCount = hitCount;
 
                 Assert(oldCount < newCount, "Expected rise after set state");
-
-                DebugWrite();
             } else {
-                GPIOSupport::setState(17, false);
+                gpio17.off();
             }
         }
 
         // Detach interrupt. Regardless of what we do, it shouldn't change hitcount anymore.
-        pin.detachInterrupt();
+        gpio16.detachInterrupt();
 
         auto oldCount = hitCount;
-        pin.on();
-        pin.off();
-        GPIOSupport::setState(17, true);
-        GPIOSupport::setState(17, false);
+        gpio17.on();
+        gpio17.off();
+        delay(1);
         auto newCount = hitCount;
 
         Assert(oldCount == newCount, "ISR hitcount error");
