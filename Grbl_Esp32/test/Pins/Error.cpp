@@ -20,5 +20,7 @@ namespace Pins {
         AssertThrow(errorPin.detachInterrupt());
 
         Assert(errorPin.capabilities() == Pin::Capabilities::None, "Incorrect caps");
+
+        Assert(errorPin.name() == "ERROR_PIN");
     }
 }

@@ -16,7 +16,7 @@ namespace Pins {
     PinAttributes PinAttributes::PullDown(1 << (__LINE__ - START_LINE));      
     PinAttributes PinAttributes::ISR(1 << (__LINE__ - START_LINE));           // ^        These are capabilities mapped
     const int     capabilityMask = (1 << (__LINE__ - START_LINE)) - 1;        // -------- Mask capabilities till here
-    PinAttributes PinAttributes::NonExclusive(1 << (__LINE__ - START_LINE));  // \/       These are attributes
+    PinAttributes PinAttributes::Exclusive(1 << (__LINE__ - START_LINE));     // \/       These are attributes
 
     bool PinAttributes::validateWith(PinCapabilities caps) {
         auto capMask  = (caps._value & capabilityMask);
@@ -28,12 +28,24 @@ namespace Pins {
     }
 
     bool PinAttributes::conflictsWith(PinAttributes t) {
-        if (_value == Undefined) {
-            // If nothing is set, we're good.
-            return false;
-        } else {
-            // If the attributes overlap, we're all good. Otherwise, we say there's a conflict.
-            return t._value != _value;
+        // Input and output are mutually exclusive:
+        if (t.has(Input) && t.has(Output)) {
+            return true;
         }
+
+        // If it's exclusive, we are not allowed to set it again:
+        if (_value != Undefined && this->has(Exclusive) && _value != t._value)
+        {
+            return true;
+        }
+
+        // If we have an ISR that doesn't have an Input, that doesn't make much sense.
+        if (t.has(ISR) && !t.has(Input))
+        {
+            return true;
+        }
+
+        // Otherwise, all is good, and we can set it.
+        return false;
     }
 }

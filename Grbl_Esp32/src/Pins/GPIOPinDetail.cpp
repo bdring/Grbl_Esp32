@@ -7,8 +7,6 @@ extern "C" void __pinMode(uint8_t pin, uint8_t mode);
 extern "C" int  __digitalRead(uint8_t pin);
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
-// TODO FIXME: ISR, PWM, etc
-
 namespace Pins {
     PinCapabilities GPIOPinDetail::GetDefaultCapabilities(uint8_t index) {
         // See https://randomnerdtutorials.com/esp32-pinout-reference-gpios/ for an overview:

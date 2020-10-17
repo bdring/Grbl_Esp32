@@ -3,7 +3,7 @@
 #include <src/Pin.h>
 
 namespace Pins {
-    Test(Pins, Unassigned) {
+    Test(Pins, Void) {
         // Unassigned pins are not doing much...
 
         Pin unassigned = Pin::UNDEFINED;
@@ -23,5 +23,8 @@ namespace Pins {
 
         AssertThrow(unassigned.attachInterrupt([](void* arg) {}, CHANGE));
         AssertThrow(unassigned.detachInterrupt());
+
+        Assert(unassigned.capabilities() == Pin::Capabilities::None);
+        Assert(unassigned.name().equals("UNDEFINED_PIN"));
     }
 }

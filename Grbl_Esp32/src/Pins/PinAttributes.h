@@ -33,7 +33,7 @@ namespace Pins {
         static PinAttributes PullDown;
         static PinAttributes ISR;
 
-        static PinAttributes NonExclusive;
+        static PinAttributes Exclusive;
 
         inline PinAttributes operator|(PinAttributes rhs) { return PinAttributes(_value | rhs._value); }
         inline PinAttributes operator&(PinAttributes rhs) { return PinAttributes(_value & rhs._value); }
