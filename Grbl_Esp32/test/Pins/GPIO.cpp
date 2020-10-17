@@ -38,6 +38,12 @@ struct GPIONative {
     inline static void write(int pin, bool val) { SoftwareGPIO::instance().writeOutput(pin, val); }
     inline static bool read(int pin) { return SoftwareGPIO::instance().read(pin); }
 };
+
+String pinName(uint8_t pin);
+void   digitalWrite(uint8_t pin, uint8_t val);
+void   pinMode(uint8_t pin, uint8_t mode);
+int    digitalRead(uint8_t pin);
+
 #endif
 
 namespace Pins {
@@ -173,4 +179,74 @@ namespace Pins {
     Test(ISRFallingPin, GPIO) { TestISR(0, 1, FALLING); }
 
     Test(ISRChangePin, GPIO) { TestISR(1, 1, CHANGE); }
+
+    Test(NativeForwardingInput, GPIO) {
+        GPIONative::initialize();
+        PinLookup::ResetAllPins();
+
+        Pin gpio16 = Pin::create("gpio.16");
+        Pin gpio17 = Pin::create("gpio.17");
+
+        pinMode(16, INPUT);
+        gpio17.setAttr(Pin::Attr::Output);
+
+        Assert(LOW == digitalRead(16));
+        Assert(false == gpio17.read());
+        Assert(false == GPIONative::read(16));
+        Assert(false == GPIONative::read(17));
+
+        gpio17.on();
+
+        Assert(HIGH == digitalRead(16));
+        Assert(true == gpio17.read());
+        Assert(true == GPIONative::read(16));
+        Assert(true == GPIONative::read(17));
+
+        gpio17.off();
+
+        Assert(LOW == digitalRead(16));
+        Assert(false == gpio17.read());
+        Assert(false == GPIONative::read(16));
+        Assert(false == GPIONative::read(17));
+    }
+
+    Test(NativeForwardingOutput, GPIO) {
+        GPIONative::initialize();
+        PinLookup::ResetAllPins();
+
+        Pin gpio16 = Pin::create("gpio.16");
+        Pin gpio17 = Pin::create("gpio.17");
+
+        pinMode(16, OUTPUT);
+        gpio17.setAttr(Pin::Attr::Input);
+
+        digitalWrite(16, LOW);
+        Assert(LOW == digitalRead(16));
+        Assert(false == gpio17.read());
+        Assert(false == GPIONative::read(16));
+        Assert(false == GPIONative::read(17));
+
+        digitalWrite(16, HIGH);
+
+        Assert(HIGH == digitalRead(16));
+        Assert(true == gpio17.read());
+        Assert(true == GPIONative::read(16));
+        Assert(true == GPIONative::read(17));
+
+        digitalWrite(16, LOW);
+
+        Assert(LOW == digitalRead(16));
+        Assert(false == gpio17.read());
+        Assert(false == GPIONative::read(16));
+        Assert(false == GPIONative::read(17));
+    }
+
+    Test(Name, GPIO) {
+        GPIONative::initialize();
+        PinLookup::ResetAllPins();
+
+        Pin gpio16 = Pin::create("gpio.16");
+        Assert(pinName(16).equals("GPIO.16"), "Name is %s", pinName(16).c_str());
+        Assert(gpio16.name().equals("GPIO.16"), "Name is %s", gpio16.name().c_str());
+    }
 }

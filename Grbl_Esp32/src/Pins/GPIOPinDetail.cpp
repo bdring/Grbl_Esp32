@@ -171,5 +171,5 @@ namespace Pins {
         throw "Notimplemented";
     }
 
-    String GPIOPinDetail::toString() const { return "GPIO." + int(_index); }
+    String GPIOPinDetail::toString() const { return String("GPIO.") + int(_index); }
 }

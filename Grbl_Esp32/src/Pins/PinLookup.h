@@ -8,6 +8,8 @@
 
 class Pin;
 
+String pinName(uint8_t pin);
+
 namespace Pins {
     class PinLookup {
     private:

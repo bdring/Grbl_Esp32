@@ -53,7 +53,7 @@ namespace Pins {
         // just check for conflicts above...
     }
 
-    String I2SPinDetail::toString() { return "I2S_" + int(_index); }
+    String I2SPinDetail::toString() { return String("I2S_") + int(_index); }
 }
 
 #    endif
