@@ -360,13 +360,10 @@ namespace Motors {
                 }  // sys.state
             }      // if mask
 
-            // static UBaseType_t uxHighWaterMark = 0;
-            // if (uxHighWaterMark != uxTaskGetStackHighWaterMark(NULL)) {
-            //     uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
-            //     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG Task Stack Space: %d", uxHighWaterMark);
-            // }
-
             vTaskDelayUntil(&xLastWakeTime, xreadSg);
+
+            static UBaseType_t uxHighWaterMark = 0;
+            reportTaskStackSize(uxHighWaterMark);
         }
     }
 }

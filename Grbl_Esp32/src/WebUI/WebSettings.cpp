@@ -600,9 +600,9 @@ namespace WebUI {
 
 #ifdef ENABLE_WIFI
     static Error listAPs(char* parameter, AuthenticationLevel auth_level) {  // ESP410
-        JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
-        j->begin();
-        j->begin_array("AP_LIST");
+        JSONencoder j(espresponse->client() != CLIENT_WEBUI);
+        j.begin();
+        j.begin_array("AP_LIST");
         // An initial async scanNetworks was issued at startup, so there
         // is a good chance that scan information is already available.
         int n = WiFi.scanComplete();
@@ -614,12 +614,12 @@ namespace WebUI {
                 break;
             default:
                 for (int i = 0; i < n; ++i) {
-                    j->begin_object();
-                    j->member("SSID", WiFi.SSID(i));
-                    j->member("SIGNAL", wifi_config.getSignal(WiFi.RSSI(i)));
-                    j->member("IS_PROTECTED", WiFi.encryptionType(i) != WIFI_AUTH_OPEN);
+                    j.begin_object();
+                    j.member("SSID", WiFi.SSID(i));
+                    j.member("SIGNAL", wifi_config.getSignal(WiFi.RSSI(i)));
+                    j.member("IS_PROTECTED", WiFi.encryptionType(i) != WIFI_AUTH_OPEN);
                     //            j->member("IS_PROTECTED", WiFi.encryptionType(i) == WIFI_AUTH_OPEN ? "0" : "1");
-                    j->end_object();
+                    j.end_object();
                 }
                 WiFi.scanDelete();
                 // Restart the scan in async mode so new data will be available
@@ -630,9 +630,8 @@ namespace WebUI {
                 }
                 break;
         }
-        j->end_array();
-        webPrint(j->end());
-        delete j;
+        j.end_array();
+        webPrint(j.end());
         if (espresponse->client() != CLIENT_WEBUI) {
             espresponse->println("");
         }
@@ -657,17 +656,16 @@ namespace WebUI {
     }
 
     static Error listSettings(char* parameter, AuthenticationLevel auth_level) {  // ESP400
-        JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
-        j->begin();
-        j->begin_array("EEPROM");
+        JSONencoder j(espresponse->client() != CLIENT_WEBUI);
+        j.begin();
+        j.begin_array("EEPROM");
         for (Setting* js = Setting::List; js; js = js->next()) {
             if (js->getType() == WEBSET) {
-                js->addWebui(j);
+                js->addWebui(&j);
             }
         }
-        j->end_array();
-        webPrint(j->end());
-        delete j;
+        j.end_array();
+        webPrint(j.end());
         return Error::Ok;
     }
 
@@ -833,15 +831,15 @@ namespace WebUI {
     }
 
     static Error listLocalFilesJSON(char* parameter, AuthenticationLevel auth_level) {  // No ESP command
-        JSONencoder* j = new JSONencoder(espresponse->client() != CLIENT_WEBUI);
-        j->begin();
-        j->begin_array("files");
-        listDirJSON(SPIFFS, "/", 4, j);
-        j->end_array();
-        j->member("total", SPIFFS.totalBytes());
-        j->member("used", SPIFFS.usedBytes());
-        j->member("occupation", String(100 * SPIFFS.usedBytes() / SPIFFS.totalBytes()));
-        webPrint(j->end());
+        JSONencoder j(espresponse->client() != CLIENT_WEBUI);
+        j.begin();
+        j.begin_array("files");
+        listDirJSON(SPIFFS, "/", 4, &j);
+        j.end_array();
+        j.member("total", SPIFFS.totalBytes());
+        j.member("used", SPIFFS.usedBytes());
+        j.member("occupation", String(100 * SPIFFS.usedBytes() / SPIFFS.totalBytes()));
+        webPrint(j.end());
         if (espresponse->client() != CLIENT_WEBUI) {
             webPrintln("");
         }
