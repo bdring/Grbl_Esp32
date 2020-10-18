@@ -25,6 +25,6 @@ const int32_t F_TIMERS = 80000000;  // a reference to the speed of ESP32 timers
 // =============== Don't change or comment these out ======================
 // They are for legacy purposes and will not affect your I/O
 
-const int STEP_MASK = B111111;
+const int STEP_MASK = 0x3F;// B111111;
 
 const int PROBE_MASK = 1;

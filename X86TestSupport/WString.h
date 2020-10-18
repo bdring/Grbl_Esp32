@@ -249,3 +249,6 @@ public:
     StringAppender(float num) : String(num) {}
     StringAppender(double num) : String(num) {}
 };
+
+int	 strcasecmp(const char* lhs, const char* rhs);
+int	 strncasecmp(const char* lhs, const char* rhs, size_t count);

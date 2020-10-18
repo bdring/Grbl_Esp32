@@ -29,17 +29,17 @@ const int SDCARD_BUSY_PRINTING  = 2;
 const int SDCARD_BUSY_UPLOADING = 4;
 const int SDCARD_BUSY_PARSING   = 8;
 
-extern bool    SD_ready_next;  // Grbl has processed a line and is waiting for another
-extern uint8_t SD_client;
+extern bool                       SD_ready_next;  // Grbl has processed a line and is waiting for another
+extern uint8_t                    SD_client;
 extern WebUI::AuthenticationLevel SD_auth_level;
 
 //bool sd_mount();
 uint8_t  get_sd_state(bool refresh);
 uint8_t  set_sd_state(uint8_t flag);
 void     listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client);
-boolean  openFile(fs::FS& fs, const char* path);
-boolean  closeFile();
-boolean  readFileLine(char* line, int len);
+bool     openFile(fs::FS& fs, const char* path);
+bool     closeFile();
+bool     readFileLine(char* line, int len);
 void     readFile(fs::FS& fs, const char* path);
 float    sd_report_perc_complete();
 uint32_t sd_get_current_line_number();

@@ -61,7 +61,7 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
     }
 }
 
-boolean openFile(fs::FS& fs, const char* path) {
+bool openFile(fs::FS& fs, const char* path) {
     myFile = fs.open(path);
     if (!myFile) {
         //report_status_message(Error::SdFailedRead, CLIENT_SERIAL);
@@ -73,7 +73,7 @@ boolean openFile(fs::FS& fs, const char* path) {
     return true;
 }
 
-boolean closeFile() {
+bool closeFile() {
     if (!myFile) {
         return false;
     }
@@ -91,7 +91,7 @@ boolean closeFile() {
   make uppercase
   return true if a line is
 */
-boolean readFileLine(char* line, int maxlen) {
+bool readFileLine(char* line, int maxlen) {
     if (!myFile) {
         report_status_message(Error::SdFailedRead, SD_client);
         return false;
