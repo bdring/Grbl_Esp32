@@ -37,7 +37,7 @@ SquaringMode ganged_mode = SquaringMode::Dual;
 void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
 #ifndef USE_KINEMATICS
     mc_line(target, pl_data);
-#else  // else use kinematics
+#else  // else use kinematics    
     inverse_kinematics(target, pl_data, position);
 #endif
 }

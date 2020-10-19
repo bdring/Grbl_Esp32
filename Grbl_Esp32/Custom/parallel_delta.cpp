@@ -65,6 +65,10 @@ enum class KinematicError : uint8_t {
 
 // Create custom run time $ settings
 FloatSetting* kinematic_segment_len;
+FloatSetting* delta_crank_len;
+FloatSetting* delta_link_len;
+FloatSetting* delta_crank_side_len;
+FloatSetting* delta_effector_side_len;
 
 // trigonometric constants to speed up calculations
 const float sqrt3  = 1.732050807;
@@ -76,10 +80,10 @@ const float sin30  = 0.5;
 const float tan30  = 1.0 / sqrt3;
 
 // the geometry of the delta
-const float rf = RADIUS_FIXED;       // radius of the fixed side (length of motor cranks)
-const float re = RADIUS_EFF;         // radius of end effector side (length of linkages)
-const float f  = LENGTH_FIXED_SIDE;  // sized of fixed side triangel
-const float e  = LENGTH_EFF_SIDE;    // size of end effector side triangle
+float rf;  // radius of the fixed side (length of motor cranks)
+float re;  // radius of end effector side (length of linkages)
+float f;   // sized of fixed side triangel
+float e;   // size of end effector side triangle
 
 static float last_angle[3]          = { 0.0, 0.0, 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
 static float last_cartesian[N_AXIS] = {
@@ -91,13 +95,20 @@ int            calc_forward_kinematics(float* angles, float* cartesian);
 KinematicError delta_calcInverse(float* cartesian, float* angles);
 KinematicError delta_calcAngleYZ(float x0, float y0, float z0, float& theta);
 float          three_axis_dist(float* point1, float* point2);
+void           read_settings();
 
 void machine_init() {
     float angles[N_AXIS]    = { 0.0, 0.0, 0.0 };
     float cartesian[N_AXIS] = { 0.0, 0.0, 0.0 };
 
     // Custom $ settings
-    kinematic_segment_len = new FloatSetting(EXTENDED, WG, NULL, "Kinematics/SegmentLength", KINEMATIC_SEGMENT_LENGTH, 0.2, 5.0);
+    kinematic_segment_len   = new FloatSetting(EXTENDED, WG, NULL, "Kinematics/SegmentLength", KINEMATIC_SEGMENT_LENGTH, 0.2, 5.0);
+    delta_crank_len         = new FloatSetting(EXTENDED, WG, NULL, "Delta/CrankLength", RADIUS_FIXED, 50, 150.0);
+    delta_link_len          = new FloatSetting(EXTENDED, WG, NULL, "Delta/LinkLength", RADIUS_EFF, 0.2, 5.0);
+    delta_crank_side_len    = new FloatSetting(EXTENDED, WG, NULL, "Delta/CrankSideLength", LENGTH_FIXED_SIDE, 0.2, 5.0);
+    delta_effector_side_len = new FloatSetting(EXTENDED, WG, NULL, "Delta/EffectorSideLength", LENGTH_EFF_SIDE, 0.2, 5.0);
+
+    read_settings();
 
     // Calculate the Z offset at the arm zero angles ...
     // Z offset is the z distance from the motor axes to the end effector axes at zero angle
@@ -107,14 +118,13 @@ void machine_init() {
 
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Angle Range %3.3f, %3.3f", MAX_NEGATIVE_ANGLE, MAX_POSITIVE_ANGLE);
 
-//     grbl_msg_sendf(CLIENT_SERIAL,
-//                    MsgLevel::Info,
-//                    "DXL_COUNT_MIN %4.0f CENTER %d MAX %4.0f PER_RAD %d",
-//                    DXL_COUNT_MIN,
-//                    DXL_CENTER,
-//                    DXL_COUNT_MAX,
-//                    DXL_COUNT_PER_RADIAN);
-
+    //     grbl_msg_sendf(CLIENT_SERIAL,
+    //                    MsgLevel::Info,
+    //                    "DXL_COUNT_MIN %4.0f CENTER %d MAX %4.0f PER_RAD %d",
+    //                    DXL_COUNT_MIN,
+    //                    DXL_CENTER,
+    //                    DXL_COUNT_MAX,
+    //                    DXL_COUNT_PER_RADIAN);
 }
 
 bool user_defined_homing() {  // true = do not continue with normal Grbl homing
@@ -128,6 +138,8 @@ bool user_defined_homing() {  // true = do not continue with normal Grbl homing
 // This function is used by Grbl
 void inverse_kinematics(float* position) {
     float motor_angles[3];
+
+    read_settings();
     delta_calcInverse(position, motor_angles);
     position[0] = motor_angles[0];
     position[1] = motor_angles[1];
@@ -140,25 +152,27 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     float dx, dy, dz;  // distances in each cartesian axis
     float motor_angles[3];
 
-    float seg_target[3];                              // The target of the current segment
-    float feed_rate            = pl_data->feed_rate;  // save original feed rate
-    bool  show_error           = true;  // shows error once
+    float seg_target[3];                    // The target of the current segment
+    float feed_rate  = pl_data->feed_rate;  // save original feed rate
+    bool  show_error = true;                // shows error once
 
     KinematicError status;
 
-    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
-    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+    read_settings();
+
+    // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+    // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
 
     status = delta_calcInverse(position, motor_angles);
     if (status == KinematicError::OUT_OF_RANGE) {
         //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
         //start_position_error = true;
-    }    
+    }
 
     // Check the destination to see if it is in work area
     status = delta_calcInverse(target, motor_angles);
     if (status == KinematicError::OUT_OF_RANGE) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target unreachable  error %3.3f %3.3f %3.3f", target[0], target[1], target[2]);        
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target unreachable  error %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
     }
 
     position[X_AXIS] += gc_state.coord_offset[X_AXIS];
@@ -218,11 +232,13 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 uint8_t kinematic_limits_check(float* target) {
     float motor_angles[3];
 
+    read_settings();
+
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin Soft Check %3.3f, %3.3f, %3.3f", target[0], target[1], target[2]);
 
     KinematicError status = delta_calcInverse(target, motor_angles);
 
-    switch(status) {
+    switch (status) {
         case KinematicError::OUT_OF_RANGE:
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target out of range");
             break;
@@ -234,7 +250,7 @@ uint8_t kinematic_limits_check(float* target) {
             break;
     }
 
-    return (status  == KinematicError::NONE);
+    return (status == KinematicError::NONE);
 }
 
 // inverse kinematics: cartesian -> angles
@@ -349,6 +365,8 @@ void forward_kinematics(float* position) {
     float calc_fwd[N_AXIS];
     int   status;
 
+    read_settings();
+
     // convert the system position in steps to radians
     float   position_radians[N_AXIS];
     int32_t position_steps[N_AXIS];  // Copy current state of the system position variable
@@ -388,6 +406,8 @@ void kinematics_post_homing() {
     last_angle[Y_AXIS] = sys_position[Y_AXIS] / axis_settings[Y_AXIS]->steps_per_mm->get();
     last_angle[Z_AXIS] = sys_position[Z_AXIS] / axis_settings[Z_AXIS]->steps_per_mm->get();
 
+    read_settings();
+
     calc_forward_kinematics(last_angle, last_cartesian);
 
     // grbl_msg_sendf(CLIENT_SERIAL,
@@ -412,3 +432,10 @@ void kinematics_post_homing() {
 }
 
 void user_m30() {}
+
+void read_settings() {
+    rf = delta_crank_len->get();          // radius of the fixed side (length of motor cranks)
+    re = delta_link_len->get();           // radius of end effector side (length of linkages)
+    f  = delta_crank_side_len->get();     // sized of fixed side triangel
+    e  = delta_effector_side_len->get();  // size of end effector side triangle
+}

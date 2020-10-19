@@ -69,19 +69,13 @@
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
 
-#define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
+// #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 
 #define I2S_OUT_BCK             GPIO_NUM_22
 #define I2S_OUT_WS              GPIO_NUM_17
 #define I2S_OUT_DATA            GPIO_NUM_21
 
 // ================== CPU MAP ======================
-
-#define X_STEPPER_MS3           I2SO(3)   // X_CS
-#define Y_STEPPER_MS3           I2SO(6)   // Y_CS
-#define Z_STEPPER_MS3           I2SO(11)  // Z_CS
-
-#define STEPPER_RESET           GPIO_NUM_19
 
 // Motor Socket #1
 #define X_TRINAMIC_DRIVER       2130
@@ -167,6 +161,13 @@
 #define DEFAULT_X_ACCELERATION  20.0
 #define DEFAULT_Y_ACCELERATION  DEFAULT_X_ACCELERATION
 #define DEFAULT_Z_ACCELERATION  DEFAULT_X_ACCELERATION
+
+#define DEFAULT_X_CURRENT       1.0
+#define DEFAULT_X_HOLD_CURRENT  0.5
+#define DEFAULT_Y_CURRENT       1.0
+#define DEFAULT_Y_HOLD_CURRENT  0.5
+#define DEFAULT_Z_CURRENT       1.0
+#define DEFAULT_Z_HOLD_CURRENT  0.5
 
 //  homing
 #define DEFAULT_HOMING_FEED_RATE    25
