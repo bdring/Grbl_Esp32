@@ -321,7 +321,7 @@ void limits_init() {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             uint8_t pin;
             if ((pin = limit_pins[axis][gang_index]) != UNDEFINED_PIN) {
-                pinMode(pin, mode);
+                initPin(pin, mode, axis, gang_index, "Limit");
                 limit_mask |= bit(axis);
                 if (hard_limits->get()) {
                     attachInterrupt(pin, isr_limit_switches, CHANGE);

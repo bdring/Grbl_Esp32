@@ -903,22 +903,7 @@ void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
 }
 
 char report_get_axis_letter(uint8_t axis) {
-    switch (axis) {
-        case X_AXIS:
-            return 'X';
-        case Y_AXIS:
-            return 'Y';
-        case Z_AXIS:
-            return 'Z';
-        case A_AXIS:
-            return 'A';
-        case B_AXIS:
-            return 'B';
-        case C_AXIS:
-            return 'C';
-        default:
-            return '?';
-    }
+    return axis > C_AXIS ? '?' : "XYZABC"[axis];
 }
 
 char* reportAxisLimitsMsg(uint8_t axis) {

@@ -34,9 +34,9 @@ namespace Spindles {
             return;
         }
 
-        pinMode(_output_pin, OUTPUT);
-        pinMode(_enable_pin, OUTPUT);
-        pinMode(_direction_pin, OUTPUT);
+        initPin(_output_pin, OUTPUT, "Relay Spindle Output");
+        initPin(_enable_pin, OUTPUT, "Relay Spindle Enable");
+        initPin(_direction_pin, OUTPUT, "Relay Spindle Direction");
 
         is_reversable = (_direction_pin != UNDEFINED_PIN);
         use_delays    = true;

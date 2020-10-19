@@ -71,7 +71,7 @@ namespace Spindles {
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
         ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
 
-        pinMode(_enable_pin, OUTPUT);
+        initPin(_enable_pin, OUTPUT, "BESC Spindle Enable");
 
         set_rpm(0);
 

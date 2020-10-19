@@ -44,8 +44,9 @@ namespace Spindles {
             return;
         }
 
-        pinMode(_enable_pin, OUTPUT);
-        pinMode(_direction_pin, OUTPUT);
+        // XXX need message for output pin
+        initPin(_enable_pin, OUTPUT, "DAC Spindle Enable");
+        initPin(_direction_pin, OUTPUT, "DAC Spindle Direction");
 
         is_reversable = (_direction_pin != UNDEFINED_PIN);
         use_delays    = true;

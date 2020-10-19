@@ -9,10 +9,10 @@ namespace Motors {
     {}
 
     void UnipolarMotor::init() {
-        pinMode(_pin_phase0, OUTPUT);
-        pinMode(_pin_phase1, OUTPUT);
-        pinMode(_pin_phase2, OUTPUT);
-        pinMode(_pin_phase3, OUTPUT);
+        initPin(_pin_phase0, OUTPUT, _axis_index, _dual_axis_index, "Phase0");
+        initPin(_pin_phase1, OUTPUT, _axis_index, _dual_axis_index, "Phase1");
+        initPin(_pin_phase2, OUTPUT, _axis_index, _dual_axis_index, "Phase2");
+        initPin(_pin_phase3, OUTPUT, _axis_index, _dual_axis_index, "Phase3");
         _current_phase = 0;
         config_message();
     }

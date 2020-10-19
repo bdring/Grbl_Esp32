@@ -253,7 +253,7 @@ void init_motors() {
             uint8_t pin = ms3_pins[axis][gang_index];
             if (pin != UNDEFINED_PIN) {
                 digitalWrite(pin, HIGH);
-                pinMode(pin, OUTPUT);
+                initPin(pin, OUTPUT, axis, gang_index, "StepStick MS3");
             }
         }
     }
@@ -261,14 +261,13 @@ void init_motors() {
 #    ifdef STEPPER_RESET
     // !RESET pin on steppers  (MISO On Schematic)
     digitalWrite(STEPPER_RESET, HIGH);
-    pinMode(STEPPER_RESET, OUTPUT);
+    initPin(STEPPER_RESET, OUTPUT, "Stepper Reset");
 #    endif
 
 #endif
 
     if (STEPPERS_DISABLE_PIN != UNDEFINED_PIN) {
-        pinMode(STEPPERS_DISABLE_PIN, OUTPUT);  // global motor enable pin
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Global stepper disable pin:%s", pinName(STEPPERS_DISABLE_PIN));
+        initPin(STEPPERS_DISABLE_PIN, OUTPUT, "Global stepper disable");  // global motor enable pin
     }
 
     // certain motors need features to be turned on. Check them here
