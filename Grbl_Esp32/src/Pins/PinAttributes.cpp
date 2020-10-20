@@ -35,7 +35,7 @@ namespace Pins {
         }
 
         // If it's exclusive, we are not allowed to set it again:
-        if (_value != Undefined && this->has(Exclusive) && _value != t._value) {
+        if (_value != Undefined._value && this->has(Exclusive) && _value != t._value) {
             return true;
         }
 

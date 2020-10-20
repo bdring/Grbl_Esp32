@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{d251c8e1-710b-4299-bf32-211cbc23e1d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{0a063b22-59ea-4f6c-a573-7e4aef718f3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test\Pins">
+      <UniqueIdentifier>{cc13daa8-4fd4-4995-a724-77db03c229af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Pins">
+      <UniqueIdentifier>{2259029a-8770-45f8-889a-f9c25becf189}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\StackTrace">
+      <UniqueIdentifier>{a068458b-6148-4377-9d86-41337ee3d689}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="X86TestSupport">
+      <UniqueIdentifier>{a166a529-634f-48dc-b368-6c03f6f0a36f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Grbl_Esp32\test\TestFramework.h">
+      <Filter>test</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\test\TestFactory.h">
+      <Filter>test</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pin.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Assert.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\PinAttributes.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\PinCapabilities.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\PinDetail.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\PinLookup.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\PinOptionsParser.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\VoidPinDetail.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\ErrorPinDetail.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\GPIOPinDetail.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\I2SPinDetail.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\StackTrace\AssertionFailed.h">
+      <Filter>src\StackTrace</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\StackTrace\debug_helpers.h">
+      <Filter>src\StackTrace</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\SoftwareGPIO.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\WString.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\Arduino.h">
+      <Filter>X86TestSupport</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Grbl_Esp32\test\TestFrameworkTest.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\test_main.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\TestFactory.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\Pins\Error.cpp">
+      <Filter>test\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\Pins\GPIO.cpp">
+      <Filter>test\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\Pins\Undefined.cpp">
+      <Filter>test\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\Pins\BasicGPIO.cpp">
+      <Filter>test\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pin.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\PinAttributes.cpp">
+      <Filter>src\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\PinCapabilities.cpp">
+      <Filter>src\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\PinDetail.cpp">
+      <Filter>src\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\PinLookup.cpp">
+      <Filter>src\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\PinOptionsParser.cpp">
+      <Filter>src\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\VoidPinDetail.cpp">
+      <Filter>src\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\ErrorPinDetail.cpp">
+      <Filter>src\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\GPIOPinDetail.cpp">
+      <Filter>src\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\I2SPinDetail.cpp">
+      <Filter>src\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\StackTrace\AssertionFailed.cpp">
+      <Filter>src\StackTrace</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\StackTrace\debug_helpers.cpp">
+      <Filter>src\StackTrace</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\ExceptionHelper.cpp">
+      <Filter>X86TestSupport</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\WString.cpp">
+      <Filter>X86TestSupport</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\Arduino.cpp">
+      <Filter>X86TestSupport</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Grbl_Esp32\test\UnitTests.md">
+      <Filter>test</Filter>
+    </None>
+    <None Include="Grbl_Esp32\src\StackTrace\debug_helpers_asm.S">
+      <Filter>src\StackTrace</Filter>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>

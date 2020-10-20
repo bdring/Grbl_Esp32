@@ -16,7 +16,8 @@ Release/
 *.vsarduino.h
 __vm/
 *.user
-*.vcxproj
-*.vcxproj.filters
+Grbl_Esp32.vcxproj
+Grbl_Esp32.vcxproj.filters
 *.suo
 Grbl_Esp32.ino.cpp
+packages/

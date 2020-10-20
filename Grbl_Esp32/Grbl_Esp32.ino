@@ -18,7 +18,8 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "src/Grbl.h"
+#ifndef UNIT_TEST
+#    include "src/Grbl.h"
 
 void setup() {
     grbl_init();
@@ -27,3 +28,5 @@ void setup() {
 void loop() {
     run_once();
 }
+
+#endif
