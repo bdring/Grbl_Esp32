@@ -847,6 +847,8 @@ PinSetting* ServoPins[MAX_N_AXIS][2];
 PinSetting* StepStickMS3[MAX_N_AXIS][2];
 PinSetting* PhasePins[4][MAX_N_AXIS][2];
 
+#include "Pin.h"
+
 // Initialize the pin settings
 void make_pin_settings() {
     CoolantFloodPin      = new PinSetting("Pins/CoolantFlood", COOLANT_FLOOD_PIN_DEFAULT);

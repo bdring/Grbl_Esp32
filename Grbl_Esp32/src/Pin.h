@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <cstring>
 
+// #define PIN_DEBUG  // Pin debugging. WILL spam you with a lot of data!
+
 // Forward declarations:
 class String;
 
@@ -85,30 +87,6 @@ public:
 
     inline void on() const { write(1); }
     inline void off() const { write(0); }
-
-    // PWM
-
-    inline bool initPWM(uint32_t frequency, uint32_t maxDuty) const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        return detail->initPWM(frequency, maxDuty);
-    }
-
-    // Returns actual frequency which might not be exactly the same as requested(nearest supported value)
-    inline uint32_t getPWMFrequency() const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        return detail->getPWMFrequency();
-    }
-
-    // Returns actual maxDuty which might not be exactly the same as requested(nearest supported value)
-    inline uint32_t getPWMMaxDuty() const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        return detail->getPWMMaxDuty();
-    }
-
-    inline void setPWMDuty(uint32_t duty) const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        return detail->setPWMDuty(duty);
-    }
 
     // ISR handlers. Map methods on 'this' types.
 

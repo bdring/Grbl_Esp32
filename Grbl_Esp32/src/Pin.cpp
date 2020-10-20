@@ -5,6 +5,9 @@
 #include "Pins/VoidPinDetail.h"
 #include "Pins/GPIOPinDetail.h"
 #include "Pins/I2SPinDetail.h"
+#ifdef PIN_DEBUG
+#include "Pins/DebugPinDetail.h"
+#endif
 
 bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber) {
     // Initialize pinImplementation first! Callers might want to delete it, and we don't want a random pointer.
@@ -68,6 +71,10 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber)
     else if (prefix == "i2s") {
         pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), parser);
     }
+#endif
+
+#ifdef PIN_DEBUG
+    pinImplementation = new Pins::DebugPinDetail(pinImplementation);
 #endif
 
     return pinImplementation;

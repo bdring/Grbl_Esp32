@@ -29,18 +29,6 @@ namespace Pins {
         virtual void attachInterrupt(void (*callback)(void*), void* arg, int mode);
         virtual void detachInterrupt();
 
-        // PWM
-        // Returns true if successful  Deassign if frequency == 0 ?
-        virtual bool initPWM(uint32_t frequency, uint32_t maxDuty);
-
-        // Returns actual frequency which might not be exactly the same as requested(nearest supported value)
-        virtual uint32_t getPWMFrequency();
-
-        // Returns actual maxDuty which might not be exactly the same as requested(nearest supported value)
-        virtual uint32_t getPWMMaxDuty();
-
-        virtual void setPWMDuty(uint32_t duty);
-
         virtual String toString() const = 0;
 
         virtual ~PinDetail() {}

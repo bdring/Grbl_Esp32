@@ -156,27 +156,5 @@ namespace Pins {
         ::detachInterrupt(_index);
     }
 
-    bool GPIOPinDetail::initPWM(uint32_t frequency, uint32_t maxDuty) {
-        // TODO FIXME: Implement
-        throw "Notimplemented";
-    }
-
-    // Returns actual frequency which might not be exactly the same as requested(nearest supported value)
-    uint32_t GPIOPinDetail::getPWMFrequency() {
-        // TODO FIXME: Implement
-        throw "Notimplemented";
-    }
-
-    // Returns actual maxDuty which might not be exactly the same as requested(nearest supported value)
-    uint32_t GPIOPinDetail::getPWMMaxDuty() {
-        // TODO FIXME: Implement
-        throw "Notimplemented";
-    }
-
-    void GPIOPinDetail::setPWMDuty(uint32_t duty) {
-        // TODO FIXME: Implement
-        throw "Notimplemented";
-    }
-
     String GPIOPinDetail::toString() const { return String("GPIO.") + int(_index); }
 }

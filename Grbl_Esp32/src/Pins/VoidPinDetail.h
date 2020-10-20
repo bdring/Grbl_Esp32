@@ -18,12 +18,6 @@ namespace Pins {
         int  read() override;
         void setAttr(PinAttributes value) override;
 
-        // PWM
-        bool     initPWM(uint32_t frequency, uint32_t maxDuty) override;
-        uint32_t getPWMFrequency() override;
-        uint32_t getPWMMaxDuty() override;
-        void     setPWMDuty(uint32_t duty) override;
-
         String toString() const override;
 
         ~VoidPinDetail() override {}
