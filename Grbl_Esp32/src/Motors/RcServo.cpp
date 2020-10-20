@@ -31,21 +31,24 @@
 #include "RcServo.h"
 
 namespace Motors {
-    RcServo::RcServo(uint8_t axis_index, uint8_t pwm_pin) : Servo(axis_index), _pwm_pin(pwm_pin) {}
+    RcServo::RcServo(uint8_t axis_index, Pin pwm_pin) : Servo(axis_index), _pwm_pin(pwm_pin) {}
 
     void RcServo::init() {
+        // TODO FIXME: This is leaking if init() is called multiple times.
         char* setting_cal_min = (char*)malloc(20);
-        sprintf(setting_cal_min, "%c/RcServo/Cal/Min", report_get_axis_letter(_axis_index));  //
+        snprintf(setting_cal_min, 20, "%c/RcServo/Cal/Min", report_get_axis_letter(_axis_index));
         rc_servo_cal_min = new FloatSetting(EXTENDED, WG, NULL, setting_cal_min, 1.0, 0.5, 2.0);
 
         char* setting_cal_max = (char*)malloc(20);
-        sprintf(setting_cal_max, "%c/RcServo/Cal/Max", report_get_axis_letter(_axis_index));  //
+        snprintf(setting_cal_max, 20, "%c/RcServo/Cal/Max", report_get_axis_letter(_axis_index));
         rc_servo_cal_max = new FloatSetting(EXTENDED, WG, NULL, setting_cal_max, 1.0, 0.5, 2.0);
+
+        auto pwmNative = _pwm_pin.getNative(Pin::Capabilities::PWM);
 
         read_settings();
         _channel_num = sys_get_next_PWM_chan_num();
         ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
-        ledcAttachPin(_pwm_pin, _channel_num);
+        ledcAttachPin(pwmNative, _channel_num);
         _current_pwm_duty = 0;
 
         config_message();
@@ -103,8 +106,9 @@ namespace Motors {
         uint32_t servo_pulse_len;
         float    servo_pos, mpos, offset;
 
-        if (_disabled)
+        if (_disabled) {
             return;
+        }
 
         if (sys.state == State::Alarm) {
             set_disable(true);
@@ -119,8 +123,8 @@ namespace Motors {
         servo_pos = mpos - offset;  // determine the current work position
 
         // determine the pulse length
-        servo_pulse_len = (uint32_t)mapConstrain(
-            servo_pos, limitsMinPosition(_axis_index), limitsMaxPosition(_axis_index), _pwm_pulse_min, _pwm_pulse_max);
+        servo_pulse_len = static_cast<uint32_t>(
+            mapConstrain(servo_pos, limitsMinPosition(_axis_index), limitsMaxPosition(_axis_index), _pwm_pulse_min, _pwm_pulse_max));
 
         _write_pwm(servo_pulse_len);
     }
@@ -129,7 +133,8 @@ namespace Motors {
         _pwm_pulse_min = SERVO_MIN_PULSE * rc_servo_cal_min->get();
         _pwm_pulse_max = SERVO_MAX_PULSE * rc_servo_cal_max->get();
 
-        if (bitnum_istrue(dir_invert_mask->get(), _axis_index))  // normal direction
+        if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {  // normal direction
             swap(_pwm_pulse_min, _pwm_pulse_max);
+        }
     }
 }

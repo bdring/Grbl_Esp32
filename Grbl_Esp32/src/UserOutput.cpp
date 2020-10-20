@@ -22,33 +22,34 @@
 namespace UserOutput {
     DigitalOutput::DigitalOutput() {}
 
-    DigitalOutput::DigitalOutput(uint8_t number, uint8_t pin) {
+    DigitalOutput::DigitalOutput(uint8_t number, Pin pin) {
         _number = number;
         _pin    = pin;
 
-        if (_pin == UNDEFINED_PIN)
+        if (_pin == Pin::UNDEFINED) {
             return;
+        }
 
         init();
     }
 
     void DigitalOutput::init() {
-        pinMode(_pin, OUTPUT);
-        digitalWrite(_pin, LOW);
+        _pin.setAttr(Pin::Attr::Output);
+        _pin.off();
 
         config_message();
     }
 
     void DigitalOutput::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "User Digital Output:%d on Pin:%s", _number, pinName(_pin).c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "User Digital Output:%d on Pin:%s", _number, _pin.name().c_str());
     }
 
     bool DigitalOutput::set_level(bool isOn) {
-        if (_number == UNDEFINED_PIN && isOn) {
+        if (_number == UNDEFINED_OUTPUT && isOn) {
             return false;
         }
 
-        digitalWrite(_pin, isOn);
+        _pin.write(isOn);
         return true;
     }
 
@@ -56,13 +57,14 @@ namespace UserOutput {
 
     AnalogOutput::AnalogOutput() {}
 
-    AnalogOutput::AnalogOutput(uint8_t number, uint8_t pin, float pwm_frequency) {
+    AnalogOutput::AnalogOutput(uint8_t number, Pin pin, float pwm_frequency) {
         _number        = number;
         _pin           = pin;
         _pwm_frequency = pwm_frequency;
 
-        if (pin == UNDEFINED_PIN)
+        if (pin == Pin::UNDEFINED) {
             return;
+        }
 
         // determine the highest bit precision allowed by frequency
         _resolution_bits = sys_calc_pwm_precision(_pwm_frequency);
@@ -75,8 +77,11 @@ namespace UserOutput {
         if (_pwm_channel == -1) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of PWM channels");
         } else {
+            _pin.setAttr(Pin::Attr::Output);
+            auto nativePin = _pin.getNative(Pin::Capabilities::PWM);
+
             ledcSetup(_pwm_channel, _pwm_frequency, _resolution_bits);
-            ledcAttachPin(_pin, _pwm_channel);
+            ledcAttachPin(nativePin, _pwm_channel);
             ledcWrite(_pwm_channel, 0);
 
             config_message();
@@ -85,7 +90,7 @@ namespace UserOutput {
 
     void AnalogOutput::config_message() {
         grbl_msg_sendf(
-            CLIENT_SERIAL, MsgLevel::Info, "User Analog Output:%d on Pin:%s Freq:%0.0fHz", _number, pinName(_pin).c_str(), _pwm_frequency);
+            CLIENT_SERIAL, MsgLevel::Info, "User Analog Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
     }
 
     // returns true if able to set value
@@ -93,7 +98,7 @@ namespace UserOutput {
         float duty;
 
         // look for errors, but ignore if turning off to prevent mask turn off from generating errors
-        if (_pin == UNDEFINED_PIN) {
+        if (_pin == Pin::UNDEFINED) {
             return false;
         }
 
@@ -102,8 +107,9 @@ namespace UserOutput {
             return false;
         }
 
-        if (_current_value == percent)
+        if (_current_value == percent) {
             return true;
+        }
 
         _current_value = percent;
 

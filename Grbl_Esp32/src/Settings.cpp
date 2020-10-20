@@ -233,7 +233,7 @@ const char* AxisMaskSetting::getCompatibleValue() {
 }
 
 static char* maskToString(uint32_t mask, char* strval) {
-    char*       s    = strval;
+    char* s = strval;
     for (int i = 0; i < MAX_N_AXIS; i++) {
         if (mask & bit(i)) {
             *s++ = "XYZABC"[i];
@@ -440,6 +440,73 @@ void StringSetting::addWebui(WebUI::JSONencoder* j) {
     j->end_object();
 }
 
+PinSetting::PinSetting(const char* description, const char* name, const char* defVal, bool (*checker)(char*)) :
+    Setting(description, WEBSET, WA, NULL, name, checker) {
+    _defaultValue = defVal;
+};
+
+void PinSetting::load() {
+    size_t    len = 0;
+    esp_err_t err = nvs_get_str(_handle, _keyName, NULL, &len);
+    if (err) {
+        _storedValue  = _defaultValue;
+        _currentValue = Pin::create(_defaultValue);
+        return;
+    }
+    char buf[len];
+    err = nvs_get_str(_handle, _keyName, buf, &len);
+    if (err) {
+        _storedValue  = _defaultValue;
+        _currentValue = Pin::create(_defaultValue);
+        return;
+    }
+    _storedValue  = String(buf);
+    _currentValue = Pin::create(_storedValue);
+}
+
+void PinSetting::setDefault() {
+    nvs_erase_key(_handle, _keyName);
+}
+
+Error PinSetting::setStringValue(char* s) {
+    if (!Pin::validate(s)) {
+        return Error::BadNumberFormat;
+    }
+
+    Error err = check(s);
+    if (err != Error::Ok) {
+        return err;
+    }
+    if (_storedValue != s) {
+        if (s == _defaultValue) {
+            nvs_erase_key(_handle, _keyName);
+            _storedValue = _defaultValue;
+        } else {
+            if (nvs_set_str(_handle, _keyName, s)) {
+                return Error::NvsSetFailed;
+            }
+            _storedValue = s;
+        }
+    }
+    return Error::Ok;
+}
+
+const char* PinSetting::getStringValue() {
+    // If the string is a password do not display it
+    return _storedValue.c_str();
+}
+const char* PinSetting::getDefaultString() {
+    return "undef";
+}
+
+void PinSetting::addWebui(WebUI::JSONencoder* j) {
+    if (!getDescription()) {
+        return;
+    }
+    j->begin_webui(getName(), getDescription(), "S", getStringValue(), 0, 255);
+    j->end_object();
+}
+
 typedef std::map<const char*, int8_t, cmp_str> enum_opt_t;
 
 EnumSetting::EnumSetting(
@@ -566,7 +633,7 @@ void FlagSetting::setDefault() {
 }
 
 Error FlagSetting::setStringValue(char* s) {
-    s             = trim(s);
+    s         = trim(s);
     Error err = check(s);
     if (err != Error::Ok) {
         return err;

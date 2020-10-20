@@ -39,9 +39,8 @@ namespace Motors {
         return rmt_channel_t(next_RMT_chan_num);
     }
 
-    StandardStepper::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) :
-        Motor(axis_index), _step_pin(step_pin), _dir_pin(dir_pin), _disable_pin(disable_pin) {
-    }
+    StandardStepper::StandardStepper(uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin) :
+        Motor(axis_index), _step_pin(step_pin), _dir_pin(dir_pin), _disable_pin(disable_pin) {}
 
     void StandardStepper::init() {
         init_step_dir_pins();
@@ -51,7 +50,7 @@ namespace Motors {
     void StandardStepper::init_step_dir_pins() {
         _invert_step_pin = bitnum_istrue(step_invert_mask->get(), _axis_index);
         _invert_dir_pin  = bitnum_istrue(dir_invert_mask->get(), _axis_index);
-        pinMode(_dir_pin, OUTPUT);
+        _dir_pin.setAttr(Pin::Attr::Output);
 
 #ifdef USE_RMT_STEPS
         rmtConfig.rmt_mode                       = RMT_MODE_TX;
@@ -78,20 +77,23 @@ namespace Motors {
         if (_rmt_chan_num == RMT_CHANNEL_MAX) {
             return;
         }
+
+        auto step_pin_gpio = _step_pin.getNative(Pin::Capabilities::Output);
         rmt_set_source_clk(_rmt_chan_num, RMT_BASECLK_APB);
         rmtConfig.channel              = _rmt_chan_num;
         rmtConfig.tx_config.idle_level = _invert_step_pin ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-        rmtConfig.gpio_num             = gpio_num_t(_step_pin);
+        rmtConfig.gpio_num             = gpio_num_t(step_pin_gpio);
         rmtItem[0].level0              = rmtConfig.tx_config.idle_level;
         rmtItem[0].level1              = !rmtConfig.tx_config.idle_level;
         rmt_config(&rmtConfig);
         rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
 
 #else
-        pinMode(_step_pin, OUTPUT);
+
+        _step_pin.setAttr(Pin::Attr::Output);
 
 #endif  // USE_RMT_STEPS
-        pinMode(_disable_pin, OUTPUT);
+        _disable_pin.setAttr(Pin::Attr::Output);
     }
 
     void StandardStepper::config_message() {
@@ -99,9 +101,9 @@ namespace Motors {
                        MsgLevel::Info,
                        "%s Standard Stepper Step:%s Dir:%s Disable:%s %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
-                       pinName(_step_pin).c_str(),
-                       pinName(_dir_pin).c_str(),
-                       pinName(_disable_pin).c_str(),
+                       _step_pin.name().c_str(),
+                       _dir_pin.name().c_str(),
+                       _disable_pin.name().c_str(),
                        reportAxisLimitsMsg(_axis_index));
     }
 
@@ -110,17 +112,17 @@ namespace Motors {
         RMT.conf_ch[_rmt_chan_num].conf1.mem_rd_rst = 1;
         RMT.conf_ch[_rmt_chan_num].conf1.tx_start   = 1;
 #else
-        digitalWrite(_step_pin, !_invert_step_pin);
+        _step_pin.write(!_invert_step_pin);
 #endif  // USE_RMT_STEPS
     }
 
     void StandardStepper::unstep() {
 #ifndef USE_RMT_STEPS
-        digitalWrite(_step_pin, _invert_step_pin);
+        _step_pin.write(_invert_step_pin);
 #endif  // USE_RMT_STEPS
     }
 
-    void StandardStepper::set_direction(bool dir) { digitalWrite(_dir_pin, dir ^ _invert_dir_pin); }
+    void StandardStepper::set_direction(bool dir) { _dir_pin.write(dir ^ _invert_dir_pin); }
 
-    void StandardStepper::set_disable(bool disable) { digitalWrite(_disable_pin, disable); }
+    void StandardStepper::set_disable(bool disable) { _disable_pin.write(disable); }
 }

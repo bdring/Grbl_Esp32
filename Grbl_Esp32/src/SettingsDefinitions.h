@@ -59,3 +59,23 @@ extern IntSetting*   spindle_pwm_bit_precision;
 extern EnumSetting* spindle_type;
 
 extern AxisMaskSetting* stallguard_debug_mask;
+
+// Pins:
+extern PinSetting* CoolantFloodPin;     // COOLANT_FLOOD_PIN
+extern PinSetting* CoolantMistPin;      // COOLANT_MIST_PIN
+extern PinSetting* ProbePin;            // PROBE_PIN
+extern PinSetting* SDCardDetPin;        // SDCARD_DET_PIN
+extern PinSetting* SteppersDisablePin;  // STEPPERS_DISABLE_PIN
+
+// { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
+// { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
+extern PinSetting* limit_pins[MAX_N_AXIS][2];
+
+extern PinSetting* ControlSafetyDoorPin;  //  CONTROL_SAFETY_DOOR_PIN
+extern PinSetting* ControlResetPin;       //  CONTROL_RESET_PIN
+extern PinSetting* ControlFeedHoldPin;    //  CONTROL_FEED_HOLD_PIN
+extern PinSetting* ControlCycleStartPin;  //  CONTROL_CYCLE_START_PIN
+extern PinSetting* MacroButton0Pin;       //  MACRO_BUTTON_0_PIN
+extern PinSetting* MacroButton1Pin;       //  MACRO_BUTTON_1_PIN
+extern PinSetting* MacroButton2Pin;       //  MACRO_BUTTON_2_PIN
+extern PinSetting* MacroButton3Pin;       //  MACRO_BUTTON_3_PIN

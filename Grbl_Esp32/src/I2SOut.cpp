@@ -58,11 +58,15 @@
 
 #include <stdatomic.h>
 
-#include "Pins.h"
+#include "Pin.h"
 #include "I2SOut.h"
 
 // Always enable I2S streaming logic
 #define USE_I2S_OUT_STREAM_IMPL
+
+// Make Arduino functions available
+extern "C" void __pinMode(uint8_t pin, uint8_t mode);
+extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 //
 // Configrations for DMA connected I2S

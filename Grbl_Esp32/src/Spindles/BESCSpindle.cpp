@@ -54,7 +54,7 @@ namespace Spindles {
     void BESC::init() {
         get_pins_and_settings();  // these gets the standard PWM settings, but many need to be changed for BESC
 
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: BESC output pin not defined");
             return;  // We cannot continue without the output pin
         }
@@ -71,7 +71,7 @@ namespace Spindles {
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
         ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
 
-        pinMode(_enable_pin, OUTPUT);
+        _enable_pin.setAttr(Pin::Attr::Output);
 
         set_rpm(0);
 
@@ -85,7 +85,7 @@ namespace Spindles {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
                        "BESC spindle on Pin:%s Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
-                       pinName(_output_pin).c_str(),
+                       _output_pin.name().c_str(),
                        BESC_MIN_PULSE_SECS * 1000.0,  // convert to milliseconds
                        BESC_MAX_PULSE_SECS * 1000.0,  // convert to milliseconds
                        _pwm_freq,
@@ -95,7 +95,7 @@ namespace Spindles {
     uint32_t BESC::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             return rpm;
         }
 

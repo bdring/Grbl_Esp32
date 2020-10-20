@@ -25,7 +25,7 @@
 
 // Override default function and insert a short delay
 void TMC2130Stepper::switchCSpin(bool state) {
-    digitalWrite(_pinCS, state);
+    _pinCS.write(state);
     i2s_out_delay();
 }
 #endif
@@ -42,10 +42,10 @@ namespace Motors {
     TrinamicDriver* TrinamicDriver::List = NULL;
 
     TrinamicDriver::TrinamicDriver(uint8_t  axis_index,
-                                   uint8_t  step_pin,
-                                   uint8_t  dir_pin,
-                                   uint8_t  disable_pin,
-                                   uint8_t  cs_pin,
+                                   Pin      step_pin,
+                                   Pin      dir_pin,
+                                   Pin      disable_pin,
+                                   Pin      cs_pin,
                                    uint16_t driver_part_number,
                                    float    r_sense,
                                    int8_t   spi_index) :
@@ -53,10 +53,13 @@ namespace Motors {
         _homing_mode(TRINAMIC_HOMING_MODE), _cs_pin(cs_pin), _driver_part_number(driver_part_number), _r_sense(r_sense),
         _spi_index(spi_index) {
         _has_errors = false;
+
+        auto cs_pin_native = _cs_pin.getNative(Pin::Capabilities::Output);
+
         if (_driver_part_number == 2130) {
-            tmcstepper = new TMC2130Stepper(_cs_pin, _r_sense, _spi_index);
+            tmcstepper = new TMC2130Stepper(cs_pin_native, _r_sense, _spi_index);
         } else if (_driver_part_number == 5160) {
-            tmcstepper = new TMC5160Stepper(_cs_pin, _r_sense, _spi_index);
+            tmcstepper = new TMC5160Stepper(cs_pin_native, _r_sense, _spi_index);
         } else {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
@@ -70,11 +73,10 @@ namespace Motors {
         _has_errors = false;
         init_step_dir_pins();  // from StandardStepper
 
-        digitalWrite(_cs_pin, HIGH);
-        pinMode(_cs_pin, OUTPUT);
+        _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialHigh);
 
         // use slower speed if I2S
-        if (_cs_pin >= I2S_OUT_PIN_BASE) {
+        if (_cs_pin.capabilities().has(Pin::Capabilities::I2S)) {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
         }
 
@@ -129,10 +131,10 @@ namespace Motors {
                        "%s Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _driver_part_number,
-                       pinName(_step_pin).c_str(),
-                       pinName(_dir_pin).c_str(),
-                       pinName(_cs_pin).c_str(),
-                       pinName(_disable_pin).c_str(),
+                       _step_pin.name().c_str(),
+                       _dir_pin.name().c_str(),
+                       _cs_pin.name().c_str(),
+                       _disable_pin.name().c_str(),
                        _spi_index,
                        reportAxisLimitsMsg(_axis_index));
     }
@@ -141,6 +143,7 @@ namespace Motors {
         if (_has_errors) {
             return false;
         }
+
         switch (tmcstepper->test_connection()) {
             case 1:
                 grbl_msg_sendf(CLIENT_SERIAL,
@@ -207,9 +210,9 @@ namespace Motors {
         uint16_t run_i_ma = (uint16_t)(axis_settings[_axis_index]->run_current->get() * 1000.0);
         float    hold_i_percent;
 
-        if (axis_settings[_axis_index]->run_current->get() == 0)
+        if (axis_settings[_axis_index]->run_current->get() == 0) {
             hold_i_percent = 0;
-        else {
+        } else {
             hold_i_percent = axis_settings[_axis_index]->hold_current->get() / axis_settings[_axis_index]->run_current->get();
             if (hold_i_percent > 1.0)
                 hold_i_percent = 1.0;
@@ -320,7 +323,7 @@ namespace Motors {
 
         _disabled = disable;
 
-        digitalWrite(_disable_pin, _disabled);
+        _disable_pin.write(_disabled);
 
 #ifdef USE_TRINAMIC_ENABLE
         if (_disabled) {

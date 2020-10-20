@@ -22,10 +22,12 @@
 #include "Grbl.h"
 
 namespace UserOutput {
+    const uint8_t UNDEFINED_OUTPUT = 255;
+
     class DigitalOutput {
     public:
         DigitalOutput();
-        DigitalOutput(uint8_t number, uint8_t pin);
+        DigitalOutput(uint8_t number, Pin pin);
 
         bool set_level(bool isOn);
 
@@ -33,22 +35,22 @@ namespace UserOutput {
         void init();
         void config_message();
 
-        uint8_t _number = UNDEFINED_PIN;
-        uint8_t _pin    = UNDEFINED_PIN;
+        uint8_t _number = UNDEFINED_OUTPUT;
+        Pin     _pin;
     };
 
     class AnalogOutput {
     public:
         AnalogOutput();
-        AnalogOutput(uint8_t number, uint8_t pin, float pwm_frequency);
+        AnalogOutput(uint8_t number, Pin pin, float pwm_frequency);
         bool set_level(float percent);
 
     protected:
         void init();
         void config_message();
 
-        uint8_t _number      = UNDEFINED_PIN;
-        uint8_t _pin         = UNDEFINED_PIN;
+        uint8_t _number = UNDEFINED_OUTPUT;
+        Pin     _pin;
         uint8_t _pwm_channel = -1;  // -1 means invalid or not setup
         float   _pwm_frequency;
         uint8_t _resolution_bits;

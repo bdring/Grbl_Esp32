@@ -30,13 +30,13 @@ namespace Motors {
     bool    Motors::Dynamixel2::uart_ready         = false;
     uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
 
-    Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin) :
+    Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, Pin tx_pin, Pin rx_pin, Pin rts_pin) :
         Servo(axis_index), _id(id), _tx_pin(tx_pin), _rx_pin(rx_pin), _rts_pin(rts_pin) {
-        if (_tx_pin == UNDEFINED_PIN || _rx_pin == UNDEFINED_PIN || _rts_pin == UNDEFINED_PIN) {
+        if (_tx_pin == Pin::UNDEFINED || _rx_pin == Pin::UNDEFINED || _rts_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Error. Missing pin definitions");
             _has_errors = true;
         } else {
-            _has_errors = false;   // The motor can be used
+            _has_errors = false;  // The motor can be used
         }
     }
 
@@ -103,8 +103,8 @@ namespace Motors {
             }
 
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(_axis_index, _dual_axis_index),
-_id);
+            grbl_msg_sendf(
+                CLIENT_SERIAL, MsgLevel::Info, "%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(_axis_index, _dual_axis_index), _id);
             return false;
         }
 
@@ -115,16 +115,18 @@ _id);
         _dxl_count_min = DXL_COUNT_MIN;
         _dxl_count_max = DXL_COUNT_MAX;
 
-        if (bitnum_istrue(dir_invert_mask->get(), _axis_index))  // normal direction
+        if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {  // normal direction
             swap(_dxl_count_min, _dxl_count_min);
+        }
     }
 
     // sets the PWM to zero. This allows most servos to be manually moved
     void Dynamixel2::set_disable(bool disable) {
         uint8_t param_count = 1;
 
-        if (_disabled == disable)
+        if (_disabled == disable) {
             return;
+        }
 
         _disabled = disable;
 
@@ -158,26 +160,35 @@ _id);
     void Dynamixel2::init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index) {
         ids[axis_index][dual_axis_index] = id;  // learn all the ids
 
-        if (uart_ready)
+        if (uart_ready) {
             return;  // UART already setup
+        }
 
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel UART TX:%d RX:%d RTS:%d", DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
+        grbl_msg_sendf(CLIENT_SERIAL,
+                       MsgLevel::Info,
+                       "Dynamixel UART TX:%d RX:%d RTS:%d",
+                       _tx_pin.name().c_str(),
+                       _rx_pin.name().c_str(),
+                       _rts_pin.name().c_str());
 
         uart_driver_delete(UART_NUM_2);
 
         // setup the comm port as half duplex
-        uart_config_t uart_config = {
-            .baud_rate           = DYNAMIXEL_BAUD_RATE,
-            .data_bits           = UART_DATA_8_BITS,
-            .parity              = UART_PARITY_DISABLE,
-            .stop_bits           = UART_STOP_BITS_1,
-            .flow_ctrl           = UART_HW_FLOWCTRL_DISABLE,
-            .rx_flow_ctrl_thresh = 122,
-        };
+        uart_config_t uart_config;
+        uart_config.baud_rate           = DYNAMIXEL_BAUD_RATE;
+        uart_config.data_bits           = UART_DATA_8_BITS;
+        uart_config.parity              = UART_PARITY_DISABLE;
+        uart_config.stop_bits           = UART_STOP_BITS_1;
+        uart_config.flow_ctrl           = UART_HW_FLOWCTRL_DISABLE;
+        uart_config.rx_flow_ctrl_thresh = 122;
+
+        auto txd = _tx_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
+        auto rxd = _rx_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Input);
+        auto rts = _rts_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
 
         // Configure UART parameters
         uart_param_config(UART_NUM_2, &uart_config);
-        uart_set_pin(UART_NUM_2, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS, UART_PIN_NO_CHANGE);
+        uart_set_pin(UART_NUM_2, txd, rxd, rts, UART_PIN_NO_CHANGE);
         uart_driver_install(UART_NUM_2, DYNAMIXEL_BUF_SIZE * 2, 0, 0, NULL, 0);
         uart_set_mode(UART_NUM_2, UART_MODE_RS485_HALF_DUPLEX);
 
@@ -197,7 +208,7 @@ _id);
 
         set_disable(false);
         set_location();  // force the PWM to update now
-        return false;  // Cannot do conventional homing
+        return false;    // Cannot do conventional homing
     }
 
     void Dynamixel2::dxl_goal_position(int32_t position) {
@@ -358,11 +369,13 @@ _id);
                     dxl_count_min = DXL_COUNT_MIN;
                     dxl_count_max = DXL_COUNT_MAX;
 
-                    if (bitnum_istrue(dir_invert_mask->get(), axis))  // normal direction
+                    if (bitnum_istrue(dir_invert_mask->get(), axis)) {  // normal direction
                         swap(dxl_count_min, dxl_count_max);
+                    }
 
                     // map the mm range to the servo range
-                    dxl_position = (uint32_t)mapConstrain(target, limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max);
+                    dxl_position =
+                        (uint32_t)mapConstrain(target, limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max);
 
                     tx_message[++msg_index] = current_id;                         // ID of the servo
                     tx_message[++msg_index] = dxl_position & 0xFF;                // data

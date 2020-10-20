@@ -33,21 +33,23 @@ namespace Spindles {
     void PWM::init() {
         get_pins_and_settings();
 
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
-        if (_output_pin >= I2S_OUT_PIN_BASE) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin %s cannot do PWM", pinName(_output_pin).c_str());
+        if (!_output_pin.capabilities().has(Pin::Capabilities::PWM)) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin %s cannot do PWM", _output_pin.name().c_str());
             return;
         }
 
-        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
+        auto outputNative = _output_pin.getNative(Pin::Capabilities::PWM);
 
-        pinMode(_enable_pin, OUTPUT);
-        pinMode(_direction_pin, OUTPUT);
+        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
+        ledcAttachPin(outputNative, _pwm_chan_num);                   // attach the PWM to the pin
+
+        _enable_pin.setAttr(Pin::Attr::Output);
+        _direction_pin.setAttr(Pin::Attr::Output);
 
         use_delays = true;
 
@@ -61,7 +63,7 @@ namespace Spindles {
 #ifdef SPINDLE_OUTPUT_PIN
         _output_pin = SPINDLE_OUTPUT_PIN;
 #else
-        _output_pin       = UNDEFINED_PIN;
+        _output_pin       = Pin::UNDEFINED;
 #endif
 
         _invert_pwm = spindle_output_invert->get();
@@ -69,7 +71,7 @@ namespace Spindles {
 #ifdef SPINDLE_ENABLE_PIN
         _enable_pin = SPINDLE_ENABLE_PIN;
 #else
-        _enable_pin       = UNDEFINED_PIN;
+        _enable_pin       = Pin::UNDEFINED;
 #endif
 
         _off_with_zero_speed = spindle_enbl_off_with_zero_speed->get();
@@ -77,10 +79,10 @@ namespace Spindles {
 #ifdef SPINDLE_DIR_PIN
         _direction_pin = SPINDLE_DIR_PIN;
 #else
-        _direction_pin    = UNDEFINED_PIN;
+        _direction_pin    = Pin::UNDEFINED;
 #endif
 
-        is_reversable = (_direction_pin != UNDEFINED_PIN);
+        is_reversable = (_direction_pin != Pin::UNDEFINED);
 
         _pwm_freq      = spindle_pwm_freq->get();
         _pwm_precision = calc_pwm_precision(_pwm_freq);  // detewrmine the best precision
@@ -113,7 +115,7 @@ namespace Spindles {
     uint32_t PWM::set_rpm(uint32_t rpm) {
         uint32_t pwm_value;
 
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             return rpm;
         }
 
@@ -182,11 +184,11 @@ namespace Spindles {
     }
 
     SpindleState PWM::get_state() {
-        if (_current_pwm_duty == 0 || _output_pin == UNDEFINED_PIN) {
+        if (_current_pwm_duty == 0 || _output_pin == Pin::UNDEFINED) {
             return SpindleState::Disable;
         }
-        if (_direction_pin != UNDEFINED_PIN) {
-            return digitalRead(_direction_pin) ? SpindleState::Cw : SpindleState::Ccw;
+        if (_direction_pin != Pin::UNDEFINED) {
+            return _direction_pin.read() ? SpindleState::Cw : SpindleState::Ccw;
         }
         return SpindleState::Cw;
     }
@@ -202,15 +204,15 @@ namespace Spindles {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
                        "PWM spindle Output:%s, Enbl:%s, Dir:%s, Freq:%dHz, Res:%dbits",
-                       pinName(_output_pin).c_str(),
-                       pinName(_enable_pin).c_str(),
-                       pinName(_direction_pin).c_str(),
+                       _output_pin.name().c_str(),
+                       _enable_pin.name().c_str(),
+                       _direction_pin.name().c_str(),
                        _pwm_freq,
                        _pwm_precision);
     }
 
     void PWM::set_output(uint32_t duty) {
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             return;
         }
 
@@ -231,7 +233,7 @@ namespace Spindles {
     }
 
     void PWM::set_enable_pin(bool enable) {
-        if (_enable_pin == UNDEFINED_PIN) {
+        if (_enable_pin == Pin::UNDEFINED) {
             return;
         }
 
@@ -243,10 +245,10 @@ namespace Spindles {
             enable = !enable;
         }
 
-        digitalWrite(_enable_pin, enable);
+        _enable_pin.write(enable);
     }
 
-    void PWM::set_dir_pin(bool Clockwise) { digitalWrite(_direction_pin, Clockwise); }
+    void PWM::set_dir_pin(bool Clockwise) { _direction_pin.write(Clockwise); }
 
     /*
 		Calculate the highest precision of a PWM based on the frequency in bits

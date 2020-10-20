@@ -74,8 +74,7 @@ const int DXL_CONTROL_MODE_POSITION = 3;
 namespace Motors {
     class Dynamixel2 : public Servo {
     public:
-        Dynamixel2(uint8_t axis_index, uint8_t address, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin);
-
+        Dynamixel2(uint8_t axis_index, uint8_t address, Pin tx_pin, Pin rx_pin, Pin rts_pin);
 
         // Overrides for inherited methods
         void init() override;
@@ -86,7 +85,6 @@ namespace Motors {
 
         static bool    uart_ready;
         static uint8_t ids[MAX_N_AXIS][2];
-
 
     protected:
         void config_message() override;
@@ -106,7 +104,7 @@ namespace Motors {
         void     set_operating_mode(uint8_t mode);
         void     LED_on(bool on);
 
-        static void     init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
+        void            init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
         static void     dxl_finish_message(uint8_t id, char* msg, uint16_t msg_len);
         static uint16_t dxl_update_crc(uint16_t crc_accum, char* data_blk_ptr, uint8_t data_blk_size);
         static void     dxl_bulk_goal_position();  // set all motorsd init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
@@ -116,9 +114,9 @@ namespace Motors {
         float _dxl_count_min;
         float _dxl_count_max;
 
-        uint8_t     _tx_pin;
-        uint8_t     _rx_pin;
-        uint8_t     _rts_pin;
+        Pin         _tx_pin;
+        Pin         _rx_pin;
+        Pin         _rts_pin;
         uart_port_t _uart_num;
 
         bool _disabled;

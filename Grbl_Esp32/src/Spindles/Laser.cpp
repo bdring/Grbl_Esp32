@@ -32,7 +32,7 @@ namespace Spindles {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
                        "Laser spindle on Pin:%s, Freq:%.2fHz, Res:%dbits Laser mode:$32=%d",
-                       pinName(_output_pin).c_str(),
+                       _output_pin.name().c_str(),
                        _pwm_freq,
                        _pwm_precision,
                        isRateAdjusted());  // the current mode

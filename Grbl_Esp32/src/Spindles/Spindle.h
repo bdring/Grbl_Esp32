@@ -67,13 +67,13 @@ namespace Spindles {
         virtual bool         isRateAdjusted();
         virtual void         sync(SpindleState state, uint32_t rpm);
 
-        virtual ~Spindle() {}
-
         bool                  is_reversable;
         bool                  use_delays;  // will SpinUp and SpinDown delays be used.
         volatile SpindleState _current_state = SpindleState::Disable;
 
         static void select();
+
+        virtual ~Spindle() {}
     };
 
 }

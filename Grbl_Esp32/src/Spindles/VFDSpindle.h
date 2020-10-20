@@ -32,9 +32,9 @@ namespace Spindles {
         bool set_mode(SpindleState mode, bool critical);
         bool get_pins_and_settings();
 
-        uint8_t _txd_pin;
-        uint8_t _rxd_pin;
-        uint8_t _rts_pin;
+        Pin _txd_pin;
+        Pin _rxd_pin;
+        Pin _rts_pin;
 
         uint32_t _current_rpm  = 0;
         bool     _task_running = false;

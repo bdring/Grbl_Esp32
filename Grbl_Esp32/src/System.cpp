@@ -20,6 +20,7 @@
 
 #include "Grbl.h"
 #include "Config.h"
+#include "SettingsDefinitions.h"
 
 // Declare system global variable structure
 system_t               sys;
@@ -199,54 +200,46 @@ ControlPins system_control_get_state() {
     ControlPins pin_states;
     pin_states.value = 0;
 
-#ifdef CONTROL_SAFETY_DOOR_PIN
-    defined_pins.bit.safetyDoor = true;
-    if (digitalRead(CONTROL_SAFETY_DOOR_PIN)) {
+    defined_pins.bit.safetyDoor = ControlSafetyDoorPin->get() != Pin::UNDEFINED;
+    if (ControlSafetyDoorPin->get().read()) {
         pin_states.bit.safetyDoor = true;
     }
-#endif
-#ifdef CONTROL_RESET_PIN
-    defined_pins.bit.reset = true;
-    if (digitalRead(CONTROL_RESET_PIN)) {
+
+    defined_pins.bit.reset = ControlResetPin->get() != Pin::UNDEFINED;
+    if (ControlResetPin->get().read()) {
         pin_states.bit.reset = true;
     }
-#endif
-#ifdef CONTROL_FEED_HOLD_PIN
-    defined_pins.bit.feedHold = true;
+
+    defined_pins.bit.feedHold = ControlFeedHoldPin->get() != Pin::UNDEFINED;
     if (digitalRead(CONTROL_FEED_HOLD_PIN)) {
         pin_states.bit.feedHold = true;
     }
-#endif
-#ifdef CONTROL_CYCLE_START_PIN
-    defined_pins.bit.cycleStart = true;
+
+    defined_pins.bit.cycleStart = ControlCycleStartPin->get() != Pin::UNDEFINED;
     if (digitalRead(CONTROL_CYCLE_START_PIN)) {
         pin_states.bit.cycleStart = true;
     }
-#endif
-#ifdef MACRO_BUTTON_0_PIN
-    defined_pins.bit.macro0 = true;
-    if (digitalRead(MACRO_BUTTON_0_PIN)) {
+
+    defined_pins.bit.macro0 = MacroButton0Pin->get() != Pin::UNDEFINED;
+    if (MacroButton0Pin->get().read()) {
         pin_states.bit.macro0 = true;
     }
-#endif
-#ifdef MACRO_BUTTON_1_PIN
-    defined_pins.bit.macro1 = true;
-    if (digitalRead(MACRO_BUTTON_1_PIN)) {
+
+    defined_pins.bit.macro1 = MacroButton1Pin->get() != Pin::UNDEFINED;
+    if (MacroButton1Pin->get().read()) {
         pin_states.bit.macro1 = true;
     }
-#endif
-#ifdef MACRO_BUTTON_2_PIN
-    defined_pins.bit.macro2 = true;
-    if (digitalRead(MACRO_BUTTON_2_PIN)) {
+
+    defined_pins.bit.macro2 = MacroButton2Pin->get() != Pin::UNDEFINED;
+    if (MacroButton2Pin->get().read()) {
         pin_states.bit.macro2 = true;
     }
-#endif
-#ifdef MACRO_BUTTON_3_PIN
-    defined_pins.bit.macro3 = true;
-    if (digitalRead(MACRO_BUTTON_3_PIN)) {
+
+    defined_pins.bit.macro3 = MacroButton3Pin->get() != Pin::UNDEFINED;
+    if (MacroButton3Pin->get().read()) {
         pin_states.bit.macro3 = true;
     }
-#endif
+
 #ifdef INVERT_CONTROL_PIN_MASK
     pin_states.value ^= (INVERT_CONTROL_PIN_MASK & defined_pins.value);
 #endif

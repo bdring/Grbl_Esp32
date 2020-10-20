@@ -39,7 +39,7 @@ xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 #    define HOMING_AXIS_LOCATE_SCALAR 5.0  // Must be > 1 to ensure limit switch is cleared.
 #endif
 
-void IRAM_ATTR isr_limit_switches() {
+void IRAM_ATTR isr_limit_switches(void* /*unused */) {
     // Ignore limit switches if already in an alarm state or in-process of executing an alarm.
     // When in the alarm state, Grbl should have been reset or will force a reset, so any pending
     // moves in the planner and serial buffers are all cleared and newly sent blocks will be
@@ -305,33 +305,30 @@ void limits_go_home(uint8_t cycle_mask) {
     motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done
 }
 
-uint8_t limit_pins[MAX_N_AXIS][2] = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
-                                      { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
-
 uint8_t limit_mask = 0;
 
 void limits_init() {
-    limit_mask = 0;
-    int mode   = INPUT_PULLUP;
+    limit_mask     = 0;
+    Pin::Attr mode = Pin::Attr::Input | Pin::Attr::PullUp;
 #ifdef DISABLE_LIMIT_PIN_PULL_UP
-    mode = INPUT;
+    mode = Pin::Attr::Input;
 #endif
     auto n_axis = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin;
-            if ((pin = limit_pins[axis][gang_index]) != UNDEFINED_PIN) {
-                pinMode(pin, mode);
+            Pin pin;
+            if ((pin = limit_pins[axis][gang_index]->get()) != Pin::UNDEFINED) {
+                pin.setAttr(mode);
                 limit_mask |= bit(axis);
                 if (hard_limits->get()) {
-                    attachInterrupt(pin, isr_limit_switches, CHANGE);
+                    pin.attachInterrupt(isr_limit_switches, CHANGE, nullptr);
                 } else {
-                    detachInterrupt(pin);
+                    pin.detachInterrupt();
                 }
 
                 if (limit_sw_queue == NULL) {
                     grbl_msg_sendf(
-                        CLIENT_SERIAL, MsgLevel::Info, "%s limit switch on pin %s", reportAxisNameMsg(axis, gang_index), pinName(pin).c_str());
+                        CLIENT_SERIAL, MsgLevel::Info, "%s limit switch on pin %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
                 }
             }
         }
@@ -354,9 +351,9 @@ void limits_disable() {
     auto n_axis = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin = limit_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
-                detachInterrupt(pin);
+            Pin pin = limit_pins[axis][gang_index]->get();
+            if (pin != Pin::UNDEFINED) {
+                pin.detachInterrupt();
             }
         }
     }
@@ -370,12 +367,13 @@ AxisMask limits_get_state() {
     auto     n_axis  = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin = limit_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
-                if (limit_invert->get())
-                    pinMask |= (!digitalRead(pin) << axis);
-                else
-                    pinMask |= (digitalRead(pin) << axis);
+            Pin pin = limit_pins[axis][gang_index]->get();
+            if (pin != Pin::UNDEFINED) {
+                if (limit_invert->get()) {
+                    pinMask |= (!pin.read() << axis);
+                } else {
+                    pinMask |= (pin.read() << axis);
+                }
             }
         }
     }

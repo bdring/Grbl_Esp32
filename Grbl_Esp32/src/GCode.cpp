@@ -272,7 +272,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 38:  // G38 - probe
                         //only allow G38 "Probe" commands if a probe pin is defined.
-                        if (PROBE_PIN == UNDEFINED_PIN) {
+                        if (ProbePin->get() == Pin::UNDEFINED) {
                             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
                             FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
                         }
@@ -496,16 +496,16 @@ Error gc_execute_line(char* line, uint8_t client) {
                     case 8:
                     case 9:
                         switch (int_value) {
-#ifdef COOLANT_MIST_PIN
                             case 7:
-                                gc_block.coolant = GCodeCoolant::M7;
+                                if (CoolantMistPin->get() != Pin::UNDEFINED) {
+                                    gc_block.coolant = GCodeCoolant::M7;
+                                }
                                 break;
-#endif
-#ifdef COOLANT_FLOOD_PIN
                             case 8:
-                                gc_block.coolant = GCodeCoolant::M8;
+                                if (CoolantFloodPin->get() != Pin::UNDEFINED) {
+                                    gc_block.coolant = GCodeCoolant::M8;
+                                }
                                 break;
-#endif
                             case 9:
                                 gc_block.coolant = GCodeCoolant::M9;
                                 break;
