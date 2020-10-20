@@ -51,42 +51,42 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         ControlSafetyDoorPin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);
         ControlSafetyDoorPin->get().attachInterrupt(isr_control_inputs, CHANGE);
     }
-#ifdef CONTROL_SAFETY_DOOR_PIN
-    pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef CONTROL_RESET_PIN
-    pinMode(CONTROL_RESET_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef CONTROL_FEED_HOLD_PIN
-    pinMode(CONTROL_FEED_HOLD_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef CONTROL_CYCLE_START_PIN
-    pinMode(CONTROL_CYCLE_START_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef MACRO_BUTTON_0_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 0");
-    pinMode(MACRO_BUTTON_0_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_0_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef MACRO_BUTTON_1_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 1");
-    pinMode(MACRO_BUTTON_1_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_1_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef MACRO_BUTTON_2_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 2");
-    pinMode(MACRO_BUTTON_2_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_2_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef MACRO_BUTTON_3_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 3");
-    pinMode(MACRO_BUTTON_3_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_3_PIN), isr_control_inputs, CHANGE);
-#endif
+
+    if (ControlResetPin->get() != Pin::UNDEFINED) {
+        ControlResetPin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);
+        ControlResetPin->get().attachInterrupt(isr_control_inputs, CHANGE);
+    }
+
+    if (ControlFeedHoldPin->get() != Pin::UNDEFINED) {
+        ControlFeedHoldPin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);
+        ControlFeedHoldPin->get().attachInterrupt(isr_control_inputs, CHANGE);
+    }
+
+    if (ControlCycleStartPin->get() != Pin::UNDEFINED) {
+        ControlCycleStartPin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);
+        ControlCycleStartPin->get().attachInterrupt(isr_control_inputs, CHANGE);
+    }
+
+    if (MacroButton0Pin->get() != Pin::UNDEFINED) {
+        MacroButton0Pin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);
+        MacroButton0Pin->get().attachInterrupt(isr_control_inputs, CHANGE);
+    }
+
+    if (MacroButton1Pin->get() != Pin::UNDEFINED) {
+        MacroButton1Pin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);
+        MacroButton1Pin->get().attachInterrupt(isr_control_inputs, CHANGE);
+    }
+
+    if (MacroButton2Pin->get() != Pin::UNDEFINED) {
+        MacroButton2Pin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);
+        MacroButton2Pin->get().attachInterrupt(isr_control_inputs, CHANGE);
+    }
+
+    if (MacroButton3Pin->get() != Pin::UNDEFINED) {
+        MacroButton3Pin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);
+        MacroButton3Pin->get().attachInterrupt(isr_control_inputs, CHANGE);
+    }
+
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
     // setup task used for debouncing
     control_sw_queue = xQueueCreate(10, sizeof(int));

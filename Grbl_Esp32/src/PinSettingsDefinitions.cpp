@@ -138,6 +138,47 @@ const char* DYNAMIXEL_RXD_DEFAULT = DYNAMIXEL_RXD;
 #endif
 const char* DYNAMIXEL_RTS_DEFAULT = DYNAMIXEL_RTS;
 
+#ifndef USER_DIGITAL_PIN_0
+#    define USER_DIGITAL_PIN_0 UNDEFINED_PIN
+#endif
+const char* USER_DIGITAL_PIN_0_DEFAULT = USER_DIGITAL_PIN_0;
+
+#ifndef USER_DIGITAL_PIN_1
+#    define USER_DIGITAL_PIN_1 UNDEFINED_PIN
+#endif
+const char* USER_DIGITAL_PIN_1_DEFAULT = USER_DIGITAL_PIN_1;
+
+#ifndef USER_DIGITAL_PIN_2
+#    define USER_DIGITAL_PIN_2 UNDEFINED_PIN
+#endif
+const char* USER_DIGITAL_PIN_2_DEFAULT = USER_DIGITAL_PIN_2;
+
+#ifndef USER_DIGITAL_PIN_3
+#    define USER_DIGITAL_PIN_3 UNDEFINED_PIN
+#endif
+const char* USER_DIGITAL_PIN_3_DEFAULT = USER_DIGITAL_PIN_3;
+
+#ifndef USER_ANALOG_PIN_0
+#    define USER_ANALOG_PIN_0 UNDEFINED_PIN
+#endif
+const char* USER_ANALOG_PIN_0_DEFAULT = USER_ANALOG_PIN_0;
+
+#ifndef USER_ANALOG_PIN_1
+#    define USER_ANALOG_PIN_1 UNDEFINED_PIN
+#endif
+const char* USER_ANALOG_PIN_1_DEFAULT = USER_ANALOG_PIN_1;
+
+#ifndef USER_ANALOG_PIN_2
+#    define USER_ANALOG_PIN_2 UNDEFINED_PIN
+#endif
+const char* USER_ANALOG_PIN_2_DEFAULT = USER_ANALOG_PIN_2;
+
+#ifndef USER_ANALOG_PIN_3
+#    define USER_ANALOG_PIN_3 UNDEFINED_PIN
+#endif
+const char* USER_ANALOG_PIN_3_DEFAULT = USER_ANALOG_PIN_3;
+
+
 #ifndef SPINDLE_OUTPUT_PIN
 #    define SPINDLE_OUTPUT_PIN "undef"
 #endif
@@ -827,25 +868,25 @@ void make_pin_settings() {
     DynamixelRTSPin      = new PinSetting("Pins/DynamixelRTS", DYNAMIXEL_RTS_DEFAULT);
 
     // User pins:
-    UserDigitalPin[0] = new PinSetting("Pins/UserDigital/0", USER_DIGITAL_PIN_0);
-    UserAnalogPin[0]  = new PinSetting("Pins/UserAnalog/0", USER_ANALOG_PIN_0);
-    UserDigitalPin[1] = new PinSetting("Pins/UserDigital/1", USER_DIGITAL_PIN_1);
-    UserAnalogPin[1]  = new PinSetting("Pins/UserAnalog/1", USER_ANALOG_PIN_1);
-    UserDigitalPin[2] = new PinSetting("Pins/UserDigital/2", USER_DIGITAL_PIN_2);
-    UserAnalogPin[2]  = new PinSetting("Pins/UserAnalog/2", USER_ANALOG_PIN_2);
-    UserDigitalPin[3] = new PinSetting("Pins/UserDigital/3", USER_DIGITAL_PIN_3);
-    UserAnalogPin[3]  = new PinSetting("Pins/UserAnalog/3", USER_ANALOG_PIN_3);
+    UserDigitalPin[0] = new PinSetting("Pins/UserDigital/0", USER_DIGITAL_PIN_0_DEFAULT);
+    UserAnalogPin[0]  = new PinSetting("Pins/UserAnalog/0", USER_ANALOG_PIN_0_DEFAULT);
+    UserDigitalPin[1] = new PinSetting("Pins/UserDigital/1", USER_DIGITAL_PIN_1_DEFAULT);
+    UserAnalogPin[1]  = new PinSetting("Pins/UserAnalog/1", USER_ANALOG_PIN_1_DEFAULT);
+    UserDigitalPin[2] = new PinSetting("Pins/UserDigital/2", USER_DIGITAL_PIN_2_DEFAULT);
+    UserAnalogPin[2]  = new PinSetting("Pins/UserAnalog/2", USER_ANALOG_PIN_2_DEFAULT);
+    UserDigitalPin[3] = new PinSetting("Pins/UserDigital/3", USER_DIGITAL_PIN_3_DEFAULT);
+    UserAnalogPin[3]  = new PinSetting("Pins/UserAnalog/3", USER_ANALOG_PIN_3_DEFAULT);
 
     // Spindes:
 
-    SpindleOutputPin    = new PinSetting("Pins/Spindle/Output", SPINDLE_OUTPUT_PIN);
-    SpindleEnablePin    = new PinSetting("Pins/Spindle/Enable", SPINDLE_ENABLE_PIN);
-    SpindleDirectionPin = new PinSetting("Pins/Spindle/Direction", SPINDLE_DIRECTION_PIN);
-    SpindleForwardPin   = new PinSetting("Pins/Spindle/Forward", SPINDLE_FORWARD_PIN);
-    SpindleReversePin   = new PinSetting("Pins/Spindle/Reverse", SPINDLE_REVERSE_PIN);
-    VFDRS485TXDPin      = new PinSetting("Pins/Spindle/RS485TXD", VFD_RS485_TXD_PIN);  // VFD_RS485_TXD_PIN
-    VFDRS485RXDPin      = new PinSetting("Pins/Spindle/RS485RXD", VFD_RS485_RXD_PIN);  // VFD_RS485_RXD_PIN
-    VFDRS485RTSPin      = new PinSetting("Pins/Spindle/RS485RTS", VFD_RS485_RTS_PIN);  // VFD_RS485_RTS_PIN
+    SpindleOutputPin    = new PinSetting("Pins/Spindle/Output", SPINDLE_OUTPUT_PIN_DEFAULT);
+    SpindleEnablePin    = new PinSetting("Pins/Spindle/Enable", SPINDLE_ENABLE_PIN_DEFAULT);
+    SpindleDirectionPin = new PinSetting("Pins/Spindle/Direction", SPINDLE_DIRECTION_PIN_DEFAULT);
+    SpindleForwardPin   = new PinSetting("Pins/Spindle/Forward", SPINDLE_FORWARD_PIN_DEFAULT);
+    SpindleReversePin   = new PinSetting("Pins/Spindle/Reverse", SPINDLE_REVERSE_PIN_DEFAULT);
+    VFDRS485TXDPin      = new PinSetting("Pins/Spindle/RS485TXD", VFD_RS485_TXD_PIN_DEFAULT);  // VFD_RS485_TXD_PIN
+    VFDRS485RXDPin      = new PinSetting("Pins/Spindle/RS485RXD", VFD_RS485_RXD_PIN_DEFAULT);  // VFD_RS485_RXD_PIN
+    VFDRS485RTSPin      = new PinSetting("Pins/Spindle/RS485RTS", VFD_RS485_RTS_PIN_DEFAULT);  // VFD_RS485_RTS_PIN
 
     // Axis:
     LimitPins[X_AXIS][0] = new PinSetting("Pins/X/Limit", X_LIMIT_PIN_DEFAULT);

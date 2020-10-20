@@ -1,15 +1,14 @@
 #pragma once
 #ifdef ESP32
 
-#include "PinDetail.h"
-
-#ifdef USE_I2S_OUT
+#    include "PinDetail.h"
 
 namespace Pins {
     class I2SPinDetail : public PinDetail {
         uint8_t         _index;
         PinCapabilities _capabilities;
         PinAttributes   _attributes;
+        int             _readWriteMask;
 
     public:
         I2SPinDetail(uint8_t index, const PinOptionsParser& options);
@@ -21,11 +20,10 @@ namespace Pins {
         int  read() override;
         void setAttr(PinAttributes value) override;
 
-        String toString() override;
+        String toString() const override;
 
         ~I2SPinDetail() override {}
     };
 }
 
-#endif
 #endif

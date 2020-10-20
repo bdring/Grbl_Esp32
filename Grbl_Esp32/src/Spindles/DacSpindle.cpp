@@ -104,7 +104,7 @@ namespace Spindles {
         if (_gpio_ok) {
             auto outputNative = _output_pin.getNative(Pin::Capabilities::DAC);
 
-            dacWrite(outputNative, (uint8_t)duty);
+            dacWrite(outputNative, static_cast<uint8_t>(duty));
         }
     }
 }

@@ -2,11 +2,14 @@
 #    include "I2SPinDetail.h"
 
 #    include "../I2SOut.h"
+#    include "../Assert.h"
 
-#    ifdef USE_I2S_OUT
+extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 namespace Pins {
-    I2SPinDetail::I2SPinDetail(uint8_t index, const PinOptionsParser& options) : _index(index) {
+    I2SPinDetail::I2SPinDetail(uint8_t index, const PinOptionsParser& options) :
+        _index(index), _capabilities(PinCapabilities::Output | PinCapabilities::I2S), _attributes(Pins::PinAttributes::Undefined),
+        _readWriteMask(0) {
         // User defined pin capabilities
         for (auto opt : options) {
             if (opt.is("pu")) {
@@ -53,8 +56,7 @@ namespace Pins {
         // just check for conflicts above...
     }
 
-    String I2SPinDetail::toString() { return String("I2S_") + int(_index); }
+    String I2SPinDetail::toString() const { return String("I2S_") + int(_index); }
 }
 
-#    endif
 #endif

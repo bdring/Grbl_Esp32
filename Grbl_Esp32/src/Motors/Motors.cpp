@@ -15,7 +15,7 @@
 	TODO
 		Make sure public/private/protected is cleaned up.
 		Only a few Unipolar axes have been setup in init()
-		Get rid of Z_SERVO, just reply on ServoPins[Z_AXIS][0]->get()
+		Get rid of Z_SERVO, just reply on ServoPins[Z_AXIS][0]
 		Deal with custom machine ... machine_trinamic_setup();
 		Class is ready to deal with non SPI pins, but they have not been needed yet.
 			It would be nice in the config message though
@@ -473,7 +473,7 @@ uint8_t motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
 
 void motors_step(uint8_t step_mask, uint8_t dir_mask) {
     auto n_axis = number_axis->get();
-    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_DirectionPins[set_AXIS][0]->get()s:0x%02X", onMask);
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
 
     // Set the direction pins, but optimize for the common
     // situation where the direction bits haven't changed.

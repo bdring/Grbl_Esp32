@@ -7,7 +7,7 @@ namespace Pins {
         uint8_t         _index;
         PinCapabilities _capabilities;
         PinAttributes   _attributes;
-        int _readWriteMask;
+        int             _readWriteMask;
 
         static PinCapabilities GetDefaultCapabilities(uint8_t index);
 

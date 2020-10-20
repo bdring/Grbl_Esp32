@@ -64,7 +64,7 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber)
     } else if (prefix == "undef") {
         pinImplementation = new Pins::VoidPinDetail(parser);
     }
-#ifdef USE_I2S_OUT
+#ifdef ESP_32
     else if (prefix == "i2s") {
         pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), parser);
     }

@@ -25,7 +25,7 @@
 
 // Override default function and insert a short delay
 void TMC2130Stepper::switchCSpin(bool state) {
-    _pinCS.write(state);
+    digitalWrite(_pinCS, state);
     i2s_out_delay();
 }
 #endif
