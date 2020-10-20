@@ -35,19 +35,19 @@ IntSetting*   status_mask;
 FloatSetting* junction_deviation;
 FloatSetting* arc_tolerance;
 
-FloatSetting* homing_feed_rate;
-FloatSetting* homing_seek_rate;
-FloatSetting* homing_debounce;
-FloatSetting* homing_pulloff;
+FloatSetting*    homing_feed_rate;
+FloatSetting*    homing_seek_rate;
+FloatSetting*    homing_debounce;
+FloatSetting*    homing_pulloff;
 AxisMaskSetting* homing_cycle[MAX_N_AXIS];
-FloatSetting* spindle_pwm_freq;
-FloatSetting* rpm_max;
-FloatSetting* rpm_min;
-FloatSetting* spindle_delay_spinup;
-FloatSetting* spindle_delay_spindown;
-FlagSetting*  spindle_enbl_off_with_zero_speed;
-FlagSetting*  spindle_enable_invert;
-FlagSetting*  spindle_output_invert;
+FloatSetting*    spindle_pwm_freq;
+FloatSetting*    rpm_max;
+FloatSetting*    rpm_min;
+FloatSetting*    spindle_delay_spinup;
+FloatSetting*    spindle_delay_spindown;
+FlagSetting*     spindle_enbl_off_with_zero_speed;
+FlagSetting*     spindle_enable_invert;
+FlagSetting*     spindle_output_invert;
 
 FloatSetting* spindle_pwm_off_value;
 FloatSetting* spindle_pwm_min_value;
@@ -207,8 +207,8 @@ static const char* makeGrblName(int axisNum, int base) {
 
 void make_coordinate(CoordIndex index, const char* name) {
     float coord_data[MAX_N_AXIS] = { 0.0 };
-    auto coord = new Coordinates(name);
-    coords[index] = coord;
+    auto  coord                  = new Coordinates(name);
+    coords[index]                = coord;
     if (!coord->load()) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Propagating %s data to NVS format", coord->getName());
         // If coord->load() returns false it means that no entry
@@ -223,6 +223,9 @@ void make_coordinate(CoordIndex index, const char* name) {
         coords[index]->set(coord_data);
     }
 }
+
+extern void make_pin_settings();
+
 void make_settings() {
     Setting::init();
 
@@ -382,4 +385,6 @@ void make_settings() {
     homing_cycle[3] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle3", DEFAULT_HOMING_CYCLE_3);
     homing_cycle[4] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle4", DEFAULT_HOMING_CYCLE_4);
     homing_cycle[5] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle5", DEFAULT_HOMING_CYCLE_5);
+
+    make_pin_settings();  // Created in PinSettingsDefinitions.cpp
 }

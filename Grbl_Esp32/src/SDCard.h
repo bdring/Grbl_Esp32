@@ -20,7 +20,9 @@
 #include <SD.h>
 #include <SPI.h>
 
-#define SDCARD_DET_PIN -1
+#ifndef SDCARD_DET_PIN
+#    define SDCARD_DET_PIN -1
+#endif
 const int SDCARD_DET_VAL = 0;
 
 const int SDCARD_IDLE           = 0;
@@ -29,8 +31,8 @@ const int SDCARD_BUSY_PRINTING  = 2;
 const int SDCARD_BUSY_UPLOADING = 4;
 const int SDCARD_BUSY_PARSING   = 8;
 
-extern bool    SD_ready_next;  // Grbl has processed a line and is waiting for another
-extern uint8_t SD_client;
+extern bool                       SD_ready_next;  // Grbl has processed a line and is waiting for another
+extern uint8_t                    SD_client;
 extern WebUI::AuthenticationLevel SD_auth_level;
 
 //bool sd_mount();

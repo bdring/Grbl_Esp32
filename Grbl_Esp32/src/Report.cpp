@@ -516,9 +516,9 @@ void report_execute_startup_message(const char* line, Error status_code, uint8_t
 // Prints build info line
 void report_build_info(const char* line, uint8_t client) {
     grbl_sendf(client, "[VER:%s.%s:%s]\r\n[OPT:", GRBL_VERSION, GRBL_VERSION_BUILD, line);
-#ifdef COOLANT_MIST_PIN
-    grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
-#endif
+    if (CoolantMistPin->get() != Pin::UNDEFINED) {
+        grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
+    }
 #ifdef COREXY
     grbl_send(client, "C");
 #endif
@@ -823,11 +823,12 @@ void report_realtime_status(uint8_t client) {
             if (coolant.Flood) {
                 strcat(status, "F");
             }
-#    ifdef COOLANT_MIST_PIN  // TODO Deal with M8 - Flood
-            if (coolant.Mist) {
-                strcat(status, "M");
+            if (CoolantMistPin->get() != Pin::UNDEFINED) {
+                // TODO Deal with M8 - Flood
+                if (coolant.Mist) {
+                    strcat(status, "M");
+                }
             }
-#    endif
         }
     }
 #endif
@@ -941,7 +942,7 @@ char* reportAxisNameMsg(uint8_t axis) {
 
 void reportTaskStackSize(UBaseType_t& saved) {
 #ifdef DEBUG_REPORT_STACK_FREE
-    UBaseType_t        newHighWater    = uxTaskGetStackHighWaterMark(NULL);
+    UBaseType_t newHighWater = uxTaskGetStackHighWaterMark(NULL);
     if (newHighWater != saved) {
         saved = newHighWater;
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Min Stack Space: %d", pcTaskGetTaskName(NULL), saved);

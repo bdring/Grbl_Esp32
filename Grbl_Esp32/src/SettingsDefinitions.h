@@ -66,10 +66,7 @@ extern PinSetting* CoolantMistPin;      // COOLANT_MIST_PIN
 extern PinSetting* ProbePin;            // PROBE_PIN
 extern PinSetting* SDCardDetPin;        // SDCARD_DET_PIN
 extern PinSetting* SteppersDisablePin;  // STEPPERS_DISABLE_PIN
-
-// { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
-// { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
-extern PinSetting* limit_pins[MAX_N_AXIS][2];
+extern PinSetting* StepperResetPin;     // STEPPER_RESET
 
 extern PinSetting* ControlSafetyDoorPin;  //  CONTROL_SAFETY_DOOR_PIN
 extern PinSetting* ControlResetPin;       //  CONTROL_RESET_PIN
@@ -79,3 +76,20 @@ extern PinSetting* MacroButton0Pin;       //  MACRO_BUTTON_0_PIN
 extern PinSetting* MacroButton1Pin;       //  MACRO_BUTTON_1_PIN
 extern PinSetting* MacroButton2Pin;       //  MACRO_BUTTON_2_PIN
 extern PinSetting* MacroButton3Pin;       //  MACRO_BUTTON_3_PIN
+
+extern PinSetting* DynamixelTXDPin;  // DYNAMIXEL_TXD
+extern PinSetting* DynamixelRXDPin;  // DYNAMIXEL_RXD
+extern PinSetting* DynamixelRTSPin;  // DYNAMIXEL_RTS
+
+extern PinSetting* UserDigitalPin[4];
+extern PinSetting* UserAnalogPin[4];
+
+// TODO FIXME: Add motor type (enum) setting! That way we can properly hide a lot of settings, and make Motors.cpp proper!
+extern PinSetting* LimitPins[MAX_N_AXIS][2];
+extern PinSetting* StepPins[MAX_N_AXIS][2];
+extern PinSetting* DirectionPins[MAX_N_AXIS][2];
+extern PinSetting* DisablePins[MAX_N_AXIS][2];
+extern PinSetting* ClearToSendPins[MAX_N_AXIS][2];
+extern PinSetting* ServoPins[MAX_N_AXIS][2];
+extern PinSetting* PhasePins[4][MAX_N_AXIS][2];
+extern PinSetting* StepStickMS3[MAX_N_AXIS][2];

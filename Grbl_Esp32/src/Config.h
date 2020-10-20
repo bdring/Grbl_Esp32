@@ -59,6 +59,12 @@ Some features should not be changed. See notes below.
 
 #define USE_RMT_STEPS
 
+// Define some 'pin' things that will error if used in the program. The *only* thing that should
+// use pins is the PinSettingsDefinitions.cpp file
+#ifndef UNDEFINED_PIN
+#    define UNDEFINED_PIN static_assert(false, "Don't use me!");
+#endif
+
 // Include the file that loads the machine-specific config file.
 // machine.h must be edited to choose the desired file.
 #include "Machine.h"
@@ -539,7 +545,7 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // these commands may be undesirable. Simply comment the desired macro to disable it.
 #define ENABLE_RESTORE_WIPE_ALL          // '$RST=*' Default enabled. Comment to disable.
 #define ENABLE_RESTORE_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_PARAMETERS        // '$RST=#' Default enabled. Comment to disable.
 
 // Additional settings have been added to the original set that you see with the $$ command
 // Some senders may not be able to parse anything different from the original set

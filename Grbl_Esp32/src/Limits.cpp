@@ -317,7 +317,7 @@ void limits_init() {
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             Pin pin;
-            if ((pin = limit_pins[axis][gang_index]->get()) != Pin::UNDEFINED) {
+            if ((pin = LimitPins[axis][gang_index]->get()) != Pin::UNDEFINED) {
                 pin.setAttr(mode);
                 limit_mask |= bit(axis);
                 if (hard_limits->get()) {
@@ -351,7 +351,7 @@ void limits_disable() {
     auto n_axis = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            Pin pin = limit_pins[axis][gang_index]->get();
+            Pin pin = LimitPins[axis][gang_index]->get();
             if (pin != Pin::UNDEFINED) {
                 pin.detachInterrupt();
             }
@@ -367,7 +367,7 @@ AxisMask limits_get_state() {
     auto     n_axis  = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            Pin pin = limit_pins[axis][gang_index]->get();
+            Pin pin = LimitPins[axis][gang_index]->get();
             if (pin != Pin::UNDEFINED) {
                 if (limit_invert->get()) {
                     pinMask |= (!pin.read() << axis);

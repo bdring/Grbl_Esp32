@@ -15,7 +15,7 @@
 	TODO
 		Make sure public/private/protected is cleaned up.
 		Only a few Unipolar axes have been setup in init()
-		Get rid of Z_SERVO, just reply on Z_SERVO_PIN
+		Get rid of Z_SERVO, just reply on ServoPins[Z_AXIS][0]->get()
 		Deal with custom machine ... machine_trinamic_setup();
 		Class is ready to deal with non SPI pins, but they have not been needed yet.
 			It would be nice in the config message though
@@ -51,29 +51,52 @@ void           init_motors() {
 
     if (n_axis >= 1) {
 #ifdef X_TRINAMIC_DRIVER
-        myMotor[X_AXIS][0] =
-            new Motors::TrinamicDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_DISABLE_PIN, X_CS_PIN, X_TRINAMIC_DRIVER, X_RSENSE);
-#elif defined(X_SERVO_PIN)
-        myMotor[X_AXIS][0] = new Motors::RcServo(X_AXIS, X_SERVO_PIN);
+        myMotor[X_AXIS][0] = new Motors::TrinamicDriver(X_AXIS,
+                                                        StepPins[X_AXIS][0]->get(),
+                                                        DirectionPins[X_AXIS][0]->get(),
+                                                        DisablePins[X_AXIS][0]->get(),
+                                                        ClearToSendPins[X_AXIS][0]->get(),
+                                                        X_TRINAMIC_DRIVER,
+                                                        X_RSENSE);
 #elif defined(X_UNIPOLAR)
-        myMotor[X_AXIS][0] = new Motors::UnipolarMotor(X_AXIS, X_PIN_PHASE_0, X_PIN_PHASE_1, X_PIN_PHASE_2, X_PIN_PHASE_3);
-#elif defined(X_STEP_PIN)
-        myMotor[X_AXIS][0] = new Motors::StandardStepper(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_DISABLE_PIN);
+        myMotor[X_AXIS][0] = new Motors::UnipolarMotor(X_AXIS,
+                                                       PhasePins[0][X_AXIS][0]->get(),
+                                                       PhasePins[1][X_AXIS][0]->get(),
+                                                       PhasePins[2][X_AXIS][0]->get(),
+                                                       PhasePins[3][X_AXIS][0]->get());
 #elif defined(X_DYNAMIXEL_ID)
-        myMotor[X_AXIS][0] = new Motors::Dynamixel2(X_AXIS, X_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
+        myMotor[X_AXIS][0] =
+            new Motors::Dynamixel2(X_AXIS, X_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
 #else
-        myMotor[X_AXIS][0] = new Motors::Nullmotor(X_AXIS);
+        if (ServoPins[X_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[X_AXIS][0] = new Motors::RcServo(X_AXIS, ServoPins[X_AXIS][0]->get());
+        else if (StepPins[X_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[X_AXIS][0] = new Motors::StandardStepper(
+                X_AXIS, StepPins[X_AXIS][0]->get(), DirectionPins[X_AXIS][0]->get(), DisablePins[X_AXIS][0]->get());
+        else
+            myMotor[X_AXIS][0] = new Motors::Nullmotor(X_AXIS);
 #endif
 
 #ifdef X2_TRINAMIC_DRIVER
-        myMotor[X_AXIS][1] =
-            new Motors::TrinamicDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN, X2_CS_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE);
+        myMotor[X_AXIS][1] = new Motors::TrinamicDriver(X2_AXIS,
+                                                        StepPins[X_AXIS][1]->get(),
+                                                        DirectionPins[X_AXIS][1]->get(),
+                                                        DisablePins[X_AXIS][1]->get(),
+                                                        ClearToSendPins[X_AXIS][1]->get(),
+                                                        X2_TRINAMIC_DRIVER,
+                                                        X2_RSENSE);
 #elif defined(X2_UNIPOLAR)
-        myMotor[X_AXIS][1] = new Motors::UnipolarMotor(X2_AXIS, X2_PIN_PHASE_0, X2_PIN_PHASE_1, X2_PIN_PHASE_2, X2_PIN_PHASE_3);
-#elif defined(X2_STEP_PIN)
-        myMotor[X_AXIS][1] = new Motors::StandardStepper(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN);
+        myMotor[X_AXIS][1] = new Motors::UnipolarMotor(X2_AXIS,
+                                                       PhasePins[1][X_AXIS][1]->get(),
+                                                       PhasePins[1][X_AXIS][1]->get(),
+                                                       PhasePins[2][X_AXIS][1]->get(),
+                                                       PhasePins[3][X_AXIS][1]->get());
 #else
-        myMotor[X_AXIS][1] = new Motors::Nullmotor(X2_AXIS);
+        if (StepPins[X_AXIS][1]->get() != Pin::UNDEFINED)
+            myMotor[X_AXIS][1] = new Motors::StandardStepper(
+                X2_AXIS, StepPins[X_AXIS][1]->get(), DirectionPins[X_AXIS][1]->get(), DisablePins[X_AXIS][1]->get());
+        else
+            myMotor[X_AXIS][1] = new Motors::Nullmotor(X2_AXIS);
 #endif
     } else {
         myMotor[X_AXIS][0] = new Motors::Nullmotor(X_AXIS);
@@ -83,29 +106,52 @@ void           init_motors() {
     if (n_axis >= 2) {
         // this WILL be done better with settings
 #ifdef Y_TRINAMIC_DRIVER
-        myMotor[Y_AXIS][0] =
-            new Motors::TrinamicDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN, Y_CS_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE);
-#elif defined(Y_SERVO_PIN)
-        myMotor[Y_AXIS][0] = new Motors::RcServo(Y_AXIS, Y_SERVO_PIN);
+        myMotor[Y_AXIS][0] = new Motors::TrinamicDriver(Y_AXIS,
+                                                        StepPins[Y_AXIS][0]->get(),
+                                                        DirectionPins[Y_AXIS][0]->get(),
+                                                        DisablePins[Y_AXIS][0]->get(),
+                                                        ClearToSendPins[Y_AXIS][0]->get(),
+                                                        Y_TRINAMIC_DRIVER,
+                                                        Y_RSENSE);
 #elif defined(Y_UNIPOLAR)
-        myMotor[Y_AXIS][0] = new Motors::UnipolarMotor(Y_AXIS, Y_PIN_PHASE_0, Y_PIN_PHASE_1, Y_PIN_PHASE_2, Y_PIN_PHASE_3);
-#elif defined(Y_STEP_PIN)
-        myMotor[Y_AXIS][0] = new Motors::StandardStepper(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN);
+        myMotor[Y_AXIS][0] = new Motors::UnipolarMotor(Y_AXIS,
+                                                       PhasePins[0][Y_AXIS][0]->get(),
+                                                       PhasePins[1][Y_AXIS][0]->get(),
+                                                       PhasePins[2][Y_AXIS][0]->get(),
+                                                       PhasePins[3][Y_AXIS][0]->get());
 #elif defined(Y_DYNAMIXEL_ID)
-        myMotor[Y_AXIS][0] = new Motors::Dynamixel2(Y_AXIS, Y_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
+        myMotor[Y_AXIS][0] =
+            new Motors::Dynamixel2(Y_AXIS, Y_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
 #else
-        myMotor[Y_AXIS][0] = new Motors::Nullmotor(Y_AXIS);
+        if (ServoPins[Y_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[Y_AXIS][0] = new Motors::RcServo(Y_AXIS, ServoPins[Y_AXIS][0]->get());
+        else if (StepPins[Y_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[Y_AXIS][0] = new Motors::StandardStepper(
+                Y_AXIS, StepPins[Y_AXIS][0]->get(), DirectionPins[Y_AXIS][0]->get(), DisablePins[Y_AXIS][0]->get());
+        else
+            myMotor[Y_AXIS][0] = new Motors::Nullmotor(Y_AXIS);
 #endif
 
 #ifdef Y2_TRINAMIC_DRIVER
-        myMotor[Y_AXIS][1] =
-            new Motors::TrinamicDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN, Y2_CS_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE);
+        myMotor[Y_AXIS][1] = new Motors::TrinamicDriver(Y2_AXIS,
+                                                        StepPins[Y_AXIS][1]->get(),
+                                                        DirectionPins[Y_AXIS][1]->get(),
+                                                        DisablePins[Y_AXIS][1]->get(),
+                                                        ClearToSendPins[Y_AXIS][1]->get(),
+                                                        Y2_TRINAMIC_DRIVER,
+                                                        Y2_RSENSE);
 #elif defined(Y2_UNIPOLAR)
-        myMotor[Y_AXIS][1] = new Motors::UnipolarMotor(Y2_AXIS, Y2_PIN_PHASE_0, Y2_PIN_PHASE_1, Y2_PIN_PHASE_2, Y2_PIN_PHASE_3);
-#elif defined(Y2_STEP_PIN)
-        myMotor[Y_AXIS][1] = new Motors::StandardStepper(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN);
+        myMotor[Y_AXIS][1] = new Motors::UnipolarMotor(Y2_AXIS,
+                                                       PhasePins[1][Y_AXIS][1]->get(),
+                                                       PhasePins[1][Y_AXIS][1]->get(),
+                                                       PhasePins[2][Y_AXIS][1]->get(),
+                                                       PhasePins[3][Y_AXIS][1]->get());
 #else
-        myMotor[Y_AXIS][1] = new Motors::Nullmotor(Y2_AXIS);
+        if (StepPins[Y_AXIS][1]->get() != Pin::UNDEFINED)
+            myMotor[Y_AXIS][1] = new Motors::StandardStepper(
+                Y2_AXIS, StepPins[Y_AXIS][1]->get(), DirectionPins[Y_AXIS][1]->get(), DisablePins[Y_AXIS][1]->get());
+        else
+            myMotor[Y_AXIS][1] = new Motors::Nullmotor(Y2_AXIS);
 #endif
     } else {
         myMotor[Y_AXIS][0] = new Motors::Nullmotor(Y_AXIS);
@@ -115,29 +161,52 @@ void           init_motors() {
     if (n_axis >= 3) {
         // this WILL be done better with settings
 #ifdef Z_TRINAMIC_DRIVER
-        myMotor[Z_AXIS][0] =
-            new Motors::TrinamicDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN, Z_CS_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE);
-#elif defined(Z_SERVO_PIN)
-        myMotor[Z_AXIS][0] = new Motors::RcServo(Z_AXIS, Z_SERVO_PIN);
+        myMotor[Z_AXIS][0] = new Motors::TrinamicDriver(Z_AXIS,
+                                                        StepPins[Z_AXIS][0]->get(),
+                                                        DirectionPins[Z_AXIS][0]->get(),
+                                                        DisablePins[Z_AXIS][0]->get(),
+                                                        ClearToSendPins[Z_AXIS][0]->get(),
+                                                        Z_TRINAMIC_DRIVER,
+                                                        Z_RSENSE);
 #elif defined(Z_UNIPOLAR)
-        myMotor[Z_AXIS][0] = new Motors::UnipolarMotor(Z_AXIS, Z_PIN_PHASE_0, Z_PIN_PHASE_1, Z_PIN_PHASE_2, Z_PIN_PHASE_3);
-#elif defined(Z_STEP_PIN)
-        myMotor[Z_AXIS][0] = new Motors::StandardStepper(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN);
+        myMotor[Z_AXIS][0] = new Motors::UnipolarMotor(Z_AXIS,
+                                                       PhasePins[0][Z_AXIS][0]->get(),
+                                                       PhasePins[1][Z_AXIS][0]->get(),
+                                                       PhasePins[2][Z_AXIS][0]->get(),
+                                                       PhasePins[3][Z_AXIS][0]->get());
 #elif defined(Z_DYNAMIXEL_ID)
-        myMotor[Z_AXIS][0] = new Motors::Dynamixel2(Z_AXIS, Z_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
+        myMotor[Z_AXIS][0] =
+            new Motors::Dynamixel2(Z_AXIS, Z_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
 #else
-        myMotor[Z_AXIS][0] = new Motors::Nullmotor(Z_AXIS);
+        if (ServoPins[Z_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[Z_AXIS][0] = new Motors::RcServo(Z_AXIS, ServoPins[Z_AXIS][0]->get());
+        else if (StepPins[Z_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[Z_AXIS][0] = new Motors::StandardStepper(
+                Z_AXIS, StepPins[Z_AXIS][0]->get(), DirectionPins[Z_AXIS][0]->get(), DisablePins[Z_AXIS][0]->get());
+        else
+            myMotor[Z_AXIS][0] = new Motors::Nullmotor(Z_AXIS);
 #endif
 
 #ifdef Z2_TRINAMIC_DRIVER
-        myMotor[Z_AXIS][1] =
-            new Motors::TrinamicDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN, Z2_CS_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE);
+        myMotor[Z_AXIS][1] = new Motors::TrinamicDriver(Z2_AXIS,
+                                                        StepPins[Z_AXIS][1]->get(),
+                                                        DirectionPins[Z_AXIS][1]->get(),
+                                                        DisablePins[Z_AXIS][1]->get(),
+                                                        ClearToSendPins[Z_AXIS][1]->get(),
+                                                        Z2_TRINAMIC_DRIVER,
+                                                        Z2_RSENSE);
 #elif defined(Z2_UNIPOLAR)
-        myMotor[Z_AXIS][1] = new Motors::UnipolarMotor(Z2_AXIS, Z2_PIN_PHASE_0, Z2_PIN_PHASE_1, Z2_PIN_PHASE_2, Z2_PIN_PHASE_3);
-#elif defined(Z2_STEP_PIN)
-        myMotor[Z_AXIS][1] = new Motors::StandardStepper(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN);
+        myMotor[Z_AXIS][1] = new Motors::UnipolarMotor(Z2_AXIS,
+                                                       PhasePins[1][Z_AXIS][1]->get(),
+                                                       PhasePins[1][Z_AXIS][1]->get(),
+                                                       PhasePins[2][Z_AXIS][1]->get(),
+                                                       PhasePins[3][Z_AXIS][1]->get());
 #else
-        myMotor[Z_AXIS][1] = new Motors::Nullmotor(Z2_AXIS);
+        if (StepPins[Z_AXIS][1]->get() != Pin::UNDEFINED)
+            myMotor[Z_AXIS][1] = new Motors::StandardStepper(
+                Z2_AXIS, StepPins[Z_AXIS][1]->get(), DirectionPins[Z_AXIS][1]->get(), DisablePins[Z_AXIS][1]->get());
+        else
+            myMotor[Z_AXIS][1] = new Motors::Nullmotor(Z2_AXIS);
 #endif
     } else {
         myMotor[Z_AXIS][0] = new Motors::Nullmotor(Z_AXIS);
@@ -147,29 +216,52 @@ void           init_motors() {
     if (n_axis >= 4) {
         // this WILL be done better with settings
 #ifdef A_TRINAMIC_DRIVER
-        myMotor[A_AXIS][0] =
-            new Motors::TrinamicDriver(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN, A_CS_PIN, A_TRINAMIC_DRIVER, A_RSENSE);
-#elif defined(A_SERVO_PIN)
-        myMotor[A_AXIS][0] = new Motors::RcServo(A_AXIS, A_SERVO_PIN);
+        myMotor[A_AXIS][0] = new Motors::TrinamicDriver(A_AXIS,
+                                                        StepPins[A_AXIS][0]->get(),
+                                                        DirectionPins[A_AXIS][0]->get(),
+                                                        DisablePins[A_AXIS][0]->get(),
+                                                        ClearToSendPins[A_AXIS][0]->get(),
+                                                        A_TRINAMIC_DRIVER,
+                                                        A_RSENSE);
 #elif defined(A_UNIPOLAR)
-        myMotor[A_AXIS][0] = new Motors::UnipolarMotor(A_AXIS, A_PIN_PHASE_0, A_PIN_PHASE_1, A_PIN_PHASE_2, A_PIN_PHASE_3);
-#elif defined(A_STEP_PIN)
-        myMotor[A_AXIS][0] = new Motors::StandardStepper(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN);
+        myMotor[A_AXIS][0] = new Motors::UnipolarMotor(A_AXIS,
+                                                       PhasePins[0][A_AXIS][0]->get(),
+                                                       PhasePins[1][A_AXIS][0]->get(),
+                                                       PhasePins[2][A_AXIS][0]->get(),
+                                                       PhasePins[3][A_AXIS][0]->get());
 #elif defined(A_DYNAMIXEL_ID)
-        myMotor[A_AXIS][0] = new Motors::Dynamixel2(A_AXIS, A_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
+        myMotor[A_AXIS][0] =
+            new Motors::Dynamixel2(A_AXIS, A_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
 #else
-        myMotor[A_AXIS][0] = new Motors::Nullmotor(A_AXIS);
+        if (ServoPins[A_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[A_AXIS][0] = new Motors::RcServo(A_AXIS, ServoPins[A_AXIS][0]->get());
+        else if (StepPins[A_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[A_AXIS][0] = new Motors::StandardStepper(
+                A_AXIS, StepPins[A_AXIS][0]->get(), DirectionPins[A_AXIS][0]->get(), DisablePins[A_AXIS][0]->get());
+        else
+            myMotor[A_AXIS][0] = new Motors::Nullmotor(A_AXIS);
 #endif
 
 #ifdef A2_TRINAMIC_DRIVER
-        myMotor[A_AXIS][1] =
-            new Motors::TrinamicDriver(A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN, A2_CS_PIN, A2_TRINAMIC_DRIVER, A2_RSENSE);
+        myMotor[A_AXIS][1] = new Motors::TrinamicDriver(A2_AXIS,
+                                                        StepPins[A_AXIS][1]->get(),
+                                                        DirectionPins[A_AXIS][1]->get(),
+                                                        DisablePins[A_AXIS][1]->get(),
+                                                        ClearToSendPins[A_AXIS][1]->get(),
+                                                        A2_TRINAMIC_DRIVER,
+                                                        A2_RSENSE);
 #elif defined(A2_UNIPOLAR)
-        myMotor[A_AXIS][1] = new Motors::UnipolarMotor(A2_AXIS, A2_PIN_PHASE_0, A2_PIN_PHASE_1, A2_PIN_PHASE_2, A2_PIN_PHASE_3);
-#elif defined(A2_STEP_PIN)
-        myMotor[A_AXIS][1] = new Motors::StandardStepper(A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN);
+        myMotor[A_AXIS][1] = new Motors::UnipolarMotor(A2_AXIS,
+                                                       PhasePins[1][A_AXIS][1]->get(),
+                                                       PhasePins[1][A_AXIS][1]->get(),
+                                                       PhasePins[2][A_AXIS][1]->get(),
+                                                       PhasePins[3][A_AXIS][1]->get());
 #else
-        myMotor[A_AXIS][1] = new Motors::Nullmotor(A2_AXIS);
+        if (StepPins[A_AXIS][1]->get() != Pin::UNDEFINED)
+            myMotor[A_AXIS][1] = new Motors::StandardStepper(
+                A2_AXIS, StepPins[A_AXIS][1]->get(), DirectionPins[A_AXIS][1]->get(), DisablePins[A_AXIS][1]->get());
+        else
+            myMotor[A_AXIS][1] = new Motors::Nullmotor(A2_AXIS);
 #endif
     } else {
         myMotor[A_AXIS][0] = new Motors::Nullmotor(A_AXIS);
@@ -179,29 +271,52 @@ void           init_motors() {
     if (n_axis >= 5) {
         // this WILL be done better with settings
 #ifdef B_TRINAMIC_DRIVER
-        myMotor[B_AXIS][0] =
-            new Motors::TrinamicDriver(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN, B_CS_PIN, B_TRINAMIC_DRIVER, B_RSENSE);
-#elif defined(B_SERVO_PIN)
-        myMotor[B_AXIS][0] = new Motors::RcServo(B_AXIS, B_SERVO_PIN);
+        myMotor[B_AXIS][0] = new Motors::TrinamicDriver(B_AXIS,
+                                                        StepPins[B_AXIS][0]->get(),
+                                                        DirectionPins[B_AXIS][0]->get(),
+                                                        DisablePins[B_AXIS][0]->get(),
+                                                        ClearToSendPins[B_AXIS][0]->get(),
+                                                        B_TRINAMIC_DRIVER,
+                                                        B_RSENSE);
 #elif defined(B_UNIPOLAR)
-        myMotor[B_AXIS][0] = new Motors::UnipolarMotor(B_AXIS, B_PIN_PHASE_0, B_PIN_PHASE_1, B_PIN_PHASE_2, B_PIN_PHASE_3);
-#elif defined(B_STEP_PIN)
-        myMotor[B_AXIS][0] = new Motors::StandardStepper(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN);
+        myMotor[B_AXIS][0] = new Motors::UnipolarMotor(B_AXIS,
+                                                       PhasePins[0][B_AXIS][0]->get(),
+                                                       PhasePins[1][B_AXIS][0]->get(),
+                                                       PhasePins[2][B_AXIS][0]->get(),
+                                                       PhasePins[3][B_AXIS][0]->get());
 #elif defined(B_DYNAMIXEL_ID)
-        myMotor[B_AXIS][0] = new Motors::Dynamixel2(B_AXIS, B_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
+        myMotor[B_AXIS][0] =
+            new Motors::Dynamixel2(B_AXIS, B_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
 #else
-        myMotor[B_AXIS][0] = new Motors::Nullmotor(B_AXIS);
+        if (ServoPins[B_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[B_AXIS][0] = new Motors::RcServo(B_AXIS, ServoPins[B_AXIS][0]->get());
+        else if (StepPins[B_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[B_AXIS][0] = new Motors::StandardStepper(
+                B_AXIS, StepPins[B_AXIS][0]->get(), DirectionPins[B_AXIS][0]->get(), DisablePins[B_AXIS][0]->get());
+        else
+            myMotor[B_AXIS][0] = new Motors::Nullmotor(B_AXIS);
 #endif
 
 #ifdef B2_TRINAMIC_DRIVER
-        myMotor[B_AXIS][1] =
-            new Motors::TrinamicDriver(B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN, B2_CS_PIN, B2_TRINAMIC_DRIVER, B2_RSENSE);
+        myMotor[B_AXIS][1] = new Motors::TrinamicDriver(B2_AXIS,
+                                                        StepPins[B_AXIS][1]->get(),
+                                                        DirectionPins[B_AXIS][1]->get(),
+                                                        DisablePins[B_AXIS][1]->get(),
+                                                        ClearToSendPins[B_AXIS][1]->get(),
+                                                        B2_TRINAMIC_DRIVER,
+                                                        B2_RSENSE);
 #elif defined(B2_UNIPOLAR)
-        myMotor[B_AXIS][1] = new Motors::UnipolarMotor(B2_AXIS, B2_PIN_PHASE_0, B2_PIN_PHASE_1, B2_PIN_PHASE_2, B2_PIN_PHASE_3);
-#elif defined(B2_STEP_PIN)
-        myMotor[B_AXIS][1] = new Motors::StandardStepper(B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN);
+        myMotor[B_AXIS][1] = new Motors::UnipolarMotor(B2_AXIS,
+                                                       PhasePins[1][B_AXIS][1]->get(),
+                                                       PhasePins[1][B_AXIS][1]->get(),
+                                                       PhasePins[2][B_AXIS][1]->get(),
+                                                       PhasePins[3][B_AXIS][1]->get());
 #else
-        myMotor[B_AXIS][1] = new Motors::Nullmotor(B2_AXIS);
+        if (StepPins[B_AXIS][1]->get() != Pin::UNDEFINED)
+            myMotor[B_AXIS][1] = new Motors::StandardStepper(
+                B2_AXIS, StepPins[B_AXIS][1]->get(), DirectionPins[B_AXIS][1]->get(), DisablePins[B_AXIS][1]->get());
+        else
+            myMotor[B_AXIS][1] = new Motors::Nullmotor(B2_AXIS);
 #endif
     } else {
         myMotor[B_AXIS][0] = new Motors::Nullmotor(B_AXIS);
@@ -211,29 +326,52 @@ void           init_motors() {
     if (n_axis >= 6) {
         // this WILL be done better with settings
 #ifdef C_TRINAMIC_DRIVER
-        myMotor[C_AXIS][0] =
-            new Motors::TrinamicDriver(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN, C_CS_PIN, C_TRINAMIC_DRIVER, C_RSENSE);
-#elif defined(C_SERVO_PIN)
-        myMotor[C_AXIS][0] = new Motors::RcServo(C_AXIS, C_SERVO_PIN);
+        myMotor[C_AXIS][0] = new Motors::TrinamicDriver(C_AXIS,
+                                                        StepPins[C_AXIS][0]->get(),
+                                                        DirectionPins[C_AXIS][0]->get(),
+                                                        DisablePins[C_AXIS][0]->get(),
+                                                        ClearToSendPins[C_AXIS][0]->get(),
+                                                        C_TRINAMIC_DRIVER,
+                                                        C_RSENSE);
 #elif defined(C_UNIPOLAR)
-        myMotor[C_AXIS][0] = new Motors::UnipolarMotor(C_AXIS, C_PIN_PHASE_0, C_PIN_PHASE_1, C_PIN_PHASE_2, C_PIN_PHASE_3);
-#elif defined(C_STEP_PIN)
-        myMotor[C_AXIS][0] = new Motors::StandardStepper(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN);
+        myMotor[C_AXIS][0] = new Motors::UnipolarMotor(C_AXIS,
+                                                       PhasePins[0][C_AXIS][0]->get(),
+                                                       PhasePins[1][C_AXIS][0]->get(),
+                                                       PhasePins[2][C_AXIS][0]->get(),
+                                                       PhasePins[3][C_AXIS][0]->get());
 #elif defined(C_DYNAMIXEL_ID)
-        myMotor[C_AXIS][0] = new Motors::Dynamixel2(C_AXIS, C_DYNAMIXEL_ID, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
+        myMotor[C_AXIS][0] =
+            new Motors::Dynamixel2(C_AXIS, C_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
 #else
-        myMotor[C_AXIS][0] = new Motors::Nullmotor(C_AXIS);
+        if (ServoPins[C_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[C_AXIS][0] = new Motors::RcServo(C_AXIS, ServoPins[C_AXIS][0]->get());
+        else if (StepPins[C_AXIS][0]->get() != Pin::UNDEFINED)
+            myMotor[C_AXIS][0] = new Motors::StandardStepper(
+                C_AXIS, StepPins[C_AXIS][0]->get(), DirectionPins[C_AXIS][0]->get(), DisablePins[C_AXIS][0]->get());
+        else
+            myMotor[C_AXIS][0] = new Motors::Nullmotor(C_AXIS);
 #endif
 
 #ifdef C2_TRINAMIC_DRIVER
-        myMotor[C_AXIS][1] =
-            new Motors::TrinamicDriver(C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN, C2_CS_PIN, C2_TRINAMIC_DRIVER, C2_RSENSE);
+        myMotor[C_AXIS][1] = new Motors::TrinamicDriver(C2_AXIS,
+                                                        StepPins[C_AXIS][1]->get(),
+                                                        DirectionPins[C_AXIS][1]->get(),
+                                                        DisablePins[C_AXIS][1]->get(),
+                                                        ClearToSendPins[C_AXIS][1]->get(),
+                                                        C2_TRINAMIC_DRIVER,
+                                                        C2_RSENSE);
 #elif defined(C2_UNIPOLAR)
-        myMotor[C_AXIS][1] = new Motors::UnipolarMotor(C2_AXIS, C2_PIN_PHASE_0, C2_PIN_PHASE_1, C2_PIN_PHASE_2, C2_PIN_PHASE_3);
-#elif defined(C2_STEP_PIN)
-        myMotor[C_AXIS][1] = new Motors::StandardStepper(C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN);
+        myMotor[C_AXIS][1] = new Motors::UnipolarMotor(C2_AXIS,
+                                                       PhasePins[1][C_AXIS][1]->get(),
+                                                       PhasePins[1][C_AXIS][1]->get(),
+                                                       PhasePins[2][C_AXIS][1]->get(),
+                                                       PhasePins[3][C_AXIS][1]->get());
 #else
-        myMotor[C_AXIS][1] = new Motors::Nullmotor(C2_AXIS);
+        if (StepPins[C_AXIS][1]->get() != Pin::UNDEFINED)
+            myMotor[C_AXIS][1] = new Motors::StandardStepper(
+                C2_AXIS, StepPins[C_AXIS][1]->get(), DirectionPins[C_AXIS][1]->get(), DisablePins[C_AXIS][1]->get());
+        else
+            myMotor[C_AXIS][1] = new Motors::Nullmotor(C2_AXIS);
 #endif
     } else {
         myMotor[C_AXIS][0] = new Motors::Nullmotor(C_AXIS);
@@ -244,31 +382,32 @@ void           init_motors() {
 
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Using StepStick Mode");
 
-    uint8_t ms3_pins[MAX_N_AXIS][2] = { { X_STEPPER_MS3, X2_STEPPER_MS3 }, { Y_STEPPER_MS3, Y2_STEPPER_MS3 },
-                                        { Z_STEPPER_MS3, Z2_STEPPER_MS3 }, { A_STEPPER_MS3, A2_STEPPER_MS3 },
-                                        { B_STEPPER_MS3, B2_STEPPER_MS3 }, { C_STEPPER_MS3, C2_STEPPER_MS3 } };
+    Pin ms3_pins[MAX_N_AXIS][2] = { { StepStickMS3[X_AXIS][0]->get(), StepStickMS3[X_AXIS][1]->get() },
+                                    { StepStickMS3[Y_AXIS][0]->get(), StepStickMS3[Y_AXIS][1]->get() },
+                                    { StepStickMS3[Z_AXIS][0]->get(), StepStickMS3[Z_AXIS][1]->get() },
+                                    { StepStickMS3[A_AXIS][0]->get(), StepStickMS3[A_AXIS][1]->get() },
+                                    { StepStickMS3[B_AXIS][0]->get(), StepStickMS3[B_AXIS][1]->get() },
+                                    { StepStickMS3[C_AXIS][0]->get(), StepStickMS3[C_AXIS][1]->get() } };
 
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin = ms3_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
-                digitalWrite(pin, HIGH);
-                pin.setAttr(Pin::Attr::Output);
+            Pin pin = ms3_pins[axis][gang_index];
+            if (pin != Pin::UNDEFINED) {
+                pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialHigh);
             }
         }
     }
 
-#    ifdef STEPPER_RESET
-    // !RESET pin on steppers  (MISO On Schematic)
-    digitalWrite(STEPPER_RESET, HIGH);
-    STEPPER_RESET.setAttr(Pin::Attr::Output);
-#    endif
+    if (StepperResetPin->get() != Pin::Undefined) {
+        // !RESET pin on steppers  (MISO On Schematic)
+        StepperResetPin->get().setAttr(Pin::Attr::Output | Pin::Attr::InitialHigh);
+    }
 
 #endif
 
-    if (STEPPERS_DISABLE_PIN != UNDEFINED_PIN) {
-        STEPPERS_DISABLE_PIN.setAttr(Pin::Attr::Output);  // global motor enable pin
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Global stepper disable pin:%s", STEPPERS_DISABLE_PIN.name());
+    if (SteppersDisablePin->get() != Pin::UNDEFINED) {
+        SteppersDisablePin->get().setAttr(Pin::Attr::Output);  // global motor enable pin
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Global stepper disable pin:%s", SteppersDisablePin->get().name());
     }
 
     // certain motors need features to be turned on. Check them here
@@ -303,7 +442,7 @@ void motors_set_disable(bool disable) {
     if (step_enable_invert->get()) {
         disable = !disable;  // Apply pin invert.
     }
-    digitalWrite(STEPPERS_DISABLE_PIN, disable);
+    SteppersDisablePin->get().write(disable);
 }
 
 void motors_read_settings() {
@@ -334,7 +473,7 @@ uint8_t motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
 
 void motors_step(uint8_t step_mask, uint8_t dir_mask) {
     auto n_axis = number_axis->get();
-    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_DirectionPins[set_AXIS][0]->get()s:0x%02X", onMask);
 
     // Set the direction pins, but optimize for the common
     // situation where the direction bits haven't changed.

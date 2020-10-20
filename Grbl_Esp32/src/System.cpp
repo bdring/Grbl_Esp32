@@ -100,16 +100,15 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
 #endif
 
     // Setup M62,M63,M64,M65 pins
-    myDigitalOutputs[0] = new UserOutput::DigitalOutput(0, USER_DIGITAL_PIN_0);
-    myDigitalOutputs[1] = new UserOutput::DigitalOutput(1, USER_DIGITAL_PIN_1);
-    myDigitalOutputs[2] = new UserOutput::DigitalOutput(2, USER_DIGITAL_PIN_2);
-    myDigitalOutputs[3] = new UserOutput::DigitalOutput(3, USER_DIGITAL_PIN_3);
+    for (int i = 0; i < 4; ++i) {
+        myDigitalOutputs[i] = new UserOutput::DigitalOutput(i, UserDigitalPin[i]->get());
+    }
 
     // Setup M67 Pins
-    myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, USER_ANALOG_PIN_0, USER_ANALOG_PIN_0_FREQ);
-    myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, USER_ANALOG_PIN_1, USER_ANALOG_PIN_1_FREQ);
-    myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, USER_ANALOG_PIN_2, USER_ANALOG_PIN_2_FREQ);
-    myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, USER_ANALOG_PIN_3, USER_ANALOG_PIN_3_FREQ);
+    myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, UserAnalogPin[0]->get(), USER_ANALOG_PIN_0_FREQ);
+    myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, UserAnalogPin[1]->get(), USER_ANALOG_PIN_1_FREQ);
+    myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, UserAnalogPin[2]->get(), USER_ANALOG_PIN_2_FREQ);
+    myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, UserAnalogPin[3]->get(), USER_ANALOG_PIN_3_FREQ);
 }
 
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
@@ -211,12 +210,12 @@ ControlPins system_control_get_state() {
     }
 
     defined_pins.bit.feedHold = ControlFeedHoldPin->get() != Pin::UNDEFINED;
-    if (digitalRead(CONTROL_FEED_HOLD_PIN)) {
+    if (ControlFeedHoldPin->get().read()) {
         pin_states.bit.feedHold = true;
     }
 
     defined_pins.bit.cycleStart = ControlCycleStartPin->get() != Pin::UNDEFINED;
-    if (digitalRead(CONTROL_CYCLE_START_PIN)) {
+    if (ControlCycleStartPin->get().read()) {
         pin_states.bit.cycleStart = true;
     }
 
