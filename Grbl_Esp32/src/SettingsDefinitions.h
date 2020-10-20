@@ -84,6 +84,18 @@ extern PinSetting* DynamixelRTSPin;  // DYNAMIXEL_RTS
 extern PinSetting* UserDigitalPin[4];
 extern PinSetting* UserAnalogPin[4];
 
+// Spindle pins:
+
+extern PinSetting* SpindleOutputPin;
+extern PinSetting* SpindleEnablePin;
+extern PinSetting* SpindleDirectionPin;
+extern PinSetting* SpindleForwardPin;
+extern PinSetting* SpindleReversePin;
+
+extern PinSetting* VFDRS485TXDPin;  // VFD_RS485_TXD_PIN
+extern PinSetting* VFDRS485RXDPin;  // VFD_RS485_RXD_PIN
+extern PinSetting* VFDRS485RTSPin;  // VFD_RS485_RTS_PIN
+
 // TODO FIXME: Add motor type (enum) setting! That way we can properly hide a lot of settings, and make Motors.cpp proper!
 extern PinSetting* LimitPins[MAX_N_AXIS][2];
 extern PinSetting* StepPins[MAX_N_AXIS][2];

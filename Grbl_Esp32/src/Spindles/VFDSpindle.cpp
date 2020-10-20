@@ -300,26 +300,23 @@ namespace Spindles {
     bool VFD::get_pins_and_settings() {
         bool pins_settings_ok = true;
 
-#ifdef VFD_RS485_TXD_PIN
-        _txd_pin = VFD_RS485_TXD_PIN;
-#else
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_TXD_PIN");
-        pins_settings_ok = false;
-#endif
+        _txd_pin = VFDRS485TXDPin->get();
+        if (_txd_pin == Pin::UNDEFINED) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_TXD_PIN");
+            pins_settings_ok = false;
+        }
 
-#ifdef VFD_RS485_RXD_PIN
-        _rxd_pin = VFD_RS485_RXD_PIN;
-#else
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_RXD_PIN");
-        pins_settings_ok = false;
-#endif
+        _rxd_pin = VFDRS485RXDPin->get();
+        if (_rxd_pin == Pin::UNDEFINED) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_RXD_PIN");
+            pins_settings_ok = false;
+        }
 
-#ifdef VFD_RS485_RTS_PIN
-        _rts_pin = VFD_RS485_RTS_PIN;
-#else
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_RTS_PIN");
-        pins_settings_ok = false;
-#endif
+        _rts_pin = VFDRS485RTSPin->get();
+        if (_rts_pin == Pin::UNDEFINED) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_RTS_PIN");
+            pins_settings_ok = false;
+        }
 
         if (laser_mode->get()) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");

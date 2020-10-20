@@ -398,7 +398,7 @@ void           init_motors() {
         }
     }
 
-    if (StepperResetPin->get() != Pin::Undefined) {
+    if (StepperResetPin->get() != Pin::UNDEFINED) {
         // !RESET pin on steppers  (MISO On Schematic)
         StepperResetPin->get().setAttr(Pin::Attr::Output | Pin::Attr::InitialHigh);
     }

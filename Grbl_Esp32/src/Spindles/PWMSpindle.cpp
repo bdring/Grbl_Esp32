@@ -60,27 +60,15 @@ namespace Spindles {
     void PWM::get_pins_and_settings() {
         // setup all the pins
 
-#ifdef SPINDLE_OUTPUT_PIN
-        _output_pin = SPINDLE_OUTPUT_PIN;
-#else
-        _output_pin       = Pin::UNDEFINED;
-#endif
+        _output_pin = SpindleOutputPin->get();
 
         _invert_pwm = spindle_output_invert->get();
 
-#ifdef SPINDLE_ENABLE_PIN
-        _enable_pin = SPINDLE_ENABLE_PIN;
-#else
-        _enable_pin       = Pin::UNDEFINED;
-#endif
+        _enable_pin = SpindleEnablePin->get();
 
         _off_with_zero_speed = spindle_enbl_off_with_zero_speed->get();
 
-#ifdef SPINDLE_DIR_PIN
-        _direction_pin = SPINDLE_DIR_PIN;
-#else
-        _direction_pin    = Pin::UNDEFINED;
-#endif
+        _direction_pin = SpindleDirectionPin->get();
 
         is_reversable = (_direction_pin != Pin::UNDEFINED);
 

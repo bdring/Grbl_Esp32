@@ -47,6 +47,10 @@ bool         debouncing = false;  // debouncing in process
 void system_ini() {  // Renamed from system_init() due to conflict with esp32 files
     // setup control inputs
 
+    if (ControlSafetyDoorPin->get() != Pin::UNDEFINED) {
+        ControlSafetyDoorPin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);
+        ControlSafetyDoorPin->get().attachInterrupt(isr_control_inputs, CHANGE);
+    }
 #ifdef CONTROL_SAFETY_DOOR_PIN
     pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
@@ -130,7 +134,7 @@ void controlCheckTask(void* pvParameters) {
 }
 #endif
 
-void IRAM_ATTR isr_control_inputs() {
+void IRAM_ATTR isr_control_inputs(void*) {
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
     // we will start a task that will recheck the switches after a small delay
     int evt;

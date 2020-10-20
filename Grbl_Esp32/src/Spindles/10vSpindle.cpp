@@ -31,17 +31,8 @@ namespace Spindles {
         get_pins_and_settings();  // these gets the standard PWM settings, but many need to be changed for BESC
 
         // a couple more pins not inherited from PWM Spindle
-#ifdef SPINDLE_FORWARD_PIN
-        _forward_pin = SPINDLE_FORWARD_PIN;
-#else
-        _forward_pin = Pin::UNDEFINED;
-#endif
-
-#ifdef SPINDLE_REVERSE_PIN
-        _reverse_pin = SPINDLE_REVERSE_PIN;
-#else
-        _reverse_pin = Pin::UNDEFINED;
-#endif
+        _forward_pin = SpindleForwardPin->get();
+        _reverse_pin = SpindleReversePin->get();
 
         if (_output_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin not defined");

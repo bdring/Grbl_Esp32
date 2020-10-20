@@ -197,7 +197,7 @@ ControlPins system_control_get_state();
 // Returns if safety door is ajar(T) or closed(F), based on pin state.
 uint8_t system_check_safety_door_ajar();
 
-void isr_control_inputs();
+void isr_control_inputs(void*);
 
 // Execute the startup script lines stored in non-volatile storage upon initialization
 void  system_execute_startup(char* line);
