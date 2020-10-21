@@ -120,6 +120,9 @@ Socket #5
 // #define CONTROL_SAFETY_DOOR_PIN      GPIO_NUM_27
 // //#define INVERT_CONTROL_PIN_MASK      B0000
 
+#define SPINDLE_OUTPUT_PIN      GPIO_NUM_19
+
+
 
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      800
