@@ -13,18 +13,18 @@ namespace Pins {
         // User defined pin capabilities
         for (auto opt : options) {
             if (opt.is("pu")) {
-                _capabilities = _capabilities | PinCapabilities::PullUp;
+                _attributes = _attributes | PinAttributes::PullUp;
             } else if (opt.is("pd")) {
-                _capabilities = _capabilities | PinCapabilities::PullDown;
+                _attributes = _attributes | PinAttributes::PullDown;
             } else if (opt.is("low")) {
-                _capabilities = _capabilities | PinCapabilities::ActiveLow;
+                _attributes = _attributes | PinAttributes::ActiveLow;
             } else if (opt.is("high")) {
                 // Default: Active HIGH.
             }
         }
 
         // Update the R/W mask for ActiveLow setting
-        if (_capabilities.ActiveLow) {
+        if (_attributes.ActiveLow) {
             __digitalWrite(_index, HIGH);
             _readWriteMask = 1;
         } else {

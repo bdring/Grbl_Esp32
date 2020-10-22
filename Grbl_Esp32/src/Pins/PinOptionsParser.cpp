@@ -3,20 +3,19 @@
 #include <cstring>
 
 namespace Pins {
-    PinOption::PinOption(char* start, const char* end) : _start(start) {}
+    PinOption::PinOption(char* start, const char* end) : _start(start), _end(end) {}
 
     bool PinOption::is(const char* option) const { return !::strcmp(option, _start); }
 
-    PinOption PinOption ::operator++() const {
-        if (_start == _end) {
-            return *this;
+    PinOption PinOption ::operator++() {
+        if (_start != _end) {
+            auto newStart = _start + ::strlen(_start);  // to the \0
+            if (newStart != _end) {                     // and 1 past it if we're not at the end
+                ++newStart;
+            }
+            _start = newStart;
         }
-
-        auto newStart = _start + ::strlen(_start);  // to the \0
-        if (newStart != _end) {                     // and 1 past it if we're not at the end
-            ++newStart;
-        }
-        return PinOption(newStart, _end);
+        return *this;
     }
 
     PinOptionsParser::PinOptionsParser(char* buffer, char* bufferEnd) : _buffer(buffer), _bufferEnd(bufferEnd) {

@@ -30,7 +30,6 @@ namespace Pins {
         static PinCapabilities PullDown;  // NOTE: Mapped in PinAttributes!
         static PinCapabilities ISR;       // NOTE: Mapped in PinAttributes!
 
-        static PinCapabilities ActiveLow;
         static PinCapabilities Native;
         static PinCapabilities ADC;
         static PinCapabilities DAC;

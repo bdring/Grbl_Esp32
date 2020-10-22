@@ -33,6 +33,7 @@ namespace Pins {
         static PinAttributes PullDown;
         static PinAttributes ISR;
 
+        static PinAttributes ActiveLow;
         static PinAttributes Exclusive;
         static PinAttributes InitialHigh;
 

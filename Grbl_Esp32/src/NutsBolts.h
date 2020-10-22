@@ -25,6 +25,8 @@
 // #define false 0
 // #define true 1
 
+#define UNDEFINED_PIN ""
+
 const double SOME_LARGE_VALUE = 1.0E+38;
 
 // Axis array index values. Must start with 0 and be continuous.

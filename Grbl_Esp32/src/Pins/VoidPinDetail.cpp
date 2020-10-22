@@ -1,7 +1,8 @@
 #include "VoidPinDetail.h"
 
 namespace Pins {
-    VoidPinDetail::VoidPinDetail(const PinOptionsParser& options) : _frequency(0), _maxDuty(0) {}
+    VoidPinDetail::VoidPinDetail() : _frequency(0), _maxDuty(0) {}
+    VoidPinDetail::VoidPinDetail(const PinOptionsParser& options) : VoidPinDetail() {}
 
     PinCapabilities VoidPinDetail::capabilities() const { return PinCapabilities::None; }  // Should we?
 
@@ -9,6 +10,6 @@ namespace Pins {
     int  VoidPinDetail::read() { return 0; }
     void VoidPinDetail::setAttr(PinAttributes value) {}
 
-    String VoidPinDetail::toString() const { return "UNDEFINED_PIN"; }
+    String VoidPinDetail::toString() const { return ""; }
 
 }

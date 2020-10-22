@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <stdexcept>
 
 #include "GPIOPinDetail.h"
 #include "../Assert.h"
@@ -71,27 +72,34 @@ namespace Pins {
                 break;
 
             default:  // Not mapped to actual GPIO pins
-                return PinCapabilities::Native;
+                return PinCapabilities::None;
         }
     }
 
     GPIOPinDetail::GPIOPinDetail(uint8_t index, PinOptionsParser options) :
         _index(index), _capabilities(GetDefaultCapabilities(index)), _attributes(Pins::PinAttributes::Undefined), _readWriteMask(0) {
+        if (_capabilities == PinCapabilities::None) {
+            throw std::runtime_error("Bad GPIO number");
+        }
         // User defined pin capabilities
         for (auto opt : options) {
             if (opt.is("pu")) {
-                _capabilities = _capabilities | PinCapabilities::PullUp;
+                _attributes = _attributes | PinAttributes::PullUp;
             } else if (opt.is("pd")) {
-                _capabilities = _capabilities | PinCapabilities::PullDown;
+                _attributes = _attributes | PinAttributes::PullDown;
             } else if (opt.is("low")) {
-                _capabilities = _capabilities | PinCapabilities::ActiveLow;
+                _attributes = _attributes  | PinAttributes::ActiveLow;
             } else if (opt.is("high")) {
                 // Default: Active HIGH.
+            } else {
+                throw std::runtime_error("Bad GPIO option");
             }
         }
 
+        // XXX This should not be done when the constructor is called for
+        // validating a setting.
         // Update the R/W mask for ActiveLow setting
-        if (_capabilities.has(PinCapabilities::ActiveLow)) {
+        if (_attributes.has(PinAttributes::ActiveLow)) {
             __pinMode(_index, OUTPUT);
             __digitalWrite(_index, HIGH);
             _readWriteMask = HIGH;

@@ -441,7 +441,7 @@ void StringSetting::addWebui(WebUI::JSONencoder* j) {
 }
 
 PinSetting::PinSetting(const char* description, const char* name, const char* defVal, bool (*checker)(char*)) :
-    Setting(description, WEBSET, WA, NULL, name, checker), _currentValue(Pin::UNDEFINED) {
+    Setting(description, PIN, WA, NULL, name, checker), _currentValue(Pin::UNDEFINED) {
     _defaultValue = defVal;
 };
 
@@ -480,7 +480,7 @@ void PinSetting::setDefault() {
 
 Error PinSetting::setStringValue(char* s) {
     if (!Pin::validate(s)) {
-        return Error::BadNumberFormat;
+        return Error::BadPinSpecification;
     }
 
     Error err = check(s);
@@ -506,7 +506,7 @@ const char* PinSetting::getStringValue() {
     return _storedValue.c_str();
 }
 const char* PinSetting::getDefaultString() {
-    return "undef";
+    return "";
 }
 
 void PinSetting::addWebui(WebUI::JSONencoder* j) {

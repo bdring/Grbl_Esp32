@@ -35,7 +35,7 @@ namespace Pins {
         // Iterator support:
         inline PinOption const* operator->() const { return this; }
         inline PinOption        operator*() const { return *this; }
-        PinOption               operator++() const;
+        PinOption               operator++() ;
 
         bool operator==(const PinOption& o) const { return _start == o._start; }
         bool operator!=(const PinOption& o) const { return _start != o._start; }

@@ -150,7 +150,9 @@ Error list_grbl_names(const char* value, WebUI::AuthenticationLevel auth_level, 
 Error list_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Setting* s = Setting::List; s; s = s->next()) {
         const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
-        show_setting(s->getName(), displayValue, NULL, out);
+            if (s->getType() != PIN) {
+                show_setting(s->getName(), displayValue, NULL, out);
+            }
     }
     return Error::Ok;
 }
@@ -158,10 +160,30 @@ Error list_changed_settings(const char* value, WebUI::AuthenticationLevel auth_l
     for (Setting* s = Setting::List; s; s = s->next()) {
         const char* value = s->getStringValue();
         if (!auth_failed(s, value, auth_level) && strcmp(value, s->getDefaultString())) {
-            show_setting(s->getName(), value, NULL, out);
+            if (s->getType() != PIN) {
+                show_setting(s->getName(), value, NULL, out);
+            }
         }
     }
     grbl_sendf(out->client(), "(Passwords not shown)\r\n");
+    return Error::Ok;
+}
+Error list_pins(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    for (Setting* s = Setting::List; s; s = s->next()) {
+        const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
+        if (s->getType() == PIN) {
+            show_setting(s->getName(), displayValue, NULL, out);
+        }
+    }
+    return Error::Ok;
+}
+Error list_changed_pins(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    for (Setting* s = Setting::List; s; s = s->next()) {
+        const char* value = s->getStringValue();
+        if (s->getType() == PIN && strcmp(value, UNDEFINED_PIN)) {
+            show_setting(s->getName(), value, NULL, out);
+        }
+    }
     return Error::Ok;
 }
 Error list_commands(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
@@ -285,15 +307,15 @@ Error report_startup_lines(const char* value, WebUI::AuthenticationLevel auth_le
 
 std::map<const char*, uint8_t, cmp_str> restoreCommands = {
 #ifdef ENABLE_RESTORE_DEFAULT_SETTINGS
-    { "$", SettingsRestore::Defaults },      { "settings", SettingsRestore::Defaults },
+    { "$", SettingsRestore::Defaults },   { "settings", SettingsRestore::Defaults },
 #endif
 #ifdef ENABLE_RESTORE_CLEAR_PARAMETERS
-    { "#", SettingsRestore::Parameters },    { "gcode", SettingsRestore::Parameters },
+    { "#", SettingsRestore::Parameters }, { "gcode", SettingsRestore::Parameters },
 #endif
 #ifdef ENABLE_RESTORE_WIPE_ALL
-    { "*", SettingsRestore::All },           { "all", SettingsRestore::All },
+    { "*", SettingsRestore::All },        { "all", SettingsRestore::All },
 #endif
-    { "@", SettingsRestore::Wifi }, { "wifi", SettingsRestore::Wifi },
+    { "@", SettingsRestore::Wifi },       { "wifi", SettingsRestore::Wifi },
 };
 Error restore_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (!value) {
@@ -381,7 +403,9 @@ void make_grbl_commands() {
     new GrblCommand("+", "ExtendedSettings/List", report_extended_settings, notCycleOrHold);
     new GrblCommand("L", "GrblNames/List", list_grbl_names, notCycleOrHold);
     new GrblCommand("S", "Settings/List", list_settings, notCycleOrHold);
-    new GrblCommand("SC","Settings/ListChanged", list_changed_settings, notCycleOrHold);
+    new GrblCommand("SC", "Settings/ListChanged", list_changed_settings, notCycleOrHold);
+    new GrblCommand("P", "Pins/List", list_pins, notCycleOrHold);
+    new GrblCommand("PC", "Pins/ListChanged", list_changed_pins, notCycleOrHold);
     new GrblCommand("CMD", "Commands/List", list_commands, notCycleOrHold);
     new GrblCommand("E", "ErrorCodes/List", listErrorCodes, anyState);
     new GrblCommand("G", "GCode/Modes", report_gcode, anyState);
