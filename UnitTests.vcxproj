@@ -73,6 +73,7 @@
     <ClCompile Include="Grbl_Esp32\test\Pins\BasicGPIO.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\Error.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\GPIO.cpp" />
+    <ClCompile Include="Grbl_Esp32\test\Pins\PinOptionParsing.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\Undefined.cpp" />
     <ClCompile Include="Grbl_Esp32\test\TestFactory.cpp" />
     <ClCompile Include="Grbl_Esp32\test\TestFrameworkTest.cpp" />

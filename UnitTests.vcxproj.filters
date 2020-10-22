@@ -143,6 +143,9 @@
     <ClCompile Include="X86TestSupport\Arduino.cpp">
       <Filter>X86TestSupport</Filter>
     </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\Pins\PinOptionParsing.cpp">
+      <Filter>test\Pins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Grbl_Esp32\test\UnitTests.md">

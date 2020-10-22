@@ -21,7 +21,7 @@ namespace Pins {
 
     bool PinAttributes::validateWith(PinCapabilities caps) {
         auto capMask  = (caps._value & capabilityMask);
-        auto attrMask = _value;
+        auto attrMask = (_value & capabilityMask);
 
         // We're good if:
         return (capMask & attrMask) == attrMask &&  // the capabilities overlap with the required attributes AND

@@ -247,4 +247,34 @@ namespace Pins {
         Pin gpio16 = Pin::create("gpio.16");
         Assert(gpio16.name().equals("GPIO.16"), "Name is %s", gpio16.name().c_str());
     }
+
+    Test(GPIO, ActiveLow) {
+        GPIONative::initialize();
+        PinLookup::ResetAllPins();
+
+        Pin gpio16 = Pin::create("gpio.16:low");
+        Pin gpio17 = Pin::create("gpio.17");
+
+        gpio16.setAttr(Pin::Attr::Output | Pin::Attr::InitialHigh);
+        gpio17.setAttr(Pin::Attr::Input);
+
+        Assert(false == gpio16.read());
+        Assert(true == gpio17.read());
+        Assert(false == GPIONative::read(16));
+        Assert(true == GPIONative::read(17));
+
+        gpio16.on();
+
+        Assert(true == gpio16.read());
+        Assert(false == gpio17.read());
+        Assert(true == GPIONative::read(16));
+        Assert(false == GPIONative::read(17));
+
+        gpio16.off();
+
+        Assert(false == gpio16.read());
+        Assert(true == gpio17.read());
+        Assert(false == GPIONative::read(16));
+        Assert(true == GPIONative::read(17));
+    }
 }
