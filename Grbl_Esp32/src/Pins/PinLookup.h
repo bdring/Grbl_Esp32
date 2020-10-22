@@ -48,7 +48,8 @@ namespace Pins {
         }
 
         PinDetail* GetPin(uint8_t index) const {
-            Assert(_pins[index] != nullptr, "Pin is not defined. Cannot use this pin.");
+            // This assertion causes message spewing making debugging impossible
+            // Assert(_pins[index] != nullptr, "Pin is not defined. Cannot use this pin.");
             return _pins[index];
         }
 

@@ -79,4 +79,5 @@ std::map<Error, const char*> ErrorCodes = {
     { Error::NvsSetFailed, "Failed to store setting" },
     { Error::NvsGetStatsFailed, "Failed to get setting status" },
     { Error::AuthenticationFailed, "Authentication failed!" },
+    { Error::BadPinSpecification, "Bad Pin Specification" },
 };

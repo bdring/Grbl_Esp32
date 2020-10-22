@@ -43,6 +43,7 @@ typedef enum : uint8_t {
     GRBL = 1,  // Classic GRBL settings like $100
     EXTENDED,  // Settings added by early versions of Grbl_Esp32
     WEBSET,    // Settings for ESP3D_WebUI, stored in NVS
+    PIN,       // Pin settings
     GRBLCMD,   // Non-persistent GRBL commands like $H
     WEBCMD,    // ESP3D_WebUI commands that are not directly settings
 } type_t;

@@ -9,6 +9,7 @@ namespace Pins {
         uint32_t _maxDuty;
 
     public:
+        VoidPinDetail();
         VoidPinDetail(const PinOptionsParser& options);
 
         PinCapabilities capabilities() const override;

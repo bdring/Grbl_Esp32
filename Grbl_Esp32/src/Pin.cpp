@@ -1,4 +1,5 @@
 #include "Pin.h"
+#include "Grbl.h"
 
 // Pins:
 #include "Pins/PinOptionsParser.h"
@@ -6,12 +7,17 @@
 #include "Pins/GPIOPinDetail.h"
 #include "Pins/I2SPinDetail.h"
 #ifdef PIN_DEBUG
-#include "Pins/DebugPinDetail.h"
+#    include "Pins/DebugPinDetail.h"
 #endif
 
 bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber) {
     // Initialize pinImplementation first! Callers might want to delete it, and we don't want a random pointer.
     pinImplementation = nullptr;
+
+    if (str == "") {
+        pinImplementation = new Pins::VoidPinDetail();
+        return pinImplementation;
+    }
 
     // Parse the definition: [GPIO].[pinNumber]:[attributes]
     auto nameStart = str.begin();
@@ -25,7 +31,7 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber)
         ++idx;
     }
 
-    if (prefix != "undef") {
+    if (prefix != "") {
         if (idx == str.end()) {
             // Incorrect pin definition.
             return false;
@@ -57,26 +63,28 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber)
     // into 'nul' tokens. We then pass the number of 'nul' tokens, and the first char*
     // which is pretty easy to parse.
 
-    // Build this pin:
-
     // Build an options parser:
     Pins::PinOptionsParser parser(options.begin(), options.end());
 
-    if (prefix == "gpio") {
-        pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
-    } else if (prefix == "undef") {
-        pinImplementation = new Pins::VoidPinDetail(parser);
-    }
+    // Build this pin:
+
+    try {
+        if (prefix == "gpio") {
+            pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
+        } else if (prefix == "i2s") {
 #ifdef ESP_32
-    else if (prefix == "i2s") {
-        pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), parser);
-    }
+            pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), parser);
 #endif
-
+        } else {
 #ifdef PIN_DEBUG
-    pinImplementation = new Pins::DebugPinDetail(pinImplementation);
+            pinImplementation = new Pins::DebugPinDetail(pinImplementation);
 #endif
-
+        }
+    } catch (const std::exception& e) {
+        grbl_sendf(CLIENT_SERIAL, "%s\r\n", e.what());
+        pinImplementation = new Pins::VoidPinDetail();
+        return false;
+    }
     return pinImplementation;
 }
 

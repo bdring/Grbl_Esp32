@@ -59,12 +59,6 @@ Some features should not be changed. See notes below.
 
 #define USE_RMT_STEPS
 
-// Define some 'pin' things that will error if used in the program. The *only* thing that should
-// use pins is the PinSettingsDefinitions.cpp file
-#ifndef UNDEFINED_PIN
-#    define UNDEFINED_PIN static_assert(false, "Don't use me!");
-#endif
-
 // Include the file that loads the machine-specific config file.
 // machine.h must be edited to choose the desired file.
 #include "Machine.h"
