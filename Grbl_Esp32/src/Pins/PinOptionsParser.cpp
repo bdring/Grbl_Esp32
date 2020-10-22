@@ -7,7 +7,7 @@ namespace Pins {
 
     bool PinOption::is(const char* option) const { return !::strcmp(option, _start); }
 
-    PinOption PinOption ::operator++() {
+    PinOption& PinOption ::operator++() {
         if (_start != _end) {
             auto newStart = _start + ::strlen(_start);  // to the \0
             if (newStart != _end) {                     // and 1 past it if we're not at the end
