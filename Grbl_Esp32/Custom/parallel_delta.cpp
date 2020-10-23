@@ -102,11 +102,11 @@ void machine_init() {
     float cartesian[N_AXIS] = { 0.0, 0.0, 0.0 };
 
     // Custom $ settings
-    kinematic_segment_len   = new FloatSetting(EXTENDED, WG, NULL, "Kinematics/SegmentLength", KINEMATIC_SEGMENT_LENGTH, 0.2, 5.0);
-    delta_crank_len         = new FloatSetting(EXTENDED, WG, NULL, "Delta/CrankLength", RADIUS_FIXED, 50, 150.0);
-    delta_link_len          = new FloatSetting(EXTENDED, WG, NULL, "Delta/LinkLength", RADIUS_EFF, 0.2, 5.0);
-    delta_crank_side_len    = new FloatSetting(EXTENDED, WG, NULL, "Delta/CrankSideLength", LENGTH_FIXED_SIDE, 0.2, 5.0);
-    delta_effector_side_len = new FloatSetting(EXTENDED, WG, NULL, "Delta/EffectorSideLength", LENGTH_EFF_SIDE, 0.2, 5.0);
+    kinematic_segment_len   = new FloatSetting(EXTENDED, WG, NULL, "Kinematics/SegmentLength", KINEMATIC_SEGMENT_LENGTH, 0.2, 1000.0);
+    delta_crank_len         = new FloatSetting(EXTENDED, WG, NULL, "Delta/CrankLength", RADIUS_FIXED, 50.0, 500.0);
+    delta_link_len          = new FloatSetting(EXTENDED, WG, NULL, "Delta/LinkLength", RADIUS_EFF, 50.0, 500.0);
+    delta_crank_side_len    = new FloatSetting(EXTENDED, WG, NULL, "Delta/CrankSideLength", LENGTH_FIXED_SIDE, 20.0, 500.0);
+    delta_effector_side_len = new FloatSetting(EXTENDED, WG, NULL, "Delta/EffectorSideLength", LENGTH_EFF_SIDE, 20.0, 500.0);
 
     read_settings();
 
@@ -247,6 +247,8 @@ uint8_t kinematic_limits_check(float* target) {
             break;
         case KinematicError::ANGLE_TOO_POSITIVE:
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target max positive");
+            break;
+        case KinematicError::NONE:
             break;
     }
 
@@ -428,6 +430,9 @@ void kinematics_post_homing() {
     gc_state.position[Y_AXIS] = last_cartesian[Y_AXIS];
     gc_state.position[Z_AXIS] = last_cartesian[Z_AXIS];
 
+#endif
+#ifdef USE_POST_HOMING_DELAY
+    delay(1000);  // give time for servo type homing
 #endif
 }
 

@@ -27,23 +27,23 @@
 
 #define USE_KINEMATICS				// there are kinematic equations for this machine
 #define USE_FWD_KINEMATICS          // report in cartesian
-#define USE_MACHINE_INIT			// There is some custom initialization for this machine	
+#define USE_MACHINE_INIT			// There is some custom initialization for this machine
 	
 // ================== Delta Geometry ===========================
 
-#define RADIUS_FIXED                70.0;   // radius of the fixed side (length of motor cranks)
-#define RADIUS_EFF                  133.5;  // radius of end effector side (length of linkages)
-#define LENGTH_FIXED_SIDE           179.437f;  // sized of fixed side triangel
-#define LENGTH_EFF_SIDE             86.6025f;  // size of end effector side triangle
+#define RADIUS_FIXED                70.0   // radius of the fixed side (length of motor cranks)
+#define RADIUS_EFF                  133.5  // radius of end effector side (length of linkages)
+#define LENGTH_FIXED_SIDE           179.437f  // sized of fixed side triangel
+#define LENGTH_EFF_SIDE             86.6025f  // size of end effector side triangle
 #define KINEMATIC_SEGMENT_LENGTH    1.0f            // segment length in mm
 #define MAX_NEGATIVE_ANGLE          -(M_PI / 3.0)   // 60 degrees up
 #define MAX_POSITIVE_ANGLE          (M_PI / 2.0)    // 90 degrees down
 #define ARM_INTERNAL_ANGLE          0.05 // radians 2.866°  // due to mounting angle 
+#define USE_POST_HOMING_DELAY       // Servos need time to reach destination before idle kicks in
 
 #define DEFAULT_X_MAX_TRAVEL MAX_POSITIVE_ANGLE - MAX_NEGATIVE_ANGLE
 #define DEFAULT_Y_MAX_TRAVEL DEFAULT_X_MAX_TRAVEL // 
 #define DEFAULT_Z_MAX_TRAVEL DEFAULT_X_MAX_TRAVEL //
-
 
 // =================== Machine Hardware Definition =============
 
