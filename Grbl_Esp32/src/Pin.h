@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <cstring>
 
-#define PIN_DEBUG  // Pin debugging. WILL spam you with a lot of data!
+// #define PIN_DEBUG  // Pin debugging. WILL spam you with a lot of data!
 
 // Forward declarations:
 class String;
