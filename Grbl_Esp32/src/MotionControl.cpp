@@ -37,7 +37,7 @@ SquaringMode ganged_mode = SquaringMode::Dual;
 void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
 #ifndef USE_KINEMATICS
     mc_line(target, pl_data);
-#else  // else use kinematics    
+#else  // else use kinematics
     inverse_kinematics(target, pl_data, position);
 #endif
 }
@@ -52,7 +52,7 @@ void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
 void mc_line(float* target, plan_line_data_t* pl_data) {
     // If enabled, check for soft limit violations. Placed here all line motions are picked up
     // from everywhere in Grbl.
-    
+
     if (soft_limits->get()) {
         // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
         if (sys.state != State::Jog) {
@@ -116,8 +116,10 @@ void mc_arc(float*            target,
     float r_axis1      = -offset[axis_1];
     float rt_axis0     = target[axis_0] - center_axis0;
     float rt_axis1     = target[axis_1] - center_axis1;
+
+    float previous_position[MAX_N_AXIS] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 #ifdef USE_KINEMATICS
-    float    previous_position[MAX_N_AXIS];
+
     uint16_t n;
     auto     n_axis = number_axis->get();
     for (n = 0; n < n_axis; n++) {
