@@ -1,10 +1,13 @@
 #include "VoidPinDetail.h"
 
 namespace Pins {
-    VoidPinDetail::VoidPinDetail() : _frequency(0), _maxDuty(0) {}
+    VoidPinDetail::VoidPinDetail(int number) : PinDetail(number) {}
     VoidPinDetail::VoidPinDetail(const PinOptionsParser& options) : VoidPinDetail() {}
 
-    PinCapabilities VoidPinDetail::capabilities() const { return PinCapabilities::None; }  // Should we?
+    PinCapabilities VoidPinDetail::capabilities() const {
+        // Void pins support basic functionality. It just won't do you any good.
+        return PinCapabilities::Output | PinCapabilities::Input | PinCapabilities::ISR | PinCapabilities::Void;
+    }
 
     void VoidPinDetail::write(int high) {}
     int  VoidPinDetail::read() { return 0; }

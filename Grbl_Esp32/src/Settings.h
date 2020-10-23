@@ -339,7 +339,6 @@ private:
 
 public:
     PinSetting(const char* description, const char* name, const char* defVal, bool (*checker)(char*));
-
     PinSetting(const char* name, const char* defVal, bool (*checker)(char*) = NULL) : PinSetting(NULL, name, defVal, checker) {};
 
     void        load();

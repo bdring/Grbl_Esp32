@@ -5,11 +5,8 @@
 
 namespace Pins {
     class VoidPinDetail : public PinDetail {
-        uint32_t _frequency;
-        uint32_t _maxDuty;
-
     public:
-        VoidPinDetail();
+        VoidPinDetail(int number = 0);
         VoidPinDetail(const PinOptionsParser& options);
 
         PinCapabilities capabilities() const override;

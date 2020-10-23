@@ -24,7 +24,38 @@ namespace Pins {
         AssertThrow(unassigned.attachInterrupt([](void* arg) {}, CHANGE));
         AssertThrow(unassigned.detachInterrupt());
 
-        Assert(unassigned.capabilities() == Pin::Capabilities::None);
-        Assert(unassigned.name().equals(UNDEFINED_PIN));
+        Assert(unassigned.capabilities().has(Pin::Capabilities::Void));
+        Assert(unassigned.name().equals(""));
+    }
+
+    Test(Undefined, MultipleInstances) {
+        {
+            Pin unassigned  = Pin::UNDEFINED;
+            Pin unassigned2 = Pin::UNDEFINED;
+
+            Assert(unassigned == unassigned2, "Should evaluate to true.");
+        }
+
+        {
+            Pin unassigned  = Pin::create("");
+            Pin unassigned2 = Pin::UNDEFINED;
+
+            Assert(unassigned == unassigned2, "Should evaluate to true.");
+        }
+
+        {
+            Pin unassigned = Pin::create("void.2");
+            Pin unassigned2 = Pin::UNDEFINED;
+
+            Assert(unassigned != unassigned2, "Second void pin should match first.");
+        }
+
+
+        {
+            Pin unassigned = Pin::create("void.2");
+            Pin unassigned2 = Pin::create("void.2");
+
+            Assert(unassigned == unassigned2, "Second void pin should match first.");
+        }
     }
 }

@@ -1,22 +1,24 @@
 #include "Pin.h"
-#include "Grbl.h"
 
 // Pins:
 #include "Pins/PinOptionsParser.h"
 #include "Pins/VoidPinDetail.h"
 #include "Pins/GPIOPinDetail.h"
 #include "Pins/I2SPinDetail.h"
-#ifdef PIN_DEBUG
+
+#if defined PIN_DEBUG && defined ESP32
 #    include "Pins/DebugPinDetail.h"
+#    include "Grbl.h"  // grbl_sendf
 #endif
 
-bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber) {
+bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
     // Initialize pinImplementation first! Callers might want to delete it, and we don't want a random pointer.
     pinImplementation = nullptr;
 
     if (str == "") {
+        // Re-use undefined pins happens in 'create':
         pinImplementation = new Pins::VoidPinDetail();
-        return pinImplementation;
+        return true;
     }
 
     // Parse the definition: [GPIO].[pinNumber]:[attributes]
@@ -31,13 +33,13 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber)
         ++idx;
     }
 
+    int pinNumber = 0;
     if (prefix != "") {
         if (idx == str.end()) {
             // Incorrect pin definition.
             return false;
         }
 
-        pinNumber = 0;
         for (; idx != str.end() && *idx >= '0' && *idx <= '9'; ++idx) {
             pinNumber = pinNumber * 10 + int(*idx - '0');
         }
@@ -67,46 +69,86 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation, int& pinNumber)
     Pins::PinOptionsParser parser(options.begin(), options.end());
 
     // Build this pin:
-
-    try {
-        if (prefix == "gpio") {
-            pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
-        } else if (prefix == "i2s") {
+    if (prefix == "gpio") {
+        pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
+    } else if (prefix == "i2s") {
 #ifdef ESP_32
-            pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), parser);
+        pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), parser);
+#else
+        return false;  // not supported
 #endif
-        } else {
-#ifdef PIN_DEBUG
-            pinImplementation = new Pins::DebugPinDetail(pinImplementation);
-#endif
-        }
-    } catch (const std::exception& e) {
-        grbl_sendf(CLIENT_SERIAL, "%s\r\n", e.what());
-        pinImplementation = new Pins::VoidPinDetail();
-        return false;
+    } else if (prefix == "void") {
+        // Note: having multiple void pins has its uses for debugging. Note that using
+        // when doing 'x == Pin::UNDEFINED' will evaluate to 'false' if the pin number
+        // is not 0.
+        pinImplementation = new Pins::VoidPinDetail(uint8_t(pinNumber));
     }
-    return pinImplementation;
+
+#if defined PIN_DEBUG && defined ESP32
+    pinImplementation = new Pins::DebugPinDetail(pinImplementation);
+#endif
+    return true;
 }
 
 Pin Pin::create(const String& str) {
-    Pins::PinDetail* pinImplementation;
-    int              pinNumber;
+    Pins::PinDetail* pinImplementation = nullptr;
+    try {
+#ifdef PIN_DEBUG
+#    ifdef ESP32
+        grbl_sendf(CLIENT_ALL, "Setting up pin: [%s]\r\n", str.c_str());
+#    endif
+#endif
+        if (!parse(str, pinImplementation)) {
+#ifdef ESP32
+            grbl_sendf(CLIENT_ALL, "Setting up pin: '%s' failed.", str.c_str());
+#endif
+            return Pin::UNDEFINED;
+        } else {
+            // Check if we already have this pin:
+            auto existingPin = Pins::PinLookup::_instance.FindExisting(pinImplementation);
 
-    Assert(parse(str, pinImplementation, pinNumber), "Pin definition is invalid.");
+            // If we already had it, and we didn't find itself, remove the new instance:
+            if (existingPin >= 0) {
+#ifdef ESP32
+                grbl_sendf(CLIENT_ALL, "Reusing previous pin initialization.");
+#endif
+                if (pinImplementation) {
+                    delete pinImplementation;
+                }
 
-    // Register:
-    Pins::PinLookup::_instance.SetPin(uint8_t(pinNumber), pinImplementation);
+                return Pin(uint8_t(existingPin));
+            } else {
+                // This is a new pin. So, register, and return the pin object that refers to it.
+                auto pinNumber = pinImplementation->number();
+                auto realIndex = Pins::PinLookup::_instance.SetPin(uint8_t(pinNumber), pinImplementation);
+                return Pin(realIndex);
+            }
+        }
 
-    return Pin(uint8_t(pinNumber));
+    } catch (AssertionFailed& ex) {  // We shouldn't get here under normal circumstances.
+#ifdef PIN_DEBUG
+#    ifdef ESP32
+        grbl_sendf(CLIENT_ALL, "Failed. Details: %s\r\n", ex.stackTrace.c_str());
+#    endif
+#endif
+        // RAII safety guard.
+        if (pinImplementation) {
+            delete pinImplementation;
+        }
+
+        return Pin::UNDEFINED;
+    }
 }
 
 bool Pin::validate(const String& str) {
     Pins::PinDetail* pinImplementation;
     int              pinNumber;
 
-    auto valid = parse(str, pinImplementation, pinNumber);
+    auto valid = parse(str, pinImplementation);
+    if (pinImplementation) {
+        delete pinImplementation;
+    }
 
-    delete pinImplementation;
     return valid;
 }
 

@@ -4,7 +4,6 @@
 
 namespace Pins {
     class GPIOPinDetail : public PinDetail {
-        uint8_t         _index;
         PinCapabilities _capabilities;
         PinAttributes   _attributes;
         int             _readWriteMask;

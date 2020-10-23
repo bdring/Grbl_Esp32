@@ -35,7 +35,7 @@ namespace Pins {
 
         static PinAttributes ActiveLow;
         static PinAttributes Exclusive;
-        static PinAttributes InitialHigh;
+        static PinAttributes InitialOn;
 
         inline PinAttributes operator|(PinAttributes rhs) { return PinAttributes(_value | rhs._value); }
         inline PinAttributes operator&(PinAttributes rhs) { return PinAttributes(_value & rhs._value); }

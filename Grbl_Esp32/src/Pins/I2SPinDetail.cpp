@@ -8,7 +8,7 @@ extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 namespace Pins {
     I2SPinDetail::I2SPinDetail(uint8_t index, const PinOptionsParser& options) :
-        _index(index), _capabilities(PinCapabilities::Output | PinCapabilities::I2S), _attributes(Pins::PinAttributes::Undefined),
+        PinDetail(index), _capabilities(PinCapabilities::Output | PinCapabilities::I2S), _attributes(Pins::PinAttributes::Undefined),
         _readWriteMask(0) {
         // User defined pin capabilities
         for (auto opt : options) {
@@ -24,8 +24,7 @@ namespace Pins {
         }
 
         // Update the R/W mask for ActiveLow setting
-        if (_attributes.ActiveLow) {
-            __digitalWrite(_index, HIGH);
+        if (_attributes.has(PinAttributes::ActiveLow)) {
             _readWriteMask = 1;
         } else {
             _readWriteMask = 0;
@@ -54,6 +53,9 @@ namespace Pins {
         // I2S out pins cannot be configured, hence there
         // is nothing to do here for them. We basically
         // just check for conflicts above...
+
+        // If the pin is ActiveLow, we should take that into account here:
+        write(value.has(PinAttributes::InitialOn) ? HIGH : LOW);
     }
 
     String I2SPinDetail::toString() const { return String("I2S_") + int(_index); }

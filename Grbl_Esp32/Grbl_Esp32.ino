@@ -22,6 +22,7 @@
 #    include "src/Grbl.h"
 
 void setup() {
+    Serial.begin(115200);
     grbl_init();
 }
 

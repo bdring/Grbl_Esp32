@@ -73,7 +73,7 @@ namespace Motors {
         _has_errors = false;
         init_step_dir_pins();  // from StandardStepper
 
-        _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialHigh);
+        _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
 
         // use slower speed if I2S
         if (_cs_pin.capabilities().has(Pin::Capabilities::I2S)) {

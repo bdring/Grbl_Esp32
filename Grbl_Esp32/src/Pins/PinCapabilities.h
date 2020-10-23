@@ -30,12 +30,18 @@ namespace Pins {
         static PinCapabilities PullDown;  // NOTE: Mapped in PinAttributes!
         static PinCapabilities ISR;       // NOTE: Mapped in PinAttributes!
 
-        static PinCapabilities Native;
+        // Other capabilities:
         static PinCapabilities ADC;
         static PinCapabilities DAC;
         static PinCapabilities PWM;
         static PinCapabilities UART;
+
+        // Each class of pins (e.g. GPIO, etc) should have their own 'capability'. This ensures that we 
+        // can compare classes of pins along with their properties by just looking at the capabilities.
+        static PinCapabilities Native;
         static PinCapabilities I2S;
+        static PinCapabilities Error;
+        static PinCapabilities Void;
 
         inline PinCapabilities operator|(PinCapabilities rhs) { return PinCapabilities(_value | rhs._value); }
         inline PinCapabilities operator&(PinCapabilities rhs) { return PinCapabilities(_value & rhs._value); }
@@ -44,6 +50,6 @@ namespace Pins {
 
         inline operator bool() { return _value != 0; }
 
-        inline bool has(PinCapabilities t) { return (*this & t).operator bool(); }
+        inline bool has(PinCapabilities t) { return (*this & t) == t; }
     };
 }

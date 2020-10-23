@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <cstring>
 
-// #define PIN_DEBUG  // Pin debugging. WILL spam you with a lot of data!
+#define PIN_DEBUG  // Pin debugging. WILL spam you with a lot of data!
 
 // Forward declarations:
 class String;
@@ -37,7 +37,7 @@ class Pin {
 
     inline Pin(uint8_t index) : _index(index) {}
 
-    static bool parse(String str, Pins::PinDetail*& detail, int& pinNumber);
+    static bool parse(String str, Pins::PinDetail*& detail);
 
 public:
     using Capabilities = Pins::PinCapabilities;
@@ -61,8 +61,8 @@ public:
     inline Pin& operator=(Pin&& o) = default;
 
     // Some convenience operators:
-    inline bool operator==(Pin o) const { return _index == _index; }
-    inline bool operator!=(Pin o) const { return _index != _index; }
+    inline bool operator==(const Pin& o) const { return _index == o._index; }
+    inline bool operator!=(const Pin& o) const { return _index != o._index; }
 
     inline uint8_t getNative(Capabilities expectedBehavior) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);

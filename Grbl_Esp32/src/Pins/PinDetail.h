@@ -9,10 +9,14 @@
 #include <cstring>
 
 namespace Pins {
+
     // Implementation details of pins.
     class PinDetail {
+    protected:
+        int _index;
+
     public:
-        PinDetail()                   = default;
+        PinDetail(int number) : _index(number) {}
         PinDetail(const PinDetail& o) = delete;
         PinDetail(PinDetail&& o)      = delete;
         PinDetail& operator=(const PinDetail& o) = delete;
@@ -30,6 +34,8 @@ namespace Pins {
         virtual void detachInterrupt();
 
         virtual String toString() const = 0;
+
+        inline int number() const { return _index; }
 
         virtual ~PinDetail() {}
     };

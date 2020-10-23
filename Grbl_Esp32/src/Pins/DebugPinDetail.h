@@ -22,7 +22,9 @@ namespace Pins {
         bool shouldEvent();
 
     public:
-        DebugPinDetail(PinDetail* implementation) : _implementation(implementation), _lastEvent(0), _eventCount(0) {}
+        DebugPinDetail(PinDetail* implementation) :
+            PinDetail(implementation->number()), _implementation(implementation), _lastEvent(0), _eventCount(0), _isrHandler({ 0 }) {
+        }
 
         PinCapabilities capabilities() const override { return _implementation->capabilities(); }
 

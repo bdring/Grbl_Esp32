@@ -450,7 +450,7 @@ void PinSetting::load() {
     esp_err_t err = nvs_get_str(_handle, _keyName, NULL, &len);
     if (err) {
 #ifdef PIN_DEBUG
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Initializing pin %s with: %s", _keyName, _defaultValue);
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Initializing pin %s as '%s'", _fullName, _defaultValue);
 #endif
         _storedValue  = _defaultValue;
         _currentValue = Pin::create(_defaultValue);
@@ -460,7 +460,7 @@ void PinSetting::load() {
     err = nvs_get_str(_handle, _keyName, buf, &len);
     if (err) {
 #ifdef PIN_DEBUG
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Initializing pin %s with: %s", _keyName, _defaultValue);
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Initializing pin %s as '%s'", _fullName, _defaultValue);
 #endif
         _storedValue  = _defaultValue;
         _currentValue = Pin::create(_defaultValue);
@@ -468,7 +468,7 @@ void PinSetting::load() {
     }
 
 #ifdef PIN_DEBUG
-    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Initializing pin %s with: %s", _keyName, _storedValue);
+    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Initializing pin %s as '%s'", _fullName, _storedValue);
 #endif
     _storedValue  = String(buf);
     _currentValue = Pin::create(_storedValue);

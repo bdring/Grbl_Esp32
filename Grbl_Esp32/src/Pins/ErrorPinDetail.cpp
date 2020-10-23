@@ -2,9 +2,9 @@
 #include "../Assert.h"
 
 namespace Pins {
-    ErrorPinDetail::ErrorPinDetail(const PinOptionsParser& options) {}
+    ErrorPinDetail::ErrorPinDetail(const PinOptionsParser& options) : PinDetail(0) {}
 
-    PinCapabilities ErrorPinDetail::capabilities() const { return PinCapabilities::None; }
+    PinCapabilities ErrorPinDetail::capabilities() const { return PinCapabilities::Error; }
 
     void ErrorPinDetail::write(int high) { Assert(false, "Cannot write to an error pin."); }
     int  ErrorPinDetail::read() { Assert(false, "Cannot read from an error pin."); }

@@ -393,14 +393,14 @@ void           init_motors() {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             Pin pin = ms3_pins[axis][gang_index];
             if (pin != Pin::UNDEFINED) {
-                pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialHigh);
+                pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
             }
         }
     }
 
     if (StepperResetPin->get() != Pin::UNDEFINED) {
         // !RESET pin on steppers  (MISO On Schematic)
-        StepperResetPin->get().setAttr(Pin::Attr::Output | Pin::Attr::InitialHigh);
+        StepperResetPin->get().setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
     }
 
 #endif

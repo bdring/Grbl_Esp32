@@ -18,7 +18,7 @@ namespace Pins {
     const int     capabilityMask = (1 << (__LINE__ - START_LINE)) - 1;       // -------- Mask capabilities till here
     PinAttributes PinAttributes::ActiveLow(1 << (__LINE__ - START_LINE));
     PinAttributes PinAttributes::Exclusive(1 << (__LINE__ - START_LINE));    // \/       These are attributes
-    PinAttributes PinAttributes::InitialHigh(1 << (__LINE__ - START_LINE));  // \/       These are attributes
+    PinAttributes PinAttributes::InitialOn(1 << (__LINE__ - START_LINE));  // \/       These are attributes
 
     bool PinAttributes::validateWith(PinCapabilities caps) {
         auto capMask  = (caps._value & capabilityMask);

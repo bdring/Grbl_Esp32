@@ -15,8 +15,8 @@ namespace Pins {
         // probably do with less, but this is as safe as it gets.
         PinDetail* _pins[256];
 
-        // Should be plenty for the GPIO _pins:
-        static const int NumberNativePins = 64;
+        // According to Arduino.h there are 40 GPIO pins. So, let's start at 41.
+        static const int NumberNativePins = 41;
 
     public:
         PinLookup();
@@ -51,6 +51,20 @@ namespace Pins {
             // This assertion causes message spewing making debugging impossible
             // Assert(_pins[index] != nullptr, "Pin is not defined. Cannot use this pin.");
             return _pins[index];
+        }
+
+        int FindExisting(PinDetail* instance) const {
+            // Checks if a pin with this number and capabilities already exists:
+            for (int i = 0; i < 256; ++i) {
+                if (_pins[i] != nullptr) {
+                    if (_pins[i]->number() == instance->number() &&            // check number of pin
+                        _pins[i]->capabilities() == instance->capabilities())  // check pin capabilities
+                    {
+                        return i;
+                    }
+                }
+            }
+            return -1;
         }
 
         PinLookup(const PinLookup&) = delete;

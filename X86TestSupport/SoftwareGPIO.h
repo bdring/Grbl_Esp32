@@ -5,45 +5,44 @@
 #include <random>
 
 struct SoftwarePin {
-    SoftwarePin() : callback(), argument(nullptr), mode(0), padValue(false), pinMode(0) {}
+    SoftwarePin() : callback(), argument(nullptr), mode(0), driverValue(false), padValue(false), pinMode(0) {}
 
     void (*callback)(void*);
     void* argument;
     int   mode;
 
+    bool driverValue;
     bool padValue;
     int  pinMode;
 
     void handleISR() { callback(argument); }
 
     void reset() {
-        callback = nullptr;
-        argument = nullptr;
-        mode     = 0;
-        padValue = false;
-        pinMode  = 0;
+        callback    = nullptr;
+        argument    = nullptr;
+        mode        = 0;
+        driverValue = false;
+        padValue    = false;
+        pinMode     = 0;
     }
 
     void handlePadChangeWithHystesis(bool newval) {
         auto oldval = padValue;
-        if (oldval != newval)
-        {
-            std::default_random_engine    generator;
+        if (oldval != newval) {
+            std::default_random_engine       generator;
             std::normal_distribution<double> distribution(5, 2);
-            int count = int(distribution(generator));
+            int                              count = int(distribution(generator));
 
             // Bound it a bit
             if (count < 0) {
                 count = 0;
-            }
-            else if (count > 8) {
+            } else if (count > 8) {
                 count = 8;
             }
             count = count * 2 + 1;  // make it odd.
 
             auto currentVal = oldval;
-            for (int i = 0; i < count; ++i)
-            {
+            for (int i = 0; i < count; ++i) {
                 currentVal = !currentVal;
                 handlePadChange(currentVal);
             }
@@ -52,24 +51,23 @@ struct SoftwarePin {
 
     void handlePadChange(bool newval) {
         auto oldval = padValue;
-        if (oldval != newval)
-        {
+        if (oldval != newval) {
             switch (mode) {
-            case RISING:
-                if (!oldval && newval) {
-                    handleISR();
-                }
-                break;
-            case FALLING:
-                if (oldval && !newval) {
-                    handleISR();
-                }
-                break;
-            case CHANGE:
-                if (oldval != newval) {
-                    handleISR();
-                }
-                break;
+                case RISING:
+                    if (!oldval && newval) {
+                        handleISR();
+                    }
+                    break;
+                case FALLING:
+                    if (oldval && !newval) {
+                        handleISR();
+                    }
+                    break;
+                case CHANGE:
+                    if (oldval != newval) {
+                        handleISR();
+                    }
+                    break;
             }
             padValue = newval;
         }
@@ -103,8 +101,18 @@ public:
     }
 
     void setMode(int index, int mode) {
-        auto& pin   = pins[index];
-        pin.pinMode = mode;
+        auto& pin              = pins[index];
+        auto  oldModeHasOutput = (pin.pinMode & OUTPUT) == OUTPUT;
+        pin.pinMode            = mode;
+        auto modeHasOutput     = (pin.pinMode & OUTPUT) == OUTPUT;
+
+        if (modeHasOutput && !oldModeHasOutput) {
+            if (virtualCircuit != nullptr) {
+                virtualCircuit(pins, index, pin.driverValue);
+            } else if (circuitHandlesHystesis) {
+                pins[index].handlePadChange(pin.driverValue);
+            }
+        }
     }
 
     void writeOutput(int index, bool value) {
@@ -115,10 +123,11 @@ public:
                 virtualCircuit(pins, index, value);
             } else if (circuitHandlesHystesis) {
                 pins[index].handlePadChange(value);
-            }
-            else {
+            } else {
                 pins[index].handlePadChangeWithHystesis(value);
             }
+        } else {
+            pins[index].driverValue = value;
         }
     }
 

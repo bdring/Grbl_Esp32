@@ -77,10 +77,15 @@ namespace Pins {
     }
 
     GPIOPinDetail::GPIOPinDetail(uint8_t index, PinOptionsParser options) :
-        _index(index), _capabilities(GetDefaultCapabilities(index)), _attributes(Pins::PinAttributes::Undefined), _readWriteMask(0) {
-        if (_capabilities == PinCapabilities::None) {
-            throw std::runtime_error("Bad GPIO number");
-        }
+        PinDetail(index), _capabilities(GetDefaultCapabilities(index)), _attributes(Pins::PinAttributes::Undefined), _readWriteMask(0) {
+        // NOTE:
+        //
+        // RAII is very important here! If we throw an exception in the constructor, the resources
+        // that were allocated by the constructor up to that point _MUST_ be freed! Otherwise, you
+        // WILL get into trouble.
+
+        Assert(_capabilities != PinCapabilities::None, "Bad GPIO number");
+
         // User defined pin capabilities
         for (auto opt : options) {
             if (opt.is("pu")) {
@@ -88,20 +93,16 @@ namespace Pins {
             } else if (opt.is("pd")) {
                 _attributes = _attributes | PinAttributes::PullDown;
             } else if (opt.is("low")) {
-                _attributes = _attributes  | PinAttributes::ActiveLow;
+                _attributes = _attributes | PinAttributes::ActiveLow;
             } else if (opt.is("high")) {
                 // Default: Active HIGH.
             } else {
-                throw std::runtime_error("Bad GPIO option");
+                Assert(false, "Bad GPIO option passed to pin: %s", opt());
             }
         }
 
-        // XXX This should not be done when the constructor is called for
-        // validating a setting.
         // Update the R/W mask for ActiveLow setting
         if (_attributes.has(PinAttributes::ActiveLow)) {
-            __pinMode(_index, OUTPUT);
-            __digitalWrite(_index, HIGH);
             _readWriteMask = HIGH;
         } else {
             _readWriteMask = LOW;
@@ -146,9 +147,11 @@ namespace Pins {
             pinModeValue |= OUTPUT;
         }
 
-        // TODO: If the pin is ActiveLow, should we take this into account or not?
-        if (value.has(PinAttributes::InitialHigh)) {
-            __digitalWrite(_index, HIGH);
+        // If the pin is ActiveLow, we should take that into account here:
+        if (value.has(PinAttributes::InitialOn)) {
+            __digitalWrite(_index, HIGH ^ _readWriteMask);
+        } else {
+            __digitalWrite(_index, LOW ^ _readWriteMask);
         }
 
         __pinMode(_index, pinModeValue);

@@ -36,7 +36,7 @@ namespace Pins {
         if (value.has(PinAttributes::Exclusive)) {
             buf[n++] = 'X';
         }
-        if (value.has(PinAttributes::InitialHigh)) {
+        if (value.has(PinAttributes::InitialOn)) {
             buf[n++] = '+';
         }
         buf[n++] = 0;

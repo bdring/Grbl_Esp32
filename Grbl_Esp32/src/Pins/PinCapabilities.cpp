@@ -17,10 +17,14 @@ namespace Pins {
     PinCapabilities PinCapabilities::PullUp(1 << (__LINE__ - START_LINE));    // NOTE: Mapped in PinAttributes!
     PinCapabilities PinCapabilities::PullDown(1 << (__LINE__ - START_LINE));  // NOTE: Mapped in PinAttributes!
     PinCapabilities PinCapabilities::ISR(1 << (__LINE__ - START_LINE));       // NOTE: Mapped in PinAttributes!
-    PinCapabilities PinCapabilities::Native(1 << (__LINE__ - START_LINE));
+    
     PinCapabilities PinCapabilities::PWM(1 << (__LINE__ - START_LINE));
     PinCapabilities PinCapabilities::UART(1 << (__LINE__ - START_LINE));
     PinCapabilities PinCapabilities::ADC(1 << (__LINE__ - START_LINE));
     PinCapabilities PinCapabilities::DAC(1 << (__LINE__ - START_LINE));
+
+    PinCapabilities PinCapabilities::Native(1 << (__LINE__ - START_LINE));
     PinCapabilities PinCapabilities::I2S(1 << (__LINE__ - START_LINE));
+    PinCapabilities PinCapabilities::Error(1 << (__LINE__ - START_LINE));
+    PinCapabilities PinCapabilities::Void(1 << (__LINE__ - START_LINE));
 }
