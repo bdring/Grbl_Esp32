@@ -204,17 +204,6 @@ namespace Motors {
             return;
         }
 
-        float max_travel = axis_settings[_axis_index]->max_travel->get();
-        float mpos       = axis_settings[_axis_index]->home_mpos->get();
-
-        if (bit_istrue(homing_dir_mask->get(), bit(_axis_index))) {
-            _position_min = mpos;
-            _position_max = mpos + max_travel;
-        } else {
-            _position_min = mpos - max_travel;
-            _position_max = mpos;
-        }
-
         uint16_t run_i_ma = (uint16_t)(axis_settings[_axis_index]->run_current->get() * 1000.0);
         float    hold_i_percent;
 
