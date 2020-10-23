@@ -52,7 +52,6 @@ void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
 void mc_line(float* target, plan_line_data_t* pl_data) {
     // If enabled, check for soft limit violations. Placed here all line motions are picked up
     // from everywhere in Grbl.
-
     if (soft_limits->get()) {
         // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
         if (sys.state != State::Jog) {
@@ -351,7 +350,6 @@ void mc_homing_cycle(uint8_t cycle_mask) {
                 }
             }
         }
-
         if (no_cycles_defined) {
             report_status_message(Error::HomingNoCycles, CLIENT_ALL);
         }
