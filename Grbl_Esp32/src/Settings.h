@@ -5,6 +5,22 @@
 #include <nvs.h>
 #include "WebUI/ESPResponse.h"
 
+// Initialize the configuration subsystem
+void settings_init();
+
+// Define settings restore bitflags.
+enum SettingsRestore {
+    Defaults = bit(0),
+    Parameters = bit(1),
+    StartupLines = bit(2),
+    // BuildInfo = bit(3), // Obsolete
+    Wifi = bit(4),
+    All = 0xff,
+};
+
+// Restore subsets of settings to default values
+void settings_restore(uint8_t restore_flag);
+
 // Command::List is a linked list of all settings,
 // so common code can enumerate them.
 class Command;
@@ -134,6 +150,7 @@ public:
     Error               setStringValue(String s) { return setStringValue(s.c_str()); }
     virtual const char* getStringValue() = 0;
     virtual const char* getCompatibleValue() { return getStringValue(); }
+    virtual const char* getDefaultString() = 0;
 };
 
 class IntSetting : public Setting {
@@ -173,6 +190,7 @@ public:
     void        addWebui(WebUI::JSONencoder*);
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     int32_t get() { return _currentValue; }
 };
@@ -202,6 +220,7 @@ public:
     Error       setStringValue(char* value);
     const char* getCompatibleValue();
     const char* getStringValue();
+    const char* getDefaultString();
 
     int32_t get() { return _currentValue; }
 };
@@ -263,6 +282,7 @@ public:
     void        addWebui(WebUI::JSONencoder*) {}
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     float get() { return _currentValue; }
 };
@@ -296,6 +316,7 @@ public:
     void        addWebui(WebUI::JSONencoder*);
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     const char* get() { return _currentValue.c_str(); }
 };
@@ -310,6 +331,7 @@ private:
     int8_t                                  _storedValue;
     int8_t                                  _currentValue;
     std::map<const char*, int8_t, cmp_str>* _options;
+    const char*                             enumToString(int8_t value);
 
 public:
     EnumSetting(const char*   description,
@@ -328,6 +350,7 @@ public:
     void        addWebui(WebUI::JSONencoder*);
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     int8_t get() { return _currentValue; }
 };
@@ -357,6 +380,7 @@ public:
     Error       setStringValue(char* value);
     const char* getCompatibleValue();
     const char* getStringValue();
+    const char* getDefaultString();
 
     bool get() { return _currentValue; }
 };
@@ -388,6 +412,7 @@ public:
     void        addWebui(WebUI::JSONencoder*);
     Error       setStringValue(char* value);
     const char* getStringValue();
+    const char* getDefaultString();
 
     uint32_t get() { return _currentValue; }
 };

@@ -185,6 +185,9 @@ namespace Spindles {
                     // Wait a bit before we retry. Set the delay to poll-rate. Not sure
                     // if we should use a different value...
                     vTaskDelay(VFD_RS485_POLL_RATE);
+
+                    static UBaseType_t uxHighWaterMark = 0;
+                    reportTaskStackSize(uxHighWaterMark);
                 }
             }
 
@@ -193,7 +196,7 @@ namespace Spindles {
                     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle RS485 Unresponsive %d", next_cmd.rx_length);
                     if (next_cmd.critical) {
                         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Critical Spindle RS485 Unresponsive");
-                        system_set_exec_alarm(ExecAlarm::SpindleControl);
+                        sys_rt_exec_alarm = ExecAlarm::SpindleControl;
                     }
                     unresponsive = true;
                 }

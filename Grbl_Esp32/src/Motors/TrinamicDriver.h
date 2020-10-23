@@ -63,10 +63,10 @@ const double TRINAMIC_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to 
 namespace Motors {
 
     enum class TrinamicMode : uint8_t {
-        None            = 0, // not for machine defs!
-        StealthChop     = 1, 
-        CoolStep        = 2,
-        StallGuard      = 3,
+        None        = 0,  // not for machine defs!
+        StealthChop = 1,
+        CoolStep    = 2,
+        StallGuard  = 3,
     };
 
     class TrinamicDriver : public StandardStepper {
@@ -77,32 +77,55 @@ namespace Motors {
                        uint8_t  disable_pin,
                        uint8_t  cs_pin,
                        uint16_t driver_part_number,
+                       float    r_sense) :
+            TrinamicDriver(axis_index, step_pin, dir_pin, disable_pin,
+                           cs_pin, driver_part_number, r_sense, get_next_index())
+        {}
+
+        TrinamicDriver(uint8_t  axis_index,
+                       uint8_t  step_pin,
+                       uint8_t  dir_pin,
+                       uint8_t  disable_pin,
+                       uint8_t  cs_pin,
+                       uint16_t driver_part_number,
                        float    r_sense,
                        int8_t   spi_index);
 
-        void config_message();
-        void init();
-        void set_mode(bool isHoming);
-        void read_settings();
-        void trinamic_test_response();
-        void trinamic_stepper_enable(bool enable);
+        // Overrides for inherited methods
+        void init() override;
+        void read_settings() override;
+        bool set_homing_mode(bool ishoming) override;
+        void set_disable(bool disable) override;
+
         void debug_message();
-        void set_homing_mode(uint8_t homing_mask, bool ishoming);
-        void set_disable(bool disable);
-        bool test();
 
     private:
         uint32_t calc_tstep(float speed, float percent);
 
         TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
         TrinamicMode    _homing_mode;
-        uint8_t         cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
-        uint16_t        _driver_part_number;     // example: use 2130 for TMC2130
+        uint8_t         _cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
+        uint16_t        _driver_part_number;      // example: use 2130 for TMC2130
         float           _r_sense;
-        int8_t          spi_index;
+        int8_t          _spi_index;
+        bool            _has_errors;
+        bool            _disabled;
+
+        TrinamicMode _mode = TrinamicMode::None;
+        bool test();
+        void set_mode(bool isHoming);
+        void trinamic_test_response();
+        void trinamic_stepper_enable(bool enable);
+
+        uint8_t get_next_index();
+
+        // Linked list of Trinamic driver instances, used by the
+        // StallGuard reporting task.
+        static TrinamicDriver* List;
+        TrinamicDriver* link;
+        static void readSgTask(void*);
 
     protected:
-        TrinamicMode _mode;
-        TrinamicMode _lastMode = TrinamicMode::None;
+        void config_message() override;
     };
 }

@@ -20,6 +20,12 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Define status reporting boolean enable bit flags in status_report_mask
+enum RtStatus {
+    Position = bit(0),
+    Buffer   = bit(1),
+};
+
 const char* errorString(Error errorNumber);
 
 // Define Grbl feedback message codes. Valid values (0-255).
@@ -103,7 +109,7 @@ void report_startup_line(uint8_t n, const char* line, uint8_t client);
 void report_execute_startup_message(const char* line, Error status_code, uint8_t client);
 
 // Prints build info and user info
-void report_build_info(char* line, uint8_t client);
+void report_build_info(const char* line, uint8_t client);
 
 void report_gcode_comment(char* comment);
 
@@ -117,3 +123,9 @@ void report_hex_msg(char* buf, const char* prefix, int len);
 void report_hex_msg(uint8_t* buf, const char* prefix, int len);
 
 char report_get_axis_letter(uint8_t axis);
+
+char* reportAxisLimitsMsg(uint8_t axis);
+char* reportAxisNameMsg(uint8_t axis);
+char* reportAxisNameMsg(uint8_t axis, uint8_t dual_axis);
+
+void  reportTaskStackSize(UBaseType_t& saved);

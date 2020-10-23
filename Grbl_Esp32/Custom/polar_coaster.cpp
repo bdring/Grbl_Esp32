@@ -223,25 +223,15 @@ float abs_angle(float ang) {
 // Polar coaster has macro buttons, this handles those button pushes.
 void user_defined_macro(uint8_t index) {
     switch (index) {
-#ifdef MACRO_BUTTON_0_PIN
-        case CONTROL_PIN_INDEX_MACRO_0:
+        case 0:
             WebUI::inputBuffer.push("$H\r");  // home machine
             break;
-#endif
-#ifdef MACRO_BUTTON_1_PIN
-        case CONTROL_PIN_INDEX_MACRO_1:
+        case 1:
             WebUI::inputBuffer.push("[ESP220]/1.nc\r");  // run SD card file 1.nc
             break;
-#endif
-#ifdef MACRO_BUTTON_2_PIN
-        case CONTROL_PIN_INDEX_MACRO_2:
+        case 2:
             WebUI::inputBuffer.push("[ESP220]/2.nc\r");  // run SD card file 2.nc
             break;
-#endif
-#ifdef MACRO_BUTTON_3_PIN
-        case CONTROL_PIN_INDEX_MACRO_3:
-            break;
-#endif
         default:
             break;
     }

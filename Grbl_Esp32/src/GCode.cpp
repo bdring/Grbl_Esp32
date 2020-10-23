@@ -873,10 +873,10 @@ Error gc_execute_line(char* line, uint8_t client) {
         }
     }
     // [15. Coordinate system selection ]: *N/A. Error, if cutter radius comp is active.
-    // TODO: An EEPROM read of the coordinate data may require a buffer sync when the cycle
+    // TODO: Reading the coordinate data may require a buffer sync when the cycle
     // is active. The read pauses the processor temporarily and may cause a rare crash. For
     // future versions on processors with enough memory, all coordinate data should be stored
-    // in memory and written to EEPROM only when there is not a cycle active.
+    // in memory and written to non-volatile storage only when there is not a cycle active.
     float block_coord_system[MAX_N_AXIS];
     memcpy(block_coord_system, gc_state.coord_system, sizeof(gc_state.coord_system));
     if (bit_istrue(command_words, bit(ModalGroup::MG12))) {  // Check if called in block
@@ -1002,7 +1002,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 case NonModal::GoHome0:  // G28
                 case NonModal::GoHome1:  // G30
                     // [G28/30 Errors]: Cutter compensation is enabled.
-                    // Retreive G28/30 go-home position data (in machine coordinates) from EEPROM
+                    // Retreive G28/30 go-home position data (in machine coordinates) from non-volatile storage
                     if (gc_block.non_modal_command == NonModal::GoHome0) {
                         coords[CoordIndex::G28]->get(coord_data);
                     } else {  // == NonModal::GoHome1
@@ -1502,9 +1502,6 @@ Error gc_execute_line(char* line, uint8_t client) {
     if (gc_state.modal.motion != Motion::None) {
         if (axis_command == AxisCommand::MotionMode) {
             GCUpdatePos gc_update_pos = GCUpdatePos::Target;
-#ifdef USE_I2S_STEPS
-            stepper_id_t save_stepper = current_stepper;
-#endif
             if (gc_state.modal.motion == Motion::Linear) {
                 //mc_line(gc_block.values.xyz, pl_data);
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
@@ -1528,12 +1525,6 @@ Error gc_execute_line(char* line, uint8_t client) {
 #ifndef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
                 pl_data->motion.noFeedOverride = 1;
 #endif
-#ifdef USE_I2S_STEPS
-                save_stepper = current_stepper;  // remember the stepper
-                if (save_stepper == ST_I2S_STREAM) {
-                    stepper_switch(ST_I2S_STATIC);  // Change the stepper to reduce the delay for accurate probing.
-                }
-#endif
                 gc_update_pos = mc_probe_cycle(gc_block.values.xyz, pl_data, gc_parser_flags);
             }
             // As far as the parser is concerned, the position is now == target. In reality the
@@ -1544,11 +1535,6 @@ Error gc_execute_line(char* line, uint8_t client) {
             } else if (gc_update_pos == GCUpdatePos::System) {
                 gc_sync_position();  // gc_state.position[] = sys_position
             }                        // == GCUpdatePos::None
-#ifdef USE_I2S_STEPS
-            if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {
-                stepper_switch(ST_I2S_STREAM);  // Put the stepper back on.
-            }
-#endif
         }
     }
     // [21. Program flow ]:
@@ -1565,8 +1551,8 @@ Error gc_execute_line(char* line, uint8_t client) {
         case ProgramFlow::Paused:
             protocol_buffer_synchronize();  // Sync and finish all remaining buffered motions before moving on.
             if (sys.state != State::CheckMode) {
-                system_set_exec_state_flag(EXEC_FEED_HOLD);  // Use feed hold for program pause.
-                protocol_execute_realtime();                 // Execute suspend.
+                sys_rt_exec_state.bit.feedHold = true;  // Use feed hold for program pause.
+                protocol_execute_realtime();            // Execute suspend.
             }
             break;
         case ProgramFlow::CompletedM2:
@@ -1594,9 +1580,9 @@ Error gc_execute_line(char* line, uint8_t client) {
 #endif
             // gc_state.modal.override = OVERRIDE_DISABLE; // Not supported.
 #ifdef RESTORE_OVERRIDES_AFTER_PROGRAM_END
-            sys.f_override        = DEFAULT_FEED_OVERRIDE;
-            sys.r_override        = DEFAULT_RAPID_OVERRIDE;
-            sys.spindle_speed_ovr = DEFAULT_SPINDLE_SPEED_OVERRIDE;
+            sys.f_override        = FeedOverride::Default;
+            sys.r_override        = RapidOverride::Default;
+            sys.spindle_speed_ovr = SpindleSpeedOverride::Default;
 #endif
             // Execute coordinate change and spindle/coolant stop.
             if (sys.state != State::CheckMode) {

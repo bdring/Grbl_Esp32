@@ -260,6 +260,25 @@ static bool axis_is_squared(uint8_t axis_mask) {
     return mask_is_single_axis(axis_mask) && mask_has_squared_axis(axis_mask);
 }
 
+#ifdef USE_I2S_STEPS
+#    define BACKUP_STEPPER(save_stepper)                                                                                                   \
+        do {                                                                                                                               \
+            if (save_stepper == ST_I2S_STREAM) {                                                                                           \
+                stepper_switch(ST_I2S_STATIC); /* Change the stepper to reduce the delay for accurate probing. */                          \
+            }                                                                                                                              \
+        } while (0)
+
+#    define RESTORE_STEPPER(save_stepper)                                                                                                  \
+        do {                                                                                                                               \
+            if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {                                                       \
+                stepper_switch(ST_I2S_STREAM); /* Put the stepper back on. */                                                              \
+            }                                                                                                                              \
+        } while (0)
+#else
+#    define BACKUP_STEPPER(save_stepper)
+#    define RESTORE_STEPPER(save_stepper)
+#endif
+
 // Perform homing cycle to locate and set machine zero. Only '$H' executes this command.
 // NOTE: There should be no motions in the buffer and Grbl must be in an idle state before
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
@@ -283,7 +302,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
 #ifdef LIMITS_TWO_SWITCHES_ON_AXES
     if (limits_get_state()) {
         mc_reset();  // Issue system reset and ensure spindle and coolant are shutdown.
-        system_set_exec_alarm(ExecAlarm::HardLimit);
+        sys_rt_exec_alarm = ExecAlarm::HardLimit;
         return;
     }
 #endif
@@ -371,6 +390,13 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     if (sys.abort) {
         return GCUpdatePos::None;  // Return if system reset has been issued.
     }
+
+#ifdef USE_I2S_STEPS
+    stepper_id_t save_stepper = current_stepper; /* remember the stepper */
+#endif
+    // Switch stepper mode to the I2S static (realtime mode)
+    BACKUP_STEPPER(save_stepper);
+
     // Initialize probing control variables
     uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
     uint8_t is_no_error   = bit_istrue(parser_flags, GCParserProbeIsNoError);
@@ -379,35 +405,41 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
     if (probe_get_state() ^ is_probe_away) {  // Check probe pin state.
-        system_set_exec_alarm(ExecAlarm::ProbeFailInitial);
+        sys_rt_exec_alarm = ExecAlarm::ProbeFailInitial;
         protocol_execute_realtime();
-        return GCUpdatePos::None;  // Nothing else to do but bail.
+        RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
+        return GCUpdatePos::None;       // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
     mc_line(target, pl_data);
     // Activate the probing state monitor in the stepper module.
-    sys_probe_state = PROBE_ACTIVE;
+    sys_probe_state = Probe::Active;
     // Perform probing cycle. Wait here until probe is triggered or motion completes.
-    system_set_exec_state_flag(EXEC_CYCLE_START);
+    sys_rt_exec_state.bit.cycleStart = true;
     do {
         protocol_execute_realtime();
         if (sys.abort) {
-            return GCUpdatePos::None;  // Check for system abort
+            RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
+            return GCUpdatePos::None;       // Check for system abort
         }
     } while (sys.state != State::Idle);
+
+    // Switch the stepper mode to the previous mode
+    RESTORE_STEPPER(save_stepper);
+
     // Probing cycle complete!
     // Set state variables and error out, if the probe failed and cycle with error is enabled.
-    if (sys_probe_state == PROBE_ACTIVE) {
+    if (sys_probe_state == Probe::Active) {
         if (is_no_error) {
             memcpy(sys_probe_position, sys_position, sizeof(sys_position));
         } else {
-            system_set_exec_alarm(ExecAlarm::ProbeFailContact);
+            sys_rt_exec_alarm = ExecAlarm::ProbeFailContact;
         }
     } else {
         sys.probe_succeeded = true;  // Indicate to system the probing cycle completed successfully.
     }
-    sys_probe_state = PROBE_OFF;  // Ensure probe state monitor is disabled.
-    protocol_execute_realtime();  // Check and execute run-time commands
+    sys_probe_state = Probe::Off;  // Ensure probe state monitor is disabled.
+    protocol_execute_realtime();   // Check and execute run-time commands
     // Reset the stepper and planner buffers to remove the remainder of the probe motion.
     st_reset();            // Reset step segment buffer.
     plan_reset();          // Reset planner buffer. Zero planner positions. Ensure probing motion is cleared.
@@ -431,9 +463,9 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data) {
     }
     uint8_t plan_status = plan_buffer_line(parking_target, pl_data);
     if (plan_status) {
-        bit_true(sys.step_control, STEP_CONTROL_EXECUTE_SYS_MOTION);
-        bit_false(sys.step_control, STEP_CONTROL_END_MOTION);  // Allow parking motion to execute, if feed hold is active.
-        st_parking_setup_buffer();                             // Setup step segment buffer for special parking motion case
+        sys.step_control.executeSysMotion = true;
+        sys.step_control.endMotion        = false;  // Allow parking motion to execute, if feed hold is active.
+        st_parking_setup_buffer();                  // Setup step segment buffer for special parking motion case
         st_prep_buffer();
         st_wake_up();
         do {
@@ -441,10 +473,10 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data) {
             if (sys.abort) {
                 return;
             }
-        } while (sys.step_control & STEP_CONTROL_EXECUTE_SYS_MOTION);
+        } while (sys.step_control.executeSysMotion);
         st_parking_restore_buffer();  // Restore step segment buffer to normal run state.
     } else {
-        bit_false(sys.step_control, STEP_CONTROL_EXECUTE_SYS_MOTION);
+        sys.step_control.executeSysMotion = false;
         protocol_exec_rt_system();
     }
 }
@@ -467,8 +499,8 @@ void mc_override_ctrl_update(uint8_t override_state) {
 // realtime abort command and hard limits. So, keep to a minimum.
 void mc_reset() {
     // Only this function can set the system reset. Helps prevent multiple kill calls.
-    if (bit_isfalse(sys_rt_exec_state, EXEC_RESET)) {
-        system_set_exec_state_flag(EXEC_RESET);
+    if (!sys_rt_exec_state.bit.reset) {
+        sys_rt_exec_state.bit.reset = true;
         // Kill spindle and coolant.
         spindle->stop();
         coolant_stop();
@@ -489,13 +521,13 @@ void mc_reset() {
         // the steppers enabled by avoiding the go_idle call altogether, unless the motion state is
         // violated, by which, all bets are off.
         if ((sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) ||
-            (sys.step_control & (STEP_CONTROL_EXECUTE_HOLD | STEP_CONTROL_EXECUTE_SYS_MOTION))) {
+            (sys.step_control.executeHold || sys.step_control.executeSysMotion)) {
             if (sys.state == State::Homing) {
                 if (sys_rt_exec_alarm == ExecAlarm::None) {
-                    system_set_exec_alarm(ExecAlarm::HomingFailReset);
+                    sys_rt_exec_alarm = ExecAlarm::HomingFailReset;
                 }
             } else {
-                system_set_exec_alarm(ExecAlarm::AbortCycle);
+                sys_rt_exec_alarm = ExecAlarm::AbortCycle;
             }
             st_go_idle();  // Force kill steppers. Position has likely been lost.
         }
