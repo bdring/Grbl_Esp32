@@ -33,7 +33,7 @@ void show_setting(const char* name, const char* value, const char* description, 
 
 void settings_restore(uint8_t restore_flag) {
 #ifdef WIFI_OR_BLUETOOTH
-    if (restore_flag & SETTINGS_RESTORE_WIFI_SETTINGS) {
+    if (restore_flag & SettingsRestore::Wifi) {
 #    ifdef ENABLE_WIFI
         WebUI::wifi_config.reset_settings();
 #    endif
@@ -42,8 +42,8 @@ void settings_restore(uint8_t restore_flag) {
 #    endif
     }
 #endif
-    if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {
-        bool restore_startup = restore_flag & SETTINGS_RESTORE_STARTUP_LINES;
+    if (restore_flag & SettingsRestore::Defaults) {
+        bool restore_startup = restore_flag & SettingsRestore::StartupLines;
         for (Setting* s = Setting::List; s; s = s->next()) {
             if (!s->getDescription()) {
                 const char* name = s->getName();
@@ -55,15 +55,10 @@ void settings_restore(uint8_t restore_flag) {
             }
         }
     }
-    if (restore_flag & SETTINGS_RESTORE_PARAMETERS) {
+    if (restore_flag & SettingsRestore::Parameters) {
         for (auto idx = CoordIndex::Begin; idx < CoordIndex::End; ++idx) {
             coords[idx]->setDefault();
         }
-    }
-    if (restore_flag & SETTINGS_RESTORE_BUILD_INFO) {
-        EEPROM.write(EEPROM_ADDR_BUILD_INFO, 0);
-        EEPROM.write(EEPROM_ADDR_BUILD_INFO + 1, 0);  // Checksum
-        EEPROM.commit();
     }
 }
 
@@ -157,6 +152,16 @@ Error list_settings(const char* value, WebUI::AuthenticationLevel auth_level, We
         const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
         show_setting(s->getName(), displayValue, NULL, out);
     }
+    return Error::Ok;
+}
+Error list_changed_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    for (Setting* s = Setting::List; s; s = s->next()) {
+        const char* value = s->getStringValue();
+        if (!auth_failed(s, value, auth_level) && strcmp(value, s->getDefaultString())) {
+            show_setting(s->getName(), value, NULL, out);
+        }
+    }
+    grbl_sendf(out->client(), "(Passwords not shown)\r\n");
     return Error::Ok;
 }
 Error list_commands(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
@@ -262,22 +267,15 @@ Error home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ES
     return home(bit(C_AXIS));
 }
 Error sleep_grbl(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    system_set_exec_state_flag(EXEC_SLEEP);
+    sys_rt_exec_state.bit.sleep = true;
     return Error::Ok;
 }
 Error get_report_build_info(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (!value) {
-        char line[128];
-        settings_read_build_info(line);
-        report_build_info(line, out->client());
+        report_build_info(build_info->get(), out->client());
         return Error::Ok;
     }
-#ifdef ENABLE_BUILD_INFO_WRITE_COMMAND
-    settings_store_build_info(value);
-    return Error::Ok;
-#else
     return Error::InvalidStatement;
-#endif
 }
 Error report_startup_lines(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     report_startup_line(0, startup_line_0->get(), out->client());
@@ -286,16 +284,16 @@ Error report_startup_lines(const char* value, WebUI::AuthenticationLevel auth_le
 }
 
 std::map<const char*, uint8_t, cmp_str> restoreCommands = {
-#ifdef ENABLE_RESTORE_EEPROM_DEFAULT_SETTINGS
-    { "$", SETTINGS_RESTORE_DEFAULTS },      { "settings", SETTINGS_RESTORE_DEFAULTS },
+#ifdef ENABLE_RESTORE_DEFAULT_SETTINGS
+    { "$", SettingsRestore::Defaults },      { "settings", SettingsRestore::Defaults },
 #endif
-#ifdef ENABLE_RESTORE_EEPROM_CLEAR_PARAMETERS
-    { "#", SETTINGS_RESTORE_PARAMETERS },    { "gcode", SETTINGS_RESTORE_PARAMETERS },
+#ifdef ENABLE_RESTORE_CLEAR_PARAMETERS
+    { "#", SettingsRestore::Parameters },    { "gcode", SettingsRestore::Parameters },
 #endif
-#ifdef ENABLE_RESTORE_EEPROM_WIPE_ALL
-    { "*", SETTINGS_RESTORE_ALL },           { "all", SETTINGS_RESTORE_ALL },
+#ifdef ENABLE_RESTORE_WIPE_ALL
+    { "*", SettingsRestore::All },           { "all", SettingsRestore::All },
 #endif
-    { "@", SETTINGS_RESTORE_WIFI_SETTINGS }, { "wifi", SETTINGS_RESTORE_WIFI_SETTINGS },
+    { "@", SettingsRestore::Wifi }, { "wifi", SettingsRestore::Wifi },
 };
 Error restore_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (!value) {
@@ -383,6 +381,7 @@ void make_grbl_commands() {
     new GrblCommand("+", "ExtendedSettings/List", report_extended_settings, notCycleOrHold);
     new GrblCommand("L", "GrblNames/List", list_grbl_names, notCycleOrHold);
     new GrblCommand("S", "Settings/List", list_settings, notCycleOrHold);
+    new GrblCommand("SC","Settings/ListChanged", list_changed_settings, notCycleOrHold);
     new GrblCommand("CMD", "Commands/List", list_commands, notCycleOrHold);
     new GrblCommand("E", "ErrorCodes/List", listErrorCodes, anyState);
     new GrblCommand("G", "GCode/Modes", report_gcode, anyState);

@@ -31,6 +31,7 @@ const int SDCARD_BUSY_PARSING   = 8;
 
 extern bool    SD_ready_next;  // Grbl has processed a line and is waiting for another
 extern uint8_t SD_client;
+extern WebUI::AuthenticationLevel SD_auth_level;
 
 //bool sd_mount();
 uint8_t  get_sd_state(bool refresh);

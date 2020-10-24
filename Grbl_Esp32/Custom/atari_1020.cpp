@@ -179,7 +179,7 @@ void atari_home_task(void* pvParameters) {
 void calc_solenoid(float penZ) {
     bool        isPenUp;
     static bool previousPenState = false;
-    uint32_t    solenoid_pen_pulse_len;                    // duty cycle of solenoid
+    uint32_t    solenoid_pen_pulse_len;                     // duty cycle of solenoid
     isPenUp = ((penZ > 0) || (sys.state == State::Alarm));  // is pen above Z0 or is there an alarm
     // if the state has not change, we only count down to the pull time
     if (previousPenState == isPenUp) {
@@ -247,23 +247,17 @@ void atari_next_pen() {
 void user_defined_macro(uint8_t index) {
     char gcode_line[20];
     switch (index) {
-#ifdef MACRO_BUTTON_0_PIN
-        case CONTROL_PIN_INDEX_MACRO_0:
+        case 0:
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Pen switch");
             WebUI::inputBuffer.push("$H\r");
             break;
-#endif
-#ifdef MACRO_BUTTON_1_PIN
-        case CONTROL_PIN_INDEX_MACRO_1:
+        case 1:
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Color switch");
             atari_next_pen();
             sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  // alway return to right side to reduce home travel stalls
             WebUI::inputBuffer.push(gcode_line);
             break;
-#endif
-#ifdef MACRO_BUTTON_2_PIN
-        case CONTROL_PIN_INDEX_MACRO_2:
-            // feed out some paper and reset the Y 0
+        case 2:
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Paper switch");
             WebUI::inputBuffer.push("G0Y-25\r");
             WebUI::inputBuffer.push("G4P0.1\r");  // sync...forces wait for planner to clear
@@ -271,9 +265,7 @@ void user_defined_macro(uint8_t index) {
             gc_sync_position();
             plan_sync_position();
             break;
-#endif
         default:
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Unknown Switch %d", index);
             break;
     }
 }

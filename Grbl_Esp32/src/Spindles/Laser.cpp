@@ -31,11 +31,11 @@ namespace Spindles {
     void Laser::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "Laser spindle on Pin:%s, Freq:%.2fHz, Res:%dbits Laser mode:$32=%d",
+                       "Laser spindle on Pin:%s, Freq:%dHz, Res:%dbits Laser mode:%s",
                        pinName(_output_pin).c_str(),
                        _pwm_freq,
                        _pwm_precision,
-                       isRateAdjusted());  // the current mode
+                       laser_mode->getStringValue());  // the current mode
 
         use_delays = false;  // this will override the value set in Spindle::PWM::init()
     }

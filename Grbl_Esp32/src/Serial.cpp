@@ -68,16 +68,39 @@ uint8_t serial_get_rx_buffer_available(uint8_t client) {
     return client_buffer[client].availableforwrite();
 }
 
+void heapCheckTask(void* pvParameters) {
+    static uint32_t heapSize = 0;
+    while (true) {
+        uint32_t newHeapSize = xPortGetFreeHeapSize();
+        if (newHeapSize != heapSize) {
+            heapSize = newHeapSize;
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "heap %d", heapSize);
+        }
+        vTaskDelay(3000 / portTICK_RATE_MS);  // Yield to other tasks
+
+        static UBaseType_t uxHighWaterMark = 0;
+        reportTaskStackSize(uxHighWaterMark);
+    }
+}
+
 void serial_init() {
+#ifdef DEBUG_REPORT_HEAP_SIZE
+    // For a 2000-word stack, uxTaskGetStackHighWaterMark reports 288 words available
+    xTaskCreatePinnedToCore(heapCheckTask, "heapTask", 2000, NULL, 1, NULL, 1);
+#endif
+
     Serial.begin(BAUD_RATE);
+    Serial.setRxBufferSize(256);
     // reset all buffers
     serial_reset_read_buffer(CLIENT_ALL);
     grbl_send(CLIENT_SERIAL, "\r\n");  // create some white space after ESP32 boot info
     serialCheckTaskHandle = 0;
     // create a task to check for incoming data
+    // For a 4096-word stack, uxTaskGetStackHighWaterMark reports 244 words available
+    // after WebUI attaches.
     xTaskCreatePinnedToCore(serialCheckTask,    // task
                             "serialCheckTask",  // name for task
-                            8192,               // size of task stack
+                            4096,               // size of task stack
                             NULL,               // parameters
                             1,                  // priority
                             &serialCheckTaskHandle,
@@ -88,9 +111,10 @@ void serial_init() {
 // this task runs and checks for data on all interfaces
 // REaltime stuff is acted upon, then characters are added to the appropriate buffer
 void serialCheckTask(void* pvParameters) {
-    uint8_t data   = 0;
-    uint8_t client = CLIENT_ALL;  // who sent the data
-    while (true) {                // run continuously
+    uint8_t            data            = 0;
+    uint8_t            client          = CLIENT_ALL;  // who sent the data
+    static UBaseType_t uxHighWaterMark = 0;
+    while (true) {  // run continuously
         while (any_client_has_data()) {
             if (Serial.available()) {
                 client = CLIENT_SERIAL;
@@ -104,7 +128,8 @@ void serialCheckTask(void* pvParameters) {
                 if (WebUI::SerialBT.hasClient() && WebUI::SerialBT.available()) {
                     client = CLIENT_BT;
                     data   = WebUI::SerialBT.read();
-                    //Serial.write(data);  // echo all data to serial
+
+                    // Serial.write(data);  // echo all data to serial.
                 } else {
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
@@ -129,7 +154,7 @@ void serialCheckTask(void* pvParameters) {
             // Pick off realtime command characters directly from the serial stream. These characters are
             // not passed into the main buffer, but these set system state flag bits for realtime execution.
             if (is_realtime_command(data)) {
-                execute_realtime_command(data, client);
+                execute_realtime_command(static_cast<Cmd>(data), client);
             } else {
                 vTaskEnterCritical(&myMutex);
                 client_buffer[client].write(data);
@@ -147,7 +172,10 @@ void serialCheckTask(void* pvParameters) {
         WebUI::Serial2Socket.handle_flush();
 #endif
         vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
-    }                                      // while(true)
+
+        static UBaseType_t uxHighWaterMark = 0;
+        reportTaskStackSize(uxHighWaterMark);
+    }  // while(true)
 }
 
 void serial_reset_read_buffer(uint8_t client) {
@@ -194,91 +222,115 @@ bool any_client_has_data() {
 
 // checks to see if a character is a realtime character
 bool is_realtime_command(uint8_t data) {
-    return data == CMD_RESET || data == CMD_STATUS_REPORT || data == CMD_CYCLE_START || data == CMD_FEED_HOLD || data > 0x7F;
+    if (data >= 0x80) {
+        return true;
+    }
+    auto cmd = static_cast<Cmd>(data);
+    return cmd == Cmd::Reset || cmd == Cmd::StatusReport || cmd == Cmd::CycleStart || cmd == Cmd::FeedHold;
 }
 
 // Act upon a realtime character
-void execute_realtime_command(uint8_t command, uint8_t client) {
+void execute_realtime_command(Cmd command, uint8_t client) {
     switch (command) {
-        case CMD_RESET:
+        case Cmd::Reset:
             mc_reset();  // Call motion control reset routine.
             break;
-        case CMD_STATUS_REPORT:
+        case Cmd::StatusReport:
             report_realtime_status(client);  // direct call instead of setting flag
             break;
-        case CMD_CYCLE_START:
-            system_set_exec_state_flag(EXEC_CYCLE_START);  // Set as true
+        case Cmd::CycleStart:
+            sys_rt_exec_state.bit.cycleStart = true;
             break;
-        case CMD_FEED_HOLD:
-            system_set_exec_state_flag(EXEC_FEED_HOLD);  // Set as true
+        case Cmd::FeedHold:
+            sys_rt_exec_state.bit.feedHold = true;
             break;
-        case CMD_SAFETY_DOOR:
-            system_set_exec_state_flag(EXEC_SAFETY_DOOR);
-            break;  // Set as true
-        case CMD_JOG_CANCEL:
+        case Cmd::SafetyDoor:
+            sys_rt_exec_state.bit.safetyDoor = true;
+            break;
+        case Cmd::JogCancel:
             if (sys.state == State::Jog) {  // Block all other states from invoking motion cancel.
-                system_set_exec_state_flag(EXEC_MOTION_CANCEL);
+                sys_rt_exec_state.bit.motionCancel = true;
             }
             break;
+        case Cmd::DebugReport:
 #ifdef DEBUG
-        case CMD_DEBUG_REPORT: {
-            uint8_t sreg = SREG;
-            cli();
-            bit_true(sys_rt_exec_debug, EXEC_DEBUG_REPORT);
-            SREG = sreg;
-        } break;
+            sys_rt_exec_debug = true;
 #endif
-        case CMD_FEED_OVR_RESET:
-            system_set_exec_motion_override_flag(EXEC_FEED_OVR_RESET);
             break;
-        case CMD_FEED_OVR_COARSE_PLUS:
-            system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_PLUS);
+        case Cmd::SpindleOvrStop:
+            sys_rt_exec_accessory_override.bit.spindleOvrStop = 1;
             break;
-        case CMD_FEED_OVR_COARSE_MINUS:
-            system_set_exec_motion_override_flag(EXEC_FEED_OVR_COARSE_MINUS);
+        case Cmd::FeedOvrReset:
+            sys_rt_f_override = FeedOverride::Default;
             break;
-        case CMD_FEED_OVR_FINE_PLUS:
-            system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_PLUS);
+        case Cmd::FeedOvrCoarsePlus:
+            sys_rt_f_override += FeedOverride::CoarseIncrement;
+            if (sys_rt_f_override > FeedOverride::Max) {
+                sys_rt_f_override = FeedOverride::Max;
+            }
             break;
-        case CMD_FEED_OVR_FINE_MINUS:
-            system_set_exec_motion_override_flag(EXEC_FEED_OVR_FINE_MINUS);
+        case Cmd::FeedOvrCoarseMinus:
+            sys_rt_f_override -= FeedOverride::CoarseIncrement;
+            if (sys_rt_f_override < FeedOverride::Min) {
+                sys_rt_f_override = FeedOverride::Min;
+            }
             break;
-        case CMD_RAPID_OVR_RESET:
-            system_set_exec_motion_override_flag(EXEC_RAPID_OVR_RESET);
+        case Cmd::FeedOvrFinePlus:
+            sys_rt_f_override += FeedOverride::FineIncrement;
+            if (sys_rt_f_override > FeedOverride::Max) {
+                sys_rt_f_override = FeedOverride::Max;
+            }
             break;
-        case CMD_RAPID_OVR_MEDIUM:
-            system_set_exec_motion_override_flag(EXEC_RAPID_OVR_MEDIUM);
+        case Cmd::FeedOvrFineMinus:
+            sys_rt_f_override -= FeedOverride::FineIncrement;
+            if (sys_rt_f_override < FeedOverride::Min) {
+                sys_rt_f_override = FeedOverride::Min;
+            }
             break;
-        case CMD_RAPID_OVR_LOW:
-            system_set_exec_motion_override_flag(EXEC_RAPID_OVR_LOW);
+        case Cmd::RapidOvrReset:
+            sys_rt_r_override = RapidOverride::Default;
             break;
-        case CMD_SPINDLE_OVR_RESET:
-            system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_RESET);
+        case Cmd::RapidOvrMedium:
+            sys_rt_r_override = RapidOverride::Medium;
             break;
-        case CMD_SPINDLE_OVR_COARSE_PLUS:
-            system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_PLUS);
+        case Cmd::RapidOvrLow:
+            sys_rt_r_override = RapidOverride::Low;
             break;
-        case CMD_SPINDLE_OVR_COARSE_MINUS:
-            system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_COARSE_MINUS);
+        case Cmd::RapidOvrExtraLow:
+            sys_rt_r_override = RapidOverride::ExtraLow;
             break;
-        case CMD_SPINDLE_OVR_FINE_PLUS:
-            system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_PLUS);
+        case Cmd::SpindleOvrReset:
+            sys_rt_s_override = SpindleSpeedOverride::Default;
             break;
-        case CMD_SPINDLE_OVR_FINE_MINUS:
-            system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_FINE_MINUS);
+        case Cmd::SpindleOvrCoarsePlus:
+            sys_rt_s_override += SpindleSpeedOverride::CoarseIncrement;
+            if (sys_rt_s_override > SpindleSpeedOverride::Max) {
+                sys_rt_s_override = SpindleSpeedOverride::Max;
+            }
             break;
-        case CMD_SPINDLE_OVR_STOP:
-            system_set_exec_accessory_override_flag(EXEC_SPINDLE_OVR_STOP);
+        case Cmd::SpindleOvrCoarseMinus:
+            sys_rt_s_override -= SpindleSpeedOverride::CoarseIncrement;
+            if (sys_rt_s_override < SpindleSpeedOverride::Min) {
+                sys_rt_s_override = SpindleSpeedOverride::Min;
+            }
             break;
-#ifdef COOLANT_FLOOD_PIN
-        case CMD_COOLANT_FLOOD_OVR_TOGGLE:
-            system_set_exec_accessory_override_flag(EXEC_COOLANT_FLOOD_OVR_TOGGLE);
+        case Cmd::SpindleOvrFinePlus:
+            sys_rt_s_override += SpindleSpeedOverride::FineIncrement;
+            if (sys_rt_s_override > SpindleSpeedOverride::Max) {
+                sys_rt_s_override = SpindleSpeedOverride::Max;
+            }
             break;
-#endif
-#ifdef COOLANT_MIST_PIN
-        case CMD_COOLANT_MIST_OVR_TOGGLE:
-            system_set_exec_accessory_override_flag(EXEC_COOLANT_MIST_OVR_TOGGLE);
+        case Cmd::SpindleOvrFineMinus:
+            sys_rt_s_override -= SpindleSpeedOverride::FineIncrement;
+            if (sys_rt_s_override < SpindleSpeedOverride::Min) {
+                sys_rt_s_override = SpindleSpeedOverride::Min;
+            }
             break;
-#endif
+        case Cmd::CoolantFloodOvrToggle:
+            sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle = 1;
+            break;
+        case Cmd::CoolantMistOvrToggle:
+            sys_rt_exec_accessory_override.bit.coolantMistOvrToggle = 1;
+            break;
     }
 }

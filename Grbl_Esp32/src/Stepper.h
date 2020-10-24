@@ -46,25 +46,23 @@ struct PrepFlag {
     uint8_t decelOverride : 1;
 };
 
+// fStepperTimer should be an integer divisor of the bus speed, i.e. of fTimers
+const uint32_t fStepperTimer = 20000000; // frequency of step pulse timer
+const int ticksPerMicrosecond = fStepperTimer / 1000000;
+
 // Define Adaptive Multi-Axis Step-Smoothing(AMASS) levels and cutoff frequencies. The highest level
 // frequency bin starts at 0Hz and ends at its cutoff frequency. The next lower level frequency bin
 // starts at the next higher cutoff frequency, and so on. The cutoff frequencies for each level must
 // be considered carefully against how much it over-drives the stepper ISR, the accuracy of the 16-bit
 // timer, and the CPU overhead. Level 0 (no AMASS, normal operation) frequency bin starts at the
 // Level 1 cutoff frequency and up to as fast as the CPU allows (over 30kHz in limited testing).
+// For efficient computation, each cutoff frequency is twice the previous one.
 // NOTE: AMASS cutoff frequency multiplied by ISR overdrive factor must not exceed maximum step frequency.
 // NOTE: Current settings are set to overdrive the ISR to no more than 16kHz, balancing CPU overhead
 // and timer accuracy.  Do not alter these settings unless you know what you are doing.
-///#ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-#define MAX_AMASS_LEVEL 3
-// AMASS_LEVEL0: Normal operation. No AMASS. No upper cutoff frequency. Starts at LEVEL1 cutoff frequency.
-// Note ESP32 use F_STEPPER_TIMER rather than the AVR F_CPU
-const int AMASS_LEVEL1 = (F_STEPPER_TIMER / 8000);  // Over-drives ISR (x2). Defined as F_CPU/(Cutoff frequency in Hz)
-const int AMASS_LEVEL2 = (F_STEPPER_TIMER / 4000);  // Over-drives ISR (x4)
-const int AMASS_LEVEL3 = (F_STEPPER_TIMER / 2000);  // Over-drives ISR (x8)
 
-static_assert(MAX_AMASS_LEVEL >= 1, "AMASS must have 1 or more levels to operate correctly.");
-//#endif
+const uint32_t amassThreshold = fStepperTimer / 8000;
+const int maxAmassLevel = 3;  // Each level increase doubles the threshold
 
 const timer_group_t STEP_TIMER_GROUP = TIMER_GROUP_0;
 const timer_idx_t   STEP_TIMER_INDEX = TIMER_0;
@@ -81,6 +79,17 @@ enum stepper_id_t {
     ST_I2S_STREAM,
     ST_I2S_STATIC,
 };
+
+#ifndef DEFAULT_STEPPER
+#    if defined(USE_I2S_STEPS)
+#        define DEFAULT_STEPPER ST_I2S_STREAM
+#    elif defined(USE_RMT_STEPS)
+#        define DEFAULT_STEPPER ST_RMT
+#    else
+#        define DEFAULT_STEPPER ST_TIMED
+#    endif
+#endif
+
 extern const char*  stepper_names[];
 extern stepper_id_t current_stepper;
 
@@ -121,7 +130,7 @@ bool get_stepper_disable();  // returns the state of the pin
 void set_stepper_pins_on(uint8_t onMask);
 void set_direction_pins_on(uint8_t onMask);
 
-void Stepper_Timer_WritePeriod(uint64_t alarm_val);
+void Stepper_Timer_WritePeriod(uint16_t timerTicks);
 void Stepper_Timer_Init();
 void Stepper_Timer_Start();
 void Stepper_Timer_Stop();

@@ -4,7 +4,7 @@
     This allows an Dynamixel sero to be used like any other motor. Servos
     do have limitation in travel and speed, so you do need to respect that.
 
-    Protocol 2   
+    Protocol 2
 
     Part of Grbl_ESP32
 
@@ -27,33 +27,20 @@
 #include "Dynamixel2.h"
 
 namespace Motors {
-    Dynamixel2::Dynamixel2() {}
+    bool    Motors::Dynamixel2::uart_ready         = false;
+    uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
 
-    Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin) {
-        type_id                = DYNAMIXEL2;
-        this->_axis_index      = axis_index % MAX_AXES;
-        this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
-
-        _id      = id;
-        _tx_pin  = tx_pin;
-        _rx_pin  = rx_pin;
-        _rts_pin = rts_pin;
-
+    Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, uint8_t tx_pin, uint8_t rx_pin, uint8_t rts_pin) :
+        Servo(axis_index), _id(id), _tx_pin(tx_pin), _rx_pin(rx_pin), _rts_pin(rts_pin) {
         if (_tx_pin == UNDEFINED_PIN || _rx_pin == UNDEFINED_PIN || _rts_pin == UNDEFINED_PIN) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dymanixel Error. Missing pin definitions");
-            is_active = false;
-
-            return;
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Error. Missing pin definitions");
+            _has_errors = true;
+        } else {
+            _has_errors = false;   // The motor can be used
         }
-
-        set_axis_name();
-        init();
     }
 
     void Dynamixel2::init() {
-        is_active = true;   // as opposed to NullMotors, this is a real motor
-        _can_home = false;  // this axis cannot be conventionally homed
-
         init_uart(_id, _axis_index, _dual_axis_index);  // static and only allows one init
 
         read_settings();
@@ -61,7 +48,7 @@ namespace Motors {
         config_message();  // print the config
 
         if (!test()) {  // ping the motor
-            is_active = false;
+            _has_errors = true;
             return;
         }
 
@@ -72,18 +59,19 @@ namespace Motors {
         LED_on(true);
         vTaskDelay(100);
         LED_on(false);
+
+        startUpdateTask();
     }
 
     void Dynamixel2::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis Dynamixel Servo ID:%d Count(%5.0f,%5.0f) Limits(%0.3fmm,%5.3f)",
-                       _axis_name,
+                       "%s Dynamixel Servo ID:%d Count(%5.0f,%5.0f) %s",
+                       reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _id,
                        _dxl_count_min,
                        _dxl_count_max,
-                       _position_min,
-                       _position_max);
+                       reportAxisLimitsMsg(_axis_index));
     }
 
     bool Dynamixel2::test() {
@@ -100,22 +88,23 @@ namespace Motors {
             if (model_num == 1060) {
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
-                               "%s Axis Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
-                               _axis_name,
+                               "%s Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
+                               reportAxisNameMsg(_axis_index, _dual_axis_index),
                                _id,
                                _dxl_rx_message[11]);
             } else {
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
-                               "%s Axis Dynamixel Detected ID %d M/N %d F/W Rev %x",
-                               _axis_name,
+                               "%s Dynamixel Detected ID %d M/N %d F/W Rev %x",
+                               reportAxisNameMsg(_axis_index, _dual_axis_index),
                                _id,
                                model_num,
                                _dxl_rx_message[11]);
             }
 
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Axis Dynamixel Servo ID %d Ping failed", _axis_name, _id);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(_axis_index, _dual_axis_index),
+_id);
             return false;
         }
 
@@ -123,21 +112,10 @@ namespace Motors {
     }
 
     void Dynamixel2::read_settings() {
-        float travel = axis_settings[_axis_index]->max_travel->get();
-        float mpos   = axis_settings[_axis_index]->home_mpos->get();
-
-        if (bit_istrue(homing_dir_mask->get(), bit(_axis_index))) {
-            _position_min = mpos;
-            _position_max = mpos + travel;
-        } else {
-            _position_min = mpos - travel;
-            _position_max = mpos;
-        }
-
         _dxl_count_min = DXL_COUNT_MIN;
         _dxl_count_max = DXL_COUNT_MAX;
 
-        if (bit_istrue(dir_invert_mask->get(), bit(_axis_index)))  // normal direction
+        if (bitnum_istrue(dir_invert_mask->get(), _axis_index))  // normal direction
             swap(_dxl_count_min, _dxl_count_min);
     }
 
@@ -150,10 +128,7 @@ namespace Motors {
 
         _disabled = disable;
 
-        if (_disabled)
-            dxl_write(DXL_ADDR_TORQUE_EN, param_count, 0);
-        else
-            dxl_write(DXL_ADDR_TORQUE_EN, param_count, 1);
+        dxl_write(DXL_ADDR_TORQUE_EN, param_count, !_disabled);
     }
 
     void Dynamixel2::set_operating_mode(uint8_t mode) {
@@ -162,8 +137,9 @@ namespace Motors {
     }
 
     void Dynamixel2::update() {
-        if (!is_active)
+        if (_has_errors) {
             return;
+        }
 
         if (_disabled) {
             dxl_read_position();
@@ -212,12 +188,16 @@ namespace Motors {
 
     // This motor will not do a standard home to a limit switch (maybe future)
     // If it is in the homing mask it will a quick move to $<axis>/Home/Mpos
-    void Dynamixel2::set_homing_mode(uint8_t homing_mask, bool isHoming) {
+    bool Dynamixel2::set_homing_mode(bool isHoming) {
+        if (_has_errors) {
+            return false;
+        }
         sys_position[_axis_index] =
             axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
 
         set_disable(false);
         set_location();  // force the PWM to update now
+        return false;  // Cannot do conventional homing
     }
 
     void Dynamixel2::dxl_goal_position(int32_t position) {
@@ -244,8 +224,8 @@ namespace Motors {
 
             read_settings();
 
-            int32_t pos_min_steps = lround(_position_min * axis_settings[_axis_index]->steps_per_mm->get());
-            int32_t pos_max_steps = lround(_position_max * axis_settings[_axis_index]->steps_per_mm->get());
+            int32_t pos_min_steps = lround(limitsMinPosition(_axis_index) * axis_settings[_axis_index]->steps_per_mm->get());
+            int32_t pos_max_steps = lround(limitsMaxPosition(_axis_index) * axis_settings[_axis_index]->steps_per_mm->get());
 
             int32_t temp = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
 
@@ -375,25 +355,14 @@ namespace Motors {
                     //determine the location of the axis
                     float target = system_convert_axis_steps_to_mpos(sys_position, axis);  // get the axis machine position in mm
 
-                    float travel = axis_settings[axis]->max_travel->get();
-                    float mpos   = axis_settings[axis]->home_mpos->get();
-
-                    if (bit_istrue(homing_dir_mask->get(), bit(axis))) {
-                        position_min = mpos;
-                        position_max = mpos + travel;
-                    } else {
-                        position_min = mpos - travel;
-                        position_max = mpos;
-                    }
-
                     dxl_count_min = DXL_COUNT_MIN;
                     dxl_count_max = DXL_COUNT_MAX;
 
-                    if (bit_istrue(dir_invert_mask->get(), bit(axis)))  // normal direction
+                    if (bitnum_istrue(dir_invert_mask->get(), axis))  // normal direction
                         swap(dxl_count_min, dxl_count_max);
 
                     // map the mm range to the servo range
-                    dxl_position = (uint32_t)mapConstrain(target, position_min, position_max, dxl_count_min, dxl_count_max);
+                    dxl_position = (uint32_t)mapConstrain(target, limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max);
 
                     tx_message[++msg_index] = current_id;                         // ID of the servo
                     tx_message[++msg_index] = dxl_position & 0xFF;                // data

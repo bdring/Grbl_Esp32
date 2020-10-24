@@ -132,16 +132,14 @@
 // pins for that axis, but instead include a block like this:
 
 // #define SERVO_Z_PIN             GPIO_NUM_22
-// #define Z_SERVO_CAL_MIN       1.0 // calibration factor for the minimum PWM duty
-// #define Z_SERVO_CAL_MIN       1.0 // calibration factor for the maximum PWM duty
 
 // === Homing cycles
 // Set them using $Homing/Cycle0= optionally up to $Homing/Cycle5=
 
 // === Default settings
 // Grbl has many run-time settings that the user can changed by
-// commands like $110=2000 .  Their values are stored in EEPROM
-// so they persist after the controller has been powered down.
+// commands like $110=2000 .  Their values are stored in non-volatile
+// storage so they persist after the controller has been powered down.
 // Those settings have default values that are used if the user
 // has not altered them, or if the settings are explicitly reset
 // to the default values wth $RST=$.

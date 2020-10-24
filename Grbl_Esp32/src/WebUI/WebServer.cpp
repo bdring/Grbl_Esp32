@@ -430,36 +430,6 @@ namespace WebUI {
     }
 #    endif
 
-    bool Web_Server::is_realtime_cmd(char c) {
-        switch (c) {
-            case CMD_STATUS_REPORT:
-            case CMD_CYCLE_START:
-            case CMD_RESET:
-            case CMD_FEED_HOLD:
-            case CMD_SAFETY_DOOR:
-            case CMD_JOG_CANCEL:
-            case CMD_DEBUG_REPORT:
-            case CMD_FEED_OVR_RESET:
-            case CMD_FEED_OVR_COARSE_PLUS:
-            case CMD_FEED_OVR_COARSE_MINUS:
-            case CMD_FEED_OVR_FINE_PLUS:
-            case CMD_FEED_OVR_FINE_MINUS:
-            case CMD_RAPID_OVR_RESET:
-            case CMD_RAPID_OVR_MEDIUM:
-            case CMD_RAPID_OVR_LOW:
-            case CMD_SPINDLE_OVR_COARSE_PLUS:
-            case CMD_SPINDLE_OVR_COARSE_MINUS:
-            case CMD_SPINDLE_OVR_FINE_PLUS:
-            case CMD_SPINDLE_OVR_FINE_MINUS:
-            case CMD_SPINDLE_OVR_STOP:
-            case CMD_COOLANT_FLOOD_OVR_TOGGLE:
-            case CMD_COOLANT_MIST_OVR_TOGGLE:
-                return true;
-            default:
-                return false;
-        }
-    }
-
     void Web_Server::_handle_web_command(bool silent) {
         //to save time if already disconnected
         //if (_webserver->hasArg ("PAGEID") ) {
@@ -529,7 +499,7 @@ namespace WebUI {
                 }
                 if (scmd.length() > 1) {
                     scmd += "\n";
-                } else if (!is_realtime_cmd(scmd[0])) {
+                } else if (!is_realtime_command(scmd[0])) {
                     scmd += "\n";
                 }
                 if (!Serial2Socket.push(scmd.c_str())) {
@@ -1348,6 +1318,7 @@ namespace WebUI {
             s += path;
             s += " does not exist on SD Card\"}";
             _webserver->send(200, "application/json", s);
+            SD.end();
             return;
         }
         if (list_files) {
@@ -1426,6 +1397,7 @@ namespace WebUI {
         _webserver->send(200, "application/json", jsonfile);
         _upload_status = UploadStatusType::NONE;
         set_sd_state(SDCARD_IDLE);
+        SD.end();
     }
 
     //SD File upload with direct access to SD///////////////////////////////
@@ -1543,6 +1515,7 @@ namespace WebUI {
                     if (sdUploadFile) {
                         sdUploadFile.close();
                     }
+                    SD.end();
                     return;
                 }
             }

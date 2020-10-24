@@ -1,23 +1,12 @@
 #include "UnipolarMotor.h"
 
 namespace Motors {
-    UnipolarMotor::UnipolarMotor() {}
+    UnipolarMotor::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3) :
+        Motor(axis_index), _pin_phase0(pin_phase0), _pin_phase1(pin_phase1), _pin_phase2(pin_phase2),
+        _pin_phase3(pin_phase3),
 
-    UnipolarMotor::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3) {
-        type_id                = UNIPOLAR_MOTOR;
-        this->_axis_index      = axis_index % MAX_AXES;
-        this->_dual_axis_index = axis_index < MAX_AXES ? 0 : 1;  // 0 = primary 1 = ganged
-        _pin_phase0            = pin_phase0;
-        _pin_phase1            = pin_phase1;
-        _pin_phase2            = pin_phase2;
-        _pin_phase3            = pin_phase3;
-
-        _half_step = true;  // TODO read from settings ... microstep > 1 = half step
-
-        set_axis_name();
-        init();
-        config_message();
-    }
+        _half_step(true)  // TODO read from settings ... microstep > 1 = half step
+    {}
 
     void UnipolarMotor::init() {
         pinMode(_pin_phase0, OUTPUT);
@@ -25,19 +14,19 @@ namespace Motors {
         pinMode(_pin_phase2, OUTPUT);
         pinMode(_pin_phase3, OUTPUT);
         _current_phase = 0;
+        config_message();
     }
 
     void UnipolarMotor::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Axis Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s Limits(%0.3f,%0.3f)",
-                       _axis_name,
+                       "%s Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s %s",
+                       reportAxisNameMsg(_axis_index, _dual_axis_index),
                        pinName(_pin_phase0).c_str(),
                        pinName(_pin_phase1).c_str(),
                        pinName(_pin_phase2).c_str(),
                        pinName(_pin_phase3).c_str(),
-                       _position_min,
-                       _position_max);
+                       reportAxisLimitsMsg(_axis_index));
     }
 
     void UnipolarMotor::set_disable(bool disable) {
@@ -50,31 +39,21 @@ namespace Motors {
         _enabled = !disable;
     }
 
-    void UnipolarMotor::step(uint8_t step_mask, uint8_t dir_mask) {
+    void UnipolarMotor::set_direction(bool dir) { _dir = dir; }
+
+    void UnipolarMotor::step() {
         uint8_t _phase[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // temporary phase values...all start as off
         uint8_t phase_max;
-
-        if (!(step_mask & bit(_axis_index)))
-            return;  // a step is not required on this interrupt
 
         if (!_enabled)
             return;  // don't do anything, phase is not changed or lost
 
-        if (_half_step)
-            phase_max = 7;
-        else
-            phase_max = 3;
+        phase_max = _half_step ? 7 : 3;
 
-        if (dir_mask & bit(_axis_index)) {  // count up
-            if (_current_phase == phase_max)
-                _current_phase = 0;
-            else
-                _current_phase++;
+        if (_dir) {  // count up
+            _current_phase = _current_phase == phase_max ? 0 : _current_phase + 1;
         } else {  // count down
-            if (_current_phase == 0)
-                _current_phase = phase_max;
-            else
-                _current_phase--;
+            _current_phase = _current_phase == 0 ? phase_max : _current_phase - 1;
         }
         /*
 			8 Step : A – AB – B – BC – C – CD – D – DA

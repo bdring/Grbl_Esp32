@@ -49,8 +49,6 @@
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_17
 
 #define Z_SERVO_PIN             GPIO_NUM_16
-#define Z_SERVO_CAL_MIN               1.0       // calibration factor for the minimum PWM duty
-#define Z_SERVO_CAL_MAX               1.0       // calibration factor for the maximum PWM duty
 
 #define X_LIMIT_PIN             GPIO_NUM_4
 

@@ -36,7 +36,7 @@ void limits_init();
 void limits_disable();
 
 // Returns limit state as a bit-wise uint8 variable.
-uint8_t limits_get_state();
+AxisMask limits_get_state();
 
 // Perform one portion of the homing cycle based on the input settings.
 void limits_go_home(uint8_t cycle_mask);
@@ -48,3 +48,9 @@ void isr_limit_switches();
 
 // A task that runs after a limit switch interrupt.
 void limitCheckTask(void* pvParameters);
+
+float limitsMaxPosition(uint8_t axis);
+float limitsMinPosition(uint8_t axis);
+
+// Internal factor used by limits_soft_check
+bool limitsCheckTravel(float* target);
