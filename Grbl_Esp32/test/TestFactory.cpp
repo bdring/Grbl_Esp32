@@ -80,7 +80,7 @@ void TestFactory::runAll() {
 
             current->run();
             printf("Passed.\r\n");
-        } catch (AssertionFailed& ex) {
+        } catch (const AssertionFailed& ex) {
             setColor(12);
             printf("FAILED!\r\n");
             printf(ex.stackTrace.c_str());

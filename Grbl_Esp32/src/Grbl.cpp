@@ -116,7 +116,7 @@ void run_once() {
         // This can exit on a system abort condition, in which case run_once()
         // is re-executed by an enclosing loop.
         protocol_main_loop();
-    } catch (AssertionFailed ex) {
+    } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
         grbl_sendf(CLIENT_ALL, "Critical error: %s", ex.stackTrace.c_str());
     }

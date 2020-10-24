@@ -8,6 +8,9 @@
 
 #if defined PIN_DEBUG && defined ESP32
 #    include "Pins/DebugPinDetail.h"
+#endif
+
+#ifdef ESP32
 #    include "Grbl.h"  // grbl_sendf
 #endif
 
@@ -125,7 +128,7 @@ Pin Pin::create(const String& str) {
             }
         }
 
-    } catch (AssertionFailed& ex) {  // We shouldn't get here under normal circumstances.
+    } catch (const AssertionFailed& ex) {  // We shouldn't get here under normal circumstances.
 #ifdef PIN_DEBUG
 #    ifdef ESP32
         grbl_sendf(CLIENT_ALL, "Failed. Details: %s\r\n", ex.stackTrace.c_str());
