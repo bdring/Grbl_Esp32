@@ -30,7 +30,7 @@ namespace PinUsers {
         // Writes a buffer to the uart. Returns the number of _bytes_ written
         template <typename T>
         int writePartial(const T& buffer, int byteOffset = 0) {
-            writePartial(&buffer, 1, byteOffset);
+            return writePartial(&buffer, 1, byteOffset);
         }
 
         // Writes a buffer to the uart. Returns the number of _bytes_ written

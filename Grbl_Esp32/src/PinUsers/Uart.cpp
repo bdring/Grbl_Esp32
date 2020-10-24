@@ -65,6 +65,8 @@ namespace PinUsers {
             // TODO FIXME: We should set the UART mode somewhere better suited than here:
             if (uart_set_mode(uartPort_, UART_MODE_RS485_HALF_DUPLEX) != ESP_OK) {
                 uart_driver_delete(uartPort_);
+
+                UartResources().release(int(uartPort_) - 1);
                 uartPort_ = UART_NUM_MAX;
 
                 Assert(false, "UART set mode failed");
@@ -86,6 +88,8 @@ namespace PinUsers {
             // Tear down the uart, give back all resources.
             if (uartPort_ != UART_NUM_MAX) {
                 uart_driver_delete(uartPort_);
+
+                UartResources().release(int(uartPort_) - 1);
             }
         }
     };
