@@ -23,7 +23,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define MACHINE_NAME            "6 Pack StepStick CoreXY"
-#define CUSTOM_CODE_FILENAME    "Custom/CoreXY.cpp"
+#define CUSTOM_CODE_FILENAME    "../Custom/CoreXY.cpp"
+
 
 #define USE_KINEMATICS      // there are kinematic equations for this machine
 #define USE_FWD_KINEMATICS  // report in cartesian
@@ -49,9 +50,6 @@
 
 #define X_STEPPER_MS3           I2SO(3)   // X_CS
 #define Y_STEPPER_MS3           I2SO(6)   // Y_CS
-#define Z_STEPPER_MS3           I2SO(11)  // Z_CS
-
-
 
 // Motor Socket #1
 #define X_DISABLE_PIN           I2SO(0)
@@ -62,7 +60,6 @@
 #define Y_DIRECTION_PIN         I2SO(4)
 #define Y_STEP_PIN              I2SO(5)
 #define Y_DISABLE_PIN           I2SO(7)
-
 
 /*
     Socket I/O reference
@@ -136,9 +133,16 @@ Socket #5
 #define DEFAULT_Y_STEPS_PER_MM      200
 #define DEFAULT_Z_STEPS_PER_MM      200
 
+#define DEFAULT_X_MAX_RATE          10000
+#define DEFAULT_Y_MAX_RATE          10000
+#define DEFAULT_Z_MAX_RATE            500
+
+#define DEFAULT_X_ACCELERATION      500
+#define DEFAULT_Y_ACCELERATION      500
+#define DEFAULT_Z_ACCELERATION      50
+
 #define DEFAULT_HOMING_CYCLE_0 bit(Z_AXIS)
 #define DEFAULT_HOMING_CYCLE_1 bit(X_AXIS)
 #define DEFAULT_HOMING_CYCLE_2 bit(Y_AXIS)
 
 #define DEFAULT_HOMING_ENABLE 1
-

@@ -43,7 +43,6 @@
 
 #define X_STEPPER_MS3           I2SO(3)   // X_CS
 #define Y_STEPPER_MS3           I2SO(6)   // Y_CS
-#define Z_STEPPER_MS3           I2SO(11)  // Z_CS
 
 // Motor Socket #1
 #define X_DISABLE_PIN           I2SO(0)
@@ -55,10 +54,6 @@
 #define Y_STEP_PIN              I2SO(5)
 #define Y_DISABLE_PIN           I2SO(7)
 
-// Motor Socket #3
-#define Z_DISABLE_PIN           I2SO(8)
-#define Z_DIRECTION_PIN         I2SO(9)
-#define Z_STEP_PIN              I2SO(10)
 
 /*
     Socket I/O reference
@@ -106,19 +101,11 @@ Socket #5
 #define Z_LIMIT_PIN                 GPIO_NUM_35
 
 
-// // 4x Input Module in Socket #2
-// // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-// #define X_LIMIT_PIN                 GPIO_NUM_2
-// #define Y_LIMIT_PIN                 GPIO_NUM_25
-// #define Z_LIMIT_PIN                 GPIO_NUM_39
-
-// // 4x Input Module in Socket #3
-// // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-// #define CONTROL_CYCLE_START_PIN      GPIO_NUM_26
-// #define CONTROL_FEED_HOLD_PIN        GPIO_NUM_4
-// #define CONTROL_RESET_PIN            GPIO_NUM_16
-// #define CONTROL_SAFETY_DOOR_PIN      GPIO_NUM_27
-// //#define INVERT_CONTROL_PIN_MASK      B0000
+// RC Servo Module on Socket #4
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/RC-Servo-BESC-CNC-I-O-Module
+#define Z_SERVO_PIN 		          GPIO_NUM_14 // Required
+#define DEFAULT_Z_MAX_TRAVEL          5.0         // Optional default
+#define DEFAULT_Z_HOMING_MPOS         5.0         // Optional default
 
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      800
