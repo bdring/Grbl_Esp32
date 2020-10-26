@@ -32,7 +32,7 @@
 #    define HOMING_AXIS_SEARCH_SCALAR 1.1  // Must be > 1 to ensure limit switch will be engaged.
 #endif
 #ifndef HOMING_AXIS_LOCATE_SCALAR
-#    define HOMING_AXIS_LOCATE_SCALAR 5.0  // Must be > 1 to ensure limit switch is cleared.
+#    define HOMING_AXIS_LOCATE_SCALAR 1.0  // Must be > 1 to ensure limit switch is cleared.
 #endif
 
 static float last_motors[MAX_N_AXIS]    = { 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
