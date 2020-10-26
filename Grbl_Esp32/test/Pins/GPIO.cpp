@@ -248,6 +248,14 @@ namespace Pins {
         Assert(gpio16.name().equals("GPIO.16"), "Name is %s", gpio16.name().c_str());
     }
 
+    Test(GPIO, NameCaseSensitivity) {
+        GPIONative::initialize();
+        PinLookup::ResetAllPins();
+
+        Pin gpio16 = Pin::create("GpIo.16");
+        Assert(gpio16.name().equals("GPIO.16"), "Name is %s", gpio16.name().c_str());
+    }
+
     Test(GPIO, ActiveLow) {
         GPIONative::initialize();
         PinLookup::ResetAllPins();

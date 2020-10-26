@@ -18,18 +18,23 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
     // Initialize pinImplementation first! Callers might want to delete it, and we don't want a random pointer.
     pinImplementation = nullptr;
 
-    if (str == "") {
+    // Parse the definition: [GPIO].[pinNumber]:[attributes]
+
+    // Skip whitespaces at the start
+    auto nameStart = str.begin();
+    for (; nameStart != str.end() && ::isspace(*nameStart); ++nameStart) {}
+
+    if (nameStart == str.end()) {
         // Re-use undefined pins happens in 'create':
         pinImplementation = new Pins::VoidPinDetail();
         return true;
     }
 
-    // Parse the definition: [GPIO].[pinNumber]:[attributes]
-    auto nameStart = str.begin();
-    auto idx       = nameStart;
+    auto idx = nameStart;
     for (; idx != str.end() && *idx != '.' && *idx != ':'; ++idx) {
         *idx = char(::tolower(*idx));
     }
+
     String prefix = str.substring(0, int(idx - str.begin()));
 
     if (idx != str.end()) {  // skip '.'
@@ -135,6 +140,7 @@ Pin Pin::create(const String& str) {
 #if defined ESP32
         grbl_sendf(CLIENT_ALL, "Setting up pin failed. Details: %s\r\n", ex.stackTrace.c_str());
 #endif
+        (void)ex;  // Get rid of compiler warning
 
         // RAII safety guard.
         if (pinImplementation) {
