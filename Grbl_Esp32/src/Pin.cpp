@@ -92,7 +92,7 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
         pinImplementation = new Pins::VoidPinDetail(uint8_t(pinNumber));
     } else {
 #ifdef ESP32
-        grbl_sendf(CLIENT_ALL, "Unknown prefix: " % s "\r\n", prefix.c_str());
+        grbl_sendf(CLIENT_ALL, "Unknown prefix: \"%s\"\r\n", prefix.c_str());
 #endif
         return false;
     }
