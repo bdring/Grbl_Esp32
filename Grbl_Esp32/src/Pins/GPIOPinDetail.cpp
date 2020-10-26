@@ -137,14 +137,17 @@ namespace Pins {
         // Handle attributes:
         uint8_t pinModeValue = 0;
 
-        if (value.has(PinAttributes::PullUp)) {
-            pinModeValue |= INPUT_PULLUP;
-        } else if (value.has(PinAttributes::PullDown)) {
-            pinModeValue |= INPUT_PULLDOWN;
-        } else if (value.has(PinAttributes::Input)) {
+        if (value.has(PinAttributes::Input)) {
             pinModeValue |= INPUT;
         } else if (value.has(PinAttributes::Output)) {
             pinModeValue |= OUTPUT;
+        }
+
+        // PU/PD should be specified by the user. Code has nothing to do with them:
+        if (_attributes.has(PinAttributes::PullUp)) {
+            pinModeValue |= PULLUP;
+        } else if (_attributes.has(PinAttributes::PullDown)) {
+            pinModeValue |= PULLDOWN;
         }
 
         // If the pin is ActiveLow, we should take that into account here:
