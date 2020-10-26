@@ -25,20 +25,28 @@ namespace Pins {
         char*       _start;
         const char* _end;
 
+        const char* _key;
+        const char* _value;
+
         PinOption(char* start, const char* end);
 
-    public:
-        inline const char* operator()() const { return _start; }
+        void tokenize();
 
-        bool is(const char* option) const;
+    public:
+        inline const char* operator()() const { return _key; }
+        bool               is(const char* option) const;
+
+        int                iValue() const;
+        double             dValue() const;
+        inline const char* value() const { return _value; }
 
         // Iterator support:
         inline PinOption const* operator->() const { return this; }
         inline PinOption        operator*() const { return *this; }
         PinOption&              operator++();
 
-        bool operator==(const PinOption& o) const { return _start == o._start; }
-        bool operator!=(const PinOption& o) const { return _start != o._start; }
+        bool operator==(const PinOption& o) const { return _key == o._key; }
+        bool operator!=(const PinOption& o) const { return _key != o._key; }
     };
 
     // Options parser. This basically parses the options passed to the Pin class. Destroys

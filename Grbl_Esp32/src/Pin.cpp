@@ -75,7 +75,7 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
     if (prefix == "gpio") {
         pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
     } else if (prefix == "i2s") {
-#ifdef ESP_32
+#ifdef ESP32
         pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), parser);
 #else
         return false;  // not supported
@@ -85,6 +85,11 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
         // when doing 'x == Pin::UNDEFINED' will evaluate to 'false' if the pin number
         // is not 0.
         pinImplementation = new Pins::VoidPinDetail(uint8_t(pinNumber));
+    } else {
+#ifdef ESP32
+        grbl_sendf(CLIENT_ALL, "Unknown prefix: " % s "\r\n", prefix.c_str());
+#endif
+        return false;
     }
 
 #if defined PIN_DEBUG && defined ESP32
@@ -96,13 +101,11 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
 Pin Pin::create(const String& str) {
     Pins::PinDetail* pinImplementation = nullptr;
     try {
-#ifdef PIN_DEBUG
-#    ifdef ESP32
+#if defined PIN_DEBUG && defined ESP32
         grbl_sendf(CLIENT_ALL, "Setting up pin: [%s]\r\n", str.c_str());
-#    endif
 #endif
         if (!parse(str, pinImplementation)) {
-#ifdef ESP32
+#if defined PIN_DEBUG && defined ESP32
             grbl_sendf(CLIENT_ALL, "Setting up pin: '%s' failed.", str.c_str());
 #endif
             return Pin::UNDEFINED;
@@ -112,7 +115,7 @@ Pin Pin::create(const String& str) {
 
             // If we already had it, and we didn't find itself, remove the new instance:
             if (existingPin >= 0) {
-#ifdef ESP32
+#if defined PIN_DEBUG && defined ESP32
                 grbl_sendf(CLIENT_ALL, "Reusing previous pin initialization.");
 #endif
                 if (pinImplementation) {
@@ -129,11 +132,10 @@ Pin Pin::create(const String& str) {
         }
 
     } catch (const AssertionFailed& ex) {  // We shouldn't get here under normal circumstances.
-#ifdef PIN_DEBUG
-#    ifdef ESP32
-        grbl_sendf(CLIENT_ALL, "Failed. Details: %s\r\n", ex.stackTrace.c_str());
-#    endif
+#if defined ESP32
+        grbl_sendf(CLIENT_ALL, "Setting up pin failed. Details: %s\r\n", ex.stackTrace.c_str());
 #endif
+
         // RAII safety guard.
         if (pinImplementation) {
             delete pinImplementation;
@@ -145,7 +147,6 @@ Pin Pin::create(const String& str) {
 
 bool Pin::validate(const String& str) {
     Pins::PinDetail* pinImplementation;
-    int              pinNumber;
 
     auto valid = parse(str, pinImplementation);
     if (pinImplementation) {
