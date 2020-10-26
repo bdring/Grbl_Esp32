@@ -166,17 +166,7 @@ void system_flag_wco_change() {
 float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
     float pos;
     float steps_per_mm = axis_settings[idx]->steps_per_mm->get();
-#ifdef COREXY
-    if (idx == X_AXIS) {
-        pos = (float)system_convert_corexy_to_x_axis_steps(steps) / steps_per_mm;
-    } else if (idx == Y_AXIS) {
-        pos = (float)system_convert_corexy_to_y_axis_steps(steps) / steps_per_mm;
-    } else {
-        pos = steps[idx] / steps_per_mm;
-    }
-#else
-    pos = steps[idx] / steps_per_mm;
-#endif
+    pos                = steps[idx] / steps_per_mm;
     return pos;
 }
 

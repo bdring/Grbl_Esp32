@@ -111,6 +111,8 @@ float    constrain_float(float in, float min, float max);
 bool     char_is_numeric(char value);
 char*    trim(char* value);
 
+int numberOfSetBits(uint32_t i);
+
 template <class T>
 void swap(T& a, T& b) {
     T c(a);

@@ -8,7 +8,7 @@
 // !!! For initial testing, start with test_drive.h which disables
 // all I/O pins
 // #include "Machines/atari_1020.h"
-#    include "Machines/tapster_pro_6P_trinamic.h"
+#    include "Machines/6_pack_stepstick_XYZ_CoreXY.h"
 
 // !!! For actual use, change the line above to select a board
 // from Machines/, for example:

@@ -182,7 +182,7 @@
 // functions.  custom_code_template.cpp describes the functions
 // that you can implement.  The ifdef guards are described below:
 //
-// USE_CUSTOM_HOMING enables the user_defined_homing() function
+// USE_CUSTOM_HOMING enables the user_defined_homing(uint8_t cycle_mask) function
 // that can implement an arbitrary homing sequence.
 // #define USE_CUSTOM_HOMING
 

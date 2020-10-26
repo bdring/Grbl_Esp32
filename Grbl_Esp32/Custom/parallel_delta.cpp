@@ -126,7 +126,7 @@ void machine_init() {
     //                    DXL_COUNT_MAX,
     //                    DXL_COUNT_PER_RADIAN);
 }
-bool user_defined_homing() {  // true = do not continue with normal Grbl homing
+bool user_defined_homing(uint8_t cycle_mask) {  // true = do not continue with normal Grbl homing
 #ifdef USE_CUSTOM_HOMING
     return true;
 #else
@@ -185,7 +185,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     float dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
 
     // determine the number of segments we need	... round up so there is at least 1 (except when dist is 0)
-    uint32_t segment_count = ceil(dist / KINEMATIC_SEGMENT_LENGTH);
+    uint32_t segment_count = ceil(dist / kinematic_segment_len->get());
 
     float segment_dist = dist / ((float)segment_count);  // distance of each segment...will be used for feedrate conversion
 

@@ -283,7 +283,7 @@ static bool axis_is_squared(uint8_t axis_mask) {
 void mc_homing_cycle(uint8_t cycle_mask) {
     bool no_cycles_defined = true;
 #ifdef USE_CUSTOM_HOMING
-    if (user_defined_homing()) {
+    if (user_defined_homing(cycle_mask)) {
         return;
     }
 #endif

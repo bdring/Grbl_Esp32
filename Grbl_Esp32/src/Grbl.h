@@ -96,7 +96,7 @@ void run_once();
 void machine_init();
 
 // Called if USE_CUSTOM_HOMING is defined
-bool user_defined_homing();
+bool user_defined_homing(uint8_t cycle_mask);
 
 // Called if USE_KINEMATICS is defined
 

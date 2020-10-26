@@ -35,10 +35,6 @@
 #define X_DIRECTION_PIN GPIO_NUM_26
 #define Y_DIRECTION_PIN GPIO_NUM_25
 
-#ifndef COREXY // maybe set in config.h
-    #define COREXY
-#endif
-
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
 
 #define X_LIMIT_PIN     GPIO_NUM_2
