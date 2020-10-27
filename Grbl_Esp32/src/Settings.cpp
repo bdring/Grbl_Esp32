@@ -233,7 +233,7 @@ const char* AxisMaskSetting::getCompatibleValue() {
 }
 
 static char* maskToString(uint32_t mask, char* strval) {
-    char*       s    = strval;
+    char* s = strval;
     for (int i = 0; i < MAX_N_AXIS; i++) {
         if (mask & bit(i)) {
             *s++ = "XYZABC"[i];
@@ -566,7 +566,7 @@ void FlagSetting::setDefault() {
 }
 
 Error FlagSetting::setStringValue(char* s) {
-    s             = trim(s);
+    s         = trim(s);
     Error err = check(s);
     if (err != Error::Ok) {
         return err;

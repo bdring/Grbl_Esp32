@@ -32,7 +32,15 @@
 #    define HOMING_AXIS_SEARCH_SCALAR 1.1  // Must be > 1 to ensure limit switch will be engaged.
 #endif
 #ifndef HOMING_AXIS_LOCATE_SCALAR
-#    define HOMING_AXIS_LOCATE_SCALAR 1.0  // Must be > 1 to ensure limit switch is cleared.
+#    define HOMING_AXIS_LOCATE_SCALAR 2.0  // Must be > 1 to ensure limit switch is cleared.
+#endif
+
+// The midTbot has a quirk where the x motor has to move twice as far as it would
+// on a normal T-Bot or CoreXY
+#ifndef MIDTBOT
+const float geometry_factor = 1.0;
+#else
+const float geometry_factor = 2.0;
 #endif
 
 static float last_motors[MAX_N_AXIS]    = { 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
@@ -221,8 +229,8 @@ bool user_defined_homing(uint8_t cycle_mask) {
 void inverse_kinematics(float* position) {
     float motors[3];
 
-    motors[A_MOTOR] = position[X_AXIS] + position[Y_AXIS];
-    motors[B_MOTOR] = position[X_AXIS] - position[Y_AXIS];
+    motors[A_MOTOR] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
+    motors[B_MOTOR] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
     motors[Z_AXIS]  = position[Z_AXIS];
 
     position[0] = motors[0];
@@ -246,8 +254,8 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     dz         = target[Z_AXIS] - position[Z_AXIS];
     float dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
 
-    motors[X_AXIS] = target[X_AXIS] + target[Y_AXIS];
-    motors[Y_AXIS] = target[X_AXIS] - target[Y_AXIS];
+    motors[X_AXIS] = geometry_factor * target[X_AXIS] + target[Y_AXIS];
+    motors[Y_AXIS] = geometry_factor * target[X_AXIS] - target[Y_AXIS];
     motors[Z_AXIS] = target[Z_AXIS];
 
     float motor_distance = three_axis_dist(motors, last_motors);
@@ -259,7 +267,6 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     memcpy(last_motors, motors, sizeof(motors));
 
     mc_line(motors, pl_data);
-    forward_kinematics(motors);
 }
 
 // motors -> cartesian
@@ -267,9 +274,8 @@ void forward_kinematics(float* position) {
     float calc_fwd[MAX_N_AXIS];
 
     // https://corexy.com/theory.html
-    calc_fwd[X_AXIS] = 0.5 * (position[X_AXIS] + position[Y_AXIS]);
+    calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
     calc_fwd[Y_AXIS] = 0.5 * (position[X_AXIS] - position[Y_AXIS]);
-    //calc_fwd[Z_AXIS]  = position[Z_AXIS];
 
     position[X_AXIS] = calc_fwd[X_AXIS];
     position[Y_AXIS] = calc_fwd[Y_AXIS];

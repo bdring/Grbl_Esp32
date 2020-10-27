@@ -532,7 +532,7 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // these commands may be undesirable. Simply comment the desired macro to disable it.
 #define ENABLE_RESTORE_WIPE_ALL          // '$RST=*' Default enabled. Comment to disable.
 #define ENABLE_RESTORE_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_PARAMETERS        // '$RST=#' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_CLEAR_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
 
 // Additional settings have been added to the original set that you see with the $$ command
 // Some senders may not be able to parse anything different from the original set
