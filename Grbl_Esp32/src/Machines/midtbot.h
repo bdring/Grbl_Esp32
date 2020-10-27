@@ -80,7 +80,6 @@
 #define DEFAULT_HARD_LIMIT_ENABLE 0  // false
 
 #define DEFAULT_HOMING_ENABLE           1
-#define DEFAULT_HOMING_DIR_MASK         1
 #define DEFAULT_HOMING_FEED_RATE        500.0 // mm/min
 #define DEFAULT_HOMING_SEEK_RATE        2000.0 // mm/min
 #define DEFAULT_HOMING_DEBOUNCE_DELAY   250 // msec (0-65k)
