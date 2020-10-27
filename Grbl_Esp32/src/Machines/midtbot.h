@@ -55,8 +55,11 @@
 #define SPINDLE_TYPE SpindleType::NONE
 
 // defaults
-#define DEFAULT_HOMING_CYCLE_0      bit(Y_AXIS)
-#define DEFAULT_HOMING_CYCLE_1      bit(X_AXIS)
+#define DEFAULT_HOMING_CYCLE_0      bit(Z_AXIS)
+#define DEFAULT_HOMING_CYCLE_1      bit(Y_AXIS)
+#define DEFAULT_HOMING_CYCLE_2      bit(X_AXIS)
+
+#define DEFAULT_HOMING_DIR_MASK     (bit(X_AXIS) | bit (Z_AXIS)) // these home negative
 
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME  255 // stay on
@@ -78,12 +81,12 @@
 
 #define DEFAULT_HOMING_ENABLE           1
 #define DEFAULT_HOMING_DIR_MASK         1
-#define DEFAULT_HOMING_FEED_RATE        200.0 // mm/min
-#define DEFAULT_HOMING_SEEK_RATE        1000.0 // mm/min
+#define DEFAULT_HOMING_FEED_RATE        500.0 // mm/min
+#define DEFAULT_HOMING_SEEK_RATE        2000.0 // mm/min
 #define DEFAULT_HOMING_DEBOUNCE_DELAY   250 // msec (0-65k)
 #define DEFAULT_HOMING_PULLOFF          3.0 // mm
 
-#define DEFAULT_X_STEPS_PER_MM 200.0
+#define DEFAULT_X_STEPS_PER_MM 100.0
 #define DEFAULT_Y_STEPS_PER_MM 100.0
 #define DEFAULT_Z_STEPS_PER_MM 100.0 // This is percent in servo mode
 
@@ -97,4 +100,8 @@
 
 #define DEFAULT_X_MAX_TRAVEL 100.0 // mm NOTE: Must be a positive value.
 #define DEFAULT_Y_MAX_TRAVEL 100.0 // mm NOTE: Must be a positive value.
-#define DEFAULT_Z_MAX_TRAVEL 100.0 // This is percent in servo mode
+#define DEFAULT_Z_MAX_TRAVEL 5.0 // This is percent in servo mode
+
+#define DEFAULT_X_HOMING_MPOS DEFAULT_Z_MAX_TRAVEL // stays up after homing
+
+
