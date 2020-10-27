@@ -229,8 +229,8 @@ bool user_defined_homing(uint8_t cycle_mask) {
 void inverse_kinematics(float* position) {
     float motors[3];
 
-    motors[A_MOTOR] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
-    motors[B_MOTOR] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
+    motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
+    motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
     motors[Z_AXIS]  = position[Z_AXIS];
 
     position[0] = motors[0];

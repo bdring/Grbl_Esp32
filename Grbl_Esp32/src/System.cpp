@@ -265,15 +265,6 @@ void system_exec_control_pin(ControlPins pins) {
     }
 }
 
-// CoreXY calculation only. Returns x or y-axis "steps" based on CoreXY motor steps.
-int32_t system_convert_corexy_to_x_axis_steps(int32_t* steps) {
-    return (steps[A_MOTOR] + steps[B_MOTOR]) / 2;
-}
-
-int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps) {
-    return (steps[A_MOTOR] - steps[B_MOTOR]) / 2;
-}
-
 // io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
 // It uses a mask so all can be turned of in ms_reset
 bool sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized) {
