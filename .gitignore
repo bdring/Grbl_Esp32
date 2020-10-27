@@ -20,3 +20,5 @@ __vm/
 *.vcxproj.filters
 *.suo
 Grbl_Esp32.ino.cpp
+pio_machine.h
+packages/

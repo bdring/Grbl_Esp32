@@ -14,7 +14,10 @@ def buildMachine(baseName, verbose=True, extraArgs=None):
     if extraArgs:
         cmd.append(extraArgs)
     displayName = baseName
-    flags = '-DMACHINE_FILENAME=' + baseName
+    f = open("Grbl_Esp32/src/Machines/pio_machine.h", "w")
+    f.write("#include \"" + baseName + "\"")
+    f.close()
+    flags = '-DMACHINE_FILENAME=pio_machine.h'    
     print('Building machine ' + displayName)
     env['PLATFORMIO_BUILD_FLAGS'] = flags
     if verbose:
