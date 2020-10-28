@@ -34,12 +34,12 @@ namespace PinUsers {
 
             // Iterate options:
             uart_config_t uart_config = { 0 };
-            int bufferSize = 128;
+            int           bufferSize  = 128;
             for (auto opt : options) {
-                // if (opt.is("baud")) { baudRate = opt.valueInt(); }
-                // if (opt.is("mode")) { mode = opt.valueString(); /* 8N1 etc */ }
-                // if (opt.is("bufsize")) { mode = opt.valueString(); /* 128 etc */ }
-                // if (opt.is("protocol")) { protocol= opt.valueString(); /* RS485 etc */ }
+                // if (opt.is("baud")) { uart_config.baud_rate = opt.iValue(); }
+                // if (opt.is("mode")) { mode = opt.value(); /* 8N1 etc */ }
+                // if (opt.is("bufsize")) { mode = opt.iValue(); /* 128 etc */ }
+                // if (opt.is("protocol")) { protocol= opt.value(); /* RS485 etc */ }
                 // etc...
             }
             for (auto opt : userOptions) {
@@ -94,16 +94,14 @@ namespace PinUsers {
         }
     };
 
-    Uart::Uart(Pin tx, Pin rx, Pin rts, String config, String userConfig) { 
-        Pins::PinOptionsParser configParser(config.begin(), config.end()); 
+    Uart::Uart(Pin tx, Pin rx, Pin rts, String config, String userConfig) {
+        Pins::PinOptionsParser configParser(config.begin(), config.end());
         Pins::PinOptionsParser userConfigParser(userConfig.begin(), userConfig.end());
 
         // Decide on the RX pin what to do:
-        if (rx.capabilities().has(Pin::Capabilities::Native))
-        {
+        if (rx.capabilities().has(Pin::Capabilities::Native)) {
             this->_detail = new NativeUart(tx, rx, rts, configParser, userConfigParser);
-        }
-        else {
+        } else {
             Assert(false, "Pin is not supported for UART.");
         }
     }

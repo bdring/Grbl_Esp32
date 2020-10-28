@@ -22,57 +22,66 @@
 #include <WiFi.h>
 
 void grbl_init() {
+    try {
 #ifdef USE_I2S_OUT
-    i2s_out_init();  // The I2S out must be initialized before it can access the expanded GPIO port
+        i2s_out_init();  // The I2S out must be initialized before it can access the expanded GPIO port
 #endif
-    WiFi.persistent(false);
-    WiFi.disconnect(true);
-    WiFi.enableSTA(false);
-    WiFi.enableAP(false);
-    WiFi.mode(WIFI_OFF);
-    serial_init();  // Setup serial baud rate and interrupts
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
+        WiFi.persistent(false);
+        WiFi.disconnect(true);
+        WiFi.enableSTA(false);
+        WiFi.enableAP(false);
+        WiFi.mode(WIFI_OFF);
+        serial_init();  // Setup serial baud rate and interrupts
+        grbl_msg_sendf(
+            CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());   // print the SDK version
 // show the map name at startup
 #ifdef MACHINE_NAME
-    report_machine_type(CLIENT_SERIAL);
+        report_machine_type(CLIENT_SERIAL);
 #endif
-    settings_init();  // Load Grbl settings from non-volatile storage
-    stepper_init();   // Configure stepper pins and interrupt timers
-    init_motors();
-    system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
-    memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
+        settings_init();  // Load Grbl settings from non-volatile storage
+        stepper_init();   // Configure stepper pins and interrupt timers
+        init_motors();
+        system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
+        memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
 
 #ifdef USE_MACHINE_INIT
-    machine_init();  // user supplied function for special initialization
+        machine_init();  // user supplied function for special initialization
 #endif
-    // Initialize system state.
+        // Initialize system state.
 #ifdef FORCE_INITIALIZATION_ALARM
-    // Force Grbl into an ALARM state upon a power-cycle or hard reset.
-    sys.state = State::Alarm;
-#else
-    sys.state = State::Idle;
-#endif
-    // Check for power-up and set system alarm if homing is enabled to force homing cycle
-    // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
-    // startup scripts, but allows access to settings and internal commands. Only a homing
-    // cycle '$H' or kill alarm locks '$X' will disable the alarm.
-    // NOTE: The startup script will run after successful completion of the homing cycle, but
-    // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
-    // things uncontrollably. Very bad.
-#ifdef HOMING_INIT_LOCK
-    if (homing_enable->get()) {
+        // Force Grbl into an ALARM state upon a power-cycle or hard reset.
         sys.state = State::Alarm;
-    }
+#else
+        sys.state = State::Idle;
 #endif
-    Spindles::Spindle::select();
+        // Check for power-up and set system alarm if homing is enabled to force homing cycle
+        // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
+        // startup scripts, but allows access to settings and internal commands. Only a homing
+        // cycle '$H' or kill alarm locks '$X' will disable the alarm.
+        // NOTE: The startup script will run after successful completion of the homing cycle, but
+        // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
+        // things uncontrollably. Very bad.
+#ifdef HOMING_INIT_LOCK
+        if (homing_enable->get()) {
+            sys.state = State::Alarm;
+        }
+#endif
+        Spindles::Spindle::select();
 #ifdef ENABLE_WIFI
-    WebUI::wifi_config.begin();
+        WebUI::wifi_config.begin();
 #endif
 #ifdef ENABLE_BLUETOOTH
-    WebUI::bt_config.begin();
+        WebUI::bt_config.begin();
 #endif
-    WebUI::inputBuffer.begin();
+        WebUI::inputBuffer.begin();
+    } catch (const AssertionFailed& ex) {
+        // This means something is terribly broken:
+        grbl_sendf(CLIENT_ALL, "Critical error in run_once: %s", ex.stackTrace.c_str());
+        while (true) {
+            sleep(1000);
+        }
+    }
 }
 
 static void reset_variables() {
@@ -118,7 +127,10 @@ void run_once() {
         protocol_main_loop();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
-        grbl_sendf(CLIENT_ALL, "Critical error: %s", ex.stackTrace.c_str());
+        grbl_sendf(CLIENT_ALL, "Critical error in run_once: %s", ex.stackTrace.c_str());
+        while (true) {
+            sleep(1000);
+        }
     }
 }
 

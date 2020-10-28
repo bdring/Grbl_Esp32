@@ -161,12 +161,12 @@ namespace Pins {
     }
 
     void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) {
-        Assert(_attributes.has(PinAttributes::ISR), "Pin has no ISR attribute defined. Cannot bind ISR.");
+        Assert(_capabilities.has(PinCapabilities::ISR), "Pin has no ISR capability defined. Cannot bind ISR.");
         ::attachInterruptArg(_index, callback, arg, mode);
     }
 
     void GPIOPinDetail::detachInterrupt() {
-        Assert(_attributes.has(PinAttributes::ISR), "Pin has no ISR attribute defined. Cannot unbind ISR.");
+        Assert(_capabilities.has(PinCapabilities::ISR), "Pin has no ISR capability defined. Cannot unbind ISR.");
         ::detachInterrupt(_index);
     }
 
