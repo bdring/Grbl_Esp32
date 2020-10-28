@@ -4,7 +4,6 @@
 #include <cstring>
 
 #ifdef ESP32
-#    ifdef UNIT_TEST
 
 #        include "debug_helpers.h"
 #        include "WString.h"
@@ -26,27 +25,6 @@ AssertionFailed AssertionFailed::create(const char* condition, const char* msg, 
 
     return AssertionFailed(st);
 }
-
-#    else
-
-#        include "stdio.h"
-
-AssertionFailed AssertionFailed::create(const char* condition, const char* msg, ...) {
-    String st = "\r\nError ";
-    st += condition;
-    st += " failed: ";
-
-    char    tmp[255];
-    va_list arg;
-    va_start(arg, msg);
-    size_t len = vsnprintf(tmp, 255, msg, arg);
-    tmp[254]   = 0;
-    st += tmp;
-
-    return AssertionFailed(st);
-}
-
-#    endif
 
 #else
 

@@ -1,5 +1,4 @@
 #ifdef ESP32
-#    ifdef UNIT_TEST
 
 // Copyright 2015-2019 Espressif Systems (Shanghai) PTE LTD
 //
@@ -88,5 +87,4 @@ String IRAM_ATTR esp_backtrace_print(int depth) {
     return s;
 }
 
-#    endif
 #endif

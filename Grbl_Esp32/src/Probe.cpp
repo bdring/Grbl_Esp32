@@ -37,7 +37,13 @@ void probe_init() {
 #ifdef DISABLE_PROBE_PIN_PULL_UP
         ProbePin->get().setAttr(Pin::Attr::Input);
 #else
-        ProbePin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);  // Enable internal pull-up resistors. Normal high operation.
+        if (ProbePin->get().capabilities().has(Pins::PinCapabilities::PullUp))
+        {
+            ProbePin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);  // Enable internal pull-up resistors. Normal high operation.
+        }
+        else {
+            ProbePin->get().setAttr(Pin::Attr::Input);
+        }
 #endif
 
         if (show_init_msg) {

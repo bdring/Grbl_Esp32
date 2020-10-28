@@ -1,5 +1,4 @@
 #ifdef ESP32
-#    ifdef UNIT_TEST
 // Copyright 2015-2019 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#        pragma once
+#    pragma once
 
-#        ifdef __cplusplus
+#    ifdef __cplusplus
 extern "C" {
-#        endif
+#    endif
 
-#        ifndef __ASSEMBLER__
+#    ifndef __ASSEMBLER__
 
-#            include <stdbool.h>
-#            include "esp_err.h"
-#            include "soc/soc.h"
+#        include <stdbool.h>
+#        include "esp_err.h"
+#        include "soc/soc.h"
 
-#            define ESP_WATCHPOINT_LOAD 0x40000000
-#            define ESP_WATCHPOINT_STORE 0x80000000
-#            define ESP_WATCHPOINT_ACCESS 0xC0000000
+#        define ESP_WATCHPOINT_LOAD 0x40000000
+#        define ESP_WATCHPOINT_STORE 0x80000000
+#        define ESP_WATCHPOINT_ACCESS 0xC0000000
 
 /*
      * @brief   Structure used for backtracing
@@ -97,10 +96,9 @@ bool esp_backtrace_get_next_frame(esp_backtrace_frame_t* frame);
 
 String esp_backtrace_print(int depth);
 
-#        endif
-#        ifdef __cplusplus
-}
-#        endif
-
 #    endif
+#    ifdef __cplusplus
+}
+#    endif
+
 #endif

@@ -1,5 +1,4 @@
 #ifdef ESP32
-#ifdef UNIT_TEST
 
 // Copyright 2015-2019 Espressif Systems (Shanghai) PTE LTD
 //
@@ -59,5 +58,4 @@ esp_backtrace_get_start:
     s32i    a5, a4, 0           //Store i-1 PC to arg *next_pc
     retw
 
-#endif
 #endif

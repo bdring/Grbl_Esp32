@@ -48,43 +48,83 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     // setup control inputs
 
     if (ControlSafetyDoorPin->get() != Pin::UNDEFINED) {
-        ControlSafetyDoorPin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp | Pin::Attr::ISR);
-        ControlSafetyDoorPin->get().attachInterrupt(isr_control_inputs, CHANGE);
+        auto pin  = ControlSafetyDoorPin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
     if (ControlResetPin->get() != Pin::UNDEFINED) {
-        ControlResetPin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp | Pin::Attr::ISR);
-        ControlResetPin->get().attachInterrupt(isr_control_inputs, CHANGE);
+        auto pin  = ControlResetPin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
     if (ControlFeedHoldPin->get() != Pin::UNDEFINED) {
-        ControlFeedHoldPin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp | Pin::Attr::ISR);
-        ControlFeedHoldPin->get().attachInterrupt(isr_control_inputs, CHANGE);
+        auto pin  = ControlFeedHoldPin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
     if (ControlCycleStartPin->get() != Pin::UNDEFINED) {
-        ControlCycleStartPin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp | Pin::Attr::ISR);
-        ControlCycleStartPin->get().attachInterrupt(isr_control_inputs, CHANGE);
+        auto pin  = ControlCycleStartPin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
     if (MacroButton0Pin->get() != Pin::UNDEFINED) {
-        MacroButton0Pin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp | Pin::Attr::ISR);
-        MacroButton0Pin->get().attachInterrupt(isr_control_inputs, CHANGE);
+        auto pin  = MacroButton0Pin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
     if (MacroButton1Pin->get() != Pin::UNDEFINED) {
-        MacroButton1Pin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp | Pin::Attr::ISR);
-        MacroButton1Pin->get().attachInterrupt(isr_control_inputs, CHANGE);
+        auto pin  = MacroButton1Pin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
     if (MacroButton2Pin->get() != Pin::UNDEFINED) {
-        MacroButton2Pin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp | Pin::Attr::ISR);
-        MacroButton2Pin->get().attachInterrupt(isr_control_inputs, CHANGE);
+        auto pin  = MacroButton2Pin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
     if (MacroButton3Pin->get() != Pin::UNDEFINED) {
-        MacroButton3Pin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp | Pin::Attr::ISR);
-        MacroButton3Pin->get().attachInterrupt(isr_control_inputs, CHANGE);
+        auto pin  = MacroButton3Pin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
