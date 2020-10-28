@@ -177,7 +177,6 @@ const char* USER_ANALOG_PIN_2_DEFAULT = USER_ANALOG_PIN_2;
 #endif
 const char* USER_ANALOG_PIN_3_DEFAULT = USER_ANALOG_PIN_3;
 
-
 #ifndef SPINDLE_OUTPUT_PIN
 #    define SPINDLE_OUTPUT_PIN UNDEFINED_PIN
 #endif
@@ -866,9 +865,9 @@ void make_pin_settings() {
     MacroButton3Pin      = new PinSetting("Macro/3/Pin", MACRO_BUTTON_3_PIN_DEFAULT);
 
     // XXX Move to Dynamixel class
-    DynamixelTXDPin      = new PinSetting("Dynamixel/TXD/Pin", DYNAMIXEL_TXD_DEFAULT);
-    DynamixelRXDPin      = new PinSetting("Dynamixel/RXD/Pin", DYNAMIXEL_RXD_DEFAULT);
-    DynamixelRTSPin      = new PinSetting("Dynamixel/RTS/Pin", DYNAMIXEL_RTS_DEFAULT);
+    DynamixelTXDPin = new PinSetting("Dynamixel/TXD/Pin", DYNAMIXEL_TXD_DEFAULT);
+    DynamixelRXDPin = new PinSetting("Dynamixel/RXD/Pin", DYNAMIXEL_RXD_DEFAULT);
+    DynamixelRTSPin = new PinSetting("Dynamixel/RTS/Pin", DYNAMIXEL_RTS_DEFAULT);
 
     // User pins:
     UserDigitalPin[0] = new PinSetting("UserDigital/0/Pin", USER_DIGITAL_PIN_0_DEFAULT);
@@ -887,9 +886,9 @@ void make_pin_settings() {
     SpindleForwardPin   = new PinSetting("Spindle/Forward/Pin", SPINDLE_FORWARD_PIN_DEFAULT);
     SpindleReversePin   = new PinSetting("Spindle/Reverse/Pin", SPINDLE_REVERSE_PIN_DEFAULT);
     // XXX Move to VFD class
-    VFDRS485TXDPin      = new PinSetting("Spindle/VFD/TxD/Pin", VFD_RS485_TXD_PIN_DEFAULT);  // VFD_RS485_TXD_PIN
-    VFDRS485RXDPin      = new PinSetting("Spindle/VFD/RxD/Pin", VFD_RS485_RXD_PIN_DEFAULT);  // VFD_RS485_RXD_PIN
-    VFDRS485RTSPin      = new PinSetting("Spindle/VFD/RTS/Pin", VFD_RS485_RTS_PIN_DEFAULT);  // VFD_RS485_RTS_PIN
+    VFDRS485TXDPin = new PinSetting("Spindle/VFD/TxD/Pin", VFD_RS485_TXD_PIN_DEFAULT);  // VFD_RS485_TXD_PIN
+    VFDRS485RXDPin = new PinSetting("Spindle/VFD/RxD/Pin", VFD_RS485_RXD_PIN_DEFAULT);  // VFD_RS485_RXD_PIN
+    VFDRS485RTSPin = new PinSetting("Spindle/VFD/RTS/Pin", VFD_RS485_RTS_PIN_DEFAULT);  // VFD_RS485_RTS_PIN
 
     // Axis:
     LimitPins[X_AXIS][0] = new PinSetting("X/Limit/Pin", X_LIMIT_PIN_DEFAULT);

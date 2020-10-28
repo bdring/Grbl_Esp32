@@ -77,10 +77,11 @@ void grbl_init() {
         WebUI::inputBuffer.begin();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
-        grbl_sendf(CLIENT_ALL, "Critical error in run_once: %s", ex.stackTrace.c_str());
-        while (true) {
-            sleep(1000);
-        }
+
+        // Should grbl_sendf always work? Serial is initialized first, so after line 34 it should.
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical error in run_once: %s", ex.stackTrace.c_str());
+        sleep(10000);
+        throw;
     }
 }
 
@@ -127,10 +128,9 @@ void run_once() {
         protocol_main_loop();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
-        grbl_sendf(CLIENT_ALL, "Critical error in run_once: %s", ex.stackTrace.c_str());
-        while (true) {
-            sleep(1000);
-        }
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical error in run_once: %s", ex.stackTrace.c_str());
+        sleep(10000);
+        throw;
     }
 }
 

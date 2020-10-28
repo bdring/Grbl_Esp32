@@ -143,6 +143,12 @@ namespace Pins {
             pinModeValue |= OUTPUT;
         }
 
+        // TODO FIXME: For now, I added PU capabilities to 'value' as well. This *should* be removed once the
+        // code that uses #define's to decide this is gone.
+        if (value.has(PinAttributes::PullUp)) {
+            pinModeValue |= PULLUP;
+        }
+
         // PU/PD should be specified by the user. Code has nothing to do with them:
         if (_attributes.has(PinAttributes::PullUp)) {
             pinModeValue |= PULLUP;
@@ -161,12 +167,14 @@ namespace Pins {
     }
 
     void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) {
-        Assert(_capabilities.has(PinCapabilities::ISR), "Pin has no ISR capability defined. Cannot bind ISR.");
+        Assert(_attributes.has(PinAttributes::ISR),
+               "Pin has no ISR attribute, which means 'setAttr' was not set, or the pin doesn't support ISR's. Cannot bind ISR.");
         ::attachInterruptArg(_index, callback, arg, mode);
     }
 
     void GPIOPinDetail::detachInterrupt() {
-        Assert(_capabilities.has(PinCapabilities::ISR), "Pin has no ISR capability defined. Cannot unbind ISR.");
+        Assert(_attributes.has(PinAttributes::ISR),
+               "Pin has no ISR attribute, which means 'setAttr' was not set, or the pin doesn't support ISR's. Cannot unbind ISR.");
         ::detachInterrupt(_index);
     }
 
