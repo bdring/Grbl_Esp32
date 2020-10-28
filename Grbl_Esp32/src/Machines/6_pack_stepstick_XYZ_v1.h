@@ -124,4 +124,3 @@ Socket #5
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800
 #define DEFAULT_Z_STEPS_PER_MM      800
-

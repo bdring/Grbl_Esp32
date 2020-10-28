@@ -285,15 +285,15 @@ Error report_startup_lines(const char* value, WebUI::AuthenticationLevel auth_le
 
 std::map<const char*, uint8_t, cmp_str> restoreCommands = {
 #ifdef ENABLE_RESTORE_DEFAULT_SETTINGS
-    { "$", SettingsRestore::Defaults },      { "settings", SettingsRestore::Defaults },
+    { "$", SettingsRestore::Defaults },   { "settings", SettingsRestore::Defaults },
 #endif
 #ifdef ENABLE_RESTORE_CLEAR_PARAMETERS
-    { "#", SettingsRestore::Parameters },    { "gcode", SettingsRestore::Parameters },
+    { "#", SettingsRestore::Parameters }, { "gcode", SettingsRestore::Parameters },
 #endif
 #ifdef ENABLE_RESTORE_WIPE_ALL
-    { "*", SettingsRestore::All },           { "all", SettingsRestore::All },
+    { "*", SettingsRestore::All },        { "all", SettingsRestore::All },
 #endif
-    { "@", SettingsRestore::Wifi }, { "wifi", SettingsRestore::Wifi },
+    { "@", SettingsRestore::Wifi },       { "wifi", SettingsRestore::Wifi },
 };
 Error restore_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (!value) {
@@ -381,7 +381,7 @@ void make_grbl_commands() {
     new GrblCommand("+", "ExtendedSettings/List", report_extended_settings, notCycleOrHold);
     new GrblCommand("L", "GrblNames/List", list_grbl_names, notCycleOrHold);
     new GrblCommand("S", "Settings/List", list_settings, notCycleOrHold);
-    new GrblCommand("SC","Settings/ListChanged", list_changed_settings, notCycleOrHold);
+    new GrblCommand("SC", "Settings/ListChanged", list_changed_settings, notCycleOrHold);
     new GrblCommand("CMD", "Commands/List", list_commands, notCycleOrHold);
     new GrblCommand("E", "ErrorCodes/List", listErrorCodes, anyState);
     new GrblCommand("G", "GCode/Modes", report_gcode, anyState);

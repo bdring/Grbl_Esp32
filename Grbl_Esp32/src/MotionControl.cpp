@@ -115,8 +115,10 @@ void mc_arc(float*            target,
     float r_axis1      = -offset[axis_1];
     float rt_axis0     = target[axis_0] - center_axis0;
     float rt_axis1     = target[axis_1] - center_axis1;
+
+    float previous_position[MAX_N_AXIS] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 #ifdef USE_KINEMATICS
-    float    previous_position[MAX_N_AXIS];
+
     uint16_t n;
     auto     n_axis = number_axis->get();
     for (n = 0; n < n_axis; n++) {
@@ -218,11 +220,7 @@ void mc_arc(float*            target,
         }
     }
     // Ensure last segment arrives at target location.
-#ifdef USE_KINEMATICS
     mc_line_kins(target, pl_data, previous_position);
-#else
-    mc_line(target, pl_data);
-#endif
 }
 
 // Execute dwell in seconds.
@@ -285,7 +283,7 @@ static bool axis_is_squared(uint8_t axis_mask) {
 void mc_homing_cycle(uint8_t cycle_mask) {
     bool no_cycles_defined = true;
 #ifdef USE_CUSTOM_HOMING
-    if (user_defined_homing()) {
+    if (user_defined_homing(cycle_mask)) {
         return;
     }
 #endif
@@ -352,7 +350,6 @@ void mc_homing_cycle(uint8_t cycle_mask) {
                 }
             }
         }
-
         if (no_cycles_defined) {
             report_status_message(Error::HomingNoCycles, CLIENT_ALL);
         }
@@ -411,7 +408,8 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         return GCUpdatePos::None;       // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
-    mc_line(target, pl_data);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Found");
+    mc_line_kins(target, pl_data, gc_state.position);
     // Activate the probing state monitor in the stepper module.
     sys_probe_state = Probe::Active;
     // Perform probing cycle. Wait here until probe is triggered or motion completes.

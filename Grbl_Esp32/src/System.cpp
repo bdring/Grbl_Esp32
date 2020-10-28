@@ -166,17 +166,7 @@ void system_flag_wco_change() {
 float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
     float pos;
     float steps_per_mm = axis_settings[idx]->steps_per_mm->get();
-#ifdef COREXY
-    if (idx == X_AXIS) {
-        pos = (float)system_convert_corexy_to_x_axis_steps(steps) / steps_per_mm;
-    } else if (idx == Y_AXIS) {
-        pos = (float)system_convert_corexy_to_y_axis_steps(steps) / steps_per_mm;
-    } else {
-        pos = steps[idx] / steps_per_mm;
-    }
-#else
-    pos = steps[idx] / steps_per_mm;
-#endif
+    pos                = steps[idx] / steps_per_mm;
     return pos;
 }
 
@@ -273,15 +263,6 @@ void system_exec_control_pin(ControlPins pins) {
     } else if (pins.bit.macro3) {
         user_defined_macro(3);  // function must be implemented by user
     }
-}
-
-// CoreXY calculation only. Returns x or y-axis "steps" based on CoreXY motor steps.
-int32_t system_convert_corexy_to_x_axis_steps(int32_t* steps) {
-    return (steps[A_MOTOR] + steps[B_MOTOR]) / 2;
-}
-
-int32_t system_convert_corexy_to_y_axis_steps(int32_t* steps) {
-    return (steps[A_MOTOR] - steps[B_MOTOR]) / 2;
 }
 
 // io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx

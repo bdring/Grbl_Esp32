@@ -263,13 +263,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 const double SAFETY_DOOR_SPINDLE_DELAY = 4.0;  // Float (seconds)
 const double SAFETY_DOOR_COOLANT_DELAY = 1.0;  // Float (seconds)
 
-// Enable CoreXY kinematics. Use ONLY with CoreXY machines.
-// NOTE: This configuration option alters the motion of the X and Y axes to principle of operation
-// defined at (http://corexy.com/theory.html). Motors are assumed to positioned and wired exactly as
-// described, if not, motions may move in strange directions. Grbl requires the CoreXY A and B motors
-// have the same steps per mm internally.
-// #define COREXY // Default disabled. Uncomment to enable.
-
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.
 // This build option will invert only the limit pins defined here, and then the invert limits setting
@@ -539,7 +532,7 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // these commands may be undesirable. Simply comment the desired macro to disable it.
 #define ENABLE_RESTORE_WIPE_ALL          // '$RST=*' Default enabled. Comment to disable.
 #define ENABLE_RESTORE_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_CLEAR_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
 
 // Additional settings have been added to the original set that you see with the $$ command
 // Some senders may not be able to parse anything different from the original set

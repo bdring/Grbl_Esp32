@@ -519,9 +519,6 @@ void report_build_info(const char* line, uint8_t client) {
 #ifdef COOLANT_MIST_PIN
     grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
 #endif
-#ifdef COREXY
-    grbl_send(client, "C");
-#endif
 #ifdef PARKING_ENABLE
     grbl_send(client, "P");
 #endif
@@ -941,7 +938,7 @@ char* reportAxisNameMsg(uint8_t axis) {
 
 void reportTaskStackSize(UBaseType_t& saved) {
 #ifdef DEBUG_REPORT_STACK_FREE
-    UBaseType_t        newHighWater    = uxTaskGetStackHighWaterMark(NULL);
+    UBaseType_t newHighWater = uxTaskGetStackHighWaterMark(NULL);
     if (newHighWater != saved) {
         saved = newHighWater;
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Min Stack Space: %d", pcTaskGetTaskName(NULL), saved);

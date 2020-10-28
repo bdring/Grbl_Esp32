@@ -1473,9 +1473,9 @@ Error gc_execute_line(char* line, uint8_t client) {
             // and absolute and incremental modes.
             pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
             if (axis_command != AxisCommand::None) {
-                mc_line(gc_block.values.xyz, pl_data);  // kinematics kinematics not used for homing righ now
+                mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
             }
-            mc_line(coord_data, pl_data);
+            mc_line_kins(coord_data, pl_data, gc_state.position);
             memcpy(gc_state.position, coord_data, sizeof(gc_state.position));
             break;
         case NonModal::SetHome0:
