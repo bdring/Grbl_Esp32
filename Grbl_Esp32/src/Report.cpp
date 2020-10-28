@@ -247,7 +247,14 @@ void report_status_message(Error status_code, uint8_t client) {
                 return;
             }
 #endif
-            grbl_sendf(client, "error:%d\r\n", static_cast<int>(status_code));
+            // With verbose errors, the message text is displayed instead of the number.
+            // Grbl 0.9 used to display the text, while Grbl 1.1 switched to the number.
+            // Many senders support both formats.
+            if (verbose_errors->get()) {
+                grbl_sendf(client, "error: %s\r\n", errorString(status_code));
+            } else {
+                grbl_sendf(client, "error:%d\r\n", static_cast<int>(status_code));
+            }
     }
 }
 
