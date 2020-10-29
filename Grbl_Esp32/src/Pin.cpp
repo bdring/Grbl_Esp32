@@ -98,7 +98,10 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
     }
 
 #if defined PIN_DEBUG && defined ESP32
-    pinImplementation = new Pins::DebugPinDetail(pinImplementation);
+    // We make an exception for gpio.1: Serial.TX will create an infinite recursion.
+    if (prefix != "gpio" || pinNumber != 1) {
+        pinImplementation = new Pins::DebugPinDetail(pinImplementation);
+    }
 #endif
     return true;
 }

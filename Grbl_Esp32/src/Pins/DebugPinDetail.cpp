@@ -6,13 +6,20 @@
 namespace Pins {
     // I/O:
     void DebugPinDetail::write(int high) {
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Writing pin %s = %d", toString().c_str(), high);
+        if (high != _isHigh) {
+            _isHigh = high;
+            if (shouldEvent()) {
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Writing pin %s = %d", toString().c_str(), high);
+            }
+        }
         _implementation->write(high);
     }
 
     int DebugPinDetail::read() {
         auto result = _implementation->read();
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Reading pin %s = %d", toString().c_str(), result);
+        if (shouldEvent()) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reading pin %s = %d", toString().c_str(), result);
+        }
         return result;
     }
     void DebugPinDetail::setAttr(PinAttributes value) {
@@ -42,7 +49,7 @@ namespace Pins {
         buf[n++] = 0;
 
         if (shouldEvent()) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Setting pin attr %s = %s", toString().c_str(), buf);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Setting pin attr %s = %s", toString().c_str(), buf);
         }
         _implementation->setAttr(value);
     }
@@ -50,7 +57,7 @@ namespace Pins {
     void DebugPinDetail::CallbackHandler::handle(void* arg) {
         auto handler = static_cast<CallbackHandler*>(arg);
         if (handler->_myPin->shouldEvent()) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Received ISR on pin %s", handler->_myPin->toString().c_str());
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Received ISR on pin %s", handler->_myPin->toString().c_str());
         }
         handler->callback(handler->argument);
     }
@@ -62,7 +69,7 @@ namespace Pins {
         _isrHandler.callback = callback;
 
         if (shouldEvent()) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Attaching interrupt to pin %s, mode %d", toString().c_str(), mode);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Attaching interrupt to pin %s, mode %d", toString().c_str(), mode);
         }
         _implementation->attachInterrupt(_isrHandler.handle, &_isrHandler, mode);
     }
@@ -72,15 +79,21 @@ namespace Pins {
         // This method basically ensures we don't flood users:
         auto time = millis();
 
-        if (_lastEvent + 1000 > time) {
+        if (_lastEvent + 1000 < time) {
             _lastEvent  = time;
             _eventCount = 1;
             return true;
-        } else if (_eventCount < 20) {
+        } else if (_eventCount < 10) {
             _lastEvent = time;
             ++_eventCount;
             return true;
+        } else if (_eventCount == 10) {
+            _lastEvent = time;
+            ++_eventCount;
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Suppressing events...");
+            return false;
         } else {
+            _lastEvent = time;
             return false;
         }
     }

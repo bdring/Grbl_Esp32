@@ -54,11 +54,16 @@ EspClass esp;
 #endif
 const int DEFAULTBUFFERSIZE = 64;
 
+portMUX_TYPE mmux = portMUX_INITIALIZER_UNLOCKED;
+
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char* text) {
     if (client == CLIENT_INPUT) {
         return;
     }
+
+    portENTER_CRITICAL(&mmux);
+
 #ifdef ENABLE_BLUETOOTH
     if (WebUI::SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
         WebUI::SerialBT.print(text);
@@ -78,6 +83,8 @@ void grbl_send(uint8_t client, const char* text) {
     if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
         Serial.print(text);
     }
+
+    portEXIT_CRITICAL(&mmux);
 }
 
 // This is a formating version of the grbl_send(CLIENT_ALL,...) function that work like printf

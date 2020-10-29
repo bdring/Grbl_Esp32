@@ -17,46 +17,6 @@
 #include <cstdint>
 #include "Config.h"
 
-#define GPIO_NUM_0 "GPIO.0"
-#define GPIO_NUM_1 "GPIO.1"
-#define GPIO_NUM_2 "GPIO.2"
-#define GPIO_NUM_3 "GPIO.3"
-#define GPIO_NUM_4 "GPIO.4"
-#define GPIO_NUM_5 "GPIO.5"
-#define GPIO_NUM_6 "GPIO.6"
-#define GPIO_NUM_7 "GPIO.7"
-#define GPIO_NUM_8 "GPIO.8"
-#define GPIO_NUM_9 "GPIO.9"
-#define GPIO_NUM_10 "GPIO.10"
-#define GPIO_NUM_11 "GPIO.11"
-#define GPIO_NUM_12 "GPIO.12"
-#define GPIO_NUM_13 "GPIO.13"
-#define GPIO_NUM_14 "GPIO.14"
-#define GPIO_NUM_15 "GPIO.15"
-#define GPIO_NUM_16 "GPIO.16"
-#define GPIO_NUM_17 "GPIO.17"
-#define GPIO_NUM_18 "GPIO.18"
-#define GPIO_NUM_19 "GPIO.19"
-
-#define GPIO_NUM_21 "GPIO.21"
-#define GPIO_NUM_22 "GPIO.22"
-#define GPIO_NUM_23 "GPIO.23"
-
-#define GPIO_NUM_25 "GPIO.25"
-#define GPIO_NUM_26 "GPIO.26"
-#define GPIO_NUM_27 "GPIO.27"
-
-#define GPIO_NUM_32 "GPIO.32"
-#define GPIO_NUM_33 "GPIO.33"
-#define GPIO_NUM_34 "GPIO.34"
-#define GPIO_NUM_35 "GPIO.35"
-#define GPIO_NUM_36 "GPIO.36"
-#define GPIO_NUM_37 "GPIO.37"
-#define GPIO_NUM_38 "GPIO.38"
-#define GPIO_NUM_39 "GPIO.39"
-
-#define I2SO(n) "I2S." #n
-
 // Include the file that loads the machine-specific config file.
 // machine.h must be edited to choose the desired file.
 #include "Machine.h"
@@ -755,47 +715,6 @@ const char* C_PIN_PHASE_3_DEFAULT = C_PIN_PHASE_3;
 #    define C2_PIN_PHASE_3 UNDEFINED_PIN
 #endif
 const char* C2_PIN_PHASE_3_DEFAULT = C2_PIN_PHASE_3;
-
-// We have all the defaults we need at this point. Settings will include Arduino, so we have to get
-// rid of the defines we made earlier:
-#undef GPIO_NUM_0
-#undef GPIO_NUM_1
-#undef GPIO_NUM_2
-#undef GPIO_NUM_3
-#undef GPIO_NUM_4
-#undef GPIO_NUM_5
-#undef GPIO_NUM_6
-#undef GPIO_NUM_7
-#undef GPIO_NUM_8
-#undef GPIO_NUM_9
-#undef GPIO_NUM_10
-#undef GPIO_NUM_11
-#undef GPIO_NUM_12
-#undef GPIO_NUM_13
-#undef GPIO_NUM_14
-#undef GPIO_NUM_15
-#undef GPIO_NUM_16
-#undef GPIO_NUM_17
-#undef GPIO_NUM_18
-#undef GPIO_NUM_19
-
-#undef GPIO_NUM_21
-#undef GPIO_NUM_22
-#undef GPIO_NUM_23
-
-#undef GPIO_NUM_25
-#undef GPIO_NUM_26
-#undef GPIO_NUM_27
-
-#undef GPIO_NUM_32
-#undef GPIO_NUM_33
-#undef GPIO_NUM_34
-#undef GPIO_NUM_35
-#undef GPIO_NUM_36
-#undef GPIO_NUM_37
-#undef GPIO_NUM_38
-#undef GPIO_NUM_39
-#undef I2SO
 
 // We need settings.h for the settings classes
 #include "Grbl.h"

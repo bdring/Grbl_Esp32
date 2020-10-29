@@ -6,8 +6,9 @@ namespace Pins {
     class DebugPinDetail : public PinDetail {
         PinDetail* _implementation;
 
-        int _lastEvent;
-        int _eventCount;
+        int  _lastEvent;
+        int  _eventCount;
+        bool _isHigh;
 
         struct CallbackHandler {
             void (*callback)(void* arg);
@@ -23,8 +24,8 @@ namespace Pins {
 
     public:
         DebugPinDetail(PinDetail* implementation) :
-            PinDetail(implementation->number()), _implementation(implementation), _lastEvent(0), _eventCount(0), _isrHandler({ 0 }) {
-        }
+            PinDetail(implementation->number()), _implementation(implementation), _lastEvent(0), _eventCount(0), _isHigh(false), _isrHandler({ 0 })
+             {}
 
         PinCapabilities capabilities() const override { return _implementation->capabilities(); }
 
