@@ -51,3 +51,45 @@
 #ifdef USE_RMT_STEPS
 #undef USE_RMT_STEPS  // Suppress unused variable warning
 #endif
+
+
+// Output devices :
+// - I2S
+// x CoolantControl
+// - StandardStepper
+#define X_STEP_PIN              "gpio.2"
+#define X_DIRECTION_PIN         "gpio.4"
+#define X_DISABLE_PIN           "gpio.16"
+
+// - Unipolar
+// - 10V
+// - BESC
+// - DAC
+// - Laser
+// - PWM
+// - Relay
+// - Stepper
+// 
+// Input devices :
+// -Probe
+// - User Analog / Digital pins
+// - Limits
+// - System : ControlSafetyDoor
+// - System : ControlReset
+// - System : ControlFeedHold
+// - System : ControlCycleStart
+// - System : Macro0
+// - System : Macro1
+// - System : Macro2
+// - System : Macro3
+// 
+// Uart devices :
+// -Dynamixel
+// - H2ASpindle
+// - HuanyangSpindle
+// 
+// Other :
+// -RcServo
+// - SDCard
+// - Trinamic
+
