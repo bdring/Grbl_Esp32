@@ -1,15 +1,31 @@
 #include "DebugPinDetail.h"
 
-#include "../Grbl.h"  // for printf
-#include <Arduino.h>  // for timer
+#include "../Grbl.h"         // for printf
+#include <Arduino.h>         // for timer
+#include <HardwareSerial.h>  // HW serial
+#include <cstdio>            // vsnprintf
 
 namespace Pins {
+    inline void WriteSerial(const char* format, ...) {
+        char    buf[50];
+        va_list arg;
+        va_list copy;
+        va_start(arg, format);
+        va_copy(copy, arg);
+        size_t len = vsnprintf(buf, 50, format, arg);
+        va_end(copy);
+        Serial.print("[MSG: ");
+        Serial.print(buf);
+        Serial.println(" ]");
+        va_end(arg);
+    }
+
     // I/O:
     void DebugPinDetail::write(int high) {
         if (high != _isHigh) {
             _isHigh = high;
             if (shouldEvent()) {
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Writing pin %s = %d", toString().c_str(), high);
+                WriteSerial( "Write %s < %d", toString().c_str(), high);
             }
         }
         _implementation->write(high);
@@ -18,7 +34,7 @@ namespace Pins {
     int DebugPinDetail::read() {
         auto result = _implementation->read();
         if (shouldEvent()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reading pin %s = %d", toString().c_str(), result);
+            WriteSerial("Read  %s > %d", toString().c_str(), result);
         }
         return result;
     }
@@ -49,7 +65,7 @@ namespace Pins {
         buf[n++] = 0;
 
         if (shouldEvent()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Setting pin attr %s = %s", toString().c_str(), buf);
+            WriteSerial("Set pin attr %s = %s", toString().c_str(), buf);
         }
         _implementation->setAttr(value);
     }
@@ -57,7 +73,7 @@ namespace Pins {
     void DebugPinDetail::CallbackHandler::handle(void* arg) {
         auto handler = static_cast<CallbackHandler*>(arg);
         if (handler->_myPin->shouldEvent()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Received ISR on pin %s", handler->_myPin->toString().c_str());
+            WriteSerial("Received ISR on pin %s", handler->_myPin->toString().c_str());
         }
         handler->callback(handler->argument);
     }
@@ -69,7 +85,7 @@ namespace Pins {
         _isrHandler.callback = callback;
 
         if (shouldEvent()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Attaching interrupt to pin %s, mode %d", toString().c_str(), mode);
+            WriteSerial("Attaching interrupt to pin %s, mode %d", toString().c_str(), mode);
         }
         _implementation->attachInterrupt(_isrHandler.handle, &_isrHandler, mode);
     }
@@ -90,7 +106,7 @@ namespace Pins {
         } else if (_eventCount == 10) {
             _lastEvent = time;
             ++_eventCount;
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Suppressing events...");
+            WriteSerial("Suppressing events...");
             return false;
         } else {
             _lastEvent = time;

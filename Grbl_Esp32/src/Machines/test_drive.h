@@ -46,32 +46,60 @@
     #undef DEFAULT_HOMING_CYCLE_1
 #endif
 
-#define SPINDLE_TYPE    SpindleType::NONE
 
 #ifdef USE_RMT_STEPS
 #undef USE_RMT_STEPS  // Suppress unused variable warning
 #endif
 
 
-// Output devices :
+// Output devices:
 // - I2S
-// x CoolantControl
-// - StandardStepper
-#define X_STEP_PIN              "gpio.2"
-#define X_DIRECTION_PIN         "gpio.4"
-#define X_DISABLE_PIN           "gpio.16"
 
-// - Unipolar
-// - 10V
+// x CoolantControl
+
+// #define COOLANT_MIST_PIN        "gpio.2"  // labeled Mist
+// #define COOLANT_FLOOD_PIN       "gpio.4"  // labeled Flood
+
+// x StandardStepper
+
+// #define X_STEP_PIN              "gpio.2"
+// #define X_DIRECTION_PIN         "gpio.4"
+// #define X_DISABLE_PIN           "gpio.16"
+
+// x Unipolar
+
+// #define X_UNIPOLAR
+// #define X_PIN_PHASE_0           "gpio.2"
+// #define X_PIN_PHASE_1           "gpio.4"
+// #define X_PIN_PHASE_2           "gpio.16"
+// #define X_PIN_PHASE_3           "gpio.15"
+
+// Spindles:
+
+#define SPINDLE_TYPE            SpindleType::NONE
+
+// #define SPINDLE_OUTPUT_PIN	    "gpio.15"
+// #define SPINDLE_ENABLE_PIN	    "gpio.2"
+// #define SPINDLE_DIRECTION_PIN	"gpio.4"
+// #define SPINDLE_FORWARD_PIN	    "gpio.16"
+// #define SPINDLE_REVERSE_PIN	    "gpio.17"
+
+// x 10V
+// #define SPINDLE_TYPE            SpindleType::_10V
+
+// x PWM
+// #define SPINDLE_TYPE            SpindleType::PWM
+
+// x Relay
+// #define SPINDLE_TYPE            SpindleType::RELAY
+
 // - BESC
 // - DAC
-// - Laser
-// - PWM
-// - Relay
-// - Stepper
 // 
 // Input devices :
-// -Probe
+// x Probe
+// #define PROBE_PIN               "gpio.18:pu"  // labeled Probe
+
 // - User Analog / Digital pins
 // - Limits
 // - System : ControlSafetyDoor

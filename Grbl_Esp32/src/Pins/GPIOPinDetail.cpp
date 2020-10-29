@@ -143,12 +143,6 @@ namespace Pins {
             pinModeValue |= OUTPUT;
         }
 
-        // TODO FIXME: For now, I added PU capabilities to 'value' as well. This *should* be removed once the
-        // code that uses #define's to decide this is gone.
-        if (value.has(PinAttributes::PullUp)) {
-            pinModeValue |= PULLUP;
-        }
-
         // PU/PD should be specified by the user. Code has nothing to do with them:
         if (_attributes.has(PinAttributes::PullUp)) {
             pinModeValue |= PULLUP;
