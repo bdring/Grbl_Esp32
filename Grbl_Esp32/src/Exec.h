@@ -23,6 +23,8 @@ union ExecState {
     ExecStateBits bit;
 };
 
+static_assert(sizeof(ExecStateBits) == sizeof(uint8_t), "ExecStateBits is not an uint8");
+
 // Override bit maps. Realtime bitflags to control feed, rapid, spindle, and coolant overrides.
 // Spindle/coolant and feed/rapids are separated into two controlling flag variables.
 
