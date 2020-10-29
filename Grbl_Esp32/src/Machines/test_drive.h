@@ -48,7 +48,7 @@
 
 
 #ifdef USE_RMT_STEPS
-#undef USE_RMT_STEPS  // Suppress unused variable warning
+    #undef USE_RMT_STEPS  // Suppress unused variable warning
 #endif
 
 
@@ -129,7 +129,7 @@
 // - System : Macro3
 // 
 // Uart devices :
-// -Dynamixel
+// - Dynamixel
 // - H2ASpindle
 // - HuanyangSpindle
 // 
