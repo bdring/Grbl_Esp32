@@ -96,16 +96,33 @@
 // - BESC
 // - DAC
 // 
+// x User Digital pins
+// #define USER_DIGITAL_PIN_0	    "gpio.15"
+// #define USER_DIGITAL_PIN_1	    "gpio.2"
+// #define USER_DIGITAL_PIN_2  	"gpio.4"
+// #define USER_DIGITAL_PIN_3      "gpio.16"
+
+// x User Analog pins
+// #define USER_ANALOG_PIN_0	    "gpio.15"
+// #define USER_ANALOG_PIN_1	    "gpio.2"
+// #define USER_ANALOG_PIN_2  	    "gpio.4"
+// #define USER_ANALOG_PIN_3       "gpio.16"
+
+// 
 // Input devices :
 // x Probe
-// #define PROBE_PIN               "gpio.18:pu"  // labeled Probe
+// #define PROBE_PIN               "gpio.18:pu"
 
-// - User Analog / Digital pins
-// - Limits
-// - System : ControlSafetyDoor
-// - System : ControlReset
-// - System : ControlFeedHold
-// - System : ControlCycleStart
+// x Limits
+// #define X_LIMIT_PIN               "gpio.18:pu"
+// x System : ControlSafetyDoor
+// #define CONTROL_SAFETY_DOOR_PIN   "gpio.22:pu"
+// x System : ControlReset
+// #define CONTROL_RESET_PIN         "gpio.23:pu"
+// x System : ControlFeedHold
+// #define CONTROL_FEED_HOLD_PIN        "gpio.22:pu"
+// x System : ControlCycleStart
+// #define CONTROL_CYCLE_START_PIN      "gpio.18:pu"
 // - System : Macro0
 // - System : Macro1
 // - System : Macro2
@@ -117,7 +134,7 @@
 // - HuanyangSpindle
 // 
 // Other :
-// -RcServo
+// - RcServo
 // - SDCard
 // - Trinamic
 
