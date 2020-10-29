@@ -239,7 +239,7 @@ void make_settings() {
     make_coordinate(CoordIndex::G28, "G28");
     make_coordinate(CoordIndex::G30, "G30");
 
-    verbose_errors = new FlagSetting(EXTENDED, WG, NULL, "Errors/Verbose", true);
+    verbose_errors = new FlagSetting(EXTENDED, WG, NULL, "Errors/Verbose", DEFAULT_VERBOSE_ERRORS);
 
     // number_axis = new IntSetting(EXTENDED, WG, NULL, "NumberAxis", N_AXIS, 0, 6, NULL, true);
     number_axis = new FakeSetting<int>(N_AXIS);
