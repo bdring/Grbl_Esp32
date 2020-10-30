@@ -12,28 +12,27 @@ namespace Pins {
         _readWriteMask(0) {
         // User defined pin capabilities
         for (auto opt : options) {
-            if (opt.is("pu")) {
-                _attributes = _attributes | PinAttributes::PullUp;
-            } else if (opt.is("pd")) {
-                _attributes = _attributes | PinAttributes::PullDown;
-            } else if (opt.is("low")) {
+            if (opt.is("low")) {
                 _attributes = _attributes | PinAttributes::ActiveLow;
             } else if (opt.is("high")) {
                 // Default: Active HIGH.
+            } else {
+                Assert(false, "Bad I2S option passed to pin %d: %s", int(index), opt());
             }
         }
 
         // Update the R/W mask for ActiveLow setting
         if (_attributes.has(PinAttributes::ActiveLow)) {
-            _readWriteMask = 1;
+            _readWriteMask = HIGH;
         } else {
-            _readWriteMask = 0;
+            _readWriteMask = LOW;
         }
     }
 
-    PinCapabilities I2SPinDetail::capabilities() const { return PinCapabilities::Input | PinCapabilities::Output | PinCapabilities::I2S; }
+    PinCapabilities I2SPinDetail::capabilities() const { return PinCapabilities::Output | PinCapabilities::I2S; }
 
     void I2SPinDetail::write(int high) {
+        Assert(_attributes.has(PinAttributes::Output), "Pin has no output attribute defined. Cannot write to it.");
         int value = _readWriteMask ^ high;
         i2s_out_write(_index, value);
     }
@@ -45,7 +44,7 @@ namespace Pins {
 
     void I2SPinDetail::setAttr(PinAttributes value) {
         // Check the attributes first:
-        Assert(!value.validateWith(this->_capabilities), "The requested attributes don't match the pin capabilities");
+        Assert(value.validateWith(this->_capabilities), "The requested attributes don't match the pin capabilities");
         Assert(!_attributes.conflictsWith(value), "Attributes on this pin have been set before, and there's a conflict.");
 
         _attributes = value;
@@ -55,10 +54,14 @@ namespace Pins {
         // just check for conflicts above...
 
         // If the pin is ActiveLow, we should take that into account here:
-        write(value.has(PinAttributes::InitialOn) ? HIGH : LOW);
+        if (value.has(PinAttributes::InitialOn)) {
+            i2s_out_write(_index, HIGH ^ _readWriteMask);
+        } else {
+            i2s_out_write(_index, LOW ^ _readWriteMask);
+        }
     }
 
-    String I2SPinDetail::toString() const { return String("I2S_") + int(_index); }
+    String I2SPinDetail::toString() const { return String("I2S.") + int(_index); }
 }
 
 #endif

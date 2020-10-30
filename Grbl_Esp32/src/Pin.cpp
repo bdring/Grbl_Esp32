@@ -76,6 +76,10 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
     // Build an options parser:
     Pins::PinOptionsParser parser(options.begin(), options.end());
 
+#if defined PIN_DEBUG && defined ESP32
+    grbl_sendf(CLIENT_ALL, "Attempting to set up pin: %s, index %d\r\n", prefix.c_str(), int(pinNumber));
+#endif
+
     // Build this pin:
     if (prefix == "gpio") {
         pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
