@@ -23,6 +23,7 @@
 
 void grbl_init() {
     try {
+        settings_init();  // Load Grbl settings from non-volatile storage
 #ifdef USE_I2S_OUT
         i2s_out_init();  // The I2S out must be initialized before it can access the expanded GPIO port
 #endif
@@ -39,7 +40,6 @@ void grbl_init() {
 #ifdef MACHINE_NAME
         report_machine_type(CLIENT_SERIAL);
 #endif
-        settings_init();  // Load Grbl settings from non-volatile storage
         stepper_init();   // Configure stepper pins and interrupt timers
         init_motors();
         system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)

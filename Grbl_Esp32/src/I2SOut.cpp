@@ -958,10 +958,12 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
   return -1 ... already initialized
 */
 int IRAM_ATTR i2s_out_init() {
+    // TODO FIXME: Should check these capabilities and bail out if they don't match.
+
     i2s_out_init_t default_param;
-    default_param.ws_pin       = I2SOWS->get().getNative(Pin::Capabilities::Output);
-    default_param.bck_pin      = I2SOBCK->get().getNative(Pin::Capabilities::Output);
-    default_param.data_pin     = I2SOData->get().getNative(Pin::Capabilities::Output);
+    default_param.ws_pin       = I2SOWS->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+    default_param.bck_pin      = I2SOBCK->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+    default_param.data_pin     = I2SOData->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
     default_param.pulse_func   = NULL;
     default_param.pulse_period = I2S_OUT_USEC_PER_PULSE;
     default_param.init_val     = I2S_OUT_INIT_VAL;
