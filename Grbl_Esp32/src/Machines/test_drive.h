@@ -55,10 +55,18 @@
 // Output devices:
 // - I2S
 
+// #define USE_I2S_OUT
+// #define USE_I2S_STEPS
+// #define I2S_OUT_BCK             GPIO_NUM_22
+// #define I2S_OUT_WS              GPIO_NUM_17
+// #define I2S_OUT_DATA            GPIO_NUM_21
+// 
+// #define COOLANT_MIST_PIN        "i2s.24"
+
 // x CoolantControl
 
-// #define COOLANT_MIST_PIN        "gpio.2"  // labeled Mist
-// #define COOLANT_FLOOD_PIN       "gpio.4"  // labeled Flood
+// #define COOLANT_MIST_PIN        "gpio.2"
+// #define COOLANT_FLOOD_PIN       "gpio.4"
 
 // x StandardStepper
 

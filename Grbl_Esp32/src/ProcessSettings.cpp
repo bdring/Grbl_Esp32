@@ -150,9 +150,9 @@ Error list_grbl_names(const char* value, WebUI::AuthenticationLevel auth_level, 
 Error list_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Setting* s = Setting::List; s; s = s->next()) {
         const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
-            if (s->getType() != PIN) {
-                show_setting(s->getName(), displayValue, NULL, out);
-            }
+        if (s->getType() != PIN) {
+            show_setting(s->getName(), displayValue, NULL, out);
+        }
     }
     return Error::Ok;
 }

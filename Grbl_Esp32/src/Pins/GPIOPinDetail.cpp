@@ -97,7 +97,7 @@ namespace Pins {
             } else if (opt.is("high")) {
                 // Default: Active HIGH.
             } else {
-                Assert(false, "Bad GPIO option passed to pin: %s", opt());
+                Assert(false, "Bad GPIO option passed to pin %d: %s", int(index), opt());
             }
         }
 
