@@ -47,8 +47,6 @@
 #define B_STEPPER_MS3           I2SO(19)  // B_CS
 #define C_STEPPER_MS3           I2SO(22)  // C_CS
 
-#define STEPPER_RESET           GPIO_NUM_19
-
 // Motor Socket #1
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)

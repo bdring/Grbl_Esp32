@@ -70,6 +70,10 @@
 #    define DEFAULT_STATUS_REPORT_MASK 1  // $10
 #endif
 
+#ifndef DEFAULT_VERBOSE_ERRORS
+#    define DEFAULT_VERBOSE_ERRORS 0
+#endif
+
 #ifndef DEFAULT_JUNCTION_DEVIATION
 #    define DEFAULT_JUNCTION_DEVIATION 0.01  // $11 mm
 #endif
@@ -338,6 +342,30 @@
 #endif
 #ifndef DEFAULT_C_HOMING_MPOS
 #    define DEFAULT_C_HOMING_MPOS 0.0
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_0
+#    define DEFAULT_HOMING_CYCLE_0 bit(Z_AXIS)
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_1
+#    define DEFAULT_HOMING_CYCLE_1 (bit(X_AXIS) | bit(Y_AXIS))
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_2
+#    define DEFAULT_HOMING_CYCLE_2 0
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_3
+#    define DEFAULT_HOMING_CYCLE_3 0
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_4
+#    define DEFAULT_HOMING_CYCLE_4 0
+#endif
+
+#ifndef DEFAULT_HOMING_CYCLE_5
+#    define DEFAULT_HOMING_CYCLE_5 0
 #endif
 
 // ========== Motor current (SPI Drivers ) =============

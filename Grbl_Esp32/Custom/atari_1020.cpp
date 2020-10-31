@@ -90,7 +90,7 @@ void solenoidSyncTask(void* pvParameters) {
 // continue with regular homing after setup
 // return true if this completes homing
 
-bool user_defined_homing() {
+bool user_defined_homing(uint8_t cycle_mask) {
     // create and start a task to do the special homing
     homing_phase = HOMING_PHASE_FULL_APPROACH;
     atari_homing = true;

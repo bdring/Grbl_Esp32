@@ -45,8 +45,6 @@
 #define Y_STEPPER_MS3           I2SO(6)   // Y_CS
 #define Z_STEPPER_MS3           I2SO(11)  // Z_CS
 
-#define STEPPER_RESET           GPIO_NUM_19
-
 // Motor Socket #1
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)
@@ -122,9 +120,7 @@ Socket #5
 // #define CONTROL_SAFETY_DOOR_PIN      GPIO_NUM_27
 // //#define INVERT_CONTROL_PIN_MASK      B0000
 
-
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800
 #define DEFAULT_Z_STEPS_PER_MM      800
-

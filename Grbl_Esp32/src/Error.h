@@ -86,4 +86,4 @@ enum class Error : uint8_t {
     BadPinSpecification         = 150,
 };
 
-extern std::map<Error, const char*> ErrorCodes;
+extern std::map<Error, const char*> ErrorNames;

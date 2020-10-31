@@ -231,3 +231,9 @@ char* trim(char* str) {
     end[1] = '\0';
     return str;
 }
+
+// Returns the number of set number of set bits
+// Would return 3 for 01100010
+int numberOfSetBits(uint32_t i) {
+    return __builtin_popcount(i);
+}

@@ -37,8 +37,13 @@ Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block) {
             return Error::TravelExceeded;
         }
     }
-    // Valid jog command. Plan, set state, and execute.
+// Valid jog command. Plan, set state, and execute.
+#ifndef USE_KINEMATICS
     mc_line(gc_block->values.xyz, pl_data);
+#else  // else use kinematics
+    inverse_kinematics(gc_block->values.xyz, pl_data, gc_state.position);
+#endif
+
     if (sys.state == State::Idle) {
         if (plan_get_current_block() != NULL) {  // Check if there is a block to execute.
             sys.state = State::Jog;

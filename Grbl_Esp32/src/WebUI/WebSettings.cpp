@@ -306,9 +306,9 @@ namespace WebUI {
             return Error::SdFailedOpenFile;
         }
         //until no line in file
-        Error err;
-        Error accumErr = Error::Ok;
-        uint8_t client = (espresponse) ? espresponse->client() : CLIENT_ALL;
+        Error   err;
+        Error   accumErr = Error::Ok;
+        uint8_t client   = (espresponse) ? espresponse->client() : CLIENT_ALL;
         while (currentfile.available()) {
             String currentline = currentfile.readStringUntil('\n');
             if (currentline.length() > 0) {
@@ -398,7 +398,7 @@ namespace WebUI {
             user_password->setDefault();
             return Error::Ok;
         }
-        if (user_password->setStringValue(parameter)) {
+        if (user_password->setStringValue(parameter) != Error::Ok) {
             webPrintln("Invalid Password");
             return Error::InvalidValue;
         }
@@ -730,7 +730,7 @@ namespace WebUI {
             webPrintln("");
             return Error::Ok;
         }
-        SD_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
+        SD_client     = (espresponse) ? espresponse->client() : CLIENT_ALL;
         SD_auth_level = auth_level;
         // execute the first line now; Protocol.cpp handles later ones when SD_ready_next
         report_status_message(execute_line(fileLine, SD_client, SD_auth_level), SD_client);

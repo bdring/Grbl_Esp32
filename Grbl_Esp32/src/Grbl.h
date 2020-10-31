@@ -23,7 +23,7 @@
 // Grbl versioning system
 
 const char* const GRBL_VERSION       = "1.3a";
-const char* const GRBL_VERSION_BUILD = "20201015";
+const char* const GRBL_VERSION_BUILD = "20201027";
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -96,14 +96,17 @@ void run_once();
 void machine_init();
 
 // Called if USE_CUSTOM_HOMING is defined
-bool user_defined_homing();
+bool user_defined_homing(uint8_t cycle_mask);
 
 // Called if USE_KINEMATICS is defined
-void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
-bool kinematics_pre_homing(uint8_t cycle_mask);
-void kinematics_post_homing();
+
+void    inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
+bool    kinematics_pre_homing(uint8_t cycle_mask);
+void    kinematics_post_homing();
+uint8_t kinematic_limits_check(float* target);
 
 // Called if USE_FWD_KINEMATICS is defined
+void inverse_kinematics(float* position);  // used to return a converted value
 void forward_kinematics(float* position);
 
 // Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined

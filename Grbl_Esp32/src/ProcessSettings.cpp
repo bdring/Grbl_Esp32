@@ -347,12 +347,42 @@ Error doJog(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESP
     return gc_execute_line(jogLine, out->client());
 }
 
-const char* errorString(Error errorNumber) {
-    auto it = ErrorCodes.find(errorNumber);
-    return it == ErrorCodes.end() ? NULL : it->second;
+const char* alarmString(ExecAlarm alarmNumber) {
+    auto it = AlarmNames.find(alarmNumber);
+    return it == AlarmNames.end() ? NULL : it->second;
 }
 
-Error listErrorCodes(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+Error listAlarms(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    if (value) {
+        char*   endptr      = NULL;
+        uint8_t alarmNumber = strtol(value, &endptr, 10);
+        if (*endptr) {
+            grbl_sendf(out->client(), "Malformed alarm number: %s\r\n", value);
+            return Error::InvalidValue;
+        }
+        const char* alarmName = alarmString(static_cast<ExecAlarm>(alarmNumber));
+        if (alarmName) {
+            grbl_sendf(out->client(), "%d: %s\r\n", alarmNumber, alarmName);
+            return Error::Ok;
+        } else {
+            grbl_sendf(out->client(), "Unknown alarm number: %d\r\n", alarmNumber);
+            return Error::InvalidValue;
+        }
+    }
+
+    for (auto it = AlarmNames.begin(); it != AlarmNames.end(); it++) {
+        grbl_sendf(out->client(), "%d: %s\r\n", it->first, it->second);
+    }
+    return Error::Ok;
+}
+
+
+const char* errorString(Error errorNumber) {
+    auto it = ErrorNames.find(errorNumber);
+    return it == ErrorNames.end() ? NULL : it->second;
+}
+
+Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (value) {
         char*   endptr      = NULL;
         uint8_t errorNumber = strtol(value, &endptr, 10);
@@ -370,7 +400,7 @@ Error listErrorCodes(const char* value, WebUI::AuthenticationLevel auth_level, W
         }
     }
 
-    for (auto it = ErrorCodes.begin(); it != ErrorCodes.end(); it++) {
+    for (auto it = ErrorNames.begin(); it != ErrorNames.end(); it++) {
         grbl_sendf(out->client(), "%d: %s\r\n", it->first, it->second);
     }
     return Error::Ok;
@@ -407,7 +437,8 @@ void make_grbl_commands() {
     new GrblCommand("P", "Pins/List", list_pins, notCycleOrHold);
     new GrblCommand("PC", "Pins/ListChanged", list_changed_pins, notCycleOrHold);
     new GrblCommand("CMD", "Commands/List", list_commands, notCycleOrHold);
-    new GrblCommand("E", "ErrorCodes/List", listErrorCodes, anyState);
+    new GrblCommand("A", "Alarms/List", listAlarms, anyState);
+    new GrblCommand("E", "Errors/List", listErrors, anyState);
     new GrblCommand("G", "GCode/Modes", report_gcode, anyState);
     new GrblCommand("C", "GCode/Check", toggle_check_mode, anyState);
     new GrblCommand("X", "Alarm/Disable", disable_alarm_lock, anyState);

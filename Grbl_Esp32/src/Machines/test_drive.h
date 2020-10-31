@@ -37,6 +37,8 @@
 
 #define MACHINE_NAME "Test Drive - Demo Only No I/O!"
 
+
+#define N_AXIS 3
 // This cannot use homing because there are no switches
 #ifdef DEFAULT_HOMING_CYCLE_0
     #undef DEFAULT_HOMING_CYCLE_0
