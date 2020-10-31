@@ -57,13 +57,13 @@
 // Output devices:
 // - I2S
 
-// #define USE_I2S_OUT
-// #define USE_I2S_STEPS
-// #define I2S_OUT_BCK             GPIO_NUM_22
-// #define I2S_OUT_WS              GPIO_NUM_17
-// #define I2S_OUT_DATA            GPIO_NUM_21
-// 
-// #define COOLANT_MIST_PIN        "i2s.24"
+#define USE_I2S_OUT
+#define USE_I2S_STEPS
+// #define I2S_OUT_BCK             "gpio.22"
+// #define I2S_OUT_WS              "gpio.17"
+// #define I2S_OUT_DATA            "gpio.21"
+
+#define COOLANT_MIST_PIN        "i2so.24"
 
 // x CoolantControl
 

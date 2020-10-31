@@ -61,7 +61,7 @@ namespace Pins {
         }
     }
 
-    String I2SOPinDetail::toString() const { return String("I2S.") + int(_index); }
+    String I2SOPinDetail::toString() const { return String("I2SO.") + int(_index); }
 }
 
 #endif
