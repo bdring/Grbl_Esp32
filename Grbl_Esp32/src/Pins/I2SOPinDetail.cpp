@@ -1,5 +1,5 @@
 #ifdef ESP32
-#    include "I2SPinDetail.h"
+#    include "I2SOPinDetail.h"
 
 #    include "../I2SOut.h"
 #    include "../Assert.h"
@@ -7,7 +7,7 @@
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 namespace Pins {
-    I2SPinDetail::I2SPinDetail(uint8_t index, const PinOptionsParser& options) :
+    I2SOPinDetail::I2SOPinDetail(uint8_t index, const PinOptionsParser& options) :
         PinDetail(index), _capabilities(PinCapabilities::Output | PinCapabilities::I2S), _attributes(Pins::PinAttributes::Undefined),
         _readWriteMask(0) {
         // User defined pin capabilities
@@ -29,20 +29,20 @@ namespace Pins {
         }
     }
 
-    PinCapabilities I2SPinDetail::capabilities() const { return PinCapabilities::Output | PinCapabilities::I2S; }
+    PinCapabilities I2SOPinDetail::capabilities() const { return PinCapabilities::Output | PinCapabilities::I2S; }
 
-    void I2SPinDetail::write(int high) {
+    void I2SOPinDetail::write(int high) {
         Assert(_attributes.has(PinAttributes::Output), "Pin has no output attribute defined. Cannot write to it.");
         int value = _readWriteMask ^ high;
         i2s_out_write(_index, value);
     }
 
-    int I2SPinDetail::read() {
+    int I2SOPinDetail::read() {
         auto raw = i2s_out_read(_index);
         return raw ^ _readWriteMask;
     }
 
-    void I2SPinDetail::setAttr(PinAttributes value) {
+    void I2SOPinDetail::setAttr(PinAttributes value) {
         // Check the attributes first:
         Assert(value.validateWith(this->_capabilities), "The requested attributes don't match the pin capabilities");
         Assert(!_attributes.conflictsWith(value), "Attributes on this pin have been set before, and there's a conflict.");
@@ -61,7 +61,7 @@ namespace Pins {
         }
     }
 
-    String I2SPinDetail::toString() const { return String("I2S.") + int(_index); }
+    String I2SOPinDetail::toString() const { return String("I2S.") + int(_index); }
 }
 
 #endif

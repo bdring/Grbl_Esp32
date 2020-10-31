@@ -745,6 +745,15 @@ PinSetting* DynamixelRTSPin;  // DYNAMIXEL_RTS
 PinSetting* UserDigitalPin[4];
 PinSetting* UserAnalogPin[4];
 
+PinSetting* SPISSPin;    // SS
+PinSetting* SPISCKPin;   // SCK
+PinSetting* SPIMISOPin;  // MISO
+PinSetting* SPIMOSIPin;  // MOSI
+
+PinSetting* I2SOBCK;
+PinSetting* I2SOWS;
+PinSetting* I2SOData;
+
 PinSetting* SpindleOutputPin;
 PinSetting* SpindleEnablePin;
 PinSetting* SpindleDirectionPin;
@@ -797,6 +806,16 @@ void make_pin_settings() {
     UserAnalogPin[2]  = new PinSetting("UserAnalog/2/Pin", USER_ANALOG_PIN_2_DEFAULT);
     UserDigitalPin[3] = new PinSetting("UserDigital/3/Pin", USER_DIGITAL_PIN_3_DEFAULT);
     UserAnalogPin[3]  = new PinSetting("UserAnalog/3/Pin", USER_ANALOG_PIN_3_DEFAULT);
+
+    // SPI pins:
+    SPISSPin   = new PinSetting("SPI/SS/Pin", "GPIO.5");
+    SPISCKPin  = new PinSetting("SPI/SCK/Pin", "GPIO.18");
+    SPIMISOPin = new PinSetting("SPI/MISO/Pin", "GPIO.19");
+    SPIMOSIPin = new PinSetting("SPI/MOSI/Pin", "GPIO.23");
+
+    I2SOBCK  = new PinSetting("I2SO/BCK/Pin", "GPIO.22");
+    I2SOWS   = new PinSetting("I2SO/WS/Pin", "GPIO.17");
+    I2SOData = new PinSetting("I2SO/DATA/Pin", "GPIO.21");
 
     // Spindles:
     SpindleOutputPin    = new PinSetting("Spindle/Output/Pin", SPINDLE_OUTPUT_PIN_DEFAULT);

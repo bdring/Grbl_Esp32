@@ -19,6 +19,7 @@
 */
 
 #include "Grbl.h"
+#include "Eeprom.h"
 
 void memcpy_to_eeprom_with_checksum(unsigned int destination, const char* source, unsigned int size) {
     unsigned char checksum = 0;

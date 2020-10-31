@@ -84,8 +84,17 @@ extern PinSetting* DynamixelRTSPin;  // DYNAMIXEL_RTS
 extern PinSetting* UserDigitalPin[4];
 extern PinSetting* UserAnalogPin[4];
 
-// Spindle pins:
+// SPI pins:
+extern PinSetting* SPISSPin;    // SS
+extern PinSetting* SPISCKPin;   // SCK
+extern PinSetting* SPIMISOPin;  // MISO
+extern PinSetting* SPIMOSIPin;  // MOSI
 
+extern PinSetting* I2SOBCK;
+extern PinSetting* I2SOWS;
+extern PinSetting* I2SOData;
+
+// Spindle pins:
 extern PinSetting* SpindleOutputPin;
 extern PinSetting* SpindleEnablePin;
 extern PinSetting* SpindleDirectionPin;

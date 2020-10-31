@@ -20,9 +20,6 @@
 #include <SD.h>
 #include <SPI.h>
 
-#ifndef SDCARD_DET_PIN
-#    define SDCARD_DET_PIN -1
-#endif
 const int SDCARD_DET_VAL = 0;
 
 const int SDCARD_IDLE           = 0;

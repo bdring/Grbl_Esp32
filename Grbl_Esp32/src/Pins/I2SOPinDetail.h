@@ -4,13 +4,13 @@
 #    include "PinDetail.h"
 
 namespace Pins {
-    class I2SPinDetail : public PinDetail {
+    class I2SOPinDetail : public PinDetail {
         PinCapabilities _capabilities;
         PinAttributes   _attributes;
         int             _readWriteMask;
 
     public:
-        I2SPinDetail(uint8_t index, const PinOptionsParser& options);
+        I2SOPinDetail(uint8_t index, const PinOptionsParser& options);
 
         PinCapabilities capabilities() const override;
 
@@ -21,7 +21,7 @@ namespace Pins {
 
         String toString() const override;
 
-        ~I2SPinDetail() override {}
+        ~I2SOPinDetail() override {}
     };
 }
 

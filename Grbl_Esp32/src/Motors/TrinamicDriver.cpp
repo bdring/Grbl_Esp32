@@ -99,7 +99,12 @@ namespace Motors {
 
         config_message();
 
-        SPI.begin();  // this will get called for each motor, but does not seem to hurt anything
+        auto ssPin = SPISSPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto mosiPin = SPIMOSIPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto sckPin = SPISCKPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto misoPin = SPIMISOPin->get().getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
+
+        SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
 
         tmcstepper->begin();
 

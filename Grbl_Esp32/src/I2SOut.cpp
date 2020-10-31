@@ -61,6 +61,9 @@
 #include "Pin.h"
 #include "I2SOut.h"
 
+#include "Settings.h"
+#include "SettingsDefinitions.h"
+
 // Always enable I2S streaming logic
 #define USE_I2S_OUT_STREAM_IMPL
 
@@ -946,15 +949,6 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
     return 0;
 }
 
-#ifndef I2S_OUT_WS
-#    define I2S_OUT_WS GPIO_NUM_17
-#endif
-#ifndef I2S_OUT_BCK
-#    define I2S_OUT_BCK GPIO_NUM_22
-#endif
-#ifndef I2S_OUT_DATA
-#    define I2S_OUT_DATA GPIO_NUM_21
-#endif
 #ifndef I2S_OUT_INIT_VAL
 #    define I2S_OUT_INIT_VAL 0
 #endif
@@ -964,13 +958,13 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
   return -1 ... already initialized
 */
 int IRAM_ATTR i2s_out_init() {
-    i2s_out_init_t default_param = {
-        .ws_pin       = I2S_OUT_WS,
-        .bck_pin      = I2S_OUT_BCK,
-        .data_pin     = I2S_OUT_DATA,
-        .pulse_func   = NULL,
-        .pulse_period = I2S_OUT_USEC_PER_PULSE,
-        .init_val     = I2S_OUT_INIT_VAL,
-    };
+    i2s_out_init_t default_param;
+    default_param.ws_pin       = I2SOWS->get().getNative(Pin::Capabilities::Output);
+    default_param.bck_pin      = I2SOBCK->get().getNative(Pin::Capabilities::Output);
+    default_param.data_pin     = I2SOData->get().getNative(Pin::Capabilities::Output);
+    default_param.pulse_func   = NULL;
+    default_param.pulse_period = I2S_OUT_USEC_PER_PULSE;
+    default_param.init_val     = I2S_OUT_INIT_VAL;
+
     return i2s_out_init(default_param);
 }

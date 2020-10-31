@@ -4,7 +4,7 @@
 #include "Pins/PinOptionsParser.h"
 #include "Pins/VoidPinDetail.h"
 #include "Pins/GPIOPinDetail.h"
-#include "Pins/I2SPinDetail.h"
+#include "Pins/I2SOPinDetail.h"
 
 #if defined PIN_DEBUG && defined ESP32
 #    include "Pins/DebugPinDetail.h"
@@ -83,9 +83,9 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
     // Build this pin:
     if (prefix == "gpio") {
         pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
-    } else if (prefix == "i2s") {
+    } else if (prefix == "i2so") {
 #ifdef ESP32
-        pinImplementation = new Pins::I2SPinDetail(uint8_t(pinNumber), parser);
+        pinImplementation = new Pins::I2SOPinDetail(uint8_t(pinNumber), parser);
 #else
         return false;  // not supported
 #endif

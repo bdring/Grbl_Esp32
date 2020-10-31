@@ -57,9 +57,6 @@
     <ClInclude Include="Grbl_Esp32\src\Pins\GPIOPinDetail.h">
       <Filter>src\Pins</Filter>
     </ClInclude>
-    <ClInclude Include="Grbl_Esp32\src\Pins\I2SPinDetail.h">
-      <Filter>src\Pins</Filter>
-    </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\StackTrace\AssertionFailed.h">
       <Filter>src\StackTrace</Filter>
     </ClInclude>
@@ -75,15 +72,15 @@
     <ClInclude Include="X86TestSupport\Arduino.h">
       <Filter>X86TestSupport</Filter>
     </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Pins\I2SOPinDetail.h">
+      <Filter>src\Pins</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Grbl_Esp32\test\TestFrameworkTest.cpp">
       <Filter>test</Filter>
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\test\test_main.cpp">
-      <Filter>test</Filter>
-    </ClCompile>
-    <ClCompile Include="Grbl_Esp32\test\TestFactory.cpp">
       <Filter>test</Filter>
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\test\Pins\Error.cpp">
@@ -125,9 +122,6 @@
     <ClCompile Include="Grbl_Esp32\src\Pins\GPIOPinDetail.cpp">
       <Filter>src\Pins</Filter>
     </ClCompile>
-    <ClCompile Include="Grbl_Esp32\src\Pins\I2SPinDetail.cpp">
-      <Filter>src\Pins</Filter>
-    </ClCompile>
     <ClCompile Include="Grbl_Esp32\src\StackTrace\AssertionFailed.cpp">
       <Filter>src\StackTrace</Filter>
     </ClCompile>
@@ -145,6 +139,12 @@
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\test\Pins\PinOptionParsing.cpp">
       <Filter>test\Pins</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\TestFactory.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Pins\I2SOPinDetail.cpp">
+      <Filter>src\Pins</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

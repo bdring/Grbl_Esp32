@@ -20,7 +20,7 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+// #include "Grbl.h"
 
 // Define EEPROM memory address location values for saved coordinate data.
 const int EEPROM_SIZE            = 1024U;
