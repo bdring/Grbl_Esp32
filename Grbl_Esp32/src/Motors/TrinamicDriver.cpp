@@ -382,7 +382,7 @@ namespace Motors {
         if (status.ola || status.olb) {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
-                           "%s Motor Open Load a:%s b:%s",
+                           "%s Driver Open Load a:%s b:%s",
                            reportAxisNameMsg(_axis_index, _dual_axis_index),
                            status.ola ? "Y" : "N",
                            status.olb ? "Y" : "N");
@@ -395,7 +395,7 @@ namespace Motors {
         if (status.s2ga || status.s2gb) {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
-                           "%s Motor Short Coil a:%s b:%s",
+                           "%s Driver Short Coil a:%s b:%s",
                            reportAxisNameMsg(_axis_index, _dual_axis_index),
                            status.s2ga ? "Y" : "N",
                            status.s2gb ? "Y" : "N");
