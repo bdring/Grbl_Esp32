@@ -1,0 +1,33 @@
+---
+name: External 4 Axis Driver Board V2
+x:
+        limit: gpio.34:low
+        external-stepper:
+                step: gpio.0
+                direction: gpio.2
+y:
+        limit: gpio.35:low
+        external-stepper:
+                step: gpio.26
+                direction: gpio.15
+z:
+        limit: gpio.36:low
+        external-stepper:
+                step: gpio.27
+                direction: gpio.33
+a:
+	limit: gpio.39:low
+        external-stepper:
+                step: gpio.12
+                direction: gpio.14
+steppers:
+        disable: gpio.13
+spindle:
+        huanyang:
+                TxD: gpio.17
+                RxD: gpio.4
+                RTS: gpio.16
+                debug: on
+
+probe: gpio.32
+mist: gpio.21

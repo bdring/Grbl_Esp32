@@ -1,0 +1,39 @@
+---
+name: 6 Pack StepStick XYYZ SW_XYZP
+i2so:
+        bck: gpio.22
+        ws: gpio.17
+        data: gpio.21
+x:
+        limit: gpio.33:low
+        tmc2130:
+		6pack-socket1
+		rsense: 0.11
+		run: coolstep
+		homing: stallguard
+y:
+	limit: gpio.32:low
+	stepstick:
+		6pack-socket2
+z:
+	limit: gpio.35:low
+	tmc2130:
+		6pack-socket3
+		rsense: 0.11
+		run: coolstep
+		homing: stallguard
+a:
+	dynamixel:
+                RxD: gpio.26
+                RTS: gpio.4
+                TxD: gpio.16
+                protocol: 1
+b:
+	rcservo:
+                pin: gpio.27
+                min: 1.0
+                max: 1.0
+
+steppers:
+        reset: gpio.19
+        pulse: 4

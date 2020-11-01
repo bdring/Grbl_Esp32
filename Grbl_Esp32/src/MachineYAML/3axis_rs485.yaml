@@ -1,0 +1,35 @@
+---
+name: 3axis-rs485
+x:
+        limit: gpio.33:low
+        stepstick:
+                step: gpio.4
+                direction: gpio.16
+y:
+        limit: gpio.32:low
+        stepstick:
+                step: gpio.18
+                direction: gpio.18
+y2:
+        stepstick:
+                step: gpio.19
+                direction: gpio.21
+z:
+        limit: gpio.34:low
+        stepstick:
+                step: gpio.22
+                direction: gpio.23
+spindle:
+        VFD-RS485:
+                TxD: gpio.13
+                RTS: gpio.15
+                RxD: gpio.2
+                debug: on
+homing:
+        cycle0: x
+        cycle1: xy
+probe: gpio.14
+reset: gpio.27:low
+feed-hold: gpio.26:low
+cycle-start: gpio.25:low
+

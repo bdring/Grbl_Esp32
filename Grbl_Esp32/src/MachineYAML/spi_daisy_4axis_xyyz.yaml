@@ -1,0 +1,39 @@
+---
+name: SPI_DAISY_4X_xyyz
+homing:
+        squared: y
+x:
+        limit: gpio.36:low
+        tmc2130:
+                step: gpio.12
+                direction: gpio.14
+                cs: gpio.17
+		rsense: 0.11
+y:
+	limit: gpio.39:low
+	tmc2130:
+                step: gpio.27
+                direction: gpio.26
+                cs: gpio.17
+		rsense: 0.11
+y2:
+	tmc2130:
+                step: gpio.15
+                direction: gpio.2
+                cs: gpio.17
+		rsense: 0.11
+z:
+	limit: gpio.34:low
+	tmc2130:
+                step: gpio.33
+                direction: gpio.32
+                cs: gpio.17
+		rsense: 0.11
+mist: gpio.21
+probe: gpio.22
+spindle:
+        pwm:
+                output: gpio.25
+                enable: gpio.4
+                direction: gpio.16
+                rpm-max: 1

@@ -1,0 +1,63 @@
+name: Atari 1020
+custom-code: Custom/atari_1020.cpp
+x:
+        unipolar:
+                phase0: gpio.13
+                phase1: gpio.21
+                phase2: gpio.16
+                phase3: gpio.22
+        spmm: 10
+        max-rate: 5000
+        acceleration: 500
+        max-travel: 120
+y:
+        unipolar:
+                phase0: gpio.25
+                phase1: gpio.27
+                phase2: gpio.26
+                phase3: gpio.32
+        spmm: 10
+        max-rate: 5000
+        acceleration: 500
+        max-travel: 20000
+z:
+        spmm: 100
+        max-rate: 200000
+        acceleration: 500
+        max-travel: 10
+solenoid:
+        direction: gpio.4
+        pen: gpio.2
+        pwm-frequency: 5000
+        pwm-bits: 8
+        pulse-len: 255
+        pulse-hold: 40
+        duration: 50
+        task-frequency: 50
+
+pens: 4
+pen-change-bumps: 3
+tool-change-z: 5.0
+use-m30: on
+
+reed-switch: gpio.17
+macro:
+        button0: gpio.34
+        button1: gpio.35
+        button2: gpio.36
+steppers:
+        pulse: 3
+        idle: 200
+homing:
+        feed-rate: 3000
+        seek-rate: 3000
+        delay: 250
+        pulloff: 2.0
+
+junction-deviation: 0.01
+arc-tolerance: 0.002
+report-status-mask: 1
+
+invert-limit-pins: on
+
+                

@@ -1,0 +1,42 @@
+---
+name: ESP32 I2S 6 Axis Driver Board (StepStick)
+sdcard: off
+i2so:
+        bck: gpio.22
+        ws: gpio.17
+        data: gpio.21
+steppers:
+        ms1: gpio.23
+        ms2: gpio.18
+        reset: gpio.19
+        pulse: 4
+x:
+        limit: gpio.36:low
+        stepstick:
+                6pack-socket1
+y:
+        limit: gpio.39:low
+        stepstick:
+                6pack-socket2
+z:
+        limit: gpio.34:low
+        stepstick:
+                6pack-socket3
+a:
+        limit: gpio.35:low
+        stepstick:
+                6pack-socket4
+b:
+        limit: gpio.32:low
+                stepstick:
+                6pack-socket5
+c:
+        limit: gpio.33:low
+        stepstick:
+                6pack-socket6
+spindle:
+        pwm:
+                output: gpio.26
+                enable: gpio.4
+                direction: gpio.16
+probe: gpio.25

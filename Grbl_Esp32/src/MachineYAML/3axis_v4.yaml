@@ -1,0 +1,26 @@
+---
+name: esp32_v4
+x:
+        limit: gpio.17:low
+        stepstick:
+                step: gpio.12
+                direction: gpio.14
+y:
+        limit: gpio.4:low
+        stepstick:
+                step: gpio.26
+                direction: gpio.15
+z:
+        limit: gpio.16:low
+        stepstick:
+                step: gpio.27
+                direction: gpio.33
+steppers:
+        disable: gpio.13
+spindle:
+        pwm:
+                output: gpio.2
+                enable: gpio.22
+mist: gpio.21
+flood: gpio.25
+probe: gpio.32

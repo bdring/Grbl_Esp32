@@ -1,0 +1,31 @@
+---
+name: esp32_v3.5
+
+x:
+        limit: gpio.2:low
+        stepstick:
+                step: gpio.12
+                direction: gpio.26
+y:
+        limit: gpio.4:low
+        stepstick:
+                step: gpio.14
+                direction: gpio.25
+z:
+        limit: gpio.15:low
+        stepstick:
+                step: gpio.27
+                direction: gpio.33
+steppers:
+        disable: gpio.13
+spindle:
+        pwm:
+                output: gpio.17
+                enable: gpio.22
+mist: gpio.21
+flood: gpio.16
+probe: gpio.32
+door: gpio.35:low
+reset: gpio.34:low
+feed-hold: gpio.36:low
+cycle-start: gpio.39:low

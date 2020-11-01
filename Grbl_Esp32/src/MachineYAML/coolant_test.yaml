@@ -1,0 +1,4 @@
+---
+name: Coolant Test
+mist: gpio.21
+flood: gpio.25

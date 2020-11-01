@@ -1,0 +1,46 @@
+---
+name: PEN_LASER_V2
+homing:
+        feed-rate: 200
+        seek-rate: 1000
+        debounce: 250
+        pulloff: 3
+x:
+        limit: gpio.2:low
+        stepstick:
+                step: gpio.12
+                direction: gpio.26
+        spmm: 80
+        max-rate: 5000
+        acceleration: 50
+        travel: 300
+y:
+        limit: gpio.4:low
+        stepstick:
+                step: gpio.14
+                direction: gpio.25
+        spmm: 80
+        max-rate: 5000
+        acceleration: 50
+        travel: 300
+z:
+        limit: gpio.15:low
+        stepstick:
+                step: gpio.27
+                direction: gpio.33
+        spmm: 100
+        max-rate: 5000
+        acceleration: 50
+        travel: 100
+
+steppers:
+        disable: gpio.13
+        pulse: 3
+        idle: never
+probe: gpio.35
+
+status-report-mask: 1
+junction_deviation: 0.01
+arc-tolerance: 0.002
+report-inches: 0
+laser-mode: off

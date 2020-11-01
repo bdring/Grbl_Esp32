@@ -1,0 +1,55 @@
+---
+name: ESP32 SPI 6 Axis Driver Board Trinamic
+i2so:
+        bck: gpio.22
+        ws: gpio.17
+        data: gpio.21
+steppers:
+        pulse: 4
+x:
+        limit: gpio.33:low
+        tmc2130:
+                6pack-socket1
+                run: coolstep
+                hold: coolstep
+                rsense: 0.11
+y:
+        limit: gpio.32:low
+        tmc2130:
+                6pack-socket2
+                run: coolstep
+                hold: coolstep
+                rsense: 0.11
+z:
+        limit: gpio.35:low
+        tmc2130:
+                6pack-socket3
+                run: coolstep
+                hold: coolstep
+                rsense: 0.11
+a:
+        limit: gpio.34:low
+        tmc2130:
+                6pack-socket4
+                run: coolstep
+                hold: coolstep
+                rsense: 0.11
+b:
+        limit: gpio.39:low
+                tmc2130:
+                6pack-socket5
+                run: coolstep
+                hold: coolstep
+                rsense: 0.11
+c:
+        limit: gpio.36:low
+        tmc2130:
+                6pack-socket6
+                run: coolstep
+                hold: coolstep
+                rsense: 0.11
+spindle:
+        relay:
+                output: gpio.26
+probe: gpio.25
+mist: gpio.2
