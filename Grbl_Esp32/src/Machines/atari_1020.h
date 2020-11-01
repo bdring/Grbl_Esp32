@@ -51,13 +51,13 @@
 #define Y_PIN_PHASE_2 "gpio.26"
 #define Y_PIN_PHASE_3 "gpio.32"
 
-#define SOLENOID_DIRECTION_PIN "gpio.4"
-#define SOLENOID_PEN_PIN "gpio.2"
+#define SOLENOID_DIRECTION_PIN GPIO_NUM_4
+#define SOLENOID_PEN_PIN GPIO_NUM_2
 
 // this 'bot only homes the X axis
 // Set $Homing/Cycle0=0 
 
-#define REED_SW_PIN "gpio.17"
+#define REED_SW_PIN GPIO_NUM_17
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE
