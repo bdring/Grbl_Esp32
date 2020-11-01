@@ -47,9 +47,9 @@
 
 // =================== Machine Hardware Definition =============
 
-#define DYNAMIXEL_TXD           GPIO_NUM_4
-#define DYNAMIXEL_RXD           GPIO_NUM_13
-#define DYNAMIXEL_RTS           GPIO_NUM_17
+#define DYNAMIXEL_TXD           "gpio.4"
+#define DYNAMIXEL_RXD           "gpio.13"
+#define DYNAMIXEL_RTS           "gpio.17"
 
 #define X_DYNAMIXEL_ID          1 // protocol ID
 #define Y_DYNAMIXEL_ID          2 // protocol ID
@@ -69,17 +69,17 @@
 
 #define SERVO_TIMER_INTERVAL 50
 
-#define USER_DIGITAL_PIN_0      GPIO_NUM_25
-#define USER_DIGITAL_PIN_1      GPIO_NUM_26
-#define USER_DIGITAL_PIN_2      GPIO_NUM_27
+#define USER_DIGITAL_PIN_0      "gpio.25"
+#define USER_DIGITAL_PIN_1      "gpio.26"
+#define USER_DIGITAL_PIN_2      "gpio.27"
 
-#define USER_ANALOG_PIN_0       GPIO_NUM_2
+#define USER_ANALOG_PIN_0       "gpio.2"
 #define USER_ANALOG_PIN_0_FREQ  50              // for use with RC servos duty range 5% to 10% 
 
-#define USER_ANALOG_PIN_1       GPIO_NUM_15
+#define USER_ANALOG_PIN_1       "gpio.15"
 #define USER_ANALOG_PIN_1_FREQ  50              // for use with RC servos duty range 5% to 10% 
 
-#define USER_ANALOG_PIN_2       GPIO_NUM_16
+#define USER_ANALOG_PIN_2       "gpio.16"
 #define USER_ANALOG_PIN_2_FREQ  50              // for use with RC servos duty range 5% to 10% 
 
 // ===================== Default Settings ==============================

@@ -40,24 +40,24 @@
 #endif
 
 #define X_UNIPOLAR
-#define X_PIN_PHASE_0 GPIO_NUM_13
-#define X_PIN_PHASE_1 GPIO_NUM_21
-#define X_PIN_PHASE_2 GPIO_NUM_16
-#define X_PIN_PHASE_3 GPIO_NUM_22
+#define X_PIN_PHASE_0 "gpio.13"
+#define X_PIN_PHASE_1 "gpio.21"
+#define X_PIN_PHASE_2 "gpio.16"
+#define X_PIN_PHASE_3 "gpio.22"
 
 #define Y_UNIPOLAR
-#define Y_PIN_PHASE_0 GPIO_NUM_25
-#define Y_PIN_PHASE_1 GPIO_NUM_27
-#define Y_PIN_PHASE_2 GPIO_NUM_26
-#define Y_PIN_PHASE_3 GPIO_NUM_32
+#define Y_PIN_PHASE_0 "gpio.25"
+#define Y_PIN_PHASE_1 "gpio.27"
+#define Y_PIN_PHASE_2 "gpio.26"
+#define Y_PIN_PHASE_3 "gpio.32"
 
-#define SOLENOID_DIRECTION_PIN GPIO_NUM_4
-#define SOLENOID_PEN_PIN GPIO_NUM_2
+#define SOLENOID_DIRECTION_PIN "gpio.4"
+#define SOLENOID_PEN_PIN "gpio.2"
 
 // this 'bot only homes the X axis
 // Set $Homing/Cycle0=0 
 
-#define REED_SW_PIN GPIO_NUM_17
+#define REED_SW_PIN "gpio.17"
 
 #ifndef ENABLE_CONTROL_SW_DEBOUNCE
     #define ENABLE_CONTROL_SW_DEBOUNCE
@@ -68,9 +68,9 @@
 #endif
 #define INVERT_CONTROL_PIN_MASK B01110000
 
-#define MACRO_BUTTON_0_PIN GPIO_NUM_34 // Pen Switch
-#define MACRO_BUTTON_1_PIN GPIO_NUM_35 // Color Switch
-#define MACRO_BUTTON_2_PIN GPIO_NUM_36 // Paper Switch
+#define MACRO_BUTTON_0_PIN "gpio.34" // Pen Switch
+#define MACRO_BUTTON_1_PIN "gpio.35" // Color Switch
+#define MACRO_BUTTON_2_PIN "gpio.36" // Paper Switch
 
 #ifdef DEFAULTS_GENERIC
     #undef DEFAULTS_GENERIC // undefine generic then define each default below

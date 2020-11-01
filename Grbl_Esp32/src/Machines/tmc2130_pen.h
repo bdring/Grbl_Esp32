@@ -32,36 +32,36 @@
 
 #ifdef MACHINE_V1
     #define MACHINE_NAME    "ESP32_TMC2130_PEN V1"
-    #define X_LIMIT_PIN     GPIO_NUM_2
+    #define X_LIMIT_PIN     "gpio.2"
 #else
     #define MACHINE_NAME    "ESP32_TMC2130_PEN V2"
-    #define X_LIMIT_PIN     GPIO_NUM_32
+    #define X_LIMIT_PIN     "gpio.32"
 #endif
 
 #define TRINAMIC_RUN_MODE           TrinamicMode :: CoolStep
 #define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
 
-#define X_STEP_PIN              GPIO_NUM_12
-#define X_DIRECTION_PIN         GPIO_NUM_26
+#define X_STEP_PIN              "gpio.12"
+#define X_DIRECTION_PIN         "gpio.26"
 #define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
-#define X_CS_PIN                GPIO_NUM_17  //chip select
+#define X_CS_PIN                "gpio.17"  //chip select
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
 
-#define Y_STEP_PIN              GPIO_NUM_14
-#define Y_DIRECTION_PIN         GPIO_NUM_25
+#define Y_STEP_PIN              "gpio.14"
+#define Y_DIRECTION_PIN         "gpio.25"
 #define Y_TRINAMIC_DRIVER       2130        // Which Driver Type?
-#define Y_CS_PIN                GPIO_NUM_16  //chip select
+#define Y_CS_PIN                "gpio.16"  //chip select
 #define Y_RSENSE                TMC2130_RSENSE_DEFAULT
 
 // OK to comment out to use pin for other features
-#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN "gpio.13"
 
 
 // Define one of these 2 options for spindle or servo
-#define Z_SERVO_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
+#define Z_SERVO_PIN                     "gpio.27" // comment this out if PWM spindle/laser control.
 
 // #define X_LIMIT_PIN          See version section at beginning of file
-#define Y_LIMIT_PIN             GPIO_NUM_4
+#define Y_LIMIT_PIN             "gpio.4"
 
 // defaults
 #define DEFAULT_Z_STEPS_PER_MM 100.0    // This is used as the servo calibration

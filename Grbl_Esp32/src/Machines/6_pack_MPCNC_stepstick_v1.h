@@ -35,40 +35,40 @@
 
 #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 
-#define I2S_OUT_BCK      GPIO_NUM_22
-#define I2S_OUT_WS       GPIO_NUM_17
-#define I2S_OUT_DATA     GPIO_NUM_21
+#define I2S_OUT_BCK      "gpio.22"
+#define I2S_OUT_WS       "gpio.17"
+#define I2S_OUT_DATA     "gpio.21"
 
-#define X_STEPPER_MS3           I2SO(3)   // Labeled X_CS
-#define Y_STEPPER_MS3           I2SO(6)   // Y_CS
-#define Z_STEPPER_MS3           I2SO(11)  // Z_CS
-#define X2_STEPPER_MS3          I2SO(14)  // A_CS
-#define Y2_STEPPER_MS3          I2SO(19)  // B_CS
+#define X_STEPPER_MS3           "i2so.3"   // Labeled X_CS
+#define Y_STEPPER_MS3           "i2so.6"   // Y_CS
+#define Z_STEPPER_MS3           "i2so.11"  // Z_CS
+#define X2_STEPPER_MS3          "i2so.14"  // A_CS
+#define Y2_STEPPER_MS3          "i2so.19"  // B_CS
 
 // Motor Socket #1
-#define X_DISABLE_PIN           I2SO(0)
-#define X_DIRECTION_PIN         I2SO(1)
-#define X_STEP_PIN              I2SO(2)
+#define X_DISABLE_PIN           "i2so.0"
+#define X_DIRECTION_PIN         "i2so.1"
+#define X_STEP_PIN              "i2so.2"
 
 // Motor Socket #2
-#define Y_DIRECTION_PIN         I2SO(4)
-#define Y_STEP_PIN              I2SO(5)
-#define Y_DISABLE_PIN           I2SO(7)
+#define Y_DIRECTION_PIN         "i2so.4"
+#define Y_STEP_PIN              "i2so.5"
+#define Y_DISABLE_PIN           "i2so.7"
 
 // Motor Socket #3
-#define Z_DISABLE_PIN           I2SO(8)
-#define Z_DIRECTION_PIN         I2SO(9)
-#define Z_STEP_PIN              I2SO(10)
+#define Z_DISABLE_PIN           "i2so.8"
+#define Z_DIRECTION_PIN         "i2so.9"
+#define Z_STEP_PIN              "i2so.10"
 
 // Motor Socket #4
-#define X2_DIRECTION_PIN         I2SO(12)
-#define X2_STEP_PIN              I2SO(13)
-#define X2_DISABLE_PIN           I2SO(15)
+#define X2_DIRECTION_PIN         "i2so.12"
+#define X2_STEP_PIN              "i2so.13"
+#define X2_DISABLE_PIN           "i2so.15"
 
 // Motor Socket #5
-#define Y2_DISABLE_PIN           I2SO(16)
-#define Y2_DIRECTION_PIN         I2SO(17)
-#define Y2_STEP_PIN              I2SO(18)
+#define Y2_DISABLE_PIN           "i2so.16"
+#define Y2_DIRECTION_PIN         "i2so.17"
+#define Y2_STEP_PIN              "i2so.18"
 
 
 /*
@@ -78,46 +78,46 @@
     Click on each module to get example for using the modules in the sockets
 
 Socket #1
-#1 GPIO_NUM_33 
-#2 GPIO_NUM_32
-#3 GPIO_NUM_35 (input only)
-#4 GPIO_NUM_34 (input only)
+#1 "gpio.33" 
+#2 "gpio.32"
+#3 "gpio.35" (input only)
+#4 "gpio.34" (input only)
 
 Socket #2
-#1 GPIO_NUM_2
-#2 GPIO_NUM_25
-#3 GPIO_NUM_39 (input only)
-#4 GPIO_NUM_36 (input only)
+#1 "gpio.2"
+#2 "gpio.25"
+#3 "gpio.39" (input only)
+#4 "gpio.36" (input only)
 
 Socket #3
-#1 GPIO_NUM_26
-#2 GPIO_NUM_4
-#3 GPIO_NUM_16
-#4 GPIO_NUM_27
+#1 "gpio.26"
+#2 "gpio.4"
+#3 "gpio.16"
+#4 "gpio.27"
 
 Socket #4
-#1 GPIO_NUM_14
-#2 GPIO_NUM_13
-#3 GPIO_NUM_15
-#4 GPIO_NUM_12
+#1 "gpio.14"
+#2 "gpio.13"
+#3 "gpio.15"
+#4 "gpio.12"
 
 Socket #5
-#1 I2SO(24)  (output only)
-#2 I2SO(25)  (output only)
-#3 I2SO26)  (output only)
+#1 "i2so.24"  (output only)
+#2 "i2so.25"  (output only)
+#3 "i2so.26"  (output only)
 
 */
 
 // 4x Input Module in Socket #1
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define X_LIMIT_PIN             GPIO_NUM_33
-#define Y_LIMIT_PIN             GPIO_NUM_32
-#define Z_LIMIT_PIN             GPIO_NUM_35
-#define X2_LIMIT_PIN            GPIO_NUM_34
+#define X_LIMIT_PIN             "gpio.33"
+#define Y_LIMIT_PIN             "gpio.32"
+#define Z_LIMIT_PIN             "gpio.35"
+#define X2_LIMIT_PIN            "gpio.34"
 
 // 4x Input Module in Socket #2
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define Y2_LIMIT_PIN            GPIO_NUM_2
+#define Y2_LIMIT_PIN            "gpio.2"
 
 
 // === Default settings

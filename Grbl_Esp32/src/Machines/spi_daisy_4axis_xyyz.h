@@ -47,38 +47,38 @@
 // Y motor connects to the 1st driver
 #define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
-#define X_STEP_PIN              GPIO_NUM_12
-#define X_DIRECTION_PIN         GPIO_NUM_14
-#define X_CS_PIN                GPIO_NUM_17  // Daisy Chain, all share same CS pin
+#define X_STEP_PIN              "gpio.12"
+#define X_DIRECTION_PIN         "gpio.14"
+#define X_CS_PIN                "gpio.17"  // Daisy Chain, all share same CS pin
 
 // Y motor connects to the 2nd driver
 #define Y_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define Y_RSENSE                TMC2130_RSENSE_DEFAULT
-#define Y_STEP_PIN              GPIO_NUM_27
-#define Y_DIRECTION_PIN         GPIO_NUM_26
+#define Y_STEP_PIN              "gpio.27"
+#define Y_DIRECTION_PIN         "gpio.26"
 #define Y_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 // Y2 motor connects to the 2nd driver
 #define Y2_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define Y2_RSENSE                TMC2130_RSENSE_DEFAULT
-#define Y2_STEP_PIN              GPIO_NUM_15  // Z on schem
-#define Y2_DIRECTION_PIN         GPIO_NUM_2   // Z on schem
+#define Y2_STEP_PIN              "gpio.15"  // Z on schem
+#define Y2_DIRECTION_PIN         "gpio.2"   // Z on schem
 #define Y2_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 // Z Axis motor connects to the 4th driver
 #define Z_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define Z_RSENSE                TMC2130_RSENSE_DEFAULT
-#define Z_STEP_PIN              GPIO_NUM_33 // A on schem
-#define Z_DIRECTION_PIN         GPIO_NUM_32 // A on schem
+#define Z_STEP_PIN              "gpio.33" // A on schem
+#define Z_DIRECTION_PIN         "gpio.32" // A on schem
 #define Z_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 // Mist is a 3.3V output
 // Turn on with M7 and off with M9
-#define COOLANT_MIST_PIN        GPIO_NUM_21
+#define COOLANT_MIST_PIN        "gpio.21"
 
 #define SPINDLE_TYPE            SpindleType::PWM
-#define SPINDLE_OUTPUT_PIN         GPIO_NUM_25
-#define SPINDLE_ENABLE_PIN      GPIO_NUM_4
+#define SPINDLE_OUTPUT_PIN         "gpio.25"
+#define SPINDLE_ENABLE_PIN      "gpio.4"
 
 // Relay operation
 // Install Jumper near relay
@@ -87,9 +87,9 @@
 // Interlock jumper along top edge needs to be installed for both versions
 #define DEFAULT_SPINDLE_RPM_MAX     1 // Should be 1 for relay operation
 
-#define PROBE_PIN               GPIO_NUM_22
+#define PROBE_PIN               "gpio.22"
 
-#define X_LIMIT_PIN             GPIO_NUM_36
-#define Y_LIMIT_PIN             GPIO_NUM_39
-#define Z_LIMIT_PIN             GPIO_NUM_34
+#define X_LIMIT_PIN             "gpio.36"
+#define Y_LIMIT_PIN             "gpio.39"
+#define Z_LIMIT_PIN             "gpio.34"
 

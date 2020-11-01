@@ -31,47 +31,47 @@
 
 #define DEFAULT_HOMING_SQUARED_AXES (bit(X_AXIS) | bit(Y_AXIS))
 
-#define X_STEP_PIN      GPIO_NUM_12
-#define X2_STEP_PIN     GPIO_NUM_22  // ganged motor
+#define X_STEP_PIN      "gpio.12"
+#define X2_STEP_PIN     "gpio.22"  // ganged motor
 
-#define Y_STEP_PIN      GPIO_NUM_14
-#define Y2_STEP_PIN     GPIO_NUM_21  // ganged motor
+#define Y_STEP_PIN      "gpio.14"
+#define Y2_STEP_PIN     "gpio.21"  // ganged motor
 
-#define Z_STEP_PIN      GPIO_NUM_27
+#define Z_STEP_PIN      "gpio.27"
 
-#define X_DIRECTION_PIN GPIO_NUM_26
+#define X_DIRECTION_PIN "gpio.26"
 #define X2_DIRECTION_PIN X_DIRECTION_PIN
-#define Y_DIRECTION_PIN GPIO_NUM_25
+#define Y_DIRECTION_PIN "gpio.25"
 #define Y2_DIRECTION_PIN Y_DIRECTION_PIN
-#define Z_DIRECTION_PIN GPIO_NUM_33
+#define Z_DIRECTION_PIN "gpio.33"
 
 // OK to comment out to use pin for other features
-#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN "gpio.13"
 
-// Note: if you use PWM rather than relay, you could map GPIO_NUM_2 to mist or flood
+// Note: if you use PWM rather than relay, you could map "gpio.2" to mist or flood
 //#define USE_SPINDLE_RELAY
 
 #ifdef USE_SPINDLE_RELAY
     #define SPINDLE_TYPE SpindleType::RELAY
-    #define SPINDLE_OUTPUT_PIN GPIO_NUM_17
+    #define SPINDLE_OUTPUT_PIN "gpio.17"
 #else
     #define SPINDLE_TYPE SpindleType::PWM
-    #define SPINDLE_OUTPUT_PIN GPIO_NUM_16
+    #define SPINDLE_OUTPUT_PIN "gpio.16"
 
-    #define SPINDLE_ENABLE_PIN GPIO_NUM_32
+    #define SPINDLE_ENABLE_PIN "gpio.32"
 #endif
 
 // Note: Only uncomment this if USE_SPINDLE_RELAY is commented out.
 // Relay can be used for spindle or either coolant
-//#define COOLANT_FLOOD_PIN     GPIO_NUM_2
-//#define COOLANT_MIST_PIN      GPIO_NUM_2
+//#define COOLANT_FLOOD_PIN     "gpio.2"
+//#define COOLANT_MIST_PIN      "gpio.2"
 
 
-#define X_LIMIT_PIN             GPIO_NUM_2
-#define Y_LIMIT_PIN             GPIO_NUM_4
-#define Z_LIMIT_PIN             GPIO_NUM_15
+#define X_LIMIT_PIN             "gpio.2"
+#define Y_LIMIT_PIN             "gpio.4"
+#define Z_LIMIT_PIN             "gpio.15"
 
-#define PROBE_PIN               GPIO_NUM_35
+#define PROBE_PIN               "gpio.35"
 
 // The default value in config.h is wrong for this controller
 #ifdef INVERT_CONTROL_PIN_MASK
@@ -80,9 +80,9 @@
 
 #define INVERT_CONTROL_PIN_MASK B1110
 
-#define CONTROL_RESET_PIN           GPIO_NUM_34  // needs external pullup
-#define CONTROL_FEED_HOLD_PIN       GPIO_NUM_36  // needs external pullup
-#define CONTROL_CYCLE_START_PIN     GPIO_NUM_39  // needs external pullup
+#define CONTROL_RESET_PIN           "gpio.34"  // needs external pullup
+#define CONTROL_FEED_HOLD_PIN       "gpio.36"  // needs external pullup
+#define CONTROL_CYCLE_START_PIN     "gpio.39"  // needs external pullup
 
 #define DEFAULT_STEP_PULSE_MICROSECONDS     3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME      255 //  255 = Keep steppers on

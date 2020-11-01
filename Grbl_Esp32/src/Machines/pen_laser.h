@@ -35,26 +35,26 @@
 //#define PEN_LASER_V1
 #define PEN_LASER_V2
 
-#define X_STEP_PIN              GPIO_NUM_12
-#define X_DIRECTION_PIN         GPIO_NUM_26
+#define X_STEP_PIN              "gpio.12"
+#define X_DIRECTION_PIN         "gpio.26"
 
-#define Y_STEP_PIN              GPIO_NUM_14
-#define Y_DIRECTION_PIN         GPIO_NUM_25
+#define Y_STEP_PIN              "gpio.14"
+#define Y_DIRECTION_PIN         "gpio.25"
 
-#define STEPPERS_DISABLE_PIN    GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN    "gpio.13"
 
 #ifdef PEN_LASER_V1
-    #define X_LIMIT_PIN     GPIO_NUM_2
+    #define X_LIMIT_PIN     "gpio.2"
 #endif
 #ifdef PEN_LASER_V2
-    #define X_LIMIT_PIN     GPIO_NUM_15
+    #define X_LIMIT_PIN     "gpio.15"
 #endif
-#define Y_LIMIT_PIN             GPIO_NUM_4
+#define Y_LIMIT_PIN             "gpio.4"
 
 #define USING_SERVO  // uncomment to use this feature
 
 #ifdef USING_SERVO
-    #define Z_SERVO_PIN             GPIO_NUM_27
+    #define Z_SERVO_PIN             "gpio.27"
 #endif
 
 #define SPINDLE_TYPE SpindleType::NONE

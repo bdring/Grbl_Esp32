@@ -30,32 +30,32 @@
 
 #define MACHINE_NAME "ESPDUINO_32"
 
-#define X_STEP_PIN              GPIO_NUM_26
-#define X_DIRECTION_PIN         GPIO_NUM_16
+#define X_STEP_PIN              "gpio.26"
+#define X_DIRECTION_PIN         "gpio.16"
 
-#define Y_STEP_PIN              GPIO_NUM_25
-#define Y_DIRECTION_PIN         GPIO_NUM_27
+#define Y_STEP_PIN              "gpio.25"
+#define Y_DIRECTION_PIN         "gpio.27"
 
-#define Z_STEP_PIN              GPIO_NUM_17
-#define Z_DIRECTION_PIN         GPIO_NUM_14
+#define Z_STEP_PIN              "gpio.17"
+#define Z_DIRECTION_PIN         "gpio.14"
 
 // OK to comment out to use pin for other features
-#define STEPPERS_DISABLE_PIN    GPIO_NUM_12
+#define STEPPERS_DISABLE_PIN    "gpio.12"
 
 #define SPINDLE_TYPE SpindleType::PWM
-#define SPINDLE_OUTPUT_PIN         GPIO_NUM_19
+#define SPINDLE_OUTPUT_PIN         "gpio.19"
 
-#define SPINDLE_DIR_PIN         GPIO_NUM_18
+#define SPINDLE_DIR_PIN         "gpio.18"
 
-#define COOLANT_FLOOD_PIN       GPIO_NUM_34
-#define COOLANT_MIST_PIN        GPIO_NUM_36
+#define COOLANT_FLOOD_PIN       "gpio.34"
+#define COOLANT_MIST_PIN        "gpio.36"
 
-#define X_LIMIT_PIN             GPIO_NUM_13
-#define Y_LIMIT_PIN             GPIO_NUM_5
-#define Z_LIMIT_PIN             GPIO_NUM_19
+#define X_LIMIT_PIN             "gpio.13"
+#define Y_LIMIT_PIN             "gpio.5"
+#define Z_LIMIT_PIN             "gpio.19"
 
-#define PROBE_PIN               GPIO_NUM_39
+#define PROBE_PIN               "gpio.39"
 
-#define CONTROL_RESET_PIN       GPIO_NUM_2
-#define CONTROL_FEED_HOLD_PIN   GPIO_NUM_4
-#define CONTROL_CYCLE_START_PIN GPIO_NUM_35 // ESP32 needs external pullup
+#define CONTROL_RESET_PIN       "gpio.2"
+#define CONTROL_FEED_HOLD_PIN   "gpio.4"
+#define CONTROL_CYCLE_START_PIN "gpio.35" // ESP32 needs external pullup

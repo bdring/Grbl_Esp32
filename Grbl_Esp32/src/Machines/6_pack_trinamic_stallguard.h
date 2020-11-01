@@ -28,59 +28,59 @@
 #define USE_I2S_STEPS
 //#define DEFAULT_STEPPER ST_I2S_STATIC
 
-#define I2S_OUT_BCK      GPIO_NUM_22
-#define I2S_OUT_WS       GPIO_NUM_17
-#define I2S_OUT_DATA     GPIO_NUM_21
+#define I2S_OUT_BCK      "gpio.22"
+#define I2S_OUT_WS       "gpio.17"
+#define I2S_OUT_DATA     "gpio.21"
 
 #define TRINAMIC_RUN_MODE           Motors::TrinamicMode::CoolStep
 #define TRINAMIC_HOMING_MODE        Motors::TrinamicMode::StallGuard
 
 // Motor Socket #1
 #define X_TRINAMIC_DRIVER       2130
-#define X_DISABLE_PIN           I2SO(0)
-#define X_DIRECTION_PIN         I2SO(1)
-#define X_STEP_PIN              I2SO(2)
-#define X_CS_PIN                I2SO(3)
+#define X_DISABLE_PIN           "i2so.0"
+#define X_DIRECTION_PIN         "i2so.1"
+#define X_STEP_PIN              "i2so.2"
+#define X_CS_PIN                "i2so.3"
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
 
 // Motor Socket #2
 #define Y_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
-#define Y_DIRECTION_PIN         I2SO(4)
-#define Y_STEP_PIN              I2SO(5)
-#define Y_DISABLE_PIN           I2SO(7)
-#define Y_CS_PIN                I2SO(6)
+#define Y_DIRECTION_PIN         "i2so.4"
+#define Y_STEP_PIN              "i2so.5"
+#define Y_DISABLE_PIN           "i2so.7"
+#define Y_CS_PIN                "i2so.6"
 #define Y_RSENSE                X_RSENSE
 
 // Motor Socket #3
 #define Z_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
-#define Z_DISABLE_PIN           I2SO(8)
-#define Z_DIRECTION_PIN         I2SO(9)
-#define Z_STEP_PIN              I2SO(10)
-#define Z_CS_PIN                I2SO(11)
+#define Z_DISABLE_PIN           "i2so.8"
+#define Z_DIRECTION_PIN         "i2so.9"
+#define Z_STEP_PIN              "i2so.10"
+#define Z_CS_PIN                "i2so.11"
 #define Z_RSENSE                X_RSENSE
 
 // Motor Socket #4
 #define A_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
-#define A_DIRECTION_PIN         I2SO(12)
-#define A_STEP_PIN              I2SO(13)
-#define A_DISABLE_PIN           I2SO(15)
-#define A_CS_PIN                I2SO(14)
+#define A_DIRECTION_PIN         "i2so.12"
+#define A_STEP_PIN              "i2so.13"
+#define A_DISABLE_PIN           "i2so.15"
+#define A_CS_PIN                "i2so.14"
 #define A_RSENSE                X_RSENSE
 
 // Motor Socket #5
 #define B_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
-#define B_DISABLE_PIN           I2SO(16)
-#define B_DIRECTION_PIN         I2SO(17)
-#define B_STEP_PIN              I2SO(18)
-#define B_CS_PIN                I2SO(19)
+#define B_DISABLE_PIN           "i2so.16"
+#define B_DIRECTION_PIN         "i2so.17"
+#define B_STEP_PIN              "i2so.18"
+#define B_CS_PIN                "i2so.19"
 #define B_RSENSE                X_RSENSE
 
 // Motor Socket #6
 #define C_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
-#define C_DIRECTION_PIN         I2SO(20)
-#define C_STEP_PIN              I2SO(21)
-#define C_DISABLE_PIN           I2SO(23)
-#define C_CS_PIN                I2SO(22)
+#define C_DIRECTION_PIN         "i2so.20"
+#define C_STEP_PIN              "i2so.21"
+#define C_DISABLE_PIN           "i2so.23"
+#define C_CS_PIN                "i2so.22"
 #define C_RSENSE                X_RSENSE
 
 /*
@@ -90,55 +90,55 @@
     Click on each module to get example for using the modules in the sockets
 
 Socket #1
-#1 GPIO_NUM_33 (Sg1)
-#2 GPIO_NUM_32 (Sg2)
-#3 GPIO_NUM_35 (Sg3) (input only)
-#4 GPIO_NUM_34 (Sg4) (input only)
+#1 "gpio.33" (Sg1)
+#2 "gpio.32" (Sg2)
+#3 "gpio.35" (Sg3) (input only)
+#4 "gpio.34" (Sg4) (input only)
 
 Socket #2
-#1 GPIO_NUM_2
-#2 GPIO_NUM_25
-#3 GPIO_NUM_39 (Sg5) (input only)
-#4 GPIO_NUM_36 (Sg6) (input only)
+#1 "gpio.2"
+#2 "gpio.25"
+#3 "gpio.39" (Sg5) (input only)
+#4 "gpio.36" (Sg6) (input only)
 
 Socket #3
-#1 GPIO_NUM_26
-#2 GPIO_NUM_4
-#3 GPIO_NUM_16
-#4 GPIO_NUM_27
+#1 "gpio.26"
+#2 "gpio.4"
+#3 "gpio.16"
+#4 "gpio.27"
 
 Socket #4
-#1 GPIO_NUM_14
-#2 GPIO_NUM_13
-#3 GPIO_NUM_15
-#4 GPIO_NUM_12
+#1 "gpio.14"
+#2 "gpio.13"
+#3 "gpio.15"
+#4 "gpio.12"
 
 Socket #5
-#1 I2SO(24)  (output only)
-#2 I2SO(25)  (output only)
-#3 I2SO26)  (output only)
+#1 "i2so.24"  (output only)
+#2 "i2so.25"  (output only)
+#3 "i2so.26"  (output only)
 
 */
 
 // Socket #1 (Empty)
 // Install StallGuard Jumpers
-#define X_LIMIT_PIN             GPIO_NUM_33  // Sg1
-#define Y_LIMIT_PIN             GPIO_NUM_32  // Sg2
-#define Z_LIMIT_PIN             GPIO_NUM_35  // Sg3
-#define A_LIMIT_PIN             GPIO_NUM_34  // Sg4
+#define X_LIMIT_PIN             "gpio.33"  // Sg1
+#define Y_LIMIT_PIN             "gpio.32"  // Sg2
+#define Z_LIMIT_PIN             "gpio.35"  // Sg3
+#define A_LIMIT_PIN             "gpio.34"  // Sg4
 
 // Socket #2 (Empty)
 // Install StallGuard Jumpers
-#define B_LIMIT_PIN               GPIO_NUM_39  // Sg5
-#define C_LIMIT_PIN               GPIO_NUM_36  // Sg6
+#define B_LIMIT_PIN               "gpio.39"  // Sg5
+#define C_LIMIT_PIN               "gpio.36"  // Sg6
 
 
 // 0-10v CNC Module in Socket #3
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/0-10V-Output-Module
 #define SPINDLE_TYPE            SpindleType::PWM
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_26
-#define SPINDLE_ENABLE_PIN      GPIO_NUM_4
-#define SPINDLE_DIR_PIN         GPIO_NUM_16
+#define SPINDLE_OUTPUT_PIN      "gpio.26"
+#define SPINDLE_ENABLE_PIN      "gpio.4"
+#define SPINDLE_DIR_PIN         "gpio.16"
 
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE

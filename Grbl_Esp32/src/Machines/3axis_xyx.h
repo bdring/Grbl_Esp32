@@ -28,32 +28,32 @@
 */
 
 #define MACHINE_NAME            "ESP32_V4_XYX"
-#define X_STEP_PIN              GPIO_NUM_26  /* labeled Y */
-#define X_DIRECTION_PIN         GPIO_NUM_15  /* labeled Y */
-#define Y_STEP_PIN              GPIO_NUM_12  /* labeled X */
-#define Y_DIRECTION_PIN         GPIO_NUM_14  /* labeled X */
-#define Y2_STEP_PIN             GPIO_NUM_27  /* labeled Z */
-#define Y2_DIRECTION_PIN        GPIO_NUM_33  /* labeled Z */
+#define X_STEP_PIN              "gpio.26"  /* labeled Y */
+#define X_DIRECTION_PIN         "gpio.15"  /* labeled Y */
+#define Y_STEP_PIN              "gpio.12"  /* labeled X */
+#define Y_DIRECTION_PIN         "gpio.14"  /* labeled X */
+#define Y2_STEP_PIN             "gpio.27"  /* labeled Z */
+#define Y2_DIRECTION_PIN        "gpio.33"  /* labeled Z */
 
 #define SPINDLE_TYPE            SpindleType::PWM
-#define SPINDLE_OUTPUT_PIN         GPIO_NUM_2
-#define SPINDLE_ENABLE_PIN      GPIO_NUM_22
+#define SPINDLE_OUTPUT_PIN         "gpio.2"
+#define SPINDLE_ENABLE_PIN      "gpio.22"
 
-#define X_LIMIT_PIN             GPIO_NUM_17
-#define Y_LIMIT_PIN             GPIO_NUM_4
-// #define Z_LIMIT_PIN          GPIO_NUM_16
+#define X_LIMIT_PIN             "gpio.17"
+#define Y_LIMIT_PIN             "gpio.4"
+// #define Z_LIMIT_PIN          "gpio.16"
 
-#define STEPPERS_DISABLE_PIN    GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN    "gpio.13"
 
-#define COOLANT_MIST_PIN        GPIO_NUM_21
-#define COOLANT_FLOOD_PIN       GPIO_NUM_25
+#define COOLANT_MIST_PIN        "gpio.21"
+#define COOLANT_FLOOD_PIN       "gpio.25"
 
 
 
 // see versions for X and Z
-#define PROBE_PIN               GPIO_NUM_32
+#define PROBE_PIN               "gpio.32"
 
-#define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_35  // needs external pullup
-#define CONTROL_RESET_PIN       GPIO_NUM_34  // needs external pullup
-#define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // needs external pullup
-#define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // needs external pullup
+#define CONTROL_SAFETY_DOOR_PIN "gpio.35"  // needs external pullup
+#define CONTROL_RESET_PIN       "gpio.34"  // needs external pullup
+#define CONTROL_FEED_HOLD_PIN   "gpio.36"  // needs external pullup
+#define CONTROL_CYCLE_START_PIN "gpio.39"  // needs external pullup

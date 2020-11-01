@@ -30,30 +30,30 @@
 */
 
 #define MACHINE_NAME            "ESP32_XYZ_RS485"
-#define X_STEP_PIN              GPIO_NUM_4   // labeled X
-#define X_DIRECTION_PIN         GPIO_NUM_16  // labeled X
-#define Y_STEP_PIN              GPIO_NUM_17  // labeled Y
-#define Y_DIRECTION_PIN         GPIO_NUM_18  // labeled Y
-#define Y2_STEP_PIN             GPIO_NUM_19  // labeled Y2
-#define Y2_DIRECTION_PIN        GPIO_NUM_21  // labeled Y2
-#define Z_STEP_PIN              GPIO_NUM_22  // labeled Z
-#define Z_DIRECTION_PIN         GPIO_NUM_23  // labeled Z
+#define X_STEP_PIN              "gpio.4"   // labeled X
+#define X_DIRECTION_PIN         "gpio.16"  // labeled X
+#define Y_STEP_PIN              "gpio.17"  // labeled Y
+#define Y_DIRECTION_PIN         "gpio.18"  // labeled Y
+#define Y2_STEP_PIN             "gpio.19"  // labeled Y2
+#define Y2_DIRECTION_PIN        "gpio.21"  // labeled Y2
+#define Z_STEP_PIN              "gpio.22"  // labeled Z
+#define Z_DIRECTION_PIN         "gpio.23"  // labeled Z
 
 #define SPINDLE_TYPE            SpindleType::H2A
-#define VFD_RS485_TXD_PIN       GPIO_NUM_13 // RS485 TX
-#define VFD_RS485_RTS_PIN       GPIO_NUM_15 // RS485 RTS
-#define VFD_RS485_RXD_PIN       GPIO_NUM_2  // RS485 RX
+#define VFD_RS485_TXD_PIN       "gpio.13" // RS485 TX
+#define VFD_RS485_RTS_PIN       "gpio.15" // RS485 RTS
+#define VFD_RS485_RXD_PIN       "gpio.2"  // RS485 RX
 
-#define X_LIMIT_PIN             GPIO_NUM_33
-#define Y_LIMIT_PIN             GPIO_NUM_32
-#define Y2_LIMIT_PIN            GPIO_NUM_35
-#define Z_LIMIT_PIN             GPIO_NUM_34
+#define X_LIMIT_PIN             "gpio.33"
+#define Y_LIMIT_PIN             "gpio.32"
+#define Y2_LIMIT_PIN            "gpio.35"
+#define Z_LIMIT_PIN             "gpio.34"
 
 // Set $Homing/Cycle0=X and $Homing/Cycle=XY
 
-#define PROBE_PIN               GPIO_NUM_14  // labeled Probe
-#define CONTROL_RESET_PIN       GPIO_NUM_27  // labeled Reset
-#define CONTROL_FEED_HOLD_PIN   GPIO_NUM_26  // labeled Hold
-#define CONTROL_CYCLE_START_PIN GPIO_NUM_25  // labeled Start
+#define PROBE_PIN               "gpio.14"  // labeled Probe
+#define CONTROL_RESET_PIN       "gpio.27"  // labeled Reset
+#define CONTROL_FEED_HOLD_PIN   "gpio.26"  // labeled Hold
+#define CONTROL_CYCLE_START_PIN "gpio.25"  // labeled Start
 
 // #define VFD_DEBUG_MODE

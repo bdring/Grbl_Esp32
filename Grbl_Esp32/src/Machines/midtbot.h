@@ -37,18 +37,18 @@
 
 #define SPINDLE_TYPE    SpindleType::NONE
 
-#define X_STEP_PIN      GPIO_NUM_12
-#define Y_STEP_PIN      GPIO_NUM_14
+#define X_STEP_PIN      "gpio.12"
+#define Y_STEP_PIN      "gpio.14"
 
-#define X_DIRECTION_PIN GPIO_NUM_26
-#define Y_DIRECTION_PIN GPIO_NUM_25
+#define X_DIRECTION_PIN "gpio.26"
+#define Y_DIRECTION_PIN "gpio.25"
 
-#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN "gpio.13"
 
-#define X_LIMIT_PIN     GPIO_NUM_2
-#define Y_LIMIT_PIN     GPIO_NUM_4
+#define X_LIMIT_PIN     "gpio.2"
+#define Y_LIMIT_PIN     "gpio.4"
 
-#define Z_SERVO_PIN             GPIO_NUM_27
+#define Z_SERVO_PIN             "gpio.27"
 
 // Set $Homing/Cycle0=Y and $Homing/Cycle1=X
 

@@ -80,58 +80,58 @@
 
 // Step and direction pins; these must be output-capable pins,
 // specifically ESP32 GPIO numbers 0..31
-// #define X_STEP_PIN              GPIO_NUM_12
-// #define X_DIRECTION_PIN         GPIO_NUM_14
-// #define Y_STEP_PIN              GPIO_NUM_26
-// #define Y_DIRECTION_PIN         GPIO_NUM_15
-// #define Z_STEP_PIN              GPIO_NUM_27
-// #define Z_DIRECTION_PIN         GPIO_NUM_33
+// #define X_STEP_PIN              "gpio.12"
+// #define X_DIRECTION_PIN         "gpio.14"
+// #define Y_STEP_PIN              "gpio.26"
+// #define Y_DIRECTION_PIN         "gpio.15"
+// #define Z_STEP_PIN              "gpio.27"
+// #define Z_DIRECTION_PIN         "gpio.33"
 
-// #define X_LIMIT_PIN             GPIO_NUM_17
-// #define Y_LIMIT_PIN             GPIO_NUM_4
-// #define Z_LIMIT_PIN             GPIO_NUM_16
+// #define X_LIMIT_PIN             "gpio.17"
+// #define Y_LIMIT_PIN             "gpio.4"
+// #define Z_LIMIT_PIN             "gpio.16"
 
 // Common enable for all steppers.  If it is okay to leave
 // your drivers enabled at all times, you can leave
 // STEPPERS_DISABLE_PIN undefined and use the pin for something else.
-// #define STEPPERS_DISABLE_PIN    GPIO_NUM_13
+// #define STEPPERS_DISABLE_PIN    "gpio.13"
 
 // Pins for controlling various aspects of the machine.  If your
 // machine does not support one of these features, you can leave
 // the corresponding pin undefined.
 
-// #define SPINDLE_OUTPUT_PIN         GPIO_NUM_2   // labeled SpinPWM
-// #define SPINDLE_ENABLE_PIN      GPIO_NUM_22  // labeled SpinEnbl
-// #define COOLANT_MIST_PIN        GPIO_NUM_21  // labeled Mist
-// #define COOLANT_FLOOD_PIN       GPIO_NUM_25  // labeled Flood
-// #define PROBE_PIN               GPIO_NUM_32  // labeled Probe
+// #define SPINDLE_OUTPUT_PIN         "gpio.2"   // labeled SpinPWM
+// #define SPINDLE_ENABLE_PIN      "gpio.22"  // labeled SpinEnbl
+// #define COOLANT_MIST_PIN        "gpio.21"  // labeled Mist
+// #define COOLANT_FLOOD_PIN       "gpio.25"  // labeled Flood
+// #define PROBE_PIN               "gpio.32"  // labeled Probe
 
 // Input pins for various functions.  If the corresponding pin is not defined,
 // the function will not be available.
 
 // CONTROL_SAFETY_DOOR_PIN shuts off the machine when a door is opened
 // or some other unsafe condition exists.
-// #define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_35  // labeled Door,  needs external pullup
+// #define CONTROL_SAFETY_DOOR_PIN "gpio.35"  // labeled Door,  needs external pullup
 
 // RESET, FEED_HOLD, and CYCLE_START can control GCode execution at
 // the push of a button.
 
-// #define CONTROL_RESET_PIN       GPIO_NUM_34  // labeled Reset, needs external pullup
-// #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // labeled Hold,  needs external pullup
-// #define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // labeled Start, needs external pullup
+// #define CONTROL_RESET_PIN       "gpio.34"  // labeled Reset, needs external pullup
+// #define CONTROL_FEED_HOLD_PIN   "gpio.36"  // labeled Hold,  needs external pullup
+// #define CONTROL_CYCLE_START_PIN "gpio.39"  // labeled Start, needs external pullup
 
 // === Ganging
 // If you need to use two motors on one axis, you can "gang" the motors by
 // defining a second pin to control the other motor on the axis.  For example:
 
-// #define Y2_STEP_PIN             GPIO_NUM_27  /* labeled Z */
-// #define Y2_DIRECTION_PIN        GPIO_NUM_33  /* labeled Z */
+// #define Y2_STEP_PIN             "gpio.27"  /* labeled Z */
+// #define Y2_DIRECTION_PIN        "gpio.33"  /* labeled Z */
 
 // === Servos
 // To use a servo motor on an axis, do not define step and direction
 // pins for that axis, but instead include a block like this:
 
-// #define SERVO_Z_PIN             GPIO_NUM_22
+// #define SERVO_Z_PIN             "gpio.22"
 
 // === Homing cycles
 // Set them using $Homing/Cycle0= optionally up to $Homing/Cycle5=

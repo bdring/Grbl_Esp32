@@ -145,6 +145,6 @@
 // 
 // Other :
 // - RcServo
-// - SDCard
-// - Trinamic
+// x SDCard
+// x Trinamic
 

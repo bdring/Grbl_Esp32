@@ -72,38 +72,38 @@
 
 #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 
-#define I2S_OUT_BCK             GPIO_NUM_22
-#define I2S_OUT_WS              GPIO_NUM_17
-#define I2S_OUT_DATA            GPIO_NUM_21
+#define I2S_OUT_BCK             "gpio.22"
+#define I2S_OUT_WS              "gpio.17"
+#define I2S_OUT_DATA            "gpio.21"
 
 // ================== CPU MAP ======================
 
-#define X_STEPPER_MS3           I2SO(3)   // X_CS
-#define Y_STEPPER_MS3           I2SO(6)   // Y_CS
-#define Z_STEPPER_MS3           I2SO(11)  // Z_CS
+#define X_STEPPER_MS3           "i2so.3"   // X_CS
+#define Y_STEPPER_MS3           "i2so.6"   // Y_CS
+#define Z_STEPPER_MS3           "i2so.11"  // Z_CS
 
-#define STEPPER_RESET           GPIO_NUM_19
+#define STEPPER_RESET           "gpio.19"
 
 // Motor Socket #1
-#define X_DISABLE_PIN           I2SO(0)
-#define X_DIRECTION_PIN         I2SO(1)
-#define X_STEP_PIN              I2SO(2)
+#define X_DISABLE_PIN           "i2so.0"
+#define X_DIRECTION_PIN         "i2so.1"
+#define X_STEP_PIN              "i2so.2"
 
 // Motor Socket #2
-#define Y_DIRECTION_PIN         I2SO(4)
-#define Y_STEP_PIN              I2SO(5)
-#define Y_DISABLE_PIN           I2SO(7)
+#define Y_DIRECTION_PIN         "i2so.4"
+#define Y_STEP_PIN              "i2so.5"
+#define Y_DISABLE_PIN           "i2so.7"
 
 // Motor Socket #3
-#define Z_DISABLE_PIN           I2SO(8)
-#define Z_DIRECTION_PIN         I2SO(9)
-#define Z_STEP_PIN              I2SO(10)
+#define Z_DISABLE_PIN           "i2so.8"
+#define Z_DIRECTION_PIN         "i2so.9"
+#define Z_STEP_PIN              "i2so.10"
 
 // CNC I/O Modules
 
-#define X_LIMIT_PIN     GPIO_NUM_33
-#define Y_LIMIT_PIN     GPIO_NUM_32
-#define Z_LIMIT_PIN     GPIO_NUM_35
+#define X_LIMIT_PIN     "gpio.33"
+#define Y_LIMIT_PIN     "gpio.32"
+#define Z_LIMIT_PIN     "gpio.35"
 
 // ================= defaults ===========================
 

@@ -41,16 +41,16 @@
 #define USE_FWD_KINEMATICS // report in cartesian
 #define USE_M30
 
-#define X_STEP_PIN              GPIO_NUM_15
-#define Y_STEP_PIN              GPIO_NUM_2
-#define X_DIRECTION_PIN         GPIO_NUM_25
-#define Y_DIRECTION_PIN         GPIO_NUM_26
+#define X_STEP_PIN              "gpio.15"
+#define Y_STEP_PIN              "gpio.2"
+#define X_DIRECTION_PIN         "gpio.25"
+#define Y_DIRECTION_PIN         "gpio.26"
 
-#define STEPPERS_DISABLE_PIN    GPIO_NUM_17
+#define STEPPERS_DISABLE_PIN    "gpio.17"
 
-#define Z_SERVO_PIN             GPIO_NUM_16
+#define Z_SERVO_PIN             "gpio.16"
 
-#define X_LIMIT_PIN             GPIO_NUM_4
+#define X_LIMIT_PIN             "gpio.4"
 
 #define SPINDLE_TYPE SpindleType::NONE
 
@@ -68,9 +68,9 @@
 #endif
 #define INVERT_CONTROL_PIN_MASK B11111111
 
-#define MACRO_BUTTON_0_PIN      GPIO_NUM_13
-#define MACRO_BUTTON_1_PIN      GPIO_NUM_12
-#define MACRO_BUTTON_2_PIN      GPIO_NUM_14
+#define MACRO_BUTTON_0_PIN      "gpio.13"
+#define MACRO_BUTTON_1_PIN      "gpio.12"
+#define MACRO_BUTTON_2_PIN      "gpio.14"
 
 
 // this 'bot only homes the X axis
