@@ -37,9 +37,9 @@
 
 #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 
-#define I2S_OUT_BCK             GPIO_NUM_22
-#define I2S_OUT_WS              GPIO_NUM_17
-#define I2S_OUT_DATA            GPIO_NUM_21
+#define I2S_OUT_BCK             "GPIO.22"
+#define I2S_OUT_WS              "GPIO.17"
+#define I2S_OUT_DATA            "GPIO.21"
 
 
 // Motor Socket #1
