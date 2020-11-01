@@ -31,9 +31,9 @@ namespace Spindles {
     void Laser::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "Laser spindle on Pin:%s, Freq:%.2fHz, Res:%dbits Laser mode:%s",
+                       "Laser spindle on Pin:%s, Freq:%dHz, Res:%dbits Laser mode:%s",
                        _output_pin.name().c_str(),
-                       _pwm_freq,
+                       int(_pwm_freq),
                        _pwm_precision,
                        laser_mode->getStringValue());  // the current mode
 

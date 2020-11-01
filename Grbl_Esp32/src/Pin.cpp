@@ -57,6 +57,10 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
         }
     }
 
+    while (idx != str.end() && ::isspace(*idx)) {
+        ++idx;
+    }
+
     String options;
     if (idx != str.end()) {
         if (*idx != ':') {
