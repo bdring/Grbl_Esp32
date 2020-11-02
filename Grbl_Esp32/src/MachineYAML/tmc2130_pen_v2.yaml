@@ -1,27 +1,26 @@
 ---
 name: ESP32_TMC2130_PEN V2
+defaults:
+  tmc2130:
+    rsense: 0.11
+    run: coolstep
+    homing: coolstep
+  steppers:
+    disable: gpio.13
 x:
-        limit: gpio.32:low
-        tmc2130:
-                step: gpio.12
-                direction: gpio.26
-                cs: gpio.17
-                rsense: 0.11
-                run: coolstep
-                homing: coolstep
+  limit: gpio.32:low
+  tmc2130:
+    step: gpio.12
+    direction: gpio.26
+    cs: gpio.17
 y:
-        limit: gpio.4:low
-        tmc2130:
-                step: gpio.14
-                direction: gpio.25
-                cs: gpio.16
-                rsense: 0.11
-                run: coolstep
-                homing: coolstep
+  limit: gpio.4:low
+  tmc2130:
+    step: gpio.14
+    direction: gpio.25
+    cs: gpio.16
 z:
-        servo:
-                pin: gpio.27
-        spmm: 100
-        travel: 300
-steppers:
-        disable: gpio.13
+  servo:
+    pin: gpio.27
+  spmm: 100
+  travel: 300

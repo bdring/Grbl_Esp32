@@ -1,27 +1,27 @@
 ---
 name: esp32_v4_xyz
-
+board:bdring-3axis-v4
+defaults:
+  steppers:
+    disable: gpio.13
 x:
-        limit: gpio.17:low
-        stepstick:
-                step: gpio.26
-                direction: gpio.15
+  limit: gpio.17:low
+  stepstick:
+    step: gpio.26
+    direction: gpio.15
 y:
-        limit: gpio.4:low
-        stepstick:
-                step: gpio.12
-                direction: gpio.14
+  limit: gpio.4:low
+  stepstick:
+    step: gpio.12
+    direction: gpio.14
 z:
-        stepstick:
-                step: gpio.27
-                direction: gpio.33
-steppers:
-        disable: gpio.13
-
+  stepstick:
+    step: gpio.27
+    direction: gpio.33
 spindle:
-        pwm:
-                output: gpio.2
-                enable: gpio.22
+  pwm:
+    output: gpio.2
+    enable: gpio.22
 mist: gpio.21
 flood: gpio.25
 probe: gpio.32

@@ -1,38 +1,34 @@
 ---
 name: SPI_DAISY_4X_XYZ
+defaults:
+  tmc2130:
+    rsense: 0.11
+    run: coolstep
+    homing: coolstep
 homing:
-        squared: y
+  squared: y
 x:
-        limit: gpio.36:low
-        tmc2130:
-                step: gpio.12
-                direction: gpio.14
-                cs: gpio.17
-		rsense: 0.11
-                run: coolstep
-                homing: coolstep
+  limit: gpio.36:low
+  tmc2130:
+    step: gpio.12
+    direction: gpio.14
+    cs: gpio.17
 y:
-	limit: gpio.39:low
-	tmc2130:
-                step: gpio.27
-                direction: gpio.26
-                cs: gpio.17
-		rsense: 0.11
-                run: coolstep
-                homing: coolstep
+  limit: gpio.39:low
+  tmc2130:
+    step: gpio.27
+    direction: gpio.26
+    cs: gpio.17
 z:
-	limit: gpio.34:low
-	tmc2130:
-                step: gpio.15
-                direction: gpio.2
-                cs: gpio.17
-		rsense: 0.11
-                run: coolstep
-                homing: coolstep
+  limit: gpio.34:low
+  tmc2130:
+    step: gpio.15
+    direction: gpio.2
+    cs: gpio.17
 mist: gpio.21
 probe: gpio.22
 spindle:
-        pwm:
-                output: gpio.25
-                enable: gpio.4
-                rpm-max: 1
+  pwm:
+    output: gpio.25
+    enable: gpio.4
+    rpm-max: 1

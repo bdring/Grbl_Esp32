@@ -1,36 +1,35 @@
 ---
 name: LOWRIDER YYZZX V1P2
-
+board: bdring-lowrider-v1p2
+defaults:
+  steppers:
+    disable: gpio.13
 x:
-        limit: gpio.15:low
-        stepstick:
-                step: gpio.27
-                direction: gpio.33
+  limit: gpio.15:low
+  stepstick:
+    step: gpio.27
+    direction: gpio.33
 y:
-        limit: gpio.4:low
-        stepstick:
-                step: gpio.12
-                direction: gpio.26
+  limit: gpio.4:low
+  stepstick:
+    step: gpio.12
+    direction: gpio.26
 y2:
-        stepstick:
-                step: gpio.22
-                direction: gpio.26
+  stepstick:
+    step: gpio.22
+    direction: gpio.26
 z:
-        limit: 17:low
-        stepstick:
-                step: gpio.14
-                direction: gpio.25
+  limit: 17:low
+  stepstick:
+    step: gpio.14
+    direction: gpio.25
 z2:
-        stepstick:
-                step: gpio.21
-                direction: gpio.25
-
-steppers:
-        disable: gpio.13
-
+  stepstick:
+    step: gpio.21
+    direction: gpio.25
 spindle:
-        relay:
-                output: gpio.2
+  relay:
+    output: gpio.2
 debounce: on
 
 probe: gpio.35

@@ -1,58 +1,59 @@
 ---
 name: MPCNC_V1P2
+board: bdring-mpcnc-v1p2
+defaults:
+  steppers:
+    disable: gpio.13
+    pulse: 3
+    idle: never
 homing:
-        squared: xy
-        feed-rate: 100
-        seek-rate: 200
-        debounce: 250
-        pulloff: 2
+  squared: xy
+  feed-rate: 100
+  seek-rate: 200
+  debounce: 250
+  pulloff: 2
 x:
-        limit: gpio.17,low
-        stepstick:
-                step: gpio.12
-                direction: gpio.26
-        spmm: 200
-        max-rate: 8000
-        acceleration: 200
-        travel: 500
-        homing: negative
+  limit: gpio.17,low
+  stepstick:
+    step: gpio.12
+    direction: gpio.26
+  spmm: 200
+  max-rate: 8000
+  acceleration: 200
+  travel: 500
+  homing: negative
 x2:
-        stepstick:
-                step: gpio.22
-                direction: gpio.26
+  stepstick:
+    step: gpio.22
+    direction: gpio.26
 y:
-        limit: gpio.4,low
-        stepstick:
-                step: gpio.14
-                direction: gpio.25
-        spmm: 200
-        max-rate: 8000
-        acceleration: 200
-        travel: 500
-        homing: negative
+  limit: gpio.4,low
+  stepstick:
+    step: gpio.14
+    direction: gpio.25
+  spmm: 200
+  max-rate: 8000
+  acceleration: 200
+  travel: 500
+  homing: negative
 y2:
-        stepstick:
-                step: gpio.21
-                direction: gpio.25
+  stepstick:
+    step: gpio.21
+    direction: gpio.25
 z:
-        limit: gpio.15,low
-        stepstick:
-                step: gpio.27
-                direction: gpio.33
-        spmm: 800
-        max-rate: 3000
-        acceleration: 100
-        travel: 80
-
-steppers:
-        disable: gpio.13
-        pulse: 3
-        idle: never
+  limit: gpio.15,low
+  stepstick:
+    step: gpio.27
+    direction: gpio.33
+  spmm: 800
+  max-rate: 3000
+  acceleration: 100
+  travel: 80
 spindle:
-        relay:
-                output: gpio.2
-                rpm-min: 0
-                rpm-max: 1
+  relay:
+    output: gpio.2
+    rpm-min: 0
+    rpm-max: 1
 
 debounce: on
 

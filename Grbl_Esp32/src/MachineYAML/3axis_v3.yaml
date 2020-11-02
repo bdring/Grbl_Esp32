@@ -1,27 +1,28 @@
 ---
 name: esp32_v3.5
-
+board: bdring-3axis-v3
+defaults:
+  steppers:
+    disable: gpio.13
 x:
-        limit: gpio.2:low
-        stepstick:
-                step: gpio.12
-                direction: gpio.26
+  limit: gpio.2:low
+  stepstick:
+    step: gpio.12
+    direction: gpio.26
 y:
-        limit: gpio.4:low
-        stepstick:
-                step: gpio.14
-                direction: gpio.25
+  limit: gpio.4:low
+  stepstick:
+    step: gpio.14
+    direction: gpio.25
 z:
-        limit: gpio.15:low
-        stepstick:
-                step: gpio.27
-                direction: gpio.33
-steppers:
-        disable: gpio.13
+  limit: gpio.15:low
+  stepstick:
+    step: gpio.27
+    direction: gpio.33
 spindle:
-        pwm:
-                output: gpio.17
-                enable: gpio.22
+  pwm:
+    output: gpio.17
+    enable: gpio.22
 mist: gpio.21
 flood: gpio.16
 probe: gpio.32

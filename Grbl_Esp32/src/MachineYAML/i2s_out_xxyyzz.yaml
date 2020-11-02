@@ -1,39 +1,41 @@
 ---
 name: ESP32 I2S XXYYZZ Axis Driver Board (StepStick)
+board: bdring-6pack
+defaults:
+  steppers:
+    ms1: gpio.23
+    ms2: gpio.18
+    reset: gpio.19
+    pulse: 4
 sdcard: off
 i2so:
-        bck: gpio.22
-        ws: gpio.17
-        data: gpio.21
-steppers:
-        ms1: gpio.23
-        ms2: gpio.18
-        reset: gpio.19
-        pulse: 4
+  bck: gpio.22
+  ws: gpio.17
+  data: gpio.21
 x:
-        limit: gpio.36:low
-        stepstick:
-                6pack-socket1
+  limit: gpio.36:low
+  stepstick:
+    6pack-socket1
 x2:
-        stepstick:
-                6pack-socket2
+  stepstick:
+    6pack-socket2
 y:
-        limit: gpio.39:low
-        stepstick:
-                6pack-socket3
+  limit: gpio.39:low
+  stepstick:
+    6pack-socket3
 y2:
-        stepstick:
-                6pack-socket4
+  stepstick:
+    6pack-socket4
 z:
-        limit: gpio.34:low
-        stepstick:
-                6pack-socket5
+  limit: gpio.34:low
+  stepstick:
+    6pack-socket5
 z2:
-        stepstick:
-                6pack-socket6
+  stepstick:
+    6pack-socket6
 spindle:
-        pwm:
-                output: gpio.26
-                enable: gpio.4
-                direction: gpio.16
+  pwm:
+    output: gpio.26
+    enable: gpio.4
+    direction: gpio.16
 probe: gpio.25

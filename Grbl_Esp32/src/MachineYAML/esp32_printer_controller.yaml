@@ -1,34 +1,36 @@
 ---
 name: ESP32 Printer Controller
-custom-code: Custom/esp32_printer_controller.cpp
+board: wmb-esp32-printer-controller
+custom:
+  filename: Custom/esp32_printer_controller.cpp
+defaults:
+  steppers:
+    pulse: 4
 i2s0:
-        bits: 16
-        stream: on
-        bck: gpio.22
-        ws: gpio.17
-        data: gpio.21
+  bits: 16
+  stream: on
+  bck: gpio.22
+  ws: gpio.17
+  data: gpio.21
 
 debounce: 100
 
 homing:
-        feed-rate: 200
-        seek-rate: 1000
-        debounce: 250
-        pulloff: 3
-        cycle0: x
-
-steppers:
-        pulse: 4
-
+  feed-rate: 200
+  seek-rate: 1000
+  debounce: 250
+  pulloff: 3
+  cycles:
+    - x
 x:
-        step: i2so.9
-        direction: i2s0.7
+  step: i2so.9
+  direction: i2s0.7
 y:
-        step: i2so.5
-        direction: i2s0.4
+  step: i2so.5
+  direction: i2s0.4
 z:
-        step: i2so.2
-        direction: i2s0.1
+  step: i2so.2
+  direction: i2s0.1
 a:
-        step: i2so.12
-        direction: i2s0.13
+  step: i2so.12
+  direction: i2s0.13

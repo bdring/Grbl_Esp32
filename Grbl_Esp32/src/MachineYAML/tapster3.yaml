@@ -1,66 +1,67 @@
 ---
 name: Tapster 3 Delta (Dynamixel)
+defaults:
+  steppers:
+    pulse: 3
+    idle: 200
 custom:
-        forward-kinematics: on
-        filename: Custom/parallel_delta.cpp
-        machine-init: on
-        radius-fixed: 70
-        radius-eff: 133.5
-        length-fixed: 179.437
-        length-eff: 86.6025
-        segment-length: 0.5
-        max-negative-angle: -45
-        arm-internal-angle: 2.866
-        servo-timer-interval: 50
+  forward-kinematics: on
+  filename: Custom/parallel_delta.cpp
+  machine-init: on
+  radius-fixed: 70
+  radius-eff: 133.5
+  length-fixed: 179.437
+  length-eff: 86.6025
+  segment-length: 0.5
+  max-negative-angle: -45
+  arm-internal-angle: 2.866
+  servo-timer-interval: 50
 x:
-        dynamixel:
-                TxD: gpio.4
-                RxD: gpio.13
-                RTS: gpio.17
-                protocol: 1
-                count-min: 1024
-                count-max: 3072
-        spmm: 800
-        max-rate: 200
-        acceleration: 200
-        max-travel: 3.14159265
-        mpos: 1.57079632675
+  dynamixel:
+    TxD: gpio.4
+    RxD: gpio.13
+    RTS: gpio.17
+    protocol: 1
+    count-min: 1024
+    count-max: 3072
+  spmm: 800
+  max-rate: 200
+  acceleration: 200
+  max-travel: 3.14159265
+  mpos: 1.57079632675
 y:
-        dynamixel:
-                protocol: 2
-                count-min: 1024
-                count-max: 3072
-        spmm: 800
-        max-rate: 200
-        acceleration: 200
-        max-travel: 3.14159265
-        mpos: 1.57079632675
+  dynamixel:
+    protocol: 2
+    count-min: 1024
+    count-max: 3072
+  spmm: 800
+  max-rate: 200
+  acceleration: 200
+  max-travel: 3.14159265
+  mpos: 1.57079632675
 z:
-        dynamixel:
-                protocol: 3
-                count-min: 1024
-                count-max: 3072
-        spmm: 800
-        max-rate: 200
-        acceleration: 200
-        max-travel: 3.14159265
-        mpos: 1.57079632675
-steppers:
-        pulse: 3
-        idle: 200
+  dynamixel:
+    protocol: 3
+    count-min: 1024
+    count-max: 3072
+  spmm: 800
+  max-rate: 200
+  acceleration: 200
+  max-travel: 3.14159265
+  mpos: 1.57079632675
 user-digital0:
-        pin: gpio.25
+  pin: gpio.25
 user-digital1:
-        pin: gpio.26
+  pin: gpio.26
 user-digital2:
-        pin: gpio.27
+  pin: gpio.27
 user-analog0:
-        pin: gpio.2
-        frequency: 50
+  pin: gpio.2
+  frequency: 50
 user-analog1:
-        pin: gpio.15
-        frequency: 50
+  pin: gpio.15
+  frequency: 50
 user-analog2:
-        pin: gpio.16
-        frequency: 50
+  pin: gpio.16
+  frequency: 50
 status-report-mask: 1

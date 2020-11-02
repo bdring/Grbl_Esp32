@@ -1,26 +1,25 @@
 ---
 name: ESPDUINO_32
-
+board: espduino
+defaults:
+  steppers:
+    disable: gpio.12
 x:
-        stepstick:
-                step: gpio.26
-                direction: gpio.16
+  stepstick:
+    step: gpio.26
+    direction: gpio.16
 y:
-        stepstick:
-                step: gpio.25
-                direction: gpio.27
+  stepstick:
+    step: gpio.25
+    direction: gpio.27
 z:
-        stepstick:
-                step: gpio.17
-                direction: gpio.14
-
-steppers:
-        disable: gpio.12
-
+  stepstick:
+    step: gpio.17
+    direction: gpio.14
 spindle:
-        pwm:
-                output: gpio.19
-                direction: gpio.18
+  pwm:
+    output: gpio.19
+    direction: gpio.18
 
 mist: gpio.36
 flood: gpio.34

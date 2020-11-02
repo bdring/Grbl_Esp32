@@ -1,39 +1,38 @@
 ---
 name: 6 Pack StepStick XYYZ SW_XYZP
+board: bdring-6pack
+defaults:
+  tmc2130:
+    rsense: 0.11
+    run: coolstep
+    homing: stallguard
+  steppers:
+    reset: gpio.19
+    pulse: 4
 i2so:
-        bck: gpio.22
-        ws: gpio.17
-        data: gpio.21
+  bck: gpio.22
+  ws: gpio.17
+  data: gpio.21
 x:
-        limit: gpio.33:low
-        tmc2130:
-		6pack-socket1
-		rsense: 0.11
-		run: coolstep
-		homing: stallguard
+  limit: gpio.33:low
+  tmc2130:
+    6pack-socket1
 y:
-	limit: gpio.32:low
-	stepstick:
-		6pack-socket2
+  limit: gpio.32:low
+  stepstick:
+    6pack-socket2
 z:
-	limit: gpio.35:low
-	tmc2130:
-		6pack-socket3
-		rsense: 0.11
-		run: coolstep
-		homing: stallguard
+  limit: gpio.35:low
+  tmc2130:
+    6pack-socket3
 a:
-	dynamixel:
-                RxD: gpio.26
-                RTS: gpio.4
-                TxD: gpio.16
-                protocol: 1
+  dynamixel:
+    RxD: gpio.26
+    RTS: gpio.4
+    TxD: gpio.16
+    protocol: 1
 b:
-	rcservo:
-                pin: gpio.27
-                min: 1.0
-                max: 1.0
-
-steppers:
-        reset: gpio.19
-        pulse: 4
+  rcservo:
+    pin: gpio.27
+    min: 1.0
+    max: 1.0

@@ -1,55 +1,43 @@
 ---
 name: ESP32 SPI 6 Axis Driver Board Trinamic
+board: bdring-6pack
+defaults:
+  tmc2130:
+    rsense: 0.11
+    run: coolstep
+    homing: coolstep
+  steppers:
+    pulse: 4
 i2so:
-        bck: gpio.22
-        ws: gpio.17
-        data: gpio.21
-steppers:
-        pulse: 4
+  bck: gpio.22
+  ws: gpio.17
+  data: gpio.21
 x:
-        limit: gpio.33:low
-        tmc2130:
-                6pack-socket1
-                run: coolstep
-                hold: coolstep
-                rsense: 0.11
+  limit: gpio.33:low
+  tmc2130:
+    6pack-socket1
 y:
-        limit: gpio.32:low
-        tmc2130:
-                6pack-socket2
-                run: coolstep
-                hold: coolstep
-                rsense: 0.11
+  limit: gpio.32:low
+  tmc2130:
+    6pack-socket2
 z:
-        limit: gpio.35:low
-        tmc2130:
-                6pack-socket3
-                run: coolstep
-                hold: coolstep
-                rsense: 0.11
+  limit: gpio.35:low
+  tmc2130:
+    6pack-socket3
 a:
-        limit: gpio.34:low
-        tmc2130:
-                6pack-socket4
-                run: coolstep
-                hold: coolstep
-                rsense: 0.11
+  limit: gpio.34:low
+  tmc2130:
+    6pack-socket4
 b:
-        limit: gpio.39:low
-                tmc2130:
-                6pack-socket5
-                run: coolstep
-                hold: coolstep
-                rsense: 0.11
+  limit: gpio.39:low
+    tmc2130:
+    6pack-socket5
 c:
-        limit: gpio.36:low
-        tmc2130:
-                6pack-socket6
-                run: coolstep
-                hold: coolstep
-                rsense: 0.11
+  limit: gpio.36:low
+  tmc2130:
+    6pack-socket6
 spindle:
-        relay:
-                output: gpio.26
+  relay:
+    output: gpio.26
 probe: gpio.25
 mist: gpio.2

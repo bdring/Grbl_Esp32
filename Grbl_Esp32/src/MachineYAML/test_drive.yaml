@@ -1,5 +1,4 @@
 ---
 name: Test Drive - Demo Only No I/O!
 homing:
-        cycle0:
-        cycle1:
+  cycles:

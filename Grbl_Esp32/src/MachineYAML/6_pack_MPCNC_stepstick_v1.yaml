@@ -1,44 +1,46 @@
 ---
 name: 6 Pack MPCNC XYZXY V1 (StepStick)
+board: bdring-6pack
+defaults:
+  steppers:
+    reset: gpio.19
+    pulse: 4
 i2so:
-        bck: gpio.22
-        ws: gpio.17
-        data: gpio.21
+  bck: gpio.22
+  ws: gpio.17
+  data: gpio.21
 x:
-        limit: gpio.33:low
-        stepstick:
-                disable: i2so.0
-                direction: i2so.1
-                step: i2so.2
-                ms3: i2so.3
+  limit: gpio.33:low
+  stepstick:
+    disable: i2so.0
+    direction: i2so.1
+    step: i2so.2
+    ms3: i2so.3
 x2:
-        limit: gpio.34:low
-        stepstick:
-                direction: i2so.12
-                step: i2so.13
-                ms3: i2so.14
-                disable: i2so.15
+  limit: gpio.34:low
+  stepstick:
+    direction: i2so.12
+    step: i2so.13
+    ms3: i2so.14
+    disable: i2so.15
 y:
-        limit: gpio.32:low
-        stepstick:
-                direction: i2so.4
-                step: i2so.5
-                ms3: i2so.6
-                disable: i2so.7
+  limit: gpio.32:low
+  stepstick:
+    direction: i2so.4
+    step: i2so.5
+    ms3: i2so.6
+    disable: i2so.7
 y2:
-        limit: gpio.2:low
-        stepstick:
-                disable: i2so.16
-                direction: i2so.17
-                step: i2so.18
-                ms3: i2so.19
+  limit: gpio.2:low
+  stepstick:
+    disable: i2so.16
+    direction: i2so.17
+    step: i2so.18
+    ms3: i2so.19
 z:
-        limit: gpio.35:low
-        stepstick:
-                disable: i2so.8
-                direction: i2so.9
-                step: i2so.10
-                ms3: i2so.11
-steppers:
-        reset: gpio.19
-        pulse: 4
+  limit: gpio.35:low
+  stepstick:
+    disable: i2so.8
+    direction: i2so.9
+    step: i2so.10
+    ms3: i2so.11
