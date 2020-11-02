@@ -156,9 +156,13 @@ Error list_settings(const char* value, WebUI::AuthenticationLevel auth_level, We
 }
 Error list_changed_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Setting* s = Setting::List; s; s = s->next()) {
-        const char* value = s->getStringValue();
-        if (!auth_failed(s, value, auth_level) && strcmp(value, s->getDefaultString())) {
-            show_setting(s->getName(), value, NULL, out);
+        const char* value  = s->getStringValue();
+        const char* defval = s->getDefaultString();
+        if (!auth_failed(s, value, auth_level) && strcmp(value, defval)) {
+            String message = "(Default=";
+            message += defval;
+            message += ")";
+            show_setting(s->getName(), value, message.c_str(), out);
         }
     }
     grbl_sendf(out->client(), "(Passwords not shown)\r\n");

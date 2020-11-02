@@ -78,9 +78,7 @@ namespace Motors {
                        uint8_t  cs_pin,
                        uint16_t driver_part_number,
                        float    r_sense) :
-            TrinamicDriver(axis_index, step_pin, dir_pin, disable_pin,
-                           cs_pin, driver_part_number, r_sense, get_next_index())
-        {}
+            TrinamicDriver(axis_index, step_pin, dir_pin, disable_pin, cs_pin, driver_part_number, r_sense, get_next_index()) {}
 
         TrinamicDriver(uint8_t  axis_index,
                        uint8_t  step_pin,
@@ -112,18 +110,23 @@ namespace Motors {
         bool            _disabled;
 
         TrinamicMode _mode = TrinamicMode::None;
-        bool test();
-        void set_mode(bool isHoming);
-        void trinamic_test_response();
-        void trinamic_stepper_enable(bool enable);
+        bool         test();
+        void         set_mode(bool isHoming);
+        void         trinamic_test_response();
+        void         trinamic_stepper_enable(bool enable);
+
+        bool report_open_load(TMC2130_n ::DRV_STATUS_t status);
+        bool report_short_to_ground(TMC2130_n ::DRV_STATUS_t status);
+        bool report_over_temp(TMC2130_n ::DRV_STATUS_t status);
+        bool report_short_to_ps(TMC2130_n ::DRV_STATUS_t status);
 
         uint8_t get_next_index();
 
         // Linked list of Trinamic driver instances, used by the
         // StallGuard reporting task.
         static TrinamicDriver* List;
-        TrinamicDriver* link;
-        static void readSgTask(void*);
+        TrinamicDriver*        link;
+        static void            readSgTask(void*);
 
     protected:
         void config_message() override;
