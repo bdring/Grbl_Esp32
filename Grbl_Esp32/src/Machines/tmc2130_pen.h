@@ -59,10 +59,10 @@
 
 // Define one of these 2 options for spindle or servo
 #define Z_SERVO_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
+#define DEFAULT_Z_MAX_TRAVEL          5.0   // Range of travel is 5mm
+#define DEFAULT_Z_HOMING_MPOS         5.0   // MPos will be set to 5mm after homing
+#define Z_SERVO_CAL_MIN               1.0   // calibration factor for the minimum PWM duty
+#define Z_SERVO_CAL_MAX               1.0   // calibration factor for the maximum PWM duty
 
 // #define X_LIMIT_PIN          See version section at beginning of file
 #define Y_LIMIT_PIN             GPIO_NUM_4
-
-// defaults
-#define DEFAULT_Z_STEPS_PER_MM 100.0    // This is used as the servo calibration
-#define DEFAULT_Z_MAX_TRAVEL 300.0      // This is used as the servo calibration

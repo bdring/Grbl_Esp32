@@ -70,6 +70,10 @@
 #    define DEFAULT_STATUS_REPORT_MASK 1  // $10
 #endif
 
+#ifndef DEFAULT_VERBOSE_ERRORS
+#    define DEFAULT_VERBOSE_ERRORS 0
+#endif
+
 #ifndef DEFAULT_JUNCTION_DEVIATION
 #    define DEFAULT_JUNCTION_DEVIATION 0.01  // $11 mm
 #endif
