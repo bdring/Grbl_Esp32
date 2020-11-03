@@ -7,7 +7,6 @@
 #include <driver/uart.h>
 
 namespace PinUsers {
-
     // Native UART in the ESP32
     class NativeUart : public UartDetail {
         static LimitedResource<2>& UartResources() {
@@ -22,7 +21,10 @@ namespace PinUsers {
         Pin rx_;
         Pin rts_;
 
-        uart_port_t uartPort_;
+        int           bufferSize_;
+        uart_config_t uartConfig_;
+        uart_port_t   uartPort_;
+        uart_mode_t   uartMode_;
 
     public:
         NativeUart(Pin tx, Pin rx, Pin rts, Pins::PinOptionsParser& options, Pins::PinOptionsParser& userOptions) :
@@ -33,19 +35,81 @@ namespace PinUsers {
             Assert(rts.capabilities().has(Pin::Capabilities::Native | Pin::Capabilities::UART | Pin::Capabilities::Output));
 
             // Iterate options:
-            uart_config_t uart_config = { 0 };
-            int           bufferSize  = 128;
+            uartConfig_ = { 0 };
+            bufferSize_ = 128;
+
+            // 115200 8N1 = default.
+            uartConfig_.baud_rate           = 115200;
+            uartConfig_.data_bits           = UART_DATA_8_BITS;
+            uartConfig_.flow_ctrl           = UART_HW_FLOWCTRL_DISABLE;
+            uartConfig_.parity              = UART_PARITY_DISABLE;
+            uartConfig_.rx_flow_ctrl_thresh = 122;
+            uartConfig_.stop_bits           = UART_STOP_BITS_1;
+
+            uartMode_ = UART_MODE_UART;
+
             for (auto opt : options) {
-                // if (opt.is("baud")) { uart_config.baud_rate = opt.iValue(); }
-                // if (opt.is("mode")) { mode = opt.value(); /* 8N1 etc */ }
-                // if (opt.is("bufsize")) { mode = opt.iValue(); /* 128 etc */ }
-                // if (opt.is("protocol")) { protocol= opt.value(); /* RS485 etc */ }
-                // etc...
+                if (opt.is("flowControl")) {
+                    auto val = opt.value();
+                    if (!strcmp(val, "RTS")) {
+                        uartConfig_.flow_ctrl = UART_HW_FLOWCTRL_RTS;
+                    } else if (!strcmp(val, "CTS")) {
+                        uartConfig_.flow_ctrl = UART_HW_FLOWCTRL_CTS;
+                    } else if (!strcmp(val, "CTS+RTS")) {
+                        uartConfig_.flow_ctrl = UART_HW_FLOWCTRL_CTS_RTS;
+                    } else {
+                        Assert(false, "Flow control option passed is invalid: %s", val);
+                    }
+                } else if (opt.is("bufsize")) {
+                    bufferSize_ = opt.iValue();
+                } else if (opt.is("mode")) {
+                    auto val = opt.value();
+                    if (!strcmp(val, "UART")) {
+                        uartMode_ = UART_MODE_UART;
+                    } else if (!strcmp(val, "RS485")) {
+                        uartMode_ = UART_MODE_RS485_HALF_DUPLEX;
+                    } else if (!strcmp(val, "IRDA")) {
+                        uartMode_ = UART_MODE_IRDA;
+                    } else {
+                        Assert(false, "Unsupported mode passed to uart mode: %s", val);
+                    }
+                }
             }
+
             for (auto opt : userOptions) {
-                // if (opt.is("baud")) { baudRate = opt.valueInt(); }
-                // if (opt.is("mode")) { mode = opt.valueString(); /* 8N1 etc */ }
-                // etc...
+                if (opt.is("baud")) {
+                    uartConfig_.baud_rate = opt.iValue();
+                } else if (opt.is("data")) {
+                    /* 8N1 etc */
+                    auto modeStr = opt.value();
+                    Assert(::strlen(modeStr) == 3, "Uart mode should be [bits][parity mode][parity bits], like 8N1");
+                    Assert(::isdigit(modeStr[0]), "Expected first character of uart mode to be a number");
+                    Assert(::isdigit(modeStr[2]), "Expected third character of uart mode to be a number");
+
+                    int dataBits = modeStr[0] - '0';
+                    Assert(dataBits >= 5 && dataBits <= 8, "Uart mode data bits should be in the range [5,8]");
+                    uartConfig_.data_bits = static_cast<uart_word_length_t>(UART_DATA_5_BITS + (dataBits - 5));
+
+                    int numberStop = modeStr[2] - '0';
+                    if (numberStop == 1) {
+                        uartConfig_.stop_bits = UART_STOP_BITS_1;
+                    } else if (numberStop == 2) {
+                        uartConfig_.stop_bits = UART_STOP_BITS_2;
+                    } else {
+                        Assert(false, "Number of stop bits in uart mode should be 1 or 2");
+                    }
+
+                    char type = modeStr[1];
+                    if (type == 'N' || type == 'n') {
+                        uartConfig_.parity = UART_PARITY_DISABLE;
+                    } else if (type == 'E' || type == 'e') {
+                        uartConfig_.parity = UART_PARITY_EVEN;
+                    } else if (type == 'O' || type == 'o') {
+                        uartConfig_.parity = UART_PARITY_ODD;
+                    } else {
+                        Assert(false, "Parity mode in uart mode should be odd (O), even (E) or none (N)");
+                    }
+                }
             }
 
             int uartIndex = UartResources().tryClaim();
@@ -58,18 +122,20 @@ namespace PinUsers {
             auto rxn  = rx_.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
             auto rtsn = rts_.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
 
-            Assert(uart_param_config(uartPort_, &uart_config) == ESP_OK, "Uart parameter set failed.");
-            Assert(uart_set_pin(uartPort_, txn, rxn, rtsn, UART_PIN_NO_CHANGE) == ESP_OK, "Uart parameter set failed.");
-            Assert(uart_driver_install(uartPort_, bufferSize * 2, 0, 0, NULL, 0) == ESP_OK, "Uart driver install failed.");
+            try {
+                Assert(uart_param_config(uartPort_, &uartConfig_) == ESP_OK, "Uart parameter set failed.");
+                Assert(uart_set_pin(uartPort_, txn, rxn, rtsn, UART_PIN_NO_CHANGE) == ESP_OK, "Uart parameter set failed.");
+                Assert(uart_driver_install(uartPort_, bufferSize_ * 2, 0, 0, NULL, 0) == ESP_OK, "Uart driver install failed.");
 
-            // TODO FIXME: We should set the UART mode somewhere better suited than here:
-            if (uart_set_mode(uartPort_, UART_MODE_RS485_HALF_DUPLEX) != ESP_OK) {
-                uart_driver_delete(uartPort_);
-
+                if (uart_set_mode(uartPort_, uartMode_) != ESP_OK) {
+                    uart_driver_delete(uartPort_);
+                    Assert(false, "UART set mode failed");
+                }
+            } catch (const AssertionFailed& ex) {
                 UartResources().release(int(uartPort_) - 1);
                 uartPort_ = UART_NUM_MAX;
 
-                Assert(false, "UART set mode failed");
+                throw;
             }
         }
 
@@ -105,5 +171,4 @@ namespace PinUsers {
             Assert(false, "Pin is not supported for UART.");
         }
     }
-
 }

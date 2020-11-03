@@ -4,6 +4,10 @@
 #include <WString.h>
 #include "../Assert.h"
 
+// TODO FIXME: Uart also suffers from the way settings works: What you would want is 2 phases,
+// so (1) validation and preparation, and (2) building the actual uart. Now, it's all combined
+// in the single constructor, which works, but could throw an exception.
+
 namespace PinUsers {
     class UartDetail {
     public:
@@ -13,6 +17,7 @@ namespace PinUsers {
         virtual ~UartDetail() {}
     };
 
+    // Pin user for UART.
     class Uart {
         Pin _tx;
         Pin _rx;
@@ -107,7 +112,9 @@ namespace PinUsers {
             int limit  = sizeof(T) * numberElements;
             while (offset < limit) {
                 auto bytesRead = readPartial(bufferArray, numberElements, offset, ticksToWait);
-                if (bytesRead == 0) { break; }
+                if (bytesRead == 0) {
+                    break;
+                }
                 offset += bytesRead;
             }
             return offset == limit;
