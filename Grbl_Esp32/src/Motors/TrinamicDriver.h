@@ -109,6 +109,11 @@ namespace Motors {
         void         trinamic_test_response();
         void         trinamic_stepper_enable(bool enable);
 
+        bool report_open_load(TMC2130_n ::DRV_STATUS_t status);
+        bool report_short_to_ground(TMC2130_n ::DRV_STATUS_t status);
+        bool report_over_temp(TMC2130_n ::DRV_STATUS_t status);
+        bool report_short_to_ps(TMC2130_n ::DRV_STATUS_t status);
+
         uint8_t get_next_index();
 
         // Linked list of Trinamic driver instances, used by the

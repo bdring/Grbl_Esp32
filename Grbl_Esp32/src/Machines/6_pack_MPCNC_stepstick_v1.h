@@ -39,12 +39,6 @@
 #define I2S_OUT_WS       "gpio.17"
 #define I2S_OUT_DATA     "gpio.21"
 
-#define X_STEPPER_MS3           "i2so.3"   // Labeled X_CS
-#define Y_STEPPER_MS3           "i2so.6"   // Y_CS
-#define Z_STEPPER_MS3           "i2so.11"  // Z_CS
-#define X2_STEPPER_MS3          "i2so.14"  // A_CS
-#define Y2_STEPPER_MS3          "i2so.19"  // B_CS
-
 // Motor Socket #1
 #define X_DISABLE_PIN           "i2so.0"
 #define X_DIRECTION_PIN         "i2so.1"

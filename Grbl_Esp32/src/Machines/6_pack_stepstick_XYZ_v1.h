@@ -41,9 +41,6 @@
 #define I2S_OUT_WS              "gpio.17"
 #define I2S_OUT_DATA            "gpio.21"
 
-#define X_STEPPER_MS3           "i2so.3"   // X_CS
-#define Y_STEPPER_MS3           "i2so.6"   // Y_CS
-#define Z_STEPPER_MS3           "i2so.11"  // Z_CS
 
 // Motor Socket #1
 #define X_DISABLE_PIN           "i2so.0"
