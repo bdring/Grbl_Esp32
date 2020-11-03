@@ -8,11 +8,12 @@
 
 namespace PinUsers {
     class NativePwm : public PwmDetail {
-        static LimitedResource<8>& PwmChannelResources() {
-            // The ESP32 chip has 16 PWM channels, but the second 8 channels share the same timers as the first 8.
-            // So, in essense, we use only 8 here, so we can configure them independently.
+        static NativePwm** PwmChannelResources() {
+            // The ESP32 chip has 16 PWM channels, but there are 4 timers, 2 hardware instances per timer and 2
+            // software instances per timer.
 
-            static LimitedResource<8> instances_;
+            static NativePwm* instances_[16] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                                                 nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
             return instances_;
         }
 
@@ -40,11 +41,50 @@ namespace PinUsers {
             return precision - 1;
         }
 
+        static int TryGrabChannel(uint32_t frequency) {
+            auto instances = PwmChannelResources();
+
+            // 1. Attempt to re-use the same frequency
+            for (int i = 0; i < 4; ++i) {
+                if (instances[i * 2] != nullptr && instances[i * 2 + 1] == nullptr) {
+                    // See if this is a frequency match:
+                    if (instances[i * 2]->frequency_ == frequency) {
+                        return i * 2 + 1;
+                    }
+                }
+            }
+
+            // 2. No luck. Check if we have free slots in the hardware PWM channels / timers
+            for (int i = 0; i < 4; ++i) {
+                if (instances[i * 2] == nullptr) {
+                    return i * 2;
+                }
+            }
+
+            // 3. Check if we have free slots in the software PWM channels with the same frequency
+            for (int i = 0; i < 4; ++i) {
+                if (instances[i * 2]->frequency_ == frequency) {
+                    if (instances[i * 2 + 8] == nullptr) {
+                        return i * 2 + 8;
+                    } else if (instances[i * 2 + 9] == nullptr) {
+                        // See if this is a frequency match:
+                        return i * 2 + 9;
+                    }
+                }
+            }
+
+            // 4. Re-assign hardware PWM channels to software channels.
+            // TODO: Implement
+
+            // 5. Nothing is available.
+            return -1;
+        }
+
     public:
-        NativePwm(Pin pin, uint32_t frequency, uint32_t maxDuty) : frequency_(frequency), maxDuty_(maxDuty) {
+        NativePwm(Pin pin, uint32_t frequency, uint32_t maxDuty) : frequency_(frequency), maxDuty_(maxDuty), pin_(pin) {
             auto native = pin.getNative(Pin::Capabilities::PWM | Pin::Capabilities::Native);
 
-            pwmChannel_ = PwmChannelResources().tryClaim();
+            pwmChannel_ = TryGrabChannel(frequency);
             Assert(pwmChannel_ != -1, "PWM Channel could not be claimed. Are all PWM channels in use?");
 
             resolutionBits_ = calculatePwmPrecision(frequency);
@@ -54,6 +94,10 @@ namespace PinUsers {
             ledcWrite(pwmChannel_, 0);
 
             // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "PWM Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
+
+            // Store instance:
+            auto instances         = PwmChannelResources();
+            instances[pwmChannel_] = this;
         }
 
         uint32_t getFrequency() const override { return frequency_; }
@@ -71,8 +115,18 @@ namespace PinUsers {
         }
 
         ~NativePwm() override {
+            auto native = pin_.getNative(Pin::Capabilities::PWM | Pin::Capabilities::Native);
+
             ledcWrite(pwmChannel_, 0);
-            PwmChannelResources().release(pwmChannel_);
+            ledcDetachPin(native);
+
+            // Release resource:
+            auto instances = PwmChannelResources();
+            for (int i = 0; i < 16; ++i) {
+                if (instances[i] == this) {
+                    instances[i] = nullptr;
+                }
+            }
         }
     };
 
