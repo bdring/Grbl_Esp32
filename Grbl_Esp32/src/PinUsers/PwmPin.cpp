@@ -81,7 +81,7 @@ namespace PinUsers {
         }
 
     public:
-        NativePwm(Pin pin, uint32_t frequency, uint32_t maxDuty) : frequency_(frequency), maxDuty_(maxDuty), pin_(pin) {
+        NativePwm(Pin pin, uint32_t frequency, uint32_t maxDuty) : pin_(pin), frequency_(frequency), maxDuty_(maxDuty){
             auto native = pin.getNative(Pin::Capabilities::PWM | Pin::Capabilities::Native);
 
             pwmChannel_ = TryGrabChannel(frequency);
