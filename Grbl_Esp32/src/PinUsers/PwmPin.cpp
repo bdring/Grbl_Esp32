@@ -8,10 +8,11 @@
 
 namespace PinUsers {
     class NativePwm : public PwmDetail {
-        static LimitedResource<16>& PwmChannelResources() {
-            // The ESP32 chip has 16 PWM channels.
+        static LimitedResource<8>& PwmChannelResources() {
+            // The ESP32 chip has 16 PWM channels, but the second 8 channels share the same timers as the first 8.
+            // So, in essense, we use only 8 here, so we can configure them independently.
 
-            static LimitedResource<16> instances_;
+            static LimitedResource<8> instances_;
             return instances_;
         }
 
