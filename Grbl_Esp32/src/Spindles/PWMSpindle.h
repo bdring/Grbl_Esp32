@@ -189,7 +189,7 @@ namespace Settings {
 
 class SpindleCollection {
 public:
-    std::vector<Spindles::Spindle*> spindles;
+    std::vector<Spindles::Spindle*> spindles_;
 
     struct MySettings : Settings::Setting<SpindleCollection> {
         const char* collectionName = "spindles";
@@ -203,7 +203,7 @@ public:
 
                 // Unfortunately we cannot use dynamic_cast here, because we lack RTTI.
                 auto spindle = static_cast<Spindles::Spindle*>(builder->parse(parser));
-                collection.spindles.push_back(spindle);
+                collection.spindles_.push_back(spindle);
             }
 
             // Use copy constructor here. It costs some time, but makes RAII much easier.
@@ -212,7 +212,7 @@ public:
     };
 
     ~SpindleCollection() {
-        for (auto spindle : spindles) {
+        for (auto spindle : spindles_) {
             delete spindle;
         }
     }
@@ -220,7 +220,7 @@ public:
 
 class Machine {
 public:
-    SpindleCollection* spindles = nullptr;
+    SpindleCollection* spindles_ = nullptr;
     // Axis, misc devices, etc.
 
     struct MySettings : Settings::Setting<Machine> {
@@ -235,8 +235,8 @@ public:
 
                 // Unfortunately we cannot use dynamic_cast here, because we lack RTTI.
                 if (!strcmp(parser.key(), "spindles")) {
-                    Assert(machine.spindles == nullptr, "No spindles should be defined at this point. Only one spindle section is allowed.");
-                    machine.spindles = static_cast<SpindleCollection*>(builder->parse(parser));
+                    Assert(machine.spindles_ == nullptr, "No spindles should be defined at this point. Only one spindle section is allowed.");
+                    machine.spindles_ = static_cast<SpindleCollection*>(builder->parse(parser));
                 }
                 // else more sections...
             }
@@ -245,6 +245,8 @@ public:
             return new Machine(machine);
         }
     };
+
+    ~Machine() { delete spindles_; }
 };
 
 namespace Spindles {
@@ -267,9 +269,10 @@ namespace Spindles {
                 return new PWM(outputPin.value(), enablePin.value(), directionPin.value(), 0, 10000);
             }
         };
+        PWM() = default;
 
         PWM(Pin output, Pin enable, Pin direction, uint32_t minRpm, uint32_t maxRpm) :
-            _output_pin(output), _enable_pin(enable), _direction_pin(direction), _min_rpm(minRpm), _max_rpm(maxRpm) {}
+            _min_rpm(minRpm), _max_rpm(maxRpm), _output_pin(output), _enable_pin(enable), _direction_pin(direction) {}
 
         PWM(const PWM&) = delete;
         PWM(PWM&&)      = delete;
@@ -313,6 +316,7 @@ namespace Spindles {
     };
 }
 
+// Register settings class works like this:
 namespace {
-    Spindles::PWM::Settings pwmSettings;
+    Spindles::PWM::MySettings pwmSettings;
 }
