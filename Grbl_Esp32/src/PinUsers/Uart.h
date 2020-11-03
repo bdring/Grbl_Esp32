@@ -1,8 +1,9 @@
 #pragma once
 
 #include "../Pin.h"
-#include <WString.h>
 #include "../Assert.h"
+
+#include <WString.h>
 
 // TODO FIXME: Uart also suffers from the way settings works: What you would want is 2 phases,
 // so (1) validation and preparation, and (2) building the actual uart. Now, it's all combined
