@@ -49,19 +49,18 @@ z:
   acceleration: 200
   max-travel: 3.14159265
   mpos: 1.57079632675
-user-digital0:
-  pin: gpio.25
-user-digital1:
-  pin: gpio.26
-user-digital2:
-  pin: gpio.27
-user-analog0:
-  pin: gpio.2
-  frequency: 50
-user-analog1:
-  pin: gpio.15
-  frequency: 50
-user-analog2:
-  pin: gpio.16
-  frequency: 50
+user-digital:
+  - pin: gpio.25
+  - pin: gpio.26
+  - pin: gpio.27
+user-analog:
+  - analog-pin:
+      frequency: 50
+      pin: gpio.2
+  - analog-pin:
+      frequency: 50
+      pin: gpio.15
+  - analog-pin:
+      frequency: 50
+      pin: gpio.16
 status-report-mask: 1

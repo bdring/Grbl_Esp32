@@ -6,9 +6,12 @@ defaults:
     disable: gpio.13
     pulse: 3
     idle: never
+  gpio:
+    debounce: 100
+
 custom:
   filename: Custom/mpcnc_laser_module.cpp
-level-shift: gpio.32
+  level-shift: gpio.32
 homing:
   squared: xy
 x:
@@ -52,16 +55,16 @@ spindle:
     rpm-min: 0.0
 
 mist: gpio.2
-debounce: on
 
 probe: gpio.35
-
-reset: gpio.34,low
-feed-hold: gpio.36,low
-cycle-start: gpio.39,low
-
-status-report-mask: 1
-junction_deviation: 0.01
-arc-tolerance: 0.002
-report-inches: 0
-laser-mode: off
+control:
+  reset: gpio.34,low
+  feed-hold: gpio.36,low
+  cycle-start: gpio.39,low
+report:
+  status-mask: 1
+  inches: off
+gcode:
+  junction-deviation: 0.01
+  arc-tolerance: 0.002
+  laser-mode: off

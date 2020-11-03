@@ -1,4 +1,5 @@
 ---
 name: Coolant Test
-mist: gpio.21
-flood: gpio.25
+coolant:
+  mist: gpio.21
+  flood: gpio.25

@@ -30,7 +30,8 @@ homing:
     - x
     - xy
 probe: gpio.14
-reset: gpio.27:low
-feed-hold: gpio.26:low
-cycle-start: gpio.25:low
+control:
+  reset: gpio.27:low
+  feed-hold: gpio.26:low
+  cycle-start: gpio.25:low
 

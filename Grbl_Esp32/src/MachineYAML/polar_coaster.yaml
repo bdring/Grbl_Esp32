@@ -6,17 +6,17 @@ defaults:
     disable: gpio.17
     pulse: 3
     idle: never
+  gpio:
+    debounce: 100
 custom:
   filename: Custom/polar_coaster.cpp
   radius-axis: 0
   polar-axis: 1
   segment-length: 0.5
   forward-kinematics: on
-m30: on
 homing:
   feed-rate: 200
   seek-rate: 1000
-  debounce: 250
   pulloff: 3
 x:
   limit: gpio.4:low
@@ -43,14 +43,15 @@ z:
   acceleration: 50
   travel: 100
 
-debounce: on
-    period: 100
 macro:
-  button0: gpio.13:low
-  button1: gpio.12:low
-  button2: gpio.14:low
+  - gpio.13:low
+  - gpio.12:low
+  - gpio.14:low
 
-status-report-mask: 2
-junction_deviation: 0.01
-arc-tolerance: 0.002
-report-inches: 0
+report:
+  status-mask: 2
+  inches: off
+gcode:
+  junction-deviation: 0.01
+  arc-tolerance: 0.002
+  laser-mode: off

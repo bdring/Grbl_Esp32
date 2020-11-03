@@ -20,11 +20,11 @@ spindle:
   pwm:
     output: gpio.19
     direction: gpio.18
-
-mist: gpio.36
-flood: gpio.34
+coolant:
+  mist: gpio.36
+  flood: gpio.34
 probe: gpio.39
-
-reset: gpio.2:low
-feed-hold: gpio.4:low
-cycle-start: gpio.35:low
+control:
+  reset: gpio.2:low
+  feed-hold: gpio.4:low
+  cycle-start: gpio.35:low

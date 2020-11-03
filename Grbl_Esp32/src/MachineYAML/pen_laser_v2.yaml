@@ -6,10 +6,11 @@ defaults:
     disable: gpio.13
     pulse: 3
     idle: never
+  gpio:
+    debounce: 250
 homing:
   feed-rate: 200
   seek-rate: 1000
-  debounce: 250
   pulloff: 3
 x:
   limit: gpio.15:low
@@ -40,8 +41,10 @@ z:
   travel: 100
 probe: gpio.35
 
-status-report-mask: 1
-junction_deviation: 0.01
-arc-tolerance: 0.002
-report-inches: 0
-laser-mode: off
+report:
+  status-mask: 1
+  inches: off
+gcode:
+  junction-deviation: 0.01
+  arc-tolerance: 0.002
+  laser-mode: off

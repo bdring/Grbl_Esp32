@@ -1,6 +1,6 @@
 ---
 name: esp32_v4
-board:bdring-3axis-v4
+board: bdring-3axis-v4
 defaults:
   steppers:
     disable: gpio.13
@@ -23,6 +23,7 @@ spindle:
   pwm:
     output: gpio.2
     enable: gpio.22
-mist: gpio.21
-flood: gpio.25
+coolant:
+  mist: gpio.21
+  flood: gpio.25
 probe: gpio.32

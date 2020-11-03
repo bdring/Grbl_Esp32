@@ -6,6 +6,8 @@ defaults:
     disable: gpio.13
     pulse: 3
     idle: never
+  gpio:
+    debounce: 250
 x:
   limit: gpio.2:low
   stepstick:
@@ -38,10 +40,10 @@ homing:
     - x
   feed-rate: 200
   seek-rate: 1000
-  debounce: 250
   pulloff: 3
-
-status-report-mask: 1
-junction-deviation: 0.01
-arc-tolerance: 0.002
-report-inches: 0
+report:
+  status-mask: 1
+  inches: off
+gcode:
+  junction-deviation: 0.01
+  arc-tolerance: 0.002

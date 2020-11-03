@@ -4,6 +4,9 @@ board: bdring-lowrider-v1p2
 defaults:
   steppers:
     disable: gpio.13
+  gpio:
+    debounce: 100
+
 x:
   limit: gpio.15:low
   stepstick:
@@ -31,9 +34,9 @@ spindle:
   pwm:
     output: gpio.16
     enable: gpio.32
-debounce: on
 
 probe: gpio.35
-reset: gpio.34
-feed-hold: gpio.36
-cycle-start: gpio.39
+control:
+  reset: gpio.34
+  feed-hold: gpio.36
+  cycle-start: gpio.39

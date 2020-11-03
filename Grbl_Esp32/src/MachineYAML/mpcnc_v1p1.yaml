@@ -6,11 +6,12 @@ defaults:
     disable: gpio.13
     pulse: 3
     idle: never
+  gpio:
+    debounce: 250
 homing:
   squared: xy
   feed-rate: 100
   seek-rate: 200
-  debounce: 250
   pulloff: 2
 x:
   limit: gpio.2,low
@@ -58,12 +59,14 @@ spindle:
 
 probe: gpio.35
 
-reset: gpio.34,low
-feed-hold: gpio.36,low
-cycle-start: gpio.39,low
-
-status-report-mask: 1
-junction_deviation: 0.01
-arc-tolerance: 0.002
-report-inches: 0
-laser-mode: off
+control:
+  reset: gpio.34,low
+  feed-hold: gpio.36,low
+  cycle-start: gpio.39,low
+report:
+  status-mask: 1
+  inches: off
+gcode:
+  junction_deviation: 0.01
+  arc-tolerance: 0.002
+  laser-mode: off
