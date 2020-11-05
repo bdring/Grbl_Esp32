@@ -436,6 +436,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 // NOTE: Variable 'mg_word_bit' is always assigned, if the command is valid.
                 bitmask = bit(mg_word_bit);
                 if (bit_istrue(command_words, bitmask)) {
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Bad:%s", line);
                     FAIL(Error::GcodeModalGroupViolation);
                 }
                 command_words |= bitmask;
