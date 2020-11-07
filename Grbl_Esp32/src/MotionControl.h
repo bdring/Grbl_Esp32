@@ -77,3 +77,5 @@ enum class SquaringMode : uint8_t {
 };
 
 extern SquaringMode ganged_mode;
+
+void user_probe_notification(); // weak. User to supply if needed

@@ -36,6 +36,7 @@ void go_above_tool(uint8_t tool_num);
 void return_tool(uint8_t tool_num);
 void atc_tool_setter();
 bool set_ATC_open(bool open);
+void gc_exec_linef(const char* format, bool sync_before, ...);
 
 uint8_t current_tool = 0;
 
@@ -242,4 +243,40 @@ bool set_ATC_open(bool open) {
     }
     digitalWrite(ATC_RELEASE_PIN, open);
     return true;
+}
+
+/*
+Formats and sends a gcode line
+
+char* format = a printf style string like "G0X%0.3fY0.3f"
+bool sync_before. true = protocol_buffer_synchronize before gcode
+
+
+*/
+void gc_exec_linef(const char* format, bool sync_before, ...) {
+    char    loc_buf[100];
+    char*   temp = loc_buf;
+    va_list arg;
+    va_list copy;
+    va_start(arg, format);
+    va_copy(copy, arg);
+    size_t len = vsnprintf(NULL, 0, format, arg);
+    va_end(copy);
+    if (len >= sizeof(loc_buf)) {
+        temp = new char[len + 1];
+        if (temp == NULL) {
+            return;
+        }
+    }
+    len = vsnprintf(temp, len + 1, format, arg);
+    // if (sync_before) {
+    //     protocol_buffer_synchronize();
+
+    // }
+    gc_execute_line(temp, CLIENT_INPUT);
+    grbl_sendf(CLIENT_SERIAL, "[ATC GCode:%s]\r\n", temp);
+    va_end(arg);
+    if (temp != loc_buf) {
+        delete[] temp;
+    }
 }
