@@ -151,10 +151,13 @@ namespace Pins {
         }
 
         // If the pin is ActiveLow, we should take that into account here:
-        if (value.has(PinAttributes::InitialOn)) {
-            __digitalWrite(_index, HIGH ^ _readWriteMask);
-        } else {
-            __digitalWrite(_index, LOW ^ _readWriteMask);
+        if (value.has(PinAttributes::Output)) {
+            if (value.has(PinAttributes::InitialOn)) {
+                __digitalWrite(_index, HIGH ^ _readWriteMask);
+            }
+            else {
+                __digitalWrite(_index, LOW ^ _readWriteMask);
+            }
         }
 
         __pinMode(_index, pinModeValue);
