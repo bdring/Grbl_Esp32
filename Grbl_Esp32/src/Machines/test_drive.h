@@ -57,13 +57,13 @@
 // Output devices:
 // - I2S
 
-#define USE_I2S_OUT
-#define USE_I2S_STEPS
+// #define USE_I2S_OUT
+// #define USE_I2S_STEPS
 // #define I2S_OUT_BCK             "gpio.22"
 // #define I2S_OUT_WS              "gpio.17"
 // #define I2S_OUT_DATA            "gpio.21"
 
-#define COOLANT_MIST_PIN        "i2so.24"
+// #define COOLANT_MIST_PIN        "i2so.24"
 
 // x CoolantControl
 
@@ -124,11 +124,11 @@
 // #define PROBE_PIN               "gpio.18:pu"
 
 // x Limits
-#define X_LIMIT_PIN               "gpio.18:pu"
+// #define X_LIMIT_PIN               "gpio.18:pu:low"
 // x System : ControlSafetyDoor
-#define CONTROL_SAFETY_DOOR_PIN   "gpio.22:pu"
+// #define CONTROL_SAFETY_DOOR_PIN   "gpio.22:pu"
 // x System : ControlReset
-#define CONTROL_RESET_PIN         "gpio.23:pu"
+// #define CONTROL_RESET_PIN         "gpio.23:pu"
 // x System : ControlFeedHold
 // #define CONTROL_FEED_HOLD_PIN        "gpio.22:pu"
 // x System : ControlCycleStart

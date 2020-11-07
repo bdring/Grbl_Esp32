@@ -6,6 +6,7 @@ namespace Pins {
     class GPIOPinDetail : public PinDetail {
         PinCapabilities _capabilities;
         PinAttributes   _attributes;
+        PinAttributes   _currentMode;
         int             _readWriteMask;
 
         static PinCapabilities GetDefaultCapabilities(uint8_t index);

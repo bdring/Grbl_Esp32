@@ -77,7 +77,8 @@ namespace Pins {
     }
 
     GPIOPinDetail::GPIOPinDetail(uint8_t index, PinOptionsParser options) :
-        PinDetail(index), _capabilities(GetDefaultCapabilities(index)), _attributes(Pins::PinAttributes::None), _readWriteMask(0) {
+        PinDetail(index), _capabilities(GetDefaultCapabilities(index)), _attributes(Pins::PinAttributes::None),
+        _currentMode(Pins::PinAttributes::None), _readWriteMask(0) {
         // NOTE:
         //
         // RAII is very important here! If we throw an exception in the constructor, the resources
@@ -113,7 +114,7 @@ namespace Pins {
     PinAttributes   GPIOPinDetail::attributes() const { return _attributes; }
 
     void GPIOPinDetail::write(int high) {
-        Assert(_attributes.has(PinAttributes::Output), "Pin has no output attribute defined. Cannot write to it.");
+        Assert(_currentMode.has(PinAttributes::Output), "Pin has no output attribute defined. Cannot write to it.");
         int value = _readWriteMask ^ high;
         __digitalWrite(_index, value);
     }
@@ -133,6 +134,8 @@ namespace Pins {
         Assert(!_attributes.conflictsWith(value) || _index == 1 || _index == 3,
                "Attributes on this pin have been set before, and there's a conflict.");
 
+        _currentMode = value;
+
         // Handle attributes:
         uint8_t pinModeValue = 0;
 
@@ -140,10 +143,6 @@ namespace Pins {
             pinModeValue |= INPUT;
         } else if (value.has(PinAttributes::Output)) {
             pinModeValue |= OUTPUT;
-        }
-
-        if (value.has(PinAttributes::ISR)) {
-            _attributes = _attributes | PinAttributes::ISR;
         }
 
         // PU/PD should be specified by the user. Code has nothing to do with it. Well except for this little
@@ -167,13 +166,13 @@ namespace Pins {
     }
 
     void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) {
-        Assert(_attributes.has(PinAttributes::ISR),
+        Assert(_currentMode.has(PinAttributes::ISR),
                "Pin has no ISR attribute, which means 'setAttr' was not set, or the pin doesn't support ISR's. Cannot bind ISR.");
         ::attachInterruptArg(_index, callback, arg, mode);
     }
 
     void GPIOPinDetail::detachInterrupt() {
-        Assert(_attributes.has(PinAttributes::ISR),
+        Assert(_currentMode.has(PinAttributes::ISR),
                "Pin has no ISR attribute, which means 'setAttr' was not set, or the pin doesn't support ISR's. Cannot unbind ISR.");
         ::detachInterrupt(_index);
     }
