@@ -115,7 +115,6 @@ Socket #5
 // #define CONTROL_FEED_HOLD_PIN        "gpio.4"
 // #define CONTROL_RESET_PIN            "gpio.16"
 // #define CONTROL_SAFETY_DOOR_PIN      "gpio.27"
-// //#define INVERT_CONTROL_PIN_MASK      B0000
 
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      800

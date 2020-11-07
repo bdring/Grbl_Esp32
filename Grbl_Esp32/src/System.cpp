@@ -273,9 +273,6 @@ ControlPins system_control_get_state() {
         pin_states.bit.macro3 = true;
     }
 
-#ifdef INVERT_CONTROL_PIN_MASK
-    pin_states.value ^= (INVERT_CONTROL_PIN_MASK & defined_pins.value);
-#endif
     return pin_states;
 }
 

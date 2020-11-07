@@ -44,23 +44,13 @@ CoolantState coolant_get_state() {
     bool         pinState;
 
     if (CoolantFloodPin->get() != Pin::UNDEFINED) {
-        auto pinState = CoolantFloodPin->get().read();
-#ifdef INVERT_COOLANT_FLOOD_PIN
-        pinState = !pinState;
-#endif
-
-        if (pinState) {
+        if (CoolantFloodPin->get().read()) {
             cl_state.Flood = 1;
         }
     }
 
     if (CoolantMistPin->get() != Pin::UNDEFINED) {
-        auto pinState = CoolantMistPin->get().read();
-#ifdef INVERT_COOLANT_MIST_PIN
-        pinState = !pinState;
-#endif
-
-        if (pinState) {
+        if (CoolantMistPin->get().read()) {
             cl_state.Mist = 1;
         }
     }
@@ -71,17 +61,11 @@ CoolantState coolant_get_state() {
 static inline void coolant_write(CoolantState state) {
     if (CoolantFloodPin->get() != Pin::UNDEFINED) {
         bool pinState = state.Flood;
-#ifdef INVERT_COOLANT_FLOOD_PIN
-        pinState = !pinState;
-#endif
         CoolantFloodPin->get().write(pinState);
     }
 
     if (CoolantMistPin->get() != Pin::UNDEFINED) {
         bool pinState = state.Mist;
-#ifdef INVERT_COOLANT_MIST_PIN
-        pinState = !pinState;
-#endif
         CoolantMistPin->get().write(pinState);
     }
 }

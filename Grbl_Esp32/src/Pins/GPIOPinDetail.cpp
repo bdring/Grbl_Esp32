@@ -110,6 +110,7 @@ namespace Pins {
     }
 
     PinCapabilities GPIOPinDetail::capabilities() const { return _capabilities; }
+    PinAttributes   GPIOPinDetail::attributes() const { return _attributes; }
 
     void GPIOPinDetail::write(int high) {
         Assert(_attributes.has(PinAttributes::Output), "Pin has no output attribute defined. Cannot write to it.");

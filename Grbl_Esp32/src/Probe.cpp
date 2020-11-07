@@ -59,7 +59,7 @@ void set_probe_direction(bool is_away) {
 
 // Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
 bool probe_get_state() {
-    return ProbePin->get().read() ^ probe_invert->get();
+    return ProbePin->get().read();
 }
 
 // Monitors probe pin state and records the system position when detected. Called by the

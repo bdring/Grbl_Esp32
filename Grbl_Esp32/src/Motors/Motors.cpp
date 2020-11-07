@@ -439,9 +439,6 @@ void motors_set_disable(bool disable) {
     }
 
     // invert only inverts the global stepper disable pin.
-    if (step_enable_invert->get()) {
-        disable = !disable;  // Apply pin invert.
-    }
     SteppersDisablePin->get().write(disable);
 }
 

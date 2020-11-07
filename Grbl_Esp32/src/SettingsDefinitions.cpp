@@ -13,16 +13,11 @@ StringSetting* build_info;
 IntSetting* pulse_microseconds;
 IntSetting* stepper_idle_lock_time;
 
-AxisMaskSetting* step_invert_mask;
 AxisMaskSetting* dir_invert_mask;
-// TODO Settings - need to call st_generate_step_invert_masks;
 AxisMaskSetting* homing_dir_mask;
 AxisMaskSetting* homing_squared_axes;
 AxisMaskSetting* stallguard_debug_mask;
 
-FlagSetting* step_enable_invert;
-FlagSetting* limit_invert;
-FlagSetting* probe_invert;
 FlagSetting* report_inches;
 FlagSetting* soft_limits;
 // TODO Settings - need to check for HOMING_ENABLE
@@ -48,8 +43,6 @@ FloatSetting*    rpm_min;
 FloatSetting*    spindle_delay_spinup;
 FloatSetting*    spindle_delay_spindown;
 FlagSetting*     spindle_enbl_off_with_zero_speed;
-FlagSetting*     spindle_enable_invert;
-FlagSetting*     spindle_output_invert;
 
 FloatSetting* spindle_pwm_off_value;
 FloatSetting* spindle_pwm_min_value;
@@ -331,15 +324,12 @@ void make_settings() {
         new FloatSetting(EXTENDED, WG, "34", "Spindle/PWM/Off", DEFAULT_SPINDLE_OFF_VALUE, 0.0, 100.0);  // these are percentages
     // IntSetting spindle_pwm_bit_precision(EXTENDED, WG, "Spindle/PWM/Precision", DEFAULT_SPINDLE_BIT_PRECISION, 1, 16);
     spindle_pwm_freq      = new FloatSetting(EXTENDED, WG, "33", "Spindle/PWM/Frequency", DEFAULT_SPINDLE_FREQ, 0, 100000);
-    spindle_output_invert = new FlagSetting(GRBL, WG, NULL, "Spindle/PWM/Invert", DEFAULT_INVERT_SPINDLE_OUTPUT_PIN);
 
     spindle_delay_spinup   = new FloatSetting(EXTENDED, WG, NULL, "Spindle/Delay/SpinUp", DEFAULT_SPINDLE_DELAY_SPINUP, 0, 30);
     spindle_delay_spindown = new FloatSetting(EXTENDED, WG, NULL, "Spindle/Delay/SpinDown", DEFAULT_SPINDLE_DELAY_SPINUP, 0, 30);
 
     spindle_enbl_off_with_zero_speed =
         new FlagSetting(GRBL, WG, NULL, "Spindle/Enable/OffWithSpeed", DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED);
-
-    spindle_enable_invert = new FlagSetting(GRBL, WG, NULL, "Spindle/Enable/Invert", DEFAULT_INVERT_SPINDLE_ENABLE_PIN);
 
     // GRBL Non-numbered settings
     startup_line_0 = new StringSetting(GRBL, WG, "N0", "GCode/Line0", "", checkStartupLine);
@@ -373,11 +363,7 @@ void make_settings() {
     junction_deviation = new FloatSetting(GRBL, WG, "11", "GCode/JunctionDeviation", DEFAULT_JUNCTION_DEVIATION, 0, 10);
     status_mask        = new IntSetting(GRBL, WG, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 3);
 
-    probe_invert           = new FlagSetting(GRBL, WG, "6", "Probe/Invert", DEFAULT_INVERT_PROBE_PIN);
-    limit_invert           = new FlagSetting(GRBL, WG, "5", "Limits/Invert", DEFAULT_INVERT_LIMIT_PINS);
-    step_enable_invert     = new FlagSetting(GRBL, WG, "4", "Stepper/EnableInvert", DEFAULT_INVERT_ST_ENABLE);
     dir_invert_mask        = new AxisMaskSetting(GRBL, WG, "3", "Stepper/DirInvert", DEFAULT_DIRECTION_INVERT_MASK);
-    step_invert_mask       = new AxisMaskSetting(GRBL, WG, "2", "Stepper/StepInvert", DEFAULT_STEPPING_INVERT_MASK);
     stepper_idle_lock_time = new IntSetting(GRBL, WG, "1", "Stepper/IdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
     pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_type           = new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", static_cast<int8_t>(SPINDLE_TYPE), &spindleTypes);

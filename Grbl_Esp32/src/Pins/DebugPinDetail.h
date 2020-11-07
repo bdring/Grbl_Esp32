@@ -28,6 +28,7 @@ namespace Pins {
              {}
 
         PinCapabilities capabilities() const override { return _implementation->capabilities(); }
+        PinAttributes attributes() const override { return _implementation->attributes(); }
 
         // I/O:
         void write(int high) override;

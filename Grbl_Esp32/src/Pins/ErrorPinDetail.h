@@ -9,6 +9,7 @@ namespace Pins {
         ErrorPinDetail(const PinOptionsParser& options);
 
         PinCapabilities capabilities() const override;
+        PinAttributes   attributes() const override;
 
         // I/O will all give an error:
         void write(int high) override;

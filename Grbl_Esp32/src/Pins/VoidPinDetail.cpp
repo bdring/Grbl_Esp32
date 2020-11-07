@@ -8,6 +8,7 @@ namespace Pins {
         // Void pins support basic functionality. It just won't do you any good.
         return PinCapabilities::Output | PinCapabilities::Input | PinCapabilities::ISR | PinCapabilities::Void;
     }
+    PinAttributes VoidPinDetail::attributes() const { return PinAttributes::None; }
 
     void VoidPinDetail::write(int high) {}
     int  VoidPinDetail::read() { return 0; }

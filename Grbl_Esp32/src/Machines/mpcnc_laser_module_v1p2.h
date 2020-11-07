@@ -58,9 +58,9 @@
 
 #define COOLANT_MIST_PIN      "gpio.2"
 
-#define X_LIMIT_PIN             "gpio.17"
-#define Y_LIMIT_PIN             "gpio.4"
-#define Z_LIMIT_PIN             "gpio.15"
+#define X_LIMIT_PIN             "gpio.17:low"
+#define Y_LIMIT_PIN             "gpio.4:low"
+#define Z_LIMIT_PIN             "gpio.15:low"
 
 #ifndef ENABLE_SOFTWARE_DEBOUNCE   // V1P2 does not have R/C filters
     #define ENABLE_SOFTWARE_DEBOUNCE
@@ -68,25 +68,14 @@
 
 #define PROBE_PIN               "gpio.35"
 
-// The default value in config.h is wrong for this controller
-#ifdef INVERT_CONTROL_PIN_MASK
-    #undef INVERT_CONTROL_PIN_MASK
-#endif
-
-#define INVERT_CONTROL_PIN_MASK B1110
-
-#define CONTROL_RESET_PIN           "gpio.34"  // needs external pullup
-#define CONTROL_FEED_HOLD_PIN       "gpio.36"  // needs external pullup
-#define CONTROL_CYCLE_START_PIN     "gpio.39"  // needs external pullup
+#define CONTROL_RESET_PIN           "gpio.34:low"  // needs external pullup
+#define CONTROL_FEED_HOLD_PIN       "gpio.36:low"  // needs external pullup
+#define CONTROL_CYCLE_START_PIN     "gpio.39:low"  // needs external pullup
 
 #define DEFAULT_STEP_PULSE_MICROSECONDS     3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME      255 //  255 = Keep steppers on
 
-#define DEFAULT_STEPPING_INVERT_MASK    0 // uint8_t
 #define DEFAULT_DIRECTION_INVERT_MASK   0 // uint8_t
-#define DEFAULT_INVERT_ST_ENABLE        0 // boolean
-#define DEFAULT_INVERT_LIMIT_PINS       1 // boolean
-#define DEFAULT_INVERT_PROBE_PIN        0 // boolean
 
 #define DEFAULT_STATUS_REPORT_MASK 1
 

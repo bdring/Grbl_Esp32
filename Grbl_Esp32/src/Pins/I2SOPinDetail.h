@@ -13,6 +13,7 @@ namespace Pins {
         I2SOPinDetail(uint8_t index, const PinOptionsParser& options);
 
         PinCapabilities capabilities() const override;
+        PinAttributes attributes() const override;
 
         // I/O:
         void write(int high) override;

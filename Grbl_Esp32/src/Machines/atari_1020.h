@@ -63,14 +63,9 @@
     #define ENABLE_CONTROL_SW_DEBOUNCE
 #endif
 
-#ifdef INVERT_CONTROL_PIN_MASK
-    #undef INVERT_CONTROL_PIN_MASK
-#endif
-#define INVERT_CONTROL_PIN_MASK B01110000
-
-#define MACRO_BUTTON_0_PIN "gpio.34" // Pen Switch
-#define MACRO_BUTTON_1_PIN "gpio.35" // Color Switch
-#define MACRO_BUTTON_2_PIN "gpio.36" // Paper Switch
+#define MACRO_BUTTON_0_PIN "gpio.34:low" // Pen Switch
+#define MACRO_BUTTON_1_PIN "gpio.35:low" // Color Switch
+#define MACRO_BUTTON_2_PIN "gpio.36:low" // Paper Switch
 
 #ifdef DEFAULTS_GENERIC
     #undef DEFAULTS_GENERIC // undefine generic then define each default below
@@ -78,11 +73,7 @@
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME 200 // 200ms
 
-#define DEFAULT_STEPPING_INVERT_MASK 0  // uint8_t
 #define DEFAULT_DIRECTION_INVERT_MASK 0 // uint8_t
-#define DEFAULT_INVERT_ST_ENABLE 0      // boolean
-#define DEFAULT_INVERT_LIMIT_PINS 1     // boolean
-#define DEFAULT_INVERT_PROBE_PIN 0      // boolean
 
 #define DEFAULT_STATUS_REPORT_MASK 1
 

@@ -21,15 +21,11 @@ extern StringSetting* build_info;
 extern IntSetting* pulse_microseconds;
 extern IntSetting* stepper_idle_lock_time;
 
-extern AxisMaskSetting* step_invert_mask;
 extern AxisMaskSetting* dir_invert_mask;
 extern AxisMaskSetting* homing_dir_mask;
 extern AxisMaskSetting* homing_squared_axes;
 extern AxisMaskSetting* homing_cycle[MAX_N_AXIS];
 
-extern FlagSetting* step_enable_invert;
-extern FlagSetting* limit_invert;
-extern FlagSetting* probe_invert;
 extern FlagSetting* report_inches;
 extern FlagSetting* soft_limits;
 extern FlagSetting* hard_limits;
@@ -50,8 +46,6 @@ extern FloatSetting* rpm_min;
 extern FloatSetting* spindle_delay_spinup;
 extern FloatSetting* spindle_delay_spindown;
 extern FlagSetting*  spindle_enbl_off_with_zero_speed;
-extern FlagSetting*  spindle_enable_invert;
-extern FlagSetting*  spindle_output_invert;
 
 extern FloatSetting* spindle_pwm_off_value;
 extern FloatSetting* spindle_pwm_min_value;

@@ -131,7 +131,6 @@ namespace Spindles {
     }
 
     void _10v::stop() {
-        // inverts are delt with in methods
         set_enable_pin(false);
         set_output(_pwm_off_value);
     }
@@ -140,10 +139,6 @@ namespace Spindles {
         //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle::_10v::set_enable_pin");
         if (_off_with_zero_speed && sys.spindle_speed == 0) {
             enable = false;
-        }
-
-        if (spindle_enable_invert->get()) {
-            enable = !enable;
         }
 
         _enable_pin.write(enable);

@@ -44,12 +44,12 @@
 #define STEPPERS_DISABLE_PIN    "gpio.13"
 
 #ifdef PEN_LASER_V1
-    #define X_LIMIT_PIN     "gpio.2"
+    #define X_LIMIT_PIN     "gpio.2:low"
 #endif
 #ifdef PEN_LASER_V2
-    #define X_LIMIT_PIN     "gpio.15"
+    #define X_LIMIT_PIN     "gpio.15:low"
 #endif
-#define Y_LIMIT_PIN             "gpio.4"
+#define Y_LIMIT_PIN             "gpio.4:low"
 
 #define USING_SERVO  // uncomment to use this feature
 
@@ -63,11 +63,7 @@
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME 250 // stay on
 
-#define DEFAULT_STEPPING_INVERT_MASK 0 // uint8_t
 #define DEFAULT_DIRECTION_INVERT_MASK 0 // uint8_t
-#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
-#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
-#define DEFAULT_INVERT_PROBE_PIN 0 // boolean
 
 #define DEFAULT_STATUS_REPORT_MASK 1
 

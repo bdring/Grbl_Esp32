@@ -115,7 +115,7 @@
 // #define X_LIMIT_PIN     "gpio.2"
 // #define Y_LIMIT_PIN     "gpio.25"
 // #define Z_LIMIT_PIN     "gpio.39"
-// #define PROBE_PIN       "gpio.36"
+// #define PROBE_PIN       "gpio.36:low"
 
 //Example Quad MOSFET module on socket #3
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
@@ -174,7 +174,6 @@
 #define DEFAULT_HOMING_SEEK_RATE    100
 #define DEFAULT_HOMING_DIR_MASK     (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS))  // all axes home negative
 #define DEFAULT_HOMING_ENABLE       1
-#define DEFAULT_INVERT_LIMIT_PINS   0
 #define DEFAULT_HOMING_CYCLE_0      (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS)) 
 #define DEFAULT_HOMING_CYCLE_1      0  // override this one in defaults.h
 
@@ -191,7 +190,5 @@
 #define DEFAULT_Z_MAX_TRAVEL    DEFAULT_X_MAX_TRAVEL
 
 #define DEFAULT_HOMING_PULLOFF  -DEFAULT_X_HOMING_MPOS
-
-#define DEFAULT_INVERT_PROBE_PIN 1
 
 #define SPINDLE_TYPE    SpindleType::NONE

@@ -61,9 +61,6 @@ namespace Spindles {
         // setup all the pins
 
         _output_pin = SpindleOutputPin->get();
-
-        _invert_pwm = spindle_output_invert->get();
-
         _enable_pin = SpindleEnablePin->get();
 
         _off_with_zero_speed = spindle_enbl_off_with_zero_speed->get();
@@ -182,7 +179,6 @@ namespace Spindles {
     }
 
     void PWM::stop() {
-        // inverts are delt with in methods
         set_enable_pin(false);
         set_output(_pwm_off_value);
     }
@@ -211,10 +207,6 @@ namespace Spindles {
 
         _current_pwm_duty = duty;
 
-        if (_invert_pwm) {
-            duty = (1 << _pwm_precision) - duty;
-        }
-
         //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "set_output(%d)", duty);
 
         ledcWrite(_pwm_chan_num, duty);
@@ -227,10 +219,6 @@ namespace Spindles {
 
         if (_off_with_zero_speed && sys.spindle_speed == 0) {
             enable = false;
-        }
-
-        if (spindle_enable_invert->get()) {
-            enable = !enable;
         }
 
         _enable_pin.write(enable);

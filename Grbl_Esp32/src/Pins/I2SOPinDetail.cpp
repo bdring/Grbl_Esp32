@@ -30,8 +30,9 @@ namespace Pins {
     }
 
     PinCapabilities I2SOPinDetail::capabilities() const { return PinCapabilities::Output | PinCapabilities::I2S; }
+    PinAttributes   I2SOPinDetail::attributes() const { return _attributes; }
 
-    void I2SOPinDetail::write(int high) {
+    void            I2SOPinDetail::write(int high) {
         Assert(_attributes.has(PinAttributes::Output), "Pin has no output attribute defined. Cannot write to it.");
         int value = _readWriteMask ^ high;
         i2s_out_write(_index, value);

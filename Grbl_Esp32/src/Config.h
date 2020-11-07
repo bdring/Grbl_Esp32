@@ -48,12 +48,6 @@ Some features should not be changed. See notes below.
 
 // Note: HOMING_CYCLES are now settings
 
-// Inverts pin logic of the control command pins based on a mask. This essentially means you can use
-// normally-closed switches on the specified pins, rather than the default normally-open switches.
-// The mask order is Cycle Start | Feed Hold | Reset | Safety Door
-// For example B1101 will invert the function of the Reset pin.
-#define INVERT_CONTROL_PIN_MASK B1111
-
 #define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
 
@@ -262,19 +256,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // between restoring the spindle and coolant and resuming the cycle.
 const double SAFETY_DOOR_SPINDLE_DELAY = 4.0;  // Float (seconds)
 const double SAFETY_DOOR_COOLANT_DELAY = 1.0;  // Float (seconds)
-
-// Inverts select limit pin states based on the following mask. This effects all limit pin functions,
-// such as hard limits and homing. However, this is different from overall invert limits setting.
-// This build option will invert only the limit pins defined here, and then the invert limits setting
-// will be applied to all of them. This is useful when a user has a mixed set of limit pins with both
-// normally-open(NO) and normally-closed(NC) switches installed on their machine.
-// NOTE: PLEASE DO NOT USE THIS, unless you have a situation that needs it.
-// #define INVERT_LIMIT_PIN_MASK (bit(X_AXIS)|bit(Y_AXIS)) // Default disabled. Uncomment to enable.
-
-// Inverts the selected coolant pin from low-disabled/high-enabled to low-enabled/high-disabled. Useful
-// for some pre-built electronic boards.
-// #define INVERT_COOLANT_FLOOD_PIN // Default disabled. Uncomment to enable.
-// #define INVERT_COOLANT_MIST_PIN // Default disabled. Note: Enable M7 mist coolant in config.h
 
 // When Grbl powers-cycles or is hard reset with the Arduino reset button, Grbl boots up with no ALARM
 // by default. This is to make it as simple as possible for new users to start using Grbl. When homing

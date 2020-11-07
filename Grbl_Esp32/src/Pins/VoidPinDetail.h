@@ -10,6 +10,7 @@ namespace Pins {
         VoidPinDetail(const PinOptionsParser& options);
 
         PinCapabilities capabilities() const override;
+        PinAttributes attributes() const override;
 
         // I/O:
         void write(int high) override;

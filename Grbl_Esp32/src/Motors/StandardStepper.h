@@ -25,8 +25,6 @@ namespace Motors {
 #ifdef USE_RMT_STEPS
         rmt_channel_t _rmt_chan_num;
 #endif
-        bool _invert_step_pin;
-        bool _invert_dir_pin;
         Pin  _step_pin;
         Pin  _dir_pin;
         Pin  _disable_pin;

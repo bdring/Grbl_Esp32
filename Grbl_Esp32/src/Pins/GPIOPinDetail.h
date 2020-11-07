@@ -14,6 +14,7 @@ namespace Pins {
         GPIOPinDetail(uint8_t index, PinOptionsParser options);
 
         PinCapabilities capabilities() const override;
+        PinAttributes attributes() const override;
 
         // I/O:
         void write(int high) override;

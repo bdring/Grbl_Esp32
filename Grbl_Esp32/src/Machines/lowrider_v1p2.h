@@ -74,13 +74,6 @@
 
 #define PROBE_PIN               "gpio.35"
 
-// The default value in config.h is wrong for this controller
-#ifdef INVERT_CONTROL_PIN_MASK
-    #undef INVERT_CONTROL_PIN_MASK
-#endif
-
-#define INVERT_CONTROL_PIN_MASK   B1110
-
-#define CONTROL_RESET_PIN         "gpio.34"  // needs external pullup
-#define CONTROL_FEED_HOLD_PIN     "gpio.36"  // needs external pullup
-#define CONTROL_CYCLE_START_PIN   "gpio.39"  // needs external pullup
+#define CONTROL_RESET_PIN         "gpio.34:low"  // needs external pullup
+#define CONTROL_FEED_HOLD_PIN     "gpio.36:low"  // needs external pullup
+#define CONTROL_CYCLE_START_PIN   "gpio.39:low"  // needs external pullup

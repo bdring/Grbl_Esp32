@@ -87,9 +87,9 @@
 // #define Z_STEP_PIN              "gpio.27"
 // #define Z_DIRECTION_PIN         "gpio.33"
 
-// #define X_LIMIT_PIN             "gpio.17"
-// #define Y_LIMIT_PIN             "gpio.4"
-// #define Z_LIMIT_PIN             "gpio.16"
+// #define X_LIMIT_PIN             "gpio.17:low"
+// #define Y_LIMIT_PIN             "gpio.4:low"
+// #define Z_LIMIT_PIN             "gpio.16:low"
 
 // Common enable for all steppers.  If it is okay to leave
 // your drivers enabled at all times, you can leave
@@ -147,17 +147,9 @@
 // The default values are established in defaults.h, but you
 // can override any one of them by definining it here, for example:
 
-//#define DEFAULT_INVERT_LIMIT_PINS 1
 //#define DEFAULT_REPORT_INCHES 1
 
 // === Control Pins
-
-// If some of the control pin switches are normally closed
-// (the default is normally open), you can invert some of them
-// with INVERT_CONTROL_PIN_MASK.  The bits in the mask are
-// Cycle Start, Feed Hold, Reset, Safety Door.  To use a
-// normally open switch on Reset, you would say
-// #define INVERT_CONTROL_PIN_MASK B1101
 
 // If your control pins do not have adequate hardware signal
 // conditioning, you can define these to use software to

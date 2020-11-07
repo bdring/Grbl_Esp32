@@ -113,6 +113,11 @@ public:
         return detail->capabilities();
     }
 
+    Attr attributes() const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        return detail->attributes();
+    }
+
     inline String name() const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
         return detail->toString();

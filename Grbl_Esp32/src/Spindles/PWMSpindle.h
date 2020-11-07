@@ -59,7 +59,6 @@ namespace Spindles {
         uint8_t  _pwm_precision;
         bool     _piecewide_linear;
         bool     _off_with_zero_speed;
-        bool     _invert_pwm;
         //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
         virtual void set_dir_pin(bool Clockwise);

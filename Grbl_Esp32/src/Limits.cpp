@@ -263,10 +263,8 @@ void limits_init() {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             Pin pin;
             if ((pin = LimitPins[axis][gang_index]->get()) != Pin::UNDEFINED) {
-
 #ifndef DISABLE_LIMIT_PIN_PULL_UP
-                if (pin.capabilities().has(Pins::PinCapabilities::PullUp))
-                {
+                if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
                     mode = mode | Pin::Attr::PullUp;
                 }
 #endif
@@ -313,8 +311,8 @@ void limits_disable() {
 }
 
 // Returns limit state as a bit-wise uint8 variable. Each bit indicates an axis limit, where
-// triggered is 1 and not triggered is 0. Invert mask is applied. Axes are defined by their
-// number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
+// triggered is 1 and not triggered is 0. Invert mask is handled through active low/high in pins.
+// Axes are defined by their number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 AxisMask limits_get_state() {
     AxisMask pinMask = 0;
     auto     n_axis  = number_axis->get();
@@ -322,18 +320,11 @@ AxisMask limits_get_state() {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             Pin pin = LimitPins[axis][gang_index]->get();
             if (pin != Pin::UNDEFINED) {
-                if (limit_invert->get()) {
-                    pinMask |= (!pin.read() << axis);
-                } else {
-                    pinMask |= (pin.read() << axis);
-                }
+                pinMask |= (pin.read() << axis);
             }
         }
     }
 
-#ifdef INVERT_LIMIT_PIN_MASK  // not normally used..unless you have both normal and inverted switches
-    pinMask ^= INVERT_LIMIT_PIN_MASK;
-#endif
     return pinMask;
 }
 

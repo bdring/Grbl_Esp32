@@ -960,10 +960,6 @@ void IRAM_ATTR Stepper_Timer_Stop() {
 bool get_stepper_disable() {  // returns true if steppers are disabled
     if (SteppersDisablePin->get() != Pin::UNDEFINED) {
         bool disabled = SteppersDisablePin->get().read();
-
-        if (step_enable_invert->get()) {
-            disabled = !disabled;  // Apply pin invert.
-        }
         return disabled;
     } else {
         return false;  // thery are never disabled if there is no pin defined
