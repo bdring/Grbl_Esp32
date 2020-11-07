@@ -1,6 +1,24 @@
 /*
- Testing ATC ideas
+ Testing the readiness of Grbl for ATC
 
+ This uses a 5 position rack. The first position is a tool setter. The other 4 are 
+ ATC collets. 
+ 
+ To grab a tool you go above the tool, open the chuck, go down to the
+ grab height,, then close the chuck.
+
+ To release a tool you go to the grab height, open the chuck, drop the tool, raise
+ to the top and close the checks
+
+ The spindle must not be spinning when the chuck is open.
+
+ Each tool will touch off on the tool setter. This save the Z Mpos of that position
+ for each tool.
+
+ If you zero a tool on the work piece, all tools will use the delta determined by the 
+ toolsetter to.
+
+ 
 
 */
 
