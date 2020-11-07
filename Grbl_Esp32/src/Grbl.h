@@ -115,5 +115,4 @@ void user_defined_macro(uint8_t index);
 // Called if USE_M30 is defined
 void user_m30();
 
-// Called if USE_TOOL_CHANGE is defined
-void user_tool_change(uint8_t new_tool);
+void user_tool_change(uint8_t new_tool);  // weak

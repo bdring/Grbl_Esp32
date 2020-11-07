@@ -488,10 +488,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 6:  // tool change
                         gc_block.modal.tool_change = ToolChange::Enable;
-#ifdef USE_TOOL_CHANGE
-                        //user_tool_change(gc_state.tool);
-#endif
-                        mg_word_bit = ModalGroup::MM6;
+                        mg_word_bit                = ModalGroup::MM6;
                         break;
                     case 7:
                     case 8:
@@ -1355,9 +1352,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     //	gc_state.tool = gc_block.values.t;
     // [6. Change tool ]: NOT SUPPORTED
     if (gc_block.modal.tool_change == ToolChange::Enable) {
-#ifdef USE_TOOL_CHANGE
-        user_tool_change(gc_state.tool);
-#endif
+        user_tool_change(gc_state.tool);  // (weak)   should be user defined
     }
     // [7. Spindle control ]:
     if (gc_state.modal.spindle != gc_block.modal.spindle) {
@@ -1603,6 +1598,8 @@ Error gc_execute_line(char* line, uint8_t client) {
     // TODO: % to denote start of program.
     return Error::Ok;
 }
+
+__attribute__((weak)) void user_tool_change(uint8_t new_tool) {}
 
 /*
   Not supported:

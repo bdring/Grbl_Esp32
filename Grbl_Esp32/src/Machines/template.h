@@ -196,10 +196,6 @@
 // systems back to Cartesian form, for status reports.
 //#define USE_FWD_KINEMATICS
 
-// USE_TOOL_CHANGE enables the user_tool_change() function
-// that implements custom tool change procedures.
-// #define USE_TOOL_CHANGE
-
 // Any one of MACRO_BUTTON_0_PIN, MACRO_BUTTON_1_PIN, and MACRO_BUTTON_2_PIN
 // enables the user_defined_macro(number) function which
 // implements custom behavior at the press of a button

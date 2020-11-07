@@ -142,7 +142,6 @@
 // tells grbl we have some special functions to call
 #define USE_MACHINE_INIT
 #define USE_CUSTOM_HOMING
-#define USE_TOOL_CHANGE
 #define ATARI_TOOL_CHANGE_Z 5.0
 #define USE_M30 // use the user defined end of program
 

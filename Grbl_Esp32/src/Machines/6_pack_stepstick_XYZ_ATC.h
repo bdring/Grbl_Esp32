@@ -29,7 +29,6 @@
 #define N_AXIS 3
 
 #define USE_MACHINE_INIT
-#define USE_TOOL_CHANGE
 #define USE_M30 // use the user defined end of program
 
 // === Special Features
@@ -72,36 +71,6 @@
     https://github.com/bdring/6-Pack_CNC_Controller/wiki/CNC-I-O-Module-List
     Click on each module to get example for using the modules in the sockets
 
-
-Socket #1
-#1 GPIO_NUM_33 
-#2 GPIO_NUM_32
-#3 GPIO_NUM_35 (input only)
-#4 GPIO_NUM_34 (input only)
-
-Socket #2
-#1 GPIO_NUM_2
-#2 GPIO_NUM_25
-#3 GPIO_NUM_39 (input only)
-#4 GPIO_NUM_36 (input only)
-
-Socket #3
-#1 GPIO_NUM_26
-#2 GPIO_NUM_4
-#3 GPIO_NUM_16
-#4 GPIO_NUM_27
-
-Socket #4
-#1 GPIO_NUM_14
-#2 GPIO_NUM_13
-#3 GPIO_NUM_15
-#4 GPIO_NUM_12
-
-Socket #5
-#1 I2SO(24)  (output only)
-#2 I2SO(25)  (output only)
-#3 I2SO26)  (output only)
-
 */
 
 
@@ -110,21 +79,18 @@ Socket #5
 #define X_LIMIT_PIN                 GPIO_NUM_33
 #define Y_LIMIT_PIN                 GPIO_NUM_32
 #define Z_LIMIT_PIN                 GPIO_NUM_35
+#define PROBE_PIN                   GPIO_NUM_34
 
+// 5V output CNC module in socket #4
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
+#define SPINDLE_TYPE                SpindleType::PWM
+#define SPINDLE_OUTPUT_PIN          GPIO_NUM_12
+#define ATC_RELEASE_PIN             GPIO_NUM_13 // optional 
+#define COOLANT_MIST_PIN            GPIO_NUM_15 // optional
+#define COOLANT_FLOOD_PIN           GPIO_NUM_14
 
-// // 4x Input Module in Socket #2
-// // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-// #define X_LIMIT_PIN                 GPIO_NUM_2
-// #define Y_LIMIT_PIN                 GPIO_NUM_25
-// #define Z_LIMIT_PIN                 GPIO_NUM_39
-
-// // 4x Input Module in Socket #3
-// // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-// #define CONTROL_CYCLE_START_PIN      GPIO_NUM_26
-// #define CONTROL_FEED_HOLD_PIN        GPIO_NUM_4
-// #define CONTROL_RESET_PIN            GPIO_NUM_16
-// #define CONTROL_SAFETY_DOOR_PIN      GPIO_NUM_27
-// //#define INVERT_CONTROL_PIN_MASK      B0000
+#define DEFAULT_SPINDLE_DELAY_SPINUP    5.0
+#define DEFAULT_SPINDLE_DELAY_SPINDOWN  5.0
 
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      800

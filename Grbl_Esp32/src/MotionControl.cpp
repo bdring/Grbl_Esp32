@@ -408,7 +408,6 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         return GCUpdatePos::None;       // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Found");
     mc_line_kins(target, pl_data, gc_state.position);
     // Activate the probing state monitor in the stepper module.
     sys_probe_state = Probe::Active;
