@@ -73,11 +73,81 @@ namespace PinUsers {
                 }
             }
 
-            // 4. Re-assign hardware PWM channels to software channels.
-            // TODO: Implement
+            // 4. Re-assign hardware PWM channels to software channels, because we ran out of hardware pwm.
+            for (int i = 0; i < 3; ++i) {
+                for (int j = i + 1; j < 4; ++j) {
+                    if (instances[i * 2]->frequency_ == instances[j * 2]->frequency_) {
+                        // Only make sense if we can clear up all the hardware channel in [j],
+                        // otherwise we save nothing:
+                        int count = 0;
+                        for (int chan = 0; chan < 2; ++chan) {
+                            count += (instances[i * 2 + chan] != nullptr) ? 1 : 0;
+                            count += (instances[i * 2 + chan + 8] != nullptr) ? 1 : 0;
+                            count += (instances[j * 2 + chan] != nullptr) ? 1 : 0;
+                            count += (instances[j * 2 + chan + 8] != nullptr) ? 1 : 0;
+                        }
+
+                        if (count <= 4) {
+                            // We can move PWM channels and free up some space for more frequencies:
+                            NativePwm* tmp[4] = { nullptr, nullptr, nullptr, nullptr };
+                            int        n      = 0;
+                            for (int chan = 0; chan < 2; ++chan) {
+                                if (instances[i * 2 + chan] != nullptr) {
+                                    tmp[n++]                = instances[i * 2 + chan];
+                                    instances[i * 2 + chan] = nullptr;
+                                }
+                                if (instances[i * 2 + chan + 8] != nullptr) {
+                                    tmp[n++]                    = instances[i * 2 + chan + 8];
+                                    instances[i * 2 + chan + 8] = nullptr;
+                                }
+                                if (instances[j * 2 + chan] != nullptr) {
+                                    tmp[n++]                = instances[j * 2 + chan];
+                                    instances[j * 2 + chan] = nullptr;
+                                }
+                                if (instances[j * 2 + chan + 8] != nullptr) {
+                                    tmp[n++]                    = instances[j * 2 + chan + 8];
+                                    instances[j * 2 + chan + 8] = nullptr;
+                                }
+                            }
+
+                            // Reassign:
+                            tmp[0]->reassign(i * 2 + 0);
+                            tmp[1]->reassign(i * 2 + 1);
+                            tmp[2]->reassign(i * 2 + 8);
+                            tmp[3]->reassign(i * 2 + 9);
+
+                            // Now that we cleared up some space, we can try again:
+                            return TryGrabChannel(frequency);
+                        }
+                    }
+                }
+            }
 
             // 5. Nothing is available.
             return -1;
+        }
+
+        void reassign(int target) {
+            auto native = pin_.getNative(Pin::Capabilities::PWM | Pin::Capabilities::Native);
+
+            // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Assigning PWM Output Pin:%s Freq:%0.0fHz to channel %d", _pin.name().c_str(), _pwm_frequency, target);
+
+            ledcWrite(pwmChannel_, 0);
+            ledcDetachPin(native);
+
+            auto instances = PwmChannelResources();
+            instances[target] = this;
+
+            pwmChannel_ = target;
+            setupPwm(native);
+        }
+
+        void setupPwm(uint8_t native) {
+            resolutionBits_ = calculatePwmPrecision(frequency_);
+
+            ledcSetup(pwmChannel_, frequency_, resolutionBits_);
+            ledcAttachPin(native, pwmChannel_);
+            ledcWrite(pwmChannel_, 0);
         }
 
     public:
@@ -87,13 +157,7 @@ namespace PinUsers {
             pwmChannel_ = TryGrabChannel(frequency);
             Assert(pwmChannel_ != -1, "PWM Channel could not be claimed. Are all PWM channels in use?");
 
-            resolutionBits_ = calculatePwmPrecision(frequency);
-
-            ledcSetup(pwmChannel_, frequency, resolutionBits_);
-            ledcAttachPin(native, pwmChannel_);
-            ledcWrite(pwmChannel_, 0);
-
-            // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "PWM Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
+            setupPwm(native);
 
             // Store instance:
             auto instances         = PwmChannelResources();
