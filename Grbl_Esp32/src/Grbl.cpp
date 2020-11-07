@@ -87,7 +87,9 @@ void grbl_init() {
 
         // Should grbl_sendf always work? Serial is initialized first, so after line 34 it should.
         grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical error in run_once: %s", ex.stackTrace.c_str());
-        sleep(10000);
+        for (int i = 0; i < 60; ++i) {
+            sleep(10000);
+        }
         throw;
     }
 }
@@ -136,7 +138,9 @@ void run_once() {
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
         grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical error in run_once: %s", ex.stackTrace.c_str());
-        sleep(10000);
+        for (int i = 0; i < 60; ++i) {
+            sleep(10000);
+        }
         throw;
     }
 }
