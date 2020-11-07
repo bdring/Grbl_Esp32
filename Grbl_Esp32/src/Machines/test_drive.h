@@ -124,11 +124,11 @@
 // #define PROBE_PIN               "gpio.18:pu"
 
 // x Limits
-// #define X_LIMIT_PIN               "gpio.18:pu"
+#define X_LIMIT_PIN               "gpio.18:pu"
 // x System : ControlSafetyDoor
-// #define CONTROL_SAFETY_DOOR_PIN   "gpio.22:pu"
+#define CONTROL_SAFETY_DOOR_PIN   "gpio.22:pu"
 // x System : ControlReset
-// #define CONTROL_RESET_PIN         "gpio.23:pu"
+#define CONTROL_RESET_PIN         "gpio.23:pu"
 // x System : ControlFeedHold
 // #define CONTROL_FEED_HOLD_PIN        "gpio.22:pu"
 // x System : ControlCycleStart
