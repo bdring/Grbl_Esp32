@@ -64,6 +64,7 @@ enum class Error : uint8_t {
     GcodeG43DynamicAxisError    = 37,
     GcodeMaxValueExceeded       = 38,
     PParamMaxExceeded           = 39,
+    ToolChangeError             = 40,
     SdFailedMount               = 60,  // SD Failed to mount
     SdFailedRead                = 61,  // SD Failed to read file
     SdFailedOpenDir             = 62,  // SD card failed to open directory

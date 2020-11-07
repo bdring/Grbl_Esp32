@@ -18,19 +18,19 @@
  If you zero a tool on the work piece, all tools will use the delta determined by the 
  toolsetter to.
 
- 
-
 */
 
-#define TOOL_GRAB_TIME 0.75  // seconds
+const int TOOL_COUNT = 4;
 
-// temporary struct....should be a class
+const float TOOL_GRAB_TIME = 0.75;  // seconds. How long it takes to grab a tool
+
+// temporary struct....should maybe be a class
 typedef struct {
     float mpos[MAX_N_AXIS];    // the pickup location in machine coords
     float offset[MAX_N_AXIS];  // the offset from the zero'd tool
 } tool_t;
 
-tool_t tool[5];  // one setter, plus 4 tools
+tool_t tool[TOOL_COUNT + 1];  // one setter, plus 4 tools
 
 void go_above_tool(uint8_t tool_num);
 void return_tool(uint8_t tool_num);
@@ -60,29 +60,36 @@ void machine_init() {
     tool[3].mpos[X_AXIS] = 95.0;
     tool[3].mpos[Y_AXIS] = 130.0;
     tool[3].mpos[Z_AXIS] = -20.0;
+
+    tool[4].mpos[X_AXIS] = 125.0;
+    tool[4].mpos[Y_AXIS] = 130.0;
+    tool[4].mpos[Z_AXIS] = -20.0;
 }
 
-/*
-
-*/
-void user_tool_change(uint8_t new_tool) {
+bool user_tool_change(uint8_t new_tool) {
     char     gcode_line[80];
-    bool     spindle_on = false;
-    uint64_t spindle_delay;
+    bool     spindle_was_on = false;
+    uint64_t spindle_spin_delay;            // milliseconds
     float    saved_mpos[MAX_N_AXIS] = {};
 
-    // save current position
-    system_convert_array_steps_to_mpos(saved_mpos, sys_position);
+    if (new_tool == current_tool)
+        return true;
 
-    protocol_buffer_synchronize();  // wait for all previous moves to complete
+    if (new_tool > TOOL_COUNT) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC Tool out of range:%d", new_tool);
+        return false;
+    }
+
+    protocol_buffer_synchronize();  // wait for all previous moves to complete    
+    system_convert_array_steps_to_mpos(saved_mpos, sys_position);  // save current position so we can return
 
     // is spindle on? Turn it off and determine when the spin down should be done.
     if (gc_state.modal.spindle != SpindleState::Disable) {
-        spindle_on = true;
+        spindle_was_on = true;
         sprintf(gcode_line, "M5\r");  //
         gc_execute_line(gcode_line, CLIENT_INPUT);
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC: %s", gcode_line);
-        spindle_delay = esp_timer_get_time() + (spindle_delay_spinup->get() * 1000.0);  // When has spindle stopped
+        spindle_spin_delay = esp_timer_get_time() + (spindle_delay_spindown->get() * 1000.0);  // When has spindle stopped
     }
 
     return_tool(current_tool);  // does nothing if current tool is 0
@@ -90,7 +97,7 @@ void user_tool_change(uint8_t new_tool) {
     // if changing to tool 0...we are done.
     if (new_tool == 0) {
         current_tool = new_tool;
-        return;
+        return true;
     }
 
     // TODO Check for G91...might not matter in G53
@@ -99,10 +106,10 @@ void user_tool_change(uint8_t new_tool) {
     protocol_buffer_synchronize();  // wait for motion to complete
 
     // if spindle was on has the spindle down period completed? If not wait.
-    if (spindle_on) {
+    if (spindle_was_on) {
         uint64_t current_time = esp_timer_get_time();
-        if (current_time < spindle_delay) {
-            vTaskDelay(spindle_delay - current_time);
+        if (current_time < spindle_spin_delay) {
+            vTaskDelay(spindle_spin_delay - current_time);
         }
     }
 
@@ -134,7 +141,7 @@ void user_tool_change(uint8_t new_tool) {
     atc_tool_setter();
 
     // is spindle on?
-    if (spindle_on) {
+    if (spindle_was_on) {
         sprintf(gcode_line, "M3\r");  //
         gc_execute_line(gcode_line, CLIENT_INPUT);
     }
@@ -144,13 +151,8 @@ void user_tool_change(uint8_t new_tool) {
     gc_execute_line(gcode_line, CLIENT_INPUT);
 
     // TODO wait for spinup
-}
 
-// Polar coaster has macro buttons, this handles those button pushes.
-void user_defined_macro(uint8_t index) {}
-
-void user_m30() {
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC M30");
+    return true;
 }
 
 // ============= Local functions ==================

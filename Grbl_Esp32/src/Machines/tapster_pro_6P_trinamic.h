@@ -27,7 +27,6 @@
 #define USE_RMT_STEPS              // Use the RMT periferal to generate step pulses
 #define USE_TRINAMIC               // some Trinamic motors are used on this machine
 #define USE_MACHINE_TRINAMIC_INIT  // there is a machine specific setup for the drivers
-#define USE_MACHINE_INIT           // There is some custom initialization for this machine
 
 #define SEGMENT_LENGTH 0.5  // segment length in mm
 #define KIN_ANGLE_CALC_OK 0
@@ -43,7 +42,6 @@
 
 #define USE_KINEMATICS      // there are kinematic equations for this machine
 #define USE_FWD_KINEMATICS  // report in cartesian
-#define USE_MACHINE_INIT    // There is some custom initialization for this machine
 
 // ================== Delta Geometry ===========================
 

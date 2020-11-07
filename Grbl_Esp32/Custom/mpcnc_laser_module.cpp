@@ -21,7 +21,6 @@
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef USE_MACHINE_INIT
 /*
 machine_init() is called when Grbl_ESP32 first starts. You can use it to do any
 special things your machine needs at startup.
@@ -32,4 +31,3 @@ void machine_init() {
     pinMode(LVL_SHIFT_ENABLE, OUTPUT);
     digitalWrite(LVL_SHIFT_ENABLE, HIGH);
 }
-#endif

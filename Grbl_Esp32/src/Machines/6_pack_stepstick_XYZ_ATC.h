@@ -28,9 +28,6 @@
 
 #define N_AXIS 3
 
-#define USE_MACHINE_INIT
-#define USE_M30 // use the user defined end of program
-
 // === Special Features
 
 // I2S (steppers & other output-only pins)

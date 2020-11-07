@@ -1352,7 +1352,9 @@ Error gc_execute_line(char* line, uint8_t client) {
     //	gc_state.tool = gc_block.values.t;
     // [6. Change tool ]: NOT SUPPORTED
     if (gc_block.modal.tool_change == ToolChange::Enable) {
-        user_tool_change(gc_state.tool);  // (weak)   should be user defined
+        if (!user_tool_change(gc_state.tool)) {  // (weak)   should be user defined
+            FAIL(Error::ToolChangeError);
+        }
     }
     // [7. Spindle control ]:
     if (gc_state.modal.spindle != gc_block.modal.spindle) {
@@ -1599,7 +1601,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     return Error::Ok;
 }
 
-__attribute__((weak)) void user_tool_change(uint8_t new_tool) {}
+__attribute__((weak)) bool user_tool_change(uint8_t new_tool) {}
 
 /*
   Not supported:

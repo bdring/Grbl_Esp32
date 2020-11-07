@@ -212,16 +212,16 @@ void calc_solenoid(float penZ) {
 	A tool (pen) change is done by bumping the carriage against the right edge 3 times per
 	position change. Pen 1-4 is valid range.
 */
-void user_tool_change(uint8_t new_tool) {
+bool user_tool_change(uint8_t new_tool) {
     uint8_t move_count;
     char    gcode_line[20];
     protocol_buffer_synchronize();  // wait for all previous moves to complete
     if ((new_tool < 1) || (new_tool > MAX_PEN_NUMBER)) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Requested Pen#%d is out of 1-4 range", new_tool);
-        return;
+        return false;
     }
     if (new_tool == current_tool)
-        return;
+        return true;
     if (new_tool > current_tool)
         move_count = BUMPS_PER_PEN_CHANGE * (new_tool - current_tool);
     else
@@ -235,6 +235,8 @@ void user_tool_change(uint8_t new_tool) {
     }
     current_tool = new_tool;
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Change to Pen#%d", current_tool);
+    
+    return true;
 }
 
 // move from current tool to next tool....

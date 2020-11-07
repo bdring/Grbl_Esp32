@@ -92,7 +92,6 @@ const char* const GRBL_VERSION_BUILD = "20201101";
 void grbl_init();
 void run_once();
 
-// Called if USE_MACHINE_INIT is defined
 void machine_init();
 
 // Called if USE_CUSTOM_HOMING is defined
@@ -115,4 +114,4 @@ void user_defined_macro(uint8_t index);
 // Called if USE_M30 is defined
 void user_m30();
 
-void user_tool_change(uint8_t new_tool);  // weak
+bool user_tool_change(uint8_t new_tool);  // weak

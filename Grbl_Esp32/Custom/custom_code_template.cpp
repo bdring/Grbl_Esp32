@@ -46,13 +46,11 @@ enabled with USE_ defines in Machines/my_machine.h
 
 */
 
-#ifdef USE_MACHINE_INIT
 /*
 machine_init() is called when Grbl_ESP32 first starts. You can use it to do any
 special things your machine needs at startup.
 */
 void machine_init() {}
-#endif
 
 #ifdef USE_CUSTOM_HOMING
 /*
@@ -125,7 +123,7 @@ void forward_kinematics(float* position) {
   user_tool_change() is called when tool change gcode is received,
   to perform appropriate actions for your machine.
 */
-void user_tool_change(uint8_t new_tool) {}
+bool user_tool_change(uint8_t new_tool) {}
 
 #if defined(MACRO_BUTTON_0_PIN) || defined(MACRO_BUTTON_1_PIN) || defined(MACRO_BUTTON_2_PIN)
 /*
