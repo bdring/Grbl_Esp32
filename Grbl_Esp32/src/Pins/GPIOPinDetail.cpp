@@ -142,6 +142,10 @@ namespace Pins {
             pinModeValue |= OUTPUT;
         }
 
+        if (value.has(PinAttributes::ISR)) {
+            _attributes = _attributes | PinAttributes::ISR;
+        }
+
         // PU/PD should be specified by the user. Code has nothing to do with it. Well except for this little
         // detail called external libraries of course...
         if (_attributes.has(PinAttributes::PullUp) || value.has(PinAttributes::PullUp)) {
