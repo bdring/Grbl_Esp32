@@ -77,7 +77,7 @@ namespace Pins {
     }
 
     GPIOPinDetail::GPIOPinDetail(uint8_t index, PinOptionsParser options) :
-        PinDetail(index), _capabilities(GetDefaultCapabilities(index)), _attributes(Pins::PinAttributes::Undefined), _readWriteMask(0) {
+        PinDetail(index), _capabilities(GetDefaultCapabilities(index)), _attributes(Pins::PinAttributes::None), _readWriteMask(0) {
         // NOTE:
         //
         // RAII is very important here! If we throw an exception in the constructor, the resources
@@ -133,8 +133,6 @@ namespace Pins {
         Assert(!_attributes.conflictsWith(value) || _index == 1 || _index == 3,
                "Attributes on this pin have been set before, and there's a conflict.");
 
-        _attributes = value;
-
         // Handle attributes:
         uint8_t pinModeValue = 0;
 
@@ -144,10 +142,11 @@ namespace Pins {
             pinModeValue |= OUTPUT;
         }
 
-        // PU/PD should be specified by the user. Code has nothing to do with them:
-        if (_attributes.has(PinAttributes::PullUp)) {
+        // PU/PD should be specified by the user. Code has nothing to do with it. Well except for this little
+        // detail called external libraries of course...
+        if (_attributes.has(PinAttributes::PullUp) || value.has(PinAttributes::PullUp)) {
             pinModeValue |= PULLUP;
-        } else if (_attributes.has(PinAttributes::PullDown)) {
+        } else if (_attributes.has(PinAttributes::PullDown) || value.has(PinAttributes::PullDown)) {
             pinModeValue |= PULLDOWN;
         }
 

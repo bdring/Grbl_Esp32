@@ -263,12 +263,6 @@ void limits_init() {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             Pin pin;
             if ((pin = LimitPins[axis][gang_index]->get()) != Pin::UNDEFINED) {
-#ifndef DISABLE_LIMIT_PIN_PULL_UP
-                if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-                    mode = mode | Pin::Attr::PullUp;
-                }
-#endif
-
                 pin.setAttr(mode);
                 limit_mask |= bit(axis);
                 if (hard_limits->get()) {
