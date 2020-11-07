@@ -55,16 +55,16 @@ void IRAM_ATTR digitalWrite(uint8_t pin, uint8_t val) {
 
 void IRAM_ATTR pinMode(uint8_t pin, uint8_t mode) {
     Pins::PinAttributes attr = Pins::PinAttributes::None;
-    if (mode & OUTPUT) {
+    if ((mode & OUTPUT) == OUTPUT) {
         attr = attr | Pins::PinAttributes::Output;
     }
-    if (mode & INPUT) {
+    if ((mode & INPUT) == INPUT) {
         attr = attr | Pins::PinAttributes::Input;
     }
-    if (mode & INPUT_PULLUP) {
+    if ((mode & PULLUP) == PULLUP) {
         attr = attr | Pins::PinAttributes::PullUp;
     }
-    if (mode & INPUT_PULLDOWN) {
+    if ((mode & PULLDOWN) == PULLDOWN) {
         attr = attr | Pins::PinAttributes::PullDown;
     }
 
