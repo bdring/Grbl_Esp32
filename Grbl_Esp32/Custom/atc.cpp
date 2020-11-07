@@ -70,7 +70,7 @@ void machine_init() {
 bool user_tool_change(uint8_t new_tool) {
     char     gcode_line[80];
     bool     spindle_was_on = false;
-    uint64_t spindle_spin_delay;            // milliseconds
+    uint64_t spindle_spin_delay;  // milliseconds
     float    saved_mpos[MAX_N_AXIS] = {};
 
     if (new_tool == current_tool)
@@ -81,7 +81,7 @@ bool user_tool_change(uint8_t new_tool) {
         return false;
     }
 
-    protocol_buffer_synchronize();  // wait for all previous moves to complete    
+    protocol_buffer_synchronize();                                 // wait for all previous moves to complete
     system_convert_array_steps_to_mpos(saved_mpos, sys_position);  // save current position so we can return
 
     // is spindle on? Turn it off and determine when the spin down should be done.
@@ -161,17 +161,20 @@ bool user_tool_change(uint8_t new_tool) {
 void go_above_tool(uint8_t tool_num) {
     char gcode_line[80];
 
-    // raise up
-    sprintf(gcode_line, "G53G0Z-1");
-    gc_execute_line(gcode_line, CLIENT_INPUT);
+    //sprintf(gcode_line, "G53G0Z-1");
+    //gc_execute_line(gcode_line, CLIENT_INPUT);
+
+    gc_exec_linef("G53G0Z-1", false);                                                                            // raise up
+    gc_exec_linef("G53G0X%0.3fY%0.3f", false, tool[tool_num].mpos[X_AXIS], tool[tool_num].mpos[Y_AXIS] - 20.0);  // move in front of tool
+    gc_exec_linef("G53G0Y%0.3f", false, tool[tool_num].mpos[Y_AXIS]);                                            // Move over tool
 
     // move in front
-    sprintf(gcode_line, "G53G0X%0.3fY%0.3f\r", tool[tool_num].mpos[X_AXIS], tool[tool_num].mpos[Y_AXIS] - 20.0);  //
-    gc_execute_line(gcode_line, CLIENT_INPUT);
+    //sprintf(gcode_line, "G53G0X%0.3fY%0.3f\r", tool[tool_num].mpos[X_AXIS], tool[tool_num].mpos[Y_AXIS] - 20.0);  //
+    //gc_execute_line(gcode_line, CLIENT_INPUT);
 
     // Move over tool
-    sprintf(gcode_line, "G53G0Y%0.3f\r", tool[tool_num].mpos[Y_AXIS]);  //
-    gc_execute_line(gcode_line, CLIENT_INPUT);
+    // sprintf(gcode_line, "G53G0Y%0.3f\r", tool[tool_num].mpos[Y_AXIS]);  //
+    // gc_execute_line(gcode_line, CLIENT_INPUT);
 }
 
 void return_tool(uint8_t tool_num) {
