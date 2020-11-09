@@ -78,6 +78,17 @@
 #define Z_LIMIT_PIN                 GPIO_NUM_35
 #define PROBE_PIN                   GPIO_NUM_34
 
+// 4x Switch Input module  in socket #2
+#define PROBE2_PIN           GPIO_NUM_2
+//#define CONTROL_CYCLE_START_PIN     GPIO_NUM_25
+//#define CONTROL_FEED_HOLD_PIN       GPIO_NUM_39
+//#define CONTROL_SAFETY_DOOR_PIN     GPIO_NUM_36
+
+#ifdef INVERT_CONTROL_PIN_MASK
+#undef INVERT_CONTROL_PIN_MASK
+#endif
+#define INVERT_CONTROL_PIN_MASK B0101  // Cycle Start | Feed Hold | Reset | Safety Door
+
 // 5V output CNC module in socket #4
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
 #define SPINDLE_TYPE                SpindleType::PWM

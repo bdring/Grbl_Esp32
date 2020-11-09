@@ -97,7 +97,7 @@ KinematicError delta_calcAngleYZ(float x0, float y0, float z0, float& theta);
 float          three_axis_dist(float* point1, float* point2);
 void           read_settings();
 
-void machine_init() {
+void user_machine_init() {
     float angles[N_AXIS]    = { 0.0, 0.0, 0.0 };
     float cartesian[N_AXIS] = { 0.0, 0.0, 0.0 };
 
@@ -151,7 +151,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     float dx, dy, dz;  // distances in each cartesian axis
     float motor_angles[3];
 
-    float seg_target[3];                  // The target of the current segment
+    float seg_target[3];                    // The target of the current segment
     float feed_rate  = pl_data->feed_rate;  // save original feed rate
     bool  show_error = true;                // shows error once
 

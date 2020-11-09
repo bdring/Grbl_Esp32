@@ -1601,7 +1601,9 @@ Error gc_execute_line(char* line, uint8_t client) {
     return Error::Ok;
 }
 
-__attribute__((weak)) bool user_tool_change(uint8_t new_tool) {}
+__attribute__((weak)) bool user_tool_change(uint8_t new_tool) {
+    return true;
+}
 
 /*
   Not supported:

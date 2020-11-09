@@ -49,7 +49,7 @@ static float last_cartesian[MAX_N_AXIS] = {};
 // prototypes for helper functions
 float three_axis_dist(float* point1, float* point2);
 
-void machine_init() {
+void user_machine_init() {
     // print a startup message to show the kinematics are enable
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "CoreXY Kinematics Init");
 }
@@ -231,7 +231,7 @@ void inverse_kinematics(float* position) {
 
     motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
     motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
-    motors[Z_AXIS]  = position[Z_AXIS];
+    motors[Z_AXIS] = position[Z_AXIS];
 
     position[0] = motors[0];
     position[1] = motors[1];

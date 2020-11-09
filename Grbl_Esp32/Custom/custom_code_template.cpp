@@ -47,10 +47,10 @@ enabled with USE_ defines in Machines/my_machine.h
 */
 
 /*
-machine_init() is called when Grbl_ESP32 first starts. You can use it to do any
+user_machine_init() is called when Grbl_ESP32 first starts. You can use it to do any
 special things your machine needs at startup.
 */
-void machine_init() {}
+void user_machine_init() {}
 
 #ifdef USE_CUSTOM_HOMING
 /*

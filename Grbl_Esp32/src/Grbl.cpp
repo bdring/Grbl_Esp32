@@ -43,7 +43,7 @@ void grbl_init() {
     system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
     memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
 
-    machine_init();  // (weak) should be user defined
+    user_machine_init();  // (weak) should be user defined
 
     // Initialize system state.
 #ifdef FORCE_INITIALIZATION_ALARM
@@ -116,7 +116,7 @@ void run_once() {
     protocol_main_loop();
 }
 
-__attribute__((weak)) void machine_init() {}
+__attribute__((weak)) void user_machine_init() {}
 
 /*
   setup() and loop() in the Arduino .ino implements this control flow:

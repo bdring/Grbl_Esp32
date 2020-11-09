@@ -41,7 +41,7 @@ bool                atari_homing = false;
 uint8_t             homing_phase = HOMING_PHASE_FULL_APPROACH;
 uint8_t             current_tool;
 
-void machine_init() {
+void user_machine_init() {
     solenoid_pull_count = 0;  // initialize
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Atari 1020 Solenoid");
     // setup PWM channel
