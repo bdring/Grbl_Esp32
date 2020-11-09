@@ -25,6 +25,10 @@
  If you zero a tool on the work piece, all tools will use the delta determined by the 
  toolsetter to set the tool length offset.
 
+ TODO
+
+ If no tool has been zero'd use the offset from tool #1
+
 */
 
 const int   TOOL_COUNT        = 4;
@@ -41,7 +45,7 @@ tool_t tool[TOOL_COUNT + 1];  // one setter, plus 4 tools
 
 float top_of_z;                     // The highest Z position we can move around on
 bool  tool_setter_probing = false;  // used to determine if current probe cycle is for the setter
-int   zeroed_tool_index   = 0;      // Which tool was zero'd on the work piece
+int   zeroed_tool_index   = 1;      // Which tool was zero'd on the work piece
 
 uint8_t current_tool = 0;
 
@@ -86,8 +90,10 @@ bool user_tool_change(uint8_t new_tool) {
     uint64_t spindle_spin_delay;           // used to make sure spindle has fully spun down and up.
     float    saved_mpos[MAX_N_AXIS] = {};  // the position before the tool change
 
-    if (new_tool == current_tool)  // if no change, we are done
+    if (new_tool == current_tool) {  // if no change, we are done
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC existing tool requested:%d", new_tool);
         return true;
+    }
 
     if (new_tool > TOOL_COUNT) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC Tool out of range:%d", new_tool);
@@ -113,7 +119,8 @@ bool user_tool_change(uint8_t new_tool) {
 
     return_tool(current_tool);
 
-    if (new_tool == TOOL_SETTER_INDEX) {  // if changing to tool 0...we are done.
+    if (new_tool == 0) {  // if changing to tool 0...we are done.
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC Changed to tool 0");
         current_tool = new_tool;
         return true;
     }
@@ -166,7 +173,6 @@ bool user_tool_change(uint8_t new_tool) {
 void user_probe_notification() {
     float probe_position[MAX_N_AXIS];
 
-    // https://linuxcnc.org/docs/2.6/html/gcode/gcode.html#sec:G43_1
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe complete. Setter:%d", tool_setter_probing);
 
     if (sys.state == State::Alarm) {
@@ -225,8 +231,10 @@ bool atc_tool_setter() {
     tool[current_tool].offset[Z_AXIS] = probe_position[Z_AXIS];  // Get the Z height ...
 
     if (zeroed_tool_index != 0) {
-        float tlo = tool[zeroed_tool_index].offset[Z_AXIS] - tool[current_tool].offset[Z_AXIS];
-        gc_exec_linef(false, "G43.1Z%0.3f", top_of_z);  // raise up
+        float tlo = tool[current_tool].offset[Z_AXIS] - tool[zeroed_tool_index].offset[Z_AXIS];
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC Tool No:%d TLO:%0.3f", current_tool, tlo);
+        // https://linuxcnc.org/docs/2.6/html/gcode/gcode.html#sec:G43_1
+        gc_exec_linef(false, "G43.1Z%0.3f", tlo);  // raise up
     }
 
     gc_exec_linef(false, "G53G0Z%0.3f", top_of_z);  // raise up
@@ -252,6 +260,7 @@ bool set_ATC_open(bool open) {
     format: a printf style string
 
 */
+//void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...);
 void gc_exec_linef(bool sync_after, const char* format, ...) {
     char    loc_buf[100];
     char*   temp = loc_buf;
@@ -261,6 +270,7 @@ void gc_exec_linef(bool sync_after, const char* format, ...) {
     va_copy(copy, arg);
     size_t len = vsnprintf(NULL, 0, format, arg);
     va_end(copy);
+
     if (len >= sizeof(loc_buf)) {
         temp = new char[len + 1];
         if (temp == NULL) {

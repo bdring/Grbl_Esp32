@@ -78,6 +78,8 @@
 #define Z_LIMIT_PIN                 GPIO_NUM_35
 #define PROBE_PIN                   GPIO_NUM_34
 
+
+
 // 4x Switch Input module  in socket #2
 #define PROBE2_PIN           GPIO_NUM_2
 //#define CONTROL_CYCLE_START_PIN     GPIO_NUM_25
@@ -104,3 +106,18 @@
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800
 #define DEFAULT_Z_STEPS_PER_MM      800
+
+#define DEFAULT_X_MAX_RATE          2000
+#define DEFAULT_Y_MAX_RATE          2000
+#define DEFAULT_Z_MAX_RATE          2000
+
+#define DEFAULT_Y_HOMING_MPOS       140
+#define DEFAULT_Y_MAX_TRAVEL        140
+
+
+
+
+#define DEFAULT_STE
+
+
+#define  DEFAULT_HOMING_ENABLE 1

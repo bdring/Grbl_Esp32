@@ -1602,6 +1602,7 @@ Error gc_execute_line(char* line, uint8_t client) {
 }
 
 __attribute__((weak)) bool user_tool_change(uint8_t new_tool) {
+    
     return true;
 }
 
