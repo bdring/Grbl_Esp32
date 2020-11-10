@@ -78,10 +78,14 @@
 #define Z_LIMIT_PIN                 GPIO_NUM_35
 #define PROBE_PIN                   GPIO_NUM_34
 
-
+// Socket #3
+#define PROBE2_PIN                  GPIO_NUM_26
+// #2 GPIO_NUM_4
+// #3 GPIO_NUM_16
+// #4 GPIO_NUM_27
 
 // 4x Switch Input module  in socket #2
-#define PROBE2_PIN           GPIO_NUM_2
+//#define PROBE2_PIN           GPIO_NUM_2
 //#define CONTROL_CYCLE_START_PIN     GPIO_NUM_25
 //#define CONTROL_FEED_HOLD_PIN       GPIO_NUM_39
 //#define CONTROL_SAFETY_DOOR_PIN     GPIO_NUM_36

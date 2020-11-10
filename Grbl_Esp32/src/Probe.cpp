@@ -39,9 +39,17 @@ void probe_init() {
 
         if (show_init_msg) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe on pin %s", pinName(PROBE_PIN).c_str());
-            show_init_msg = false;
         }
     }
+
+    if (PROBE2_PIN != UNDEFINED_PIN) {
+        pinMode(PROBE2_PIN, INPUT_PULLUP);  // Enable internal pull-up resistors. Normal high operation.
+        if (show_init_msg) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe2 on pin %s", pinName(PROBE2_PIN).c_str());
+        }
+    }
+
+    show_init_msg = false;
 }
 
 void set_probe_direction(bool is_away) {
@@ -50,7 +58,7 @@ void set_probe_direction(bool is_away) {
 
 // Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
 bool probe_get_state() {
-    return digitalRead(PROBE_PIN) ^ probe_invert->get();
+    return ((digitalRead(PROBE_PIN) ^ probe_invert->get()) || (!digitalRead(PROBE2_PIN)));
 }
 
 // Monitors probe pin state and records the system position when detected. Called by the

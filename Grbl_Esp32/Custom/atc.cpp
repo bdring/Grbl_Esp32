@@ -31,17 +31,17 @@
 
 */
 
-const int   TOOL_COUNT        = 4;
-const int   TOOL_SETTER_INDEX = 0;
-const float TOOL_GRAB_TIME    = 0.25;  // seconds. How long it takes to grab a tool
-const float RACK_SAFE_DIST    = 25.0;  // how far in front of rack is safe to move in X
+const int   TOOL_COUNT     = 4;
+const int   ETS_INDEX      = 0;     // electronic tool setter index
+const float TOOL_GRAB_TIME = 0.25;  // seconds. How long it takes to grab a tool
+const float RACK_SAFE_DIST = 25.0;  // how far in front of rack is safe to move in X
 
 typedef struct {
     float mpos[MAX_N_AXIS];    // the pickup location in machine coords
     float offset[MAX_N_AXIS];  // TLO from the zero'd tool
 } tool_t;
 
-tool_t tool[TOOL_COUNT + 1];  // one setter, plus 4 tools
+tool_t tool[TOOL_COUNT + 1];  // one ETS, plus 4 tools
 
 float top_of_z;                     // The highest Z position we can move around on
 bool  tool_setter_probing = false;  // used to determine if current probe cycle is for the setter
@@ -51,7 +51,7 @@ uint8_t current_tool = 0;
 
 void go_above_tool(uint8_t tool_num);
 void return_tool(uint8_t tool_num);
-bool atc_tool_setter();
+bool atc_ETS();
 bool set_ATC_open(bool open);
 void gc_exec_linef(bool sync_after, const char* format, ...);
 
@@ -61,9 +61,9 @@ void user_machine_init() {
     pinMode(ATC_RELEASE_PIN, OUTPUT);
 
     // the tool setter
-    tool[TOOL_SETTER_INDEX].mpos[X_AXIS] = 5.0;
-    tool[TOOL_SETTER_INDEX].mpos[Y_AXIS] = 130.0;
-    tool[TOOL_SETTER_INDEX].mpos[Z_AXIS] = -25.0;  // Mpos before collet face triggers probe
+    tool[ETS_INDEX].mpos[X_AXIS] = 5.0;
+    tool[ETS_INDEX].mpos[Y_AXIS] = 130.0;
+    tool[ETS_INDEX].mpos[Z_AXIS] = -25.0;  // Mpos before collet face triggers probe
 
     tool[1].mpos[X_AXIS] = 35.0;
     tool[1].mpos[Y_AXIS] = 130.0;
@@ -142,7 +142,7 @@ bool user_tool_change(uint8_t new_tool) {
 
     current_tool = new_tool;
 
-    if (!atc_tool_setter()) {  // check the length of the tool
+    if (!atc_ETS()) {  // check the length of the tool
         return false;
     }
 
@@ -172,8 +172,6 @@ bool user_tool_change(uint8_t new_tool) {
 
 void user_probe_notification() {
     float probe_position[MAX_N_AXIS];
-
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe complete. Setter:%d", tool_setter_probing);
 
     if (sys.state == State::Alarm) {
         return;  // probe failed
@@ -207,14 +205,14 @@ void return_tool(uint8_t tool_num) {
     gc_exec_linef(true, "G53G0X%0.3fY%0.3f", tool[tool_num].mpos[X_AXIS], tool[tool_num].mpos[Y_AXIS] - RACK_SAFE_DIST);  // move forward
 }
 
-bool atc_tool_setter() {
+bool atc_ETS() {
     float probe_to;  // Calculated work position
     float probe_position[MAX_N_AXIS];
 
     go_above_tool(0);
 
     float wco = gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS] + gc_state.tool_length_offset;
-    probe_to  = tool[TOOL_SETTER_INDEX].mpos[Z_AXIS] - wco;
+    probe_to  = tool[ETS_INDEX].mpos[Z_AXIS] - wco;
 
     // https://linuxcnc.org/docs/2.6/html/gcode/gcode.html#sec:G38-probe
     tool_setter_probing = true;
@@ -239,7 +237,7 @@ bool atc_tool_setter() {
 
     gc_exec_linef(false, "G53G0Z%0.3f", top_of_z);  // raise up
     // move forward
-    gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[TOOL_SETTER_INDEX].mpos[X_AXIS], tool[TOOL_SETTER_INDEX].mpos[Y_AXIS] - RACK_SAFE_DIST);
+    gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[ETS_INDEX].mpos[X_AXIS], tool[ETS_INDEX].mpos[Y_AXIS] - RACK_SAFE_DIST);
 
     return true;
 }

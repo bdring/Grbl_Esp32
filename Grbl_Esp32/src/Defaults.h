@@ -631,6 +631,10 @@
 #    define PROBE_PIN UNDEFINED_PIN
 #endif
 
+#ifndef PROBE2_PIN
+#    define PROBE_PIN2 UNDEFINED_PIN
+#endif
+
 #ifndef USER_ANALOG_PIN_0_FREQ
 #    define USER_ANALOG_PIN_0_FREQ 5000
 #endif
