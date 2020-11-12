@@ -632,7 +632,7 @@
 #endif
 
 #ifndef PROBE2_PIN
-#    define PROBE_PIN2 UNDEFINED_PIN
+#    define PROBE2_PIN UNDEFINED_PIN
 #endif
 
 #ifndef USER_ANALOG_PIN_0_FREQ
