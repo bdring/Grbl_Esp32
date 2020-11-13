@@ -32,9 +32,10 @@
 */
 
 const int   TOOL_COUNT     = 4;
-const int   ETS_INDEX      = 0;     // electronic tool setter index
-const float TOOL_GRAB_TIME = 0.25;  // seconds. How long it takes to grab a tool
-const float RACK_SAFE_DIST = 25.0;  // how far in front of rack is safe to move in X
+const int   ETS_INDEX      = 0;      // electronic tool setter index
+const float TOOL_GRAB_TIME = 0.25;   // seconds. How long it takes to grab a tool
+const float RACK_SAFE_DIST = 25.0;   // how far in front of rack is safe to move in X
+#define ATC_MANUAL_CHANGE_TIME 2000  // milliseconds ATC is open
 
 typedef struct {
     float mpos[MAX_N_AXIS];    // the pickup location in machine coords
@@ -54,6 +55,7 @@ void return_tool(uint8_t tool_num);
 bool atc_ETS();
 bool set_ATC_open(bool open);
 void gc_exec_linef(bool sync_after, const char* format, ...);
+bool atc_manual_change();
 
 void user_machine_init() {
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC Machine Init");
@@ -61,24 +63,24 @@ void user_machine_init() {
     pinMode(ATC_RELEASE_PIN, OUTPUT);
 
     // the tool setter
-    tool[ETS_INDEX].mpos[X_AXIS] = 5.0;
-    tool[ETS_INDEX].mpos[Y_AXIS] = 130.0;
-    tool[ETS_INDEX].mpos[Z_AXIS] = -25.0;  // Mpos before collet face triggers probe
+    tool[ETS_INDEX].mpos[X_AXIS] = 108;
+    tool[ETS_INDEX].mpos[Y_AXIS] = 292.0;
+    tool[ETS_INDEX].mpos[Z_AXIS] = -20.0;  // Mpos before collet face triggers probe
 
-    tool[1].mpos[X_AXIS] = 35.0;
-    tool[1].mpos[Y_AXIS] = 130.0;
+    tool[1].mpos[X_AXIS] = 150.0;
+    tool[1].mpos[Y_AXIS] = 292.0;
     tool[1].mpos[Z_AXIS] = -20.0;
 
-    tool[2].mpos[X_AXIS] = 65.0;
-    tool[2].mpos[Y_AXIS] = 130.0;
+    tool[2].mpos[X_AXIS] = 185.0;
+    tool[2].mpos[Y_AXIS] = 292.0;
     tool[2].mpos[Z_AXIS] = -20.0;
 
-    tool[3].mpos[X_AXIS] = 95.0;
-    tool[3].mpos[Y_AXIS] = 130.0;
+    tool[3].mpos[X_AXIS] = 220.0;
+    tool[3].mpos[Y_AXIS] = 292.0;
     tool[3].mpos[Z_AXIS] = -20.0;
 
-    tool[4].mpos[X_AXIS] = 125.0;
-    tool[4].mpos[Y_AXIS] = 130.0;
+    tool[4].mpos[X_AXIS] = 255.0;
+    tool[4].mpos[Y_AXIS] = 292.0;
     tool[4].mpos[Z_AXIS] = -20.0;
 
     top_of_z = limitsMaxPosition(Z_AXIS) - homing_pulloff->get();
@@ -183,6 +185,18 @@ void user_probe_notification() {
 
     zeroed_tool_index = current_tool;
 }
+
+void user_defined_macro(uint8_t index) {
+    switch (index) {
+        case 0:
+            atc_manual_change();
+            break;
+        default:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined macro number:%d", index);
+            break;
+    }
+}
+
 // ============= Local functions ==================
 
 void go_above_tool(uint8_t tool_num) {
@@ -249,6 +263,29 @@ bool set_ATC_open(bool open) {
         return false;
     }
     digitalWrite(ATC_RELEASE_PIN, open);
+    return true;
+}
+
+bool atc_manual_change() {
+    // if (gc_state.modal.spindle != SpindleState::Disable) {
+    //     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Cannot use ATC with spindle on");
+    // }
+
+    if (sys.state != State::Idle) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC manual change only permitted in idle");
+        return false;
+    }
+
+    if (!set_ATC_open(true)) {  // internally checks spindle state
+        return false;
+    }
+
+    vTaskDelay(ATC_MANUAL_CHANGE_TIME);
+
+    if (!set_ATC_open(false)) {
+        return false;
+    }
+
     return true;
 }
 
