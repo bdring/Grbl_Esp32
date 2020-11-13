@@ -67,7 +67,9 @@
     Socket I/O reference
     The list of modules is here...
     https://github.com/bdring/6-Pack_CNC_Controller/wiki/CNC-I-O-Module-List
-    Click on each module to get example for using the modules in the sockets
+    
+    Pin Mapping
+    https://github.com/bdring/6-Pack_CNC_Controller/wiki/Socket-Pin-Number-Mapping
 
 */
 
@@ -82,6 +84,7 @@
 // Socket #3
 #define PROBE_PIN                   GPIO_NUM_26
 #define PROBE2_PIN                  GPIO_NUM_4
+#define MACRO_BUTTON_0_PIN          GPIO_NUM_39  // Manual ATC Switch
 
 // 5V output CNC module in socket #4
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
