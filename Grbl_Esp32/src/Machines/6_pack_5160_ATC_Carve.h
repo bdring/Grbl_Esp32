@@ -28,7 +28,7 @@
 #define I2S_OUT_DATA            GPIO_NUM_21
 
 
-#define TRINAMIC_RUN_MODE       Motors::TrinamicMode::CoolStep
+#define TRINAMIC_RUN_MODE       Motors::TrinamicMode::StealthChop
 #define TRINAMIC_HOMING_MODE    Motors::TrinamicMode::CoolStep
 
 // Motor Socket #1
@@ -40,28 +40,28 @@
 #define X_RSENSE                TMC5160_RSENSE_DEFAULT
 
 // Motor Socket #2
-#define Y_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
+#define Y_TRINAMIC_DRIVER       2130
 #define Y_DIRECTION_PIN         I2SO(4)
 #define Y_STEP_PIN              I2SO(5)
 #define Y_DISABLE_PIN           I2SO(7)
 #define Y_CS_PIN                I2SO(6)
-#define Y_RSENSE                X_RSENSE
+#define Y_RSENSE                TMC2130_RSENSE_DEFAULT
 
 // Motor Socket #3
-#define Y2_TRINAMIC_DRIVER      X_TRINAMIC_DRIVER
+#define Y2_TRINAMIC_DRIVER      2130
 #define Y2_DISABLE_PIN          I2SO(8)
 #define Y2_DIRECTION_PIN        I2SO(9)
 #define Y2_STEP_PIN             I2SO(10)
 #define Y2_CS_PIN               I2SO(11)
-#define Y2_RSENSE               X_RSENSE
+#define Y2_RSENSE               TMC2130_RSENSE_DEFAULT
 
 // Motor Socket #4
-#define Z_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
+#define Z_TRINAMIC_DRIVER       2130
 #define Z_DIRECTION_PIN         I2SO(12)
 #define Z_STEP_PIN              I2SO(13)
 #define Z_DISABLE_PIN           I2SO(15)
 #define Z_CS_PIN                I2SO(14)
-#define Z_RSENSE                X_RSENSE
+#define Z_RSENSE                TMC2130_RSENSE_DEFAULT
 
 /*
     Socket I/O reference
@@ -80,7 +80,7 @@
 #define Z_LIMIT_PIN                 GPIO_NUM_34
 
 // Socket #3
-#define PROBE2_PIN                  GPIO_NUM_26
+#define PROBE_PIN                   GPIO_NUM_26
 #define PROBE2_PIN                  GPIO_NUM_4
 
 // 5V output CNC module in socket #4
