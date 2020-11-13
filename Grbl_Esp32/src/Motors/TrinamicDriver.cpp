@@ -208,7 +208,6 @@ namespace Motors {
             if (hold_i_percent > 1.0)
                 hold_i_percent = 1.0;
         }
-
         tmcstepper->microsteps(axis_settings[_axis_index]->microsteps->get());
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
     }
