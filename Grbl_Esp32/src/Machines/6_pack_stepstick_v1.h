@@ -40,41 +40,40 @@
 #define I2S_OUT_DATA            GPIO_NUM_21
 
 
-#define X_STEPPER_MS3           I2SO(3)   // X_CS
-#define Y_STEPPER_MS3           I2SO(6)   // Y_CS
-#define Z_STEPPER_MS3           I2SO(11)  // Z_CS
-#define A_STEPPER_MS3           I2SO(14)  // A_CS
-#define B_STEPPER_MS3           I2SO(19)  // B_CS
-#define C_STEPPER_MS3           I2SO(22)  // C_CS
-
 // Motor Socket #1
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)
 #define X_STEP_PIN              I2SO(2)
+#define X_STEPPER_MS3           I2SO(3)
 
 // Motor Socket #2
 #define Y_DIRECTION_PIN         I2SO(4)
 #define Y_STEP_PIN              I2SO(5)
+#define Y_STEPPER_MS3           I2SO(6)
 #define Y_DISABLE_PIN           I2SO(7)
 
 // Motor Socket #3
 #define Z_DISABLE_PIN           I2SO(8)
 #define Z_DIRECTION_PIN         I2SO(9)
 #define Z_STEP_PIN              I2SO(10)
+#define Z_STEPPER_MS3           I2SO(11)
 
 // Motor Socket #4
 #define A_DIRECTION_PIN         I2SO(12)
 #define A_STEP_PIN              I2SO(13)
+#define A_STEPPER_MS3           I2SO(14) 
 #define A_DISABLE_PIN           I2SO(15)
 
 // Motor Socket #5
 #define B_DISABLE_PIN           I2SO(16)
 #define B_DIRECTION_PIN         I2SO(17)
 #define B_STEP_PIN              I2SO(18)
+#define B_STEPPER_MS3           I2SO(19) 
 
 // Motor Socket #5
 #define C_DIRECTION_PIN         I2SO(20)
 #define C_STEP_PIN              I2SO(21)
+#define C_STEPPER_MS3           I2SO(22)
 #define C_DISABLE_PIN           I2SO(23)
 
 

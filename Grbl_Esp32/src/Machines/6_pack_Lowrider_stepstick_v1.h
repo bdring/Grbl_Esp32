@@ -39,37 +39,35 @@
 #define I2S_OUT_WS       GPIO_NUM_17
 #define I2S_OUT_DATA     GPIO_NUM_21
 
-#define X_STEPPER_MS3           I2SO(3)   // Labeled X_CS
-#define Y_STEPPER_MS3           I2SO(6)   // Y_CS
-#define Z_STEPPER_MS3           I2SO(11)  // Z_CS
-#define X2_STEPPER_MS3          I2SO(14)  // A_CS
-#define Y2_STEPPER_MS3          I2SO(19)  // B_CS
-
 // Motor Socket #1
 #define X_DISABLE_PIN           I2SO(0)
 #define X_DIRECTION_PIN         I2SO(1)
 #define X_STEP_PIN              I2SO(2)
+#define X_STEPPER_MS3           I2SO(3)
 
 // Motor Socket #2
 #define Y_DIRECTION_PIN         I2SO(4)
 #define Y_STEP_PIN              I2SO(5)
+#define Y_STEPPER_MS3           I2SO(6) 
 #define Y_DISABLE_PIN           I2SO(7)
 
 // Motor Socket #3
 #define Y2_DISABLE_PIN           I2SO(8)
 #define Y2_DIRECTION_PIN         I2SO(9)
 #define Y2_STEP_PIN              I2SO(10)
+#define Y2_STEPPER_MS3           I2SO(11)
 
 // Motor Socket #4
 #define Z_DIRECTION_PIN         I2SO(12)
 #define Z_STEP_PIN              I2SO(13)
+#define Z_STEPPER_MS3           I2SO(14)
 #define Z_DISABLE_PIN           I2SO(15)
 
 // Motor Socket #5
 #define Z2_DISABLE_PIN           I2SO(16)
 #define Z2_DIRECTION_PIN         I2SO(17)
 #define Z2_STEP_PIN              I2SO(18)
-
+#define Z2_STEPPER_MS3           I2SO(19)
 
 /*
     Socket I/O reference
@@ -112,8 +110,8 @@ Socket #5
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
 #define X_LIMIT_PIN             GPIO_NUM_33
 #define Y_LIMIT_PIN             GPIO_NUM_32
-#define Y2_LIMIT_PIN             GPIO_NUM_35
-#define Z_LIMIT_PIN            GPIO_NUM_34
+#define Y2_LIMIT_PIN            GPIO_NUM_35
+#define Z_LIMIT_PIN             GPIO_NUM_34
 
 // 4x Input Module in Socket #2
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module

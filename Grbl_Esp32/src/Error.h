@@ -85,4 +85,4 @@ enum class Error : uint8_t {
     Eol                         = 111,
 };
 
-extern std::map<Error, const char*> ErrorCodes;
+extern std::map<Error, const char*> ErrorNames;

@@ -26,17 +26,24 @@
 // ================= Firmware Customization ===================
 
 #define USE_KINEMATICS				// there are kinematic equations for this machine
-#define USE_FWD_KINEMATICS   // report in cartesian
-#define USE_MACHINE_INIT			// There is some custom initialization for this machine	
+#define USE_FWD_KINEMATICS          // report in cartesian
+#define USE_MACHINE_INIT			// There is some custom initialization for this machine
 	
 // ================== Delta Geometry ===========================
 
-#define RADIUS_FIXED    70.0;   // radius of the fixed side (length of motor cranks)
-#define RADIUS_EFF      133.5;  // radius of end effector side (length of linkages)
-#define LENGTH_FIXED_SIDE   179.437f;  // sized of fixed side triangel
-#define LENGTH_EFF_SIDE     86.6025f;  // size of end effector side triangle
-#define SEGMENT_LENGTH 0.5 // segment length in mm
-#define MAX_NEGATIVE_ANGLE -45 // in negative radians how far can the arms go up before damaging machine (max pi/2) 
+#define RADIUS_FIXED                70.0   // radius of the fixed side (length of motor cranks)
+#define RADIUS_EFF                  133.5  // radius of end effector side (length of linkages)
+#define LENGTH_FIXED_SIDE           179.437f  // sized of fixed side triangel
+#define LENGTH_EFF_SIDE             86.6025f  // size of end effector side triangle
+#define KINEMATIC_SEGMENT_LENGTH    1.0f            // segment length in mm
+#define MAX_NEGATIVE_ANGLE          -(M_PI / 3.0)   // 60 degrees up
+#define MAX_POSITIVE_ANGLE          (M_PI / 2.0)    // 90 degrees down
+#define ARM_INTERNAL_ANGLE          0.05 // radians 2.866°  // due to mounting angle 
+#define USE_POST_HOMING_DELAY       // Servos need time to reach destination before idle kicks in
+
+#define DEFAULT_X_MAX_TRAVEL MAX_POSITIVE_ANGLE - MAX_NEGATIVE_ANGLE
+#define DEFAULT_Y_MAX_TRAVEL DEFAULT_X_MAX_TRAVEL // 
+#define DEFAULT_Z_MAX_TRAVEL DEFAULT_X_MAX_TRAVEL //
 
 // =================== Machine Hardware Definition =============
 
@@ -48,9 +55,17 @@
 #define Y_DYNAMIXEL_ID          2 // protocol ID
 #define Z_DYNAMIXEL_ID          3 // protocol ID
 
-// limit servo to 180 degree motion
-#define DXL_COUNT_MIN           1024      
-#define DXL_COUNT_MAX           3072
+// limit servo to motion range
+#define DXL_COUNTS              4096
+#define DXL_COUNT_PER_RADIAN    652   // (DXL_COUNTS / 2.0 * M_PI)
+
+#define DXL_CENTER              2015 // (DXL_COUNTS / 2) - (ARM_INTERNAL_ANGLE * DXL_COUNT_PER_RADIAN)
+
+#undef DXL_COUNT_MIN
+#define DXL_COUNT_MIN           (DXL_CENTER + (MAX_NEGATIVE_ANGLE * DXL_COUNT_PER_RADIAN))
+
+#undef DXL_COUNT_MAX
+#define DXL_COUNT_MAX           (DXL_CENTER + (MAX_POSITIVE_ANGLE * DXL_COUNT_PER_RADIAN))
 
 #define SERVO_TIMER_INTERVAL 50
 
@@ -84,6 +99,11 @@
 #define DEFAULT_HOMING_ENABLE 0
 #define DEFAULT_HOMING_DIR_MASK 0
 
+#define DEFAULT_HOMING_CYCLE_0      (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS)) 
+#define DEFAULT_X_HOMING_MPOS       MAX_NEGATIVE_ANGLE
+#define DEFAULT_Y_HOMING_MPOS       DEFAULT_X_HOMING_MPOS
+#define DEFAULT_Z_HOMING_MPOS       DEFAULT_X_HOMING_MPOS
+
 // the following must have the same values for each axis
 
 #define DEFAULT_X_STEPS_PER_MM 800 // value is actually arbitrary, but keep it smallish
@@ -98,14 +118,5 @@
 #define DEFAULT_Y_ACCELERATION      DEFAULT_X_ACCELERATION // 10*60*60 mm/min^2 = 10 mm/sec^2
 #define DEFAULT_Z_ACCELERATION      DEFAULT_X_ACCELERATION
 
-#define DEFAULT_X_MAX_TRAVEL 3.14159265 // 180° in radians 
-#define DEFAULT_Y_MAX_TRAVEL DEFAULT_X_MAX_TRAVEL // 
-#define DEFAULT_Z_MAX_TRAVEL DEFAULT_X_MAX_TRAVEL // 
-
-#define ARM_INTERNAL_ANGLE 2.866  // due to mounting angle 
-
-#define DEFAULT_X_HOMING_MPOS (DEFAULT_X_MAX_TRAVEL / 2.0)
-#define DEFAULT_Y_HOMING_MPOS DEFAULT_X_HOMING_MPOS
-#define DEFAULT_Z_HOMING_MPOS DEFAULT_X_HOMING_MPOS
 
 #define SPINDLE_TYPE    SpindleType::NONE

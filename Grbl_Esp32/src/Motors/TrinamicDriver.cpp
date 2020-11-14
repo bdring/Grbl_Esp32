@@ -126,7 +126,7 @@ namespace Motors {
     void TrinamicDriver::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d %s",
+                       "%s Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d R:%0.3f %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _driver_part_number,
                        pinName(_step_pin).c_str(),
@@ -134,6 +134,7 @@ namespace Motors {
                        pinName(_cs_pin).c_str(),
                        pinName(_disable_pin).c_str(),
                        _spi_index,
+                       _r_sense,
                        reportAxisLimitsMsg(_axis_index));
     }
 
@@ -161,24 +162,17 @@ namespace Motors {
                 status.sr = tmcstepper->DRV_STATUS();
 
                 bool err = false;
-                // look for open or short to ground on a and b
-                if (status.s2ga || status.s2gb) {
-                    grbl_msg_sendf(CLIENT_SERIAL,
-                                   MsgLevel::Info,
-                                   "%s Motor Short Coil a:%s b:%s",
-                                   reportAxisNameMsg(_axis_index, _dual_axis_index),
-                                   status.s2ga ? "Y" : "N",
-                                   status.s2gb ? "Y" : "N");
+
+                // look for errors
+                if (report_short_to_ground(status)) {
                     err = true;
                 }
-                // check for over temp or pre-warning
-                if (status.ot || status.otpw) {
-                    grbl_msg_sendf(CLIENT_SERIAL,
-                                   MsgLevel::Info,
-                                   "%s Driver Temp Warning:%s Fault:%s",
-                                   reportAxisNameMsg(_axis_index, _dual_axis_index),
-                                   status.otpw ? "Y" : "N",
-                                   status.ot ? "Y" : "N");
+
+                if (report_over_temp(status)) {
+                    err = true;
+                }
+
+                if (report_short_to_ps(status)) {
                     err = true;
                 }
 
@@ -214,8 +208,6 @@ namespace Motors {
             if (hold_i_percent > 1.0)
                 hold_i_percent = 1.0;
         }
-        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Current run %d hold %f", reportAxisNameMsg(_axis_index, _dual_axis_index), run_i_ma, hold_i_percent);
-
         tmcstepper->microsteps(axis_settings[_axis_index]->microsteps->get());
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
     }
@@ -293,6 +285,22 @@ namespace Motors {
                        tmcstepper->sg_result(),
                        feedrate,
                        axis_settings[_axis_index]->stallguard->get());
+
+        TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
+        status.sr = tmcstepper->DRV_STATUS();
+
+        // these only report if there is a fault condition
+        report_open_load(status);
+        report_short_to_ground(status);
+        report_over_temp(status);
+        report_short_to_ps(status);
+
+        // grbl_msg_sendf(CLIENT_SERIAL,
+        //                MsgLevel::Info,
+        //                "%s Status Register %08x GSTAT %02x",
+        //                reportAxisNameMsg(_axis_index, _dual_axis_index),
+        //                status.sr,
+        //                tmcstepper->GSTAT());
     }
 
     // calculate a tstep from a rate
@@ -365,5 +373,60 @@ namespace Motors {
             static UBaseType_t uxHighWaterMark = 0;
             reportTaskStackSize(uxHighWaterMark);
         }
+    }
+
+    // =========== Reporting functions ========================
+
+    bool TrinamicDriver::report_open_load(TMC2130_n ::DRV_STATUS_t status) {
+        if (status.ola || status.olb) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Driver Open Load a:%s b:%s",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           status.ola ? "Y" : "N",
+                           status.olb ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
+
+    bool TrinamicDriver::report_short_to_ground(TMC2130_n ::DRV_STATUS_t status) {
+        if (status.s2ga || status.s2gb) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Driver Short Coil a:%s b:%s",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           status.s2ga ? "Y" : "N",
+                           status.s2gb ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
+
+    bool TrinamicDriver::report_over_temp(TMC2130_n ::DRV_STATUS_t status) {
+        if (status.ot || status.otpw) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Driver Temp Warning:%s Fault:%s",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           status.otpw ? "Y" : "N",
+                           status.ot ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
+
+    bool TrinamicDriver::report_short_to_ps(TMC2130_n ::DRV_STATUS_t status) {
+        // check for short to power supply
+        if ((status.sr & bit(12)) || (status.sr & bit(13))) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Driver Short vsa:%s vsb:%s",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           (status.sr & bit(12)) ? "Y" : "N",
+                           (status.sr & bit(13)) ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
     }
 }

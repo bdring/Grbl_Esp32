@@ -156,9 +156,13 @@ Error list_settings(const char* value, WebUI::AuthenticationLevel auth_level, We
 }
 Error list_changed_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Setting* s = Setting::List; s; s = s->next()) {
-        const char* value = s->getStringValue();
-        if (!auth_failed(s, value, auth_level) && strcmp(value, s->getDefaultString())) {
-            show_setting(s->getName(), value, NULL, out);
+        const char* value  = s->getStringValue();
+        const char* defval = s->getDefaultString();
+        if (!auth_failed(s, value, auth_level) && strcmp(value, defval)) {
+            String message = "(Default=";
+            message += defval;
+            message += ")";
+            show_setting(s->getName(), value, message.c_str(), out);
         }
     }
     grbl_sendf(out->client(), "(Passwords not shown)\r\n");
@@ -285,15 +289,15 @@ Error report_startup_lines(const char* value, WebUI::AuthenticationLevel auth_le
 
 std::map<const char*, uint8_t, cmp_str> restoreCommands = {
 #ifdef ENABLE_RESTORE_DEFAULT_SETTINGS
-    { "$", SettingsRestore::Defaults },      { "settings", SettingsRestore::Defaults },
+    { "$", SettingsRestore::Defaults },   { "settings", SettingsRestore::Defaults },
 #endif
 #ifdef ENABLE_RESTORE_CLEAR_PARAMETERS
-    { "#", SettingsRestore::Parameters },    { "gcode", SettingsRestore::Parameters },
+    { "#", SettingsRestore::Parameters }, { "gcode", SettingsRestore::Parameters },
 #endif
 #ifdef ENABLE_RESTORE_WIPE_ALL
-    { "*", SettingsRestore::All },           { "all", SettingsRestore::All },
+    { "*", SettingsRestore::All },        { "all", SettingsRestore::All },
 #endif
-    { "@", SettingsRestore::Wifi }, { "wifi", SettingsRestore::Wifi },
+    { "@", SettingsRestore::Wifi },       { "wifi", SettingsRestore::Wifi },
 };
 Error restore_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (!value) {
@@ -325,12 +329,42 @@ Error doJog(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESP
     return gc_execute_line(jogLine, out->client());
 }
 
-const char* errorString(Error errorNumber) {
-    auto it = ErrorCodes.find(errorNumber);
-    return it == ErrorCodes.end() ? NULL : it->second;
+const char* alarmString(ExecAlarm alarmNumber) {
+    auto it = AlarmNames.find(alarmNumber);
+    return it == AlarmNames.end() ? NULL : it->second;
 }
 
-Error listErrorCodes(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+Error listAlarms(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    if (value) {
+        char*   endptr      = NULL;
+        uint8_t alarmNumber = strtol(value, &endptr, 10);
+        if (*endptr) {
+            grbl_sendf(out->client(), "Malformed alarm number: %s\r\n", value);
+            return Error::InvalidValue;
+        }
+        const char* alarmName = alarmString(static_cast<ExecAlarm>(alarmNumber));
+        if (alarmName) {
+            grbl_sendf(out->client(), "%d: %s\r\n", alarmNumber, alarmName);
+            return Error::Ok;
+        } else {
+            grbl_sendf(out->client(), "Unknown alarm number: %d\r\n", alarmNumber);
+            return Error::InvalidValue;
+        }
+    }
+
+    for (auto it = AlarmNames.begin(); it != AlarmNames.end(); it++) {
+        grbl_sendf(out->client(), "%d: %s\r\n", it->first, it->second);
+    }
+    return Error::Ok;
+}
+
+
+const char* errorString(Error errorNumber) {
+    auto it = ErrorNames.find(errorNumber);
+    return it == ErrorNames.end() ? NULL : it->second;
+}
+
+Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (value) {
         char*   endptr      = NULL;
         uint8_t errorNumber = strtol(value, &endptr, 10);
@@ -348,7 +382,7 @@ Error listErrorCodes(const char* value, WebUI::AuthenticationLevel auth_level, W
         }
     }
 
-    for (auto it = ErrorCodes.begin(); it != ErrorCodes.end(); it++) {
+    for (auto it = ErrorNames.begin(); it != ErrorNames.end(); it++) {
         grbl_sendf(out->client(), "%d: %s\r\n", it->first, it->second);
     }
     return Error::Ok;
@@ -381,9 +415,10 @@ void make_grbl_commands() {
     new GrblCommand("+", "ExtendedSettings/List", report_extended_settings, notCycleOrHold);
     new GrblCommand("L", "GrblNames/List", list_grbl_names, notCycleOrHold);
     new GrblCommand("S", "Settings/List", list_settings, notCycleOrHold);
-    new GrblCommand("SC","Settings/ListChanged", list_changed_settings, notCycleOrHold);
+    new GrblCommand("SC", "Settings/ListChanged", list_changed_settings, notCycleOrHold);
     new GrblCommand("CMD", "Commands/List", list_commands, notCycleOrHold);
-    new GrblCommand("E", "ErrorCodes/List", listErrorCodes, anyState);
+    new GrblCommand("A", "Alarms/List", listAlarms, anyState);
+    new GrblCommand("E", "Errors/List", listErrors, anyState);
     new GrblCommand("G", "GCode/Modes", report_gcode, anyState);
     new GrblCommand("C", "GCode/Check", toggle_check_mode, anyState);
     new GrblCommand("X", "Alarm/Disable", disable_alarm_lock, anyState);

@@ -10,12 +10,12 @@ void settings_init();
 
 // Define settings restore bitflags.
 enum SettingsRestore {
-    Defaults = bit(0),
-    Parameters = bit(1),
+    Defaults     = bit(0),
+    Parameters   = bit(1),
     StartupLines = bit(2),
     // BuildInfo = bit(3), // Obsolete
     Wifi = bit(4),
-    All = 0xff,
+    All  = 0xff,
 };
 
 // Restore subsets of settings to default values
@@ -101,9 +101,9 @@ protected:
 
 public:
     static nvs_handle _handle;
-    static void     init();
-    static Setting* List;
-    Setting*        next() { return link; }
+    static void       init();
+    static Setting*   List;
+    Setting*          next() { return link; }
 
     Error check(char* s);
 
@@ -227,22 +227,25 @@ public:
 
 class Coordinates {
 private:
-    float _currentValue[MAX_N_AXIS];
+    float       _currentValue[MAX_N_AXIS];
     const char* _name;
+
 public:
     Coordinates(const char* name) : _name(name) {}
 
     const char* getName() { return _name; }
-    bool load();
-    void setDefault() {
-        float zeros[MAX_N_AXIS] = { 0.0, };
+    bool        load();
+    void        setDefault() {
+        float zeros[MAX_N_AXIS] = {
+            0.0,
+        };
         set(zeros);
     };
     // Copy the value to an array
     void get(float* value) { memcpy(value, _currentValue, sizeof(_currentValue)); }
     // Return a pointer to the array
     const float* get() { return _currentValue; }
-    void set(float *value);
+    void         set(float* value);
 };
 
 extern Coordinates* coords[CoordIndex::End];
