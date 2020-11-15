@@ -28,7 +28,7 @@
 #define I2S_OUT_DATA            GPIO_NUM_21
 
 
-#define TRINAMIC_RUN_MODE       Motors::TrinamicMode::StealthChop
+#define TRINAMIC_RUN_MODE       Motors::TrinamicMode::CoolStep
 #define TRINAMIC_HOMING_MODE    Motors::TrinamicMode::CoolStep
 
 // Motor Socket #1
@@ -81,18 +81,26 @@
 #define Y2_LIMIT_PIN                GPIO_NUM_35
 #define Z_LIMIT_PIN                 GPIO_NUM_34
 
+// Relay module as spindle on CNC I/O Module socket #2
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/Relay-Module
+#define SPINDLE_TYPE            SpindleType::RELAY // default, check actual $Spindle/Type Setting
+#define SPINDLE_OUTPUT_PIN      GPIO_NUM_2 // relay as spindle on module socket #2
+
 // Socket #3
-#define PROBE_PIN                   GPIO_NUM_26
-#define PROBE2_PIN                  GPIO_NUM_4
-#define MACRO_BUTTON_0_PIN          GPIO_NUM_39  // Manual ATC Switch
+#define PROBE_PIN                   GPIO_NUM_26  // Mod3.1
+//#define PROBE2_PIN                  GPIO_NUM_4
+#define MACRO_BUTTON_0_PIN          GPIO_NUM_16  // Mod 3.3 Manual ATC Switch
+
+#ifdef INVERT_CONTROL_PIN_MASK
+    #undef INVERT_CONTROL_PIN_MASK
+#endif
+#define INVERT_CONTROL_PIN_MASK B11111111 
 
 // 5V output CNC module in socket #4
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
-#define SPINDLE_TYPE                SpindleType::PWM
-#define SPINDLE_OUTPUT_PIN          GPIO_NUM_12
-#define ATC_RELEASE_PIN             GPIO_NUM_13 // optional 
-#define COOLANT_MIST_PIN            GPIO_NUM_15 // optional
-#define COOLANT_FLOOD_PIN           GPIO_NUM_14
+#define ATC_RELEASE_PIN             GPIO_NUM_12
+#define COOLANT_MIST_PIN            GPIO_NUM_13
+//#define SPINDLE_OUTPUT_PIN          GPIO_NUM_14 // relay as spindle on module socket #2
 
 #define DEFAULT_SPINDLE_DELAY_SPINUP    5.0
 #define DEFAULT_SPINDLE_DELAY_SPINDOWN  5.0
