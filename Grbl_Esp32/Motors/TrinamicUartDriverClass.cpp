@@ -85,7 +85,7 @@ void TrinamicUartDriver::hw_serial_init() {
     }
 }
 void TrinamicUartDriver::sw_serial_init() {
-#if SW_SERIAL_MOTORS //TODO: this ifdef is added to avoid error because ESP32 is not define as SW CAPABLE PLATFORM. Alternatively it can be defined as such.
+#ifdef SW_SERIAL_MOTORS //TODO: this ifdef is added to avoid error because ESP32 is not define as SW CAPABLE PLATFORM. Alternatively it can be defined as such.
     if (_driver_part_number == 2208)
         // TMC 2208 does not use address, this field is 0, differently from 2209
         tmcstepper = new TMC2208Stepper(SW_RX_pin, SW_TX_pin, _r_sense);
@@ -96,7 +96,6 @@ void TrinamicUartDriver::sw_serial_init() {
         grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Trinamic Uart unsupported p/n:%d", _driver_part_number);
         return;
     }
-    // grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "New SW SERIAL created."); 
     
     // Set PDN DISABLE to ensure UART pin is available to use.
     tmcstepper->beginSerial(57600);
@@ -106,6 +105,7 @@ void TrinamicUartDriver::sw_serial_init() {
     tmcstepper->senddelay(15);
 #endif
 }
+
 
 void TrinamicUartDriver :: init() {
     config_message();
