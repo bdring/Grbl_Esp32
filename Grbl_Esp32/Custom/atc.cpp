@@ -119,7 +119,8 @@ bool user_tool_change(uint8_t new_tool) {
     // spindle could have been turned off in gcode before M6
     spindle_spin_delay = esp_timer_get_time() + (spindle_delay_spindown->get() * 1000.0);  // When will spindle spindown be done.
 
-    return_tool(current_tool);
+    return_tool(current_tool);  // does nothing if we have no tool
+    current_tool = 0;
 
     if (new_tool == 0) {  // if changing to tool 0...we are done.
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC Changed to tool 0");
@@ -139,10 +140,14 @@ bool user_tool_change(uint8_t new_tool) {
     set_ATC_open(false);                                              // Close ATC
     gc_exec_linef(true, "G4P%0.2f", TOOL_GRAB_TIME);                  // wait for grab to complete and settle
     gc_exec_linef(false, "G53G0Z%0.3f", top_of_z);                    // Go to top of Z travel
-    // move in front of tool
-    gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[new_tool].mpos[X_AXIS], tool[new_tool].mpos[Y_AXIS] - RACK_SAFE_DIST);
 
     current_tool = new_tool;
+
+    // if current tool = 1 it is safe to go straight the the ETS
+    if (current_tool != 1) {
+        // move in front of tool
+        gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[new_tool].mpos[X_AXIS], tool[new_tool].mpos[Y_AXIS] - RACK_SAFE_DIST);
+    }
 
     if (!atc_ETS()) {  // check the length of the tool
         return false;
@@ -201,9 +206,13 @@ void user_defined_macro(uint8_t index) {
 
 void go_above_tool(uint8_t tool_num) {
     gc_exec_linef(false, "G53G0Z%0.3f", top_of_z);  // Go to top of Z travel
-    // move in front of tool
-    gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[tool_num].mpos[X_AXIS], tool[tool_num].mpos[Y_AXIS] - RACK_SAFE_DIST);
-    gc_exec_linef(true, "G53G0Y%0.3f", tool[tool_num].mpos[Y_AXIS]);  // Move over tool
+
+    if (current_tool != 0) {
+        // move in front of tool
+        gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[tool_num].mpos[X_AXIS], tool[tool_num].mpos[Y_AXIS] - RACK_SAFE_DIST);
+    }
+
+    gc_exec_linef(true, "G53G0X%0.3fY%0.3f", tool[tool_num].mpos[X_AXIS], tool[tool_num].mpos[Y_AXIS]);  // Move over tool
 }
 
 void return_tool(uint8_t tool_num) {
@@ -216,14 +225,21 @@ void return_tool(uint8_t tool_num) {
     gc_exec_linef(false, "G4P0.5");                                   // wait
     gc_exec_linef(false, "G53G0Z%0.3f", top_of_z);                    // Go to top of Z travel
     set_ATC_open(false);                                              // close ATC
-    gc_exec_linef(true, "G53G0X%0.3fY%0.3f", tool[tool_num].mpos[X_AXIS], tool[tool_num].mpos[Y_AXIS] - RACK_SAFE_DIST);  // move forward
+
+    //gc_exec_linef(true, "G53G0X%0.3fY%0.3f", tool[tool_num].mpos[X_AXIS], tool[tool_num].mpos[Y_AXIS] - RACK_SAFE_DIST);  // move forward
 }
 
 bool atc_ETS() {
     float probe_to;  // Calculated work position
     float probe_position[MAX_N_AXIS];
 
-    go_above_tool(0);
+    if (current_tool != 1) {
+        // move in front of tool
+        gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[current_tool].mpos[X_AXIS], tool[current_tool].mpos[Y_AXIS] - RACK_SAFE_DIST);
+        gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[ETS_INDEX].mpos[X_AXIS], tool[ETS_INDEX].mpos[Y_AXIS] - RACK_SAFE_DIST);
+    }
+
+    gc_exec_linef(true, "G53G0X%0.3fY%0.3f", tool[ETS_INDEX].mpos[X_AXIS], tool[ETS_INDEX].mpos[Y_AXIS]);  // Move over tool
 
     float wco = gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS] + gc_state.tool_length_offset;
     probe_to  = tool[ETS_INDEX].mpos[Z_AXIS] - wco;
