@@ -32,10 +32,16 @@
 */
 
 const int   TOOL_COUNT     = 4;
-const int   ETS_INDEX      = 0;      // electronic tool setter index
-const float TOOL_GRAB_TIME = 0.25;   // seconds. How long it takes to grab a tool
-const float RACK_SAFE_DIST = 25.0;   // how far in front of rack is safe to move in X
-#define ATC_MANUAL_CHANGE_TIME 2000  // milliseconds ATC is open
+const int   ETS_INDEX      = 0;     // electronic tool setter index
+const float TOOL_GRAB_TIME = 0.25;  // seconds. How long it takes to grab a tool
+const float RACK_SAFE_DIST = 25.0;  // how far in front of rack is safe to move in X
+#ifndef ATC_MANUAL_CHANGE_TIME
+#    define ATC_MANUAL_CHANGE_TIME 2000  // milliseconds ATC is open
+#endif
+
+#ifndef ATC_EMPTY_SAFE_HEIGHT
+#    define ATC_EMPTY_SAFE_HEIGHT -50.0  // safe X travel over tools while empty
+#endif
 
 typedef struct {
     float mpos[MAX_N_AXIS];    // the pickup location in machine coords
@@ -65,23 +71,23 @@ void user_machine_init() {
     // the tool setter
     tool[ETS_INDEX].mpos[X_AXIS] = 108;
     tool[ETS_INDEX].mpos[Y_AXIS] = 292.0;
-    tool[ETS_INDEX].mpos[Z_AXIS] = -20.0;  // Mpos before collet face triggers probe
+    tool[ETS_INDEX].mpos[Z_AXIS] = -60.0;  // Mpos before collet face triggers probe
 
-    tool[1].mpos[X_AXIS] = 150.0;
-    tool[1].mpos[Y_AXIS] = 292.0;
-    tool[1].mpos[Z_AXIS] = -20.0;
+    tool[1].mpos[X_AXIS] = 151.0;
+    tool[1].mpos[Y_AXIS] = 291.0;
+    tool[1].mpos[Z_AXIS] = -86.0;
 
-    tool[2].mpos[X_AXIS] = 185.0;
-    tool[2].mpos[Y_AXIS] = 292.0;
-    tool[2].mpos[Z_AXIS] = -20.0;
+    tool[2].mpos[X_AXIS] = 186.0;
+    tool[2].mpos[Y_AXIS] = 291.0;
+    tool[2].mpos[Z_AXIS] = -86.0;
 
-    tool[3].mpos[X_AXIS] = 220.0;
+    tool[3].mpos[X_AXIS] = 221.0;
     tool[3].mpos[Y_AXIS] = 292.0;
-    tool[3].mpos[Z_AXIS] = -20.0;
+    tool[3].mpos[Z_AXIS] = -86.0;
 
-    tool[4].mpos[X_AXIS] = 255.0;
-    tool[4].mpos[Y_AXIS] = 292.0;
-    tool[4].mpos[Z_AXIS] = -20.0;
+    tool[4].mpos[X_AXIS] = 256.0;
+    tool[4].mpos[Y_AXIS] = 291.0;
+    tool[4].mpos[Z_AXIS] = -86.0;
 
     top_of_z = limitsMaxPosition(Z_AXIS) - homing_pulloff->get();
 }
@@ -146,7 +152,7 @@ bool user_tool_change(uint8_t new_tool) {
     // if current tool = 1 it is safe to go straight the the ETS
     if (current_tool != 1) {
         // move in front of tool
-        gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[new_tool].mpos[X_AXIS], tool[new_tool].mpos[Y_AXIS] - RACK_SAFE_DIST);
+        //gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[new_tool].mpos[X_AXIS], tool[new_tool].mpos[Y_AXIS] - RACK_SAFE_DIST);
     }
 
     if (!atc_ETS()) {  // check the length of the tool
@@ -159,7 +165,11 @@ bool user_tool_change(uint8_t new_tool) {
         spindle_spin_delay = esp_timer_get_time() + (spindle_delay_spinup->get() * 1000.0);  // When will spindle spindown be done
     }
 
-    gc_exec_linef(false, "G53G0X%0.3fY%0.3fZ%0.3f", saved_mpos[X_AXIS], saved_mpos[Y_AXIS], saved_mpos[Z_AXIS]);  // return to saved mpos
+    // return to saved mpos in XY
+    gc_exec_linef(false, "G53G0X%0.3fY%0.3fZ%0.3f", saved_mpos[X_AXIS], saved_mpos[Y_AXIS], top_of_z);
+
+    // return to saved mpos in Z
+    gc_exec_linef(false, "G53G0X%0.3fY%0.3fZ%0.3f", saved_mpos[X_AXIS], saved_mpos[Y_AXIS], saved_mpos[Z_AXIS] + gc_state.tool_length_offset);
 
     // was was_incremental on? If so, return to that state
     if (was_incremental) {
@@ -202,7 +212,7 @@ void user_defined_macro(uint8_t index) {
     }
 }
 
-// ============= Local functions ==================
+// ============= Local functions ==================$H
 
 void go_above_tool(uint8_t tool_num) {
     gc_exec_linef(false, "G53G0Z%0.3f", top_of_z);  // Go to top of Z travel
@@ -222,8 +232,8 @@ void return_tool(uint8_t tool_num) {
     go_above_tool(tool_num);
     gc_exec_linef(true, "G53G0Z%0.3f", tool[tool_num].mpos[Z_AXIS]);  // drop down to tool
     set_ATC_open(true);                                               // open ATC
-    gc_exec_linef(false, "G4P0.5");                                   // wait
-    gc_exec_linef(false, "G53G0Z%0.3f", top_of_z);                    // Go to top of Z travel
+    //gc_exec_linef(false, "G4P0.5");                                   // wait
+    gc_exec_linef(true, "G53G0Z%0.3f", top_of_z);                     // Go to top of Z travel
     set_ATC_open(false);                                              // close ATC
 
     //gc_exec_linef(true, "G53G0X%0.3fY%0.3f", tool[tool_num].mpos[X_AXIS], tool[tool_num].mpos[Y_AXIS] - RACK_SAFE_DIST);  // move forward
@@ -233,13 +243,24 @@ bool atc_ETS() {
     float probe_to;  // Calculated work position
     float probe_position[MAX_N_AXIS];
 
-    if (current_tool != 1) {
-        // move in front of tool
-        gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[current_tool].mpos[X_AXIS], tool[current_tool].mpos[Y_AXIS] - RACK_SAFE_DIST);
-        gc_exec_linef(false, "G53G0X%0.3fY%0.3f", tool[ETS_INDEX].mpos[X_AXIS], tool[ETS_INDEX].mpos[Y_AXIS] - RACK_SAFE_DIST);
-    }
+    if (current_tool == 1) {
+        // we can go straight to the ATC
+        gc_exec_linef(true, "G53G0X%0.3fY%0.3f", tool[ETS_INDEX].mpos[X_AXIS], tool[ETS_INDEX].mpos[Y_AXIS]);  // Move over tool
+    } else {
+        gc_exec_linef(false, "G91");
+        // Arc out of current tool
+        gc_exec_linef(false, "G2 X-%0.3f Y-%0.3f I-%0.3f F4000", RACK_SAFE_DIST, RACK_SAFE_DIST, RACK_SAFE_DIST);
+        
+        // Move it to arc start
+        gc_exec_linef(
+            false, "G53G0X%0.3fY%0.3f", tool[ETS_INDEX].mpos[X_AXIS] + RACK_SAFE_DIST, tool[ETS_INDEX].mpos[Y_AXIS] - RACK_SAFE_DIST);
 
-    gc_exec_linef(true, "G53G0X%0.3fY%0.3f", tool[ETS_INDEX].mpos[X_AXIS], tool[ETS_INDEX].mpos[Y_AXIS]);  // Move over tool
+        // arc in
+        gc_exec_linef(false, "G2 X-%0.3f Y%0.3f J%0.3f F4000", RACK_SAFE_DIST, RACK_SAFE_DIST, RACK_SAFE_DIST);
+        gc_exec_linef(false, "G90");
+        // Move over tool
+        gc_exec_linef(true, "G53G0X%0.3fY%0.3f", tool[ETS_INDEX].mpos[X_AXIS], tool[ETS_INDEX].mpos[Y_AXIS]);  
+    }
 
     float wco = gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS] + gc_state.tool_length_offset;
     probe_to  = tool[ETS_INDEX].mpos[Z_AXIS] - wco;
@@ -331,7 +352,7 @@ void gc_exec_linef(bool sync_after, const char* format, ...) {
     len = vsnprintf(temp, len + 1, format, arg);
 
     gc_execute_line(temp, CLIENT_INPUT);
-    //grbl_sendf(CLIENT_SERIAL, "[ATC GCode:%s]\r\n", temp);
+    grbl_sendf(CLIENT_SERIAL, "[ATC GCode:%s]\r\n", temp);
     va_end(arg);
     if (temp != loc_buf) {
         delete[] temp;

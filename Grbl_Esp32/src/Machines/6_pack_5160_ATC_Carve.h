@@ -94,34 +94,44 @@
 #ifdef INVERT_CONTROL_PIN_MASK
     #undef INVERT_CONTROL_PIN_MASK
 #endif
-#define INVERT_CONTROL_PIN_MASK B11111111 
+#define INVERT_CONTROL_PIN_MASK B0
 
 // 5V output CNC module in socket #4
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
-#define ATC_RELEASE_PIN             GPIO_NUM_12
+#define ATC_RELEASE_PIN             GPIO_NUM_14
 #define COOLANT_MIST_PIN            GPIO_NUM_13
 //#define SPINDLE_OUTPUT_PIN          GPIO_NUM_14 // relay as spindle on module socket #2
 
 #define DEFAULT_SPINDLE_DELAY_SPINUP    5.0
 #define DEFAULT_SPINDLE_DELAY_SPINDOWN  5.0
 
+// 
+
+#define ATC_MANUAL_CHANGE_TIME 500  // milliseconds ATC is open
+
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      160
 #define DEFAULT_Y_STEPS_PER_MM      160
-#define DEFAULT_Z_STEPS_PER_MM      377.952
+#define DEFAULT_Z_STEPS_PER_MM      755.904
 
 #define DEFAULT_X_MAX_RATE          2000
 #define DEFAULT_Y_MAX_RATE          2000
 #define DEFAULT_Z_MAX_RATE          2000
 
 #define DEFAULT_X_HOMING_MPOS       0
-#define DEFAULT_X_MAX_TRAVEL        140
+#define DEFAULT_X_MAX_TRAVEL        400
+#define DEFAULT_X_CURRENT           1.0
+#define DEFAULT_X_HOLD_CURRENT      0.25
 
 #define DEFAULT_Y_HOMING_MPOS       0
-#define DEFAULT_Y_MAX_TRAVEL        140
+#define DEFAULT_Y_MAX_TRAVEL        300
+#define DEFAULT_Y_CURRENT           1.0
+#define DEFAULT_Y_HOLD_CURRENT      0.25
 
 #define DEFAULT_Z_HOMING_MPOS       0
-#define DEFAULT_Z_MAX_TRAVEL        100
+#define DEFAULT_Z_MAX_TRAVEL        200
+#define DEFAULT_Z_CURRENT           1.0
+#define DEFAULT_Z_HOLD_CURRENT      0.25
 
 #define DEFAULT_X_MICROSTEPS        32
 #define DEFAULT_Y_MICROSTEPS        32
@@ -130,3 +140,11 @@
 #define DEFAULT_HOMING_DIR_MASK     (bit(X_AXIS) | bit(Y_AXIS))
 
 #define  DEFAULT_HOMING_ENABLE 1
+
+#define DEFAULT_STEPPER_IDLE_LOCK_TIME  255
+
+#define DEFAULT_HOMING_CYCLE_0 bit(Z_AXIS)
+#define DEFAULT_HOMING_CYCLE_1 bit(X_AXIS)
+#define DEFAULT_HOMING_CYCLE_2 bit(Y_AXIS)
+
+#define DEFAULT_HOMING_SEEK_RATE  3500
