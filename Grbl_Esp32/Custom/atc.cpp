@@ -94,7 +94,7 @@ void user_machine_init() {
 
 bool user_tool_change(uint8_t new_tool) {
     bool     spindle_was_on  = false;
-    bool     was_incremental = false;      // started in G91 mode
+    bool     was_incremental_mode = false;      // started in G91 mode
     uint64_t spindle_spin_delay;           // used to make sure spindle has fully spun down and up.
     float    saved_mpos[MAX_N_AXIS] = {};  // the position before the tool change
 
@@ -111,10 +111,10 @@ bool user_tool_change(uint8_t new_tool) {
     protocol_buffer_synchronize();                                 // wait for all previous moves to complete
     system_convert_array_steps_to_mpos(saved_mpos, sys_position);  // save current position so we can return to it
 
-    // see if we need to switch out of incremental mode
+    // see if we need to switch out of incremental (G91) mode
     if (gc_state.modal.distance == Distance::Incremental) {
         gc_exec_linef(false, "G90");
-        was_incremental = true;
+        was_incremental_mode = true;
     }
 
     // is spindle on? Turn it off and determine when the spin down should be done.
@@ -128,6 +128,7 @@ bool user_tool_change(uint8_t new_tool) {
         if (current_time < spindle_spin_delay) {
             vTaskDelay(spindle_spin_delay - current_time);
         }
+        
     }
 
     // ============= Start of tool change ====================
@@ -178,7 +179,7 @@ bool user_tool_change(uint8_t new_tool) {
             false, "G53G0X%0.3fY%0.3fZ%0.3f", saved_mpos[X_AXIS], saved_mpos[Y_AXIS], saved_mpos[Z_AXIS] + gc_state.tool_length_offset);
     }
     // was was_incremental on? If so, return to that state
-    if (was_incremental) {
+    if (was_incremental_mode) {
         gc_exec_linef(false, "G91");
     }
 

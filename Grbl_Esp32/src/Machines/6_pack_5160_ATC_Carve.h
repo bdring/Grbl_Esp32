@@ -102,8 +102,8 @@
 #define COOLANT_MIST_PIN            GPIO_NUM_13
 //#define SPINDLE_OUTPUT_PIN          GPIO_NUM_14 // relay as spindle on module socket #2
 
-#define DEFAULT_SPINDLE_DELAY_SPINUP    5.0
-#define DEFAULT_SPINDLE_DELAY_SPINDOWN  5.0
+#define DEFAULT_SPINDLE_DELAY_SPINUP    2.25
+#define DEFAULT_SPINDLE_DELAY_SPINDOWN  6.0
 
 // 
 
