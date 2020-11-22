@@ -226,7 +226,7 @@ namespace Motors {
             return;
         }
 
-        TrinamicUartMode newMode = isHoming ? TRINAMIC_HOMING_MODE : TRINAMIC_RUN_MODE;
+        TrinamicUartMode newMode = isHoming ? TRINAMIC_UART_HOMING_MODE : TRINAMIC_UART_RUN_MODE;
 
         if (newMode == _mode) {
             return;
@@ -339,12 +339,12 @@ namespace Motors {
 
 #ifdef USE_TRINAMIC_ENABLE
         if (_disabled) {
-            tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
+            tmcstepper->toff(TRINAMIC_UART_TOFF_DISABLE);
         } else {
-            if (_mode == TrinamicMode::StealthChop) {
-                tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
+            if (_mode == TrinamicUartMode::StealthChop) {
+                tmcstepper->toff(TRINAMIC_UART_TOFF_STEALTHCHOP);
             } else {
-                tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
+                tmcstepper->toff(TRINAMIC_UART_TOFF_COOLSTEP);
             }
         }
 #endif

@@ -38,24 +38,24 @@ const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) use
 
 // ==== defaults OK to define them in your machine definition ====
 
-#ifndef TRINAMIC_RUN_MODE
-#    define TRINAMIC_RUN_MODE TrinamicUartMode ::StealthChop
+#ifndef TRINAMIC_UART_RUN_MODE
+#    define TRINAMIC_UART_RUN_MODE TrinamicUartMode ::StealthChop
 #endif
 
-#ifndef TRINAMIC_HOMING_MODE
-#    define TRINAMIC_HOMING_MODE TRINAMIC_RUN_MODE
+#ifndef TRINAMIC_UART_HOMING_MODE
+#    define TRINAMIC_UART_HOMING_MODE TRINAMIC_UART_RUN_MODE
 #endif
 
-#ifndef TRINAMIC_TOFF_DISABLE
-#    define TRINAMIC_TOFF_DISABLE 0
+#ifndef TRINAMIC_UART_TOFF_DISABLE
+#    define TRINAMIC_UART_TOFF_DISABLE 0
 #endif
 
-#ifndef TRINAMIC_TOFF_STEALTHCHOP
-#    define TRINAMIC_TOFF_STEALTHCHOP 5
+#ifndef TRINAMIC_UART_TOFF_STEALTHCHOP
+#    define TRINAMIC_UART_TOFF_STEALTHCHOP 5
 #endif
 
-#ifndef TRINAMIC_TOFF_COOLSTEP
-#    define TRINAMIC_TOFF_COOLSTEP 3
+#ifndef TRINAMIC_UART_TOFF_COOLSTEP
+#    define TRINAMIC_UART_TOFF_COOLSTEP 3
 #endif
 
 namespace Motors {
