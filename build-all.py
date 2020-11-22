@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 # Note: If you experience random errors running this script within
 # VSCode, try running it from a regular terminal window.  Some VSCode
@@ -22,7 +22,7 @@ cmd = ['platformio','run']
 verbose = '-v' in sys.argv
 
 numErrors = 0
-for name in os.listdir('Grbl_Esp32/Machines'):
+for name in os.listdir('Grbl_Esp32/src/Machines'):
     exitCode = buildMachine(name, verbose=verbose)
     if exitCode != 0:
         numErrors += 1
