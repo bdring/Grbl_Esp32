@@ -208,11 +208,11 @@ namespace WebUI {
                 if (current > (TELNETRXBUFFERSIZE - 1)) {
                     current = 0;
                 }
-                if (char(data[i]) != '\r') {
-                    _RXbuffer[current] = data[i];
-                    current++;
-                    data_processed++;
-                }
+
+                _RXbuffer[current] = data[i];
+                current++;
+                data_processed++;
+
                 COMMANDS::wait(0);
                 //vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
             }
