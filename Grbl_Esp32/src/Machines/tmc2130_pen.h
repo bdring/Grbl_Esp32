@@ -38,12 +38,9 @@
     #define X_LIMIT_PIN     GPIO_NUM_32
 #endif
 
-<<<<<<< HEAD:Grbl_Esp32/Machines/tmc2130_pen.h
-=======
 #define TRINAMIC_RUN_MODE           TrinamicMode :: CoolStep
 #define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
 
->>>>>>> upstream/main:Grbl_Esp32/src/Machines/tmc2130_pen.h
 #define X_STEP_PIN              GPIO_NUM_12
 #define X_DIRECTION_PIN         GPIO_NUM_26
 #define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
@@ -61,28 +58,11 @@
 
 
 // Define one of these 2 options for spindle or servo
-<<<<<<< HEAD:Grbl_Esp32/Machines/tmc2130_pen.h
-#define USE_SERVO_AXES
-//#define USE_SPINDLE
-
-#ifdef USE_SERVO_AXES
-    #define SPINDLE_TYPE            SPINDLE_TYPE_NONE
-
-    #define Z_SERVO_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
-    #define Z_SERVO_RANGE_MIN               0.0
-    #define Z_SERVO_RANGE_MAX               5.0
-#else
-
-    #define SPINDLE_TYPE        SPINDLE_TYPE_PWM
-    #define SPINDLE_OUTPUT_PIN     GPIO_NUM_27
-#endif
-=======
 #define Z_SERVO_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
 #define DEFAULT_Z_MAX_TRAVEL          5.0   // Range of travel is 5mm
 #define DEFAULT_Z_HOMING_MPOS         5.0   // MPos will be set to 5mm after homing
 #define Z_SERVO_CAL_MIN               1.0   // calibration factor for the minimum PWM duty
 #define Z_SERVO_CAL_MAX               1.0   // calibration factor for the maximum PWM duty
->>>>>>> upstream/main:Grbl_Esp32/src/Machines/tmc2130_pen.h
 
 // #define X_LIMIT_PIN          See version section at beginning of file
 #define Y_LIMIT_PIN             GPIO_NUM_4

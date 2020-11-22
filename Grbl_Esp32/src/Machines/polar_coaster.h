@@ -49,11 +49,6 @@
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_17
 
 #define Z_SERVO_PIN             GPIO_NUM_16
-<<<<<<< HEAD:Grbl_Esp32/Machines/polar_coaster.h
-#define Z_SERVO_RANGE_MIN       0.0
-#define Z_SERVO_RANGE_MAX       5.0
-=======
->>>>>>> upstream/main:Grbl_Esp32/src/Machines/polar_coaster.h
 
 #define X_LIMIT_PIN             GPIO_NUM_4
 

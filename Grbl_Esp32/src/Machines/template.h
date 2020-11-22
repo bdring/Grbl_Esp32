@@ -129,18 +129,9 @@
 
 // === Servos
 // To use a servo motor on an axis, do not define step and direction
-<<<<<<< HEAD:Grbl_Esp32/Machines/template.h
-// pins for that axis, but instead include a block that has three 
-// #defines, like this.
-
-// #define SERVO_Z_PIN             GPIO_NUM_22
-// #define SERVO_Z_RANGE_MIN       0.0
-// #define SERVO_Z_RANGE_MAX       5.0
-=======
 // pins for that axis, but instead include a block like this:
 
 // #define SERVO_Z_PIN             GPIO_NUM_22
->>>>>>> upstream/main:Grbl_Esp32/src/Machines/template.h
 
 // === Homing cycles
 // Set them using $Homing/Cycle0= optionally up to $Homing/Cycle5=
