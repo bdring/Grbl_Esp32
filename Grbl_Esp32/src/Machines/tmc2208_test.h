@@ -54,7 +54,7 @@
 #define USE_SPINDLE
 
 #ifdef USE_SERVO_AXES
-    #define SPINDLE_TYPE            SPINDLE_TYPE_NONE
+    #define SPINDLE_TYPE            SpindleType::NONE
 
     #define SERVO_Z_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
     #define SERVO_Z_RANGE_MIN               0.0
@@ -64,7 +64,7 @@
     #define SERVO_Z_MPOS                    false           // will not use mpos, uses work coordinates
 #else
 
-    #define SPINDLE_TYPE        SPINDLE_TYPE_PWM
+    #define SPINDLE_TYPE        SpindleType::PWM
     #define SPINDLE_OUTPUT_PIN     GPIO_NUM_27
 #endif
 

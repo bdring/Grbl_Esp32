@@ -58,7 +58,7 @@
 //#define USE_SERVO_AXES
 #define USE_SPINDLE
 
-#define SPINDLE_TYPE            SPINDLE_TYPE_PWM
+#define SPINDLE_TYPE            SpindleType::PWM
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_2
 
 // #define X_LIMIT_PIN 
