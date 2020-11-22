@@ -363,9 +363,6 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     // Sync gcode parser and planner positions to homed position.
     gc_sync_position();
     plan_sync_position();
-
-    motors_set_homing_mode(false); // leaving homing mode
-
 #ifdef USE_KINEMATICS
     // This give kinematics a chance to do something after normal homing
     kinematics_post_homing();
