@@ -96,10 +96,13 @@
 #endif
 #define INVERT_CONTROL_PIN_MASK B0
 
-// 5V output CNC module in socket #4
-// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
-#define ATC_RELEASE_PIN             GPIO_NUM_14
-#define COOLANT_MIST_PIN            GPIO_NUM_13
+// Quad MOSFET module on socket #4
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
+#define ATC_RELEASE_PIN       GPIO_NUM_14
+#define ATC_DUST_OFF          GPIO_NUM_13
+#define ETS_DUST_OFF          GPIO_NUM_15
+//     GPIO_NUM_12
+
 //#define SPINDLE_OUTPUT_PIN          GPIO_NUM_14 // relay as spindle on module socket #2
 
 #define DEFAULT_SPINDLE_DELAY_SPINUP    2.25

@@ -62,11 +62,13 @@ bool atc_ETS();
 bool set_ATC_open(bool open);
 void gc_exec_linef(bool sync_after, const char* format, ...);
 bool atc_manual_change();
+bool atc_ETS_dustoff();
 
 void user_machine_init() {
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC Machine Init");
 
     pinMode(ATC_RELEASE_PIN, OUTPUT);
+    pinMode(ETS_DUST_OFF, OUTPUT);
 
     // the tool setter
     tool[ETS_INDEX].mpos[X_AXIS] = 108;
@@ -93,10 +95,10 @@ void user_machine_init() {
 }
 
 bool user_tool_change(uint8_t new_tool) {
-    bool     spindle_was_on  = false;
-    bool     was_incremental_mode = false;      // started in G91 mode
-    uint64_t spindle_spin_delay;           // used to make sure spindle has fully spun down and up.
-    float    saved_mpos[MAX_N_AXIS] = {};  // the position before the tool change
+    bool     spindle_was_on       = false;
+    bool     was_incremental_mode = false;  // started in G91 mode
+    uint64_t spindle_spin_delay;            // used to make sure spindle has fully spun down and up.
+    float    saved_mpos[MAX_N_AXIS] = {};   // the position before the tool change
 
     if (new_tool == current_tool) {  // if no change, we are done
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC existing tool requested:%d", new_tool);
@@ -128,7 +130,6 @@ bool user_tool_change(uint8_t new_tool) {
         if (current_time < spindle_spin_delay) {
             vTaskDelay(spindle_spin_delay - current_time);
         }
-        
     }
 
     // ============= Start of tool change ====================
@@ -269,6 +270,8 @@ bool atc_ETS() {
         gc_exec_linef(true, "G53G0X%0.3fY%0.3f", tool[ETS_INDEX].mpos[X_AXIS], tool[ETS_INDEX].mpos[Y_AXIS]);
     }
 
+    atc_ETS_dustoff();
+
     float wco = gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS] + gc_state.tool_length_offset;
     probe_to  = tool[ETS_INDEX].mpos[Z_AXIS] - wco;
 
@@ -279,7 +282,11 @@ bool atc_ETS() {
 
     // Was probe successful?
     if (sys.state == State::Alarm) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC Missing Tool?");
+        if (sys_rt_exec_alarm == ExecAlarm::ProbeFailInitial) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC Probe Switch Error");
+        } else {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC Missing Tool?");
+        }
         return false;  // fail
     }
 
@@ -308,6 +315,13 @@ bool set_ATC_open(bool open) {
     }
     digitalWrite(ATC_RELEASE_PIN, open);
     return true;
+}
+
+// give a squirt of air to clear top of Tool Setter
+bool atc_ETS_dustoff() {
+    digitalWrite(ETS_DUST_OFF, HIGH);
+    gc_exec_linef(true, "G4P%0.2f", 0.250);
+    digitalWrite(ETS_DUST_OFF, LOW);
 }
 
 bool atc_manual_change() {
