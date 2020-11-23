@@ -61,7 +61,7 @@ void settings_restore(uint8_t restore_flag) {
             coords[idx]->setDefault();
         }
     }
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Postion offsets reset done");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position offsets reset done");
 }
 
 // Get settings values from non volatile storage into memory
