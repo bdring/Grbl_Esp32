@@ -42,7 +42,7 @@ void settings_restore(uint8_t restore_flag) {
 #    endif
     }
 #endif
-    if (restore_flag & SettingsRestore::Defaults) {
+    if (restore_flag & SettingsRestore::Defaults) {        
         bool restore_startup = restore_flag & SettingsRestore::StartupLines;
         for (Setting* s = Setting::List; s; s = s->next()) {
             if (!s->getDescription()) {
@@ -54,12 +54,14 @@ void settings_restore(uint8_t restore_flag) {
                 }
             }
         }
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Settings reset done");
     }
     if (restore_flag & SettingsRestore::Parameters) {
         for (auto idx = CoordIndex::Begin; idx < CoordIndex::End; ++idx) {
             coords[idx]->setDefault();
         }
     }
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Postion offsets reset done");
 }
 
 // Get settings values from non volatile storage into memory
