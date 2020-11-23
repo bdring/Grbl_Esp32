@@ -42,7 +42,7 @@ void settings_restore(uint8_t restore_flag) {
 #    endif
     }
 #endif
-    if (restore_flag & SettingsRestore::Defaults) {        
+    if (restore_flag & SettingsRestore::Defaults) {
         bool restore_startup = restore_flag & SettingsRestore::StartupLines;
         for (Setting* s = Setting::List; s; s = s->next()) {
             if (!s->getDescription()) {
@@ -359,7 +359,6 @@ Error listAlarms(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
     }
     return Error::Ok;
 }
-
 
 const char* errorString(Error errorNumber) {
     auto it = ErrorNames.find(errorNumber);
