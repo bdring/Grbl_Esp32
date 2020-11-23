@@ -155,8 +155,6 @@ namespace Spindles {
             return;  // Block during abort.
         }
 
-        _current_state = state;
-
         if (_current_state == SpindleState::Disable) {  // Halt or set spindle direction and rpm.
             sys.spindle_speed = 0;
             stop();
