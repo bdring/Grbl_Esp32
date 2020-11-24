@@ -47,7 +47,7 @@ namespace Spindles {
 #ifdef LASER_OUTPUT_PIN
         _output_pin = LASER_OUTPUT_PIN;
 #else
-        _output_pin       = UNDEFINED_PIN;
+        _output_pin = UNDEFINED_PIN;
 #endif
 
         _invert_pwm = spindle_output_invert->get();
@@ -55,13 +55,13 @@ namespace Spindles {
 #ifdef LASER_ENABLE_PIN
         _enable_pin = LASER_ENABLE_PIN;
 #else
-        _enable_pin       = UNDEFINED_PIN;
+        _enable_pin = UNDEFINED_PIN;
 #endif
 
         _off_with_zero_speed = spindle_enbl_off_with_zero_speed->get();
 
-        _direction_pin    = UNDEFINED_PIN;
-        is_reversable = false;
+        _direction_pin = UNDEFINED_PIN;
+        is_reversable  = false;
 
         _pwm_freq      = spindle_pwm_freq->get();
         _pwm_precision = calc_pwm_precision(_pwm_freq);  // detewrmine the best precision
@@ -76,17 +76,9 @@ namespace Spindles {
         _pwm_min_value = (_pwm_period * spindle_pwm_min_value->get() / 100.0);
         _pwm_max_value = (_pwm_period * spindle_pwm_max_value->get() / 100.0);
 
-#ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
-        _min_rpm          = RPM_MIN;
-        _max_rpm          = RPM_MAX;
-        _piecewide_linear = true;
-#else
         _min_rpm          = rpm_min->get();
         _max_rpm          = rpm_max->get();
         _piecewide_linear = false;
-#endif
-        // The pwm_gradient is the pwm duty cycle units per rpm
-        // _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
 
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
     }

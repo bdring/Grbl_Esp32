@@ -118,7 +118,7 @@ Socket #5
 #define SPINDLE_OUTPUT_PIN          GPIO_NUM_14
 #define SPINDLE_ENABLE_PIN          GPIO_NUM_13 // optional
 #define LASER_OUTPUT_PIN            GPIO_NUM_15 // optional
-//#define LASER_ENABLE_PIN            GPIO_NUM_12
+#define LASER_ENABLE_PIN            GPIO_NUM_12
 
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      800
