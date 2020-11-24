@@ -50,9 +50,10 @@ Some features should not be changed. See notes below.
 
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
-// The mask order is Cycle Start | Feed Hold | Reset | Safety Door
+// The mask order is ...
+// Macro3 | Macro2 | Macro 1| Macr0 |Cycle Start | Feed Hold | Reset | Safety Door
 // For example B1101 will invert the function of the Reset pin.
-#define INVERT_CONTROL_PIN_MASK B1111
+#define INVERT_CONTROL_PIN_MASK B00001111
 
 #define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
