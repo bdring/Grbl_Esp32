@@ -36,6 +36,7 @@ namespace Spindles {
 
         bool isRateAdjusted() override;
         void config_message() override;
+        void get_pins_and_settings() override;
 
         virtual ~Laser() {}
     };

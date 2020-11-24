@@ -112,13 +112,13 @@ Socket #5
 // #define Y_LIMIT_PIN                 GPIO_NUM_25
 // #define Z_LIMIT_PIN                 GPIO_NUM_39
 
-// // 4x Input Module in Socket #3
-// // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-// #define CONTROL_CYCLE_START_PIN      GPIO_NUM_26
-// #define CONTROL_FEED_HOLD_PIN        GPIO_NUM_4
-// #define CONTROL_RESET_PIN            GPIO_NUM_16
-// #define CONTROL_SAFETY_DOOR_PIN      GPIO_NUM_27
-// //#define INVERT_CONTROL_PIN_MASK      B0000
+// 5V output CNC module in socket #4
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
+#define SPINDLE_TYPE                SpindleType::PWM
+#define SPINDLE_OUTPUT_PIN          GPIO_NUM_14
+#define SPINDLE_ENABLE_PIN          GPIO_NUM_13 // optional
+#define LASER_OUTPUT_PIN            GPIO_NUM_15 // optional
+//#define LASER_ENABLE_PIN            GPIO_NUM_12
 
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      800
