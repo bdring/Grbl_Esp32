@@ -101,19 +101,19 @@ Socket #5
 
 // 4x Input Module in Socket #1
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-//#define X_LIMIT_PIN                 GPIO_NUM_33
-//#define Y_LIMIT_PIN                 GPIO_NUM_32
-//#define Z_LIMIT_PIN                 GPIO_NUM_35
-#define MACRO_BUTTON_0_PIN            GPIO_NUM_33
-#define MACRO_BUTTON_1_PIN            GPIO_NUM_32
-#define MACRO_BUTTON_2_PIN            GPIO_NUM_35
-#define MACRO_BUTTON_3_PIN            GPIO_NUM_34
+#define X_LIMIT_PIN                 GPIO_NUM_33
+#define Y_LIMIT_PIN                 GPIO_NUM_32
+#define Z_LIMIT_PIN                 GPIO_NUM_35
+
+
+
 
 // // 4x Input Module in Socket #2
 // // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-// #define X_LIMIT_PIN                 GPIO_NUM_2
-// #define Y_LIMIT_PIN                 GPIO_NUM_25
-// #define Z_LIMIT_PIN                 GPIO_NUM_39
+#define MACRO_BUTTON_0_PIN            GPIO_NUM_2
+#define MACRO_BUTTON_1_PIN            GPIO_NUM_25
+#define MACRO_BUTTON_2_PIN            GPIO_NUM_39
+#define MACRO_BUTTON_3_PIN            GPIO_NUM_36
 
 // 5V output CNC module in socket #4
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module

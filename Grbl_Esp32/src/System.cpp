@@ -343,7 +343,7 @@ void __attribute__((weak)) user_defined_macro(uint8_t index) {
     char   line[255];
     switch (index) {
         case 0:
-            user_macro = user_macro0->get();
+            user_macro = user_macro0->get();            
             break;
         case 1:
             user_macro = user_macro1->get();
@@ -351,17 +351,20 @@ void __attribute__((weak)) user_defined_macro(uint8_t index) {
         case 2:
             user_macro = user_macro2->get();
             break;
-        default:
+        case 3:
             user_macro = user_macro3->get();
             break;
+        default:
+            return;
     }
 
     if (user_macro == "") {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro User/Macro%d empty", index);
         return;
     }
-
+    
+    user_macro.replace('&', '\n');
     user_macro.toCharArray(line, 255, 0);
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Execute Macro Button %d (%s)", index, line);
-    execute_line(line, CLIENT_SERIAL, WebUI::AuthenticationLevel::LEVEL_USER);
+    strcat(line, "\r");
+    WebUI::inputBuffer.push(line);
 }
