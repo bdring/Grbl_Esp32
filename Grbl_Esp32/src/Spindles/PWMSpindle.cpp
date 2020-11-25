@@ -27,6 +27,7 @@
     If the spindle is running it will stop and need to be restarted with M3Snnnn
 */
 
+
 //#include "grbl.h"
 
 namespace Spindles {
@@ -34,7 +35,6 @@ namespace Spindles {
         get_pins_and_settings();
 
         if (_output_pin == UNDEFINED_PIN) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
@@ -79,6 +79,11 @@ namespace Spindles {
 #else
         _direction_pin    = UNDEFINED_PIN;
 #endif
+
+        if (_output_pin == UNDEFINED_PIN) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: SPINDLE_OUTPUT_PIN not defined");
+            return;  // We cannot continue without the output pin
+        }
 
         is_reversable = (_direction_pin != UNDEFINED_PIN);
 

@@ -32,6 +32,7 @@ FlagSetting* homing_enable;
 // TODO Settings - also need to clear, but not set, soft_limits
 FlagSetting* laser_mode;
 // TODO Settings - also need to call my_spindle->init;
+IntSetting* laser_full_power;
 
 IntSetting*   status_mask;
 FloatSetting* junction_deviation;
@@ -209,8 +210,8 @@ static const char* makeGrblName(int axisNum, int base) {
 
 void make_coordinate(CoordIndex index, const char* name) {
     float coord_data[MAX_N_AXIS] = { 0.0 };
-    auto coord = new Coordinates(name);
-    coords[index] = coord;
+    auto  coord                  = new Coordinates(name);
+    coords[index]                = coord;
     if (!coord->load()) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Propagating %s data to NVS format", coord->getName());
         // If coord->load() returns false it means that no entry
@@ -343,7 +344,9 @@ void make_settings() {
     startup_line_1 = new StringSetting(GRBL, WG, "N1", "GCode/Line1", "", checkStartupLine);
 
     // GRBL Numbered Settings
-    laser_mode = new FlagSetting(GRBL, WG, "32", "GCode/LaserMode", DEFAULT_LASER_MODE);
+    laser_mode       = new FlagSetting(GRBL, WG, "32", "GCode/LaserMode", DEFAULT_LASER_MODE);
+    laser_full_power = new IntSetting(EXTENDED, WG, NULL, "Laser/FullPower", DEFAULT_LASER_FULL_POWER, 0, 10000);
+
     // TODO Settings - also need to call my_spindle->init();
     rpm_min = new FloatSetting(GRBL, WG, "31", "GCode/MinS", DEFAULT_SPINDLE_RPM_MIN, 0, 100000);
     rpm_max = new FloatSetting(GRBL, WG, "30", "GCode/MaxS", DEFAULT_SPINDLE_RPM_MAX, 0, 100000);

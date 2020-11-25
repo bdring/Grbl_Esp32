@@ -31,8 +31,9 @@ namespace Spindles {
     void Laser::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "Laser spindle on Pin:%s, Freq:%dHz, Res:%dbits Laser mode:%s",
+                       "Laser spindle on Pin:%s, Enbl:%s, Freq:%dHz, Res:%dbits Laser mode:%s",
                        pinName(_output_pin).c_str(),
+                       pinName(_enable_pin).c_str(),
                        _pwm_freq,
                        _pwm_precision,
                        laser_mode->getStringValue());  // the current mode
@@ -58,6 +59,11 @@ namespace Spindles {
         _enable_pin = UNDEFINED_PIN;
 #endif
 
+        if (_output_pin == UNDEFINED_PIN) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: LASER_OUTPUT_PIN not defined");
+            return;  // We cannot continue without the output pin
+        }
+
         _off_with_zero_speed = spindle_enbl_off_with_zero_speed->get();
 
         _direction_pin = UNDEFINED_PIN;
@@ -67,17 +73,14 @@ namespace Spindles {
         _pwm_precision = calc_pwm_precision(_pwm_freq);  // detewrmine the best precision
         _pwm_period    = (1 << _pwm_precision);
 
-        if (spindle_pwm_min_value->get() > spindle_pwm_min_value->get()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle min pwm is greater than max. Check $35 and $36");
-        }
-
         // pre-caculate some PWM count values
-        _pwm_off_value = (_pwm_period * spindle_pwm_off_value->get() / 100.0);
-        _pwm_min_value = (_pwm_period * spindle_pwm_min_value->get() / 100.0);
-        _pwm_max_value = (_pwm_period * spindle_pwm_max_value->get() / 100.0);
+        _pwm_off_value = 0;
+        _pwm_min_value = 0;
+        _pwm_max_value = _pwm_period;
 
-        _min_rpm          = rpm_min->get();
-        _max_rpm          = rpm_max->get();
+        _min_rpm = 0;
+        _max_rpm = laser_full_power->get();
+
         _piecewide_linear = false;
 
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
