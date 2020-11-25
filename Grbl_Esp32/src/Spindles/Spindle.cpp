@@ -101,7 +101,7 @@ namespace Spindles {
         set_state(state, rpm);
     }
 
-    void Spindle::reset_pins() {}
+    void Spindle::reset_pins() { stop(); }
 }
 
 Spindles::Spindle* spindle;

@@ -466,5 +466,8 @@ namespace Spindles {
         return crc;
     }
 
-    void VFD::reset_pins() { uart_driver_delete(VFD_RS485_UART_PORT); }
+    void VFD::reset_pins() {
+        stop();
+        uart_driver_delete(VFD_RS485_UART_PORT);
+    }
 }

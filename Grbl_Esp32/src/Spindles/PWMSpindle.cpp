@@ -268,6 +268,7 @@ namespace Spindles {
     }
 
     void PWM::reset_pins() {
+        stop();
 #ifdef SPINDLE_OUTPUT_PIN
         gpio_reset_pin(SPINDLE_OUTPUT_PIN);
 #endif
