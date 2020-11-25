@@ -27,7 +27,6 @@
     If the spindle is running it will stop and need to be restarted with M3Snnnn
 */
 
-
 //#include "grbl.h"
 
 namespace Spindles {
@@ -266,5 +265,18 @@ namespace Spindles {
         }
 
         return precision - 1;
+    }
+
+    void PWM::reset_pins() {
+#ifdef SPINDLE_OUTPUT_PIN
+        gpio_reset_pin(SPINDLE_OUTPUT_PIN);
+#endif
+#ifdef SPINDLE_ENABLE_PIN
+        gpio_reset_pin(SPINDLE_ENABLE_PIN);
+#endif
+
+#ifdef SPINDLE_DIR_PIN
+        gpio_reset_pin(SPINDLE_DIR_PIN);
+#endif
     }
 }

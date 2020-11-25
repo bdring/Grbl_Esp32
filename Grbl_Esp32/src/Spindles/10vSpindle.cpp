@@ -169,4 +169,24 @@ namespace Spindles {
         digitalWrite(_forward_pin, Clockwise);
         digitalWrite(_reverse_pin, !Clockwise);
     }
+
+    void _10v::reset_pins() {
+#ifdef SPINDLE_OUTPUT_PIN
+        gpio_reset_pin(SPINDLE_OUTPUT_PIN);
+#endif
+#ifdef SPINDLE_ENABLE_PIN
+        gpio_reset_pin(SPINDLE_ENABLE_PIN);
+#endif
+
+#ifdef SPINDLE_DIR_PIN
+        gpio_reset_pin(SPINDLE_DIR_PIN);
+#endif
+#ifdef SPINDLE_FORWARD_PIN
+        gpio_reset_pin(SPINDLE_FORWARD_PIN);
+#endif
+
+#ifdef SPINDLE_REVERSE_PIN
+        gpio_reset_pin(SPINDLE_FORWARD_PIN);
+#endif
+    }
 }

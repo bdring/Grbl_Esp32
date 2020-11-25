@@ -343,10 +343,17 @@ public:
                 const char*   grblName,
                 const char*   name,
                 int8_t        defVal,
-                enum_opt_t*   opts);
+                enum_opt_t*   opts,
+                bool (*checker)(char*));
 
-    EnumSetting(type_t type, permissions_t permissions, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts) :
-        EnumSetting(NULL, type, permissions, grblName, name, defVal, opts) {}
+    EnumSetting(type_t        type,
+                permissions_t permissions,
+                const char*   grblName,
+                const char*   name,
+                int8_t        defVal,
+                enum_opt_t*   opts,
+                bool (*checker)(char*) = NULL) :
+        EnumSetting(NULL, type, permissions, grblName, name, defVal, opts, checker) {}
 
     void        load();
     void        setDefault();

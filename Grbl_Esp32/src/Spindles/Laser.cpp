@@ -85,4 +85,14 @@ namespace Spindles {
 
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
     }
+
+    void Laser::reset_pins() {
+#ifdef LASER_OUTPUT_PIN
+        gpio_reset_pin(LASER_OUTPUT_PIN);
+#endif
+
+#ifdef LASER_ENABLE_PIN
+        gpio_reset_pin(LASER_ENABLE_PIN);
+#endif
+    }
 }

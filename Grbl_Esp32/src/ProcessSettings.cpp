@@ -389,6 +389,13 @@ Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
     return Error::Ok;
 }
 
+Error grb_init(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    spindle->reset_pins();
+    Spindles::Spindle::select();
+   
+    return Error::Ok;
+}
+
 static bool anyState() {
     return false;
 }
@@ -427,6 +434,8 @@ void make_grbl_commands() {
     new GrblCommand("V", "Settings/Stats", Setting::report_nvs_stats, idleOrAlarm);
     new GrblCommand("#", "GCode/Offsets", report_ngc, idleOrAlarm);
     new GrblCommand("H", "Home", home_all, idleOrAlarm);
+    new GrblCommand("SI", "Spindle/Init", grb_init, idleOrAlarm);
+
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
     new GrblCommand("HX", "Home/X", home_x, idleOrAlarm);
     new GrblCommand("HY", "Home/Y", home_y, idleOrAlarm);

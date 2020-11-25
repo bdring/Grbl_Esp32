@@ -442,11 +442,15 @@ void StringSetting::addWebui(WebUI::JSONencoder* j) {
 
 typedef std::map<const char*, int8_t, cmp_str> enum_opt_t;
 
-EnumSetting::EnumSetting(
-    const char* description, type_t type, permissions_t permissions, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts)
-    // No checker function because enumerations have an exact set of value
-    :
-    Setting(description, type, permissions, grblName, name, NULL),
+EnumSetting::EnumSetting(const char*   description,
+                         type_t        type,
+                         permissions_t permissions,
+                         const char*   grblName,
+                         const char*   name,
+                         int8_t        defVal,
+                         enum_opt_t*   opts,
+                         bool (*checker)(char*) = NULL) :
+    Setting(description, type, permissions, grblName, name, checker),
     _defaultValue(defVal), _options(opts) {}
 
 void EnumSetting::load() {
@@ -472,6 +476,10 @@ void EnumSetting::setDefault() {
 // for setting.
 Error EnumSetting::setStringValue(char* s) {
     s                       = trim(s);
+    Error err               = check(s);
+    if (err != Error::Ok) {
+        return err;
+    }
     enum_opt_t::iterator it = _options->find(s);
     if (it == _options->end()) {
         // If we don't find the value in keys, look for it in the numeric values

@@ -46,6 +46,8 @@ namespace Spindles {
 
         static uint16_t ModRTU_CRC(uint8_t* buf, int msg_len);
 
+        void reset_pins() override;
+
     protected:
         struct ModbusCommand {
             bool critical;  // TODO SdB: change into `uint8_t critical : 1;`: We want more flags...
