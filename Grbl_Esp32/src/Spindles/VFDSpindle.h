@@ -46,7 +46,7 @@ namespace Spindles {
 
         static uint16_t ModRTU_CRC(uint8_t* buf, int msg_len);
 
-        void reset_pins() override;
+        void deinit() override;
 
     protected:
         struct ModbusCommand {

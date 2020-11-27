@@ -390,9 +390,46 @@ Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
 }
 
 Error grb_init(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    spindle->reset_pins();
+    spindle->deinit();
     Spindles::Spindle::select();
    
+    return Error::Ok;
+}
+
+Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    char* s;
+   
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "MD Command");
+    if (value == NULL)
+    {
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "NULL");
+        //s = "\0";
+        value = "\0";
+    }
+
+        s = strdup(value);
+        s = trim(s);
+
+        int32_t convertedValue;
+        char*   endptr;
+        if (*s == '\0') {
+            convertedValue = 255;  // all axes
+    } else {
+        convertedValue = strtol(s, &endptr, 10);
+        if (endptr == s || *endptr != '\0') {
+            // Try to convert as an axis list
+            convertedValue = 0;
+            auto axisNames = String("XYZABC");
+            while (*s) {
+                int index = axisNames.indexOf(toupper(*s++));
+                if (index < 0) {
+                    return Error::BadNumberFormat;
+                }
+                convertedValue |= bit(index);
+            }
+        }
+    }   
+    motors_set_disable(true, convertedValue);
     return Error::Ok;
 }
 
@@ -435,6 +472,7 @@ void make_grbl_commands() {
     new GrblCommand("#", "GCode/Offsets", report_ngc, idleOrAlarm);
     new GrblCommand("H", "Home", home_all, idleOrAlarm);
     new GrblCommand("SI", "Spindle/Init", grb_init, idleOrAlarm);
+    new GrblCommand("MD", "Motor/Disable", motor_disable, idleOrAlarm);
 
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
     new GrblCommand("HX", "Home/X", home_x, idleOrAlarm);

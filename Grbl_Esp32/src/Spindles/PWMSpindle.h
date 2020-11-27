@@ -65,7 +65,7 @@ namespace Spindles {
         virtual void set_dir_pin(bool Clockwise);
         virtual void set_output(uint32_t duty);
         virtual void set_enable_pin(bool enable_pin);
-        virtual void reset_pins();
+        virtual void deinit();
 
         virtual void get_pins_and_settings();
         uint8_t      calc_pwm_precision(uint32_t freq);

@@ -66,7 +66,7 @@ namespace Spindles {
         virtual void         config_message()                            = 0;
         virtual bool         isRateAdjusted();
         virtual void         sync(SpindleState state, uint32_t rpm);
-        virtual void         reset_pins();
+        virtual void         deinit();
 
         virtual ~Spindle() {}
 

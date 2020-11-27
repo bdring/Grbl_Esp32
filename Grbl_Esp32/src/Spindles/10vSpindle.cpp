@@ -170,7 +170,7 @@ namespace Spindles {
         digitalWrite(_reverse_pin, !Clockwise);
     }
 
-    void _10v::reset_pins() {
+    void _10v::deinit() {
 #ifdef SPINDLE_OUTPUT_PIN
         gpio_reset_pin(SPINDLE_OUTPUT_PIN);
 #endif
