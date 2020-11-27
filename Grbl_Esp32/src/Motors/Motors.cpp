@@ -89,9 +89,9 @@ void init_motors() {
     #elif(X2_TRINAMIC_DRIVER == 2208 || X2_TRINAMIC_DRIVER == 2209)
     {
         #ifdef HW_SERIAL_MOTORS
-        myMotor[X_AXIS][1] = new Motors::TrinamicUartDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, SERIAL_FOR_MOTORS);
+        myMotor[X_AXIS][1] = new Motors::TrinamicUartDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, SERIAL_FOR_MOTORS);
         #elif defined(SW_SERIAL_MOTORS)
-        myMotor[X_AXIS][1] = new Motors::TrinamicUartDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS); 
+        myMotor[X_AXIS][1] = new Motors::TrinamicUartDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS); 
         #else
         #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
         #endif
@@ -120,9 +120,9 @@ void init_motors() {
     #elif(Y_TRINAMIC_DRIVER == 2208 || Y_TRINAMIC_DRIVER == 2209)
     {
         #ifdef HW_SERIAL_MOTORS
-        myMotor[Y_AXIS][0] = new Motors::TrinamicUartDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, SERIAL_FOR_MOTORS);
+        myMotor[Y_AXIS][0] = new Motors::TrinamicUartDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, SERIAL_FOR_MOTORS);
         #elif defined(SW_SERIAL_MOTORS)
-        myMotor[Y_AXIS][0] = new Motors::TrinamicUartDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS); 
+        myMotor[Y_AXIS][0] = new Motors::TrinamicUartDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS); 
         #else
         #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
         #endif
@@ -149,9 +149,9 @@ void init_motors() {
     #elif(Y2_TRINAMIC_DRIVER == 2208 || Y2_TRINAMIC_DRIVER == 2209)
     {
         #ifdef HW_SERIAL_MOTORS
-        myMotor[Y_AXIS][1] = new Motors::TrinamicUartDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, SERIAL_FOR_MOTORS);
+        myMotor[Y_AXIS][1] = new Motors::TrinamicUartDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, SERIAL_FOR_MOTORS);
         #elif defined(SW_SERIAL_MOTORS)
-        myMotor[Y_AXIS][1] = new Motors::TrinamicUartDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS); 
+        myMotor[Y_AXIS][1] = new Motors::TrinamicUartDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS); 
         #else
         #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
         #endif
@@ -180,9 +180,9 @@ void init_motors() {
     #elif(Z_TRINAMIC_DRIVER == 2208 || Z_TRINAMIC_DRIVER == 2209)
     {
         #ifdef HW_SERIAL_MOTORS
-        myMotor[Z_AXIS][0] = new Motors::TrinamicUartDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, SERIAL_FOR_MOTORS);
+        myMotor[Z_AXIS][0] = new Motors::TrinamicUartDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, SERIAL_FOR_MOTORS);
         #elif defined(SW_SERIAL_MOTORS)
-        myMotor[Z_AXIS][0] = new Motors::TrinamicUartDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS); 
+        myMotor[Z_AXIS][0] = new Motors::TrinamicUartDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS); 
         #else
         #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
         #endif
@@ -209,9 +209,9 @@ void init_motors() {
     #elif(Z2_TRINAMIC_DRIVER == 2208 || Z2_TRINAMIC_DRIVER == 2209) 
     {
         #ifdef HW_SERIAL_MOTORS
-        myMotor[Z_AXIS][1] = new Motors::TrinamicUartDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, SERIAL_FOR_MOTORS);
+        myMotor[Z_AXIS][1] = new Motors::TrinamicUartDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, SERIAL_FOR_MOTORS);
         #elif defined(SW_SERIAL_MOTORS)
-        myMotor[Z_AXIS][1] = new Motors::TrinamicUartDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS); 
+        myMotor[Z_AXIS][1] = new Motors::TrinamicUartDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, RX_SW_SERIAL_MOTORS, TX_SW_SERIAL_MOTORS); 
         #else
         #error "Please define which type of serial you want to use for the trinamic motor, either HW_SERIAL_MOTORS or SW_SERIAL_MOTORS."
         #endif
