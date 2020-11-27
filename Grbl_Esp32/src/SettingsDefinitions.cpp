@@ -199,6 +199,11 @@ static bool checkStallguardDebugMask(char* val) {
 }
 
 static bool checkSpindleChange(char* val) {
+    if (!val) {
+        spindle->deinit();
+        Spindles::Spindle::select();
+        return true;
+    }
     if (gc_state.modal.spindle != SpindleState::Disable) {
         grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Spindle must be off to make this change");
         return false;

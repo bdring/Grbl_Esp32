@@ -514,6 +514,7 @@ Error EnumSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 

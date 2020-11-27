@@ -392,28 +392,23 @@ Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
 Error grb_init(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     spindle->deinit();
     Spindles::Spindle::select();
-   
+
     return Error::Ok;
 }
 
 Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     char* s;
-   
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "MD Command");
-    if (value == NULL)
-    {
-        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "NULL");
-        //s = "\0";
+    if (value == NULL) {
         value = "\0";
     }
 
-        s = strdup(value);
-        s = trim(s);
+    s = strdup(value);
+    s = trim(s);
 
-        int32_t convertedValue;
-        char*   endptr;
-        if (*s == '\0') {
-            convertedValue = 255;  // all axes
+    int32_t convertedValue;
+    char*   endptr;
+    if (*s == '\0') {
+        convertedValue = 255;  // all axes
     } else {
         convertedValue = strtol(s, &endptr, 10);
         if (endptr == s || *endptr != '\0') {
@@ -428,7 +423,7 @@ Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, We
                 convertedValue |= bit(index);
             }
         }
-    }   
+    }
     motors_set_disable(true, convertedValue);
     return Error::Ok;
 }
