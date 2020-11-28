@@ -167,34 +167,19 @@ static const char* makename(const char* axisName, const char* tail) {
 }
 
 static bool checkStartupLine(char* value) {
+    if (!value) {  // No POST functionality
+        return true;
+    }
     if (sys.state != State::Idle) {
         return false;
     }
     return gc_execute_line(value, CLIENT_SERIAL) == Error::Ok;
 }
 
-static bool checkStallguard(char* value) {
-    motorSettingChanged = true;
-    return true;
-}
-
-static bool checkMicrosteps(char* value) {
-    motorSettingChanged = true;
-    return true;
-}
-
-static bool checkRunCurrent(char* value) {
-    motorSettingChanged = true;
-    return true;
-}
-
-static bool checkHoldcurrent(char* value) {
-    motorSettingChanged = true;
-    return true;
-}
-
-static bool checkStallguardDebugMask(char* val) {
-    motorSettingChanged = true;
+static bool postTMC(char* value) {
+    if (!value) {  // No POST functionality
+        motorSettingChanged = true;
+    }
     return true;
 }
 
@@ -273,30 +258,30 @@ void make_settings() {
     b_axis_settings = axis_settings[B_AXIS];
     c_axis_settings = axis_settings[C_AXIS];
     for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
-        def          = &axis_defaults[axis];
-        auto setting = new IntSetting(
-            EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, checkStallguard);
+        def = &axis_defaults[axis];
+        auto setting =
+            new IntSetting(EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, postTMC);
         setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
     for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
-        def          = &axis_defaults[axis];
-        auto setting = new IntSetting(
-            EXTENDED, WG, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, checkMicrosteps);
+        def = &axis_defaults[axis];
+        auto setting =
+            new IntSetting(EXTENDED, WG, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, postTMC);
         setting->setAxis(axis);
         axis_settings[axis]->microsteps = setting;
     }
     for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(
-            EXTENDED, WG, makeGrblName(axis, 150), makename(def->name, "Current/Hold"), def->hold_current, 0.05, 20.0, checkHoldcurrent);  // Amps
+            EXTENDED, WG, makeGrblName(axis, 150), makename(def->name, "Current/Hold"), def->hold_current, 0.05, 20.0, postTMC);  // Amps
         setting->setAxis(axis);
         axis_settings[axis]->hold_current = setting;
     }
     for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(
-            EXTENDED, WG, makeGrblName(axis, 140), makename(def->name, "Current/Run"), def->run_current, 0.0, 20.0, checkRunCurrent);  // Amps
+            EXTENDED, WG, makeGrblName(axis, 140), makename(def->name, "Current/Run"), def->run_current, 0.0, 20.0, postTMC);  // Amps
         setting->setAxis(axis);
         axis_settings[axis]->run_current = setting;
     }
@@ -395,7 +380,7 @@ void make_settings() {
     pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
     spindle_type =
         new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", static_cast<int8_t>(SPINDLE_TYPE), &spindleTypes, checkSpindleChange);
-    stallguard_debug_mask = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, checkStallguardDebugMask);
+    stallguard_debug_mask = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, postTMC);
 
     homing_cycle[0] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle0", DEFAULT_HOMING_CYCLE_0);
     homing_cycle[1] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle1", DEFAULT_HOMING_CYCLE_1);

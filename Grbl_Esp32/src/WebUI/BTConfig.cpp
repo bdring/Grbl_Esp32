@@ -86,6 +86,9 @@ namespace WebUI {
 
     bool BTConfig::isBTnameValid(const char* hostname) {
         //limited size
+        if (!hostname) {
+            return true;
+        }
         char c;
         // length is checked automatically by string setting
         //only letter and digit
