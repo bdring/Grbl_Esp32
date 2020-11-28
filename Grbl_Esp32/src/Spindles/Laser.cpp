@@ -89,7 +89,7 @@ namespace Spindles {
     void Laser::deinit() {
         stop();
 #ifdef LASER_OUTPUT_PIN
-            gpio_reset_pin(LASER_OUTPUT_PIN);
+        gpio_reset_pin(LASER_OUTPUT_PIN);
 #endif
 
 #ifdef LASER_ENABLE_PIN
