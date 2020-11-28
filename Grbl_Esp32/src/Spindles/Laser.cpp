@@ -29,7 +29,7 @@ namespace Spindles {
     }
 
     void Laser::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL,
+        grbl_msg_sendf(CLIENT_ALL,
                        MsgLevel::Info,
                        "Laser spindle on Pin:%s, Enbl:%s, Freq:%dHz, Res:%dbits Laser mode:%s",
                        pinName(_output_pin).c_str(),
@@ -60,7 +60,7 @@ namespace Spindles {
 #endif
 
         if (_output_pin == UNDEFINED_PIN) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: LASER_OUTPUT_PIN not defined");
+            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: LASER_OUTPUT_PIN not defined");
             return;  // We cannot continue without the output pin
         }
 

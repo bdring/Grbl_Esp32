@@ -112,8 +112,8 @@ Socket #5
 // #define Y_LIMIT_PIN                 GPIO_NUM_25
 // #define Z_LIMIT_PIN                 GPIO_NUM_39
 
-5V output CNC module in socket #4
-https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
+// 5V output CNC module in socket #4
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
 #define SPINDLE_TYPE                SpindleType::PWM
 #define SPINDLE_OUTPUT_PIN          GPIO_NUM_14
 #define SPINDLE_ENABLE_PIN          GPIO_NUM_13 // optional
