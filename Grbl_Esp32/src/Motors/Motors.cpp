@@ -288,7 +288,7 @@ void motors_set_disable(bool disable, uint8_t mask) {
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
             if (bitnum_istrue(mask, axis)) {
                 myMotor[axis][gang_index]->set_disable(disable);
-            }                
+            }
         }
     }
 

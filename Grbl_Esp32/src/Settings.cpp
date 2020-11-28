@@ -505,7 +505,7 @@ Error EnumSetting::setStringValue(char* s) {
     }
     _currentValue = it->second;
     if (_storedValue != _currentValue) {
-        if (_storedValue == _defaultValue) {
+        if (_currentValue == _defaultValue) {
             nvs_erase_key(_handle, _keyName);
         } else {
             if (nvs_set_i8(_handle, _keyName, _currentValue)) {

@@ -57,7 +57,8 @@ void machine_init() {
                             NULL,                // parameters
                             1,                   // priority
                             &solenoidSyncTaskHandle,
-                            0  // core
+                            CONFIG_ARDUINO_RUNNING_CORE  // must run the task on same core
+                                                         // core
     );
     // setup a task that will do the custom homing sequence
     xTaskCreatePinnedToCore(atari_home_task,    // task
@@ -66,7 +67,8 @@ void machine_init() {
                             NULL,               // parameters
                             1,                  // priority
                             &atariHomingTaskHandle,
-                            0  // core
+                            CONFIG_ARDUINO_RUNNING_CORE  // must run the task on same core
+                                                         // core
     );
 }
 

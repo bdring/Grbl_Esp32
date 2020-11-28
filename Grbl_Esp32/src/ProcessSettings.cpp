@@ -389,13 +389,6 @@ Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
     return Error::Ok;
 }
 
-Error grb_init(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    spindle->deinit();
-    Spindles::Spindle::select();
-
-    return Error::Ok;
-}
-
 Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     char* s;
     if (value == NULL) {
@@ -466,7 +459,6 @@ void make_grbl_commands() {
     new GrblCommand("V", "Settings/Stats", Setting::report_nvs_stats, idleOrAlarm);
     new GrblCommand("#", "GCode/Offsets", report_ngc, idleOrAlarm);
     new GrblCommand("H", "Home", home_all, idleOrAlarm);
-    new GrblCommand("SI", "Spindle/Init", grb_init, idleOrAlarm);
     new GrblCommand("MD", "Motor/Disable", motor_disable, idleOrAlarm);
 
 #ifdef HOMING_SINGLE_AXIS_COMMANDS

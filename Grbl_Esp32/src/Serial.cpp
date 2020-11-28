@@ -104,7 +104,8 @@ void serial_init() {
                             NULL,               // parameters
                             1,                  // priority
                             &serialCheckTaskHandle,
-                            1  // core
+                            CONFIG_ARDUINO_RUNNING_CORE  // must run the task on same core
+                                                         // core
     );
 }
 

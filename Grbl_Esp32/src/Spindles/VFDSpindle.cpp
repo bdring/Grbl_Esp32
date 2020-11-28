@@ -49,6 +49,7 @@ const int         VFD_RS485_POLL_RATE  = 200;  // in milliseconds between comman
 namespace Spindles {
     QueueHandle_t VFD::vfd_cmd_queue     = nullptr;
     TaskHandle_t  VFD::vfd_cmdTaskHandle = nullptr;
+    bool          VFD::task_active       = true;
 
     // The communications task
     void VFD::vfd_cmd_task(void* pvParameters) {
@@ -60,6 +61,12 @@ namespace Spindles {
         uint8_t       rx_message[VFD_RS485_MAX_MSG_SIZE];
 
         while (true) {
+            if (!task_active) {
+                uart_driver_delete(VFD_RS485_UART_PORT);
+                xQueueReset(vfd_cmd_queue);
+                vTaskDelete(NULL);
+            }
+
             response_parser parser = nullptr;
 
             next_cmd.msg[0] = VFD_RS485_ADDR;  // Always default to this
@@ -266,18 +273,15 @@ namespace Spindles {
         }
 
         // Initialization is complete, so now it's okay to run the queue task:
-        if (!_task_running) {  // init can happen many times, we only want to start one task
-            vfd_cmd_queue = xQueueCreate(VFD_RS485_QUEUE_SIZE, sizeof(ModbusCommand));
-            xTaskCreatePinnedToCore(vfd_cmd_task,         // task
-                                    "vfd_cmdTaskHandle",  // name for task
-                                    2048,                 // size of task stack
-                                    this,                 // parameters
-                                    1,                    // priority
-                                    &vfd_cmdTaskHandle,
-                                    0  // core
-            );
-            _task_running = true;
-        }
+        task_active   = true;
+        vfd_cmd_queue = xQueueCreate(VFD_RS485_QUEUE_SIZE, sizeof(ModbusCommand));
+        xTaskCreatePinnedToCore(vfd_cmd_task,         // task
+                                "vfd_cmdTaskHandle",  // name for task
+                                2048,                 // size of task stack
+                                this,                 // parameters
+                                1,                    // priority
+                                &vfd_cmdTaskHandle,
+                                1);
 
         is_reversable = true;  // these VFDs are always reversable
         use_delays    = true;
@@ -467,10 +471,9 @@ namespace Spindles {
     }
 
     void VFD::deinit() {
-        stop();
-        if (vfd_cmdTaskHandle != nullptr) {
-            vTaskDelete(vfd_cmdTaskHandle);
-        }
-        uart_driver_delete(VFD_RS485_UART_PORT);
+        _current_state = SpindleState::Disable;
+        _current_rpm   = 0;
+
+        task_active = false;
     }
 }

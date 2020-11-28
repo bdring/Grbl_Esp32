@@ -120,6 +120,12 @@ Socket #5
 #define LASER_OUTPUT_PIN            GPIO_NUM_15 // optional
 #define LASER_ENABLE_PIN            GPIO_NUM_12
 
+// RS485 Modbus In socket #3
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/RS485-Modbus-Module
+#define VFD_RS485_TXD_PIN        GPIO_NUM_26
+#define VFD_RS485_RTS_PIN        GPIO_NUM_4
+#define VFD_RS485_RXD_PIN        GPIO_NUM_16
+
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800

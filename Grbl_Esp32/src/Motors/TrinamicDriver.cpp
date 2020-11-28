@@ -115,7 +115,8 @@ namespace Motors {
                                     NULL,          // parameters
                                     1,             // priority
                                     NULL,
-                                    0  // core
+                                    CONFIG_ARDUINO_RUNNING_CORE  // must run the task on same core
+                                                                 // core
             );
         }
     }
