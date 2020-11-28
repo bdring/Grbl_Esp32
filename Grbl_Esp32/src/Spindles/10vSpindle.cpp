@@ -172,21 +172,21 @@ namespace Spindles {
 
     void _10v::deinit() {
 #ifdef SPINDLE_OUTPUT_PIN
-        gpio_reset_pin(SPINDLE_OUTPUT_PIN);
+        pinMode(SPINDLE_OUTPUT_PIN, INPUT);
 #endif
 #ifdef SPINDLE_ENABLE_PIN
-        gpio_reset_pin(SPINDLE_ENABLE_PIN);
+        pinMode(SPINDLE_ENABLE_PIN, INPUT);
 #endif
 
 #ifdef SPINDLE_DIR_PIN
-        gpio_reset_pin(SPINDLE_DIR_PIN);
+        pinMode(SPINDLE_DIR_PIN, INPUT);
 #endif
 #ifdef SPINDLE_FORWARD_PIN
-        gpio_reset_pin(SPINDLE_FORWARD_PIN);
+        pinMode(SPINDLE_FORWARD_PIN, INPUT);
 #endif
 
 #ifdef SPINDLE_REVERSE_PIN
-        gpio_reset_pin(SPINDLE_FORWARD_PIN);
+        pinMode(SPINDLE_FORWARD_PIN, INPUT);
 #endif
     }
 }
