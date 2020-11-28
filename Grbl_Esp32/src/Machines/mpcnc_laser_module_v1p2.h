@@ -54,7 +54,7 @@
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
 
 #define SPINDLE_TYPE            SpindleType::LASER
-#define LASERE_OUTPUT_PIN      GPIO_NUM_16
+#define LASER_OUTPUT_PIN      GPIO_NUM_16
 
 #define COOLANT_MIST_PIN      GPIO_NUM_2
 

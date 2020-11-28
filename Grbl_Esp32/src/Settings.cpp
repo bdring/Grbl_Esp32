@@ -126,6 +126,7 @@ Error IntSetting::setStringValue(char* s) {
             _storedValue = convertedValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
@@ -223,6 +224,7 @@ Error AxisMaskSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
@@ -323,6 +325,7 @@ Error FloatSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
@@ -412,6 +415,7 @@ Error StringSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
@@ -475,8 +479,8 @@ void EnumSetting::setDefault() {
 // This is necessary for WebUI, which uses the number
 // for setting.
 Error EnumSetting::setStringValue(char* s) {
-    s                       = trim(s);
-    Error err               = check(s);
+    s         = trim(s);
+    Error err = check(s);
     if (err != Error::Ok) {
         return err;
     }
@@ -594,6 +598,7 @@ Error FlagSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 const char* FlagSetting::getDefaultString() {
@@ -674,6 +679,7 @@ Error IPaddrSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
