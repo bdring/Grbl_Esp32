@@ -273,8 +273,10 @@ namespace Spindles {
         }
 
         // Initialization is complete, so now it's okay to run the queue task:
-        task_active   = true;
-        vfd_cmd_queue = xQueueCreate(VFD_RS485_QUEUE_SIZE, sizeof(ModbusCommand));
+        task_active   = true;        
+        if (vfd_cmd_queue != nullptr) {
+            vfd_cmd_queue = xQueueCreate(VFD_RS485_QUEUE_SIZE, sizeof(ModbusCommand));
+        }        
         xTaskCreatePinnedToCore(vfd_cmd_task,         // task
                                 "vfd_cmdTaskHandle",  // name for task
                                 2048,                 // size of task stack
