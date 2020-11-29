@@ -89,7 +89,7 @@ namespace Spindles {
 
     // ========================= Spindle ==================================
 
-    bool Spindle::isRateAdjusted() {
+    bool Spindle::inLaserMode() {
         return false;  // default for basic spindle is false
     }
 

@@ -24,8 +24,8 @@
 // ===================================== Laser ==============================================
 
 namespace Spindles {
-    bool Laser::isRateAdjusted() {
-        return true;  // can use M4 (CCW) laser mode.
+    bool Laser::inLaserMode() {
+        return laser_mode->get();  // can use M4 (CCW) laser mode.
     }
 
     void Laser::config_message() {

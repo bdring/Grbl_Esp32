@@ -551,7 +551,7 @@ void st_prep_buffer() {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
                 }
 
-                if (spindle->isRateAdjusted()) {  //   laser_mode->get() {
+                if (spindle->inLaserMode()) {  //
                     if (pl_block->spindle == SpindleState::Ccw) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
                         prep.inv_rate                       = 1.0 / pl_block->programmed_rate;
