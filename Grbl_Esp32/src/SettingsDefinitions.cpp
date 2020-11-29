@@ -347,7 +347,7 @@ void make_settings() {
     startup_line_1 = new StringSetting(GRBL, WG, "N1", "GCode/Line1", "", checkStartupLine);
 
     // GRBL Numbered Settings
-    laser_mode       = new FlagSetting(GRBL, WG, "32", "GCode/inLaserMode", DEFAULT_LASER_MODE);
+    laser_mode       = new FlagSetting(GRBL, WG, "32", "GCode/LaserMode", DEFAULT_LASER_MODE);
     laser_full_power = new IntSetting(EXTENDED, WG, NULL, "Laser/FullPower", DEFAULT_LASER_FULL_POWER, 0, 10000, checkSpindleChange);
 
     // TODO Settings - also need to call my_spindle->init();

@@ -323,8 +323,9 @@ namespace Spindles {
         pins_settings_ok = false;
 #endif
 
+        // TODO Test no longer required.
         if (laser_mode->get()) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD spindle disabled in laser mode. Set $GCode/inLaserMode=Off and restart");
+            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");
             pins_settings_ok = false;
         }
 
