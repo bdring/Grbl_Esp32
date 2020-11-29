@@ -389,6 +389,38 @@ Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
     return Error::Ok;
 }
 
+Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    char* s;
+    if (value == NULL) {
+        value = "\0";
+    }
+
+    s = strdup(value);
+    s = trim(s);
+
+    int32_t convertedValue;
+    char*   endptr;
+    if (*s == '\0') {
+        convertedValue = 255;  // all axes
+    } else {
+        convertedValue = strtol(s, &endptr, 10);
+        if (endptr == s || *endptr != '\0') {
+            // Try to convert as an axis list
+            convertedValue = 0;
+            auto axisNames = String("XYZABC");
+            while (*s) {
+                int index = axisNames.indexOf(toupper(*s++));
+                if (index < 0) {
+                    return Error::BadNumberFormat;
+                }
+                convertedValue |= bit(index);
+            }
+        }
+    }
+    motors_set_disable(true, convertedValue);
+    return Error::Ok;
+}
+
 static bool anyState() {
     return false;
 }
@@ -427,6 +459,8 @@ void make_grbl_commands() {
     new GrblCommand("V", "Settings/Stats", Setting::report_nvs_stats, idleOrAlarm);
     new GrblCommand("#", "GCode/Offsets", report_ngc, idleOrAlarm);
     new GrblCommand("H", "Home", home_all, idleOrAlarm);
+    new GrblCommand("MD", "Motor/Disable", motor_disable, idleOrAlarm);
+
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
     new GrblCommand("HX", "Home/X", home_x, idleOrAlarm);
     new GrblCommand("HY", "Home/Y", home_y, idleOrAlarm);

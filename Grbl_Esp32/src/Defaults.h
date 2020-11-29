@@ -159,6 +159,10 @@
 #    define DEFAULT_LASER_MODE 0  // false
 #endif
 
+#ifndef DEFAULT_LASER_FULL_POWER
+#    define DEFAULT_LASER_FULL_POWER 1000
+#endif
+
 #ifndef DEFAULT_SPINDLE_RPM_MAX             // $30
 #    define DEFAULT_SPINDLE_RPM_MAX 1000.0  // rpm
 #endif
