@@ -146,7 +146,7 @@ namespace Spindles {
             }
         }
 
-        set_enable_pin(_current_state != SpindleState::Disable);
+        set_enable_pin(gc_state.modal.spindle != SpindleState::Disable);
         set_output(pwm_value);
 
         return 0;
@@ -225,6 +225,14 @@ namespace Spindles {
     }
 
     void PWM::set_enable_pin(bool enable) {
+        static bool prev_enable = false;
+
+        if (prev_enable == enable) {
+            return;
+        }
+
+        prev_enable = enable;
+
         if (_enable_pin == UNDEFINED_PIN) {
             return;
         }
@@ -236,7 +244,6 @@ namespace Spindles {
         if (spindle_enable_invert->get()) {
             enable = !enable;
         }
-
         digitalWrite(_enable_pin, enable);
     }
 
