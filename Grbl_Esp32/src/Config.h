@@ -98,7 +98,7 @@ const int MAX_N_AXIS = 6;
 //CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
 #define ENABLE_BLUETOOTH  // enable bluetooth
 
-//#define ENABLE_SD_CARD  // enable use of SD Card to run jobs
+#define ENABLE_SD_CARD  // enable use of SD Card to run jobs
 
 #define ENABLE_WIFI  //enable wifi
 

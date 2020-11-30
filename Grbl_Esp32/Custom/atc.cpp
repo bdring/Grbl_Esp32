@@ -77,19 +77,19 @@ void user_machine_init() {
 
     tool[1].mpos[X_AXIS] = 151.0;
     tool[1].mpos[Y_AXIS] = 291.0;
-    tool[1].mpos[Z_AXIS] = -86.0;
+    tool[1].mpos[Z_AXIS] = -87.0;
 
     tool[2].mpos[X_AXIS] = 186.0;
     tool[2].mpos[Y_AXIS] = 291.0;
-    tool[2].mpos[Z_AXIS] = -86.0;
+    tool[2].mpos[Z_AXIS] = -87.0;
 
     tool[3].mpos[X_AXIS] = 221.0;
     tool[3].mpos[Y_AXIS] = 292.0;
-    tool[3].mpos[Z_AXIS] = -86.0;
+    tool[3].mpos[Z_AXIS] = -87.0;
 
     tool[4].mpos[X_AXIS] = 256.0;
     tool[4].mpos[Y_AXIS] = 291.0;
-    tool[4].mpos[Z_AXIS] = -86.0;
+    tool[4].mpos[Z_AXIS] = -87.0;
 
     top_of_z = limitsMaxPosition(Z_AXIS) - homing_pulloff->get();
 }
@@ -320,7 +320,7 @@ bool set_ATC_open(bool open) {
 // give a squirt of air to clear top of Tool Setter
 bool atc_ETS_dustoff() {
     digitalWrite(ETS_DUST_OFF, HIGH);
-    gc_exec_linef(true, "G4P%0.2f", 0.250);
+    gc_exec_linef(true, "G4P%0.2f", ETS_DUST_OFF_DURATION);
     digitalWrite(ETS_DUST_OFF, LOW);
 }
 

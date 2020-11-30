@@ -105,21 +105,20 @@
 
 //#define SPINDLE_OUTPUT_PIN          GPIO_NUM_14 // relay as spindle on module socket #2
 
-#define DEFAULT_SPINDLE_DELAY_SPINUP    2.25
-#define DEFAULT_SPINDLE_DELAY_SPINDOWN  6.0
+
 
 // 
-
+#define ETS_DUST_OFF_DURATION  .30  // seconds
 #define ATC_MANUAL_CHANGE_TIME 500  // milliseconds ATC is open
 
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      160
 #define DEFAULT_Y_STEPS_PER_MM      160
-#define DEFAULT_Z_STEPS_PER_MM      755.904
+#define DEFAULT_Z_STEPS_PER_MM      1511.808
 
-#define DEFAULT_X_MAX_RATE          2000
-#define DEFAULT_Y_MAX_RATE          2000
-#define DEFAULT_Z_MAX_RATE          2000
+#define DEFAULT_X_MAX_RATE          6000
+#define DEFAULT_Y_MAX_RATE          6000
+#define DEFAULT_Z_MAX_RATE          1500
 
 #define DEFAULT_X_HOMING_MPOS       0
 #define DEFAULT_X_MAX_TRAVEL        400
@@ -135,19 +134,22 @@
 #define DEFAULT_Z_MAX_TRAVEL        200
 #define DEFAULT_Z_CURRENT           1.0
 #define DEFAULT_Z_HOLD_CURRENT      0.25
+#define DEFAULT_Z_ACCELERATION      100.00 
 
 #define DEFAULT_X_MICROSTEPS        32
 #define DEFAULT_Y_MICROSTEPS        32
-#define DEFAULT_Z_MICROSTEPS        32
+#define DEFAULT_Z_MICROSTEPS        16
 
-#define DEFAULT_HOMING_DIR_MASK     (bit(X_AXIS) | bit(Y_AXIS))
+#define DEFAULT_HOMING_ENABLE           1
+#define DEFAULT_HOMING_DIR_MASK         (bit(X_AXIS) | bit(Y_AXIS))
+#define DEFAULT_HOMING_SEEK_RATE        3500
+#define DEFAULT_HOMING_PULLOFF          3.0
+#define DEFAULT_HOMING_CYCLE_0  bit(Z_AXIS)
+#define DEFAULT_HOMING_CYCLE_1  bit(X_AXIS)
+#define DEFAULT_HOMING_CYCLE_2  bit(Y_AXIS)
 
-#define  DEFAULT_HOMING_ENABLE 1
-
+#define DEFAULT_DIRECTION_INVERT_MASK   (bit(Y_AXIS) | bit(Z_AXIS))
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME  255
 
-#define DEFAULT_HOMING_CYCLE_0 bit(Z_AXIS)
-#define DEFAULT_HOMING_CYCLE_1 bit(X_AXIS)
-#define DEFAULT_HOMING_CYCLE_2 bit(Y_AXIS)
-
-#define DEFAULT_HOMING_SEEK_RATE  3500
+#define DEFAULT_SPINDLE_DELAY_SPINUP        2.0
+#define DEFAULT_SPINDLE_DELAY_SPINDOWN      6.0
