@@ -36,12 +36,12 @@ namespace Motors {
                                               uint8_t addr): 
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin) {
         _driver_part_number = driver_part_number;
+        _has_errors = false;
         _r_sense = r_sense;
         this->addr = addr;
         serial->begin(115200, SERIAL_8N1, -1 , -1);
         serial->setRxBufferSize(128);
         hw_serial_init();
-        init();
     }
 
     /* SW Serial Constructor. */
@@ -56,12 +56,12 @@ namespace Motors {
                                             uint8_t addr):
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin) {
         _driver_part_number = driver_part_number;
+        _has_errors = false;
         _r_sense = r_sense;
         this->SW_RX_pin = SW_RX_pin;
         this->SW_TX_pin = SW_TX_pin;
         this->addr = addr;
         sw_serial_init();
-        init();
     }
 
     void TrinamicUartDriver::hw_serial_init() {
