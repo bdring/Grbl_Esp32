@@ -44,7 +44,7 @@ enum class ModalGroup : uint8_t {
     MG12 = 9,   // [G54,G55,G56,G57,G58,G59] Coordinate system selection
     MG13 = 10,  // [G61] Control mode
     MM4  = 11,  // [M0,M1,M2,M30] Stopping
-    MM6  = 14,  // [M6] Tool change
+    MM6  = 14,  // [M6, M61] Tool change, Set Current Tool
     MM7  = 12,  // [M3,M4,M5] Spindle turning
     MM8  = 13,  // [M7,M8,M9] Coolant control
     MM9  = 14,  // [M56] Override control
@@ -185,6 +185,7 @@ enum class ToolLengthOffset : uint8_t {
 enum class ToolChange : uint8_t {
     Disable = 0,
     Enable  = 1,
+    SetTool = 2, // tell Grbl the current tool
 };
 
 // Modal Group G12: Active work coordinate system

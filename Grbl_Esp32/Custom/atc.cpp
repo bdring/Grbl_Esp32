@@ -71,34 +71,40 @@ void user_machine_init() {
     pinMode(ETS_DUST_OFF, OUTPUT);
 
     // the tool setter
-    tool[ETS_INDEX].mpos[X_AXIS] = 108;
+    tool[ETS_INDEX].mpos[X_AXIS] = 104;
     tool[ETS_INDEX].mpos[Y_AXIS] = 292.0;
     tool[ETS_INDEX].mpos[Z_AXIS] = -60.0;  // Mpos before collet face triggers probe
 
-    tool[1].mpos[X_AXIS] = 151.0;
-    tool[1].mpos[Y_AXIS] = 291.0;
+    tool[1].mpos[X_AXIS] = 146.0;
+    tool[1].mpos[Y_AXIS] = 292.0;
     tool[1].mpos[Z_AXIS] = -87.0;
 
-    tool[2].mpos[X_AXIS] = 186.0;
-    tool[2].mpos[Y_AXIS] = 291.0;
+    tool[2].mpos[X_AXIS] = 181.0;
+    tool[2].mpos[Y_AXIS] = 292.0;
     tool[2].mpos[Z_AXIS] = -87.0;
 
-    tool[3].mpos[X_AXIS] = 221.0;
+    tool[3].mpos[X_AXIS] = 216.0;
     tool[3].mpos[Y_AXIS] = 292.0;
     tool[3].mpos[Z_AXIS] = -87.0;
 
-    tool[4].mpos[X_AXIS] = 256.0;
-    tool[4].mpos[Y_AXIS] = 291.0;
+    tool[4].mpos[X_AXIS] = 251.0;
+    tool[4].mpos[Y_AXIS] = 292.0;
     tool[4].mpos[Z_AXIS] = -87.0;
 
     top_of_z = limitsMaxPosition(Z_AXIS) - homing_pulloff->get();
 }
 
-bool user_tool_change(uint8_t new_tool) {
+bool user_tool_change(uint8_t new_tool, bool automatic) {
     bool     spindle_was_on       = false;
     bool     was_incremental_mode = false;  // started in G91 mode
     uint64_t spindle_spin_delay;            // used to make sure spindle has fully spun down and up.
     float    saved_mpos[MAX_N_AXIS] = {};   // the position before the tool change
+
+    if (!automatic) {
+        current_tool = new_tool;
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Manual tool change to:%d", current_tool);
+        return true;
+    }
 
     if (new_tool == current_tool) {  // if no change, we are done
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "ATC existing tool requested:%d", new_tool);

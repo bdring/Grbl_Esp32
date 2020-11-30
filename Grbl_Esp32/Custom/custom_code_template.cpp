@@ -123,7 +123,7 @@ void forward_kinematics(float* position) {
   user_tool_change() is called when tool change gcode is received,
   to perform appropriate actions for your machine.
 */
-bool user_tool_change(uint8_t new_tool) {}
+bool user_tool_change(uint8_t new_tool, bool automatic) {}
 
 #if defined(MACRO_BUTTON_0_PIN) || defined(MACRO_BUTTON_1_PIN) || defined(MACRO_BUTTON_2_PIN)
 /*

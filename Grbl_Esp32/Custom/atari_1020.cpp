@@ -212,7 +212,7 @@ void calc_solenoid(float penZ) {
 	A tool (pen) change is done by bumping the carriage against the right edge 3 times per
 	position change. Pen 1-4 is valid range.
 */
-bool user_tool_change(uint8_t new_tool) {
+bool user_tool_change(uint8_t new_tool, bool automatic) {
     uint8_t move_count;
     char    gcode_line[20];
     protocol_buffer_synchronize();  // wait for all previous moves to complete

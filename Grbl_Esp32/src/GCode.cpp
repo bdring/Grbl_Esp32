@@ -516,6 +516,10 @@ Error gc_execute_line(char* line, uint8_t client) {
                         mg_word_bit             = ModalGroup::MM9;
                         break;
 #endif
+                    case 61:  // Set Current Tool
+                        gc_block.modal.tool_change = ToolChange::SetTool;
+                        mg_word_bit                = ModalGroup::MM6;
+                        break;
                     case 62:
                         gc_block.modal.io_control = IoControl::DigitalOnSync;
                         mg_word_bit               = ModalGroup::MM10;
@@ -626,7 +630,10 @@ Error gc_execute_line(char* line, uint8_t client) {
                     case 'Q':
                         axis_word_bit     = GCodeWord::Q;
                         gc_block.values.q = value;
-                        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Q %2.2f", value);
+                        if (gc_block.modal.tool_change == ToolChange::SetTool) {  // M61
+                            gc_state.tool = int_value;
+                                                        
+                        }
                         break;
                     case 'R':
                         axis_word_bit     = GCodeWord::R;
@@ -825,6 +832,19 @@ Error gc_execute_line(char* line, uint8_t client) {
         bit_false(value_words, bit(GCodeWord::E));
         bit_false(value_words, bit(GCodeWord::Q));
     }
+    if (gc_block.non_modal_command == NonModal::Dwell) {
+        if (bit_isfalse(value_words, bit(GCodeWord::P))) {
+            FAIL(Error::GcodeValueWordMissing);  // [P word missing]
+        }
+        bit_false(value_words, bit(GCodeWord::P));
+    }
+    if (gc_block.modal.tool_change == ToolChange::SetTool) {
+        if (bit_isfalse(value_words, bit(GCodeWord::Q))) {
+            FAIL(Error::GcodeValueWordMissing);  // [P word missing]
+        }
+        bit_false(value_words, bit(GCodeWord::Q));
+    }
+
     // [11. Set active plane ]: N/A
     switch (gc_block.modal.plane_select) {
         case Plane::XY:
@@ -1252,6 +1272,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                   (bit(GCodeWord::X) | bit(GCodeWord::Y) | bit(GCodeWord::Z) | bit(GCodeWord::A) | bit(GCodeWord::B) |
                    bit(GCodeWord::C)));  // Remove axis words.
     }
+
     if (value_words) {
         FAIL(Error::GcodeUnusedWords);  // [Unused words]
     }
@@ -1350,12 +1371,19 @@ Error gc_execute_line(char* line, uint8_t client) {
     }                                                     // else { pl_data->spindle_speed = 0.0; } // Initialized as zero already.
     // [5. Select tool ]: NOT SUPPORTED. Only tracks tool value.
     //	gc_state.tool = gc_block.values.t;
-    // [6. Change tool ]: NOT SUPPORTED
+    // [6. Change tool ]
     if (gc_block.modal.tool_change == ToolChange::Enable) {
-        if (!user_tool_change(gc_state.tool)) {  // (weak)   should be user defined
+        if (!user_tool_change(gc_state.tool, true)) {  // (weak)   should be user defined
             FAIL(Error::ToolChangeError);
         }
     }
+    // [61. Manually set current tool ]
+    if (gc_block.modal.tool_change == ToolChange::SetTool) {
+        if (!user_tool_change(gc_state.tool, false)) {  // (weak)   should be user defined
+            FAIL(Error::ToolChangeError);
+        }
+    }
+
     // [7. Spindle control ]:
     if (gc_state.modal.spindle != gc_block.modal.spindle) {
         // Update spindle control and apply spindle speed when enabling it in this block.
@@ -1602,7 +1630,6 @@ Error gc_execute_line(char* line, uint8_t client) {
 }
 
 __attribute__((weak)) bool user_tool_change(uint8_t new_tool) {
-    
     return true;
 }
 
