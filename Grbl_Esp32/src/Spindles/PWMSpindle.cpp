@@ -155,9 +155,7 @@ namespace Spindles {
             return;  // Block during abort.
         }
 
-        _current_state = state;
-
-        if (_current_state == SpindleState::Disable) {  // Halt or set spindle direction and rpm.
+        if (state == SpindleState::Disable) {  // Halt or set spindle direction and rpm.
             sys.spindle_speed = 0;
             stop();
             if (use_delays && (_current_state != state)) {
@@ -166,9 +164,9 @@ namespace Spindles {
                 //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SpinDown Done");
             }
         } else {
-            set_dir_pin(_current_state == SpindleState::Cw);
+            set_dir_pin(state == SpindleState::Cw);
             set_rpm(rpm);
-            set_enable_pin(_current_state != SpindleState::Disable);  // must be done after setting rpm for enable features to work
+            set_enable_pin(state != SpindleState::Disable);  // must be done after setting rpm for enable features to work
             if (use_delays && (_current_state != state)) {
                 //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SpinUp Start %d", rpm);
                 mc_dwell(spindle_delay_spinup->get());

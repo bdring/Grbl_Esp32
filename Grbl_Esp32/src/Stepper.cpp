@@ -44,11 +44,11 @@ static st_block_t st_block_buffer[SEGMENT_BUFFER_SIZE - 1];
 // planner buffer. Once "checked-out", the steps in the segments buffer cannot be modified by
 // the planner, where the remaining planner block steps still can.
 typedef struct {
-    uint16_t n_step;           // Number of step events to be executed for this segment
-    uint16_t isrPeriod;        // Time to next ISR tick, in units of timer ticks
-    uint8_t  st_block_index;   // Stepper block data index. Uses this information to execute this segment.
-    uint8_t  amass_level;      // AMASS level for the ISR to execute this segment
-    uint16_t spindle_rpm;      // TODO get rid of this.
+    uint16_t n_step;          // Number of step events to be executed for this segment
+    uint16_t isrPeriod;       // Time to next ISR tick, in units of timer ticks
+    uint8_t  st_block_index;  // Stepper block data index. Uses this information to execute this segment.
+    uint8_t  amass_level;     // AMASS level for the ISR to execute this segment
+    uint16_t spindle_rpm;     // TODO get rid of this.
 } segment_t;
 static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 
@@ -62,10 +62,10 @@ typedef struct {
     uint8_t step_bits;  // Stores out_bits output to complete the step pulse delay
 #endif
 
-    uint8_t execute_step;     // Flags step execution for each interrupt.
-    uint8_t step_pulse_time;  // Step pulse reset time after step rise
-    uint8_t step_outbits;     // The next stepping-bits to be output
-    uint8_t dir_outbits;
+    uint8_t  execute_step;     // Flags step execution for each interrupt.
+    uint8_t  step_pulse_time;  // Step pulse reset time after step rise
+    uint8_t  step_outbits;     // The next stepping-bits to be output
+    uint8_t  dir_outbits;
     uint32_t steps[MAX_N_AXIS];
 
     uint16_t    step_count;        // Steps remaining in line segment motion
@@ -245,11 +245,9 @@ static void stepper_pulse_func() {
                 st.exec_block_index = st.exec_segment->st_block_index;
                 st.exec_block       = &st_block_buffer[st.exec_block_index];
                 // Initialize Bresenham line and distance counters
-                // XXX the original code only inits X, Y, Z here, instead of n_axis.  Is that correct?
-                for (int axis = 0; axis < 3; axis++) {
+                for (int axis = 0; axis < n_axis; axis++) {
                     st.counter[axis] = (st.exec_block->step_event_count >> 1);
                 }
-                // TODO ABC
             }
             st.dir_outbits = st.exec_block->direction_bits;
             // Adjust Bresenham axis increment counters according to AMASS level.
@@ -825,7 +823,7 @@ void st_prep_buffer() {
         // typically very small and do not adversely effect performance, but ensures that Grbl
         // outputs the exact acceleration and velocity profiles as computed by the planner.
 
-        dt += prep.dt_remainder;                                               // Apply previous segment partial step execute time
+        dt += prep.dt_remainder;  // Apply previous segment partial step execute time
         // dt is in minutes so inv_rate is in minutes
         float inv_rate = dt / (last_n_steps_remaining - step_dist_remaining);  // Compute adjusted step rate inverse
 
@@ -833,7 +831,7 @@ void st_prep_buffer() {
         // fStepperTimer is in units of timerTicks/sec, so the dimensional analysis is
         // timerTicks/sec * 60 sec/minute * minutes = timerTicks
         uint32_t timerTicks = ceil((fStepperTimer * 60) * inv_rate);  // (timerTicks/step)
-        int level;
+        int      level;
 
         // Compute step timing and multi-axis smoothing level.
         for (level = 0; level < maxAmassLevel; level++) {
