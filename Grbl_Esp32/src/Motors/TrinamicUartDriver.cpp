@@ -26,41 +26,42 @@
 namespace Motors {
 
     /* HW Serial Constructor. */
-    TrinamicUartDriver::TrinamicUartDriver( uint8_t axis_index, 
-                                              uint8_t step_pin,
-                                              uint8_t dir_pin,
-                                              uint8_t  disable_pin,
-                                              uint16_t driver_part_number,
-                                              float r_sense, 
-                                              HardwareSerial *serial, 
-                                              uint8_t addr): 
+    TrinamicUartDriver::TrinamicUartDriver(uint8_t         axis_index,
+                                           uint8_t         step_pin,
+                                           uint8_t         dir_pin,
+                                           uint8_t         disable_pin,
+                                           uint16_t        driver_part_number,
+                                           float           r_sense,
+                                           HardwareSerial* serial,
+                                           uint8_t         addr) :
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin) {
         _driver_part_number = driver_part_number;
-        _has_errors = false;
-        _r_sense = r_sense;
-        this->addr = addr;
-        serial->begin(115200, SERIAL_8N1, -1 , -1);
+        _has_errors         = false;
+        _r_sense            = r_sense;
+        this->addr          = addr;
+
+        serial->begin(115200, SERIAL_8N1, TMC_UART_RX, TMC_UART_TX);
         serial->setRxBufferSize(128);
         hw_serial_init();
     }
 
     /* SW Serial Constructor. */
-    TrinamicUartDriver :: TrinamicUartDriver( uint8_t axis_index, 
+    TrinamicUartDriver ::TrinamicUartDriver(uint8_t    axis_index,
                                             gpio_num_t step_pin,
-                                            uint8_t dir_pin,
-                                            uint8_t  disable_pin,
-                                            uint16_t driver_part_number,
-                                            float r_sense, 
-                                            uint16_t SW_RX_pin,
-                                            uint16_t SW_TX_pin,
-                                            uint8_t addr):
+                                            uint8_t    dir_pin,
+                                            uint8_t    disable_pin,
+                                            uint16_t   driver_part_number,
+                                            float      r_sense,
+                                            uint16_t   SW_RX_pin,
+                                            uint16_t   SW_TX_pin,
+                                            uint8_t    addr) :
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin) {
         _driver_part_number = driver_part_number;
-        _has_errors = false;
-        _r_sense = r_sense;
-        this->SW_RX_pin = SW_RX_pin;
-        this->SW_TX_pin = SW_TX_pin;
-        this->addr = addr;
+        _has_errors         = false;
+        _r_sense            = r_sense;
+        this->SW_RX_pin     = SW_RX_pin;
+        this->SW_TX_pin     = SW_TX_pin;
+        this->addr          = addr;
         sw_serial_init();
     }
 
@@ -76,7 +77,7 @@ namespace Motors {
         }
     }
     void TrinamicUartDriver::sw_serial_init() {
-    #ifdef SW_SERIAL_MOTORS //TODO: this ifdef is added to avoid error because ESP32 is not define as SW CAPABLE PLATFORM. Alternatively it can be defined as such.
+#ifdef SW_SERIAL_MOTORS  //TODO: this ifdef is added to avoid error because ESP32 is not define as SW CAPABLE PLATFORM. Alternatively it can be defined as such.
         if (_driver_part_number == 2208)
             // TMC 2208 does not use address, this field is 0, differently from 2209
             tmcstepper = new TMC2208Stepper(SW_RX_pin, SW_TX_pin, _r_sense);
@@ -87,16 +88,15 @@ namespace Motors {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Trinamic Uart unsupported p/n:%d", _driver_part_number);
             return;
         }
-        
+
         // Set PDN DISABLE to ensure UART pin is available to use.
         tmcstepper->beginSerial(57600);
         tmcstepper->pdn_disable(true);
         tmcstepper->senddelay(15);
-    #endif
+#endif
     }
 
-
-    void TrinamicUartDriver :: init() {
+    void TrinamicUartDriver ::init() {
         if (_has_errors) {
             return;
         }
@@ -105,39 +105,42 @@ namespace Motors {
         tmcstepper->begin();
 
         _has_errors = !test();  // Try communicating with motor. Prints an error if there is a problem.
-        
+
         /* If communication with the driver is working, read the 
         main settings, apply new driver settings and then read 
         them back. */
-        if(!_has_errors) {  //TODO: verify if this is the right way to set the Irun/IHold and microsteps.
+        if (!_has_errors) {  //TODO: verify if this is the right way to set the Irun/IHold and microsteps.
             read_settings();
             set_mode(false);
             // set_settings();
             // read_settings();
-        }
-        else {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Driver %c is off, cannot set motor.", reportAxisNameMsg(_axis_index, _dual_axis_index));//report_get_axis_letter(axis_index));
+        } else {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "Driver %c is off, cannot set motor.",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index));  //report_get_axis_letter(axis_index));
         }
     }
 
     /*
         This is the startup message showing the basic definition. 
     */
-    void TrinamicUartDriver::config_message() { //TODO: The RX/TX pin could be added to the msg.
+    void TrinamicUartDriver::config_message() {  //TODO: The RX/TX pin could be added to the msg.
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Trinamic TMC%d Step:%s Dir:%s Disable:%s Address:%d R:%0.3f %s",
+                       "%s Trinamic TMC%d Step:%s Dir:%s Disable:%s Rx:%s Tx:%s Addr:%d R:%0.3f %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _driver_part_number,
                        pinName(_step_pin).c_str(),
                        pinName(_dir_pin).c_str(),
                        pinName(_disable_pin).c_str(),
+                       pinName(TMC_UART_RX),
+                       pinName(TMC_UART_TX),
                        this->addr,
                        _r_sense,
                        reportAxisLimitsMsg(_axis_index));
     }
 
-    
     bool TrinamicUartDriver::test() {
         if (_has_errors) {
             return false;
@@ -240,7 +243,7 @@ namespace Motors {
                 tmcstepper->en_spreadCycle(false);
                 tmcstepper->pwm_autoscale(true);
                 // if (_driver_part_number == 2209) {
-                    // tmcstepper->diag1_stall(false); //TODO: check the equivalent in TMC2209
+                // tmcstepper->diag1_stall(false); //TODO: check the equivalent in TMC2209
                 // }
                 break;
             case TrinamicUartMode ::CoolStep:
@@ -253,7 +256,7 @@ namespace Motors {
                     // tmcstepper->THIGH(NORMAL_THIGH); //TODO: this does not exist in TMC2208/09. verify and eventually remove.
                 }
                 break;
-            case TrinamicUartMode ::StallGuard: //TODO: check all configurations for stallguard
+            case TrinamicUartMode ::StallGuard:  //TODO: check all configurations for stallguard
                 //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard");
                 // tmcstepper->en_pwm_mode(false); //TODO: check if this is present in TMC2208/09
                 tmcstepper->en_spreadCycle(false);
@@ -287,8 +290,8 @@ namespace Motors {
                        MsgLevel::Info,
                        "%s Stallguard %d   SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
-                    0,//    tmcstepper->stallguard(), // TODO: add this again solving the compilation issues
-                    0,//    tmcstepper->sg_result(),
+                       0,  //    tmcstepper->stallguard(), // TODO: add this again solving the compilation issues
+                       0,  //    tmcstepper->sg_result(),
                        feedrate,
                        axis_settings[_axis_index]->stallguard->get());
 
@@ -308,7 +311,6 @@ namespace Motors {
         //                status.sr,
         //                tmcstepper->GSTAT());
     }
-
 
     // calculate a tstep from a rate
     // tstep = TRINAMIC_UART_FCLK / (time between 1/256 steps)
@@ -351,7 +353,6 @@ namespace Motors {
         // the pin based enable could be added here.
         // This would be for individual motors, not the single pin for all motors.
     }
-
 
     // =========== Reporting functions ========================
 

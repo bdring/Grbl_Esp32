@@ -25,17 +25,23 @@
 
 #define MACHINE_NAME            "FYSTEC E4"
 
+#define N_AXIS 3
+
+#define TRINAMIC_RUN_MODE           TrinamicMode :: CoolStep
+#define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
+
 #define HW_SERIAL_MOTORS
 
 #ifdef SW_SERIAL_MOTORS
-    #define RX_SW_SERIAL_MOTORS     GPIO_NUM_5
-    #define TX_SW_SERIAL_MOTORS     GPIO_NUM_5
+    #define RX_SW_SERIAL_MOTORS     GPIO_NUM_21
+    #define TX_SW_SERIAL_MOTORS     GPIO_NUM_22
 #endif
 
+#define TMC_UART_RX             GPIO_NUM_21
+#define TMC_UART_TX             GPIO_NUM_22
+
 #ifdef HW_SERIAL_MOTORS
-    #define SERIAL_FOR_MOTORS       &Serial2
-    #define TMC_UART_RX             GPIO_NUM_21
-    #define TMC_UART_TX             GPIO_NUM_22
+    #define SERIAL_FOR_MOTORS       &Serial2    
 #endif
 
 #define X_TRINAMIC_DRIVER       2209
