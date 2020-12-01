@@ -22,22 +22,38 @@
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "Laser.h"
+#include "TickleMeLaser.h"
 
 namespace Spindles {
-    // this is the same as a PWM spindle but the M4 compensation is supported.
-    class Laser : public PWM {
+    // this is the same as a Laser but tickle pulses are supported..
+    class TickleMeLaser : public Laser {
     public:
-        Laser() = default;
+        TickleMeLaser() = default;
 
-        Laser(const Laser&) = delete;
-        Laser(Laser&&)      = delete;
-        Laser& operator=(const Laser&) = delete;
-        Laser& operator=(Laser&&) = delete;
+        TickleMeLaser(const TickleMeLaser&) = delete;
+        TickleMeLaser(TickleMeLaser&&)      = delete;
+        TickleMeLaser& operator=(const TickleMeLaser&) = delete;
+        TickleMeLaser& operator=(TickleMeLaser&&) = delete;
 
-        bool isRateAdjusted() override;
-        void config_message() override;
+        virtual uint32_t set_rpm(uint32_t rpm) override;
 
-        virtual ~Laser() {}
+        virtual ~TickleMeLaser() {}
+
+    protected:
+        uint32_t _min_rpm;
+        uint32_t _max_rpm;
+        uint32_t _pwm_off_value;
+        uint32_t _pwm_min_value;
+        uint32_t _pwm_max_value;
+        uint32_t _pwm_freq;
+        uint32_t _pwm_period;  // how many counts in 1 period
+        uint8_t  _pwm_precision;
+        bool     _piecewide_linear;
+        bool     _off_with_zero_speed;
+        bool     _invert_pwm;
+
+        virtual void set_output(uint32_t duty);
+        virtual void set_enable_pin(bool enable_pin);
+        //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
     };
 }
