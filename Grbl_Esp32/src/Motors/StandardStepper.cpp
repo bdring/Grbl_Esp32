@@ -51,7 +51,7 @@ namespace Motors {
     void StandardStepper::init_step_dir_pins() {
         _invert_step_pin = bitnum_istrue(step_invert_mask->get(), _axis_index);
         _invert_dir_pin  = bitnum_istrue(dir_invert_mask->get(), _axis_index);
-        pinMode(_dir_pin, OUTPUT);
+        initPin(_dir_pin, OUTPUT, _axis_index, _dual_axis_index, "Direction");
 
 #ifdef USE_RMT_STEPS
         rmtConfig.rmt_mode                       = RMT_MODE_TX;
@@ -88,10 +88,10 @@ namespace Motors {
         rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
 
 #else
-        pinMode(_step_pin, OUTPUT);
+        initPin(_step_pin, OUTPUT, _axis_index, _dual_axis_index, "Step");
 
 #endif  // USE_RMT_STEPS
-        pinMode(_disable_pin, OUTPUT);
+        initPin(_disable_pin, OUTPUT, _axis_index, _dual_axis_index, "Disable");
     }
 
     void StandardStepper::config_message() {

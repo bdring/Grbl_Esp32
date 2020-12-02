@@ -27,10 +27,10 @@ void coolant_init() {
     static bool init_message = true;  // used to show messages only once.
 
 #ifdef COOLANT_FLOOD_PIN
-    pinMode(COOLANT_FLOOD_PIN, OUTPUT);
+    initPin(COOLANT_FLOOD_PIN, OUTPUT, "Flood coolant");
 #endif
 #ifdef COOLANT_MIST_PIN
-    pinMode(COOLANT_MIST_PIN, OUTPUT);
+    initPin(COOLANT_MIST_PIN, OUTPUT, "Mist coolant");
 #endif
 
     if (init_message) {

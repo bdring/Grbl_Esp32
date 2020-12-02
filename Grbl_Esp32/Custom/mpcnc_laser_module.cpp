@@ -28,8 +28,7 @@ special things your machine needs at startup.
 */
 void machine_init() {
     // force this on all the time
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Custom machine_init() Level Shift Enabled");
-    pinMode(LVL_SHIFT_ENABLE, OUTPUT);
+    initPin(LVL_SHIFT_ENABLE, OUTPUT, "Level Shift");
     digitalWrite(LVL_SHIFT_ENABLE, HIGH);
 }
 #endif

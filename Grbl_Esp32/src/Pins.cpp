@@ -54,3 +54,36 @@ int IRAM_ATTR digitalRead(uint8_t pin) {
     return 0;
 #endif
 }
+
+// For pins that are not associated with an axis
+void initPin(uint8_t pin, uint8_t mode, const char *name) {
+    if (!reinit) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s on pin %s", name, pinName(pin).c_str());
+        pinMode(pin, mode);
+    }
+}
+
+// For pins that are associated with an non-gangeable axis
+void initPin(uint8_t pin, uint8_t mode, uint8_t axis, const char *name) {
+    if (!reinit) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s %s on pin %s", reportAxisNameMsg(axis), name, pinName(pin).c_str());
+        pinMode(pin, mode);
+    }
+}
+
+// For pins that are associated with a gangeable axis
+void initPin(uint8_t pin, uint8_t mode, uint8_t axis, uint8_t gang, const char *name) {
+    if (!reinit) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s %s on pin %s", reportAxisNameMsg(axis, gang), name, pinName(pin).c_str());
+        pinMode(pin, mode);
+    }
+}
+
+// For arrays of pins such as user digital pins
+void initPin(uint8_t pin, uint8_t mode, const char *name, int n) {
+    if (!reinit) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s:%d on pin %s", name, n, pinName(pin).c_str());
+        pinMode(pin, mode);
+    }
+}
+

@@ -71,7 +71,7 @@ namespace Motors {
         init_step_dir_pins();  // from StandardStepper
 
         digitalWrite(_cs_pin, HIGH);
-        pinMode(_cs_pin, OUTPUT);
+        initPin(_cs_pin, OUTPUT, _axis_index, _dual_axis_index, "Trinamic CS");
 
         // use slower speed if I2S
         if (_cs_pin >= I2S_OUT_PIN_BASE) {

@@ -33,14 +33,13 @@ namespace UserOutput {
     }
 
     void DigitalOutput::init() {
-        pinMode(_pin, OUTPUT);
+        initPin(_pin, OUTPUT, "User Digital Output", _number);
         digitalWrite(_pin, LOW);
 
         config_message();
     }
 
     void DigitalOutput::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "User Digital Output:%d on Pin:%s", _number, pinName(_pin).c_str());
     }
 
     bool DigitalOutput::set_level(bool isOn) {
@@ -61,8 +60,9 @@ namespace UserOutput {
         _pin           = pin;
         _pwm_frequency = pwm_frequency;
 
-        if (pin == UNDEFINED_PIN)
+        if (pin == UNDEFINED_PIN) {
             return;
+        }
 
         // determine the highest bit precision allowed by frequency
         _resolution_bits = sys_calc_pwm_precision(_pwm_frequency);

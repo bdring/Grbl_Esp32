@@ -9,4 +9,9 @@ extern "C" int  __digitalRead(uint8_t pin);
 extern "C" void __pinMode(uint8_t pin, uint8_t mode);
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
+void initPin(uint8_t pin, uint8_t mode, const char *name);
+void initPin(uint8_t pin, uint8_t mode, uint8_t axis, const char *name);
+void initPin(uint8_t pin, uint8_t mode, uint8_t axis, uint8_t gang, const char *name);
+void initPin(uint8_t pin, uint8_t mode, const char *name, int n);
+
 String pinName(uint8_t pin);

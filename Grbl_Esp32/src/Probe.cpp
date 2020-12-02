@@ -28,19 +28,13 @@ static bool is_probe_away;
 
 // Probe pin initialization routine.
 void probe_init() {
-    static bool show_init_msg = true;  // used to show message only once.
-
     if (PROBE_PIN != UNDEFINED_PIN) {
 #ifdef DISABLE_PROBE_PIN_PULL_UP
-        pinMode(PROBE_PIN, INPUT);
+        initPin(PROBE_PIN, INPUT, "Probe");
 #else
-        pinMode(PROBE_PIN, INPUT_PULLUP);  // Enable internal pull-up resistors. Normal high operation.
+        initPin(PROBE_PIN, INPUT_PULLUP, "Probe");  // Enable internal pull-up resistors. Normal high operation.
 #endif
 
-        if (show_init_msg) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe on pin %s", pinName(PROBE_PIN).c_str());
-            show_init_msg = false;
-        }
     }
 }
 

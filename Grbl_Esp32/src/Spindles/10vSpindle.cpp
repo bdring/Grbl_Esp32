@@ -51,10 +51,10 @@ namespace Spindles {
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
         ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
 
-        pinMode(_enable_pin, OUTPUT);
-        pinMode(_direction_pin, OUTPUT);
-        pinMode(_forward_pin, OUTPUT);
-        pinMode(_reverse_pin, OUTPUT);
+        initPin(_enable_pin, OUTPUT, "10V Spindle Enable");
+        initPin(_direction_pin, OUTPUT, "10V Spindle Direction");
+        initPin(_forward_pin, OUTPUT, "10V Spindle Forward");
+        initPin(_reverse_pin, OUTPUT, "10V Spindle Reverse");
 
         set_rpm(0);
 

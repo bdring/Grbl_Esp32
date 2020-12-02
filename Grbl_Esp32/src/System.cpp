@@ -47,39 +47,35 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     // setup control inputs
 
 #ifdef CONTROL_SAFETY_DOOR_PIN
-    pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT_PULLUP);
+    initPin(CONTROL_SAFETY_DOOR_PIN, INPUT_PULLUP, "Safety Door");
     attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_RESET_PIN
-    pinMode(CONTROL_RESET_PIN, INPUT_PULLUP);
+    initPin(CONTROL_RESET_PIN, INPUT_PULLUP, "Reset");
     attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_FEED_HOLD_PIN
-    pinMode(CONTROL_FEED_HOLD_PIN, INPUT_PULLUP);
+    initPin(CONTROL_FEED_HOLD_PIN, INPUT_PULLUP, "Feed Hold");
     attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_CYCLE_START_PIN
-    pinMode(CONTROL_CYCLE_START_PIN, INPUT_PULLUP);
+    initPin(CONTROL_CYCLE_START_PIN, INPUT_PULLUP, "Cycle Start");
     attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_0_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 0");
-    pinMode(MACRO_BUTTON_0_PIN, INPUT_PULLUP);
+    initPin(MACRO_BUTTON_0_PIN, INPUT_PULLUP, "Macro Pin 0");
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_0_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_1_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 1");
-    pinMode(MACRO_BUTTON_1_PIN, INPUT_PULLUP);
+    initPin(MACRO_BUTTON_1_PIN, INPUT_PULLUP, "Macro Pin 1");
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_1_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_2_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 2");
-    pinMode(MACRO_BUTTON_2_PIN, INPUT_PULLUP);
+    initPin(MACRO_BUTTON_2_PIN, INPUT_PULLUP, "Macro Pin 2");
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_2_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_3_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 3");
-    pinMode(MACRO_BUTTON_3_PIN, INPUT_PULLUP);
+    initPin(MACRO_BUTTON_3_PIN, INPUT_PULLUP, "Macro Pin 3");
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_3_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE

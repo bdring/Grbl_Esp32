@@ -48,8 +48,8 @@ void machine_init() {
     solenoid_pwm_chan_num = sys_get_next_PWM_chan_num();
     ledcSetup(solenoid_pwm_chan_num, SOLENOID_PWM_FREQ, SOLENOID_PWM_RES_BITS);
     ledcAttachPin(SOLENOID_PEN_PIN, solenoid_pwm_chan_num);
-    pinMode(SOLENOID_DIRECTION_PIN, OUTPUT);  // this sets the direction of the solenoid current
-    pinMode(REED_SW_PIN, INPUT_PULLUP);       // external pullup required
+    initPin(SOLENOID_DIRECTION_PIN, OUTPUT, "Solenoid");  // this sets the direction of the solenoid current
+    initPin(REED_SW_PIN, INPUT_PULLUP, "Reed Switch");       // external pullup required
     // setup a task that will calculate solenoid position
     xTaskCreatePinnedToCore(solenoidSyncTask,    // task
                             "solenoidSyncTask",  // name for task

@@ -89,6 +89,10 @@ const char* const GRBL_VERSION_BUILD = "20201128";
 
 #include "I2SOut.h"
 
+// reinit can be used to suppress duplicate message on reinitialization
+// Initially false, then set to true after first init()
+extern bool reinit;
+
 void grbl_init();
 void run_once();
 

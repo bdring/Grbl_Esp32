@@ -21,6 +21,8 @@
 #include "Grbl.h"
 #include <WiFi.h>
 
+bool reinit = false;
+
 void grbl_init() {
 #ifdef USE_I2S_OUT
     i2s_out_init();  // The I2S out must be initialized before it can access the expanded GPIO port
@@ -73,6 +75,7 @@ void grbl_init() {
     WebUI::bt_config.begin();
 #endif
     WebUI::inputBuffer.begin();
+    reinit = true;  // This can be used to make messages appear only once
 }
 
 static void reset_variables() {
