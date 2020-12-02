@@ -68,9 +68,9 @@ namespace Motors {
     void TrinamicUartDriver::hw_serial_init() {
         if (_driver_part_number == 2208)
             // TMC 2208 does not use address, this field is 0, differently from 2209
-            tmcstepper = new TMC2208Stepper(&Serial2, _r_sense);
+            tmcstepper = new TMC2208Stepper(SERIAL_FOR_MOTORS, _r_sense);
         else if (_driver_part_number == 2209)
-            tmcstepper = new TMC2209Stepper(&Serial2, _r_sense, addr);
+            tmcstepper = new TMC2209Stepper(SERIAL_FOR_MOTORS, _r_sense, addr);
         else {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Trinamic Uart unsupported p/n:%d", _driver_part_number);
             return;
@@ -212,6 +212,11 @@ namespace Motors {
         }
         tmcstepper->microsteps(axis_settings[_axis_index]->microsteps->get());
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
+
+        // grbl_msg_sendf(CLIENT_SERIAL,
+        //                 MsgLevel::Info,
+        //                 "Setting current of driver %s, target: %u, read irun: %d, hold percent: %f, usteps: %d",
+        //                  reportAxisNameMsg(_axis_index, _dual_axis_index), run_i_ma, tmcstepper->rms_current(), hold_i_percent, axis_settings[_axis_index]->microsteps->get());
     }
 
     bool TrinamicUartDriver::set_homing_mode(bool isHoming) {
