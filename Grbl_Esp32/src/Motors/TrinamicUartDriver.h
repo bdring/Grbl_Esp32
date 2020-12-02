@@ -58,6 +58,14 @@ const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) use
 #    define TRINAMIC_UART_TOFF_COOLSTEP 3
 #endif
 
+#ifndef TMC_UART_RX
+#    define TMC_UART_RX = UNDEFINED_PIN
+#endif
+
+#ifndef TMC_UART_TX
+#    define TMC_UART_TX = UNDEFINED_PIN
+#endif
+
 namespace Motors {
 
     enum class TrinamicUartMode : uint8_t {
@@ -69,44 +77,53 @@ namespace Motors {
 
     class TrinamicUartDriver : public StandardStepper {
     public:
-        TrinamicUartDriver( uint8_t axis_index, 
-                            uint8_t step_pin, 
-                            uint8_t dir_pin, 
-                            uint8_t  disable_pin, 
-                            uint16_t driver_part_number, 
-                            float r_senseS, 
-                            HardwareSerial *serial) :
-            TrinamicUartDriver( axis_index, step_pin, dir_pin, disable_pin, driver_part_number, r_senseS, serial, get_trinamic_driver_uart_address(axis_index)) {}
+        TrinamicUartDriver(uint8_t         axis_index,
+                           uint8_t         step_pin,
+                           uint8_t         dir_pin,
+                           uint8_t         disable_pin,
+                           uint16_t        driver_part_number,
+                           float           r_senseS,
+                           HardwareSerial* serial) :
+            TrinamicUartDriver(
+                axis_index, step_pin, dir_pin, disable_pin, driver_part_number, r_senseS, serial, get_trinamic_driver_uart_address(axis_index)) {
+        }
 
-        
-        TrinamicUartDriver( uint8_t axis_index, 
-                            uint8_t step_pin, 
-                            uint8_t dir_pin, 
-                            uint8_t  disable_pin, 
-                            uint16_t driver_part_number, 
-                            float r_senseS, 
-                            HardwareSerial *serial,
-                            uint8_t address);
+        TrinamicUartDriver(uint8_t         axis_index,
+                           uint8_t         step_pin,
+                           uint8_t         dir_pin,
+                           uint8_t         disable_pin,
+                           uint16_t        driver_part_number,
+                           float           r_senseS,
+                           HardwareSerial* serial,
+                           uint8_t         address);
 
-        TrinamicUartDriver( uint8_t axis_index, 
-                            gpio_num_t step_pin, 
-                            uint8_t dir_pin, 
-                            uint8_t  disable_pin, 
-                            uint16_t driver_part_number, 
-                            float r_sense, 
-                            uint16_t SW_RX_pin, 
-                            uint16_t SW_TX_pin) : 
-            TrinamicUartDriver( axis_index, step_pin, dir_pin, disable_pin, driver_part_number, r_sense, SW_RX_pin, SW_TX_pin, get_trinamic_driver_uart_address(axis_index)) {}
+        TrinamicUartDriver(uint8_t    axis_index,
+                           gpio_num_t step_pin,
+                           uint8_t    dir_pin,
+                           uint8_t    disable_pin,
+                           uint16_t   driver_part_number,
+                           float      r_sense,
+                           uint16_t   SW_RX_pin,
+                           uint16_t   SW_TX_pin) :
+            TrinamicUartDriver(axis_index,
+                               step_pin,
+                               dir_pin,
+                               disable_pin,
+                               driver_part_number,
+                               r_sense,
+                               SW_RX_pin,
+                               SW_TX_pin,
+                               get_trinamic_driver_uart_address(axis_index)) {}
 
-        TrinamicUartDriver( uint8_t axis_index, 
-                            gpio_num_t step_pin, 
-                            uint8_t dir_pin, 
-                            uint8_t  disable_pin, 
-                            uint16_t driver_part_number, 
-                            float r_sense, 
-                            uint16_t SW_RX_pin, 
-                            uint16_t SW_TX_pin, 
-                            uint8_t addr);
+        TrinamicUartDriver(uint8_t    axis_index,
+                           gpio_num_t step_pin,
+                           uint8_t    dir_pin,
+                           uint8_t    disable_pin,
+                           uint16_t   driver_part_number,
+                           float      r_sense,
+                           uint16_t   SW_RX_pin,
+                           uint16_t   SW_TX_pin,
+                           uint8_t    addr);
 
         void config_message();
         void hw_serial_init();
@@ -119,26 +136,25 @@ namespace Motors {
         bool set_homing_mode(bool is_homing) override;
         void set_disable(bool disable) override;
 
-        uint8_t addr;
+        uint8_t  addr;
         uint16_t SW_RX_pin;
         uint16_t SW_TX_pin;
 
-
     private:
-        uint32_t calc_tstep(float speed, float percent); //TODO: see if this is useful/used.
+        uint32_t calc_tstep(float speed, float percent);  //TODO: see if this is useful/used.
 
         TMC2208Stepper*  tmcstepper;  // all other driver types are subclasses of this one
         TrinamicUartMode _homing_mode;
-        uint16_t         _driver_part_number; // example: use 2209 for TMC2209
+        uint16_t         _driver_part_number;  // example: use 2209 for TMC2209
         float            _r_sense;
         bool             _has_errors;
         bool             _disabled;
 
         TrinamicUartMode _mode = TrinamicUartMode::None;
-        bool test();
-        void set_mode(bool isHoming);
-        void trinamic_test_response();
-        void trinamic_stepper_enable(bool enable);
+        bool             test();
+        void             set_mode(bool isHoming);
+        void             trinamic_test_response();
+        void             trinamic_stepper_enable(bool enable);
 
         bool report_open_load(TMC2208_n ::DRV_STATUS_t status);
         bool report_short_to_ground(TMC2208_n ::DRV_STATUS_t status);
@@ -155,7 +171,6 @@ namespace Motors {
 
     protected:
         // void config_message() override;
-
     };
 
 }
