@@ -59,11 +59,11 @@ const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) use
 #endif
 
 #ifndef TMC_UART_RX
-#    define TMC_UART_RX = UNDEFINED_PIN
+#    define TMC_UART_RX  UNDEFINED_PIN
 #endif
 
 #ifndef TMC_UART_TX
-#    define TMC_UART_TX = UNDEFINED_PIN
+#    define TMC_UART_TX  UNDEFINED_PIN
 #endif
 
 namespace Motors {
