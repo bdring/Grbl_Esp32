@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define MACHINE_NAME            "6 Pack SE2050 Laser"
+#define MACHINE_NAME            "X820xY316xZ246 50w RF Laser"
 #define N_AXIS 3  // change to 4 to include A axis
 // === Special Features
 // I2S (steppers & other output-only pins)
@@ -83,3 +83,48 @@
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
 // #define USER_DIGITAL_PIN_1       GPIO_NUM_14 // LED Lights using M62P1 on M63P1 Off
 #define USER_DIGITAL_PIN_0       GPIO_NUM_13 // Aim Guide control using M62P0 on M63P0 Off
+
+#define DEFAULT_HOMING_ENABLE 1
+#define DEFAULT_SOFT_LIMIT_ENABLE 1
+#define DEFAULT_HOMING_DIR_MASK 7
+#define DEFAULT_HOMING_FEED_RATE 100.0 // mm/min
+#define DEFAULT_HOMING_SEEK_RATE 200.0 // mm/min
+#define DEFAULT_HOMING_DEBOUNCE_DELAY 250 // msec (0-65k)
+#define DEFAULT_HOMING_PULLOFF 0.75 // mm
+
+#define DEFAULT_X_STEPS_PER_MM 80
+#define DEFAULT_Y_STEPS_PER_MM 314.96
+#define DEFAULT_Z_STEPS_PER_MM 314.96
+
+#define DEFAULT_X_MAX_RATE 1000
+#define DEFAULT_Y_MAX_RATE 600 // mm/min
+#define DEFAULT_Z_MAX_RATE 200 // mm/min
+
+#define DEFAULT_X_ACCELERATION 200.0 // mm/sec^2
+#define DEFAULT_Y_ACCELERATION 175.0 // mm/sec^2
+#define DEFAULT_Z_ACCELERATION 100.0 // mm/sec^2
+
+#define DEFAULT_X_MAX_TRAVEL 820 // mm NOTE: Must be a positive value.
+#define DEFAULT_Y_MAX_TRAVEL 316 // mm NOTE: Must be a positive value.
+#define DEFAULT_Z_MAX_TRAVEL 246 // mm NOTE: Must be a positive value.
+
+
+//x steps 80
+//y steps 314.96
+//z steps 314.96
+// laser mode
+//accel 200
+//100
+//100
+//distance820
+//316
+//246*
+
+//homing cycle
+// soft limits
+// homing seek
+// homing feed
+//homing mask 7
+//max spd 1500
+//600
+//100
