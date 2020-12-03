@@ -77,11 +77,11 @@ void user_machine_init() {
 
     tool[1].mpos[X_AXIS] = 146.0;
     tool[1].mpos[Y_AXIS] = 292.0;
-    tool[1].mpos[Z_AXIS] = -87.0;
+    tool[1].mpos[Z_AXIS] = -90.50;
 
     tool[2].mpos[X_AXIS] = 181.0;
     tool[2].mpos[Y_AXIS] = 292.0;
-    tool[2].mpos[Z_AXIS] = -87.0;
+    tool[2].mpos[Z_AXIS] = -88.5;
 
     tool[3].mpos[X_AXIS] = 216.0;
     tool[3].mpos[Y_AXIS] = 292.0;
