@@ -42,15 +42,14 @@ namespace Spindles {
             return;
         }
 
-        _current_state = SpindleState::Disable;
+        _current_state    = SpindleState::Disable;
+        _current_pwm_duty = 0;
+        use_delays        = true;
 
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
         ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
-
         pinMode(_enable_pin, OUTPUT);
         pinMode(_direction_pin, OUTPUT);
-
-        use_delays = true;
 
         config_message();
     }

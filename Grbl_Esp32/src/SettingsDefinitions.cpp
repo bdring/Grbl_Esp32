@@ -1,7 +1,5 @@
 #include "Grbl.h"
 
-bool motorSettingChanged = false;
-
 FlagSetting* verbose_errors;
 
 FakeSetting<int>* number_axis;
@@ -178,7 +176,7 @@ static bool checkStartupLine(char* value) {
 
 static bool postTMC(char* value) {
     if (!value) {  // No POST functionality
-        motorSettingChanged = true;
+        motors_read_settings();
     }
     return true;
 }
