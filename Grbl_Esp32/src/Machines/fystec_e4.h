@@ -37,7 +37,7 @@
     #define TX_SW_SERIAL_MOTORS     GPIO_NUM_22
 #endif
 
-#define TMC_UART                UART_NUM_1
+#define TMC_UART                UART_NUM_2
 #define TMC_UART_RX             GPIO_NUM_21
 #define TMC_UART_TX             GPIO_NUM_22
 
@@ -50,24 +50,28 @@
 #define X_DIRECTION_PIN         GPIO_NUM_26
 #define X_RSENSE                TMC2209_RSENSE_DEFAULT
 #define X_DRIVER_ADDRESS        B10
+#define DEFAULT_X_MICROSTEPS    16
 
 #define Y_TRINAMIC_DRIVER       2209
 #define Y_STEP_PIN              GPIO_NUM_33
 #define Y_DIRECTION_PIN         GPIO_NUM_32
 #define Y_RSENSE                TMC2209_RSENSE_DEFAULT
 #define Y_DRIVER_ADDRESS        B11
+#define DEFAULT_Y_MICROSTEPS    16
 
 #define Z_TRINAMIC_DRIVER       2209
 #define Z_STEP_PIN              GPIO_NUM_14
 #define Z_DIRECTION_PIN         GPIO_NUM_12
 #define Z_RSENSE                TMC2209_RSENSE_DEFAULT
 #define Z_DRIVER_ADDRESS        B00
+#define DEFAULT_Z_MICROSTEPS    16
 
 // #define A_TRINAMIC_DRIVER       2209
 // #define A_STEP_PIN              GPIO_NUM_16
 // #define A_DIRECTION_PIN         GPIO_NUM_17
 // #define A_RSENSE                TMC2209_RSENSE_DEFAULT
 // #define A_DRIVER_ADDRESS        B01
+// #define DEFAULT_A_MICROSTEPS    16
 
 #define X_LIMIT_PIN             GPIO_NUM_34
 #define Y_LIMIT_PIN             GPIO_NUM_35
