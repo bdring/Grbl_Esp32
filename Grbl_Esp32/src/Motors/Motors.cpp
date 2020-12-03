@@ -343,52 +343,7 @@ void           init_motors() {
     }
 }
 
-uint8_t get_trinamic_driver_uart_address(uint8_t axis) {
-    if (axis == X_AXIS) {
-#if (X_TRINAMIC_DRIVER == 2208)
-        return 0;
-#elif defined(X_DRIVER_ADDRESS)
-        return X_DRIVER_ADDRESS;
-#endif
-    } else if (axis == X2_AXIS) {
-#if (X2_TRINAMIC_DRIVER == 2208)
-        return 0;
-#elif defined(X2_DRIVER_ADDRESS)
-        return X2_DRIVER_ADDRESS;
-#endif
-    } else if (axis == Y_AXIS) {
-#if (Y_TRINAMIC_DRIVER == 2208)
-        return 0;
-#elif defined(Y_DRIVER_ADDRESS)
-        return Y_DRIVER_ADDRESS;
-#endif
-    } else if (axis == Y2_AXIS) {
-#if (Y2_TRINAMIC_DRIVER == 2208)
-        return 0;
-#elif defined(Y2_DRIVER_ADDRESS)
-        return Y2_DRIVER_ADDRESS;
-#endif
-    } else if (axis == Z_AXIS) {
-#if (Z_TRINAMIC_DRIVER == 2208)
-        return 0;
-#elif defined(Z_DRIVER_ADDRESS)
-        return Z_DRIVER_ADDRESS;
-#endif
-    } else if (axis == Z2_AXIS) {
-#if (Z2_TRINAMIC_DRIVER == 2208)
-        return 0;
-#elif defined(Z2_DRIVER_ADDRESS)
-        return Z2_DRIVER_ADDRESS;
-#endif
-    } else if (axis == A_AXIS) {
-#if (A_TRINAMIC_DRIVER == 2208)
-        return 0;
-#elif defined(A_DRIVER_ADDRESS)
-        return A_DRIVER_ADDRESS;
-#endif
-    }
-    return 0;
-}
+
 
 void motors_set_disable(bool disable) {
     static bool previous_state = true;

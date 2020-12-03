@@ -58,12 +58,20 @@ const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) use
 #    define TRINAMIC_UART_TOFF_COOLSTEP 3
 #endif
 
+#ifndef SERIAL_FOR_MOTORS
+#    define SERIAL_FOR_MOTORS &Serial2
+#endif
+
+#ifndef TMC_UART
+#    define TMC_UART UART_NUM_2
+#endif
+
 #ifndef TMC_UART_RX
-#    define TMC_UART_RX  UNDEFINED_PIN
+#    define TMC_UART_RX UNDEFINED_PIN
 #endif
 
 #ifndef TMC_UART_TX
-#    define TMC_UART_TX  UNDEFINED_PIN
+#    define TMC_UART_TX UNDEFINED_PIN
 #endif
 
 namespace Motors {
@@ -84,9 +92,7 @@ namespace Motors {
                            uint16_t        driver_part_number,
                            float           r_senseS,
                            HardwareSerial* serial,
-                           uint8_t address);
-
-        
+                           uint8_t         address);
 
         void config_message();
         void hw_serial_init();
@@ -98,7 +104,7 @@ namespace Motors {
         bool set_homing_mode(bool is_homing) override;
         void set_disable(bool disable) override;
 
-        uint8_t  addr;
+        uint8_t addr;
 
     private:
         uint32_t calc_tstep(float speed, float percent);  //TODO: see if this is useful/used.
