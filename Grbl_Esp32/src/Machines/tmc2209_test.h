@@ -21,26 +21,15 @@
 */
 
 
-// Select a version to match your PCB
-
 #define MACHINE_NAME    "ESP32_TMC2209_TEST SINGLE MOTOR"
 
 #define SHOW_EXTENDED_SETTINGS
 
 #define USE_TRINAMIC // Using at least 1 trinamic driver
 
-/* Define SW_SERIAL_MOTORS or HW_SERIAL_MOTORS */
-//#define SW_SERIAL_MOTORS
-#define HW_SERIAL_MOTORS
-
-#ifdef SW_SERIAL_MOTORS
-#define RX_SW_SERIAL_MOTORS     GPIO_NUM_5
-#define TX_SW_SERIAL_MOTORS     GPIO_NUM_5
-#endif
-
-#ifdef HW_SERIAL_MOTORS
-#define SERIAL_FOR_MOTORS       &Serial2
-#endif
+#define TMC_UART                UART_NUM_1
+#define TMC_UART_RX             GPIO_NUM_16
+#define TMC_UART_TX             GPIO_NUM_17
 
 #define X_DRIVER_ADDRESS        0
 

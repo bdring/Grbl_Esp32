@@ -23,6 +23,8 @@
 
 #include <TMCStepper.h>
 
+HardwareSerial tmc_serial(TMC_UART);
+
 namespace Motors {
 
     /* HW Serial Constructor. */
@@ -49,9 +51,9 @@ namespace Motors {
     void TrinamicUartDriver::hw_serial_init() {
         if (_driver_part_number == 2208)
             // TMC 2208 does not use address, this field is 0, differently from 2209
-            tmcstepper = new TMC2208Stepper(SERIAL_FOR_MOTORS, _r_sense);
+            tmcstepper = new TMC2208Stepper(&tmc_serial, _r_sense);
         else if (_driver_part_number == 2209)
-            tmcstepper = new TMC2209Stepper(SERIAL_FOR_MOTORS, _r_sense, addr);
+            tmcstepper = new TMC2209Stepper(&tmc_serial, _r_sense, addr);
         else {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Trinamic Uart unsupported p/n:%d", _driver_part_number);
             return;
