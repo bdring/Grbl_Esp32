@@ -37,6 +37,7 @@
     #define TX_SW_SERIAL_MOTORS     GPIO_NUM_22
 #endif
 
+#define TMC_UART                UART_NUM_1
 #define TMC_UART_RX             GPIO_NUM_21
 #define TMC_UART_TX             GPIO_NUM_22
 
