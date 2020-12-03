@@ -58,10 +58,6 @@ const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) use
 #    define TRINAMIC_UART_TOFF_COOLSTEP 3
 #endif
 
-#ifndef SERIAL_FOR_MOTORS
-#    define SERIAL_FOR_MOTORS &Serial2
-#endif
-
 #ifndef TMC_UART
 #    define TMC_UART UART_NUM_2
 #endif

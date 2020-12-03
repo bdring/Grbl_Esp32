@@ -31,7 +31,6 @@
 #define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
 
 #define TMC_UART                UART_NUM_2
-#define SERIAL_FOR_MOTORS       &Serial2 
 #define TMC_UART_RX             GPIO_NUM_21
 #define TMC_UART_TX             GPIO_NUM_22   
 
