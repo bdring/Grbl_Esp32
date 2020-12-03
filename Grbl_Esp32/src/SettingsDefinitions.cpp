@@ -175,7 +175,7 @@ static bool checkStartupLine(char* value) {
 }
 
 static bool postTMC(char* value) {
-    if (!value) {  // No POST functionality
+    if (!value) {
         motors_read_settings();
     }
     return true;
@@ -183,13 +183,18 @@ static bool postTMC(char* value) {
 
 static bool checkSpindleChange(char* val) {
     if (!val) {
-        spindle->deinit();
-        Spindles::Spindle::select();
+        // if not in disable (M5) ...
+        if (gc_state.modal.spindle != SpindleState::Disable) {
+            gc_state.modal.spindle = SpindleState::Disable;
+            if (spindle->use_delays && spindle_delay_spindown->get() != 0) {  // old spindle
+                vTaskDelay(spindle_delay_spindown->get() * 1000);
+            }
+            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Spindle turned off with setting change");
+        }
+        gc_state.spindle_speed = 0; // Set S value to 0 
+        spindle->deinit(); // old spindle
+        Spindles::Spindle::select(); // get new spindle
         return true;
-    }
-    if (gc_state.modal.spindle != SpindleState::Disable) {
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Spindle must be off to make this change");
-        return false;
     }
     return true;
 }
