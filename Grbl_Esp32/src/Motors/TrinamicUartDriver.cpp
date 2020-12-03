@@ -39,7 +39,8 @@ namespace Motors {
         _has_errors         = false;
         _r_sense            = r_sense;
         this->addr          = addr;
-
+        
+        uart_set_pin(TMC_UART, TMC_UART_TX, TMC_UART_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
         serial->begin(115200, SERIAL_8N1, TMC_UART_RX, TMC_UART_TX);
         serial->setRxBufferSize(128);
         hw_serial_init();
@@ -100,6 +101,8 @@ namespace Motors {
         if (_has_errors) {
             return;
         }
+        
+        init_step_dir_pins();  // from StandardStepper
         config_message();
 
         tmcstepper->begin();
@@ -128,12 +131,13 @@ namespace Motors {
     void TrinamicUartDriver::config_message() {  //TODO: The RX/TX pin could be added to the msg.
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Trinamic TMC%d Step:%s Dir:%s Disable:%s Rx:%s Tx:%s Addr:%d R:%0.3f %s",
+                       "%s Trinamic TMC%d Step:%s Dir:%s Disable:%s UART%d Rx:%s Tx:%s Addr:%d R:%0.3f %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _driver_part_number,
                        pinName(_step_pin).c_str(),
                        pinName(_dir_pin).c_str(),
                        pinName(_disable_pin).c_str(),
+                       TMC_UART,
                        pinName(TMC_UART_RX),
                        pinName(TMC_UART_TX),
                        this->addr,
