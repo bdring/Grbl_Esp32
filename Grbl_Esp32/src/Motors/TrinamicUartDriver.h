@@ -83,51 +83,13 @@ namespace Motors {
                            uint8_t         disable_pin,
                            uint16_t        driver_part_number,
                            float           r_senseS,
-                           HardwareSerial* serial) :
-            TrinamicUartDriver(
-                axis_index, step_pin, dir_pin, disable_pin, driver_part_number, r_senseS, serial, get_trinamic_driver_uart_address(axis_index)) {
-        }
-
-        TrinamicUartDriver(uint8_t         axis_index,
-                           uint8_t         step_pin,
-                           uint8_t         dir_pin,
-                           uint8_t         disable_pin,
-                           uint16_t        driver_part_number,
-                           float           r_senseS,
                            HardwareSerial* serial,
-                           uint8_t         address);
+                           uint8_t address);
 
-        TrinamicUartDriver(uint8_t    axis_index,
-                           gpio_num_t step_pin,
-                           uint8_t    dir_pin,
-                           uint8_t    disable_pin,
-                           uint16_t   driver_part_number,
-                           float      r_sense,
-                           uint16_t   SW_RX_pin,
-                           uint16_t   SW_TX_pin) :
-            TrinamicUartDriver(axis_index,
-                               step_pin,
-                               dir_pin,
-                               disable_pin,
-                               driver_part_number,
-                               r_sense,
-                               SW_RX_pin,
-                               SW_TX_pin,
-                               get_trinamic_driver_uart_address(axis_index)) {}
-
-        TrinamicUartDriver(uint8_t    axis_index,
-                           gpio_num_t step_pin,
-                           uint8_t    dir_pin,
-                           uint8_t    disable_pin,
-                           uint16_t   driver_part_number,
-                           float      r_sense,
-                           uint16_t   SW_RX_pin,
-                           uint16_t   SW_TX_pin,
-                           uint8_t    addr);
+        
 
         void config_message();
         void hw_serial_init();
-        void sw_serial_init();
         void init();
         void set_mode();
         void read_settings();
@@ -137,8 +99,6 @@ namespace Motors {
         void set_disable(bool disable) override;
 
         uint8_t  addr;
-        uint16_t SW_RX_pin;
-        uint16_t SW_TX_pin;
 
     private:
         uint32_t calc_tstep(float speed, float percent);  //TODO: see if this is useful/used.

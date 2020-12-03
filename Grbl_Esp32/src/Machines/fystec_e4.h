@@ -25,7 +25,7 @@
 
 #define MACHINE_NAME            "FYSTEC E4"
 
-#define N_AXIS 3
+#define N_AXIS 4
 
 #define TRINAMIC_RUN_MODE           TrinamicMode :: CoolStep
 #define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
@@ -49,29 +49,29 @@
 #define X_STEP_PIN              GPIO_NUM_27
 #define X_DIRECTION_PIN         GPIO_NUM_26
 #define X_RSENSE                TMC2209_RSENSE_DEFAULT
-#define X_DRIVER_ADDRESS        B10
+#define X_DRIVER_ADDRESS        B01 // 1
 #define DEFAULT_X_MICROSTEPS    16
 
 #define Y_TRINAMIC_DRIVER       2209
 #define Y_STEP_PIN              GPIO_NUM_33
 #define Y_DIRECTION_PIN         GPIO_NUM_32
 #define Y_RSENSE                TMC2209_RSENSE_DEFAULT
-#define Y_DRIVER_ADDRESS        B11
+#define Y_DRIVER_ADDRESS        B11 // 3
 #define DEFAULT_Y_MICROSTEPS    16
 
 #define Z_TRINAMIC_DRIVER       2209
 #define Z_STEP_PIN              GPIO_NUM_14
 #define Z_DIRECTION_PIN         GPIO_NUM_12
 #define Z_RSENSE                TMC2209_RSENSE_DEFAULT
-#define Z_DRIVER_ADDRESS        B00
+#define Z_DRIVER_ADDRESS        B00 // 0
 #define DEFAULT_Z_MICROSTEPS    16
 
-// #define A_TRINAMIC_DRIVER       2209
-// #define A_STEP_PIN              GPIO_NUM_16
-// #define A_DIRECTION_PIN         GPIO_NUM_17
-// #define A_RSENSE                TMC2209_RSENSE_DEFAULT
-// #define A_DRIVER_ADDRESS        B01
-// #define DEFAULT_A_MICROSTEPS    16
+#define A_TRINAMIC_DRIVER       2209
+#define A_STEP_PIN              GPIO_NUM_16
+#define A_DIRECTION_PIN         GPIO_NUM_17
+#define A_RSENSE                TMC2209_RSENSE_DEFAULT
+#define A_DRIVER_ADDRESS        B10 //2
+#define DEFAULT_A_MICROSTEPS    16
 
 #define X_LIMIT_PIN             GPIO_NUM_34
 #define Y_LIMIT_PIN             GPIO_NUM_35
