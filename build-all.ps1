@@ -10,12 +10,12 @@ Function BuildMachine($names) {
     $env:PLATFORMIO_BUILD_FLAGS = "-DMACHINE_FILENAME=$basename"
     $displayname = $basename
     Write-Output "Building machine $displayname"
-    platformio run 2>&1 | Select-String error,Took
+    platformio run 2>&1 | Select-String Compiling -NotMatch | Select-String error,Took
     Write-Output " "
 }
 
 # Build all the machines
-foreach ($filepath in Get-ChildItem -file .\Grbl_Esp32\Machines\*) {
+foreach ($filepath in Get-ChildItem -file .\Grbl_Esp32\src\Machines\*) {
     BuildMachine($filepath.name, "")
 }
 

@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+Please only submit bugs for **latest** main or devt branches. You can check the version number in the startup messgaes and compare it to the version in [grbl.h](https://github.com/bdring/Grbl_Esp32/blob/main/Grbl_Esp32/src/Grbl.h)
+
 Please answer the following questions.
 
 What version of the firmware are you using?

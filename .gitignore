@@ -10,3 +10,13 @@ embedded/dist
 .vscode/
 .history/
 *.pyc
+.vs/
+Debug/
+Release/
+*.vsarduino.h
+__vm/
+*.user
+*.vcxproj
+*.vcxproj.filters
+*.suo
+Grbl_Esp32.ino.cpp
