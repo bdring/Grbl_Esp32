@@ -24,15 +24,8 @@
 
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 
-//#define TRINAMIC_MODE_STEALTHCHOP 0  // very quiet
-//#define TRINAMIC_MODE_COOLSTEP 1     // everything runs cooler so higher current possible
-//#define TRINAMIC_MODE_STALLGUARD 2   // coolstep plus generates stall indication
-
 const float TMC2208_RSENSE_DEFAULT = 0.11f;
 const float TMC2209_RSENSE_DEFAULT = 0.11f;
-
-// const int NORMAL_TCOOLTHRS = 0xFFFFF;  // 20 bit is max
-// const int NORMAL_THIGH     = 0;
 
 const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
 
@@ -83,21 +76,19 @@ namespace Motors {
 
     class TrinamicUartDriver : public StandardStepper {
     public:
-        TrinamicUartDriver(uint8_t         axis_index,
-                           uint8_t         step_pin,
-                           uint8_t         dir_pin,
-                           uint8_t         disable_pin,
-                           uint16_t        driver_part_number,
-                           float           r_senseS,
-                           HardwareSerial* serial,
-                           uint8_t         address);
+        TrinamicUartDriver(uint8_t  axis_index,
+                           uint8_t  step_pin,
+                           uint8_t  dir_pin,
+                           uint8_t  disable_pin,
+                           uint16_t driver_part_number,
+                           float    r_senseS,
+                           uint8_t  address);
 
         void config_message();
         void hw_serial_init();
         void init();
         void set_mode();
         void read_settings();
-        // void set_settings();
         void debug_message();
         bool set_homing_mode(bool is_homing) override;
         void set_disable(bool disable) override;

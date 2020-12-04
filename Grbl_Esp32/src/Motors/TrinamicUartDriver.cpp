@@ -34,7 +34,6 @@ namespace Motors {
                                            uint8_t         disable_pin,
                                            uint16_t        driver_part_number,
                                            float           r_sense,
-                                           HardwareSerial* serial,
                                            uint8_t         addr) :
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin) {
         _driver_part_number = driver_part_number;
@@ -43,8 +42,8 @@ namespace Motors {
         this->addr          = addr;
 
         uart_set_pin(TMC_UART, TMC_UART_TX, TMC_UART_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-        serial->begin(115200, SERIAL_8N1, TMC_UART_RX, TMC_UART_TX);
-        serial->setRxBufferSize(128);
+        tmc_serial.begin(115200, SERIAL_8N1, TMC_UART_RX, TMC_UART_TX);
+        tmc_serial.setRxBufferSize(128);
         hw_serial_init();
     }
 
