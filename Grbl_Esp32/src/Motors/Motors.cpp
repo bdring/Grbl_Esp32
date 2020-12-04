@@ -233,7 +233,7 @@ void           init_motors() {
         }
 #    elif (A2_TRINAMIC_DRIVER == 2208 || A2_TRINAMIC_DRIVER == 2209)
         {
-            myMotor[A_AXIS][0] = new Motors::TrinamicUartDriver(
+            myMotor[A_AXIS][1] = new Motors::TrinamicUartDriver(
                 A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN, A2_TRINAMIC_DRIVER, A2_RSENSE, &tmc_serial, A2_DRIVER_ADDRESS);
         }
 #    endif
@@ -283,7 +283,7 @@ void           init_motors() {
         }
 #    elif (B2_TRINAMIC_DRIVER == 2208 || B2_TRINAMIC_DRIVER == 2209)
         {
-            myMotor[B_AXIS][0] = new Motors::TrinamicUartDriver(
+            myMotor[B_AXIS][1] = new Motors::TrinamicUartDriver(
                 B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN, B2_TRINAMIC_DRIVER, B2_RSENSE, &tmc_serial, B2_DRIVER_ADDRESS);
         }
 #    endif
@@ -333,7 +333,7 @@ void           init_motors() {
         }
 #    elif (C2_TRINAMIC_DRIVER == 2208 || C2_TRINAMIC_DRIVER == 2209)
         {
-            myMotor[C_AXIS][0] = new Motors::TrinamicUartDriver(
+            myMotor[C_AXIS][1] = new Motors::TrinamicUartDriver(
                 C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN, C2_TRINAMIC_DRIVER, C2_RSENSE, &tmc_serial, C2_DRIVER_ADDRESS);
         }
 #    endif
