@@ -42,13 +42,14 @@ namespace Spindles {
             return;
         }
 
+        _current_state    = SpindleState::Disable;
+        _current_pwm_duty = 0;
+        use_delays        = true;
+
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
         ledcAttachPin(_output_pin, _pwm_chan_num);                    // attach the PWM to the pin
-
         pinMode(_enable_pin, OUTPUT);
         pinMode(_direction_pin, OUTPUT);
-
-        use_delays = true;
 
         config_message();
     }
@@ -146,7 +147,7 @@ namespace Spindles {
             }
         }
 
-        set_enable_pin(_current_state != SpindleState::Disable);
+        set_enable_pin(gc_state.modal.spindle != SpindleState::Disable);
         set_output(pwm_value);
 
         return 0;
@@ -225,6 +226,14 @@ namespace Spindles {
     }
 
     void PWM::set_enable_pin(bool enable) {
+        // static bool prev_enable = false;
+
+        // if (prev_enable == enable) {
+        //     return;
+        // }
+
+        // prev_enable = enable;
+
         if (_enable_pin == UNDEFINED_PIN) {
             return;
         }
@@ -262,13 +271,16 @@ namespace Spindles {
     void PWM::deinit() {
         stop();
 #ifdef SPINDLE_OUTPUT_PIN
+        gpio_reset_pin(SPINDLE_OUTPUT_PIN);
         pinMode(SPINDLE_OUTPUT_PIN, INPUT);
 #endif
 #ifdef SPINDLE_ENABLE_PIN
+        gpio_reset_pin(SPINDLE_ENABLE_PIN);
         pinMode(SPINDLE_ENABLE_PIN, INPUT);
 #endif
 
 #ifdef SPINDLE_DIR_PIN
+        gpio_reset_pin(SPINDLE_DIR_PIN);
         pinMode(SPINDLE_DIR_PIN, INPUT);
 #endif
     }

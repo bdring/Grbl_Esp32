@@ -96,7 +96,7 @@ bool can_park() {
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
         sys.override_ctrl == Override::ParkingMotion &&
 #endif
-        homing_enable->get() && !laser_mode->get();
+        homing_enable->get() && !spindle->inLaserMode();
 }
 
 /*
@@ -558,7 +558,7 @@ static void protocol_exec_rt_suspend() {
         restore_spindle_speed = block->spindle_speed;
     }
 #ifdef DISABLE_LASER_DURING_HOLD
-    if (laser_mode->get()) {
+    if (spindle->inLaserMode()) {
         sys_rt_exec_accessory_override.bit.spindleOvrStop = true;
     }
 #endif
@@ -661,7 +661,7 @@ static void protocol_exec_rt_suspend() {
                         if (gc_state.modal.spindle != SpindleState::Disable) {
                             // Block if safety door re-opened during prior restore actions.
                             if (!sys.suspend.bit.restartRetract) {
-                                if (laser_mode->get()) {
+                                if (spindle->inLaserMode()) {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                     sys.step_control.updateSpindleRpm = true;
                                 } else {
@@ -717,7 +717,7 @@ static void protocol_exec_rt_suspend() {
                     } else if (sys.spindle_stop_ovr.bit.restore || sys.spindle_stop_ovr.bit.restoreCycle) {
                         if (gc_state.modal.spindle != SpindleState::Disable) {
                             report_feedback_message(Message::SpindleRestore);
-                            if (laser_mode->get()) {
+                            if (spindle->inLaserMode()) {
                                 // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                 sys.step_control.updateSpindleRpm = true;
                             } else {

@@ -24,8 +24,8 @@
 // ===================================== Laser ==============================================
 
 namespace Spindles {
-    bool Laser::isRateAdjusted() {
-        return true;  // can use M4 (CCW) laser mode.
+    bool Laser::inLaserMode() {
+        return laser_mode->get();  // can use M4 (CCW) laser mode.
     }
 
     void Laser::config_message() {
@@ -89,10 +89,12 @@ namespace Spindles {
     void Laser::deinit() {
         stop();
 #ifdef LASER_OUTPUT_PIN
+        gpio_reset_pin(LASER_OUTPUT_PIN);
         pinMode(LASER_OUTPUT_PIN, INPUT);
 #endif
 
 #ifdef LASER_ENABLE_PIN
+        gpio_reset_pin(LASER_ENABLE_PIN);
         pinMode(LASER_ENABLE_PIN, INPUT);
 #endif
     }
