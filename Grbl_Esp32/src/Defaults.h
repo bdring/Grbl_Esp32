@@ -647,3 +647,19 @@
 #ifndef USER_ANALOG_PIN_3_FREQ
 #    define USER_ANALOG_PIN_3_FREQ 5000
 #endif
+
+#ifndef DEFAULT_USER_MACRO0
+#    define DEFAULT_USER_MACRO0     ""
+#endif
+
+#ifndef DEFAULT_USER_MACRO1
+#    define DEFAULT_USER_MACRO1     ""
+#endif
+
+#ifndef DEFAULT_USER_MACRO2
+#    define DEFAULT_USER_MACRO2     ""
+#endif
+
+#ifndef DEFAULT_USER_MACRO3
+#    define DEFAULT_USER_MACRO3     ""
+#endif
