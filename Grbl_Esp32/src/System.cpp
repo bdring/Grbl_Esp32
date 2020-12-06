@@ -125,7 +125,7 @@ void controlCheckTask(void* pvParameters) {
         debouncing = false;
 
         static UBaseType_t uxHighWaterMark = 0;
-        reportTaskStackSize(uxHighWaterMark);
+        //reportTaskStackSize(uxHighWaterMark);
     }
 }
 #endif

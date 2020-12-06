@@ -79,7 +79,7 @@ void heapCheckTask(void* pvParameters) {
         vTaskDelay(3000 / portTICK_RATE_MS);  // Yield to other tasks
 
         static UBaseType_t uxHighWaterMark = 0;
-        reportTaskStackSize(uxHighWaterMark);
+        //reportTaskStackSize(uxHighWaterMark);
     }
 }
 
@@ -104,8 +104,8 @@ void serial_init() {
                             NULL,               // parameters
                             1,                  // priority
                             &serialCheckTaskHandle,
-                            CONFIG_ARDUINO_RUNNING_CORE  // must run the task on same core
-                                                         // core
+                            SUPPORT_TASK_CORE  // must run the task on same core
+                                               // core
     );
 }
 
@@ -157,9 +157,11 @@ void serialCheckTask(void* pvParameters) {
             if (is_realtime_command(data)) {
                 execute_realtime_command(static_cast<Cmd>(data), client);
             } else {
-                vTaskEnterCritical(&myMutex);
-                client_buffer[client].write(data);
-                vTaskExitCritical(&myMutex);
+                if (get_sd_state(false) == SDCARD_IDLE) {
+                    vTaskEnterCritical(&myMutex);
+                    client_buffer[client].write(data);
+                    vTaskExitCritical(&myMutex);
+                }
             }
         }  // if something available
         WebUI::COMMANDS::handle();
@@ -175,7 +177,7 @@ void serialCheckTask(void* pvParameters) {
         vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
 
         static UBaseType_t uxHighWaterMark = 0;
-        reportTaskStackSize(uxHighWaterMark);
+        //reportTaskStackSize(uxHighWaterMark);
     }  // while(true)
 }
 

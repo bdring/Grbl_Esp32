@@ -115,8 +115,8 @@ namespace Motors {
                                     NULL,          // parameters
                                     1,             // priority
                                     NULL,
-                                    CONFIG_ARDUINO_RUNNING_CORE  // must run the task on same core
-                                                                 // core
+                                    SUPPORT_TASK_CORE  // must run the task on same core
+                                                       // core
             );
         }
     }
@@ -368,7 +368,7 @@ namespace Motors {
             vTaskDelayUntil(&xLastWakeTime, xreadSg);
 
             static UBaseType_t uxHighWaterMark = 0;
-            reportTaskStackSize(uxHighWaterMark);
+            //reportTaskStackSize(uxHighWaterMark);
         }
     }
 

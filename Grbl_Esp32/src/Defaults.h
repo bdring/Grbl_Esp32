@@ -461,6 +461,10 @@
 // This can eliminate checking to see if the pin is defined because
 // the overridden pinMode and digitalWrite functions will deal with it.
 
+#ifndef SDCARD_DET_PIN
+#    define SDCARD_DET_PIN UNDEFINED_PIN
+#endif
+
 #ifndef STEPPERS_DISABLE_PIN
 #    define STEPPERS_DISABLE_PIN UNDEFINED_PIN
 #endif
@@ -649,17 +653,17 @@
 #endif
 
 #ifndef DEFAULT_USER_MACRO0
-#    define DEFAULT_USER_MACRO0     ""
+#    define DEFAULT_USER_MACRO0 ""
 #endif
 
 #ifndef DEFAULT_USER_MACRO1
-#    define DEFAULT_USER_MACRO1     ""
+#    define DEFAULT_USER_MACRO1 ""
 #endif
 
 #ifndef DEFAULT_USER_MACRO2
-#    define DEFAULT_USER_MACRO2     ""
+#    define DEFAULT_USER_MACRO2 ""
 #endif
 
 #ifndef DEFAULT_USER_MACRO3
-#    define DEFAULT_USER_MACRO3     ""
+#    define DEFAULT_USER_MACRO3 ""
 #endif
