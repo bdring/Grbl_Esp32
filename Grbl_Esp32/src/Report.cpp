@@ -753,16 +753,16 @@ void report_realtime_status(uint8_t client) {
                 strcat(status, "S");
             }
             if (ctrl_pin_state.bit.macro0) {
-                strcat(status, "M0");
+                strcat(status, "0");
             }
             if (ctrl_pin_state.bit.macro1) {
-                strcat(status, "M1");
+                strcat(status, "1");
             }
             if (ctrl_pin_state.bit.macro2) {
-                strcat(status, "M2");
+                strcat(status, "2");
             }
             if (ctrl_pin_state.bit.macro3) {
-                strcat(status, "M3");
+                strcat(status, "3");
             }
         }
     }
