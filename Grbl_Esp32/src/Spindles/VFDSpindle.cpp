@@ -194,7 +194,9 @@ namespace Spindles {
                     vTaskDelay(VFD_RS485_POLL_RATE);
 
                     static UBaseType_t uxHighWaterMark = 0;
-                    //reportTaskStackSize(uxHighWaterMark);
+#ifdef DEBUG_TASK_STACK
+                    reportTaskStackSize(uxHighWaterMark);
+#endif
                 }
             }
 
