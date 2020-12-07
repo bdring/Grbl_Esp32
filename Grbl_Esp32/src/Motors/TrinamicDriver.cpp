@@ -353,7 +353,7 @@ namespace Motors {
         auto             n_axis  = number_axis->get();
 
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
-        while (true) {                        // don't ever return from this or the task dies          
+        while (true) {                        // don't ever return from this or the task dies
             if (stallguard_debug_mask->get() != 0) {
                 if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
                     for (TrinamicDriver* p = List; p; p = p->link) {
@@ -368,7 +368,9 @@ namespace Motors {
             vTaskDelayUntil(&xLastWakeTime, xreadSg);
 
             static UBaseType_t uxHighWaterMark = 0;
-            //reportTaskStackSize(uxHighWaterMark);
+#ifdef DEBUG_TASK_STACK
+            reportTaskStackSize(uxHighWaterMark);
+#endif
         }
     }
 

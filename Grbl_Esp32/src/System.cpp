@@ -125,7 +125,9 @@ void controlCheckTask(void* pvParameters) {
         debouncing = false;
 
         static UBaseType_t uxHighWaterMark = 0;
-        //reportTaskStackSize(uxHighWaterMark);
+#    ifdef DEBUG_TASK_STACK
+        reportTaskStackSize(uxHighWaterMark);
+#    endif
     }
 }
 #endif
@@ -343,7 +345,7 @@ void __attribute__((weak)) user_defined_macro(uint8_t index) {
     char   line[255];
     switch (index) {
         case 0:
-            user_macro = user_macro0->get();            
+            user_macro = user_macro0->get();
             break;
         case 1:
             user_macro = user_macro1->get();
@@ -362,7 +364,7 @@ void __attribute__((weak)) user_defined_macro(uint8_t index) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro User/Macro%d empty", index);
         return;
     }
-    
+
     user_macro.replace('&', '\n');
     user_macro.toCharArray(line, 255, 0);
     strcat(line, "\r");

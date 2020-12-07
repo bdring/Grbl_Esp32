@@ -68,7 +68,9 @@ namespace Motors {
             vTaskDelayUntil(&xLastWakeTime, xUpdate);
 
             static UBaseType_t uxHighWaterMark = 0;
-            //reportTaskStackSize(uxHighWaterMark);
+#ifdef DEBUG_TASK_STACK
+            reportTaskStackSize(uxHighWaterMark);
+#endif
         }
     }
 

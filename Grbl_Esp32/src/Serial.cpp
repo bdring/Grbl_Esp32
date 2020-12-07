@@ -79,7 +79,9 @@ void heapCheckTask(void* pvParameters) {
         vTaskDelay(3000 / portTICK_RATE_MS);  // Yield to other tasks
 
         static UBaseType_t uxHighWaterMark = 0;
-        //reportTaskStackSize(uxHighWaterMark);
+#ifdef DEBUG_TASK_STACK
+        reportTaskStackSize(uxHighWaterMark);
+#endif
     }
 }
 
@@ -177,8 +179,10 @@ void serialCheckTask(void* pvParameters) {
         vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
 
         static UBaseType_t uxHighWaterMark = 0;
-        //reportTaskStackSize(uxHighWaterMark);
-    }  // while(true)
+#ifdef DEBUG_TASK_STACK
+        reportTaskStackSize(uxHighWaterMark);
+#endif
+    }
 }
 
 void serial_reset_read_buffer(uint8_t client) {
