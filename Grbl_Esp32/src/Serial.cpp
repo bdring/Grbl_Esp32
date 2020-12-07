@@ -163,6 +163,10 @@ void serialCheckTask(void* pvParameters) {
                     vTaskEnterCritical(&myMutex);
                     client_buffer[client].write(data);
                     vTaskExitCritical(&myMutex);
+                } else {
+                    if (data == '\r' || data == '\n') {
+                        grbl_sendf(client, "error d%\r\n", Error::AnotherInterfaceBusy);
+                    }
                 }
             }
         }  // if something available

@@ -164,7 +164,7 @@ namespace WebUI {
 
 Error WebCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (_cmdChecker && _cmdChecker()) {
-        return Error::IdleError;
+        return Error::AnotherInterfaceBusy;
     }
     char empty = '\0';
     if (!value) {
