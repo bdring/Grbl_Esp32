@@ -866,7 +866,9 @@ namespace WebUI {
             default:
                 resp = "Busy";
         }
-#endif
+#else
+        resp = "SD card not enabled";
+#endif        
         webPrintln(resp);
         return Error::Ok;
     }
