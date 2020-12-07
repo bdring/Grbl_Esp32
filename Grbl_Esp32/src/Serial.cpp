@@ -165,7 +165,8 @@ void serialCheckTask(void* pvParameters) {
                     vTaskExitCritical(&myMutex);
                 } else {
                     if (data == '\r' || data == '\n') {
-                        grbl_sendf(client, "error d%\r\n", Error::AnotherInterfaceBusy);
+                        grbl_sendf(client, "error %d\r\n", Error::AnotherInterfaceBusy);
+                        grbl_msg_sendf(client, MsgLevel::Info, "SD card job running");
                     }
                 }
             }
