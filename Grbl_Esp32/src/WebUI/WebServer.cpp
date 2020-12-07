@@ -1221,9 +1221,13 @@ namespace WebUI {
         bool     list_files = true;
         uint64_t totalspace = 0;
         uint64_t usedspace  = 0;
-        if (get_sd_state(true) != SDCARD_IDLE) {
+        int8_t state = get_sd_state(true);
+        if (state != SDCARD_IDLE) {
+            String status = "{\"status\":\"";
+            if(state == SDCARD_NOT_PRESENT)status+="No SD Card\"}";
+            else status+="Busy\"}";
             _webserver->sendHeader("Cache-Control", "no-cache");
-            _webserver->send(200, "application/json", "{\"status\":\"No SD Card\"}");
+            _webserver->send(200, "application/json", status);
             return;
         }
         set_sd_state(SDCARD_BUSY_PARSING);
