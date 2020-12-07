@@ -163,6 +163,9 @@ namespace WebUI {
 }
 
 Error WebCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    if (_cmdChecker && _cmdChecker()) {
+        return Error::IdleError;
+    }
     char empty = '\0';
     if (!value) {
         value = &empty;
@@ -1066,7 +1069,7 @@ namespace WebUI {
 #ifdef ENABLE_NOTIFICATIONS
         notification_ts = new StringSetting(
             "Notification Settings", WEBSET, WA, NULL, "Notification/TS", DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
-        notification_t2 = new StringSetting("Notification Token 2",
+        notification_t2   = new StringSetting("Notification Token 2",
                                             WEBSET,
                                             WA,
                                             NULL,
@@ -1075,7 +1078,7 @@ namespace WebUI {
                                             MIN_NOTIFICATION_TOKEN_LENGTH,
                                             MAX_NOTIFICATION_TOKEN_LENGTH,
                                             NULL);
-        notification_t1 = new StringSetting("Notification Token 1",
+        notification_t1   = new StringSetting("Notification Token 1",
                                             WEBSET,
                                             WA,
                                             NULL,
@@ -1084,8 +1087,8 @@ namespace WebUI {
                                             MIN_NOTIFICATION_TOKEN_LENGTH,
                                             MAX_NOTIFICATION_TOKEN_LENGTH,
                                             NULL);
-        notification_type =
-            new EnumSetting("Notification type", WEBSET, WA, NULL, "Notification/Type", DEFAULT_NOTIFICATION_TYPE, &notificationOptions, NULL);
+        notification_type = new EnumSetting(
+            "Notification type", WEBSET, WA, NULL, "Notification/Type", DEFAULT_NOTIFICATION_TYPE, &notificationOptions, NULL);
 #endif
 #ifdef ENABLE_AUTHENTICATION
         user_password  = new StringSetting("User password",
@@ -1158,7 +1161,7 @@ namespace WebUI {
         wifi_sta_netmask = new IPaddrSetting("Station Static Mask", WEBSET, WA, NULL, "Sta/Netmask", DEFAULT_STA_MK, NULL);
         wifi_sta_gateway = new IPaddrSetting("Station Static Gateway", WEBSET, WA, NULL, "Sta/Gateway", DEFAULT_STA_GW, NULL);
         wifi_sta_ip      = new IPaddrSetting("Station Static IP", WEBSET, WA, NULL, "Sta/IP", DEFAULT_STA_IP, NULL);
-        wifi_sta_mode    = new EnumSetting("Station IP Mode", WEBSET, WA, "ESP102", "Sta/IPMode", DEFAULT_STA_IP_MODE, &staModeOptions, NULL);
+        wifi_sta_mode = new EnumSetting("Station IP Mode", WEBSET, WA, "ESP102", "Sta/IPMode", DEFAULT_STA_IP_MODE, &staModeOptions, NULL);
         // no get, admin to set
         wifi_sta_password = new StringSetting("Station Password",
                                               WEBSET,
