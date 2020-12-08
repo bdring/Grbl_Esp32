@@ -194,7 +194,9 @@ namespace Spindles {
                     vTaskDelay(VFD_RS485_POLL_RATE);
 
                     static UBaseType_t uxHighWaterMark = 0;
+#ifdef DEBUG_TASK_STACK
                     reportTaskStackSize(uxHighWaterMark);
+#endif
                 }
             }
 
@@ -283,7 +285,7 @@ namespace Spindles {
                                 this,                 // parameters
                                 1,                    // priority
                                 &vfd_cmdTaskHandle,
-                                1);
+                                SUPPORT_TASK_CORE);
 
         is_reversable = true;  // these VFDs are always reversable
         use_delays    = true;

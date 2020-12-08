@@ -132,6 +132,13 @@ Socket #5
 // #define VFD_RS485_RTS_PIN        GPIO_NUM_4
 // #define VFD_RS485_RXD_PIN        GPIO_NUM_16
 
+// Example (4x) 5V Buffer Output on socket #5
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
+#define USER_DIGITAL_PIN_0      I2SO(24) // No PWM
+#define USER_DIGITAL_PIN_1      I2SO(25)
+#define USER_DIGITAL_PIN_2      I2SO(26) //  M7 on M9 Off
+#define USER_DIGITAL_PIN_3      I2SO(27) //  M8 on M9 Off
+
 // ================= Setting Defaults ==========================
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800

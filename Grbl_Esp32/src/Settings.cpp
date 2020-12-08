@@ -8,8 +8,10 @@ Word::Word(type_t type, permissions_t permissions, const char* description, cons
 
 Command* Command::List = NULL;
 
-Command::Command(const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName) :
-    Word(type, permissions, description, grblName, fullName) {
+Command::Command(
+    const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName, bool (*cmdChecker)()) :
+    Word(type, permissions, description, grblName, fullName),
+    _cmdChecker(cmdChecker) {
     link = List;
     List = this;
 }
@@ -704,7 +706,7 @@ void IPaddrSetting::addWebui(WebUI::JSONencoder* j) {
 AxisSettings::AxisSettings(const char* axisName) : name(axisName) {}
 
 Error GrblCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    if (_checker && _checker()) {
+    if (_cmdChecker && _cmdChecker()) {
         return Error::IdleError;
     }
     return _action((const char*)value, auth_level, out);
