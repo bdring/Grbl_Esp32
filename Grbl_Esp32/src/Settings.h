@@ -444,7 +444,7 @@ public:
     AxisSettings(const char* axisName);
 };
 
-extern bool notCycleOrHold();
+extern bool idleOrAlarm();
 
 class WebCommand : public Command {
 private:
@@ -461,7 +461,7 @@ public:
     // At some point we might want to be more subtle, but for now we block
     // all web commands in Cycle and Hold states, to avoid crashing a
     // running job.
-    Command(description, type, permissions, grblName, name, notCycleOrHold),
+    Command(description, type, permissions, grblName, name, idleOrAlarm),
         _action(action) {}
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
