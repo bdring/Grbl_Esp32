@@ -130,7 +130,7 @@ const int MAX_N_AXIS = 6;
 // "in the clear" over unsecured channels.  It should be treated as a
 // "friendly suggestion" to prevent unwitting dangerous actions, rather than
 // as effective security against malice.
-//#define ENABLE_AUTHENTICATION
+// #define ENABLE_AUTHENTICATION
 //CONFIGURE_EYECATCH_END (DO NOT MODIFY THIS LINE)
 
 #ifdef ENABLE_AUTHENTICATION
