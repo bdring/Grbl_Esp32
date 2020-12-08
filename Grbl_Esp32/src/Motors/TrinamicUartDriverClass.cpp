@@ -44,12 +44,12 @@ namespace Motors {
 
     void TrinamicUartDriver::hw_serial_init() {
         if (_driver_part_number == 2208)
-            // TMC 2208 does not use address, this field is 0, differently from 2209
+            // TMC 2208 does not use address, this field is 0
             tmcstepper = new TMC2208Stepper(&tmc_serial, _r_sense);
         else if (_driver_part_number == 2209)
             tmcstepper = new TMC2209Stepper(&tmc_serial, _r_sense, addr);
         else {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Trinamic Uart unsupported p/n:%d", _driver_part_number);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Unsupported Trinamic motor p/n:%d", _driver_part_number);
             return;
         }
     }
@@ -72,13 +72,6 @@ namespace Motors {
         if (!_has_errors) {  //TODO: verify if this is the right way to set the Irun/IHold and microsteps.
             read_settings();
             set_mode(false);
-            // set_settings();
-            // read_settings();
-        } else {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "Driver %c is off, cannot set motor.",
-                           reportAxisNameMsg(_axis_index, _dual_axis_index));  //report_get_axis_letter(axis_index));
         }
     }
 
@@ -88,7 +81,7 @@ namespace Motors {
     void TrinamicUartDriver::config_message() {  //TODO: The RX/TX pin could be added to the msg.
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Trinamic TMC%d Step:%s Dir:%s Disable:%s UART%d Rx:%s Tx:%s Addr:%d R:%0.3f %s",
+                       "%s motor Trinamic TMC%d Step:%s Dir:%s Disable:%s UART%d Rx:%s Tx:%s Addr:%d R:%0.3f %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _driver_part_number,
                        pinName(_step_pin).c_str(),
@@ -110,13 +103,13 @@ namespace Motors {
             case 1:
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
-                               "%s Trinamic driver test failed. Check connection",
+                               "%s driver test failed. Check connection",
                                reportAxisNameMsg(_axis_index, _dual_axis_index));
                 return false;
             case 2:
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
-                               "%s Trinamic driver test failed. Check motor power",
+                               "%s driver test failed. Check motor power",
                                reportAxisNameMsg(_axis_index, _dual_axis_index));
                 return false;
             default:
@@ -144,8 +137,7 @@ namespace Motors {
                     return false;
                 }
 
-                grbl_msg_sendf(
-                    CLIENT_SERIAL, MsgLevel::Info, "%s Trinamic driver test passed", reportAxisNameMsg(_axis_index, _dual_axis_index));
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s driver test passed", reportAxisNameMsg(_axis_index, _dual_axis_index));
                 return true;
         }
     }
@@ -234,7 +226,7 @@ namespace Motors {
                 // tmcstepper->sgt(axis_settings[_axis_index]->stallguard->get());
                 break;
             default:
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_UNDEFINED");
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Unknown Trinamic mode:d", _mode);
         }
     }
 
@@ -326,7 +318,7 @@ namespace Motors {
         if (status.ola || status.olb) {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
-                           "%s Driver Open Load a:%s b:%s",
+                           "%s Driver open load A:%s B:%s",
                            reportAxisNameMsg(_axis_index, _dual_axis_index),
                            status.ola ? "Y" : "N",
                            status.olb ? "Y" : "N");
@@ -339,7 +331,7 @@ namespace Motors {
         if (status.s2ga || status.s2gb) {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
-                           "%s Driver Short Coil a:%s b:%s",
+                           "%s Driver shorted coil A:%s B:%s",
                            reportAxisNameMsg(_axis_index, _dual_axis_index),
                            status.s2ga ? "Y" : "N",
                            status.s2gb ? "Y" : "N");
@@ -352,7 +344,7 @@ namespace Motors {
         if (status.ot || status.otpw) {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
-                           "%s Driver Temp Warning:%s Fault:%s",
+                           "%s Driver temp Warning:%s Fault:%s",
                            reportAxisNameMsg(_axis_index, _dual_axis_index),
                            status.otpw ? "Y" : "N",
                            status.ot ? "Y" : "N");
@@ -366,7 +358,7 @@ namespace Motors {
         if ((status.sr & bit(12)) || (status.sr & bit(13))) {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
-                           "%s Driver Short vsa:%s vsb:%s",
+                           "%s Driver short vsa:%s vsb:%s",
                            reportAxisNameMsg(_axis_index, _dual_axis_index),
                            (status.sr & bit(12)) ? "Y" : "N",
                            (status.sr & bit(13)) ? "Y" : "N");

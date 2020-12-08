@@ -388,23 +388,16 @@ void           init_motors() {
     }
 }
 
-void motors_set_disable(bool disable) {
+void motors_set_disable(bool disable, uint8_t mask) {
     static bool previous_state = true;
-
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Motors disable %d", disable);
-
-    /*
-    if (previous_state == disable) {
-        return;
-    }
-    previous_state = disable;
-*/
 
     // now loop through all the motors to see if they can individually disable
     auto n_axis = number_axis->get();
     for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            myMotor[axis][gang_index]->set_disable(disable);
+            if (bitnum_istrue(mask, axis)) {
+                myMotor[axis][gang_index]->set_disable(disable);
+            }
         }
     }
 
