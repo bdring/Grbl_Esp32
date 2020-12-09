@@ -52,7 +52,7 @@ void           init_motors() {
 
     if (n_axis >= 1) {
 #ifdef X_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[X_AXIS][0] =
                 new Motors::TrinamicDriver(X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_DISABLE_PIN, X_CS_PIN, X_TRINAMIC_DRIVER, X_RSENSE);
@@ -62,6 +62,8 @@ void           init_motors() {
             myMotor[X_AXIS][0] = new Motors::TrinamicUartDriver(
                 X_AXIS, X_STEP_PIN, X_DIRECTION_PIN, X_DISABLE_PIN, X_TRINAMIC_DRIVER, X_RSENSE, X_DRIVER_ADDRESS);
         }
+#    else
+#        error X Axis undefined motor p/n
 #    endif
 #elif defined(X_SERVO_PIN)
         myMotor[X_AXIS][0] = new Motors::RcServo(X_AXIS, X_SERVO_PIN);
@@ -76,7 +78,7 @@ void           init_motors() {
 #endif
 
 #ifdef X2_TRINAMIC_DRIVER
-#    if (X2_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[X_AXIS][1] =
                 new Motors::TrinamicDriver(X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN, X2_CS_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE);
@@ -86,6 +88,8 @@ void           init_motors() {
             myMotor[X_AXIS][1] = new Motors::TrinamicUartDriver(
                 X2_AXIS, X2_STEP_PIN, X2_DIRECTION_PIN, X2_DISABLE_PIN, X2_TRINAMIC_DRIVER, X2_RSENSE, X2_DRIVER_ADDRESS);
         }
+#    else
+#        error X2 Axis undefined motor p/n
 #    endif
 #elif defined(X2_UNIPOLAR)
         myMotor[X_AXIS][1] = new Motors::UnipolarMotor(X2_AXIS, X2_PIN_PHASE_0, X2_PIN_PHASE_1, X2_PIN_PHASE_2, X2_PIN_PHASE_3);
@@ -102,7 +106,7 @@ void           init_motors() {
     if (n_axis >= 2) {
         // this WILL be done better with settings
 #ifdef Y_TRINAMIC_DRIVER
-#    if (Y_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[Y_AXIS][0] =
                 new Motors::TrinamicDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN, Y_CS_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE);
@@ -112,6 +116,8 @@ void           init_motors() {
             myMotor[Y_AXIS][0] = new Motors::TrinamicUartDriver(
                 Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE, Y_DRIVER_ADDRESS);
         }
+#    else
+#        error Y Axis undefined motor p/n
 #    endif
 #elif defined(Y_SERVO_PIN)
         myMotor[Y_AXIS][0] = new Motors::RcServo(Y_AXIS, Y_SERVO_PIN);
@@ -126,7 +132,7 @@ void           init_motors() {
 #endif
 
 #ifdef Y2_TRINAMIC_DRIVER
-#    if (Y2_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[Y_AXIS][1] =
                 new Motors::TrinamicDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN, Y2_CS_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE);
@@ -136,6 +142,8 @@ void           init_motors() {
             myMotor[Y_AXIS][1] = new Motors::TrinamicUartDriver(
                 Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE, Y2_DRIVER_ADDRESS);
         }
+#    else
+#        error Y2 Axis undefined motor p/n
 #    endif
 #elif defined(Y2_UNIPOLAR)
         myMotor[Y_AXIS][1] = new Motors::UnipolarMotor(Y2_AXIS, Y2_PIN_PHASE_0, Y2_PIN_PHASE_1, Y2_PIN_PHASE_2, Y2_PIN_PHASE_3);
@@ -152,7 +160,7 @@ void           init_motors() {
     if (n_axis >= 3) {
         // this WILL be done better with settings
 #ifdef Z_TRINAMIC_DRIVER
-#    if (Z_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[Z_AXIS][0] =
                 new Motors::TrinamicDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN, Z_CS_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE);
@@ -162,6 +170,8 @@ void           init_motors() {
             myMotor[Z_AXIS][0] = new Motors::TrinamicUartDriver(
                 Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE, Z_DRIVER_ADDRESS);
         }
+#    else
+#        error Z Axis undefined motor p/n
 #    endif
 #elif defined(Z_SERVO_PIN)
         myMotor[Z_AXIS][0] = new Motors::RcServo(Z_AXIS, Z_SERVO_PIN);
@@ -176,7 +186,7 @@ void           init_motors() {
 #endif
 
 #ifdef Z2_TRINAMIC_DRIVER
-#    if (Z2_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[Z_AXIS][1] =
                 new Motors::TrinamicDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN, Z2_CS_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE);
@@ -186,6 +196,8 @@ void           init_motors() {
             myMotor[Z_AXIS][1] = new Motors::TrinamicUartDriver(
                 Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE, Z2_DRIVER_ADDRESS);
         }
+#    else
+#        error Z2 Axis undefined motor p/n
 #    endif
 #elif defined(Z2_UNIPOLAR)
         myMotor[Z_AXIS][1] = new Motors::UnipolarMotor(Z2_AXIS, Z2_PIN_PHASE_0, Z2_PIN_PHASE_1, Z2_PIN_PHASE_2, Z2_PIN_PHASE_3);
@@ -202,7 +214,7 @@ void           init_motors() {
     if (n_axis >= 4) {
         // this WILL be done better with settings
 #ifdef A_TRINAMIC_DRIVER
-#    if (A_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[A_AXIS][1] =
                 new Motors::TrinamicDriver(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN, A_CS_PIN, A_TRINAMIC_DRIVER, A_RSENSE);
@@ -212,6 +224,8 @@ void           init_motors() {
             myMotor[A_AXIS][0] = new Motors::TrinamicUartDriver(
                 A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN, A_TRINAMIC_DRIVER, A_RSENSE, A_DRIVER_ADDRESS);
         }
+#    else
+#        error A Axis undefined motor p/n
 #    endif
 #elif defined(A_SERVO_PIN)
         myMotor[A_AXIS][0] = new Motors::RcServo(A_AXIS, A_SERVO_PIN);
@@ -226,7 +240,7 @@ void           init_motors() {
 #endif
 
 #ifdef A2_TRINAMIC_DRIVER
-#    if (A2_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[A_AXIS][1] =
                 new Motors::TrinamicDriver(A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN, A2_CS_PIN, A2_TRINAMIC_DRIVER, A2_RSENSE);
@@ -236,6 +250,8 @@ void           init_motors() {
             myMotor[A_AXIS][1] = new Motors::TrinamicUartDriver(
                 A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN, A2_TRINAMIC_DRIVER, A2_RSENSE, A2_DRIVER_ADDRESS);
         }
+#    else
+#        error A2 Axis undefined motor p/n
 #    endif
 #elif defined(A2_UNIPOLAR)
         myMotor[A_AXIS][1] = new Motors::UnipolarMotor(A2_AXIS, A2_PIN_PHASE_0, A2_PIN_PHASE_1, A2_PIN_PHASE_2, A2_PIN_PHASE_3);
@@ -252,7 +268,7 @@ void           init_motors() {
     if (n_axis >= 5) {
         // this WILL be done better with settings
 #ifdef B_TRINAMIC_DRIVER
-#    if (B_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[B_AXIS][1] =
                 new Motors::TrinamicDriver(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN, B_CS_PIN, B_TRINAMIC_DRIVER, B_RSENSE);
@@ -262,6 +278,8 @@ void           init_motors() {
             myMotor[B_AXIS][0] = new Motors::TrinamicUartDriver(
                 B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN, B_TRINAMIC_DRIVER, B_RSENSE, B_DRIVER_ADDRESS);
         }
+#    else
+#        error B Axis undefined motor p/n
 #    endif
 #elif defined(B_SERVO_PIN)
         myMotor[B_AXIS][0] = new Motors::RcServo(B_AXIS, B_SERVO_PIN);
@@ -276,7 +294,7 @@ void           init_motors() {
 #endif
 
 #ifdef B2_TRINAMIC_DRIVER
-#    if (B2_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[B_AXIS][1] =
                 new Motors::TrinamicDriver(B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN, B2_CS_PIN, B2_TRINAMIC_DRIVER, B2_RSENSE);
@@ -286,6 +304,8 @@ void           init_motors() {
             myMotor[B_AXIS][1] = new Motors::TrinamicUartDriver(
                 B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN, B2_TRINAMIC_DRIVER, B2_RSENSE, B2_DRIVER_ADDRESS);
         }
+#    else
+#        error B2 Axis undefined motor p/n
 #    endif
 #elif defined(B2_UNIPOLAR)
         myMotor[B_AXIS][1] = new Motors::UnipolarMotor(B2_AXIS, B2_PIN_PHASE_0, B2_PIN_PHASE_1, B2_PIN_PHASE_2, B2_PIN_PHASE_3);
@@ -302,7 +322,7 @@ void           init_motors() {
     if (n_axis >= 6) {
         // this WILL be done better with settings
 #ifdef C_TRINAMIC_DRIVER
-#    if (C_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[C_AXIS][1] =
                 new Motors::TrinamicDriver(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN, C_CS_PIN, C_TRINAMIC_DRIVER, C_RSENSE);
@@ -312,6 +332,8 @@ void           init_motors() {
             myMotor[C_AXIS][0] = new Motors::TrinamicUartDriver(
                 C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN, C_TRINAMIC_DRIVER, C_RSENSE, C_DRIVER_ADDRESS);
         }
+#    else
+#        error C Axis undefined motor p/n
 #    endif
 #elif defined(C_SERVO_PIN)
         myMotor[C_AXIS][0] = new Motors::RcServo(C_AXIS, C_SERVO_PIN);
@@ -326,7 +348,7 @@ void           init_motors() {
 #endif
 
 #ifdef C2_TRINAMIC_DRIVER
-#    if (C2_TRINAMIC_DRIVER == 2130)
+#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
         {
             myMotor[C_AXIS][1] =
                 new Motors::TrinamicDriver(C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN, C2_CS_PIN, C2_TRINAMIC_DRIVER, C2_RSENSE);
@@ -336,6 +358,8 @@ void           init_motors() {
             myMotor[C_AXIS][1] = new Motors::TrinamicUartDriver(
                 C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN, C2_TRINAMIC_DRIVER, C2_RSENSE, C2_DRIVER_ADDRESS);
         }
+#    else
+#        error C2 Axis undefined motor p/n
 #    endif
 #elif defined(C2_UNIPOLAR)
         myMotor[C_AXIS][1] = new Motors::UnipolarMotor(C2_AXIS, C2_PIN_PHASE_0, C2_PIN_PHASE_1, C2_PIN_PHASE_2, C2_PIN_PHASE_3);
