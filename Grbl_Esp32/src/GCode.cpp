@@ -476,6 +476,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                                 if (spindle->is_reversable || spindle->inLaserMode()) {
                                     gc_block.modal.spindle = SpindleState::Ccw;
                                 } else {
+                                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "M4 requires laser mode or a reversable spindle");
                                     FAIL(Error::GcodeUnsupportedCommand);
                                 }
                                 break;
