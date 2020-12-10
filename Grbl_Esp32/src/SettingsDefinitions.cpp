@@ -196,9 +196,9 @@ static bool checkSpindleChange(char* val) {
             }
             grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Spindle turned off with setting change");
         }
-        gc_state.spindle_speed = 0; // Set S value to 0 
-        spindle->deinit(); // old spindle
-        Spindles::Spindle::select(); // get new spindle
+        gc_state.spindle_speed = 0;   // Set S value to 0
+        spindle->deinit();            // old spindle
+        Spindles::Spindle::select();  // get new spindle
         return true;
     }
     return true;
@@ -219,17 +219,7 @@ void make_coordinate(CoordIndex index, const char* name) {
     auto  coord                  = new Coordinates(name);
     coords[index]                = coord;
     if (!coord->load()) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Propagating %s data to NVS format", coord->getName());
-        // If coord->load() returns false it means that no entry
-        // was present in non-volatile storage.  In that case we
-        // first look for an old-format entry in the EEPROM section.
-        // If an entry is present some number of float values at
-        // the beginning of coord_data will be overwritten with
-        // the EEPROM data, and the rest will remain at 0.0.
-        // If no old-format entry is present, all will remain 0.0
-        // Regardless, we create a new entry with that data.
-        (void)old_settings_read_coord_data(index, coord_data);
-        coords[index]->set(coord_data);
+        coords[index]->setDefault();
     }
 }
 void make_settings() {
