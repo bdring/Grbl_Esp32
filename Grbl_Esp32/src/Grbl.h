@@ -41,7 +41,6 @@ const char* const GRBL_VERSION_BUILD = "20201204";
 
 #include "Defaults.h"
 #include "Error.h"
-#include "Eeprom.h"
 #include "WebUI/Authentication.h"
 #include "WebUI/Commands.h"
 #include "Probe.h"
