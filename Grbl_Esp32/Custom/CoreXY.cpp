@@ -95,14 +95,10 @@ bool user_defined_homing(uint8_t cycle_mask) {
     AxisMask mask = 0;
     for (int cycle = 0; cycle < cycle_count; cycle++) {
         // if we have a cycle_mask, do that. Otherwise get the cycle from the settings
-        if (cycle_mask == 0) {
-            mask = homing_cycle[cycle]->get();
-        } else {
-            mask = cycle_mask;
-        }
+        mask = cycle_mask ? cycle_mask : homing_cycle[cycle]->get();
 
         // If not X or Y do a normal home
-        if (!(mask & bit(X_AXIS) || mask & bit(Y_AXIS))) {
+        if (!(bitnum_istrue(mask, X_AXIS) || bitnum_istrue(mask, Y_AXIS))) {
             limits_go_home(mask);  // Homing cycle 0
             continue;              // continue to next item in for loop
         }
