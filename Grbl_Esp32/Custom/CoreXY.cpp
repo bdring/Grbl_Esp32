@@ -51,21 +51,21 @@ float three_axis_dist(float* point1, float* point2);
 
 void machine_init() {
     // print a startup message to show the kinematics are enable
+
+#ifdef MIDTBOT
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "CoreXY (midTbot) Kinematics Init");
+#else
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "CoreXY Kinematics Init");
+#endif
 }
 
+// Cycle mask is 0 unless the user sends a single axis command like $HZ
 // This will always return true to prevent the normal Grbl homing cycle
 bool user_defined_homing(uint8_t cycle_mask) {
     uint8_t n_cycle;                       // each home is a multi cycle operation approach, pulloff, approach.....
     float   target[MAX_N_AXIS] = { 0.0 };  // The target for each move in the cycle
     float   max_travel;
     uint8_t axis;
-
-    // check for single axis homing
-    if (cycle_mask != 0) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "CoreXY Single axis homing not allowed. Use $H only");
-        return true;
-    }
 
     // check for multi axis homing per cycle ($Homing/Cycle0=XY type)...not allowed in CoreXY
     bool setting_error = false;
@@ -90,9 +90,21 @@ bool user_defined_homing(uint8_t cycle_mask) {
     pl_data->motion.systemMotion   = 1;
     pl_data->motion.noFeedOverride = 1;
 
-    for (int cycle = 0; cycle < 3; cycle++) {
-        AxisMask mask = homing_cycle[cycle]->get();
+    uint8_t cycle_count = (cycle_mask == 0) ? 3 : 1;  // if we have a cycle_mask, we are only going to do one axis
+
+    AxisMask mask = 0;
+    for (int cycle = 0; cycle < cycle_count; cycle++) {
+        // if we have a cycle_mask, do that. Otherwise get the cycle from the settings
+        mask = cycle_mask ? cycle_mask : homing_cycle[cycle]->get();
+
+        // If not X or Y do a normal home
+        if (!(bitnum_istrue(mask, X_AXIS) || bitnum_istrue(mask, Y_AXIS))) {
+            limits_go_home(mask);  // Homing cycle 0
+            continue;              // continue to next item in for loop
+        }
+
         mask = motors_set_homing_mode(mask, true);  // non standard homing motors will do their own thing and get removed from the mask
+
         for (uint8_t axis = X_AXIS; axis <= Z_AXIS; axis++) {
             if (bit(axis) == mask) {
                 // setup for the homing of this axis
@@ -190,7 +202,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
                 } while (n_cycle-- > 0);
             }
         }
-    }
+    }  // for
 
     // after sussefully setting X & Y axes, we set the current positions
 
@@ -231,7 +243,7 @@ void inverse_kinematics(float* position) {
 
     motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
     motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
-    motors[Z_AXIS]  = position[Z_AXIS];
+    motors[Z_AXIS] = position[Z_AXIS];
 
     position[0] = motors[0];
     position[1] = motors[1];

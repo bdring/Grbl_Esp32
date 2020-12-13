@@ -44,8 +44,12 @@ namespace Motors {
     }
 
     void StandardStepper::init() {
-        init_step_dir_pins();
+        read_settings();
         config_message();
+    }
+
+    void StandardStepper::read_settings() { 
+        init_step_dir_pins(); 
     }
 
     void StandardStepper::init_step_dir_pins() {

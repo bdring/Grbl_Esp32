@@ -67,8 +67,7 @@ namespace Motors {
             return;
         }
 
-        _has_errors = false;
-        init_step_dir_pins();  // from StandardStepper
+        _has_errors = false;       
 
         digitalWrite(_cs_pin, HIGH);
         pinMode(_cs_pin, OUTPUT);
@@ -211,6 +210,8 @@ namespace Motors {
         }
         tmcstepper->microsteps(axis_settings[_axis_index]->microsteps->get());
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
+
+        init_step_dir_pins();
     }
 
     bool TrinamicDriver::set_homing_mode(bool isHoming) {

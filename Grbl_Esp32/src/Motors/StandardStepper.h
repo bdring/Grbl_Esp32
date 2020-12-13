@@ -15,6 +15,7 @@ namespace Motors {
         void set_direction(bool) override;
         void step() override;
         void unstep() override;
+        void read_settings() override;
 
         void init_step_dir_pins();
 
