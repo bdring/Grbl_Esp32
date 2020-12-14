@@ -22,6 +22,8 @@
 
 #include <driver/uart.h>
 
+// #define VFD_DEBUG_MODE
+
 namespace Spindles {
 
     class VFD : public Spindle {
@@ -39,17 +41,12 @@ namespace Spindles {
         uint32_t _current_rpm  = 0;
         bool     _task_running = false;
         bool     vfd_ok        = true;
-        
-        static bool task_active;
+
         static QueueHandle_t vfd_cmd_queue;
         static TaskHandle_t  vfd_cmdTaskHandle;
         static void          vfd_cmd_task(void* pvParameters);
 
         static uint16_t ModRTU_CRC(uint8_t* buf, int msg_len);
-
-        void deinit() override;
-
-        
 
     protected:
         struct ModbusCommand {

@@ -79,7 +79,6 @@ namespace WebUI {
 }
 
 void settings_init() {
-    EEPROM.begin(EEPROM_SIZE);
     make_settings();
     WebUI::make_web_settings();
     make_grbl_commands();
