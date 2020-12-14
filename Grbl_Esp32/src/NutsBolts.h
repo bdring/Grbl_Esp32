@@ -62,11 +62,11 @@ const int DELAY_MODE_SYS_SUSPEND = 1;
 
 // Useful macros
 #define clear_vector(a) memset(a, 0, sizeof(a))
-#define clear_vector_float(a) memset(a, 0.0, sizeof(float) * MAX_N_AXIS)
-// #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*MAX_N_AXIS)
+#define clear_vector_float(a) memset(a, 0.0, sizeof(float) * number_axis->get())
+// #define clear_vector_long(a) memset(a, 0.0, sizeof(long) * number_axis->get())
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))  // changed to upper case to remove conflicts with other libraries
-#define isequal_position_vector(a, b) !(memcmp(a, b, sizeof(float) * MAX_N_AXIS))
+#define isequal_position_vector(a, b) !(memcmp(a, b, sizeof(float) * number_axis->get()))
 
 // Bit field and masking macros
 // bit(n) is defined in Arduino.h.  We redefine it here so we can apply

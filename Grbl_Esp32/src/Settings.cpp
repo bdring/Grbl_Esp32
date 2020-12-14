@@ -238,7 +238,7 @@ const char* AxisMaskSetting::getCompatibleValue() {
 
 static char* maskToString(uint32_t mask, char* strval) {
     char* s = strval;
-    for (int i = 0; i < MAX_N_AXIS; i++) {
+    for (int i = 0; i < number_axis->get(); i++) {
         if (mask & bit(i)) {
             *s++ = "XYZABC"[i];
         }
@@ -259,7 +259,7 @@ const char* AxisMaskSetting::getStringValue() {
 
 void AxisMaskSetting::addWebui(WebUI::JSONencoder* j) {
     if (getDescription()) {
-        j->begin_webui(getName(), getDescription(), "I", getStringValue(), 0, (1 << MAX_N_AXIS) - 1);
+        j->begin_webui(getName(), getDescription(), "I", getStringValue(), 0, (1 << number_axis->get()) - 1);
         j->end_object();
     }
 }

@@ -2,7 +2,7 @@
 
 FlagSetting* verbose_errors;
 
-FakeSetting<int>* number_axis;
+IntSetting* number_axis;
 
 StringSetting* startup_line_0;
 StringSetting* startup_line_1;
@@ -70,13 +70,6 @@ enum_opt_t spindleTypes = {
     { "H2A", int8_t(SpindleType::H2A) },
     // clang-format on
 };
-
-AxisSettings* x_axis_settings;
-AxisSettings* y_axis_settings;
-AxisSettings* z_axis_settings;
-AxisSettings* a_axis_settings;
-AxisSettings* b_axis_settings;
-AxisSettings* c_axis_settings;
 
 AxisSettings* axis_settings[MAX_N_AXIS];
 
@@ -225,6 +218,9 @@ void make_coordinate(CoordIndex index, const char* name) {
 void make_settings() {
     Setting::init();
 
+    number_axis = new IntSetting(EXTENDED, WG, NULL, "Axes", N_AXIS, 1, 6, NULL, false);
+    number_axis->load();
+
     // Propagate old coordinate system data to the new format if necessary.
     // G54 - G59 work coordinate systems, G28, G30 reference positions, etc
     make_coordinate(CoordIndex::G54, "G54");
@@ -238,79 +234,70 @@ void make_settings() {
 
     verbose_errors = new FlagSetting(EXTENDED, WG, NULL, "Errors/Verbose", DEFAULT_VERBOSE_ERRORS);
 
-    // number_axis = new IntSetting(EXTENDED, WG, NULL, "NumberAxis", N_AXIS, 0, 6, NULL, true);
-    number_axis = new FakeSetting<int>(N_AXIS);
-
     // Create the axis settings in the order that people are
     // accustomed to seeing.
     int              axis;
     axis_defaults_t* def;
-    for (axis = 0; axis < MAX_N_AXIS; axis++) {
+    for (axis = 0; axis < number_axis->get(); axis++) {
         def                 = &axis_defaults[axis];
         axis_settings[axis] = new AxisSettings(def->name);
     }
-    x_axis_settings = axis_settings[X_AXIS];
-    y_axis_settings = axis_settings[Y_AXIS];
-    z_axis_settings = axis_settings[Z_AXIS];
-    a_axis_settings = axis_settings[A_AXIS];
-    b_axis_settings = axis_settings[B_AXIS];
-    c_axis_settings = axis_settings[C_AXIS];
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = number_axis->get() - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting =
             new IntSetting(EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, postMotorSetting);
         setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = number_axis->get() - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting =
             new IntSetting(EXTENDED, WG, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, postMotorSetting);
         setting->setAxis(axis);
         axis_settings[axis]->microsteps = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = number_axis->get() - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(
             EXTENDED, WG, makeGrblName(axis, 150), makename(def->name, "Current/Hold"), def->hold_current, 0.05, 20.0, postMotorSetting);  // Amps
         setting->setAxis(axis);
         axis_settings[axis]->hold_current = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = number_axis->get() - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(
             EXTENDED, WG, makeGrblName(axis, 140), makename(def->name, "Current/Run"), def->run_current, 0.0, 20.0, postMotorSetting);  // Amps
         setting->setAxis(axis);
         axis_settings[axis]->run_current = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = number_axis->get() - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 130), makename(def->name, "MaxTravel"), def->max_travel, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->max_travel = setting;
     }
 
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = number_axis->get() - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(EXTENDED, WG, NULL, makename(def->name, "Home/Mpos"), def->home_mpos, -100000.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->home_mpos = setting;
     }
 
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = number_axis->get() - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting =
             new FloatSetting(GRBL, WG, makeGrblName(axis, 120), makename(def->name, "Acceleration"), def->acceleration, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->acceleration = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = number_axis->get() - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 110), makename(def->name, "MaxRate"), def->max_rate, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->max_rate = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = number_axis->get() - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting =
             new FloatSetting(GRBL, WG, makeGrblName(axis, 100), makename(def->name, "StepsPerMm"), def->steps_per_mm, 1.0, 100000.0);

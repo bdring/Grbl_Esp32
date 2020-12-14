@@ -167,7 +167,6 @@ void grbl_notifyf(const char* title, const char* format, ...) {
 }
 
 static const int coordStringLen = 20;
-static const int axesStringLen  = coordStringLen * MAX_N_AXIS;
 
 // formats axis values into a string and returns that string in rpt
 // NOTE: rpt should have at least size: axesStringLen
@@ -203,6 +202,7 @@ static String report_util_axis_values(const float* axis_value) {
         decimals  = 4;  // Report inches to 4 decimal places
     }
     auto n_axis = number_axis->get();
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "N axes %d", n_axis);
     for (idx = 0; idx < n_axis; idx++) {
         rpt += String(axis_value[idx] * unit_conv, decimals);
         if (idx < (number_axis->get() - 1)) {
@@ -313,6 +313,8 @@ void report_grbl_help(uint8_t client) {
 // These values are retained until Grbl is power-cycled, whereby they will be re-zeroed.
 void report_probe_parameters(uint8_t client) {
     // Report in terms of machine position.
+    int axesStringLen = coordStringLen * number_axis->get();
+
     float print_position[MAX_N_AXIS];
     char  probe_rpt[(axesStringLen + 13 + 6 + 1)];  // the probe report we are building here
     char  temp[axesStringLen];

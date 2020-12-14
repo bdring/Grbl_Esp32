@@ -332,7 +332,7 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     else
 #endif
     {
-        for (int cycle = 0; cycle < MAX_N_AXIS; cycle++) {
+        for (int cycle = 0; cycle < number_axis->get(); cycle++) {
             auto homing_mask = homing_cycle[cycle]->get();
             if (homing_mask) {  // if there are some axes in this cycle
                 no_cycles_defined = false;
