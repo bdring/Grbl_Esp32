@@ -46,16 +46,19 @@
 #define X_DISABLE_PIN           "i2so.0"
 #define X_DIRECTION_PIN         "i2so.1"
 #define X_STEP_PIN              "i2so.2"
+#define X_STEPPER_MS3           "i2so.3"
 
 // Motor Socket #2
 #define Y_DIRECTION_PIN         "i2so.4"
 #define Y_STEP_PIN              "i2so.5"
 #define Y_DISABLE_PIN           "i2so.7"
+#define Y_STEPPER_MS3           "i2so.6"
 
 // Motor Socket #3
 #define Z_DISABLE_PIN           "i2so.8"
 #define Z_DIRECTION_PIN         "i2so.9"
 #define Z_STEP_PIN              "i2so.10"
+#define Z_STEPPER_MS3           "i2so.11"
 
 /*
     Socket I/O reference
