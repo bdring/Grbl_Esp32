@@ -29,7 +29,19 @@
 
 namespace Settings {
     class YamlParser {
-        int n = 0;
+        // I didn't create a full parser, as we don't need it.
+        // See: https://en.wikipedia.org/wiki/YAML
+        // 
+        // - We start with '---' and assume a single document. If we encounter '---', error.
+        // - # is a comment
+        // - indentation is with spaces
+        // - Tabs are not allowed
+        // - key: value pairs
+        // - '-' lists
+        // - strings with quotes
+        // - c-style escaping in strings
+        // - repeated nodes are initially denoted by an ampersand (&) and thereafter referenced with an asterisk (*).
+        // - '['..']', !! and % are simply not supported.
 
     public:
         // TODO FIXME: Create a parser. This is just a test.
