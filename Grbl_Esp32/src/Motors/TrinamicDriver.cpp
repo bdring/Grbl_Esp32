@@ -70,8 +70,7 @@ namespace Motors {
             return;
         }
 
-        _has_errors = false;
-        init_step_dir_pins();  // from StandardStepper
+        _has_errors = false;       
 
         _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
 
@@ -122,7 +121,8 @@ namespace Motors {
                                     NULL,          // parameters
                                     1,             // priority
                                     NULL,
-                                    0  // core
+                                    SUPPORT_TASK_CORE  // must run the task on same core
+                                                       // core
             );
         }
     }
@@ -216,9 +216,10 @@ namespace Motors {
             if (hold_i_percent > 1.0)
                 hold_i_percent = 1.0;
         }
-
         tmcstepper->microsteps(axis_settings[_axis_index]->microsteps->get());
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
+
+        init_step_dir_pins();
     }
 
     bool TrinamicDriver::set_homing_mode(bool isHoming) {
@@ -362,10 +363,6 @@ namespace Motors {
 
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
         while (true) {                        // don't ever return from this or the task dies
-            if (motorSettingChanged) {
-                motors_read_settings();
-                motorSettingChanged = false;
-            }
             if (stallguard_debug_mask->get() != 0) {
                 if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
                     for (TrinamicDriver* p = List; p; p = p->link) {
@@ -380,7 +377,9 @@ namespace Motors {
             vTaskDelayUntil(&xLastWakeTime, xreadSg);
 
             static UBaseType_t uxHighWaterMark = 0;
+#ifdef DEBUG_TASK_STACK
             reportTaskStackSize(uxHighWaterMark);
+#endif
         }
     }
 

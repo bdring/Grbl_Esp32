@@ -245,11 +245,9 @@ static void stepper_pulse_func() {
                 st.exec_block_index = st.exec_segment->st_block_index;
                 st.exec_block       = &st_block_buffer[st.exec_block_index];
                 // Initialize Bresenham line and distance counters
-                // XXX the original code only inits X, Y, Z here, instead of n_axis.  Is that correct?
-                for (int axis = 0; axis < 3; axis++) {
+                for (int axis = 0; axis < n_axis; axis++) {
                     st.counter[axis] = (st.exec_block->step_event_count >> 1);
                 }
-                // TODO ABC
             }
             st.dir_outbits = st.exec_block->direction_bits;
             // Adjust Bresenham axis increment counters according to AMASS level.
@@ -553,7 +551,9 @@ void st_prep_buffer() {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
                 }
 
-                if (spindle->isRateAdjusted()) {  //   laser_mode->get() {
+                st_prep_block->is_pwm_rate_adjusted = false;  // set default value
+                // prep.inv_rate is only used if is_pwm_rate_adjusted is true
+                if (spindle->inLaserMode()) {  //
                     if (pl_block->spindle == SpindleState::Ccw) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
                         prep.inv_rate                       = 1.0 / pl_block->programmed_rate;

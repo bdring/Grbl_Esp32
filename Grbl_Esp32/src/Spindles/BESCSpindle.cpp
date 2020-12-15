@@ -84,7 +84,7 @@ namespace Spindles {
 
     // prints the startup message of the spindle config
     void BESC::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL,
+        grbl_msg_sendf(CLIENT_ALL,
                        MsgLevel::Info,
                        "BESC spindle on Pin:%s Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
                        _output_pin.name().c_str(),

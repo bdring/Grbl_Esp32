@@ -1,7 +1,5 @@
 #pragma once
 
-extern bool motorSettingChanged;
-
 extern FlagSetting* verbose_errors;
 
 extern IntSetting* number_axis;
@@ -25,6 +23,7 @@ extern FlagSetting* soft_limits;
 extern FlagSetting* hard_limits;
 extern FlagSetting* homing_enable;
 extern FlagSetting* laser_mode;
+extern IntSetting*  laser_full_power;
 
 extern IntSetting*   status_mask;
 extern FloatSetting* junction_deviation;
@@ -104,3 +103,8 @@ extern PinSetting* ClearToSendPins[MAX_N_AXIS][2];
 extern PinSetting* ServoPins[MAX_N_AXIS][2];
 extern PinSetting* PhasePins[4][MAX_N_AXIS][2];
 extern PinSetting* StepStickMS3[MAX_N_AXIS][2];
+
+extern StringSetting* user_macro0;
+extern StringSetting* user_macro1;
+extern StringSetting* user_macro2;
+extern StringSetting* user_macro3;

@@ -45,6 +45,7 @@ namespace Spindles {
 
         SpindleState get_state() override;
         void         stop() override;
+        void         deinit() override;
 
         virtual ~_10v() {}
 

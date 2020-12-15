@@ -141,6 +141,7 @@ uint8_t get_sd_state(bool refresh) {
         if (!((SDCardDetPin->get().read() == SDCARD_DET_VAL) ? true : false)) {
             sd_state = SDCARD_NOT_PRESENT;
             return sd_state;
+            //no need to go further if SD detect is not correct
         }
     }
 

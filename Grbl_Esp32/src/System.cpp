@@ -132,7 +132,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     control_sw_queue = xQueueCreate(10, sizeof(int));
     xTaskCreate(controlCheckTask,
                 "controlCheckTask",
-                2048,
+                3096,
                 NULL,
                 5,  // priority
                 NULL);
@@ -169,7 +169,9 @@ void controlCheckTask(void* pvParameters) {
         debouncing = false;
 
         static UBaseType_t uxHighWaterMark = 0;
+#    ifdef DEBUG_TASK_STACK
         reportTaskStackSize(uxHighWaterMark);
+#    endif
     }
 }
 #endif
@@ -365,4 +367,39 @@ uint8_t sys_calc_pwm_precision(uint32_t freq) {
 
     return precision - 1;
 }
-void __attribute__((weak)) user_defined_macro(uint8_t index);
+void __attribute__((weak)) user_defined_macro(uint8_t index) {
+    // must be in Idle
+    if (sys.state != State::Idle) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button only permitted in idle");
+        return;
+    }
+
+    String user_macro;
+    char   line[255];
+    switch (index) {
+        case 0:
+            user_macro = user_macro0->get();
+            break;
+        case 1:
+            user_macro = user_macro1->get();
+            break;
+        case 2:
+            user_macro = user_macro2->get();
+            break;
+        case 3:
+            user_macro = user_macro3->get();
+            break;
+        default:
+            return;
+    }
+
+    if (user_macro == "") {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro User/Macro%d empty", index);
+        return;
+    }
+
+    user_macro.replace('&', '\n');
+    user_macro.toCharArray(line, 255, 0);
+    strcat(line, "\r");
+    WebUI::inputBuffer.push(line);
+}

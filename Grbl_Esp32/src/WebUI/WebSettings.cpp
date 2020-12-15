@@ -163,6 +163,9 @@ namespace WebUI {
 }
 
 Error WebCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    if (_cmdChecker && _cmdChecker()) {
+        return Error::AnotherInterfaceBusy;
+    }
     char empty = '\0';
     if (!value) {
         value = &empty;
@@ -716,6 +719,10 @@ namespace WebUI {
 
     static Error runSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP220
         Error err;
+        if (sys.state == State::Alarm) {
+            webPrintln("Alarm");
+            return Error::IdleError;
+        }
         if (sys.state != State::Idle) {
             webPrintln("Busy");
             return Error::IdleError;
@@ -859,7 +866,9 @@ namespace WebUI {
             default:
                 resp = "Busy";
         }
-#endif
+#else
+        resp = "SD card not enabled";
+#endif        
         webPrintln(resp);
         return Error::Ok;
     }
@@ -1066,7 +1075,7 @@ namespace WebUI {
 #ifdef ENABLE_NOTIFICATIONS
         notification_ts = new StringSetting(
             "Notification Settings", WEBSET, WA, NULL, "Notification/TS", DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
-        notification_t2 = new StringSetting("Notification Token 2",
+        notification_t2   = new StringSetting("Notification Token 2",
                                             WEBSET,
                                             WA,
                                             NULL,
@@ -1075,7 +1084,7 @@ namespace WebUI {
                                             MIN_NOTIFICATION_TOKEN_LENGTH,
                                             MAX_NOTIFICATION_TOKEN_LENGTH,
                                             NULL);
-        notification_t1 = new StringSetting("Notification Token 1",
+        notification_t1   = new StringSetting("Notification Token 1",
                                             WEBSET,
                                             WA,
                                             NULL,
@@ -1084,8 +1093,8 @@ namespace WebUI {
                                             MIN_NOTIFICATION_TOKEN_LENGTH,
                                             MAX_NOTIFICATION_TOKEN_LENGTH,
                                             NULL);
-        notification_type =
-            new EnumSetting("Notification type", WEBSET, WA, NULL, "Notification/Type", DEFAULT_NOTIFICATION_TYPE, &notificationOptions);
+        notification_type = new EnumSetting(
+            "Notification type", WEBSET, WA, NULL, "Notification/Type", DEFAULT_NOTIFICATION_TYPE, &notificationOptions, NULL);
 #endif
 #ifdef ENABLE_AUTHENTICATION
         user_password  = new StringSetting("User password",
@@ -1121,16 +1130,16 @@ namespace WebUI {
 
 #ifdef WIFI_OR_BLUETOOTH
         // user+ to get, admin to set
-        wifi_radio_mode = new EnumSetting("Radio mode", WEBSET, WA, "ESP110", "Radio/Mode", DEFAULT_RADIO_MODE, &radioEnabledOptions);
+        wifi_radio_mode = new EnumSetting("Radio mode", WEBSET, WA, "ESP110", "Radio/Mode", DEFAULT_RADIO_MODE, &radioEnabledOptions, NULL);
 #endif
 
 #ifdef ENABLE_WIFI
         telnet_port = new IntSetting(
             "Telnet Port", WEBSET, WA, "ESP131", "Telnet/Port", DEFAULT_TELNETSERVER_PORT, MIN_TELNET_PORT, MAX_TELNET_PORT, NULL);
-        telnet_enable = new EnumSetting("Telnet Enable", WEBSET, WA, "ESP130", "Telnet/Enable", DEFAULT_TELNET_STATE, &onoffOptions);
+        telnet_enable = new EnumSetting("Telnet Enable", WEBSET, WA, "ESP130", "Telnet/Enable", DEFAULT_TELNET_STATE, &onoffOptions, NULL);
         http_port =
             new IntSetting("HTTP Port", WEBSET, WA, "ESP121", "Http/Port", DEFAULT_WEBSERVER_PORT, MIN_HTTP_PORT, MAX_HTTP_PORT, NULL);
-        http_enable   = new EnumSetting("HTTP Enable", WEBSET, WA, "ESP120", "Http/Enable", DEFAULT_HTTP_STATE, &onoffOptions);
+        http_enable   = new EnumSetting("HTTP Enable", WEBSET, WA, "ESP120", "Http/Enable", DEFAULT_HTTP_STATE, &onoffOptions, NULL);
         wifi_hostname = new StringSetting("Hostname",
                                           WEBSET,
                                           WA,
@@ -1158,7 +1167,7 @@ namespace WebUI {
         wifi_sta_netmask = new IPaddrSetting("Station Static Mask", WEBSET, WA, NULL, "Sta/Netmask", DEFAULT_STA_MK, NULL);
         wifi_sta_gateway = new IPaddrSetting("Station Static Gateway", WEBSET, WA, NULL, "Sta/Gateway", DEFAULT_STA_GW, NULL);
         wifi_sta_ip      = new IPaddrSetting("Station Static IP", WEBSET, WA, NULL, "Sta/IP", DEFAULT_STA_IP, NULL);
-        wifi_sta_mode    = new EnumSetting("Station IP Mode", WEBSET, WA, "ESP102", "Sta/IPMode", DEFAULT_STA_IP_MODE, &staModeOptions);
+        wifi_sta_mode = new EnumSetting("Station IP Mode", WEBSET, WA, "ESP102", "Sta/IPMode", DEFAULT_STA_IP_MODE, &staModeOptions, NULL);
         // no get, admin to set
         wifi_sta_password = new StringSetting("Station Password",
                                               WEBSET,

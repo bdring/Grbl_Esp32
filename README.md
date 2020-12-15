@@ -69,6 +69,8 @@ Grbl_ESP32 has a test drive mode. If you just compile it and load it onto an ESP
 
 ### Using It
 
+Important compiling instructions are [in the wiki](https://github.com/bdring/Grbl_Esp32/wiki/Compiling-the-firmware)
+
 The code should be compiled using the latest Arduino IDE. [Follow instructions here](https://github.com/espressif/arduino-esp32) on how to setup ESP32 in the IDE. The choice was made to use the Arduino IDE over the ESP-IDF to make the code a little more accessible to novices trying to compile the code.
 
 I use the ESP32 Dev Module version of the ESP32. I suggest starting with that if you don't have hardware yet.

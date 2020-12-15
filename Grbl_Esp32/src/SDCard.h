@@ -20,7 +20,8 @@
 #include <SD.h>
 #include <SPI.h>
 
-const int SDCARD_DET_VAL = 0;
+//#define SDCARD_DET_PIN -1
+const int SDCARD_DET_VAL = 0;  // for now, CD is close to ground
 
 const int SDCARD_IDLE           = 0;
 const int SDCARD_NOT_PRESENT    = 1;

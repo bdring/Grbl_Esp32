@@ -246,16 +246,17 @@ static bool mask_is_single_axis(uint8_t axis_mask) {
     return axis_mask && ((axis_mask & (axis_mask - 1)) == 0);
 }
 
-// return true if the axis is defined as a squared axis
-// Squaring: is used on gantry type axes that have two motors
-// Each motor with touch off its own switch to square the axis
-static bool mask_has_squared_axis(uint8_t axis_mask) {
-    return axis_mask & homing_squared_axes->get();
-}
-
-// return true if axis_mask refers to a single squared axis
 static bool axis_is_squared(uint8_t axis_mask) {
-    return mask_is_single_axis(axis_mask) && mask_has_squared_axis(axis_mask);
+    // Squaring can only be done if it is the only axis in the mask
+    if (axis_mask & homing_squared_axes->get()) {
+        if (mask_is_single_axis(axis_mask)) {
+            return true;
+        }
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Cannot multi-axis home with squared axes. Homing normally");
+        return false;
+    }
+
+    return false;
 }
 
 #ifdef USE_I2S_STEPS

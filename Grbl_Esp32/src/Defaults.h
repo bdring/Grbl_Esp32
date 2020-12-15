@@ -143,6 +143,10 @@
 #    define DEFAULT_LASER_MODE 0  // false
 #endif
 
+#ifndef DEFAULT_LASER_FULL_POWER
+#    define DEFAULT_LASER_FULL_POWER 1000
+#endif
+
 #ifndef DEFAULT_SPINDLE_RPM_MAX             // $30
 #    define DEFAULT_SPINDLE_RPM_MAX 1000.0  // rpm
 #endif
@@ -433,6 +437,10 @@
 // This can eliminate checking to see if the pin is defined because
 // the overridden pinMode and digitalWrite functions will deal with it.
 
+#ifndef SDCARD_DET_PIN
+#    define SDCARD_DET_PIN UNDEFINED_PIN
+#endif
+
 #ifndef STEPPERS_DISABLE_PIN
 #    define STEPPERS_DISABLE_PIN UNDEFINED_PIN
 #endif
@@ -618,4 +626,20 @@
 #endif
 #ifndef USER_ANALOG_PIN_3_FREQ
 #    define USER_ANALOG_PIN_3_FREQ 5000
+#endif
+
+#ifndef DEFAULT_USER_MACRO0
+#    define DEFAULT_USER_MACRO0 ""
+#endif
+
+#ifndef DEFAULT_USER_MACRO1
+#    define DEFAULT_USER_MACRO1 ""
+#endif
+
+#ifndef DEFAULT_USER_MACRO2
+#    define DEFAULT_USER_MACRO2 ""
+#endif
+
+#ifndef DEFAULT_USER_MACRO3
+#    define DEFAULT_USER_MACRO3 ""
 #endif

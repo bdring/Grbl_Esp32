@@ -106,11 +106,34 @@ Socket #5
 #define Z_LIMIT_PIN                 "gpio.35"
 
 
+
+
 // // 4x Input Module in Socket #2
 // // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
 // #define X_LIMIT_PIN                 "gpio.2"
 // #define Y_LIMIT_PIN                 "gpio.25"
 // #define Z_LIMIT_PIN                 "gpio.39"
+// #define MACRO_BUTTON_0_PIN            "gpio.2"
+// #define MACRO_BUTTON_1_PIN            "gpio.25"
+// #define MACRO_BUTTON_2_PIN            "gpio.39"
+// #define MACRO_BUTTON_3_PIN            "gpio.36"
+
+// 5V output CNC module in socket #4
+// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
+// #define SPINDLE_TYPE                SpindleType::PWM
+// #define SPINDLE_OUTPUT_PIN          "gpio.14"
+// #define SPINDLE_ENABLE_PIN          "gpio.13" // optional
+// #define LASER_OUTPUT_PIN            "gpio.15" // optional
+// #define LASER_ENABLE_PIN            "gpio.12"
+
+
+
+
+// // RS485 Modbus In socket #3
+// // https://github.com/bdring/6-Pack_CNC_Controller/wiki/RS485-Modbus-Module
+// #define VFD_RS485_TXD_PIN        GPIO_NUM_26
+// #define VFD_RS485_RTS_PIN        GPIO_NUM_4
+// #define VFD_RS485_RXD_PIN        GPIO_NUM_16
 
 // // 4x Input Module in Socket #3
 // // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
