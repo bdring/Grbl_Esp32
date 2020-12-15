@@ -22,6 +22,8 @@
 
 #include <driver/uart.h>
 
+// #define VFD_DEBUG_MODE
+
 namespace Spindles {
 
     class VFD : public Spindle {

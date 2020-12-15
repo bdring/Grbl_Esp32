@@ -43,6 +43,9 @@ namespace WebUI {
     }
 
     bool COMMANDS::isLocalPasswordValid(char* password) {
+        if (!password) {
+            return true;
+        }
         char c;
         //limited size
         if ((strlen(password) > MAX_LOCAL_PASSWORD_LENGTH) || (strlen(password) < MIN_LOCAL_PASSWORD_LENGTH)) {

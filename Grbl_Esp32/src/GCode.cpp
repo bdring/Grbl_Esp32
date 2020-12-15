@@ -24,6 +24,12 @@
 
 #include "Grbl.h"
 
+// Allow iteration over CoordIndex values
+CoordIndex& operator++(CoordIndex& i) {
+    i = static_cast<CoordIndex>(static_cast<uint8_t>(i) + 1);
+    return i;
+}
+
 // NOTE: Max line number is defined by the g-code standard to be 99999. It seems to be an
 // arbitrary value, and some GUIs may require more. So we increased it based on a max safe
 // value when converting a float (7.2 digit precision)s to an integer.
@@ -473,9 +479,10 @@ Error gc_execute_line(char* line, uint8_t client) {
                                 gc_block.modal.spindle = SpindleState::Cw;
                                 break;
                             case 4:  // Supported if SPINDLE_DIR_PIN is defined or laser mode is on.
-                                if (spindle->is_reversable || laser_mode->get()) {
+                                if (spindle->is_reversable || spindle->inLaserMode()) {
                                     gc_block.modal.spindle = SpindleState::Ccw;
                                 } else {
+                                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "M4 requires laser mode or a reversable spindle");
                                     FAIL(Error::GcodeUnsupportedCommand);
                                 }
                                 break;
@@ -1290,7 +1297,7 @@ Error gc_execute_line(char* line, uint8_t client) {
         return status;
     }
     // If in laser mode, setup laser power based on current and past parser conditions.
-    if (laser_mode->get()) {
+    if (spindle->inLaserMode()) {
         if (!((gc_block.modal.motion == Motion::Linear) || (gc_block.modal.motion == Motion::CwArc) ||
               (gc_block.modal.motion == Motion::CcwArc))) {
             gc_parser_flags |= GCParserLaserDisable;

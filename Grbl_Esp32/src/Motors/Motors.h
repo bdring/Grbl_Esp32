@@ -39,7 +39,7 @@ void    motors_read_settings();
 
 // The return value is a bitmask of axes that can home
 uint8_t motors_set_homing_mode(uint8_t homing_mask, bool isHoming);
-void    motors_set_disable(bool disable);
+void    motors_set_disable(bool disable, uint8_t mask = B11111111);  // default is all axes
 void    motors_step(uint8_t step_mask, uint8_t dir_mask);
 void    motors_unstep();
 

@@ -239,6 +239,7 @@ void report_status_message(Error status_code, uint8_t client) {
                     grbl_sendf(client, "error:%d\r\n", status_code);  // most senders seem to tolerate this error and keep on going
                     grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
                     // don't close file
+                    SD_ready_next = true;  // flag so system_execute_line() will send the next line
                 } else {
                     grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sd_get_current_line_number());
                     grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
@@ -753,16 +754,16 @@ void report_realtime_status(uint8_t client) {
                 strcat(status, "S");
             }
             if (ctrl_pin_state.bit.macro0) {
-                strcat(status, "M0");
+                strcat(status, "0");
             }
             if (ctrl_pin_state.bit.macro1) {
-                strcat(status, "M1");
+                strcat(status, "1");
             }
             if (ctrl_pin_state.bit.macro2) {
-                strcat(status, "M2");
+                strcat(status, "2");
             }
             if (ctrl_pin_state.bit.macro3) {
-                strcat(status, "M3");
+                strcat(status, "3");
             }
         }
     }

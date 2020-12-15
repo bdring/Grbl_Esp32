@@ -64,8 +64,9 @@ namespace Spindles {
         virtual SpindleState get_state()                                 = 0;
         virtual void         stop()                                      = 0;
         virtual void         config_message()                            = 0;
-        virtual bool         isRateAdjusted();
+        virtual bool         inLaserMode();
         virtual void         sync(SpindleState state, uint32_t rpm);
+        virtual void         deinit();
 
         virtual ~Spindle() {}
 

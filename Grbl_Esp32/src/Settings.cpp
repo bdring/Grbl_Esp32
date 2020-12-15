@@ -8,8 +8,10 @@ Word::Word(type_t type, permissions_t permissions, const char* description, cons
 
 Command* Command::List = NULL;
 
-Command::Command(const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName) :
-    Word(type, permissions, description, grblName, fullName) {
+Command::Command(
+    const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName, bool (*cmdChecker)()) :
+    Word(type, permissions, description, grblName, fullName),
+    _cmdChecker(cmdChecker) {
     link = List;
     List = this;
 }
@@ -126,6 +128,7 @@ Error IntSetting::setStringValue(char* s) {
             _storedValue = convertedValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
@@ -223,6 +226,7 @@ Error AxisMaskSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
@@ -323,6 +327,7 @@ Error FloatSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
@@ -412,6 +417,7 @@ Error StringSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
@@ -442,11 +448,15 @@ void StringSetting::addWebui(WebUI::JSONencoder* j) {
 
 typedef std::map<const char*, int8_t, cmp_str> enum_opt_t;
 
-EnumSetting::EnumSetting(
-    const char* description, type_t type, permissions_t permissions, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts)
-    // No checker function because enumerations have an exact set of value
-    :
-    Setting(description, type, permissions, grblName, name, NULL),
+EnumSetting::EnumSetting(const char*   description,
+                         type_t        type,
+                         permissions_t permissions,
+                         const char*   grblName,
+                         const char*   name,
+                         int8_t        defVal,
+                         enum_opt_t*   opts,
+                         bool (*checker)(char*) = NULL) :
+    Setting(description, type, permissions, grblName, name, checker),
     _defaultValue(defVal), _options(opts) {}
 
 void EnumSetting::load() {
@@ -471,7 +481,11 @@ void EnumSetting::setDefault() {
 // This is necessary for WebUI, which uses the number
 // for setting.
 Error EnumSetting::setStringValue(char* s) {
-    s                       = trim(s);
+    s         = trim(s);
+    Error err = check(s);
+    if (err != Error::Ok) {
+        return err;
+    }
     enum_opt_t::iterator it = _options->find(s);
     if (it == _options->end()) {
         // If we don't find the value in keys, look for it in the numeric values
@@ -497,7 +511,7 @@ Error EnumSetting::setStringValue(char* s) {
     }
     _currentValue = it->second;
     if (_storedValue != _currentValue) {
-        if (_storedValue == _defaultValue) {
+        if (_currentValue == _defaultValue) {
             nvs_erase_key(_handle, _keyName);
         } else {
             if (nvs_set_i8(_handle, _keyName, _currentValue)) {
@@ -506,6 +520,7 @@ Error EnumSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
@@ -585,6 +600,7 @@ Error FlagSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 const char* FlagSetting::getDefaultString() {
@@ -665,6 +681,7 @@ Error IPaddrSetting::setStringValue(char* s) {
             _storedValue = _currentValue;
         }
     }
+    check(NULL);
     return Error::Ok;
 }
 
@@ -689,7 +706,7 @@ void IPaddrSetting::addWebui(WebUI::JSONencoder* j) {
 AxisSettings::AxisSettings(const char* axisName) : name(axisName) {}
 
 Error GrblCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    if (_checker && _checker()) {
+    if (_cmdChecker && _cmdChecker()) {
         return Error::IdleError;
     }
     return _action((const char*)value, auth_level, out);

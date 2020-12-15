@@ -20,12 +20,12 @@
 
 #include "SDCard.h"
 
-File        myFile;
-bool        SD_ready_next = false;  // Grbl has processed a line and is waiting for another
-uint8_t     SD_client     = CLIENT_SERIAL;
+File                       myFile;
+bool                       SD_ready_next = false;  // Grbl has processed a line and is waiting for another
+uint8_t                    SD_client     = CLIENT_SERIAL;
 WebUI::AuthenticationLevel SD_auth_level = WebUI::AuthenticationLevel::LEVEL_GUEST;
-uint32_t    sd_current_line_number;     // stores the most recent line number read from the SD
-static char comment[LINE_BUFFER_SIZE];  // Line to be executed. Zero-terminated.
+uint32_t                   sd_current_line_number;     // stores the most recent line number read from the SD
+static char                comment[LINE_BUFFER_SIZE];  // Line to be executed. Zero-terminated.
 
 // attempt to mount the SD card
 /*bool sd_mount()
@@ -128,13 +128,14 @@ uint32_t sd_get_current_line_number() {
 uint8_t sd_state = SDCARD_IDLE;
 
 uint8_t get_sd_state(bool refresh) {
-#if defined(SDCARD_DET_PIN) && SDCARD_SD_PIN != -1
-    //no need to go further if SD detect is not correct
-    if (!((digitalRead(SDCARD_DET_PIN) == SDCARD_DET_VAL) ? true : false)) {
-        sd_state = SDCARD_NOT_PRESENT;
-        return sd_state;
+    if (SDCARD_DET_PIN != UNDEFINED_PIN) {
+        if (digitalRead(SDCARD_DET_PIN) != SDCARD_DET_VAL) {
+            sd_state = SDCARD_NOT_PRESENT;
+            return sd_state;
+            //no need to go further if SD detect is not correct
+        }
     }
-#endif
+
     //if busy doing something return state
     if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE))) {
         return sd_state;

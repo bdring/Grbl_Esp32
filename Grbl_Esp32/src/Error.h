@@ -83,6 +83,7 @@ enum class Error : uint8_t {
     NvsGetStatsFailed           = 101,
     AuthenticationFailed        = 110,
     Eol                         = 111,
+    AnotherInterfaceBusy        = 120,
 };
 
 extern std::map<Error, const char*> ErrorNames;

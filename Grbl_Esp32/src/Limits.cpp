@@ -372,7 +372,9 @@ void limitCheckTask(void* pvParameters) {
             sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
         }
         static UBaseType_t uxHighWaterMark = 0;
+#ifdef DEBUG_TASK_STACK
         reportTaskStackSize(uxHighWaterMark);
+#endif
     }
 }
 

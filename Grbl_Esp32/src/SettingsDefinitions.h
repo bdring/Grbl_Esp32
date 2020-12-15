@@ -1,7 +1,5 @@
 #pragma once
 
-extern bool motorSettingChanged;
-
 extern FlagSetting* verbose_errors;
 
 extern FakeSetting<int>* number_axis;
@@ -35,6 +33,7 @@ extern FlagSetting* soft_limits;
 extern FlagSetting* hard_limits;
 extern FlagSetting* homing_enable;
 extern FlagSetting* laser_mode;
+extern IntSetting*  laser_full_power;
 
 extern IntSetting*   status_mask;
 extern FloatSetting* junction_deviation;
@@ -61,3 +60,8 @@ extern IntSetting*   spindle_pwm_bit_precision;
 extern EnumSetting* spindle_type;
 
 extern AxisMaskSetting* stallguard_debug_mask;
+
+extern StringSetting* user_macro0;
+extern StringSetting* user_macro1;
+extern StringSetting* user_macro2;
+extern StringSetting* user_macro3;
