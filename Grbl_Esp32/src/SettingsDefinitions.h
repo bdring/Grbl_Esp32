@@ -4,14 +4,8 @@ extern bool motorSettingChanged;
 
 extern FlagSetting* verbose_errors;
 
-extern FakeSetting<int>* number_axis;
+extern IntSetting* number_axis;
 
-extern AxisSettings* x_axis_settings;
-extern AxisSettings* y_axis_settings;
-extern AxisSettings* z_axis_settings;
-extern AxisSettings* a_axis_settings;
-extern AxisSettings* b_axis_settings;
-extern AxisSettings* c_axis_settings;
 extern AxisSettings* axis_settings[];
 
 extern StringSetting* startup_line_0;

@@ -120,6 +120,10 @@ Socket #5
 // #define CONTROL_SAFETY_DOOR_PIN      "gpio.27"
 
 // ================= Setting Defaults ==========================
+// https://github.com/bdring/Grbl_Esp32/wiki/Setting-Defaults
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800
 #define DEFAULT_Z_STEPS_PER_MM      800
+
+#define DEFAULT_HOMING_DIR_MASK     bit(X_AXIS)
+
