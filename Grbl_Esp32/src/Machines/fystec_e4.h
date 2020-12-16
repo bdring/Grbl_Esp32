@@ -35,47 +35,47 @@
 #define TRINAMIC_HOMING_MODE    TrinamicMode :: StealthChop
 
 #define TMC_UART                UART_NUM_1
-#define TMC_UART_RX             GPIO_NUM_21
-#define TMC_UART_TX             GPIO_NUM_22   
+#define TMC_UART_RX             "gpio.21"
+#define TMC_UART_TX             "gpio.22"   
 
 #define X_TRINAMIC_DRIVER       2209
-#define X_STEP_PIN              GPIO_NUM_27
-#define X_DIRECTION_PIN         GPIO_NUM_26
+#define X_STEP_PIN              "gpio.27"
+#define X_DIRECTION_PIN         "gpio.26"
 #define X_RSENSE                TMC2209_RSENSE_DEFAULT
 #define X_DRIVER_ADDRESS        1
 #define DEFAULT_X_MICROSTEPS    16
 
 #define Y_TRINAMIC_DRIVER       2209
-#define Y_STEP_PIN              GPIO_NUM_33
-#define Y_DIRECTION_PIN         GPIO_NUM_32
+#define Y_STEP_PIN              "gpio.33"
+#define Y_DIRECTION_PIN         "gpio.32"
 #define Y_RSENSE                TMC2209_RSENSE_DEFAULT
 #define Y_DRIVER_ADDRESS        3
 #define DEFAULT_Y_MICROSTEPS    16
 
 #define Z_TRINAMIC_DRIVER       2209
-#define Z_STEP_PIN              GPIO_NUM_14
-#define Z_DIRECTION_PIN         GPIO_NUM_12
+#define Z_STEP_PIN              "gpio.14"
+#define Z_DIRECTION_PIN         "gpio.12"
 #define Z_RSENSE                TMC2209_RSENSE_DEFAULT
 #define Z_DRIVER_ADDRESS        0
 #define DEFAULT_Z_MICROSTEPS    16
 
 #define A_TRINAMIC_DRIVER       2209
-#define A_STEP_PIN              GPIO_NUM_16
-#define A_DIRECTION_PIN         GPIO_NUM_17
+#define A_STEP_PIN              "gpio.16"
+#define A_DIRECTION_PIN         "gpio.17"
 #define A_RSENSE                TMC2209_RSENSE_DEFAULT
 #define A_DRIVER_ADDRESS        2
 #define DEFAULT_A_MICROSTEPS    16
 
-#define X_LIMIT_PIN             GPIO_NUM_34
-#define Y_LIMIT_PIN             GPIO_NUM_35
-#define Z_LIMIT_PIN             GPIO_NUM_15
-#define A_LIMIT_PIN             GPIO_NUM_36   // Labeled TB
-#define PROBE_PIN               GPIO_NUM_39  // Labeled TE
+#define X_LIMIT_PIN             "gpio.34"
+#define Y_LIMIT_PIN             "gpio.35"
+#define Z_LIMIT_PIN             "gpio.15"
+#define A_LIMIT_PIN             "gpio.36"   // Labeled TB
+#define PROBE_PIN               "gpio.39"  // Labeled TE
 
 // OK to comment out to use pin for other features
-#define STEPPERS_DISABLE_PIN    GPIO_NUM_25
+#define STEPPERS_DISABLE_PIN    "gpio.25"
 
 #define SPINDLE_TYPE            SpindleType::RELAY
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_13  // labeled Fan
-#define COOLANT_MIST_PIN        GPIO_NUM_2   // Labeled Hotbed
-#define COOLANT_FLOOD_PIN       GPIO_NUM_4   // Labeled Heater
+#define SPINDLE_OUTPUT_PIN      "gpio.13"  // labeled Fan
+#define COOLANT_MIST_PIN        "gpio.2"   // Labeled Hotbed
+#define COOLANT_FLOOD_PIN       "gpio.4"   // Labeled Heater

@@ -55,12 +55,14 @@ const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) use
 #    define TMC_UART UART_NUM_2
 #endif
 
+// HACK! 254 = undefined. We can't use UNDEFINED_PIN, we should be using Pin class!
+
 #ifndef TMC_UART_RX
-#    define TMC_UART_RX UNDEFINED_PIN
+#    define TMC_UART_RX 254
 #endif
 
 #ifndef TMC_UART_TX
-#    define TMC_UART_TX UNDEFINED_PIN
+#    define TMC_UART_TX 254
 #endif
 
 extern HardwareSerial tmc_serial;
@@ -76,13 +78,8 @@ namespace Motors {
 
     class TrinamicUartDriver : public StandardStepper {
     public:
-        TrinamicUartDriver(uint8_t  axis_index,
-                           uint8_t  step_pin,
-                           uint8_t  dir_pin,
-                           uint8_t  disable_pin,
-                           uint16_t driver_part_number,
-                           float    r_senseS,
-                           uint8_t  address);
+        TrinamicUartDriver(
+            uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin, uint16_t driver_part_number, float r_senseS, uint8_t address);
 
         void config_message();
         void hw_serial_init();

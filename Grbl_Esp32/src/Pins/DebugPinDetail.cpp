@@ -25,7 +25,7 @@ namespace Pins {
         if (high != _isHigh) {
             _isHigh = high;
             if (shouldEvent()) {
-                WriteSerial( "Write %s < %d", toString().c_str(), high);
+                WriteSerial("Write %s < %d", toString().c_str(), high);
             }
         }
         _implementation->write(high);
@@ -38,6 +38,14 @@ namespace Pins {
         }
         return result;
     }
+
+    void DebugPinDetail::reset() {
+        _implementation->reset();
+        if (shouldEvent()) {
+            WriteSerial("Reset %s", toString().c_str());
+        }
+    }
+
     void DebugPinDetail::setAttr(PinAttributes value) {
         char buf[10];
         int  n = 0;

@@ -201,9 +201,10 @@ namespace Spindles {
 
         _current_pwm_duty = duty;
 
-        if (_invert_pwm) {
-            duty = (1 << _pwm_precision) - duty;
-        }
+        // TODO FIXME:
+        // if (_invert_pwm) {
+        //     duty = (1 << _pwm_precision) - duty;
+        // }
 
         ledcWrite(_pwm_chan_num, duty);
     }
@@ -249,18 +250,8 @@ namespace Spindles {
 
     void PWM::deinit() {
         stop();
-#ifdef SPINDLE_OUTPUT_PIN
-        gpio_reset_pin(SPINDLE_OUTPUT_PIN);
-        pinMode(SPINDLE_OUTPUT_PIN, INPUT);
-#endif
-#ifdef SPINDLE_ENABLE_PIN
-        gpio_reset_pin(SPINDLE_ENABLE_PIN);
-        pinMode(SPINDLE_ENABLE_PIN, INPUT);
-#endif
-
-#ifdef SPINDLE_DIR_PIN
-        gpio_reset_pin(SPINDLE_DIR_PIN);
-        pinMode(SPINDLE_DIR_PIN, INPUT);
-#endif
+        _output_pin.reset();
+        _enable_pin.reset();
+        _direction_pin.reset();
     }
 }

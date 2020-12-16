@@ -238,12 +238,6 @@ void make_settings() {
         def                 = &axis_defaults[axis];
         axis_settings[axis] = new AxisSettings(def->name);
     }
-    x_axis_settings = axis_settings[X_AXIS];
-    y_axis_settings = axis_settings[Y_AXIS];
-    z_axis_settings = axis_settings[Z_AXIS];
-    a_axis_settings = axis_settings[A_AXIS];
-    b_axis_settings = axis_settings[B_AXIS];
-    c_axis_settings = axis_settings[C_AXIS];
     for (axis = 0; axis < number_axis->get(); axis++) {
         def = &axis_defaults[axis];
         auto setting =

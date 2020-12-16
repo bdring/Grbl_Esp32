@@ -34,6 +34,7 @@ namespace Pins {
         void write(int high) override;
         int  read() override;
         void setAttr(PinAttributes value) override;
+        void reset() override;
 
         // ISR's:
         void attachInterrupt(void (*callback)(void*), void* arg, int mode) override;

@@ -85,6 +85,11 @@ public:
         detail->setAttr(attributes);
     }
 
+    inline void reset() const {
+        auto detail = Pins::PinLookup::_instance.GetPin(_index);
+        detail->reset();
+    }
+
     inline void on() const { write(1); }
     inline void off() const { write(0); }
 

@@ -48,25 +48,23 @@ namespace Spindles {
 #ifdef LASER_OUTPUT_PIN
         _output_pin = LASER_OUTPUT_PIN;
 #else
-        _output_pin = UNDEFINED_PIN;
+        _output_pin = Pin::UNDEFINED;
 #endif
-
-        _invert_pwm = spindle_output_invert->get();
 
 #ifdef LASER_ENABLE_PIN
         _enable_pin = LASER_ENABLE_PIN;
 #else
-        _enable_pin = UNDEFINED_PIN;
+        _enable_pin = Pin::UNDEFINED;
 #endif
 
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: LASER_OUTPUT_PIN not defined");
             return;  // We cannot continue without the output pin
         }
 
         _off_with_zero_speed = spindle_enbl_off_with_zero_speed->get();
 
-        _direction_pin = UNDEFINED_PIN;
+        _direction_pin = Pin::UNDEFINED;
         is_reversable  = false;
 
         _pwm_freq      = spindle_pwm_freq->get();
@@ -88,14 +86,8 @@ namespace Spindles {
 
     void Laser::deinit() {
         stop();
-#ifdef LASER_OUTPUT_PIN
-        gpio_reset_pin(LASER_OUTPUT_PIN);
-        pinMode(LASER_OUTPUT_PIN, INPUT);
-#endif
 
-#ifdef LASER_ENABLE_PIN
-        gpio_reset_pin(LASER_ENABLE_PIN);
-        pinMode(LASER_ENABLE_PIN, INPUT);
-#endif
+        _output_pin.reset();
+        _enable_pin.reset();
     }
 }

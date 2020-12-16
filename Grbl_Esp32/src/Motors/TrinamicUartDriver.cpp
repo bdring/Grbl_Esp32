@@ -29,7 +29,7 @@ namespace Motors {
 
     /* HW Serial Constructor. */
     TrinamicUartDriver::TrinamicUartDriver(
-        uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin, uint16_t driver_part_number, float r_sense, uint8_t addr) :
+        uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin, uint16_t driver_part_number, float r_sense, uint8_t addr) :
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin) {
         _driver_part_number = driver_part_number;
         _has_errors         = false;
@@ -81,15 +81,15 @@ namespace Motors {
     void TrinamicUartDriver::config_message() {  //TODO: The RX/TX pin could be added to the msg.
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s motor Trinamic TMC%d Step:%s Dir:%s Disable:%s UART%d Rx:%s Tx:%s Addr:%d R:%0.3f %s",
+                       "%s motor Trinamic TMC%d Step:%s Dir:%s Disable:%s UART%d Rx:%d Tx:%d Addr:%d R:%0.3f %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _driver_part_number,
-                       pinName(_step_pin).c_str(),
-                       pinName(_dir_pin).c_str(),
-                       pinName(_disable_pin).c_str(),
+                       _step_pin.name().c_str(),
+                       _dir_pin.name().c_str(),
+                       _disable_pin.name().c_str(),
                        TMC_UART,
-                       pinName(TMC_UART_RX),
-                       pinName(TMC_UART_TX),
+                       int(TMC_UART_RX),
+                       int(TMC_UART_TX),
                        this->addr,
                        _r_sense,
                        reportAxisLimitsMsg(_axis_index));
@@ -295,7 +295,7 @@ namespace Motors {
 
         _disabled = disable;
 
-        digitalWrite(_disable_pin, _disabled);
+        _disable_pin.write(_disabled);
 
 #ifdef USE_TRINAMIC_ENABLE
         if (_disabled) {

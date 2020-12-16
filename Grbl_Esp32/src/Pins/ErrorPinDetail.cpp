@@ -11,6 +11,7 @@ namespace Pins {
     int  ErrorPinDetail::read() { Assert(false, "Cannot read from an error pin."); }
     void ErrorPinDetail::setAttr(PinAttributes value) { /* Fine, this won't get you anywhere. */
     }
+    void ErrorPinDetail::reset() {}
 
     String ErrorPinDetail::toString() const { return "ERROR_PIN"; }
 }

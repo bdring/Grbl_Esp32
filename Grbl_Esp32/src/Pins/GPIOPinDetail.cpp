@@ -164,6 +164,11 @@ namespace Pins {
 
         __pinMode(_index, pinModeValue);
     }
+    
+    void GPIOPinDetail::reset() {
+        gpio_reset_pin(gpio_num_t(_index));
+        __pinMode(_index, INPUT);
+    }
 
     void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) {
         Assert(_currentMode.has(PinAttributes::ISR),

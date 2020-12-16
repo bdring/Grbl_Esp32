@@ -5,7 +5,7 @@
 #include <nvs.h>
 #include "WebUI/ESPResponse.h"
 
-#include "Eeprom.h" // For CoordIndex
+#include "GCode.h"
 
 // Initialize the configuration subsystem
 void settings_init();
