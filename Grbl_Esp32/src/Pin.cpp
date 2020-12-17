@@ -165,7 +165,17 @@ Pin Pin::create(const String& str) {
 bool Pin::validate(const String& str) {
     Pins::PinDetail* pinImplementation;
 
-    auto valid = parse(str, pinImplementation);
+    bool valid = false;
+    try {
+        valid = parse(str, pinImplementation);
+    } catch (const AssertionFailed& e) {
+        // If an assertion happens, it's definitely invalid.
+#ifdef ESP32
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Warning, "Validation for pin spec %s failed: %s", str.c_str(), e.error.c_str());
+#endif
+        valid = false;
+    }
+
     if (pinImplementation) {
         delete pinImplementation;
     }

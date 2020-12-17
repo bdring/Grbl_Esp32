@@ -202,6 +202,14 @@ namespace Motors {
 */
 
     void TrinamicDriver::read_settings() {
+        // When 'test' is called and no actual trinamic is there, _has_errors will evaluate to 'true'. The 
+        // result of that is that the check below will fail. And the result of that is that the step/dir pin 
+        // is not initialized if we don't do it here. Unstep actually uses that pin -- and then you will get 
+        // an assertion for using a pin that's not initialized.
+        //
+        // So... I moved init_step_dir_pins here, which basically solves that.
+        init_step_dir_pins();
+     
         if (_has_errors) {
             return;
         }
@@ -218,8 +226,6 @@ namespace Motors {
         }
         tmcstepper->microsteps(axis_settings[_axis_index]->microsteps->get());
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
-
-        init_step_dir_pins();
     }
 
     bool TrinamicDriver::set_homing_mode(bool isHoming) {

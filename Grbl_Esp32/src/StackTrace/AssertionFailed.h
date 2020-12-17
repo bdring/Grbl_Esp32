@@ -6,11 +6,12 @@
 class AssertionFailed {
 public:
     String stackTrace;
+    String error;
 
-    AssertionFailed(String st) : stackTrace(st) {}
+    AssertionFailed(String st, String err) : stackTrace(st), error(err) {}
 
     static AssertionFailed create(const char* condition) {
-        return create(condition, "Assertion failed");
+        return create(condition, "Unknown error (assertion failed).");
     }
     static AssertionFailed create(const char* condition, const char* msg, ...);
 
@@ -24,7 +25,7 @@ public:
     String stackTrace;
 
     static std::exception create(const char* condition) {
-        return create(condition, "Assertion failed");
+        return create(condition, "Unknown error (assertion failed).");
     }
     static std::exception create(const char* condition, const char* msg, ...);
 };

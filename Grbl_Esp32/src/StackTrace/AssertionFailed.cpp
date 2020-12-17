@@ -23,7 +23,7 @@ AssertionFailed AssertionFailed::create(const char* condition, const char* msg, 
     st += " at: ";
     st += esp_backtrace_print(10);
 
-    return AssertionFailed(st);
+    return AssertionFailed(st, tmp);
 }
 
 #else
