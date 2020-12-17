@@ -30,24 +30,24 @@ void grbl_init() {
         WiFi.mode(WIFI_OFF);
 
         // Setup serial baud rate and interrupts
-        serial_init();  
+        serial_init();
         grbl_msg_sendf(
             CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());   // print the SDK version
-// show the map name at startup
+                                                                                                            // show the map name at startup
 
 #ifdef MACHINE_NAME
         report_machine_type(CLIENT_SERIAL);
 #endif
         // Load Grbl settings from non-volatile storage
-        settings_init();  
+        settings_init();
 
 #ifdef USE_I2S_OUT
         // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
-        i2s_out_init();  
+        i2s_out_init();
 #endif
 
-        stepper_init();   // Configure stepper pins and interrupt timers
+        stepper_init();  // Configure stepper pins and interrupt timers
         init_motors();
         system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.

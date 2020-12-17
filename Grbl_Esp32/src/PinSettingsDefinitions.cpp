@@ -775,6 +775,36 @@ PinSetting* PhasePins[4][MAX_N_AXIS][2];
 
 #include "Pin.h"
 
+bool validateCapabilities(const char* definition, Pin::Capabilities caps) {
+    auto isValid = Pin::validate(definition);
+    if (isValid) {
+        Pin pin = Pin::create(definition);
+        return pin.capabilities().has(caps);
+    } else {
+        return false;
+    }
+}
+
+bool pinHasPWM(char* definition) {
+    validateCapabilities(definition, Pin::Capabilities::PWM);
+}
+
+bool pinHasUart(char* definition) {
+    validateCapabilities(definition, Pin::Capabilities::UART);
+}
+
+bool pinIsNative(char* definition) {
+    validateCapabilities(definition, Pin::Capabilities::Native);
+}
+
+bool pinIsInput(char* definition) {
+    validateCapabilities(definition, Pin::Capabilities::Input);
+}
+
+bool pinIsOutput(char* definition) {
+    validateCapabilities(definition, Pin::Capabilities::Input);
+}
+
 // Initialize the pin settings
 void make_pin_settings() {
     CoolantFloodPin      = new PinSetting("Coolant/Flood/Pin", COOLANT_FLOOD_PIN_DEFAULT);
@@ -799,13 +829,13 @@ void make_pin_settings() {
 
     // User pins:
     UserDigitalPin[0] = new PinSetting("UserDigital/0/Pin", USER_DIGITAL_PIN_0_DEFAULT);
-    UserAnalogPin[0]  = new PinSetting("UserAnalog/0/Pin", USER_ANALOG_PIN_0_DEFAULT);
+    UserAnalogPin[0]  = new PinSetting("UserAnalog/0/Pin", USER_ANALOG_PIN_0_DEFAULT, pinHasPWM);
     UserDigitalPin[1] = new PinSetting("UserDigital/1/Pin", USER_DIGITAL_PIN_1_DEFAULT);
-    UserAnalogPin[1]  = new PinSetting("UserAnalog/1/Pin", USER_ANALOG_PIN_1_DEFAULT);
+    UserAnalogPin[1]  = new PinSetting("UserAnalog/1/Pin", USER_ANALOG_PIN_1_DEFAULT, pinHasPWM);
     UserDigitalPin[2] = new PinSetting("UserDigital/2/Pin", USER_DIGITAL_PIN_2_DEFAULT);
-    UserAnalogPin[2]  = new PinSetting("UserAnalog/2/Pin", USER_ANALOG_PIN_2_DEFAULT);
+    UserAnalogPin[2]  = new PinSetting("UserAnalog/2/Pin", USER_ANALOG_PIN_2_DEFAULT, pinHasPWM);
     UserDigitalPin[3] = new PinSetting("UserDigital/3/Pin", USER_DIGITAL_PIN_3_DEFAULT);
-    UserAnalogPin[3]  = new PinSetting("UserAnalog/3/Pin", USER_ANALOG_PIN_3_DEFAULT);
+    UserAnalogPin[3]  = new PinSetting("UserAnalog/3/Pin", USER_ANALOG_PIN_3_DEFAULT, pinHasPWM);
 
     // SPI pins:
     SPISSPin   = new PinSetting("SPI/SS/Pin", "GPIO.5");
@@ -824,9 +854,9 @@ void make_pin_settings() {
     SpindleForwardPin   = new PinSetting("Spindle/Forward/Pin", SPINDLE_FORWARD_PIN_DEFAULT);
     SpindleReversePin   = new PinSetting("Spindle/Reverse/Pin", SPINDLE_REVERSE_PIN_DEFAULT);
     // XXX Move to VFD class
-    VFDRS485TXDPin = new PinSetting("Spindle/VFD/TxD/Pin", VFD_RS485_TXD_PIN_DEFAULT);  // VFD_RS485_TXD_PIN
-    VFDRS485RXDPin = new PinSetting("Spindle/VFD/RxD/Pin", VFD_RS485_RXD_PIN_DEFAULT);  // VFD_RS485_RXD_PIN
-    VFDRS485RTSPin = new PinSetting("Spindle/VFD/RTS/Pin", VFD_RS485_RTS_PIN_DEFAULT);  // VFD_RS485_RTS_PIN
+    VFDRS485TXDPin = new PinSetting("Spindle/VFD/TxD/Pin", VFD_RS485_TXD_PIN_DEFAULT, pinHasUart);  // VFD_RS485_TXD_PIN
+    VFDRS485RXDPin = new PinSetting("Spindle/VFD/RxD/Pin", VFD_RS485_RXD_PIN_DEFAULT, pinHasUart);  // VFD_RS485_RXD_PIN
+    VFDRS485RTSPin = new PinSetting("Spindle/VFD/RTS/Pin", VFD_RS485_RTS_PIN_DEFAULT, pinHasUart);  // VFD_RS485_RTS_PIN
 
     // Axis:
     LimitPins[X_AXIS][0] = new PinSetting("X/Limit/Pin", X_LIMIT_PIN_DEFAULT);
