@@ -69,7 +69,8 @@ bool user_defined_homing(uint8_t cycle_mask) {
 
     // check for multi axis homing per cycle ($Homing/Cycle0=XY type)...not allowed in CoreXY
     bool setting_error = false;
-    for (int cycle = 0; cycle < 3; cycle++) {
+    auto n_axis        = number_axis->get();
+    for (int cycle = 0; cycle < n_axis; cycle++) {
         if (numberOfSetBits(homing_cycle[cycle]->get()) > 1) {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
@@ -90,7 +91,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
     pl_data->motion.systemMotion   = 1;
     pl_data->motion.noFeedOverride = 1;
 
-    uint8_t cycle_count = (cycle_mask == 0) ? 3 : 1;  // if we have a cycle_mask, we are only going to do one axis
+    uint8_t cycle_count = (cycle_mask == 0) ? n_axis : 1;  // if we have a cycle_mask, we are only going to do one axis
 
     AxisMask mask = 0;
     for (int cycle = 0; cycle < cycle_count; cycle++) {
@@ -105,7 +106,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
 
         mask = motors_set_homing_mode(mask, true);  // non standard homing motors will do their own thing and get removed from the mask
 
-        for (uint8_t axis = X_AXIS; axis <= Z_AXIS; axis++) {
+        for (uint8_t axis = X_AXIS; axis <= n_axis; axis++) {
             if (bit(axis) == mask) {
                 // setup for the homing of this axis
                 bool  approach       = true;
@@ -129,7 +130,9 @@ bool user_defined_homing(uint8_t cycle_mask) {
                         approach ? target[axis] = max_travel : target[axis] = -max_travel;
                     }
 
-                    target[Z_AXIS] = system_convert_axis_steps_to_mpos(sys_position, Z_AXIS);
+                    for (int axis = Z_AXIS; axis < n_axis; axis++) {
+                        target[axis] = system_convert_axis_steps_to_mpos(sys_position, axis);
+                    }
 
                     // convert back to motor steps
                     inverse_kinematics(target);
@@ -217,7 +220,10 @@ bool user_defined_homing(uint8_t cycle_mask) {
 
     last_cartesian[X_AXIS] = target[X_AXIS];
     last_cartesian[Y_AXIS] = target[Y_AXIS];
-    last_cartesian[Z_AXIS] = system_convert_axis_steps_to_mpos(sys_position, Z_AXIS);
+
+    for (int axis = Z_AXIS; axis < n_axis; axis++) {
+        last_cartesian[axis] = system_convert_axis_steps_to_mpos(sys_position, axis);
+    }
 
     // convert to motors
     inverse_kinematics(target);
@@ -239,15 +245,15 @@ bool user_defined_homing(uint8_t cycle_mask) {
 // This function is used by Grbl convert Cartesian to motors
 // this does not do any motion control
 void inverse_kinematics(float* position) {
-    float motors[3];
+    float motors[MAX_N_AXIS];
 
     motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
     motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
-    motors[Z_AXIS] = position[Z_AXIS];
 
-    position[0] = motors[0];
-    position[1] = motors[1];
-    position[2] = motors[2];
+    position[X_AXIS] = motors[X_AXIS];
+    position[Y_AXIS] = motors[Y_AXIS];
+
+    // Z and higher just pass through unchanged
 }
 
 // Inverse Kinematics calculates motor positions from real world cartesian positions
@@ -268,7 +274,11 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
     motors[X_AXIS] = geometry_factor * target[X_AXIS] + target[Y_AXIS];
     motors[Y_AXIS] = geometry_factor * target[X_AXIS] - target[Y_AXIS];
-    motors[Z_AXIS] = target[Z_AXIS];
+
+    auto n_axis = number_axis->get();
+    for (uint8_t axis = Z_AXIS; axis <= n_axis; axis++) {
+        motors[axis] = target[axis];
+    }
 
     float motor_distance = three_axis_dist(motors, last_motors);
 
@@ -283,14 +293,36 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
 // motors -> cartesian
 void forward_kinematics(float* position) {
-    float calc_fwd[MAX_N_AXIS];
+    float   calc_fwd[MAX_N_AXIS];
+    float   wco[MAX_N_AXIS];
+    float   print_position[N_AXIS];
+    int32_t current_position[N_AXIS];  // Copy current state of the system position variable
 
+    memcpy(current_position, sys_position, sizeof(sys_position));
+    system_convert_array_steps_to_mpos(print_position, current_position);
+
+    // determine the Work Coordinate Offsets for each axis
+    auto n_axis = number_axis->get();
+    for (int axis = 0; axis < n_axis; axis++) {
+        // Apply work coordinate offsets and tool length offset to current position.
+        wco[axis] = gc_state.coord_system[axis] + gc_state.coord_offset[axis];
+        if (axis == TOOL_LENGTH_OFFSET_AXIS) {
+            wco[axis] += gc_state.tool_length_offset;
+        }
+    }
+
+    // apply the forward kinemetics to the machine coordinates
     // https://corexy.com/theory.html
-    calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
-    calc_fwd[Y_AXIS] = 0.5 * (position[X_AXIS] - position[Y_AXIS]);
+    //calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
+    calc_fwd[X_AXIS] = ((0.5 * (print_position[X_AXIS] + print_position[Y_AXIS]) * geometry_factor) - wco[X_AXIS]);
+    calc_fwd[Y_AXIS] = ((0.5 * (print_position[X_AXIS] - print_position[Y_AXIS])) - wco[Y_AXIS]);
 
-    position[X_AXIS] = calc_fwd[X_AXIS];
-    position[Y_AXIS] = calc_fwd[Y_AXIS];
+    for (int axis = 0; axis < n_axis; axis++) {
+        if (axis > Y_AXIS) {  // for axes above Y there is no kinematics
+            calc_fwd[axis] = print_position[axis] - wco[axis];
+        }
+        position[axis] = calc_fwd[axis];  // this is the value returned to reporting
+    }
 }
 
 bool kinematics_pre_homing(uint8_t cycle_mask) {
@@ -298,9 +330,10 @@ bool kinematics_pre_homing(uint8_t cycle_mask) {
 }
 
 void kinematics_post_homing() {
-    gc_state.position[X_AXIS] = last_cartesian[X_AXIS];
-    gc_state.position[Y_AXIS] = last_cartesian[Y_AXIS];
-    gc_state.position[Z_AXIS] = last_cartesian[Z_AXIS];
+    auto n_axis = number_axis->get();
+    for (uint8_t axis = X_AXIS; axis <= n_axis; axis++) {
+        gc_state.position[axis] = last_cartesian[axis];
+    }
 }
 
 // this is used used by Grbl soft limits to see if the range of the machine is exceeded.

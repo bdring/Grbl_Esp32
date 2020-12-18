@@ -104,9 +104,8 @@ bool    kinematics_pre_homing(uint8_t cycle_mask);
 void    kinematics_post_homing();
 uint8_t kinematic_limits_check(float* target);
 
-// Called if USE_FWD_KINEMATICS is defined
 void inverse_kinematics(float* position);  // used to return a converted value
-void forward_kinematics(float* position);
+void forward_kinematics(float* position);  // weak definition in Report.cpp
 
 // Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined
 void user_defined_macro(uint8_t index);

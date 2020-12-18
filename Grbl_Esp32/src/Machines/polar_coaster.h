@@ -38,7 +38,6 @@
 
 #define SEGMENT_LENGTH 0.5 // segment length in mm
 #define USE_KINEMATICS
-#define USE_FWD_KINEMATICS // report in cartesian
 #define USE_M30
 
 #define X_STEP_PIN              GPIO_NUM_15
