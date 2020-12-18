@@ -106,7 +106,7 @@ void           init_motors() {
     if (n_axis >= 2) {
         // this WILL be done better with settings
 #ifdef Y_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
+#    if (Y_TRINAMIC_DRIVER == 2130 || Y_TRINAMIC_DRIVER == 5160)
         {
             myMotor[Y_AXIS][0] =
                 new Motors::TrinamicDriver(Y_AXIS, Y_STEP_PIN, Y_DIRECTION_PIN, Y_DISABLE_PIN, Y_CS_PIN, Y_TRINAMIC_DRIVER, Y_RSENSE);
@@ -132,7 +132,7 @@ void           init_motors() {
 #endif
 
 #ifdef Y2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
+#    if (Y2_TRINAMIC_DRIVER == 2130 || Y2_TRINAMIC_DRIVER == 5160)
         {
             myMotor[Y_AXIS][1] =
                 new Motors::TrinamicDriver(Y2_AXIS, Y2_STEP_PIN, Y2_DIRECTION_PIN, Y2_DISABLE_PIN, Y2_CS_PIN, Y2_TRINAMIC_DRIVER, Y2_RSENSE);
@@ -160,7 +160,7 @@ void           init_motors() {
     if (n_axis >= 3) {
         // this WILL be done better with settings
 #ifdef Z_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
+#    if (Z_TRINAMIC_DRIVER == 2130 || Z_TRINAMIC_DRIVER == 5160)
         {
             myMotor[Z_AXIS][0] =
                 new Motors::TrinamicDriver(Z_AXIS, Z_STEP_PIN, Z_DIRECTION_PIN, Z_DISABLE_PIN, Z_CS_PIN, Z_TRINAMIC_DRIVER, Z_RSENSE);
@@ -186,7 +186,7 @@ void           init_motors() {
 #endif
 
 #ifdef Z2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
+#    if (Z2_TRINAMIC_DRIVER == 2130 || Z2_TRINAMIC_DRIVER == 5160)
         {
             myMotor[Z_AXIS][1] =
                 new Motors::TrinamicDriver(Z2_AXIS, Z2_STEP_PIN, Z2_DIRECTION_PIN, Z2_DISABLE_PIN, Z2_CS_PIN, Z2_TRINAMIC_DRIVER, Z2_RSENSE);
@@ -214,9 +214,9 @@ void           init_motors() {
     if (n_axis >= 4) {
         // this WILL be done better with settings
 #ifdef A_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
+#    if (A_TRINAMIC_DRIVER == 2130 || A_TRINAMIC_DRIVER == 5160)
         {
-            myMotor[A_AXIS][1] =
+            myMotor[A_AXIS][0] =
                 new Motors::TrinamicDriver(A_AXIS, A_STEP_PIN, A_DIRECTION_PIN, A_DISABLE_PIN, A_CS_PIN, A_TRINAMIC_DRIVER, A_RSENSE);
         }
 #    elif (A_TRINAMIC_DRIVER == 2208 || A_TRINAMIC_DRIVER == 2209)
@@ -240,7 +240,7 @@ void           init_motors() {
 #endif
 
 #ifdef A2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
+#    if (A2_TRINAMIC_DRIVER == 2130 || A2_TRINAMIC_DRIVER == 5160)
         {
             myMotor[A_AXIS][1] =
                 new Motors::TrinamicDriver(A2_AXIS, A2_STEP_PIN, A2_DIRECTION_PIN, A2_DISABLE_PIN, A2_CS_PIN, A2_TRINAMIC_DRIVER, A2_RSENSE);
@@ -268,9 +268,9 @@ void           init_motors() {
     if (n_axis >= 5) {
         // this WILL be done better with settings
 #ifdef B_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
+#    if (B_TRINAMIC_DRIVER == 2130 || B_TRINAMIC_DRIVER == 5160)
         {
-            myMotor[B_AXIS][1] =
+            myMotor[B_AXIS][0] =
                 new Motors::TrinamicDriver(B_AXIS, B_STEP_PIN, B_DIRECTION_PIN, B_DISABLE_PIN, B_CS_PIN, B_TRINAMIC_DRIVER, B_RSENSE);
         }
 #    elif (B_TRINAMIC_DRIVER == 2208 || B_TRINAMIC_DRIVER == 2209)
@@ -294,7 +294,7 @@ void           init_motors() {
 #endif
 
 #ifdef B2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
+#    if (B2_TRINAMIC_DRIVER == 2130 || B2_TRINAMIC_DRIVER == 5160)
         {
             myMotor[B_AXIS][1] =
                 new Motors::TrinamicDriver(B2_AXIS, B2_STEP_PIN, B2_DIRECTION_PIN, B2_DISABLE_PIN, B2_CS_PIN, B2_TRINAMIC_DRIVER, B2_RSENSE);
@@ -322,9 +322,9 @@ void           init_motors() {
     if (n_axis >= 6) {
         // this WILL be done better with settings
 #ifdef C_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
+#    if (C_TRINAMIC_DRIVER == 2130 || C_TRINAMIC_DRIVER == 5160)
         {
-            myMotor[C_AXIS][1] =
+            myMotor[C_AXIS][0] =
                 new Motors::TrinamicDriver(C_AXIS, C_STEP_PIN, C_DIRECTION_PIN, C_DISABLE_PIN, C_CS_PIN, C_TRINAMIC_DRIVER, C_RSENSE);
         }
 #    elif (C_TRINAMIC_DRIVER == 2208 || C_TRINAMIC_DRIVER == 2209)
@@ -348,7 +348,7 @@ void           init_motors() {
 #endif
 
 #ifdef C2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
+#    if (C2_TRINAMIC_DRIVER == 2130 || C2_TRINAMIC_DRIVER == 5160)
         {
             myMotor[C_AXIS][1] =
                 new Motors::TrinamicDriver(C2_AXIS, C2_STEP_PIN, C2_DIRECTION_PIN, C2_DISABLE_PIN, C2_CS_PIN, C2_TRINAMIC_DRIVER, C2_RSENSE);
