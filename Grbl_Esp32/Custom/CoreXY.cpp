@@ -83,6 +83,8 @@ bool user_defined_homing(uint8_t cycle_mask) {
     if (setting_error)
         return true;
 
+    limits_disable();
+
     // setup the motion parameters
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
@@ -174,6 +176,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
                                 motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
                                 mc_reset();                                 // Stop motors, if they are running.
                                 protocol_execute_realtime();
+                                limits_init();
                                 return true;
                             } else {
                                 // Pull-off motion complete. Disable CYCLE_STOP from executing.
