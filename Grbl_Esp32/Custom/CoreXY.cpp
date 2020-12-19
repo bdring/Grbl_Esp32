@@ -292,7 +292,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 }
 
 // motors -> cartesian
-void forward_kinematics(float* position) {
+void forward_kinematics(float* position) {  // Note: the Position value is not used. sys_position is used
     float   calc_fwd[MAX_N_AXIS];
     float   wco[MAX_N_AXIS];
     float   print_position[N_AXIS];
@@ -301,13 +301,19 @@ void forward_kinematics(float* position) {
     memcpy(current_position, sys_position, sizeof(sys_position));
     system_convert_array_steps_to_mpos(print_position, current_position);
 
-    // determine the Work Coordinate Offsets for each axis
+    // If we want to see WPos, apply the offsets
+
     auto n_axis = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
-        // Apply work coordinate offsets and tool length offset to current position.
-        wco[axis] = gc_state.coord_system[axis] + gc_state.coord_offset[axis];
-        if (axis == TOOL_LENGTH_OFFSET_AXIS) {
-            wco[axis] += gc_state.tool_length_offset;
+        // determine the Work Coordinate Offsets for each axis
+        if (bit_isfalse(status_mask->get(), RtStatus::Position)) {
+            // Apply work coordinate offsets and tool length offset to current position.
+            wco[axis] = gc_state.coord_system[axis] + gc_state.coord_offset[axis];
+            if (axis == TOOL_LENGTH_OFFSET_AXIS) {
+                wco[axis] += gc_state.tool_length_offset;
+            }
+        } else {  // MPos
+            wco[axis] = 0.0;
         }
     }
 

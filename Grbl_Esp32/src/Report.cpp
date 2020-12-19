@@ -655,11 +655,12 @@ void report_realtime_status(uint8_t client) {
             }
         }
     }
+    // allow a custom machine to apply forward kinematics
+    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
     // Report machine position
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
         strcat(status, "|MPos:");
     } else {
-        forward_kinematics(print_position); // a weak definition does nothing. Users can provide strong version
         strcat(status, "|WPos:");
     }
     report_util_axis_values(print_position, temp);
