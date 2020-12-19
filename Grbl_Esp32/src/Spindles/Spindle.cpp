@@ -38,6 +38,7 @@
 #include "H2ASpindle.h"
 #include "BESCSpindle.h"
 #include "10vSpindle.h"
+#include "TickleMeLaser.h"
 
 namespace Spindles {
     // An instance of each type of spindle is created here.
@@ -46,6 +47,7 @@ namespace Spindles {
     PWM      pwm;
     Relay    relay;
     Laser    laser;
+    TickleMeLaser tickleMeLaser;
     Dac      dac;
     Huanyang huanyang;
     H2A      h2a;
@@ -63,6 +65,9 @@ namespace Spindles {
             case SpindleType::LASER:
                 spindle = &laser;
                 break;
+            case SpindleType::TickleMeLaser:
+                spindle = &tickleMeLaser;
+                break;    
             case SpindleType::DAC:
                 spindle = &dac;
                 break;

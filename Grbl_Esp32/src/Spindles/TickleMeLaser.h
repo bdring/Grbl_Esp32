@@ -22,10 +22,9 @@
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "TickleMeLaser.h"
+#include "Laser.h"
 
 namespace Spindles {
-    // this is the same as a Laser but tickle pulses are supported..
     class TickleMeLaser : public Laser {
     public:
         TickleMeLaser() = default;
@@ -37,7 +36,7 @@ namespace Spindles {
 
         virtual uint32_t set_rpm(uint32_t rpm) override;
 
-        virtual ~TickleMeLaser() {}
+        virtual ~TickleMeLaser()  {}
 
     protected:
         uint32_t _min_rpm;
@@ -51,9 +50,5 @@ namespace Spindles {
         bool     _piecewide_linear;
         bool     _off_with_zero_speed;
         bool     _invert_pwm;
-
-        virtual void set_output(uint32_t duty);
-        virtual void set_enable_pin(bool enable_pin);
-        //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
     };
 }
