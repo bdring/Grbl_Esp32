@@ -62,6 +62,8 @@ namespace Spindles {
                 pwm_value = 5;
             } else {
                 //for the branch that allows on the fly frequency changes, set it to desired frequency here.
+                //the biggest gain for rf lasers on changing frequency is getting rid of lines on edges during fast cuts
+                //ultimatley the frequency value should be driven by the velocity of the move
                 pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
             }
         }
