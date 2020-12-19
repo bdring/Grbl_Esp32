@@ -27,8 +27,10 @@ void coolant_init() {
     static bool init_message = true;  // used to show messages only once.
 
     if (init_message) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Flood coolant on pin %s", CoolantFloodPin->get().name().c_str());
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Mist coolant on pin %s", CoolantMistPin->get().name().c_str());
+        if (CoolantFloodPin->get() != Pin::UNDEFINED)
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Flood coolant on pin %s", CoolantFloodPin->get().name().c_str());
+        if (CoolantMistPin->get() != Pin::UNDEFINED)
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Mist coolant on pin %s", CoolantMistPin->get().name().c_str());
         init_message = false;
     }
 

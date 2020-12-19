@@ -58,7 +58,7 @@ void           init_motors() {
                                                             StepPins[X_AXIS][0]->get(),
                                                             DirectionPins[X_AXIS][0]->get(),
                                                             DisablePins[X_AXIS][0]->get(),
-                                                            ClearToSendPins[X_AXIS][0]->get(),
+                                                            ChipSelectPins[X_AXIS][0]->get(),
                                                             X_TRINAMIC_DRIVER,
                                                             X_RSENSE);
         }
@@ -101,7 +101,7 @@ void           init_motors() {
                                                             StepPins[X_AXIS][1]->get(),
                                                             DirectionPins[X_AXIS][1]->get(),
                                                             DisablePins[X_AXIS][1]->get(),
-                                                            ClearToSendPins[X_AXIS][1]->get(),
+                                                            ChipSelectPins[X_AXIS][1]->get(),
                                                             X2_TRINAMIC_DRIVER,
                                                             X2_RSENSE);
         }
@@ -145,7 +145,7 @@ void           init_motors() {
                                                             StepPins[Y_AXIS][0]->get(),
                                                             DirectionPins[Y_AXIS][0]->get(),
                                                             DisablePins[Y_AXIS][0]->get(),
-                                                            ClearToSendPins[Y_AXIS][0]->get(),
+                                                            ChipSelectPins[Y_AXIS][0]->get(),
                                                             Y_TRINAMIC_DRIVER,
                                                             Y_RSENSE);
         }
@@ -188,7 +188,7 @@ void           init_motors() {
                                                             StepPins[Y_AXIS][1]->get(),
                                                             DirectionPins[Y_AXIS][1]->get(),
                                                             DisablePins[Y_AXIS][1]->get(),
-                                                            ClearToSendPins[Y_AXIS][1]->get(),
+                                                            ChipSelectPins[Y_AXIS][1]->get(),
                                                             Y2_TRINAMIC_DRIVER,
                                                             Y2_RSENSE);
         }
@@ -232,7 +232,7 @@ void           init_motors() {
                                                             StepPins[Z_AXIS][0]->get(),
                                                             DirectionPins[Z_AXIS][0]->get(),
                                                             DisablePins[Z_AXIS][0]->get(),
-                                                            ClearToSendPins[Z_AXIS][0]->get(),
+                                                            ChipSelectPins[Z_AXIS][0]->get(),
                                                             Z_TRINAMIC_DRIVER,
                                                             Z_RSENSE);
         }
@@ -275,7 +275,7 @@ void           init_motors() {
                                                             StepPins[Z_AXIS][1]->get(),
                                                             DirectionPins[Z_AXIS][1]->get(),
                                                             DisablePins[Z_AXIS][1]->get(),
-                                                            ClearToSendPins[Z_AXIS][1]->get(),
+                                                            ChipSelectPins[Z_AXIS][1]->get(),
                                                             Z2_TRINAMIC_DRIVER,
                                                             Z2_RSENSE);
         }
@@ -319,7 +319,7 @@ void           init_motors() {
                                                             StepPins[A_AXIS][0]->get(),
                                                             DirectionPins[A_AXIS][0]->get(),
                                                             DisablePins[A_AXIS][0]->get(),
-                                                            ClearToSendPins[A_AXIS][0]->get(),
+                                                            ChipSelectPins[A_AXIS][0]->get(),
                                                             A_TRINAMIC_DRIVER,
                                                             A_RSENSE);
         }
@@ -362,7 +362,7 @@ void           init_motors() {
                                                             StepPins[A_AXIS][1]->get(),
                                                             DirectionPins[A_AXIS][1]->get(),
                                                             DisablePins[A_AXIS][1]->get(),
-                                                            ClearToSendPins[A_AXIS][1]->get(),
+                                                            ChipSelectPins[A_AXIS][1]->get(),
                                                             A2_TRINAMIC_DRIVER,
                                                             A2_RSENSE);
         }
@@ -406,7 +406,7 @@ void           init_motors() {
                                                             StepPins[B_AXIS][0]->get(),
                                                             DirectionPins[B_AXIS][0]->get(),
                                                             DisablePins[B_AXIS][0]->get(),
-                                                            ClearToSendPins[B_AXIS][0]->get(),
+                                                            ChipSelectPins[B_AXIS][0]->get(),
                                                             B_TRINAMIC_DRIVER,
                                                             B_RSENSE);
         }
@@ -449,7 +449,7 @@ void           init_motors() {
                                                             StepPins[B_AXIS][1]->get(),
                                                             DirectionPins[B_AXIS][1]->get(),
                                                             DisablePins[B_AXIS][1]->get(),
-                                                            ClearToSendPins[B_AXIS][1]->get(),
+                                                            ChipSelectPins[B_AXIS][1]->get(),
                                                             B2_TRINAMIC_DRIVER,
                                                             B2_RSENSE);
         }
@@ -493,7 +493,7 @@ void           init_motors() {
                                                             StepPins[C_AXIS][0]->get(),
                                                             DirectionPins[C_AXIS][0]->get(),
                                                             DisablePins[C_AXIS][0]->get(),
-                                                            ClearToSendPins[C_AXIS][0]->get(),
+                                                            ChipSelectPins[C_AXIS][0]->get(),
                                                             C_TRINAMIC_DRIVER,
                                                             C_RSENSE);
         }
@@ -536,7 +536,7 @@ void           init_motors() {
                                                             StepPins[C_AXIS][1]->get(),
                                                             DirectionPins[C_AXIS][1]->get(),
                                                             DisablePins[C_AXIS][1]->get(),
-                                                            ClearToSendPins[C_AXIS][1]->get(),
+                                                            ChipSelectPins[C_AXIS][1]->get(),
                                                             C2_TRINAMIC_DRIVER,
                                                             C2_RSENSE);
         }

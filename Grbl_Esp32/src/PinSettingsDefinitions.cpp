@@ -768,7 +768,7 @@ PinSetting* LimitPins[MAX_N_AXIS][2];
 PinSetting* StepPins[MAX_N_AXIS][2];
 PinSetting* DirectionPins[MAX_N_AXIS][2];
 PinSetting* DisablePins[MAX_N_AXIS][2];
-PinSetting* ClearToSendPins[MAX_N_AXIS][2];
+PinSetting* ChipSelectPins[MAX_N_AXIS][2];
 PinSetting* ServoPins[MAX_N_AXIS][2];
 PinSetting* StepStickMS3[MAX_N_AXIS][2];
 PinSetting* PhasePins[4][MAX_N_AXIS][2];
@@ -913,18 +913,18 @@ void make_pin_settings() {
     DisablePins[C_AXIS][1] = new PinSetting("C2/Disable/Pin", C2_DISABLE_PIN_DEFAULT);
 
     // XXX Move to Trinamic class
-    ClearToSendPins[X_AXIS][0] = new PinSetting("X/Trinamic/CTS/Pin", X_CS_PIN_DEFAULT);
-    ClearToSendPins[X_AXIS][1] = new PinSetting("X2/Trinamic/CTS/Pin", X2_CS_PIN_DEFAULT);
-    ClearToSendPins[Y_AXIS][0] = new PinSetting("Y/Trinamic/CTS/Pin", Y_CS_PIN_DEFAULT);
-    ClearToSendPins[Y_AXIS][1] = new PinSetting("Y2/Trinamic/CTS/Pin", Y2_CS_PIN_DEFAULT);
-    ClearToSendPins[Z_AXIS][0] = new PinSetting("Z/Trinamic/CTS/Pin", Z_CS_PIN_DEFAULT);
-    ClearToSendPins[Z_AXIS][1] = new PinSetting("Z2/Trinamic/CTS/Pin", Z2_CS_PIN_DEFAULT);
-    ClearToSendPins[A_AXIS][0] = new PinSetting("A/Trinamic/CTS/Pin", A_CS_PIN_DEFAULT);
-    ClearToSendPins[A_AXIS][1] = new PinSetting("A2/Trinamic/CTS/Pin", A2_CS_PIN_DEFAULT);
-    ClearToSendPins[B_AXIS][0] = new PinSetting("B/Trinamic/CTS/Pin", B_CS_PIN_DEFAULT);
-    ClearToSendPins[B_AXIS][1] = new PinSetting("B2/Trinamic/CTS/Pin", B2_CS_PIN_DEFAULT);
-    ClearToSendPins[C_AXIS][0] = new PinSetting("C/Trinamic/CTS/Pin", C_CS_PIN_DEFAULT);
-    ClearToSendPins[C_AXIS][1] = new PinSetting("C2/Trinamic/CTS/Pin", C2_CS_PIN_DEFAULT);
+    ChipSelectPins[X_AXIS][0] = new PinSetting("X/Trinamic/CS/Pin", X_CS_PIN_DEFAULT);
+    ChipSelectPins[X_AXIS][1] = new PinSetting("X2/Trinamic/CS/Pin", X2_CS_PIN_DEFAULT);
+    ChipSelectPins[Y_AXIS][0] = new PinSetting("Y/Trinamic/CS/Pin", Y_CS_PIN_DEFAULT);
+    ChipSelectPins[Y_AXIS][1] = new PinSetting("Y2/Trinamic/CS/Pin", Y2_CS_PIN_DEFAULT);
+    ChipSelectPins[Z_AXIS][0] = new PinSetting("Z/Trinamic/CS/Pin", Z_CS_PIN_DEFAULT);
+    ChipSelectPins[Z_AXIS][1] = new PinSetting("Z2/Trinamic/CS/Pin", Z2_CS_PIN_DEFAULT);
+    ChipSelectPins[A_AXIS][0] = new PinSetting("A/Trinamic/CS/Pin", A_CS_PIN_DEFAULT);
+    ChipSelectPins[A_AXIS][1] = new PinSetting("A2/Trinamic/CS/Pin", A2_CS_PIN_DEFAULT);
+    ChipSelectPins[B_AXIS][0] = new PinSetting("B/Trinamic/CS/Pin", B_CS_PIN_DEFAULT);
+    ChipSelectPins[B_AXIS][1] = new PinSetting("B2/Trinamic/CS/Pin", B2_CS_PIN_DEFAULT);
+    ChipSelectPins[C_AXIS][0] = new PinSetting("C/Trinamic/CS/Pin", C_CS_PIN_DEFAULT);
+    ChipSelectPins[C_AXIS][1] = new PinSetting("C2/Trinamic/CS/Pin", C2_CS_PIN_DEFAULT);
 
     // XXX Move to Servo class
     ServoPins[X_AXIS][0] = new PinSetting("X/Servo/Pin", X_SERVO_PIN_DEFAULT);

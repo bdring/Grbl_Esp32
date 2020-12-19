@@ -99,7 +99,7 @@ extern PinSetting* LimitPins[MAX_N_AXIS][2];
 extern PinSetting* StepPins[MAX_N_AXIS][2];
 extern PinSetting* DirectionPins[MAX_N_AXIS][2];
 extern PinSetting* DisablePins[MAX_N_AXIS][2];
-extern PinSetting* ClearToSendPins[MAX_N_AXIS][2];
+extern PinSetting* ChipSelectPins[MAX_N_AXIS][2];
 extern PinSetting* ServoPins[MAX_N_AXIS][2];
 extern PinSetting* PhasePins[4][MAX_N_AXIS][2];
 extern PinSetting* StepStickMS3[MAX_N_AXIS][2];
