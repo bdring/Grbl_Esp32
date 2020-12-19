@@ -76,13 +76,13 @@
 */
 // Example 5V output CNC module in socket #3
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
-#define SPINDLE_TYPE            SpindleType::LASER
+#define SPINDLE_TYPE            SpindleType::TickleMeLaser
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26  // 1st channel
 #define COOLANT_MIST_PIN        GPIO_NUM_4   // 2nd channel Air Assist using M7 on M9 off
 // Socket #4
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
-// #define USER_DIGITAL_PIN_1       GPIO_NUM_14 // LED Lights using M62P1 on M63P1 Off
-#define USER_DIGITAL_PIN_0       GPIO_NUM_13 // Aim Guide control using M62P0 on M63P0 Off
+#define USER_DIGITAL_PIN_0       GPIO_NUM_14 // Laser shutter using M62P0 on M63P0 Off
+#define USER_DIGITAL_PIN_1       GPIO_NUM_13 // Aim Guide control using M62P1 on M63P1 Off
 
 #define DEFAULT_HOMING_ENABLE 1
 #define DEFAULT_SOFT_LIMIT_ENABLE 1
