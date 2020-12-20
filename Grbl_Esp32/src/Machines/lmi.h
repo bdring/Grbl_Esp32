@@ -77,6 +77,8 @@
 // Example 5V output CNC module in socket #3
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
 #define SPINDLE_TYPE            SpindleType::TickleMeLaser
+// #define SPINDLE_TYPE            SpindleType::PWM
+#define SPINDLE_PWM_BASE_FREQ 5000
 #define SPINDLE_OUTPUT_PIN      GPIO_NUM_26  // 1st channel
 #define COOLANT_MIST_PIN        GPIO_NUM_4   // 2nd channel Air Assist using M7 on M9 off
 // Socket #4

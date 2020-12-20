@@ -34,21 +34,8 @@ namespace Spindles {
         TickleMeLaser& operator=(const TickleMeLaser&) = delete;
         TickleMeLaser& operator=(TickleMeLaser&&) = delete;
 
-        virtual uint32_t set_rpm(uint32_t rpm) override;
+        uint32_t set_rpm(uint32_t rpm) override;
 
         virtual ~TickleMeLaser()  {}
-
-    protected:
-        uint32_t _min_rpm;
-        uint32_t _max_rpm;
-        uint32_t _pwm_off_value;
-        uint32_t _pwm_min_value;
-        uint32_t _pwm_max_value;
-        uint32_t _pwm_freq;
-        uint32_t _pwm_period;  // how many counts in 1 period
-        uint8_t  _pwm_precision;
-        bool     _piecewide_linear;
-        bool     _off_with_zero_speed;
-        bool     _invert_pwm;
     };
 }
