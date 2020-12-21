@@ -147,9 +147,9 @@ bool user_defined_homing(uint8_t cycle_mask) {
                         }
                         st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
                         // Exit routines: No time to run protocol_execute_realtime() in this loop.
-                        if (sys_rt_exec_state.bit.safetyDoor || sys_rt_exec_state.bit.reset || cycle_stop) {
+                        if (sys_safetyDoor || sys_reset || sys_cycleStop) {
                             ExecState rt_exec_state;
-                            rt_exec_state.value = sys_rt_exec_state.value;
+                            rt_exec_state.value = sys_get_rt_exec_state().value;
                             // Homing failure condition: Reset issued during cycle.
                             if (rt_exec_state.bit.reset) {
                                 sys_rt_exec_alarm = ExecAlarm::HomingFailReset;
@@ -163,7 +163,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
                                 sys_rt_exec_alarm = ExecAlarm::HomingFailPulloff;
                             }
                             // Homing failure condition: Limit switch not found during approach.
-                            if (approach && cycle_stop) {
+                            if (approach && rt_exec_state.bit.cycleStop) {
                                 sys_rt_exec_alarm = ExecAlarm::HomingFailApproach;
                             }
 
@@ -174,7 +174,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
                                 return true;
                             } else {
                                 // Pull-off motion complete. Disable CYCLE_STOP from executing.
-                                cycle_stop = false;
+                                sys_cycleStop = false;
                                 break;
                             }
                         }

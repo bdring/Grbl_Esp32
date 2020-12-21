@@ -265,7 +265,7 @@ static void stepper_pulse_func() {
                     spindle->set_rpm(0);
                 }
             }
-            cycle_stop = true;
+            sys_cycleStop = true;
             return;  // Nothing to do but exit.
         }
     }

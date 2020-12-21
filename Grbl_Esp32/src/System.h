@@ -131,13 +131,23 @@ extern int32_t sys_position[MAX_N_AXIS];        // Real-time machine (aka home) 
 extern int32_t sys_probe_position[MAX_N_AXIS];  // Last probe position in machine coordinates and steps.
 
 extern volatile Probe         sys_probe_state;    // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
-extern volatile ExecState     sys_rt_exec_state;  // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
 extern volatile ExecAlarm     sys_rt_exec_alarm;  // Global realtime executor bitflag variable for setting various alarms.
 extern volatile ExecAccessory sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
 extern volatile Percent       sys_rt_f_override;               // Feed override value in percent
 extern volatile Percent       sys_rt_r_override;               // Rapid feed override value in percent
 extern volatile Percent       sys_rt_s_override;               // Spindle override value in percent
-extern volatile bool          cycle_stop;
+
+// System executor bits. Used internally by realtime protocol as realtime command flags,
+// which notifies the main program to execute the specified realtime command asynchronously.
+extern volatile bool          sys_statusReport;
+extern volatile bool          sys_cycleStart;
+extern volatile bool          sys_cycleStop;
+extern volatile bool          sys_feedHold;
+extern volatile bool          sys_reset;
+extern volatile bool          sys_safetyDoor;
+extern volatile bool          sys_motionCancel;
+extern volatile bool          sys_sleep;
+
 #ifdef DEBUG
 extern volatile bool sys_rt_exec_debug;
 #endif
@@ -176,3 +186,4 @@ bool sys_set_analog(uint8_t io_num, float percent);
 void sys_analog_all_off();
 
 int8_t sys_get_next_PWM_chan_num();
+ExecState sys_get_rt_exec_state();

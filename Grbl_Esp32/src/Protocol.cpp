@@ -125,7 +125,7 @@ void protocol_main_loop() {
         // Check if the safety door is open.
         sys.state = State::Idle;
         if (system_check_safety_door_ajar()) {
-            sys_rt_exec_state.bit.safetyDoor = true;
+            sys_safetyDoor = true;
             protocol_execute_realtime();  // Enter safety door mode. Should return as IDLE state.
         }
         // All systems go!
@@ -223,7 +223,7 @@ void protocol_buffer_synchronize() {
 // execute calls a buffer sync, or the planner buffer is full and ready to go.
 void protocol_auto_cycle_start() {
     if (plan_get_current_block() != NULL) {       // Check if there are any blocks in the buffer.
-        sys_rt_exec_state.bit.cycleStart = true;  // If so, execute them!
+        sys_cycleStart = true;  // If so, execute them!
     }
 }
 
@@ -236,8 +236,8 @@ void protocol_auto_cycle_start() {
 // handles them, removing the need to define more computationally-expensive volatile variables. This
 // also provides a controlled way to execute certain tasks without having two or more instances of
 // the same task, such as the planner recalculating the buffer upon a feedhold or overrides.
-// NOTE: The sys_rt_exec_state.bit variable flags are set by any process, step or serial interrupts, pinouts,
-// limit switches, or the main program.
+// NOTE: The sys_* (reset, feedHold, safetyDoor, reset, motionCancel, cycleStart, cycleStop) variable
+// flags are set by any process, step or serial interrupts, pinouts, limit switches, or the main program.
 void protocol_execute_realtime() {
     protocol_exec_rt_system();
     if (sys.suspend.value) {
@@ -259,20 +259,20 @@ void protocol_exec_rt_system() {
         // Halt everything upon a critical event flag. Currently hard and soft limits flag this.
         if ((alarm == ExecAlarm::HardLimit) || (alarm == ExecAlarm::SoftLimit)) {
             report_feedback_message(Message::CriticalEvent);
-            sys_rt_exec_state.bit.reset = false;  // Disable any existing reset
+            sys_reset = false;  // Disable any existing reset
             do {
                 // Block everything, except reset and status reports, until user issues reset or power
                 // cycles. Hard limits typically occur while unattended or not paying attention. Gives
                 // the user and a GUI time to do what is needed before resetting, like killing the
                 // incoming stream. The same could be said about soft limits. While the position is not
                 // lost, continued streaming could cause a serious crash if by chance it gets executed.
-            } while (!sys_rt_exec_state.bit.reset);
+            } while (!sys_reset);
         }
         sys_rt_exec_alarm = ExecAlarm::None;
     }
     ExecState rt_exec_state;
-    rt_exec_state.value = sys_rt_exec_state.value;  // Copy volatile sys_rt_exec_state.
-    if (rt_exec_state.value != 0 || cycle_stop) {                 // Test if any bits are on
+    rt_exec_state.value = sys_get_rt_exec_state().value;  // Copy volatile sys_rt_exec_state.
+    if (rt_exec_state.value != 0) {                 // Test if any bits are on
         // Execute system abort.
         if (rt_exec_state.bit.reset) {
             sys.abort = true;  // Only place this is set true.
@@ -281,7 +281,7 @@ void protocol_exec_rt_system() {
         // Execute and serial print status
         if (rt_exec_state.bit.statusReport) {
             report_realtime_status(CLIENT_ALL);
-            sys_rt_exec_state.bit.statusReport = false;
+            sys_statusReport = false;
         }
         // NOTE: Once hold is initiated, the system immediately enters a suspend state to block all
         // main program processes until either reset or resumed. This ensures a hold completes safely.
@@ -315,7 +315,7 @@ void protocol_exec_rt_system() {
                     if (sys.state != State::Jog) {
                         sys.suspend.bit.motionCancel = true;  // NOTE: State is State::Cycle.
                     }
-                    sys_rt_exec_state.bit.motionCancel = false;
+                    sys_motionCancel = false;
                 }
                 // Execute a feed hold with deceleration, if required. Then, suspend system.
                 if (rt_exec_state.bit.feedHold) {
@@ -323,7 +323,7 @@ void protocol_exec_rt_system() {
                     if (!(sys.state == State::SafetyDoor || sys.state == State::Jog || sys.state == State::Sleep)) {
                         sys.state = State::Hold;
                     }
-                    sys_rt_exec_state.bit.feedHold = false;
+                    sys_feedHold = false;
                 }
                 // Execute a safety door stop with a feed hold and disable spindle/coolant.
                 // NOTE: Safety door differs from feed holds by stopping everything no matter state, disables powered
@@ -355,7 +355,7 @@ void protocol_exec_rt_system() {
                         if (sys.state != State::Sleep) {
                             sys.state = State::SafetyDoor;
                         }
-                        sys_rt_exec_state.bit.safetyDoor = false;
+                        sys_safetyDoor = false;
                     }
                     // NOTE: This flag doesn't change when the door closes, unlike sys.state. Ensures any parking motions
                     // are executed if the door switch closes and the state returns to HOLD.
@@ -368,7 +368,7 @@ void protocol_exec_rt_system() {
                     sys.suspend.bit.holdComplete    = true;
                 }
                 sys.state                   = State::Sleep;
-                sys_rt_exec_state.bit.sleep = false;
+                sys_sleep = false;
             }
         }
         // Execute a cycle start by starting the stepper interrupt to begin executing the blocks in queue.
@@ -408,14 +408,14 @@ void protocol_exec_rt_system() {
                     }
                 }
             }
-            sys_rt_exec_state.bit.cycleStart = false;
+            sys_cycleStart = false;
         }
-        if (cycle_stop) {
+        if (rt_exec_state.bit.cycleStop) {
             // Reinitializes the cycle plan and stepper system after a feed hold for a resume. Called by
             // realtime command execution in the main program, ensuring that the planner re-plans safely.
             // NOTE: Bresenham algorithm variables are still maintained through both the planner and stepper
             // cycle reinitializations. The stepper path should continue exactly as if nothing has happened.
-            // NOTE: cycle_stop is set by the stepper subsystem when a cycle or feed hold completes.
+            // NOTE: cycleStop is set by the stepper subsystem when a cycle or feed hold completes.
             if ((sys.state == State::Hold || sys.state == State::SafetyDoor || sys.state == State::Sleep) && !(sys.soft_limit) &&
                 !(sys.suspend.bit.jogCancel)) {
                 // Hold complete. Set to indicate ready to resume.  Remain in HOLD or DOOR states until user
@@ -445,7 +445,7 @@ void protocol_exec_rt_system() {
                     sys.state         = State::Idle;
                 }
             }
-            cycle_stop = false;
+            sys_cycleStop = false;
         }
     }
     // Execute overrides.
@@ -696,7 +696,7 @@ static void protocol_exec_rt_suspend() {
 #endif
                         if (!sys.suspend.bit.restartRetract) {
                             sys.suspend.bit.restoreComplete  = true;
-                            sys_rt_exec_state.bit.cycleStart = true;  // Set to resume program.
+                            sys_cycleStart = true;  // Set to resume program.
                         }
                     }
                 }
@@ -725,7 +725,7 @@ static void protocol_exec_rt_suspend() {
                             }
                         }
                         if (sys.spindle_stop_ovr.bit.restoreCycle) {
-                            sys_rt_exec_state.bit.cycleStart = true;  // Set to resume program.
+                            sys_cycleStart = true;  // Set to resume program.
                         }
                         sys.spindle_stop_ovr.value = 0;  // Clear stop override state
                     }
