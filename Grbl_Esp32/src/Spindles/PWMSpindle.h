@@ -32,13 +32,16 @@ namespace Settings {
         // I didn't create a full parser, as we don't need it.
         // See: https://en.wikipedia.org/wiki/YAML
         // 
+        // Supported:
         // - We start with '---' and assume a single document. If we encounter '---', error.
         // - # is a comment
         // - indentation is with spaces
-        // - Tabs are not allowed
+        // - Tabs are not allowed for indentation
         // - key: value pairs
-        // - '-' lists
         // - strings with quotes
+        //
+        // Unsupported:
+        // - '-' lists
         // - c-style escaping in strings
         // - repeated nodes are initially denoted by an ampersand (&) and thereafter referenced with an asterisk (*).
         // - '['..']', !! and % are simply not supported.
