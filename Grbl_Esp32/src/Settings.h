@@ -10,12 +10,12 @@ void settings_init();
 
 // Define settings restore bitflags.
 enum SettingsRestore {
-    Defaults = bit(0),
-    Parameters = bit(1),
+    Defaults     = bit(0),
+    Parameters   = bit(1),
     StartupLines = bit(2),
     // BuildInfo = bit(3), // Obsolete
     Wifi = bit(4),
-    All = 0xff,
+    All  = 0xff,
 };
 
 // Restore subsets of settings to default values
@@ -75,12 +75,13 @@ public:
 class Command : public Word {
 protected:
     Command* link;  // linked list of setting objects
+    bool (*_cmdChecker)();
 public:
     static Command* List;
     Command*        next() { return link; }
 
     ~Command() {}
-    Command(const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName);
+    Command(const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName, bool (*cmcChecker)());
 
     // The default implementation of addWebui() does nothing.
     // Derived classes may override it to do something.
@@ -101,9 +102,9 @@ protected:
 
 public:
     static nvs_handle _handle;
-    static void     init();
-    static Setting* List;
-    Setting*        next() { return link; }
+    static void       init();
+    static Setting*   List;
+    Setting*          next() { return link; }
 
     Error check(char* s);
 
@@ -227,22 +228,25 @@ public:
 
 class Coordinates {
 private:
-    float _currentValue[MAX_N_AXIS];
+    float       _currentValue[MAX_N_AXIS];
     const char* _name;
+
 public:
     Coordinates(const char* name) : _name(name) {}
 
     const char* getName() { return _name; }
-    bool load();
-    void setDefault() {
-        float zeros[MAX_N_AXIS] = { 0.0, };
+    bool        load();
+    void        setDefault() {
+        float zeros[MAX_N_AXIS] = {
+            0.0,
+        };
         set(zeros);
     };
     // Copy the value to an array
     void get(float* value) { memcpy(value, _currentValue, sizeof(_currentValue)); }
     // Return a pointer to the array
     const float* get() { return _currentValue; }
-    void set(float *value);
+    void         set(float* value);
 };
 
 extern Coordinates* coords[CoordIndex::End];
@@ -340,10 +344,17 @@ public:
                 const char*   grblName,
                 const char*   name,
                 int8_t        defVal,
-                enum_opt_t*   opts);
+                enum_opt_t*   opts,
+                bool (*checker)(char*));
 
-    EnumSetting(type_t type, permissions_t permissions, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts) :
-        EnumSetting(NULL, type, permissions, grblName, name, defVal, opts) {}
+    EnumSetting(type_t        type,
+                permissions_t permissions,
+                const char*   grblName,
+                const char*   name,
+                int8_t        defVal,
+                enum_opt_t*   opts,
+                bool (*checker)(char*) = NULL) :
+        EnumSetting(NULL, type, permissions, grblName, name, defVal, opts, checker) {}
 
     void        load();
     void        setDefault();
@@ -432,6 +443,9 @@ public:
 
     AxisSettings(const char* axisName);
 };
+
+extern bool idleOrAlarm();
+
 class WebCommand : public Command {
 private:
     Error (*_action)(char*, WebUI::AuthenticationLevel);
@@ -444,7 +458,10 @@ public:
                const char*   grblName,
                const char*   name,
                Error (*action)(char*, WebUI::AuthenticationLevel)) :
-        Command(description, type, permissions, grblName, name),
+    // At some point we might want to be more subtle, but for now we block
+    // all web commands in Cycle and Hold states, to avoid crashing a
+    // running job.
+    Command(description, type, permissions, grblName, name, idleOrAlarm),
         _action(action) {}
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
@@ -452,22 +469,21 @@ public:
 class GrblCommand : public Command {
 private:
     Error (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
-    bool (*_checker)();
 
 public:
     GrblCommand(const char* grblName,
                 const char* name,
                 Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
-                bool (*checker)(),
+                bool (*cmdChecker)(),
                 permissions_t auth) :
-        Command(NULL, GRBLCMD, auth, grblName, name),
-        _action(action), _checker(checker) {}
+        Command(NULL, GRBLCMD, auth, grblName, name, cmdChecker),
+        _action(action) {}
 
     GrblCommand(const char* grblName,
                 const char* name,
                 Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
-                bool (*checker)(void)) :
-        GrblCommand(grblName, name, action, checker, WG) {}
+                bool (*cmdChecker)()) :
+        GrblCommand(grblName, name, action, cmdChecker, WG) {}
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
 

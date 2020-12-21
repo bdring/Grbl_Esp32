@@ -115,6 +115,9 @@ namespace WebUI {
 
     bool WiFiConfig::isHostnameValid(const char* hostname) {
         //limited size
+        if (!hostname) {
+            return true;
+        }
         char c;
         // length is checked automatically by string setting
         //only letter and digit
@@ -139,6 +142,9 @@ namespace WebUI {
         //char c;
         // length is checked automatically by string setting
         //only printable
+        if (!ssid) {
+            return true;
+        }
         for (int i = 0; i < strlen(ssid); i++) {
             if (!isPrintable(ssid[i])) {
                 return false;
@@ -152,6 +158,9 @@ namespace WebUI {
      */
 
     bool WiFiConfig::isPasswordValid(const char* password) {
+        if (!password) {
+            return true;
+        }
         if (strlen(password) == 0) {
             return true;  //open network
         }

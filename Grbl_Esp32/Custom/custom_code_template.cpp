@@ -56,13 +56,13 @@ void machine_init() {}
 
 #ifdef USE_CUSTOM_HOMING
 /*
-  user_defined_homing() is called at the begining of the normal Grbl_ESP32 homing
-  sequence.  If user_defined_homing() returns false, the rest of normal Grbl_ESP32
+  user_defined_homing(uint8_t cycle_mask) is called at the begining of the normal Grbl_ESP32 homing
+  sequence.  If user_defined_homing(uint8_t cycle_mask) returns false, the rest of normal Grbl_ESP32
   homing is skipped if it returns false, other normal homing continues.  For
   example, if you need to manually prep the machine for homing, you could implement
-  user_defined_homing() to wait for some button to be pressed, then return true.
+  user_defined_homing(uint8_t cycle_mask) to wait for some button to be pressed, then return true.
 */
-bool user_defined_homing() {
+bool user_defined_homing(uint8_t cycle_mask) {
     // True = done with homing, false = continue with normal Grbl_ESP32 homing
     return true;
 }

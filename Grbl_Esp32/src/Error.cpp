@@ -21,7 +21,7 @@
 
 #include "Error.h"
 
-std::map<Error, const char*> ErrorCodes = {
+std::map<Error, const char*> ErrorNames = {
     { Error::Ok, "No error" },
     { Error::ExpectedCommandLetter, "Expected GCodecommand letter" },
     { Error::BadNumberFormat, "Bad GCode number format" },
@@ -79,4 +79,5 @@ std::map<Error, const char*> ErrorCodes = {
     { Error::NvsSetFailed, "Failed to store setting" },
     { Error::NvsGetStatsFailed, "Failed to get setting status" },
     { Error::AuthenticationFailed, "Authentication failed!" },
+    { Error::AnotherInterfaceBusy, "Another interface is busy"},
 };

@@ -79,7 +79,9 @@ void heapCheckTask(void* pvParameters) {
         vTaskDelay(3000 / portTICK_RATE_MS);  // Yield to other tasks
 
         static UBaseType_t uxHighWaterMark = 0;
+#ifdef DEBUG_TASK_STACK
         reportTaskStackSize(uxHighWaterMark);
+#endif
     }
 }
 
@@ -104,7 +106,8 @@ void serial_init() {
                             NULL,               // parameters
                             1,                  // priority
                             &serialCheckTaskHandle,
-                            1  // core
+                            SUPPORT_TASK_CORE  // must run the task on same core
+                                               // core
     );
 }
 
@@ -156,9 +159,16 @@ void serialCheckTask(void* pvParameters) {
             if (is_realtime_command(data)) {
                 execute_realtime_command(static_cast<Cmd>(data), client);
             } else {
-                vTaskEnterCritical(&myMutex);
-                client_buffer[client].write(data);
-                vTaskExitCritical(&myMutex);
+                if (get_sd_state(false) == SDCARD_IDLE) {
+                    vTaskEnterCritical(&myMutex);
+                    client_buffer[client].write(data);
+                    vTaskExitCritical(&myMutex);
+                } else {
+                    if (data == '\r' || data == '\n') {
+                        grbl_sendf(client, "error %d\r\n", Error::AnotherInterfaceBusy);
+                        grbl_msg_sendf(client, MsgLevel::Info, "SD card job running");
+                    }
+                }
             }
         }  // if something available
         WebUI::COMMANDS::handle();
@@ -174,8 +184,10 @@ void serialCheckTask(void* pvParameters) {
         vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
 
         static UBaseType_t uxHighWaterMark = 0;
+#ifdef DEBUG_TASK_STACK
         reportTaskStackSize(uxHighWaterMark);
-    }  // while(true)
+#endif
+    }
 }
 
 void serial_reset_read_buffer(uint8_t client) {

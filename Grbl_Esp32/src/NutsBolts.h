@@ -53,11 +53,6 @@ static inline int toMotor2(int axis) {
     return axis + MAX_AXES;
 }
 
-// CoreXY motor assignments. DO NOT ALTER.
-// NOTE: If the A and B motor axis bindings are changed, this effects the CoreXY equations.
-#define A_MOTOR X_AXIS  // Must be X_AXIS
-#define B_MOTOR Y_AXIS  // Must be Y_AXIS
-
 // Conversions
 const double MM_PER_INCH = (25.40);
 const double INCH_PER_MM = (0.0393701);
@@ -110,6 +105,8 @@ uint32_t map_uint32_t(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out
 float    constrain_float(float in, float min, float max);
 bool     char_is_numeric(char value);
 char*    trim(char* value);
+
+int numberOfSetBits(uint32_t i);
 
 template <class T>
 void swap(T& a, T& b) {

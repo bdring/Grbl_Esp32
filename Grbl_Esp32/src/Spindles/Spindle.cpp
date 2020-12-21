@@ -89,7 +89,7 @@ namespace Spindles {
 
     // ========================= Spindle ==================================
 
-    bool Spindle::isRateAdjusted() {
+    bool Spindle::inLaserMode() {
         return false;  // default for basic spindle is false
     }
 
@@ -100,6 +100,8 @@ namespace Spindles {
         protocol_buffer_synchronize();  // Empty planner buffer to ensure spindle is set when programmed.
         set_state(state, rpm);
     }
+
+    void Spindle::deinit() { stop(); }
 }
 
 Spindles::Spindle* spindle;

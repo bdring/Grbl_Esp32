@@ -526,7 +526,9 @@ static void IRAM_ATTR i2sOutTask(void* parameter) {
         I2S_OUT_PULSER_EXIT_CRITICAL();  // Unlock pulser status
 
         static UBaseType_t uxHighWaterMark = 0;
+#    ifdef DEBUG_TASK_STACK
         reportTaskStackSize(uxHighWaterMark);
+#    endif
     }
 }
 #endif

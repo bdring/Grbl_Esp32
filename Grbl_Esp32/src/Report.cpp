@@ -239,6 +239,7 @@ void report_status_message(Error status_code, uint8_t client) {
                     grbl_sendf(client, "error:%d\r\n", status_code);  // most senders seem to tolerate this error and keep on going
                     grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
                     // don't close file
+                    SD_ready_next = true;  // flag so system_execute_line() will send the next line
                 } else {
                     grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sd_get_current_line_number());
                     grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
@@ -247,7 +248,14 @@ void report_status_message(Error status_code, uint8_t client) {
                 return;
             }
 #endif
-            grbl_sendf(client, "error:%d\r\n", static_cast<int>(status_code));
+            // With verbose errors, the message text is displayed instead of the number.
+            // Grbl 0.9 used to display the text, while Grbl 1.1 switched to the number.
+            // Many senders support both formats.
+            if (verbose_errors->get()) {
+                grbl_sendf(client, "error: %s\r\n", errorString(status_code));
+            } else {
+                grbl_sendf(client, "error:%d\r\n", static_cast<int>(status_code));
+            }
     }
 }
 
@@ -519,9 +527,6 @@ void report_build_info(const char* line, uint8_t client) {
 #ifdef COOLANT_MIST_PIN
     grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
 #endif
-#ifdef COREXY
-    grbl_send(client, "C");
-#endif
 #ifdef PARKING_ENABLE
     grbl_send(client, "P");
 #endif
@@ -749,16 +754,16 @@ void report_realtime_status(uint8_t client) {
                 strcat(status, "S");
             }
             if (ctrl_pin_state.bit.macro0) {
-                strcat(status, "M0");
+                strcat(status, "0");
             }
             if (ctrl_pin_state.bit.macro1) {
-                strcat(status, "M1");
+                strcat(status, "1");
             }
             if (ctrl_pin_state.bit.macro2) {
-                strcat(status, "M2");
+                strcat(status, "2");
             }
             if (ctrl_pin_state.bit.macro3) {
-                strcat(status, "M3");
+                strcat(status, "3");
             }
         }
     }
@@ -941,7 +946,7 @@ char* reportAxisNameMsg(uint8_t axis) {
 
 void reportTaskStackSize(UBaseType_t& saved) {
 #ifdef DEBUG_REPORT_STACK_FREE
-    UBaseType_t        newHighWater    = uxTaskGetStackHighWaterMark(NULL);
+    UBaseType_t newHighWater = uxTaskGetStackHighWaterMark(NULL);
     if (newHighWater != saved) {
         saved = newHighWater;
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Min Stack Space: %d", pcTaskGetTaskName(NULL), saved);

@@ -57,7 +57,8 @@ void machine_init() {
                             NULL,                // parameters
                             1,                   // priority
                             &solenoidSyncTaskHandle,
-                            0  // core
+                            CONFIG_ARDUINO_RUNNING_CORE  // must run the task on same core
+                                                         // core
     );
     // setup a task that will do the custom homing sequence
     xTaskCreatePinnedToCore(atari_home_task,    // task
@@ -66,7 +67,8 @@ void machine_init() {
                             NULL,               // parameters
                             1,                  // priority
                             &atariHomingTaskHandle,
-                            0  // core
+                            CONFIG_ARDUINO_RUNNING_CORE  // must run the task on same core
+                                                         // core
     );
 }
 
@@ -90,7 +92,7 @@ void solenoidSyncTask(void* pvParameters) {
 // continue with regular homing after setup
 // return true if this completes homing
 
-bool user_defined_homing() {
+bool user_defined_homing(uint8_t cycle_mask) {
     // create and start a task to do the special homing
     homing_phase = HOMING_PHASE_FULL_APPROACH;
     atari_homing = true;

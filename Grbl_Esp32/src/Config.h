@@ -47,14 +47,16 @@ Some features should not be changed. See notes below.
 // that the machine file might choose to undefine.
 
 // Note: HOMING_CYCLES are now settings
+#define SUPPORT_TASK_CORE  1 // Reference: CONFIG_ARDUINO_RUNNING_CORE = 1
 
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
-// The mask order is Cycle Start | Feed Hold | Reset | Safety Door
+// The mask order is ...
+// Macro3 | Macro2 | Macro 1| Macr0 |Cycle Start | Feed Hold | Reset | Safety Door
 // For example B1101 will invert the function of the Reset pin.
-#define INVERT_CONTROL_PIN_MASK B1111
+#define INVERT_CONTROL_PIN_MASK B00001111
 
-#define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
+// #define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
 
 #define USE_RMT_STEPS
@@ -128,7 +130,7 @@ const int MAX_N_AXIS = 6;
 // "in the clear" over unsecured channels.  It should be treated as a
 // "friendly suggestion" to prevent unwitting dangerous actions, rather than
 // as effective security against malice.
-//#define ENABLE_AUTHENTICATION
+// #define ENABLE_AUTHENTICATION
 //CONFIGURE_EYECATCH_END (DO NOT MODIFY THIS LINE)
 
 #ifdef ENABLE_AUTHENTICATION
@@ -262,13 +264,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // between restoring the spindle and coolant and resuming the cycle.
 const double SAFETY_DOOR_SPINDLE_DELAY = 4.0;  // Float (seconds)
 const double SAFETY_DOOR_COOLANT_DELAY = 1.0;  // Float (seconds)
-
-// Enable CoreXY kinematics. Use ONLY with CoreXY machines.
-// NOTE: This configuration option alters the motion of the X and Y axes to principle of operation
-// defined at (http://corexy.com/theory.html). Motors are assumed to positioned and wired exactly as
-// described, if not, motions may move in strange directions. Grbl requires the CoreXY A and B motors
-// have the same steps per mm internally.
-// #define COREXY // Default disabled. Uncomment to enable.
 
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.
@@ -539,7 +534,7 @@ const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
 // these commands may be undesirable. Simply comment the desired macro to disable it.
 #define ENABLE_RESTORE_WIPE_ALL          // '$RST=*' Default enabled. Comment to disable.
 #define ENABLE_RESTORE_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
+#define ENABLE_RESTORE_CLEAR_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
 
 // Additional settings have been added to the original set that you see with the $$ command
 // Some senders may not be able to parse anything different from the original set
