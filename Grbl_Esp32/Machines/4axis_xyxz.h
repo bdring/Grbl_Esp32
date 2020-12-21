@@ -20,10 +20,14 @@
 //#define CUSTOM_CODE_FILENAME "Custom/4axis_xyxz.cpp"
 
 /*
- * Spindeltyp definieren, ich nutze ein Relais
+ * Spindeltyp definieren
+ * Das 1. Relais
  */
 #define SPINDLE_TYPE SpindleType::RELAY
 #define SPINDLE_OUTPUT_PIN GPIO_NUM_3
+
+// Das 2. Relais
+#define COOLANT_FLOOD_PIN       GPIO_NUM_2
 
 /*
  * Zuordnung Schrittmotoren
@@ -69,14 +73,11 @@
 #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // needs external pullup
 #define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // needs external pullup
 
-#define COOLANT_FLOOD_PIN       GPIO_NUM_2
-
 /* Normally Grbl_ESP32 ignores tool changes.
  * It just tracks the current tool number.
  * If you put #define USE_TOOL_CHANGE in you header file,
  * it will call a function void user_tool_change(uint8_t new_tool) when it sees the M6 gcode command.
  */
-
 
 //#define USE_MACHINE_INIT
 //#define USE_TOOL_CHANGE
