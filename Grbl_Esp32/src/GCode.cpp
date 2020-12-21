@@ -1558,7 +1558,7 @@ Error gc_execute_line(char* line, uint8_t client) {
         case ProgramFlow::Paused:
             protocol_buffer_synchronize();  // Sync and finish all remaining buffered motions before moving on.
             if (sys.state != State::CheckMode) {
-                sys_rt_exec_state.bit.feedHold = true;  // Use feed hold for program pause.
+                sys_feedHold = true;  // Use feed hold for program pause.
                 protocol_execute_realtime();            // Execute suspend.
             }
             break;

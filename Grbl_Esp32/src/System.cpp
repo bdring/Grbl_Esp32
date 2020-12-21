@@ -26,10 +26,18 @@ system_t               sys;
 int32_t                sys_position[MAX_N_AXIS];        // Real-time machine (aka home) position vector in steps.
 int32_t                sys_probe_position[MAX_N_AXIS];  // Last probe position in machine coordinates and steps.
 volatile Probe         sys_probe_state;                 // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
-volatile ExecState     sys_rt_exec_state;  // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
 volatile ExecAlarm     sys_rt_exec_alarm;  // Global realtime executor bitflag variable for setting various alarms.
 volatile ExecAccessory sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
-volatile bool          cycle_stop;                      // For state transitions, instead of bitflag
+
+volatile bool          sys_statusReport;        // For state transitions, instead of bitflag
+volatile bool          sys_cycleStart;
+volatile bool          sys_cycleStop;
+volatile bool          sys_feedHold;
+volatile bool          sys_reset;
+volatile bool          sys_safetyDoor;
+volatile bool          sys_motionCancel;
+volatile bool          sys_sleep;
+
 #ifdef DEBUG
 volatile bool sys_rt_exec_debug;
 #endif
@@ -251,11 +259,11 @@ void system_exec_control_pin(ControlPins pins) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset via control pin");
         mc_reset();
     } else if (pins.bit.cycleStart) {
-        sys_rt_exec_state.bit.cycleStart = true;
+        sys_cycleStart = true;
     } else if (pins.bit.feedHold) {
-        sys_rt_exec_state.bit.feedHold = true;
+        sys_feedHold = true;
     } else if (pins.bit.safetyDoor) {
-        sys_rt_exec_state.bit.safetyDoor = true;
+        sys_safetyDoor = true;
     } else if (pins.bit.macro0) {
         user_defined_macro(0);  // function must be implemented by user
     } else if (pins.bit.macro1) {
@@ -334,6 +342,21 @@ uint8_t sys_calc_pwm_precision(uint32_t freq) {
 
     return precision - 1;
 }
+
+ExecState sys_get_rt_exec_state() {
+    ExecState result;
+    result.value = 0;
+    result.bit.statusReport = sys_statusReport;
+    result.bit.cycleStart = sys_cycleStart;
+    result.bit.cycleStop = sys_cycleStop;
+    result.bit.feedHold = sys_feedHold;
+    result.bit.reset = sys_reset;
+    result.bit.safetyDoor = sys_safetyDoor;
+    result.bit.motionCancel = sys_motionCancel;
+    result.bit.sleep = sys_sleep;
+    return result;
+}
+
 void __attribute__((weak)) user_defined_macro(uint8_t index) {
     // must be in Idle
     if (sys.state != State::Idle) {

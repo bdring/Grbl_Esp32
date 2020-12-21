@@ -272,7 +272,7 @@ Error home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ES
     return home(bit(C_AXIS));
 }
 Error sleep_grbl(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    sys_rt_exec_state.bit.sleep = true;
+    sys_sleep = true;
     return Error::Ok;
 }
 Error get_report_build_info(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
