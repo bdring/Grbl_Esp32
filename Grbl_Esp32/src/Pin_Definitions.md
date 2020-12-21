@@ -2,6 +2,8 @@
 
 Pin definitions can be done several way.
 
+Most require a reboot, **$System/Control=Restart**, to take effect
+
 #### Machine Definition file
 
 They are set with **#defines** in your machine definition file (your_def.h). They act as the default settings. You can override them with run time settings. **$RST=$** will restore all your pins to the defaults. The default of any pin not set in this file is **UNDEFINED_PIN** and disables the feature it was assigned to.
@@ -67,15 +69,17 @@ The state of an input can be either high or low. You can set that by adding **:h
 #define	COOLANT_MIST_PIN	"gpio.2"
 #define USER_DIGITAL_PIN_0  "gpio.26:low"
 
+
 $Coolant/Flood/Pin=gpio.2
 $User/Digital/0/Pin=gpio.26:low
+$X/Direction/Pin=i2so.1:low               // Change direction of X motor
 ~~~
 
 ## PWM Output Pins
 
-
+...coming soon
 
 ## Spindles
 
-
+...coming soon
 
