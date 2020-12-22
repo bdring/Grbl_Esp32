@@ -24,7 +24,7 @@
  * Das 1. Relais
  */
 #define SPINDLE_TYPE SpindleType::RELAY
-#define SPINDLE_OUTPUT_PIN GPIO_NUM_3
+#define SPINDLE_OUTPUT_PIN      GPIO_NUM_32
 
 // Das 2. Relais
 #define COOLANT_FLOOD_PIN       GPIO_NUM_2
