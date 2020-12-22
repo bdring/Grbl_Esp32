@@ -49,7 +49,11 @@ void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
 // segments, must pass through this routine before being passed to the planner. The seperation of
 // mc_line and plan_buffer_line is done primarily to place non-planner-type functions from being
 // in the planner and to let backlash compensation or canned cycle integration simple and direct.
-void mc_line(float* target, plan_line_data_t* pl_data) {
+// returns true if line was submitted to planner, or false if intentionally dropped.
+bool mc_line(float* target, plan_line_data_t* pl_data) {
+    bool submitted_result = false;
+     // store the plan data so it can be cancelled by the protocol system if needed
+    sys_pl_data_inflight = pl_data;
     // If enabled, check for soft limit violations. Placed here all line motions are picked up
     // from everywhere in Grbl.
     if (soft_limits->get()) {
@@ -60,7 +64,8 @@ void mc_line(float* target, plan_line_data_t* pl_data) {
     }
     // If in check gcode mode, prevent motion by blocking planner. Soft limits still work.
     if (sys.state == State::CheckMode) {
-        return;
+        sys_pl_data_inflight = NULL;
+        return submitted_result;
     }
     // NOTE: Backlash compensation may be installed here. It will need direction info to track when
     // to insert a backlash line motion(s) before the intended line motion and will require its own
@@ -80,7 +85,8 @@ void mc_line(float* target, plan_line_data_t* pl_data) {
     do {
         protocol_execute_realtime();  // Check for any run-time commands
         if (sys.abort) {
-            return;  // Bail, if system abort.
+            sys_pl_data_inflight = NULL;
+            return submitted_result;  // Bail, if system abort.
         }
         if (plan_check_full_buffer()) {
             protocol_auto_cycle_start();  // Auto-cycle start when buffer is full.
@@ -90,7 +96,12 @@ void mc_line(float* target, plan_line_data_t* pl_data) {
     } while (1);
     // Plan and queue motion into planner buffer
     // uint8_t plan_status; // Not used in normal operation.
-    plan_buffer_line(target, pl_data);
+    if (sys_pl_data_inflight == pl_data) {
+        plan_buffer_line(target, pl_data);
+        submitted_result = true;
+    }
+    sys_pl_data_inflight = NULL;
+    return submitted_result;
 }
 
 // Execute an arc in offset mode format. position == current xyz, target == target xyz,
