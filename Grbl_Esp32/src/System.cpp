@@ -30,6 +30,7 @@ volatile ExecState     sys_rt_exec_state;  // Global realtime executor bitflag v
 volatile ExecAlarm     sys_rt_exec_alarm;  // Global realtime executor bitflag variable for setting various alarms.
 volatile ExecAccessory sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
 volatile bool          cycle_stop;                      // For state transitions, instead of bitflag
+volatile void*         sys_pl_data_inflight;            // holds a plan_line_data_t while mc_line has taken ownership of a line motion
 #ifdef DEBUG
 volatile bool sys_rt_exec_debug;
 #endif

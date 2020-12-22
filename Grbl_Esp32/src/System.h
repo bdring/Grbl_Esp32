@@ -138,6 +138,7 @@ extern volatile Percent       sys_rt_f_override;               // Feed override 
 extern volatile Percent       sys_rt_r_override;               // Rapid feed override value in percent
 extern volatile Percent       sys_rt_s_override;               // Spindle override value in percent
 extern volatile bool          cycle_stop;
+extern volatile void*         sys_pl_data_inflight;            // holds a plan_line_data_t while mc_line has taken ownership of a line motion
 #ifdef DEBUG
 extern volatile bool sys_rt_exec_debug;
 #endif
