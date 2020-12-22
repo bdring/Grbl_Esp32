@@ -7,4 +7,5 @@
 //    $    matches the end of the input string
 //    *    matches zero or more occurrences of the previous character
 
+// Returns true if text contains the regular expression regexp
 bool regexMatch(const char* regexp, const char* text);

@@ -40,6 +40,7 @@ static bool matchHere(const char* regexp, const char* text) {
 }
 
 // match - search for regular expression anywhere in text
+// Returns true if text contains the regular expression regexp
 bool regexMatch(const char* regexp, const char* text) {
     if (regexp[0] == '^') {
         return matchHere(++regexp, text);
