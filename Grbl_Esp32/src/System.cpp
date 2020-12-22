@@ -343,20 +343,6 @@ uint8_t sys_calc_pwm_precision(uint32_t freq) {
     return precision - 1;
 }
 
-ExecState sys_get_rt_exec_state() {
-    ExecState result;
-    result.value = 0;
-    result.bit.statusReport = sys_statusReport;
-    result.bit.cycleStart = sys_cycleStart;
-    result.bit.cycleStop = sys_cycleStop;
-    result.bit.feedHold = sys_feedHold;
-    result.bit.reset = sys_reset;
-    result.bit.safetyDoor = sys_safetyDoor;
-    result.bit.motionCancel = sys_motionCancel;
-    result.bit.sleep = sys_sleep;
-    return result;
-}
-
 void __attribute__((weak)) user_defined_macro(uint8_t index) {
     // must be in Idle
     if (sys.state != State::Idle) {
