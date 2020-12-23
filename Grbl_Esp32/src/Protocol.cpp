@@ -222,8 +222,8 @@ void protocol_buffer_synchronize() {
 // is finished, single commands), a command that needs to wait for the motions in the buffer to
 // execute calls a buffer sync, or the planner buffer is full and ready to go.
 void protocol_auto_cycle_start() {
-    if (plan_get_current_block() != NULL) {       // Check if there are any blocks in the buffer.
-        sys_cycleStart = true;  // If so, execute them!
+    if (plan_get_current_block() != NULL) {  // Check if there are any blocks in the buffer.
+        sys_cycleStart = true;               // If so, execute them!
     }
 }
 
@@ -270,112 +270,110 @@ void protocol_exec_rt_system() {
         }
         sys_rt_exec_alarm = ExecAlarm::None;
     }
-    ExecState rt_exec_state;
-    rt_exec_state.value = sys_get_rt_exec_state().value;  // Copy volatile sys_rt_exec_state.
-    if (rt_exec_state.value != 0) {                 // Test if any bits are on
-        // Execute system abort.
-        if (rt_exec_state.bit.reset) {
-            sys.abort = true;  // Only place this is set true.
-            return;            // Nothing else to do but exit.
-        }
-        // Execute and serial print status
-        if (rt_exec_state.bit.statusReport) {
-            report_realtime_status(CLIENT_ALL);
-            sys_statusReport = false;
-        }
-        // NOTE: Once hold is initiated, the system immediately enters a suspend state to block all
-        // main program processes until either reset or resumed. This ensures a hold completes safely.
-        if (rt_exec_state.bit.motionCancel || rt_exec_state.bit.feedHold || rt_exec_state.bit.safetyDoor || rt_exec_state.bit.sleep) {
-            // State check for allowable states for hold methods.
-            if (!(sys.state == State::Alarm || sys.state == State::CheckMode)) {
-                // If in CYCLE or JOG states, immediately initiate a motion HOLD.
-                if (sys.state == State::Cycle || sys.state == State::Jog) {
-                    if (!(sys.suspend.bit.motionCancel || sys.suspend.bit.jogCancel)) {  // Block, if already holding.
-                        st_update_plan_block_parameters();  // Notify stepper module to recompute for hold deceleration.
-                        sys.step_control             = {};
-                        sys.step_control.executeHold = true;  // Initiate suspend state with active flag.
-                        if (sys.state == State::Jog) {        // Jog cancelled upon any hold event, except for sleeping.
-                            if (!rt_exec_state.bit.sleep) {
-                                sys.suspend.bit.jogCancel = true;
-                            }
+
+    // Execute system abort.
+    if (sys_reset) {
+        sys.abort = true;  // Only place this is set true.
+        return;            // Nothing else to do but exit.
+    }
+    // Execute and serial print status
+    if (sys_statusReport) {
+        report_realtime_status(CLIENT_ALL);
+        sys_statusReport = false;
+    }
+    // NOTE: Once hold is initiated, the system immediately enters a suspend state to block all
+    // main program processes until either reset or resumed. This ensures a hold completes safely.
+    if (sys_motionCancel || sys_feedHold || sys_safetyDoor || sys_sleep) {
+        // State check for allowable states for hold methods.
+        if (!(sys.state == State::Alarm || sys.state == State::CheckMode)) {
+            // If in CYCLE or JOG states, immediately initiate a motion HOLD.
+            if (sys.state == State::Cycle || sys.state == State::Jog) {
+                if (!(sys.suspend.bit.motionCancel || sys.suspend.bit.jogCancel)) {  // Block, if already holding.
+                    st_update_plan_block_parameters();  // Notify stepper module to recompute for hold deceleration.
+                    sys.step_control             = {};
+                    sys.step_control.executeHold = true;  // Initiate suspend state with active flag.
+                    if (sys.state == State::Jog) {        // Jog cancelled upon any hold event, except for sleeping.
+                        if (!sys_sleep) {
+                            sys.suspend.bit.jogCancel = true;
                         }
                     }
                 }
-                // If IDLE, Grbl is not in motion. Simply indicate suspend state and hold is complete.
-                if (sys.state == State::Idle) {
-                    sys.suspend.value            = 0;
-                    sys.suspend.bit.holdComplete = true;
+            }
+            // If IDLE, Grbl is not in motion. Simply indicate suspend state and hold is complete.
+            if (sys.state == State::Idle) {
+                sys.suspend.value            = 0;
+                sys.suspend.bit.holdComplete = true;
+            }
+            // Execute and flag a motion cancel with deceleration and return to idle. Used primarily by probing cycle
+            // to halt and cancel the remainder of the motion.
+            if (sys_motionCancel) {
+                // MOTION_CANCEL only occurs during a CYCLE, but a HOLD and SAFETY_DOOR may been initiated beforehand
+                // to hold the CYCLE. Motion cancel is valid for a single planner block motion only, while jog cancel
+                // will handle and clear multiple planner block motions.
+                if (sys.state != State::Jog) {
+                    sys.suspend.bit.motionCancel = true;  // NOTE: State is State::Cycle.
                 }
-                // Execute and flag a motion cancel with deceleration and return to idle. Used primarily by probing cycle
-                // to halt and cancel the remainder of the motion.
-                if (rt_exec_state.bit.motionCancel) {
-                    // MOTION_CANCEL only occurs during a CYCLE, but a HOLD and SAFETY_DOOR may been initiated beforehand
-                    // to hold the CYCLE. Motion cancel is valid for a single planner block motion only, while jog cancel
-                    // will handle and clear multiple planner block motions.
-                    if (sys.state != State::Jog) {
-                        sys.suspend.bit.motionCancel = true;  // NOTE: State is State::Cycle.
-                    }
-                    sys_motionCancel = false;
+                sys_motionCancel = false;
+            }
+            // Execute a feed hold with deceleration, if required. Then, suspend system.
+            if (sys_feedHold) {
+                // Block SAFETY_DOOR, JOG, and SLEEP states from changing to HOLD state.
+                if (!(sys.state == State::SafetyDoor || sys.state == State::Jog || sys.state == State::Sleep)) {
+                    sys.state = State::Hold;
                 }
-                // Execute a feed hold with deceleration, if required. Then, suspend system.
-                if (rt_exec_state.bit.feedHold) {
-                    // Block SAFETY_DOOR, JOG, and SLEEP states from changing to HOLD state.
-                    if (!(sys.state == State::SafetyDoor || sys.state == State::Jog || sys.state == State::Sleep)) {
-                        sys.state = State::Hold;
-                    }
-                    sys_feedHold = false;
-                }
-                // Execute a safety door stop with a feed hold and disable spindle/coolant.
-                // NOTE: Safety door differs from feed holds by stopping everything no matter state, disables powered
-                // devices (spindle/coolant), and blocks resuming until switch is re-engaged.
-                if (rt_exec_state.bit.safetyDoor) {
-                    report_feedback_message(Message::SafetyDoorAjar);
-                    // If jogging, block safety door methods until jog cancel is complete. Just flag that it happened.
-                    if (!(sys.suspend.bit.jogCancel)) {
-                        // Check if the safety re-opened during a restore parking motion only. Ignore if
-                        // already retracting, parked or in sleep state.
-                        if (sys.state == State::SafetyDoor) {
-                            if (sys.suspend.bit.initiateRestore) {  // Actively restoring
+                sys_feedHold = false;
+            }
+            // Execute a safety door stop with a feed hold and disable spindle/coolant.
+            // NOTE: Safety door differs from feed holds by stopping everything no matter state, disables powered
+            // devices (spindle/coolant), and blocks resuming until switch is re-engaged.
+            if (sys_safetyDoor) {
+                report_feedback_message(Message::SafetyDoorAjar);
+                // If jogging, block safety door methods until jog cancel is complete. Just flag that it happened.
+                if (!(sys.suspend.bit.jogCancel)) {
+                    // Check if the safety re-opened during a restore parking motion only. Ignore if
+                    // already retracting, parked or in sleep state.
+                    if (sys.state == State::SafetyDoor) {
+                        if (sys.suspend.bit.initiateRestore) {  // Actively restoring
 #ifdef PARKING_ENABLE
-                                // Set hold and reset appropriate control flags to restart parking sequence.
-                                if (sys.step_control.executeSysMotion) {
-                                    st_update_plan_block_parameters();  // Notify stepper module to recompute for hold deceleration.
-                                    sys.step_control                  = {};
-                                    sys.step_control.executeHold      = true;
-                                    sys.step_control.executeSysMotion = true;
-                                    sys.suspend.bit.holdComplete      = false;
-                                }  // else NO_MOTION is active.
+                            // Set hold and reset appropriate control flags to restart parking sequence.
+                            if (sys.step_control.executeSysMotion) {
+                                st_update_plan_block_parameters();  // Notify stepper module to recompute for hold deceleration.
+                                sys.step_control                  = {};
+                                sys.step_control.executeHold      = true;
+                                sys.step_control.executeSysMotion = true;
+                                sys.suspend.bit.holdComplete      = false;
+                            }  // else NO_MOTION is active.
 #endif
-                                sys.suspend.bit.retractComplete = false;
-                                sys.suspend.bit.initiateRestore = false;
-                                sys.suspend.bit.restoreComplete = false;
-                                sys.suspend.bit.restartRetract  = true;
-                            }
+                            sys.suspend.bit.retractComplete = false;
+                            sys.suspend.bit.initiateRestore = false;
+                            sys.suspend.bit.restoreComplete = false;
+                            sys.suspend.bit.restartRetract  = true;
                         }
-                        if (sys.state != State::Sleep) {
-                            sys.state = State::SafetyDoor;
-                        }
-                        sys_safetyDoor = false;
                     }
-                    // NOTE: This flag doesn't change when the door closes, unlike sys.state. Ensures any parking motions
-                    // are executed if the door switch closes and the state returns to HOLD.
-                    sys.suspend.bit.safetyDoorAjar = true;
+                    if (sys.state != State::Sleep) {
+                        sys.state = State::SafetyDoor;
+                    }
+                    sys_safetyDoor = false;
                 }
-            }
-            if (rt_exec_state.bit.sleep) {
-                if (sys.state == State::Alarm) {
-                    sys.suspend.bit.retractComplete = true;
-                    sys.suspend.bit.holdComplete    = true;
-                }
-                sys.state                   = State::Sleep;
-                sys_sleep = false;
+                // NOTE: This flag doesn't change when the door closes, unlike sys.state. Ensures any parking motions
+                // are executed if the door switch closes and the state returns to HOLD.
+                sys.suspend.bit.safetyDoorAjar = true;
             }
         }
+        if (sys_sleep) {
+            if (sys.state == State::Alarm) {
+                sys.suspend.bit.retractComplete = true;
+                sys.suspend.bit.holdComplete    = true;
+            }
+            sys.state = State::Sleep;
+            sys_sleep = false;
+        }
+
         // Execute a cycle start by starting the stepper interrupt to begin executing the blocks in queue.
-        if (rt_exec_state.bit.cycleStart) {
+        if (sys_cycleStart) {
             // Block if called at same time as the hold commands: feed hold, motion cancel, and safety door.
             // Ensures auto-cycle-start doesn't resume a hold without an explicit user-input.
-            if (!(rt_exec_state.bit.feedHold || rt_exec_state.bit.motionCancel || rt_exec_state.bit.safetyDoor)) {
+            if (!(sys_feedHold || sys_motionCancel || sys_safetyDoor)) {
                 // Resume door state when parking motion has retracted and door has been closed.
                 if (sys.state == State::SafetyDoor && !(sys.suspend.bit.safetyDoorAjar)) {
                     if (sys.suspend.bit.restoreComplete) {
@@ -410,7 +408,7 @@ void protocol_exec_rt_system() {
             }
             sys_cycleStart = false;
         }
-        if (rt_exec_state.bit.cycleStop) {
+        if (sys_cycleStop) {
             // Reinitializes the cycle plan and stepper system after a feed hold for a resume. Called by
             // realtime command execution in the main program, ensuring that the planner re-plans safely.
             // NOTE: Bresenham algorithm variables are still maintained through both the planner and stepper
@@ -695,8 +693,8 @@ static void protocol_exec_rt_suspend() {
                         }
 #endif
                         if (!sys.suspend.bit.restartRetract) {
-                            sys.suspend.bit.restoreComplete  = true;
-                            sys_cycleStart = true;  // Set to resume program.
+                            sys.suspend.bit.restoreComplete = true;
+                            sys_cycleStart                  = true;  // Set to resume program.
                         }
                     }
                 }

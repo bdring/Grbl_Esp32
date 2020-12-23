@@ -139,14 +139,14 @@ extern volatile Percent       sys_rt_s_override;               // Spindle overri
 
 // System executor bits. Used internally by realtime protocol as realtime command flags,
 // which notifies the main program to execute the specified realtime command asynchronously.
-extern volatile bool          sys_statusReport;
-extern volatile bool          sys_cycleStart;
-extern volatile bool          sys_cycleStop;
-extern volatile bool          sys_feedHold;
-extern volatile bool          sys_reset;
-extern volatile bool          sys_safetyDoor;
-extern volatile bool          sys_motionCancel;
-extern volatile bool          sys_sleep;
+extern volatile bool sys_statusReport;
+extern volatile bool sys_cycleStart;
+extern volatile bool sys_cycleStop;
+extern volatile bool sys_feedHold;
+extern volatile bool sys_reset;
+extern volatile bool sys_safetyDoor;
+extern volatile bool sys_motionCancel;
+extern volatile bool sys_sleep;
 
 #ifdef DEBUG
 extern volatile bool sys_rt_exec_debug;
@@ -185,5 +185,3 @@ bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized);
 
 int8_t  sys_get_next_PWM_chan_num();
 uint8_t sys_calc_pwm_precision(uint32_t freq);
-
-ExecState sys_get_rt_exec_state();
