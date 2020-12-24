@@ -415,21 +415,48 @@ void           init_motors() {
 void motors_set_disable(bool disable, uint8_t mask) {
     static bool previous_state = true;
 
-    // now loop through all the motors to see if they can individually disable
-    auto n_axis = number_axis->get();
-    for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
-        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            if (bitnum_istrue(mask, axis)) {
-                myMotor[axis][gang_index]->set_disable(disable);
+    if (previous_state != disable) {
+        previous_state = disable;
+
+        // now loop through all the motors to see if they can individually disable
+        auto n_axis = number_axis->get();
+        for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
+            for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+                if (bitnum_istrue(mask, axis)) {
+                    myMotor[axis][gang_index]->set_disable(disable);
+                }
+            }
+        }
+
+        // invert only inverts the global stepper disable pin.
+        if (step_enable_invert->get()) {
+            disable = !disable;  // Apply pin invert.
+        }
+        digitalWrite(STEPPERS_DISABLE_PIN, disable);
+
+        // Stepper drivers need some time between changing direction and doing a pulse.
+        // Note that since we're doing this inside an ISR, we cannot wait for long, and
+        // have to use a spinlock.
+        auto wait_diable_change = enable_microseconds->get();
+        if (wait_diable_change != 0) {
+            uint64_t start_time = esp_timer_get_time();
+
+            switch (current_stepper) {
+                case ST_I2S_STREAM:
+                    i2s_out_push_sample(wait_diable_change);
+                    break;
+                case ST_I2S_STATIC:
+                case ST_TIMED:
+                    // wait for step pulse time to complete...some time expired during code above
+                    while (esp_timer_get_time() - start_time < wait_diable_change) {
+                        NOP();  // spin here until time to turn off step
+                    }
+                    break;
+                case ST_RMT:
+                    break;
             }
         }
     }
-
-    // invert only inverts the global stepper disable pin.
-    if (step_enable_invert->get()) {
-        disable = !disable;  // Apply pin invert.
-    }
-    digitalWrite(STEPPERS_DISABLE_PIN, disable);
 }
 
 void motors_read_settings() {
@@ -458,7 +485,7 @@ uint8_t motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
     return can_home;
 }
 
-void motors_step(uint8_t step_mask, uint8_t dir_mask) {
+bool motors_direction(uint8_t dir_mask) {
     auto n_axis = number_axis->get();
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
 
@@ -473,7 +500,17 @@ void motors_step(uint8_t step_mask, uint8_t dir_mask) {
             myMotor[axis][0]->set_direction(thisDir);
             myMotor[axis][1]->set_direction(thisDir);
         }
+
+        return true;
+    } else {
+        return false;
     }
+}
+
+void motors_step(uint8_t step_mask) {
+    auto n_axis = number_axis->get();
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
+
     // Turn on step pulses for motors that are supposed to step now
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         if (bitnum_istrue(step_mask, axis)) {

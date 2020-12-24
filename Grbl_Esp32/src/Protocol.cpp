@@ -193,7 +193,7 @@ void protocol_main_loop() {
             return;  // Bail to main() program loop to reset system.
         }
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
-        if (stepper_idle) {
+        if (stepper_idle && stepper_idle_lock_time->get() != 0xff) {
             if (esp_timer_get_time() > stepper_idle_counter) {
                 motors_set_disable(true);
             }
