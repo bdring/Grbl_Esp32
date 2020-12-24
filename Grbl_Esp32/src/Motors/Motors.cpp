@@ -46,10 +46,9 @@
 
 Motors::Motor* myMotor[MAX_AXES][MAX_GANGED];  // number of axes (normal and ganged)
 
-
-// TODO: 
-//  I don't like the single value motor_index. Should it be axis, gang_index, like the rest of Grbl? 
-
+// TODO:
+//  I don't like the single value motor_index. Should it be axis, gang_index, like the rest of Grbl?
+//  We might want to change stepstick to, or add, specific drive names DRV8825, A4988. This may prove useful one day.
 void init_motors() {
     auto n_axis = number_axis->get();
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
@@ -66,7 +65,7 @@ void init_motors() {
                                                                    DirectionPins[axis][gang_index]->get(),
                                                                    DisablePins[axis][gang_index]->get());
                     break;
-                case static_cast<int8_t>(MotorType::TMC2130):                
+                case static_cast<int8_t>(MotorType::TMC2130):
                 case static_cast<int8_t>(MotorType::TMC5160):
                     myMotor[axis][gang_index] = new Motors::TrinamicDriver(motor_index,
                                                                            StepPins[axis][gang_index]->get(),
@@ -94,8 +93,11 @@ void init_motors() {
                                                                           PhasePins[2][axis][gang_index]->get(),
                                                                           PhasePins[3][axis][gang_index]->get());
                 case static_cast<int8_t>(MotorType::Dynamixel):
-                    myMotor[axis][gang_index] = new Motors::Dynamixel2(
-                        motor_index, motor_address[axis][gang_index]->get(), DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
+                    myMotor[axis][gang_index] = new Motors::Dynamixel2(motor_index,
+                                                                       motor_address[axis][gang_index]->get(),
+                                                                       DynamixelTXDPin->get(),
+                                                                       DynamixelRXDPin->get(),
+                                                                       DynamixelRTSPin->get());
                 case static_cast<int8_t>(MotorType::RCServo):
                     myMotor[axis][gang_index] = new Motors::RcServo(motor_index, ServoPins[axis][gang_index]->get());
                 case static_cast<int8_t>(MotorType::Solenoid):
@@ -107,22 +109,10 @@ void init_motors() {
         }
     }
 
-#ifdef USE_STEPSTICK
-
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Using StepStick Mode");
-
-    Pin ms3_pins[MAX_N_AXIS][2] = { { StepStickMS3[X_AXIS][0]->get(), StepStickMS3[X_AXIS][1]->get() },
-                                    { StepStickMS3[Y_AXIS][0]->get(), StepStickMS3[Y_AXIS][1]->get() },
-                                    { StepStickMS3[Z_AXIS][0]->get(), StepStickMS3[Z_AXIS][1]->get() },
-                                    { StepStickMS3[A_AXIS][0]->get(), StepStickMS3[A_AXIS][1]->get() },
-                                    { StepStickMS3[B_AXIS][0]->get(), StepStickMS3[B_AXIS][1]->get() },
-                                    { StepStickMS3[C_AXIS][0]->get(), StepStickMS3[C_AXIS][1]->get() } };
-
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            Pin pin = ms3_pins[axis][gang_index];
-            if (pin != Pin::UNDEFINED) {
-                pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
+            if (StepStickMS3[axis][gang_index]->get() != Pin::UNDEFINED) {
+                StepStickMS3[axis][gang_index]->get().setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
             }
         }
     }
@@ -131,8 +121,6 @@ void init_motors() {
         // !RESET pin on steppers  (MISO On Schematic)
         StepperResetPin->get().setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
     }
-
-#endif
 
     if (SteppersDisablePin->get() != Pin::UNDEFINED) {
         SteppersDisablePin->get().setAttr(Pin::Attr::Output);  // global motor enable pin

@@ -41,27 +41,30 @@
 #define I2S_OUT_WS              "gpio.17"
 #define I2S_OUT_DATA            "gpio.21"
 
+// Note: MS3 can be used to roughly switch microstepping
+// DRV8825 low=1/8 high=1/32
+// A4988 low=1/8 high=1/16
 
 // Motor Socket #1
 #define X_MOTOR_TYPE            MotorType::StepStick
 #define X_DISABLE_PIN           "i2so.0"
 #define X_DIRECTION_PIN         "i2so.1"
 #define X_STEP_PIN              "i2so.2"
-#define X_STEPPER_MS3           "i2so.3"
+#define X_STEPPER_MS3           "i2so.3:high"
 
 // Motor Socket #2
 #define Y_MOTOR_TYPE            MotorType::StepStick
 #define Y_DIRECTION_PIN         "i2so.4"
 #define Y_STEP_PIN              "i2so.5"
 #define Y_DISABLE_PIN           "i2so.7"
-#define Y_STEPPER_MS3           "i2so.6"
+#define Y_STEPPER_MS3           "i2so.6:high"
 
 // Motor Socket #3
 #define Z_MOTOR_TYPE            MotorType::StepStick
 #define Z_DISABLE_PIN           "i2so.8"
 #define Z_DIRECTION_PIN         "i2so.9"
 #define Z_STEP_PIN              "i2so.10"
-#define Z_STEPPER_MS3           "i2so.11"
+#define Z_STEPPER_MS3           "i2so.11:high"
 
 /*
     Socket I/O reference
