@@ -506,7 +506,9 @@ void mc_reset() {
 
         // turn off all User I/O immediately
         sys_io_control(0xFF, LOW, false);
-        sys_pwm_control(0xFF, 0, false);
+
+        // Explicitly use the INT overload of Duty; we cannot use float in this context!
+        sys_pwm_control(0xFF, int(0), false); 
 #ifdef ENABLE_SD_CARD
         // do we need to stop a running SD job?
         if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {

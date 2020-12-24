@@ -20,6 +20,7 @@
 */
 
 #include "Grbl.h"
+#include "Duty.h"
 
 namespace UserOutput {
     class DigitalOutput {
@@ -41,7 +42,8 @@ namespace UserOutput {
     public:
         AnalogOutput();
         AnalogOutput(uint8_t number, uint8_t pin, float pwm_frequency);
-        bool set_level(float percent);
+        
+        bool set_level(Duty percent);
 
     protected:
         void init();

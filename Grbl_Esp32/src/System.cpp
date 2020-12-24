@@ -285,7 +285,7 @@ bool sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized) {
 
 // io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
 // It uses a mask so all can be turned of in ms_reset
-bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized) {
+bool sys_pwm_control(uint8_t io_num_mask, Duty duty, bool synchronized) {
     bool cmd_ok = true;
     if (synchronized)
         protocol_buffer_synchronize();

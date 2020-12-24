@@ -22,6 +22,7 @@
 
 // Execution states and alarm
 #include "Exec.h"
+#include "Duty.h"
 
 // System states. The state variable primarily tracks the individual functions
 // of Grbl to manage each without overlapping. It is also used as a messaging flag for
@@ -171,7 +172,7 @@ void controlCheckTask(void* pvParameters);
 void system_exec_control_pin(ControlPins pins);
 
 bool sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized);
-bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized);
+bool sys_pwm_control(uint8_t io_num_mask, Duty duty, bool synchronized);
 
 int8_t  sys_get_next_PWM_chan_num();
 uint8_t sys_calc_pwm_precision(uint32_t freq);

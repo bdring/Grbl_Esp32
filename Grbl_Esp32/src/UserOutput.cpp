@@ -89,9 +89,7 @@ namespace UserOutput {
     }
 
     // returns true if able to set value
-    bool AnalogOutput::set_level(float percent) {
-        float duty;
-
+    bool AnalogOutput::set_level(Duty percent) {
         // look for errors, but ignore if turning off to prevent mask turn off from generating errors
         if (_pin == UNDEFINED_PIN) {
             return false;
@@ -102,13 +100,7 @@ namespace UserOutput {
             return false;
         }
 
-        if (_current_value == percent)
-            return true;
-
-        _current_value = percent;
-
-        duty = (percent / 100.0) * (1 << _resolution_bits);
-
+        auto duty = percent.get_duty_cycle(_resolution_bits);
         ledcWrite(_pwm_channel, duty);
 
         return true;
