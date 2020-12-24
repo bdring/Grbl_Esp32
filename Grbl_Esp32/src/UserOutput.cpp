@@ -64,8 +64,17 @@ namespace UserOutput {
         if (pin == UNDEFINED_PIN)
             return;
 
-        // determine the highest bit precision allowed by frequency
-        _resolution_bits = sys_calc_pwm_precision(_pwm_frequency);
+        // determine the highest resolution (number of precision bits) allowed by frequency
+
+        uint32_t apb_frequency = getApbFrequency();
+
+        // increase the precision (bits) until it exceeds allow by frequency the max or is 16
+        _resolution_bits = 0;
+        while ((1 << _resolution_bits) < (apb_frequency / _pwm_frequency) && _resolution_bits <= 16) {
+            ++_resolution_bits;
+        }
+        // _resolution_bits is now just barely too high, so drop it down one
+        --_resolution_bits;
 
         init();
     }
@@ -89,9 +98,7 @@ namespace UserOutput {
     }
 
     // returns true if able to set value
-    bool AnalogOutput::set_level(float percent) {
-        float duty;
-
+    bool AnalogOutput::set_level(uint32_t numerator) {
         // look for errors, but ignore if turning off to prevent mask turn off from generating errors
         if (_pin == UNDEFINED_PIN) {
             return false;
@@ -102,14 +109,13 @@ namespace UserOutput {
             return false;
         }
 
-        if (_current_value == percent)
+        if (_current_value == numerator) {
             return true;
+        }
 
-        _current_value = percent;
+        _current_value = numerator;
 
-        duty = (percent / 100.0) * (1 << _resolution_bits);
-
-        ledcWrite(_pwm_channel, duty);
+        ledcWrite(_pwm_channel, numerator);
 
         return true;
     }

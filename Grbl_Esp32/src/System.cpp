@@ -267,36 +267,29 @@ void system_exec_control_pin(ControlPins pins) {
     }
 }
 
-// io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
-// It uses a mask so all can be turned of in ms_reset
-bool sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized) {
-    bool cmd_ok = true;
-    if (synchronized)
-        protocol_buffer_synchronize();
-
+void sys_digital_all_off() {
     for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {
-        if (io_num_mask & bit(io_num)) {
-            if (!myDigitalOutputs[io_num]->set_level(turnOn))
-                cmd_ok = false;
-        }
+        myDigitalOutputs[io_num]->set_level(LOW);
     }
-    return cmd_ok;
 }
 
-// io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
-// It uses a mask so all can be turned of in ms_reset
-bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized) {
-    bool cmd_ok = true;
-    if (synchronized)
-        protocol_buffer_synchronize();
+// io_num is the virtual digital pin#
+bool sys_set_digital(uint8_t io_num, bool turnOn) {
+    return myDigitalOutputs[io_num]->set_level(turnOn);
+}
 
+// Turn off all analog outputs
+void sys_analog_all_off() {
     for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {
-        if (io_num_mask & bit(io_num)) {
-            if (!myAnalogOutputs[io_num]->set_level(duty))
-                cmd_ok = false;
-        }
+        myAnalogOutputs[io_num]->set_level(0);
     }
-    return cmd_ok;
+}
+
+// io_num is the virtual analog pin#
+bool sys_set_analog(uint8_t io_num, float percent) {
+    auto     analog    = myAnalogOutputs[io_num];
+    uint32_t numerator = percent / 100.0 * analog->denominator();
+    return analog->set_level(numerator);
 }
 
 /*
