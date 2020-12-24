@@ -55,7 +55,6 @@ void init_motors() {
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
             uint8_t motor_index = axis + (6 * gang_index);  // X X2 thing
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init motor %d:%d", axis, gang_index);
             switch (motor_types[axis][gang_index]->get()) {
                 case static_cast<int8_t>(MotorType::None):
                     myMotor[axis][gang_index] = new Motors::Nullmotor(motor_index);

@@ -2,6 +2,8 @@
 
 extern FlagSetting* verbose_errors;
 
+extern StringSetting* machine_name;
+
 extern IntSetting* number_axis;
 
 extern AxisSettings* axis_settings[];

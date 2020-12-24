@@ -83,3 +83,35 @@ $X/Direction/Pin=i2so.1:low               // Change direction of X motor
 
 ...coming soon
 
+------
+
+## Creating a Machine Definition File
+
+### Machine Name
+
+It is a good idea to give a name to your machine definition. This can be helpful for support when viewing startup messages. It should contain the type of hardware you are using and a simple description of your machine.
+
+#define MACHINE_NAME "6 Pack MPCNC VFD Spindle"
+
+### I/O Expanders
+
+### Motors
+
+Motors in Grbl refer to devices used on an axis. For each motor, you need to specify the type. The valid types are.
+
+- None
+- StepStick
+- External
+- TMC2130
+- TMC5160
+- TMC2208
+- TMC2209
+- RCServo
+- Dynamixel
+
+Specify them like this.
+
+`#define SPINDLE_TYPE MotorType::StepStick`
+
+
+

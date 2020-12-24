@@ -64,3 +64,39 @@
 #define CONTROL_CYCLE_START_PIN "gpio.39"  // labeled Start, needs external pullup
 */
 
+/*
+$Machine/Name=Grbl_ESP32 Dev V4
+$Axes=3
+
+$X/Motor/Type=StepStick
+$X/Step/Pin=gpio.12
+$X/Direction/Pin=gpio.14:low
+
+$Y/Motor/Type=StepStick
+$Y/Step/Pin=gpio.26
+$Y/Direction/Pin=gpio.15:high
+
+$Z/Motor/Type=StepStick
+$Z/Step/Pin=gpio.27
+$Z/Direction/Pin=gpio.33:high
+
+$X/Limit/Pin=gpio.17:pu:low
+$Y/Limit/Pin=gpio.4:pu:low
+$Z/Limit/Pin=gpio.16:pu:low
+
+$Steppers/Disable/Pin=gpio.13
+
+$Spindle/Type=PWM
+$Spindle/Output/Pin=gpio.2
+$Spindle/Enable/Pin=gpio.22
+
+$Coolant/Mist/Pin=gpio.21
+$Coolant/Flood/Pin=gpio.25
+$Probe/Pin=gpio.32:pu:low
+
+$Control/CycleStart/Pin=gpio.39:low
+$Control/FeedHold/Pin=gpio.36:low
+$Control/Reset/Pin=gpio.34:low
+$Control/SafetyDoor/Pin=gpio.35:low
+
+*/

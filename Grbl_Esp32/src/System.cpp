@@ -55,6 +55,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         }
         pin.setAttr(attr);
         pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Safety door on pin %s", pin.name().c_str());
     }
 
     if (ControlResetPin->get() != Pin::UNDEFINED) {
@@ -65,6 +66,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         }
         pin.setAttr(attr);
         pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset on pin %s", pin.name().c_str());
     }
 
     if (ControlFeedHoldPin->get() != Pin::UNDEFINED) {
@@ -75,6 +77,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         }
         pin.setAttr(attr);
         pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Feed hold on pin %s", pin.name().c_str());
     }
 
     if (ControlCycleStartPin->get() != Pin::UNDEFINED) {
@@ -85,6 +88,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         }
         pin.setAttr(attr);
         pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Cycle Start on pin %s", pin.name().c_str());
     }
 
     if (MacroButton0Pin->get() != Pin::UNDEFINED) {
@@ -95,6 +99,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         }
         pin.setAttr(attr);
         pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button 0 on pin %s", pin.name().c_str());
     }
 
     if (MacroButton1Pin->get() != Pin::UNDEFINED) {
@@ -105,6 +110,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         }
         pin.setAttr(attr);
         pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button 1 on pin %s", pin.name().c_str());
     }
 
     if (MacroButton2Pin->get() != Pin::UNDEFINED) {
@@ -115,6 +121,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         }
         pin.setAttr(attr);
         pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button 2 on pin %s", pin.name().c_str());
     }
 
     if (MacroButton3Pin->get() != Pin::UNDEFINED) {
@@ -125,6 +132,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         }
         pin.setAttr(attr);
         pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button 3 on pin %s", pin.name().c_str());
     }
 
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE

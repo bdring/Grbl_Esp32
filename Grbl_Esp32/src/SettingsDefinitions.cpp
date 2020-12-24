@@ -2,6 +2,8 @@
 
 FlagSetting* verbose_errors;
 
+StringSetting* machine_name;
+
 IntSetting* number_axis;
 
 StringSetting* startup_line_0;
@@ -233,6 +235,8 @@ extern void make_pin_settings();
 
 void make_settings() {
     Setting::init();
+
+    machine_name = new StringSetting(EXTENDED, WG, NULL, "Machine/Name", MACHINE_NAME);
 
     number_axis = new IntSetting(EXTENDED, WG, NULL, "Axes", N_AXIS, 3, 6, NULL, false);
     number_axis->load();
