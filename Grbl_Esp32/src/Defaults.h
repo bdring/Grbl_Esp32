@@ -220,6 +220,156 @@
 #    define DEFAULT_USER_FLOAT_94 0.0  // $94 User integer setting
 #endif
 
+// =========== Motors ===============
+
+#ifndef X_MOTOR_TYPE
+#    define X_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef X2_MOTOR_TYPE
+#    define X2_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef Y_MOTOR_TYPE
+#    define Y_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef Y2_MOTOR_TYPE
+#    define Y2_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef Z_MOTOR_TYPE
+#    define Z_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef Z2_MOTOR_TYPE
+#    define Z2_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef A_MOTOR_TYPE
+#    define A_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef A2_MOTOR_TYPE
+#    define A2_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef B_MOTOR_TYPE
+#    define B_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef B2_MOTOR_TYPE
+#    define B2_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef C_MOTOR_TYPE
+#    define C_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef C2_MOTOR_TYPE
+#    define C2_MOTOR_TYPE MotorType::None
+#endif
+
+
+
+#ifndef X_DRIVER_RSENSE
+#    define X_DRIVER_RSENSE 0
+#endif
+
+#ifndef X2_DRIVER_RSENSE
+#    define X2_DRIVER_RSENSE 0
+#endif
+
+#ifndef Y_DRIVER_RSENSE
+#    define Y_DRIVER_RSENSE 0
+#endif
+
+#ifndef Y2_DRIVER_RSENSE
+#    define Y2_DRIVER_RSENSE 0
+#endif
+
+#ifndef Z_DRIVER_RSENSE
+#    define Z_DRIVER_RSENSE 0
+#endif
+
+#ifndef Z2_DRIVER_RSENSE
+#    define Z2_DRIVER_RSENSE 0
+#endif
+
+#ifndef A_DRIVER_RSENSE
+#    define A_DRIVER_RSENSE 0
+#endif
+
+#ifndef A2_DRIVER_RSENSE
+#    define A2_DRIVER_RSENSE 0
+#endif
+
+#ifndef B_DRIVER_RSENSE
+#    define B_DRIVER_RSENSE 0
+#endif
+
+#ifndef B2_DRIVER_RSENSE
+#    define B2_DRIVER_RSENSE 0
+#endif
+
+#ifndef C_DRIVER_RSENSE
+#    define C_DRIVER_RSENSE 0
+#endif
+
+#ifndef C2_DRIVER_RSENSE
+#    define C2_DRIVER_RSENSE 0
+#endif
+
+
+
+#ifndef X_DRIVER_ADDRESS
+#    define X_DRIVER_ADDRESS 0
+#endif
+
+#ifndef X2_DRIVER_ADDRESS
+#    define X2_DRIVER_ADDRESS 0
+#endif
+
+#ifndef Y_DRIVER_ADDRESS
+#    define Y_DRIVER_ADDRESS 0
+#endif
+
+#ifndef Y2_DRIVER_ADDRESS
+#    define Y2_DRIVER_ADDRESS 0
+#endif
+
+#ifndef Z_DRIVER_ADDRESS
+#    define Z_DRIVER_ADDRESS 0
+#endif
+
+#ifndef Z2_DRIVER_ADDRESS
+#    define Z2_DRIVER_ADDRESS 0
+#endif
+
+#ifndef A_DRIVER_ADDRESS
+#    define A_DRIVER_ADDRESS 0
+#endif
+
+#ifndef A2_DRIVER_ADDRESS
+#    define A2_DRIVER_ADDRESS 0
+#endif
+
+#ifndef B_DRIVER_ADDRESS
+#    define B_DRIVER_ADDRESS 0
+#endif
+
+#ifndef B2_DRIVER_ADDRESS
+#    define B2_DRIVER_ADDRESS 0
+#endif
+
+#ifndef C_DRIVER_ADDRESS
+#    define C_DRIVER_ADDRESS 0
+#endif
+
+#ifndef C2_DRIVER_ADDRESS
+#    define C2_DRIVER_ADDRESS 0
+#endif
+
 // =========== 	AXIS RESOLUTION ======
 
 #ifndef DEFAULT_X_STEPS_PER_MM

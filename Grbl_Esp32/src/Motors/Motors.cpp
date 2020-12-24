@@ -45,530 +45,67 @@
 #include "TrinamicUartDriver.h"
 
 Motors::Motor* myMotor[MAX_AXES][MAX_GANGED];  // number of axes (normal and ganged)
-void           init_motors() {
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Motors");
 
+
+// TODO: 
+//  I don't like the single value motor_index. Should it be axis, gang_index, like the rest of Grbl? 
+
+void init_motors() {
     auto n_axis = number_axis->get();
+    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+        for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
+            uint8_t motor_index = axis + (6 * gang_index);  // X X2 thing
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init motor %d:%d", axis, gang_index);
+            switch (motor_types[axis][gang_index]->get()) {
+                case static_cast<int8_t>(MotorType::None):
+                    myMotor[axis][gang_index] = new Motors::Nullmotor(motor_index);
+                    break;
+                case static_cast<int8_t>(MotorType::StepStick):
+                case static_cast<int8_t>(MotorType::External):
+                    myMotor[axis][0] = new Motors::StandardStepper(motor_index,
+                                                                   StepPins[axis][gang_index]->get(),
+                                                                   DirectionPins[axis][gang_index]->get(),
+                                                                   DisablePins[axis][gang_index]->get());
+                    break;
+                case static_cast<int8_t>(MotorType::TMC2130):                
+                case static_cast<int8_t>(MotorType::TMC5160):
+                    myMotor[axis][gang_index] = new Motors::TrinamicDriver(motor_index,
+                                                                           StepPins[axis][gang_index]->get(),
+                                                                           DirectionPins[axis][gang_index]->get(),
+                                                                           DisablePins[axis][gang_index]->get(),
+                                                                           ChipSelectPins[axis][gang_index]->get(),
+                                                                           static_cast<MotorType>(motor_types[axis][gang_index]->get()),
+                                                                           motor_rsense[axis][gang_index]->get());
 
-    if (n_axis >= 1) {
-#ifdef X_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[X_AXIS][0] = new Motors::TrinamicDriver(X_AXIS,
-                                                            StepPins[X_AXIS][0]->get(),
-                                                            DirectionPins[X_AXIS][0]->get(),
-                                                            DisablePins[X_AXIS][0]->get(),
-                                                            ChipSelectPins[X_AXIS][0]->get(),
-                                                            X_TRINAMIC_DRIVER,
-                                                            X_RSENSE);
+                    break;
+                case static_cast<int8_t>(MotorType::TMC2208):
+                case static_cast<int8_t>(MotorType::TMC2209):
+                    myMotor[axis][gang_index] = new Motors::TrinamicUartDriver(motor_index,
+                                                                               StepPins[axis][gang_index]->get(),
+                                                                               DirectionPins[axis][gang_index]->get(),
+                                                                               DisablePins[axis][gang_index]->get(),
+                                                                               static_cast<MotorType>(motor_types[axis][gang_index]->get()),
+                                                                               motor_rsense[axis][gang_index]->get(),
+                                                                               motor_address[axis][gang_index]->get());
+                    break;
+                case static_cast<int8_t>(MotorType::Unipolar):
+                    myMotor[axis][gang_index] = new Motors::UnipolarMotor(motor_index,
+                                                                          PhasePins[1][axis][gang_index]->get(),
+                                                                          PhasePins[1][axis][gang_index]->get(),
+                                                                          PhasePins[2][axis][gang_index]->get(),
+                                                                          PhasePins[3][axis][gang_index]->get());
+                case static_cast<int8_t>(MotorType::Dynamixel):
+                    myMotor[axis][gang_index] = new Motors::Dynamixel2(
+                        motor_index, motor_address[axis][gang_index]->get(), DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
+                case static_cast<int8_t>(MotorType::RCServo):
+                    myMotor[axis][gang_index] = new Motors::RcServo(motor_index, ServoPins[axis][gang_index]->get());
+                case static_cast<int8_t>(MotorType::Solenoid):
+                    // not yet
+                default:
+                    myMotor[axis][gang_index] = new Motors::Nullmotor(motor_index);
+                    break;
+            }
         }
-#    elif (X_TRINAMIC_DRIVER == 2208 || X_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[X_AXIS][0] = new Motors::TrinamicUartDriver(X_AXIS,
-                                                                StepPins[X_AXIS][0]->get(),
-                                                                DirectionPins[X_AXIS][0]->get(),
-                                                                DisablePins[X_AXIS][0]->get(),
-                                                                X_TRINAMIC_DRIVER,
-                                                                X_RSENSE,
-                                                                X_DRIVER_ADDRESS);
-        }
-#    else
-#        error X Axis undefined motor p/n
-#    endif
-#elif defined(X_UNIPOLAR)
-        myMotor[X_AXIS][0] = new Motors::UnipolarMotor(X_AXIS,
-                                                       PhasePins[0][X_AXIS][0]->get(),
-                                                       PhasePins[1][X_AXIS][0]->get(),
-                                                       PhasePins[2][X_AXIS][0]->get(),
-                                                       PhasePins[3][X_AXIS][0]->get());
-#elif defined(X_DYNAMIXEL_ID)
-        myMotor[X_AXIS][0] =
-            new Motors::Dynamixel2(X_AXIS, X_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
-#else
-        if (ServoPins[X_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[X_AXIS][0] = new Motors::RcServo(X_AXIS, ServoPins[X_AXIS][0]->get());
-        else if (StepPins[X_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[X_AXIS][0] = new Motors::StandardStepper(
-                X_AXIS, StepPins[X_AXIS][0]->get(), DirectionPins[X_AXIS][0]->get(), DisablePins[X_AXIS][0]->get());
-        else
-            myMotor[X_AXIS][0] = new Motors::Nullmotor(X_AXIS);
-#endif
-
-#ifdef X2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[X_AXIS][1] = new Motors::TrinamicDriver(X2_AXIS,
-                                                            StepPins[X_AXIS][1]->get(),
-                                                            DirectionPins[X_AXIS][1]->get(),
-                                                            DisablePins[X_AXIS][1]->get(),
-                                                            ChipSelectPins[X_AXIS][1]->get(),
-                                                            X2_TRINAMIC_DRIVER,
-                                                            X2_RSENSE);
-        }
-#    elif (X2_TRINAMIC_DRIVER == 2208 || X2_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[X_AXIS][1] = new Motors::TrinamicUartDriver(X2_AXIS,
-                                                                StepPins[X_AXIS][1]->get(),
-                                                                DirectionPins[X_AXIS][1]->get(),
-                                                                DisablePins[X_AXIS][1]->get(),
-                                                                X2_TRINAMIC_DRIVER,
-                                                                X2_RSENSE,
-                                                                X2_DRIVER_ADDRESS);
-        }
-#    else
-#        error X2 Axis undefined motor p/n
-#    endif
-#elif defined(X2_UNIPOLAR)
-        myMotor[X_AXIS][1] = new Motors::UnipolarMotor(X2_AXIS,
-                                                       PhasePins[1][X_AXIS][1]->get(),
-                                                       PhasePins[1][X_AXIS][1]->get(),
-                                                       PhasePins[2][X_AXIS][1]->get(),
-                                                       PhasePins[3][X_AXIS][1]->get());
-#else
-        if (StepPins[X_AXIS][1]->get() != Pin::UNDEFINED)
-            myMotor[X_AXIS][1] = new Motors::StandardStepper(
-                X2_AXIS, StepPins[X_AXIS][1]->get(), DirectionPins[X_AXIS][1]->get(), DisablePins[X_AXIS][1]->get());
-        else
-            myMotor[X_AXIS][1] = new Motors::Nullmotor(X2_AXIS);
-#endif
-    } else {
-        myMotor[X_AXIS][0] = new Motors::Nullmotor(X_AXIS);
-        myMotor[X_AXIS][1] = new Motors::Nullmotor(X2_AXIS);
-    }
-
-    if (n_axis >= 2) {
-        // this WILL be done better with settings
-#ifdef Y_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[Y_AXIS][0] = new Motors::TrinamicDriver(Y_AXIS,
-                                                            StepPins[Y_AXIS][0]->get(),
-                                                            DirectionPins[Y_AXIS][0]->get(),
-                                                            DisablePins[Y_AXIS][0]->get(),
-                                                            ChipSelectPins[Y_AXIS][0]->get(),
-                                                            Y_TRINAMIC_DRIVER,
-                                                            Y_RSENSE);
-        }
-#    elif (Y_TRINAMIC_DRIVER == 2208 || Y_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[Y_AXIS][0] = new Motors::TrinamicUartDriver(Y_AXIS,
-                                                                StepPins[Y_AXIS][0]->get(),
-                                                                DirectionPins[Y_AXIS][0]->get(),
-                                                                DisablePins[Y_AXIS][0]->get(),
-                                                                Y_TRINAMIC_DRIVER,
-                                                                Y_RSENSE,
-                                                                Y_DRIVER_ADDRESS);
-        }
-#    else
-#        error Y Axis undefined motor p/n
-#    endif
-#elif defined(Y_UNIPOLAR)
-        myMotor[Y_AXIS][0] = new Motors::UnipolarMotor(Y_AXIS,
-                                                       PhasePins[0][Y_AXIS][0]->get(),
-                                                       PhasePins[1][Y_AXIS][0]->get(),
-                                                       PhasePins[2][Y_AXIS][0]->get(),
-                                                       PhasePins[3][Y_AXIS][0]->get());
-#elif defined(Y_DYNAMIXEL_ID)
-        myMotor[Y_AXIS][0] =
-            new Motors::Dynamixel2(Y_AXIS, Y_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
-#else
-        if (ServoPins[Y_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[Y_AXIS][0] = new Motors::RcServo(Y_AXIS, ServoPins[Y_AXIS][0]->get());
-        else if (StepPins[Y_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[Y_AXIS][0] = new Motors::StandardStepper(
-                Y_AXIS, StepPins[Y_AXIS][0]->get(), DirectionPins[Y_AXIS][0]->get(), DisablePins[Y_AXIS][0]->get());
-        else
-            myMotor[Y_AXIS][0] = new Motors::Nullmotor(Y_AXIS);
-#endif
-
-#ifdef Y2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[Y_AXIS][1] = new Motors::TrinamicDriver(Y2_AXIS,
-                                                            StepPins[Y_AXIS][1]->get(),
-                                                            DirectionPins[Y_AXIS][1]->get(),
-                                                            DisablePins[Y_AXIS][1]->get(),
-                                                            ChipSelectPins[Y_AXIS][1]->get(),
-                                                            Y2_TRINAMIC_DRIVER,
-                                                            Y2_RSENSE);
-        }
-#    elif (Y2_TRINAMIC_DRIVER == 2208 || Y2_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[Y_AXIS][1] = new Motors::TrinamicUartDriver(Y2_AXIS,
-                                                                StepPins[Y_AXIS][1]->get(),
-                                                                DirectionPins[Y_AXIS][1]->get(),
-                                                                DisablePins[Y_AXIS][1]->get(),
-                                                                Y2_TRINAMIC_DRIVER,
-                                                                Y2_RSENSE,
-                                                                Y2_DRIVER_ADDRESS);
-        }
-#    else
-#        error Y2 Axis undefined motor p/n
-#    endif
-#elif defined(Y2_UNIPOLAR)
-        myMotor[Y_AXIS][1] = new Motors::UnipolarMotor(Y2_AXIS,
-                                                       PhasePins[1][Y_AXIS][1]->get(),
-                                                       PhasePins[1][Y_AXIS][1]->get(),
-                                                       PhasePins[2][Y_AXIS][1]->get(),
-                                                       PhasePins[3][Y_AXIS][1]->get());
-#else
-        if (StepPins[Y_AXIS][1]->get() != Pin::UNDEFINED)
-            myMotor[Y_AXIS][1] = new Motors::StandardStepper(
-                Y2_AXIS, StepPins[Y_AXIS][1]->get(), DirectionPins[Y_AXIS][1]->get(), DisablePins[Y_AXIS][1]->get());
-        else
-            myMotor[Y_AXIS][1] = new Motors::Nullmotor(Y2_AXIS);
-#endif
-    } else {
-        myMotor[Y_AXIS][0] = new Motors::Nullmotor(Y_AXIS);
-        myMotor[Y_AXIS][1] = new Motors::Nullmotor(Y2_AXIS);
-    }
-
-    if (n_axis >= 3) {
-        // this WILL be done better with settings
-#ifdef Z_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[Z_AXIS][0] = new Motors::TrinamicDriver(Z_AXIS,
-                                                            StepPins[Z_AXIS][0]->get(),
-                                                            DirectionPins[Z_AXIS][0]->get(),
-                                                            DisablePins[Z_AXIS][0]->get(),
-                                                            ChipSelectPins[Z_AXIS][0]->get(),
-                                                            Z_TRINAMIC_DRIVER,
-                                                            Z_RSENSE);
-        }
-#    elif (Z_TRINAMIC_DRIVER == 2208 || Z_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[Z_AXIS][0] = new Motors::TrinamicUartDriver(Z_AXIS,
-                                                                StepPins[Z_AXIS][0]->get(),
-                                                                DirectionPins[Z_AXIS][0]->get(),
-                                                                DisablePins[Z_AXIS][0]->get(),
-                                                                Z_TRINAMIC_DRIVER,
-                                                                Z_RSENSE,
-                                                                Z_DRIVER_ADDRESS);
-        }
-#    else
-#        error Z Axis undefined motor p/n
-#    endif
-#elif defined(Z_UNIPOLAR)
-        myMotor[Z_AXIS][0] = new Motors::UnipolarMotor(Z_AXIS,
-                                                       PhasePins[0][Z_AXIS][0]->get(),
-                                                       PhasePins[1][Z_AXIS][0]->get(),
-                                                       PhasePins[2][Z_AXIS][0]->get(),
-                                                       PhasePins[3][Z_AXIS][0]->get());
-#elif defined(Z_DYNAMIXEL_ID)
-        myMotor[Z_AXIS][0] =
-            new Motors::Dynamixel2(Z_AXIS, Z_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
-#else
-        if (ServoPins[Z_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[Z_AXIS][0] = new Motors::RcServo(Z_AXIS, ServoPins[Z_AXIS][0]->get());
-        else if (StepPins[Z_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[Z_AXIS][0] = new Motors::StandardStepper(
-                Z_AXIS, StepPins[Z_AXIS][0]->get(), DirectionPins[Z_AXIS][0]->get(), DisablePins[Z_AXIS][0]->get());
-        else
-            myMotor[Z_AXIS][0] = new Motors::Nullmotor(Z_AXIS);
-#endif
-
-#ifdef Z2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[Z_AXIS][1] = new Motors::TrinamicDriver(Z2_AXIS,
-                                                            StepPins[Z_AXIS][1]->get(),
-                                                            DirectionPins[Z_AXIS][1]->get(),
-                                                            DisablePins[Z_AXIS][1]->get(),
-                                                            ChipSelectPins[Z_AXIS][1]->get(),
-                                                            Z2_TRINAMIC_DRIVER,
-                                                            Z2_RSENSE);
-        }
-#    elif (Z2_TRINAMIC_DRIVER == 2208 || Z2_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[Z_AXIS][1] = new Motors::TrinamicUartDriver(Z2_AXIS,
-                                                                StepPins[Z_AXIS][1]->get(),
-                                                                DirectionPins[Z_AXIS][1]->get(),
-                                                                DisablePins[Z_AXIS][1]->get(),
-                                                                Z2_TRINAMIC_DRIVER,
-                                                                Z2_RSENSE,
-                                                                Z2_DRIVER_ADDRESS);
-        }
-#    else
-#        error Z2 Axis undefined motor p/n
-#    endif
-#elif defined(Z2_UNIPOLAR)
-        myMotor[Z_AXIS][1] = new Motors::UnipolarMotor(Z2_AXIS,
-                                                       PhasePins[1][Z_AXIS][1]->get(),
-                                                       PhasePins[1][Z_AXIS][1]->get(),
-                                                       PhasePins[2][Z_AXIS][1]->get(),
-                                                       PhasePins[3][Z_AXIS][1]->get());
-#else
-        if (StepPins[Z_AXIS][1]->get() != Pin::UNDEFINED)
-            myMotor[Z_AXIS][1] = new Motors::StandardStepper(
-                Z2_AXIS, StepPins[Z_AXIS][1]->get(), DirectionPins[Z_AXIS][1]->get(), DisablePins[Z_AXIS][1]->get());
-        else
-            myMotor[Z_AXIS][1] = new Motors::Nullmotor(Z2_AXIS);
-#endif
-    } else {
-        myMotor[Z_AXIS][0] = new Motors::Nullmotor(Z_AXIS);
-        myMotor[Z_AXIS][1] = new Motors::Nullmotor(Z2_AXIS);
-    }
-
-    if (n_axis >= 4) {
-        // this WILL be done better with settings
-#ifdef A_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[A_AXIS][0] = new Motors::TrinamicDriver(A_AXIS,
-                                                            StepPins[A_AXIS][0]->get(),
-                                                            DirectionPins[A_AXIS][0]->get(),
-                                                            DisablePins[A_AXIS][0]->get(),
-                                                            ChipSelectPins[A_AXIS][0]->get(),
-                                                            A_TRINAMIC_DRIVER,
-                                                            A_RSENSE);
-        }
-#    elif (A_TRINAMIC_DRIVER == 2208 || A_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[A_AXIS][0] = new Motors::TrinamicUartDriver(A_AXIS,
-                                                                StepPins[A_AXIS][0]->get(),
-                                                                DirectionPins[A_AXIS][0]->get(),
-                                                                DisablePins[A_AXIS][0]->get(),
-                                                                A_TRINAMIC_DRIVER,
-                                                                A_RSENSE,
-                                                                A_DRIVER_ADDRESS);
-        }
-#    else
-#        error A Axis undefined motor p/n
-#    endif
-#elif defined(A_UNIPOLAR)
-        myMotor[A_AXIS][0] = new Motors::UnipolarMotor(A_AXIS,
-                                                       PhasePins[0][A_AXIS][0]->get(),
-                                                       PhasePins[1][A_AXIS][0]->get(),
-                                                       PhasePins[2][A_AXIS][0]->get(),
-                                                       PhasePins[3][A_AXIS][0]->get());
-#elif defined(A_DYNAMIXEL_ID)
-        myMotor[A_AXIS][0] =
-            new Motors::Dynamixel2(A_AXIS, A_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
-#else
-        if (ServoPins[A_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[A_AXIS][0] = new Motors::RcServo(A_AXIS, ServoPins[A_AXIS][0]->get());
-        else if (StepPins[A_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[A_AXIS][0] = new Motors::StandardStepper(
-                A_AXIS, StepPins[A_AXIS][0]->get(), DirectionPins[A_AXIS][0]->get(), DisablePins[A_AXIS][0]->get());
-        else
-            myMotor[A_AXIS][0] = new Motors::Nullmotor(A_AXIS);
-#endif
-
-#ifdef A2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[A_AXIS][1] = new Motors::TrinamicDriver(A2_AXIS,
-                                                            StepPins[A_AXIS][1]->get(),
-                                                            DirectionPins[A_AXIS][1]->get(),
-                                                            DisablePins[A_AXIS][1]->get(),
-                                                            ChipSelectPins[A_AXIS][1]->get(),
-                                                            A2_TRINAMIC_DRIVER,
-                                                            A2_RSENSE);
-        }
-#    elif (A2_TRINAMIC_DRIVER == 2208 || A2_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[A_AXIS][1] = new Motors::TrinamicUartDriver(A2_AXIS,
-                                                                StepPins[A_AXIS][1]->get(),
-                                                                DirectionPins[A_AXIS][1]->get(),
-                                                                DisablePins[A_AXIS][1]->get(),
-                                                                A2_TRINAMIC_DRIVER,
-                                                                A2_RSENSE,
-                                                                A2_DRIVER_ADDRESS);
-        }
-#    else
-#        error A2 Axis undefined motor p/n
-#    endif
-#elif defined(A2_UNIPOLAR)
-        myMotor[A_AXIS][1] = new Motors::UnipolarMotor(A2_AXIS,
-                                                       PhasePins[1][A_AXIS][1]->get(),
-                                                       PhasePins[1][A_AXIS][1]->get(),
-                                                       PhasePins[2][A_AXIS][1]->get(),
-                                                       PhasePins[3][A_AXIS][1]->get());
-#else
-        if (StepPins[A_AXIS][1]->get() != Pin::UNDEFINED)
-            myMotor[A_AXIS][1] = new Motors::StandardStepper(
-                A2_AXIS, StepPins[A_AXIS][1]->get(), DirectionPins[A_AXIS][1]->get(), DisablePins[A_AXIS][1]->get());
-        else
-            myMotor[A_AXIS][1] = new Motors::Nullmotor(A2_AXIS);
-#endif
-    } else {
-        myMotor[A_AXIS][0] = new Motors::Nullmotor(A_AXIS);
-        myMotor[A_AXIS][1] = new Motors::Nullmotor(A2_AXIS);
-    }
-
-    if (n_axis >= 5) {
-        // this WILL be done better with settings
-#ifdef B_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[B_AXIS][0] = new Motors::TrinamicDriver(B_AXIS,
-                                                            StepPins[B_AXIS][0]->get(),
-                                                            DirectionPins[B_AXIS][0]->get(),
-                                                            DisablePins[B_AXIS][0]->get(),
-                                                            ChipSelectPins[B_AXIS][0]->get(),
-                                                            B_TRINAMIC_DRIVER,
-                                                            B_RSENSE);
-        }
-#    elif (B_TRINAMIC_DRIVER == 2208 || B_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[B_AXIS][0] = new Motors::TrinamicUartDriver(B_AXIS,
-                                                                StepPins[B_AXIS][0]->get(),
-                                                                DirectionPins[B_AXIS][0]->get(),
-                                                                DisablePins[B_AXIS][0]->get(),
-                                                                B_TRINAMIC_DRIVER,
-                                                                B_RSENSE,
-                                                                B_DRIVER_ADDRESS);
-        }
-#    else
-#        error B Axis undefined motor p/n
-#    endif
-#elif defined(B_UNIPOLAR)
-        myMotor[B_AXIS][0] = new Motors::UnipolarMotor(B_AXIS,
-                                                       PhasePins[0][B_AXIS][0]->get(),
-                                                       PhasePins[1][B_AXIS][0]->get(),
-                                                       PhasePins[2][B_AXIS][0]->get(),
-                                                       PhasePins[3][B_AXIS][0]->get());
-#elif defined(B_DYNAMIXEL_ID)
-        myMotor[B_AXIS][0] =
-            new Motors::Dynamixel2(B_AXIS, B_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
-#else
-        if (ServoPins[B_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[B_AXIS][0] = new Motors::RcServo(B_AXIS, ServoPins[B_AXIS][0]->get());
-        else if (StepPins[B_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[B_AXIS][0] = new Motors::StandardStepper(
-                B_AXIS, StepPins[B_AXIS][0]->get(), DirectionPins[B_AXIS][0]->get(), DisablePins[B_AXIS][0]->get());
-        else
-            myMotor[B_AXIS][0] = new Motors::Nullmotor(B_AXIS);
-#endif
-
-#ifdef B2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[B_AXIS][1] = new Motors::TrinamicDriver(B2_AXIS,
-                                                            StepPins[B_AXIS][1]->get(),
-                                                            DirectionPins[B_AXIS][1]->get(),
-                                                            DisablePins[B_AXIS][1]->get(),
-                                                            ChipSelectPins[B_AXIS][1]->get(),
-                                                            B2_TRINAMIC_DRIVER,
-                                                            B2_RSENSE);
-        }
-#    elif (B2_TRINAMIC_DRIVER == 2208 || B2_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[B_AXIS][1] = new Motors::TrinamicUartDriver(B2_AXIS,
-                                                                StepPins[B_AXIS][1]->get(),
-                                                                DirectionPins[B_AXIS][1]->get(),
-                                                                DisablePins[B_AXIS][1]->get(),
-                                                                B2_TRINAMIC_DRIVER,
-                                                                B2_RSENSE,
-                                                                B2_DRIVER_ADDRESS);
-        }
-#    else
-#        error B2 Axis undefined motor p/n
-#    endif
-#elif defined(B2_UNIPOLAR)
-        myMotor[B_AXIS][1] = new Motors::UnipolarMotor(B2_AXIS,
-                                                       PhasePins[1][B_AXIS][1]->get(),
-                                                       PhasePins[1][B_AXIS][1]->get(),
-                                                       PhasePins[2][B_AXIS][1]->get(),
-                                                       PhasePins[3][B_AXIS][1]->get());
-#else
-        if (StepPins[B_AXIS][1]->get() != Pin::UNDEFINED)
-            myMotor[B_AXIS][1] = new Motors::StandardStepper(
-                B2_AXIS, StepPins[B_AXIS][1]->get(), DirectionPins[B_AXIS][1]->get(), DisablePins[B_AXIS][1]->get());
-        else
-            myMotor[B_AXIS][1] = new Motors::Nullmotor(B2_AXIS);
-#endif
-    } else {
-        myMotor[B_AXIS][0] = new Motors::Nullmotor(B_AXIS);
-        myMotor[B_AXIS][1] = new Motors::Nullmotor(B2_AXIS);
-    }
-
-    if (n_axis >= 6) {
-        // this WILL be done better with settings
-#ifdef C_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[C_AXIS][0] = new Motors::TrinamicDriver(C_AXIS,
-                                                            StepPins[C_AXIS][0]->get(),
-                                                            DirectionPins[C_AXIS][0]->get(),
-                                                            DisablePins[C_AXIS][0]->get(),
-                                                            ChipSelectPins[C_AXIS][0]->get(),
-                                                            C_TRINAMIC_DRIVER,
-                                                            C_RSENSE);
-        }
-#    elif (C_TRINAMIC_DRIVER == 2208 || C_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[C_AXIS][0] = new Motors::TrinamicUartDriver(C_AXIS,
-                                                                StepPins[C_AXIS][0]->get(),
-                                                                DirectionPins[C_AXIS][0]->get(),
-                                                                DisablePins[C_AXIS][0]->get(),
-                                                                C_TRINAMIC_DRIVER,
-                                                                C_RSENSE,
-                                                                C_DRIVER_ADDRESS);
-        }
-#    else
-#        error C Axis undefined motor p/n
-#    endif
-#elif defined(C_UNIPOLAR)
-        myMotor[C_AXIS][0] = new Motors::UnipolarMotor(C_AXIS,
-                                                       PhasePins[0][C_AXIS][0]->get(),
-                                                       PhasePins[1][C_AXIS][0]->get(),
-                                                       PhasePins[2][C_AXIS][0]->get(),
-                                                       PhasePins[3][C_AXIS][0]->get());
-#elif defined(C_DYNAMIXEL_ID)
-        myMotor[C_AXIS][0] =
-            new Motors::Dynamixel2(C_AXIS, C_DYNAMIXEL_ID, DynamixelTXDPin->get(), DynamixelRXDPin->get(), DynamixelRTSPin->get());
-#else
-        if (ServoPins[C_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[C_AXIS][0] = new Motors::RcServo(C_AXIS, ServoPins[C_AXIS][0]->get());
-        else if (StepPins[C_AXIS][0]->get() != Pin::UNDEFINED)
-            myMotor[C_AXIS][0] = new Motors::StandardStepper(
-                C_AXIS, StepPins[C_AXIS][0]->get(), DirectionPins[C_AXIS][0]->get(), DisablePins[C_AXIS][0]->get());
-        else
-            myMotor[C_AXIS][0] = new Motors::Nullmotor(C_AXIS);
-#endif
-
-#ifdef C2_TRINAMIC_DRIVER
-#    if (X_TRINAMIC_DRIVER == 2130 || X_TRINAMIC_DRIVER == 5160)
-        {
-            myMotor[C_AXIS][1] = new Motors::TrinamicDriver(C2_AXIS,
-                                                            StepPins[C_AXIS][1]->get(),
-                                                            DirectionPins[C_AXIS][1]->get(),
-                                                            DisablePins[C_AXIS][1]->get(),
-                                                            ChipSelectPins[C_AXIS][1]->get(),
-                                                            C2_TRINAMIC_DRIVER,
-                                                            C2_RSENSE);
-        }
-#    elif (C2_TRINAMIC_DRIVER == 2208 || C2_TRINAMIC_DRIVER == 2209)
-        {
-            myMotor[C_AXIS][1] = new Motors::TrinamicUartDriver(C2_AXIS,
-                                                                StepPins[C_AXIS][1]->get(),
-                                                                DirectionPins[C_AXIS][1]->get(),
-                                                                DisablePins[C_AXIS][1]->get(),
-                                                                C2_TRINAMIC_DRIVER,
-                                                                C2_RSENSE,
-                                                                C2_DRIVER_ADDRESS);
-        }
-#    else
-#        error C2 Axis undefined motor p/n
-#    endif
-#elif defined(C2_UNIPOLAR)
-        myMotor[C_AXIS][1] = new Motors::UnipolarMotor(C2_AXIS,
-                                                       PhasePins[1][C_AXIS][1]->get(),
-                                                       PhasePins[1][C_AXIS][1]->get(),
-                                                       PhasePins[2][C_AXIS][1]->get(),
-                                                       PhasePins[3][C_AXIS][1]->get());
-#else
-        if (StepPins[C_AXIS][1]->get() != Pin::UNDEFINED)
-            myMotor[C_AXIS][1] = new Motors::StandardStepper(
-                C2_AXIS, StepPins[C_AXIS][1]->get(), DirectionPins[C_AXIS][1]->get(), DisablePins[C_AXIS][1]->get());
-        else
-            myMotor[C_AXIS][1] = new Motors::Nullmotor(C2_AXIS);
-#endif
-    } else {
-        myMotor[C_AXIS][0] = new Motors::Nullmotor(C_AXIS);
-        myMotor[C_AXIS][1] = new Motors::Nullmotor(C2_AXIS);
     }
 
 #ifdef USE_STEPSTICK

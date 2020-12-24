@@ -456,6 +456,7 @@ public:
 class AxisSettings {
 public:
     const char*   name;
+    EnumSetting*    motor_type;
     FloatSetting* steps_per_mm;
     FloatSetting* max_rate;
     FloatSetting* acceleration;

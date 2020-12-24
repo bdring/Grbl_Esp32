@@ -39,17 +39,17 @@
     #undef USE_RMT_STEPS
 #endif
 
-#define X_UNIPOLAR
-#define X_PIN_PHASE_0 "gpio.13"
-#define X_PIN_PHASE_1 "gpio.21"
-#define X_PIN_PHASE_2 "gpio.16"
-#define X_PIN_PHASE_3 "gpio.22"
+#define X_MOTOR_TYPE            MotorType::Unipolar
+#define X_PIN_PHASE_0           "gpio.13"
+#define X_PIN_PHASE_1           "gpio.21"
+#define X_PIN_PHASE_2           "gpio.16"
+#define X_PIN_PHASE_3           "gpio.22"
 
-#define Y_UNIPOLAR
-#define Y_PIN_PHASE_0 "gpio.25"
-#define Y_PIN_PHASE_1 "gpio.27"
-#define Y_PIN_PHASE_2 "gpio.26"
-#define Y_PIN_PHASE_3 "gpio.32"
+#define Y_MOTOR_TYPE            MotorType::Unipolar
+#define Y_PIN_PHASE_0           "gpio.25"
+#define Y_PIN_PHASE_1           "gpio.27"
+#define Y_PIN_PHASE_2           "gpio.26"
+#define Y_PIN_PHASE_3           "gpio.32"
 
 #define SOLENOID_DIRECTION_PIN GPIO_NUM_4
 #define SOLENOID_PEN_PIN GPIO_NUM_2

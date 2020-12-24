@@ -40,26 +40,31 @@
 #define I2S_OUT_DATA     "gpio.21"
 
 // Motor Socket #1
+#define X_MOTOR_TYPE            MotorType::StepStick
 #define X_DISABLE_PIN           "i2so.0"
 #define X_DIRECTION_PIN         "i2so.1"
 #define X_STEP_PIN              "i2so.2"
 
 // Motor Socket #2
+#define Y_MOTOR_TYPE            MotorType::StepStick
 #define Y_DIRECTION_PIN         "i2so.4"
 #define Y_STEP_PIN              "i2so.5"
 #define Y_DISABLE_PIN           "i2so.7"
 
 // Motor Socket #3
+#define Y2_MOTOR_TYPE            MotorType::StepStick
 #define Y2_DISABLE_PIN           "i2so.8"
 #define Y2_DIRECTION_PIN         "i2so.9"
 #define Y2_STEP_PIN              "i2so.10"
 
 // Motor Socket #4
+#define Z_MOTOR_TYPE            MotorType::StepStick
 #define Z_DIRECTION_PIN         "i2so.12"
 #define Z_STEP_PIN              "i2so.13"
 #define Z_DISABLE_PIN           "i2so.15"
 
 // Motor Socket #5
+#define Z2_MOTOR_TYPE            MotorType::StepStick
 #define Z2_DISABLE_PIN           "i2so.16"
 #define Z2_DIRECTION_PIN         "i2so.17"
 #define Z2_STEP_PIN              "i2so.18"

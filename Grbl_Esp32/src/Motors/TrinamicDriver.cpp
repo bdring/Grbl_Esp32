@@ -41,14 +41,14 @@ namespace Motors {
     }
     TrinamicDriver* TrinamicDriver::List = NULL;
 
-    TrinamicDriver::TrinamicDriver(uint8_t  axis_index,
-                                   Pin      step_pin,
-                                   Pin      dir_pin,
-                                   Pin      disable_pin,
-                                   Pin      cs_pin,
-                                   uint16_t driver_part_number,
-                                   float    r_sense,
-                                   int8_t   spi_index) :
+    TrinamicDriver::TrinamicDriver(uint8_t   axis_index,
+                                   Pin       step_pin,
+                                   Pin       dir_pin,
+                                   Pin       disable_pin,
+                                   Pin       cs_pin,
+                                   MotorType driver_part_number,
+                                   float     r_sense,
+                                   int8_t    spi_index) :
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin),
         _homing_mode(TRINAMIC_HOMING_MODE), _cs_pin(cs_pin), _driver_part_number(driver_part_number), _r_sense(r_sense),
         _spi_index(spi_index) {
@@ -56,9 +56,9 @@ namespace Motors {
 
         auto cs_pin_native = _cs_pin.getNative(Pin::Capabilities::Output);
 
-        if (_driver_part_number == 2130) {
+        if (_driver_part_number == MotorType::TMC2130) {
             tmcstepper = new TMC2130Stepper(cs_pin_native, _r_sense, _spi_index);
-        } else if (_driver_part_number == 5160) {
+        } else if (_driver_part_number == MotorType::TMC5160) {
             tmcstepper = new TMC5160Stepper(cs_pin_native, _r_sense, _spi_index);
         } else {
             grbl_msg_sendf(CLIENT_SERIAL,

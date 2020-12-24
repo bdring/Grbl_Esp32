@@ -28,10 +28,15 @@
 
 #define MACHINE_NAME            "ESP32_V4"
 
+#define X_MOTOR_TYPE            MotorType::StepStick
 #define X_STEP_PIN              "gpio.12"
 #define X_DIRECTION_PIN         "gpio.14"
+
+#define Y_MOTOR_TYPE            MotorType::StepStick
 #define Y_STEP_PIN              "gpio.26"
 #define Y_DIRECTION_PIN         "gpio.15"
+
+#define Z_MOTOR_TYPE            MotorType::StepStick
 #define Z_STEP_PIN              "gpio.27"
 #define Z_DIRECTION_PIN         "gpio.33"
 

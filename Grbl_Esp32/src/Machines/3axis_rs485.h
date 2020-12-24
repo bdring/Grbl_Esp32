@@ -30,12 +30,20 @@
 */
 
 #define MACHINE_NAME            "ESP32_XYZ_RS485"
+
+#define X_MOTOR_TYPE            MotorType::StepStick
 #define X_STEP_PIN              "gpio.4"   // labeled X
 #define X_DIRECTION_PIN         "gpio.16"  // labeled X
+
+#define Y_MOTOR_TYPE            MotorType::StepStick
 #define Y_STEP_PIN              "gpio.17"  // labeled Y
 #define Y_DIRECTION_PIN         "gpio.18"  // labeled Y
+
+#define Y2_MOTOR_TYPE            MotorType::StepStick
 #define Y2_STEP_PIN             "gpio.19"  // labeled Y2
 #define Y2_DIRECTION_PIN        "gpio.21"  // labeled Y2
+
+#define Z_MOTOR_TYPE            MotorType::StepStick
 #define Z_STEP_PIN              "gpio.22"  // labeled Z
 #define Z_DIRECTION_PIN         "gpio.23"  // labeled Z
 

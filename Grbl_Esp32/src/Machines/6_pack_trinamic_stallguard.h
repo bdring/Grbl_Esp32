@@ -36,52 +36,52 @@
 #define TRINAMIC_HOMING_MODE        Motors::TrinamicMode::StallGuard
 
 // Motor Socket #1
-#define X_TRINAMIC_DRIVER       2130
+#define X_MOTOR_TYPE            MotorType::TMC2130
 #define X_DISABLE_PIN           "i2so.0"
 #define X_DIRECTION_PIN         "i2so.1"
 #define X_STEP_PIN              "i2so.2"
 #define X_CS_PIN                "i2so.3"
-#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X_DRIVER_RSENSE         0.11
 
 // Motor Socket #2
-#define Y_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
+#define Y_MOTOR_TYPE            MotorType::TMC2130
 #define Y_DIRECTION_PIN         "i2so.4"
 #define Y_STEP_PIN              "i2so.5"
 #define Y_DISABLE_PIN           "i2so.7"
 #define Y_CS_PIN                "i2so.6"
-#define Y_RSENSE                X_RSENSE
+#define Y_DRIVER_RSENSE         X_DRIVER_RSENSE
 
 // Motor Socket #3
-#define Z_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
+#define Z_MOTOR_TYPE            MotorType::TMC2130
 #define Z_DISABLE_PIN           "i2so.8"
 #define Z_DIRECTION_PIN         "i2so.9"
 #define Z_STEP_PIN              "i2so.10"
 #define Z_CS_PIN                "i2so.11"
-#define Z_RSENSE                X_RSENSE
+#define Z_DRIVER_RSENSE         X_DRIVER_RSENSE
 
 // Motor Socket #4
-#define A_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
+#define A_MOTOR_TYPE            MotorType::TMC2130
 #define A_DIRECTION_PIN         "i2so.12"
 #define A_STEP_PIN              "i2so.13"
 #define A_DISABLE_PIN           "i2so.15"
 #define A_CS_PIN                "i2so.14"
-#define A_RSENSE                X_RSENSE
+#define A_DRIVER_RSENSE         X_DRIVER_RSENSE
 
 // Motor Socket #5
-#define B_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
+#define B_MOTOR_TYPE            MotorType::TMC2130
 #define B_DISABLE_PIN           "i2so.16"
 #define B_DIRECTION_PIN         "i2so.17"
 #define B_STEP_PIN              "i2so.18"
 #define B_CS_PIN                "i2so.19"
-#define B_RSENSE                X_RSENSE
+#define B_DRIVER_RSENSE         X_DRIVER_RSENSE
 
 // Motor Socket #6
-#define C_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
+#define C_MOTOR_TYPE            MotorType::TMC2130
 #define C_DIRECTION_PIN         "i2so.20"
 #define C_STEP_PIN              "i2so.21"
 #define C_DISABLE_PIN           "i2so.23"
 #define C_CS_PIN                "i2so.22"
-#define C_RSENSE                X_RSENSE
+#define C_DRIVER_RSENSE         X_DRIVER_RSENSE
 
 /*
     Socket I/O reference

@@ -50,6 +50,10 @@ IntSetting*   spindle_pwm_bit_precision;
 
 EnumSetting* spindle_type;
 
+EnumSetting*  motor_types[MAX_N_AXIS][2];
+FloatSetting* motor_rsense[MAX_N_AXIS][2];
+IntSetting*   motor_address[MAX_N_AXIS][2];
+
 enum_opt_t spindleTypes = {
     // clang-format off
     { "NONE", int8_t(SpindleType::NONE) },
@@ -61,6 +65,22 @@ enum_opt_t spindleTypes = {
     { "BESC", int8_t(SpindleType::BESC) },
     { "10V", int8_t(SpindleType::_10V) },
     { "H2A", int8_t(SpindleType::H2A) },
+    // clang-format on
+};
+
+enum_opt_t motorTypes = {
+    // clang-format off
+    { "None", int8_t(MotorType::None) },
+    { "StepStick", int8_t(MotorType::StepStick) },
+    { "External", int8_t(MotorType::External) },
+    { "TMC2130", int8_t(MotorType::TMC2130) },
+    { "TMC5160", int8_t(MotorType::TMC5160) },
+    { "TMC2208", int8_t(MotorType::TMC2208) },
+    { "TMC2209", int8_t(MotorType::TMC2209) },
+    { "Unipolar", int8_t(MotorType::Unipolar) },
+    { "RCServo", int8_t(MotorType::RCServo) },
+    { "Dynamixel", int8_t(MotorType::Dynamixel) },
+    { "Solenoid", int8_t(MotorType::Solenoid) },
     // clang-format on
 };
 
@@ -239,17 +259,17 @@ void make_settings() {
         axis_settings[axis] = new AxisSettings(def->name);
     }
     for (axis = 0; axis < number_axis->get(); axis++) {
-        def = &axis_defaults[axis];
-        auto setting =
-            new IntSetting(EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, postMotorSetting);
+        def          = &axis_defaults[axis];
+        auto setting = new IntSetting(
+            EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, postMotorSetting);
 
         setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
     for (axis = 0; axis < number_axis->get(); axis++) {
-        def = &axis_defaults[axis];
-        auto setting =
-            new IntSetting(EXTENDED, WG, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, postMotorSetting);
+        def          = &axis_defaults[axis];
+        auto setting = new IntSetting(
+            EXTENDED, WG, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, postMotorSetting);
         setting->setAxis(axis);
         axis_settings[axis]->microsteps = setting;
     }
@@ -301,6 +321,51 @@ void make_settings() {
         setting->setAxis(axis);
         axis_settings[axis]->steps_per_mm = setting;
     }
+
+    motor_types[X_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "X/Motor/Type", static_cast<int8_t>(X_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[X_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "X2/Motor/Type", static_cast<int8_t>(X2_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[Y_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "Y/Motor/Type", static_cast<int8_t>(Y_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[Y_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "Y2/Motor/Type", static_cast<int8_t>(Y2_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[Z_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "Z/Motor/Type", static_cast<int8_t>(Z_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[Z_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "Z2/Motor/Type", static_cast<int8_t>(Z2_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[A_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "A/Motor/Type", static_cast<int8_t>(A_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[A_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "A2/Motor/Type", static_cast<int8_t>(A2_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[B_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "B/Motor/Type", static_cast<int8_t>(B_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[B_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "B2/Motor/Type", static_cast<int8_t>(B2_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[C_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "C/Motor/Type", static_cast<int8_t>(C_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[C_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "C2/Motor/Type", static_cast<int8_t>(C2_MOTOR_TYPE), &motorTypes, NULL);
+
+    motor_rsense[X_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "X/Driver/RSense", X_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[X_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "X2/Driver/RSense", X2_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[Y_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Y/Driver/RSense", Y_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[Y_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Y2/Driver/RSense", Y2_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[Z_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Z/Driver/RSense", Z_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[Z_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Z2/Driver/RSense", Z2_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[A_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "A/Driver/RSense", A_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[A_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "A2/Driver/RSense", A2_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[B_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "B/Driver/RSense", B_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[B_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "B2/Driver/RSense", B2_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[C_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "C/Driver/RSense", C_DRIVER_RSENSE, 0.0, 100.0, NULL);
+    motor_rsense[C_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "C2/Driver/RSense", C2_DRIVER_RSENSE, 0.0, 100.0, NULL);
+
+    motor_address[X_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "X/Driver/RSense", X_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[X_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "X2/Driver/RSense", X2_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[Y_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "Y/Driver/RSense", Y_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[Y_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "Y2/Driver/RSense", Y2_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[Z_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "Z/Driver/RSense", Z_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[Z_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "Z2/Driver/RSense", Z2_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[A_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "A/Driver/RSense", A_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[A_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "A2/Driver/RSense", A2_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[B_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "B/Driver/RSense", B_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[B_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "B2/Driver/RSense", B2_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[C_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "C/Driver/RSense", C_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_address[C_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "C2/Driver/RSense", C2_DRIVER_ADDRESS, 1, 255, NULL);
 
     // Spindle Settings
     spindle_type =
@@ -368,12 +433,10 @@ void make_settings() {
     homing_cycle[1] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle1", DEFAULT_HOMING_CYCLE_1);
     homing_cycle[0] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle0", DEFAULT_HOMING_CYCLE_0);
 
-   
     user_macro3 = new StringSetting(EXTENDED, WG, NULL, "User/Macro3", DEFAULT_USER_MACRO3);
     user_macro2 = new StringSetting(EXTENDED, WG, NULL, "User/Macro2", DEFAULT_USER_MACRO2);
     user_macro1 = new StringSetting(EXTENDED, WG, NULL, "User/Macro1", DEFAULT_USER_MACRO1);
     user_macro0 = new StringSetting(EXTENDED, WG, NULL, "User/Macro0", DEFAULT_USER_MACRO0);
 
-     make_pin_settings();  // Created in PinSettingsDefinitions.cpp
-
+    make_pin_settings();  // Created in PinSettingsDefinitions.cpp
 }

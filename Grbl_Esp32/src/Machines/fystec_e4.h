@@ -38,31 +38,31 @@
 #define TMC_UART_RX             "gpio.21"
 #define TMC_UART_TX             "gpio.22"   
 
-#define X_TRINAMIC_DRIVER       2209
+#define X_MOTOR_TYPE            MotorType::TMC2209
 #define X_STEP_PIN              "gpio.27"
 #define X_DIRECTION_PIN         "gpio.26"
-#define X_RSENSE                TMC2209_RSENSE_DEFAULT
+#define X_DRIVER_RSENSE         0.11
 #define X_DRIVER_ADDRESS        1
 #define DEFAULT_X_MICROSTEPS    16
 
-#define Y_TRINAMIC_DRIVER       2209
+#define Y_MOTOR_TYPE            MotorType::TMC2209
 #define Y_STEP_PIN              "gpio.33"
 #define Y_DIRECTION_PIN         "gpio.32"
-#define Y_RSENSE                TMC2209_RSENSE_DEFAULT
-#define Y_DRIVER_ADDRESS        3
+#define Y_DRIVER_RSENSE         0.11
+#define X_DRIVER_ADDRESS        3
 #define DEFAULT_Y_MICROSTEPS    16
 
-#define Z_TRINAMIC_DRIVER       2209
+#define Z_MOTOR_TYPE            MotorType::TMC2209
 #define Z_STEP_PIN              "gpio.14"
 #define Z_DIRECTION_PIN         "gpio.12"
-#define Z_RSENSE                TMC2209_RSENSE_DEFAULT
+#define Z_DRIVER_RSENSE         0.11
 #define Z_DRIVER_ADDRESS        0
 #define DEFAULT_Z_MICROSTEPS    16
 
-#define A_TRINAMIC_DRIVER       2209
+#define A_MOTOR_TYPE            MotorType::TMC2209
 #define A_STEP_PIN              "gpio.16"
 #define A_DIRECTION_PIN         "gpio.17"
-#define A_RSENSE                TMC2209_RSENSE_DEFAULT
+#define A_DRIVER_RSENSE         0.11
 #define A_DRIVER_ADDRESS        2
 #define DEFAULT_A_MICROSTEPS    16
 

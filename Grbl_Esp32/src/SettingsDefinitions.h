@@ -47,6 +47,10 @@ extern IntSetting*   spindle_pwm_bit_precision;
 
 extern EnumSetting* spindle_type;
 
+extern EnumSetting*  motor_types[MAX_N_AXIS][2];
+extern FloatSetting* motor_rsense[MAX_N_AXIS][2];
+extern IntSetting*   motor_address[MAX_N_AXIS][2];
+
 extern AxisMaskSetting* stallguard_debug_mask;
 
 // Pins:

@@ -32,12 +32,19 @@
 #endif
 #define N_AXIS 4
 
+#define X_MOTOR_TYPE            MotorType::External
 #define X_STEP_PIN              "gpio.0"
 #define X_DIRECTION_PIN         "gpio.2"
+
+#define Y_MOTOR_TYPE            MotorType::External
 #define Y_STEP_PIN              "gpio.26"
 #define Y_DIRECTION_PIN         "gpio.15"
+
+#define Z_MOTOR_TYPE            MotorType::External
 #define Z_STEP_PIN              "gpio.27"
 #define Z_DIRECTION_PIN         "gpio.33"
+
+#define A_MOTOR_TYPE            MotorType::External
 #define A_STEP_PIN              "gpio.12"
 #define A_DIRECTION_PIN         "gpio.14"
 #define STEPPERS_DISABLE_PIN    "gpio.13"

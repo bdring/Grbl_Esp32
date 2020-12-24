@@ -41,17 +41,17 @@
 #define TRINAMIC_RUN_MODE           TrinamicMode :: CoolStep
 #define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
 
+#define X_MOTOR_TYPE            MotorType::TMC2130
 #define X_STEP_PIN              "gpio.12"
 #define X_DIRECTION_PIN         "gpio.26"
-#define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define X_CS_PIN                "gpio.17"  //chip select
-#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X_RSENSE                0.11
 
+#define Y_MOTOR_TYPE            MotorType::TMC2130
 #define Y_STEP_PIN              "gpio.14"
 #define Y_DIRECTION_PIN         "gpio.25"
-#define Y_TRINAMIC_DRIVER       2130        // Which Driver Type?
 #define Y_CS_PIN                "gpio.16"  //chip select
-#define Y_RSENSE                TMC2130_RSENSE_DEFAULT
+#define Y_RSENSE                0.11
 
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN "gpio.13"

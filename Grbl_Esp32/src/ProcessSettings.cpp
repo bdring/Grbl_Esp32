@@ -1,5 +1,6 @@
 #include "Grbl.h"
 #include <map>
+#include "Regex.h"
 
 // WG Readable and writable as guest
 // WU Readable and writable as user and admin
@@ -597,7 +598,7 @@ Error do_command_or_setting(const char* key, char* value, WebUI::AuthenticationL
             auto lcTest = String(s->getName());
             lcTest.toLowerCase();
 
-            if (lcTest.indexOf(lcKey) >= 0) {
+            if (regexMatch(lcKey.c_str(), lcTest.c_str())) {
                 const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
                 show_setting(s->getName(), displayValue, NULL, out);
                 found = true;

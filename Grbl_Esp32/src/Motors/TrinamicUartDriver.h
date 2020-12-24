@@ -79,7 +79,7 @@ namespace Motors {
     class TrinamicUartDriver : public StandardStepper {
     public:
         TrinamicUartDriver(
-            uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin, uint16_t driver_part_number, float r_senseS, uint8_t address);
+            uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin, MotorType driver_part_number, float r_senseS, uint8_t address);
 
         void config_message();
         void hw_serial_init();
@@ -97,7 +97,7 @@ namespace Motors {
 
         TMC2208Stepper*  tmcstepper;  // all other driver types are subclasses of this one
         TrinamicUartMode _homing_mode;
-        uint16_t         _driver_part_number;  // example: use 2209 for TMC2209
+        MotorType        _driver_part_number;  // example: use 2209 for TMC2209
         float            _r_sense;
         bool             _has_errors;
         bool             _disabled;
