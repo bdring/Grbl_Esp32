@@ -70,7 +70,7 @@ namespace Motors {
             return;
         }
 
-        _has_errors = false;       
+        _has_errors = false;
 
         _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
 
@@ -98,9 +98,9 @@ namespace Motors {
 
         config_message();
 
-        auto ssPin = SPISSPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto ssPin   = SPISSPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
         auto mosiPin = SPIMOSIPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        auto sckPin = SPISCKPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto sckPin  = SPISCKPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
         auto misoPin = SPIMISOPin->get().getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
 
         SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
@@ -202,14 +202,14 @@ namespace Motors {
 */
 
     void TrinamicDriver::read_settings() {
-        // When 'test' is called and no actual trinamic is there, _has_errors will evaluate to 'true'. The 
-        // result of that is that the check below will fail. And the result of that is that the step/dir pin 
-        // is not initialized if we don't do it here. Unstep actually uses that pin -- and then you will get 
+        // When 'test' is called and no actual trinamic is there, _has_errors will evaluate to 'true'. The
+        // result of that is that the check below will fail. And the result of that is that the step/dir pin
+        // is not initialized if we don't do it here. Unstep actually uses that pin -- and then you will get
         // an assertion for using a pin that's not initialized.
         //
         // So... I moved init_step_dir_pins here, which basically solves that.
         init_step_dir_pins();
-     
+
         if (_has_errors) {
             return;
         }
@@ -243,7 +243,8 @@ namespace Motors {
             return;
         }
 
-        TrinamicMode newMode = isHoming ? TRINAMIC_HOMING_MODE : TRINAMIC_RUN_MODE;
+        TrinamicMode newMode = isHoming ? static_cast<TrinamicMode>(trinamic_homing_mode->get()) :
+                                          static_cast<TrinamicMode>(trinamic_run_mode->get());
 
         if (newMode == _mode) {
             return;

@@ -45,6 +45,13 @@ enum class MotorType : int8_t {
     Solenoid,
 };
 
+enum class TrinamicMode : int8_t {
+    None        = 0,  // not for machine defs!
+    StealthChop = 1,
+    CoolStep    = 2,
+    StallGuard  = 3,
+};
+
 #include "../Grbl.h"
 
 // These are used for setup and to talk to the motors as a group.

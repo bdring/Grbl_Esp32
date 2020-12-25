@@ -32,8 +32,8 @@
 #define I2S_OUT_WS       "gpio.17"
 #define I2S_OUT_DATA     "gpio.21"
 
-#define TRINAMIC_RUN_MODE           Motors::TrinamicMode::CoolStep
-#define TRINAMIC_HOMING_MODE        Motors::TrinamicMode::StallGuard
+#define TRINAMIC_RUN_MODE           TrinamicMode::CoolStep
+#define TRINAMIC_HOMING_MODE        TrinamicMode::StallGuard
 
 // Motor Socket #1
 #define X_MOTOR_TYPE            MotorType::TMC2130
@@ -142,3 +142,10 @@ Socket #5
 
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
+
+/*
+
+
+
+
+*/

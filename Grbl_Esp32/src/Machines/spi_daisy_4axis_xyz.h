@@ -42,19 +42,19 @@
 // The hardware enable pin is tied to ground
 #define USE_TRINAMIC_ENABLE
 
-#define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
+#define X_TRINAMIC_DRIVER       MotorType::TMC2130        // Which Driver Type?
 #define X_RSENSE                TMC2130_RSENSE_DEFAULT
 #define X_STEP_PIN              "gpio.12"
 #define X_DIRECTION_PIN         "gpio.14"
 #define X_CS_PIN                "gpio.17"  // Daisy Chain, all share same CS pin
 
-#define Y_TRINAMIC_DRIVER       2130        // Which Driver Type?
+#define Y_TRINAMIC_DRIVER       MotorType::TMC2130        // Which Driver Type?
 #define Y_RSENSE                TMC2130_RSENSE_DEFAULT
 #define Y_STEP_PIN              "gpio.27"
 #define Y_DIRECTION_PIN         "gpio.26"
 #define Y_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
-#define Z_TRINAMIC_DRIVER       2130        // Which Driver Type?
+#define Z_TRINAMIC_DRIVER       MotorType::TMC2130        // Which Driver Type?
 #define Z_RSENSE                TMC2130_RSENSE_DEFAULT
 #define Z_STEP_PIN              "gpio.15"
 #define Z_DIRECTION_PIN         "gpio.2"

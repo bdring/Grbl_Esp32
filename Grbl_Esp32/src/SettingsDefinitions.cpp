@@ -16,6 +16,9 @@ IntSetting* stepper_idle_lock_time;
 AxisMaskSetting* dir_invert_mask;
 AxisMaskSetting* homing_dir_mask;
 AxisMaskSetting* homing_squared_axes;
+
+EnumSetting* trinamic_run_mode;
+EnumSetting* trinamic_homing_mode;
 AxisMaskSetting* stallguard_debug_mask;
 
 FlagSetting* report_inches;
@@ -83,6 +86,14 @@ enum_opt_t motorTypes = {
     { "RCServo", int8_t(MotorType::RCServo) },
     { "Dynamixel", int8_t(MotorType::Dynamixel) },
     { "Solenoid", int8_t(MotorType::Solenoid) },
+    // clang-format on
+};
+
+enum_opt_t trinamicModes = {
+    // clang-format off
+    { "StealthChop", int8_t(TrinamicMode::StealthChop) },
+    { "CoolStep", int8_t(TrinamicMode::CoolStep) },
+    { "StallGuard", int8_t(TrinamicMode::StallGuard) },
     // clang-format on
 };
 
@@ -428,7 +439,12 @@ void make_settings() {
     stepper_idle_lock_time = new IntSetting(GRBL, WG, "1", "Stepper/IdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
     pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
 
+    trinamic_run_mode =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "Trinamic/RunMode", static_cast<int8_t>(TRINAMIC_RUN_MODE), &trinamicModes, NULL);
+    trinamic_homing_mode =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "Trinamic/HomingMode", static_cast<int8_t>(TRINAMIC_HOMING_MODE), &trinamicModes, NULL);
     stallguard_debug_mask = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, postMotorSetting);
+
 
     homing_cycle[5] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle5", DEFAULT_HOMING_CYCLE_5);
     homing_cycle[4] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle4", DEFAULT_HOMING_CYCLE_4);

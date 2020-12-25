@@ -78,7 +78,7 @@
 // ================== CPU MAP ======================
 
 // Motor Socket #1
-#define X_TRINAMIC_DRIVER       2130
+#define X_TRINAMIC_DRIVER       MotorType::TMC2130
 #define X_DISABLE_PIN           "i2so.0"
 #define X_DIRECTION_PIN         "i2so.1"
 #define X_STEP_PIN              "i2so.2"

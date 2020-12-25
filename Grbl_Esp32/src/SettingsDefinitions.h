@@ -53,6 +53,8 @@ extern EnumSetting*  motor_types[MAX_N_AXIS][2];
 extern FloatSetting* motor_rsense[MAX_N_AXIS][2];
 extern IntSetting*   motor_address[MAX_N_AXIS][2];
 
+extern EnumSetting*     trinamic_run_mode;
+extern EnumSetting*     trinamic_homing_mode;
 extern AxisMaskSetting* stallguard_debug_mask;
 
 // Pins:

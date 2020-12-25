@@ -62,12 +62,7 @@ const double TRINAMIC_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to 
 
 namespace Motors {
 
-    enum class TrinamicMode : uint8_t {
-        None        = 0,  // not for machine defs!
-        StealthChop = 1,
-        CoolStep    = 2,
-        StallGuard  = 3,
-    };
+
 
     class TrinamicDriver : public StandardStepper {
     public:
