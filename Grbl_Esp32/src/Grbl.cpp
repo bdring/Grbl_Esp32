@@ -38,7 +38,11 @@ void grbl_init() {
     report_machine_type(CLIENT_SERIAL);
 #endif
     settings_init();  // Load Grbl settings from non-volatile storage
-    stepper_init();   // Configure stepper pins and interrupt timers
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", number_axis->get());
+
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepping->name());
+    stepping->init();
+
     init_motors();
     system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
     memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.

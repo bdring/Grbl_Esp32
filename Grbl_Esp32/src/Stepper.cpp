@@ -126,15 +126,6 @@ typedef struct {
 } st_prep_t;
 static st_prep_t prep;
 
-const char* stepper_names[] = {
-    "Timed Steps",
-    "RMT Steps",
-    "I2S Steps, Stream",
-    "I2S Steps, Static",
-};
-
-stepper_id_t current_stepper = DEFAULT_STEPPER;
-
 /* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
    the venerable Bresenham line algorithm to manage and exactly synchronize multi-axis moves.
    Unlike the popular DDA algorithm, the Bresenham algorithm is not susceptible to numerical
@@ -192,24 +183,6 @@ stepper_id_t current_stepper = DEFAULT_STEPPER;
 */
 
 static void stepper_pulse_func();
-
-// TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
-// int8 variables and update position counters only when a segment completes. This can get complicated
-// with probing and homing cycles that require true real-time positions.
-void IRAM_ATTR onStepperDriverTimer(
-    void* para) {  // ISR It is time to take a step =======================================================================================
-    //const int timer_idx = (int)para;  // get the timer index
-    TIMERG0.int_clr_timers.t0 = 1;
-    if (busy) {
-        return;  // The busy-flag is used to avoid reentering this interrupt
-    }
-    busy = true;
-
-    stepper_pulse_func();
-
-    TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
-    busy                                               = false;
-}
 
 /**
  * This phase of the ISR should ONLY create the pulses for the steppers.
@@ -303,54 +276,7 @@ static void stepper_pulse_func() {
         }
     }
 
-    switch (current_stepper) {
-        case ST_I2S_STREAM:
-            // Generate the number of pulses needed to span pulse_microseconds
-            i2s_out_push_sample(pulse_microseconds->get());
-            motors_unstep();
-            break;
-        case ST_I2S_STATIC:
-        case ST_TIMED:
-            // wait for step pulse time to complete...some time expired during code above
-            while (esp_timer_get_time() - step_pulse_start_time < pulse_microseconds->get()) {
-                NOP();  // spin here until time to turn off step
-            }
-            motors_unstep();
-            break;
-        case ST_RMT:
-            break;
-    }
-}
-
-void stepper_init() {
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", number_axis->get());
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepper_names[current_stepper]);
-
-#ifdef USE_I2S_STEPS
-    // I2S stepper stream mode use callback but timer interrupt
-    i2s_out_set_pulse_callback(stepper_pulse_func);
-#endif
-    // Other stepper use timer interrupt
-    Stepper_Timer_Init();
-}
-
-void stepper_switch(stepper_id_t new_stepper) {
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Switch stepper: %s -> %s", stepper_names[current_stepper], stepper_names[new_stepper]);
-    if (current_stepper == new_stepper) {
-        // do not need to change
-        return;
-    }
-#ifdef USE_I2S_STEPS
-    if (current_stepper == ST_I2S_STREAM) {
-        if (i2s_out_get_pulser_status() != PASSTHROUGH) {
-            // Called during streaming. Stop streaming.
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Stop the I2S streaming and switch to the passthrough mode.");
-            i2s_out_set_passthrough();
-            i2s_out_delay();  // Wait for a change in mode.
-        }
-    }
-#endif
-    current_stepper = new_stepper;
+    stepping->finishStep(step_pulse_start_time);
 }
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
@@ -367,7 +293,7 @@ void st_wake_up() {
     st.step_pulse_time = -(((pulse_microseconds->get() - 2) * ticksPerMicrosecond) >> 3);
 #endif
     // Enable Stepper Driver Interrupt
-    Stepper_Timer_Start();
+    stepping->start();
 }
 
 // Reset and clear stepper subsystem variables
@@ -376,11 +302,7 @@ void st_reset() {
     //Serial.println("st_reset()");
 #endif
     // Initialize stepper driver idle state.
-#ifdef USE_I2S_STEPS
-    if (current_stepper == ST_I2S_STREAM) {
-        i2s_out_reset();
-    }
-#endif
+    stepping->reset();
     st_go_idle();
     // Initialize stepper algorithm variables.
     memset(&prep, 0, sizeof(st_prep_t));
@@ -399,7 +321,7 @@ void st_reset() {
 // Stepper shutdown
 void st_go_idle() {
     // Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
-    Stepper_Timer_Stop();
+    stepping->stop();
     busy = false;
 
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
@@ -898,62 +820,6 @@ float st_get_realtime_rate() {
             return prep.current_speed;
         default:
             return 0.0f;
-    }
-}
-
-// The argument is in units of ticks of the timer that generates ISRs
-void IRAM_ATTR Stepper_Timer_WritePeriod(uint16_t timerTicks) {
-    if (current_stepper == ST_I2S_STREAM) {
-#ifdef USE_I2S_STEPS
-        // 1 tick = fTimers / fStepperTimer
-        // Pulse ISR is called for each tick of alarm_val.
-        // The argument to i2s_out_set_pulse_period is in units of microseconds
-        i2s_out_set_pulse_period(((uint32_t)timerTicks) / ticksPerMicrosecond);
-#endif
-    } else {
-        timer_set_alarm_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, (uint64_t)timerTicks);
-    }
-}
-
-void IRAM_ATTR Stepper_Timer_Init() {
-    timer_config_t config;
-    config.divider     = fTimers / fStepperTimer;
-    config.counter_dir = TIMER_COUNT_UP;
-    config.counter_en  = TIMER_PAUSE;
-    config.alarm_en    = TIMER_ALARM_EN;
-    config.intr_type   = TIMER_INTR_LEVEL;
-    config.auto_reload = true;
-    timer_init(STEP_TIMER_GROUP, STEP_TIMER_INDEX, &config);
-    timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
-    timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
-    timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
-}
-
-void IRAM_ATTR Stepper_Timer_Start() {
-#ifdef ESP_DEBUG
-    //Serial.println("ST Start");
-#endif
-    if (current_stepper == ST_I2S_STREAM) {
-#ifdef USE_I2S_STEPS
-        i2s_out_set_stepping();
-#endif
-    } else {
-        timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
-        timer_start(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
-        TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
-    }
-}
-
-void IRAM_ATTR Stepper_Timer_Stop() {
-#ifdef ESP_DEBUG
-    //Serial.println("ST Stop");
-#endif
-    if (current_stepper == ST_I2S_STREAM) {
-#ifdef USE_I2S_STEPS
-        i2s_out_set_passthrough();
-#endif
-    } else {
-        timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
     }
 }
 
