@@ -3,6 +3,8 @@
 // apply to all steppers at once.
 #include "Grbl.h"
 
+void stepping_select();
+
 class Stepping {
 protected:
     const char* _name;
@@ -17,8 +19,8 @@ public:
     virtual void stop()                         = 0;
     void         lowLatency() {};
     void         normalLatency() {};
-    virtual void  backoffDelay() {};
-    void          finishStep(uint64_t startTime) {};
+    virtual void backoffDelay() {};
+    void         finishStep(uint64_t startTime) {};
 };
 
 class RMTStepping : public Stepping {

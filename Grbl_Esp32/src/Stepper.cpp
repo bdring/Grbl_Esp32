@@ -181,8 +181,6 @@ static st_prep_t prep;
 
 */
 
-
-
 /**
  * This phase of the ISR should ONLY create the pulses for the steppers.
  * This prevents jitter caused by the interval between the start of the
@@ -190,7 +188,7 @@ static st_prep_t prep;
  * call to this method that might cause variation in the timing. The aim
  * is to keep pulse timing as regular as possible.
  */
-static void stepper_pulse_func() {
+void stepper_pulse_func() {
     auto n_axis = number_axis->get();
 
     motors_step(st.step_outbits, st.dir_outbits);
@@ -209,7 +207,7 @@ static void stepper_pulse_func() {
             // Initialize new step segment and load number of steps to execute
             st.exec_segment = &segment_buffer[segment_buffer_tail];
             // Initialize step segment timing per step and load number of steps to execute.
-            Stepper_Timer_WritePeriod(st.exec_segment->isrPeriod);
+            stepping->setPeriod(st.exec_segment->isrPeriod);
             st.step_count = st.exec_segment->n_step;  // NOTE: Can sometimes be zero when moving slow.
             // If the new segment starts a new planner block, initialize stepper variables and counters.
             // NOTE: When the segment data index changes, this indicates a new planner block.

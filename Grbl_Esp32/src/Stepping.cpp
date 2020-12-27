@@ -3,6 +3,16 @@
 
 static volatile uint8_t busy;
 
+void stepping_select() {
+#if defined(USE_I2S_OUT)
+
+#elif defined(USE_RMT_STEPS)
+
+#else
+
+#endif
+}
+
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
