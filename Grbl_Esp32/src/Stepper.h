@@ -71,7 +71,7 @@ const timer_idx_t   STEP_TIMER_INDEX = TIMER_0;
 extern uint64_t stepper_idle_counter;
 extern bool     stepper_idle;
 
-extern volatile uint8_t busy;
+
 
 //extern uint8_t ganged_mode;
 
@@ -130,3 +130,5 @@ void Stepper_Timer_WritePeriod(uint16_t timerTicks);
 void Stepper_Timer_Init();
 void Stepper_Timer_Start();
 void Stepper_Timer_Stop();
+
+static void stepper_pulse_func();

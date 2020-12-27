@@ -1,6 +1,8 @@
 #include "Stepping.h"
 #include "Stepper.h"
 
+static volatile uint8_t busy;
+
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
@@ -54,6 +56,7 @@ void RMTStepping::start() {
 
 void RMTStepping::stop() {
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
+    busy = false;
 }
 
 // ==========================================================================
@@ -74,6 +77,7 @@ void TimedStepping::start() {
 
 void TimedStepping::stop() {
     timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
+    busy = false;
 }
 
 void TimedStepping::finishStep(uint64_t startTime) {

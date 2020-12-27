@@ -81,7 +81,6 @@ static uint8_t          segment_buffer_head;
 static uint8_t          segment_next_head;
 
 // Used to avoid ISR nesting of the "Stepper Driver Interrupt". Should never occur though.
-volatile uint8_t busy;
 
 // Pointers for the step segment being prepped from the planner buffer. Accessed only by the
 // main program. Pointers may be planning segments or planner blocks ahead of what being executed.
@@ -312,7 +311,6 @@ void st_reset() {
     segment_buffer_tail = 0;
     segment_buffer_head = 0;  // empty = tail
     segment_next_head   = 1;
-    busy                = false;
     st.step_outbits     = 0;
     st.dir_outbits      = 0;  // Initialize direction bits to default.
     // TODO do we need to turn step pins off?
@@ -322,7 +320,6 @@ void st_reset() {
 void st_go_idle() {
     // Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
     stepping->stop();
-    busy = false;
 
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
     if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) &&
