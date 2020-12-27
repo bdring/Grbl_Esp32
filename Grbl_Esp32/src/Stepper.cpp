@@ -81,7 +81,7 @@ static uint8_t          segment_buffer_head;
 static uint8_t          segment_next_head;
 
 // Used to avoid ISR nesting of the "Stepper Driver Interrupt". Should never occur though.
-static volatile uint8_t busy;
+volatile uint8_t busy;
 
 // Pointers for the step segment being prepped from the planner buffer. Accessed only by the
 // main program. Pointers may be planning segments or planner blocks ahead of what being executed.
@@ -182,7 +182,7 @@ static st_prep_t prep;
 
 */
 
-static void stepper_pulse_func();
+
 
 /**
  * This phase of the ISR should ONLY create the pulses for the steppers.

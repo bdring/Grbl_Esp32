@@ -71,6 +71,8 @@ const timer_idx_t   STEP_TIMER_INDEX = TIMER_0;
 extern uint64_t stepper_idle_counter;
 extern bool     stepper_idle;
 
+extern volatile uint8_t busy;
+
 //extern uint8_t ganged_mode;
 
 enum stepper_id_t {

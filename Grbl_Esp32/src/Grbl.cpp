@@ -40,6 +40,7 @@ void grbl_init() {
     settings_init();  // Load Grbl settings from non-volatile storage
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", number_axis->get());
 
+    stepping = new I2SStepping();  // temporary for testing. Needs logic to determine which object to use.
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepping->name());
     stepping->init();
 

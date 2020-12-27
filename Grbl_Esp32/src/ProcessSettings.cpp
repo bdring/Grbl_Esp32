@@ -228,9 +228,9 @@ Error home(int cycle) {
     }
     sys.state = State::Homing;  // Set system state variable
 
-    stepper->lowLatency();
+    stepping->lowLatency();
     mc_homing_cycle(cycle);
-    stepper->normalLatency();
+    stepping->normalLatency();
 
     if (!sys.abort) {             // Execute startup scripts after successful homing.
         sys.state = State::Idle;  // Set to IDLE when complete.
