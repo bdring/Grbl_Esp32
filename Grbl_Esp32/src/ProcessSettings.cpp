@@ -245,20 +245,11 @@ Error home(int cycle) {
         return Error::CheckDoor;  // Block if safety door is ajar.
     }
     sys.state = State::Homing;  // Set system state variable
-#ifdef USE_I2S_STEPS
-    stepper_id_t save_stepper = current_stepper;
-    if (save_stepper == ST_I2S_STREAM) {
-        stepper_switch(ST_I2S_STATIC);
-    }
 
+    stepping->lowLatency();
     mc_homing_cycle(cycle);
+    stepping->normalLatency();
 
-    if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {
-        stepper_switch(ST_I2S_STREAM);
-    }
-#else
-    mc_homing_cycle(cycle);
-#endif
     if (!sys.abort) {             // Execute startup scripts after successful homing.
         sys.state = State::Idle;  // Set to IDLE when complete.
         st_go_idle();             // Set steppers to the settings idle state before returning.

@@ -47,7 +47,12 @@ void grbl_init() {
         i2s_out_init();
 #endif
 
-        stepper_init();  // Configure stepper pins and interrupt timers
+        //stepping_select();
+        stepping = new I2SStepping();  // temporary until stepping_select is fugured out.
+
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Step Generation", stepping->name());
+        stepping->init();
+
         init_motors();
         system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
