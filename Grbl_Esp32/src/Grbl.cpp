@@ -42,13 +42,13 @@ void grbl_init() {
         // Load Grbl settings from non-volatile storage
         settings_init();
 
-#ifdef USE_I2S_OUT
-        // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
-        i2s_out_init();
-#endif
+        if (I2SOData->get() != Pin::UNDEFINED) {
+            // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
+            i2s_out_init();
+        }
 
         //stepping_select();
-        stepping = new I2SStepping();  // temporary until stepping_select is fugured out.
+        stepping = new I2SStepping;  // temporary until stepping_select is fugured out.
 
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Step Generation", stepping->name());
         stepping->init();

@@ -29,9 +29,10 @@
 // === Special Features
 
 // I2S (steppers & other output-only pins)
-#define USE_I2S_OUT
+//#define USE_I2S_OUT
 #define USE_I2S_STEPS
 //#define DEFAULT_STEPPER ST_I2S_STATIC
+
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
 

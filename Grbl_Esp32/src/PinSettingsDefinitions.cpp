@@ -786,23 +786,23 @@ bool validateCapabilities(const char* definition, Pin::Capabilities caps) {
 }
 
 bool pinHasPWM(char* definition) {
-    validateCapabilities(definition, Pin::Capabilities::PWM);
+    return validateCapabilities(definition, Pin::Capabilities::PWM);
 }
 
 bool pinHasUart(char* definition) {
-    validateCapabilities(definition, Pin::Capabilities::UART);
+    return validateCapabilities(definition, Pin::Capabilities::UART);
 }
 
 bool pinIsNative(char* definition) {
-    validateCapabilities(definition, Pin::Capabilities::Native);
+    return validateCapabilities(definition, Pin::Capabilities::Native);
 }
 
 bool pinIsInput(char* definition) {
-    validateCapabilities(definition, Pin::Capabilities::Input);
+    return validateCapabilities(definition, Pin::Capabilities::Input);
 }
 
 bool pinIsOutput(char* definition) {
-    validateCapabilities(definition, Pin::Capabilities::Input);
+    return validateCapabilities(definition, Pin::Capabilities::Input);
 }
 
 // Initialize the pin settings
