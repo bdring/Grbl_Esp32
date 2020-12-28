@@ -62,4 +62,4 @@ public:
     void backoffDelay() override;
 };
 
-extern I2SStepping* stepping;
+extern Stepping* stepping;

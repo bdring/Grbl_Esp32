@@ -157,4 +157,4 @@ void I2SStepping::backoffDelay() {
     delay_ms(I2S_OUT_DELAY_MS);
 }
 
-I2SStepping* stepping;
+Stepping* stepping;

@@ -48,7 +48,7 @@ void grbl_init() {
         }
 
         //stepping_select();
-        stepping = new I2SStepping;  // temporary until stepping_select is fugured out.
+        stepping = new I2SStepping();  // temporary until stepping_select is fugured out.
 
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Step Generation", stepping->name());
         stepping->init();
