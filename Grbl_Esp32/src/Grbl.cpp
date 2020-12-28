@@ -47,9 +47,7 @@ void grbl_init() {
             i2s_out_init();
         }
 
-        //stepping_select();
-        stepping = new I2SStepping();  // temporary until stepping_select is fugured out.
-
+        stepping_select();
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Step Generation", stepping->name());
         stepping->init();
 

@@ -17,10 +17,10 @@ public:
     virtual void setPeriod(uint16_t timerTicks) = 0;
     virtual void start()                        = 0;
     virtual void stop()                         = 0;
-    void         lowLatency() {};
-    void         normalLatency() {};
+    virtual void lowLatency() {};
+    virtual void normalLatency() {};
     virtual void backoffDelay() {};
-    void         finishStep(uint64_t startTime) {};
+    virtual void finishStep(uint64_t startTime) {};
 };
 
 class RMTStepping : public Stepping {

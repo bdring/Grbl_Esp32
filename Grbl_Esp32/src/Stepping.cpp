@@ -3,15 +3,18 @@
 
 static volatile uint8_t busy;
 
-
-
+// If one step pin is I2S we use that mode otherwise use RMT
 void stepping_select() {
-    
-    if (I2SOData->get() != Pin::UNDEFINED) {
-
-    } else  {
-
+    auto n_axis = number_axis->get();
+    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+        for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
+            if (StepPins[axis][gang_index]->get().capabilities().has(Pin::Capabilities::I2S)) {
+                stepping = new I2SStepping();
+                return;
+            }
+        }
     }
+    stepping = new RMTStepping();
 }
 
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
