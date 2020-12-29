@@ -31,9 +31,6 @@
 // I2S (steppers & other output-only pins)
 #define USE_I2S_STEPS
 
-// === Default settings
-#define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
-
 #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 
 #define I2S_OUT_BCK             "gpio.22"
@@ -149,6 +146,8 @@ Socket #5
 
 // ================= Setting Defaults ==========================
 // https://github.com/bdring/Grbl_Esp32/wiki/Setting-Defaults
+#define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
+
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800
 #define DEFAULT_Z_STEPS_PER_MM      800

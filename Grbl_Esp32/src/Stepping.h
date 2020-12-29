@@ -21,28 +21,29 @@ public:
     virtual void normalLatency() {};
     virtual void backoffDelay() {};
     virtual void finishStep(uint64_t startTime) {};
+    ~Stepping() {};
 };
 
 class RMTStepping : public Stepping {
 public:
     RMTStepping() : Stepping("RMT") {};
-    void init();
-    void reset() {}
-    void setPeriod(uint16_t timerTicks);
-    void start();
-    void stop();
-    void finishStep(uint64_t startTime) {}
+    void init() override;
+    void reset() override {}
+    void setPeriod(uint16_t timerTicks) override;
+    void start() override;
+    void stop() override;
+    void finishStep(uint64_t startTime) override {}
 };
 
 class TimedStepping : public Stepping {
 public:
     TimedStepping() : Stepping("Timed") {};
-    void init();
-    void reset() {}
-    void setPeriod(uint16_t timerTicks);
-    void start();
-    void stop();
-    void finishStep(uint64_t startTime);
+    void init() override;
+    void reset() override {} 
+    void setPeriod(uint16_t timerTicks) override;
+    void start() override;
+    void stop() override;
+    void finishStep(uint64_t startTime) override;
 };
 
 class I2SStepping : public Stepping {
@@ -51,14 +52,14 @@ private:
 
 public:
     I2SStepping() : Stepping("I2S"), _streaming(true) {}
-    void init();
-    void reset();
-    void setPeriod(uint16_t timerTicks);
-    void start();
-    void stop();
-    void finishStep(uint64_t startTime);
-    void lowLatency();
-    void normalLatency() {}
+    void init() override;
+    void reset() override;
+    void setPeriod(uint16_t timerTicks) override;
+    void start() override;
+    void stop() override;
+    void finishStep(uint64_t startTime) override;
+    void lowLatency() override;
+    // void normalLatency() {}
     void backoffDelay() override;
 };
 

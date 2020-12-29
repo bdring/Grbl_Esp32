@@ -21,14 +21,17 @@
 
 #include <TMCStepper.h>
 
-#ifdef USE_I2S_OUT
+
 
 // Override default function and insert a short delay
 void TMC2130Stepper::switchCSpin(bool state) {
     digitalWrite(_pinCS, state);
-    i2s_out_delay();
+    if (!strcmp(stepping->name(), "I2S")) {
+        grbl_send(CLIENT_SERIAL, ".");
+        i2s_out_delay();
+    }
 }
-#endif
+
 
 namespace Motors {
     uint8_t TrinamicDriver::get_next_index() {

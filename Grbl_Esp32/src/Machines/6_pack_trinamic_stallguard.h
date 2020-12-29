@@ -33,7 +33,7 @@
 #define I2S_OUT_DATA     "gpio.21"
 
 #define TRINAMIC_RUN_MODE           TrinamicMode::CoolStep
-#define TRINAMIC_HOMING_MODE        TrinamicMode::StallGuard
+#define TRINAMIC_HOMING_MODE        TrinamicMode::CoolStep
 
 // Motor Socket #1
 #define X_MOTOR_TYPE            MotorType::TMC2130
