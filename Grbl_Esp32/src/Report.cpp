@@ -222,7 +222,7 @@ void report_status_message(Error status_code, uint8_t client) {
     switch (status_code) {
         case Error::Ok:  // Error::Ok
 #ifdef ENABLE_SD_CARD
-            if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+            if (get_sd_state(false) == SDState::BusyPrinting) {
                 SD_ready_next = true;  // flag so system_execute_line() will send the next line
             } else {
                 grbl_send(client, "ok\r\n");
@@ -234,7 +234,7 @@ void report_status_message(Error status_code, uint8_t client) {
         default:
 #ifdef ENABLE_SD_CARD
             // do we need to stop a running SD job?
-            if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+            if (get_sd_state(false) == SDState::BusyPrinting) {
                 if (status_code == Error::GcodeUnsupportedCommand) {
                     grbl_sendf(client, "error:%d\r\n", status_code);  // most senders seem to tolerate this error and keep on going
                     grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sd_get_current_line_number());
@@ -837,7 +837,7 @@ void report_realtime_status(uint8_t client) {
     }
 #endif
 #ifdef ENABLE_SD_CARD
-    if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+    if (get_sd_state(false) == SDState::BusyPrinting) {
         sprintf(temp, "|SD:%4.2f,", sd_report_perc_complete());
         strcat(status, temp);
         sd_get_current_filename(temp);
