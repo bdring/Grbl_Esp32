@@ -682,9 +682,9 @@ namespace WebUI {
         if (path[0] != '/') {
             path = "/" + path;
         }
-        int8_t state = get_sd_state(true);
-        if (state != SDCARD_IDLE) {
-            if (state == SDCARD_NOT_PRESENT) {
+        SDState state = get_sd_state(true);
+        if (state != SDState::Idle) {
+            if (state == SDState::NotPresent) {
                 webPrintln("No SD Card");
                 return Error::SdFailedMount;
             } else {
@@ -752,9 +752,9 @@ namespace WebUI {
             webPrintln("Missing file name!");
             return Error::InvalidValue;
         }
-        int8_t state = get_sd_state(true);
-        if (state != SDCARD_IDLE) {
-            webPrintln((state == SDCARD_NOT_PRESENT) ? "No SD card" : "Busy");
+        SDState state = get_sd_state(true);
+        if (state != SDState::Idle) {
+            webPrintln((state == SDState::NotPresent) ? "No SD card" : "Busy");
             return Error::Ok;
         }
         String path = parameter;
@@ -784,9 +784,9 @@ namespace WebUI {
     }
 
     static Error listSDFiles(char* parameter, AuthenticationLevel auth_level) {  // ESP210
-        int8_t state = get_sd_state(true);
-        if (state != SDCARD_IDLE) {
-            if (state == SDCARD_NOT_PRESENT) {
+        SDState state = get_sd_state(true);
+        if (state != SDState::Idle) {
+            if (state == SDState::NotPresent) {
                 webPrintln("No SD Card");
                 return Error::SdFailedMount;
             } else {
@@ -857,10 +857,10 @@ namespace WebUI {
         const char* resp = "No SD card";
 #ifdef ENABLE_SD_CARD
         switch (get_sd_state(true)) {
-            case SDCARD_IDLE:
+            case SDState::Idle:
                 resp = "SD card detected";
                 break;
-            case SDCARD_NOT_PRESENT:
+            case SDState::NotPresent:
                 resp = "No SD card";
                 break;
             default:
@@ -868,7 +868,7 @@ namespace WebUI {
         }
 #else
         resp = "SD card not enabled";
-#endif        
+#endif
         webPrintln(resp);
         return Error::Ok;
     }
