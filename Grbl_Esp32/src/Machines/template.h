@@ -131,7 +131,7 @@
 // To use a servo motor on an axis, do not define step and direction
 // pins for that axis, but instead include a block like this:
 
-// #define SERVO_Z_PIN             GPIO_NUM_22
+// #define Z_SERVO_PIN             GPIO_NUM_22
 
 // === Homing cycles
 // Set them using $Homing/Cycle0= optionally up to $Homing/Cycle5=
