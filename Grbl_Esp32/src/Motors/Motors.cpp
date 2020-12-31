@@ -443,28 +443,13 @@ void motors_set_disable(bool disable, uint8_t mask) {
         if (disable)  // should not need to delay on disable...no steps come in disable mode
             return;
 
-        auto wait_diable_change = enable_delay_microseconds->get();
-        if (wait_diable_change != 0) {
-            uint64_t done_time = esp_timer_get_time() + wait_diable_change;
+        auto wait_disable_change = enable_delay_microseconds->get();
+        if (wait_disable_change != 0) {
+            auto disable_start_time = esp_timer_get_time() + wait_disable_change;
 
-            while (esp_timer_get_time() < done_time) {
+            while ((esp_timer_get_time() - disable_start_time) < 0) {
                 NOP();  // spin here until time to turn off step
             }
-
-            // switch (current_stepper) {
-            //     case ST_I2S_STREAM:
-            //         i2s_out_push_sample(wait_diable_change);
-            //         break;
-            //     case ST_I2S_STATIC:
-            //     case ST_TIMED:
-            //         // wait for step pulse time to complete...some time expired during code above
-            //         while (esp_timer_get_time() - start_time < wait_diable_change) {
-            //             NOP();  // spin here until time to turn off step
-            //         }
-            //         break;
-            //     case ST_RMT:
-            //         break;
-            // }
         }
     }
 }

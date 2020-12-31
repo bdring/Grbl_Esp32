@@ -236,8 +236,8 @@ static void stepper_pulse_func() {
                     // If we are using GPIO stepping as opposed to RMT, record the
                     // time that we turned on the direction pins so we can delay a bit.
                     // If we are using RMT, we can't delay here.
-                    uint64_t direction_pulse_start_time = uint64_t(esp_timer_get_time()) + uint64_t(wait_direction);
-                    while (esp_timer_get_time() < direction_pulse_start_time) {
+                    auto direction_pulse_start_time = esp_timer_get_time() + wait_direction;
+                    while ((esp_timer_get_time() - direction_pulse_start_time) < 0) {
                         NOP();  // spin here until time to turn off step
                     }
                     break;
