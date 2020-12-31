@@ -237,51 +237,17 @@ void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
 // triggered is 1 and not triggered is 0. Invert mask is applied. Bitfield organization is
 // defined by the ControlPin in System.h.
 ControlPins system_control_get_state() {
-    ControlPins defined_pins;
-    defined_pins.value = 0;
-
     ControlPins pin_states;
     pin_states.value = 0;
 
-    defined_pins.bit.safetyDoor = ControlSafetyDoorPin->get() != Pin::UNDEFINED;
-    if (ControlSafetyDoorPin->get().read()) {
-        pin_states.bit.safetyDoor = true;
-    }
-
-    defined_pins.bit.reset = ControlResetPin->get() != Pin::UNDEFINED;
-    if (ControlResetPin->get().read()) {
-        pin_states.bit.reset = true;
-    }
-
-    defined_pins.bit.feedHold = ControlFeedHoldPin->get() != Pin::UNDEFINED;
-    if (ControlFeedHoldPin->get().read()) {
-        pin_states.bit.feedHold = true;
-    }
-
-    defined_pins.bit.cycleStart = ControlCycleStartPin->get() != Pin::UNDEFINED;
-    if (ControlCycleStartPin->get().read()) {
-        pin_states.bit.cycleStart = true;
-    }
-
-    defined_pins.bit.macro0 = MacroButton0Pin->get() != Pin::UNDEFINED;
-    if (MacroButton0Pin->get().read()) {
-        pin_states.bit.macro0 = true;
-    }
-
-    defined_pins.bit.macro1 = MacroButton1Pin->get() != Pin::UNDEFINED;
-    if (MacroButton1Pin->get().read()) {
-        pin_states.bit.macro1 = true;
-    }
-
-    defined_pins.bit.macro2 = MacroButton2Pin->get() != Pin::UNDEFINED;
-    if (MacroButton2Pin->get().read()) {
-        pin_states.bit.macro2 = true;
-    }
-
-    defined_pins.bit.macro3 = MacroButton3Pin->get() != Pin::UNDEFINED;
-    if (MacroButton3Pin->get().read()) {
-        pin_states.bit.macro3 = true;
-    }
+    pin_states.bit.safetyDoor = ControlSafetyDoorPin->get().read();
+    pin_states.bit.reset      = ControlResetPin->get().read();
+    pin_states.bit.feedHold   = ControlFeedHoldPin->get().read();
+    pin_states.bit.cycleStart = ControlCycleStartPin->get().read();
+    pin_states.bit.macro0     = MacroButton0Pin->get().read();
+    pin_states.bit.macro1     = MacroButton1Pin->get().read();
+    pin_states.bit.macro2     = MacroButton2Pin->get().read();
+    pin_states.bit.macro3     = MacroButton3Pin->get().read();
 
     return pin_states;
 }
