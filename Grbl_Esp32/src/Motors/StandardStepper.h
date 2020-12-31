@@ -23,12 +23,12 @@ namespace Motors {
     protected:
         void config_message() override;
 
-#ifdef USE_RMT_STEPS
         rmt_channel_t _rmt_chan_num;
-#endif
         Pin  _step_pin;
         Pin  _dir_pin;
         Pin  _disable_pin;
+
+        bool _use_RMT;
 
     private:
         static rmt_channel_t get_next_RMT_chan_num();

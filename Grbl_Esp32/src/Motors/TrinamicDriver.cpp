@@ -21,17 +21,11 @@
 
 #include <TMCStepper.h>
 
-
-
 // Override default function and insert a short delay
 void TMC2130Stepper::switchCSpin(bool state) {
     digitalWrite(_pinCS, state);
-    if (!strcmp(stepping->name(), "I2S")) {
-        grbl_send(CLIENT_SERIAL, ".");
-        i2s_out_delay();
-    }
+    stepping->backoffDelay();  // stepping determines the delay (if any)
 }
-
 
 namespace Motors {
     uint8_t TrinamicDriver::get_next_index() {
@@ -92,6 +86,8 @@ namespace Motors {
         if (_has_errors) {
             return;
         }
+
+        _use_RMT = !strcmp(stepping->name(), "RMT");
 
         // Display the stepper library version message once, before the first
         // TMC config message.  Link is NULL for the first TMC instance.

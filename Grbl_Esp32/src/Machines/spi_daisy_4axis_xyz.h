@@ -28,9 +28,6 @@
 
 #define MACHINE_NAME "SPI_DAISY_4X_XYZ"
 
-#ifdef N_AXIS
-        #undef N_AXIS
-#endif
 #define N_AXIS 3
 
 #define TRINAMIC_DAISY_CHAIN

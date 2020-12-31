@@ -80,15 +80,6 @@ enum stepper_id_t {
     ST_I2S_STATIC,
 };
 
-#ifndef DEFAULT_STEPPER
-#    if defined(USE_I2S_STEPS)
-#        define DEFAULT_STEPPER ST_I2S_STREAM
-#    elif defined(USE_RMT_STEPS)
-#        define DEFAULT_STEPPER ST_RMT
-#    else
-#        define DEFAULT_STEPPER ST_TIMED
-#    endif
-#endif
 
 // -- Task handles for use in the notifications
 void IRAM_ATTR onSteppertimer();

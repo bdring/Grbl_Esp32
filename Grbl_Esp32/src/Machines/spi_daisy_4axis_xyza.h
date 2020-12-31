@@ -28,9 +28,6 @@
 
 #define MACHINE_NAME "SPI_DAISY_4X XYZA"
 
-#ifdef N_AXIS
-        #undef N_AXIS
-#endif
 #define N_AXIS 4 // can be 3 or 4. (if 3 install bypass jumper next to the A driver)
 
 #define TRINAMIC_DAISY_CHAIN

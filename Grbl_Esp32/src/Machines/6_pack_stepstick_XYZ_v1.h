@@ -26,17 +26,6 @@
 
 #define N_AXIS 3
 
-// === Special Features
-
-// I2S (steppers & other output-only pins)
-#define USE_I2S_STEPS
-
-#define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
-
-#define I2S_OUT_BCK             "gpio.22"
-#define I2S_OUT_WS              "gpio.17"
-#define I2S_OUT_DATA            "gpio.21"
-
 // Note: MS3 can be used to roughly switch microstepping
 // DRV8825 low=1/8 high=1/32
 // A4988 low=1/8 high=1/16
