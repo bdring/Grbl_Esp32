@@ -87,6 +87,8 @@ namespace Motors {
             return;
         }
 
+        _use_RMT = !strcmp(stepping->name(), "RMT");
+
         // Display the stepper library version message once, before the first
         // TMC config message.  Link is NULL for the first TMC instance.
         if (!link) {

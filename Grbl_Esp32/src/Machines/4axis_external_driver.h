@@ -27,9 +27,6 @@
 
 #define MACHINE_NAME            "External 4 Axis Driver Board V2"
 
-#ifdef N_AXIS
-        #undef N_AXIS
-#endif
 #define N_AXIS 4
 
 #define X_MOTOR_TYPE            MotorType::External

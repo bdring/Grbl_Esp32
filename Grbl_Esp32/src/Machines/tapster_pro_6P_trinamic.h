@@ -24,7 +24,6 @@
 // enable these special machine functions to be called from the main program
 #define USE_KINEMATICS             // there are kinematic equations for this machine
 #define FWD_KINEMATICS_REPORTING   // report in cartesian
-#define USE_RMT_STEPS              // Use the RMT periferal to generate step pulses
 #define USE_TRINAMIC               // some Trinamic motors are used on this machine
 #define USE_MACHINE_TRINAMIC_INIT  // there is a machine specific setup for the drivers
 #define USE_MACHINE_INIT           // There is some custom initialization for this machine
@@ -68,8 +67,6 @@
 //#define DEFAULT_STEPPER ST_I2S_STATIC
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
-
-// #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 
 #define I2S_OUT_BCK             "gpio.22"
 #define I2S_OUT_WS              "gpio.17"

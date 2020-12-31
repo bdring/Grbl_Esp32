@@ -26,19 +26,9 @@
 
 #define N_AXIS 6
 
-// === Special Features
-
-// I2S (steppers & other output-only pins)
-#define USE_I2S_OUT
-#define USE_I2S_STEPS
-//#define DEFAULT_STEPPER ST_I2S_STATIC
-
-#define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
-
 #define I2S_OUT_BCK             "gpio.22"
 #define I2S_OUT_WS              "gpio.17"
 #define I2S_OUT_DATA            "gpio.21"
-
 
 // Motor Socket #1
 #define X_MOTOR_TYPE            MotorType::StepStick

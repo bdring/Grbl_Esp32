@@ -38,7 +38,6 @@
 #define USE_I2S_STEPS
 //#define DEFAULT_STEPPER ST_I2S_STATIC
 
-#define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
 
 #define I2S_OUT_BCK             "gpio.22"
 #define I2S_OUT_WS              "gpio.17"

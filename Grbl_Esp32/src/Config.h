@@ -59,21 +59,12 @@ Some features should not be changed. See notes below.
 // #define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
 
-#define USE_RMT_STEPS
-
 // Include the file that loads the machine-specific config file.
 // machine.h must be edited to choose the desired file.
 #include "Machine.h"
 
 // machine_common.h contains settings that do not change
 #include "MachineCommon.h"
-
-// Adjust exclusive definitions for steppers
-#ifdef USE_I2S_STEPS
-#    ifdef USE_RMT_STEPS
-#        undef USE_RMT_STEPS
-#    endif
-#endif
 
 const int MAX_N_AXIS = 6;
 
@@ -98,11 +89,11 @@ const int MAX_N_AXIS = 6;
 //#define CONNECT_TO_SSID  "your SSID"
 //#define SSID_PASSWORD  "your SSID password"
 //CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
-//#define ENABLE_BLUETOOTH  // enable bluetooth
+#define ENABLE_BLUETOOTH  // enable bluetooth
 
 #define ENABLE_SD_CARD  // enable use of SD Card to run jobs
 
-//#define ENABLE_WIFI  //enable wifi
+#define ENABLE_WIFI  //enable wifi
 
 #if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
 #    define WIFI_OR_BLUETOOTH
