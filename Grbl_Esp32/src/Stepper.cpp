@@ -222,28 +222,27 @@ static void stepper_pulse_func() {
     auto n_axis = number_axis->get();
 
     if (motors_direction(st.dir_outbits)) {
-        auto wait_direction = direction_microseconds->get();
-        if (wait_direction > 0)
-        {
+        auto wait_direction = direction_delay_microseconds->get();
+        if (wait_direction > 0) {
             // If we are using GPIO stepping as opposed to RMT, record the
             // time that we turned on the direction pins so we can delay a bit.
             // If we are using RMT, we can't delay here.
-            uint64_t direction_pulse_start_time = esp_timer_get_time();
+            uint64_t direction_pulse_start_time = esp_timer_get_time() + wait_direction;
 
-            // Stepper drivers need some time between changing direction and doing a pulse. 
+            // Stepper drivers need some time between changing direction and doing a pulse.
             switch (current_stepper) {
-            case ST_I2S_STREAM:
-                i2s_out_push_sample(wait_direction);
-                break;
-            case ST_I2S_STATIC:
-            case ST_TIMED:
-                // wait for step pulse time to complete...some time expired during code above
-                while (esp_timer_get_time() - direction_pulse_start_time < wait_direction) {
-                    NOP();  // spin here until time to turn off step
-                }
-                break;
-            case ST_RMT:
-                break;
+                case ST_I2S_STREAM:
+                    i2s_out_push_sample(wait_direction);
+                    break;
+                case ST_I2S_STATIC:
+                case ST_TIMED:
+                    // wait for step pulse time to complete...some time expired during code above
+                    while (esp_timer_get_time() < direction_pulse_start_time) {
+                        NOP();  // spin here until time to turn off step
+                    }
+                    break;
+                case ST_RMT:
+                    break;
             }
         }
     }
@@ -253,7 +252,7 @@ static void stepper_pulse_func() {
     // at the end of this routine without incurring another interrupt.
     // This is unnecessary with RMT and I2S stepping since both of
     // those methods time the turn off automatically.
-    // 
+    //
     // NOTE: We could use direction_pulse_start_time + wait_direction, but let's play it safe
     uint64_t step_pulse_start_time = esp_timer_get_time();
     motors_step(st.step_outbits);

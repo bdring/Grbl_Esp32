@@ -432,29 +432,39 @@ void motors_set_disable(bool disable, uint8_t mask) {
         if (step_enable_invert->get()) {
             disable = !disable;  // Apply pin invert.
         }
+
         digitalWrite(STEPPERS_DISABLE_PIN, disable);
 
-        // Stepper drivers need some time between changing direction and doing a pulse.
-        // Note that since we're doing this inside an ISR, we cannot wait for long, and
-        // have to use a spinlock.
-        auto wait_diable_change = enable_microseconds->get();
-        if (wait_diable_change != 0) {
-            uint64_t start_time = esp_timer_get_time();
+        // Stepper drivers need some time between changing enable and doing a step pulse.
+        // motors_set_disable should not be called from an ISR
+        // Enable ______------______
+        // Steps  _________-_-________
 
-            switch (current_stepper) {
-                case ST_I2S_STREAM:
-                    i2s_out_push_sample(wait_diable_change);
-                    break;
-                case ST_I2S_STATIC:
-                case ST_TIMED:
-                    // wait for step pulse time to complete...some time expired during code above
-                    while (esp_timer_get_time() - start_time < wait_diable_change) {
-                        NOP();  // spin here until time to turn off step
-                    }
-                    break;
-                case ST_RMT:
-                    break;
+        if (disable)  // should not need to delay on disable...no steps come in disable mode
+            return;
+
+        auto wait_diable_change = enable_delay_microseconds->get();
+        if (wait_diable_change != 0) {
+            uint64_t done_time = esp_timer_get_time() + wait_diable_change;
+
+            while (esp_timer_get_time() < done_time) {
+                NOP();  // spin here until time to turn off step
             }
+
+            // switch (current_stepper) {
+            //     case ST_I2S_STREAM:
+            //         i2s_out_push_sample(wait_diable_change);
+            //         break;
+            //     case ST_I2S_STATIC:
+            //     case ST_TIMED:
+            //         // wait for step pulse time to complete...some time expired during code above
+            //         while (esp_timer_get_time() - start_time < wait_diable_change) {
+            //             NOP();  // spin here until time to turn off step
+            //         }
+            //         break;
+            //     case ST_RMT:
+            //         break;
+            // }
         }
     }
 }

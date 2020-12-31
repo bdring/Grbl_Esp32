@@ -104,4 +104,4 @@ namespace Spindles {
     void Spindle::deinit() { stop(); }
 }
 
-volatile Spindles::Spindle* spindle;
+ Spindles::Spindle* spindle;
