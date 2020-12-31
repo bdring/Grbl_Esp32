@@ -8,7 +8,7 @@
 // !!! For initial testing, start with test_drive.h which disables
 // all I/O pins
 // #include "Machines/atari_1020.h"
-#    include "Machines/3axis_v4.h"
+#    include "Machines/tmc2130_pen.h"
 
 // !!! For actual use, change the line above to select a board
 // from Machines/, for example:

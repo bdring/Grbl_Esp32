@@ -92,16 +92,20 @@ void init_motors() {
                                                                           PhasePins[1][axis][gang_index]->get(),
                                                                           PhasePins[2][axis][gang_index]->get(),
                                                                           PhasePins[3][axis][gang_index]->get());
+                    break;
                 case static_cast<int8_t>(MotorType::Dynamixel):
                     myMotor[axis][gang_index] = new Motors::Dynamixel2(motor_index,
                                                                        motor_address[axis][gang_index]->get(),
                                                                        DynamixelTXDPin->get(),
                                                                        DynamixelRXDPin->get(),
                                                                        DynamixelRTSPin->get());
+                    break;
                 case static_cast<int8_t>(MotorType::RCServo):
                     myMotor[axis][gang_index] = new Motors::RcServo(motor_index, ServoPins[axis][gang_index]->get());
+                    break;
                 case static_cast<int8_t>(MotorType::Solenoid):
                     // not yet
+                    break;
                 default:
                     myMotor[axis][gang_index] = new Motors::Nullmotor(motor_index);
                     break;

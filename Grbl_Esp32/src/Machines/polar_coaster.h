@@ -48,6 +48,7 @@
 
 #define STEPPERS_DISABLE_PIN    "gpio.17"
 
+#define Z_MOTOR_TYPE             MotorType::RCServo
 #define Z_SERVO_PIN             "gpio.16"
 
 #define X_LIMIT_PIN             "gpio.4:low"

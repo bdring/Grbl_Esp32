@@ -48,6 +48,7 @@
 #define X_LIMIT_PIN     "gpio.2:low"
 #define Y_LIMIT_PIN     "gpio.4:low"
 
+#define Z_MOTOR_TYPE             MotorType::RCServo
 #define Z_SERVO_PIN             "gpio.27"
 
 // Set $Homing/Cycle0=Y and $Homing/Cycle1=X
