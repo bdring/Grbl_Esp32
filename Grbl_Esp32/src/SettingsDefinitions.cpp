@@ -357,31 +357,18 @@ void make_settings() {
     motor_types[C_AXIS][1] =
         new EnumSetting(NULL, EXTENDED, WG, NULL, "C2/Motor/Type", static_cast<int8_t>(C2_MOTOR_TYPE), &motorTypes, NULL);
 
-    motor_rsense[X_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "X/Driver/RSense", X_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[X_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "X2/Driver/RSense", X2_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[Y_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Y/Driver/RSense", Y_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[Y_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Y2/Driver/RSense", Y2_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[Z_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Z/Driver/RSense", Z_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[Z_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Z2/Driver/RSense", Z2_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[A_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "A/Driver/RSense", A_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[A_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "A2/Driver/RSense", A2_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[B_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "B/Driver/RSense", B_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[B_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "B2/Driver/RSense", B2_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[C_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "C/Driver/RSense", C_DRIVER_RSENSE, 0.0, 100.0, NULL);
-    motor_rsense[C_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "C2/Driver/RSense", C2_DRIVER_RSENSE, 0.0, 100.0, NULL);
-
-    motor_address[X_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "X/Driver/RSense", X_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[X_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "X2/Driver/RSense", X2_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[Y_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "Y/Driver/RSense", Y_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[Y_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "Y2/Driver/RSense", Y2_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[Z_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "Z/Driver/RSense", Z_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[Z_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "Z2/Driver/RSense", Z2_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[A_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "A/Driver/RSense", A_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[A_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "A2/Driver/RSense", A2_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[B_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "B/Driver/RSense", B_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[B_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "B2/Driver/RSense", B2_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[C_AXIS][0] = new IntSetting(EXTENDED, WG, NULL, "C/Driver/RSense", C_DRIVER_ADDRESS, 1, 255, NULL);
-    motor_address[C_AXIS][1] = new IntSetting(EXTENDED, WG, NULL, "C2/Driver/RSense", C2_DRIVER_ADDRESS, 1, 255, NULL);
+    motor_rsense[X_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "X/Driver/RSense", X_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[X_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "X2/Driver/RSense", X2_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[Y_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Y/Driver/RSense", Y_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[Y_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Y2/Driver/RSense", Y2_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[Z_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Z/Driver/RSense", Z_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[Z_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Z2/Driver/RSense", Z2_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[A_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "A/Driver/RSense", A_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[A_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "A2/Driver/RSense", A2_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[B_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "B/Driver/RSense", B_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[B_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "B2/Driver/RSense", B2_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[C_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "C/Driver/RSense", C_DRIVER_RSENSE, 0.0, 1.0, NULL);
+    motor_rsense[C_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "C2/Driver/RSense", C2_DRIVER_RSENSE, 0.0, 1.0, NULL);
 
     // Spindle Settings
     spindle_type =

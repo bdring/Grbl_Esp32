@@ -70,9 +70,8 @@ namespace Motors {
         if (_r_sense <= 0) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Trinamic rsense value error:%1.2f Ohm", _r_sense);
             _has_errors = true;
+            return;
         }
-
-            _has_errors = false;
 
         _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
 
@@ -89,7 +88,11 @@ namespace Motors {
 
     void TrinamicDriver::init() {
         if (_has_errors) {
-            return;
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Trinamic TMC%d has errors",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           _driver_part_number);
         }
 
         _use_RMT = !strcmp(stepping->name(), "RMT");
@@ -289,6 +292,11 @@ namespace Motors {
 */
     void TrinamicDriver::debug_message() {
         if (_has_errors) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Trinamic TMC%d has errors",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           _driver_part_number);
             return;
         }
         uint32_t tstep = tmcstepper->TSTEP();
