@@ -11,7 +11,7 @@ namespace Configuration {
         }
     }
 
-    void Parser::ParseError(const char* description) const {
+    void Parser::parseError(const char* description) const {
         // Attempt to use the correct position in the parser:
         if (current_.keyEnd_) {
             throw ParseException(start_, current_.keyEnd_, description);
@@ -25,7 +25,7 @@ namespace Configuration {
     /// MoveNext: moves to the next entry in the current section. By default we're in the
     /// root section.
     /// </summary>
-    bool Parser::MoveNext() {
+    bool Parser::moveNext() {
         // While the indent of the token is > current indent, we have to skip it. This is a
         // sub-section, that we're apparently not interested in.
         while (token_.indent_ > current_.indent_) {
@@ -48,7 +48,7 @@ namespace Configuration {
         return current_.kind_ != TokenKind::Eof;
     }
 
-    void Parser::Enter() {
+    void Parser::enter() {
         indentStack_.push(current_.indent_);
 
         // If we can enter, token_.indent_ > current_.indent_:
@@ -59,9 +59,10 @@ namespace Configuration {
             current_         = TokenData();
             current_.indent_ = INT_MAX;
         }
+        indent_ = current_.indent_;
     }
 
-    void Parser::Leave() {
+    void Parser::leave() {
         // While the indent of the tokenizer is >= current, we can ignore the contents:
         while (token_.indent_ >= current_.indent_ && token_.kind_ != TokenKind::Eof) {
             Tokenize();
@@ -70,6 +71,7 @@ namespace Configuration {
         // At this point, we just know the indent is smaller. We don't know if we're in
         // the *right* section tho.
         auto last = indentStack_.top();
+        indent_ = last;
         indentStack_.pop();
 
         if (last == token_.indent_) {
@@ -82,31 +84,40 @@ namespace Configuration {
         }
     }
 
-    std::string Parser::StringValue() const {
+    std::string Parser::stringValue() const {
         if (current_.kind_ != TokenKind::String) {
-            ParseError("Expected a string value (e.g. 'foo')");
+            parseError("Expected a string value (e.g. 'foo')");
         }
         return std::string(current_.sValueStart_, current_.sValueEnd_);
     }
     
-    bool Parser::BoolValue() const {
+    bool Parser::boolValue() const {
         if (current_.kind_ != TokenKind::Boolean) {
-            ParseError("Expected a boolean value (e.g. true or value)");
+            parseError("Expected a boolean value (e.g. true or value)");
         }
         return current_.bValue_;
     }
     
-    int Parser::IntValue() const {
+    int Parser::intValue() const {
         if (current_.kind_ != TokenKind::Boolean) {
-            ParseError("Expected an integer value (e.g. 123456)");
+            parseError("Expected an integer value (e.g. 123456)");
         }
         return current_.iValue_;
     }
     
-    double Parser::FloatValue() const {
+    double Parser::floatValue() const {
         if (current_.kind_ != TokenKind::Boolean) {
-            ParseError("Expected a float value (e.g. 123.456)");
+            parseError("Expected a float value (e.g. 123.456)");
         }
         return current_.fValue_;
     }
+
+    Pin Parser::pinValue() const
+    {
+        if (current_.kind_ != TokenKind::String) {
+            parseError("Expected a string value (e.g. 'foo')");
+        }
+        return Pin(std::string(current_.sValueStart_, current_.sValueEnd_));
+    }
+
 }
