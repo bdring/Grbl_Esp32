@@ -45,18 +45,19 @@
 #define X_STEP_PIN              "gpio.12"
 #define X_DIRECTION_PIN         "gpio.26"
 #define X_CS_PIN                "gpio.17"  //chip select
-#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X_DRIVER_RSENSE         0.11f
 
 #define Y_MOTOR_TYPE            MotorType::TMC2130
 #define Y_STEP_PIN              "gpio.14"
 #define Y_DIRECTION_PIN         "gpio.25"
 #define Y_CS_PIN                "gpio.16"  //chip select
-#define Y_RSENSE                TMC2130_RSENSE_DEFAULT
+#define Y_DRIVER_RSENSE         0.11f
+
 
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN    "gpio.13"
 
-
+/*
 // Define one of these 2 options for spindle or servo
 // Servo Option
 #define Z_MOTOR_TYPE                  MotorType::RCServo
@@ -72,3 +73,4 @@
 
 // #define X_LIMIT_PIN          See version section at beginning of file
 #define Y_LIMIT_PIN             "gpio.4"
+*/

@@ -80,7 +80,7 @@
 #define X_DIRECTION_PIN         "i2so.1"
 #define X_STEP_PIN              "i2so.2"
 #define X_CS_PIN                "i2so.3"
-#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X_DRIVER_RSENSE          0.11
 
 // Motor Socket #2
 #define Y_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
@@ -88,7 +88,7 @@
 #define Y_STEP_PIN              "i2so.5"
 #define Y_DISABLE_PIN           "i2so.7"
 #define Y_CS_PIN                "i2so.6"
-#define Y_RSENSE                X_RSENSE
+#define Y_DRIVER_RSENSE         X_DRIVER_RSENSE
 
 // Motor Socket #3
 #define Z_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
@@ -96,7 +96,7 @@
 #define Z_DIRECTION_PIN         "i2so.9"
 #define Z_STEP_PIN              "i2so.10"
 #define Z_CS_PIN                "i2so.11"
-#define Z_RSENSE                X_RSENSE
+#define Y_DRIVER_RSENSE         X_DRIVER_RSENSE
 
 // 6 Pack Pin Mapping
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Socket-Pin-Number-Mapping

@@ -39,26 +39,26 @@
 #define USE_TRINAMIC_ENABLE
 
 #define X_TRINAMIC_DRIVER       MotorType::TMC2130        // Which Driver Type?
-#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X_DRIVER_RSENSE         0.11
 #define X_STEP_PIN              "gpio.12"
 #define X_DIRECTION_PIN         "gpio.14"
 #define X_CS_PIN                "gpio.17"  // Daisy Chain, all share same CS pin
 
 #define Y_TRINAMIC_DRIVER       MotorType::TMC2130        // Which Driver Type?
-#define Y_RSENSE                TMC2130_RSENSE_DEFAULT
+#define Y_DRIVER_RSENSE         0.11
 #define Y_STEP_PIN              "gpio.27"
 #define Y_DIRECTION_PIN         "gpio.26"
 #define Y_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 #define Z_TRINAMIC_DRIVER       MotorType::TMC2130        // Which Driver Type?
-#define Z_RSENSE                TMC2130_RSENSE_DEFAULT
+#define Z_RSENSE                0.11
 #define Z_STEP_PIN              "gpio.15"
 #define Z_DIRECTION_PIN         "gpio.2"
 #define Z_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin
 
 
 #define A_TRINAMIC_DRIVER       MotorType::TMC2130        // Which Driver Type?
-#define A_RSENSE                TMC2130_RSENSE_DEFAULT
+#define A_RSENSE                0.11
 #define A_STEP_PIN              "gpio.33"
 #define A_DIRECTION_PIN         "gpio.32"
 #define A_CS_PIN                X_CS_PIN  // Daisy Chain, all share same CS pin

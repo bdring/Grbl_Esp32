@@ -67,7 +67,12 @@ namespace Motors {
             return;
         }
 
-        _has_errors = false;
+        if (_r_sense <= 0) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Trinamic rsense value error:%1.2f Ohm", _r_sense);
+            _has_errors = true;
+        }
+
+            _has_errors = false;
 
         _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
 
