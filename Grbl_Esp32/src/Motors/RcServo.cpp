@@ -42,6 +42,9 @@ namespace Motors {
         sprintf(setting_cal_max, "%c/RcServo/Cal/Max", report_get_axis_letter(_axis_index));  //
         rc_servo_cal_max = new FloatSetting(EXTENDED, WG, NULL, setting_cal_max, 1.0, 0.5, 2.0);
 
+        rc_servo_cal_min->load();
+        rc_servo_cal_max->load();
+
         read_settings();
         _channel_num = sys_get_next_PWM_chan_num();
         ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
