@@ -48,6 +48,7 @@ void grbl_init() {
         }
 
         stepping_select();
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count:%d", number_axis->get());
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Step Generation", stepping->name());
         stepping->init();
 

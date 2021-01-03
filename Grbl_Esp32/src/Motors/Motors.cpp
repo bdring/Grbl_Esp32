@@ -50,65 +50,72 @@ Motors::Motor* myMotor[MAX_AXES][MAX_GANGED];  // number of axes (normal and gan
 //  I don't like the single value motor_index. Should it be axis, gang_index, like the rest of Grbl?
 //  We might want to change stepstick to, or add, specific drive names DRV8825, A4988. This may prove useful one day.
 void init_motors() {
-    auto n_axis = number_axis->get();
-    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-        for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
-            uint8_t motor_index = axis + (6 * gang_index);  // X X2 thing
-            switch (motor_types[axis][gang_index]->get()) {
-                case static_cast<int8_t>(MotorType::None):
-                    myMotor[axis][gang_index] = new Motors::Nullmotor(motor_index);
-                    break;
-                case static_cast<int8_t>(MotorType::StepStick):
-                case static_cast<int8_t>(MotorType::External):
-                    myMotor[axis][0] = new Motors::StandardStepper(motor_index,
-                                                                   StepPins[axis][gang_index]->get(),
-                                                                   DirectionPins[axis][gang_index]->get(),
-                                                                   DisablePins[axis][gang_index]->get());
-                    break;
-                case static_cast<int8_t>(MotorType::TMC2130):
-                case static_cast<int8_t>(MotorType::TMC5160):
-                    myMotor[axis][gang_index] = new Motors::TrinamicDriver(motor_index,
-                                                                           StepPins[axis][gang_index]->get(),
-                                                                           DirectionPins[axis][gang_index]->get(),
-                                                                           DisablePins[axis][gang_index]->get(),
-                                                                           ChipSelectPins[axis][gang_index]->get(),
-                                                                           static_cast<MotorType>(motor_types[axis][gang_index]->get()),
-                                                                           motor_rsense[axis][gang_index]->get());
-
-                    break;
-                case static_cast<int8_t>(MotorType::TMC2208):
-                case static_cast<int8_t>(MotorType::TMC2209):
-                    myMotor[axis][gang_index] = new Motors::TrinamicUartDriver(motor_index,
+    auto n_axis = number_axis->get();    
+    for (uint8_t axis = X_AXIS; axis < MAX_N_AXIS; axis++) {
+        if (axis >= n_axis) {
+            // motors above n_axis are Nullmotor
+            myMotor[axis][0] = new Motors::Nullmotor(axis);
+            myMotor[axis][1] = new Motors::Nullmotor(axis + 6);
+        } else {
+            for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
+                uint8_t motor_index = axis + (6 * gang_index);  // X X2 thing
+                switch (motor_types[axis][gang_index]->get()) {
+                    case static_cast<int8_t>(MotorType::None):
+                        myMotor[axis][gang_index] = new Motors::Nullmotor(motor_index);
+                        break;
+                    case static_cast<int8_t>(MotorType::StepStick):
+                    case static_cast<int8_t>(MotorType::External):
+                        myMotor[axis][0] = new Motors::StandardStepper(motor_index,
+                                                                       StepPins[axis][gang_index]->get(),
+                                                                       DirectionPins[axis][gang_index]->get(),
+                                                                       DisablePins[axis][gang_index]->get());
+                        break;
+                    case static_cast<int8_t>(MotorType::TMC2130):
+                    case static_cast<int8_t>(MotorType::TMC5160):
+                        myMotor[axis][gang_index] = new Motors::TrinamicDriver(motor_index,
                                                                                StepPins[axis][gang_index]->get(),
                                                                                DirectionPins[axis][gang_index]->get(),
                                                                                DisablePins[axis][gang_index]->get(),
+                                                                               ChipSelectPins[axis][gang_index]->get(),
                                                                                static_cast<MotorType>(motor_types[axis][gang_index]->get()),
-                                                                               motor_rsense[axis][gang_index]->get(),
-                                                                               motor_address[axis][gang_index]->get());
-                    break;
-                case static_cast<int8_t>(MotorType::Unipolar):
-                    myMotor[axis][gang_index] = new Motors::UnipolarMotor(motor_index,
-                                                                          PhasePins[1][axis][gang_index]->get(),
-                                                                          PhasePins[1][axis][gang_index]->get(),
-                                                                          PhasePins[2][axis][gang_index]->get(),
-                                                                          PhasePins[3][axis][gang_index]->get());
-                    break;
-                case static_cast<int8_t>(MotorType::Dynamixel):
-                    myMotor[axis][gang_index] = new Motors::Dynamixel2(motor_index,
-                                                                       motor_address[axis][gang_index]->get(),
-                                                                       DynamixelTXDPin->get(),
-                                                                       DynamixelRXDPin->get(),
-                                                                       DynamixelRTSPin->get());
-                    break;
-                case static_cast<int8_t>(MotorType::RCServo):
-                    myMotor[axis][gang_index] = new Motors::RcServo(motor_index, ServoPins[axis][gang_index]->get());
-                    break;
-                case static_cast<int8_t>(MotorType::Solenoid):
-                    // not yet
-                    break;
-                default:
-                    myMotor[axis][gang_index] = new Motors::Nullmotor(motor_index);
-                    break;
+                                                                               motor_rsense[axis][gang_index]->get());
+
+                        break;
+                    case static_cast<int8_t>(MotorType::TMC2208):
+                    case static_cast<int8_t>(MotorType::TMC2209):
+                        myMotor[axis][gang_index] =
+                            new Motors::TrinamicUartDriver(motor_index,
+                                                           StepPins[axis][gang_index]->get(),
+                                                           DirectionPins[axis][gang_index]->get(),
+                                                           DisablePins[axis][gang_index]->get(),
+                                                           static_cast<MotorType>(motor_types[axis][gang_index]->get()),
+                                                           motor_rsense[axis][gang_index]->get(),
+                                                           motor_address[axis][gang_index]->get());
+                        break;
+                    case static_cast<int8_t>(MotorType::Unipolar):
+                        myMotor[axis][gang_index] = new Motors::UnipolarMotor(motor_index,
+                                                                              PhasePins[1][axis][gang_index]->get(),
+                                                                              PhasePins[1][axis][gang_index]->get(),
+                                                                              PhasePins[2][axis][gang_index]->get(),
+                                                                              PhasePins[3][axis][gang_index]->get());
+                        break;
+                    case static_cast<int8_t>(MotorType::Dynamixel):
+                        myMotor[axis][gang_index] = new Motors::Dynamixel2(motor_index,
+                                                                           motor_address[axis][gang_index]->get(),
+                                                                           DynamixelTXDPin->get(),
+                                                                           DynamixelRXDPin->get(),
+                                                                           DynamixelRTSPin->get());
+                        break;
+                    case static_cast<int8_t>(MotorType::RCServo):
+                        myMotor[axis][gang_index] = new Motors::RcServo(motor_index, ServoPins[axis][gang_index]->get());
+                        break;
+                    case static_cast<int8_t>(MotorType::Solenoid):
+                        // not yet
+                        break;
+                    default:
+                        myMotor[axis][gang_index] = new Motors::Nullmotor(motor_index);
+                        break;
+                }
             }
         }
     }

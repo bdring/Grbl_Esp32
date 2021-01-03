@@ -81,7 +81,109 @@ $X/Direction/Pin=i2so.1:low               // Change direction of X motor
 
 ## Spindles
 
-...coming soon
+
+
+#### 0-10V (Tested...Works)
+
+```
+#define SPINDLE_TYPE      SpindleType::PWM
+#define SPINDLE_OUTPUT_PIN    "gpio.14"
+#define SPINDLE_ENABLE_PIN    "gpio.12" // optional
+#define SPINDLE_DIRECTION_PIN "gpio:15" // optional
+#define SPINDLE_FORWARD_PIN   "gpio.13" // optional
+#define SPINDLE_REVERSE_PIN   "gpio.26" // optional
+
+$Spindle/Type=10V
+$Spindle/Output/Pin=gpio:14
+$Spindle/Enable/Pin=gpio:12 
+$Spindle/Direction/Pin=gpio:15
+$Spindle/Forward/Pin=gpio:13
+$Spindle/Reverse/Pin=gpio:26
+```
+
+#### BESC (Tested...Works)
+
+```C++
+#define  SPINDLE_TYPE          SpindleType::BESC
+##define SPINDLE_OUTPUT_PIN    "gpio.14"
+
+$Spindle/Type=BESC
+$Spindle/Output/Pin=gpio:14
+```
+
+#### DAC (Tested...Works!)
+
+```
+#define SPINDLE_TYPE      SpindleType::DAC
+#define SPINDLE_OUTPUT_PIN    "gpio.26"  // 25 or 25 only
+#define SPINDLE_ENABLE_PIN    "gpio.14"
+#define SPINDLE_DIRECTION_PIN "gpio:13"
+
+$Spindle/Type=DAC
+$Spindle/Output/Pin=gpio:26
+$Spindle/Enable/Pin=gpio:14
+$Spindle/Direction/Pin=gpio:13
+```
+
+#### RELAY (Tested...Works!)
+
+```
+#define SPINDLE_TYPE      SpindleType::RELAY
+#define SPINDLE_OUTPUT_PIN    "gpio.14"
+#define SPINDLE_ENABLE_PIN    "gpio.12" // optional
+#define SPINDLE_DIRECTION_PIN "gpio:15" // optional
+
+$Spindle/Type=RELAY
+$Spindle/Output/Pin=gpio:14
+$Spindle/Enable/Pin=gpio:12 
+$Spindle/Direction/Pin=gpio:15
+```
+
+#### LASER (Tested ...Works!)
+
+```
+#define SPINDLE_TYPE      SpindleType::LASER
+#define LASER_OUTPUT_PIN    "gpio.14"
+#define LASER_ENABLE_PIN    "gpio.12" // optional
+
+$Spindle/Type=RELAY
+$Spindle/Output/Pin=gpio:14
+$Spindle/Enable/Pin=gpio:12
+```
+
+
+
+#### PWM (Tested...Works)
+
+```
+#define SPINDLE_TYPE      SpindleType::PWM
+#define SPINDLE_OUTPUT_PIN    "gpio.14"
+#define SPINDLE_ENABLE_PIN    "gpio.12" // optional
+#define SPINDLE_DIRECTION_PIN "gpio:15" // optional
+
+$Spindle/Type=RELAY
+$Spindle/Output/Pin=gpio:14
+$Spindle/Enable/Pin=gpio:12 
+$Spindle/Direction/Pin=gpio:15
+```
+
+
+
+#### HUANYANG 
+
+```
+#define SPINDLE_TYPE      SpindleType::HUANYANG
+```
+
+
+
+#### HY2
+
+```
+#define SPINDLE_TYPE      SpindleType::HY2
+```
+
+
 
 ------
 

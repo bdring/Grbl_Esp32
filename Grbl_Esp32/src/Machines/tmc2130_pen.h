@@ -61,7 +61,7 @@
 // Define one of these 2 options for spindle or servo
 // Servo Option
 #define Z_MOTOR_TYPE                  MotorType::RCServo
-#define Z_SERVO_PIN                   "gpio.27"
+#define Z_RCSERVO_PIN                   "gpio.27"
 #define DEFAULT_Z_MAX_TRAVEL          5.0   // Range of travel is 5mm
 #define DEFAULT_Z_HOMING_MPOS         5.0   // MPos will be set to 5mm after homing
 #define Z_SERVO_CAL_MIN               1.0   // calibration factor for the minimum PWM duty

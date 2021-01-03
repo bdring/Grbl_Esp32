@@ -59,6 +59,8 @@ EnumSetting* spindle_type;
 EnumSetting*  motor_types[MAX_N_AXIS][2];
 FloatSetting* motor_rsense[MAX_N_AXIS][2];
 IntSetting*   motor_address[MAX_N_AXIS][2];
+FloatSetting* rc_servo_cal_min[MAX_N_AXIS][2];
+FloatSetting* rc_servo_cal_max[MAX_N_AXIS][2];
 
 enum_opt_t spindleTypes = {
     // clang-format off
@@ -369,6 +371,21 @@ void make_settings() {
     motor_rsense[B_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "B2/Driver/RSense", B2_DRIVER_RSENSE, 0.0, 1.0, NULL);
     motor_rsense[C_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "C/Driver/RSense", C_DRIVER_RSENSE, 0.0, 1.0, NULL);
     motor_rsense[C_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "C2/Driver/RSense", C2_DRIVER_RSENSE, 0.0, 1.0, NULL);
+
+    rc_servo_cal_min[X_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "X/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_max[X_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "X2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_min[Y_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Y/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_max[Y_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Y2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_min[Z_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Z/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_max[Z_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Z2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_min[A_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "A/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_max[A_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "A2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_min[B_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "B/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_max[B_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "B2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_min[C_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "C/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    rc_servo_cal_max[C_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "C2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+
+
 
     // Spindle Settings
     spindle_type =

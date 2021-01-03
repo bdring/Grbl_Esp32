@@ -34,14 +34,23 @@ namespace Motors {
     RcServo::RcServo(uint8_t axis_index, Pin pwm_pin) : Servo(axis_index), _pwm_pin(pwm_pin) {}
 
     void RcServo::init() {
-        // TODO FIXME: This is leaking if init() is called multiple times.
-        char* setting_cal_min = (char*)malloc(20);
-        snprintf(setting_cal_min, 20, "%c/RcServo/Cal/Min", report_get_axis_letter(_axis_index));
-        rc_servo_cal_min = new FloatSetting(EXTENDED, WG, NULL, setting_cal_min, 1.0, 0.5, 2.0);
+        // // TODO FIXME: This is leaking if init() is called multiple times.
+        // char* setting_cal_min = (char*)malloc(20);
+        // snprintf(setting_cal_min, 20, "%c/RcServo/Cal/Min", report_get_axis_letter(_axis_index));
+        // rc_servo_cal_min = new FloatSetting(EXTENDED, WG, NULL, setting_cal_min, 1.0, 0.5, 2.0);
 
-        char* setting_cal_max = (char*)malloc(20);
-        snprintf(setting_cal_max, 20, "%c/RcServo/Cal/Max", report_get_axis_letter(_axis_index));
-        rc_servo_cal_max = new FloatSetting(EXTENDED, WG, NULL, setting_cal_max, 1.0, 0.5, 2.0);
+        // char* setting_cal_max = (char*)malloc(20);
+        // snprintf(setting_cal_max, 20, "%c/RcServo/Cal/Max", report_get_axis_letter(_axis_index));
+        // rc_servo_cal_max = new FloatSetting(EXTENDED, WG, NULL, setting_cal_max, 1.0, 0.5, 2.0);
+
+        // rc_servo_cal_min->load();
+        // rc_servo_cal_max->load();
+
+        if (_pwm_pin == Pin::UNDEFINED) {
+            grbl_msg_sendf(
+                CLIENT_SERIAL, MsgLevel::Info, "Warning:%s RC servo pin not defined", reportAxisNameMsg(_axis_index, _dual_axis_index));
+            return;
+        }
 
         auto pwmNative = _pwm_pin.getNative(Pin::Capabilities::PWM);
 
@@ -58,7 +67,7 @@ namespace Motors {
     void RcServo::config_message() {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s RC Servo Pin:%d Pulse Len(%.0f,%.0f) %s",
+                       "%s RC servo Pin:%d Pulse Len(%.0f,%.0f) %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _pwm_pin,
                        _pwm_pulse_min,

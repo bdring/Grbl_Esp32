@@ -162,6 +162,16 @@ const char* SPINDLE_FORWARD_PIN_DEFAULT = SPINDLE_FORWARD_PIN;
 #endif
 const char* SPINDLE_REVERSE_PIN_DEFAULT = SPINDLE_REVERSE_PIN;
 
+#ifndef LASER_OUTPUT_PIN
+#    define LASER_OUTPUT_PIN UNDEFINED_PIN
+#endif
+const char* LASER_OUTPUT_PIN_DEFAULT = LASER_OUTPUT_PIN;
+
+#ifndef LASER_ENABLE_PIN
+#    define LASER_ENABLE_PIN UNDEFINED_PIN
+#endif
+const char* LASER_ENABLE_PIN_DEFAULT = LASER_ENABLE_PIN;
+
 #ifndef VFD_RS485_TXD_PIN
 #    define VFD_RS485_TXD_PIN UNDEFINED_PIN
 #endif
@@ -422,54 +432,54 @@ const char* C_CS_PIN_DEFAULT = C_CS_PIN;
 #endif
 const char* C2_CS_PIN_DEFAULT = C2_CS_PIN;
 
-#ifndef X_SERVO_PIN
-#    define X_SERVO_PIN UNDEFINED_PIN
+#ifndef X_RCSERVO_PIN
+#    define X_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* X_SERVO_PIN_DEFAULT = X_SERVO_PIN;
-#ifndef X2_SERVO_PIN
-#    define X2_SERVO_PIN UNDEFINED_PIN
+const char* X_RCSERVO_PIN_DEFAULT = X_RCSERVO_PIN;
+#ifndef X2_RCSERVO_PIN
+#    define X2_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* X2_SERVO_PIN_DEFAULT = X2_SERVO_PIN;
-#ifndef Y_SERVO_PIN
-#    define Y_SERVO_PIN UNDEFINED_PIN
+const char* X2_RCSERVO_PIN_DEFAULT = X2_RCSERVO_PIN;
+#ifndef Y_RCSERVO_PIN
+#    define Y_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* Y_SERVO_PIN_DEFAULT = Y_SERVO_PIN;
-#ifndef Y2_SERVO_PIN
-#    define Y2_SERVO_PIN UNDEFINED_PIN
+const char* Y_RCSERVO_PIN_DEFAULT = Y_RCSERVO_PIN;
+#ifndef Y2_RCSERVO_PIN
+#    define Y2_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* Y2_SERVO_PIN_DEFAULT = Y2_SERVO_PIN;
-#ifndef Z_SERVO_PIN
-#    define Z_SERVO_PIN UNDEFINED_PIN
+const char* Y2_RCSERVO_PIN_DEFAULT = Y2_RCSERVO_PIN;
+#ifndef Z_RCSERVO_PIN
+#    define Z_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* Z_SERVO_PIN_DEFAULT = Z_SERVO_PIN;
-#ifndef Z2_SERVO_PIN
-#    define Z2_SERVO_PIN UNDEFINED_PIN
+const char* Z_RCSERVO_PIN_DEFAULT = Z_RCSERVO_PIN;
+#ifndef Z2_RCSERVO_PIN
+#    define Z2_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* Z2_SERVO_PIN_DEFAULT = Z2_SERVO_PIN;
-#ifndef A_SERVO_PIN
-#    define A_SERVO_PIN UNDEFINED_PIN
+const char* Z2_RCSERVO_PIN_DEFAULT = Z2_RCSERVO_PIN;
+#ifndef A_RCSERVO_PIN
+#    define A_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* A_SERVO_PIN_DEFAULT = A_SERVO_PIN;
-#ifndef A2_SERVO_PIN
-#    define A2_SERVO_PIN UNDEFINED_PIN
+const char* A_RCSERVO_PIN_DEFAULT = A_RCSERVO_PIN;
+#ifndef A2_RCSERVO_PIN
+#    define A2_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* A2_SERVO_PIN_DEFAULT = A2_SERVO_PIN;
-#ifndef B_SERVO_PIN
-#    define B_SERVO_PIN UNDEFINED_PIN
+const char* A2_RCSERVO_PIN_DEFAULT = A2_RCSERVO_PIN;
+#ifndef B_RCSERVO_PIN
+#    define B_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* B_SERVO_PIN_DEFAULT = B_SERVO_PIN;
-#ifndef B2_SERVO_PIN
-#    define B2_SERVO_PIN UNDEFINED_PIN
+const char* B_RCSERVO_PIN_DEFAULT = B_RCSERVO_PIN;
+#ifndef B2_RCSERVO_PIN
+#    define B2_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* B2_SERVO_PIN_DEFAULT = B2_SERVO_PIN;
-#ifndef C_SERVO_PIN
-#    define C_SERVO_PIN UNDEFINED_PIN
+const char* B2_RCSERVO_PIN_DEFAULT = B2_RCSERVO_PIN;
+#ifndef C_RCSERVO_PIN
+#    define C_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* C_SERVO_PIN_DEFAULT = C_SERVO_PIN;
-#ifndef C2_SERVO_PIN
-#    define C2_SERVO_PIN UNDEFINED_PIN
+const char* C_RCSERVO_PIN_DEFAULT = C_RCSERVO_PIN;
+#ifndef C2_RCSERVO_PIN
+#    define C2_RCSERVO_PIN UNDEFINED_PIN
 #endif
-const char* C2_SERVO_PIN_DEFAULT = C2_SERVO_PIN;
+const char* C2_RCSERVO_PIN_DEFAULT = C2_RCSERVO_PIN;
 
 #ifndef X_STEPPER_MS3
 #    define X_STEPPER_MS3 UNDEFINED_PIN
@@ -760,6 +770,9 @@ PinSetting* SpindleDirectionPin;
 PinSetting* SpindleForwardPin;
 PinSetting* SpindleReversePin;
 
+PinSetting* LaserOutputPin;
+PinSetting* LaserEnablePin;
+
 PinSetting* VFDRS485TXDPin;
 PinSetting* VFDRS485RXDPin;
 PinSetting* VFDRS485RTSPin;
@@ -853,6 +866,10 @@ void make_pin_settings() {
     SpindleDirectionPin = new PinSetting("Spindle/Direction/Pin", SPINDLE_DIRECTION_PIN_DEFAULT);
     SpindleForwardPin   = new PinSetting("Spindle/Forward/Pin", SPINDLE_FORWARD_PIN_DEFAULT);
     SpindleReversePin   = new PinSetting("Spindle/Reverse/Pin", SPINDLE_REVERSE_PIN_DEFAULT);
+
+    LaserOutputPin = new PinSetting("Laser/Output/Pin", LASER_OUTPUT_PIN_DEFAULT);
+    LaserEnablePin = new PinSetting("Laser/Enable/Pin", LASER_ENABLE_PIN_DEFAULT);
+
     // XXX Move to VFD class
     VFDRS485TXDPin = new PinSetting("Spindle/VFD/TxD/Pin", VFD_RS485_TXD_PIN_DEFAULT, pinHasUart);  // VFD_RS485_TXD_PIN
     VFDRS485RXDPin = new PinSetting("Spindle/VFD/RxD/Pin", VFD_RS485_RXD_PIN_DEFAULT, pinHasUart);  // VFD_RS485_RXD_PIN
@@ -927,18 +944,20 @@ void make_pin_settings() {
     ChipSelectPins[C_AXIS][1] = new PinSetting("C2/Trinamic/CS/Pin", C2_CS_PIN_DEFAULT);
 
     // XXX Move to Servo class
-    ServoPins[X_AXIS][0] = new PinSetting("X/Servo/Pin", X_SERVO_PIN_DEFAULT);
-    ServoPins[X_AXIS][1] = new PinSetting("X2/Servo/Pin", X2_SERVO_PIN_DEFAULT);
-    ServoPins[Y_AXIS][0] = new PinSetting("Y/Servo/Pin", Y_SERVO_PIN_DEFAULT);
-    ServoPins[Y_AXIS][1] = new PinSetting("Y2/Servo/Pin", Y2_SERVO_PIN_DEFAULT);
-    ServoPins[Z_AXIS][0] = new PinSetting("Z/Servo/Pin", Z_SERVO_PIN_DEFAULT);
-    ServoPins[Z_AXIS][1] = new PinSetting("Z2/Servo/Pin", Z2_SERVO_PIN_DEFAULT);
-    ServoPins[A_AXIS][0] = new PinSetting("A/Servo/Pin", A_SERVO_PIN_DEFAULT);
-    ServoPins[A_AXIS][1] = new PinSetting("A2/Servo/Pin", A2_SERVO_PIN_DEFAULT);
-    ServoPins[B_AXIS][0] = new PinSetting("B/Servo/Pin", B_SERVO_PIN_DEFAULT);
-    ServoPins[B_AXIS][1] = new PinSetting("B2/Servo/Pin", B2_SERVO_PIN_DEFAULT);
-    ServoPins[C_AXIS][0] = new PinSetting("C/Servo/Pin", C_SERVO_PIN_DEFAULT);
-    ServoPins[C_AXIS][1] = new PinSetting("C2/Servo/Pin", C2_SERVO_PIN_DEFAULT);
+    ServoPins[X_AXIS][0] = new PinSetting("X/RcServo/Pin", X_RCSERVO_PIN_DEFAULT);
+    ServoPins[X_AXIS][1] = new PinSetting("X2/RcServo/Pin", X2_RCSERVO_PIN_DEFAULT);
+    ServoPins[Y_AXIS][0] = new PinSetting("Y/RcServo/Pin", Y_RCSERVO_PIN_DEFAULT);
+    ServoPins[Y_AXIS][1] = new PinSetting("Y2/RcServo/Pin", Y2_RCSERVO_PIN_DEFAULT);
+    ServoPins[Z_AXIS][0] = new PinSetting("Z/RcServo/Pin", Z_RCSERVO_PIN_DEFAULT);
+    ServoPins[Z_AXIS][1] = new PinSetting("Z2/RcServo/Pin", Z2_RCSERVO_PIN_DEFAULT);
+    ServoPins[A_AXIS][0] = new PinSetting("A/RcServo/Pin", A_RCSERVO_PIN_DEFAULT);
+    ServoPins[A_AXIS][1] = new PinSetting("A2/RcServo/Pin", A2_RCSERVO_PIN_DEFAULT);
+    ServoPins[B_AXIS][0] = new PinSetting("B/RcServo/Pin", B_RCSERVO_PIN_DEFAULT);
+    ServoPins[B_AXIS][1] = new PinSetting("B2/RcServo/Pin", B2_RCSERVO_PIN_DEFAULT);
+    ServoPins[C_AXIS][0] = new PinSetting("C/RcServo/Pin", C_RCSERVO_PIN_DEFAULT);
+    ServoPins[C_AXIS][1] = new PinSetting("C2/RcServo/Pin", C2_RCSERVO_PIN_DEFAULT);
+
+
 
     // XXX Move to StandardStepper class or StepStick class when it appears
     StepStickMS3[X_AXIS][0] = new PinSetting("X/StepStick/MS3/Pin", X_STEPPER_MS3_DEFAULT);

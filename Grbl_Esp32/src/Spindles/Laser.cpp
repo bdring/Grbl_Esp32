@@ -45,17 +45,8 @@ namespace Spindles {
     void Laser::get_pins_and_settings() {
         // setup all the pins
 
-#ifdef LASER_OUTPUT_PIN
-        _output_pin = LASER_OUTPUT_PIN;
-#else
-        _output_pin = Pin::UNDEFINED;
-#endif
-
-#ifdef LASER_ENABLE_PIN
-        _enable_pin = LASER_ENABLE_PIN;
-#else
-        _enable_pin = Pin::UNDEFINED;
-#endif
+        _output_pin = LaserOutputPin->get();
+        _enable_pin = LaserEnablePin->get();
 
         if (_output_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: LASER_OUTPUT_PIN not defined");
@@ -68,7 +59,7 @@ namespace Spindles {
         is_reversable  = false;
 
         _pwm_freq      = spindle_pwm_freq->get();
-        _pwm_precision = calc_pwm_precision(_pwm_freq);  // detewrmine the best precision
+        _pwm_precision = calc_pwm_precision(_pwm_freq);  // determine the best precision
         _pwm_period    = (1 << _pwm_precision);
 
         // pre-caculate some PWM count values

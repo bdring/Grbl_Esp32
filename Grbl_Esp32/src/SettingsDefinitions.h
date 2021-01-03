@@ -53,6 +53,8 @@ extern EnumSetting* spindle_type;
 extern EnumSetting*  motor_types[MAX_N_AXIS][2];
 extern FloatSetting* motor_rsense[MAX_N_AXIS][2];
 extern IntSetting*   motor_address[MAX_N_AXIS][2];
+extern FloatSetting* rc_servo_cal_min[MAX_N_AXIS][2];
+extern FloatSetting* rc_servo_cal_max[MAX_N_AXIS][2];
 
 extern EnumSetting*     trinamic_run_mode;
 extern EnumSetting*     trinamic_homing_mode;
@@ -98,6 +100,9 @@ extern PinSetting* SpindleEnablePin;
 extern PinSetting* SpindleDirectionPin;
 extern PinSetting* SpindleForwardPin;
 extern PinSetting* SpindleReversePin;
+
+extern PinSetting* LaserOutputPin;
+extern PinSetting* LaserEnablePin;
 
 extern PinSetting* VFDRS485TXDPin;  // VFD_RS485_TXD_PIN
 extern PinSetting* VFDRS485RXDPin;  // VFD_RS485_RXD_PIN
