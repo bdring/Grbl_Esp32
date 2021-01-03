@@ -49,8 +49,11 @@ namespace Motors {
         if (_pwm_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(
                 CLIENT_SERIAL, MsgLevel::Info, "Warning:%s RC servo pin not defined", reportAxisNameMsg(_axis_index, _dual_axis_index));
+            _has_errors = true;
             return;
         }
+
+        _has_errors = false;
 
         auto pwmNative = _pwm_pin.getNative(Pin::Capabilities::PWM);
 
@@ -76,6 +79,9 @@ namespace Motors {
     }
 
     void RcServo::_write_pwm(uint32_t duty) {
+        if (_has_errors)
+            return;
+
         // to prevent excessive calls to ledcWrite, make sure duty has changed
         if (duty == _current_pwm_duty) {
             return;
@@ -87,6 +93,9 @@ namespace Motors {
 
     // sets the PWM to zero. This allows most servos to be manually moved
     void RcServo::set_disable(bool disable) {
+        if (_has_errors)
+            return;
+
         if (_disabled == disable) {
             return;
         }
@@ -113,7 +122,7 @@ namespace Motors {
         uint32_t servo_pulse_len;
         float    servo_pos, mpos, offset;
 
-        if (_disabled) {
+        if (_disabled || _has_errors) {
             return;
         }
 
