@@ -149,7 +149,8 @@ namespace Motors {
         _pwm_pulse_min = SERVO_MIN_PULSE * rc_servo_cal_min->get();
         _pwm_pulse_max = SERVO_MAX_PULSE * rc_servo_cal_max->get();
 
-        if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {  // normal direction
+        // the ActiveLow attribute is used to invert the direction of the RcServo
+        if (_pwm_pin.attributes().has(Pins::PinAttributes::ActiveLow)) {
             swap(_pwm_pulse_min, _pwm_pulse_max);
         }
     }

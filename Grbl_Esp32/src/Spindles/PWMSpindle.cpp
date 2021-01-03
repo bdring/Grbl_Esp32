@@ -174,7 +174,7 @@ namespace Spindles {
 
     void PWM::stop() {
         set_enable_pin(false);
-        set_output(_pwm_off_value);
+        set_output(_pwm_off_value, true); 
     }
 
     // prints the startup message of the spindle config
@@ -189,13 +189,14 @@ namespace Spindles {
                        _pwm_precision);
     }
 
-    void PWM::set_output(uint32_t duty) {
+    // Use always to force setting even if _current_pwm_duty is the same
+    void PWM::set_output(uint32_t duty, bool always) {
         if (_output_pin == Pin::UNDEFINED) {
             return;
         }
 
         // to prevent excessive calls to ledcWrite, make sure duty hass changed
-        if (duty == _current_pwm_duty) {
+        if (! always && duty == _current_pwm_duty) {
             return;
         }
 
@@ -205,6 +206,10 @@ namespace Spindles {
         // if (_invert_pwm) {
         //     duty = (1 << _pwm_precision) - duty;
         // }
+
+        if (_output_pin.attributes().has(Pins::PinAttributes::ActiveLow)) {
+            duty = (1 << _pwm_precision) - duty;
+        }        
 
         ledcWrite(_pwm_chan_num, duty);
     }

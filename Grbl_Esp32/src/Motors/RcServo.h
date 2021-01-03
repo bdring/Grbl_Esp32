@@ -38,6 +38,8 @@ namespace Motors {
 
         void _write_pwm(uint32_t duty);
 
+        bool _has_errors;
+
     protected:
         void config_message() override;
 

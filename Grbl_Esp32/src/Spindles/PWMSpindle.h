@@ -62,7 +62,7 @@ namespace Spindles {
         //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
         virtual void set_dir_pin(bool Clockwise);
-        virtual void set_output(uint32_t duty);
+        virtual void set_output(uint32_t duty, bool always = true);
         virtual void set_enable_pin(bool enable_pin);
         virtual void deinit();
 

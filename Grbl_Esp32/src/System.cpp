@@ -200,11 +200,7 @@ void IRAM_ATTR isr_control_inputs(void*) {
 
 // Returns if safety door is ajar(T) or closed(F), based on pin state.
 uint8_t system_check_safety_door_ajar() {
-#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
     return system_control_get_state().bit.safetyDoor;
-#else
-    return false;  // Input pin not enabled, so just return that it's closed.
-#endif
 }
 
 void system_flag_wco_change() {

@@ -49,13 +49,6 @@ Some features should not be changed. See notes below.
 // Note: HOMING_CYCLES are now settings
 #define SUPPORT_TASK_CORE  1 // Reference: CONFIG_ARDUINO_RUNNING_CORE = 1
 
-// Inverts pin logic of the control command pins based on a mask. This essentially means you can use
-// normally-closed switches on the specified pins, rather than the default normally-open switches.
-// The mask order is ...
-// Macro3 | Macro2 | Macro 1| Macr0 |Cycle Start | Feed Hold | Reset | Safety Door
-// For example B1101 will invert the function of the Reset pin.
-#define INVERT_CONTROL_PIN_MASK B00001111
-
 // #define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
 
@@ -238,18 +231,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // coordinates through Grbl '$#' print parameters.
 #define MESSAGE_PROBE_COORDINATES  // Enabled by default. Comment to disable.
 
-// Enables a second coolant control pin via the mist coolant GCode command M7 on the Arduino Uno
-// analog pin 4. Only use this option if you require a second coolant control pin.
-// NOTE: The M8 flood coolant control pin on analog pin 3 will still be functional regardless.
-// ESP32 NOTE! This is here for reference only. You enable both M7 and M8 by assigning them a GPIO Pin
-// in the machine definition file.
-//#define ENABLE_M7 // Don't uncomment...see above!
-
-// This option causes the feed hold input to act as a safety door switch. A safety door, when triggered,
-// immediately forces a feed hold and then safely de-energizes the machine. Resuming is blocked until
-// the safety door is re-engaged. When it is, Grbl will re-energize the machine and then resume on the
-// previous tool path, as if nothing happened.
-#define ENABLE_SAFETY_DOOR_INPUT_PIN  // ESP32 Leave this enabled for now .. code for undefined not ready
 
 // After the safety door switch has been toggled and restored, this setting sets the power-up delay
 // between restoring the spindle and coolant and resuming the cycle.
@@ -348,23 +329,6 @@ const int ACCELERATION_TICKS_PER_SECOND = 100;
 // at 16MHz is used.
 // NOTE: For now disabled, will enable if flash space permits.
 // #define MAX_STEP_RATE_HZ 30000 // Hz
-
-// By default, Grbl sets all input pins to normal-high operation with their internal pull-up resistors
-// enabled. This simplifies the wiring for users by requiring only a switch connected to ground,
-// although its recommended that users take the extra step of wiring in low-pass filter to reduce
-// electrical noise detected by the pin. If the user inverts the pin in Grbl settings, this just flips
-// which high or low reading indicates an active signal. In normal operation, this means the user
-// needs to connect a normal-open switch, but if inverted, this means the user should connect a
-// normal-closed switch.
-// The following options disable the internal pull-up resistors, sets the pins to a normal-low
-// operation, and switches must be now connect to Vcc instead of ground. This also flips the meaning
-// of the invert pin Grbl setting, where an inverted setting now means the user should connect a
-// normal-open switch and vice versa.
-// NOTE: All pins associated with the feature are disabled, i.e. XYZ limit pins, not individual axes.
-// WARNING: When the pull-ups are disabled, this requires additional wiring with pull-down resistors!
-//#define DISABLE_LIMIT_PIN_PULL_UP
-//#define DISABLE_PROBE_PIN_PULL_UP
-//#define DISABLE_CONTROL_PIN_PULL_UP
 
 // Sets which axis the tool length offset is applied. Assumes the spindle is always parallel with
 // the selected axis with the tool oriented toward the negative direction. In other words, a positive
@@ -514,11 +478,6 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 #define ENABLE_RESTORE_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
 #define ENABLE_RESTORE_CLEAR_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
 
-// Additional settings have been added to the original set that you see with the $$ command
-// Some senders may not be able to parse anything different from the original set
-// You can still set these like $33=5000, but you cannot read them back.
-// Default is off to limit support issues...you can enable here or in your machine definition file
-// #define SHOW_EXTENDED_SETTINGS
 
 // Writing to non-volatile storage (NVS) can take a long time and interfere with timely instruction
 // execution, causing problems for the stepper ISRs and serial comm ISRs and subsequent loss of
