@@ -27,7 +27,6 @@
 
 #define USE_KINEMATICS				// there are kinematic equations for this machine
 #define USE_FWD_KINEMATICS          // report in cartesian
-#define USE_MACHINE_INIT			// There is some custom initialization for this machine
 	
 // ================== Delta Geometry ===========================
 
@@ -47,13 +46,21 @@
 
 // =================== Machine Hardware Definition =============
 
+#define X_MOTOR_TYPE              MotorType::Dynamixel
+
 #define DYNAMIXEL_TXD           "gpio.4"
 #define DYNAMIXEL_RXD           "gpio.13"
 #define DYNAMIXEL_RTS           "gpio.17"
 
-#define X_DYNAMIXEL_ID          1 // protocol ID
-#define Y_DYNAMIXEL_ID          2 // protocol ID
-#define Z_DYNAMIXEL_ID          3 // protocol ID
+#define X_MOTOR_TYPE              MotorType::Dynamixel
+#define Y_MOTOR_TYPE              MotorType::Dynamixel
+#define Z_MOTOR_TYPE              MotorType::Dynamixel
+
+/*
+$X/Motor/Address=1
+$Y/Motor/Address=2
+$Z/Motor/Address=3
+*/
 
 // limit servo to motion range
 #define DXL_COUNTS              4096

@@ -56,9 +56,8 @@ void grbl_init() {
         system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
 
-#ifdef USE_MACHINE_INIT
-        machine_init();  // user supplied function for special initialization
-#endif
+        machine_init();  // weak definition in Grbl.cpp does nothing
+
         // Initialize system state.
 #ifdef FORCE_INITIALIZATION_ALARM
         // Force Grbl into an ALARM state upon a power-cycle or hard reset.
@@ -148,6 +147,8 @@ void run_once() {
         throw;
     }
 }
+
+void __attribute__((weak)) machine_init() {}
 
 /*
   setup() and loop() in the Arduino .ino implements this control flow:
