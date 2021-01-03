@@ -67,7 +67,7 @@ boolean openFile(fs::FS& fs, const char* path) {
         //report_status_message(Error::SdFailedRead, CLIENT_SERIAL);
         return false;
     }
-    set_sd_state(SDCARD_BUSY_PRINTING);
+    set_sd_state(SDState::BusyPrinting);
     SD_ready_next          = false;  // this will get set to true when Grbl issues "ok" message
     sd_current_line_number = 0;
     return true;
@@ -77,7 +77,7 @@ boolean closeFile() {
     if (!myFile) {
         return false;
     }
-    set_sd_state(SDCARD_IDLE);
+    set_sd_state(SDState::Idle);
     SD_ready_next          = false;
     sd_current_line_number = 0;
     myFile.close();
@@ -125,7 +125,7 @@ uint32_t sd_get_current_line_number() {
     return sd_current_line_number;
 }
 
-uint8_t sd_state = SDCARD_IDLE;
+SDState sd_state = SDState::Idle;
 
 uint8_t get_sd_state(bool refresh) {
     // Before we use the SD library, we *must* make sure SPI is properly initialized. Re-initialization 
@@ -146,7 +146,7 @@ uint8_t get_sd_state(bool refresh) {
     }
 
     //if busy doing something return state
-    if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE))) {
+    if (!((sd_state == SDState::NotPresent) || (sd_state == SDState::Idle))) {
         return sd_state;
     }
     if (!refresh) {
@@ -155,19 +155,19 @@ uint8_t get_sd_state(bool refresh) {
 
     //SD is idle or not detected, let see if still the case
     SD.end();
-    sd_state = SDCARD_NOT_PRESENT;
+    sd_state = SDState::NotPresent;
     //using default value for speed ? should be parameter
     //refresh content if card was removed
     if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
         if (SD.cardSize() > 0) {
-            sd_state = SDCARD_IDLE;
+            sd_state = SDState::Idle;
         }
     }
     return sd_state;
 }
 
-uint8_t set_sd_state(uint8_t flag) {
-    sd_state = flag;
+SDState set_sd_state(SDState state) {
+    sd_state = state;
     return sd_state;
 }
 

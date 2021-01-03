@@ -159,7 +159,7 @@ void serialCheckTask(void* pvParameters) {
             if (is_realtime_command(data)) {
                 execute_realtime_command(static_cast<Cmd>(data), client);
             } else {
-                if (get_sd_state(false) == SDCARD_IDLE) {
+                if (get_sd_state(false) < SDState::Busy) {
                     vTaskEnterCritical(&myMutex);
                     client_buffer[client].write(data);
                     vTaskExitCritical(&myMutex);

@@ -485,7 +485,7 @@ void mc_reset() {
         sys_analog_all_off();
 #ifdef ENABLE_SD_CARD
         // do we need to stop a running SD job?
-        if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+        if (get_sd_state(false) == SDState::BusyPrinting) {
             //Report print stopped
             report_feedback_message(Message::SdFileQuit);
             closeFile();

@@ -70,6 +70,10 @@ namespace UserOutput {
 
         uint32_t apb_frequency = getApbFrequency();
 
+        // determine the highest resolution (number of precision bits) allowed by frequency
+
+        uint32_t apb_frequency = getApbFrequency();
+
         // increase the precision (bits) until it exceeds allow by frequency the max or is 16
         _resolution_bits = 0;
         while ((1 << _resolution_bits) < (apb_frequency / _pwm_frequency) && _resolution_bits <= 16) {
@@ -104,8 +108,6 @@ namespace UserOutput {
 
     // returns true if able to set value
     bool AnalogOutput::set_level(uint32_t numerator) {
-        float duty;
-
         // look for errors, but ignore if turning off to prevent mask turn off from generating errors
         if (_pin == Pin::UNDEFINED) {
             return false;
@@ -122,7 +124,7 @@ namespace UserOutput {
 
         _current_value = numerator;
 
-        ledcWrite(_pwm_channel, duty);
+        ledcWrite(_pwm_channel, numerator);
 
         return true;
     }

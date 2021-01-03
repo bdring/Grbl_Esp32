@@ -577,12 +577,6 @@ Error do_command_or_setting(const char* key, char* value, WebUI::AuthenticationL
     Error retval = Error::InvalidStatement;
     if (!value) {
         auto lcKey = String(key);
-        // We allow the key string to begin with *, which we remove.
-        // This lets us look at X axis settings with $*x.
-        // $x by itself is the disable alarm lock command
-        if (lcKey.startsWith("*")) {
-            lcKey.remove(0, 1);
-        }
         lcKey.toLowerCase();
         bool found = false;
         for (Setting* s = Setting::List; s; s = s->next()) {
