@@ -94,8 +94,7 @@ void run_once();
 
 void machine_init();  // weak definition in Grbl.cpp
 
-// Called if USE_CUSTOM_HOMING is defined
-bool user_defined_homing(uint8_t cycle_mask);
+bool user_defined_homing(uint8_t cycle_mask);  // weak definition in Limits.cpp
 
 // Called if USE_KINEMATICS is defined
 
@@ -104,15 +103,13 @@ bool    kinematics_pre_homing(uint8_t cycle_mask);
 void    kinematics_post_homing();
 uint8_t kinematic_limits_check(float* target);
 
-// Called if USE_FWD_KINEMATICS is defined
-void inverse_kinematics(float* position);  // used to return a converted value
-void forward_kinematics(float* position);
+void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);  // weak definition in MotionControl.cpp
+void forward_kinematics(float* position);                                            // weak definition in Report.cpp
 
 // Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined
 void user_defined_macro(uint8_t index);
 
-// Called if USE_M30 is defined
-void user_m30();
+void user_m30();  // weak definition in MotionControl.cpp
 
 // Called if USE_TOOL_CHANGE is defined
 void user_tool_change(uint8_t new_tool);

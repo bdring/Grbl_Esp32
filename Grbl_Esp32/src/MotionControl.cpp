@@ -35,11 +35,7 @@ SquaringMode ganged_mode = SquaringMode::Dual;
 
 // this allows kinematics to be used.
 void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
-#ifndef USE_KINEMATICS
-    mc_line(target, pl_data);
-#else  // else use kinematics
     inverse_kinematics(target, pl_data, position);
-#endif
 }
 
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
@@ -117,14 +113,13 @@ void mc_arc(float*            target,
     float rt_axis1     = target[axis_1] - center_axis1;
 
     float previous_position[MAX_N_AXIS] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-#ifdef USE_KINEMATICS
 
     uint16_t n;
     auto     n_axis = number_axis->get();
     for (n = 0; n < n_axis; n++) {
         previous_position[n] = position[n];
     }
-#endif
+
     // CCW angle between position and target from circle center. Only one atan2() trig computation required.
     float angular_travel = atan2(r_axis0 * rt_axis1 - r_axis1 * rt_axis0, r_axis0 * rt_axis0 + r_axis1 * rt_axis1);
     if (is_clockwise_arc) {  // Correct atan2 output per direction
