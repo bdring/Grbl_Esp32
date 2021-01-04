@@ -59,8 +59,8 @@ EnumSetting* spindle_type;
 EnumSetting*  motor_types[MAX_N_AXIS][2];
 FloatSetting* motor_rsense[MAX_N_AXIS][2];
 IntSetting*   motor_address[MAX_N_AXIS][2];
-FloatSetting* rc_servo_cal_min[MAX_N_AXIS][2];
-FloatSetting* rc_servo_cal_max[MAX_N_AXIS][2];
+FloatSetting* motor_cal_min[MAX_N_AXIS][2];
+FloatSetting* motor_cal_max[MAX_N_AXIS][2];
 
 enum_opt_t spindleTypes = {
     // clang-format off
@@ -372,38 +372,14 @@ void make_settings() {
     motor_types[C_AXIS][1] =
         new EnumSetting(NULL, EXTENDED, WG, NULL, "C2/Motor/Type", static_cast<int8_t>(C2_MOTOR_TYPE), &motorTypes, NULL);
 
-    // motor_rsense[X_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "X/Driver/RSense", X_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[X_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "X2/Driver/RSense", X2_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[Y_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Y/Driver/RSense", Y_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[Y_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Y2/Driver/RSense", Y2_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[Z_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Z/Driver/RSense", Z_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[Z_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Z2/Driver/RSense", Z2_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[A_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "A/Driver/RSense", A_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[A_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "A2/Driver/RSense", A2_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[B_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "B/Driver/RSense", B_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[B_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "B2/Driver/RSense", B2_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[C_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "C/Driver/RSense", C_DRIVER_RSENSE, 0.0, 1.0, NULL);
-    // motor_rsense[C_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "C2/Driver/RSense", C2_DRIVER_RSENSE, 0.0, 1.0, NULL);
-
-    // rc_servo_cal_min[X_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "X/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_max[X_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "X2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_min[Y_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Y/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_max[Y_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Y2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_min[Z_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "Z/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_max[Z_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "Z2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_min[A_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "A/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_max[A_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "A2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_min[B_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "B/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_max[B_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "B2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_min[C_AXIS][0] = new FloatSetting(EXTENDED, WG, NULL, "C/RcServo/Cal/Min", 1.0, 0.5, 2.0);
-    // rc_servo_cal_max[C_AXIS][1] = new FloatSetting(EXTENDED, WG, NULL, "C2/RcServo/Cal/Min", 1.0, 0.5, 2.0);
+    
 
     for (int axis = X_AXIS; axis < MAX_N_AXIS; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            rc_servo_cal_min[axis][gang_index] =
-                new FloatSetting(EXTENDED, WG, NULL, makename(axis, gang_index, "RcServo/Cal/Min"), 1.0, 0.5, 2.0);
-            rc_servo_cal_max[axis][gang_index] =
-                new FloatSetting(EXTENDED, WG, NULL, makename(axis, gang_index, "RcServo/Cal/Max"), 1.0, 0.5, 2.0);
+            motor_cal_min[axis][gang_index] =
+                new FloatSetting(EXTENDED, WG, NULL, makename(axis, gang_index, "Motor/Cal/Min"), 1.0, 0.01, 2.0);
+            motor_cal_max[axis][gang_index] =
+                new FloatSetting(EXTENDED, WG, NULL, makename(axis, gang_index, "Motor/Cal/Max"), 1.0, 0.01, 2.0);
             motor_rsense[axis][gang_index] =
                 new FloatSetting(EXTENDED, WG, NULL, makename(axis, gang_index, "Driver/RSense"), 0.11, 0.0, 1.0, NULL);
             motor_address[axis][gang_index] = new IntSetting(EXTENDED, WG, NULL, makename(axis, gang_index, "Motor/Address"), 0, 0, 200);

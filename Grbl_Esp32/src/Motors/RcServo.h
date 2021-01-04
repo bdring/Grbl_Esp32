@@ -56,7 +56,7 @@ namespace Motors {
 
         bool _disabled;
 
-        FloatSetting* rc_servo_cal_min;
+        FloatSetting* rs_servo_cal_min;
         FloatSetting* rc_servo_cal_max;
     };
 }

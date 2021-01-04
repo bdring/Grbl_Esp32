@@ -53,8 +53,8 @@ extern EnumSetting* spindle_type;
 extern EnumSetting*  motor_types[MAX_N_AXIS][2];
 extern FloatSetting* motor_rsense[MAX_N_AXIS][2];
 extern IntSetting*   motor_address[MAX_N_AXIS][2];
-extern FloatSetting* rc_servo_cal_min[MAX_N_AXIS][2];
-extern FloatSetting* rc_servo_cal_max[MAX_N_AXIS][2];
+extern FloatSetting* motor_cal_min[MAX_N_AXIS][2];
+extern FloatSetting* motor_cal_max[MAX_N_AXIS][2];
 
 extern EnumSetting*     trinamic_run_mode;
 extern EnumSetting*     trinamic_homing_mode;

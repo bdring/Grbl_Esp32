@@ -26,6 +26,8 @@
 
 #include "Dynamixel2.h"
 
+const int DXL_COUNT_MAX = 4095;
+
 namespace Motors {
     bool    Motors::Dynamixel2::uart_ready         = false;
     uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
@@ -91,7 +93,7 @@ namespace Motors {
                                "%s Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
                                reportAxisNameMsg(_axis_index, _dual_axis_index),
                                _id,
-                               _dxl_rx_message[11]);
+                               _dxl_rx_message[11]);                
             } else {
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
@@ -112,8 +114,8 @@ namespace Motors {
     }
 
     void Dynamixel2::read_settings() {
-        _dxl_count_min = DXL_COUNT_MIN;
-        _dxl_count_max = DXL_COUNT_MAX;
+        _dxl_count_min = motor_cal_min[_axis_index][_dual_axis_index]->get() * DXL_COUNT_MAX;
+        _dxl_count_max = motor_cal_max[_axis_index][_dual_axis_index]->get() * DXL_COUNT_MAX;
 
         if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {  // normal direction
             swap(_dxl_count_min, _dxl_count_min);
@@ -166,7 +168,7 @@ namespace Motors {
 
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "Dynamixel UART TX:%d RX:%d RTS:%d",
+                       "Dynamixel UART TX:%s RX:%s RTS:%s",
                        _tx_pin.name().c_str(),
                        _rx_pin.name().c_str(),
                        _rts_pin.name().c_str());
@@ -238,7 +240,7 @@ namespace Motors {
             int32_t pos_min_steps = lround(limitsMinPosition(_axis_index) * axis_settings[_axis_index]->steps_per_mm->get());
             int32_t pos_max_steps = lround(limitsMaxPosition(_axis_index) * axis_settings[_axis_index]->steps_per_mm->get());
 
-            int32_t temp = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
+            int32_t temp = map(dxl_position, _dxl_count_min, _dxl_count_max, pos_min_steps, pos_max_steps);
 
             sys_position[_axis_index] = temp;
 
@@ -366,8 +368,8 @@ namespace Motors {
                     //determine the location of the axis
                     float target = system_convert_axis_steps_to_mpos(sys_position, axis);  // get the axis machine position in mm
 
-                    dxl_count_min = DXL_COUNT_MIN;
-                    dxl_count_max = DXL_COUNT_MAX;
+                    dxl_count_min = motor_cal_min[axis][gang_index]->get() * DXL_COUNT_MAX;
+                    dxl_count_max = motor_cal_max[axis][gang_index]->get() * DXL_COUNT_MAX;
 
                     if (bitnum_istrue(dir_invert_mask->get(), axis)) {  // normal direction
                         swap(dxl_count_min, dxl_count_max);

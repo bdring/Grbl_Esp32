@@ -200,14 +200,14 @@ void mc_arc(float*            target,
             position[axis_0] = center_axis0 + r_axis0;
             position[axis_1] = center_axis1 + r_axis1;
             position[axis_linear] += linear_per_segment;
-#ifdef USE_KINEMATICS
+//#ifdef USE_KINEMATICS
             mc_line_kins(position, pl_data, previous_position);
             previous_position[axis_0]      = position[axis_0];
             previous_position[axis_1]      = position[axis_1];
             previous_position[axis_linear] = position[axis_linear];
-#else
-            mc_line(position, pl_data);
-#endif
+// #else
+//             mc_line(position, pl_data);
+// #endif
             // Bail mid-circle on system abort. Runtime command check already performed by mc_line.
             if (sys.abort) {
                 return;
@@ -259,18 +259,17 @@ static bool axis_is_squared(uint8_t axis_mask) {
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
 void mc_homing_cycle(uint8_t cycle_mask) {
     bool no_cycles_defined = true;
-#ifdef USE_CUSTOM_HOMING
+
     if (user_defined_homing(cycle_mask)) {
         return;
     }
-#endif
+
     // This give kinematics a chance to do something before normal homing
     // if it returns true, the homing is canceled.
-#ifdef USE_KINEMATICS
     if (kinematics_pre_homing(cycle_mask)) {
         return;
     }
-#endif
+
     // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
     // with machines with limits wired on both ends of travel to one limit pin.
     // TODO: Move the pin-specific LIMIT_PIN call to Limits.cpp as a function.
@@ -340,10 +339,10 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     // Sync gcode parser and planner positions to homed position.
     gc_sync_position();
     plan_sync_position();
-#ifdef USE_KINEMATICS
+
     // This give kinematics a chance to do something after normal homing
     kinematics_post_homing();
-#endif
+
     // If hard limits feature enabled, re-enable hard limits pin change register after homing cycle.
     limits_init();
 }
@@ -506,3 +505,15 @@ void mc_reset() {
         stepping->reset();
     }
 }
+
+bool __attribute__((weak)) kinematics_pre_homing(uint8_t cycle_mask) {
+    return false;
+}
+
+void __attribute__((weak)) kinematics_post_homing() {}  // weak version does nothing
+
+void __attribute__((weak)) inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
+    mc_line(target, pl_data);
+}
+
+void __attribute__((weak)) user_m30() {}

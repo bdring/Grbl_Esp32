@@ -33,18 +33,7 @@
 namespace Motors {
     RcServo::RcServo(uint8_t axis_index, Pin pwm_pin) : Servo(axis_index), _pwm_pin(pwm_pin) {}
 
-    void RcServo::init() {
-        // // TODO FIXME: This is leaking if init() is called multiple times.
-        // char* setting_cal_min = (char*)malloc(20);
-        // snprintf(setting_cal_min, 20, "%c/RcServo/Cal/Min", report_get_axis_letter(_axis_index));
-        // rc_servo_cal_min = new FloatSetting(EXTENDED, WG, NULL, setting_cal_min, 1.0, 0.5, 2.0);
-
-        // char* setting_cal_max = (char*)malloc(20);
-        // snprintf(setting_cal_max, 20, "%c/RcServo/Cal/Max", report_get_axis_letter(_axis_index));
-        // rc_servo_cal_max = new FloatSetting(EXTENDED, WG, NULL, setting_cal_max, 1.0, 0.5, 2.0);
-
-        // rc_servo_cal_min->load();
-        // rc_servo_cal_max->load();
+    void RcServo::init() {        
 
         if (_pwm_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(
@@ -56,9 +45,6 @@ namespace Motors {
         _has_errors = false;
 
         auto pwmNative = _pwm_pin.getNative(Pin::Capabilities::PWM);
-
-        rc_servo_cal_min->load();
-        rc_servo_cal_max->load();
 
         read_settings();
         _channel_num = sys_get_next_PWM_chan_num();
@@ -149,8 +135,8 @@ namespace Motors {
     }
 
     void RcServo::read_settings() {
-        _pwm_pulse_min = SERVO_MIN_PULSE * rc_servo_cal_min->get();
-        _pwm_pulse_max = SERVO_MAX_PULSE * rc_servo_cal_max->get();
+        _pwm_pulse_min = SERVO_MIN_PULSE * motor_cal_min[_axis_index][_dual_axis_index]->get();
+        _pwm_pulse_max = SERVO_MAX_PULSE * motor_cal_max[_axis_index][_dual_axis_index]->get();
 
         // the ActiveLow attribute is used to invert the direction of the RcServo
         if (_pwm_pin.attributes().has(Pins::PinAttributes::ActiveLow)) {

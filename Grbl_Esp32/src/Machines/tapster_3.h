@@ -63,17 +63,27 @@ $Z/Motor/Address=3
 */
 
 // limit servo to motion range
+/*
 #define DXL_COUNTS              4096
 #define DXL_COUNT_PER_RADIAN    652   // (DXL_COUNTS / 2.0 * M_PI)
 
 #define DXL_CENTER              2015 // (DXL_COUNTS / 2) - (ARM_INTERNAL_ANGLE * DXL_COUNT_PER_RADIAN)
 
-#undef DXL_COUNT_MIN
 #define DXL_COUNT_MIN           (DXL_CENTER + (MAX_NEGATIVE_ANGLE * DXL_COUNT_PER_RADIAN))
-
-#undef DXL_COUNT_MAX
 #define DXL_COUNT_MAX           (DXL_CENTER + (MAX_POSITIVE_ANGLE * DXL_COUNT_PER_RADIAN))
 
+
+
+*/
+/*
+$X/RcServo/Cal/Min=0.325
+$Y/RcServo/Cal/Min=0.325
+$Z/RcServo/Cal/Min=0.325
+
+$X/RcServo/Cal/Max=0.742
+$Y/RcServo/Cal/Max=0.742
+$Z/RcServo/Cal/Max=0.742
+*/
 #define SERVO_TIMER_INTERVAL 50
 
 #define USER_DIGITAL_PIN_0      "gpio.25"

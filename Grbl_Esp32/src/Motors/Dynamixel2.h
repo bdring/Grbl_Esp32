@@ -56,14 +56,6 @@ const int DXL_PRESENT_POSITION = 132;  // 0x84
 // control modes
 const int DXL_CONTROL_MODE_POSITION = 3;
 
-#ifndef DXL_COUNT_MIN
-#    define DXL_COUNT_MIN 1024
-#endif
-
-#ifndef DXL_COUNT_MAX
-#    define DXL_COUNT_MAX 3072
-#endif
-
 #ifndef DYNAMIXEL_FULL_MOVE_TIME
 #    define DYNAMIXEL_FULL_MOVE_TIME 1000  // time in milliseconds to do a full DYNAMIXEL_FULL_MOVE_TIME
 #endif
@@ -85,6 +77,8 @@ namespace Motors {
 
         static bool    uart_ready;
         static uint8_t ids[MAX_N_AXIS][2];
+
+        static float _dxl_resolution;
 
     protected:
         void config_message() override;
@@ -111,6 +105,7 @@ namespace Motors {
 
         float _homing_position;
 
+        
         float _dxl_count_min;
         float _dxl_count_max;
 
