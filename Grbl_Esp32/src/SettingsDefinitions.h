@@ -81,6 +81,9 @@ extern PinSetting* DynamixelTXDPin;  // DYNAMIXEL_TXD
 extern PinSetting* DynamixelRXDPin;  // DYNAMIXEL_RXD
 extern PinSetting* DynamixelRTSPin;  // DYNAMIXEL_RTS
 
+extern PinSetting* TmcUartTXDPin;  // TMC_UART_TXD
+extern PinSetting* TmcUartRXDPin;  // TMC_UART_RXD
+
 extern PinSetting* UserDigitalPin[4];
 extern PinSetting* UserAnalogPin[4];
 

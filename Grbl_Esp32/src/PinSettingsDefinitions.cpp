@@ -97,6 +97,16 @@ const char* DYNAMIXEL_RXD_DEFAULT = DYNAMIXEL_RXD;
 #endif
 const char* DYNAMIXEL_RTS_DEFAULT = DYNAMIXEL_RTS;
 
+#ifndef TMC_UART_TXD
+#    define TMC_UART_TXD  UNDEFINED_PIN
+#endif
+const char* TMC_UART_TXD_DEFAULT = TMC_UART_TXD;
+
+#ifndef TMC_UART_RXD
+#    define TMC_UART_RXD UNDEFINED_PIN
+#endif
+const char* TMC_UART_RXD_DEFAULT = TMC_UART_RXD;
+
 #ifndef USER_DIGITAL_PIN_0
 #    define USER_DIGITAL_PIN_0 UNDEFINED_PIN
 #endif
@@ -752,6 +762,9 @@ PinSetting* DynamixelTXDPin;  // DYNAMIXEL_TXD
 PinSetting* DynamixelRXDPin;  // DYNAMIXEL_RXD
 PinSetting* DynamixelRTSPin;  // DYNAMIXEL_RTS
 
+PinSetting* TmcUartTXDPin;  // TMC_UART_TX
+PinSetting* TmcUartRXDPin;  // TMC_UART_RX
+
 PinSetting* UserDigitalPin[4];
 PinSetting* UserAnalogPin[4];
 
@@ -839,6 +852,10 @@ void make_pin_settings() {
     DynamixelTXDPin = new PinSetting("Dynamixel/TXD/Pin", DYNAMIXEL_TXD_DEFAULT);
     DynamixelRXDPin = new PinSetting("Dynamixel/RXD/Pin", DYNAMIXEL_RXD_DEFAULT);
     DynamixelRTSPin = new PinSetting("Dynamixel/RTS/Pin", DYNAMIXEL_RTS_DEFAULT);
+
+    // Trinamic UART Pins
+    TmcUartTXDPin = new PinSetting("TrinamicUart/TXD/Pin", TMC_UART_TXD_DEFAULT);
+    TmcUartRXDPin = new PinSetting("TrinamicUart/RXD/Pin", TMC_UART_RXD_DEFAULT);
 
     // User pins:
     UserDigitalPin[0] = new PinSetting("UserDigital/0/Pin", USER_DIGITAL_PIN_0_DEFAULT);
@@ -956,8 +973,6 @@ void make_pin_settings() {
     ServoPins[B_AXIS][1] = new PinSetting("B2/RcServo/Pin", B2_RCSERVO_PIN_DEFAULT);
     ServoPins[C_AXIS][0] = new PinSetting("C/RcServo/Pin", C_RCSERVO_PIN_DEFAULT);
     ServoPins[C_AXIS][1] = new PinSetting("C2/RcServo/Pin", C2_RCSERVO_PIN_DEFAULT);
-
-
 
     // XXX Move to StandardStepper class or StepStick class when it appears
     StepStickMS3[X_AXIS][0] = new PinSetting("X/StepStick/MS3/Pin", X_STEPPER_MS3_DEFAULT);

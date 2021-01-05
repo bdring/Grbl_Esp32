@@ -98,6 +98,11 @@ namespace Motors {
         TMC2208Stepper*  tmcstepper;  // all other driver types are subclasses of this one
         TrinamicUartMode _homing_mode;
         MotorType        _driver_part_number;  // example: use 2209 for TMC2209
+
+        Pin _txd_pin;
+        Pin _rxd_pin;
+        Pin _rts_pin;
+
         float            _r_sense;
         bool             _has_errors;
         bool             _disabled;

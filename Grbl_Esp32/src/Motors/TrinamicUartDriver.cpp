@@ -36,10 +36,29 @@ namespace Motors {
         _r_sense            = r_sense;
         this->addr          = addr;
 
-        uart_set_pin(TMC_UART, TMC_UART_TX, TMC_UART_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-        tmc_serial.begin(115200, SERIAL_8N1, TMC_UART_RX, TMC_UART_TX);
+        _txd_pin = TmcUartTXDPin->get();
+        if (_txd_pin == Pin::UNDEFINED) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined Trinamic TXD pin");
+            _has_errors = true;
+        }
+
+        _rxd_pin = TmcUartRXDPin->get();
+        if (_rxd_pin == Pin::UNDEFINED) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined Trinamic RXD pin");
+            _has_errors = true;
+        }
+
+        if (_has_errors)
+            return;
+
+        auto txd = _txd_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
+        auto rxd = _rxd_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Input);
+
+        uart_set_pin(TMC_UART, txd, rxd, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+        tmc_serial.begin(115200, SERIAL_8N1, rxd, txd);
         tmc_serial.setRxBufferSize(128);
         hw_serial_init();
+        
     }
 
     void TrinamicUartDriver::hw_serial_init() {
@@ -81,15 +100,15 @@ namespace Motors {
     void TrinamicUartDriver::config_message() {  //TODO: The RX/TX pin could be added to the msg.
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s motor Trinamic TMC%d Step:%s Dir:%s Disable:%s UART%d Rx:%d Tx:%d Addr:%d R:%0.3f %s",
+                       "%s motor Trinamic TMC%d Step:%s Dir:%s Disable:%s UART%d Rx:%s Tx:%s Addr:%d R:%0.3f %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _driver_part_number,
                        _step_pin.name().c_str(),
                        _dir_pin.name().c_str(),
                        _disable_pin.name().c_str(),
                        TMC_UART,
-                       int(TMC_UART_RX),
-                       int(TMC_UART_TX),
+                       _rxd_pin.name().c_str(),
+                       _txd_pin.name().c_str(),
                        this->addr,
                        _r_sense,
                        reportAxisLimitsMsg(_axis_index));
@@ -344,7 +363,7 @@ namespace Motors {
         if (status.ot || status.otpw) {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
-                           "%s Driver temp Warning:%s Fault:%s",
+                           "%s Driver temp warning:%s Fault:%s",
                            reportAxisNameMsg(_axis_index, _dual_axis_index),
                            status.otpw ? "Y" : "N",
                            status.ot ? "Y" : "N");
