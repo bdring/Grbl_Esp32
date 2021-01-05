@@ -76,13 +76,13 @@ $Z/Motor/Address=3
 
 */
 /*
-$X/RcServo/Cal/Min=0.325
-$Y/RcServo/Cal/Min=0.325
-$Z/RcServo/Cal/Min=0.325
+$X/Motor/Cal/Min=0.325
+$Y/Motor/Cal/Min=0.325
+$Z/Motor/Cal/Min=0.325
 
-$X/RcServo/Cal/Max=0.742
-$Y/RcServo/Cal/Max=0.742
-$Z/RcServo/Cal/Max=0.742
+$X/Motor/Cal/Max=0.742
+$Y/Motor/Cal/Max=0.742
+$Z/Motor/Cal/Max=0.742
 */
 #define SERVO_TIMER_INTERVAL 50
 

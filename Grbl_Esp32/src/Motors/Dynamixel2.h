@@ -47,7 +47,10 @@ const int DXL_WRITE      = 0x03;
 const int DXL_SYNC_WRITE = 0x83;
 
 // protocol 2 register locations
+const int DXL_DRIVE_MODE       = 10;
 const int DXL_OPERATING_MODE   = 11;
+const int DXL_MAX_POS_LIMIT    = 48;
+const int DXL_MIN_POS_LIMIT    = 52;
 const int DXL_ADDR_TORQUE_EN   = 64;
 const int DXL_ADDR_LED_ON      = 65;
 const int DXL_GOAL_POSITION    = 116;  // 0x74
@@ -95,6 +98,9 @@ namespace Motors {
         void     dxl_read(uint16_t address, uint16_t data_len);
         void     dxl_write(uint16_t address, uint8_t paramCount, ...);
         void     dxl_goal_position(int32_t position);  // set one motor
+        void     set_drive_mode(uint8_t mode);
+        void     set_max_pos(uint16_t max);
+        void     set_min_pos(uint16_t min);
         void     set_operating_mode(uint8_t mode);
         void     LED_on(bool on);
 
@@ -105,7 +111,6 @@ namespace Motors {
 
         float _homing_position;
 
-        
         float _dxl_count_min;
         float _dxl_count_max;
 

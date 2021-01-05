@@ -41,7 +41,7 @@ namespace Motors {
 
     void Servo::startUpdateTask() {        
         if (this == List) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Servo Update Task Started");
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Servo update task started. Interval:%dms", SERVO_TIMER_INTERVAL);
             xTaskCreatePinnedToCore(updateTask,         // task
                                     "servoUpdateTask",  // name for task
                                     4096,               // size of task stack

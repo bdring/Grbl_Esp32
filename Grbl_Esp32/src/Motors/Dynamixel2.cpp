@@ -11,6 +11,7 @@
     2020 -	Bart Dring
 
     https://emanual.robotis.com/docs/en/dxl/protocol2/
+    https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/
 
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -56,6 +57,10 @@ namespace Motors {
 
         set_disable(true);                              // turn off torque so we can set EEPROM registers
         set_operating_mode(DXL_CONTROL_MODE_POSITION);  // set it in the right control mode
+        set_drive_mode(bit_istrue(_axis_index, dir_invert_mask->get()));
+
+        //set_max_pos(_dxl_count_max);
+        //set_min_pos(_dxl_count_min);
 
         // servos will blink in axis order for reference
         LED_on(true);
@@ -93,7 +98,7 @@ namespace Motors {
                                "%s Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
                                reportAxisNameMsg(_axis_index, _dual_axis_index),
                                _id,
-                               _dxl_rx_message[11]);                
+                               _dxl_rx_message[11]);
             } else {
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
@@ -114,12 +119,24 @@ namespace Motors {
     }
 
     void Dynamixel2::read_settings() {
+        if (motor_cal_min[_axis_index][_dual_axis_index]->get() > 1) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Dynamixel servo Motor/Cal/Min greater than 1",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index));
+            _has_errors = true;
+        }
+
+        if (motor_cal_min[_axis_index][_dual_axis_index]->get() > 1) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Dynamixel servo Motor/Cal/Max greater than 1",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index));
+            _has_errors = true;
+        }
+
         _dxl_count_min = motor_cal_min[_axis_index][_dual_axis_index]->get() * DXL_COUNT_MAX;
         _dxl_count_max = motor_cal_max[_axis_index][_dual_axis_index]->get() * DXL_COUNT_MAX;
-
-        if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {  // normal direction
-            swap(_dxl_count_min, _dxl_count_min);
-        }
     }
 
     // sets the PWM to zero. This allows most servos to be manually moved
@@ -134,6 +151,15 @@ namespace Motors {
 
         dxl_write(DXL_ADDR_TORQUE_EN, param_count, !_disabled);
     }
+
+    void Dynamixel2::set_drive_mode(uint8_t mode) {
+        uint8_t param_count = 1;
+        dxl_write(DXL_DRIVE_MODE, param_count, mode);
+    }
+
+    void Dynamixel2::set_max_pos(uint16_t val) { dxl_write(DXL_MAX_POS_LIMIT, 4, (val & 0xFF), ((val & 0xFF00) >> 8), 0, 0); }
+
+    void Dynamixel2::set_min_pos(uint16_t val) { dxl_write(DXL_MIN_POS_LIMIT, 4, (val & 0xFF), ((val & 0xFF00) >> 8), 0, 0); }
 
     void Dynamixel2::set_operating_mode(uint8_t mode) {
         uint8_t param_count = 1;
@@ -209,7 +235,6 @@ namespace Motors {
             axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
 
         set_disable(false);
-        set_location();  // force the PWM to update now
         return false;    // Cannot do conventional homing
     }
 
@@ -378,6 +403,8 @@ namespace Motors {
                     // map the mm range to the servo range
                     dxl_position =
                         (uint32_t)mapConstrain(target, limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max);
+
+                    // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Pos %d %d ", current_id, dxl_position);
 
                     tx_message[++msg_index] = current_id;                         // ID of the servo
                     tx_message[++msg_index] = dxl_position & 0xFF;                // data
