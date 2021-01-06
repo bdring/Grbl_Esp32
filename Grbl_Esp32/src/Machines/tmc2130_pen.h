@@ -41,17 +41,17 @@
 #define TRINAMIC_RUN_MODE           TrinamicMode :: StallGuard
 #define TRINAMIC_HOMING_MODE        TrinamicMode ::StallGuard
 
-#define Y_MOTOR_TYPE            MotorType::TMC2130
-#define Y_STEP_PIN              "gpio.12"
-#define Y_DIRECTION_PIN         "gpio.26"
-#define Y_CS_PIN                "gpio.17"  //chip select
-#define Y_DRIVER_RSENSE         0.11f
-
 #define X_MOTOR_TYPE            MotorType::TMC2130
-#define X_STEP_PIN              "gpio.14"
-#define X_DIRECTION_PIN         "gpio.25"
-#define X_CS_PIN                "gpio.16"  //chip select
+#define X_STEP_PIN              "gpio.12"
+#define X_DIRECTION_PIN         "gpio.26"
+#define X_CS_PIN                "gpio.17"  //chip select
 #define X_DRIVER_RSENSE         0.11f
+
+#define Y_MOTOR_TYPE            MotorType::TMC2130
+#define Y_STEP_PIN              "gpio.14"
+#define Y_DIRECTION_PIN         "gpio.25"
+#define Y_CS_PIN                "gpio.16"  //chip select
+#define Y_DRIVER_RSENSE         0.11f
 
 
 // OK to comment out to use pin for other features

@@ -89,16 +89,18 @@ $X/Direction/Pin=i2so.1:low               // Change direction of X motor
 #define SPINDLE_TYPE      SpindleType::PWM
 #define SPINDLE_OUTPUT_PIN    "gpio.14"
 #define SPINDLE_ENABLE_PIN    "gpio.12" // optional
-#define SPINDLE_DIRECTION_PIN "gpio:15" // optional
+#define SPINDLE_DIRECTION_PIN "gpio.15" // optional
 #define SPINDLE_FORWARD_PIN   "gpio.13" // optional
 #define SPINDLE_REVERSE_PIN   "gpio.26" // optional
 
 $Spindle/Type=10V
-$Spindle/Output/Pin=gpio:14
-$Spindle/Enable/Pin=gpio:12 
-$Spindle/Direction/Pin=gpio:15
-$Spindle/Forward/Pin=gpio:13
-$Spindle/Reverse/Pin=gpio:26
+$Spindle/Output/Pin=gpio.14
+$Spindle/Enable/Pin=gpio.12 
+$Spindle/Direction/Pin=gpio.15
+$Spindle/Forward/Pin=gpio.13
+$Spindle/Reverse/Pin=gpio.26
+
+$Spindle/Enable/Pin=gpio.12:low // to invert enable pin
 ```
 
 #### BESC (Tested...Works)
@@ -108,7 +110,7 @@ $Spindle/Reverse/Pin=gpio:26
 ##define SPINDLE_OUTPUT_PIN    "gpio.14"
 
 $Spindle/Type=BESC
-$Spindle/Output/Pin=gpio:14
+$Spindle/Output/Pin=gpio.14
 ```
 
 #### DAC (Tested...Works!)
@@ -120,9 +122,9 @@ $Spindle/Output/Pin=gpio:14
 #define SPINDLE_DIRECTION_PIN "gpio:13"
 
 $Spindle/Type=DAC
-$Spindle/Output/Pin=gpio:26
-$Spindle/Enable/Pin=gpio:14
-$Spindle/Direction/Pin=gpio:13
+$Spindle/Output/Pin=gpio.26
+$Spindle/Enable/Pin=gpio.14
+$Spindle/Direction/Pin=gpio.13
 ```
 
 #### RELAY (Tested...Works!)
@@ -134,9 +136,9 @@ $Spindle/Direction/Pin=gpio:13
 #define SPINDLE_DIRECTION_PIN "gpio:15" // optional
 
 $Spindle/Type=RELAY
-$Spindle/Output/Pin=gpio:14
-$Spindle/Enable/Pin=gpio:12 
-$Spindle/Direction/Pin=gpio:15
+$Spindle/Output/Pin=gpio.14
+$Spindle/Enable/Pin=gpio.12 
+$Spindle/Direction/Pin=gpio.15
 ```
 
 #### LASER (Tested ...Works!)
@@ -147,8 +149,8 @@ $Spindle/Direction/Pin=gpio:15
 #define LASER_ENABLE_PIN    "gpio.12" // optional
 
 $Spindle/Type=RELAY
-$Spindle/Output/Pin=gpio:14
-$Spindle/Enable/Pin=gpio:12
+$Spindle/Output/Pin=gpio.14
+$Spindle/Enable/Pin=gpio.12
 ```
 
 
@@ -159,12 +161,15 @@ $Spindle/Enable/Pin=gpio:12
 #define SPINDLE_TYPE      SpindleType::PWM
 #define SPINDLE_OUTPUT_PIN    "gpio.14"
 #define SPINDLE_ENABLE_PIN    "gpio.12" // optional
-#define SPINDLE_DIRECTION_PIN "gpio:15" // optional
+#define SPINDLE_DIRECTION_PIN "gpio.15" // optional
 
 $Spindle/Type=RELAY
-$Spindle/Output/Pin=gpio:14
-$Spindle/Enable/Pin=gpio:12 
-$Spindle/Direction/Pin=gpio:15
+$Spindle/Output/Pin=gpio.14
+$Spindle/Enable/Pin=gpio.12 
+$Spindle/Direction/Pin=gpio.15
+
+$Spindle/Enable/Pin=gpio.13:low   // This inverts the enable pin
+$Spindle/Output/Pin=gpio.14:low   // This inverts pwm signal
 ```
 
 
@@ -181,6 +186,63 @@ $Spindle/Direction/Pin=gpio:15
 
 ```
 #define SPINDLE_TYPE      SpindleType::HY2
+```
+
+------
+
+## Motors
+
+#### StepStick/External
+
+```
+
+```
+
+#### Trinamic SPI 2130/5160 (Works!)
+
+```
+#define TRINAMIC_RUN_MODE           TrinamicMode :: StallGuard
+#define TRINAMIC_HOMING_MODE        TrinamicMode ::StallGuard
+
+#define X_MOTOR_TYPE            MotorType::TMC2130
+#define X_STEP_PIN              "gpio.12"
+#define X_DIRECTION_PIN         "gpio.26"
+#define X_CS_PIN                "gpio.17"  //chip select
+#define X_DRIVER_RSENSE         0.11f
+
+#define Y_MOTOR_TYPE            MotorType::TMC2130
+#define Y_STEP_PIN              "gpio.14"
+#define Y_DIRECTION_PIN         "gpio.25"
+#define Y_CS_PIN                "gpio.16"  //chip select
+#define Y_DRIVER_RSENSE         0.11f
+
+$X/Trinamic/CS/Pin=gpio.17
+$Y/Trinamic/CS/Pin=gpio.16
+$Trinamic/HomingMode=StallGuard
+$Trinamic/RunMode=StealthChop
+```
+
+#### Trinamic UART 2209
+
+```
+
+```
+
+
+
+#### RCServo (Tested....Works!)
+
+```
+#define Z_MOTOR_TYPE             MotorType::RCServo
+#define Z_RCSERVO_PIN             "gpio.27"
+
+
+```
+
+#### Dynamixel2
+
+```
+
 ```
 
 

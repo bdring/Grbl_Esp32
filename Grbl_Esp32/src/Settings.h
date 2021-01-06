@@ -15,6 +15,7 @@ enum SettingsRestore {
     Defaults     = bit(0),
     Parameters   = bit(1),
     StartupLines = bit(2),
+    PinDefs      = bit(3),
     // BuildInfo = bit(3), // Obsolete
     Wifi = bit(4),
     All  = 0xff,
@@ -79,6 +80,7 @@ class Command : public Word {
 protected:
     Command* link;  // linked list of setting objects
     bool (*_cmdChecker)();
+
 public:
     static Command* List;
     Command*        next() { return link; }
@@ -456,7 +458,7 @@ public:
 class AxisSettings {
 public:
     const char*   name;
-    EnumSetting*    motor_type;
+    EnumSetting*  motor_type;
     FloatSetting* steps_per_mm;
     FloatSetting* max_rate;
     FloatSetting* acceleration;
@@ -484,10 +486,10 @@ public:
                const char*   grblName,
                const char*   name,
                Error (*action)(char*, WebUI::AuthenticationLevel)) :
-    // At some point we might want to be more subtle, but for now we block
-    // all web commands in Cycle and Hold states, to avoid crashing a
-    // running job.
-    Command(description, type, permissions, grblName, name, idleOrAlarm),
+        // At some point we might want to be more subtle, but for now we block
+        // all web commands in Cycle and Hold states, to avoid crashing a
+        // running job.
+        Command(description, type, permissions, grblName, name, idleOrAlarm),
         _action(action) {}
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };

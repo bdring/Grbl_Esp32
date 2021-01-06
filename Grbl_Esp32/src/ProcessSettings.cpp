@@ -55,6 +55,7 @@ void settings_restore(uint8_t restore_flag) {
                 }
             }
         }
+
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Settings reset done");
     }
     if (restore_flag & SettingsRestore::Parameters) {
@@ -62,6 +63,15 @@ void settings_restore(uint8_t restore_flag) {
             coords[idx]->setDefault();
         }
     }
+    if (restore_flag & SettingsRestore::PinDefs) {
+        for (Setting* s = Setting::List; s; s = s->next()) {
+            if (s->getType() == PIN) {
+                s->setDefault();
+            }
+        }
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Pin reset done");
+    }
+
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position offsets reset done");
 }
 
@@ -309,6 +319,8 @@ std::map<const char*, uint8_t, cmp_str> restoreCommands = {
     { "*", SettingsRestore::All },        { "all", SettingsRestore::All },
 #endif
     { "@", SettingsRestore::Wifi },       { "wifi", SettingsRestore::Wifi },
+
+    { "P", SettingsRestore::PinDefs },    { "pins", SettingsRestore::PinDefs },
 };
 Error restore_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (!value) {
