@@ -128,8 +128,17 @@ uint32_t sd_get_current_line_number() {
 SDState sd_state = SDState::Idle;
 
 SDState get_sd_state(bool refresh) {
-    if (SDCARD_DET_PIN != UNDEFINED_PIN) {
-        if (digitalRead(SDCARD_DET_PIN) != SDCARD_DET_VAL) {
+    // Before we use the SD library, we *must* make sure SPI is properly initialized. Re-initialization
+    // fortunately doesn't change any of the settings.
+    auto ssPin   = SPISSPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+    auto mosiPin = SPIMOSIPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+    auto sckPin  = SPISCKPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+    auto misoPin = SPIMISOPin->get().getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
+    SPI.begin(sckPin, misoPin, mosiPin, ssPin);
+
+    //no need to go further if SD detect is not correct
+    if (SDCardDetPin->get() != Pin::UNDEFINED) {
+        if (!((SDCardDetPin->get().read() == SDCARD_DET_VAL) ? true : false)) {
             sd_state = SDState::NotPresent;
             return sd_state;
             //no need to go further if SD detect is not correct

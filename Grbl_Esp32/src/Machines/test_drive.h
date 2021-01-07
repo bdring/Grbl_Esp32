@@ -48,8 +48,5 @@
     #undef DEFAULT_HOMING_CYCLE_1
 #endif
 
-#define SPINDLE_TYPE    SpindleType::NONE
 
-#ifdef USE_RMT_STEPS
-#undef USE_RMT_STEPS  // Suppress unused variable warning
-#endif
+#define SPINDLE_TYPE            SpindleType::NONE

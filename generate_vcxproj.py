@@ -37,7 +37,7 @@ def FilterFromPath(path):
 class Vcxproj:
 	# configuration, platform
 	ConfigurationFmt = '\n'.join([
-		'	<ProjectConfiguration Include="Grbl_Esp32\{0}|{1}">',
+		'	<ProjectConfiguration Include="{0}|{1}">',
 		'	  <Configuration>{0}</Configuration>',
 		'	  <Platform>{1}</Platform>',
 		'	</ProjectConfiguration>'])
@@ -138,7 +138,12 @@ class Generator:
 				if filters != '':
 					self.Folders.add(filters)
 
-	def AddFile(self, path):
+	def AddFile(self, path):	
+		if path.find('/test/') >= 0:
+			return
+		elif path.find('\\test\\') >= 0:
+			return
+			
 		(root, ext) = os.path.splitext(path)
 		if ext in HEADER_EXT:
 			self.Headers.add(path)
@@ -148,7 +153,7 @@ class Generator:
 			self.Others.add(path)
 		else:
 			return
-			
+		
 		self.AddFolder(path)
 
 	def Walk(self, path):

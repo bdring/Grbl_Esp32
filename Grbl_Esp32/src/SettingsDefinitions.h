@@ -2,14 +2,10 @@
 
 extern FlagSetting* verbose_errors;
 
-extern FakeSetting<int>* number_axis;
+extern StringSetting* machine_name;
 
-extern AxisSettings* x_axis_settings;
-extern AxisSettings* y_axis_settings;
-extern AxisSettings* z_axis_settings;
-extern AxisSettings* a_axis_settings;
-extern AxisSettings* b_axis_settings;
-extern AxisSettings* c_axis_settings;
+extern IntSetting* number_axis;
+
 extern AxisSettings* axis_settings[];
 
 extern StringSetting* startup_line_0;
@@ -18,16 +14,13 @@ extern StringSetting* build_info;
 
 extern IntSetting* pulse_microseconds;
 extern IntSetting* stepper_idle_lock_time;
+extern IntSetting* step_pulse_delay;
 
-extern AxisMaskSetting* step_invert_mask;
 extern AxisMaskSetting* dir_invert_mask;
 extern AxisMaskSetting* homing_dir_mask;
 extern AxisMaskSetting* homing_squared_axes;
 extern AxisMaskSetting* homing_cycle[MAX_N_AXIS];
 
-extern FlagSetting* step_enable_invert;
-extern FlagSetting* limit_invert;
-extern FlagSetting* probe_invert;
 extern FlagSetting* report_inches;
 extern FlagSetting* soft_limits;
 extern FlagSetting* hard_limits;
@@ -49,8 +42,6 @@ extern FloatSetting* rpm_min;
 extern FloatSetting* spindle_delay_spinup;
 extern FloatSetting* spindle_delay_spindown;
 extern FlagSetting*  spindle_enbl_off_with_zero_speed;
-extern FlagSetting*  spindle_enable_invert;
-extern FlagSetting*  spindle_output_invert;
 
 extern FloatSetting* spindle_pwm_off_value;
 extern FloatSetting* spindle_pwm_min_value;
@@ -59,7 +50,76 @@ extern IntSetting*   spindle_pwm_bit_precision;
 
 extern EnumSetting* spindle_type;
 
+extern EnumSetting*  motor_types[MAX_N_AXIS][2];
+extern FloatSetting* motor_rsense[MAX_N_AXIS][2];
+extern IntSetting*   motor_address[MAX_N_AXIS][2];
+extern FloatSetting* motor_cal_min[MAX_N_AXIS][2];
+extern FloatSetting* motor_cal_max[MAX_N_AXIS][2];
+
+extern EnumSetting*     trinamic_run_mode;
+extern EnumSetting*     trinamic_homing_mode;
 extern AxisMaskSetting* stallguard_debug_mask;
+
+// Pins:
+extern PinSetting* CoolantFloodPin;     // COOLANT_FLOOD_PIN
+extern PinSetting* CoolantMistPin;      // COOLANT_MIST_PIN
+extern PinSetting* ProbePin;            // PROBE_PIN
+extern PinSetting* SDCardDetPin;        // SDCARD_DET_PIN
+extern PinSetting* SteppersDisablePin;  // STEPPERS_DISABLE_PIN
+extern PinSetting* StepperResetPin;     // STEPPER_RESET
+
+extern PinSetting* ControlSafetyDoorPin;  //  CONTROL_SAFETY_DOOR_PIN
+extern PinSetting* ControlResetPin;       //  CONTROL_RESET_PIN
+extern PinSetting* ControlFeedHoldPin;    //  CONTROL_FEED_HOLD_PIN
+extern PinSetting* ControlCycleStartPin;  //  CONTROL_CYCLE_START_PIN
+extern PinSetting* MacroButton0Pin;       //  MACRO_BUTTON_0_PIN
+extern PinSetting* MacroButton1Pin;       //  MACRO_BUTTON_1_PIN
+extern PinSetting* MacroButton2Pin;       //  MACRO_BUTTON_2_PIN
+extern PinSetting* MacroButton3Pin;       //  MACRO_BUTTON_3_PIN
+
+extern PinSetting* DynamixelTXDPin;  // DYNAMIXEL_TXD
+extern PinSetting* DynamixelRXDPin;  // DYNAMIXEL_RXD
+extern PinSetting* DynamixelRTSPin;  // DYNAMIXEL_RTS
+
+extern PinSetting* TmcUartTXDPin;  // TMC_UART_TXD
+extern PinSetting* TmcUartRXDPin;  // TMC_UART_RXD
+
+extern PinSetting* UserDigitalPin[4];
+extern PinSetting* UserAnalogPin[4];
+
+// SPI pins:
+extern PinSetting* SPISSPin;    // SS
+extern PinSetting* SPISCKPin;   // SCK
+extern PinSetting* SPIMISOPin;  // MISO
+extern PinSetting* SPIMOSIPin;  // MOSI
+
+extern PinSetting* I2SOBCK;
+extern PinSetting* I2SOWS;
+extern PinSetting* I2SOData;
+
+// Spindle pins:
+extern PinSetting* SpindleOutputPin;
+extern PinSetting* SpindleEnablePin;
+extern PinSetting* SpindleDirectionPin;
+extern PinSetting* SpindleForwardPin;
+extern PinSetting* SpindleReversePin;
+
+extern PinSetting* LaserOutputPin;
+extern PinSetting* LaserEnablePin;
+
+extern PinSetting* VFDRS485TXDPin;  // VFD_RS485_TXD_PIN
+extern PinSetting* VFDRS485RXDPin;  // VFD_RS485_RXD_PIN
+extern PinSetting* VFDRS485RTSPin;  // VFD_RS485_RTS_PIN
+
+// TODO FIXME: Add motor type (enum) setting! That way we can properly hide a lot of settings, and make Motors.cpp proper!
+extern PinSetting* LimitPins[MAX_N_AXIS][2];
+extern PinSetting* StepPins[MAX_N_AXIS][2];
+extern PinSetting* DirectionPins[MAX_N_AXIS][2];
+extern PinSetting* DisablePins[MAX_N_AXIS][2];
+extern PinSetting* ChipSelectPins[MAX_N_AXIS][2];
+extern PinSetting* ServoPins[MAX_N_AXIS][2];
+extern PinSetting* PhasePins[4][MAX_N_AXIS][2];
+extern PinSetting* StepStickMS3[MAX_N_AXIS][2];
 
 extern StringSetting* user_macro0;
 extern StringSetting* user_macro1;

@@ -41,18 +41,18 @@
 // It should be included at the outset to know the machine configuration.
 #include "Config.h"
 
-#    include <stdint.h>
+#include <stdint.h>
 
 /* Assert */
-#    if defined(I2S_OUT_NUM_BITS)
-#        if (I2S_OUT_NUM_BITS != 16) && (I2S_OUT_NUM_BITS != 32)
-#            error "I2S_OUT_NUM_BITS should be 16 or 32"
-#        endif
-#    else
-#        define I2S_OUT_NUM_BITS 32
+#if defined(I2S_OUT_NUM_BITS)
+#    if (I2S_OUT_NUM_BITS != 16) && (I2S_OUT_NUM_BITS != 32)
+#        error "I2S_OUT_NUM_BITS should be 16 or 32"
 #    endif
+#else
+#    define I2S_OUT_NUM_BITS 32
+#endif
 
-#    define I2SO(n) (I2S_OUT_PIN_BASE + n)
+// #    define I2SO(n) (I2S_OUT_PIN_BASE + n)
 
 /* 16-bit mode: 1000000 usec / ((160000000 Hz) / 10 / 2) x 16 bit/pulse x 2(stereo) = 4 usec/pulse */
 /* 32-bit mode: 1000000 usec / ((160000000 Hz) /  5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */

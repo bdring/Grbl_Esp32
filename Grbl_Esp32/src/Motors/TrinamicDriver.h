@@ -62,30 +62,19 @@ const double TRINAMIC_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to 
 
 namespace Motors {
 
-    enum class TrinamicMode : uint8_t {
-        None        = 0,  // not for machine defs!
-        StealthChop = 1,
-        CoolStep    = 2,
-        StallGuard  = 3,
-    };
+
 
     class TrinamicDriver : public StandardStepper {
     public:
-        TrinamicDriver(uint8_t  axis_index,
-                       uint8_t  step_pin,
-                       uint8_t  dir_pin,
-                       uint8_t  disable_pin,
-                       uint8_t  cs_pin,
-                       uint16_t driver_part_number,
-                       float    r_sense) :
+        TrinamicDriver(uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin, Pin cs_pin, MotorType driver_part_number, float r_sense) :
             TrinamicDriver(axis_index, step_pin, dir_pin, disable_pin, cs_pin, driver_part_number, r_sense, get_next_index()) {}
 
         TrinamicDriver(uint8_t  axis_index,
-                       uint8_t  step_pin,
-                       uint8_t  dir_pin,
-                       uint8_t  disable_pin,
-                       uint8_t  cs_pin,
-                       uint16_t driver_part_number,
+                       Pin      step_pin,
+                       Pin      dir_pin,
+                       Pin      disable_pin,
+                       Pin      cs_pin,
+                       MotorType driver_part_number,
                        float    r_sense,
                        int8_t   spi_index);
 
@@ -102,8 +91,8 @@ namespace Motors {
 
         TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
         TrinamicMode    _homing_mode;
-        uint8_t         _cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
-        uint16_t        _driver_part_number;      // example: use 2130 for TMC2130
+        Pin             _cs_pin = Pin::UNDEFINED;  // The chip select pin (can be the same for daisy chain)
+        MotorType        _driver_part_number;       // example: use 2130 for TMC2130
         float           _r_sense;
         int8_t          _spi_index;
         bool            _has_errors;

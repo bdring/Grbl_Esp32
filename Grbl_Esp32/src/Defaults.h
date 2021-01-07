@@ -46,24 +46,8 @@
 #    define DEFAULT_STEPPER_IDLE_LOCK_TIME 250  // $1 msec (0-254, 255 keeps steppers enabled)
 #endif
 
-#ifndef DEFAULT_STEPPING_INVERT_MASK
-#    define DEFAULT_STEPPING_INVERT_MASK 0  // $2 uint8_t
-#endif
-
 #ifndef DEFAULT_DIRECTION_INVERT_MASK
 #    define DEFAULT_DIRECTION_INVERT_MASK 0  // $3 uint8_
-#endif
-
-#ifndef DEFAULT_INVERT_ST_ENABLE
-#    define DEFAULT_INVERT_ST_ENABLE 0  // $4 boolean
-#endif
-
-#ifndef DEFAULT_INVERT_LIMIT_PINS
-#    define DEFAULT_INVERT_LIMIT_PINS 1  // $5 boolean
-#endif
-
-#ifndef DEFAULT_INVERT_PROBE_PIN
-#    define DEFAULT_INVERT_PROBE_PIN 0  // $6 boolean
 #endif
 
 #ifndef DEFAULT_STATUS_REPORT_MASK
@@ -191,14 +175,6 @@
 #    define DEFAULT_SPINDLE_DELAY_SPINDOWN 0
 #endif
 
-#ifndef DEFAULT_INVERT_SPINDLE_OUTPUT_PIN
-#    define DEFAULT_INVERT_SPINDLE_OUTPUT_PIN 0
-#endif
-
-#ifndef DEFAULT_INVERT_SPINDLE_ENABLE_PIN
-#    define DEFAULT_INVERT_SPINDLE_ENABLE_PIN 0
-#endif
-
 #ifndef DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
 #    define DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED 0
 #endif
@@ -242,6 +218,156 @@
 
 #ifndef DEFAULT_USER_FLOAT_94
 #    define DEFAULT_USER_FLOAT_94 0.0  // $94 User integer setting
+#endif
+
+// =========== Motors ===============
+
+#ifndef X_MOTOR_TYPE
+#    define X_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef X2_MOTOR_TYPE
+#    define X2_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef Y_MOTOR_TYPE
+#    define Y_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef Y2_MOTOR_TYPE
+#    define Y2_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef Z_MOTOR_TYPE
+#    define Z_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef Z2_MOTOR_TYPE
+#    define Z2_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef A_MOTOR_TYPE
+#    define A_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef A2_MOTOR_TYPE
+#    define A2_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef B_MOTOR_TYPE
+#    define B_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef B2_MOTOR_TYPE
+#    define B2_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef C_MOTOR_TYPE
+#    define C_MOTOR_TYPE MotorType::None
+#endif
+
+#ifndef C2_MOTOR_TYPE
+#    define C2_MOTOR_TYPE MotorType::None
+#endif
+
+
+
+#ifndef X_DRIVER_RSENSE
+#    define X_DRIVER_RSENSE 0
+#endif
+
+#ifndef X2_DRIVER_RSENSE
+#    define X2_DRIVER_RSENSE 0
+#endif
+
+#ifndef Y_DRIVER_RSENSE
+#    define Y_DRIVER_RSENSE 0
+#endif
+
+#ifndef Y2_DRIVER_RSENSE
+#    define Y2_DRIVER_RSENSE 0
+#endif
+
+#ifndef Z_DRIVER_RSENSE
+#    define Z_DRIVER_RSENSE 0
+#endif
+
+#ifndef Z2_DRIVER_RSENSE
+#    define Z2_DRIVER_RSENSE 0
+#endif
+
+#ifndef A_DRIVER_RSENSE
+#    define A_DRIVER_RSENSE 0
+#endif
+
+#ifndef A2_DRIVER_RSENSE
+#    define A2_DRIVER_RSENSE 0
+#endif
+
+#ifndef B_DRIVER_RSENSE
+#    define B_DRIVER_RSENSE 0
+#endif
+
+#ifndef B2_DRIVER_RSENSE
+#    define B2_DRIVER_RSENSE 0
+#endif
+
+#ifndef C_DRIVER_RSENSE
+#    define C_DRIVER_RSENSE 0
+#endif
+
+#ifndef C2_DRIVER_RSENSE
+#    define C2_DRIVER_RSENSE 0
+#endif
+
+
+
+#ifndef X_DRIVER_ADDRESS
+#    define X_DRIVER_ADDRESS 0
+#endif
+
+#ifndef X2_DRIVER_ADDRESS
+#    define X2_DRIVER_ADDRESS 0
+#endif
+
+#ifndef Y_DRIVER_ADDRESS
+#    define Y_DRIVER_ADDRESS 0
+#endif
+
+#ifndef Y2_DRIVER_ADDRESS
+#    define Y2_DRIVER_ADDRESS 0
+#endif
+
+#ifndef Z_DRIVER_ADDRESS
+#    define Z_DRIVER_ADDRESS 0
+#endif
+
+#ifndef Z2_DRIVER_ADDRESS
+#    define Z2_DRIVER_ADDRESS 0
+#endif
+
+#ifndef A_DRIVER_ADDRESS
+#    define A_DRIVER_ADDRESS 0
+#endif
+
+#ifndef A2_DRIVER_ADDRESS
+#    define A2_DRIVER_ADDRESS 0
+#endif
+
+#ifndef B_DRIVER_ADDRESS
+#    define B_DRIVER_ADDRESS 0
+#endif
+
+#ifndef B2_DRIVER_ADDRESS
+#    define B2_DRIVER_ADDRESS 0
+#endif
+
+#ifndef C_DRIVER_ADDRESS
+#    define C_DRIVER_ADDRESS 0
+#endif
+
+#ifndef C2_DRIVER_ADDRESS
+#    define C2_DRIVER_ADDRESS 0
 #endif
 
 // =========== 	AXIS RESOLUTION ======
@@ -455,6 +581,14 @@
 #    define DEFAULT_C_STALLGUARD 16  // $175 stallguard (extended set)
 #endif
 
+#ifndef TRINAMIC_RUN_MODE
+#    define TRINAMIC_RUN_MODE TrinamicMode::CoolStep
+#endif
+
+#ifndef TRINAMIC_HOMING_MODE
+#    define TRINAMIC_HOMING_MODE TrinamicMode::CoolStep
+#endif
+
 // ==================  pin defaults ========================
 
 // Here is a place to default pins to UNDEFINED_PIN.
@@ -584,7 +718,7 @@
 #endif
 
 #ifndef SERVO_TIMER_INTERVAL
-#    define SERVO_TIMER_INTERVAL 75.0  // Hz This is the update inveral in milliseconds
+#    define SERVO_TIMER_INTERVAL 100  // Hz This is the update inveral in milliseconds
 #endif
 
 #ifndef DYNAMIXEL_TXD

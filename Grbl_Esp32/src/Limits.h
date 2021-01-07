@@ -44,7 +44,7 @@ void limits_go_home(uint8_t cycle_mask);
 // Check for soft limit violations
 void limits_soft_check(float* target);
 
-void isr_limit_switches();
+void isr_limit_switches(void* /*unused*/);
 
 // A task that runs after a limit switch interrupt.
 void limitCheckTask(void* pvParameters);

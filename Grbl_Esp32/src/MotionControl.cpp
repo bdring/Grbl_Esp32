@@ -35,11 +35,7 @@ SquaringMode ganged_mode = SquaringMode::Dual;
 
 // this allows kinematics to be used.
 void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
-#ifndef USE_KINEMATICS
-    mc_line(target, pl_data);
-#else  // else use kinematics
     inverse_kinematics(target, pl_data, position);
-#endif
 }
 
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
@@ -117,14 +113,13 @@ void mc_arc(float*            target,
     float rt_axis1     = target[axis_1] - center_axis1;
 
     float previous_position[MAX_N_AXIS] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-#ifdef USE_KINEMATICS
 
     uint16_t n;
     auto     n_axis = number_axis->get();
     for (n = 0; n < n_axis; n++) {
         previous_position[n] = position[n];
     }
-#endif
+
     // CCW angle between position and target from circle center. Only one atan2() trig computation required.
     float angular_travel = atan2(r_axis0 * rt_axis1 - r_axis1 * rt_axis0, r_axis0 * rt_axis0 + r_axis1 * rt_axis1);
     if (is_clockwise_arc) {  // Correct atan2 output per direction
@@ -205,14 +200,14 @@ void mc_arc(float*            target,
             position[axis_0] = center_axis0 + r_axis0;
             position[axis_1] = center_axis1 + r_axis1;
             position[axis_linear] += linear_per_segment;
-#ifdef USE_KINEMATICS
+//#ifdef USE_KINEMATICS
             mc_line_kins(position, pl_data, previous_position);
             previous_position[axis_0]      = position[axis_0];
             previous_position[axis_1]      = position[axis_1];
             previous_position[axis_linear] = position[axis_linear];
-#else
-            mc_line(position, pl_data);
-#endif
+// #else
+//             mc_line(position, pl_data);
+// #endif
             // Bail mid-circle on system abort. Runtime command check already performed by mc_line.
             if (sys.abort) {
                 return;
@@ -259,42 +254,22 @@ static bool axis_is_squared(uint8_t axis_mask) {
     return false;
 }
 
-#ifdef USE_I2S_STEPS
-#    define BACKUP_STEPPER(save_stepper)                                                                                                   \
-        do {                                                                                                                               \
-            if (save_stepper == ST_I2S_STREAM) {                                                                                           \
-                stepper_switch(ST_I2S_STATIC); /* Change the stepper to reduce the delay for accurate probing. */                          \
-            }                                                                                                                              \
-        } while (0)
-
-#    define RESTORE_STEPPER(save_stepper)                                                                                                  \
-        do {                                                                                                                               \
-            if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {                                                       \
-                stepper_switch(ST_I2S_STREAM); /* Put the stepper back on. */                                                              \
-            }                                                                                                                              \
-        } while (0)
-#else
-#    define BACKUP_STEPPER(save_stepper)
-#    define RESTORE_STEPPER(save_stepper)
-#endif
-
 // Perform homing cycle to locate and set machine zero. Only '$H' executes this command.
 // NOTE: There should be no motions in the buffer and Grbl must be in an idle state before
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
 void mc_homing_cycle(uint8_t cycle_mask) {
     bool no_cycles_defined = true;
-#ifdef USE_CUSTOM_HOMING
+
     if (user_defined_homing(cycle_mask)) {
         return;
     }
-#endif
+
     // This give kinematics a chance to do something before normal homing
     // if it returns true, the homing is canceled.
-#ifdef USE_KINEMATICS
     if (kinematics_pre_homing(cycle_mask)) {
         return;
     }
-#endif
+
     // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
     // with machines with limits wired on both ends of travel to one limit pin.
     // TODO: Move the pin-specific LIMIT_PIN call to Limits.cpp as a function.
@@ -364,10 +339,10 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     // Sync gcode parser and planner positions to homed position.
     gc_sync_position();
     plan_sync_position();
-#ifdef USE_KINEMATICS
+
     // This give kinematics a chance to do something after normal homing
     kinematics_post_homing();
-#endif
+
     // If hard limits feature enabled, re-enable hard limits pin change register after homing cycle.
     limits_init();
 }
@@ -389,11 +364,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         return GCUpdatePos::None;  // Return if system reset has been issued.
     }
 
-#ifdef USE_I2S_STEPS
-    stepper_id_t save_stepper = current_stepper; /* remember the stepper */
-#endif
-    // Switch stepper mode to the I2S static (realtime mode)
-    BACKUP_STEPPER(save_stepper);
+    stepping->lowLatency();
 
     // Initialize probing control variables
     uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
@@ -405,8 +376,8 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     if (probe_get_state() ^ is_probe_away) {  // Check probe pin state.
         sys_rt_exec_alarm = ExecAlarm::ProbeFailInitial;
         protocol_execute_realtime();
-        RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
-        return GCUpdatePos::None;       // Nothing else to do but bail.
+        stepping->normalLatency();
+        return GCUpdatePos::None;  // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Found");
@@ -418,13 +389,12 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     do {
         protocol_execute_realtime();
         if (sys.abort) {
-            RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
-            return GCUpdatePos::None;       // Check for system abort
+            stepping->normalLatency();  // Switch the stepper mode to the previous mode
+            return GCUpdatePos::None;   // Check for system abort
         }
     } while (sys.state != State::Idle);
 
-    // Switch the stepper mode to the previous mode
-    RESTORE_STEPPER(save_stepper);
+    stepping->normalLatency();  // Switch the stepper mode to the previous mode
 
     // Probing cycle complete!
     // Set state variables and error out, if the probe failed and cycle with error is enabled.
@@ -532,10 +502,18 @@ void mc_reset() {
         }
         ganged_mode = SquaringMode::Dual;  // in case an error occurred during squaring
 
-#ifdef USE_I2S_STEPS
-        if (current_stepper == ST_I2S_STREAM) {
-            i2s_out_reset();
-        }
-#endif
+        stepping->reset();
     }
 }
+
+bool __attribute__((weak)) kinematics_pre_homing(uint8_t cycle_mask) {
+    return false;
+}
+
+void __attribute__((weak)) kinematics_post_homing() {}  // weak version does nothing
+
+void __attribute__((weak)) inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
+    mc_line(target, pl_data);
+}
+
+void __attribute__((weak)) user_m30() {}

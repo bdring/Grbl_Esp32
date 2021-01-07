@@ -29,6 +29,29 @@
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cstdint>
+
+enum class MotorType : int8_t {
+    None = 0,
+    StepStick,
+    External,
+    TMC2130,
+    TMC5160,
+    TMC2208,
+    TMC2209,
+    Unipolar,
+    RCServo,
+    Dynamixel,
+    Solenoid,
+};
+
+enum class TrinamicMode : int8_t {
+    None        = 0,  // not for machine defs!
+    StealthChop = 1,
+    CoolStep    = 2,
+    StallGuard  = 3,
+};
+
 #include "../Grbl.h"
 
 // These are used for setup and to talk to the motors as a group.

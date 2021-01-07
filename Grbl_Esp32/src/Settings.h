@@ -5,6 +5,8 @@
 #include <nvs.h>
 #include "WebUI/ESPResponse.h"
 
+#include "GCode.h"
+
 // Initialize the configuration subsystem
 void settings_init();
 
@@ -13,6 +15,7 @@ enum SettingsRestore {
     Defaults     = bit(0),
     Parameters   = bit(1),
     StartupLines = bit(2),
+    PinDefs      = bit(3),
     // BuildInfo = bit(3), // Obsolete
     Wifi = bit(4),
     All  = 0xff,
@@ -43,6 +46,7 @@ typedef enum : uint8_t {
     GRBL = 1,  // Classic GRBL settings like $100
     EXTENDED,  // Settings added by early versions of Grbl_Esp32
     WEBSET,    // Settings for ESP3D_WebUI, stored in NVS
+    PIN,       // Pin settings
     GRBLCMD,   // Non-persistent GRBL commands like $H
     WEBCMD,    // ESP3D_WebUI commands that are not directly settings
 } type_t;
@@ -76,6 +80,7 @@ class Command : public Word {
 protected:
     Command* link;  // linked list of setting objects
     bool (*_cmdChecker)();
+
 public:
     static Command* List;
     Command*        next() { return link; }
@@ -329,6 +334,28 @@ struct cmp_str {
 };
 typedef std::map<const char*, int8_t, cmp_str> enum_opt_t;
 
+class PinSetting : public Setting {
+private:
+    // We don't want Pin to claim an actual pin for default and stored value. Hence, these are
+    // stored as a string.
+    const char* _defaultValue;
+    String      _storedValue;
+    Pin         _currentValue;
+
+public:
+    PinSetting(const char* description, const char* name, const char* defVal, bool (*checker)(char*));
+    PinSetting(const char* name, const char* defVal, bool (*checker)(char*) = NULL) : PinSetting(NULL, name, defVal, checker) {};
+
+    void        load();
+    void        setDefault();
+    void        addWebui(WebUI::JSONencoder*);
+    Error       setStringValue(char* value);
+    const char* getStringValue();
+    const char* getDefaultString();
+
+    inline Pin get() { return _currentValue; }
+};
+
 class EnumSetting : public Setting {
 private:
     int8_t                                  _defaultValue;
@@ -431,6 +458,7 @@ public:
 class AxisSettings {
 public:
     const char*   name;
+    EnumSetting*  motor_type;
     FloatSetting* steps_per_mm;
     FloatSetting* max_rate;
     FloatSetting* acceleration;
@@ -458,10 +486,10 @@ public:
                const char*   grblName,
                const char*   name,
                Error (*action)(char*, WebUI::AuthenticationLevel)) :
-    // At some point we might want to be more subtle, but for now we block
-    // all web commands in Cycle and Hold states, to avoid crashing a
-    // running job.
-    Command(description, type, permissions, grblName, name, idleOrAlarm),
+        // At some point we might want to be more subtle, but for now we block
+        // all web commands in Cycle and Hold states, to avoid crashing a
+        // running job.
+        Command(description, type, permissions, grblName, name, idleOrAlarm),
         _action(action) {}
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };

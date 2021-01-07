@@ -28,41 +28,49 @@
 
 // Select a version to match your PCB
 //#define MACHINE_V1 // version 1 PCB
-#define MACHINE_V2 // version 2 PCB
+// #define MACHINE_V2 // version 2 PCB
 
-#ifdef MACHINE_V1
-    #define MACHINE_NAME    "ESP32_TMC2130_PEN V1"
-    #define X_LIMIT_PIN     GPIO_NUM_2
-#else
-    #define MACHINE_NAME    "ESP32_TMC2130_PEN V2"
-    #define X_LIMIT_PIN     GPIO_NUM_32
-#endif
+// #ifdef MACHINE_V1
+//     #define MACHINE_NAME    "ESP32_TMC2130_PEN V1"
+//     #define X_LIMIT_PIN     "gpio.2"
+// #else
+#define MACHINE_NAME    "TMC2130 Pen/Laser V2"
+//     #define X_LIMIT_PIN     "gpio.32"
+// #endif
 
-#define TRINAMIC_RUN_MODE           TrinamicMode :: CoolStep
-#define TRINAMIC_HOMING_MODE        TrinamicMode :: CoolStep
+#define TRINAMIC_RUN_MODE           TrinamicMode :: StallGuard
+#define TRINAMIC_HOMING_MODE        TrinamicMode ::StallGuard
 
-#define X_STEP_PIN              GPIO_NUM_12
-#define X_DIRECTION_PIN         GPIO_NUM_26
-#define X_TRINAMIC_DRIVER       2130        // Which Driver Type?
-#define X_CS_PIN                GPIO_NUM_17  //chip select
-#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X_MOTOR_TYPE            MotorType::TMC2130
+#define X_STEP_PIN              "gpio.12"
+#define X_DIRECTION_PIN         "gpio.26"
+#define X_CS_PIN                "gpio.17"  //chip select
+#define X_DRIVER_RSENSE         0.11f
 
-#define Y_STEP_PIN              GPIO_NUM_14
-#define Y_DIRECTION_PIN         GPIO_NUM_25
-#define Y_TRINAMIC_DRIVER       2130        // Which Driver Type?
-#define Y_CS_PIN                GPIO_NUM_16  //chip select
-#define Y_RSENSE                TMC2130_RSENSE_DEFAULT
+#define Y_MOTOR_TYPE            MotorType::TMC2130
+#define Y_STEP_PIN              "gpio.14"
+#define Y_DIRECTION_PIN         "gpio.25"
+#define Y_CS_PIN                "gpio.16"  //chip select
+#define Y_DRIVER_RSENSE         0.11f
+
 
 // OK to comment out to use pin for other features
-#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN    "gpio.13"
 
-
+/*
 // Define one of these 2 options for spindle or servo
-#define Z_SERVO_PIN                     GPIO_NUM_27 // comment this out if PWM spindle/laser control.
+// Servo Option
+#define Z_MOTOR_TYPE                  MotorType::RCServo
+#define Z_RCSERVO_PIN                   "gpio.27"
 #define DEFAULT_Z_MAX_TRAVEL          5.0   // Range of travel is 5mm
 #define DEFAULT_Z_HOMING_MPOS         5.0   // MPos will be set to 5mm after homing
 #define Z_SERVO_CAL_MIN               1.0   // calibration factor for the minimum PWM duty
 #define Z_SERVO_CAL_MAX               1.0   // calibration factor for the maximum PWM duty
 
+// Spindle Option
+// #define SPINDLE_TYPE                  SpindleType::LASER
+// #define SPINDLE_OUTPUT_PIN            "gpio.27"
+
 // #define X_LIMIT_PIN          See version section at beginning of file
-#define Y_LIMIT_PIN             GPIO_NUM_4
+#define Y_LIMIT_PIN             "gpio.4"
+*/

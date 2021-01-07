@@ -26,39 +26,30 @@
 
 #define N_AXIS 3
 
-// === Special Features
-
-// I2S (steppers & other output-only pins)
-#define USE_I2S_OUT
-#define USE_I2S_STEPS
-//#define DEFAULT_STEPPER ST_I2S_STATIC
-// === Default settings
-#define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
-
-#define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
-
-#define I2S_OUT_BCK             GPIO_NUM_22
-#define I2S_OUT_WS              GPIO_NUM_17
-#define I2S_OUT_DATA            GPIO_NUM_21
-
+// Note: MS3 can be used to roughly switch microstepping
+// DRV8825 low=1/8 high=1/32
+// A4988 low=1/8 high=1/16
 
 // Motor Socket #1
-#define X_DISABLE_PIN           I2SO(0)
-#define X_DIRECTION_PIN         I2SO(1)
-#define X_STEP_PIN              I2SO(2)
-#define X_STEPPER_MS3           I2SO(3)
+#define X_MOTOR_TYPE            MotorType::StepStick
+#define X_DISABLE_PIN           "i2so.0"
+#define X_DIRECTION_PIN         "i2so.1"
+#define X_STEP_PIN              "i2so.2"
+#define X_STEPPER_MS3           "i2so.3:high"
 
 // Motor Socket #2
-#define Y_DIRECTION_PIN         I2SO(4)
-#define Y_STEP_PIN              I2SO(5)
-#define Y_STEPPER_MS3           I2SO(6)
-#define Y_DISABLE_PIN           I2SO(7)
+#define Y_MOTOR_TYPE            MotorType::StepStick
+#define Y_DIRECTION_PIN         "i2so.4"
+#define Y_STEP_PIN              "i2so.5"
+#define Y_DISABLE_PIN           "i2so.7"
+#define Y_STEPPER_MS3           "i2so.6:high"
 
 // Motor Socket #3
-#define Z_DISABLE_PIN           I2SO(8)
-#define Z_DIRECTION_PIN         I2SO(9)
-#define Z_STEP_PIN              I2SO(10)
-#define Z_STEPPER_MS3           I2SO(11) 
+#define Z_MOTOR_TYPE            MotorType::StepStick
+#define Z_DISABLE_PIN           "i2so.8"
+#define Z_DIRECTION_PIN         "i2so.9"
+#define Z_STEP_PIN              "i2so.10"
+#define Z_STEPPER_MS3           "i2so.11:high"
 
 /*
     Socket I/O reference
@@ -68,60 +59,63 @@
 
 
 Socket #1
-#1 GPIO_NUM_33 
-#2 GPIO_NUM_32
-#3 GPIO_NUM_35 (input only)
-#4 GPIO_NUM_34 (input only)
+#1 "gpio.33" 
+#2 "gpio.32"
+#3 "gpio.35" (input only)
+#4 "gpio.34" (input only)
 
 Socket #2
-#1 GPIO_NUM_2
-#2 GPIO_NUM_25
-#3 GPIO_NUM_39 (input only)
-#4 GPIO_NUM_36 (input only)
+#1 "gpio.2"
+#2 "gpio.25"
+#3 "gpio.39" (input only)
+#4 "gpio.36" (input only)
 
 Socket #3
-#1 GPIO_NUM_26
-#2 GPIO_NUM_4
-#3 GPIO_NUM_16
-#4 GPIO_NUM_27
+#1 "gpio.26"
+#2 "gpio.4"
+#3 "gpio.16"
+#4 "gpio.27"
 
 Socket #4
-#1 GPIO_NUM_14
-#2 GPIO_NUM_13
-#3 GPIO_NUM_15
-#4 GPIO_NUM_12
+#1 "gpio.14"
+#2 "gpio.13"
+#3 "gpio.15"
+#4 "gpio.12"
 
 Socket #5
-#1 I2SO(24)  (output only)
-#2 I2SO(25)  (output only)
-#3 I2SO26)  (output only)
+#1 "i2so.24"  (output only)
+#2 "i2so.25"  (output only)
+#3 "i2so.26"  (output only)
 
 */
 
 
 // 4x Input Module in Socket #1
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define X_LIMIT_PIN                 GPIO_NUM_33
-#define Y_LIMIT_PIN                 GPIO_NUM_32
-#define Z_LIMIT_PIN                 GPIO_NUM_35
+#define X_LIMIT_PIN                 "gpio.33"
+#define Y_LIMIT_PIN                 "gpio.32"
+#define Z_LIMIT_PIN                 "gpio.35"
 
 
 
 
 // // 4x Input Module in Socket #2
 // // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define MACRO_BUTTON_0_PIN            GPIO_NUM_2
-#define MACRO_BUTTON_1_PIN            GPIO_NUM_25
-#define MACRO_BUTTON_2_PIN            GPIO_NUM_39
-#define MACRO_BUTTON_3_PIN            GPIO_NUM_36
+// #define X_LIMIT_PIN                 "gpio.2"
+// #define Y_LIMIT_PIN                 "gpio.25"
+// #define Z_LIMIT_PIN                 "gpio.39"
+// #define MACRO_BUTTON_0_PIN            "gpio.2"
+// #define MACRO_BUTTON_1_PIN            "gpio.25"
+// #define MACRO_BUTTON_2_PIN            "gpio.39"
+// #define MACRO_BUTTON_3_PIN            "gpio.36"
 
 // 5V output CNC module in socket #4
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
-#define SPINDLE_TYPE                SpindleType::PWM
-#define SPINDLE_OUTPUT_PIN          GPIO_NUM_14
-#define SPINDLE_ENABLE_PIN          GPIO_NUM_13 // optional
-#define LASER_OUTPUT_PIN            GPIO_NUM_15 // optional
-#define LASER_ENABLE_PIN            GPIO_NUM_12
+// #define SPINDLE_TYPE                SpindleType::PWM
+// #define SPINDLE_OUTPUT_PIN          "gpio.14"
+// #define SPINDLE_ENABLE_PIN          "gpio.13" // optional
+// #define LASER_OUTPUT_PIN            "gpio.15" // optional
+// #define LASER_ENABLE_PIN            "gpio.12"
 
 
 
@@ -132,14 +126,20 @@ Socket #5
 // #define VFD_RS485_RTS_PIN        GPIO_NUM_4
 // #define VFD_RS485_RXD_PIN        GPIO_NUM_16
 
-// Example (4x) 5V Buffer Output on socket #5
-// https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
-#define USER_DIGITAL_PIN_0      I2SO(24) // No PWM
-#define USER_DIGITAL_PIN_1      I2SO(25)
-#define USER_DIGITAL_PIN_2      I2SO(26) //  M7 on M9 Off
-#define USER_DIGITAL_PIN_3      I2SO(27) //  M8 on M9 Off
+// // 4x Input Module in Socket #3
+// // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
+// #define CONTROL_CYCLE_START_PIN      "gpio.26"
+// #define CONTROL_FEED_HOLD_PIN        "gpio.4"
+// #define CONTROL_RESET_PIN            "gpio.16"
+// #define CONTROL_SAFETY_DOOR_PIN      "gpio.27"
 
 // ================= Setting Defaults ==========================
+// https://github.com/bdring/Grbl_Esp32/wiki/Setting-Defaults
+#define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
+
 #define DEFAULT_X_STEPS_PER_MM      800
 #define DEFAULT_Y_STEPS_PER_MM      800
 #define DEFAULT_Z_STEPS_PER_MM      800
+
+#define DEFAULT_HOMING_DIR_MASK     bit(X_AXIS)
+

@@ -21,14 +21,11 @@
 
 #include <TMCStepper.h>
 
-#ifdef USE_I2S_OUT
-
 // Override default function and insert a short delay
 void TMC2130Stepper::switchCSpin(bool state) {
     digitalWrite(_pinCS, state);
-    i2s_out_delay();
+    stepping->backoffDelay();  // stepping determines the delay (if any)
 }
-#endif
 
 namespace Motors {
     uint8_t TrinamicDriver::get_next_index() {
@@ -41,22 +38,25 @@ namespace Motors {
     }
     TrinamicDriver* TrinamicDriver::List = NULL;
 
-    TrinamicDriver::TrinamicDriver(uint8_t  axis_index,
-                                   uint8_t  step_pin,
-                                   uint8_t  dir_pin,
-                                   uint8_t  disable_pin,
-                                   uint8_t  cs_pin,
-                                   uint16_t driver_part_number,
-                                   float    r_sense,
-                                   int8_t   spi_index) :
+    TrinamicDriver::TrinamicDriver(uint8_t   axis_index,
+                                   Pin       step_pin,
+                                   Pin       dir_pin,
+                                   Pin       disable_pin,
+                                   Pin       cs_pin,
+                                   MotorType driver_part_number,
+                                   float     r_sense,
+                                   int8_t    spi_index) :
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin),
         _homing_mode(TRINAMIC_HOMING_MODE), _cs_pin(cs_pin), _driver_part_number(driver_part_number), _r_sense(r_sense),
         _spi_index(spi_index) {
         _has_errors = false;
-        if (_driver_part_number == 2130) {
-            tmcstepper = new TMC2130Stepper(_cs_pin, _r_sense, _spi_index);
-        } else if (_driver_part_number == 5160) {
-            tmcstepper = new TMC5160Stepper(_cs_pin, _r_sense, _spi_index);
+
+        auto cs_pin_native = _cs_pin.getNative(Pin::Capabilities::Output);
+
+        if (_driver_part_number == MotorType::TMC2130) {
+            tmcstepper = new TMC2130Stepper(cs_pin_native, _r_sense, _spi_index);
+        } else if (_driver_part_number == MotorType::TMC5160) {
+            tmcstepper = new TMC5160Stepper(cs_pin_native, _r_sense, _spi_index);
         } else {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
@@ -67,13 +67,16 @@ namespace Motors {
             return;
         }
 
-        _has_errors = false;       
+        if (_r_sense <= 0) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Trinamic rsense value error:%1.2f Ohm", _r_sense);
+            _has_errors = true;
+            return;
+        }
 
-        digitalWrite(_cs_pin, HIGH);
-        pinMode(_cs_pin, OUTPUT);
+        _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
 
         // use slower speed if I2S
-        if (_cs_pin >= I2S_OUT_PIN_BASE) {
+        if (_cs_pin.capabilities().has(Pin::Capabilities::I2S)) {
             tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
         }
 
@@ -85,8 +88,14 @@ namespace Motors {
 
     void TrinamicDriver::init() {
         if (_has_errors) {
-            return;
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Trinamic TMC%d has errors",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           _driver_part_number);
         }
+
+        _use_RMT = !strcmp(stepping->name(), "RMT");
 
         // Display the stepper library version message once, before the first
         // TMC config message.  Link is NULL for the first TMC instance.
@@ -96,7 +105,12 @@ namespace Motors {
 
         config_message();
 
-        SPI.begin();  // this will get called for each motor, but does not seem to hurt anything
+        auto ssPin   = SPISSPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto mosiPin = SPIMOSIPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto sckPin  = SPISCKPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto misoPin = SPIMISOPin->get().getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
+
+        SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
 
         tmcstepper->begin();
 
@@ -129,10 +143,10 @@ namespace Motors {
                        "%s Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d R:%0.3f %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _driver_part_number,
-                       pinName(_step_pin).c_str(),
-                       pinName(_dir_pin).c_str(),
-                       pinName(_cs_pin).c_str(),
-                       pinName(_disable_pin).c_str(),
+                       _step_pin.name().c_str(),
+                       _dir_pin.name().c_str(),
+                       _cs_pin.name().c_str(),
+                       _disable_pin.name().c_str(),
                        _spi_index,
                        _r_sense,
                        reportAxisLimitsMsg(_axis_index));
@@ -142,6 +156,7 @@ namespace Motors {
         if (_has_errors) {
             return false;
         }
+
         switch (tmcstepper->test_connection()) {
             case 1:
                 grbl_msg_sendf(CLIENT_SERIAL,
@@ -194,6 +209,14 @@ namespace Motors {
 */
 
     void TrinamicDriver::read_settings() {
+        // When 'test' is called and no actual trinamic is there, _has_errors will evaluate to 'true'. The
+        // result of that is that the check below will fail. And the result of that is that the step/dir pin
+        // is not initialized if we don't do it here. Unstep actually uses that pin -- and then you will get
+        // an assertion for using a pin that's not initialized.
+        //
+        // So... I moved init_step_dir_pins here, which basically solves that.
+        init_step_dir_pins();
+
         if (_has_errors) {
             return;
         }
@@ -201,17 +224,15 @@ namespace Motors {
         uint16_t run_i_ma = (uint16_t)(axis_settings[_axis_index]->run_current->get() * 1000.0);
         float    hold_i_percent;
 
-        if (axis_settings[_axis_index]->run_current->get() == 0)
+        if (axis_settings[_axis_index]->run_current->get() == 0) {
             hold_i_percent = 0;
-        else {
+        } else {
             hold_i_percent = axis_settings[_axis_index]->hold_current->get() / axis_settings[_axis_index]->run_current->get();
             if (hold_i_percent > 1.0)
                 hold_i_percent = 1.0;
         }
         tmcstepper->microsteps(axis_settings[_axis_index]->microsteps->get());
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
-
-        init_step_dir_pins();
     }
 
     bool TrinamicDriver::set_homing_mode(bool isHoming) {
@@ -229,7 +250,8 @@ namespace Motors {
             return;
         }
 
-        TrinamicMode newMode = isHoming ? TRINAMIC_HOMING_MODE : TRINAMIC_RUN_MODE;
+        TrinamicMode newMode = isHoming ? static_cast<TrinamicMode>(trinamic_homing_mode->get()) :
+                                          static_cast<TrinamicMode>(trinamic_run_mode->get());
 
         if (newMode == _mode) {
             return;
@@ -270,6 +292,11 @@ namespace Motors {
 */
     void TrinamicDriver::debug_message() {
         if (_has_errors) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Trinamic TMC%d has errors",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           _driver_part_number);
             return;
         }
         uint32_t tstep = tmcstepper->TSTEP();
@@ -330,7 +357,7 @@ namespace Motors {
 
         _disabled = disable;
 
-        digitalWrite(_disable_pin, _disabled);
+        _disable_pin.write(_disabled);
 
 #ifdef USE_TRINAMIC_ENABLE
         if (_disabled) {

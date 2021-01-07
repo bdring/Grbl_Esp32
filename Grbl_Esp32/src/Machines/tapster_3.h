@@ -27,7 +27,6 @@
 
 #define USE_KINEMATICS				// there are kinematic equations for this machine
 #define USE_FWD_KINEMATICS          // report in cartesian
-#define USE_MACHINE_INIT			// There is some custom initialization for this machine
 	
 // ================== Delta Geometry ===========================
 
@@ -47,39 +46,57 @@
 
 // =================== Machine Hardware Definition =============
 
-#define DYNAMIXEL_TXD           GPIO_NUM_4
-#define DYNAMIXEL_RXD           GPIO_NUM_13
-#define DYNAMIXEL_RTS           GPIO_NUM_17
+#define X_MOTOR_TYPE              MotorType::Dynamixel
 
-#define X_DYNAMIXEL_ID          1 // protocol ID
-#define Y_DYNAMIXEL_ID          2 // protocol ID
-#define Z_DYNAMIXEL_ID          3 // protocol ID
+#define DYNAMIXEL_TXD           "gpio.4"
+#define DYNAMIXEL_RXD           "gpio.13"
+#define DYNAMIXEL_RTS           "gpio.17"
+
+#define X_MOTOR_TYPE              MotorType::Dynamixel
+#define Y_MOTOR_TYPE              MotorType::Dynamixel
+#define Z_MOTOR_TYPE              MotorType::Dynamixel
+
+/*
+$X/Motor/Address=1
+$Y/Motor/Address=2
+$Z/Motor/Address=3
+*/
 
 // limit servo to motion range
+/*
 #define DXL_COUNTS              4096
 #define DXL_COUNT_PER_RADIAN    652   // (DXL_COUNTS / 2.0 * M_PI)
 
 #define DXL_CENTER              2015 // (DXL_COUNTS / 2) - (ARM_INTERNAL_ANGLE * DXL_COUNT_PER_RADIAN)
 
-#undef DXL_COUNT_MIN
 #define DXL_COUNT_MIN           (DXL_CENTER + (MAX_NEGATIVE_ANGLE * DXL_COUNT_PER_RADIAN))
-
-#undef DXL_COUNT_MAX
 #define DXL_COUNT_MAX           (DXL_CENTER + (MAX_POSITIVE_ANGLE * DXL_COUNT_PER_RADIAN))
 
+
+
+*/
+/*
+$X/Motor/Cal/Min=0.325
+$Y/Motor/Cal/Min=0.325
+$Z/Motor/Cal/Min=0.325
+
+$X/Motor/Cal/Max=0.742
+$Y/Motor/Cal/Max=0.742
+$Z/Motor/Cal/Max=0.742
+*/
 #define SERVO_TIMER_INTERVAL 50
 
-#define USER_DIGITAL_PIN_0      GPIO_NUM_25
-#define USER_DIGITAL_PIN_1      GPIO_NUM_26
-#define USER_DIGITAL_PIN_2      GPIO_NUM_27
+#define USER_DIGITAL_PIN_0      "gpio.25"
+#define USER_DIGITAL_PIN_1      "gpio.26"
+#define USER_DIGITAL_PIN_2      "gpio.27"
 
-#define USER_ANALOG_PIN_0       GPIO_NUM_2
+#define USER_ANALOG_PIN_0       "gpio.2"
 #define USER_ANALOG_PIN_0_FREQ  50              // for use with RC servos duty range 5% to 10% 
 
-#define USER_ANALOG_PIN_1       GPIO_NUM_15
+#define USER_ANALOG_PIN_1       "gpio.15"
 #define USER_ANALOG_PIN_1_FREQ  50              // for use with RC servos duty range 5% to 10% 
 
-#define USER_ANALOG_PIN_2       GPIO_NUM_16
+#define USER_ANALOG_PIN_2       "gpio.16"
 #define USER_ANALOG_PIN_2_FREQ  50              // for use with RC servos duty range 5% to 10% 
 
 // ===================== Default Settings ==============================
@@ -89,9 +106,7 @@
 
 #define DEFAULT_STATUS_REPORT_MASK 1
 
-#define DEFAULT_STEPPING_INVERT_MASK 0 // uint8_t
 #define DEFAULT_DIRECTION_INVERT_MASK 0 // uint8_t
-#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
 
 #define DEFAULT_SOFT_LIMIT_ENABLE 0 // false
 #define DEFAULT_HARD_LIMIT_ENABLE 0  // false

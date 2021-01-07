@@ -37,18 +37,19 @@
 
 #define SPINDLE_TYPE    SpindleType::NONE
 
-#define X_STEP_PIN      GPIO_NUM_12
-#define Y_STEP_PIN      GPIO_NUM_14
+#define X_STEP_PIN      "gpio.12"
+#define Y_STEP_PIN      "gpio.14"
 
-#define X_DIRECTION_PIN GPIO_NUM_26
-#define Y_DIRECTION_PIN GPIO_NUM_25
+#define X_DIRECTION_PIN "gpio.26"
+#define Y_DIRECTION_PIN "gpio.25"
 
-#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN "gpio.13"
 
-#define X_LIMIT_PIN     GPIO_NUM_2
-#define Y_LIMIT_PIN     GPIO_NUM_4
+#define X_LIMIT_PIN     "gpio.2:low"
+#define Y_LIMIT_PIN     "gpio.4:low"
 
-#define Z_SERVO_PIN             GPIO_NUM_27
+#define Z_MOTOR_TYPE             MotorType::RCServo
+#define Z_RCSERVO_PIN             "gpio.27"
 
 // Set $Homing/Cycle0=Y and $Homing/Cycle1=X
 
@@ -64,11 +65,7 @@
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME  255 // stay on
 
-#define DEFAULT_STEPPING_INVERT_MASK    0 // uint8_t
 #define DEFAULT_DIRECTION_INVERT_MASK   2 // uint8_t
-#define DEFAULT_INVERT_ST_ENABLE        0 // boolean
-#define DEFAULT_INVERT_LIMIT_PINS       1 // boolean
-#define DEFAULT_INVERT_PROBE_PIN        0 // boolean
 
 #define DEFAULT_STATUS_REPORT_MASK 1
 

@@ -58,11 +58,18 @@
 
 #include <stdatomic.h>
 
-#include "Pins.h"
+#include "Pin.h"
 #include "I2SOut.h"
+
+#include "Settings.h"
+#include "SettingsDefinitions.h"
 
 // Always enable I2S streaming logic
 #define USE_I2S_OUT_STREAM_IMPL
+
+// Make Arduino functions available
+extern "C" void __pinMode(uint8_t pin, uint8_t mode);
+extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 //
 // Configrations for DMA connected I2S
@@ -944,15 +951,6 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
     return 0;
 }
 
-#ifndef I2S_OUT_WS
-#    define I2S_OUT_WS GPIO_NUM_17
-#endif
-#ifndef I2S_OUT_BCK
-#    define I2S_OUT_BCK GPIO_NUM_22
-#endif
-#ifndef I2S_OUT_DATA
-#    define I2S_OUT_DATA GPIO_NUM_21
-#endif
 #ifndef I2S_OUT_INIT_VAL
 #    define I2S_OUT_INIT_VAL 0
 #endif
@@ -962,13 +960,30 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
   return -1 ... already initialized
 */
 int IRAM_ATTR i2s_out_init() {
-    i2s_out_init_t default_param = {
-        .ws_pin       = I2S_OUT_WS,
-        .bck_pin      = I2S_OUT_BCK,
-        .data_pin     = I2S_OUT_DATA,
-        .pulse_func   = NULL,
-        .pulse_period = I2S_OUT_USEC_PER_PULSE,
-        .init_val     = I2S_OUT_INIT_VAL,
-    };
-    return i2s_out_init(default_param);
+    Pin wsPin   = I2SOWS->get();
+    Pin bckPin  = I2SOBCK->get();
+    Pin dataPin = I2SOData->get();
+
+    // Check capabilities:
+    if (!wsPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Not setting up I2SO: WS pin has incorrect capabilities");
+        return -1;
+    } else if (!bckPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Not setting up I2SO: BCK pin has incorrect capabilities");
+        return -1;
+    } else if (!dataPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Not setting up I2SO: DATA pin has incorrect capabilities");
+        return -1;
+    }
+    else {
+        i2s_out_init_t default_param;
+        default_param.ws_pin = wsPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        default_param.bck_pin = bckPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        default_param.data_pin = dataPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        default_param.pulse_func = NULL;
+        default_param.pulse_period = I2S_OUT_USEC_PER_PULSE;
+        default_param.init_val = I2S_OUT_INIT_VAL;
+
+        return i2s_out_init(default_param);
+    }
 }

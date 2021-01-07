@@ -27,7 +27,7 @@
 namespace Motors {
     class RcServo : public Servo {
     public:
-        RcServo(uint8_t axis_index, uint8_t pwm_pin);
+        RcServo(uint8_t axis_index, Pin pwm_pin);
 
         // Overrides for inherited methods
         void init() override;
@@ -37,14 +37,15 @@ namespace Motors {
         void update() override;
 
         void _write_pwm(uint32_t duty);
-        
+
+        bool _has_errors;
 
     protected:
         void config_message() override;
 
         void set_location();
 
-        uint8_t  _pwm_pin;
+        Pin      _pwm_pin;
         uint8_t  _channel_num;
         uint32_t _current_pwm_duty;
 
@@ -55,7 +56,7 @@ namespace Motors {
 
         bool _disabled;
 
-        FloatSetting* rc_servo_cal_min;
-        FloatSetting* rc_servo_cal_max;
-        };
+        //FloatSetting* rs_servo_cal_min;
+        //FloatSetting* rc_servo_cal_max;
+    };
 }

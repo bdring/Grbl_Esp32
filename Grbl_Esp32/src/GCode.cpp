@@ -278,7 +278,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 38:  // G38 - probe
                         //only allow G38 "Probe" commands if a probe pin is defined.
-                        if (PROBE_PIN == UNDEFINED_PIN) {
+                        if (ProbePin->get() == Pin::UNDEFINED) {
                             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
                             FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
                         }
@@ -503,16 +503,16 @@ Error gc_execute_line(char* line, uint8_t client) {
                     case 8:
                     case 9:
                         switch (int_value) {
-#ifdef COOLANT_MIST_PIN
                             case 7:
-                                gc_block.coolant = GCodeCoolant::M7;
+                                if (CoolantMistPin->get() != Pin::UNDEFINED) {
+                                    gc_block.coolant = GCodeCoolant::M7;
+                                }
                                 break;
-#endif
-#ifdef COOLANT_FLOOD_PIN
                             case 8:
-                                gc_block.coolant = GCodeCoolant::M8;
+                                if (CoolantFloodPin->get() != Pin::UNDEFINED) {
+                                    gc_block.coolant = GCodeCoolant::M8;
+                                }
                                 break;
-#endif
                             case 9:
                                 gc_block.coolant = GCodeCoolant::M9;
                                 break;
@@ -1481,8 +1481,11 @@ Error gc_execute_line(char* line, uint8_t client) {
             break;
         case NonModal::GoHome0:
         case NonModal::GoHome1:
+            // G28 G30
+            // https://linuxcnc.org/docs/2.6/html/gcode/gcode.html#sec:G30-G30_1
             // Move to intermediate position before going home. Obeys current coordinate system and offsets
-            // and absolute and incremental modes.
+            // Axes any any intermiate axes no specified do not move at all
+            // G91 G28 Z5 X0 (moves in Z up, no X move and them moves to the Z & X positions of G28. No Y move)
             pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
             if (axis_command != AxisCommand::None) {
                 mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
@@ -1604,9 +1607,9 @@ Error gc_execute_line(char* line, uint8_t client) {
                 coolant_off();
             }
             report_feedback_message(Message::ProgramEnd);
-#ifdef USE_M30
+
             user_m30();
-#endif
+
             break;
     }
     gc_state.modal.program_flow = ProgramFlow::Running;  // Reset program flow.

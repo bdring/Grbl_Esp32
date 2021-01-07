@@ -24,7 +24,6 @@
 // enable these special machine functions to be called from the main program
 #define USE_KINEMATICS             // there are kinematic equations for this machine
 #define FWD_KINEMATICS_REPORTING   // report in cartesian
-#define USE_RMT_STEPS              // Use the RMT periferal to generate step pulses
 #define USE_TRINAMIC               // some Trinamic motors are used on this machine
 #define USE_MACHINE_TRINAMIC_INIT  // there is a machine specific setup for the drivers
 #define USE_MACHINE_INIT           // There is some custom initialization for this machine
@@ -69,68 +68,66 @@
 // === Default settings
 #define DEFAULT_STEP_PULSE_MICROSECONDS I2S_OUT_USEC_PER_PULSE
 
-// #define USE_STEPSTICK   // makes sure MS1,2,3 !reset and !sleep are set
-
-#define I2S_OUT_BCK             GPIO_NUM_22
-#define I2S_OUT_WS              GPIO_NUM_17
-#define I2S_OUT_DATA            GPIO_NUM_21
+#define I2S_OUT_BCK             "gpio.22"
+#define I2S_OUT_WS              "gpio.17"
+#define I2S_OUT_DATA            "gpio.21"
 
 // ================== CPU MAP ======================
 
 // Motor Socket #1
-#define X_TRINAMIC_DRIVER       2130
-#define X_DISABLE_PIN           I2SO(0)
-#define X_DIRECTION_PIN         I2SO(1)
-#define X_STEP_PIN              I2SO(2)
-#define X_CS_PIN                I2SO(3)
-#define X_RSENSE                TMC2130_RSENSE_DEFAULT
+#define X_TRINAMIC_DRIVER       MotorType::TMC2130
+#define X_DISABLE_PIN           "i2so.0"
+#define X_DIRECTION_PIN         "i2so.1"
+#define X_STEP_PIN              "i2so.2"
+#define X_CS_PIN                "i2so.3"
+#define X_DRIVER_RSENSE          0.11
 
 // Motor Socket #2
 #define Y_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
-#define Y_DIRECTION_PIN         I2SO(4)
-#define Y_STEP_PIN              I2SO(5)
-#define Y_DISABLE_PIN           I2SO(7)
-#define Y_CS_PIN                I2SO(6)
-#define Y_RSENSE                X_RSENSE
+#define Y_DIRECTION_PIN         "i2so.4"
+#define Y_STEP_PIN              "i2so.5"
+#define Y_DISABLE_PIN           "i2so.7"
+#define Y_CS_PIN                "i2so.6"
+#define Y_DRIVER_RSENSE         X_DRIVER_RSENSE
 
 // Motor Socket #3
 #define Z_TRINAMIC_DRIVER       X_TRINAMIC_DRIVER
-#define Z_DISABLE_PIN           I2SO(8)
-#define Z_DIRECTION_PIN         I2SO(9)
-#define Z_STEP_PIN              I2SO(10)
-#define Z_CS_PIN                I2SO(11)
-#define Z_RSENSE                X_RSENSE
+#define Z_DISABLE_PIN           "i2so.8"
+#define Z_DIRECTION_PIN         "i2so.9"
+#define Z_STEP_PIN              "i2so.10"
+#define Z_CS_PIN                "i2so.11"
+#define Y_DRIVER_RSENSE         X_DRIVER_RSENSE
 
 // 6 Pack Pin Mapping
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Socket-Pin-Number-Mapping
 
 // // 4x Switch input module on CNC I/O module Socket #1
 // // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define X_LIMIT_PIN     GPIO_NUM_33
-#define Y_LIMIT_PIN     GPIO_NUM_32
-#define Z_LIMIT_PIN     GPIO_NUM_35
+#define X_LIMIT_PIN     "gpio.33"
+#define Y_LIMIT_PIN     "gpio.32"
+#define Z_LIMIT_PIN     "gpio.35"
 
 // 4x Switch input module on CNC I/O module Socket #2
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-// #define X_LIMIT_PIN     GPIO_NUM_2
-// #define Y_LIMIT_PIN     GPIO_NUM_25
-// #define Z_LIMIT_PIN     GPIO_NUM_39
-// #define PROBE_PIN       GPIO_NUM_36
+// #define X_LIMIT_PIN     "gpio.2"
+// #define Y_LIMIT_PIN     "gpio.25"
+// #define Z_LIMIT_PIN     "gpio.39"
+// #define PROBE_PIN       "gpio.36:low"
 
 //Example Quad MOSFET module on socket #3
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
-#define USER_DIGITAL_PIN_0     GPIO_NUM_26
-#define USER_DIGITAL_PIN_1     GPIO_NUM_4
-#define USER_DIGITAL_PIN_2     GPIO_NUM_16
-#define USER_DIGITAL_PIN_3     GPIO_NUM_27
+#define USER_DIGITAL_PIN_0     "gpio.26"
+#define USER_DIGITAL_PIN_1     "gpio.4"
+#define USER_DIGITAL_PIN_2     "gpio.16"
+#define USER_DIGITAL_PIN_3     "gpio.27"
 
 // Example Servo module in socket #4
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/RC-Servo-BESC-CNC-I-O-Module
 // https://github.com/bdring/Grbl_Esp32/wiki/M62,-M63,-M64,-M65-&-M67-User-I-O-Commands
-#define USER_ANALOG_PIN_0       GPIO_NUM_14 
-#define USER_ANALOG_PIN_1       GPIO_NUM_13 
-#define USER_ANALOG_PIN_2       GPIO_NUM_15
-#define USER_ANALOG_PIN_3       GPIO_NUM_12
+#define USER_ANALOG_PIN_0       "gpio.14" 
+#define USER_ANALOG_PIN_1       "gpio.13" 
+#define USER_ANALOG_PIN_2       "gpio.15"
+#define USER_ANALOG_PIN_3       "gpio.12"
 #define USER_ANALOG_PIN_0_FREQ  50             // for use with RC servos
 #define USER_ANALOG_PIN_1_FREQ  50
 #define USER_ANALOG_PIN_2_FREQ  50
@@ -174,7 +171,6 @@
 #define DEFAULT_HOMING_SEEK_RATE    100
 #define DEFAULT_HOMING_DIR_MASK     (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS))  // all axes home negative
 #define DEFAULT_HOMING_ENABLE       1
-#define DEFAULT_INVERT_LIMIT_PINS   0
 #define DEFAULT_HOMING_CYCLE_0      (bit(X_AXIS) | bit(Y_AXIS) | bit(Z_AXIS)) 
 #define DEFAULT_HOMING_CYCLE_1      0  // override this one in defaults.h
 
@@ -191,7 +187,5 @@
 #define DEFAULT_Z_MAX_TRAVEL    DEFAULT_X_MAX_TRAVEL
 
 #define DEFAULT_HOMING_PULLOFF  -DEFAULT_X_HOMING_MPOS
-
-#define DEFAULT_INVERT_PROBE_PIN 1
 
 #define SPINDLE_TYPE    SpindleType::NONE

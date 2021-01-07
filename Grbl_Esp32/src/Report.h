@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Error.h"
+
 /*
   Report.h - Header for system level commands and real-time processes
   Part of Grbl
@@ -128,4 +130,4 @@ char* reportAxisLimitsMsg(uint8_t axis);
 char* reportAxisNameMsg(uint8_t axis);
 char* reportAxisNameMsg(uint8_t axis, uint8_t dual_axis);
 
-void  reportTaskStackSize(UBaseType_t& saved);
+void reportTaskStackSize(UBaseType_t& saved);

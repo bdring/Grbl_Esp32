@@ -180,13 +180,10 @@ bool user_defined_homing(uint8_t cycle_mask) {
                         }
                     } while (!switch_touched);
 
-#ifdef USE_I2S_STEPS
-                    if (current_stepper == ST_I2S_STREAM) {
-                        if (!approach) {
-                            delay_ms(I2S_OUT_DELAY_MS);
-                        }
+                    if (!approach) {
+                        stepping->backoffDelay();
                     }
-#endif
+
                     st_reset();                        // Immediately force kill steppers and reset step segment buffer.
                     delay_ms(homing_debounce->get());  // Delay to allow transient dynamics to dissipate.
 

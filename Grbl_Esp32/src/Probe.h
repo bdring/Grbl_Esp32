@@ -23,6 +23,8 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cstdint>
+
 // Values that define the probing state machine.
 enum class Probe : uint8_t {
     Off    = 0,  // Probing disabled or not in use. (Must be zero.)

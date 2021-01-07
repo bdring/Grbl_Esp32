@@ -26,22 +26,16 @@
 void coolant_init() {
     static bool init_message = true;  // used to show messages only once.
 
-#ifdef COOLANT_FLOOD_PIN
-    pinMode(COOLANT_FLOOD_PIN, OUTPUT);
-#endif
-#ifdef COOLANT_MIST_PIN
-    pinMode(COOLANT_MIST_PIN, OUTPUT);
-#endif
-
     if (init_message) {
-#ifdef COOLANT_FLOOD_PIN
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Flood coolant on pin %s", pinName(COOLANT_FLOOD_PIN).c_str());
-#endif
-#ifdef COOLANT_MIST_PIN
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Mist coolant on pin %s", pinName(COOLANT_MIST_PIN).c_str());
-#endif
+        if (CoolantFloodPin->get() != Pin::UNDEFINED)
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Flood coolant on pin %s", CoolantFloodPin->get().name().c_str());
+        if (CoolantMistPin->get() != Pin::UNDEFINED)
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Mist coolant on pin %s", CoolantMistPin->get().name().c_str());
         init_message = false;
     }
+
+    CoolantFloodPin->get().setAttr(Pin::Attr::Output);
+    CoolantMistPin->get().setAttr(Pin::Attr::Output);
 
     coolant_stop();
 }
@@ -51,47 +45,31 @@ CoolantState coolant_get_state() {
     CoolantState cl_state = {};
     bool         pinState;
 
-#ifdef COOLANT_FLOOD_PIN
-    pinState = digitalRead(COOLANT_FLOOD_PIN);
-#    ifdef INVERT_COOLANT_FLOOD_PIN
-    pinState = !pinState;
-#    endif
-    if (pinState) {
-        cl_state.Flood = 1;
+    if (CoolantFloodPin->get() != Pin::UNDEFINED) {
+        if (CoolantFloodPin->get().read()) {
+            cl_state.Flood = 1;
+        }
     }
-#endif
 
-#ifdef COOLANT_MIST_PIN
-    pinState = digitalRead(COOLANT_MIST_PIN);
-#    ifdef INVERT_COOLANT_MIST_PIN
-    pinState = !pinState;
-#    endif
-    if (pinState) {
-        cl_state.Mist = 1;
+    if (CoolantMistPin->get() != Pin::UNDEFINED) {
+        if (CoolantMistPin->get().read()) {
+            cl_state.Mist = 1;
+        }
     }
-#endif
 
     return cl_state;
 }
 
 static inline void coolant_write(CoolantState state) {
-    bool pinState;
+    if (CoolantFloodPin->get() != Pin::UNDEFINED) {
+        bool pinState = state.Flood;
+        CoolantFloodPin->get().write(pinState);
+    }
 
-#ifdef COOLANT_FLOOD_PIN
-    pinState = state.Flood;
-#    ifdef INVERT_COOLANT_FLOOD_PIN
-    pinState = !pinState;
-#    endif
-    digitalWrite(COOLANT_FLOOD_PIN, pinState);
-#endif
-
-#ifdef COOLANT_MIST_PIN
-    pinState = state.Mist;
-#    ifdef INVERT_COOLANT_MIST_PIN
-    pinState = !pinState;
-#    endif
-    digitalWrite(COOLANT_MIST_PIN, pinState);
-#endif
+    if (CoolantMistPin->get() != Pin::UNDEFINED) {
+        bool pinState = state.Mist;
+        CoolantMistPin->get().write(pinState);
+    }
 }
 
 // Directly called by coolant_init(), coolant_set_state(), and mc_reset(), which can be at

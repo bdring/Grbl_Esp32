@@ -45,6 +45,7 @@ namespace Spindles {
 
     private:
         bool _gpio_ok;  // DAC is on a valid pin
+
     protected:
         void set_output(uint32_t duty);  // sets DAC instead of PWM
     };

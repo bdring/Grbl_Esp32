@@ -8,33 +8,37 @@ This sets a range in machine space. You are allowed to zero the axis anywhere in
 
 You should set the the axis speed and acceleration to what the servo can handle. If those settings are too high, the motor will still move, but will lag behind where Grbl thinks it is.
 
+The resolution of the range is sepcific to the servo type. This is currently fixed at this valu
+
+const int DXL_COUNT_MAX = 4095;
+
 ## Machine Definition
 
 ```
-#define DYNAMIXEL_TXD           GPIO_NUM_4
-#define DYNAMIXEL_RXD           GPIO_NUM_13
-#define DYNAMIXEL_RTS           GPIO_NUM_17
+#define DYNAMIXEL_TXD           gpio.4
+#define DYNAMIXEL_RXD           gpio.13
+#define DYNAMIXEL_RTS           gpio.17
 
-#define X_DYNAMIXEL_ID          1 // protocol ID
-#define Y_DYNAMIXEL_ID          2 // protocol ID
-#define Z_DYNAMIXEL_ID          3 // protocol ID
+$X/Motor/Address=1
+$Y/Motor/Address=2
+$Z/Motor/Address=3
 
 #define SERVO_TIMER_INTERVAL    75   // milliseconds (an override...not required)
-#define DXL_COUNT_MIN           1024 // (an override...not required)
-#define DXL_COUNT_MAX           3072 // (an override...not required)
+
+$<axis>/Motor/Cal/Min=0.325    
+$<axis>/Motor/Cal/Max=0.725
+
 ```
-
-
 
 You need to specify the TXD, RXD and RTS pins you want to use for the half duplex communications bus.
 
 The `SERVO_TIMER_INTERVAL` sets the time in milliseconds between updates. At each interval 1 message per servo is sent. If you try to update too fast you will see errors reported to the USB/Serial port. 75ms seems like a good rate for 3 servos. Adjust per your count.
 
-You assign servos to axes with a definition like `#define X_DYNAMIXEL_ID          1` The servos should be programmed with unique IDs using Dynamixel software.
+You assign servos to axes with a definition like `$<axis>/Motor/Address=1` The servos should be programmed with unique IDs using Dynamixel software.
 
-You can limit the servo rotational range of travel using `DXL_COUNT_MIN` and `DXL_COUNT_MAX` The full range of a XT430-250T servo is 0-4095.
+You can limit the servo rotational range of travel using `$<axis>/Motor/Cal/Min` and `$<axis>/Motor/Cal/Max` The value is the percentage of the  full count. The full range of an XT430-250T servo is 0-4095.
 
-You can revers direction using the standard $Stepper/DirInvert command
+You can reverse the motor by making Min higher than Max
 
 ## Homing
 

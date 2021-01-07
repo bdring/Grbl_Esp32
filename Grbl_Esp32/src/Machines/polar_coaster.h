@@ -41,16 +41,17 @@
 #define USE_FWD_KINEMATICS // report in cartesian
 #define USE_M30
 
-#define X_STEP_PIN              GPIO_NUM_15
-#define Y_STEP_PIN              GPIO_NUM_2
-#define X_DIRECTION_PIN         GPIO_NUM_25
-#define Y_DIRECTION_PIN         GPIO_NUM_26
+#define X_STEP_PIN              "gpio.15"
+#define Y_STEP_PIN              "gpio.2"
+#define X_DIRECTION_PIN         "gpio.25"
+#define Y_DIRECTION_PIN         "gpio.26"
 
-#define STEPPERS_DISABLE_PIN    GPIO_NUM_17
+#define STEPPERS_DISABLE_PIN    "gpio.17"
 
-#define Z_SERVO_PIN             GPIO_NUM_16
+#define Z_MOTOR_TYPE             MotorType::RCServo
+#define Z_RCSERVO_PIN             "gpio.16"
 
-#define X_LIMIT_PIN             GPIO_NUM_4
+#define X_LIMIT_PIN             "gpio.4:low"
 
 #define SPINDLE_TYPE SpindleType::NONE
 
@@ -63,14 +64,9 @@
 #endif
 #define CONTROL_SW_DEBOUNCE_PERIOD 100 // really long debounce
 
-#ifdef INVERT_CONTROL_PIN_MASK
-    #undef INVERT_CONTROL_PIN_MASK
-#endif
-#define INVERT_CONTROL_PIN_MASK B11111111
-
-#define MACRO_BUTTON_0_PIN      GPIO_NUM_13
-#define MACRO_BUTTON_1_PIN      GPIO_NUM_12
-#define MACRO_BUTTON_2_PIN      GPIO_NUM_14
+#define MACRO_BUTTON_0_PIN      "gpio.13:low"
+#define MACRO_BUTTON_1_PIN      "gpio.12:low"
+#define MACRO_BUTTON_2_PIN      "gpio.14:low"
 
 
 // this 'bot only homes the X axis
@@ -82,11 +78,7 @@
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME 255 // stay on
 
-#define DEFAULT_STEPPING_INVERT_MASK 0 // uint8_t
 #define DEFAULT_DIRECTION_INVERT_MASK 2 // uint8_t
-#define DEFAULT_INVERT_ST_ENABLE 0 // boolean
-#define DEFAULT_INVERT_LIMIT_PINS 1 // boolean
-#define DEFAULT_INVERT_PROBE_PIN 0 // boolean
 
 #define DEFAULT_STATUS_REPORT_MASK 2 // MPos enabled
 

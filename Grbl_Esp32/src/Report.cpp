@@ -54,11 +54,16 @@ EspClass esp;
 #endif
 const int DEFAULTBUFFERSIZE = 64;
 
+portMUX_TYPE mmux = portMUX_INITIALIZER_UNLOCKED;
+
 // this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char* text) {
     if (client == CLIENT_INPUT) {
         return;
     }
+
+    portENTER_CRITICAL(&mmux);
+
 #ifdef ENABLE_BLUETOOTH
     if (WebUI::SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
         WebUI::SerialBT.print(text);
@@ -78,6 +83,8 @@ void grbl_send(uint8_t client, const char* text) {
     if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
         Serial.print(text);
     }
+
+    portEXIT_CRITICAL(&mmux);
 }
 
 // This is a formating version of the grbl_send(CLIENT_ALL,...) function that work like printf
@@ -167,7 +174,6 @@ void grbl_notifyf(const char* title, const char* format, ...) {
 }
 
 static const int coordStringLen = 20;
-static const int axesStringLen  = coordStringLen * MAX_N_AXIS;
 
 // formats axis values into a string and returns that string in rpt
 // NOTE: rpt should have at least size: axesStringLen
@@ -203,6 +209,7 @@ static String report_util_axis_values(const float* axis_value) {
         decimals  = 4;  // Report inches to 4 decimal places
     }
     auto n_axis = number_axis->get();
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "N axes %d", n_axis);
     for (idx = 0; idx < n_axis; idx++) {
         rpt += String(axis_value[idx] * unit_conv, decimals);
         if (idx < (number_axis->get() - 1)) {
@@ -313,6 +320,8 @@ void report_grbl_help(uint8_t client) {
 // These values are retained until Grbl is power-cycled, whereby they will be re-zeroed.
 void report_probe_parameters(uint8_t client) {
     // Report in terms of machine position.
+    int axesStringLen = coordStringLen * number_axis->get();
+
     float print_position[MAX_N_AXIS];
     char  probe_rpt[(axesStringLen + 13 + 6 + 1)];  // the probe report we are building here
     char  temp[axesStringLen];
@@ -524,9 +533,9 @@ void report_execute_startup_message(const char* line, Error status_code, uint8_t
 // Prints build info line
 void report_build_info(const char* line, uint8_t client) {
     grbl_sendf(client, "[VER:%s.%s:%s]\r\n[OPT:", GRBL_VERSION, GRBL_VERSION_BUILD, line);
-#ifdef COOLANT_MIST_PIN
-    grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
-#endif
+    if (CoolantMistPin->get() != Pin::UNDEFINED) {
+        grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
+    }
 #ifdef PARKING_ENABLE
     grbl_send(client, "P");
 #endif
@@ -655,13 +664,12 @@ void report_realtime_status(uint8_t client) {
             }
         }
     }
+    // allow a custom machine to apply forward kinematics
+    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
     // Report machine position
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
         strcat(status, "|MPos:");
     } else {
-#ifdef USE_FWD_KINEMATICS
-        forward_kinematics(print_position);
-#endif
         strcat(status, "|WPos:");
     }
     report_util_axis_values(print_position, temp);
@@ -828,11 +836,12 @@ void report_realtime_status(uint8_t client) {
             if (coolant.Flood) {
                 strcat(status, "F");
             }
-#    ifdef COOLANT_MIST_PIN  // TODO Deal with M8 - Flood
-            if (coolant.Mist) {
-                strcat(status, "M");
+            if (CoolantMistPin->get() != Pin::UNDEFINED) {
+                // TODO Deal with M8 - Flood
+                if (coolant.Mist) {
+                    strcat(status, "M");
+                }
             }
-#    endif
         }
     }
 #endif
@@ -952,4 +961,8 @@ void reportTaskStackSize(UBaseType_t& saved) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Min Stack Space: %d", pcTaskGetTaskName(NULL), saved);
     }
 #endif
+}
+
+void __attribute__((weak)) forward_kinematics(float* position) {
+    // do nothing
 }

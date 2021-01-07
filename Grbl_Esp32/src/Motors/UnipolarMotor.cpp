@@ -1,18 +1,17 @@
 #include "UnipolarMotor.h"
 
 namespace Motors {
-    UnipolarMotor::UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3) :
-        Motor(axis_index), _pin_phase0(pin_phase0), _pin_phase1(pin_phase1), _pin_phase2(pin_phase2),
-        _pin_phase3(pin_phase3),
+    UnipolarMotor::UnipolarMotor(uint8_t axis_index, Pin pin_phase0, Pin pin_phase1, Pin pin_phase2, Pin pin_phase3) :
+        Motor(axis_index), _pin_phase0(pin_phase0), _pin_phase1(pin_phase1), _pin_phase2(pin_phase2), _pin_phase3(pin_phase3),
 
         _half_step(true)  // TODO read from settings ... microstep > 1 = half step
     {}
 
     void UnipolarMotor::init() {
-        pinMode(_pin_phase0, OUTPUT);
-        pinMode(_pin_phase1, OUTPUT);
-        pinMode(_pin_phase2, OUTPUT);
-        pinMode(_pin_phase3, OUTPUT);
+        _pin_phase0.setAttr(Pin::Attr::Output);
+        _pin_phase1.setAttr(Pin::Attr::Output);
+        _pin_phase2.setAttr(Pin::Attr::Output);
+        _pin_phase3.setAttr(Pin::Attr::Output);
         _current_phase = 0;
         config_message();
     }
@@ -22,19 +21,19 @@ namespace Motors {
                        MsgLevel::Info,
                        "%s Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
-                       pinName(_pin_phase0).c_str(),
-                       pinName(_pin_phase1).c_str(),
-                       pinName(_pin_phase2).c_str(),
-                       pinName(_pin_phase3).c_str(),
+                       _pin_phase0.name().c_str(),
+                       _pin_phase1.name().c_str(),
+                       _pin_phase2.name().c_str(),
+                       _pin_phase3.name().c_str(),
                        reportAxisLimitsMsg(_axis_index));
     }
 
     void UnipolarMotor::set_disable(bool disable) {
         if (disable) {
-            digitalWrite(_pin_phase0, 0);
-            digitalWrite(_pin_phase1, 0);
-            digitalWrite(_pin_phase2, 0);
-            digitalWrite(_pin_phase3, 0);
+            _pin_phase0.off();
+            _pin_phase1.off();
+            _pin_phase2.off();
+            _pin_phase3.off();
         }
         _enabled = !disable;
     }
@@ -45,8 +44,9 @@ namespace Motors {
         uint8_t _phase[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // temporary phase values...all start as off
         uint8_t phase_max;
 
-        if (!_enabled)
+        if (!_enabled) {
             return;  // don't do anything, phase is not changed or lost
+        }
 
         phase_max = _half_step ? 7 : 3;
 
@@ -120,9 +120,10 @@ namespace Motors {
                     break;
             }
         }
-        digitalWrite(_pin_phase0, _phase[0]);
-        digitalWrite(_pin_phase1, _phase[1]);
-        digitalWrite(_pin_phase2, _phase[2]);
-        digitalWrite(_pin_phase3, _phase[3]);
+
+        _pin_phase0.write(_phase[0]);
+        _pin_phase1.write(_phase[1]);
+        _pin_phase2.write(_phase[2]);
+        _pin_phase3.write(_phase[3]);
     }
 }

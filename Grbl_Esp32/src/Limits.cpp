@@ -39,7 +39,7 @@ xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 #    define HOMING_AXIS_LOCATE_SCALAR 5.0  // Must be > 1 to ensure limit switch is cleared.
 #endif
 
-void IRAM_ATTR isr_limit_switches() {
+void IRAM_ATTR isr_limit_switches(void* /*unused */) {
     // Ignore limit switches if already in an alarm state or in-process of executing an alarm.
     // When in the alarm state, Grbl should have been reset or will force a reset, so any pending
     // moves in the planner and serial buffers are all cleared and newly sent blocks will be
@@ -205,13 +205,11 @@ void limits_go_home(uint8_t cycle_mask) {
                 }
             }
         } while (STEP_MASK & axislock);
-#ifdef USE_I2S_STEPS
-        if (current_stepper == ST_I2S_STREAM) {
-            if (!approach) {
-                delay_ms(I2S_OUT_DELAY_MS);
-            }
+
+        if (!approach) {
+            stepping->backoffDelay();
         }
-#endif
+
         st_reset();                        // Immediately force kill steppers and reset step segment buffer.
         delay_ms(homing_debounce->get());  // Delay to allow transient dynamics to dissipate.
         // Reverse direction and reset homing rate for locate cycle(s).
@@ -252,33 +250,28 @@ void limits_go_home(uint8_t cycle_mask) {
     motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done
 }
 
-uint8_t limit_pins[MAX_N_AXIS][2] = { { X_LIMIT_PIN, X2_LIMIT_PIN }, { Y_LIMIT_PIN, Y2_LIMIT_PIN }, { Z_LIMIT_PIN, Z2_LIMIT_PIN },
-                                      { A_LIMIT_PIN, A2_LIMIT_PIN }, { B_LIMIT_PIN, B2_LIMIT_PIN }, { C_LIMIT_PIN, C2_LIMIT_PIN } };
-
 uint8_t limit_mask = 0;
 
 void limits_init() {
-    limit_mask = 0;
-    int mode   = INPUT_PULLUP;
-#ifdef DISABLE_LIMIT_PIN_PULL_UP
-    mode = INPUT;
-#endif
+    limit_mask     = 0;
+    Pin::Attr mode = Pin::Attr::Input | Pin::Attr::ISR;
+
     auto n_axis = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin;
-            if ((pin = limit_pins[axis][gang_index]) != UNDEFINED_PIN) {
-                pinMode(pin, mode);
+            Pin pin;
+            if ((pin = LimitPins[axis][gang_index]->get()) != Pin::UNDEFINED) {
+                pin.setAttr(mode);
                 limit_mask |= bit(axis);
                 if (hard_limits->get()) {
-                    attachInterrupt(pin, isr_limit_switches, CHANGE);
+                    pin.attachInterrupt(isr_limit_switches, CHANGE, nullptr);
                 } else {
-                    detachInterrupt(pin);
+                    pin.detachInterrupt();
                 }
 
                 if (limit_sw_queue == NULL) {
                     grbl_msg_sendf(
-                        CLIENT_SERIAL, MsgLevel::Info, "%s limit switch on pin %s", reportAxisNameMsg(axis, gang_index), pinName(pin).c_str());
+                        CLIENT_SERIAL, MsgLevel::Info, "%s limit switch on pin %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
                 }
             }
         }
@@ -301,35 +294,29 @@ void limits_disable() {
     auto n_axis = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin = limit_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
-                detachInterrupt(pin);
+            Pin pin = LimitPins[axis][gang_index]->get();
+            if (pin != Pin::UNDEFINED) {
+                pin.detachInterrupt();
             }
         }
     }
 }
 
 // Returns limit state as a bit-wise uint8 variable. Each bit indicates an axis limit, where
-// triggered is 1 and not triggered is 0. Invert mask is applied. Axes are defined by their
-// number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
+// triggered is 1 and not triggered is 0. Invert mask is handled through active low/high in pins.
+// Axes are defined by their number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 AxisMask limits_get_state() {
     AxisMask pinMask = 0;
     auto     n_axis  = number_axis->get();
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            uint8_t pin = limit_pins[axis][gang_index];
-            if (pin != UNDEFINED_PIN) {
-                if (limit_invert->get())
-                    pinMask |= (!digitalRead(pin) << axis);
-                else
-                    pinMask |= (digitalRead(pin) << axis);
+            Pin pin = LimitPins[axis][gang_index]->get();
+            if (pin != Pin::UNDEFINED) {
+                pinMask |= (pin.read() << axis);
             }
         }
     }
 
-#ifdef INVERT_LIMIT_PIN_MASK  // not normally used..unless you have both normal and inverted switches
-    pinMask ^= INVERT_LIMIT_PIN_MASK;
-#endif
     return pinMask;
 }
 
@@ -402,5 +389,9 @@ bool limitsCheckTravel(float* target) {
             return true;
         }
     }
+    return false;
+}
+
+bool __attribute__((weak)) user_defined_homing(uint8_t cycle_mask) {
     return false;
 }

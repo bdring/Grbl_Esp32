@@ -5,7 +5,7 @@
 namespace Motors {
     class UnipolarMotor : public Motor {
     public:
-        UnipolarMotor(uint8_t axis_index, uint8_t pin_phase0, uint8_t pin_phase1, uint8_t pin_phase2, uint8_t pin_phase3);
+        UnipolarMotor(uint8_t axis_index, Pin pin_phase0, Pin pin_phase1, Pin pin_phase2, Pin pin_phase3);
 
         // Overrides for inherited methods
         void init() override;
@@ -15,16 +15,16 @@ namespace Motors {
         void step() override;
 
     private:
-        uint8_t _pin_phase0;
-        uint8_t _pin_phase1;
-        uint8_t _pin_phase2;
-        uint8_t _pin_phase3;
+        Pin     _pin_phase0;
+        Pin     _pin_phase1;
+        Pin     _pin_phase2;
+        Pin     _pin_phase3;
         uint8_t _current_phase;
         bool    _half_step;
         bool    _enabled;
         bool    _dir;
 
-  protected:
+    protected:
         void config_message() override;
     };
 }

@@ -2,7 +2,9 @@
 
 FlagSetting* verbose_errors;
 
-FakeSetting<int>* number_axis;
+StringSetting* machine_name;
+
+IntSetting* number_axis;
 
 StringSetting* startup_line_0;
 StringSetting* startup_line_1;
@@ -10,17 +12,16 @@ StringSetting* build_info;
 
 IntSetting* pulse_microseconds;
 IntSetting* stepper_idle_lock_time;
+IntSetting* step_pulse_delay;
 
-AxisMaskSetting* step_invert_mask;
 AxisMaskSetting* dir_invert_mask;
-// TODO Settings - need to call st_generate_step_invert_masks;
 AxisMaskSetting* homing_dir_mask;
 AxisMaskSetting* homing_squared_axes;
+
+EnumSetting*     trinamic_run_mode;
+EnumSetting*     trinamic_homing_mode;
 AxisMaskSetting* stallguard_debug_mask;
 
-FlagSetting* step_enable_invert;
-FlagSetting* limit_invert;
-FlagSetting* probe_invert;
 FlagSetting* report_inches;
 FlagSetting* soft_limits;
 // TODO Settings - need to check for HOMING_ENABLE
@@ -47,8 +48,6 @@ FloatSetting*    rpm_min;
 FloatSetting*    spindle_delay_spinup;
 FloatSetting*    spindle_delay_spindown;
 FlagSetting*     spindle_enbl_off_with_zero_speed;
-FlagSetting*     spindle_enable_invert;
-FlagSetting*     spindle_output_invert;
 
 FloatSetting* spindle_pwm_off_value;
 FloatSetting* spindle_pwm_min_value;
@@ -56,6 +55,12 @@ FloatSetting* spindle_pwm_max_value;
 IntSetting*   spindle_pwm_bit_precision;
 
 EnumSetting* spindle_type;
+
+EnumSetting*  motor_types[MAX_N_AXIS][2];
+FloatSetting* motor_rsense[MAX_N_AXIS][2];
+IntSetting*   motor_address[MAX_N_AXIS][2];
+FloatSetting* motor_cal_min[MAX_N_AXIS][2];
+FloatSetting* motor_cal_max[MAX_N_AXIS][2];
 
 enum_opt_t spindleTypes = {
     // clang-format off
@@ -71,12 +76,29 @@ enum_opt_t spindleTypes = {
     // clang-format on
 };
 
-AxisSettings* x_axis_settings;
-AxisSettings* y_axis_settings;
-AxisSettings* z_axis_settings;
-AxisSettings* a_axis_settings;
-AxisSettings* b_axis_settings;
-AxisSettings* c_axis_settings;
+enum_opt_t motorTypes = {
+    // clang-format off
+    { "None", int8_t(MotorType::None) },
+    { "StepStick", int8_t(MotorType::StepStick) },
+    { "External", int8_t(MotorType::External) },
+    { "TMC2130", int8_t(MotorType::TMC2130) },
+    { "TMC5160", int8_t(MotorType::TMC5160) },
+    { "TMC2208", int8_t(MotorType::TMC2208) },
+    { "TMC2209", int8_t(MotorType::TMC2209) },
+    { "Unipolar", int8_t(MotorType::Unipolar) },
+    { "RCServo", int8_t(MotorType::RCServo) },
+    { "Dynamixel", int8_t(MotorType::Dynamixel) },
+    { "Solenoid", int8_t(MotorType::Solenoid) },
+    // clang-format on
+};
+
+enum_opt_t trinamicModes = {
+    // clang-format off
+    { "StealthChop", int8_t(TrinamicMode::StealthChop) },
+    { "CoolStep", int8_t(TrinamicMode::CoolStep) },
+    { "StallGuard", int8_t(TrinamicMode::StallGuard) },
+    // clang-format on
+};
 
 AxisSettings* axis_settings[MAX_N_AXIS];
 
@@ -169,6 +191,19 @@ static const char* makename(const char* axisName, const char* tail) {
     return strcat(retval, tail);
 }
 
+static const char* makename(uint8_t axis, uint8_t gang_index, const char* tail) {
+    int   len    = strlen(tail) + ((gang_index == 1) ? 4 : 3);
+    char* retval = (char*)malloc(len);
+
+    // char* setting_cal_min = (char*)malloc(20);
+    if (gang_index == 0) {
+        snprintf(retval, len, "%c/%s", report_get_axis_letter(axis), tail);
+    } else {
+        snprintf(retval, len, "%c2/%s", report_get_axis_letter(axis), tail);
+    }
+    return retval;
+}
+
 static bool checkStartupLine(char* value) {
     if (!value) {  // No POST functionality
         return true;
@@ -222,8 +257,16 @@ void make_coordinate(CoordIndex index, const char* name) {
         coords[index]->setDefault();
     }
 }
+
+extern void make_pin_settings();
+
 void make_settings() {
     Setting::init();
+
+    machine_name = new StringSetting(EXTENDED, WG, NULL, "Machine/Name", MACHINE_NAME);
+
+    number_axis = new IntSetting(EXTENDED, WG, NULL, "Axes", N_AXIS, 3, 6, NULL, false);
+    number_axis->load();
 
     // Propagate old coordinate system data to the new format if necessary.
     // G54 - G59 work coordinate systems, G28, G30 reference positions, etc
@@ -238,84 +281,109 @@ void make_settings() {
 
     verbose_errors = new FlagSetting(EXTENDED, WG, NULL, "Errors/Verbose", DEFAULT_VERBOSE_ERRORS);
 
-    // number_axis = new IntSetting(EXTENDED, WG, NULL, "NumberAxis", N_AXIS, 0, 6, NULL, true);
-    number_axis = new FakeSetting<int>(N_AXIS);
-
     // Create the axis settings in the order that people are
     // accustomed to seeing.
     int              axis;
     axis_defaults_t* def;
-    for (axis = 0; axis < MAX_N_AXIS; axis++) {
+    for (axis = 0; axis < number_axis->get(); axis++) {
         def                 = &axis_defaults[axis];
         axis_settings[axis] = new AxisSettings(def->name);
     }
-    x_axis_settings = axis_settings[X_AXIS];
-    y_axis_settings = axis_settings[Y_AXIS];
-    z_axis_settings = axis_settings[Z_AXIS];
-    a_axis_settings = axis_settings[A_AXIS];
-    b_axis_settings = axis_settings[B_AXIS];
-    c_axis_settings = axis_settings[C_AXIS];
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
-        def = &axis_defaults[axis];
-        auto setting =
-            new IntSetting(EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, postMotorSetting);
+    for (axis = 0; axis < number_axis->get(); axis++) {
+        def          = &axis_defaults[axis];
+        auto setting = new IntSetting(
+            EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, postMotorSetting);
+
         setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
-        def = &axis_defaults[axis];
-        auto setting =
-            new IntSetting(EXTENDED, WG, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, postMotorSetting);
+    for (axis = 0; axis < number_axis->get(); axis++) {
+        def          = &axis_defaults[axis];
+        auto setting = new IntSetting(
+            EXTENDED, WG, makeGrblName(axis, 160), makename(def->name, "Microsteps"), def->microsteps, 0, 256, postMotorSetting);
         setting->setAxis(axis);
         axis_settings[axis]->microsteps = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = 0; axis < number_axis->get(); axis++) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(
             EXTENDED, WG, makeGrblName(axis, 150), makename(def->name, "Current/Hold"), def->hold_current, 0.05, 20.0, postMotorSetting);  // Amps
         setting->setAxis(axis);
         axis_settings[axis]->hold_current = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = 0; axis < number_axis->get(); axis++) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(
             EXTENDED, WG, makeGrblName(axis, 140), makename(def->name, "Current/Run"), def->run_current, 0.0, 20.0, postMotorSetting);  // Amps
         setting->setAxis(axis);
         axis_settings[axis]->run_current = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = 0; axis < number_axis->get(); axis++) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 130), makename(def->name, "MaxTravel"), def->max_travel, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->max_travel = setting;
     }
 
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = 0; axis < number_axis->get(); axis++) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(EXTENDED, WG, NULL, makename(def->name, "Home/Mpos"), def->home_mpos, -100000.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->home_mpos = setting;
     }
 
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = 0; axis < number_axis->get(); axis++) {
         def = &axis_defaults[axis];
         auto setting =
             new FloatSetting(GRBL, WG, makeGrblName(axis, 120), makename(def->name, "Acceleration"), def->acceleration, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->acceleration = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = 0; axis < number_axis->get(); axis++) {
         def          = &axis_defaults[axis];
         auto setting = new FloatSetting(GRBL, WG, makeGrblName(axis, 110), makename(def->name, "MaxRate"), def->max_rate, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->max_rate = setting;
     }
-    for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
+    for (axis = 0; axis < number_axis->get(); axis++) {
         def = &axis_defaults[axis];
         auto setting =
             new FloatSetting(GRBL, WG, makeGrblName(axis, 100), makename(def->name, "StepsPerMm"), def->steps_per_mm, 1.0, 100000.0);
         setting->setAxis(axis);
         axis_settings[axis]->steps_per_mm = setting;
+    }
+
+    motor_types[X_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "X/Motor/Type", static_cast<int8_t>(X_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[X_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "X2/Motor/Type", static_cast<int8_t>(X2_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[Y_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "Y/Motor/Type", static_cast<int8_t>(Y_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[Y_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "Y2/Motor/Type", static_cast<int8_t>(Y2_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[Z_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "Z/Motor/Type", static_cast<int8_t>(Z_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[Z_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "Z2/Motor/Type", static_cast<int8_t>(Z2_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[A_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "A/Motor/Type", static_cast<int8_t>(A_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[A_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "A2/Motor/Type", static_cast<int8_t>(A2_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[B_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "B/Motor/Type", static_cast<int8_t>(B_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[B_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "B2/Motor/Type", static_cast<int8_t>(B2_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[C_AXIS][0] = new EnumSetting(NULL, EXTENDED, WG, NULL, "C/Motor/Type", static_cast<int8_t>(C_MOTOR_TYPE), &motorTypes, NULL);
+    motor_types[C_AXIS][1] =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "C2/Motor/Type", static_cast<int8_t>(C2_MOTOR_TYPE), &motorTypes, NULL);
+
+    
+
+    for (int axis = X_AXIS; axis < MAX_N_AXIS; axis++) {
+        for (int gang_index = 0; gang_index < 2; gang_index++) {
+            motor_cal_min[axis][gang_index] =
+                new FloatSetting(EXTENDED, WG, NULL, makename(axis, gang_index, "Motor/Cal/Min"), 1.0, 0.01, 2.0);
+            motor_cal_max[axis][gang_index] =
+                new FloatSetting(EXTENDED, WG, NULL, makename(axis, gang_index, "Motor/Cal/Max"), 1.0, 0.01, 2.0);
+            motor_rsense[axis][gang_index] =
+                new FloatSetting(EXTENDED, WG, NULL, makename(axis, gang_index, "Driver/RSense"), 0.11, 0.0, 1.0, NULL);
+            motor_address[axis][gang_index] = new IntSetting(EXTENDED, WG, NULL, makename(axis, gang_index, "Motor/Address"), 0, 0, 200);
+        }
     }
 
     // Spindle Settings
@@ -330,15 +398,12 @@ void make_settings() {
         EXTENDED, WG, "34", "Spindle/PWM/Off", DEFAULT_SPINDLE_OFF_VALUE, 0.0, 100.0, checkSpindleChange);  // these are percentages
     // IntSetting spindle_pwm_bit_precision(EXTENDED, WG, "Spindle/PWM/Precision", DEFAULT_SPINDLE_BIT_PRECISION, 1, 16);
     spindle_pwm_freq = new FloatSetting(EXTENDED, WG, "33", "Spindle/PWM/Frequency", DEFAULT_SPINDLE_FREQ, 0, 100000, checkSpindleChange);
-    spindle_output_invert = new FlagSetting(GRBL, WG, NULL, "Spindle/PWM/Invert", DEFAULT_INVERT_SPINDLE_OUTPUT_PIN, checkSpindleChange);
 
     spindle_delay_spinup   = new FloatSetting(EXTENDED, WG, NULL, "Spindle/Delay/SpinUp", DEFAULT_SPINDLE_DELAY_SPINUP, 0, 30);
     spindle_delay_spindown = new FloatSetting(EXTENDED, WG, NULL, "Spindle/Delay/SpinDown", DEFAULT_SPINDLE_DELAY_SPINUP, 0, 30);
 
     spindle_enbl_off_with_zero_speed =
         new FlagSetting(GRBL, WG, NULL, "Spindle/Enable/OffWithSpeed", DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED, checkSpindleChange);
-
-    spindle_enable_invert = new FlagSetting(GRBL, WG, NULL, "Spindle/Enable/Invert", DEFAULT_INVERT_SPINDLE_ENABLE_PIN, checkSpindleChange);
 
     // GRBL Non-numbered settings
     startup_line_0 = new StringSetting(GRBL, WG, "N0", "GCode/Line0", "", checkStartupLine);
@@ -374,14 +439,16 @@ void make_settings() {
     junction_deviation = new FloatSetting(GRBL, WG, "11", "GCode/JunctionDeviation", DEFAULT_JUNCTION_DEVIATION, 0, 10);
     status_mask        = new IntSetting(GRBL, WG, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 3);
 
-    probe_invert           = new FlagSetting(GRBL, WG, "6", "Probe/Invert", DEFAULT_INVERT_PROBE_PIN);
-    limit_invert           = new FlagSetting(GRBL, WG, "5", "Limits/Invert", DEFAULT_INVERT_LIMIT_PINS);
-    step_enable_invert     = new FlagSetting(GRBL, WG, "4", "Stepper/EnableInvert", DEFAULT_INVERT_ST_ENABLE);
-    dir_invert_mask        = new AxisMaskSetting(GRBL, WG, "3", "Stepper/DirInvert", DEFAULT_DIRECTION_INVERT_MASK, postMotorSetting);
-    step_invert_mask       = new AxisMaskSetting(GRBL, WG, "2", "Stepper/StepInvert", DEFAULT_STEPPING_INVERT_MASK, postMotorSetting);
+    dir_invert_mask = new AxisMaskSetting(
+        GRBL, WG, "3", "Stepper/DirInvert", DEFAULT_DIRECTION_INVERT_MASK);  // no longer used for steppers...Servos, etc only
     stepper_idle_lock_time = new IntSetting(GRBL, WG, "1", "Stepper/IdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
-    pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
+    pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse/Duration", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
+    step_pulse_delay       = new IntSetting(GRBL, WG, "0", "Stepper/Pulse/Delay", 0, 0, 8);
 
+    trinamic_run_mode =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "Trinamic/RunMode", static_cast<int8_t>(TRINAMIC_RUN_MODE), &trinamicModes, NULL);
+    trinamic_homing_mode =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "Trinamic/HomingMode", static_cast<int8_t>(TRINAMIC_HOMING_MODE), &trinamicModes, NULL);
     stallguard_debug_mask = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, postMotorSetting);
 
     homing_cycle[5] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle5", DEFAULT_HOMING_CYCLE_5);
@@ -395,4 +462,6 @@ void make_settings() {
     user_macro2 = new StringSetting(EXTENDED, WG, NULL, "User/Macro2", DEFAULT_USER_MACRO2);
     user_macro1 = new StringSetting(EXTENDED, WG, NULL, "User/Macro1", DEFAULT_USER_MACRO1);
     user_macro0 = new StringSetting(EXTENDED, WG, NULL, "User/Macro0", DEFAULT_USER_MACRO0);
+
+    make_pin_settings();  // Created in PinSettingsDefinitions.cpp
 }

@@ -238,7 +238,7 @@ const char* AxisMaskSetting::getCompatibleValue() {
 
 static char* maskToString(uint32_t mask, char* strval) {
     char* s = strval;
-    for (int i = 0; i < MAX_N_AXIS; i++) {
+    for (int i = 0; i < number_axis->get(); i++) {
         if (mask & bit(i)) {
             *s++ = "XYZABC"[i];
         }
@@ -259,7 +259,7 @@ const char* AxisMaskSetting::getStringValue() {
 
 void AxisMaskSetting::addWebui(WebUI::JSONencoder* j) {
     if (getDescription()) {
-        j->begin_webui(getName(), getDescription(), "I", getStringValue(), 0, (1 << MAX_N_AXIS) - 1);
+        j->begin_webui(getName(), getDescription(), "I", getStringValue(), 0, (1 << number_axis->get()) - 1);
         j->end_object();
     }
 }
@@ -443,6 +443,83 @@ void StringSetting::addWebui(WebUI::JSONencoder* j) {
         return;
     }
     j->begin_webui(getName(), getDescription(), "S", getStringValue(), _minLength, _maxLength);
+    j->end_object();
+}
+
+PinSetting::PinSetting(const char* description, const char* name, const char* defVal, bool (*checker)(char*)) :
+    Setting(description, PIN, WA, NULL, name, checker), _currentValue(Pin::UNDEFINED) {
+    _defaultValue = defVal;
+};
+
+void PinSetting::load() {
+    size_t    len = 0;
+    esp_err_t err = nvs_get_str(_handle, _keyName, NULL, &len);
+    if (err) {
+#ifdef PIN_DEBUG
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing pin %s as '%s' (default)", _fullName, _defaultValue);
+#endif
+        _storedValue  = _defaultValue;
+        _currentValue = Pin::create(_defaultValue);
+        return;
+    }
+    char buf[len];
+    err = nvs_get_str(_handle, _keyName, buf, &len);
+    if (err) {
+#ifdef PIN_DEBUG
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing pin %s as '%s' (default)", _fullName, _defaultValue);
+#endif
+        _storedValue  = _defaultValue;
+        _currentValue = Pin::create(_defaultValue);
+        return;
+    }
+
+#ifdef PIN_DEBUG
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing pin %s as '%s'", _fullName, _storedValue);
+#endif
+    _storedValue  = String(buf);
+    _currentValue = Pin::create(_storedValue);
+}
+
+void PinSetting::setDefault() {
+    nvs_erase_key(_handle, _keyName);
+}
+
+Error PinSetting::setStringValue(char* s) {
+    if (!Pin::validate(s)) {
+        return Error::BadPinSpecification;
+    }
+
+    Error err = check(s);
+    if (err != Error::Ok) {
+        return err;
+    }
+    if (_storedValue != s) {
+        if (s == _defaultValue) {
+            nvs_erase_key(_handle, _keyName);
+            _storedValue = _defaultValue;
+        } else {
+            if (nvs_set_str(_handle, _keyName, s)) {
+                return Error::NvsSetFailed;
+            }
+            _storedValue = s;
+        }
+    }
+    return Error::Ok;
+}
+
+const char* PinSetting::getStringValue() {
+    // If the string is a password do not display it
+    return _storedValue.c_str();
+}
+const char* PinSetting::getDefaultString() {
+    return "";
+}
+
+void PinSetting::addWebui(WebUI::JSONencoder* j) {
+    if (!getDescription()) {
+        return;
+    }
+    j->begin_webui(getName(), getDescription(), "S", getStringValue(), 0, 255);
     j->end_object();
 }
 

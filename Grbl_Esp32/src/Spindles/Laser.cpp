@@ -32,8 +32,8 @@ namespace Spindles {
         grbl_msg_sendf(CLIENT_ALL,
                        MsgLevel::Info,
                        "Laser spindle on Pin:%s, Enbl:%s, Freq:%dHz, Res:%dbits Laser mode:%s",
-                       pinName(_output_pin).c_str(),
-                       pinName(_enable_pin).c_str(),
+                        _output_pin.name().c_str(),
+                        _enable_pin.name().c_str(),
                        _pwm_freq,
                        _pwm_precision,
                        laser_mode->getStringValue());  // the current mode
@@ -45,32 +45,21 @@ namespace Spindles {
     void Laser::get_pins_and_settings() {
         // setup all the pins
 
-#ifdef LASER_OUTPUT_PIN
-        _output_pin = LASER_OUTPUT_PIN;
-#else
-        _output_pin = UNDEFINED_PIN;
-#endif
+        _output_pin = LaserOutputPin->get();
+        _enable_pin = LaserEnablePin->get();
 
-        _invert_pwm = spindle_output_invert->get();
-
-#ifdef LASER_ENABLE_PIN
-        _enable_pin = LASER_ENABLE_PIN;
-#else
-        _enable_pin = UNDEFINED_PIN;
-#endif
-
-        if (_output_pin == UNDEFINED_PIN) {
+        if (_output_pin == Pin::UNDEFINED) {
             grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: LASER_OUTPUT_PIN not defined");
             return;  // We cannot continue without the output pin
         }
 
         _off_with_zero_speed = spindle_enbl_off_with_zero_speed->get();
 
-        _direction_pin = UNDEFINED_PIN;
+        _direction_pin = Pin::UNDEFINED;
         is_reversable  = false;
 
         _pwm_freq      = spindle_pwm_freq->get();
-        _pwm_precision = calc_pwm_precision(_pwm_freq);  // detewrmine the best precision
+        _pwm_precision = calc_pwm_precision(_pwm_freq);  // determine the best precision
         _pwm_period    = (1 << _pwm_precision);
 
         // pre-caculate some PWM count values
@@ -88,14 +77,8 @@ namespace Spindles {
 
     void Laser::deinit() {
         stop();
-#ifdef LASER_OUTPUT_PIN
-        gpio_reset_pin(LASER_OUTPUT_PIN);
-        pinMode(LASER_OUTPUT_PIN, INPUT);
-#endif
 
-#ifdef LASER_ENABLE_PIN
-        gpio_reset_pin(LASER_ENABLE_PIN);
-        pinMode(LASER_ENABLE_PIN, INPUT);
-#endif
+        _output_pin.reset();
+        _enable_pin.reset();
     }
 }

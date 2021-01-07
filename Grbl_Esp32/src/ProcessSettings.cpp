@@ -55,14 +55,23 @@ void settings_restore(uint8_t restore_flag) {
                 }
             }
         }
+
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Settings reset done");
     }
     if (restore_flag & SettingsRestore::Parameters) {
         for (auto idx = CoordIndex::Begin; idx < CoordIndex::End; ++idx) {
             coords[idx]->setDefault();
         }
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position offsets reset done");
     }
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position offsets reset done");
+    if (restore_flag & SettingsRestore::PinDefs) {
+        for (Setting* s = Setting::List; s; s = s->next()) {
+            if (s->getType() == PIN) {
+                s->setDefault();
+            }
+        }
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Pin reset done");
+    }    
 }
 
 // Get settings values from non volatile storage into memory
@@ -152,22 +161,40 @@ Error list_grbl_names(const char* value, WebUI::AuthenticationLevel auth_level, 
 Error list_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Setting* s = Setting::List; s; s = s->next()) {
         const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
-        show_setting(s->getName(), displayValue, NULL, out);
+        if (s->getType() != PIN) {
+            show_setting(s->getName(), displayValue, NULL, out);
+        }
     }
     return Error::Ok;
 }
 Error list_changed_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Setting* s = Setting::List; s; s = s->next()) {
-        const char* value  = s->getStringValue();
-        const char* defval = s->getDefaultString();
-        if (!auth_failed(s, value, auth_level) && strcmp(value, defval)) {
-            String message = "(Default=";
-            message += defval;
-            message += ")";
-            show_setting(s->getName(), value, message.c_str(), out);
+        const char* value = s->getStringValue();
+        if (!auth_failed(s, value, auth_level) && strcmp(value, s->getDefaultString())) {
+            if (s->getType() != PIN) {
+                show_setting(s->getName(), value, NULL, out);
+            }
         }
     }
     grbl_sendf(out->client(), "(Passwords not shown)\r\n");
+    return Error::Ok;
+}
+Error list_pins(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    for (Setting* s = Setting::List; s; s = s->next()) {
+        const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
+        if (s->getType() == PIN) {
+            show_setting(s->getName(), displayValue, NULL, out);
+        }
+    }
+    return Error::Ok;
+}
+Error list_changed_pins(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    for (Setting* s = Setting::List; s; s = s->next()) {
+        const char* value = s->getStringValue();
+        if (s->getType() == PIN && strcmp(value, UNDEFINED_PIN)) {
+            show_setting(s->getName(), value, NULL, out);
+        }
+    }
     return Error::Ok;
 }
 Error list_commands(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
@@ -227,20 +254,11 @@ Error home(int cycle) {
         return Error::CheckDoor;  // Block if safety door is ajar.
     }
     sys.state = State::Homing;  // Set system state variable
-#ifdef USE_I2S_STEPS
-    stepper_id_t save_stepper = current_stepper;
-    if (save_stepper == ST_I2S_STREAM) {
-        stepper_switch(ST_I2S_STATIC);
-    }
 
+    stepping->lowLatency();
     mc_homing_cycle(cycle);
+    stepping->normalLatency();
 
-    if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {
-        stepper_switch(ST_I2S_STREAM);
-    }
-#else
-    mc_homing_cycle(cycle);
-#endif
     if (!sys.abort) {             // Execute startup scripts after successful homing.
         sys.state = State::Idle;  // Set to IDLE when complete.
         st_go_idle();             // Set steppers to the settings idle state before returning.
@@ -300,6 +318,8 @@ std::map<const char*, uint8_t, cmp_str> restoreCommands = {
     { "*", SettingsRestore::All },        { "all", SettingsRestore::All },
 #endif
     { "@", SettingsRestore::Wifi },       { "wifi", SettingsRestore::Wifi },
+
+    { "P", SettingsRestore::PinDefs },    { "pins", SettingsRestore::PinDefs },
 };
 Error restore_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (!value) {
@@ -449,6 +469,8 @@ void make_grbl_commands() {
     new GrblCommand("L", "GrblNames/List", list_grbl_names, notCycleOrHold);
     new GrblCommand("S", "Settings/List", list_settings, notCycleOrHold);
     new GrblCommand("SC", "Settings/ListChanged", list_changed_settings, notCycleOrHold);
+    new GrblCommand("P", "Pins/List", list_pins, notCycleOrHold);
+    new GrblCommand("PC", "Pins/ListChanged", list_changed_pins, notCycleOrHold);
     new GrblCommand("CMD", "Commands/List", list_commands, notCycleOrHold);
     new GrblCommand("A", "Alarms/List", listAlarms, anyState);
     new GrblCommand("E", "Errors/List", listErrors, anyState);

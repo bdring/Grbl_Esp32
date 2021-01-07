@@ -29,24 +29,43 @@ namespace Motors {
 
     /* HW Serial Constructor. */
     TrinamicUartDriver::TrinamicUartDriver(
-        uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin, uint16_t driver_part_number, float r_sense, uint8_t addr) :
+        uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin, MotorType driver_part_number, float r_sense, uint8_t addr) :
         StandardStepper(axis_index, step_pin, dir_pin, disable_pin) {
         _driver_part_number = driver_part_number;
         _has_errors         = false;
         _r_sense            = r_sense;
         this->addr          = addr;
 
-        uart_set_pin(TMC_UART, TMC_UART_TX, TMC_UART_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-        tmc_serial.begin(115200, SERIAL_8N1, TMC_UART_RX, TMC_UART_TX);
+        _txd_pin = TmcUartTXDPin->get();
+        if (_txd_pin == Pin::UNDEFINED) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined Trinamic TXD pin");
+            _has_errors = true;
+        }
+
+        _rxd_pin = TmcUartRXDPin->get();
+        if (_rxd_pin == Pin::UNDEFINED) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined Trinamic RXD pin");
+            _has_errors = true;
+        }
+
+        if (_has_errors)
+            return;
+
+        auto txd = _txd_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
+        auto rxd = _rxd_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Input);
+
+        uart_set_pin(TMC_UART, txd, rxd, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+        tmc_serial.begin(115200, SERIAL_8N1, rxd, txd);
         tmc_serial.setRxBufferSize(128);
         hw_serial_init();
+        
     }
 
     void TrinamicUartDriver::hw_serial_init() {
-        if (_driver_part_number == 2208)
+        if (_driver_part_number == MotorType::TMC2208)
             // TMC 2208 does not use address, this field is 0
             tmcstepper = new TMC2208Stepper(&tmc_serial, _r_sense);
-        else if (_driver_part_number == 2209)
+        else if (_driver_part_number == MotorType::TMC2209)
             tmcstepper = new TMC2209Stepper(&tmc_serial, _r_sense, addr);
         else {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Unsupported Trinamic motor p/n:%d", _driver_part_number);
@@ -84,12 +103,12 @@ namespace Motors {
                        "%s motor Trinamic TMC%d Step:%s Dir:%s Disable:%s UART%d Rx:%s Tx:%s Addr:%d R:%0.3f %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _driver_part_number,
-                       pinName(_step_pin).c_str(),
-                       pinName(_dir_pin).c_str(),
-                       pinName(_disable_pin).c_str(),
+                       _step_pin.name().c_str(),
+                       _dir_pin.name().c_str(),
+                       _disable_pin.name().c_str(),
                        TMC_UART,
-                       pinName(TMC_UART_RX),
-                       pinName(TMC_UART_TX),
+                       _rxd_pin.name().c_str(),
+                       _txd_pin.name().c_str(),
                        this->addr,
                        _r_sense,
                        reportAxisLimitsMsg(_axis_index));
@@ -209,7 +228,7 @@ namespace Motors {
                 // tmcstepper->en_pwm_mode(false); //TODO: check if this is present in TMC2208/09
                 tmcstepper->en_spreadCycle(true);
                 tmcstepper->pwm_autoscale(false);
-                if (_driver_part_number == 2209) {
+                if (_driver_part_number == MotorType::TMC2209) {
                     // tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS);  // when to turn on coolstep //TODO: add this solving compilation issue.
                     // tmcstepper->THIGH(NORMAL_THIGH); //TODO: this does not exist in TMC2208/09. verify and eventually remove.
                 }
@@ -295,7 +314,7 @@ namespace Motors {
 
         _disabled = disable;
 
-        digitalWrite(_disable_pin, _disabled);
+        _disable_pin.write(_disabled);
 
 #ifdef USE_TRINAMIC_ENABLE
         if (_disabled) {
@@ -344,7 +363,7 @@ namespace Motors {
         if (status.ot || status.otpw) {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
-                           "%s Driver temp Warning:%s Fault:%s",
+                           "%s Driver temp warning:%s Fault:%s",
                            reportAxisNameMsg(_axis_index, _dual_axis_index),
                            status.otpw ? "Y" : "N",
                            status.ot ? "Y" : "N");

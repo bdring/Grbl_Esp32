@@ -44,6 +44,7 @@ uint8_t             current_tool;
 void machine_init() {
     solenoid_pull_count = 0;  // initialize
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Atari 1020 Solenoid");
+
     // setup PWM channel
     solenoid_pwm_chan_num = sys_get_next_PWM_chan_num();
     ledcSetup(solenoid_pwm_chan_num, SOLENOID_PWM_FREQ, SOLENOID_PWM_RES_BITS);

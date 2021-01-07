@@ -39,17 +39,17 @@
     #undef USE_RMT_STEPS
 #endif
 
-#define X_UNIPOLAR
-#define X_PIN_PHASE_0 GPIO_NUM_13
-#define X_PIN_PHASE_1 GPIO_NUM_21
-#define X_PIN_PHASE_2 GPIO_NUM_16
-#define X_PIN_PHASE_3 GPIO_NUM_22
+#define X_MOTOR_TYPE            MotorType::Unipolar
+#define X_PIN_PHASE_0           "gpio.13"
+#define X_PIN_PHASE_1           "gpio.21"
+#define X_PIN_PHASE_2           "gpio.16"
+#define X_PIN_PHASE_3           "gpio.22"
 
-#define Y_UNIPOLAR
-#define Y_PIN_PHASE_0 GPIO_NUM_25
-#define Y_PIN_PHASE_1 GPIO_NUM_27
-#define Y_PIN_PHASE_2 GPIO_NUM_26
-#define Y_PIN_PHASE_3 GPIO_NUM_32
+#define Y_MOTOR_TYPE            MotorType::Unipolar
+#define Y_PIN_PHASE_0           "gpio.25"
+#define Y_PIN_PHASE_1           "gpio.27"
+#define Y_PIN_PHASE_2           "gpio.26"
+#define Y_PIN_PHASE_3           "gpio.32"
 
 #define SOLENOID_DIRECTION_PIN GPIO_NUM_4
 #define SOLENOID_PEN_PIN GPIO_NUM_2
@@ -63,14 +63,9 @@
     #define ENABLE_CONTROL_SW_DEBOUNCE
 #endif
 
-#ifdef INVERT_CONTROL_PIN_MASK
-    #undef INVERT_CONTROL_PIN_MASK
-#endif
-#define INVERT_CONTROL_PIN_MASK B01110000
-
-#define MACRO_BUTTON_0_PIN GPIO_NUM_34 // Pen Switch
-#define MACRO_BUTTON_1_PIN GPIO_NUM_35 // Color Switch
-#define MACRO_BUTTON_2_PIN GPIO_NUM_36 // Paper Switch
+#define MACRO_BUTTON_0_PIN "gpio.34:low" // Pen Switch
+#define MACRO_BUTTON_1_PIN "gpio.35:low" // Color Switch
+#define MACRO_BUTTON_2_PIN "gpio.36:low" // Paper Switch
 
 #ifdef DEFAULTS_GENERIC
     #undef DEFAULTS_GENERIC // undefine generic then define each default below
@@ -78,11 +73,7 @@
 #define DEFAULT_STEP_PULSE_MICROSECONDS 3
 #define DEFAULT_STEPPER_IDLE_LOCK_TIME 200 // 200ms
 
-#define DEFAULT_STEPPING_INVERT_MASK 0  // uint8_t
 #define DEFAULT_DIRECTION_INVERT_MASK 0 // uint8_t
-#define DEFAULT_INVERT_ST_ENABLE 0      // boolean
-#define DEFAULT_INVERT_LIMIT_PINS 1     // boolean
-#define DEFAULT_INVERT_PROBE_PIN 0      // boolean
 
 #define DEFAULT_STATUS_REPORT_MASK 1
 

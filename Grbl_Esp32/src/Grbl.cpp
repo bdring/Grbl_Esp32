@@ -22,57 +22,79 @@
 #include <WiFi.h>
 
 void grbl_init() {
-#ifdef USE_I2S_OUT
-    i2s_out_init();  // The I2S out must be initialized before it can access the expanded GPIO port
-#endif
-    WiFi.persistent(false);
-    WiFi.disconnect(true);
-    WiFi.enableSTA(false);
-    WiFi.enableAP(false);
-    WiFi.mode(WIFI_OFF);
-    serial_init();  // Setup serial baud rate and interrupts
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
-// show the map name at startup
-#ifdef MACHINE_NAME
-    report_machine_type(CLIENT_SERIAL);
-#endif
-    settings_init();  // Load Grbl settings from non-volatile storage
-    stepper_init();   // Configure stepper pins and interrupt timers
-    init_motors();
-    system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
-    memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
+    try {
+        WiFi.persistent(false);
+        WiFi.disconnect(true);
+        WiFi.enableSTA(false);
+        WiFi.enableAP(false);
+        WiFi.mode(WIFI_OFF);
 
-#ifdef USE_MACHINE_INIT
-    machine_init();  // user supplied function for special initialization
+        // Setup serial baud rate and interrupts
+        serial_init();
+        grbl_msg_sendf(
+            CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());   // print the SDK version
+                                                                                                            // show the map name at startup
+
+#ifdef MACHINE_NAME
+        report_machine_type(CLIENT_SERIAL);
 #endif
-    // Initialize system state.
+        // Load Grbl settings from non-volatile storage
+        settings_init();
+
+        if (I2SOData->get() != Pin::UNDEFINED) {
+            // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
+            i2s_out_init();
+        }
+
+        stepping_select();
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count:%d", number_axis->get());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Step Generation", stepping->name());
+        stepping->init();
+
+        init_motors();
+        system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
+        memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
+
+        machine_init();  // weak definition in Grbl.cpp does nothing
+
+        // Initialize system state.
 #ifdef FORCE_INITIALIZATION_ALARM
-    // Force Grbl into an ALARM state upon a power-cycle or hard reset.
-    sys.state = State::Alarm;
-#else
-    sys.state = State::Idle;
-#endif
-    // Check for power-up and set system alarm if homing is enabled to force homing cycle
-    // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
-    // startup scripts, but allows access to settings and internal commands. Only a homing
-    // cycle '$H' or kill alarm locks '$X' will disable the alarm.
-    // NOTE: The startup script will run after successful completion of the homing cycle, but
-    // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
-    // things uncontrollably. Very bad.
-#ifdef HOMING_INIT_LOCK
-    if (homing_enable->get()) {
+        // Force Grbl into an ALARM state upon a power-cycle or hard reset.
         sys.state = State::Alarm;
-    }
+#else
+        sys.state = State::Idle;
 #endif
-    Spindles::Spindle::select();
+        // Check for power-up and set system alarm if homing is enabled to force homing cycle
+        // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
+        // startup scripts, but allows access to settings and internal commands. Only a homing
+        // cycle '$H' or kill alarm locks '$X' will disable the alarm.
+        // NOTE: The startup script will run after successful completion of the homing cycle, but
+        // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
+        // things uncontrollably. Very bad.
+#ifdef HOMING_INIT_LOCK
+        if (homing_enable->get()) {
+            sys.state = State::Alarm;
+        }
+#endif
+        Spindles::Spindle::select();
 #ifdef ENABLE_WIFI
-    WebUI::wifi_config.begin();
+        WebUI::wifi_config.begin();
 #endif
 #ifdef ENABLE_BLUETOOTH
-    WebUI::bt_config.begin();
+        WebUI::bt_config.begin();
 #endif
-    WebUI::inputBuffer.begin();
+        WebUI::inputBuffer.begin();
+    } catch (const AssertionFailed& ex) {
+        // This means something is terribly broken:
+
+        // Should grbl_sendf always work? Serial is initialized first, so after line 34 it should.
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical error in run_once: %s", ex.stackTrace.c_str());
+        for (int i = 0; i < 60; ++i) {
+            sleep(10000);
+        }
+        throw;
+    }
 }
 
 static void reset_variables() {
@@ -110,12 +132,23 @@ static void reset_variables() {
 }
 
 void run_once() {
-    reset_variables();
-    // Start Grbl main loop. Processes program inputs and executes them.
-    // This can exit on a system abort condition, in which case run_once()
-    // is re-executed by an enclosing loop.
-    protocol_main_loop();
+    try {
+        reset_variables();
+        // Start Grbl main loop. Processes program inputs and executes them.
+        // This can exit on a system abort condition, in which case run_once()
+        // is re-executed by an enclosing loop.
+        protocol_main_loop();
+    } catch (const AssertionFailed& ex) {
+        // This means something is terribly broken:
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical error in run_once: %s", ex.stackTrace.c_str());
+        for (int i = 0; i < 60; ++i) {
+            sleep(10000);
+        }
+        throw;
+    }
 }
+
+void __attribute__((weak)) machine_init() {}
 
 /*
   setup() and loop() in the Arduino .ino implements this control flow:

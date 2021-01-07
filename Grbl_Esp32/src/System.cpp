@@ -20,6 +20,7 @@
 
 #include "Grbl.h"
 #include "Config.h"
+#include "SettingsDefinitions.h"
 
 // Declare system global variable structure
 system_t               sys;
@@ -46,42 +47,94 @@ bool         debouncing = false;  // debouncing in process
 void system_ini() {  // Renamed from system_init() due to conflict with esp32 files
     // setup control inputs
 
-#ifdef CONTROL_SAFETY_DOOR_PIN
-    pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef CONTROL_RESET_PIN
-    pinMode(CONTROL_RESET_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef CONTROL_FEED_HOLD_PIN
-    pinMode(CONTROL_FEED_HOLD_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef CONTROL_CYCLE_START_PIN
-    pinMode(CONTROL_CYCLE_START_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef MACRO_BUTTON_0_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 0 %s", pinName(MACRO_BUTTON_0_PIN).c_str());
-    pinMode(MACRO_BUTTON_0_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_0_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef MACRO_BUTTON_1_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 1 %s", pinName(MACRO_BUTTON_1_PIN).c_str());
-    pinMode(MACRO_BUTTON_1_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_1_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef MACRO_BUTTON_2_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 2 %s", pinName(MACRO_BUTTON_2_PIN).c_str());
-    pinMode(MACRO_BUTTON_2_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_2_PIN), isr_control_inputs, CHANGE);
-#endif
-#ifdef MACRO_BUTTON_3_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 3 %s", pinName(MACRO_BUTTON_3_PIN).c_str());
-    pinMode(MACRO_BUTTON_3_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_3_PIN), isr_control_inputs, CHANGE);
-#endif
+    if (ControlSafetyDoorPin->get() != Pin::UNDEFINED) {
+        auto pin  = ControlSafetyDoorPin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Safety door on pin %s", pin.name().c_str());
+    }
+
+    if (ControlResetPin->get() != Pin::UNDEFINED) {
+        auto pin  = ControlResetPin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset on pin %s", pin.name().c_str());
+    }
+
+    if (ControlFeedHoldPin->get() != Pin::UNDEFINED) {
+        auto pin  = ControlFeedHoldPin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Feed hold on pin %s", pin.name().c_str());
+    }
+
+    if (ControlCycleStartPin->get() != Pin::UNDEFINED) {
+        auto pin  = ControlCycleStartPin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Cycle Start on pin %s", pin.name().c_str());
+    }
+
+    if (MacroButton0Pin->get() != Pin::UNDEFINED) {
+        auto pin  = MacroButton0Pin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button 0 on pin %s", pin.name().c_str());
+    }
+
+    if (MacroButton1Pin->get() != Pin::UNDEFINED) {
+        auto pin  = MacroButton1Pin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button 1 on pin %s", pin.name().c_str());
+    }
+
+    if (MacroButton2Pin->get() != Pin::UNDEFINED) {
+        auto pin  = MacroButton2Pin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button 2 on pin %s", pin.name().c_str());
+    }
+
+    if (MacroButton3Pin->get() != Pin::UNDEFINED) {
+        auto pin  = MacroButton3Pin->get();
+        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            attr = attr | Pin::Attr::PullUp;
+        }
+        pin.setAttr(attr);
+        pin.attachInterrupt(isr_control_inputs, CHANGE);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button 3 on pin %s", pin.name().c_str());
+    }
+
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
     // setup task used for debouncing
     control_sw_queue = xQueueCreate(10, sizeof(int));
@@ -99,16 +152,15 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
 #endif
 
     // Setup M62,M63,M64,M65 pins
-    myDigitalOutputs[0] = new UserOutput::DigitalOutput(0, USER_DIGITAL_PIN_0);
-    myDigitalOutputs[1] = new UserOutput::DigitalOutput(1, USER_DIGITAL_PIN_1);
-    myDigitalOutputs[2] = new UserOutput::DigitalOutput(2, USER_DIGITAL_PIN_2);
-    myDigitalOutputs[3] = new UserOutput::DigitalOutput(3, USER_DIGITAL_PIN_3);
+    for (int i = 0; i < 4; ++i) {
+        myDigitalOutputs[i] = new UserOutput::DigitalOutput(i, UserDigitalPin[i]->get());
+    }
 
     // Setup M67 Pins
-    myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, USER_ANALOG_PIN_0, USER_ANALOG_PIN_0_FREQ);
-    myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, USER_ANALOG_PIN_1, USER_ANALOG_PIN_1_FREQ);
-    myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, USER_ANALOG_PIN_2, USER_ANALOG_PIN_2_FREQ);
-    myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, USER_ANALOG_PIN_3, USER_ANALOG_PIN_3_FREQ);
+    myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, UserAnalogPin[0]->get(), USER_ANALOG_PIN_0_FREQ);
+    myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, UserAnalogPin[1]->get(), USER_ANALOG_PIN_1_FREQ);
+    myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, UserAnalogPin[2]->get(), USER_ANALOG_PIN_2_FREQ);
+    myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, UserAnalogPin[3]->get(), USER_ANALOG_PIN_3_FREQ);
 }
 
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
@@ -132,7 +184,7 @@ void controlCheckTask(void* pvParameters) {
 }
 #endif
 
-void IRAM_ATTR isr_control_inputs() {
+void IRAM_ATTR isr_control_inputs(void*) {
 #ifdef ENABLE_CONTROL_SW_DEBOUNCE
     // we will start a task that will recheck the switches after a small delay
     int evt;
@@ -148,11 +200,7 @@ void IRAM_ATTR isr_control_inputs() {
 
 // Returns if safety door is ajar(T) or closed(F), based on pin state.
 uint8_t system_check_safety_door_ajar() {
-#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
     return system_control_get_state().bit.safetyDoor;
-#else
-    return false;  // Input pin not enabled, so just return that it's closed.
-#endif
 }
 
 void system_flag_wco_change() {
@@ -185,63 +233,18 @@ void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
 // triggered is 1 and not triggered is 0. Invert mask is applied. Bitfield organization is
 // defined by the ControlPin in System.h.
 ControlPins system_control_get_state() {
-    ControlPins defined_pins;
-    defined_pins.value = 0;
-
     ControlPins pin_states;
     pin_states.value = 0;
 
-#ifdef CONTROL_SAFETY_DOOR_PIN
-    defined_pins.bit.safetyDoor = true;
-    if (digitalRead(CONTROL_SAFETY_DOOR_PIN)) {
-        pin_states.bit.safetyDoor = true;
-    }
-#endif
-#ifdef CONTROL_RESET_PIN
-    defined_pins.bit.reset = true;
-    if (digitalRead(CONTROL_RESET_PIN)) {
-        pin_states.bit.reset = true;
-    }
-#endif
-#ifdef CONTROL_FEED_HOLD_PIN
-    defined_pins.bit.feedHold = true;
-    if (digitalRead(CONTROL_FEED_HOLD_PIN)) {
-        pin_states.bit.feedHold = true;
-    }
-#endif
-#ifdef CONTROL_CYCLE_START_PIN
-    defined_pins.bit.cycleStart = true;
-    if (digitalRead(CONTROL_CYCLE_START_PIN)) {
-        pin_states.bit.cycleStart = true;
-    }
-#endif
-#ifdef MACRO_BUTTON_0_PIN
-    defined_pins.bit.macro0 = true;
-    if (digitalRead(MACRO_BUTTON_0_PIN)) {
-        pin_states.bit.macro0 = true;
-    }
-#endif
-#ifdef MACRO_BUTTON_1_PIN
-    defined_pins.bit.macro1 = true;
-    if (digitalRead(MACRO_BUTTON_1_PIN)) {
-        pin_states.bit.macro1 = true;
-    }
-#endif
-#ifdef MACRO_BUTTON_2_PIN
-    defined_pins.bit.macro2 = true;
-    if (digitalRead(MACRO_BUTTON_2_PIN)) {
-        pin_states.bit.macro2 = true;
-    }
-#endif
-#ifdef MACRO_BUTTON_3_PIN
-    defined_pins.bit.macro3 = true;
-    if (digitalRead(MACRO_BUTTON_3_PIN)) {
-        pin_states.bit.macro3 = true;
-    }
-#endif
-#ifdef INVERT_CONTROL_PIN_MASK
-    pin_states.value ^= (INVERT_CONTROL_PIN_MASK & defined_pins.value);
-#endif
+    pin_states.bit.safetyDoor = ControlSafetyDoorPin->get().read();
+    pin_states.bit.reset      = ControlResetPin->get().read();
+    pin_states.bit.feedHold   = ControlFeedHoldPin->get().read();
+    pin_states.bit.cycleStart = ControlCycleStartPin->get().read();
+    pin_states.bit.macro0     = MacroButton0Pin->get().read();
+    pin_states.bit.macro1     = MacroButton1Pin->get().read();
+    pin_states.bit.macro2     = MacroButton2Pin->get().read();
+    pin_states.bit.macro3     = MacroButton3Pin->get().read();
+
     return pin_states;
 }
 

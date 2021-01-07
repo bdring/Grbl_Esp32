@@ -272,7 +272,7 @@ void protocol_exec_rt_system() {
     }
     ExecState rt_exec_state;
     rt_exec_state.value = sys_rt_exec_state.value;  // Copy volatile sys_rt_exec_state.
-    if (rt_exec_state.value != 0 || cycle_stop) {                 // Test if any bits are on
+    if (rt_exec_state.value != 0 || cycle_stop) {   // Test if any bits are on
         // Execute system abort.
         if (rt_exec_state.bit.reset) {
             sys.abort = true;  // Only place this is set true.
@@ -485,21 +485,21 @@ void protocol_exec_rt_system() {
     // run state can be determined by checking the parser state.
     if (sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle) {
         sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle = false;
-#ifdef COOLANT_FLOOD_PIN
-        if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
-            gc_state.modal.coolant.Flood = !gc_state.modal.coolant.Flood;
-            coolant_set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+        if (CoolantFloodPin->get() != Pin::UNDEFINED) {
+            if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
+                gc_state.modal.coolant.Flood = !gc_state.modal.coolant.Flood;
+                coolant_set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+            }
         }
-#endif
     }
     if (sys_rt_exec_accessory_override.bit.coolantMistOvrToggle) {
         sys_rt_exec_accessory_override.bit.coolantMistOvrToggle = false;
-#ifdef COOLANT_MIST_PIN
-        if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
-            gc_state.modal.coolant.Mist = !gc_state.modal.coolant.Mist;
-            coolant_set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+        if (CoolantMistPin->get() != Pin::UNDEFINED) {
+            if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
+                gc_state.modal.coolant.Mist = !gc_state.modal.coolant.Mist;
+                coolant_set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+            }
         }
-#endif
     }
 
 #ifdef DEBUG
