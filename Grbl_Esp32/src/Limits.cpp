@@ -280,6 +280,13 @@ void limits_init() {
                     grbl_msg_sendf(
                         CLIENT_SERIAL, MsgLevel::Info, "%s limit switch on pin %s", reportAxisNameMsg(axis, gang_index), pinName(pin).c_str());
                 }
+            #ifdef VERBOSE_LOGGING
+            } else {
+                grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "limits_init, no pin %s %d",
+                           reportAxisNameMsg(axis, gang_index), gang_index);
+            #endif
             }
         }
     }
@@ -396,9 +403,14 @@ bool limitsCheckTravel(float* target) {
     uint8_t idx;
     auto    n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {
-        float max_mpos, min_mpos;
-
         if (target[idx] < limitsMinPosition(idx) || target[idx] > limitsMaxPosition(idx)) {
+            #ifdef VERBOSE_LOGGING
+             grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "limitsCheckTravel found axis %d target (%.2f %.2f %.2f)  min %.2f max %.2f",
+                           idx, target[X_AXIS], target[Y_AXIS], target[Z_AXIS], limitsMinPosition(idx), limitsMaxPosition(idx) 
+                           );
+            #endif
             return true;
         }
     }

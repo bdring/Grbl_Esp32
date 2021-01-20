@@ -25,7 +25,15 @@
     FYI: http://forums.trossenrobotics.com/tutorials/introduction-129/delta-robot-kinematics-3276/
     Better: http://hypertriangle.com/~alex/delta-robot-tutorial/
 */
+#include "../src/NutsBolts.h"
 #include "../src/Settings.h"
+#include "../src/SettingsDefinitions.h"
+#include "../src/Report.h"
+#include "../src/GCode.h"
+#include "../src/Limits.h"
+#include "../src/Planner.h"
+#include "../src/System.h"
+#include "../src/Motors/Motors.h"
 
 // Homing axis search distance multiplier. Computed by this value times the cycle travel.
 #ifndef HOMING_AXIS_SEARCH_SCALAR
@@ -144,6 +152,15 @@ bool user_defined_homing(uint8_t cycle_mask) {
                     do {
                         if (approach) {
                             switch_touched = bitnum_istrue(limits_get_state(), axis);
+                            #ifdef VERBOSE_LOGGING
+                            if( switch_touched ) {
+                                grbl_msg_sendf(CLIENT_SERIAL,
+                                        MsgLevel::Info,
+                                        "switch touched %d",
+                                        axis
+                                    );
+                        }
+                            #endif
                         }
                         st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
                         // Exit routines: No time to run protocol_execute_realtime() in this loop.
@@ -209,11 +226,26 @@ bool user_defined_homing(uint8_t cycle_mask) {
     // set the cartesian axis position
     for (axis = X_AXIS; axis <= Y_AXIS; axis++) {
         if (bitnum_istrue(homing_dir_mask->get(), axis)) {
-            target[axis] = limitsMinPosition(axis) + homing_pulloff->get();
+            target[axis] = limitsMinPosition(axis);
         } else {
-            target[axis] = limitsMaxPosition(axis) - homing_pulloff->get();
+            target[axis] = limitsMaxPosition(axis);
         }
+        #ifdef VERBOSE_LOGGING
+        grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "home axis %d dm %d t %.2f mn %2.f mx  %.2f p %.2f",
+                           axis, bitnum_istrue(homing_dir_mask->get(), axis),  target[axis], limitsMinPosition(axis), limitsMaxPosition(axis), homing_pulloff->get()
+                           );
+        #endif
     }
+
+    #ifdef VERBOSE_LOGGING
+    grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "home found %.2f %2.f ",
+                           target[X_AXIS], target[Y_AXIS]
+                           );
+    #endif
 
     last_cartesian[X_AXIS] = target[X_AXIS];
     last_cartesian[Y_AXIS] = target[Y_AXIS];
@@ -241,13 +273,21 @@ bool user_defined_homing(uint8_t cycle_mask) {
 void inverse_kinematics(float* position) {
     float motors[3];
 
-    motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
-    motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
-    motors[Z_AXIS] = position[Z_AXIS];
+    motors[X_AXIS] = (geometry_factor * position[X_AXIS]) + position[Y_AXIS];
+    motors[Y_AXIS] = (geometry_factor * position[X_AXIS]) - position[Y_AXIS];
 
-    position[0] = motors[0];
-    position[1] = motors[1];
-    position[2] = motors[2];
+    #ifdef VERBOSE_LOGGING
+    grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "inv1 %.2f %2.f -> %.2f %.2f",
+                           position[X_AXIS], position[Y_AXIS],
+                           motors[X_AXIS], motors[Y_AXIS]
+                           );
+    #endif
+    position[X_AXIS] = motors[X_AXIS];
+    position[Y_AXIS] = motors[Y_AXIS];
+
+    // Z and higher just pass through unchanged
 }
 
 // Inverse Kinematics calculates motor positions from real world cartesian positions
@@ -258,17 +298,29 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     float dx, dy, dz;  // distances in each cartesian axis
     float motors[MAX_N_AXIS];
 
-    float feed_rate = pl_data->feed_rate;  // save original feed rate
-
     // calculate cartesian move distance for each axis
     dx         = target[X_AXIS] - position[X_AXIS];
     dy         = target[Y_AXIS] - position[Y_AXIS];
     dz         = target[Z_AXIS] - position[Z_AXIS];
     float dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
 
-    motors[X_AXIS] = geometry_factor * target[X_AXIS] + target[Y_AXIS];
-    motors[Y_AXIS] = geometry_factor * target[X_AXIS] - target[Y_AXIS];
-    motors[Z_AXIS] = target[Z_AXIS];
+    motors[X_AXIS] = (geometry_factor * target[X_AXIS]) + target[Y_AXIS];
+    motors[Y_AXIS] = (geometry_factor * target[X_AXIS]) - target[Y_AXIS];
+    
+    auto n_axis = number_axis->get();
+    for (uint8_t axis = Z_AXIS; axis <= n_axis; axis++) {
+        motors[axis] = target[axis];
+    }
+
+    #ifdef VERBOSE_LOGGING
+    grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "inv2 %.2f %2.f %.2f -> %.2f %.2f %.2f : %.2f %.2f %.2f, rapid %d",
+                           position[X_AXIS], position[Y_AXIS], position[Z_AXIS],
+                           target[X_AXIS], target[Y_AXIS], target[Z_AXIS],
+                           motors[X_AXIS], motors[Y_AXIS], motors[Z_AXIS], pl_data->motion.rapidMotion
+                           );
+    #endif
 
     float motor_distance = three_axis_dist(motors, last_motors);
 
@@ -286,8 +338,8 @@ void forward_kinematics(float* position) {
     float calc_fwd[MAX_N_AXIS];
 
     // https://corexy.com/theory.html
-    calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
-    calc_fwd[Y_AXIS] = 0.5 * (position[X_AXIS] - position[Y_AXIS]);
+    calc_fwd[X_AXIS] = ((0.5 / geometry_factor) * (print_position[X_AXIS] + print_position[Y_AXIS])) - wco[X_AXIS];
+    calc_fwd[Y_AXIS] = ((0.5                  ) * (print_position[X_AXIS] - print_position[Y_AXIS])) - wco[Y_AXIS];
 
     position[X_AXIS] = calc_fwd[X_AXIS];
     position[Y_AXIS] = calc_fwd[Y_AXIS];
@@ -303,9 +355,12 @@ void kinematics_post_homing() {
     gc_state.position[Z_AXIS] = last_cartesian[Z_AXIS];
 }
 
+
 // this is used used by Grbl soft limits to see if the range of the machine is exceeded.
+// (its not. its not used for anything)
 uint8_t kinematic_limits_check(float* target) {
     return true;
+
 }
 
 void user_m30() {}

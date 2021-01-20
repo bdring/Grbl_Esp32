@@ -29,19 +29,18 @@ Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block) {
     // NOTE: Spindle and coolant are allowed to fully function with overrides during a jog.
     pl_data->feed_rate             = gc_block->values.f;
     pl_data->motion.noFeedOverride = 1;
+
 #ifdef USE_LINE_NUMBERS
     pl_data->line_number = gc_block->values.n;
 #endif
-    if (soft_limits->get()) {
-        if (limitsCheckTravel(gc_block->values.xyz)) {
-            return Error::TravelExceeded;
-        }
-    }
-// Valid jog command. Plan, set state, and execute.
-#ifndef USE_KINEMATICS
-    mc_line(gc_block->values.xyz, pl_data);
-#else  // else use kinematics
-    inverse_kinematics(gc_block->values.xyz, pl_data, gc_state.position);
+#ifdef VERBOSE_LOGGING
+    grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "jog %.2f %.2f",
+                           gc_block->values.xyz[X_AXIS], gc_block->values.xyz[Y_AXIS]
+                           );
+    
+    mc_line_kins(gc_block->values.xyz, pl_data, gc_state.position);
 #endif
 
     if (sys.state == State::Idle) {

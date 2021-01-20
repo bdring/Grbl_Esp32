@@ -97,6 +97,10 @@ namespace Motors {
 
     void RcServo::update() { set_location(); }
 
+    #ifdef VERBOSE_LOGGING
+    static uint32_t last_servo_pulse_len = 0;
+    #endif
+
     void RcServo::set_location() {
         uint32_t servo_pulse_len;
         float    servo_pos, mpos, offset;
@@ -116,9 +120,23 @@ namespace Motors {
         offset    = 0;  // gc_state.coord_system[axis_index] + gc_state.coord_offset[axis_index];  // get the current axis work offset
         servo_pos = mpos - offset;  // determine the current work position
 
+        
+
         // determine the pulse length
         servo_pulse_len = (uint32_t)mapConstrain(
             servo_pos, limitsMinPosition(_axis_index), limitsMaxPosition(_axis_index), _pwm_pulse_min, _pwm_pulse_max);
+
+        #ifdef VERBOSE_LOGGING
+        if( servo_pulse_len != last_servo_pulse_len ) {
+            last_servo_pulse_len = servo_pulse_len;
+            grbl_msg_sendf(CLIENT_SERIAL,
+                        MsgLevel::Info,
+                        "RcServo::set_location axis %d mpos %.2f sys %.2f mn %.2f mx %.2f pmn %.2f pmx %.2f",
+                        _axis_index, mpos, sys_position[_axis_index],
+                        limitsMinPosition(_axis_index), limitsMaxPosition(_axis_index), _pwm_pulse_min, _pwm_pulse_max
+                        );
+        }
+        #endif
 
         _write_pwm(servo_pulse_len);
     }

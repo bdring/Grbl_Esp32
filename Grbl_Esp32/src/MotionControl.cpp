@@ -35,6 +35,16 @@ SquaringMode ganged_mode = SquaringMode::Dual;
 
 // this allows kinematics to be used.
 void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
+    // If enabled, check for soft limit violations. Placed here all line motions are picked up
+    // from everywhere in Grbl.
+    // ( do this before pesky kinematics messes with the position value )
+    if (soft_limits->get()) {
+        // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
+        if (sys.state != State::Jog) {
+            limits_soft_check(target);
+        }
+    }
+
 #ifndef USE_KINEMATICS
     mc_line(target, pl_data);
 #else  // else use kinematics
@@ -50,14 +60,6 @@ void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
 // mc_line and plan_buffer_line is done primarily to place non-planner-type functions from being
 // in the planner and to let backlash compensation or canned cycle integration simple and direct.
 void mc_line(float* target, plan_line_data_t* pl_data) {
-    // If enabled, check for soft limit violations. Placed here all line motions are picked up
-    // from everywhere in Grbl.
-    if (soft_limits->get()) {
-        // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
-        if (sys.state != State::Jog) {
-            limits_soft_check(target);
-        }
-    }
     // If in check gcode mode, prevent motion by blocking planner. Soft limits still work.
     if (sys.state == State::CheckMode) {
         return;

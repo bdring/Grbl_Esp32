@@ -61,6 +61,8 @@ Some features should not be changed. See notes below.
 
 #define USE_RMT_STEPS
 
+#define VERBOSE_LOGGING
+
 // Include the file that loads the machine-specific config file.
 // machine.h must be edited to choose the desired file.
 #include "Machine.h"
@@ -98,11 +100,11 @@ const int MAX_N_AXIS = 6;
 //#define CONNECT_TO_SSID  "your SSID"
 //#define SSID_PASSWORD  "your SSID password"
 //CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
-#define ENABLE_BLUETOOTH  // enable bluetooth
+// #define ENABLE_BLUETOOTH  // enable bluetooth
 
-#define ENABLE_SD_CARD  // enable use of SD Card to run jobs
+// #define ENABLE_SD_CARD  // enable use of SD Card to run jobs
 
-#define ENABLE_WIFI  //enable wifi
+// #define ENABLE_WIFI  //enable wifi
 
 #if defined(ENABLE_WIFI) || defined(ENABLE_BLUETOOTH)
 #    define WIFI_OR_BLUETOOTH
@@ -112,7 +114,7 @@ const int MAX_N_AXIS = 6;
 #define ENABLE_OTA                 //enable OTA
 #define ENABLE_TELNET              //enable telnet
 #define ENABLE_TELNET_WELCOME_MSG  //display welcome string when connect to telnet
-#define ENABLE_MDNS                //enable mDNS discovery
+// #define ENABLE_MDNS                //enable mDNS discovery
 #define ENABLE_SSDP                //enable UPNP discovery
 #define ENABLE_NOTIFICATIONS       //enable notifications
 

@@ -43,16 +43,15 @@
 #define X_DIRECTION_PIN GPIO_NUM_26
 #define Y_DIRECTION_PIN GPIO_NUM_25
 
-#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+// #define STEPPERS_DISABLE_PIN GPIO_NUM_16
 
 #define X_LIMIT_PIN     GPIO_NUM_2
 #define Y_LIMIT_PIN     GPIO_NUM_4
 
 #define Z_SERVO_PIN             GPIO_NUM_27
+// #define Z_SERVO_PIN             GPIO_NUM_13
 
 // Set $Homing/Cycle0=Y and $Homing/Cycle1=X
-
-#define SPINDLE_TYPE SpindleType::NONE
 
 // defaults
 #define DEFAULT_HOMING_CYCLE_0      bit(Z_AXIS)
@@ -76,7 +75,7 @@
 #define DEFAULT_ARC_TOLERANCE       0.002 // mm
 #define DEFAULT_REPORT_INCHES       0 // false
 
-#define DEFAULT_SOFT_LIMIT_ENABLE 0 // false
+#define DEFAULT_SOFT_LIMIT_ENABLE 1 // false
 #define DEFAULT_HARD_LIMIT_ENABLE 0  // false
 
 #define DEFAULT_HOMING_ENABLE           1
