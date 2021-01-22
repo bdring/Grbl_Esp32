@@ -258,7 +258,7 @@ void make_settings() {
     for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def = &axis_defaults[axis];
         auto setting =
-            new IntSetting(EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, postMotorSetting);
+            new IntSetting(EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 255, postMotorSetting);
         setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
