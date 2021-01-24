@@ -201,9 +201,11 @@ void IRAM_ATTR onStepperDriverTimer(
     //const int timer_idx = (int)para;  // get the timer index
     TIMERG0.int_clr_timers.t0 = 1;
     if (busy) {
-        return;  // The busy-flag is used to avoid reentering this interrupt
+        *(uint32_t*)0 = 0;
+        //return;  // The busy-flag is used to avoid reentering this interrupt
     }
     busy = true;
+
 
     stepper_pulse_func();
 
