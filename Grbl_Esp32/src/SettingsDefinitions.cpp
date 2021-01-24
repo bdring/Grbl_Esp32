@@ -62,6 +62,8 @@ IntSetting*   motor_address[MAX_N_AXIS][2];
 FloatSetting* motor_cal_min[MAX_N_AXIS][2];
 FloatSetting* motor_cal_max[MAX_N_AXIS][2];
 
+EnumSetting* message_level;
+
 enum_opt_t spindleTypes = {
     // clang-format off
     { "NONE", int8_t(SpindleType::NONE) },
@@ -97,6 +99,17 @@ enum_opt_t trinamicModes = {
     { "StealthChop", int8_t(TrinamicMode::StealthChop) },
     { "CoolStep", int8_t(TrinamicMode::CoolStep) },
     { "StallGuard", int8_t(TrinamicMode::StallGuard) },
+    // clang-format on
+};
+
+enum_opt_t messageLevels = {
+    // clang-format off
+    { "None", int8_t(MsgLevel::None) },
+    { "Error", int8_t(MsgLevel::Error) },
+    { "Warning", int8_t(MsgLevel::Warning) },
+    { "Info", int8_t(MsgLevel::Info) },
+    { "Debug", int8_t(MsgLevel::Debug) },
+    { "Verbose", int8_t(MsgLevel::Verbose) },
     // clang-format on
 };
 
@@ -462,6 +475,9 @@ void make_settings() {
     user_macro2 = new StringSetting(EXTENDED, WG, NULL, "User/Macro2", DEFAULT_USER_MACRO2);
     user_macro1 = new StringSetting(EXTENDED, WG, NULL, "User/Macro1", DEFAULT_USER_MACRO1);
     user_macro0 = new StringSetting(EXTENDED, WG, NULL, "User/Macro0", DEFAULT_USER_MACRO0);
+
+    message_level =
+        new EnumSetting(NULL, EXTENDED, WG, NULL, "Message/Level", static_cast<int8_t>(MsgLevel::Info), &messageLevels, NULL);
 
     make_pin_settings();  // Created in PinSettingsDefinitions.cpp
 }

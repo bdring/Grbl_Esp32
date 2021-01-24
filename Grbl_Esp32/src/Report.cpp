@@ -118,9 +118,13 @@ void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...) {
     if (client == CLIENT_INPUT) {
         return;
     }
-    if (level > GRBL_MSG_LEVEL) {
-        return;
+    // might be null before messages are setup
+    if (message_level != NULL) {
+        if (level > static_cast<MsgLevel>(message_level->get())) {
+            return;
+        }
     }
+
     char    loc_buf[100];
     char*   temp = loc_buf;
     va_list arg;

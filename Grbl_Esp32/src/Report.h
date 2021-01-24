@@ -54,7 +54,7 @@ enum class Message : uint8_t {
 #define CLIENT_ALL 0xFF
 #define CLIENT_COUNT 5  // total number of client types regardless if they are used
 
-enum class MsgLevel : uint8_t {
+enum class MsgLevel : int8_t {
     None    = 0,  // set GRBL_MSG_LEVEL in config.h to the level you want to see
     Error   = 1,
     Warning = 2,
