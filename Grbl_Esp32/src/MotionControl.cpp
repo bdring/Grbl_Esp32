@@ -50,6 +50,8 @@ void mc_line_kins(float* target, plan_line_data_t* pl_data, float* position) {
 // mc_line and plan_buffer_line is done primarily to place non-planner-type functions from being
 // in the planner and to let backlash compensation or canned cycle integration simple and direct.
 void mc_line(float* target, plan_line_data_t* pl_data) {
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "mc_line() (%4.3f, %4.3f, %4.3f)", target[X_AXIS], target[Y_AXIS], target[Z_AXIS]);
+
     // If enabled, check for soft limit violations. Placed here all line motions are picked up
     // from everywhere in Grbl.
     if (soft_limits->get()) {

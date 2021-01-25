@@ -25,13 +25,8 @@
 */
 
 // The number of linear motions that can be in the plan at any give time
-#ifndef BLOCK_BUFFER_SIZE
-#    ifdef USE_LINE_NUMBERS
-#        define BLOCK_BUFFER_SIZE 15
-#    else
-#        define BLOCK_BUFFER_SIZE 16
-#    endif
-#endif
+
+#define BLOCK_BUFFER_SIZE 20
 
 // Returned status message from planner.
 const int PLAN_OK          = true;
@@ -50,9 +45,9 @@ struct PlMotion {
 typedef struct {
     // Fields used by the bresenham algorithm for tracing the line
     // NOTE: Used by stepper algorithm to execute the block correctly. Do not alter these values.
-    uint32_t steps[MAX_N_AXIS];     // Step count along each axis
-    uint32_t step_event_count;  // The maximum step axis count and number of steps required to complete this block.
-    uint8_t  direction_bits;    // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
+    uint32_t steps[MAX_N_AXIS];  // Step count along each axis
+    uint32_t step_event_count;   // The maximum step axis count and number of steps required to complete this block.
+    uint8_t  direction_bits;     // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
 
     // Block condition data to ensure correct execution depending on states and overrides.
     PlMotion     motion;   // Block bitflag motion conditions. Copied from pl_line_data.

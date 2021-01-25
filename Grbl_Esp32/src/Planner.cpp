@@ -317,6 +317,14 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     } else {
         memcpy(position_steps, pl.position, sizeof(pl.position));
     }
+
+    grbl_msg_sendf(CLIENT_SERIAL,
+                   MsgLevel::Debug,
+                   "plan_buffer_line() pl.position (%d, %d, %d)",
+                   position_steps[X_AXIS],
+                   position_steps[Y_AXIS],
+                   position_steps[Z_AXIS]);
+
     auto n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {
         // Calculate target position in absolute steps, number of steps for each axis, and determine max step events.
