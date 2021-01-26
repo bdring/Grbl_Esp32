@@ -249,6 +249,8 @@ void protocol_execute_realtime() {
 // machine and controls the various real-time features Grbl has to offer.
 // NOTE: Do not alter this unless you know exactly what you are doing!
 void protocol_exec_rt_system() {
+   
+
     ExecAlarm alarm = sys_rt_exec_alarm;  // Temp variable to avoid calling volatile multiple times.
     if (alarm != ExecAlarm::None) {       // Enter only if an alarm is pending
         // System alarm. Everything has shutdown by something that has gone severely wrong. Report
@@ -272,7 +274,7 @@ void protocol_exec_rt_system() {
     }
     ExecState rt_exec_state;
     rt_exec_state.value = sys_rt_exec_state.value;  // Copy volatile sys_rt_exec_state.
-    if (rt_exec_state.value != 0 || cycle_stop) {                 // Test if any bits are on
+    if (rt_exec_state.value != 0 || cycle_stop) {   // Test if any bits are on
         // Execute system abort.
         if (rt_exec_state.bit.reset) {
             sys.abort = true;  // Only place this is set true.
@@ -503,11 +505,12 @@ void protocol_exec_rt_system() {
     }
 
 #ifdef DEBUG
-    if (sys_rt_exec_debug) {
-        report_realtime_debug();
-        sys_rt_exec_debug = false;
-    }
+    // if (sys_rt_exec_debug) {
+    //     report_realtime_debug();
+    //     sys_rt_exec_debug = false;
+    // }
 #endif
+
     // Reload step segment buffer
     switch (sys.state) {
         case State::Cycle:

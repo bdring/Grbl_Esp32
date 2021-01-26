@@ -93,6 +93,9 @@ enum stepper_id_t {
 extern const char*  stepper_names[];
 extern stepper_id_t current_stepper;
 
+extern uint32_t step_ISR_duration;
+extern uint32_t step_ISR_min_duration;
+
 // -- Task handles for use in the notifications
 void IRAM_ATTR onSteppertimer();
 void IRAM_ATTR onStepperOffTimer();

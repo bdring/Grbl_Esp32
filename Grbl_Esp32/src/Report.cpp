@@ -581,6 +581,15 @@ void report_build_info(const char* line, uint8_t client) {
 #if defined(ENABLE_BLUETOOTH)
     grbl_send(client, (char*)WebUI::bt_config.info());
 #endif
+
+#ifdef DEBUG
+    grbl_msg_sendf(
+        CLIENT_SERIAL, MsgLevel::Info, "Step ISR Max Duration %d  %d", step_ISR_duration, clockCyclesToMicroseconds(step_ISR_duration));
+    grbl_msg_sendf(
+        CLIENT_SERIAL, MsgLevel::Info, "Step ISR Min Duration %d  %d", step_ISR_min_duration, clockCyclesToMicroseconds(step_ISR_min_duration));
+
+#endif
+
 }
 
 // Prints the character string line Grbl has received from the user, which has been pre-parsed,

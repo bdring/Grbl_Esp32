@@ -24,6 +24,9 @@
 */
 
 #include "Grbl.h"
+#include "xtensa/core-macros.h"
+
+#define ISR_PROFILE_PIN GPIO_NUM_25  // used to determine ISR duration on logic analyzer
 
 // Stores the planner block Bresenham algorithm execution data for the segments in the segment
 // buffer. Normally, this buffer is partially in-use, but, for the worst case scenario, it will
@@ -133,6 +136,9 @@ const char* stepper_names[] = {
     "I2S Steps, Static",
 };
 
+uint32_t step_ISR_duration     = 0;
+uint32_t step_ISR_min_duration = 1000;  // init with high value
+
 stepper_id_t current_stepper = DEFAULT_STEPPER;
 
 /* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
@@ -196,8 +202,7 @@ static void stepper_pulse_func();
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
-void IRAM_ATTR onStepperDriverTimer(
-    void* para) {  // ISR It is time to take a step =======================================================================================
+void IRAM_ATTR onStepperDriverTimer(void* para) {  // ISR It is time to take a step
     //const int timer_idx = (int)para;  // get the timer index
     TIMERG0.int_clr_timers.t0 = 1;
     if (busy) {
@@ -205,7 +210,6 @@ void IRAM_ATTR onStepperDriverTimer(
         //return;  // The busy-flag is used to avoid reentering this interrupt
     }
     busy = true;
-
 
     stepper_pulse_func();
 
@@ -221,6 +225,10 @@ void IRAM_ATTR onStepperDriverTimer(
  * is to keep pulse timing as regular as possible.
  */
 static void stepper_pulse_func() {
+#ifdef DEBUG  // pulse used to profile the ISR duration
+    int64_t stepper_start = XTHAL_GET_CCOUNT();
+    digitalWrite(ISR_PROFILE_PIN, HIGH);
+#endif
     auto n_axis = number_axis->get();
 
     motors_step(st.step_outbits, st.dir_outbits);
@@ -268,6 +276,16 @@ static void stepper_pulse_func() {
                 }
             }
             cycle_stop = true;
+#ifdef DEBUG
+            digitalWrite(ISR_PROFILE_PIN, LOW);
+            uint32_t stepper_duration = XTHAL_GET_CCOUNT() - stepper_start;
+            if (stepper_duration > step_ISR_duration) {
+                step_ISR_duration = stepper_duration;
+            }
+            if (stepper_duration < step_ISR_min_duration) {
+                step_ISR_min_duration = stepper_duration;
+            }
+#endif
             return;  // Nothing to do but exit.
         }
     }
@@ -322,6 +340,16 @@ static void stepper_pulse_func() {
         case ST_RMT:
             break;
     }
+#ifdef DEBUG  // pulse used to profile the ISR duration
+    digitalWrite(ISR_PROFILE_PIN, LOW);
+    uint32_t stepper_duration = XTHAL_GET_CCOUNT() - stepper_start;
+    if (stepper_duration > step_ISR_duration) {
+        step_ISR_duration = stepper_duration;
+    }
+    if (stepper_duration < step_ISR_min_duration) {
+        step_ISR_min_duration = stepper_duration;
+    }
+#endif
 }
 
 void stepper_init() {
@@ -491,6 +519,7 @@ static uint8_t st_next_block_index(uint8_t block_index) {
 */
 void st_prep_buffer() {
     // Block step prep buffer, while in a suspend state and there is no suspend motion to execute.
+
     if (sys.step_control.endMotion) {
         return;
     }
@@ -772,7 +801,7 @@ void st_prep_buffer() {
                 float rpm = pl_block->spindle_speed;
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
                 if (st_prep_block->is_pwm_rate_adjusted) {
-                    rpm *= (prep.current_speed * prep.inv_rate);
+                                        rpm *= (prep.current_speed * prep.inv_rate);
                     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RPM %.2f", rpm);
                     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
                 }
