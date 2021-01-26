@@ -42,6 +42,10 @@ namespace Spindles {
         void         stop() override;
         void         config_message() override;
 
+        bool         inLaserMode() override {
+            return laser_mode->get();  // can use M4 (CCW) laser mode.
+        }
+
         virtual ~Null() {}
     };
 }
