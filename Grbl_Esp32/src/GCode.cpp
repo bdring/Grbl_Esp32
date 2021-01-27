@@ -250,6 +250,10 @@ Error gc_execute_line(char* line, uint8_t client) {
                         gc_block.non_modal_command = NonModal::Dwell;
                         mg_word_bit                = ModalGroup::MG0;
                         break;
+                    case 5:
+                        gc_block.non_modal_command = NonModal::Report;
+                        mg_word_bit                = ModalGroup::MG0;
+                        break;
                     case 53:
                         gc_block.non_modal_command = NonModal::AbsoluteOverride;
                         mg_word_bit                = ModalGroup::MG0;
@@ -997,7 +1001,9 @@ Error gc_execute_line(char* line, uint8_t client) {
                                         gc_block.values.xyz[idx] += gc_state.tool_length_offset;
                                     }
                                 } else {  // Incremental mode
-                                    gc_block.values.xyz[idx] += gc_state.position[idx];
+                                    if (gc_block.non_modal_command != NonModal::Report) {
+                                        gc_block.values.xyz[idx] += gc_state.position[idx];
+                                    }
                                 }
                             }
                         }
@@ -1437,6 +1443,31 @@ Error gc_execute_line(char* line, uint8_t client) {
     if (gc_block.non_modal_command == NonModal::Dwell) {
         mc_dwell(gc_block.values.p);
     }
+    if (gc_block.non_modal_command == NonModal::Report) {
+        protocol_buffer_synchronize();
+        float   print_position[MAX_N_AXIS];
+        int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
+        memcpy(current_position, sys_position, sizeof(sys_position));
+        system_convert_array_steps_to_mpos(print_position, current_position);
+        float xvalue = gc_block.values.xyz[X_AXIS];
+        float yvalue = gc_block.values.xyz[Y_AXIS];
+        float xdiff  = print_position[X_AXIS] - xvalue;
+        float ydiff  = print_position[Y_AXIS] - yvalue;
+        //        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "LN %d %4.2f %4.2f", sd_get_current_line_number(), print_position[0], print_position[1]);
+        if (fabsf(xdiff) > 0.03 || fabsf(ydiff) > 0.03) {
+            grbl_msg_sendf(CLIENT_ALL,
+                           MsgLevel::Info,
+                           "ERROR @ %d %4.2f %4.2f %4.2f %4.2f %4.4f %4.4f",
+                           sd_get_current_line_number(),
+                           print_position[X_AXIS],
+                           print_position[Y_AXIS],
+                           xvalue,
+                           yvalue,
+                           xdiff,
+                           ydiff);
+            sys_rt_exec_state.bit.feedHold = true;
+        }
+    }
     // [11. Set active plane ]:
     gc_state.modal.plane_select = gc_block.modal.plane_select;
     // [12. Set length units ]:
@@ -1547,6 +1578,16 @@ Error gc_execute_line(char* line, uint8_t client) {
             } else if (gc_update_pos == GCUpdatePos::System) {
                 gc_sync_position();  // gc_state.position[] = sys_position
             }                        // == GCUpdatePos::None
+#define GENERATE_G5
+#ifdef GENERATE_G5
+            grbl_sendf(CLIENT_SERIAL, "%s\r\n", line);
+            // After a motion command, output a G5 command that shows where
+            // the work position should be when the motion completes.
+            grbl_sendf(CLIENT_SERIAL,
+                       "G5 X%4.2f Y%3.2f\r\n",
+                       gc_state.position[X_AXIS] - block_coord_system[X_AXIS],
+                       gc_state.position[Y_AXIS] - block_coord_system[Y_AXIS]);
+#endif
         }
     }
     // [21. Program flow ]:

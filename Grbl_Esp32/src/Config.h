@@ -47,7 +47,7 @@ Some features should not be changed. See notes below.
 // that the machine file might choose to undefine.
 
 // Note: HOMING_CYCLES are now settings
-#define SUPPORT_TASK_CORE  1 // Reference: CONFIG_ARDUINO_RUNNING_CORE = 1
+#define SUPPORT_TASK_CORE 1  // Reference: CONFIG_ARDUINO_RUNNING_CORE = 1
 
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
@@ -401,7 +401,7 @@ const int TOOL_LENGTH_OFFSET_AXIS = Z_AXIS;  // Default z-axis. Valid values are
 // NOTE: Only use this for debugging purposes!! When echoing, this takes up valuable resources and can effect
 // performance. If absolutely needed for normal operation, the serial write buffer should be greatly increased
 // to help minimize transmission waiting within the serial write protocol.
-//#define REPORT_ECHO_LINE_RECEIVED // Default disabled. Uncomment to enable.
+//#define REPORT_ECHO_LINE_RECEIVED  // Default disabled. Uncomment to enable.
 
 // This is similar to REPORT_ECHO_LINE_RECEIVED and subject to all its caveats,
 // but instead of echoing the pre-parsed line, it echos the raw line exactly as

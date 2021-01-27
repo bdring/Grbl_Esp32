@@ -63,6 +63,7 @@ enum class ModalGroup : uint8_t {
 enum class NonModal : uint8_t {
     NoAction              = 0,    // (Default: Must be zero)
     Dwell                 = 4,    // G4 (Do not alter value)
+    Report                = 5,    // G5 (Do not alter value)
     SetCoordinateData     = 10,   // G10 (Do not alter value)
     GoHome0               = 28,   // G28 (Do not alter value)
     SetHome0              = 38,   // G28.1 (Do not alter value)
@@ -234,9 +235,9 @@ enum GCParserFlags {
 
 // Various places in the code access saved coordinate system data
 // by a small integer index according to the values below.
-enum CoordIndex : uint8_t{
+enum CoordIndex : uint8_t {
     Begin = 0,
-    G54 = Begin,
+    G54   = Begin,
     G55,
     G56,
     G57,
@@ -256,7 +257,7 @@ enum CoordIndex : uint8_t{
 };
 
 // Allow iteration over CoordIndex values
-CoordIndex& operator ++ (CoordIndex& i);
+CoordIndex& operator++(CoordIndex& i);
 
 // NOTE: When this struct is zeroed, the 0 values in the above types set the system defaults.
 typedef struct {
