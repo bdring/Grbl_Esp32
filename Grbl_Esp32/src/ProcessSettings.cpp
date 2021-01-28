@@ -425,10 +425,10 @@ static bool anyState() {
     return false;
 }
 static bool idleOrJog() {
-    return sys.state != State::Idle && sys.state != State::Jog;
+    return sys.state != State::Idle && sys.state != State::Jog && sys.state != State::CheckMode;
 }
 bool idleOrAlarm() {
-    return sys.state != State::Idle && sys.state != State::Alarm;
+    return sys.state != State::Idle && sys.state != State::Alarm && sys.state != State::CheckMode;
 }
 static bool notCycleOrHold() {
     return sys.state == State::Cycle && sys.state == State::Hold;
