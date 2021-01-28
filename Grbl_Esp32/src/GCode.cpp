@@ -127,7 +127,9 @@ Error gc_execute_line(char* line, uint8_t client) {
 #ifdef REPORT_ECHO_LINE_RECEIVED
     report_echo_line_received(line, client);
 #endif
-
+    if (sys.state == State::CheckMode) {
+        grbl_sendf(CLIENT_SERIAL, "%s\r\n", line);
+    }
     /* -------------------------------------------------------------------------------------
        STEP 1: Initialize parser block struct and copy current g-code state modes. The parser
        updates these modes and commands as the block line is parser and will only be used and
@@ -1578,16 +1580,14 @@ Error gc_execute_line(char* line, uint8_t client) {
             } else if (gc_update_pos == GCUpdatePos::System) {
                 gc_sync_position();  // gc_state.position[] = sys_position
             }                        // == GCUpdatePos::None
-#define GENERATE_G5
-#ifdef GENERATE_G5
-            grbl_sendf(CLIENT_SERIAL, "%s\r\n", line);
-            // After a motion command, output a G5 command that shows where
-            // the work position should be when the motion completes.
-            grbl_sendf(CLIENT_SERIAL,
-                       "G5 X%4.2f Y%3.2f\r\n",
-                       gc_state.position[X_AXIS] - block_coord_system[X_AXIS],
-                       gc_state.position[Y_AXIS] - block_coord_system[Y_AXIS]);
-#endif
+            if (sys.state == State::CheckMode) {
+                // After a motion command, output a G5 command that shows where
+                // the work position should be when the motion completes.
+                grbl_sendf(CLIENT_SERIAL,
+                           "G5 X%4.2f Y%3.2f\r\n",
+                           gc_state.position[X_AXIS] - block_coord_system[X_AXIS],
+                           gc_state.position[Y_AXIS] - block_coord_system[Y_AXIS]);
+            }
         }
     }
     // [21. Program flow ]:

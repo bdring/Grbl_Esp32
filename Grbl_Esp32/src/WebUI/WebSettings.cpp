@@ -700,7 +700,7 @@ namespace WebUI {
         return Error::Ok;
     }
     static Error showSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP221
-        if (sys.state != State::Idle && sys.state != State::Alarm) {
+        if (sys.state != State::Idle && sys.state != State::Alarm && sys.state != State::CheckMode) {
             return Error::IdleError;
         }
         Error err;
@@ -723,7 +723,7 @@ namespace WebUI {
             webPrintln("Alarm");
             return Error::IdleError;
         }
-        if (sys.state != State::Idle) {
+        if (sys.state != State::Idle && sys.state != State::CheckMode) {
             webPrintln("Busy");
             return Error::IdleError;
         }
