@@ -336,25 +336,39 @@ AxisMask limits_get_state() {
 // Performs a soft limit check. Called from mcline() only. Assumes the machine has been homed,
 // the workspace volume is in all negative space, and the system is in normal operation.
 // NOTE: Used by jogging to limit travel within soft-limit volume.
+// void limits_soft_check(float* target) {
+//     if (limitsCheckTravel(target)) {
+//         sys.soft_limit = true;
+//         // Force feed hold if cycle is active. All buffered blocks are guaranteed to be within
+//         // workspace volume so just come to a controlled stop so position is not lost. When complete
+//         // enter alarm mode.
+//         if (sys.state == State::Cycle) {
+//             sys_rt_exec_state.bit.feedHold = true;
+//             do {
+//                 protocol_execute_realtime();
+//                 if (sys.abort) {
+//                     return;
+//                 }
+//             } while (sys.state != State::Idle);
+//         }
+//         mc_reset();                                // Issue system reset and ensure spindle and coolant are shutdown.
+//         sys_rt_exec_alarm = ExecAlarm::SoftLimit;  // Indicate soft limit critical event
+//         protocol_execute_realtime();               // Execute to enter critical event loop and system abort
+//         return;
+//     }
+// }
+
+// Version to help find offset error
 void limits_soft_check(float* target) {
     if (limitsCheckTravel(target)) {
-        sys.soft_limit = true;
-        // Force feed hold if cycle is active. All buffered blocks are guaranteed to be within
-        // workspace volume so just come to a controlled stop so position is not lost. When complete
-        // enter alarm mode.
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Soft Limit\a");
         if (sys.state == State::Cycle) {
+            if (get_sd_state(false) == SDState::BusyPrinting) {
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Closing SD file");
+                closeFile();
+            }
             sys_rt_exec_state.bit.feedHold = true;
-            do {
-                protocol_execute_realtime();
-                if (sys.abort) {
-                    return;
-                }
-            } while (sys.state != State::Idle);
         }
-        mc_reset();                                // Issue system reset and ensure spindle and coolant are shutdown.
-        sys_rt_exec_alarm = ExecAlarm::SoftLimit;  // Indicate soft limit critical event
-        protocol_execute_realtime();               // Execute to enter critical event loop and system abort
-        return;
     }
 }
 
