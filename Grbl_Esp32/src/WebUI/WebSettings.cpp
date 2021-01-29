@@ -1025,7 +1025,7 @@ namespace WebUI {
         // WU - need user or admin password to set
         // WA - need admin password to set
 #ifdef WEB_COMMON
-        new WebCommand(NULL, WEBCMD, WG, "ESP800", "Firmware/Info", showFwInfo);
+        new WebCommand(NULL, WEBCMD, WG, "ESP800", "Firmware/Info", showFwInfo, anyState);
         new WebCommand(NULL, WEBCMD, WU, "ESP720", "LocalFS/Size", SPIFFSSize);
         new WebCommand("FORMAT", WEBCMD, WA, "ESP710", "LocalFS/Format", formatSpiffs);
         new WebCommand("path", WEBCMD, WU, "ESP701", "LocalFS/Show", showLocalFile);

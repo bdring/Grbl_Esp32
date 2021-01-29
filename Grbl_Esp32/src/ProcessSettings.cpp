@@ -421,19 +421,6 @@ Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, We
     return Error::Ok;
 }
 
-static bool anyState() {
-    return false;
-}
-static bool idleOrJog() {
-    return sys.state != State::Idle && sys.state != State::Jog;
-}
-bool idleOrAlarm() {
-    return sys.state != State::Idle && sys.state != State::Alarm;
-}
-static bool notCycleOrHold() {
-    return sys.state == State::Cycle && sys.state == State::Hold;
-}
-
 // Commands use the same syntax as Settings, but instead of setting or
 // displaying a persistent value, a command causes some action to occur.
 // That action could be anything, from displaying a run-time parameter
