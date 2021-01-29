@@ -1025,7 +1025,7 @@ namespace WebUI {
         // WU - need user or admin password to set
         // WA - need admin password to set
 #ifdef WEB_COMMON
-        new WebCommand(NULL, WEBCMD, WG, "ESP800", "Firmware/Info", showFwInfo);
+        new WebCommand(NULL, WEBCMD, WG, "ESP800", "Firmware/Info", showFwInfo, anyState);
         new WebCommand(NULL, WEBCMD, WU, "ESP720", "LocalFS/Size", SPIFFSSize);
         new WebCommand("FORMAT", WEBCMD, WA, "ESP710", "LocalFS/Format", formatSpiffs);
         new WebCommand("path", WEBCMD, WU, "ESP701", "LocalFS/Show", showLocalFile);
@@ -1043,14 +1043,14 @@ namespace WebUI {
 #endif
 #ifdef WEB_COMMON
         new WebCommand("RESTART", WEBCMD, WA, "ESP444", "System/Control", setSystemMode);
-        new WebCommand(NULL, WEBCMD, WU, "ESP420", "System/Stats", showSysStats);
+        new WebCommand(NULL, WEBCMD, WU, "ESP420", "System/Stats", showSysStats, anyState);
 #endif
 #ifdef ENABLE_WIFI
         new WebCommand(NULL, WEBCMD, WU, "ESP410", "WiFi/ListAPs", listAPs);
 #endif
 #ifdef WEB_COMMON
         new WebCommand("P=position T=type V=value", WEBCMD, WA, "ESP401", "WebUI/Set", setWebSetting);
-        new WebCommand(NULL, WEBCMD, WU, "ESP400", "WebUI/List", listSettings);
+        new WebCommand(NULL, WEBCMD, WU, "ESP400", "WebUI/List", listSettings, anyState);
 #endif
 #ifdef ENABLE_SD_CARD
         new WebCommand("path", WEBCMD, WU, "ESP221", "SD/Show", showSDFile);
@@ -1067,8 +1067,8 @@ namespace WebUI {
         new WebCommand("IP=ipaddress MSK=netmask GW=gateway", WEBCMD, WA, "ESP103", "Sta/Setup", showSetStaParams);
 #endif
 #ifdef WEB_COMMON
-        new WebCommand(NULL, WEBCMD, WG, "ESP0", "WebUI/Help", showWebHelp);
-        new WebCommand(NULL, WEBCMD, WG, "ESP", "WebUI/Help", showWebHelp);
+        new WebCommand(NULL, WEBCMD, WG, "ESP0", "WebUI/Help", showWebHelp, anyState);
+        new WebCommand(NULL, WEBCMD, WG, "ESP", "WebUI/Help", showWebHelp, anyState);
 #endif
         // WebUI Settings
         // Standard WEBUI authentication is user+ to get, admin to set unless otherwise specified

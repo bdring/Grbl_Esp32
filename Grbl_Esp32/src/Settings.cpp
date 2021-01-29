@@ -3,6 +3,19 @@
 #include <map>
 #include <nvs.h>
 
+bool anyState() {
+    return false;
+}
+bool idleOrJog() {
+    return sys.state != State::Idle && sys.state != State::Jog;
+}
+bool idleOrAlarm() {
+    return sys.state != State::Idle && sys.state != State::Alarm;
+}
+bool notCycleOrHold() {
+    return sys.state == State::Cycle && sys.state == State::Hold;
+}
+
 Word::Word(type_t type, permissions_t permissions, const char* description, const char* grblName, const char* fullName) :
     _description(description), _grblName(grblName), _fullName(fullName), _type(type), _permissions(permissions) {}
 
