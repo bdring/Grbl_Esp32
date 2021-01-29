@@ -364,7 +364,7 @@ void limits_soft_check(float* target) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Soft Limit\a");
         if (sys.state == State::Cycle) {
             if (get_sd_state(false) == SDState::BusyPrinting) {
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Closing SD file");
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Closing SD file at line: %d", sd_get_current_line_number());
                 closeFile();
             }
             sys_rt_exec_state.bit.feedHold = true;
