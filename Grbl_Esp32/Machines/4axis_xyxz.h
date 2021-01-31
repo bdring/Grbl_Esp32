@@ -10,7 +10,7 @@
 #endif
 
 /*
- * Moechte ich mit 3 oder 4 Achsen arbeiten?
+ * Moechte ich mit 3 oder 4 Achsen arbeiten??
  * Beides ist eingerichtet.
  */
 // ######################################
