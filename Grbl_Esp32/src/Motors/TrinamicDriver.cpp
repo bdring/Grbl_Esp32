@@ -258,7 +258,7 @@ namespace Motors {
                 tmcstepper->THIGH(calc_tstep(homing_feed_rate->get(), 60.0));
                 tmcstepper->sfilt(1);
                 tmcstepper->diag1_stall(true);  // stallguard i/o is on diag1
-                tmcstepper->sgt(axis_settings[_axis_index]->stallguard->get());
+                tmcstepper->sgt(constrain(axis_settings[_axis_index]->stallguard->get(), -64, 63));
                 break;
             default:
                 grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_UNDEFINED");
@@ -286,7 +286,7 @@ namespace Motors {
                        tmcstepper->stallguard(),
                        tmcstepper->sg_result(),
                        feedrate,
-                       axis_settings[_axis_index]->stallguard->get());
+                       constrain(axis_settings[_axis_index]->stallguard->get(), -64, 63));
 
         TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
         status.sr = tmcstepper->DRV_STATUS();

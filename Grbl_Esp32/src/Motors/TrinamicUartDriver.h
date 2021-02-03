@@ -98,7 +98,7 @@ namespace Motors {
     private:
         uint32_t calc_tstep(float speed, float percent);  //TODO: see if this is useful/used.
 
-        TMC2208Stepper*  tmcstepper;  // all other driver types are subclasses of this one
+        TMC2209Stepper*  tmcstepper;  // all other driver types are subclasses of this one
         TrinamicUartMode _homing_mode;
         uint16_t         _driver_part_number;  // example: use 2209 for TMC2209
         float            _r_sense;
