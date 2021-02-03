@@ -20,6 +20,7 @@
 
 */
 #include "PWMSpindle.h"
+#include "soc/ledc_struct.h"
 
 // ======================= PWM ==============================
 /*
@@ -222,7 +223,15 @@ namespace Spindles {
             duty = (1 << _pwm_precision) - duty;
         }
 
-        ledcWrite(_pwm_chan_num, duty);
+        //ledcWrite(_pwm_chan_num, duty);
+
+        // This was ledcWrite, but this is called from an ISR
+        // and ledcWrite uses RTOS features not compatible with ISRs
+        LEDC.channel_group[0].channel[0].duty.duty        = duty << 4;
+        bool on                                           = !!duty;
+        LEDC.channel_group[0].channel[0].conf0.sig_out_en = on;
+        LEDC.channel_group[0].channel[0].conf1.duty_start = on;
+        LEDC.channel_group[0].channel[0].conf0.clk_en     = on;
     }
 
     void PWM::set_enable_pin(bool enable) {

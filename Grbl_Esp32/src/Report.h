@@ -52,8 +52,8 @@ enum class Message : uint8_t {
 #define CLIENT_ALL 0xFF
 #define CLIENT_COUNT 5  // total number of client types regardless if they are used
 
-enum class MsgLevel : uint8_t {
-    None    = 0,  // set GRBL_MSG_LEVEL in config.h to the level you want to see
+enum class MsgLevel : int8_t {  // Use $Message/Level
+    None    = 0,
     Error   = 1,
     Warning = 2,
     Info    = 3,
@@ -128,4 +128,4 @@ char* reportAxisLimitsMsg(uint8_t axis);
 char* reportAxisNameMsg(uint8_t axis);
 char* reportAxisNameMsg(uint8_t axis, uint8_t dual_axis);
 
-void  reportTaskStackSize(UBaseType_t& saved);
+void reportTaskStackSize(UBaseType_t& saved);
