@@ -283,11 +283,11 @@ static bool axis_is_squared(uint8_t axis_mask) {
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
 void mc_homing_cycle(uint8_t cycle_mask) {
     bool no_cycles_defined = true;
-#ifdef USE_CUSTOM_HOMING
+
     if (user_defined_homing(cycle_mask)) {
         return;
     }
-#endif
+
     // This give kinematics a chance to do something before normal homing
     // if it returns true, the homing is canceled.
 #ifdef USE_KINEMATICS
