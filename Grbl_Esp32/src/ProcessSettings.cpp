@@ -1,5 +1,6 @@
 #include "Grbl.h"
 #include <map>
+#include "Regex.h"
 
 // WG Readable and writable as guest
 // WU Readable and writable as user and admin
@@ -420,19 +421,6 @@ Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, We
     return Error::Ok;
 }
 
-static bool anyState() {
-    return false;
-}
-static bool idleOrJog() {
-    return sys.state != State::Idle && sys.state != State::Jog;
-}
-bool idleOrAlarm() {
-    return sys.state != State::Idle && sys.state != State::Alarm;
-}
-static bool notCycleOrHold() {
-    return sys.state == State::Cycle && sys.state == State::Hold;
-}
-
 // Commands use the same syntax as Settings, but instead of setting or
 // displaying a persistent value, a command causes some action to occur.
 // That action could be anything, from displaying a run-time parameter
@@ -565,19 +553,13 @@ Error do_command_or_setting(const char* key, char* value, WebUI::AuthenticationL
     Error retval = Error::InvalidStatement;
     if (!value) {
         auto lcKey = String(key);
-        // We allow the key string to begin with *, which we remove.
-        // This lets us look at X axis settings with $*x.
-        // $x by itself is the disable alarm lock command
-        if (lcKey.startsWith("*")) {
-            lcKey.remove(0, 1);
-        }
         lcKey.toLowerCase();
         bool found = false;
         for (Setting* s = Setting::List; s; s = s->next()) {
             auto lcTest = String(s->getName());
             lcTest.toLowerCase();
 
-            if (lcTest.indexOf(lcKey) >= 0) {
+            if (regexMatch(lcKey.c_str(), lcTest.c_str())) {
                 const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
                 show_setting(s->getName(), displayValue, NULL, out);
                 found = true;

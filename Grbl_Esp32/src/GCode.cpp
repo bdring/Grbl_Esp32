@@ -1401,10 +1401,11 @@ Error gc_execute_line(char* line, uint8_t client) {
     if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync) ||
         (gc_block.modal.io_control == IoControl::DigitalOnImmediate) || (gc_block.modal.io_control == IoControl::DigitalOffImmediate)) {
         if (gc_block.values.p < MaxUserDigitalPin) {
-            if (!sys_io_control(
-                    bit((int)gc_block.values.p),
-                    (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOnImmediate),
-                    (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync))) {
+            if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync)) {
+                protocol_buffer_synchronize();
+            }
+            bool turnOn = gc_block.modal.io_control == IoControl::DigitalOnSync || gc_block.modal.io_control == IoControl::DigitalOnImmediate;
+            if (!sys_set_digital((int)gc_block.values.p, turnOn)) {
                 FAIL(Error::PParamMaxExceeded);
             }
         } else {
@@ -1414,8 +1415,12 @@ Error gc_execute_line(char* line, uint8_t client) {
     if ((gc_block.modal.io_control == IoControl::SetAnalogSync) || (gc_block.modal.io_control == IoControl::SetAnalogImmediate)) {
         if (gc_block.values.e < MaxUserDigitalPin) {
             gc_block.values.q = constrain(gc_block.values.q, 0.0, 100.0);  // force into valid range
-            if (!sys_pwm_control(bit((int)gc_block.values.e), gc_block.values.q, (gc_block.modal.io_control == IoControl::SetAnalogSync)))
+            if (gc_block.modal.io_control == IoControl::SetAnalogSync) {
+                protocol_buffer_synchronize();
+            }
+            if (!sys_set_analog((int)gc_block.values.e, gc_block.values.q)) {
                 FAIL(Error::PParamMaxExceeded);
+            }
         } else {
             FAIL(Error::PParamMaxExceeded);
         }

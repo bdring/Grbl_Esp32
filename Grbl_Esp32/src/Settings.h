@@ -76,12 +76,13 @@ class Command : public Word {
 protected:
     Command* link;  // linked list of setting objects
     bool (*_cmdChecker)();
+
 public:
     static Command* List;
     Command*        next() { return link; }
 
     ~Command() {}
-    Command(const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName, bool (*cmcChecker)());
+    Command(const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName, bool (*cmdChecker)());
 
     // The default implementation of addWebui() does nothing.
     // Derived classes may override it to do something.
@@ -444,7 +445,10 @@ public:
     AxisSettings(const char* axisName);
 };
 
+extern bool idleOrJog();
 extern bool idleOrAlarm();
+extern bool anyState();
+extern bool notCycleOrHold();
 
 class WebCommand : public Command {
 private:
@@ -457,12 +461,19 @@ public:
                permissions_t permissions,
                const char*   grblName,
                const char*   name,
-               Error (*action)(char*, WebUI::AuthenticationLevel)) :
-    // At some point we might want to be more subtle, but for now we block
-    // all web commands in Cycle and Hold states, to avoid crashing a
-    // running job.
-    Command(description, type, permissions, grblName, name, idleOrAlarm),
+               Error (*action)(char*, WebUI::AuthenticationLevel),
+               bool (*cmdChecker)()) :
+        Command(description, type, permissions, grblName, name, cmdChecker),
         _action(action) {}
+
+    WebCommand(const char*   description,
+               type_t        type,
+               permissions_t permissions,
+               const char*   grblName,
+               const char*   name,
+               Error (*action)(char*, WebUI::AuthenticationLevel)) :
+        WebCommand(description, type, permissions, grblName, name, action, idleOrAlarm) {}
+
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
 
