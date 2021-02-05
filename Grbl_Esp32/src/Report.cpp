@@ -659,13 +659,11 @@ void report_realtime_status(uint8_t client) {
             }
         }
     }
+    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
     // Report machine position
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
         strcat(status, "|MPos:");
     } else {
-#ifdef USE_FWD_KINEMATICS
-        forward_kinematics(print_position);
-#endif
         strcat(status, "|WPos:");
     }
     report_util_axis_values(print_position, temp);
@@ -957,3 +955,5 @@ void reportTaskStackSize(UBaseType_t& saved) {
     }
 #endif
 }
+
+void __attribute__((weak)) forward_kinematics(float* position) {}  // This version does nothing. Make your own to do something with it

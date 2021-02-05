@@ -404,3 +404,7 @@ bool limitsCheckTravel(float* target) {
     }
     return false;
 }
+
+bool __attribute__((weak)) user_defined_homing(uint8_t cycle_mask) {
+    return false;
+}
