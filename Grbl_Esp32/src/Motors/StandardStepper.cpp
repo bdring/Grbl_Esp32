@@ -40,17 +40,14 @@ namespace Motors {
     }
 
     StandardStepper::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) :
-        Motor(axis_index), _step_pin(step_pin), _dir_pin(dir_pin), _disable_pin(disable_pin) {
-    }
+        Motor(axis_index), _step_pin(step_pin), _dir_pin(dir_pin), _disable_pin(disable_pin) {}
 
     void StandardStepper::init() {
         read_settings();
         config_message();
     }
 
-    void StandardStepper::read_settings() { 
-        init_step_dir_pins(); 
-    }
+    void StandardStepper::read_settings() { init_step_dir_pins(); }
 
     void StandardStepper::init_step_dir_pins() {
         _invert_step_pin = bitnum_istrue(step_invert_mask->get(), _axis_index);
@@ -126,5 +123,8 @@ namespace Motors {
 
     void StandardStepper::set_direction(bool dir) { digitalWrite(_dir_pin, dir ^ _invert_dir_pin); }
 
-    void StandardStepper::set_disable(bool disable) { digitalWrite(_disable_pin, disable); }
+    void StandardStepper::set_disable(bool disable) {
+        disable ^= step_enable_invert->get();
+        digitalWrite(_disable_pin, disable);
+    }
 }
