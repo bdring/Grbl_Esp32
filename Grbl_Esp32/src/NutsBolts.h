@@ -87,7 +87,7 @@ const int DELAY_MODE_SYS_SUSPEND = 1;
 uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr);
 
 // Non-blocking delay function used for general operation and suspend features.
-void delay_sec(float seconds, uint8_t mode);
+void delay_sec(double seconds, uint8_t mode);
 
 // Delays variable-defined milliseconds. Compiler compatibility fix for _delay_ms().
 void delay_ms(uint16_t ms);

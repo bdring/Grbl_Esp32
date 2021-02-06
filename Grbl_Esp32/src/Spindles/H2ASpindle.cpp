@@ -24,7 +24,7 @@
     Remove power before changing bits.
 
     The documentation is okay once you get how it works, but unfortunately
-    incomplete... See H2ASpindle.md for the remainder of the docs that I 
+    incomplete... See H2ASpindle.md for the remainder of the docs that I
     managed to piece together.
 */
 
@@ -37,7 +37,7 @@ namespace Spindles {
 
         uart.baud_rate = 19200;
         uart.data_bits = UART_DATA_8_BITS;
-        uart.parity    = UART_PARITY_EVEN;
+        uart.parity = UART_PARITY_EVEN;
         uart.stop_bits = UART_STOP_BITS_1;
     }
 
@@ -95,7 +95,7 @@ namespace Spindles {
         //  Recv: 01 03 00 04 5D C0 03 F6
         //                    -- -- = 24000 (val #1)
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-            uint16_t rpm  = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
+            uint16_t rpm = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
             vfd->_max_rpm = rpm;
 
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "H2A spindle is initialized at %d RPM", int(rpm));
@@ -122,7 +122,9 @@ namespace Spindles {
         // TODO: What are we going to do with this? Update sys.spindle_speed? Update vfd state?
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
             uint16_t rpm = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
+
             // Set current RPM value? Somewhere?
+            vfd->_sync_rpm = rpm;
             return true;
         };
     }

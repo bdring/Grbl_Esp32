@@ -112,7 +112,7 @@ void delay_ms(uint16_t ms) {
 }
 
 // Non-blocking delay function used for general operation and suspend features.
-void delay_sec(float seconds, uint8_t mode) {
+void delay_sec(double seconds, uint8_t mode) {
     uint16_t i = ceil(1000 / DWELL_TIME_STEP * seconds);
     while (i-- > 0) {
         if (sys.abort) {

@@ -224,7 +224,7 @@ void mc_arc(float*            target,
 }
 
 // Execute dwell in seconds.
-void mc_dwell(float seconds) {
+void mc_dwell(double seconds) {
     if (sys.state == State::CheckMode) {
         return;
     }
