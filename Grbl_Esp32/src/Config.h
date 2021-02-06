@@ -47,7 +47,7 @@ Some features should not be changed. See notes below.
 // that the machine file might choose to undefine.
 
 // Note: HOMING_CYCLES are now settings
-#define SUPPORT_TASK_CORE  1 // Reference: CONFIG_ARDUINO_RUNNING_CORE = 1
+#define SUPPORT_TASK_CORE 1  // Reference: CONFIG_ARDUINO_RUNNING_CORE = 1
 
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
@@ -86,8 +86,6 @@ const int MAX_N_AXIS = 6;
 #ifndef LIMIT_MASK
 #    define LIMIT_MASK B0
 #endif
-
-#define GRBL_MSG_LEVEL MsgLevel::Info  // what level of [MSG:....] do you want to see 0=all off
 
 // Serial baud rate
 // OK to change, but the ESP32 boot text is 115200, so you will not see that is your

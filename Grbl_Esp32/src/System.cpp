@@ -47,18 +47,22 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     // setup control inputs
 
 #ifdef CONTROL_SAFETY_DOOR_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Door switch on pin %s", pinName(CONTROL_SAFETY_DOOR_PIN).c_str());
     pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_RESET_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset switch on pin %s", pinName(CONTROL_RESET_PIN).c_str());
     pinMode(CONTROL_RESET_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_FEED_HOLD_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Hold switch on pin %s", pinName(CONTROL_FEED_HOLD_PIN).c_str());
     pinMode(CONTROL_FEED_HOLD_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_CYCLE_START_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start switch on pin %s", pinName(CONTROL_CYCLE_START_PIN).c_str());
     pinMode(CONTROL_CYCLE_START_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
 #endif

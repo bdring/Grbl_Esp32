@@ -111,9 +111,13 @@ void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...) {
     if (client == CLIENT_INPUT) {
         return;
     }
-    if (level > GRBL_MSG_LEVEL) {
-        return;
+
+    if (message_level != NULL) {  // might be null before messages are setup
+        if (level > static_cast<MsgLevel>(message_level->get())) {
+            return;
+        }
     }
+
     char    loc_buf[100];
     char*   temp = loc_buf;
     va_list arg;
@@ -655,13 +659,11 @@ void report_realtime_status(uint8_t client) {
             }
         }
     }
+    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
     // Report machine position
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
         strcat(status, "|MPos:");
     } else {
-#ifdef USE_FWD_KINEMATICS
-        forward_kinematics(print_position);
-#endif
         strcat(status, "|WPos:");
     }
     report_util_axis_values(print_position, temp);
@@ -953,3 +955,5 @@ void reportTaskStackSize(UBaseType_t& saved) {
     }
 #endif
 }
+
+void __attribute__((weak)) forward_kinematics(float* position) {}  // This version does nothing. Make your own to do something with it
