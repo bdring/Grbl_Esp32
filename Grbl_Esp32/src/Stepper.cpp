@@ -25,6 +25,8 @@
 
 #include "Grbl.h"
 
+#include <atomic>
+
 // Stores the planner block Bresenham algorithm execution data for the segments in the segment
 // buffer. Normally, this buffer is partially in-use, but, for the worst case scenario, it will
 // never exceed the number of accessible stepper buffer segments (SEGMENT_BUFFER_SIZE-1).
@@ -81,7 +83,7 @@ static uint8_t          segment_buffer_head;
 static uint8_t          segment_next_head;
 
 // Used to avoid ISR nesting of the "Stepper Driver Interrupt". Should never occur though.
-static volatile uint8_t busy;
+static std::atomic<bool> busy;
 
 // Pointers for the step segment being prepped from the planner buffer. Accessed only by the
 // main program. Pointers may be planning segments or planner blocks ahead of what being executed.
@@ -197,18 +199,20 @@ static void stepper_pulse_func();
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
 void IRAM_ATTR onStepperDriverTimer(void* para) {
-    // ISR It is time to take a step =======================================================================================
-    //const int timer_idx = (int)para;  // get the timer index
+    // Timer ISR, normally takes a step.
+    //
+    // When handling an interrupt within an interrupt serivce routine (ISR), the interrupt status bit
+    // needs to be explicitly cleared.
     TIMERG0.int_clr_timers.t0 = 1;
-    if (busy) {
-        return;  // The busy-flag is used to avoid reentering this interrupt
+
+    bool expected = false;
+    if (busy.compare_exchange_strong(expected, true)) {
+        stepper_pulse_func();
+
+        TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
+
+        busy.store(false);
     }
-    busy = true;
-
-    stepper_pulse_func();
-
-    TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
-    busy                                               = false;
 }
 
 /**
@@ -351,6 +355,8 @@ static void stepper_pulse_func() {
 }
 
 void stepper_init() {
+    busy.store(false); 
+    
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", number_axis->get());
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepper_names[current_stepper]);
 
@@ -418,7 +424,6 @@ void st_reset() {
     segment_buffer_tail = 0;
     segment_buffer_head = 0;  // empty = tail
     segment_next_head   = 1;
-    busy                = false;
     st.step_outbits     = 0;
     st.dir_outbits      = 0;  // Initialize direction bits to default.
     // TODO do we need to turn step pins off?
@@ -428,7 +433,6 @@ void st_reset() {
 void st_go_idle() {
     // Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
     Stepper_Timer_Stop();
-    busy = false;
 
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
     if (((stepper_idle_lock_time->get() != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) &&
