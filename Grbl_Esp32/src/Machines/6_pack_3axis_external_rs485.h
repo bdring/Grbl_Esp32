@@ -125,15 +125,15 @@ Socket #5
 
 // 4x Switch Input module  in socket #2
 // // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-Switch-Input-module
-#define CONTROL_RESET_PIN       GPIO_NUM_2
+#define PROBE2_PIN              GPIO_NUM_39
 #define CONTROL_FEED_HOLD_PIN   GPIO_NUM_25
-#define CONTROL_CYCLE_START_PIN GPIO_NUM_39
-#define PROBE_PIN               GPIO_NUM_36
+#define CONTROL_CYCLE_START_PIN GPIO_NUM_36
+#define PROBE_PIN               GPIO_NUM_2
 
-// #ifdef INVERT_CONTROL_PIN_MASK
-//     #undef INVERT_CONTROL_PIN_MASK
-// #endif
-// #define INVERT_CONTROL_PIN_MASK B00000000
+#ifdef INVERT_CONTROL_PIN_MASK
+    #undef INVERT_CONTROL_PIN_MASK
+#endif
+#define INVERT_CONTROL_PIN_MASK B00000000
 
 // RS485 Modbus In socket #3
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/RS485-Modbus-Module

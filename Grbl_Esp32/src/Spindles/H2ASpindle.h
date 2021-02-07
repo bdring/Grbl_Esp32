@@ -34,5 +34,6 @@ namespace Spindles {
         response_parser get_current_direction(ModbusCommand& data) override;
         response_parser get_status_ok(ModbusCommand& data) override { return nullptr; }
         bool supports_actual_rpm() const override { return true; }
+        bool safety_polling() const override { return false; }
     };
 }

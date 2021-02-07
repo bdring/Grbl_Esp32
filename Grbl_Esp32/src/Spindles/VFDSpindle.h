@@ -29,7 +29,7 @@ namespace Spindles {
     class VFD : public Spindle {
     private:
         static const int VFD_RS485_MAX_MSG_SIZE = 16;  // more than enough for a modbus message
-        static const int MAX_RETRIES = 3;   // otherwise the spindle is marked 'unresponsive'
+        static const int MAX_RETRIES            = 5;   // otherwise the spindle is marked 'unresponsive'
 
         bool set_mode(SpindleState mode, bool critical);
         bool get_pins_and_settings();
@@ -38,9 +38,9 @@ namespace Spindles {
         uint8_t _rxd_pin;
         uint8_t _rts_pin;
 
-        uint32_t _current_rpm = 0;
+        uint32_t _current_rpm  = 0;
         bool     _task_running = false;
-        bool     vfd_ok = true;
+        bool     vfd_ok        = true;
 
         static QueueHandle_t vfd_cmd_queue;
         static TaskHandle_t  vfd_cmdTaskHandle;
@@ -61,7 +61,7 @@ namespace Spindles {
 
         // Commands:
         virtual void direction_command(SpindleState mode, ModbusCommand& data) = 0;
-        virtual void set_speed_command(uint32_t rpm, ModbusCommand& data) = 0;
+        virtual void set_speed_command(uint32_t rpm, ModbusCommand& data)      = 0;
 
         // Commands that return the status. Returns nullptr if unavailable by this VFD (default):
         using response_parser = bool (*)(const uint8_t* response, VFD* spindle);
@@ -70,12 +70,13 @@ namespace Spindles {
         virtual response_parser get_current_rpm(ModbusCommand& data) { return nullptr; }
         virtual response_parser get_current_direction(ModbusCommand& data) { return nullptr; }
         virtual response_parser get_status_ok(ModbusCommand& data) = 0;
-        virtual bool supports_actual_rpm() const { return false; }
+        virtual bool            supports_actual_rpm() const { return false; }
+        virtual bool            safety_polling() const { return true; }
 
     public:
-        VFD() = default;
+        VFD()           = default;
         VFD(const VFD&) = delete;
-        VFD(VFD&&) = delete;
+        VFD(VFD&&)      = delete;
         VFD& operator=(const VFD&) = delete;
         VFD& operator=(VFD&&) = delete;
 
@@ -84,6 +85,7 @@ namespace Spindles {
         volatile uint32_t _min_rpm;
         volatile uint32_t _max_rpm;
         volatile uint32_t _sync_rpm;
+        volatile bool     _syncing;
 
         void         init();
         void         config_message();

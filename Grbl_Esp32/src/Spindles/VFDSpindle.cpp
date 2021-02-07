@@ -34,11 +34,19 @@
 */
 #include "VFDSpindle.h"
 
+#include <freertos/task.h>
+
+// Timing and modbus... The manual states that between communications, we should respect a
+// silent interval of 3,5 characters. If we received communications between these times, we
+// have to assume that the message is broken. We use a poll rate of 250 ms here, which should
+// be plenty: assuming 9600 8N1, that's roughly 250 chars. A message of 2x16 chars with 4x4
+// chars buffering is just 40 chars.
+
 const uart_port_t VFD_RS485_UART_PORT  = UART_NUM_2;  // hard coded for this port right now
 const int         VFD_RS485_BUF_SIZE   = 127;
-const int         VFD_RS485_QUEUE_SIZE = 10;   // numv\ber of commands that can be queued up.
-const int         RESPONSE_WAIT_TICKS  = 50;   // how long to wait for a response
-const int         VFD_RS485_POLL_RATE  = 200;  // in milliseconds between commands
+const int         VFD_RS485_QUEUE_SIZE = 10;    // numv\ber of commands that can be queued up.
+const int         RESPONSE_WAIT_MILLIS = 1000;  // how long to wait for a response in milliseconds
+const int         VFD_RS485_POLL_RATE  = 250;   // in milliseconds between commands
 
 // OK to change these
 // #define them in your machine definition file if you want different values
@@ -58,6 +66,7 @@ namespace Spindles {
         VFD*          instance = static_cast<VFD*>(pvParameters);
         ModbusCommand next_cmd;
         uint8_t       rx_message[VFD_RS485_MAX_MSG_SIZE];
+        bool          safetyPollingEnabled = instance->safety_polling();
 
         while (true) {
             response_parser parser = nullptr;
@@ -77,35 +86,41 @@ namespace Spindles {
             if (parser == nullptr && xQueueReceive(vfd_cmd_queue, &next_cmd, 0) != pdTRUE) {
                 // We poll in a cycle. Note that the switch will fall through unless we encounter a hit.
                 // The weakest form here is 'get_status_ok' which should be implemented if the rest fails.
-                switch (pollidx) {
-                    case 1:
-                        parser = instance->get_current_rpm(next_cmd);
-                        if (parser) {
-                            pollidx = 2;
-                            break;
-                        }
-                        // fall through intentionally:
-                    case 2:
-                        parser = instance->get_current_direction(next_cmd);
-                        if (parser) {
-                            pollidx = 3;
-                            break;
-                        }
-                        // fall through intentionally:
-                    case 3:
-                    default:
-                        parser  = instance->get_status_ok(next_cmd);
-                        pollidx = 1;
+                if (instance->_syncing)
+                {
+                    parser = instance->get_current_rpm(next_cmd);
+                }
+                else if (safetyPollingEnabled) {
+                    switch (pollidx) {
+                        case 1:
+                            parser = instance->get_current_rpm(next_cmd);
+                            if (parser) {
+                                pollidx = 2;
+                                break;
+                            }
+                            // fall through intentionally:
+                        case 2:
+                            parser = instance->get_current_direction(next_cmd);
+                            if (parser) {
+                                pollidx = 3;
+                                break;
+                            }
+                            // fall through intentionally:
+                        case 3:
+                        default:
+                            parser  = instance->get_status_ok(next_cmd);
+                            pollidx = 1;
 
-                        // we could complete this in case parser == nullptr with some ifs, but let's
-                        // just keep it easy and wait an iteration.
-                        break;
+                            // we could complete this in case parser == nullptr with some ifs, but let's
+                            // just keep it easy and wait an iteration.
+                            break;
+                    }
                 }
 
                 // If we have no parser, that means get_status_ok is not implemented (and we have
                 // nothing resting in our queue). Let's fall back on a simple continue.
                 if (parser == nullptr) {
-                    vTaskDelay(VFD_RS485_POLL_RATE);
+                    vTaskDelay(VFD_RS485_POLL_RATE / portTICK_PERIOD_MS);
                     continue;  // main while loop
                 }
             }
@@ -131,12 +146,29 @@ namespace Spindles {
             // Assume for the worst, and retry...
             int retry_count = 0;
             for (; retry_count < MAX_RETRIES; ++retry_count) {
-                // Flush the UART and write the data:
+                // Flush the UART:
                 uart_flush(VFD_RS485_UART_PORT);
+
+                // Write the data:
                 uart_write_bytes(VFD_RS485_UART_PORT, reinterpret_cast<const char*>(next_cmd.msg), next_cmd.tx_length);
+                uart_wait_tx_done(VFD_RS485_UART_PORT, RESPONSE_WAIT_MILLIS / portTICK_PERIOD_MS);
 
                 // Read the response
-                uint16_t read_length = uart_read_bytes(VFD_RS485_UART_PORT, rx_message, next_cmd.rx_length, RESPONSE_WAIT_TICKS);
+                uint16_t read_length = 0;
+                uint16_t current_read =
+                    uart_read_bytes(VFD_RS485_UART_PORT, rx_message, next_cmd.rx_length, RESPONSE_WAIT_MILLIS / portTICK_PERIOD_MS);
+                read_length += current_read;
+                while (read_length < next_cmd.rx_length && current_read > 0) {
+                    // Try to read more; we're not there yet...
+                    current_read = uart_read_bytes(VFD_RS485_UART_PORT,
+                                                   rx_message + read_length,
+                                                   next_cmd.rx_length - read_length,
+                                                   RESPONSE_WAIT_MILLIS / portTICK_PERIOD_MS);
+                    read_length += current_read;
+                }
+                if (current_read < 0) {
+                    read_length = 0;
+                }
 
                 // Generate crc16 for the response:
                 auto crc16response = ModRTU_CRC(rx_message, next_cmd.rx_length - 2);
@@ -146,7 +178,7 @@ namespace Spindles {
                     rx_message[read_length - 1] == (crc16response & 0xFF00) >> 8 &&  // check CRC byte 1
                     rx_message[read_length - 2] == (crc16response & 0xFF)) {         // check CRC byte 1
 
-                    // success
+                    // Success
                     unresponsive = false;
                     retry_count  = MAX_RETRIES + 1;  // stop retry'ing
 
@@ -184,22 +216,9 @@ namespace Spindles {
                     }
 #endif
 
-                    // Read the rest of the uart, so that we don't get messed up implicitly with
-                    // future communications:
-                    size_t availableBytes;
-                    uart_get_buffered_data_len(VFD_RS485_UART_PORT, &availableBytes);
-                    while (availableBytes > RX_BUFFER_SIZE) {
-                        uint16_t read_length2 = uart_read_bytes(VFD_RS485_UART_PORT, rx_message, availableBytes, RESPONSE_WAIT_TICKS);
-                        availableBytes -= read_length2;
-                        if (availableBytes == 0) {
-                            uart_get_buffered_data_len(VFD_RS485_UART_PORT, &availableBytes);
-                        }
-                    }
-                    // Uart RX is empty, time to try again.
-
                     // Wait a bit before we retry. Set the delay to poll-rate. Not sure
                     // if we should use a different value...
-                    vTaskDelay(VFD_RS485_POLL_RATE);
+                    vTaskDelay(VFD_RS485_POLL_RATE / portTICK_PERIOD_MS);
 
                     static UBaseType_t uxHighWaterMark = 0;
                     reportTaskStackSize(uxHighWaterMark);
@@ -218,7 +237,7 @@ namespace Spindles {
                 }
             }
 
-            vTaskDelay(VFD_RS485_POLL_RATE);  // TODO: What is the best value here?
+            vTaskDelay(VFD_RS485_POLL_RATE / portTICK_PERIOD_MS);
         }
     }
 
@@ -234,6 +253,7 @@ namespace Spindles {
     void VFD::init() {
         vfd_ok    = false;  // initialize
         _sync_rpm = 0;
+        _syncing = false;
 
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing RS485 VFD spindle");
 
@@ -369,7 +389,7 @@ namespace Spindles {
         }
 
         bool shouldWait = state != _current_state || state != SpindleState::Disable;
-        bool critical = (sys.state == State::Cycle || state != SpindleState::Disable);
+        bool critical   = (sys.state == State::Cycle || state != SpindleState::Disable);
 
         double delay = 1.0;
 
@@ -395,16 +415,16 @@ namespace Spindles {
 
                 if (rpm > _current_rpm) {
                     delay = spindle_delay_spinup->get();
-                }
-                else {
+                } else {
                     delay = spindle_delay_spindown->get();
                 }
             }
         }
 
-        if (shouldWait)
-        {
+        if (shouldWait) {
             if (supports_actual_rpm()) {
+                _syncing = true;
+
                 // Allow 2.5% difference from what we asked for. Should be fine.
                 uint32_t drpm = (_max_rpm - _min_rpm) / 40;
                 if (drpm < 100) {
@@ -415,25 +435,26 @@ namespace Spindles {
                 auto maxRpmAllowed = rpm + drpm;
 
                 int       unchanged = 0;
-                const int limit = 20;  // 20 * 0.5s = 10 sec
-                auto      last = _sync_rpm;
+                const int limit     = 20;  // 20 * 0.5s = 10 sec
+                auto      last      = _sync_rpm;
 
                 while ((_sync_rpm < minRpmAllowed || _sync_rpm > maxRpmAllowed) && unchanged < limit) {
 #ifdef VFD_DEBUG_MODE
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Syncing RPM. Requested %d, current %d", int(rpm), int(_sync_rpm));
+                    // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Syncing RPM. Requested %d, current %d", int(rpm), int(_sync_rpm));
+                    // protocol_buffer_synchronize();
 #endif
                     mc_dwell(0.5);
 
                     if (_sync_rpm == last) {
                         ++unchanged;
-                    }
-                    else {
+                    } else {
                         unchanged = 0;
                     }
                     last = _sync_rpm;
                 }
-            }
-            else {
+
+                _syncing = false;
+            } else {
                 mc_dwell(delay);
             }
         }
