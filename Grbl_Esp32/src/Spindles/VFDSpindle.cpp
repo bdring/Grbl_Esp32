@@ -158,6 +158,14 @@ namespace Spindles {
                 uint16_t current_read =
                     uart_read_bytes(VFD_RS485_UART_PORT, rx_message, next_cmd.rx_length, RESPONSE_WAIT_MILLIS / portTICK_PERIOD_MS);
                 read_length += current_read;
+
+                // Apparently some Huanyang report modbus errors in the correct way, and the rest not. Sigh.
+                // Let's just check for the condition, and truncate the first byte.
+                if (read_length > 0 && VFD_RS485_ADDR != 0 && rx_message[0] == 0)
+                {
+                    memmove(rx_message + 1, rx_message, read_length - 1);
+                }
+
                 while (read_length < next_cmd.rx_length && current_read > 0) {
                     // Try to read more; we're not there yet...
                     current_read = uart_read_bytes(VFD_RS485_UART_PORT,
