@@ -463,7 +463,10 @@ const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
 // user-supplied step pulse time, the total time must not exceed 127us. Reported successful
 // values for certain setups have ranged from 5 to 20us.
 // must use #define USE_RMT_STEPS for this to work
-//#define STEP_PULSE_DELAY 10 // Step pulse delay in microseconds. Default disabled.
+// #define STEP_PULSE_DELAY 10 // Step pulse delay in microseconds. Default disabled.
+//
+// NOTE: STEP_PULSE_DELAY is used as a default only. Refer to direction_delay_microseconds 
+// ($Stepper/Direction/Delay) which also works without RMT steps.
 
 // The number of linear motions in the planner buffer to be planned at any give time. The vast
 // majority of RAM that Grbl uses is based on this buffer size. Only increase if there is extra
