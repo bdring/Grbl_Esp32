@@ -206,7 +206,9 @@ Error toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
             if (path[0] != '/') {  // path should have a leading '/' like $C=/foo.nc
                 path = '/' + path;
             }
-            openFileWrite(SD, path.c_str());
+            if (!openFileWrite(SD, path.c_str())){
+                return Error::Ok; // failed to open file
+            };
         }
     }
 

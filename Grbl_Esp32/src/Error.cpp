@@ -81,4 +81,5 @@ std::map<Error, const char*> ErrorNames = {
     { Error::AuthenticationFailed, "Authentication failed!" },
     { Error::AnotherInterfaceBusy, "Another interface is busy" },
     { Error::SdFailedWrite, "Failed to write to SD card" },
+    { Error::SdFileExists, "File already exists" },
 };

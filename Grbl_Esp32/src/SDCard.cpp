@@ -79,6 +79,10 @@ boolean openFileWrite(fs::FS& fs, const char* path) {
         report_status_message(Error::SdFailedBusy, CLIENT_SERIAL);
         return false;
     }
+    if (SD.exists(path)) {
+        report_status_message(Error::SdFileExists, CLIENT_SERIAL);
+        return false;
+    }
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Writing to file:%s", path);
     myFile = fs.open(path, FILE_WRITE);
     if (!myFile) {
