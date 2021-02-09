@@ -514,6 +514,7 @@ void mc_reset() {
             report_feedback_message(Message::SdFileQuit);
             closeFile();
         }
+        sd_reset();
 #endif
         // Kill steppers only if in any motion state, i.e. cycle, actively holding, or homing.
         // NOTE: If steppers are kept enabled via the step idle delay setting, this also keeps

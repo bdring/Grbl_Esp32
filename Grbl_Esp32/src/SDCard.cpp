@@ -210,3 +210,8 @@ void sd_get_current_filename(char* name) {
         name[0] = 0;
     }
 }
+
+void sd_reset() {
+    sd_state = SDState::NotPresent;
+    (void)get_sd_state(true);
+}
