@@ -191,7 +191,29 @@ Error toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
     // Perform reset when toggling off. Check g-code mode should only work if Grbl
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
     // simple and consistent.
+    // $C Check only
+    // $C=<filename> Check and write to SD card
+    //char* path;
+    if (value != NULL) {
+        String path(value);
+        if (path[0] == '\0') {
+            grbl_msg_sendf(out->client(), MsgLevel::Info, "No file specified");
+            return Error::Ok;
+        } else {
+            if (get_sd_state(true) != SDState::Idle) {
+                return Error::SdFailedBusy;
+            }
+            if (path[0] != '/') {  // path should have a leading '/' like $C=/foo.nc
+                path = '/' + path;
+            }
+            openFileWrite(SD, path.c_str());
+        }
+    }
+
     if (sys.state == State::CheckMode) {
+        if (get_sd_state(true) == SDState::BusyChkModeWriting) {
+            closeFile();
+        }
         mc_reset();
         report_feedback_message(Message::Disabled);
     } else {
@@ -440,7 +462,7 @@ void make_grbl_commands() {
     new GrblCommand("A", "Alarms/List", listAlarms, anyState);
     new GrblCommand("E", "Errors/List", listErrors, anyState);
     new GrblCommand("G", "GCode/Modes", report_gcode, anyState);
-    new GrblCommand("C", "GCode/Check", toggle_check_mode, anyState);
+    new GrblCommand("C", "GCode/Check", toggle_check_mode, notCycleOrHold);
     new GrblCommand("X", "Alarm/Disable", disable_alarm_lock, anyState);
     new GrblCommand("NVX", "Settings/Erase", Setting::eraseNVS, idleOrAlarm, WA);
     new GrblCommand("V", "Settings/Stats", Setting::report_nvs_stats, idleOrAlarm);

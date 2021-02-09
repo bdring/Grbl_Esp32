@@ -91,7 +91,7 @@ void serial_init() {
     xTaskCreatePinnedToCore(heapCheckTask, "heapTask", 2000, NULL, 1, NULL, 1);
 #endif
 
-    Serial.begin(BAUD_RATE);
+    Serial.begin(serial_baud_rate->get());
     Serial.setRxBufferSize(256);
     // reset all buffers
     serial_reset_read_buffer(CLIENT_ALL);
@@ -159,7 +159,7 @@ void serialCheckTask(void* pvParameters) {
             if (is_realtime_command(data)) {
                 execute_realtime_command(static_cast<Cmd>(data), client);
             } else {
-                if (get_sd_state(false) < SDState::Busy) {
+                if ((get_sd_state(false) < SDState::Busy) || (get_sd_state(false) == SDState::BusyChkModeWriting)) {
                     vTaskEnterCritical(&myMutex);
                     client_buffer[client].write(data);
                     vTaskExitCritical(&myMutex);

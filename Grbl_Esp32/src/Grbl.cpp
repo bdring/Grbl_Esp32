@@ -30,14 +30,14 @@ void grbl_init() {
     WiFi.enableSTA(false);
     WiFi.enableAP(false);
     WiFi.mode(WIFI_OFF);
+    settings_init();  // Load Grbl settings from non-volatile storage
     serial_init();  // Setup serial baud rate and interrupts
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
 // show the map name at startup
 #ifdef MACHINE_NAME
     report_machine_type(CLIENT_SERIAL);
-#endif
-    settings_init();  // Load Grbl settings from non-volatile storage
+#endif    
     stepper_init();   // Configure stepper pins and interrupt timers
     init_motors();
     system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)

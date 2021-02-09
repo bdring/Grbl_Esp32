@@ -73,6 +73,22 @@ boolean openFile(fs::FS& fs, const char* path) {
     return true;
 }
 
+boolean openFileWrite(fs::FS& fs, const char* path) {
+    // TODO SD is ready
+    if (get_sd_state(true) != SDState::Idle) {
+        report_status_message(Error::SdFailedBusy, CLIENT_SERIAL);
+        return false;
+    }
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Writing to file:%s", path);
+    myFile = fs.open(path, FILE_WRITE);
+    if (!myFile) {
+        report_status_message(Error::SdFailedOpenFile, CLIENT_SERIAL);
+        return false;
+    }
+    set_sd_state(SDState::BusyChkModeWriting);
+    return true;
+}
+
 boolean closeFile() {
     if (!myFile) {
         return false;
@@ -111,6 +127,27 @@ boolean readFileLine(char* line, int maxlen) {
     }
     line[len] = '\0';
     return len || myFile.available();
+}
+
+boolean writeFileLine(char* line) {
+    if (!myFile) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Failed writing to SD file");
+        report_status_message(Error::SdFailedWrite, SD_client);  // TO DO failed write
+        return false;
+    }
+
+    size_t len_length = strlen(line);
+    if (len_length != myFile.print(line)) {
+        report_status_message(Error::SdFailedWrite, SD_client);  // TO DO failed write
+        return false;
+    }
+
+    if (2 != myFile.print("\r\n")) {
+        report_status_message(Error::SdFailedWrite, SD_client);  // TO DO failed write
+        return false;
+    }
+
+    return true;
 }
 
 // return a percentage complete 50.5 = 50.5%

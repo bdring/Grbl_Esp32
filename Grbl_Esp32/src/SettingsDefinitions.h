@@ -16,6 +16,8 @@ extern StringSetting* startup_line_0;
 extern StringSetting* startup_line_1;
 extern StringSetting* build_info;
 
+extern IntSetting* serial_baud_rate;
+
 extern IntSetting* pulse_microseconds;
 extern IntSetting* stepper_idle_lock_time;
 

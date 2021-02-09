@@ -84,6 +84,7 @@ enum class Error : uint8_t {
     AuthenticationFailed        = 110,
     Eol                         = 111,
     AnotherInterfaceBusy        = 120,
+    SdFailedWrite               = 121,
 };
 
 extern std::map<Error, const char*> ErrorNames;

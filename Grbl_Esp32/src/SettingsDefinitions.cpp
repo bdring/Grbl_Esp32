@@ -8,6 +8,8 @@ StringSetting* startup_line_0;
 StringSetting* startup_line_1;
 StringSetting* build_info;
 
+IntSetting* serial_baud_rate;
+
 IntSetting* pulse_microseconds;
 IntSetting* stepper_idle_lock_time;
 
@@ -330,6 +332,8 @@ void make_settings() {
         setting->setAxis(axis);
         axis_settings[axis]->steps_per_mm = setting;
     }
+
+    serial_baud_rate = new IntSetting(EXTENDED, WG, NULL, "Serial/BaudRate", DEFAULT_SERIAL_BAUD_RATE, 9600, 921600);
 
     // Spindle Settings
     spindle_type =

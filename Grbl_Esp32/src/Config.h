@@ -88,9 +88,7 @@ const int MAX_N_AXIS = 6;
 #endif
 
 // Serial baud rate
-// OK to change, but the ESP32 boot text is 115200, so you will not see that is your
-// serial monitor, sender, etc uses a different value than 115200
-#define BAUD_RATE 115200
+// Is now a setting $Serial/BaudRate
 
 //Connect to your local AP with these credentials
 //#define CONNECT_TO_SSID  "your SSID"

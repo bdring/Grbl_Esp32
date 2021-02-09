@@ -24,12 +24,13 @@
 const int SDCARD_DET_VAL = 0;  // for now, CD is close to ground
 
 enum class SDState : uint8_t {
-    Idle          = 0,
-    NotPresent    = 1,
-    Busy          = 2,
-    BusyPrinting  = 2,
-    BusyUploading = 3,
-    BusyParsing   = 4,
+    Idle               = 0,
+    NotPresent         = 1,
+    Busy               = 2,
+    BusyPrinting       = 2,
+    BusyUploading      = 3,
+    BusyParsing        = 4,
+    BusyChkModeWriting = 5,
 };
 
 extern bool                       SD_ready_next;  // Grbl has processed a line and is waiting for another
@@ -37,12 +38,17 @@ extern uint8_t                    SD_client;
 extern WebUI::AuthenticationLevel SD_auth_level;
 
 //bool sd_mount();
-SDState  get_sd_state(bool refresh);
-SDState  set_sd_state(SDState state);
-void     listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client);
-boolean  openFile(fs::FS& fs, const char* path);
-boolean  closeFile();
-boolean  readFileLine(char* line, int len);
+SDState get_sd_state(bool refresh);
+SDState set_sd_state(SDState state);
+void    listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client);
+boolean openFile(fs::FS& fs, const char* path);
+boolean openFile(fs::FS& fs, const char* path);
+boolean openFileWrite(fs::FS& fs, const char* path);
+
+boolean closeFile();
+boolean readFileLine(char* line, int len);
+boolean writeFileLine(char* line);
+
 void     readFile(fs::FS& fs, const char* path);
 float    sd_report_perc_complete();
 uint32_t sd_get_current_line_number();

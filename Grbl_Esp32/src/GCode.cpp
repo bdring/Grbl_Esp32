@@ -124,6 +124,9 @@ void collapseGCode(char* line) {
 Error gc_execute_line(char* line, uint8_t client) {
     // Step 0 - remove whitespace and comments and convert to upper case
     collapseGCode(line);
+    if (sys.state == State::CheckMode && (get_sd_state(false) == SDState::BusyChkModeWriting)) {
+        writeFileLine(line);
+    }
 #ifdef REPORT_ECHO_LINE_RECEIVED
     report_echo_line_received(line, client);
 #endif
