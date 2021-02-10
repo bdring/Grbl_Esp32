@@ -112,7 +112,11 @@ void serial_init() {
 }
 
 // this task runs and checks for data on all interfaces
-// REaltime stuff is acted upon, then characters are added to the appropriate buffer
+// Realtime stuff is acted upon, then characters are added to the appropriate buffer
+// During heavy WebUI activity, such as uploading, this task will get blocked.
+// One solution is to break out non WebUI stuff to a another task
+// Discord dicussion on this....
+// https://discord.com/channels/780079161460916227/786364602223951882/808872594514116669
 void serialCheckTask(void* pvParameters) {
     uint8_t            data            = 0;
     uint8_t            client          = CLIENT_ALL;  // who sent the data
