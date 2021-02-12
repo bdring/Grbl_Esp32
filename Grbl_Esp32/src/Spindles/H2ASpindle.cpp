@@ -118,8 +118,6 @@ namespace Spindles {
 
         //  Recv: 01 03 0004 095D 0000
         //                   ---- = 2397 (val #1)
-
-        // TODO: What are we going to do with this? Update sys.spindle_speed? Update vfd state?
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
             uint16_t rpm = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
 
