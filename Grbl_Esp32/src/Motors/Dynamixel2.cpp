@@ -30,18 +30,11 @@ namespace Motors {
     bool    Motors::Dynamixel2::uart_ready         = false;
     uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
 
-    Dynamixel2::Dynamixel2(uint8_t axis_index, uint8_t id, Pin tx_pin, Pin rx_pin, Pin rts_pin) :
-        Servo(axis_index), _id(id), _tx_pin(tx_pin), _rx_pin(rx_pin), _rts_pin(rts_pin) {
-        if (_tx_pin == Pin::UNDEFINED || _rx_pin == Pin::UNDEFINED || _rts_pin == Pin::UNDEFINED) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Error. Missing pin definitions");
-            _has_errors = true;
-        } else {
-            _has_errors = false;  // The motor can be used
-        }
-    }
-
     void Dynamixel2::init() {
-        init_uart(_id, _axis_index, _dual_axis_index);  // static and only allows one init
+        _has_errors = false; // let's start with the assumption we're good.
+        _axis_index = axis_index();
+
+        init_uart(_id, axis_index(), dual_axis_index());  // static and only allows one init
 
         read_settings();
 
@@ -67,7 +60,7 @@ namespace Motors {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
                        "%s Dynamixel Servo ID:%d Count(%5.0f,%5.0f) %s",
-                       reportAxisNameMsg(_axis_index, _dual_axis_index),
+                       reportAxisNameMsg(axis_index(), dual_axis_index()),
                        _id,
                        _dxl_count_min,
                        _dxl_count_max,
@@ -89,14 +82,14 @@ namespace Motors {
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
                                "%s Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
-                               reportAxisNameMsg(_axis_index, _dual_axis_index),
+                               reportAxisNameMsg(axis_index(), dual_axis_index()),
                                _id,
                                _dxl_rx_message[11]);
             } else {
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
                                "%s Dynamixel Detected ID %d M/N %d F/W Rev %x",
-                               reportAxisNameMsg(_axis_index, _dual_axis_index),
+                               reportAxisNameMsg(axis_index(), dual_axis_index()),
                                _id,
                                model_num,
                                _dxl_rx_message[11]);
@@ -104,7 +97,7 @@ namespace Motors {
 
         } else {
             grbl_msg_sendf(
-                CLIENT_SERIAL, MsgLevel::Info, "%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(_axis_index, _dual_axis_index), _id);
+                CLIENT_SERIAL, MsgLevel::Info, "%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(axis_index(), dual_axis_index()), _id);
             return false;
         }
 
@@ -452,4 +445,11 @@ namespace Motors {
 
         return crc_accum;
     }
+
+    // Configuration registration
+    namespace 
+    {
+        MotorFactory::InstanceBuilder<Dynamixel2> registration("dynamixel2");
+    }
 }
+

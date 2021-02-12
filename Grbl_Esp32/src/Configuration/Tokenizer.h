@@ -2,8 +2,6 @@
 
 #include "TokenKind.h"
 
-#include <string>
-
 namespace Configuration {
 
     class Tokenizer {

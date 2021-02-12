@@ -4,6 +4,7 @@
 #include "Pins/PinDetail.h"
 #include "Pins/PinCapabilities.h"
 #include "Pins/PinAttributes.h"
+#include "StringRange.h"
 
 #include <Arduino.h>  // for IRAM_ATTR
 #include <cstdint>
@@ -37,7 +38,7 @@ class Pin {
 
     inline Pin(uint8_t index) : _index(index) {}
 
-    static bool parse(String str, Pins::PinDetail*& detail);
+    static bool parse(StringRange str, Pins::PinDetail*& detail);
 
 public:
     using Capabilities = Pins::PinCapabilities;
@@ -49,6 +50,7 @@ public:
     static const bool On  = true;
     static const bool Off = false;
 
+    static Pin  create(const StringRange& str);
     static Pin  create(const String& str);
     static bool validate(const String& str);
 
@@ -63,6 +65,8 @@ public:
     // Some convenience operators:
     inline bool operator==(const Pin& o) const { return _index == o._index; }
     inline bool operator!=(const Pin& o) const { return _index != o._index; }
+
+    inline bool undefined() const { return (*this) == UNDEFINED; }
 
     inline uint8_t getNative(Capabilities expectedBehavior) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);

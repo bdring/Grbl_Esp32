@@ -39,17 +39,15 @@ namespace Motors {
         return rmt_channel_t(next_RMT_chan_num);
     }
 
-    StandardStepper::StandardStepper(uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin) :
-        Motor(axis_index), _step_pin(step_pin), _dir_pin(dir_pin), _disable_pin(disable_pin) {}
-
     void StandardStepper::init() {
         init_step_dir_pins();
         config_message();
     }
 
     void StandardStepper::init_step_dir_pins() {
-        _invert_step_pin = bitnum_istrue(step_invert_mask->get(), _axis_index);
-        _invert_dir_pin  = bitnum_istrue(dir_invert_mask->get(), _axis_index);
+        auto axisIndex = axis_index();
+        _invert_step_pin = bitnum_istrue(step_invert_mask->get(), axisIndex);
+        _invert_dir_pin  = bitnum_istrue(dir_invert_mask->get(), axisIndex);
         _dir_pin.setAttr(Pin::Attr::Output);
 
 #ifdef USE_RMT_STEPS
@@ -100,11 +98,11 @@ namespace Motors {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
                        "%s Standard Stepper Step:%s Dir:%s Disable:%s %s",
-                       reportAxisNameMsg(_axis_index, _dual_axis_index),
+                       reportAxisNameMsg(axis_index(), dual_axis_index()),
                        _step_pin.name().c_str(),
                        _dir_pin.name().c_str(),
                        _disable_pin.name().c_str(),
-                       reportAxisLimitsMsg(_axis_index));
+                       reportAxisLimitsMsg(axis_index()));
     }
 
     void StandardStepper::step() {
@@ -125,4 +123,10 @@ namespace Motors {
     void StandardStepper::set_direction(bool dir) { _dir_pin.write(dir ^ _invert_dir_pin); }
 
     void StandardStepper::set_disable(bool disable) { _disable_pin.write(disable); }
+
+    // Configuration registration
+    namespace
+    {
+        MotorFactory::InstanceBuilder<StandardStepper> registration("standard_stepper");
+    }
 }

@@ -5,7 +5,9 @@
 namespace Motors {
     class StandardStepper : public Motor {
     public:
-        StandardStepper(uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin);
+        //StandardStepper(uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin);
+
+        StandardStepper() = default;
 
         // Overrides for inherited methods
         void init() override;
@@ -30,6 +32,21 @@ namespace Motors {
         Pin  _step_pin;
         Pin  _dir_pin;
         Pin  _disable_pin;
+
+        // Configuration handlers:
+        void validate() const override {
+            Assert(!_step_pin.undefined(), "Step pin should be configured.");
+            Assert(!_dir_pin.undefined(), "Direction pin should be configured.");
+        }
+
+        void handle(Configuration::HandlerBase& handler) override {
+            handler.handle("step", _step_pin);
+            handler.handle("direction", _dir_pin);
+            handler.handle("disable", _disable_pin);
+        }
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "standard_stepper"; }
 
     private:
         static rmt_channel_t get_next_RMT_chan_num();

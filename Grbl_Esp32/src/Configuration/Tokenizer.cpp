@@ -1,11 +1,12 @@
 #include "Tokenizer.h"
 
 #include "ParseException.h"
+
 #include <cstdlib>
 
 namespace Configuration {
 
-    Tokenizer::Tokenizer(const char* start, const char* end) : start_(start), current_(start), end_(end), token_() {
+    Tokenizer::Tokenizer(const char* start, const char* end) :  current_(start), end_(end), start_(start), token_() {
         // If start is a yaml document start ('---' [newline]), skip that first.
         if (EqualsCaseInsensitive("---")) {
             for (int i = 0; i < 3; ++i) {

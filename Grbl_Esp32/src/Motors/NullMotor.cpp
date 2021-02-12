@@ -22,7 +22,9 @@
 #include "NullMotor.h"
 
 namespace Motors {
-   Nullmotor::Nullmotor(uint8_t axis_index) :
-       Motor(axis_index)
-   {}
+    // Configuration registration
+    namespace
+    {
+        MotorFactory::InstanceBuilder<Nullmotor> registration("null_motor");
+    }
 }

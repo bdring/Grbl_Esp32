@@ -34,7 +34,7 @@
 namespace Motors {
     Servo* Servo::List = NULL;
 
-    Servo::Servo(uint8_t axis_index) : Motor(axis_index) {
+    Servo::Servo() : Motor() {
         link = List;
         List = this;
     }
@@ -70,5 +70,4 @@ namespace Motors {
             reportTaskStackSize(uxHighWaterMark);
         }
     }
-
 }

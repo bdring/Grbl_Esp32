@@ -14,7 +14,9 @@
 #    include "Grbl.h"  // grbl_sendf
 #endif
 
-bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
+bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
+    String str = tmp.str();
+
     // Initialize pinImplementation first! Callers might want to delete it, and we don't want a random pointer.
     pinImplementation = nullptr;
 
@@ -115,6 +117,10 @@ bool Pin::parse(String str, Pins::PinDetail*& pinImplementation) {
 }
 
 Pin Pin::create(const String& str) {
+    return create(StringRange(str));
+}
+
+Pin Pin::create(const StringRange& str) {
     Pins::PinDetail* pinImplementation = nullptr;
     try {
 #if defined PIN_DEBUG && defined ESP32

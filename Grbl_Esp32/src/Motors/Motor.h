@@ -1,5 +1,11 @@
 #pragma once
 
+
+#include "Assert.h"
+#include "../Configuration/GenericFactory.h"
+#include "../Configuration/HandlerBase.h"
+#include "../Configuration/Configurable.h"
+
 /*
     Motor.h
     Header file for Motor Classes
@@ -34,9 +40,9 @@
 #include <cstdint>
 
 namespace Motors {
-    class Motor {
+    class Motor : public Configuration::Configurable {
     public:
-        Motor(uint8_t axis_index);
+        Motor() = default;
 
         // init() establishes configured motor parameters.  It is called after
         // all motor objects have been constructed.
@@ -94,6 +100,12 @@ namespace Motors {
         // called from a periodic task.
         virtual void update() {}
 
+        // Name is required for the configuration factory to work.
+        virtual const char* name() const = 0;
+
+        // Virtual base classes require a virtual destructor.
+        virtual ~Motor() {}
+
     protected:
         // config_message(), called from init(), displays a message describing
         // the motor configuration - pins and other motor-specific items
@@ -111,7 +123,9 @@ namespace Motors {
         //   tables can be indexed by these variables.
         // TODO Architecture: It might be useful to cache a
         // reference to the axis settings entry.
-        uint8_t _axis_index;       // X_AXIS, etc
-        uint8_t _dual_axis_index;  // 0 = primary 1=ganged
+        uint8_t axis_index() const;       // X_AXIS, etc
+        uint8_t dual_axis_index() const;  // 0 = primary 1=ganged, etc
     };
+
+    using MotorFactory = Configuration::GenericFactory<Motor>;
 }

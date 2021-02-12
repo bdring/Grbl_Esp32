@@ -1,12 +1,6 @@
 #include "UnipolarMotor.h"
 
 namespace Motors {
-    UnipolarMotor::UnipolarMotor(uint8_t axis_index, Pin pin_phase0, Pin pin_phase1, Pin pin_phase2, Pin pin_phase3) :
-        Motor(axis_index), _pin_phase0(pin_phase0), _pin_phase1(pin_phase1), _pin_phase2(pin_phase2), _pin_phase3(pin_phase3),
-
-        _half_step(true)  // TODO read from settings ... microstep > 1 = half step
-    {}
-
     void UnipolarMotor::init() {
         _pin_phase0.setAttr(Pin::Attr::Output);
         _pin_phase1.setAttr(Pin::Attr::Output);
@@ -20,12 +14,12 @@ namespace Motors {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
                        "%s Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s %s",
-                       reportAxisNameMsg(_axis_index, _dual_axis_index),
+                       reportAxisNameMsg(axis_index(), dual_axis_index()),
                        _pin_phase0.name().c_str(),
                        _pin_phase1.name().c_str(),
                        _pin_phase2.name().c_str(),
                        _pin_phase3.name().c_str(),
-                       reportAxisLimitsMsg(_axis_index));
+                       reportAxisLimitsMsg(axis_index()));
     }
 
     void UnipolarMotor::set_disable(bool disable) {
@@ -125,5 +119,11 @@ namespace Motors {
         _pin_phase1.write(_phase[1]);
         _pin_phase2.write(_phase[2]);
         _pin_phase3.write(_phase[3]);
+    }
+
+    // Configuration registration
+    namespace
+    {
+        MotorFactory::InstanceBuilder<UnipolarMotor> registration("unipolar");
     }
 }

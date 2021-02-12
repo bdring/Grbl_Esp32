@@ -2,6 +2,7 @@
 
 #include "Tokenizer.h"
 #include "../Pin.h"
+#include "../StringRange.h"
 
 #include <stack>
 #include <cstring>
@@ -38,15 +39,16 @@ namespace Configuration {
         void leave();
 
         inline bool is(const char* expected) const {
-            return !strncmp(expected, current_.keyStart_, size_t(current_.keyEnd_ - current_.keyStart_));
+            return current_.keyStart_ != nullptr && 
+                   !strncmp(expected, current_.keyStart_, size_t(current_.keyEnd_ - current_.keyStart_));
         }
 
-        inline std::string key() const { return std::string(current_.keyStart_, current_.keyEnd_); }
+        inline StringRange key() const { return StringRange(current_.keyStart_, current_.keyEnd_); }
 
-        std::string stringValue() const;
+        StringRange stringValue() const;
         bool boolValue() const;
         int intValue() const;
-        double floatValue() const;
+        double doubleValue() const;
         Pin pinValue() const;
     };
 }

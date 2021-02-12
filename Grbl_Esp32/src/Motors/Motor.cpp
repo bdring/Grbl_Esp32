@@ -32,13 +32,22 @@
 */
 
 #include "Motor.h"
+#include "../MachineConfig.h"
 
 namespace Motors {
-    Motor::Motor(uint8_t axis_index) :
-        _axis_index(axis_index % MAX_AXES), _dual_axis_index(axis_index / MAX_AXES) {}
-
     void Motor::debug_message() {}
 
     bool Motor::test() { return true; };  // true = OK
+
+    uint8_t Motor::axis_index() const {
+        Assert(MachineConfig::instance() != nullptr &&
+            MachineConfig::instance()->axes_ != nullptr, "Expected machine to be configured before this is called.");
+        return MachineConfig::instance()->axes_->findAxisIndex(this);
+    }
+    uint8_t Motor::dual_axis_index() const {
+        Assert(MachineConfig::instance() != nullptr &&
+            MachineConfig::instance()->axes_ != nullptr, "Expected machine to be configured before this is called.");
+        return MachineConfig::instance()->axes_->findAxisGanged(this);
+    }
 
 }

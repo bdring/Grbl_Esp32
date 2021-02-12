@@ -31,9 +31,11 @@
 #include "RcServo.h"
 
 namespace Motors {
-    RcServo::RcServo(uint8_t axis_index, Pin pwm_pin) : Servo(axis_index), _pwm_pin(pwm_pin) {}
+    // RcServo::RcServo(Pin pwm_pin) : Servo(), _pwm_pin(pwm_pin) {}
 
     void RcServo::init() {
+        _axis_index = axis_index();
+
         // TODO FIXME: This is leaking if init() is called multiple times.
         char* setting_cal_min = (char*)malloc(20);
         snprintf(setting_cal_min, 20, "%c/RcServo/Cal/Min", report_get_axis_letter(_axis_index));
@@ -59,11 +61,11 @@ namespace Motors {
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
                        "%s RC Servo Pin:%d Pulse Len(%.0f,%.0f) %s",
-                       reportAxisNameMsg(_axis_index, _dual_axis_index),
+                       reportAxisNameMsg(axis_index(), dual_axis_index()),
                        _pwm_pin,
                        _pwm_pulse_min,
                        _pwm_pulse_max,
-                       reportAxisLimitsMsg(_axis_index));
+                       reportAxisLimitsMsg(axis_index()));
     }
 
     void RcServo::_write_pwm(uint32_t duty) {
@@ -134,5 +136,11 @@ namespace Motors {
         if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {  // normal direction
             swap(_pwm_pulse_min, _pwm_pulse_max);
         }
+    }
+
+    // Configuration registration
+    namespace
+    {
+        MotorFactory::InstanceBuilder<RcServo> registration("rc_servo");
     }
 }

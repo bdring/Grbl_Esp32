@@ -26,18 +26,6 @@
 
 namespace Motors {
     class RcServo : public Servo {
-    public:
-        RcServo(uint8_t axis_index, Pin pwm_pin);
-
-        // Overrides for inherited methods
-        void init() override;
-        void read_settings() override;
-        bool set_homing_mode(bool isHoming) override;
-        void set_disable(bool disable) override;
-        void update() override;
-
-        void _write_pwm(uint32_t duty);
-
     protected:
         void config_message() override;
 
@@ -56,5 +44,31 @@ namespace Motors {
 
         FloatSetting* rc_servo_cal_min;
         FloatSetting* rc_servo_cal_max;
+
+        int _axis_index = -1;
+
+    public:
+        RcServo() = default;
+
+        // Overrides for inherited methods
+        void init() override;
+        void read_settings() override;
+        bool set_homing_mode(bool isHoming) override;
+        void set_disable(bool disable) override;
+        void update() override;
+
+        void _write_pwm(uint32_t duty);
+
+        // Configuration handlers:
+        void validate() const override {
+            Assert(!_pwm_pin.undefined(), "PWM pin should be configured.");
+        }
+
+        void handle(Configuration::HandlerBase& handler) override {
+            handler.handle("pwm", _pwm_pin);
+        }
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "rc_servo"; }
     };
 }

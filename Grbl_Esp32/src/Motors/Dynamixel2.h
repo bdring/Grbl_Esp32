@@ -73,19 +73,6 @@ const int DXL_CONTROL_MODE_POSITION = 3;
 
 namespace Motors {
     class Dynamixel2 : public Servo {
-    public:
-        Dynamixel2(uint8_t axis_index, uint8_t address, Pin tx_pin, Pin rx_pin, Pin rts_pin);
-
-        // Overrides for inherited methods
-        void init() override;
-        void read_settings() override;
-        bool set_homing_mode(bool isHoming) override;
-        void set_disable(bool disable) override;
-        void update() override;
-
-        static bool    uart_ready;
-        static uint8_t ids[MAX_N_AXIS][2];
-
     protected:
         void config_message() override;
 
@@ -118,8 +105,43 @@ namespace Motors {
         Pin         _rx_pin;
         Pin         _rts_pin;
         uart_port_t _uart_num;
+        int         _axis_index;
 
         bool _disabled;
         bool _has_errors;
+
+    public:
+        Dynamixel2() : _id(255), _disabled(true), _has_errors(true) {}
+
+        // Overrides for inherited methods
+        void init() override;
+        void read_settings() override;
+        bool set_homing_mode(bool isHoming) override;
+        void set_disable(bool disable) override;
+        void update() override;
+
+        static bool    uart_ready;
+        static uint8_t ids[MAX_N_AXIS][2];
+
+        // Configuration handlers:
+        void validate() const override {
+            Assert(!_tx_pin.undefined(), "TX pin should be configured.");
+            Assert(!_rx_pin.undefined(), "RX pin should be configured.");
+            Assert(!_rts_pin.undefined(), "RTS pin should be configured.");
+            Assert(_id != 255, "Dynamixel ID should be configured.");
+        }
+
+        void handle(Configuration::HandlerBase& handler) override {
+            handler.handle("tx", _tx_pin);
+            handler.handle("rx", _rx_pin);
+            handler.handle("rts", _rts_pin);
+            
+            int id = _id;
+            handler.handle("id", id);
+            _id = id;
+        }
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "dynamixel2"; }
     };
 }

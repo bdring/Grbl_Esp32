@@ -70,27 +70,6 @@ namespace Motors {
     };
 
     class TrinamicDriver : public StandardStepper {
-    public:
-        TrinamicDriver(uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin, Pin cs_pin, uint16_t driver_part_number, float r_sense) :
-            TrinamicDriver(axis_index, step_pin, dir_pin, disable_pin, cs_pin, driver_part_number, r_sense, get_next_index()) {}
-
-        TrinamicDriver(uint8_t  axis_index,
-                       Pin      step_pin,
-                       Pin      dir_pin,
-                       Pin      disable_pin,
-                       Pin      cs_pin,
-                       uint16_t driver_part_number,
-                       float    r_sense,
-                       int8_t   spi_index);
-
-        // Overrides for inherited methods
-        void init() override;
-        void read_settings() override;
-        bool set_homing_mode(bool ishoming) override;
-        void set_disable(bool disable) override;
-
-        void debug_message();
-
     private:
         uint32_t calc_tstep(float speed, float percent);
 
@@ -124,5 +103,27 @@ namespace Motors {
 
     protected:
         void config_message() override;
+
+    public:
+        TrinamicDriver(uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin, Pin cs_pin, uint16_t driver_part_number, float r_sense) :
+            TrinamicDriver(axis_index, step_pin, dir_pin, disable_pin, cs_pin, driver_part_number, r_sense, get_next_index()) {}
+
+        TrinamicDriver(uint8_t  axis_index,
+                       Pin      step_pin,
+                       Pin      dir_pin,
+                       Pin      disable_pin,
+                       Pin      cs_pin,
+                       uint16_t driver_part_number,
+                       float    r_sense,
+                       int8_t   spi_index);
+
+        // Overrides for inherited methods
+        void init() override;
+        void read_settings() override;
+        bool set_homing_mode(bool ishoming) override;
+        void set_disable(bool disable) override;
+
+        void debug_message();
+
     };
 }

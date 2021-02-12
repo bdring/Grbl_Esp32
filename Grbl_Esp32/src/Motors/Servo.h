@@ -28,7 +28,7 @@
 namespace Motors {
     class Servo : public Motor {
     public:
-        Servo(uint8_t axis_index);
+        Servo();
 #if 0
         // Overrides for inherited methods
         void init() override;
