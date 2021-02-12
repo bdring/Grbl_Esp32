@@ -229,7 +229,7 @@ void mc_dwell(float seconds) {
         return;
     }
     protocol_buffer_synchronize();
-    delay_sec(seconds, DELAY_MODE_DWELL);
+    delay_sec(seconds, DwellMode::Dwell);
 }
 
 // return true if the mask has exactly one bit set,

@@ -46,6 +46,7 @@ FloatSetting*    rpm_max;
 FloatSetting*    rpm_min;
 FloatSetting*    spindle_delay_spinup;
 FloatSetting*    spindle_delay_spindown;
+FloatSetting*    coolant_start_delay;
 FlagSetting*     spindle_enbl_off_with_zero_speed;
 FlagSetting*     spindle_enable_invert;
 FlagSetting*     spindle_output_invert;
@@ -349,6 +350,8 @@ void make_settings() {
         new FloatSetting(EXTENDED, WG, NULL, "Spindle/Delay/SpinUp", DEFAULT_SPINDLE_DELAY_SPINUP, 0, 30, checkSpindleChange);
     spindle_delay_spindown =
         new FloatSetting(EXTENDED, WG, NULL, "Spindle/Delay/SpinDown", DEFAULT_SPINDLE_DELAY_SPINUP, 0, 30, checkSpindleChange);
+    coolant_start_delay =
+        new FloatSetting(EXTENDED, WG, NULL, "Coolant/Delay/TurnOn", DEFAULT_COOLANT_DELAY_TURNON, 0, 30);
 
     spindle_enbl_off_with_zero_speed =
         new FlagSetting(GRBL, WG, NULL, "Spindle/Enable/OffWithSpeed", DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED, checkSpindleChange);

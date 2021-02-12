@@ -351,16 +351,18 @@ namespace Spindles {
         if (_current_state != state) {  // already at the desired state. This function gets called a lot.
             set_mode(state, critical);  // critical if we are in a job
             set_rpm(rpm);
+
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spin1");
+
             if (state == SpindleState::Disable) {
                 sys.spindle_speed = 0;
-                if (_current_state != state) {
-                    vTaskDelay(_spinup_delay);
-                }
+                delay(_spindown_delay);
+
             } else {
-                if (_current_state != state) {
-                    vTaskDelay(_spindown_delay);
-                }
+                delay(_spinup_delay);
             }
+            
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spin2");
         } else {
             if (_current_rpm != rpm) {
                 set_rpm(rpm);
