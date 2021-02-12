@@ -34,10 +34,8 @@ namespace Spindles {
         void set_speed_command(uint32_t rpm, ModbusCommand& data) override;
 
         response_parser get_status_ok(ModbusCommand& data) override;
-        /* TODO TEST THIS:
         response_parser get_current_rpm(ModbusCommand& data) override;
 
         bool supports_actual_rpm() const override { return true; }
-        */
     };
 }
