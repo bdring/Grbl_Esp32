@@ -351,11 +351,11 @@ namespace Spindles {
             if (state == SpindleState::Disable) {
                 sys.spindle_speed = 0;
                 if (_current_state != state) {
-                    mc_dwell(spindle_delay_spindown->get());
+                    vTaskDelay(spindle_delay_spindown->get() * 1000.0);
                 }
             } else {
                 if (_current_state != state) {
-                    mc_dwell(spindle_delay_spinup->get());
+                    vTaskDelay(spindle_delay_spinup->get() * 1000.0);
                 }
             }
         } else {
