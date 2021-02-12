@@ -177,6 +177,7 @@ namespace Spindles {
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool { return true; };
     }
 
+    /* TODO: TEST THIS:
     VFD::response_parser Huanyang::get_current_rpm(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 4;
@@ -195,4 +196,5 @@ namespace Spindles {
             return true;
         };
     }
+    */
 }
