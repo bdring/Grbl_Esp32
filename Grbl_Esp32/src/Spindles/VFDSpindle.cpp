@@ -235,11 +235,11 @@ namespace Spindles {
 
             if (retry_count == MAX_RETRIES) {
                 if (!unresponsive) {
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle RS485 Unresponsive %d", next_cmd.rx_length);
+                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Spindle RS485 Unresponsive %d", next_cmd.rx_length);
                     unresponsive = true;
                 }
                 if (next_cmd.critical) {
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Critical Spindle RS485 Unresponsive");
+                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical Spindle RS485 Unresponsive");
                     mc_reset();
                     sys_rt_exec_alarm = ExecAlarm::SpindleControl;
                 }
@@ -459,6 +459,13 @@ namespace Spindles {
                         unchanged = 0;
                     }
                     last = _sync_rpm;
+                }
+
+                if (unchanged == limit) 
+                {
+                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical Spindle RS485 did not reach speed within the allotted timeframe");
+                    mc_reset();
+                    sys_rt_exec_alarm = ExecAlarm::SpindleControl;
                 }
 
                 _syncing = false;
