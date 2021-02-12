@@ -413,7 +413,9 @@ void           init_motors() {
 }
 
 void motors_set_disable(bool disable, uint8_t mask) {
-    static bool previous_state = true;
+    if (step_enable_invert->get()) {
+        disable = !disable;  // Apply pin invert.
+    }
 
     // now loop through all the motors to see if they can individually disable
     auto n_axis = number_axis->get();
@@ -425,10 +427,7 @@ void motors_set_disable(bool disable, uint8_t mask) {
         }
     }
 
-    // invert only inverts the global stepper disable pin.
-    if (step_enable_invert->get()) {
-        disable = !disable;  // Apply pin invert.
-    }
+    // global disable.
     digitalWrite(STEPPERS_DISABLE_PIN, disable);
 }
 
