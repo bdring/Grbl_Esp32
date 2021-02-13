@@ -413,6 +413,16 @@ void           init_motors() {
 }
 
 void motors_set_disable(bool disable, uint8_t mask) {
+    static bool    prev_disable = true;
+    static uint8_t prev_mask  = 0;
+
+    if ((disable == prev_disable) && (mask == prev_mask)) {
+        return;
+    }
+
+    prev_disable = disable;
+    prev_mask = mask;
+
     if (step_enable_invert->get()) {
         disable = !disable;  // Apply pin invert.
     }
