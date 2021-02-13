@@ -90,7 +90,7 @@ void user_defined_macro(uint8_t index) {
                     grbl_sendf(CLIENT_ALL, "G10 L20 P0 Z+20\r\n");
                     WebUI::inputBuffer.push("G10 L20 P0 Z+20\r\n");  // Set G54, only Z axis, on workpiece level, 20mm below alu plate
 
-					Move up
+					//Move up
                     grbl_sendf(CLIENT_ALL, "G53 G0 Z-5 F200\r\n");
                     WebUI::inputBuffer.push("G53 G0 Z-5 F200\r\n");  // Z up
                 } else {
