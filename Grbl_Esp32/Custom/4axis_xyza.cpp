@@ -86,7 +86,7 @@ void user_defined_macro(uint8_t index) {
                     grbl_sendf(CLIENT_ALL, "G38.2 Z-25.0 F50\r\n");
                     WebUI::inputBuffer.push("G38.2 Z-25.0 F50\r\n");
 
-                    // Plate thickness 20mm, so adjust Z hG54 height
+                    // Plate thickness 20mm, so adjust Z G54 WCS height. NO X/Y WCS changes!!!
                     grbl_sendf(CLIENT_ALL, "G10 L20 P0 Z+20\r\n");
                     WebUI::inputBuffer.push("G10 L20 P0 Z+20\r\n");  // Set G54, only Z axis, on workpiece level, 20mm below alu plate
 
