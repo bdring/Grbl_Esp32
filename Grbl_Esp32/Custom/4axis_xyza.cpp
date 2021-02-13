@@ -80,7 +80,7 @@ void user_defined_macro(uint8_t index) {
 
 					// use datum plane XY, mm unit of measure, relative addresing mode
                     grbl_sendf(CLIENT_ALL, "G17 G21 G91\r\n");
-                    WebUI::inputBuffer.push("G21 G91\r\n");
+                    WebUI::inputBuffer.push("G17 G21 G91\r\n");
 
 					// Go 25mm deeper to hopefully hit alu plate
                     grbl_sendf(CLIENT_ALL, "G38.2 Z-25.0 F50\r\n");
