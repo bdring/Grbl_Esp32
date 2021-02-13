@@ -38,8 +38,8 @@ void user_defined_macro(uint8_t index) {
 
     if (msPassedBy >= DEBOUNCE_TIME_MACRO_1) {
         switch (index) {
-            case 0:  // Macro button 1 (Hold/Cycle switch)
 
+            case 0:  // Macro button 1 (Hold/Cycle switch)
                 switch (sys.state) {
                     case State::Hold:
                         grbl_sendf(CLIENT_ALL, "Macro button #%d pressed. New state \"Cyle start\"\r\n", index + 1);
@@ -69,6 +69,30 @@ void user_defined_macro(uint8_t index) {
 
                     grbl_sendf(CLIENT_ALL, "G53 G0 X-5 Y-210 F1000\r\n");
                     WebUI::inputBuffer.push("G53 G0 X-5 Y-210 F1000\r\n");  // Move Y axis to the middle for tool change
+                } else {
+                    grbl_sendf(CLIENT_ALL, "Macro button #%d pressed. Works only in state \"Idle\"\r\n", index + 1);
+                }
+                break;
+
+            case 2:  // Macro button 3 (Z Probe)
+                if (sys.state == State::Idle) {
+                    grbl_sendf(CLIENT_ALL, "Macro button #%d pressed. Z probe\r\n", index + 1);
+
+					// use datum plane XY, mm unit of measure, relative addresing mode
+                    grbl_sendf(CLIENT_ALL, "G17 G21 G91\r\n");
+                    WebUI::inputBuffer.push("G21 G91\r\n");
+
+					// Go 25mm deeper to hopefully hit alu plate
+                    grbl_sendf(CLIENT_ALL, "G38.2 Z-25.0 F50\r\n");
+                    WebUI::inputBuffer.push("G38.2 Z-25.0 F50\r\n");
+
+                    // Plate thickness 20mm, so adjust Z hG54 height
+                    grbl_sendf(CLIENT_ALL, "G10 L20 P0 Z+20\r\n");
+                    WebUI::inputBuffer.push("G10 L20 P0 Z+20\r\n");  // Set G54, only Z axis, on workpiece level, 20mm below alu plate
+
+					Move up
+                    grbl_sendf(CLIENT_ALL, "G53 G0 Z-5 F200\r\n");
+                    WebUI::inputBuffer.push("G53 G0 Z-5 F200\r\n");  // Z up
                 } else {
                     grbl_sendf(CLIENT_ALL, "Macro button #%d pressed. Works only in state \"Idle\"\r\n", index + 1);
                 }

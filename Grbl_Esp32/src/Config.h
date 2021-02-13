@@ -54,7 +54,7 @@ Some features should not be changed. See notes below.
 // The mask order is ...
 // Macro3 | Macro2 | Macro 1| Macr0 |Cycle Start | Feed Hold | Reset | Safety Door
 // For example B1101 will invert the function of the Reset pin.
-#define INVERT_CONTROL_PIN_MASK B00111111
+#define INVERT_CONTROL_PIN_MASK B01111111
 
 // #define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
