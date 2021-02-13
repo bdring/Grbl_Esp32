@@ -17,13 +17,77 @@
 	//vTaskDelay (0.5 / portTICK_RATE_MS); // 0.5 Sec.
 */
 
-#include <unistd.h>
+#define DEBOUNCE_TIME_MACRO_1 300  //ms
 
-//#define DEBUG; // do I want debug messages? yes/no
+#include <stdint.h>
+#include "src/Grbl.h"
+#include "Machines/4axis_xyza.h"
+
+uint32_t earlier = 0;
+
+/*
+  options.  user_defined_macro() is called with the button number to
+  perform whatever actions you choose.
+*/
+#if defined(MACRO_BUTTON_0_PIN) || defined(MACRO_BUTTON_1_PIN) || defined(MACRO_BUTTON_2_PIN)
+void user_defined_macro(uint8_t index) {
+    uint32_t later, msPassedBy = 0;
+
+    later      = millis();
+    msPassedBy = later - earlier;
+
+    if (msPassedBy >= DEBOUNCE_TIME_MACRO_1) {
+        switch (index) {
+            case 0:  // Macro button 1 (Hold/Cycle switch)
+
+                switch (sys.state) {
+                    case State::Hold:
+                        grbl_sendf(CLIENT_ALL, "Macro button #%d pressed. New state \"Cyle start\"\r\n", index + 1);
+                        sys_rt_exec_state.bit.cycleStart = true;
+                        break;
+
+                    case State::Cycle:
+                        grbl_sendf(CLIENT_ALL, "Macro button #%d pressed. New state \"Hold\"\r\n", index + 1);
+                        sys_rt_exec_state.bit.feedHold = true;
+                        break;
+
+                    default:
+                        grbl_sendf(CLIENT_ALL, "Macro button #%d pressed. Works only in states \"Cycle\" or \"Hold\"\r\n", index + 1);
+                        break;
+                }
+                break;
+
+            case 1:  // Macro button 2 (Homing)
+                if (sys.state == State::Idle) {
+                    grbl_sendf(CLIENT_ALL, "Macro button #%d pressed. Homing, Y tool change position\r\n", index + 1);
+
+                    grbl_sendf(CLIENT_ALL, "$H\r\n");
+                    WebUI::inputBuffer.push("$H\r\n");  // Homing all axis
+
+                    grbl_sendf(CLIENT_ALL, "G53 G0 Z-5\r\n");
+                    WebUI::inputBuffer.push("G53 G0 Z-5\r\n");  // Move Z axis up (should already be there, just to be sure)
+
+                    grbl_sendf(CLIENT_ALL, "G53 G0 X-5 Y-210 F1000\r\n");
+                    WebUI::inputBuffer.push("G53 G0 X-5 Y-210 F1000\r\n");  // Move Y axis to the middle for tool change
+                } else {
+                    grbl_sendf(CLIENT_ALL, "Macro button #%d pressed. Works only in state \"Idle\"\r\n", index + 1);
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        earlier = later;
+    }
+}
+#endif
 
 /*
    VARIABLES
 */
+
+/*
 uint8_t AmountOfToolChanges; //  Each new tool increases this by 1. Before first tool, it�s 0.
 uint8_t currenttoolNo, newtoolNo;
 float firstZPos, newZPos, Zdiff;
@@ -44,12 +108,12 @@ uint8_t tc_state; // tool change (tc) state machine
 float getLastZProbePos();
 
 #ifdef USE_MACHINE_INIT
-/*
+
 	machine_init() is called when Grbl_ESP32 first starts. You can use it to do any
 	special things your machine needs at startup.
 
 	Prerequisite: add "#define USE_MACHINE_INIT" to your machine.h file
-*/
+
 void machine_init()
 {
 	// We start with 0 tool changes
@@ -74,7 +138,7 @@ void machine_init()
 #endif
 
 // state machine
-/*
+
 void zProbeSyncTask(void* pvParameters)
 {
 	TickType_t xLastWakeTime;

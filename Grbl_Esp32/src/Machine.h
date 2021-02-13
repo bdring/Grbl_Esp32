@@ -9,7 +9,7 @@
 // all I/O pins
 // #include "Machines/atari_1020.h"
 //#include "Machines/test_drive.h"
-#include "Machines/4axis_xyxz.h"
+#include "Machines/4axis_xyza.h"
 
 // !!! For actual use, change the line above to select a board
 // from Machines/, for example:

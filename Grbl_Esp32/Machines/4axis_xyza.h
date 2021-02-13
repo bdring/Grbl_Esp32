@@ -1,3 +1,4 @@
+#pragma once
 /*
  * 4 Achsen CNC Fraese von Jens
  * Infos zur Benutzung einer Spindel mit Relais https://github.com/bdring/Grbl_Esp32/wiki/Spindle-Types
@@ -5,8 +6,10 @@
 
 #define MACHINE_NAME            "MACHINE_ESP32 Jens XYZA"
 
+#define CUSTOM_CODE_FILENAME    "Custom/4axis_xyza.cpp"
+
 #ifdef N_AXIS
-#undef N_AXIS
+    #undef N_AXIS
 #endif
 
 /*
@@ -16,8 +19,6 @@
 // ######################################
 #define N_AXIS 3
 // #######################################
-
-//#define CUSTOM_CODE_FILENAME "Custom/4axis_xyxz.cpp"
 
 /*
  * Spindeltyp definieren
@@ -70,8 +71,11 @@
 #define PROBE_PIN               GPIO_NUM_35 //ok
 //#define CONTROL_SAFETY_DOOR_PIN GPIO_NUM_36  // needs external pullup
 #define CONTROL_RESET_PIN       GPIO_NUM_34  // needs external pullup
-#define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // needs external pullup
-#define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // needs external pullup
+//#define CONTROL_FEED_HOLD_PIN   GPIO_NUM_36  // needs external pullup
+//#define CONTROL_CYCLE_START_PIN GPIO_NUM_39  // needs external pullup
+
+#define MACRO_BUTTON_0_PIN      GPIO_NUM_36
+#define MACRO_BUTTON_1_PIN      GPIO_NUM_39
 
 /* Normally Grbl_ESP32 ignores tool changes.
  * It just tracks the current tool number.
@@ -81,3 +85,11 @@
 
 //#define USE_MACHINE_INIT
 //#define USE_TOOL_CHANGE
+
+
+// wrap prototypes
+#ifndef FourAxis_xyxz_h
+    #define FourAxis_xyxz_h
+
+    void user_defined_macro(uint8_t index);
+#endif
