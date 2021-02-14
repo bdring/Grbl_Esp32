@@ -24,6 +24,7 @@ namespace Configuration
         virtual void handle(const char* name, bool& value) = 0;
         virtual void handle(const char* name, int& value) = 0;
         virtual void handle(const char* name, double& value) = 0;
+        virtual void handle(const char* name, float& value) = 0;
         virtual void handle(const char* name, StringRange value) = 0;
         virtual void handle(const char* name, Pin& value) = 0;
 

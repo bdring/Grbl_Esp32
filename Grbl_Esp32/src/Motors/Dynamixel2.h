@@ -21,6 +21,8 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <driver/uart.h>
+
 const int DYNAMIXEL_BUF_SIZE  = 127;
 const int DYNAMIXEL_BAUD_RATE = 1000000;
 

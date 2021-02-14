@@ -453,7 +453,7 @@ void PinSetting::load() {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing pin %s as '%s' (default)", _fullName, _defaultValue);
 #endif
         _storedValue  = _defaultValue;
-        _currentValue = Pin::create(_defaultValue);
+        _currentValue = Pin::create(StringRange(_defaultValue));
         return;
     }
     char buf[len];
@@ -463,7 +463,7 @@ void PinSetting::load() {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing pin %s as '%s' (default)", _fullName, _defaultValue);
 #endif
         _storedValue  = _defaultValue;
-        _currentValue = Pin::create(_defaultValue);
+        _currentValue = Pin::create(StringRange(_defaultValue));
         return;
     }
 

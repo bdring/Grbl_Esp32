@@ -24,6 +24,7 @@
 */
 
 #include "Grbl.h"
+#include "MachineConfig.h"
 
 // Stores the planner block Bresenham algorithm execution data for the segments in the segment
 // buffer. Normally, this buffer is partially in-use, but, for the worst case scenario, it will
@@ -221,7 +222,7 @@ void IRAM_ATTR onStepperDriverTimer(
 static void stepper_pulse_func() {
     auto n_axis = number_axis->get();
 
-    motors_step(st.step_outbits, st.dir_outbits);
+    MachineConfig::instance()->axes_->step(st.step_outbits, st.dir_outbits);
 
     // If we are using GPIO stepping as opposed to RMT, record the
     // time that we turned on the step pins so we can turn them off
@@ -309,7 +310,7 @@ static void stepper_pulse_func() {
         case ST_I2S_STREAM:
             // Generate the number of pulses needed to span pulse_microseconds
             i2s_out_push_sample(pulse_microseconds->get());
-            motors_unstep();
+            MachineConfig::instance()->axes_->unstep();
             break;
         case ST_I2S_STATIC:
         case ST_TIMED:
@@ -317,7 +318,7 @@ static void stepper_pulse_func() {
             while (esp_timer_get_time() - step_pulse_start_time < pulse_microseconds->get()) {
                 NOP();  // spin here until time to turn off step
             }
-            motors_unstep();
+            MachineConfig::instance()->axes_->unstep();
             break;
         case ST_RMT:
             break;
@@ -359,7 +360,7 @@ void stepper_switch(stepper_id_t new_stepper) {
 void st_wake_up() {
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "st_wake_up");
     // Enable stepper drivers.
-    motors_set_disable(false);
+    MachineConfig::instance()->axes_->set_disable(false);
     stepper_idle = false;
     // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
 #ifdef STEP_PULSE_DELAY
@@ -411,17 +412,17 @@ void st_go_idle() {
         // stop and not drift from residual inertial forces at the end of the last movement.
 
         if (sys.state == State::Sleep || sys_rt_exec_alarm != ExecAlarm::None) {
-            motors_set_disable(true);
+            MachineConfig::instance()->axes_->set_disable(true);
         } else {
             stepper_idle         = true;  // esp32 work around for disable in main loop
             stepper_idle_counter = esp_timer_get_time() + (stepper_idle_lock_time->get() * 1000);  // * 1000 because the time is in uSecs
             // after idle countdown will be disabled in protocol loop
         }
     } else {
-        motors_set_disable(false);
+        MachineConfig::instance()->axes_->set_disable(false);
     }
 
-    motors_unstep();
+    MachineConfig::instance()->axes_->unstep();
     st.step_outbits = 0;
 }
 

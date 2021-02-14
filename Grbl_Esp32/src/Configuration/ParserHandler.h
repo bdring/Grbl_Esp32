@@ -6,10 +6,8 @@
 
 #include "../Logging.h"
 
-namespace Configuration
-{
-    class ParserHandler : public Configuration::HandlerBase
-    {
+namespace Configuration {
+    class ParserHandler : public Configuration::HandlerBase {
     private:
         Configuration::Parser& parser_;
 
@@ -26,27 +24,45 @@ namespace Configuration
             }
         }
 
-        bool matchesUninitialized(const char* name) override {
-            return parser_.is(name);
-        }
+        bool matchesUninitialized(const char* name) override { return parser_.is(name); }
 
     public:
         ParserHandler(Configuration::Parser& parser) : parser_(parser) {}
 
         void handle(const char* name, int& value) override {
-            if (parser_.is(name)) { value = parser_.intValue(); }
+            if (parser_.is(name)) {
+                value = parser_.intValue();
+            }
+        }
+
+        void handle(const char* name, bool& value) override {
+            if (parser_.is(name)) {
+                value = parser_.stringValue().equals("true") || parser_.stringValue().equals("yes");
+            }
         }
 
         void handle(const char* name, double& value) override {
-            if (parser_.is(name)) { value = parser_.doubleValue(); }
+            if (parser_.is(name)) {
+                value = parser_.doubleValue();
+            }
+        }
+
+        void handle(const char* name, float& value) override {
+            if (parser_.is(name)) {
+                value = static_cast<float>(parser_.doubleValue());
+            }
         }
 
         void handle(const char* name, StringRange value) override {
-            if (parser_.is(name)) { value = parser_.stringValue(); }
+            if (parser_.is(name)) {
+                value = parser_.stringValue();
+            }
         }
 
         void handle(const char* name, Pin& value) override {
-            if (parser_.is(name)) { value = parser_.pinValue(); }
+            if (parser_.is(name)) {
+                value = parser_.pinValue();
+            }
         }
 
         HandlerType handlerType() override { return HandlerType::Parser; }

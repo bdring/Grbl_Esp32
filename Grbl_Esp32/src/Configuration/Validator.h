@@ -22,7 +22,9 @@ namespace Configuration
     public:
         Validator() = default;
 
+        void handle(const char* name, bool& value) override { }
         void handle(const char* name, int& value) override { }
+        void handle(const char* name, float& value) override { }
         void handle(const char* name, double& value) override { }
         void handle(const char* name, StringRange value) override { }
         void handle(const char* name, Pin& value) override { }

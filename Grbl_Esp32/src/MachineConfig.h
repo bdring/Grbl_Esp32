@@ -10,10 +10,10 @@ namespace Motors {
 }
 
 class Axis : public Configuration::Configurable {
-    Motors::Motor* motor_ = nullptr;
-
 public:
     Axis() = default;
+
+    Motors::Motor* motor_ = nullptr;
 
     // Configuration system helpers:
     void validate() const override;
@@ -40,6 +40,16 @@ public:
 
     size_t findAxisGanged(const Motors::Motor* const motor) const;
 
+    // These are used for setup and to talk to the motors as a group.
+    void init();
+    void read_settings(); // more like 'after read settings, before init'. Oh well...
+
+    // The return value is a bitmask of axes that can home
+    uint8_t set_homing_mode(uint8_t homing_mask, bool isHoming);
+    void    set_disable(bool disable);
+    void    step(uint8_t step_mask, uint8_t dir_mask);
+    void    unstep();
+
     // Configuration helpers:
     void validate() const override;
     void handle(Configuration::HandlerBase& handler) override;
@@ -60,6 +70,8 @@ public:
 
     void validate() const override;
     void handle(Configuration::HandlerBase& handler) override;
+
+    bool load(const char* file = "/spiffs/config.yaml");
 
     ~MachineConfig();
 };

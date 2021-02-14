@@ -19,6 +19,8 @@
 */
 
 #include "Grbl.h"
+#include "MachineConfig.h"
+
 #include <WiFi.h>
 
 void grbl_init() {
@@ -41,6 +43,7 @@ void grbl_init() {
 #endif
         // Load Grbl settings from non-volatile storage
         settings_init();  
+        MachineConfig::instance()->load();
 
 #ifdef USE_I2S_OUT
         // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
@@ -48,7 +51,9 @@ void grbl_init() {
 #endif
 
         stepper_init();   // Configure stepper pins and interrupt timers
-        init_motors();
+        MachineConfig::instance()->axes_->read_settings();
+        MachineConfig::instance()->axes_->init();
+
         system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
 

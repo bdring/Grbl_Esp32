@@ -26,6 +26,7 @@
 */
 
 #include "Grbl.h"
+#include "MachineConfig.h"
 
 uint8_t n_homing_locate_cycle = NHomingLocateCycle;
 
@@ -83,7 +84,7 @@ void limits_go_home(uint8_t cycle_mask) {
     // Put motors on axes listed in cycle_mask in homing mode and
     // replace cycle_mask with the list of motors that are ready for homing.
     // Motors with non standard homing can home during motors_set_homing_mode(...)
-    cycle_mask = motors_set_homing_mode(cycle_mask, true);  // tell motors homing is about to start
+    cycle_mask = MachineConfig::instance()->axes_->set_homing_mode(cycle_mask, true);  // tell motors homing is about to start
 
     // see if any motors are left
     if (cycle_mask == 0) {
@@ -194,7 +195,7 @@ void limits_go_home(uint8_t cycle_mask) {
                 }
 
                 if (sys_rt_exec_alarm != ExecAlarm::None) {
-                    motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
+                    MachineConfig::instance()->axes_->set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
                     mc_reset();                                 // Stop motors, if they are running.
                     protocol_execute_realtime();
                     return;
@@ -249,7 +250,7 @@ void limits_go_home(uint8_t cycle_mask) {
         }
     }
     sys.step_control = {};                      // Return step control to normal operation.
-    motors_set_homing_mode(cycle_mask, false);  // tell motors homing is done
+    MachineConfig::instance()->axes_->set_homing_mode(cycle_mask, false);  // tell motors homing is done
 }
 
 uint8_t limit_mask = 0;

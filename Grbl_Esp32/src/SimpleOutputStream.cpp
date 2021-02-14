@@ -51,5 +51,5 @@ void SimpleOutputStream::add(StringRange range)
 
 void SimpleOutputStream::add(const Pin& pin)
 {
-    add(pin.str());
+    add(pin.name());
 }

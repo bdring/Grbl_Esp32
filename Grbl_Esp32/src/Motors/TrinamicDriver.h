@@ -105,16 +105,10 @@ namespace Motors {
         void config_message() override;
 
     public:
-        TrinamicDriver(uint8_t axis_index, Pin step_pin, Pin dir_pin, Pin disable_pin, Pin cs_pin, uint16_t driver_part_number, float r_sense) :
-            TrinamicDriver(axis_index, step_pin, dir_pin, disable_pin, cs_pin, driver_part_number, r_sense, get_next_index()) {}
+        TrinamicDriver(uint16_t driver_part_number) :
+            TrinamicDriver(driver_part_number, get_next_index()) {}
 
-        TrinamicDriver(uint8_t  axis_index,
-                       Pin      step_pin,
-                       Pin      dir_pin,
-                       Pin      disable_pin,
-                       Pin      cs_pin,
-                       uint16_t driver_part_number,
-                       float    r_sense,
+        TrinamicDriver(uint16_t driver_part_number,
                        int8_t   spi_index);
 
         // Overrides for inherited methods
@@ -125,5 +119,38 @@ namespace Motors {
 
         void debug_message();
 
+        // Configuration handlers:
+        void validate() const override {
+            Assert(!_cs_pin.undefined(), "CS pin should be configured.");
+            StandardStepper::validate();
+        }
+
+        void handle(Configuration::HandlerBase& handler) override {
+            handler.handle("cs", _cs_pin);
+            handler.handle("r_sense", _r_sense);
+
+            StandardStepper::handle(handler);
+        }
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "trinamic_spi"; }
+    };
+
+    class TMC2130 : public TrinamicDriver
+    {
+    public:
+        TMC2130() : TrinamicDriver(2130) {}
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "tmc_2130"; }
+    };
+
+    class TMC5160 : public TrinamicDriver
+    {
+    public:
+        TMC5160() : TrinamicDriver(5160) {}
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "tmc_5160"; }
     };
 }

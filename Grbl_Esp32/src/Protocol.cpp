@@ -24,6 +24,8 @@
 
 #include "Grbl.h"
 
+#include "MachineConfig.h"
+
 static void protocol_exec_rt_suspend();
 
 static char    line[LINE_BUFFER_SIZE];     // Line to be executed. Zero-terminated.
@@ -195,7 +197,7 @@ void protocol_main_loop() {
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
         if (stepper_idle) {
             if (esp_timer_get_time() > stepper_idle_counter) {
-                motors_set_disable(true);
+                MachineConfig::instance()->axes_->set_disable(true);
             }
         }
     }
