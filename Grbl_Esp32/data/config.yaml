@@ -1,0 +1,24 @@
+name: "6 Pack Controller StepStick XYZ"
+board: bdring-6pack
+
+i2so:
+  bck: gpio.22
+  ws: gpio.17
+  data: gpio.21
+
+axes:
+  x:
+      endstop: gpio.33:low
+      stepstick:
+        step: gpio.4
+        direction: gpio.16
+  y:
+      endstop: gpio.32:low
+      stepstick:
+        step: gpio.18
+        direction: gpio.18
+  y2:
+      endstop: gpio.34:low
+      stepstick:
+        step: gpio.19
+        direction: gpio.19
