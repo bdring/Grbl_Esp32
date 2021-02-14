@@ -184,8 +184,9 @@ void mc_arc(float*            target,
         float    cos_Ti;
         float    r_axisi;
         uint16_t i;
-        uint8_t  count = 0;
-        for (i = 1; i < segments; i++) {  // Increment (segments-1).
+        uint8_t  count             = 0;
+        float    original_feedrate = pl_data->feed_rate;  // Kinematics may alter the feedrate, so save an original copy
+        for (i = 1; i < segments; i++) {                  // Increment (segments-1).
             if (count < N_ARC_CORRECTION) {
                 // Apply vector rotation matrix. ~40 usec
                 r_axisi = r_axis0 * sin_T + r_axis1 * cos_T;
@@ -206,6 +207,7 @@ void mc_arc(float*            target,
             position[axis_1] = center_axis1 + r_axis1;
             position[axis_linear] += linear_per_segment;
 #ifdef USE_KINEMATICS
+            pl_data->feed_rate = original_feedrate;  // This restores the feedrate kinematics may have altered
             mc_line_kins(position, pl_data, previous_position);
             previous_position[axis_0]      = position[axis_0];
             previous_position[axis_1]      = position[axis_1];
