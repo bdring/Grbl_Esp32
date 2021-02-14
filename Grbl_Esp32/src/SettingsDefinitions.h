@@ -48,6 +48,7 @@ extern FloatSetting* rpm_max;
 extern FloatSetting* rpm_min;
 extern FloatSetting* spindle_delay_spinup;
 extern FloatSetting* spindle_delay_spindown;
+extern FloatSetting* coolant_start_delay;
 extern FlagSetting*  spindle_enbl_off_with_zero_speed;
 extern FlagSetting*  spindle_enable_invert;
 extern FlagSetting*  spindle_output_invert;

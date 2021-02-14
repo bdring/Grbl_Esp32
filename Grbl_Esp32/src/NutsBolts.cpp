@@ -112,15 +112,15 @@ void delay_ms(uint16_t ms) {
 }
 
 // Non-blocking delay function used for general operation and suspend features.
-void delay_sec(float seconds, uint8_t mode) {
+void delay_sec(float seconds, DwellMode mode) {
     uint16_t i = ceil(1000 / DWELL_TIME_STEP * seconds);
     while (i-- > 0) {
         if (sys.abort) {
             return;
         }
-        if (mode == DELAY_MODE_DWELL) {
+        if (mode == DwellMode::Dwell) {
             protocol_execute_realtime();
-        } else {  // DELAY_MODE_SYS_SUSPEND
+        } else {  // DwellMode::SysSuspend
             // Execute rt_system() only to avoid nesting suspend loops.
             protocol_exec_rt_system();
             if (sys.suspend.bit.restartRetract) {
