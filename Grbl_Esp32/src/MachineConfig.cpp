@@ -179,7 +179,8 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
     }
 
     // TODO FIXME: SdB This is not really correct... ganged_mode shouldn't be 'A' or 'B', but
-    // an index or a wildcard.
+    // an index or a wildcard because for the new settings we have not bounded the number of 
+    // gangs.
 
     // Turn on step pulses for motors that are supposed to step now
     for (int axis = X_AXIS; axis < MAX_NUMBER_AXIS; axis++) {
