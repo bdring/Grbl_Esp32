@@ -490,7 +490,7 @@ void protocol_exec_rt_system() {
         if (CoolantFloodPin->get() != Pin::UNDEFINED) {
             if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
                 gc_state.modal.coolant.Flood = !gc_state.modal.coolant.Flood;
-                coolant_set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+                MachineConfig::instance()->coolant_->set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
             }
         }
     }
@@ -499,7 +499,7 @@ void protocol_exec_rt_system() {
         if (CoolantMistPin->get() != Pin::UNDEFINED) {
             if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
                 gc_state.modal.coolant.Mist = !gc_state.modal.coolant.Mist;
-                coolant_set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+                MachineConfig::instance()->coolant_->set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
             }
         }
     }
@@ -580,7 +580,7 @@ static void protocol_exec_rt_suspend() {
                     sys.spindle_stop_ovr.value = 0;  // Disable override
 #ifndef PARKING_ENABLE
                     spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                    coolant_off();
+                    MachineConfig::instance()->coolant_->off();
 #else
                     // Get current position and store restore location and spindle retract waypoint.
                     system_convert_array_steps_to_mpos(parking_target, sys_position);
@@ -611,7 +611,7 @@ static void protocol_exec_rt_suspend() {
                         pl_data->motion.noFeedOverride = 1;
                         pl_data->spindle_speed         = 0.0;
                         spindle->set_state(pl_data->spindle, 0);  // De-energize
-                        coolant_set_state(pl_data->coolant);
+                        MachineConfig::instance()->coolant_->set_state(pl_data->coolant);
                         // Execute fast parking retract motion to parking target location.
                         if (parking_target[PARKING_AXIS] < PARKING_TARGET) {
                             parking_target[PARKING_AXIS] = PARKING_TARGET;
@@ -622,7 +622,7 @@ static void protocol_exec_rt_suspend() {
                         // Parking motion not possible. Just disable the spindle and coolant.
                         // NOTE: Laser mode does not start a parking motion to ensure the laser stops immediately.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                        coolant_off();
+                        MachineConfig::instance()->coolant_->off();
                     }
 #endif
                     sys.suspend.bit.restartRetract  = false;
@@ -632,7 +632,7 @@ static void protocol_exec_rt_suspend() {
                         report_feedback_message(Message::SleepMode);
                         // Spindle and coolant should already be stopped, but do it again just to be sure.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                        coolant_off();
+                        MachineConfig::instance()->coolant_->off();
                         st_go_idle();  // Disable steppers
                         while (!(sys.abort)) {
                             protocol_exec_rt_system();  // Do nothing until reset.
@@ -676,7 +676,7 @@ static void protocol_exec_rt_suspend() {
                             // Block if safety door re-opened during prior restore actions.
                             if (!sys.suspend.bit.restartRetract) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.
-                                coolant_set_state(restore_coolant);
+                                MachineConfig::instance()->coolant_->set_state(restore_coolant);
                                 delay_sec(SAFETY_DOOR_COOLANT_DELAY, DELAY_MODE_SYS_SUSPEND);
                             }
                         }

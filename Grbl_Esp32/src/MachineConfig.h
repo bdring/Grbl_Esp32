@@ -4,6 +4,7 @@
 #include "Configuration/GenericFactory.h"
 #include "Configuration/HandlerBase.h"
 #include "Configuration/Configurable.h"
+#include "CoolantControl.h"
 
 namespace Motors {
     class Motor;
@@ -34,6 +35,8 @@ class Axes : public Configuration::Configurable {
 public:
     Axes();
 
+    int number_axis = 3;
+
     // Some small helpers to find the axis index and axis ganged index for a given motor. This
     // is helpful for some motors that need this info, as well as debug information.
     size_t findAxisIndex(const Motors::Motor* const motor) const;
@@ -57,9 +60,27 @@ public:
     ~Axes();
 };
 
+class I2SO : public Configuration::Configurable
+{
+public:
+    I2SO() = default;
+
+    Pin bck_;
+    Pin data_;
+    Pin ws_;
+
+    void validate() const override;
+    void handle(Configuration::HandlerBase& handler) override;
+
+    ~I2SO() {}
+};
+
+
 class MachineConfig : public Configuration::Configurable {
 public:
     Axes* axes_ = nullptr;
+    I2SO* i2so_ = nullptr;
+    CoolantControl* coolant_ = nullptr;
 
     MachineConfig() = default;
 

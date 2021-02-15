@@ -24,6 +24,8 @@
 
 #include "Grbl.h"
 
+#include "MachineConfig.h"
+
 // NOTE: Max line number is defined by the g-code standard to be 99999. It seems to be an
 // arbitrary value, and some GUIs may require more. So we increased it based on a max safe
 // value when converting a float (7.2 digit precision)s to an integer.
@@ -1378,15 +1380,15 @@ Error gc_execute_line(char* line, uint8_t client) {
             break;
         case GCodeCoolant::M7:
             gc_state.modal.coolant.Mist = 1;
-            coolant_sync(gc_state.modal.coolant);
+            MachineConfig::instance()->coolant_->sync(gc_state.modal.coolant);
             break;
         case GCodeCoolant::M8:
             gc_state.modal.coolant.Flood = 1;
-            coolant_sync(gc_state.modal.coolant);
+            MachineConfig::instance()->coolant_->sync(gc_state.modal.coolant);
             break;
         case GCodeCoolant::M9:
             gc_state.modal.coolant = {};
-            coolant_sync(gc_state.modal.coolant);
+            MachineConfig::instance()->coolant_->sync(gc_state.modal.coolant);
             break;
     }
     pl_data->coolant = gc_state.modal.coolant;  // Set state for planner use.
@@ -1589,7 +1591,8 @@ Error gc_execute_line(char* line, uint8_t client) {
                 coords[gc_state.modal.coord_select]->get(gc_state.coord_system);
                 system_flag_wco_change();  // Set to refresh immediately just in case something altered.
                 spindle->set_state(SpindleState::Disable, 0);
-                coolant_off();
+
+                MachineConfig::instance()->coolant_->off();
             }
             report_feedback_message(Message::ProgramEnd);
 #ifdef USE_M30

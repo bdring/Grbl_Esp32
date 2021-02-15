@@ -47,6 +47,7 @@
 */
 
 #include "Grbl.h"
+#include "MachineConfig.h"
 #include <map>
 
 #ifdef REPORT_HEAP
@@ -816,7 +817,7 @@ void report_realtime_status(uint8_t client) {
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
         SpindleState sp_state      = spindle->get_state();
-        CoolantState coolant_state = coolant_get_state();
+        CoolantState coolant_state = MachineConfig::instance()->coolant_->get_state();
         if (sp_state != SpindleState::Disable || coolant_state.Mist || coolant_state.Flood) {
             strcat(status, "|A:");
             switch (sp_state) {

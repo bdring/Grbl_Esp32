@@ -22,6 +22,10 @@
 
 // Execution states and alarm
 #include "Exec.h"
+#include "Probe.h"
+#include "Error.h"
+#include "WebUI/Authentication.h"
+#include "WebUI/ESPResponse.h"
 
 // System states. The state variable primarily tracks the individual functions
 // of Grbl to manage each without overlapping. It is also used as a messaging flag for

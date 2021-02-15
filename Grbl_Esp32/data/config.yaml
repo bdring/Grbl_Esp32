@@ -7,6 +7,7 @@ i2so:
   data: gpio.21
 
 axes:
+  number_axis: 3
   x:
       endstop: gpio.33:low
       stepstick:
@@ -22,3 +23,8 @@ axes:
       stepstick:
         step: gpio.19
         direction: gpio.19
+
+coolant:
+  flood: gpio.12
+  mist: gpio.13
+

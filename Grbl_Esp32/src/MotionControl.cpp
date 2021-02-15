@@ -23,6 +23,7 @@
 */
 
 #include "Grbl.h"
+#include "MachineConfig.h"
 
 // M_PI is not defined in standard C/C++ but some compilers
 // support it anyway.  The following suppresses Intellisense
@@ -501,7 +502,8 @@ void mc_reset() {
         sys_rt_exec_state.bit.reset = true;
         // Kill spindle and coolant.
         spindle->stop();
-        coolant_stop();
+
+        MachineConfig::instance()->coolant_->stop();
 
         // turn off all User I/O immediately
         sys_io_control(0xFF, LOW, false);

@@ -22,8 +22,9 @@
 */
 
 #include "Grbl.h"
+#include "CoolantControl.h"
 
-void coolant_init() {
+void CoolantControl::init() {
     static bool init_message = true;  // used to show messages only once.
 
     if (init_message) {
@@ -35,11 +36,11 @@ void coolant_init() {
     CoolantFloodPin->get().setAttr(Pin::Attr::Output);
     CoolantMistPin->get().setAttr(Pin::Attr::Output);
 
-    coolant_stop();
+    stop();
 }
 
 // Returns current coolant output state. Overrides may alter it from programmed state.
-CoolantState coolant_get_state() {
+CoolantState CoolantControl::get_state() {
     CoolantState cl_state = {};
     bool         pinState;
 
@@ -68,13 +69,13 @@ CoolantState coolant_get_state() {
     return cl_state;
 }
 
-static inline void coolant_write(CoolantState state) {
+void CoolantControl::write(CoolantState state) {
     if (CoolantFloodPin->get() != Pin::UNDEFINED) {
         bool pinState = state.Flood;
 #ifdef INVERT_COOLANT_FLOOD_PIN
         pinState = !pinState;
 #endif
-        CoolantFloodPin->get().write(pinState);
+        flood_.write(pinState);
     }
 
     if (CoolantMistPin->get() != Pin::UNDEFINED) {
@@ -82,41 +83,49 @@ static inline void coolant_write(CoolantState state) {
 #ifdef INVERT_COOLANT_MIST_PIN
         pinState = !pinState;
 #endif
-        CoolantMistPin->get().write(pinState);
+        mist_.write(pinState);
     }
 }
 
 // Directly called by coolant_init(), coolant_set_state(), and mc_reset(), which can be at
 // an interrupt-level. No report flag set, but only called by routines that don't need it.
-void coolant_stop() {
+void CoolantControl::stop() {
     CoolantState disable = {};
-    coolant_write(disable);
+    write(disable);
 }
 
 // Main program only. Immediately sets flood coolant running state and also mist coolant,
 // if enabled. Also sets a flag to report an update to a coolant state.
 // Called by coolant toggle override, parking restore, parking retract, sleep mode, g-code
-// parser program end, and g-code parser coolant_sync().
+// parser program end, and g-code parser CoolantControl::sync().
 
-void coolant_set_state(CoolantState state) {
+void CoolantControl::set_state(CoolantState state) {
     if (sys.abort) {
         return;  // Block during abort.
     }
-    coolant_write(state);
+    write(state);
     sys.report_ovr_counter = 0;  // Set to report change immediately
 }
 
-void coolant_off() {
+void CoolantControl::off() {
     CoolantState disable = {};
-    coolant_set_state(disable);
+    set_state(disable);
 }
 
 // G-code parser entry-point for setting coolant state. Forces a planner buffer sync and bails
 // if an abort or check-mode is active.
-void coolant_sync(CoolantState state) {
+void CoolantControl::sync(CoolantState state) {
     if (sys.state == State::CheckMode) {
         return;
     }
     protocol_buffer_synchronize();  // Ensure coolant turns on when specified in program.
-    coolant_set_state(state);
+    set_state(state);
+}
+
+void CoolantControl::validate() const {}
+
+void CoolantControl::handle(Configuration::HandlerBase& handler)
+{
+    handler.handle("flood", flood_);
+    handler.handle("mist", mist_);
 }

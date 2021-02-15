@@ -23,18 +23,37 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Initializes coolant control pins.
-void coolant_init();
+#include "Configuration/HandlerBase.h"
+#include "Configuration/Configurable.h"
+#include "GCode.h"
 
-// Returns current coolant output state. Overrides may alter it from programmed state.
-CoolantState coolant_get_state();
+class CoolantControl : public Configuration::Configurable {
+    Pin mist_;
+    Pin flood_;
 
-// Immediately disables coolant pins.
-void coolant_stop();
+    void write(CoolantState state);
+public:
+    CoolantControl() = default;
 
-// Sets the coolant pins according to state specified.
-void coolant_off();
-void coolant_set_state(CoolantState state);
+    // Initializes coolant control pins.
+    void init();
 
-// G-code parser entry-point for setting coolant states. Checks for and executes additional conditions.
-void coolant_sync(CoolantState state);
+    // Returns current coolant output state. Overrides may alter it from programmed state.
+    CoolantState get_state();
+
+    // Immediately disables coolant pins.
+    void stop();
+
+    // Sets the coolant pins according to state specified.
+    void off();
+    void set_state(CoolantState state);
+
+    // G-code parser entry-point for setting coolant states. Checks for and executes additional conditions.
+    void sync(CoolantState state);
+
+    // Configuration handlers.
+    void validate() const override;
+    void handle(Configuration::HandlerBase& handler) override;
+
+    ~CoolantControl() = default;
+};

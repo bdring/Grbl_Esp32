@@ -78,12 +78,11 @@ void Axes::init() {
     }
 
     // certain motors need features to be turned on. Check them here
-    for (uint8_t axis = X_AXIS; axis < MAX_NUMBER_AXIS; axis++) {
+    for (uint8_t axis = X_AXIS; axis < number_axis; axis++) {
         for (uint8_t gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
             auto a = axis_[axis][gang_index];
 
-            if (a->motor_ == nullptr)
-            {
+            if (a->motor_ == nullptr) {
                 a->motor_ = new Motors::Nullmotor();
             }
 
@@ -105,7 +104,7 @@ void Axes::set_disable(bool disable) {
 */
 
     // now loop through all the motors to see if they can individually disable
-    for (int axis = 0; axis < MAX_NUMBER_AXIS; axis++) {
+    for (int axis = 0; axis < number_axis; axis++) {
         for (int gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
             auto a = axis_[axis][gang_index];
             a->motor_->set_disable(disable);
@@ -121,7 +120,7 @@ void Axes::set_disable(bool disable) {
 
 void Axes::read_settings() {
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Read Settings");
-    for (uint8_t axis = X_AXIS; axis < MAX_NUMBER_AXIS; axis++) {
+    for (uint8_t axis = X_AXIS; axis < number_axis; axis++) {
         for (uint8_t gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
             auto a = axis_[axis][gang_index];
             a->motor_->read_settings();
@@ -134,7 +133,7 @@ void Axes::read_settings() {
 uint8_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
     uint8_t can_home = 0;
 
-    for (uint8_t axis = X_AXIS; axis < MAX_NUMBER_AXIS; axis++) {
+    for (uint8_t axis = X_AXIS; axis < number_axis; axis++) {
         if (bitnum_istrue(homing_mask, axis)) {
             auto a = axis_[axis][0];
             if (a != nullptr && a->motor_ != nullptr) {
@@ -156,7 +155,7 @@ uint8_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
 }
 
 void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
-    auto n_axis = number_axis->get();
+    auto n_axis = number_axis;
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
 
     // Set the direction pins, but optimize for the common
@@ -165,7 +164,7 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
     if (dir_mask != previous_dir) {
         previous_dir = dir_mask;
 
-        for (int axis = X_AXIS; axis < MAX_NUMBER_AXIS; axis++) {
+        for (int axis = X_AXIS; axis < n_axis; axis++) {
             bool thisDir = bitnum_istrue(dir_mask, axis);
 
             for (uint8_t gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
@@ -179,11 +178,11 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
     }
 
     // TODO FIXME: SdB This is not really correct... ganged_mode shouldn't be 'A' or 'B', but
-    // an index or a wildcard because for the new settings we have not bounded the number of 
+    // an index or a wildcard because for the new settings we have not bounded the number of
     // gangs.
 
     // Turn on step pulses for motors that are supposed to step now
-    for (int axis = X_AXIS; axis < MAX_NUMBER_AXIS; axis++) {
+    for (int axis = X_AXIS; axis < number_axis; axis++) {
         if (bitnum_istrue(step_mask, axis)) {
             auto a = axis_[axis];
 
@@ -211,8 +210,8 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
 }
 // Turn all stepper pins off
 void Axes::unstep() {
-    auto n_axis = number_axis->get();
-    for (uint8_t axis = X_AXIS; axis < MAX_NUMBER_AXIS; axis++) {
+    auto n_axis = number_axis;
+    for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         for (uint8_t gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
             auto a = axis_[axis][gang_index];
             a->motor_->unstep();
@@ -224,7 +223,7 @@ void Axes::unstep() {
 // Some small helpers to find the axis index and axis ganged index for a given motor. This
 // is helpful for some motors that need this info, as well as debug information.
 size_t Axes::findAxisIndex(const Motors::Motor* const motor) const {
-    for (int i = 0; i < MAX_NUMBER_AXIS; ++i) {
+    for (int i = 0; i < number_axis; ++i) {
         for (int j = 0; j <= MAX_NUMBER_GANGED; ++j) {
             if (axis_[i][j] != nullptr && axis_[i][j]->hasMotor(motor)) {
                 return i;
@@ -237,7 +236,7 @@ size_t Axes::findAxisIndex(const Motors::Motor* const motor) const {
 }
 
 size_t Axes::findAxisGanged(const Motors::Motor* const motor) const {
-    for (int i = 0; i < MAX_NUMBER_AXIS; ++i) {
+    for (int i = 0; i < number_axis; ++i) {
         for (int j = 0; j <= MAX_NUMBER_GANGED; ++j) {
             if (axis_[i][j] != nullptr && axis_[i][j]->hasMotor(motor)) {
                 return j;
@@ -253,6 +252,8 @@ size_t Axes::findAxisGanged(const Motors::Motor* const motor) const {
 void Axes::validate() const {}
 
 void Axes::handle(Configuration::HandlerBase& handler) {
+    handler.handle("number_axis", number_axis);
+
     const char* allAxis = "xyzabc";
 
     char tmp[3];
@@ -282,10 +283,29 @@ Axes::~Axes() {
     }
 }
 
+void I2SO::validate() const {
+    if (!bck_.undefined() ||
+        !data_.undefined() ||
+        !ws_.undefined())
+    {
+        Assert(!bck_.undefined(), "I2SO BCK pin should be configured once.");
+        Assert(!data_.undefined(), "I2SO Data pin should be configured once.");
+        Assert(!ws_.undefined(), "I2SO WS pin should be configured once.");
+    }
+}
+
+void I2SO::handle(Configuration::HandlerBase& handler) {
+    handler.handle("bck", bck_);
+    handler.handle("data", data_);
+    handler.handle("ws", ws_);
+}
+
 void MachineConfig::validate() const {}
 
 void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("axes", axes_);
+    handler.handle("i2so", i2so_);
+    handler.handle("coolant", coolant_);
 }
 
 bool MachineConfig::load(const char* filename) {
@@ -294,24 +314,25 @@ bool MachineConfig::load(const char* filename) {
         return false;
     }
 
-    FILE *file = fopen(filename, "rb");
+    FILE* file = fopen(filename, "rb");
     if (!file) {
         error("There was an error opening the config file for reading");
         return false;
     }
 
-    // Let's just read the entire file in one chunk for now. If we get 
+    // Let's just read the entire file in one chunk for now. If we get
     // in trouble with this, we can cut it in pieces and read it per chunk.
     fseek(file, 0, SEEK_END);
     auto filesize = ftell(file);
     fseek(file, 0, SEEK_SET);
     char* buffer = new char[filesize];
-    
+
     long pos = 0;
-    while (pos < filesize)
-    {
+    while (pos < filesize) {
         auto read = fread(buffer + pos, 1, filesize - pos, file);
-        if (read == 0) { break; }
+        if (read == 0) {
+            break;
+        }
         pos += read;
     }
 
@@ -326,22 +347,20 @@ bool MachineConfig::load(const char* filename) {
 
     // Process file:
     StringRange input(buffer, buffer + filesize);
-    bool succesful = false;
+    bool        succesful = false;
     try {
-        Configuration::Parser parser(input.begin(), input.end());
+        Configuration::Parser        parser(input.begin(), input.end());
         Configuration::ParserHandler handler(parser);
 
-        // Instance is by reference, so we can just get rid of an old instance and 
+        // Instance is by reference, so we can just get rid of an old instance and
         // create a new one here:
-        if (instance() != nullptr)
-        {
+        if (instance() != nullptr) {
             delete instance();
         }
-        instance() = new MachineConfig();
-        MachineConfig *machine = instance();
+        instance()             = new MachineConfig();
+        MachineConfig* machine = instance();
 
-        for (; !parser.isEndSection(); parser.moveNext())
-        {
+        for (; !parser.isEndSection(); parser.moveNext()) {
             info("Parsing key " << parser.key().str());
             machine->handle(handler);
         }
@@ -351,28 +370,22 @@ bool MachineConfig::load(const char* filename) {
         try {
             Configuration::Validator validator;
             machine->handle(validator);
-        }
-        catch (std::exception& ex)
-        {
-            info("Validation error: " << ex.what());
-        }
+        } catch (std::exception& ex) { info("Validation error: " << ex.what()); }
 
         info("Done validating machine config.");
 
         succesful = true;
-    }
-    catch (const Configuration::ParseException& ex) {
+
+        // TODO FIXME: If we get here, we want to make the settings live by saving them as 
+        // '/spiffs/config.yaml.new', storing it, and then deleting the .yaml and renaming it.
+        // That way, we can always check if the yaml is there, and if it's not, load the yaml.new.
+
+    } catch (const Configuration::ParseException& ex) {
         error("Configuration parse error: " << ex.What() << " @ " << ex.LineNumber() << ":" << ex.ColumnNumber());
-    }
-    catch (const AssertionFailed& ex) {
+    } catch (const AssertionFailed& ex) {
         // Get rid of buffer and return
         error("Configuration loading failed: " << ex.what());
-    }
-    catch (std::exception& ex)
-    {
-        error("Configuration validation error: " << ex.what());
-    }
-    catch (...) {
+    } catch (std::exception& ex) { error("Configuration validation error: " << ex.what()); } catch (...) {
         // Get rid of buffer and return
         error("Unknown error occurred while processing configuration file.");
     }
@@ -384,4 +397,10 @@ bool MachineConfig::load(const char* filename) {
 
 MachineConfig::~MachineConfig() {
     delete axes_;
+    delete i2so_;
+    delete coolant_;
+
+    axes_ = nullptr;
+    i2so_ = nullptr;
+    coolant_ = nullptr;
 }

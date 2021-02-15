@@ -61,6 +61,7 @@
 #include "Pin.h"
 #include "I2SOut.h"
 
+#include "MachineConfig.h"
 #include "Settings.h"
 #include "SettingsDefinitions.h"
 
@@ -958,9 +959,14 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
   return -1 ... already initialized
 */
 int IRAM_ATTR i2s_out_init() {
-    Pin wsPin   = I2SOWS->get();
-    Pin bckPin  = I2SOBCK->get();
-    Pin dataPin = I2SOData->get();
+    auto i2so = MachineConfig::instance()->i2so_;
+    if (!i2so) {
+        return -1;
+    }
+
+    Pin wsPin   = i2so->ws_;
+    Pin bckPin  = i2so->bck_;
+    Pin dataPin = i2so->data_;
 
     // Check capabilities:
     if (!wsPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
@@ -972,15 +978,14 @@ int IRAM_ATTR i2s_out_init() {
     } else if (!dataPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Not setting up I2SO: DATA pin has incorrect capabilities");
         return -1;
-    }
-    else {
+    } else {
         i2s_out_init_t default_param;
-        default_param.ws_pin = wsPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        default_param.bck_pin = bckPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        default_param.data_pin = dataPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        default_param.pulse_func = NULL;
+        default_param.ws_pin       = wsPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        default_param.bck_pin      = bckPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        default_param.data_pin     = dataPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        default_param.pulse_func   = NULL;
         default_param.pulse_period = I2S_OUT_USEC_PER_PULSE;
-        default_param.init_val = I2S_OUT_INIT_VAL;
+        default_param.init_val     = I2S_OUT_INIT_VAL;
 
         return i2s_out_init(default_param);
     }

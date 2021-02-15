@@ -24,6 +24,10 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Eeprom.h"
+#include "Config.h"
+#include "System.h"
+
 // Modal group internal numbers for checking multiple command violations and tracking the
 // type of command that is called in the block. A modal group is a group of g-code commands that are
 // mutually exclusive, or cannot exist on the same line, because they each toggle a state or execute
