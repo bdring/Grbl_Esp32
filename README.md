@@ -89,7 +89,7 @@ The Wifi and WebUI is based on [this project.](https://github.com/luc-github/ESP
 
 ### Contribute
 
-<img src="https://discord.com/assets/e05ead6e6ebc08df9291738d0aa6986d.png" width="8%"> There is a Discord channel for the development this project. Ask for an invite
+<img src="https://discord.com/assets/e05ead6e6ebc08df9291738d0aa6986d.png" width="8%"> There is a Discord server for the development this project. Ask for an invite
 
 ### FAQ
 
