@@ -99,8 +99,11 @@ static uint8_t segment_next_head;
 // Step and direction port invert masks.
 static uint8_t step_port_invert_mask;
 static uint8_t dir_port_invert_mask;
-extern int thcZStep;
-extern int thcDirDown;
+///Torch Height Control Step and Dir ints
+#ifdef torchHeightControl
+    extern int thcZStep;
+    extern int thcDirDown;
+#endif
 // Used to avoid ISR nesting of the "Stepper Driver Interrupt". Should never occur though.
 static volatile uint8_t busy;
 
@@ -236,12 +239,15 @@ void IRAM_ATTR onStepperDriverTimer(void* para) { // ISR It is time to take a st
  * is to keep pulse timing as regular as possible.
  */
 static void stepper_pulse_func() {
+    
+#ifdef torchHeightControl
 	if(thcZStep > 0) //If the torch height control step count requested is greater than 0
 	{
 		st.dir_outbits ^= (-thcDirDown ^ st.dir_outbits) & (1UL << Z_AXIS); //Set the Z Axis Direction Bit to what THC wants
 		thcZStep --; //subtract out one of the steps requested by torchHeightControl.cpp
 		st.step_outbits |= bit(Z_AXIS); //Add a step for the Z Axis
 	}
+#endif
     motors_set_direction_pins(st.dir_outbits);
 #ifdef USE_RMT_STEPS
     stepperRMT_Outputs();

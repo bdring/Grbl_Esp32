@@ -42,7 +42,7 @@ float thcPinVoltage;
 float torchVoltage;
 float torchVoltageFiltered; ///Current filtered value used for THC routine
 float  voltageSetpoint;
-int32_t voltageInt;
+int voltageInt;
 int currentDirectionState; ////get state of direction pin
 bool directionDifference;
 int thcZStep;
@@ -107,11 +107,15 @@ void THCSyncTask(void* pvParameters) {
         {
             if((millis()- arcOnTime) > (thc_arc_delay_time->get()))
             {
-				thcRunning = true;                
+				thcRunning = true;     
+                //digitalWrite(I2SO(24),HIGH);
+                //digitalWrite(I2SO(25),HIGH);
+                //digitalWrite(I2SO(26),HIGH);
+                //digitalWrite(I2SO(27),HIGH);      
             }
             else
             {
-				thcRunning = false;
+				thcRunning = false; 
             }
         }
         else
@@ -128,6 +132,10 @@ void THCSyncTask(void* pvParameters) {
                 grbl_msg_sendf(CLIENT_ALL, MSG_LEVEL_INFO, "THC Voltage Setting = %4.1f", voltageSetpoint);
                 lastDebugPrintTimeMillis = millis();
             }
+                //digitalWrite(I2SO(24),LOW);
+                //digitalWrite(I2SO(25),LOW);
+                //digitalWrite(I2SO(26),LOW);
+                //digitalWrite(I2SO(27),LOW); 
         }
 	    
 		if((torchVoltageFiltered > voltageSetpoint) && thcRunning) //Voltage is too high and were running THC step Z down
@@ -149,10 +157,9 @@ void THCSyncTask(void* pvParameters) {
 // this task is THC Voltage Filtering Loop
 void THCVoltageTask(void* pvParameters) {
     TickType_t xLastVoltageWakeTime;
-    const TickType_t xTHCVoltageFrequency = 1; // (ms)
+    const TickType_t xTHCVoltageFrequency = 2; // (ms)
     xLastVoltageWakeTime = xTaskGetTickCount(); // Initialise the xLastVoltageWakeTime variable with the current time.
-    while (true) {
-        // don't ever return from this or the task dies
+    while (true) {// don't ever return from this or the task dies
 		voltageInt = analogRead(THC_VOLTAGE_PIN);
 		thcPinVoltage = voltageInt * (3.3 / 4095); //0-3.3 volts at torch input pin
 		torchVoltage =  (thcPinVoltage*(VOLTAGE_DIVIDER_R1+VOLTAGE_DIVIDER_R2))/VOLTAGE_DIVIDER_R2;//0-207 volts for R1 = 470K R2 = 7.6K

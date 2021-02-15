@@ -44,7 +44,8 @@
 // ... the rate at which the Z axis moves. A higher muber means the Z axis will move slower since THC is called less often
 
 // === Special Features
-
+///Define Torch Height Control
+#define torchHeightControl //Used in stepper.cpp
 /// I2S (steppers & other output-only pins)
 #define USE_I2S_OUT
 // Define USE_I2S_OUT_STREAM if buffering is used.
@@ -102,21 +103,18 @@
 #define C_DISABLE_PIN           I2SO(23)
 */
 /// CNC Modules
-//CNC Module # 1 Opto Isolated
-#define X_LIMIT_PIN             GPIO_NUM_33
-#define Y_LIMIT_PIN             GPIO_NUM_32
-#define Z_LIMIT_PIN             GPIO_NUM_35
-#define PROBE_PIN               GPIO_NUM_34
-//#define A_LIMIT_PIN             GPIO_NUM_34
-//#define B_LIMIT_PIN             GPIO_NUM_39
-//#define C_LIMIT_PIN             GPIO_NUM_36
+///CNC Module #1 THC Voltage 
+#define THC_VOLTAGE_PIN         GPIO_NUM_32
 
-///CNC Module #2 THC Voltage
-#define THC_VOLTAGE_PIN         GPIO_NUM_36
 ///Resistance Values needed to determine arc voltage i.e. Vout = (Vs*R2)/(R1+R2)
 #define VOLTAGE_DIVIDER_R1      470 ///470K Ohms
 #define VOLTAGE_DIVIDER_R2      7.6 ///7.6K Ohms
 
+//CNC Module # 2 Opto Isolated
+#define X_LIMIT_PIN             GPIO_NUM_2
+#define Y_LIMIT_PIN             GPIO_NUM_25
+#define Z_LIMIT_PIN             GPIO_NUM_39
+#define PROBE_PIN               GPIO_NUM_36
 
 ///CNC Module # 3 Spindle Relay
 #define SPINDLE_TYPE            SPINDLE_TYPE_RELAY
