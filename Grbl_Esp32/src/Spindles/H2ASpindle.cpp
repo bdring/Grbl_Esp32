@@ -37,7 +37,7 @@ namespace Spindles {
 
         uart.baud_rate = 19200;
         uart.data_bits = UART_DATA_8_BITS;
-        uart.parity = UART_PARITY_EVEN;
+        uart.parity    = UART_PARITY_EVEN;
         uart.stop_bits = UART_STOP_BITS_1;
     }
 
@@ -80,31 +80,35 @@ namespace Spindles {
         data.msg[5] = uint8_t(speed & 0xFF);
     }
 
-    H2A::response_parser H2A::get_max_rpm(ModbusCommand& data) {
-        // NOTE: data length is excluding the CRC16 checksum.
-        data.tx_length = 6;
-        data.rx_length = 8;
+    VFD::response_parser H2A::initialization_sequence(int index, ModbusCommand& data) {
+        if (index == -1) {
+            // NOTE: data length is excluding the CRC16 checksum.
+            data.tx_length = 6;
+            data.rx_length = 8;
 
-        // Send: 01 03 B005 0002
-        data.msg[1] = 0x03;  // READ
-        data.msg[2] = 0xB0;  // B0.05 = Get RPM
-        data.msg[3] = 0x05;
-        data.msg[4] = 0x00;  // Read 2 values
-        data.msg[5] = 0x02;
+            // Send: 01 03 B005 0002
+            data.msg[1] = 0x03;  // READ
+            data.msg[2] = 0xB0;  // B0.05 = Get RPM
+            data.msg[3] = 0x05;
+            data.msg[4] = 0x00;  // Read 2 values
+            data.msg[5] = 0x02;
 
-        //  Recv: 01 03 00 04 5D C0 03 F6
-        //                    -- -- = 24000 (val #1)
-        return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-            uint16_t rpm = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
-            vfd->_max_rpm = rpm;
+            //  Recv: 01 03 00 04 5D C0 03 F6
+            //                    -- -- = 24000 (val #1)
+            return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
+                uint16_t rpm  = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
+                vfd->_max_rpm = rpm;
 
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "H2A spindle is initialized at %d RPM", int(rpm));
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "H2A spindle is initialized at %d RPM", int(rpm));
 
-            return true;
-        };
+                return true;
+            };
+        } else {
+            return nullptr;
+        }
     }
 
-    H2A::response_parser H2A::get_current_rpm(ModbusCommand& data) {
+    VFD::response_parser H2A::get_current_rpm(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
         data.rx_length = 8;
@@ -127,7 +131,7 @@ namespace Spindles {
         };
     }
 
-    H2A::response_parser H2A::get_current_direction(ModbusCommand& data) {
+    VFD::response_parser H2A::get_current_direction(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
         data.rx_length = 6;

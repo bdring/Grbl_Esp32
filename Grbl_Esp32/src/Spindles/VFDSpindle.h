@@ -66,7 +66,7 @@ namespace Spindles {
         // Commands that return the status. Returns nullptr if unavailable by this VFD (default):
         using response_parser = bool (*)(const uint8_t* response, VFD* spindle);
 
-        virtual response_parser get_max_rpm(ModbusCommand& data) { return nullptr; }
+        virtual response_parser initialization_sequence(int index, ModbusCommand& data) { return nullptr; }
         virtual response_parser get_current_rpm(ModbusCommand& data) { return nullptr; }
         virtual response_parser get_current_direction(ModbusCommand& data) { return nullptr; }
         virtual response_parser get_status_ok(ModbusCommand& data) = 0;

@@ -61,7 +61,7 @@ namespace Spindles {
     // The communications task
     void VFD::vfd_cmd_task(void* pvParameters) {
         static bool unresponsive = false;  // to pop off a message once each time it becomes unresponsive
-        static int  pollidx      = 0;
+        static int  pollidx      = -1; // -1 starts the VFD initialization sequence
 
         VFD*          instance = static_cast<VFD*>(pvParameters);
         ModbusCommand next_cmd;
@@ -75,10 +75,12 @@ namespace Spindles {
 
             // First check if we should ask the VFD for the max RPM value as part of the initialization. We
             // should also query this is max_rpm is 0, because that means a previous initialization failed:
-            if ((pollidx == 0 || instance->_max_rpm == 0) && (parser = instance->get_max_rpm(next_cmd)) != nullptr) {
-                pollidx           = 1;
+            if ((pollidx < 0 || instance->_max_rpm == 0) && 
+                (parser = instance->initialization_sequence(pollidx, next_cmd)) != nullptr) {
+                --pollidx; // Move to the next poll index.
                 next_cmd.critical = true;
             } else {
+                pollidx = 1; // Done with initialization. Main sequence.
                 next_cmd.critical = false;
             }
 
@@ -86,11 +88,9 @@ namespace Spindles {
             if (parser == nullptr && xQueueReceive(vfd_cmd_queue, &next_cmd, 0) != pdTRUE) {
                 // We poll in a cycle. Note that the switch will fall through unless we encounter a hit.
                 // The weakest form here is 'get_status_ok' which should be implemented if the rest fails.
-                if (instance->_syncing)
-                {
+                if (instance->_syncing) {
                     parser = instance->get_current_rpm(next_cmd);
-                }
-                else if (safetyPollingEnabled) {
+                } else if (safetyPollingEnabled) {
                     switch (pollidx) {
                         case 1:
                             parser = instance->get_current_rpm(next_cmd);
@@ -161,8 +161,7 @@ namespace Spindles {
 
                 // Apparently some Huanyang report modbus errors in the correct way, and the rest not. Sigh.
                 // Let's just check for the condition, and truncate the first byte.
-                if (read_length > 0 && VFD_RS485_ADDR != 0 && rx_message[0] == 0)
-                {
+                if (read_length > 0 && VFD_RS485_ADDR != 0 && rx_message[0] == 0) {
                     memmove(rx_message + 1, rx_message, read_length - 1);
                 }
 
@@ -261,7 +260,7 @@ namespace Spindles {
     void VFD::init() {
         vfd_ok    = false;  // initialize
         _sync_rpm = 0;
-        _syncing = false;
+        _syncing  = false;
 
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing RS485 VFD spindle");
 
@@ -368,16 +367,9 @@ namespace Spindles {
             pins_settings_ok = false;
         }
 
-        // Check if we should get the min/max rpm from the VFD, or from the config:
-        ModbusCommand stub;
-        if (get_max_rpm(stub) == nullptr) {
-            // Use config:
-            _min_rpm = rpm_min->get();
-            _max_rpm = rpm_max->get();
-        } else {
-            // Info is available from the VFD. Basically this enables the startup procedure in the task.
-            _min_rpm = _max_rpm = 0;
-        }
+        // Use config for initial RPM values:
+        _min_rpm = rpm_min->get();
+        _max_rpm = rpm_max->get();
 
         return pins_settings_ok;
     }
@@ -461,8 +453,7 @@ namespace Spindles {
                     last = _sync_rpm;
                 }
 
-                if (unchanged == limit) 
-                {
+                if (unchanged == limit) {
                     grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical Spindle RS485 did not reach speed within the allotted timeframe");
                     mc_reset();
                     sys_rt_exec_alarm = ExecAlarm::SpindleControl;
