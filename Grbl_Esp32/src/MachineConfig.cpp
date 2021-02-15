@@ -43,33 +43,12 @@ void Axes::init() {
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Motors");
 
 #ifdef USE_STEPSTICK
-
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Using StepStick Mode");
-
-    Pin ms3_pins[MAX_N_AXIS][2] = { { StepStickMS3[X_AXIS][0]->get(), StepStickMS3[X_AXIS][1]->get() },
-                                    { StepStickMS3[Y_AXIS][0]->get(), StepStickMS3[Y_AXIS][1]->get() },
-                                    { StepStickMS3[Z_AXIS][0]->get(), StepStickMS3[Z_AXIS][1]->get() },
-                                    { StepStickMS3[A_AXIS][0]->get(), StepStickMS3[A_AXIS][1]->get() },
-                                    { StepStickMS3[B_AXIS][0]->get(), StepStickMS3[B_AXIS][1]->get() },
-                                    { StepStickMS3[C_AXIS][0]->get(), StepStickMS3[C_AXIS][1]->get() } };
-
-    for (int axis = 0; axis < MAX_NUMBER_AXIS; axis++) {
-        for (int gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
-            auto a = axis_[axis][gang_index];
-            if (a != nullptr && a->motor_ != nullptr) {
-                Pin pin = ms3_pins[axis][gang_index];
-                if (pin != Pin::UNDEFINED) {
-                    pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
-                }
-            }
-        }
-    }
 
     if (StepperResetPin->get() != Pin::UNDEFINED) {
         // !RESET pin on steppers  (MISO On Schematic)
         StepperResetPin->get().setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
     }
-
 #endif
 
     if (SteppersDisablePin->get() != Pin::UNDEFINED) {
