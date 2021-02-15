@@ -89,7 +89,7 @@ The Wifi and WebUI is based on [this project.](https://github.com/luc-github/ESP
 
 ### Contribute
 
-![](http://www.buildlog.net/blog/wp-content/uploads/2018/07/slack_hash_128.png)   There is a slack channel for the development this project. Ask for an Invite
+![](http://www.buildlog.net/blog/wp-content/uploads/2018/07/slack_hash_128.png)   There is a Discord channel for the development this project. Ask for an invite
 
 ### FAQ
 
