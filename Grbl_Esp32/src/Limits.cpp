@@ -106,7 +106,7 @@ void limits_go_home(uint8_t cycle_mask) {
     float   target[MAX_N_AXIS];
     float   max_travel = 0.0;
 
-    auto n_axis = number_axis->get();
+    auto n_axis = MachineConfig::instance()->axes_->number_axis;
     for (uint8_t idx = 0; idx < n_axis; idx++) {
         // Initialize step pin masks
         step_pin[idx] = bit(idx);
@@ -259,7 +259,7 @@ void limits_init() {
     limit_mask     = 0;
     Pin::Attr mode = Pin::Attr::Input | Pin::Attr::ISR;
 
-    auto n_axis = number_axis->get();
+    auto n_axis = MachineConfig::instance()->axes_->number_axis;
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             Pin pin;
@@ -302,7 +302,7 @@ void limits_init() {
 
 // Disables hard limits.
 void limits_disable() {
-    auto n_axis = number_axis->get();
+    auto n_axis = MachineConfig::instance()->axes_->number_axis;
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             Pin pin = LimitPins[axis][gang_index]->get();
@@ -318,7 +318,7 @@ void limits_disable() {
 // number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 AxisMask limits_get_state() {
     AxisMask pinMask = 0;
-    auto     n_axis  = number_axis->get();
+    auto     n_axis  = MachineConfig::instance()->axes_->number_axis;
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             Pin pin = LimitPins[axis][gang_index]->get();
@@ -397,7 +397,7 @@ float limitsMinPosition(uint8_t axis) {
 // Return true if exceeding limits
 bool limitsCheckTravel(float* target) {
     uint8_t idx;
-    auto    n_axis = number_axis->get();
+    auto    n_axis = MachineConfig::instance()->axes_->number_axis;
     for (idx = 0; idx < n_axis; idx++) {
         float max_mpos, min_mpos;
 

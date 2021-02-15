@@ -24,6 +24,8 @@
 */
 
 #include "Grbl.h"
+#include "MachineConfig.h"
+
 #include <stdlib.h>  // PSoc Required for labs
 
 static plan_block_t block_buffer[BLOCK_BUFFER_SIZE];  // A ring buffer for motion instructions
@@ -317,7 +319,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     } else {
         memcpy(position_steps, pl.position, sizeof(pl.position));
     }
-    auto n_axis = number_axis->get();
+    auto n_axis = MachineConfig::instance()->axes_->number_axis;
     for (idx = 0; idx < n_axis; idx++) {
         // Calculate target position in absolute steps, number of steps for each axis, and determine max step events.
         // Also, compute individual axes distance for move and prep unit vector calculations.
@@ -427,7 +429,7 @@ void plan_sync_position() {
     // TODO: For motor configurations not in the same coordinate frame as the machine position,
     // this function needs to be updated to accomodate the difference.
     uint8_t idx;
-    auto    n_axis = number_axis->get();
+    auto    n_axis = MachineConfig::instance()->axes_->number_axis;
     for (idx = 0; idx < n_axis; idx++) {
         pl.position[idx] = sys_position[idx];
     }

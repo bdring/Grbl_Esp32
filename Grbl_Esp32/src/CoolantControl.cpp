@@ -28,13 +28,13 @@ void CoolantControl::init() {
     static bool init_message = true;  // used to show messages only once.
 
     if (init_message) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Flood coolant on pin %s", CoolantFloodPin->get().name().c_str());
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Mist coolant on pin %s", CoolantMistPin->get().name().c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Flood coolant on pin %s", flood_.name().c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Mist coolant on pin %s", mist_.name().c_str());
         init_message = false;
     }
 
-    CoolantFloodPin->get().setAttr(Pin::Attr::Output);
-    CoolantMistPin->get().setAttr(Pin::Attr::Output);
+    flood_.setAttr(Pin::Attr::Output);
+    mist_.setAttr(Pin::Attr::Output);
 
     stop();
 }
@@ -44,8 +44,8 @@ CoolantState CoolantControl::get_state() {
     CoolantState cl_state = {};
     bool         pinState;
 
-    if (CoolantFloodPin->get() != Pin::UNDEFINED) {
-        auto pinState = CoolantFloodPin->get().read();
+    if (flood_ != Pin::UNDEFINED) {
+        auto pinState = flood_.read();
 #ifdef INVERT_COOLANT_FLOOD_PIN
         pinState = !pinState;
 #endif
@@ -55,8 +55,8 @@ CoolantState CoolantControl::get_state() {
         }
     }
 
-    if (CoolantMistPin->get() != Pin::UNDEFINED) {
-        auto pinState = CoolantMistPin->get().read();
+    if (mist_ != Pin::UNDEFINED) {
+        auto pinState = mist_.read();
 #ifdef INVERT_COOLANT_MIST_PIN
         pinState = !pinState;
 #endif
@@ -70,7 +70,7 @@ CoolantState CoolantControl::get_state() {
 }
 
 void CoolantControl::write(CoolantState state) {
-    if (CoolantFloodPin->get() != Pin::UNDEFINED) {
+    if (flood_ != Pin::UNDEFINED) {
         bool pinState = state.Flood;
 #ifdef INVERT_COOLANT_FLOOD_PIN
         pinState = !pinState;
@@ -78,7 +78,7 @@ void CoolantControl::write(CoolantState state) {
         flood_.write(pinState);
     }
 
-    if (CoolantMistPin->get() != Pin::UNDEFINED) {
+    if (mist_ != Pin::UNDEFINED) {
         bool pinState = state.Mist;
 #ifdef INVERT_COOLANT_MIST_PIN
         pinState = !pinState;

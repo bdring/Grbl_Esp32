@@ -21,6 +21,7 @@
 #include "Grbl.h"
 #include "Config.h"
 #include "SettingsDefinitions.h"
+#include "MachineConfig.h"
 
 // Declare system global variable structure
 system_t               sys;
@@ -216,7 +217,7 @@ float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
 
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     uint8_t idx;
-    auto    n_axis = number_axis->get();
+    auto    n_axis = MachineConfig::instance()->axes_->number_axis;
     for (idx = 0; idx < n_axis; idx++) {
         position[idx] = system_convert_axis_steps_to_mpos(steps, idx);
     }

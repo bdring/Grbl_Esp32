@@ -142,7 +142,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     uint32_t command_words   = 0;  // Tracks G and M command words. Also used for modal group violations.
     uint32_t value_words     = 0;  // Tracks value words.
     uint8_t  gc_parser_flags = GCParserNone;
-    auto     n_axis          = number_axis->get();
+    auto     n_axis          = MachineConfig::instance()->axes_->number_axis;
     float    coord_data[MAX_N_AXIS];  // Used by WCO-related commands
     uint8_t  pValue;                  // Integer value of P word
 
@@ -499,12 +499,12 @@ Error gc_execute_line(char* line, uint8_t client) {
                     case 9:
                         switch (int_value) {
                             case 7:
-                                if (CoolantMistPin->get() != Pin::UNDEFINED) {
+                                if (MachineConfig::instance()->coolant_->hasMist()) {
                                     gc_block.coolant = GCodeCoolant::M7;
                                 }
                                 break;
                             case 8:
-                                if (CoolantFloodPin->get() != Pin::UNDEFINED) {
+                                if (MachineConfig::instance()->coolant_->hasFlood()) {
                                     gc_block.coolant = GCodeCoolant::M8;
                                 }
                                 break;

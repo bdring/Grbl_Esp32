@@ -220,7 +220,7 @@ void IRAM_ATTR onStepperDriverTimer(
  * is to keep pulse timing as regular as possible.
  */
 static void stepper_pulse_func() {
-    auto n_axis = number_axis->get();
+    auto n_axis = MachineConfig::instance()->axes_->number_axis;
 
     MachineConfig::instance()->axes_->step(st.step_outbits, st.dir_outbits);
 
@@ -326,7 +326,7 @@ static void stepper_pulse_func() {
 }
 
 void stepper_init() {
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", number_axis->get());
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", MachineConfig::instance()->axes_->number_axis);
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepper_names[current_stepper]);
 
 #ifdef USE_I2S_STEPS
@@ -530,7 +530,7 @@ void st_prep_buffer() {
                 st_prep_block                 = &st_block_buffer[prep.st_block_index];
                 st_prep_block->direction_bits = pl_block->direction_bits;
                 uint8_t idx;
-                auto    n_axis = number_axis->get();
+                auto    n_axis = MachineConfig::instance()->axes_->number_axis;
 
                 // Bit-shift multiply all Bresenham data by the max AMASS level so that
                 // we never divide beyond the original data anywhere in the algorithm.

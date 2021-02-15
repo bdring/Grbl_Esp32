@@ -30,6 +30,7 @@
 */
 
 #include "Servo.h"
+#include "../MachineConfig.h"
 
 namespace Motors {
     Servo* Servo::List = NULL;
@@ -55,7 +56,7 @@ namespace Motors {
     void Servo::updateTask(void* pvParameters) {
         TickType_t       xLastWakeTime;
         const TickType_t xUpdate = SERVO_TIMER_INTERVAL;  // in ticks (typically ms)
-        auto             n_axis  = number_axis->get();
+        auto             n_axis  = MachineConfig::instance()->axes_->number_axis;
 
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
         vTaskDelay(2000);                     // initial delay

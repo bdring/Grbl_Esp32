@@ -21,6 +21,7 @@
 */
 
 #include "../Grbl.h"
+#include "../MachineConfig.h"
 
 #include <WiFi.h>
 #include <FS.h>
@@ -266,7 +267,7 @@ namespace WebUI {
         }
 #endif
         //to save time in decoding `?`
-        webPrintln(" # axis:", String(number_axis->get()));
+        webPrintln(" # axis:", String(MachineConfig::instance()->axes_->number_axis));
         return Error::Ok;
     }
 

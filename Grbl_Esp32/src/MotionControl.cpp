@@ -121,7 +121,7 @@ void mc_arc(float*            target,
 #ifdef USE_KINEMATICS
 
     uint16_t n;
-    auto     n_axis = number_axis->get();
+    auto     n_axis = MachineConfig::instance()->axes_->number_axis;
     for (n = 0; n < n_axis; n++) {
         previous_position[n] = position[n];
     }

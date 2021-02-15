@@ -35,6 +35,9 @@ class CoolantControl : public Configuration::Configurable {
 public:
     CoolantControl() = default;
 
+    bool hasMist() const { return mist_ != Pin::UNDEFINED; }
+    bool hasFlood() const { return flood_ != Pin::UNDEFINED; }
+
     // Initializes coolant control pins.
     void init();
 
