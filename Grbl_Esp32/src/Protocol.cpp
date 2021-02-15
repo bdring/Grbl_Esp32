@@ -487,7 +487,7 @@ void protocol_exec_rt_system() {
     // run state can be determined by checking the parser state.
     if (sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle) {
         sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle = false;
-        if (CoolantFloodPin->get() != Pin::UNDEFINED) {
+        if (MachineConfig::instance()->coolant_->hasFlood()) {
             if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
                 gc_state.modal.coolant.Flood = !gc_state.modal.coolant.Flood;
                 MachineConfig::instance()->coolant_->set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
@@ -496,7 +496,7 @@ void protocol_exec_rt_system() {
     }
     if (sys_rt_exec_accessory_override.bit.coolantMistOvrToggle) {
         sys_rt_exec_accessory_override.bit.coolantMistOvrToggle = false;
-        if (CoolantMistPin->get() != Pin::UNDEFINED) {
+        if (MachineConfig::instance()->coolant_->hasMist()) {
             if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
                 gc_state.modal.coolant.Mist = !gc_state.modal.coolant.Mist;
                 MachineConfig::instance()->coolant_->set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().

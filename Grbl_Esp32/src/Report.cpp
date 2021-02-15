@@ -531,7 +531,7 @@ void report_execute_startup_message(const char* line, Error status_code, uint8_t
 // Prints build info line
 void report_build_info(const char* line, uint8_t client) {
     grbl_sendf(client, "[VER:%s.%s:%s]\r\n[OPT:", GRBL_VERSION, GRBL_VERSION_BUILD, line);
-    if (CoolantMistPin->get() != Pin::UNDEFINED) {
+    if (MachineConfig::instance()->coolant_->hasMist()) {
         grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
     }
 #ifdef PARKING_ENABLE
@@ -831,11 +831,12 @@ void report_realtime_status(uint8_t client) {
                     break;
             }
 
+            // TODO FIXME SdB: This code is weird...:
             auto coolant = coolant_state;
             if (coolant.Flood) {
                 strcat(status, "F");
             }
-            if (CoolantMistPin->get() != Pin::UNDEFINED) {
+            if (MachineConfig::instance()->coolant_->hasMist()) {
                 // TODO Deal with M8 - Flood
                 if (coolant.Mist) {
                     strcat(status, "M");
