@@ -274,7 +274,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 38:  // G38 - probe
                         //only allow G38 "Probe" commands if a probe pin is defined.
-                        if (ProbePin->get() == Pin::UNDEFINED) {
+                        if (MachineConfig::instance()->probe_->exists()) {
                             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
                             FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
                         }

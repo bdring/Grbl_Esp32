@@ -720,7 +720,7 @@ void report_realtime_status(uint8_t client) {
 #ifdef REPORT_FIELD_PIN_STATE
     AxisMask    lim_pin_state  = limits_get_state();
     ControlPins ctrl_pin_state = system_control_get_state();
-    bool        prb_pin_state  = probe_get_state();
+    bool        prb_pin_state  = MachineConfig::instance()->probe_->get_state();
     if (lim_pin_state || ctrl_pin_state.value || prb_pin_state) {
         strcat(status, "|Pn:");
         if (prb_pin_state) {

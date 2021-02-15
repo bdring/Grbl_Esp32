@@ -23,23 +23,43 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Configuration/HandlerBase.h"
+#include "Configuration/Configurable.h"
 #include <cstdint>
 
 // Values that define the probing state machine.
-enum class Probe : uint8_t {
+enum class ProbeState : uint8_t {
     Off    = 0,  // Probing disabled or not in use. (Must be zero.)
     Active = 1,  // Actively watching the input pin.
 };
 
-// Probe pin initialization routine.
-void probe_init();
+class Probe : public Configuration::Configurable {
+    Pin _probePin;
 
-// setup probing direction G38.2 vs. G38.4
-void set_probe_direction(bool is_away);
+    // Inverts the probe pin state depending on user settings and probing cycle mode.
+    bool _isProbeAway = false;
 
-// Returns probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
-bool probe_get_state();
+public:
+    Probe() = default;
 
-// Monitors probe pin state and records the system position when detected. Called by the
-// stepper ISR per ISR tick.
-void probe_state_monitor();
+    bool exists() const { return _probePin != Pin::UNDEFINED; }
+
+    // Probe pin initialization routine.
+    void init();
+
+    // setup probing direction G38.2 vs. G38.4
+    void set_direction(bool is_away);
+
+    // Returns probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
+    bool get_state();
+
+    // Monitors probe pin state and records the system position when detected. Called by the
+    // stepper ISR per ISR tick.
+    void state_monitor();
+
+    // Configuration handlers.
+    void validate() const override;
+    void handle(Configuration::HandlerBase& handler) override;
+
+    ~Probe() = default;
+};

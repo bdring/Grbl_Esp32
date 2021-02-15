@@ -273,8 +273,8 @@ static void stepper_pulse_func() {
         }
     }
     // Check probing state.
-    if (sys_probe_state == Probe::Active) {
-        probe_state_monitor();
+    if (sys_probe_state == ProbeState::Active) {
+        MachineConfig::instance()->probe_->state_monitor();
     }
     // Reset step out bits.
     st.step_outbits = 0;

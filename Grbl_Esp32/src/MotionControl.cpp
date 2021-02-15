@@ -399,10 +399,10 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
     uint8_t is_no_error   = bit_istrue(parser_flags, GCParserProbeIsNoError);
     sys.probe_succeeded   = false;  // Re-initialize probe history before beginning cycle.
-    set_probe_direction(is_probe_away);
+    MachineConfig::instance()->probe_->set_direction(is_probe_away);
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
-    if (probe_get_state() ^ is_probe_away) {  // Check probe pin state.
+    if (MachineConfig::instance()->probe_->get_state() ^ is_probe_away) {  // Check probe pin state.
         sys_rt_exec_alarm = ExecAlarm::ProbeFailInitial;
         protocol_execute_realtime();
         RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
@@ -412,7 +412,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Found");
     mc_line_kins(target, pl_data, gc_state.position);
     // Activate the probing state monitor in the stepper module.
-    sys_probe_state = Probe::Active;
+    sys_probe_state = ProbeState::Active;
     // Perform probing cycle. Wait here until probe is triggered or motion completes.
     sys_rt_exec_state.bit.cycleStart = true;
     do {
@@ -428,7 +428,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
 
     // Probing cycle complete!
     // Set state variables and error out, if the probe failed and cycle with error is enabled.
-    if (sys_probe_state == Probe::Active) {
+    if (sys_probe_state == ProbeState::Active) {
         if (is_no_error) {
             memcpy(sys_probe_position, sys_position, sizeof(sys_position));
         } else {
@@ -437,7 +437,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     } else {
         sys.probe_succeeded = true;  // Indicate to system the probing cycle completed successfully.
     }
-    sys_probe_state = Probe::Off;  // Ensure probe state monitor is disabled.
+    sys_probe_state = ProbeState::Off;  // Ensure probe state monitor is disabled.
     protocol_execute_realtime();   // Check and execute run-time commands
     // Reset the stepper and planner buffers to remove the remainder of the probe motion.
     st_reset();            // Reset step segment buffer.

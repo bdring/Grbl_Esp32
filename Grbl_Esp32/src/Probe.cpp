@@ -26,49 +26,51 @@
 #include "Grbl.h"
 #include "Pin.h"
 
-// Inverts the probe pin state depending on user settings and probing cycle mode.
-static bool is_probe_away;
-
 // Probe pin initialization routine.
-void probe_init() {
+void Probe::init() {
     static bool show_init_msg = true;  // used to show message only once.
 
-    if (ProbePin->get() != Pin::UNDEFINED) {
+    if (_probePin != Pin::UNDEFINED) {
 #ifdef DISABLE_PROBE_PIN_PULL_UP
-        ProbePin->get().setAttr(Pin::Attr::Input);
+        _probePin.setAttr(Pin::Attr::Input);
 #else
-        if (ProbePin->get().capabilities().has(Pins::PinCapabilities::PullUp))
-        {
-            ProbePin->get().setAttr(Pin::Attr::Input | Pin::Attr::PullUp);  // Enable internal pull-up resistors. Normal high operation.
-        }
-        else {
-            ProbePin->get().setAttr(Pin::Attr::Input);
+        if (_probePin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            _probePin.setAttr(Pin::Attr::Input | Pin::Attr::PullUp);  // Enable internal pull-up resistors. Normal high operation.
+        } else {
+            _probePin.setAttr(Pin::Attr::Input);
         }
 #endif
 
         if (show_init_msg) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe on pin %s", ProbePin->get().name().c_str());
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe on pin %s", _probePin.name().c_str());
             show_init_msg = false;
         }
     }
 }
 
-void set_probe_direction(bool is_away) {
-    is_probe_away = is_away;
+void Probe::set_direction(bool is_away) {
+    _isProbeAway = is_away;
 }
 
 // Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
-bool probe_get_state() {
-    return ProbePin->get().read() ^ probe_invert->get();
+bool Probe::get_state() {
+    return _probePin.read() ^ probe_invert->get();
 }
 
 // Monitors probe pin state and records the system position when detected. Called by the
 // stepper ISR per ISR tick.
 // NOTE: This function must be extremely efficient as to not bog down the stepper ISR.
-void probe_state_monitor() {
-    if (probe_get_state() ^ is_probe_away) {
-        sys_probe_state = Probe::Off;
+void Probe::state_monitor() {
+    if (get_state() ^ _isProbeAway) {
+        sys_probe_state = ProbeState::Off;
         memcpy(sys_probe_position, sys_position, sizeof(sys_position));
         sys_rt_exec_state.bit.motionCancel = true;
     }
+}
+
+void Probe::validate() const {}
+
+void Probe::handle(Configuration::HandlerBase& handler)
+{
+    handler.handle("pin", _probePin);
 }

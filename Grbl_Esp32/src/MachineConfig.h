@@ -5,6 +5,7 @@
 #include "Configuration/HandlerBase.h"
 #include "Configuration/Configurable.h"
 #include "CoolantControl.h"
+#include "Probe.h"
 
 namespace Motors {
     class Motor;
@@ -81,6 +82,7 @@ public:
     Axes* axes_ = nullptr;
     I2SO* i2so_ = nullptr;
     CoolantControl* coolant_ = nullptr;
+    Probe* probe_ = nullptr;
 
     MachineConfig() = default;
 

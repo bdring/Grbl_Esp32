@@ -306,6 +306,7 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("axes", axes_);
     handler.handle("i2so", i2so_);
     handler.handle("coolant", coolant_);
+    handler.handle("probe", probe_);
 }
 
 bool MachineConfig::load(const char* filename) {
@@ -399,8 +400,10 @@ MachineConfig::~MachineConfig() {
     delete axes_;
     delete i2so_;
     delete coolant_;
+    delete probe_;
 
     axes_ = nullptr;
     i2so_ = nullptr;
     coolant_ = nullptr;
+    probe_ = nullptr;
 }
