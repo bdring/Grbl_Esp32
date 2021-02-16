@@ -98,7 +98,7 @@ class Axes : public Configuration::Configurable {
 public:
     Axes();
 
-    int _numberAxis = 3;
+    int   _numberAxis = 3;
     Axis* _axis[MAX_NUMBER_AXIS];
 
     // Some small helpers to find the axis index and axis ganged index for a given motor. This
@@ -123,9 +123,9 @@ public:
     ~Axes();
 };
 
-class I2SO : public Configuration::Configurable {
+class I2SOBus : public Configuration::Configurable {
 public:
-    I2SO() = default;
+    I2SOBus() = default;
 
     Pin _bck;
     Pin _data;
@@ -134,16 +134,33 @@ public:
     void validate() const override;
     void handle(Configuration::HandlerBase& handler) override;
 
-    ~I2SO() {}
+    ~I2SOBus() = default;
+};
+
+class SPIBus : public Configuration::Configurable {
+public:
+    SPIBus() = default;
+
+    Pin _ss;
+    Pin _miso;
+    Pin _mosi;
+    Pin _sck;
+
+    void validate() const override;
+    void handle(Configuration::HandlerBase& handler) override;
+
+    ~SPIBus() = default;
 };
 
 class MachineConfig : public Configuration::Configurable {
 public:
-    MachineConfig()          = default;
-    Axes*           _axes    = nullptr;
-    I2SO*           _i2so    = nullptr;
-    CoolantControl* _coolant = nullptr;
-    Probe*          _probe   = nullptr;
+    MachineConfig()            = default;
+    Axes*           _axes      = nullptr;
+    SPIBus*         _spi       = nullptr;
+    I2SOBus*        _i2so      = nullptr;
+    CoolantControl* _coolant   = nullptr;
+    Probe*          _probe     = nullptr;
+    bool            _laserMode = false;
 
     static MachineConfig*& instance() {
         static MachineConfig* instance = nullptr;

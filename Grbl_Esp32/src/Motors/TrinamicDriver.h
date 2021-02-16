@@ -82,6 +82,11 @@ namespace Motors {
         bool            _has_errors;
         bool            _disabled;
 
+        float _run_current = 0.25;
+        float _hold_current = 0.25;
+        int _microsteps = 256;
+        int _stallguard = 0;
+
         TrinamicMode _mode = TrinamicMode::None;
         bool         test();
         void         set_mode(bool isHoming);
@@ -128,6 +133,10 @@ namespace Motors {
         void handle(Configuration::HandlerBase& handler) override {
             handler.handle("cs", _cs_pin);
             handler.handle("r_sense", _r_sense);
+            handler.handle("run_current", _run_current);
+            handler.handle("hold_current", _hold_current);
+            handler.handle("microsteps", _microsteps);
+            handler.handle("stallguard", _stallguard);
 
             StandardStepper::handle(handler);
         }

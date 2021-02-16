@@ -29,21 +29,13 @@
 */
 
 #include "RcServo.h"
+#include "../MachineConfig.h"
 
 namespace Motors {
     // RcServo::RcServo(Pin pwm_pin) : Servo(), _pwm_pin(pwm_pin) {}
 
     void RcServo::init() {
         _axis_index = axis_index();
-
-        // TODO FIXME: This is leaking if init() is called multiple times.
-        char* setting_cal_min = (char*)malloc(20);
-        snprintf(setting_cal_min, 20, "%c/RcServo/Cal/Min", report_get_axis_letter(_axis_index));
-        rc_servo_cal_min = new FloatSetting(EXTENDED, WG, NULL, setting_cal_min, 1.0, 0.5, 2.0);
-
-        char* setting_cal_max = (char*)malloc(20);
-        snprintf(setting_cal_max, 20, "%c/RcServo/Cal/Max", report_get_axis_letter(_axis_index));
-        rc_servo_cal_max = new FloatSetting(EXTENDED, WG, NULL, setting_cal_max, 1.0, 0.5, 2.0);
 
         auto pwmNative = _pwm_pin.getNative(Pin::Capabilities::PWM);
 
@@ -92,8 +84,8 @@ namespace Motors {
 
     // Homing justs sets the new system position and the servo will move there
     bool RcServo::set_homing_mode(bool isHoming) {
-        sys_position[_axis_index] =
-            axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
+        auto axis                 = MachineConfig::instance()->_axes->_axis[_axis_index];
+        sys_position[_axis_index] = axis->_homing->_mpos * axis->_stepsPerMm;  // convert to steps
 
         set_location();   // force the PWM to update now
         vTaskDelay(750);  // give time to move
@@ -130,8 +122,8 @@ namespace Motors {
     }
 
     void RcServo::read_settings() {
-        _pwm_pulse_min = SERVO_MIN_PULSE * rc_servo_cal_min->get();
-        _pwm_pulse_max = SERVO_MAX_PULSE * rc_servo_cal_max->get();
+        _pwm_pulse_min = SERVO_MIN_PULSE * _cal_min;
+        _pwm_pulse_max = SERVO_MAX_PULSE * _cal_max;
 
         if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {  // normal direction
             swap(_pwm_pulse_min, _pwm_pulse_max);
@@ -139,8 +131,7 @@ namespace Motors {
     }
 
     // Configuration registration
-    namespace
-    {
+    namespace {
         MotorFactory::InstanceBuilder<RcServo> registration("rc_servo");
     }
 }

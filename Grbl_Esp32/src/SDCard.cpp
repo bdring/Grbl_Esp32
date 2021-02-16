@@ -19,6 +19,7 @@
 */
 
 #include "SDCard.h"
+#include "MachineConfig.h"
 
 File                       myFile;
 bool                       SD_ready_next = false;  // Grbl has processed a line and is waiting for another
@@ -130,11 +131,14 @@ uint8_t sd_state = SDCARD_IDLE;
 uint8_t get_sd_state(bool refresh) {
     // Before we use the SD library, we *must* make sure SPI is properly initialized. Re-initialization 
     // fortunately doesn't change any of the settings.
-    auto ssPin = SPISSPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-    auto mosiPin = SPIMOSIPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-    auto sckPin = SPISCKPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-    auto misoPin = SPIMISOPin->get().getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
-    SPI.begin(sckPin, misoPin, mosiPin, ssPin);
+    auto spiConfig = MachineConfig::instance()->_spi;
+
+    auto ssPin = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+    auto mosiPin = spiConfig->_mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+    auto sckPin = spiConfig->_sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+    auto misoPin = spiConfig->_miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
+
+    SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
 
     //no need to go further if SD detect is not correct
     if (SDCardDetPin->get() != Pin::UNDEFINED) {

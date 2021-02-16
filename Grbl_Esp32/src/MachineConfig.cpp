@@ -296,7 +296,7 @@ Axes::~Axes() {
     }
 }
 
-void I2SO::validate() const {
+void I2SOBus::validate() const {
     if (!_bck.undefined() || !_data.undefined() || !_ws.undefined()) {
         Assert(!_bck.undefined(), "I2SO BCK pin should be configured once.");
         Assert(!_data.undefined(), "I2SO Data pin should be configured once.");
@@ -304,10 +304,26 @@ void I2SO::validate() const {
     }
 }
 
-void I2SO::handle(Configuration::HandlerBase& handler) {
+void I2SOBus::handle(Configuration::HandlerBase& handler) {
     handler.handle("bck", _bck);
     handler.handle("data", _data);
     handler.handle("ws", _ws);
+}
+
+void SPIBus::validate() const {
+    if (!_ss.undefined() || !_miso.undefined() || !_mosi.undefined() || !_sck.undefined()) {
+        Assert(!_ss.undefined(), "SPI SS pin should be configured once.");
+        Assert(!_miso.undefined(), "SPI MISO pin should be configured once.");
+        Assert(!_mosi.undefined(), "SPI MOSI pin should be configured once.");
+        Assert(!_sck.undefined(), "SPI SCK pin should be configured once.");
+    }
+}
+
+void SPIBus::handle(Configuration::HandlerBase& handler) {
+    handler.handle("ss", _ss);
+    handler.handle("miso", _miso);
+    handler.handle("mosi", _mosi);
+    handler.handle("mosi", _sck);
 }
 
 void MachineConfig::validate() const {}
@@ -315,8 +331,10 @@ void MachineConfig::validate() const {}
 void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("axes", _axes);
     handler.handle("i2so", _i2so);
+    handler.handle("spi", _spi);
     handler.handle("coolant", _coolant);
     handler.handle("probe", _probe);
+    handler.handle("laser_mode", _laserMode);
 }
 
 bool MachineConfig::load(const char* filename) {

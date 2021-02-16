@@ -33,6 +33,7 @@
 
 */
 #include "VFDSpindle.h"
+#include "../MachineConfig.h"
 
 const uart_port_t VFD_RS485_UART_PORT  = UART_NUM_2;  // hard coded for this port right now
 const int         VFD_RS485_BUF_SIZE   = 127;
@@ -318,7 +319,7 @@ namespace Spindles {
             pins_settings_ok = false;
         }
 
-        if (laser_mode->get()) {
+        if (MachineConfig::instance()->_laserMode) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");
             pins_settings_ok = false;
         }

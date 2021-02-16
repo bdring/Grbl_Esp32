@@ -475,7 +475,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                                 gc_block.modal.spindle = SpindleState::Cw;
                                 break;
                             case 4:  // Supported if SPINDLE_DIR_PIN is defined or laser mode is on.
-                                if (spindle->is_reversable || laser_mode->get()) {
+                                if (spindle->is_reversable || MachineConfig::instance()->_laserMode) {
                                     gc_block.modal.spindle = SpindleState::Ccw;
                                 } else {
                                     FAIL(Error::GcodeUnsupportedCommand);
@@ -1292,7 +1292,7 @@ Error gc_execute_line(char* line, uint8_t client) {
         return status;
     }
     // If in laser mode, setup laser power based on current and past parser conditions.
-    if (laser_mode->get()) {
+    if (MachineConfig::instance()->_laserMode) {
         if (!((gc_block.modal.motion == Motion::Linear) || (gc_block.modal.motion == Motion::CwArc) ||
               (gc_block.modal.motion == Motion::CcwArc))) {
             gc_parser_flags |= GCParserLaserDisable;

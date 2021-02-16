@@ -42,8 +42,8 @@ namespace Motors {
 
         bool _disabled;
 
-        FloatSetting* rc_servo_cal_min;
-        FloatSetting* rc_servo_cal_max;
+        float _cal_min;
+        float _cal_max;
 
         int _axis_index = -1;
 
@@ -66,6 +66,8 @@ namespace Motors {
 
         void handle(Configuration::HandlerBase& handler) override {
             handler.handle("pwm", _pwm_pin);
+            handler.handle("cal_min", _cal_min);
+            handler.handle("cal_max", _cal_max);
         }
 
         // Name of the configurable. Must match the name registered in the cpp file.

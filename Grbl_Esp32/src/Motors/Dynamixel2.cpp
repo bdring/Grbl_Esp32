@@ -197,8 +197,10 @@ namespace Motors {
         if (_has_errors) {
             return false;
         }
+        
+        auto axis = MachineConfig::instance()->_axes->_axis[_axis_index];
         sys_position[_axis_index] =
-            axis_settings[_axis_index]->home_mpos->get() * axis_settings[_axis_index]->steps_per_mm->get();  // convert to steps
+            axis->_homing->_mpos * axis->_stepsPerMm;  // convert to steps
 
         set_disable(false);
         set_location();  // force the PWM to update now
@@ -229,8 +231,10 @@ namespace Motors {
 
             read_settings();
 
-            int32_t pos_min_steps = lround(limitsMinPosition(_axis_index) * axis_settings[_axis_index]->steps_per_mm->get());
-            int32_t pos_max_steps = lround(limitsMaxPosition(_axis_index) * axis_settings[_axis_index]->steps_per_mm->get());
+            auto axis = MachineConfig::instance()->_axes->_axis[_axis_index];
+
+            int32_t pos_min_steps = lround(limitsMinPosition(_axis_index) * axis->_stepsPerMm);
+            int32_t pos_max_steps = lround(limitsMaxPosition(_axis_index) * axis->_stepsPerMm);
 
             int32_t temp = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
 

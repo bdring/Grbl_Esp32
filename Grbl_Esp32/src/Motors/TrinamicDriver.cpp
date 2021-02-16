@@ -90,10 +90,12 @@ namespace Motors {
 
         config_message();
 
-        auto ssPin   = SPISSPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        auto mosiPin = SPIMOSIPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        auto sckPin  = SPISCKPin->get().getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        auto misoPin = SPIMISOPin->get().getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
+        auto spiConfig = MachineConfig::instance()->_spi;
+
+        auto ssPin   = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto mosiPin = spiConfig->_mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto sckPin  = spiConfig->_sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto misoPin = spiConfig->_miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
 
         SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
 
@@ -197,18 +199,18 @@ namespace Motors {
             return;
         }
 
-        uint16_t run_i_ma = (uint16_t)(axis_settings[axis_index()]->run_current->get() * 1000.0);
+        uint16_t run_i_ma = (uint16_t)(_run_current * 1000.0);
         float    hold_i_percent;
 
-        if (axis_settings[axis_index()]->run_current->get() == 0) {
+        if (_run_current == 0) {
             hold_i_percent = 0;
         } else {
-            hold_i_percent = axis_settings[axis_index()]->hold_current->get() / axis_settings[axis_index()]->run_current->get();
+            hold_i_percent = _hold_current / _run_current;
             if (hold_i_percent > 1.0)
                 hold_i_percent = 1.0;
         }
 
-        tmcstepper->microsteps(axis_settings[axis_index()]->microsteps->get());
+        tmcstepper->microsteps(_microsteps);
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
     }
 
@@ -250,14 +252,18 @@ namespace Motors {
                 break;
             case TrinamicMode ::StallGuard:
                 //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard");
-                tmcstepper->en_pwm_mode(false);
-                tmcstepper->pwm_autoscale(false);
-                tmcstepper->TCOOLTHRS(calc_tstep(homing_feed_rate->get(), 150.0));
-                tmcstepper->THIGH(calc_tstep(homing_feed_rate->get(), 60.0));
-                tmcstepper->sfilt(1);
-                tmcstepper->diag1_stall(true);  // stallguard i/o is on diag1
-                tmcstepper->sgt(axis_settings[axis_index()]->stallguard->get());
-                break;
+                {
+                    auto feedrate = MachineConfig::instance()->_axes->_axis[axis_index()]->_homing->_feedRate;
+
+                    tmcstepper->en_pwm_mode(false);
+                    tmcstepper->pwm_autoscale(false);
+                    tmcstepper->TCOOLTHRS(calc_tstep(feedrate, 150.0));
+                    tmcstepper->THIGH(calc_tstep(feedrate, 60.0));
+                    tmcstepper->sfilt(1);
+                    tmcstepper->diag1_stall(true);  // stallguard i/o is on diag1
+                    tmcstepper->sgt(_stallguard);
+                    break;
+                }
             default:
                 grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_UNDEFINED");
         }
@@ -284,7 +290,7 @@ namespace Motors {
                        tmcstepper->stallguard(),
                        tmcstepper->sg_result(),
                        feedrate,
-                       axis_settings[axis_index()]->stallguard->get());
+                       _stallguard);
 
         TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
         status.sr = tmcstepper->DRV_STATUS();
@@ -308,9 +314,8 @@ namespace Motors {
     // This is used to set the stallguard window from the homing speed.
     // The percent is the offset on the window
     uint32_t TrinamicDriver::calc_tstep(float speed, float percent) {
-        double tstep =
-            speed / 60.0 * axis_settings[axis_index()]->steps_per_mm->get() * (256.0 / axis_settings[axis_index()]->microsteps->get());
-        tstep = TRINAMIC_FCLK / tstep * percent / 100.0;
+        double tstep = speed / 60.0 * MachineConfig::instance()->_axes->_axis[axis_index()]->_stepsPerMm * (256.0 / _microsteps);
+        tstep        = TRINAMIC_FCLK / tstep * percent / 100.0;
 
         return static_cast<uint32_t>(tstep);
     }
@@ -431,8 +436,7 @@ namespace Motors {
     }
 
     // Configuration registration
-    namespace
-    {
+    namespace {
         MotorFactory::InstanceBuilder<TMC2130> registration_2130("tmc_2130");
         MotorFactory::InstanceBuilder<TMC5160> registration_5160("tmc_5160");
     }
