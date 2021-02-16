@@ -142,7 +142,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     uint32_t command_words   = 0;  // Tracks G and M command words. Also used for modal group violations.
     uint32_t value_words     = 0;  // Tracks value words.
     uint8_t  gc_parser_flags = GCParserNone;
-    auto     n_axis          = MachineConfig::instance()->axes_->number_axis;
+    auto     n_axis          = MachineConfig::instance()->_axes->_numberAxis;
     float    coord_data[MAX_N_AXIS];  // Used by WCO-related commands
     uint8_t  pValue;                  // Integer value of P word
 
@@ -274,7 +274,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 38:  // G38 - probe
                         //only allow G38 "Probe" commands if a probe pin is defined.
-                        if (MachineConfig::instance()->probe_->exists()) {
+                        if (MachineConfig::instance()->_probe->exists()) {
                             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "No probe pin defined");
                             FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
                         }
@@ -499,12 +499,12 @@ Error gc_execute_line(char* line, uint8_t client) {
                     case 9:
                         switch (int_value) {
                             case 7:
-                                if (MachineConfig::instance()->coolant_->hasMist()) {
+                                if (MachineConfig::instance()->_coolant->hasMist()) {
                                     gc_block.coolant = GCodeCoolant::M7;
                                 }
                                 break;
                             case 8:
-                                if (MachineConfig::instance()->coolant_->hasFlood()) {
+                                if (MachineConfig::instance()->_coolant->hasFlood()) {
                                     gc_block.coolant = GCodeCoolant::M8;
                                 }
                                 break;
@@ -1380,15 +1380,15 @@ Error gc_execute_line(char* line, uint8_t client) {
             break;
         case GCodeCoolant::M7:
             gc_state.modal.coolant.Mist = 1;
-            MachineConfig::instance()->coolant_->sync(gc_state.modal.coolant);
+            MachineConfig::instance()->_coolant->sync(gc_state.modal.coolant);
             break;
         case GCodeCoolant::M8:
             gc_state.modal.coolant.Flood = 1;
-            MachineConfig::instance()->coolant_->sync(gc_state.modal.coolant);
+            MachineConfig::instance()->_coolant->sync(gc_state.modal.coolant);
             break;
         case GCodeCoolant::M9:
             gc_state.modal.coolant = {};
-            MachineConfig::instance()->coolant_->sync(gc_state.modal.coolant);
+            MachineConfig::instance()->_coolant->sync(gc_state.modal.coolant);
             break;
     }
     pl_data->coolant = gc_state.modal.coolant;  // Set state for planner use.
@@ -1592,7 +1592,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 system_flag_wco_change();  // Set to refresh immediately just in case something altered.
                 spindle->set_state(SpindleState::Disable, 0);
 
-                MachineConfig::instance()->coolant_->off();
+                MachineConfig::instance()->_coolant->off();
             }
             report_feedback_message(Message::ProgramEnd);
 #ifdef USE_M30

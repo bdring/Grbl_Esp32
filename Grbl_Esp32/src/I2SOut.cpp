@@ -959,14 +959,14 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
   return -1 ... already initialized
 */
 int IRAM_ATTR i2s_out_init() {
-    auto i2so = MachineConfig::instance()->i2so_;
+    auto i2so = MachineConfig::instance()->_i2so;
     if (!i2so) {
         return -1;
     }
 
-    Pin wsPin   = i2so->ws_;
-    Pin bckPin  = i2so->bck_;
-    Pin dataPin = i2so->data_;
+    Pin& wsPin   = i2so->_ws;
+    Pin& bckPin  = i2so->_bck;
+    Pin& dataPin = i2so->_data;
 
     // Check capabilities:
     if (!wsPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {

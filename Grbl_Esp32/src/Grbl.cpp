@@ -51,8 +51,8 @@ void grbl_init() {
 #endif
 
         stepper_init();  // Configure stepper pins and interrupt timers
-        MachineConfig::instance()->axes_->read_settings();
-        MachineConfig::instance()->axes_->init();
+        MachineConfig::instance()->_axes->read_settings();
+        MachineConfig::instance()->_axes->init();
 
         system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
@@ -121,9 +121,9 @@ static void reset_variables() {
     gc_init();                             // Set g-code parser to default state
     spindle->stop();
 
-    MachineConfig::instance()->coolant_->init();
+    MachineConfig::instance()->_coolant->init();
     limits_init();
-    MachineConfig::instance()->probe_->init();
+    MachineConfig::instance()->_probe->init();
     plan_reset();  // Clear block buffer and planner variables
     st_reset();    // Clear stepper subsystem variables
     // Sync cleared gcode and planner positions to current system position.

@@ -121,7 +121,7 @@ void mc_arc(float*            target,
 #ifdef USE_KINEMATICS
 
     uint16_t n;
-    auto     n_axis = MachineConfig::instance()->axes_->number_axis;
+    auto     n_axis = MachineConfig::instance()->_axes->_numberAxis;
     for (n = 0; n < n_axis; n++) {
         previous_position[n] = position[n];
     }
@@ -399,10 +399,10 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
     uint8_t is_no_error   = bit_istrue(parser_flags, GCParserProbeIsNoError);
     sys.probe_succeeded   = false;  // Re-initialize probe history before beginning cycle.
-    MachineConfig::instance()->probe_->set_direction(is_probe_away);
+    MachineConfig::instance()->_probe->set_direction(is_probe_away);
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
-    if (MachineConfig::instance()->probe_->get_state() ^ is_probe_away) {  // Check probe pin state.
+    if (MachineConfig::instance()->_probe->get_state() ^ is_probe_away) {  // Check probe pin state.
         sys_rt_exec_alarm = ExecAlarm::ProbeFailInitial;
         protocol_execute_realtime();
         RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
@@ -503,7 +503,7 @@ void mc_reset() {
         // Kill spindle and coolant.
         spindle->stop();
 
-        MachineConfig::instance()->coolant_->stop();
+        MachineConfig::instance()->_coolant->stop();
 
         // turn off all User I/O immediately
         sys_io_control(0xFF, LOW, false);

@@ -217,7 +217,7 @@ float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
 
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     uint8_t idx;
-    auto    n_axis = MachineConfig::instance()->axes_->number_axis;
+    auto    n_axis = MachineConfig::instance()->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
         position[idx] = system_convert_axis_steps_to_mpos(steps, idx);
     }

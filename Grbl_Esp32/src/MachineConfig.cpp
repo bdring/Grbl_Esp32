@@ -12,30 +12,70 @@
 
 #include <SPIFFS.h>
 #include <cstdio>
+#include <cstring>
 
-// Configuration system helpers:
-void Axis::validate() const {
-    Assert(motor_ != nullptr, "Motor should be defined when an axis is defined.");
+void Endstops::validate() const {
+    if (!_dual.undefined()) {
+        Assert(_positive.undefined(), "If dual endstops are defined, you cannot also define positive and negative endstops");
+        Assert(_negative.undefined(), "If dual endstops are defined, you cannot also define positive and negative endstops");
+    }
+    if (!_positive.undefined() || !_negative.undefined()) {
+        Assert(_positive.undefined(), "If positive or negative endstops are defined, you cannot also define dual endstops");
+    }
 }
 
+void Endstops::handle(Configuration::HandlerBase& handler) {
+    handler.handle("positive", _positive);
+    handler.handle("negative", _negative);
+    handler.handle("dual", _dual);
+    handler.handle("hard_limits", _hardLimits);
+}
+
+void Gang::validate() const {}
+void Gang::handle(Configuration::HandlerBase& handler) {
+    handler.handle("endstops", _endstops);
+    Motors::MotorFactory::handle(handler, _motor);
+}
+
+Gang::~Gang() {
+    delete _motor;
+    delete _endstops;
+}
+
+void Axis::validate() const {}
+
 void Axis::handle(Configuration::HandlerBase& handler) {
-    Motors::MotorFactory::handle(handler, motor_);
+    char tmp[6];
+    tmp[0] = 0;
+    strcat(tmp, "gang");
+
+    for (size_t g = 0; g < MAX_NUMBER_GANGED; ++g) {
+        tmp[4] = char(g + '0');
+        tmp[5] = '\0';
+
+        handler.handle(tmp, _gangs[g]);
+    }
 }
 
 // Checks if a motor matches this axis:
 bool Axis::hasMotor(const Motors::Motor* const motor) const {
-    return motor_ == motor;
+    for (uint8_t gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
+        if (_gangs[gang_index]->_motor == motor) {
+            return true;
+        }
+    }
+    return false;
 }
 
 Axis::~Axis() {
-    delete motor_;
+    for (uint8_t gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
+        delete _gangs[gang_index];
+    }
 }
 
 Axes::Axes() : axis_() {
     for (int i = 0; i < MAX_NUMBER_AXIS; ++i) {
-        for (int j = 0; j <= MAX_NUMBER_GANGED; ++j) {
-            axis_[i][j] = nullptr;
-        }
+        axis_[i] = nullptr;
     }
 }
 
@@ -57,15 +97,15 @@ void Axes::init() {
     }
 
     // certain motors need features to be turned on. Check them here
-    for (uint8_t axis = X_AXIS; axis < number_axis; axis++) {
-        for (uint8_t gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
-            auto a = axis_[axis][gang_index];
+    for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
+        for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
+            auto& a = axis_[axis]->_gangs[gang_index]->_motor;
 
-            if (a->motor_ == nullptr) {
-                a->motor_ = new Motors::Nullmotor();
+            if (a == nullptr) {
+                a = new Motors::Nullmotor();
             }
 
-            a->motor_->init();
+            a->init();
         }
     }
 }
@@ -83,10 +123,10 @@ void Axes::set_disable(bool disable) {
 */
 
     // now loop through all the motors to see if they can individually disable
-    for (int axis = 0; axis < number_axis; axis++) {
-        for (int gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
-            auto a = axis_[axis][gang_index];
-            a->motor_->set_disable(disable);
+    for (int axis = 0; axis < _numberAxis; axis++) {
+        for (int gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
+            auto a = axis_[axis]->_gangs[gang_index]->_motor;
+            a->set_disable(disable);
         }
     }
 
@@ -99,10 +139,10 @@ void Axes::set_disable(bool disable) {
 
 void Axes::read_settings() {
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Read Settings");
-    for (uint8_t axis = X_AXIS; axis < number_axis; axis++) {
-        for (uint8_t gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
-            auto a = axis_[axis][gang_index];
-            a->motor_->read_settings();
+    for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
+        for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
+            auto a = axis_[axis]->_gangs[gang_index]->_motor;
+            a->read_settings();
         }
     }
 }
@@ -112,19 +152,19 @@ void Axes::read_settings() {
 uint8_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
     uint8_t can_home = 0;
 
-    for (uint8_t axis = X_AXIS; axis < number_axis; axis++) {
+    for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
         if (bitnum_istrue(homing_mask, axis)) {
-            auto a = axis_[axis][0];
-            if (a != nullptr && a->motor_ != nullptr) {
-                auto motor = a->motor_;
+            auto a = axis_[axis];
+            if (a != nullptr) {
+                auto motor = a->_gangs[0]->_motor;
 
                 if (motor->set_homing_mode(isHoming)) {
                     bitnum_true(can_home, axis);
                 }
 
-                for (uint8_t gang_index = 1; gang_index < MAX_NUMBER_GANGED; gang_index++) {
-                    auto a2 = axis_[axis][gang_index];
-                    a2->motor_->set_homing_mode(isHoming);
+                for (uint8_t gang_index = 1; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
+                    auto a2 = axis_[axis]->_gangs[gang_index]->_motor;
+                    a2->set_homing_mode(isHoming);
                 }
             }
         }
@@ -134,7 +174,7 @@ uint8_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
 }
 
 void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
-    auto n_axis = number_axis;
+    auto n_axis = _numberAxis;
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
 
     // Set the direction pins, but optimize for the common
@@ -146,11 +186,11 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
         for (int axis = X_AXIS; axis < n_axis; axis++) {
             bool thisDir = bitnum_istrue(dir_mask, axis);
 
-            for (uint8_t gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
-                auto a = axis_[axis][gang_index];
+            for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
+                auto a = axis_[axis]->_gangs[gang_index]->_motor;
 
-                if (a != nullptr && a->motor_ != nullptr) {
-                    a->motor_->set_direction(thisDir);
+                if (a != nullptr) {
+                    a->set_direction(thisDir);
                 }
             }
         }
@@ -161,15 +201,15 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
     // gangs.
 
     // Turn on step pulses for motors that are supposed to step now
-    for (int axis = X_AXIS; axis < number_axis; axis++) {
+    for (int axis = X_AXIS; axis < _numberAxis; axis++) {
         if (bitnum_istrue(step_mask, axis)) {
-            auto a = axis_[axis];
+            auto a = axis_[axis]->_gangs[0]->_motor;
 
             if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
-                a[0]->motor_->step();
+                a->step();
             }
             if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
-                a[1]->motor_->step();
+                a->step();
             }
         }
     }
@@ -179,22 +219,22 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
             auto a = axis_[axis];
 
             if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
-                a[0]->motor_->step();
+                a->_gangs[0]->_motor->step();
             }
             if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
-                a[1]->motor_->step();
+                a->_gangs[1]->_motor->step();
             }
         }
     }
 }
 // Turn all stepper pins off
 void Axes::unstep() {
-    auto n_axis = number_axis;
+    auto n_axis = _numberAxis;
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-        for (uint8_t gang_index = 0; gang_index < MAX_NUMBER_GANGED; gang_index++) {
-            auto a = axis_[axis][gang_index];
-            a->motor_->unstep();
-            a->motor_->unstep();
+        for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
+            auto a = axis_[axis]->_gangs[gang_index]->_motor;
+            a->unstep();
+            a->unstep();
         }
     }
 }
@@ -202,9 +242,9 @@ void Axes::unstep() {
 // Some small helpers to find the axis index and axis ganged index for a given motor. This
 // is helpful for some motors that need this info, as well as debug information.
 size_t Axes::findAxisIndex(const Motors::Motor* const motor) const {
-    for (int i = 0; i < number_axis; ++i) {
-        for (int j = 0; j <= MAX_NUMBER_GANGED; ++j) {
-            if (axis_[i][j] != nullptr && axis_[i][j]->hasMotor(motor)) {
+    for (int i = 0; i < _numberAxis; ++i) {
+        for (int j = 0; j < Axis::MAX_NUMBER_GANGED; ++j) {
+            if (axis_[i] != nullptr && axis_[i]->hasMotor(motor)) {
                 return i;
             }
         }
@@ -215,10 +255,12 @@ size_t Axes::findAxisIndex(const Motors::Motor* const motor) const {
 }
 
 size_t Axes::findAxisGanged(const Motors::Motor* const motor) const {
-    for (int i = 0; i < number_axis; ++i) {
-        for (int j = 0; j <= MAX_NUMBER_GANGED; ++j) {
-            if (axis_[i][j] != nullptr && axis_[i][j]->hasMotor(motor)) {
-                return j;
+    for (int i = 0; i < _numberAxis; ++i) {
+        if (axis_[i] != nullptr && axis_[i]->hasMotor(motor)) {
+            for (int j = 0; j < Axis::MAX_NUMBER_GANGED; ++j) {
+                if (axis_[i]->_gangs[j]->_motor == motor) {
+                    return j;
+                }
             }
         }
     }
@@ -231,7 +273,7 @@ size_t Axes::findAxisGanged(const Motors::Motor* const motor) const {
 void Axes::validate() const {}
 
 void Axes::handle(Configuration::HandlerBase& handler) {
-    handler.handle("number_axis", number_axis);
+    handler.handle("_numberAxis", _numberAxis);
 
     const char* allAxis = "xyzabc";
 
@@ -243,49 +285,38 @@ void Axes::handle(Configuration::HandlerBase& handler) {
         tmp[1] = '\0';
 
         if (handler.handlerType() == Configuration::HandlerType::Runtime || handler.handlerType() == Configuration::HandlerType::Parser) {
-            // 'x' is a shorthand for 'x1', so we don't generate it.
-            handler.handle(tmp, axis_[a][1]);
-        }
-
-        for (size_t g = 1; g <= MAX_NUMBER_GANGED; ++g) {
-            tmp[1] = char('0' + g);
-            handler.handle(tmp, axis_[a][g]);
+            handler.handle(tmp, axis_[a]);
         }
     }
 }
 
 Axes::~Axes() {
     for (int i = 0; i < MAX_NUMBER_AXIS; ++i) {
-        for (int j = 0; j <= MAX_NUMBER_GANGED; ++j) {
-            delete axis_[i][j];
-        }
+        delete axis_[i];
     }
 }
 
 void I2SO::validate() const {
-    if (!bck_.undefined() ||
-        !data_.undefined() ||
-        !ws_.undefined())
-    {
-        Assert(!bck_.undefined(), "I2SO BCK pin should be configured once.");
-        Assert(!data_.undefined(), "I2SO Data pin should be configured once.");
-        Assert(!ws_.undefined(), "I2SO WS pin should be configured once.");
+    if (!_bck.undefined() || !_data.undefined() || !_ws.undefined()) {
+        Assert(!_bck.undefined(), "I2SO BCK pin should be configured once.");
+        Assert(!_data.undefined(), "I2SO Data pin should be configured once.");
+        Assert(!_ws.undefined(), "I2SO WS pin should be configured once.");
     }
 }
 
 void I2SO::handle(Configuration::HandlerBase& handler) {
-    handler.handle("bck", bck_);
-    handler.handle("data", data_);
-    handler.handle("ws", ws_);
+    handler.handle("bck", _bck);
+    handler.handle("data", _data);
+    handler.handle("ws", _ws);
 }
 
 void MachineConfig::validate() const {}
 
 void MachineConfig::handle(Configuration::HandlerBase& handler) {
-    handler.handle("axes", axes_);
-    handler.handle("i2so", i2so_);
-    handler.handle("coolant", coolant_);
-    handler.handle("probe", probe_);
+    handler.handle("axes", _axes);
+    handler.handle("i2so", _i2so);
+    handler.handle("coolant", _coolant);
+    handler.handle("probe", _probe);
 }
 
 bool MachineConfig::load(const char* filename) {
@@ -356,7 +387,7 @@ bool MachineConfig::load(const char* filename) {
 
         succesful = true;
 
-        // TODO FIXME: If we get here, we want to make the settings live by saving them as 
+        // TODO FIXME: If we get here, we want to make the settings live by saving them as
         // '/spiffs/config.yaml.new', storing it, and then deleting the .yaml and renaming it.
         // That way, we can always check if the yaml is there, and if it's not, load the yaml.new.
 
@@ -376,13 +407,8 @@ bool MachineConfig::load(const char* filename) {
 }
 
 MachineConfig::~MachineConfig() {
-    delete axes_;
-    delete i2so_;
-    delete coolant_;
-    delete probe_;
-
-    axes_ = nullptr;
-    i2so_ = nullptr;
-    coolant_ = nullptr;
-    probe_ = nullptr;
+    delete _axes;
+    delete _i2so;
+    delete _coolant;
+    delete _probe;
 }

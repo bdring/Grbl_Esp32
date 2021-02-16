@@ -267,7 +267,7 @@ namespace WebUI {
         }
 #endif
         //to save time in decoding `?`
-        webPrintln(" # axis:", String(MachineConfig::instance()->axes_->number_axis));
+        webPrintln(" # axis:", String(MachineConfig::instance()->_axes->_numberAxis));
         return Error::Ok;
     }
 

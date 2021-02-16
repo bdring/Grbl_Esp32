@@ -189,11 +189,11 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
         unit_conv = 1.0 / MM_PER_INCH;
         format    = "%4.4f";  // Report inches to 4 decimal places
     }
-    auto n_axis = MachineConfig::instance()->axes_->number_axis;
+    auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
         snprintf(axisVal, coordStringLen - 1, format, axis_value[idx] * unit_conv);
         strcat(rpt, axisVal);
-        if (idx < (MachineConfig::instance()->axes_->number_axis - 1)) {
+        if (idx < (MachineConfig::instance()->_axes->_numberAxis - 1)) {
             strcat(rpt, ",");
         }
     }
@@ -210,10 +210,10 @@ static String report_util_axis_values(const float* axis_value) {
         unit_conv = 1.0 / MM_PER_INCH;
         decimals  = 4;  // Report inches to 4 decimal places
     }
-    auto n_axis = MachineConfig::instance()->axes_->number_axis;
+    auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
         rpt += String(axis_value[idx] * unit_conv, decimals);
-        if (idx < (MachineConfig::instance()->axes_->number_axis - 1)) {
+        if (idx < (MachineConfig::instance()->_axes->_numberAxis - 1)) {
             rpt += ",";
         }
     }
@@ -531,7 +531,7 @@ void report_execute_startup_message(const char* line, Error status_code, uint8_t
 // Prints build info line
 void report_build_info(const char* line, uint8_t client) {
     grbl_sendf(client, "[VER:%s.%s:%s]\r\n[OPT:", GRBL_VERSION, GRBL_VERSION_BUILD, line);
-    if (MachineConfig::instance()->coolant_->hasMist()) {
+    if (MachineConfig::instance()->_coolant->hasMist()) {
         grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
     }
 #ifdef PARKING_ENABLE
@@ -650,7 +650,7 @@ void report_realtime_status(uint8_t client) {
     }
     float wco[MAX_N_AXIS];
     if (bit_isfalse(status_mask->get(), RtStatus::Position) || (sys.report_wco_counter == 0)) {
-        auto n_axis = MachineConfig::instance()->axes_->number_axis;
+        auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
         for (idx = 0; idx < n_axis; idx++) {
             // Apply work coordinate offsets and tool length offset to current position.
             wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];
@@ -720,14 +720,14 @@ void report_realtime_status(uint8_t client) {
 #ifdef REPORT_FIELD_PIN_STATE
     AxisMask    lim_pin_state  = limits_get_state();
     ControlPins ctrl_pin_state = system_control_get_state();
-    bool        prb_pin_state  = MachineConfig::instance()->probe_->get_state();
+    bool        prb_pin_state  = MachineConfig::instance()->_probe->get_state();
     if (lim_pin_state || ctrl_pin_state.value || prb_pin_state) {
         strcat(status, "|Pn:");
         if (prb_pin_state) {
             strcat(status, "P");
         }
         if (lim_pin_state) {
-            auto n_axis = MachineConfig::instance()->axes_->number_axis;
+            auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
             if (n_axis >= 1 && bit_istrue(lim_pin_state, bit(X_AXIS))) {
                 strcat(status, "X");
             }
@@ -817,7 +817,7 @@ void report_realtime_status(uint8_t client) {
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
         SpindleState sp_state      = spindle->get_state();
-        CoolantState coolant_state = MachineConfig::instance()->coolant_->get_state();
+        CoolantState coolant_state = MachineConfig::instance()->_coolant->get_state();
         if (sp_state != SpindleState::Disable || coolant_state.Mist || coolant_state.Flood) {
             strcat(status, "|A:");
             switch (sp_state) {
@@ -836,7 +836,7 @@ void report_realtime_status(uint8_t client) {
             if (coolant.Flood) {
                 strcat(status, "F");
             }
-            if (MachineConfig::instance()->coolant_->hasMist()) {
+            if (MachineConfig::instance()->_coolant->hasMist()) {
                 // TODO Deal with M8 - Flood
                 if (coolant.Mist) {
                     strcat(status, "M");
@@ -863,7 +863,7 @@ void report_realtime_status(uint8_t client) {
 
 void report_realtime_steps() {
     uint8_t idx;
-    auto    n_axis = MachineConfig::instance()->axes_->number_axis;
+    auto    n_axis = MachineConfig::instance()->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
         grbl_sendf(CLIENT_ALL, "%ld\n", sys_position[idx]);  // OK to send to all ... debug stuff
     }

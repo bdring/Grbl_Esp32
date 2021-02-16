@@ -11,11 +11,76 @@ namespace Motors {
     class Motor;
 }
 
+class Endstops : public Configuration::Configurable {
+    Pin  _positive;
+    Pin  _negative;
+    Pin  _dual;
+    bool _hardLimits = true;
+
+public:
+    Endstops() = default;
+
+    // Configuration system helpers:
+    void validate() const override;
+    void handle(Configuration::HandlerBase& handler) override;
+};
+
+class Gang : public Configuration::Configurable {
+public:
+    Gang() = default;
+
+    Motors::Motor* _motor    = nullptr;
+    Endstops*      _endstops = nullptr;
+
+    // Configuration system helpers:
+    void validate() const override;
+    void handle(Configuration::HandlerBase& handler) override;
+
+    ~Gang();
+};
+
+class Homing : public Configuration::Configurable {
+public:
+    Homing() = default;
+
+    int  _cycle             = -1;
+    bool _positiveDirection = true;
+    int  _mpos              = 0;
+    int  _feedRate          = 500;
+    int  _seekRate          = 100;
+    int  _debounce          = 10;
+
+    // Configuration system helpers:
+    void validate() const override { Assert(_cycle >= 1, "Cycle has to be defined as >= 1 for homing sequence."); }
+
+    void handle(Configuration::HandlerBase& handler) override {
+        handler.handle("cycle", _cycle);
+        handler.handle("positive_direction", _positiveDirection);
+        handler.handle("mpos", _mpos);
+        handler.handle("feed_rate", _feedRate);
+        handler.handle("seek_rate", _seekRate);
+        handler.handle("debounce", _debounce);
+    }
+};
+
 class Axis : public Configuration::Configurable {
 public:
-    Axis() = default;
+    Axis() {
+        for (int i = 0; i < MAX_NUMBER_GANGED; ++i) {
+            _gangs[i] = nullptr;
+        }
+    }
+    static const int MAX_NUMBER_GANGED = 2;
 
-    Motors::Motor* motor_ = nullptr;
+    Gang*   _gangs[MAX_NUMBER_GANGED];
+    Homing* _homing = nullptr;
+
+    int  _stepsPerMm   = 320;
+    int  _maxRate      = 1000;
+    int  _acceleration = 25;
+    int  _maxTravel    = 200;
+    bool _softLimits   = false;
+    bool _autoSquaring = false;
 
     // Configuration system helpers:
     void validate() const override;
@@ -28,25 +93,23 @@ public:
 };
 
 class Axes : public Configuration::Configurable {
-    static const int MAX_NUMBER_AXIS   = 6;
-    static const int MAX_NUMBER_GANGED = 2;
+    static const int MAX_NUMBER_AXIS = 6;
 
-    Axis* axis_[MAX_NUMBER_AXIS][MAX_NUMBER_GANGED + 1];
+    Axis* axis_[MAX_NUMBER_AXIS];
 
 public:
     Axes();
 
-    int number_axis = 3;
+    int _numberAxis = 3;
 
     // Some small helpers to find the axis index and axis ganged index for a given motor. This
     // is helpful for some motors that need this info, as well as debug information.
     size_t findAxisIndex(const Motors::Motor* const motor) const;
-
     size_t findAxisGanged(const Motors::Motor* const motor) const;
 
     // These are used for setup and to talk to the motors as a group.
     void init();
-    void read_settings(); // more like 'after read settings, before init'. Oh well...
+    void read_settings();  // more like 'after read settings, before init'. Oh well...
 
     // The return value is a bitmask of axes that can home
     uint8_t set_homing_mode(uint8_t homing_mask, bool isHoming);
@@ -61,14 +124,13 @@ public:
     ~Axes();
 };
 
-class I2SO : public Configuration::Configurable
-{
+class I2SO : public Configuration::Configurable {
 public:
     I2SO() = default;
 
-    Pin bck_;
-    Pin data_;
-    Pin ws_;
+    Pin _bck;
+    Pin _data;
+    Pin _ws;
 
     void validate() const override;
     void handle(Configuration::HandlerBase& handler) override;
@@ -76,15 +138,13 @@ public:
     ~I2SO() {}
 };
 
-
 class MachineConfig : public Configuration::Configurable {
 public:
-    Axes* axes_ = nullptr;
-    I2SO* i2so_ = nullptr;
-    CoolantControl* coolant_ = nullptr;
-    Probe* probe_ = nullptr;
-
-    MachineConfig() = default;
+    MachineConfig()          = default;
+    Axes*           _axes    = nullptr;
+    I2SO*           _i2so    = nullptr;
+    CoolantControl* _coolant = nullptr;
+    Probe*          _probe   = nullptr;
 
     static MachineConfig*& instance() {
         static MachineConfig* instance = nullptr;

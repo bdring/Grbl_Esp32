@@ -350,7 +350,7 @@ namespace Motors {
         tx_message[++msg_index] = 4;                                  // low order data length
         tx_message[++msg_index] = 0;                                  // high order data length
 
-        auto n_axis = MachineConfig::instance()->axes_->number_axis;
+        auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
             for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
                 current_id = ids[axis][gang_index];

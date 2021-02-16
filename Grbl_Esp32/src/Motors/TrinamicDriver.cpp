@@ -349,12 +349,12 @@ namespace Motors {
     void TrinamicDriver::readSgTask(void* pvParameters) {
         TickType_t       xLastWakeTime;
         const TickType_t xreadSg = 200;  // in ticks (typically ms)
-        auto             n_axis  = MachineConfig::instance()->axes_->number_axis;
+        auto             n_axis  = MachineConfig::instance()->_axes->_numberAxis;
 
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
         while (true) {                        // don't ever return from this or the task dies
             if (motorSettingChanged) {
-                MachineConfig::instance()->axes_->read_settings();
+                MachineConfig::instance()->_axes->read_settings();
                 motorSettingChanged = false;
             }
             if (stallguard_debug_mask->get() != 0) {
