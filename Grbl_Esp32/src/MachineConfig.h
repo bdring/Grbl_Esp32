@@ -95,12 +95,11 @@ public:
 class Axes : public Configuration::Configurable {
     static const int MAX_NUMBER_AXIS = 6;
 
-    Axis* axis_[MAX_NUMBER_AXIS];
-
 public:
     Axes();
 
     int _numberAxis = 3;
+    Axis* _axis[MAX_NUMBER_AXIS];
 
     // Some small helpers to find the axis index and axis ganged index for a given motor. This
     // is helpful for some motors that need this info, as well as debug information.

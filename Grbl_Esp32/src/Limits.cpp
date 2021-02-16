@@ -111,8 +111,8 @@ void limits_go_home(uint8_t cycle_mask) {
         // Initialize step pin masks
         step_pin[idx] = bit(idx);
         if (bit_istrue(cycle_mask, bit(idx))) {
-            // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.
-            max_travel = MAX(max_travel, (HOMING_AXIS_SEARCH_SCALAR)*axis_settings[idx]->max_travel->get());
+            // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.            
+            max_travel = MAX(max_travel, (HOMING_AXIS_SEARCH_SCALAR)* MachineConfig::instance()->_axes->_axis[idx]->_maxTravel);
         }
     }
     // Set search mode with approach at seek rate to quickly engage the specified cycle_mask limit switches.

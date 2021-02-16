@@ -73,9 +73,9 @@ Axis::~Axis() {
     }
 }
 
-Axes::Axes() : axis_() {
+Axes::Axes() : _axis() {
     for (int i = 0; i < MAX_NUMBER_AXIS; ++i) {
-        axis_[i] = nullptr;
+        _axis[i] = nullptr;
     }
 }
 
@@ -99,7 +99,7 @@ void Axes::init() {
     // certain motors need features to be turned on. Check them here
     for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
         for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-            auto& a = axis_[axis]->_gangs[gang_index]->_motor;
+            auto& a = _axis[axis]->_gangs[gang_index]->_motor;
 
             if (a == nullptr) {
                 a = new Motors::Nullmotor();
@@ -125,7 +125,7 @@ void Axes::set_disable(bool disable) {
     // now loop through all the motors to see if they can individually disable
     for (int axis = 0; axis < _numberAxis; axis++) {
         for (int gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-            auto a = axis_[axis]->_gangs[gang_index]->_motor;
+            auto a = _axis[axis]->_gangs[gang_index]->_motor;
             a->set_disable(disable);
         }
     }
@@ -141,7 +141,7 @@ void Axes::read_settings() {
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Read Settings");
     for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
         for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-            auto a = axis_[axis]->_gangs[gang_index]->_motor;
+            auto a = _axis[axis]->_gangs[gang_index]->_motor;
             a->read_settings();
         }
     }
@@ -154,7 +154,7 @@ uint8_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
 
     for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
         if (bitnum_istrue(homing_mask, axis)) {
-            auto a = axis_[axis];
+            auto a = _axis[axis];
             if (a != nullptr) {
                 auto motor = a->_gangs[0]->_motor;
 
@@ -163,7 +163,7 @@ uint8_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
                 }
 
                 for (uint8_t gang_index = 1; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-                    auto a2 = axis_[axis]->_gangs[gang_index]->_motor;
+                    auto a2 = _axis[axis]->_gangs[gang_index]->_motor;
                     a2->set_homing_mode(isHoming);
                 }
             }
@@ -187,7 +187,7 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
             bool thisDir = bitnum_istrue(dir_mask, axis);
 
             for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-                auto a = axis_[axis]->_gangs[gang_index]->_motor;
+                auto a = _axis[axis]->_gangs[gang_index]->_motor;
 
                 if (a != nullptr) {
                     a->set_direction(thisDir);
@@ -203,7 +203,7 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
     // Turn on step pulses for motors that are supposed to step now
     for (int axis = X_AXIS; axis < _numberAxis; axis++) {
         if (bitnum_istrue(step_mask, axis)) {
-            auto a = axis_[axis]->_gangs[0]->_motor;
+            auto a = _axis[axis]->_gangs[0]->_motor;
 
             if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
                 a->step();
@@ -216,7 +216,7 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
 
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         if (bitnum_istrue(step_mask, axis)) {
-            auto a = axis_[axis];
+            auto a = _axis[axis];
 
             if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
                 a->_gangs[0]->_motor->step();
@@ -232,7 +232,7 @@ void Axes::unstep() {
     auto n_axis = _numberAxis;
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-            auto a = axis_[axis]->_gangs[gang_index]->_motor;
+            auto a = _axis[axis]->_gangs[gang_index]->_motor;
             a->unstep();
             a->unstep();
         }
@@ -244,7 +244,7 @@ void Axes::unstep() {
 size_t Axes::findAxisIndex(const Motors::Motor* const motor) const {
     for (int i = 0; i < _numberAxis; ++i) {
         for (int j = 0; j < Axis::MAX_NUMBER_GANGED; ++j) {
-            if (axis_[i] != nullptr && axis_[i]->hasMotor(motor)) {
+            if (_axis[i] != nullptr && _axis[i]->hasMotor(motor)) {
                 return i;
             }
         }
@@ -256,9 +256,9 @@ size_t Axes::findAxisIndex(const Motors::Motor* const motor) const {
 
 size_t Axes::findAxisGanged(const Motors::Motor* const motor) const {
     for (int i = 0; i < _numberAxis; ++i) {
-        if (axis_[i] != nullptr && axis_[i]->hasMotor(motor)) {
+        if (_axis[i] != nullptr && _axis[i]->hasMotor(motor)) {
             for (int j = 0; j < Axis::MAX_NUMBER_GANGED; ++j) {
-                if (axis_[i]->_gangs[j]->_motor == motor) {
+                if (_axis[i]->_gangs[j]->_motor == motor) {
                     return j;
                 }
             }
@@ -285,14 +285,14 @@ void Axes::handle(Configuration::HandlerBase& handler) {
         tmp[1] = '\0';
 
         if (handler.handlerType() == Configuration::HandlerType::Runtime || handler.handlerType() == Configuration::HandlerType::Parser) {
-            handler.handle(tmp, axis_[a]);
+            handler.handle(tmp, _axis[a]);
         }
     }
 }
 
 Axes::~Axes() {
     for (int i = 0; i < MAX_NUMBER_AXIS; ++i) {
-        delete axis_[i];
+        delete _axis[i];
     }
 }
 
