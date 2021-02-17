@@ -280,6 +280,14 @@ namespace WebUI {
         if ((path.substring(0, 4) == "/SD/")) {
             //remove /SD
             path = path.substring(3);
+            int8_t state = get_sd_state(true);
+            if (state != SDCARD_IDLE) {
+                 String content = "cannot open: ";
+                 content += path + ", SD is not available.";
+
+                _webserver->send(500, "text/plain", content);
+            }
+             set_sd_state(SDCARD_BUSY_UPLOADING);
             if (SD.exists(pathWithGz) || SD.exists(path)) {
                 if (SD.exists(pathWithGz)) {
                     path = pathWithGz;
@@ -311,6 +319,7 @@ namespace WebUI {
                     if (i != totalFileSize) {
                         //error: TBD
                     }
+                    set_sd_state(SDCARD_IDLE);
                     return;
                 }
             }
