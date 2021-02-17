@@ -54,7 +54,7 @@ Some features should not be changed. See notes below.
 // The mask order is ...
 // Macro3 | Macro2 | Macro 1| Macr0 |Cycle Start | Feed Hold | Reset | Safety Door
 // For example B1101 will invert the function of the Reset pin.
-#define INVERT_CONTROL_PIN_MASK B01111111
+#define INVERT_CONTROL_PIN_MASK B00001111
 
 // #define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
@@ -93,10 +93,10 @@ const int MAX_N_AXIS = 6;
 #define BAUD_RATE 115200
 
 //Connect to your local AP with these credentials
-#define CONNECT_TO_SSID  "Home"
-#define SSID_PASSWORD  "12345678"
+//#define CONNECT_TO_SSID  "your SSID"
+//#define SSID_PASSWORD  "your SSID password"
 //CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
-// #define ENABLE_BLUETOOTH  // enable bluetooth
+#define ENABLE_BLUETOOTH  // enable bluetooth
 
 #define ENABLE_SD_CARD  // enable use of SD Card to run jobs
 
@@ -202,7 +202,7 @@ enum class Cmd : uint8_t {
 // If homing is enabled, homing init lock sets Grbl into an alarm state upon power up. This forces
 // the user to perform the homing cycle (or override the locks) before doing anything else. This is
 // mainly a safety feature to remind the user to home, since position is unknown to Grbl.
-//#define HOMING_INIT_LOCK // Comment to disable
+#define HOMING_INIT_LOCK  // Comment to disable
 
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
@@ -496,8 +496,8 @@ const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
 // A simple software debouncing feature for hard limit switches. When enabled, the limit
 // switch interrupt unblock a waiting task which will recheck the limit switch pins after
 // a short delay. Default disabled
-#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
-#define DEBOUNCE_PERIOD 32 // in milliseconds default 32 microseconds
+//#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
+const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 
 // Configures the position after a probing cycle during Grbl's check mode. Disabled sets
 // the position to the probe target, when enabled sets the position to the start position.
