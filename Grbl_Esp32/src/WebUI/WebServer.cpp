@@ -287,11 +287,11 @@ namespace WebUI {
 
                 _webserver->send(500, "text/plain", content);
             }
-             set_sd_state(SDCARD_BUSY_UPLOADING);
             if (SD.exists(pathWithGz) || SD.exists(path)) {
                 if (SD.exists(pathWithGz)) {
                     path = pathWithGz;
                 }
+                set_sd_state(SDCARD_BUSY_UPLOADING);
                 File datafile = SD.open(path);
                 if (datafile) {
                     vTaskDelay(1 / portTICK_RATE_MS);
