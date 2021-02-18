@@ -10,7 +10,7 @@
 struct ExecStateBits {
     uint8_t statusReport : 1;
     uint8_t cycleStart : 1;
-    uint8_t cycleStop : 1;  // Unused, per cycle_stop variable
+    uint8_t cycleStop : 1; 
     uint8_t feedHold : 1;
     uint8_t reset : 1;
     uint8_t safetyDoor : 1;
