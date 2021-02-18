@@ -152,6 +152,162 @@ public:
     ~SPIBus() = default;
 };
 
+class BluetoothConfig : public Configuration::Configurable {
+public:
+    BluetoothConfig() = default;
+
+    String _name = "grbl_esp32";
+
+    void validate() const override { Assert(_name.length() > 0, "Bluetooth must have a name if it's configured"); }
+
+    void handle(Configuration::HandlerBase& handler) override { handler.handle("_name", _name); }
+};
+
+class WifiConfig : public Configuration::Configurable {
+public:
+    WifiConfig() = default;
+
+    String _ssid     = "GRBL_ESP";
+    String _password = "12345678";
+
+    uint32_t _ipAddress = 0x0a000001;  //  10.  0.  0.  1
+    uint32_t _gateway   = 0x0a000001;  //  10.  0.  0.  1
+    uint32_t _netmask   = 0xffffff00;  // 255.255.255.  0
+
+    bool _dhcp = true;
+
+    void validate() const override {}
+
+    bool tryParseIP(StringRange ip, uint32_t& dst) {
+        if (ip.begin() != nullptr) {
+            uint32_t value = 0;
+            uint32_t tmp   = 0;
+            int      c     = 0;
+            for (auto ch : ip) {
+                if (ch >= '0' && ch <= '9') {
+                    tmp = tmp * 10 + ch - '0';
+                } else if (ch == '.') {
+                    ++c;
+                    if (c >= 4) {
+                        return false;
+                    }
+                    if (tmp > 255) {
+                        return false;
+                    }
+                    value = (value << 8) + tmp;
+                    tmp   = 0;
+                } else if (ch != ' ') {
+                    // For convenience / layouting.
+                    return false;
+                }  
+            }
+            if (tmp > 255) {
+                return false;
+            }
+            value = (value << 8) + tmp;
+
+            // Correct.
+            dst = value;
+
+            return true;
+        }
+        return false;
+    }
+
+    void handle(Configuration::HandlerBase& handler) override {
+        handler.handle("ssid", _ssid);
+        handler.handle("password", _password);
+
+        StringRange ip;
+        handler.handle("ip_address", ip);
+        tryParseIP(ip, _ipAddress);
+
+        StringRange gateway;
+        handler.handle("gateway", gateway);
+        tryParseIP(gateway, _gateway);
+
+        StringRange netmask;
+        handler.handle("netmask", netmask);
+        tryParseIP(netmask, _netmask);
+
+        handler.handle("dhcp", _dhcp);
+    }
+};
+
+class WifiAPConfig : public WifiConfig {
+public:
+    WifiAPConfig() = default;
+
+    int _channel = 1;
+
+    void validate() const override {
+        WifiConfig::validate();
+        Assert(_channel >= 1 && _channel <= 16, "WIFI channel %d is out of bounds", _channel);  // TODO: I guess?
+    }
+
+    void handle(Configuration::HandlerBase& handler) override {
+        WifiConfig::handle(handler);
+        handler.handle("channel", _channel);
+    }
+
+    ~WifiAPConfig() = default;
+};
+
+class WifiSTAConfig : public WifiConfig {
+public:
+    WifiSTAConfig() = default;
+
+    void validate() const override { WifiConfig::validate(); }
+
+    void handle(Configuration::HandlerBase& handler) override { WifiConfig::handle(handler); }
+
+    ~WifiSTAConfig() = default;
+};
+
+class Communications : public Configuration::Configurable {
+public:
+    Communications() = default;
+
+    String _userPassword  = "";
+    String _adminPassword = "";
+
+    bool _telnetEnable = true;
+    int  _telnetPort   = 23;
+
+    bool _httpEnable = true;
+    int  _httpPort   = 80;
+
+    String _hostname = "grblesp";
+
+    BluetoothConfig* _bluetoothConfig = nullptr;
+    WifiAPConfig*    _apConfig        = nullptr;
+    WifiSTAConfig*   _staConfig       = nullptr;
+
+    void validate() const override {}
+    void handle(Configuration::HandlerBase& handler) override {
+        handler.handle("user_password", _userPassword);
+        handler.handle("admin_password", _adminPassword);
+
+        handler.handle("telnet_enable", _telnetEnable);
+        handler.handle("telnet_port", _telnetPort);
+
+        handler.handle("http_enable", _httpEnable);
+        handler.handle("http_port", _httpPort);
+
+        handler.handle("hostname", _hostname);
+
+        handler.handle("bluetooth", _bluetoothConfig);
+        handler.handle("wifi_ap", _apConfig);
+        handler.handle("wifi_sta", _staConfig);
+    }
+
+    ~Communications() {
+        delete _bluetoothConfig;
+        delete _apConfig;
+        delete _staConfig;
+    }
+};
+
 class MachineConfig : public Configuration::Configurable {
 public:
     MachineConfig()            = default;
@@ -161,6 +317,7 @@ public:
     CoolantControl* _coolant   = nullptr;
     Probe*          _probe     = nullptr;
     bool            _laserMode = false;
+    Communications* _comms     = nullptr;
 
     static MachineConfig*& instance() {
         static MachineConfig* instance = nullptr;

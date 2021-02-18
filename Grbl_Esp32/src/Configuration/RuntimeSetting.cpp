@@ -47,7 +47,7 @@ namespace Configuration
         }
     }
 
-    void RuntimeSetting::handle(const char* name, StringRange value)
+    void RuntimeSetting::handle(const char* name, StringRange& value)
     {
         if (is(name) && this->value() != nullptr)
         {

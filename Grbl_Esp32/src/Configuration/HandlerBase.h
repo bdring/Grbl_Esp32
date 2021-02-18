@@ -25,8 +25,18 @@ namespace Configuration
         virtual void handle(const char* name, int& value) = 0;
         virtual void handle(const char* name, double& value) = 0;
         virtual void handle(const char* name, float& value) = 0;
-        virtual void handle(const char* name, StringRange value) = 0;
+        virtual void handle(const char* name, StringRange& value) = 0;
         virtual void handle(const char* name, Pin& value) = 0;
+
+        virtual void handle(const char* name, String& value)
+        {
+            StringRange range;
+            handle(name, range);
+            if (range.begin() != nullptr)
+            {
+                value = range.str();
+            }
+        }
 
         virtual HandlerType handlerType() = 0;
 
