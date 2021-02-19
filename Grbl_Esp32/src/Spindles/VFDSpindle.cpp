@@ -61,7 +61,7 @@ namespace Spindles {
     // The communications task
     void VFD::vfd_cmd_task(void* pvParameters) {
         static bool unresponsive = false;  // to pop off a message once each time it becomes unresponsive
-        static int  pollidx      = -1; // -1 starts the VFD initialization sequence
+        static int  pollidx      = -1;     // -1 starts the VFD initialization sequence
 
         VFD*          instance = static_cast<VFD*>(pvParameters);
         ModbusCommand next_cmd;
@@ -75,12 +75,11 @@ namespace Spindles {
 
             // First check if we should ask the VFD for the max RPM value as part of the initialization. We
             // should also query this is max_rpm is 0, because that means a previous initialization failed:
-            if ((pollidx < 0 || instance->_max_rpm == 0) && 
-                (parser = instance->initialization_sequence(pollidx, next_cmd)) != nullptr) {
-                --pollidx; // Move to the next poll index.
+            if ((pollidx < 0 || instance->_max_rpm == 0) && (parser = instance->initialization_sequence(pollidx, next_cmd)) != nullptr) {
+                --pollidx;  // Move to the next poll index.
                 next_cmd.critical = true;
             } else {
-                pollidx = 1; // Done with initialization. Main sequence.
+                pollidx           = 1;  // Done with initialization. Main sequence.
                 next_cmd.critical = false;
             }
 
@@ -454,7 +453,11 @@ namespace Spindles {
                 }
 
                 if (unchanged == limit) {
-                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical Spindle RS485 did not reach speed within the allotted timeframe");
+                    grbl_msg_sendf(CLIENT_ALL,
+                                   MsgLevel::Error,
+                                   "Critical Spindle RS485 did not reach speed %d. Reported speed is %d rpm.",
+                                   rpm,
+                                   _sync_rpm);
                     mc_reset();
                     sys_rt_exec_alarm = ExecAlarm::SpindleControl;
                 }

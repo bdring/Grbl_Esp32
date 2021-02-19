@@ -41,15 +41,12 @@
 
     Protocol Details
 
-    A lot of good information about the details of all these parameters can be found on this 
-    page: https://community.carbide3d.com/t/vfd-parameters-huanyang-model/15459/7 .
+    A lot of good information about the details of all these parameters and how they should 
+    be setup can be found on this page: 
+    https://community.carbide3d.com/t/vfd-parameters-huanyang-model/15459/7 . 
 
-    VFD frequencies are in Hz.
+    Before using spindle, VFD must be setup for RS485 and match your spindle:
 
-    Before using spindle, VFD must be setup for RS485 and match your spindle
-
-    PD001   2    RS485 Control of run commands
-    PD002   2    RS485 Control of operating frequency
     PD004   400  Base frequency as rated on my spindle (default was 50)
     PD005   400  Maximum frequency Hz (Typical for spindles)
     PD011   120  Min Speed (Recommend Aircooled=120 Water=100)
@@ -60,12 +57,15 @@
     PD142   3.7  Max current Amps (0.8kw=3.7 1.5kw=7.0, 2.2kw=??)
     PD143   2    Poles most are 2 (I think this is only used for RPM calc from Hz)
     PD144   3000 Max rated motor revolution at 50 Hz => 24000@400Hz = 3000@50HZ
+
+    PD001   2    RS485 Control of run commands
+    PD002   2    RS485 Control of operating frequency
     PD163   1    RS485 Address: 1 (Typical. OK to change...see below)
     PD164   1    RS485 Baud rate: 9600 (Typical. OK to change...see below)
     PD165   3    RS485 Mode: RTU, 8N1
 
     The official documentation of the RS485 is horrible. I had to piece it together from
-    a lot of different sources
+    a lot of different sources:
 
     Manuals: https://github.com/RobertOlechowski/Huanyang_VFD/tree/master/Documentations/pdf
     Reference: https://github.com/Smoothieware/Smoothieware/blob/edge/src/modules/tools/spindle/HuanyangSpindleControl.cpp
@@ -102,6 +102,17 @@
 
     ==========================================================================
 
+    Setting registers
+    Addr    Read    Len     Reg     DataH   DataL   CRC     CRC
+    0x01    0x01    0x03    5       0x00    0x00    CRC     CRC     //  PD005
+    0x01    0x01    0x03    11      0x00    0x00    CRC     CRC     //  PD011
+    0x01    0x01    0x03    143     0x00    0x00    CRC     CRC     //  PD143
+    0x01    0x01    0x03    144     0x00    0x00    CRC     CRC     //  PD144
+
+    Message is returned with requested value = (DataH * 16) + DataL (see decimal offset above)
+
+    ==========================================================================
+
     Status registers
     Addr    Read    Len     Reg     DataH   DataL   CRC     CRC
     0x01    0x04    0x03    0x00    0x00    0x00    CRC     CRC     //  Set Frequency * 100 (25Hz = 2500)
@@ -112,8 +123,30 @@
     0x01    0x04    0x03    0x05    0x00    0x00    CRC     CRC     //  AC voltage
     0x01    0x04    0x03    0x06    0x00    0x00    CRC     CRC     //  Cont
     0x01    0x04    0x03    0x07    0x00    0x00    CRC     CRC     //  VFD Temp
+    
     Message is returned with requested value = (DataH * 16) + DataL (see decimal offset above)
 
+    ==========================================================================
+
+    The math:
+
+        PD005   400  Maximum frequency Hz (Typical for spindles)
+        PD011   120  Min Speed (Recommend Aircooled=120 Water=100)
+        PD143   2    Poles most are 2 (I think this is only used for RPM calc from Hz)
+        PD144   3000 Max rated motor revolution at 50 Hz => 24000@400Hz = 3000@50HZ
+
+    During initialization these 4 are pulled from the VFD registers. It then sets min and max RPM
+    of the spindle. So:
+
+        MinRPM = PD011 * PD144 / 50 = 120 * 3000 / 50 = 7200 RPM min
+        MaxRPM = PD005 * PD144 / 50 = 400 * 3000 / 50 = 24000 RPM max
+
+    If you then set 12000 RPM, it calculates the frequency:
+
+        int targetFrequency = targetRPM * PD005 / MaxRPM = targetRPM * PD005 / (PD005 * PD144 / 50) = 
+                              targetRPM * 50 / PD144 = 12000 * 50 / 3000 = 200
+
+    If the frequency is -say- 25 Hz, Huanyang wants us to send 2500 (eg. 25.00 Hz).
 */
 
 #include <driver/uart.h>
@@ -180,6 +213,7 @@ namespace Spindles {
         // data.msg[0] is omitted (modbus address is filled in later)
         data.msg[1] = 0x01;  // Read setting
         data.msg[2] = 0x03;  // Len
+        //      [3] = set below...
         data.msg[4] = 0x00;
         data.msg[5] = 0x00;
 
@@ -188,7 +222,7 @@ namespace Spindles {
             data.msg[3] = 5;  // PD005: max frequency the VFD will allow. Normally 400.
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-                uint16_t value = (response[3] << 8) | response[4];
+                uint16_t value = (response[4] << 8) | response[5];
 
                 grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Max frequency set to %d", value);
 
@@ -203,7 +237,7 @@ namespace Spindles {
             data.msg[3] = 11;  // PD011: frequency lower limit. Normally 0.
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-                uint16_t value = (response[3] << 8) | response[4];
+                uint16_t value = (response[4] << 8) | response[5];
 
                 grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Min frequency set to %d", value);
 
@@ -213,37 +247,12 @@ namespace Spindles {
                 return true;
             };
         } else if (index == -3) {
-            // Number Poles
-
-            data.msg[3] = 143;  // PD143: 4 or 2 poles in motor. Default is 4. A spindle being 24000RPM@400Hz implies 2 poles
-
-            return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-                uint16_t value = (response[3] << 8) | response[4];
-
-                // Sanity check. We expect something like 2 or 4 poles.
-                if (value <= 4 && value >= 2) {
-                    // Set current RPM value? Somewhere?
-                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Number of poles set to %d", value);
-
-                    auto huanyang          = static_cast<Huanyang*>(vfd);
-                    huanyang->_numberPoles = value;
-                    return true;
-                } else {
-                    grbl_msg_sendf(CLIENT_ALL,
-                                   MsgLevel::Error,
-                                   "Initialization of Huanyang spindle failed. Number of poles (PD143, expected 2-4, got %d) is not sane.",
-                                   value);
-                    return false;
-                }
-            };
-
-        } else if (index == -4) {
             // Max rated revolutions @ 50Hz
 
             data.msg[3] = 144;  // PD144: max rated motor revolution at 50Hz => 24000@400Hz = 3000@50HZ
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-                uint16_t value = (response[3] << 8) | response[4];
+                uint16_t value = (response[4] << 8) | response[5];
 
                 grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Max rated revolutions @ 50Hz is %d", value);
 
@@ -262,6 +271,39 @@ namespace Spindles {
                 return true;
             };
         }
+        /*
+        The number of poles seems to be over constrained information with PD144. If we're wrong, here's how 
+        to get this information. Note that you probably have to call 'updateRPM' here then:
+        --
+
+        else if (index == -4) {
+            // Number Poles
+
+            data.msg[3] = 143;  // PD143: 4 or 2 poles in motor. Default is 4. A spindle being 24000RPM@400Hz implies 2 poles
+
+            return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
+                uint16_t value = (response[4] << 8) | response[5];
+
+                // Sanity check. We expect something like 2 or 4 poles.
+                if (value <= 4 && value >= 2) {
+                    // Set current RPM value? Somewhere?
+                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Number of poles set to %d", value);
+
+                    auto huanyang = static_cast<Huanyang*>(vfd);
+                    huanyang->_numberPoles = value;
+                    return true;
+                }
+                else {
+                    grbl_msg_sendf(CLIENT_ALL,
+                        MsgLevel::Error,
+                        "Initialization of Huanyang spindle failed. Number of poles (PD143, expected 2-4, got %d) is not sane.",
+                        value);
+                    return false;
+                }
+            };
+
+        }
+        */
     }
 
     VFD::response_parser Huanyang::get_status_ok(ModbusCommand& data) {
