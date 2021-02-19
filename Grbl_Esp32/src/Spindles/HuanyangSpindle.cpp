@@ -44,7 +44,7 @@
     A lot of good information about the details of all these parameters can be found on this 
     page: https://community.carbide3d.com/t/vfd-parameters-huanyang-model/15459/7 .
 
-    VFD frequencies are in Hz. Multiply by 50 or 60 (depends on where you are) for RPM
+    VFD frequencies are in Hz.
 
     Before using spindle, VFD must be setup for RS485 and match your spindle
 
@@ -114,26 +114,6 @@
     0x01    0x04    0x03    0x07    0x00    0x00    CRC     CRC     //  VFD Temp
     Message is returned with requested value = (DataH * 16) + DataL (see decimal offset above)
 
-    =====
-
-    Current RPM
-
-    The basic RPM vs Frequency formula is RPM = (120 * Frequency) / # of poles in the motor - in which case you 
-    could read PD143 (Motor Pole Number) to convert between the two -- RPM = 120 * Freq / PD143. This is where 
-    the magic constant 60 comes from in the conversion formula, because most common spindles are 2-pole motors, 
-    so /120*2 has been simplified to /60. (the 100 is just because the Huanyang expects frequency in units of 0.01Hz).
-    The 120 comes from 360 degrees, 3 phases - which means 120 degrees per phase.
-
-    There's also PD144 (Rated Motor Revolution). It's a little hard to parse the translated documentation, but it 
-    sounds like the VFD may use this to calculate the RPM that's displayed on the VFD? So an alternative approach 
-    seems like RPM = Freq * PD144 / 50. So, rated motor revolution is actually in RPM @ 50Hz. Yea, about that...
-    In the EU, the standard is 50 HZ, in the US it's 60 Hz. So:
-
-    PD176 = 0 ; 0 = 50 Hz = inverter frequency standard; read-only
-    PD005 = 400 ; max frequency the VFD will allow
-    MaxRPM = PD005 * PD144 / PD176
-
-    CurrentRPM = Freq * PD144 / PD176
 */
 
 #include <driver/uart.h>
