@@ -241,10 +241,10 @@ void protocol_auto_cycle_start() {
 void protocol_execute_realtime() {
     
     
-    // int32_t current_position[N_AXIS]; // Copy current state of the system position variable
-    // memcpy(current_position, sys_position, sizeof(sys_position));
-    // float print_position[N_AXIS];
-    // system_convert_array_steps_to_mpos(print_position, current_position);
+    int32_t current_position[N_AXIS]; // Copy current state of the system position variable
+    memcpy(current_position, sys_position, sizeof(sys_position));
+    float print_position[N_AXIS];
+    system_convert_array_steps_to_mpos(print_position, current_position);
     
     // Serial.print("XYZ: ");
     // Serial.print(print_position[0]);
@@ -253,8 +253,8 @@ void protocol_execute_realtime() {
     // Serial.print(" ");
     // Serial.println(print_position[2]);
     
-    // recomputePID();
-    // setTargets(print_position[0], print_position[1], print_position[2]);
+    recomputePID();
+    setTargets(print_position[0], print_position[1], print_position[2]);
     
     protocol_exec_rt_system();
     if (sys.suspend.value) {

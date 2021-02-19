@@ -56,6 +56,8 @@
 // will be shown in a Grbl startup message to identify your
 // configuration.
 
+#pragma once
+
 #define MACHINE_NAME            "MASLOW"
 
 #define CUSTOM_CODE_FILENAME "../Custom/maslow.cpp"
@@ -102,6 +104,8 @@
 
 void recomputePID();
 void setTargets(float xTarget, float yTarget, float zTarget);
+float computeL1(float x, float y);
+float computeL2(float x, float y);
 
 
 

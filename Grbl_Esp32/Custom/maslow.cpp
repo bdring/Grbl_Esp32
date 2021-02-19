@@ -56,6 +56,9 @@ MotorUnit axis2(&tlc, MOTOR_2_FORWARD, MOTOR_2_BACKWARD, MOTOR_2_ADC, RSENSE, ad
 MotorUnit axis3(&tlc, MOTOR_3_FORWARD, MOTOR_3_BACKWARD, MOTOR_3_ADC, RSENSE, adc_1_characterisitics, MOTOR_3_CS, DC_TOP_LEFT_MM_PER_REV, 1);
 MotorUnit axis4(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, adc_1_characterisitics, MOTOR_4_CS, DC_TOP_LEFT_MM_PER_REV, 1);
 
+float maslowWidth;
+float maslowHeight;
+
 #ifdef USE_MACHINE_INIT
 /*
 machine_init() is called when Grbl_ESP32 first starts. You can use it to do any
@@ -68,18 +71,45 @@ void machine_init()
     axis2.zero();
     axis3.zero();
     axis4.zero();
+    
+    maslowWidth = 2900.0;
+    maslowHeight = 1780.0;
 }
 #endif
 
 void recomputePID(){
-    //axis1.recomputePID();
-    //axis2.recomputePID();
-    //axis3.recomputePID();
-    axis4.recomputePID();
+    
+    if(sys.state == State::Idle || sys.state == State::Alarm){
+        axis4.stop();
+        axis4.updateEncoderPosition();
+    }
+    else{
+        //axis1.recomputePID();
+        //axis2.recomputePID();
+        //axis3.recomputePID();
+        axis4.recomputePID();
+    }
+}
+
+float computeL1(float x, float y){
+    x = x + maslowWidth/2.0;
+    y = y - maslowHeight/2.0;
+    return sqrt(x*x+y*y);
+}
+
+float computeL2(float x, float y){
+    x = x + maslowWidth/2.0;
+    y = y - maslowHeight/2.0;
+    return sqrt((maslowWidth-x)*(maslowWidth-x)+y*y);
 }
 
 void setTargets(float xTarget, float yTarget, float zTarget){
     //axis3.setTarget(xTarget);
+    Serial.print("L1: ");
+    Serial.println(computeL1(xTarget, yTarget));
+    Serial.print("L2: ");
+    Serial.println(computeL2(xTarget, yTarget));
+    
     axis4.setTarget(yTarget);
 }
 
@@ -96,7 +126,7 @@ bool user_defined_homing(uint8_t cycle_mask)
   // True = done with homing, false = continue with normal Grbl_ESP32 homing
   Serial.println("Custom homing ran");
   Serial.println(cycle_mask);
-  //axis4.retract();
+  axis4.retract();
   return true;
 }
 #endif
