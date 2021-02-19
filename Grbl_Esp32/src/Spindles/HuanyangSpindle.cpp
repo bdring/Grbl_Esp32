@@ -178,10 +178,10 @@ namespace Spindles {
         data.msg[1] = 0x05;
         data.msg[2] = 0x02;
 
-        // The intrinsic constant of a 3 phase motor i.e. 360 degrees divided by 3 is 120.
-        // We need to divide this by the number of poles to get the correct frequency:
-        auto constant = (360 / 3) / this->_numberPoles;
-        uint16_t value = (uint16_t)(rpm * 100 / constant);  // send Hz * 10  (Ex:1500 RPM = 25Hz .... Send 2500)
+        // Comes from a conversion of revolutions per second to revolutions per minute (factor of 60) and a
+        // factor of 2 from counting the number of poles versus the number of pole-pairs.
+        auto     constant = 60 * _numberPoles / 2;
+        uint16_t value    = (uint16_t)(rpm * 100 / constant);  // send Hz * 10  (Ex:1500 RPM = 25Hz .... Send 2500)
 
         data.msg[3] = (value >> 8) & 0xFF;
         data.msg[4] = (value & 0xFF);
@@ -200,7 +200,7 @@ namespace Spindles {
 
         if (index == -1) {
             // Max frequency
-            data.msg[3] = 5;  // PD005
+            data.msg[3] = 5;  // PD005: max frequency the VFD will allow. Normally 400.
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[3] << 8) | response[4];
@@ -215,7 +215,7 @@ namespace Spindles {
 
         } else if (index == -2) {
             // Min Frequency
-            data.msg[3] = 11;  // PD011
+            data.msg[3] = 11;  // PD011: frequency lower limit. Normally 0.
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[3] << 8) | response[4];
@@ -230,7 +230,7 @@ namespace Spindles {
         } else if (index == -3) {
             // Number Poles
 
-            data.msg[3] = 143;  // PD143
+            data.msg[3] = 143;  // PD143: 4 or 2 poles in motor. Default is 4. A spindle being 24000RPM@400Hz implies 2 poles
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[3] << 8) | response[4];
@@ -253,53 +253,28 @@ namespace Spindles {
             };
 
         } else if (index == -4) {
-            // Max RPM standard frequency
+            // Max rated revolutions @ 50Hz
 
-            data.msg[3] = 144;  // PD144
+            data.msg[3] = 144;  // PD144: max rated motor revolution at 50Hz => 24000@400Hz = 3000@50HZ
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[3] << 8) | response[4];
 
-                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Max rpm @ std frequency set to %d", value);
+                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Max rated revolutions @ 50Hz is %d", value);
 
                 // Set current RPM value? Somewhere?
-                auto huanyang                 = static_cast<Huanyang*>(vfd);
-                huanyang->_maxRpmStandardFreq = value;
+                auto huanyang           = static_cast<Huanyang*>(vfd);
+                huanyang->_maxRpmAt50Hz = value;
+
+                // Regarding PD144, the 2 versions of the manuals both say "This is set according to the
+                // actual revolution of the motor. The displayed value is the same as this set value. It
+                // can be used as a monitoring parameter, which is convenient to the user. This set value
+                // corresponds to the revolution at 50Hz".
+
+                // Calculate the VFD settings:
+                huanyang->updateRPM();
+
                 return true;
-            };
-        } else if (index == -5) {
-            // Frequency standard
-
-            data.msg[3] = 176;  // PD176
-
-            return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-                uint16_t value = (response[3] << 8) | response[4];
-
-                // According to the manual, the value '0' actually means '50'.
-                if (value == 0) {
-                    value = 50;
-                }
-
-                if (value == 50 || value == 60) {
-                    // Set current RPM value? Somewhere?
-
-                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Frequency standard set to %d Hz", value);
-
-                    auto huanyang                = static_cast<Huanyang*>(vfd);
-                    huanyang->_frequencyStandard = value;
-
-                    // Calculate the VFD settings:
-                    huanyang->updateVFDSettings();
-
-                    return true;
-                } else {
-                    grbl_msg_sendf(CLIENT_ALL,
-                                   MsgLevel::Error,
-                                   "Initialization of Huanyang spindle failed. Frequency standard (PD176, expected 50 or 60 Hz, got %d) is "
-                                   "not sane.",
-                                   value);
-                    return false;
-                }
             };
         }
     }
