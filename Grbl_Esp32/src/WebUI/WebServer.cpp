@@ -280,7 +280,14 @@ namespace WebUI {
         if ((path.substring(0, 4) == "/SD/")) {
             //remove /SD
             path = path.substring(3);
+            if (SDState::Idle != get_sd_state(true)) {
+                String content = "cannot open: ";
+                content += path + ", SD is not available.";
+
+                _webserver->send(500, "text/plain", content);
+            }
             if (SD.exists(pathWithGz) || SD.exists(path)) {
+                set_sd_state(SDState::BusyUploading);
                 if (SD.exists(pathWithGz)) {
                     path = pathWithGz;
                 }
@@ -311,8 +318,10 @@ namespace WebUI {
                     if (i != totalFileSize) {
                         //error: TBD
                     }
+                    set_sd_state(SDState::Idle);
                     return;
                 }
+                set_sd_state(SDState::Idle);
             }
             String content = "cannot find ";
             content += path;
