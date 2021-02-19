@@ -59,7 +59,7 @@
     PD141   220  Spindle max rated voltage
     PD142   3.7  Max current Amps (0.8kw=3.7 1.5kw=7.0, 2.2kw=??)
     PD143   2    Poles most are 2 (I think this is only used for RPM calc from Hz)
-    PD144   3000 Max rated motor revolution at standard frequency (say: 50 Hz) => 24000@400Hz = 3000@50HZ
+    PD144   3000 Max rated motor revolution at 50 Hz => 24000@400Hz = 3000@50HZ
     PD163   1    RS485 Address: 1 (Typical. OK to change...see below)
     PD164   1    RS485 Baud rate: 9600 (Typical. OK to change...see below)
     PD165   3    RS485 Mode: RTU, 8N1
