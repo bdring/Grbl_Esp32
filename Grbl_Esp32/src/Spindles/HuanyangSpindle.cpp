@@ -304,6 +304,9 @@ namespace Spindles {
 
         }
         */
+
+        // Done.
+        return nullptr;
     }
 
     VFD::response_parser Huanyang::get_status_ok(ModbusCommand& data) {
