@@ -39,8 +39,8 @@ void grbl_init() {
 #endif
     settings_init();  // Load Grbl settings from non-volatile storage
     stepper_init();   // Configure stepper pins and interrupt timers
-    init_motors();
     system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
+    init_motors();
     memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
     machine_init();                                 // weak definition in Grbl.cpp does nothing
     // Initialize system state.
