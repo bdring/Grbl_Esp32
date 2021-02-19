@@ -158,10 +158,15 @@ namespace Spindles {
         data.msg[1] = 0x05;
         data.msg[2] = 0x02;
 
-        // Comes from a conversion of revolutions per second to revolutions per minute (factor of 60) and a
-        // factor of 2 from counting the number of poles versus the number of pole-pairs.
-        auto     constant = 60 * _numberPoles / 2;
-        uint16_t value    = (uint16_t)(rpm * 100 / constant);  // send Hz * 10  (Ex:1500 RPM = 25Hz .... Send 2500)
+        // Frequency comes from a conversion of revolutions per second to revolutions per minute
+        // (factor of 60) and a factor of 2 from counting the number of poles. E.g. rpm * 120 / 100.
+
+        // int targetFrequency = targetRPM * PD005 / MaxRPM = targetRPM * PD005 / (PD005 * PD144 / 50) =
+        // targetRPM * 50 / PD144
+        //
+        // Huanyang wants a factor 100 bigger numbers. So, 1500 rpm -> 25 HZ. Send 2500.
+
+        uint16_t value = rpm * 5000 / _maxRpmAt50Hz;
 
         data.msg[3] = (value >> 8) & 0xFF;
         data.msg[4] = (value & 0xFF);
