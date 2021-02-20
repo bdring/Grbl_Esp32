@@ -137,7 +137,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
                     // convert back to motor steps
                     inverse_kinematics(target);
 
-                    pl_data->feed_rate = homing_rate;   // feed or seek rates
+                    pl_data->feed_rate = homing_rate;   // Set current homing rate.
                     plan_buffer_line(target, pl_data);  // Bypass mc_line(). Directly plan homing motion.
                     sys.step_control                  = {};
                     sys.step_control.executeSysMotion = true;  // Set to execute homing motion and clear existing flags.
@@ -150,24 +150,19 @@ bool user_defined_homing(uint8_t cycle_mask) {
                         }
                         st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
                         // Exit routines: No time to run protocol_execute_realtime() in this loop.
-                        if (sys_rt_exec_state.bit.safetyDoor || sys_rt_exec_state.bit.reset || cycle_stop) {
-                            ExecState rt_exec_state;
-                            rt_exec_state.value = sys_rt_exec_state.value;
-                            // Homing failure condition: Reset issued during cycle.
-                            if (rt_exec_state.bit.reset) {
+                        if (sys_safetyDoor || sys_reset || sys_cycleStop) {
+                            if (sys_reset) {
+                                // Homing failure condition: Reset issued during cycle.
                                 sys_rt_exec_alarm = ExecAlarm::HomingFailReset;
-                            }
-                            // Homing failure condition: Safety door was opened.
-                            if (rt_exec_state.bit.safetyDoor) {
+                            } else if (sys_safetyDoor) {
+                                // Homing failure condition: Safety door was opened.
                                 sys_rt_exec_alarm = ExecAlarm::HomingFailDoor;
-                            }
-                            // Homing failure condition: Limit switch still engaged after pull-off motion
-                            if (!approach && (limits_get_state() & cycle_mask)) {
-                                sys_rt_exec_alarm = ExecAlarm::HomingFailPulloff;
-                            }
-                            // Homing failure condition: Limit switch not found during approach.
-                            if (approach && cycle_stop) {
+                            } else if (approach) {  // sys_cycleStop must be true if we get this far
+                                // Homing failure condition: Limit switch not found during approach.
                                 sys_rt_exec_alarm = ExecAlarm::HomingFailApproach;
+                            } else if (limits_get_state() & cycle_mask) {
+                                // Homing failure condition: Limit switch still engaged after pull-off motion
+                                sys_rt_exec_alarm = ExecAlarm::HomingFailPulloff;
                             }
 
                             if (sys_rt_exec_alarm != ExecAlarm::None) {
@@ -175,11 +170,11 @@ bool user_defined_homing(uint8_t cycle_mask) {
                                 mc_reset();                                 // Stop motors, if they are running.
                                 protocol_execute_realtime();
                                 return true;
-                            } else {
-                                // Pull-off motion complete. Disable CYCLE_STOP from executing.
-                                cycle_stop = false;
-                                break;
                             }
+
+                            // Pull-off motion complete. Disable CYCLE_STOP from executing.
+                            sys_cycleStop = false;
+                            break;
                         }
                     } while (!switch_touched);
 

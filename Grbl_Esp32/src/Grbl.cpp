@@ -83,10 +83,18 @@ static void reset_variables() {
     memset(sys_probe_position, 0, sizeof(sys_probe_position));  // Clear probe position.
 
     sys_probe_state                      = Probe::Off;
-    sys_rt_exec_state.value              = 0;
+
+    sys_statusReport                     = false;
+    sys_cycleStart                       = false;
+    sys_cycleStop                        = false;
+    sys_feedHold                         = false;
+    sys_reset                            = false;
+    sys_safetyDoor                       = false;
+    sys_motionCancel                     = false;
+    sys_sleep                            = false;
+
     sys_rt_exec_accessory_override.value = 0;
     sys_rt_exec_alarm                    = ExecAlarm::None;
-    cycle_stop                           = false;
     sys_rt_f_override                    = FeedOverride::Default;
     sys_rt_r_override                    = RapidOverride::Default;
     sys_rt_s_override                    = SpindleSpeedOverride::Default;
