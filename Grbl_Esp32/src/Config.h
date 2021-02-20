@@ -258,11 +258,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // previous tool path, as if nothing happened.
 #define ENABLE_SAFETY_DOOR_INPUT_PIN  // ESP32 Leave this enabled for now .. code for undefined not ready
 
-// After the safety door switch has been toggled and restored, this setting sets the power-up delay
-// between restoring the spindle and coolant and resuming the cycle.
-const double SAFETY_DOOR_SPINDLE_DELAY = 4.0;  // Float (seconds)
-const double SAFETY_DOOR_COOLANT_DELAY = 1.0;  // Float (seconds)
-
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.
 // This build option will invert only the limit pins defined here, and then the invert limits setting
@@ -582,8 +577,8 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // Configure options for the parking motion, if enabled.
 #define PARKING_AXIS Z_AXIS                      // Define which axis that performs the parking motion
 const double PARKING_TARGET            = -5.0;   // Parking axis target. In mm, as machine coordinate.
-const double PARKING_RATE              = 500.0;  // Parking fast rate after pull-out in mm/min.
-const double PARKING_PULLOUT_RATE      = 100.0;  // Pull-out/plunge slow feed rate in mm/min.
+const double PARKING_RATE              = 800.0;  // Parking fast rate after pull-out in mm/min.
+const double PARKING_PULLOUT_RATE      = 250.0;  // Pull-out/plunge slow feed rate in mm/min.
 const double PARKING_PULLOUT_INCREMENT = 5.0;    // Spindle pull-out and plunge distance in mm. Incremental distance.
 // Must be positive value or equal to zero.
 

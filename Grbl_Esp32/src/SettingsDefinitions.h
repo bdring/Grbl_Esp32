@@ -18,6 +18,7 @@ extern StringSetting* build_info;
 
 extern IntSetting* pulse_microseconds;
 extern IntSetting* stepper_idle_lock_time;
+extern IntSetting* enable_delay_microseconds;
 
 extern AxisMaskSetting* step_invert_mask;
 extern AxisMaskSetting* dir_invert_mask;
@@ -48,6 +49,7 @@ extern FloatSetting* rpm_max;
 extern FloatSetting* rpm_min;
 extern FloatSetting* spindle_delay_spinup;
 extern FloatSetting* spindle_delay_spindown;
+extern FloatSetting* coolant_start_delay;
 extern FlagSetting*  spindle_enbl_off_with_zero_speed;
 extern FlagSetting*  spindle_enable_invert;
 extern FlagSetting*  spindle_output_invert;

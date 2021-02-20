@@ -326,6 +326,9 @@ namespace Spindles {
         _min_rpm = rpm_min->get();
         _max_rpm = rpm_max->get();
 
+        _spinup_delay   = spindle_delay_spinup->get() * 1000.0;
+        _spindown_delay = spindle_delay_spindown->get() * 1000.0;
+
         return pins_settings_ok;
     }
 
@@ -348,16 +351,18 @@ namespace Spindles {
         if (_current_state != state) {  // already at the desired state. This function gets called a lot.
             set_mode(state, critical);  // critical if we are in a job
             set_rpm(rpm);
+
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spin1");
+
             if (state == SpindleState::Disable) {
                 sys.spindle_speed = 0;
-                if (_current_state != state) {
-                    mc_dwell(spindle_delay_spindown->get());
-                }
+                delay(_spindown_delay);
+
             } else {
-                if (_current_state != state) {
-                    mc_dwell(spindle_delay_spinup->get());
-                }
+                delay(_spinup_delay);
             }
+            
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spin2");
         } else {
             if (_current_rpm != rpm) {
                 set_rpm(rpm);
