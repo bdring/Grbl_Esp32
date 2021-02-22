@@ -358,12 +358,29 @@ namespace Spindles {
         // data.msg[0] is omitted (modbus address is filled in later)
         data.msg[1] = 0x04;
         data.msg[2] = 0x03;
-        data.msg[3] = 0x03;  // RPM
+        data.msg[3] = 0x01;  // Output frequency
         data.msg[4] = 0x00;
         data.msg[5] = 0x00;
 
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-            uint16_t rpm = (response[4] << 8) | response[5];
+            uint16_t frequency = (response[4] << 8) | response[5];
+
+            auto huanyang = static_cast<Huanyang*>(vfd);
+
+            // Since we set a frequency, it's only fair to check if that's output in the spindle sync.
+            // The reason we check frequency instead of RPM is because RPM assumes a linear relation
+            // between RPM and frequency - which isn't necessarily true.
+            //
+            // We calculate the frequency back to RPM the same way as we calculated the frequency in the
+            // first place. In other words, this code must match the set_speed_command method. Note that
+            // we test sync_rpm instead of frequency, because that matches whatever a vfd can throw at us.
+            //
+            // value = rpm * 5000 / maxRpmAt50Hz
+            //
+            // It follows that:
+            // frequency_value_x100 * maxRpmAt50Hz / 5000 = rpm
+
+            auto rpm = uint32_t(frequency) * uint32_t(huanyang->_maxRpmAt50Hz) / 5000;
 
             // Store RPM for synchronization
             vfd->_sync_rpm = rpm;
