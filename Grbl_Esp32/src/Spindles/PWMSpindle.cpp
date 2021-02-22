@@ -114,6 +114,9 @@ namespace Spindles {
         // _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
 
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
+
+        _spinup_delay   = spindle_delay_spinup->get() * 1000.0;
+        _spindown_delay = spindle_delay_spindown->get() * 1000.0;
     }
 
     uint32_t PWM::set_rpm(uint32_t rpm) {

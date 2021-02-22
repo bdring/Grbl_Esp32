@@ -413,7 +413,19 @@ void           init_motors() {
 }
 
 void motors_set_disable(bool disable, uint8_t mask) {
-    static bool previous_state = true;
+    static bool    prev_disable = true;
+    static uint8_t prev_mask    = 0;
+
+    if ((disable == prev_disable) && (mask == prev_mask)) {
+        return;
+    }
+
+    prev_disable = disable;
+    prev_mask    = mask;
+
+    if (step_enable_invert->get()) {
+        disable = !disable;  // Apply pin invert.
+    }
 
     if (previous_state != disable) {
         previous_state = disable;
@@ -428,28 +440,17 @@ void motors_set_disable(bool disable, uint8_t mask) {
             }
         }
 
-        // invert only inverts the global stepper disable pin.
-        if (step_enable_invert->get()) {
-            disable = !disable;  // Apply pin invert.
-        }
+    // global disable.
+    digitalWrite(STEPPERS_DISABLE_PIN, disable);
 
-        digitalWrite(STEPPERS_DISABLE_PIN, disable);
+    // Add an optional delay for stepper drivers. that need time
+    // Some need time after the enable before they can step.
+    auto wait_disable_change = enable_delay_microseconds->get();
+    if (wait_disable_change != 0) {
+        auto disable_start_time = esp_timer_get_time() + wait_disable_change;
 
-        // Stepper drivers need some time between changing enable and doing a step pulse.
-        // motors_set_disable should not be called from an ISR
-        // Enable ______------______
-        // Steps  _________-_-________
-
-        if (disable)  // should not need to delay on disable...no steps come in disable mode
-            return;
-
-        auto wait_disable_change = enable_delay_microseconds->get();
-        if (wait_disable_change != 0) {
-            auto disable_start_time = esp_timer_get_time() + wait_disable_change;
-
-            while ((esp_timer_get_time() - disable_start_time) < 0) {
-                NOP();  // spin here until time to turn off step
-            }
+        while ((esp_timer_get_time() - disable_start_time) < 0) {
+            NOP();
         }
     }
 }

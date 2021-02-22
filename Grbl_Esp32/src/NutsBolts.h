@@ -25,6 +25,11 @@
 // #define false 0
 // #define true 1
 
+enum class DwellMode : uint8_t {
+    Dwell = 0,   // (Default: Must be zero)
+    SysSuspend = 1,  //G92.1 (Do not alter value)
+};
+
 const double SOME_LARGE_VALUE = 1.0E+38;
 
 // Axis array index values. Must start with 0 and be continuous.
@@ -57,8 +62,6 @@ static inline int toMotor2(int axis) {
 const double MM_PER_INCH = (25.40);
 const double INCH_PER_MM = (0.0393701);
 
-const int DELAY_MODE_DWELL       = 0;
-const int DELAY_MODE_SYS_SUSPEND = 1;
 
 // Useful macros
 #define clear_vector(a) memset(a, 0, sizeof(a))

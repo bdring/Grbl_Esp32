@@ -121,9 +121,9 @@ bool delay_msec(int32_t milliseconds, uint8_t mode) {
         if (sys.abort) {
             return false;
         }
-        if (mode == DELAY_MODE_DWELL) {
+        if (mode == DwellMode::Dwell) {
             protocol_execute_realtime();
-        } else {  // DELAY_MODE_SYS_SUSPEND
+        } else {  // DwellMode::SysSuspend
             // Execute rt_system() only to avoid nesting suspend loops.
             protocol_exec_rt_system();
             if (sys.suspend.bit.restartRetract) {
