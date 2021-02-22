@@ -272,7 +272,7 @@ void protocol_exec_rt_system() {
     }
     ExecState rt_exec_state;
     rt_exec_state.value = sys_rt_exec_state.value;  // Copy volatile sys_rt_exec_state.
-    if (rt_exec_state.value != 0 || cycle_stop) {                 // Test if any bits are on
+    if (rt_exec_state.value != 0 || cycle_stop) {   // Test if any bits are on
         // Execute system abort.
         if (rt_exec_state.bit.reset) {
             sys.abort = true;  // Only place this is set true.
@@ -666,7 +666,7 @@ static void protocol_exec_rt_suspend() {
                                     sys.step_control.updateSpindleRpm = true;
                                 } else {
                                     spindle->set_state(restore_spindle, (uint32_t)restore_spindle_speed);
-                                    delay_sec(SAFETY_DOOR_SPINDLE_DELAY, DELAY_MODE_SYS_SUSPEND);
+                                    delay_msec(int32_t(1000.0 * SAFETY_DOOR_SPINDLE_DELAY), DELAY_MODE_SYS_SUSPEND);
                                 }
                             }
                         }
@@ -675,7 +675,7 @@ static void protocol_exec_rt_suspend() {
                             if (!sys.suspend.bit.restartRetract) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.
                                 coolant_set_state(restore_coolant);
-                                delay_sec(SAFETY_DOOR_COOLANT_DELAY, DELAY_MODE_SYS_SUSPEND);
+                                delay_msec(int32_t(1000.0 * SAFETY_DOOR_COOLANT_DELAY), DELAY_MODE_SYS_SUSPEND);
                             }
                         }
 #ifdef PARKING_ENABLE

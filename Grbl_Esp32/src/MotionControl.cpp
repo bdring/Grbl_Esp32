@@ -224,12 +224,12 @@ void mc_arc(float*            target,
 }
 
 // Execute dwell in seconds.
-void mc_dwell(double seconds) {
+bool mc_dwell(int32_t milliseconds) {
     if (sys.state == State::CheckMode) {
-        return;
+        return false;
     }
     protocol_buffer_synchronize();
-    delay_sec(seconds, DELAY_MODE_DWELL);
+    return delay_msec(milliseconds, DELAY_MODE_DWELL);
 }
 
 // return true if the mask has exactly one bit set,

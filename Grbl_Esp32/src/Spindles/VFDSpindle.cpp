@@ -390,7 +390,7 @@ namespace Spindles {
         bool shouldWait = state != _current_state || state != SpindleState::Disable;
         bool critical   = (sys.state == State::Cycle || state != SpindleState::Disable);
 
-        double delay = 1.0;
+        int32_t delay = 1000;
 
         if (_current_state != state) {  // already at the desired state. This function gets called a lot.
             set_mode(state, critical);  // critical if we are in a job
@@ -398,11 +398,11 @@ namespace Spindles {
 
             if (state == SpindleState::Disable) {
                 sys.spindle_speed = 0;
-                delay             = spindle_delay_spindown->get();
+                delay             = int32_t(1000.0f * spindle_delay_spindown->get());
                 rpm               = 0;
 
             } else {
-                delay = spindle_delay_spinup->get();
+                delay = int32_t(1000.0f * spindle_delay_spinup->get());
             }
 
             if (_current_state != state && !supports_actual_rpm()) {
@@ -439,10 +439,14 @@ namespace Spindles {
 
                 while ((_sync_rpm < minRpmAllowed || _sync_rpm > maxRpmAllowed) && unchanged < limit) {
 #ifdef VFD_DEBUG_MODE
-                    // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Syncing RPM. Requested %d, current %d", int(rpm), int(_sync_rpm));
-                    // protocol_buffer_synchronize();
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Syncing RPM. Requested %d, current %d", int(rpm), int(_sync_rpm));
 #endif
-                    mc_dwell(0.5);
+                    if (!mc_dwell(500)) {
+                        // Something happened while we were dwelling, like a safety door.
+                        unchanged = limit;
+                        last      = _sync_rpm;
+                        break;
+                    }
 
                     if (_sync_rpm == last) {
                         ++unchanged;
