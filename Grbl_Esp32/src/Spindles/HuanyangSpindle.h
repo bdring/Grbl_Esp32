@@ -33,19 +33,7 @@ namespace Spindles {
         uint16_t _maxRpmAt50Hz = 100;  // PD144: rated motor revolution at 50Hz => 24000@400Hz = 3000@50HZ
         // uint16_t _numberPoles  = 2; // PD143: 4 or 2 poles in motor. Default is 4. A spindle being 24000RPM@400Hz implies 2 poles
 
-        inline void updateRPM() {
-            /*
-            PD005 = 400 ; max frequency the VFD will allow
-            MaxRPM = PD005 * 50 / PD176
-            */
-
-            if (_minFrequency > _maxFrequency) {
-                _minFrequency = _maxFrequency;
-            }
-
-            this->_min_rpm = uint32_t(_minFrequency) * uint32_t(_maxRpmAt50Hz) / 50;  //   0 * 3000 / 50 =   0 RPM.
-            this->_max_rpm = uint32_t(_maxFrequency) * uint32_t(_maxRpmAt50Hz) / 50;  // 400 * 3000 / 50 = 24k RPM.
-        }
+        void updateRPM();
 
         void default_modbus_settings(uart_config_t& uart) override;
 

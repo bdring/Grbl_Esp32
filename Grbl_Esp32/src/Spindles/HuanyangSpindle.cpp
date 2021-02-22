@@ -223,8 +223,9 @@ namespace Spindles {
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[4] << 8) | response[5];
-
-                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Max frequency set to %d", value);
+#ifdef VFD_DEBUG_MODE
+                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Max frequency = %d", value);
+#endif
 
                 // Set current RPM value? Somewhere?
                 auto huanyang           = static_cast<Huanyang*>(vfd);
@@ -239,7 +240,9 @@ namespace Spindles {
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[4] << 8) | response[5];
 
+#ifdef VFD_DEBUG_MODE
                 grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Min frequency set to %d", value);
+#endif
 
                 // Set current RPM value? Somewhere?
                 auto huanyang           = static_cast<Huanyang*>(vfd);
@@ -253,9 +256,9 @@ namespace Spindles {
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[4] << 8) | response[5];
-
-                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Max rated revolutions @ 50Hz is %d", value);
-
+#ifdef VFD_DEBUG_MODE
+                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Max rated revolutions @ 50Hz = %d", value);
+#endif
                 // Set current RPM value? Somewhere?
                 auto huanyang           = static_cast<Huanyang*>(vfd);
                 huanyang->_maxRpmAt50Hz = value;
@@ -282,12 +285,14 @@ namespace Spindles {
             data.msg[3] = 143;  // PD143: 4 or 2 poles in motor. Default is 4. A spindle being 24000RPM@400Hz implies 2 poles
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-                uint16_t value = (response[4] << 8) | response[5];
+                uint8_t value = response[4]; // Single byte response.
 
                 // Sanity check. We expect something like 2 or 4 poles.
                 if (value <= 4 && value >= 2) {
+#ifdef VFD_DEBUG_MODE
                     // Set current RPM value? Somewhere?
                     grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Number of poles set to %d", value);
+#endif
 
                     auto huanyang = static_cast<Huanyang*>(vfd);
                     huanyang->_numberPoles = value;
@@ -307,6 +312,22 @@ namespace Spindles {
 
         // Done.
         return nullptr;
+    }
+
+    void Huanyang::updateRPM() {
+        /*
+        PD005 = 400 ; max frequency the VFD will allow
+        MaxRPM = PD005 * 50 / PD176
+        */
+
+        if (_minFrequency > _maxFrequency) {
+            _minFrequency = _maxFrequency;
+        }
+
+        this->_min_rpm = uint32_t(_minFrequency) * uint32_t(_maxRpmAt50Hz) / 50;  //   0 * 3000 / 50 =   0 RPM.
+        this->_max_rpm = uint32_t(_maxFrequency) * uint32_t(_maxRpmAt50Hz) / 50;  // 400 * 3000 / 50 = 24k RPM.
+
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: VFD settings read: RPM Range(%d, %d)]", _min_rpm, _max_rpm);
     }
 
     VFD::response_parser Huanyang::get_status_ok(ModbusCommand& data) {
