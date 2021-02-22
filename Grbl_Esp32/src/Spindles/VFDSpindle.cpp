@@ -76,8 +76,7 @@ namespace Spindles {
             // First check if we should ask the VFD for the max RPM value as part of the initialization. We
             // should also query this is max_rpm is 0, because that means a previous initialization failed:
             if ((pollidx < 0 || instance->_max_rpm == 0) && (parser = instance->initialization_sequence(pollidx, next_cmd)) != nullptr) {
-                --pollidx;  // Move to the next poll index.
-                next_cmd.critical = true;
+                next_cmd.critical = false;
             } else {
                 pollidx           = 1;  // Done with initialization. Main sequence.
                 next_cmd.critical = false;
@@ -189,16 +188,25 @@ namespace Spindles {
                     retry_count  = MAX_RETRIES + 1;  // stop retry'ing
 
                     // Should we parse this?
-                    if (parser != nullptr && !parser(rx_message, instance)) {
+                    if (parser != nullptr) {
+                        if (parser(rx_message, instance)) {
+                            // If we're initializing, move to the next initialization command:
+                            if (pollidx < 0) {
+                                --pollidx;
+                            }
+                        } else {
+                            // If we were initializing, move back to where we started.
 #ifdef VFD_DEBUG_MODE
-                        // Parsing failed
-                        report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
-                        report_hex_msg(rx_message, "RS485 Rx: ", read_length);
+                            // Parsing failed
+                            report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
+                            report_hex_msg(rx_message, "RS485 Rx: ", read_length);
 #endif
 
-                        // Not succesful! Now what?
-                        unresponsive = true;
-                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle RS485 did not give a satisfying response");
+                            // Not succesful! Now what?
+                            unresponsive = true;
+                            pollidx      = -1;  // Re-initializing the VFD seems like a plan
+                            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle RS485 did not give a satisfying response");
+                        }
                     }
                 } else {
 #ifdef VFD_DEBUG_MODE
@@ -235,6 +243,7 @@ namespace Spindles {
                 if (!unresponsive) {
                     grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Spindle RS485 Unresponsive %d", next_cmd.rx_length);
                     unresponsive = true;
+                    pollidx      = -1;
                 }
                 if (next_cmd.critical) {
                     grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical Spindle RS485 Unresponsive");
@@ -411,8 +420,6 @@ namespace Spindles {
             if (_current_state != state && !supports_actual_rpm()) {
                 delay(delayMillis);
             }
-
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spin2");
         } else {
             if (_current_rpm != rpm) {
                 set_rpm(rpm);
