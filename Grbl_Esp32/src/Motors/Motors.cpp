@@ -427,18 +427,15 @@ void motors_set_disable(bool disable, uint8_t mask) {
         disable = !disable;  // Apply pin invert.
     }
 
-    if (previous_state != disable) {
-        previous_state = disable;
-
-        // now loop through all the motors to see if they can individually disable
-        auto n_axis = number_axis->get();
-        for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
-            for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-                if (bitnum_istrue(mask, axis)) {
-                    myMotor[axis][gang_index]->set_disable(disable);
-                }
+    // now loop through all the motors to see if they can individually disable
+    auto n_axis = number_axis->get();
+    for (uint8_t gang_index = 0; gang_index < MAX_GANGED; gang_index++) {
+        for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
+            if (bitnum_istrue(mask, axis)) {
+                myMotor[axis][gang_index]->set_disable(disable);
             }
         }
+    }
 
     // global disable.
     digitalWrite(STEPPERS_DISABLE_PIN, disable);

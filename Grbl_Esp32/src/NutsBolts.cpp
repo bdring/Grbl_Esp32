@@ -112,7 +112,7 @@ void delay_ms(uint16_t ms) {
 }
 
 // Non-blocking delay function used for general operation and suspend features.
-bool delay_msec(int32_t milliseconds, uint8_t mode) {
+bool delay_msec(int32_t milliseconds, DwellMode mode) {
     // Note: i must be signed, because of the 'i-- > 0' check below.
     int32_t i         = milliseconds / DWELL_TIME_STEP;
     int32_t remainder = i < 0 ? 0 : (milliseconds - DWELL_TIME_STEP * i);
