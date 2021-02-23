@@ -65,7 +65,7 @@ namespace Motors {
         rmtConfig.tx_config.carrier_level        = RMT_CARRIER_LEVEL_LOW;
         rmtConfig.tx_config.idle_output_en       = true;
 
-        auto stepPulseDelay = direction_delay_microseconds->get();
+        auto stepPulseDelay  = direction_delay_microseconds->get();
         rmtItem[0].duration0 = stepPulseDelay < 1 ? 1 : stepPulseDelay * 4;
 
         rmtItem[0].duration1 = 4 * pulse_microseconds->get();
