@@ -87,8 +87,6 @@ const int MAX_N_AXIS = 6;
 #    define LIMIT_MASK B0
 #endif
 
-#define GRBL_MSG_LEVEL MsgLevel::Info  // what level of [MSG:....] do you want to see 0=all off
-
 // Serial baud rate
 // OK to change, but the ESP32 boot text is 115200, so you will not see that is your
 // serial monitor, sender, etc uses a different value than 115200
@@ -259,11 +257,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // the safety door is re-engaged. When it is, Grbl will re-energize the machine and then resume on the
 // previous tool path, as if nothing happened.
 #define ENABLE_SAFETY_DOOR_INPUT_PIN  // ESP32 Leave this enabled for now .. code for undefined not ready
-
-// After the safety door switch has been toggled and restored, this setting sets the power-up delay
-// between restoring the spindle and coolant and resuming the cycle.
-const double SAFETY_DOOR_SPINDLE_DELAY = 4.0;  // Float (seconds)
-const double SAFETY_DOOR_COOLANT_DELAY = 1.0;  // Float (seconds)
 
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.
@@ -574,8 +567,8 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // Configure options for the parking motion, if enabled.
 #define PARKING_AXIS Z_AXIS                      // Define which axis that performs the parking motion
 const double PARKING_TARGET            = -5.0;   // Parking axis target. In mm, as machine coordinate.
-const double PARKING_RATE              = 500.0;  // Parking fast rate after pull-out in mm/min.
-const double PARKING_PULLOUT_RATE      = 100.0;  // Pull-out/plunge slow feed rate in mm/min.
+const double PARKING_RATE              = 800.0;  // Parking fast rate after pull-out in mm/min.
+const double PARKING_PULLOUT_RATE      = 250.0;  // Pull-out/plunge slow feed rate in mm/min.
 const double PARKING_PULLOUT_INCREMENT = 5.0;    // Spindle pull-out and plunge distance in mm. Incremental distance.
 // Must be positive value or equal to zero.
 

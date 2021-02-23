@@ -20,6 +20,7 @@
 
 */
 #include "PWMSpindle.h"
+#include "soc/ledc_struct.h"
 
 // ======================= PWM ==============================
 /*
@@ -113,6 +114,9 @@ namespace Spindles {
         // _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
 
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
+
+        _spinup_delay   = spindle_delay_spinup->get() * 1000.0;
+        _spindown_delay = spindle_delay_spindown->get() * 1000.0;
     }
 
     uint32_t PWM::set_rpm(uint32_t rpm) {
@@ -162,14 +166,14 @@ namespace Spindles {
             sys.spindle_speed = 0;
             stop();
             if (use_delays && (_current_state != state)) {
-                mc_dwell(spindle_delay_spindown->get());
+                delay(_spinup_delay);
             }
         } else {
             set_dir_pin(state == SpindleState::Cw);
             set_rpm(rpm);
             set_enable_pin(state != SpindleState::Disable);  // must be done after setting rpm for enable features to work
             if (use_delays && (_current_state != state)) {
-                mc_dwell(spindle_delay_spinup->get());
+                delay(_spindown_delay);
             }
         }
 
@@ -222,7 +226,15 @@ namespace Spindles {
             duty = (1 << _pwm_precision) - duty;
         }
 
-        ledcWrite(_pwm_chan_num, duty);
+        //ledcWrite(_pwm_chan_num, duty);
+
+        // This was ledcWrite, but this is called from an ISR
+        // and ledcWrite uses RTOS features not compatible with ISRs
+        LEDC.channel_group[0].channel[0].duty.duty        = duty << 4;
+        bool on                                           = !!duty;
+        LEDC.channel_group[0].channel[0].conf0.sig_out_en = on;
+        LEDC.channel_group[0].channel[0].conf1.duty_start = on;
+        LEDC.channel_group[0].channel[0].conf0.clk_en     = on;
     }
 
     void PWM::set_enable_pin(bool enable) {

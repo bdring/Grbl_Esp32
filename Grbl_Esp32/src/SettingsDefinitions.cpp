@@ -60,6 +60,8 @@ IntSetting*   spindle_pwm_bit_precision;
 
 EnumSetting* spindle_type;
 
+EnumSetting* message_level;
+
 enum_opt_t spindleTypes = {
     // clang-format off
     { "NONE", int8_t(SpindleType::NONE) },
@@ -71,6 +73,17 @@ enum_opt_t spindleTypes = {
     { "BESC", int8_t(SpindleType::BESC) },
     { "10V", int8_t(SpindleType::_10V) },
     { "H2A", int8_t(SpindleType::H2A) },
+    // clang-format on
+};
+
+enum_opt_t messageLevels = {
+    // clang-format off
+    { "None", int8_t(MsgLevel::None) },
+    { "Error", int8_t(MsgLevel::Error) },
+    { "Warning", int8_t(MsgLevel::Warning) },
+    { "Info", int8_t(MsgLevel::Info) },
+    { "Debug", int8_t(MsgLevel::Debug) },
+    { "Verbose", int8_t(MsgLevel::Verbose) },
     // clang-format on
 };
 
@@ -261,7 +274,7 @@ void make_settings() {
     for (axis = MAX_N_AXIS - 1; axis >= 0; axis--) {
         def          = &axis_defaults[axis];
         auto setting = new IntSetting(
-            EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 63, postMotorSetting);
+            EXTENDED, WG, makeGrblName(axis, 170), makename(def->name, "StallGuard"), def->stallguard, -64, 255, postMotorSetting);
         setting->setAxis(axis);
         axis_settings[axis]->stallguard = setting;
     }
@@ -339,7 +352,8 @@ void make_settings() {
         new FloatSetting(EXTENDED, WG, NULL, "Spindle/Delay/SpinUp", DEFAULT_SPINDLE_DELAY_SPINUP, 0, 30, checkSpindleChange);
     spindle_delay_spindown =
         new FloatSetting(EXTENDED, WG, NULL, "Spindle/Delay/SpinDown", DEFAULT_SPINDLE_DELAY_SPINUP, 0, 30, checkSpindleChange);
-    coolant_start_delay = new FloatSetting(EXTENDED, WG, NULL, "Coolant/Delay/TurnOn", DEFAULT_COOLANT_DELAY_TURNON, 0, 30);
+    coolant_start_delay =
+        new FloatSetting(EXTENDED, WG, NULL, "Coolant/Delay/TurnOn", DEFAULT_COOLANT_DELAY_TURNON, 0, 30);
 
     spindle_enbl_off_with_zero_speed =
         new FlagSetting(GRBL, WG, NULL, "Spindle/Enable/OffWithSpeed", DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED, checkSpindleChange);
@@ -387,6 +401,7 @@ void make_settings() {
     step_invert_mask       = new AxisMaskSetting(GRBL, WG, "2", "Stepper/StepInvert", DEFAULT_STEPPING_INVERT_MASK, postMotorSetting);
     stepper_idle_lock_time = new IntSetting(GRBL, WG, "1", "Stepper/IdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
     pulse_microseconds     = new IntSetting(GRBL, WG, "0", "Stepper/Pulse", DEFAULT_STEP_PULSE_MICROSECONDS, 3, 1000);
+    enable_delay_microseconds = new IntSetting(EXTENDED, WG, NULL, "Stepper/Enable/Delay", DEFAULT_STEP_ENABLE_DELAY, 0, 1000);  // microseconds
 
     direction_delay_microseconds = new IntSetting(EXTENDED, WG, NULL, "Stepper/Direction/Delay", STEP_PULSE_DELAY, 0, 1000);
     enable_delay_microseconds = new IntSetting(EXTENDED, WG, NULL, "Stepper/Enable/Delay", DEFAULT_STEP_ENABLE_DELAY, 0, 1000);  // microseconds
@@ -404,4 +419,6 @@ void make_settings() {
     user_macro2 = new StringSetting(EXTENDED, WG, NULL, "User/Macro2", DEFAULT_USER_MACRO2);
     user_macro1 = new StringSetting(EXTENDED, WG, NULL, "User/Macro1", DEFAULT_USER_MACRO1);
     user_macro0 = new StringSetting(EXTENDED, WG, NULL, "User/Macro0", DEFAULT_USER_MACRO0);
+
+    message_level = +new EnumSetting(NULL, EXTENDED, WG, NULL, "Message/Level", static_cast<int8_t>(MsgLevel::Info), &messageLevels, NULL);
 }

@@ -664,9 +664,10 @@ static void protocol_exec_rt_suspend() {
                                 if (spindle->inLaserMode()) {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                     sys.step_control.updateSpindleRpm = true;
-                                } else {
+                                } else {                                    
                                     spindle->set_state(restore_spindle, (uint32_t)restore_spindle_speed);
-                                    delay_sec(SAFETY_DOOR_SPINDLE_DELAY, DELAY_MODE_SYS_SUSPEND);
+                                    // restore delay is done in the spindle class
+                                    //delay_sec(spindle_delay_spinup->get(), DwellMode::SysSuspend);
                                 }
                             }
                         }
@@ -675,7 +676,7 @@ static void protocol_exec_rt_suspend() {
                             if (!sys.suspend.bit.restartRetract) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.
                                 coolant_set_state(restore_coolant);
-                                delay_sec(SAFETY_DOOR_COOLANT_DELAY, DELAY_MODE_SYS_SUSPEND);
+                                delay_sec(coolant_start_delay->get(), DwellMode::SysSuspend);
                             }
                         }
 #ifdef PARKING_ENABLE

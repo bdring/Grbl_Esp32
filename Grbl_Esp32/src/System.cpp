@@ -47,18 +47,22 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     // setup control inputs
 
 #ifdef CONTROL_SAFETY_DOOR_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Door switch on pin %s", pinName(CONTROL_SAFETY_DOOR_PIN).c_str());
     pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_RESET_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset switch on pin %s", pinName(CONTROL_RESET_PIN).c_str());
     pinMode(CONTROL_RESET_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_FEED_HOLD_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Hold switch on pin %s", pinName(CONTROL_FEED_HOLD_PIN).c_str());
     pinMode(CONTROL_FEED_HOLD_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_CYCLE_START_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start switch on pin %s", pinName(CONTROL_CYCLE_START_PIN).c_str());
     pinMode(CONTROL_CYCLE_START_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
 #endif
@@ -267,36 +271,29 @@ void system_exec_control_pin(ControlPins pins) {
     }
 }
 
-// io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
-// It uses a mask so all can be turned of in ms_reset
-bool sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized) {
-    bool cmd_ok = true;
-    if (synchronized)
-        protocol_buffer_synchronize();
-
+void sys_digital_all_off() {
     for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {
-        if (io_num_mask & bit(io_num)) {
-            if (!myDigitalOutputs[io_num]->set_level(turnOn))
-                cmd_ok = false;
-        }
+        myDigitalOutputs[io_num]->set_level(LOW);
     }
-    return cmd_ok;
 }
 
-// io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
-// It uses a mask so all can be turned of in ms_reset
-bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized) {
-    bool cmd_ok = true;
-    if (synchronized)
-        protocol_buffer_synchronize();
+// io_num is the virtual digital pin#
+bool sys_set_digital(uint8_t io_num, bool turnOn) {
+    return myDigitalOutputs[io_num]->set_level(turnOn);
+}
 
+// Turn off all analog outputs
+void sys_analog_all_off() {
     for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {
-        if (io_num_mask & bit(io_num)) {
-            if (!myAnalogOutputs[io_num]->set_level(duty))
-                cmd_ok = false;
-        }
+        myAnalogOutputs[io_num]->set_level(0);
     }
-    return cmd_ok;
+}
+
+// io_num is the virtual analog pin#
+bool sys_set_analog(uint8_t io_num, float percent) {
+    auto     analog    = myAnalogOutputs[io_num];
+    uint32_t numerator = percent / 100.0 * analog->denominator();
+    return analog->set_level(numerator);
 }
 
 /*

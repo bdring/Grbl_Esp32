@@ -184,8 +184,9 @@ void mc_arc(float*            target,
         float    cos_Ti;
         float    r_axisi;
         uint16_t i;
-        uint8_t  count = 0;
-        for (i = 1; i < segments; i++) {  // Increment (segments-1).
+        uint8_t  count             = 0;
+        float    original_feedrate = pl_data->feed_rate;  // Kinematics may alter the feedrate, so save an original copy
+        for (i = 1; i < segments; i++) {                  // Increment (segments-1).
             if (count < N_ARC_CORRECTION) {
                 // Apply vector rotation matrix. ~40 usec
                 r_axisi = r_axis0 * sin_T + r_axis1 * cos_T;
@@ -206,6 +207,7 @@ void mc_arc(float*            target,
             position[axis_1] = center_axis1 + r_axis1;
             position[axis_linear] += linear_per_segment;
 #ifdef USE_KINEMATICS
+            pl_data->feed_rate = original_feedrate;  // This restores the feedrate kinematics may have altered
             mc_line_kins(position, pl_data, previous_position);
             previous_position[axis_0]      = position[axis_0];
             previous_position[axis_1]      = position[axis_1];
@@ -225,11 +227,11 @@ void mc_arc(float*            target,
 
 // Execute dwell in seconds.
 void mc_dwell(float seconds) {
-    if (sys.state == State::CheckMode) {
+    if (seconds == 0 || sys.state == State::CheckMode) {
         return;
     }
     protocol_buffer_synchronize();
-    delay_sec(seconds, DELAY_MODE_DWELL);
+    delay_sec(seconds, DwellMode::Dwell);
 }
 
 // return true if the mask has exactly one bit set,
@@ -283,11 +285,11 @@ static bool axis_is_squared(uint8_t axis_mask) {
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
 void mc_homing_cycle(uint8_t cycle_mask) {
     bool no_cycles_defined = true;
-#ifdef USE_CUSTOM_HOMING
+
     if (user_defined_homing(cycle_mask)) {
         return;
     }
-#endif
+
     // This give kinematics a chance to do something before normal homing
     // if it returns true, the homing is canceled.
 #ifdef USE_KINEMATICS
@@ -505,11 +507,11 @@ void mc_reset() {
         coolant_stop();
 
         // turn off all User I/O immediately
-        sys_io_control(0xFF, LOW, false);
-        sys_pwm_control(0xFF, 0, false);
+        sys_digital_all_off();
+        sys_analog_all_off();
 #ifdef ENABLE_SD_CARD
         // do we need to stop a running SD job?
-        if (get_sd_state(false) == SDCARD_BUSY_PRINTING) {
+        if (get_sd_state(false) == SDState::BusyPrinting) {
             //Report print stopped
             report_feedback_message(Message::SdFileQuit);
             closeFile();
