@@ -442,8 +442,8 @@ namespace Spindles {
                     drpm = 100;
                 }  // Just a sanity check
 
-                auto minRpmAllowed = rpm > drpm ? (rpm - drpm) : 0;
-                auto maxRpmAllowed = rpm + drpm;
+                auto minRpmAllowed = _current_rpm > drpm ? (_current_rpm - drpm) : 0;
+                auto maxRpmAllowed = _current_rpm + drpm;
 
                 int       unchanged = 0;
                 const int limit     = 20;  // 20 * 0.5s = 10 sec
@@ -524,12 +524,18 @@ namespace Spindles {
         // apply override
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
 
-        // apply limits
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
-            rpm = _max_rpm;
-        } else if (rpm != 0 && rpm <= _min_rpm) {
-            rpm = _min_rpm;
+        if (rpm < _min_rpm || rpm > _max_rpm) {
+            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Requested speed %d outside range:(%d,%d)", rpm, _min_rpm, _max_rpm);
+            rpm = constrain(rpm, _min_rpm, _max_rpm);
+            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Requested speed changed to %d", rpm);
         }
+
+        // apply limits
+        // if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
+        //     rpm = _max_rpm;
+        // } else if (rpm != 0 && rpm <= _min_rpm) {
+        //     rpm = _min_rpm;
+        // }
 
         sys.spindle_speed = rpm;
 
@@ -548,6 +554,7 @@ namespace Spindles {
         ModbusCommand rpm_cmd;
         rpm_cmd.msg[0] = VFD_RS485_ADDR;
 
+        
         set_speed_command(rpm, rpm_cmd);
 
         rpm_cmd.critical = (rpm == 0);

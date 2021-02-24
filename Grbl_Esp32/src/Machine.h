@@ -8,7 +8,7 @@
 // !!! For initial testing, start with test_drive.h which disables
 // all I/O pins
 // #include "Machines/atari_1020.h"
-#    include "Machines/6_pack_3axis_external_rs485.h"
+#    include "Machines/6_pack_2130_XYZ_VFD.h"
 
 // !!! For actual use, change the line above to select a board
 // from Machines/, for example:
