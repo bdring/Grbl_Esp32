@@ -318,14 +318,16 @@ namespace Spindles {
         /*
         PD005 = 400 ; max frequency the VFD will allow
         MaxRPM = PD005 * 50 / PD176
+
+        Frequencies are a factor 100 of what they should be.
         */
 
         if (_minFrequency > _maxFrequency) {
             _minFrequency = _maxFrequency;
         }
 
-        this->_min_rpm = uint32_t(_minFrequency) * uint32_t(_maxRpmAt50Hz) / 50;  //   0 * 3000 / 50 =   0 RPM.
-        this->_max_rpm = uint32_t(_maxFrequency) * uint32_t(_maxRpmAt50Hz) / 50;  // 400 * 3000 / 50 = 24k RPM.
+        this->_min_rpm = uint32_t(_minFrequency) * uint32_t(_maxRpmAt50Hz) / 5000;  //   0 * 3000 / 50 =   0 RPM.
+        this->_max_rpm = uint32_t(_maxFrequency) * uint32_t(_maxRpmAt50Hz) / 5000;  // 400 * 3000 / 50 = 24k RPM.
 
         grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: VFD settings read: RPM Range(%d, %d)]", _min_rpm, _max_rpm);
     }
