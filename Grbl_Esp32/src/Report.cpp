@@ -956,4 +956,14 @@ void reportTaskStackSize(UBaseType_t& saved) {
 #endif
 }
 
+String maskToString(uint32_t mask) {
+    String str = "";
+    for (int i = 0; i < MAX_N_AXIS; i++) {
+        if (mask & bit(i)) {
+            str += "XYZABC"[i];
+        }
+    }    
+    return str;
+}
+
 void __attribute__((weak)) forward_kinematics(float* position) {}  // This version does nothing. Make your own to do something with it

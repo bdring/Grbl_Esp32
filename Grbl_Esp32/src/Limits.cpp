@@ -52,6 +52,11 @@ void IRAM_ATTR isr_limit_switches() {
             int evt;
             xQueueSendFromISR(limit_sw_queue, &evt, NULL);
 #else
+            // Debugging...Show what axis triggered the ISR
+            if (static_cast<MsgLevel>(message_level->get()) == MsgLevel::Debug) {
+                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Pn:%s", maskToString(limits_get_state()));
+            }
+
 #    ifdef HARD_LIMIT_FORCE_STATE_CHECK
             // Check limit pin state.
             if (limits_get_state()) {
