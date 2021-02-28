@@ -6,7 +6,7 @@
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 
     2018 -	Bart Dring This file was modifed for use on the ESP32
-                    CPU. Do not use this with Grbl for atMega328P
+            CPU. Do not use this with Grbl for atMega328P
 
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -84,8 +84,7 @@ void mc_line(float* target, plan_line_data_t* pl_data) {
         }
         if (plan_check_full_buffer()) {
             protocol_auto_cycle_start();  // Auto-cycle start when buffer is full.
-        }
-        else {
+        } else {
             break;
         }
     } while (1);
@@ -101,21 +100,21 @@ void mc_line(float* target, plan_line_data_t* pl_data) {
 // The arc is approximated by generating a huge number of tiny, linear segments. The chordal tolerance
 // of each segment is configured in the arc_tolerance setting, which is defined to be the maximum normal
 // distance from segment to the circle when the end points both lie on the circle.
-void mc_arc(float* target,
-    plan_line_data_t* pl_data,
-    float* position,
-    float* offset,
-    float             radius,
-    uint8_t           axis_0,
-    uint8_t           axis_1,
-    uint8_t           axis_linear,
-    uint8_t           is_clockwise_arc) {
+void mc_arc(float*            target,
+            plan_line_data_t* pl_data,
+            float*            position,
+            float*            offset,
+            float             radius,
+            uint8_t           axis_0,
+            uint8_t           axis_1,
+            uint8_t           axis_linear,
+            uint8_t           is_clockwise_arc) {
     float center_axis0 = position[axis_0] + offset[axis_0];
     float center_axis1 = position[axis_1] + offset[axis_1];
-    float r_axis0 = -offset[axis_0];  // Radius vector from center to current location
-    float r_axis1 = -offset[axis_1];
-    float rt_axis0 = target[axis_0] - center_axis0;
-    float rt_axis1 = target[axis_1] - center_axis1;
+    float r_axis0      = -offset[axis_0];  // Radius vector from center to current location
+    float r_axis1      = -offset[axis_1];
+    float rt_axis0     = target[axis_0] - center_axis0;
+    float rt_axis1     = target[axis_1] - center_axis1;
 
     float previous_position[MAX_N_AXIS] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 #ifdef USE_KINEMATICS
@@ -132,8 +131,7 @@ void mc_arc(float* target,
         if (angular_travel >= -ARC_ANGULAR_TRAVEL_EPSILON) {
             angular_travel -= 2 * M_PI;
         }
-    }
-    else {
+    } else {
         if (angular_travel <= ARC_ANGULAR_TRAVEL_EPSILON) {
             angular_travel += 2 * M_PI;
         }
@@ -151,7 +149,7 @@ void mc_arc(float* target,
             pl_data->feed_rate *= segments;
             pl_data->motion.inverseTime = 0;  // Force as feed absolute mode over arc segments.
         }
-        float theta_per_segment = angular_travel / segments;
+        float theta_per_segment  = angular_travel / segments;
         float linear_per_segment = (target[axis_linear] - position[axis_linear]) / segments;
         /* Vector rotation by transformation matrix: r is the original vector, r_T is the rotated vector,
            and phi is the angle of rotation. Solution approach by Jens Geisler.
@@ -186,7 +184,7 @@ void mc_arc(float* target,
         float    cos_Ti;
         float    r_axisi;
         uint16_t i;
-        uint8_t  count = 0;
+        uint8_t  count             = 0;
         float    original_feedrate = pl_data->feed_rate;  // Kinematics may alter the feedrate, so save an original copy
         for (i = 1; i < segments; i++) {                  // Increment (segments-1).
             if (count < N_ARC_CORRECTION) {
@@ -195,15 +193,14 @@ void mc_arc(float* target,
                 r_axis0 = r_axis0 * cos_T - r_axis1 * sin_T;
                 r_axis1 = r_axisi;
                 count++;
-            }
-            else {
+            } else {
                 // Arc correction to radius vector. Computed only every N_ARC_CORRECTION increments. ~375 usec
                 // Compute exact location by applying transformation matrix from initial radius vector(=-offset).
-                cos_Ti = cos(i * theta_per_segment);
-                sin_Ti = sin(i * theta_per_segment);
+                cos_Ti  = cos(i * theta_per_segment);
+                sin_Ti  = sin(i * theta_per_segment);
                 r_axis0 = -offset[axis_0] * cos_Ti + offset[axis_1] * sin_Ti;
                 r_axis1 = -offset[axis_0] * sin_Ti - offset[axis_1] * cos_Ti;
-                count = 0;
+                count   = 0;
             }
             // Update arc_target location
             position[axis_0] = center_axis0 + r_axis0;
@@ -212,8 +209,8 @@ void mc_arc(float* target,
 #ifdef USE_KINEMATICS
             pl_data->feed_rate = original_feedrate;  // This restores the feedrate kinematics may have altered
             mc_line_kins(position, pl_data, previous_position);
-            previous_position[axis_0] = position[axis_0];
-            previous_position[axis_1] = position[axis_1];
+            previous_position[axis_0]      = position[axis_0];
+            previous_position[axis_1]      = position[axis_1];
             previous_position[axis_linear] = position[axis_linear];
 #else
             mc_line(position, pl_data);
@@ -322,12 +319,11 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     if (cycle_mask) {
         if (!axis_is_squared(cycle_mask)) {
             limits_go_home(cycle_mask);  // Homing cycle 0
-        }
-        else {
-            ganged_mode = SquaringMode::Dual;
+        } else {
+            ganged_mode           = SquaringMode::Dual;
             n_homing_locate_cycle = 0;  // don't do a second touch cycle
             limits_go_home(cycle_mask);
-            ganged_mode = SquaringMode::A;
+            ganged_mode           = SquaringMode::A;
             n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
             limits_go_home(cycle_mask);
             ganged_mode = SquaringMode::B;
@@ -344,12 +340,11 @@ void mc_homing_cycle(uint8_t cycle_mask) {
                 no_cycles_defined = false;
                 if (!axis_is_squared(homing_mask)) {
                     limits_go_home(homing_mask);  // Homing cycle 0
-                }
-                else {
-                    ganged_mode = SquaringMode::Dual;
+                } else {
+                    ganged_mode           = SquaringMode::Dual;
                     n_homing_locate_cycle = 0;  // don't do a second touch cycle
                     limits_go_home(homing_mask);
-                    ganged_mode = SquaringMode::A;
+                    ganged_mode           = SquaringMode::A;
                     n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
                     limits_go_home(homing_mask);
                     ganged_mode = SquaringMode::B;
@@ -404,8 +399,8 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
 
     // Initialize probing control variables
     uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
-    uint8_t is_no_error = bit_istrue(parser_flags, GCParserProbeIsNoError);
-    sys.probe_succeeded = false;  // Re-initialize probe history before beginning cycle.
+    uint8_t is_no_error   = bit_istrue(parser_flags, GCParserProbeIsNoError);
+    sys.probe_succeeded   = false;  // Re-initialize probe history before beginning cycle.
     set_probe_direction(is_probe_away);
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
@@ -438,12 +433,10 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     if (sys_probe_state == Probe::Active) {
         if (is_no_error) {
             memcpy(sys_probe_position, sys_position, sizeof(sys_position));
-        }
-        else {
+        } else {
             sys_rt_exec_alarm = ExecAlarm::ProbeFailContact;
         }
-    }
-    else {
+    } else {
         sys.probe_succeeded = true;  // Indicate to system the probing cycle completed successfully.
     }
     sys_probe_state = Probe::Off;  // Ensure probe state monitor is disabled.
@@ -458,8 +451,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
 #endif
     if (sys.probe_succeeded) {
         return GCUpdatePos::System;  // Successful probe cycle.
-    }
-    else {
+    } else {
         return GCUpdatePos::Target;  // Failed to trigger probe within travel. With or without error.
     }
 }
@@ -473,7 +465,7 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data) {
     uint8_t plan_status = plan_buffer_line(parking_target, pl_data);
     if (plan_status) {
         sys.step_control.executeSysMotion = true;
-        sys.step_control.endMotion = false;  // Allow parking motion to execute, if feed hold is active.
+        sys.step_control.endMotion        = false;  // Allow parking motion to execute, if feed hold is active.
         st_parking_setup_buffer();                  // Setup step segment buffer for special parking motion case
         st_prep_buffer();
         st_wake_up();
@@ -484,8 +476,7 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data) {
             }
         } while (sys.step_control.executeSysMotion);
         st_parking_restore_buffer();  // Restore step segment buffer to normal run state.
-    }
-    else {
+    } else {
         sys.step_control.executeSysMotion = false;
         protocol_exec_rt_system();
     }
@@ -536,8 +527,7 @@ void mc_reset() {
                 if (sys_rt_exec_alarm == ExecAlarm::None) {
                     sys_rt_exec_alarm = ExecAlarm::HomingFailReset;
                 }
-            }
-            else {
+            } else {
                 sys_rt_exec_alarm = ExecAlarm::AbortCycle;
             }
             st_go_idle();  // Force kill steppers. Position has likely been lost.
