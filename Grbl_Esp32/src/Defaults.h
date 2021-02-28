@@ -46,6 +46,10 @@
 #    define DEFAULT_STEP_ENABLE_DELAY 0
 #endif
 
+#ifndef STEP_PULSE_DELAY
+#    define STEP_PULSE_DELAY 0
+#endif
+
 #ifndef DEFAULT_STEPPER_IDLE_LOCK_TIME
 #    define DEFAULT_STEPPER_IDLE_LOCK_TIME 250  // $1 msec (0-254, 255 keeps steppers enabled)
 #endif

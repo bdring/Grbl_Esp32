@@ -58,10 +58,7 @@ typedef struct {
 
     uint32_t counter[MAX_N_AXIS];  // Counter variables for the bresenham line tracer
 
-#ifdef STEP_PULSE_DELAY
-    uint8_t step_bits;  // Stores out_bits output to complete the step pulse delay
-#endif
-
+    uint8_t  step_bits;        // Stores out_bits output to complete the step pulse delay
     uint8_t  execute_step;     // Flags step execution for each interrupt.
     uint8_t  step_pulse_time;  // Step pulse reset time after step rise
     uint8_t  step_outbits;     // The next stepping-bits to be output
@@ -182,7 +179,7 @@ stepper_id_t current_stepper = DEFAULT_STEPPER;
 
 	 The complete step timing should look this...
 		Direction pin is set
-		An optional (via STEP_PULSE_DELAY in config.h) is put after this
+		An optional delay (direction_delay_microseconds) is put after this
 		The step pin is started
 		A pulse length is determine (via option $0 ... pulse_microseconds)
 		The pulse is ended
@@ -196,8 +193,8 @@ static void stepper_pulse_func();
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
-void IRAM_ATTR onStepperDriverTimer(
-    void* para) {  // ISR It is time to take a step =======================================================================================
+void IRAM_ATTR onStepperDriverTimer(void* para) {
+    // ISR It is time to take a step =======================================================================================
     //const int timer_idx = (int)para;  // get the timer index
     TIMERG0.int_clr_timers.t0 = 1;
     if (busy) {
@@ -221,14 +218,42 @@ void IRAM_ATTR onStepperDriverTimer(
 static void stepper_pulse_func() {
     auto n_axis = number_axis->get();
 
-    motors_step(st.step_outbits, st.dir_outbits);
+    if (motors_direction(st.dir_outbits)) {
+        auto wait_direction = direction_delay_microseconds->get();
+        if (wait_direction > 0) {
+            // Stepper drivers need some time between changing direction and doing a pulse.
+            switch (current_stepper) {
+                case ST_I2S_STREAM:
+                    i2s_out_push_sample(wait_direction);
+                    break;
+                case ST_I2S_STATIC:
+                case ST_TIMED: {
+                    // wait for step pulse time to complete...some time expired during code above
+                    //
+                    // If we are using GPIO stepping as opposed to RMT, record the
+                    // time that we turned on the direction pins so we can delay a bit.
+                    // If we are using RMT, we can't delay here.
+                    auto direction_pulse_start_time = esp_timer_get_time() + wait_direction;
+                    while ((esp_timer_get_time() - direction_pulse_start_time) < 0) {
+                        NOP();  // spin here until time to turn off step
+                    }
+                    break;
+                }
+                case ST_RMT:
+                    break;
+            }
+        }
+    }
 
     // If we are using GPIO stepping as opposed to RMT, record the
     // time that we turned on the step pins so we can turn them off
     // at the end of this routine without incurring another interrupt.
     // This is unnecessary with RMT and I2S stepping since both of
     // those methods time the turn off automatically.
+    //
+    // NOTE: We could use direction_pulse_start_time + wait_direction, but let's play it safe
     uint64_t step_pulse_start_time = esp_timer_get_time();
+    motors_step(st.step_outbits);
 
     // If there is no step segment, attempt to pop one from the stepper buffer
     if (st.exec_segment == NULL) {
@@ -359,13 +384,20 @@ void st_wake_up() {
     // Enable stepper drivers.
     motors_set_disable(false);
     stepper_idle = false;
+
     // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
-#ifdef STEP_PULSE_DELAY
+#ifdef USE_RMT_STEPS
     // Step pulse delay handling is not require with ESP32...the RMT function does it.
+    if (direction_delay_microseconds->get() < 1)
+    {
+        // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
+        st.step_pulse_time = -(((pulse_microseconds->get() - 2) * ticksPerMicrosecond) >> 3);
+    }
 #else  // Normal operation
     // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
     st.step_pulse_time = -(((pulse_microseconds->get() - 2) * ticksPerMicrosecond) >> 3);
 #endif
+
     // Enable Stepper Driver Interrupt
     Stepper_Timer_Start();
 }
