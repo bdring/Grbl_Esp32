@@ -403,6 +403,9 @@ void make_settings() {
     direction_delay_microseconds = new IntSetting(EXTENDED, WG, NULL, "Stepper/Direction/Delay", 0, 0, 1000);
     enable_delay_microseconds    = new IntSetting(EXTENDED, WG, NULL, "Stepper/Enable/Delay", 0, 0, 1000);  // microseconds
 
+    direction_delay_microseconds = new IntSetting(EXTENDED, WG, NULL, "Stepper/Direction/Delay", STEP_PULSE_DELAY, 0, 1000);
+    enable_delay_microseconds = new IntSetting(EXTENDED, WG, NULL, "Stepper/Enable/Delay", DEFAULT_STEP_ENABLE_DELAY, 0, 1000);  // microseconds
+
     stallguard_debug_mask = new AxisMaskSetting(EXTENDED, WG, NULL, "Report/StallGuard", 0, postMotorSetting);
 
     homing_cycle[5] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle5", DEFAULT_HOMING_CYCLE_5);

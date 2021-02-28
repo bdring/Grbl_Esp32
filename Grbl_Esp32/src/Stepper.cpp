@@ -60,10 +60,7 @@ typedef struct {
 
     uint32_t counter[MAX_N_AXIS];  // Counter variables for the bresenham line tracer
 
-#ifdef STEP_PULSE_DELAY
-    uint8_t step_bits;  // Stores out_bits output to complete the step pulse delay
-#endif
-
+    uint8_t  step_bits;        // Stores out_bits output to complete the step pulse delay
     uint8_t  execute_step;     // Flags step execution for each interrupt.
     uint8_t  step_pulse_time;  // Step pulse reset time after step rise
     uint8_t  step_outbits;     // The next stepping-bits to be output
@@ -184,7 +181,7 @@ stepper_id_t current_stepper = DEFAULT_STEPPER;
 
 	 The complete step timing should look this...
 		Direction pin is set
-		An optional (via STEP_PULSE_DELAY in config.h) is put after this
+		An optional delay (direction_delay_microseconds) is put after this
 		The step pin is started
 		A pulse length is determine (via option $0 ... pulse_microseconds)
 		The pulse is ended
@@ -393,13 +390,20 @@ void st_wake_up() {
     // Enable stepper drivers.
     motors_set_disable(false);
     stepper_idle = false;
+
     // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
-#ifdef STEP_PULSE_DELAY
+#ifdef USE_RMT_STEPS
     // Step pulse delay handling is not require with ESP32...the RMT function does it.
+    if (direction_delay_microseconds->get() < 1)
+    {
+        // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
+        st.step_pulse_time = -(((pulse_microseconds->get() - 2) * ticksPerMicrosecond) >> 3);
+    }
 #else  // Normal operation
     // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
     st.step_pulse_time = -(((pulse_microseconds->get() - 2) * ticksPerMicrosecond) >> 3);
 #endif
+
     // Enable Stepper Driver Interrupt
     Stepper_Timer_Start();
 }

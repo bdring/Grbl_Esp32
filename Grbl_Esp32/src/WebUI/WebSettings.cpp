@@ -466,7 +466,7 @@ namespace WebUI {
                     webPrintln("Signal: ", String(wifi_config.getSignal(WiFi.RSSI())) + "%");
 
                     uint8_t PhyMode;
-                    esp_wifi_get_protocol(ESP_IF_WIFI_STA, &PhyMode);
+                    esp_wifi_get_protocol(WIFI_IF_STA, &PhyMode);
                     const char* modeName;
                     switch (PhyMode) {
                         case WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N:
@@ -501,7 +501,7 @@ namespace WebUI {
                 print_mac("AP", WiFi.softAPmacAddress());
 
                 wifi_config_t conf;
-                esp_wifi_get_config(ESP_IF_WIFI_AP, &conf);
+                esp_wifi_get_config(WIFI_IF_AP, &conf);
                 webPrintln("SSID: ", (const char*)conf.ap.ssid);
                 webPrintln("Visible: ", (conf.ap.ssid_hidden == 0) ? "Yes" : "No");
 
