@@ -302,11 +302,11 @@ namespace WebUI {
         }
         if (!SPIFFS.exists(path)) {
             webPrintln("Error: No such file!");
-            return Error::SdFileNotFound;
+            return Error::FsFileNotFound;
         }
         File currentfile = SPIFFS.open(path, FILE_READ);
         if (!currentfile) {  //if file open success
-            return Error::SdFailedOpenFile;
+            return Error::FsFailedOpenFile;
         }
         //until no line in file
         Error   err;
@@ -338,11 +338,11 @@ namespace WebUI {
         }
         if (!SPIFFS.exists(path)) {
             webPrintln("Error: No such file!");
-            return Error::SdFileNotFound;
+            return Error::FsFileNotFound;
         }
         File currentfile = SPIFFS.open(path, FILE_READ);
         if (!currentfile) {
-            return Error::SdFailedOpenFile;
+            return Error::FsFailedOpenFile;
         }
         while (currentfile.available()) {
             // String currentline = currentfile.readStringUntil('\n');
@@ -810,13 +810,11 @@ namespace WebUI {
     //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
     File root = fs.open(dirname);
     if (!root) {
-        //FIXME: need proper error for FS and not usd sd one
-        report_status_message(Error::SdFailedOpenDir, client);
+        report_status_message(Error::FsFailedOpenDir, client);
         return;
     }
     if (!root.isDirectory()) {
-        //FIXME: need proper error for FS and not usd sd one
-        report_status_message(Error::SdDirNotFound, client);
+        report_status_message(Error::FsDirNotFound, client);
         return;
     }
     File file = root.openNextFile();
