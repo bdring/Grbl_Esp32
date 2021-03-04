@@ -84,15 +84,6 @@ enum class Error : uint8_t {
     AuthenticationFailed        = 110,
     Eol                         = 111,
     AnotherInterfaceBusy        = 120,
-    FsFailedMount               = 130,  // Local FS Failed to mount
-    FsFailedRead                = 131,  // Local FS Failed to read file
-    FsFailedOpenDir             = 132,  // Local FS failed to open directory
-    FsDirNotFound               = 133,  // Local FS directory not found
-    FsFileEmpty                 = 134,  // Local FS directory not found
-    FsFileNotFound              = 135,  // Local FS file not found
-    FsFailedOpenFile            = 136,  // Local FS failed to open file
-    FsFailedDelDir              = 138,  // Local FS failed to delete dir
-    FsFailedDelFile             = 139,  // Local FS failed to delete file
 };
 
 extern std::map<Error, const char*> ErrorNames;

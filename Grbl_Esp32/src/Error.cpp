@@ -80,13 +80,4 @@ std::map<Error, const char*> ErrorNames = {
     { Error::NvsGetStatsFailed, "Failed to get setting status" },
     { Error::AuthenticationFailed, "Authentication failed!" },
     { Error::AnotherInterfaceBusy, "Another interface is busy"},
-    { Error::FsFailedMount, "Local FS failed mount" },
-    { Error::FsFailedRead, "Local FS failed read" },
-    { Error::FsFailedOpenDir, "Local FS failed to open directory" },
-    { Error::FsDirNotFound, "Local FS directory not found" },
-    { Error::FsFileEmpty, "Local FS file empty" },
-    { Error::FsFileNotFound, "Local FS file not found" },
-    { Error::FsFailedOpenFile, "Local FS failed to open file" },
-    { Error::FsFailedDelDir, "Local FS failed to delete directory" },
-    { Error::FsFailedDelFile, "Local FS failed to delete file" },
 };
