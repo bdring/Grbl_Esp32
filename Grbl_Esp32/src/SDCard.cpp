@@ -18,6 +18,8 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Config.h"
+#ifdef ENABLE_SD_CARD
 #include "SDCard.h"
 
 File                       myFile;
@@ -169,3 +171,4 @@ void sd_get_current_filename(char* name) {
         name[0] = 0;
     }
 }
+#endif //ENABLE_SD_CARD

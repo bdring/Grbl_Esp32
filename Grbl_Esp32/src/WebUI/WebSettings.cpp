@@ -806,9 +806,35 @@ namespace WebUI {
     }
 #endif
 
+    void listDirLocalFS(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
+    //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
+    File root = fs.open(dirname);
+    if (!root) {
+        //FIXME: need proper error for FS and not usd sd one
+        report_status_message(Error::SdFailedOpenDir, client);
+        return;
+    }
+    if (!root.isDirectory()) {
+        //FIXME: need proper error for FS and not usd sd one
+        report_status_message(Error::SdDirNotFound, client);
+        return;
+    }
+    File file = root.openNextFile();
+    while (file) {
+        if (file.isDirectory()) {
+            if (levels) {
+                listDirLocalFS(fs, file.name(), levels - 1, client);
+            }
+        } else {
+            grbl_sendf(CLIENT_ALL, "[FILE:%s|SIZE:%d]\r\n", file.name(), file.size());
+        }
+        file = root.openNextFile();
+    }
+}
+
     static Error listLocalFiles(char* parameter, AuthenticationLevel auth_level) {  // No ESP command
         webPrintln("");
-        listDir(SPIFFS, "/", 10, espresponse->client());
+        listDirLocalFS(SPIFFS, "/", 10, espresponse->client());
         String ssd = "[Local FS Free:" + ESPResponseStream::formatBytes(SPIFFS.totalBytes() - SPIFFS.usedBytes());
         ssd += " Used:" + ESPResponseStream::formatBytes(SPIFFS.usedBytes());
         ssd += " Total:" + ESPResponseStream::formatBytes(SPIFFS.totalBytes());
