@@ -5,8 +5,8 @@
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 
-	2018 -	Bart Dring This file was modifed for use on the ESP32
-					CPU. Do not use this with Grbl for atMega328P
+    2018 -	Bart Dring This file was modifed for use on the ESP32
+            CPU. Do not use this with Grbl for atMega328P
 
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -226,12 +226,12 @@ void mc_arc(float*            target,
 }
 
 // Execute dwell in seconds.
-void mc_dwell(float seconds) {
-    if (seconds == 0 || sys.state == State::CheckMode) {
-        return;
+bool mc_dwell(int32_t milliseconds) {
+    if (milliseconds <= 0 || sys.state == State::CheckMode) {
+        return false;
     }
     protocol_buffer_synchronize();
-    delay_sec(seconds, DwellMode::Dwell);
+    return delay_msec(milliseconds, DwellMode::Dwell);
 }
 
 // return true if the mask has exactly one bit set,

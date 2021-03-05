@@ -480,10 +480,11 @@ namespace WebUI {
                 }
             }
             if (silent || !espresponse->anyOutput()) {
-                _webserver->send(err != Error::Ok ? 401 : 200, "text/plain", answer);
+                _webserver->send(err != Error::Ok ? 500 : 200, "text/plain", answer);
             } else {
                 espresponse->flush();
             }
+            if(espresponse) delete(espresponse);
         } else {  //execute GCODE
             if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
                 _webserver->send(401, "text/plain", "Authentication failed!\n");
@@ -491,7 +492,7 @@ namespace WebUI {
             }
             //Instead of send several commands one by one by web  / send full set and split here
             String      scmd;
-            const char* res    = "";
+            bool hasError =false;
             uint8_t     sindex = 0;
             // TODO Settings - this is very inefficient.  get_Splited_Value() is O(n^2)
             // when it could easily be O(n).  Also, it would be just as easy to push
@@ -512,10 +513,10 @@ namespace WebUI {
                     scmd += "\n";
                 }
                 if (!Serial2Socket.push(scmd.c_str())) {
-                    res = "Error";
+                    hasError = true;
                 }
             }
-            _webserver->send(200, "text/plain", res);
+            _webserver->send(200, "text/plain", hasError?"Error":"");
         }
     }
 

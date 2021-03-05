@@ -18,6 +18,7 @@ extern StringSetting* build_info;
 
 extern IntSetting* pulse_microseconds;
 extern IntSetting* stepper_idle_lock_time;
+extern IntSetting* direction_delay_microseconds;
 extern IntSetting* enable_delay_microseconds;
 
 extern AxisMaskSetting* step_invert_mask;
