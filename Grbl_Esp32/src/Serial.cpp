@@ -159,16 +159,20 @@ void serialCheckTask(void* pvParameters) {
             if (is_realtime_command(data)) {
                 execute_realtime_command(static_cast<Cmd>(data), client);
             } else {
+#if defined(ENABLE_SD_CARD)
                 if (get_sd_state(false) < SDState::Busy) {
+#endif //ENABLE_SD_CARD
                     vTaskEnterCritical(&myMutex);
                     client_buffer[client].write(data);
                     vTaskExitCritical(&myMutex);
+#if defined(ENABLE_SD_CARD)
                 } else {
                     if (data == '\r' || data == '\n') {
                         grbl_sendf(client, "error %d\r\n", Error::AnotherInterfaceBusy);
                         grbl_msg_sendf(client, MsgLevel::Info, "SD card job running");
                     }
                 }
+#endif //ENABLE_SD_CARD
             }
         }  // if something available
         WebUI::COMMANDS::handle();

@@ -26,7 +26,7 @@
 // #define true 1
 
 enum class DwellMode : uint8_t {
-    Dwell = 0,   // (Default: Must be zero)
+    Dwell      = 0,  // (Default: Must be zero)
     SysSuspend = 1,  //G92.1 (Do not alter value)
 };
 
@@ -62,7 +62,6 @@ static inline int toMotor2(int axis) {
 const double MM_PER_INCH = (25.40);
 const double INCH_PER_MM = (0.0393701);
 
-
 // Useful macros
 #define clear_vector(a) memset(a, 0, sizeof(a))
 #define clear_vector_float(a) memset(a, 0.0, sizeof(float) * MAX_N_AXIS)
@@ -90,7 +89,7 @@ const double INCH_PER_MM = (0.0393701);
 uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr);
 
 // Non-blocking delay function used for general operation and suspend features.
-void delay_sec(float seconds, DwellMode mode);
+bool delay_msec(int32_t milliseconds, DwellMode mode);
 
 // Delays variable-defined milliseconds. Compiler compatibility fix for _delay_ms().
 void delay_ms(uint16_t ms);

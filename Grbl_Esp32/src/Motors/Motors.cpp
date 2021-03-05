@@ -478,7 +478,7 @@ uint8_t motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
     return can_home;
 }
 
-void motors_step(uint8_t step_mask, uint8_t dir_mask) {
+bool motors_direction(uint8_t dir_mask) {
     auto n_axis = number_axis->get();
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
 
@@ -493,7 +493,17 @@ void motors_step(uint8_t step_mask, uint8_t dir_mask) {
             myMotor[axis][0]->set_direction(thisDir);
             myMotor[axis][1]->set_direction(thisDir);
         }
+
+        return true;
+    } else {
+        return false;
     }
+}
+
+void motors_step(uint8_t step_mask) {
+    auto n_axis = number_axis->get();
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
+
     // Turn on step pulses for motors that are supposed to step now
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         if (bitnum_istrue(step_mask, axis)) {

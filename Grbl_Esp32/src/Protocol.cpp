@@ -5,8 +5,8 @@
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 
-	2018 -	Bart Dring This file was modifed for use on the ESP32
-					CPU. Do not use this with Grbl for atMega328P
+    2018 -	Bart Dring This file was modifed for use on the ESP32
+                    CPU. Do not use this with Grbl for atMega328P
 
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -193,7 +193,7 @@ void protocol_main_loop() {
             return;  // Bail to main() program loop to reset system.
         }
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
-        if (stepper_idle) {
+        if (stepper_idle && stepper_idle_lock_time->get() != 0xff) {
             if (esp_timer_get_time() > stepper_idle_counter) {
                 motors_set_disable(true);
             }
@@ -272,7 +272,7 @@ void protocol_exec_rt_system() {
     }
     ExecState rt_exec_state;
     rt_exec_state.value = sys_rt_exec_state.value;  // Copy volatile sys_rt_exec_state.
-    if (rt_exec_state.value != 0 || cycle_stop) {                 // Test if any bits are on
+    if (rt_exec_state.value != 0 || cycle_stop) {   // Test if any bits are on
         // Execute system abort.
         if (rt_exec_state.bit.reset) {
             sys.abort = true;  // Only place this is set true.
@@ -664,10 +664,10 @@ static void protocol_exec_rt_suspend() {
                                 if (spindle->inLaserMode()) {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                     sys.step_control.updateSpindleRpm = true;
-                                } else {                                    
+                                } else {
                                     spindle->set_state(restore_spindle, (uint32_t)restore_spindle_speed);
                                     // restore delay is done in the spindle class
-                                    //delay_sec(spindle_delay_spinup->get(), DwellMode::SysSuspend);
+                                    //delay_sec(int32_t(1000.0 * spindle_delay_spinup->get()), DwellMode::SysSuspend);
                                 }
                             }
                         }
@@ -676,7 +676,7 @@ static void protocol_exec_rt_suspend() {
                             if (!sys.suspend.bit.restartRetract) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.
                                 coolant_set_state(restore_coolant);
-                                delay_sec(coolant_start_delay->get(), DwellMode::SysSuspend);
+                                delay_msec(int32_t(1000.0 * coolant_start_delay->get()), DwellMode::SysSuspend);
                             }
                         }
 #ifdef PARKING_ENABLE
