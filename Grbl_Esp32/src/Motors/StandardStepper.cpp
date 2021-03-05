@@ -41,6 +41,9 @@ namespace Motors {
 
     StandardStepper::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) :
         Motor(axis_index), _step_pin(step_pin), _dir_pin(dir_pin), _disable_pin(disable_pin) {
+#ifdef USE_RMT_STEPS
+        _rmt_chan_num = get_next_RMT_chan_num();
+#endif
     }
 
     void StandardStepper::init() {
@@ -48,9 +51,7 @@ namespace Motors {
         config_message();
     }
 
-    void StandardStepper::read_settings() { 
-        init_step_dir_pins(); 
-    }
+    void StandardStepper::read_settings() { init_step_dir_pins(); }
 
     void StandardStepper::init_step_dir_pins() {
         _invert_step_pin = bitnum_istrue(step_invert_mask->get(), _axis_index);
@@ -78,7 +79,6 @@ namespace Motors {
         rmtItem[1].duration0 = 0;
         rmtItem[1].duration1 = 0;
 
-        _rmt_chan_num = get_next_RMT_chan_num();
         if (_rmt_chan_num == RMT_CHANNEL_MAX) {
             return;
         }
