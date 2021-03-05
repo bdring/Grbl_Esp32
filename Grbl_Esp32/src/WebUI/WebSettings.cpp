@@ -302,11 +302,11 @@ namespace WebUI {
         }
         if (!SPIFFS.exists(path)) {
             webPrintln("Error: No such file!");
-            return Error::SdFileNotFound;
+            return Error::FsFileNotFound;
         }
         File currentfile = SPIFFS.open(path, FILE_READ);
         if (!currentfile) {  //if file open success
-            return Error::SdFailedOpenFile;
+            return Error::FsFailedOpenFile;
         }
         //until no line in file
         Error   err;
@@ -338,11 +338,11 @@ namespace WebUI {
         }
         if (!SPIFFS.exists(path)) {
             webPrintln("Error: No such file!");
-            return Error::SdFileNotFound;
+            return Error::FsFileNotFound;
         }
         File currentfile = SPIFFS.open(path, FILE_READ);
         if (!currentfile) {
-            return Error::SdFailedOpenFile;
+            return Error::FsFailedOpenFile;
         }
         while (currentfile.available()) {
             // String currentline = currentfile.readStringUntil('\n');
@@ -686,16 +686,16 @@ namespace WebUI {
         if (state != SDState::Idle) {
             if (state == SDState::NotPresent) {
                 webPrintln("No SD Card");
-                return Error::SdFailedMount;
+                return Error::FsFailedMount;
             } else {
                 webPrintln("SD Card Busy");
-                return Error::SdFailedBusy;
+                return Error::FsFailedBusy;
             }
         }
         if (!openFile(SD, path.c_str())) {
-            report_status_message(Error::SdFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
+            report_status_message(Error::FsFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
             webPrintln("");
-            return Error::SdFailedOpenFile;
+            return Error::FsFailedOpenFile;
         }
         return Error::Ok;
     }
@@ -764,18 +764,18 @@ namespace WebUI {
         File file2del = SD.open(path);
         if (!file2del) {
             webPrintln("Cannot stat file!");
-            return Error::SdFileNotFound;
+            return Error::FsFileNotFound;
         }
         if (file2del.isDirectory()) {
             if (!SD.rmdir(path)) {
                 webPrintln("Cannot delete directory! Is directory empty?");
-                return Error::SdFailedDelDir;
+                return Error::FsFailedDelDir;
             }
             webPrintln("Directory deleted.");
         } else {
             if (!SD.remove(path)) {
                 webPrintln("Cannot delete file!");
-                return Error::SdFailedDelFile;
+                return Error::FsFailedDelFile;
             }
             webPrintln("File deleted.");
         }
@@ -788,10 +788,10 @@ namespace WebUI {
         if (state != SDState::Idle) {
             if (state == SDState::NotPresent) {
                 webPrintln("No SD Card");
-                return Error::SdFailedMount;
+                return Error::FsFailedMount;
             } else {
                 webPrintln("SD Card Busy");
-                return Error::SdFailedBusy;
+                return Error::FsFailedBusy;
             }
         }
         webPrintln("");
@@ -806,9 +806,35 @@ namespace WebUI {
     }
 #endif
 
+    void listDirLocalFS(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
+        //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
+        File root = fs.open(dirname);
+        if (!root) {
+            //FIXME: need proper error for FS and not usd sd one
+            report_status_message(Error::FsFailedOpenDir, client);
+            return;
+        }
+        if (!root.isDirectory()) {
+            //FIXME: need proper error for FS and not usd sd one
+            report_status_message(Error::FsDirNotFound, client);
+            return;
+        }
+        File file = root.openNextFile();
+        while (file) {
+            if (file.isDirectory()) {
+                if (levels) {
+                    listDirLocalFS(fs, file.name(), levels - 1, client);
+                }
+            } else {
+                grbl_sendf(CLIENT_ALL, "[FILE:%s|SIZE:%d]\r\n", file.name(), file.size());
+            }
+            file = root.openNextFile();
+        }
+    }
+
     static Error listLocalFiles(char* parameter, AuthenticationLevel auth_level) {  // No ESP command
         webPrintln("");
-        listDir(SPIFFS, "/", 10, espresponse->client());
+        listDirLocalFS(SPIFFS, "/", 10, espresponse->client());
         String ssd = "[Local FS Free:" + ESPResponseStream::formatBytes(SPIFFS.totalBytes() - SPIFFS.usedBytes());
         ssd += " Used:" + ESPResponseStream::formatBytes(SPIFFS.usedBytes());
         ssd += " Total:" + ESPResponseStream::formatBytes(SPIFFS.totalBytes());
