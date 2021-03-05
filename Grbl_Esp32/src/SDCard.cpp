@@ -18,7 +18,9 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "SDCard.h"
+#include "Config.h"
+#ifdef ENABLE_SD_CARD
+#    include "SDCard.h"
 
 File                       myFile;
 bool                       SD_ready_next = false;  // Grbl has processed a line and is waiting for another
@@ -31,7 +33,7 @@ static char                comment[LINE_BUFFER_SIZE];  // Line to be executed. Z
 /*bool sd_mount()
 {
   if(!SD.begin()) {
-    report_status_message(Error::SdFailedMount, CLIENT_SERIAL);
+    report_status_message(Error::FsFailedMount, CLIENT_SERIAL);
     return false;
   }
   return true;
@@ -41,11 +43,11 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
     //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
     File root = fs.open(dirname);
     if (!root) {
-        report_status_message(Error::SdFailedOpenDir, client);
+        report_status_message(Error::FsFailedOpenDir, client);
         return;
     }
     if (!root.isDirectory()) {
-        report_status_message(Error::SdDirNotFound, client);
+        report_status_message(Error::FsDirNotFound, client);
         return;
     }
     File file = root.openNextFile();
@@ -64,7 +66,7 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
 boolean openFile(fs::FS& fs, const char* path) {
     myFile = fs.open(path);
     if (!myFile) {
-        //report_status_message(Error::SdFailedRead, CLIENT_SERIAL);
+        //report_status_message(Error::FsFailedRead, CLIENT_SERIAL);
         return false;
     }
     set_sd_state(SDState::BusyPrinting);
@@ -94,7 +96,7 @@ boolean closeFile() {
 */
 boolean readFileLine(char* line, int maxlen) {
     if (!myFile) {
-        report_status_message(Error::SdFailedRead, SD_client);
+        report_status_message(Error::FsFailedRead, SD_client);
         return false;
     }
     sd_current_line_number += 1;
@@ -169,3 +171,4 @@ void sd_get_current_filename(char* name) {
         name[0] = 0;
     }
 }
+#endif  //ENABLE_SD_CARD
