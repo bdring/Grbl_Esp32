@@ -484,16 +484,17 @@ namespace WebUI {
             } else {
                 espresponse->flush();
             }
-            if(espresponse) delete(espresponse);
+            if (espresponse)
+                delete (espresponse);
         } else {  //execute GCODE
             if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
                 _webserver->send(401, "text/plain", "Authentication failed!\n");
                 return;
             }
             //Instead of send several commands one by one by web  / send full set and split here
-            String      scmd;
-            bool hasError =false;
-            uint8_t     sindex = 0;
+            String  scmd;
+            bool    hasError = false;
+            uint8_t sindex   = 0;
             // TODO Settings - this is very inefficient.  get_Splited_Value() is O(n^2)
             // when it could easily be O(n).  Also, it would be just as easy to push
             // the entire string into Serial2Socket and pull off lines from there.
@@ -516,7 +517,7 @@ namespace WebUI {
                     hasError = true;
                 }
             }
-            _webserver->send(200, "text/plain", hasError?"Error":"");
+            _webserver->send(200, "text/plain", hasError ? "Error" : "");
         }
     }
 
@@ -1321,92 +1322,77 @@ namespace WebUI {
 
         // TODO Settings - consider using the JSONEncoder class
         String jsonfile = "{";
-        jsonfile += "\"files\":[";
 
         if (path != "/") {
             path = path.substring(0, path.length() - 1);
         }
         if (path != "/" && !SD.exists(path)) {
-            String s = "{\"status\":\" ";
-            s += path;
-            s += " does not exist on SD Card\"}";
-            _webserver->send(200, "application/json", s);
-            SD.end();
-            return;
-        }
-        if (list_files) {
-            File dir = SD.open(path);
-            if (!dir.isDirectory()) {
+            jsonfile += "\"status\":\" " + path + " does not exist on SD Card\"}";
+        } else {
+            jsonfile += "\"files\":[";
+            if (list_files) {
+                File dir = SD.open(path);
+                if (!dir.isDirectory()) {
+                    dir.close();
+                }
+                dir.rewindDirectory();
+                File entry = dir.openNextFile();
+                int  i     = 0;
+                while (entry) {
+                    COMMANDS::wait(1);
+                    if (i > 0) {
+                        jsonfile += ",";
+                    }
+                    jsonfile += "{\"name\":\"";
+                    String tmpname = entry.name();
+                    int    pos     = tmpname.lastIndexOf("/");
+                    tmpname        = tmpname.substring(pos + 1);
+                    jsonfile += tmpname;
+                    jsonfile += "\",\"shortname\":\"";  //No need here
+                    jsonfile += tmpname;
+                    jsonfile += "\",\"size\":\"";
+                    // files have sizes, directories do not
+                    jsonfile += entry.isDirectory() ? "-1" : ESPResponseStream::formatBytes(entry.size());
+                    jsonfile += "\",\"datetime\":\"";
+                    //TODO - can be done later
+                    jsonfile += "\"}";
+                    i++;
+                    entry.close();
+                    entry = dir.openNextFile();
+                }
                 dir.close();
             }
-            dir.rewindDirectory();
-            File entry = dir.openNextFile();
-            int  i     = 0;
-            while (entry) {
-                COMMANDS::wait(1);
-                if (i > 0) {
-                    jsonfile += ",";
-                }
-                jsonfile += "{\"name\":\"";
-                String tmpname = entry.name();
-                int    pos     = tmpname.lastIndexOf("/");
-                tmpname        = tmpname.substring(pos + 1);
-                jsonfile += tmpname;
-                jsonfile += "\",\"shortname\":\"";  //No need here
-                jsonfile += tmpname;
-                jsonfile += "\",\"size\":\"";
-                if (entry.isDirectory()) {
-                    jsonfile += "-1";
-                } else {
-                    // files have sizes, directories do not
-                    jsonfile += ESPResponseStream::formatBytes(entry.size());
-                }
-                jsonfile += "\",\"datetime\":\"";
-                //TODO - can be done later
-                jsonfile += "\"}";
-                i++;
-                entry.close();
-                entry = dir.openNextFile();
-            }
-            dir.close();
-        }
-        jsonfile += "],\"path\":\"";
-        jsonfile += path + "\",";
-        jsonfile += "\"total\":\"";
-        String stotalspace, susedspace;
-        //SDCard are in GB or MB but no less
-        totalspace  = SD.totalBytes();
-        usedspace   = SD.usedBytes();
-        stotalspace = ESPResponseStream::formatBytes(totalspace);
-        susedspace  = ESPResponseStream::formatBytes(usedspace + 1);
+            jsonfile += "],\"path\":\"";
+            jsonfile += path + "\",";
+            jsonfile += "\"total\":\"";
 
-        uint32_t occupedspace = 1;
-        uint32_t usedspace2   = usedspace / (1024 * 1024);
-        uint32_t totalspace2  = totalspace / (1024 * 1024);
-        occupedspace          = (usedspace2 * 100) / totalspace2;
-        //minimum if even one byte is used is 1%
-        if (occupedspace <= 1) {
-            occupedspace = 1;
+            String stotalspace, susedspace;
+            //SDCard are in GB or MB but no less
+            totalspace  = SD.totalBytes();
+            usedspace   = SD.usedBytes();
+            stotalspace = ESPResponseStream::formatBytes(totalspace);
+            susedspace  = ESPResponseStream::formatBytes(usedspace + 1);
+
+            uint32_t occupedspace = 1;
+            uint32_t usedspace2   = usedspace / (1024 * 1024);
+            uint32_t totalspace2  = totalspace / (1024 * 1024);
+            occupedspace          = (usedspace2 * 100) / totalspace2;
+            //minimum if even one byte is used is 1%
+            if (occupedspace <= 1) {
+                occupedspace = 1;
+            }
+            jsonfile += totalspace ? stotalspace : "-1";
+            jsonfile += "\",\"used\":\"";
+            jsonfile += susedspace;
+            jsonfile += "\",\"occupation\":\"";
+            jsonfile += totalspace ? String(occupedspace) : "-1";
+            jsonfile += "\",";
+            jsonfile += "\"mode\":\"direct\",";
+            jsonfile += "\"status\":\"";
+            jsonfile += sstatus + "\"";
+            jsonfile += "}";
+            _webserver->sendHeader("Cache-Control", "no-cache");
         }
-        if (totalspace) {
-            jsonfile += stotalspace;
-        } else {
-            jsonfile += "-1";
-        }
-        jsonfile += "\",\"used\":\"";
-        jsonfile += susedspace;
-        jsonfile += "\",\"occupation\":\"";
-        if (totalspace) {
-            jsonfile += String(occupedspace);
-        } else {
-            jsonfile += "-1";
-        }
-        jsonfile += "\",";
-        jsonfile += "\"mode\":\"direct\",";
-        jsonfile += "\"status\":\"";
-        jsonfile += sstatus + "\"";
-        jsonfile += "}";
-        _webserver->sendHeader("Cache-Control", "no-cache");
         _webserver->send(200, "application/json", jsonfile);
         _upload_status = UploadStatusType::NONE;
         set_sd_state(SDState::Idle);
