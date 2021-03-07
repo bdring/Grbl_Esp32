@@ -154,4 +154,20 @@ namespace WebUI {
         member("S", max);
         member("M", min);
     }
+
+    void JSONencoder::filesystemStats(uint64_t total, uint64_t used) {
+        member("total", total ? ESPResponseStream::formatBytes(total) : "-1");
+        member("used", ESPResponseStream::formatBytes(used + 1));
+        int occupied_percent;
+        if (total) {
+            occupied_percent = (used * 100) / total;
+            //minimum if even one byte is used is 1%
+            if (occupied_percent <= 1) {
+                occupied_percent = 1;
+            }
+        } else {
+            occupied_percent = -1;
+        }
+        member("occupation", occupied_percent);
+    }
 }

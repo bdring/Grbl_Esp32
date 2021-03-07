@@ -94,6 +94,9 @@ namespace WebUI {
         static void SDFile_direct_upload();
         static bool deleteRecursive(String path);
 #endif
+        static void dontCache();
+        static void sendJSON(int code, JSONencoder j);
+        static void sendStatus(int code, const char* status, const char* auth, const char* user);
     };
 
     extern Web_Server web_server;

@@ -869,9 +869,7 @@ namespace WebUI {
         j.begin_array("files");
         listDirJSON(SPIFFS, "/", 4, &j);
         j.end_array();
-        j.member("total", SPIFFS.totalBytes());
-        j.member("used", SPIFFS.usedBytes());
-        j.member("occupation", String(100 * SPIFFS.usedBytes() / SPIFFS.totalBytes()));
+        j.filesystemStats(SPIFFS.totalBytes(), SPIFFS.usedBytes());
         webPrint(j.end());
         if (espresponse->client() != CLIENT_WEBUI) {
             webPrintln("");
