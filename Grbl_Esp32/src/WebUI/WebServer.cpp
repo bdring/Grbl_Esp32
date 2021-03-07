@@ -283,8 +283,8 @@ namespace WebUI {
             if (SDState::Idle != get_sd_state(true)) {
                 String content = "cannot open: ";
                 content += path + ", SD is not available.";
-
                 _webserver->send(500, "text/plain", content);
+                return;
             }
             if (SD.exists(pathWithGz) || SD.exists(path)) {
                 set_sd_state(SDState::BusyUploading);
