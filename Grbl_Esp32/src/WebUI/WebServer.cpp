@@ -888,7 +888,6 @@ namespace WebUI {
         path = "";
         _webserver->sendHeader("Cache-Control", "no-cache");
         _webserver->send(200, "application/json", jsonfile);
-        _upload_status = UploadStatusType::NONE;
     }
 
     //push error code and message to websocket
@@ -1226,8 +1225,8 @@ namespace WebUI {
         String sstatus = "Ok";
         if ((_upload_status == UploadStatusType::FAILED) || (_upload_status == UploadStatusType::FAILED)) {
             sstatus        = "Upload failed";
-            _upload_status = UploadStatusType::NONE;
         }
+        _upload_status = UploadStatusType::NONE;
         bool     list_files = true;
         uint64_t totalspace = 0;
         uint64_t usedspace  = 0;
@@ -1332,6 +1331,7 @@ namespace WebUI {
             s += " does not exist on SD Card\"}";
             _webserver->send(200, "application/json", s);
             SD.end();
+            set_sd_state(SDState::Idle);
             return;
         }
         if (list_files) {
@@ -1408,7 +1408,6 @@ namespace WebUI {
         jsonfile += "}";
         _webserver->sendHeader("Cache-Control", "no-cache");
         _webserver->send(200, "application/json", jsonfile);
-        _upload_status = UploadStatusType::NONE;
         set_sd_state(SDState::Idle);
         SD.end();
     }
