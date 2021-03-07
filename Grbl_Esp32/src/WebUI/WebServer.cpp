@@ -1225,7 +1225,6 @@ namespace WebUI {
         String sstatus = "Ok";
         if ((_upload_status == UploadStatusType::FAILED) || (_upload_status == UploadStatusType::FAILED)) {
             sstatus        = "Upload failed";
-            _upload_status = UploadStatusType::NONE;
         }
         _upload_status = UploadStatusType::NONE;
         bool     list_files = true;
