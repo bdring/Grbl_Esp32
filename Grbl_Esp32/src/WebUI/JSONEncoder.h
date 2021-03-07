@@ -78,5 +78,7 @@ namespace WebUI {
         void begin_webui(const char* p, const char* help, const char* type, const char* val);
         void begin_webui(const char* p, const char* help, const char* type, const int val);
         void begin_webui(const char* p, const char* help, const char* type, const char* val, int min, int max);
+
+        void filesystemStats(uint64_t total, uint64_t used);
     };
 }

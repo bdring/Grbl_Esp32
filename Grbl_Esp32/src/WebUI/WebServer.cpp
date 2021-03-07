@@ -101,6 +101,20 @@ namespace WebUI {
 
     long Web_Server::get_client_ID() { return _id_connection; }
 
+    void Web_Server::dontCache() { _webserver->sendHeader("Cache-Control", "no-cache"); }
+    void Web_Server::sendJSON(int code, JSONencoder j) { _webserver->send(code, "application/json", j.end()); }
+    void Web_Server::sendStatus(int code, const char* status, const char* auth, const char* user) {
+        JSONencoder j(false);
+        j.begin();
+        j.member("status", status);
+        if (auth) {
+            j.member("authentication_lvl", auth);
+        }
+        if (user) {
+            j.member("user", user);
+        }
+        sendJSON(code, j);
+    }
     bool Web_Server::begin() {
         bool no_error = true;
         _setupdone    = false;
@@ -524,9 +538,8 @@ namespace WebUI {
     //login status check
     void Web_Server::handle_login() {
 #    ifdef ENABLE_AUTHENTICATION
-        String smsg;
+        char * smsg, auths;
         String sUser, sPassword;
-        String auths;
         int    code            = 200;
         bool   msg_alert_error = false;
         //disconnect can be done anytime no need to check credential
@@ -540,22 +553,25 @@ namespace WebUI {
             }
             ClearAuthIP(_webserver->client().remoteIP(), sessionID.c_str());
             _webserver->sendHeader("Set-Cookie", "ESPSESSIONID=0");
-            _webserver->sendHeader("Cache-Control", "no-cache");
-            String buffer2send = "{\"status\":\"Ok\",\"authentication_lvl\":\"guest\"}";
-            _webserver->send(code, "application/json", buffer2send);
+            dontCache();
+            sendStatus(code, "Ok", "guest", NULL);
             //_webserver->client().stop();
             return;
         }
 
         AuthenticationLevel auth_level = is_authenticated();
-        if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
-            auths = "guest";
-        } else if (auth_level == AuthenticationLevel::LEVEL_USER) {
-            auths = "user";
-        } else if (auth_level == AuthenticationLevel::LEVEL_ADMIN) {
-            auths = "admin";
-        } else {
-            auths = "???";
+        switch (auth_level) {
+            case AuthenticationLevel::LEVEL_GUEST:
+                auths = "guest";
+                break;
+            case AuthenticationLevel::LEVEL_USER:
+                auths = "user";
+                break;
+            case AuthenticationLevel::LEVEL_ADMIN:
+                auths = "admin";
+                break;
+            default:
+                auths = "???";
         }
 
         //check is it is a submission or a query
@@ -636,7 +652,7 @@ namespace WebUI {
                         String tmps = "ESPSESSIONID=";
                         tmps += current_auth->sessionID;
                         _webserver->sendHeader("Set-Cookie", tmps);
-                        _webserver->sendHeader("Cache-Control", "no-cache");
+                        dontCache();
                         switch (current_auth->level) {
                             case AuthenticationLevel::LEVEL_ADMIN:
                                 auths = "admin";
@@ -660,11 +676,7 @@ namespace WebUI {
                 smsg = "Ok";
             }
 
-            //build  JSON
-            String buffer2send = "{\"status\":\"" + smsg + "\",\"authentication_lvl\":\"";
-            buffer2send += auths;
-            buffer2send += "\"}";
-            _webserver->send(code, "application/json", buffer2send);
+            sendStatus(code, smsg, auths, NULL);
         } else {
             if (auth_level != AuthenticationLevel::LEVEL_GUEST) {
                 String cookie = _webserver->header("Cookie");
@@ -679,16 +691,11 @@ namespace WebUI {
                     }
                 }
             }
-            String buffer2send = "{\"status\":\"200\",\"authentication_lvl\":\"";
-            buffer2send += auths;
-            buffer2send += "\",\"user\":\"";
-            buffer2send += sUser;
-            buffer2send += "\"}";
-            _webserver->send(code, "application/json", buffer2send);
+            sendStatus(code, "200", auths, sUser.c_str());
         }
 #    else
-        _webserver->sendHeader("Cache-Control", "no-cache");
-        _webserver->send(200, "application/json", "{\"status\":\"Ok\",\"authentication_lvl\":\"admin\"}");
+        dontCache();
+        sendStatus(200, "Ok", "admin", NULL);
 #    endif
     }
     //SPIFFS
@@ -815,15 +822,15 @@ namespace WebUI {
             }
         }
 
-        String jsonfile = "{";
-        String ptmp     = path;
+        JSONencoder j(false);
+        j.begin();
+        String ptmp = path;
         if ((path != "/") && (path[path.length() - 1] = '/')) {
             ptmp = path.substring(0, path.length() - 1);
         }
 
         File dir = SPIFFS.open(ptmp);
-        jsonfile += "\"files\":[";
-        bool   firstentry = true;
+        j.begin_array("files");
         String subdirlist = "";
         File   fileparsed = dir.openNextFile();
         while (fileparsed) {
@@ -858,37 +865,19 @@ namespace WebUI {
                 }
             }
             if (addtolist) {
-                if (!firstentry) {
-                    jsonfile += ",";
-                } else {
-                    firstentry = false;
-                }
-                jsonfile += "{";
-                jsonfile += "\"name\":\"";
-                jsonfile += filename;
-                jsonfile += "\",\"size\":\"";
-                jsonfile += size;
-                jsonfile += "\"";
-                jsonfile += "}";
+                j.begin_object();
+                j.member("name", filename);
+                j.member("size", size);
+                j.end_object();
             }
             fileparsed = dir.openNextFile();
         }
-        jsonfile += "],";
-        jsonfile += "\"path\":\"" + path + "\",";
-        jsonfile += "\"status\":\"" + status + "\",";
-        size_t totalBytes;
-        size_t usedBytes;
-        totalBytes = SPIFFS.totalBytes();
-        usedBytes  = SPIFFS.usedBytes();
-        jsonfile += "\"total\":\"" + ESPResponseStream::formatBytes(totalBytes) + "\",";
-        jsonfile += "\"used\":\"" + ESPResponseStream::formatBytes(usedBytes) + "\",";
-        jsonfile.concat(F("\"occupation\":\""));
-        jsonfile += String(100 * usedBytes / totalBytes);
-        jsonfile += "\"";
-        jsonfile += "}";
-        path = "";
-        _webserver->sendHeader("Cache-Control", "no-cache");
-        _webserver->send(200, "application/json", jsonfile);
+        j.end_array();
+        j.member("path", path);
+        j.member("status", status);
+        j.filesystemStats(uint64_t(SPIFFS.totalBytes()), uint64_t(SPIFFS.usedBytes()));
+        dontCache();
+        sendJSON(200, j);
         _upload_status = UploadStatusType::NONE;
     }
 
@@ -1059,13 +1048,8 @@ namespace WebUI {
             return;
         }
 
-        String jsonfile = "{\"status\":\"";
-        jsonfile += String(int32_t(uint8_t(_upload_status)));
-        jsonfile += "\"}";
-
-        //send status
-        _webserver->sendHeader("Cache-Control", "no-cache");
-        _webserver->send(200, "application/json", jsonfile);
+        dontCache();
+        sendStatus(200, String(int32_t(uint8_t(_upload_status))).c_str(), NULL, NULL);
 
         //if success restart
         if (_upload_status == UploadStatusType::SUCCESSFUL) {
@@ -1219,7 +1203,7 @@ namespace WebUI {
         //this is only for admin and user
         if (is_authenticated() == AuthenticationLevel::LEVEL_GUEST) {
             _upload_status = UploadStatusType::NONE;
-            _webserver->send(401, "application/json", "{\"status\":\"Authentication failed!\"}");
+            sendStatus(401, "Authentication failed!", NULL, NULL);
             return;
         }
 
@@ -1229,15 +1213,10 @@ namespace WebUI {
             sstatus        = "Upload failed";
             _upload_status = UploadStatusType::NONE;
         }
-        bool     list_files = true;
-        uint64_t totalspace = 0;
-        uint64_t usedspace  = 0;
-        SDState  state      = get_sd_state(true);
+        SDState state = get_sd_state(true);
         if (state != SDState::Idle) {
-            String status = "{\"status\":\"";
-            status += state == SDState::NotPresent ? "No SD Card\"}" : "Busy\"}";
-            _webserver->sendHeader("Cache-Control", "no-cache");
-            _webserver->send(200, "application/json", status);
+            dontCache();
+            sendStatus(200, state == SDState::NotPresent ? "No SD Card" : "Busy", NULL, NULL);
             return;
         }
         set_sd_state(SDState::BusyParsing);
@@ -1315,85 +1294,52 @@ namespace WebUI {
                 }
             }
         }
-        //check if no need build file list
-        if (_webserver->hasArg("dontlist") && _webserver->arg("dontlist") == "yes") {
-            list_files = false;
-        }
 
-        // TODO Settings - consider using the JSONEncoder class
-        String jsonfile = "{";
+        JSONencoder j(false);
+        j.begin();
 
         if (path != "/") {
             path = path.substring(0, path.length() - 1);
         }
         if (path != "/" && !SD.exists(path)) {
-            jsonfile += "\"status\":\" " + path + " does not exist on SD Card\"}";
+            j.member("status", path + " does not exist on SD Card");
         } else {
-            jsonfile += "\"files\":[";
-            if (list_files) {
+            j.begin_array("files");
+            if (!_webserver->hasArg("dontlist") || !(_webserver->arg("dontlist") == "yes")) {
                 File dir = SD.open(path);
                 if (!dir.isDirectory()) {
                     dir.close();
                 }
                 dir.rewindDirectory();
                 File entry = dir.openNextFile();
-                int  i     = 0;
                 while (entry) {
                     COMMANDS::wait(1);
-                    if (i > 0) {
-                        jsonfile += ",";
-                    }
-                    jsonfile += "{\"name\":\"";
+                    j.begin_object();
                     String tmpname = entry.name();
                     int    pos     = tmpname.lastIndexOf("/");
                     tmpname        = tmpname.substring(pos + 1);
-                    jsonfile += tmpname;
-                    jsonfile += "\",\"shortname\":\"";  //No need here
-                    jsonfile += tmpname;
-                    jsonfile += "\",\"size\":\"";
-                    // files have sizes, directories do not
-                    jsonfile += entry.isDirectory() ? "-1" : ESPResponseStream::formatBytes(entry.size());
-                    jsonfile += "\",\"datetime\":\"";
-                    //TODO - can be done later
-                    jsonfile += "\"}";
-                    i++;
+                    j.member("name", tmpname);
+                    j.member("shortname", tmpname);
+                    j.member("size", entry.isDirectory() ? "-1" : ESPResponseStream::formatBytes(entry.size()));
+                    // Omit the timestamp because Grbl_ESP32 systems rarely have
+                    // reliable knowledge of the current date and time, so timestamps
+                    // on uploaded files are unlikely to be useful.
+                    j.member("datetime", "");
+                    j.end_object();
                     entry.close();
                     entry = dir.openNextFile();
                 }
                 dir.close();
             }
-            jsonfile += "],\"path\":\"";
-            jsonfile += path + "\",";
-            jsonfile += "\"total\":\"";
+            j.end_array();
 
-            String stotalspace, susedspace;
-            //SDCard are in GB or MB but no less
-            totalspace  = SD.totalBytes();
-            usedspace   = SD.usedBytes();
-            stotalspace = ESPResponseStream::formatBytes(totalspace);
-            susedspace  = ESPResponseStream::formatBytes(usedspace + 1);
-
-            uint32_t occupedspace = 1;
-            uint32_t usedspace2   = usedspace / (1024 * 1024);
-            uint32_t totalspace2  = totalspace / (1024 * 1024);
-            occupedspace          = (usedspace2 * 100) / totalspace2;
-            //minimum if even one byte is used is 1%
-            if (occupedspace <= 1) {
-                occupedspace = 1;
-            }
-            jsonfile += totalspace ? stotalspace : "-1";
-            jsonfile += "\",\"used\":\"";
-            jsonfile += susedspace;
-            jsonfile += "\",\"occupation\":\"";
-            jsonfile += totalspace ? String(occupedspace) : "-1";
-            jsonfile += "\",";
-            jsonfile += "\"mode\":\"direct\",";
-            jsonfile += "\"status\":\"";
-            jsonfile += sstatus + "\"";
-            jsonfile += "}";
-            _webserver->sendHeader("Cache-Control", "no-cache");
+            j.member("path", path);
+            j.member("status", sstatus);
+            j.filesystemStats(SD.totalBytes(), SD.usedBytes());
+            j.member("mode", "direct");
         }
-        _webserver->send(200, "application/json", jsonfile);
+        dontCache();
+        sendJSON(200, j);
         _upload_status = UploadStatusType::NONE;
         set_sd_state(SDState::Idle);
         SD.end();
@@ -1406,7 +1352,7 @@ namespace WebUI {
         //this is only for admin and user
         if (is_authenticated() == AuthenticationLevel::LEVEL_GUEST) {
             _upload_status = UploadStatusType::FAILED;
-            _webserver->send(401, "application/json", "{\"status\":\"Authentication failed!\"}");
+            sendStatus(401, "Authentication failed!", NULL, NULL);
             pushError(ESP_ERROR_AUTHENTICATION, "Upload rejected", 401);
         } else {
             //retrieve current file id
