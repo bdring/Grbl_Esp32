@@ -242,9 +242,8 @@ namespace WebUI {
     //Root of Webserver/////////////////////////////////////////////////////
 
     void Web_Server::handle_root() {
-        String path        = "/index.html";
-        String contentType = getContentType(path);
-        String pathWithGz  = path + ".gz";
+        String path       = "/index.html";
+        String pathWithGz = path + ".gz";
         //if have a index.html or gzip version this is default root page
         if ((SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) && !_webserver->hasArg("forcefallback") &&
             _webserver->arg("forcefallback") != "yes") {
@@ -253,7 +252,7 @@ namespace WebUI {
             }
 
             File file = SPIFFS.open(path, FILE_READ);
-            _webserver->streamFile(file, contentType);
+            _webserver->streamFile(file, getContentType(path));
             file.close();
             return;
         }
@@ -263,7 +262,111 @@ namespace WebUI {
         _webserver->send_P(200, "text/html", PAGE_NOFILES, PAGE_NOFILES_SIZE);
     }
 
-    //Handle not registred path on SPIFFS neither SD ///////////////////////
+    // Returns true if this handler claimed the path
+    bool Web_Server::handleSD(String path) {
+        if ((path.substring(0, 4) != "/SD/")) {
+            return false;
+        }
+#    ifndef ENABLE_SD_CARD
+        _webserver->send(500, "text/plain", "SD is not supported.");
+        return true;
+#    else
+        path = path.substring(3);
+
+        String pathWithGz = path + ".gz";
+        if (SDState::Idle != get_sd_state(true)) {
+            String content = "cannot open: ";
+            content += path + ", SD is not available.";
+
+            _webserver->send(500, "text/plain", content);
+            return true;
+        }
+        if (SD.exists(pathWithGz) || SD.exists(path)) {
+            set_sd_state(SDState::BusyUploading);
+            if (SD.exists(pathWithGz)) {
+                path = pathWithGz;
+            }
+            File datafile = SD.open(path);
+            if (datafile) {
+                vTaskDelay(1 / portTICK_RATE_MS);
+                size_t totalFileSize = datafile.size();
+                size_t i             = 0;
+                bool   done          = false;
+                _webserver->setContentLength(totalFileSize);
+                _webserver->send(200, getContentType(path), "");
+                uint8_t buf[1024];
+                while (!done) {
+                    vTaskDelay(1 / portTICK_RATE_MS);
+                    int v = datafile.read(buf, 1024);
+                    if ((v == -1) || (v == 0)) {
+                        done = true;
+                    } else {
+                        _webserver->client().write(buf, 1024);
+                        i += v;
+                    }
+
+                    if (i >= totalFileSize) {
+                        done = true;
+                    }
+                }
+                datafile.close();
+                if (i != totalFileSize) {
+                    //error: TBD
+                }
+                set_sd_state(SDState::Idle);
+                return true;
+            }
+            set_sd_state(SDState::Idle);
+        }
+        String content = "cannot find ";
+        content += path;
+        _webserver->send(404, "text/plain", content);
+        return true;
+#    endif
+    }
+
+    void Web_Server::sendEmbeddedPage(String page) {
+        String IPAddress = (WiFi.getMode() == WIFI_STA) ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
+        //Web address = ip + port
+        if (_port != 80) {
+            IPAddress += ":" + String(_port);
+        }
+        page.replace("$WEB_ADDRESS$", IPAddress);
+        page.replace("$QUERY$", _webserver->uri());
+        _webserver->send(200, "text/html", page);
+    }
+
+    // Returns true if this handler claimed the path
+    bool Web_Server::handleCaptivePortal() {
+#    ifndef ENABLE_CAPTIVE_PORTAL
+        return false;
+#    else
+        if (WiFi.getMode() == WIFI_AP) {
+            sendEmbeddedPage(PAGE_CAPTIVE);
+            //_webserver->sendContent_P(NOT_AUTH_NF);
+            //_webserver->client().stop();
+            return true;
+        }
+        return false;
+#    endif
+    }
+
+    // Returns true if this handler claimed the path
+    bool Web_Server::handleLocalFS(String path) {
+        String pathWithGz = path + ".gz";
+        if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
+            if (SPIFFS.exists(pathWithGz)) {
+                path = pathWithGz;
+            }
+            File file = SPIFFS.open(path, FILE_READ);
+            _webserver->streamFile(file, getContentType(path));
+            file.close();
+            return true;
+        }
+        return false;
+    }
+
+    // Handle not registered path
     void Web_Server::handle_not_found() {
         if (is_authenticated() == AuthenticationLevel::LEVEL_GUEST) {
             _webserver->sendContent_P("HTTP/1.1 301 OK\r\nLocation: /\r\nCache-Control: no-cache\r\n\r\n");
@@ -271,129 +374,26 @@ namespace WebUI {
             return;
         }
 
-        bool   page_not_found = false;
-        String path           = _webserver->urlDecode(_webserver->uri());
-        String contentType    = getContentType(path);
-        String pathWithGz     = path + ".gz";
+        String path = _webserver->urlDecode(_webserver->uri());
 
-#    ifdef ENABLE_SD_CARD
-        if ((path.substring(0, 4) == "/SD/")) {
-            //remove /SD
-            path = path.substring(3);
-            if (SDState::Idle != get_sd_state(true)) {
-                String content = "cannot open: ";
-                content += path + ", SD is not available.";
-
-                _webserver->send(500, "text/plain", content);
-            }
-            if (SD.exists(pathWithGz) || SD.exists(path)) {
-                set_sd_state(SDState::BusyUploading);
-                if (SD.exists(pathWithGz)) {
-                    path = pathWithGz;
-                }
-                File datafile = SD.open(path);
-                if (datafile) {
-                    vTaskDelay(1 / portTICK_RATE_MS);
-                    size_t totalFileSize = datafile.size();
-                    size_t i             = 0;
-                    bool   done          = false;
-                    _webserver->setContentLength(totalFileSize);
-                    _webserver->send(200, contentType, "");
-                    uint8_t buf[1024];
-                    while (!done) {
-                        vTaskDelay(1 / portTICK_RATE_MS);
-                        int v = datafile.read(buf, 1024);
-                        if ((v == -1) || (v == 0)) {
-                            done = true;
-                        } else {
-                            _webserver->client().write(buf, 1024);
-                            i += v;
-                        }
-
-                        if (i >= totalFileSize) {
-                            done = true;
-                        }
-                    }
-                    datafile.close();
-                    if (i != totalFileSize) {
-                        //error: TBD
-                    }
-                    set_sd_state(SDState::Idle);
-                    return;
-                }
-                set_sd_state(SDState::Idle);
-            }
-            String content = "cannot find ";
-            content += path;
-            _webserver->send(404, "text/plain", content);
+        if (handleSD(path)) {
             return;
-        } else
-#    endif
-            if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
-            if (SPIFFS.exists(pathWithGz)) {
-                path = pathWithGz;
-            }
-            File file = SPIFFS.open(path, FILE_READ);
-            _webserver->streamFile(file, contentType);
-            file.close();
-            return;
-        } else {
-            page_not_found = true;
         }
 
-        if (page_not_found) {
-#    ifdef ENABLE_CAPTIVE_PORTAL
-            if (WiFi.getMode() == WIFI_AP) {
-                String contentType = PAGE_CAPTIVE;
-                String stmp        = WiFi.softAPIP().toString();
-                //Web address = ip + port
-                String KEY_IP    = "$WEB_ADDRESS$";
-                String KEY_QUERY = "$QUERY$";
-                if (_port != 80) {
-                    stmp += ":";
-                    stmp += String(_port);
-                }
-                contentType.replace(KEY_IP, stmp);
-                contentType.replace(KEY_IP, stmp);
-                contentType.replace(KEY_QUERY, _webserver->uri());
-                _webserver->send(200, "text/html", contentType);
-                //_webserver->sendContent_P(NOT_AUTH_NF);
-                //_webserver->client().stop();
-                return;
-            }
-#    endif
-            path        = "/404.htm";
-            contentType = getContentType(path);
-            pathWithGz  = path + ".gz";
-            if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
-                if (SPIFFS.exists(pathWithGz)) {
-                    path = pathWithGz;
-                }
-                File file = SPIFFS.open(path, FILE_READ);
-                _webserver->streamFile(file, contentType);
-                file.close();
-
-            } else {
-                //if not template use default page
-                contentType = PAGE_404;
-                String stmp;
-                if (WiFi.getMode() == WIFI_STA) {
-                    stmp = WiFi.localIP().toString();
-                } else {
-                    stmp = WiFi.softAPIP().toString();
-                }
-                //Web address = ip + port
-                String KEY_IP    = "$WEB_ADDRESS$";
-                String KEY_QUERY = "$QUERY$";
-                if (_port != 80) {
-                    stmp += ":";
-                    stmp += String(_port);
-                }
-                contentType.replace(KEY_IP, stmp);
-                contentType.replace(KEY_QUERY, _webserver->uri());
-                _webserver->send(200, "text/html", contentType);
-            }
+        if (handleLocalFS(path)) {
+            return;
         }
+
+        if (handleCaptivePortal()) {
+            return;
+        }
+
+        if (handleLocalFS("/404.htm")) {
+            return;
+        }
+
+        // if none of the above handlers succeeded, use the default page
+        sendEmbeddedPage(PAGE_404);
     }
 
 #    ifdef ENABLE_SSDP
@@ -484,16 +484,17 @@ namespace WebUI {
             } else {
                 espresponse->flush();
             }
-            if(espresponse) delete(espresponse);
+            if (espresponse)
+                delete (espresponse);
         } else {  //execute GCODE
             if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
                 _webserver->send(401, "text/plain", "Authentication failed!\n");
                 return;
             }
             //Instead of send several commands one by one by web  / send full set and split here
-            String      scmd;
-            bool hasError =false;
-            uint8_t     sindex = 0;
+            String  scmd;
+            bool    hasError = false;
+            uint8_t sindex   = 0;
             // TODO Settings - this is very inefficient.  get_Splited_Value() is O(n^2)
             // when it could easily be O(n).  Also, it would be just as easy to push
             // the entire string into Serial2Socket and pull off lines from there.
@@ -516,7 +517,7 @@ namespace WebUI {
                     hasError = true;
                 }
             }
-            _webserver->send(200, "text/plain", hasError?"Error":"");
+            _webserver->send(200, "text/plain", hasError ? "Error" : "");
         }
     }
 
@@ -1224,9 +1225,9 @@ namespace WebUI {
         String path    = "/";
         String sstatus = "Ok";
         if ((_upload_status == UploadStatusType::FAILED) || (_upload_status == UploadStatusType::FAILED)) {
-            sstatus        = "Upload failed";
+            sstatus = "Upload failed";
         }
-        _upload_status = UploadStatusType::NONE;
+        _upload_status      = UploadStatusType::NONE;
         bool     list_files = true;
         uint64_t totalspace = 0;
         uint64_t usedspace  = 0;
@@ -1632,6 +1633,10 @@ namespace WebUI {
         if (filename.endsWith(".htm")) {
             return "text/html";
         } else if (file_name.endsWith(".html")) {
+            return "text/html";
+        } else if (file_name.endsWith(".htm.gz")) {
+            return "text/html";
+        } else if (file_name.endsWith(".html.gz")) {
             return "text/html";
         } else if (file_name.endsWith(".css")) {
             return "text/css";
