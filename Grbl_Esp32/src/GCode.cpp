@@ -1274,8 +1274,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                    bit(GCodeWord::C)));  // Remove axis words.
     }
     if (gc_block.non_modal_command == NonModal::UserDefinedGcode) {
-        // clean up words
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Cleanup: %d %d", value_words, user_value_words);
+        // Clean up value word from user gcode checking
         bit_false(value_words, user_value_words);
     }
     if (value_words) {
@@ -1522,9 +1521,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             system_flag_wco_change();
             break;
         case NonModal::UserDefinedGcode:
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Execute my gcode");
-            user_execute_gcode('M', 115, gc_block);
-
+            user_execute_gcode(gc_block);
             break;
         default:
             break;
@@ -1641,7 +1638,7 @@ bool __attribute__((weak)) user_validate_gcode(char letter, uint8_t code_num, ui
     return false;  // default is to reject all unknown numbers
 }
 
-bool __attribute__((weak)) user_execute_gcode(char letter, uint8_t code_num, parser_block_t parser_block) {
+bool __attribute__((weak)) user_execute_gcode(parser_block_t parser_block) {
     return false;
 }
 

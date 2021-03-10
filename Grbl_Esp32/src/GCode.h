@@ -336,4 +336,4 @@ Error gc_execute_line(char* line, uint8_t client);
 void gc_sync_position();
 
 bool user_validate_gcode(char letter, uint8_t code_num, uint32_t &value_words);
-bool user_execute_gcode(char letter, uint8_t code_num, parser_block_t parser_block);
+bool user_execute_gcode(parser_block_t parser_block);
