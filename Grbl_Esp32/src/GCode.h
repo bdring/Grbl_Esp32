@@ -48,7 +48,8 @@ enum class ModalGroup : uint8_t {
     MM7  = 12,  // [M3,M4,M5] Spindle turning
     MM8  = 13,  // [M7,M8,M9] Coolant control
     MM9  = 14,  // [M56] Override control
-    MM10 = 15,  // [M62, M63, M64, M65, M67, M68] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
+    MM10 = 15,  // [M62, M63, M64, M65, M67, M68] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups   
+
 };
 
 // Command actions for within execution-type modal groups (motion, stopping, non-modal). Used
@@ -71,6 +72,7 @@ enum class NonModal : uint8_t {
     AbsoluteOverride      = 53,   // G53 (Do not alter value)
     SetCoordinateOffset   = 92,   // G92 (Do not alter value)
     ResetCoordinateOffset = 102,  //G92.1 (Do not alter value)
+    UserDefinedGcode      = 255,  // User defined Gcode
 };
 
 // Modal Group G1: Motion modes
@@ -332,3 +334,6 @@ Error gc_execute_line(char* line, uint8_t client);
 
 // Set g-code parser position. Input in steps.
 void gc_sync_position();
+
+bool user_validate_gcode(char letter, uint8_t code_num, uint32_t &value_words);
+bool user_execute_gcode(char letter, uint8_t code_num, parser_block_t parser_block);

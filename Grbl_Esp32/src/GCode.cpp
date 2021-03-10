@@ -433,7 +433,12 @@ Error gc_execute_line(char* line, uint8_t client) {
                         mg_word_bit = ModalGroup::MG13;
                         break;
                     default:
-                        FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
+                        if (!user_validate_gcode(letter, int_value, value_words)) {
+                            FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
+                        } else {
+                            gc_block.non_modal_command = NonModal::UserDefinedGcode;
+                            //mg_word_bit = ModalGroup::MM99;
+                        }
                 }
                 if (mantissa > 0) {
                     FAIL(Error::GcodeCommandValueNotInteger);  // [Unsupported or invalid Gxx.x command]
@@ -550,7 +555,11 @@ Error gc_execute_line(char* line, uint8_t client) {
                         mg_word_bit               = ModalGroup::MM10;
                         break;
                     default:
-                        FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported M command]
+                        if (!user_validate_gcode(letter, int_value, value_words)) {
+                            FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
+                        } else {
+                            gc_block.non_modal_command = NonModal::UserDefinedGcode;
+                        }
                 }
                 // Check for more than one command per modal group violations in the current block
                 // NOTE: Variable 'mg_word_bit' is always assigned, if the command is valid.
@@ -1041,6 +1050,8 @@ Error gc_execute_line(char* line, uint8_t client) {
                         FAIL(Error::GcodeG53InvalidMotionMode);  // [G53 G0/1 not active]
                     }
                     break;
+                case NonModal::UserDefinedGcode:
+                    break;
                 default:
                     break;
             }
@@ -1504,6 +1515,11 @@ Error gc_execute_line(char* line, uint8_t client) {
             clear_vector(gc_state.coord_offset);  // Disable G92 offsets by zeroing offset vector.
             system_flag_wco_change();
             break;
+        case NonModal::UserDefinedGcode:
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Execute my gcode");
+            user_execute_gcode('M', 115, gc_block);
+
+            break;
         default:
             break;
     }
@@ -1615,7 +1631,15 @@ Error gc_execute_line(char* line, uint8_t client) {
     return Error::Ok;
 }
 
-/*
+bool __attribute__((weak)) user_validate_gcode(char letter, uint8_t code_num, uint32_t  &value_words) {
+    return false;  // default is to reject all unknown numbers
+}
+
+bool __attribute__((weak))  user_execute_gcode(char letter, uint8_t code_num, parser_block_t parser_block) {
+    return false;
+}
+
+    /*
   Not supported:
 
   - Canned cycles
