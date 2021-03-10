@@ -143,10 +143,11 @@ Error gc_execute_line(char* line, uint8_t client) {
     uint8_t axis_words = 0;  // XYZ tracking
     uint8_t ijk_words  = 0;  // IJK tracking
     // Initialize command and value words and parser flags variables.
-    uint32_t command_words   = 0;  // Tracks G and M command words. Also used for modal group violations.
-    uint32_t value_words     = 0;  // Tracks value words.
-    uint8_t  gc_parser_flags = GCParserNone;
-    auto     n_axis          = number_axis->get();
+    uint32_t command_words    = 0;  // Tracks G and M command words. Also used for modal group violations.
+    uint32_t value_words      = 0;  // Tracks value words.
+    uint32_t user_value_words = 0;  // required value words for custom user gcode
+    uint8_t  gc_parser_flags  = GCParserNone;
+    auto     n_axis           = number_axis->get();
     float    coord_data[MAX_N_AXIS];  // Used by WCO-related commands
     uint8_t  pValue;                  // Integer value of P word
 
@@ -433,7 +434,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         mg_word_bit = ModalGroup::MG13;
                         break;
                     default:
-                        if (!user_validate_gcode(letter, int_value, value_words)) {
+                        if (!user_validate_gcode(letter, int_value, user_value_words)) {
                             FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
                         } else {
                             gc_block.non_modal_command = NonModal::UserDefinedGcode;
@@ -555,7 +556,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         mg_word_bit               = ModalGroup::MM10;
                         break;
                     default:
-                        if (!user_validate_gcode(letter, int_value, value_words)) {
+                        if (!user_validate_gcode(letter, int_value, user_value_words)) {
                             FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported G command]
                         } else {
                             gc_block.non_modal_command = NonModal::UserDefinedGcode;
@@ -1272,6 +1273,11 @@ Error gc_execute_line(char* line, uint8_t client) {
                   (bit(GCodeWord::X) | bit(GCodeWord::Y) | bit(GCodeWord::Z) | bit(GCodeWord::A) | bit(GCodeWord::B) |
                    bit(GCodeWord::C)));  // Remove axis words.
     }
+    if (gc_block.non_modal_command == NonModal::UserDefinedGcode) {
+        // clean up words
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Cleanup: %d %d", value_words, user_value_words);
+        bit_false(value_words, user_value_words);
+    }
     if (value_words) {
         FAIL(Error::GcodeUnusedWords);  // [Unused words]
     }
@@ -1631,15 +1637,15 @@ Error gc_execute_line(char* line, uint8_t client) {
     return Error::Ok;
 }
 
-bool __attribute__((weak)) user_validate_gcode(char letter, uint8_t code_num, uint32_t  &value_words) {
+bool __attribute__((weak)) user_validate_gcode(char letter, uint8_t code_num, uint32_t& value_words) {
     return false;  // default is to reject all unknown numbers
 }
 
-bool __attribute__((weak))  user_execute_gcode(char letter, uint8_t code_num, parser_block_t parser_block) {
+bool __attribute__((weak)) user_execute_gcode(char letter, uint8_t code_num, parser_block_t parser_block) {
     return false;
 }
 
-    /*
+/*
   Not supported:
 
   - Canned cycles

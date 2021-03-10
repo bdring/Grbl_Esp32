@@ -1,5 +1,5 @@
 
-
+// value_words  - Tells the parser what value words are required
 bool user_validate_gcode(char letter, uint8_t code_num, uint32_t &value_words) {
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Testing gcode");
 
@@ -8,8 +8,8 @@ bool user_validate_gcode(char letter, uint8_t code_num, uint32_t &value_words) {
     } else if (letter == 'M') {
         switch (code_num) {
             case 115:
-                bit_false(value_words, bit(GCodeWord::E));
-               
+                bit_true(value_words, bit(GCodeWord::E));
+                
                 return true;
                 break;
             default:
