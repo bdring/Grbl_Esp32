@@ -6,7 +6,7 @@
     Used to add simple G or M codes to the firmware
     If in doubt use an M code 
 
-    You can pass letter values like 
+    You can pass letter values like "M115 E15" 
 
     see the definiitons of parser_block_t and gc_values_t
     Note: letters have different types like unit32_t and float

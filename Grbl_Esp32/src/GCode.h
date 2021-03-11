@@ -48,8 +48,7 @@ enum class ModalGroup : uint8_t {
     MM7  = 12,  // [M3,M4,M5] Spindle turning
     MM8  = 13,  // [M7,M8,M9] Coolant control
     MM9  = 14,  // [M56] Override control
-    MM10 = 15,  // [M62, M63, M64, M65, M67, M68] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups   
-
+    MM10 = 15,  // [M62, M63, M64, M65, M67, M68] User Defined http://linuxcnc.org/docs/html/gcode/overview.html#_modal_groups
 };
 
 // Command actions for within execution-type modal groups (motion, stopping, non-modal). Used
@@ -236,9 +235,9 @@ enum GCParserFlags {
 
 // Various places in the code access saved coordinate system data
 // by a small integer index according to the values below.
-enum CoordIndex : uint8_t{
+enum CoordIndex : uint8_t {
     Begin = 0,
-    G54 = Begin,
+    G54   = Begin,
     G55,
     G56,
     G57,
@@ -258,7 +257,7 @@ enum CoordIndex : uint8_t{
 };
 
 // Allow iteration over CoordIndex values
-CoordIndex& operator ++ (CoordIndex& i);
+CoordIndex& operator++(CoordIndex& i);
 
 // NOTE: When this struct is zeroed, the 0 values in the above types set the system defaults.
 typedef struct {
@@ -335,5 +334,5 @@ Error gc_execute_line(char* line, uint8_t client);
 // Set g-code parser position. Input in steps.
 void gc_sync_position();
 
-bool user_validate_gcode(char letter, uint8_t code_num, uint32_t &value_words);
+bool user_validate_gcode(char letter, uint8_t code_num, uint32_t& value_words);
 bool user_execute_gcode(parser_block_t parser_block);
