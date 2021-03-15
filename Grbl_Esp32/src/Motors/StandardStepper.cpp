@@ -124,7 +124,6 @@ namespace Motors {
     void StandardStepper::set_direction(bool dir) { digitalWrite(_dir_pin, dir ^ _invert_dir_pin); }
 
     void StandardStepper::set_disable(bool disable) {
-        disable ^= step_enable_invert->get();
         digitalWrite(_disable_pin, disable);
     }
 }

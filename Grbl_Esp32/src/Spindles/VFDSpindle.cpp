@@ -406,6 +406,11 @@ namespace Spindles {
 
         if (_current_state != state) {  // already at the desired state. This function gets called a lot.
             set_mode(state, critical);  // critical if we are in a job
+
+            if (rpm != 0 && (rpm < _min_rpm || rpm > _max_rpm)) {
+                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Requested speed %d outside range:(%d,%d)", rpm, _min_rpm, _max_rpm);
+            }
+
             set_rpm(rpm);
 
             if (state == SpindleState::Disable) {
@@ -422,6 +427,10 @@ namespace Spindles {
             }
         } else {
             if (_current_rpm != rpm) {
+                if (rpm != 0 && (rpm < _min_rpm || rpm > _max_rpm)) {
+                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Requested speed %d outside range:(%d,%d)", rpm, _min_rpm, _max_rpm);
+                }
+
                 set_rpm(rpm);
 
                 if (rpm > _current_rpm) {
@@ -524,10 +533,11 @@ namespace Spindles {
         // apply override
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
 
-        if (rpm < _min_rpm || rpm > _max_rpm) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Requested speed %d outside range:(%d,%d)", rpm, _min_rpm, _max_rpm);
+        if (rpm != 0 && (rpm < _min_rpm || rpm > _max_rpm)) {
+            // NOTE: Don't add a info message here; this method is called from the stepper_pulse_func ISR method, so
+            // emitting debug information could crash the ESP32.
+
             rpm = constrain(rpm, _min_rpm, _max_rpm);
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Requested speed changed to %d", rpm);
         }
 
         // apply limits
