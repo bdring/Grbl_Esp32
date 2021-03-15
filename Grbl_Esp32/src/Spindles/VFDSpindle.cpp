@@ -564,6 +564,7 @@ namespace Spindles {
         ModbusCommand rpm_cmd;
         rpm_cmd.msg[0] = VFD_RS485_ADDR;
 
+        
         set_speed_command(rpm, rpm_cmd);
 
         rpm_cmd.critical = (rpm == 0);
