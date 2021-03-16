@@ -54,22 +54,22 @@
 
 #define Z_TRINAMIC_DRIVER       2209
 #define Z_STEP_PIN              GPIO_NUM_2
-#define Z_DIRECTION_PIN         GPIO_NUM_4
+#define Z_DIRECTION_PIN         GPIO_NUM_14
 #define Z_RSENSE                TMC2209_RSENSE_DEFAULT
 #define Z_DRIVER_ADDRESS        2
 #define DEFAULT_Z_MICROSTEPS    16
 
 #define A_TRINAMIC_DRIVER       2209
 #define A_STEP_PIN              GPIO_NUM_16
-#define A_DIRECTION_PIN         GPIO_NUM_17
+#define A_DIRECTION_PIN         GPIO_NUM_15
 #define A_RSENSE                TMC2209_RSENSE_DEFAULT
 #define A_DRIVER_ADDRESS        3
 #define DEFAULT_A_MICROSTEPS    16
 
-#define X_LIMIT_PIN             GPIO_NUM_36
-#define Y_LIMIT_PIN             GPIO_NUM_39
-#define Z_LIMIT_PIN             GPIO_NUM_34
-#define PROBE_PIN               GPIO_NUM_35
+#define X_LIMIT_PIN             GPIO_NUM_35
+#define Y_LIMIT_PIN             GPIO_NUM_34
+#define Z_LIMIT_PIN             GPIO_NUM_39
+#define PROBE_PIN               GPIO_NUM_36
 
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN    GPIO_NUM_25
@@ -77,9 +77,9 @@
 
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
-#define USER_DIGITAL_PIN_0      GPIO_NUM_14 //  M62 M63
+#define USER_DIGITAL_PIN_0      GPIO_NUM_4 //  M62 M63
 #define USER_DIGITAL_PIN_1      GPIO_NUM_13 //  M62 M63
-#define USER_DIGITAL_PIN_2      GPIO_NUM_15 //  M62 M63
+#define USER_DIGITAL_PIN_2      GPIO_NUM_17 //  M62 M63
 #define USER_DIGITAL_PIN_3      GPIO_NUM_12 //  M62 M63
 
 
