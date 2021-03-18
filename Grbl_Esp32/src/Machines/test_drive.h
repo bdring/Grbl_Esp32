@@ -37,6 +37,7 @@
 
 #define MACHINE_NAME "Test Drive - Demo Only No I/O!"
 
+#define CUSTOM_CODE_FILENAME "Custom/oled_basic.cpp"
 
 #define N_AXIS 3
 // This cannot use homing because there are no switches
