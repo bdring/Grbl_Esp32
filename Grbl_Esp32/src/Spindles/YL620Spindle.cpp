@@ -23,21 +23,68 @@
     VFDs are very dangerous. They have high voltages and are very powerful
     Remove power before changing bits.
 
-    The documentation is okay once you get how it works, but unfortunately
-    incomplete... See H2ASpindle.md for the remainder of the docs that I
-    managed to piece together.
+    =============================================================================================================
+
+    Configuration required for the YL620
+
+    Parameter number        Description                     Value
+    -------------------------------------------------------------------------------
+    P00.00                  Main frequency                  400.00Hz (match to your spindle)
+    P00.01                  Command source                  3
+    
+    P03.00                  RS485 Baud rate                 4 (19200)
+    P03.01                  RS485 address                   1
+    P03.02                  RS485 protocol                  2
+    P03.08                  Frequency given lower limit     100.0Hz (match to your spindle cooling-type)
+
+    ===============================================================================================================
+
+    RS485 communication is standard Modbus RTU
+
+    Therefore, the following operation codes are relevant:
+    0x03:   read single holding register
+    0x06:   write single holding register
+
+    Holding register address                Description
+    ---------------------------------------------------------------------------
+    0x0000                                  main frequency
+    0x0308                                  frequency given lower limit
+
+    0x2000                                  command register (further information below)
+    0x2001                                  Modbus485 frequency command (x0.1Hz => 2500 = 250.0Hz)
+
+    0x200A                                  Target frequency
+    0x200B                                  Output frequency
+    0x200C                                  Output current
+
+
+    Command register at holding address 0x2000
+    --------------------------------------------------------------------------
+    bit 1:0             b00: No function
+                        b01: shutdown command
+                        b10: start command
+                        b11: Jog command
+    bit 3:2             reserved
+    bit 5:4             b00: No function
+                        b01: Forward command
+                        b10: Reverse command
+                        b11: change direction
+    bit 7:6             b00: No function
+                        b01: reset an error flag
+                        b10: reset all error flags
+                        b11: reserved
 */
 
 #include <driver/uart.h>
 
 namespace Spindles {
     void YL620::default_modbus_settings(uart_config_t& uart) {
-        // sets the uart to 19200 8E1
+        // sets the uart to 19200 8N1
         VFD::default_modbus_settings(uart);
 
         uart.baud_rate = 19200;
         uart.data_bits = UART_DATA_8_BITS;
-        uart.parity    = UART_PARITY_EVEN;
+        uart.parity    = UART_PARITY_DISABLE;
         uart.stop_bits = UART_STOP_BITS_1;
     }
 
@@ -46,11 +93,23 @@ namespace Spindles {
         data.tx_length = 6;
         data.rx_length = 6;
 
-        data.msg[1] = 0x06;  // WRITE
-        data.msg[2] = 0x20;  // Command ID 0x2000
+        // data.msg[0] is omitted (modbus address is filled in later)
+        data.msg[1] = 0x06;     // 06: write output register
+        data.msg[2] = 0x20;     // 0x2000: command register address
         data.msg[3] = 0x00;
-        data.msg[4] = 0x00;
-        data.msg[5] = (mode == SpindleState::Ccw) ? 0x02 : (mode == SpindleState::Cw ? 0x01 : 0x06);
+
+        data.msg[4] = 0x00;     // High-Byte of command always 0x00
+        switch (mode) {
+            case SpindleState::Cw:
+                data.msg[5] = 0x12;     // Start in forward direction
+                break;
+            case SpindleState::Ccw:
+                data.msg[5] = 0x22;     // Start in reverse direction
+                break;
+            default:  // SpindleState::Disable
+                data.msg[5] = 0x01;     // Disable spindle
+                break;
+        }
     }
 
     void YL620::set_speed_command(uint32_t rpm, ModbusCommand& data) {
@@ -60,50 +119,76 @@ namespace Spindles {
 
         // We have to know the max RPM before we can set the current RPM:
         auto max_rpm = this->_max_rpm;
+        auto max_frequency = this->_maxFrequency;
 
-        // Speed is in [0..10'000] where 10'000 = 100%.
-        // We have to use a 32-bit integer here; typical values are 10k/24k rpm.
-        // I've never seen a 400K RPM spindle in my life, and they aren't supported
-        // by this modbus protocol anyways... So I guess this is OK.
-        uint16_t speed = (uint32_t(rpm) * 10000L) / uint32_t(max_rpm);
-        if (speed < 0) {
-            speed = 0;
-        }
-        if (speed > 10000) {
-            speed = 10000;
-        }
+        uint16_t freqFromRPM = (uint32_t(rpm) * uint16_t(max_frequency)) / uint32_t(max_rpm);
+        
+        #ifdef VFD_DEBUG_MODE
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "For %d RPM the output frequency is set to %d Hz*10", int(rpm), int(freqFromRPM));
+        #endif
 
         data.msg[1] = 0x06;  // WRITE
-        data.msg[2] = 0x10;  // Command ID 0x1000
-        data.msg[3] = 0x00;
-        data.msg[4] = uint8_t(speed >> 8);  // RPM
-        data.msg[5] = uint8_t(speed & 0xFF);
+        data.msg[2] = 0x20; 
+        data.msg[3] = 0x01;
+        data.msg[4] = uint8_t(freqFromRPM >> 8);  // RPM
+        data.msg[5] = uint8_t(freqFromRPM & 0xFF);
     }
 
     VFD::response_parser YL620::initialization_sequence(int index, ModbusCommand& data) {
         if (index == -1) {
+            
             // NOTE: data length is excluding the CRC16 checksum.
             data.tx_length = 6;
-            data.rx_length = 8;
+            data.rx_length = 7;
 
-            // Send: 01 03 B005 0002
-            data.msg[1] = 0x03;  // READ
-            data.msg[2] = 0xB0;  // B0.05 = Get RPM
-            data.msg[3] = 0x05;
-            data.msg[4] = 0x00;  // Read 2 values
-            data.msg[5] = 0x02;
+            data.msg[1] = 0x03;
+            data.msg[2] = 0x03;
+            data.msg[3] = 0x08;
+            data.msg[4] = 0x00; 
+            data.msg[5] = 0x01;
 
-            //  Recv: 01 03 00 04 5D C0 03 F6
-            //                    -- -- = 24000 (val #1)
+            //  Recv: 01 03 02 03 E8 xx xx
+            //                 -- -- = 1000
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-                uint16_t rpm  = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
-                vfd->_max_rpm = rpm;
-
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "H2A spindle is initialized at %d RPM", int(rpm));
+                auto yl620           = static_cast<YL620*>(vfd);
+                yl620->_minFrequency = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
+                
+                #ifdef VFD_DEBUG_MODE
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "YL620 allows minimum frequency of %d Hz", int(yl620->_minFrequency));
+                #endif
 
                 return true;
             };
-        } else {
+        }
+        else if (index == -2) {
+            // NOTE: data length is excluding the CRC16 checksum.
+            data.tx_length = 6;
+            data.rx_length = 7;
+
+            data.msg[1] = 0x03;
+            data.msg[2] = 0x00;
+            data.msg[3] = 0x00;
+            data.msg[4] = 0x00; 
+            data.msg[5] = 0x01;
+
+            //  Recv: 01 03 02 0F A0 xx xx
+            //                 -- -- = 4000
+            return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
+                auto yl620           = static_cast<YL620*>(vfd);
+                yl620->_maxFrequency = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
+
+                vfd->_min_rpm = uint32_t(yl620->_minFrequency) * uint32_t(vfd->_max_rpm) / uint32_t(yl620->_maxFrequency);  //   1000 * 24000 / 4000 =   6000 RPM.
+
+                
+                #ifdef VFD_DEBUG_MODE
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "YL620 allows maximum frequency of %d Hz", int(yl620->_maxFrequency));
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Configured maxRPM of %d RPM results in minRPM of %d RPM", int(vfd->_max_rpm), int(vfd->_min_rpm))
+                #endif
+
+                return true;
+            };
+        }
+        else {
             return nullptr;
         }
     }
@@ -111,19 +196,23 @@ namespace Spindles {
     VFD::response_parser YL620::get_current_rpm(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
-        data.rx_length = 8;
+        data.rx_length = 7;
 
-        // Send: 01 03 700C 0002
-        data.msg[1] = 0x03;  // READ
-        data.msg[2] = 0x70;  // B0.05 = Get RPM
-        data.msg[3] = 0x0C;
-        data.msg[4] = 0x00;  // Read 2 values
-        data.msg[5] = 0x02;
+        // Send: 01 03 200B 0001
+        data.msg[1] = 0x03;
+        data.msg[2] = 0x20; 
+        data.msg[3] = 0x0B;
+        data.msg[4] = 0x00;
+        data.msg[5] = 0x01;
 
-        //  Recv: 01 03 0004 095D 0000
-        //                   ---- = 2397 (val #1)
+        //  Recv: 01 03 02 05 DC xx xx
+        //                 ---- = 1500
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-            uint16_t rpm = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
+            uint16_t freq = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
+
+            auto yl620           = static_cast<YL620*>(vfd);
+
+            uint16_t rpm = freq * uint16_t(vfd->_max_rpm) / uint16_t(yl620->_maxFrequency);
 
             // Set current RPM value? Somewhere?
             vfd->_sync_rpm = rpm;
@@ -134,17 +223,17 @@ namespace Spindles {
     VFD::response_parser YL620::get_current_direction(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
-        data.rx_length = 6;
+        data.rx_length = 7;
 
-        // Send: 01 03 30 00 00 01
-        data.msg[1] = 0x03;  // READ
-        data.msg[2] = 0x30;  // Command group ID
+        // Send: 01 03 20 00 00 01
+        data.msg[1] = 0x03;  
+        data.msg[2] = 0x20;  
         data.msg[3] = 0x00;
-        data.msg[4] = 0x00;  // Message ID
+        data.msg[4] = 0x00;  
         data.msg[5] = 0x01;
 
-        // Receive: 01 03 00 02 00 02
-        //                      ----- status
+        // Receive: 01 03 02 00 0A xx xx
+        //                   ----- status is in 00 0A bit 5:4
 
         // TODO: What are we going to do with this? Update sys.spindle_speed? Update vfd state?
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool { return true; };
