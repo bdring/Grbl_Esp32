@@ -30,22 +30,20 @@
     In other modes it will show state and 3 axis DROs
     Thats All! 
 
-    https://github.com/ThingPulse/esp8266-oled-ssd1306
+    Library Infor:
+        https://github.com/ThingPulse/esp8266-oled-ssd1306
 
-    platformio lib install 562
+    Install to PlatformIO with this typed at the terminal
+        platformio lib install 562
 
-    Add this to your machine definition
-
-    #define CUSTOM_CODE_FILENAME "Custom/oled_basic.cpp"
+    Add this to your machine definition file
+        #define CUSTOM_CODE_FILENAME "Custom/oled_basic.cpp"
 
 */
 
 // Include the correct display library
 
-// For a connection via I2C using the Arduino Wire include:
-#include <Wire.h>         // Only needed for Arduino 1.6.5 and earlier
 #include "SSD1306Wire.h"  // legacy: #include "SSD1306.h"
-// OR #include "SH1106Wire.h"   // legacy: #include "SH1106.h"
 #include "../src/WebUI/WebSettings.h"
 
 #ifndef OLED_ADDRESS
@@ -136,6 +134,7 @@ String getStateText() {
     return str;
 }
 
+// This displays the status of the ESP32 Radios...BT, WiFi, etc
 void displayRadioInfo() {
     String radio_info = "";
 

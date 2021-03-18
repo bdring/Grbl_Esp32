@@ -65,6 +65,8 @@ const char* const GRBL_VERSION_BUILD = "20210311";
 
 #include "UserOutput.h"
 
+#include <Wire.h>
+
 // Do not guard this because it is needed for local files too
 #include "SDCard.h"
 
