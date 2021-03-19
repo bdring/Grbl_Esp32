@@ -37,7 +37,7 @@
         platformio lib install 562
 
     Add this to your machine definition file
-        #define CUSTOM_CODE_FILENAME "Custom/oled_basic.cpp"
+        #define DISPLAY_CODE_FILENAME "Custom/oled_basic.cpp"
 
 */
 
@@ -220,9 +220,11 @@ void displayUpdate(void* pvParameters) {
 
         String state_string = getStateText();
 
-        display.setTextAlignment(TEXT_ALIGN_CENTER);
+        state_string.toUpperCase();
+
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
         display.setFont(ArialMT_Plain_16);
-        display.drawString(63, 0, state_string);
+        display.drawString(0, 0, state_string);
 
         if (get_sd_state(false) == SDState::BusyPrinting) {
             display.clear();
