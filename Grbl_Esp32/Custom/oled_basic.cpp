@@ -108,7 +108,7 @@ String getStateText() {
             str = "Homing";
             break;
         case State::Alarm:
-            str = "Alarm: ";
+            str = "Alarm";
             break;
         case State::CheckMode:
             str = "Check";
