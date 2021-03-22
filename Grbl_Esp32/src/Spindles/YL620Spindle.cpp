@@ -32,7 +32,7 @@
     P00.00                  Main frequency                  400.00Hz (match to your spindle)
     P00.01                  Command source                  3
     
-    P03.00                  RS485 Baud rate                 4 (19200)
+    P03.00                  RS485 Baud rate                 3 (9600)
     P03.01                  RS485 address                   1
     P03.02                  RS485 protocol                  2
     P03.08                  Frequency given lower limit     100.0Hz (match to your spindle cooling-type)
@@ -79,10 +79,10 @@
 
 namespace Spindles {
     void YL620::default_modbus_settings(uart_config_t& uart) {
-        // sets the uart to 19200 8N1
+        // sets the uart to 9600 8N1
         VFD::default_modbus_settings(uart);
 
-        uart.baud_rate = 19200;
+        uart.baud_rate = 9600;
         uart.data_bits = UART_DATA_8_BITS;
         uart.parity    = UART_PARITY_DISABLE;
         uart.stop_bits = UART_STOP_BITS_1;
@@ -121,16 +121,16 @@ namespace Spindles {
         auto max_rpm = this->_max_rpm;
         auto max_frequency = this->_maxFrequency;
 
-        uint16_t freqFromRPM = (uint32_t(rpm) * uint16_t(max_frequency)) / uint32_t(max_rpm);
+        uint16_t freqFromRPM = (uint16_t(rpm) * uint16_t(max_frequency)) / uint16_t(max_rpm);
         
         #ifdef VFD_DEBUG_MODE
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "For %d RPM the output frequency is set to %d Hz*10", int(rpm), int(freqFromRPM));
         #endif
 
-        data.msg[1] = 0x06;  // WRITE
+        data.msg[1] = 0x06;
         data.msg[2] = 0x20; 
         data.msg[3] = 0x01;
-        data.msg[4] = uint8_t(freqFromRPM >> 8);  // RPM
+        data.msg[4] = uint8_t(freqFromRPM >> 8);
         data.msg[5] = uint8_t(freqFromRPM & 0xFF);
     }
 
@@ -139,7 +139,7 @@ namespace Spindles {
             
             // NOTE: data length is excluding the CRC16 checksum.
             data.tx_length = 6;
-            data.rx_length = 7;
+            data.rx_length = 5;
 
             data.msg[1] = 0x03;
             data.msg[2] = 0x03;
@@ -163,7 +163,7 @@ namespace Spindles {
         else if (index == -2) {
             // NOTE: data length is excluding the CRC16 checksum.
             data.tx_length = 6;
-            data.rx_length = 7;
+            data.rx_length = 5;
 
             data.msg[1] = 0x03;
             data.msg[2] = 0x00;
@@ -182,7 +182,7 @@ namespace Spindles {
                 
                 #ifdef VFD_DEBUG_MODE
                 grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "YL620 allows maximum frequency of %d Hz", int(yl620->_maxFrequency));
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Configured maxRPM of %d RPM results in minRPM of %d RPM", int(vfd->_max_rpm), int(vfd->_min_rpm))
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Configured maxRPM of %d RPM results in minRPM of %d RPM", int(vfd->_max_rpm), int(vfd->_min_rpm));
                 #endif
 
                 return true;
@@ -196,7 +196,7 @@ namespace Spindles {
     VFD::response_parser YL620::get_current_rpm(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
-        data.rx_length = 7;
+        data.rx_length = 5;
 
         // Send: 01 03 200B 0001
         data.msg[1] = 0x03;
@@ -223,7 +223,7 @@ namespace Spindles {
     VFD::response_parser YL620::get_current_direction(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
-        data.rx_length = 7;
+        data.rx_length = 5;
 
         // Send: 01 03 20 00 00 01
         data.msg[1] = 0x03;  
