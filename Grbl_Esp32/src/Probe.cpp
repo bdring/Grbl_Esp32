@@ -30,7 +30,7 @@
 void Probe::init() {
     static bool show_init_msg = true;  // used to show message only once.
 
-    if (_probePin != Pin::UNDEFINED) {
+    if (!_probePin.undefined()) {
 #ifdef DISABLE_PROBE_PIN_PULL_UP
         _probePin.setAttr(Pin::Attr::Input);
 #else

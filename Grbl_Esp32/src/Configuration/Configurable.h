@@ -20,6 +20,7 @@ namespace Configuration
 
         virtual void validate() const = 0;
         virtual void handle(HandlerBase& handler) = 0;
+        virtual void afterParse() {}
         // virtual const char* name() const = 0;
 
         virtual ~Configurable() {}

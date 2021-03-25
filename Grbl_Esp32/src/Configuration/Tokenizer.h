@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TokenKind.h"
+#include "../Logging.h"
 
 namespace Configuration {
 
@@ -24,7 +25,7 @@ namespace Configuration {
 
         inline bool IsWhiteSpace() {
             char c = Current();
-            return c == ' ' || c == '\t' || c == '\f';
+            return c == ' ' || c == '\t' || c == '\f' || c == '\r';
         }
 
         inline bool IsEndLine() { return Current() == '\n'; }

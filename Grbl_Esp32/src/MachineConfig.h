@@ -7,6 +7,8 @@
 #include "CoolantControl.h"
 #include "Probe.h"
 
+// TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
+
 namespace Motors {
     class Motor;
 }
@@ -35,6 +37,7 @@ public:
     // Configuration system helpers:
     void validate() const override;
     void handle(Configuration::HandlerBase& handler) override;
+    void afterParse() override;
 
     ~Gang();
 };
@@ -85,6 +88,7 @@ public:
     // Configuration system helpers:
     void validate() const override;
     void handle(Configuration::HandlerBase& handler) override;
+    void afterParse() override;
 
     // Checks if a motor matches this axis:
     bool hasMotor(const Motors::Motor* const motor) const;
@@ -119,6 +123,7 @@ public:
     // Configuration helpers:
     void validate() const override;
     void handle(Configuration::HandlerBase& handler) override;
+    void afterParse() override;
 
     ~Axes();
 };
@@ -199,7 +204,7 @@ public:
                 } else if (ch != ' ') {
                     // For convenience / layouting.
                     return false;
-                }  
+                }
             }
             if (tmp > 255) {
                 return false;
@@ -325,6 +330,7 @@ public:
     }
 
     void validate() const override;
+    void afterParse() override;
     void handle(Configuration::HandlerBase& handler) override;
 
     bool load(const char* file = "/spiffs/config.yaml");

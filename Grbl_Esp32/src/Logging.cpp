@@ -16,6 +16,8 @@ DebugStream::~DebugStream() { std::cout << ']' << std::endl; }
 
 #else
 
+#include <Arduino.h>
+
 DebugStream::DebugStream(const char* name) {
     Serial.print("[");
     Serial.print(name);

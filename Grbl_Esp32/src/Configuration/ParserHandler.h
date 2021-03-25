@@ -14,7 +14,7 @@ namespace Configuration {
     protected:
         void handleDetail(const char* name, Configuration::Configurable* value) override {
             if (value != nullptr && parser_.is(name)) {
-                debug("Parsing configurable " << name);
+                log_debug("Parsing configurable " << name);
 
                 parser_.enter();
                 for (; !parser_.isEndSection(); parser_.moveNext()) {

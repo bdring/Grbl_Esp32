@@ -1,45 +1,8 @@
-name: "6 Pack Controller StepStick XYZ"
-board: bdring-6pack
-
-i2so:
-  bck: gpio.22
-  ws: gpio.17
-  data: gpio.21
+name: "Debug config"
+board: Debug-board
 
 axes:
   number_axis: 3
-  x:
-    steps_per_mm: 800
-    max_rate: 2000
-    acceleration: 25
-    max_travel: 1000
-    home_mpos: 10
-
-    gang1:
-      endstop: 
-        dual: gpio.33:low       # or: positive: gpio.33:low, negative: gpio.34:low
-
-      tmc_2130:
-        step: gpio.4
-        direction: gpio.16
-        run_current: 1.0
-        hold_current: 0.25
-        microsteps: 255
-        stallguard: 0
-
-  y:
-    gang1:
-        endstop: gpio.32:low
-        stepstick:
-          step: gpio.18
-          direction: gpio.18
-    gang2:
-        endstop: gpio.34:low
-        stepstick:
-          step: gpio.19
-          direction: gpio.19
 
 coolant:
-  flood: gpio.12
-  mist: gpio.13
-
+  flood: gpio.2

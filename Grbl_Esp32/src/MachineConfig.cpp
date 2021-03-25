@@ -8,11 +8,14 @@
 
 #include "Configuration/ParserHandler.h"
 #include "Configuration/Validator.h"
+#include "Configuration/AfterParse.h"
 #include "Configuration/ParseException.h"
 
 #include <SPIFFS.h>
 #include <cstdio>
 #include <cstring>
+
+// TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
 
 void Endstops::validate() const {
     if (!_dual.undefined()) {
@@ -36,6 +39,11 @@ void Gang::handle(Configuration::HandlerBase& handler) {
     handler.handle("endstops", _endstops);
     Motors::MotorFactory::handle(handler, _motor);
 }
+void Gang::afterParse() {
+    if (_motor == nullptr) {
+        _motor = new Motors::Nullmotor();
+    }
+}
 
 Gang::~Gang() {
     delete _motor;
@@ -54,6 +62,14 @@ void Axis::handle(Configuration::HandlerBase& handler) {
         tmp[5] = '\0';
 
         handler.handle(tmp, _gangs[g]);
+    }
+}
+
+void Axis::afterParse() {
+    for (size_t i = 0; i < MAX_NUMBER_GANGED; ++i) {
+        if (_gangs[i] == nullptr) {
+            _gangs[i] = new Gang();
+        }
     }
 }
 
@@ -284,8 +300,17 @@ void Axes::handle(Configuration::HandlerBase& handler) {
         tmp[0] = allAxis[a];
         tmp[1] = '\0';
 
-        if (handler.handlerType() == Configuration::HandlerType::Runtime || handler.handlerType() == Configuration::HandlerType::Parser) {
+        if (handler.handlerType() == Configuration::HandlerType::Runtime || handler.handlerType() == Configuration::HandlerType::Parser ||
+            handler.handlerType() == Configuration::HandlerType::AfterParse) {
             handler.handle(tmp, _axis[a]);
+        }
+    }
+}
+
+void Axes::afterParse() {
+    for (size_t i = 0; i < MAX_NUMBER_AXIS; ++i) {
+        if (_axis[i] == nullptr) {
+            _axis[i] = new Axis();
         }
     }
 }
@@ -337,24 +362,61 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("laser_mode", _laserMode);
 }
 
+void MachineConfig::afterParse() {
+    if (_axes == nullptr) {
+        log_info("Axes config missing; building default axes.");
+        _axes = new Axes();
+    }
+
+    if (_coolant == nullptr) {
+        log_info("Coolant control config missing; building default coolant.");
+        _coolant = new CoolantControl();
+    }
+
+    if (_spi == nullptr) {
+        log_info("SPI config missing; building default SPI bus.");
+        _spi = new SPIBus();
+    }
+
+    if (_probe == nullptr) {
+        log_info("Probe config missing; building default probe.");
+        _probe = new Probe();
+    }
+}
+
 bool MachineConfig::load(const char* filename) {
     if (!SPIFFS.begin(true)) {
-        error("An error has occurred while mounting SPIFFS");
+        log_fatal("An error has occurred while mounting SPIFFS");
         return false;
     }
 
     FILE* file = fopen(filename, "rb");
     if (!file) {
-        error("There was an error opening the config file for reading");
+        log_fatal("There was an error opening the config file for reading");
         return false;
     }
+
+    // Regardless of what we do next, we _always_ want a MachineConfig instance.
+
+    // instance() is by reference, so we can just get rid of an old instance and
+    // create a new one here:
+    {
+        auto& machineConfig = instance();
+        if (machineConfig != nullptr) {
+            delete machineConfig;
+        }
+        machineConfig = new MachineConfig();
+    }
+    MachineConfig* machine = instance();
 
     // Let's just read the entire file in one chunk for now. If we get
     // in trouble with this, we can cut it in pieces and read it per chunk.
     fseek(file, 0, SEEK_END);
     auto filesize = ftell(file);
+    log_debug("Configuration file is " << int(filesize) << " bytes.");
+
     fseek(file, 0, SEEK_SET);
-    char* buffer = new char[filesize];
+    char* buffer = new char[filesize + 1];
 
     long pos = 0;
     while (pos < filesize) {
@@ -366,11 +428,14 @@ bool MachineConfig::load(const char* filename) {
     }
 
     fclose(file);
+    buffer[filesize] = 0;
+
+    log_debug("Read config file:\r\n" << buffer);
 
     if (pos != filesize) {
         delete[] buffer;
 
-        error("There was an error reading the config file");
+        log_error("There was an error reading the config file");
         return false;
     }
 
@@ -381,27 +446,28 @@ bool MachineConfig::load(const char* filename) {
         Configuration::Parser        parser(input.begin(), input.end());
         Configuration::ParserHandler handler(parser);
 
-        // Instance is by reference, so we can just get rid of an old instance and
-        // create a new one here:
-        if (instance() != nullptr) {
-            delete instance();
-        }
-        instance()             = new MachineConfig();
-        MachineConfig* machine = instance();
-
         for (; !parser.isEndSection(); parser.moveNext()) {
-            info("Parsing key " << parser.key().str());
+            log_info("Parsing key " << parser.key().str());
             machine->handle(handler);
         }
 
-        info("Done parsing machine config.");
+        log_info("Done parsing machine config. Running after-parse tasks");
+
+        try {
+            Configuration::AfterParse afterParse;
+            machine->afterParse();
+            machine->handle(afterParse);
+        } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
+
+        log_info("Validating machine config");
 
         try {
             Configuration::Validator validator;
+            machine->validate();
             machine->handle(validator);
-        } catch (std::exception& ex) { info("Validation error: " << ex.what()); }
+        } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
 
-        info("Done validating machine config.");
+        log_info("Done validating machine config.");
 
         succesful = true;
 
@@ -410,13 +476,20 @@ bool MachineConfig::load(const char* filename) {
         // That way, we can always check if the yaml is there, and if it's not, load the yaml.new.
 
     } catch (const Configuration::ParseException& ex) {
-        error("Configuration parse error: " << ex.What() << " @ " << ex.LineNumber() << ":" << ex.ColumnNumber());
+        auto startNear = ex.Near();
+        auto endNear   = (startNear + 10) > (buffer + filesize) ? (buffer + filesize) : (startNear + 10);
+
+        StringRange near(startNear, endNear);
+        log_error("Configuration parse error: " << ex.What() << " @ " << ex.LineNumber() << ":" << ex.ColumnNumber() << " near " << near);
     } catch (const AssertionFailed& ex) {
         // Get rid of buffer and return
-        error("Configuration loading failed: " << ex.what());
-    } catch (std::exception& ex) { error("Configuration validation error: " << ex.what()); } catch (...) {
+        log_error("Configuration loading failed: " << ex.what());
+    } catch (std::exception& ex) {
+        // Log exception:
+        log_error("Configuration validation error: " << ex.what());
+    } catch (...) {
         // Get rid of buffer and return
-        error("Unknown error occurred while processing configuration file.");
+        log_error("Unknown error occurred while processing configuration file.");
     }
 
     // Get rid of buffer and return

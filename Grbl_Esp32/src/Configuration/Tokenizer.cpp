@@ -176,7 +176,7 @@ namespace Configuration {
                     }
 
                     // Skip more whitespaces
-                    while (!Eof() && IsSpace()) {
+                    while (!Eof() && IsWhiteSpace()) {
                         Inc();
                     }
 

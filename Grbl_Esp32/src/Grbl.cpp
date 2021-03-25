@@ -25,12 +25,14 @@
 
 void grbl_init() {
     try {
+        Serial.println("Initializing WiFi...");
         WiFi.persistent(false);
         WiFi.disconnect(true);
         WiFi.enableSTA(false);
         WiFi.enableAP(false);
         WiFi.mode(WIFI_OFF);
 
+        Serial.println("Initializing serial communications...");
         // Setup serial baud rate and interrupts
         serial_init();
         grbl_msg_sendf(
@@ -41,19 +43,26 @@ void grbl_init() {
 #ifdef MACHINE_NAME
         report_machine_type(CLIENT_SERIAL);
 #endif
+
         // Load Grbl settings from non-volatile storage
+        Serial.println("Initializing settings...");
         settings_init();
         MachineConfig::instance()->load();
 
 #ifdef USE_I2S_OUT
+        Serial.println("Initializing I2SO...");
         // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
         i2s_out_init();
 #endif
 
+        Serial.println("Initializing steppers...");
         stepper_init();  // Configure stepper pins and interrupt timers
+
+        Serial.println("Initializing axes...");
         MachineConfig::instance()->_axes->read_settings();
         MachineConfig::instance()->_axes->init();
 
+        Serial.println("Initializing system...");
         system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
 
@@ -79,10 +88,15 @@ void grbl_init() {
             sys.state = State::Alarm;
         }
 #endif
+        Serial.println("Initializing spindle...");
         Spindles::Spindle::select();
+
+        Serial.println("Initializing WiFi-config...");
 #ifdef ENABLE_WIFI
         WebUI::wifi_config.begin();
 #endif
+
+        Serial.println("Initializing Bluetooth...");
 #ifdef ENABLE_BLUETOOTH
         WebUI::bt_config.begin();
 #endif

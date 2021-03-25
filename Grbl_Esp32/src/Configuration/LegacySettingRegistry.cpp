@@ -33,7 +33,7 @@ namespace Configuration
                 handleLegacy(value, str);
             }
             else {
-                warn("Incorrect setting '" << start << "': cannot find '='.");
+                log_warn("Incorrect setting '" << start << "': cannot find '='.");
             }
             return true;
         }
@@ -53,7 +53,7 @@ namespace Configuration
         }
 
         if (!handled) {
-            warn("Cannot find handler for $" << index << ". Setting was ignored.");
+            log_warn("Cannot find handler for $" << index << ". Setting was ignored.");
         }
     }
 }
