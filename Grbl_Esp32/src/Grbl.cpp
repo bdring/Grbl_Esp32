@@ -31,6 +31,7 @@ void grbl_init() {
     WiFi.enableAP(false);
     WiFi.mode(WIFI_OFF);
     serial_init();  // Setup serial baud rate and interrupts
+    display_init();
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
 // show the map name at startup
@@ -116,6 +117,7 @@ void run_once() {
 
 void __attribute__((weak)) machine_init() {}
 
+void __attribute__((weak)) display_init() {}
 /*
   setup() and loop() in the Arduino .ino implements this control flow:
 
