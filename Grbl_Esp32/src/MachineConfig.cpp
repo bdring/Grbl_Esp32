@@ -373,11 +373,6 @@ void MachineConfig::afterParse() {
         _coolant = new CoolantControl();
     }
 
-    if (_spi == nullptr) {
-        log_info("SPI config missing; building default SPI bus.");
-        _spi = new SPIBus();
-    }
-
     if (_probe == nullptr) {
         log_info("Probe config missing; building default probe.");
         _probe = new Probe();

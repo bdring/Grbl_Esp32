@@ -91,32 +91,36 @@ namespace Motors {
         config_message();
 
         auto spiConfig = MachineConfig::instance()->_spi;
+        if (spiConfig != nullptr) {
+            auto ssPin   = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+            auto mosiPin = spiConfig->_mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+            auto sckPin  = spiConfig->_sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+            auto misoPin = spiConfig->_miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
 
-        auto ssPin   = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        auto mosiPin = spiConfig->_mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        auto sckPin  = spiConfig->_sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        auto misoPin = spiConfig->_miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
+            SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
 
-        SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
+            tmcstepper->begin();
 
-        tmcstepper->begin();
+            _has_errors = !test();  // Try communicating with motor. Prints an error if there is a problem.
 
-        _has_errors = !test();  // Try communicating with motor. Prints an error if there is a problem.
+            read_settings();  // pull info from settings
+            set_mode(false);
 
-        read_settings();  // pull info from settings
-        set_mode(false);
-
-        // After initializing all of the TMC drivers, create a task to
-        // display StallGuard data.  List == this for the final instance.
-        if (List == this) {
-            xTaskCreatePinnedToCore(readSgTask,    // task
-                                    "readSgTask",  // name for task
-                                    4096,          // size of task stack
-                                    NULL,          // parameters
-                                    1,             // priority
-                                    NULL,
-                                    0  // core
-            );
+            // After initializing all of the TMC drivers, create a task to
+            // display StallGuard data.  List == this for the final instance.
+            if (List == this) {
+                xTaskCreatePinnedToCore(readSgTask,    // task
+                                        "readSgTask",  // name for task
+                                        4096,          // size of task stack
+                                        NULL,          // parameters
+                                        1,             // priority
+                                        NULL,
+                                        0  // core
+                );
+            }
+        } else {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SPI bus is not available; cannot initialize TMC driver.");
+            _has_errors = true;
         }
     }
 

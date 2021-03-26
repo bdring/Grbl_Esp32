@@ -129,44 +129,48 @@ uint32_t sd_get_current_line_number() {
 uint8_t sd_state = SDCARD_IDLE;
 
 uint8_t get_sd_state(bool refresh) {
-    // Before we use the SD library, we *must* make sure SPI is properly initialized. Re-initialization 
+    // Before we use the SD library, we *must* make sure SPI is properly initialized. Re-initialization
     // fortunately doesn't change any of the settings.
     auto spiConfig = MachineConfig::instance()->_spi;
 
-    auto ssPin = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-    auto mosiPin = spiConfig->_mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-    auto sckPin = spiConfig->_sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-    auto misoPin = spiConfig->_miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
+    if (spiConfig != nullptr) {
+        auto ssPin   = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto mosiPin = spiConfig->_mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto sckPin  = spiConfig->_sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto misoPin = spiConfig->_miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
 
-    SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
+        SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
 
-    //no need to go further if SD detect is not correct
-    if (SDCardDetPin->get() != Pin::UNDEFINED) {
-        if (!((SDCardDetPin->get().read() == SDCARD_DET_VAL) ? true : false)) {
-            sd_state = SDCARD_NOT_PRESENT;
+        //no need to go further if SD detect is not correct
+        if (SDCardDetPin->get() != Pin::UNDEFINED) {
+            if (!((SDCardDetPin->get().read() == SDCARD_DET_VAL) ? true : false)) {
+                sd_state = SDCARD_NOT_PRESENT;
+                return sd_state;
+            }
+        }
+
+        //if busy doing something return state
+        if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE))) {
             return sd_state;
         }
-    }
-
-    //if busy doing something return state
-    if (!((sd_state == SDCARD_NOT_PRESENT) || (sd_state == SDCARD_IDLE))) {
-        return sd_state;
-    }
-    if (!refresh) {
-        return sd_state;  //to avoid refresh=true + busy to reset SD and waste time
-    }
-
-    //SD is idle or not detected, let see if still the case
-    SD.end();
-    sd_state = SDCARD_NOT_PRESENT;
-    //using default value for speed ? should be parameter
-    //refresh content if card was removed
-    if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
-        if (SD.cardSize() > 0) {
-            sd_state = SDCARD_IDLE;
+        if (!refresh) {
+            return sd_state;  //to avoid refresh=true + busy to reset SD and waste time
         }
+
+        //SD is idle or not detected, let see if still the case
+        SD.end();
+        sd_state = SDCARD_NOT_PRESENT;
+        //using default value for speed ? should be parameter
+        //refresh content if card was removed
+        if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
+            if (SD.cardSize() > 0) {
+                sd_state = SDCARD_IDLE;
+            }
+        }
+        return sd_state;
+    } else {
+        return SDCARD_NOT_PRESENT;
     }
-    return sd_state;
 }
 
 uint8_t set_sd_state(uint8_t flag) {
