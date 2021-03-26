@@ -22,3 +22,4 @@ Grbl_Esp32.vcxproj.filters
 Grbl_Esp32.ino.cpp
 packages/
 pio_machine.h
+project.checksum
