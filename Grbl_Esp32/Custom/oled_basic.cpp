@@ -54,7 +54,7 @@
 #endif
 
 #ifndef OLED_SCL
-#    define OLED_SCL GPIO_NUM_13 
+#    define OLED_SCL GPIO_NUM_13
 #endif
 
 #ifndef OLED_GEOMETRY
@@ -64,25 +64,6 @@
 SSD1306Wire display(OLED_ADDRESS, OLED_SDA, OLED_SCL, OLED_GEOMETRY);
 
 static TaskHandle_t displayUpdateTaskHandle = 0;
-
-// returns the position of a machine axis
-// wpos =true for corrected work postion
-float getPosition(uint8_t axis, bool wpos = true) {
-    float wco;  // work coordinate system offset
-
-    float current_position = sys_position[axis] / axis_settings[axis]->steps_per_mm->get();
-
-    if (wpos) {
-        // Apply work coordinate offsets and tool length offset to current position.
-        wco = gc_state.coord_system[axis] + gc_state.coord_offset[axis];
-        if (axis == TOOL_LENGTH_OFFSET_AXIS) {
-            wco += gc_state.tool_length_offset;
-        }
-
-        current_position -= wco;
-    }
-    return current_position;
-}
 
 String getStateText() {
     String str = "";
@@ -104,7 +85,7 @@ String getStateText() {
             str = "Jog";
             break;
         case State::Homing:
-            str = "Homing";
+            str = "Home";
             break;
         case State::Alarm:
             str = "Alarm";
@@ -187,8 +168,10 @@ void draw_checkbox(int16_t x, int16_t y, int16_t width, int16_t height, bool che
 }
 
 void displayDRO() {
-    uint8_t y_pos;
-    
+    uint8_t oled_y_pos;
+    float   print_position[MAX_N_AXIS];
+    float   wco[MAX_N_AXIS];
+
     display.setTextAlignment(TEXT_ALIGN_LEFT);
     display.setFont(ArialMT_Plain_10);
 
@@ -201,50 +184,54 @@ void displayDRO() {
     ControlPins ctrl_pin_state = system_control_get_state();
     bool        prb_pin_state  = probe_get_state();
 
+    report_calc_status_position(print_position, wco, bit_isfalse(status_mask->get(), RtStatus::Position));
+
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-        y_pos = 24 + (axis * 10);
+        oled_y_pos = 24 + (axis * 10);
 
         String axis_letter = String(report_get_axis_letter(axis));
         axis_letter += ":";
         display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.drawString(0, y_pos, axis_letter);  // String('X') + ":");
+        display.drawString(0, oled_y_pos, axis_letter);  // String('X') + ":");
 
         display.setTextAlignment(TEXT_ALIGN_RIGHT);
-        snprintf(axisVal, 20 - 1, "%.3f", getPosition(axis, true));
-        display.drawString(60, y_pos, axisVal);
+        snprintf(axisVal, 20 - 1, "%.3f", print_position[axis]);
+        display.drawString(60, oled_y_pos, axisVal);
 
-        draw_checkbox(80, 27 + (axis * 10), 7, 7, bit_istrue(lim_pin_state, bit(axis)));
+        if (limitsSwitchDefined(axis, 0)) {  // olny draw the box if a switch has been defined
+            draw_checkbox(80, 27 + (axis * 10), 7, 7, bit_istrue(lim_pin_state, bit(axis)));
+        }
     }
 
-    y_pos = 14;
+    oled_y_pos = 14;
 
     if (PROBE_PIN != UNDEFINED_PIN) {
-        display.drawString(110, y_pos, "P");
-        draw_checkbox(120, y_pos + 3, 7, 7, prb_pin_state);
-        y_pos += 10;
+        display.drawString(110, oled_y_pos, "P");
+        draw_checkbox(120, oled_y_pos + 3, 7, 7, prb_pin_state);
+        oled_y_pos += 10;
     }
 
 #ifdef CONTROL_FEED_HOLD_PIN
-    display.drawString(110, 24, "H");
-    draw_checkbox(120, y_pos + 3, 7, 7, ctrl_pin_state.bit.feedHold);
-    y_pos += 10;
+    display.drawString(110, oled_y_pos, "H");
+    draw_checkbox(120, oled_y_pos + 3, 7, 7, ctrl_pin_state.bit.feedHold);
+    oled_y_pos += 10;
 #endif
 
 #ifdef CONTROL_CYCLE_START_PIN
-    display.drawString(110, y_pos, "S");
-    draw_checkbox(120, y_pos + 3, 7, 7, ctrl_pin_state.bit.cycleStart);
-    y_pos += 10;
+    display.drawString(110, oled_y_pos, "S");
+    draw_checkbox(120, oled_y_pos + 3, 7, 7, ctrl_pin_state.bit.cycleStart);
+    oled_y_pos += 10;
 #endif
 
 #ifdef CONTROL_RESET_PIN
-    display.drawString(110, y_pos, "R");
-    draw_checkbox(120, y_pos + 3, 7, 7, ctrl_pin_state.bit.reset);
-    y_pos += 10;
+    display.drawString(110, oled_y_pos, "R");
+    draw_checkbox(120, oled_y_pos + 3, 7, 7, ctrl_pin_state.bit.reset);
+    oled_y_pos += 10;
 #endif
 
 #ifdef CONTROL_SAFETY_DOOR_PIN
-    display.drawString(110, y_pos, "D");
-    draw_checkbox(120, y_pos + 3, 7, 7, ctrl_pin_state.bit.safetyDoor);
+    display.drawString(110, oled_y_pos, "D");
+    draw_checkbox(120, oled_y_pos + 3, 7, 7, ctrl_pin_state.bit.safetyDoor);
 #endif
 }
 

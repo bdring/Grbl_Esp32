@@ -291,13 +291,13 @@ std::map<Message, const char*> MessageText = {
 // NOTE: For interfaces, messages are always placed within brackets. And if silent mode
 // is installed, the message number codes are less than zero.
 void report_feedback_message(Message message) {  // ok to send to all clients
-#if defined (ENABLE_SD_CARD) 
+#if defined(ENABLE_SD_CARD)
     if (message == Message::SdFileQuit) {
         grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset during SD file at line: %d", sd_get_current_line_number());
 
-    } else 
-#endif //ENABLE_SD_CARD  
+    } else
+#endif  //ENABLE_SD_CARD
     {
         auto it = MessageText.find(message);
         if (it != MessageText.end()) {
@@ -592,20 +592,45 @@ void report_echo_line_received(char* line, uint8_t client) {
     grbl_sendf(client, "[echo: %s]\r\n", line);
 }
 
+// Calculate the position for status reports.
+// float print_position = returned position
+// float wco            = returns the work coordinate offset
+// bool wpos            = true for work position compensation
+void report_calc_status_position(float* print_position, float* wco, bool wpos) {
+    int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
+    memcpy(current_position, sys_position, sizeof(sys_position));
+    system_convert_array_steps_to_mpos(print_position, current_position);
+
+    //float wco[MAX_N_AXIS];
+    if (wpos || (sys.report_wco_counter == 0)) {
+        auto n_axis = number_axis->get();
+        for (uint8_t idx = 0; idx < n_axis; idx++) {
+            // Apply work coordinate offsets and tool length offset to current position.
+            wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];
+            if (idx == TOOL_LENGTH_OFFSET_AXIS) {
+                wco[idx] += gc_state.tool_length_offset;
+            }
+            if (wpos) {
+                print_position[idx] -= wco[idx];
+            }
+        }
+    }
+
+    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
+}
+
 // Prints real-time data. This function grabs a real-time snapshot of the stepper subprogram
 // and the actual location of the CNC machine. Users may change the following function to their
 // specific needs, but the desired real-time data report must be as short as possible. This is
 // requires as it minimizes the computational overhead and allows grbl to keep running smoothly,
 // especially during g-code programs with fast, short line segments and high frequency reports (5-20Hz).
 void report_realtime_status(uint8_t client) {
-    uint8_t idx;
-    int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
-    memcpy(current_position, sys_position, sizeof(sys_position));
     float print_position[MAX_N_AXIS];
-    char  status[200];
-    char  temp[MAX_N_AXIS * 20];
-    system_convert_array_steps_to_mpos(print_position, current_position);
-    // Report current machine state and sub-states
+    float wco[MAX_N_AXIS];
+
+    char status[200];
+    char temp[MAX_N_AXIS * 20];
+
     strcpy(status, "<");
     switch (sys.state) {
         case State::Idle:
@@ -649,21 +674,9 @@ void report_realtime_status(uint8_t client) {
             strcat(status, "Sleep");
             break;
     }
-    float wco[MAX_N_AXIS];
-    if (bit_isfalse(status_mask->get(), RtStatus::Position) || (sys.report_wco_counter == 0)) {
-        auto n_axis = number_axis->get();
-        for (idx = 0; idx < n_axis; idx++) {
-            // Apply work coordinate offsets and tool length offset to current position.
-            wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];
-            if (idx == TOOL_LENGTH_OFFSET_AXIS) {
-                wco[idx] += gc_state.tool_length_offset;
-            }
-            if (bit_isfalse(status_mask->get(), RtStatus::Position)) {
-                print_position[idx] -= wco[idx];
-            }
-        }
-    }
-    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
+
+    // get the
+    report_calc_status_position(print_position, wco, bit_isfalse(status_mask->get(), RtStatus::Position));
     // Report machine position
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
         strcat(status, "|MPos:");

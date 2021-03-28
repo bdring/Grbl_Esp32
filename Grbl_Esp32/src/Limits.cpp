@@ -406,6 +406,10 @@ bool limitsCheckTravel(float* target) {
     return false;
 }
 
+bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index) {
+    return (limit_pins[axis][gang_index] != UNDEFINED_PIN);
+}
+
 bool __attribute__((weak)) user_defined_homing(uint8_t cycle_mask) {
     return false;
 }

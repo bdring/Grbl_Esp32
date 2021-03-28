@@ -92,6 +92,9 @@ void report_grbl_settings(uint8_t client, uint8_t show_extended);
 // Prints an echo of the pre-parsed line received right before execution.
 void report_echo_line_received(char* line, uint8_t client);
 
+// calculate the postion for status reports
+void report_calc_status_position(float* print_position, float* wco, bool wpos);
+
 // Prints realtime status report
 void report_realtime_status(uint8_t client);
 
