@@ -65,55 +65,6 @@ SSD1306Wire display(OLED_ADDRESS, OLED_SDA, OLED_SCL, OLED_GEOMETRY);
 
 static TaskHandle_t displayUpdateTaskHandle = 0;
 
-String getStateText() {
-    String str = "";
-
-    switch (sys.state) {
-        case State::Idle:
-            str = "Idle";
-            break;
-        case State::Cycle:
-            str = "Run";
-            break;
-        case State::Hold:
-            if (!(sys.suspend.bit.jogCancel)) {
-                str = "Hold:";
-                sys.suspend.bit.holdComplete ? str += "0" : str += "1";  // Ready to resume
-                break;
-            }  // Continues to print jog state during jog cancel.
-        case State::Jog:
-            str = "Jog";
-            break;
-        case State::Homing:
-            str = "Home";
-            break;
-        case State::Alarm:
-            str = "Alarm";
-            break;
-        case State::CheckMode:
-            str = "Check";
-            break;
-        case State::SafetyDoor:
-            str = "Door:";
-            if (sys.suspend.bit.initiateRestore) {
-                str += "3";  // Restoring
-            } else {
-                if (sys.suspend.bit.retractComplete) {
-                    sys.suspend.bit.safetyDoorAjar ? str += "1" : str += "0";  // Door ajar
-                    // Door closed and ready to resume
-                } else {
-                    str += "2";  // Retracting
-                }
-            }
-            break;
-        case State::Sleep:
-            str = "Sleep";
-            break;
-    }
-
-    return str;
-}
-
 // This displays the status of the ESP32 Radios...BT, WiFi, etc
 void displayRadioInfo() {
     String radio_addr   = "";
@@ -170,7 +121,7 @@ void draw_checkbox(int16_t x, int16_t y, int16_t width, int16_t height, bool che
 void displayDRO() {
     uint8_t oled_y_pos;
     float   print_position[MAX_N_AXIS];
-    float   wco[MAX_N_AXIS];
+    //float   wco[MAX_N_AXIS];
 
     display.setTextAlignment(TEXT_ALIGN_LEFT);
     display.setFont(ArialMT_Plain_10);
@@ -184,7 +135,11 @@ void displayDRO() {
     ControlPins ctrl_pin_state = system_control_get_state();
     bool        prb_pin_state  = probe_get_state();
 
-    report_calc_status_position(print_position, wco, bit_isfalse(status_mask->get(), RtStatus::Position));
+    if (bit_istrue(status_mask->get(), RtStatus::Position)) {
+        calc_mpos(print_position);
+    } else {
+        calc_wpos(print_position);
+    }
 
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         oled_y_pos = 24 + (axis * 10);
@@ -235,8 +190,6 @@ void displayDRO() {
 #endif
 }
 
-// End of changes
-
 void displayUpdate(void* pvParameters) {
     TickType_t       xLastWakeTime;
     const TickType_t xDisplayFrequency = 100;                  // in ticks (typically ms)
@@ -251,38 +204,42 @@ void displayUpdate(void* pvParameters) {
     while (true) {
         display.clear();
 
-        String state_string = getStateText();
+        String state_string = "";
 
-        display.setTextAlignment(TEXT_ALIGN_LEFT);  // VadimPa   display.setTextAlignment(TEXT_ALIGN_CENTER);
+        display.setTextAlignment(TEXT_ALIGN_LEFT);
         display.setFont(ArialMT_Plain_16);
-        display.drawString(0, 0, state_string);  // VadimPa   display.drawString(63, 0, state_string);
+        display.drawString(0, 0, report_state_text());
 
         if (get_sd_state(false) == SDState::BusyPrinting) {
             display.clear();
-            display.setTextAlignment(TEXT_ALIGN_LEFT);
-            display.setFont(ArialMT_Plain_10);  // 16 VadimPa
+            display.setTextAlignment(TEXT_ALIGN_CENTER);
+            display.setFont(ArialMT_Plain_10);
             state_string = "SD File";
             for (int i = 0; i < sd_file_ticker % 10; i++) {
                 state_string += ".";
             }
             sd_file_ticker++;
-            display.drawString(25, 0, state_string);
+            display.drawString(63, 0, state_string);
+
+            char path[50];
+            sd_get_current_filename(path);
+            display.drawString(63, 12, path);
 
             int progress = sd_report_perc_complete();
             // draw the progress bar
             display.drawProgressBar(0, 45, 120, 10, progress);
 
             // draw the percentage as String
-            display.setFont(ArialMT_Plain_10);  // 16 VadimPa
+            display.setFont(ArialMT_Plain_10);
             display.setTextAlignment(TEXT_ALIGN_CENTER);
             display.drawString(64, 25, String(progress) + "%");
 
         } else if (sys.state == State::Alarm) {
+            displayRadioInfo();
         } else {
             displayDRO();
+            displayRadioInfo();
         }
-
-        displayRadioInfo();
 
         display.display();
 
@@ -300,7 +257,7 @@ void display_init() {
     display.clear();
 
     display.setTextAlignment(TEXT_ALIGN_CENTER);
-    display.setFont(ArialMT_Plain_10);  // 16  hjh
+    display.setFont(ArialMT_Plain_10);
 
     String mach_name = MACHINE_NAME;
     // remove characters from the end until the string fits
