@@ -291,13 +291,13 @@ std::map<Message, const char*> MessageText = {
 // NOTE: For interfaces, messages are always placed within brackets. And if silent mode
 // is installed, the message number codes are less than zero.
 void report_feedback_message(Message message) {  // ok to send to all clients
-#if defined (ENABLE_SD_CARD) 
+#if defined(ENABLE_SD_CARD)
     if (message == Message::SdFileQuit) {
         grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sd_get_current_line_number());
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset during SD file at line: %d", sd_get_current_line_number());
 
-    } else 
-#endif //ENABLE_SD_CARD  
+    } else
+#endif  //ENABLE_SD_CARD
     {
         auto it = MessageText.find(message);
         if (it != MessageText.end()) {
@@ -592,82 +592,52 @@ void report_echo_line_received(char* line, uint8_t client) {
     grbl_sendf(client, "[echo: %s]\r\n", line);
 }
 
+// Calculate the position for status reports.
+// float print_position = returned position
+// float wco            = returns the work coordinate offset
+// bool wpos            = true for work position compensation
+void report_calc_status_position(float* print_position, float* wco, bool wpos) {
+    int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
+    memcpy(current_position, sys_position, sizeof(sys_position));
+    system_convert_array_steps_to_mpos(print_position, current_position);
+
+    //float wco[MAX_N_AXIS];
+    if (wpos || (sys.report_wco_counter == 0)) {
+        auto n_axis = number_axis->get();
+        for (uint8_t idx = 0; idx < n_axis; idx++) {
+            // Apply work coordinate offsets and tool length offset to current position.
+            wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];
+            if (idx == TOOL_LENGTH_OFFSET_AXIS) {
+                wco[idx] += gc_state.tool_length_offset;
+            }
+            if (wpos) {
+                print_position[idx] -= wco[idx];
+            }
+        }
+    }
+
+    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
+}
+
 // Prints real-time data. This function grabs a real-time snapshot of the stepper subprogram
 // and the actual location of the CNC machine. Users may change the following function to their
 // specific needs, but the desired real-time data report must be as short as possible. This is
 // requires as it minimizes the computational overhead and allows grbl to keep running smoothly,
 // especially during g-code programs with fast, short line segments and high frequency reports (5-20Hz).
 void report_realtime_status(uint8_t client) {
-    uint8_t idx;
-    int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
-    memcpy(current_position, sys_position, sizeof(sys_position));
     float print_position[MAX_N_AXIS];
     char  status[200];
     char  temp[MAX_N_AXIS * 20];
-    system_convert_array_steps_to_mpos(print_position, current_position);
-    // Report current machine state and sub-states
+
     strcpy(status, "<");
-    switch (sys.state) {
-        case State::Idle:
-            strcat(status, "Idle");
-            break;
-        case State::Cycle:
-            strcat(status, "Run");
-            break;
-        case State::Hold:
-            if (!(sys.suspend.bit.jogCancel)) {
-                strcat(status, "Hold:");
-                strcat(status, sys.suspend.bit.holdComplete ? "0" : "1");  // Ready to resume
-                break;
-            }  // Continues to print jog state during jog cancel.
-        case State::Jog:
-            strcat(status, "Jog");
-            break;
-        case State::Homing:
-            strcat(status, "Home");
-            break;
-        case State::Alarm:
-            strcat(status, "Alarm");
-            break;
-        case State::CheckMode:
-            strcat(status, "Check");
-            break;
-        case State::SafetyDoor:
-            strcat(status, "Door:");
-            if (sys.suspend.bit.initiateRestore) {
-                strcat(status, "3");  // Restoring
-            } else {
-                if (sys.suspend.bit.retractComplete) {
-                    strcat(status, sys.suspend.bit.safetyDoorAjar ? "1" : "0");  // Door ajar
-                    // Door closed and ready to resume
-                } else {
-                    strcat(status, "2");  // Retracting
-                }
-            }
-            break;
-        case State::Sleep:
-            strcat(status, "Sleep");
-            break;
-    }
-    float wco[MAX_N_AXIS];
-    if (bit_isfalse(status_mask->get(), RtStatus::Position) || (sys.report_wco_counter == 0)) {
-        auto n_axis = number_axis->get();
-        for (idx = 0; idx < n_axis; idx++) {
-            // Apply work coordinate offsets and tool length offset to current position.
-            wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];
-            if (idx == TOOL_LENGTH_OFFSET_AXIS) {
-                wco[idx] += gc_state.tool_length_offset;
-            }
-            if (bit_isfalse(status_mask->get(), RtStatus::Position)) {
-                print_position[idx] -= wco[idx];
-            }
-        }
-    }
-    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
-    // Report machine position
+    strcat(status, report_state_text());
+
+    // Report position
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
+        calc_mpos(print_position);
         strcat(status, "|MPos:");
     } else {
+        calc_wpos(print_position);
         strcat(status, "|WPos:");
     }
     report_util_axis_values(print_position, temp);
@@ -793,7 +763,7 @@ void report_realtime_status(uint8_t client) {
             sys.report_ovr_counter = 1;  // Set override on next report.
         }
         strcat(status, "|WCO:");
-        report_util_axis_values(wco, temp);
+        report_util_axis_values(get_wco(), temp);
         strcat(status, temp);
     }
 #endif
@@ -913,6 +883,54 @@ void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", report);
 }
 
+char* report_state_text() {
+    static char state[10];
+
+    switch (sys.state) {
+        case State::Idle:
+            strcpy(state, "Idle");
+            break;
+        case State::Cycle:
+            strcpy(state, "Run");
+            break;
+        case State::Hold:
+            if (!(sys.suspend.bit.jogCancel)) {
+                sys.suspend.bit.holdComplete ? strcpy(state, "Hold:0") : strcpy(state, "Hold:1");
+                break;
+            }  // Continues to print jog state during jog cancel.
+        case State::Jog:
+            strcpy(state, "Jog");
+            break;
+        case State::Homing:
+            strcpy(state, "Home");
+            break;
+        case State::Alarm:
+            strcpy(state, "Alarm");
+            break;
+        case State::CheckMode:
+            strcpy(state, "Check");
+            break;
+        case State::SafetyDoor:
+            strcpy(state, "Door:");
+            if (sys.suspend.bit.initiateRestore) {
+                strcat(state, "3");  // Restoring
+            } else {
+                if (sys.suspend.bit.retractComplete) {
+                    sys.suspend.bit.safetyDoorAjar ? strcat(state, "1") : strcat(state, "0");
+                    ;  // Door ajar
+                    // Door closed and ready to resume
+                } else {
+                    strcat(state, "2");  // Retracting
+                }
+            }
+            break;
+        case State::Sleep:
+            strcpy(state, "Sleep");
+            break;
+    }
+    return state;
+}
+
 char report_get_axis_letter(uint8_t axis) {
     switch (axis) {
         case X_AXIS:
@@ -958,6 +976,39 @@ void reportTaskStackSize(UBaseType_t& saved) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Min Stack Space: %d", pcTaskGetTaskName(NULL), saved);
     }
 #endif
+}
+
+void calc_mpos(float* print_position) {
+    int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
+    memcpy(current_position, sys_position, sizeof(sys_position));
+    system_convert_array_steps_to_mpos(print_position, current_position);
+    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
+}
+
+void calc_wpos(float* print_position) {
+    int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
+    memcpy(current_position, sys_position, sizeof(sys_position));
+    system_convert_array_steps_to_mpos(print_position, current_position);
+
+    float* wco    = get_wco();
+    auto   n_axis = number_axis->get();
+    for (int idx = 0; idx < n_axis; idx++) {
+        print_position[idx] -= wco[idx];
+    }
+
+    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
+}
+float* get_wco() {
+    static float wco[MAX_N_AXIS];
+    auto         n_axis = number_axis->get();
+    for (int idx = 0; idx < n_axis; idx++) {
+        // Apply work coordinate offsets and tool length offset to current position.
+        wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];
+        if (idx == TOOL_LENGTH_OFFSET_AXIS) {
+            wco[idx] += gc_state.tool_length_offset;
+        }
+    }
+    return wco;
 }
 
 void __attribute__((weak)) forward_kinematics(float* position) {}  // This version does nothing. Make your own to do something with it
