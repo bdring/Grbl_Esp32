@@ -314,7 +314,7 @@ void forward_kinematics(float* position) {
     // apply the forward kinemetics to the machine coordinates
     // https://corexy.com/theory.html
     //calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
-    calc_fwd[X_AXIS] = ((0.5 * (print_position[X_AXIS] + print_position[Y_AXIS]) * geometry_factor) - wco[X_AXIS]);
+    calc_fwd[X_AXIS] = ((0.5 * (print_position[X_AXIS] + print_position[Y_AXIS]) / geometry_factor) - wco[X_AXIS]);
     calc_fwd[Y_AXIS] = ((0.5 * (print_position[X_AXIS] - print_position[Y_AXIS])) - wco[Y_AXIS]);
 
     for (int axis = 0; axis < n_axis; axis++) {
