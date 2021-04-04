@@ -58,6 +58,13 @@ MotorUnit axis4(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, ad
 
 float maslowWidth;
 float maslowHeight;
+float chainEndExtension;
+float armLength;
+
+bool axis1Homed;
+bool axis2Homed;
+bool axis3Homed;
+bool axis4Homed;
 
 #ifdef USE_MACHINE_INIT
 /*
@@ -67,6 +74,13 @@ special things your machine needs at startup.
 void machine_init()
 {
     tlc.begin();
+    
+    Serial.println("Testing reading from encoders: ");
+    axis1.testEncoder();
+    axis2.testEncoder();
+    axis3.testEncoder();
+    axis4.testEncoder();
+    
     axis1.zero();
     axis2.zero();
     axis3.zero();
@@ -74,17 +88,27 @@ void machine_init()
     
     maslowWidth = 2900.0;
     maslowHeight = 1780.0;
+    
+    axis1Homed = false;
+    axis2Homed = false;
+    axis3Homed = false;
+    axis4Homed = false;
+    
+    chainEndExtension = 30;
+    armLength = 108;
 }
 #endif
 
 void recomputePID(){
     
     if(sys.state == State::Idle || sys.state == State::Alarm){
+        axis1.stop();
+        axis1.updateEncoderPosition();
         axis4.stop();
         axis4.updateEncoderPosition();
     }
     else{
-        //axis1.recomputePID();
+        axis1.recomputePID();
         //axis2.recomputePID();
         //axis3.recomputePID();
         axis4.recomputePID();
@@ -94,23 +118,31 @@ void recomputePID(){
 float computeL1(float x, float y){
     x = x + maslowWidth/2.0;
     y = y - maslowHeight/2.0;
-    return sqrt(x*x+y*y);
+    return sqrt(x*x+y*y) - (chainEndExtension+armLength);
 }
 
 float computeL2(float x, float y){
     x = x + maslowWidth/2.0;
     y = y - maslowHeight/2.0;
-    return sqrt((maslowWidth-x)*(maslowWidth-x)+y*y);
+    return sqrt((maslowWidth-x)*(maslowWidth-x)+y*y) - (chainEndExtension+armLength);
+}
+
+float computeL3(float x, float y){
+    x = x + maslowWidth/2.0;
+    y = y - maslowHeight/2.0;
+    return sqrt((maslowWidth-x)*(maslowWidth-x)+(maslowHeight-y)*(maslowHeight-y)) - (chainEndExtension+armLength);
+}
+
+float computeL4(float x, float y){
+    x = x + maslowWidth/2.0;
+    y = y - maslowHeight/2.0;
+    return sqrt((maslowHeight-y)*(maslowHeight-y)+x*x) - (chainEndExtension+armLength);
 }
 
 void setTargets(float xTarget, float yTarget, float zTarget){
-    //axis3.setTarget(xTarget);
-    Serial.print("L1: ");
-    Serial.println(computeL1(xTarget, yTarget));
-    Serial.print("L2: ");
-    Serial.println(computeL2(xTarget, yTarget));
     
-    axis4.setTarget(yTarget);
+    axis1.setTarget(computeL2(xTarget, yTarget));
+    axis4.setTarget(computeL1(xTarget, yTarget));
 }
 
 #ifdef USE_CUSTOM_HOMING
@@ -126,7 +158,28 @@ bool user_defined_homing(uint8_t cycle_mask)
   // True = done with homing, false = continue with normal Grbl_ESP32 homing
   Serial.println("Custom homing ran");
   Serial.println(cycle_mask);
-  axis4.retract();
+  if(cycle_mask == 1){
+    axis4Homed = axis4.retract(computeL1(0, 0));
+  }
+  else if(cycle_mask == 2){
+    axis3Homed = axis3.retract(computeL2(0, 0));
+  }
+  else if(cycle_mask == 4){
+    axis2Homed = axis2.retract(computeL3(0, 0));
+  }
+  else if(cycle_mask == 0){
+      axis1Homed = axis1.retract(computeL4(0, 0));
+      //axis1.setPosition(computeL1(0,0));
+      //axis4.setPosition(computeL1(0,0));
+      //Serial.println("Setting initial position");
+  }
+  
+  Serial.println("Homed?: ");
+  Serial.println(axis1Homed);
+  Serial.println(axis2Homed);
+  Serial.println(axis3Homed);
+  Serial.println(axis4Homed);
+  
   return true;
 }
 #endif

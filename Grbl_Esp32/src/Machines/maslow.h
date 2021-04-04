@@ -58,7 +58,7 @@
 
 #pragma once
 
-#define MACHINE_NAME            "MASLOW"
+#define MACHINE_NAME            "MASLOW 4"
 
 #define CUSTOM_CODE_FILENAME "../Custom/maslow.cpp"
 
@@ -99,13 +99,15 @@
 #define MOTOR_4_BACKWARD 8
 #define MOTOR_4_CS 25
 
-#define DC_TOP_LEFT_MM_PER_REV 34//31.415 // Correct for 10mm pulley
+#define DC_TOP_LEFT_MM_PER_REV 44//31.415 // Correct for 10mm pulley
 #define DC_Z_AXIS_MM_PER_REV 1//31.415 //
 
 void recomputePID();
 void setTargets(float xTarget, float yTarget, float zTarget);
 float computeL1(float x, float y);
 float computeL2(float x, float y);
+float computeL3(float x, float y);
+float computeL4(float x, float y);
 
 
 
@@ -152,8 +154,8 @@ float computeL2(float x, float y);
 // #define X_DIRECTION_PIN         GPIO_NUM_14
 // #define Y_STEP_PIN              GPIO_NUM_26
 // #define Y_DIRECTION_PIN         GPIO_NUM_15
-#define Z_STEP_PIN                 GPIO_NUM_22
-#define Z_DIRECTION_PIN            GPIO_NUM_27
+#define Z_STEP_PIN                 GPIO_NUM_27
+#define Z_DIRECTION_PIN            GPIO_NUM_22
 
 // The 1 bits in LIMIT_MASK set the axes that have limit switches
 // For example, if the Y axis has no limit switches but the
@@ -167,7 +169,7 @@ float computeL2(float x, float y);
 // Common enable for all steppers.  If it is okay to leave
 // your drivers enabled at all times, you can leave
 // STEPPERS_DISABLE_PIN undefined and use the pin for something else.
-// #define STEPPERS_DISABLE_PIN    GPIO_NUM_13
+#define STEPPERS_DISABLE_PIN    GPIO_NUM_4
 
 // Pins for controlling various aspects of the machine.  If your
 // machine does not support one of these features, you can leave
