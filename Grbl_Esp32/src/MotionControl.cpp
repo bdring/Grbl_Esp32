@@ -391,8 +391,10 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         return GCUpdatePos::None;  // Return if system reset has been issued.
     }
 
+    probe_set_protection(false);
+
 #ifdef USE_I2S_STEPS
-    stepper_id_t save_stepper = current_stepper; /* remember the stepper */
+        stepper_id_t save_stepper = current_stepper; /* remember the stepper */
 #endif
     // Switch stepper mode to the I2S static (realtime mode)
     BACKUP_STEPPER(save_stepper);
@@ -410,8 +412,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
         return GCUpdatePos::None;       // Nothing else to do but bail.
     }
-    // Setup and queue probing motion. Auto cycle-start should not start the cycle.
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Found");
+    // Setup and queue probing motion. Auto cycle-start should not start the cycle.    
     mc_line_kins(target, pl_data, gc_state.position);
     // Activate the probing state monitor in the stepper module.
     sys_probe_state = Probe::Active;
@@ -442,9 +443,11 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     sys_probe_state = Probe::Off;  // Ensure probe state monitor is disabled.
     protocol_execute_realtime();   // Check and execute run-time commands
     // Reset the stepper and planner buffers to remove the remainder of the probe motion.
-    st_reset();            // Reset step segment buffer.
-    plan_reset();          // Reset planner buffer. Zero planner positions. Ensure probing motion is cleared.
-    plan_sync_position();  // Sync planner position to current machine position.
+    st_reset();                 // Reset step segment buffer.
+    plan_reset();               // Reset planner buffer. Zero planner positions. Ensure probing motion is cleared.
+    plan_sync_position();       // Sync planner position to current machine position.
+    user_probe_notification();  // weak user can supply to get notification
+    probe_set_protection(true);
 #ifdef MESSAGE_PROBE_COORDINATES
     // All done! Output the probe position as message.
     report_probe_parameters(CLIENT_ALL);
@@ -541,3 +544,6 @@ void mc_reset() {
 #endif
     }
 }
+
+__attribute__((weak)) void user_probe_begin() {}         // called before probing starts
+__attribute__((weak)) void user_probe_notification() {}  // called after probing complete

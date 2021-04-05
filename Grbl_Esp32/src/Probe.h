@@ -29,6 +29,16 @@ enum class Probe : uint8_t {
     Active = 1,  // Actively watching the input pin.
 };
 
+enum class ProbeProtection : int8_t {
+    OFF = 0,
+    RESET,
+    FEEDHOLD,
+};
+
+
+
+#define DEFAULT_PROBE_PROTECTION ProbeProtection::OFF
+
 // Probe pin initialization routine.
 void probe_init();
 
@@ -41,3 +51,6 @@ bool probe_get_state();
 // Monitors probe pin state and records the system position when detected. Called by the
 // stepper ISR per ISR tick.
 void probe_state_monitor();
+
+//
+void probe_set_protection(bool on);

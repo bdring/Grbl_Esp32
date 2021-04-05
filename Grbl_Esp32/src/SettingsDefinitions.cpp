@@ -22,7 +22,10 @@ AxisMaskSetting* stallguard_debug_mask;
 
 FlagSetting* step_enable_invert;
 FlagSetting* limit_invert;
+
 FlagSetting* probe_invert;
+EnumSetting* probe_protection;
+
 FlagSetting* report_inches;
 FlagSetting* soft_limits;
 // TODO Settings - need to check for HOMING_ENABLE
@@ -84,6 +87,14 @@ enum_opt_t messageLevels = {
     { "Info", int8_t(MsgLevel::Info) },
     { "Debug", int8_t(MsgLevel::Debug) },
     { "Verbose", int8_t(MsgLevel::Verbose) },
+    // clang-format on
+};
+
+enum_opt_t probeProtectionTypes = {
+    // clang-format off
+    { "Off", int8_t(ProbeProtection::OFF) },
+    { "Reset", int8_t(ProbeProtection::RESET) },
+    { "FeedHold", int8_t(ProbeProtection::FEEDHOLD) },
     // clang-format on
 };
 
@@ -198,6 +209,13 @@ static bool checkStartupLine(char* value) {
 static bool postMotorSetting(char* value) {
     if (!value) {
         motors_read_settings();
+    }
+    return true;
+}
+
+static bool postProbeChange(char* value) {
+    if (!value) {
+        probe_set_protection(true);
     }
     return true;
 }
@@ -393,7 +411,10 @@ void make_settings() {
     junction_deviation = new FloatSetting(GRBL, WG, "11", "GCode/JunctionDeviation", DEFAULT_JUNCTION_DEVIATION, 0, 10);
     status_mask        = new IntSetting(GRBL, WG, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 3);
 
-    probe_invert                 = new FlagSetting(GRBL, WG, "6", "Probe/Invert", DEFAULT_INVERT_PROBE_PIN);
+    probe_invert     = new FlagSetting(GRBL, WG, "6", "Probe/Invert", DEFAULT_INVERT_PROBE_PIN);
+    probe_protection = new EnumSetting(
+        NULL, EXTENDED, WG, NULL, "Probe/Protection", static_cast<int8_t>(DEFAULT_PROBE_PROTECTION), &probeProtectionTypes, postProbeChange);
+
     limit_invert                 = new FlagSetting(GRBL, WG, "5", "Limits/Invert", DEFAULT_INVERT_LIMIT_PINS);
     step_enable_invert           = new FlagSetting(GRBL, WG, "4", "Stepper/EnableInvert", DEFAULT_INVERT_ST_ENABLE);
     dir_invert_mask              = new AxisMaskSetting(GRBL, WG, "3", "Stepper/DirInvert", DEFAULT_DIRECTION_INVERT_MASK, postMotorSetting);

@@ -30,6 +30,7 @@ extern AxisMaskSetting* homing_cycle[MAX_N_AXIS];
 extern FlagSetting* step_enable_invert;
 extern FlagSetting* limit_invert;
 extern FlagSetting* probe_invert;
+extern EnumSetting* probe_protection;
 extern FlagSetting* report_inches;
 extern FlagSetting* soft_limits;
 extern FlagSetting* hard_limits;

@@ -26,6 +26,25 @@
 // Inverts the probe pin state depending on user settings and probing cycle mode.
 static bool is_probe_away;
 
+void IRAM_ATTR isr_probe_protect() {
+    if (sys.state == State::Cycle || sys.state == State::Jog) {
+        if (probe_get_state()) {
+            switch (static_cast<ProbeProtection>(probe_protection->get())) {
+                case ProbeProtection::RESET:
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe contact:Reset");
+                    mc_reset();
+                    break;
+                case ProbeProtection::FEEDHOLD:
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe contact:Feedhold");
+                    sys_rt_exec_state.bit.feedHold = true;
+                    break;
+                default:
+                    return;
+            }
+        }
+    }
+}
+
 // Probe pin initialization routine.
 void probe_init() {
     static bool show_init_msg = true;  // used to show message only once.
@@ -36,6 +55,8 @@ void probe_init() {
 #else
         pinMode(PROBE_PIN, INPUT_PULLUP);  // Enable internal pull-up resistors. Normal high operation.
 #endif
+
+        probe_set_protection(true);
 
         if (show_init_msg) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe on pin %s", pinName(PROBE_PIN).c_str());
@@ -61,5 +82,19 @@ void probe_state_monitor() {
         sys_probe_state = Probe::Off;
         memcpy(sys_probe_position, sys_position, sizeof(sys_position));
         sys_rt_exec_state.bit.motionCancel = true;
+    }
+}
+
+// Probe protection optionally motitors the probe for contact when the probe cycle is not running
+// This can stop motion to prevent damaging the probe when it is accidentally crashed into sometihng
+void probe_set_protection(bool on) {
+    if (PROBE_PIN != UNDEFINED_PIN) {
+        if (on) {
+            if (static_cast<ProbeProtection>(probe_protection->get()) != ProbeProtection::OFF) {
+                attachInterrupt(PROBE_PIN, isr_probe_protect, CHANGE);
+            }
+        } else {
+            detachInterrupt(PROBE_PIN);
+        }
     }
 }
