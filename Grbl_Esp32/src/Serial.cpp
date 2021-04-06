@@ -91,6 +91,7 @@ void client_init() {
     xTaskCreatePinnedToCore(heapCheckTask, "heapTask", 2000, NULL, 1, NULL, 1);
 #endif
 
+    Uart0.begin(BAUD_RATE, SERIAL_8N1, 3, 1, false);  // Tx on pin 3, Rx on pin 1 - the standard hardware pins
     client_reset_read_buffer(CLIENT_ALL);
     Uart0.write("\r\n");  // create some white space after ESP32 boot info
     clientCheckTaskHandle = 0;
