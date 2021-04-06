@@ -59,12 +59,12 @@
 
 portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 
-static TaskHandle_t serialCheckTaskHandle = 0;
+static TaskHandle_t clientCheckTaskHandle = 0;
 
 WebUI::InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each client
 
 // Returns the number of bytes available in a client buffer.
-uint8_t serial_get_rx_buffer_available(uint8_t client) {
+uint8_t client_get_rx_buffer_available(uint8_t client) {
     return client_buffer[client].availableforwrite();
 }
 
@@ -85,75 +85,71 @@ void heapCheckTask(void* pvParameters) {
     }
 }
 
-void serial_init() {
+void client_init() {
 #ifdef DEBUG_REPORT_HEAP_SIZE
     // For a 2000-word stack, uxTaskGetStackHighWaterMark reports 288 words available
     xTaskCreatePinnedToCore(heapCheckTask, "heapTask", 2000, NULL, 1, NULL, 1);
 #endif
 
-    Serial.begin(BAUD_RATE);
-    Serial.setRxBufferSize(256);
-    // reset all buffers
-    serial_reset_read_buffer(CLIENT_ALL);
-    grbl_send(CLIENT_SERIAL, "\r\n");  // create some white space after ESP32 boot info
-    serialCheckTaskHandle = 0;
+    client_reset_read_buffer(CLIENT_ALL);
+    Uart0.write("\r\n");  // create some white space after ESP32 boot info
+    clientCheckTaskHandle = 0;
     // create a task to check for incoming data
     // For a 4096-word stack, uxTaskGetStackHighWaterMark reports 244 words available
     // after WebUI attaches.
-    xTaskCreatePinnedToCore(serialCheckTask,    // task
-                            "serialCheckTask",  // name for task
+    xTaskCreatePinnedToCore(clientCheckTask,    // task
+                            "clientCheckTask",  // name for task
                             4096,               // size of task stack
                             NULL,               // parameters
                             1,                  // priority
-                            &serialCheckTaskHandle,
+                            &clientCheckTaskHandle,
                             SUPPORT_TASK_CORE  // must run the task on same core
                                                // core
     );
 }
 
-// this task runs and checks for data on all interfaces
-// REaltime stuff is acted upon, then characters are added to the appropriate buffer
-void serialCheckTask(void* pvParameters) {
-    uint8_t            data            = 0;
-    uint8_t            client          = CLIENT_ALL;  // who sent the data
-    static UBaseType_t uxHighWaterMark = 0;
-    while (true) {  // run continuously
-        while (any_client_has_data()) {
-            if (Serial.available()) {
-                client = CLIENT_SERIAL;
-                data   = Serial.read();
-            } else if (WebUI::inputBuffer.available()) {
-                client = CLIENT_INPUT;
-                data   = WebUI::inputBuffer.read();
-            } else {
-                //currently is wifi or BT but better to prepare both can be live
+static uint8_t getClientChar(uint8_t* data) {
+    int res;
+    if ((res = Uart0.read()) != -1) {
+        *data = res;
+        return CLIENT_SERIAL;
+    }
+    if (WebUI::inputBuffer.available()) {
+        *data = WebUI::inputBuffer.read();
+        return CLIENT_INPUT;
+    }
+    //currently is wifi or BT but better to prepare both can be live
 #ifdef ENABLE_BLUETOOTH
-                if (WebUI::SerialBT.hasClient() && WebUI::SerialBT.available()) {
-                    client = CLIENT_BT;
-                    data   = WebUI::SerialBT.read();
-
-                    // Serial.write(data);  // echo all data to serial.
-                } else {
+    if (WebUI::SerialBT.hasClient()) {
+        if ((res = WebUI::SerialBT.read()) != -1) {
+            *data = res;
+            return CLIENT_BT;
+        }
+    }
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
-                    if (WebUI::Serial2Socket.available()) {
-                        client = CLIENT_WEBUI;
-                        data   = WebUI::Serial2Socket.read();
-                    } else {
+    if (WebUI::Serial2Socket.available()) {
+        *data = WebUI::Serial2Socket.read();
+        return CLIENT_WEBUI;
+    }
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
-                        if (WebUI::telnet_server.available()) {
-                            client = CLIENT_TELNET;
-                            data   = WebUI::telnet_server.read();
-                        }
+    if (WebUI::telnet_server.available()) {
+        *data = WebUI::telnet_server.read();
+        return CLIENT_TELNET;
+    }
 #endif
-#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
-                    }
-#endif
-#ifdef ENABLE_BLUETOOTH
-                }
-#endif
-            }
+    return CLIENT_ALL;
+}
+
+// this task runs and checks for data on all interfaces
+// REaltime stuff is acted upon, then characters are added to the appropriate buffer
+void clientCheckTask(void* pvParameters) {
+    uint8_t            data = 0;
+    uint8_t            client;  // who sent the data
+    static UBaseType_t uxHighWaterMark = 0;
+    while (true) {  // run continuously
+        while ((client = getClientChar(&data)) != CLIENT_ALL) {
             // Pick off realtime command characters directly from the serial stream. These characters are
             // not passed into the main buffer, but these set system state flag bits for realtime execution.
             if (is_realtime_command(data)) {
@@ -161,7 +157,7 @@ void serialCheckTask(void* pvParameters) {
             } else {
 #if defined(ENABLE_SD_CARD)
                 if (get_sd_state(false) < SDState::Busy) {
-#endif //ENABLE_SD_CARD
+#endif  //ENABLE_SD_CARD
                     vTaskEnterCritical(&myMutex);
                     client_buffer[client].write(data);
                     vTaskExitCritical(&myMutex);
@@ -172,7 +168,7 @@ void serialCheckTask(void* pvParameters) {
                         grbl_msg_sendf(client, MsgLevel::Info, "SD card job running");
                     }
                 }
-#endif //ENABLE_SD_CARD
+#endif  //ENABLE_SD_CARD
             }
         }  // if something available
         WebUI::COMMANDS::handle();
@@ -194,7 +190,7 @@ void serialCheckTask(void* pvParameters) {
     }
 }
 
-void serial_reset_read_buffer(uint8_t client) {
+void client_reset_read_buffer(uint8_t client) {
     for (uint8_t client_num = 0; client_num < CLIENT_COUNT; client_num++) {
         if (client == client_num || client == CLIENT_ALL) {
             client_buffer[client_num].begin();
@@ -202,38 +198,18 @@ void serial_reset_read_buffer(uint8_t client) {
     }
 }
 
-// Writes one byte to the TX serial buffer. Called by main program.
-void serial_write(uint8_t data) {
-    Serial.write((char)data);
-}
-
-// Fetches the first byte in the serial read buffer. Called by protocol loop.
-uint8_t serial_read(uint8_t client) {
+// Fetches the first byte in the client read buffer. Called by protocol loop.
+int client_read(uint8_t client) {
     uint8_t data;
     vTaskEnterCritical(&myMutex);
     if (client_buffer[client].available()) {
         data = client_buffer[client].read();
         vTaskExitCritical(&myMutex);
-        //Serial.write((char)data);
         return data;
     } else {
         vTaskExitCritical(&myMutex);
-        return SERIAL_NO_DATA;
+        return -1;
     }
-}
-
-bool any_client_has_data() {
-    return (Serial.available() || WebUI::inputBuffer.available()
-#ifdef ENABLE_BLUETOOTH
-            || (WebUI::SerialBT.hasClient() && WebUI::SerialBT.available())
-#endif
-#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
-            || WebUI::Serial2Socket.available()
-#endif
-#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
-            || WebUI::telnet_server.available()
-#endif
-    );
 }
 
 // checks to see if a character is a realtime character
@@ -348,5 +324,30 @@ void execute_realtime_command(Cmd command, uint8_t client) {
         case Cmd::CoolantMistOvrToggle:
             sys_rt_exec_accessory_override.bit.coolantMistOvrToggle = 1;
             break;
+    }
+}
+
+void client_write(uint8_t client, const char* text) {
+    if (client == CLIENT_INPUT) {
+        return;
+    }
+#ifdef ENABLE_BLUETOOTH
+    if (WebUI::SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
+        WebUI::SerialBT.print(text);
+        //delay(10); // possible fix for dropped characters
+    }
+#endif
+#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_OUT)
+    if (client == CLIENT_WEBUI || client == CLIENT_ALL) {
+        WebUI::Serial2Socket.write((const uint8_t*)text, strlen(text));
+    }
+#endif
+#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
+    if (client == CLIENT_TELNET || client == CLIENT_ALL) {
+        WebUI::telnet_server.write((const uint8_t*)text, strlen(text));
+    }
+#endif
+    if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
+        Uart0.write(text);
     }
 }
