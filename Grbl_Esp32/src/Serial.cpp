@@ -201,16 +201,10 @@ void client_reset_read_buffer(uint8_t client) {
 
 // Fetches the first byte in the client read buffer. Called by protocol loop.
 int client_read(uint8_t client) {
-    uint8_t data;
     vTaskEnterCritical(&myMutex);
-    if (client_buffer[client].available()) {
-        data = client_buffer[client].read();
-        vTaskExitCritical(&myMutex);
-        return data;
-    } else {
-        vTaskExitCritical(&myMutex);
-        return -1;
-    }
+    int data = client_buffer[client].read();
+    vTaskExitCritical(&myMutex);
+    return data;
 }
 
 // checks to see if a character is a realtime character

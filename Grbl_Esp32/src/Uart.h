@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Grbl.h"
-
 class Uart {
 private:
     uint32_t _uart_num;

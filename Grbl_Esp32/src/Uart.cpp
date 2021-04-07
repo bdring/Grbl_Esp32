@@ -3,7 +3,6 @@
  */
 
 #include "Grbl.h"
-#include "Uart.h"
 
 #include "esp_system.h"
 #include "soc/uart_reg.h"
@@ -43,21 +42,27 @@ void Uart::begin(unsigned long baudrate, uint32_t config, int8_t rxPin, int8_t t
             DPORT_CLEAR_PERI_REG_MASK(DPORT_PERIP_RST_EN_REG, DPORT_UART2_RST);
             break;
         default:
-            break;
-            // Can't happen
+            return;
     }
 
     flushTx();
     setBaudRate(baudrate);
 
-    // For now we hardcode the config as 8N1
-
-#define UART_8_DATABITS 3  // 0:5bits, 1:6bits, 2:7bits, 3:8bits
-#define UART_1_STOP_BIT 1  // 1:1bit, 2:1.5bits, 3:2bits
-    uint32_t uart_conf0 = READ_PERI_REG(UART_CONF0_REG(_uart_num));
-    uart_conf0 &= ~(UART_STOP_BIT_NUM_M | UART_BIT_NUM_M | UART_PARITY_EN_M);
-    uart_conf0 |= (UART_8_DATABITS << UART_BIT_NUM_S) | (UART_1_STOP_BIT << UART_STOP_BIT_NUM_S) | (0 << UART_PARITY_EN_S);
-    WRITE_PERI_REG(UART_CONF0_REG(_uart_num), uart_conf0);
+    // The config value is the actual number that goes into the register.
+    // Names like SERIAL_8N1 are defined in esp32-hal-uart.h in the
+    // Arduino framework code.
+    if ((config & UART_STOP_BIT_NUM_M) == (3 << UART_STOP_BIT_NUM_S)) {
+        // The stop bit field is 1 for 1 stop bit, 2 for 1.5, and 3 for 2 stop bits.
+        // If the config specifies two stop bits, we change it to one
+        // stop bit and enable a delay in the RS485 register.  Espressif
+        // UART drivers contain this workaround and attribute it to some
+        // hardware bug, but the bug is not listed in the errata document.
+        config = (config & ~UART_STOP_BIT_NUM_M) | (1 << UART_STOP_BIT_NUM_S);
+        DPORT_SET_PERI_REG_MASK(UART_RS485_CONF_REG(_uart_num), UART_DL1_EN_M);
+    } else {
+        DPORT_CLEAR_PERI_REG_MASK(UART_RS485_CONF_REG(_uart_num), UART_DL1_EN_M);
+    }
+    WRITE_PERI_REG(UART_CONF0_REG(_uart_num), config);
 
     // tx_idle_num : idle interval after tx FIFO is empty(unit: the time it takes to send one bit under current baudrate)
     // Setting it to 0 prevents line idle time/delays when sending messages with small intervals
@@ -77,16 +82,16 @@ void Uart::begin(unsigned long baudrate, uint32_t config, int8_t rxPin, int8_t t
         pinMode(txPin, OUTPUT);
         pinMatrixOutAttach(txPin, UART_TXD_IDX(_uart_num), false, false);
     }
-#if 0
-#endif
 }
 
-const int RxFIFOLen = 128;
-int       Uart::available() {
-    uint32_t val     = READ_PERI_REG(UART_MEM_RX_STATUS_REG(_uart_num));
-    uint32_t rd_addr = (val >> UART_MEM_RX_RD_ADDR_S) & UART_MEM_RX_RD_ADDR_V;
-    uint32_t wr_addr = (val >> UART_MEM_RX_WR_ADDR_S) & UART_MEM_RX_WR_ADDR_V;
-    uint32_t cnt     = wr_addr - rd_addr;
+int Uart::available() {
+    // RxFIFOLen be a power of two otherwise the & computation below will not work.
+    // The hardware only allows power-of-two lengths anyway.
+    const int RxFIFOLen = 128;
+    uint32_t  val       = READ_PERI_REG(UART_MEM_RX_STATUS_REG(_uart_num));
+    uint32_t  rd_addr   = (val >> UART_MEM_RX_RD_ADDR_S) & UART_MEM_RX_RD_ADDR_V;
+    uint32_t  wr_addr   = (val >> UART_MEM_RX_WR_ADDR_S) & UART_MEM_RX_WR_ADDR_V;
+    uint32_t  cnt       = wr_addr - rd_addr;
     return cnt & (RxFIFOLen - 1);
 }
 
