@@ -67,7 +67,7 @@ void Uart::begin(unsigned long baudrate, uint32_t config, int8_t rxPin, int8_t t
     // tx_idle_num : idle interval after tx FIFO is empty(unit: the time it takes to send one bit under current baudrate)
     // Setting it to 0 prevents line idle time/delays when sending messages with small intervals
     uint32_t tx_idle_conf = READ_PERI_REG(UART_IDLE_CONF_REG(_uart_num));
-    tx_idle_conf &= ~UART_TX_IDLE_NUM;
+    tx_idle_conf &= ~UART_TX_IDLE_NUM_M;
     tx_idle_conf |= 0 << UART_TX_IDLE_NUM_S;  // Does nothing but here for documentation
     WRITE_PERI_REG(UART_IDLE_CONF_REG(_uart_num), tx_idle_conf);
 
