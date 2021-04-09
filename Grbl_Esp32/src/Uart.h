@@ -1,12 +1,21 @@
 #pragma once
 
+#ifdef DIRECT_UART
+#else
+#    include <driver/uart.h>
+#endif
+
 class Uart {
 private:
+#ifdef DIRECT_UART
     uint32_t _uart_num;
     void     flushTx();
-    void     setBaudRate(uint32_t baud_rate);
     uint32_t rxFIFOCnt();
     uint32_t txFIFOCnt();
+#else
+    uart_port_t _uart_num;
+#endif
+    void setBaudRate(uint32_t baud_rate);
 
 public:
     Uart(int uart_num);

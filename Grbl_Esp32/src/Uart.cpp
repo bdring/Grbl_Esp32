@@ -11,19 +11,26 @@
 #include "soc/dport_reg.h"
 #include "soc/rtc.h"
 
+#ifdef DIRECT_UART
 void Uart::flushTx() {
     while (READ_PERI_REG(UART_STATUS_REG(_uart_num)) & (UART_TXFIFO_CNT_M | UART_ST_UTX_OUT)) {}
 }
+#endif
 
 void Uart::setBaudRate(uint32_t baud_rate) {
+#ifdef DIRECT_UART
     uint32_t clk_div        = ((getApbFrequency() << 4) / baud_rate);
     uint32_t clk_div_regval = ((clk_div >> 4) << UART_CLKDIV_S) | ((clk_div & UART_CLKDIV_FRAG_V) << UART_CLKDIV_FRAG_S);
     WRITE_PERI_REG(UART_CLKDIV_REG(_uart_num), clk_div_regval);
+#else
+    uart_set_baudrate(_uart_num, baud_rate);
+#endif
 }
 
-Uart::Uart(int uart_num) : _uart_num(uart_num) {}
+Uart::Uart(int uart_num) : _uart_num(uart_port_t(uart_num)) {}
 
 void Uart::begin(unsigned long baudrate, uint32_t config, int8_t rxPin, int8_t txPin, bool invert, unsigned long timeout_ms) {
+#ifdef DIRECT_UART
     if (rxPin == -1 && txPin == -1) {
         return;
     }
@@ -71,20 +78,36 @@ void Uart::begin(unsigned long baudrate, uint32_t config, int8_t rxPin, int8_t t
     tx_idle_conf |= 0 << UART_TX_IDLE_NUM_S;  // Does nothing but here for documentation
     WRITE_PERI_REG(UART_IDLE_CONF_REG(_uart_num), tx_idle_conf);
 
-#define UART_RXD_IDX(u) ((u == 0) ? U0RXD_IN_IDX : ((u == 1) ? U1RXD_IN_IDX : ((u == 2) ? U2RXD_IN_IDX : 0)))
+#    define UART_RXD_IDX(u) ((u == 0) ? U0RXD_IN_IDX : ((u == 1) ? U1RXD_IN_IDX : ((u == 2) ? U2RXD_IN_IDX : 0)))
     if (rxPin != -1) {
         pinMode(rxPin, INPUT);
         pinMatrixInAttach(rxPin, UART_RXD_IDX(_uart_num), false);  // false is not inverted
     }
 
-#define UART_TXD_IDX(u) ((u == 0) ? U0TXD_OUT_IDX : ((u == 1) ? U1TXD_OUT_IDX : ((u == 2) ? U2TXD_OUT_IDX : 0)))
+#    define UART_TXD_IDX(u) ((u == 0) ? U0TXD_OUT_IDX : ((u == 1) ? U1TXD_OUT_IDX : ((u == 2) ? U2TXD_OUT_IDX : 0)))
     if (txPin != -1) {
         pinMode(txPin, OUTPUT);
         pinMatrixOutAttach(txPin, UART_TXD_IDX(_uart_num), false, false);
     }
+#else
+    //    uart_driver_delete(_uart_num);
+    uart_config_t conf;
+    conf.baud_rate           = baudrate;
+    conf.data_bits           = UART_DATA_8_BITS;
+    conf.parity              = UART_PARITY_DISABLE;
+    conf.stop_bits           = UART_STOP_BITS_1;
+    conf.flow_ctrl           = UART_HW_FLOWCTRL_DISABLE;
+    conf.rx_flow_ctrl_thresh = 0;
+    conf.use_ref_tick        = false;
+    if (uart_param_config(_uart_num, &conf) != ESP_OK) {
+        return;
+    };
+    uart_driver_install(_uart_num, 256, 0, 0, NULL, 0);
+#endif
 }
 
 int Uart::available() {
+#ifdef DIRECT_UART
     // RxFIFOLen be a power of two otherwise the & computation below will not work.
     // The hardware only allows power-of-two lengths anyway.
     const int RxFIFOLen = 128;
@@ -93,35 +116,56 @@ int Uart::available() {
     uint32_t  wr_addr   = (val >> UART_MEM_RX_WR_ADDR_S) & UART_MEM_RX_WR_ADDR_V;
     uint32_t  cnt       = wr_addr - rd_addr;
     return cnt & (RxFIFOLen - 1);
+#else
+    size_t size = 0;
+    uart_get_buffered_data_len(_uart_num, &size);
+    return size;
+#endif
 }
 
 int Uart::read() {
+#ifdef DIRECT_UART
     if (available()) {
         return READ_PERI_REG(UART_FIFO_REG(_uart_num));
     }
     return -1;
+#else
+    uint8_t c;
+    int     res = uart_read_bytes(_uart_num, &c, 1, 0);
+    return res != 1 ? -1 : c;
+#endif
 }
 
+#ifdef DIRECT_UART
 uint32_t Uart::txFIFOCnt() {
     uint32_t val = READ_PERI_REG(UART_STATUS_REG(_uart_num));
     return (val >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT_V;
 }
+#endif
 
 size_t Uart::write(uint8_t c) {
+#ifdef DIRECT_UART
     while (txFIFOCnt() == 0x7f) {}
     // Access the FIFO via AHB instead of DPORT because of erratum 3.16 in
     // https://espressif.com/sites/default/files/documentation/eco_and_workarounds_for_bugs_in_esp32_en.pdf
     WRITE_PERI_REG(UART_FIFO_AHB_REG(_uart_num), c);
     return 1;
+#else
+    return uart_write_bytes(_uart_num, (char*)&c, 1);
+#endif
 }
 
 size_t Uart::write(const char* text) {
+#ifdef DIRECT_UART
     size_t  i = 0;
     uint8_t c;
     for (i = 0; (c = (uint8_t)*text++) != '\0'; i++) {
         write(c);
     }
     return i;
+#else
+    return uart_write_bytes(_uart_num, text, strlen(text));
+#endif
 }
 
 Uart Uart0(0);
