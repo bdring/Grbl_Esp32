@@ -112,7 +112,7 @@ void client_init() {
 
 static uint8_t getClientChar(uint8_t* data) {
     int res;
-    if ((res = Uart0.read()) != -1) {
+    if (client_buffer[CLIENT_SERIAL].availableforwrite() && (res = Uart0.read()) != -1) {
         *data = res;
         return CLIENT_SERIAL;
     }
