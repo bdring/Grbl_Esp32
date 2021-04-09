@@ -65,7 +65,7 @@ WebUI::InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each cli
 
 // Returns the number of bytes available in a client buffer.
 uint8_t client_get_rx_buffer_available(uint8_t client) {
-    return 128 - Uart::available();
+    return 128 - Uart0.available();
     //    return client_buffer[client].availableforwrite();
 }
 
