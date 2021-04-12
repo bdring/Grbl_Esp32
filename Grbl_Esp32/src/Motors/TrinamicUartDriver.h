@@ -21,6 +21,7 @@
 
 #include "Motor.h"
 #include "StandardStepper.h"
+#include "../Uart.h"
 
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 
@@ -63,7 +64,7 @@ const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) use
 #    define TMC_UART_TX UNDEFINED_PIN
 #endif
 
-extern HardwareSerial tmc_serial;
+extern Uart tmc_serial;
 
 namespace Motors {
 

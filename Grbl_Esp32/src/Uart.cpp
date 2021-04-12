@@ -11,91 +11,28 @@
 #include "soc/dport_reg.h"
 #include "soc/rtc.h"
 
-#ifdef DIRECT_UART
-void Uart::flushTx() {
-    while (READ_PERI_REG(UART_STATUS_REG(_uart_num)) & (UART_TXFIFO_CNT_M | UART_ST_UTX_OUT)) {}
-}
-#endif
+const int Uart::DataBits5 = UART_DATA_5_BITS;
+const int Uart::DataBits6 = UART_DATA_6_BITS;
+const int Uart::DataBits7 = UART_DATA_7_BITS;
+const int Uart::DataBits8 = UART_DATA_8_BITS;
 
-void Uart::setBaudRate(uint32_t baud_rate) {
-#ifdef DIRECT_UART
-    uint32_t clk_div        = ((getApbFrequency() << 4) / baud_rate);
-    uint32_t clk_div_regval = ((clk_div >> 4) << UART_CLKDIV_S) | ((clk_div & UART_CLKDIV_FRAG_V) << UART_CLKDIV_FRAG_S);
-    WRITE_PERI_REG(UART_CLKDIV_REG(_uart_num), clk_div_regval);
-#else
-    uart_set_baudrate(_uart_num, baud_rate);
-#endif
-}
+const int Uart::StopBits1   = UART_STOP_BITS_1;
+const int Uart::StopBits1_5 = UART_STOP_BITS_1_5;
+const int Uart::StopBits2   = UART_STOP_BITS_2;
 
-Uart::Uart(int uart_num) : _uart_num(uart_port_t(uart_num)) {}
+const int Uart::ParityNone = UART_PARITY_DISABLE;
+const int Uart::ParityEven = UART_PARITY_EVEN;
+const int Uart::ParityOdd  = UART_PARITY_ODD;
 
-void Uart::begin(unsigned long baudrate, uint32_t config, int8_t rxPin, int8_t txPin, bool invert, unsigned long timeout_ms) {
-#ifdef DIRECT_UART
-    if (rxPin == -1 && txPin == -1) {
-        return;
-    }
+Uart::Uart(int uart_num) : _uart_num(uart_port_t(uart_num)), _pushback(-1) {}
 
-    switch (_uart_num) {
-        case 0:
-            DPORT_SET_PERI_REG_MASK(DPORT_PERIP_CLK_EN_REG, DPORT_UART_CLK_EN);
-            DPORT_CLEAR_PERI_REG_MASK(DPORT_PERIP_RST_EN_REG, DPORT_UART_RST);
-            break;
-        case 1:
-            DPORT_SET_PERI_REG_MASK(DPORT_PERIP_CLK_EN_REG, DPORT_UART1_CLK_EN);
-            DPORT_CLEAR_PERI_REG_MASK(DPORT_PERIP_RST_EN_REG, DPORT_UART1_RST);
-            break;
-        case 2:
-            DPORT_SET_PERI_REG_MASK(DPORT_PERIP_CLK_EN_REG, DPORT_UART2_CLK_EN);
-            DPORT_CLEAR_PERI_REG_MASK(DPORT_PERIP_RST_EN_REG, DPORT_UART2_RST);
-            break;
-        default:
-            return;
-    }
-
-    flushTx();
-    setBaudRate(baudrate);
-
-    // The config value is the actual number that goes into the register.
-    // Names like SERIAL_8N1 are defined in esp32-hal-uart.h in the
-    // Arduino framework code.
-    if ((config & UART_STOP_BIT_NUM_M) == (3 << UART_STOP_BIT_NUM_S)) {
-        // The stop bit field is 1 for 1 stop bit, 2 for 1.5, and 3 for 2 stop bits.
-        // If the config specifies two stop bits, we change it to one
-        // stop bit and enable a delay in the RS485 register.  Espressif
-        // UART drivers contain this workaround and attribute it to some
-        // hardware bug, but the bug is not listed in the errata document.
-        config = (config & ~UART_STOP_BIT_NUM_M) | (1 << UART_STOP_BIT_NUM_S);
-        DPORT_SET_PERI_REG_MASK(UART_RS485_CONF_REG(_uart_num), UART_DL1_EN_M);
-    } else {
-        DPORT_CLEAR_PERI_REG_MASK(UART_RS485_CONF_REG(_uart_num), UART_DL1_EN_M);
-    }
-    WRITE_PERI_REG(UART_CONF0_REG(_uart_num), config);
-
-    // tx_idle_num : idle interval after tx FIFO is empty(unit: the time it takes to send one bit under current baudrate)
-    // Setting it to 0 prevents line idle time/delays when sending messages with small intervals
-    uint32_t tx_idle_conf = READ_PERI_REG(UART_IDLE_CONF_REG(_uart_num));
-    tx_idle_conf &= ~UART_TX_IDLE_NUM_M;
-    tx_idle_conf |= 0 << UART_TX_IDLE_NUM_S;  // Does nothing but here for documentation
-    WRITE_PERI_REG(UART_IDLE_CONF_REG(_uart_num), tx_idle_conf);
-
-#    define UART_RXD_IDX(u) ((u == 0) ? U0RXD_IN_IDX : ((u == 1) ? U1RXD_IN_IDX : ((u == 2) ? U2RXD_IN_IDX : 0)))
-    if (rxPin != -1) {
-        pinMode(rxPin, INPUT);
-        pinMatrixInAttach(rxPin, UART_RXD_IDX(_uart_num), false);  // false is not inverted
-    }
-
-#    define UART_TXD_IDX(u) ((u == 0) ? U0TXD_OUT_IDX : ((u == 1) ? U1TXD_OUT_IDX : ((u == 2) ? U2TXD_OUT_IDX : 0)))
-    if (txPin != -1) {
-        pinMode(txPin, OUTPUT);
-        pinMatrixOutAttach(txPin, UART_TXD_IDX(_uart_num), false, false);
-    }
-#else
+void Uart::begin(unsigned long baudrate, int dataBits, int stopBits, int parity) {
     //    uart_driver_delete(_uart_num);
     uart_config_t conf;
     conf.baud_rate           = baudrate;
-    conf.data_bits           = UART_DATA_8_BITS;
-    conf.parity              = UART_PARITY_DISABLE;
-    conf.stop_bits           = UART_STOP_BITS_1;
+    conf.data_bits           = uart_word_length_t(dataBits);
+    conf.parity              = uart_parity_t(parity);
+    conf.stop_bits           = uart_stop_bits_t(stopBits);
     conf.flow_ctrl           = UART_HW_FLOWCTRL_DISABLE;
     conf.rx_flow_ctrl_thresh = 0;
     conf.use_ref_tick        = false;
@@ -103,7 +40,6 @@ void Uart::begin(unsigned long baudrate, uint32_t config, int8_t rxPin, int8_t t
         return;
     };
     uart_driver_install(_uart_num, 256, 0, 0, NULL, 0);
-#endif
 }
 
 int Uart::available() {
@@ -115,57 +51,68 @@ int Uart::available() {
     uint32_t  rd_addr   = (val >> UART_MEM_RX_RD_ADDR_S) & UART_MEM_RX_RD_ADDR_V;
     uint32_t  wr_addr   = (val >> UART_MEM_RX_WR_ADDR_S) & UART_MEM_RX_WR_ADDR_V;
     uint32_t  cnt       = wr_addr - rd_addr;
-    return cnt & (RxFIFOLen - 1);
+    return cnt & (RxFIFOLen - 1) + (_pushback >= 0);
 #else
     size_t size = 0;
     uart_get_buffered_data_len(_uart_num, &size);
-    return size;
+    return size + (_pushback >= 0);
 #endif
 }
 
-int Uart::read() {
-#ifdef DIRECT_UART
-    if (available()) {
-        return READ_PERI_REG(UART_FIFO_REG(_uart_num));
+int Uart::peek() {
+    _pushback = read();
+    return _pushback;
+}
+
+int Uart::read(TickType_t timeout) {
+    if (_pushback >= 0) {
+        int ret   = _pushback;
+        _pushback = -1;
+        return ret;
     }
-    return -1;
-#else
     uint8_t c;
-    int     res = uart_read_bytes(_uart_num, &c, 1, 0);
+    int     res = uart_read_bytes(_uart_num, &c, 1, timeout);
     return res != 1 ? -1 : c;
-#endif
+}
+int Uart::read() {
+    return read(0);
 }
 
-#ifdef DIRECT_UART
-uint32_t Uart::txFIFOCnt() {
-    uint32_t val = READ_PERI_REG(UART_STATUS_REG(_uart_num));
-    return (val >> UART_TXFIFO_CNT_S) & UART_TXFIFO_CNT_V;
+size_t Uart::readBytes(char* buffer, size_t length, TickType_t timeout) {
+    bool pushback = _pushback >= 0;
+    if (pushback && length) {
+        *buffer++ = _pushback;
+        _pushback = -1;
+        --length;
+    }
+    int res = uart_read_bytes(_uart_num, (uint8_t*)buffer, length, timeout);
+    // The Stream class version of readBytes never returns -1,
+    // so if uart_read_bytes returns -1, we change that to 0
+    return pushback + (res >= 0 ? res : 0);
 }
-#endif
-
+size_t Uart::readBytes(char* buffer, size_t length) {
+    return readBytes(buffer, length, (TickType_t)0);
+}
 size_t Uart::write(uint8_t c) {
-#ifdef DIRECT_UART
-    while (txFIFOCnt() == 0x7f) {}
-    // Access the FIFO via AHB instead of DPORT because of erratum 3.16 in
-    // https://espressif.com/sites/default/files/documentation/eco_and_workarounds_for_bugs_in_esp32_en.pdf
-    WRITE_PERI_REG(UART_FIFO_AHB_REG(_uart_num), c);
-    return 1;
-#else
     return uart_write_bytes(_uart_num, (char*)&c, 1);
-#endif
+}
+
+size_t Uart::write(const uint8_t* buffer, size_t length) {
+    return uart_write_bytes(_uart_num, (const char*)buffer, length);
 }
 
 size_t Uart::write(const char* text) {
-#ifdef DIRECT_UART
-    size_t  i = 0;
-    uint8_t c;
-    for (i = 0; (c = (uint8_t)*text++) != '\0'; i++) {
-        write(c);
-    }
-    return i;
-#else
     return uart_write_bytes(_uart_num, text, strlen(text));
-#endif
+}
+
+bool Uart::setHalfDuplex() {
+    return uart_set_mode(_uart_num, UART_MODE_RS485_HALF_DUPLEX) != ESP_OK;
+}
+bool Uart::setPins(int rx_pin, int tx_pin, int rts_pin, int cts_pin) {
+    return uart_set_pin(_uart_num, tx_pin, rx_pin, rts_pin, cts_pin) != ESP_OK;
+}
+bool Uart::flushTxTimed(TickType_t ticks) {
+    return uart_wait_tx_done(_uart_num, ticks) != ESP_OK;
 }
 
 Uart Uart0(0);
