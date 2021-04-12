@@ -76,6 +76,9 @@ namespace Motors {
     };
 
     class TrinamicUartDriver : public StandardStepper {
+    private:
+        static bool _uart_started;
+
     public:
         TrinamicUartDriver(uint8_t  axis_index,
                            uint8_t  step_pin,
