@@ -84,7 +84,7 @@ size_t Uart::write(const char* text) {
 bool Uart::setHalfDuplex() {
     return uart_set_mode(_uart_num, UART_MODE_RS485_HALF_DUPLEX) != ESP_OK;
 }
-bool Uart::setPins(int rx_pin, int tx_pin, int rts_pin, int cts_pin) {
+bool Uart::setPins(int tx_pin, int rx_pin, int rts_pin, int cts_pin) {
     return uart_set_pin(_uart_num, tx_pin, rx_pin, rts_pin, cts_pin) != ESP_OK;
 }
 bool Uart::flushTxTimed(TickType_t ticks) {

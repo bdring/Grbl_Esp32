@@ -30,6 +30,8 @@ Uart tmc_serial(TMC_UART);
 
 namespace Motors {
 
+    bool TrinamicUartDriver::_uart_started = false;
+
     TrinamicUartDriver* TrinamicUartDriver::List = NULL;  // a static ist of all drivers for stallguard reporting
 
     /* HW Serial Constructor. */
@@ -42,7 +44,7 @@ namespace Motors {
         this->addr          = addr;
 
         if (!_uart_started) {
-            tmc_serial.setPins(TMC_UART_RX, TMC_UART_TX);
+            tmc_serial.setPins(TMC_UART_TX, TMC_UART_RX);
             tmc_serial.begin(115200, Uart::Data::Bits8, Uart::Stop::Bits1, Uart::Parity::None);
             _uart_started = true;
         }
