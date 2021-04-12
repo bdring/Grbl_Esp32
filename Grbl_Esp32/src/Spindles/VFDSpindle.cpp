@@ -317,12 +317,12 @@ namespace Spindles {
             return;
         }
 
+        _uart.begin(_baudrate, _dataBits, _stopBits, _parity);
+
         if (_uart.setHalfDuplex()) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RS485 VFD uart set half duplex failed");
             return;
         }
-
-        _uart.begin(_baudrate, _dataBits, _stopBits, _parity);
 
         // We have to initialize the constants before starting the task:
         is_reversable = true;  // these VFDs are always reversable
