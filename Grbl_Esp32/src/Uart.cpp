@@ -11,22 +11,9 @@
 #include "soc/dport_reg.h"
 #include "soc/rtc.h"
 
-const int Uart::DataBits5 = UART_DATA_5_BITS;
-const int Uart::DataBits6 = UART_DATA_6_BITS;
-const int Uart::DataBits7 = UART_DATA_7_BITS;
-const int Uart::DataBits8 = UART_DATA_8_BITS;
-
-const int Uart::StopBits1   = UART_STOP_BITS_1;
-const int Uart::StopBits1_5 = UART_STOP_BITS_1_5;
-const int Uart::StopBits2   = UART_STOP_BITS_2;
-
-const int Uart::ParityNone = UART_PARITY_DISABLE;
-const int Uart::ParityEven = UART_PARITY_EVEN;
-const int Uart::ParityOdd  = UART_PARITY_ODD;
-
 Uart::Uart(int uart_num) : _uart_num(uart_port_t(uart_num)), _pushback(-1) {}
 
-void Uart::begin(unsigned long baudrate, int dataBits, int stopBits, int parity) {
+void Uart::begin(unsigned long baudrate, Data dataBits, Stop stopBits, Parity parity) {
     //    uart_driver_delete(_uart_num);
     uart_config_t conf;
     conf.baud_rate           = baudrate;
@@ -43,20 +30,9 @@ void Uart::begin(unsigned long baudrate, int dataBits, int stopBits, int parity)
 }
 
 int Uart::available() {
-#ifdef DIRECT_UART
-    // RxFIFOLen be a power of two otherwise the & computation below will not work.
-    // The hardware only allows power-of-two lengths anyway.
-    const int RxFIFOLen = 128;
-    uint32_t  val       = READ_PERI_REG(UART_MEM_RX_STATUS_REG(_uart_num));
-    uint32_t  rd_addr   = (val >> UART_MEM_RX_RD_ADDR_S) & UART_MEM_RX_RD_ADDR_V;
-    uint32_t  wr_addr   = (val >> UART_MEM_RX_WR_ADDR_S) & UART_MEM_RX_WR_ADDR_V;
-    uint32_t  cnt       = wr_addr - rd_addr;
-    return cnt & (RxFIFOLen - 1) + (_pushback >= 0);
-#else
     size_t size = 0;
     uart_get_buffered_data_len(_uart_num, &size);
     return size + (_pushback >= 0);
-#endif
 }
 
 int Uart::peek() {

@@ -89,13 +89,13 @@ namespace Spindles {
             9600
 #endif
             ),
-        _dataBits(Uart::DataBits8), _stopBits(Uart::StopBits1), _parity(
+        _dataBits(Uart::Data::Bits8), _stopBits(Uart::Stop::Bits1), _parity(
 #ifdef VFD_RS485_PARITY
-                                                                    VFD_RS485_PARITY
+                                                                        VFD_RS485_PARITY
 #else
-                                                                    Uart::ParityNone
+                                                                        Uart::Parity::None
 #endif
-                                                                ) {
+                                                                    ) {
     }
 
     // The communications task

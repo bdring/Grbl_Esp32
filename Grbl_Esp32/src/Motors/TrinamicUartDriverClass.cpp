@@ -43,7 +43,7 @@ namespace Motors {
 
         uart_set_pin(TMC_UART, TMC_UART_TX, TMC_UART_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
         tmc_serial.setPins(TMC_UART_RX, TMC_UART_TX);
-        tmc_serial.begin(115200, Uart::DataBits8, Uart::StopBits1, Uart::ParityNone);
+        tmc_serial.begin(115200, Uart::Data::Bits8, Uart::Stop::Bits1, Uart::Parity::None);
         hw_serial_init();
 
         link = List;

@@ -93,7 +93,7 @@ void client_init() {
 #endif
 
     Uart0.setPins(3, 1);  // Rx 3, Tx 1 - standard hardware pins
-    Uart0.begin(BAUD_RATE, Uart::DataBits8, Uart::StopBits1, Uart::ParityNone);
+    Uart0.begin(BAUD_RATE, Uart::Data::Bits8, Uart::Stop::Bits1, Uart::Parity::None);
 
     client_reset_read_buffer(CLIENT_ALL);
     Uart0.write("\r\n");  // create some white space after ESP32 boot info

@@ -73,10 +73,10 @@ namespace Spindles {
         virtual bool            safety_polling() const { return true; }
 
         // The constructor sets these
-        int _baudrate;
-        int _dataBits;
-        int _stopBits;
-        int _parity;
+        int          _baudrate;
+        Uart::Data   _dataBits;
+        Uart::Stop   _stopBits;
+        Uart::Parity _parity;
 
     public:
         VFD();

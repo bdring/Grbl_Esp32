@@ -1,9 +1,6 @@
 #pragma once
 
-#ifdef DIRECT_UART
-#else
-#    include <driver/uart.h>
-#endif
+#include <driver/uart.h>
 
 class Uart : public Stream {
 private:
@@ -11,23 +8,29 @@ private:
     int         _pushback;
 
 public:
-    static const int DataBits5;
-    static const int DataBits6;
-    static const int DataBits7;
-    static const int DataBits8;
+    enum class Data : int {
+        Bits5 = UART_DATA_5_BITS,
+        Bits6 = UART_DATA_6_BITS,
+        Bits7 = UART_DATA_7_BITS,
+        Bits8 = UART_DATA_8_BITS,
+    };
 
-    static const int StopBits1;
-    static const int StopBits1_5;
-    static const int StopBits2;
+    enum class Stop : int {
+        Bits1   = UART_STOP_BITS_1,
+        Bits1_5 = UART_STOP_BITS_1_5,
+        Bits2   = UART_STOP_BITS_2,
+    };
 
-    static const int ParityNone;
-    static const int ParityEven;
-    static const int ParityOdd;
+    enum class Parity : int {
+        None = UART_PARITY_DISABLE,
+        Even = UART_PARITY_EVEN,
+        Odd  = UART_PARITY_ODD,
+    };
 
     Uart(int uart_num);
     bool          setHalfDuplex();
     bool          setPins(int tx_pin, int rx_pin, int rts_pin = -1, int cts_pin = -1);
-    void          begin(unsigned long baud, int dataBits, int stopBits, int parity);
+    void          begin(unsigned long baud, Data dataBits, Stop stopBits, Parity parity);
     int           available(void) override;
     int           read(void) override;
     int           read(TickType_t timeout);

@@ -31,7 +31,7 @@
 namespace Spindles {
     H2A::H2A() : VFD() {
         _baudrate = 19200;
-        _parity   = Uart::ParityEven;
+        _parity   = Uart::Parity::Even;
     }
 
     void H2A::direction_command(SpindleState mode, ModbusCommand& data) {
