@@ -57,6 +57,12 @@
 
 #include "Grbl.h"
 
+// Define this to use the Arduino serial (UART) driver instead
+// of the one in Uart.cpp, which uses the ESP-IDF UART driver.
+// This is for regression testing, and can be removed after
+// testing is complete.
+// #define REVERT_TO_ARDUINO_SERIAL
+
 portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 
 static TaskHandle_t clientCheckTaskHandle = 0;
@@ -65,7 +71,11 @@ WebUI::InputBuffer client_buffer[CLIENT_COUNT];  // create a buffer for each cli
 
 // Returns the number of bytes available in a client buffer.
 uint8_t client_get_rx_buffer_available(uint8_t client) {
+#ifdef REVERT_TO_ARDUINO_SERIAL
+    return 128 - Serial.available();
+#else
     return 128 - Uart0.available();
+#endif
     //    return client_buffer[client].availableforwrite();
 }
 
@@ -92,11 +102,17 @@ void client_init() {
     xTaskCreatePinnedToCore(heapCheckTask, "heapTask", 2000, NULL, 1, NULL, 1);
 #endif
 
+#ifdef REVERT_TO_ARDUINO_SERIAL
+    Serial.begin(BAUD_RATE, SERIAL_8N1, 3, 1, false);
+    client_reset_read_buffer(CLIENT_ALL);
+    Serial.write("\r\n");  // create some white space after ESP32 boot info
+#else
     Uart0.setPins(1, 3);  // Tx 1, Rx 3 - standard hardware pins
     Uart0.begin(BAUD_RATE, Uart::Data::Bits8, Uart::Stop::Bits1, Uart::Parity::None);
 
     client_reset_read_buffer(CLIENT_ALL);
     Uart0.write("\r\n");  // create some white space after ESP32 boot info
+#endif
     clientCheckTaskHandle = 0;
     // create a task to check for incoming data
     // For a 4096-word stack, uxTaskGetStackHighWaterMark reports 244 words available
@@ -114,7 +130,11 @@ void client_init() {
 
 static uint8_t getClientChar(uint8_t* data) {
     int res;
+#ifdef REVERT_TO_ARDUINO_SERIAL
+    if (client_buffer[CLIENT_SERIAL].availableforwrite() && (res = Serial.read()) != -1) {
+#else
     if (client_buffer[CLIENT_SERIAL].availableforwrite() && (res = Uart0.read()) != -1) {
+#endif
         *data = res;
         return CLIENT_SERIAL;
     }
@@ -347,6 +367,10 @@ void client_write(uint8_t client, const char* text) {
     }
 #endif
     if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
+#ifdef REVERT_TO_ARDUINO_SERIAL
+        Serial.write(text);
+#else
         Uart0.write(text);
+#endif
     }
 }
