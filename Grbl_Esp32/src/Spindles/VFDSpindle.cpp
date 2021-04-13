@@ -576,7 +576,12 @@ namespace Spindles {
         return rpm;
     }
 
-    void VFD::stop() { set_mode(SpindleState::Disable, true); }
+    void VFD::stop() {
+#ifdef VFD_DEBUG_MODE
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "VFD::stop()");
+#endif
+        set_mode(SpindleState::Disable, true);
+    }
 
     // state is cached rather than read right now to prevent delays
     SpindleState VFD::get_state() { return _current_state; }

@@ -223,6 +223,7 @@ bool is_realtime_command(uint8_t data) {
 void execute_realtime_command(Cmd command, uint8_t client) {
     switch (command) {
         case Cmd::Reset:
+            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Cmd::Reset");
             mc_reset();  // Call motion control reset routine.
             break;
         case Cmd::StatusReport:
