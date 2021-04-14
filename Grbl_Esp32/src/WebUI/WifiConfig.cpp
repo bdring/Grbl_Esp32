@@ -71,7 +71,7 @@ namespace WebUI {
             }
             result += "Mode=AP:SSDI=";
             wifi_config_t conf;
-            esp_wifi_get_config(ESP_IF_WIFI_AP, &conf);
+            esp_wifi_get_config(WIFI_IF_AP, &conf);
             result += (const char*)conf.ap.ssid;
             result += ":IP=";
             result += WiFi.softAPIP().toString();

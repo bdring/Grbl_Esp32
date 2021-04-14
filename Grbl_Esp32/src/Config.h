@@ -258,11 +258,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // previous tool path, as if nothing happened.
 #define ENABLE_SAFETY_DOOR_INPUT_PIN  // ESP32 Leave this enabled for now .. code for undefined not ready
 
-// After the safety door switch has been toggled and restored, this setting sets the power-up delay
-// between restoring the spindle and coolant and resuming the cycle.
-const double SAFETY_DOOR_SPINDLE_DELAY = 4.0;  // Float (seconds)
-const double SAFETY_DOOR_COOLANT_DELAY = 1.0;  // Float (seconds)
-
 // Inverts select limit pin states based on the following mask. This effects all limit pin functions,
 // such as hard limits and homing. However, this is different from overall invert limits setting.
 // This build option will invert only the limit pins defined here, and then the invert limits setting
@@ -451,17 +446,7 @@ const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
 // While this is experimental, it is intended to be the future default method after testing
 //#define USE_RMT_STEPS
 
-// Creates a delay between the direction pin setting and corresponding step pulse by creating
-// another interrupt (Timer2 compare) to manage it. The main Grbl interrupt (Timer1 compare)
-// sets the direction pins, and does not immediately set the stepper pins, as it would in
-// normal operation. The Timer2 compare fires next to set the stepper pins after the step
-// pulse delay time, and Timer2 overflow will complete the step pulse, except now delayed
-// by the step pulse time plus the step pulse delay. (Thanks langwadt for the idea!)
-// NOTE: Uncomment to enable. The recommended delay must be > 3us, and, when added with the
-// user-supplied step pulse time, the total time must not exceed 127us. Reported successful
-// values for certain setups have ranged from 5 to 20us.
-// must use #define USE_RMT_STEPS for this to work
-//#define STEP_PULSE_DELAY 10 // Step pulse delay in microseconds. Default disabled.
+// STEP_PULSE_DELAY is now a setting...$Stepper/Direction/Delay
 
 // The number of linear motions in the planner buffer to be planned at any give time. The vast
 // majority of RAM that Grbl uses is based on this buffer size. Only increase if there is extra
@@ -582,8 +567,8 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // Configure options for the parking motion, if enabled.
 #define PARKING_AXIS Z_AXIS                      // Define which axis that performs the parking motion
 const double PARKING_TARGET            = -5.0;   // Parking axis target. In mm, as machine coordinate.
-const double PARKING_RATE              = 500.0;  // Parking fast rate after pull-out in mm/min.
-const double PARKING_PULLOUT_RATE      = 100.0;  // Pull-out/plunge slow feed rate in mm/min.
+const double PARKING_RATE              = 800.0;  // Parking fast rate after pull-out in mm/min.
+const double PARKING_PULLOUT_RATE      = 250.0;  // Pull-out/plunge slow feed rate in mm/min.
 const double PARKING_PULLOUT_INCREMENT = 5.0;    // Spindle pull-out and plunge distance in mm. Incremental distance.
 // Must be positive value or equal to zero.
 

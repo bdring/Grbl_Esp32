@@ -53,7 +53,7 @@ void mc_arc(float*            target,
             uint8_t           is_clockwise_arc);
 
 // Dwell for a specific number of seconds
-void mc_dwell(float seconds);
+bool mc_dwell(int32_t milliseconds);
 
 // Perform homing cycle to locate machine zero. Requires limit switches.
 void mc_homing_cycle(uint8_t cycle_mask);

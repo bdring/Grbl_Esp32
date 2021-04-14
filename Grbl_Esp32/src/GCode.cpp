@@ -1435,7 +1435,7 @@ Error gc_execute_line(char* line, uint8_t client) {
 #endif
     // [10. Dwell ]:
     if (gc_block.non_modal_command == NonModal::Dwell) {
-        mc_dwell(gc_block.values.p);
+        mc_dwell(int32_t(gc_block.values.p * 1000.0f));
     }
     // [11. Set active plane ]:
     gc_state.modal.plane_select = gc_block.modal.plane_select;

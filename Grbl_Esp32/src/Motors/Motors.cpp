@@ -413,7 +413,19 @@ void           init_motors() {
 }
 
 void motors_set_disable(bool disable, uint8_t mask) {
-    static bool previous_state = true;
+    static bool    prev_disable = true;
+    static uint8_t prev_mask    = 0;
+
+    if ((disable == prev_disable) && (mask == prev_mask)) {
+        return;
+    }
+
+    prev_disable = disable;
+    prev_mask    = mask;
+
+    if (step_enable_invert->get()) {
+        disable = !disable;  // Apply pin invert.
+    }
 
     // now loop through all the motors to see if they can individually disable
     auto n_axis = number_axis->get();
@@ -425,11 +437,19 @@ void motors_set_disable(bool disable, uint8_t mask) {
         }
     }
 
-    // invert only inverts the global stepper disable pin.
-    if (step_enable_invert->get()) {
-        disable = !disable;  // Apply pin invert.
-    }
+    // global disable.
     digitalWrite(STEPPERS_DISABLE_PIN, disable);
+
+    // Add an optional delay for stepper drivers. that need time
+    // Some need time after the enable before they can step.
+    auto wait_disable_change = enable_delay_microseconds->get();
+    if (wait_disable_change != 0) {
+        auto disable_start_time = esp_timer_get_time() + wait_disable_change;
+
+        while ((esp_timer_get_time() - disable_start_time) < 0) {
+            NOP();
+        }
+    }
 }
 
 void motors_read_settings() {
@@ -458,7 +478,7 @@ uint8_t motors_set_homing_mode(uint8_t homing_mask, bool isHoming) {
     return can_home;
 }
 
-void motors_step(uint8_t step_mask, uint8_t dir_mask) {
+bool motors_direction(uint8_t dir_mask) {
     auto n_axis = number_axis->get();
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
 
@@ -473,7 +493,17 @@ void motors_step(uint8_t step_mask, uint8_t dir_mask) {
             myMotor[axis][0]->set_direction(thisDir);
             myMotor[axis][1]->set_direction(thisDir);
         }
+
+        return true;
+    } else {
+        return false;
     }
+}
+
+void motors_step(uint8_t step_mask) {
+    auto n_axis = number_axis->get();
+    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
+
     // Turn on step pulses for motors that are supposed to step now
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         if (bitnum_istrue(step_mask, axis)) {
