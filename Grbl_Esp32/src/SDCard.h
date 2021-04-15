@@ -20,22 +20,25 @@
 #include <SD.h>
 #include <SPI.h>
 
-#define SDCARD_DET_PIN -1
-const int SDCARD_DET_VAL = 0;
+//#define SDCARD_DET_PIN -1
+const int SDCARD_DET_VAL = 0;  // for now, CD is close to ground
 
-const int SDCARD_IDLE           = 0;
-const int SDCARD_NOT_PRESENT    = 1;
-const int SDCARD_BUSY_PRINTING  = 2;
-const int SDCARD_BUSY_UPLOADING = 4;
-const int SDCARD_BUSY_PARSING   = 8;
+enum class SDState : uint8_t {
+    Idle          = 0,
+    NotPresent    = 1,
+    Busy          = 2,
+    BusyPrinting  = 2,
+    BusyUploading = 3,
+    BusyParsing   = 4,
+};
 
-extern bool    SD_ready_next;  // Grbl has processed a line and is waiting for another
-extern uint8_t SD_client;
+extern bool                       SD_ready_next;  // Grbl has processed a line and is waiting for another
+extern uint8_t                    SD_client;
 extern WebUI::AuthenticationLevel SD_auth_level;
 
 //bool sd_mount();
-uint8_t  get_sd_state(bool refresh);
-uint8_t  set_sd_state(uint8_t flag);
+SDState  get_sd_state(bool refresh);
+SDState  set_sd_state(SDState state);
 void     listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client);
 boolean  openFile(fs::FS& fs, const char* path);
 boolean  closeFile();

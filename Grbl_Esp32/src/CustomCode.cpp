@@ -6,3 +6,7 @@
 #ifdef CUSTOM_CODE_FILENAME
 #    include CUSTOM_CODE_FILENAME
 #endif
+
+#ifdef DISPLAY_CODE_FILENAME
+#    include DISPLAY_CODE_FILENAME
+#endif

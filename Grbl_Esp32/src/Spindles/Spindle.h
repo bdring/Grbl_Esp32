@@ -38,6 +38,7 @@ enum class SpindleType : int8_t {
     BESC,
     _10V,
     H2A,
+    YL620,
 };
 
 #include "../Grbl.h"
@@ -64,14 +65,17 @@ namespace Spindles {
         virtual SpindleState get_state()                                 = 0;
         virtual void         stop()                                      = 0;
         virtual void         config_message()                            = 0;
-        virtual bool         isRateAdjusted();
+        virtual bool         inLaserMode();
         virtual void         sync(SpindleState state, uint32_t rpm);
+        virtual void         deinit();
 
         virtual ~Spindle() {}
 
         bool                  is_reversable;
         bool                  use_delays;  // will SpinUp and SpinDown delays be used.
         volatile SpindleState _current_state = SpindleState::Disable;
+        uint32_t              _spinup_delay;
+        uint32_t              _spindown_delay;
 
         static void select();
     };

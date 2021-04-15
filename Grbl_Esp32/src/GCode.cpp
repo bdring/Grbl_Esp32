@@ -24,6 +24,12 @@
 
 #include "Grbl.h"
 
+// Allow iteration over CoordIndex values
+CoordIndex& operator++(CoordIndex& i) {
+    i = static_cast<CoordIndex>(static_cast<uint8_t>(i) + 1);
+    return i;
+}
+
 // NOTE: Max line number is defined by the g-code standard to be 99999. It seems to be an
 // arbitrary value, and some GUIs may require more. So we increased it based on a max safe
 // value when converting a float (7.2 digit precision)s to an integer.
@@ -473,9 +479,10 @@ Error gc_execute_line(char* line, uint8_t client) {
                                 gc_block.modal.spindle = SpindleState::Cw;
                                 break;
                             case 4:  // Supported if SPINDLE_DIR_PIN is defined or laser mode is on.
-                                if (spindle->is_reversable || laser_mode->get()) {
+                                if (spindle->is_reversable || spindle->inLaserMode()) {
                                     gc_block.modal.spindle = SpindleState::Ccw;
                                 } else {
+                                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "M4 requires laser mode or a reversable spindle");
                                     FAIL(Error::GcodeUnsupportedCommand);
                                 }
                                 break;
@@ -1290,7 +1297,7 @@ Error gc_execute_line(char* line, uint8_t client) {
         return status;
     }
     // If in laser mode, setup laser power based on current and past parser conditions.
-    if (laser_mode->get()) {
+    if (spindle->inLaserMode()) {
         if (!((gc_block.modal.motion == Motion::Linear) || (gc_block.modal.motion == Motion::CwArc) ||
               (gc_block.modal.motion == Motion::CcwArc))) {
             gc_parser_flags |= GCParserLaserDisable;
@@ -1394,10 +1401,11 @@ Error gc_execute_line(char* line, uint8_t client) {
     if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync) ||
         (gc_block.modal.io_control == IoControl::DigitalOnImmediate) || (gc_block.modal.io_control == IoControl::DigitalOffImmediate)) {
         if (gc_block.values.p < MaxUserDigitalPin) {
-            if (!sys_io_control(
-                    bit((int)gc_block.values.p),
-                    (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOnImmediate),
-                    (gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync))) {
+            if ((gc_block.modal.io_control == IoControl::DigitalOnSync) || (gc_block.modal.io_control == IoControl::DigitalOffSync)) {
+                protocol_buffer_synchronize();
+            }
+            bool turnOn = gc_block.modal.io_control == IoControl::DigitalOnSync || gc_block.modal.io_control == IoControl::DigitalOnImmediate;
+            if (!sys_set_digital((int)gc_block.values.p, turnOn)) {
                 FAIL(Error::PParamMaxExceeded);
             }
         } else {
@@ -1407,8 +1415,12 @@ Error gc_execute_line(char* line, uint8_t client) {
     if ((gc_block.modal.io_control == IoControl::SetAnalogSync) || (gc_block.modal.io_control == IoControl::SetAnalogImmediate)) {
         if (gc_block.values.e < MaxUserDigitalPin) {
             gc_block.values.q = constrain(gc_block.values.q, 0.0, 100.0);  // force into valid range
-            if (!sys_pwm_control(bit((int)gc_block.values.e), gc_block.values.q, (gc_block.modal.io_control == IoControl::SetAnalogSync)))
+            if (gc_block.modal.io_control == IoControl::SetAnalogSync) {
+                protocol_buffer_synchronize();
+            }
+            if (!sys_set_analog((int)gc_block.values.e, gc_block.values.q)) {
                 FAIL(Error::PParamMaxExceeded);
+            }
         } else {
             FAIL(Error::PParamMaxExceeded);
         }
@@ -1423,7 +1435,7 @@ Error gc_execute_line(char* line, uint8_t client) {
 #endif
     // [10. Dwell ]:
     if (gc_block.non_modal_command == NonModal::Dwell) {
-        mc_dwell(gc_block.values.p);
+        mc_dwell(int32_t(gc_block.values.p * 1000.0f));
     }
     // [11. Set active plane ]:
     gc_state.modal.plane_select = gc_block.modal.plane_select;

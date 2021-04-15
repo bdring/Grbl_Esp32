@@ -1,9 +1,14 @@
 /*
-    TrinamicDriver.cpp
-    This is used for Trinamic SPI controlled stepper motor drivers.
+    TrinamicUartDriverClass.cpp
+
+    This is used for Trinamic UART controlled stepper motor drivers.
 
     Part of Grbl_ESP32
+    2020 -	The Ant Team
     2020 -	Bart Dring
+
+    TMC2209 Datasheet
+    https://www.trinamic.com/fileadmin/assets/Products/ICs_Documents/TMC2209_Datasheet_V103.pdf
 
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,93 +22,62 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "TrinamicDriver.h"
+#include "TrinamicUartDriver.h"
 
 #include <TMCStepper.h>
 
-#ifdef USE_I2S_OUT
-
-// Override default function and insert a short delay
-void TMC2130Stepper::switchCSpin(bool state) {
-    digitalWrite(_pinCS, state);
-    i2s_out_delay();
-}
-#endif
+HardwareSerial tmc_serial(TMC_UART);
 
 namespace Motors {
-    uint8_t TrinamicDriver::get_next_index() {
-#ifdef TRINAMIC_DAISY_CHAIN
-        static uint8_t index = 1;  // they start at 1
-        return index++;
-#else
-        return -1;
-#endif
-    }
-    TrinamicDriver* TrinamicDriver::List = NULL;
 
-    TrinamicDriver::TrinamicDriver(uint8_t  axis_index,
-                                   uint8_t  step_pin,
-                                   uint8_t  dir_pin,
-                                   uint8_t  disable_pin,
-                                   uint8_t  cs_pin,
-                                   uint16_t driver_part_number,
-                                   float    r_sense,
-                                   int8_t   spi_index) :
-        StandardStepper(axis_index, step_pin, dir_pin, disable_pin),
-        _homing_mode(TRINAMIC_HOMING_MODE), _cs_pin(cs_pin), _driver_part_number(driver_part_number), _r_sense(r_sense),
-        _spi_index(spi_index) {
-        _has_errors = false;
-        if (_driver_part_number == 2130) {
-            tmcstepper = new TMC2130Stepper(_cs_pin, _r_sense, _spi_index);
-        } else if (_driver_part_number == 5160) {
-            tmcstepper = new TMC5160Stepper(_cs_pin, _r_sense, _spi_index);
-        } else {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "%s Unsupported Trinamic part number TMC%d",
-                           reportAxisNameMsg(_axis_index, _dual_axis_index),
-                           _driver_part_number);
-            _has_errors = true;  // This motor cannot be used
-            return;
-        }
+    TrinamicUartDriver* TrinamicUartDriver::List = NULL;  // a static ist of all drivers for stallguard reporting
 
-        _has_errors = false;       
+    /* HW Serial Constructor. */
+    TrinamicUartDriver::TrinamicUartDriver(
+        uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin, uint16_t driver_part_number, float r_sense, uint8_t addr) :
+        StandardStepper(axis_index, step_pin, dir_pin, disable_pin) {
+        _driver_part_number = driver_part_number;
+        _has_errors         = false;
+        _r_sense            = r_sense;
+        this->addr          = addr;
 
-        digitalWrite(_cs_pin, HIGH);
-        pinMode(_cs_pin, OUTPUT);
-
-        // use slower speed if I2S
-        if (_cs_pin >= I2S_OUT_PIN_BASE) {
-            tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
-        }
+        uart_set_pin(TMC_UART, TMC_UART_TX, TMC_UART_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+        tmc_serial.begin(115200, SERIAL_8N1, TMC_UART_RX, TMC_UART_TX);
+        tmc_serial.setRxBufferSize(128);
+        hw_serial_init();
 
         link = List;
         List = this;
-
-        // init() must be called later, after all TMC drivers have CS pins setup.
     }
 
-    void TrinamicDriver::init() {
+    void TrinamicUartDriver::hw_serial_init() {
+        if (_driver_part_number == 2209)
+            tmcstepper = new TMC2209Stepper(&tmc_serial, _r_sense, addr);
+        else {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Unsupported Trinamic motor p/n:%d", _driver_part_number);
+            return;
+        }
+    }
+
+    void TrinamicUartDriver ::init() {
         if (_has_errors) {
             return;
         }
 
-        // Display the stepper library version message once, before the first
-        // TMC config message.  Link is NULL for the first TMC instance.
-        if (!link) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
-        }
-
+        init_step_dir_pins();  // from StandardStepper
         config_message();
-
-        SPI.begin();  // this will get called for each motor, but does not seem to hurt anything
 
         tmcstepper->begin();
 
         _has_errors = !test();  // Try communicating with motor. Prints an error if there is a problem.
 
-        read_settings();  // pull info from settings
-        set_mode(false);
+        /* If communication with the driver is working, read the 
+        main settings, apply new driver settings and then read 
+        them back. */
+        if (!_has_errors) {  //TODO: verify if this is the right way to set the Irun/IHold and microsteps.
+            read_settings();
+            set_mode(false);
+        }
 
         // After initializing all of the TMC drivers, create a task to
         // display StallGuard data.  List == this for the final instance.
@@ -121,24 +95,26 @@ namespace Motors {
     }
 
     /*
-    This is the startup message showing the basic definition
-*/
-    void TrinamicDriver::config_message() {
+        This is the startup message showing the basic definition. 
+    */
+    void TrinamicUartDriver::config_message() {  //TODO: The RX/TX pin could be added to the msg.
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d R:%0.3f %s",
+                       "%s motor Trinamic TMC%d Step:%s Dir:%s Disable:%s UART%d Rx:%s Tx:%s Addr:%d R:%0.3f %s",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
                        _driver_part_number,
                        pinName(_step_pin).c_str(),
                        pinName(_dir_pin).c_str(),
-                       pinName(_cs_pin).c_str(),
                        pinName(_disable_pin).c_str(),
-                       _spi_index,
+                       TMC_UART,
+                       pinName(TMC_UART_RX),
+                       pinName(TMC_UART_TX),
+                       this->addr,
                        _r_sense,
                        reportAxisLimitsMsg(_axis_index));
     }
 
-    bool TrinamicDriver::test() {
+    bool TrinamicUartDriver::test() {
         if (_has_errors) {
             return false;
         }
@@ -146,19 +122,19 @@ namespace Motors {
             case 1:
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
-                               "%s Trinamic driver test failed. Check connection",
+                               "%s driver test failed. Check connection",
                                reportAxisNameMsg(_axis_index, _dual_axis_index));
                 return false;
             case 2:
                 grbl_msg_sendf(CLIENT_SERIAL,
                                MsgLevel::Info,
-                               "%s Trinamic driver test failed. Check motor power",
+                               "%s driver test failed. Check motor power",
                                reportAxisNameMsg(_axis_index, _dual_axis_index));
                 return false;
             default:
                 // driver responded, so check for other errors from the DRV_STATUS register
 
-                TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
+                TMC2208_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
                 status.sr = tmcstepper->DRV_STATUS();
 
                 bool err = false;
@@ -180,8 +156,7 @@ namespace Motors {
                     return false;
                 }
 
-                grbl_msg_sendf(
-                    CLIENT_SERIAL, MsgLevel::Info, "%s Trinamic driver test passed", reportAxisNameMsg(_axis_index, _dual_axis_index));
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s driver test passed", reportAxisNameMsg(_axis_index, _dual_axis_index));
                 return true;
         }
     }
@@ -191,9 +166,8 @@ namespace Motors {
     both are stored as float Amps, but TMCStepper library expects...
     uint16_t run (mA)
     float hold (as a percentage of run)
-*/
-
-    void TrinamicDriver::read_settings() {
+    */
+    void TrinamicUartDriver::read_settings() {
         if (_has_errors) {
             return;
         }
@@ -211,10 +185,13 @@ namespace Motors {
         tmcstepper->microsteps(axis_settings[_axis_index]->microsteps->get());
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
 
-        init_step_dir_pins();
+        // grbl_msg_sendf(CLIENT_SERIAL,
+        //                 MsgLevel::Info,
+        //                 "Setting current of driver %s, target: %u, read irun: %d, hold percent: %f, usteps: %d",
+        //                  reportAxisNameMsg(_axis_index, _dual_axis_index), run_i_ma, tmcstepper->rms_current(), hold_i_percent, axis_settings[_axis_index]->microsteps->get());
     }
 
-    bool TrinamicDriver::set_homing_mode(bool isHoming) {
+    bool TrinamicUartDriver::set_homing_mode(bool isHoming) {
         set_mode(isHoming);
         return true;
     }
@@ -223,52 +200,48 @@ namespace Motors {
     There are ton of settings. I'll start by grouping then into modes for now.
     Many people will want quiet and stallgaurd homing. Stallguard only run in
     Coolstep mode, so it will need to switch to Coolstep when homing
-*/
-    void TrinamicDriver::set_mode(bool isHoming) {
+    */
+    void TrinamicUartDriver::set_mode(bool isHoming) {
         if (_has_errors) {
             return;
         }
 
-        TrinamicMode newMode = isHoming ? TRINAMIC_HOMING_MODE : TRINAMIC_RUN_MODE;
+        TrinamicUartMode newMode = isHoming ? TRINAMIC_UART_HOMING_MODE : TRINAMIC_UART_RUN_MODE;
 
         if (newMode == _mode) {
             return;
         }
+
         _mode = newMode;
 
         switch (_mode) {
-            case TrinamicMode ::StealthChop:
-                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "StealthChop");
-                tmcstepper->en_pwm_mode(true);
+            case TrinamicUartMode ::StealthChop:
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "StealthChop");
+                tmcstepper->en_spreadCycle(false);
                 tmcstepper->pwm_autoscale(true);
-                tmcstepper->diag1_stall(false);
                 break;
-            case TrinamicMode ::CoolStep:
-                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Coolstep");
-                tmcstepper->en_pwm_mode(false);
+            case TrinamicUartMode ::CoolStep:
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Coolstep");
+                // tmcstepper->en_pwm_mode(false); //TODO: check if this is present in TMC2208/09
+                tmcstepper->en_spreadCycle(true);
                 tmcstepper->pwm_autoscale(false);
-                tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS);  // when to turn on coolstep
-                tmcstepper->THIGH(NORMAL_THIGH);
                 break;
-            case TrinamicMode ::StallGuard:
-                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard");
-                tmcstepper->en_pwm_mode(false);
+            case TrinamicUartMode ::StallGuard:  //TODO: check all configurations for stallguard
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard");
+                tmcstepper->en_spreadCycle(false);
                 tmcstepper->pwm_autoscale(false);
                 tmcstepper->TCOOLTHRS(calc_tstep(homing_feed_rate->get(), 150.0));
-                tmcstepper->THIGH(calc_tstep(homing_feed_rate->get(), 60.0));
-                tmcstepper->sfilt(1);
-                tmcstepper->diag1_stall(true);  // stallguard i/o is on diag1
-                tmcstepper->sgt(constrain(axis_settings[_axis_index]->stallguard->get(), -64, 63));
+                tmcstepper->SGTHRS(constrain(axis_settings[_axis_index]->stallguard->get(),0,255));
                 break;
             default:
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_UNDEFINED");
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Unknown Trinamic mode:d", _mode);
         }
     }
 
     /*
     This is the stallguard tuning info. It is call debug, so it could be generic across all classes.
-*/
-    void TrinamicDriver::debug_message() {
+    */
+    void TrinamicUartDriver::debug_message() {
         if (_has_errors) {
             return;
         }
@@ -281,14 +254,13 @@ namespace Motors {
 
         grbl_msg_sendf(CLIENT_SERIAL,
                        MsgLevel::Info,
-                       "%s Stallguard %d   SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
+                       "%s SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
                        reportAxisNameMsg(_axis_index, _dual_axis_index),
-                       tmcstepper->stallguard(),
-                       tmcstepper->sg_result(),
+                       tmcstepper->SG_RESULT(),  //    tmcstepper->sg_result(),
                        feedrate,
-                       constrain(axis_settings[_axis_index]->stallguard->get(), -64, 63));
+                       axis_settings[_axis_index]->stallguard->get());
 
-        TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
+        TMC2208_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
         status.sr = tmcstepper->DRV_STATUS();
 
         // these only report if there is a fault condition
@@ -296,30 +268,23 @@ namespace Motors {
         report_short_to_ground(status);
         report_over_temp(status);
         report_short_to_ps(status);
-
-        // grbl_msg_sendf(CLIENT_SERIAL,
-        //                MsgLevel::Info,
-        //                "%s Status Register %08x GSTAT %02x",
-        //                reportAxisNameMsg(_axis_index, _dual_axis_index),
-        //                status.sr,
-        //                tmcstepper->GSTAT());
     }
 
     // calculate a tstep from a rate
-    // tstep = TRINAMIC_FCLK / (time between 1/256 steps)
+    // tstep = TRINAMIC_UART_FCLK / (time between 1/256 steps)
     // This is used to set the stallguard window from the homing speed.
     // The percent is the offset on the window
-    uint32_t TrinamicDriver::calc_tstep(float speed, float percent) {
+    uint32_t TrinamicUartDriver::calc_tstep(float speed, float percent) {
         float tstep =
             speed / 60.0 * axis_settings[_axis_index]->steps_per_mm->get() * (float)(256 / axis_settings[_axis_index]->microsteps->get());
-        tstep = TRINAMIC_FCLK / tstep * percent / 100.0;
+        tstep = TRINAMIC_UART_FCLK / tstep * percent / 100.0;
 
         return static_cast<uint32_t>(tstep);
     }
 
     // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,
     // but that can be hardwired that way.
-    void TrinamicDriver::set_disable(bool disable) {
+    void TrinamicUartDriver::set_disable(bool disable) {
         if (_has_errors) {
             return;
         }
@@ -334,12 +299,12 @@ namespace Motors {
 
 #ifdef USE_TRINAMIC_ENABLE
         if (_disabled) {
-            tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
+            tmcstepper->toff(TRINAMIC_UART_TOFF_DISABLE);
         } else {
-            if (_mode == TrinamicMode::StealthChop) {
-                tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
+            if (_mode == TrinamicUartMode::StealthChop) {
+                tmcstepper->toff(TRINAMIC_UART_TOFF_STEALTHCHOP);
             } else {
-                tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
+                tmcstepper->toff(TRINAMIC_UART_TOFF_COOLSTEP);
             }
         }
 #endif
@@ -347,8 +312,63 @@ namespace Motors {
         // This would be for individual motors, not the single pin for all motors.
     }
 
+    // =========== Reporting functions ========================
+
+    bool TrinamicUartDriver::report_open_load(TMC2208_n ::DRV_STATUS_t status) {
+        if (status.ola || status.olb) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Driver open load A:%s B:%s",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           status.ola ? "Y" : "N",
+                           status.olb ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
+
+    bool TrinamicUartDriver::report_short_to_ground(TMC2208_n ::DRV_STATUS_t status) {
+        if (status.s2ga || status.s2gb) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Driver shorted coil A:%s B:%s",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           status.s2ga ? "Y" : "N",
+                           status.s2gb ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
+
+    bool TrinamicUartDriver::report_over_temp(TMC2208_n ::DRV_STATUS_t status) {
+        if (status.ot || status.otpw) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Driver temp Warning:%s Fault:%s",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           status.otpw ? "Y" : "N",
+                           status.ot ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
+
+    bool TrinamicUartDriver::report_short_to_ps(TMC2208_n ::DRV_STATUS_t status) {
+        // check for short to power supply
+        if ((status.sr & bit(12)) || (status.sr & bit(13))) {
+            grbl_msg_sendf(CLIENT_SERIAL,
+                           MsgLevel::Info,
+                           "%s Driver short vsa:%s vsb:%s",
+                           reportAxisNameMsg(_axis_index, _dual_axis_index),
+                           (status.sr & bit(12)) ? "Y" : "N",
+                           (status.sr & bit(13)) ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
+
     // Prints StallGuard data that is useful for tuning.
-    void TrinamicDriver::readSgTask(void* pvParameters) {
+    void TrinamicUartDriver::readSgTask(void* pvParameters) {
         TickType_t       xLastWakeTime;
         const TickType_t xreadSg = 200;  // in ticks (typically ms)
         auto             n_axis  = number_axis->get();
@@ -357,7 +377,7 @@ namespace Motors {
         while (true) {                        // don't ever return from this or the task dies
             if (stallguard_debug_mask->get() != 0) {
                 if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
-                    for (TrinamicDriver* p = List; p; p = p->link) {
+                    for (TrinamicUartDriver* p = List; p; p = p->link) {
                         if (bitnum_istrue(stallguard_debug_mask->get(), p->_axis_index)) {
                             //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
                             p->debug_message();
@@ -373,60 +393,5 @@ namespace Motors {
             reportTaskStackSize(uxHighWaterMark);
 #endif
         }
-    }
-
-    // =========== Reporting functions ========================
-
-    bool TrinamicDriver::report_open_load(TMC2130_n ::DRV_STATUS_t status) {
-        if (status.ola || status.olb) {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "%s Driver Open Load a:%s b:%s",
-                           reportAxisNameMsg(_axis_index, _dual_axis_index),
-                           status.ola ? "Y" : "N",
-                           status.olb ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
-    }
-
-    bool TrinamicDriver::report_short_to_ground(TMC2130_n ::DRV_STATUS_t status) {
-        if (status.s2ga || status.s2gb) {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "%s Driver Short Coil a:%s b:%s",
-                           reportAxisNameMsg(_axis_index, _dual_axis_index),
-                           status.s2ga ? "Y" : "N",
-                           status.s2gb ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
-    }
-
-    bool TrinamicDriver::report_over_temp(TMC2130_n ::DRV_STATUS_t status) {
-        if (status.ot || status.otpw) {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "%s Driver Temp Warning:%s Fault:%s",
-                           reportAxisNameMsg(_axis_index, _dual_axis_index),
-                           status.otpw ? "Y" : "N",
-                           status.ot ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
-    }
-
-    bool TrinamicDriver::report_short_to_ps(TMC2130_n ::DRV_STATUS_t status) {
-        // check for short to power supply
-        if ((status.sr & bit(12)) || (status.sr & bit(13))) {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "%s Driver Short vsa:%s vsb:%s",
-                           reportAxisNameMsg(_axis_index, _dual_axis_index),
-                           (status.sr & bit(12)) ? "Y" : "N",
-                           (status.sr & bit(13)) ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
     }
 }

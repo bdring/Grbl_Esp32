@@ -47,38 +47,42 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     // setup control inputs
 
 #ifdef CONTROL_SAFETY_DOOR_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Door switch on pin %s", pinName(CONTROL_SAFETY_DOOR_PIN).c_str());
     pinMode(CONTROL_SAFETY_DOOR_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_SAFETY_DOOR_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_RESET_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset switch on pin %s", pinName(CONTROL_RESET_PIN).c_str());
     pinMode(CONTROL_RESET_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_RESET_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_FEED_HOLD_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Hold switch on pin %s", pinName(CONTROL_FEED_HOLD_PIN).c_str());
     pinMode(CONTROL_FEED_HOLD_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_FEED_HOLD_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef CONTROL_CYCLE_START_PIN
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start switch on pin %s", pinName(CONTROL_CYCLE_START_PIN).c_str());
     pinMode(CONTROL_CYCLE_START_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(CONTROL_CYCLE_START_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_0_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 0");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 0 %s", pinName(MACRO_BUTTON_0_PIN).c_str());
     pinMode(MACRO_BUTTON_0_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_0_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_1_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 1");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 1 %s", pinName(MACRO_BUTTON_1_PIN).c_str());
     pinMode(MACRO_BUTTON_1_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_1_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_2_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 2");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 2 %s", pinName(MACRO_BUTTON_2_PIN).c_str());
     pinMode(MACRO_BUTTON_2_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_2_PIN), isr_control_inputs, CHANGE);
 #endif
 #ifdef MACRO_BUTTON_3_PIN
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 3");
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro Pin 3 %s", pinName(MACRO_BUTTON_3_PIN).c_str());
     pinMode(MACRO_BUTTON_3_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(MACRO_BUTTON_3_PIN), isr_control_inputs, CHANGE);
 #endif
@@ -87,7 +91,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     control_sw_queue = xQueueCreate(10, sizeof(int));
     xTaskCreate(controlCheckTask,
                 "controlCheckTask",
-                2048,
+                3096,
                 NULL,
                 5,  // priority
                 NULL);
@@ -125,7 +129,9 @@ void controlCheckTask(void* pvParameters) {
         debouncing = false;
 
         static UBaseType_t uxHighWaterMark = 0;
+#    ifdef DEBUG_TASK_STACK
         reportTaskStackSize(uxHighWaterMark);
+#    endif
     }
 }
 #endif
@@ -265,36 +271,29 @@ void system_exec_control_pin(ControlPins pins) {
     }
 }
 
-// io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
-// It uses a mask so all can be turned of in ms_reset
-bool sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized) {
-    bool cmd_ok = true;
-    if (synchronized)
-        protocol_buffer_synchronize();
-
+void sys_digital_all_off() {
     for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {
-        if (io_num_mask & bit(io_num)) {
-            if (!myDigitalOutputs[io_num]->set_level(turnOn))
-                cmd_ok = false;
-        }
+        myDigitalOutputs[io_num]->set_level(LOW);
     }
-    return cmd_ok;
 }
 
-// io_num is the virtual pin# and has nothing to do with the actual esp32 GPIO_NUM_xx
-// It uses a mask so all can be turned of in ms_reset
-bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized) {
-    bool cmd_ok = true;
-    if (synchronized)
-        protocol_buffer_synchronize();
+// io_num is the virtual digital pin#
+bool sys_set_digital(uint8_t io_num, bool turnOn) {
+    return myDigitalOutputs[io_num]->set_level(turnOn);
+}
 
+// Turn off all analog outputs
+void sys_analog_all_off() {
     for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {
-        if (io_num_mask & bit(io_num)) {
-            if (!myAnalogOutputs[io_num]->set_level(duty))
-                cmd_ok = false;
-        }
+        myAnalogOutputs[io_num]->set_level(0);
     }
-    return cmd_ok;
+}
+
+// io_num is the virtual analog pin#
+bool sys_set_analog(uint8_t io_num, float percent) {
+    auto     analog    = myAnalogOutputs[io_num];
+    uint32_t numerator = percent / 100.0 * analog->denominator();
+    return analog->set_level(numerator);
 }
 
 /*
@@ -332,4 +331,39 @@ uint8_t sys_calc_pwm_precision(uint32_t freq) {
 
     return precision - 1;
 }
-void __attribute__((weak)) user_defined_macro(uint8_t index);
+void __attribute__((weak)) user_defined_macro(uint8_t index) {
+    // must be in Idle
+    if (sys.state != State::Idle) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button only permitted in idle");
+        return;
+    }
+
+    String user_macro;
+    char   line[255];
+    switch (index) {
+        case 0:
+            user_macro = user_macro0->get();
+            break;
+        case 1:
+            user_macro = user_macro1->get();
+            break;
+        case 2:
+            user_macro = user_macro2->get();
+            break;
+        case 3:
+            user_macro = user_macro3->get();
+            break;
+        default:
+            return;
+    }
+
+    if (user_macro == "") {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro User/Macro%d empty", index);
+        return;
+    }
+
+    user_macro.replace('&', '\n');
+    user_macro.toCharArray(line, 255, 0);
+    strcat(line, "\r");
+    WebUI::inputBuffer.push(line);
+}

@@ -1,5 +1,6 @@
 #include "Grbl.h"
 #include <map>
+#include "Regex.h"
 
 // WG Readable and writable as guest
 // WU Readable and writable as user and admin
@@ -79,7 +80,6 @@ namespace WebUI {
 }
 
 void settings_init() {
-    EEPROM.begin(EEPROM_SIZE);
     make_settings();
     WebUI::make_web_settings();
     make_grbl_commands();
@@ -389,17 +389,36 @@ Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
     return Error::Ok;
 }
 
-static bool anyState() {
-    return false;
-}
-static bool idleOrJog() {
-    return sys.state != State::Idle && sys.state != State::Jog;
-}
-static bool idleOrAlarm() {
-    return sys.state != State::Idle && sys.state != State::Alarm;
-}
-static bool notCycleOrHold() {
-    return sys.state == State::Cycle && sys.state == State::Hold;
+Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    char* s;
+    if (value == NULL) {
+        value = "\0";
+    }
+
+    s = strdup(value);
+    s = trim(s);
+
+    int32_t convertedValue;
+    char*   endptr;
+    if (*s == '\0') {
+        convertedValue = 255;  // all axes
+    } else {
+        convertedValue = strtol(s, &endptr, 10);
+        if (endptr == s || *endptr != '\0') {
+            // Try to convert as an axis list
+            convertedValue = 0;
+            auto axisNames = String("XYZABC");
+            while (*s) {
+                int index = axisNames.indexOf(toupper(*s++));
+                if (index < 0) {
+                    return Error::BadNumberFormat;
+                }
+                convertedValue |= bit(index);
+            }
+        }
+    }
+    motors_set_disable(true, convertedValue);
+    return Error::Ok;
 }
 
 // Commands use the same syntax as Settings, but instead of setting or
@@ -427,6 +446,8 @@ void make_grbl_commands() {
     new GrblCommand("V", "Settings/Stats", Setting::report_nvs_stats, idleOrAlarm);
     new GrblCommand("#", "GCode/Offsets", report_ngc, idleOrAlarm);
     new GrblCommand("H", "Home", home_all, idleOrAlarm);
+    new GrblCommand("MD", "Motor/Disable", motor_disable, idleOrAlarm);
+
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
     new GrblCommand("HX", "Home/X", home_x, idleOrAlarm);
     new GrblCommand("HY", "Home/Y", home_y, idleOrAlarm);
@@ -532,19 +553,13 @@ Error do_command_or_setting(const char* key, char* value, WebUI::AuthenticationL
     Error retval = Error::InvalidStatement;
     if (!value) {
         auto lcKey = String(key);
-        // We allow the key string to begin with *, which we remove.
-        // This lets us look at X axis settings with $*x.
-        // $x by itself is the disable alarm lock command
-        if (lcKey.startsWith("*")) {
-            lcKey.remove(0, 1);
-        }
         lcKey.toLowerCase();
         bool found = false;
         for (Setting* s = Setting::List; s; s = s->next()) {
             auto lcTest = String(s->getName());
             lcTest.toLowerCase();
 
-            if (lcTest.indexOf(lcKey) >= 0) {
+            if (regexMatch(lcKey.c_str(), lcTest.c_str())) {
                 const char* displayValue = auth_failed(s, value, auth_level) ? "<Authentication required>" : s->getStringValue();
                 show_setting(s->getName(), displayValue, NULL, out);
                 found = true;

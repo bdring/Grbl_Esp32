@@ -53,8 +53,8 @@
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
 
-#define SPINDLE_TYPE            SpindleType::PWM
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_16
+#define SPINDLE_TYPE            SpindleType::LASER
+#define LASER_OUTPUT_PIN      GPIO_NUM_16
 
 #define COOLANT_MIST_PIN      GPIO_NUM_2
 

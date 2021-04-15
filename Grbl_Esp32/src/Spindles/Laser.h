@@ -34,8 +34,10 @@ namespace Spindles {
         Laser& operator=(const Laser&) = delete;
         Laser& operator=(Laser&&) = delete;
 
-        bool isRateAdjusted() override;
+        bool inLaserMode() override;
         void config_message() override;
+        void get_pins_and_settings() override;
+        void deinit() override;
 
         virtual ~Laser() {}
     };
