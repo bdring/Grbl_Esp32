@@ -122,6 +122,31 @@ void collapseGCode(char* line) {
 // exported to grbl's internal functions in terms of (mm, mm/min) and absolute machine
 // coordinates, respectively.
 Error gc_execute_line(char* line, uint8_t client) {
+    // Step -1? :) - check if there's a checksum (it should be at the end), and check it. We have to
+    // do this here, because step 0 removes the whitespaces and converts to upper case.
+    {
+        // Perform checksum test:
+        int checksum = 0;
+        int i        = 0;
+        for (; line[i] != '\0' && (line[i] == '\n' || line[i] == '\r'); ++i) {}
+        for (; line[i] != '\0' && line[i] != '*'; ++i) {
+            checksum = checksum ^ uint8_t(line[i]);
+        }
+        if (line[i] == '*') {
+            // Get rid of it first; the parser doesn't understand '*'.
+            line[i] = 0;
+            ++i;
+            int checksumFound = atoi(line + i);
+
+            if ((checksum & 0xFF) != (checksumFound & 0xFF)) {
+                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Checksum mismatched. Expected %d, but checksum is %d", checksumFound, checksum);
+                sys.state = State::Alarm;  // Ensure alarm state is active.
+                report_alarm_message(ExecAlarm::ChecksumFailed);
+                FAIL(Error::GcodeChecksumFailed);
+            }
+        }
+    }
+
     // Step 0 - remove whitespace and comments and convert to upper case
     collapseGCode(line);
 #ifdef REPORT_ECHO_LINE_RECEIVED
