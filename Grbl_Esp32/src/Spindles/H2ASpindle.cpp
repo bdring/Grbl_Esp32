@@ -78,10 +78,6 @@ namespace Spindles {
         data.msg[3] = 0x00;
         data.msg[4] = uint8_t(speed >> 8);  // RPM
         data.msg[5] = uint8_t(speed & 0xFF);
-
-        // Sometimes sync_rpm is retained between different set_speed_command's. We don't want that - we want 
-        // spindle sync to kick in after we set the speed. This forces that.
-        _sync_rpm = UINT32_MAX;
     }
 
     VFD::response_parser H2A::initialization_sequence(int index, ModbusCommand& data) {
