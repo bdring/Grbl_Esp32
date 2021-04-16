@@ -58,17 +58,47 @@ void gc_sync_position() {
 
 // Edit GCode line in-place, removing whitespace and comments and
 // converting to uppercase
-void collapseGCode(char* line) {
+Error collapseGCode(char* line) {
     // parenPtr, if non-NULL, is the address of the character after (
     char* parenPtr = NULL;
+
     // outPtr is the address where newly-processed characters will be placed.
     // outPtr is alway less than or equal to inPtr.
     char* outPtr = line;
     char  c;
-    for (char* inPtr = line; (c = *inPtr) != '\0'; inPtr++) {
+
+    // Skip insignificant newlines at the start
+    char* inPtr = line;
+    for (; *inPtr != '\0' && (*inPtr == '\n' || *inPtr == '\r'); ++inPtr) {}
+
+    int checksum = 0;
+    for (; (c = *inPtr) != '\0'; inPtr++) {
+        if (c == '*') {
+            if ((checksum & 0xFF00) == 0) {
+                *outPtr = '\0';  // Terminate gcode statement; the parser doesn't understand '*'.
+
+                auto checksumFound = atoi(inPtr + 1);
+
+                if ((checksum & 0xFF) != (checksumFound & 0xFF)) {
+                    grbl_msg_sendf(
+                        CLIENT_ALL, MsgLevel::Debug, "Checksum mismatched. Expected %d, but checksum is %d", checksumFound, checksum);
+                    sys.state = State::Alarm;  // Ensure alarm state is active.
+                    report_alarm_message(ExecAlarm::ChecksumFailed);
+                    return Error::GcodeChecksumFailed;
+                } else {
+                    return Error::Ok;
+                }
+            }
+        }
+
+        if ((checksum & 0xFF00) == 0) {
+            checksum = checksum ^ uint8_t(c);
+        }
+
         if (isspace(c)) {
             continue;
         }
+
         switch (c) {
             case ')':
                 if (parenPtr) {
@@ -82,6 +112,7 @@ void collapseGCode(char* line) {
             case '(':
                 // Start the comment at the character after (
                 parenPtr = inPtr + 1;
+                checksum |= 0x200;
                 break;
             case ';':
                 // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
@@ -89,7 +120,8 @@ void collapseGCode(char* line) {
                 report_gcode_comment(inPtr + 1);
 #endif
                 *outPtr = '\0';
-                return;
+                checksum |= 0x200;
+                return Error::Ok;
             case '%':
                 // TODO: Install '%' feature
                 // Program start-end percent sign NOT SUPPORTED.
@@ -105,6 +137,7 @@ void collapseGCode(char* line) {
                 if (!parenPtr) {
                     *outPtr++ = toupper(c);  // make upper case
                 }
+                break;
         }
     }
     // On loop exit, *inPtr is '\0'
@@ -113,6 +146,8 @@ void collapseGCode(char* line) {
         report_gcode_comment(parenPtr);
     }
     *outPtr = '\0';
+
+    return Error::Ok;
 }
 
 // Executes one line of NUL-terminated G-Code.
@@ -122,33 +157,11 @@ void collapseGCode(char* line) {
 // exported to grbl's internal functions in terms of (mm, mm/min) and absolute machine
 // coordinates, respectively.
 Error gc_execute_line(char* line, uint8_t client) {
-    // Step -1? :) - check if there's a checksum (it should be at the end), and check it. We have to
-    // do this here, because step 0 removes the whitespaces and converts to upper case.
-    {
-        // Perform checksum test:
-        int checksum = 0;
-        int i        = 0;
-        for (; line[i] != '\0' && (line[i] == '\n' || line[i] == '\r'); ++i) {}
-        for (; line[i] != '\0' && line[i] != '*'; ++i) {
-            checksum = checksum ^ uint8_t(line[i]);
-        }
-        if (line[i] == '*') {
-            // Get rid of it first; the parser doesn't understand '*'.
-            line[i] = 0;
-            ++i;
-            int checksumFound = atoi(line + i);
-
-            if ((checksum & 0xFF) != (checksumFound & 0xFF)) {
-                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Checksum mismatched. Expected %d, but checksum is %d", checksumFound, checksum);
-                sys.state = State::Alarm;  // Ensure alarm state is active.
-                report_alarm_message(ExecAlarm::ChecksumFailed);
-                FAIL(Error::GcodeChecksumFailed);
-            }
-        }
-    }
-
     // Step 0 - remove whitespace and comments and convert to upper case
-    collapseGCode(line);
+    auto error = collapseGCode(line);
+    if (error != Error::Ok) {
+        return error;
+    }
 #ifdef REPORT_ECHO_LINE_RECEIVED
     report_echo_line_received(line, client);
 #endif
