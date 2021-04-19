@@ -35,8 +35,6 @@ namespace Spindles {
 
         void updateRPM();
 
-        void default_modbus_settings(uart_config_t& uart) override;
-
         void direction_command(SpindleState mode, ModbusCommand& data) override;
         void set_speed_command(uint32_t rpm, ModbusCommand& data) override;
 
@@ -45,5 +43,8 @@ namespace Spindles {
         response_parser get_current_rpm(ModbusCommand& data) override;
 
         bool supports_actual_rpm() const override { return true; }
+
+    public:
+        Huanyang();
     };
 }
