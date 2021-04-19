@@ -20,11 +20,12 @@
 */
 #include "Spindle.h"
 
-#include <driver/uart.h>
+#include "../Uart.h"
 
 // #define VFD_DEBUG_MODE
 
 namespace Spindles {
+    extern Uart _uart;
 
     class VFD : public Spindle {
     private:
@@ -34,9 +35,9 @@ namespace Spindles {
         bool set_mode(SpindleState mode, bool critical);
         bool get_pins_and_settings();
 
-        uint8_t _txd_pin;
-        uint8_t _rxd_pin;
-        uint8_t _rts_pin;
+        int _txd_pin;
+        int _rxd_pin;
+        int _rts_pin;
 
         uint32_t _current_rpm  = 0;
         bool     _task_running = false;
@@ -57,8 +58,6 @@ namespace Spindles {
             uint8_t msg[VFD_RS485_MAX_MSG_SIZE];
         };
 
-        virtual void default_modbus_settings(uart_config_t& uart);
-
         // Commands:
         virtual void direction_command(SpindleState mode, ModbusCommand& data) = 0;
         virtual void set_speed_command(uint32_t rpm, ModbusCommand& data)      = 0;
@@ -73,8 +72,14 @@ namespace Spindles {
         virtual bool            supports_actual_rpm() const { return false; }
         virtual bool            safety_polling() const { return true; }
 
+        // The constructor sets these
+        int          _baudrate;
+        Uart::Data   _dataBits;
+        Uart::Stop   _stopBits;
+        Uart::Parity _parity;
+
     public:
-        VFD()           = default;
+        VFD();
         VFD(const VFD&) = delete;
         VFD(VFD&&)      = delete;
         VFD& operator=(const VFD&) = delete;

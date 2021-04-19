@@ -103,7 +103,7 @@ bool can_park() {
   GRBL PRIMARY LOOP:
 */
 void protocol_main_loop() {
-    serial_reset_read_buffer(CLIENT_ALL);
+    client_reset_read_buffer(CLIENT_ALL);
     empty_lines();
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
@@ -135,7 +135,7 @@ void protocol_main_loop() {
     // Primary loop! Upon a system abort, this exits back to main() to reset the system.
     // This is also where Grbl idles while waiting for something to do.
     // ---------------------------------------------------------------------------------
-    uint8_t c;
+    int c;
     for (;;) {
 #ifdef ENABLE_SD_CARD
         if (SD_ready_next) {
@@ -157,7 +157,7 @@ void protocol_main_loop() {
         uint8_t client = CLIENT_SERIAL;
         char*   line;
         for (client = 0; client < CLIENT_COUNT; client++) {
-            while ((c = serial_read(client)) != SERIAL_NO_DATA) {
+            while ((c = client_read(client)) != -1) {
                 Error res = add_char_to_line(c, client);
                 switch (res) {
                     case Error::Ok:

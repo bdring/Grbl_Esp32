@@ -54,30 +54,8 @@ EspClass esp;
 #endif
 const int DEFAULTBUFFERSIZE = 64;
 
-// this is a generic send function that everything should use, so interfaces could be added (Bluetooth, etc)
 void grbl_send(uint8_t client, const char* text) {
-    if (client == CLIENT_INPUT) {
-        return;
-    }
-#ifdef ENABLE_BLUETOOTH
-    if (WebUI::SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
-        WebUI::SerialBT.print(text);
-        //delay(10); // possible fix for dropped characters
-    }
-#endif
-#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_OUT)
-    if (client == CLIENT_WEBUI || client == CLIENT_ALL) {
-        WebUI::Serial2Socket.write((const uint8_t*)text, strlen(text));
-    }
-#endif
-#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
-    if (client == CLIENT_TELNET || client == CLIENT_ALL) {
-        WebUI::telnet_server.write((const uint8_t*)text, strlen(text));
-    }
-#endif
-    if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
-        Serial.print(text);
-    }
+    client_write(client, text);
 }
 
 // This is a formating version of the grbl_send(CLIENT_ALL,...) function that work like printf
@@ -658,7 +636,7 @@ void report_realtime_status(uint8_t client) {
         }
 #    endif  //ENABLE_BLUETOOTH
         if (client == CLIENT_SERIAL) {
-            bufsize = serial_get_rx_buffer_available(CLIENT_SERIAL);
+            bufsize = client_get_rx_buffer_available(CLIENT_SERIAL);
         }
         sprintf(temp, "|Bf:%d,%d", plan_get_block_buffer_available(), bufsize);
         strcat(status, temp);

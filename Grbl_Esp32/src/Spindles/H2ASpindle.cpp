@@ -28,17 +28,10 @@
     managed to piece together.
 */
 
-#include <driver/uart.h>
-
 namespace Spindles {
-    void H2A::default_modbus_settings(uart_config_t& uart) {
-        // sets the uart to 19200 8E1
-        VFD::default_modbus_settings(uart);
-
-        uart.baud_rate = 19200;
-        uart.data_bits = UART_DATA_8_BITS;
-        uart.parity    = UART_PARITY_EVEN;
-        uart.stop_bits = UART_STOP_BITS_1;
+    H2A::H2A() : VFD() {
+        _baudrate = 19200;
+        _parity   = Uart::Parity::Even;
     }
 
     void H2A::direction_command(SpindleState mode, ModbusCommand& data) {
