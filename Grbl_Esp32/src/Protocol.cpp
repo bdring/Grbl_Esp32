@@ -567,6 +567,12 @@ static void protocol_exec_rt_suspend() {
         if (sys.abort) {
             return;
         }
+        // if a jogCancel comes in and we have a jog "in-flight" (parsed and handed over to mc_line()),
+        //  then we need to cancel it before it reaches the planner.  otherwise we may try to move way out of
+        //  normal bounds, especially with senders that issue a series of jog commands before sending a cancel.
+        if (sys.suspend.bit.jogCancel && sys_pl_data_inflight != NULL && ((plan_line_data_t*)sys_pl_data_inflight)->is_jog) {
+            sys_pl_data_inflight = NULL;
+        }
         // Block until initial hold is complete and the machine has stopped motion.
         if (sys.suspend.bit.holdComplete) {
             // Parking manager. Handles de/re-energizing, switch state checks, and parking motions for
