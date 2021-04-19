@@ -397,7 +397,7 @@ float limitsMinPosition(uint8_t axis) {
 // Checks and reports if target array exceeds machine travel limits.
 // Return true if exceeding limits
 // Set $<axis>/MaxTravel=0 to selectively remove an axis from soft limit checks
-bool limitsCheckTravel(float* target) {
+bool __attribute__((weak)) limitsCheckTravel(float* target) {
     uint8_t idx;
     auto    n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {

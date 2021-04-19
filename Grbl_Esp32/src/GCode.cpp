@@ -1287,11 +1287,11 @@ Error gc_execute_line(char* line, uint8_t client) {
             FAIL(Error::InvalidJogCommand);
         }
         // Initialize planner data to current spindle and coolant modal state.
-        pl_data->spindle_speed = gc_state.spindle_speed;
-        pl_data->spindle       = gc_state.modal.spindle;
-        pl_data->coolant       = gc_state.modal.coolant;
-        bool cancelledInflight = false;
-        Error status           = jog_execute(pl_data, &gc_block, &cancelledInflight);
+        pl_data->spindle_speed  = gc_state.spindle_speed;
+        pl_data->spindle        = gc_state.modal.spindle;
+        pl_data->coolant        = gc_state.modal.coolant;
+        bool  cancelledInflight = false;
+        Error status            = jog_execute(pl_data, &gc_block, &cancelledInflight);
         if (status == Error::Ok && !cancelledInflight) {
             memcpy(gc_state.position, gc_block.values.xyz, sizeof(gc_block.values.xyz));
         }
@@ -1486,9 +1486,9 @@ Error gc_execute_line(char* line, uint8_t client) {
             // and absolute and incremental modes.
             pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
             if (axis_command != AxisCommand::None) {
-                mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
+                inverse_kinematics(gc_block.values.xyz, pl_data, gc_state.position);
             }
-            mc_line_kins(coord_data, pl_data, gc_state.position);
+            inverse_kinematics(coord_data, pl_data, gc_state.position);
             memcpy(gc_state.position, coord_data, sizeof(gc_state.position));
             break;
         case NonModal::SetHome0:
@@ -1516,12 +1516,10 @@ Error gc_execute_line(char* line, uint8_t client) {
         if (axis_command == AxisCommand::MotionMode) {
             GCUpdatePos gc_update_pos = GCUpdatePos::Target;
             if (gc_state.modal.motion == Motion::Linear) {
-                //mc_line(gc_block.values.xyz, pl_data);
-                mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
+                inverse_kinematics(gc_block.values.xyz, pl_data, gc_state.position);
             } else if (gc_state.modal.motion == Motion::Seek) {
                 pl_data->motion.rapidMotion = 1;  // Set rapid motion flag.
-                //mc_line(gc_block.values.xyz, pl_data);
-                mc_line_kins(gc_block.values.xyz, pl_data, gc_state.position);
+                inverse_kinematics(gc_block.values.xyz, pl_data, gc_state.position);
             } else if ((gc_state.modal.motion == Motion::CwArc) || (gc_state.modal.motion == Motion::CcwArc)) {
                 mc_arc(gc_block.values.xyz,
                        pl_data,

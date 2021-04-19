@@ -40,15 +40,9 @@ Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block, bool* can
         }
     }
     // Valid jog command. Plan, set state, and execute.
-    bool added_to_planner = true;
-#ifndef USE_KINEMATICS
-    added_to_planner = mc_line(gc_block->values.xyz, pl_data);
-#else  // else use kinematics
-    inverse_kinematics(gc_block->values.xyz, pl_data, gc_state.position);
-#endif
-
-    if (!added_to_planner) {
-        if (cancelledInflight) *cancelledInflight = true;
+    if (!inverse_kinematics(gc_block->values.xyz, pl_data, gc_state.position)) {
+        if (cancelledInflight)
+            *cancelledInflight = true;
         return Error::Ok;
     }
 
