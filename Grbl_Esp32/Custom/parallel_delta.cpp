@@ -135,23 +135,12 @@ bool user_defined_homing(uint8_t cycle_mask) {  // true = do not continue with n
 }
 
 // This function is used by Grbl
-void inverse_kinematics(float* position) {
-    float motor_angles[3];
-
-    read_settings();
-    delta_calcInverse(position, motor_angles);
-    position[0] = motor_angles[0];
-    position[1] = motor_angles[1];
-    position[2] = motor_angles[2];
-}
-
-// This function is used by Grbl
-void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
+bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
 {
     float dx, dy, dz;  // distances in each cartesian axis
     float motor_angles[3];
 
-    float seg_target[3];                  // The target of the current segment
+    float seg_target[3];                    // The target of the current segment
     float feed_rate  = pl_data->feed_rate;  // save original feed rate
     bool  show_error = true;                // shows error once
 
@@ -210,7 +199,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
                 pl_data->feed_rate = (feed_rate * delta_distance / segment_dist);
             }
 
-            mc_line(motor_angles, pl_data);
+            return mc_line(motor_angles, pl_data);
 
         } else {
             if (show_error) {
@@ -222,36 +211,35 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
                 //                motor_angles[1],
                 //                motor_angles[2]);
                 show_error = false;
+                return false;
             }
         }
     }
 }
 
 // this is used used by Grbl soft limits to see if the range of the machine is exceeded.
-uint8_t kinematic_limits_check(float* target) {
+bool limitsCheckTravel(float* target) {
     float motor_angles[3];
 
     read_settings();
 
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin Soft Check %3.3f, %3.3f, %3.3f", target[0], target[1], target[2]);
 
-    KinematicError status = delta_calcInverse(target, motor_angles);
-
-    switch (status) {
+    switch (delta_calcInverse(target, motor_angles)) {
         case KinematicError::OUT_OF_RANGE:
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target out of range");
-            break;
+            return true;
         case KinematicError::ANGLE_TOO_NEGATIVE:
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target max negative");
-            break;
+            return true;
         case KinematicError::ANGLE_TOO_POSITIVE:
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target max positive");
-            break;
+            return true;
         case KinematicError::NONE:
-            break;
+            return false;
     }
 
-    return (status == KinematicError::NONE);
+    return false;
 }
 
 // inverse kinematics: cartesian -> angles

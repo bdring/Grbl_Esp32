@@ -85,7 +85,7 @@ void kinematics_post_homing() {
 
 
 */
-void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
+bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
     //static float last_angle = 0;
     //static float last_radius = 0;
     float    dx, dy, dz;          // distances in each cartesian axis
@@ -111,6 +111,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
         segment_count = ceil(dist / SEGMENT_LENGTH);  // determine the number of segments we need	... round up so there is at least 1
     }
     dist /= segment_count;  // segment distance
+    bool added = false;
     for (uint32_t segment = 1; segment <= segment_count; segment++) {
         // determine this segment's target
         seg_target[X_AXIS] = position[X_AXIS] + (dx / float(segment_count) * segment) - x_offset;
@@ -141,9 +142,10 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
         polar[Z_AXIS] += z_offset;
         last_radius = polar[RADIUS_AXIS];
         last_angle  = polar[POLAR_AXIS];
-        mc_line(polar, pl_data);
+        added       = mc_line(polar, pl_data);
     }
     // TO DO don't need a feedrate for rapids
+    return added;
 }
 
 /*

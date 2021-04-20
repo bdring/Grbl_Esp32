@@ -54,7 +54,6 @@ special things your machine needs at startup.
 void machine_init() {}
 #endif
 
-#ifdef USE_CUSTOM_HOMING
 /*
   user_defined_homing(uint8_t cycle_mask) is called at the begining of the normal Grbl_ESP32 homing
   sequence.  If user_defined_homing(uint8_t cycle_mask) returns false, the rest of normal Grbl_ESP32
@@ -66,9 +65,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
     // True = done with homing, false = continue with normal Grbl_ESP32 homing
     return true;
 }
-#endif
 
-#ifdef USE_KINEMATICS
 /*
   Inverse Kinematics converts X,Y,Z cartesian coordinate to the steps
   on your "joint" motors.  It requires the following three functions:
@@ -86,9 +83,9 @@ bool user_defined_homing(uint8_t cycle_mask) {
     pl_data = planner data (see the definition of this type to see what it is)
     position = an N_AXIS array of where the machine is starting from for this move
 */
-void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
+bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
     // this simply moves to the target. Replace with your kinematics.
-    mc_line(target, pl_data);
+    return mc_line(target, pl_data);
 }
 
 /*
@@ -97,8 +94,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
   cycle_mask is a bit mask of the axes being homed this time.
 */
-bool kinematics_pre_homing(uint8_t cycle_mask))
-{
+bool kinematics_pre_homing(uint8_t cycle_mask) {
     return false;  // finish normal homing cycle
 }
 
@@ -106,9 +102,15 @@ bool kinematics_pre_homing(uint8_t cycle_mask))
   kinematics_post_homing() is called at the end of normal homing
 */
 void kinematics_post_homing() {}
-#endif
 
-#ifdef USE_FWD_KINEMATICS
+/*
+  limitsCheckTravel() is called to check soft limits
+  It returns true if the motion is outside the limit values
+*/
+bool limitsCheckTravel() {
+    return false;
+}
+
 /*
   The status command uses forward_kinematics() to convert
   your motor positions to cartesian X,Y,Z... coordinates.
@@ -119,7 +121,6 @@ void forward_kinematics(float* position) {
     // position[X_AXIS] =
     // position[Y_AXIS] =
 }
-#endif
 
 #ifdef USE_TOOL_CHANGE
 /*
