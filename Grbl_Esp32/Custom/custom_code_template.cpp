@@ -72,8 +72,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
 */
 
 /*
-  inverse_kinematics() looks at incoming move commands and modifies
-  them before Grbl_ESP32 puts them in the motion planner.
+  cartesian_to_motors() converts from cartesian coordinates to motor space.
 
   Grbl_ESP32 processes arcs by converting them into tiny little line segments.
   Kinematics in Grbl_ESP32 works the same way. Search for this function across
@@ -83,7 +82,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
     pl_data = planner data (see the definition of this type to see what it is)
     position = an N_AXIS array of where the machine is starting from for this move
 */
-bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
+bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
     // this simply moves to the target. Replace with your kinematics.
     return mc_line(target, pl_data);
 }
@@ -112,12 +111,12 @@ bool limitsCheckTravel() {
 }
 
 /*
-  The status command uses forward_kinematics() to convert
+  The status command uses motors_to_cartesian() to convert
   your motor positions to cartesian X,Y,Z... coordinates.
 
   Convert the N_AXIS array of motor positions to cartesian in your code.
 */
-void forward_kinematics(float* position) {
+void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
     // position[X_AXIS] =
     // position[Y_AXIS] =
 }

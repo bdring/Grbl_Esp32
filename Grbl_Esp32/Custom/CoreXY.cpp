@@ -258,7 +258,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
 // Inverse Kinematics calculates motor positions from real world cartesian positions
 // position is the current position
 // Breaking into segments is not needed with CoreXY, because it is a linear system.
-bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
+bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
 {
     float dx, dy, dz;  // distances in each cartesian axis
     float motors[MAX_N_AXIS];
@@ -291,36 +291,15 @@ bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 }
 
 // motors -> cartesian
-void forward_kinematics(float* position) {
-    float   calc_fwd[MAX_N_AXIS];
-    float   wco[MAX_N_AXIS];
-    float   print_position[N_AXIS];
-    int32_t current_position[N_AXIS];  // Copy current state of the system position variable
-
-    memcpy(current_position, sys_position, sizeof(sys_position));
-    system_convert_array_steps_to_mpos(print_position, current_position);
-
-    // determine the Work Coordinate Offsets for each axis
-    auto n_axis = number_axis->get();
-    for (int axis = 0; axis < n_axis; axis++) {
-        // Apply work coordinate offsets and tool length offset to current position.
-        wco[axis] = gc_state.coord_system[axis] + gc_state.coord_offset[axis];
-        if (axis == TOOL_LENGTH_OFFSET_AXIS) {
-            wco[axis] += gc_state.tool_length_offset;
-        }
-    }
-
+void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
     // apply the forward kinemetics to the machine coordinates
     // https://corexy.com/theory.html
     //calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
-    calc_fwd[X_AXIS] = ((0.5 * (print_position[X_AXIS] + print_position[Y_AXIS]) / geometry_factor) - wco[X_AXIS]);
-    calc_fwd[Y_AXIS] = ((0.5 * (print_position[X_AXIS] - print_position[Y_AXIS])) - wco[Y_AXIS]);
+    cartesian[X_AXIS] = ((0.5 * (motors[X_AXIS] + motors[Y_AXIS]) / geometry_factor);
+    cartesian[Y_AXIS] = ((0.5 * (motors[X_AXIS] - motors[Y_AXIS])));
 
-    for (int axis = 0; axis < n_axis; axis++) {
-        if (axis > Y_AXIS) {  // for axes above Y there is no kinematics
-            calc_fwd[axis] = print_position[axis] - wco[axis];
-        }
-        position[axis] = calc_fwd[axis];  // this is the value returned to reporting
+    for (int axis = Z_AXIS; axis < n_axis; axis++) {
+        cartesian[axis] = motors[axis];
     }
 }
 

@@ -593,8 +593,6 @@ void report_calc_status_position(float* print_position, float* wco, bool wpos) {
             }
         }
     }
-
-    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
 }
 
 // Prints real-time data. This function grabs a real-time snapshot of the stepper subprogram
@@ -960,21 +958,16 @@ void calc_mpos(float* print_position) {
     int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
     memcpy(current_position, sys_position, sizeof(sys_position));
     system_convert_array_steps_to_mpos(print_position, current_position);
-    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
 }
 
 void calc_wpos(float* print_position) {
-    int32_t current_position[MAX_N_AXIS];  // Copy current state of the system position variable
-    memcpy(current_position, sys_position, sizeof(sys_position));
-    system_convert_array_steps_to_mpos(print_position, current_position);
+    calc_mpos(print_position);
 
     float* wco    = get_wco();
     auto   n_axis = number_axis->get();
     for (int idx = 0; idx < n_axis; idx++) {
         print_position[idx] -= wco[idx];
     }
-
-    forward_kinematics(print_position);  // a weak definition does nothing. Users can provide strong version
 }
 float* get_wco() {
     static float wco[MAX_N_AXIS];
@@ -988,5 +981,3 @@ float* get_wco() {
     }
     return wco;
 }
-
-void __attribute__((weak)) forward_kinematics(float* position) {}  // This version does nothing. Make your own to do something with it

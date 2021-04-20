@@ -30,7 +30,7 @@ volatile ExecState     sys_rt_exec_state;  // Global realtime executor bitflag v
 volatile ExecAlarm     sys_rt_exec_alarm;  // Global realtime executor bitflag variable for setting various alarms.
 volatile ExecAccessory sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
 volatile bool          cycle_stop;                      // For state transitions, instead of bitflag
-volatile void*         sys_pl_data_inflight;  // holds a plan_line_data_t while inverse_kinematics has taken ownership of a line motion
+volatile void*         sys_pl_data_inflight;  // holds a plan_line_data_t while cartesian_to_motors has taken ownership of a line motion
 #ifdef DEBUG
 volatile bool sys_rt_exec_debug;
 #endif
@@ -179,11 +179,12 @@ float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
 
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     uint8_t idx;
+    float   motors[N_AXIS];
     auto    n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {
-        position[idx] = system_convert_axis_steps_to_mpos(steps, idx);
+        motors[idx] = system_convert_axis_steps_to_mpos(steps, idx);
     }
-    return;
+    motors_to_cartesian(position, motors, n_axis);
 }
 
 // Returns control pin state as a uint8 bitfield. Each bit indicates the input pin state, where
