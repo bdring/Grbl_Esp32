@@ -91,6 +91,7 @@ typedef struct {
 #ifdef USE_LINE_NUMBERS
     int32_t line_number;  // Desired line number to report when executing.
 #endif
+    bool         is_jog;         // true if this was generated due to a jog command
 } plan_line_data_t;
 
 // Initialize and reset the motion plan subsystem

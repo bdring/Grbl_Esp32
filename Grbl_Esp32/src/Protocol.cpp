@@ -103,7 +103,7 @@ bool can_park() {
   GRBL PRIMARY LOOP:
 */
 void protocol_main_loop() {
-    serial_reset_read_buffer(CLIENT_ALL);
+    client_reset_read_buffer(CLIENT_ALL);
     empty_lines();
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
@@ -135,7 +135,7 @@ void protocol_main_loop() {
     // Primary loop! Upon a system abort, this exits back to main() to reset the system.
     // This is also where Grbl idles while waiting for something to do.
     // ---------------------------------------------------------------------------------
-    uint8_t c;
+    int c;
     for (;;) {
 #ifdef ENABLE_SD_CARD
         if (SD_ready_next) {
@@ -157,7 +157,7 @@ void protocol_main_loop() {
         uint8_t client = CLIENT_SERIAL;
         char*   line;
         for (client = 0; client < CLIENT_COUNT; client++) {
-            while ((c = serial_read(client)) != SERIAL_NO_DATA) {
+            while ((c = client_read(client)) != -1) {
                 Error res = add_char_to_line(c, client);
                 switch (res) {
                     case Error::Ok:
@@ -566,6 +566,12 @@ static void protocol_exec_rt_suspend() {
     while (sys.suspend.value) {
         if (sys.abort) {
             return;
+        }
+        // if a jogCancel comes in and we have a jog "in-flight" (parsed and handed over to mc_line()),
+        //  then we need to cancel it before it reaches the planner.  otherwise we may try to move way out of
+        //  normal bounds, especially with senders that issue a series of jog commands before sending a cancel.
+        if (sys.suspend.bit.jogCancel && sys_pl_data_inflight != NULL && ((plan_line_data_t*)sys_pl_data_inflight)->is_jog) {
+            sys_pl_data_inflight = NULL;
         }
         // Block until initial hold is complete and the machine has stopped motion.
         if (sys.suspend.bit.holdComplete) {

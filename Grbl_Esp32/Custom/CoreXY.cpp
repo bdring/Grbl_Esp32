@@ -59,6 +59,19 @@ void machine_init() {
 #endif
 }
 
+// Converts Cartesian to motors with no motion control
+static void cartesian_to_motors(float* position) {
+    float motors[MAX_N_AXIS];
+
+    motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
+    motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
+
+    position[X_AXIS] = motors[X_AXIS];
+    position[Y_AXIS] = motors[Y_AXIS];
+
+    // Z and higher just pass through unchanged
+}
+
 // Cycle mask is 0 unless the user sends a single axis command like $HZ
 // This will always return true to prevent the normal Grbl homing cycle
 bool user_defined_homing(uint8_t cycle_mask) {
@@ -135,7 +148,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
                     }
 
                     // convert back to motor steps
-                    inverse_kinematics(target);
+                    cartesian_to_motors(target);
 
                     pl_data->feed_rate = homing_rate;   // feed or seek rates
                     plan_buffer_line(target, pl_data);  // Bypass mc_line(). Directly plan homing motion.
@@ -226,7 +239,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
     }
 
     // convert to motors
-    inverse_kinematics(target);
+    cartesian_to_motors(target);
     // convert to steps
     for (axis = X_AXIS; axis <= Y_AXIS; axis++) {
         sys_position[axis] = target[axis] * axis_settings[axis]->steps_per_mm->get();
@@ -242,24 +255,10 @@ bool user_defined_homing(uint8_t cycle_mask) {
     return true;
 }
 
-// This function is used by Grbl convert Cartesian to motors
-// this does not do any motion control
-void inverse_kinematics(float* position) {
-    float motors[MAX_N_AXIS];
-
-    motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
-    motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
-
-    position[X_AXIS] = motors[X_AXIS];
-    position[Y_AXIS] = motors[Y_AXIS];
-
-    // Z and higher just pass through unchanged
-}
-
 // Inverse Kinematics calculates motor positions from real world cartesian positions
 // position is the current position
 // Breaking into segments is not needed with CoreXY, because it is a linear system.
-void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
+bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
 {
     float dx, dy, dz;  // distances in each cartesian axis
     float motors[MAX_N_AXIS];
@@ -288,7 +287,7 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
 
     memcpy(last_motors, motors, sizeof(motors));
 
-    mc_line(motors, pl_data);
+    return mc_line(motors, pl_data);
 }
 
 // motors -> cartesian
@@ -314,7 +313,7 @@ void forward_kinematics(float* position) {
     // apply the forward kinemetics to the machine coordinates
     // https://corexy.com/theory.html
     //calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
-    calc_fwd[X_AXIS] = ((0.5 * (print_position[X_AXIS] + print_position[Y_AXIS]) * geometry_factor) - wco[X_AXIS]);
+    calc_fwd[X_AXIS] = ((0.5 * (print_position[X_AXIS] + print_position[Y_AXIS]) / geometry_factor) - wco[X_AXIS]);
     calc_fwd[Y_AXIS] = ((0.5 * (print_position[X_AXIS] - print_position[Y_AXIS])) - wco[Y_AXIS]);
 
     for (int axis = 0; axis < n_axis; axis++) {
@@ -336,9 +335,9 @@ void kinematics_post_homing() {
     }
 }
 
-// this is used used by Grbl soft limits to see if the range of the machine is exceeded.
-uint8_t kinematic_limits_check(float* target) {
-    return true;
+// this is used used by Limits.cpp to see if the range of the machine is exceeded.
+bool limitsCheckTravel(float* target) {
+    return false;
 }
 
 void user_m30() {}

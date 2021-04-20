@@ -26,9 +26,11 @@
 
 #include <TMCStepper.h>
 
-HardwareSerial tmc_serial(TMC_UART);
+Uart tmc_serial(TMC_UART);
 
 namespace Motors {
+
+    bool TrinamicUartDriver::_uart_started = false;
 
     TrinamicUartDriver* TrinamicUartDriver::List = NULL;  // a static ist of all drivers for stallguard reporting
 
@@ -41,9 +43,11 @@ namespace Motors {
         _r_sense            = r_sense;
         this->addr          = addr;
 
-        uart_set_pin(TMC_UART, TMC_UART_TX, TMC_UART_RX, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-        tmc_serial.begin(115200, SERIAL_8N1, TMC_UART_RX, TMC_UART_TX);
-        tmc_serial.setRxBufferSize(128);
+        if (!_uart_started) {
+            tmc_serial.setPins(TMC_UART_TX, TMC_UART_RX);
+            tmc_serial.begin(115200, Uart::Data::Bits8, Uart::Stop::Bits1, Uart::Parity::None);
+            _uart_started = true;
+        }
         hw_serial_init();
 
         link = List;
@@ -231,7 +235,7 @@ namespace Motors {
                 tmcstepper->en_spreadCycle(false);
                 tmcstepper->pwm_autoscale(false);
                 tmcstepper->TCOOLTHRS(calc_tstep(homing_feed_rate->get(), 150.0));
-                tmcstepper->SGTHRS(constrain(axis_settings[_axis_index]->stallguard->get(),0,255));
+                tmcstepper->SGTHRS(constrain(axis_settings[_axis_index]->stallguard->get(), 0, 255));
                 break;
             default:
                 grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Unknown Trinamic mode:d", _mode);

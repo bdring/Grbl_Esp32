@@ -22,7 +22,7 @@
 
 // Grbl versioning system
 const char* const GRBL_VERSION       = "1.3a";
-const char* const GRBL_VERSION_BUILD = "20210311";
+const char* const GRBL_VERSION_BUILD = "20210420";
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -51,8 +51,9 @@ const char* const GRBL_VERSION_BUILD = "20210311";
 #include "Limits.h"
 #include "MotionControl.h"
 #include "Protocol.h"
-#include "Report.h"
+#include "Uart.h"
 #include "Serial.h"
+#include "Report.h"
 #include "Pins.h"
 #include "Spindles/Spindle.h"
 #include "Motors/Motors.h"
@@ -64,6 +65,8 @@ const char* const GRBL_VERSION_BUILD = "20210311";
 #include "WebUI/WebSettings.h"
 
 #include "UserOutput.h"
+
+#include <Wire.h>
 
 // Do not guard this because it is needed for local files too
 #include "SDCard.h"
@@ -90,20 +93,18 @@ const char* const GRBL_VERSION_BUILD = "20210311";
 void grbl_init();
 void run_once();
 
-// Called if USE_MACHINE_INIT is defined
-void machine_init();
+void machine_init();  // weak definition in Grbl.cpp
+void display_init();  // weak definition in Grbl.cpp
 
 bool user_defined_homing(uint8_t cycle_mask);  // weak definition in Limits.cpp
 
-// Called if USE_KINEMATICS is defined
+// weak definitions in MotionControl.cpp
+bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
+bool kinematics_pre_homing(uint8_t cycle_mask);
+void kinematics_post_homing();
 
-void    inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
-bool    kinematics_pre_homing(uint8_t cycle_mask);
-void    kinematics_post_homing();
-uint8_t kinematic_limits_check(float* target);
+bool limitsCheckTravel(float* target);  // weak in Limits.cpp; true if out of range
 
-// Called if USE_FWD_KINEMATICS is defined
-void inverse_kinematics(float* position);  // used to return a converted value
 void forward_kinematics(float* position);  // weak definition in Report.cpp
 
 // Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined

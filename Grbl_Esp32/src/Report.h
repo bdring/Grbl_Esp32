@@ -92,6 +92,9 @@ void report_grbl_settings(uint8_t client, uint8_t show_extended);
 // Prints an echo of the pre-parsed line received right before execution.
 void report_echo_line_received(char* line, uint8_t client);
 
+// calculate the postion for status reports
+void report_calc_status_position(float* print_position, float* wco, bool wpos);
+
 // Prints realtime status report
 void report_realtime_status(uint8_t client);
 
@@ -122,10 +125,14 @@ void report_machine_type(uint8_t client);
 void report_hex_msg(char* buf, const char* prefix, int len);
 void report_hex_msg(uint8_t* buf, const char* prefix, int len);
 
-char report_get_axis_letter(uint8_t axis);
-
+char  report_get_axis_letter(uint8_t axis);
 char* reportAxisLimitsMsg(uint8_t axis);
 char* reportAxisNameMsg(uint8_t axis);
 char* reportAxisNameMsg(uint8_t axis, uint8_t dual_axis);
 
 void reportTaskStackSize(UBaseType_t& saved);
+
+char*  report_state_text();
+float* get_wco();
+void   calc_mpos(float* print_position);
+void   calc_wpos(float* print_position);
