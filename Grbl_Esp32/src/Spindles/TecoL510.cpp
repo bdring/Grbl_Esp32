@@ -78,7 +78,7 @@ namespace Spindles {
 
                 // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
-        data.rx_length = 6;
+        data.rx_length = 5;
 
         // We have to know the max RPM before we can set the current RPM:
         auto max_rpm = this->_max_rpm;
@@ -112,6 +112,7 @@ namespace Spindles {
         auto max_rpm = this->_max_rpm;
         auto max_freq = this->_max_freq;
         uint32_t rpm = (freq*max_rpm)/max_freq;
+        return rpm;
     }
 
     VFD::response_parser L510::initialization_sequence(int index, ModbusCommand& data) {
@@ -134,11 +135,10 @@ namespace Spindles {
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint32_t rpm  = (response[3] << 8) | response[4];
-                //TODO remove hardcoding
+                //TODO also get max_frequency
                 vfd->_max_rpm = rpm;
-                //vfd->_max_rpm = 24000;
 
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "L510 spindle hardcoded 24000 %d ", vfd->_max_rpm);
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "L510 spindle max_rpm %d ", vfd->_max_rpm);
 
                 return true;
             };
@@ -154,10 +154,11 @@ namespace Spindles {
 
         // Send: 01 03 700C 0002
         data.msg[1] = 0x03;  // READ
-        data.msg[2] = 0x25;  // 0x2523 = Get RPM
-        data.msg[3] = 0x23;
+        data.msg[2] = 0x25;  // 0x2524 = Get output frequency
+        data.msg[3] = 0x24;
         data.msg[4] = 0x00;  // Read 1 value
         data.msg[5] = 0x01;
+        //grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"get_rpm");
 
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
             uint16_t freq = (response[3] << 8) | response[4];
@@ -173,7 +174,7 @@ namespace Spindles {
     VFD::response_parser L510::get_current_direction(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
-        data.rx_length = 6;
+        data.rx_length = 5;
 
         // Send: 01 03 30 00 00 01
         data.msg[1] = 0x03;  // READ
@@ -187,84 +188,10 @@ namespace Spindles {
 
         // TODO: this doesn't seem to do anything in H2A
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool { 
-            uint16_t got = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
+            uint16_t got = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
             bool dir = bitRead(got,1);
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "L510 dir %d", int(dir));
             return true; 
             };
     }
-    /*
-    void start_spindle(){
-        if(!spindle_started){
-            // send start to VFD
-           ModbusCommand start_cmd;
-           start_cmd[0] = VFD_RS485_ADDR;
-           start_command(start_cmd);
-           if (xQueueSend(vfd_cmd_queue, &start_cmd, 0) != pdTRUE) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD Queue Full");
-           }
-
-        }
-    }
-    */
-
-    /*
-    uint32_t LF510::set_rpm(uint32_t rpm){
-        if (!vfd_ok) {
-            return 0;
-        }
-        // Hack to start spindle running
-        SpindleState sstate = get_state();
-        if(sstate != SpindleState::Disabled){
-            start_spindle();
-        }
-        // apply override
-        rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
-
-        if (rpm != 0 && (rpm < _min_rpm || rpm > _max_rpm)) {
-            // NOTE: Don't add a info message here; this method is called from the stepper_pulse_func ISR method, so
-            // emitting debug information could crash the ESP32.
-
-            rpm = constrain(rpm, _min_rpm, _max_rpm);
-        }
-
-        // apply limits
-        // if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
-        //     rpm = _max_rpm;
-        // } else if (rpm != 0 && rpm <= _min_rpm) {
-        //     rpm = _min_rpm;
-        // }
-
-        sys.spindle_speed = rpm;
-
-        if (rpm == _current_rpm) {  // prevent setting same RPM twice
-            return rpm;
-        }
-
-#ifdef VFD_DEBUG_MODE2
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
-#endif
-
-        _current_rpm = rpm;
-
-        // TODO add the speed modifiers override, linearization, etc.
-
-        ModbusCommand rpm_cmd;
-        rpm_cmd.msg[0] = VFD_RS485_ADDR;
-
-        set_speed_command(rpm, rpm_cmd);
-
-        // Sometimes sync_rpm is retained between different set_speed_command's. We don't want that - we want 
-        // spindle sync to kick in after we set the speed. This forces that.
-        _sync_rpm = UINT32_MAX;
-
-        rpm_cmd.critical = (rpm == 0);
-
-        if (xQueueSend(vfd_cmd_queue, &rpm_cmd, 0) != pdTRUE) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD Queue Full");
-        }
-
-        return rpm;
-    }
-    */
 }
