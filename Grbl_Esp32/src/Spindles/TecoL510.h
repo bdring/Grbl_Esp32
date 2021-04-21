@@ -37,7 +37,7 @@ namespace Spindles {
         bool safety_polling() const override { return false; }
         uint16_t rpm_to_frequency(uint32_t rpm);
         uint32_t freq_to_rpm(uint16_t);
-        uint32_t set_rpm(uint32_t rpm) override;
+        //uint32_t set_rpm(uint32_t rpm) override;
         void start_spindle();
 
     public:

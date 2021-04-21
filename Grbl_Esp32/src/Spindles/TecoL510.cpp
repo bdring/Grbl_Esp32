@@ -33,6 +33,11 @@ namespace Spindles {
     }
 
     void L510::direction_command(SpindleState mode, ModbusCommand& data) {
+        //  Note: The direction command is always called on M3,M4, and M5
+        //      This is where the spindle start/stop should be sent 
+
+
+
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
         data.rx_length = 6;
@@ -40,15 +45,23 @@ namespace Spindles {
         data.msg[1] = 0x06;  // WRITE
         data.msg[2] = 0x25;  // Command ID 0x2501
         data.msg[3] = 0x01;
-        data.msg[4] = 0x01;
-        if(mode == SpindleState::Ccw){
-            data.msg[5] = 1;
-        }else{
-            data.msg[5] = 0;
+        data.msg[4] = 0x00;
+        switch(mode){
+            case SpindleState::Disable:
+                //data.msg[4] = 0x00;
+                data.msg[5] = 0x00;
+                break;
+            case SpindleState::Cw:
+                data.msg[5] = 0x01;
+                break;
+            case SpindleState::Ccw:
+                data.msg[5] = 0x03;
+                break;
         }
-        grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"sending dir: state:  %d",mode;
+        grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"sending dir: state:  %d",mode);
     }
 
+    /*
     void L510::start_command(ModbusCommand& data){
         data.tx_length = 6;
         data.rx_length = 6;
@@ -59,6 +72,7 @@ namespace Spindles {
         data.msg[5] = 0x01;
 
     }
+    */
 
     void L510::set_speed_command(uint32_t rpm, ModbusCommand& data) {
 
@@ -97,7 +111,7 @@ namespace Spindles {
     uint32_t L510::freq_to_rpm(uint16_t freq){
         auto max_rpm = this->_max_rpm;
         auto max_freq = this->_max_freq;
-        uint32_t rpm = (freq/max_freq)/max_rpm;
+        uint32_t rpm = (freq*max_rpm)/max_freq;
     }
 
     VFD::response_parser L510::initialization_sequence(int index, ModbusCommand& data) {
@@ -109,28 +123,20 @@ namespace Spindles {
             
             // Send: 
             data.msg[1] = 0x03;  // READ
-            data.msg[2] = 0x02;  // 0x0203 = Get RPM
+            data.msg[2] = 0x02;  // 0x0203 = Get  max rpm
             data.msg[3] = 0x03;
             data.msg[4] = 0x00;  // Read 1 value
             data.msg[5] = 0x01;
             
-            /*
-           // Hack to see if a known working register can be read
-           data.msg[1] = 0x03;  // READ
-            data.msg[2] = 0x25;  // 0x2523 = Get RPM
-            data.msg[3] = 0x23;
-            data.msg[4] = 0x00;  // Read 1 value
-            data.msg[5] = 0x01;
-            */
 
 
             //  Recv: ??
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
-                //uint16_t rpm  = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
+                uint32_t rpm  = (response[3] << 8) | response[4];
                 //TODO remove hardcoding
-                //vfd->_max_rpm = rpm;
-                vfd->_max_rpm = 24000;
+                vfd->_max_rpm = rpm;
+                //vfd->_max_rpm = 24000;
 
                 grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "L510 spindle hardcoded 24000 %d ", vfd->_max_rpm);
 
@@ -157,12 +163,9 @@ namespace Spindles {
             uint16_t freq = (response[3] << 8) | response[4];
             grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"current frequency: %d",freq);
 
-            // Set current RPM value? Somewhere?
-            //vfd->_sync_rpm = vfd->freq_to_rpm(freq);
+            auto l510 = static_cast<L510*>(vfd);
 
-            //TODO: how do get access to the object I was in before wandering into this lambda?
-            // undo hardcoded garbage
-            vfd->_sync_rpm = (freq/40000)*24000;
+            vfd->_sync_rpm = l510->freq_to_rpm(freq);
             return true;
         };
     }
@@ -190,6 +193,7 @@ namespace Spindles {
             return true; 
             };
     }
+    /*
     void start_spindle(){
         if(!spindle_started){
             // send start to VFD
@@ -202,7 +206,9 @@ namespace Spindles {
 
         }
     }
+    */
 
+    /*
     uint32_t LF510::set_rpm(uint32_t rpm){
         if (!vfd_ok) {
             return 0;
@@ -260,4 +266,5 @@ namespace Spindles {
 
         return rpm;
     }
+    */
 }
