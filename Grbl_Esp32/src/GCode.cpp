@@ -53,7 +53,7 @@ void gc_init() {
 // Sets g-code parser position in mm. Input in steps. Called by the system abort and hard
 // limit pull-off routines.
 void gc_sync_position() {
-    system_get_mpos(gc_state.position);
+    system_convert_array_steps_to_mpos(gc_state.position, sys_position);
 }
 
 // Edit GCode line in-place, removing whitespace and comments and

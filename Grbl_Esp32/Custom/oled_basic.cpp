@@ -136,8 +136,7 @@ void displayDRO() {
 
     display.setTextAlignment(TEXT_ALIGN_RIGHT);
 
-    float print_position[MAX_N_AXIS];
-    system_get_mpos(print_position);
+    float* print_position = system_get_mpos();
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
         display.drawString(60, 14, "W Pos");
     } else {

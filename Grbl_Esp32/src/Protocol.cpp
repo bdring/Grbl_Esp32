@@ -532,7 +532,6 @@ static void protocol_exec_rt_suspend() {
 #ifdef PARKING_ENABLE
     // Declare and initialize parking local variables
     float             restore_target[MAX_N_AXIS];
-    float             parking_target[MAX_N_AXIS];
     float             retract_waypoint = PARKING_PULLOUT_INCREMENT;
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
@@ -579,6 +578,9 @@ static void protocol_exec_rt_suspend() {
             // the safety door and sleep states.
             if (sys.state == State::SafetyDoor || sys.state == State::Sleep) {
                 // Handles retraction motions and de-energizing.
+#ifdef PARKING_ENABLE
+                float* parking_target = system_get_mpos();
+#endif
                 if (!sys.suspend.bit.retractComplete) {
                     // Ensure any prior spindle stop override is disabled at start of safety door routine.
                     sys.spindle_stop_ovr.value = 0;  // Disable override
@@ -587,9 +589,8 @@ static void protocol_exec_rt_suspend() {
                     coolant_off();
 #else
                     // Get current position and store restore location and spindle retract waypoint.
-                    system_get_mpos(parking_target);
                     if (!sys.suspend.bit.restartRetract) {
-                        memcpy(restore_target, parking_target, sizeof(parking_target));
+                        memcpy(restore_target, parking_target, sizeof(restore_target[0]) * number_axis->get());
                         retract_waypoint += restore_target[PARKING_AXIS];
                         retract_waypoint = MIN(retract_waypoint, PARKING_TARGET);
                     }
