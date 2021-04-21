@@ -2,12 +2,12 @@
 // clang-format off
 
 /*
-    fystec_e4.h
+    fysetc_e4.h
     https://github.com/FYSETC/FYSETC-E4
 
     2020-12-03 B. Dring
 
-    This is a machine definition file to use the FYSTEC E4 3D Printer controller
+    This is a machine definition file to use the FYSETC E4 3D Printer controller
     This is a 4 motor controller. This is setup for XYZA, but XYYZ, could also be used.
     There are 5 inputs
     The controller has outputs for a Fan, Hotbed and Extruder. There are mapped to
@@ -27,7 +27,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MACHINE_NAME            "FYSTEC E4 3D Printer Controller"
+#define MACHINE_NAME            "FYSETC E4 3D Printer Controller"
 
 #define N_AXIS 4
 

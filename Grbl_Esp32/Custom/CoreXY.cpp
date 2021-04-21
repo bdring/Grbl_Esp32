@@ -143,7 +143,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
                     }
 
                     for (int axis = Z_AXIS; axis < n_axis; axis++) {
-                        target[axis] = system_convert_axis_steps_to_mpos(sys_position, axis);
+                        target[axis] = sys_position[axis] / axis_settings[axis]->steps_per_mm->get();
                     }
 
                     // convert back to motor steps
@@ -234,7 +234,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
     last_cartesian[Y_AXIS] = target[Y_AXIS];
 
     for (int axis = Z_AXIS; axis < n_axis; axis++) {
-        last_cartesian[axis] = system_convert_axis_steps_to_mpos(sys_position, axis);
+        last_cartesian[axis] = sys_position[axis] / axis_settings[axis]->steps_per_mm->get();
     }
 
     // convert to motors
