@@ -135,10 +135,14 @@ void displayDRO() {
     ControlPins ctrl_pin_state = system_control_get_state();
     bool        prb_pin_state  = probe_get_state();
 
+    display.setTextAlignment(TEXT_ALIGN_RIGHT);    
+    
+    system_convert_array_steps_to_mpos(print_position, sys_position);
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
-        calc_mpos(print_position);
+        display.drawString(60, 14, "W Pos");
     } else {
-        calc_wpos(print_position);
+        display.drawString(60, 14, "M Pos");
+        mpos_to_wpos(print_position);
     }
 
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
