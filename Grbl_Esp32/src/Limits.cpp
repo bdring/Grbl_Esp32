@@ -122,7 +122,7 @@ void limits_go_home(uint8_t cycle_mask) {
     uint8_t  n_active_axis;
     AxisMask limit_state, axislock;
     do {
-        system_convert_array_steps_to_mpos(target, sys_position);
+        system_get_mpos(target);
         // Initialize and declare variables needed for homing routine.
         axislock      = 0;
         n_active_axis = 0;

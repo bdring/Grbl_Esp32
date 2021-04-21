@@ -165,7 +165,10 @@ void  system_flag_wco_change();
 float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx);
 
 // Updates a machine 'position' array based on the 'step' array sent.
-void system_convert_array_steps_to_mpos(float* position, int32_t* steps);
+void        system_convert_array_steps_to_mpos(float* position, int32_t* steps);
+inline void system_get_mpos(float* position) {
+    system_convert_array_steps_to_mpos(position, sys_position);
+};
 
 // A task that runs after a control switch interrupt for debouncing.
 void controlCheckTask(void* pvParameters);

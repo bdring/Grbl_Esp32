@@ -589,7 +589,7 @@ void report_realtime_status(uint8_t client) {
 
     // Report position
     float print_position[MAX_N_AXIS];
-    system_convert_array_steps_to_mpos(print_position, sys_position);
+    system_get_mpos(print_position);
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
         strcat(status, "|MPos:");
     } else {
