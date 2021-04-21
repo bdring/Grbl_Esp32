@@ -185,6 +185,11 @@ void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     }
     motors_to_cartesian(position, motors, n_axis);
 }
+float* system_get_mpos() {
+    static float position[MAX_N_AXIS];
+    system_convert_array_steps_to_mpos(position, sys_position);
+    return position;
+};
 
 // Returns control pin state as a uint8 bitfield. Each bit indicates the input pin state, where
 // triggered is 1 and not triggered is 0. Invert mask is applied. Bitfield organization is
