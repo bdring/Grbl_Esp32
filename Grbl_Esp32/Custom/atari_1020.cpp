@@ -81,9 +81,8 @@ void solenoidSyncTask(void* pvParameters) {
     xLastWakeTime                       = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
     while (true) {
         // don't ever return from this or the task dies
-        memcpy(current_position, sys_position, sizeof(sys_position));  // get current position in step
-        system_convert_array_steps_to_mpos(m_pos, current_position);   // convert to millimeters
-        calc_solenoid(m_pos[Z_AXIS]);                                  // calculate kinematics and move the servos
+        system_convert_array_steps_to_mpos(m_pos, sys_position);  // convert to millimeters
+        calc_solenoid(m_pos[Z_AXIS]);                             // calculate kinematics and move the servos
         vTaskDelayUntil(&xLastWakeTime, xSolenoidFrequency);
     }
 }

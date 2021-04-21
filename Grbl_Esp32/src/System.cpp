@@ -170,19 +170,11 @@ void system_flag_wco_change() {
 // Returns machine position of axis 'idx'. Must be sent a 'step' array.
 // NOTE: If motor steps and machine position are not in the same coordinate frame, this function
 //   serves as a central place to compute the transformation.
-float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
-    float pos;
-    float steps_per_mm = axis_settings[idx]->steps_per_mm->get();
-    pos                = steps[idx] / steps_per_mm;
-    return pos;
-}
-
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
-    uint8_t idx;
-    float   motors[N_AXIS];
-    auto    n_axis = number_axis->get();
-    for (idx = 0; idx < n_axis; idx++) {
-        motors[idx] = system_convert_axis_steps_to_mpos(steps, idx);
+    auto  n_axis = number_axis->get();
+    float motors[n_axis];
+    for (int idx = 0; idx < n_axis; idx++) {
+        motors[idx] = (float)steps[idx] / axis_settings[idx]->steps_per_mm->get();
     }
     motors_to_cartesian(position, motors, n_axis);
 }

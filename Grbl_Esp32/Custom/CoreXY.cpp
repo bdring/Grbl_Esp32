@@ -43,7 +43,6 @@ const float geometry_factor = 1.0;
 const float geometry_factor = 2.0;
 #endif
 
-static float last_motors[MAX_N_AXIS]    = { 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
 static float last_cartesian[MAX_N_AXIS] = {};
 
 // prototypes for helper functions
@@ -255,15 +254,22 @@ bool user_defined_homing(uint8_t cycle_mask) {
     return true;
 }
 
+static void transform_cartesian_to_motors(float* motors, float* cartesian) {
+    motors[X_AXIS] = geometry_factor * cartesian[X_AXIS] + cartesian[Y_AXIS];
+    motors[Y_AXIS] = geometry_factor * cartesian[X_AXIS] - cartesian[Y_AXIS];
+
+    auto n_axis = number_axis->get();
+    for (uint8_t axis = Z_AXIS; axis <= n_axis; axis++) {
+        motors[axis] = cartesian[axis];
+    }
+}
+
 // Inverse Kinematics calculates motor positions from real world cartesian positions
 // position is the current position
 // Breaking into segments is not needed with CoreXY, because it is a linear system.
 bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
 {
     float dx, dy, dz;  // distances in each cartesian axis
-    float motors[MAX_N_AXIS];
-
-    float feed_rate = pl_data->feed_rate;  // save original feed rate
 
     // calculate cartesian move distance for each axis
     dx         = target[X_AXIS] - position[X_AXIS];
@@ -271,21 +277,16 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
     dz         = target[Z_AXIS] - position[Z_AXIS];
     float dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
 
-    motors[X_AXIS] = geometry_factor * target[X_AXIS] + target[Y_AXIS];
-    motors[Y_AXIS] = geometry_factor * target[X_AXIS] - target[Y_AXIS];
-
     auto n_axis = number_axis->get();
-    for (uint8_t axis = Z_AXIS; axis <= n_axis; axis++) {
-        motors[axis] = target[axis];
-    }
 
-    float motor_distance = three_axis_dist(motors, last_motors);
+    float motors[n_axis];
+    transform_cartesian_to_motors(motors, target);
 
     if (!pl_data->motion.rapidMotion) {
-        pl_data->feed_rate *= (motor_distance / dist);
+        float last_motors[n_axis];
+        transform_cartesian_to_motors(last_motors, position);
+        pl_data->feed_rate *= (three_axis_dist(motors, last_motors) / dist);
     }
-
-    memcpy(last_motors, motors, sizeof(motors));
 
     return mc_line(motors, pl_data);
 }
@@ -295,8 +296,8 @@ void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
     // apply the forward kinemetics to the machine coordinates
     // https://corexy.com/theory.html
     //calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
-    cartesian[X_AXIS] = ((0.5 * (motors[X_AXIS] + motors[Y_AXIS]) / geometry_factor);
-    cartesian[Y_AXIS] = ((0.5 * (motors[X_AXIS] - motors[Y_AXIS])));
+    cartesian[X_AXIS] = 0.5 * (motors[X_AXIS] + motors[Y_AXIS]) / geometry_factor;
+    cartesian[Y_AXIS] = 0.5 * (motors[X_AXIS] - motors[Y_AXIS]);
 
     for (int axis = Z_AXIS; axis < n_axis; axis++) {
         cartesian[axis] = motors[axis];
@@ -309,9 +310,7 @@ bool kinematics_pre_homing(uint8_t cycle_mask) {
 
 void kinematics_post_homing() {
     auto n_axis = number_axis->get();
-    for (uint8_t axis = X_AXIS; axis <= n_axis; axis++) {
-        gc_state.position[axis] = last_cartesian[axis];
-    }
+    memcpy(gc_state.position, last_cartesian, n_axis * sizeof(last_cartesian[0]));
 }
 
 // this is used used by Limits.cpp to see if the range of the machine is exceeded.
