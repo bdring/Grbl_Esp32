@@ -21,3 +21,4 @@ __vm/
 *.suo
 Grbl_Esp32.ino.cpp
 /packages
+Grbl_Esp32/src/Machine.h
