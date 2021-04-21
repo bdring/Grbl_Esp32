@@ -1287,15 +1287,15 @@ Error gc_execute_line(char* line, uint8_t client) {
             FAIL(Error::InvalidJogCommand);
         }
         // Initialize planner data to current spindle and coolant modal state.
-        pl_data->spindle_speed  = gc_state.spindle_speed;
-        pl_data->spindle        = gc_state.modal.spindle;
-        pl_data->coolant        = gc_state.modal.coolant;
-        bool  cancelledInflight = false;
-        Error status            = jog_execute(pl_data, &gc_block, &cancelledInflight);
-        if (status == Error::Ok && !cancelledInflight) {
+        pl_data->spindle_speed = gc_state.spindle_speed;
+        pl_data->spindle       = gc_state.modal.spindle;
+        pl_data->coolant       = gc_state.modal.coolant;
+        Error status           = jog_execute(pl_data, &gc_block);
+        if (status == Error::Ok) {
             memcpy(gc_state.position, gc_block.values.xyz, sizeof(gc_block.values.xyz));
         }
-        return status;
+        // JogCancelled is not reported as a GCode error
+        return status == Error::JogCancelled ? Error::Ok : status;
     }
     // If in laser mode, setup laser power based on current and past parser conditions.
     if (spindle->inLaserMode()) {
