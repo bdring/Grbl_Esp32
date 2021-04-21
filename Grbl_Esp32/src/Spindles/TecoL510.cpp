@@ -80,8 +80,8 @@ namespace Spindles {
         if (speed < 0) {
             speed = 0;
         }
-        if (speed > 40000) {
-            speed = 40000;
+        if (speed > max_freq) {
+            speed = max_freq;
         }
 
         data.msg[1] = 0x06;  // WRITE
@@ -96,7 +96,8 @@ namespace Spindles {
     }
     uint16_t L510::rpm_to_frequency(uint32_t rpm){
         auto max_rpm = this->_max_rpm;
-        uint16_t freq = (uint32_t(rpm) * 40000L) / uint32_t(max_rpm);
+        auto max_freq = this->_max_freq;
+        uint16_t freq = (uint32_t(rpm) * max_freq) / uint32_t(max_rpm);
         return freq;
     }
 
