@@ -28,8 +28,11 @@ namespace Spindles {
     L510::L510() : VFD() {
         _baudrate = 9600;
         _parity   = Uart::Parity::None;
+        // TODO:  should defaults be set here?  What happens if the motor settings in the VFD are wrong or default?
+        /*
         _max_rpm = 24000;
         _max_freq = 40000;
+        */
     }
 
     void L510::direction_command(SpindleState mode, ModbusCommand& data) {
@@ -108,15 +111,17 @@ namespace Spindles {
         if (index == -1) {
             // NOTE: data length is excluding the CRC16 checksum.
             data.tx_length = 6;
-            data.rx_length = 5;
+            data.rx_length = 11;
 
+
+            // read parameters 02-03..02-06
             
             // Send: 
             data.msg[1] = 0x03;  // READ
             data.msg[2] = 0x02;  // 0x0203 = Get  max rpm
             data.msg[3] = 0x03;
-            data.msg[4] = 0x00;  // Read 1 value
-            data.msg[5] = 0x01;
+            data.msg[4] = 0x00;  // Read 4 values
+            data.msg[5] = 0x04;
             
 
 
@@ -124,10 +129,16 @@ namespace Spindles {
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint32_t rpm  = (response[3] << 8) | response[4];
-                //TODO also get max_frequency
-                vfd->_max_rpm = rpm;
 
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "L510 initialized: spindle max_rpm %d ", vfd->_max_rpm);
+                // NOTE:  the frequency is stored xxx.x but the input command is frequency * 100;
+                uint16_t freq = (response[9] << 8) | response[10];
+                freq = freq * 10;
+                auto l510 = static_cast<L510*>(vfd);
+
+                l510->_max_rpm = rpm;
+                l510->_max_freq = freq;
+
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "L510 initialized: spindle max_rpm %d max_freq %d", vfd->_max_rpm,l510->_max_freq);
 
                 return true;
             };
@@ -150,7 +161,6 @@ namespace Spindles {
 
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint32_t vfd_state  = (response[3] << 8) | response[4];
-                //TODO also get max_frequency
 
                 if(bitRead(vfd_state,3)){
                     grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"L510 Fault detected");                    
