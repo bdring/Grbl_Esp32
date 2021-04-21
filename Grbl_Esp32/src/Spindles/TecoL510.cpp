@@ -76,19 +76,19 @@ namespace Spindles {
 
         // Assuming max frequncy is 400Hz
         // Speed is in [0..40,000] 
-        uint16_t speed = (uint16_t(rpm) * max_freq) / uint32_t(max_rpm);
-        if (speed < 0) {
-            speed = 0;
+        uint16_t freq = (uint16_t(rpm) * max_freq) / uint32_t(max_rpm);
+        if (freq < 0) {
+            freq = 0;
         }
-        if (speed > max_freq) {
-            speed = max_freq;
+        if (freq > max_freq) {
+            freq = max_freq;
         }
 
         data.msg[1] = 0x06;  // WRITE
         data.msg[2] = 0x25;  // Command ID 0x2502
         data.msg[3] = 0x02;
-        data.msg[4] = uint8_t(speed >> 8);  // RPM
-        data.msg[5] = uint8_t(speed & 0xFF);
+        data.msg[4] = uint8_t(freq >> 8);  // RPM
+        data.msg[5] = uint8_t(freq & 0xFF);
 
 #ifdef VFD_DEBUG_MODE2
         grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"setting speed to: %d",speed);
