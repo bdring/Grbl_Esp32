@@ -121,4 +121,4 @@
 
 #define DEFAULT_X_MAX_TRAVEL 50.0 // mm NOTE: Must be a positive value.
 #define DEFAULT_Y_MAX_TRAVEL 300.0 // mm NOTE: Must be a positive value.
-#define DEFAULT_Z_MAX_TRAVEL 100.0 // This is percent in servo mode
+#define DEFAULT_Z_MAX_TRAVEL 5.0 // This is percent in servo mode
