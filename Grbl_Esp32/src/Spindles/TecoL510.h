@@ -30,11 +30,11 @@ namespace Spindles {
         response_parser initialization_sequence(int index, ModbusCommand& data) override;
         response_parser get_current_rpm(ModbusCommand& data) override;
         response_parser get_current_direction(ModbusCommand& data) override;
-        response_parser get_status_ok(ModbusCommand& data) override { return nullptr; }
 
         // what is this, what should it do?
         bool supports_actual_rpm() const override { return true; }
-        bool safety_polling() const override { return false; }
+        bool safety_polling() const override { return true; }
+        response_parser get_status_ok(ModbusCommand& data) override;
         uint16_t rpm_to_frequency(uint32_t rpm);
         uint32_t freq_to_rpm(uint16_t);
         //uint32_t set_rpm(uint32_t rpm) override;

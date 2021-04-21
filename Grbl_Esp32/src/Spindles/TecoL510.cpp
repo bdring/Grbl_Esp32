@@ -61,19 +61,6 @@ namespace Spindles {
         grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"sending dir: state:  %d",mode);
     }
 
-    /*
-    void L510::start_command(ModbusCommand& data){
-        data.tx_length = 6;
-        data.rx_length = 6;
-        data.msg[1] = 0x06;
-        data.msg[2] = 0x25;
-        data.msg[3] = 0x01;
-        data.msg[4] = 0x00;
-        data.msg[5] = 0x01;
-
-    }
-    */
-
     void L510::set_speed_command(uint32_t rpm, ModbusCommand& data) {
 
                 // NOTE: data length is excluding the CRC16 checksum.
@@ -100,7 +87,9 @@ namespace Spindles {
         data.msg[4] = uint8_t(speed >> 8);  // RPM
         data.msg[5] = uint8_t(speed & 0xFF);
 
+#ifdef VFD_DEBUG_MODE2
         grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"setting speed to: %d",speed);
+#endif
     }
     uint16_t L510::rpm_to_frequency(uint32_t rpm){
         auto max_rpm = this->_max_rpm;
@@ -138,13 +127,37 @@ namespace Spindles {
                 //TODO also get max_frequency
                 vfd->_max_rpm = rpm;
 
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "L510 spindle max_rpm %d ", vfd->_max_rpm);
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "L510 initialized: spindle max_rpm %d ", vfd->_max_rpm);
 
                 return true;
             };
         } else {
             return nullptr;
         }
+    }
+    VFD::response_parser L510::get_status_ok(ModbusCommand& data){
+        // NOTE: data length is excluding the CRC16 checksum.
+        data.tx_length = 6;
+        data.rx_length = 5;
+
+        
+        // Send: 
+        data.msg[1] = 0x03;  // READ
+        data.msg[2] = 0x25;  // 0x2520 = Get state
+        data.msg[3] = 0x20;
+        data.msg[4] = 0x00;  // Read 1 value
+        data.msg[5] = 0x01;
+
+        return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
+                uint32_t vfd_state  = (response[3] << 8) | response[4];
+                //TODO also get max_frequency
+
+                if(bitRead(vfd_state,3)){
+                    grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"L510 Fault detected");                    
+                    return false;
+                }
+                return true;
+            };
     }
 
     VFD::response_parser L510::get_current_rpm(ModbusCommand& data) {
@@ -158,11 +171,9 @@ namespace Spindles {
         data.msg[3] = 0x24;
         data.msg[4] = 0x00;  // Read 1 value
         data.msg[5] = 0x01;
-        //grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"get_rpm");
 
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
             uint16_t freq = (response[3] << 8) | response[4];
-            grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"current frequency: %d",freq);
 
             auto l510 = static_cast<L510*>(vfd);
 
@@ -172,6 +183,7 @@ namespace Spindles {
     }
 
     VFD::response_parser L510::get_current_direction(ModbusCommand& data) {
+        // does this run ever??
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
         data.rx_length = 5;
@@ -186,11 +198,9 @@ namespace Spindles {
         // Receive: 01 03 00 02 00 02
         //                      ----- status
 
-        // TODO: this doesn't seem to do anything in H2A
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool { 
             uint16_t got = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
             bool dir = bitRead(got,1);
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "L510 dir %d", int(dir));
             return true; 
             };
     }
