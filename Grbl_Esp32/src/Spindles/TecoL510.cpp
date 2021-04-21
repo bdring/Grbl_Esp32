@@ -190,4 +190,74 @@ namespace Spindles {
             return true; 
             };
     }
+    void start_spindle(){
+        if(!spindle_started){
+            // send start to VFD
+           ModbusCommand start_cmd;
+           start_cmd[0] = VFD_RS485_ADDR;
+           start_command(start_cmd);
+           if (xQueueSend(vfd_cmd_queue, &start_cmd, 0) != pdTRUE) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD Queue Full");
+           }
+
+        }
+    }
+
+    uint32_t LF510::set_rpm(uint32_t rpm){
+        if (!vfd_ok) {
+            return 0;
+        }
+        // Hack to start spindle running
+        SpindleState sstate = get_state();
+        if(sstate != SpindleState::Disabled){
+            start_spindle();
+        }
+        // apply override
+        rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
+
+        if (rpm != 0 && (rpm < _min_rpm || rpm > _max_rpm)) {
+            // NOTE: Don't add a info message here; this method is called from the stepper_pulse_func ISR method, so
+            // emitting debug information could crash the ESP32.
+
+            rpm = constrain(rpm, _min_rpm, _max_rpm);
+        }
+
+        // apply limits
+        // if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
+        //     rpm = _max_rpm;
+        // } else if (rpm != 0 && rpm <= _min_rpm) {
+        //     rpm = _min_rpm;
+        // }
+
+        sys.spindle_speed = rpm;
+
+        if (rpm == _current_rpm) {  // prevent setting same RPM twice
+            return rpm;
+        }
+
+#ifdef VFD_DEBUG_MODE2
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
+#endif
+
+        _current_rpm = rpm;
+
+        // TODO add the speed modifiers override, linearization, etc.
+
+        ModbusCommand rpm_cmd;
+        rpm_cmd.msg[0] = VFD_RS485_ADDR;
+
+        set_speed_command(rpm, rpm_cmd);
+
+        // Sometimes sync_rpm is retained between different set_speed_command's. We don't want that - we want 
+        // spindle sync to kick in after we set the speed. This forces that.
+        _sync_rpm = UINT32_MAX;
+
+        rpm_cmd.critical = (rpm == 0);
+
+        if (xQueueSend(vfd_cmd_queue, &rpm_cmd, 0) != pdTRUE) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD Queue Full");
+        }
+
+        return rpm;
+    }
 }
