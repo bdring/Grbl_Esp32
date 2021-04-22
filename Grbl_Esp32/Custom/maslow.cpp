@@ -86,14 +86,13 @@ void machine_init()
     axis3.zero();
     axis4.zero();
     
-    maslowWidth = 2900.0;
-    maslowHeight = 1780.0;
-    
     axis1Homed = false;
     axis2Homed = false;
     axis3Homed = false;
     axis4Homed = false;
     
+    maslowWidth = 2900.0;
+    maslowHeight = 1780.0;
     chainEndExtension = 30;
     armLength = 108;
 }
@@ -117,25 +116,25 @@ void recomputePID(){
 
 float computeL1(float x, float y){
     x = x + maslowWidth/2.0;
-    y = y - maslowHeight/2.0;
+    y = y + maslowHeight/2.0;
     return sqrt(x*x+y*y) - (chainEndExtension+armLength);
 }
 
 float computeL2(float x, float y){
     x = x + maslowWidth/2.0;
-    y = y - maslowHeight/2.0;
+    y = y + maslowHeight/2.0;
     return sqrt((maslowWidth-x)*(maslowWidth-x)+y*y) - (chainEndExtension+armLength);
 }
 
 float computeL3(float x, float y){
     x = x + maslowWidth/2.0;
-    y = y - maslowHeight/2.0;
+    y = y + maslowHeight/2.0;
     return sqrt((maslowWidth-x)*(maslowWidth-x)+(maslowHeight-y)*(maslowHeight-y)) - (chainEndExtension+armLength);
 }
 
 float computeL4(float x, float y){
     x = x + maslowWidth/2.0;
-    y = y - maslowHeight/2.0;
+    y = y + maslowHeight/2.0;
     return sqrt((maslowHeight-y)*(maslowHeight-y)+x*x) - (chainEndExtension+armLength);
 }
 
