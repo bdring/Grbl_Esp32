@@ -138,9 +138,9 @@ void displayDRO() {
 
     float* print_position = system_get_mpos();
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
-        display.drawString(60, 14, "W Pos");
-    } else {
         display.drawString(60, 14, "M Pos");
+    } else {
+        display.drawString(60, 14, "W Pos");
         mpos_to_wpos(print_position);
     }
 
