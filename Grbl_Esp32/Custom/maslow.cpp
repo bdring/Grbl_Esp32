@@ -65,6 +65,8 @@ bool axis1Homed;
 bool axis2Homed;
 bool axis3Homed;
 bool axis4Homed;
+bool calibrationInProgress;  //Used to turn off regular movements during calibration
+
 
 #ifdef USE_MACHINE_INIT
 /*
@@ -142,6 +144,67 @@ void setTargets(float xTarget, float yTarget, float zTarget){
     
     axis1.setTarget(computeL2(xTarget, yTarget));
     axis4.setTarget(computeL1(xTarget, yTarget));
+}
+
+void retractUntilTaught(bool axis1Pull, bool axis2Pull, bool axis3Pull, bool axis4Pull){
+    Serial.println("Retracting multiple axis until one is taught");
+    
+    axis1.setTarget(axis1.getPosition());
+    axis2.setTarget(axis2.getPosition());
+    axis3.setTarget(axis3.getPosition());
+    axis4.setTarget(axis4.getPosition());
+    
+    while(true){
+        //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
+        if(axis3Pull){
+            if(axis3.getCurrent() > 7){
+                Serial.println("Stopping retracting axis 3");
+                Serial.println("Belt lengths: ");
+                Serial.println(axis1.getPosition());
+                Serial.println(axis2.getPosition());
+                Serial.println(axis3.getPosition());
+                Serial.println(axis4.getPosition());
+                return;
+            }
+            else{
+                axis4.setTarget(axis4.getTarget() - .2);
+            }
+        }
+        if(axis4Pull){
+            if(axis4.getCurrent() > 7){
+                Serial.println("Stopping retracting  axis 4");
+                Serial.println("Belt lengths: ");
+                Serial.println(axis1.getPosition());
+                Serial.println(axis2.getPosition());
+                Serial.println(axis3.getPosition());
+                Serial.println(axis4.getPosition());
+                return;
+            }
+            else{
+                axis4.setTarget(axis4.getTarget() - .2);
+            }
+        }
+        
+        // Delay without blocking
+        unsigned long time = millis();
+        unsigned long elapsedTime = millis()-time;
+        while(elapsedTime < 50){
+            elapsedTime = millis()-time;
+            recomputePID();
+        }
+        
+        Serial.println("Errors: ");
+        Serial.println(axis1.getError());
+        Serial.println(axis2.getError());
+        Serial.println(axis3.getError());
+        Serial.println(axis4.getError());
+        
+        Serial.println("Targets: ");
+        Serial.println(axis1.getTarget());
+        Serial.println(axis2.getTarget());
+        Serial.println(axis3.getTarget());
+        Serial.println(axis4.getTarget());
+    }
 }
 
 #ifdef USE_CUSTOM_HOMING

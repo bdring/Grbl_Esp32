@@ -108,6 +108,7 @@ float computeL1(float x, float y);
 float computeL2(float x, float y);
 float computeL3(float x, float y);
 float computeL4(float x, float y);
+void retractUntilTaught(bool axis1Pull, bool axis2Pull, bool axis3Pull, bool axis4Pull);
 
 
 
