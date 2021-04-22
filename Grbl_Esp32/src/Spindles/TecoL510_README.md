@@ -15,5 +15,14 @@ Check that these are set to the default factory values:
 
 # Implementation details
 
+this was tested with pin 16 RX and 26 TX mapped in the machine config file.  Pin 4 was used for RTS but it is not used on the rs485 module I tested with.
+
+```
+#define VFD_RS485_TXD_PIN        GPIO_NUM_26
+#define VFD_RS485_RTS_PIN        GPIO_NUM_4
+#define VFD_RS485_RXD_PIN        GPIO_NUM_16
+
+```
+
 not sure how to detect and parse error messages
 max frequency is currenly hardcode
