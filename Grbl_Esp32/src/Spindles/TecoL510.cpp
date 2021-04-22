@@ -61,7 +61,6 @@ namespace Spindles {
                 data.msg[5] = 0x03;
                 break;
         }
-        grbl_msg_sendf(CLIENT_SERIAL,MsgLevel::Info,"sending dir: state:  %d",mode);
     }
 
     void L510::set_speed_command(uint32_t rpm, ModbusCommand& data) {
