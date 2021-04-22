@@ -123,6 +123,7 @@ void machine_init() {
     //                    DXL_COUNT_MAX,
     //                    DXL_COUNT_PER_RADIAN);
 }
+
 bool user_defined_homing(uint8_t cycle_mask) {  // true = do not continue with normal Grbl homing
 #ifdef USE_CUSTOM_HOMING
     return true;
@@ -131,9 +132,7 @@ bool user_defined_homing(uint8_t cycle_mask) {  // true = do not continue with n
 #endif
 }
 
-// This function is used by Grbl
-bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
-{
+bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
     float dx, dy, dz;  // distances in each cartesian axis
     float motor_angles[3];
 

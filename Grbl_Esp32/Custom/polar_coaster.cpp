@@ -85,9 +85,8 @@ void kinematics_post_homing() {
 
 
 */
+
 bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
-    //static float last_angle = 0;
-    //static float last_radius = 0;
     float    dx, dy, dz;          // distances in each cartesian axis
     float    p_dx, p_dy, p_dz;    // distances in each polar axis
     float    dist, polar_dist;    // the distances in both systems...used to determine feed rate
