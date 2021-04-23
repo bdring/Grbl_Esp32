@@ -101,17 +101,21 @@ void machine_init()
 #endif
 
 void recomputePID(){
-    
-    if(sys.state == State::Idle || sys.state == State::Alarm){
+    //Stop everything but keep track of the encoder positions if we are idle or alarm. Unless doing calibration.
+    if((sys.state == State::Idle || sys.state == State::Alarm) && !calibrationInProgress){
         axis1.stop();
         axis1.updateEncoderPosition();
+        axis2.stop();
+        axis2.updateEncoderPosition();
+        axis3.stop();
+        axis3.updateEncoderPosition();
         axis4.stop();
         axis4.updateEncoderPosition();
     }
-    else{
+    else{  //Position the axis
         axis1.recomputePID();
-        //axis2.recomputePID();
-        //axis3.recomputePID();
+        axis2.recomputePID();
+        axis3.recomputePID();
         axis4.recomputePID();
     }
 }
@@ -142,12 +146,48 @@ float computeL4(float x, float y){
 
 void setTargets(float xTarget, float yTarget, float zTarget){
     
-    axis1.setTarget(computeL2(xTarget, yTarget));
-    axis4.setTarget(computeL1(xTarget, yTarget));
+    if(!calibrationInProgress){
+        axis1.setTarget(computeL1(xTarget, yTarget));
+        axis2.setTarget(computeL2(xTarget, yTarget));
+        axis3.setTarget(computeL3(xTarget, yTarget));
+        axis4.setTarget(computeL4(xTarget, yTarget));
+    }
 }
 
-void retractUntilTaught(bool axis1Pull, bool axis2Pull, bool axis3Pull, bool axis4Pull){
-    Serial.println("Retracting multiple axis until one is taught");
+
+//Runs the calibration sequence to determine the machine's dimensions
+void runCalibration(){
+    calibrationInProgress = true;
+    float lengths1[4];
+    takeMeasurement(lengths1);
+    
+    Serial.println("Measured lengths: ");
+    Serial.println(lengths1[0]);
+    Serial.println(lengths1[1]);
+    Serial.println(lengths1[2]);
+    Serial.println(lengths1[3]);
+    
+    moveUp(20);
+    
+    float lengths2[4];
+    takeMeasurement(lengths2);
+    
+    Serial.println("Measured lengths: ");
+    Serial.println(lengths2[0]);
+    Serial.println(lengths2[1]);
+    Serial.println(lengths2[2]);
+    Serial.println(lengths2[3]);
+    
+    float machineDimensions [2];
+    
+    computeFrameDimensions(lengths1, lengths2, machineDimensions);
+    
+    calibrationInProgress = false;
+}
+
+//Retract the lower belts until they pull tight and take a measurement
+void takeMeasurement(float lengths[]){
+    Serial.println("Taking a measurement");
     
     axis1.setTarget(axis1.getPosition());
     axis2.setTarget(axis2.getPosition());
@@ -156,33 +196,20 @@ void retractUntilTaught(bool axis1Pull, bool axis2Pull, bool axis3Pull, bool axi
     
     while(true){
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
-        if(axis3Pull){
-            if(axis3.getCurrent() > 7){
-                Serial.println("Stopping retracting axis 3");
-                Serial.println("Belt lengths: ");
-                Serial.println(axis1.getPosition());
-                Serial.println(axis2.getPosition());
-                Serial.println(axis3.getPosition());
-                Serial.println(axis4.getPosition());
-                return;
-            }
-            else{
-                axis4.setTarget(axis4.getTarget() - .2);
-            }
+        int currentThreshold = 2;
+        
+        if(axis1.getCurrent() > currentThreshold){
+            break;
         }
-        if(axis4Pull){
-            if(axis4.getCurrent() > 7){
-                Serial.println("Stopping retracting  axis 4");
-                Serial.println("Belt lengths: ");
-                Serial.println(axis1.getPosition());
-                Serial.println(axis2.getPosition());
-                Serial.println(axis3.getPosition());
-                Serial.println(axis4.getPosition());
-                return;
-            }
-            else{
-                axis4.setTarget(axis4.getTarget() - .2);
-            }
+        else{
+            axis1.setTarget(axis1.getTarget() - .2);
+        }
+        
+        if(axis2.getCurrent() > currentThreshold){
+            break;
+        }
+        else{
+            axis2.setTarget(axis2.getTarget() - .2);
         }
         
         // Delay without blocking
@@ -192,19 +219,89 @@ void retractUntilTaught(bool axis1Pull, bool axis2Pull, bool axis3Pull, bool axi
             elapsedTime = millis()-time;
             recomputePID();
         }
-        
-        Serial.println("Errors: ");
-        Serial.println(axis1.getError());
-        Serial.println(axis2.getError());
-        Serial.println(axis3.getError());
-        Serial.println(axis4.getError());
-        
-        Serial.println("Targets: ");
-        Serial.println(axis1.getTarget());
-        Serial.println(axis2.getTarget());
-        Serial.println(axis3.getTarget());
-        Serial.println(axis4.getTarget());
     }
+    
+    axis1.stop();
+    axis2.stop();
+    
+    lengths[0] = axis1.getPosition();
+    lengths[1] = axis2.getPosition();
+    lengths[2] = axis3.getPosition();
+    lengths[3] = axis4.getPosition();
+    
+    return;
+}
+
+//Reposition the sled higher without knowing the machine dimensions
+void moveUp(float distToRetract){
+    
+    Serial.println("Moving up");
+    
+    //Make the lower arms compliant and move retract the other two until we get to the target distance
+    
+    unsigned long timeLastMoved = millis();
+    double lastPosition1 = axis1.angleSensor->getRotation();
+    double lastPosition2 = axis2.angleSensor->getRotation();
+    
+    while(distToRetract > 0){
+        
+        //Set the lower axis to be compliant
+        axis1.comply(&timeLastMoved, &lastPosition1);
+        axis2.comply(&timeLastMoved, &lastPosition2);
+        
+        //Pull in on the upper axis
+        axis3.setTarget(axis3.getTarget() - .2);
+        axis4.setTarget(axis4.getTarget() - .2);
+        axis3.recomputePID();
+        axis4.recomputePID();
+        distToRetract = distToRetract - .2;
+        
+        // Delay without blocking
+        unsigned long time = millis();
+        unsigned long elapsedTime = millis()-time;
+        while(elapsedTime < 50){
+            elapsedTime = millis()-time;
+        }
+    }
+    
+    axis1.setTarget(axis1.getPosition());
+    axis2.setTarget(axis2.getPosition());
+    axis3.setTarget(axis3.getPosition());
+    axis4.setTarget(axis4.getPosition());
+    
+    axis1.stop();
+    axis2.stop();
+    axis3.stop();
+    axis4.stop();
+}
+
+float computeVertical(float firstUpper, float firstLower, float secondUpper, float secondLower){
+    //Derivation at https://math.stackexchange.com/questions/4090346/solving-for-triangle-side-length-with-limited-information
+    
+    float b = secondUpper;   //upper, second
+    float c = secondLower; //lower, second
+    float d = firstUpper; //upper, first
+    float e = firstLower;  //lower, first
+
+    float aSquared = (((b*b)-(c*c))*((b*b)-(c*c))-((d*d)-(e*e))*((d*d)-(e*e)))/(2*(b*b+c*c-d*d-e*e));
+
+    float a = sqrt(aSquared);
+
+    Serial.println("Measured vertical: ");
+    Serial.println(a);
+    
+    return a;
+}
+
+void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float machineDimensions[]){
+    Serial.println("Computing frame dimensions");
+    //Call compute verticals from each side
+    
+    float leftHeight = computeVertical(lengthsSet1[3],lengthsSet1[0], lengthsSet2[3], lengthsSet2[0]);
+    float rightHeight = computeVertical(lengthsSet1[2],lengthsSet1[1], lengthsSet2[2], lengthsSet2[1]);
+    
+    Serial.println("Average height: ");
+    Serial.println((leftHeight+rightHeight)/2.0);
 }
 
 #ifdef USE_CUSTOM_HOMING
@@ -220,20 +317,26 @@ bool user_defined_homing(uint8_t cycle_mask)
   // True = done with homing, false = continue with normal Grbl_ESP32 homing
   Serial.println("Custom homing ran");
   Serial.println(cycle_mask);
-  if(cycle_mask == 1){
+  if(cycle_mask == 1){  //Upper left
+    axis4.testEncoder();
     axis4Homed = axis4.retract(computeL1(0, 0));
   }
-  else if(cycle_mask == 2){
+  else if(cycle_mask == 2){  //Upper right
+    axis3.testEncoder();
     axis3Homed = axis3.retract(computeL2(0, 0));
   }
-  else if(cycle_mask == 4){
-    axis2Homed = axis2.retract(computeL3(0, 0));
+  else if(cycle_mask == 4){ //Lower right
+    axis2.testEncoder();
+    if(axis1Homed && axis2Homed && axis3Homed && axis4Homed){
+        runCalibration();
+    }
+      else{
+        axis2Homed = axis2.retract(computeL3(0, 0)+200);
+    }
   }
-  else if(cycle_mask == 0){
-      axis1Homed = axis1.retract(computeL4(0, 0));
-      //axis1.setPosition(computeL1(0,0));
-      //axis4.setPosition(computeL1(0,0));
-      //Serial.println("Setting initial position");
+  else if(cycle_mask == 0){  //Lower left
+    axis1.testEncoder();
+    axis1Homed = axis1.retract(computeL4(0, 0) + 200);
   }
   
   Serial.println("Homed?: ");
