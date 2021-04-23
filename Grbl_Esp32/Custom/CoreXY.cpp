@@ -265,10 +265,9 @@ static void transform_cartesian_to_motors(float* motors, float* cartesian) {
 }
 
 // Inverse Kinematics calculates motor positions from real world cartesian positions
-// position is the current position
+// position is the old machine position, target the new machine position
 // Breaking into segments is not needed with CoreXY, because it is a linear system.
-bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
-{
+bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
     float dx, dy, dz;  // distances in each cartesian axis
 
     // calculate cartesian move distance for each axis
