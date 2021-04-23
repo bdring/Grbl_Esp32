@@ -109,12 +109,6 @@ void __attribute__((weak)) motors_to_cartesian(float* cartesian, float* motors, 
     memcpy(cartesian, motors, n_axis * sizeof(motors[0]));
 }
 
-bool __attribute__((weak)) kinematics_pre_homing(uint8_t cycle_mask) {
-    return false;  // finish normal homing cycle
-}
-
-void __attribute__((weak)) kinematics_post_homing() {}
-
 void __attribute__((weak)) forward_kinematics(float* position) {}
 // Execute an arc in offset mode format. position == current xyz, target == target xyz,
 // offset == offset from current xyz, axis_X defines circle plane in tool space, axis_linear is

@@ -139,6 +139,7 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
     float seg_target[3];                    // The target of the current segment
     float feed_rate  = pl_data->feed_rate;  // save original feed rate
     bool  show_error = true;                // shows error once
+    bool  added_to_planner = false;
 
     KinematicError status;
 
@@ -147,11 +148,11 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
     // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
     // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
 
-    status = delta_calcInverse(position, motor_angles);
-    if (status == KinematicError::OUT_OF_RANGE) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
-        //start_position_error = true;
-    }
+    // status = delta_calcInverse(position, motor_angles);
+    // if (status == KinematicError::OUT_OF_RANGE) {
+    //     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+    //     //start_position_error = true;
+    // }
 
     // Check the destination to see if it is in work area
     status = delta_calcInverse(target, motor_angles);
@@ -195,7 +196,7 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
                 pl_data->feed_rate = (feed_rate * delta_distance / segment_dist);
             }
 
-            return mc_line(motor_angles, pl_data);
+            added_to_planner = mc_line(motor_angles, pl_data);
 
         } else {
             if (show_error) {
