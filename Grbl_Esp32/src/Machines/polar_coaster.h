@@ -37,7 +37,6 @@
 #define POLAR_AXIS 1
 
 #define SEGMENT_LENGTH 0.5 // segment length in mm
-#define USE_M30
 
 #define X_STEP_PIN              GPIO_NUM_15
 #define Y_STEP_PIN              GPIO_NUM_2

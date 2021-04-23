@@ -123,13 +123,14 @@ void machine_init() {
     //                    DXL_COUNT_MAX,
     //                    DXL_COUNT_PER_RADIAN);
 }
-bool user_defined_homing(uint8_t cycle_mask) {  // true = do not continue with normal Grbl homing
-#ifdef USE_CUSTOM_HOMING
-    return true;
-#else
-    return false;
-#endif
-}
+
+// bool user_defined_homing(uint8_t cycle_mask) {  // true = do not continue with normal Grbl homing
+// #ifdef USE_CUSTOM_HOMING
+//     return true;
+// #else
+//     return false;
+// #endif
+// }
 
 // This function is used by Grbl
 bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
@@ -351,14 +352,14 @@ float three_axis_dist(float* point1, float* point2) {
                 ((point1[2] - point2[2]) * (point1[2] - point2[2])));
 }
 
-bool kinematics_pre_homing(uint8_t cycle_mask) {  // true = do not continue with normal Grbl homing
-#ifdef USE_CUSTOM_HOMING
-    return true;
-#else
-    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "kinematics_pre_homing");
-    return false;
-#endif
-}
+// bool kinematics_pre_homing(uint8_t cycle_mask) {  // true = do not continue with normal Grbl homing
+// #ifdef USE_CUSTOM_HOMING
+//     return true;
+// #else
+//     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "kinematics_pre_homing");
+//     return false;
+// #endif
+// }
 
 void kinematics_post_homing() {
 #ifdef USE_CUSTOM_HOMING

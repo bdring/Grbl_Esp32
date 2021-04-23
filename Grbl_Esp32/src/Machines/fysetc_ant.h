@@ -34,8 +34,6 @@
 #define CUSTOM_CODE_FILENAME    "../Custom/CoreXY.cpp"
 
 #define USE_KINEMATICS      // there are kinematic equations for this machine
-#define USE_MACHINE_INIT    // There is some custom initialization for this machine
-#define USE_CUSTOM_HOMING
 
 #define TRINAMIC_RUN_MODE       TrinamicMode :: StealthChop
 #define TRINAMIC_HOMING_MODE    TrinamicMode :: StealthChop

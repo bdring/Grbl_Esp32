@@ -29,9 +29,7 @@
 
 #define CUSTOM_CODE_FILENAME    "../Custom/CoreXY.cpp"
 
-#define MIDTBOT             // applies the geometry correction to the kinematics 
-#define USE_MACHINE_INIT    // There is some custom initialization for this machine
-#define USE_CUSTOM_HOMING
+#define MIDTBOT         // applies the midTbot geometry correction to the CoreXY kinematics 
 
 #define SPINDLE_TYPE    SpindleType::NONE
 
@@ -47,8 +45,6 @@
 #define Y_LIMIT_PIN     GPIO_NUM_4
 
 #define Z_SERVO_PIN             GPIO_NUM_27
-
-// Set $Homing/Cycle0=Y and $Homing/Cycle1=X
 
 #define SPINDLE_TYPE SpindleType::NONE
 
