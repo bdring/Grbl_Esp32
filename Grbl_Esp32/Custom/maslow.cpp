@@ -58,7 +58,7 @@ MotorUnit axis4(&tlc, MOTOR_4_FORWARD, MOTOR_4_BACKWARD, MOTOR_4_ADC, RSENSE, ad
 
 float maslowWidth;
 float maslowHeight;
-float chainEndExtension;
+float beltEndExtension;
 float armLength;
 
 bool axis1Homed;
@@ -88,15 +88,15 @@ void machine_init()
     axis3.zero();
     axis4.zero();
     
-    axis1Homed = false;
-    axis2Homed = false;
-    axis3Homed = false;
-    axis4Homed = false;
+    axis1Homed = true;
+    axis2Homed = true;
+    axis3Homed = true;
+    axis4Homed = true;
     
     maslowWidth = 2900.0;
     maslowHeight = 1780.0;
-    chainEndExtension = 30;
-    armLength = 108;
+    beltEndExtension = 30;
+    armLength = 114;
 }
 #endif
 
@@ -123,25 +123,25 @@ void recomputePID(){
 float computeL1(float x, float y){
     x = x + maslowWidth/2.0;
     y = y + maslowHeight/2.0;
-    return sqrt(x*x+y*y) - (chainEndExtension+armLength);
+    return sqrt(x*x+y*y) - (beltEndExtension+armLength);
 }
 
 float computeL2(float x, float y){
     x = x + maslowWidth/2.0;
     y = y + maslowHeight/2.0;
-    return sqrt((maslowWidth-x)*(maslowWidth-x)+y*y) - (chainEndExtension+armLength);
+    return sqrt((maslowWidth-x)*(maslowWidth-x)+y*y) - (beltEndExtension+armLength);
 }
 
 float computeL3(float x, float y){
     x = x + maslowWidth/2.0;
     y = y + maslowHeight/2.0;
-    return sqrt((maslowWidth-x)*(maslowWidth-x)+(maslowHeight-y)*(maslowHeight-y)) - (chainEndExtension+armLength);
+    return sqrt((maslowWidth-x)*(maslowWidth-x)+(maslowHeight-y)*(maslowHeight-y)) - (beltEndExtension+armLength);
 }
 
 float computeL4(float x, float y){
     x = x + maslowWidth/2.0;
     y = y + maslowHeight/2.0;
-    return sqrt((maslowHeight-y)*(maslowHeight-y)+x*x) - (chainEndExtension+armLength);
+    return sqrt((maslowHeight-y)*(maslowHeight-y)+x*x) - (beltEndExtension+armLength);
 }
 
 void setTargets(float xTarget, float yTarget, float zTarget){
@@ -157,32 +157,36 @@ void setTargets(float xTarget, float yTarget, float zTarget){
 
 //Runs the calibration sequence to determine the machine's dimensions
 void runCalibration(){
+    
+    grbl_sendf(CLIENT_ALL, "Begining calibration\n");
+    
     calibrationInProgress = true;
     float lengths1[4];
     takeMeasurement(lengths1);
     
-    Serial.println("Measured lengths: ");
-    Serial.println(lengths1[0]);
-    Serial.println(lengths1[1]);
-    Serial.println(lengths1[2]);
-    Serial.println(lengths1[3]);
+    Serial.println("After first measurement");
     
-    moveUp(20);
+    
+    grbl_sendf(CLIENT_ALL, "First measurement:\n%f \n%f \n%f \n%f \n",lengths1[0], lengths1[1], lengths1[2], lengths1[3]);
+    
+    moveUp(150);
     
     float lengths2[4];
     takeMeasurement(lengths2);
     
-    Serial.println("Measured lengths: ");
-    Serial.println(lengths2[0]);
-    Serial.println(lengths2[1]);
-    Serial.println(lengths2[2]);
-    Serial.println(lengths2[3]);
+    grbl_sendf(CLIENT_ALL, "Second measurement:\n%f \n%f \n%f \n%f \n",lengths2[0], lengths2[1], lengths2[2], lengths2[3]);
     
     float machineDimensions [2];
     
     computeFrameDimensions(lengths1, lengths2, machineDimensions);
     
     calibrationInProgress = false;
+    grbl_sendf(CLIENT_ALL, "Calibration finished\n");
+    
+    axis1.stop();
+    axis2.stop();
+    axis3.stop();
+    axis4.stop();
 }
 
 //Retract the lower belts until they pull tight and take a measurement
@@ -194,19 +198,26 @@ void takeMeasurement(float lengths[]){
     axis3.setTarget(axis3.getPosition());
     axis4.setTarget(axis4.getPosition());
     
-    while(true){
+    bool axis1Done = false;
+    bool axis2Done = false;
+    
+    while(!axis1Done || !axis2Done){  //As long as one axis is still pulling
+        
+        
         //If any of the current values are over the threshold then stop and exit, otherwise pull each axis a little bit tighter by incrementing the target position
         int currentThreshold = 2;
         
-        if(axis1.getCurrent() > currentThreshold){
-            break;
+        if(axis1.getCurrent() > currentThreshold || axis1Done){
+            axis1Done = true;
+            //grbl_sendf(CLIENT_ALL, "Axis 1 declaring stopping");
         }
         else{
             axis1.setTarget(axis1.getTarget() - .2);
         }
         
-        if(axis2.getCurrent() > currentThreshold){
-            break;
+        if(axis2.getCurrent() > currentThreshold || axis2Done){
+            axis2Done = true;
+            //grbl_sendf(CLIENT_ALL, "Axis 2 declaring stopping");
         }
         else{
             axis2.setTarget(axis2.getTarget() - .2);
@@ -221,21 +232,26 @@ void takeMeasurement(float lengths[]){
         }
     }
     
+    axis1.setTarget(axis1.getPosition());
+    axis2.setTarget(axis2.getPosition());
+    axis3.setTarget(axis3.getPosition());
+    axis4.setTarget(axis4.getPosition());
+    
     axis1.stop();
     axis2.stop();
+    axis3.stop();
+    axis4.stop();
     
-    lengths[0] = axis1.getPosition();
-    lengths[1] = axis2.getPosition();
-    lengths[2] = axis3.getPosition();
-    lengths[3] = axis4.getPosition();
+    lengths[0] = axis1.getPosition()+beltEndExtension+armLength;
+    lengths[1] = axis2.getPosition()+beltEndExtension+armLength;
+    lengths[2] = axis3.getPosition()+beltEndExtension+armLength;
+    lengths[3] = axis4.getPosition()+beltEndExtension+armLength;
     
     return;
 }
 
 //Reposition the sled higher without knowing the machine dimensions
 void moveUp(float distToRetract){
-    
-    Serial.println("Moving up");
     
     //Make the lower arms compliant and move retract the other two until we get to the target distance
     
@@ -250,16 +266,16 @@ void moveUp(float distToRetract){
         axis2.comply(&timeLastMoved, &lastPosition2);
         
         //Pull in on the upper axis
-        axis3.setTarget(axis3.getTarget() - .2);
-        axis4.setTarget(axis4.getTarget() - .2);
+        axis3.setTarget(axis3.getTarget() - .05);
+        axis4.setTarget(axis4.getTarget() - .05);
         axis3.recomputePID();
         axis4.recomputePID();
-        distToRetract = distToRetract - .2;
+        distToRetract = distToRetract - .05;
         
         // Delay without blocking
         unsigned long time = millis();
         unsigned long elapsedTime = millis()-time;
-        while(elapsedTime < 50){
+        while(elapsedTime < 10){
             elapsedTime = millis()-time;
         }
     }
@@ -300,8 +316,7 @@ void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float mach
     float leftHeight = computeVertical(lengthsSet1[3],lengthsSet1[0], lengthsSet2[3], lengthsSet2[0]);
     float rightHeight = computeVertical(lengthsSet1[2],lengthsSet1[1], lengthsSet2[2], lengthsSet2[1]);
     
-    Serial.println("Average height: ");
-    Serial.println((leftHeight+rightHeight)/2.0);
+    grbl_sendf(CLIENT_ALL, "Computed vertical measurements:\n%f \n%f \n%f \n",leftHeight, rightHeight, (leftHeight+rightHeight)/2.0);
 }
 
 #ifdef USE_CUSTOM_HOMING
