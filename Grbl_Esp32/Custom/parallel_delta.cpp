@@ -139,7 +139,6 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
     float seg_target[3];                    // The target of the current segment
     float feed_rate  = pl_data->feed_rate;  // save original feed rate
     bool  show_error = true;                // shows error once
-    bool  added_to_planner = false;
 
     KinematicError status;
 
@@ -148,16 +147,17 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
     // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
     // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
 
-    // status = delta_calcInverse(position, motor_angles);
-    // if (status == KinematicError::OUT_OF_RANGE) {
-    //     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
-    //     //start_position_error = true;
-    // }
+    status = delta_calcInverse(position, last_angle);
+    if (status == KinematicError::OUT_OF_RANGE) {
+        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+        return false;
+    }
 
     // Check the destination to see if it is in work area
     status = delta_calcInverse(target, motor_angles);
     if (status == KinematicError::OUT_OF_RANGE) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target unreachable  error %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+        return false;
     }
 
     position[X_AXIS] += gc_state.coord_offset[X_AXIS];
@@ -184,21 +184,7 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
         // calculate the delta motor angles
         KinematicError status = delta_calcInverse(seg_target, motor_angles);
 
-        if (status == KinematicError ::NONE) {
-            float delta_distance = three_axis_dist(motor_angles, last_angle);
-
-            // save angles for next distance calc
-            memcpy(last_angle, motor_angles, sizeof(motor_angles));
-
-            if (pl_data->motion.rapidMotion) {
-                pl_data->feed_rate = feed_rate;
-            } else {
-                pl_data->feed_rate = (feed_rate * delta_distance / segment_dist);
-            }
-
-            added_to_planner = mc_line(motor_angles, pl_data);
-
-        } else {
+        if (status != KinematicError ::NONE) {
             if (show_error) {
                 // grbl_msg_sendf(CLIENT_SERIAL,
                 //                MsgLevel::Info,
@@ -208,10 +194,28 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
                 //                motor_angles[1],
                 //                motor_angles[2]);
                 show_error = false;
-                return false;
             }
+            return false;
         }
+        if (pl_data->motion.rapidMotion) {
+            pl_data->feed_rate = feed_rate;
+        } else {
+            float delta_distance = three_axis_dist(motor_angles, last_angle);
+            pl_data->feed_rate   = (feed_rate * delta_distance / segment_dist);
+        }
+
+        // mc_line() returns false if a jog is cancelled.
+        // In that case we stop sending segments to the planner.
+        if (!mc_line(motor_angles, pl_data)) {
+            return false;
+        }
+
+        // save angles for next distance calc
+        // This is after mc_line() so that we do not update
+        // last_angle if the segment was discarded.
+        memcpy(last_angle, motor_angles, sizeof(motor_angles));
     }
+    return true;
 }
 
 // this is used used by Grbl soft limits to see if the range of the machine is exceeded.

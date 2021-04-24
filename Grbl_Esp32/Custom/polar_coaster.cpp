@@ -110,7 +110,6 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
         segment_count = ceil(dist / SEGMENT_LENGTH);  // determine the number of segments we need	... round up so there is at least 1
     }
     dist /= segment_count;  // segment distance
-    bool added = false;
     for (uint32_t segment = 1; segment <= segment_count; segment++) {
         // determine this segment's target
         seg_target[X_AXIS] = position[X_AXIS] + (dx / float(segment_count) * segment) - x_offset;
@@ -139,12 +138,19 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
         // end determining new feed rate
         polar[RADIUS_AXIS] += x_offset;
         polar[Z_AXIS] += z_offset;
+
+        // mc_line() returns false if a jog is cancelled.
+        // In that case we stop sending segments to the planner.
+        if (!mc_line(polar, pl_data)) {
+            return false;
+        }
+
+        //
         last_radius = polar[RADIUS_AXIS];
         last_angle  = polar[POLAR_AXIS];
-        added       = mc_line(polar, pl_data);
     }
     // TO DO don't need a feedrate for rapids
-    return added;
+    return true;
 }
 
 /*
