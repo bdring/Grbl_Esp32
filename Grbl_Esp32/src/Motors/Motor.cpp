@@ -16,7 +16,6 @@
         Make sure public/private/protected is cleaned up.
         Only a few Unipolar axes have been setup in init()
         Get rid of Z_SERVO, just reply on Z_SERVO_PIN
-        Deal with custom machine ... machine_trinamic_setup();
         Class is ready to deal with non SPI pins, but they have not been needed yet.
             It would be nice in the config message though
     Testing
@@ -34,8 +33,7 @@
 #include "Motor.h"
 
 namespace Motors {
-    Motor::Motor(uint8_t axis_index) :
-        _axis_index(axis_index % MAX_AXES), _dual_axis_index(axis_index / MAX_AXES) {}
+    Motor::Motor(uint8_t axis_index) : _axis_index(axis_index % MAX_AXES), _dual_axis_index(axis_index / MAX_AXES) {}
 
     void Motor::debug_message() {}
 

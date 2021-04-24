@@ -95,7 +95,7 @@ bool mc_line(float* target, plan_line_data_t* pl_data) {
     return submitted_result;
 }
 
-bool __attribute__((weak)) inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
+bool __attribute__((weak)) cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
     return mc_line(target, pl_data);
 }
 
@@ -104,6 +104,10 @@ bool __attribute__((weak)) kinematics_pre_homing(uint8_t cycle_mask) {
 }
 
 void __attribute__((weak)) kinematics_post_homing() {}
+
+void __attribute__((weak)) motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
+    memcpy(cartesian, motors, n_axis * sizeof(motors[0]));
+}
 
 void __attribute__((weak)) forward_kinematics(float* position) {}
 // Execute an arc in offset mode format. position == current xyz, target == target xyz,
@@ -218,7 +222,7 @@ void mc_arc(float*            target,
             position[axis_1] = center_axis1 + r_axis1;
             position[axis_linear] += linear_per_segment;
             pl_data->feed_rate = original_feedrate;  // This restores the feedrate kinematics may have altered
-            inverse_kinematics(position, pl_data, previous_position);
+            cartesian_to_motors(position, pl_data, previous_position);
             previous_position[axis_0]      = position[axis_0];
             previous_position[axis_1]      = position[axis_1];
             previous_position[axis_linear] = position[axis_linear];
@@ -229,7 +233,7 @@ void mc_arc(float*            target,
         }
     }
     // Ensure last segment arrives at target location.
-    inverse_kinematics(target, pl_data, previous_position);
+    cartesian_to_motors(target, pl_data, previous_position);
 }
 
 // Execute dwell in seconds.
@@ -415,7 +419,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Found");
-    inverse_kinematics(target, pl_data, gc_state.position);
+    cartesian_to_motors(target, pl_data, gc_state.position);
     // Activate the probing state monitor in the stepper module.
     sys_probe_state = Probe::Active;
     // Perform probing cycle. Wait here until probe is triggered or motion completes.

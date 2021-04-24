@@ -40,10 +40,8 @@ Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block, bool* can
         }
     }
     // Valid jog command. Plan, set state, and execute.
-    if (!inverse_kinematics(gc_block->values.xyz, pl_data, gc_state.position)) {
-        if (cancelledInflight)
-            *cancelledInflight = true;
-        return Error::Ok;
+    if (!cartesian_to_motors(gc_block->values.xyz, pl_data, gc_state.position)) {
+        return Error::JogCancelled;
     }
 
     if (sys.state == State::Idle) {

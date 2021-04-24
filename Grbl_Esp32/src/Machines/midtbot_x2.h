@@ -27,28 +27,47 @@
 
 #define MACHINE_NAME "midTbot"
 
+#define DISPLAY_CODE_FILENAME   "Custom/oled_basic.cpp"
+
 #define CUSTOM_CODE_FILENAME    "../Custom/CoreXY.cpp"
-
-#define MIDTBOT         // applies the midTbot geometry correction to the CoreXY kinematics 
-
+#define MIDTBOT             // applies the geometry correction to the kinematics 
+#define USE_KINEMATICS      // there are kinematic equations for this machine
+#define USE_FWD_KINEMATICS  // report in cartesian
 #define SPINDLE_TYPE    SpindleType::NONE
 
-#define X_STEP_PIN      GPIO_NUM_12
-#define Y_STEP_PIN      GPIO_NUM_14
+#define TRINAMIC_UART_RUN_MODE       TrinamicUartMode :: StealthChop
+#define TRINAMIC_UART_HOMING_MODE    TrinamicUartMode :: StealthChop
 
-#define X_DIRECTION_PIN GPIO_NUM_26
-#define Y_DIRECTION_PIN GPIO_NUM_25
+#define TMC_UART                UART_NUM_1
+#define TMC_UART_RX             GPIO_NUM_21
+#define TMC_UART_TX             GPIO_NUM_22   
 
-#define STEPPERS_DISABLE_PIN GPIO_NUM_13
+#define X_TRINAMIC_DRIVER       2209
+#define X_STEP_PIN              GPIO_NUM_25 //GPIO_NUM_32
+#define X_DIRECTION_PIN         GPIO_NUM_33 // GPIO_NUM_26
+#define X_RSENSE                TMC2209_RSENSE_DEFAULT
+#define X_DRIVER_ADDRESS        1
+#define DEFAULT_X_MICROSTEPS    16
 
-#define X_LIMIT_PIN     GPIO_NUM_2
-#define Y_LIMIT_PIN     GPIO_NUM_4
+#define Y_TRINAMIC_DRIVER       2209
+#define Y_STEP_PIN              GPIO_NUM_32 //GPIO_NUM_25
+#define Y_DIRECTION_PIN         GPIO_NUM_26 //GPIO_NUM_33
+#define Y_RSENSE                TMC2209_RSENSE_DEFAULT
+#define Y_DRIVER_ADDRESS        0
+#define DEFAULT_Y_MICROSTEPS    16
 
-#define Z_SERVO_PIN             GPIO_NUM_27
+#define STEPPERS_DISABLE_PIN GPIO_NUM_27
+
+#define X_LIMIT_PIN     GPIO_NUM_4
+#define Y_LIMIT_PIN     GPIO_NUM_12
+
+#define Z_SERVO_PIN             GPIO_NUM_15
+
+// Set $Homing/Cycle0=Y and $Homing/Cycle1=X
 
 #define SPINDLE_TYPE SpindleType::NONE
 
-// defaults
+// ==================   defaults ================================
 #define DEFAULT_HOMING_CYCLE_0      bit(Z_AXIS)
 #define DEFAULT_HOMING_CYCLE_1      bit(Y_AXIS)
 #define DEFAULT_HOMING_CYCLE_2      bit(X_AXIS)
@@ -61,7 +80,7 @@
 #define DEFAULT_STEPPING_INVERT_MASK    0 // uint8_t
 #define DEFAULT_DIRECTION_INVERT_MASK   2 // uint8_t
 #define DEFAULT_INVERT_ST_ENABLE        0 // boolean
-#define DEFAULT_INVERT_LIMIT_PINS       1 // boolean
+#define DEFAULT_INVERT_LIMIT_PINS       0 // boolean
 #define DEFAULT_INVERT_PROBE_PIN        0 // boolean
 
 #define DEFAULT_STATUS_REPORT_MASK 1
