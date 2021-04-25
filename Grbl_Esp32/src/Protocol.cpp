@@ -532,7 +532,6 @@ static void protocol_exec_rt_suspend() {
 #ifdef PARKING_ENABLE
     // Declare and initialize parking local variables
     float             restore_target[MAX_N_AXIS];
-    float             parking_target[MAX_N_AXIS];
     float             retract_waypoint = PARKING_PULLOUT_INCREMENT;
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
@@ -567,12 +566,21 @@ static void protocol_exec_rt_suspend() {
         if (sys.abort) {
             return;
         }
+        // if a jogCancel comes in and we have a jog "in-flight" (parsed and handed over to mc_line()),
+        //  then we need to cancel it before it reaches the planner.  otherwise we may try to move way out of
+        //  normal bounds, especially with senders that issue a series of jog commands before sending a cancel.
+        if (sys.suspend.bit.jogCancel && sys_pl_data_inflight != NULL && ((plan_line_data_t*)sys_pl_data_inflight)->is_jog) {
+            sys_pl_data_inflight = NULL;
+        }
         // Block until initial hold is complete and the machine has stopped motion.
         if (sys.suspend.bit.holdComplete) {
             // Parking manager. Handles de/re-energizing, switch state checks, and parking motions for
             // the safety door and sleep states.
             if (sys.state == State::SafetyDoor || sys.state == State::Sleep) {
                 // Handles retraction motions and de-energizing.
+#ifdef PARKING_ENABLE
+                float* parking_target = system_get_mpos();
+#endif
                 if (!sys.suspend.bit.retractComplete) {
                     // Ensure any prior spindle stop override is disabled at start of safety door routine.
                     sys.spindle_stop_ovr.value = 0;  // Disable override
@@ -581,9 +589,8 @@ static void protocol_exec_rt_suspend() {
                     coolant_off();
 #else
                     // Get current position and store restore location and spindle retract waypoint.
-                    system_convert_array_steps_to_mpos(parking_target, sys_position);
                     if (!sys.suspend.bit.restartRetract) {
-                        memcpy(restore_target, parking_target, sizeof(parking_target));
+                        memcpy(restore_target, parking_target, sizeof(restore_target[0]) * number_axis->get());
                         retract_waypoint += restore_target[PARKING_AXIS];
                         retract_waypoint = MIN(retract_waypoint, PARKING_TARGET);
                     }

@@ -120,7 +120,6 @@ void draw_checkbox(int16_t x, int16_t y, int16_t width, int16_t height, bool che
 
 void displayDRO() {
     uint8_t oled_y_pos;
-    float   print_position[MAX_N_AXIS];
     //float   wco[MAX_N_AXIS];
 
     display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -135,10 +134,14 @@ void displayDRO() {
     ControlPins ctrl_pin_state = system_control_get_state();
     bool        prb_pin_state  = probe_get_state();
 
+    display.setTextAlignment(TEXT_ALIGN_RIGHT);
+
+    float* print_position = system_get_mpos();
     if (bit_istrue(status_mask->get(), RtStatus::Position)) {
-        calc_mpos(print_position);
+        display.drawString(60, 14, "M Pos");
     } else {
-        calc_wpos(print_position);
+        display.drawString(60, 14, "W Pos");
+        mpos_to_wpos(print_position);
     }
 
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {

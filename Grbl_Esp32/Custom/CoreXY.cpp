@@ -43,7 +43,6 @@ const float geometry_factor = 1.0;
 const float geometry_factor = 2.0;
 #endif
 
-static float last_motors[MAX_N_AXIS]    = { 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
 static float last_cartesian[MAX_N_AXIS] = {};
 
 // prototypes for helper functions
@@ -57,6 +56,19 @@ void machine_init() {
 #else
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "CoreXY Kinematics Init");
 #endif
+}
+
+// Converts Cartesian to motors with no motion control
+static void cartesian_to_motors(float* position) {
+    float motors[MAX_N_AXIS];
+
+    motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
+    motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
+
+    position[X_AXIS] = motors[X_AXIS];
+    position[Y_AXIS] = motors[Y_AXIS];
+
+    // Z and higher just pass through unchanged
 }
 
 // Cycle mask is 0 unless the user sends a single axis command like $HZ
@@ -131,11 +143,11 @@ bool user_defined_homing(uint8_t cycle_mask) {
                     }
 
                     for (int axis = Z_AXIS; axis < n_axis; axis++) {
-                        target[axis] = system_convert_axis_steps_to_mpos(sys_position, axis);
+                        target[axis] = sys_position[axis] / axis_settings[axis]->steps_per_mm->get();
                     }
 
                     // convert back to motor steps
-                    inverse_kinematics(target);
+                    cartesian_to_motors(target);
 
                     pl_data->feed_rate = homing_rate;   // feed or seek rates
                     plan_buffer_line(target, pl_data);  // Bypass mc_line(). Directly plan homing motion.
@@ -222,11 +234,11 @@ bool user_defined_homing(uint8_t cycle_mask) {
     last_cartesian[Y_AXIS] = target[Y_AXIS];
 
     for (int axis = Z_AXIS; axis < n_axis; axis++) {
-        last_cartesian[axis] = system_convert_axis_steps_to_mpos(sys_position, axis);
+        last_cartesian[axis] = sys_position[axis] / axis_settings[axis]->steps_per_mm->get();
     }
 
     // convert to motors
-    inverse_kinematics(target);
+    cartesian_to_motors(target);
     // convert to steps
     for (axis = X_AXIS; axis <= Y_AXIS; axis++) {
         sys_position[axis] = target[axis] * axis_settings[axis]->steps_per_mm->get();
@@ -242,29 +254,21 @@ bool user_defined_homing(uint8_t cycle_mask) {
     return true;
 }
 
-// This function is used by Grbl convert Cartesian to motors
-// this does not do any motion control
-void inverse_kinematics(float* position) {
-    float motors[MAX_N_AXIS];
+static void transform_cartesian_to_motors(float* motors, float* cartesian) {
+    motors[X_AXIS] = geometry_factor * cartesian[X_AXIS] + cartesian[Y_AXIS];
+    motors[Y_AXIS] = geometry_factor * cartesian[X_AXIS] - cartesian[Y_AXIS];
 
-    motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
-    motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
-
-    position[X_AXIS] = motors[X_AXIS];
-    position[Y_AXIS] = motors[Y_AXIS];
-
-    // Z and higher just pass through unchanged
+    auto n_axis = number_axis->get();
+    for (uint8_t axis = Z_AXIS; axis <= n_axis; axis++) {
+        motors[axis] = cartesian[axis];
+    }
 }
 
 // Inverse Kinematics calculates motor positions from real world cartesian positions
-// position is the current position
+// position is the old machine position, target the new machine position
 // Breaking into segments is not needed with CoreXY, because it is a linear system.
-void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
-{
+bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
     float dx, dy, dz;  // distances in each cartesian axis
-    float motors[MAX_N_AXIS];
-
-    float feed_rate = pl_data->feed_rate;  // save original feed rate
 
     // calculate cartesian move distance for each axis
     dx         = target[X_AXIS] - position[X_AXIS];
@@ -272,56 +276,30 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     dz         = target[Z_AXIS] - position[Z_AXIS];
     float dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
 
-    motors[X_AXIS] = geometry_factor * target[X_AXIS] + target[Y_AXIS];
-    motors[Y_AXIS] = geometry_factor * target[X_AXIS] - target[Y_AXIS];
-
     auto n_axis = number_axis->get();
-    for (uint8_t axis = Z_AXIS; axis <= n_axis; axis++) {
-        motors[axis] = target[axis];
-    }
 
-    float motor_distance = three_axis_dist(motors, last_motors);
+    float motors[n_axis];
+    transform_cartesian_to_motors(motors, target);
 
     if (!pl_data->motion.rapidMotion) {
-        pl_data->feed_rate *= (motor_distance / dist);
+        float last_motors[n_axis];
+        transform_cartesian_to_motors(last_motors, position);
+        pl_data->feed_rate *= (three_axis_dist(motors, last_motors) / dist);
     }
 
-    memcpy(last_motors, motors, sizeof(motors));
-
-    mc_line(motors, pl_data);
+    return mc_line(motors, pl_data);
 }
 
 // motors -> cartesian
-void forward_kinematics(float* position) {
-    float   calc_fwd[MAX_N_AXIS];
-    float   wco[MAX_N_AXIS];
-    float   print_position[N_AXIS];
-    int32_t current_position[N_AXIS];  // Copy current state of the system position variable
-
-    memcpy(current_position, sys_position, sizeof(sys_position));
-    system_convert_array_steps_to_mpos(print_position, current_position);
-
-    // determine the Work Coordinate Offsets for each axis
-    auto n_axis = number_axis->get();
-    for (int axis = 0; axis < n_axis; axis++) {
-        // Apply work coordinate offsets and tool length offset to current position.
-        wco[axis] = gc_state.coord_system[axis] + gc_state.coord_offset[axis];
-        if (axis == TOOL_LENGTH_OFFSET_AXIS) {
-            wco[axis] += gc_state.tool_length_offset;
-        }
-    }
-
+void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
     // apply the forward kinemetics to the machine coordinates
     // https://corexy.com/theory.html
     //calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
-    calc_fwd[X_AXIS] = ((0.5 * (print_position[X_AXIS] + print_position[Y_AXIS]) / geometry_factor) - wco[X_AXIS]);
-    calc_fwd[Y_AXIS] = ((0.5 * (print_position[X_AXIS] - print_position[Y_AXIS])) - wco[Y_AXIS]);
+    cartesian[X_AXIS] = 0.5 * (motors[X_AXIS] + motors[Y_AXIS]) / geometry_factor;
+    cartesian[Y_AXIS] = 0.5 * (motors[X_AXIS] - motors[Y_AXIS]);
 
-    for (int axis = 0; axis < n_axis; axis++) {
-        if (axis > Y_AXIS) {  // for axes above Y there is no kinematics
-            calc_fwd[axis] = print_position[axis] - wco[axis];
-        }
-        position[axis] = calc_fwd[axis];  // this is the value returned to reporting
+    for (int axis = Z_AXIS; axis < n_axis; axis++) {
+        cartesian[axis] = motors[axis];
     }
 }
 
@@ -331,14 +309,12 @@ bool kinematics_pre_homing(uint8_t cycle_mask) {
 
 void kinematics_post_homing() {
     auto n_axis = number_axis->get();
-    for (uint8_t axis = X_AXIS; axis <= n_axis; axis++) {
-        gc_state.position[axis] = last_cartesian[axis];
-    }
+    memcpy(gc_state.position, last_cartesian, n_axis * sizeof(last_cartesian[0]));
 }
 
-// this is used used by Grbl soft limits to see if the range of the machine is exceeded.
-uint8_t kinematic_limits_check(float* target) {
-    return true;
+// this is used used by Limits.cpp to see if the range of the machine is exceeded.
+bool limitsCheckTravel(float* target) {
+    return false;
 }
 
 void user_m30() {}

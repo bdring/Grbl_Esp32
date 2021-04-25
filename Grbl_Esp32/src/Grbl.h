@@ -22,7 +22,7 @@
 
 // Grbl versioning system
 const char* const GRBL_VERSION       = "1.3a";
-const char* const GRBL_VERSION_BUILD = "20210419";
+const char* const GRBL_VERSION_BUILD = "20210424";
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
@@ -93,27 +93,21 @@ const char* const GRBL_VERSION_BUILD = "20210419";
 void grbl_init();
 void run_once();
 
-void machine_init();  // weak definition in Grbl.cpp
-void display_init();  // weak definition in Grbl.cpp
+void machine_init();                      // weak definition in Grbl.cpp
+void display_init();                      // weak definition in Grbl.cpp
+void user_m30();                          // weak definition in Grbl.cpp/
+void user_tool_change(uint8_t new_tool);  // weak definition in Grbl.cpp
 
 bool user_defined_homing(uint8_t cycle_mask);  // weak definition in Limits.cpp
 
-// Called if USE_KINEMATICS is defined
+// weak definitions in MotionControl.cpp
+bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position);
+bool kinematics_pre_homing(uint8_t cycle_mask);
+void kinematics_post_homing();
 
-void    inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
-bool    kinematics_pre_homing(uint8_t cycle_mask);
-void    kinematics_post_homing();
-uint8_t kinematic_limits_check(float* target);
+bool limitsCheckTravel(float* target);  // weak in Limits.cpp; true if out of range
 
-// Called if USE_FWD_KINEMATICS is defined
-void inverse_kinematics(float* position);  // used to return a converted value
-void forward_kinematics(float* position);  // weak definition in Report.cpp
+void motors_to_cartesian(float* cartestian, float* motors, int n_axis);  // weak definition
 
 // Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined
 void user_defined_macro(uint8_t index);
-
-// Called if USE_M30 is defined
-void user_m30();
-
-// Called if USE_TOOL_CHANGE is defined
-void user_tool_change(uint8_t new_tool);

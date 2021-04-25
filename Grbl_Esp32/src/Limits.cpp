@@ -104,7 +104,6 @@ void limits_go_home(uint8_t cycle_mask) {
     // Initialize variables used for homing computations.
     uint8_t n_cycle = (2 * n_homing_locate_cycle + 1);
     uint8_t step_pin[MAX_N_AXIS];
-    float   target[MAX_N_AXIS];
     float   max_travel = 0.0;
 
     auto n_axis = number_axis->get();
@@ -122,7 +121,7 @@ void limits_go_home(uint8_t cycle_mask) {
     uint8_t  n_active_axis;
     AxisMask limit_state, axislock;
     do {
-        system_convert_array_steps_to_mpos(target, sys_position);
+        float* target = system_get_mpos();
         // Initialize and declare variables needed for homing routine.
         axislock      = 0;
         n_active_axis = 0;
@@ -397,7 +396,7 @@ float limitsMinPosition(uint8_t axis) {
 // Checks and reports if target array exceeds machine travel limits.
 // Return true if exceeding limits
 // Set $<axis>/MaxTravel=0 to selectively remove an axis from soft limit checks
-bool limitsCheckTravel(float* target) {
+bool __attribute__((weak)) limitsCheckTravel(float* target) {
     uint8_t idx;
     auto    n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {

@@ -28,4 +28,5 @@
 const int JOG_LINE_NUMBER = 0;
 
 // Sets up valid jog motion received from g-code parser, checks for soft-limits, and executes the jog.
-Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block);
+// cancelledInflight will be set to true if was not added to parser due to a cancelJog.
+Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block, bool* cancelledInflight);
