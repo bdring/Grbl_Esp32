@@ -286,6 +286,7 @@ namespace WebUI {
         }
         WiFi.enableAP(false);
         WiFi.mode(WIFI_STA);
+        WiFi.setSleep(false);
         //Get parameters for STA
         String h = wifi_hostname->get();
         WiFi.setHostname(h.c_str());
