@@ -169,8 +169,8 @@ void   system_convert_array_steps_to_mpos(float* position, int32_t* steps);
 float* system_get_mpos();
 
 // A task that runs after a control switch interrupt for debouncing.
-void controlCheckTask(void* pvParameters);
-void system_exec_control_pin(ControlPins pins);
+void           controlCheckTask(void* pvParameters);
+void IRAM_ATTR system_exec_control_pin(ControlPins pins);
 
 bool sys_set_digital(uint8_t io_num, bool turnOn);
 void sys_digital_all_off();

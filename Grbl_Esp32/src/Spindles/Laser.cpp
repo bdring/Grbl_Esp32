@@ -94,7 +94,6 @@ namespace Spindles {
 #endif
 
 #ifdef LASER_ENABLE_PIN
-        gpio_reset_pin(LASER_ENABLE_PIN);
         pinMode(LASER_ENABLE_PIN, INPUT);
 #endif
     }
