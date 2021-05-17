@@ -580,6 +580,22 @@ void report_echo_line_received(char* line, uint8_t client) {
 // specific needs, but the desired real-time data report must be as short as possible. This is
 // requires as it minimizes the computational overhead and allows grbl to keep running smoothly,
 // especially during g-code programs with fast, short line segments and high frequency reports (5-20Hz).
+bool pinReportStarted;
+void addPinReport(char* status, char pinLetter) {
+    if (!pinReportStarted) {
+        strcat(status, "|Pn:");
+        pinReportStarted = true;
+    }
+    size_t pos      = strlen(status);
+    status[pos]     = pinLetter;
+    status[pos + 1] = '\0';
+}
+void addControlPinReport(char* status, ControlPin pin) {
+    if (pin.get()) {
+        addPinReport(status, pin.letter());
+    }
+}
+
 void report_realtime_status(uint8_t client) {
     char status[200];
     char temp[MAX_N_AXIS * 20];
@@ -642,61 +658,27 @@ void report_realtime_status(uint8_t client) {
     strcat(status, temp);
 #endif
 #ifdef REPORT_FIELD_PIN_STATE
-    AxisMask    lim_pin_state  = limits_get_state();
-    ControlPins ctrl_pin_state = system_control_get_state();
-    bool        prb_pin_state  = probe_get_state();
-    if (lim_pin_state || ctrl_pin_state.value || prb_pin_state) {
-        strcat(status, "|Pn:");
-        if (prb_pin_state) {
-            strcat(status, "P");
-        }
-        if (lim_pin_state) {
-            auto n_axis = number_axis->get();
-            if (n_axis >= 1 && bit_istrue(lim_pin_state, bit(X_AXIS))) {
-                strcat(status, "X");
-            }
-            if (n_axis >= 2 && bit_istrue(lim_pin_state, bit(Y_AXIS))) {
-                strcat(status, "Y");
-            }
-            if (n_axis >= 3 && bit_istrue(lim_pin_state, bit(Z_AXIS))) {
-                strcat(status, "Z");
-            }
-            if (n_axis >= 4 && bit_istrue(lim_pin_state, bit(A_AXIS))) {
-                strcat(status, "A");
-            }
-            if (n_axis >= 5 && bit_istrue(lim_pin_state, bit(B_AXIS))) {
-                strcat(status, "B");
-            }
-            if (n_axis >= 6 && bit_istrue(lim_pin_state, bit(C_AXIS))) {
-                strcat(status, "C");
+    AxisMask lim_pin_state = limits_get_state();
+    bool     prb_pin_state = probe_get_state();
+    pinReportStarted       = false;
+    if (prb_pin_state) {
+        addPinReport(status, 'P');
+    }
+    if (lim_pin_state) {
+        auto n_axis = number_axis->get();
+        for (int i = 0; i < n_axis; i++) {
+            if (bit_istrue(lim_pin_state, bit(i))) {
+                addPinReport(status, "XYZABC"[i]);
             }
         }
-        if (ctrl_pin_state.value) {
-            if (ctrl_pin_state.bit.safetyDoor) {
-                strcat(status, "D");
-            }
-            if (ctrl_pin_state.bit.reset) {
-                strcat(status, "R");
-            }
-            if (ctrl_pin_state.bit.feedHold) {
-                strcat(status, "H");
-            }
-            if (ctrl_pin_state.bit.cycleStart) {
-                strcat(status, "S");
-            }
-            if (ctrl_pin_state.bit.macro0) {
-                strcat(status, "0");
-            }
-            if (ctrl_pin_state.bit.macro1) {
-                strcat(status, "1");
-            }
-            if (ctrl_pin_state.bit.macro2) {
-                strcat(status, "2");
-            }
-            if (ctrl_pin_state.bit.macro3) {
-                strcat(status, "3");
-            }
-        }
+        addControlPinReport(status, safetyDoorPin);
+        addControlPinReport(status, resetPin);
+        addControlPinReport(status, feedHoldPin);
+        addControlPinReport(status, cycleStartPin);
+        addControlPinReport(status, macro0Pin);
+        addControlPinReport(status, macro1Pin);
+        addControlPinReport(status, macro2Pin);
+        addControlPinReport(status, macro3Pin);
     }
 #endif
 #ifdef REPORT_FIELD_WORK_COORD_OFFSET

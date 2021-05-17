@@ -250,17 +250,17 @@ void execute_realtime_command(Cmd command, uint8_t client) {
             report_realtime_status(client);  // direct call instead of setting flag
             break;
         case Cmd::CycleStart:
-            sys_rt_exec_state.bit.cycleStart = true;
+            rtCycleStart = true;
             break;
         case Cmd::FeedHold:
-            sys_rt_exec_state.bit.feedHold = true;
+            rtFeedHold = true;
             break;
         case Cmd::SafetyDoor:
-            sys_rt_exec_state.bit.safetyDoor = true;
+            rtSafetyDoor = true;
             break;
         case Cmd::JogCancel:
             if (sys.state == State::Jog) {  // Block all other states from invoking motion cancel.
-                sys_rt_exec_state.bit.motionCancel = true;
+                rtMotionCancel = true;
             }
             break;
         case Cmd::DebugReport:

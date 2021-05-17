@@ -72,6 +72,7 @@ namespace Motors {
             return;
         }
 
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "pwm %d", duty);
         _current_pwm_duty = duty;
         ledcWrite(_channel_num, duty);
     }

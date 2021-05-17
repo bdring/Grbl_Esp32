@@ -294,7 +294,7 @@ static void stepper_pulse_func() {
                     spindle->set_rpm(0);
                 }
             }
-            cycle_stop = true;
+            rtCycleStop = true;
             return;  // Nothing to do but exit.
         }
     }
@@ -352,8 +352,8 @@ static void stepper_pulse_func() {
 }
 
 void stepper_init() {
-    busy.store(false); 
-    
+    busy.store(false);
+
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", number_axis->get());
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepper_names[current_stepper]);
 
@@ -394,8 +394,7 @@ void st_wake_up() {
     // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
 #ifdef USE_RMT_STEPS
     // Step pulse delay handling is not require with ESP32...the RMT function does it.
-    if (direction_delay_microseconds->get() < 1)
-    {
+    if (direction_delay_microseconds->get() < 1) {
         // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
         st.step_pulse_time = -(((pulse_microseconds->get() - 2) * ticksPerMicrosecond) >> 3);
     }
