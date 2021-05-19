@@ -5,4 +5,7 @@ axes:
   number_axis: 3
 
 coolant:
-  flood: gpio.2
+  flood: gpio.26:low
+
+probe: 
+    pin: gpio.12
