@@ -67,7 +67,7 @@ namespace Spindles {
 
             // First check if we should ask the VFD for the max RPM value as part of the initialization. We
             // should also query this is max_rpm is 0, because that means a previous initialization failed:
-            if (pollidx == 0 || (instance->_max_rpm == 0 && (parser = instance->get_max_rpm(next_cmd)) != nullptr)) {
+            if (pollidx == 0 || (instance->_max_rpm == 0 && (parser = instance->initialization_sequence(pollidx, next_cmd)) != nullptr)) {
                 pollidx           = 1;
                 next_cmd.critical = true;
             } else {
@@ -272,7 +272,6 @@ namespace Spindles {
         }
 
         // Initialization is complete, so now it's okay to run the queue task:
-        task_active = true;
         if (vfd_cmd_queue != nullptr) {
             vfd_cmd_queue = xQueueCreate(VFD_RS485_QUEUE_SIZE, sizeof(ModbusCommand));
         }

@@ -50,7 +50,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     // setup control inputs
 
     if (ControlSafetyDoorPin->get() != Pin::UNDEFINED) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Door switch on pin %s", pinName(CONTROL_SAFETY_DOOR_PIN).c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Door switch on pin %s", ControlSafetyDoorPin->getStringValue());
         auto pin  = ControlSafetyDoorPin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
         if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
@@ -61,7 +61,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     }
 
     if (ControlResetPin->get() != Pin::UNDEFINED) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset switch on pin %s", pinName(CONTROL_RESET_PIN).c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset switch on pin %s", ControlResetPin->getStringValue());
         auto pin  = ControlResetPin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
         if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
@@ -72,7 +72,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     }
 
     if (ControlFeedHoldPin->get() != Pin::UNDEFINED) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Hold switch on pin %s", pinName(CONTROL_FEED_HOLD_PIN).c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Hold switch on pin %s", ControlFeedHoldPin->getStringValue());
         auto pin  = ControlFeedHoldPin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
         if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
@@ -83,7 +83,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
     }
 
     if (ControlCycleStartPin->get() != Pin::UNDEFINED) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start switch on pin %s", pinName(CONTROL_CYCLE_START_PIN).c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start switch on pin %s", ControlCycleStartPin->getStringValue());
         auto pin  = ControlCycleStartPin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
         if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {

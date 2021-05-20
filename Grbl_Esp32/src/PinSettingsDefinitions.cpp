@@ -162,6 +162,16 @@ const char* SPINDLE_FORWARD_PIN_DEFAULT = SPINDLE_FORWARD_PIN;
 #endif
 const char* SPINDLE_REVERSE_PIN_DEFAULT = SPINDLE_REVERSE_PIN;
 
+#ifndef LASER_OUTPUT_PIN
+#    define LASER_OUTPUT_PIN UNDEFINED_PIN
+#endif
+const char* LASER_OUTPUT_PIN_DEFAULT = LASER_OUTPUT_PIN;
+
+#ifndef LASER_ENABLE_PIN
+#    define LASER_ENABLE_PIN UNDEFINED_PIN
+#endif
+const char* LASER_ENABLE_PIN_DEFAULT = LASER_ENABLE_PIN;
+
 #ifndef VFD_RS485_TXD_PIN
 #    define VFD_RS485_TXD_PIN UNDEFINED_PIN
 #endif
@@ -760,6 +770,9 @@ PinSetting* SpindleDirectionPin;
 PinSetting* SpindleForwardPin;
 PinSetting* SpindleReversePin;
 
+PinSetting* LaserOutputPin;
+PinSetting* LaserEnablePin;
+
 PinSetting* VFDRS485TXDPin;
 PinSetting* VFDRS485RXDPin;
 PinSetting* VFDRS485RTSPin;
@@ -823,6 +836,9 @@ void make_pin_settings() {
     SpindleDirectionPin = new PinSetting("Spindle/Direction/Pin", SPINDLE_DIRECTION_PIN_DEFAULT);
     SpindleForwardPin   = new PinSetting("Spindle/Forward/Pin", SPINDLE_FORWARD_PIN_DEFAULT);
     SpindleReversePin   = new PinSetting("Spindle/Reverse/Pin", SPINDLE_REVERSE_PIN_DEFAULT);
+
+    LaserOutputPin = new PinSetting("Spindle/Laser/Output/Pin", LASER_OUTPUT_PIN_DEFAULT);
+    LaserEnablePin = new PinSetting("Spindle/Laser/Enable/Pin", LASER_ENABLE_PIN_DEFAULT);
     // XXX Move to VFD class
     VFDRS485TXDPin = new PinSetting("Spindle/VFD/TxD/Pin", VFD_RS485_TXD_PIN_DEFAULT);  // VFD_RS485_TXD_PIN
     VFDRS485RXDPin = new PinSetting("Spindle/VFD/RxD/Pin", VFD_RS485_RXD_PIN_DEFAULT);  // VFD_RS485_RXD_PIN

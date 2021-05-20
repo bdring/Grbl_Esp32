@@ -36,6 +36,7 @@ const int PARKING_MOTION_LINE_NUMBER = 0;
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
 // (1 minute)/feed_rate time.
 bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position);
+void motors_to_cartesian(float* cartesian, float* motors, int n_axis);
 bool mc_line(float* target, plan_line_data_t* pl_data);  // returns true if line was submitted to planner
 
 // Execute an arc in offset mode format. position == current xyz, target == target xyz,

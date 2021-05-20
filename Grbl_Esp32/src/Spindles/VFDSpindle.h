@@ -38,9 +38,8 @@ namespace Spindles {
         Pin _rxd_pin;
         Pin _rts_pin;
 
-        uint32_t _current_rpm  = 0;
-        bool     _task_running = false;
-        bool     vfd_ok        = true;
+        uint32_t _current_rpm = 0;
+        bool     vfd_ok       = true;
 
         static QueueHandle_t vfd_cmd_queue;
         static TaskHandle_t  vfd_cmdTaskHandle;

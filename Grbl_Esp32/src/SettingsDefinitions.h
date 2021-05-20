@@ -112,6 +112,9 @@ extern PinSetting* SpindleDirectionPin;
 extern PinSetting* SpindleForwardPin;
 extern PinSetting* SpindleReversePin;
 
+extern PinSetting* LaserOutputPin;
+extern PinSetting* LaserEnablePin;
+
 extern PinSetting* VFDRS485TXDPin;  // VFD_RS485_TXD_PIN
 extern PinSetting* VFDRS485RXDPin;  // VFD_RS485_RXD_PIN
 extern PinSetting* VFDRS485RTSPin;  // VFD_RS485_RTS_PIN

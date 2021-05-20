@@ -85,7 +85,7 @@ namespace Spindles {
             grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: Spindle min pwm is greater than max. Check $35 and $36");
         }
 
-        // pre-caculate some PWM count values
+        // pre-calculate some PWM count values
         _pwm_off_value = (_pwm_period * spindle_pwm_off_value->get() / 100.0);
         _pwm_min_value = (_pwm_period * spindle_pwm_min_value->get() / 100.0);
         _pwm_max_value = (_pwm_period * spindle_pwm_max_value->get() / 100.0);
