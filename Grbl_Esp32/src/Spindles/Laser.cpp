@@ -20,6 +20,7 @@
 
 */
 #include "Laser.h"
+#include "../MachineConfig.h"
 
 // ===================================== Laser ==============================================
 
@@ -31,12 +32,12 @@ namespace Spindles {
     void Laser::config_message() {
         grbl_msg_sendf(CLIENT_ALL,
                        MsgLevel::Info,
-                       "Laser spindle on Pin:%s, Enbl:%s, Freq:%dHz, Res:%dbits Laser mode:%s",
+                       "Laser spindle on Pin:%s, Enbl:%s, Freq:%dHz, Res:%dbits Laser mode:%d",
                        _output_pin.name().c_str(),
                        _enable_pin.name().c_str(),
                        int(_pwm_freq),
                        _pwm_precision,
-                       laser_mode->getStringValue());  // the current mode
+                       (MachineConfig::instance()->_laserMode ? 1 : 0));  // the current mode
 
         use_delays = false;  // this will override the value set in Spindle::PWM::init()
     }

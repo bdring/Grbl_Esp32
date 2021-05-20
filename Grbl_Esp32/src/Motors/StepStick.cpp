@@ -19,14 +19,24 @@ namespace Motors {
         handler.handle("ms1", _MS1);
         handler.handle("ms2", _MS2);
         handler.handle("ms3", _MS3);
+        handler.handle("reset", _Reset);
+    }
+
+    void StepStick::afterParse() {
+        if (!_Reset.undefined()) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Using StepStick Mode");
+
+            // !RESET pin on steppers  (MISO On Schematic)
+            _Reset.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
+            _Reset.on();
+        }
     }
 
     // Name of the configurable. Must match the name registered in the cpp file.
     const char* StepStick::name() const { return "stepstick"; }
 
     // Configuration registration
-    namespace
-    {
+    namespace {
         MotorFactory::InstanceBuilder<StepStick> registration("stepstick");
     }
 }

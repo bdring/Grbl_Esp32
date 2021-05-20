@@ -98,16 +98,6 @@ Axes::Axes() : _axis() {
 void Axes::init() {
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Motors");
 
-    // TODO FIXME! If use_stepstick, this should be in stepstick?
-#ifdef USE_STEPSTICK
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Using StepStick Mode");
-
-    if (StepperResetPin->get().defined()) {
-        // !RESET pin on steppers  (MISO On Schematic)
-        StepperResetPin->get().setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
-    }
-#endif
-
     if (_sharedStepperDisable.defined()) {
         _sharedStepperDisable.setAttr(Pin::Attr::Output);
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Shared stepper disable pin:%s", _sharedStepperDisable.name());

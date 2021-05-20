@@ -225,7 +225,7 @@ static void stepper_pulse_func() {
 #ifdef LATER
     // XXX this should be in the motor driver, not here
     if (motors_direction(st.dir_outbits)) {
-        auto wait_direction = direction_delay_microseconds->get();
+        auto wait_direction = MachineConfig::instance()->_directionDelayMilliSeconds;
         if (wait_direction > 0) {
             // Stepper drivers need some time between changing direction and doing a pulse.
             switch (current_stepper) {
@@ -333,16 +333,17 @@ static void stepper_pulse_func() {
         }
     }
 
+    auto pulseMicros = MachineConfig::instance()->_pulseMicroSeconds;
     switch (current_stepper) {
         case ST_I2S_STREAM:
             // Generate the number of pulses needed to span pulse_microseconds
-            i2s_out_push_sample(pulse_microseconds->get());
+            i2s_out_push_sample(pulseMicros);
             MachineConfig::instance()->_axes->unstep();
             break;
         case ST_I2S_STATIC:
         case ST_TIMED:
             // wait for step pulse time to complete...some time expired during code above
-            while (esp_timer_get_time() - step_pulse_start_time < pulse_microseconds->get()) {
+            while (esp_timer_get_time() - step_pulse_start_time < pulseMicros) {
                 NOP();  // spin here until time to turn off step
             }
             MachineConfig::instance()->_axes->unstep();
@@ -394,13 +395,13 @@ void st_wake_up() {
     // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
 #ifdef USE_RMT_STEPS
     // Step pulse delay handling is not require with ESP32...the RMT function does it.
-    if (direction_delay_microseconds->get() < 1) {
+    if (MachineConfig::instance()->_disableDelayMilliSeconds < 1) {
         // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
-        st.step_pulse_time = -(((pulse_microseconds->get() - 2) * ticksPerMicrosecond) >> 3);
+        st.step_pulse_time = -(((MachineConfig::instance()->_pulseMicroSeconds - 2) * ticksPerMicrosecond) >> 3);
     }
 #else  // Normal operation
     // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
-    st.step_pulse_time = -(((pulse_microseconds->get() - 2) * ticksPerMicrosecond) >> 3);
+    st.step_pulse_time = -(((MachineConfig::instance()->_pulseMicroSeconds - 2) * ticksPerMicrosecond) >> 3);
 #endif
 
     // Enable Stepper Driver Interrupt
