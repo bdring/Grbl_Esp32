@@ -320,14 +320,15 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
         memcpy(position_steps, pl.position, sizeof(pl.position));
     }
     auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
+    auto axisSettings = MachineConfig::instance()->_axes->_axis;
     for (idx = 0; idx < n_axis; idx++) {
         // Calculate target position in absolute steps, number of steps for each axis, and determine max step events.
         // Also, compute individual axes distance for move and prep unit vector calculations.
         // NOTE: Computes true distance from converted step values.
-        target_steps[idx]       = lround(target[idx] * axis_settings[idx]->steps_per_mm->get());
+        target_steps[idx]       = lround(target[idx] * axisSettings[idx]->_stepsPerMm);
         block->steps[idx]       = labs(target_steps[idx] - position_steps[idx]);
         block->step_event_count = MAX(block->step_event_count, block->steps[idx]);
-        delta_mm                = (target_steps[idx] - position_steps[idx]) / axis_settings[idx]->steps_per_mm->get();
+        delta_mm                = (target_steps[idx] - position_steps[idx]) / axisSettings[idx]->_stepsPerMm;
         unit_vec[idx]           = delta_mm;  // Store unit vector numerator
         // Set direction bits. Bit enabled always means direction is negative.
         if (delta_mm < 0.0) {
@@ -403,7 +404,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
                 float sin_theta_d2          = sqrt(0.5 * (1.0 - junction_cos_theta));  // Trig half angle identity. Always positive.
                 block->max_junction_speed_sqr =
                     MAX(MINIMUM_JUNCTION_SPEED * MINIMUM_JUNCTION_SPEED,
-                        (junction_acceleration * junction_deviation->get() * sin_theta_d2) / (1.0 - sin_theta_d2));
+                        (junction_acceleration * MachineConfig::instance()->_junctionDeviation * sin_theta_d2) / (1.0 - sin_theta_d2));
             }
         }
     }

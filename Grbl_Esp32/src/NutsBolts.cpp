@@ -165,8 +165,9 @@ float limit_acceleration_by_axis_maximum(float* unit_vec) {
     float   limit_value = SOME_LARGE_VALUE;
     auto    n_axis      = MachineConfig::instance()->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
+        auto axisSetting = MachineConfig::instance()->_axes->_axis[idx];
         if (unit_vec[idx] != 0) {  // Avoid divide by zero.
-            limit_value = MIN(limit_value, fabs(axis_settings[idx]->acceleration->get() / unit_vec[idx]));
+            limit_value = MIN(limit_value, fabs(axisSetting->_acceleration / unit_vec[idx]));
         }
     }
     // The acceleration setting is stored and displayed in units of mm/sec^2,
@@ -181,8 +182,9 @@ float limit_rate_by_axis_maximum(float* unit_vec) {
     float   limit_value = SOME_LARGE_VALUE;
     auto    n_axis      = MachineConfig::instance()->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
+        auto axisSetting = MachineConfig::instance()->_axes->_axis[idx];
         if (unit_vec[idx] != 0) {  // Avoid divide by zero.
-            limit_value = MIN(limit_value, fabs(axis_settings[idx]->max_rate->get() / unit_vec[idx]));
+            limit_value = MIN(limit_value, fabs(axisSetting->_maxRate / unit_vec[idx]));
         }
     }
     return limit_value;

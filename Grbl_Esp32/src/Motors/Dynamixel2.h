@@ -96,7 +96,7 @@ namespace Motors {
         void            init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
         static void     dxl_finish_message(uint8_t id, char* msg, uint16_t msg_len);
         static uint16_t dxl_update_crc(uint16_t crc_accum, char* data_blk_ptr, uint8_t data_blk_size);
-        static void     dxl_bulk_goal_position();  // set all motorsd init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
+        void     dxl_bulk_goal_position();  // set all motorsd init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
 
         float _homing_position;
 

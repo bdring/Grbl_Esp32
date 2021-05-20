@@ -110,7 +110,7 @@ void protocol_main_loop() {
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
 #ifdef CHECK_LIMITS_AT_INIT
-    if (hard_limits->get()) {
+    if (MachineConfig::instance()->_axes->hasHardLimits()) {
         if (limits_get_state()) {
             sys.state = State::Alarm;  // Ensure alarm state is active.
             report_feedback_message(Message::CheckLimits);

@@ -133,6 +133,7 @@ void limits_go_home(uint8_t cycle_mask) {
             if (bit_istrue(cycle_mask, bit(idx))) {
                 n_active_axis++;
                 sys_position[idx] = 0;
+
                 // Set target direction based on cycle mask and homing cycle approach state.
                 // NOTE: This happens to compile smaller than any other implementation tried.
                 auto mask = homing_dir_mask->get();
@@ -418,8 +419,10 @@ bool __attribute__((weak)) limitsCheckTravel(float* target) {
     auto    n_axis = MachineConfig::instance()->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
         float max_mpos, min_mpos;
+        auto axisSetting = MachineConfig::instance()->_axes->_axis[idx];
+        
 
-        if ((target[idx] < limitsMinPosition(idx) || target[idx] > limitsMaxPosition(idx)) && axis_settings[idx]->max_travel->get() > 0) {
+        if ((target[idx] < limitsMinPosition(idx) || target[idx] > limitsMaxPosition(idx)) && axisSetting->_maxTravel > 0) {
             return true;
         }
     }

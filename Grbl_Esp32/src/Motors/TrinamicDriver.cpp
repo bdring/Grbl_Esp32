@@ -368,7 +368,7 @@ namespace Motors {
             if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
                 for (TrinamicDriver* p = List; p; p = p->link) {
                     if (p->_stallguardDebugMode) {
-                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
+                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", p->_stallguardDebugMode);
                         p->debug_message();
                     }
                 }

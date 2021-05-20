@@ -121,6 +121,17 @@ public:
         return false;
     }
 
+    inline bool hasHardLimits() const {
+        for (int i = 0; i < _numberAxis; ++i) {
+            for (int j = 0; j < Axis::MAX_NUMBER_GANGED; ++j) {
+                if (_axis[i]->_gangs[j]->_endstops != nullptr && _axis[i]->_gangs[j]->_endstops->_hardLimits) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // These are used for setup and to talk to the motors as a group.
     void init();
     void read_settings();  // more like 'after read settings, before init'. Oh well...
@@ -338,7 +349,7 @@ public:
     bool  _laserMode         = false;
     int   _pulseMicroSeconds = 3;
     float _arcTolerance      = 0.002;
-    float _junctionDeviation  = 0.01;
+    float _junctionDeviation = 0.01;
 
     static MachineConfig*& instance() {
         static MachineConfig* instance = nullptr;

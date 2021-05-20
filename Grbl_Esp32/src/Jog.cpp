@@ -22,6 +22,7 @@
 */
 
 #include "Grbl.h"
+#include "MachineConfig.h"
 
 // Sets up valid jog motion received from g-code parser, checks for soft-limits, and executes the jog.
 // cancelledInflight will be set to true if was not added to parser due to a cancelJog.
@@ -35,7 +36,7 @@ Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block, bool* can
     pl_data->line_number = gc_block->values.n;
 #endif
     
-    if (soft_limits->get()) {
+    if (MachineConfig::instance()->_axes->hasSoftLimits()) {
         if (limitsCheckTravel(gc_block->values.xyz)) {
             return Error::TravelExceeded;
         }
