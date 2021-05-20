@@ -49,7 +49,8 @@ bool mc_line(float* target, plan_line_data_t* pl_data) {
 
     // If enabled, check for soft limit violations. Placed here all line motions are picked up
     // from everywhere in Grbl.
-    if (soft_limits->get()) {
+    bool hasSoftLimits = MachineConfig::instance()->_axes->hasSoftLimits();
+    if (hasSoftLimits) {
         // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
         if (sys.state != State::Jog) {
             limits_soft_check(target);
@@ -154,11 +155,14 @@ void mc_arc(float*            target,
             angular_travel += 2 * M_PI;
         }
     }
+
+    auto mconfig = MachineConfig::instance();
+
     // NOTE: Segment end points are on the arc, which can lead to the arc diameter being smaller by up to
     // (2x) arc_tolerance. For 99% of users, this is just fine. If a different arc segment fit
     // is desired, i.e. least-squares, midpoint on arc, just change the mm_per_arc_segment calculation.
     // For the intended uses of Grbl, this value shouldn't exceed 2000 for the strictest of cases.
-    uint16_t segments = floor(fabs(0.5 * angular_travel * radius) / sqrt(arc_tolerance->get() * (2 * radius - arc_tolerance->get())));
+    uint16_t segments = floor(fabs(0.5 * angular_travel * radius) / sqrt(mconfig->_arcTolerance * (2 * radius - mconfig->_arcTolerance)));
     if (segments) {
         // Multiply inverse feed_rate to compensate for the fact that this movement is approximated
         // by a number of discrete segments. The inverse feed_rate should be correct for the sum of

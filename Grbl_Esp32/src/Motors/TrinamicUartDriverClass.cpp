@@ -235,12 +235,16 @@ namespace Motors {
                 tmcstepper->pwm_autoscale(false);
                 break;
             case TrinamicUartMode ::StallGuard:  //TODO: check all configurations for stallguard
+            {
+                auto axisConfig     = MachineConfig::instance()->_axes->_axis[this->axis_index()];
+                auto homingFeedRate = (axisConfig->_homing != nullptr) ? axisConfig->_homing->_feedRate : 200;
                 //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard");
                 tmcstepper->en_spreadCycle(false);
                 tmcstepper->pwm_autoscale(false);
-                tmcstepper->TCOOLTHRS(calc_tstep(homing_feed_rate->get(), 150.0));
-                tmcstepper->SGTHRS(constrain(axis_settings[axis_index()]->stallguard->get(), 0, 255));
+                tmcstepper->TCOOLTHRS(calc_tstep(homingFeedRate, 150.0));
+                tmcstepper->SGTHRS(constrain(_stallguard, 0, 255));
                 break;
+            }
             default:
                 grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Unknown Trinamic mode:d", _mode);
         }
@@ -266,7 +270,7 @@ namespace Motors {
                        reportAxisNameMsg(axis_index(), dual_axis_index()),
                        tmcstepper->SG_RESULT(),  //    tmcstepper->sg_result(),
                        feedrate,
-                       constrain(axis_settings[axis_index()]->stallguard->get(), -64, 63));
+                       constrain(_stallguard, -64, 63));
 
         TMC2208_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
         status.sr = tmcstepper->DRV_STATUS();
@@ -334,16 +338,14 @@ namespace Motors {
 
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
         while (true) {                        // don't ever return from this or the task dies
-            if (stallguard_debug_mask->get() != 0) {
-                if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
-                    for (TrinamicUartDriver* p = List; p; p = p->link) {
-                        if (bitnum_istrue(stallguard_debug_mask->get(), p->axis_index())) {
-                            //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
-                            p->debug_message();
-                        }
+            if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
+                for (TrinamicUartDriver* p = List; p; p = p->link) {
+                    if (p->_stallguardDebugMode) {
+                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", _stallguardDebugMode);
+                        p->debug_message();
                     }
-                }  // sys.state
-            }      // if mask
+                }
+            }  // sys.state
 
             vTaskDelayUntil(&xLastWakeTime, xreadSg);
 

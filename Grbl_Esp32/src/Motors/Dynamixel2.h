@@ -108,6 +108,7 @@ namespace Motors {
         Pin         _rts_pin;
         uart_port_t _uart_num;
         int         _axis_index;
+        bool        _invert_direction = false;
 
         bool _disabled;
         bool _has_errors;
@@ -137,7 +138,8 @@ namespace Motors {
             handler.handle("tx", _tx_pin);
             handler.handle("rx", _rx_pin);
             handler.handle("rts", _rts_pin);
-            
+            handler.handle("invert_direction", _invert_direction);
+
             int id = _id;
             handler.handle("id", id);
             _id = id;

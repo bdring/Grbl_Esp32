@@ -14,13 +14,13 @@ namespace Motors {
 }
 
 class Endstops : public Configuration::Configurable {
-    Pin  _positive;
-    Pin  _negative;
-    Pin  _dual;
-    bool _hardLimits = true;
-
 public:
     Endstops() = default;
+
+    //     Pin  _positive;
+    //     Pin  _negative;
+    Pin  _dual;
+    bool _hardLimits = true;
 
     // Configuration system helpers:
     void validate() const override;
@@ -102,6 +102,8 @@ class Axes : public Configuration::Configurable {
 public:
     Axes();
 
+    Pin _sharedStepperDisable;
+
     int   _numberAxis = 3;
     Axis* _axis[MAX_NUMBER_AXIS];
 
@@ -109,6 +111,15 @@ public:
     // is helpful for some motors that need this info, as well as debug information.
     size_t findAxisIndex(const Motors::Motor* const motor) const;
     size_t findAxisGanged(const Motors::Motor* const motor) const;
+
+    inline bool hasSoftLimits() const {
+        for (int i = 0; i < _numberAxis; ++i) {
+            if (_axis[i]->_softLimits) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     // These are used for setup and to talk to the motors as a group.
     void init();
@@ -315,14 +326,19 @@ public:
 
 class MachineConfig : public Configuration::Configurable {
 public:
-    MachineConfig()            = default;
-    Axes*           _axes      = nullptr;
-    SPIBus*         _spi       = nullptr;
-    I2SOBus*        _i2so      = nullptr;
-    CoolantControl* _coolant   = nullptr;
-    Probe*          _probe     = nullptr;
-    bool            _laserMode = false;
-    Communications* _comms     = nullptr;
+    MachineConfig() = default;
+
+    Axes*           _axes    = nullptr;
+    SPIBus*         _spi     = nullptr;
+    I2SOBus*        _i2so    = nullptr;
+    CoolantControl* _coolant = nullptr;
+    Probe*          _probe   = nullptr;
+    Communications* _comms   = nullptr;
+
+    bool  _laserMode         = false;
+    int   _pulseMicroSeconds = 3;
+    float _arcTolerance      = 0.002;
+    float _junctionDeviation  = 0.01;
 
     static MachineConfig*& instance() {
         static MachineConfig* instance = nullptr;

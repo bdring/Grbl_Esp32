@@ -8,6 +8,7 @@ namespace Motors {
         Pin _MS1;
         Pin _MS2;
         Pin _MS3;
+
     public:
         StepStick() = default;
 

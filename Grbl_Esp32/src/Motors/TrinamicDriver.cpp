@@ -111,7 +111,7 @@ namespace Motors {
                 xTaskCreatePinnedToCore(readSgTask,    // task
                                         "readSgTask",  // name for task
                                         4096,          // size of task stack
-                                        NULL,          // parameters
+                                        this,          // parameters
                                         1,             // priority
                                         NULL,
                                         SUPPORT_TASK_CORE  // must run the task on same core
@@ -266,7 +266,7 @@ namespace Motors {
                     tmcstepper->THIGH(calc_tstep(feedrate, 60.0));
                     tmcstepper->sfilt(1);
                     tmcstepper->diag1_stall(true);  // stallguard i/o is on diag1
-                    tmcstepper->sgt(constrain(axis_settings[axis_index()]->stallguard->get(), -64, 63));
+                    tmcstepper->sgt(constrain(_stallguard, -64, 63));
                     break;
                 }
             default:
@@ -295,7 +295,7 @@ namespace Motors {
                        tmcstepper->stallguard(),
                        tmcstepper->sg_result(),
                        feedrate,
-                       constrain(axis_settings[axis_index()]->stallguard->get(), -64, 63));
+                       constrain(_stallguard, -64, 63));
 
         TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
         status.sr = tmcstepper->DRV_STATUS();
@@ -357,22 +357,22 @@ namespace Motors {
 
     // Prints StallGuard data that is useful for tuning.
     void TrinamicDriver::readSgTask(void* pvParameters) {
+        auto trinamicDriver = static_cast<TrinamicDriver*>(pvParameters);
+
         TickType_t       xLastWakeTime;
         const TickType_t xreadSg = 200;  // in ticks (typically ms)
         auto             n_axis  = MachineConfig::instance()->_axes->_numberAxis;
 
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
         while (true) {                        // don't ever return from this or the task dies
-            if (stallguard_debug_mask->get() != 0) {
-                if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
-                    for (TrinamicDriver* p = List; p; p = p->link) {
-                        if (bitnum_istrue(stallguard_debug_mask->get(), p->axis_index())) {
-                            //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
-                            p->debug_message();
-                        }
+            if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
+                for (TrinamicDriver* p = List; p; p = p->link) {
+                    if (p->_stallguardDebugMode) {
+                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", stallguard_debug_mask->get());
+                        p->debug_message();
                     }
-                }  // sys.state
-            }      // if mask
+                }
+            }  // sys.state
 
             vTaskDelayUntil(&xLastWakeTime, xreadSg);
 

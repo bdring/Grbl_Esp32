@@ -109,7 +109,7 @@ namespace Motors {
         _dxl_count_min = DXL_COUNT_MIN;
         _dxl_count_max = DXL_COUNT_MAX;
 
-        if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {  // normal direction
+        if (_invert_direction) {  // normal direction
             swap(_dxl_count_min, _dxl_count_min);
         }
     }

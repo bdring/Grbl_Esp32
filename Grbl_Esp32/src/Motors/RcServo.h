@@ -34,8 +34,8 @@ namespace Motors {
         Pin      _pwm_pin;
         uint8_t  _channel_num;
         uint32_t _current_pwm_duty;
-
-        float _homing_position;
+        float    _homing_position;
+        bool     _invert_direction = false;
 
         float _pwm_pulse_min;
         float _pwm_pulse_max;
@@ -60,9 +60,7 @@ namespace Motors {
         void _write_pwm(uint32_t duty);
 
         // Configuration handlers:
-        void validate() const override {
-            Assert(!_pwm_pin.undefined(), "PWM pin should be configured.");
-        }
+        void validate() const override { Assert(!_pwm_pin.undefined(), "PWM pin should be configured."); }
 
         void handle(Configuration::HandlerBase& handler) override {
             handler.handle("pwm", _pwm_pin);

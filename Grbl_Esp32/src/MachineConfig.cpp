@@ -18,18 +18,18 @@
 // TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
 
 void Endstops::validate() const {
-    if (!_dual.undefined()) {
-        Assert(_positive.undefined(), "If dual endstops are defined, you cannot also define positive and negative endstops");
-        Assert(_negative.undefined(), "If dual endstops are defined, you cannot also define positive and negative endstops");
-    }
-    if (!_positive.undefined() || !_negative.undefined()) {
-        Assert(_positive.undefined(), "If positive or negative endstops are defined, you cannot also define dual endstops");
-    }
+//    if (!_dual.undefined()) {
+//        Assert(_positive.undefined(), "If dual endstops are defined, you cannot also define positive and negative endstops");
+//        Assert(_negative.undefined(), "If dual endstops are defined, you cannot also define positive and negative endstops");
+//    }
+//    if (!_positive.undefined() || !_negative.undefined()) {
+//        Assert(_positive.undefined(), "If positive or negative endstops are defined, you cannot also define dual endstops");
+//    }
 }
 
 void Endstops::handle(Configuration::HandlerBase& handler) {
-    handler.handle("positive", _positive);
-    handler.handle("negative", _negative);
+//     handler.handle("positive", _positive);
+//     handler.handle("negative", _negative);
     handler.handle("dual", _dual);
     handler.handle("hard_limits", _hardLimits);
 }
@@ -98,6 +98,7 @@ Axes::Axes() : _axis() {
 void Axes::init() {
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Motors");
 
+    // TODO FIXME! If use_stepstick, this should be in stepstick?
 #ifdef USE_STEPSTICK
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Using StepStick Mode");
 
@@ -107,9 +108,10 @@ void Axes::init() {
     }
 #endif
 
-    if (SteppersDisablePin->get() != Pin::UNDEFINED) {
-        SteppersDisablePin->get().setAttr(Pin::Attr::Output);  // global motor enable pin
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Global stepper disable pin:%s", SteppersDisablePin->get().name());
+    if (!_sharedStepperDisable.undefined())
+    {
+        _sharedStepperDisable.setAttr(Pin::Attr::Output);
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Shared stepper disable pin:%s", _sharedStepperDisable.name());
     }
 
     // certain motors need features to be turned on. Check them here
@@ -147,10 +149,7 @@ void Axes::set_disable(bool disable) {
     }
 
     // invert only inverts the global stepper disable pin.
-    if (step_enable_invert->get()) {
-        disable = !disable;  // Apply pin invert.
-    }
-    SteppersDisablePin->get().write(disable);
+    _sharedStepperDisable.write(disable);
 }
 
 void Axes::read_settings() {
@@ -290,6 +289,7 @@ void Axes::validate() const {}
 
 void Axes::handle(Configuration::HandlerBase& handler) {
     handler.handle("number_axis", _numberAxis);
+    handler.handle("shared_stepper_disable", _sharedStepperDisable);
 
     const char* allAxis = "xyzabc";
 
@@ -360,6 +360,7 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("coolant", _coolant);
     handler.handle("probe", _probe);
     handler.handle("laser_mode", _laserMode);
+    handler.handle("pulse_microseconds", _pulseMicroSeconds);
 }
 
 void MachineConfig::afterParse() {

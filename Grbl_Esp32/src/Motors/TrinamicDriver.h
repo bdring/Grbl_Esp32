@@ -86,6 +86,7 @@ namespace Motors {
         float _hold_current = 0.25;
         int _microsteps = 256;
         int _stallguard = 0;
+        bool _stallguardDebugMode = false;
 
         TrinamicMode _mode = TrinamicMode::None;
         bool         test();
@@ -137,6 +138,7 @@ namespace Motors {
             handler.handle("hold_current", _hold_current);
             handler.handle("microsteps", _microsteps);
             handler.handle("stallguard", _stallguard);
+            handler.handle("stallguardDebugMode", _stallguardDebugMode);
 
             StandardStepper::handle(handler);
         }
