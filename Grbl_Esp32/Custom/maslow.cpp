@@ -88,10 +88,10 @@ void machine_init()
     axis3.zero();
     axis4.zero();
     
-    axis1Homed = true;
-    axis2Homed = true;
-    axis3Homed = true;
-    axis4Homed = true;
+    axis1Homed = false;
+    axis2Homed = false;
+    axis3Homed = false;
+    axis4Homed = false;
     
     maslowWidth = 2900.0;
     maslowHeight = 1780.0;
@@ -262,8 +262,8 @@ void moveUp(float distToRetract){
     while(distToRetract > 0){
         
         //Set the lower axis to be compliant
-        axis1.comply(&timeLastMoved, &lastPosition1);
-        axis2.comply(&timeLastMoved, &lastPosition2);
+        //axis1.comply(&timeLastMoved, &lastPosition1);
+        //axis2.comply(&timeLastMoved, &lastPosition2);
         
         //Pull in on the upper axis
         axis3.setTarget(axis3.getTarget() - .05);
