@@ -267,6 +267,6 @@ namespace Spindles {
         ledcDetachPin(_output_pin.getNative(Pin::Capabilities::PWM));
         _output_pin.setAttr(Pin::Attr::Input);
         _enable_pin.setAttr(Pin::Attr::Input);
-        _dir_pin.setAttr(Pin::Attr::Input);
+        _direction_pin.setAttr(Pin::Attr::Input);
     }
 }

@@ -56,12 +56,14 @@ const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) use
 #    define TMC_UART UART_NUM_2
 #endif
 
-#ifndef TMC_UART_RX
-#    define TMC_UART_RX UNDEFINED_PIN
-#endif
+#ifdef LATER
+#    ifndef TMC_UART_RX
+#        define TMC_UART_RX UNDEFINED_PIN
+#    endif
 
-#ifndef TMC_UART_TX
-#    define TMC_UART_TX UNDEFINED_PIN
+#    ifndef TMC_UART_TX
+#        define TMC_UART_TX UNDEFINED_PIN
+#    endif
 #endif
 
 extern Uart tmc_serial;
@@ -79,28 +81,7 @@ namespace Motors {
     private:
         static bool _uart_started;
 
-    public:
-        TrinamicUartDriver(uint8_t  axis_index,
-                           uint8_t  step_pin,
-                           uint8_t  dir_pin,
-                           uint8_t  disable_pin,
-                           uint16_t driver_part_number,
-                           float    r_senseS,
-                           uint8_t  address);
-
-        void config_message();
-        void hw_serial_init();
-        void init();
-        void set_mode();
-        void read_settings();
-        void debug_message();
-        bool set_homing_mode(bool is_homing) override;
-        void set_disable(bool disable) override;
-
-        uint8_t addr;
-
-    private:
-        uint32_t calc_tstep(float speed, float percent);  //TODO: see if this is useful/used.
+        uint32_t calc_tstep(float speed, float percent);
 
         TMC2209Stepper*  tmcstepper;  // all other driver types are subclasses of this one
         TrinamicUartMode _homing_mode;
@@ -108,6 +89,11 @@ namespace Motors {
         float            _r_sense;
         bool             _has_errors;
         bool             _disabled;
+
+        float _run_current  = 0.25;
+        float _hold_current = 0.25;
+        int   _microsteps   = 256;
+        int   _stallguard   = 0;
 
         TrinamicUartMode _mode = TrinamicUartMode::None;
         bool             test();
@@ -129,7 +115,54 @@ namespace Motors {
         static void                readSgTask(void*);
 
     protected:
-        // void config_message() override;
+        void config_message() override;
+
+    public:
+        TrinamicUartDriver(uint16_t driver_part_number) : TrinamicUartDriver(driver_part_number, get_next_index()) {}
+
+        TrinamicUartDriver(uint16_t driver_part_number, uint8_t address);
+
+        void init() override;
+        void read_settings() override;
+        bool set_homing_mode(bool is_homing) override;
+        void set_disable(bool disable) override;
+
+        void debug_message();
+
+        bool hw_serial_init();
+
+        uint8_t _addr;
+
+        // Configuration handlers:
+        void validate() const override { StandardStepper::validate(); }
+
+        void handle(Configuration::HandlerBase& handler) override {
+            handler.handle("r_sense", _r_sense);
+            handler.handle("run_current", _run_current);
+            handler.handle("hold_current", _hold_current);
+            handler.handle("microsteps", _microsteps);
+            handler.handle("stallguard", _stallguard);
+
+            StandardStepper::handle(handler);
+        }
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "trinamic_uart"; }
     };
 
+    class TMC2008 : public TrinamicUartDriver {
+    public:
+        TMC2008() : TrinamicUartDriver(2008) {}
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "tmc_2008"; }
+    };
+
+    class TMC2009 : public TrinamicUartDriver {
+    public:
+        TMC2009() : TrinamicUartDriver(2009) {}
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "tmc_2009"; }
+    };
 }

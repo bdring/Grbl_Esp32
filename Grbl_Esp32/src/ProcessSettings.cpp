@@ -436,7 +436,9 @@ Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, We
             }
         }
     }
+#ifdef LATER
     motors_set_disable(true, convertedValue);
+#endif
     return Error::Ok;
 }
 

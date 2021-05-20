@@ -228,7 +228,7 @@ namespace Motors {
     There are ton of settings. I'll start by grouping then into modes for now.
     Many people will want quiet and stallgaurd homing. Stallguard only run in
     Coolstep mode, so it will need to switch to Coolstep when homing
-*/
+    */
     void TrinamicDriver::set_mode(bool isHoming) {
         if (_has_errors) {
             return;
@@ -266,7 +266,7 @@ namespace Motors {
                     tmcstepper->THIGH(calc_tstep(feedrate, 60.0));
                     tmcstepper->sfilt(1);
                     tmcstepper->diag1_stall(true);  // stallguard i/o is on diag1
-                    tmcstepper->sgt(constrain(axis_settings[_axis_index]->stallguard->get(), -64, 63));
+                    tmcstepper->sgt(constrain(axis_settings[axis_index()]->stallguard->get(), -64, 63));
                     break;
                 }
             default:
@@ -295,7 +295,7 @@ namespace Motors {
                        tmcstepper->stallguard(),
                        tmcstepper->sg_result(),
                        feedrate,
-                       constrain(axis_settings[_axis_index]->stallguard->get(), -64, 63));
+                       constrain(axis_settings[axis_index()]->stallguard->get(), -64, 63));
 
         TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
         status.sr = tmcstepper->DRV_STATUS();
@@ -309,7 +309,7 @@ namespace Motors {
         // grbl_msg_sendf(CLIENT_SERIAL,
         //                MsgLevel::Info,
         //                "%s Status Register %08x GSTAT %02x",
-        //                reportAxisNameMsg(_axis_index, _dual_axis_index),
+        //                reportAxisNameMsg(axis_index(), dual_axis_index()),
         //                status.sr,
         //                tmcstepper->GSTAT());
     }

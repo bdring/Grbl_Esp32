@@ -148,10 +148,9 @@ static uint8_t getClientChar(uint8_t* data) {
 // this task runs and checks for data on all interfaces
 // REaltime stuff is acted upon, then characters are added to the appropriate buffer
 void clientCheckTask(void* pvParameters) {
-    uint8_t            data = 0;
-    uint8_t            client;  // who sent the data
-    static UBaseType_t uxHighWaterMark = 0;
-    while (true) {  // run continuously
+    uint8_t data = 0;
+    uint8_t client;  // who sent the data
+    while (true) {   // run continuously
         // Pick off realtime command characters directly from the serial stream. These characters are
         // not passed into the main buffer, but these set system state flag bits for realtime execution.
         if (is_realtime_command(data)) {
@@ -185,11 +184,10 @@ void clientCheckTask(void* pvParameters) {
 #endif
     vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
 
-    static UBaseType_t uxHighWaterMark = 0;
 #ifdef DEBUG_TASK_STACK
+    static UBaseType_t uxHighWaterMark = 0;
     reportTaskStackSize(uxHighWaterMark);
 #endif
-}
 }
 
 void client_reset_read_buffer(uint8_t client) {

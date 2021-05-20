@@ -413,7 +413,7 @@ bool __attribute__((weak)) limitsCheckTravel(float* target) {
 }
 
 bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index) {
-    return (limit_pins[axis][gang_index] != UNDEFINED_PIN);
+    return (LimitPins[axis][gang_index]->get() != Pin::UNDEFINED);
 }
 
 bool __attribute__((weak)) user_defined_homing(uint8_t cycle_mask) {

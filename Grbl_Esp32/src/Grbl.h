@@ -93,6 +93,7 @@ void run_once();
 
 // Weak definitions that can be overridden
 void machine_init();
+void display_init();
 bool user_defined_homing(uint8_t cycle_mask);
 
 // weak definitions in MotionControl.cpp

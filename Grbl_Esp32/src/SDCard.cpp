@@ -166,12 +166,12 @@ SDState get_sd_state(bool refresh) {
         //refresh content if card was removed
         if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
             if (SD.cardSize() > 0) {
-                sd_state = SDCARD_IDLE;
+                sd_state = SDState::Idle;
             }
         }
         return sd_state;
     } else {
-        return SDCARD_NOT_PRESENT;
+        return SDState::NotPresent;
     }
 }
 

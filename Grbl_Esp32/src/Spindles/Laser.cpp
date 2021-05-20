@@ -86,10 +86,5 @@ namespace Spindles {
 
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
     }
-
-    void Laser::deinit() {
-        stop();
-        ledcDetachPin(_output_pin.getNative(Pin::Capabilities::PWM));
-        _output_pin.setAttr(Pin::Attr::Input);
-        _enable_pin.setAttr(Pin::Attr::Input);
-    }
+#endif
+}

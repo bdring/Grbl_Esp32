@@ -196,9 +196,11 @@ static bool checkStartupLine(char* value) {
 }
 
 static bool postMotorSetting(char* value) {
+#ifdef LATER
     if (!value) {
         motors_read_settings();
     }
+#endif
     return true;
 }
 
@@ -213,7 +215,6 @@ static bool checkSpindleChange(char* val) {
             grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Spindle turned off with setting change");
         }
         gc_state.spindle_speed = 0;   // Set S value to 0
-        spindle->deinit();            // old spindle
         Spindles::Spindle::select();  // get new spindle
         return true;
     }

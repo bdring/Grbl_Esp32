@@ -127,6 +127,7 @@ namespace Motors {
     }
 
     void RcServo::read_settings() {
+#ifdef LATER
         if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {
             // swap the pwm values
             _pwm_pulse_min = SERVO_MAX_PULSE * (1.0 + (1.0 - rc_servo_cal_min->get()));
@@ -136,6 +137,7 @@ namespace Motors {
             _pwm_pulse_min = SERVO_MIN_PULSE * rc_servo_cal_min->get();
             _pwm_pulse_max = SERVO_MAX_PULSE * rc_servo_cal_max->get();
         }
+#endif
     }
 
     // Configuration registration
