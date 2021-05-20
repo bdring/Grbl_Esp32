@@ -439,14 +439,12 @@ const double ARC_ANGULAR_TRAVEL_EPSILON = 5E-7;  // Float (radians)
 const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
 
 // For test use only. This uses the ESP32's RMT peripheral to generate step pulses
-// It allows the use of the STEP_PULSE_DELAY (see below) and it automatically ends the
+// It allows the use of a delay and it automatically ends the
 // pulse in one operation.
 // Dir Pin  ____|--------------------
 // Step Pin _______|--|____________
 // While this is experimental, it is intended to be the future default method after testing
 //#define USE_RMT_STEPS
-
-// STEP_PULSE_DELAY is now a setting...$Stepper/Direction/Delay
 
 // The number of linear motions in the planner buffer to be planned at any give time. The vast
 // majority of RAM that Grbl uses is based on this buffer size. Only increase if there is extra

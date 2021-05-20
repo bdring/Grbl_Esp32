@@ -940,7 +940,7 @@ void reportTaskStackSize(UBaseType_t& saved) {
 
 void mpos_to_wpos(float* position) {
     float* wco    = get_wco();
-    auto   n_axis = number_axis->get();
+    auto   n_axis = MachineConfig::instance()->_axes->_numberAxis;
     for (int idx = 0; idx < n_axis; idx++) {
         position[idx] -= wco[idx];
     }
@@ -948,7 +948,7 @@ void mpos_to_wpos(float* position) {
 
 float* get_wco() {
     static float wco[MAX_N_AXIS];
-    auto         n_axis = number_axis->get();
+    auto         n_axis = MachineConfig::instance()->_axes->_numberAxis;
     for (int idx = 0; idx < n_axis; idx++) {
         // Apply work coordinate offsets and tool length offset to current position.
         wco[idx] = gc_state.coord_system[idx] + gc_state.coord_offset[idx];

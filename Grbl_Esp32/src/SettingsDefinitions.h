@@ -2,44 +2,21 @@
 
 extern FlagSetting* verbose_errors;
 
-extern FakeSetting<int>* number_axis;
-
-extern AxisSettings* x_axis_settings;
-extern AxisSettings* y_axis_settings;
-extern AxisSettings* z_axis_settings;
-extern AxisSettings* a_axis_settings;
-extern AxisSettings* b_axis_settings;
-extern AxisSettings* c_axis_settings;
-extern AxisSettings* axis_settings[];
-
 extern StringSetting* startup_line_0;
 extern StringSetting* startup_line_1;
 extern StringSetting* build_info;
 
-extern IntSetting* pulse_microseconds;
 extern IntSetting* stepper_idle_lock_time;
-extern IntSetting* direction_delay_microseconds;
-extern IntSetting* enable_delay_microseconds;
 
-extern AxisMaskSetting* step_invert_mask;
-extern AxisMaskSetting* dir_invert_mask;
 extern AxisMaskSetting* homing_dir_mask;
 extern AxisMaskSetting* homing_squared_axes;
 extern AxisMaskSetting* homing_cycle[MAX_N_AXIS];
 
-extern FlagSetting* step_enable_invert;
-extern FlagSetting* limit_invert;
-extern FlagSetting* probe_invert;
 extern FlagSetting* report_inches;
-extern FlagSetting* soft_limits;
-extern FlagSetting* hard_limits;
 extern FlagSetting* homing_enable;
-extern FlagSetting* laser_mode;
 extern IntSetting*  laser_full_power;
 
-extern IntSetting*   status_mask;
-extern FloatSetting* junction_deviation;
-extern FloatSetting* arc_tolerance;
+extern IntSetting* status_mask;
 
 extern FloatSetting* homing_feed_rate;
 extern FloatSetting* homing_seek_rate;
@@ -69,16 +46,7 @@ extern StringSetting* user_macro3;
 
 extern EnumSetting* message_level;
 
-extern AxisMaskSetting* stallguard_debug_mask;
-
 // Pins:
-extern PinSetting* CoolantFloodPin;     // COOLANT_FLOOD_PIN
-extern PinSetting* CoolantMistPin;      // COOLANT_MIST_PIN
-extern PinSetting* ProbePin;            // PROBE_PIN
-extern PinSetting* SDCardDetPin;        // SDCARD_DET_PIN
-extern PinSetting* SteppersDisablePin;  // STEPPERS_DISABLE_PIN
-extern PinSetting* StepperResetPin;     // STEPPER_RESET
-
 extern PinSetting* ControlSafetyDoorPin;  //  CONTROL_SAFETY_DOOR_PIN
 extern PinSetting* ControlResetPin;       //  CONTROL_RESET_PIN
 extern PinSetting* ControlFeedHoldPin;    //  CONTROL_FEED_HOLD_PIN
@@ -88,22 +56,10 @@ extern PinSetting* MacroButton1Pin;       //  MACRO_BUTTON_1_PIN
 extern PinSetting* MacroButton2Pin;       //  MACRO_BUTTON_2_PIN
 extern PinSetting* MacroButton3Pin;       //  MACRO_BUTTON_3_PIN
 
-extern PinSetting* DynamixelTXDPin;  // DYNAMIXEL_TXD
-extern PinSetting* DynamixelRXDPin;  // DYNAMIXEL_RXD
-extern PinSetting* DynamixelRTSPin;  // DYNAMIXEL_RTS
-
 extern PinSetting* UserDigitalPin[4];
 extern PinSetting* UserAnalogPin[4];
 
-// SPI pins:
-extern PinSetting* SPISSPin;    // SS
-extern PinSetting* SPISCKPin;   // SCK
-extern PinSetting* SPIMISOPin;  // MISO
-extern PinSetting* SPIMOSIPin;  // MOSI
-
-extern PinSetting* I2SOBCK;
-extern PinSetting* I2SOWS;
-extern PinSetting* I2SOData;
+extern PinSetting* SDCardDetPin;  // SDCARD_DET_PIN
 
 // Spindle pins:
 extern PinSetting* SpindleOutputPin;
@@ -118,13 +74,3 @@ extern PinSetting* LaserEnablePin;
 extern PinSetting* VFDRS485TXDPin;  // VFD_RS485_TXD_PIN
 extern PinSetting* VFDRS485RXDPin;  // VFD_RS485_RXD_PIN
 extern PinSetting* VFDRS485RTSPin;  // VFD_RS485_RTS_PIN
-
-// TODO FIXME: Add motor type (enum) setting! That way we can properly hide a lot of settings, and make Motors.cpp proper!
-extern PinSetting* LimitPins[MAX_N_AXIS][2];
-extern PinSetting* StepPins[MAX_N_AXIS][2];
-extern PinSetting* DirectionPins[MAX_N_AXIS][2];
-extern PinSetting* DisablePins[MAX_N_AXIS][2];
-extern PinSetting* ClearToSendPins[MAX_N_AXIS][2];
-extern PinSetting* ServoPins[MAX_N_AXIS][2];
-extern PinSetting* PhasePins[4][MAX_N_AXIS][2];
-extern PinSetting* StepStickMS3[MAX_N_AXIS][2];
