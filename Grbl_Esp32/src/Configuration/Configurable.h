@@ -3,14 +3,12 @@
 #include "Generator.h"
 #include "Parser.h"
 
-namespace Configuration
-{
+namespace Configuration {
     class HandlerBase;
 
-    class Configurable
-    {
+    class Configurable {
         Configurable(const Configurable&) = delete;
-        Configurable(Configurable&&) = default;
+        Configurable(Configurable&&)      = default;
 
         Configurable& operator=(const Configurable&) = delete;
         Configurable& operator=(Configurable&&) = default;
@@ -18,7 +16,7 @@ namespace Configuration
     public:
         Configurable() = default;
 
-        virtual void validate() const = 0;
+        virtual void validate() const             = 0;
         virtual void handle(HandlerBase& handler) = 0;
         virtual void afterParse() {}
         // virtual const char* name() const = 0;

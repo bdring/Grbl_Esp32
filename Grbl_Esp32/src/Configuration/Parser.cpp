@@ -17,8 +17,7 @@ namespace Configuration {
         // Attempt to use the correct position in the parser:
         if (current_.keyEnd_) {
             throw ParseException(start_, current_.keyEnd_, description);
-        }
-        else {
+        } else {
             Tokenizer::ParseError(description);
         }
     }
@@ -73,7 +72,7 @@ namespace Configuration {
         // At this point, we just know the indent is smaller. We don't know if we're in
         // the *right* section tho.
         auto last = indentStack_.top();
-        indent_ = last;
+        indent_   = last;
         indentStack_.pop();
 
         if (last == token_.indent_) {
@@ -92,21 +91,21 @@ namespace Configuration {
         }
         return StringRange(current_.sValueStart_, current_.sValueEnd_);
     }
-    
+
     bool Parser::boolValue() const {
         if (current_.kind_ != TokenKind::Boolean) {
             parseError("Expected a boolean value (e.g. true or value)");
         }
         return current_.bValue_;
     }
-    
+
     int Parser::intValue() const {
         if (current_.kind_ != TokenKind::IntegerValue) {
             parseError("Expected an integer value (e.g. 123456)");
         }
         return current_.iValue_;
     }
-    
+
     double Parser::doubleValue() const {
         if (current_.kind_ != TokenKind::FloatingPoint) {
             parseError("Expected a float value (e.g. 123.456)");
@@ -114,8 +113,7 @@ namespace Configuration {
         return current_.fValue_;
     }
 
-    Pin Parser::pinValue() const
-    {
+    Pin Parser::pinValue() const {
         if (current_.kind_ != TokenKind::String) {
             parseError("Expected a string value (e.g. 'foo')");
         }

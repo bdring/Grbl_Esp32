@@ -6,8 +6,7 @@
 namespace Configuration {
     class LegacySettingHandler;
 
-    class LegacySettingRegistry
-    {
+    class LegacySettingRegistry {
         static LegacySettingRegistry& instance() {
             static LegacySettingRegistry instance_;
             return instance_;

@@ -7,23 +7,20 @@
 #include "../StringStream.h"
 #include "HandlerBase.h"
 
-namespace Configuration
-{
+namespace Configuration {
     class Configurable;
 
-    class Generator : public HandlerBase
-    {
+    class Generator : public HandlerBase {
         Generator(const Generator&) = delete;
         Generator& operator=(const Generator&) = delete;
 
-        int indent_;
+        int                 indent_;
         SimpleOutputStream& dst_;
-        bool lastIsNewline_ = false;
+        bool                lastIsNewline_ = false;
 
         inline void indent() {
             lastIsNewline_ = false;
-            for (int i = 0; i < indent_ * 2; ++i)
-            {
+            for (int i = 0; i < indent_ * 2; ++i) {
                 dst_ << ' ';
             }
         }
@@ -31,10 +28,10 @@ namespace Configuration
         void enter(const char* name);
         void add(Configuration::Configurable* configurable);
         void leave();
-        
+
     protected:
-        void handleDetail(const char* name, Configurable* value) override;
-        bool matchesUninitialized(const char* name) override { return false; }
+        void        handleDetail(const char* name, Configurable* value) override;
+        bool        matchesUninitialized(const char* name) override { return false; }
         HandlerType handlerType() override { return HandlerType::Generator; }
 
     public:

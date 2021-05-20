@@ -6,8 +6,7 @@
 
 namespace Configuration {
     template <typename BaseType>
-    class GenericFactory
-    {
+    class GenericFactory {
         static GenericFactory& instance() {
             static GenericFactory instance_;
             return instance_;
@@ -28,37 +27,26 @@ namespace Configuration {
             BuilderBase& operator=(const BuilderBase& o) = delete;
 
             virtual BaseType* create() const = 0;
-            const char* name() const { return name_; }
+            const char*       name() const { return name_; }
 
             virtual ~BuilderBase() = default;
         };
 
         std::vector<BuilderBase*> builders_;
 
-        inline static void registerBuilder(BuilderBase* builder)
-        {
-            instance().builders_.push_back(builder);
-        }
+        inline static void registerBuilder(BuilderBase* builder) { instance().builders_.push_back(builder); }
 
     public:
         template <typename DerivedType>
-        class InstanceBuilder : public BuilderBase
-        {
+        class InstanceBuilder : public BuilderBase {
         public:
-            InstanceBuilder(const char* name) : BuilderBase(name) {
-                instance().registerBuilder(this);
-            }
+            InstanceBuilder(const char* name) : BuilderBase(name) { instance().registerBuilder(this); }
 
-            BaseType* create() const override
-            {
-                return new DerivedType();
-            }
+            BaseType* create() const override { return new DerivedType(); }
         };
 
-        static void handle(Configuration::HandlerBase& handler, BaseType*& inst)
-        {
-            if (inst == nullptr)
-            {
+        static void handle(Configuration::HandlerBase& handler, BaseType*& inst) {
+            if (inst == nullptr) {
                 for (auto it : instance().builders_) {
                     if (handler.matchesUninitialized(it->name())) {
                         inst = it->create();
@@ -67,9 +55,7 @@ namespace Configuration {
                         return;
                     }
                 }
-            }
-            else 
-            {
+            } else {
                 handler.handleDetail(inst->name(), inst);
             }
         }

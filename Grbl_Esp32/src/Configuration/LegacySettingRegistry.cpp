@@ -2,17 +2,10 @@
 
 #include "LegacySettingHandler.h"
 
-namespace Configuration 
-{
-    bool LegacySettingRegistry::isLegacySetting(const char* str)
-    {
-        return str[0] == '$' && (str[1] >= '0' && str[1] <= '9');
-    }
+namespace Configuration {
+    bool LegacySettingRegistry::isLegacySetting(const char* str) { return str[0] == '$' && (str[1] >= '0' && str[1] <= '9'); }
 
-    void LegacySettingRegistry::registerHandler(LegacySettingHandler* handler)
-    {
-        instance().handlers_.push_back(handler);
-    }
+    void LegacySettingRegistry::registerHandler(LegacySettingHandler* handler) { instance().handlers_.push_back(handler); }
 
     bool LegacySettingRegistry::tryHandleLegacy(const char* str) {
         if (isLegacySetting(str)) {
@@ -21,8 +14,7 @@ namespace Configuration
             int value = 0;
             ++str;
 
-            while (*str && *str >= '0' && *str <= '9')
-            {
+            while (*str && *str >= '0' && *str <= '9') {
                 value = value * 10 + (*str - '0');
                 ++str;
             }
@@ -31,13 +23,11 @@ namespace Configuration
                 ++str;
 
                 handleLegacy(value, str);
-            }
-            else {
+            } else {
                 log_warn("Incorrect setting '" << start << "': cannot find '='.");
             }
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -45,8 +35,7 @@ namespace Configuration
     void LegacySettingRegistry::handleLegacy(int index, const char* value) {
         bool handled = false;
         for (auto it : instance().handlers_) {
-            if (it->index() == index)
-            {
+            if (it->index() == index) {
                 handled = true;
                 it->handle(value);
             }

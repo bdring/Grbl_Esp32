@@ -5,27 +5,21 @@
 #include <cstring>
 #include <cstdio>
 
-namespace Configuration
-{
-    void Generator::enter(const char* name)
-    {
+namespace Configuration {
+    void Generator::enter(const char* name) {
         indent();
         dst_ << name << ":\n";
         indent_++;
     }
 
-    void Generator::add(Configuration::Configurable* configurable)
-    {
-        if (configurable != nullptr)
-        {
+    void Generator::add(Configuration::Configurable* configurable) {
+        if (configurable != nullptr) {
             configurable->handle(*this);
         }
     }
 
-    void Generator::leave()
-    {
-        if (!lastIsNewline_)
-        {
+    void Generator::leave() {
+        if (!lastIsNewline_) {
             dst_ << '\n';
             lastIsNewline_ = true;
         }

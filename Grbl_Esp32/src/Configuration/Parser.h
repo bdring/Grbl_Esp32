@@ -15,7 +15,7 @@ namespace Configuration {
 
         std::stack<int> indentStack_;
         TokenData       current_;
-        int indent_ = 0;
+        int             indent_ = 0;
 
         void parseError(const char* description) const;
 
@@ -39,16 +39,15 @@ namespace Configuration {
         void leave();
 
         inline bool is(const char* expected) const {
-            return current_.keyStart_ != nullptr && 
-                   !strncmp(expected, current_.keyStart_, size_t(current_.keyEnd_ - current_.keyStart_));
+            return current_.keyStart_ != nullptr && !strncmp(expected, current_.keyStart_, size_t(current_.keyEnd_ - current_.keyStart_));
         }
 
         inline StringRange key() const { return StringRange(current_.keyStart_, current_.keyEnd_); }
 
         StringRange stringValue() const;
-        bool boolValue() const;
-        int intValue() const;
-        double doubleValue() const;
-        Pin pinValue() const;
+        bool        boolValue() const;
+        int         intValue() const;
+        double      doubleValue() const;
+        Pin         pinValue() const;
     };
 }
