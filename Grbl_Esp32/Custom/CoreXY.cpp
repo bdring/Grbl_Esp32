@@ -123,7 +123,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
                 // setup for the homing of this axis
                 bool  approach       = true;
                 float homing_rate    = homing_seek_rate->get();
-                max_travel           = HOMING_AXIS_SEARCH_SCALAR * axis_settings[axis]->max_travel->get();
+                max_travel           = HOMING_AXIS_SEARCH_SCALAR * MachineConfig::instance()->_axes->_axis[axis]->_maxTravel;
                 sys.homing_axis_lock = 0xFF;                          // we don't need to lock any motors in CoreXY
                 n_cycle              = (2 * NHomingLocateCycle + 1);  // approach + ((pulloff + approach) * Cycles)
 
@@ -143,7 +143,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
                     }
 
                     for (int axis = Z_AXIS; axis < n_axis; axis++) {
-                        target[axis] = sys_position[axis] / axis_settings[axis]->steps_per_mm->get();
+                        target[axis] = sys_position[axis] / MachineConfig::instance()->_axes->_axis[axis]->_stepsPerMm;
                     }
 
                     // convert back to motor steps
@@ -234,14 +234,14 @@ bool user_defined_homing(uint8_t cycle_mask) {
     last_cartesian[Y_AXIS] = target[Y_AXIS];
 
     for (int axis = Z_AXIS; axis < n_axis; axis++) {
-        last_cartesian[axis] = sys_position[axis] / axis_settings[axis]->steps_per_mm->get();
+        last_cartesian[axis] = sys_position[axis] / MachineConfig::instance()->_axes->_axis[axis]->_stepsPerMm;
     }
 
     // convert to motors
     cartesian_to_motors(target);
     // convert to steps
     for (axis = X_AXIS; axis <= Y_AXIS; axis++) {
-        sys_position[axis] = target[axis] * axis_settings[axis]->steps_per_mm->get();
+        sys_position[axis] = target[axis] * MachineConfig::instance()->_axes->_axis[axis]->_stepsPerMm;
     }
 
     sys.step_control = {};  // Return step control to normal operation.
