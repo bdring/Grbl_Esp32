@@ -118,7 +118,7 @@ void limits_go_home(uint8_t cycle_mask) {
     }
     // Set search mode with approach at seek rate to quickly engage the specified cycle_mask limit switches.
     bool     approach    = true;
-    float    homing_rate = homing_seek_rate->get(); // TODO FIXME: in YAML this is per-axis. We should move this into the loop.
+    float    homing_rate = homing_seek_rate->get();  // TODO FIXME: in YAML this is per-axis. We should move this into the loop.
     uint8_t  n_active_axis;
     AxisMask limit_state, axislock;
     do {
@@ -243,7 +243,7 @@ void limits_go_home(uint8_t cycle_mask) {
     auto pulloff = homing_pulloff->get();
     for (uint8_t idx = 0; idx < n_axis; idx++) {
         Axis* axisConf = MachineConfig::instance()->_axes->_axis[idx];
-        auto homing = axisConf->_homing;
+        auto  homing   = axisConf->_homing;
         auto  steps    = axisConf->_stepsPerMm;
         if (cycle_mask & bit(idx)) {
             float travel = axisConf->_maxTravel;
@@ -273,7 +273,7 @@ void limits_init() {
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             auto gangConfig = MachineConfig::instance()->_axes->_axis[axis]->_gangs[gang_index];
-            if (gangConfig->_endstops != nullptr && !gangConfig->_endstops->_dual.undefined()) {
+            if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
                 Pin& pin = gangConfig->_endstops->_dual;
 
 #ifndef DISABLE_LIMIT_PIN_PULL_UP
@@ -316,7 +316,7 @@ void limits_disable() {
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             auto gangConfig = MachineConfig::instance()->_axes->_axis[axis]->_gangs[gang_index];
-            if (gangConfig->_endstops != nullptr && !gangConfig->_endstops->_dual.undefined()) {
+            if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
                 Pin& pin = gangConfig->_endstops->_dual;
                 pin.detachInterrupt();
             }
@@ -333,7 +333,7 @@ AxisMask limits_get_state() {
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             auto gangConfig = MachineConfig::instance()->_axes->_axis[axis]->_gangs[gang_index];
-            if (gangConfig->_endstops != nullptr && !gangConfig->_endstops->_dual.undefined()) {
+            if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
                 Pin& pin = gangConfig->_endstops->_dual;
                 pinMask |= (pin.read() << axis);
             }
@@ -393,19 +393,19 @@ void limitCheckTask(void* pvParameters) {
 }
 
 float limitsMaxPosition(uint8_t axis) {
-    auto axisConfig = MachineConfig::instance()->_axes->_axis[axis];
-    auto homing = axisConfig->_homing;
-    float mpos = (homing != nullptr) ? homing->_mpos : 0;
-    auto maxtravel = axisConfig->_maxTravel;
+    auto  axisConfig = MachineConfig::instance()->_axes->_axis[axis];
+    auto  homing     = axisConfig->_homing;
+    float mpos       = (homing != nullptr) ? homing->_mpos : 0;
+    auto  maxtravel  = axisConfig->_maxTravel;
 
     return (homing == nullptr || homing->_positiveDirection) ? mpos + maxtravel : mpos;
 }
 
 float limitsMinPosition(uint8_t axis) {
-    auto axisConfig = MachineConfig::instance()->_axes->_axis[axis];
-    auto homing = axisConfig->_homing;
-    float mpos = (homing != nullptr) ? homing->_mpos : 0;
-    auto maxtravel = axisConfig->_maxTravel;
+    auto  axisConfig = MachineConfig::instance()->_axes->_axis[axis];
+    auto  homing     = axisConfig->_homing;
+    float mpos       = (homing != nullptr) ? homing->_mpos : 0;
+    auto  maxtravel  = axisConfig->_maxTravel;
 
     return (homing == nullptr || homing->_positiveDirection) ? mpos : mpos - maxtravel;
 }
@@ -428,12 +428,10 @@ bool __attribute__((weak)) limitsCheckTravel(float* target) {
 
 bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index) {
     auto gangConfig = MachineConfig::instance()->_axes->_axis[axis]->_gangs[gang_index];
-    
-    if (gangConfig->_endstops != nullptr)
-    {
-        return !gangConfig->_endstops->_dual.undefined();
-    }
-    else {
+
+    if (gangConfig->_endstops != nullptr) {
+        return gangConfig->_endstops->_dual.defined();
+    } else {
         return false;
     }
 }

@@ -994,10 +994,9 @@ void IRAM_ATTR Stepper_Timer_Stop() {
 
 bool get_stepper_disable() {  // returns true if steppers are disabled
     auto axesConfig = MachineConfig::instance()->_axes;
-    if (!axesConfig->_sharedStepperDisable.undefined()) {
+    if (axesConfig->_sharedStepperDisable.defined()) {
         bool disabled = axesConfig->_sharedStepperDisable.read();
         return disabled;
-    } else {
-        return false;  // thery are never disabled if there is no pin defined
     }
+    return false;  // they are never disabled if there is no pin defined
 }

@@ -18,18 +18,18 @@
 // TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
 
 void Endstops::validate() const {
-//    if (!_dual.undefined()) {
-//        Assert(_positive.undefined(), "If dual endstops are defined, you cannot also define positive and negative endstops");
-//        Assert(_negative.undefined(), "If dual endstops are defined, you cannot also define positive and negative endstops");
-//    }
-//    if (!_positive.undefined() || !_negative.undefined()) {
-//        Assert(_positive.undefined(), "If positive or negative endstops are defined, you cannot also define dual endstops");
-//    }
+    //    if (_dual.defined()) {
+    //        Assert(_positive.undefined(), "If dual endstops are defined, you cannot also define positive and negative endstops");
+    //        Assert(_negative.undefined(), "If dual endstops are defined, you cannot also define positive and negative endstops");
+    //    }
+    //    if (_positive.defined() || _negative.defined()) {
+    //        Assert(_positive.undefined(), "If positive or negative endstops are defined, you cannot also define dual endstops");
+    //    }
 }
 
 void Endstops::handle(Configuration::HandlerBase& handler) {
-//     handler.handle("positive", _positive);
-//     handler.handle("negative", _negative);
+    //     handler.handle("positive", _positive);
+    //     handler.handle("negative", _negative);
     handler.handle("dual", _dual);
     handler.handle("hard_limits", _hardLimits);
 }
@@ -102,14 +102,13 @@ void Axes::init() {
 #ifdef USE_STEPSTICK
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Using StepStick Mode");
 
-    if (StepperResetPin->get() != Pin::UNDEFINED) {
+    if (StepperResetPin->get().defined()) {
         // !RESET pin on steppers  (MISO On Schematic)
         StepperResetPin->get().setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
     }
 #endif
 
-    if (!_sharedStepperDisable.undefined())
-    {
+    if (_sharedStepperDisable.defined()) {
         _sharedStepperDisable.setAttr(Pin::Attr::Output);
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Shared stepper disable pin:%s", _sharedStepperDisable.name());
     }
@@ -322,10 +321,10 @@ Axes::~Axes() {
 }
 
 void I2SOBus::validate() const {
-    if (!_bck.undefined() || !_data.undefined() || !_ws.undefined()) {
-        Assert(!_bck.undefined(), "I2SO BCK pin should be configured once.");
-        Assert(!_data.undefined(), "I2SO Data pin should be configured once.");
-        Assert(!_ws.undefined(), "I2SO WS pin should be configured once.");
+    if (_bck.defined() || _data.defined() || _ws.defined()) {
+        Assert(_bck.defined(), "I2SO BCK pin should be configured once.");
+        Assert(_data.defined(), "I2SO Data pin should be configured once.");
+        Assert(_ws.defined(), "I2SO WS pin should be configured once.");
     }
 }
 
@@ -336,11 +335,11 @@ void I2SOBus::handle(Configuration::HandlerBase& handler) {
 }
 
 void SPIBus::validate() const {
-    if (!_ss.undefined() || !_miso.undefined() || !_mosi.undefined() || !_sck.undefined()) {
-        Assert(!_ss.undefined(), "SPI SS pin should be configured once.");
-        Assert(!_miso.undefined(), "SPI MISO pin should be configured once.");
-        Assert(!_mosi.undefined(), "SPI MOSI pin should be configured once.");
-        Assert(!_sck.undefined(), "SPI SCK pin should be configured once.");
+    if (_ss.defined() || _miso.defined() || _mosi.defined() || _sck.defined()) {
+        Assert(_ss.defined(), "SPI SS pin should be configured once.");
+        Assert(_miso.defined(), "SPI MISO pin should be configured once.");
+        Assert(_mosi.defined(), "SPI MOSI pin should be configured once.");
+        Assert(_sck.defined(), "SPI SCK pin should be configured once.");
     }
 }
 

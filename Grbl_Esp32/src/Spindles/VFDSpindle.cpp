@@ -301,19 +301,19 @@ namespace Spindles {
         bool pins_settings_ok = true;
 
         _txd_pin = VFDRS485TXDPin->get();
-        if (_txd_pin == Pin::UNDEFINED) {
+        if (_txd_pin.undefined()) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_TXD_PIN");
             pins_settings_ok = false;
         }
 
         _rxd_pin = VFDRS485RXDPin->get();
-        if (_rxd_pin == Pin::UNDEFINED) {
+        if (_rxd_pin.undefined()) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_RXD_PIN");
             pins_settings_ok = false;
         }
 
         _rts_pin = VFDRS485RTSPin->get();
-        if (_rts_pin == Pin::UNDEFINED) {
+        if (_rts_pin.undefined()) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Undefined VFD_RS485_RTS_PIN");
             pins_settings_ok = false;
         }

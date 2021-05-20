@@ -42,7 +42,7 @@ class Probe : public Configuration::Configurable {
 public:
     Probe() = default;
 
-    bool exists() const { return _probePin != Pin::UNDEFINED; }
+    bool exists() const { return _probePin.defined(); }
 
     // Probe pin initialization routine.
     void init();

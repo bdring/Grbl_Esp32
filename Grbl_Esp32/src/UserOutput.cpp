@@ -26,7 +26,7 @@ namespace UserOutput {
         _number = number;
         _pin    = pin;
 
-        if (_pin == Pin::UNDEFINED) {
+        if (_pin.undefined()) {
             return;
         }
 
@@ -62,7 +62,7 @@ namespace UserOutput {
         _pin           = pin;
         _pwm_frequency = pwm_frequency;
 
-        if (pin == Pin::UNDEFINED) {
+        if (pin.undefined()) {
             return;
         }
 
@@ -104,7 +104,7 @@ namespace UserOutput {
     // returns true if able to set value
     bool AnalogOutput::set_level(uint32_t numerator) {
         // look for errors, but ignore if turning off to prevent mask turn off from generating errors
-        if (_pin == Pin::UNDEFINED) {
+        if (_pin.undefined()) {
             return false;
         }
 

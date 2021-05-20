@@ -144,7 +144,7 @@ SDState get_sd_state(bool refresh) {
         SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
 
         //no need to go further if SD detect is not correct
-        if (SDCardDetPin->get() != Pin::UNDEFINED) {
+        if (SDCardDetPin->get().defined()) {
             if (!((SDCardDetPin->get().read() == SDCARD_DET_VAL) ? true : false)) {
                 sd_state = SDState::NotPresent;
                 return sd_state;

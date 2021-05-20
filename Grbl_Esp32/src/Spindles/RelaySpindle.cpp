@@ -30,7 +30,7 @@ namespace Spindles {
     void Relay::init() {
         get_pins_and_settings();
 
-        if (_output_pin == Pin::UNDEFINED) {
+        if (_output_pin.undefined()) {
             return;
         }
 
@@ -38,7 +38,7 @@ namespace Spindles {
         _enable_pin.setAttr(Pin::Attr::Output);
         _direction_pin.setAttr(Pin::Attr::Output);
 
-        is_reversable = (_direction_pin != Pin::UNDEFINED);
+        is_reversable = _direction_pin.defined();
         use_delays    = true;
 
         config_message();
@@ -55,7 +55,7 @@ namespace Spindles {
     }
 
     uint32_t Relay::set_rpm(uint32_t rpm) {
-        if (_output_pin == Pin::UNDEFINED) {
+        if (_output_pin.undefined()) {
             return rpm;
         }
 

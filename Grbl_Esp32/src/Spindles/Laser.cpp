@@ -51,7 +51,7 @@ namespace Spindles {
 
         _enable_pin = LaserEnablePin->get();
 
-        if (_output_pin == Pin::UNDEFINED) {
+        if (_output_pin.undefined()) {
             grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: LASER_OUTPUT_PIN not defined");
             return;  // We cannot continue without the output pin
         }

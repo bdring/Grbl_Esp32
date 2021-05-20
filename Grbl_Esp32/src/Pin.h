@@ -67,6 +67,7 @@ public:
     inline bool operator!=(const Pin& o) const { return _index != o._index; }
 
     inline bool undefined() const { return (*this) == UNDEFINED; }
+    inline bool defined() const { return (*this) != UNDEFINED; }
 
     inline uint8_t getNative(Capabilities expectedBehavior) const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
@@ -89,7 +90,7 @@ public:
         detail->setAttr(attributes);
     }
 
-    inline Attr getAttr() const { 
+    inline Attr getAttr() const {
         auto detail = Pins::PinLookup::_instance.GetPin(_index);
         return detail->getAttr();
     }

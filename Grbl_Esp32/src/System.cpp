@@ -49,7 +49,7 @@ bool         debouncing = false;  // debouncing in process
 void system_ini() {  // Renamed from system_init() due to conflict with esp32 files
     // setup control inputs
 
-    if (ControlSafetyDoorPin->get() != Pin::UNDEFINED) {
+    if (ControlSafetyDoorPin->get().defined()) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Door switch on pin %s", ControlSafetyDoorPin->getStringValue());
         auto pin  = ControlSafetyDoorPin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
@@ -60,7 +60,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
-    if (ControlResetPin->get() != Pin::UNDEFINED) {
+    if (ControlResetPin->get().defined()) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset switch on pin %s", ControlResetPin->getStringValue());
         auto pin  = ControlResetPin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
@@ -71,7 +71,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
-    if (ControlFeedHoldPin->get() != Pin::UNDEFINED) {
+    if (ControlFeedHoldPin->get().defined()) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Hold switch on pin %s", ControlFeedHoldPin->getStringValue());
         auto pin  = ControlFeedHoldPin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
@@ -82,7 +82,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
-    if (ControlCycleStartPin->get() != Pin::UNDEFINED) {
+    if (ControlCycleStartPin->get().defined()) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start switch on pin %s", ControlCycleStartPin->getStringValue());
         auto pin  = ControlCycleStartPin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
@@ -93,7 +93,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
-    if (MacroButton0Pin->get() != Pin::UNDEFINED) {
+    if (MacroButton0Pin->get().defined()) {
         auto pin  = MacroButton0Pin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
         if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
@@ -103,7 +103,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
-    if (MacroButton1Pin->get() != Pin::UNDEFINED) {
+    if (MacroButton1Pin->get().defined()) {
         auto pin  = MacroButton1Pin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
         if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
@@ -113,7 +113,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
-    if (MacroButton2Pin->get() != Pin::UNDEFINED) {
+    if (MacroButton2Pin->get().defined()) {
         auto pin  = MacroButton2Pin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
         if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
@@ -123,7 +123,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
         pin.attachInterrupt(isr_control_inputs, CHANGE);
     }
 
-    if (MacroButton3Pin->get() != Pin::UNDEFINED) {
+    if (MacroButton3Pin->get().defined()) {
         auto pin  = MacroButton3Pin->get();
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
         if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
@@ -244,42 +244,42 @@ ControlPins system_control_get_state() {
     ControlPins pin_states;
     pin_states.value = 0;
 
-    defined_pins.bit.safetyDoor = ControlSafetyDoorPin->get() != Pin::UNDEFINED;
+    defined_pins.bit.safetyDoor = ControlSafetyDoorPin->get().defined();
     if (ControlSafetyDoorPin->get().read()) {
         pin_states.bit.safetyDoor = true;
     }
 
-    defined_pins.bit.reset = ControlResetPin->get() != Pin::UNDEFINED;
+    defined_pins.bit.reset = ControlResetPin->get().defined();
     if (ControlResetPin->get().read()) {
         pin_states.bit.reset = true;
     }
 
-    defined_pins.bit.feedHold = ControlFeedHoldPin->get() != Pin::UNDEFINED;
+    defined_pins.bit.feedHold = ControlFeedHoldPin->get().defined();
     if (ControlFeedHoldPin->get().read()) {
         pin_states.bit.feedHold = true;
     }
 
-    defined_pins.bit.cycleStart = ControlCycleStartPin->get() != Pin::UNDEFINED;
+    defined_pins.bit.cycleStart = ControlCycleStartPin->get().defined();
     if (ControlCycleStartPin->get().read()) {
         pin_states.bit.cycleStart = true;
     }
 
-    defined_pins.bit.macro0 = MacroButton0Pin->get() != Pin::UNDEFINED;
+    defined_pins.bit.macro0 = MacroButton0Pin->get().defined();
     if (MacroButton0Pin->get().read()) {
         pin_states.bit.macro0 = true;
     }
 
-    defined_pins.bit.macro1 = MacroButton1Pin->get() != Pin::UNDEFINED;
+    defined_pins.bit.macro1 = MacroButton1Pin->get().defined();
     if (MacroButton1Pin->get().read()) {
         pin_states.bit.macro1 = true;
     }
 
-    defined_pins.bit.macro2 = MacroButton2Pin->get() != Pin::UNDEFINED;
+    defined_pins.bit.macro2 = MacroButton2Pin->get().defined();
     if (MacroButton2Pin->get().read()) {
         pin_states.bit.macro2 = true;
     }
 
-    defined_pins.bit.macro3 = MacroButton3Pin->get() != Pin::UNDEFINED;
+    defined_pins.bit.macro3 = MacroButton3Pin->get().defined();
     if (MacroButton3Pin->get().read()) {
         pin_states.bit.macro3 = true;
     }
