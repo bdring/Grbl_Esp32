@@ -41,6 +41,7 @@ namespace Motors {
     }
 
     void Servo::startUpdateTask() {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Servo Update Task Started");
         if (this == List) {
             xTaskCreatePinnedToCore(updateTask,         // task
                                     "servoUpdateTask",  // name for task
@@ -48,7 +49,7 @@ namespace Motors {
                                     NULL,               // parameters
                                     1,                  // priority
                                     NULL,               // handle
-                                    0                   // core
+                                    SUPPORT_TASK_CORE   // core
             );
         }
     }
@@ -68,7 +69,9 @@ namespace Motors {
             vTaskDelayUntil(&xLastWakeTime, xUpdate);
 
             static UBaseType_t uxHighWaterMark = 0;
+#ifdef DEBUG_TASK_STACK
             reportTaskStackSize(uxHighWaterMark);
+#endif
         }
     }
 }

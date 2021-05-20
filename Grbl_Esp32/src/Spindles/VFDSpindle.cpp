@@ -195,11 +195,12 @@ namespace Spindles {
             if (retry_count == MAX_RETRIES) {
                 if (!unresponsive) {
                     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle RS485 Unresponsive %d", next_cmd.rx_length);
-                    if (next_cmd.critical) {
-                        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Critical Spindle RS485 Unresponsive");
-                        sys_rt_exec_alarm = ExecAlarm::SpindleControl;
-                    }
                     unresponsive = true;
+                }
+                if (next_cmd.critical) {
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Critical Spindle RS485 Unresponsive");
+                    mc_reset();
+                    sys_rt_exec_alarm = ExecAlarm::SpindleControl;
                 }
             }
 
@@ -271,18 +272,17 @@ namespace Spindles {
         }
 
         // Initialization is complete, so now it's okay to run the queue task:
-        if (!_task_running) {  // init can happen many times, we only want to start one task
+        task_active = true;
+        if (vfd_cmd_queue != nullptr) {
             vfd_cmd_queue = xQueueCreate(VFD_RS485_QUEUE_SIZE, sizeof(ModbusCommand));
-            xTaskCreatePinnedToCore(vfd_cmd_task,         // task
-                                    "vfd_cmdTaskHandle",  // name for task
-                                    2048,                 // size of task stack
-                                    this,                 // parameters
-                                    1,                    // priority
-                                    &vfd_cmdTaskHandle,
-                                    0  // core
-            );
-            _task_running = true;
         }
+        xTaskCreatePinnedToCore(vfd_cmd_task,         // task
+                                "vfd_cmdTaskHandle",  // name for task
+                                2048,                 // size of task stack
+                                this,                 // parameters
+                                1,                    // priority
+                                &vfd_cmdTaskHandle,
+                                SUPPORT_TASK_CORE);
 
         is_reversable = true;  // these VFDs are always reversable
         use_delays    = true;
@@ -327,6 +327,9 @@ namespace Spindles {
         _min_rpm = rpm_min->get();
         _max_rpm = rpm_max->get();
 
+        _spinup_delay   = spindle_delay_spinup->get() * 1000.0;
+        _spindown_delay = spindle_delay_spindown->get() * 1000.0;
+
         return pins_settings_ok;
     }
 
@@ -348,17 +351,24 @@ namespace Spindles {
 
         if (_current_state != state) {  // already at the desired state. This function gets called a lot.
             set_mode(state, critical);  // critical if we are in a job
+
+            if (rpm != 0 && (rpm < _min_rpm || rpm > _max_rpm)) {
+                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Requested speed %d outside range:(%d,%d)", rpm, _min_rpm, _max_rpm);
+            }
+
             set_rpm(rpm);
+
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spin1");
+
             if (state == SpindleState::Disable) {
                 sys.spindle_speed = 0;
-                if (_current_state != state) {
-                    mc_dwell(spindle_delay_spindown->get());
-                }
+                delay(_spindown_delay);
+
             } else {
-                if (_current_state != state) {
-                    mc_dwell(spindle_delay_spinup->get());
-                }
+                delay(_spinup_delay);
             }
+
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spin2");
         } else {
             if (_current_rpm != rpm) {
                 set_rpm(rpm);
@@ -431,6 +441,10 @@ namespace Spindles {
         rpm_cmd.msg[0] = VFD_RS485_ADDR;
 
         set_speed_command(rpm, rpm_cmd);
+
+        // Sometimes sync_rpm is retained between different set_speed_command's. We don't want that - we want
+        // spindle sync to kick in after we set the speed. This forces that.
+        _sync_rpm = UINT32_MAX;
 
         rpm_cmd.critical = false;
 

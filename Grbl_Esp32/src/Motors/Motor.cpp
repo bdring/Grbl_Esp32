@@ -16,7 +16,6 @@
         Make sure public/private/protected is cleaned up.
         Only a few Unipolar axes have been setup in init()
         Get rid of Z_SERVO, just reply on Z_SERVO_PIN
-        Deal with custom machine ... machine_trinamic_setup();
         Class is ready to deal with non SPI pins, but they have not been needed yet.
             It would be nice in the config message though
     Testing
@@ -36,17 +35,18 @@
 
 namespace Motors {
     void Motor::debug_message() {}
+    Motor::Motor(uint8_t axis_index) : _axis_index(axis_index % MAX_AXES), _dual_axis_index(axis_index / MAX_AXES) {}
 
     bool Motor::test() { return true; };  // true = OK
 
     uint8_t Motor::axis_index() const {
-        Assert(MachineConfig::instance() != nullptr &&
-            MachineConfig::instance()->_axes != nullptr, "Expected machine to be configured before this is called.");
+        Assert(MachineConfig::instance() != nullptr && MachineConfig::instance()->_axes != nullptr,
+               "Expected machine to be configured before this is called.");
         return MachineConfig::instance()->_axes->findAxisIndex(this);
     }
     uint8_t Motor::dual_axis_index() const {
-        Assert(MachineConfig::instance() != nullptr &&
-            MachineConfig::instance()->_axes != nullptr, "Expected machine to be configured before this is called.");
+        Assert(MachineConfig::instance() != nullptr && MachineConfig::instance()->_axes != nullptr,
+               "Expected machine to be configured before this is called.");
         return MachineConfig::instance()->_axes->findAxisGanged(this);
     }
 

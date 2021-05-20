@@ -41,7 +41,6 @@ const char* const GRBL_VERSION_BUILD = "20210326";
 
 #include "Defaults.h"
 #include "Error.h"
-#include "Eeprom.h"
 #include "WebUI/Authentication.h"
 #include "WebUI/Commands.h"
 #include "Probe.h"
@@ -53,8 +52,9 @@ const char* const GRBL_VERSION_BUILD = "20210326";
 #include "Limits.h"
 #include "MotionControl.h"
 #include "Protocol.h"
-#include "Report.h"
+#include "Uart.h"
 #include "Serial.h"
+#include "Report.h"
 #include "Pin.h"
 #include "Spindles/Spindle.h"
 #include "Stepper.h"
@@ -91,28 +91,22 @@ const char* const GRBL_VERSION_BUILD = "20210326";
 void grbl_init();
 void run_once();
 
-// Called if USE_MACHINE_INIT is defined
+// Weak definitions that can be overridden
 void machine_init();
-
-// Called if USE_CUSTOM_HOMING is defined
 bool user_defined_homing(uint8_t cycle_mask);
 
-// Called if USE_KINEMATICS is defined
+// weak definitions in MotionControl.cpp
+bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
+bool kinematics_pre_homing(uint8_t cycle_mask);
+void kinematics_post_homing();
 
-void    inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
-bool    kinematics_pre_homing(uint8_t cycle_mask);
-void    kinematics_post_homing();
-uint8_t kinematic_limits_check(float* target);
+bool limitsCheckTravel(float* target);  // weak in Limits.cpp; true if out of range
 
-// Called if USE_FWD_KINEMATICS is defined
 void inverse_kinematics(float* position);  // used to return a converted value
 void forward_kinematics(float* position);
 
-// Called if MACRO_BUTTON_0_PIN or MACRO_BUTTON_1_PIN or MACRO_BUTTON_2_PIN is defined
 void user_defined_macro(uint8_t index);
 
-// Called if USE_M30 is defined
 void user_m30();
 
-// Called if USE_TOOL_CHANGE is defined
 void user_tool_change(uint8_t new_tool);

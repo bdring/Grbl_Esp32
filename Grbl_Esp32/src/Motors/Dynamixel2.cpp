@@ -32,7 +32,7 @@ namespace Motors {
     uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
 
     void Dynamixel2::init() {
-        _has_errors = false; // let's start with the assumption we're good.
+        _has_errors = false;  // let's start with the assumption we're good.
         _axis_index = axis_index();
 
         init_uart(_id, axis_index(), dual_axis_index());  // static and only allows one init
@@ -197,10 +197,9 @@ namespace Motors {
         if (_has_errors) {
             return false;
         }
-        
-        auto axis = MachineConfig::instance()->_axes->_axis[_axis_index];
-        sys_position[_axis_index] =
-            axis->_homing->_mpos * axis->_stepsPerMm;  // convert to steps
+
+        auto axis                 = MachineConfig::instance()->_axes->_axis[_axis_index];
+        sys_position[_axis_index] = axis->_homing->_mpos * axis->_stepsPerMm;  // convert to steps
 
         set_disable(false);
         set_location();  // force the PWM to update now
@@ -354,15 +353,13 @@ namespace Motors {
         tx_message[++msg_index] = 4;                                  // low order data length
         tx_message[++msg_index] = 0;                                  // high order data length
 
-        auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
+        auto   n_axis = MachineConfig::instance()->_axes->_numberAxis;
+        float* mpos   = system_get_mpos();
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
             for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
                 current_id = ids[axis][gang_index];
                 if (current_id != 0) {
                     count++;  // keep track of the count for the message length
-
-                    //determine the location of the axis
-                    float target = system_convert_axis_steps_to_mpos(sys_position, axis);  // get the axis machine position in mm
 
                     dxl_count_min = DXL_COUNT_MIN;
                     dxl_count_max = DXL_COUNT_MAX;
@@ -373,7 +370,7 @@ namespace Motors {
 
                     // map the mm range to the servo range
                     dxl_position =
-                        (uint32_t)mapConstrain(target, limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max);
+                        +(uint32_t)mapConstrain(mpos[axis], limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max);
 
                     tx_message[++msg_index] = current_id;                         // ID of the servo
                     tx_message[++msg_index] = dxl_position & 0xFF;                // data
@@ -452,9 +449,7 @@ namespace Motors {
     }
 
     // Configuration registration
-    namespace 
-    {
+    namespace {
         MotorFactory::InstanceBuilder<Dynamixel2> registration("dynamixel2");
     }
 }
-

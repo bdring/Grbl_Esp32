@@ -85,9 +85,8 @@ void kinematics_post_homing() {
 
 
 */
-void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position) {
-    //static float last_angle = 0;
-    //static float last_radius = 0;
+
+bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
     float    dx, dy, dz;          // distances in each cartesian axis
     float    p_dx, p_dy, p_dz;    // distances in each polar axis
     float    dist, polar_dist;    // the distances in both systems...used to determine feed rate
@@ -139,11 +138,19 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
         // end determining new feed rate
         polar[RADIUS_AXIS] += x_offset;
         polar[Z_AXIS] += z_offset;
+
+        // mc_line() returns false if a jog is cancelled.
+        // In that case we stop sending segments to the planner.
+        if (!mc_line(polar, pl_data)) {
+            return false;
+        }
+
+        //
         last_radius = polar[RADIUS_AXIS];
         last_angle  = polar[POLAR_AXIS];
-        mc_line(polar, pl_data);
     }
     // TO DO don't need a feedrate for rapids
+    return true;
 }
 
 /*
@@ -159,18 +166,10 @@ position = the current machine position
 converted = position with forward kinematics applied.
 
 */
-void forward_kinematics(float* position) {
-    float   original_position[N_AXIS];  // temporary storage of original
-    float   print_position[N_AXIS];
-    int32_t current_position[N_AXIS];  // Copy current state of the system position variable
-    memcpy(current_position, sys_position, sizeof(sys_position));
-    system_convert_array_steps_to_mpos(print_position, current_position);
-    original_position[X_AXIS] = print_position[X_AXIS] - gc_state.coord_system[X_AXIS] + gc_state.coord_offset[X_AXIS];
-    original_position[Y_AXIS] = print_position[Y_AXIS] - gc_state.coord_system[Y_AXIS] + gc_state.coord_offset[Y_AXIS];
-    original_position[Z_AXIS] = print_position[Z_AXIS] - gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS];
-    position[X_AXIS]          = cos(radians(original_position[Y_AXIS])) * original_position[X_AXIS] * -1;
-    position[Y_AXIS]          = sin(radians(original_position[Y_AXIS])) * original_position[X_AXIS];
-    position[Z_AXIS]          = original_position[Z_AXIS];  // unchanged
+void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
+    cartesian[X_AXIS] = cos(radians(motors[Y_AXIS])) * motors[X_AXIS] * -1;
+    cartesian[Y_AXIS] = sin(radians(motors[Y_AXIS])) * motors[X_AXIS];
+    cartesian[Z_AXIS] = motors[Z_AXIS];  // unchanged
 }
 
 // helper functions

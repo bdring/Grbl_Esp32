@@ -65,7 +65,6 @@ namespace Motors {
         }
 
         _has_errors = false;
-        init_step_dir_pins();  // from StandardStepper
 
         _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
 
@@ -115,7 +114,7 @@ namespace Motors {
                                         NULL,          // parameters
                                         1,             // priority
                                         NULL,
-                                        0  // core
+                                        SUPPORT_TASK_CORE  // must run the task on same core
                 );
             }
         } else {
@@ -216,6 +215,8 @@ namespace Motors {
 
         tmcstepper->microsteps(_microsteps);
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
+
+        init_step_dir_pins();
     }
 
     bool TrinamicDriver::set_homing_mode(bool isHoming) {
@@ -265,7 +266,7 @@ namespace Motors {
                     tmcstepper->THIGH(calc_tstep(feedrate, 60.0));
                     tmcstepper->sfilt(1);
                     tmcstepper->diag1_stall(true);  // stallguard i/o is on diag1
-                    tmcstepper->sgt(_stallguard);
+                    tmcstepper->sgt(constrain(axis_settings[_axis_index]->stallguard->get(), -64, 63));
                     break;
                 }
             default:
@@ -294,7 +295,7 @@ namespace Motors {
                        tmcstepper->stallguard(),
                        tmcstepper->sg_result(),
                        feedrate,
-                       _stallguard);
+                       constrain(axis_settings[_axis_index]->stallguard->get(), -64, 63));
 
         TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
         status.sr = tmcstepper->DRV_STATUS();
@@ -362,10 +363,6 @@ namespace Motors {
 
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
         while (true) {                        // don't ever return from this or the task dies
-            if (motorSettingChanged) {
-                MachineConfig::instance()->_axes->read_settings();
-                motorSettingChanged = false;
-            }
             if (stallguard_debug_mask->get() != 0) {
                 if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
                     for (TrinamicDriver* p = List; p; p = p->link) {
@@ -380,7 +377,9 @@ namespace Motors {
             vTaskDelayUntil(&xLastWakeTime, xreadSg);
 
             static UBaseType_t uxHighWaterMark = 0;
+#ifdef DEBUG_TASK_STACK
             reportTaskStackSize(uxHighWaterMark);
+#endif
         }
     }
 

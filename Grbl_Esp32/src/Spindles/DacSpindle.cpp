@@ -40,7 +40,7 @@ namespace Spindles {
 
         if (!_output_pin.capabilities().has(Pin::Capabilities::DAC)) {  // DAC can only be used on these pins
             _gpio_ok = false;
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "DAC spindle pin invalid %s (pin 25 or 26 only)", _output_pin.name().c_str());
+            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "DAC spindle pin invalid %s (pin 25 or 26 only)", _output_pin.name().c_str());
             return;
         }
 
@@ -54,7 +54,7 @@ namespace Spindles {
     }
 
     void Dac::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL,
+        grbl_msg_sendf(CLIENT_ALL,
                        MsgLevel::Info,
                        "DAC spindle Output:%s, Enbl:%s, Dir:%s, Res:8bits",
                        _output_pin.name().c_str(),
@@ -85,7 +85,7 @@ namespace Spindles {
                 rpm               = _min_rpm;
                 sys.spindle_speed = rpm;
                 pwm_value         = 0;
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle RPM less than min RPM:%5.2f %d", rpm, pwm_value);
+                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Spindle RPM less than min RPM:%5.2f %d", rpm, pwm_value);
             }
         } else {
             // Compute intermediate PWM value with linear spindle speed model.

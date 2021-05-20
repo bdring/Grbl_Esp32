@@ -35,7 +35,7 @@ namespace Spindles {
         _reverse_pin = SpindleReversePin->get();
 
         if (_output_pin == Pin::UNDEFINED) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Warning: Spindle output pin not defined");
+            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: Spindle output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
@@ -59,7 +59,7 @@ namespace Spindles {
 
     // prints the startup message of the spindle config
     void _10v::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL,
+        grbl_msg_sendf(CLIENT_ALL,
                        MsgLevel::Info,
                        "0-10V spindle Out:%s Enbl:%s, Dir:%s, Fwd:%s, Rev:%s, Freq:%dHz Res:%dbits",
                        _output_pin.name().c_str(),
@@ -137,7 +137,6 @@ namespace Spindles {
     }
 
     void _10v::set_enable_pin(bool enable) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle::_10v::set_enable_pin");
         if (_off_with_zero_speed && sys.spindle_speed == 0) {
             enable = false;
         }
@@ -157,9 +156,17 @@ namespace Spindles {
     }
 
     void _10v::set_dir_pin(bool Clockwise) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Spindle::_10v::set_dir_pin");
         _direction_pin.write(Clockwise);
         _forward_pin.write(Clockwise);
         _reverse_pin.write(!Clockwise);
+    }
+
+    void _10v::deinit() {
+        _enable_pin.setAttr(Pin::Attr::Input);
+        _direction_pin.setAttr(Pin::Attr::Input);
+        _forward_pin.setAttr(Pin::Attr::Input);
+        _reverse_pin.setAttr(Pin::Attr::Input);
+        ledcDetachPin(_output_pin.getNative(Pin::Capabilities::PWM));
+        _output_pin.setAttr(Pin::Attr::Input);
     }
 }

@@ -43,7 +43,6 @@ const float geometry_factor = 1.0;
 const float geometry_factor = 2.0;
 #endif
 
-static float last_motors[MAX_N_AXIS]    = { 0.0 };  // A place to save the previous motor angles for distance/feed rate calcs
 static float last_cartesian[MAX_N_AXIS] = {};
 
 // prototypes for helper functions
@@ -51,9 +50,28 @@ float three_axis_dist(float* point1, float* point2);
 
 void machine_init() {
     // print a startup message to show the kinematics are enable
+
+#ifdef MIDTBOT
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "CoreXY (midTbot) Kinematics Init");
+#else
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "CoreXY Kinematics Init");
+#endif
 }
 
+// Converts Cartesian to motors with no motion control
+static void cartesian_to_motors(float* position) {
+    float motors[MAX_N_AXIS];
+
+    motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
+    motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
+
+    position[X_AXIS] = motors[X_AXIS];
+    position[Y_AXIS] = motors[Y_AXIS];
+
+    // Z and higher just pass through unchanged
+}
+
+// Cycle mask is 0 unless the user sends a single axis command like $HZ
 // This will always return true to prevent the normal Grbl homing cycle
 bool user_defined_homing(uint8_t cycle_mask) {
     uint8_t n_cycle;                       // each home is a multi cycle operation approach, pulloff, approach.....
@@ -61,15 +79,10 @@ bool user_defined_homing(uint8_t cycle_mask) {
     float   max_travel;
     uint8_t axis;
 
-    // check for single axis homing
-    if (cycle_mask != 0) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "CoreXY Single axis homing not allowed. Use $H only");
-        return true;
-    }
-
     // check for multi axis homing per cycle ($Homing/Cycle0=XY type)...not allowed in CoreXY
     bool setting_error = false;
-    for (int cycle = 0; cycle < 3; cycle++) {
+    auto n_axis        = number_axis->get();
+    for (int cycle = 0; cycle < n_axis; cycle++) {
         if (numberOfSetBits(homing_cycle[cycle]->get()) > 1) {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
@@ -90,10 +103,22 @@ bool user_defined_homing(uint8_t cycle_mask) {
     pl_data->motion.systemMotion   = 1;
     pl_data->motion.noFeedOverride = 1;
 
-    for (int cycle = 0; cycle < 3; cycle++) {
-        AxisMask mask = homing_cycle[cycle]->get();
+    uint8_t cycle_count = (cycle_mask == 0) ? n_axis : 1;  // if we have a cycle_mask, we are only going to do one axis
+
+    AxisMask mask = 0;
+    for (int cycle = 0; cycle < cycle_count; cycle++) {
+        // if we have a cycle_mask, do that. Otherwise get the cycle from the settings
+        mask = cycle_mask ? cycle_mask : homing_cycle[cycle]->get();
+
+        // If not X or Y do a normal home
+        if (!(bitnum_istrue(mask, X_AXIS) || bitnum_istrue(mask, Y_AXIS))) {
+            limits_go_home(mask);  // Homing cycle 0
+            continue;              // continue to next item in for loop
+        }
+
         mask = motors_set_homing_mode(mask, true);  // non standard homing motors will do their own thing and get removed from the mask
-        for (uint8_t axis = X_AXIS; axis <= Z_AXIS; axis++) {
+
+        for (uint8_t axis = X_AXIS; axis <= n_axis; axis++) {
             if (bit(axis) == mask) {
                 // setup for the homing of this axis
                 bool  approach       = true;
@@ -117,10 +142,12 @@ bool user_defined_homing(uint8_t cycle_mask) {
                         approach ? target[axis] = max_travel : target[axis] = -max_travel;
                     }
 
-                    target[Z_AXIS] = system_convert_axis_steps_to_mpos(sys_position, Z_AXIS);
+                    for (int axis = Z_AXIS; axis < n_axis; axis++) {
+                        target[axis] = sys_position[axis] / axis_settings[axis]->steps_per_mm->get();
+                    }
 
                     // convert back to motor steps
-                    inverse_kinematics(target);
+                    cartesian_to_motors(target);
 
                     pl_data->feed_rate = homing_rate;   // feed or seek rates
                     plan_buffer_line(target, pl_data);  // Bypass mc_line(). Directly plan homing motion.
@@ -190,7 +217,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
                 } while (n_cycle-- > 0);
             }
         }
-    }
+    }  // for
 
     // after sussefully setting X & Y axes, we set the current positions
 
@@ -205,10 +232,13 @@ bool user_defined_homing(uint8_t cycle_mask) {
 
     last_cartesian[X_AXIS] = target[X_AXIS];
     last_cartesian[Y_AXIS] = target[Y_AXIS];
-    last_cartesian[Z_AXIS] = system_convert_axis_steps_to_mpos(sys_position, Z_AXIS);
+
+    for (int axis = Z_AXIS; axis < n_axis; axis++) {
+        last_cartesian[axis] = sys_position[axis] / axis_settings[axis]->steps_per_mm->get();
+    }
 
     // convert to motors
-    inverse_kinematics(target);
+    cartesian_to_motors(target);
     // convert to steps
     for (axis = X_AXIS; axis <= Y_AXIS; axis++) {
         sys_position[axis] = target[axis] * axis_settings[axis]->steps_per_mm->get();
@@ -224,29 +254,21 @@ bool user_defined_homing(uint8_t cycle_mask) {
     return true;
 }
 
-// This function is used by Grbl convert Cartesian to motors
-// this does not do any motion control
-void inverse_kinematics(float* position) {
-    float motors[3];
+static void transform_cartesian_to_motors(float* motors, float* cartesian) {
+    motors[X_AXIS] = geometry_factor * cartesian[X_AXIS] + cartesian[Y_AXIS];
+    motors[Y_AXIS] = geometry_factor * cartesian[X_AXIS] - cartesian[Y_AXIS];
 
-    motors[X_AXIS] = geometry_factor * position[X_AXIS] + position[Y_AXIS];
-    motors[Y_AXIS] = geometry_factor * position[X_AXIS] - position[Y_AXIS];
-    motors[Z_AXIS]  = position[Z_AXIS];
-
-    position[0] = motors[0];
-    position[1] = motors[1];
-    position[2] = motors[2];
+    auto n_axis = number_axis->get();
+    for (uint8_t axis = Z_AXIS; axis <= n_axis; axis++) {
+        motors[axis] = cartesian[axis];
+    }
 }
 
 // Inverse Kinematics calculates motor positions from real world cartesian positions
-// position is the current position
+// position is the old machine position, target the new machine position
 // Breaking into segments is not needed with CoreXY, because it is a linear system.
-void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position)  //The target and position are provided in MPos
-{
+bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
     float dx, dy, dz;  // distances in each cartesian axis
-    float motors[MAX_N_AXIS];
-
-    float feed_rate = pl_data->feed_rate;  // save original feed rate
 
     // calculate cartesian move distance for each axis
     dx         = target[X_AXIS] - position[X_AXIS];
@@ -254,31 +276,31 @@ void inverse_kinematics(float* target, plan_line_data_t* pl_data, float* positio
     dz         = target[Z_AXIS] - position[Z_AXIS];
     float dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
 
-    motors[X_AXIS] = geometry_factor * target[X_AXIS] + target[Y_AXIS];
-    motors[Y_AXIS] = geometry_factor * target[X_AXIS] - target[Y_AXIS];
-    motors[Z_AXIS] = target[Z_AXIS];
+    auto n_axis = number_axis->get();
 
-    float motor_distance = three_axis_dist(motors, last_motors);
+    float motors[n_axis];
+    transform_cartesian_to_motors(motors, target);
 
     if (!pl_data->motion.rapidMotion) {
-        pl_data->feed_rate *= (motor_distance / dist);
+        float last_motors[n_axis];
+        transform_cartesian_to_motors(last_motors, position);
+        pl_data->feed_rate *= (three_axis_dist(motors, last_motors) / dist);
     }
 
-    memcpy(last_motors, motors, sizeof(motors));
-
-    mc_line(motors, pl_data);
+    return mc_line(motors, pl_data);
 }
 
 // motors -> cartesian
-void forward_kinematics(float* position) {
-    float calc_fwd[MAX_N_AXIS];
-
+void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
+    // apply the forward kinemetics to the machine coordinates
     // https://corexy.com/theory.html
-    calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
-    calc_fwd[Y_AXIS] = 0.5 * (position[X_AXIS] - position[Y_AXIS]);
+    //calc_fwd[X_AXIS] = 0.5 / geometry_factor * (position[X_AXIS] + position[Y_AXIS]);
+    cartesian[X_AXIS] = 0.5 * (motors[X_AXIS] + motors[Y_AXIS]) / geometry_factor;
+    cartesian[Y_AXIS] = 0.5 * (motors[X_AXIS] - motors[Y_AXIS]);
 
-    position[X_AXIS] = calc_fwd[X_AXIS];
-    position[Y_AXIS] = calc_fwd[Y_AXIS];
+    for (int axis = Z_AXIS; axis < n_axis; axis++) {
+        cartesian[axis] = motors[axis];
+    }
 }
 
 bool kinematics_pre_homing(uint8_t cycle_mask) {
@@ -286,14 +308,13 @@ bool kinematics_pre_homing(uint8_t cycle_mask) {
 }
 
 void kinematics_post_homing() {
-    gc_state.position[X_AXIS] = last_cartesian[X_AXIS];
-    gc_state.position[Y_AXIS] = last_cartesian[Y_AXIS];
-    gc_state.position[Z_AXIS] = last_cartesian[Z_AXIS];
+    auto n_axis = number_axis->get();
+    memcpy(gc_state.position, last_cartesian, n_axis * sizeof(last_cartesian[0]));
 }
 
-// this is used used by Grbl soft limits to see if the range of the machine is exceeded.
-uint8_t kinematic_limits_check(float* target) {
-    return true;
+// this is used used by Limits.cpp to see if the range of the machine is exceeded.
+bool limitsCheckTravel(float* target) {
+    return false;
 }
 
 void user_m30() {}

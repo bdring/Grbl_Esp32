@@ -39,12 +39,26 @@ namespace Motors {
 
         auto pwmNative = _pwm_pin.getNative(Pin::Capabilities::PWM);
 
+#ifdef LATER
+        char* setting_cal_min = (char*)malloc(20);
+        sprintf(setting_cal_min, "%c/RcServo/Cal/Min", report_get_axis_letter(_axis_index));  //
+        rc_servo_cal_min = new FloatSetting(EXTENDED, WG, NULL, setting_cal_min, 1.0, 0.5, 2.0);
+
+        char* setting_cal_max = (char*)malloc(20);
+        sprintf(setting_cal_max, "%c/RcServo/Cal/Max", report_get_axis_letter(_axis_index));  //
+        rc_servo_cal_max = new FloatSetting(EXTENDED, WG, NULL, setting_cal_max, 1.0, 0.5, 2.0);
+
+        rc_servo_cal_min->load();
+        rc_servo_cal_max->load();
+#endif
+
         read_settings();
         _channel_num = sys_get_next_PWM_chan_num();
         ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
         ledcAttachPin(pwmNative, _channel_num);
         _current_pwm_duty = 0;
 
+        _disabled = true;
         config_message();
         startUpdateTask();
     }
@@ -72,10 +86,6 @@ namespace Motors {
 
     // sets the PWM to zero. This allows most servos to be manually moved
     void RcServo::set_disable(bool disable) {
-        if (_disabled == disable) {
-            return;
-        }
-
         _disabled = disable;
         if (_disabled) {
             _write_pwm(0);
@@ -102,11 +112,6 @@ namespace Motors {
             return;
         }
 
-        if (sys.state == State::Alarm) {
-            set_disable(true);
-            return;
-        }
-
         read_settings();
 
         mpos = system_convert_axis_steps_to_mpos(sys_position, _axis_index);  // get the axis machine position in mm
@@ -122,11 +127,14 @@ namespace Motors {
     }
 
     void RcServo::read_settings() {
-        _pwm_pulse_min = SERVO_MIN_PULSE * _cal_min;
-        _pwm_pulse_max = SERVO_MAX_PULSE * _cal_max;
+        if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {
+            // swap the pwm values
+            _pwm_pulse_min = SERVO_MAX_PULSE * (1.0 + (1.0 - rc_servo_cal_min->get()));
+            _pwm_pulse_max = SERVO_MIN_PULSE * (1.0 + (1.0 - rc_servo_cal_max->get()));
 
-        if (bitnum_istrue(dir_invert_mask->get(), _axis_index)) {  // normal direction
-            swap(_pwm_pulse_min, _pwm_pulse_max);
+        } else {
+            _pwm_pulse_min = SERVO_MIN_PULSE * rc_servo_cal_min->get();
+            _pwm_pulse_max = SERVO_MAX_PULSE * rc_servo_cal_max->get();
         }
     }
 

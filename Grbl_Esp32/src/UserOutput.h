@@ -43,17 +43,18 @@ namespace UserOutput {
     public:
         AnalogOutput();
         AnalogOutput(uint8_t number, Pin pin, float pwm_frequency);
-        bool set_level(float percent);
+        bool     set_level(uint32_t numerator);
+        uint32_t denominator() { return 1UL << _resolution_bits; };
 
     protected:
         void init();
         void config_message();
 
-        uint8_t _number = UNDEFINED_OUTPUT;
-        Pin     _pin;
-        uint8_t _pwm_channel = -1;  // -1 means invalid or not setup
-        float   _pwm_frequency;
-        uint8_t _resolution_bits;
-        float   _current_value;
+        uint8_t  _number = UNDEFINED_OUTPUT;
+        Pin      _pin;
+        uint8_t  _pwm_channel = -1;  // -1 means invalid or not setup
+        float    _pwm_frequency;
+        uint8_t  _resolution_bits;
+        uint32_t _current_value;
     };
 }

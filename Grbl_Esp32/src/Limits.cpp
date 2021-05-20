@@ -56,10 +56,12 @@ void IRAM_ATTR isr_limit_switches(void* /*unused */) {
 #    ifdef HARD_LIMIT_FORCE_STATE_CHECK
             // Check limit pin state.
             if (limits_get_state()) {
+                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Hard limits");
                 mc_reset();                                // Initiate system kill.
                 sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
             }
 #    else
+            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Hard limits");
             mc_reset();                                // Initiate system kill.
             sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
 #    endif
@@ -103,7 +105,6 @@ void limits_go_home(uint8_t cycle_mask) {
     // Initialize variables used for homing computations.
     uint8_t n_cycle = (2 * n_homing_locate_cycle + 1);
     uint8_t step_pin[MAX_N_AXIS];
-    float   target[MAX_N_AXIS];
     float   max_travel = 0.0;
 
     auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
@@ -111,8 +112,8 @@ void limits_go_home(uint8_t cycle_mask) {
         // Initialize step pin masks
         step_pin[idx] = bit(idx);
         if (bit_istrue(cycle_mask, bit(idx))) {
-            // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.            
-            max_travel = MAX(max_travel, (HOMING_AXIS_SEARCH_SCALAR)* MachineConfig::instance()->_axes->_axis[idx]->_maxTravel);
+            // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.
+            max_travel = MAX(max_travel, (HOMING_AXIS_SEARCH_SCALAR)*MachineConfig::instance()->_axes->_axis[idx]->_maxTravel);
         }
     }
     // Set search mode with approach at seek rate to quickly engage the specified cycle_mask limit switches.
@@ -121,7 +122,7 @@ void limits_go_home(uint8_t cycle_mask) {
     uint8_t  n_active_axis;
     AxisMask limit_state, axislock;
     do {
-        system_convert_array_steps_to_mpos(target, sys_position);
+        float* target = system_get_mpos();
         // Initialize and declare variables needed for homing routine.
         axislock      = 0;
         n_active_axis = 0;
@@ -196,7 +197,8 @@ void limits_go_home(uint8_t cycle_mask) {
 
                 if (sys_rt_exec_alarm != ExecAlarm::None) {
                     MachineConfig::instance()->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
-                    mc_reset();                                 // Stop motors, if they are running.
+                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Homing fail");
+                    mc_reset();  // Stop motors, if they are running.
                     protocol_execute_realtime();
                     return;
                 } else {
@@ -249,7 +251,7 @@ void limits_go_home(uint8_t cycle_mask) {
             }
         }
     }
-    sys.step_control = {};                      // Return step control to normal operation.
+    sys.step_control = {};                                                 // Return step control to normal operation.
     MachineConfig::instance()->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done
 }
 
@@ -264,10 +266,8 @@ void limits_init() {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             Pin pin;
             if ((pin = LimitPins[axis][gang_index]->get()) != Pin::UNDEFINED) {
-
 #ifndef DISABLE_LIMIT_PIN_PULL_UP
-                if (pin.capabilities().has(Pins::PinCapabilities::PullUp))
-                {
+                if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
                     mode = mode | Pin::Attr::PullUp;
                 }
 #endif
@@ -356,6 +356,7 @@ void limits_soft_check(float* target) {
                 }
             } while (sys.state != State::Idle);
         }
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Soft limits");
         mc_reset();                                // Issue system reset and ensure spindle and coolant are shutdown.
         sys_rt_exec_alarm = ExecAlarm::SoftLimit;  // Indicate soft limit critical event
         protocol_execute_realtime();               // Execute to enter critical event loop and system abort
@@ -372,12 +373,14 @@ void limitCheckTask(void* pvParameters) {
         AxisMask switch_state;
         switch_state = limits_get_state();
         if (switch_state) {
-            //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Limit Switch State %08d", switch_state);
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Limit Switch State %08d", switch_state);
             mc_reset();                                // Initiate system kill.
             sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
         }
         static UBaseType_t uxHighWaterMark = 0;
+#ifdef DEBUG_TASK_STACK
         reportTaskStackSize(uxHighWaterMark);
+#endif
     }
 }
 
@@ -395,15 +398,24 @@ float limitsMinPosition(uint8_t axis) {
 
 // Checks and reports if target array exceeds machine travel limits.
 // Return true if exceeding limits
-bool limitsCheckTravel(float* target) {
+// Set $<axis>/MaxTravel=0 to selectively remove an axis from soft limit checks
+bool __attribute__((weak)) limitsCheckTravel(float* target) {
     uint8_t idx;
     auto    n_axis = MachineConfig::instance()->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
         float max_mpos, min_mpos;
 
-        if (target[idx] < limitsMinPosition(idx) || target[idx] > limitsMaxPosition(idx)) {
+        if ((target[idx] < limitsMinPosition(idx) || target[idx] > limitsMaxPosition(idx)) && axis_settings[idx]->max_travel->get() > 0) {
             return true;
         }
     }
+    return false;
+}
+
+bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index) {
+    return (limit_pins[axis][gang_index] != UNDEFINED_PIN);
+}
+
+bool __attribute__((weak)) user_defined_homing(uint8_t cycle_mask) {
     return false;
 }
