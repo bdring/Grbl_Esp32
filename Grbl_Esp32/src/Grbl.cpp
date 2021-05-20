@@ -25,16 +25,15 @@
 
 void grbl_init() {
     try {
-        Serial.println("Initializing WiFi...");
+        client_init();  // Setup serial baud rate and interrupts
+
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing WiFi...");
         WiFi.persistent(false);
         WiFi.disconnect(true);
         WiFi.enableSTA(false);
         WiFi.enableAP(false);
         WiFi.mode(WIFI_OFF);
 
-        Serial.println("Initializing serial communications...");
-        // Setup serial baud rate and interrupts
-        client_init();
         display_init();
         grbl_msg_sendf(
             CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
@@ -46,24 +45,24 @@ void grbl_init() {
 #endif
 
         // Load Grbl settings from non-volatile storage
-        Serial.println("Initializing settings...");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing settings...");
         settings_init();
         MachineConfig::instance()->load();
 
 #ifdef USE_I2S_OUT
-        Serial.println("Initializing I2SO...");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing I2SO...");
         // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
         i2s_out_init();
 #endif
 
-        Serial.println("Initializing steppers...");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing steppers...");
         stepper_init();  // Configure stepper pins and interrupt timers
 
-        Serial.println("Initializing axes...");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing axes...");
         MachineConfig::instance()->_axes->read_settings();
         MachineConfig::instance()->_axes->init();
 
-        Serial.println("Initializing system...");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing system...");
         system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
 
@@ -87,15 +86,15 @@ void grbl_init() {
             sys.state = State::Alarm;
         }
 #endif
-        Serial.println("Initializing spindle...");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing spindle...");
         Spindles::Spindle::select();
 
-        Serial.println("Initializing WiFi-config...");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing WiFi-config...");
 #ifdef ENABLE_WIFI
         WebUI::wifi_config.begin();
 #endif
 
-        Serial.println("Initializing Bluetooth...");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing Bluetooth...");
 #ifdef ENABLE_BLUETOOTH
         WebUI::bt_config.begin();
 #endif
@@ -104,7 +103,7 @@ void grbl_init() {
         // This means something is terribly broken:
 
         // Should grbl_sendf always work? Serial is initialized first, so after line 34 it should.
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical error in run_once: %s", ex.stackTrace.c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Critical error in run_once: %s", ex.stackTrace.c_str());
         sleep(10000);
         throw;
     }

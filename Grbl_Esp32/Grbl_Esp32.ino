@@ -22,11 +22,10 @@
 #    include "src/Grbl.h"
 
 void setup() {
-// #    ifdef PIN_DEBUG
+    // #    ifdef PIN_DEBUG
     delay(2000);
-// #    endif
+    // #    endif
 
-    Serial.begin(115200);
     grbl_init();
 }
 

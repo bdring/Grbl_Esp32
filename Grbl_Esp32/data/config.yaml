@@ -4,8 +4,10 @@ board: Debug-board
 axes:
   number_axis: 3
 
+laser_mode: true
+
 coolant:
   flood: gpio.26:low
 
 probe:
-    pin: gpio.12
+    pin: gpio.12:high:pu

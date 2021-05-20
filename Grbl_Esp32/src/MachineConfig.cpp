@@ -289,7 +289,7 @@ size_t Axes::findAxisGanged(const Motors::Motor* const motor) const {
 void Axes::validate() const {}
 
 void Axes::handle(Configuration::HandlerBase& handler) {
-    handler.handle("_numberAxis", _numberAxis);
+    handler.handle("number_axis", _numberAxis);
 
     const char* allAxis = "xyzabc";
 
