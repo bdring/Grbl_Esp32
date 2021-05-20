@@ -28,6 +28,7 @@ public:
     };
 
     Uart(int uart_num);
+
     bool          setHalfDuplex();
     bool          setPins(int tx_pin, int rx_pin, int rts_pin = -1, int cts_pin = -1);
     void          begin(unsigned long baud, Data dataBits, Stop stopBits, Parity parity);

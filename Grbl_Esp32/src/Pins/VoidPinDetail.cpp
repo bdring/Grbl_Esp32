@@ -12,6 +12,7 @@ namespace Pins {
     void VoidPinDetail::write(int high) {}
     int  VoidPinDetail::read() { return 0; }
     void VoidPinDetail::setAttr(PinAttributes value) {}
+    PinAttributes VoidPinDetail::getAttr() const { return PinAttributes::None; }
 
     String VoidPinDetail::toString() const { return ""; }
 

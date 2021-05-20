@@ -25,9 +25,10 @@ namespace Pins {
         virtual PinCapabilities capabilities() const = 0;
 
         // I/O:
-        virtual void write(int high)              = 0;
-        virtual int  read()                       = 0;
-        virtual void setAttr(PinAttributes value) = 0;
+        virtual void          write(int high)              = 0;
+        virtual int           read()                       = 0;
+        virtual void          setAttr(PinAttributes value) = 0;
+        virtual PinAttributes getAttr() const              = 0;
 
         // ISR's.
         virtual void attachInterrupt(void (*callback)(void*), void* arg, int mode);

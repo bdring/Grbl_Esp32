@@ -70,6 +70,8 @@ namespace Pins {
         _implementation->setAttr(value);
     }
 
+    PinAttributes DebugPinDetail::getAttr() const { return _implementation->getAttr(); }
+
     void DebugPinDetail::CallbackHandler::handle(void* arg) {
         auto handler = static_cast<CallbackHandler*>(arg);
         if (handler->_myPin->shouldEvent()) {

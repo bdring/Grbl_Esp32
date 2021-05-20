@@ -109,6 +109,8 @@ namespace Pins {
         }
     }
 
+    PinAttributes GPIOPinDetail::getAttr() const { return _attributes; }
+
     PinCapabilities GPIOPinDetail::capabilities() const { return _capabilities; }
 
     void GPIOPinDetail::write(int high) {

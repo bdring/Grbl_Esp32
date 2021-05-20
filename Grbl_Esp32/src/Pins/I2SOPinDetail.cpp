@@ -61,6 +61,8 @@ namespace Pins {
         }
     }
 
+    PinAttributes I2SOPinDetail::getAttr() const { return _attributes; }
+
     String I2SOPinDetail::toString() const { return String("I2SO.") + int(_index); }
 }
 

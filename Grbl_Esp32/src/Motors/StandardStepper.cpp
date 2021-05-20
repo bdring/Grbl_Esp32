@@ -45,50 +45,53 @@ namespace Motors {
     }
 
     void StandardStepper::read_settings() { init_step_dir_pins(); }
+
     void StandardStepper::init_step_dir_pins() {
         auto axisIndex   = axis_index();
-        _invert_step_pin = bitnum_istrue(step_invert_mask->get(), axisIndex);
-        _invert_dir_pin  = bitnum_istrue(dir_invert_mask->get(), axisIndex);
+
+        _invert_step = _step_pin.getAttr().has(Pin::Attr::ActiveLow);
+        _invert_disable = _disable_pin.getAttr().has(Pin::Attr::ActiveLow);
+
         _dir_pin.setAttr(Pin::Attr::Output);
 
-#ifdef USE_RMT_STEPS
-        rmtConfig.rmt_mode                       = RMT_MODE_TX;
-        rmtConfig.clk_div                        = 20;
-        rmtConfig.mem_block_num                  = 2;
-        rmtConfig.tx_config.loop_en              = false;
-        rmtConfig.tx_config.carrier_en           = false;
-        rmtConfig.tx_config.carrier_freq_hz      = 0;
-        rmtConfig.tx_config.carrier_duty_percent = 50;
-        rmtConfig.tx_config.carrier_level        = RMT_CARRIER_LEVEL_LOW;
-        rmtConfig.tx_config.idle_output_en       = true;
+        if (_use_rmt_steps)
+        {
+            rmtConfig.rmt_mode = RMT_MODE_TX;
+            rmtConfig.clk_div = 20;
+            rmtConfig.mem_block_num = 2;
+            rmtConfig.tx_config.loop_en = false;
+            rmtConfig.tx_config.carrier_en = false;
+            rmtConfig.tx_config.carrier_freq_hz = 0;
+            rmtConfig.tx_config.carrier_duty_percent = 50;
+            rmtConfig.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
+            rmtConfig.tx_config.idle_output_en = true;
 
-        auto stepPulseDelay  = direction_delay_microseconds->get();
-        rmtItem[0].duration0 = stepPulseDelay < 1 ? 1 : stepPulseDelay * 4;
+            auto stepPulseDelay = _direction_delay_ms;
+            rmtItem[0].duration0 = stepPulseDelay < 1 ? 1 : stepPulseDelay * 4;
 
-        rmtItem[0].duration1 = 4 * pulse_microseconds->get();
-        rmtItem[1].duration0 = 0;
-        rmtItem[1].duration1 = 0;
+            rmtItem[0].duration1 = 4 * pulse_microseconds->get();
+            rmtItem[1].duration0 = 0;
+            rmtItem[1].duration1 = 0;
 
-        _rmt_chan_num = get_next_RMT_chan_num();
-        if (_rmt_chan_num == RMT_CHANNEL_MAX) {
-            return;
+            _rmt_chan_num = get_next_RMT_chan_num();
+            if (_rmt_chan_num == RMT_CHANNEL_MAX) {
+                return;
+            }
+
+            auto step_pin_gpio = _step_pin.getNative(Pin::Capabilities::Output);
+            rmt_set_source_clk(_rmt_chan_num, RMT_BASECLK_APB);
+            rmtConfig.channel = _rmt_chan_num;
+            rmtConfig.tx_config.idle_level = _invert_step ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
+            rmtConfig.gpio_num = gpio_num_t(step_pin_gpio);
+            rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
+            rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
+            rmt_config(&rmtConfig);
+            rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
+        }
+        else {
+            _step_pin.setAttr(Pin::Attr::Output);
         }
 
-        auto step_pin_gpio = _step_pin.getNative(Pin::Capabilities::Output);
-        rmt_set_source_clk(_rmt_chan_num, RMT_BASECLK_APB);
-        rmtConfig.channel              = _rmt_chan_num;
-        rmtConfig.tx_config.idle_level = _invert_step_pin ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-        rmtConfig.gpio_num             = gpio_num_t(step_pin_gpio);
-        rmtItem[0].level0              = rmtConfig.tx_config.idle_level;
-        rmtItem[0].level1              = !rmtConfig.tx_config.idle_level;
-        rmt_config(&rmtConfig);
-        rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
-
-#else
-
-        _step_pin.setAttr(Pin::Attr::Output);
-
-#endif  // USE_RMT_STEPS
         _disable_pin.setAttr(Pin::Attr::Output);
     }
 
@@ -104,21 +107,24 @@ namespace Motors {
     }
 
     void StandardStepper::step() {
-#ifdef USE_RMT_STEPS
-        RMT.conf_ch[_rmt_chan_num].conf1.mem_rd_rst = 1;
-        RMT.conf_ch[_rmt_chan_num].conf1.tx_start   = 1;
-#else
-        _step_pin.write(!_invert_step_pin);
-#endif  // USE_RMT_STEPS
+        if (_use_rmt_steps)
+        {
+            RMT.conf_ch[_rmt_chan_num].conf1.mem_rd_rst = 1;
+            RMT.conf_ch[_rmt_chan_num].conf1.tx_start = 1;
+        }
+        else {
+            _step_pin.on();
+        }
     }
 
     void StandardStepper::unstep() {
-#ifndef USE_RMT_STEPS
-        _step_pin.write(_invert_step_pin);
-#endif  // USE_RMT_STEPS
+        if (_use_rmt_steps)
+        {
+            _step_pin.off();
+        }
     }
 
-    void StandardStepper::set_direction(bool dir) { _dir_pin.write(dir ^ _invert_dir_pin); }
+    void StandardStepper::set_direction(bool dir) { _dir_pin.write(dir); }
 
     void StandardStepper::set_disable(bool disable) { _disable_pin.write(disable); }
 

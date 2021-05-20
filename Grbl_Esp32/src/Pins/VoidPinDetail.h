@@ -15,6 +15,7 @@ namespace Pins {
         void write(int high) override;
         int  read() override;
         void setAttr(PinAttributes value) override;
+        PinAttributes getAttr() const override;
 
         String toString() const override;
 
