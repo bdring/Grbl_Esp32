@@ -64,18 +64,6 @@ const char* MACRO_BUTTON_2_PIN_DEFAULT = MACRO_BUTTON_2_PIN;
 #    define MACRO_BUTTON_3_PIN UNDEFINED_PIN
 #endif
 const char* MACRO_BUTTON_3_PIN_DEFAULT = MACRO_BUTTON_3_PIN;
-#ifndef DYNAMIXEL_TXD
-#    define DYNAMIXEL_TXD UNDEFINED_PIN
-#endif
-const char* DYNAMIXEL_TXD_DEFAULT = DYNAMIXEL_TXD;
-#ifndef DYNAMIXEL_RXD
-#    define DYNAMIXEL_RXD UNDEFINED_PIN
-#endif
-const char* DYNAMIXEL_RXD_DEFAULT = DYNAMIXEL_RXD;
-#ifndef DYNAMIXEL_RTS
-#    define DYNAMIXEL_RTS UNDEFINED_PIN
-#endif
-const char* DYNAMIXEL_RTS_DEFAULT = DYNAMIXEL_RTS;
 
 #ifndef USER_DIGITAL_PIN_0
 #    define USER_DIGITAL_PIN_0 UNDEFINED_PIN
@@ -117,56 +105,6 @@ const char* USER_ANALOG_PIN_2_DEFAULT = USER_ANALOG_PIN_2;
 #endif
 const char* USER_ANALOG_PIN_3_DEFAULT = USER_ANALOG_PIN_3;
 
-#ifndef SPINDLE_OUTPUT_PIN
-#    define SPINDLE_OUTPUT_PIN UNDEFINED_PIN
-#endif
-const char* SPINDLE_OUTPUT_PIN_DEFAULT = SPINDLE_OUTPUT_PIN;
-
-#ifndef SPINDLE_ENABLE_PIN
-#    define SPINDLE_ENABLE_PIN UNDEFINED_PIN
-#endif
-const char* SPINDLE_ENABLE_PIN_DEFAULT = SPINDLE_ENABLE_PIN;
-
-#ifndef SPINDLE_DIRECTION_PIN
-#    define SPINDLE_DIRECTION_PIN UNDEFINED_PIN
-#endif
-const char* SPINDLE_DIRECTION_PIN_DEFAULT = SPINDLE_DIRECTION_PIN;
-
-#ifndef SPINDLE_FORWARD_PIN
-#    define SPINDLE_FORWARD_PIN UNDEFINED_PIN
-#endif
-const char* SPINDLE_FORWARD_PIN_DEFAULT = SPINDLE_FORWARD_PIN;
-
-#ifndef SPINDLE_REVERSE_PIN
-#    define SPINDLE_REVERSE_PIN UNDEFINED_PIN
-#endif
-const char* SPINDLE_REVERSE_PIN_DEFAULT = SPINDLE_REVERSE_PIN;
-
-#ifndef LASER_OUTPUT_PIN
-#    define LASER_OUTPUT_PIN UNDEFINED_PIN
-#endif
-const char* LASER_OUTPUT_PIN_DEFAULT = LASER_OUTPUT_PIN;
-
-#ifndef LASER_ENABLE_PIN
-#    define LASER_ENABLE_PIN UNDEFINED_PIN
-#endif
-const char* LASER_ENABLE_PIN_DEFAULT = LASER_ENABLE_PIN;
-
-#ifndef VFD_RS485_TXD_PIN
-#    define VFD_RS485_TXD_PIN UNDEFINED_PIN
-#endif
-const char* VFD_RS485_TXD_PIN_DEFAULT = VFD_RS485_TXD_PIN;
-
-#ifndef VFD_RS485_RXD_PIN
-#    define VFD_RS485_RXD_PIN UNDEFINED_PIN
-#endif
-const char* VFD_RS485_RXD_PIN_DEFAULT = VFD_RS485_RXD_PIN;
-
-#ifndef VFD_RS485_RTS_PIN
-#    define VFD_RS485_RTS_PIN UNDEFINED_PIN
-#endif
-const char* VFD_RS485_RTS_PIN_DEFAULT = VFD_RS485_RTS_PIN;
-
 // We need settings.h for the settings classes
 #include "Grbl.h"
 #include "Settings.h"
@@ -187,19 +125,6 @@ PinSetting* UserDigitalPin[4];
 PinSetting* UserAnalogPin[4];
 
 PinSetting* SDCardDetPin;  // SDCARD_DET_PIN
-
-PinSetting* SpindleForwardPin;
-PinSetting* SpindleReversePin;
-PinSetting* SpindleOutputPin;
-PinSetting* SpindleEnablePin;
-PinSetting* SpindleDirectionPin;
-
-PinSetting* LaserOutputPin;
-PinSetting* LaserEnablePin;
-
-PinSetting* VFDRS485TXDPin;
-PinSetting* VFDRS485RXDPin;
-PinSetting* VFDRS485RTSPin;
 
 #include "Pin.h"
 
@@ -225,20 +150,4 @@ void make_pin_settings() {
     UserAnalogPin[3]  = new PinSetting("UserAnalog/3/Pin", USER_ANALOG_PIN_3_DEFAULT);
 
     SDCardDetPin = new PinSetting("SDCardDet/Pin", SDCARD_DET_PIN_DEFAULT);
-
-    SpindleForwardPin = new PinSetting("Spindle/Forward/Pin", SPINDLE_FORWARD_PIN_DEFAULT);
-    SpindleReversePin = new PinSetting("Spindle/Reverse/Pin", SPINDLE_REVERSE_PIN_DEFAULT);
-
-    // Spindles:
-    SpindleOutputPin    = new PinSetting("Spindle/Output/Pin", SPINDLE_OUTPUT_PIN_DEFAULT);
-    SpindleEnablePin    = new PinSetting("Spindle/Enable/Pin", SPINDLE_ENABLE_PIN_DEFAULT);
-    SpindleDirectionPin = new PinSetting("Spindle/Direction/Pin", SPINDLE_DIRECTION_PIN_DEFAULT);
-
-    LaserOutputPin = new PinSetting("Spindle/Laser/Output/Pin", LASER_OUTPUT_PIN_DEFAULT);
-    LaserEnablePin = new PinSetting("Spindle/Laser/Enable/Pin", LASER_ENABLE_PIN_DEFAULT);
-
-    // XXX Move to VFD class
-    VFDRS485TXDPin = new PinSetting("Spindle/VFD/TxD/Pin", VFD_RS485_TXD_PIN_DEFAULT);  // VFD_RS485_TXD_PIN
-    VFDRS485RXDPin = new PinSetting("Spindle/VFD/RxD/Pin", VFD_RS485_RXD_PIN_DEFAULT);  // VFD_RS485_RXD_PIN
-    VFDRS485RTSPin = new PinSetting("Spindle/VFD/RTS/Pin", VFD_RS485_RTS_PIN_DEFAULT);  // VFD_RS485_RTS_PIN
 }

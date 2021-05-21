@@ -111,56 +111,8 @@
 #    define SPINDLE_TYPE SpindleType::NONE
 #endif
 
-#ifndef DEFAULT_SPINDLE_RPM_MIN          // $31
-#    define DEFAULT_SPINDLE_RPM_MIN 0.0  // rpm
-#endif
-
-#ifndef DEFAULT_LASER_FULL_POWER
-#    define DEFAULT_LASER_FULL_POWER 1000
-#endif
-
-#ifndef DEFAULT_SPINDLE_RPM_MAX             // $30
-#    define DEFAULT_SPINDLE_RPM_MAX 1000.0  // rpm
-#endif
-
-#ifndef DEFAULT_SPINDLE_FREQ
-#    define DEFAULT_SPINDLE_FREQ 5000.0  // $33 Hz (extended set)
-#endif
-
-#ifndef DEFAULT_SPINDLE_OFF_VALUE
-#    define DEFAULT_SPINDLE_OFF_VALUE 0.0  // $34 Percent of full period(extended set)
-#endif
-
-#ifndef DEFAULT_SPINDLE_MIN_VALUE
-#    define DEFAULT_SPINDLE_MIN_VALUE 0.0  // $35 Percent of full period (extended set)
-#endif
-
-#ifndef DEFAULT_SPINDLE_MAX_VALUE
-#    define DEFAULT_SPINDLE_MAX_VALUE 100.0  // $36 Percent of full period (extended set)
-#endif
-
-#ifndef DEFAULT_SPINDLE_DELAY_SPINUP
-#    define DEFAULT_SPINDLE_DELAY_SPINUP 0
-#endif
-
 #ifndef DEFAULT_COOLANT_DELAY_TURNON
 #    define DEFAULT_COOLANT_DELAY_TURNON 1.0
-#endif
-
-#ifndef DEFAULT_SPINDLE_DELAY_SPINDOWN
-#    define DEFAULT_SPINDLE_DELAY_SPINDOWN 0
-#endif
-
-#ifndef DEFAULT_INVERT_SPINDLE_OUTPUT_PIN
-#    define DEFAULT_INVERT_SPINDLE_OUTPUT_PIN 0
-#endif
-
-#ifndef DEFAULT_INVERT_SPINDLE_ENABLE_PIN
-#    define DEFAULT_INVERT_SPINDLE_ENABLE_PIN 0
-#endif
-
-#ifndef DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
-#    define DEFAULT_SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED 0
 #endif
 
 // ================  user settings =====================
@@ -221,18 +173,6 @@
 
 #ifndef SERVO_TIMER_INTERVAL
 #    define SERVO_TIMER_INTERVAL 75.0  // Hz This is the update inveral in milliseconds
-#endif
-
-#ifndef DYNAMIXEL_TXD
-#    define DYNAMIXEL_TXD UNDEFINED_PIN
-#endif
-
-#ifndef DYNAMIXEL_RXD
-#    define DYNAMIXEL_RXD UNDEFINED_PIN
-#endif
-
-#ifndef DYNAMIXEL_RTS
-#    define DYNAMIXEL_RTS UNDEFINED_PIN
 #endif
 
 // ================ User Digital I/O ==============================
