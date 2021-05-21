@@ -129,7 +129,7 @@ void displayDRO() {
 
     display.drawString(80, 14, "L");  // Limit switch
 
-    auto        n_axis         = number_axis->get();
+    auto        n_axis         = MachineConfig::instance()->_axes->_numberAxis;
     AxisMask    lim_pin_state  = limits_get_state();
     ControlPins ctrl_pin_state = system_control_get_state();
     bool        prb_pin_state  = probe_get_state();
