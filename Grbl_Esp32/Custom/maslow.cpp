@@ -255,15 +255,18 @@ void moveUp(float distToRetract){
     
     //Make the lower arms compliant and move retract the other two until we get to the target distance
     
-    unsigned long timeLastMoved = millis();
+    unsigned long timeLastMoved1 = millis();
+    unsigned long timeLastMoved2 = millis();
     double lastPosition1 = axis1.angleSensor->getRotation();
     double lastPosition2 = axis2.angleSensor->getRotation();
+    double amtToMove1 = 0.1;
+    double amtToMove2 = 0.1;
     
     while(distToRetract > 0){
         
-        //Set the lower axis to be compliant
-        //axis1.comply(&timeLastMoved, &lastPosition1);
-        //axis2.comply(&timeLastMoved, &lastPosition2);
+        //Set the lower axis to be compliant. PID is recomputed in comply()
+        axis1.comply(&timeLastMoved1, &lastPosition1, &amtToMove1);
+        axis2.comply(&timeLastMoved2, &lastPosition2, &amtToMove2);
         
         //Pull in on the upper axis
         axis3.setTarget(axis3.getTarget() - .05);
@@ -330,8 +333,8 @@ void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float mach
 bool user_defined_homing(uint8_t cycle_mask)
 {
   // True = done with homing, false = continue with normal Grbl_ESP32 homing
-  Serial.println("Custom homing ran");
-  Serial.println(cycle_mask);
+  //Serial.println("Custom homing ran");
+  //Serial.println(cycle_mask);
   if(cycle_mask == 1){  //Upper left
     axis4.testEncoder();
     axis4Homed = axis4.retract(computeL1(0, 0));
