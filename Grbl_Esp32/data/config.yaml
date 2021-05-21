@@ -8,6 +8,7 @@ laser_mode: true
 
 coolant:
   flood: gpio.26:low
+  mist:  gpio.4
 
 probe:
     pin: gpio.12:high:pu

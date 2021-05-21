@@ -346,14 +346,17 @@ public:
     Probe*          _probe   = nullptr;
     Communications* _comms   = nullptr;
 
-    int   _pulseMicroSeconds = 3;
-    int   _directionDelayMilliSeconds = 0;
-    int   _disableDelayMilliSeconds = 0;
+    int _pulseMicroSeconds          = 3;
+    int _directionDelayMilliSeconds = 0;
+    int _disableDelayMilliSeconds   = 0;
 
     bool  _laserMode         = false;
     float _arcTolerance      = 0.002;
     float _junctionDeviation = 0.01;
 
+    String                 _board = "None";
+    String                 _name  = "None";
+    
     static MachineConfig*& instance() {
         static MachineConfig* instance = nullptr;
         return instance;

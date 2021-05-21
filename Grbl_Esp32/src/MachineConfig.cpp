@@ -350,6 +350,8 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("probe", _probe);
     handler.handle("laser_mode", _laserMode);
     handler.handle("pulse_microseconds", _pulseMicroSeconds);
+    handler.handle("board", _board);
+    handler.handle("name", _name);
 }
 
 void MachineConfig::afterParse() {

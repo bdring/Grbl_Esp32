@@ -27,7 +27,7 @@ void grbl_init() {
     try {
         client_init();  // Setup serial baud rate and interrupts
 
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing WiFi...");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Initializing WiFi...");
         WiFi.persistent(false);
         WiFi.disconnect(true);
         WiFi.enableSTA(false);
@@ -45,9 +45,12 @@ void grbl_init() {
 #endif
 
         // Load Grbl settings from non-volatile storage
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing settings...");
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Initializing settings...");
         settings_init();
         MachineConfig::instance()->load();
+
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Name: %s", MachineConfig::instance()->_name.c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Board: %s", MachineConfig::instance()->_board.c_str());
 
 #ifdef USE_I2S_OUT
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing I2SO...");
