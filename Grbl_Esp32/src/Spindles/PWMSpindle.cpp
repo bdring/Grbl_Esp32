@@ -21,6 +21,7 @@
 */
 #include "PWMSpindle.h"
 #include "soc/ledc_struct.h"
+#include "../Logging.h"
 
 // ======================= PWM ==============================
 /*
@@ -35,12 +36,12 @@ namespace Spindles {
         get_pins_and_settings();
 
         if (_output_pin.undefined()) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: Spindle output pin not defined");
+            log_warn("Spindle output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
         if (!_output_pin.capabilities().has(Pin::Capabilities::PWM)) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: Spindle output pin %s cannot do PWM", _output_pin.name().c_str());
+            log_warn("Spindle output pin %s cannot do PWM" << _output_pin.name().c_str());
             return;
         }
 
@@ -67,11 +68,11 @@ namespace Spindles {
 
         is_reversable = _direction_pin.defined();
 
-        _pwm_precision = calc_pwm_precision(_pwm_freq);  // detewrmine the best precision
+        _pwm_precision = calc_pwm_precision(_pwm_freq);  // determine the best precision
         _pwm_period    = (1 << _pwm_precision);
 
         if (_pwm_min_value > _pwm_max_value) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: Spindle min pwm is greater than max. Check $35 and $36");
+            log_warn("Spindle min pwm is greater than max.");
         }
 
         // pre-calculate some PWM count values
@@ -96,8 +97,6 @@ namespace Spindles {
             return rpm;
         }
 
-        //grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "set_rpm(%d)", rpm);
-
         // apply override
         rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
 
@@ -113,7 +112,7 @@ namespace Spindles {
         if (_piecewise_linear) {
             //pwm_value = piecewise_linear_fit(rpm); TODO
             pwm_value = 0;
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: Linear fit not implemented yet.");
+            log_warn("Linear fit not implemented yet.");
 
         } else {
             if (rpm == 0) {
@@ -172,14 +171,10 @@ namespace Spindles {
 
     // prints the startup message of the spindle config
     void PWM::config_message() {
-        grbl_msg_sendf(CLIENT_ALL,
-                       MsgLevel::Info,
-                       "PWM spindle Output:%s, Enbl:%s, Dir:%s, Freq:%dHz, Res:%dbits",
-                       _output_pin.name().c_str(),
-                       _enable_pin.name().c_str(),
-                       _direction_pin.name().c_str(),
-                       _pwm_freq,
-                       _pwm_precision);
+        log_info("PWM spindle Output:" << _output_pin.name().c_str() << ", Enbl:" << _enable_pin.name().c_str() << ", Dir:"
+                                       << _direction_pin.name().c_str() << ", Freq:" << _pwm_freq << "Hz, Res:" << _pwm_precision << "bits"
+
+        );
     }
 
     void PWM::set_output(uint32_t duty) {

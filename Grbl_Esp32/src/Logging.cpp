@@ -5,7 +5,7 @@
 #    include <iostream>
 
 DebugStream::DebugStream(const char* name) {
-    std::cout << '[' << name << ": ";
+    std::cout << '[MSG:' << name << ": ";
 }
 void DebugStream::add(char c) {
     std::cout << c;
@@ -17,20 +17,24 @@ DebugStream::~DebugStream() {
 
 #else
 
-#    include "Uart.h"
+#    include "Serial.h"
 
 DebugStream::DebugStream(const char* name) {
-    Uart0.print("[");
-    Uart0.print(name);
-    Uart0.print(": ");
+    client_write(CLIENT_ALL, "[MSG:");
+    client_write(CLIENT_ALL, name);
+    client_write(CLIENT_ALL, ": ");
 }
 
 void DebugStream::add(char c) {
-    Uart0.print(c);
+    char txt[2];
+    txt[0] = c;
+    txt[1] = '\0';
+    client_write(CLIENT_ALL, txt);
 }
 
 DebugStream::~DebugStream() {
-    Uart0.println("]");
+    client_write(CLIENT_ALL, "]");
+    client_write(CLIENT_ALL, "\r\n");
 }
 
 #endif

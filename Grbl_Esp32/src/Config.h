@@ -160,45 +160,6 @@ const int DEFAULT_RADIO_MODE = ESP_RADIO_OFF;
 #    endif
 #endif
 
-// Define realtime command special characters. These characters are 'picked-off' directly from the
-// serial read data stream and are not passed to the grbl line execution parser. Select characters
-// that do not and must not exist in the streamed GCode program. ASCII control characters may be
-// used, if they are available per user setup. Also, extended ASCII codes (>127), which are never in
-// GCode programs, maybe selected for interface programs.
-// NOTE: If changed, manually update help message in report.c.
-
-// NOTE: All override realtime commands must be in the extended ASCII character set, starting
-// at character value 128 (0x80) and up to 255 (0xFF). If the normal set of realtime commands,
-// such as status reports, feed hold, reset, and cycle start, are moved to the extended set
-// space, serial.c's RX ISR will need to be modified to accommodate the change.
-
-enum class Cmd : uint8_t {
-    Reset                 = 0x18,  // Ctrl-X
-    StatusReport          = '?',
-    CycleStart            = '~',
-    FeedHold              = '!',
-    SafetyDoor            = 0x84,
-    JogCancel             = 0x85,
-    DebugReport           = 0x86,  // Only when DEBUG enabled, sends debug report in '{}' braces.
-    FeedOvrReset          = 0x90,  // Restores feed override value to 100%.
-    FeedOvrCoarsePlus     = 0x91,
-    FeedOvrCoarseMinus    = 0x92,
-    FeedOvrFinePlus       = 0x93,
-    FeedOvrFineMinus      = 0x94,
-    RapidOvrReset         = 0x95,  // Restores rapid override value to 100%.
-    RapidOvrMedium        = 0x96,
-    RapidOvrLow           = 0x97,
-    RapidOvrExtraLow      = 0x98,  // *NOT SUPPORTED*
-    SpindleOvrReset       = 0x99,  // Restores spindle override value to 100%.
-    SpindleOvrCoarsePlus  = 0x9A,  // 154
-    SpindleOvrCoarseMinus = 0x9B,
-    SpindleOvrFinePlus    = 0x9C,
-    SpindleOvrFineMinus   = 0x9D,
-    SpindleOvrStop        = 0x9E,
-    CoolantFloodOvrToggle = 0xA0,
-    CoolantMistOvrToggle  = 0xA1,
-};
-
 // If homing is enabled, homing init lock sets Grbl into an alarm state upon power up. This forces
 // the user to perform the homing cycle (or override the locks) before doing anything else. This is
 // mainly a safety feature to remind the user to home, since position is unknown to Grbl.

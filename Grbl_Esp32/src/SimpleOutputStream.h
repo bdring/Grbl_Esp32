@@ -5,15 +5,15 @@
 #include "StringRange.h"
 #include "Pin.h"
 
-class SimpleOutputStream
-{
+class SimpleOutputStream {
     static char* intToBuf(int value, char* dst);
+    static char* uintToBuf(unsigned int value, char* dst);
 
 public:
     SimpleOutputStream() = default;
 
     SimpleOutputStream(const SimpleOutputStream& o) = delete;
-    SimpleOutputStream(SimpleOutputStream&& o) = delete;
+    SimpleOutputStream(SimpleOutputStream&& o)      = delete;
 
     SimpleOutputStream& operator=(const SimpleOutputStream& o) = delete;
     SimpleOutputStream& operator=(SimpleOutputStream&& o) = delete;
@@ -23,12 +23,12 @@ public:
 
     void add(const char* s);
     void add(int value);
+    void add(unsigned int value);
     void add(double value, int numberDigits, int precision);
     void add(StringRange range);
     void add(const Pin& pin);
 
-    virtual ~SimpleOutputStream() {
-    }
+    virtual ~SimpleOutputStream() {}
 };
 
 inline SimpleOutputStream& operator<<(SimpleOutputStream& lhs, char c) {
@@ -42,6 +42,11 @@ inline SimpleOutputStream& operator<<(SimpleOutputStream& lhs, const char* v) {
 }
 
 inline SimpleOutputStream& operator<<(SimpleOutputStream& lhs, int v) {
+    lhs.add(v);
+    return lhs;
+}
+
+inline SimpleOutputStream& operator<<(SimpleOutputStream& lhs, unsigned int v) {
     lhs.add(v);
     return lhs;
 }
