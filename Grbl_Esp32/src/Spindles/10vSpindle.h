@@ -47,13 +47,25 @@ namespace Spindles {
         void         stop() override;
         void         deinit() override;
 
-        virtual ~_10v() {}
+        // Configuration handlers:
+        void validate() const override { PWM::validate(); }
 
-        Pin _forward_pin;
-        Pin _reverse_pin;
+        void handle(Configuration::HandlerBase& handler) override {
+            handler.handle("forward", _forward_pin);
+            handler.handle("reverse", _reverse_pin);
+            PWM::handle(handler);
+        }
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "10V"; }
+
+        virtual ~_10v() {}
 
     protected:
         void set_enable_pin(bool enable_pin) override;
         void set_dir_pin(bool Clockwise) override;
+
+        Pin _forward_pin;
+        Pin _reverse_pin;
     };
 }

@@ -36,7 +36,7 @@ namespace Pins {
         static PinCapabilities PWM;
         static PinCapabilities UART;
 
-        // Each class of pins (e.g. GPIO, etc) should have their own 'capability'. This ensures that we 
+        // Each class of pins (e.g. GPIO, etc) should have their own 'capability'. This ensures that we
         // can compare classes of pins along with their properties by just looking at the capabilities.
         static PinCapabilities Native;
         static PinCapabilities I2S;

@@ -38,6 +38,9 @@ namespace Spindles {
         bool supports_actual_rpm() const override { return true; }
         bool safety_polling() const override { return false; }
 
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "YL620"; }
+
     public:
         YL620();
     };

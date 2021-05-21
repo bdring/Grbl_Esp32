@@ -31,9 +31,6 @@ namespace Spindles {
         get_pins_and_settings();  // these gets the standard PWM settings, but many need to be changed for BESC
 
         // a couple more pins not inherited from PWM Spindle
-        _forward_pin = SpindleForwardPin->get();
-        _reverse_pin = SpindleReversePin->get();
-
         if (_output_pin.undefined()) {
             grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: Spindle output pin not defined");
             return;  // We cannot continue without the output pin
@@ -141,10 +138,6 @@ namespace Spindles {
             enable = false;
         }
 
-        if (spindle_enable_invert->get()) {
-            enable = !enable;
-        }
-
         _enable_pin.write(enable);
 
         // turn off anything that acts like an enable
@@ -168,5 +161,10 @@ namespace Spindles {
         _reverse_pin.setAttr(Pin::Attr::Input);
         ledcDetachPin(_output_pin.getNative(Pin::Capabilities::PWM));
         _output_pin.setAttr(Pin::Attr::Input);
+    }
+
+    // Configuration registration
+    namespace {
+        SpindleFactory::InstanceBuilder<_10v> registration("10V");
     }
 }

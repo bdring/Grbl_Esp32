@@ -19,12 +19,25 @@ namespace Configuration {
         friend class GenericFactory;
 
     public:
-        virtual void handle(const char* name, bool& value)        = 0;
-        virtual void handle(const char* name, int& value)         = 0;
+        virtual void handle(const char* name, bool& value) = 0;
+        virtual void handle(const char* name, int& value)  = 0;
+        virtual void handle(const char* name, uint& value) {
+            int32_t v = int32_t(value);
+            handle(name, value);
+            value = uint32_t(v);
+        }
+
         virtual void handle(const char* name, double& value)      = 0;
         virtual void handle(const char* name, float& value)       = 0;
         virtual void handle(const char* name, StringRange& value) = 0;
         virtual void handle(const char* name, Pin& value)         = 0;
+
+        template <typename T>
+        inline void handle(const char* name, volatile T& value) {
+            T val = value;
+            handle(name, val);
+            value = val;
+        }
 
         virtual void handle(const char* name, String& value) {
             StringRange range;

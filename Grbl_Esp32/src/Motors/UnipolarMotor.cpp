@@ -122,8 +122,7 @@ namespace Motors {
     }
 
     // Configuration registration
-    namespace
-    {
+    namespace {
         MotorFactory::InstanceBuilder<UnipolarMotor> registration("unipolar");
     }
 }

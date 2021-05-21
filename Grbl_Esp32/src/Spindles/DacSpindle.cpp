@@ -32,8 +32,6 @@ namespace Spindles {
             return;
         }
 
-        _min_rpm       = rpm_min->get();
-        _max_rpm       = rpm_max->get();
         _pwm_min_value = 0;    // not actually PWM...DAC counts
         _pwm_max_value = 255;  // not actually PWM...DAC counts
         _gpio_ok       = true;
@@ -106,5 +104,10 @@ namespace Spindles {
 
             dacWrite(outputNative, static_cast<uint8_t>(duty));
         }
+    }
+
+    // Configuration registration
+    namespace {
+        SpindleFactory::InstanceBuilder<Dac> registration("DAC");
     }
 }

@@ -44,9 +44,38 @@ namespace Spindles {
         void             stop() override;
         void             config_message() override;
 
+        // Configuration handlers:
+        void validate() const override { Spindle::validate(); }
+
+        void handle(Configuration::HandlerBase& handler) override {
+            handler.handle("min_rpm", _min_rpm);
+            handler.handle("max_rpm", _max_rpm);
+
+            handler.handle("pwm_freq", _pwm_freq);
+            handler.handle("pwm_off", _pwm_off_value_setting);
+            handler.handle("pwm_min", _pwm_min_value_setting);
+            handler.handle("pwm_max", _pwm_max_value_setting);
+            handler.handle("invert_pwm", _invert_pwm);
+            handler.handle("piecewise_linear", _piecewise_linear);
+
+            handler.handle("output_pin", _output_pin);
+            handler.handle("enable_pin", _enable_pin);
+            handler.handle("direction_pin", _direction_pin);
+            handler.handle("enable_off_with_zero_speed", _off_with_zero_speed);
+
+            Spindle::handle(handler);
+        }
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "PWM"; }
+
         virtual ~PWM() {}
 
     protected:
+        uint32_t _pwm_off_value_setting;  // do we need these 3?
+        uint32_t _pwm_min_value_setting;
+        uint32_t _pwm_max_value_setting;
+
         int32_t  _current_pwm_duty;
         uint32_t _min_rpm;
         uint32_t _max_rpm;
@@ -60,7 +89,7 @@ namespace Spindles {
         uint32_t _pwm_freq;
         uint32_t _pwm_period;  // how many counts in 1 period
         uint8_t  _pwm_precision;
-        bool     _piecewide_linear;
+        bool     _piecewise_linear;
         bool     _off_with_zero_speed;
         bool     _invert_pwm;
         //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.

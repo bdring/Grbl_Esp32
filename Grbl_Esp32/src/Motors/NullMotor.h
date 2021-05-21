@@ -10,8 +10,8 @@ namespace Motors {
         bool set_homing_mode(bool isHoming) { return false; }
 
         // Configuration handlers:
-        void validate() const override { }
-        void handle(Configuration::HandlerBase& handler) override { }
+        void validate() const override {}
+        void handle(Configuration::HandlerBase& handler) override {}
 
         const char* name() const override { return "null_motor"; }
     };

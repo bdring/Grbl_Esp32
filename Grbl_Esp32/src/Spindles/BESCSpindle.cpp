@@ -122,4 +122,9 @@ namespace Spindles {
         set_output(pwm_value);
         return rpm;
     }
+
+    // Configuration registration
+    namespace {
+        SpindleFactory::InstanceBuilder<BESC> registration("BESC");
+    }
 }

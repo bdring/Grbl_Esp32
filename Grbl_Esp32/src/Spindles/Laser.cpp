@@ -45,25 +45,11 @@ namespace Spindles {
     // Get the GPIO from the machine definition
     void Laser::get_pins_and_settings() {
         // setup all the pins
-
-        _output_pin = LaserOutputPin->get();
-
-        _invert_pwm = spindle_output_invert->get();
-
-        _enable_pin = LaserEnablePin->get();
-
-        if (_output_pin.undefined()) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: LASER_OUTPUT_PIN not defined");
-            return;  // We cannot continue without the output pin
-        }
-
-        _off_with_zero_speed = spindle_enbl_off_with_zero_speed->get();
-
+        PWM::get_pins_and_settings();
         _direction_pin = Pin::UNDEFINED;
 
         is_reversable = false;
 
-        _pwm_freq      = spindle_pwm_freq->get();
         _pwm_precision = calc_pwm_precision(_pwm_freq);  // detewrmine the best precision
         _pwm_period    = (1 << _pwm_precision);
 
@@ -75,8 +61,13 @@ namespace Spindles {
         _min_rpm = 0;
         _max_rpm = laser_full_power->get();
 
-        _piecewide_linear = false;
+        _piecewise_linear = false;
 
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
+    }
+
+    // Configuration registration
+    namespace {
+        SpindleFactory::InstanceBuilder<Laser> registration("Laser");
     }
 }

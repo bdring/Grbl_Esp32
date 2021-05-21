@@ -71,4 +71,9 @@ namespace Spindles {
 #endif
         _output_pin.write(duty > 0);  // anything greater
     }
+
+    // Configuration registration
+    namespace {
+        SpindleFactory::InstanceBuilder<Relay> registration("Relay");
+    }
 }

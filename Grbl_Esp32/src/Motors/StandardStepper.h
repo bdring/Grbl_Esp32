@@ -31,7 +31,7 @@ namespace Motors {
         Pin  _disable_pin;
 
         int _direction_delay_ms = 0;
-        int _enable_delay_ms = 0;
+        int _enable_delay_ms    = 0;
 
         // Configuration handlers:
         void validate() const override {

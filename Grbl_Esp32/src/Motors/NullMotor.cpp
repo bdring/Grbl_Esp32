@@ -23,8 +23,7 @@
 
 namespace Motors {
     // Configuration registration
-    namespace
-    {
+    namespace {
         MotorFactory::InstanceBuilder<Nullmotor> registration("null_motor");
     }
 }

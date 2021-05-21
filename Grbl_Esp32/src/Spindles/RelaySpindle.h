@@ -40,6 +40,9 @@ namespace Spindles {
 
         virtual ~Relay() {}
 
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "Relay"; }
+
     protected:
         void set_output(uint32_t duty);
     };

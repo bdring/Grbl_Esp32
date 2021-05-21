@@ -65,47 +65,28 @@ namespace Spindles {
     void PWM::get_pins_and_settings() {
         // setup all the pins
 
-        _output_pin = SpindleOutputPin->get();
-
-        _invert_pwm = spindle_output_invert->get();
-
-        _enable_pin = SpindleEnablePin->get();
-
-        _off_with_zero_speed = spindle_enbl_off_with_zero_speed->get();
-
-        _direction_pin = SpindleDirectionPin->get();
-
         is_reversable = _direction_pin.defined();
 
-        _pwm_freq      = spindle_pwm_freq->get();
         _pwm_precision = calc_pwm_precision(_pwm_freq);  // detewrmine the best precision
         _pwm_period    = (1 << _pwm_precision);
 
-        if (spindle_pwm_min_value->get() > spindle_pwm_min_value->get()) {
+        if (_pwm_min_value > _pwm_max_value) {
             grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: Spindle min pwm is greater than max. Check $35 and $36");
         }
 
         // pre-calculate some PWM count values
-        _pwm_off_value = (_pwm_period * spindle_pwm_off_value->get() / 100.0);
-        _pwm_min_value = (_pwm_period * spindle_pwm_min_value->get() / 100.0);
-        _pwm_max_value = (_pwm_period * spindle_pwm_max_value->get() / 100.0);
+        _pwm_off_value = uint32_t(_pwm_period * _pwm_off_value_setting / 100.0);
+        _pwm_min_value = uint32_t(_pwm_period * _pwm_min_value_setting / 100.0);
+        _pwm_max_value = uint32_t(_pwm_period * _pwm_max_value_setting / 100.0);
 
-#ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
-        _min_rpm          = RPM_MIN;
-        _max_rpm          = RPM_MAX;
-        _piecewide_linear = true;
-#else
-        _min_rpm          = rpm_min->get();
-        _max_rpm          = rpm_max->get();
-        _piecewide_linear = false;
-#endif
+        if (_piecewise_linear) {
+            _min_rpm = RPM_MIN;
+            _max_rpm = RPM_MAX;
+        }
         // The pwm_gradient is the pwm duty cycle units per rpm
         // _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
 
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
-
-        _spinup_delay   = spindle_delay_spinup->get() * 1000.0;
-        _spindown_delay = spindle_delay_spindown->get() * 1000.0;
     }
 
     uint32_t PWM::set_rpm(uint32_t rpm) {
@@ -129,7 +110,7 @@ namespace Spindles {
 
         sys.spindle_speed = rpm;
 
-        if (_piecewide_linear) {
+        if (_piecewise_linear) {
             //pwm_value = piecewise_linear_fit(rpm); TODO
             pwm_value = 0;
             grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: Linear fit not implemented yet.");
@@ -236,10 +217,6 @@ namespace Spindles {
             enable = false;
         }
 
-        if (spindle_enable_invert->get()) {
-            enable = !enable;
-        }
-
         _enable_pin.write(enable);
     }
 
@@ -268,5 +245,10 @@ namespace Spindles {
         _output_pin.setAttr(Pin::Attr::Input);
         _enable_pin.setAttr(Pin::Attr::Input);
         _direction_pin.setAttr(Pin::Attr::Input);
+    }
+
+    // Configuration registration
+    namespace {
+        SpindleFactory::InstanceBuilder<PWM> registration("PWM");
     }
 }

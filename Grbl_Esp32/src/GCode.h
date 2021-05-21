@@ -238,9 +238,9 @@ enum GCParserFlags {
 
 // Various places in the code access saved coordinate system data
 // by a small integer index according to the values below.
-enum CoordIndex : uint8_t{
+enum CoordIndex : uint8_t {
     Begin = 0,
-    G54 = Begin,
+    G54   = Begin,
     G55,
     G56,
     G57,
@@ -260,7 +260,7 @@ enum CoordIndex : uint8_t{
 };
 
 // Allow iteration over CoordIndex values
-CoordIndex& operator ++ (CoordIndex& i);
+CoordIndex& operator++(CoordIndex& i);
 
 // NOTE: When this struct is zeroed, the 0 values in the above types set the system defaults.
 typedef struct {

@@ -419,8 +419,7 @@ bool __attribute__((weak)) limitsCheckTravel(float* target) {
     auto    n_axis = MachineConfig::instance()->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
         float max_mpos, min_mpos;
-        auto axisSetting = MachineConfig::instance()->_axes->_axis[idx];
-        
+        auto  axisSetting = MachineConfig::instance()->_axes->_axis[idx];
 
         if ((target[idx] < limitsMinPosition(idx) || target[idx] > limitsMaxPosition(idx)) && axisSetting->_maxTravel > 0) {
             return true;

@@ -384,4 +384,9 @@ namespace Spindles {
             return true;
         };
     }
+
+    // Configuration registration
+    namespace {
+        SpindleFactory::InstanceBuilder<Huanyang> registration("Huanyang");
+    }
 }

@@ -50,9 +50,9 @@ struct PlMotion {
 typedef struct {
     // Fields used by the bresenham algorithm for tracing the line
     // NOTE: Used by stepper algorithm to execute the block correctly. Do not alter these values.
-    uint32_t steps[MAX_N_AXIS];     // Step count along each axis
-    uint32_t step_event_count;  // The maximum step axis count and number of steps required to complete this block.
-    uint8_t  direction_bits;    // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
+    uint32_t steps[MAX_N_AXIS];  // Step count along each axis
+    uint32_t step_event_count;   // The maximum step axis count and number of steps required to complete this block.
+    uint8_t  direction_bits;     // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
 
     // Block condition data to ensure correct execution depending on states and overrides.
     PlMotion     motion;   // Block bitflag motion conditions. Copied from pl_line_data.
@@ -91,7 +91,7 @@ typedef struct {
 #ifdef USE_LINE_NUMBERS
     int32_t line_number;  // Desired line number to report when executing.
 #endif
-    bool         is_jog;         // true if this was generated due to a jog command
+    bool is_jog;  // true if this was generated due to a jog command
 } plan_line_data_t;
 
 // Initialize and reset the motion plan subsystem

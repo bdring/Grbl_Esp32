@@ -319,7 +319,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     } else {
         memcpy(position_steps, pl.position, sizeof(pl.position));
     }
-    auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
+    auto n_axis       = MachineConfig::instance()->_axes->_numberAxis;
     auto axisSettings = MachineConfig::instance()->_axes->_axis;
     for (idx = 0; idx < n_axis; idx++) {
         // Calculate target position in absolute steps, number of steps for each axis, and determine max step events.

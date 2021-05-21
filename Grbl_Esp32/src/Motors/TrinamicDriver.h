@@ -82,11 +82,11 @@ namespace Motors {
         bool            _has_errors;
         bool            _disabled;
 
-        float _run_current = 0.25;
-        float _hold_current = 0.25;
-        int _microsteps = 256;
-        int _stallguard = 0;
-        bool _stallguardDebugMode = false;
+        float _run_current         = 0.25;
+        float _hold_current        = 0.25;
+        int   _microsteps          = 256;
+        int   _stallguard          = 0;
+        bool  _stallguardDebugMode = false;
 
         TrinamicMode _mode = TrinamicMode::None;
         bool         test();
@@ -111,11 +111,9 @@ namespace Motors {
         void config_message() override;
 
     public:
-        TrinamicDriver(uint16_t driver_part_number) :
-            TrinamicDriver(driver_part_number, get_next_index()) {}
+        TrinamicDriver(uint16_t driver_part_number) : TrinamicDriver(driver_part_number, get_next_index()) {}
 
-        TrinamicDriver(uint16_t driver_part_number,
-                       int8_t   spi_index);
+        TrinamicDriver(uint16_t driver_part_number, int8_t spi_index);
 
         // Overrides for inherited methods
         void init() override;
@@ -147,8 +145,7 @@ namespace Motors {
         const char* name() const override { return "trinamic_spi"; }
     };
 
-    class TMC2130 : public TrinamicDriver
-    {
+    class TMC2130 : public TrinamicDriver {
     public:
         TMC2130() : TrinamicDriver(2130) {}
 
@@ -156,8 +153,7 @@ namespace Motors {
         const char* name() const override { return "tmc_2130"; }
     };
 
-    class TMC5160 : public TrinamicDriver
-    {
+    class TMC5160 : public TrinamicDriver {
     public:
         TMC5160() : TrinamicDriver(5160) {}
 

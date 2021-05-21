@@ -42,6 +42,7 @@ enum class SpindleType : int8_t {
 };
 
 #include "../Grbl.h"
+#include "../Configuration/GenericFactory.h"
 #include <driver/dac.h>
 #include <driver/uart.h>
 
@@ -50,7 +51,7 @@ enum class SpindleType : int8_t {
 
 namespace Spindles {
     // This is the base class. Do not use this as your spindle
-    class Spindle {
+    class Spindle : Configuration::Configurable {
     public:
         Spindle() = default;
 
@@ -71,14 +72,30 @@ namespace Spindles {
         bool                  is_reversable;
         bool                  use_delays;  // will SpinUp and SpinDown delays be used.
         volatile SpindleState _current_state = SpindleState::Disable;
-        uint32_t              _spinup_delay;
-        uint32_t              _spindown_delay;
+
+        uint32_t _spinup_delay;
+        uint32_t _spindown_delay;
 
         static void select();
 
+        // Name is required for the configuration factory to work.
+        virtual const char* name() const = 0;
+
+        // Configuration handlers:
+        void validate() const override {
+            // TODO: Validate spinup/spindown delay?
+        }
+
+        void handle(Configuration::HandlerBase& handler) override {
+            handler.handle("spinup_delay_millis", _spinup_delay);
+            handler.handle("spindown_delay_millis", _spindown_delay);
+        }
+
+        // Virtual base classes require a virtual destructor.
         virtual ~Spindle() {}
     };
 
+    using SpindleFactory = Configuration::GenericFactory<Spindle>;
 }
 
 extern Spindles::Spindle* spindle;

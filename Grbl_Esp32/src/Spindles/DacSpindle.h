@@ -41,6 +41,14 @@ namespace Spindles {
         void     config_message() override;
         uint32_t set_rpm(uint32_t rpm) override;
 
+        // Configuration handlers:
+        void validate() const override { PWM::validate(); }
+
+        void handle(Configuration::HandlerBase& handler) override { PWM::handle(handler); }
+
+        // Name of the configurable. Must match the name registered in the cpp file.
+        const char* name() const override { return "DAC"; }
+
         virtual ~Dac() {}
 
     private:

@@ -354,9 +354,9 @@ public:
     float _arcTolerance      = 0.002;
     float _junctionDeviation = 0.01;
 
-    String                 _board = "None";
-    String                 _name  = "None";
-    
+    String _board = "None";
+    String _name  = "None";
+
     static MachineConfig*& instance() {
         static MachineConfig* instance = nullptr;
         return instance;

@@ -39,9 +39,9 @@ namespace Motors {
         Pin     _pin_phase2;
         Pin     _pin_phase3;
         uint8_t _current_phase = 0;
-        bool    _half_step = true;
-        bool    _enabled = false;
-        bool    _dir = true;
+        bool    _half_step     = true;
+        bool    _enabled       = false;
+        bool    _dir           = true;
 
     protected:
         void config_message() override;

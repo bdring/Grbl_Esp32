@@ -93,6 +93,22 @@ namespace Spindles {
         uint32_t     set_rpm(uint32_t rpm);
         void         stop();
 
+        // Configuration handlers:
+        void validate() const override { Spindle::validate(); }
+
+        void handle(Configuration::HandlerBase& handler) override {
+            handler.handle("min_rpm", _min_rpm);
+            handler.handle("max_rpm", _max_rpm);
+
+            handler.handle("txd_pin", _txd_pin);
+            handler.handle("rxd_pin", _rxd_pin);
+            handler.handle("rts_pin", _rts_pin);
+
+            // TODO FIXME: baud rate, etc
+
+            Spindle::handle(handler);
+        }
+
         virtual ~VFD() {}
     };
 }

@@ -144,4 +144,9 @@ namespace Spindles {
         // TODO: What are we going to do with this? Update sys.spindle_speed? Update vfd state?
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool { return true; };
     }
+
+    // Configuration registration
+    namespace {
+        SpindleFactory::InstanceBuilder<H2A> registration("H2A");
+    }
 }

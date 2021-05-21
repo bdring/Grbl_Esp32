@@ -48,26 +48,25 @@ namespace Motors {
     void StandardStepper::read_settings() { init_step_dir_pins(); }
 
     void StandardStepper::init_step_dir_pins() {
-        auto axisIndex   = axis_index();
+        auto axisIndex = axis_index();
 
-        _invert_step = _step_pin.getAttr().has(Pin::Attr::ActiveLow);
+        _invert_step    = _step_pin.getAttr().has(Pin::Attr::ActiveLow);
         _invert_disable = _disable_pin.getAttr().has(Pin::Attr::ActiveLow);
 
         _dir_pin.setAttr(Pin::Attr::Output);
 
-        if (_use_rmt_steps)
-        {
-            rmtConfig.rmt_mode = RMT_MODE_TX;
-            rmtConfig.clk_div = 20;
-            rmtConfig.mem_block_num = 2;
-            rmtConfig.tx_config.loop_en = false;
-            rmtConfig.tx_config.carrier_en = false;
-            rmtConfig.tx_config.carrier_freq_hz = 0;
+        if (_use_rmt_steps) {
+            rmtConfig.rmt_mode                       = RMT_MODE_TX;
+            rmtConfig.clk_div                        = 20;
+            rmtConfig.mem_block_num                  = 2;
+            rmtConfig.tx_config.loop_en              = false;
+            rmtConfig.tx_config.carrier_en           = false;
+            rmtConfig.tx_config.carrier_freq_hz      = 0;
             rmtConfig.tx_config.carrier_duty_percent = 50;
-            rmtConfig.tx_config.carrier_level = RMT_CARRIER_LEVEL_LOW;
-            rmtConfig.tx_config.idle_output_en = true;
+            rmtConfig.tx_config.carrier_level        = RMT_CARRIER_LEVEL_LOW;
+            rmtConfig.tx_config.idle_output_en       = true;
 
-            auto stepPulseDelay = _direction_delay_ms;
+            auto stepPulseDelay  = _direction_delay_ms;
             rmtItem[0].duration0 = stepPulseDelay < 1 ? 1 : stepPulseDelay * 4;
 
             rmtItem[0].duration1 = 4 * MachineConfig::instance()->_pulseMicroSeconds;
@@ -81,15 +80,14 @@ namespace Motors {
 
             auto step_pin_gpio = _step_pin.getNative(Pin::Capabilities::Output);
             rmt_set_source_clk(_rmt_chan_num, RMT_BASECLK_APB);
-            rmtConfig.channel = _rmt_chan_num;
+            rmtConfig.channel              = _rmt_chan_num;
             rmtConfig.tx_config.idle_level = _invert_step ? RMT_IDLE_LEVEL_HIGH : RMT_IDLE_LEVEL_LOW;
-            rmtConfig.gpio_num = gpio_num_t(step_pin_gpio);
-            rmtItem[0].level0 = rmtConfig.tx_config.idle_level;
-            rmtItem[0].level1 = !rmtConfig.tx_config.idle_level;
+            rmtConfig.gpio_num             = gpio_num_t(step_pin_gpio);
+            rmtItem[0].level0              = rmtConfig.tx_config.idle_level;
+            rmtItem[0].level1              = !rmtConfig.tx_config.idle_level;
             rmt_config(&rmtConfig);
             rmt_fill_tx_items(rmtConfig.channel, &rmtItem[0], rmtConfig.mem_block_num, 0);
-        }
-        else {
+        } else {
             _step_pin.setAttr(Pin::Attr::Output);
         }
 
@@ -108,19 +106,16 @@ namespace Motors {
     }
 
     void StandardStepper::step() {
-        if (_use_rmt_steps)
-        {
+        if (_use_rmt_steps) {
             RMT.conf_ch[_rmt_chan_num].conf1.mem_rd_rst = 1;
-            RMT.conf_ch[_rmt_chan_num].conf1.tx_start = 1;
-        }
-        else {
+            RMT.conf_ch[_rmt_chan_num].conf1.tx_start   = 1;
+        } else {
             _step_pin.on();
         }
     }
 
     void StandardStepper::unstep() {
-        if (_use_rmt_steps)
-        {
+        if (_use_rmt_steps) {
             _step_pin.off();
         }
     }

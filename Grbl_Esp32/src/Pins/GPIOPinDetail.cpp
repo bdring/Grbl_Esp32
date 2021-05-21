@@ -156,8 +156,7 @@ namespace Pins {
         if (value.has(PinAttributes::Output)) {
             if (value.has(PinAttributes::InitialOn)) {
                 __digitalWrite(_index, HIGH ^ _readWriteMask);
-            }
-            else {
+            } else {
                 __digitalWrite(_index, LOW ^ _readWriteMask);
             }
         }
