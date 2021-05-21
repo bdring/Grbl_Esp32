@@ -2,30 +2,35 @@
 
 #ifndef ESP32
 
-#include <iostream>
+#    include <iostream>
 
 DebugStream::DebugStream(const char* name) {
     std::cout << '[' << name << ": ";
 }
-void DebugStream::add(char c)
-{
+void DebugStream::add(char c) {
     std::cout << c;
 }
 
-DebugStream::~DebugStream() { std::cout << ']' << std::endl; }
+DebugStream::~DebugStream() {
+    std::cout << ']' << std::endl;
+}
 
 #else
 
-#include <Arduino.h>
+#    include "Uart.h"
 
 DebugStream::DebugStream(const char* name) {
-    Serial.print("[");
-    Serial.print(name);
-    Serial.print(": ");
+    Uart0.print("[");
+    Uart0.print(name);
+    Uart0.print(": ");
 }
 
-void DebugStream::add(char c) { Serial.print(c); }
+void DebugStream::add(char c) {
+    Uart0.print(c);
+}
 
-DebugStream::~DebugStream() { Serial.println("]"); }
+DebugStream::~DebugStream() {
+    Uart0.println("]");
+}
 
 #endif
