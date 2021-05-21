@@ -53,6 +53,8 @@ namespace Spindles {
     _10v     _10v;
 
     void Spindle::select() {
+        // TODO FIXME: I don't think we need this anymore; the factory should take care of it...
+
         switch (static_cast<SpindleType>(spindle_type->get())) {
             case SpindleType::PWM:
                 spindle = &pwm;

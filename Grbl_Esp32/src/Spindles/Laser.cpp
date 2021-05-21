@@ -59,7 +59,7 @@ namespace Spindles {
         _pwm_max_value = _pwm_period;
 
         _min_rpm = 0;
-        _max_rpm = laser_full_power->get();
+        _max_rpm = _laser_full_power;
 
         _piecewise_linear = false;
 
