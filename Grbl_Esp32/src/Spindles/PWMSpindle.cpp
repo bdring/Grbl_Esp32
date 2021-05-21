@@ -225,6 +225,9 @@ namespace Spindles {
 	*/
     uint8_t PWM::calc_pwm_precision(uint32_t freq) {
         uint8_t precision = 0;
+        if (freq == 0) {
+            return precision;
+        }
 
         // increase the precision (bits) until it exceeds allow by frequency the max or is 16
         while ((1 << precision) < (uint32_t)(80000000 / freq) && precision <= 16) {
