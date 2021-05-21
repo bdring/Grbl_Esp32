@@ -371,30 +371,17 @@ void MachineConfig::afterParse() {
     }
 }
 
-bool MachineConfig::load(const char* filename) {
+size_t MachineConfig::readFile(const char* filename, char*& buffer) {
     if (!SPIFFS.begin(true)) {
-        log_fatal("An error has occurred while mounting SPIFFS");
-        return false;
+        log_info("An error has occurred while mounting SPIFFS");
+        return 0;
     }
 
     FILE* file = fopen(filename, "rb");
     if (!file) {
-        log_fatal("There was an error opening the config file for reading");
-        return false;
+        log_info("There was an error opening the config file for reading");
+        return 0;
     }
-
-    // Regardless of what we do next, we _always_ want a MachineConfig instance.
-
-    // instance() is by reference, so we can just get rid of an old instance and
-    // create a new one here:
-    {
-        auto& machineConfig = instance();
-        if (machineConfig != nullptr) {
-            delete machineConfig;
-        }
-        machineConfig = new MachineConfig();
-    }
-    MachineConfig* machine = instance();
 
     // Let's just read the entire file in one chunk for now. If we get
     // in trouble with this, we can cut it in pieces and read it per chunk.
@@ -403,7 +390,7 @@ bool MachineConfig::load(const char* filename) {
     log_debug("Configuration file is " << int(filesize) << " bytes.");
 
     fseek(file, 0, SEEK_SET);
-    char* buffer = new char[filesize + 1];
+    buffer = new char[filesize + 1];
 
     long pos = 0;
     while (pos < filesize) {
@@ -423,14 +410,41 @@ bool MachineConfig::load(const char* filename) {
         delete[] buffer;
 
         log_error("There was an error reading the config file");
-        return false;
+        return 0;
     }
+    return filesize;
+}
 
+char defaultConfig[] = "name: Default\nboard: None\n";
+
+bool MachineConfig::load(const char* filename) {
+    // Regardless of what we do next, we _always_ want a MachineConfig instance.
+
+    // instance() is by reference, so we can just get rid of an old instance and
+    // create a new one here:
+    {
+        auto& machineConfig = instance();
+        if (machineConfig != nullptr) {
+            delete machineConfig;
+        }
+        machineConfig = new MachineConfig();
+    }
+    MachineConfig* machine = instance();
+
+    char*        buffer;
+    size_t       filesize = readFile(filename, buffer);
+    StringRange* input;
+
+    if (filesize > 0) {
+        input = new StringRange(buffer, buffer + filesize);
+    } else {
+        log_info("Using default configuration");
+        input = new StringRange(defaultConfig);
+    }
     // Process file:
-    StringRange input(buffer, buffer + filesize);
-    bool        succesful = false;
+    bool successful = false;
     try {
-        Configuration::Parser        parser(input.begin(), input.end());
+        Configuration::Parser        parser(input->begin(), input->end());
         Configuration::ParserHandler handler(parser);
 
         for (; !parser.isEndSection(); parser.moveNext()) {
@@ -456,7 +470,7 @@ bool MachineConfig::load(const char* filename) {
 
         log_info("Done validating machine config.");
 
-        succesful = true;
+        successful = true;
 
         // TODO FIXME: If we get here, we want to make the settings live by saving them as
         // '/spiffs/config.yaml.new', storing it, and then deleting the .yaml and renaming it.
@@ -480,8 +494,11 @@ bool MachineConfig::load(const char* filename) {
     }
 
     // Get rid of buffer and return
-    delete[] buffer;
-    return succesful;
+    if (buffer) {
+        delete[] buffer;
+    }
+    delete[] input;
+    return successful;
 }
 
 MachineConfig::~MachineConfig() {

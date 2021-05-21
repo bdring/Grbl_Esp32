@@ -366,7 +366,8 @@ public:
     void afterParse() override;
     void handle(Configuration::HandlerBase& handler) override;
 
-    bool load(const char* file = "/spiffs/config.yaml");
+    size_t readFile(const char* file, char*& buffer);
+    bool   load(const char* file = "/spiffs/config.yaml");
 
     ~MachineConfig();
 };
