@@ -92,13 +92,13 @@ void grbl_init() {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing spindle...");
         Spindles::Spindle::select();
 
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing WiFi-config...");
 #ifdef ENABLE_WIFI
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing WiFi-config...");
         WebUI::wifi_config.begin();
 #endif
 
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing Bluetooth...");
 #ifdef ENABLE_BLUETOOTH
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing Bluetooth...");
         WebUI::bt_config.begin();
 #endif
         WebUI::inputBuffer.begin();

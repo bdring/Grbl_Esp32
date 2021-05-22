@@ -172,24 +172,24 @@ void clientCheckTask(void* pvParameters) {
                 }
 #endif  //ENABLE_SD_CARD
             }
-        }
-    }  // if something available
-    WebUI::COMMANDS::handle();
+        }  // if something available
+        WebUI::COMMANDS::handle();
 #ifdef ENABLE_WIFI
-    WebUI::wifi_config.handle();
+        WebUI::wifi_config.handle();
 #endif
 #ifdef ENABLE_BLUETOOTH
-    WebUI::bt_config.handle();
+        WebUI::bt_config.handle();
 #endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
-    WebUI::Serial2Socket.handle_flush();
+        WebUI::Serial2Socket.handle_flush();
 #endif
-    vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
+        vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
 
 #ifdef DEBUG_TASK_STACK
-    static UBaseType_t uxHighWaterMark = 0;
-    reportTaskStackSize(uxHighWaterMark);
+        static UBaseType_t uxHighWaterMark = 0;
+        reportTaskStackSize(uxHighWaterMark);
 #endif
+    }
 }
 
 void client_reset_read_buffer(uint8_t client) {

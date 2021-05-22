@@ -18,23 +18,24 @@ DebugStream::~DebugStream() {
 #else
 
 #    include "Serial.h"
+#    define LOG_CLIENT CLIENT_SERIAL
 
 DebugStream::DebugStream(const char* name) {
-    client_write(CLIENT_ALL, "[MSG:");
-    client_write(CLIENT_ALL, name);
-    client_write(CLIENT_ALL, ": ");
+    client_write(LOG_CLIENT, "[MSG:");
+    client_write(LOG_CLIENT, name);
+    client_write(LOG_CLIENT, ": ");
 }
 
 void DebugStream::add(char c) {
     char txt[2];
     txt[0] = c;
     txt[1] = '\0';
-    client_write(CLIENT_ALL, txt);
+    client_write(LOG_CLIENT, txt);
 }
 
 DebugStream::~DebugStream() {
-    client_write(CLIENT_ALL, "]");
-    client_write(CLIENT_ALL, "\r\n");
+    client_write(LOG_CLIENT, "]");
+    client_write(LOG_CLIENT, "\r\n");
 }
 
 #endif
