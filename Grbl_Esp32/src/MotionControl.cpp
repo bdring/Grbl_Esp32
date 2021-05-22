@@ -49,7 +49,7 @@ bool mc_line(float* target, plan_line_data_t* pl_data) {
 
     // If enabled, check for soft limit violations. Placed here all line motions are picked up
     // from everywhere in Grbl.
-    bool hasSoftLimits = MachineConfig::instance()->_axes->hasSoftLimits();
+    bool hasSoftLimits = config->_axes->hasSoftLimits();
     if (hasSoftLimits) {
         // NOTE: Block jog state. Jogging is a special case and soft limits are handled independently.
         if (sys.state != State::Jog) {
@@ -139,7 +139,7 @@ void mc_arc(float*            target,
     float previous_position[MAX_N_AXIS] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
     uint16_t n;
-    auto     n_axis = MachineConfig::instance()->_axes->_numberAxis;
+    auto     n_axis = config->_axes->_numberAxis;
     for (n = 0; n < n_axis; n++) {
         previous_position[n] = position[n];
     }
@@ -156,7 +156,7 @@ void mc_arc(float*            target,
         }
     }
 
-    auto mconfig = MachineConfig::instance();
+    auto mconfig = config;
 
     // NOTE: Segment end points are on the arc, which can lead to the arc diameter being smaller by up to
     // (2x) arc_tolerance. For 99% of users, this is just fine. If a different arc segment fit
@@ -415,10 +415,10 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
     uint8_t is_no_error   = bit_istrue(parser_flags, GCParserProbeIsNoError);
     sys.probe_succeeded   = false;  // Re-initialize probe history before beginning cycle.
-    MachineConfig::instance()->_probe->set_direction(is_probe_away);
+    config->_probe->set_direction(is_probe_away);
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
-    if (MachineConfig::instance()->_probe->get_state() ^ is_probe_away) {  // Check probe pin state.
+    if (config->_probe->get_state() ^ is_probe_away) {  // Check probe pin state.
         sys_rt_exec_alarm = ExecAlarm::ProbeFailInitial;
         protocol_execute_realtime();
         RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
@@ -520,7 +520,7 @@ void mc_reset() {
         // Kill spindle and coolant.
         spindle->stop();
 
-        MachineConfig::instance()->_coolant->stop();
+        config->_coolant->stop();
 
         // turn off all User I/O immediately
         sys_digital_all_off();

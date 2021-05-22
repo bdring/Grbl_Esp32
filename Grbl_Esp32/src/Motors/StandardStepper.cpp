@@ -69,7 +69,7 @@ namespace Motors {
             auto stepPulseDelay  = _direction_delay_ms;
             rmtItem[0].duration0 = stepPulseDelay < 1 ? 1 : stepPulseDelay * 4;
 
-            rmtItem[0].duration1 = 4 * MachineConfig::instance()->_pulseMicroSeconds;
+            rmtItem[0].duration1 = 4 * config->_pulseMicroSeconds;
             rmtItem[1].duration0 = 0;
             rmtItem[1].duration1 = 0;
 

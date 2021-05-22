@@ -962,7 +962,7 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
   return -1 ... already initialized
 */
 int IRAM_ATTR i2s_out_init() {
-    auto i2so = MachineConfig::instance()->_i2so;
+    auto i2so = config->_i2so;
     if (!i2so) {
         return -1;
     }

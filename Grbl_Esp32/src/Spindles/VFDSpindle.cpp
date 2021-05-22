@@ -315,7 +315,7 @@ namespace Spindles {
             pins_settings_ok = false;
         }
 
-        if (MachineConfig::instance()->_laserMode) {
+        if (config->_laserMode) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");
             pins_settings_ok = false;
         }

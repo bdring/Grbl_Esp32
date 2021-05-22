@@ -220,12 +220,12 @@ void IRAM_ATTR onStepperDriverTimer(void* para) {
  * is to keep pulse timing as regular as possible.
  */
 static void stepper_pulse_func() {
-    auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
+    auto n_axis = config->_axes->_numberAxis;
 
 #ifdef LATER
     // XXX this should be in the motor driver, not here
     if (motors_direction(st.dir_outbits)) {
-        auto wait_direction = MachineConfig::instance()->_directionDelayMilliSeconds;
+        auto wait_direction = config->_directionDelayMilliSeconds;
         if (wait_direction > 0) {
             // Stepper drivers need some time between changing direction and doing a pulse.
             switch (current_stepper) {
@@ -258,7 +258,7 @@ static void stepper_pulse_func() {
     // This is unnecessary with RMT and I2S stepping since both of
     // those methods time the turn off automatically.
     uint64_t step_pulse_start_time = esp_timer_get_time();
-    MachineConfig::instance()->_axes->step(st.step_outbits, st.dir_outbits);
+    config->_axes->step(st.step_outbits, st.dir_outbits);
 
     // If there is no step segment, attempt to pop one from the stepper buffer
     if (st.exec_segment == NULL) {
@@ -301,7 +301,7 @@ static void stepper_pulse_func() {
     }
     // Check probing state.
     if (sys_probe_state == ProbeState::Active) {
-        MachineConfig::instance()->_probe->state_monitor();
+        config->_probe->state_monitor();
     }
     // Reset step out bits.
     st.step_outbits = 0;
@@ -333,12 +333,12 @@ static void stepper_pulse_func() {
         }
     }
 
-    auto pulseMicros = MachineConfig::instance()->_pulseMicroSeconds;
+    auto pulseMicros = config->_pulseMicroSeconds;
     switch (current_stepper) {
         case ST_I2S_STREAM:
             // Generate the number of pulses needed to span pulse_microseconds
             i2s_out_push_sample(pulseMicros);
-            MachineConfig::instance()->_axes->unstep();
+            config->_axes->unstep();
             break;
         case ST_I2S_STATIC:
         case ST_TIMED:
@@ -346,7 +346,7 @@ static void stepper_pulse_func() {
             while (esp_timer_get_time() - step_pulse_start_time < pulseMicros) {
                 NOP();  // spin here until time to turn off step
             }
-            MachineConfig::instance()->_axes->unstep();
+            config->_axes->unstep();
             break;
         case ST_RMT:
             break;
@@ -356,7 +356,7 @@ static void stepper_pulse_func() {
 void stepper_init() {
     busy.store(false);
 
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", MachineConfig::instance()->_axes->_numberAxis);
+    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", config->_axes->_numberAxis);
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepper_names[current_stepper]);
 
 #ifdef USE_I2S_STEPS
@@ -390,18 +390,18 @@ void stepper_switch(stepper_id_t new_stepper) {
 void st_wake_up() {
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "st_wake_up");
     // Enable stepper drivers.
-    MachineConfig::instance()->_axes->set_disable(false);
+    config->_axes->set_disable(false);
     stepper_idle = false;
     // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
 #ifdef USE_RMT_STEPS
     // Step pulse delay handling is not require with ESP32...the RMT function does it.
-    if (MachineConfig::instance()->_disableDelayMilliSeconds < 1) {
+    if (config->_disableDelayMilliSeconds < 1) {
         // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
-        st.step_pulse_time = -(((MachineConfig::instance()->_pulseMicroSeconds - 2) * ticksPerMicrosecond) >> 3);
+        st.step_pulse_time = -(((config->_pulseMicroSeconds - 2) * ticksPerMicrosecond) >> 3);
     }
 #else  // Normal operation
     // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
-    st.step_pulse_time = -(((MachineConfig::instance()->_pulseMicroSeconds - 2) * ticksPerMicrosecond) >> 3);
+    st.step_pulse_time = -(((config->_pulseMicroSeconds - 2) * ticksPerMicrosecond) >> 3);
 #endif
 
     // Enable Stepper Driver Interrupt
@@ -445,17 +445,17 @@ void st_go_idle() {
         // stop and not drift from residual inertial forces at the end of the last movement.
 
         if (sys.state == State::Sleep || sys_rt_exec_alarm != ExecAlarm::None) {
-            MachineConfig::instance()->_axes->set_disable(true);
+            config->_axes->set_disable(true);
         } else {
             stepper_idle         = true;  // esp32 work around for disable in main loop
             stepper_idle_counter = esp_timer_get_time() + (stepper_idle_lock_time->get() * 1000);  // * 1000 because the time is in uSecs
             // after idle countdown will be disabled in protocol loop
         }
     } else {
-        MachineConfig::instance()->_axes->set_disable(false);
+        config->_axes->set_disable(false);
     }
 
-    MachineConfig::instance()->_axes->unstep();
+    config->_axes->unstep();
     st.step_outbits = 0;
 }
 
@@ -563,7 +563,7 @@ void st_prep_buffer() {
                 st_prep_block                 = &st_block_buffer[prep.st_block_index];
                 st_prep_block->direction_bits = pl_block->direction_bits;
                 uint8_t idx;
-                auto    n_axis = MachineConfig::instance()->_axes->_numberAxis;
+                auto    n_axis = config->_axes->_numberAxis;
 
                 // Bit-shift multiply all Bresenham data by the max AMASS level so that
                 // we never divide beyond the original data anywhere in the algorithm.
@@ -589,7 +589,7 @@ void st_prep_buffer() {
 
                 st_prep_block->is_pwm_rate_adjusted = false;  // set default value
                 // prep.inv_rate is only used if is_pwm_rate_adjusted is true
-                if (MachineConfig::instance()->_laserMode) {
+                if (config->_laserMode) {
                     if (pl_block->spindle == SpindleState::Ccw) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
                         prep.inv_rate                       = 1.0 / pl_block->programmed_rate;
@@ -994,7 +994,7 @@ void IRAM_ATTR Stepper_Timer_Stop() {
 }
 
 bool get_stepper_disable() {  // returns true if steppers are disabled
-    auto axesConfig = MachineConfig::instance()->_axes;
+    auto axesConfig = config->_axes;
     if (axesConfig->_sharedStepperDisable.defined()) {
         bool disabled = axesConfig->_sharedStepperDisable.read();
         return disabled;

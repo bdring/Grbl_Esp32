@@ -86,7 +86,7 @@ void limits_go_home(uint8_t cycle_mask) {
     // Put motors on axes listed in cycle_mask in homing mode and
     // replace cycle_mask with the list of motors that are ready for homing.
     // Motors with non standard homing can home during motors_set_homing_mode(...)
-    cycle_mask = MachineConfig::instance()->_axes->set_homing_mode(cycle_mask, true);  // tell motors homing is about to start
+    cycle_mask = config->_axes->set_homing_mode(cycle_mask, true);  // tell motors homing is about to start
 
     // see if any motors are left
     if (cycle_mask == 0) {
@@ -107,13 +107,13 @@ void limits_go_home(uint8_t cycle_mask) {
     uint8_t step_pin[MAX_N_AXIS];
     float   max_travel = 0.0;
 
-    auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
+    auto n_axis = config->_axes->_numberAxis;
     for (uint8_t idx = 0; idx < n_axis; idx++) {
         // Initialize step pin masks
         step_pin[idx] = bit(idx);
         if (bit_istrue(cycle_mask, bit(idx))) {
             // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.
-            max_travel = MAX(max_travel, (HOMING_AXIS_SEARCH_SCALAR)*MachineConfig::instance()->_axes->_axis[idx]->_maxTravel);
+            max_travel = MAX(max_travel, (HOMING_AXIS_SEARCH_SCALAR)*config->_axes->_axis[idx]->_maxTravel);
         }
     }
     // Set search mode with approach at seek rate to quickly engage the specified cycle_mask limit switches.
@@ -127,7 +127,7 @@ void limits_go_home(uint8_t cycle_mask) {
         axislock      = 0;
         n_active_axis = 0;
         for (uint8_t idx = 0; idx < n_axis; idx++) {
-            auto axisConfig = MachineConfig::instance()->_axes->_axis[idx];
+            auto axisConfig = config->_axes->_axis[idx];
 
             // Set target location for active axes and setup computation for homing rate.
             if (bit_istrue(cycle_mask, bit(idx))) {
@@ -199,7 +199,7 @@ void limits_go_home(uint8_t cycle_mask) {
                 }
 
                 if (sys_rt_exec_alarm != ExecAlarm::None) {
-                    MachineConfig::instance()->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
+                    config->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
                     grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Homing fail");
                     mc_reset();  // Stop motors, if they are running.
                     protocol_execute_realtime();
@@ -243,7 +243,7 @@ void limits_go_home(uint8_t cycle_mask) {
     auto mask    = homing_dir_mask->get();
     auto pulloff = homing_pulloff->get();
     for (uint8_t idx = 0; idx < n_axis; idx++) {
-        Axis* axisConf = MachineConfig::instance()->_axes->_axis[idx];
+        Axis* axisConf = config->_axes->_axis[idx];
         auto  homing   = axisConf->_homing;
         auto  steps    = axisConf->_stepsPerMm;
         if (cycle_mask & bit(idx)) {
@@ -260,8 +260,8 @@ void limits_go_home(uint8_t cycle_mask) {
             }
         }
     }
-    sys.step_control = {};                                                 // Return step control to normal operation.
-    MachineConfig::instance()->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done
+    sys.step_control = {};                              // Return step control to normal operation.
+    config->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done
 }
 
 uint8_t limit_mask = 0;
@@ -270,10 +270,10 @@ void limits_init() {
     limit_mask     = 0;
     Pin::Attr mode = Pin::Attr::Input | Pin::Attr::ISR;
 
-    auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
+    auto n_axis = config->_axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            auto gangConfig = MachineConfig::instance()->_axes->_axis[axis]->_gangs[gang_index];
+            auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
             if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
                 Pin& pin = gangConfig->_endstops->_dual;
 
@@ -313,10 +313,10 @@ void limits_init() {
 
 // Disables hard limits.
 void limits_disable() {
-    auto n_axis = MachineConfig::instance()->_axes->_numberAxis;
+    auto n_axis = config->_axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            auto gangConfig = MachineConfig::instance()->_axes->_axis[axis]->_gangs[gang_index];
+            auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
             if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
                 Pin& pin = gangConfig->_endstops->_dual;
                 pin.detachInterrupt();
@@ -330,10 +330,10 @@ void limits_disable() {
 // number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 AxisMask limits_get_state() {
     AxisMask pinMask = 0;
-    auto     n_axis  = MachineConfig::instance()->_axes->_numberAxis;
+    auto     n_axis  = config->_axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            auto gangConfig = MachineConfig::instance()->_axes->_axis[axis]->_gangs[gang_index];
+            auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
             if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
                 Pin& pin = gangConfig->_endstops->_dual;
                 pinMask |= (pin.read() << axis);
@@ -394,7 +394,7 @@ void limitCheckTask(void* pvParameters) {
 }
 
 float limitsMaxPosition(uint8_t axis) {
-    auto  axisConfig = MachineConfig::instance()->_axes->_axis[axis];
+    auto  axisConfig = config->_axes->_axis[axis];
     auto  homing     = axisConfig->_homing;
     float mpos       = (homing != nullptr) ? homing->_mpos : 0;
     auto  maxtravel  = axisConfig->_maxTravel;
@@ -403,7 +403,7 @@ float limitsMaxPosition(uint8_t axis) {
 }
 
 float limitsMinPosition(uint8_t axis) {
-    auto  axisConfig = MachineConfig::instance()->_axes->_axis[axis];
+    auto  axisConfig = config->_axes->_axis[axis];
     auto  homing     = axisConfig->_homing;
     float mpos       = (homing != nullptr) ? homing->_mpos : 0;
     auto  maxtravel  = axisConfig->_maxTravel;
@@ -416,10 +416,10 @@ float limitsMinPosition(uint8_t axis) {
 // Set $<axis>/MaxTravel=0 to selectively remove an axis from soft limit checks
 bool __attribute__((weak)) limitsCheckTravel(float* target) {
     uint8_t idx;
-    auto    n_axis = MachineConfig::instance()->_axes->_numberAxis;
+    auto    n_axis = config->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
         float max_mpos, min_mpos;
-        auto  axisSetting = MachineConfig::instance()->_axes->_axis[idx];
+        auto  axisSetting = config->_axes->_axis[idx];
 
         if ((target[idx] < limitsMinPosition(idx) || target[idx] > limitsMaxPosition(idx)) && axisSetting->_maxTravel > 0) {
             return true;
@@ -429,7 +429,7 @@ bool __attribute__((weak)) limitsCheckTravel(float* target) {
 }
 
 bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index) {
-    auto gangConfig = MachineConfig::instance()->_axes->_axis[axis]->_gangs[gang_index];
+    auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
 
     if (gangConfig->_endstops != nullptr) {
         return gangConfig->_endstops->_dual.defined();

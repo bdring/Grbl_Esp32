@@ -98,7 +98,7 @@ bool can_park() {
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
         sys.override_ctrl == Override::ParkingMotion &&
 #endif
-        homing_enable->get() && !MachineConfig::instance()->_laserMode;
+        homing_enable->get() && !config->_laserMode;
 }
 
 /*
@@ -110,7 +110,7 @@ void protocol_main_loop() {
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
 #ifdef CHECK_LIMITS_AT_INIT
-    if (MachineConfig::instance()->_axes->hasHardLimits()) {
+    if (config->_axes->hasHardLimits()) {
         if (limits_get_state()) {
             sys.state = State::Alarm;  // Ensure alarm state is active.
             report_feedback_message(Message::CheckLimits);
@@ -197,7 +197,7 @@ void protocol_main_loop() {
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
         if (stepper_idle && stepper_idle_lock_time->get() != 0xff) {
             if (esp_timer_get_time() > stepper_idle_counter) {
-                MachineConfig::instance()->_axes->set_disable(true);
+                config->_axes->set_disable(true);
             }
         }
     }
@@ -487,19 +487,19 @@ void protocol_exec_rt_system() {
     // run state can be determined by checking the parser state.
     if (sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle) {
         sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle = false;
-        if (MachineConfig::instance()->_coolant->hasFlood()) {
+        if (config->_coolant->hasFlood()) {
             if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
                 gc_state.modal.coolant.Flood = !gc_state.modal.coolant.Flood;
-                MachineConfig::instance()->_coolant->set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+                config->_coolant->set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
             }
         }
     }
     if (sys_rt_exec_accessory_override.bit.coolantMistOvrToggle) {
         sys_rt_exec_accessory_override.bit.coolantMistOvrToggle = false;
-        if (MachineConfig::instance()->_coolant->hasMist()) {
+        if (config->_coolant->hasMist()) {
             if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
                 gc_state.modal.coolant.Mist = !gc_state.modal.coolant.Mist;
-                MachineConfig::instance()->_coolant->set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+                config->_coolant->set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
             }
         }
     }
@@ -559,7 +559,7 @@ static void protocol_exec_rt_suspend() {
         restore_spindle_speed = block->spindle_speed;
     }
 #ifdef DISABLE_LASER_DURING_HOLD
-    if (MachineConfig::instance()->_laserMode) {
+    if (config->_laserMode) {
         sys_rt_exec_accessory_override.bit.spindleOvrStop = true;
     }
 #endif
@@ -588,11 +588,11 @@ static void protocol_exec_rt_suspend() {
                     sys.spindle_stop_ovr.value = 0;  // Disable override
 #ifndef PARKING_ENABLE
                     spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                    MachineConfig::instance()->_coolant->off();
+                    config->_coolant->off();
 #else
                     // Get current position and store restore location and spindle retract waypoint.
                     if (!sys.suspend.bit.restartRetract) {
-                        memcpy(restore_target, parking_target, sizeof(restore_target[0]) * MachineConfig::instance()->_axes->_numberAxis);
+                        memcpy(restore_target, parking_target, sizeof(restore_target[0]) * config->_axes->_numberAxis);
                         retract_waypoint += restore_target[PARKING_AXIS];
                         retract_waypoint = MIN(retract_waypoint, PARKING_TARGET);
                     }
@@ -618,7 +618,7 @@ static void protocol_exec_rt_suspend() {
                         pl_data->motion.noFeedOverride = 1;
                         pl_data->spindle_speed         = 0.0;
                         spindle->set_state(pl_data->spindle, 0);  // De-energize
-                        MachineConfig::instance()->_coolant->set_state(pl_data->coolant);
+                        config->_coolant->set_state(pl_data->coolant);
                         // Execute fast parking retract motion to parking target location.
                         if (parking_target[PARKING_AXIS] < PARKING_TARGET) {
                             parking_target[PARKING_AXIS] = PARKING_TARGET;
@@ -629,7 +629,7 @@ static void protocol_exec_rt_suspend() {
                         // Parking motion not possible. Just disable the spindle and coolant.
                         // NOTE: Laser mode does not start a parking motion to ensure the laser stops immediately.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                        MachineConfig::instance()->_coolant->off();
+                        config->_coolant->off();
                     }
 #endif
                     sys.suspend.bit.restartRetract  = false;
@@ -639,7 +639,7 @@ static void protocol_exec_rt_suspend() {
                         report_feedback_message(Message::SleepMode);
                         // Spindle and coolant should already be stopped, but do it again just to be sure.
                         spindle->set_state(SpindleState::Disable, 0);  // De-energize
-                        MachineConfig::instance()->_coolant->off();
+                        config->_coolant->off();
                         st_go_idle();  // Disable steppers
                         while (!(sys.abort)) {
                             protocol_exec_rt_system();  // Do nothing until reset.
@@ -670,7 +670,7 @@ static void protocol_exec_rt_suspend() {
                         if (gc_state.modal.spindle != SpindleState::Disable) {
                             // Block if safety door re-opened during prior restore actions.
                             if (!sys.suspend.bit.restartRetract) {
-                                if (MachineConfig::instance()->_laserMode) {
+                                if (config->_laserMode) {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                     sys.step_control.updateSpindleRpm = true;
                                 } else {
@@ -683,7 +683,7 @@ static void protocol_exec_rt_suspend() {
                             // Block if safety door re-opened during prior restore actions.
                             if (!sys.suspend.bit.restartRetract) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.
-                                MachineConfig::instance()->_coolant->set_state(restore_coolant);
+                                config->_coolant->set_state(restore_coolant);
                                 delay_msec(int32_t(1000.0 * coolant_start_delay->get()), DwellMode::SysSuspend);
                             }
                         }
@@ -726,7 +726,7 @@ static void protocol_exec_rt_suspend() {
                     } else if (sys.spindle_stop_ovr.bit.restore || sys.spindle_stop_ovr.bit.restoreCycle) {
                         if (gc_state.modal.spindle != SpindleState::Disable) {
                             report_feedback_message(Message::SpindleRestore);
-                            if (MachineConfig::instance()->_laserMode) {
+                            if (config->_laserMode) {
                                 // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                 sys.step_control.updateSpindleRpm = true;
                             } else {

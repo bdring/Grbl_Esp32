@@ -47,10 +47,10 @@ void grbl_init() {
         // Load Grbl settings from non-volatile storage
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Initializing settings...");
         settings_init();
-        MachineConfig::instance()->load();
+        config->load();
 
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Name: %s", MachineConfig::instance()->_name.c_str());
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Board: %s", MachineConfig::instance()->_board.c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Name: %s", config->_name.c_str());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Board: %s", config->_board.c_str());
 
 #ifdef USE_I2S_OUT
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing I2SO...");
@@ -62,8 +62,8 @@ void grbl_init() {
         stepper_init();  // Configure stepper pins and interrupt timers
 
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing axes...");
-        MachineConfig::instance()->_axes->read_settings();
-        MachineConfig::instance()->_axes->init();
+        config->_axes->read_settings();
+        config->_axes->init();
 
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing system...");
         system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
@@ -136,9 +136,9 @@ static void reset_variables() {
     gc_init();                             // Set g-code parser to default state
     spindle->stop();
 
-    MachineConfig::instance()->_coolant->init();
+    config->_coolant->init();
     limits_init();
-    MachineConfig::instance()->_probe->init();
+    config->_probe->init();
     plan_reset();  // Clear block buffer and planner variables
     st_reset();    // Clear stepper subsystem variables
     // Sync cleared gcode and planner positions to current system position.

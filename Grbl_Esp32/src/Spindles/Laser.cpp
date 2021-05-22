@@ -37,7 +37,7 @@ namespace Spindles {
                        _enable_pin.name().c_str(),
                        int(_pwm_freq),
                        _pwm_precision,
-                       (MachineConfig::instance()->_laserMode ? 1 : 0));  // the current mode
+                       (config->_laserMode ? 1 : 0));  // the current mode
 
         use_delays = false;  // this will override the value set in Spindle::PWM::init()
     }

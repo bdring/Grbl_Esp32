@@ -134,9 +134,9 @@ void atari_home_task(void* pvParameters) {
                         if (digitalRead(REED_SW_PIN) == 0) {
                             // see if reed switch is grounded
                             WebUI::inputBuffer.push("G4P0.1\n");  // dramatic pause
-                            sys_position[X_AXIS] = ATARI_HOME_POS * MachineConfig::instance()->_axes->_axis[X_AXIS]->_stepsPerMm;
+                            sys_position[X_AXIS] = ATARI_HOME_POS * config->_axes->_axis[X_AXIS]->_stepsPerMm;
                             sys_position[Y_AXIS] = 0.0;
-                            sys_position[Z_AXIS] = 1.0 * MachineConfig::instance()->_axes->_axis[Z_AXIS]->_stepsPerMm;
+                            sys_position[Z_AXIS] = 1.0 * config->_axes->_axis[Z_AXIS]->_stepsPerMm;
                             gc_sync_position();
                             plan_sync_position();
                             sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  // alway return to right side to reduce home travel stalls

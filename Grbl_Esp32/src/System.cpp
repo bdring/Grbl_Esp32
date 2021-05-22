@@ -214,16 +214,16 @@ void system_flag_wco_change() {
 
 float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
     float pos;
-    float steps_per_mm = MachineConfig::instance()->_axes->_axis[idx]->_stepsPerMm;
+    float steps_per_mm = config->_axes->_axis[idx]->_stepsPerMm;
     pos                = steps[idx] / steps_per_mm;
     return pos;
 }
 
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
-    auto  n_axis = MachineConfig::instance()->_axes->_numberAxis;
+    auto  n_axis = config->_axes->_numberAxis;
     float motors[n_axis];
     for (int idx = 0; idx < n_axis; idx++) {
-        motors[idx] = (float)steps[idx] / MachineConfig::instance()->_axes->_axis[idx]->_stepsPerMm;
+        motors[idx] = (float)steps[idx] / config->_axes->_axis[idx]->_stepsPerMm;
     }
     motors_to_cartesian(position, motors, n_axis);
 }

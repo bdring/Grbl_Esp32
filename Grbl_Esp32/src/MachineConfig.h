@@ -371,3 +371,5 @@ public:
 
     ~MachineConfig();
 };
+
+extern MachineConfig* config;

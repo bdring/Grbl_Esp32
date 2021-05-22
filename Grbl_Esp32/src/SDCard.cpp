@@ -133,7 +133,7 @@ SDState sd_state = SDState::Idle;
 SDState get_sd_state(bool refresh) {
     // Before we use the SD library, we *must* make sure SPI is properly initialized. Re-initialization
     // fortunately doesn't change any of the settings.
-    auto spiConfig = MachineConfig::instance()->_spi;
+    auto spiConfig = config->_spi;
 
     if (spiConfig != nullptr) {
         auto ssPin   = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);

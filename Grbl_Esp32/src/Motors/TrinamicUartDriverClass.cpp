@@ -236,7 +236,7 @@ namespace Motors {
                 break;
             case TrinamicUartMode ::StallGuard:  //TODO: check all configurations for stallguard
             {
-                auto axisConfig     = MachineConfig::instance()->_axes->_axis[this->axis_index()];
+                auto axisConfig     = config->_axes->_axis[this->axis_index()];
                 auto homingFeedRate = (axisConfig->_homing != nullptr) ? axisConfig->_homing->_feedRate : 200;
                 //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard");
                 tmcstepper->en_spreadCycle(false);
@@ -294,7 +294,7 @@ namespace Motors {
     // This is used to set the stallguard window from the homing speed.
     // The percent is the offset on the window
     uint32_t TrinamicUartDriver::calc_tstep(float speed, float percent) {
-        double tstep = speed / 60.0 * MachineConfig::instance()->_axes->_axis[axis_index()]->_stepsPerMm * (256.0 / _microsteps);
+        double tstep = speed / 60.0 * config->_axes->_axis[axis_index()]->_stepsPerMm * (256.0 / _microsteps);
         tstep        = TRINAMIC_UART_FCLK / tstep * percent / 100.0;
 
         return static_cast<uint32_t>(tstep);
@@ -334,7 +334,7 @@ namespace Motors {
     void TrinamicUartDriver::readSgTask(void* pvParameters) {
         TickType_t       xLastWakeTime;
         const TickType_t xreadSg = 200;  // in ticks (typically ms)
-        auto             n_axis  = MachineConfig::instance()->_axes->_numberAxis;
+        auto             n_axis  = config->_axes->_numberAxis;
 
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
         while (true) {                        // don't ever return from this or the task dies

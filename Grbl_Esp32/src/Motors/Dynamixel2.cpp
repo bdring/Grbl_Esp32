@@ -198,7 +198,7 @@ namespace Motors {
             return false;
         }
 
-        auto axis                 = MachineConfig::instance()->_axes->_axis[_axis_index];
+        auto axis                 = config->_axes->_axis[_axis_index];
         sys_position[_axis_index] = axis->_homing->_mpos * axis->_stepsPerMm;  // convert to steps
 
         set_disable(false);
@@ -230,7 +230,7 @@ namespace Motors {
 
             read_settings();
 
-            auto axis = MachineConfig::instance()->_axes->_axis[_axis_index];
+            auto axis = config->_axes->_axis[_axis_index];
 
             int32_t pos_min_steps = lround(limitsMinPosition(_axis_index) * axis->_stepsPerMm);
             int32_t pos_max_steps = lround(limitsMaxPosition(_axis_index) * axis->_stepsPerMm);
@@ -353,7 +353,7 @@ namespace Motors {
         tx_message[++msg_index] = 4;                                  // low order data length
         tx_message[++msg_index] = 0;                                  // high order data length
 
-        auto   n_axis = MachineConfig::instance()->_axes->_numberAxis;
+        auto   n_axis = config->_axes->_numberAxis;
         float* mpos   = system_get_mpos();
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
             for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {

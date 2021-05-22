@@ -15,6 +15,8 @@
 #include <cstdio>
 #include <cstring>
 
+MachineConfig* config;
+
 // TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
 
 void Endstops::validate() const {
@@ -429,7 +431,7 @@ bool MachineConfig::load(const char* filename) {
         }
         machineConfig = new MachineConfig();
     }
-    MachineConfig* machine = instance();
+    config = instance();
 
     char*        buffer;
     size_t       filesize = readFile(filename, buffer);
@@ -449,23 +451,23 @@ bool MachineConfig::load(const char* filename) {
 
         for (; !parser.isEndSection(); parser.moveNext()) {
             log_info("Parsing key " << parser.key().str());
-            machine->handle(handler);
+            config->handle(handler);
         }
 
         log_info("Done parsing machine config. Running after-parse tasks");
 
         try {
             Configuration::AfterParse afterParse;
-            machine->afterParse();
-            machine->handle(afterParse);
+            config->afterParse();
+            config->handle(afterParse);
         } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
 
         log_info("Validating machine config");
 
         try {
             Configuration::Validator validator;
-            machine->validate();
-            machine->handle(validator);
+            config->validate();
+            config->handle(validator);
         } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
 
         log_info("Done validating machine config.");

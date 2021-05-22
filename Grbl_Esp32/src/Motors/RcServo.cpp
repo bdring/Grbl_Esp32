@@ -81,7 +81,7 @@ namespace Motors {
 
     // Homing justs sets the new system position and the servo will move there
     bool RcServo::set_homing_mode(bool isHoming) {
-        auto axis                 = MachineConfig::instance()->_axes->_axis[_axis_index];
+        auto axis                 = config->_axes->_axis[_axis_index];
         sys_position[_axis_index] = axis->_homing->_mpos * axis->_stepsPerMm;  // convert to steps
 
         set_location();   // force the PWM to update now

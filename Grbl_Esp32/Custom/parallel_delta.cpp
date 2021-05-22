@@ -368,9 +368,9 @@ void kinematics_post_homing() {
 #ifdef USE_CUSTOM_HOMING
 
 #else
-    last_angle[X_AXIS] = sys_position[X_AXIS] / MachineConfig::instance()->_axes->_axis[X_AXIS]->_stepsPerMm;
-    last_angle[Y_AXIS] = sys_position[Y_AXIS] / MachineConfig::instance()->_axes->_axis[Y_AXIS]->_stepsPerMm;
-    last_angle[Z_AXIS] = sys_position[Z_AXIS] / MachineConfig::instance()->_axes->_axis[Z_AXIS]->_stepsPerMm;
+    last_angle[X_AXIS] = sys_position[X_AXIS] / config->_axes->_axis[X_AXIS]->_stepsPerMm;
+    last_angle[Y_AXIS] = sys_position[Y_AXIS] / config->_axes->_axis[Y_AXIS]->_stepsPerMm;
+    last_angle[Z_AXIS] = sys_position[Z_AXIS] / config->_axes->_axis[Z_AXIS]->_stepsPerMm;
 
     motors_to_cartesian(last_cartesian, last_angle, 3);
 

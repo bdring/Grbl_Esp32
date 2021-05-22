@@ -319,8 +319,8 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     } else {
         memcpy(position_steps, pl.position, sizeof(pl.position));
     }
-    auto n_axis       = MachineConfig::instance()->_axes->_numberAxis;
-    auto axisSettings = MachineConfig::instance()->_axes->_axis;
+    auto n_axis       = config->_axes->_numberAxis;
+    auto axisSettings = config->_axes->_axis;
     for (idx = 0; idx < n_axis; idx++) {
         // Calculate target position in absolute steps, number of steps for each axis, and determine max step events.
         // Also, compute individual axes distance for move and prep unit vector calculations.
@@ -404,7 +404,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
                 float sin_theta_d2          = sqrt(0.5 * (1.0 - junction_cos_theta));  // Trig half angle identity. Always positive.
                 block->max_junction_speed_sqr =
                     MAX(MINIMUM_JUNCTION_SPEED * MINIMUM_JUNCTION_SPEED,
-                        (junction_acceleration * MachineConfig::instance()->_junctionDeviation * sin_theta_d2) / (1.0 - sin_theta_d2));
+                        (junction_acceleration * config->_junctionDeviation * sin_theta_d2) / (1.0 - sin_theta_d2));
             }
         }
     }
@@ -430,7 +430,7 @@ void plan_sync_position() {
     // TODO: For motor configurations not in the same coordinate frame as the machine position,
     // this function needs to be updated to accomodate the difference.
     uint8_t idx;
-    auto    n_axis = MachineConfig::instance()->_axes->_numberAxis;
+    auto    n_axis = config->_axes->_numberAxis;
     for (idx = 0; idx < n_axis; idx++) {
         pl.position[idx] = sys_position[idx];
     }

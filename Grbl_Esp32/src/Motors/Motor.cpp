@@ -39,14 +39,12 @@ namespace Motors {
     bool Motor::test() { return true; };  // true = OK
 
     uint8_t Motor::axis_index() const {
-        Assert(MachineConfig::instance() != nullptr && MachineConfig::instance()->_axes != nullptr,
-               "Expected machine to be configured before this is called.");
-        return MachineConfig::instance()->_axes->findAxisIndex(this);
+        Assert(config != nullptr && config->_axes != nullptr, "Expected machine to be configured before this is called.");
+        return config->_axes->findAxisIndex(this);
     }
     uint8_t Motor::dual_axis_index() const {
-        Assert(MachineConfig::instance() != nullptr && MachineConfig::instance()->_axes != nullptr,
-               "Expected machine to be configured before this is called.");
-        return MachineConfig::instance()->_axes->findAxisGanged(this);
+        Assert(config != nullptr && config->_axes != nullptr, "Expected machine to be configured before this is called.");
+        return config->_axes->findAxisGanged(this);
     }
 
 }
