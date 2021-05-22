@@ -33,6 +33,11 @@
 
 namespace Spindles {
     void PWM::init() {
+        if (_pwm_freq == 0) {
+            log_error("Spindle PWM frequency is 0.");
+            return;
+        }
+
         get_pins_and_settings();
 
         if (_output_pin.undefined()) {
