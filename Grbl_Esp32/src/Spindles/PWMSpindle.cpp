@@ -77,7 +77,7 @@ namespace Spindles {
         _pwm_period    = (1 << _pwm_precision);
 
         if (_pwm_min_value > _pwm_max_value) {
-            log_warn("Spindle min pwm is greater than max.");
+            log_warn("Spindle min PWM is greater than max.");
         }
 
         // pre-calculate some PWM count values

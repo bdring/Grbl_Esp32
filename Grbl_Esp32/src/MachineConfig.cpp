@@ -314,9 +314,9 @@ Axes::~Axes() {
 
 void I2SOBus::validate() const {
     if (_bck.defined() || _data.defined() || _ws.defined()) {
-        Assert(_bck.defined(), "I2SO BCK pin should be configured once.");
-        Assert(_data.defined(), "I2SO Data pin should be configured once.");
-        Assert(_ws.defined(), "I2SO WS pin should be configured once.");
+        Assert(_bck.defined(), "I2SO BCK pin should be configured once");
+        Assert(_data.defined(), "I2SO Data pin should be configured once");
+        Assert(_ws.defined(), "I2SO WS pin should be configured once");
     }
 }
 
@@ -328,10 +328,10 @@ void I2SOBus::handle(Configuration::HandlerBase& handler) {
 
 void SPIBus::validate() const {
     if (_ss.defined() || _miso.defined() || _mosi.defined() || _sck.defined()) {
-        Assert(_ss.defined(), "SPI SS pin should be configured once.");
-        Assert(_miso.defined(), "SPI MISO pin should be configured once.");
-        Assert(_mosi.defined(), "SPI MOSI pin should be configured once.");
-        Assert(_sck.defined(), "SPI SCK pin should be configured once.");
+        Assert(_ss.defined(), "SPI SS pin should be configured once");
+        Assert(_miso.defined(), "SPI MISO pin should be configured once");
+        Assert(_mosi.defined(), "SPI MOSI pin should be configured once");
+        Assert(_sck.defined(), "SPI SCK pin should be configured once");
     }
 }
 
@@ -358,30 +358,30 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
 
 void MachineConfig::afterParse() {
     if (_axes == nullptr) {
-        log_info("Axes config missing; building default axes.");
+        log_info("Axes config missing; building default axes");
         _axes = new Axes();
     }
 
     if (_coolant == nullptr) {
-        log_info("Coolant control config missing; building default coolant.");
+        log_info("Coolant control config missing; building default coolant");
         _coolant = new CoolantControl();
     }
 
     if (_probe == nullptr) {
-        log_info("Probe config missing; building default probe.");
+        log_info("Probe config missing; building default probe");
         _probe = new Probe();
     }
 }
 
 size_t MachineConfig::readFile(const char* filename, char*& buffer) {
     if (!SPIFFS.begin(true)) {
-        log_info("An error has occurred while mounting SPIFFS");
+        log_info("Cannot mount the local filesystem");
         return 0;
     }
 
     FILE* file = fopen(filename, "rb");
     if (!file) {
-        log_info("There was an error opening the config file for reading");
+        log_info("Cannot open the config file " << filename);
         return 0;
     }
 
@@ -389,7 +389,7 @@ size_t MachineConfig::readFile(const char* filename, char*& buffer) {
     // in trouble with this, we can cut it in pieces and read it per chunk.
     fseek(file, 0, SEEK_END);
     auto filesize = ftell(file);
-    log_debug("Configuration file is " << int(filesize) << " bytes.");
+    log_debug("Configuration file is " << int(filesize) << " bytes");
 
     fseek(file, 0, SEEK_SET);
     buffer = new char[filesize + 1];
@@ -411,7 +411,7 @@ size_t MachineConfig::readFile(const char* filename, char*& buffer) {
     if (pos != filesize) {
         delete[] buffer;
 
-        log_error("There was an error reading the config file");
+        log_error("Cannot read the config file");
         return 0;
     }
     return filesize;
@@ -454,7 +454,7 @@ bool MachineConfig::load(const char* filename) {
             config->handle(handler);
         }
 
-        log_info("Done parsing machine config. Running after-parse tasks");
+        log_info("Parsed configuration. Running after-parse tasks");
 
         try {
             Configuration::AfterParse afterParse;
@@ -462,7 +462,7 @@ bool MachineConfig::load(const char* filename) {
             config->handle(afterParse);
         } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
 
-        log_info("Validating machine config");
+        log_info("Validating configuration");
 
         try {
             Configuration::Validator validator;
@@ -470,7 +470,7 @@ bool MachineConfig::load(const char* filename) {
             config->handle(validator);
         } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
 
-        log_info("Done validating machine config.");
+        log_info("Validated configuration");
 
         successful = true;
 
@@ -492,7 +492,7 @@ bool MachineConfig::load(const char* filename) {
         log_error("Configuration validation error: " << ex.what());
     } catch (...) {
         // Get rid of buffer and return
-        log_error("Unknown error occurred while processing configuration file.");
+        log_error("Unknown error while processing config file");
     }
 
     // Get rid of buffer and return

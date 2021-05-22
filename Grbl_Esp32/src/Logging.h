@@ -27,7 +27,7 @@ public:
 // Note: these '{'..'}' scopes are here for a reason: the destructor should flush.
 #define log_debug(x)                                                                                                                       \
     {                                                                                                                                      \
-        DebugStream ss("DBG ");                                                                                                            \
+        DebugStream ss("DBG");                                                                                                             \
         ss << x;                                                                                                                           \
     }
 
@@ -45,13 +45,13 @@ public:
 
 #define log_error(x)                                                                                                                       \
     {                                                                                                                                      \
-        DebugStream ss("ERR ");                                                                                                            \
+        DebugStream ss("ERR");                                                                                                             \
         ss << x;                                                                                                                           \
     }
 
 #define log_fatal(x)                                                                                                                       \
     {                                                                                                                                      \
-        DebugStream ss("FATAL ");                                                                                                          \
+        DebugStream ss("FATAL");                                                                                                           \
         ss << x;                                                                                                                           \
         Assert(false, "A fatal error occurred.");                                                                                          \
     }
