@@ -38,8 +38,15 @@ namespace Configuration {
         void enter();
         void leave();
 
-        inline bool is(const char* expected) const {
-            return current_.keyStart_ != nullptr && !strncmp(expected, current_.keyStart_, size_t(current_.keyEnd_ - current_.keyStart_));
+        bool is(const char* expected) const {
+            if (current_.keyStart_ == nullptr) {
+                return false;
+            }
+            auto len = strlen(expected);
+            if (len != (current_.keyEnd_ - current_.keyStart_)) {
+                return false;
+            }
+            return !strncmp(expected, current_.keyStart_, len);
         }
 
         inline StringRange key() const { return StringRange(current_.keyStart_, current_.keyEnd_); }
