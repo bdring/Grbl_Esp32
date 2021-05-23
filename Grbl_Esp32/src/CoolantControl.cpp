@@ -28,10 +28,12 @@ void CoolantControl::init() {
     static bool init_message = true;  // used to show messages only once.
 
     if (init_message) {
-        if (flood_.defined())
+        if (flood_.defined()) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Flood coolant on pin %s", flood_.name().c_str());
-        if (mist_.defined())
+        }
+        if (mist_.defined()) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Mist coolant on pin %s", mist_.name().c_str());
+        }
         init_message = false;
     }
 
@@ -48,9 +50,6 @@ CoolantState CoolantControl::get_state() {
 
     if (flood_.defined()) {
         auto pinState = flood_.read();
-#ifdef INVERT_COOLANT_FLOOD_PIN
-        pinState = !pinState;
-#endif
 
         if (pinState) {
             cl_state.Flood = 1;
@@ -59,9 +58,6 @@ CoolantState CoolantControl::get_state() {
 
     if (mist_.defined()) {
         auto pinState = mist_.read();
-#ifdef INVERT_COOLANT_MIST_PIN
-        pinState = !pinState;
-#endif
 
         if (pinState) {
             cl_state.Mist = 1;
