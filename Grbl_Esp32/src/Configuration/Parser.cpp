@@ -22,6 +22,18 @@ namespace Configuration {
         }
     }
 
+    
+    bool Parser::is(const char* expected) const {
+        if (current_.keyStart_ == nullptr) {
+            return false;
+        }
+        auto len = strlen(expected);
+        if (len != (current_.keyEnd_ - current_.keyStart_)) {
+            return false;
+        }
+        return !strncmp(expected, current_.keyStart_, len);
+    }
+
     /// <summary>
     /// MoveNext: moves to the next entry in the current section. By default we're in the
     /// root section.
