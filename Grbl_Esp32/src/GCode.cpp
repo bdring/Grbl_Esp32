@@ -36,14 +36,22 @@ parser_block_t gc_block;
 
 #define FAIL(status) return (status);
 
+CustomGCmdSets* cacheSet=NULL;
+
 void gc_init() {
     // Reset parser state:
     memset(&gc_state, 0, sizeof(parser_state_t));
     // Load default G54 coordinate system.
     gc_state.modal.coord_select = CoordIndex::G54;
+    gc_state.cusGCmdSets=cacheSet;
     coords[gc_state.modal.coord_select]->get(gc_state.coord_system);
 }
 
+
+void gc_set_custom_gcode_sets(CustomGCmdSets* gcmd_set)
+{
+    cacheSet=gcmd_set;
+} 
 // Sets g-code parser position in mm. Input in steps. Called by the system abort and hard
 // limit pull-off routines.
 void gc_sync_position() {
@@ -194,6 +202,27 @@ Error gc_execute_line(char* line, uint8_t client) {
         // NOTE: Rounding must be used to catch small floating point errors.
         // Check if the g-code word is supported or errors due to modal group violations or has
         // been repeated in the g-code block. If ok, update the command or record its value.
+        
+        if(gc_state.cusGCmdSets)
+        {
+          CustomGCmd *cmdDriver=gc_state.cusGCmdSets->find(letter,int_value,line);
+
+          if(cmdDriver!=NULL)
+          {//do action
+            if(cmdDriver->parse(line, &char_counter)==0)
+            {
+              protocol_buffer_synchronize();
+              if(cmdDriver->act()==0)
+              {
+                return Error::Ok;
+              }
+              FAIL(Error::GcodeUnsupportedCommand); 
+
+            }
+            FAIL(Error::GcodeUnsupportedCommand); 
+            break;
+          }
+        }
         switch (letter) {
             /* 'G' and 'M' Command Words: Parse commands and check for modal group violations.
            NOTE: Modal group numbers are defined in Table 4 of NIST RS274-NGC v3, pg.20 */

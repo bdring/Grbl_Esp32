@@ -20,8 +20,29 @@
 
 #include "src/Grbl.h"
 
+class CustomGCmdM102:public CustomGCmd
+{
+  public:
+  CustomGCmdM102():CustomGCmd('M',102)
+  {
+  }
+  int parse(char* line, uint8_t *char_offset)
+  {
+    return 0;
+  }
+
+  int act()
+  {
+    Serial.printf(">>CustomGCmdM102 run>>\n");
+    return 0;
+  }
+};
+CustomGCmdM102 cmd1;
+CustomGCmdSets_Static <5>cgc_set;
 void setup() {
-    grbl_init();
+  grbl_init();
+  cgc_set.add(&cmd1);
+  gc_set_custom_gcode_sets(&cgc_set);
 }
 
 void loop() {

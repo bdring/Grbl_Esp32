@@ -1,5 +1,7 @@
 #pragma once
 
+
+#include "CustomGCode/CustomGCode.h"
 /*
   GCode.h - rs274/ngc parser.
   Part of Grbl
@@ -281,6 +283,7 @@ typedef struct {
     float coord_offset[MAX_N_AXIS];  // Retains the G92 coordinate offset (work coordinates) relative to
     // machine zero in mm. Non-persistent. Cleared upon reset and boot.
     float tool_length_offset;  // Tracks tool length offset value when enabled.
+    CustomGCmdSets *cusGCmdSets;
 } parser_state_t;
 extern parser_state_t gc_state;
 
@@ -301,6 +304,7 @@ enum class AxisCommand : uint8_t {
 // Initialize the parser
 void gc_init();
 
+void gc_set_custom_gcode_sets(CustomGCmdSets* gcmd_set);
 // Execute one block of rs275/ngc/g-code
 Error gc_execute_line(char* line, uint8_t client);
 
