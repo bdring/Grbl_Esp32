@@ -433,8 +433,17 @@ bool MachineConfig::load(const char* filename) {
     }
     config = instance();
 
-    char*        buffer;
-    size_t       filesize = readFile(filename, buffer);
+    // If the system crashes we skip the config file and use the default
+    // builtin config.  This helps prevent reset loops on bad config files.
+    size_t             filesize = 0;
+    char*              buffer;
+    esp_reset_reason_t reason = esp_reset_reason();
+    if (reason == ESP_RST_PANIC) {
+        log_debug("Skipping configuration file due to panic");
+    } else {
+        filesize = readFile(filename, buffer);
+    }
+
     StringRange* input;
 
     if (filesize > 0) {
