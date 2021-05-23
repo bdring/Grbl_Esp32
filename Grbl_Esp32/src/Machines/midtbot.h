@@ -66,10 +66,6 @@
 
 #define DEFAULT_STATUS_REPORT_MASK 1
 
-#define DEFAULT_JUNCTION_DEVIATION  0.01 // mm
-#define DEFAULT_ARC_TOLERANCE       0.002 // mm
-#define DEFAULT_REPORT_INCHES       0 // false
-
 #define DEFAULT_SOFT_LIMIT_ENABLE 0 // false
 #define DEFAULT_HARD_LIMIT_ENABLE 0  // false
 

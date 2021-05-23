@@ -27,6 +27,13 @@ namespace Configuration {
             value = uint32_t(v);
         }
 
+        // TODO: This will accept values that cannot fit in the variable
+        virtual void handle(const char* name, uint8_t& value) {
+            int32_t v = int32_t(value);
+            handle(name, v);
+            value = uint8_t(v);
+        }
+
         virtual void handle(const char* name, double& value)      = 0;
         virtual void handle(const char* name, float& value)       = 0;
         virtual void handle(const char* name, StringRange& value) = 0;

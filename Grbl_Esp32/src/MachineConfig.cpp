@@ -350,10 +350,16 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("spi", _spi);
     handler.handle("coolant", _coolant);
     handler.handle("probe", _probe);
-    handler.handle("laser_mode", _laserMode);
     handler.handle("pulse_microseconds", _pulseMicroSeconds);
     handler.handle("board", _board);
     handler.handle("name", _name);
+    handler.handle("idle_time", _idleTime);
+    // TODO: Consider putting these under a gcode: hierarchy level
+    handler.handle("laser_mode", _laserMode);
+    handler.handle("arc_tolerance", _arcTolerance);
+    handler.handle("junction_deviation", _junctionDeviation);
+    handler.handle("verbose_errors", _verboseErrors);
+    handler.handle("report_inches", _reportInches);
 }
 
 void MachineConfig::afterParse() {

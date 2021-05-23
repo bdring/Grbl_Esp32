@@ -1,20 +1,12 @@
 #include "Grbl.h"
 
-FlagSetting* verbose_errors;
-
 StringSetting* startup_line_0;
 StringSetting* startup_line_1;
 StringSetting* build_info;
 
-IntSetting* stepper_idle_lock_time;
-
-// TODO Settings - need to call st_generate_step_invert_masks;
 AxisMaskSetting* homing_dir_mask;
 AxisMaskSetting* homing_squared_axes;
 
-FlagSetting* report_inches;
-
-// TODO Settings - need to call limits_init;
 FlagSetting* homing_enable;
 
 IntSetting* status_mask;
@@ -134,13 +126,9 @@ void make_settings() {
     make_coordinate(CoordIndex::G28, "G28");
     make_coordinate(CoordIndex::G30, "G30");
 
-    verbose_errors = new FlagSetting(EXTENDED, WG, NULL, "Errors/Verbose", DEFAULT_VERBOSE_ERRORS);
-
     // Spindle Settings
     spindle_type =
         new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", static_cast<int8_t>(SPINDLE_TYPE), &spindleTypes, checkSpindleChange);
-
-    coolant_start_delay = new FloatSetting(EXTENDED, WG, NULL, "Coolant/Delay/TurnOn", DEFAULT_COOLANT_DELAY_TURNON, 0, 30);
 
     // GRBL Non-numbered settings
     startup_line_0 = new StringSetting(EXTENDED, WG, "N0", "GCode/Line0", "", checkStartupLine);
@@ -153,19 +141,18 @@ void make_settings() {
     homing_feed_rate    = new FloatSetting(GRBL, WG, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
     homing_squared_axes = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Squared", DEFAULT_HOMING_SQUARED_AXES);
 
-    // TODO Settings - need to call st_generate_step_invert_masks()
     homing_dir_mask = new AxisMaskSetting(GRBL, WG, "23", "Homing/DirInvert", DEFAULT_HOMING_DIR_MASK);
 
-    // TODO Settings - need to call limits_init();
     homing_enable = new FlagSetting(GRBL, WG, "22", "Homing/Enable", DEFAULT_HOMING_ENABLE);
-    // TODO Settings - need to check for HOMING_ENABLE
 
-    build_info    = new StringSetting(EXTENDED, WG, NULL, "Firmware/Build", "");
-    report_inches = new FlagSetting(GRBL, WG, "13", "Report/Inches", DEFAULT_REPORT_INCHES);
+    build_info = new StringSetting(EXTENDED, WG, NULL, "Firmware/Build", "");
+
+    // TODO: These affect the sender communication protocol so they
+    // need to be be available as $ commands
+    // verbose_errors = new FlagSetting(EXTENDED, WG, NULL, "Errors/Verbose", DEFAULT_VERBOSE_ERRORS);
+    // report_inches = new FlagSetting(GRBL, WG, "13", "Report/Inches", DEFAULT_REPORT_INCHES);
 
     status_mask = new IntSetting(GRBL, WG, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 3);
-
-    stepper_idle_lock_time = new IntSetting(GRBL, WG, "1", "Stepper/IdleTime", DEFAULT_STEPPER_IDLE_LOCK_TIME, 0, 255);
 
     homing_cycle[5] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle5", DEFAULT_HOMING_CYCLE_5);
     homing_cycle[4] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle4", DEFAULT_HOMING_CYCLE_4);

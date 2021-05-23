@@ -162,7 +162,7 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
     float       unit_conv = 1.0;      // unit conversion multiplier..default is mm
     const char* format    = "%4.3f";  // Default - report mm to 3 decimal places
     rpt[0]                = '\0';
-    if (report_inches->get()) {
+    if (config->_reportInches) {
         unit_conv = 1.0 / MM_PER_INCH;
         format    = "%4.4f";  // Report inches to 4 decimal places
     }
@@ -183,7 +183,7 @@ static String report_util_axis_values(const float* axis_value) {
     char    axisVal[coordStringLen];
     float   unit_conv = 1.0;  // unit conversion multiplier..default is mm
     int     decimals  = 3;    // Default - report mm to 3 decimal places
-    if (report_inches->get()) {
+    if (config->_reportInches) {
         unit_conv = 1.0 / MM_PER_INCH;
         decimals  = 4;  // Report inches to 4 decimal places
     }
@@ -236,7 +236,7 @@ void report_status_message(Error status_code, uint8_t client) {
             // With verbose errors, the message text is displayed instead of the number.
             // Grbl 0.9 used to display the text, while Grbl 1.1 switched to the number.
             // Many senders support both formats.
-            if (verbose_errors->get()) {
+            if (config->_verboseErrors) {
                 grbl_sendf(client, "error: %s\r\n", errorString(status_code));
             } else {
                 grbl_sendf(client, "error:%d\r\n", static_cast<int>(status_code));
@@ -333,7 +333,7 @@ void report_ngc_parameters(uint8_t client) {
     ngc_rpt += "]\r\n";
     ngc_rpt += "[TLO:";  // Print tool length offset
     float tlo = gc_state.tool_length_offset;
-    if (report_inches->get()) {
+    if (config->_reportInches) {
         tlo *= INCH_PER_MM;
     }
     ngc_rpt += String(tlo, 3);
@@ -492,7 +492,7 @@ void report_gcode_modes(uint8_t client) {
 
     sprintf(temp, " T%d", gc_state.tool);
     strcat(modes_rpt, temp);
-    sprintf(temp, report_inches->get() ? " F%.1f" : " F%.0f", gc_state.feed_rate);
+    sprintf(temp, config->_reportInches ? " F%.1f" : " F%.0f", gc_state.feed_rate);
     strcat(modes_rpt, temp);
     sprintf(temp, " S%d", uint32_t(gc_state.spindle_speed));
     strcat(modes_rpt, temp);
@@ -637,7 +637,7 @@ void report_realtime_status(uint8_t client) {
 #endif
     // Report realtime feed speed
 #ifdef REPORT_FIELD_CURRENT_FEED_SPEED
-    if (report_inches->get()) {
+    if (config->_reportInches) {
         sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate() / MM_PER_INCH, sys.spindle_speed);
     } else {
         sprintf(temp, "|FS:%.0f,%d", st_get_realtime_rate(), sys.spindle_speed);

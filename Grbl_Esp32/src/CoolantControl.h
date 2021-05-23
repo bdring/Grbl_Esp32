@@ -31,6 +31,8 @@ class CoolantControl : public Configuration::Configurable {
     Pin mist_;
     Pin flood_;
 
+    float delay_ = 0.0;
+
     void write(CoolantState state);
 
 public:
@@ -51,6 +53,8 @@ public:
     // Sets the coolant pins according to state specified.
     void off();
     void set_state(CoolantState state);
+
+    float delay() { return delay_; }
 
     // G-code parser entry-point for setting coolant states. Checks for and executes additional conditions.
     void sync(CoolantState state);

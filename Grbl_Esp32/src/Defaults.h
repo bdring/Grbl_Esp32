@@ -38,20 +38,8 @@
     */
 
 // Grbl generic default settings. Should work across different machines.
-#ifndef DEFAULT_STEPPER_IDLE_LOCK_TIME
-#    define DEFAULT_STEPPER_IDLE_LOCK_TIME 250  // $1 msec (0-254, 255 keeps steppers enabled)
-#endif
-
 #ifndef DEFAULT_STATUS_REPORT_MASK
 #    define DEFAULT_STATUS_REPORT_MASK 1  // $10
-#endif
-
-#ifndef DEFAULT_VERBOSE_ERRORS
-#    define DEFAULT_VERBOSE_ERRORS 0
-#endif
-
-#ifndef DEFAULT_REPORT_INCHES
-#    define DEFAULT_REPORT_INCHES 0  // $13 false
 #endif
 
 #ifndef DEFAULT_HOMING_ENABLE
@@ -109,10 +97,6 @@
 // ======== SPINDLE STUFF ====================
 #ifndef SPINDLE_TYPE
 #    define SPINDLE_TYPE SpindleType::NONE
-#endif
-
-#ifndef DEFAULT_COOLANT_DELAY_TURNON
-#    define DEFAULT_COOLANT_DELAY_TURNON 1.0
 #endif
 
 // ================  user settings =====================

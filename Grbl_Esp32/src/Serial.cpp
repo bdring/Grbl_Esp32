@@ -47,7 +47,7 @@
   Realtime commands can be anywhere in the stream.
 
   To allow the realtime commands to be randomly mixed in the stream of data, we
-  read all clients as fast as possible. The realtime commands are acted upon and the other charcters are
+  read all clients as fast as possible. The realtime commands are acted upon and the other characters are
   placed into a client_buffer[client].
 
   The main protocol loop reads from client_buffer[]

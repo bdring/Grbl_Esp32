@@ -195,7 +195,7 @@ void protocol_main_loop() {
             return;  // Bail to main() program loop to reset system.
         }
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
-        if (stepper_idle && stepper_idle_lock_time->get() != 0xff) {
+        if (stepper_idle && config->_idleTime != 0xff) {
             if (esp_timer_get_time() > stepper_idle_counter) {
                 config->_axes->set_disable(true);
             }
@@ -684,7 +684,7 @@ static void protocol_exec_rt_suspend() {
                             if (!sys.suspend.bit.restartRetract) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.
                                 config->_coolant->set_state(restore_coolant);
-                                delay_msec(int32_t(1000.0 * coolant_start_delay->get()), DwellMode::SysSuspend);
+                                delay_msec(int32_t(1000.0 * config->_coolant->delay()), DwellMode::SysSuspend);
                             }
                         }
 #ifdef PARKING_ENABLE

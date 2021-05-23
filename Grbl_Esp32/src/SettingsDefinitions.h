@@ -1,18 +1,13 @@
 #pragma once
 
-extern FlagSetting* verbose_errors;
-
 extern StringSetting* startup_line_0;
 extern StringSetting* startup_line_1;
 extern StringSetting* build_info;
-
-extern IntSetting* stepper_idle_lock_time;
 
 extern AxisMaskSetting* homing_dir_mask;
 extern AxisMaskSetting* homing_squared_axes;
 extern AxisMaskSetting* homing_cycle[MAX_N_AXIS];
 
-extern FlagSetting* report_inches;
 extern FlagSetting* homing_enable;
 
 extern IntSetting* status_mask;
@@ -21,9 +16,6 @@ extern FloatSetting* homing_feed_rate;
 extern FloatSetting* homing_seek_rate;
 extern FloatSetting* homing_debounce;
 extern FloatSetting* homing_pulloff;
-extern FloatSetting* coolant_start_delay;
-
-extern IntSetting* spindle_pwm_bit_precision;
 
 extern EnumSetting* spindle_type;
 

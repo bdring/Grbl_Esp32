@@ -125,4 +125,5 @@ void CoolantControl::validate() const {}
 void CoolantControl::handle(Configuration::HandlerBase& handler) {
     handler.handle("flood", flood_);
     handler.handle("mist", mist_);
+    handler.handle("delay", delay_);
 }

@@ -350,9 +350,12 @@ public:
     int _directionDelayMilliSeconds = 0;
     int _disableDelayMilliSeconds   = 0;
 
-    bool  _laserMode         = false;
-    float _arcTolerance      = 0.002;
-    float _junctionDeviation = 0.01;
+    bool    _laserMode         = false;
+    float   _arcTolerance      = 0.002;
+    float   _junctionDeviation = 0.01;
+    uint8_t _idleTime          = 255;
+    bool    _verboseErrors     = false;
+    bool    _reportInches      = false;
 
     String _board = "None";
     String _name  = "None";
