@@ -682,10 +682,7 @@ static void protocol_exec_rt_suspend() {
                         if (gc_state.modal.coolant.Flood || gc_state.modal.coolant.Mist) {
                             // Block if safety door re-opened during prior restore actions.
                             if (!sys.suspend.bit.restartRetract) {
-                                // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.
                                 config->_coolant->set_state(restore_coolant);
-                                // TODO: Should this be buried in _coolant->set_state() ?
-                                delay_msec(int32_t(1000.0 * config->_coolant->_delay), DwellMode::SysSuspend);
                             }
                         }
 #ifdef PARKING_ENABLE

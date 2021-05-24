@@ -97,6 +97,7 @@ void CoolantControl::set_state(CoolantState state) {
     }
     write(state);
     sys.report_ovr_counter = 0;  // Set to report change immediately
+    delay_msec(int32_t(1000.0 * _delay), DwellMode::SysSuspend);
 }
 
 void CoolantControl::off() {
