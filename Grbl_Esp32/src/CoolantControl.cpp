@@ -28,17 +28,17 @@ void CoolantControl::init() {
     static bool init_message = true;  // used to show messages only once.
 
     if (init_message) {
-        if (flood_.defined()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Flood coolant on pin %s", flood_.name().c_str());
+        if (_flood.defined()) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Flood coolant on pin %s", _flood.name().c_str());
         }
-        if (mist_.defined()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Mist coolant on pin %s", mist_.name().c_str());
+        if (_mist.defined()) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Mist coolant on pin %s", _mist.name().c_str());
         }
         init_message = false;
     }
 
-    flood_.setAttr(Pin::Attr::Output);
-    mist_.setAttr(Pin::Attr::Output);
+    _flood.setAttr(Pin::Attr::Output);
+    _mist.setAttr(Pin::Attr::Output);
 
     stop();
 }
@@ -48,16 +48,16 @@ CoolantState CoolantControl::get_state() {
     CoolantState cl_state = {};
     bool         pinState;
 
-    if (flood_.defined()) {
-        auto pinState = flood_.read();
+    if (_flood.defined()) {
+        auto pinState = _flood.read();
 
         if (pinState) {
             cl_state.Flood = 1;
         }
     }
 
-    if (mist_.defined()) {
-        auto pinState = mist_.read();
+    if (_mist.defined()) {
+        auto pinState = _mist.read();
 
         if (pinState) {
             cl_state.Mist = 1;
@@ -68,20 +68,14 @@ CoolantState CoolantControl::get_state() {
 }
 
 void CoolantControl::write(CoolantState state) {
-    if (flood_.defined()) {
+    if (_flood.defined()) {
         bool pinState = state.Flood;
-#ifdef INVERT_COOLANT_FLOOD_PIN
-        pinState = !pinState;
-#endif
-        flood_.write(pinState);
+        _flood.write(pinState);
     }
 
-    if (mist_.defined()) {
+    if (_mist.defined()) {
         bool pinState = state.Mist;
-#ifdef INVERT_COOLANT_MIST_PIN
-        pinState = !pinState;
-#endif
-        mist_.write(pinState);
+        _mist.write(pinState);
     }
 }
 
@@ -123,7 +117,7 @@ void CoolantControl::sync(CoolantState state) {
 void CoolantControl::validate() const {}
 
 void CoolantControl::handle(Configuration::HandlerBase& handler) {
-    handler.handle("flood", flood_);
-    handler.handle("mist", mist_);
-    handler.handle("delay", delay_);
+    handler.handle("flood", _flood);
+    handler.handle("mist", _mist);
+    handler.handle("delay", _delay);
 }

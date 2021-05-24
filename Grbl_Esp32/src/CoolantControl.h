@@ -28,18 +28,18 @@
 #include "GCode.h"
 
 class CoolantControl : public Configuration::Configurable {
-    Pin mist_;
-    Pin flood_;
+    Pin _mist;
+    Pin _flood;
 
-    float delay_ = 0.0;
+    float _delay = 0.0;
 
     void write(CoolantState state);
 
 public:
     CoolantControl() = default;
 
-    bool hasMist() const { return mist_.defined(); }
-    bool hasFlood() const { return flood_.defined(); }
+    bool hasMist() const { return _mist.defined(); }
+    bool hasFlood() const { return _flood.defined(); }
 
     // Initializes coolant control pins.
     void init();
@@ -53,8 +53,6 @@ public:
     // Sets the coolant pins according to state specified.
     void off();
     void set_state(CoolantState state);
-
-    float delay() { return delay_; }
 
     // G-code parser entry-point for setting coolant states. Checks for and executes additional conditions.
     void sync(CoolantState state);

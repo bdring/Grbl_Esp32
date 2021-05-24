@@ -684,7 +684,8 @@ static void protocol_exec_rt_suspend() {
                             if (!sys.suspend.bit.restartRetract) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.
                                 config->_coolant->set_state(restore_coolant);
-                                delay_msec(int32_t(1000.0 * config->_coolant->delay()), DwellMode::SysSuspend);
+                                // TODO: Should this be buried in _coolant->set_state() ?
+                                delay_msec(int32_t(1000.0 * config->_coolant->_delay), DwellMode::SysSuspend);
                             }
                         }
 #ifdef PARKING_ENABLE
