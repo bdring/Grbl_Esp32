@@ -32,7 +32,7 @@
 #    define M_PI 3.14159265358979323846
 #endif
 
-SquaringMode ganged_mode = SquaringMode::Dual;
+GangMask ganged_mode = gangDual;  // Run both motors at once
 
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
@@ -89,7 +89,6 @@ bool mc_line(float* target, plan_line_data_t* pl_data) {
         }
     } while (1);
     // Plan and queue motion into planner buffer
-    // uint8_t plan_status; // Not used in normal operation.
     if (sys_pl_data_inflight == pl_data) {
         plan_buffer_line(target, pl_data);
         submitted_result = true;
@@ -102,7 +101,7 @@ bool __attribute__((weak)) cartesian_to_motors(float* target, plan_line_data_t* 
     return mc_line(target, pl_data);
 }
 
-bool __attribute__((weak)) kinematics_pre_homing(uint8_t cycle_mask) {
+bool __attribute__((weak)) kinematics_pre_homing(AxisMask cycle_mask) {
     return false;  // finish normal homing cycle
 }
 
@@ -254,7 +253,7 @@ bool mc_dwell(int32_t milliseconds) {
 
 // return true if the mask has exactly one bit set,
 // so it refers to exactly one axis
-static bool mask_is_single_axis(uint8_t axis_mask) {
+static bool mask_is_single_axis(AxisMask axis_mask) {
     // This code depends on the fact that, for binary numberes
     // with only one bit set - and only for such numbers -
     // the bits in one less than the number are disjoint
@@ -266,14 +265,35 @@ static bool mask_is_single_axis(uint8_t axis_mask) {
     return axis_mask && ((axis_mask & (axis_mask - 1)) == 0);
 }
 
-static bool axis_is_squared(uint8_t axis_mask) {
+static AxisMask squaredAxes() {
+    AxisMask mask   = 0;
+    auto     axes   = config->_axes;
+    auto     n_axis = axes->_numberAxis;
+    for (int axis = 0; axis < n_axis; axis++) {
+        auto homing = axes->_axis[axis]->_homing;
+        if (homing && homing->_square) {
+            mask |= bit(axis);
+        }
+    }
+    return mask;
+}
+
+static bool axis_is_squared(AxisMask axis_mask) {
     // Squaring can only be done if it is the only axis in the mask
-    if (axis_mask & homing_squared_axes->get()) {
+
+    // cases:
+    // axis_mask has one bit:
+    //   axis is squared: return true
+    //   else: return false
+    // else:
+    //   one of the axes is squared: message and return false
+    //   else return false
+
+    if (axis_mask & squaredAxes()) {
         if (mask_is_single_axis(axis_mask)) {
             return true;
         }
         grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Cannot multi-axis home with squared axes. Homing normally");
-        return false;
     }
 
     return false;
@@ -298,19 +318,39 @@ static bool axis_is_squared(uint8_t axis_mask) {
 #    define RESTORE_STEPPER(save_stepper)
 #endif
 
+// For this routine, homing_mask cannot be 0.  The 0 case,
+// meaning run all cycles, is handled by the caller mc_homing_cycle()
+static void mc_run_one_homing_cycle(AxisMask homing_mask) {
+    if (axis_is_squared(homing_mask)) {
+        // For squaring, we first do the fast seek using both motors,
+        // skipping the second slow moving phase.
+        ganged_mode = gangDual;
+        limits_go_home(homing_mask, 0);  // Do not do a second touch cycle
+
+        // Then we do the slow motion on the individual motors
+        ganged_mode = gangA;
+        limits_go_home(homing_mask, NHomingLocateCycle);
+
+        ganged_mode = gangB;
+        limits_go_home(homing_mask, NHomingLocateCycle);
+
+        ganged_mode = gangDual;  // always return to dual
+    } else {
+        limits_go_home(homing_mask, NHomingLocateCycle);
+    }
+}
+
 // Perform homing cycle to locate and set machine zero. Only '$H' executes this command.
 // NOTE: There should be no motions in the buffer and Grbl must be in an idle state before
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
-void mc_homing_cycle(uint8_t cycle_mask) {
-    bool no_cycles_defined = true;
-
-    if (user_defined_homing(cycle_mask)) {
+void mc_homing_cycle(AxisMask axis_mask) {
+    if (user_defined_homing(axis_mask)) {
         return;
     }
 
     // This give kinematics a chance to do something before normal homing
     // if it returns true, the homing is canceled.
-    if (kinematics_pre_homing(cycle_mask)) {
+    if (kinematics_pre_homing(axis_mask)) {
         return;
     }
     // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
@@ -326,50 +366,30 @@ void mc_homing_cycle(uint8_t cycle_mask) {
     limits_disable();  // Disable hard limits pin change register for cycle duration
     // -------------------------------------------------------------------------------------
     // Perform homing routine. NOTE: Special motion case. Only system reset works.
-    n_homing_locate_cycle = NHomingLocateCycle;
-#ifdef HOMING_SINGLE_AXIS_COMMANDS
-    /*
-    if (cycle_mask) { limits_go_home(cycle_mask); } // Perform homing cycle based on mask.
-    else
-    */
-    if (cycle_mask) {
-        if (!axis_is_squared(cycle_mask)) {
-            limits_go_home(cycle_mask);  // Homing cycle 0
-        } else {
-            ganged_mode           = SquaringMode::Dual;
-            n_homing_locate_cycle = 0;  // don't do a second touch cycle
-            limits_go_home(cycle_mask);
-            ganged_mode           = SquaringMode::A;
-            n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
-            limits_go_home(cycle_mask);
-            ganged_mode = SquaringMode::B;
-            limits_go_home(cycle_mask);
-            ganged_mode = SquaringMode::Dual;  // always return to dual
-        }
-    }  // Perform homing cycle based on mask.
-    else
-#endif
-    {
+    if (axis_mask) {
+        mc_run_one_homing_cycle(axis_mask);
+    } else {
+        // Run all homing cycles
+        bool someAxisHomed = false;
+
         for (int cycle = 0; cycle < MAX_N_AXIS; cycle++) {
-            auto homing_mask = homing_cycle[cycle]->get();
-            if (homing_mask) {  // if there are some axes in this cycle
-                no_cycles_defined = false;
-                if (!axis_is_squared(homing_mask)) {
-                    limits_go_home(homing_mask);  // Homing cycle 0
-                } else {
-                    ganged_mode           = SquaringMode::Dual;
-                    n_homing_locate_cycle = 0;  // don't do a second touch cycle
-                    limits_go_home(homing_mask);
-                    ganged_mode           = SquaringMode::A;
-                    n_homing_locate_cycle = NHomingLocateCycle;  // restore to default value
-                    limits_go_home(homing_mask);
-                    ganged_mode = SquaringMode::B;
-                    limits_go_home(homing_mask);
-                    ganged_mode = SquaringMode::Dual;  // always return to dual
+            // Set axis_mask to the axes that home on this cycle
+            axis_mask   = 0;
+            auto n_axis = config->_axes->_numberAxis;
+            for (int axis = 0; axis < n_axis; axis++) {
+                auto axisConfig = config->_axes->_axis[axis];
+                auto homing     = axisConfig->_homing;
+                if (homing && homing->_cycle == cycle) {
+                    axis_mask |= bit(axis);
                 }
             }
+
+            if (axis_mask) {  // if there are some axes in this cycle
+                someAxisHomed = true;
+                mc_run_one_homing_cycle(axis_mask);
+            }
         }
-        if (no_cycles_defined) {
+        if (!someAxisHomed) {
             report_status_message(Error::HomingNoCycles, CLIENT_ALL);
         }
     }
@@ -412,9 +432,9 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     BACKUP_STEPPER(save_stepper);
 
     // Initialize probing control variables
-    uint8_t is_probe_away = bit_istrue(parser_flags, GCParserProbeIsAway);
-    uint8_t is_no_error   = bit_istrue(parser_flags, GCParserProbeIsNoError);
-    sys.probe_succeeded   = false;  // Re-initialize probe history before beginning cycle.
+    bool is_probe_away  = bit_istrue(parser_flags, GCParserProbeIsAway);
+    bool is_no_error    = bit_istrue(parser_flags, GCParserProbeIsNoError);
+    sys.probe_succeeded = false;  // Re-initialize probe history before beginning cycle.
     config->_probe->set_direction(is_probe_away);
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
@@ -476,8 +496,7 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data) {
     if (sys.abort) {
         return;  // Block during abort.
     }
-    uint8_t plan_status = plan_buffer_line(parking_target, pl_data);
-    if (plan_status) {
+    if (plan_buffer_line(parking_target, pl_data)) {
         sys.step_control.executeSysMotion = true;
         sys.step_control.endMotion        = false;  // Allow parking motion to execute, if feed hold is active.
         st_parking_setup_buffer();                  // Setup step segment buffer for special parking motion case
@@ -497,7 +516,7 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data) {
 }
 
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-void mc_override_ctrl_update(uint8_t override_state) {
+void mc_override_ctrl_update(Override override_state) {
     // Finish all queued commands before altering override control state
     protocol_buffer_synchronize();
     if (sys.abort) {
@@ -548,7 +567,7 @@ void mc_reset() {
             }
             st_go_idle();  // Force kill steppers. Position has likely been lost.
         }
-        ganged_mode = SquaringMode::Dual;  // in case an error occurred during squaring
+        ganged_mode = gangDual;  // in case an error occurred during squaring
 
 #ifdef USE_I2S_STEPS
         if (current_stepper == ST_I2S_STREAM) {

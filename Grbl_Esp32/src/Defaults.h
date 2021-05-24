@@ -42,102 +42,13 @@
 #    define DEFAULT_STATUS_REPORT_MASK 1  // $10
 #endif
 
-#ifndef DEFAULT_HOMING_ENABLE
-#    define DEFAULT_HOMING_ENABLE 0  // $22 false
-#endif
-
-#ifndef DEFAULT_HOMING_DIR_MASK
-#    define DEFAULT_HOMING_DIR_MASK 3  // $23 move positive dir Z, negative X,Y
-#endif
-
-#ifndef DEFAULT_HOMING_FEED_RATE
-#    define DEFAULT_HOMING_FEED_RATE 200.0  // $24 mm/min
-#endif
-
-#ifndef DEFAULT_HOMING_SEEK_RATE
-#    define DEFAULT_HOMING_SEEK_RATE 2000.0  // $25 mm/min
-#endif
-
-#ifndef DEFAULT_HOMING_DEBOUNCE_DELAY
-#    define DEFAULT_HOMING_DEBOUNCE_DELAY 250  // $26 msec (0-65k)
-#endif
-
-#ifndef DEFAULT_HOMING_PULLOFF
-#    define DEFAULT_HOMING_PULLOFF 1.0  // $27 mm
-#endif
-
-#ifndef DEFAULT_HOMING_SQUARED_AXES
-#    define DEFAULT_HOMING_SQUARED_AXES 0
-#endif
-
-#ifndef DEFAULT_HOMING_CYCLE_0
-#    define DEFAULT_HOMING_CYCLE_0 bit(Z_AXIS)
-#endif
-
-#ifndef DEFAULT_HOMING_CYCLE_1
-#    define DEFAULT_HOMING_CYCLE_1 (bit(X_AXIS) | bit(Y_AXIS))
-#endif
-
-#ifndef DEFAULT_HOMING_CYCLE_2
-#    define DEFAULT_HOMING_CYCLE_2 0
-#endif
-
-#ifndef DEFAULT_HOMING_CYCLE_3
-#    define DEFAULT_HOMING_CYCLE_3 0
-#endif
-
-#ifndef DEFAULT_HOMING_CYCLE_4
-#    define DEFAULT_HOMING_CYCLE_4 0
-#endif
-
-#ifndef DEFAULT_HOMING_CYCLE_5
-#    define DEFAULT_HOMING_CYCLE_5 0
-#endif
-
 // ======== SPINDLE STUFF ====================
 #ifndef SPINDLE_TYPE
 #    define SPINDLE_TYPE SpindleType::NONE
 #endif
 
-// ================  user settings =====================
-#ifndef DEFAULT_USER_INT_80
-#    define DEFAULT_USER_INT_80 0  // $80 User integer setting
-#endif
-
-#ifndef DEFAULT_USER_INT_81
-#    define DEFAULT_USER_INT_81 0  // $81 User integer setting
-#endif
-
-#ifndef DEFAULT_USER_INT_82
-#    define DEFAULT_USER_INT_82 0  // $82 User integer setting
-#endif
-
-#ifndef DEFAULT_USER_INT_83
-#    define DEFAULT_USER_INT_83 0  // $83 User integer setting
-#endif
-
-#ifndef DEFAULT_USER_INT_84
-#    define DEFAULT_USER_INT_84 0  // $84 User integer setting
-#endif
-
-#ifndef DEFAULT_USER_FLOAT_90
-#    define DEFAULT_USER_FLOAT_90 0.0  // $90 User integer setting
-#endif
-
-#ifndef DEFAULT_USER_FLOAT_91
-#    define DEFAULT_USER_FLOAT_91 0.0  // $92 User integer setting
-#endif
-
-#ifndef DEFAULT_USER_FLOAT_92
-#    define DEFAULT_USER_FLOAT_92 0.0  // $92 User integer setting
-#endif
-
-#ifndef DEFAULT_USER_FLOAT_93
-#    define DEFAULT_USER_FLOAT_93 0.0  // $93 User integer setting
-#endif
-
-#ifndef DEFAULT_USER_FLOAT_94
-#    define DEFAULT_USER_FLOAT_94 0.0  // $94 User integer setting
+#ifndef SERVO_TIMER_INTERVAL
+#    define SERVO_TIMER_INTERVAL 75.0  // Hz This is the update inveral in milliseconds
 #endif
 
 // ==================  pin defaults ========================
@@ -148,10 +59,6 @@
 
 #ifndef SDCARD_DET_PIN
 #    define SDCARD_DET_PIN UNDEFINED_PIN
-#endif
-
-#ifndef SERVO_TIMER_INTERVAL
-#    define SERVO_TIMER_INTERVAL 75.0  // Hz This is the update inveral in milliseconds
 #endif
 
 // ================ User Digital I/O ==============================

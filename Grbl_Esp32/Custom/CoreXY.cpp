@@ -73,7 +73,11 @@ static void cartesian_to_motors(float* position) {
 
 // Cycle mask is 0 unless the user sends a single axis command like $HZ
 // This will always return true to prevent the normal Grbl homing cycle
-bool user_defined_homing(uint8_t cycle_mask) {
+bool user_defined_homing(AxisMask cycle_mask) {
+    if (!config->_homing) {
+        log_error("Homing is not configured");
+        return true;
+    }
     uint8_t n_cycle;                       // each home is a multi cycle operation approach, pulloff, approach.....
     float   target[MAX_N_AXIS] = { 0.0 };  // The target for each move in the cycle
     float   max_travel;
@@ -123,7 +127,7 @@ bool user_defined_homing(uint8_t cycle_mask) {
             if (bit(axis) == mask) {
                 // setup for the homing of this axis
                 bool  approach       = true;
-                float homing_rate    = homing_seek_rate->get();
+                float homing_rate    = config->_homing->_seekRate;
                 max_travel           = HOMING_AXIS_SEARCH_SCALAR * config->_axes->_axis[axis]->_maxTravel;
                 sys.homing_axis_lock = 0xFF;                          // we don't need to lock any motors in CoreXY
                 n_cycle              = (2 * NHomingLocateCycle + 1);  // approach + ((pulloff + approach) * Cycles)
@@ -203,17 +207,17 @@ bool user_defined_homing(uint8_t cycle_mask) {
                         }
                     }
 #endif
-                    st_reset();                        // Immediately force kill steppers and reset step segment buffer.
-                    delay_ms(homing_debounce->get());  // Delay to allow transient dynamics to dissipate.
+                    st_reset();                            // Immediately force kill steppers and reset step segment buffer.
+                    delay_ms(config->_homing->_debounce);  // Delay to allow transient dynamics to dissipate.
 
                     approach = !approach;
                     // After first cycle, homing enters locating phase. Shorten search to pull-off distance.
                     if (approach) {
-                        max_travel  = homing_pulloff->get() * HOMING_AXIS_LOCATE_SCALAR;
-                        homing_rate = homing_feed_rate->get();
+                        max_travel  = config->_homing->_pulloff * HOMING_AXIS_LOCATE_SCALAR;
+                        homing_rate = config->_homing->_feedRate;
                     } else {
-                        max_travel  = homing_pulloff->get();
-                        homing_rate = homing_seek_rate->get();
+                        max_travel  = config->_homing->_pulloff;
+                        homing_rate = config->_homing->_seekRate;
                     }
                 } while (n_cycle-- > 0);
             }
@@ -225,9 +229,9 @@ bool user_defined_homing(uint8_t cycle_mask) {
     // set the cartesian axis position
     for (axis = X_AXIS; axis <= Y_AXIS; axis++) {
         if (bitnum_istrue(homing_dir_mask->get(), axis)) {
-            target[axis] = limitsMinPosition(axis) + homing_pulloff->get();
+            target[axis] = limitsMinPosition(axis) + config->_homing->_pulloff;
         } else {
-            target[axis] = limitsMaxPosition(axis) - homing_pulloff->get();
+            target[axis] = limitsMaxPosition(axis) - config->_homing->_pulloff;
         }
     }
 
@@ -304,7 +308,7 @@ void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
     }
 }
 
-bool kinematics_pre_homing(uint8_t cycle_mask) {
+bool kinematics_pre_homing(AxisMask cycle_mask) {
     return false;
 }
 

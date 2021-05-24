@@ -4,19 +4,7 @@ StringSetting* startup_line_0;
 StringSetting* startup_line_1;
 StringSetting* build_info;
 
-AxisMaskSetting* homing_dir_mask;
-AxisMaskSetting* homing_squared_axes;
-
-FlagSetting* homing_enable;
-
 IntSetting* status_mask;
-
-FloatSetting*    homing_feed_rate;
-FloatSetting*    homing_seek_rate;
-FloatSetting*    homing_debounce;
-FloatSetting*    homing_pulloff;
-AxisMaskSetting* homing_cycle[MAX_N_AXIS];
-FloatSetting*    coolant_start_delay;
 
 EnumSetting* spindle_type;
 
@@ -135,16 +123,6 @@ void make_settings() {
     startup_line_1 = new StringSetting(EXTENDED, WG, "N1", "GCode/Line1", "", checkStartupLine);
 
     // GRBL Numbered Settings
-    homing_pulloff      = new FloatSetting(GRBL, WG, "27", "Homing/Pulloff", DEFAULT_HOMING_PULLOFF, 0, 1000);
-    homing_debounce     = new FloatSetting(GRBL, WG, "26", "Homing/Debounce", DEFAULT_HOMING_DEBOUNCE_DELAY, 0, 10000);
-    homing_seek_rate    = new FloatSetting(GRBL, WG, "25", "Homing/Seek", DEFAULT_HOMING_SEEK_RATE, 0, 10000);
-    homing_feed_rate    = new FloatSetting(GRBL, WG, "24", "Homing/Feed", DEFAULT_HOMING_FEED_RATE, 0, 10000);
-    homing_squared_axes = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Squared", DEFAULT_HOMING_SQUARED_AXES);
-
-    homing_dir_mask = new AxisMaskSetting(GRBL, WG, "23", "Homing/DirInvert", DEFAULT_HOMING_DIR_MASK);
-
-    homing_enable = new FlagSetting(GRBL, WG, "22", "Homing/Enable", DEFAULT_HOMING_ENABLE);
-
     build_info = new StringSetting(EXTENDED, WG, NULL, "Firmware/Build", "");
 
     // TODO: These affect the sender communication protocol so they
@@ -153,13 +131,6 @@ void make_settings() {
     // report_inches = new FlagSetting(GRBL, WG, "13", "Report/Inches", DEFAULT_REPORT_INCHES);
 
     status_mask = new IntSetting(GRBL, WG, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 3);
-
-    homing_cycle[5] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle5", DEFAULT_HOMING_CYCLE_5);
-    homing_cycle[4] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle4", DEFAULT_HOMING_CYCLE_4);
-    homing_cycle[3] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle3", DEFAULT_HOMING_CYCLE_3);
-    homing_cycle[2] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle2", DEFAULT_HOMING_CYCLE_2);
-    homing_cycle[1] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle1", DEFAULT_HOMING_CYCLE_1);
-    homing_cycle[0] = new AxisMaskSetting(EXTENDED, WG, NULL, "Homing/Cycle0", DEFAULT_HOMING_CYCLE_0);
 
     user_macro3 = new StringSetting(EXTENDED, WG, NULL, "User/Macro3", DEFAULT_USER_MACRO3);
     user_macro2 = new StringSetting(EXTENDED, WG, NULL, "User/Macro2", DEFAULT_USER_MACRO2);

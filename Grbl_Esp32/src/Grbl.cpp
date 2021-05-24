@@ -85,7 +85,9 @@ void grbl_init() {
         // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
         // things uncontrollably. Very bad.
 #ifdef HOMING_INIT_LOCK
-        if (homing_enable->get()) {
+        // TODO: maybe HOMING_INIT_LOCK should be configurable
+        // If there is an axis with homing configured, enter Alarm state on startup
+        if (homingAxes()) {
             sys.state = State::Alarm;
         }
 #endif

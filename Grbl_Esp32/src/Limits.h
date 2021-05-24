@@ -27,19 +27,17 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-extern uint8_t n_homing_locate_cycle;
-
 // Initialize the limits module
 void limits_init();
 
 // Disables hard limits.
 void limits_disable();
 
-// Returns limit state as a bit-wise uint8 variable.
+// Returns limit state
 AxisMask limits_get_state();
 
-// Perform one portion of the homing cycle based on the input settings.
-void limits_go_home(uint8_t cycle_mask);
+// Perform one homing operation
+void limits_go_home(AxisMask cycle_mask, uint n_locate_cycles);
 
 // Check for soft limit violations
 void limits_soft_check(float* target);
@@ -57,3 +55,5 @@ bool limitsCheckTravel(float* target);
 
 // check if a switch has been defined
 bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index);
+
+AxisMask homingAxes();

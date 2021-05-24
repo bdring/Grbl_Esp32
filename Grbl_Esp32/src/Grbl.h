@@ -94,11 +94,11 @@ void run_once();
 // Weak definitions that can be overridden
 void machine_init();
 void display_init();
-bool user_defined_homing(uint8_t cycle_mask);
+bool user_defined_homing(AxisMask cycle_mask);
 
 // weak definitions in MotionControl.cpp
 bool inverse_kinematics(float* target, plan_line_data_t* pl_data, float* position);
-bool kinematics_pre_homing(uint8_t cycle_mask);
+bool kinematics_pre_homing(AxisMask cycle_mask);
 void kinematics_post_homing();
 
 bool limitsCheckTravel(float* target);  // weak in Limits.cpp; true if out of range

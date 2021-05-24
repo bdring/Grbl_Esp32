@@ -83,7 +83,9 @@ const double INCH_PER_MM = (0.0393701);
 #define bit_istrue(x, mask) ((x & mask) != 0)
 #define bit_isfalse(x, mask) ((x & mask) == 0)
 #define bitnum_true(x, num) (x) |= bit(num)
+#define bitnum_false(x, num) (x) &= ~bit(num)
 #define bitnum_istrue(x, num) ((x & bit(num)) != 0)
+#define bitnum_isfalse(x, num) ((x & bit(num)) == 0)
 
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is

@@ -57,13 +57,13 @@ void mc_arc(float*            target,
 bool mc_dwell(int32_t milliseconds);
 
 // Perform homing cycle to locate machine zero. Requires limit switches.
-void mc_homing_cycle(uint8_t cycle_mask);
+void mc_homing_cycle(AxisMask cycle_mask);
 
 // Perform tool length probe cycle. Requires probe switch.
 GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_flags);
 
 // Handles updating the override control state.
-void mc_override_ctrl_update(uint8_t override_state);
+void mc_override_ctrl_update(Override override_state);
 
 // Plans and executes the single special motion case for parking. Independent of main planner buffer.
 void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data);
@@ -71,10 +71,10 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data);
 // Performs system reset. If in motion state, kills all motion and sets system alarm.
 void mc_reset();
 
-enum class SquaringMode : uint8_t {
-    Dual,  // both motors run
-    A,     // A motor runs
-    B,     // B motor runs
-};
+typedef uint8_t GangMask;
+const GangMask  gangA    = bit(0);
+const GangMask  gangB    = bit(1);
+const GangMask  gangDual = gangA | gangB;
 
-extern SquaringMode ganged_mode;
+// TODO: Ideally, ganged_mode would be in the planner block instead of global
+extern GangMask ganged_mode;

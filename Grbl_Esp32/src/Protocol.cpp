@@ -98,7 +98,7 @@ bool can_park() {
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
         sys.override_ctrl == Override::ParkingMotion &&
 #endif
-        homing_enable->get() && !config->_laserMode;
+        homingAxes() && !config->_laserMode;
 }
 
 /*

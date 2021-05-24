@@ -46,12 +46,14 @@ class Homing : public Configuration::Configurable {
 public:
     Homing() = default;
 
-    int  _cycle             = -1;
-    bool _positiveDirection = true;
-    int  _mpos              = 0;
-    int  _feedRate          = 500;
-    int  _seekRate          = 100;
-    int  _debounce          = 10;
+    int   _cycle             = -1;
+    bool  _square            = false;
+    bool  _positiveDirection = true;
+    float _mpos              = 0;
+    float _feedRate          = 500;
+    float _seekRate          = 100;
+    float _pulloff           = 1.0;  // mm
+    int   _debounce          = 10;
 
     // Configuration system helpers:
     void validate() const override { Assert(_cycle >= 1, "Cycle has to be defined as >= 1 for homing sequence."); }
@@ -63,6 +65,8 @@ public:
         handler.handle("feed_rate", _feedRate);
         handler.handle("seek_rate", _seekRate);
         handler.handle("debounce", _debounce);
+        handler.handle("pulloff", _pulloff);
+        handler.handle("square", _square);
     }
 };
 
@@ -83,7 +87,6 @@ public:
     int  _acceleration = 25;
     int  _maxTravel    = 200;
     bool _softLimits   = false;
-    bool _autoSquaring = false;
 
     // Configuration system helpers:
     void validate() const override;

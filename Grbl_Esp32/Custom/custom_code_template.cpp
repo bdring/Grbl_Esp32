@@ -58,13 +58,13 @@ bool limitsCheckTravel() {
 }
 
 /*
-  user_defined_homing(uint8_t cycle_mask) is called at the begining of the normal Grbl_ESP32 homing
-  sequence.  If user_defined_homing(uint8_t cycle_mask) returns false, the rest of normal Grbl_ESP32
+  user_defined_homing is called at the begining of the normal Grbl_ESP32 homing
+  sequence.  If user_defined_homing returns false, the rest of normal Grbl_ESP32
   homing is skipped if it returns false, other normal homing continues.  For
   example, if you need to manually prep the machine for homing, you could implement
-  user_defined_homing(uint8_t cycle_mask) to wait for some button to be pressed, then return true.
+  user_defined_homing to wait for some button to be pressed, then return true.
 */
-bool user_defined_homing(uint8_t cycle_mask) {
+bool user_defined_homing(AxisMask cycle_mask) {
     // True = done with homing, false = continue with normal Grbl_ESP32 homing
     return true;
 }
@@ -91,12 +91,12 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
 }
 
 /*
-  kinematics_pre_homing() is called before normal homing
+  kinematics_pre_homing is called before normal homing
   You can use it to do special homing or just to set stuff up
 
   cycle_mask is a bit mask of the axes being homed this time.
 */
-bool kinematics_pre_homing(uint8_t cycle_mask) {
+bool kinematics_pre_homing(AxisMask cycle_mask) {
     return false;  // finish normal homing cycle
 }
 

@@ -202,32 +202,15 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
         }
     }
 
-    // TODO FIXME: SdB This is not really correct... ganged_mode shouldn't be 'A' or 'B', but
-    // an index or a wildcard because for the new settings we have not bounded the number of
-    // gangs.
-
     // Turn on step pulses for motors that are supposed to step now
-    for (int axis = X_AXIS; axis < _numberAxis; axis++) {
-        if (bitnum_istrue(step_mask, axis)) {
-            auto a = _axis[axis]->_gangs[0]->_motor;
-
-            if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
-                a->step();
-            }
-            if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
-                a->step();
-            }
-        }
-    }
-
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         if (bitnum_istrue(step_mask, axis)) {
             auto a = _axis[axis];
 
-            if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::A)) {
+            if (bitnum_istrue(ganged_mode, 0)) {
                 a->_gangs[0]->_motor->step();
             }
-            if ((ganged_mode == SquaringMode::Dual) || (ganged_mode == SquaringMode::B)) {
+            if (bitnum_istrue(ganged_mode, 1)) {
                 a->_gangs[1]->_motor->step();
             }
         }
