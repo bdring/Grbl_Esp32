@@ -191,7 +191,6 @@ void runCalibration(){
 
 //Retract the lower belts until they pull tight and take a measurement
 void takeMeasurement(float lengths[]){
-    Serial.println("Taking a measurement");
     
     axis1.setTarget(axis1.getPosition());
     axis2.setTarget(axis2.getPosition());
@@ -332,9 +331,9 @@ void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float mach
 */
 bool user_defined_homing(uint8_t cycle_mask)
 {
-  // True = done with homing, false = continue with normal Grbl_ESP32 homing
-  //Serial.println("Custom homing ran");
-  //Serial.println(cycle_mask);
+  
+  grbl_sendf(CLIENT_ALL, "User defined calibration");
+  
   if(cycle_mask == 1){  //Upper left
     axis4.testEncoder();
     axis4Homed = axis4.retract(computeL1(0, 0));
