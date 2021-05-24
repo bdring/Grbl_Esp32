@@ -47,8 +47,8 @@ struct PrepFlag {
 };
 
 // fStepperTimer should be an integer divisor of the bus speed, i.e. of fTimers
-const uint32_t fStepperTimer = 20000000; // frequency of step pulse timer
-const int ticksPerMicrosecond = fStepperTimer / 1000000;
+const uint32_t fStepperTimer       = 20000000;  // frequency of step pulse timer
+const int      ticksPerMicrosecond = fStepperTimer / 1000000;
 
 // Define Adaptive Multi-Axis Step-Smoothing(AMASS) levels and cutoff frequencies. The highest level
 // frequency bin starts at 0Hz and ends at its cutoff frequency. The next lower level frequency bin
@@ -62,7 +62,7 @@ const int ticksPerMicrosecond = fStepperTimer / 1000000;
 // and timer accuracy.  Do not alter these settings unless you know what you are doing.
 
 const uint32_t amassThreshold = fStepperTimer / 8000;
-const int maxAmassLevel = 3;  // Each level increase doubles the threshold
+const int      maxAmassLevel  = 3;  // Each level increase doubles the threshold
 
 const timer_group_t STEP_TIMER_GROUP = TIMER_GROUP_0;
 const timer_idx_t   STEP_TIMER_INDEX = TIMER_0;
@@ -70,8 +70,6 @@ const timer_idx_t   STEP_TIMER_INDEX = TIMER_0;
 // esp32 work around for diable in main loop
 extern uint64_t stepper_idle_counter;
 extern bool     stepper_idle;
-
-//extern uint8_t ganged_mode;
 
 enum stepper_id_t {
     ST_TIMED = 0,
