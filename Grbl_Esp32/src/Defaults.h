@@ -140,11 +140,6 @@
 #    define DEFAULT_USER_FLOAT_94 0.0  // $94 User integer setting
 #endif
 
-// =========== 	AXIS RESOLUTION ======
-
-// ============== Axis Acceleration =========
-#define SEC_PER_MIN_SQ (60.0 * 60.0)  // Seconds Per Minute Squared, for acceleration conversion
-
 // ==================  pin defaults ========================
 
 // Here is a place to default pins to UNDEFINED_PIN.
