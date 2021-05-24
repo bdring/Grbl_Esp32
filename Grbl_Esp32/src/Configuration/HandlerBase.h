@@ -21,9 +21,9 @@ namespace Configuration {
     public:
         virtual void handle(const char* name, bool& value) = 0;
         virtual void handle(const char* name, int& value)  = 0;
-        virtual void handle(const char* name, uint& value) {
+        virtual void handle(const char* name, uint32_t& value) {
             int32_t v = int32_t(value);
-            handle(name, value);
+            handle(name, v);
             value = uint32_t(v);
         }
 
