@@ -200,36 +200,6 @@ public:
     int32_t get() { return _currentValue; }
 };
 
-class AxisMaskSetting : public Setting {
-private:
-    int32_t _defaultValue;
-    int32_t _currentValue;
-    int32_t _storedValue;
-
-public:
-    AxisMaskSetting(const char*   description,
-                    type_t        type,
-                    permissions_t permissions,
-                    const char*   grblName,
-                    const char*   name,
-                    int32_t       defVal,
-                    bool (*checker)(char*));
-
-    AxisMaskSetting(
-        type_t type, permissions_t permissions, const char* grblName, const char* name, int32_t defVal, bool (*checker)(char*) = NULL) :
-        AxisMaskSetting(NULL, type, permissions, grblName, name, defVal, checker) {}
-
-    void        load();
-    void        setDefault();
-    void        addWebui(WebUI::JSONencoder*);
-    Error       setStringValue(char* value);
-    const char* getCompatibleValue();
-    const char* getStringValue();
-    const char* getDefaultString();
-
-    int32_t get() { return _currentValue; }
-};
-
 class Coordinates {
 private:
     float       _currentValue[MAX_N_AXIS];
@@ -254,46 +224,6 @@ public:
 };
 
 extern Coordinates* coords[CoordIndex::End];
-
-class FloatSetting : public Setting {
-private:
-    float _defaultValue;
-    float _currentValue;
-    float _storedValue;
-    float _minValue;
-    float _maxValue;
-
-public:
-    FloatSetting(const char*   description,
-                 type_t        type,
-                 permissions_t permissions,
-                 const char*   grblName,
-                 const char*   name,
-                 float         defVal,
-                 float         minVal,
-                 float         maxVal,
-                 bool (*checker)(char*));
-
-    FloatSetting(type_t        type,
-                 permissions_t permissions,
-                 const char*   grblName,
-                 const char*   name,
-                 float         defVal,
-                 float         minVal,
-                 float         maxVal,
-                 bool (*checker)(char*) = NULL) :
-        FloatSetting(NULL, type, permissions, grblName, name, defVal, minVal, maxVal, checker) {}
-
-    void load();
-    void setDefault();
-    // There are no Float settings in WebUI
-    void        addWebui(WebUI::JSONencoder*) {}
-    Error       setStringValue(char* value);
-    const char* getStringValue();
-    const char* getDefaultString();
-
-    float get() { return _currentValue; }
-};
 
 class StringSetting : public Setting {
 private:
@@ -430,22 +360,6 @@ public:
     const char* getDefaultString();
 
     uint32_t get() { return _currentValue; }
-};
-
-class AxisSettings {
-public:
-    const char*   name;
-    FloatSetting* steps_per_mm;
-    FloatSetting* max_rate;
-    FloatSetting* acceleration;
-    FloatSetting* max_travel;
-    FloatSetting* run_current;
-    FloatSetting* hold_current;
-    FloatSetting* home_mpos;
-    IntSetting*   microsteps;
-    IntSetting*   stallguard;
-
-    AxisSettings(const char* axisName);
 };
 
 extern bool idleOrJog();
