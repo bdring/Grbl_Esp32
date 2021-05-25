@@ -40,17 +40,6 @@ StringSetting* user_macro1;
 StringSetting* user_macro2;
 StringSetting* user_macro3;
 
-// Construct e.g. X_MAX_RATE from axisName "X" and tail "_MAX_RATE"
-// in dynamically allocated memory that will not be freed.
-
-static const char* makename(const char* axisName, const char* tail) {
-    char* retval = (char*)malloc(strlen(axisName) + strlen(tail) + 2);
-
-    strcpy(retval, axisName);
-    strcat(retval, "/");
-    return strcat(retval, tail);
-}
-
 static bool checkStartupLine(char* value) {
     if (!value) {  // No POST functionality
         return true;
@@ -77,16 +66,6 @@ static bool checkSpindleChange(char* val) {
         return true;
     }
     return true;
-}
-
-// Generates a string like "122" from axisNum 2 and base 120
-static const char* makeGrblName(int axisNum, int base) {
-    // To omit A,B,C axes:
-    // if (axisNum > 2) return NULL;
-    char buf[4];
-    snprintf(buf, 4, "%d", axisNum + base);
-    char* retval = (char*)malloc(strlen(buf));
-    return strcpy(retval, buf);
 }
 
 void make_coordinate(CoordIndex index, const char* name) {
