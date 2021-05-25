@@ -606,15 +606,15 @@ void report_realtime_status(uint8_t client) {
     }
     report_util_axis_values(print_position, temp);
     strcat(status, temp);
+
     // Returns planner and serial read buffer states.
-#ifdef REPORT_FIELD_BUFFER_STATE
     if (bit_istrue(status_mask->get(), RtStatus::Buffer)) {
         int bufsize = DEFAULTBUFFERSIZE;
-#    if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
+#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
         if (client == CLIENT_TELNET) {
             bufsize = WebUI::telnet_server.get_rx_buffer_available();
         }
-#    endif  //ENABLE_WIFI && ENABLE_TELNET
+#endif  //ENABLE_WIFI && ENABLE_TELNET
         if (config->_comms->_bluetoothConfig != nullptr && client == CLIENT_BT) {
             //TODO FIXME
             bufsize = 512 - WebUI::SerialBT.available();
@@ -625,9 +625,8 @@ void report_realtime_status(uint8_t client) {
         sprintf(temp, "|Bf:%d,%d", plan_get_block_buffer_available(), bufsize);
         strcat(status, temp);
     }
-#endif
+
 #ifdef USE_LINE_NUMBERS
-#    ifdef REPORT_FIELD_LINE_NUMBERS
     // Report current line number
     plan_block_t* cur_block = plan_get_current_block();
     if (cur_block != NULL) {
@@ -637,18 +636,14 @@ void report_realtime_status(uint8_t client) {
             strcat(status, temp);
         }
     }
-#    endif
 #endif
     // Report realtime feed speed
-#ifdef REPORT_FIELD_CURRENT_FEED_SPEED
     if (config->_reportInches) {
         sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate() / MM_PER_INCH, sys.spindle_speed);
     } else {
         sprintf(temp, "|FS:%.0f,%d", st_get_realtime_rate(), sys.spindle_speed);
     }
     strcat(status, temp);
-#endif
-#ifdef REPORT_FIELD_PIN_STATE
     AxisMask    lim_pin_state   = limits_get_state();
     bool        prb_pin_state   = config->_probe->get_state();
     const char* pinReportPrefix = "|Pn:";
@@ -677,8 +672,6 @@ void report_realtime_status(uint8_t client) {
         status[saved_length] = '\0';
     }
 
-#endif
-#ifdef REPORT_FIELD_WORK_COORD_OFFSET
     if (sys.report_wco_counter > 0) {
         sys.report_wco_counter--;
     } else {
@@ -700,8 +693,7 @@ void report_realtime_status(uint8_t client) {
         report_util_axis_values(get_wco(), temp);
         strcat(status, temp);
     }
-#endif
-#ifdef REPORT_FIELD_OVERRIDES
+
     if (sys.report_ovr_counter > 0) {
         sys.report_ovr_counter--;
     } else {
@@ -747,7 +739,6 @@ void report_realtime_status(uint8_t client) {
             }
         }
     }
-#endif
 #ifdef ENABLE_SD_CARD
     if (get_sd_state(false) == SDState::BusyPrinting) {
         sprintf(temp, "|SD:%4.2f,", sd_report_perc_complete());

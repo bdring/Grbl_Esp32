@@ -250,19 +250,6 @@ namespace SpindleSpeedOverride {
 // to their default values at program end.
 #define RESTORE_OVERRIDES_AFTER_PROGRAM_END  // Default enabled. Comment to disable.
 
-// The status report change for Grbl v1.1 and after also removed the ability to disable/enable most data
-// fields from the report. This caused issues for GUI developers, who've had to manage several scenarios
-// and configurations. The increased efficiency of the new reporting style allows for all data fields to
-// be sent without potential performance issues.
-// NOTE: The options below are here only provide a way to disable certain data fields if a unique
-// situation demands it, but be aware GUIs may depend on this data. If disabled, it may not be compatible.
-#define REPORT_FIELD_BUFFER_STATE        // Default enabled. Comment to disable.
-#define REPORT_FIELD_PIN_STATE           // Default enabled. Comment to disable.
-#define REPORT_FIELD_CURRENT_FEED_SPEED  // Default enabled. Comment to disable.
-#define REPORT_FIELD_WORK_COORD_OFFSET   // Default enabled. Comment to disable.
-#define REPORT_FIELD_OVERRIDES           // Default enabled. Comment to disable.
-#define REPORT_FIELD_LINE_NUMBERS        // Default enabled. Comment to disable.
-
 // Some status report data isn't necessary for realtime, only intermittently, because the values don't
 // change often. The following macros configures how many times a status report needs to be called before
 // the associated data is refreshed and included in the status report. However, if one of these value
