@@ -28,6 +28,8 @@
 #include "Grbl.h"
 #include "MachineConfig.h"
 
+#include <atomic>
+
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 
 // Homing axis search distance multiplier. Computed by this value times the cycle travel.
@@ -403,6 +405,8 @@ void limits_soft_check(float* target) {
 // this is the task
 void limitCheckTask(void* pvParameters) {
     while (true) {
+        std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
+
         int evt;
         xQueueReceive(limit_sw_queue, &evt, portMAX_DELAY);  // block until receive queue
         vTaskDelay(DEBOUNCE_PERIOD / portTICK_PERIOD_MS);    // delay a while

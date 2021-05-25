@@ -56,6 +56,7 @@
 */
 
 #include "Grbl.h"
+#include <atomic>
 
 portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 
@@ -71,6 +72,7 @@ uint8_t client_get_rx_buffer_available(uint8_t client) {
 void heapCheckTask(void* pvParameters) {
     static uint32_t heapSize = 0;
     while (true) {
+        std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings and whatnot
         uint32_t newHeapSize = xPortGetFreeHeapSize();
         if (newHeapSize != heapSize) {
             heapSize = newHeapSize;
@@ -149,8 +151,9 @@ static uint8_t getClientChar(uint8_t* data) {
 // Realtime stuff is acted upon, then characters are added to the appropriate buffer
 void clientCheckTask(void* pvParameters) {
     uint8_t data = 0;
-    uint8_t client;  // who sent the data
-    while (true) {   // run continuously
+    uint8_t client;                                                         // who sent the data
+    while (true) {                                                          // run continuously
+        std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
         while ((client = getClientChar(&data)) != CLIENT_ALL) {
             // Pick off realtime command characters directly from the serial stream. These characters are
             // not passed into the main buffer, but these set system state flag bits for realtime execution.

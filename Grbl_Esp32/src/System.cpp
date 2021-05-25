@@ -22,6 +22,7 @@
 #include "Config.h"
 #include "SettingsDefinitions.h"
 #include "MachineConfig.h"
+#include <atomic>
 
 // Declare system global variable structure
 system_t               sys;
@@ -165,6 +166,7 @@ void system_ini() {  // Renamed from system_init() due to conflict with esp32 fi
 // this is the debounce task
 void controlCheckTask(void* pvParameters) {
     while (true) {
+        std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings and other state
         int evt;
         xQueueReceive(control_sw_queue, &evt, portMAX_DELAY);  // block until receive queue
         vTaskDelay(CONTROL_SW_DEBOUNCE_PERIOD);                // delay a while

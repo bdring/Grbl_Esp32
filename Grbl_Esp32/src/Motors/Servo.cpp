@@ -32,6 +32,8 @@
 #include "Servo.h"
 #include "../MachineConfig.h"
 
+#include <atomic>
+
 namespace Motors {
     Servo* Servo::List = NULL;
 
@@ -62,6 +64,7 @@ namespace Motors {
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
         vTaskDelay(2000);                     // initial delay
         while (true) {                        // don't ever return from this or the task dies
+            std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
             for (Servo* p = List; p; p = p->link) {
                 p->update();
             }

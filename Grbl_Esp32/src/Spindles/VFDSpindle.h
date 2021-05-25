@@ -81,8 +81,8 @@ namespace Spindles {
 
         // TODO FIXME: Have to make these public because of the parsers.
         // Should hide them and use a member function.
-        volatile uint32_t _min_rpm;
-        volatile uint32_t _max_rpm;
+        uint32_t          _min_rpm;
+        uint32_t          _max_rpm;
         volatile uint32_t _sync_rpm;
         volatile bool     _syncing;
 

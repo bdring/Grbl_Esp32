@@ -21,6 +21,7 @@
 #include "../MachineConfig.h"
 
 #include <TMCStepper.h>
+#include <atomic>
 
 #ifdef USE_I2S_OUT
 
@@ -365,6 +366,7 @@ namespace Motors {
 
         xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
         while (true) {                        // don't ever return from this or the task dies
+            std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
             if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
                 for (TrinamicDriver* p = List; p; p = p->link) {
                     if (p->_stallguardDebugMode) {

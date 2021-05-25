@@ -34,6 +34,7 @@
 */
 #include "VFDSpindle.h"
 #include "../MachineConfig.h"
+#include <atomic>
 
 const uart_port_t VFD_RS485_UART_PORT  = UART_NUM_2;  // hard coded for this port right now
 const int         VFD_RS485_BUF_SIZE   = 127;
@@ -61,6 +62,7 @@ namespace Spindles {
         uint8_t       rx_message[VFD_RS485_MAX_MSG_SIZE];
 
         while (true) {
+            std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
             response_parser parser = nullptr;
 
             next_cmd.msg[0] = VFD_RS485_ADDR;  // Always default to this
