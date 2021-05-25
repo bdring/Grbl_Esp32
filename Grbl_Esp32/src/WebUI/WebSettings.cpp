@@ -79,14 +79,8 @@ namespace WebUI {
         { "STA", ESP_WIFI_STA },
         { "AP", ESP_WIFI_AP },
 #    endif
-#    ifdef ENABLE_BLUETOOTH
         { "BT", ESP_BT },
-#    endif
     };
-#endif
-
-#ifdef ENABLE_BLUETOOTH
-    StringSetting* bt_name;
 #endif
 
 #ifdef ENABLE_NOTIFICATIONS
@@ -562,27 +556,28 @@ namespace WebUI {
                 break;
         }
 #endif  // ENABLE_WIFI
-#ifdef ENABLE_BLUETOOTH
-        webPrint("Current BT Mode: ");
-        if (bt_config.Is_BT_on()) {
-            webPrintln("On");
+        if (config->_comms->_bluetoothConfig != nullptr) {
+            auto bt_config = config->_comms->_bluetoothConfig;
+            webPrint("Current BT Mode: ");
+            if (bt_config->Is_BT_on()) {
+                webPrintln("On");
 
-            webPrint("BT Name: ");
-            webPrint(bt_config.BTname());
-            webPrint("(");
-            webPrint(bt_config.device_address());
-            webPrintln(")");
+                webPrint("BT Name: ");
+                webPrint(bt_config->BTname());
+                webPrint("(");
+                webPrint(bt_config->device_address());
+                webPrintln(")");
 
-            webPrint("Status: ");
-            if (SerialBT.hasClient()) {
-                webPrintln("Connected with ", bt_config._btclient);
+                webPrint("Status: ");
+                if (SerialBT.hasClient()) {
+                    webPrintln("Connected with ", bt_config->client_name());
+                } else {
+                    webPrintln("Not connected");
+                }
             } else {
-                webPrintln("Not connected");
+                webPrintln("Off");
             }
-        } else {
-            webPrintln("Off");
         }
-#endif
 #ifdef ENABLE_NOTIFICATIONS
         webPrint("Notifications: ");
         webPrint(notificationsservice.started() ? "Enabled" : "Disabled");
@@ -910,11 +905,11 @@ namespace WebUI {
                 on = true;
             }
 #endif
-#if defined(ENABLE_BLUETOOTH)
-            if (bt_config.Is_BT_on()) {
+
+            if (config->_comms->_bluetoothConfig != nullptr && config->_comms->_bluetoothConfig->Is_BT_on()) {
                 on = true;
             }
-#endif
+
             webPrintln(on ? "ON" : "OFF");
             return Error::Ok;
         }
@@ -935,11 +930,12 @@ namespace WebUI {
             wifi_config.StopWiFi();
         }
 #endif
-#if defined(ENABLE_BLUETOOTH)
-        if (bt_config.Is_BT_on()) {
-            bt_config.end();
+        if (config->_comms->_bluetoothConfig != nullptr) {
+            if (config->_comms->_bluetoothConfig->Is_BT_on()) {
+                config->_comms->_bluetoothConfig->end();
+            }
         }
-#endif
+
         //if On start proper service
         if (!on) {
             webPrintln("[MSG: Radio is Off]");
@@ -959,13 +955,13 @@ namespace WebUI {
                 return Error::Ok;
 #    endif
             case ESP_BT:
-#    if !defined(ENABLE_BLUETOOTH)
-                webPrintln("Bluetooth is not enabled!");
-                return Error::BtFailBegin;
-#    else
-                bt_config.begin();
-                return Error::Ok;
-#    endif
+                if (config->_comms->_bluetoothConfig == nullptr) {
+                    webPrintln("Bluetooth is not enabled!");
+                    return Error::BtFailBegin;
+                } else {
+                    config->_comms->_bluetoothConfig->begin();
+                    return Error::Ok;
+                }
             default:
                 webPrintln("[MSG: Radio is Off]");
                 return Error::Ok;
@@ -1142,17 +1138,6 @@ namespace WebUI {
                                            MIN_LOCAL_PASSWORD_LENGTH,
                                            MAX_LOCAL_PASSWORD_LENGTH,
                                            &COMMANDS::isLocalPasswordValid);
-#endif
-#ifdef ENABLE_BLUETOOTH
-        bt_name = new StringSetting("Bluetooth name",
-                                    WEBSET,
-                                    WA,
-                                    "ESP140",
-                                    "Bluetooth/Name",
-                                    DEFAULT_BT_NAME,
-                                    WebUI::BTConfig::MIN_BTNAME_LENGTH,
-                                    WebUI::BTConfig::MAX_BTNAME_LENGTH,
-                                    (bool (*)(char*))BTConfig::isBTnameValid);
 #endif
 
 #ifdef WIFI_OR_BLUETOOTH

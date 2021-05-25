@@ -69,10 +69,6 @@ const char* const GRBL_VERSION_BUILD = "20210326";
 // Do not guard this because it is needed for local files too
 #include "SDCard.h"
 
-#ifdef ENABLE_BLUETOOTH
-#    include "WebUI/BTConfig.h"
-#endif
-
 #ifdef ENABLE_WIFI
 #    include "WebUI/WifiConfig.h"
 #    ifdef ENABLE_HTTP

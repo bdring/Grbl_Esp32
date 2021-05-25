@@ -56,6 +56,7 @@
 */
 
 #include "Grbl.h"
+#include "MachineConfig.h"
 #include <atomic>
 
 portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
@@ -124,14 +125,14 @@ static uint8_t getClientChar(uint8_t* data) {
         return CLIENT_INPUT;
     }
     //currently is wifi or BT but better to prepare both can be live
-#ifdef ENABLE_BLUETOOTH
-    if (WebUI::SerialBT.hasClient()) {
-        if ((res = WebUI::SerialBT.read()) != -1) {
-            *data = res;
-            return CLIENT_BT;
+    if (config->_comms->_bluetoothConfig != nullptr) {
+        if (WebUI::SerialBT.hasClient()) {
+            if ((res = WebUI::SerialBT.read()) != -1) {
+                *data = res;
+                return CLIENT_BT;
+            }
         }
     }
-#endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
     if (WebUI::Serial2Socket.available()) {
         *data = WebUI::Serial2Socket.read();
@@ -180,9 +181,9 @@ void clientCheckTask(void* pvParameters) {
 #ifdef ENABLE_WIFI
         WebUI::wifi_config.handle();
 #endif
-#ifdef ENABLE_BLUETOOTH
-        WebUI::bt_config.handle();
-#endif
+        if (config->_comms->_bluetoothConfig != nullptr) {
+            config->_comms->_bluetoothConfig->handle();
+        }
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_IN)
         WebUI::Serial2Socket.handle_flush();
 #endif
@@ -331,12 +332,12 @@ void client_write(uint8_t client, const char* text) {
     if (client == CLIENT_INPUT) {
         return;
     }
-#ifdef ENABLE_BLUETOOTH
-    if (WebUI::SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
-        WebUI::SerialBT.print(text);
-        //delay(10); // possible fix for dropped characters
+    if (config->_comms->_bluetoothConfig != nullptr) {
+        if (WebUI::SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
+            WebUI::SerialBT.print(text);
+            //delay(10); // possible fix for dropped characters
+        }
     }
-#endif
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP) && defined(ENABLE_SERIAL2SOCKET_OUT)
     if (client == CLIENT_WEBUI || client == CLIENT_ALL) {
         WebUI::Serial2Socket.write((const uint8_t*)text, strlen(text));

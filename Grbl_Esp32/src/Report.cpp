@@ -528,9 +528,9 @@ void report_build_info(const char* line, uint8_t client) {
 #ifdef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
     grbl_send(client, "A");
 #endif
-#ifdef ENABLE_BLUETOOTH
-    grbl_send(client, "B");
-#endif
+    if (config->_comms->_bluetoothConfig != nullptr) {
+        grbl_send(client, "B");
+    }
 #ifdef ENABLE_SD_CARD
     grbl_send(client, "S");
 #endif
@@ -562,9 +562,9 @@ void report_build_info(const char* line, uint8_t client) {
 #if defined(ENABLE_WIFI)
     grbl_send(client, (char*)WebUI::wifi_config.info());
 #endif
-#if defined(ENABLE_BLUETOOTH)
-    grbl_send(client, (char*)WebUI::bt_config.info());
-#endif
+    if (config->_comms->_bluetoothConfig != nullptr) {
+        grbl_send(client, config->_comms->_bluetoothConfig->info().c_str());
+    }
 }
 
 // Prints the character string line Grbl has received from the user, which has been pre-parsed,
@@ -609,12 +609,10 @@ void report_realtime_status(uint8_t client) {
             bufsize = WebUI::telnet_server.get_rx_buffer_available();
         }
 #    endif  //ENABLE_WIFI && ENABLE_TELNET
-#    if defined(ENABLE_BLUETOOTH)
-        if (client == CLIENT_BT) {
+        if (config->_comms->_bluetoothConfig != nullptr && client == CLIENT_BT) {
             //TODO FIXME
             bufsize = 512 - WebUI::SerialBT.available();
         }
-#    endif  //ENABLE_BLUETOOTH
         if (client == CLIENT_SERIAL) {
             bufsize = client_get_rx_buffer_available(CLIENT_SERIAL);
         }

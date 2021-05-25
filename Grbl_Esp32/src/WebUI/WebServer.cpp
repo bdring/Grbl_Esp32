@@ -19,6 +19,7 @@
 */
 
 #include "../Grbl.h"
+#include "../MachineConfig.h"
 
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
 
@@ -484,16 +485,17 @@ namespace WebUI {
             } else {
                 espresponse->flush();
             }
-            if(espresponse) delete(espresponse);
+            if (espresponse)
+                delete (espresponse);
         } else {  //execute GCODE
             if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
                 _webserver->send(401, "text/plain", "Authentication failed!\n");
                 return;
             }
             //Instead of send several commands one by one by web  / send full set and split here
-            String      scmd;
-            bool hasError =false;
-            uint8_t     sindex = 0;
+            String  scmd;
+            bool    hasError = false;
+            uint8_t sindex   = 0;
             // TODO Settings - this is very inefficient.  get_Splited_Value() is O(n^2)
             // when it could easily be O(n).  Also, it would be just as easy to push
             // the entire string into Serial2Socket and pull off lines from there.
@@ -516,7 +518,7 @@ namespace WebUI {
                     hasError = true;
                 }
             }
-            _webserver->send(200, "text/plain", hasError?"Error":"");
+            _webserver->send(200, "text/plain", hasError ? "Error" : "");
         }
     }
 
@@ -1224,9 +1226,9 @@ namespace WebUI {
         String path    = "/";
         String sstatus = "Ok";
         if ((_upload_status == UploadStatusType::FAILED) || (_upload_status == UploadStatusType::FAILED)) {
-            sstatus        = "Upload failed";
+            sstatus = "Upload failed";
         }
-        _upload_status = UploadStatusType::NONE;
+        _upload_status      = UploadStatusType::NONE;
         bool     list_files = true;
         uint64_t totalspace = 0;
         uint64_t usedspace  = 0;

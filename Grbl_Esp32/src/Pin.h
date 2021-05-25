@@ -37,7 +37,7 @@ class Pin {
     // Helper for handling callbacks and mapping them to the proper class:
     template <typename ThisType, void (ThisType::*Callback)()>
     struct InterruptCallbackHelper {
-        static void IRAM_ATTR callback(void* ptr) { static_cast<ThisType*>(ptr)->*Callback(); }
+        static void IRAM_ATTR callback(void* ptr) { (static_cast<ThisType*>(ptr)->*Callback)(); }
     };
 
     // Helper for handling callbacks and mapping them to the proper class. This one is just meant
@@ -67,6 +67,8 @@ public:
 
     static const bool On  = true;
     static const bool Off = false;
+
+    inline static Pin create(const char* str) { return create(StringRange(str)); }
 
     static Pin  create(const StringRange& str);
     static Pin  create(const String& str);

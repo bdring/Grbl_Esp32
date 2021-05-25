@@ -38,9 +38,6 @@ void settings_restore(uint8_t restore_flag) {
 #    ifdef ENABLE_WIFI
         WebUI::wifi_config.reset_settings();
 #    endif
-#    ifdef ENABLE_BLUETOOTH
-        WebUI::bt_config.reset_settings();
-#    endif
     }
 #endif
     if (restore_flag & SettingsRestore::Defaults) {

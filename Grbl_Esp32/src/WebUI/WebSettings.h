@@ -48,10 +48,6 @@ namespace WebUI {
     extern EnumSetting* wifi_radio_mode;
 #endif
 
-#ifdef ENABLE_BLUETOOTH
-    extern StringSetting* bt_name;
-#endif
-
 #ifdef ENABLE_AUTHENTICATION
     extern StringSetting* user_password;
     extern StringSetting* admin_password;

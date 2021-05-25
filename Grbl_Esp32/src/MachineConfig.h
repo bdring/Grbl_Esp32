@@ -23,6 +23,7 @@
 #include "Configuration/HandlerBase.h"
 #include "Configuration/Configurable.h"
 #include "CoolantControl.h"
+#include "WebUI/BTConfig.h"
 #include "Probe.h"
 
 // TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
@@ -200,17 +201,6 @@ public:
     ~SPIBus() = default;
 };
 
-class BluetoothConfig : public Configuration::Configurable {
-public:
-    BluetoothConfig() = default;
-
-    String _name = "grbl_esp32";
-
-    void validate() const override { Assert(_name.length() > 0, "Bluetooth must have a name if it's configured"); }
-
-    void handle(Configuration::HandlerBase& handler) override { handler.handle("_name", _name); }
-};
-
 class WifiConfig : public Configuration::Configurable {
 public:
     WifiConfig() = default;
@@ -327,7 +317,7 @@ public:
 
     String _hostname = "grblesp";
 
-    BluetoothConfig* _bluetoothConfig = nullptr;
+    WebUI::BTConfig* _bluetoothConfig = nullptr;
     WifiAPConfig*    _apConfig        = nullptr;
     WifiSTAConfig*   _staConfig       = nullptr;
 

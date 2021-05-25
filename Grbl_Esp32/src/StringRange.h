@@ -81,9 +81,6 @@ public:
     const char* begin() const { return start_; }
     const char* end() const { return end_; }
 
-#ifndef ESP32
-    std::string str() const { return std::string(begin(), end()); }
-#else
     String str() const {
         // TODO: Check if we can eliminate this function. I'm pretty sure we can.
         auto  len = length();
@@ -94,5 +91,4 @@ public:
         delete[] buf;
         return tmp;
     }
-#endif
 };

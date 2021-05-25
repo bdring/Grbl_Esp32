@@ -4,6 +4,8 @@
   BTConfig.h -  Bluetooth functions class
 
   Copyright (c) 2014 Luc Lebosse. All rights reserved.
+  Copyright (c) 2021 Stefan de Bruijn. Changed to a class based structure, 
+                     fixed multiple bugs with static and added configuration.            
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -19,42 +21,50 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
-#    error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
-#endif
-
-//defaults values
-const char* const DEFAULT_BT_NAME = "btgrblesp";
 
 #include <BluetoothSerial.h>
+#include "../Configuration/Configurable.h"
 
 namespace WebUI {
     extern BluetoothSerial SerialBT;
 
-    class BTConfig {
-        //boundaries
-    public:
+    class BTConfig : public Configuration::Configurable {
+    private:
+        static BTConfig* instance;  // BT Callback does not support passing parameters. Sigh.
+
+        String _btclient = "";
+        String _btname   = "btgrblesp";
+        char   _deviceAddrBuffer[18];
+
         static const int MAX_BTNAME_LENGTH = 32;
         static const int MIN_BTNAME_LENGTH = 1;
 
+        static void my_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t* param);
+
+        //boundaries
+    public:
         BTConfig();
 
-        static const char* info();
-        static bool        isBTnameValid(const char* hostname);
-        static String      BTname() { return _btname; }
-        static const char* device_address();
-        static void        begin();
-        static void        end();
-        static void        handle();
-        static void        reset_settings();
-        static bool        Is_BT_on();
-        static String      _btclient;
+        void validate() const override {
+            Assert(_btname.length() > 0, "Bluetooth must have a name if it's configured");
+            Assert(_btname.length() >= MIN_BTNAME_LENGTH && _btname.length() <= MAX_BTNAME_LENGTH,
+                   "Bluetooth name must be between %d and %d characters long",
+                   MIN_BTNAME_LENGTH,
+                   MAX_BTNAME_LENGTH);
+        }
+        void handle(Configuration::HandlerBase& handler) override { handler.handle("_name", _btname); }
+
+        String        info();
+        bool          isBTnameValid(const char* hostname);
+        const String& BTname() const { return _btname; }
+        const String& client_name() const { return _btclient; }
+        const char*   device_address();
+        void          begin();
+        void          end();
+        void          handle();
+        void          reset_settings();
+        bool          Is_BT_on() const;
 
         ~BTConfig();
-
-    private:
-        static String _btname;
     };
-
-    extern BTConfig bt_config;
 }

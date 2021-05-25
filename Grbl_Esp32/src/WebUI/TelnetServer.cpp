@@ -19,6 +19,7 @@
 */
 
 #include "../Grbl.h"
+#include "../MachineConfig.h"
 
 #if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
 

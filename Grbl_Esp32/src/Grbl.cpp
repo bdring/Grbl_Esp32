@@ -99,10 +99,11 @@ void grbl_init() {
         WebUI::wifi_config.begin();
 #endif
 
-#ifdef ENABLE_BLUETOOTH
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing Bluetooth...");
-        WebUI::bt_config.begin();
-#endif
+        if (config->_comms->_bluetoothConfig != nullptr) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing Bluetooth...");
+
+            config->_comms->_bluetoothConfig->begin();
+        }
         WebUI::inputBuffer.begin();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:

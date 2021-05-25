@@ -29,6 +29,7 @@
 // - https://www.electronicshub.org/send-an-email-using-esp8266/
 
 #include "../Grbl.h"
+#include "../MachineConfig.h"
 
 #ifdef ENABLE_NOTIFICATIONS
 #    include "NotificationsService.h"
