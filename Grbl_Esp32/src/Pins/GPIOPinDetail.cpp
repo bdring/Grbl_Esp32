@@ -136,7 +136,7 @@ namespace Pins {
         int value = _readWriteMask ^ high;
         __digitalWrite(_index, value);
     }
-    int GPIOPinDetail::read() {
+    int IRAM_ATTR GPIOPinDetail::read() {
         auto raw = __digitalRead(_index);
         return raw ^ _readWriteMask;
     }
