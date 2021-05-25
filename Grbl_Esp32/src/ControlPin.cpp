@@ -8,13 +8,10 @@
 void IRAM_ATTR ControlPin::handleISR() {
     bool pinState = _pin.read();
     _value        = pinState;
+
     if (_rtVariable) {
         *_rtVariable = pinState;
     }
-}
-
-void /* IRAM_ATTR */ ControlPin::handle_control_pin(void* arg) {
-    ((ControlPin*)arg)->handleISR();
 }
 
 void ControlPin::init() {
@@ -25,6 +22,6 @@ void ControlPin::init() {
             attr = attr | Pin::Attr::PullUp;
         }
         _pin.setAttr(attr);
-        _pin.attachInterrupt(ControlPin::handle_control_pin, CHANGE, (void*)this);
+        _pin.attachInterrupt<ControlPin, &ControlPin::handleISR>(this, CHANGE);
     }
 }
