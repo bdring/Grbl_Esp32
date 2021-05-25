@@ -26,6 +26,7 @@
 #include "WebUI/BTConfig.h"
 #include "Control.h"
 #include "Probe.h"
+#include "SDCardPin.h"
 
 // TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
 
@@ -372,6 +373,7 @@ public:
     Communications* _comms       = nullptr;
     Control*        _control     = nullptr;
     UserOutputs*    _userOutputs = nullptr;
+    SDCard*         _sdCard      = nullptr;
 
     int _pulseMicroSeconds          = 3;
     int _directionDelayMilliSeconds = 0;

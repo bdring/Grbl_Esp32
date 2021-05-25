@@ -333,28 +333,6 @@ struct cmp_str {
 };
 typedef std::map<const char*, int8_t, cmp_str> enum_opt_t;
 
-class PinSetting : public Setting {
-private:
-    // We don't want Pin to claim an actual pin for default and stored value. Hence, these are
-    // stored as a string.
-    const char* _defaultValue;
-    String      _storedValue;
-    Pin         _currentValue;
-
-public:
-    PinSetting(const char* description, const char* name, const char* defVal, bool (*checker)(char*));
-    PinSetting(const char* name, const char* defVal, bool (*checker)(char*) = NULL) : PinSetting(NULL, name, defVal, checker) {};
-
-    void        load();
-    void        setDefault();
-    void        addWebui(WebUI::JSONencoder*);
-    Error       setStringValue(char* value);
-    const char* getStringValue();
-    const char* getDefaultString();
-
-    inline Pin get() { return _currentValue; }
-};
-
 class EnumSetting : public Setting {
 private:
     int8_t                                  _defaultValue;

@@ -371,6 +371,7 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("name", _name);
     handler.handle("idle_time", _idleTime);
     handler.handle("user_outputs", _userOutputs);
+    handler.handle("sdcard", _sdCard);
 
     // TODO: Consider putting these under a gcode: hierarchy level? Or motion control?
     handler.handle("laser_mode", _laserMode);
@@ -398,6 +399,10 @@ void MachineConfig::afterParse() {
 
     if (_userOutputs == nullptr) {
         _userOutputs = new UserOutputs();
+    }
+
+    if (_sdCard == nullptr) {
+        _sdCard = new SDCard();
     }
 
     if (_control == nullptr) {

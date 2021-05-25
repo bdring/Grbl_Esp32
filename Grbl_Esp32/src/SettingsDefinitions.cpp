@@ -77,8 +77,6 @@ void make_coordinate(CoordIndex index, const char* name) {
     }
 }
 
-extern void make_pin_settings();
-
 void make_settings() {
     Setting::init();
 
@@ -117,6 +115,4 @@ void make_settings() {
     user_macro0 = new StringSetting(EXTENDED, WG, NULL, "User/Macro0", DEFAULT_USER_MACRO0);
 
     message_level = +new EnumSetting(NULL, EXTENDED, WG, NULL, "Message/Level", static_cast<int8_t>(MsgLevel::Info), &messageLevels, NULL);
-
-    make_pin_settings();  // Created in PinSettingsDefinitions.cpp
 }
