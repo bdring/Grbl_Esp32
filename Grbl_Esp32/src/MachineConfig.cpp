@@ -350,6 +350,7 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("axes", _axes);
     handler.handle("i2so", _i2so);
     handler.handle("spi", _spi);
+    handler.handle("control", _control);
     handler.handle("coolant", _coolant);
     handler.handle("probe", _probe);
     handler.handle("pulse_microseconds", _pulseMicroSeconds);

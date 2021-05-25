@@ -292,6 +292,7 @@ ControlPins system_control_get_state() {
     return pin_states;
 }
 
+// TODO: make this work with Control.cpp
 // execute the function of the control pin
 void system_exec_control_pin(ControlPins pins) {
     if (pins.bit.reset) {

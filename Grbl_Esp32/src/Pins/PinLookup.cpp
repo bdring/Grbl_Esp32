@@ -16,6 +16,8 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <Arduino.h>
+
 #include "PinLookup.h"
 #include "PinAttributes.h"
 
@@ -23,8 +25,6 @@
 #include "ErrorPinDetail.h"
 #include "GPIOPinDetail.h"
 #include "PinOptionsParser.h"
-
-#include <Arduino.h>
 
 namespace Pins {
     PinLookup PinLookup::_instance;
