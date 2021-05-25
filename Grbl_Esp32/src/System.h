@@ -114,48 +114,34 @@ typedef struct {
 } system_t;
 extern system_t sys;
 
-// Control pin states
-struct ControlPinBits {
-    uint8_t safetyDoor : 1;
-    uint8_t reset : 1;
-    uint8_t feedHold : 1;
-    uint8_t cycleStart : 1;
-    uint8_t macro0 : 1;
-    uint8_t macro1 : 1;
-    uint8_t macro2 : 1;
-    uint8_t macro3 : 1;
-};
-union ControlPins {
-    uint8_t        value;
-    ControlPinBits bit;
-};
-
 // NOTE: These position variables may need to be declared as volatiles, if problems arise.
 extern int32_t sys_position[MAX_N_AXIS];        // Real-time machine (aka home) position vector in steps.
 extern int32_t sys_probe_position[MAX_N_AXIS];  // Last probe position in machine coordinates and steps.
 
 extern volatile ProbeState    sys_probe_state;    // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
-extern volatile ExecState     sys_rt_exec_state;  // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
 extern volatile ExecAlarm     sys_rt_exec_alarm;  // Global realtime executor bitflag variable for setting various alarms.
 extern volatile ExecAccessory sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
 extern volatile Percent       sys_rt_f_override;               // Feed override value in percent
 extern volatile Percent       sys_rt_r_override;               // Rapid feed override value in percent
 extern volatile Percent       sys_rt_s_override;               // Spindle override value in percent
-extern volatile bool          cycle_stop;
+extern volatile bool          rtStatusReport;
+extern volatile bool          rtCycleStart;
+extern volatile bool          rtFeedHold;
+extern volatile bool          rtReset;
+extern volatile bool          rtSafetyDoor;
+extern volatile bool          rtMotionCancel;
+extern volatile bool          rtSleep;
+extern volatile bool          rtCycleStop;
+extern volatile bool          rtButtonMacro0;
+extern volatile bool          rtButtonMacro1;
+extern volatile bool          rtButtonMacro2;
+extern volatile bool          rtButtonMacro3;
 extern volatile void* sys_pl_data_inflight;  // holds a plan_line_data_t while cartesian_to_motors has taken ownership of a line motion
 #ifdef DEBUG
 extern volatile bool sys_rt_exec_debug;
 #endif
 
-void system_ini();  // Renamed from system_init() due to conflict with esp32 files
-
-// Returns bitfield of control pin states, organized by CONTROL_PIN_INDEX. (1=triggered, 0=not triggered).
-ControlPins system_control_get_state();
-
-// Returns if safety door is ajar(T) or closed(F), based on pin state.
-uint8_t system_check_safety_door_ajar();
-
-void isr_control_inputs(void*);
+void init_output_pins();  // Renamed from system_init() due to conflict with esp32 files
 
 // Execute the startup script lines stored in non-volatile storage upon initialization
 void  system_execute_startup(char* line);
@@ -171,10 +157,6 @@ float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx);
 // Updates a machine 'position' array based on the 'step' array sent.
 void   system_convert_array_steps_to_mpos(float* position, int32_t* steps);
 float* system_get_mpos();
-
-// A task that runs after a control switch interrupt for debouncing.
-void controlCheckTask(void* pvParameters);
-void system_exec_control_pin(ControlPins pins);
 
 bool sys_set_digital(uint8_t io_num, bool turnOn);
 void sys_digital_all_off();

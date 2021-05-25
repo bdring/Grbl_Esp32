@@ -23,22 +23,12 @@
 
 #include "Grbl.h"
 #include "Control.h"
-
-// TODO: the plumbing to communicate with System.cpp is not yet done.
-// These variables are placeholders.
-bool rtSafetyDoor;
-bool rtReset;
-bool rtFeedHold;
-bool rtCycleStart;
-bool rtButtonMacro0;
-bool rtButtonMacro1;
-bool rtButtonMacro2;
-bool rtButtonMacro3;
+#include "System.h"
 
 Control::Control() :
-    _safetyDoor(0, &rtSafetyDoor, "Door", 'D'), _reset(1, &rtReset, "Reset", 'R'), _feedHold(2, &rtFeedHold, "FeedHold", 'H'),
-    _cycleStart(3, &rtCycleStart, "CycleStart", 'S'), _macro0(4, &rtButtonMacro0, "Macro 0", '0'),
-    _macro1(5, &rtButtonMacro1, "Macro 1", '1'), _macro2(6, &rtButtonMacro2, "Macro 2", '2'), _macro3(7, &rtButtonMacro3, "Macro 3", '3') {}
+    _safetyDoor(0, rtSafetyDoor, "Door", 'D'), _reset(1, rtReset, "Reset", 'R'), _feedHold(2, rtFeedHold, "FeedHold", 'H'),
+    _cycleStart(3, rtCycleStart, "CycleStart", 'S'), _macro0(4, rtButtonMacro0, "Macro 0", '0'), _macro1(5, rtButtonMacro1, "Macro 1", '1'),
+    _macro2(6, rtButtonMacro2, "Macro 2", '2'), _macro3(7, rtButtonMacro3, "Macro 3", '3') {}
 
 void Control::init() {
     _safetyDoor.init();
@@ -63,12 +53,22 @@ void Control::handle(Configuration::HandlerBase& handler) {
     handler.handle("macro2", _macro2._pin);
     handler.handle("macro3", _macro3._pin);
 }
-#if 0
+
+void Control::report(char* status, bool& pinReportStarted) {
+    _safetyDoor.report(status, pinReportStarted);
+    _reset.report(status, pinReportStarted);
+    _feedHold.report(status, pinReportStarted);
+    _cycleStart.report(status, pinReportStarted);
+    _macro0.report(status, pinReportStarted);
+    _macro1.report(status, pinReportStarted);
+    _macro2.report(status, pinReportStarted);
+    _macro3.report(status, pinReportStarted);
+}
+
 // Returns if safety door is ajar(T) or closed(F), based on pin state.
-bool system_check_safety_door_ajar() {
+bool Control::system_check_safety_door_ajar() {
     // If a safety door pin is not defined, this will return false
     // because that is the default for the value field, which will
     // never be changed for an undefined pin.
     return _safetyDoor.get();
 }
-#endif

@@ -344,6 +344,19 @@ void SPIBus::handle(Configuration::HandlerBase& handler) {
     handler.handle("mosi", _sck);
 }
 
+void UserOutputs::validate() const {}
+
+void UserOutputs::handle(Configuration::HandlerBase& handler) {
+    handler.handle("analog0", _analogOutput[0]);
+    handler.handle("analog1", _analogOutput[1]);
+    handler.handle("analog2", _analogOutput[2]);
+    handler.handle("analog3", _analogOutput[3]);
+    handler.handle("digital0", _digitalOutput[0]);
+    handler.handle("digital1", _digitalOutput[1]);
+    handler.handle("digital2", _digitalOutput[2]);
+    handler.handle("digital3", _digitalOutput[3]);
+}
+
 void MachineConfig::validate() const {}
 
 void MachineConfig::handle(Configuration::HandlerBase& handler) {
@@ -357,7 +370,9 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("board", _board);
     handler.handle("name", _name);
     handler.handle("idle_time", _idleTime);
-    // TODO: Consider putting these under a gcode: hierarchy level
+    handler.handle("user_outputs", _userOutputs);
+
+    // TODO: Consider putting these under a gcode: hierarchy level? Or motion control?
     handler.handle("laser_mode", _laserMode);
     handler.handle("arc_tolerance", _arcTolerance);
     handler.handle("junction_deviation", _junctionDeviation);
@@ -379,6 +394,15 @@ void MachineConfig::afterParse() {
     if (_probe == nullptr) {
         log_info("Probe config missing; building default probe");
         _probe = new Probe();
+    }
+
+    if (_userOutputs == nullptr) {
+        _userOutputs = new UserOutputs();
+    }
+
+    if (_control == nullptr) {
+        log_info("Control config missing; building default");
+        _control = new Control();
     }
 }
 

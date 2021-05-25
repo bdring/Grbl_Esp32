@@ -2,6 +2,8 @@
 #include <map>
 #include "Regex.h"
 
+#include "MachineConfig.h"
+
 // WG Readable and writable as guest
 // WU Readable and writable as user and admin
 // WA Readable as user and admin, writable as admin
@@ -222,7 +224,7 @@ Error toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
 Error disable_alarm_lock(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (sys.state == State::Alarm) {
         // Block if safety door is ajar.
-        if (system_check_safety_door_ajar()) {
+        if (config->_control->system_check_safety_door_ajar()) {
             return Error::CheckDoor;
         }
         report_feedback_message(Message::AlarmUnlock);
@@ -239,7 +241,7 @@ Error home(int cycle) {
     if (homingAxes()) {
         return Error::SettingDisabled;
     }
-    if (system_check_safety_door_ajar()) {
+    if (config->_control->system_check_safety_door_ajar()) {
         return Error::CheckDoor;  // Block if safety door is ajar.
     }
     sys.state = State::Homing;  // Set system state variable
@@ -291,7 +293,7 @@ Error home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ES
     return home(bit(C_AXIS));
 }
 Error sleep_grbl(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    sys_rt_exec_state.bit.sleep = true;
+    rtSleep = true;
     return Error::Ok;
 }
 Error get_report_build_info(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {

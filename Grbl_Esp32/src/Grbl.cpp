@@ -66,7 +66,8 @@ void grbl_init() {
         config->_axes->init();
 
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing system...");
-        system_ini();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
+        config->_control->init();
+        init_output_pins();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
 
         machine_init();  // user supplied function for special initialization
@@ -126,10 +127,16 @@ static void reset_variables() {
     memset(sys_probe_position, 0, sizeof(sys_probe_position));  // Clear probe position.
 
     sys_probe_state                      = ProbeState::Off;
-    sys_rt_exec_state.value              = 0;
+    rtStatusReport                       = false;
+    rtCycleStart                         = false;
+    rtFeedHold                           = false;
+    rtReset                              = false;
+    rtSafetyDoor                         = false;
+    rtMotionCancel                       = false;
+    rtSleep                              = false;
+    rtCycleStop                          = false;
     sys_rt_exec_accessory_override.value = 0;
     sys_rt_exec_alarm                    = ExecAlarm::None;
-    cycle_stop                           = false;
     sys_rt_f_override                    = FeedOverride::Default;
     sys_rt_r_override                    = RapidOverride::Default;
     sys_rt_s_override                    = SpindleSpeedOverride::Default;

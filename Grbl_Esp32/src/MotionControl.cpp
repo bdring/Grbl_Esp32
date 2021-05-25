@@ -450,7 +450,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     // Activate the probing state monitor in the stepper module.
     sys_probe_state = ProbeState::Active;
     // Perform probing cycle. Wait here until probe is triggered or motion completes.
-    sys_rt_exec_state.bit.cycleStart = true;
+    rtCycleStart = true;
     do {
         protocol_execute_realtime();
         if (sys.abort) {
@@ -534,8 +534,8 @@ void mc_override_ctrl_update(Override override_state) {
 void mc_reset() {
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "mc_reset()");
     // Only this function can set the system reset. Helps prevent multiple kill calls.
-    if (!sys_rt_exec_state.bit.reset) {
-        sys_rt_exec_state.bit.reset = true;
+    if (!rtReset) {
+        rtReset = true;
         // Kill spindle and coolant.
         spindle->stop();
 

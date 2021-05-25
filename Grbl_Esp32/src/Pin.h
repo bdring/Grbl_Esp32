@@ -28,6 +28,8 @@
 #include <cstdint>
 #include <cstring>
 
+// TODO: ENABLE_CONTROL_SW_DEBOUNCE should end up here with a shared task.
+
 // #define PIN_DEBUG  // Pin debugging. WILL spam you with a lot of data!
 
 // Forward declarations:

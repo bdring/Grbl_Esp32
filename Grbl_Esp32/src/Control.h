@@ -30,6 +30,8 @@
 
 class Control : public Configuration::Configurable {
 private:
+    // TODO: Should we not just put this in an array so we can enumerate it easily?
+
     ControlPin _safetyDoor;
     ControlPin _reset;
     ControlPin _feedHold;
@@ -48,6 +50,9 @@ public:
     // Configuration handlers.
     void validate() const override;
     void handle(Configuration::HandlerBase& handler) override;
+
+    bool system_check_safety_door_ajar();
+    void report(char* status, bool& pinReportStarted);
 
     ~Control() = default;
 };

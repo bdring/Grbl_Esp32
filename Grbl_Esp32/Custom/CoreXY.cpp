@@ -167,15 +167,15 @@ bool user_defined_homing(AxisMask cycle_mask) {
                         }
                         st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
                         // Exit routines: No time to run protocol_execute_realtime() in this loop.
-                        if (sys_rt_exec_state.bit.safetyDoor || sys_rt_exec_state.bit.reset || cycle_stop) {
+                        if (rtSafetyDoor || rtReset || cycle_stop) {
                             ExecState rt_exec_state;
                             rt_exec_state.value = sys_rt_exec_state.value;
                             // Homing failure condition: Reset issued during cycle.
-                            if (rt_exec_state.bit.reset) {
+                            if (rtReset) {
                                 sys_rt_exec_alarm = ExecAlarm::HomingFailReset;
                             }
                             // Homing failure condition: Safety door was opened.
-                            if (rt_exec_state.bit.safetyDoor) {
+                            if (rtSafetyDoor) {
                                 sys_rt_exec_alarm = ExecAlarm::HomingFailDoor;
                             }
                             // Homing failure condition: Limit switch still engaged after pull-off motion

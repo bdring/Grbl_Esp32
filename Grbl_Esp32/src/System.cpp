@@ -29,10 +29,20 @@ system_t               sys;
 int32_t                sys_position[MAX_N_AXIS];        // Real-time machine (aka home) position vector in steps.
 int32_t                sys_probe_position[MAX_N_AXIS];  // Last probe position in machine coordinates and steps.
 volatile ProbeState    sys_probe_state;                 // Probing state value.  Used to coordinate the probing cycle with stepper ISR.
-volatile ExecState     sys_rt_exec_state;  // Global realtime executor bitflag variable for state management. See EXEC bitmasks.
-volatile ExecAlarm     sys_rt_exec_alarm;  // Global realtime executor bitflag variable for setting various alarms.
+volatile ExecAlarm     sys_rt_exec_alarm;               // Global realtime executor bitflag variable for setting various alarms.
 volatile ExecAccessory sys_rt_exec_accessory_override;  // Global realtime executor bitflag variable for spindle/coolant overrides.
-volatile bool          cycle_stop;                      // For state transitions, instead of bitflag
+volatile bool          rtStatusReport;
+volatile bool          rtCycleStart;
+volatile bool          rtFeedHold;
+volatile bool          rtReset;
+volatile bool          rtSafetyDoor;
+volatile bool          rtMotionCancel;
+volatile bool          rtSleep;
+volatile bool          rtCycleStop;  // For state transitions, instead of bitflag
+volatile bool          rtButtonMacro0;
+volatile bool          rtButtonMacro1;
+volatile bool          rtButtonMacro2;
+volatile bool          rtButtonMacro3;
 volatile void*         sys_pl_data_inflight;  // holds a plan_line_data_t while cartesian_to_motors has taken ownership of a line motion
 #ifdef DEBUG
 volatile bool sys_rt_exec_debug;
@@ -47,164 +57,24 @@ UserOutput::DigitalOutput* myDigitalOutputs[MaxUserDigitalPin];
 xQueueHandle control_sw_queue;    // used by control switch debouncing
 bool         debouncing = false;  // debouncing in process
 
-void system_ini() {  // Renamed from system_init() due to conflict with esp32 files
-    // setup control inputs
-
-    if (ControlSafetyDoorPin->get().defined()) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Door switch on pin %s", ControlSafetyDoorPin->getStringValue());
-        auto pin  = ControlSafetyDoorPin->get();
-        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
-        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-            attr = attr | Pin::Attr::PullUp;
-        }
-        pin.setAttr(attr);
-        pin.attachInterrupt(isr_control_inputs, CHANGE);
-    }
-
-    if (ControlResetPin->get().defined()) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset switch on pin %s", ControlResetPin->getStringValue());
-        auto pin  = ControlResetPin->get();
-        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
-        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-            attr = attr | Pin::Attr::PullUp;
-        }
-        pin.setAttr(attr);
-        pin.attachInterrupt(isr_control_inputs, CHANGE);
-    }
-
-    if (ControlFeedHoldPin->get().defined()) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Hold switch on pin %s", ControlFeedHoldPin->getStringValue());
-        auto pin  = ControlFeedHoldPin->get();
-        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
-        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-            attr = attr | Pin::Attr::PullUp;
-        }
-        pin.setAttr(attr);
-        pin.attachInterrupt(isr_control_inputs, CHANGE);
-    }
-
-    if (ControlCycleStartPin->get().defined()) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start switch on pin %s", ControlCycleStartPin->getStringValue());
-        auto pin  = ControlCycleStartPin->get();
-        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
-        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-            attr = attr | Pin::Attr::PullUp;
-        }
-        pin.setAttr(attr);
-        pin.attachInterrupt(isr_control_inputs, CHANGE);
-    }
-
-    if (MacroButton0Pin->get().defined()) {
-        auto pin  = MacroButton0Pin->get();
-        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
-        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-            attr = attr | Pin::Attr::PullUp;
-        }
-        pin.setAttr(attr);
-        pin.attachInterrupt(isr_control_inputs, CHANGE);
-    }
-
-    if (MacroButton1Pin->get().defined()) {
-        auto pin  = MacroButton1Pin->get();
-        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
-        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-            attr = attr | Pin::Attr::PullUp;
-        }
-        pin.setAttr(attr);
-        pin.attachInterrupt(isr_control_inputs, CHANGE);
-    }
-
-    if (MacroButton2Pin->get().defined()) {
-        auto pin  = MacroButton2Pin->get();
-        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
-        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-            attr = attr | Pin::Attr::PullUp;
-        }
-        pin.setAttr(attr);
-        pin.attachInterrupt(isr_control_inputs, CHANGE);
-    }
-
-    if (MacroButton3Pin->get().defined()) {
-        auto pin  = MacroButton3Pin->get();
-        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
-        if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-            attr = attr | Pin::Attr::PullUp;
-        }
-        pin.setAttr(attr);
-        pin.attachInterrupt(isr_control_inputs, CHANGE);
-    }
-
-#ifdef ENABLE_CONTROL_SW_DEBOUNCE
-    // setup task used for debouncing
-    control_sw_queue = xQueueCreate(10, sizeof(int));
-    xTaskCreate(controlCheckTask,
-                "controlCheckTask",
-                3096,
-                NULL,
-                5,  // priority
-                NULL);
-#endif
-
+void init_output_pins() {
     //customize pin definition if needed
 #if (GRBL_SPI_SS != -1) || (GRBL_SPI_MISO != -1) || (GRBL_SPI_MOSI != -1) || (GRBL_SPI_SCK != -1)
     SPI.begin(GRBL_SPI_SCK, GRBL_SPI_MISO, GRBL_SPI_MOSI, GRBL_SPI_SS);
 #endif
 
+    auto userOutputs = config->_userOutputs;
+
     // Setup M62,M63,M64,M65 pins
     for (int i = 0; i < 4; ++i) {
-        myDigitalOutputs[i] = new UserOutput::DigitalOutput(i, UserDigitalPin[i]->get());
+        myDigitalOutputs[i] = new UserOutput::DigitalOutput(i, userOutputs->_digitalOutput[i]);
     }
 
     // Setup M67 Pins
-    myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, UserAnalogPin[0]->get(), USER_ANALOG_PIN_0_FREQ);
-    myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, UserAnalogPin[1]->get(), USER_ANALOG_PIN_1_FREQ);
-    myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, UserAnalogPin[2]->get(), USER_ANALOG_PIN_2_FREQ);
-    myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, UserAnalogPin[3]->get(), USER_ANALOG_PIN_3_FREQ);
-}
-
-#ifdef ENABLE_CONTROL_SW_DEBOUNCE
-// this is the debounce task
-void controlCheckTask(void* pvParameters) {
-    while (true) {
-        std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings and other state
-        int evt;
-        xQueueReceive(control_sw_queue, &evt, portMAX_DELAY);  // block until receive queue
-        vTaskDelay(CONTROL_SW_DEBOUNCE_PERIOD);                // delay a while
-        ControlPins pins = system_control_get_state();
-        if (pins.value) {
-            system_exec_control_pin(pins);
-        }
-        debouncing = false;
-
-        static UBaseType_t uxHighWaterMark = 0;
-#    ifdef DEBUG_TASK_STACK
-        reportTaskStackSize(uxHighWaterMark);
-#    endif
-    }
-}
-#endif
-
-void IRAM_ATTR isr_control_inputs(void*) {
-#ifdef ENABLE_CONTROL_SW_DEBOUNCE
-    // we will start a task that will recheck the switches after a small delay
-    int evt;
-    if (!debouncing) {  // prevent resending until debounce is done
-        debouncing = true;
-        xQueueSendFromISR(control_sw_queue, &evt, NULL);
-    }
-#else
-    ControlPins pins = system_control_get_state();
-    system_exec_control_pin(pins);
-#endif
-}
-
-// Returns if safety door is ajar(T) or closed(F), based on pin state.
-uint8_t system_check_safety_door_ajar() {
-#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
-    return system_control_get_state().bit.safetyDoor;
-#else
-    return false;  // Input pin not enabled, so just return that it's closed.
-#endif
+    myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, userOutputs->_analogOutput[0], USER_ANALOG_PIN_0_FREQ);
+    myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, userOutputs->_analogOutput[1], USER_ANALOG_PIN_1_FREQ);
+    myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, userOutputs->_analogOutput[2], USER_ANALOG_PIN_2_FREQ);
+    myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, userOutputs->_analogOutput[3], USER_ANALOG_PIN_3_FREQ);
 }
 
 void system_flag_wco_change() {
@@ -235,85 +105,6 @@ float* system_get_mpos() {
     system_convert_array_steps_to_mpos(position, sys_position);
     return position;
 };
-
-// Returns control pin state as a uint8 bitfield. Each bit indicates the input pin state, where
-// triggered is 1 and not triggered is 0. Invert mask is applied. Bitfield organization is
-// defined by the ControlPin in System.h.
-ControlPins system_control_get_state() {
-    ControlPins defined_pins;
-    defined_pins.value = 0;
-
-    ControlPins pin_states;
-    pin_states.value = 0;
-
-    defined_pins.bit.safetyDoor = ControlSafetyDoorPin->get().defined();
-    if (ControlSafetyDoorPin->get().read()) {
-        pin_states.bit.safetyDoor = true;
-    }
-
-    defined_pins.bit.reset = ControlResetPin->get().defined();
-    if (ControlResetPin->get().read()) {
-        pin_states.bit.reset = true;
-    }
-
-    defined_pins.bit.feedHold = ControlFeedHoldPin->get().defined();
-    if (ControlFeedHoldPin->get().read()) {
-        pin_states.bit.feedHold = true;
-    }
-
-    defined_pins.bit.cycleStart = ControlCycleStartPin->get().defined();
-    if (ControlCycleStartPin->get().read()) {
-        pin_states.bit.cycleStart = true;
-    }
-
-    defined_pins.bit.macro0 = MacroButton0Pin->get().defined();
-    if (MacroButton0Pin->get().read()) {
-        pin_states.bit.macro0 = true;
-    }
-
-    defined_pins.bit.macro1 = MacroButton1Pin->get().defined();
-    if (MacroButton1Pin->get().read()) {
-        pin_states.bit.macro1 = true;
-    }
-
-    defined_pins.bit.macro2 = MacroButton2Pin->get().defined();
-    if (MacroButton2Pin->get().read()) {
-        pin_states.bit.macro2 = true;
-    }
-
-    defined_pins.bit.macro3 = MacroButton3Pin->get().defined();
-    if (MacroButton3Pin->get().read()) {
-        pin_states.bit.macro3 = true;
-    }
-
-#ifdef INVERT_CONTROL_PIN_MASK
-    pin_states.value ^= (INVERT_CONTROL_PIN_MASK & defined_pins.value);
-#endif
-    return pin_states;
-}
-
-// TODO: make this work with Control.cpp
-// execute the function of the control pin
-void system_exec_control_pin(ControlPins pins) {
-    if (pins.bit.reset) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset via control pin");
-        mc_reset();
-    } else if (pins.bit.cycleStart) {
-        sys_rt_exec_state.bit.cycleStart = true;
-    } else if (pins.bit.feedHold) {
-        sys_rt_exec_state.bit.feedHold = true;
-    } else if (pins.bit.safetyDoor) {
-        sys_rt_exec_state.bit.safetyDoor = true;
-    } else if (pins.bit.macro0) {
-        user_defined_macro(0);  // function must be implemented by user
-    } else if (pins.bit.macro1) {
-        user_defined_macro(1);  // function must be implemented by user
-    } else if (pins.bit.macro2) {
-        user_defined_macro(2);  // function must be implemented by user
-    } else if (pins.bit.macro3) {
-        user_defined_macro(3);  // function must be implemented by user
-    }
-}
 
 void sys_digital_all_off() {
     for (uint8_t io_num = 0; io_num < MaxUserDigitalPin; io_num++) {

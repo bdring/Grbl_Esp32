@@ -64,7 +64,7 @@ void Probe::state_monitor() {
     if (get_state() ^ _isProbeAway) {
         sys_probe_state = ProbeState::Off;
         memcpy(sys_probe_position, sys_position, sizeof(sys_position));
-        sys_rt_exec_state.bit.motionCancel = true;
+        rtMotionCancel = true;
     }
 }
 
