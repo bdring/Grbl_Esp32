@@ -578,11 +578,7 @@ void report_echo_line_received(char* line, uint8_t client) {
 // float wco            = returns the work coordinate offset
 // bool wpos            = true for work position compensation
 
-void addPinReport(char* status, char pinLetter, bool& pinReportStarted) {
-    if (!pinReportStarted) {
-        strcat(status, "|Pn:");
-        pinReportStarted = true;
-    }
+void addPinReport(char* status, char pinLetter) {
     size_t pos      = strlen(status);
     status[pos]     = pinLetter;
     status[pos + 1] = '\0';
@@ -653,22 +649,33 @@ void report_realtime_status(uint8_t client) {
     strcat(status, temp);
 #endif
 #ifdef REPORT_FIELD_PIN_STATE
-    AxisMask lim_pin_state    = limits_get_state();
-    bool     prb_pin_state    = config->_probe->get_state();
-    bool     pinReportStarted = false;
+    AxisMask    lim_pin_state   = limits_get_state();
+    bool        prb_pin_state   = config->_probe->get_state();
+    const char* pinReportPrefix = "|Pn:";
+
+    // Remember the current length so we know whether something was added
+    size_t saved_length = strlen(status);
+
+    strcat(status, pinReportPrefix);
+
     if (prb_pin_state) {
-        addPinReport(status, 'P', pinReportStarted);
+        addPinReport(status, 'P');
     }
     if (lim_pin_state) {
         auto n_axis = config->_axes->_numberAxis;
         for (int i = 0; i < n_axis; i++) {
             if (bit_istrue(lim_pin_state, bit(i))) {
-                addPinReport(status, "XYZABC"[i], pinReportStarted);
+                addPinReport(status, "XYZABC"[i]);
             }
         }
     }
 
-    config->_control->report(status, pinReportStarted);
+    config->_control->report(status);
+
+    if (strlen(status) == (saved_length + strlen(pinReportPrefix))) {
+        // Erase the "|Pn:" prefix because there is nothing after it
+        status[saved_length] = '\0';
+    }
 
 #endif
 #ifdef REPORT_FIELD_WORK_COORD_OFFSET

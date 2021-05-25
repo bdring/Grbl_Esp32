@@ -126,3 +126,5 @@ void reportTaskStackSize(UBaseType_t& saved);
 char*  report_state_text();
 float* get_wco();
 void   mpos_to_wpos(float* position);
+
+void addPinReport(char* status, char pinLetter);

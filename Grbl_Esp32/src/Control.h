@@ -52,7 +52,7 @@ public:
     void handle(Configuration::HandlerBase& handler) override;
 
     bool system_check_safety_door_ajar();
-    void report(char* status, bool& pinReportStarted);
+    void report(char* status);
 
     ~Control() = default;
 };

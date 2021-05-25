@@ -28,7 +28,7 @@ public:
     //    char        invertBitNum() { return _invertBitNum; }
     char letter() { return _letter; }
 
-    void report(char* status, bool& pinReportStarted);
+    void report(char* status);
 
     ~ControlPin();
 };

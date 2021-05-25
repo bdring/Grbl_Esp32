@@ -23,15 +23,9 @@ void ControlPin::init() {
     }
 }
 
-void ControlPin::report(char* status, bool& pinReportStarted) {
+void ControlPin::report(char* status) {
     if (!_pin.undefined()) {
-        if (!pinReportStarted) {
-            strcat(status, "|Pn:");
-            pinReportStarted = true;
-        }
-        size_t pos      = strlen(status);
-        status[pos]     = letter();
-        status[pos + 1] = '\0';
+        addPinReport(status, _letter);
     }
 }
 
