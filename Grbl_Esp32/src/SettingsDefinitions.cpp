@@ -34,15 +34,6 @@ static bool checkStartupLine(char* value) {
     return gc_execute_line(value, CLIENT_SERIAL) == Error::Ok;
 }
 
-static bool postMotorSetting(char* value) {
-#ifdef LATER
-    if (!value) {
-        motors_read_settings();
-    }
-#endif
-    return true;
-}
-
 void make_coordinate(CoordIndex index, const char* name) {
     float coord_data[MAX_N_AXIS] = { 0.0 };
     auto  coord                  = new Coordinates(name);
