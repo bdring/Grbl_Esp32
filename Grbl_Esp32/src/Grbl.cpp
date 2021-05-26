@@ -85,13 +85,10 @@ void grbl_init() {
         // NOTE: The startup script will run after successful completion of the homing cycle, but
         // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
         // things uncontrollably. Very bad.
-#ifdef HOMING_INIT_LOCK
-        // TODO: maybe HOMING_INIT_LOCK should be configurable
-        // If there is an axis with homing configured, enter Alarm state on startup
-        if (homingAxes()) {
+        if (config->_homingInitLock && homingAxes()) {
+            // If there is an axis with homing configured, enter Alarm state on startup
             sys.state = State::Alarm;
         }
-#endif
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing spindle...");
 
 #ifdef ENABLE_WIFI

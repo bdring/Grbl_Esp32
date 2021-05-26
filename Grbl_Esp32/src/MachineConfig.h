@@ -387,6 +387,7 @@ public:
     uint8_t _idleTime          = 255;
     bool    _verboseErrors     = false;
     bool    _reportInches      = false;
+    bool    _homingInitLock    = false;
 
     String _board = "None";
     String _name  = "None";

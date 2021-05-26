@@ -380,6 +380,7 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("verbose_errors", _verboseErrors);
     handler.handle("report_inches", _reportInches);
     // Spindles::SpindleFactory::handle(handler, _spindle);
+    handler.handle("homing_init_lock", _homingInitLock);
 }
 
 void MachineConfig::afterParse() {
