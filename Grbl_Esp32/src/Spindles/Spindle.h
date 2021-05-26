@@ -40,7 +40,7 @@
 
 namespace Spindles {
     // This is the base class. Do not use this as your spindle
-    class Spindle : Configuration::Configurable {
+    class Spindle : public Configuration::Configurable {
     public:
         Spindle() = default;
 

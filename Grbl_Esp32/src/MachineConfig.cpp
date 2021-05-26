@@ -379,8 +379,8 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("junction_deviation", _junctionDeviation);
     handler.handle("verbose_errors", _verboseErrors);
     handler.handle("report_inches", _reportInches);
-    // Spindles::SpindleFactory::handle(handler, _spindle);
     handler.handle("homing_init_lock", _homingInitLock);
+    Spindles::SpindleFactory::handle(handler, _spindle);
 }
 
 void MachineConfig::afterParse() {
