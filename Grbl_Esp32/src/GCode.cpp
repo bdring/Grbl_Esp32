@@ -481,7 +481,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                             case 3:
                                 gc_block.modal.spindle = SpindleState::Cw;
                                 break;
-                            case 4:  // Supported if SPINDLE_DIR_PIN is defined or laser mode is on.
+                            case 4:  // Supported if the spindle can be reversed or laser mode is on.
                                 if (spindle->is_reversable || config->_laserMode) {
                                     gc_block.modal.spindle = SpindleState::Ccw;
                                 } else {

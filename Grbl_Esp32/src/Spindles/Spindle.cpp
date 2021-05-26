@@ -21,74 +21,10 @@
     TODO
         Add Spindle spin up/down delays
 
-    Get rid of dependance on machine definition #defines
-        SPINDLE_OUTPUT_PIN
-        SPINDLE_ENABLE_PIN
-        SPINDLE_DIR_PIN
-
 */
 #include "Spindle.h"
 
-#include "NullSpindle.h"
-#include "PWMSpindle.h"
-#include "RelaySpindle.h"
-#include "Laser.h"
-#include "DacSpindle.h"
-#include "HuanyangSpindle.h"
-#include "H2ASpindle.h"
-#include "BESCSpindle.h"
-#include "10vSpindle.h"
-
 namespace Spindles {
-    // An instance of each type of spindle is created here.
-    // This allows the spindle to be dynamicly switched
-    Null     null;
-    PWM      pwm;
-    Relay    relay;
-    Laser    laser;
-    Dac      dac;
-    Huanyang huanyang;
-    H2A      h2a;
-    BESC     besc;
-    _10v     _10v;
-
-    void Spindle::select() {
-        // TODO FIXME: I don't think we need this anymore; the factory should take care of it...
-
-        switch (static_cast<SpindleType>(spindle_type->get())) {
-            case SpindleType::PWM:
-                spindle = &pwm;
-                break;
-            case SpindleType::RELAY:
-                spindle = &relay;
-                break;
-            case SpindleType::LASER:
-                spindle = &laser;
-                break;
-            case SpindleType::DAC:
-                spindle = &dac;
-                break;
-            case SpindleType::HUANYANG:
-                spindle = &huanyang;
-                break;
-            case SpindleType::BESC:
-                spindle = &besc;
-                break;
-            case SpindleType::_10V:
-                spindle = &_10v;
-                break;
-            case SpindleType::H2A:
-                spindle = &h2a;
-                break;
-            case SpindleType::NONE:
-            default:
-                spindle = &null;
-                break;
-        }
-
-        spindle->init();
-    }
-
     // ========================= Spindle ==================================
 
     bool Spindle::isRateAdjusted() {

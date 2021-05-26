@@ -27,6 +27,7 @@
 #include "Control.h"
 #include "Probe.h"
 #include "SDCardPin.h"
+#include "Spindles/Spindle.h"
 
 // TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
 
@@ -365,15 +366,16 @@ class MachineConfig : public Configuration::Configurable {
 public:
     MachineConfig() = default;
 
-    Axes*           _axes        = nullptr;
-    SPIBus*         _spi         = nullptr;
-    I2SOBus*        _i2so        = nullptr;
-    CoolantControl* _coolant     = nullptr;
-    Probe*          _probe       = nullptr;
-    Communications* _comms       = nullptr;
-    Control*        _control     = nullptr;
-    UserOutputs*    _userOutputs = nullptr;
+    Axes*              _axes        = nullptr;
+    SPIBus*            _spi         = nullptr;
+    I2SOBus*           _i2so        = nullptr;
+    CoolantControl*    _coolant     = nullptr;
+    Probe*             _probe       = nullptr;
+    Communications*    _comms       = nullptr;
+    Control*           _control     = nullptr;
+    UserOutputs*       _userOutputs = nullptr;
     SDCardPin*         _sdCard      = nullptr;
+    Spindles::Spindle* _spindle     = nullptr;
 
     int _pulseMicroSeconds          = 3;
     int _directionDelayMilliSeconds = 0;

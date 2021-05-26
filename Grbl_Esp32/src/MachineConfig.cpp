@@ -379,6 +379,7 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("junction_deviation", _junctionDeviation);
     handler.handle("verbose_errors", _verboseErrors);
     handler.handle("report_inches", _reportInches);
+    // Spindles::SpindleFactory::handle(handler, _spindle);
 }
 
 void MachineConfig::afterParse() {
@@ -402,7 +403,7 @@ void MachineConfig::afterParse() {
     }
 
     if (_sdCard == nullptr) {
-        _sdCard = new SDCard();
+        _sdCard = new SDCardPin();
     }
 
     if (_control == nullptr) {

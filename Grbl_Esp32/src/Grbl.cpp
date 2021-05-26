@@ -93,7 +93,6 @@ void grbl_init() {
         }
 #endif
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing spindle...");
-        Spindles::Spindle::select();
 
 #ifdef ENABLE_WIFI
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing WiFi-config...");

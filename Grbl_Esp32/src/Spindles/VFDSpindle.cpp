@@ -34,6 +34,7 @@
 */
 #include "VFDSpindle.h"
 #include "../MachineConfig.h"
+#include "../MotionControl.h"  // for mc_reset
 #include <atomic>
 
 const uart_port_t VFD_RS485_UART_PORT  = UART_NUM_2;  // hard coded for this port right now

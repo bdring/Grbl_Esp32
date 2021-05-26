@@ -6,23 +6,7 @@ StringSetting* build_info;
 
 IntSetting* status_mask;
 
-EnumSetting* spindle_type;
-
 EnumSetting* message_level;
-
-enum_opt_t spindleTypes = {
-    // clang-format off
-    { "NONE", int8_t(SpindleType::NONE) },
-    { "PWM", int8_t(SpindleType::PWM) },
-    { "RELAY", int8_t(SpindleType::RELAY) },
-    { "LASER", int8_t(SpindleType::LASER) },
-    { "DAC", int8_t(SpindleType::DAC) },
-    { "HUANYANG", int8_t(SpindleType::HUANYANG) },
-    { "BESC", int8_t(SpindleType::BESC) },
-    { "10V", int8_t(SpindleType::_10V) },
-    { "H2A", int8_t(SpindleType::H2A) },
-    // clang-format on
-};
 
 enum_opt_t messageLevels = {
     // clang-format off
@@ -59,15 +43,6 @@ static bool postMotorSetting(char* value) {
     return true;
 }
 
-static bool checkSpindleChange(char* val) {
-    if (!val) {
-        gc_state.spindle_speed = 0;   // Set S value to 0
-        Spindles::Spindle::select();  // get new spindle
-        return true;
-    }
-    return true;
-}
-
 void make_coordinate(CoordIndex index, const char* name) {
     float coord_data[MAX_N_AXIS] = { 0.0 };
     auto  coord                  = new Coordinates(name);
@@ -90,10 +65,6 @@ void make_settings() {
     make_coordinate(CoordIndex::G59, "G59");
     make_coordinate(CoordIndex::G28, "G28");
     make_coordinate(CoordIndex::G30, "G30");
-
-    // Spindle Settings
-    spindle_type =
-        new EnumSetting(NULL, EXTENDED, WG, NULL, "Spindle/Type", static_cast<int8_t>(SPINDLE_TYPE), &spindleTypes, checkSpindleChange);
 
     // GRBL Non-numbered settings
     startup_line_0 = new StringSetting(EXTENDED, WG, "N0", "GCode/Line0", "", checkStartupLine);

@@ -35,11 +35,6 @@
 #    define DEFAULT_STATUS_REPORT_MASK 1  // $10
 #endif
 
-// ======== SPINDLE STUFF ====================
-#ifndef SPINDLE_TYPE
-#    define SPINDLE_TYPE SpindleType::NONE
-#endif
-
 #ifndef SERVO_TIMER_INTERVAL
 #    define SERVO_TIMER_INTERVAL 75.0  // Hz This is the update inveral in milliseconds
 #endif

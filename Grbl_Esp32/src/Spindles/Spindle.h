@@ -28,23 +28,12 @@
 
 #include <cstdint>
 
-enum class SpindleType : int8_t {
-    NONE = 0,
-    PWM,
-    RELAY,
-    LASER,
-    DAC,
-    HUANYANG,
-    BESC,
-    _10V,
-    H2A,
-    YL620,
-};
+#include "../GCode.h"     // for SpindleState
+#include "../Report.h"    // for MsgLevel
+#include "../Serial.h"    // for CLIENT_ALL
+#include "../Protocol.h"  // for protocol_buffer_synchronize
 
-#include "../Grbl.h"
 #include "../Configuration/GenericFactory.h"
-#include <driver/dac.h>
-#include <driver/uart.h>
 
 // ===============  No floats! ===========================
 // ================ NO FLOATS! ==========================
@@ -76,8 +65,6 @@ namespace Spindles {
         uint32_t _spinup_delay;
         uint32_t _spindown_delay;
 
-        static void select();
-
         // Name is required for the configuration factory to work.
         virtual const char* name() const = 0;
 
@@ -94,7 +81,6 @@ namespace Spindles {
         // Virtual base classes require a virtual destructor.
         virtual ~Spindle() {}
     };
-
     using SpindleFactory = Configuration::GenericFactory<Spindle>;
 }
 
