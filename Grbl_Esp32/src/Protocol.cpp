@@ -140,16 +140,17 @@ void protocol_main_loop() {
     int c;
     for (;;) {
 #ifdef ENABLE_SD_CARD
-        if (sdCard._ready_next) {
+        auto sdcard = config->_sdCard;
+        if (sdcard->_ready_next) {
             char fileLine[255];
-            if (sdCard.readFileLine(fileLine, 255)) {
-                sdCard._ready_next = false;
-                report_status_message(execute_line(fileLine, sdCard._client, sdCard._auth_level), sdCard._client);
+            if (sdcard->readFileLine(fileLine, 255)) {
+                sdcard->_ready_next = false;
+                report_status_message(execute_line(fileLine, sdcard->_client, sdcard->_auth_level), sdcard->_client);
             } else {
                 char temp[50];
-                sdCard.get_current_filename(temp);
+                sdcard->get_current_filename(temp);
                 grbl_notifyf("SD print done", "%s print is successful", temp);
-                sdCard.closeFile();  // close file and clear SD ready/running flags
+                sdcard->closeFile();  // close file and clear SD ready/running flags
             }
         }
 #endif

@@ -19,14 +19,21 @@
 */
 
 #include "Config.h"
-#ifdef ENABLE_SD_CARD
-#    include "SDCard.h"
-#    include "MachineConfig.h"
 
-SDCard sdCard;
+#include "SDCard.h"
+#include "MachineConfig.h"
+
+#include <FS.h>
+#include <SD.h>
+#include <SPI.h>
+
+struct SDCard::FileWrap {
+    FileWrap() : _file(nullptr) {}
+    File _file;
+};
 
 SDCard::SDCard() :
-    _file(nullptr), _current_line_number(0), _state(State::Idle), _readyNext(false), _client(CLIENT_SERIAL),
+    _pImpl(new FileWrap()), _current_line_number(0), _state(State::Idle), _readyNext(false), _client(CLIENT_SERIAL),
     _auth_level(WebUI::AuthenticationLevel::LEVEL_GUEST) {}
 
 // attempt to mount the SD card
@@ -64,8 +71,8 @@ void SDCard::listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t cl
 }
 
 bool SDCard::openFile(fs::FS& fs, const char* path) {
-    _file = fs.open(path);
-    if (!_file) {
+    _pImpl->_file = fs.open(path);
+    if (!_pImpl->_file) {
         //report_status_message(Error::FsFailedRead, CLIENT_SERIAL);
         return false;
     }
@@ -76,13 +83,13 @@ bool SDCard::openFile(fs::FS& fs, const char* path) {
 }
 
 bool SDCard::closeFile() {
-    if (!_file) {
+    if (!_pImpl->_file) {
         return false;
     }
     set_state(State::Idle);
     _readyNext           = false;
     _current_line_number = 0;
-    _file.close();
+    _pImpl->_file.close();
     SD.end();
     return true;
 }
@@ -95,32 +102,33 @@ bool SDCard::closeFile() {
   return true if a line is
 */
 bool SDCard::readFileLine(char* line, int maxlen) {
-    if (!_file) {
+    if (!_pImpl->_file) {
         report_status_message(Error::FsFailedRead, _client);
         return false;
     }
+
     _current_line_number += 1;
     int len = 0;
-    while (_file.available()) {
+    while (_pImpl->_file.available()) {
         if (len >= maxlen) {
             return false;
         }
-        char c = _file.read();
+        char c = _pImpl->_file.read();
         if (c == '\n') {
             break;
         }
         line[len++] = c;
     }
     line[len] = '\0';
-    return len || _file.available();
+    return len || _pImpl->_file.available();
 }
 
 // return a percentage complete 50.5 = 50.5%
 float SDCard::report_perc_complete() {
-    if (!_file) {
+    if (!_pImpl->_file) {
         return 0.0;
     }
-    return (float)_file.position() / (float)_file.size() * 100.0f;
+    return (float)_pImpl->_file.position() / (float)_pImpl->_file.size() * 100.0f;
 }
 
 uint32_t SDCard::get_current_line_number() {
@@ -176,10 +184,32 @@ SDCard::State SDCard::set_state(SDCard::State state) {
 }
 
 void SDCard::get_current_filename(char* name) {
-    if (_file) {
-        strcpy(name, _file.name());
+    if (_pImpl->_file) {
+        strcpy(name, _pImpl->_file.name());
     } else {
         name[0] = 0;
     }
 }
-#endif  //ENABLE_SD_CARD
+
+void SDCard::init() {
+    static bool init_message = true;  // used to show messages only once.
+
+    if (init_message) {
+        if (_cardDetect.defined()) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SD Card Detect on pin %s", _cardDetect.name().c_str());
+        }
+        init_message = false;
+    }
+
+    _cardDetect.setAttr(Pin::Attr::Output);
+}
+
+void SDCard::validate() const {}
+
+void SDCard::handle(Configuration::HandlerBase& handler) {
+    handler.handle("card_detect", _cardDetect);
+}
+
+SDCard::~SDCard() {
+    delete _pImpl;
+}

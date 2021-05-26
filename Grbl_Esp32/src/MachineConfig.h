@@ -26,7 +26,7 @@
 #include "WebUI/BTConfig.h"
 #include "Control.h"
 #include "Probe.h"
-#include "SDCardPin.h"
+#include "SDCard.h"
 #include "Spindles/Spindle.h"
 
 // TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
@@ -374,7 +374,7 @@ public:
     Communications*    _comms       = nullptr;
     Control*           _control     = nullptr;
     UserOutputs*       _userOutputs = nullptr;
-    SDCardPin*         _sdCard      = nullptr;
+    SDCard*            _sdCard      = nullptr;
     Spindles::Spindle* _spindle     = nullptr;
 
     int _pulseMicroSeconds          = 3;

@@ -204,11 +204,12 @@ static String report_util_axis_values(const float* axis_value) {
 // from a critical error, such as a triggered hard limit. Interface should always monitor for these
 // responses.
 void report_status_message(Error status_code, uint8_t client) {
+    auto sdCard = config->_sdCard;
     switch (status_code) {
         case Error::Ok:  // Error::Ok
 #ifdef ENABLE_SD_CARD
-            if (sdCard.get_state(false) == SDCard::State::BusyPrinting) {
-                sdCard._ready_next = true;  // flag so system_execute_line() will send the next line
+            if (sdCard->get_state(false) == SDCard::State::BusyPrinting) {
+                sdCard->_ready_next = true;  // flag so system_execute_line() will send the next line
             } else {
                 grbl_send(client, "ok\r\n");
             }
@@ -219,16 +220,16 @@ void report_status_message(Error status_code, uint8_t client) {
         default:
 #ifdef ENABLE_SD_CARD
             // do we need to stop a running SD job?
-            if (sdCard.get_state(false) == SDCard::State::BusyPrinting) {
+            if (sdCard->get_state(false) == SDCard::State::BusyPrinting) {
                 if (status_code == Error::GcodeUnsupportedCommand) {
                     grbl_sendf(client, "error:%d\r\n", status_code);  // most senders seem to tolerate this error and keep on going
-                    grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sdCard.get_current_line_number());
+                    grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sdCard->get_current_line_number());
                     // don't close file
-                    sdCard._ready_next = true;  // flag so system_execute_line() will send the next line
+                    sdCard->_ready_next = true;  // flag so system_execute_line() will send the next line
                 } else {
-                    grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sdCard.get_current_line_number());
-                    grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sdCard.get_current_line_number());
-                    sdCard.closeFile();
+                    grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sdCard->get_current_line_number());
+                    grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sdCard->get_current_line_number());
+                    sdCard->closeFile();
                 }
                 return;
             }
@@ -274,8 +275,8 @@ std::map<Message, const char*> MessageText = {
 void report_feedback_message(Message message) {  // ok to send to all clients
 #if defined(ENABLE_SD_CARD)
     if (message == Message::SdFileQuit) {
-        grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", sdCard.get_current_line_number());
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset during SD file at line: %d", sdCard.get_current_line_number());
+        grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
 
     } else
 #endif  //ENABLE_SD_CARD
@@ -740,10 +741,10 @@ void report_realtime_status(uint8_t client) {
         }
     }
 #ifdef ENABLE_SD_CARD
-    if (sdCard.get_state(false) == SDCard::State::BusyPrinting) {
-        sprintf(temp, "|SD:%4.2f,", sdCard.report_perc_complete());
+    if (config->_sdCard->get_state(false) == SDCard::State::BusyPrinting) {
+        sprintf(temp, "|SD:%4.2f,", config->_sdCard->report_perc_complete());
         strcat(status, temp);
-        sdCard.get_current_filename(temp);
+        config->_sdCard->get_current_filename(temp);
         strcat(status, temp);
     }
 #endif

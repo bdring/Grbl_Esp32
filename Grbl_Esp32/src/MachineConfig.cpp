@@ -403,7 +403,7 @@ void MachineConfig::afterParse() {
     }
 
     if (_sdCard == nullptr) {
-        _sdCard = new SDCardPin();
+        _sdCard = new SDCard();
     }
 
     if (_control == nullptr) {

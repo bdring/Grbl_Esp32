@@ -546,10 +546,10 @@ void mc_reset() {
         sys_analog_all_off();
 #ifdef ENABLE_SD_CARD
         // do we need to stop a running SD job?
-        if (sdCard.get_state(false) == SDCard::State::BusyPrinting) {
+        if (config->_sdCard->get_state(false) == SDCard::State::BusyPrinting) {
             //Report print stopped
             report_feedback_message(Message::SdFileQuit);
-            sdCard.closeFile();
+            config->_sdCard->closeFile();
         }
 #endif
         // Kill steppers only if in any motion state, i.e. cycle, actively holding, or homing.

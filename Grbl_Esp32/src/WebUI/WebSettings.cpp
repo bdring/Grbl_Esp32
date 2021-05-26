@@ -28,6 +28,7 @@
 #include <SPIFFS.h>
 #include <esp_wifi.h>
 #include <esp_ota_ops.h>
+#include <SD.h>
 
 #include "ESPResponse.h"
 #include "WebServer.h"
@@ -678,7 +679,7 @@ namespace WebUI {
         if (path[0] != '/') {
             path = "/" + path;
         }
-        SDCard::State state = sdCard.get_state(true);
+        SDCard::State state = config->_sdCard->get_state(true);
         if (state != SDCard::State::Idle) {
             if (state == SDCard::State::NotPresent) {
                 webPrintln("No SD Card");
@@ -688,7 +689,7 @@ namespace WebUI {
                 return Error::FsFailedBusy;
             }
         }
-        if (!sdCard.openFile(SD, path.c_str())) {
+        if (!config->_sdCard->openFile(SD, path.c_str())) {
             report_status_message(Error::FsFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
             webPrintln("");
             return Error::FsFailedOpenFile;
@@ -703,13 +704,13 @@ namespace WebUI {
         if ((err = openSDFile(parameter)) != Error::Ok) {
             return err;
         }
-        sdCard._client = (espresponse) ? espresponse->client() : CLIENT_ALL;
+        config->_sdCard->_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
         char fileLine[255];
-        while (sdCard.readFileLine(fileLine, 255)) {
+        while (config->_sdCard->readFileLine(fileLine, 255)) {
             webPrintln(fileLine);
         }
         webPrintln("");
-        sdCard.closeFile();
+        config->_sdCard->closeFile();
         return Error::Ok;
     }
 
@@ -726,18 +727,20 @@ namespace WebUI {
         if ((err = openSDFile(parameter)) != Error::Ok) {
             return err;
         }
+        auto sdCard = config->_sdCard;
+
         char fileLine[255];
-        if (!sdCard.readFileLine(fileLine, 255)) {
+        if (!sdCard->readFileLine(fileLine, 255)) {
             //No need notification here it is just a macro
-            sdCard.closeFile();
+            sdCard->closeFile();
             webPrintln("");
             return Error::Ok;
         }
-        sdCard._client     = (espresponse) ? espresponse->client() : CLIENT_ALL;
-        sdCard._auth_level = auth_level;
+        sdCard->_client     = (espresponse) ? espresponse->client() : CLIENT_ALL;
+        sdCard->_auth_level = auth_level;
         // execute the first line now; Protocol.cpp handles later ones when sdCard._ready_next
-        report_status_message(execute_line(fileLine, sdCard._client, sdCard._auth_level), sdCard._client);
-        report_realtime_status(sdCard._client);
+        report_status_message(execute_line(fileLine, sdCard->_client, sdCard->_auth_level), sdCard->_client);
+        report_realtime_status(sdCard->_client);
         webPrintln("");
         return Error::Ok;
     }
@@ -748,7 +751,7 @@ namespace WebUI {
             webPrintln("Missing file name!");
             return Error::InvalidValue;
         }
-        SDCard::State state = sdCard.get_state(true);
+        SDCard::State state = config->_sdCard->get_state(true);
         if (state != SDCard::State::Idle) {
             webPrintln((state == SDCard::State::NotPresent) ? "No SD card" : "Busy");
             return Error::Ok;
@@ -780,7 +783,7 @@ namespace WebUI {
     }
 
     static Error listSDFiles(char* parameter, AuthenticationLevel auth_level) {  // ESP210
-        SDCard::State state = sdCard.get_state(true);
+        SDCard::State state = config->_sdCard->get_state(true);
         if (state != SDCard::State::Idle) {
             if (state == SDCard::State::NotPresent) {
                 webPrintln("No SD Card");
@@ -791,7 +794,7 @@ namespace WebUI {
             }
         }
         webPrintln("");
-        sdCard.listDir(SD, "/", 10, espresponse->client());
+        config->_sdCard->listDir(SD, "/", 10, espresponse->client());
         String ssd = "[SD Free:" + ESPResponseStream::formatBytes(SD.totalBytes() - SD.usedBytes());
         ssd += " Used:" + ESPResponseStream::formatBytes(SD.usedBytes());
         ssd += " Total:" + ESPResponseStream::formatBytes(SD.totalBytes());
@@ -878,7 +881,7 @@ namespace WebUI {
     static Error showSDStatus(char* parameter, AuthenticationLevel auth_level) {  // ESP200
         const char* resp = "No SD card";
 #ifdef ENABLE_SD_CARD
-        switch (sdCard.get_state(true)) {
+        switch (config->_sdCard->get_state(true)) {
             case SDCard::State::Idle:
                 resp = "SD card detected";
                 break;

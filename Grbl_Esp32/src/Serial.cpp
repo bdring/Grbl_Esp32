@@ -162,7 +162,7 @@ void clientCheckTask(void* pvParameters) {
                 execute_realtime_command(static_cast<Cmd>(data), client);
             } else {
 #if defined(ENABLE_SD_CARD)
-                if (sdCard.get_state(false) < SDCard::State::Busy) {
+                if (config->_sdCard->get_state(false) < SDCard::State::Busy) {
 #endif  //ENABLE_SD_CARD
                     vTaskEnterCritical(&myMutex);
                     client_buffer[client].write(data);
