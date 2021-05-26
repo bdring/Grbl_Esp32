@@ -74,8 +74,8 @@ namespace Spindles {
         }
 
         void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("spinup_delay_millis", _spinup_delay);
-            handler.handle("spindown_delay_millis", _spindown_delay);
+            handler.handle("spinup_delay_ms", _spinup_delay);
+            handler.handle("spindown_delay_ms", _spindown_delay);
         }
 
         // Virtual base classes require a virtual destructor.
