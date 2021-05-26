@@ -23,24 +23,23 @@
 #    include "SDCard.h"
 #    include "MachineConfig.h"
 
-File                       myFile;
-bool                       SD_ready_next = false;  // Grbl has processed a line and is waiting for another
-uint8_t                    SD_client     = CLIENT_SERIAL;
-WebUI::AuthenticationLevel SD_auth_level = WebUI::AuthenticationLevel::LEVEL_GUEST;
-uint32_t                   sd_current_line_number;     // stores the most recent line number read from the SD
-static char                comment[LINE_BUFFER_SIZE];  // Line to be executed. Zero-terminated.
+SDCard sdCard;
+
+SDCard::SDCard() :
+    _file(nullptr), _current_line_number(0), _state(State::Idle), _readyNext(false), _client(CLIENT_SERIAL),
+    _auth_level(WebUI::AuthenticationLevel::LEVEL_GUEST) {}
 
 // attempt to mount the SD card
-/*bool sd_mount()
+/*bool SDCard::mount()
 {
   if(!SD.begin()) {
-    report_status_message(Error::FsFailedMount, CLIENT_SERIAL);
+    report_status_message(Error::FsFailedMount, _client);
     return false;
   }
   return true;
 }*/
 
-void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
+void SDCard::listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
     //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
     File root = fs.open(dirname);
     if (!root) {
@@ -64,26 +63,26 @@ void listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
     }
 }
 
-boolean openFile(fs::FS& fs, const char* path) {
-    myFile = fs.open(path);
-    if (!myFile) {
+bool SDCard::openFile(fs::FS& fs, const char* path) {
+    _file = fs.open(path);
+    if (!_file) {
         //report_status_message(Error::FsFailedRead, CLIENT_SERIAL);
         return false;
     }
-    set_sd_state(SDState::BusyPrinting);
-    SD_ready_next          = false;  // this will get set to true when Grbl issues "ok" message
-    sd_current_line_number = 0;
+    set_state(State::BusyPrinting);
+    _readyNext           = false;  // this will get set to true when Grbl issues "ok" message
+    _current_line_number = 0;
     return true;
 }
 
-boolean closeFile() {
-    if (!myFile) {
+bool SDCard::closeFile() {
+    if (!_file) {
         return false;
     }
-    set_sd_state(SDState::Idle);
-    SD_ready_next          = false;
-    sd_current_line_number = 0;
-    myFile.close();
+    set_state(State::Idle);
+    _readyNext           = false;
+    _current_line_number = 0;
+    _file.close();
     SD.end();
     return true;
 }
@@ -95,42 +94,40 @@ boolean closeFile() {
   make uppercase
   return true if a line is
 */
-boolean readFileLine(char* line, int maxlen) {
-    if (!myFile) {
-        report_status_message(Error::FsFailedRead, SD_client);
+bool SDCard::readFileLine(char* line, int maxlen) {
+    if (!_file) {
+        report_status_message(Error::FsFailedRead, _client);
         return false;
     }
-    sd_current_line_number += 1;
+    _current_line_number += 1;
     int len = 0;
-    while (myFile.available()) {
+    while (_file.available()) {
         if (len >= maxlen) {
             return false;
         }
-        char c = myFile.read();
+        char c = _file.read();
         if (c == '\n') {
             break;
         }
         line[len++] = c;
     }
     line[len] = '\0';
-    return len || myFile.available();
+    return len || _file.available();
 }
 
 // return a percentage complete 50.5 = 50.5%
-float sd_report_perc_complete() {
-    if (!myFile) {
+float SDCard::report_perc_complete() {
+    if (!_file) {
         return 0.0;
     }
-    return (float)myFile.position() / (float)myFile.size() * 100.0f;
+    return (float)_file.position() / (float)_file.size() * 100.0f;
 }
 
-uint32_t sd_get_current_line_number() {
-    return sd_current_line_number;
+uint32_t SDCard::get_current_line_number() {
+    return _current_line_number;
 }
 
-SDState sd_state = SDState::Idle;
-
-SDState get_sd_state(bool refresh) {
+SDCard::State SDCard::get_state(bool refresh) {
     // Before we use the SD library, we *must* make sure SPI is properly initialized. Re-initialization
     // fortunately doesn't change any of the settings.
     auto spiConfig = config->_spi;
@@ -144,45 +141,43 @@ SDState get_sd_state(bool refresh) {
         SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
 
         //no need to go further if SD detect is not correct
-        if (config->_sdCard->_cardDetect.defined()) {
-            if (!((config->_sdCard->_cardDetect.read() == SDCARD_DET_VAL) ? true : false)) {
-                sd_state = SDState::NotPresent;
-                return sd_state;
-            }
+        if (config->_sdCard->_cardDetect.defined() && !config->_sdCard->_cardDetect.read()) {
+            _state = SDCard::State::NotPresent;
+            return _state;
         }
 
         //if busy doing something return state
-        if (!((sd_state == SDState::NotPresent) || (sd_state == SDState::Idle))) {
-            return sd_state;
+        if (!((_state == SDCard::State::NotPresent) || (_state == SDCard::State::Idle))) {
+            return _state;
         }
         if (!refresh) {
-            return sd_state;  //to avoid refresh=true + busy to reset SD and waste time
+            return _state;  //to avoid refresh=true + busy to reset SD and waste time
         }
 
         //SD is idle or not detected, let see if still the case
         SD.end();
-        sd_state = SDState::NotPresent;
+        _state = SDCard::State::NotPresent;
         //using default value for speed ? should be parameter
         //refresh content if card was removed
         if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
             if (SD.cardSize() > 0) {
-                sd_state = SDState::Idle;
+                _state = SDCard::State::Idle;
             }
         }
-        return sd_state;
+        return _state;
     } else {
-        return SDState::NotPresent;
+        return SDCard::State::NotPresent;
     }
 }
 
-SDState set_sd_state(SDState state) {
-    sd_state = state;
-    return sd_state;
+SDCard::State SDCard::set_state(SDCard::State state) {
+    _state = state;
+    return _state;
 }
 
-void sd_get_current_filename(char* name) {
-    if (myFile) {
-        strcpy(name, myFile.name());
+void SDCard::get_current_filename(char* name) {
+    if (_file) {
+        strcpy(name, _file.name());
     } else {
         name[0] = 0;
     }

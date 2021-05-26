@@ -1,7 +1,7 @@
 #include "Grbl.h"
 #include "SDCardPin.h"
 
-void SDCard::init() {
+void SDCardPin::init() {
     static bool init_message = true;  // used to show messages only once.
 
     if (init_message) {
@@ -14,8 +14,8 @@ void SDCard::init() {
     _cardDetect.setAttr(Pin::Attr::Output);
 }
 
-void SDCard::validate() const {}
+void SDCardPin::validate() const {}
 
-void SDCard::handle(Configuration::HandlerBase& handler) {
+void SDCardPin::handle(Configuration::HandlerBase& handler) {
     handler.handle("card_detect", _cardDetect);
 }

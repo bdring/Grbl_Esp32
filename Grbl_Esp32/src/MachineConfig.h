@@ -373,7 +373,7 @@ public:
     Communications* _comms       = nullptr;
     Control*        _control     = nullptr;
     UserOutputs*    _userOutputs = nullptr;
-    SDCard*         _sdCard      = nullptr;
+    SDCardPin*         _sdCard      = nullptr;
 
     int _pulseMicroSeconds          = 3;
     int _directionDelayMilliSeconds = 0;
