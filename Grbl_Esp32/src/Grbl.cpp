@@ -96,7 +96,7 @@ void grbl_init() {
         WebUI::wifi_config.begin();
 #endif
 
-        if (config->_comms->_bluetoothConfig != nullptr) {
+        if (hasBluetooth()) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing Bluetooth...");
 
             config->_comms->_bluetoothConfig->begin();
@@ -140,8 +140,7 @@ static void reset_variables() {
     // Reset Grbl primary systems.
     client_reset_read_buffer(CLIENT_ALL);  // Clear serial read buffer
     gc_init();                             // Set g-code parser to default state
-    spindle->stop();
-
+    config->_spindle->stop();
     config->_coolant->init();
     limits_init();
     config->_probe->init();

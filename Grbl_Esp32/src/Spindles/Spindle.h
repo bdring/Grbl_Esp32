@@ -83,5 +83,3 @@ namespace Spindles {
     };
     using SpindleFactory = Configuration::GenericFactory<Spindle>;
 }
-
-extern Spindles::Spindle* spindle;

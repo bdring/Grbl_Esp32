@@ -482,7 +482,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                                 gc_block.modal.spindle = SpindleState::Cw;
                                 break;
                             case 4:  // Supported if the spindle can be reversed or laser mode is on.
-                                if (spindle->is_reversable || config->_laserMode) {
+                                if (config->_spindle->is_reversable || config->_laserMode) {
                                     gc_block.modal.spindle = SpindleState::Ccw;
                                 } else {
                                     FAIL(Error::GcodeUnsupportedCommand);
@@ -1347,9 +1347,9 @@ Error gc_execute_line(char* line, uint8_t client) {
         if (gc_state.modal.spindle != SpindleState::Disable) {
             if (bit_isfalse(gc_parser_flags, GCParserLaserIsMotion)) {
                 if (bit_istrue(gc_parser_flags, GCParserLaserDisable)) {
-                    spindle->sync(gc_state.modal.spindle, 0);
+                    config->_spindle->sync(gc_state.modal.spindle, 0);
                 } else {
-                    spindle->sync(gc_state.modal.spindle, (uint32_t)gc_block.values.s);
+                    config->_spindle->sync(gc_state.modal.spindle, (uint32_t)gc_block.values.s);
                 }
             }
         }
@@ -1370,7 +1370,7 @@ Error gc_execute_line(char* line, uint8_t client) {
         // Update spindle control and apply spindle speed when enabling it in this block.
         // NOTE: All spindle state changes are synced, even in laser mode. Also, pl_data,
         // rather than gc_state, is used to manage laser state for non-laser motions.
-        spindle->sync(gc_block.modal.spindle, (uint32_t)pl_data->spindle_speed);
+        config->_spindle->sync(gc_block.modal.spindle, (uint32_t)pl_data->spindle_speed);
         gc_state.modal.spindle = gc_block.modal.spindle;
     }
     pl_data->spindle = gc_state.modal.spindle;
@@ -1598,7 +1598,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             if (sys.state != State::CheckMode) {
                 coords[gc_state.modal.coord_select]->get(gc_state.coord_system);
                 system_flag_wco_change();  // Set to refresh immediately just in case something altered.
-                spindle->set_state(SpindleState::Disable, 0);
+                config->_spindle->set_state(SpindleState::Disable, 0);
 
                 config->_coolant->off();
             }

@@ -557,7 +557,7 @@ namespace WebUI {
                 break;
         }
 #endif  // ENABLE_WIFI
-        if (config->_comms->_bluetoothConfig != nullptr) {
+        if (hasBluetooth()) {
             auto bt_config = config->_comms->_bluetoothConfig;
             webPrint("Current BT Mode: ");
             if (bt_config->Is_BT_on()) {
@@ -909,7 +909,7 @@ namespace WebUI {
             }
 #endif
 
-            if (config->_comms->_bluetoothConfig != nullptr && config->_comms->_bluetoothConfig->Is_BT_on()) {
+            if (hasBluetooth() && config->_comms->_bluetoothConfig->Is_BT_on()) {
                 on = true;
             }
 
@@ -933,7 +933,7 @@ namespace WebUI {
             wifi_config.StopWiFi();
         }
 #endif
-        if (config->_comms->_bluetoothConfig != nullptr) {
+        if (hasBluetooth()) {
             if (config->_comms->_bluetoothConfig->Is_BT_on()) {
                 config->_comms->_bluetoothConfig->end();
             }
@@ -958,7 +958,7 @@ namespace WebUI {
                 return Error::Ok;
 #    endif
             case ESP_BT:
-                if (config->_comms->_bluetoothConfig == nullptr) {
+                if (hasBluetooth()) {
                     webPrintln("Bluetooth is not enabled!");
                     return Error::BtFailBegin;
                 } else {

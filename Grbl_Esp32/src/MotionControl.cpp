@@ -537,8 +537,7 @@ void mc_reset() {
     if (!rtReset) {
         rtReset = true;
         // Kill spindle and coolant.
-        spindle->stop();
-
+        config->_spindle->stop();
         config->_coolant->stop();
 
         // turn off all User I/O immediately

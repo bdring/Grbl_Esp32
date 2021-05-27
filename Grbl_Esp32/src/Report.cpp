@@ -529,7 +529,7 @@ void report_build_info(const char* line, uint8_t client) {
 #ifdef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
     grbl_send(client, "A");
 #endif
-    if (config->_comms->_bluetoothConfig != nullptr) {
+    if (hasBluetooth()) {
         grbl_send(client, "B");
     }
 #ifdef ENABLE_SD_CARD
@@ -563,7 +563,7 @@ void report_build_info(const char* line, uint8_t client) {
 #if defined(ENABLE_WIFI)
     grbl_send(client, (char*)WebUI::wifi_config.info());
 #endif
-    if (config->_comms->_bluetoothConfig != nullptr) {
+    if (hasBluetooth()) {
         grbl_send(client, config->_comms->_bluetoothConfig->info().c_str());
     }
 }
@@ -616,7 +616,7 @@ void report_realtime_status(uint8_t client) {
             bufsize = WebUI::telnet_server.get_rx_buffer_available();
         }
 #endif  //ENABLE_WIFI && ENABLE_TELNET
-        if (config->_comms->_bluetoothConfig != nullptr && client == CLIENT_BT) {
+        if (hasBluetooth() && client == CLIENT_BT) {
             //TODO FIXME
             bufsize = 512 - WebUI::SerialBT.available();
         }
@@ -712,7 +712,7 @@ void report_realtime_status(uint8_t client) {
 
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
-        SpindleState sp_state      = spindle->get_state();
+        SpindleState sp_state      = config->_spindle->get_state();
         CoolantState coolant_state = config->_coolant->get_state();
         if (sp_state != SpindleState::Disable || coolant_state.Mist || coolant_state.Flood) {
             strcat(status, "|A:");

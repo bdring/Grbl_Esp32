@@ -408,3 +408,7 @@ public:
 };
 
 extern MachineConfig* config;
+
+inline bool hasBluetooth() {
+    return config && config->_comms && config->_comms->_bluetoothConfig != nullptr;
+}

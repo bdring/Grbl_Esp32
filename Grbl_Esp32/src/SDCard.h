@@ -57,7 +57,7 @@ public:
     SDCard(const SDCard&) = delete;
     SDCard& operator=(const SDCard&) = delete;
 
-    bool _ready_next;  // Grbl has processed a line and is waiting for another
+    bool _ready_next = false;  // Grbl has processed a line and is waiting for another
 
     //bool mount();
     SDCard::State get_state(bool refresh);

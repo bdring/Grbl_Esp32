@@ -21,6 +21,8 @@
 #include "Motors/Motor.h"
 #include "Motors/NullMotor.h"
 
+#include "Spindles/NullSpindle.h"
+
 #include "Grbl.h"
 #include "Logging.h"
 
@@ -411,6 +413,11 @@ void MachineConfig::afterParse() {
         log_info("Control config missing; building default");
         _control = new Control();
     }
+
+    if (_spindle == nullptr) {
+        log_info("Using null spindle");
+        _spindle = new Spindles::Null();
+    }
 }
 
 size_t MachineConfig::readFile(const char* filename, char*& buffer) {
@@ -476,15 +483,15 @@ bool MachineConfig::load(const char* filename) {
     // If the system crashes we skip the config file and use the default
     // builtin config.  This helps prevent reset loops on bad config files.
     size_t             filesize = 0;
-    char*              buffer;
-    esp_reset_reason_t reason = esp_reset_reason();
+    char*              buffer   = nullptr;
+    esp_reset_reason_t reason   = esp_reset_reason();
     if (reason == ESP_RST_PANIC) {
         log_debug("Skipping configuration file due to panic");
     } else {
         filesize = readFile(filename, buffer);
     }
 
-    StringRange* input;
+    StringRange* input = nullptr;
 
     if (filesize > 0) {
         input = new StringRange(buffer, buffer + filesize);
@@ -544,7 +551,6 @@ bool MachineConfig::load(const char* filename) {
         log_error("Unknown error while processing config file");
     }
 
-    // Get rid of buffer and return
     if (buffer) {
         delete[] buffer;
     }
