@@ -46,7 +46,8 @@ private:
     char      comment[COMMENT_SIZE];  // Line to be executed. Zero-terminated.
 
     State _state;
-    Pin   _cardDetect;
+    Pin   _cardDetect = Pin::UNDEFINED;
+    Pin   _cs_pin     = Pin::UNDEFINED;  // The SPI chip select pin
 
 public:
     bool                       _readyNext;
@@ -75,8 +76,12 @@ public:
     void init();
 
     // Configuration handlers.
-    void validate() const override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void validate() const override { Assert(!_cs_pin.undefined(), "spi_cs pin should be configured."); }
+
+    void handle(Configuration::HandlerBase& handler) override {
+        handler.handle("card_detect", _cardDetect);
+        handler.handle("spi_cs", _cs_pin);
+    }
 
     ~SDCard();
 };

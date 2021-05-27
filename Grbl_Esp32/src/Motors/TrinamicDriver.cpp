@@ -92,7 +92,7 @@ namespace Motors {
 
         auto spiConfig = config->_spi;
         if (spiConfig != nullptr) {
-            auto ssPin   = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+            auto ssPin   = _cs_pin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
             auto mosiPin = spiConfig->_mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
             auto sckPin  = spiConfig->_sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
             auto misoPin = spiConfig->_miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
@@ -192,7 +192,7 @@ namespace Motors {
     }
 
     /*
-    Read setting and send them to the driver. Called at init() and whenever related settings change
+o    Read setting and send them to the driver. Called at init() and whenever related settings change
     both are stored as float Amps, but TMCStepper library expects...
     uint16_t run (mA)
     float hold (as a percentage of run)

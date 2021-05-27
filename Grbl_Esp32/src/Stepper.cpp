@@ -221,7 +221,7 @@ static void stepper_pulse_func() {
 #ifdef LATER
     // XXX this should be in the motor driver, not here
     if (motors_direction(st.dir_outbits)) {
-        auto wait_direction = config->_directionDelayMilliSeconds;
+        auto wait_direction = config->_directionDelayMicroSeconds;
         if (wait_direction > 0) {
             // Stepper drivers need some time between changing direction and doing a pulse.
             switch (config->_stepType) {
@@ -389,16 +389,12 @@ void st_wake_up() {
     config->_axes->set_disable(false);
     stepper_idle = false;
     // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
-#ifdef USE_RMT_STEPS
-    // Step pulse delay handling is not require with ESP32...the RMT function does it.
-    if (config->_disableDelayMilliSeconds < 1) {
+
+    // Step pulse delay handling is not require with RMT
+    if (config->_disableDelayMicroSeconds < 1) {
         // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
         st.step_pulse_time = -(((config->_pulseMicroSeconds - 2) * ticksPerMicrosecond) >> 3);
     }
-#else  // Normal operation
-    // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
-    st.step_pulse_time = -(((config->_pulseMicroSeconds - 2) * ticksPerMicrosecond) >> 3);
-#endif
 
     // Enable Stepper Driver Interrupt
     Stepper_Timer_Start();

@@ -125,12 +125,12 @@ namespace Motors {
 
         // Configuration handlers:
         void validate() const override {
-            Assert(!_cs_pin.undefined(), "CS pin should be configured.");
+            Assert(!_cs_pin.undefined(), "spi_cs pin should be configured.");
             StandardStepper::validate();
         }
 
         void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("cs", _cs_pin);
+            handler.handle("spi_cs", _cs_pin);
             handler.handle("r_sense", _r_sense);
             handler.handle("run_current", _run_current);
             handler.handle("hold_current", _hold_current);
