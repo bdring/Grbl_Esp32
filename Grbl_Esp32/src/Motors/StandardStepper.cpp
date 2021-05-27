@@ -115,7 +115,7 @@ namespace Motors {
     }
 
     void StandardStepper::unstep() {
-        if (_use_rmt_steps) {
+        if (!_use_rmt_steps) {
             _step_pin.off();
         }
     }
