@@ -21,6 +21,7 @@
 #include "Tokenizer.h"
 #include "../Pin.h"
 #include "../StringRange.h"
+#include "../EnumItem.h"
 
 #include <stack>
 #include <cstring>
@@ -65,5 +66,6 @@ namespace Configuration {
         int         intValue() const;
         double      doubleValue() const;
         Pin         pinValue() const;
+        int         enumValue(EnumItem* e) const;
     };
 }

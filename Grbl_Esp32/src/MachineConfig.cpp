@@ -374,6 +374,7 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("idle_time", _idleTime);
     handler.handle("user_outputs", _userOutputs);
     handler.handle("sdcard", _sdCard);
+    handler.handle("step_type", _stepType, stepTypes);
 
     // TODO: Consider putting these under a gcode: hierarchy level? Or motion control?
     handler.handle("laser_mode", _laserMode);

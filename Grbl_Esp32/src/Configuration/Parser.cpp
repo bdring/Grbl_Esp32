@@ -19,6 +19,9 @@
 #include "Parser.h"
 
 #include "ParseException.h"
+#include "../EnumItem.h"
+
+#include "../Logging.h"
 
 #include <climits>
 
@@ -150,4 +153,16 @@ namespace Configuration {
         return Pin::create(StringRange(current_.sValueStart_, current_.sValueEnd_));
     }
 
+    int Parser::enumValue(EnumItem* e) const {
+        if (current_.kind_ != TokenKind::String) {
+            parseError("Expected a string value (e.g. 'foo')");
+        }
+        auto str = StringRange(current_.sValueStart_, current_.sValueEnd_);
+        for (; e->name; ++e) {
+            if (str.equals(e->name)) {
+                break;
+            }
+        }
+        return e->value;
+    }
 }

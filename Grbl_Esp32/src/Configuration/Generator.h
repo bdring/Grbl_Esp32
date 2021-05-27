@@ -74,5 +74,16 @@ namespace Configuration {
             indent();
             dst_ << name << ": " << value << '\n';
         }
+        void handle(const char* name, int& value, EnumItem* e) override {
+            indent();
+            const char* str = "unknown";
+            for (; e->name; ++e) {
+                if (value == e->value) {
+                    str = e->name;
+                    break;
+                }
+            }
+            dst_ << name << ": " << str << '\n';
+        }
     };
 }

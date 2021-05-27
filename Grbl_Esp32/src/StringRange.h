@@ -65,13 +65,13 @@ public:
 
     bool equals(const StringRange& o) const {
         auto l = length();
-        return l == o.length() && !strncmp(start_, o.start_, l);
+        return l == o.length() && !strncasecmp(start_, o.start_, l);
     }
 
     bool equals(const char* o) const {
         const char* c  = start_;
         const char* oc = o;
-        for (; *c != '\0' && *oc != '\0' && *c == *oc; ++c, ++oc) {}
+        for (; *c != '\0' && *oc != '\0' && tolower(*c) == tolower(*oc); ++c, ++oc) {}
         return c == end_ && *oc == '\0';
     }
 

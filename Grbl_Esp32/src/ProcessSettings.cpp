@@ -247,7 +247,7 @@ Error home(int cycle) {
     sys.state = State::Homing;  // Set system state variable
 
 #ifdef USE_I2S_STEPS
-    stepper_id_t save_stepper = current_stepper;
+    stepper_id_t save_stepper = config->_stepType;
     if (save_stepper == ST_I2S_STREAM) {
         stepper_switch(ST_I2S_STATIC);
     }
@@ -256,7 +256,7 @@ Error home(int cycle) {
     mc_homing_cycle(cycle);
 
 #ifdef USE_I2S_STEPS
-    if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {
+    if (save_stepper == ST_I2S_STREAM && config->_stepType != ST_I2S_STREAM) {
         stepper_switch(ST_I2S_STREAM);
     }
 #endif

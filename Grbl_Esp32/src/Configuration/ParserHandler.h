@@ -21,6 +21,7 @@
 #include "HandlerBase.h"
 #include "Parser.h"
 #include "Configurable.h"
+#include "../EnumItem.h"
 
 #include "../Logging.h"
 
@@ -50,6 +51,12 @@ namespace Configuration {
         void handle(const char* name, int& value) override {
             if (parser_.is(name)) {
                 value = parser_.intValue();
+            }
+        }
+
+        void handle(const char* name, int& value, EnumItem* e) override {
+            if (parser_.is(name)) {
+                value = parser_.enumValue(e);
             }
         }
 

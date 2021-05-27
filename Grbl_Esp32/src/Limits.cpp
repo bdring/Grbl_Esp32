@@ -253,7 +253,7 @@ void limits_go_home(uint8_t cycle_mask, uint n_locate_cycles) {
             }
         } while (STEP_MASK & axislock);
 #ifdef USE_I2S_STEPS
-        if (current_stepper == ST_I2S_STREAM) {
+        if (config->_stepType == ST_I2S_STREAM) {
             if (!approach) {
                 delay_ms(I2S_OUT_DELAY_MS);
             }

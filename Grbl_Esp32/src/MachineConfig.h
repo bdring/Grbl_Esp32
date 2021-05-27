@@ -28,6 +28,8 @@
 #include "Probe.h"
 #include "SDCard.h"
 #include "Spindles/Spindle.h"
+#include "EnumItem.h"
+#include "Stepper.h"
 
 // TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
 
@@ -378,8 +380,8 @@ public:
     Spindles::Spindle* _spindle     = nullptr;
 
     int _pulseMicroSeconds          = 3;
-    int _directionDelayMilliSeconds = 0;
-    int _disableDelayMilliSeconds   = 0;
+    int _directionDelayMicroSeconds = 0;
+    int _disableDelayMicroSeconds   = 0;
 
     bool    _laserMode         = false;
     float   _arcTolerance      = 0.002;
@@ -388,6 +390,7 @@ public:
     bool    _verboseErrors     = false;
     bool    _reportInches      = false;
     bool    _homingInitLock    = false;
+    int     _stepType          = ST_RMT;
 
     String _board = "None";
     String _name  = "None";

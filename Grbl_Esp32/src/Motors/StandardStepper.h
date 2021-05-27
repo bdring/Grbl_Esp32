@@ -25,13 +25,12 @@ namespace Motors {
     protected:
         void config_message() override;
 
-        bool _use_rmt_steps = false;
-        Pin  _step_pin;
-        Pin  _dir_pin;
-        Pin  _disable_pin;
+        Pin _step_pin;
+        Pin _dir_pin;
+        Pin _disable_pin;
 
-        int _direction_delay_ms = 0;
-        int _enable_delay_ms    = 0;
+        int _direction_delay_us = 0;
+        int _enable_delay_us    = 0;
 
         // Configuration handlers:
         void validate() const override {
@@ -40,12 +39,11 @@ namespace Motors {
         }
 
         void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("use_rmt_steps", _use_rmt_steps);
             handler.handle("step", _step_pin);
             handler.handle("direction", _dir_pin);
             handler.handle("disable", _disable_pin);
-            handler.handle("direction_delay_ms", _direction_delay_ms);
-            handler.handle("enable_delay_ms", _enable_delay_ms);
+            handler.handle("direction_delay_us", _direction_delay_us);
+            handler.handle("enable_delay_us", _enable_delay_us);
         }
 
         // Name of the configurable. Must match the name registered in the cpp file.

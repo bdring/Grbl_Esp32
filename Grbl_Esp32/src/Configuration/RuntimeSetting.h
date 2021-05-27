@@ -59,6 +59,7 @@ namespace Configuration {
         void handle(const char* name, double& value) override;
         void handle(const char* name, StringRange& value) override;
         void handle(const char* name, Pin& value) override;
+        void handle(const char* name, int& value, EnumItem* e) override {}
 
         HandlerType handlerType() override { return HandlerType::Runtime; }
 

@@ -309,7 +309,7 @@ static bool axis_is_squared(AxisMask axis_mask) {
 
 #    define RESTORE_STEPPER(save_stepper)                                                                                                  \
         do {                                                                                                                               \
-            if (save_stepper == ST_I2S_STREAM && current_stepper != ST_I2S_STREAM) {                                                       \
+            if (save_stepper == ST_I2S_STREAM && config->_stepType != ST_I2S_STREAM) {                                                     \
                 stepper_switch(ST_I2S_STREAM); /* Put the stepper back on. */                                                              \
             }                                                                                                                              \
         } while (0)
@@ -426,7 +426,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     }
 
 #ifdef USE_I2S_STEPS
-    stepper_id_t save_stepper = current_stepper; /* remember the stepper */
+    stepper_id_t save_stepper = config->_stepType; /* remember the stepper */
 #endif
     // Switch stepper mode to the I2S static (realtime mode)
     BACKUP_STEPPER(save_stepper);
@@ -569,7 +569,7 @@ void mc_reset() {
         ganged_mode = gangDual;  // in case an error occurred during squaring
 
 #ifdef USE_I2S_STEPS
-        if (current_stepper == ST_I2S_STREAM) {
+        if (config->_stepType == ST_I2S_STREAM) {
             i2s_out_reset();
         }
 #endif

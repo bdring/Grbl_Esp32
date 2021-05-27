@@ -52,21 +52,12 @@ Some features should not be changed. See notes below.
 // #define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
 #define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
 
-#define USE_RMT_STEPS
-
 // Include the file that loads the machine-specific config file.
 // machine.h must be edited to choose the desired file.
 #include "Machine.h"
 
 // machine_common.h contains settings that do not change
 #include "MachineCommon.h"
-
-// Adjust exclusive definitions for steppers
-#ifdef USE_I2S_STEPS
-#    ifdef USE_RMT_STEPS
-#        undef USE_RMT_STEPS
-#    endif
-#endif
 
 const int MAX_N_AXIS = 6;
 
@@ -348,14 +339,6 @@ const double ARC_ANGULAR_TRAVEL_EPSILON = 5E-7;  // Float (radians)
 // run-time command executions, like status reports, since these are performed between each dwell
 // time step. Also, keep in mind that the Arduino delay timer is not very accurate for long delays.
 const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
-
-// For test use only. This uses the ESP32's RMT peripheral to generate step pulses
-// It allows the use of a delay and it automatically ends the
-// pulse in one operation.
-// Dir Pin  ____|--------------------
-// Step Pin _______|--|____________
-// While this is experimental, it is intended to be the future default method after testing
-//#define USE_RMT_STEPS
 
 // The number of linear motions in the planner buffer to be planned at any give time. The vast
 // majority of RAM that Grbl uses is based on this buffer size. Only increase if there is extra

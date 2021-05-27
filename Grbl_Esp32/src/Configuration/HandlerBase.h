@@ -21,6 +21,7 @@
 #include "HandlerType.h"
 #include "../Pin.h"
 #include "../StringRange.h"
+#include "../EnumItem.h"
 
 namespace Configuration {
     class Configurable;
@@ -57,6 +58,7 @@ namespace Configuration {
         virtual void handle(const char* name, StringRange& value) = 0;
         virtual void handle(const char* name, Pin& value)         = 0;
 
+        virtual void handle(const char* name, int& value, EnumItem* e) = 0;
         virtual void handle(const char* name, String& value) {
             StringRange range;
             handle(name, range);

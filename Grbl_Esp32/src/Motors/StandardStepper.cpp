@@ -55,7 +55,7 @@ namespace Motors {
 
         _dir_pin.setAttr(Pin::Attr::Output);
 
-        if (_use_rmt_steps) {
+        if (config->_stepType == ST_RMT) {
             rmtConfig.rmt_mode                       = RMT_MODE_TX;
             rmtConfig.clk_div                        = 20;
             rmtConfig.mem_block_num                  = 2;
@@ -66,7 +66,7 @@ namespace Motors {
             rmtConfig.tx_config.carrier_level        = RMT_CARRIER_LEVEL_LOW;
             rmtConfig.tx_config.idle_output_en       = true;
 
-            auto stepPulseDelay  = _direction_delay_ms;
+            auto stepPulseDelay  = _direction_delay_us;
             rmtItem[0].duration0 = stepPulseDelay < 1 ? 1 : stepPulseDelay * 4;
 
             rmtItem[0].duration1 = 4 * config->_pulseMicroSeconds;
@@ -106,7 +106,7 @@ namespace Motors {
     }
 
     void StandardStepper::step() {
-        if (_use_rmt_steps) {
+        if (config->_stepType == ST_RMT) {
             RMT.conf_ch[_rmt_chan_num].conf1.mem_rd_rst = 1;
             RMT.conf_ch[_rmt_chan_num].conf1.tx_start   = 1;
         } else {
@@ -115,7 +115,7 @@ namespace Motors {
     }
 
     void StandardStepper::unstep() {
-        if (!_use_rmt_steps) {
+        if (config->_stepType != ST_RMT) {
             _step_pin.off();
         }
     }
