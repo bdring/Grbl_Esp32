@@ -30,16 +30,14 @@
 void Probe::init() {
     static bool show_init_msg = true;  // used to show message only once.
 
-    if (!_probePin.undefined()) {
-#ifdef DISABLE_PROBE_PIN_PULL_UP
-        _probePin.setAttr(Pin::Attr::Input);
-#else
+    if (_probePin.defined()) {
         if (_probePin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+            // XXX Do we really want to default this instead of letting
+            // YAML control it explicitly
             _probePin.setAttr(Pin::Attr::Input | Pin::Attr::PullUp);  // Enable internal pull-up resistors. Normal high operation.
         } else {
             _probePin.setAttr(Pin::Attr::Input);
         }
-#endif
 
         if (show_init_msg) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe on pin %s", _probePin.name().c_str());

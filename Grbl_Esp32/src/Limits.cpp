@@ -304,12 +304,6 @@ void limits_init() {
             if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
                 Pin& pin = gangConfig->_endstops->_dual;
 
-#ifndef DISABLE_LIMIT_PIN_PULL_UP
-                if (pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-                    mode = mode | Pin::Attr::PullUp;
-                }
-#endif
-
                 pin.setAttr(mode);
                 bitnum_true(limit_mask, axis);
                 if (gangConfig->_endstops->_hardLimits) {

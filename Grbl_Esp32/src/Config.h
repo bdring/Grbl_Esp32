@@ -266,23 +266,6 @@ const int ACCELERATION_TICKS_PER_SECOND = 100;
 // NOTE: For now disabled, will enable if flash space permits.
 // #define MAX_STEP_RATE_HZ 30000 // Hz
 
-// By default, Grbl sets all input pins to normal-high operation with their internal pull-up resistors
-// enabled. This simplifies the wiring for users by requiring only a switch connected to ground,
-// although its recommended that users take the extra step of wiring in low-pass filter to reduce
-// electrical noise detected by the pin. If the user inverts the pin in Grbl settings, this just flips
-// which high or low reading indicates an active signal. In normal operation, this means the user
-// needs to connect a normal-open switch, but if inverted, this means the user should connect a
-// normal-closed switch.
-// The following options disable the internal pull-up resistors, sets the pins to a normal-low
-// operation, and switches must be now connect to Vcc instead of ground. This also flips the meaning
-// of the invert pin Grbl setting, where an inverted setting now means the user should connect a
-// normal-open switch and vice versa.
-// NOTE: All pins associated with the feature are disabled, i.e. XYZ limit pins, not individual axes.
-// WARNING: When the pull-ups are disabled, this requires additional wiring with pull-down resistors!
-//#define DISABLE_LIMIT_PIN_PULL_UP
-//#define DISABLE_PROBE_PIN_PULL_UP
-//#define DISABLE_CONTROL_PIN_PULL_UP
-
 // Sets which axis the tool length offset is applied. Assumes the spindle is always parallel with
 // the selected axis with the tool oriented toward the negative direction. In other words, a positive
 // tool length offset value is subtracted from the current location.

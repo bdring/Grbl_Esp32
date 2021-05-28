@@ -148,7 +148,7 @@ namespace Pins {
         Assert(!_attributes.conflictsWith(value) || _index == 1 || _index == 3,
                "Attributes on this pin have been set before, and there's a conflict.");
 
-        _attributes = value;
+        _attributes = _attributes | value;
 
         // Handle attributes:
         uint8_t pinModeValue = 0;
