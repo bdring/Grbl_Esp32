@@ -57,7 +57,7 @@ namespace Pins {
         void attachInterrupt(void (*callback)(void*), void* arg, int mode) override;
         void detachInterrupt() override;
 
-        String toString() const override { return _implementation->toString(); }
+        String toString() override { return _implementation->toString(); }
 
         ~DebugPinDetail() override {}
     };

@@ -52,7 +52,7 @@ namespace Pins {
         virtual void attachInterrupt(void (*callback)(void*), void* arg, int mode);
         virtual void detachInterrupt();
 
-        virtual String toString() const = 0;
+        virtual String toString() = 0;
 
         inline int number() const { return _index; }
 

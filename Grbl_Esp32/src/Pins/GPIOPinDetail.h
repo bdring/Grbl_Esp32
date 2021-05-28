@@ -43,7 +43,7 @@ namespace Pins {
         void attachInterrupt(void (*callback)(void*), void* arg, int mode) override;
         void detachInterrupt() override;
 
-        String toString() const override;
+        String toString() override;
 
         ~GPIOPinDetail() override {}
     };

@@ -119,12 +119,8 @@ namespace Pins {
             }
         }
 
-        // Update the R/W mask for ActiveLow setting
-        if (_attributes.has(PinAttributes::ActiveLow)) {
-            _readWriteMask = HIGH;
-        } else {
-            _readWriteMask = LOW;
-        }
+        // readWriteMask is xor'ed with the value to invert it if active low
+        _readWriteMask = _attributes.has(PinAttributes::ActiveLow);
     }
 
     PinAttributes GPIOPinDetail::getAttr() const { return _attributes; }
@@ -172,11 +168,7 @@ namespace Pins {
 
         // If the pin is ActiveLow, we should take that into account here:
         if (value.has(PinAttributes::Output)) {
-            if (value.has(PinAttributes::InitialOn)) {
-                __digitalWrite(_index, HIGH ^ _readWriteMask);
-            } else {
-                __digitalWrite(_index, LOW ^ _readWriteMask);
-            }
+            __digitalWrite(_index, value.has(PinAttributes::InitialOn) ^ _readWriteMask);
         }
 
         __pinMode(_index, pinModeValue);
@@ -194,5 +186,18 @@ namespace Pins {
         ::detachInterrupt(_index);
     }
 
-    String GPIOPinDetail::toString() const { return String("GPIO.") + int(_index); }
+    String GPIOPinDetail::toString() {
+        auto s = String("gpio.") + int(_index);
+        if (_attributes.has(PinAttributes::ActiveLow)) {
+            s += ":low";
+        }
+        if (_attributes.has(PinAttributes::PullUp)) {
+            s += ":pu";
+        }
+        if (_attributes.has(PinAttributes::PullDown)) {
+            s += ":pd";
+        }
+
+        return s;
+    }
 }

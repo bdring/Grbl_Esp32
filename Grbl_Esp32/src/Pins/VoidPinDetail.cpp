@@ -32,6 +32,6 @@ namespace Pins {
     void          VoidPinDetail::setAttr(PinAttributes value) {}
     PinAttributes VoidPinDetail::getAttr() const { return PinAttributes::None; }
 
-    String VoidPinDetail::toString() const { return ""; }
+    String VoidPinDetail::toString() { return ""; }
 
 }

@@ -39,12 +39,8 @@ namespace Pins {
             }
         }
 
-        // Update the R/W mask for ActiveLow setting
-        if (_attributes.has(PinAttributes::ActiveLow)) {
-            _readWriteMask = HIGH;
-        } else {
-            _readWriteMask = LOW;
-        }
+        // readWriteMask is xor'ed with the value to invert it if active low
+        _readWriteMask = _attributes.has(PinAttributes::ActiveLow);
     }
 
     PinCapabilities I2SOPinDetail::capabilities() const { return PinCapabilities::Output | PinCapabilities::I2S; }
@@ -72,16 +68,18 @@ namespace Pins {
         // just check for conflicts above...
 
         // If the pin is ActiveLow, we should take that into account here:
-        if (value.has(PinAttributes::InitialOn)) {
-            i2s_out_write(_index, HIGH ^ _readWriteMask);
-        } else {
-            i2s_out_write(_index, LOW ^ _readWriteMask);
-        }
+        i2s_out_write(_index, value.has(PinAttributes::InitialOn) ^ _readWriteMask);
     }
 
     PinAttributes I2SOPinDetail::getAttr() const { return _attributes; }
 
-    String I2SOPinDetail::toString() const { return String("I2SO.") + int(_index); }
+    String I2SOPinDetail::toString() {
+        auto s = String("I2SO.") + int(_index);
+        if (_attributes.has(PinAttributes::ActiveLow)) {
+            s += ":low";
+        }
+        return s;
+    }
 }
 
 #endif

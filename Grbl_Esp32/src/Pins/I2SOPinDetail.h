@@ -38,7 +38,7 @@ namespace Pins {
         void          setAttr(PinAttributes value) override;
         PinAttributes getAttr() const override;
 
-        String toString() const override;
+        String toString() override;
 
         ~I2SOPinDetail() override {}
     };
