@@ -313,8 +313,7 @@ void limits_init() {
                 }
 
                 if (limit_sw_queue == NULL) {
-                    grbl_msg_sendf(
-                        CLIENT_SERIAL, MsgLevel::Info, "%s limit switch on pin %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
+                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s limit on %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
                 }
             }
         }

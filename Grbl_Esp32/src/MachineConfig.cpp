@@ -123,7 +123,7 @@ void Axes::init() {
 
     if (_sharedStepperDisable.defined()) {
         _sharedStepperDisable.setAttr(Pin::Attr::Output);
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Shared stepper disable pin:%s", _sharedStepperDisable.name());
+        _sharedStepperDisable.report("Shared stepper disable");
     }
 
     // certain motors need features to be turned on. Check them here

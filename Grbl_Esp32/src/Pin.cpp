@@ -197,5 +197,11 @@ bool Pin::validate(const String& str) {
     return valid;
 }
 
+void Pin::report(const char* legend) {
+    if (defined()) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s on %s", legend, name().c_str());
+    }
+}
+
 Pin Pin::ERROR(255);
 Pin Pin::UNDEFINED(254);

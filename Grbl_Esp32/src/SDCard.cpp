@@ -195,12 +195,8 @@ void SDCard::init() {
     static bool init_message = true;  // used to show messages only once.
 
     if (init_message) {
-        if (_cardDetect.defined()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SD Card Detect on pin %s", _cardDetect.name().c_str());
-        }
-        if (_cardDetect.defined()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SD SPI Chip Select on pin %s", _cs_pin.name().c_str());
-        }
+        _cardDetect.report("SD Card Detect");
+        _cs_pin.report("SD SPI Chip Select");
         init_message = false;
     }
 

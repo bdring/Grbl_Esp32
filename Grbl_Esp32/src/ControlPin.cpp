@@ -13,7 +13,7 @@ void IRAM_ATTR ControlPin::handleISR() {
 
 void ControlPin::init() {
     if (_pin.defined()) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s switch on pin %s", _legend, _pin.name());
+        _pin.report(_legend);
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
         if (_pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
             attr = attr | Pin::Attr::PullUp;

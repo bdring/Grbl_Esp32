@@ -598,7 +598,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                     case 'E':
                         axis_word_bit     = GCodeWord::E;
                         gc_block.values.e = int_value;
-                        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "E %d", gc_block.values.e);
+                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "E %d", gc_block.values.e);
                         break;
                     case 'F':
                         axis_word_bit     = GCodeWord::F;
@@ -635,7 +635,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                     case 'Q':
                         axis_word_bit     = GCodeWord::Q;
                         gc_block.values.q = value;
-                        //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Q %2.2f", value);
+                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Q %2.2f", value);
                         break;
                     case 'R':
                         axis_word_bit     = GCodeWord::R;

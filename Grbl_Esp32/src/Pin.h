@@ -150,5 +150,7 @@ public:
         return detail->toString();
     }
 
+    void report(const char* legend);
+
     inline ~Pin() = default;
 };

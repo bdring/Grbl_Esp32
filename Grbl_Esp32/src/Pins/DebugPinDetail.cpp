@@ -93,7 +93,7 @@ namespace Pins {
     void DebugPinDetail::CallbackHandler::handle(void* arg) {
         auto handler = static_cast<CallbackHandler*>(arg);
         if (handler->_myPin->shouldEvent()) {
-            WriteSerial("Received ISR on pin %s", handler->_myPin->toString().c_str());
+            WriteSerial("Received ISR on %s", handler->_myPin->toString().c_str());
         }
         handler->callback(handler->argument);
     }

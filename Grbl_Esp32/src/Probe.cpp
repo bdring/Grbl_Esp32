@@ -40,7 +40,7 @@ void Probe::init() {
         }
 
         if (show_init_msg) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe on pin %s", _probePin.name().c_str());
+            _probePin.report("Probe");
             show_init_msg = false;
         }
     }
