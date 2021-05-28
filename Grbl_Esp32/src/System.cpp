@@ -57,6 +57,17 @@ UserOutput::DigitalOutput* myDigitalOutputs[MaxUserDigitalPin];
 xQueueHandle control_sw_queue;    // used by control switch debouncing
 bool         debouncing = false;  // debouncing in process
 
+void system_reset() {
+    // Reset system variables.
+    State prior_state = sys.state;
+    memset(&sys, 0, sizeof(system_t));  // Clear system struct variable.
+    sys.state             = prior_state;
+    sys.f_override        = FeedOverride::Default;              // Set to 100%
+    sys.r_override        = RapidOverride::Default;             // Set to 100%
+    sys.spindle_speed_ovr = SpindleSpeedOverride::Default;      // Set to 100%
+    memset(sys_probe_position, 0, sizeof(sys_probe_position));  // Clear probe position.
+}
+
 void init_output_pins() {
     //customize pin definition if needed
 #if (GRBL_SPI_SS != -1) || (GRBL_SPI_MISO != -1) || (GRBL_SPI_MOSI != -1) || (GRBL_SPI_SCK != -1)

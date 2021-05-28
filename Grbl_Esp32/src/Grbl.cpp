@@ -91,6 +91,10 @@ void grbl_init() {
         }
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing spindle...");
 
+        config->_coolant->init();
+        limits_init();
+        config->_probe->init();
+
 #ifdef ENABLE_WIFI
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing WiFi-config...");
         WebUI::wifi_config.begin();
@@ -113,37 +117,11 @@ void grbl_init() {
 }
 
 static void reset_variables() {
-    // Reset system variables.
-    State prior_state = sys.state;
-    memset(&sys, 0, sizeof(system_t));  // Clear system struct variable.
-    sys.state             = prior_state;
-    sys.f_override        = FeedOverride::Default;              // Set to 100%
-    sys.r_override        = RapidOverride::Default;             // Set to 100%
-    sys.spindle_speed_ovr = SpindleSpeedOverride::Default;      // Set to 100%
-    memset(sys_probe_position, 0, sizeof(sys_probe_position));  // Clear probe position.
-
-    sys_probe_state                      = ProbeState::Off;
-    rtStatusReport                       = false;
-    rtCycleStart                         = false;
-    rtFeedHold                           = false;
-    rtReset                              = false;
-    rtSafetyDoor                         = false;
-    rtMotionCancel                       = false;
-    rtSleep                              = false;
-    rtCycleStop                          = false;
-    sys_rt_exec_accessory_override.value = 0;
-    sys_rt_exec_alarm                    = ExecAlarm::None;
-    sys_rt_f_override                    = FeedOverride::Default;
-    sys_rt_r_override                    = RapidOverride::Default;
-    sys_rt_s_override                    = SpindleSpeedOverride::Default;
-
     // Reset Grbl primary systems.
-    client_reset_read_buffer(CLIENT_ALL);  // Clear serial read buffer
-    gc_init();                             // Set g-code parser to default state
+    system_reset();
+    protocol_reset();
+    gc_init();  // Set g-code parser to default state
     config->_spindle->stop();
-    config->_coolant->init();
-    limits_init();
-    config->_probe->init();
     plan_reset();  // Clear block buffer and planner variables
     st_reset();    // Clear stepper subsystem variables
     // Sync cleared gcode and planner positions to current system position.

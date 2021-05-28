@@ -143,6 +143,8 @@ extern volatile bool sys_rt_exec_debug;
 
 void init_output_pins();  // Renamed from system_init() due to conflict with esp32 files
 
+void system_reset();
+
 // Execute the startup script lines stored in non-volatile storage upon initialization
 void  system_execute_startup(char* line);
 Error execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level);

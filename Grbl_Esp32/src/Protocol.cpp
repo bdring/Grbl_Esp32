@@ -101,6 +101,23 @@ bool can_park() {
         homingAxes() && !config->_laserMode;
 }
 
+void protocol_reset() {
+    sys_probe_state                      = ProbeState::Off;
+    rtStatusReport                       = false;
+    rtCycleStart                         = false;
+    rtFeedHold                           = false;
+    rtReset                              = false;
+    rtSafetyDoor                         = false;
+    rtMotionCancel                       = false;
+    rtSleep                              = false;
+    rtCycleStop                          = false;
+    sys_rt_exec_accessory_override.value = 0;
+    sys_rt_exec_alarm                    = ExecAlarm::None;
+    sys_rt_f_override                    = FeedOverride::Default;
+    sys_rt_r_override                    = RapidOverride::Default;
+    sys_rt_s_override                    = SpindleSpeedOverride::Default;
+}
+
 /*
   GRBL PRIMARY LOOP:
 */
