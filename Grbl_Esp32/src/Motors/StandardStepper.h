@@ -29,9 +29,6 @@ namespace Motors {
         Pin _dir_pin;
         Pin _disable_pin;
 
-        int _direction_delay_us = 0;
-        int _enable_delay_us    = 0;
-
         // Configuration handlers:
         void validate() const override {
             Assert(!_step_pin.undefined(), "Step pin should be configured.");
@@ -42,8 +39,6 @@ namespace Motors {
             handler.handle("step", _step_pin);
             handler.handle("direction", _dir_pin);
             handler.handle("disable", _disable_pin);
-            handler.handle("direction_delay_us", _direction_delay_us);
-            handler.handle("enable_delay_us", _enable_delay_us);
         }
 
         // Name of the configurable. Must match the name registered in the cpp file.

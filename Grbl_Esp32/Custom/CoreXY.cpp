@@ -201,7 +201,7 @@ bool user_defined_homing(AxisMask cycle_mask) {
                     } while (!switch_touched);
 
 #ifdef USE_I2S_STEPS
-                    if (current_stepper == ST_I2S_STREAM) {
+                    if (config->_stepType == ST_I2S_STREAM) {
                         if (!approach) {
                             delay_ms(I2S_OUT_DELAY_MS);
                         }

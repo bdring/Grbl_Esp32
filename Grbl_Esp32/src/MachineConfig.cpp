@@ -369,6 +369,8 @@ void MachineConfig::handle(Configuration::HandlerBase& handler) {
     handler.handle("coolant", _coolant);
     handler.handle("probe", _probe);
     handler.handle("pulse_microseconds", _pulseMicroSeconds);
+    handler.handle("dir_delay_microseconds", _directionDelayMicroSeconds);
+    handler.handle("disable_delay_us", _disableDelayMicroSeconds);
     handler.handle("board", _board);
     handler.handle("name", _name);
     handler.handle("idle_time", _idleTime);

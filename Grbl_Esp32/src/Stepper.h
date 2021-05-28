@@ -39,8 +39,6 @@ enum stepper_id_t {
 extern uint64_t stepper_idle_counter;
 extern bool     stepper_idle;
 
-extern stepper_id_t current_stepper;
-
 void stepper_init();
 void stepper_switch(stepper_id_t new_stepper);
 

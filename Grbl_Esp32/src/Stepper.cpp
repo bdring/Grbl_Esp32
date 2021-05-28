@@ -353,7 +353,13 @@ void stepper_init() {
     busy.store(false);
 
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", config->_axes->_numberAxis);
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Step type: %s", stepTypes[config->_stepType].name);
+    grbl_msg_sendf(CLIENT_SERIAL,
+                   MsgLevel::Info,
+                   "Step type:%s Pulse:%dus Dsbl Delay:%dus Dir Delay:%dus",
+                   stepTypes[config->_stepType].name,
+                   config->_pulseMicroSeconds,
+                   config->_disableDelayMicroSeconds,
+                   config->_directionDelayMicroSeconds);
 
 #ifdef USE_I2S_STEPS
     // I2S stepper stream mode use callback but timer interrupt

@@ -1,14 +1,46 @@
-name: "Debug config"
-board: Debug-board
+name: "ESP32 Dev Controller V4"
+board: "ESP32 Dev Controller V4"
+yaml_wiki: "https://github.com/bdring/Grbl_Esp32/wiki/YAML-Config-File"
+
+idle_time: 250
+step_type: rmt
+dir_delay_microseconds: 1
+pulse_microseconds: 2
+disable_delay_us: 0
 
 axes:
   number_axis: 3
+  shared_stepper_disable: gpio.13:low
+  
+  x:
+    limit: gpio.32:high
+    
+    gang0:
+      stepstick:
+        direction: gpio:14
+        step: gpio.12
+    gang1:
+      null_motor:
+
+  y:
+    limit: gpio.4:low
+
+    gang0:
+      stepstick:
+        direction: gpio:15
+        step: gpio.26
+    gang1:
+      stepstick:
+        direction: gpio:33
+        step: gpio.27
+
 
 laser_mode: true
 
 coolant:
-  flood: gpio.26:low
-  mist:  gpio.4
+  flood: gpio.25:low
+  mist:  gpio.21
 
 probe:
-    pin: gpio.12:high:pu
+    pin: gpio.32:high:pu
+  
