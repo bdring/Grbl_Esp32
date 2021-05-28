@@ -7,15 +7,22 @@ step_type: rmt
 dir_delay_microseconds: 1
 pulse_microseconds: 2
 disable_delay_us: 0
+homing_init_lock: false
 
 axes:
   number_axis: 3
   shared_stepper_disable: gpio.13:low
   
   x:
-    limit: gpio.32:high
+    steps_per_mm: 800
+    max_rate: 2000
+    acceleration: 25
+    max_travel: 1000
+    home_mpos: 10
     
     gang0:
+      endstops:
+        dual: gpio.17:low:pu
       stepstick:
         direction: gpio:14
         step: gpio.12
@@ -23,19 +30,37 @@ axes:
       null_motor:
 
   y:
-    limit: gpio.4:low
+    steps_per_mm: 800
+    max_rate: 2000
+    acceleration: 25
+    max_travel: 1000
+    home_mpos: 10
 
     gang0:
+      endstops:
+        dual: gpio.4:low:pu
       stepstick:
         direction: gpio:15
         step: gpio.26
     gang1:
+      null_motor:
+
+  z:
+    steps_per_mm: 800
+    max_rate: 2000
+    acceleration: 25
+    max_travel: 1000
+    home_mpos: 10
+
+    gang0:
+      endstops:
+        dual: gpio.16:low:pu
       stepstick:
         direction: gpio:33
         step: gpio.27
+    gang1:
+      null_motor:
 
-
-laser_mode: true
 
 coolant:
   flood: gpio.25:low

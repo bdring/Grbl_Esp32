@@ -363,14 +363,13 @@ AxisMask limits_get_state() {
             auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
             if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
                 Pin& pin = gangConfig->_endstops->_dual;
-                bitnum_true(pinMask, (pin.read() << axis));
+                if (pin.read()) {
+                    bitnum_true(pinMask, axis);
+                }
             }
         }
     }
 
-#ifdef INVERT_LIMIT_PIN_MASK  // not normally used..unless you have both normal and inverted switches
-    pinMask ^= INVERT_LIMIT_PIN_MASK;
-#endif
     return pinMask;
 }
 
