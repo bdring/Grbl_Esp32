@@ -49,6 +49,10 @@ namespace Pins {
         Assert(_attributes.has(PinAttributes::Output), "Pin has no output attribute defined. Cannot write to it.");
         int value = _readWriteMask ^ high;
         i2s_out_write(_index, value);
+        // XXX Do we want to add i2s_out_delay() here ?
+        // Doing so would eliminate the need to override
+        // switchCSpin() in TrnamicDriver.cpp
+        i2s_out_delay();
     }
 
     int I2SOPinDetail::read() {

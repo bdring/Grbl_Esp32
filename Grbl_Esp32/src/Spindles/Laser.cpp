@@ -46,7 +46,6 @@ namespace Spindles {
     void Laser::get_pins_and_settings() {
         // setup all the pins
         PWM::get_pins_and_settings();
-        _direction_pin = Pin::UNDEFINED;
 
         is_reversable = false;
 

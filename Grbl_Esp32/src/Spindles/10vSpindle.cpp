@@ -107,11 +107,11 @@ namespace Spindles {
 			sys.spindle_speed = 0;
 			stop();
 		} else {
-			set_dir_pin(state == SpindleState:Cw);
+			set_direction(state == SpindleState:Cw);
 			set_rpm(rpm);
 		}
 
-		set_enable_pin(state != SpindleState::Disable);
+		set_enable(state != SpindleState::Disable);
 
 		sys.report_ovr_counter = 0; // Set to report change immediately
 	}
@@ -129,11 +129,11 @@ namespace Spindles {
 
     void _10v::stop() {
         // inverts are delt with in methods
-        set_enable_pin(false);
+        set_enable(false);
         set_output(_pwm_off_value);
     }
 
-    void _10v::set_enable_pin(bool enable) {
+    void _10v::set_enable(bool enable) {
         if (_off_with_zero_speed && sys.spindle_speed == 0) {
             enable = false;
         }
@@ -148,7 +148,7 @@ namespace Spindles {
         }
     }
 
-    void _10v::set_dir_pin(bool Clockwise) {
+    void _10v::set_direction(bool Clockwise) {
         _direction_pin.write(Clockwise);
         _forward_pin.write(Clockwise);
         _reverse_pin.write(!Clockwise);

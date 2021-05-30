@@ -70,7 +70,7 @@ namespace Configuration {
 
     void RuntimeSetting::handle(const char* name, Pin& value) {
         if (is(name) && this->value() != nullptr) {
-            value = Pin::create(StringRange(this->value()));
+            value.define(Pin::create(StringRange(this->value())));
         }
     }
 

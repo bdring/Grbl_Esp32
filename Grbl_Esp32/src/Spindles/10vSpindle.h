@@ -62,8 +62,8 @@ namespace Spindles {
         virtual ~_10v() {}
 
     protected:
-        void set_enable_pin(bool enable_pin) override;
-        void set_dir_pin(bool Clockwise) override;
+        void set_enable(bool enable_pin) override;
+        void set_direction(bool Clockwise) override;
 
         Pin _forward_pin;
         Pin _reverse_pin;

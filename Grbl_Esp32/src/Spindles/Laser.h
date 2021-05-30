@@ -40,6 +40,7 @@ namespace Spindles {
         bool isRateAdjusted() override;
         void config_message() override;
         void get_pins_and_settings() override;
+        void set_direction(bool Clockwise) override {};
 
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "Laser"; }

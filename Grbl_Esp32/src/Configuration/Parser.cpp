@@ -145,7 +145,7 @@ namespace Configuration {
         return current_.fValue_;
     }
 
-    Pin Parser::pinValue() const {
+    Pins::PinDetail* Parser::pinValue() const {
         if (current_.kind_ != TokenKind::String) {
             parseError("Expected a string value (e.g. 'foo')");
         }

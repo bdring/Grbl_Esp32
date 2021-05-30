@@ -127,7 +127,7 @@ namespace Spindles {
             }
         }
 
-        set_enable_pin(gc_state.modal.spindle != SpindleState::Disable);
+        set_enable(gc_state.modal.spindle != SpindleState::Disable);
         set_output(pwm_value);
 
         return 0;
@@ -145,9 +145,9 @@ namespace Spindles {
                 delay(_spindown_delay);
             }
         } else {
-            set_dir_pin(state == SpindleState::Cw);
+            set_direction(state == SpindleState::Cw);
             set_rpm(rpm);
-            set_enable_pin(state != SpindleState::Disable);  // must be done after setting rpm for enable features to work
+            set_enable(state != SpindleState::Disable);  // must be done after setting rpm for enable features to work
             if (use_delays && (_current_state != state)) {
                 delay(_spinup_delay);
             }
@@ -170,7 +170,7 @@ namespace Spindles {
 
     void PWM::stop() {
         // inverts are delt with in methods
-        set_enable_pin(false);
+        set_enable(false);
         set_output(_pwm_off_value);
     }
 
@@ -208,7 +208,7 @@ namespace Spindles {
         LEDC.channel_group[0].channel[0].conf1.duty_start = on;
     }
 
-    void PWM::set_enable_pin(bool enable) {
+    void PWM::set_enable(bool enable) {
         if (_enable_pin.undefined()) {
             return;
         }
@@ -220,7 +220,7 @@ namespace Spindles {
         _enable_pin.write(enable);
     }
 
-    void PWM::set_dir_pin(bool Clockwise) { _direction_pin.write(Clockwise); }
+    void PWM::set_direction(bool Clockwise) { _direction_pin.write(Clockwise); }
 
     /*
 		Calculate the highest precision of a PWM based on the frequency in bits

@@ -18,15 +18,16 @@
 
 #pragma once
 
-#include "Pins/PinLookup.h"
 #include "Pins/PinDetail.h"
 #include "Pins/PinCapabilities.h"
 #include "Pins/PinAttributes.h"
+#include "Pins/VoidPinDetail.h"
 #include "StringRange.h"
 
 #include <Arduino.h>  // for IRAM_ATTR
 #include <cstdint>
 #include <cstring>
+#include "Assert.h"
 
 // TODO: ENABLE_CONTROL_SW_DEBOUNCE should end up here with a shared task.
 
@@ -34,6 +35,8 @@
 
 // Forward declarations:
 class String;
+
+extern Pins::PinDetail* undefinedPin;
 
 class Pin {
     // Helper for handling callbacks and mapping them to the proper class:
@@ -49,14 +52,7 @@ class Pin {
         static void IRAM_ATTR callback(void* /*ptr*/) { Callback(); }
     };
 
-    // There are a few special indices:
-    //
-    // - 0-N = GPIO pins. These map 1:1 to native GPIO pins. N is 64 here.
-    // - 254 = undefined pin, maps to VoidPinDetail
-    // - 255 = fault pin (if you use it, it gives an error)
-    uint8_t _index;
-
-    inline Pin(uint8_t index) : _index(index) {}
+    Pins::PinDetail* _detail;
 
     static bool parse(StringRange str, Pins::PinDetail*& detail);
 
@@ -64,19 +60,19 @@ public:
     using Capabilities = Pins::PinCapabilities;
     using Attr         = Pins::PinAttributes;
 
-    static Pin UNDEFINED;
-    static Pin ERROR;
+    //    inline Pin(Pins::PinDetail* detail) : _detail(detail) {}
+    inline Pin() : _detail(undefinedPin) {}
+
+    inline void define(Pins::PinDetail* implementation) { _detail = implementation; }
 
     static const bool On  = true;
     static const bool Off = false;
 
-    inline static Pin create(const char* str) { return create(StringRange(str)); }
+    inline static Pins::PinDetail* create(const char* str) { return create(StringRange(str)); };
 
-    static Pin  create(const StringRange& str);
-    static Pin  create(const String& str);
-    static bool validate(const String& str);
-
-    inline Pin() : _index(254) {}  // Default to UNDEFINED
+    static Pins::PinDetail* create(const StringRange& str);
+    static Pins::PinDetail* create(const String& str);
+    static bool             validate(const String& str);
 
     inline Pin(const Pin& o) = default;
     inline Pin(Pin&& o)      = default;
@@ -85,37 +81,24 @@ public:
     inline Pin& operator=(Pin&& o) = default;
 
     // Some convenience operators:
-    inline bool operator==(const Pin& o) const { return _index == o._index; }
-    inline bool operator!=(const Pin& o) const { return _index != o._index; }
+    inline bool operator==(const Pin& o) const { return _detail == o._detail; }
+    inline bool operator!=(const Pin& o) const { return _detail != o._detail; }
 
-    inline bool undefined() const { return (*this) == UNDEFINED; }
-    inline bool defined() const { return (*this) != UNDEFINED; }
+    inline bool undefined() const { return _detail == undefinedPin; }
+    inline bool defined() const { return !undefined(); }
 
     inline uint8_t getNative(Capabilities expectedBehavior) const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        Assert(detail->capabilities().has(expectedBehavior), "Requested pin does not have the expected behavior.");
-        return _index;
+        Assert(_detail->capabilities().has(expectedBehavior), "Requested pin does not have the expected behavior.");
+        return _detail->_index;
     }
 
-    inline void write(bool value) const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        detail->write(value ? 1 : 0);
-    }
+    inline void write(bool value) const { _detail->write(value); }
 
-    inline bool read() const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        return detail->read() != 0;
-    }
+    inline bool read() const { return _detail->read() != 0; }
 
-    inline void setAttr(Attr attributes) const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        detail->setAttr(attributes);
-    }
+    inline void setAttr(Attr attributes) const { _detail->setAttr(attributes); }
 
-    inline Attr getAttr() const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        return detail->getAttr();
-    }
+    inline Attr getAttr() const { return _detail->getAttr(); }
 
     inline void on() const { write(1); }
     inline void off() const { write(0); }
@@ -124,31 +107,18 @@ public:
 
     template <typename ThisType, void (ThisType::*Callback)()>
     void attachInterrupt(ThisType* arg, int mode) {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        detail->attachInterrupt(InterruptCallbackHelper<ThisType, Callback>::callback, arg, mode);
+        _detail->attachInterrupt(InterruptCallbackHelper<ThisType, Callback>::callback, arg, mode);
     }
 
     // Backward compatibility ISR handler:
-    void attachInterrupt(void (*callback)(void*), int mode, void* arg = nullptr) const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        detail->attachInterrupt(callback, arg, mode);
-    }
+    void attachInterrupt(void (*callback)(void*), int mode, void* arg = nullptr) const { _detail->attachInterrupt(callback, arg, mode); }
 
-    void detachInterrupt() const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        detail->detachInterrupt();
-    }
+    void detachInterrupt() const { _detail->detachInterrupt(); }
 
     // Other functions:
-    Capabilities capabilities() const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        return detail->capabilities();
-    }
+    Capabilities capabilities() const { return _detail->capabilities(); }
 
-    inline String name() const {
-        auto detail = Pins::PinLookup::_instance.GetPin(_index);
-        return detail->toString();
-    }
+    inline String name() const { return _detail->toString(); }
 
     void report(const char* legend);
 

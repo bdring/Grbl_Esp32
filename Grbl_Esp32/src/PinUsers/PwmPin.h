@@ -38,7 +38,7 @@ namespace PinUsers {
         PwmDetail* _detail;
 
     public:
-        PwmPin() : _pin(Pin::UNDEFINED), _detail(nullptr) {}
+        PwmPin() : _detail(nullptr) {}
         PwmPin(Pin pin, uint32_t frequency, uint32_t maxDuty);
 
         // Returns actual frequency which might not be exactly the same as requested(nearest supported value)

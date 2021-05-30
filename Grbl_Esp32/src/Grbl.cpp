@@ -52,11 +52,11 @@ void grbl_init() {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Name: %s", config->_name.c_str());
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Board: %s", config->_board.c_str());
 
-#ifdef USE_I2S_OUT
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing I2SO...");
-        // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
-        i2s_out_init();
-#endif
+        if (config->_i2so) {
+            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing I2SO...");
+            // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
+            i2s_out_init();
+        }
 
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing steppers...");
         stepper_init();  // Configure stepper pins and interrupt timers

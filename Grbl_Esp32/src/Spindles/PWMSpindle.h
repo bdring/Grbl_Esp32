@@ -94,9 +94,9 @@ namespace Spindles {
         bool     _invert_pwm;
         //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
-        virtual void set_dir_pin(bool Clockwise);
+        virtual void set_direction(bool Clockwise);
         virtual void set_output(uint32_t duty);
-        virtual void set_enable_pin(bool enable_pin);
+        virtual void set_enable(bool enable);
         virtual void deinit();
 
         virtual void get_pins_and_settings();

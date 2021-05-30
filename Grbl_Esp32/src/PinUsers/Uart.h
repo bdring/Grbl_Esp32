@@ -45,7 +45,7 @@ namespace PinUsers {
         UartDetail* _detail;
 
     public:
-        Uart() : _tx(Pin::UNDEFINED), _rx(Pin::UNDEFINED), _rts(Pin::UNDEFINED), _detail(nullptr) {}
+        Uart() : _detail(nullptr) {}
         Uart(Pin tx, Pin rx, Pin rts, String config, String userConfig);
 
         // TODO FIXME: If _detail is null is currently asserted. We can also just 'do nothing', which might

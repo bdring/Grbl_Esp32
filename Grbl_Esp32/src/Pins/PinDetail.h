@@ -31,9 +31,9 @@ namespace Pins {
     // Implementation details of pins.
     class PinDetail {
     protected:
+    public:
         int _index;
 
-    public:
         PinDetail(int number) : _index(number) {}
         PinDetail(const PinDetail& o) = delete;
         PinDetail(PinDetail&& o)      = delete;

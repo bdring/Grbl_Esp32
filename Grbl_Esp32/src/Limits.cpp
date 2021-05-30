@@ -294,8 +294,7 @@ void limits_go_home(uint8_t cycle_mask, uint n_locate_cycles) {
 uint8_t limit_mask = 0;
 
 void limits_init() {
-    limit_mask     = 0;
-    Pin::Attr mode = Pin::Attr::Input | Pin::Attr::ISR;
+    limit_mask = 0;
 
     auto n_axis = config->_axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
@@ -304,7 +303,7 @@ void limits_init() {
             if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
                 Pin& pin = gangConfig->_endstops->_dual;
 
-                pin.setAttr(mode);
+                pin.setAttr(Pin::Attr::Input | Pin::Attr::ISR);
                 bitnum_true(limit_mask, axis);
                 if (gangConfig->_endstops->_hardLimits) {
                     pin.attachInterrupt(isr_limit_switches, CHANGE, nullptr);

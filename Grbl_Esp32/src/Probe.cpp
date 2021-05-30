@@ -23,7 +23,6 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
 #include "Pin.h"
 
 // Probe pin initialization routine.
@@ -31,13 +30,7 @@ void Probe::init() {
     static bool show_init_msg = true;  // used to show message only once.
 
     if (_probePin.defined()) {
-        if (_probePin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-            // XXX Do we really want to default this instead of letting
-            // YAML control it explicitly
-            _probePin.setAttr(Pin::Attr::Input | Pin::Attr::PullUp);  // Enable internal pull-up resistors. Normal high operation.
-        } else {
-            _probePin.setAttr(Pin::Attr::Input);
-        }
+        _probePin.setAttr(Pin::Attr::Input);
 
         if (show_init_msg) {
             _probePin.report("Probe");
@@ -50,20 +43,16 @@ void Probe::set_direction(bool is_away) {
     _isProbeAway = is_away;
 }
 
-// Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
+// Returns the probe pin state. Triggered = true. Called by gcode parser.
 bool Probe::get_state() {
-    return _probePin.undefined() ? false : _probePin.read();
+    return _probePin.read();
 }
 
-// Monitors probe pin state and records the system position when detected. Called by the
-// stepper ISR per ISR tick.
-// NOTE: This function must be extremely efficient as to not bog down the stepper ISR.
-void Probe::state_monitor() {
-    if (get_state() ^ _isProbeAway) {
-        sys_probe_state = ProbeState::Off;
-        memcpy(sys_probe_position, sys_position, sizeof(sys_position));
-        rtMotionCancel = true;
-    }
+// Returns true if the probe pin is tripped, accounting for the direction (away or not).
+// This function must be extremely efficient as to not bog down the stepper ISR.
+// Should be called only in situations where the probe pin is known to be defined.
+bool IRAM_ATTR Probe::tripped() {
+    return _probePin.read() ^ _isProbeAway;
 }
 
 void Probe::validate() const {}

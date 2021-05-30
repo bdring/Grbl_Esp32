@@ -46,8 +46,8 @@ private:
     char      comment[COMMENT_SIZE];  // Line to be executed. Zero-terminated.
 
     State _state;
-    Pin   _cardDetect = Pin::UNDEFINED;
-    Pin   _cs_pin     = Pin::UNDEFINED;  // The SPI chip select pin
+    Pin   _cardDetect;
+    Pin   _cs_pin;
 
 public:
     bool                       _readyNext;

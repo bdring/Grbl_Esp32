@@ -23,14 +23,14 @@
 #include <TMCStepper.h>
 #include <atomic>
 
-#ifdef USE_I2S_OUT
+// This is global so it can be accessed from the override
+Pin* csPinTMC;
 
-// Override default function and insert a short delay
+// Override default functions to use our pin framework
 void TMC2130Stepper::switchCSpin(bool state) {
-    digitalWrite(_pinCS, state);
-    i2s_out_delay();
+    csPinTMC->write(state);
 }
-#endif
+void IRAM_ATTR pinMode(uint8_t pin, uint8_t mode) {}
 
 namespace Motors {
     uint8_t TrinamicDriver::get_next_index() {
@@ -49,12 +49,18 @@ namespace Motors {
     void TrinamicDriver::init() {
         _has_errors = false;
 
-        auto cs_pin_native = _cs_pin.getNative(Pin::Capabilities::Output);
+        // This pin is "fake" because it is not used.  The TMCStepper
+        // library calls switchCSpin() which uses the pin number that
+        // is passed to the constructor, but we override the weak
+        // definition of switchCSPin() to using our own pin framework.
+        // Similarly, the constructors call pinMode(), but we override
+        // that too.  Thus the "fake" pin number is never used.
+        uint16_t fake_spi_cs_pin = 0;
 
         if (_driver_part_number == 2130) {
-            tmcstepper = new TMC2130Stepper(cs_pin_native, _r_sense, _spi_index);
+            tmcstepper = new TMC2130Stepper(fake_spi_cs_pin, _r_sense, _spi_index);
         } else if (_driver_part_number == 5160) {
-            tmcstepper = new TMC5160Stepper(cs_pin_native, _r_sense, _spi_index);
+            tmcstepper = new TMC5160Stepper(fake_spi_cs_pin, _r_sense, _spi_index);
         } else {
             grbl_msg_sendf(CLIENT_SERIAL,
                            MsgLevel::Info,
@@ -68,6 +74,8 @@ namespace Motors {
         _has_errors = false;
 
         _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
+
+        csPinTMC = &_cs_pin;  // Prepare for switchCSpin callback
 
         // use slower speed if I2S
         if (_cs_pin.capabilities().has(Pin::Capabilities::I2S)) {
@@ -98,6 +106,8 @@ namespace Motors {
             auto misoPin = spiConfig->_miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
 
             SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
+
+            csPinTMC = &_cs_pin;  // Prepare for switchCSpin callback
 
             tmcstepper->begin();
 
@@ -146,6 +156,8 @@ namespace Motors {
         if (_has_errors) {
             return false;
         }
+
+        csPinTMC = &_cs_pin;  // Prepare for switchCSpin callback
 
         switch (tmcstepper->test_connection()) {
             case 1:
@@ -214,6 +226,8 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
                 hold_i_percent = 1.0;
         }
 
+        csPinTMC = &_cs_pin;  // Prepare for switchCSpin callback
+
         tmcstepper->microsteps(_microsteps);
         tmcstepper->rms_current(run_i_ma, hold_i_percent);
 
@@ -234,6 +248,8 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
         if (_has_errors) {
             return;
         }
+
+        csPinTMC = &_cs_pin;  // Prepare for switchCSpin callback
 
         TrinamicMode newMode = isHoming ? TRINAMIC_HOMING_MODE : TRINAMIC_RUN_MODE;
 
@@ -282,6 +298,9 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
         if (_has_errors) {
             return;
         }
+
+        csPinTMC = &_cs_pin;  // Prepare for switchCSpin callback
+
         uint32_t tstep = tmcstepper->TSTEP();
 
         if (tstep == 0xFFFFF || tstep < 1) {  // if axis is not moving return
@@ -336,6 +355,8 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
         if (_disabled == disable) {
             return;
         }
+
+        csPinTMC = &_cs_pin;  // Prepare for switchCSpin callback
 
         _disabled = disable;
 

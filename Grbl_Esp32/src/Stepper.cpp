@@ -215,7 +215,7 @@ void IRAM_ATTR onStepperDriverTimer(void* para) {
  * call to this method that might cause variation in the timing. The aim
  * is to keep pulse timing as regular as possible.
  */
-static void stepper_pulse_func() {
+static void IRAM_ATTR stepper_pulse_func() {
     auto n_axis = config->_axes->_numberAxis;
 
 #ifdef LATER
@@ -296,9 +296,12 @@ static void stepper_pulse_func() {
         }
     }
     // Check probing state.
-    if (sys_probe_state == ProbeState::Active) {
-        config->_probe->state_monitor();
+    if (sys_probe_state == ProbeState::Active && config->_probe->tripped()) {
+        sys_probe_state = ProbeState::Off;
+        memcpy(sys_probe_position, sys_position, sizeof(sys_position));
+        rtMotionCancel = true;
     }
+
     // Reset step out bits.
     st.step_outbits = 0;
 

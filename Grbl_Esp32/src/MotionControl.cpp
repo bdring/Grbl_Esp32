@@ -411,6 +411,10 @@ void mc_homing_cycle(AxisMask axis_mask) {
 // Perform tool length probe cycle. Requires probe switch.
 // NOTE: Upon probe failure, the program will be stopped and placed into ALARM state.
 GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_flags) {
+    if (!config->_probe->exists()) {
+        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe pin is not configured");
+        return GCUpdatePos::None;
+    }
     // TODO: Need to update this cycle so it obeys a non-auto cycle start.
     if (sys.state == State::CheckMode) {
 #ifdef SET_CHECK_MODE_PROBE_TO_START
@@ -438,7 +442,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     config->_probe->set_direction(is_probe_away);
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.
     // NOTE: This probe initialization error applies to all probing cycles.
-    if (config->_probe->get_state() ^ is_probe_away) {  // Check probe pin state.
+    if (config->_probe->tripped()) {
         sys_rt_exec_alarm = ExecAlarm::ProbeFailInitial;
         protocol_execute_realtime();
         RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode

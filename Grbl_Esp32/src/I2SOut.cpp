@@ -70,7 +70,6 @@
 #define USE_I2S_OUT_STREAM_IMPL
 
 // Make Arduino functions available
-extern "C" void __pinMode(uint8_t pin, uint8_t mode);
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 //
@@ -715,6 +714,7 @@ int IRAM_ATTR i2s_out_reset() {
 //
 // Initialize funtion (external function)
 //
+// XXX does this really need IRAM_ATTR ? It is not called from an ISR
 int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
     if (i2s_out_initialized) {
         // already initialized

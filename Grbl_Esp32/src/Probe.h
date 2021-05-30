@@ -53,9 +53,8 @@ public:
     // Returns probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
     bool get_state();
 
-    // Monitors probe pin state and records the system position when detected. Called by the
-    // stepper ISR per ISR tick.
-    void state_monitor();
+    // Returns true if the probe pin is tripped, depending on the direction (away or not)
+    bool IRAM_ATTR tripped();
 
     // Configuration handlers.
     void validate() const override;
