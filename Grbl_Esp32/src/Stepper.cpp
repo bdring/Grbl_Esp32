@@ -186,23 +186,30 @@ EnumItem stepTypes[] = {
 
 */
 
+// Stepper timer configuration
+const int   stepTimerNumber = 0;
+hw_timer_t* stepTimer;  // Handle
+// autoReload true might give better step timing - but it also
+// might cause problems if an interrupt takes too long
+bool autoReload = false;
+
 static void stepper_pulse_func();
 
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
 // with probing and homing cycles that require true real-time positions.
-void IRAM_ATTR onStepperDriverTimer(void* para) {
+void IRAM_ATTR onStepperDriverTimer() {
     // Timer ISR, normally takes a step.
-    //
-    // When handling an interrupt within an interrupt serivce routine (ISR), the interrupt status bit
-    // needs to be explicitly cleared.
-    TIMERG0.int_clr_timers.t0 = 1;
+
+    // The intermediate handler clears the timer interrupt so we need not do it here
 
     bool expected = false;
     if (busy.compare_exchange_strong(expected, true)) {
         stepper_pulse_func();
 
-        TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
+        if (!autoReload) {
+            timerAlarmEnable(stepTimer);
+        }
 
         busy.store(false);
     }
@@ -947,22 +954,15 @@ void IRAM_ATTR Stepper_Timer_WritePeriod(uint16_t timerTicks) {
         i2s_out_set_pulse_period(((uint32_t)timerTicks) / ticksPerMicrosecond);
 #endif
     } else {
-        timer_set_alarm_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, (uint64_t)timerTicks);
+        timerAlarmWrite(stepTimer, (uint64_t)timerTicks, autoReload);
     }
 }
 
 void IRAM_ATTR Stepper_Timer_Init() {
-    timer_config_t config;
-    config.divider     = fTimers / fStepperTimer;
-    config.counter_dir = TIMER_COUNT_UP;
-    config.counter_en  = TIMER_PAUSE;
-    config.alarm_en    = TIMER_ALARM_EN;
-    config.intr_type   = TIMER_INTR_LEVEL;
-    config.auto_reload = true;
-    timer_init(STEP_TIMER_GROUP, STEP_TIMER_INDEX, &config);
-    timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
-    timer_enable_intr(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
-    timer_isr_register(STEP_TIMER_GROUP, STEP_TIMER_INDEX, onStepperDriverTimer, NULL, 0, NULL);
+    const bool isEdge  = false;
+    const bool countUp = true;
+    stepTimer          = timerBegin(stepTimerNumber, fTimers / fStepperTimer, countUp);
+    timerAttachInterrupt(stepTimer, onStepperDriverTimer, isEdge);
 }
 
 void IRAM_ATTR Stepper_Timer_Start() {
@@ -974,9 +974,8 @@ void IRAM_ATTR Stepper_Timer_Start() {
         i2s_out_set_stepping();
 #endif
     } else {
-        timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
-        timer_start(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
-        TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
+        timerWrite(stepTimer, 0ULL);
+        timerAlarmEnable(stepTimer);
     }
 }
 
@@ -989,7 +988,7 @@ void IRAM_ATTR Stepper_Timer_Stop() {
         i2s_out_set_passthrough();
 #endif
     } else {
-        timer_pause(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
+        timerAlarmDisable(stepTimer);
     }
 }
 
