@@ -200,7 +200,7 @@ uint8_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
     return can_home;
 }
 
-void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
+void IRAM_ATTR Axes::step(uint8_t step_mask, uint8_t dir_mask) {
     auto n_axis = _numberAxis;
     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
 
@@ -238,7 +238,7 @@ void Axes::step(uint8_t step_mask, uint8_t dir_mask) {
     }
 }
 // Turn all stepper pins off
-void Axes::unstep() {
+void IRAM_ATTR Axes::unstep() {
     auto n_axis = _numberAxis;
     for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
         for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {

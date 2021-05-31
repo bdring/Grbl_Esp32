@@ -225,36 +225,6 @@ void IRAM_ATTR onStepperDriverTimer() {
 static void IRAM_ATTR stepper_pulse_func() {
     auto n_axis = config->_axes->_numberAxis;
 
-#ifdef LATER
-    // XXX this should be in the motor driver, not here
-    if (motors_direction(st.dir_outbits)) {
-        auto wait_direction = config->_directionDelayMicroSeconds;
-        if (wait_direction > 0) {
-            // Stepper drivers need some time between changing direction and doing a pulse.
-            switch (config->_stepType) {
-                case ST_I2S_STREAM:
-                    i2s_out_push_sample(wait_direction);
-                    break;
-                case ST_I2S_STATIC:
-                case ST_TIMED: {
-                    // wait for step pulse time to complete...some time expired during code above
-                    //
-                    // If we are using GPIO stepping as opposed to RMT, record the
-                    // time that we turned on the direction pins so we can delay a bit.
-                    // If we are using RMT, we can't delay here.
-                    auto direction_pulse_start_time = esp_timer_get_time() + wait_direction;
-                    while ((esp_timer_get_time() - direction_pulse_start_time) < 0) {
-                        NOP();  // spin here until time to turn off step
-                    }
-                    break;
-                }
-                case ST_RMT:
-                    break;
-            }
-        }
-    }
-#endif
-
     // If we are using GPIO stepping as opposed to RMT, record the
     // time that we turned on the step pins so we can turn them off
     // at the end of this routine without incurring another interrupt.
@@ -279,7 +249,7 @@ static void IRAM_ATTR stepper_pulse_func() {
                 st.exec_block       = &st_block_buffer[st.exec_block_index];
                 // Initialize Bresenham line and distance counters
                 for (int axis = 0; axis < n_axis; axis++) {
-                    st.counter[axis] = (st.exec_block->step_event_count >> 1);
+                    st.counter[axis] = st.exec_block->step_event_count >> 1;
                 }
             }
             st.dir_outbits = st.exec_block->direction_bits;
@@ -316,9 +286,9 @@ static void IRAM_ATTR stepper_pulse_func() {
         // Execute step displacement profile by Bresenham line algorithm
         st.counter[axis] += st.steps[axis];
         if (st.counter[axis] > st.exec_block->step_event_count) {
-            st.step_outbits |= bit(axis);
+            bitnum_true(st.step_outbits, axis);
             st.counter[axis] -= st.exec_block->step_event_count;
-            if (st.exec_block->direction_bits & bit(axis)) {
+            if (bitnum_istrue(st.exec_block->direction_bits, axis)) {
                 sys_position[axis]--;
             } else {
                 sys_position[axis]++;
@@ -442,7 +412,7 @@ void st_reset() {
 }
 
 // Stepper shutdown
-void st_go_idle() {
+void IRAM_ATTR st_go_idle() {
     // Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
     Stepper_Timer_Stop();
 
@@ -980,13 +950,8 @@ void IRAM_ATTR Stepper_Timer_Start() {
 }
 
 void IRAM_ATTR Stepper_Timer_Stop() {
-#ifdef ESP_DEBUG
-    //Serial.println("ST Stop");
-#endif
     if (config->_stepType == ST_I2S_STREAM) {
-#ifdef USE_I2S_STEPS
         i2s_out_set_passthrough();
-#endif
     } else {
         timerAlarmDisable(stepTimer);
     }

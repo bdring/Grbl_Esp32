@@ -397,30 +397,23 @@ namespace Spindles {
         if (xQueueSend(vfd_cmd_queue, &mode_cmd, 0) != pdTRUE) {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD Queue Full");
         }
-
         return true;
     }
 
-    uint32_t VFD::set_rpm(uint32_t rpm) {
-        if (!vfd_ok) {
-            return 0;
-        }
-
-#ifdef VFD_DEBUG_MODE
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
-#endif
-
-        // apply override
-        rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
-
-        // apply limits
+    uint32_t IRAM_ATTR VFD::limitRPM(uint32_t rpm) {
         if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
             rpm = _max_rpm;
         } else if (rpm != 0 && rpm <= _min_rpm) {
             rpm = _min_rpm;
         }
+        return rpm;
+    }
 
-        sys.spindle_speed = rpm;
+    uint32_t IRAM_ATTR VFD::set_rpm(uint32_t rpm) {
+        if (!vfd_ok) {
+            return 0;
+        }
+        rpm = limitRPM(overrideRPM(rpm));
 
         if (rpm == _current_rpm) {  // prevent setting same RPM twice
             return rpm;
@@ -428,7 +421,7 @@ namespace Spindles {
 
         _current_rpm = rpm;
 
-        // TODO add the speed modifiers override, linearization, etc.
+        // TODO add linearization
 
         ModbusCommand rpm_cmd;
         rpm_cmd.msg[0] = VFD_RS485_ADDR;
@@ -441,10 +434,13 @@ namespace Spindles {
 
         rpm_cmd.critical = false;
 
-        if (xQueueSend(vfd_cmd_queue, &rpm_cmd, 0) != pdTRUE) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD Queue Full");
+        if (xPortInIsrContext()) {
+            xQueueSendFromISR(vfd_cmd_queue, &rpm_cmd, 0);
+        } else {
+            if (xQueueSend(vfd_cmd_queue, &rpm_cmd, 0) != pdTRUE) {
+                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "VFD Queue Full");
+            }
         }
-
         return rpm;
     }
 

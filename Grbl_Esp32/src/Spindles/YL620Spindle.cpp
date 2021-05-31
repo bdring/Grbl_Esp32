@@ -102,7 +102,7 @@ namespace Spindles {
         }
     }
 
-    void YL620::set_speed_command(uint32_t rpm, ModbusCommand& data) {
+    void IRAM_ATTR YL620::set_speed_command(uint32_t rpm, ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
         data.rx_length = 6;

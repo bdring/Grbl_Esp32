@@ -54,14 +54,9 @@ namespace Spindles {
                        _direction_pin.name().c_str());
     }
 
-    uint32_t Relay::set_rpm(uint32_t rpm) {
-        if (_output_pin.undefined()) {
-            return rpm;
-        }
-
-        sys.spindle_speed = rpm;
+    uint32_t IRAM_ATTR Relay::set_rpm(uint32_t rpm) {
+        sys.spindle_speed = rpm = overrideRPM(rpm);
         set_output(rpm != 0);
-
         return rpm;
     }
 

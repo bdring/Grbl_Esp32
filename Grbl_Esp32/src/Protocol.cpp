@@ -603,7 +603,7 @@ static void protocol_execute_overrides() {
     if (sys_rt_exec_accessory_override.bit.spindleOvrStop) {
         sys_rt_exec_accessory_override.bit.spindleOvrStop = false;
         // Spindle stop override allowed only while in HOLD state.
-        // NOTE: Report counters are set in spindle_set_state() when spindle stop is executed.
+        // NOTE: Report counters are set in spindle->spinDown()
         if (sys.state == State::Hold) {
             if (sys.spindle_stop_ovr.value == 0) {
                 sys.spindle_stop_ovr.bit.initiate = true;
@@ -925,7 +925,7 @@ void protocol_exec_rt_system() {
 //    if (sys_rt_exec_accessory_override.bit.spindleOvrStop) {
 //        sys_rt_exec_accessory_override.bit.spindleOvrStop = false;
 //        // Spindle stop override allowed only while in HOLD state.
-//        // NOTE: Report counters are set in spindle_set_state() when spindle stop is executed.
+//        // NOTE: Report counters are set in spindle->spinDown()
 //        if (sys.state == State::Hold) {
 //            if (sys.spindle_stop_ovr.value == 0) {
 //                sys.spindle_stop_ovr.bit.initiate = true;
@@ -1039,7 +1039,7 @@ static void protocol_exec_rt_suspend() {
                     // Ensure any prior spindle stop override is disabled at start of safety door routine.
                     sys.spindle_stop_ovr.value = 0;  // Disable override
 #ifndef PARKING_ENABLE
-                    config->_spindle->set_state(SpindleState::Disable, 0);  // De-energize
+                    config->_spindle->spinDown();
                     config->_coolant->off();
 #else
                     // Get current position and store restore location and spindle retract waypoint.
@@ -1069,7 +1069,7 @@ static void protocol_exec_rt_suspend() {
                         pl_data->motion.systemMotion   = 1;
                         pl_data->motion.noFeedOverride = 1;
                         pl_data->spindle_speed         = 0.0;
-                        config->_spindle->set_state(pl_data->spindle, 0);  // De-energize
+                        config->_spindle->spinDown();
                         config->_coolant->set_state(pl_data->coolant);
                         // Execute fast parking retract motion to parking target location.
                         if (parking_target[PARKING_AXIS] < PARKING_TARGET) {
@@ -1080,7 +1080,7 @@ static void protocol_exec_rt_suspend() {
                     } else {
                         // Parking motion not possible. Just disable the spindle and coolant.
                         // NOTE: Laser mode does not start a parking motion to ensure the laser stops immediately.
-                        config->_spindle->set_state(SpindleState::Disable, 0);  // De-energize
+                        config->_spindle->spinDown();
                         config->_coolant->off();
                     }
 #endif
@@ -1090,7 +1090,7 @@ static void protocol_exec_rt_suspend() {
                     if (sys.state == State::Sleep) {
                         report_feedback_message(Message::SleepMode);
                         // Spindle and coolant should already be stopped, but do it again just to be sure.
-                        config->_spindle->set_state(SpindleState::Disable, 0);  // De-energize
+                        config->_spindle->spinDown();
                         config->_coolant->off();
                         st_go_idle();  // Disable steppers
                         while (!(sys.abort)) {
@@ -1166,7 +1166,7 @@ static void protocol_exec_rt_suspend() {
                     // Handles beginning of spindle stop
                     if (sys.spindle_stop_ovr.bit.initiate) {
                         if (gc_state.modal.spindle != SpindleState::Disable) {
-                            config->_spindle->set_state(SpindleState::Disable, 0);  // De-energize
+                            config->_spindle->spinDown();
                             sys.spindle_stop_ovr.value       = 0;
                             sys.spindle_stop_ovr.bit.enabled = true;  // Set stop override state to enabled, if de-energized.
                         } else {

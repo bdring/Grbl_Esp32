@@ -45,9 +45,10 @@ namespace Spindles {
         BESC& operator=(const BESC&) = delete;
         BESC& operator=(BESC&&) = delete;
 
-        void     init() override;
-        void     config_message() override;
-        uint32_t set_rpm(uint32_t rpm) override;
+        void init() override;
+        void config_message() override;
+
+        // set_rpm() for BESC is the same as for PWM
 
         // Configuration handlers:
         void validate() const override { PWM::validate(); }

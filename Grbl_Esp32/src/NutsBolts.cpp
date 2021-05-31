@@ -195,10 +195,6 @@ float map_float(float x, float in_min, float in_max, float out_min, float out_ma
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-uint32_t map_uint32_t(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max) {
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
 float constrain_float(float in, float min, float max) {  // DrawBot_Badge
     if (in < min) {
         return min;

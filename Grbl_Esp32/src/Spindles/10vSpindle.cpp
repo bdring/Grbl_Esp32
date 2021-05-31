@@ -68,69 +68,20 @@ namespace Spindles {
                        _pwm_precision);
     }
 
-    uint32_t _10v::set_rpm(uint32_t rpm) {
-        uint32_t pwm_value;
+    // This appears identical to the code in PWMSpindle.cpp but
+    // it uses the 10v versions of set_enable and set_output
+    uint32_t IRAM_ATTR _10v::set_rpm(uint32_t rpm) {
+        sys.spindle_speed = rpm = limitRPM(overrideRPM(rpm));
 
-        if (_output_pin.undefined()) {
-            return rpm;
-        }
+        set_enable(gc_state.modal.spindle != SpindleState::Disable);
+        set_output(RPMtoPWM(rpm));
 
-        // apply speed overrides
-        rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (percent)
-
-        // apply limits limits
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
-            rpm = _max_rpm;
-        } else if (rpm != 0 && rpm <= _min_rpm) {
-            rpm = _min_rpm;
-        }
-        sys.spindle_speed = rpm;
-
-        // determine the pwm value
-        if (rpm == 0) {
-            pwm_value = _pwm_off_value;
-        } else {
-            pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
-        }
-
-        set_output(pwm_value);
         return rpm;
     }
 
-    /*
-	void _10v::set_state(SpindleState state, uint32_t rpm) {
-		if (sys.abort) {
-            return;   // Block during abort.
-        }
-
-		if (state == SpindleState::Disable) { // Halt or set spindle direction and rpm.
-			sys.spindle_speed = 0;
-			stop();
-		} else {
-			set_direction(state == SpindleState:Cw);
-			set_rpm(rpm);
-		}
-
-		set_enable(state != SpindleState::Disable);
-
-		sys.report_ovr_counter = 0; // Set to report change immediately
-	}
-	*/
-
-    SpindleState _10v::get_state() {
-        if (_current_pwm_duty == 0 || _output_pin.undefined()) {
-            return SpindleState::Disable;
-        }
-        if (_direction_pin.defined()) {
-            return _direction_pin.read() ? SpindleState::Cw : SpindleState::Ccw;
-        }
-        return SpindleState::Cw;
-    }
-
     void _10v::stop() {
-        // inverts are delt with in methods
         set_enable(false);
-        set_output(_pwm_off_value);
+        set_output(_pwm_off);
     }
 
     void _10v::set_enable(bool enable) {

@@ -53,14 +53,12 @@ namespace Spindles {
         _pwm_period    = (1 << _pwm_precision);
 
         // pre-calculate some PWM count values
-        _pwm_off_value = 0;
-        _pwm_min_value = 0;
-        _pwm_max_value = _pwm_period;
+        _pwm_off = 0;
+        _pwm_min = 0;
+        _pwm_max = _pwm_period;
 
         _min_rpm = 0;
         _max_rpm = _laser_full_power;
-
-        _piecewise_linear = false;
 
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
     }

@@ -76,61 +76,25 @@ namespace Spindles {
         _pwm_precision = calc_pwm_precision(_pwm_freq);  // determine the best precision
         _pwm_period    = (1 << _pwm_precision);
 
-        if (_pwm_min_value > _pwm_max_value) {
+        if (_pwm_min_setting > _pwm_max_setting) {
             log_warn("Spindle min PWM is greater than max.");
         }
 
         // pre-calculate some PWM count values
-        _pwm_off_value = uint32_t(_pwm_period * _pwm_off_value_setting / 100.0);
-        _pwm_min_value = uint32_t(_pwm_period * _pwm_min_value_setting / 100.0);
-        _pwm_max_value = uint32_t(_pwm_period * _pwm_max_value_setting / 100.0);
-
-        if (_piecewise_linear) {
-            _min_rpm = RPM_MIN;
-            _max_rpm = RPM_MAX;
-        }
-        // The pwm_gradient is the pwm duty cycle units per rpm
-        // _pwm_gradient = (_pwm_max_value - _pwm_min_value) / (_max_rpm - _min_rpm);
+        _pwm_off = uint32_t(_pwm_period * _pwm_off_setting / 100.0);
+        _pwm_min = uint32_t(_pwm_period * _pwm_min_setting / 100.0);
+        _pwm_max = uint32_t(_pwm_period * _pwm_max_setting / 100.0);
 
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
     }
 
-    uint32_t PWM::set_rpm(uint32_t rpm) {
-        uint32_t pwm_value;
-
-        if (_output_pin.undefined()) {
-            return rpm;
-        }
-
-        // apply override
-        rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (uint8_t percent)
-
-        // apply limits
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
-            rpm = _max_rpm;
-        } else if (rpm != 0 && rpm <= _min_rpm) {
-            rpm = _min_rpm;
-        }
-
-        sys.spindle_speed = rpm;
-
-        if (_piecewise_linear) {
-            //pwm_value = piecewise_linear_fit(rpm); TODO
-            pwm_value = 0;
-            log_warn("Linear fit not implemented yet.");
-
-        } else {
-            if (rpm == 0) {
-                pwm_value = _pwm_off_value;
-            } else {
-                pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
-            }
-        }
+    uint32_t IRAM_ATTR PWM::set_rpm(uint32_t rpm) {
+        sys.spindle_speed = rpm = limitRPM(overrideRPM(rpm));
 
         set_enable(gc_state.modal.spindle != SpindleState::Disable);
-        set_output(pwm_value);
+        set_output(RPMtoPWM(rpm));
 
-        return 0;
+        return rpm;
     }
 
     void PWM::set_state(SpindleState state, uint32_t rpm) {
@@ -169,9 +133,8 @@ namespace Spindles {
     }
 
     void PWM::stop() {
-        // inverts are delt with in methods
         set_enable(false);
-        set_output(_pwm_off_value);
+        set_output(_pwm_off);
     }
 
     // prints the startup message of the spindle config
@@ -182,12 +145,12 @@ namespace Spindles {
         );
     }
 
-    void PWM::set_output(uint32_t duty) {
+    void IRAM_ATTR PWM::set_output(uint32_t duty) {
         if (_output_pin.undefined()) {
             return;
         }
 
-        // to prevent excessive calls to ledcWrite, make sure duty hass changed
+        // to prevent excessive calls to ledcWrite, make sure duty has changed
         if (duty == _current_pwm_duty) {
             return;
         }
@@ -248,6 +211,43 @@ namespace Spindles {
         _output_pin.setAttr(Pin::Attr::Input);
         _enable_pin.setAttr(Pin::Attr::Input);
         _direction_pin.setAttr(Pin::Attr::Input);
+    }
+
+    uint32_t IRAM_ATTR PWM::limitRPM(uint32_t rpm) {
+        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
+            rpm = _max_rpm;
+        } else if (rpm != 0 && rpm <= _min_rpm) {
+            rpm = _min_rpm;
+        }
+        return rpm;
+    }
+
+    uint32_t IRAM_ATTR PWM::RPMtoPWM(uint32_t rpm) {
+#ifdef PIECEWISE_LINEAR
+        // This is a num_segments generalization of the code after the endif.
+        // This two-segment array gives the same results as the old code
+        //    [{0, _pwm_off}, {_min_rpm, _pwm_min}, {_max_rpm, _pwm_max}]
+        if (rpm < rpm_in[0]) {
+            return pwm_out[0];
+        }
+        int i;
+        for (i = 0; i < num_segments; i++) {
+            if (rpm >= rpm_in[i]) {
+                break;
+            }
+        }
+        if (i == num_segments) {
+            return pwm_out[num_segments];
+        }
+        _min_rpm = rpm_in[i];
+        _max_rpm = rpm_in[i + 1];
+        _pwm_min = pwm_out[i];
+        _pwm_max = pwm_out[i + 1];
+#endif
+        if (rpm == 0 || rpm < _min_rpm) {
+            return _pwm_off;
+        }
+        return (rpm - _min_rpm) * (_pwm_max - _pwm_min) / (_max_rpm - _min_rpm) + _pwm_min;
     }
 
     // Configuration registration

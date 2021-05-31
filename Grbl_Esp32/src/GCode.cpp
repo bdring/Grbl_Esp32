@@ -1598,7 +1598,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             if (sys.state != State::CheckMode) {
                 coords[gc_state.modal.coord_select]->get(gc_state.coord_system);
                 system_flag_wco_change();  // Set to refresh immediately just in case something altered.
-                config->_spindle->set_state(SpindleState::Disable, 0);
+                config->_spindle->spinDown();
 
                 config->_coolant->off();
             }

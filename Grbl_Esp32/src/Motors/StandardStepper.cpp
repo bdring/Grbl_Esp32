@@ -104,7 +104,7 @@ namespace Motors {
                        reportAxisLimitsMsg(axis_index()));
     }
 
-    void StandardStepper::step() {
+    void IRAM_ATTR StandardStepper::step() {
         if (config->_stepType == ST_RMT) {
             RMT.conf_ch[_rmt_chan_num].conf1.mem_rd_rst = 1;
             RMT.conf_ch[_rmt_chan_num].conf1.tx_start   = 1;
@@ -113,13 +113,13 @@ namespace Motors {
         }
     }
 
-    void StandardStepper::unstep() {
+    void IRAM_ATTR StandardStepper::unstep() {
         if (config->_stepType != ST_RMT) {
             _step_pin.off();
         }
     }
 
-    void StandardStepper::set_direction(bool dir) { _dir_pin.write(dir); }
+    void IRAM_ATTR StandardStepper::set_direction(bool dir) { _dir_pin.write(dir); }
 
     void StandardStepper::set_disable(bool disable) { _disable_pin.write(disable); }
 

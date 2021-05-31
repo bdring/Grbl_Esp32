@@ -43,7 +43,8 @@ namespace Spindles {
         SpindleState     get_state() override;
         void             stop() override;
         void             config_message() override;
-
+        uint32_t         limitRPM(uint32_t RPM);
+        uint32_t         RPMtoPWM(uint32_t rpm);
         // Configuration handlers:
         void validate() const override { Spindle::validate(); }
 
@@ -52,12 +53,10 @@ namespace Spindles {
             handler.handle("max_rpm", _max_rpm);
 
             handler.handle("pwm_freq", _pwm_freq);
-            handler.handle("pwm_off", _pwm_off_value_setting);
-            handler.handle("pwm_min", _pwm_min_value_setting);
-            handler.handle("pwm_max", _pwm_max_value_setting);
+            handler.handle("pwm_off", _pwm_off_setting);
+            handler.handle("pwm_min", _pwm_min_setting);
+            handler.handle("pwm_max", _pwm_max_setting);
             handler.handle("invert_pwm", _invert_pwm);
-            handler.handle("piecewise_linear", _piecewise_linear);
-
             handler.handle("output_pin", _output_pin);
             handler.handle("enable_pin", _enable_pin);
             handler.handle("direction_pin", _direction_pin);
@@ -72,16 +71,16 @@ namespace Spindles {
         virtual ~PWM() {}
 
     protected:
-        uint32_t _pwm_off_value_setting;  // do we need these 3?
-        uint32_t _pwm_min_value_setting;
-        uint32_t _pwm_max_value_setting;
+        uint32_t _pwm_off_setting;  // do we need these 3?
+        uint32_t _pwm_min_setting;
+        uint32_t _pwm_max_setting;
 
         int32_t  _current_pwm_duty;
         uint32_t _min_rpm;
         uint32_t _max_rpm;
-        uint32_t _pwm_off_value;
-        uint32_t _pwm_min_value;
-        uint32_t _pwm_max_value;
+        uint32_t _pwm_off;
+        uint32_t _pwm_min;
+        uint32_t _pwm_max;
         Pin      _output_pin;
         Pin      _enable_pin;
         Pin      _direction_pin;
@@ -89,10 +88,8 @@ namespace Spindles {
         uint32_t _pwm_freq;
         uint32_t _pwm_period;  // how many counts in 1 period
         uint8_t  _pwm_precision;
-        bool     _piecewise_linear;
         bool     _off_with_zero_speed;
         bool     _invert_pwm;
-        //uint32_t _pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
 
         virtual void set_direction(bool Clockwise);
         virtual void set_output(uint32_t duty);

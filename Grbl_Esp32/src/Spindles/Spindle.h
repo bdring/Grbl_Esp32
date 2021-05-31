@@ -58,6 +58,9 @@ namespace Spindles {
         virtual bool         isRateAdjusted();
         virtual void         sync(SpindleState state, uint32_t rpm);
 
+        void                      spinDown() { set_state(SpindleState::Disable, 0); }
+        static uint32_t IRAM_ATTR overrideRPM(uint32_t rpm) { return rpm * sys.spindle_speed_ovr / 100; }
+
         bool                  is_reversable;
         bool                  use_delays;  // will SpinUp and SpinDown delays be used.
         volatile SpindleState _current_state = SpindleState::Disable;

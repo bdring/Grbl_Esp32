@@ -64,9 +64,9 @@ namespace Spindles {
         _pwm_precision = 16;
 
         // override these settings
-        _pwm_off_value = BESC_MIN_PULSE_CNT;
-        _pwm_min_value = _pwm_off_value;
-        _pwm_max_value = BESC_MAX_PULSE_CNT;
+        _pwm_off = BESC_MIN_PULSE_CNT;
+        _pwm_min = _pwm_off;
+        _pwm_max = BESC_MAX_PULSE_CNT;
 
         auto outputPin = _output_pin.getNative(Pin::Capabilities::PWM);
 
@@ -92,35 +92,6 @@ namespace Spindles {
                        BESC_MAX_PULSE_SECS * 1000.0,  // convert to milliseconds
                        _pwm_freq,
                        _pwm_precision);
-    }
-
-    uint32_t BESC::set_rpm(uint32_t rpm) {
-        uint32_t pwm_value;
-
-        if (_output_pin.undefined()) {
-            return rpm;
-        }
-
-        // apply speed overrides
-        rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (percent)
-
-        // apply limits limits
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
-            rpm = _max_rpm;
-        } else if (rpm != 0 && rpm <= _min_rpm) {
-            rpm = _min_rpm;
-        }
-        sys.spindle_speed = rpm;
-
-        // determine the pwm value
-        if (rpm == 0) {
-            pwm_value = _pwm_off_value;
-        } else {
-            pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
-        }
-
-        set_output(pwm_value);
-        return rpm;
     }
 
     // Configuration registration

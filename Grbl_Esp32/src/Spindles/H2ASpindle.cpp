@@ -48,7 +48,7 @@ namespace Spindles {
         data.msg[5] = (mode == SpindleState::Ccw) ? 0x02 : (mode == SpindleState::Cw ? 0x01 : 0x06);
     }
 
-    void H2A::set_speed_command(uint32_t rpm, ModbusCommand& data) {
+    void IRAM_ATTR H2A::set_speed_command(uint32_t rpm, ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
         data.rx_length = 6;

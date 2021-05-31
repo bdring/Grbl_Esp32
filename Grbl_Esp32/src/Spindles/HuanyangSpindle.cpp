@@ -177,7 +177,7 @@ namespace Spindles {
         }
     }
 
-    void Huanyang::set_speed_command(uint32_t rpm, ModbusCommand& data) {
+    void IRAM_ATTR Huanyang::set_speed_command(uint32_t rpm, ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 5;
         data.rx_length = 5;

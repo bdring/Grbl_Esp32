@@ -32,9 +32,9 @@ namespace Motors {
         _enabled = !disable;
     }
 
-    void UnipolarMotor::set_direction(bool dir) { _dir = dir; }
+    void IRAM_ATTR UnipolarMotor::set_direction(bool dir) { _dir = dir; }
 
-    void UnipolarMotor::step() {
+    void IRAM_ATTR UnipolarMotor::step() {
         uint8_t _phase[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };  // temporary phase values...all start as off
         uint8_t phase_max;
 

@@ -41,11 +41,9 @@ namespace Spindles {
         void     init() override;
         void     config_message() override;
         uint32_t set_rpm(uint32_t rpm) override;
-        //void set_state(SpindleState state, uint32_t rpm);
 
-        SpindleState get_state() override;
-        void         stop() override;
-        void         deinit() override;
+        void stop() override;
+        void deinit() override;
 
         // Configuration handlers:
         void validate() const override { PWM::validate(); }

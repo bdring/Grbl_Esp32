@@ -105,12 +105,11 @@ float convert_delta_vector_to_unit_vector(float* vector);
 float limit_acceleration_by_axis_maximum(float* unit_vec);
 float limit_rate_by_axis_maximum(float* unit_vec);
 
-float    mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
-float    map_float(float x, float in_min, float in_max, float out_min, float out_max);
-uint32_t map_uint32_t(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max);
-float    constrain_float(float in, float min, float max);
-bool     char_is_numeric(char value);
-char*    trim(char* value);
+float mapConstrain(float x, float in_min, float in_max, float out_min, float out_max);
+float map_float(float x, float in_min, float in_max, float out_min, float out_max);
+float constrain_float(float in, float min, float max);
+bool  char_is_numeric(char value);
+char* trim(char* value);
 
 int numberOfSetBits(uint32_t i);
 

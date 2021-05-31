@@ -81,6 +81,7 @@ namespace Spindles {
 
         // TODO FIXME: Have to make these public because of the parsers.
         // Should hide them and use a member function.
+        // _min_rpm and _max_rpm could possibly move to the Spindle base class
         uint32_t          _min_rpm;
         uint32_t          _max_rpm;
         volatile uint32_t _sync_rpm;
@@ -92,6 +93,7 @@ namespace Spindles {
         SpindleState get_state();
         uint32_t     set_rpm(uint32_t rpm);
         void         stop();
+        uint32_t     limitRPM(uint32_t RPM);
 
         // Configuration handlers:
         void validate() const override { Spindle::validate(); }

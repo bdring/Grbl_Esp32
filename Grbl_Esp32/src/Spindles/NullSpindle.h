@@ -25,7 +25,7 @@
 
 namespace Spindles {
     // This is a dummy spindle that has no I/O.
-    // It is used to ignore spindle commands when no spinde is desired
+    // It is used to ignore spindle commands when no spindle is desired
     class Null : public Spindle {
     public:
         Null() = default;

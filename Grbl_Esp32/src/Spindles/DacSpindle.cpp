@@ -32,9 +32,9 @@ namespace Spindles {
             return;
         }
 
-        _pwm_min_value = 0;    // not actually PWM...DAC counts
-        _pwm_max_value = 255;  // not actually PWM...DAC counts
-        _gpio_ok       = true;
+        _pwm_min = 0;    // not actually PWM...DAC counts
+        _pwm_max = 255;  // not actually PWM...DAC counts
+        _gpio_ok = true;
 
         if (!_output_pin.capabilities().has(Pin::Capabilities::DAC)) {  // DAC can only be used on these pins
             _gpio_ok = false;
@@ -61,40 +61,9 @@ namespace Spindles {
     }
 
     uint32_t Dac::set_rpm(uint32_t rpm) {
-        if (_output_pin.undefined()) {
-            return rpm;
-        }
+        sys.spindle_speed = rpm = limitRPM(overrideRPM(rpm));
 
-        uint32_t pwm_value;
-
-        // apply overrides and limits
-        rpm = rpm * sys.spindle_speed_ovr / 100;  // Scale by spindle speed override value (percent)
-
-        // Calculate PWM register value based on rpm max/min settings and programmed rpm.
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
-            // No PWM range possible. Set simple on/off spindle control pin state.
-            sys.spindle_speed = _max_rpm;
-            pwm_value         = _pwm_max_value;
-        } else if (rpm <= _min_rpm) {
-            if (rpm == 0) {  // S0 disables spindle
-                sys.spindle_speed = 0;
-                pwm_value         = 0;
-            } else {  // Set minimum PWM output
-                rpm               = _min_rpm;
-                sys.spindle_speed = rpm;
-                pwm_value         = 0;
-                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Spindle RPM less than min RPM:%5.2f %d", rpm, pwm_value);
-            }
-        } else {
-            // Compute intermediate PWM value with linear spindle speed model.
-            // NOTE: A nonlinear model could be installed here, if required, but keep it VERY light-weight.
-            sys.spindle_speed = rpm;
-
-            pwm_value = map_uint32_t(rpm, _min_rpm, _max_rpm, _pwm_min_value, _pwm_max_value);
-        }
-
-        set_output(pwm_value);
-
+        set_output(RPMtoPWM(rpm));
         return rpm;
     }
 
