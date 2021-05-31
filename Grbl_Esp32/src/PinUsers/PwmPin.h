@@ -39,7 +39,7 @@ namespace PinUsers {
 
     public:
         PwmPin() : _detail(nullptr) {}
-        PwmPin(Pin pin, uint32_t frequency, uint32_t maxDuty);
+        PwmPin(Pin&& pin, uint32_t frequency, uint32_t maxDuty);
 
         // Returns actual frequency which might not be exactly the same as requested(nearest supported value)
         inline uint32_t getFrequency() const { return _detail->getFrequency(); }

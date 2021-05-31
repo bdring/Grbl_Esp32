@@ -99,7 +99,7 @@ namespace PinUsers {
         }
 
     public:
-        NativePwm(Pin pin, uint32_t frequency, uint32_t maxDuty) : pin_(pin), frequency_(frequency), maxDuty_(maxDuty) {
+        NativePwm(Pin&& pin, uint32_t frequency, uint32_t maxDuty) : pin_(std::move(pin)), frequency_(frequency), maxDuty_(maxDuty) {
             auto native = pin.getNative(Pin::Capabilities::PWM | Pin::Capabilities::Native);
 
             pwmChannel_ = TryGrabChannel(frequency);
@@ -148,10 +148,10 @@ namespace PinUsers {
         }
     };
 
-    PwmPin::PwmPin(Pin pin, uint32_t frequency, uint32_t maxDuty) {
+    PwmPin::PwmPin(Pin&& pin, uint32_t frequency, uint32_t maxDuty) {
         Assert(pin.capabilities().has(Pin::Capabilities::PWM | Pin::Capabilities::Native), "Pin does not support PWM");
 
         // For now, we only support Native pins. In the future, we might support other pins.
-        _detail = new NativePwm(pin, frequency, maxDuty);
+        _detail = new NativePwm(std::move(pin), frequency, maxDuty);
     }
 }

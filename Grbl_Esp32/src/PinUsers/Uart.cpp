@@ -46,8 +46,8 @@ namespace PinUsers {
         uart_mode_t   uartMode_;
 
     public:
-        NativeUart(Pin tx, Pin rx, Pin rts, Pins::PinOptionsParser& options, Pins::PinOptionsParser& userOptions) :
-            tx_(tx), rx_(rx), rts_(rts), uartPort_(UART_NUM_MAX) {
+        NativeUart(Pin&& tx, Pin&& rx, Pin&& rts, Pins::PinOptionsParser& options, Pins::PinOptionsParser& userOptions) :
+            tx_(std::move(tx)), rx_(std::move(rx)), rts_(std::move(rts)), uartPort_(UART_NUM_MAX) {
             // Validate if claiming the resources will err:
             Assert(tx.capabilities().has(Pin::Capabilities::Native | Pin::Capabilities::UART | Pin::Capabilities::Output));
             Assert(rx.capabilities().has(Pin::Capabilities::Native | Pin::Capabilities::UART | Pin::Capabilities::Input));
@@ -179,13 +179,13 @@ namespace PinUsers {
         }
     };
 
-    Uart::Uart(Pin tx, Pin rx, Pin rts, String config, String userConfig) {
+    Uart::Uart(Pin&& tx, Pin&& rx, Pin&& rts, String config, String userConfig) {
         Pins::PinOptionsParser configParser(config.begin(), config.end());
         Pins::PinOptionsParser userConfigParser(userConfig.begin(), userConfig.end());
 
         // Decide on the RX pin what to do:
         if (rx.capabilities().has(Pin::Capabilities::Native)) {
-            this->_detail = new NativeUart(tx, rx, rts, configParser, userConfigParser);
+            this->_detail = new NativeUart(std::move(tx), std::move(rx), std::move(rts), configParser, userConfigParser);
         } else {
             Assert(false, "Pin is not supported for UART.");
         }

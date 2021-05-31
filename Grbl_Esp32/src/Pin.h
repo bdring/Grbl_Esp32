@@ -62,7 +62,7 @@ public:
 
     //    inline Pin(Pins::PinDetail* detail) : _detail(detail) {}
     inline Pin() : _detail(undefinedPin) {}
-
+    
     inline void define(Pins::PinDetail* implementation) { _detail = implementation; }
 
     static const bool On  = true;
@@ -74,10 +74,10 @@ public:
     static Pins::PinDetail* create(const String& str);
     static bool             validate(const String& str);
 
-    inline Pin(const Pin& o) = default;
+    inline Pin(const Pin& o) = delete;
     inline Pin(Pin&& o)      = default;
 
-    inline Pin& operator=(const Pin& o) = default;
+    inline Pin& operator=(const Pin& o) = delete;
     inline Pin& operator=(Pin&& o) = default;
 
     // Some convenience operators:

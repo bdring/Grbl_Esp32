@@ -20,12 +20,7 @@
 #include "Grbl.h"
 
 namespace UserOutput {
-    DigitalOutput::DigitalOutput() {}
-
-    DigitalOutput::DigitalOutput(uint8_t number, Pin pin) {
-        _number = number;
-        _pin    = pin;
-
+    DigitalOutput::DigitalOutput(uint8_t number, Pin& pin) : _number(number), _pin(pin) {
         if (_pin.undefined()) {
             return;
         }
@@ -55,13 +50,7 @@ namespace UserOutput {
 
     // ==================================================================
 
-    AnalogOutput::AnalogOutput() {}
-
-    AnalogOutput::AnalogOutput(uint8_t number, Pin pin, float pwm_frequency) {
-        _number        = number;
-        _pin           = pin;
-        _pwm_frequency = pwm_frequency;
-
+    AnalogOutput::AnalogOutput(uint8_t number, Pin& pin, float pwm_frequency) : _number(number), _pin(pin), _pwm_frequency(pwm_frequency) {
         if (pin.undefined()) {
             return;
         }

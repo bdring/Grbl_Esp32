@@ -29,8 +29,9 @@ namespace Spindles {
     public:
         PWM() = default;
 
-        PWM(Pin output, Pin enable, Pin direction, uint32_t minRpm, uint32_t maxRpm) :
-            _min_rpm(minRpm), _max_rpm(maxRpm), _output_pin(output), _enable_pin(enable), _direction_pin(direction) {}
+        // PWM(Pin&& output, Pin&& enable, Pin&& direction, uint32_t minRpm, uint32_t maxRpm) :
+        //     _min_rpm(minRpm), _max_rpm(maxRpm), _output_pin(std::move(output)), _enable_pin(std::move(enable)),
+        //     _direction_pin(std::move(direction)) {}
 
         PWM(const PWM&) = delete;
         PWM(PWM&&)      = delete;

@@ -26,8 +26,7 @@ namespace UserOutput {
 
     class DigitalOutput {
     public:
-        DigitalOutput();
-        DigitalOutput(uint8_t number, Pin pin);
+        DigitalOutput(uint8_t number, Pin& pin);
 
         bool set_level(bool isOn);
 
@@ -36,13 +35,12 @@ namespace UserOutput {
         void config_message();
 
         uint8_t _number = UNDEFINED_OUTPUT;
-        Pin     _pin;
+        Pin&     _pin;
     };
 
     class AnalogOutput {
     public:
-        AnalogOutput();
-        AnalogOutput(uint8_t number, Pin pin, float pwm_frequency);
+        AnalogOutput(uint8_t number, Pin& pin, float pwm_frequency);
         bool     set_level(uint32_t numerator);
         uint32_t denominator() { return 1UL << _resolution_bits; };
 
@@ -51,7 +49,7 @@ namespace UserOutput {
         void config_message();
 
         uint8_t  _number = UNDEFINED_OUTPUT;
-        Pin      _pin;
+        Pin&      _pin;
         uint8_t  _pwm_channel = -1;  // -1 means invalid or not setup
         float    _pwm_frequency;
         uint8_t  _resolution_bits;
