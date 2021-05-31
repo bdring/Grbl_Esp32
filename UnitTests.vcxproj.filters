@@ -42,9 +42,6 @@
     <ClInclude Include="Grbl_Esp32\src\Pins\PinDetail.h">
       <Filter>src\Pins</Filter>
     </ClInclude>
-    <ClInclude Include="Grbl_Esp32\src\Pins\PinLookup.h">
-      <Filter>src\Pins</Filter>
-    </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Pins\PinOptionsParser.h">
       <Filter>src\Pins</Filter>
     </ClInclude>
@@ -105,9 +102,6 @@
       <Filter>src\Pins</Filter>
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\src\Pins\PinDetail.cpp">
-      <Filter>src\Pins</Filter>
-    </ClCompile>
-    <ClCompile Include="Grbl_Esp32\src\Pins\PinLookup.cpp">
       <Filter>src\Pins</Filter>
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\src\Pins\PinOptionsParser.cpp">

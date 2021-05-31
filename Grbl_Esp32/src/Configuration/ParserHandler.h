@@ -86,7 +86,8 @@ namespace Configuration {
 
         void handle(const char* name, Pin& value) override {
             if (parser_.is(name)) {
-                value.define(parser_.pinValue());
+                auto parsed = parser_.pinValue();
+                value.swap(parsed);
             }
         }
 

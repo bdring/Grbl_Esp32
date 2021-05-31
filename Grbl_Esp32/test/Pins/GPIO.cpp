@@ -39,16 +39,15 @@ struct GPIONative {
     inline static bool read(int pin) { return SoftwareGPIO::instance().read(pin); }
 };
 
-void digitalWrite(uint8_t pin, uint8_t val);
-void pinMode(uint8_t pin, uint8_t mode);
-int  digitalRead(uint8_t pin);
+//void digitalWrite(uint8_t pin, uint8_t val);
+//void pinMode(uint8_t pin, uint8_t mode);
+//int  digitalRead(uint8_t pin);
 
 #endif
 
 namespace Pins {
     Test(GPIO, BasicInputOutput1) {
         GPIONative::initialize();
-        PinLookup::ResetAllPins();
 
         Pin gpio16 = Pin::create("gpio.16");
         Pin gpio17 = Pin::create("gpio.17");
@@ -78,7 +77,6 @@ namespace Pins {
 
     Test(GPIO, BasicInputOutput2) {
         GPIONative::initialize();
-        PinLookup::ResetAllPins();
 
         Pin gpio16 = Pin::create("gpio.16");
         Pin gpio17 = Pin::create("gpio.17");
@@ -108,7 +106,6 @@ namespace Pins {
 
     void TestISR(int deltaRising, int deltaFalling, int mode) {
         GPIONative::initialize();
-        PinLookup::ResetAllPins();
 
         Pin gpio16 = Pin::create("gpio.16");
         Pin gpio17 = Pin::create("gpio.17");
@@ -179,9 +176,9 @@ namespace Pins {
 
     Test(GPIO, ISRChangePin) { TestISR(1, 1, CHANGE); }
 
+    /*
     Test(GPIO, NativeForwardingInput) {
         GPIONative::initialize();
-        PinLookup::ResetAllPins();
 
         Pin gpio16 = Pin::create("gpio.16");
         Pin gpio17 = Pin::create("gpio.17");
@@ -208,10 +205,11 @@ namespace Pins {
         Assert(false == GPIONative::read(16));
         Assert(false == GPIONative::read(17));
     }
+    */
 
+    /*
     Test(GPIO, NativeForwardingOutput) {
         GPIONative::initialize();
-        PinLookup::ResetAllPins();
 
         Pin gpio16 = Pin::create("gpio.16");
         Pin gpio17 = Pin::create("gpio.17");
@@ -239,26 +237,24 @@ namespace Pins {
         Assert(false == GPIONative::read(16));
         Assert(false == GPIONative::read(17));
     }
+    */
 
     Test(GPIO, Name) {
         GPIONative::initialize();
-        PinLookup::ResetAllPins();
 
         Pin gpio16 = Pin::create("gpio.16");
-        Assert(gpio16.name().equals("GPIO.16"), "Name is %s", gpio16.name().c_str());
+        Assert(gpio16.name().equals("gpio.16"), "Name is %s", gpio16.name().c_str());
     }
 
     Test(GPIO, NameCaseSensitivity) {
         GPIONative::initialize();
-        PinLookup::ResetAllPins();
 
         Pin gpio16 = Pin::create("GpIo.16");
-        Assert(gpio16.name().equals("GPIO.16"), "Name is %s", gpio16.name().c_str());
+        Assert(gpio16.name().equals("gpio.16"), "Name is %s", gpio16.name().c_str());
     }
 
     Test(GPIO, ActiveLow) {
         GPIONative::initialize();
-        PinLookup::ResetAllPins();
 
         Pin gpio16 = Pin::create("gpio.16:low");
         Pin gpio17 = Pin::create("gpio.17");
@@ -293,7 +289,6 @@ namespace Pins {
     public:
         GPIOISR(int deltaRising, int deltaFalling, int mode) {
             GPIONative::initialize();
-            PinLookup::ResetAllPins();
 
             Pin gpio16 = Pin::create("gpio.16");
             Pin gpio17 = Pin::create("gpio.17");

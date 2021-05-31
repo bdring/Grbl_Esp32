@@ -46,7 +46,6 @@
     <ClInclude Include="Grbl_Esp32\src\Pins\PinAttributes.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\PinCapabilities.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\PinDetail.h" />
-    <ClInclude Include="Grbl_Esp32\src\Pins\PinLookup.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\PinOptionsParser.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\VoidPinDetail.h" />
     <ClInclude Include="Grbl_Esp32\src\StackTrace\AssertionFailed.h" />
@@ -65,7 +64,6 @@
     <ClCompile Include="Grbl_Esp32\src\Pins\PinAttributes.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\PinCapabilities.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\PinDetail.cpp" />
-    <ClCompile Include="Grbl_Esp32\src\Pins\PinLookup.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\PinOptionsParser.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\VoidPinDetail.cpp" />
     <ClCompile Include="Grbl_Esp32\src\StackTrace\AssertionFailed.cpp" />

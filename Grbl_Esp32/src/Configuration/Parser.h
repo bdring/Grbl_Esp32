@@ -61,11 +61,11 @@ namespace Configuration {
 
         inline StringRange key() const { return StringRange(current_.keyStart_, current_.keyEnd_); }
 
-        StringRange      stringValue() const;
-        bool             boolValue() const;
-        int              intValue() const;
-        double           doubleValue() const;
-        Pins::PinDetail* pinValue() const;
-        int              enumValue(EnumItem* e) const;
+        StringRange stringValue() const;
+        bool        boolValue() const;
+        int         intValue() const;
+        double      doubleValue() const;
+        Pin         pinValue() const;
+        int         enumValue(EnumItem* e) const;
     };
 }

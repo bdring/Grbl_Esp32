@@ -24,7 +24,7 @@
 namespace Pins {
     class ErrorPinDetail : public PinDetail {
     public:
-        ErrorPinDetail(const PinOptionsParser& options);
+        ErrorPinDetail();
 
         PinCapabilities capabilities() const override;
 

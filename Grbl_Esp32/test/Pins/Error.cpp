@@ -6,7 +6,7 @@ namespace Pins {
     Test(Error, Pins) {
         // Error pins should throw whenever they are used.
 
-        Pin errorPin = Pin::ERROR;
+        Pin errorPin = Pin::Error();
 
         AssertThrow(errorPin.write(true));
         AssertThrow(errorPin.read());

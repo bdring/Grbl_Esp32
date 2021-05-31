@@ -21,7 +21,9 @@
 // Pins:
 #include "Pins/PinOptionsParser.h"
 #include "Pins/GPIOPinDetail.h"
+#include "Pins/VoidPinDetail.h"
 #include "Pins/I2SOPinDetail.h"
+#include "Pins/ErrorPinDetail.h"
 
 #ifdef ESP32
 #    include "Grbl.h"  // grbl_sendf
@@ -38,7 +40,8 @@
         {}
 #endif
 
-Pins::PinDetail* undefinedPin = new Pins::VoidPinDetail();
+Pins::PinDetail* Pin::undefinedPin = new Pins::VoidPinDetail();
+Pins::PinDetail* Pin::errorPin = new Pins::ErrorPinDetail();
 
 bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     String str = tmp.str();
@@ -130,11 +133,11 @@ bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     return false;
 }
 
-Pins::PinDetail* Pin::create(const String& str) {
+Pin Pin::create(const String& str) {
     return create(StringRange(str));
 }
 
-Pins::PinDetail* Pin::create(const StringRange& str) {
+Pin Pin::create(const StringRange& str) {
     Pins::PinDetail* pinImplementation = nullptr;
     try {
         pin_debug("Setting up pin: [%s]\r\n", str.str().c_str());
@@ -143,12 +146,12 @@ Pins::PinDetail* Pin::create(const StringRange& str) {
             pin_debug("Setting up pin: '%s' failed.", str.str().c_str());
         }
 
-        return pinImplementation;
+        return Pin(pinImplementation);
     } catch (const AssertionFailed& ex) {  // We shouldn't get here under normal circumstances.
         pin_error("Setting up pin failed. Details: %s\r\n", ex.stackTrace.c_str());
         (void)ex;  // Get rid of compiler warning
 
-        return pinImplementation;
+        return Pin(pinImplementation);
     }
 }
 
@@ -165,6 +168,14 @@ bool Pin::validate(const String& str) {
 
 void Pin::report(const char* legend) {
     if (defined()) {
+        #if ESP32
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s on %s", legend, name().c_str());
+        #endif
+    }
+}
+
+Pin::~Pin() {
+    if (_detail != undefinedPin) {
+        delete _detail;
     }
 }

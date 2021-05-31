@@ -6,8 +6,8 @@ namespace Pins {
     Test(Undefined, Pins) {
         // Unassigned pins are not doing much...
 
-        Pin unassigned = Pin::UNDEFINED;
-        Assert(Pin::UNDEFINED == unassigned, "Undefined has wrong pin id");
+        Pin unassigned;
+        Assert(Pin() == unassigned, "Undefined has wrong pin id");
 
         {
             unassigned.write(true);
@@ -30,32 +30,31 @@ namespace Pins {
 
     Test(Undefined, MultipleInstances) {
         {
-            Pin unassigned  = Pin::UNDEFINED;
-            Pin unassigned2 = Pin::UNDEFINED;
+            Pin unassigned;
+            Pin unassigned2;
 
             Assert(unassigned == unassigned2, "Should evaluate to true.");
         }
 
         {
-            Pin unassigned  = Pin::create("");
-            Pin unassigned2 = Pin::UNDEFINED;
+            Pin unassigned = Pin();
+            Pin unassigned2;
 
             Assert(unassigned == unassigned2, "Should evaluate to true.");
         }
 
         {
             Pin unassigned = Pin::create("void.2");
-            Pin unassigned2 = Pin::UNDEFINED;
+            Pin unassigned2;
 
             Assert(unassigned != unassigned2, "Second void pin should match first.");
         }
 
-
         {
-            Pin unassigned = Pin::create("void.2");
+            Pin unassigned  = Pin::create("void.2");
             Pin unassigned2 = Pin::create("void.2");
 
-            Assert(unassigned == unassigned2, "Second void pin should match first.");
+            Assert(unassigned != unassigned2, "Second void pin should not match first.");
         }
     }
 }

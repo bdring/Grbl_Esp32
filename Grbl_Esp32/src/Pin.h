@@ -21,12 +21,12 @@
 #include "Pins/PinDetail.h"
 #include "Pins/PinCapabilities.h"
 #include "Pins/PinAttributes.h"
-#include "Pins/VoidPinDetail.h"
 #include "StringRange.h"
 
 #include <Arduino.h>  // for IRAM_ATTR
 #include <cstdint>
 #include <cstring>
+#include <utility>
 #include "Assert.h"
 
 // TODO: ENABLE_CONTROL_SW_DEBOUNCE should end up here with a shared task.
@@ -35,8 +35,6 @@
 
 // Forward declarations:
 class String;
-
-extern Pins::PinDetail* undefinedPin;
 
 class Pin {
     // Helper for handling callbacks and mapping them to the proper class:
@@ -52,33 +50,39 @@ class Pin {
         static void IRAM_ATTR callback(void* /*ptr*/) { Callback(); }
     };
 
-    Pins::PinDetail* _detail;
+    static Pins::PinDetail* undefinedPin;
+    static Pins::PinDetail* errorPin;
+
+    Pins::PinDetail*        _detail;
 
     static bool parse(StringRange str, Pins::PinDetail*& detail);
+
+    inline Pin(Pins::PinDetail* detail) : _detail(detail) {}
 
 public:
     using Capabilities = Pins::PinCapabilities;
     using Attr         = Pins::PinAttributes;
 
-    //    inline Pin(Pins::PinDetail* detail) : _detail(detail) {}
     inline Pin() : _detail(undefinedPin) {}
-    
-    inline void define(Pins::PinDetail* implementation) { _detail = implementation; }
 
     static const bool On  = true;
     static const bool Off = false;
 
-    inline static Pins::PinDetail* create(const char* str) { return create(StringRange(str)); };
+    // inline static Pins::PinDetail* create(const char* str) { return create(StringRange(str)); };
 
-    static Pins::PinDetail* create(const StringRange& str);
-    static Pins::PinDetail* create(const String& str);
-    static bool             validate(const String& str);
+    static Pin  create(const char* str) { return create(StringRange(str)); } // ensure it's not ambiguous
+    static Pin  create(const StringRange& str);
+    static Pin  create(const String& str);
+    static bool validate(const String& str);
 
     inline Pin(const Pin& o) = delete;
-    inline Pin(Pin&& o)      = default;
+    inline Pin(Pin&& o) : _detail(nullptr) { std::swap(_detail, o._detail); }
 
     inline Pin& operator=(const Pin& o) = delete;
-    inline Pin& operator=(Pin&& o) = default;
+    inline Pin& operator                =(Pin&& o) {
+        std::swap(_detail, o._detail);
+        return *this;
+    }
 
     // Some convenience operators:
     inline bool operator==(const Pin& o) const { return _detail == o._detail; }
@@ -103,6 +107,8 @@ public:
     inline void on() const { write(1); }
     inline void off() const { write(0); }
 
+    static Pin Error() { return Pin(errorPin); }
+
     // ISR handlers. Map methods on 'this' types.
 
     template <typename ThisType, void (ThisType::*Callback)()>
@@ -122,5 +128,7 @@ public:
 
     void report(const char* legend);
 
-    inline ~Pin() = default;
+    inline void swap(Pin& o) { std::swap(o._detail, _detail); }
+
+    ~Pin();
 };
