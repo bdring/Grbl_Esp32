@@ -32,6 +32,7 @@ namespace Configuration {
 
         virtual int  index()                   = 0;
         virtual void handle(const char* value) = 0;
+
         virtual ~LegacySettingHandler() {
             // Remove from factory? We shouldn't remove handlers...
         }

@@ -38,23 +38,30 @@ namespace Configuration {
         friend class GenericFactory;
 
     public:
-        virtual void handle(const char* name, bool& value) = 0;
-        virtual void handle(const char* name, int& value)  = 0;
-        virtual void handle(const char* name, uint32_t& value) {
+        virtual void handle(const char* name, bool& value)                                                        = 0;
+        virtual void handle(const char* name, int32_t& value, int32_t minValue = 0, int32_t maxValue = INT32_MAX) = 0;
+
+        /* We bound uint32_t to INT32_MAX because we use the same parser */
+        void handle(const char* name, uint32_t& value, uint32_t minValue = 0, uint32_t maxValue = INT32_MAX) {
             int32_t v = int32_t(value);
-            handle(name, v);
+            handle(name, v, int32_t(minValue), int32_t(maxValue));
             value = uint32_t(v);
         }
 
-        // TODO: This will accept values that cannot fit in the variable
-        virtual void handle(const char* name, uint8_t& value) {
+        void handle(const char* name, uint8_t& value, uint8_t minValue = 0, uint8_t maxValue = UINT8_MAX) {
             int32_t v = int32_t(value);
-            handle(name, v);
+            handle(name, v, int32_t(minValue), int32_t(maxValue));
             value = uint8_t(v);
         }
 
-        virtual void handle(const char* name, double& value)      = 0;
-        virtual void handle(const char* name, float& value)       = 0;
+        virtual void handle(const char* name, double& value, double minValue = -1e300, double maxValue = 1e300) = 0;
+        
+        void         handle(const char* name, float& value, float minValue = -1e30f, float maxValue = 1e30f) {
+            double d = double(value);
+            handle(name, d, double(minValue), double(maxValue));
+            value = float(d);
+        }
+
         virtual void handle(const char* name, StringRange& value) = 0;
         virtual void handle(const char* name, Pin& value)         = 0;
 

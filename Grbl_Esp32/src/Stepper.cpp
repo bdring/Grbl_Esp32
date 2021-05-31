@@ -126,9 +126,7 @@ typedef struct {
 } st_prep_t;
 static st_prep_t prep;
 
-EnumItem stepTypes[] = {
-    { ST_TIMED, "Timed" }, { ST_RMT, "RMT" }, { ST_I2S_STATIC, "I2S_static" }, { ST_I2S_STREAM, "I2S_stream" }, { ST_RMT, nullptr }
-};
+EnumItem stepTypes[] = { { ST_TIMED, "Timed" }, { ST_RMT, "RMT" }, { ST_I2S_STATIC, "I2S_static" }, { ST_I2S_STREAM, "I2S_stream" }, EnumItem() };
 
 /* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
    the venerable Bresenham line algorithm to manage and exactly synchronize multi-axis moves.

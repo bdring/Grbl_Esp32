@@ -49,13 +49,13 @@ namespace Configuration {
         }
     }
 
-    void RuntimeSetting::handle(const char* name, int& value) {
+    void RuntimeSetting::handle(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) {
         if (is(name) && this->value() != nullptr) {
             value = atoi(this->value());
         }
     }
 
-    void RuntimeSetting::handle(const char* name, double& value) {
+    void RuntimeSetting::handle(const char* name, double& value, double minValue, double maxValue) {
         if (is(name) && this->value() != nullptr) {
             char* floatEnd;
             value = strtod(this->value(), &floatEnd);

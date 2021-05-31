@@ -55,12 +55,12 @@ namespace Configuration {
     public:
         Generator(SimpleOutputStream& dst);
 
-        void handle(const char* name, int& value) override {
+        void handle(const char* name, int& value, int32_t minValue, int32_t maxValue) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }
 
-        void handle(const char* name, double& value) override {
+        void handle(const char* name, double& value, double minValue, double maxValue) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }

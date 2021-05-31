@@ -55,8 +55,8 @@ namespace Configuration {
     public:
         RuntimeSetting(const char* runtimeSetting);
 
-        void handle(const char* name, int& value) override;
-        void handle(const char* name, double& value) override;
+        void handle(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) override;
+        void handle(const char* name, double& value, double minValue, double maxValue) override;
         void handle(const char* name, StringRange& value) override;
         void handle(const char* name, Pin& value) override;
         void handle(const char* name, int& value, EnumItem* e) override {}

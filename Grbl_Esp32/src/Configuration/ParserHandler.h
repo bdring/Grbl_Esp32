@@ -48,7 +48,7 @@ namespace Configuration {
     public:
         ParserHandler(Configuration::Parser& parser) : parser_(parser) {}
 
-        void handle(const char* name, int& value) override {
+        void handle(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) override {
             if (parser_.is(name)) {
                 value = parser_.intValue();
             }
@@ -66,17 +66,17 @@ namespace Configuration {
             }
         }
 
-        void handle(const char* name, double& value) override {
+        void handle(const char* name, double& value, double minValue, double maxValue) override {
             if (parser_.is(name)) {
                 value = parser_.doubleValue();
             }
         }
 
-        void handle(const char* name, float& value) override {
-            if (parser_.is(name)) {
-                value = static_cast<float>(parser_.doubleValue());
-            }
-        }
+        // void handle(const char* name, float& value, float minValue, float maxValue) override {
+        //     if (parser_.is(name)) {
+        //         value = static_cast<float>(parser_.doubleValue());
+        //     }
+        // }
 
         void handle(const char* name, StringRange& value) override {
             if (parser_.is(name)) {
