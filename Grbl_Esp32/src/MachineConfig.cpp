@@ -424,6 +424,12 @@ void MachineConfig::afterParse() {
         log_info("Using null spindle");
         _spindle = new Spindles::Null();
     }
+
+    if (_comms == nullptr) {
+        log_info("Comms config missing; building default comms");
+        _comms            = new Communications();
+        _comms->_apConfig = new WifiAPConfig();
+    }
 }
 
 size_t MachineConfig::readFile(const char* filename, char*& buffer) {

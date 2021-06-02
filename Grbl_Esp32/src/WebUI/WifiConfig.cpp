@@ -278,8 +278,6 @@ namespace WebUI {
     bool WiFiConfig::StartSTA() {
         auto commsConfig = config->_comms;
 
-        //stop active service
-        wifi_services.end();
         //Sanity check
         if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.disconnect();
@@ -292,6 +290,9 @@ namespace WebUI {
 
         auto comms = config->_comms;     // Should be there; startSTA is called with a null check
         auto sta   = comms->_staConfig;  // Should be there; startSTA is called with a null check
+        if (!sta) {
+            return false;
+        }
 
         //Get parameters for STA
         WiFi.setHostname(comms->_hostname.c_str());
@@ -303,7 +304,7 @@ namespace WebUI {
         }
         //password
         String password = wifi_sta_password->get();
-        int8_t  IP_mode  = sta->_dhcp ? DHCP_MODE : STATIC_MODE;
+        int8_t IP_mode  = sta->_dhcp ? DHCP_MODE : STATIC_MODE;
 
         //if not DHCP
         if (IP_mode != DHCP_MODE) {
@@ -326,9 +327,6 @@ namespace WebUI {
      */
 
     bool WiFiConfig::StartAP() {
-        //stop active services
-        wifi_services.end();
-
         //Sanity check
         if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.disconnect();
@@ -340,8 +338,13 @@ namespace WebUI {
         WiFi.enableSTA(false);
         WiFi.mode(WIFI_AP);
 
-        auto comms = config->_comms;    // Should be there; startSTA is called with a null check
-        auto ap    = comms->_apConfig;  // Should be there; startSTA is called with a null check
+        auto comms = config->_comms;  // _comms is automatically created in afterParse
+        auto ap    = comms->_apConfig;
+        // ap might be nullpt if there is an explicit comms: with no wifi_ap:
+        // If a _comms node is created automatically, a default AP config is created too
+        if (!ap) {
+            return false;
+        }
 
         //Get parameters for AP
         //SSID
@@ -401,40 +404,34 @@ namespace WebUI {
     void WiFiConfig::begin() {
         //stop active services
         wifi_services.end();
-
-        if (hasWiFi()) {
-            //setup events
-            if (!_events_registered) {
-                //cumulative function and no remove so only do once
-                WiFi.onEvent(WiFiConfig::WiFiEvent);
-                _events_registered = true;
-            }
-
-            //Get hostname
-            _hostname = config->_comms->_hostname;
-
-            if (config->_comms->_staConfig != nullptr) {
-                // WIFI mode is STA; fall back on AP if necessary
-                if (!StartSTA()) {
-                    grbl_sendf(CLIENT_ALL, "[MSG:Cannot connect to %s]\r\n", config->_comms->_staConfig->_ssid.c_str());
-                    if (config->_comms->_apConfig != nullptr) {
-                        StartAP();
-                    }
-                }
-
-                //start services
-                wifi_services.begin();
-            } else if (config->_comms->_apConfig != nullptr) {
-                StartAP();
-
-                //start services
-                wifi_services.begin();
-            } else {
-                WiFi.mode(WIFI_OFF);
-            }
-        } else {
-            WiFi.mode(WIFI_OFF);
+        if (!hasWiFi()) {
+            goto wifi_off;
         }
+        //setup events
+        if (!_events_registered) {
+            //cumulative function and no remove so only do once
+            WiFi.onEvent(WiFiConfig::WiFiEvent);
+            _events_registered = true;
+        }
+
+        //Get hostname
+        _hostname = config->_comms->_hostname;
+
+        if (config->_comms->_staConfig != nullptr) {
+            // WIFI mode is STA; fall back on AP if necessary
+            if (StartSTA()) {
+                goto wifi_on;
+            }
+        }
+        if (StartAP()) {
+            goto wifi_on;
+        }
+
+    wifi_off:
+        WiFi.mode(WIFI_OFF);
+        return;
+    wifi_on:
+        wifi_services.begin();
     }
 
     /**
