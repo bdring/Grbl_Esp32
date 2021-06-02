@@ -41,7 +41,7 @@
 #endif
 
 Pins::PinDetail* Pin::undefinedPin = new Pins::VoidPinDetail();
-Pins::PinDetail* Pin::errorPin = new Pins::ErrorPinDetail();
+Pins::PinDetail* Pin::errorPin     = new Pins::ErrorPinDetail();
 
 bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     String str = tmp.str();
@@ -168,14 +168,14 @@ bool Pin::validate(const String& str) {
 
 void Pin::report(const char* legend) {
     if (defined()) {
-        #if ESP32
+#if ESP32
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s on %s", legend, name().c_str());
-        #endif
+#endif
     }
 }
 
 Pin::~Pin() {
-    if (_detail != undefinedPin) {
+    if (_detail != undefinedPin && _detail != errorPin) {
         delete _detail;
     }
 }
