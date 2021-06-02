@@ -300,68 +300,6 @@ public:
     int8_t get() { return _currentValue; }
 };
 
-class FlagSetting : public Setting {
-private:
-    bool   _defaultValue;
-    int8_t _storedValue;
-    bool   _currentValue;
-
-public:
-    FlagSetting(const char*   description,
-                type_t        type,
-                permissions_t permissions,
-                const char*   grblName,
-                const char*   name,
-                bool          defVal,
-                bool (*checker)(char*));
-    FlagSetting(type_t type, permissions_t permissions, const char* grblName, const char* name, bool defVal, bool (*checker)(char*) = NULL) :
-        FlagSetting(NULL, type, permissions, grblName, name, defVal, checker) {}
-
-    void load();
-    void setDefault();
-    // There are no Flag settings in WebUI
-    // The booleans are expressed as Enums
-    void        addWebui(WebUI::JSONencoder*) {}
-    Error       setStringValue(char* value);
-    const char* getCompatibleValue();
-    const char* getStringValue();
-    const char* getDefaultString();
-
-    bool get() { return _currentValue; }
-};
-
-class IPaddrSetting : public Setting {
-private:
-    uint32_t _defaultValue;
-    uint32_t _currentValue;
-    uint32_t _storedValue;
-
-public:
-    IPaddrSetting(const char*   description,
-                  type_t        type,
-                  permissions_t permissions,
-                  const char*   grblName,
-                  const char*   name,
-                  uint32_t      defVal,
-                  bool (*checker)(char*));
-    IPaddrSetting(const char*   description,
-                  type_t        type,
-                  permissions_t permissions,
-                  const char*   grblName,
-                  const char*   name,
-                  const char*   defVal,
-                  bool (*checker)(char*));
-
-    void        load();
-    void        setDefault();
-    void        addWebui(WebUI::JSONencoder*);
-    Error       setStringValue(char* value);
-    const char* getStringValue();
-    const char* getDefaultString();
-
-    uint32_t get() { return _currentValue; }
-};
-
 extern bool idleOrJog();
 extern bool idleOrAlarm();
 extern bool anyState();

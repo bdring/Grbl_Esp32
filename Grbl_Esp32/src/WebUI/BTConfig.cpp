@@ -136,7 +136,10 @@ namespace WebUI {
      * Reset ESP
      */
     void BTConfig::reset_settings() {
-        wifi_radio_mode->setDefault();
+#ifdef LATER
+        // Implement this in YAML land
+        // was wifi_radio_mode->setDefault();
+#endif
         grbl_send(CLIENT_ALL, "[MSG:BT reset done]\r\n");
     }
 

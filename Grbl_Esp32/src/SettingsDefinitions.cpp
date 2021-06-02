@@ -64,11 +64,6 @@ void make_settings() {
     // GRBL Numbered Settings
     build_info = new StringSetting(EXTENDED, WG, NULL, "Firmware/Build", "");
 
-    // TODO: These affect the sender communication protocol so they
-    // need to be be available as $ commands
-    // verbose_errors = new FlagSetting(EXTENDED, WG, NULL, "Errors/Verbose", DEFAULT_VERBOSE_ERRORS);
-    // report_inches = new FlagSetting(GRBL, WG, "13", "Report/Inches", DEFAULT_REPORT_INCHES);
-
     status_mask = new IntSetting(GRBL, WG, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 3);
 
     user_macro3 = new StringSetting(EXTENDED, WG, NULL, "User/Macro3", DEFAULT_USER_MACRO3);

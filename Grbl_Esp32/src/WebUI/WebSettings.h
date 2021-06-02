@@ -21,32 +21,8 @@
 */
 
 namespace WebUI {
-    extern StringSetting* wifi_sta_ssid;
     extern StringSetting* wifi_sta_password;
-
-#ifdef ENABLE_WIFI
-    extern EnumSetting*   wifi_sta_mode;
-    extern IPaddrSetting* wifi_sta_ip;
-    extern IPaddrSetting* wifi_sta_gateway;
-    extern IPaddrSetting* wifi_sta_netmask;
-
-    extern StringSetting* wifi_ap_ssid;
     extern StringSetting* wifi_ap_password;
-
-    extern IPaddrSetting* wifi_ap_ip;
-
-    extern IntSetting* wifi_ap_channel;
-
-    extern StringSetting* wifi_hostname;
-    extern EnumSetting*   http_enable;
-    extern IntSetting*    http_port;
-    extern EnumSetting*   telnet_enable;
-    extern IntSetting*    telnet_port;
-#endif
-
-#ifdef WIFI_OR_BLUETOOTH
-    extern EnumSetting* wifi_radio_mode;
-#endif
 
 #ifdef ENABLE_AUTHENTICATION
     extern StringSetting* user_password;
