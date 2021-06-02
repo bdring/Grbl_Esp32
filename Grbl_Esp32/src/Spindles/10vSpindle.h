@@ -38,9 +38,9 @@ namespace Spindles {
         _10v& operator=(const _10v&) = delete;
         _10v& operator=(_10v&&) = delete;
 
-        void     init() override;
-        void     config_message() override;
-        uint32_t set_rpm(uint32_t rpm) override;
+        void init() override;
+        void config_message() override;
+        void set_rpm(uint32_t rpm) override;
 
         void stop() override;
         void deinit() override;

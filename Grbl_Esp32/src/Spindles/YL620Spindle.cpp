@@ -103,25 +103,20 @@ namespace Spindles {
     }
 
     void IRAM_ATTR YL620::set_speed_command(uint32_t rpm, ModbusCommand& data) {
-        // NOTE: data length is excluding the CRC16 checksum.
-        data.tx_length = 6;
-        data.rx_length = 6;
-
-        // We have to know the max RPM before we can set the current RPM:
-        auto max_rpm       = this->_max_rpm;
-        auto max_frequency = this->_maxFrequency;
-
-        uint16_t freqFromRPM = (uint16_t(rpm) * uint16_t(max_frequency)) / uint16_t(max_rpm);
+        auto speed = RPMtoSpeed(rpm, this->_max_rpm, _maxFrequency);
 
 #ifdef VFD_DEBUG_MODE
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "For %d RPM the output frequency is set to %d Hz*10", int(rpm), int(freqFromRPM));
 #endif
 
+        data.tx_length = 6;
+        data.rx_length = 6;
+
         data.msg[1] = 0x06;
         data.msg[2] = 0x20;
         data.msg[3] = 0x01;
-        data.msg[4] = uint8_t(freqFromRPM >> 8);
-        data.msg[5] = uint8_t(freqFromRPM & 0xFF);
+        data.msg[4] = speed >> 8;
+        data.msg[5] = speed & 0xFF;
     }
 
     VFD::response_parser YL620::initialization_sequence(int index, ModbusCommand& data) {

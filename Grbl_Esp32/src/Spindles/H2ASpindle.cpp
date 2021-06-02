@@ -49,35 +49,21 @@ namespace Spindles {
     }
 
     void IRAM_ATTR H2A::set_speed_command(uint32_t rpm, ModbusCommand& data) {
-        // NOTE: data length is excluding the CRC16 checksum.
+        // Speed ranges from 0 to 10000, where 10000 = 100%.
+        auto speed = RPMtoSpeed(rpm, this->_max_rpm, 10000);
+
         data.tx_length = 6;
         data.rx_length = 6;
-
-        // We have to know the max RPM before we can set the current RPM:
-        auto max_rpm = this->_max_rpm;
-
-        // Speed is in [0..10'000] where 10'000 = 100%.
-        // We have to use a 32-bit integer here; typical values are 10k/24k rpm.
-        // I've never seen a 400K RPM spindle in my life, and they aren't supported
-        // by this modbus protocol anyways... So I guess this is OK.
-        uint16_t speed = (uint32_t(rpm) * 10000L) / uint32_t(max_rpm);
-        if (speed < 0) {
-            speed = 0;
-        }
-        if (speed > 10000) {
-            speed = 10000;
-        }
 
         data.msg[1] = 0x06;  // WRITE
         data.msg[2] = 0x10;  // Command ID 0x1000
         data.msg[3] = 0x00;
-        data.msg[4] = uint8_t(speed >> 8);  // RPM
-        data.msg[5] = uint8_t(speed & 0xFF);
+        data.msg[4] = speed >> 8;
+        data.msg[5] = speed & 0xFF;
     }
 
     VFD::response_parser H2A::initialization_sequence(int index, ModbusCommand& data) {
         if (index == -1) {
-            // NOTE: data length is excluding the CRC16 checksum.
             data.tx_length = 6;
             data.rx_length = 8;
 
