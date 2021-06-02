@@ -51,6 +51,7 @@ namespace Configuration {
     public:
         JsonGenerator(WebUI::JSONencoder& encoder);
 
+        void handle(const char* name, bool& value) override;
         void handle(const char* name, int& value, int32_t minValue, int32_t maxValue) override;
         void handle(const char* name, double& value, double minValue, double maxValue) override;
         void handle(const char* name, StringRange& value, int minLength, int maxLength) override;

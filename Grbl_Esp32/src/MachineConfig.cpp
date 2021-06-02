@@ -472,6 +472,8 @@ char defaultConfig[] = "name: Default\nboard: None\n";
 bool MachineConfig::load(const char* filename) {
     // Regardless of what we do next, we _always_ want a MachineConfig instance.
 
+    log_info("Heap size before load config is " << uint32_t(xPortGetFreeHeapSize()));
+
     // instance() is by reference, so we can just get rid of an old instance and
     // create a new one here:
     {
@@ -505,6 +507,8 @@ bool MachineConfig::load(const char* filename) {
     // Process file:
     bool successful = false;
     try {
+        log_info("Heap size before parsing is " << uint32_t(xPortGetFreeHeapSize()));
+
         Configuration::Parser        parser(input->begin(), input->end());
         Configuration::ParserHandler handler(parser);
 
@@ -515,6 +519,8 @@ bool MachineConfig::load(const char* filename) {
 
         log_info("Parsed configuration. Running after-parse tasks");
 
+        log_info("Heap size before after-parse is " << uint32_t(xPortGetFreeHeapSize()));
+
         try {
             Configuration::AfterParse afterParse;
             config->afterParse();
@@ -523,6 +529,8 @@ bool MachineConfig::load(const char* filename) {
 
         log_info("Validating configuration");
 
+        log_info("Heap size before validation is " << uint32_t(xPortGetFreeHeapSize()));
+
         try {
             Configuration::Validator validator;
             config->validate();
@@ -530,6 +538,8 @@ bool MachineConfig::load(const char* filename) {
         } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
 
         log_info("Validated configuration");
+
+        log_info("Heap size after configuation load is " << uint32_t(xPortGetFreeHeapSize()));
 
         successful = true;
 

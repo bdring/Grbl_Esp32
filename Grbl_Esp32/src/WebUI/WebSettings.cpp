@@ -34,6 +34,9 @@
 #include "WebServer.h"
 #include <string.h>
 
+#include "../Configuration/JsonGenerator.h"
+#include "../MachineConfig.h"
+
 namespace WebUI {
 
 #ifdef ENABLE_WIFI
@@ -425,7 +428,7 @@ namespace WebUI {
         webPrintln("Flash Size: ", ESPResponseStream::formatBytes(ESP.getFlashChipSize()));
 
         // Round baudRate to nearest 100 because ESP32 can say e.g. 115201
-        webPrintln("Baud rate: ", String((Serial.baudRate() / 100) * 100));
+        // webPrintln("Baud rate: ", String((Serial.baudRate() / 100) * 100)); // TODO FIXME: Commented out, because we're using Uart
         webPrintln("Sleep mode: ", WiFi.getSleep() ? "Modem" : "None");
 
 #ifdef ENABLE_WIFI
@@ -659,11 +662,9 @@ namespace WebUI {
         JSONencoder j(espresponse->client() != CLIENT_WEBUI);
         j.begin();
         j.begin_array("EEPROM");
-        for (Setting* js = Setting::List; js; js = js->next()) {
-            if (js->getType() == WEBSET) {
-                js->addWebui(&j);
-            }
-        }
+
+        Configuration::JsonGenerator gen(j);
+        config->handle(gen);
         j.end_array();
         webPrint(j.end());
         return Error::Ok;

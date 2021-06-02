@@ -63,32 +63,50 @@ namespace Configuration {
         leave();
     }
 
+    void JsonGenerator::handle(const char* name, bool& value) {
+        enter(name);
+        const char* val = value ? "true" : "false";
+        _encoder.begin_webui(name, _currentPath, "B", val, 0, 10);
+        _encoder.end_object();
+        leave();
+    }
+
     void JsonGenerator::handle(const char* name, int& value, int32_t minValue, int32_t maxValue) {
+        enter(name);
         char buf[32];
         itoa(value, buf, 10);
         _encoder.begin_webui(name, _currentPath, "I", buf, minValue, maxValue);
         _encoder.end_object();
+        leave();
     }
 
-    void JsonGenerator::handle(const char* name, double& value, double minValue, double maxValue) { 
+    void JsonGenerator::handle(const char* name, double& value, double minValue, double maxValue) {
         int n = int(value * 1000);
         handle(name, n, int(minValue * 1000), int(maxValue * 1000));
     }
 
     void JsonGenerator::handle(const char* name, StringRange& value, int minLength, int maxLength) {
+        enter(name);
         auto sv = value.str();
         _encoder.begin_webui(name, _currentPath, "S", sv.c_str(), minLength, maxLength);
         _encoder.end_object();
+        leave();
     }
 
     void JsonGenerator::handle(const char* name, Pin& value) {
         // Let's for now say these are strings.
+        
+        // TODO: Should we comment this out? The code is correct, but I doubt we want all pins in the webui...
+
+        enter(name);
         auto sv = value.name();
         _encoder.begin_webui(name, _currentPath, "S", sv.c_str(), 0, 255);
         _encoder.end_object();
+        leave();
     }
 
     void JsonGenerator::handle(const char* name, int& value, EnumItem* e) {
+        enter(name);
         const char* str = "unknown";
         for (; e->name; ++e) {
             if (value == e->value) {
@@ -106,5 +124,6 @@ namespace Configuration {
         }
         _encoder.end_array();
         _encoder.end_object();
+        leave();
     }
 }
