@@ -240,6 +240,7 @@ public:
         if (ip.begin() != nullptr) {
             uint32_t value = 0;
             uint32_t tmp   = 0;
+            int      shift = 0;
             int      c     = 0;
             for (auto ch : ip) {
                 if (ch >= '0' && ch <= '9') {
@@ -252,7 +253,8 @@ public:
                     if (tmp > 255) {
                         return false;
                     }
-                    value = (value << 8) + tmp;
+                    value = value | (tmp << shift);
+                    shift += 8;
                     tmp   = 0;
                 } else if (ch != ' ') {
                     // For convenience / layouting.
@@ -262,7 +264,7 @@ public:
             if (tmp > 255) {
                 return false;
             }
-            value = (value << 8) + tmp;
+            value = value | (tmp << shift);
 
             // Correct.
             dst = value;
