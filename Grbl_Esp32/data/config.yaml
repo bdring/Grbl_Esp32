@@ -69,3 +69,12 @@ coolant:
 probe:
     pin: gpio.32:high:pu
   
+comms:
+    wifi_ap:
+        ssid: ScratchThat
+        ip_address: "192.168.0.1"
+        gateway: "192.168.0.1"
+        netmask: "255.255.255.0"
+
+    wifi_sta:
+        ssid: StefanMieke

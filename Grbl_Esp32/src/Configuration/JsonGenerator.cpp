@@ -65,8 +65,16 @@ namespace Configuration {
 
     void JsonGenerator::handle(const char* name, bool& value) {
         enter(name);
-        const char* val = value ? "true" : "false";
-        _encoder.begin_webui(name, _currentPath, "B", val, 0, 10);
+        const char* val = value ? "Yes" : "No";
+        _encoder.begin_webui(name, _currentPath, "B", val);
+        _encoder.begin_array("O");
+        {
+            _encoder.begin_object();
+            _encoder.member("No", 0);
+            _encoder.member("Yes", 1);
+            _encoder.end_object();
+        }
+        _encoder.end_array();
         _encoder.end_object();
         leave();
     }
@@ -94,15 +102,15 @@ namespace Configuration {
     }
 
     void JsonGenerator::handle(const char* name, Pin& value) {
-        // Let's for now say these are strings.
-        
-        // TODO: Should we comment this out? The code is correct, but I doubt we want all pins in the webui...
-
+        // We commented this out, because pins are very confusing for users. The code is correct, 
+        // but it really gives more support than it's worth.
+        /*
         enter(name);
         auto sv = value.name();
         _encoder.begin_webui(name, _currentPath, "S", sv.c_str(), 0, 255);
         _encoder.end_object();
         leave();
+        */
     }
 
     void JsonGenerator::handle(const char* name, int& value, EnumItem* e) {

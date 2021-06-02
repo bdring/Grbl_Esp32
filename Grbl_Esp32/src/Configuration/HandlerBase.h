@@ -66,10 +66,15 @@ namespace Configuration {
         virtual void handle(const char* name, Pin& value)                                                 = 0;
 
         virtual void handle(const char* name, int& value, EnumItem* e) = 0;
+
         virtual void handle(const char* name, String& value) {
-            StringRange range;
+            StringRange range(value);
+            StringRange copy(value);
+            
             handle(name, range);
-            if (range.begin() != nullptr) {
+
+            // Check for changes, and update if the string is changed.
+            if (range.begin() != copy.begin() || range.end() != copy.end()) {
                 value = range.str();
             }
         }

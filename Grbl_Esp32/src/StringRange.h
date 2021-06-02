@@ -83,12 +83,16 @@ public:
 
     String str() const {
         // TODO: Check if we can eliminate this function. I'm pretty sure we can.
-        auto  len = length();
-        char* buf = new char[len + 1];
-        memcpy(buf, begin(), len);
-        buf[len] = 0;
-        String tmp(buf);
-        delete[] buf;
-        return tmp;
+        auto len = length();
+        if (len == 0) {
+            return String();
+        } else {
+            char* buf = new char[len + 1];
+            memcpy(buf, begin(), len);
+            buf[len] = 0;
+            String tmp(buf);
+            delete[] buf;
+            return tmp;
+        }
     }
 };

@@ -276,6 +276,8 @@ namespace WebUI {
      */
 
     bool WiFiConfig::StartSTA() {
+        auto commsConfig = config->_comms;
+
         //stop active service
         wifi_services.end();
         //Sanity check
@@ -287,25 +289,28 @@ namespace WebUI {
         }
         WiFi.enableAP(false);
         WiFi.mode(WIFI_STA);
+
+        auto comms = config->_comms;     // Should be there; startSTA is called with a null check
+        auto sta   = comms->_staConfig;  // Should be there; startSTA is called with a null check
+
         //Get parameters for STA
-        String h = wifi_hostname->get();
-        WiFi.setHostname(h.c_str());
+        WiFi.setHostname(comms->_hostname.c_str());
+
         //SSID
-        String SSID = wifi_sta_ssid->get();
+        String& SSID = sta->_ssid;
         if (SSID.length() == 0) {
             SSID = DEFAULT_STA_SSID;
         }
         //password
-        String  password = wifi_sta_password->get();
-        int8_t  IP_mode  = wifi_sta_mode->get();
-        int32_t IP       = wifi_sta_ip->get();
-        int32_t GW       = wifi_sta_gateway->get();
-        int32_t MK       = wifi_sta_netmask->get();
+        String password = wifi_sta_password->get();
+        int8_t  IP_mode  = sta->_dhcp ? DHCP_MODE : STATIC_MODE;
+
         //if not DHCP
         if (IP_mode != DHCP_MODE) {
-            IPAddress ip(IP), mask(MK), gateway(GW);
+            IPAddress ip(sta->_ipAddress), mask(sta->_netmask), gateway(sta->_gateway);
             WiFi.config(ip, gateway, mask);
         }
+
         if (WiFi.begin(SSID.c_str(), (password.length() > 0) ? password.c_str() : NULL)) {
             grbl_send(CLIENT_ALL, "\n[MSG:Client Started]\r\n");
             grbl_sendf(CLIENT_ALL, "[MSG:Connecting %s]\r\n", SSID.c_str());
@@ -323,6 +328,7 @@ namespace WebUI {
     bool WiFiConfig::StartAP() {
         //stop active services
         wifi_services.end();
+
         //Sanity check
         if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.disconnect();
@@ -330,34 +336,42 @@ namespace WebUI {
         if ((WiFi.getMode() == WIFI_AP) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.softAPdisconnect();
         }
+
         WiFi.enableSTA(false);
         WiFi.mode(WIFI_AP);
+
+        auto comms = config->_comms;    // Should be there; startSTA is called with a null check
+        auto ap    = comms->_apConfig;  // Should be there; startSTA is called with a null check
+
         //Get parameters for AP
         //SSID
-        String SSID = wifi_ap_ssid->get();
+        String& SSID = ap->_ssid;
         if (SSID.length() == 0) {
             SSID = DEFAULT_AP_SSID;
         }
 
         String password = wifi_ap_password->get();
 
-        int8_t channel = wifi_ap_channel->get();
+        int8_t channel = int8_t(ap->_channel);
         if (channel == 0) {
             channel = DEFAULT_AP_CHANNEL;
         }
 
-        int32_t   IP = wifi_ap_ip->get();
-        IPAddress ip(IP);
+        IPAddress ip(ap->_ipAddress);
         IPAddress mask;
         mask.fromString(DEFAULT_AP_MK);
+
+        grbl_sendf(CLIENT_ALL, "[MSG: AP IP %s, mask %s]", ip.toString().c_str(), mask.toString().c_str());
+
         //Set static IP
         WiFi.softAPConfig(ip, ip, mask);
+
         //Start AP
         if (WiFi.softAP(SSID.c_str(), (password.length() > 0) ? password.c_str() : NULL, channel)) {
             grbl_sendf(CLIENT_ALL, "\n[MSG:Local access point %s started, %s]\r\n", SSID.c_str(), WiFi.softAPIP().toString().c_str());
             return true;
         } else {
-            grbl_send(CLIENT_ALL, "[MSG:Starting AP failed]\r\n");
+            grbl_sendf(CLIENT_ALL, "[MSG:Starting AP failed on AP %s, channel %d]\r\n", SSID.c_str(), channel);
             return false;
         }
     }
@@ -387,26 +401,37 @@ namespace WebUI {
     void WiFiConfig::begin() {
         //stop active services
         wifi_services.end();
-        //setup events
-        if (!_events_registered) {
-            //cumulative function and no remove so only do once
-            WiFi.onEvent(WiFiConfig::WiFiEvent);
-            _events_registered = true;
-        }
-        //Get hostname
-        _hostname       = wifi_hostname->get();
-        int8_t wifiMode = wifi_radio_mode->get();
-        if (wifiMode == ESP_WIFI_AP) {
-            StartAP();
-            //start services
-            wifi_services.begin();
-        } else if (wifiMode == ESP_WIFI_STA) {
-            if (!StartSTA()) {
-                grbl_sendf(CLIENT_ALL, "[MSG:Cannot connect to %s]\r\n", wifi_sta_ssid->get());
-                StartAP();
+
+        if (hasWiFi()) {
+            //setup events
+            if (!_events_registered) {
+                //cumulative function and no remove so only do once
+                WiFi.onEvent(WiFiConfig::WiFiEvent);
+                _events_registered = true;
             }
-            //start services
-            wifi_services.begin();
+
+            //Get hostname
+            _hostname = config->_comms->_hostname;
+
+            if (config->_comms->_staConfig != nullptr) {
+                // WIFI mode is STA; fall back on AP if necessary
+                if (!StartSTA()) {
+                    grbl_sendf(CLIENT_ALL, "[MSG:Cannot connect to %s]\r\n", config->_comms->_staConfig->_ssid.c_str());
+                    if (config->_comms->_apConfig != nullptr) {
+                        StartAP();
+                    }
+                }
+
+                //start services
+                wifi_services.begin();
+            } else if (config->_comms->_apConfig != nullptr) {
+                StartAP();
+
+                //start services
+                wifi_services.begin();
+            } else {
+                WiFi.mode(WIFI_OFF);
+            }
         } else {
             WiFi.mode(WIFI_OFF);
         }

@@ -362,17 +362,20 @@ void UserOutputs::handle(Configuration::HandlerBase& handler) {
 void MachineConfig::validate() const {}
 
 void MachineConfig::handle(Configuration::HandlerBase& handler) {
+    handler.handle("board", _board);
+    handler.handle("name", _name);
+
     handler.handle("axes", _axes);
     handler.handle("i2so", _i2so);
     handler.handle("spi", _spi);
     handler.handle("control", _control);
     handler.handle("coolant", _coolant);
     handler.handle("probe", _probe);
+    handler.handle("comms", _comms);
+
     handler.handle("pulse_microseconds", _pulseMicroSeconds);
     handler.handle("dir_delay_microseconds", _directionDelayMicroSeconds);
     handler.handle("disable_delay_us", _disableDelayMicroSeconds);
-    handler.handle("board", _board);
-    handler.handle("name", _name);
     handler.handle("idle_time", _idleTime);
     handler.handle("user_outputs", _userOutputs);
     handler.handle("sdcard", _sdCard);

@@ -945,30 +945,29 @@ namespace WebUI {
             webPrintln("[MSG: Radio is Off]");
             return Error::Ok;
         }
-        //On
-#ifdef WIFI_OR_BLUETOOTH
-        switch (wifi_radio_mode->get()) {
-            case ESP_WIFI_AP:
-            case ESP_WIFI_STA:
-#    if !defined(ENABLE_WIFI)
-                webPrintln("WiFi is not enabled!");
-                return Error::WifiFailBegin;
 
-#    else
-                wifi_config.begin();
+                //On
+#ifdef WIFI_OR_BLUETOOTH
+        if (hasWiFi()) {
+#if !defined(ENABLE_WIFI)
+            webPrintln("WiFi is not enabled!");
+            return Error::WifiFailBegin;
+
+#else
+            wifi_config.begin();
+            return Error::Ok;
+#endif
+        } else if (hasBluetooth()) {
+            if (hasBluetooth()) {
+                webPrintln("Bluetooth is not enabled!");
+                return Error::BtFailBegin;
+            } else {
+                config->_comms->_bluetoothConfig->begin();
                 return Error::Ok;
-#    endif
-            case ESP_BT:
-                if (hasBluetooth()) {
-                    webPrintln("Bluetooth is not enabled!");
-                    return Error::BtFailBegin;
-                } else {
-                    config->_comms->_bluetoothConfig->begin();
-                    return Error::Ok;
-                }
-            default:
-                webPrintln("[MSG: Radio is Off]");
-                return Error::Ok;
+            }
+        } else {
+            webPrintln("[MSG: Radio is Off]");
+            return Error::Ok;
         }
 #endif
         return Error::Ok;

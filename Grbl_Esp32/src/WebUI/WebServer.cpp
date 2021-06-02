@@ -105,10 +105,11 @@ namespace WebUI {
     bool Web_Server::begin() {
         bool no_error = true;
         _setupdone    = false;
-        if (http_enable->get() == 0) {
+
+        if (!hasWiFi() || !config->_comms->_httpEnable) {
             return false;
         }
-        _port = http_port->get();
+        _port = config->_comms->_httpPort;
 
         //create instance
         _webserver = new WebServer(_port);

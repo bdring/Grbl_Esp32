@@ -115,7 +115,7 @@ namespace WebUI {
         //stop active services
         end();
 
-        if (wifi_radio_mode->get() == ESP_BT) {
+        if (hasBluetooth()) {
             if (!SerialBT.begin(_btname)) {
                 report_status_message(Error::BtFailBegin, CLIENT_ALL);
             } else {

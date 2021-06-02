@@ -51,10 +51,10 @@ namespace WebUI {
         _RXbufferSize = 0;
         _RXbufferpos  = 0;
 
-        if (telnet_enable->get() == 0) {
+        if (!hasWiFi() || !config->_comms->_telnetEnable) {
             return false;
         }
-        _port = telnet_port->get();
+        _port = config->_comms->_telnetPort;
 
         //create instance
         _telnetserver = new WiFiServer(_port, MAX_TLNT_CLIENTS);

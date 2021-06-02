@@ -223,12 +223,14 @@ class WifiConfig : public Configuration::Configurable {
 public:
     WifiConfig() = default;
 
-    String _ssid     = "GRBL_ESP";
-    String _password = "12345678";
+    String _ssid = "GRBL_ESP";
 
-    uint32_t _ipAddress = 0x0a000001;  //  10.  0.  0.  1
-    uint32_t _gateway   = 0x0a000001;  //  10.  0.  0.  1
-    uint32_t _netmask   = 0xffffff00;  // 255.255.255.  0
+    // Passwords don't belong in a YAML!
+    // String _password = "12345678";
+
+    uint32_t _ipAddress = 0x0100000a;  //  10.  0.  0.  1
+    uint32_t _gateway   = 0x0100000a;  //  10.  0.  0.  1
+    uint32_t _netmask   = 0x00ffffff;  // 255.255.255.  0
 
     bool _dhcp = true;
 
@@ -272,7 +274,7 @@ public:
 
     void handle(Configuration::HandlerBase& handler) override {
         handler.handle("ssid", _ssid);
-        handler.handle("password", _password);
+        // handler.handle("password", _password);
 
         StringRange ip;
         handler.handle("ip_address", ip);
@@ -324,8 +326,10 @@ class Communications : public Configuration::Configurable {
 public:
     Communications() = default;
 
-    String _userPassword  = "";
-    String _adminPassword = "";
+    // Passwords don't belong in a YAML!
+    //
+    // String _userPassword  = "";
+    // String _adminPassword = "";
 
     bool _telnetEnable = true;
     int  _telnetPort   = 23;
@@ -340,9 +344,10 @@ public:
     WifiSTAConfig*   _staConfig       = nullptr;
 
     void validate() const override {}
+
     void handle(Configuration::HandlerBase& handler) override {
-        handler.handle("user_password", _userPassword);
-        handler.handle("admin_password", _adminPassword);
+        // handler.handle("user_password", _userPassword);
+        // handler.handle("admin_password", _adminPassword);
 
         handler.handle("telnet_enable", _telnetEnable);
         handler.handle("telnet_port", _telnetPort);
@@ -412,6 +417,9 @@ public:
 
 extern MachineConfig* config;
 
+inline bool hasWiFi() {
+    return config && config->_comms && (config->_comms->_staConfig != nullptr || config->_comms->_apConfig != nullptr);
+}
 inline bool hasBluetooth() {
-    return config && config->_comms && config->_comms->_bluetoothConfig != nullptr;
+    return !hasWiFi() && (config && config->_comms && config->_comms->_bluetoothConfig != nullptr);
 }

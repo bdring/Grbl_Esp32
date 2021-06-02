@@ -53,10 +53,11 @@ namespace WebUI {
     bool WiFiServices::begin() {
         bool no_error = true;
         //Sanity check
-        if (WiFi.getMode() == WIFI_OFF) {
+        if (WiFi.getMode() == WIFI_OFF || !hasWiFi()) {
             return false;
         }
-        String h = wifi_hostname->get();
+
+        String& h = config->_comms->_hostname;
 
         //Start SPIFFS
         SPIFFS.begin(true);
