@@ -38,14 +38,14 @@ namespace Spindles {
         PWM& operator=(const PWM&) = delete;
         PWM& operator=(PWM&&) = delete;
 
-        void             init() override;
-        virtual uint32_t set_rpm(uint32_t rpm) override;
-        void             set_state(SpindleState state, uint32_t rpm) override;
-        SpindleState     get_state() override;
-        void             stop() override;
-        void             config_message() override;
-        uint32_t         limitRPM(uint32_t RPM);
-        uint32_t         RPMtoPWM(uint32_t rpm);
+        void         init() override;
+        virtual void set_rpm(uint32_t rpm) override;
+        void         set_state(SpindleState state, uint32_t rpm) override;
+        SpindleState get_state() override;
+        void         stop() override;
+        void         config_message() override;
+        uint32_t     limitRPM(uint32_t RPM);
+        uint32_t     RPMtoPWM(uint32_t rpm);
         // Configuration handlers:
         void validate() const override { Spindle::validate(); }
 

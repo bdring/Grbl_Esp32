@@ -50,13 +50,15 @@ namespace Spindles {
         Spindle& operator=(Spindle&&) = delete;
 
         virtual void         init()                = 0;  // not in constructor because this also gets called when $$ settings change
-        virtual uint32_t     set_rpm(uint32_t rpm) = 0;
+        virtual void         set_rpm(uint32_t rpm) = 0;
         virtual void         set_state(SpindleState state, uint32_t rpm) = 0;
         virtual SpindleState get_state()                                 = 0;
         virtual void         stop()                                      = 0;
         virtual void         config_message()                            = 0;
         virtual bool         isRateAdjusted();
         virtual void         sync(SpindleState state, uint32_t rpm);
+
+        virtual IRAM_ATTR void setRPMfromISR(uint32_t rpm) { set_rpm(rpm); }
 
         void                      spinDown() { set_state(SpindleState::Disable, 0); }
         static uint32_t IRAM_ATTR overrideRPM(uint32_t rpm) { return rpm * sys.spindle_speed_ovr / 100; }

@@ -20,18 +20,19 @@
 */
 #include "Spindle.h"
 
-#include <driver/uart.h>
+#include "../Uart.h"
 
 // #define VFD_DEBUG_MODE
 
 namespace Spindles {
+    extern Uart _uart;
 
     class VFD : public Spindle {
     private:
         static const int VFD_RS485_MAX_MSG_SIZE = 16;  // more than enough for a modbus message
         static const int MAX_RETRIES            = 5;   // otherwise the spindle is marked 'unresponsive'
 
-        bool set_mode(SpindleState mode, bool critical);
+        void set_mode(SpindleState mode, bool critical);
         bool get_pins_and_settings();
 
         Pin _txd_pin;
@@ -39,13 +40,18 @@ namespace Spindles {
         Pin _rts_pin;
 
         uint32_t _current_rpm = 0;
-        bool     vfd_ok       = true;
 
         static QueueHandle_t vfd_cmd_queue;
         static TaskHandle_t  vfd_cmdTaskHandle;
         static void          vfd_cmd_task(void* pvParameters);
 
         static uint16_t ModRTU_CRC(uint8_t* buf, int msg_len);
+        enum VFDactionType : uint8_t { setRPM, setMode };
+        struct VFDaction {
+            VFDactionType action;
+            bool          critical;
+            uint32_t      arg;
+        };
 
     protected:
         struct ModbusCommand {
@@ -56,8 +62,14 @@ namespace Spindles {
             uint8_t msg[VFD_RS485_MAX_MSG_SIZE];
         };
 
-        virtual void default_modbus_settings(uart_config_t& uart);
+    private:
+        bool prepareSetModeCommand(SpindleState mode, ModbusCommand& data);
+        bool prepareSetRPMCommand(uint32_t rpm, ModbusCommand& data);
 
+        static void reportParsingErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length);
+        static void reportCmdErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length);
+
+    protected:
         // Commands:
         virtual void direction_command(SpindleState mode, ModbusCommand& data) = 0;
         virtual void set_speed_command(uint32_t rpm, ModbusCommand& data)      = 0;
@@ -72,8 +84,21 @@ namespace Spindles {
         virtual bool            supports_actual_rpm() const { return false; }
         virtual bool            safety_polling() const { return true; }
 
+        // The constructor sets these
+        int          _baudrate;
+        Uart::Data   _dataBits;
+        Uart::Stop   _stopBits;
+        Uart::Parity _parity;
+
+        // Convert from (uint32_t) RPM to the speed value that is sent to the VFD,
+        // scaling by the maximum RPM and maximum speed that the VFD supports.
+        static uint16_t RPMtoSpeed(uint32_t rpm, uint16_t max_speed, uint16_t max_rpm) {
+            uint16_t speed = (rpm * max_speed) / max_rpm;
+            return speed < max_speed ? speed : max_speed;
+        }
+
     public:
-        VFD()           = default;
+        VFD();
         VFD(const VFD&) = delete;
         VFD(VFD&&)      = delete;
         VFD& operator=(const VFD&) = delete;
@@ -91,9 +116,9 @@ namespace Spindles {
         void         config_message();
         void         set_state(SpindleState state, uint32_t rpm);
         SpindleState get_state();
-        uint32_t     set_rpm(uint32_t rpm);
+        void         set_rpm(uint32_t rpm);
+        void         setRPMfromISR(uint32_t rpm) override;
         void         stop();
-        uint32_t     limitRPM(uint32_t RPM);
 
         // Configuration handlers:
         void validate() const override { Spindle::validate(); }

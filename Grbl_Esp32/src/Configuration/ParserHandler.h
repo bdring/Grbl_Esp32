@@ -78,7 +78,7 @@ namespace Configuration {
         //     }
         // }
 
-        void handle(const char* name, StringRange& value) override {
+        void handle(const char* name, StringRange& value, int minLength, int maxLength) override {
             if (parser_.is(name)) {
                 value = parser_.stringValue();
             }

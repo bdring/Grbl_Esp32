@@ -60,11 +60,9 @@ namespace Spindles {
                        _direction_pin.name().c_str());
     }
 
-    uint32_t Dac::set_rpm(uint32_t rpm) {
+    void Dac::set_rpm(uint32_t rpm) {
         sys.spindle_speed = rpm = limitRPM(overrideRPM(rpm));
-
         set_output(RPMtoPWM(rpm));
-        return rpm;
     }
 
     void Dac::set_output(uint32_t duty) {

@@ -178,6 +178,17 @@ namespace Spindles {
     }
 
     void IRAM_ATTR Huanyang::set_speed_command(uint32_t rpm, ModbusCommand& data) {
+        // Frequency comes from a conversion of revolutions per second to revolutions per minute
+        // (factor of 60) and a factor of 2 from counting the number of poles. E.g. rpm * 120 / 100.
+
+        // int targetFrequency = targetRPM * PD005 / MaxRPM
+        // = targetRPM * PD005 / (PD005 * PD144 / 50)
+        // = targetRPM * 50 / PD144
+        //
+        // Huanyang wants a factor 100 bigger numbers. So, 1500 rpm -> 25 HZ. Send 2500.
+
+        auto speed = RPMtoSpeed(rpm, 5000, _maxRpmAt50Hz);
+
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 5;
         data.rx_length = 5;
@@ -185,19 +196,8 @@ namespace Spindles {
         // data.msg[0] is omitted (modbus address is filled in later)
         data.msg[1] = 0x05;
         data.msg[2] = 0x02;
-
-        // Frequency comes from a conversion of revolutions per second to revolutions per minute
-        // (factor of 60) and a factor of 2 from counting the number of poles. E.g. rpm * 120 / 100.
-
-        // int targetFrequency = targetRPM * PD005 / MaxRPM = targetRPM * PD005 / (PD005 * PD144 / 50) =
-        // targetRPM * 50 / PD144
-        //
-        // Huanyang wants a factor 100 bigger numbers. So, 1500 rpm -> 25 HZ. Send 2500.
-
-        uint16_t value = rpm * 5000 / _maxRpmAt50Hz;
-
-        data.msg[3] = (value >> 8) & 0xFF;
-        data.msg[4] = (value & 0xFF);
+        data.msg[3] = speed >> 8;
+        data.msg[4] = speed & 0xFF;
     }
 
     VFD::response_parser Huanyang::initialization_sequence(int index, ModbusCommand& data) {

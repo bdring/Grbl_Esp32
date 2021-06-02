@@ -70,13 +70,11 @@ namespace Spindles {
 
     // This appears identical to the code in PWMSpindle.cpp but
     // it uses the 10v versions of set_enable and set_output
-    uint32_t IRAM_ATTR _10v::set_rpm(uint32_t rpm) {
+    void IRAM_ATTR _10v::set_rpm(uint32_t rpm) {
         sys.spindle_speed = rpm = limitRPM(overrideRPM(rpm));
 
         set_enable(gc_state.modal.spindle != SpindleState::Disable);
         set_output(RPMtoPWM(rpm));
-
-        return rpm;
     }
 
     void _10v::stop() {

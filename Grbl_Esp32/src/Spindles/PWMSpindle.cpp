@@ -88,13 +88,11 @@ namespace Spindles {
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
     }
 
-    uint32_t IRAM_ATTR PWM::set_rpm(uint32_t rpm) {
+    void IRAM_ATTR PWM::set_rpm(uint32_t rpm) {
         sys.spindle_speed = rpm = limitRPM(overrideRPM(rpm));
 
         set_enable(gc_state.modal.spindle != SpindleState::Disable);
         set_output(RPMtoPWM(rpm));
-
-        return rpm;
     }
 
     void PWM::set_state(SpindleState state, uint32_t rpm) {
@@ -213,14 +211,7 @@ namespace Spindles {
         _direction_pin.setAttr(Pin::Attr::Input);
     }
 
-    uint32_t IRAM_ATTR PWM::limitRPM(uint32_t rpm) {
-        if ((_min_rpm >= _max_rpm) || (rpm >= _max_rpm)) {
-            rpm = _max_rpm;
-        } else if (rpm != 0 && rpm <= _min_rpm) {
-            rpm = _min_rpm;
-        }
-        return rpm;
-    }
+    uint32_t IRAM_ATTR PWM::limitRPM(uint32_t rpm) { return rpm ? constrain(rpm, _min_rpm, _max_rpm) : 0; }
 
     uint32_t IRAM_ATTR PWM::RPMtoPWM(uint32_t rpm) {
 #ifdef PIECEWISE_LINEAR

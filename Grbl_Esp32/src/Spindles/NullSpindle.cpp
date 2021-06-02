@@ -30,11 +30,8 @@ namespace Spindles {
         use_delays    = false;
         config_message();
     }
-    uint32_t IRAM_ATTR Null::set_rpm(uint32_t rpm) {
-        sys.spindle_speed = rpm = overrideRPM(rpm);
-        return rpm;
-    }
-    void Null::set_state(SpindleState state, uint32_t rpm) {
+    void IRAM_ATTR Null::set_rpm(uint32_t rpm) { sys.spindle_speed = rpm = overrideRPM(rpm); }
+    void           Null::set_state(SpindleState state, uint32_t rpm) {
         _current_state    = state;
         sys.spindle_speed = rpm;
     }

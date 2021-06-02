@@ -34,9 +34,9 @@ namespace Spindles {
         Relay& operator=(const Relay&) = delete;
         Relay& operator=(Relay&&) = delete;
 
-        void     init() override;
-        void     config_message() override;
-        uint32_t set_rpm(uint32_t rpm) override;
+        void init() override;
+        void config_message() override;
+        void set_rpm(uint32_t rpm) override;
 
         virtual ~Relay() {}
 

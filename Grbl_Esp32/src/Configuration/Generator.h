@@ -65,7 +65,7 @@ namespace Configuration {
             dst_ << name << ": " << value << '\n';
         }
 
-        void handle(const char* name, StringRange& value) override {
+        void handle(const char* name, StringRange& value, int minLength, int maxLength) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }

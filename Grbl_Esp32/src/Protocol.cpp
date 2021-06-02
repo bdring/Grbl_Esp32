@@ -1050,7 +1050,7 @@ static void protocol_exec_rt_suspend() {
                     }
                     // Execute slow pull-out parking retract motion. Parking requires homing enabled, the
                     // current location not exceeding the parking target location, and laser mode disabled.
-                    // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
+                    // NOTE: State will remain DOOR, until the de-energizing and retract is complete.
                     if (can_park() && parking_target[PARKING_AXIS] < PARKING_TARGET) {
                         // Retract spindle by pullout distance. Ensure retraction motion moves away from
                         // the workpiece and waypoint motion doesn't exceed the parking target location.
@@ -1123,11 +1123,10 @@ static void protocol_exec_rt_suspend() {
                             // Block if safety door re-opened during prior restore actions.
                             if (!sys.suspend.bit.restartRetract) {
                                 if (config->_laserMode) {
-                                    // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
+                                    // When in laser mode, defer turn on until cycle starts
                                     sys.step_control.updateSpindleRpm = true;
                                 } else {
                                     config->_spindle->set_state(restore_spindle, (uint32_t)restore_spindle_speed);
-                                    // restore delay is done in the spindle class
                                 }
                             }
                         }
@@ -1177,7 +1176,7 @@ static void protocol_exec_rt_suspend() {
                         if (gc_state.modal.spindle != SpindleState::Disable) {
                             report_feedback_message(Message::SpindleRestore);
                             if (config->_laserMode) {
-                                // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
+                                // When in laser mode, defer turn on until cycle starts
                                 sys.step_control.updateSpindleRpm = true;
                             } else {
                                 config->_spindle->set_state(restore_spindle, (uint32_t)restore_spindle_speed);
