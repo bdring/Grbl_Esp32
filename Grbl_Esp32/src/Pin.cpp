@@ -148,7 +148,7 @@ Pin Pin::create(const StringRange& str) {
 
         return Pin(pinImplementation);
     } catch (const AssertionFailed& ex) {  // We shouldn't get here under normal circumstances.
-        pin_error("Setting up pin failed. Details: %s\r\n", ex.what());
+        pin_error("Setting up pin [%s] failed. Details: %s\r\n", str.str().c_str(), ex.what());
         (void)ex;  // Get rid of compiler warning
 
         return Pin(pinImplementation);
