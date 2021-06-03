@@ -54,7 +54,7 @@ axes:
 
     gang0:
       endstops:
-        dual: gpio.16:low:pu
+        dual: gpio.16:pu:low
       stepstick:
         direction: gpio:33
         step: gpio.27
