@@ -35,7 +35,7 @@ namespace Pins {
             } else if (opt.is("high")) {
                 // Default: Active HIGH.
             } else {
-                Assert(false, "Bad I2S option passed to pin %d: %s", int(index), opt());
+                Assert(false, "Unsupported I2SO option '%s'", opt());
             }
         }
 
@@ -46,12 +46,11 @@ namespace Pins {
     PinCapabilities I2SOPinDetail::capabilities() const { return PinCapabilities::Output | PinCapabilities::I2S; }
 
     void I2SOPinDetail::write(int high) {
-        Assert(_attributes.has(PinAttributes::Output), "Pin has no output attribute defined. Cannot write to it.");
         int value = _readWriteMask ^ high;
         i2s_out_write(_index, value);
         // XXX Do we want to add i2s_out_delay() here ?
         // Doing so would eliminate the need to override
-        // switchCSpin() in TrnamicDriver.cpp
+        // switchCSpin() in TrinamicDriver.cpp
         i2s_out_delay();
     }
 
@@ -62,7 +61,8 @@ namespace Pins {
 
     void I2SOPinDetail::setAttr(PinAttributes value) {
         // Check the attributes first:
-        Assert(value.validateWith(this->_capabilities), "The requested attributes don't match the pin capabilities");
+        Assert(!value.has(PinAttributes::Input), "I2SO pins cannot be used as input");
+        Assert(value.validateWith(this->_capabilities), "Requested attributes do not match the I2SO pin capabilities");
         Assert(!_attributes.conflictsWith(value), "Attributes on this pin have been set before, and there's a conflict.");
 
         _attributes = value;
