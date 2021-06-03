@@ -111,17 +111,15 @@ void machine_init() {
     // Z offset is the z distance from the motor axes to the end effector axes at zero angle
     motors_to_cartesian(cartesian, angles, 3);  // Sets the cartesian values
     // print a startup message to show the kinematics are enabled. Print the offset for reference
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Kinematics Init: %s Z Offset:%4.3f", MACHINE_NAME, cartesian[Z_AXIS]);
+    info_serial("Delta Kinematics Init: %s Z Offset:%4.3f", MACHINE_NAME, cartesian[Z_AXIS]);
 
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Delta Angle Range %3.3f, %3.3f", MAX_NEGATIVE_ANGLE, MAX_POSITIVE_ANGLE);
+    info_serial("Delta Angle Range %3.3f, %3.3f", MAX_NEGATIVE_ANGLE, MAX_POSITIVE_ANGLE);
 
-    //     grbl_msg_sendf(CLIENT_SERIAL,
-    //                    MsgLevel::Info,
-    //                    "DXL_COUNT_MIN %4.0f CENTER %d MAX %4.0f PER_RAD %d",
-    //                    DXL_COUNT_MIN,
-    //                    DXL_CENTER,
-    //                    DXL_COUNT_MAX,
-    //                    DXL_COUNT_PER_RADIAN);
+    //     info_serial("DXL_COUNT_MIN %4.0f CENTER %d MAX %4.0f PER_RAD %d",
+    //                 DXL_COUNT_MIN,
+    //                 DXL_CENTER,
+    //                 DXL_COUNT_MAX,
+    //                 DXL_COUNT_PER_RADIAN);
 }
 
 bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
@@ -136,19 +134,19 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
 
     read_settings();
 
-    // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
-    // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+    // info_serial("Start %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+    // info_serial("Target %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
 
     status = delta_calcInverse(position, last_angle);
     if (status == KinematicError::OUT_OF_RANGE) {
-        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
+        //info_serial("Start position error %3.3f %3.3f %3.3f", position[0], position[1], position[2]);
         return false;
     }
 
     // Check the destination to see if it is in work area
     status = delta_calcInverse(target, motor_angles);
     if (status == KinematicError::OUT_OF_RANGE) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Target unreachable  error %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
+        info_serial("Target unreachable  error %3.3f %3.3f %3.3f", target[0], target[1], target[2]);
         return false;
     }
 
@@ -178,13 +176,11 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
 
         if (status != KinematicError ::NONE) {
             if (show_error) {
-                // grbl_msg_sendf(CLIENT_SERIAL,
-                //                MsgLevel::Info,
-                //                "Error:%d, Angs X:%4.3f Y:%4.3f Z:%4.3f",
-                //                status,
-                //                motor_angles[0],
-                //                motor_angles[1],
-                //                motor_angles[2]);
+                // info_serial("Error:%d, Angs X:%4.3f Y:%4.3f Z:%4.3f",
+                //             status,
+                //             motor_angles[0],
+                //             motor_angles[1],
+                //             motor_angles[2]);
                 show_error = false;
             }
             return false;
@@ -216,17 +212,17 @@ bool limitsCheckTravel(float* target) {
 
     read_settings();
 
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin Soft Check %3.3f, %3.3f, %3.3f", target[0], target[1], target[2]);
+    info_serial("Kin Soft Check %3.3f, %3.3f, %3.3f", target[0], target[1], target[2]);
 
     switch (delta_calcInverse(target, motor_angles)) {
         case KinematicError::OUT_OF_RANGE:
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target out of range");
+            info_serial("Kin target out of range");
             return true;
         case KinematicError::ANGLE_TOO_NEGATIVE:
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target max negative");
+            info_serial("Kin target max negative");
             return true;
         case KinematicError::ANGLE_TOO_POSITIVE:
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Kin target max positive");
+            info_serial("Kin target max positive");
             return true;
         case KinematicError::NONE:
             return false;
@@ -262,7 +258,7 @@ KinematicError delta_calcInverse(float* cartesian, float* angles) {
         return status;
     }
 
-    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "xyx (%4.3f,%4.3f,%4.3f) ang (%4.3f,%4.3f,%4.3f)", x0, y0, z0, theta1, theta2, theta3);
+    //info_serial("xyx (%4.3f,%4.3f,%4.3f) ang (%4.3f,%4.3f,%4.3f)", x0, y0, z0, theta1, theta2, theta3);
     return status;
 }
 
@@ -305,7 +301,7 @@ void motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
     // discriminant
     float d = b * b - (float)4.0 * a * c;
     if (d < 0) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "MSG:Fwd Kin Error");
+        info_serial("MSG:Fwd Kin Error");
         return;
     }
 
@@ -351,7 +347,7 @@ float three_axis_dist(float* point1, float* point2) {
 // #ifdef USE_CUSTOM_HOMING
 //     return true;
 // #else
-//     //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "kinematics_pre_homing");
+//     //info_serial("kinematics_pre_homing");
 //     return false;
 // #endif
 // }
@@ -366,19 +362,15 @@ void kinematics_post_homing() {
 
     motors_to_cartesian(last_cartesian, last_angle, 3);
 
-    // grbl_msg_sendf(CLIENT_SERIAL,
-    //                MsgLevel::Info,
-    //                "kinematics_post_homing Angles: %3.3f, %3.3f, %3.3f",
-    //                last_angle[X_AXIS],
-    //                last_angle[Y_AXIS],
-    //                last_angle[Z_AXIS]);
+    // info_serial("kinematics_post_homing Angles: %3.3f, %3.3f, %3.3f",
+    //             last_angle[X_AXIS],
+    //             last_angle[Y_AXIS],
+    //             last_angle[Z_AXIS]);
 
-    // grbl_msg_sendf(CLIENT_SERIAL,
-    //                MsgLevel::Info,
-    //                "kinematics_post_homing Cartesian: %3.3f, %3.3f, %3.3f",
-    //                last_cartesian[X_AXIS],
-    //                last_cartesian[Y_AXIS],
-    //                last_cartesian[Z_AXIS]);
+    // info_serial("kinematics_post_homing Cartesian: %3.3f, %3.3f, %3.3f",
+    //             last_cartesian[X_AXIS],
+    //             last_cartesian[Y_AXIS],
+    //             last_cartesian[Z_AXIS]);
 
     gc_state.position[X_AXIS] = last_cartesian[X_AXIS];
     gc_state.position[Y_AXIS] = last_cartesian[Y_AXIS];

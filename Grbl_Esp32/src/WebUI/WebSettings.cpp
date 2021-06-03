@@ -375,7 +375,7 @@ namespace WebUI {
             webPrintln("Incorrect command");
             return Error::InvalidValue;
         }
-        grbl_send(CLIENT_ALL, "[MSG:Restart ongoing]\r\n");
+        info_all("Restart ongoing");
         COMMANDS::restart_ESP();
         return Error::Ok;
     }

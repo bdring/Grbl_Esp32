@@ -156,7 +156,7 @@ int8_t sys_get_next_PWM_chan_num() {
     if (next_PWM_chan_num < 8) {           // 7 is the max PWM channel number
         return next_PWM_chan_num++;
     } else {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of PWM channels");
+        error_serial("Error: out of PWM channels");
         return -1;
     }
 }
@@ -181,7 +181,7 @@ uint8_t sys_calc_pwm_precision(uint32_t freq) {
 void __attribute__((weak)) user_defined_macro(uint8_t index) {
     // must be in Idle
     if (sys.state != State::Idle) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button only permitted in idle");
+        info_serial("Macro button only permitted in idle");
         return;
     }
 
@@ -205,7 +205,7 @@ void __attribute__((weak)) user_defined_macro(uint8_t index) {
     }
 
     if (user_macro == "") {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro User/Macro%d empty", index);
+        info_serial("Macro User/Macro%d empty", index);
         return;
     }
 

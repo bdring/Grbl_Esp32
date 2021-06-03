@@ -26,8 +26,8 @@
 #include "Pins/ErrorPinDetail.h"
 
 #ifdef ESP32
-#    include "Grbl.h"  // grbl_sendf
-#    define pin_error(...) grbl_sendf(CLIENT_ALL, __VA_ARGS__)
+#    include "Grbl.h"  // serial output
+#    define pin_error(...) info_serial(__VA_ARGS__)
 #else
 #    define pin_error(...)                                                                                                                 \
         {}
@@ -169,7 +169,7 @@ bool Pin::validate(const String& str) {
 void Pin::report(const char* legend) {
     if (defined()) {
 #if ESP32
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s on %s", legend, name().c_str());
+        info_serial("%s on %s", legend, name().c_str());
 #endif
     }
 }

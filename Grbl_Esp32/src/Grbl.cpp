@@ -27,7 +27,7 @@ void grbl_init() {
     try {
         client_init();  // Setup serial baud rate and interrupts
 
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Initializing WiFi...");
+        debug_serial("Initializing WiFi...");
         WiFi.persistent(false);
         WiFi.disconnect(true);
         WiFi.enableSTA(false);
@@ -35,37 +35,36 @@ void grbl_init() {
         WiFi.mode(WIFI_OFF);
 
         display_init();
-        grbl_msg_sendf(
-            CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Compiled with ESP32 SDK:%s", ESP.getSdkVersion());   // print the SDK version
-                                                                                                            // show the map name at startup
+        info_serial("Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
+        info_serial("Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
+                                                                                     // show the map name at startup
 
 #ifdef MACHINE_NAME
         report_machine_type(CLIENT_SERIAL);
 #endif
 
         // Load Grbl settings from non-volatile storage
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Initializing settings...");
+        debug_serial("Initializing settings...");
         settings_init();
         config->load();
 
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Name: %s", config->_name.c_str());
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Board: %s", config->_board.c_str());
+        info_serial("Name: %s", config->_name.c_str());
+        info_serial("Board: %s", config->_board.c_str());
 
         if (config->_i2so) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing I2SO...");
+            info_serial("Initializing I2SO...");
             // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
             i2s_out_init();
         }
 
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing steppers...");
+        info_serial("Initializing steppers...");
         stepper_init();  // Configure stepper pins and interrupt timers
 
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing axes...");
+        info_serial("Initializing axes...");
         config->_axes->read_settings();
         config->_axes->init();
 
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing system...");
+        info_serial("Initializing system...");
         config->_control->init();
         init_output_pins();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
@@ -89,28 +88,26 @@ void grbl_init() {
             // If there is an axis with homing configured, enter Alarm state on startup
             sys.state = State::Alarm;
         }
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing spindle...");
+        info_serial("Initializing spindle...");
 
         config->_coolant->init();
         limits_init();
         config->_probe->init();
 
 #ifdef ENABLE_WIFI
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing WiFi-config...");
+        info_serial("Initializing WiFi...");
         WebUI::wifi_config.begin();
 #endif
 
         if (hasBluetooth()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Initializing Bluetooth...");
+            info_serial("Initializing Bluetooth...");
 
             config->_comms->_bluetoothConfig->begin();
         }
         WebUI::inputBuffer.begin();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
-
-        // Should grbl_sendf always work? Serial is initialized first, so after line 34 it should.
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Critical error in run_once: %s", ex.stackTrace.c_str());
+        info_serial("Critical error in run_once: %s", ex.what());
         sleep(10000);
         throw;
     }
@@ -143,7 +140,7 @@ void run_once() {
         protocol_main_loop();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Error, "Critical error in run_once: %s", ex.stackTrace.c_str());
+        error_all("Critical error in run_once: %s", ex.stackTrace.c_str());
         sleep(10000);
         throw;
     }

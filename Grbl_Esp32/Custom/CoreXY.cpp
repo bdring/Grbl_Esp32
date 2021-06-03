@@ -52,9 +52,9 @@ void machine_init() {
     // print a startup message to show the kinematics are enable
 
 #ifdef MIDTBOT
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "CoreXY (midTbot) Kinematics Init");
+    info_serial("CoreXY (midTbot) Kinematics Init");
 #else
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "CoreXY Kinematics Init");
+    info_serial("CoreXY Kinematics Init");
 #endif
 }
 
@@ -89,11 +89,7 @@ bool user_defined_homing(AxisMask cycle_mask) {
     ;
     for (int cycle = 0; cycle < n_axis; cycle++) {
         if (numberOfSetBits(homing_cycle[cycle]->get()) > 1) {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "CoreXY Multi axis homing cycles not allowed. $Homing/Cycle%d=%s",
-                           cycle,
-                           homing_cycle[cycle]->getStringValue());
+            info_serial("CoreXY Multi axis homing cycles not allowed. $Homing/Cycle%d=%s", cycle, homing_cycle[cycle]->getStringValue());
             setting_error = true;
         }
     }

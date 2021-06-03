@@ -37,7 +37,7 @@ namespace Spindles {
     }
     SpindleState Null::get_state() { return _current_state; }
     void         Null::stop() {}
-    void         Null::config_message() { grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "No spindle"); }
+    void         Null::config_message() { info_all("No spindle"); }
 
     // Configuration registration
     namespace {

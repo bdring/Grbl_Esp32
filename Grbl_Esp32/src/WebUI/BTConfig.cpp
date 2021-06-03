@@ -44,10 +44,10 @@ namespace WebUI {
                 uint8_t* addr = param->srv_open.rem_bda;
                 sprintf(str, "%02X:%02X:%02X:%02X:%02X:%02X", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
                 inst->_btclient = str;
-                grbl_sendf(CLIENT_ALL, "[MSG:BT Connected with %s]\r\n", str);
+                info_all("BT Connected with %s", str);
             } break;
             case ESP_SPP_CLOSE_EVT:  //Client connection closed
-                grbl_send(CLIENT_ALL, "[MSG:BT Disconnected]\r\n");
+                info_all("BT Disconnected");
                 inst->_btclient = "";
                 break;
             default:
@@ -120,7 +120,7 @@ namespace WebUI {
                 report_status_message(Error::BtFailBegin, CLIENT_ALL);
             } else {
                 SerialBT.register_callback(&my_spp_cb);
-                grbl_sendf(CLIENT_ALL, "[MSG:BT Started with %s]\r\n", _btname.c_str());
+                info_all("BT Started with %s", _btname.c_str());
             }
         } else {
             end();
@@ -140,7 +140,7 @@ namespace WebUI {
         // Implement this in YAML land
         // was wifi_radio_mode->setDefault();
 #endif
-        grbl_send(CLIENT_ALL, "[MSG:BT reset done]\r\n");
+        info_all("BT reset done");
     }
 
     /**

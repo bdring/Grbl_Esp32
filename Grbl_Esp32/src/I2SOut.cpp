@@ -973,13 +973,13 @@ int IRAM_ATTR i2s_out_init() {
 
     // Check capabilities:
     if (!wsPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Not setting up I2SO: WS pin has incorrect capabilities");
+        info_serial("Not setting up I2SO: WS pin has incorrect capabilities");
         return -1;
     } else if (!bckPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Not setting up I2SO: BCK pin has incorrect capabilities");
+        info_serial("Not setting up I2SO: BCK pin has incorrect capabilities");
         return -1;
     } else if (!dataPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Not setting up I2SO: DATA pin has incorrect capabilities");
+        info_serial("Not setting up I2SO: DATA pin has incorrect capabilities");
         return -1;
     } else {
         i2s_out_init_t default_param;

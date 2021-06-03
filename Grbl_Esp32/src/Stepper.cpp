@@ -126,7 +126,9 @@ typedef struct {
 } st_prep_t;
 static st_prep_t prep;
 
-EnumItem stepTypes[] = { { ST_TIMED, "Timed" }, { ST_RMT, "RMT" }, { ST_I2S_STATIC, "I2S_static" }, { ST_I2S_STREAM, "I2S_stream" }, EnumItem() };
+EnumItem stepTypes[] = {
+    { ST_TIMED, "Timed" }, { ST_RMT, "RMT" }, { ST_I2S_STATIC, "I2S_static" }, { ST_I2S_STREAM, "I2S_stream" }, EnumItem()
+};
 
 /* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
    the venerable Bresenham line algorithm to manage and exactly synchronize multi-axis moves.
@@ -330,14 +332,12 @@ static void IRAM_ATTR stepper_pulse_func() {
 void stepper_init() {
     busy.store(false);
 
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", config->_axes->_numberAxis);
-    grbl_msg_sendf(CLIENT_SERIAL,
-                   MsgLevel::Info,
-                   "Step type:%s Pulse:%dus Dsbl Delay:%dus Dir Delay:%dus",
-                   stepTypes[config->_stepType].name,
-                   config->_pulseMicroSeconds,
-                   config->_disableDelayMicroSeconds,
-                   config->_directionDelayMicroSeconds);
+    info_serial("Axis count %d", config->_axes->_numberAxis);
+    info_serial("Step type:%s Pulse:%dus Dsbl Delay:%dus Dir Delay:%dus",
+                stepTypes[config->_stepType].name,
+                config->_pulseMicroSeconds,
+                config->_disableDelayMicroSeconds,
+                config->_directionDelayMicroSeconds);
 
 #ifdef USE_I2S_STEPS
     // I2S stepper stream mode use callback but timer interrupt
@@ -348,7 +348,7 @@ void stepper_init() {
 }
 
 void stepper_switch(stepper_id_t new_stepper) {
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Switch stepper: %s -> %s", stepTypes[config->_stepType].name, stepTypes[new_stepper].name);
+    debug_serial("Switch stepper: %s -> %s", stepTypes[config->_stepType].name, stepTypes[new_stepper].name);
     if (config->_stepType == new_stepper) {
         // do not need to change
         return;
@@ -357,7 +357,7 @@ void stepper_switch(stepper_id_t new_stepper) {
     if (config->_stepType == ST_I2S_STREAM) {
         if (i2s_out_get_pulser_status() != PASSTHROUGH) {
             // Called during streaming. Stop streaming.
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Stop the I2S streaming and switch to the passthrough mode.");
+            debug_serial("Stop the I2S streaming and switch to the passthrough mode.");
             i2s_out_set_passthrough();
             i2s_out_delay();  // Wait for a change in mode.
         }
@@ -368,7 +368,7 @@ void stepper_switch(stepper_id_t new_stepper) {
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void st_wake_up() {
-    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "st_wake_up");
+    //info_serial("st_wake_up");
     // Enable stepper drivers.
     config->_axes->set_disable(false);
     stepper_idle = false;
@@ -782,8 +782,8 @@ void st_prep_buffer() {
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
                 if (st_prep_block->is_pwm_rate_adjusted) {
                     rpm *= (prep.current_speed * prep.inv_rate);
-                    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "RPM %.2f", rpm);
-                    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
+                    //info_serial("RPM %.2f", rpm);
+                    //info_serial("Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
                 }
                 // If current_speed is zero, then may need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE)
                 // but this would be instantaneous only and during a motion. May not matter at all.

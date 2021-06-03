@@ -84,11 +84,7 @@ namespace Motors {
         } else if (_driver_part_number == 5160) {
             tmcstepper = new Details::MyTMC5160Stepper(_cs_pin, _r_sense, _spi_index);
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "%s Unsupported Trinamic part number TMC%d",
-                           reportAxisNameMsg(axis_index(), dual_axis_index()),
-                           _driver_part_number);
+            info_serial("%s Unsupported Trinamic part number TMC%d", reportAxisNameMsg(axis_index(), dual_axis_index()), _driver_part_number);
             _has_errors = true;  // This motor cannot be used
             return;
         }
@@ -113,7 +109,7 @@ namespace Motors {
         // Display the stepper library version message once, before the first
         // TMC config message.  Link is NULL for the first TMC instance.
         if (!link) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
+            info_serial("TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
         }
 
         config_message();
@@ -147,7 +143,7 @@ namespace Motors {
                 );
             }
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SPI bus is not available; cannot initialize TMC driver.");
+            info_serial("SPI bus is not available; cannot initialize TMC driver.");
             _has_errors = true;
         }
     }
@@ -156,18 +152,16 @@ namespace Motors {
     This is the startup message showing the basic definition
     */
     void TrinamicDriver::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL,
-                       MsgLevel::Info,
-                       "%s Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d R:%0.3f %s",
-                       reportAxisNameMsg(axis_index(), dual_axis_index()),
-                       _driver_part_number,
-                       _step_pin.name().c_str(),
-                       _dir_pin.name().c_str(),
-                       _cs_pin.name().c_str(),
-                       _disable_pin.name().c_str(),
-                       _spi_index,
-                       _r_sense,
-                       reportAxisLimitsMsg(axis_index()));
+        info_serial("%s Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d R:%0.3f %s",
+                    reportAxisNameMsg(axis_index(), dual_axis_index()),
+                    _driver_part_number,
+                    _step_pin.name().c_str(),
+                    _dir_pin.name().c_str(),
+                    _cs_pin.name().c_str(),
+                    _disable_pin.name().c_str(),
+                    _spi_index,
+                    _r_sense,
+                    reportAxisLimitsMsg(axis_index()));
     }
 
     bool TrinamicDriver::test() {
@@ -177,16 +171,10 @@ namespace Motors {
 
         switch (tmcstepper->test_connection()) {
             case 1:
-                grbl_msg_sendf(CLIENT_SERIAL,
-                               MsgLevel::Info,
-                               "%s Trinamic driver test failed. Check connection",
-                               reportAxisNameMsg(axis_index(), dual_axis_index()));
+                info_serial("%s Trinamic driver test failed. Check connection", reportAxisNameMsg(axis_index(), dual_axis_index()));
                 return false;
             case 2:
-                grbl_msg_sendf(CLIENT_SERIAL,
-                               MsgLevel::Info,
-                               "%s Trinamic driver test failed. Check motor power",
-                               reportAxisNameMsg(axis_index(), dual_axis_index()));
+                info_serial("%s Trinamic driver test failed. Check motor power", reportAxisNameMsg(axis_index(), dual_axis_index()));
                 return false;
             default:
                 // driver responded, so check for other errors from the DRV_STATUS register
@@ -213,8 +201,7 @@ namespace Motors {
                     return false;
                 }
 
-                grbl_msg_sendf(
-                    CLIENT_SERIAL, MsgLevel::Info, "%s Trinamic driver test passed", reportAxisNameMsg(axis_index(), dual_axis_index()));
+                info_serial("%s Trinamic driver test passed", reportAxisNameMsg(axis_index(), dual_axis_index()));
                 return true;
         }
     }
@@ -272,20 +259,20 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
 
         switch (_mode) {
             case TrinamicMode ::StealthChop:
-                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "StealthChop");
+                //info_serial("StealthChop");
                 tmcstepper->en_pwm_mode(true);
                 tmcstepper->pwm_autoscale(true);
                 tmcstepper->diag1_stall(false);
                 break;
             case TrinamicMode ::CoolStep:
-                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Coolstep");
+                //info_serial("Coolstep");
                 tmcstepper->en_pwm_mode(false);
                 tmcstepper->pwm_autoscale(false);
                 tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS);  // when to turn on coolstep
                 tmcstepper->THIGH(NORMAL_THIGH);
                 break;
             case TrinamicMode ::StallGuard:
-                //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Stallguard");
+                //info_serial("Stallguard");
                 {
                     auto feedrate = config->_axes->_axis[axis_index()]->_homing->_feedRate;
 
@@ -299,7 +286,7 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
                     break;
                 }
             default:
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "TRINAMIC_MODE_UNDEFINED");
+                info_serial("TRINAMIC_MODE_UNDEFINED");
         }
     }
 
@@ -318,14 +305,12 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
         }
         float feedrate = st_get_realtime_rate();  //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
-        grbl_msg_sendf(CLIENT_SERIAL,
-                       MsgLevel::Info,
-                       "%s Stallguard %d   SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
-                       reportAxisNameMsg(axis_index(), dual_axis_index()),
-                       tmcstepper->stallguard(),
-                       tmcstepper->sg_result(),
-                       feedrate,
-                       constrain(_stallguard, -64, 63));
+        info_serial("%s Stallguard %d   SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
+                    reportAxisNameMsg(axis_index(), dual_axis_index()),
+                    tmcstepper->stallguard(),
+                    tmcstepper->sg_result(),
+                    feedrate,
+                    constrain(_stallguard, -64, 63));
 
         TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
         status.sr = tmcstepper->DRV_STATUS();
@@ -336,12 +321,10 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
         report_over_temp(status);
         report_short_to_ps(status);
 
-        // grbl_msg_sendf(CLIENT_SERIAL,
-        //                MsgLevel::Info,
-        //                "%s Status Register %08x GSTAT %02x",
-        //                reportAxisNameMsg(axis_index(), dual_axis_index()),
-        //                status.sr,
-        //                tmcstepper->GSTAT());
+        // info_serial("%s Status Register %08x GSTAT %02x",
+        //             reportAxisNameMsg(axis_index(), dual_axis_index()),
+        //             status.sr,
+        //             tmcstepper->GSTAT());
     }
 
     // calculate a tstep from a rate
@@ -399,7 +382,7 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
             if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
                 for (TrinamicDriver* p = List; p; p = p->link) {
                     if (p->_stallguardDebugMode) {
-                        //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "SG:%d", p->_stallguardDebugMode);
+                        //info_serial("SG:%d", p->_stallguardDebugMode);
                         p->debug_message();
                     }
                 }
@@ -418,12 +401,10 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
 
     bool TrinamicDriver::report_open_load(TMC2130_n ::DRV_STATUS_t status) {
         if (status.ola || status.olb) {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "%s Driver Open Load a:%s b:%s",
-                           reportAxisNameMsg(axis_index(), dual_axis_index()),
-                           status.ola ? "Y" : "N",
-                           status.olb ? "Y" : "N");
+            info_serial("%s Driver Open Load a:%s b:%s",
+                        reportAxisNameMsg(axis_index(), dual_axis_index()),
+                        status.ola ? "Y" : "N",
+                        status.olb ? "Y" : "N");
             return true;
         }
         return false;  // no error
@@ -431,12 +412,10 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
 
     bool TrinamicDriver::report_short_to_ground(TMC2130_n ::DRV_STATUS_t status) {
         if (status.s2ga || status.s2gb) {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "%s Driver Short Coil a:%s b:%s",
-                           reportAxisNameMsg(axis_index(), dual_axis_index()),
-                           status.s2ga ? "Y" : "N",
-                           status.s2gb ? "Y" : "N");
+            info_serial("%s Driver Short Coil a:%s b:%s",
+                        reportAxisNameMsg(axis_index(), dual_axis_index()),
+                        status.s2ga ? "Y" : "N",
+                        status.s2gb ? "Y" : "N");
             return true;
         }
         return false;  // no error
@@ -444,12 +423,10 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
 
     bool TrinamicDriver::report_over_temp(TMC2130_n ::DRV_STATUS_t status) {
         if (status.ot || status.otpw) {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "%s Driver Temp Warning:%s Fault:%s",
-                           reportAxisNameMsg(axis_index(), dual_axis_index()),
-                           status.otpw ? "Y" : "N",
-                           status.ot ? "Y" : "N");
+            info_serial("%s Driver Temp Warning:%s Fault:%s",
+                        reportAxisNameMsg(axis_index(), dual_axis_index()),
+                        status.otpw ? "Y" : "N",
+                        status.ot ? "Y" : "N");
             return true;
         }
         return false;  // no error
@@ -458,12 +435,10 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
     bool TrinamicDriver::report_short_to_ps(TMC2130_n ::DRV_STATUS_t status) {
         // check for short to power supply
         if ((status.sr & bit(12)) || (status.sr & bit(13))) {
-            grbl_msg_sendf(CLIENT_SERIAL,
-                           MsgLevel::Info,
-                           "%s Driver Short vsa:%s vsb:%s",
-                           reportAxisNameMsg(axis_index(), dual_axis_index()),
-                           (status.sr & bit(12)) ? "Y" : "N",
-                           (status.sr & bit(13)) ? "Y" : "N");
+            info_serial("%s Driver Short vsa:%s vsb:%s",
+                        reportAxisNameMsg(axis_index(), dual_axis_index()),
+                        (status.sr & bit(12)) ? "Y" : "N",
+                        (status.sr & bit(13)) ? "Y" : "N");
             return true;
         }
         return false;  // no error

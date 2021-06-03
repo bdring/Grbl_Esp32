@@ -51,14 +51,12 @@ namespace Motors {
     }
 
     void RcServo::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL,
-                       MsgLevel::Info,
-                       "%s RC Servo Pin:%d Pulse Len(%.0f,%.0f) %s",
-                       reportAxisNameMsg(axis_index(), dual_axis_index()),
-                       _pwm_pin.name().c_str(),
-                       _pwm_pulse_min,
-                       _pwm_pulse_max,
-                       reportAxisLimitsMsg(axis_index()));
+        info_serial("%s RC Servo Pin:%d Pulse Len(%.0f,%.0f) %s",
+                    reportAxisNameMsg(axis_index(), dual_axis_index()),
+                    _pwm_pin.name().c_str(),
+                    _pwm_pulse_min,
+                    _pwm_pulse_max,
+                    reportAxisLimitsMsg(axis_index()));
     }
 
     void RcServo::_write_pwm(uint32_t duty) {

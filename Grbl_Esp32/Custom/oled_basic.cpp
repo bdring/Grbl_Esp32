@@ -252,7 +252,7 @@ void displayUpdate(void* pvParameters) {
 
 void display_init() {
     // Initialising the UI will init the display too.
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Basic OLED SDA:%s SCL:%s", pinName(OLED_SDA), pinName(OLED_SCL));
+    info_serial("Init Basic OLED SDA:%s SCL:%s", pinName(OLED_SDA), pinName(OLED_SCL));
     display.init();
 
     display.flipScreenVertically();

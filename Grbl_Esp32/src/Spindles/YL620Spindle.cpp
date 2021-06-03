@@ -106,7 +106,7 @@ namespace Spindles {
         auto speed = RPMtoSpeed(rpm, this->_max_rpm, _maxFrequency);
 
 #ifdef VFD_DEBUG_MODE
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "For %d RPM the output frequency is set to %d Hz*10", int(rpm), int(freqFromRPM));
+        info_serial("For %d RPM the output frequency is set to %d Hz*10", int(rpm), int(freqFromRPM));
 #endif
 
         data.tx_length = 6;
@@ -138,7 +138,7 @@ namespace Spindles {
                 yl620->_minFrequency = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
 
 #ifdef VFD_DEBUG_MODE
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "YL620 allows minimum frequency of %d Hz", int(yl620->_minFrequency));
+                info_serial("YL620 allows minimum frequency of %d Hz", int(yl620->_minFrequency));
 #endif
 
                 return true;
@@ -164,12 +164,8 @@ namespace Spindles {
                                 uint32_t(yl620->_maxFrequency);  //   1000 * 24000 / 4000 =   6000 RPM.
 
 #ifdef VFD_DEBUG_MODE
-                grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "YL620 allows maximum frequency of %d Hz", int(yl620->_maxFrequency));
-                grbl_msg_sendf(CLIENT_SERIAL,
-                               MsgLevel::Info,
-                               "Configured maxRPM of %d RPM results in minRPM of %d RPM",
-                               int(vfd->_max_rpm),
-                               int(vfd->_min_rpm));
+                info_serial("YL620 allows maximum frequency of %d Hz", int(yl620->_maxFrequency));
+                info_serial("Configured maxRPM of %d RPM results in minRPM of %d RPM", int(vfd->_max_rpm), int(vfd->_min_rpm));
 #endif
 
                 return true;

@@ -32,7 +32,7 @@ namespace Spindles {
 
         // a couple more pins not inherited from PWM Spindle
         if (_output_pin.undefined()) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: Spindle output pin not defined");
+            info_all("Warning: Spindle output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
@@ -56,16 +56,14 @@ namespace Spindles {
 
     // prints the startup message of the spindle config
     void _10v::config_message() {
-        grbl_msg_sendf(CLIENT_ALL,
-                       MsgLevel::Info,
-                       "0-10V spindle Out:%s Enbl:%s, Dir:%s, Fwd:%s, Rev:%s, Freq:%dHz Res:%dbits",
-                       _output_pin.name().c_str(),
-                       _enable_pin.name().c_str(),
-                       _direction_pin.name().c_str(),
-                       _forward_pin.name().c_str(),
-                       _reverse_pin.name().c_str(),
-                       _pwm_freq,
-                       _pwm_precision);
+        info_all("0-10V spindle Out:%s Enbl:%s, Dir:%s, Fwd:%s, Rev:%s, Freq:%dHz Res:%dbits",
+                 _output_pin.name().c_str(),
+                 _enable_pin.name().c_str(),
+                 _direction_pin.name().c_str(),
+                 _forward_pin.name().c_str(),
+                 _reverse_pin.name().c_str(),
+                 _pwm_freq,
+                 _pwm_precision);
     }
 
     // This appears identical to the code in PWMSpindle.cpp but

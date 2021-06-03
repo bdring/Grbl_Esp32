@@ -58,14 +58,12 @@ namespace Motors {
     }
 
     void Dynamixel2::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL,
-                       MsgLevel::Info,
-                       "%s Dynamixel Servo ID:%d Count(%5.0f,%5.0f) %s",
-                       reportAxisNameMsg(axis_index(), dual_axis_index()),
-                       _id,
-                       _dxl_count_min,
-                       _dxl_count_max,
-                       reportAxisLimitsMsg(_axis_index));
+        info_serial("%s Dynamixel Servo ID:%d Count(%5.0f,%5.0f) %s",
+                    reportAxisNameMsg(axis_index(), dual_axis_index()),
+                    _id,
+                    _dxl_count_min,
+                    _dxl_count_max,
+                    reportAxisLimitsMsg(_axis_index));
     }
 
     bool Dynamixel2::test() {
@@ -80,25 +78,20 @@ namespace Motors {
         if (len == PING_RSP_LEN) {
             uint16_t model_num = _dxl_rx_message[10] << 8 | _dxl_rx_message[9];
             if (model_num == 1060) {
-                grbl_msg_sendf(CLIENT_SERIAL,
-                               MsgLevel::Info,
-                               "%s Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
-                               reportAxisNameMsg(axis_index(), dual_axis_index()),
-                               _id,
-                               _dxl_rx_message[11]);
+                info_serial("%s Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
+                            reportAxisNameMsg(axis_index(), dual_axis_index()),
+                            _id,
+                            _dxl_rx_message[11]);
             } else {
-                grbl_msg_sendf(CLIENT_SERIAL,
-                               MsgLevel::Info,
-                               "%s Dynamixel Detected ID %d M/N %d F/W Rev %x",
-                               reportAxisNameMsg(axis_index(), dual_axis_index()),
-                               _id,
-                               model_num,
-                               _dxl_rx_message[11]);
+                info_serial("%s Dynamixel Detected ID %d M/N %d F/W Rev %x",
+                            reportAxisNameMsg(axis_index(), dual_axis_index()),
+                            _id,
+                            model_num,
+                            _dxl_rx_message[11]);
             }
 
         } else {
-            grbl_msg_sendf(
-                CLIENT_SERIAL, MsgLevel::Info, "%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(axis_index(), dual_axis_index()), _id);
+            info_serial("%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(axis_index(), dual_axis_index()), _id);
             return false;
         }
 
@@ -158,12 +151,7 @@ namespace Motors {
             return;  // UART already setup
         }
 
-        grbl_msg_sendf(CLIENT_SERIAL,
-                       MsgLevel::Info,
-                       "Dynamixel UART TX:%d RX:%d RTS:%d",
-                       _tx_pin.name().c_str(),
-                       _rx_pin.name().c_str(),
-                       _rts_pin.name().c_str());
+        info_serial("Dynamixel UART TX:%d RX:%d RTS:%d", _tx_pin.name().c_str(), _rx_pin.name().c_str(), _rts_pin.name().c_str());
 
         uart_driver_delete(UART_NUM_2);
 
@@ -301,32 +289,32 @@ namespace Motors {
             uint8_t err = _dxl_rx_message[8];
             switch (err) {
                 case 1:
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write fail error", _id);
+                    info_serial("Dynamixel Servo ID %d Write fail error", _id);
                     break;
                 case 2:
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write instruction error", _id);
+                    info_serial("Dynamixel Servo ID %d Write instruction error", _id);
                     break;
                 case 3:
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write access error", _id);
+                    info_serial("Dynamixel Servo ID %d Write access error", _id);
                     break;
                 case 4:
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data range error", _id);
+                    info_serial("Dynamixel Servo ID %d Write data range error", _id);
                     break;
                 case 5:
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data length error", _id);
+                    info_serial("Dynamixel Servo ID %d Write data length error", _id);
                     break;
                 case 6:
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write data limit error", _id);
+                    info_serial("Dynamixel Servo ID %d Write data limit error", _id);
                     break;
                 case 7:
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Write access error", _id);
+                    info_serial("Dynamixel Servo ID %d Write access error", _id);
                     break;
                 default:
                     break;
             }
         } else {
             // timeout
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Servo ID %d Timeout", _id);
+            info_serial("Dynamixel Servo ID %d Timeout", _id);
         }
     }
 

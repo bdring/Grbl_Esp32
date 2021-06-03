@@ -24,7 +24,7 @@ namespace Motors {
 
     void StepStick::afterParse() {
         if (!_Reset.undefined()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Using StepStick Mode");
+            info_serial("Using StepStick Mode");
 
             // !RESET pin on steppers  (MISO On Schematic)
             _Reset.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);

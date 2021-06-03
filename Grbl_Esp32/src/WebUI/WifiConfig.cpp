@@ -211,10 +211,10 @@ namespace WebUI {
     void WiFiConfig::WiFiEvent(WiFiEvent_t event) {
         switch (event) {
             case SYSTEM_EVENT_STA_GOT_IP:
-                grbl_sendf(CLIENT_ALL, "[MSG:Connected with %s]\r\n", WiFi.localIP().toString().c_str());
+                info_all("Connected with %s", WiFi.localIP().toString().c_str());
                 break;
             case SYSTEM_EVENT_STA_DISCONNECTED:
-                grbl_send(CLIENT_ALL, "[MSG:Disconnected]\r\n");
+                info_all("Disconnected");
                 break;
             default:
                 break;
@@ -246,11 +246,11 @@ namespace WebUI {
         while (status != WL_CONNECTED && count < 40) {
             switch (status) {
                 case WL_NO_SSID_AVAIL:
-                    msg = "No SSID";
-                    break;
+                    info_all("No SSID");
+                    return false;
                 case WL_CONNECT_FAILED:
-                    msg = "Connection failed";
-                    break;
+                    info_all("Connection failed");
+                    return false;
                 case WL_CONNECTED:
                     break;
                 default:
@@ -263,8 +263,8 @@ namespace WebUI {
                     dot++;
                     break;
             }
-            grbl_sendf(CLIENT_ALL, "[MSG:%s]\r\n", msg.c_str());
-            COMMANDS::wait(500);
+            info_all(msg.c_str());
+            COMMANDS::wait(1000);
             count++;
             status = WiFi.status();
         }
@@ -310,16 +310,24 @@ namespace WebUI {
         if (IP_mode != DHCP_MODE) {
             IPAddress ip(sta->_ipAddress), mask(sta->_netmask), gateway(sta->_gateway);
             WiFi.config(ip, gateway, mask);
+            info_all("STA SSID %s IP %s, mask %s gateway %s",
+                     SSID.c_str(),
+                     ip.toString().c_str(),
+                     mask.toString().c_str(),
+                     gateway.toString().c_str());
+        } else {
+            info_all("STA SSID %s DHCP", SSID.c_str());
         }
 
         if (WiFi.begin(SSID.c_str(), (password.length() > 0) ? password.c_str() : NULL)) {
-            grbl_send(CLIENT_ALL, "\n[MSG:Client Started]\r\n");
-            grbl_sendf(CLIENT_ALL, "[MSG:Connecting %s]\r\n", SSID.c_str());
-            return ConnectSTA2AP();
-        } else {
-            grbl_send(CLIENT_ALL, "[MSG:Starting client failed]\r\n");
-            return false;
+            bool connected = ConnectSTA2AP();
+            if (connected) {
+                info_all("STA IP %s", WiFi.localIP().toString().c_str());
+            }
+            return connected;
         }
+        info_serial("Cannot connect to %s", config->_comms->_staConfig->_ssid.c_str());
+        return false;
     }
 
     /**
@@ -364,19 +372,19 @@ namespace WebUI {
         IPAddress mask;
         mask.fromString(DEFAULT_AP_MK);
 
-        grbl_sendf(CLIENT_ALL, "[MSG: AP IP %s, mask %s]", ip.toString().c_str(), mask.toString().c_str());
+        info_all("AP SSID %s IP %s, mask %s channel %d", SSID.c_str(), ip.toString().c_str(), mask.toString().c_str(), channel);
 
         //Set static IP
         WiFi.softAPConfig(ip, ip, mask);
 
         //Start AP
         if (WiFi.softAP(SSID.c_str(), (password.length() > 0) ? password.c_str() : NULL, channel)) {
-            grbl_sendf(CLIENT_ALL, "\n[MSG:Local access point %s started, %s]\r\n", SSID.c_str(), WiFi.softAPIP().toString().c_str());
+            info_all("AP started");
             return true;
-        } else {
-            grbl_sendf(CLIENT_ALL, "[MSG:Starting AP failed on AP %s, channel %d]\r\n", SSID.c_str(), channel);
-            return false;
         }
+
+        info_all("AP did not start");
+        return false;
     }
 
     /**
@@ -395,7 +403,7 @@ namespace WebUI {
         WiFi.enableSTA(false);
         WiFi.enableAP(false);
         WiFi.mode(WIFI_OFF);
-        grbl_send(CLIENT_ALL, "\n[MSG:WiFi Off]\r\n");
+        info_all("WiFi Off");
     }
 
     /**
@@ -428,6 +436,7 @@ namespace WebUI {
         }
 
     wifi_off:
+        info_serial("WiFi off");
         WiFi.mode(WIFI_OFF);
         return;
     wifi_on:
@@ -451,14 +460,14 @@ namespace WebUI {
         }
         // TODO commit the changes and check that for errors
         if (error) {
-            grbl_send(CLIENT_ALL, "[MSG:WiFi reset error]\r\n");
+            info_all("WiFi reset error");
         }
-        grbl_send(CLIENT_ALL, "[MSG:WiFi reset done]\r\n");
+        info_all("WiFi reset done");
     }
     bool WiFiConfig::Is_WiFi_on() { return !(WiFi.getMode() == WIFI_MODE_NULL); }
 
     /**
-     * Handle not critical actions that must be done in sync environement
+     * Handle not critical actions that must be done in sync environment
      */
     void WiFiConfig::handle() {
         //Services

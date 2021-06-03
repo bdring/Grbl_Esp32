@@ -95,8 +95,8 @@ bool cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* positi
     float    polar[N_AXIS];       // target location in polar coordinates
     float    x_offset = gc_state.coord_system[X_AXIS] + gc_state.coord_offset[X_AXIS];  // offset from machine coordinate system
     float    z_offset = gc_state.coord_system[Z_AXIS] + gc_state.coord_offset[Z_AXIS];  // offset from machine coordinate system
-    //grbl_sendf(CLIENT_SERIAL, "Position: %4.2f %4.2f %4.2f \r\n", position[X_AXIS] - x_offset, position[Y_AXIS], position[Z_AXIS]);
-    //grbl_sendf(CLIENT_SERIAL, "Target: %4.2f %4.2f %4.2f \r\n", target[X_AXIS] - x_offset, target[Y_AXIS], target[Z_AXIS]);
+    //info_serial("Position: %4.2f %4.2f %4.2f", position[X_AXIS] - x_offset, position[Y_AXIS], position[Z_AXIS]);
+    //info_serial("Target: %4.2f %4.2f %4.2f", target[X_AXIS] - x_offset, target[Y_AXIS], target[Z_AXIS]);
     // calculate cartesian move distance for each axis
     dx = target[X_AXIS] - position[X_AXIS];
     dy = target[Y_AXIS] - position[Y_AXIS];

@@ -117,7 +117,7 @@ public:
         if (esp_err_t err = nvs_get_stats(NULL, &stats)) {
             return Error::NvsGetStatsFailed;
         }
-        grbl_sendf(out->client(), "[MSG: NVS Used: %d Free: %d Total: %d]\r\n", stats.used_entries, stats.free_entries, stats.total_entries);
+        info_client(out->client(), "NVS Used: %d Free: %d Total: %d", stats.used_entries, stats.free_entries, stats.total_entries);
 #if 0  // The SDK we use does not have this yet
         nvs_iterator_t it = nvs_entry_find(NULL, NULL, NVS_TYPE_ANY);
         while (it != NULL) {

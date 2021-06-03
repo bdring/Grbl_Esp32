@@ -35,9 +35,7 @@ namespace UserOutput {
         config_message();
     }
 
-    void DigitalOutput::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "User Digital Output:%d on Pin:%s", _number, _pin.name().c_str());
-    }
+    void DigitalOutput::config_message() { info_serial("User Digital Output:%d on Pin:%s", _number, _pin.name().c_str()); }
 
     bool DigitalOutput::set_level(bool isOn) {
         if (_number == UNDEFINED_OUTPUT && isOn) {
@@ -72,7 +70,7 @@ namespace UserOutput {
     void AnalogOutput::init() {
         _pwm_channel = sys_get_next_PWM_chan_num();
         if (_pwm_channel == -1) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of PWM channels");
+            error_serial("Error: out of PWM channels");
         } else {
             _pin.setAttr(Pin::Attr::Output);
             auto nativePin = _pin.getNative(Pin::Capabilities::PWM);
@@ -86,8 +84,7 @@ namespace UserOutput {
     }
 
     void AnalogOutput::config_message() {
-        grbl_msg_sendf(
-            CLIENT_SERIAL, MsgLevel::Info, "User Analog Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
+        info_serial("User Analog Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
     }
 
     // returns true if able to set value
@@ -98,7 +95,7 @@ namespace UserOutput {
         }
 
         if (_pwm_channel == -1) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "M67 PWM channel error");
+            info_serial("M67 PWM channel error");
             return false;
         }
 

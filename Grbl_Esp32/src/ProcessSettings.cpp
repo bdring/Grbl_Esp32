@@ -54,14 +54,14 @@ void settings_restore(uint8_t restore_flag) {
                 }
             }
         }
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Settings reset done");
+        info_serial("Settings reset done");
     }
     if (restore_flag & SettingsRestore::Parameters) {
         for (auto idx = CoordIndex::Begin; idx < CoordIndex::End; ++idx) {
             coords[idx]->setDefault();
         }
     }
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Position offsets reset done");
+    info_serial("Position offsets reset done");
 }
 
 // Get settings values from non volatile storage into memory
@@ -209,7 +209,7 @@ Error toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
     // simple and consistent.
     if (sys.state == State::CheckMode) {
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Check mode");
+        debug_all("Check mode");
         mc_reset();
         report_feedback_message(Message::Disabled);
     } else {

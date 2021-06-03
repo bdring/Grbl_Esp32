@@ -11,15 +11,13 @@ namespace Motors {
     }
 
     void UnipolarMotor::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL,
-                       MsgLevel::Info,
-                       "%s Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s %s",
-                       reportAxisNameMsg(axis_index(), dual_axis_index()),
-                       _pin_phase0.name().c_str(),
-                       _pin_phase1.name().c_str(),
-                       _pin_phase2.name().c_str(),
-                       _pin_phase3.name().c_str(),
-                       reportAxisLimitsMsg(axis_index()));
+        info_serial("%s Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s %s",
+                    reportAxisNameMsg(axis_index(), dual_axis_index()),
+                    _pin_phase0.name().c_str(),
+                    _pin_phase1.name().c_str(),
+                    _pin_phase2.name().c_str(),
+                    _pin_phase3.name().c_str(),
+                    reportAxisLimitsMsg(axis_index()));
     }
 
     void UnipolarMotor::set_disable(bool disable) {

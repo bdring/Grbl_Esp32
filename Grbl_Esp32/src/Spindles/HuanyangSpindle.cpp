@@ -219,7 +219,7 @@ namespace Spindles {
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[4] << 8) | response[5];
 #ifdef VFD_DEBUG_MODE
-                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Max frequency = %d", value);
+                info_all("VFD: Max frequency = %d", value);
 #endif
 
                 // Set current RPM value? Somewhere?
@@ -236,7 +236,7 @@ namespace Spindles {
                 uint16_t value = (response[4] << 8) | response[5];
 
 #ifdef VFD_DEBUG_MODE
-                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Min frequency set to %d", value);
+                info_all("VFD: Min frequency set to %d", value);
 #endif
 
                 // Set current RPM value? Somewhere?
@@ -252,7 +252,7 @@ namespace Spindles {
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[4] << 8) | response[5];
 #ifdef VFD_DEBUG_MODE
-                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Max rated revolutions @ 50Hz = %d", value);
+                info_all("VFD: Max rated revolutions @ 50Hz = %d", value);
 #endif
                 // Set current RPM value? Somewhere?
                 auto huanyang           = static_cast<Huanyang*>(vfd);
@@ -286,7 +286,7 @@ namespace Spindles {
                 if (value <= 4 && value >= 2) {
 #ifdef VFD_DEBUG_MODE
                     // Set current RPM value? Somewhere?
-                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: Number of poles set to %d", value);
+                    info_all("VFD: Number of poles set to %d", value);
 #endif
 
                     auto huanyang = static_cast<Huanyang*>(vfd);
@@ -294,9 +294,7 @@ namespace Spindles {
                     return true;
                 }
                 else {
-                    grbl_msg_sendf(CLIENT_ALL,
-                        MsgLevel::Error,
-                        "Initialization of Huanyang spindle failed. Number of poles (PD143, expected 2-4, got %d) is not sane.",
+                    error_all("Initialization of Huanyang spindle failed. Number of poles (PD143, expected 2-4, got %d) is not sane.",
                         value);
                     return false;
                 }
@@ -324,7 +322,7 @@ namespace Spindles {
         this->_min_rpm = uint32_t(_minFrequency) * uint32_t(_maxRpmAt50Hz) / 5000;  //   0 * 3000 / 50 =   0 RPM.
         this->_max_rpm = uint32_t(_maxFrequency) * uint32_t(_maxRpmAt50Hz) / 5000;  // 400 * 3000 / 50 = 24k RPM.
 
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "VFD: VFD settings read: RPM Range(%d, %d)]", _min_rpm, _max_rpm);
+        info_all("VFD: VFD settings read: RPM Range(%d, %d)]", _min_rpm, _max_rpm);
     }
 
     VFD::response_parser Huanyang::get_status_ok(ModbusCommand& data) {

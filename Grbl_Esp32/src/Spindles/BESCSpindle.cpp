@@ -55,7 +55,7 @@ namespace Spindles {
         get_pins_and_settings();  // these gets the standard PWM settings, but many need to be changed for BESC
 
         if (_output_pin.undefined()) {
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Warning: BESC output pin not defined");
+            info_all("Warning: BESC output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
@@ -84,14 +84,12 @@ namespace Spindles {
 
     // prints the startup message of the spindle config
     void BESC::config_message() {
-        grbl_msg_sendf(CLIENT_ALL,
-                       MsgLevel::Info,
-                       "BESC spindle on Pin:%s Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
-                       _output_pin.name().c_str(),
-                       BESC_MIN_PULSE_SECS * 1000.0,  // convert to milliseconds
-                       BESC_MAX_PULSE_SECS * 1000.0,  // convert to milliseconds
-                       _pwm_freq,
-                       _pwm_precision);
+        info_all("BESC spindle on Pin:%s Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
+                 _output_pin.name().c_str(),
+                 BESC_MIN_PULSE_SECS * 1000.0,  // convert to milliseconds
+                 BESC_MAX_PULSE_SECS * 1000.0,  // convert to milliseconds
+                 _pwm_freq,
+                 _pwm_precision);
     }
 
     // Configuration registration

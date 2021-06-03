@@ -35,7 +35,7 @@ namespace Motors {
         if (next_RMT_chan_num < RMT_CHANNEL_MAX) {
             next_RMT_chan_num++;
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Error, "Error: out of RMT channels");
+            error_serial("Error: out of RMT channels");
         }
         return rmt_channel_t(next_RMT_chan_num);
     }
@@ -94,14 +94,12 @@ namespace Motors {
     }
 
     void StandardStepper::config_message() {
-        grbl_msg_sendf(CLIENT_SERIAL,
-                       MsgLevel::Info,
-                       "%s Standard Stepper Step:%s Dir:%s Disable:%s %s",
-                       reportAxisNameMsg(axis_index(), dual_axis_index()),
-                       _step_pin.name().c_str(),
-                       _dir_pin.name().c_str(),
-                       _disable_pin.name().c_str(),
-                       reportAxisLimitsMsg(axis_index()));
+        info_serial("%s Standard Stepper Step:%s Dir:%s Disable:%s %s",
+                    reportAxisNameMsg(axis_index(), dual_axis_index()),
+                    _step_pin.name().c_str(),
+                    _dir_pin.name().c_str(),
+                    _disable_pin.name().c_str(),
+                    reportAxisLimitsMsg(axis_index()));
     }
 
     void IRAM_ATTR StandardStepper::step() {

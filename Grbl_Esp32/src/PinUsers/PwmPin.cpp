@@ -111,7 +111,7 @@ namespace PinUsers {
             ledcAttachPin(native, pwmChannel_);
             ledcWrite(pwmChannel_, 0);
 
-            // grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "PWM Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
+            // info_serial("PWM Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
 
             // Store instance:
             auto instances         = PwmChannelResources();

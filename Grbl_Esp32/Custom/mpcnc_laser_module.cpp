@@ -30,7 +30,7 @@ void machine_init() {
     Pin levelShift = Pin::create(LVL_SHIFT_ENABLE);
 
     // force this on all the time
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Custom machine_init() Level Shift Enabled");
+    info_serial("Custom machine_init() Level Shift Enabled");
     levelShift.setAttr(Pin::Attr::Output);
     levelShift.on();
 }

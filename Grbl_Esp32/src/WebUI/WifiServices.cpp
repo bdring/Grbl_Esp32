@@ -72,29 +72,27 @@ namespace WebUI {
                     type = "filesystem";
                     SPIFFS.end();
                 }
-                grbl_sendf(CLIENT_ALL, "[MSG:Start OTA updating %s]\r\n", type.c_str());
+                info_all("Start OTA updating %s", type.c_str());
             })
-            .onEnd([]() { grbl_sendf(CLIENT_ALL, "[MSG:End OTA]\r\n"); })
-            .onProgress([](unsigned int progress, unsigned int total) {
-                grbl_sendf(CLIENT_ALL, "[MSG:OTA Progress: %u%%]\r\n", (progress / (total / 100)));
-            })
+            .onEnd([]() { info_all("End OTA"); })
+            .onProgress([](unsigned int progress, unsigned int total) { info_all("OTA Progress: %u%%", (progress / (total / 100))); })
             .onError([](ota_error_t error) {
-                grbl_sendf(CLIENT_ALL, "[MSG:OTA Error(%u):]\r\n", error);
+                info_all("OTA Error(%u):", error);
                 switch (error) {
                     case OTA_AUTH_ERROR:
-                        grbl_send(CLIENT_ALL, "[MSG:Auth Failed]\r\n");
+                        info_all("Auth Failed");
                         break;
                     case OTA_BEGIN_ERROR:
-                        grbl_send(CLIENT_ALL, "[MSG:Begin Failed]\r\n");
+                        info_all("Begin Failed");
                         break;
                     case OTA_CONNECT_ERROR:
-                        grbl_send(CLIENT_ALL, "[MSG:Connect Failed]\r\n");
+                        info_all("Connect Failed");
                         break;
                     case OTA_RECEIVE_ERROR:
-                        grbl_send(CLIENT_ALL, "[MSG:Receive Failed]\r\n");
+                        info_all("Receive Failed");
                         break;
                     case OTA_END_ERROR:
-                        grbl_send(CLIENT_ALL, "[MSG:End Failed]\r\n");
+                        info_all("End Failed");
                         break;
                 }
             });
@@ -105,10 +103,10 @@ namespace WebUI {
         if (WiFi.getMode() == WIFI_STA) {
             //start mDns
             if (!MDNS.begin(h.c_str())) {
-                grbl_send(CLIENT_ALL, "[MSG:Cannot start mDNS]\r\n");
+                info_all("Cannot start mDNS");
                 no_error = false;
             } else {
-                grbl_sendf(CLIENT_ALL, "[MSG:Start mDNS with hostname:http://%s.local/]\r\n", h.c_str());
+                info_all("Start mDNS with hostname:http://%s.local/", h.c_str());
             }
         }
 #    endif

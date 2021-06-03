@@ -56,12 +56,12 @@ void IRAM_ATTR isr_limit_switches(void* /*unused */) {
 #    ifdef HARD_LIMIT_FORCE_STATE_CHECK
             // Check limit pin state.
             if (limits_get_state()) {
-                grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Hard limits");
+                debug_all("Hard limits");
                 mc_reset();                                // Initiate system kill.
                 sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
             }
 #    else
-            grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Hard limits");
+            debug_all("Hard limits");
             mc_reset();                                // Initiate system kill.
             sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
 #    endif
@@ -92,7 +92,7 @@ AxisMask homingAxes() {
 // TODO: Move limit pin-specific calls to a general function for portability.
 void limits_go_home(uint8_t cycle_mask, uint n_locate_cycles) {
     if ((cycle_mask & homingAxes()) != cycle_mask) {
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Homing is not configured for some requested axes");
+        debug_all("Homing is not configured for some requested axes");
     }
     if (sys.abort) {
         return;  // Block if system reset has been issued.
@@ -241,7 +241,7 @@ void limits_go_home(uint8_t cycle_mask, uint n_locate_cycles) {
 
                 if (sys_rt_exec_alarm != ExecAlarm::None) {
                     config->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
-                    grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Homing fail");
+                    debug_all("Homing fail");
                     mc_reset();  // Stop motors, if they are running.
                     protocol_execute_realtime();
                     return;
@@ -312,7 +312,7 @@ void limits_init() {
                 }
 
                 if (limit_sw_queue == NULL) {
-                    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s limit on %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
+                    info_serial("%s limit on %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
                 }
             }
         }
@@ -383,7 +383,7 @@ void limits_soft_check(float* target) {
                 }
             } while (sys.state != State::Idle);
         }
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Debug, "Soft limits");
+        debug_all("Soft limits");
         mc_reset();                                // Issue system reset and ensure spindle and coolant are shutdown.
         sys_rt_exec_alarm = ExecAlarm::SoftLimit;  // Indicate soft limit critical event
         protocol_execute_realtime();               // Execute to enter critical event loop and system abort
@@ -402,7 +402,7 @@ void limitCheckTask(void* pvParameters) {
         AxisMask switch_state;
         switch_state = limits_get_state();
         if (switch_state) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "Limit Switch State %08d", switch_state);
+            debug_serial("Limit Switch State %08d", switch_state);
             mc_reset();                                // Initiate system kill.
             sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
         }

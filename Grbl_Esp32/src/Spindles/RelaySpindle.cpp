@@ -46,12 +46,8 @@ namespace Spindles {
 
     // prints the startup message of the spindle config
     void Relay ::config_message() {
-        grbl_msg_sendf(CLIENT_ALL,
-                       MsgLevel::Info,
-                       "Relay spindle Output:%s, Enbl:%s, Dir:%s",
-                       _output_pin.name().c_str(),
-                       _enable_pin.name().c_str(),
-                       _direction_pin.name().c_str());
+        info_all(
+            "Relay spindle Output:%s, Enbl:%s, Dir:%s", _output_pin.name().c_str(), _enable_pin.name().c_str(), _direction_pin.name().c_str());
     }
 
     void IRAM_ATTR Relay::set_rpm(uint32_t rpm) {

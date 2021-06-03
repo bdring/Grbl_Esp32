@@ -43,7 +43,7 @@ namespace Motors {
     }
 
     void Servo::startUpdateTask() {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Servo Update Task Started");
+        info_serial("Servo Update Task Started");
         if (this == List) {
             xTaskCreatePinnedToCore(updateTask,         // task
                                     "servoUpdateTask",  // name for task

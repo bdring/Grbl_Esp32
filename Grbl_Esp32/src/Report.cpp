@@ -61,16 +61,13 @@ void grbl_send(uint8_t client, const char* text) {
     client_write(client, text);
 }
 
-// This is a formating version of the grbl_send(CLIENT_ALL,...) function that work like printf
-void grbl_sendf(uint8_t client, const char* format, ...) {
+void _sendf(uint8_t client, const char* format, va_list arg) {
     if (client == CLIENT_INPUT) {
         return;
     }
-    char    loc_buf[64];
+    char    loc_buf[100];
     char*   temp = loc_buf;
-    va_list arg;
     va_list copy;
-    va_start(arg, format);
     va_copy(copy, arg);
     size_t len = vsnprintf(NULL, 0, format, arg);
     va_end(copy);
@@ -82,43 +79,72 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
     }
     len = vsnprintf(temp, len + 1, format, arg);
     grbl_send(client, temp);
-    va_end(arg);
     if (temp != loc_buf) {
         delete[] temp;
     }
 }
-// Use to send [MSG:xxxx] Type messages. The level allows messages to be easily suppressed
-void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...) {
-    if (client == CLIENT_INPUT) {
-        return;
-    }
 
+// This is a formatting version of the grbl_send(CLIENT_ALL,...) function that work like printf
+void grbl_sendf(uint8_t client, const char* format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    _sendf(client, format, arg);
+    va_end(arg);
+}
+
+void msg_vsendf(uint8_t client, MsgLevel level, const char* format, va_list arg) {
     if (message_level != NULL) {  // might be null before messages are setup
         if (level > static_cast<MsgLevel>(message_level->get())) {
             return;
         }
     }
+    grbl_send(client, "[MSG:");
+    _sendf(client, format, arg);
+    grbl_send(client, "]\r\n");
+}
 
-    char    loc_buf[100];
-    char*   temp = loc_buf;
+void info_client(uint8_t client, const char* format, ...) {
     va_list arg;
-    va_list copy;
     va_start(arg, format);
-    va_copy(copy, arg);
-    size_t len = vsnprintf(NULL, 0, format, arg);
-    va_end(copy);
-    if (len >= sizeof(loc_buf)) {
-        temp = new char[len + 1];
-        if (temp == NULL) {
-            return;
-        }
-    }
-    len = vsnprintf(temp, len + 1, format, arg);
-    grbl_sendf(client, "[MSG:%s]\r\n", temp);
+    msg_vsendf(client, MsgLevel::Info, format, arg);
     va_end(arg);
-    if (temp != loc_buf) {
-        delete[] temp;
-    }
+}
+
+void info_all(const char* format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    msg_vsendf(CLIENT_ALL, MsgLevel::Info, format, arg);
+    va_end(arg);
+}
+void info_serial(const char* format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    msg_vsendf(CLIENT_SERIAL, MsgLevel::Info, format, arg);
+    va_end(arg);
+}
+void debug_all(const char* format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    msg_vsendf(CLIENT_ALL, MsgLevel::Debug, format, arg);
+    va_end(arg);
+}
+void debug_serial(const char* format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    msg_vsendf(CLIENT_SERIAL, MsgLevel::Debug, format, arg);
+    va_end(arg);
+}
+void error_all(const char* format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    msg_vsendf(CLIENT_ALL, MsgLevel::Error, format, arg);
+    va_end(arg);
+}
+void error_serial(const char* format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    msg_vsendf(CLIENT_SERIAL, MsgLevel::Error, format, arg);
+    va_end(arg);
 }
 
 //function to notify
@@ -276,14 +302,14 @@ void report_feedback_message(Message message) {  // ok to send to all clients
 #if defined(ENABLE_SD_CARD)
     if (message == Message::SdFileQuit) {
         grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
+        info_serial("Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
 
     } else
 #endif  //ENABLE_SD_CARD
     {
         auto it = MessageText.find(message);
         if (it != MessageText.end()) {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, it->second);
+            info_serial(it->second);
         }
     }
 }
@@ -774,12 +800,12 @@ void report_gcode_comment(char* comment) {
             index++;
         }
         msg[index - offset] = 0;  // null terminate
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "GCode Comment...%s", msg);
+        info_serial("GCode Comment...%s", msg);
     }
 }
 
 void report_machine_type(uint8_t client) {
-    grbl_msg_sendf(client, MsgLevel::Info, "Using machine:%s", MACHINE_NAME);
+    info_client(client, "Using machine:%s", MACHINE_NAME);
 }
 
 /*
@@ -796,7 +822,7 @@ void report_hex_msg(char* buf, const char* prefix, int len) {
         strcat(report, temp);
     }
 
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", report);
+    info_serial("%s", report);
 }
 
 void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
@@ -808,7 +834,7 @@ void report_hex_msg(uint8_t* buf, const char* prefix, int len) {
         strcat(report, temp);
     }
 
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", report);
+    info_serial("%s", report);
 }
 
 char* report_state_text() {
@@ -901,7 +927,7 @@ void reportTaskStackSize(UBaseType_t& saved) {
     UBaseType_t newHighWater = uxTaskGetStackHighWaterMark(NULL);
     if (newHighWater != saved) {
         saved = newHighWater;
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Min Stack Space: %d", pcTaskGetTaskName(NULL), saved);
+        info_serial("%s Min Stack Space: %d", pcTaskGetTaskName(NULL), saved);
     }
 #endif
 }

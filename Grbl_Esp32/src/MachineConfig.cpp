@@ -119,7 +119,7 @@ Axes::Axes() : _axis() {
 }
 
 void Axes::init() {
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Init Motors");
+    info_serial("Init Motors");
 
     if (_sharedStepperDisable.defined()) {
         _sharedStepperDisable.setAttr(Pin::Attr::Output);
@@ -143,7 +143,7 @@ void Axes::init() {
 void Axes::set_disable(bool disable) {
     static bool previous_state = true;
 
-    //grbl_msg_sendf(CLIENT_SERIAL, MSG_LEVEL_INFO, "Motors disable %d", disable);
+    //info_serial("Motors disable %d", disable);
 
     /*
     if (previous_state == disable) {
@@ -165,7 +165,7 @@ void Axes::set_disable(bool disable) {
 }
 
 void Axes::read_settings() {
-    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Read Settings");
+    //info_serial("Read Settings");
     for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
         for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
             auto a = _axis[axis]->_gangs[gang_index]->_motor;
@@ -202,7 +202,7 @@ uint8_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
 
 void IRAM_ATTR Axes::step(uint8_t step_mask, uint8_t dir_mask) {
     auto n_axis = _numberAxis;
-    //grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "motors_set_direction_pins:0x%02X", onMask);
+    //info_serial("motors_set_direction_pins:0x%02X", onMask);
 
     // Set the direction pins, but optimize for the common
     // situation where the direction bits haven't changed.

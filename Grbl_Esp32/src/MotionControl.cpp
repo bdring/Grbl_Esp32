@@ -293,7 +293,7 @@ static bool axis_is_squared(AxisMask axis_mask) {
         if (mask_is_single_axis(axis_mask)) {
             return true;
         }
-        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Cannot multi-axis home with squared axes. Homing normally");
+        info_all("Cannot multi-axis home with squared axes. Homing normally");
     }
 
     return false;
@@ -412,7 +412,7 @@ void mc_homing_cycle(AxisMask axis_mask) {
 // NOTE: Upon probe failure, the program will be stopped and placed into ALARM state.
 GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t parser_flags) {
     if (!config->_probe->exists()) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Probe pin is not configured");
+        info_serial("Probe pin is not configured");
         return GCUpdatePos::None;
     }
     // TODO: Need to update this cycle so it obeys a non-auto cycle start.
@@ -449,7 +449,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         return GCUpdatePos::None;       // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Found");
+    info_serial("Found");
     cartesian_to_motors(target, pl_data, gc_state.position);
     // Activate the probing state monitor in the stepper module.
     sys_probe_state = ProbeState::Active;
@@ -536,7 +536,7 @@ void mc_override_ctrl_update(Override override_state) {
 // lost, since there was an abrupt uncontrolled deceleration. Called at an interrupt level by
 // realtime abort command and hard limits. So, keep to a minimum.
 void mc_reset() {
-    grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Debug, "mc_reset()");
+    debug_serial("mc_reset()");
     // Only this function can set the system reset. Helps prevent multiple kill calls.
     if (!rtReset) {
         rtReset = true;
