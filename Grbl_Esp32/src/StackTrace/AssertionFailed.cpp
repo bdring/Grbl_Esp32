@@ -35,16 +35,15 @@ AssertionFailed AssertionFailed::create(const char* condition, const char* msg, 
     va_list arg;
     va_start(arg, msg);
     size_t len = vsnprintf(tmp, 255, msg, arg);
-    tmp[254]   = 0;
-
-    msg = tmp;
+    va_end(arg);
+    tmp[254] = 0;
 
     st += tmp;
 
     st += " at: ";
     st += esp_backtrace_print(10);
 
-    return AssertionFailed(st);
+    return AssertionFailed(st, tmp);
 }
 
 #else

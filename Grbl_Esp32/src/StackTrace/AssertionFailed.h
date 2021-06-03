@@ -26,7 +26,7 @@ public:
     String stackTrace;
     String msg;
 
-    AssertionFailed(String st) : stackTrace(st) {}
+    AssertionFailed(String st, String message) : stackTrace(st), msg(message) {}
 
     static AssertionFailed create(const char* condition) { return create(condition, "Assertion failed"); }
     static AssertionFailed create(const char* condition, const char* msg, ...);
