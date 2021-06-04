@@ -211,10 +211,9 @@ namespace WebUI {
     void WiFiConfig::WiFiEvent(WiFiEvent_t event) {
         switch (event) {
             case SYSTEM_EVENT_STA_GOT_IP:
-                info_all("Connected with %s", WiFi.localIP().toString().c_str());
                 break;
             case SYSTEM_EVENT_STA_DISCONNECTED:
-                info_all("Disconnected");
+                info_all("WiFi Disconnected");
                 break;
             default:
                 break;
@@ -239,12 +238,11 @@ namespace WebUI {
      */
 
     bool WiFiConfig::ConnectSTA2AP() {
-        String      msg, msg_out;
-        uint8_t     count  = 0;
-        uint8_t     dot    = 0;
-        wl_status_t status = WiFi.status();
-        while (status != WL_CONNECTED && count < 40) {
-            switch (status) {
+        String  msg, msg_out;
+        uint8_t count;
+        uint8_t dot = 0;
+        for (count = 0; count < 10; ++count) {
+            switch (WiFi.status()) {
                 case WL_NO_SSID_AVAIL:
                     info_all("No SSID");
                     return false;
@@ -252,7 +250,8 @@ namespace WebUI {
                     info_all("Connection failed");
                     return false;
                 case WL_CONNECTED:
-                    break;
+                    info_all("Connected - IP is %s", WiFi.localIP().toString().c_str());
+                    return true;
                 default:
                     if ((dot > 3) || (dot == 0)) {
                         dot     = 0;
@@ -264,11 +263,9 @@ namespace WebUI {
                     break;
             }
             info_all(msg.c_str());
-            COMMANDS::wait(1000);
-            count++;
-            status = WiFi.status();
+            COMMANDS::wait(2000);
         }
-        return status == WL_CONNECTED;
+        return false;
     }
 
     /*
@@ -317,11 +314,7 @@ namespace WebUI {
         }
 
         if (WiFi.begin(SSID.c_str(), (password.length() > 0) ? password.c_str() : NULL)) {
-            bool connected = ConnectSTA2AP();
-            if (connected) {
-                info_all("STA IP %s", WiFi.localIP().toString().c_str());
-            }
-            return connected;
+            return ConnectSTA2AP();
         }
         info_serial("Cannot connect to %s", config->_comms->_staConfig->_ssid.c_str());
         return false;
