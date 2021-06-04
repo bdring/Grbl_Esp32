@@ -55,7 +55,7 @@ namespace Configuration {
             ParserHandler handler(p);
 
             test.handle(handler);
-            for (; !p.isEndSection(); p.moveNext()) {
+            for (; !p.isEndSection(); handler.moveNext()) {
                 test.handle(handler);
             }
         }

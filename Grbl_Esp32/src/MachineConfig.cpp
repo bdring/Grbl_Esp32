@@ -544,7 +544,7 @@ bool MachineConfig::load(const char* filename) {
         Configuration::Parser        parser(input->begin(), input->end());
         Configuration::ParserHandler handler(parser);
 
-        for (; !parser.isEndSection(); parser.moveNext()) {
+        for (; !parser.isEndSection(); handler.moveNext()) {
             log_info("Parsing key " << parser.key().str());
             config->handle(handler);
         }

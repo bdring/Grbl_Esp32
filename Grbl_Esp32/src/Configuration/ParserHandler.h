@@ -50,6 +50,7 @@ namespace Configuration {
                 _parser.enter();
                 for (; !_parser.isEndSection(); _parser.moveNext()) {
                     value->handle(*this);
+                    _previousIsLeave = false;
                 }
                 _parser.leave();
                 _previousIsLeave = true;
@@ -112,5 +113,10 @@ namespace Configuration {
         }
 
         HandlerType handlerType() override { return HandlerType::Parser; }
+
+        void moveNext() {
+            _previousIsLeave = false;
+            _parser.moveNext();
+        }
     };
 }
