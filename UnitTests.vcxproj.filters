@@ -93,6 +93,12 @@
     <ClInclude Include="X86TestSupport\IPAddress.h">
       <Filter>X86TestSupport</Filter>
     </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\SimpleOutputStream.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Logging.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Grbl_Esp32\test\TestFrameworkTest.cpp">
@@ -170,7 +176,18 @@
     <ClCompile Include="Grbl_Esp32\src\Configuration\Parser.cpp">
       <Filter>src\Configuration</Filter>
     </ClCompile>
-    <ClCompile Include="Grbl_Esp32\test\Configuration\YamlComplete.cpp" />
+    <ClCompile Include="Grbl_Esp32\test\Configuration\YamlComplete.cpp">
+      <Filter>test\Configuration</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\Configuration\YamlTreeBuilder.cpp">
+      <Filter>test\Configuration</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\SimpleOutputStream.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Logging.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Grbl_Esp32\test\UnitTests.md">

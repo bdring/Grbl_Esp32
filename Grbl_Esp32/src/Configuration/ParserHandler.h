@@ -28,66 +28,86 @@
 namespace Configuration {
     class ParserHandler : public Configuration::HandlerBase {
     private:
-        Configuration::Parser& parser_;
+        Configuration::Parser& _parser;
+        bool                   _previousIsLeave = false;
+
+        void checkPreviousLeave() {
+            // When a section does a 'leave', the token becomes invalid, and we need to do a
+            // moveNext. See the tests for the yaml parser for what the parser expects.
+            // So, let's introduce that here:
+            if (_previousIsLeave) {
+                _parser.moveNext();
+            }
+            _previousIsLeave = false;
+        }
 
     protected:
         void handleDetail(const char* name, Configuration::Configurable* value) override {
-            if (value != nullptr && parser_.is(name)) {
+            if (value != nullptr && _parser.is(name)) {
                 log_debug("Parsing configurable " << name);
+                checkPreviousLeave();
 
-                parser_.enter();
-                for (; !parser_.isEndSection(); parser_.moveNext()) {
+                _parser.enter();
+                for (; !_parser.isEndSection(); _parser.moveNext()) {
                     value->handle(*this);
                 }
-                parser_.leave();
+                _parser.leave();
+                _previousIsLeave = true;
             }
         }
 
-        bool matchesUninitialized(const char* name) override { return parser_.is(name); }
+        bool matchesUninitialized(const char* name) override { return _parser.is(name); }
 
     public:
-        ParserHandler(Configuration::Parser& parser) : parser_(parser) {}
+        ParserHandler(Configuration::Parser& parser) : _parser(parser) {}
 
         void handle(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) override {
-            if (parser_.is(name)) {
-                value = parser_.intValue();
+            if (_parser.is(name)) {
+                checkPreviousLeave();
+                value = _parser.intValue();
             }
         }
 
         void handle(const char* name, int& value, EnumItem* e) override {
-            if (parser_.is(name)) {
-                value = parser_.enumValue(e);
+            if (_parser.is(name)) {
+                checkPreviousLeave();
+                value = _parser.enumValue(e);
             }
         }
 
         void handle(const char* name, bool& value) override {
-            if (parser_.is(name)) {
-                value = parser_.boolValue();
+            if (_parser.is(name)) {
+                checkPreviousLeave();
+                value = _parser.boolValue();
             }
         }
 
         void handle(const char* name, float& value, float minValue, float maxValue) override {
-            if (parser_.is(name)) {
-                value = parser_.floatValue();
+            if (_parser.is(name)) {
+                checkPreviousLeave();
+                value = _parser.floatValue();
             }
         }
 
         void handle(const char* name, StringRange& value, int minLength, int maxLength) override {
-            if (parser_.is(name)) {
-                value = parser_.stringValue();
+            if (_parser.is(name)) {
+                checkPreviousLeave();
+                value = _parser.stringValue();
             }
         }
 
         void handle(const char* name, Pin& value) override {
-            if (parser_.is(name)) {
-                auto parsed = parser_.pinValue();
+            if (_parser.is(name)) {
+                checkPreviousLeave();
+                auto parsed = _parser.pinValue();
                 value.swap(parsed);
             }
         }
 
         void handle(const char* name, IPAddress& value) override {
-            if (parser_.is(name)) {
-                value = parser_.ipValue();
+            if (_parser.is(name)) {
+                checkPreviousLeave();
+                value = _parser.ipValue();
             }
         }
 

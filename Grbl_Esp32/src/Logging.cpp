@@ -23,7 +23,7 @@
 #    include <iostream>
 
 DebugStream::DebugStream(const char* name) {
-    std::cout << '[MSG:' << name << ": ";
+    std::cout << "[MSG:" << name << ": ";
 }
 void DebugStream::add(char c) {
     std::cout << c;

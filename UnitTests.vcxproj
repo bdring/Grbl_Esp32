@@ -44,6 +44,7 @@
     <ClInclude Include="Grbl_Esp32\src\Configuration\ParserHandler.h" />
     <ClInclude Include="Grbl_Esp32\src\Configuration\Tokenizer.h" />
     <ClInclude Include="Grbl_Esp32\src\Configuration\TokenKind.h" />
+    <ClInclude Include="Grbl_Esp32\src\Logging.h" />
     <ClInclude Include="Grbl_Esp32\src\Pin.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\ErrorPinDetail.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\GPIOPinDetail.h" />
@@ -53,6 +54,7 @@
     <ClInclude Include="Grbl_Esp32\src\Pins\PinDetail.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\PinOptionsParser.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\VoidPinDetail.h" />
+    <ClInclude Include="Grbl_Esp32\src\SimpleOutputStream.h" />
     <ClInclude Include="Grbl_Esp32\src\StackTrace\AssertionFailed.h" />
     <ClInclude Include="Grbl_Esp32\src\StackTrace\debug_helpers.h" />
     <ClInclude Include="Grbl_Esp32\test\TestFactory.h" />
@@ -65,6 +67,7 @@
   <ItemGroup>
     <ClCompile Include="Grbl_Esp32\src\Configuration\Parser.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Configuration\Tokenizer.cpp" />
+    <ClCompile Include="Grbl_Esp32\src\Logging.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pin.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\ErrorPinDetail.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\GPIOPinDetail.cpp" />
@@ -74,10 +77,12 @@
     <ClCompile Include="Grbl_Esp32\src\Pins\PinDetail.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\PinOptionsParser.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\VoidPinDetail.cpp" />
+    <ClCompile Include="Grbl_Esp32\src\SimpleOutputStream.cpp" />
     <ClCompile Include="Grbl_Esp32\src\StackTrace\AssertionFailed.cpp" />
     <ClCompile Include="Grbl_Esp32\src\StackTrace\debug_helpers.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Configuration\YamlComplete.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Configuration\YamlParser.cpp" />
+    <ClCompile Include="Grbl_Esp32\test\Configuration\YamlTreeBuilder.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\BasicGPIO.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\Error.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\GPIO.cpp" />
