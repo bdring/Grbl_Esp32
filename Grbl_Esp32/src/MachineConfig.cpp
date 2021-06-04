@@ -129,13 +129,17 @@ void Axes::init() {
     // certain motors need features to be turned on. Check them here
     for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
         for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-            auto& a = _axis[axis]->_gangs[gang_index]->_motor;
-
-            if (a == nullptr) {
-                a = new Motors::Nullmotor();
+            auto a = _axis[axis];
+            if (a) {
+                auto g = a->_gangs[gang_index];
+                if (g) {
+                    auto m = g->_motor;
+                    if (m == nullptr) {
+                        m = new Motors::Nullmotor();
+                    }
+                    m->init();
+                }
             }
-
-            a->init();
         }
     }
 }
@@ -168,8 +172,21 @@ void Axes::read_settings() {
     //info_serial("Read Settings");
     for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
         for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-            auto a = _axis[axis]->_gangs[gang_index]->_motor;
-            a->read_settings();
+            auto a = _axis[axis];
+            if (!a) {
+                log_info("No specification for axis " << axis);
+                break;
+            }
+            auto g = a->_gangs[gang_index];
+            if (!g) {
+                log_info("No specification for axis " << axis << " gang " << gang_index);
+                break;
+            }
+            auto m = g->_motor;
+            if (!m) {
+                log_info("No motor for axis " << axis << " gang " << gang_index);
+            }
+            m->read_settings();
         }
     }
 }
