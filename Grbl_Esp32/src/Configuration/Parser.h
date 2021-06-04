@@ -64,8 +64,9 @@ namespace Configuration {
         StringRange stringValue() const;
         bool        boolValue() const;
         int         intValue() const;
-        double      doubleValue() const;
+        float       floatValue() const;
         Pin         pinValue() const;
         int         enumValue(EnumItem* e) const;
+        IPAddress   ipValue() const;
     };
 }

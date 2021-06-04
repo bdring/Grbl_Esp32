@@ -297,26 +297,23 @@ namespace WebUI {
         //Get parameters for STA
         WiFi.setHostname(comms->_hostname.c_str());
 
-        //SSID
         String& SSID = sta->_ssid;
         if (SSID.length() == 0) {
             SSID = DEFAULT_STA_SSID;
         }
-        //password
         String password = wifi_sta_password->get();
         int8_t IP_mode  = sta->_dhcp ? DHCP_MODE : STATIC_MODE;
 
-        //if not DHCP
-        if (IP_mode != DHCP_MODE) {
-            IPAddress ip(sta->_ipAddress), mask(sta->_netmask), gateway(sta->_gateway);
-            WiFi.config(ip, gateway, mask);
-            info_all("STA SSID %s IP %s, mask %s gateway %s",
-                     SSID.c_str(),
-                     ip.toString().c_str(),
-                     mask.toString().c_str(),
-                     gateway.toString().c_str());
-        } else {
+        if (IP_mode == DHCP_MODE) {
             info_all("STA SSID %s DHCP", SSID.c_str());
+        } else {
+            // Static IP configuration
+            WiFi.config(sta->_ipAddress, sta->_netmask, sta->_gateway);
+            info_all("STA SSID %s static IP %s netmask %s gateway %s",
+                     SSID.c_str(),
+                     sta->_ipAddress.toString().c_str(),
+                     sta->_netmask.toString().c_str(),
+                     sta->_gateway.toString().c_str());
         }
 
         if (WiFi.begin(SSID.c_str(), (password.length() > 0) ? password.c_str() : NULL)) {

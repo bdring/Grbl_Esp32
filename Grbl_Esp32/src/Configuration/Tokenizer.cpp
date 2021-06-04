@@ -70,11 +70,14 @@ namespace Configuration {
                     return;
 
                 case '\r':
-                case '\n':
                     Inc();
                     if (!Eof() && Current() == '\n') {
                         Inc();
                     }  // \r\n
+                    goto parseAgain;
+                case '\n':
+                    // \n without a preceding \r
+                    Inc();
                     goto parseAgain;
 
                 default:
@@ -107,87 +110,39 @@ namespace Configuration {
                     token_.indent_ = indent;
                     if (IsEndLine()) {
                         token_.kind_ = TokenKind::Section;
+                        log_debug("Section " << StringRange(token_.keyStart_, token_.keyEnd_).str());
 
                         Inc();
-                        if (!Eof() && Current() == '\n') {
-                            Inc();
-                        }  // \r\n
+                        //                        if (!Eof() && Current() == '\n') {
+                        //                            Inc();
+                        //                        }  // \r\n
                     } else {
-                        switch (Current()) {
-                            case '"':
-                            case '\'': {
-                                auto delimiter = Current();
+                        if (Current() == '"' || Current() == '\'') {
+                            auto delimiter = Current();
 
-                                token_.kind_ = TokenKind::String;
+                            token_.kind_ = TokenKind::String;
+                            Inc();
+                            token_.sValueStart_ = current_;
+                            while (!Eof() && Current() != delimiter && !IsEndLine()) {
                                 Inc();
-                                token_.sValueStart_ = current_;
-                                while (!Eof() && Current() != delimiter && !IsEndLine()) {
-                                    Inc();
-                                }
-                                token_.sValueEnd_ = current_;
-                                if (Current() != delimiter) {
-                                    ParseError("Could not find matching delimiter in string value.");
-                                }
+                            }
+                            token_.sValueEnd_ = current_;
+                            if (Current() != delimiter) {
+                                ParseError("Could not find matching delimiter in string value.");
+                            }
+                            Inc();
+                            log_debug("StringQ " << StringRange(token_.keyStart_, token_.keyEnd_).str() << " "
+                                                 << StringRange(token_.sValueStart_, token_.sValueEnd_).str());
+                        } else {
+                            token_.kind_        = TokenKind::String;
+                            token_.sValueStart_ = current_;
+                            while (!Eof() && !IsWhiteSpace() && !IsEndLine()) {
                                 Inc();
-                            } break;
-
-                            default:
-                                if (EqualsCaseInsensitive("true")) {
-                                    token_.kind_   = TokenKind::Boolean;
-                                    token_.bValue_ = true;
-
-                                    for (auto i = 0; i < 4; ++i) {
-                                        Inc();
-                                    }
-                                } else if (EqualsCaseInsensitive("false")) {
-                                    token_.kind_   = TokenKind::Boolean;
-                                    token_.bValue_ = false;
-
-                                    for (auto i = 0; i < 5; ++i) {
-                                        Inc();
-                                    }
-                                } else if (IsDigit() || Current() == '-') {
-                                    auto doubleOrIntStart = current_;
-
-                                    int  intValue = 0;
-                                    bool negative = false;
-
-                                    if (Current() == '-') {
-                                        Inc();
-                                        negative = true;
-                                    }
-
-                                    while (IsDigit()) {
-                                        intValue = intValue * 10 + int(Current() - '0');
-                                        Inc();
-                                    }
-
-                                    if (Current() == 'e' || Current() == 'E' || Current() == '.' ||  // markers
-                                        (current_ - doubleOrIntStart) >= 9) {  // liberal interpretation of 'out of int range'
-                                        char* floatEnd;
-                                        token_.fValue_ = strtod(doubleOrIntStart, &floatEnd);
-                                        token_.kind_   = TokenKind::FloatingPoint;
-
-                                        current_ = floatEnd;
-                                    } else {
-                                        if (negative) {
-                                            intValue = -intValue;
-                                        }
-                                        token_.iValue_ = intValue;
-                                        token_.kind_   = TokenKind::IntegerValue;
-                                    }
-                                } else {
-                                    // If it's not 'true', not 'false', and not a digit, we have a string delimited by a whitespace
-                                    token_.kind_        = TokenKind::String;
-                                    token_.sValueStart_ = current_;
-                                    while (!Eof() && !IsWhiteSpace() && !IsEndLine()) {
-                                        Inc();
-                                    }
-                                    token_.sValueEnd_ = current_;
-                                }
-                                break;
+                            }
+                            token_.sValueEnd_ = current_;
+                            log_debug("String " << StringRange(token_.keyStart_, token_.keyEnd_).str() << " "
+                                                << StringRange(token_.sValueStart_, token_.sValueEnd_).str());
                         }
-
                         // Skip more whitespaces
                         while (!Eof() && IsWhiteSpace()) {
                             Inc();
@@ -206,8 +161,9 @@ namespace Configuration {
                             ParseError("Expected line end after key/value pair.");
                         }
                     }
-            }
-        } else {
+                    break;
+            }     // switch
+        } else {  // Eof()
             token_.kind_   = TokenKind::Eof;
             token_.indent_ = 0;
         }

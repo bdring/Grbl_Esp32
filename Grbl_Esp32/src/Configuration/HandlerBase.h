@@ -54,23 +54,18 @@ namespace Configuration {
             value = uint8_t(v);
         }
 
-        virtual void handle(const char* name, double& value, double minValue = -1e300, double maxValue = 1e300) = 0;
-
-        void handle(const char* name, float& value, float minValue = -1e30f, float maxValue = 1e30f) {
-            double d = double(value);
-            handle(name, d, double(minValue), double(maxValue));
-            value = float(d);
-        }
+        virtual void handle(const char* name, float& value, float minValue = -3e38, float maxValue = 3e38) = 0;
 
         virtual void handle(const char* name, StringRange& value, int minLength = 0, int maxLength = 255) = 0;
         virtual void handle(const char* name, Pin& value)                                                 = 0;
+        virtual void handle(const char* name, IPAddress& value)                                           = 0;
 
         virtual void handle(const char* name, int& value, EnumItem* e) = 0;
 
         virtual void handle(const char* name, String& value) {
             StringRange range(value);
             StringRange copy(value);
-            
+
             handle(name, range);
 
             // Check for changes, and update if the string is changed.

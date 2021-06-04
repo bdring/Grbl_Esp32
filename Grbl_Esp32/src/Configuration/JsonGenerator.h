@@ -34,9 +34,9 @@ namespace Configuration {
         JsonGenerator(const JsonGenerator&) = delete;
         JsonGenerator& operator=(const JsonGenerator&) = delete;
 
-        char  _currentPath[256];  // 256 = max size of configuration string.
-        char* _paths[16];         // 16 = max depth. Points to the _end_ of a string in currentPath
-        int   _depth;             // current depth. Used along with _paths
+        char                _currentPath[256];  // 256 = max size of configuration string.
+        char*               _paths[16];         // 16 = max depth. Points to the _end_ of a string in currentPath
+        int                 _depth;             // current depth. Used along with _paths
         WebUI::JSONencoder& _encoder;
 
         void enter(const char* name);
@@ -53,9 +53,10 @@ namespace Configuration {
 
         void handle(const char* name, bool& value) override;
         void handle(const char* name, int& value, int32_t minValue, int32_t maxValue) override;
-        void handle(const char* name, double& value, double minValue, double maxValue) override;
+        void handle(const char* name, float& value, float minValue, float maxValue) override;
         void handle(const char* name, StringRange& value, int minLength, int maxLength) override;
         void handle(const char* name, Pin& value) override;
+        void handle(const char* name, IPAddress& value) override;
         void handle(const char* name, int& value, EnumItem* e) override;
     };
 }

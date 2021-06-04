@@ -88,7 +88,7 @@ namespace Configuration {
         leave();
     }
 
-    void JsonGenerator::handle(const char* name, double& value, double minValue, double maxValue) {
+    void JsonGenerator::handle(const char* name, float& value, float minValue, float maxValue) {
         int n = int(value * 1000);
         handle(name, n, int(minValue * 1000), int(maxValue * 1000));
     }
@@ -102,7 +102,7 @@ namespace Configuration {
     }
 
     void JsonGenerator::handle(const char* name, Pin& value) {
-        // We commented this out, because pins are very confusing for users. The code is correct, 
+        // We commented this out, because pins are very confusing for users. The code is correct,
         // but it really gives more support than it's worth.
         /*
         enter(name);
@@ -111,6 +111,15 @@ namespace Configuration {
         _encoder.end_object();
         leave();
         */
+    }
+
+    void JsonGenerator::handle(const char* name, IPAddress& value) {
+        enter(name);
+#ifdef LATER
+// Encode IP address
+#endif
+        _encoder.end_object();
+        leave();
     }
 
     void JsonGenerator::handle(const char* name, int& value, EnumItem* e) {

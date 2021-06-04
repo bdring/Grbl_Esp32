@@ -95,4 +95,16 @@ public:
             return tmp;
         }
     }
+
+    inline bool isInteger(int32_t& intval) {
+        char* intEnd;
+        intval = strtol(start_, &intEnd, 10);
+        return intEnd == end_;
+    }
+
+    inline bool isFloat(float& floatval) {
+        char* floatEnd;
+        floatval = strtod(start_, &floatEnd);
+        return floatEnd == end_;
+    }
 };

@@ -125,7 +125,7 @@ namespace Motors {
 
         // Configuration handlers:
         void validate() const override {
-            Assert(!_cs_pin.undefined(), "spi_cs pin should be configured.");
+            Assert(!_cs_pin.undefined(), "TMC spi_cs pin should be configured.");
             StandardStepper::validate();
         }
 

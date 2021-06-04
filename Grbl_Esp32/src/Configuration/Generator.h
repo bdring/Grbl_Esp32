@@ -60,7 +60,7 @@ namespace Configuration {
             dst_ << name << ": " << value << '\n';
         }
 
-        void handle(const char* name, double& value, double minValue, double maxValue) override {
+        void handle(const char* name, float& value, float minValue, float maxValue) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }
@@ -71,6 +71,10 @@ namespace Configuration {
         }
 
         void handle(const char* name, Pin& value) override {
+            indent();
+            dst_ << name << ": " << value << '\n';
+        }
+        void handle(const char* name, IPAddress& value) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }

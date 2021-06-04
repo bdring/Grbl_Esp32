@@ -74,7 +74,7 @@ The currently supported types are:
 
 - bool
 - int
-- double
+- float
 - Pin
 - String
 

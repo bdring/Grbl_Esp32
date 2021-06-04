@@ -30,6 +30,7 @@
 #include "Spindles/Spindle.h"
 #include "EnumItem.h"
 #include "Stepper.h"
+#include "Logging.h"
 
 // TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
 
@@ -221,74 +222,28 @@ public:
 
 class WifiConfig : public Configuration::Configurable {
 public:
-    WifiConfig() = default;
+    IPAddress _ipAddress;
+    IPAddress _gateway;
+    IPAddress _netmask;
+
+    WifiConfig() : _ipAddress(10, 0, 0, 1), _gateway(10, 0, 0, 1), _netmask(255, 255, 0, 0) {}
 
     String _ssid = "GRBL_ESP";
 
     // Passwords don't belong in a YAML!
     // String _password = "12345678";
 
-    uint32_t _ipAddress = 0x0100000a;  //  10.  0.  0.  1
-    uint32_t _gateway   = 0x0100000a;  //  10.  0.  0.  1
-    uint32_t _netmask   = 0x00ffffff;  // 255.255.255.  0
-
     bool _dhcp = true;
 
     void validate() const override {}
-
-    bool tryParseIP(StringRange ip, uint32_t& dst) {
-        if (ip.begin() != nullptr) {
-            uint32_t value = 0;
-            uint32_t tmp   = 0;
-            int      shift = 0;
-            int      c     = 0;
-            for (auto ch : ip) {
-                if (ch >= '0' && ch <= '9') {
-                    tmp = tmp * 10 + ch - '0';
-                } else if (ch == '.') {
-                    ++c;
-                    if (c >= 4) {
-                        return false;
-                    }
-                    if (tmp > 255) {
-                        return false;
-                    }
-                    value = value | (tmp << shift);
-                    shift += 8;
-                    tmp   = 0;
-                } else if (ch != ' ') {
-                    // For convenience / layouting.
-                    return false;
-                }
-            }
-            if (tmp > 255) {
-                return false;
-            }
-            value = value | (tmp << shift);
-
-            // Correct.
-            dst = value;
-
-            return true;
-        }
-        return false;
-    }
 
     void handle(Configuration::HandlerBase& handler) override {
         handler.handle("ssid", _ssid);
         // handler.handle("password", _password);
 
-        StringRange ip;
-        handler.handle("ip_address", ip);
-        tryParseIP(ip, _ipAddress);
-
-        StringRange gateway;
-        handler.handle("gateway", gateway);
-        tryParseIP(gateway, _gateway);
-
-        StringRange netmask;
-        handler.handle("netmask", netmask);
-        tryParseIP(netmask, _netmask);
+        handler.handle("ip_address", _ipAddress);
+        handler.handle("gateway", _gateway);
+        handler.handle("netmask", _netmask);
 
         handler.handle("dhcp", _dhcp);
     }

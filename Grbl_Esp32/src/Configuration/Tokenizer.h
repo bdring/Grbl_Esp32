@@ -59,6 +59,7 @@ namespace Configuration {
             const char* tmp = current_;
             while (ToLower(*input) == ToLower(Current()) && *input != '\0') {
                 Inc();
+                ++input;
             }
 
             bool isSame = *input == '\0';  // Everything till the end of the input string is the same
@@ -84,9 +85,6 @@ namespace Configuration {
                     const char* sValueStart_;
                     const char* sValueEnd_;
                 };
-                int    iValue_;
-                double fValue_;
-                bool   bValue_;
             };
         } token_;
 

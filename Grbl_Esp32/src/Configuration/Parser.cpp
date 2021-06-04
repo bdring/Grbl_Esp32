@@ -117,46 +117,46 @@ namespace Configuration {
         }
     }
 
-    StringRange Parser::stringValue() const {
-        if (current_.kind_ != TokenKind::String) {
-            parseError("Expected a string value (e.g. 'foo')");
-        }
-        return StringRange(current_.sValueStart_, current_.sValueEnd_);
-    }
+    StringRange Parser::stringValue() const { return StringRange(current_.sValueStart_, current_.sValueEnd_); }
 
     bool Parser::boolValue() const {
-        if (current_.kind_ != TokenKind::Boolean) {
-            parseError("Expected a boolean value (e.g. true or value)");
-        }
-        return current_.bValue_;
+        auto str = StringRange(current_.sValueStart_, current_.sValueEnd_);
+        return str.equals("true");
     }
 
     int Parser::intValue() const {
-        if (current_.kind_ != TokenKind::IntegerValue) {
-            parseError("Expected an integer value (e.g. 123456)");
+        auto    str = StringRange(current_.sValueStart_, current_.sValueEnd_);
+        int32_t value;
+        if (!str.isInteger(value)) {
+            parseError("Expected an integer value like 123");
         }
-        return current_.iValue_;
+        return value;
     }
 
-    double Parser::doubleValue() const {
-        if (current_.kind_ != TokenKind::FloatingPoint) {
-            parseError("Expected a float value (e.g. 123.456)");
+    float Parser::floatValue() const {
+        auto  str = StringRange(current_.sValueStart_, current_.sValueEnd_);
+        float value;
+        if (!str.isFloat(value)) {
+            parseError("Expected a float value like 123.456");
         }
-        return current_.fValue_;
+        return value;
     }
 
     Pin Parser::pinValue() const {
-        if (current_.kind_ != TokenKind::String) {
-            parseError("Expected a string value (e.g. 'foo')");
-        }
+        auto str = StringRange(current_.sValueStart_, current_.sValueEnd_);
+        return Pin::create(str);
+    }
 
-        return Pin::create(StringRange(current_.sValueStart_, current_.sValueEnd_));
+    IPAddress Parser::ipValue() const {
+        IPAddress ip;
+        auto      str = StringRange(current_.sValueStart_, current_.sValueEnd_);
+        if (!ip.fromString(str.str())) {
+            parseError("Expected an IP address like 192.168.0.100");
+        }
+        return ip;
     }
 
     int Parser::enumValue(EnumItem* e) const {
-        if (current_.kind_ != TokenKind::String) {
-            parseError("Expected a string value (e.g. 'foo')");
-        }
         auto str = StringRange(current_.sValueStart_, current_.sValueEnd_);
         for (; e->name; ++e) {
             if (str.equals(e->name)) {

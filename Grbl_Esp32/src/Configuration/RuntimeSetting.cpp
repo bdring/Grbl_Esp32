@@ -55,10 +55,10 @@ namespace Configuration {
         }
     }
 
-    void RuntimeSetting::handle(const char* name, double& value, double minValue, double maxValue) {
+    void RuntimeSetting::handle(const char* name, float& value, float minValue, float maxValue) {
         if (is(name) && this->value() != nullptr) {
             char* floatEnd;
-            value = strtod(this->value(), &floatEnd);
+            value = strtof(this->value(), &floatEnd);
         }
     }
 

@@ -62,21 +62,15 @@ namespace Configuration {
 
         void handle(const char* name, bool& value) override {
             if (parser_.is(name)) {
-                value = parser_.stringValue().equals("true") || parser_.stringValue().equals("yes");
+                value = parser_.boolValue();
             }
         }
 
-        void handle(const char* name, double& value, double minValue, double maxValue) override {
+        void handle(const char* name, float& value, float minValue, float maxValue) override {
             if (parser_.is(name)) {
-                value = parser_.doubleValue();
+                value = parser_.floatValue();
             }
         }
-
-        // void handle(const char* name, float& value, float minValue, float maxValue) override {
-        //     if (parser_.is(name)) {
-        //         value = static_cast<float>(parser_.doubleValue());
-        //     }
-        // }
 
         void handle(const char* name, StringRange& value, int minLength, int maxLength) override {
             if (parser_.is(name)) {
@@ -88,6 +82,12 @@ namespace Configuration {
             if (parser_.is(name)) {
                 auto parsed = parser_.pinValue();
                 value.swap(parsed);
+            }
+        }
+
+        void handle(const char* name, IPAddress& value) override {
+            if (parser_.is(name)) {
+                value = parser_.ipValue();
             }
         }
 
