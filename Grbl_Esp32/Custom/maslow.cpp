@@ -164,9 +164,6 @@ void runCalibration(){
     float lengths1[4];
     takeMeasurement(lengths1);
     
-    Serial.println("After first measurement");
-    
-    
     grbl_sendf(CLIENT_ALL, "First measurement:\n%f \n%f \n%f \n%f \n",lengths1[0], lengths1[1], lengths1[2], lengths1[3]);
     
     moveUp(150);
@@ -194,8 +191,6 @@ void takeMeasurement(float lengths[]){
     
     axis1.setTarget(axis1.getPosition());
     axis2.setTarget(axis2.getPosition());
-    axis3.setTarget(axis3.getPosition());
-    axis4.setTarget(axis4.getPosition());
     
     bool axis1Done = false;
     bool axis2Done = false;
@@ -227,7 +222,7 @@ void takeMeasurement(float lengths[]){
         unsigned long elapsedTime = millis()-time;
         while(elapsedTime < 50){
             elapsedTime = millis()-time;
-            recomputePID();
+            recomputePID();  //This recomputes the PID four all four servos
         }
     }
     
@@ -355,12 +350,6 @@ bool user_defined_homing(uint8_t cycle_mask)
     axis1.testEncoder();
     axis1Homed = axis1.retract(computeL4(0, 0) + 200);
   }
-  
-  Serial.println("Homed?: ");
-  Serial.println(axis1Homed);
-  Serial.println(axis2Homed);
-  Serial.println(axis3Homed);
-  Serial.println(axis4Homed);
   
   return true;
 }
