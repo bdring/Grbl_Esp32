@@ -170,6 +170,7 @@
     <ClCompile Include="Grbl_Esp32\src\Configuration\Parser.cpp">
       <Filter>src\Configuration</Filter>
     </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\Configuration\YamlComplete.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Grbl_Esp32\test\UnitTests.md">

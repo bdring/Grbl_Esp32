@@ -76,6 +76,7 @@
     <ClCompile Include="Grbl_Esp32\src\Pins\VoidPinDetail.cpp" />
     <ClCompile Include="Grbl_Esp32\src\StackTrace\AssertionFailed.cpp" />
     <ClCompile Include="Grbl_Esp32\src\StackTrace\debug_helpers.cpp" />
+    <ClCompile Include="Grbl_Esp32\test\Configuration\YamlComplete.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Configuration\YamlParser.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\BasicGPIO.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\Error.cpp" />
