@@ -447,6 +447,12 @@ void MachineConfig::afterParse() {
         _comms            = new Communications();
         _comms->_apConfig = new WifiAPConfig();
     }
+    // This is very helpful for testing YAML config files.  If things
+    // screw up, you can still connect and upload a new config.yaml
+    // TODO - Consider whether we want this for the long term
+    if (!_comms->_apConfig) {
+        _comms->_apConfig = new WifiAPConfig();
+    }
 }
 
 size_t MachineConfig::readFile(const char* filename, char*& buffer) {
