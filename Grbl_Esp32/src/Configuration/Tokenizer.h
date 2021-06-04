@@ -80,11 +80,9 @@ namespace Configuration {
             int         indent_;
 
             TokenKind kind_;
-            union {
-                struct {
-                    const char* sValueStart_;
-                    const char* sValueEnd_;
-                };
+            struct {
+                const char* sValueStart_;
+                const char* sValueEnd_;
             };
         } token_;
 

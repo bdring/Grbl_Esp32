@@ -33,12 +33,17 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <None Include="Grbl_Esp32\src\Configuration\Parser.md" />
     <None Include="Grbl_Esp32\src\StackTrace\debug_helpers_asm.S" />
     <None Include="Grbl_Esp32\test\UnitTests.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Grbl_Esp32\src\Assert.h" />
+    <ClInclude Include="Grbl_Esp32\src\Configuration\Parser.h" />
+    <ClInclude Include="Grbl_Esp32\src\Configuration\ParserHandler.h" />
+    <ClInclude Include="Grbl_Esp32\src\Configuration\Tokenizer.h" />
+    <ClInclude Include="Grbl_Esp32\src\Configuration\TokenKind.h" />
     <ClInclude Include="Grbl_Esp32\src\Pin.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\ErrorPinDetail.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\GPIOPinDetail.h" />
@@ -53,10 +58,13 @@
     <ClInclude Include="Grbl_Esp32\test\TestFactory.h" />
     <ClInclude Include="Grbl_Esp32\test\TestFramework.h" />
     <ClInclude Include="X86TestSupport\Arduino.h" />
+    <ClInclude Include="X86TestSupport\IPAddress.h" />
     <ClInclude Include="X86TestSupport\SoftwareGPIO.h" />
     <ClInclude Include="X86TestSupport\WString.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Grbl_Esp32\src\Configuration\Parser.cpp" />
+    <ClCompile Include="Grbl_Esp32\src\Configuration\Tokenizer.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pin.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\ErrorPinDetail.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\GPIOPinDetail.cpp" />
@@ -68,6 +76,7 @@
     <ClCompile Include="Grbl_Esp32\src\Pins\VoidPinDetail.cpp" />
     <ClCompile Include="Grbl_Esp32\src\StackTrace\AssertionFailed.cpp" />
     <ClCompile Include="Grbl_Esp32\src\StackTrace\debug_helpers.cpp" />
+    <ClCompile Include="Grbl_Esp32\test\Configuration\YamlParser.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\BasicGPIO.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\Error.cpp" />
     <ClCompile Include="Grbl_Esp32\test\Pins\GPIO.cpp" />

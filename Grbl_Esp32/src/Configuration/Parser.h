@@ -25,6 +25,7 @@
 
 #include <stack>
 #include <cstring>
+#include <IPAddress.h>
 
 namespace Configuration {
     class Parser : public Tokenizer {

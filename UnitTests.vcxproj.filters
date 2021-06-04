@@ -19,6 +19,12 @@
     <Filter Include="X86TestSupport">
       <UniqueIdentifier>{a166a529-634f-48dc-b368-6c03f6f0a36f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="test\Configuration">
+      <UniqueIdentifier>{6ae3ae24-fdcd-49f4-9797-a0b0f973c2dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Configuration">
+      <UniqueIdentifier>{2b406c50-ba04-4c6d-a21e-0daedeeda9d9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Grbl_Esp32\test\TestFramework.h">
@@ -71,6 +77,21 @@
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Pins\I2SOPinDetail.h">
       <Filter>src\Pins</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Configuration\Parser.h">
+      <Filter>src\Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Configuration\ParserHandler.h">
+      <Filter>src\Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Configuration\Tokenizer.h">
+      <Filter>src\Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Configuration\TokenKind.h">
+      <Filter>src\Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\IPAddress.h">
+      <Filter>X86TestSupport</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -140,6 +161,15 @@
     <ClCompile Include="Grbl_Esp32\src\Pins\I2SOPinDetail.cpp">
       <Filter>src\Pins</Filter>
     </ClCompile>
+    <ClCompile Include="Grbl_Esp32\test\Configuration\YamlParser.cpp">
+      <Filter>test\Configuration</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Configuration\Tokenizer.cpp">
+      <Filter>src\Configuration</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Configuration\Parser.cpp">
+      <Filter>src\Configuration</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Grbl_Esp32\test\UnitTests.md">
@@ -149,5 +179,8 @@
       <Filter>src\StackTrace</Filter>
     </None>
     <None Include="packages.config" />
+    <None Include="Grbl_Esp32\src\Configuration\Parser.md">
+      <Filter>src\Configuration</Filter>
+    </None>
   </ItemGroup>
 </Project>

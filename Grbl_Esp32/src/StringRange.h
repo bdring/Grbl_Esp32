@@ -20,11 +20,7 @@
 
 #include <cstring>
 
-#ifndef ESP32
-#    include <string>
-#else
-#    include "WString.h"
-#endif
+#include "WString.h"
 
 class StringRange {
     const char* start_;
@@ -104,7 +100,7 @@ public:
 
     inline bool isFloat(float& floatval) {
         char* floatEnd;
-        floatval = strtod(start_, &floatEnd);
+        floatval = float(strtod(start_, &floatEnd));
         return floatEnd == end_;
     }
 };
