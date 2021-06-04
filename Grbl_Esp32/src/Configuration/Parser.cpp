@@ -110,7 +110,6 @@ namespace Configuration {
         if (last == token_.indent_) {
             // Yes, the token continues where we left off:
             current_ = token_;
-            Tokenize();
         } else {
             current_         = TokenData();
             current_.indent_ = last;
