@@ -110,12 +110,11 @@ namespace Configuration {
                     token_.indent_ = indent;
                     if (IsEndLine()) {
                         token_.kind_ = TokenKind::Section;
+#ifdef VERBOSE_TOKENIZER
                         log_debug("Section " << StringRange(token_.keyStart_, token_.keyEnd_).str());
+#endif
 
                         Inc();
-                        //                        if (!Eof() && Current() == '\n') {
-                        //                            Inc();
-                        //                        }  // \r\n
                     } else {
                         if (Current() == '"' || Current() == '\'') {
                             auto delimiter = Current();
@@ -131,8 +130,10 @@ namespace Configuration {
                                 ParseError("Could not find matching delimiter in string value.");
                             }
                             Inc();
+#ifdef VERBOSE_TOKENIZER
                             log_debug("StringQ " << StringRange(token_.keyStart_, token_.keyEnd_).str() << " "
                                                  << StringRange(token_.sValueStart_, token_.sValueEnd_).str());
+#endif
                         } else {
                             token_.kind_        = TokenKind::String;
                             token_.sValueStart_ = current_;
@@ -140,8 +141,10 @@ namespace Configuration {
                                 Inc();
                             }
                             token_.sValueEnd_ = current_;
+#ifdef VERBOSE_TOKENIZER
                             log_debug("String " << StringRange(token_.keyStart_, token_.keyEnd_).str() << " "
                                                 << StringRange(token_.sValueStart_, token_.sValueEnd_).str());
+#endif
                         }
                         // Skip more whitespaces
                         while (!Eof() && IsWhiteSpace()) {
