@@ -120,27 +120,31 @@ void recomputePID(){
     }
 }
 
+//Upper left belt
 float computeL1(float x, float y){
     x = x + maslowWidth/2.0;
-    y = y + maslowHeight/2.0;
+    y = (maslowHeight/2.0) - y;
     return sqrt(x*x+y*y) - (beltEndExtension+armLength);
 }
 
+//Upper right belt
 float computeL2(float x, float y){
     x = x + maslowWidth/2.0;
-    y = y + maslowHeight/2.0;
+    y = maslowHeight/2.0 - y;
     return sqrt((maslowWidth-x)*(maslowWidth-x)+y*y) - (beltEndExtension+armLength);
 }
 
+//Lower right belt
 float computeL3(float x, float y){
     x = x + maslowWidth/2.0;
-    y = y + maslowHeight/2.0;
+    y = maslowHeight/2.0 - y;
     return sqrt((maslowWidth-x)*(maslowWidth-x)+(maslowHeight-y)*(maslowHeight-y)) - (beltEndExtension+armLength);
 }
 
+//Lower left belt
 float computeL4(float x, float y){
     x = x + maslowWidth/2.0;
-    y = y + maslowHeight/2.0;
+    y = maslowHeight/2.0 - y;
     return sqrt((maslowHeight-y)*(maslowHeight-y)+x*x) - (beltEndExtension+armLength);
 }
 
@@ -161,12 +165,20 @@ void runCalibration(){
     grbl_sendf(CLIENT_ALL, "Begining calibration\n");
     
     calibrationInProgress = true;
+    
+    //This is a bit of a hack, but it undoes any calls by the system to move these to (0,0)
+    axis1.setTarget(computeL4(0, -200));
+    axis2.setTarget(computeL3(0, -200));
+    axis3.setTarget(computeL2(0, -400));
+    axis4.setTarget(computeL1(0, -400));
+    
+    
     float lengths1[4];
     takeMeasurement(lengths1);
     
     grbl_sendf(CLIENT_ALL, "First measurement:\n%f \n%f \n%f \n%f \n",lengths1[0], lengths1[1], lengths1[2], lengths1[3]);
     
-    moveUp(150);
+    moveUp(computeL1(0, 400));
     
     float lengths2[4];
     takeMeasurement(lengths2);
@@ -188,9 +200,6 @@ void runCalibration(){
 
 //Retract the lower belts until they pull tight and take a measurement
 void takeMeasurement(float lengths[]){
-    
-    axis1.setTarget(axis1.getPosition());
-    axis2.setTarget(axis2.getPosition());
     
     bool axis1Done = false;
     bool axis2Done = false;
@@ -245,7 +254,10 @@ void takeMeasurement(float lengths[]){
 }
 
 //Reposition the sled higher without knowing the machine dimensions
-void moveUp(float distToRetract){
+void moveUp(float targetLength){
+    
+    //The distance we need to move is the current position minus the target position
+    double distToRetract = axis3.getPosition() - targetLength;
     
     //Make the lower arms compliant and move retract the other two until we get to the target distance
     
@@ -331,11 +343,12 @@ bool user_defined_homing(uint8_t cycle_mask)
   
   if(cycle_mask == 1){  //Upper left
     axis4.testEncoder();
-    axis4Homed = axis4.retract(computeL1(0, 0));
+    axis4Homed = axis4.retract(computeL1(0, -400));
   }
   else if(cycle_mask == 2){  //Upper right
     axis3.testEncoder();
-    axis3Homed = axis3.retract(computeL2(0, 0));
+    axis3Homed = axis3.retract(computeL2(0, -400));
+    grbl_sendf(CLIENT_ALL, "Extending to: %f", computeL2(0, 0));
   }
   else if(cycle_mask == 4){ //Lower right
     axis2.testEncoder();
@@ -343,12 +356,13 @@ bool user_defined_homing(uint8_t cycle_mask)
         runCalibration();
     }
       else{
-        axis2Homed = axis2.retract(computeL3(0, 0)+200);
+        axis2Homed = axis2.retract(computeL3(0, -200));
     }
+    grbl_sendf(CLIENT_ALL, "Extending to: %f", computeL2(0, 0));
   }
   else if(cycle_mask == 0){  //Lower left
     axis1.testEncoder();
-    axis1Homed = axis1.retract(computeL4(0, 0) + 200);
+    axis1Homed = axis1.retract(computeL4(0, -200));
   }
   
   return true;
