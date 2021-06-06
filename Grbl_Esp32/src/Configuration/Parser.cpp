@@ -163,6 +163,6 @@ namespace Configuration {
                 break;
             }
         }
-        return e->value;
+        return e->value; // Terminal value is default.
     }
 }

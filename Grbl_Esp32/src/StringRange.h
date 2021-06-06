@@ -67,7 +67,7 @@ public:
     bool equals(const char* o) const {
         const char* c  = start_;
         const char* oc = o;
-        for (; *c != '\0' && *oc != '\0' && tolower(*c) == tolower(*oc); ++c, ++oc) {}
+        for (; c != end_ && *oc != '\0' && tolower(*c) == tolower(*oc); ++c, ++oc) {}
         return c == end_ && *oc == '\0';
     }
 

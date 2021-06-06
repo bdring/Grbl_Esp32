@@ -34,6 +34,25 @@ namespace Configuration {
         }
     };
 
+    enum stepper_id_t {
+        ST_TIMED = 0,
+        ST_RMT,
+        ST_I2S_STREAM,
+        ST_I2S_STATIC,
+    };
+
+    EnumItem stepTypes[] = {
+        { ST_TIMED, "Timed" }, { ST_RMT, "RMT" }, { ST_I2S_STATIC, "I2S_static" }, { ST_I2S_STREAM, "I2S_stream" }, EnumItem(ST_RMT)
+    };
+
+    class TestBasicEnum : public Configurable {
+    public:
+        int value;
+
+        void validate() const {}
+        void handle(HandlerBase& handler) { handler.handle("type", value, stepTypes); }
+    };
+
     class TestHierarchical : public Configurable {
     public:
         TestBasic*  n1  = nullptr;
@@ -195,5 +214,34 @@ namespace Configuration {
             Assert(test.n2->aap == "aap");
         }
         Assert(test.foo == 2);
+    }
+
+    //  ST_TIMED, "Timed" }, { ST_RMT, "RMT" }, { ST_I2S_STATIC, "I2S_static" }, { ST_I2S_STREAM, "I2S_stream" }, EnumItem()
+    Test(YamlTreeBuilder, Enum1) {
+        {
+            const char*   config = "type: Timed\n";
+            TestBasicEnum test;
+            Helper::Parse(config, test);
+            Assert(test.value == int(ST_TIMED));
+        }
+
+        {
+            const char*   config = "type: RMT\n";
+            TestBasicEnum test;
+            Helper::Parse(config, test);
+            Assert(test.value == int(ST_RMT));
+        }
+        {
+            const char*   config = "type: I2S_static\n";
+            TestBasicEnum test;
+            Helper::Parse(config, test);
+            Assert(test.value == int(ST_I2S_STATIC));
+        }
+        {
+            const char*   config = "type: I2S_stream\n";
+            TestBasicEnum test;
+            Helper::Parse(config, test);
+            Assert(test.value == int(ST_I2S_STREAM));
+        }
     }
 }
