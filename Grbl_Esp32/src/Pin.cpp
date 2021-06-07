@@ -120,7 +120,7 @@ bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     }
     if (prefix == "i2so") {
 #ifdef ESP32
-        pinImplementation = new Pins::I2SOPinDetail(uint8_t(254), parser);
+        pinImplementation = new Pins::I2SOPinDetail(uint8_t(pinNumber), parser);
         return true;
 #endif
     }
