@@ -47,10 +47,16 @@ namespace Configuration {
 
     class TestBasicEnum : public Configurable {
     public:
+        int aap;
         int value;
+        int banaan;
 
         void validate() const {}
-        void handle(HandlerBase& handler) { handler.handle("type", value, stepTypes); }
+        void handle(HandlerBase& handler) {
+            handler.handle("aap", aap);
+            handler.handle("type", value, stepTypes);
+            handler.handle("banaan", banaan);
+        }
     };
 
     class TestHierarchical : public Configurable {
