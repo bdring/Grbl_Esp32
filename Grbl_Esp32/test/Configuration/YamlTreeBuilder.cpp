@@ -225,26 +225,26 @@ namespace Configuration {
     //  ST_TIMED, "Timed" }, { ST_RMT, "RMT" }, { ST_I2S_STATIC, "I2S_static" }, { ST_I2S_STREAM, "I2S_stream" }, EnumItem()
     Test(YamlTreeBuilder, Enum1) {
         {
-            const char*   config = "type: Timed\n";
+            const char*   config = "aap: 1\ntype: Timed\nbanaan: 2\n";
             TestBasicEnum test;
             Helper::Parse(config, test);
             Assert(test.value == int(ST_TIMED));
         }
 
         {
-            const char*   config = "type: RMT\n";
+            const char*   config = "aap: 1\ntype: RMT\nbanaan: 2\n";
             TestBasicEnum test;
             Helper::Parse(config, test);
             Assert(test.value == int(ST_RMT));
         }
         {
-            const char*   config = "type: I2S_static\n";
+            const char*   config = "aap: 1\ntype: I2S_static\nbanaan: 2\n";
             TestBasicEnum test;
             Helper::Parse(config, test);
             Assert(test.value == int(ST_I2S_STATIC));
         }
         {
-            const char*   config = "type: I2S_stream\n";
+            const char*   config = "aap: 1\ntype: I2S_stream\nbanaan: 2\n";
             TestBasicEnum test;
             Helper::Parse(config, test);
             Assert(test.value == int(ST_I2S_STREAM));
