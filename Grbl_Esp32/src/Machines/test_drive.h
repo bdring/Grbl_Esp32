@@ -36,3 +36,5 @@
 */
 
 #define MACHINE_NAME "Test Drive - Demo Only No I/O!"
+
+#define USE_I2S_STEPS

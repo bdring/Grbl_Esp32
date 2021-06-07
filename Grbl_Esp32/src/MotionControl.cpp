@@ -430,7 +430,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     }
 
 #ifdef USE_I2S_STEPS
-    stepper_id_t save_stepper = config->_stepType; /* remember the stepper */
+    int save_stepper = config->_stepType; /* remember the stepper */
 #endif
     // Switch stepper mode to the I2S static (realtime mode)
     BACKUP_STEPPER(save_stepper);
