@@ -41,7 +41,7 @@
 #endif
 
 Pins::PinDetail* Pin::undefinedPin = new Pins::VoidPinDetail();
-Pins::PinDetail* Pin::errorPin     = new Pins::ErrorPinDetail();
+Pins::PinDetail* Pin::errorPin     = new Pins::ErrorPinDetail("unknown");
 
 bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     String str = tmp.str();
@@ -151,7 +151,7 @@ Pin Pin::create(const StringRange& str) {
         pin_error("Setting up pin [%s] failed. Details: %s\r\n", str.str().c_str(), ex.what());
         (void)ex;  // Get rid of compiler warning
 
-        return Pin(pinImplementation);
+        return Pin(new Pins::ErrorPinDetail(str.str()));
     }
 }
 

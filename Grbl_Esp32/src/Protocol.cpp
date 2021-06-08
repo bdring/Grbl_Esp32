@@ -87,7 +87,7 @@ Error execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_l
         return system_execute_line(line, client, auth_level);
     }
     // Everything else is gcode. Block if in alarm or jog mode.
-    if (sys.state == State::Alarm || sys.state == State::Jog) {
+    if (sys.state == State::Alarm || sys.state == State::ConfigAlarm || sys.state == State::Jog) {
         return Error::SystemGcLock;
     }
     return gc_execute_line(line, client);
@@ -137,7 +137,9 @@ void protocol_main_loop() {
     // Check for and report alarm state after a reset, error, or an initial power up.
     // NOTE: Sleep mode disables the stepper drivers and position can't be guaranteed.
     // Re-initialize the sleep state as an ALARM mode to ensure user homes or acknowledges.
-    if (sys.state == State::Alarm || sys.state == State::Sleep) {
+    if (sys.state == State::ConfigAlarm) {
+        report_feedback_message(Message::AlarmLock);
+    } else if (sys.state == State::Alarm || sys.state == State::Sleep) {
         report_feedback_message(Message::AlarmLock);
         sys.state = State::Alarm;  // Ensure alarm state is set.
     } else {
@@ -325,6 +327,7 @@ static void protocol_do_motion_cancel() {
     // will handle and clear multiple planner block motions.
     switch (sys.state) {
         case State::Alarm:
+        case State::ConfigAlarm:
         case State::CheckMode:
             return;  // Do not set motionCancel
 
@@ -356,6 +359,7 @@ static void protocol_do_feedhold() {
     rtFeedHold   = false;
     rtCycleStart = false;  // Cancel any pending start
     switch (sys.state) {
+        case State::ConfigAlarm:
         case State::Alarm:
         case State::CheckMode:
         case State::SafetyDoor:
@@ -390,6 +394,8 @@ static void protocol_do_safety_door() {
     rtCycleStart = false;  // Cancel any pending start
     report_feedback_message(Message::SafetyDoorAjar);
     switch (sys.state) {
+        case State::ConfigAlarm:
+            return;
         case State::Alarm:
         case State::CheckMode:
         case State::Sleep:
@@ -443,6 +449,7 @@ static void protocol_do_safety_door() {
 static void protocol_do_sleep() {
     rtSleep = false;
     switch (sys.state) {
+        case State::ConfigAlarm:
         case State::Alarm:
             sys.suspend.bit.retractComplete = true;
             sys.suspend.bit.holdComplete    = true;
@@ -518,6 +525,7 @@ static void protocol_do_cycle_start() {
                 }
             }
             break;
+        case State::ConfigAlarm:
         case State::Alarm:
         case State::CheckMode:
         case State::Sleep:
@@ -552,6 +560,7 @@ static void protocol_do_cycle_stop() {
                 break;
             }
             // Fall through
+        case State::ConfigAlarm:
         case State::Alarm:
         case State::CheckMode:
         case State::Idle:
@@ -686,6 +695,7 @@ void protocol_exec_rt_system() {
 #endif
     // Reload step segment buffer
     switch (sys.state) {
+        case State::ConfigAlarm:
         case State::Alarm:
         case State::CheckMode:
         case State::Idle:

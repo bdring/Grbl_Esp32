@@ -570,18 +570,22 @@ bool MachineConfig::load(const char* filename) {
         // That way, we can always check if the yaml is there, and if it's not, load the yaml.new.
 
     } catch (const Configuration::ParseException& ex) {
+        sys.state      = State::ConfigAlarm;
         auto startNear = ex.Near();
         auto endNear   = (startNear + 10) > (buffer + filesize) ? (buffer + filesize) : (startNear + 10);
 
         StringRange near(startNear, endNear);
         log_error("Configuration parse error: " << ex.What() << " @ " << ex.LineNumber() << ":" << ex.ColumnNumber() << " near " << near);
     } catch (const AssertionFailed& ex) {
+        sys.state = State::ConfigAlarm;  
         // Get rid of buffer and return
         log_error("Configuration loading failed: " << ex.what());
     } catch (std::exception& ex) {
+        sys.state = State::ConfigAlarm;  
         // Log exception:
         log_error("Configuration validation error: " << ex.what());
     } catch (...) {
+        sys.state = State::ConfigAlarm;  
         // Get rid of buffer and return
         log_error("Unknown error while processing config file");
     }

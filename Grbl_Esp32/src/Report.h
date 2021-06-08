@@ -1,6 +1,10 @@
 #pragma once
 
 #include "Error.h"
+#include "NutsBolts.h"
+#include "Exec.h"
+
+#include <FreeRTOS.h>
 
 /*
   Report.h - Header for system level commands and real-time processes

@@ -19,15 +19,30 @@
 #include "ErrorPinDetail.h"
 #include "../Assert.h"
 
+#ifdef ESP32
+#include "../Report.h"
+#endif
+
 namespace Pins {
-    ErrorPinDetail::ErrorPinDetail() : PinDetail(0) {}
+    ErrorPinDetail::ErrorPinDetail(const String& descr) : PinDetail(0), _description(descr) {}
 
     PinCapabilities ErrorPinDetail::capabilities() const { return PinCapabilities::Error; }
 
+#ifdef ESP32
+    void ErrorPinDetail::write(int high) { info_all("Cannot write to pin %s. The config is incorrect.", _description.c_str()); }
+    int  ErrorPinDetail::read() { info_all("Cannot read from pin %s. The config is incorrect.", _description.c_str()); }
+    void ErrorPinDetail::setAttr(PinAttributes value) {
+        info_all("Cannot set mode on pin %s. The config is incorrect.", _description.c_str());
+    }
+
+#else
     void ErrorPinDetail::write(int high) { Assert(false, "Cannot write to an error pin."); }
     int  ErrorPinDetail::read() { Assert(false, "Cannot read from an error pin."); }
     void ErrorPinDetail::setAttr(PinAttributes value) { /* Fine, this won't get you anywhere. */
     }
+
+#endif
+
     PinAttributes ErrorPinDetail::getAttr() const { return PinAttributes::None; }
 
     String ErrorPinDetail::toString() { return "ERROR_PIN"; }

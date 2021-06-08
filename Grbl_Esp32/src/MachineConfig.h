@@ -321,7 +321,7 @@ public:
 class MachineConfig : public Configuration::Configurable {
 public:
     MachineConfig() = default;
-
+    
     Axes*              _axes        = nullptr;
     SPIBus*            _spi         = nullptr;
     I2SOBus*           _i2so        = nullptr;

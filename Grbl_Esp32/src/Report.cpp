@@ -858,6 +858,7 @@ char* report_state_text() {
         case State::Homing:
             strcpy(state, "Home");
             break;
+        case State::ConfigAlarm:
         case State::Alarm:
             strcpy(state, "Alarm");
             break;

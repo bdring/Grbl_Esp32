@@ -40,6 +40,7 @@ enum class State : uint8_t {
     Jog,         // Jogging mode.
     SafetyDoor,  // Safety door is ajar. Feed holds and de-energizes system.
     Sleep,       // Sleep state.
+    ConfigAlarm, // You can't do anything but fix your config file.
 };
 
 // Step segment generator state flags.

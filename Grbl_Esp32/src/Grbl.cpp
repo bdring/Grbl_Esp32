@@ -71,12 +71,14 @@ void grbl_init() {
 
         machine_init();  // user supplied function for special initialization
                          // Initialize system state.
+        if (sys.state != State::ConfigAlarm) {
 #ifdef FORCE_INITIALIZATION_ALARM
-        // Force Grbl into an ALARM state upon a power-cycle or hard reset.
-        sys.state = State::Alarm;
+            // Force Grbl into an ALARM state upon a power-cycle or hard reset.
+            sys.state = State::Alarm;
 #else
-        sys.state = State::Idle;
+            sys.state = State::Idle;
 #endif
+        }
         // Check for power-up and set system alarm if homing is enabled to force homing cycle
         // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
         // startup scripts, but allows access to settings and internal commands. Only a homing
@@ -84,7 +86,7 @@ void grbl_init() {
         // NOTE: The startup script will run after successful completion of the homing cycle, but
         // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
         // things uncontrollably. Very bad.
-        if (config->_homingInitLock && homingAxes()) {
+        if (config->_homingInitLock && homingAxes() && sys.state != State::ConfigAlarm) {
             // If there is an axis with homing configured, enter Alarm state on startup
             sys.state = State::Alarm;
         }
@@ -108,6 +110,7 @@ void grbl_init() {
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
         info_serial("Critical error in run_once: %s", ex.what());
+        sys.state = State::ConfigAlarm;
         sleep(10000);
         throw;
     }

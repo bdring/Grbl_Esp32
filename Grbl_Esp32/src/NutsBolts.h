@@ -20,8 +20,6 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Config.h"
-
 // #define false 0
 // #define true 1
 

@@ -678,7 +678,7 @@ namespace WebUI {
 
     static Error runSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP220
         Error err;
-        if (sys.state == State::Alarm) {
+        if (sys.state == State::Alarm || sys.state == State::ConfigAlarm) {
             webPrintln("Alarm");
             return Error::IdleError;
         }

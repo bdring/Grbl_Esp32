@@ -23,8 +23,10 @@
 
 namespace Pins {
     class ErrorPinDetail : public PinDetail {
+        String _description;
+
     public:
-        ErrorPinDetail();
+        ErrorPinDetail(const String& descr);
 
         PinCapabilities capabilities() const override;
 
