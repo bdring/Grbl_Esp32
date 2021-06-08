@@ -53,7 +53,7 @@ namespace Spindles {
         // Configuration handlers:
         void validate() const override { PWM::validate(); }
 
-        void handle(Configuration::HandlerBase& handler) override { PWM::handle(handler); }
+        void group(Configuration::HandlerBase& handler) override { PWM::group(handler); }
 
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "BESC"; }

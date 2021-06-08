@@ -26,6 +26,7 @@
 #include "Grbl.h"
 #include "Logging.h"
 
+#include "Configuration/Parser.h"
 #include "Configuration/ParserHandler.h"
 #include "Configuration/Validator.h"
 #include "Configuration/AfterParse.h"
@@ -50,17 +51,16 @@ void Endstops::validate() const {
     //    }
 }
 
-void Endstops::handle(Configuration::HandlerBase& handler) {
-    //     handler.handle("positive", _positive);
-    //     handler.handle("negative", _negative);
-    handler.handle("dual", _dual);
-    handler.handle("hard_limits", _hardLimits);
+void Endstops::group(Configuration::HandlerBase& handler) {
+    //     handler.item("positive", _positive);
+    //     handler.item("negative", _negative);
+    handler.item("dual", _dual);
+    handler.item("hard_limits", _hardLimits);
 }
 
-void Gang::validate() const {}
-void Gang::handle(Configuration::HandlerBase& handler) {
-    handler.handle("endstops", _endstops);
-    Motors::MotorFactory::handle(handler, _motor);
+void Gang::group(Configuration::HandlerBase& handler) {
+    handler.section("endstops", _endstops);
+    Motors::MotorFactory::factory(handler, _motor);
 }
 void Gang::afterParse() {
     if (_motor == nullptr) {
@@ -73,9 +73,7 @@ Gang::~Gang() {
     delete _endstops;
 }
 
-void Axis::validate() const {}
-
-void Axis::handle(Configuration::HandlerBase& handler) {
+void Axis::group(Configuration::HandlerBase& handler) {
     char tmp[6];
     tmp[0] = 0;
     strcat(tmp, "gang");
@@ -84,7 +82,7 @@ void Axis::handle(Configuration::HandlerBase& handler) {
         tmp[4] = char(g + '0');
         tmp[5] = '\0';
 
-        handler.handle(tmp, _gangs[g]);
+        handler.section(tmp, _gangs[g]);
     }
 }
 
@@ -297,11 +295,10 @@ size_t Axes::findAxisGanged(const Motors::Motor* const motor) const {
 }
 
 // Configuration helpers:
-void Axes::validate() const {}
 
-void Axes::handle(Configuration::HandlerBase& handler) {
-    handler.handle("number_axis", _numberAxis);
-    handler.handle("shared_stepper_disable", _sharedStepperDisable);
+void Axes::group(Configuration::HandlerBase& handler) {
+    handler.item("number_axis", _numberAxis);
+    handler.item("shared_stepper_disable", _sharedStepperDisable);
 
     const char* allAxis = "xyzabc";
 
@@ -314,7 +311,7 @@ void Axes::handle(Configuration::HandlerBase& handler) {
 
         if (handler.handlerType() == Configuration::HandlerType::Runtime || handler.handlerType() == Configuration::HandlerType::Parser ||
             handler.handlerType() == Configuration::HandlerType::AfterParse) {
-            handler.handle(tmp, _axis[a]);
+            handler.section(tmp, _axis[a]);
         }
     }
 }
@@ -341,10 +338,10 @@ void I2SOBus::validate() const {
     }
 }
 
-void I2SOBus::handle(Configuration::HandlerBase& handler) {
-    handler.handle("bck", _bck);
-    handler.handle("data", _data);
-    handler.handle("ws", _ws);
+void I2SOBus::group(Configuration::HandlerBase& handler) {
+    handler.item("bck", _bck);
+    handler.item("data", _data);
+    handler.item("ws", _ws);
 }
 
 void SPIBus::validate() const {
@@ -356,56 +353,52 @@ void SPIBus::validate() const {
     }
 }
 
-void SPIBus::handle(Configuration::HandlerBase& handler) {
-    handler.handle("ss", _ss);
-    handler.handle("miso", _miso);
-    handler.handle("mosi", _mosi);
-    handler.handle("mosi", _sck);
+void SPIBus::group(Configuration::HandlerBase& handler) {
+    handler.item("ss", _ss);
+    handler.item("miso", _miso);
+    handler.item("mosi", _mosi);
+    handler.item("mosi", _sck);
 }
 
-void UserOutputs::validate() const {}
-
-void UserOutputs::handle(Configuration::HandlerBase& handler) {
-    handler.handle("analog0", _analogOutput[0]);
-    handler.handle("analog1", _analogOutput[1]);
-    handler.handle("analog2", _analogOutput[2]);
-    handler.handle("analog3", _analogOutput[3]);
-    handler.handle("digital0", _digitalOutput[0]);
-    handler.handle("digital1", _digitalOutput[1]);
-    handler.handle("digital2", _digitalOutput[2]);
-    handler.handle("digital3", _digitalOutput[3]);
+void UserOutputs::group(Configuration::HandlerBase& handler) {
+    handler.item("analog0", _analogOutput[0]);
+    handler.item("analog1", _analogOutput[1]);
+    handler.item("analog2", _analogOutput[2]);
+    handler.item("analog3", _analogOutput[3]);
+    handler.item("digital0", _digitalOutput[0]);
+    handler.item("digital1", _digitalOutput[1]);
+    handler.item("digital2", _digitalOutput[2]);
+    handler.item("digital3", _digitalOutput[3]);
 }
 
-void MachineConfig::validate() const {}
+void MachineConfig::group(Configuration::HandlerBase& handler) {
+    handler.item("board", _board);
+    handler.item("name", _name);
 
-void MachineConfig::handle(Configuration::HandlerBase& handler) {
-    handler.handle("board", _board);
-    handler.handle("name", _name);
+    handler.section("axes", _axes);
+    handler.section("i2so", _i2so);
+    handler.section("spi", _spi);
+    handler.section("control", _control);
+    handler.section("coolant", _coolant);
+    handler.section("probe", _probe);
+    handler.section("comms", _comms);
 
-    handler.handle("axes", _axes);
-    handler.handle("i2so", _i2so);
-    handler.handle("spi", _spi);
-    handler.handle("control", _control);
-    handler.handle("coolant", _coolant);
-    handler.handle("probe", _probe);
-    handler.handle("comms", _comms);
-
-    handler.handle("pulse_microseconds", _pulseMicroSeconds);
-    handler.handle("dir_delay_microseconds", _directionDelayMicroSeconds);
-    handler.handle("disable_delay_us", _disableDelayMicroSeconds);
-    handler.handle("idle_time", _idleTime);
-    handler.handle("user_outputs", _userOutputs);
-    handler.handle("sdcard", _sdCard);
-    handler.handle("step_type", _stepType, stepTypes);
+    handler.item("pulse_microseconds", _pulseMicroSeconds);
+    handler.item("dir_delay_microseconds", _directionDelayMicroSeconds);
+    handler.item("disable_delay_us", _disableDelayMicroSeconds);
+    handler.item("idle_time", _idleTime);
+    handler.section("user_outputs", _userOutputs);
+    handler.section("sdcard", _sdCard);
+    handler.item("step_type", _stepType, stepTypes);
 
     // TODO: Consider putting these under a gcode: hierarchy level? Or motion control?
-    handler.handle("laser_mode", _laserMode);
-    handler.handle("arc_tolerance", _arcTolerance);
-    handler.handle("junction_deviation", _junctionDeviation);
-    handler.handle("verbose_errors", _verboseErrors);
-    handler.handle("report_inches", _reportInches);
-    handler.handle("homing_init_lock", _homingInitLock);
-    Spindles::SpindleFactory::handle(handler, _spindle);
+    handler.item("laser_mode", _laserMode);
+    handler.item("arc_tolerance", _arcTolerance);
+    handler.item("junction_deviation", _junctionDeviation);
+    handler.item("verbose_errors", _verboseErrors);
+    handler.item("report_inches", _reportInches);
+    handler.item("homing_init_lock", _homingInitLock);
+    Spindles::SpindleFactory::factory(handler, _spindle);
 }
 
 void MachineConfig::afterParse() {
@@ -506,17 +499,6 @@ bool MachineConfig::load(const char* filename) {
 
     log_info("Heap size before load config is " << uint32_t(xPortGetFreeHeapSize()));
 
-    // instance() is by reference, so we can just get rid of an old instance and
-    // create a new one here:
-    {
-        auto& machineConfig = instance();
-        if (machineConfig != nullptr) {
-            delete machineConfig;
-        }
-        machineConfig = new MachineConfig();
-    }
-    config = instance();
-
     // If the system crashes we skip the config file and use the default
     // builtin config.  This helps prevent reset loops on bad config files.
     size_t             filesize = 0;
@@ -544,10 +526,18 @@ bool MachineConfig::load(const char* filename) {
         Configuration::Parser        parser(input->begin(), input->end());
         Configuration::ParserHandler handler(parser);
 
-        for (; !parser.isEndSection(); handler.moveNext()) {
-            log_info("Parsing key " << parser.key().str());
-            config->handle(handler);
+        // instance() is by reference, so we can just get rid of an old instance and
+        // create a new one here:
+        {
+            auto& machineConfig = instance();
+            if (machineConfig != nullptr) {
+                delete machineConfig;
+            }
+            machineConfig = new MachineConfig();
         }
+        config = instance();
+
+        handler.enterSection("machine", config);
 
         log_info("Parsed configuration. Running after-parse tasks");
 
@@ -556,7 +546,7 @@ bool MachineConfig::load(const char* filename) {
         try {
             Configuration::AfterParse afterParse;
             config->afterParse();
-            config->handle(afterParse);
+            config->group(afterParse);
         } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
 
         log_info("Validating configuration");
@@ -566,7 +556,7 @@ bool MachineConfig::load(const char* filename) {
         try {
             Configuration::Validator validator;
             config->validate();
-            config->handle(validator);
+            config->group(validator);
         } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
 
         log_info("Validated configuration");

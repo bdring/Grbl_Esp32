@@ -113,10 +113,8 @@ void CoolantControl::sync(CoolantState state) {
     set_state(state);
 }
 
-void CoolantControl::validate() const {}
-
-void CoolantControl::handle(Configuration::HandlerBase& handler) {
-    handler.handle("flood", _flood);
-    handler.handle("mist", _mist);
-    handler.handle("delay", _delay);
+void CoolantControl::group(Configuration::HandlerBase& handler) {
+    handler.item("flood", _flood);
+    handler.item("mist", _mist);
+    handler.item("delay", _delay);
 }

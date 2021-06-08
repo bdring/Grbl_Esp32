@@ -49,10 +49,10 @@ public:
         // more validations?
     }
 
-    void handle(Configuration::HandlerBase& handler) {
-        handler.handle("bck", _bck);
-        handler.handle("data", _data);
-        handler.handle("ws", _ws);
+    void group(Configuration::HandlerBase& handler) {
+        handler.item("bck", _bck);
+        handler.item("data", _data);
+        handler.item("ws", _ws);
     }
 
     ~I2SOBus() = default;
@@ -65,7 +65,7 @@ What normally happens, is that for all the configuration settings
 within the relevant section, the `handle` call of the Configurable 
 is called. The handler has a callback with some convenience methods:
 
-`handler.handle("bck", _bck);` -- this maps class field `_bck` on
+`handler.item("bck", _bck);` -- this maps class field `_bck` on
 the setting named "bck". Note that the default setting is normally 
 defined in the constructor, or if that's not sufficient, in the 
 `afterParse` method.

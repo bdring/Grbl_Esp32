@@ -40,7 +40,7 @@ namespace Configuration {
             if (*str == '=') {
                 ++str;
 
-                handleLegacy(value, str);
+                tryLegacy(value, str);
             } else {
                 log_warn("Incorrect setting '" << start << "': cannot find '='.");
             }
@@ -50,12 +50,13 @@ namespace Configuration {
         }
     }
 
-    void LegacySettingRegistry::handleLegacy(int index, const char* value) {
+    void LegacySettingRegistry::tryLegacy(int index, const char* value) {
         bool handled = false;
         for (auto it : instance().handlers_) {
             if (it->index() == index) {
                 handled = true;
-                it->handle(value);
+                it->setValue(value);
+                // ??? Show we break here, or are index duplications allowed?
             }
         }
 

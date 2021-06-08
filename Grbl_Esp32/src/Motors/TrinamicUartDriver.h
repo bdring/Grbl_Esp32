@@ -137,15 +137,15 @@ namespace Motors {
         // Configuration handlers:
         void validate() const override { StandardStepper::validate(); }
 
-        void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("r_sense", _r_sense);
-            handler.handle("run_current", _run_current);
-            handler.handle("hold_current", _hold_current);
-            handler.handle("microsteps", _microsteps);
-            handler.handle("stallguard", _stallguard);
-            handler.handle("stallguardDebugMode", _stallguardDebugMode);
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("r_sense", _r_sense);
+            handler.item("run_current", _run_current);
+            handler.item("hold_current", _hold_current);
+            handler.item("microsteps", _microsteps);
+            handler.item("stallguard", _stallguard);
+            handler.item("stallguardDebugMode", _stallguardDebugMode);
 
-            StandardStepper::handle(handler);
+            StandardStepper::group(handler);
         }
 
         // Name of the configurable. Must match the name registered in the cpp file.

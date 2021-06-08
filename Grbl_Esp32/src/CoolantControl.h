@@ -58,8 +58,7 @@ public:
     void sync(CoolantState state);
 
     // Configuration handlers.
-    void validate() const override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void group(Configuration::HandlerBase& handler) override;
 
     ~CoolantControl() = default;
 };

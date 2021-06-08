@@ -49,7 +49,7 @@ public:
 
     // Configuration system helpers:
     void validate() const override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void group(Configuration::HandlerBase& handler) override;
 };
 
 class Gang : public Configuration::Configurable {
@@ -60,8 +60,7 @@ public:
     Endstops*      _endstops = nullptr;
 
     // Configuration system helpers:
-    void validate() const override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void group(Configuration::HandlerBase& handler) override;
     void afterParse() override;
 
     ~Gang();
@@ -83,15 +82,15 @@ public:
     // Configuration system helpers:
     void validate() const override { Assert(_cycle >= 1, "Cycle has to be defined as >= 1 for homing sequence."); }
 
-    void handle(Configuration::HandlerBase& handler) override {
-        handler.handle("cycle", _cycle);
-        handler.handle("positive_direction", _positiveDirection);
-        handler.handle("mpos", _mpos);
-        handler.handle("feed_rate", _feedRate);
-        handler.handle("seek_rate", _seekRate);
-        handler.handle("debounce", _debounce);
-        handler.handle("pulloff", _pulloff);
-        handler.handle("square", _square);
+    void group(Configuration::HandlerBase& handler) override {
+        handler.item("cycle", _cycle);
+        handler.item("positive_direction", _positiveDirection);
+        handler.item("mpos", _mpos);
+        handler.item("feed_rate", _feedRate);
+        handler.item("seek_rate", _seekRate);
+        handler.item("debounce", _debounce);
+        handler.item("pulloff", _pulloff);
+        handler.item("square", _square);
     }
 };
 
@@ -114,8 +113,7 @@ public:
     bool _softLimits   = false;
 
     // Configuration system helpers:
-    void validate() const override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void group(Configuration::HandlerBase& handler) override;
     void afterParse() override;
 
     // Checks if a motor matches this axis:
@@ -171,8 +169,7 @@ public:
     void    unstep();
 
     // Configuration helpers:
-    void validate() const override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void group(Configuration::HandlerBase& handler) override;
     void afterParse() override;
 
     ~Axes();
@@ -187,7 +184,7 @@ public:
     Pin _ws;
 
     void validate() const override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void group(Configuration::HandlerBase& handler) override;
 
     ~I2SOBus() = default;
 };
@@ -202,7 +199,7 @@ public:
     Pin _sck;
 
     void validate() const override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void group(Configuration::HandlerBase& handler) override;
 
     ~SPIBus() = default;
 };
@@ -214,8 +211,7 @@ public:
     Pin _analogOutput[4];
     Pin _digitalOutput[4];
 
-    void validate() const override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void group(Configuration::HandlerBase& handler) override;
 
     ~UserOutputs() = default;
 };
@@ -235,17 +231,15 @@ public:
 
     bool _dhcp = true;
 
-    void validate() const override {}
+    void group(Configuration::HandlerBase& handler) override {
+        handler.item("ssid", _ssid);
+        // handler.item("password", _password);
 
-    void handle(Configuration::HandlerBase& handler) override {
-        handler.handle("ssid", _ssid);
-        // handler.handle("password", _password);
+        handler.item("ip_address", _ipAddress);
+        handler.item("gateway", _gateway);
+        handler.item("netmask", _netmask);
 
-        handler.handle("ip_address", _ipAddress);
-        handler.handle("gateway", _gateway);
-        handler.handle("netmask", _netmask);
-
-        handler.handle("dhcp", _dhcp);
+        handler.item("dhcp", _dhcp);
     }
 };
 
@@ -260,9 +254,9 @@ public:
         Assert(_channel >= 1 && _channel <= 16, "WIFI channel %d is out of bounds", _channel);  // TODO: I guess?
     }
 
-    void handle(Configuration::HandlerBase& handler) override {
-        WifiConfig::handle(handler);
-        handler.handle("channel", _channel);
+    void group(Configuration::HandlerBase& handler) override {
+        WifiConfig::group(handler);
+        handler.item("channel", _channel);
     }
 
     ~WifiAPConfig() = default;
@@ -274,7 +268,7 @@ public:
 
     void validate() const override { WifiConfig::validate(); }
 
-    void handle(Configuration::HandlerBase& handler) override { WifiConfig::handle(handler); }
+    void group(Configuration::HandlerBase& handler) override { WifiConfig::group(handler); }
 
     ~WifiSTAConfig() = default;
 };
@@ -300,23 +294,21 @@ public:
     WifiAPConfig*    _apConfig        = nullptr;
     WifiSTAConfig*   _staConfig       = nullptr;
 
-    void validate() const override {}
+    void group(Configuration::HandlerBase& handler) override {
+        // handler.item("user_password", _userPassword);
+        // handler.item("admin_password", _adminPassword);
 
-    void handle(Configuration::HandlerBase& handler) override {
-        // handler.handle("user_password", _userPassword);
-        // handler.handle("admin_password", _adminPassword);
+        handler.item("telnet_enable", _telnetEnable);
+        handler.item("telnet_port", _telnetPort);
 
-        handler.handle("telnet_enable", _telnetEnable);
-        handler.handle("telnet_port", _telnetPort);
+        handler.item("http_enable", _httpEnable);
+        handler.item("http_port", _httpPort);
 
-        handler.handle("http_enable", _httpEnable);
-        handler.handle("http_port", _httpPort);
+        handler.item("hostname", _hostname);
 
-        handler.handle("hostname", _hostname);
-
-        handler.handle("bluetooth", _bluetoothConfig);
-        handler.handle("wifi_ap", _apConfig);
-        handler.handle("wifi_sta", _staConfig);
+        handler.section("bluetooth", _bluetoothConfig);
+        handler.section("wifi_ap", _apConfig);
+        handler.section("wifi_sta", _staConfig);
     }
 
     ~Communications() {
@@ -357,17 +349,18 @@ public:
     String _board = "None";
     String _name  = "None";
 
+#if 1
     static MachineConfig*& instance() {
         static MachineConfig* instance = nullptr;
         return instance;
     }
+#endif
 
-    void validate() const override;
     void afterParse() override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void group(Configuration::HandlerBase& handler) override;
 
-    size_t readFile(const char* file, char*& buffer);
-    bool   load(const char* file = "/spiffs/config.yaml");
+    static size_t readFile(const char* file, char*& buffer);
+    static bool   load(const char* file = "/spiffs/config.yaml");
 
     ~MachineConfig();
 };

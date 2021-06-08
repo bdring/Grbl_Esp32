@@ -23,8 +23,8 @@
 #include <cstring>
 
 namespace Configuration {
-    void AfterParse::handleDetail(const char* name, Configurable* value) {
+    void AfterParse::enterSection(const char* name, Configurable* value) {
         value->afterParse();
-        value->handle(*this);
+        value->group(*this);
     }
 }

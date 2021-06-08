@@ -35,10 +35,10 @@ namespace Motors {
             Assert(!_dir_pin.undefined(), "Direction pin should be configured.");
         }
 
-        void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("step", _step_pin);
-            handler.handle("direction", _dir_pin);
-            handler.handle("disable", _disable_pin);
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("step", _step_pin);
+            handler.item("direction", _dir_pin);
+            handler.item("disable", _disable_pin);
         }
 
         // Name of the configurable. Must match the name registered in the cpp file.

@@ -52,8 +52,8 @@ public:
         }
     }
 
-    void handle(Configuration::HandlerBase& handler) {
-        handler.handle("bck", _bck);
+    void group(Configuration::HandlerBase& handler) {
+        handler.item("bck", _bck);
         // ...
     }
 

@@ -41,17 +41,15 @@ void Control::init() {
     _macro3.init();
 }
 
-void Control::validate() const {}
-
-void Control::handle(Configuration::HandlerBase& handler) {
-    handler.handle("safety_door", _safetyDoor._pin);
-    handler.handle("reset", _reset._pin);
-    handler.handle("feed_hold", _feedHold._pin);
-    handler.handle("cycle_start", _cycleStart._pin);
-    handler.handle("macro0", _macro0._pin);
-    handler.handle("macro1", _macro1._pin);
-    handler.handle("macro2", _macro2._pin);
-    handler.handle("macro3", _macro3._pin);
+void Control::group(Configuration::HandlerBase& handler) {
+    handler.item("safety_door", _safetyDoor._pin);
+    handler.item("reset", _reset._pin);
+    handler.item("feed_hold", _feedHold._pin);
+    handler.item("cycle_start", _cycleStart._pin);
+    handler.item("macro0", _macro0._pin);
+    handler.item("macro1", _macro1._pin);
+    handler.item("macro2", _macro2._pin);
+    handler.item("macro3", _macro3._pin);
 }
 
 void Control::report(char* status) {

@@ -62,10 +62,10 @@ namespace Motors {
         // Configuration handlers:
         void validate() const override { Assert(!_pwm_pin.undefined(), "PWM pin should be configured."); }
 
-        void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("pwm", _pwm_pin);
-            handler.handle("cal_min", _cal_min);
-            handler.handle("cal_max", _cal_max);
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("pwm", _pwm_pin);
+            handler.item("cal_min", _cal_min);
+            handler.item("cal_max", _cal_max);
         }
 
         // Name of the configurable. Must match the name registered in the cpp file.

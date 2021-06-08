@@ -15,10 +15,10 @@ namespace Configuration {
         String c;
 
         void validate() const {}
-        void handle(HandlerBase& handler) {
-            handler.handle("a", a);
-            handler.handle("b", b);
-            handler.handle("c", c);
+        void group(HandlerBase& handler) {
+            handler.item("a", a);
+            handler.item("b", b);
+            handler.item("c", c);
         }
     };
 
@@ -28,9 +28,9 @@ namespace Configuration {
         int    banaan;
 
         void validate() const {}
-        void handle(HandlerBase& handler) {
-            handler.handle("aap", aap);
-            handler.handle("banaan", banaan);
+        void group(HandlerBase& handler) {
+            handler.item("aap", aap);
+            handler.item("banaan", banaan);
         }
     };
 
@@ -66,10 +66,10 @@ namespace Configuration {
         int         foo = 0;
 
         void validate() const {}
-        void handle(HandlerBase& handler) {
-            handler.handle("n1", n1);
-            handler.handle("n2", n2);
-            handler.handle("foo", foo);
+        void group(HandlerBase& handler) {
+            handler.item("n1", n1);
+            handler.item("n2", n2);
+            handler.item("foo", foo);
         }
     };
 
@@ -79,9 +79,9 @@ namespace Configuration {
             Parser        p(config, config + strlen(config));
             ParserHandler handler(p);
 
-            test.handle(handler);
+            test.group(handler);
             for (; !p.isEndSection(); handler.moveNext()) {
-                test.handle(handler);
+                test.group(handler);
             }
         }
     };

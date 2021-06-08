@@ -31,42 +31,42 @@ namespace Configuration {
 
     class HandlerBase {
     protected:
-        virtual void handleDetail(const char* name, Configurable* value) = 0;
+        virtual void enterSection(const char* name, Configurable* value) = 0;
         virtual bool matchesUninitialized(const char* name)              = 0;
 
         template <typename BaseType>
         friend class GenericFactory;
 
     public:
-        virtual void handle(const char* name, bool& value)                                                        = 0;
-        virtual void handle(const char* name, int32_t& value, int32_t minValue = 0, int32_t maxValue = INT32_MAX) = 0;
+        virtual void item(const char* name, bool& value)                                                        = 0;
+        virtual void item(const char* name, int32_t& value, int32_t minValue = 0, int32_t maxValue = INT32_MAX) = 0;
 
         /* We bound uint32_t to INT32_MAX because we use the same parser */
-        void handle(const char* name, uint32_t& value, uint32_t minValue = 0, uint32_t maxValue = INT32_MAX) {
+        void item(const char* name, uint32_t& value, uint32_t minValue = 0, uint32_t maxValue = INT32_MAX) {
             int32_t v = int32_t(value);
-            handle(name, v, int32_t(minValue), int32_t(maxValue));
+            item(name, v, int32_t(minValue), int32_t(maxValue));
             value = uint32_t(v);
         }
 
-        void handle(const char* name, uint8_t& value, uint8_t minValue = 0, uint8_t maxValue = UINT8_MAX) {
+        void item(const char* name, uint8_t& value, uint8_t minValue = 0, uint8_t maxValue = UINT8_MAX) {
             int32_t v = int32_t(value);
-            handle(name, v, int32_t(minValue), int32_t(maxValue));
+            item(name, v, int32_t(minValue), int32_t(maxValue));
             value = uint8_t(v);
         }
 
-        virtual void handle(const char* name, float& value, float minValue = -3e38, float maxValue = 3e38) = 0;
+        virtual void item(const char* name, float& value, float minValue = -3e38, float maxValue = 3e38) = 0;
 
-        virtual void handle(const char* name, StringRange& value, int minLength = 0, int maxLength = 255) = 0;
-        virtual void handle(const char* name, Pin& value)                                                 = 0;
-        virtual void handle(const char* name, IPAddress& value)                                           = 0;
+        virtual void item(const char* name, StringRange& value, int minLength = 0, int maxLength = 255) = 0;
+        virtual void item(const char* name, Pin& value)                                                 = 0;
+        virtual void item(const char* name, IPAddress& value)                                           = 0;
 
-        virtual void handle(const char* name, int& value, EnumItem* e) = 0;
+        virtual void item(const char* name, int& value, EnumItem* e) = 0;
 
-        virtual void handle(const char* name, String& value) {
+        virtual void item(const char* name, String& value) {
             StringRange range(value);
             StringRange copy(value);
 
-            handle(name, range);
+            item(name, range);
 
             // Check for changes, and update if the string is changed.
             if (range.begin() != copy.begin() || range.end() != copy.end()) {
@@ -77,22 +77,23 @@ namespace Configuration {
         virtual HandlerType handlerType() = 0;
 
         template <typename T>
-        void handle(const char* name, T*& value) {
+        void section(const char* name, T*& value) {
             if (handlerType() == HandlerType::Parser) {
+                // For Parser, matchesUninitialized(name) resolves to _parser.is(name)
                 if (value == nullptr && matchesUninitialized(name)) {
                     value = new T();
-                    handleDetail(name, value);
+                    enterSection(name, value);
                 }
             } else {
                 if (value != nullptr) {
-                    handleDetail(name, value);
+                    enterSection(name, value);
                 }
             }
         }
 
         template <typename T>
-        void handle(const char* name, T& value) {
-            handleDetail(name, &value);
+        void enterFactory(const char* name, T& value) {
+            enterSection(name, &value);
         }
     };
 }

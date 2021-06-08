@@ -13,13 +13,13 @@ namespace Motors {
     // Configuration handlers:
     void StepStick::validate() const { StandardStepper::validate(); }
 
-    void StepStick::handle(Configuration::HandlerBase& handler) {
-        StandardStepper::handle(handler);
+    void StepStick::group(Configuration::HandlerBase& handler) {
+        StandardStepper::group(handler);
 
-        handler.handle("ms1", _MS1);
-        handler.handle("ms2", _MS2);
-        handler.handle("ms3", _MS3);
-        handler.handle("reset", _Reset);
+        handler.item("ms1", _MS1);
+        handler.item("ms2", _MS2);
+        handler.item("ms3", _MS3);
+        handler.item("reset", _Reset);
     }
 
     void StepStick::afterParse() {

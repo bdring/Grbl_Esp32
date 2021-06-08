@@ -43,9 +43,7 @@ namespace Spindles {
         void         config_message() override;
 
         // Configuration handlers:
-        void validate() const override {}
-
-        void handle(Configuration::HandlerBase& handler) override {}
+        void group(Configuration::HandlerBase& handler) override {}
 
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "Null"; }

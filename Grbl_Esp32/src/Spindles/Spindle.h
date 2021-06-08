@@ -78,9 +78,9 @@ namespace Spindles {
             // TODO: Validate spinup/spindown delay?
         }
 
-        void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("spinup_delay_ms", _spinup_delay);
-            handler.handle("spindown_delay_ms", _spindown_delay);
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("spinup_delay_ms", _spinup_delay);
+            handler.item("spindown_delay_ms", _spindown_delay);
         }
 
         // Virtual base classes require a virtual destructor.

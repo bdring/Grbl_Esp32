@@ -48,18 +48,18 @@ namespace Configuration {
         }
 
     protected:
-        void handleDetail(const char* name, Configuration::Configurable* value) override;
+        void enterSection(const char* name, Configuration::Configurable* value) override;
 
         bool matchesUninitialized(const char* name) override { return false; }
 
     public:
         RuntimeSetting(const char* runtimeSetting);
 
-        void handle(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) override;
-        void handle(const char* name, float& value, float minValue, float maxValue) override;
-        void handle(const char* name, StringRange& value, int minLength, int maxLength) override;
-        void handle(const char* name, Pin& value) override;
-        void handle(const char* name, int& value, EnumItem* e) override {}
+        void item(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) override;
+        void item(const char* name, float& value, float minValue, float maxValue) override;
+        void item(const char* name, StringRange& value, int minLength, int maxLength) override;
+        void item(const char* name, Pin& value) override;
+        void item(const char* name, int& value, EnumItem* e) override {}
 
         HandlerType handlerType() override { return HandlerType::Runtime; }
 

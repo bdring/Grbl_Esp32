@@ -123,17 +123,17 @@ namespace Spindles {
         // Configuration handlers:
         void validate() const override { Spindle::validate(); }
 
-        void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("min_rpm", _min_rpm);
-            handler.handle("max_rpm", _max_rpm);
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("min_rpm", _min_rpm);
+            handler.item("max_rpm", _max_rpm);
 
-            handler.handle("txd_pin", _txd_pin);
-            handler.handle("rxd_pin", _rxd_pin);
-            handler.handle("rts_pin", _rts_pin);
+            handler.item("txd_pin", _txd_pin);
+            handler.item("rxd_pin", _rxd_pin);
+            handler.item("rts_pin", _rts_pin);
 
             // TODO FIXME: baud rate, etc
 
-            Spindle::handle(handler);
+            Spindle::group(handler);
         }
 
         virtual ~VFD() {}

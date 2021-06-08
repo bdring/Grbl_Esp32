@@ -45,10 +45,10 @@ namespace Spindles {
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "Laser"; }
 
-        void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("laser_full_power", _laser_full_power);
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("laser_full_power", _laser_full_power);
 
-            PWM::handle(handler);
+            PWM::group(handler);
         }
 
         virtual ~Laser() {}

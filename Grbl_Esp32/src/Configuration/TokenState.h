@@ -1,6 +1,6 @@
 /*
     Part of Grbl_ESP32
-    2021 -  Stefan de Bruijn
+    2021 -  Mitch Bradley
 
     Grbl_ESP32 is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,10 +19,11 @@
 #pragma once
 
 namespace Configuration {
-
-    enum struct TokenKind {
-        Section,
-        String,
+    enum class TokenState {
+        Bof,
+        Matching,
+        Matched,
+        Held,
         Eof,
     };
 }

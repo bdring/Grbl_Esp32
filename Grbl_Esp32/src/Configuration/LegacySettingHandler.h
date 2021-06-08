@@ -30,8 +30,8 @@ namespace Configuration {
         LegacySettingHandler& operator=(const LegacySettingHandler&) = delete;
         LegacySettingHandler& operator=(LegacySettingHandler&&) = delete;
 
-        virtual int  index()                   = 0;
-        virtual void handle(const char* value) = 0;
+        virtual int  index()                     = 0;
+        virtual void setValue(const char* value) = 0;
 
         virtual ~LegacySettingHandler() {
             // Remove from factory? We shouldn't remove handlers...

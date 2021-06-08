@@ -625,7 +625,7 @@ namespace WebUI {
         j.begin_array("EEPROM");
 
         Configuration::JsonGenerator gen(j);
-        config->handle(gen);
+        config->group(gen);
         j.end_array();
         webPrint(j.end());
         return Error::Ok;

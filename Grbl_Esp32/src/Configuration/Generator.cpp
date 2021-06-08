@@ -37,7 +37,7 @@ namespace Configuration {
 
     void Generator::add(Configuration::Configurable* configurable) {
         if (configurable != nullptr) {
-            configurable->handle(*this);
+            configurable->group(*this);
         }
     }
 
@@ -50,9 +50,9 @@ namespace Configuration {
         indent_--;
     }
 
-    void Generator::handleDetail(const char* name, Configurable* value) {
+    void Generator::enterSection(const char* name, Configurable* value) {
         enter(name);
-        value->handle(*this);
+        value->group(*this);
         leave();
     }
 

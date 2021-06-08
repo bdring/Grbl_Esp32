@@ -49,21 +49,21 @@ namespace Spindles {
         // Configuration handlers:
         void validate() const override { Spindle::validate(); }
 
-        void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("min_rpm", _min_rpm);
-            handler.handle("max_rpm", _max_rpm);
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("min_rpm", _min_rpm);
+            handler.item("max_rpm", _max_rpm);
 
-            handler.handle("pwm_freq", _pwm_freq);
-            handler.handle("pwm_off", _pwm_off_setting);
-            handler.handle("pwm_min", _pwm_min_setting);
-            handler.handle("pwm_max", _pwm_max_setting);
-            handler.handle("invert_pwm", _invert_pwm);
-            handler.handle("output_pin", _output_pin);
-            handler.handle("enable_pin", _enable_pin);
-            handler.handle("direction_pin", _direction_pin);
-            handler.handle("enable_off_with_zero_speed", _off_with_zero_speed);
+            handler.item("pwm_freq", _pwm_freq);
+            handler.item("pwm_off", _pwm_off_setting);
+            handler.item("pwm_min", _pwm_min_setting);
+            handler.item("pwm_max", _pwm_max_setting);
+            handler.item("invert_pwm", _invert_pwm);
+            handler.item("output_pin", _output_pin);
+            handler.item("enable_pin", _enable_pin);
+            handler.item("direction_pin", _direction_pin);
+            handler.item("enable_off_with_zero_speed", _off_with_zero_speed);
 
-            Spindle::handle(handler);
+            Spindle::group(handler);
         }
 
         // Name of the configurable. Must match the name registered in the cpp file.

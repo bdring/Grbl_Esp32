@@ -134,14 +134,14 @@ namespace Motors {
             Assert(_id != 255, "Dynamixel ID should be configured.");
         }
 
-        void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("tx", _tx_pin);
-            handler.handle("rx", _rx_pin);
-            handler.handle("rts", _rts_pin);
-            handler.handle("invert_direction", _invert_direction);
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("tx", _tx_pin);
+            handler.item("rx", _rx_pin);
+            handler.item("rts", _rts_pin);
+            handler.item("invert_direction", _invert_direction);
 
             int id = _id;
-            handler.handle("id", id);
+            handler.item("id", id);
             _id = id;
         }
 

@@ -48,37 +48,37 @@ namespace Configuration {
         void leave();
 
     protected:
-        void        handleDetail(const char* name, Configurable* value) override;
+        void        enterSection(const char* name, Configurable* value) override;
         bool        matchesUninitialized(const char* name) override { return false; }
         HandlerType handlerType() override { return HandlerType::Generator; }
 
     public:
         Generator(SimpleOutputStream& dst);
 
-        void handle(const char* name, int& value, int32_t minValue, int32_t maxValue) override {
+        void item(const char* name, int& value, int32_t minValue, int32_t maxValue) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }
 
-        void handle(const char* name, float& value, float minValue, float maxValue) override {
+        void item(const char* name, float& value, float minValue, float maxValue) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }
 
-        void handle(const char* name, StringRange& value, int minLength, int maxLength) override {
+        void item(const char* name, StringRange& value, int minLength, int maxLength) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }
 
-        void handle(const char* name, Pin& value) override {
+        void item(const char* name, Pin& value) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }
-        void handle(const char* name, IPAddress& value) override {
+        void item(const char* name, IPAddress& value) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }
-        void handle(const char* name, int& value, EnumItem* e) override {
+        void item(const char* name, int& value, EnumItem* e) override {
             indent();
             const char* str = "unknown";
             for (; e->name; ++e) {

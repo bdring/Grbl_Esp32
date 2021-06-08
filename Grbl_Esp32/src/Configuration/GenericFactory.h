@@ -63,18 +63,18 @@ namespace Configuration {
             BaseType* create() const override { return new DerivedType(); }
         };
 
-        static void handle(Configuration::HandlerBase& handler, BaseType*& inst) {
+        static void factory(Configuration::HandlerBase& handler, BaseType*& inst) {
             if (inst == nullptr) {
                 for (auto it : instance().builders_) {
                     if (handler.matchesUninitialized(it->name())) {
                         inst = it->create();
-                        handler.handle(it->name(), *inst);
+                        handler.enterFactory(it->name(), *inst);
 
                         return;
                     }
                 }
             } else {
-                handler.handleDetail(inst->name(), inst);
+                handler.enterSection(inst->name(), inst);
             }
         }
     };

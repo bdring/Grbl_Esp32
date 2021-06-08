@@ -22,12 +22,12 @@ namespace Motors {
             Assert(!_pin_phase3.undefined(), "Phase 3 pin should be configured.");
         }
 
-        void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("phase0", _pin_phase0);
-            handler.handle("phase1", _pin_phase1);
-            handler.handle("phase2", _pin_phase2);
-            handler.handle("phase3", _pin_phase3);
-            handler.handle("half_step", _half_step);
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("phase0", _pin_phase0);
+            handler.item("phase1", _pin_phase1);
+            handler.item("phase2", _pin_phase2);
+            handler.item("phase3", _pin_phase3);
+            handler.item("half_step", _half_step);
         }
 
         // Name of the configurable. Must match the name registered in the cpp file.

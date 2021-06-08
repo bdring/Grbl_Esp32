@@ -52,7 +52,7 @@ namespace WebUI {
                    MIN_BTNAME_LENGTH,
                    MAX_BTNAME_LENGTH);
         }
-        void handle(Configuration::HandlerBase& handler) override { handler.handle("_name", _btname); }
+        void group(Configuration::HandlerBase& handler) override { handler.item("_name", _btname); }
 
         String        info();
         bool          isBTnameValid(const char* hostname);

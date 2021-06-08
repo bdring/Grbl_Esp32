@@ -58,7 +58,7 @@ public:
 
     // Configuration handlers.
     void validate() const override;
-    void handle(Configuration::HandlerBase& handler) override;
+    void group(Configuration::HandlerBase& handler) override;
 
     ~Probe() = default;
 };

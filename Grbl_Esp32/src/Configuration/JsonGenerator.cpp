@@ -47,7 +47,7 @@ namespace Configuration {
 
     void JsonGenerator::add(Configuration::Configurable* configurable) {
         if (configurable != nullptr) {
-            configurable->handle(*this);
+            configurable->group(*this);
         }
     }
 
@@ -57,13 +57,13 @@ namespace Configuration {
         *_paths[_depth] = '\0';
     }
 
-    void JsonGenerator::handleDetail(const char* name, Configurable* value) {
+    void JsonGenerator::enterSection(const char* name, Configurable* value) {
         enter(name);
-        value->handle(*this);
+        value->group(*this);
         leave();
     }
 
-    void JsonGenerator::handle(const char* name, bool& value) {
+    void JsonGenerator::item(const char* name, bool& value) {
         enter(name);
         const char* val = value ? "Yes" : "No";
         _encoder.begin_webui(name, _currentPath, "B", val);
@@ -79,7 +79,7 @@ namespace Configuration {
         leave();
     }
 
-    void JsonGenerator::handle(const char* name, int& value, int32_t minValue, int32_t maxValue) {
+    void JsonGenerator::item(const char* name, int& value, int32_t minValue, int32_t maxValue) {
         enter(name);
         char buf[32];
         itoa(value, buf, 10);
@@ -88,12 +88,12 @@ namespace Configuration {
         leave();
     }
 
-    void JsonGenerator::handle(const char* name, float& value, float minValue, float maxValue) {
+    void JsonGenerator::item(const char* name, float& value, float minValue, float maxValue) {
         int n = int(value * 1000);
-        handle(name, n, int(minValue * 1000), int(maxValue * 1000));
+        item(name, n, int(minValue * 1000), int(maxValue * 1000));
     }
 
-    void JsonGenerator::handle(const char* name, StringRange& value, int minLength, int maxLength) {
+    void JsonGenerator::item(const char* name, StringRange& value, int minLength, int maxLength) {
         enter(name);
         auto sv = value.str();
         _encoder.begin_webui(name, _currentPath, "S", sv.c_str(), minLength, maxLength);
@@ -101,7 +101,7 @@ namespace Configuration {
         leave();
     }
 
-    void JsonGenerator::handle(const char* name, Pin& value) {
+    void JsonGenerator::item(const char* name, Pin& value) {
         // We commented this out, because pins are very confusing for users. The code is correct,
         // but it really gives more support than it's worth.
         /*
@@ -113,7 +113,7 @@ namespace Configuration {
         */
     }
 
-    void JsonGenerator::handle(const char* name, IPAddress& value) {
+    void JsonGenerator::item(const char* name, IPAddress& value) {
         enter(name);
 #ifdef LATER
 // Encode IP address
@@ -122,7 +122,7 @@ namespace Configuration {
         leave();
     }
 
-    void JsonGenerator::handle(const char* name, int& value, EnumItem* e) {
+    void JsonGenerator::item(const char* name, int& value, EnumItem* e) {
         enter(name);
         const char* str = "unknown";
         for (; e->name; ++e) {

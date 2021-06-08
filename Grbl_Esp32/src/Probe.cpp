@@ -57,6 +57,6 @@ bool IRAM_ATTR Probe::tripped() {
 
 void Probe::validate() const {}
 
-void Probe::handle(Configuration::HandlerBase& handler) {
-    handler.handle("pin", _probePin);
+void Probe::group(Configuration::HandlerBase& handler) {
+    handler.item("pin", _probePin);
 }

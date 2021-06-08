@@ -25,36 +25,72 @@
 
 #include "../Logging.h"
 
+//#define VERBOSE_PARSER
+// #define CHATTY_PARSER
 namespace Configuration {
     class ParserHandler : public Configuration::HandlerBase {
     private:
         Configuration::Parser& _parser;
-        bool                   _previousIsLeave = false;
 
-        void checkPreviousLeave() {
-            // When a section does a 'leave', the token becomes invalid, and we need to do a
-            // moveNext. See the tests for the yaml parser for what the parser expects.
-            // So, let's introduce that here:
-            if (_previousIsLeave) {
-                _parser.moveNext();
-            }
-            _previousIsLeave = false;
-        }
+    public:
+        void enterSection(const char* name, Configuration::Configurable* section) override {
+            // On entry, the token is for the section that invoked us.
+            // We will handle following nodes with indents greater than entryIndent
+            int entryIndent = _parser.token_.indent_;
+#ifdef CHATTY_PARSER
+            log_debug("Entered section " << name << " at indent " << entryIndent);
+#endif
 
-    protected:
-        void handleDetail(const char* name, Configuration::Configurable* value) override {
-            if (value != nullptr && _parser.is(name)) {
-                log_debug("Parsing configurable " << name);
-                checkPreviousLeave();
+            // The next token controls what we do next.  If thisIndent is greater
+            // than entryIndent, there are some subordinate tokens.
+            _parser.Tokenize();
+            int thisIndent = _parser.token_.indent_;
+#ifdef VERBOSE_PARSER
+            log_debug("thisIndent " << _parser.key().str() << " " << thisIndent);
+#endif
 
-                _parser.enter();
-                for (; !_parser.isEndSection(); _parser.moveNext()) {
-                    value->handle(*this);
-                    _previousIsLeave = false;
+            // If thisIndent <= entryIndent, the section is empty - there are
+            // no more-deeply-indented subordinate tokens.
+
+            if (thisIndent > entryIndent) {
+                // If thisIndent > entryIndent, the new token is the first token within
+                // this section so we process tokens at the same level as thisIndent.
+                for (; _parser.token_.indent_ >= thisIndent; _parser.Tokenize()) {
+#ifdef VERBOSE_PARSER
+                    log_debug(" KEY " << _parser.key().str() << " state " << int(_parser.token_.state) << " indent "
+                                      << _parser.token_.indent_);
+#endif
+                    if (_parser.token_.indent_ > thisIndent) {
+                        log_info("Skipping key " << _parser.key().str() << " indent " << _parser.token_.indent_ << " thisIndent "
+                                                 << thisIndent);
+                    } else {
+#ifdef VERBOSE_PARSER
+                        log_debug("Parsing key " << _parser.key().str());
+#endif
+                        section->group(*this);
+                        if (_parser.token_.state == TokenState::Matching) {
+                            log_error("Ignored key " << _parser.key().str());
+                        }
+#ifdef CHATTY_PARSER
+                        if (_parser.token_.state == Configuration::TokenState::Matched) {
+                            log_debug("Handled key " << _parser.key().str());
+                        }
+#endif
+                    }
                 }
-                _parser.leave();
-                _previousIsLeave = true;
             }
+
+            // At this point we have the next token whose indent we
+            // needed in order to decide what to do.  When we return,
+            // the caller will call Tokenize() to get a token, so we
+            // "hold" the current token so that Tokenize() will
+            // release that token instead of parsing ahead.
+            // _parser.token_.held = true;
+
+            _parser.token_.state = TokenState::Held;
+#ifdef CHATTY_PARSER
+            log_debug("Left section at indent " << entryIndent);
+#endif
         }
 
         bool matchesUninitialized(const char* name) override { return _parser.is(name); }
@@ -62,61 +98,49 @@ namespace Configuration {
     public:
         ParserHandler(Configuration::Parser& parser) : _parser(parser) {}
 
-        void handle(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) override {
+        void item(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) override {
             if (_parser.is(name)) {
-                checkPreviousLeave();
                 value = _parser.intValue();
             }
         }
 
-        void handle(const char* name, int& value, EnumItem* e) override {
+        void item(const char* name, int& value, EnumItem* e) override {
             if (_parser.is(name)) {
-                checkPreviousLeave();
                 value = _parser.enumValue(e);
             }
         }
 
-        void handle(const char* name, bool& value) override {
+        void item(const char* name, bool& value) override {
             if (_parser.is(name)) {
-                checkPreviousLeave();
                 value = _parser.boolValue();
             }
         }
 
-        void handle(const char* name, float& value, float minValue, float maxValue) override {
+        void item(const char* name, float& value, float minValue, float maxValue) override {
             if (_parser.is(name)) {
-                checkPreviousLeave();
                 value = _parser.floatValue();
             }
         }
 
-        void handle(const char* name, StringRange& value, int minLength, int maxLength) override {
+        void item(const char* name, StringRange& value, int minLength, int maxLength) override {
             if (_parser.is(name)) {
-                checkPreviousLeave();
                 value = _parser.stringValue();
             }
         }
 
-        void handle(const char* name, Pin& value) override {
+        void item(const char* name, Pin& value) override {
             if (_parser.is(name)) {
-                checkPreviousLeave();
                 auto parsed = _parser.pinValue();
                 value.swap(parsed);
             }
         }
 
-        void handle(const char* name, IPAddress& value) override {
+        void item(const char* name, IPAddress& value) override {
             if (_parser.is(name)) {
-                checkPreviousLeave();
                 value = _parser.ipValue();
             }
         }
 
         HandlerType handlerType() override { return HandlerType::Parser; }
-
-        void moveNext() {
-            _previousIsLeave = false;
-            _parser.moveNext();
-        }
     };
 }

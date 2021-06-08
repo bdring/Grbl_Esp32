@@ -48,10 +48,10 @@ namespace Spindles {
         // Configuration handlers:
         void validate() const override { PWM::validate(); }
 
-        void handle(Configuration::HandlerBase& handler) override {
-            handler.handle("forward", _forward_pin);
-            handler.handle("reverse", _reverse_pin);
-            PWM::handle(handler);
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("forward", _forward_pin);
+            handler.item("reverse", _reverse_pin);
+            PWM::group(handler);
         }
 
         // Name of the configurable. Must match the name registered in the cpp file.

@@ -7,7 +7,7 @@ by name. The only thing you need to do is put the name in the header
 and put the registration in the cpp file 
 `namespace { MotorFactory::InstanceBuilder<Nullmotor> registration("null_motor"); }`.
  In the yaml parser, the correct motor is then created in the handle 
-method by calling `Motors::MotorFactory::handle(handler, _motor);`. 
+method by calling `Motors::MotorFactory::factory(handler, _motor);`.
 
 This means that there are literally no hard dependencies between motors. 
 Not having dependencies is good, it can greatly help with compile-times 

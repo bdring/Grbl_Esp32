@@ -27,7 +27,7 @@ namespace Configuration {
         std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);
     }
 
-    void RuntimeSetting::handleDetail(const char* name, Configuration::Configurable* value) {
+    void RuntimeSetting::enterSection(const char* name, Configuration::Configurable* value) {
         if (is(name) && this->value() == nullptr) {
             auto previous = start_;
 
@@ -41,7 +41,7 @@ namespace Configuration {
                 start_ = next;
 
                 // Handle child:
-                value->handle(*this);
+                value->group(*this);
             }
 
             // Restore situation:
@@ -49,26 +49,26 @@ namespace Configuration {
         }
     }
 
-    void RuntimeSetting::handle(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) {
+    void RuntimeSetting::item(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) {
         if (is(name) && this->value() != nullptr) {
             value = atoi(this->value());
         }
     }
 
-    void RuntimeSetting::handle(const char* name, float& value, float minValue, float maxValue) {
+    void RuntimeSetting::item(const char* name, float& value, float minValue, float maxValue) {
         if (is(name) && this->value() != nullptr) {
             char* floatEnd;
             value = strtof(this->value(), &floatEnd);
         }
     }
 
-    void RuntimeSetting::handle(const char* name, StringRange& value, int minLength, int maxLength) {
+    void RuntimeSetting::item(const char* name, StringRange& value, int minLength, int maxLength) {
         if (is(name) && this->value() != nullptr) {
             value = this->value();
         }
     }
 
-    void RuntimeSetting::handle(const char* name, Pin& value) {
+    void RuntimeSetting::item(const char* name, Pin& value) {
         if (is(name) && this->value() != nullptr) {
             auto parsed = Pin::create(StringRange(this->value()));
             value.swap(parsed);
