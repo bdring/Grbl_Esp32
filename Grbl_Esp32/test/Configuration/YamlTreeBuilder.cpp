@@ -52,10 +52,10 @@ namespace Configuration {
         int banaan;
 
         void validate() const {}
-        void handle(HandlerBase& handler) {
-            handler.handle("aap", aap);
-            handler.handle("type", value, stepTypes);
-            handler.handle("banaan", banaan);
+        void group(HandlerBase& handler) override {
+            handler.item("aap", aap);
+            handler.item("type", value, stepTypes);
+            handler.item("banaan", banaan);
         }
     };
 
@@ -66,9 +66,9 @@ namespace Configuration {
         int         foo = 0;
 
         void validate() const {}
-        void group(HandlerBase& handler) {
-            handler.item("n1", n1);
-            handler.item("n2", n2);
+        void group(HandlerBase& handler) override {
+            handler.section("n1", n1);
+            handler.section("n2", n2);
             handler.item("foo", foo);
         }
     };
@@ -79,10 +79,11 @@ namespace Configuration {
             Parser        p(config, config + strlen(config));
             ParserHandler handler(p);
 
-            test.group(handler);
-            for (; !p.isEndSection(); handler.moveNext()) {
-                test.group(handler);
-            }
+            handler.enterSection("machine", &test);
+            // test.group(handler);
+            // for (; !p.Eof(); handler.moveNext()) {
+            //     test.group(handler);
+            // }
         }
     };
 
@@ -90,7 +91,7 @@ namespace Configuration {
         const char* config = "a: aap\n"
                              "b: banaan\n"
                              "\n"
-                             "c: chocolade";
+                             "c: chocolade\n";
 
         TestBasic test;
         Helper::Parse(config, test);
