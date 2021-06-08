@@ -61,28 +61,16 @@ Some features should not be changed. See notes below.
 
 const int MAX_N_AXIS = 6;
 
-// Number of axes defined (steppers, servos, etc) (valid range: 3 to 6)
-// Even if your machine only uses less than the minimum of 3, you should select 3
-#ifndef N_AXIS
-#    define N_AXIS 3
-#endif
-
-#ifndef LIMIT_MASK
-#    define LIMIT_MASK B0
-#endif
-
 // Serial baud rate
 // OK to change, but the ESP32 boot text is 115200, so you will not see that is your
 // serial monitor, sender, etc uses a different value than 115200
-#define BAUD_RATE 115200
+const int BAUD_RATE = 115200;
 
 //Connect to your local AP with these credentials
 //#define CONNECT_TO_SSID  "your SSID"
 //#define SSID_PASSWORD  "your SSID password"
 //CONFIGURE_EYECATCH_BEGIN (DO NOT MODIFY THIS LINE)
 #define ENABLE_BLUETOOTH  // enable bluetooth
-
-#define ENABLE_SD_CARD  // enable use of SD Card to run jobs
 
 #define ENABLE_WIFI  //enable wifi
 
@@ -153,7 +141,7 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // and addresses are defined in settings.h. With the current settings, up to 2 startup blocks may
 // be stored and executed in order. These startup blocks would typically be used to set the GCode
 // parser state depending on user preferences.
-#define N_STARTUP_LINE 2  // Integer (1-2)
+// #define N_STARTUP_LINE 2  // Integer (1-2)
 
 // Number of floating decimal points printed by Grbl for certain value types. These settings are
 // determined by realistic and commonly observed values in CNC machines. For example, position

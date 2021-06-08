@@ -233,18 +233,13 @@ void report_status_message(Error status_code, uint8_t client) {
     auto sdCard = config->_sdCard;
     switch (status_code) {
         case Error::Ok:  // Error::Ok
-#ifdef ENABLE_SD_CARD
             if (sdCard->get_state(false) == SDCard::State::BusyPrinting) {
                 sdCard->_ready_next = true;  // flag so system_execute_line() will send the next line
             } else {
                 grbl_send(client, "ok\r\n");
             }
-#else
-            grbl_send(client, "ok\r\n");
-#endif
             break;
         default:
-#ifdef ENABLE_SD_CARD
             // do we need to stop a running SD job?
             if (sdCard->get_state(false) == SDCard::State::BusyPrinting) {
                 if (status_code == Error::GcodeUnsupportedCommand) {
@@ -259,7 +254,6 @@ void report_status_message(Error status_code, uint8_t client) {
                 }
                 return;
             }
-#endif
             // With verbose errors, the message text is displayed instead of the number.
             // Grbl 0.9 used to display the text, while Grbl 1.1 switched to the number.
             // Many senders support both formats.
@@ -299,13 +293,11 @@ std::map<Message, const char*> MessageText = {
 // NOTE: For interfaces, messages are always placed within brackets. And if silent mode
 // is installed, the message number codes are less than zero.
 void report_feedback_message(Message message) {  // ok to send to all clients
-#if defined(ENABLE_SD_CARD)
     if (message == Message::SdFileQuit) {
         grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
         info_serial("Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
 
     } else
-#endif  //ENABLE_SD_CARD
     {
         auto it = MessageText.find(message);
         if (it != MessageText.end()) {
@@ -558,9 +550,7 @@ void report_build_info(const char* line, uint8_t client) {
     if (hasBluetooth()) {
         grbl_send(client, "B");
     }
-#ifdef ENABLE_SD_CARD
     grbl_send(client, "S");
-#endif
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
     grbl_send(client, "R");
 #endif
@@ -766,14 +756,12 @@ void report_realtime_status(uint8_t client) {
             }
         }
     }
-#ifdef ENABLE_SD_CARD
     if (config->_sdCard->get_state(false) == SDCard::State::BusyPrinting) {
         sprintf(temp, "|SD:%4.2f,", config->_sdCard->report_perc_complete());
         strcat(status, temp);
         config->_sdCard->get_current_filename(temp);
         strcat(status, temp);
     }
-#endif
 #ifdef REPORT_HEAP
     sprintf(temp, "|Heap:%d", esp.getHeapSize());
     strcat(status, temp);

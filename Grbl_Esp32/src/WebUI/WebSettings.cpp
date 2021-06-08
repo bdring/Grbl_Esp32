@@ -193,11 +193,11 @@ namespace WebUI {
         webPrint(GRBL_VERSION_BUILD);
         webPrint(")"
                  " # FW target:grbl-embedded  # FW HW:");
-#ifdef ENABLE_SD_CARD
-        webPrint("Direct SD");
-#else
-        webPrint("No SD");
-#endif
+        if (config->_sdCard->get_state(false) != SDCard::State::NotPresent) {
+            webPrint("Direct SD");
+        } else {
+            webPrint("No SD");
+        }
         webPrint("  # primary sd:/sd # secondary sd:none # authentication:");
 #ifdef ENABLE_AUTHENTICATION
         webPrint("yes");
@@ -631,7 +631,6 @@ namespace WebUI {
         return Error::Ok;
     }
 
-#ifdef ENABLE_SD_CARD
     static Error openSDFile(char* parameter) {
         if (*parameter == '\0') {
             webPrintln("Missing file name!");
@@ -765,7 +764,6 @@ namespace WebUI {
         SD.end();
         return Error::Ok;
     }
-#endif
 
     void listDirLocalFS(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
         //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
@@ -842,7 +840,6 @@ namespace WebUI {
 
     static Error showSDStatus(char* parameter, AuthenticationLevel auth_level) {  // ESP200
         const char* resp = "No SD card";
-#ifdef ENABLE_SD_CARD
         switch (config->_sdCard->get_state(true)) {
             case SDCard::State::Idle:
                 resp = "SD card detected";
@@ -853,9 +850,6 @@ namespace WebUI {
             default:
                 resp = "Busy";
         }
-#else
-        resp = "SD card not enabled";
-#endif
         webPrintln(resp);
         return Error::Ok;
     }
@@ -1052,12 +1046,10 @@ namespace WebUI {
         new WebCommand("P=position T=type V=value", WEBCMD, WA, "ESP401", "WebUI/Set", setWebSetting);
         new WebCommand(NULL, WEBCMD, WU, "ESP400", "WebUI/List", listSettings, anyState);
 #endif
-#ifdef ENABLE_SD_CARD
         new WebCommand("path", WEBCMD, WU, "ESP221", "SD/Show", showSDFile);
         new WebCommand("path", WEBCMD, WU, "ESP220", "SD/Run", runSDFile);
         new WebCommand("file_or_directory_path", WEBCMD, WU, "ESP215", "SD/Delete", deleteSDObject);
         new WebCommand(NULL, WEBCMD, WU, "ESP210", "SD/List", listSDFiles);
-#endif
 #ifdef WEB_COMMON
         new WebCommand(NULL, WEBCMD, WU, "ESP200", "SD/Status", showSDStatus);
         new WebCommand("STA|AP|BT|OFF", WEBCMD, WA, "ESP115", "Radio/State", setRadioState);

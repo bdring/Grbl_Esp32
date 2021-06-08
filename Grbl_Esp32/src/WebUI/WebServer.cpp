@@ -32,10 +32,8 @@
 #    include <WiFi.h>
 #    include <FS.h>
 #    include <SPIFFS.h>
-#    ifdef ENABLE_SD_CARD
-#        include <SD.h>
-#        include "../SDCard.h"
-#    endif
+#    include <SD.h>
+#    include "../SDCard.h"
 #    include <WebServer.h>
 #    include <ESP32SSDP.h>
 #    include <StreamString.h>
@@ -157,11 +155,9 @@ namespace WebUI {
         //web update
         _webserver->on("/updatefw", HTTP_ANY, handleUpdate, WebUpdateUpload);
 
-#    ifdef ENABLE_SD_CARD
         //Direct SD management
         _webserver->on("/upload", HTTP_ANY, handle_direct_SDFileList, SDFile_direct_upload);
         //_webserver->on("/SD", HTTP_ANY, handle_SDCARD);
-#    endif
 
 #    ifdef ENABLE_CAPTIVE_PORTAL
         if (WiFi.getMode() == WIFI_AP) {
@@ -278,7 +274,6 @@ namespace WebUI {
         String contentType    = getContentType(path);
         String pathWithGz     = path + ".gz";
 
-#    ifdef ENABLE_SD_CARD
         if ((path.substring(0, 4) == "/SD/")) {
             auto sdCard = config->_sdCard;
             //remove /SD
@@ -331,7 +326,6 @@ namespace WebUI {
             _webserver->send(404, "text/plain", content);
             return;
         } else
-#    endif
             if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
             if (SPIFFS.exists(pathWithGz)) {
                 path = pathWithGz;
@@ -1177,8 +1171,6 @@ namespace WebUI {
         COMMANDS::wait(0);
     }
 
-#    ifdef ENABLE_SD_CARD
-
     //Function to delete not empty directory on SD card
     bool Web_Server::deleteRecursive(String path) {
         bool result = true;
@@ -1551,7 +1543,6 @@ namespace WebUI {
         }
         COMMANDS::wait(0);
     }
-#    endif
 
     void Web_Server::handle() {
         static uint32_t timeout = millis();

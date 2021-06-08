@@ -158,7 +158,6 @@ void protocol_main_loop() {
     // ---------------------------------------------------------------------------------
     int c;
     for (;;) {
-#ifdef ENABLE_SD_CARD
         auto sdcard = config->_sdCard;
         if (sdcard->_ready_next) {
             char fileLine[255];
@@ -172,7 +171,6 @@ void protocol_main_loop() {
                 sdcard->closeFile();  // close file and clear SD ready/running flags
             }
         }
-#endif
         // Receive one line of incoming serial data, as the data becomes available.
         // Filtering, if necessary, is done later in gc_execute_line(), so the
         // filtering is the same with serial and file input.
