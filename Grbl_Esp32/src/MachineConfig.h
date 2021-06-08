@@ -200,6 +200,7 @@ public:
 
     void validate() const override;
     void group(Configuration::HandlerBase& handler) override;
+    void afterParse() override;
 
     ~SPIBus() = default;
 };

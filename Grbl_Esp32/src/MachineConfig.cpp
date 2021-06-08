@@ -360,6 +360,16 @@ void SPIBus::group(Configuration::HandlerBase& handler) {
     handler.item("mosi", _sck);
 }
 
+void SPIBus::afterParse() {
+    if (_ss.undefined() && _miso.undefined() && _mosi.undefined() && _sck.undefined()) {
+        // Default SPI miso, mosi, sck, ss pins to the "standard" gpios 19, 23, 18, 5
+        _miso = Pin::create("gpio.19");
+        _mosi = Pin::create("gpio.23");
+        _sck  = Pin::create("gpio.18");
+        _ss   = Pin::create("gpio.5");
+    }
+}
+
 void UserOutputs::group(Configuration::HandlerBase& handler) {
     handler.item("analog0", _analogOutput[0]);
     handler.item("analog1", _analogOutput[1]);
@@ -577,15 +587,15 @@ bool MachineConfig::load(const char* filename) {
         StringRange near(startNear, endNear);
         log_error("Configuration parse error: " << ex.What() << " @ " << ex.LineNumber() << ":" << ex.ColumnNumber() << " near " << near);
     } catch (const AssertionFailed& ex) {
-        sys.state = State::ConfigAlarm;  
+        sys.state = State::ConfigAlarm;
         // Get rid of buffer and return
         log_error("Configuration loading failed: " << ex.what());
     } catch (std::exception& ex) {
-        sys.state = State::ConfigAlarm;  
+        sys.state = State::ConfigAlarm;
         // Log exception:
         log_error("Configuration validation error: " << ex.what());
     } catch (...) {
-        sys.state = State::ConfigAlarm;  
+        sys.state = State::ConfigAlarm;
         // Get rid of buffer and return
         log_error("Unknown error while processing config file");
     }
