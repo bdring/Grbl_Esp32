@@ -706,34 +706,29 @@ namespace WebUI {
         return Error::Ok;
     }
 
-    static Error deleteSDObject(char* parameter, AuthenticationLevel auth_level) {  // ESP215
-        parameter = trim(parameter);
-        if (*parameter == '\0') {
+    static Error deleteObject(fs::FS fs, char* name) {
+        name = trim(name);
+        if (*name == '\0') {
             webPrintln("Missing file name!");
             return Error::InvalidValue;
         }
-        SDCard::State state = config->_sdCard->get_state(true);
-        if (state != SDCard::State::Idle) {
-            webPrintln((state == SDCard::State::NotPresent) ? "No SD card" : "Busy");
-            return Error::Ok;
-        }
-        String path = parameter;
-        if (parameter[0] != '/') {
+        String path = name;
+        if (name[0] != '/') {
             path = "/" + path;
         }
-        File file2del = SD.open(path);
+        File file2del = fs.open(path);
         if (!file2del) {
             webPrintln("Cannot stat file!");
             return Error::FsFileNotFound;
         }
         if (file2del.isDirectory()) {
-            if (!SD.rmdir(path)) {
+            if (!fs.rmdir(path)) {
                 webPrintln("Cannot delete directory! Is directory empty?");
                 return Error::FsFailedDelDir;
             }
             webPrintln("Directory deleted.");
         } else {
-            if (!SD.remove(path)) {
+            if (!fs.remove(path)) {
                 webPrintln("Cannot delete file!");
                 return Error::FsFailedDelFile;
             }
@@ -741,6 +736,15 @@ namespace WebUI {
         }
         file2del.close();
         return Error::Ok;
+    }
+
+    static Error deleteSDObject(char* parameter, AuthenticationLevel auth_level) {  // ESP215
+        SDCard::State state = config->_sdCard->get_state(true);
+        if (state != SDCard::State::Idle) {
+            webPrintln((state == SDCard::State::NotPresent) ? "No SD card" : "Busy");
+            return Error::Ok;
+        }
+        return deleteObject(SD, parameter);
     }
 
     static Error listSDFiles(char* parameter, AuthenticationLevel auth_level) {  // ESP210
@@ -765,7 +769,7 @@ namespace WebUI {
         return Error::Ok;
     }
 
-    void listDirLocalFS(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
+    void listDirLocalFS(fs::FS fs, const char* dirname, uint8_t levels, uint8_t client) {
         //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
         File root = fs.open(dirname);
         if (!root) {
@@ -791,6 +795,8 @@ namespace WebUI {
         }
     }
 
+    static Error deleteLocalFile(char* parameter, AuthenticationLevel auth_level) { return deleteObject(SPIFFS, parameter); }
+
     static Error listLocalFiles(char* parameter, AuthenticationLevel auth_level) {  // No ESP command
         webPrintln("");
         listDirLocalFS(SPIFFS, "/", 10, espresponse->client());
@@ -802,7 +808,7 @@ namespace WebUI {
         return Error::Ok;
     }
 
-    static void listDirJSON(fs::FS& fs, const char* dirname, uint8_t levels, JSONencoder* j) {
+    static void listDirJSON(fs::FS fs, const char* dirname, uint8_t levels, JSONencoder* j) {
         File root = fs.open(dirname);
         File file = root.openNextFile();
         while (file) {
@@ -1026,6 +1032,7 @@ namespace WebUI {
         new WebCommand("path", WEBCMD, WU, "ESP700", "LocalFS/Run", runLocalFile);
         new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/List", listLocalFiles);
         new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/ListJSON", listLocalFilesJSON);
+        new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/Delete", deleteLocalFile);
 #endif
 #ifdef ENABLE_NOTIFICATIONS
         new WebCommand(
