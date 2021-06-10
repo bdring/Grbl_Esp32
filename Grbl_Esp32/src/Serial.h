@@ -88,3 +88,14 @@ enum class Cmd : uint8_t {
 
 void execute_realtime_command(Cmd command, uint8_t client);
 bool is_realtime_command(uint8_t data);
+
+#include "SimpleOutputStream.h"
+
+class ClientStream : public SimpleOutputStream {
+    uint8_t _client;
+
+public:
+    ClientStream(uint8_t client) : _client(client) {}
+    void add(char c) override;
+    ~ClientStream() {}
+};

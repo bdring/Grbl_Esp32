@@ -70,13 +70,19 @@ namespace Configuration {
             dst_ << name << ": " << value << '\n';
         }
 
+        void item(const char* name, bool& value) override {
+            indent();
+            const char* bval = value ? "true" : "false";
+            dst_ << name << ": " << bval << '\n';
+        }
+
         void item(const char* name, Pin& value) override {
             indent();
             dst_ << name << ": " << value << '\n';
         }
         void item(const char* name, IPAddress& value) override {
             indent();
-            dst_ << name << ": " << value << '\n';
+            dst_ << name << ": " << value.toString() << '\n';
         }
         void item(const char* name, int& value, EnumItem* e) override {
             indent();

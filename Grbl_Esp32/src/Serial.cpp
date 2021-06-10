@@ -355,3 +355,10 @@ void client_write(uint8_t client, const char* text) {
 #endif
     }
 }
+
+void ClientStream::add(char c) {
+    char text[2];
+    text[1] = '\0';
+    text[0] = c;
+    client_write(_client, text);
+}

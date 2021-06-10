@@ -42,7 +42,7 @@ public:
     void add(const char* s);
     void add(int value);
     void add(unsigned int value);
-    void add(double value, int numberDigits, int precision);
+    void add(float value, int numberDigits, int precision);
     void add(StringRange range);
     void add(const Pin& pin);
 
@@ -69,7 +69,7 @@ inline SimpleOutputStream& operator<<(SimpleOutputStream& lhs, unsigned int v) {
     return lhs;
 }
 
-inline SimpleOutputStream& operator<<(SimpleOutputStream& lhs, double v) {
+inline SimpleOutputStream& operator<<(SimpleOutputStream& lhs, float v) {
     lhs.add(v, 4, 3);
     return lhs;
 }

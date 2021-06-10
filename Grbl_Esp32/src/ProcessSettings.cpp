@@ -443,12 +443,22 @@ Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, We
     return Error::Ok;
 }
 
+Error dump_config(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    try {
+        ClientStream             ss(CLIENT_ALL);
+        Configuration::Generator generator(ss);
+        config->group(generator);
+    } catch (std::exception& ex) { log_info("Config dump error: " << ex.what()); }
+    return Error::Ok;
+}
+
 // Commands use the same syntax as Settings, but instead of setting or
 // displaying a persistent value, a command causes some action to occur.
 // That action could be anything, from displaying a run-time parameter
 // to performing some system state change.  Each command is responsible
 // for decoding its own value string, if it needs one.
 void make_grbl_commands() {
+    new GrblCommand("DC", "Config/Dump", dump_config, anyState);
     new GrblCommand("", "Help", show_grbl_help, anyState);
     new GrblCommand("T", "State", showState, anyState);
     new GrblCommand("J", "Jog", doJog, idleOrJog);

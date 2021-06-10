@@ -57,7 +57,14 @@ void SimpleOutputStream::add(unsigned int value) {
     }
 }
 
-void SimpleOutputStream::add(double value, int numberDigits, int precision) {
+#ifdef ESP32
+void SimpleOutputStream::add(float value, int numberDigits, int precision) {
+    char buf[30];
+    // dtostrf() is an Arduino extension
+    add(dtostrf(value, numberDigits, precision, buf));
+}
+#else
+void SimpleOutputStream::add(float value, int numberDigits, int precision) {
     if (isnan(value)) {
         add("NaN");
     } else if (isinf(value)) {
@@ -70,12 +77,13 @@ void SimpleOutputStream::add(double value, int numberDigits, int precision) {
     fmt[1] = '0';
 
     char* next = intToBuf(numberDigits, fmt + 2);
-    *next++    = '.';
+    *next++ = '.';
     intToBuf(precision, next);
 
     snprintf(buf, sizeof(buf) - 1, fmt, value);
     add(buf);
 }
+#endif
 
 void SimpleOutputStream::add(StringRange range) {
     for (auto ch : range) {
