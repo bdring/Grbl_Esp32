@@ -214,3 +214,16 @@ void __attribute__((weak)) user_defined_macro(uint8_t index) {
     strcat(line, "\r");
     WebUI::inputBuffer.push(line);
 }
+
+std::map<State, const char*> StateName = {
+    { State::Idle, "Idle" },
+    { State::Alarm, "Alarm" },
+    { State::CheckMode, "CheckMode" },
+    { State::Homing, "Homing" },
+    { State::Cycle, "Cycle" },
+    { State::Hold, "Hold" },
+    { State::Jog, "Jog" },
+    { State::SafetyDoor, "SafetyDoor" },
+    { State::Sleep, "Sleep" },
+    { State::ConfigAlarm, "ConfigAlarm" },
+};

@@ -222,7 +222,7 @@ Error toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
     return Error::Ok;
 }
 Error disable_alarm_lock(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    if (sys.state == State::Alarm) {
+    if (sys.state == State::Alarm || sys.state == State::ConfigAlarm) {
         // Block if safety door is ajar.
         if (config->_control->system_check_safety_door_ajar()) {
             return Error::CheckDoor;
@@ -334,9 +334,15 @@ Error restore_settings(const char* value, WebUI::AuthenticationLevel auth_level,
 }
 
 Error showState(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    grbl_sendf(out->client(), "State 0x%x\r\n", sys.state);
+    const char* name;
+    const State state = sys.state;
+    auto        it    = StateName.find(state);
+    name              = it == StateName.end() ? "<invalid>" : it->second;
+
+    grbl_sendf(out->client(), "State %d (%s)\r\n", state, name);
     return Error::Ok;
 }
+
 Error doJog(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     // For jogging, you must give gc_execute_line() a line that
     // begins with $J=.  There are several ways we can get here,
@@ -357,6 +363,9 @@ const char* alarmString(ExecAlarm alarmNumber) {
 }
 
 Error listAlarms(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    if (sys_rt_exec_alarm != ExecAlarm::None) {
+        grbl_sendf(out->client(), "Active alarm: %d (%s)\r\n", int(sys_rt_exec_alarm), alarmString(sys_rt_exec_alarm));
+    }
     if (value) {
         char*   endptr      = NULL;
         uint8_t alarmNumber = strtol(value, &endptr, 10);

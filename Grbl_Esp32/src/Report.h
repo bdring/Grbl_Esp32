@@ -47,6 +47,7 @@ enum class Message : uint8_t {
     RestoreDefaults = 9,
     SpindleRestore  = 10,
     SleepMode       = 11,
+    ConfigAlarmLock = 12,
     SdFileQuit      = 60,  // mc_reset was called during an SD job
 };
 

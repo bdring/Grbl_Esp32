@@ -138,7 +138,7 @@ void protocol_main_loop() {
     // NOTE: Sleep mode disables the stepper drivers and position can't be guaranteed.
     // Re-initialize the sleep state as an ALARM mode to ensure user homes or acknowledges.
     if (sys.state == State::ConfigAlarm) {
-        report_feedback_message(Message::AlarmLock);
+        report_feedback_message(Message::ConfigAlarmLock);
     } else if (sys.state == State::Alarm || sys.state == State::Sleep) {
         report_feedback_message(Message::AlarmLock);
         sys.state = State::Alarm;  // Ensure alarm state is set.

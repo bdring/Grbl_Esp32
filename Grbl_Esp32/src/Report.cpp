@@ -283,6 +283,7 @@ std::map<Message, const char*> MessageText = {
     { Message::RestoreDefaults, "Restoring defaults" },
     { Message::SpindleRestore, "Restoring spindle" },
     { Message::SleepMode, "Sleeping" },
+    { Message::ConfigAlarmLock, "Configuration error - '$X' to unlock" },
     // Handled separately due to numeric argument
     // { Message::SdFileQuit, "Reset during SD file at line: %d" },
 };
@@ -297,8 +298,7 @@ void report_feedback_message(Message message) {  // ok to send to all clients
         grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
         info_serial("Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
 
-    } else
-    {
+    } else {
         auto it = MessageText.find(message);
         if (it != MessageText.end()) {
             info_serial(it->second);

@@ -10,7 +10,7 @@ bool idleOrJog() {
     return sys.state != State::Idle && sys.state != State::Jog;
 }
 bool idleOrAlarm() {
-    return sys.state != State::Idle && sys.state != State::Alarm;
+    return sys.state != State::Idle && sys.state != State::Alarm && sys.state != State::ConfigAlarm;
 }
 bool notCycleOrHold() {
     return sys.state == State::Cycle && sys.state == State::Hold;
