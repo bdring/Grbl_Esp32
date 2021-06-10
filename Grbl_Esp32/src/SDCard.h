@@ -47,7 +47,6 @@ private:
 
     State _state;
     Pin   _cardDetect;
-    Pin   _cs_pin;
 
 public:
     bool                       _readyNext;
@@ -76,12 +75,7 @@ public:
     void init();
 
     // Configuration handlers.
-    void validate() const override { Assert(!_cs_pin.undefined(), "spi_cs pin should be configured."); }
-
-    void group(Configuration::HandlerBase& handler) override {
-        handler.item("card_detect", _cardDetect);
-        handler.item("spi_cs", _cs_pin);
-    }
+    void group(Configuration::HandlerBase& handler) override { handler.item("card_detect", _cardDetect); }
 
     ~SDCard();
 };

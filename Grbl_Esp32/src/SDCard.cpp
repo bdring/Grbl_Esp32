@@ -141,7 +141,7 @@ SDCard::State SDCard::get_state(bool refresh) {
     auto spiConfig = config->_spi;
 
     if (spiConfig != nullptr) {
-        auto ssPin   = _cs_pin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto ssPin   = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
         auto mosiPin = spiConfig->_mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
         auto sckPin  = spiConfig->_sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
         auto misoPin = spiConfig->_miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
@@ -196,7 +196,6 @@ void SDCard::init() {
 
     if (init_message) {
         _cardDetect.report("SD Card Detect");
-        _cs_pin.report("SD SPI Chip Select");
         init_message = false;
     }
 

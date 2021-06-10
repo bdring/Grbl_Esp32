@@ -436,6 +436,14 @@ void MachineConfig::afterParse() {
         _sdCard = new SDCard();
     }
 
+    if (_spi == nullptr) {
+        _spi = new SPIBus();
+    }
+
+    if (_i2so == nullptr) {
+        _i2so = new I2SOBus();
+    }
+
     if (_control == nullptr) {
         log_info("Control config missing; building default");
         _control = new Control();
