@@ -23,7 +23,8 @@ axes:
     max_rate: 2000
     acceleration: 25
     max_travel: 1000
-    home_mpos: 10
+    homing:
+      mpos: 10
     
     gang0:
       endstops:
@@ -41,7 +42,8 @@ axes:
     max_rate: 2000
     acceleration: 25
     max_travel: 1000
-    home_mpos: 10
+    homing:
+      mpos: 10
 
     gang0:
       endstops:
@@ -59,7 +61,8 @@ axes:
     max_rate: 2000
     acceleration: 25
     max_travel: 1000
-    home_mpos: 10
+    homing:
+      mpos: 10
 
     gang0:
       endstops:

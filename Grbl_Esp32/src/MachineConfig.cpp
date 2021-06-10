@@ -74,6 +74,14 @@ Gang::~Gang() {
 }
 
 void Axis::group(Configuration::HandlerBase& handler) {
+    handler.item("steps_per_mm", _stepsPerMm);
+    handler.item("max_rate", _maxRate);
+    handler.item("acceleration", _acceleration);
+    handler.item("max_travel", _maxTravel);
+    handler.item("soft_limits", _softLimits);
+
+    handler.section("homing", _homing);
+
     char tmp[6];
     tmp[0] = 0;
     strcat(tmp, "gang");
