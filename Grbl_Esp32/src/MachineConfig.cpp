@@ -310,7 +310,8 @@ void Axes::group(Configuration::HandlerBase& handler) {
         tmp[1] = '\0';
 
         if (handler.handlerType() == Configuration::HandlerType::Runtime || handler.handlerType() == Configuration::HandlerType::Parser ||
-            handler.handlerType() == Configuration::HandlerType::AfterParse) {
+            handler.handlerType() == Configuration::HandlerType::AfterParse ||
+            handler.handlerType() == Configuration::HandlerType::Generator) {
             handler.section(tmp, _axis[a]);
         }
     }
