@@ -1,0 +1,49 @@
+---
+name: MIDTBOT
+board: bdring-midtbot
+defaults:
+  steppers:
+    disable: gpio.13
+    pulse: 3
+    idle: never
+  gpio:
+    debounce: 250
+x:
+  limit: gpio.2:low
+  stepstick:
+    step: gpio.12
+    direction: gpio.26
+  homing: invert
+  spmm: 200
+  max-rate: 8000
+  acceleration: 200
+  travel: 100
+y:
+  limit: gpio.4,low
+  stepstick:
+    step: gpio.14:low
+    direction: gpio.25
+  spmm: 100
+  max-rate: 8000
+  acceleration: 200
+  travel: 100
+z:
+  servo:
+    pin: gpio.27
+  spmm: 100
+  max-rate: 5000
+  acceleration: 100
+  travel: 100
+homing:
+  cycle:
+    - y
+    - x
+  feed-rate: 200
+  seek-rate: 1000
+  pulloff: 3
+report:
+  status-mask: 1
+  inches: off
+gcode:
+  junction-deviation: 0.01
+  arc-tolerance: 0.002
