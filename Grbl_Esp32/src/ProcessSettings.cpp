@@ -458,7 +458,7 @@ Error dump_config(const char* value, WebUI::AuthenticationLevel auth_level, WebU
 // to performing some system state change.  Each command is responsible
 // for decoding its own value string, if it needs one.
 void make_grbl_commands() {
-    new GrblCommand("DC", "Config/Dump", dump_config, anyState);
+    new GrblCommand("CD", "Config/Dump", dump_config, anyState);
     new GrblCommand("", "Help", show_grbl_help, anyState);
     new GrblCommand("T", "State", showState, anyState);
     new GrblCommand("J", "Jog", doJog, idleOrJog);
