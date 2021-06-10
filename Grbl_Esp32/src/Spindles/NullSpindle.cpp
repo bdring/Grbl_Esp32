@@ -41,6 +41,6 @@ namespace Spindles {
 
     // Configuration registration
     namespace {
-        SpindleFactory::InstanceBuilder<Null> registration("Null");
+        SpindleFactory::InstanceBuilder<Null> registration("NoSpindle");
     }
 }

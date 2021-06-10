@@ -46,7 +46,7 @@ namespace Spindles {
         void group(Configuration::HandlerBase& handler) override {}
 
         // Name of the configurable. Must match the name registered in the cpp file.
-        const char* name() const override { return "Null"; }
+        const char* name() const override { return "NoSpindle"; }
 
         virtual ~Null() {}
     };
