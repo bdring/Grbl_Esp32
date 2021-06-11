@@ -142,7 +142,7 @@ void run_once() {
         protocol_main_loop();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
-        error_all("Critical error in run_once: %s", ex.stackTrace.c_str());
+        error_all("Critical error in run_once: %s", ex.msg.c_str());
         sleep(10000);
         throw;
     }
