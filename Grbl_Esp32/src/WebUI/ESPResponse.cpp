@@ -99,6 +99,13 @@ namespace WebUI {
         grbl_send(_client, data);
     }
 
+    void ESPResponseStream::print(const char data) {
+        char text[2];
+        text[0] = data;
+        text[1] = '\0';
+        print(text);
+    }
+
     void ESPResponseStream::flush() {
 #if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
         if (_webserver) {
