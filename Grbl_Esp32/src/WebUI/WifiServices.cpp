@@ -59,8 +59,6 @@ namespace WebUI {
 
         String& h = config->_comms->_hostname;
 
-        //Start SPIFFS
-        SPIFFS.begin(true);
 #    ifdef ENABLE_OTA
         ArduinoOTA
             .onStart([]() {
@@ -137,8 +135,6 @@ namespace WebUI {
 #    ifdef ENABLE_OTA
         ArduinoOTA.end();
 #    endif
-        //Stop SPIFFS
-        SPIFFS.end();
 #    ifdef ENABLE_MDNS
         //Stop mDNS
         MDNS.end();

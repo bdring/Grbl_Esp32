@@ -22,6 +22,7 @@
 #include "MachineConfig.h"
 
 #include <WiFi.h>
+#include <SPIFFS.h>
 
 void grbl_init() {
     try {
@@ -42,6 +43,10 @@ void grbl_init() {
 #ifdef MACHINE_NAME
         report_machine_type(CLIENT_SERIAL);
 #endif
+
+        if (!SPIFFS.begin(true)) {
+            log_error("Cannot mount the local filesystem");
+        }
 
         // Load Grbl settings from non-volatile storage
         debug_serial("Initializing settings...");
@@ -64,7 +69,6 @@ void grbl_init() {
         config->_axes->read_settings();
         config->_axes->init();
 
-        info_serial("Initializing system...");
         config->_control->init();
         init_output_pins();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.

@@ -476,36 +476,29 @@ void MachineConfig::afterParse() {
 }
 
 size_t MachineConfig::readFile(const char* filename, char*& buffer) {
-    if (!SPIFFS.begin(true)) {
-        log_info("Cannot mount the local filesystem");
-        return 0;
+    String path = filename;
+    if ((path.length() > 0) && (path[0] != '/')) {
+        path = "/" + path;
     }
-
-    FILE* file = fopen(filename, "rb");
+    File file = SPIFFS.open(path, FILE_READ);
     if (!file) {
-        log_info("Cannot open the config file " << filename);
+        log_info("Cannot open the config file " << path);
         return 0;
     }
-
-    // Let's just read the entire file in one chunk for now. If we get
-    // in trouble with this, we can cut it in pieces and read it per chunk.
-    fseek(file, 0, SEEK_END);
-    auto filesize = ftell(file);
-    log_debug("Configuration file has " << int(filesize) << " bytes");
-
-    fseek(file, 0, SEEK_SET);
+    auto filesize = file.size();
+    // log_debug("Configuration file has " << int(filesize) << " bytes");
     buffer = new char[filesize + 1];
 
     long pos = 0;
     while (pos < filesize) {
-        auto read = fread(buffer + pos, 1, filesize - pos, file);
+        auto read = file.read((uint8_t*)(buffer + pos), filesize - pos);
         if (read == 0) {
             break;
         }
         pos += read;
     }
 
-    fclose(file);
+    file.close();
     buffer[filesize] = 0;
 
     log_debug("Read config file:\r\n" << buffer);
@@ -522,9 +515,7 @@ size_t MachineConfig::readFile(const char* filename, char*& buffer) {
 char defaultConfig[] = "name: Default\nboard: None\n";
 
 bool MachineConfig::load(const char* filename) {
-    // Regardless of what we do next, we _always_ want a MachineConfig instance.
-
-    log_info("Heap size before load config is " << uint32_t(xPortGetFreeHeapSize()));
+    // log_info("Heap size before load config is " << uint32_t(xPortGetFreeHeapSize()));
 
     // If the system crashes we skip the config file and use the default
     // builtin config.  This helps prevent reset loops on bad config files.
@@ -548,7 +539,7 @@ bool MachineConfig::load(const char* filename) {
     // Process file:
     bool successful = false;
     try {
-        log_info("Heap size before parsing is " << uint32_t(xPortGetFreeHeapSize()));
+        // log_info("Heap size before parsing is " << uint32_t(xPortGetFreeHeapSize()));
 
         Configuration::Parser        parser(input->begin(), input->end());
         Configuration::ParserHandler handler(parser);
@@ -568,7 +559,7 @@ bool MachineConfig::load(const char* filename) {
 
         log_info("Parsed configuration. Running after-parse tasks");
 
-        log_info("Heap size before after-parse is " << uint32_t(xPortGetFreeHeapSize()));
+        // log_info("Heap size before after-parse is " << uint32_t(xPortGetFreeHeapSize()));
 
         try {
             Configuration::AfterParse afterParse;
@@ -578,7 +569,7 @@ bool MachineConfig::load(const char* filename) {
 
         log_info("Validating configuration");
 
-        log_info("Heap size before validation is " << uint32_t(xPortGetFreeHeapSize()));
+        // log_info("Heap size before validation is " << uint32_t(xPortGetFreeHeapSize()));
 
         try {
             Configuration::Validator validator;
@@ -588,13 +579,9 @@ bool MachineConfig::load(const char* filename) {
 
         log_info("Validated configuration");
 
-        log_info("Heap size after configuation load is " << uint32_t(xPortGetFreeHeapSize()));
+        // log_info("Heap size after configuation load is " << uint32_t(xPortGetFreeHeapSize()));
 
         successful = true;
-
-        // TODO FIXME: If we get here, we want to make the settings live by saving them as
-        // '/spiffs/config.yaml.new', storing it, and then deleting the .yaml and renaming it.
-        // That way, we can always check if the yaml is there, and if it's not, load the yaml.new.
 
     } catch (const Configuration::ParseException& ex) {
         sys.state      = State::ConfigAlarm;
