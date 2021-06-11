@@ -564,7 +564,7 @@ namespace WebUI {
 
 #ifdef ENABLE_WIFI
     static Error listAPs(char* parameter, AuthenticationLevel auth_level) {  // ESP410
-        JSONencoder j(espresponse->client() != CLIENT_WEBUI);
+        JSONencoder j(espresponse->client() != CLIENT_WEBUI, espresponse);
         j.begin();
         j.begin_array("AP_LIST");
         // An initial async scanNetworks was issued at startup, so there
@@ -595,7 +595,7 @@ namespace WebUI {
                 break;
         }
         j.end_array();
-        webPrint(j.end());
+        j.end();
         if (espresponse->client() != CLIENT_WEBUI) {
             espresponse->println("");
         }
@@ -620,14 +620,18 @@ namespace WebUI {
     }
 
     static Error listSettings(char* parameter, AuthenticationLevel auth_level) {  // ESP400
-        JSONencoder j(espresponse->client() != CLIENT_WEBUI);
+        JSONencoder j(espresponse->client() != CLIENT_WEBUI, espresponse);
         j.begin();
         j.begin_array("EEPROM");
 
         Configuration::JsonGenerator gen(j);
         config->group(gen);
         j.end_array();
-        webPrint(j.end());
+        j.end();
+        if (espresponse->client() != CLIENT_WEBUI) {
+            espresponse->println("");
+        }
+
         return Error::Ok;
     }
 
@@ -829,7 +833,7 @@ namespace WebUI {
     }
 
     static Error listLocalFilesJSON(char* parameter, AuthenticationLevel auth_level) {  // No ESP command
-        JSONencoder j(espresponse->client() != CLIENT_WEBUI);
+        JSONencoder j(espresponse->client() != CLIENT_WEBUI, espresponse);
         j.begin();
         j.begin_array("files");
         listDirJSON(SPIFFS, "/", 4, &j);
@@ -837,7 +841,7 @@ namespace WebUI {
         j.member("total", SPIFFS.totalBytes());
         j.member("used", SPIFFS.usedBytes());
         j.member("occupation", String(100 * SPIFFS.usedBytes() / SPIFFS.totalBytes()));
-        webPrint(j.end());
+        j.end();
         if (espresponse->client() != CLIENT_WEBUI) {
             webPrintln("");
         }

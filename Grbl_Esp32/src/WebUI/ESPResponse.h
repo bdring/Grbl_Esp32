@@ -33,6 +33,7 @@ namespace WebUI {
         ESPResponseStream(uint8_t client, bool byid = true);
         ESPResponseStream();
 
+        void          print(const char data);
         void          print(const char* data);
         void          println(const char* data);
         void          flush();

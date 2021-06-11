@@ -5,12 +5,24 @@
 #include "JSONEncoder.h"
 
 namespace WebUI {
-    // Constructor that supplies a default falue for "pretty"
-    JSONencoder::JSONencoder() : JSONencoder(false) {}
+    // Constructor.  If _pretty is true, newlines are
+    // inserted into the JSON string for easy reading.
+    JSONencoder::JSONencoder(bool pretty, ESPResponseStream* s) : pretty(pretty), level(0), str(""), stream(s) { count[level] = 0; }
 
     // Constructor.  If _pretty is true, newlines are
     // inserted into the JSON string for easy reading.
-    JSONencoder::JSONencoder(bool pretty) : pretty(pretty), level(0), str("") { count[level] = 0; }
+    JSONencoder::JSONencoder(bool pretty) : JSONencoder(pretty, nullptr) {}
+
+    // Constructor that supplies a default falue for "pretty"
+    JSONencoder::JSONencoder() : JSONencoder(false) {}
+
+    void JSONencoder::add(char c) {
+        if (stream) {
+            stream->print(c);
+        } else {
+            str += c;
+        }
+    }
 
     // Private function to add commas between
     // elements as needed, omitting the comma
@@ -38,7 +50,11 @@ namespace WebUI {
     // Private function to add a name enclosed with quotes.
     void JSONencoder::quoted(const char* s) {
         add('"');
-        str.concat(s);
+        if (stream) {
+            stream->print(s);
+        } else {
+            str.concat(s);
+        }
         add('"');
     }
 
@@ -109,9 +125,7 @@ namespace WebUI {
     // Ends an object with }.
     void JSONencoder::end_object() {
         dec_level();
-        if (count[level + 1] > 1) {
-            line();
-        }
+        line();
         add('}');
     }
 
