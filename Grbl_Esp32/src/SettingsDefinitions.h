@@ -1,5 +1,7 @@
 #pragma once
 
+extern StringSetting* config_filename;
+
 extern StringSetting* startup_line_0;
 extern StringSetting* startup_line_1;
 extern StringSetting* build_info;
