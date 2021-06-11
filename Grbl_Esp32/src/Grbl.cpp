@@ -46,7 +46,7 @@ void grbl_init() {
         // Load Grbl settings from non-volatile storage
         debug_serial("Initializing settings...");
         settings_init();
-        config->load();
+        config->load(config_filename->get());
 
         info_serial("Name: %s", config->_name.c_str());
         info_serial("Board: %s", config->_board.c_str());

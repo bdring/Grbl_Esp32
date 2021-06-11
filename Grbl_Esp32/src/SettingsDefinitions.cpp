@@ -1,5 +1,7 @@
 #include "Grbl.h"
 
+StringSetting* config_filename;
+
 StringSetting* startup_line_0;
 StringSetting* startup_line_1;
 StringSetting* build_info;
@@ -72,4 +74,6 @@ void make_settings() {
     user_macro0 = new StringSetting(EXTENDED, WG, NULL, "User/Macro0", DEFAULT_USER_MACRO0);
 
     message_level = +new EnumSetting(NULL, EXTENDED, WG, NULL, "Message/Level", static_cast<int8_t>(MsgLevel::Info), &messageLevels, NULL);
+
+    config_filename = new StringSetting(EXTENDED, WG, NULL, "Config/Filename", "/spiffs/config.yaml");
 }

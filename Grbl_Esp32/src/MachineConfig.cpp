@@ -491,7 +491,7 @@ size_t MachineConfig::readFile(const char* filename, char*& buffer) {
     // in trouble with this, we can cut it in pieces and read it per chunk.
     fseek(file, 0, SEEK_END);
     auto filesize = ftell(file);
-    log_debug("Configuration file is " << int(filesize) << " bytes");
+    log_debug("Configuration file has " << int(filesize) << " bytes");
 
     fseek(file, 0, SEEK_SET);
     buffer = new char[filesize + 1];

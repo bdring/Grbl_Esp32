@@ -322,7 +322,7 @@ public:
 class MachineConfig : public Configuration::Configurable {
 public:
     MachineConfig() = default;
-    
+
     Axes*              _axes        = nullptr;
     SPIBus*            _spi         = nullptr;
     I2SOBus*           _i2so        = nullptr;
@@ -361,7 +361,7 @@ public:
     void group(Configuration::HandlerBase& handler) override;
 
     static size_t readFile(const char* file, char*& buffer);
-    static bool   load(const char* file = "/spiffs/config.yaml");
+    static bool   load(const char* file);
 
     ~MachineConfig();
 };
