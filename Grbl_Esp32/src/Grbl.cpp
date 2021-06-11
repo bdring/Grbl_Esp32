@@ -90,8 +90,7 @@ void grbl_init() {
             // If there is an axis with homing configured, enter Alarm state on startup
             sys.state = State::Alarm;
         }
-        info_serial("Initializing spindle...");
-
+        config->_spindle->init();
         config->_coolant->init();
         limits_init();
         config->_probe->init();

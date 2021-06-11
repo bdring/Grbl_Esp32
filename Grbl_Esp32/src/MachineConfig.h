@@ -45,7 +45,7 @@ public:
     //     Pin  _positive;
     //     Pin  _negative;
     Pin  _dual;
-    bool _hardLimits = true;
+    bool _hardLimits = false;
 
     // Configuration system helpers:
     void validate() const override;
@@ -322,7 +322,7 @@ public:
 class MachineConfig : public Configuration::Configurable {
 public:
     MachineConfig() = default;
-    
+
     Axes*              _axes        = nullptr;
     SPIBus*            _spi         = nullptr;
     I2SOBus*           _i2so        = nullptr;

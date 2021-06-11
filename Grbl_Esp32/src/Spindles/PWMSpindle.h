@@ -86,7 +86,7 @@ namespace Spindles {
         Pin      _enable_pin;
         Pin      _direction_pin;
         uint8_t  _pwm_chan_num;
-        uint32_t _pwm_freq;
+        uint32_t _pwm_freq = 5000;
         uint32_t _pwm_period;  // how many counts in 1 period
         uint8_t  _pwm_precision;
         bool     _off_with_zero_speed;

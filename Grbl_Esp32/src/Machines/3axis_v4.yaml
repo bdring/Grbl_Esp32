@@ -83,6 +83,6 @@ comms:
 probe:
     pin: gpio.32:low:pu
 
-PWM:
+pwm:
   output_pin: gpio.2
   enable_pin: gpio.22
