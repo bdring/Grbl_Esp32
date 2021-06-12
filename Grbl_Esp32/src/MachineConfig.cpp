@@ -480,11 +480,23 @@ size_t MachineConfig::readFile(const char* filename, char*& buffer) {
     if ((path.length() > 0) && (path[0] != '/')) {
         path = "/" + path;
     }
-    if (!SPIFFS.exists(path)) {
+
+    File file = SPIFFS.open(path, FILE_READ);
+
+    // There is a subtle problem with the Arduino framework.  If
+    // the framework does not find the file, it tries to open the
+    // path as a directory.  SPIFFS_opendir(... path ...) always
+    // succeeds, regardless of what path is, hence the need to
+    // check that it is not a directory.
+
+    if (!file || file.isDirectory()) {
+        if (file) {
+            file.close();
+        }
         log_info("Missing config file " << path);
         return 0;
     }
-    File file     = SPIFFS.open(path, FILE_READ);
+
     auto filesize = file.size();
     if (filesize == 0) {
         log_info("config file " << path << " is empty");
@@ -505,7 +517,7 @@ size_t MachineConfig::readFile(const char* filename, char*& buffer) {
     file.close();
     buffer[filesize] = 0;
 
-    log_debug("Read config file:" << buffer);
+    // log_debug("Read config file:\n" << buffer);
 
     if (pos != filesize) {
         delete[] buffer;
@@ -536,6 +548,8 @@ bool MachineConfig::load(const char* filename) {
 
     if (filesize > 0) {
         input = new StringRange(buffer, buffer + filesize);
+        log_info("Using configuration file " << filename);
+
     } else {
         log_info("Using default configuration");
         input = new StringRange(defaultConfig);
