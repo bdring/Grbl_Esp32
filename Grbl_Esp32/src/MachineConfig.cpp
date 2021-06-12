@@ -501,7 +501,7 @@ size_t MachineConfig::readFile(const char* filename, char*& buffer) {
     file.close();
     buffer[filesize] = 0;
 
-    log_debug("Read config file:\r\n" << buffer);
+    log_debug("Read config file:" << buffer);
 
     if (pos != filesize) {
         delete[] buffer;

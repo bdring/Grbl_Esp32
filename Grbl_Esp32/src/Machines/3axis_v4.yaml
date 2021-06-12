@@ -86,3 +86,8 @@ probe:
 pwm:
   output_pin: gpio.2
   enable_pin: gpio.22
+  pwm_off: 0.0
+  pwm_min: 0.0
+  pwm_max: 100.0
+  min_rpm: 0
+  max_rpm: 1000

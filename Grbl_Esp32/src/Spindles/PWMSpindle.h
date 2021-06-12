@@ -54,9 +54,9 @@ namespace Spindles {
             handler.item("max_rpm", _max_rpm);
 
             handler.item("pwm_freq", _pwm_freq);
-            handler.item("pwm_off", _pwm_off_setting);
-            handler.item("pwm_min", _pwm_min_setting);
-            handler.item("pwm_max", _pwm_max_setting);
+            handler.item("pwm_off", _pwm_off_setting, 0.0, 100.0);
+            handler.item("pwm_min", _pwm_min_setting, 0.0, 100.0);
+            handler.item("pwm_max", _pwm_max_setting, 0.0, 100.0);
             handler.item("invert_pwm", _invert_pwm);
             handler.item("output_pin", _output_pin);
             handler.item("enable_pin", _enable_pin);
@@ -72,25 +72,25 @@ namespace Spindles {
         virtual ~PWM() {}
 
     protected:
-        uint32_t _pwm_off_setting;  // do we need these 3?
-        uint32_t _pwm_min_setting;
-        uint32_t _pwm_max_setting;
+        float _pwm_off_setting = 0;  // do we need these 3?
+        float _pwm_min_setting = 0;
+        float _pwm_max_setting = 0;
 
         int32_t  _current_pwm_duty;
-        uint32_t _min_rpm;
-        uint32_t _max_rpm;
-        uint32_t _pwm_off;
-        uint32_t _pwm_min;
-        uint32_t _pwm_max;
+        uint32_t _min_rpm = 0;
+        uint32_t _max_rpm = 1000;
+        uint32_t _pwm_off;  // calculated at init
+        uint32_t _pwm_min;  // calculated at init
+        uint32_t _pwm_max;  // calculated at init
         Pin      _output_pin;
         Pin      _enable_pin;
         Pin      _direction_pin;
         uint8_t  _pwm_chan_num;
         uint32_t _pwm_freq = 5000;
-        uint32_t _pwm_period;  // how many counts in 1 period
-        uint8_t  _pwm_precision;
-        bool     _off_with_zero_speed;
-        bool     _invert_pwm;
+        uint32_t _pwm_period;     // how many counts in 1 period
+        uint8_t  _pwm_precision;  // auto calculated
+        bool     _off_with_zero_speed = false;
+        bool     _invert_pwm          = false;
 
         virtual void set_direction(bool Clockwise);
         virtual void set_output(uint32_t duty);
