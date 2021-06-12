@@ -480,12 +480,16 @@ size_t MachineConfig::readFile(const char* filename, char*& buffer) {
     if ((path.length() > 0) && (path[0] != '/')) {
         path = "/" + path;
     }
-    File file = SPIFFS.open(path, FILE_READ);
-    if (!file) {
-        log_info("Cannot open the config file " << path);
+    if (!SPIFFS.exists(path)) {
+        log_info("Missing config file " << path);
         return 0;
     }
+    File file     = SPIFFS.open(path, FILE_READ);
     auto filesize = file.size();
+    if (filesize == 0) {
+        log_info("config file " << path << " is empty");
+        return 0;
+    }
     // log_debug("Configuration file has " << int(filesize) << " bytes");
     buffer = new char[filesize + 1];
 
