@@ -4,8 +4,9 @@
 
 #include <Arduino.h>
 
-// Pin mapping. Pretty straight forward, it's just a thing that
-
+// Pin mapping. Pretty straight forward, it's just a thing that stores pins in an array. 
+// 
+// The default behavior of a mapped pin is _undefined pin_, so it does nothing. 
 namespace {
     class Mapping {
     public:
@@ -37,18 +38,24 @@ namespace {
     };
 }
 
+// See header file for more information.
+
 PinMapper::PinMapper() : _mappedId(0) {}
 
 PinMapper::PinMapper(Pin& pin) {
     _mappedId = Mapping::instance().Claim(&pin);
+    
+    // If you reach this assertion, you haven't been using the Pin class like you're supposed to.
     Assert(_mappedId != 0, "Cannot claim pin. We've reached the limit of 255 mapped pins.");
 }
 
+// To aid return values and assignment
 PinMapper::PinMapper(PinMapper&& o) : _mappedId(0) {
     std::swap(_mappedId, o._mappedId);
 }
 
 PinMapper& PinMapper::operator=(PinMapper&& o) {
+    // Special case for `a=a`. If we release there, things go wrong.
     if (&o != this) {
         if (_mappedId != 0) {
             Mapping::instance().Release(_mappedId);
@@ -59,6 +66,7 @@ PinMapper& PinMapper::operator=(PinMapper&& o) {
     return *this;
 }
 
+// Clean up when we get destructed.
 PinMapper::~PinMapper() {
     if (_mappedId != 0) {
         Mapping::instance().Release(_mappedId);
@@ -66,7 +74,6 @@ PinMapper::~PinMapper() {
 }
 
 // Arduino compatibility functions, which basically forward the call to the mapper:
-
 void IRAM_ATTR digitalWrite(uint8_t pin, uint8_t val) {
     auto thePin = Mapping::instance()._mapping[pin];
     if (thePin) {
