@@ -20,48 +20,46 @@
 
 #include "HandlerBase.h"
 #include "Configurable.h"
+#include "../WebUI/ESPResponse.h"
 
 namespace Configuration {
     class RuntimeSetting : public Configuration::HandlerBase {
     private:
-        const char* setting_;  // $foo/bar=12
+        const char* setting_;  // foo/bar
         const char* start_;
+
+        const char* newValue_; // null (read) or 123 (value)
+
+        WebUI::ESPResponseStream* out_;
 
         bool is(const char* name) const {
             if (start_ != nullptr) {
                 auto len = strlen(name);
-                return !strncmp(name, start_, len) && (start_[len] == '=' || start_[len] == '/');
+                auto result = !strncasecmp(name, start_, len) && (start_[len] == '\0' || start_[len] == '/');
+                return result;
             } else {
                 return false;
             }
         }
 
-        const char* value() const {
-            for (const char* it = start_; *it; ++it) {
-                if (*it == '/') {
-                    return nullptr;
-                } else if (*it == '=') {
-                    return it + 1;
-                }
-            }
-            return nullptr;
-        }
-
     protected:
         void enterSection(const char* name, Configuration::Configurable* value) override;
-
         bool matchesUninitialized(const char* name) override { return false; }
 
     public:
-        RuntimeSetting(const char* runtimeSetting);
+        RuntimeSetting(const char* key, const char* value, WebUI::ESPResponseStream* out);
 
+        void item(const char* name, bool& value) override;
         void item(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) override;
         void item(const char* name, float& value, float minValue, float maxValue) override;
         void item(const char* name, StringRange& value, int minLength, int maxLength) override;
         void item(const char* name, Pin& value) override;
-        void item(const char* name, int& value, EnumItem* e) override {}
+        void item(const char* name, IPAddress& value) override;
+        void item(const char* name, int& value, EnumItem* e) override;
 
         HandlerType handlerType() override { return HandlerType::Runtime; }
+        
+        bool        isHandled_ = false;
 
         virtual ~RuntimeSetting();
     };

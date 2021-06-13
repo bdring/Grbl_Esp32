@@ -18,22 +18,25 @@
 
 #include "RuntimeSetting.h"
 
+#include "../Report.h"
+
 #include <cstdlib>
 #include <atomic>
 
 namespace Configuration {
-    RuntimeSetting::RuntimeSetting(const char* runtimeSetting) : setting_(runtimeSetting + 1), start_(runtimeSetting + 1) {
+    RuntimeSetting::RuntimeSetting(const char* key, const char* value, WebUI::ESPResponseStream* out) :
+        setting_(key), start_(key), newValue_(value), out_(out) {
         // Read fence for config. Shouldn't be necessary, but better safe than sorry.
         std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);
     }
 
     void RuntimeSetting::enterSection(const char* name, Configuration::Configurable* value) {
-        if (is(name) && this->value() == nullptr) {
+        if (is(name) && !isHandled_) {
             auto previous = start_;
 
             // Figure out next node
             auto next = start_;
-            for (; *next && *next != '=' && *next != '/'; ++next) {}
+            for (; *next && *next != '/'; ++next) {}
 
             // Do we have a child?
             if (*next == '/') {
@@ -49,30 +52,108 @@ namespace Configuration {
         }
     }
 
+    void RuntimeSetting::item(const char* name, bool& value) {
+        if (is(name)) {
+            isHandled_ = true;
+            if (newValue_ == nullptr) {
+                grbl_sendf(out_->client(), "$%s=%s\r\n", setting_, value ? "true" : "false");
+            } else {
+                value = (!strcmp(newValue_, "true"));
+            }
+        }
+    }
+
     void RuntimeSetting::item(const char* name, int32_t& value, int32_t minValue, int32_t maxValue) {
-        if (is(name) && this->value() != nullptr) {
-            value = atoi(this->value());
+        if (is(name)) {
+            isHandled_ = true;
+            if (newValue_ == nullptr) {
+                grbl_sendf(out_->client(), "$%s=%d\r\n", setting_, value);
+            } else {
+                value = atoi(newValue_);
+            }
         }
     }
 
     void RuntimeSetting::item(const char* name, float& value, float minValue, float maxValue) {
-        if (is(name) && this->value() != nullptr) {
-            char* floatEnd;
-            value = strtof(this->value(), &floatEnd);
+        if (is(name)) {
+            isHandled_ = true;
+            if (newValue_ == nullptr) {
+                grbl_sendf(out_->client(), "$%s=%.3f\r\n", setting_, value);
+            } else {
+                char* floatEnd;
+                value = strtof(newValue_, &floatEnd);
+            }
         }
     }
 
     void RuntimeSetting::item(const char* name, StringRange& value, int minLength, int maxLength) {
-        if (is(name) && this->value() != nullptr) {
-            value = this->value();
+        if (is(name)) {
+            isHandled_ = true;
+            if (newValue_ == nullptr) {
+                grbl_sendf(out_->client(), "$%s=%s\r\n", setting_, value.str().c_str());
+            } else {
+                value = StringRange(newValue_);
+            }
+        }
+    }
+
+    void RuntimeSetting::item(const char* name, int& value, EnumItem* e) {
+        if (is(name)) {
+            isHandled_ = true;
+            if (newValue_ == nullptr) {
+                for (; e->name; ++e) {
+                    if (e->value == value) {
+                        grbl_sendf(out_->client(), "$%s=%s\r\n", setting_, e->name);
+                        return;
+                    }
+                }
+            } else {
+                for (; e->name; ++e) {
+                    if (!strcmp(newValue_, e->name)) {
+                        value = e->value;
+                        return;
+                    }
+                }
+
+                if (strlen(newValue_) == 0) {
+                    value = e->value;
+                    return;
+                } else {
+                    Assert(false, "Provided enum value %s is not valid", newValue_);
+                }
+            }
+        }
+    }
+
+    void RuntimeSetting::item(const char* name, IPAddress& value) {
+        if (is(name)) {
+            isHandled_ = true;
+            if (newValue_ == nullptr) {
+                grbl_sendf(out_->client(), "$%s=%s\r\n", setting_, value.toString().c_str());
+            } else {
+                IPAddress ip;
+                auto      str = String(newValue_);
+                if (!ip.fromString(str)) {
+                    Assert(false, "Expected an IP address like 192.168.0.100");
+                }
+                value = ip;
+            }
         }
     }
 
     void RuntimeSetting::item(const char* name, Pin& value) {
-        if (is(name) && this->value() != nullptr) {
-            auto parsed = Pin::create(StringRange(this->value()));
-            value.swap(parsed);
+        /*
+        Runtime settings of PIN objects is NOT supported!
+
+        if (is(name)) {
+            if (newValue_ == nullptr) {
+                grbl_sendf(out_->client(), "$%s=%s\r\n", setting_, value.name().c_str());
+            } else {
+                auto parsed = Pin::create(StringRange(this->value()));
+                value.swap(parsed);
+            }
         }
+        */
     }
 
     RuntimeSetting::~RuntimeSetting() {

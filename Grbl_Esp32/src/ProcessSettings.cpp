@@ -3,6 +3,10 @@
 #include "Regex.h"
 
 #include "MachineConfig.h"
+#include "Configuration/RuntimeSetting.h"
+#include "Configuration/AfterParse.h"
+#include "Configuration/Validator.h"
+#include "Configuration/ParseException.h"
 
 // WG Readable and writable as guest
 // WU Readable and writable as user and admin
@@ -546,7 +550,37 @@ Error do_command_or_setting(const char* key, char* value, WebUI::AuthenticationL
     // $key= with nothing following the = .  It is important to distinguish
     // those cases so that you can say "$N0=" to clear a startup line.
 
-    // First search the settings list by text name.  If found, set a new
+    // First search the yaml settings by name. If found, set a new
+    // value if one is given, otherwise display the current value
+    try {
+        Configuration::RuntimeSetting rts(key, value, out);
+        config->group(rts);
+
+        if (rts.isHandled_) {
+            try {
+                Configuration::Validator validator;
+                config->validate();
+                config->group(validator);
+            } catch (std::exception& ex) {
+                log_error("Validation error: " << ex.what());
+                return Error::BadRuntimeConfigSetting;
+            }
+
+            Configuration::AfterParse afterParseHandler;
+            config->afterParse();
+            config->group(afterParseHandler);
+
+            return Error::Ok;
+        }
+    } catch (const Configuration::ParseException& ex) {
+        log_error("Configuration parse error: " << ex.What() << " @ " << ex.LineNumber() << ":" << ex.ColumnNumber());
+        return Error::BadRuntimeConfigSetting;
+    } catch (const AssertionFailed& ex) {
+        log_error("Configuration change failed: " << ex.what());
+        return Error::BadRuntimeConfigSetting;
+    }
+
+    // Next search the settings list by text name. If found, set a new
     // value if one is given, otherwise display the current value
     for (Setting* s = Setting::List; s; s = s->next()) {
         if (strcasecmp(s->getName(), key) == 0) {
