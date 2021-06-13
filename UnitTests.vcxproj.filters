@@ -99,6 +99,9 @@
     <ClInclude Include="Grbl_Esp32\src\Logging.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\PinMapper.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Grbl_Esp32\test\TestFrameworkTest.cpp">
@@ -186,6 +189,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="Grbl_Esp32\src\Logging.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\PinMapper.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

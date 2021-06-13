@@ -1,6 +1,7 @@
 #include "../TestFramework.h"
 
 #include <src/Pin.h>
+#include <src/PinMapper.h>
 
 #ifdef ESP32
 extern "C" void __pinMode(uint8_t pin, uint8_t mode);
@@ -39,9 +40,9 @@ struct GPIONative {
     inline static bool read(int pin) { return SoftwareGPIO::instance().read(pin); }
 };
 
-//void digitalWrite(uint8_t pin, uint8_t val);
-//void pinMode(uint8_t pin, uint8_t mode);
-//int  digitalRead(uint8_t pin);
+void digitalWrite(uint8_t pin, uint8_t val);
+void pinMode(uint8_t pin, uint8_t mode);
+int  digitalRead(uint8_t pin);
 
 #endif
 
@@ -176,68 +177,70 @@ namespace Pins {
 
     Test(GPIO, ISRChangePin) { TestISR(1, 1, CHANGE); }
 
-    /*
     Test(GPIO, NativeForwardingInput) {
         GPIONative::initialize();
 
         Pin gpio16 = Pin::create("gpio.16");
         Pin gpio17 = Pin::create("gpio.17");
 
-        pinMode(16, INPUT);
+        PinMapper map1(gpio16);
+        PinMapper map2(gpio17);
+
+        pinMode(map1.pinId(), INPUT);
         gpio17.setAttr(Pin::Attr::Output);
 
-        Assert(LOW == digitalRead(16));
+        Assert(LOW == digitalRead(map1.pinId()));
         Assert(false == gpio17.read());
         Assert(false == GPIONative::read(16));
         Assert(false == GPIONative::read(17));
 
         gpio17.on();
 
-        Assert(HIGH == digitalRead(16));
+        Assert(HIGH == digitalRead(map1.pinId()));
         Assert(true == gpio17.read());
         Assert(true == GPIONative::read(16));
         Assert(true == GPIONative::read(17));
 
         gpio17.off();
 
-        Assert(LOW == digitalRead(16));
+        Assert(LOW == digitalRead(map1.pinId()));
         Assert(false == gpio17.read());
         Assert(false == GPIONative::read(16));
         Assert(false == GPIONative::read(17));
     }
-    */
 
-    /*
     Test(GPIO, NativeForwardingOutput) {
         GPIONative::initialize();
 
         Pin gpio16 = Pin::create("gpio.16");
         Pin gpio17 = Pin::create("gpio.17");
 
-        pinMode(16, OUTPUT);
+        PinMapper map1(gpio16);
+        PinMapper map2(gpio17);
+
+        pinMode(map1.pinId(), OUTPUT);
         gpio17.setAttr(Pin::Attr::Input);
 
-        digitalWrite(16, LOW);
-        Assert(LOW == digitalRead(16));
+        digitalWrite(map1.pinId(), LOW);
+        Assert(LOW == digitalRead(map1.pinId()));
         Assert(false == gpio17.read());
         Assert(false == GPIONative::read(16));
         Assert(false == GPIONative::read(17));
 
-        digitalWrite(16, HIGH);
+        digitalWrite(map1.pinId(), HIGH);
 
-        Assert(HIGH == digitalRead(16));
+        Assert(HIGH == digitalRead(map1.pinId()));
         Assert(true == gpio17.read());
         Assert(true == GPIONative::read(16));
         Assert(true == GPIONative::read(17));
 
-        digitalWrite(16, LOW);
+        digitalWrite(map1.pinId(), LOW);
 
-        Assert(LOW == digitalRead(16));
+        Assert(LOW == digitalRead(map1.pinId()));
         Assert(false == gpio17.read());
         Assert(false == GPIONative::read(16));
         Assert(false == GPIONative::read(17));
     }
-    */
 
     Test(GPIO, Name) {
         GPIONative::initialize();

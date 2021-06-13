@@ -60,8 +60,6 @@ void TMC2130Stepper::switchCSpin(bool state) {
     }
 }
 
-void IRAM_ATTR pinMode(uint8_t pin, uint8_t mode) {}
-
 namespace Motors {
     uint8_t TrinamicDriver::get_next_index() {
 #ifdef TRINAMIC_DAISY_CHAIN

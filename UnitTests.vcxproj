@@ -46,6 +46,7 @@
     <ClInclude Include="Grbl_Esp32\src\Configuration\TokenKind.h" />
     <ClInclude Include="Grbl_Esp32\src\Logging.h" />
     <ClInclude Include="Grbl_Esp32\src\Pin.h" />
+    <ClInclude Include="Grbl_Esp32\src\PinMapper.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\ErrorPinDetail.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\GPIOPinDetail.h" />
     <ClInclude Include="Grbl_Esp32\src\Pins\I2SOPinDetail.h" />
@@ -69,6 +70,7 @@
     <ClCompile Include="Grbl_Esp32\src\Configuration\Tokenizer.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Logging.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pin.cpp" />
+    <ClCompile Include="Grbl_Esp32\src\PinMapper.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\ErrorPinDetail.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\GPIOPinDetail.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Pins\I2SOPinDetail.cpp" />

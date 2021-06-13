@@ -25,7 +25,8 @@ namespace Pins {
         AssertThrow(unassigned.detachInterrupt());
 
         Assert(unassigned.capabilities().has(Pin::Capabilities::Void));
-        Assert(unassigned.name().equals(""));
+        auto name = unassigned.name();
+        Assert(unassigned.name().equals("NO_PIN"));
     }
 
     Test(Undefined, MultipleInstances) {
