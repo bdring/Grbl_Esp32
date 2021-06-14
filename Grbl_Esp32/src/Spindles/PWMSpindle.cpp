@@ -100,19 +100,21 @@ namespace Spindles {
             return;  // Block during abort.
         }
 
+        int32_t delayMillis;
+
         if (state == SpindleState::Disable) {  // Halt or set spindle direction and rpm.
             sys.spindle_speed = 0;
             stop();
-            if (use_delays && (_current_state != state)) {
-                delay(_spindown_delay);
-            }
+            delayMillis = _spindown_delay;
         } else {
             set_direction(state == SpindleState::Cw);
             set_rpm(rpm);
             set_enable(state != SpindleState::Disable);  // must be done after setting rpm for enable features to work
-            if (use_delays && (_current_state != state)) {
-                delay(_spinup_delay);
-            }
+            delayMillis = _spinup_delay;
+        }
+
+        if (_current_state != state && use_delays) {
+            delay(delayMillis);
         }
 
         _current_state = state;
