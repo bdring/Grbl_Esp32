@@ -25,9 +25,12 @@
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 namespace Pins {
+    std::vector<bool> I2SOPinDetail::_claimed(nI2SOPins, false);
+
     I2SOPinDetail::I2SOPinDetail(uint8_t index, const PinOptionsParser& options) :
         PinDetail(index), _capabilities(PinCapabilities::Output | PinCapabilities::I2S), _attributes(Pins::PinAttributes::Undefined),
         _readWriteMask(0) {
+        Assert(!_claimed[index], "Pin is already used.");
         // User defined pin capabilities
         for (auto opt : options) {
             if (opt.is("low")) {
@@ -38,6 +41,7 @@ namespace Pins {
                 Assert(false, "Unsupported I2SO option '%s'", opt());
             }
         }
+        _claimed[index] = true;
 
         // readWriteMask is xor'ed with the value to invert it if active low
         _readWriteMask = _attributes.has(PinAttributes::ActiveLow);

@@ -28,6 +28,9 @@ namespace Pins {
 
         static PinCapabilities GetDefaultCapabilities(uint8_t index);
 
+        static const int         nGPIOPins = 40;
+        static std::vector<bool> _claimed;
+
     public:
         GPIOPinDetail(uint8_t index, PinOptionsParser options);
 
@@ -45,7 +48,7 @@ namespace Pins {
 
         String toString() override;
 
-        ~GPIOPinDetail() override {}
+        ~GPIOPinDetail() override { _claimed[_index] = false; }
     };
 
 }

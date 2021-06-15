@@ -27,6 +27,9 @@ namespace Pins {
         PinAttributes   _attributes;
         int             _readWriteMask;
 
+        static const int         nI2SOPins = 32;
+        static std::vector<bool> _claimed;
+
     public:
         I2SOPinDetail(uint8_t index, const PinOptionsParser& options);
 
@@ -40,7 +43,7 @@ namespace Pins {
 
         String toString() override;
 
-        ~I2SOPinDetail() override {}
+        ~I2SOPinDetail() override { _claimed[_index] = false; }
     };
 }
 

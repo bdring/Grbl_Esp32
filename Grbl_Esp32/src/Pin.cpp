@@ -27,14 +27,14 @@
 
 #ifdef ESP32
 #    include "Grbl.h"  // serial output
-#    define pin_error(...) info_serial(__VA_ARGS__)
+#    define pin_error(...) error_serial(__VA_ARGS__)
 #else
 #    define pin_error(...)                                                                                                                 \
         {}
 #endif
 
 #if defined PIN_DEBUG
-#    define pin_debug(...) pin_error(__VA_ARGS__)
+#    define pin_debug(...) debug_serial(__VA_ARGS__)
 #else
 #    define pin_debug(...)                                                                                                                 \
         {}
@@ -129,7 +129,7 @@ bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
         pinImplementation = new Pins::VoidPinDetail();
         return true;
     }
-    pin_error("Unknown prefix: \"%s\"\r\n", prefix.c_str());
+    pin_error("ERR: Unknown prefix: \"%s\"\r\n", prefix.c_str());
     return false;
 }
 
@@ -148,7 +148,7 @@ Pin Pin::create(const StringRange& str) {
 
         return Pin(pinImplementation);
     } catch (const AssertionFailed& ex) {  // We shouldn't get here under normal circumstances.
-        pin_error("Setting up pin [%s] failed. Details: %s\r\n", str.str().c_str(), ex.what());
+        pin_error("ERR: Setting up pin [%s] failed. Details: %s", str.str().c_str(), ex.what());
         (void)ex;  // Get rid of compiler warning
 
         return Pin(new Pins::ErrorPinDetail(str.str()));

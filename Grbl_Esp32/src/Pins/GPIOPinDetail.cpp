@@ -27,6 +27,8 @@ extern "C" int  __digitalRead(uint8_t pin);
 extern "C" void __digitalWrite(uint8_t pin, uint8_t val);
 
 namespace Pins {
+    std::vector<bool> GPIOPinDetail::_claimed(nGPIOPins, false);
+
     PinCapabilities GPIOPinDetail::GetDefaultCapabilities(uint8_t index) {
         // See https://randomnerdtutorials.com/esp32-pinout-reference-gpios/ for an overview:
         switch (index) {
@@ -103,6 +105,7 @@ namespace Pins {
         // WILL get into trouble.
 
         Assert(_capabilities != PinCapabilities::None, "Bad GPIO number");
+        Assert(!_claimed[index], "Pin is already used.");
 
         // User defined pin capabilities
         for (auto opt : options) {
@@ -118,6 +121,7 @@ namespace Pins {
                 Assert(false, "Bad GPIO option passed to pin %d: %s", int(index), opt());
             }
         }
+        _claimed[index] = true;
 
         // readWriteMask is xor'ed with the value to invert it if active low
         _readWriteMask = _attributes.has(PinAttributes::ActiveLow);

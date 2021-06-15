@@ -25,6 +25,7 @@
 #include <WString.h>
 #include <cstdint>
 #include <cstring>
+#include <vector>
 
 namespace Pins {
 
