@@ -104,7 +104,8 @@ namespace Pins {
         // that were allocated by the constructor up to that point _MUST_ be freed! Otherwise, you
         // WILL get into trouble.
 
-        Assert(_capabilities != PinCapabilities::None, "Bad GPIO number");
+        Assert(index < nGPIOPins, "Pin number is greater than max %d", nGPIOPins - 1);
+        Assert(_capabilities != PinCapabilities::None, "Unavailable GPIO");
         Assert(!_claimed[index], "Pin is already used.");
 
         // User defined pin capabilities

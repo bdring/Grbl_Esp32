@@ -30,6 +30,7 @@ namespace Pins {
     I2SOPinDetail::I2SOPinDetail(uint8_t index, const PinOptionsParser& options) :
         PinDetail(index), _capabilities(PinCapabilities::Output | PinCapabilities::I2S), _attributes(Pins::PinAttributes::Undefined),
         _readWriteMask(0) {
+        Assert(index < nI2SOPins, "Pin number is greater than max %d", nI2SOPins - 1);
         Assert(!_claimed[index], "Pin is already used.");
         // User defined pin capabilities
         for (auto opt : options) {
