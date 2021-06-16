@@ -77,7 +77,7 @@ class Pin {
     // Implementation details of this pin.
     Pins::PinDetail* _detail;
 
-    static bool parse(StringRange str, Pins::PinDetail*& detail);
+    static const char* parse(StringRange str, Pins::PinDetail*& detail);
 
     inline Pin(Pins::PinDetail* detail) : _detail(detail) {}
 

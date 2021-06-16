@@ -43,7 +43,7 @@
 Pins::PinDetail* Pin::undefinedPin = new Pins::VoidPinDetail();
 Pins::PinDetail* Pin::errorPin     = new Pins::ErrorPinDetail("unknown");
 
-bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
+const char* Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     String str = tmp.str();
 
     // Initialize pinImplementation first! Callers might want to delete it, and we don't want a random pointer.
@@ -58,7 +58,7 @@ bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     if (nameStart == str.end()) {
         // Re-use undefined pins happens in 'create':
         pinImplementation = new Pins::VoidPinDetail();
-        return true;
+        return nullptr;
     }
 
     auto idx = nameStart;
@@ -76,15 +76,15 @@ bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     if (prefix != "") {
         if (idx == str.end()) {
             // Incorrect pin definition.
-            return false;
+            return "Pin definition is missing.";
         }
 
-        for (; idx != str.end() && *idx >= '0' && *idx <= '9'; ++idx) {
+        for (int n = 0; idx != str.end() && n <= 4 && *idx >= '0' && *idx <= '9'; ++idx, ++n) {
             pinNumber = pinNumber * 10 + int(*idx - '0');
         }
-        if (pinNumber < 0 || pinNumber > 253) {
+        if ((idx != str.end() && *idx >= '0' && *idx <= '9') || (pinNumber < 0 || pinNumber > 253)) {
             // Pin number has to be between [0,253].
-            return false;
+            return "Pin number has to be between [0,253>";
         }
     }
 
@@ -96,7 +96,7 @@ bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     if (idx != str.end()) {
         if (*idx != ':') {
             // Pin definition attributes or EOF expected.
-            return false;
+            return "Pin attributes (':') were expected.";
         }
         ++idx;
 
@@ -116,21 +116,21 @@ bool Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     // Build this pin:
     if (prefix == "gpio") {
         pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
-        return true;
+        return nullptr;
     }
-    if (prefix == "i2so") {
 #ifdef ESP32
+    if (prefix == "i2so") {
         pinImplementation = new Pins::I2SOPinDetail(uint8_t(pinNumber), parser);
-        return true;
-#endif
+        return nullptr;
     }
+#endif
     if (prefix == "void") {
         // Note: having multiple void pins has its uses for debugging.
         pinImplementation = new Pins::VoidPinDetail();
-        return true;
+        return nullptr;
     }
     pin_error("ERR: Unknown prefix: \"%s\"\r\n", prefix.c_str());
-    return false;
+    return "Unknown pin prefix";
 }
 
 Pin Pin::create(const String& str) {
@@ -142,11 +142,17 @@ Pin Pin::create(const StringRange& str) {
     try {
         pin_debug("Setting up pin: [%s]\r\n", str.str().c_str());
 
-        if (!parse(str, pinImplementation)) {
-            pin_debug("Setting up pin: '%s' failed.", str.str().c_str());
-        }
+        const char* err = parse(str, pinImplementation);
+        if (err) {
+            if (pinImplementation) {
+                delete pinImplementation;
+            }
 
-        return Pin(pinImplementation);
+            pin_debug("ERR: Setting up pin: '%s' failed: %s.", str.str().c_str(), err);
+            return Pin(new Pins::ErrorPinDetail(str.str()));
+        } else {
+            return Pin(pinImplementation);
+        }
     } catch (const AssertionFailed& ex) {  // We shouldn't get here under normal circumstances.
         pin_error("ERR: Setting up pin [%s] failed. Details: %s", str.str().c_str(), ex.what());
         (void)ex;  // Get rid of compiler warning
