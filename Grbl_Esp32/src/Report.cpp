@@ -801,7 +801,7 @@ void report_gcode_comment(char* comment) {
             index++;
         }
         msg[index - offset] = 0;  // null terminate
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "GCode Comment...%s", msg);
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "GCode Comment...%s", msg);
     }
 }
 

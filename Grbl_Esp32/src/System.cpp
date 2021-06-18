@@ -340,7 +340,7 @@ uint8_t sys_calc_pwm_precision(uint32_t freq) {
 void __attribute__((weak)) user_defined_macro(uint8_t index) {
     // must be in Idle
     if (sys.state != State::Idle) {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button only permitted in idle");
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Macro button only permitted in idle");
         return;
     }
 
@@ -364,7 +364,7 @@ void __attribute__((weak)) user_defined_macro(uint8_t index) {
     }
 
     if (user_macro == "") {
-        grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro User/Macro%d empty", index);
+        grbl_msg_sendf(CLIENT_ALL, MsgLevel::Info, "Macro User/Macro%d empty", index);
         return;
     }
 
