@@ -623,21 +623,18 @@ static void protocol_execute_overrides() {
     // run state can be determined by checking the parser state.
     if (sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle) {
         sys_rt_exec_accessory_override.bit.coolantFloodOvrToggle = false;
-#ifdef COOLANT_FLOOD_PIN
-        if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
+        if (config->_coolant->hasFlood() && (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold)) {
             gc_state.modal.coolant.Flood = !gc_state.modal.coolant.Flood;
-            coolant_set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+            config->_coolant->set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
         }
-#endif
     }
     if (sys_rt_exec_accessory_override.bit.coolantMistOvrToggle) {
         sys_rt_exec_accessory_override.bit.coolantMistOvrToggle = false;
-#ifdef COOLANT_MIST_PIN
-        if (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold) {
+
+        if (config->_coolant->hasMist() && (sys.state == State::Idle || sys.state == State::Cycle || sys.state == State::Hold)) {
             gc_state.modal.coolant.Mist = !gc_state.modal.coolant.Mist;
-            coolant_set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
+            config->_coolant->set_state(gc_state.modal.coolant);  // Report counter set in coolant_set_state().
         }
-#endif
     }
 }
 
