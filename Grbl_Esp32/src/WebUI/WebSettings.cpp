@@ -44,7 +44,7 @@ namespace WebUI {
     StringSetting* wifi_ap_password;
 #endif
 
-#ifdef ENABLE_NOTIFICATIONS
+#ifdef ENABLE_WIFI
     enum_opt_t notificationOptions = {
         { "NONE", 0 },
         { "LINE", 3 },
@@ -204,8 +204,7 @@ namespace WebUI {
 #else
         webPrint("no");
 #endif
-#if defined(ENABLE_WIFI)
-#    if defined(ENABLE_HTTP)
+#ifdef ENABLE_WIFI
         webPrint(" # webcommunication: Sync: ", String(web_server.port() + 1));
         webPrint(":");
         switch (WiFi.getMode()) {
@@ -222,7 +221,6 @@ namespace WebUI {
                 webPrint("0.0.0.0");
                 break;
         }
-#    endif
         webPrint(" # hostname:", wifi_config.Hostname());
         if (WiFi.getMode() == WIFI_AP) {
             webPrint("(AP mode)");
@@ -315,7 +313,7 @@ namespace WebUI {
         return Error::Ok;
     }
 
-#ifdef ENABLE_NOTIFICATIONS
+#ifdef ENABLE_WIFI
     static Error showSetNotification(char* parameter, AuthenticationLevel auth_level) {  // ESP610
         if (*parameter == '\0') {
             webPrint("", notification_type->getStringValue());
@@ -406,12 +404,8 @@ namespace WebUI {
             webPrintln("Available Size for update: ", ESPResponseStream::formatBytes(flashsize));
             webPrintln("Available Size for SPIFFS: ", ESPResponseStream::formatBytes(SPIFFS.totalBytes()));
 
-#    if defined(ENABLE_HTTP)
             webPrintln("Web port: ", String(web_server.port()));
-#    endif
-#    if defined(ENABLE_TELNET)
             webPrintln("Data port: ", String(telnet_server.port()));
-#    endif
             webPrintln("Hostname: ", wifi_config.Hostname());
         }
 
@@ -520,7 +514,18 @@ namespace WebUI {
                 webPrintln("Off");
                 break;
         }
-#endif  // ENABLE_WIFI
+
+        webPrint("Notifications: ");
+        webPrint(notificationsservice.started() ? "Enabled" : "Disabled");
+        if (notificationsservice.started()) {
+            webPrint("(");
+            webPrint(notificationsservice.getTypeString());
+            webPrint(")");
+        }
+        webPrintln("");
+#endif
+
+#ifdef ENABLE_BLUETOOTH
         if (hasBluetooth()) {
             auto bt_config = config->_comms->_bluetoothConfig;
             webPrint("Current BT Mode: ");
@@ -543,15 +548,6 @@ namespace WebUI {
                 webPrintln("Off");
             }
         }
-#ifdef ENABLE_NOTIFICATIONS
-        webPrint("Notifications: ");
-        webPrint(notificationsservice.started() ? "Enabled" : "Disabled");
-        if (notificationsservice.started()) {
-            webPrint("(");
-            webPrint(notificationsservice.getTypeString());
-            webPrint(")");
-        }
-        webPrintln("");
 #endif
         webPrint("FW version: ");
         webPrint(GRBL_VERSION);
@@ -869,15 +865,17 @@ namespace WebUI {
         if (*parameter == '\0') {
             // Display the radio state
             bool on = false;
-#if defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
             if (WiFi.getMode() != WIFI_MODE_NULL) {
                 on = true;
             }
 #endif
 
+#ifdef ENABLE_BLUETOOTH
             if (hasBluetooth() && config->_comms->_bluetoothConfig->Is_BT_on()) {
                 on = true;
             }
+#endif
 
             webPrintln(on ? "ON" : "OFF");
             return Error::Ok;
@@ -894,16 +892,18 @@ namespace WebUI {
         }
 
         //Stop everything
-#if defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
         if (WiFi.getMode() != WIFI_MODE_NULL) {
             wifi_config.StopWiFi();
         }
 #endif
+#ifdef ENABLE_BLUETOOTH
         if (hasBluetooth()) {
             if (config->_comms->_bluetoothConfig->Is_BT_on()) {
                 config->_comms->_bluetoothConfig->end();
             }
         }
+#endif
 
         //if On start proper service
         if (!on) {
@@ -912,17 +912,15 @@ namespace WebUI {
         }
 
         //On
-#ifdef WIFI_OR_BLUETOOTH
+#ifdef ENABLE_WIFI
         if (hasWiFi()) {
-#    if !defined(ENABLE_WIFI)
-            webPrintln("WiFi is not enabled!");
-            return Error::WifiFailBegin;
-
-#    else
             wifi_config.begin();
             return Error::Ok;
-#    endif
-        } else if (hasBluetooth()) {
+        }
+#endif
+
+#ifdef ENABLE_BLUETOOTH
+        if (hasBluetooth()) {
             if (hasBluetooth()) {
                 webPrintln("Bluetooth is not enabled!");
                 return Error::BtFailBegin;
@@ -930,11 +928,10 @@ namespace WebUI {
                 config->_comms->_bluetoothConfig->begin();
                 return Error::Ok;
             }
-        } else {
-            webPrintln("[MSG: Radio is Off]");
-            return Error::Ok;
         }
 #endif
+
+        webPrintln("[MSG: Radio is Off]");
         return Error::Ok;
     }
 
@@ -1038,7 +1035,7 @@ namespace WebUI {
         new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/ListJSON", listLocalFilesJSON);
         new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/Delete", deleteLocalFile);
 #endif
-#ifdef ENABLE_NOTIFICATIONS
+#ifdef ENABLE_WIFI
         new WebCommand(
             "TYPE=NONE|PUSHOVER|EMAIL|LINE T1=token1 T2=token2 TS=settings", WEBCMD, WA, "ESP610", "Notification/Setup", showSetNotification);
         new WebCommand("message", WEBCMD, WU, "ESP600", "Notification/Send", sendMessage);
@@ -1075,7 +1072,7 @@ namespace WebUI {
 #endif
         // WebUI Settings
         // Standard WEBUI authentication is user+ to get, admin to set unless otherwise specified
-#ifdef ENABLE_NOTIFICATIONS
+#ifdef ENABLE_WIFI
         notification_ts = new StringSetting(
             "Notification Settings", WEBSET, WA, NULL, "Notification/TS", DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
         notification_t2   = new StringSetting("Notification Token 2",
@@ -1119,7 +1116,7 @@ namespace WebUI {
                                            MAX_LOCAL_PASSWORD_LENGTH,
                                            &COMMANDS::isLocalPasswordValid);
 #endif
-
+#ifdef ENABLE_WIFI
         // no get, admin to set
         wifi_ap_password = new StringSetting("AP Password",
                                              WEBSET,
@@ -1140,5 +1137,6 @@ namespace WebUI {
                                               MIN_PASSWORD_LENGTH,
                                               MAX_PASSWORD_LENGTH,
                                               (bool (*)(char*))WiFiConfig::isPasswordValid);
+#endif
     }
 }

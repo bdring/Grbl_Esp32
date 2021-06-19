@@ -21,6 +21,8 @@
 #include "../Grbl.h"
 #include "../MachineConfig.h"
 
+#ifdef ENABLE_BLUETOOTH
+
 #include "BTConfig.h"
 
 extern "C" {
@@ -158,3 +160,5 @@ namespace WebUI {
 
     BTConfig::~BTConfig() { end(); }
 }
+
+#endif

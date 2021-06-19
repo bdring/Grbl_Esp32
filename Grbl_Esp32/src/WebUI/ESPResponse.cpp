@@ -19,13 +19,14 @@
 */
 #include "../Grbl.h"
 #include "ESPResponse.h"
-#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
+
+#ifdef ENABLE_WIFI
 #    include "WebServer.h"
 #    include <WebServer.h>
 #endif
 
 namespace WebUI {
-#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
     ESPResponseStream::ESPResponseStream(WebServer* webserver) {
         _header_sent = false;
         _webserver   = webserver;
@@ -35,7 +36,7 @@ namespace WebUI {
 
     ESPResponseStream::ESPResponseStream() {
         _client = CLIENT_INPUT;
-#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
         _header_sent = false;
         _webserver   = NULL;
 #endif
@@ -44,7 +45,7 @@ namespace WebUI {
     ESPResponseStream::ESPResponseStream(uint8_t client, bool byid) {
         (void)byid;  //fake parameter to avoid confusion with pointer one (NULL == 0)
         _client = client;
-#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
         _header_sent = false;
         _webserver   = NULL;
 #endif
@@ -76,7 +77,7 @@ namespace WebUI {
         if (_client == CLIENT_INPUT) {
             return;
         }
-#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
         if (_webserver) {
             if (!_header_sent) {
                 _webserver->setContentLength(CONTENT_LENGTH_UNKNOWN);
@@ -107,7 +108,7 @@ namespace WebUI {
     }
 
     void ESPResponseStream::flush() {
-#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
         if (_webserver) {
             if (_header_sent) {
                 //send data

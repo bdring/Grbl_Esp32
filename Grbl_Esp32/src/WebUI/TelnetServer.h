@@ -22,6 +22,8 @@
 
 #include "../Config.h"
 
+#ifdef ENABLE_WIFI
+
 class WiFiServer;
 class WiFiClient;
 
@@ -55,9 +57,7 @@ namespace WebUI {
         static bool        _setupdone;
         static WiFiServer* _telnetserver;
         static WiFiClient  _telnetClients[MAX_TLNT_CLIENTS];
-#ifdef ENABLE_TELNET_WELCOME_MSG
         static IPAddress _telnetClientsIP[MAX_TLNT_CLIENTS];
-#endif
         static uint16_t _port;
 
         void clearClients();
@@ -70,3 +70,5 @@ namespace WebUI {
 
     extern Telnet_Server telnet_server;
 }
+
+#endif

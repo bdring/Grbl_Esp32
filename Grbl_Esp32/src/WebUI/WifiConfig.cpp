@@ -467,4 +467,4 @@ namespace WebUI {
 
     WiFiConfig::~WiFiConfig() { end(); }
 }
-#endif  // ENABLE_WIFI
+#endif

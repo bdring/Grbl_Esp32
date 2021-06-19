@@ -39,13 +39,12 @@ void show_setting(const char* name, const char* value, const char* description, 
 }
 
 void settings_restore(uint8_t restore_flag) {
-#ifdef WIFI_OR_BLUETOOTH
+#ifdef ENABLE_WIFI
     if (restore_flag & SettingsRestore::Wifi) {
-#    ifdef ENABLE_WIFI
         WebUI::wifi_config.reset_settings();
-#    endif
     }
 #endif
+
     if (restore_flag & SettingsRestore::Defaults) {
         bool restore_startup = restore_flag & SettingsRestore::StartupLines;
         for (Setting* s = Setting::List; s; s = s->next()) {

@@ -20,6 +20,11 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifdef ENABLE_WIFI
+
+#    include <WString.h>
+#    include <cstdint>
+
 namespace WebUI {
     class NotificationsService {
     public:
@@ -53,3 +58,5 @@ namespace WebUI {
 
     extern NotificationsService notificationsservice;
 }
+
+#endif

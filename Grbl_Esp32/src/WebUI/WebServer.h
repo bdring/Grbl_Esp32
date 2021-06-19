@@ -21,6 +21,9 @@
 */
 
 #include "../Config.h"
+
+#ifdef ENABLE_WIFI
+
 #include "Commands.h"
 
 class WebSocketsServer;
@@ -73,9 +76,7 @@ namespace WebUI {
         static AuthenticationIP*   GetAuth(IPAddress ip, const char* sessionID);
         static AuthenticationLevel ResetAuthIP(IPAddress ip, const char* sessionID);
 #endif
-#ifdef ENABLE_SSDP
         static void handle_SSDP();
-#endif
         static void handle_root();
         static void handle_login();
         static void handle_not_found();
@@ -96,3 +97,5 @@ namespace WebUI {
 
     extern Web_Server web_server;
 }
+
+#endif

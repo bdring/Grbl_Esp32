@@ -20,7 +20,7 @@
 
 #include "../Grbl.h"
 
-#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
+#ifdef ENABLE_WIFI
 
 #    include "Serial2Socket.h"
 #    include "WebServer.h"
@@ -88,7 +88,6 @@ namespace WebUI {
             return 0;
         }
 
-#    if defined(ENABLE_SERIAL2SOCKET_OUT)
         if (_TXbufferSize == 0) {
             _lastflush = millis();
         }
@@ -105,7 +104,6 @@ namespace WebUI {
         }
         log_i("[SOCKET]buffer size %d", _TXbufferSize);
         handle_flush();
-#    endif
         return size;
     }
 
@@ -118,7 +116,6 @@ namespace WebUI {
     }
 
     bool Serial_2_Socket::push(const char* data) {
-#    if defined(ENABLE_SERIAL2SOCKET_IN)
         int data_size = strlen(data);
         if ((data_size + _RXbufferSize) <= RXBUFFERSIZE) {
             int current = _RXbufferpos + _RXbufferSize;
@@ -138,9 +135,6 @@ namespace WebUI {
             return true;
         }
         return false;
-#    else
-        return true;
-#    endif
     }
 
     int Serial_2_Socket::read(void) {
@@ -186,4 +180,5 @@ namespace WebUI {
         _RXbufferpos  = 0;
     }
 }
-#endif  // ENABLE_WIFI
+
+#endif

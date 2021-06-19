@@ -21,7 +21,7 @@
 #include "../Grbl.h"
 #include "../MachineConfig.h"
 
-#if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
+#ifdef ENABLE_WIFI
 
 #    include "WifiServices.h"
 
@@ -39,21 +39,15 @@
 #    include <StreamString.h>
 #    include <Update.h>
 #    include <esp_wifi_types.h>
-#    ifdef ENABLE_MDNS
-#        include <ESPmDNS.h>
-#    endif
-#    ifdef ENABLE_SSDP
-#        include <ESP32SSDP.h>
-#    endif
-#    ifdef ENABLE_CAPTIVE_PORTAL
-#        include <DNSServer.h>
+#    include <ESPmDNS.h>
+#    include <ESP32SSDP.h>
+#    include <DNSServer.h>
 
 namespace WebUI {
     const byte DNS_PORT = 53;
     DNSServer  dnsServer;
 }
 
-#    endif
 #    include <esp_ota_ops.h>
 
 //embedded response file if no files on SPIFFS
@@ -159,7 +153,6 @@ namespace WebUI {
         _webserver->on("/upload", HTTP_ANY, handle_direct_SDFileList, SDFile_direct_upload);
         //_webserver->on("/SD", HTTP_ANY, handle_SDCARD);
 
-#    ifdef ENABLE_CAPTIVE_PORTAL
         if (WiFi.getMode() == WIFI_AP) {
             // if DNSServer is started with "*" for domain name, it will reply with
             // provided IP to all DNS request
@@ -170,9 +163,7 @@ namespace WebUI {
             //do not forget the / at the end
             _webserver->on("/fwlink/", HTTP_ANY, handle_root);
         }
-#    endif
 
-#    ifdef ENABLE_SSDP
         //SSDP service presentation
         if (WiFi.getMode() == WIFI_STA) {
             _webserver->on("/description.xml", HTTP_GET, handle_SSDP);
@@ -194,29 +185,28 @@ namespace WebUI {
             info_all("SSDP Started");
             SSDP.begin();
         }
-#    endif
+
         info_all("HTTP Started");
         //start webserver
         _webserver->begin();
-#    ifdef ENABLE_MDNS
+
         //add mDNS
         if (WiFi.getMode() == WIFI_STA) {
             MDNS.addService("http", "tcp", _port);
         }
-#    endif
+
         _setupdone = true;
         return no_error;
     }
 
     void Web_Server::end() {
         _setupdone = false;
-#    ifdef ENABLE_SSDP
+
         SSDP.end();
-#    endif  //ENABLE_SSDP
-#    ifdef ENABLE_MDNS
+
         //remove mDNS
         mdns_service_remove("_http", "_tcp");
-#    endif
+
         if (_socket_server) {
             delete _socket_server;
             _socket_server = NULL;
@@ -325,8 +315,7 @@ namespace WebUI {
             content += path;
             _webserver->send(404, "text/plain", content);
             return;
-        } else
-            if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
+        } else if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
             if (SPIFFS.exists(pathWithGz)) {
                 path = pathWithGz;
             }
@@ -339,7 +328,6 @@ namespace WebUI {
         }
 
         if (page_not_found) {
-#    ifdef ENABLE_CAPTIVE_PORTAL
             if (WiFi.getMode() == WIFI_AP) {
                 String contentType = PAGE_CAPTIVE;
                 String stmp        = WiFi.softAPIP().toString();
@@ -358,7 +346,7 @@ namespace WebUI {
                 //_webserver->client().stop();
                 return;
             }
-#    endif
+
             path        = "/404.htm";
             contentType = getContentType(path);
             pathWithGz  = path + ".gz";
@@ -393,7 +381,6 @@ namespace WebUI {
         }
     }
 
-#    ifdef ENABLE_SSDP
     //http SSDP xml presentation
     void Web_Server::handle_SSDP() {
         StreamString sschema;
@@ -434,7 +421,6 @@ namespace WebUI {
             _webserver->send(500);
         }
     }
-#    endif
 
     void Web_Server::_handle_web_command(bool silent) {
         //to save time if already disconnected
@@ -1547,11 +1533,9 @@ namespace WebUI {
     void Web_Server::handle() {
         static uint32_t timeout = millis();
         COMMANDS::wait(0);
-#    ifdef ENABLE_CAPTIVE_PORTAL
         if (WiFi.getMode() == WIFI_AP) {
             dnsServer.processNextRequest();
         }
-#    endif
         if (_webserver) {
             _webserver->handleClient();
         }
@@ -1799,4 +1783,4 @@ namespace WebUI {
     }
 #    endif
 }
-#endif  // Enable HTTP && ENABLE_WIFI
+#endif

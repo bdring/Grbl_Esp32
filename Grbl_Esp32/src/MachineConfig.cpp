@@ -464,15 +464,20 @@ void MachineConfig::afterParse() {
 
     if (_comms == nullptr) {
         log_info("Comms config missing; building default comms");
-        _comms            = new Communications();
+        _comms = new Communications();
+#ifdef ENABLE_WIFI
         _comms->_apConfig = new WifiAPConfig();
+#endif
     }
+
+#ifdef ENABLE_WIFI
     // This is very helpful for testing YAML config files.  If things
     // screw up, you can still connect and upload a new config.yaml
     // TODO - Consider whether we want this for the long term
     if (!_comms->_apConfig) {
         _comms->_apConfig = new WifiAPConfig();
     }
+#endif
 }
 
 size_t MachineConfig::readFile(const char* filename, char*& buffer) {

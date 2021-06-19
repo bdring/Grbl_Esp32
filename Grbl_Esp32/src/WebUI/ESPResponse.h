@@ -20,16 +20,17 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
 class WebServer;
 #endif
 
 namespace WebUI {
     class ESPResponseStream {
     public:
-#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
         ESPResponseStream(WebServer* webserver);
 #endif
+
         ESPResponseStream(uint8_t client, bool byid = true);
         ESPResponseStream();
 
@@ -45,7 +46,7 @@ namespace WebUI {
         uint8_t _client;
         bool    _header_sent;
 
-#if defined(ENABLE_HTTP) && defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
         WebServer* _webserver;
         String     _buffer;
 #endif

@@ -31,6 +31,7 @@
 #include "EnumItem.h"
 #include "Stepper.h"
 #include "Logging.h"
+#include "Config.h"
 
 // TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
 
@@ -291,14 +292,19 @@ public:
 
     String _hostname = "grblesp";
 
+#ifdef ENABLE_BLUETOOTH
     WebUI::BTConfig* _bluetoothConfig = nullptr;
-    WifiAPConfig*    _apConfig        = nullptr;
-    WifiSTAConfig*   _staConfig       = nullptr;
+#endif
+#ifdef ENABLE_WIFI
+    WifiAPConfig*  _apConfig  = nullptr;
+    WifiSTAConfig* _staConfig = nullptr;
+#endif
 
     void group(Configuration::HandlerBase& handler) override {
         // handler.item("user_password", _userPassword);
         // handler.item("admin_password", _adminPassword);
 
+#ifdef ENABLE_WIFI
         handler.item("telnet_enable", _telnetEnable);
         handler.item("telnet_port", _telnetPort);
 
@@ -306,16 +312,25 @@ public:
         handler.item("http_port", _httpPort);
 
         handler.item("hostname", _hostname);
+#endif
 
+#ifdef ENABLE_BLUETOOTH
         handler.section("bluetooth", _bluetoothConfig);
+#endif
+#ifdef ENABLE_WIFI
         handler.section("wifi_ap", _apConfig);
         handler.section("wifi_sta", _staConfig);
+#endif
     }
 
     ~Communications() {
+#ifdef ENABLE_BLUETOOTH
         delete _bluetoothConfig;
+#endif
+#ifdef ENABLE_WIFI
         delete _apConfig;
         delete _staConfig;
+#endif
     }
 };
 
@@ -369,8 +384,16 @@ public:
 extern MachineConfig* config;
 
 inline bool hasWiFi() {
+#ifdef ENABLE_WIFI
     return config && config->_comms && (config->_comms->_staConfig != nullptr || config->_comms->_apConfig != nullptr);
+#else
+    return false;
+#endif
 }
 inline bool hasBluetooth() {
+#ifdef ENABLE_BLUETOOTH
     return !hasWiFi() && (config && config->_comms && config->_comms->_bluetoothConfig != nullptr);
+#else
+    return false;
+#endif
 }

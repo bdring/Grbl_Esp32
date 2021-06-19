@@ -149,7 +149,7 @@ void error_serial(const char* format, ...) {
 
 //function to notify
 void grbl_notify(const char* title, const char* msg) {
-#ifdef ENABLE_NOTIFICATIONS
+#ifdef ENABLE_WIFI
     WebUI::notificationsservice.sendMSG(title, msg);
 #endif
 }
@@ -554,7 +554,7 @@ void report_build_info(const char* line, uint8_t client) {
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
     grbl_send(client, "R");
 #endif
-#if defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
     grbl_send(client, "W");
 #endif
 #ifndef ENABLE_RESTORE_WIPE_ALL  // NOTE: Shown when disabled.
@@ -576,12 +576,14 @@ void report_build_info(const char* line, uint8_t client) {
     // These will likely have a comma delimiter to separate them.
     grbl_send(client, "]\r\n");
     report_machine_type(client);
-#if defined(ENABLE_WIFI)
+#ifdef ENABLE_WIFI
     grbl_send(client, (char*)WebUI::wifi_config.info());
 #endif
+#ifdef ENABLE_BLUETOOTH
     if (hasBluetooth()) {
         grbl_send(client, config->_comms->_bluetoothConfig->info().c_str());
     }
+#endif
 }
 
 // Prints the character string line Grbl has received from the user, which has been pre-parsed,
@@ -627,15 +629,17 @@ void report_realtime_status(uint8_t client) {
     // Returns planner and serial read buffer states.
     if (bit_istrue(status_mask->get(), RtStatus::Buffer)) {
         int bufsize = DEFAULTBUFFERSIZE;
-#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
+#ifdef ENABLE_WIFI
         if (client == CLIENT_TELNET) {
             bufsize = WebUI::telnet_server.get_rx_buffer_available();
         }
-#endif  //ENABLE_WIFI && ENABLE_TELNET
+#endif
+#ifdef ENABLE_BLUETOOTH
         if (hasBluetooth() && client == CLIENT_BT) {
             //TODO FIXME
             bufsize = 512 - WebUI::SerialBT.available();
         }
+#endif
         if (client == CLIENT_SERIAL) {
             bufsize = client_get_rx_buffer_available(CLIENT_SERIAL);
         }

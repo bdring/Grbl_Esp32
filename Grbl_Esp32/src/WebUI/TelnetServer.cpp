@@ -21,7 +21,7 @@
 #include "../Grbl.h"
 #include "../MachineConfig.h"
 
-#if defined(ENABLE_WIFI) && defined(ENABLE_TELNET)
+#ifdef ENABLE_WIFI
 
 #    include "WifiServices.h"
 
@@ -36,9 +36,7 @@ namespace WebUI {
     WiFiServer*   Telnet_Server::_telnetserver = NULL;
     WiFiClient    Telnet_Server::_telnetClients[MAX_TLNT_CLIENTS];
 
-#    ifdef ENABLE_TELNET_WELCOME_MSG
     IPAddress Telnet_Server::_telnetClientsIP[MAX_TLNT_CLIENTS];
-#    endif
 
     Telnet_Server::Telnet_Server() {
         _RXbufferSize = 0;
@@ -84,9 +82,7 @@ namespace WebUI {
             for (i = 0; i < MAX_TLNT_CLIENTS; i++) {
                 //find free/disconnected spot
                 if (!_telnetClients[i] || !_telnetClients[i].connected()) {
-#    ifdef ENABLE_TELNET_WELCOME_MSG
                     _telnetClientsIP[i] = IPAddress(0, 0, 0, 0);
-#    endif
                     if (_telnetClients[i]) {
                         _telnetClients[i].stop();
                     }
@@ -133,12 +129,10 @@ namespace WebUI {
         //uint8_t c;
         for (uint8_t i = 0; i < MAX_TLNT_CLIENTS; i++) {
             if (_telnetClients[i] && _telnetClients[i].connected()) {
-#    ifdef ENABLE_TELNET_WELCOME_MSG
                 if (_telnetClientsIP[i] != _telnetClients[i].remoteIP()) {
                     report_init_message(CLIENT_TELNET);
                     _telnetClientsIP[i] = _telnetClients[i].remoteIP();
                 }
-#    endif
                 if (_telnetClients[i].available()) {
                     uint8_t buf[1024];
                     COMMANDS::wait(0);
@@ -158,9 +152,7 @@ namespace WebUI {
                 }
             } else {
                 if (_telnetClients[i]) {
-#    ifdef ENABLE_TELNET_WELCOME_MSG
                     _telnetClientsIP[i] = IPAddress(0, 0, 0, 0);
-#    endif
                     _telnetClients[i].stop();
                 }
             }
@@ -240,4 +232,4 @@ namespace WebUI {
 
     Telnet_Server::~Telnet_Server() { end(); }
 }
-#endif  // Enable TELNET && ENABLE_WIFI
+#endif

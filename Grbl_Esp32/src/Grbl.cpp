@@ -103,12 +103,13 @@ void grbl_init() {
         info_serial("Initializing WiFi...");
         WebUI::wifi_config.begin();
 #endif
-
+#ifdef ENABLE_BLUETOOTH
         if (hasBluetooth()) {
             info_serial("Initializing Bluetooth...");
 
             config->_comms->_bluetoothConfig->begin();
         }
+#endif
         WebUI::inputBuffer.begin();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:

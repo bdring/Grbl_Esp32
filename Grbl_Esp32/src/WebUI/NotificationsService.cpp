@@ -31,7 +31,8 @@
 #include "../Grbl.h"
 #include "../MachineConfig.h"
 
-#ifdef ENABLE_NOTIFICATIONS
+#ifdef ENABLE_WIFI
+
 #    include "NotificationsService.h"
 #    include <WiFiClientSecure.h>
 #    include <base64.h>
@@ -370,4 +371,4 @@ namespace WebUI {
 
     NotificationsService::~NotificationsService() { end(); }
 }
-#endif  //ENABLE_NOTIFICATIONS
+#endif

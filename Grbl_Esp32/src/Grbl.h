@@ -72,15 +72,9 @@ const char* const GRBL_VERSION_BUILD = "20210326";
 
 #ifdef ENABLE_WIFI
 #    include "WebUI/WifiConfig.h"
-#    ifdef ENABLE_HTTP
-#        include "WebUI/Serial2Socket.h"
-#    endif
-#    ifdef ENABLE_TELNET
-#        include "WebUI/TelnetServer.h"
-#    endif
-#    ifdef ENABLE_NOTIFICATIONS
-#        include "WebUI/NotificationsService.h"
-#    endif
+#    include "WebUI/Serial2Socket.h"
+#    include "WebUI/TelnetServer.h"
+#    include "WebUI/NotificationsService.h"
 #endif
 
 #include "I2SOut.h"

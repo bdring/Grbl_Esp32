@@ -27,21 +27,11 @@
 #    include <FS.h>
 #    include <SPIFFS.h>
 #    include "WifiServices.h"
-#    ifdef ENABLE_MDNS
-#        include <ESPmDNS.h>
-#    endif
-#    ifdef ENABLE_OTA
-#        include <ArduinoOTA.h>
-#    endif
-#    ifdef ENABLE_HTTP
-#        include "WebServer.h"
-#    endif
-#    ifdef ENABLE_TELNET
-#        include "TelnetServer.h"
-#    endif
-#    ifdef ENABLE_NOTIFICATIONS
-#        include "NotificationsService.h"
-#    endif
+#    include <ESPmDNS.h>
+#    include <ArduinoOTA.h>
+#    include "WebServer.h"
+#    include "TelnetServer.h"
+#    include "NotificationsService.h"
 #    include "Commands.h"
 
 namespace WebUI {
@@ -59,7 +49,6 @@ namespace WebUI {
 
         String& h = config->_comms->_hostname;
 
-#    ifdef ENABLE_OTA
         ArduinoOTA
             .onStart([]() {
                 String type;
@@ -95,8 +84,6 @@ namespace WebUI {
                 }
             });
         ArduinoOTA.begin();
-#    endif
-#    ifdef ENABLE_MDNS
         //no need in AP mode
         if (WiFi.getMode() == WIFI_STA) {
             //start mDns
@@ -107,38 +94,24 @@ namespace WebUI {
                 info_all("Start mDNS with hostname:http://%s.local/", h.c_str());
             }
         }
-#    endif
-#    ifdef ENABLE_HTTP
         web_server.begin();
-#    endif
-#    ifdef ENABLE_TELNET
         telnet_server.begin();
-#    endif
-#    ifdef ENABLE_NOTIFICATIONS
         notificationsservice.begin();
-#    endif
+
         //be sure we are not is mixed mode in setup
         WiFi.scanNetworks(true);
         return no_error;
     }
     void WiFiServices::end() {
-#    ifdef ENABLE_NOTIFICATIONS
         notificationsservice.end();
-#    endif
-#    ifdef ENABLE_TELNET
         telnet_server.end();
-#    endif
-#    ifdef ENABLE_HTTP
         web_server.end();
-#    endif
+
         //stop OTA
-#    ifdef ENABLE_OTA
         ArduinoOTA.end();
-#    endif
-#    ifdef ENABLE_MDNS
+
         //Stop mDNS
         MDNS.end();
-#    endif
     }
 
     void WiFiServices::handle() {
@@ -152,15 +125,9 @@ namespace WebUI {
                 WiFi.enableSTA(false);
             }
         }
-#    ifdef ENABLE_OTA
         ArduinoOTA.handle();
-#    endif
-#    ifdef ENABLE_HTTP
         web_server.handle();
-#    endif
-#    ifdef ENABLE_TELNET
         telnet_server.handle();
-#    endif
     }
 }
-#endif  // ENABLE_WIFI
+#endif

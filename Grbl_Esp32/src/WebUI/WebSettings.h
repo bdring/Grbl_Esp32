@@ -29,7 +29,7 @@ namespace WebUI {
     extern StringSetting* admin_password;
 #endif
 
-#ifdef ENABLE_NOTIFICATIONS
+#ifdef ENABLE_WIFI
     extern EnumSetting*   notification_type;
     extern StringSetting* notification_t1;
     extern StringSetting* notification_t2;
