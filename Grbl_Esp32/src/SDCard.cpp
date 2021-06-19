@@ -142,12 +142,7 @@ SDCard::State SDCard::get_state(bool refresh) {
 
     if (spiConfig != nullptr) {
         auto ssPin   = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        auto mosiPin = spiConfig->_mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        auto sckPin  = spiConfig->_sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        auto misoPin = spiConfig->_miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
-
-        SPI.begin(sckPin, misoPin, mosiPin, ssPin);  // this will get called for each motor, but does not seem to hurt anything
-
+        
         //no need to go further if SD detect is not correct
         if (config->_sdCard->_cardDetect.defined() && !config->_sdCard->_cardDetect.read()) {
             _state = SDCard::State::NotPresent;
@@ -164,10 +159,12 @@ SDCard::State SDCard::get_state(bool refresh) {
 
         //SD is idle or not detected, let see if still the case
         SD.end();
+
         _state = SDCard::State::NotPresent;
+
         //using default value for speed ? should be parameter
         //refresh content if card was removed
-        if (SD.begin((GRBL_SPI_SS == -1) ? SS : GRBL_SPI_SS, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
+        if (SD.begin(ssPin, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
             if (SD.cardSize() > 0) {
                 _state = SDCard::State::Idle;
             }

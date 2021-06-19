@@ -69,11 +69,6 @@ void system_reset() {
 }
 
 void init_output_pins() {
-    //customize pin definition if needed
-#if (GRBL_SPI_SS != -1) || (GRBL_SPI_MISO != -1) || (GRBL_SPI_MOSI != -1) || (GRBL_SPI_SCK != -1)
-    SPI.begin(GRBL_SPI_SCK, GRBL_SPI_MISO, GRBL_SPI_MOSI, GRBL_SPI_SS);
-#endif
-
     auto userOutputs = config->_userOutputs;
 
     // Setup M62,M63,M64,M65 pins

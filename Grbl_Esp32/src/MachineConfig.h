@@ -203,6 +203,8 @@ public:
     void group(Configuration::HandlerBase& handler) override;
     void afterParse() override;
 
+    void init();
+
     ~SPIBus() = default;
 };
 
@@ -370,7 +372,7 @@ public:
     // before initialization. If it detects a problem and the hard limits setting is enabled, Grbl will
     // simply message the user to check the limits and enter an alarm state, rather than idle. Grbl will
     // not throw an alarm message.
-    bool _checkLimitsAtInit        = true;
+    bool _checkLimitsAtInit = true;
 
     // If your machine has two limits switches wired in parallel to one axis, you will need to enable
     // this feature. Since the two switches are sharing a single pin, there is no way for Grbl to tell

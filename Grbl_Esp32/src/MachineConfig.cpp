@@ -362,6 +362,17 @@ void SPIBus::validate() const {
     }
 }
 
+void SPIBus::init() {
+    if (_ss.defined()) { // validation ensures the rest is also defined.
+        auto ssPin   = _ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto mosiPin = _mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto sckPin  = _sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto misoPin = _miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
+
+        SPI.begin(sckPin, misoPin, mosiPin, ssPin);
+    }
+}
+
 void SPIBus::group(Configuration::HandlerBase& handler) {
     handler.item("ss", _ss);
     handler.item("miso", _miso);

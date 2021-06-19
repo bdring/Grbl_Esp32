@@ -61,6 +61,16 @@ void grbl_init() {
             // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
             i2s_out_init();
         }
+        if (config->_spi) {
+            info_serial("Initializing SPI...");
+            // The SPI must be initialized before we can use it.
+            config->_spi->init();
+
+            // Initialize SD card after SPI:
+            if (config->_sdCard != nullptr) {
+                config->_sdCard->init();
+            }
+        }
 
         info_serial("Initializing steppers...");
         stepper_init();  // Configure stepper pins and interrupt timers
@@ -74,7 +84,8 @@ void grbl_init() {
         memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
 
         machine_init();  // user supplied function for special initialization
-                         // Initialize system state.
+
+        // Initialize system state.
         if (sys.state != State::ConfigAlarm) {
 #ifdef FORCE_INITIALIZATION_ALARM
             // Force Grbl into an ALARM state upon a power-cycle or hard reset.
