@@ -534,12 +534,12 @@ void report_build_info(const char* line, uint8_t client) {
         grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
     }
     grbl_send(client, "P");
-#ifdef HOMING_SINGLE_AXIS_COMMANDS
-    grbl_send(client, "H");
-#endif
-#ifdef LIMITS_TWO_SWITCHES_ON_AXES
-    grbl_send(client, "L");
-#endif
+    if (config->_homingSingleAxisCommands) {
+        grbl_send(client, "H");
+    }
+    if (config->_limitsTwoSwitchesOnAxis) {
+        grbl_send(client, "L");
+    }
 #ifdef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
     grbl_send(client, "A");
 #endif

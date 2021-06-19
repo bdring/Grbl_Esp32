@@ -130,14 +130,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // NOTE: Must be an integer value from 0 to ~4. More than 4 may exhibit round-off errors.
 // ESP32 Note: These are mostly hard coded, so these values will not change anything
 
-// If your machine has two limits switches wired in parallel to one axis, you will need to enable
-// this feature. Since the two switches are sharing a single pin, there is no way for Grbl to tell
-// which one is enabled. This option only effects homing, where if a limit is engaged, Grbl will
-// alarm out and force the user to manually disengage the limit switch. Otherwise, if you have one
-// limit switch for each axis, don't enable this option. By keeping it disabled, you can perform a
-// homing cycle while on the limit switch and not have to move the machine off of it.
-// #define LIMITS_TWO_SWITCHES_ON_AXES
-
 // Allows GRBL to track and report gcode line numbers.  Enabling this means that the planning buffer
 // goes from 16 to 15 to make room for the additional line number data in the plan_block_t struct
 // #define USE_LINE_NUMBERS // Disabled by default. Uncomment to enable.
@@ -161,12 +153,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // Grbl to always initialize into an ALARM state regardless of homing or not. This option is more for
 // OEMs and LinuxCNC users that would like this power-cycle behavior.
 // #define FORCE_INITIALIZATION_ALARM // Default disabled. Uncomment to enable.
-
-// At power-up or a reset, Grbl will check the limit switch states to ensure they are not active
-// before initialization. If it detects a problem and the hard limits setting is enabled, Grbl will
-// simply message the user to check the limits and enter an alarm state, rather than idle. Grbl will
-// not throw an alarm message.
-#define CHECK_LIMITS_AT_INIT
 
 // ---------------------------------------------------------------------------------------
 // ADVANCED CONFIGURATION OPTIONS:

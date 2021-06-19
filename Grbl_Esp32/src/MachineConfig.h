@@ -364,6 +364,21 @@ public:
 
     bool _enableParkingOverrideControl = false;
     bool _deactivateParkingUponInit    = false;
+    bool _homingSingleAxisCommands     = false;
+
+    // At power-up or a reset, Grbl will check the limit switch states to ensure they are not active
+    // before initialization. If it detects a problem and the hard limits setting is enabled, Grbl will
+    // simply message the user to check the limits and enter an alarm state, rather than idle. Grbl will
+    // not throw an alarm message.
+    bool _checkLimitsAtInit        = true;
+
+    // If your machine has two limits switches wired in parallel to one axis, you will need to enable
+    // this feature. Since the two switches are sharing a single pin, there is no way for Grbl to tell
+    // which one is enabled. This option only effects homing, where if a limit is engaged, Grbl will
+    // alarm out and force the user to manually disengage the limit switch. Otherwise, if you have one
+    // limit switch for each axis, don't enable this option. By keeping it disabled, you can perform a
+    // homing cycle while on the limit switch and not have to move the machine off of it.
+    bool _limitsTwoSwitchesOnAxis = false;
 
     String _board = "None";
     String _name  = "None";

@@ -125,15 +125,15 @@ void protocol_main_loop() {
     client_reset_read_buffer(CLIENT_ALL);
     empty_lines();
     //uint8_t client = CLIENT_SERIAL; // default client
+
     // Perform some machine checks to make sure everything is good to go.
-#ifdef CHECK_LIMITS_AT_INIT
-    if (config->_axes->hasHardLimits()) {
+    if (config->_checkLimitsAtInit && config->_axes->hasHardLimits()) {
         if (limits_get_state()) {
             sys.state = State::Alarm;  // Ensure alarm state is active.
             report_feedback_message(Message::CheckLimits);
         }
     }
-#endif
+
     // Check for and report alarm state after a reset, error, or an initial power up.
     // NOTE: Sleep mode disables the stepper drivers and position can't be guaranteed.
     // Re-initialize the sleep state as an ALARM mode to ensure user homes or acknowledges.

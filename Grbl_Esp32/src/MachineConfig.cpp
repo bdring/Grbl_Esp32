@@ -419,6 +419,9 @@ void MachineConfig::group(Configuration::HandlerBase& handler) {
     handler.item("homing_init_lock", _homingInitLock);
     handler.item("enable_parking_override_control", _enableParkingOverrideControl);
     handler.item("deactivate_parking_upon_init", _deactivateParkingUponInit);
+    handler.item("check_limits_at_init", _checkLimitsAtInit);
+    handler.item("homing_single_axis_commands", _homingSingleAxisCommands);
+    handler.item("limits_two_switches_on_axis", _limitsTwoSwitchesOnAxis);
 
     Spindles::SpindleFactory::factory(handler, _spindle);
 }

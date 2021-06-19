@@ -490,14 +490,15 @@ void make_grbl_commands() {
     new GrblCommand("H", "Home", home_all, idleOrAlarm);
     new GrblCommand("MD", "Motor/Disable", motor_disable, idleOrAlarm);
 
-#ifdef HOMING_SINGLE_AXIS_COMMANDS
-    new GrblCommand("HX", "Home/X", home_x, idleOrAlarm);
-    new GrblCommand("HY", "Home/Y", home_y, idleOrAlarm);
-    new GrblCommand("HZ", "Home/Z", home_z, idleOrAlarm);
-    new GrblCommand("HA", "Home/A", home_a, idleOrAlarm);
-    new GrblCommand("HB", "Home/B", home_b, idleOrAlarm);
-    new GrblCommand("HC", "Home/C", home_c, idleOrAlarm);
-#endif
+    if (config->_homingSingleAxisCommands) {
+        new GrblCommand("HX", "Home/X", home_x, idleOrAlarm);
+        new GrblCommand("HY", "Home/Y", home_y, idleOrAlarm);
+        new GrblCommand("HZ", "Home/Z", home_z, idleOrAlarm);
+        new GrblCommand("HA", "Home/A", home_a, idleOrAlarm);
+        new GrblCommand("HB", "Home/B", home_b, idleOrAlarm);
+        new GrblCommand("HC", "Home/C", home_c, idleOrAlarm);
+    }
+
     new GrblCommand("SLP", "System/Sleep", sleep_grbl, idleOrAlarm);
     new GrblCommand("I", "Build/Info", get_report_build_info, idleOrAlarm);
     new GrblCommand("N", "GCode/StartupLines", report_startup_lines, idleOrAlarm);
