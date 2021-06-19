@@ -33,6 +33,7 @@
 #include "Configuration/ParseException.h"
 
 #include <SPIFFS.h>
+#include <SPI.h>
 #include <cstdio>
 #include <cstring>
 #include <atomic>
