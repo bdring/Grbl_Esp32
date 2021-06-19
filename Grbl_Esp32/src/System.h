@@ -74,13 +74,8 @@ typedef uint8_t Percent;   // Integer percent
 typedef uint8_t Counter;   // Report interval
 
 enum class Override : uint8_t {
-#ifdef DEACTIVATE_PARKING_UPON_INIT
-    Disabled      = 0,  // (Default: Must be zero)
-    ParkingMotion = 1,  // M56
-#else
     ParkingMotion = 0,  // M56 (Default: Must be zero)
     Disabled      = 1,  // Parking disabled.
-#endif
 };
 
 // Spindle stop override control states.
@@ -96,7 +91,7 @@ union SpindleStop {
 };
 
 // Global system variables
-typedef struct {
+struct system_t {
     volatile State state;               // Tracks the current system state of Grbl.
     bool           abort;               // System abort flag. Forces exit back to main loop for reset.
     Suspend        suspend;             // System suspend bitflag variable that manages holds, cancels, and safety door.
@@ -110,11 +105,10 @@ typedef struct {
     SpindleStop    spindle_stop_ovr;    // Tracks spindle stop override states
     Counter        report_ovr_counter;  // Tracks when to add override data to status reports.
     Counter        report_wco_counter;  // Tracks when to add work coordinate offset data to status reports.
-#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    Override override_ctrl;  // Tracks override control states.
-#endif
-    uint32_t spindle_speed;
-} system_t;
+    Override       override_ctrl;       // Tracks override control states.
+    uint32_t       spindle_speed;
+};
+
 extern system_t sys;
 
 // NOTE: These position variables may need to be declared as volatiles, if problems arise.

@@ -103,12 +103,10 @@ typedef struct {
     float step_per_mm;
     float req_mm_increment;
 
-#ifdef PARKING_ENABLE
     uint8_t last_st_block_index;
     float   last_steps_remaining;
     float   last_step_per_mm;
     float   last_dt_remainder;
-#endif
 
     uint8_t ramp_type;    // Current segment ramp state
     float   mm_complete;  // End of velocity profile from end of current planner block in (mm).
@@ -441,7 +439,6 @@ void st_update_plan_block_parameters() {
     }
 }
 
-#ifdef PARKING_ENABLE
 // Changes the run state of the step segment buffer to execute the special parking motion.
 void st_parking_setup_buffer() {
     // Store step execution data of partially completed block, if necessary.
@@ -475,7 +472,6 @@ void st_parking_restore_buffer() {
 
     pl_block = NULL;  // Set to reload next block.
 }
-#endif
 
 // Increments the step segment buffer block data ring buffer.
 static uint8_t st_next_block_index(uint8_t block_index) {
@@ -518,15 +514,11 @@ void st_prep_buffer() {
 
             // Check if we need to only recompute the velocity profile or load a new block.
             if (prep.recalculate_flag.recalculate) {
-#ifdef PARKING_ENABLE
                 if (prep.recalculate_flag.parking) {
                     prep.recalculate_flag.recalculate = 0;
                 } else {
                     prep.recalculate_flag = {};
                 }
-#else
-                prep.recalculate_flag = {};
-#endif
             } else {
                 // Load the Bresenham stepping data for the block.
                 prep.st_block_index = st_next_block_index(prep.st_block_index);
@@ -816,11 +808,9 @@ void st_prep_buffer() {
                 // Less than one step to decelerate to zero speed, but already very close. AMASS
                 // requires full steps to execute. So, just bail.
                 sys.step_control.endMotion = true;
-#ifdef PARKING_ENABLE
                 if (!(prep.recalculate_flag.parking)) {
                     prep.recalculate_flag.holdPartialBlock = 1;
                 }
-#endif
                 return;  // Segment not generated, but current step data still retained.
             }
         }
@@ -874,11 +864,9 @@ void st_prep_buffer() {
                 // the segment queue, where realtime protocol will set new state upon receiving the
                 // cycle stop flag from the ISR. Prep_segment is blocked until then.
                 sys.step_control.endMotion = true;
-#ifdef PARKING_ENABLE
                 if (!(prep.recalculate_flag.parking)) {
                     prep.recalculate_flag.holdPartialBlock = 1;
                 }
-#endif
                 return;  // Bail!
             } else {     // End of planner block
                 // The planner block is complete. All steps are set to be executed in the segment buffer.

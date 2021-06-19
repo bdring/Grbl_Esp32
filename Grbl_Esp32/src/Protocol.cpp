@@ -94,11 +94,11 @@ Error execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_l
 }
 
 bool can_park() {
-    return
-#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-        sys.override_ctrl == Override::ParkingMotion &&
-#endif
-        homingAxes() && !config->_laserMode;
+    if (config->_enableParkingOverrideControl) {
+        return sys.override_ctrl == Override::ParkingMotion && homingAxes() && !config->_laserMode;
+    } else {
+        return homingAxes() && !config->_laserMode;
+    }
 }
 
 void protocol_reset() {
@@ -407,7 +407,6 @@ static void protocol_do_safety_door() {
             break;
         case State::SafetyDoor:
             if (!sys.suspend.bit.jogCancel && sys.suspend.bit.initiateRestore) {  // Actively restoring
-#ifdef PARKING_ENABLE
                 // Set hold and reset appropriate control flags to restart parking sequence.
                 if (sys.step_control.executeSysMotion) {
                     st_update_plan_block_parameters();  // Notify stepper module to recompute for hold deceleration.
@@ -416,7 +415,7 @@ static void protocol_do_safety_door() {
                     sys.step_control.executeSysMotion = true;
                     sys.suspend.bit.holdComplete      = false;
                 }  // else NO_MOTION is active.
-#endif
+
                 sys.suspend.bit.retractComplete = false;
                 sys.suspend.bit.initiateRestore = false;
                 sys.suspend.bit.restoreComplete = false;
@@ -798,7 +797,6 @@ void protocol_exec_rt_system() {
 //                        // already retracting, parked or in sleep state.
 //                        if (sys.state == State::SafetyDoor) {
 //                            if (sys.suspend.bit.initiateRestore) {  // Actively restoring
-//#ifdef PARKING_ENABLE
 //                                // Set hold and reset appropriate control flags to restart parking sequence.
 //                                if (sys.step_control.executeSysMotion) {
 //                                    st_update_plan_block_parameters();  // Notify stepper module to recompute for hold deceleration.
@@ -807,7 +805,6 @@ void protocol_exec_rt_system() {
 //                                    sys.step_control.executeSysMotion = true;
 //                                    sys.suspend.bit.holdComplete      = false;
 //                                }  // else NO_MOTION is active.
-//#endif
 //                                sys.suspend.bit.retractComplete = false;
 //                                sys.suspend.bit.initiateRestore = false;
 //                                sys.suspend.bit.restoreComplete = false;
@@ -991,7 +988,6 @@ void protocol_exec_rt_system() {
 // This function is written in a way to promote custom parking motions. Simply use this as a
 // template
 static void protocol_exec_rt_suspend() {
-#ifdef PARKING_ENABLE
     // Declare and initialize parking local variables
     float             restore_target[MAX_N_AXIS];
     float             retract_waypoint = PARKING_PULLOUT_INCREMENT;
@@ -1001,10 +997,10 @@ static void protocol_exec_rt_suspend() {
     pl_data->motion                = {};
     pl_data->motion.systemMotion   = 1;
     pl_data->motion.noFeedOverride = 1;
-#    ifdef USE_LINE_NUMBERS
+#ifdef USE_LINE_NUMBERS
     pl_data->line_number = PARKING_MOTION_LINE_NUMBER;
-#    endif
 #endif
+
     plan_block_t* block = plan_get_current_block();
     CoolantState  restore_coolant;
     SpindleState  restore_spindle;
@@ -1040,16 +1036,11 @@ static void protocol_exec_rt_suspend() {
             // the safety door and sleep states.
             if (sys.state == State::SafetyDoor || sys.state == State::Sleep) {
                 // Handles retraction motions and de-energizing.
-#ifdef PARKING_ENABLE
                 float* parking_target = system_get_mpos();
-#endif
                 if (!sys.suspend.bit.retractComplete) {
                     // Ensure any prior spindle stop override is disabled at start of safety door routine.
                     sys.spindle_stop_ovr.value = 0;  // Disable override
-#ifndef PARKING_ENABLE
-                    config->_spindle->spinDown();
-                    config->_coolant->off();
-#else
+
                     // Get current position and store restore location and spindle retract waypoint.
                     if (!sys.suspend.bit.restartRetract) {
                         memcpy(restore_target, parking_target, sizeof(restore_target[0]) * config->_axes->_numberAxis);
@@ -1091,7 +1082,7 @@ static void protocol_exec_rt_suspend() {
                         config->_spindle->spinDown();
                         config->_coolant->off();
                     }
-#endif
+
                     sys.suspend.bit.restartRetract  = false;
                     sys.suspend.bit.retractComplete = true;
                 } else {
@@ -1114,7 +1105,6 @@ static void protocol_exec_rt_suspend() {
                     }
                     // Handles parking restore and safety door resume.
                     if (sys.suspend.bit.initiateRestore) {
-#ifdef PARKING_ENABLE
                         // Execute fast restore motion to the pull-out position. Parking requires homing enabled.
                         // NOTE: State is will remain DOOR, until the de-energizing and retract is complete.
                         if (can_park()) {
@@ -1125,7 +1115,6 @@ static void protocol_exec_rt_suspend() {
                                 mc_parking_motion(parking_target, pl_data);
                             }
                         }
-#endif
                         // Delayed Tasks: Restart spindle and coolant, delay to power-up, then resume cycle.
                         if (gc_state.modal.spindle != SpindleState::Disable) {
                             // Block if safety door re-opened during prior restore actions.
@@ -1144,7 +1133,7 @@ static void protocol_exec_rt_suspend() {
                                 config->_coolant->set_state(restore_coolant);
                             }
                         }
-#ifdef PARKING_ENABLE
+
                         // Execute slow plunge motion from pull-out position to resume position.
                         if (can_park()) {
                             // Block if safety door re-opened during prior restore actions.
@@ -1159,7 +1148,6 @@ static void protocol_exec_rt_suspend() {
                                 mc_parking_motion(restore_target, pl_data);
                             }
                         }
-#endif
                         if (!sys.suspend.bit.restartRetract) {
                             sys.suspend.bit.restoreComplete = true;
                             rtCycleStart                    = true;  // Set to resume program.

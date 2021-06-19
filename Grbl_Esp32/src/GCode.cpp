@@ -47,8 +47,14 @@ parser_block_t gc_block;
 void gc_init() {
     // Reset parser state:
     memset(&gc_state, 0, sizeof(parser_state_t));
+
     // Load default G54 coordinate system.
     gc_state.modal.coord_select = CoordIndex::G54;
+    if (config->_deactivateParkingUponInit) {
+        gc_state.modal.override = Override::Disabled;
+    } else {
+        gc_state.modal.override = Override::ParkingMotion;
+    }
     coords[gc_state.modal.coord_select]->get(gc_state.coord_system);
 }
 
@@ -519,12 +525,14 @@ Error gc_execute_line(char* line, uint8_t client) {
                         }
                         mg_word_bit = ModalGroup::MM8;
                         break;
-#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
                     case 56:
-                        gc_block.modal.override = Override::ParkingMotion;
-                        mg_word_bit             = ModalGroup::MM9;
+                        if (config->_enableParkingOverrideControl) {
+                            gc_block.modal.override = Override::ParkingMotion;
+                            mg_word_bit             = ModalGroup::MM9;
+                        } else {
+                            FAIL(Error::GcodeUnsupportedCommand);  // [Unsupported M command]
+                        }
                         break;
-#endif
                     case 62:
                         gc_block.modal.io_control = IoControl::DigitalOnSync;
                         mg_word_bit               = ModalGroup::MM10;
@@ -803,16 +811,17 @@ Error gc_execute_line(char* line, uint8_t client) {
         // [8. Coolant control ]: N/A
         // [9. Enable/disable feed rate or spindle overrides ]: NOT SUPPORTED.
     }
-#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    if (bit_istrue(command_words, bit(ModalGroup::MM9))) {  // Already set as enabled in parser.
-        if (bit_istrue(value_words, bit(GCodeWord::P))) {
-            if (gc_block.values.p == 0.0) {
-                gc_block.modal.override = Override::Disabled;
+
+    if (config->_enableParkingOverrideControl) {
+        if (bit_istrue(command_words, bit(ModalGroup::MM9))) {  // Already set as enabled in parser.
+            if (bit_istrue(value_words, bit(GCodeWord::P))) {
+                if (gc_block.values.p == 0.0) {
+                    gc_block.modal.override = Override::Disabled;
+                }
+                bit_false(value_words, bit(GCodeWord::P));
             }
-            bit_false(value_words, bit(GCodeWord::P));
         }
     }
-#endif
     // [10. Dwell ]: P value missing. P is negative (done.) NOTE: See below.
     if (gc_block.non_modal_command == NonModal::Dwell) {
         if (bit_isfalse(value_words, bit(GCodeWord::P))) {
@@ -1427,12 +1436,13 @@ Error gc_execute_line(char* line, uint8_t client) {
     }
 
     // [9. Override control ]: NOT SUPPORTED. Always enabled. Except for a Grbl-only parking control.
-#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    if (gc_state.modal.override != gc_block.modal.override) {
-        gc_state.modal.override = gc_block.modal.override;
-        mc_override_ctrl_update(gc_state.modal.override);
+    if (config->_enableParkingOverrideControl) {
+        if (gc_state.modal.override != gc_block.modal.override) {
+            gc_state.modal.override = gc_block.modal.override;
+            mc_override_ctrl_update(gc_state.modal.override);
+        }
     }
-#endif
+
     // [10. Dwell ]:
     if (gc_block.non_modal_command == NonModal::Dwell) {
         mc_dwell(int32_t(gc_block.values.p * 1000.0f));
@@ -1581,13 +1591,14 @@ Error gc_execute_line(char* line, uint8_t client) {
             gc_state.modal.coord_select = CoordIndex::G54;
             gc_state.modal.spindle      = SpindleState::Disable;
             gc_state.modal.coolant      = {};
-#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-#    ifdef DEACTIVATE_PARKING_UPON_INIT
-            gc_state.modal.override = Override::Disabled;
-#    else
-            gc_state.modal.override = Override::ParkingMotion;
-#    endif
-#endif
+            if (config->_enableParkingOverrideControl) {
+                if (config->_deactivateParkingUponInit) {
+                    gc_state.modal.override = Override::Disabled;
+                } else {
+                    gc_state.modal.override = Override::ParkingMotion;
+                }
+            }
+
             // gc_state.modal.override = OVERRIDE_DISABLE; // Not supported.
 #ifdef RESTORE_OVERRIDES_AFTER_PROGRAM_END
             sys.f_override        = FeedOverride::Default;

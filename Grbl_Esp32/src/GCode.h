@@ -263,7 +263,7 @@ enum CoordIndex : uint8_t {
 CoordIndex& operator++(CoordIndex& i);
 
 // NOTE: When this struct is zeroed, the 0 values in the above types set the system defaults.
-typedef struct {
+struct gc_modal_t {
     Motion   motion;     // {G0,G1,G2,G3,G38.2,G80}
     FeedRate feed_rate;  // {G93,G94}
     Units    units;      // {G20,G21}
@@ -280,9 +280,9 @@ typedef struct {
     ToolChange   tool_change;   // {M6}
     IoControl    io_control;    // {M62, M63, M67}
     Override     override;      // {M56}
-} gc_modal_t;
+};
 
-typedef struct {
+struct gc_values_t {
     uint8_t e;                // M67
     float   f;                // Feed
     float   ijk[3];           // I,J,K Axis arc offsets - only 3 are possible
@@ -294,9 +294,9 @@ typedef struct {
     float   s;                // Spindle speed
     uint8_t t;                // Tool selection
     float   xyz[MAX_N_AXIS];  // X,Y,Z Translational axes
-} gc_values_t;
+};
 
-typedef struct {
+struct parser_state_t {
     gc_modal_t modal;
 
     float   spindle_speed;  // RPM
@@ -311,15 +311,16 @@ typedef struct {
     float coord_offset[MAX_N_AXIS];  // Retains the G92 coordinate offset (work coordinates) relative to
     // machine zero in mm. Non-persistent. Cleared upon reset and boot.
     float tool_length_offset;  // Tracks tool length offset value when enabled.
-} parser_state_t;
+};
+
 extern parser_state_t gc_state;
 
-typedef struct {
+struct parser_block_t {
     NonModal     non_modal_command;
     gc_modal_t   modal;
     gc_values_t  values;
     GCodeCoolant coolant;
-} parser_block_t;
+};
 
 enum class AxisCommand : uint8_t {
     None             = 0,

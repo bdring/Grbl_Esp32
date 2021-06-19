@@ -507,7 +507,6 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data) {
     }
 }
 
-#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
 void mc_override_ctrl_update(Override override_state) {
     // Finish all queued commands before altering override control state
     protocol_buffer_synchronize();
@@ -516,7 +515,6 @@ void mc_override_ctrl_update(Override override_state) {
     }
     sys.override_ctrl = override_state;
 }
-#endif
 
 // Method to ready the system to reset by setting the realtime reset command and killing any
 // active processes in the system. This also checks if a system reset is issued while Grbl

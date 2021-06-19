@@ -417,6 +417,9 @@ void MachineConfig::group(Configuration::HandlerBase& handler) {
     handler.item("verbose_errors", _verboseErrors);
     handler.item("report_inches", _reportInches);
     handler.item("homing_init_lock", _homingInitLock);
+    handler.item("enable_parking_override_control", _enableParkingOverrideControl);
+    handler.item("deactivate_parking_upon_init", _deactivateParkingUponInit);
+
     Spindles::SpindleFactory::factory(handler, _spindle);
 }
 

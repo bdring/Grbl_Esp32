@@ -503,11 +503,9 @@ void report_gcode_modes(uint8_t client) {
         }
     }
 
-#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    if (sys.override_ctrl == Override::ParkingMotion) {
+    if (config->_enableParkingOverrideControl && sys.override_ctrl == Override::ParkingMotion) {
         strcat(modes_rpt, " M56");
     }
-#endif
 
     sprintf(temp, " T%d", gc_state.tool);
     strcat(modes_rpt, temp);
@@ -535,9 +533,7 @@ void report_build_info(const char* line, uint8_t client) {
     if (config->_coolant->hasMist()) {
         grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
     }
-#ifdef PARKING_ENABLE
     grbl_send(client, "P");
-#endif
 #ifdef HOMING_SINGLE_AXIS_COMMANDS
     grbl_send(client, "H");
 #endif
@@ -551,9 +547,9 @@ void report_build_info(const char* line, uint8_t client) {
         grbl_send(client, "B");
     }
     grbl_send(client, "S");
-#ifdef ENABLE_PARKING_OVERRIDE_CONTROL
-    grbl_send(client, "R");
-#endif
+    if (config->_enableParkingOverrideControl) {
+        grbl_send(client, "R");
+    }
 #ifdef ENABLE_WIFI
     grbl_send(client, "W");
 #endif

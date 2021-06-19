@@ -362,6 +362,9 @@ public:
     bool    _homingInitLock    = false;
     int     _stepType          = ST_RMT;
 
+    bool _enableParkingOverrideControl = false;
+    bool _deactivateParkingUponInit    = false;
+
     String _board = "None";
     String _name  = "None";
 

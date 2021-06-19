@@ -395,18 +395,6 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // repeatable. If needed, you can disable this behavior by uncommenting the define below.
 // #define ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES // Default disabled. Uncomment to enable.
 
-// Enables and configures parking motion methods upon a safety door state. Primarily for OEMs
-// that desire this feature for their integrated machines. At the moment, Grbl assumes that
-// the parking motion only involves one axis, although the parking implementation was written
-// to be easily refactored for any number of motions on different axes by altering the parking
-// source code. At this time, Grbl only supports parking one axis (typically the Z-axis) that
-// moves in the positive direction upon retracting and negative direction upon restoring position.
-// The motion executes with a slow pull-out retraction motion, power-down, and a fast park.
-// Restoring to the resume position follows these set motions in reverse: fast restore to
-// pull-out position, power-up with a time-out, and plunge back to the original position at the
-// slower pull-out rate.
-#define PARKING_ENABLE  // Default disabled. Uncomment to enable
-
 // Configure options for the parking motion, if enabled.
 #define PARKING_AXIS Z_AXIS                      // Define which axis that performs the parking motion
 const double PARKING_TARGET            = -5.0;   // Parking axis target. In mm, as machine coordinate.
@@ -419,7 +407,8 @@ const double PARKING_PULLOUT_INCREMENT = 5.0;    // Spindle pull-out and plunge 
 // These are controlled by `M56`, `M56 P1`, or `M56 Px` to enable and `M56 P0` to disable.
 // The command is modal and will be set after a planner sync. Since it is GCode, it is
 // executed in sync with GCode commands. It is not a real-time command.
-// NOTE: PARKING_ENABLE is required. By default, M56 is active upon initialization. Use
+// 
+// By default, M56 is active upon initialization. Use
 // DEACTIVATE_PARKING_UPON_INIT to set M56 P0 as the power-up default.
 // #define ENABLE_PARKING_OVERRIDE_CONTROL   // Default disabled. Uncomment to enable
 // #define DEACTIVATE_PARKING_UPON_INIT // Default disabled. Uncomment to enable.
