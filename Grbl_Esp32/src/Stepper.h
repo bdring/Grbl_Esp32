@@ -32,7 +32,7 @@ enum stepper_id_t {
     ST_TIMED = 0,
     ST_RMT,
     ST_I2S_STATIC,
-    ST_I2S_STREAM,    
+    ST_I2S_STREAM,
 };
 
 // esp32 work around for diable in main loop

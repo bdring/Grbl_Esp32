@@ -299,24 +299,11 @@ static bool axis_is_squared(AxisMask axis_mask) {
     return false;
 }
 
-#ifdef USE_I2S_STEPS
-#    define BACKUP_STEPPER(save_stepper)                                                                                                   \
-        do {                                                                                                                               \
-            if (save_stepper == ST_I2S_STREAM) {                                                                                           \
-                stepper_switch(ST_I2S_STATIC); /* Change the stepper to reduce the delay for accurate probing. */                          \
-            }                                                                                                                              \
-        } while (0)
-
-#    define RESTORE_STEPPER(save_stepper)                                                                                                  \
-        do {                                                                                                                               \
-            if (save_stepper == ST_I2S_STREAM && config->_stepType != ST_I2S_STREAM) {                                                     \
-                stepper_switch(ST_I2S_STREAM); /* Put the stepper back on. */                                                              \
-            }                                                                                                                              \
-        } while (0)
-#else
-#    define BACKUP_STEPPER(save_stepper)
-#    define RESTORE_STEPPER(save_stepper)
-#endif
+inline void RESTORE_STEPPER(int save_stepper) {
+    if (save_stepper == ST_I2S_STREAM && config->_stepType != ST_I2S_STREAM) {
+        stepper_switch(ST_I2S_STREAM); /* Put the stepper back on. */
+    }
+}
 
 // For this routine, homing_mask cannot be 0.  The 0 case,
 // meaning run all cycles, is handled by the caller mc_homing_cycle()
@@ -429,11 +416,12 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         return GCUpdatePos::None;  // Return if system reset has been issued.
     }
 
-#ifdef USE_I2S_STEPS
     int save_stepper = config->_stepType; /* remember the stepper */
-#endif
+
     // Switch stepper mode to the I2S static (realtime mode)
-    BACKUP_STEPPER(save_stepper);
+    if (save_stepper == ST_I2S_STREAM) {
+        stepper_switch(ST_I2S_STATIC); /* Change the stepper to reduce the delay for accurate probing. */
+    }
 
     // Initialize probing control variables
     bool is_probe_away  = bit_istrue(parser_flags, GCParserProbeIsAway);
@@ -572,10 +560,8 @@ void mc_reset() {
         }
         ganged_mode = gangDual;  // in case an error occurred during squaring
 
-#ifdef USE_I2S_STEPS
         if (config->_stepType == ST_I2S_STREAM) {
             i2s_out_reset();
         }
-#endif
     }
 }

@@ -249,20 +249,16 @@ Error home(int cycle) {
     }
     sys.state = State::Homing;  // Set system state variable
 
-#ifdef USE_I2S_STEPS
     int save_stepper = config->_stepType;
     if (save_stepper == ST_I2S_STREAM) {
         stepper_switch(ST_I2S_STATIC);
     }
-#endif
 
     mc_homing_cycle(cycle);
 
-#ifdef USE_I2S_STEPS
     if (save_stepper == ST_I2S_STREAM && config->_stepType != ST_I2S_STREAM) {
         stepper_switch(ST_I2S_STREAM);
     }
-#endif
 
     if (!sys.abort) {             // Execute startup scripts after successful homing.
         sys.state = State::Idle;  // Set to IDLE when complete.

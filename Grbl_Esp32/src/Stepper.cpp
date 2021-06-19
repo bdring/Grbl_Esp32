@@ -339,10 +339,9 @@ void stepper_init() {
                 config->_disableDelayMicroSeconds,
                 config->_directionDelayMicroSeconds);
 
-#ifdef USE_I2S_STEPS
     // I2S stepper stream mode use callback but timer interrupt
     i2s_out_set_pulse_callback(stepper_pulse_func);
-#endif
+
     // Other stepper use timer interrupt
     Stepper_Timer_Init();
 }
@@ -353,7 +352,7 @@ void stepper_switch(stepper_id_t new_stepper) {
         // do not need to change
         return;
     }
-#ifdef USE_I2S_STEPS
+
     if (config->_stepType == ST_I2S_STREAM) {
         if (i2s_out_get_pulser_status() != PASSTHROUGH) {
             // Called during streaming. Stop streaming.
@@ -362,7 +361,7 @@ void stepper_switch(stepper_id_t new_stepper) {
             i2s_out_delay();  // Wait for a change in mode.
         }
     }
-#endif
+
     config->_stepType = new_stepper;
 }
 
@@ -390,11 +389,10 @@ void st_reset() {
     //Serial.println("st_reset()");
 #endif
     // Initialize stepper driver idle state.
-#ifdef USE_I2S_STEPS
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_reset();
     }
-#endif
+
     st_go_idle();
     // Initialize stepper algorithm variables.
     memset(&prep, 0, sizeof(st_prep_t));
@@ -915,12 +913,10 @@ float st_get_realtime_rate() {
 // The argument is in units of ticks of the timer that generates ISRs
 void IRAM_ATTR Stepper_Timer_WritePeriod(uint16_t timerTicks) {
     if (config->_stepType == ST_I2S_STREAM) {
-#ifdef USE_I2S_STEPS
         // 1 tick = fTimers / fStepperTimer
         // Pulse ISR is called for each tick of alarm_val.
         // The argument to i2s_out_set_pulse_period is in units of microseconds
         i2s_out_set_pulse_period(((uint32_t)timerTicks) / ticksPerMicrosecond);
-#endif
     } else {
         timerAlarmWrite(stepTimer, (uint64_t)timerTicks, autoReload);
     }
@@ -938,9 +934,7 @@ void IRAM_ATTR Stepper_Timer_Start() {
     //Serial.println("ST Start");
 #endif
     if (config->_stepType == ST_I2S_STREAM) {
-#ifdef USE_I2S_STEPS
         i2s_out_set_stepping();
-#endif
     } else {
         timerWrite(stepTimer, 0ULL);
         timerAlarmEnable(stepTimer);
