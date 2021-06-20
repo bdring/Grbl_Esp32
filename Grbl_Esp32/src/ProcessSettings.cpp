@@ -84,7 +84,6 @@ namespace WebUI {
 void settings_init() {
     make_settings();
     WebUI::make_web_settings();
-    make_grbl_commands();
     load_settings();
 }
 

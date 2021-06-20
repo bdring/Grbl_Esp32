@@ -24,6 +24,8 @@
 #include <WiFi.h>
 #include <SPIFFS.h>
 
+extern void make_grbl_commands();
+
 void grbl_init() {
     try {
         client_init();  // Setup serial baud rate and interrupts
@@ -50,8 +52,9 @@ void grbl_init() {
 
         // Load Grbl settings from non-volatile storage
         debug_serial("Initializing settings...");
-        settings_init();
+        settings_init(); // requires config
         config->load(config_filename->get());
+        make_grbl_commands();
 
         info_serial("Name: %s", config->_name.c_str());
         info_serial("Board: %s", config->_board.c_str());
