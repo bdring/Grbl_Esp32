@@ -193,10 +193,10 @@ namespace Spindles {
                 }
         }
         if (down) {
-            delay(_spindown_scaler * down >> 16);
+            delay(_spindown_ms * down / maxSpeed());
         }
         if (up) {
-            delay(_spinup_scaler * up >> 16);
+            delay(_spinup_ms * up / maxSpeed());
         }
         _current_state = state;
         _current_speed = speed;

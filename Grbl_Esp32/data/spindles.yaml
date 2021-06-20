@@ -89,14 +89,14 @@ Huanyang:
 
 PWM:
   tool:30
-  spinup_delay_ms: 20
+  spinup_ms: 200
+  spindown_ms: 500
   speeds: 0=0% 5000=30% 10000=100%
   output_pin: gpio.2
   enable_pin: gpio.22
 
 PWM:
   tool:40
-  spinup_delay_ms: 0
   speeds: 0=0% 10000=100%
   output_pin: gpio.4
   enable_pin: gpio.10

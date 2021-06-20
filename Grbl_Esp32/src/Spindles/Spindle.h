@@ -81,11 +81,9 @@ namespace Spindles {
 
         // scaler units are ms/rpm * 2^16.
         // The computation is deltaRPM * scaler >> 16
-        uint32_t _spinup_scaler   = 0;
-        uint32_t _spindown_scaler = 0;
+        uint32_t _spinup_ms   = 0;
+        uint32_t _spindown_ms = 0;
 
-        // uint32_t _spinup_delay   = 0;
-        // uint32_t _spindown_delay = 0;
         int _tool = -1;
 
         std::vector<Configuration::speedEntry> _speeds;
@@ -101,10 +99,8 @@ namespace Spindles {
         virtual void afterParse() override;
 
         void group(Configuration::HandlerBase& handler) override {
-            handler.item("spinup_scaler", _spinup_scaler);
-            handler.item("spindown_scaler", _spindown_scaler);
-            //            handler.item("spinup_delay_ms", _spinup_delay);
-            //            handler.item("spindown_delay_ms", _spindown_delay);
+            handler.item("spinup_ms", _spinup_ms);
+            handler.item("spindown_ms", _spindown_ms);
             handler.item("tool", _tool);
             handler.item("speeds", _speeds);
         }
