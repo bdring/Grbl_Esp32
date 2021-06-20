@@ -51,11 +51,6 @@ namespace Spindles {
         info_all("%s spindle Output:%s, Dir:%s, Res:8bits", name(), _output_pin.name().c_str(), _direction_pin.name().c_str());
     }
 
-    uint32_t Dac::mapSpeed(SpindleSpeed speed) {
-        Spindle* s = static_cast<Spindle*>(this);
-        return s->mapSpeed(speed);
-    }
-
     void IRAM_ATTR Dac::setSpeedfromISR(uint32_t speed) { set_output(speed); };
     void IRAM_ATTR Dac::set_output(uint32_t duty) {
         if (_gpio_ok) {

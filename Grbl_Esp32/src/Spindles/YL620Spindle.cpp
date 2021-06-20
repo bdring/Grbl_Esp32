@@ -172,13 +172,7 @@ namespace Spindles {
                     SpindleSpeed maxRPM = yl620->_maxFrequency * 6;
                     SpindleSpeed minRPM = yl620->_minFrequency * 6;
 
-                    float minPercent = 100.0 * yl620->_minFrequency / yl620->_maxFrequency;
-                    float maxPercent = 100.0;
-
-                    vfd->_speeds.push_back({ 0, 0 });
-                    vfd->_speeds.push_back({ 0, minPercent });
-                    vfd->_speeds.push_back({ minRPM, minPercent });
-                    vfd->_speeds.push_back({ maxRPM, 100.0 });
+                    vfd->shelfSpeeds(minRPM, maxRPM);
                 }
 
                 vfd->setupSpeeds(yl620->_maxFrequency);

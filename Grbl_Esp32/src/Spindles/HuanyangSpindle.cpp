@@ -334,14 +334,7 @@ namespace Spindles {
             // Convert from Frequency in centiHz (the divisor of 100) to RPM (the factor of 60)
             SpindleSpeed minRPM = _minFrequency * 60 / 100;
             SpindleSpeed maxRPM = _maxFrequency * 60 / 100;
-
-            float minPercent = 100.0 * _minFrequency / _maxFrequency;
-            float maxPercent = 100.0;
-
-            _speeds.push_back({ 0, 0 });
-            _speeds.push_back({ 0, minPercent });
-            _speeds.push_back({ minRPM, minPercent });
-            _speeds.push_back({ maxRPM, 100.0 });
+            shelfSpeeds(minRPM, maxRPM);
         }
         setupSpeeds(_maxFrequency);
         _slop = std::max(_maxFrequency / 40, 1);

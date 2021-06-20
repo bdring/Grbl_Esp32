@@ -41,8 +41,6 @@ namespace Spindles {
         void config_message() override;
         void setSpeedfromISR(uint32_t dev_speed) override;
 
-        uint32_t mapSpeed(SpindleSpeed speed) override;
-
         // Configuration handlers:
         // Inherited from PWM
 

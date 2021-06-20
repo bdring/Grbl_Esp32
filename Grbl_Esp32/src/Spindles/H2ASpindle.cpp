@@ -78,7 +78,7 @@ namespace Spindles {
                 uint16_t maxRPM = (uint16_t(response[4]) << 8) | uint16_t(response[5]);
 
                 if (vfd->_speeds.size() == 0) {
-                    vfd->makeSpeeds(0, maxRPM);
+                    vfd->shelfSpeeds(maxRPM / 4, maxRPM);
                 }
 
                 vfd->setupSpeeds(1);  // The speed is given directly in RPM

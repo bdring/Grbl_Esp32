@@ -52,12 +52,12 @@ namespace Spindles {
         Spindle& operator=(const Spindle&) = delete;
         Spindle& operator=(Spindle&&) = delete;
 
-        bool             _defaultedSpeeds;
-        uint32_t         offSpeed() { return _speeds[0].offset; }
-        uint32_t         maxSpeed() { return _speeds[_speeds.size() - 1].speed; }
-        virtual uint32_t mapSpeed(SpindleSpeed speed);
-        void             setupSpeeds(uint32_t max_dev_speed);
-        void             makeSpeeds(SpindleSpeed min, SpindleSpeed max);
+        bool     _defaultedSpeeds;
+        uint32_t offSpeed() { return _speeds[0].offset; }
+        uint32_t maxSpeed() { return _speeds[_speeds.size() - 1].speed; }
+        uint32_t mapSpeed(SpindleSpeed speed);
+        void     setupSpeeds(uint32_t max_dev_speed);
+        void     shelfSpeeds(SpindleSpeed min, SpindleSpeed max);
 
         static void switchSpindle(uint8_t new_tool, SpindleList spindles, Spindle*& spindle);
 

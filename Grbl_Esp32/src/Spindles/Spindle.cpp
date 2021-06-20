@@ -90,14 +90,15 @@ namespace Spindles {
 
     void Spindle::afterParse() {}
 
-    void Spindle::makeSpeeds(SpindleSpeed min, SpindleSpeed max) {
+    void Spindle::shelfSpeeds(SpindleSpeed min, SpindleSpeed max) {
+        float minPercent = 100.0 * min / max;
         _speeds.clear();
-        _speeds.push_back({ 0, 0 });
-        _speeds.push_back({ 0, (float)100 * min / max });
+        _speeds.push_back({ 0, 0.0 });
+        _speeds.push_back({ 0, minPercent });
         if (min) {
-            _speeds.push_back({ min, (float)100 * min / max });
+            _speeds.push_back({ min, minPercent });
         }
-        _speeds.push_back({ max, 100 });
+        _speeds.push_back({ max, 100.0 });
     }
 
     uint32_t Spindle::mapSpeed(SpindleSpeed speed) {
