@@ -5,8 +5,8 @@
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 
-	2018 -	Bart Dring This file was modifed for use on the ESP32
-					CPU. Do not use this with Grbl for atMega328P
+    2018 -	Bart Dring This file was modifed for use on the ESP32
+                    CPU. Do not use this with Grbl for atMega328P
 
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -96,14 +96,14 @@ bool can_park() {
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
         sys.override_ctrl == Override::ParkingMotion &&
 #endif
-        homing_enable->get() && !laser_mode->get();
+        homing_enable->get() && !spindle->inLaserMode();
 }
 
 /*
   GRBL PRIMARY LOOP:
 */
 void protocol_main_loop() {
-    serial_reset_read_buffer(CLIENT_ALL);
+    client_reset_read_buffer(CLIENT_ALL);
     empty_lines();
     //uint8_t client = CLIENT_SERIAL; // default client
     // Perform some machine checks to make sure everything is good to go.
@@ -135,7 +135,7 @@ void protocol_main_loop() {
     // Primary loop! Upon a system abort, this exits back to main() to reset the system.
     // This is also where Grbl idles while waiting for something to do.
     // ---------------------------------------------------------------------------------
-    uint8_t c;
+    int c;
     for (;;) {
 #ifdef ENABLE_SD_CARD
         if (SD_ready_next) {
@@ -157,7 +157,7 @@ void protocol_main_loop() {
         uint8_t client = CLIENT_SERIAL;
         char*   line;
         for (client = 0; client < CLIENT_COUNT; client++) {
-            while ((c = serial_read(client)) != SERIAL_NO_DATA) {
+            while ((c = client_read(client)) != -1) {
                 Error res = add_char_to_line(c, client);
                 switch (res) {
                     case Error::Ok:
@@ -193,7 +193,7 @@ void protocol_main_loop() {
             return;  // Bail to main() program loop to reset system.
         }
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
-        if (stepper_idle) {
+        if (stepper_idle && stepper_idle_lock_time->get() != 0xff) {
             if (esp_timer_get_time() > stepper_idle_counter) {
                 motors_set_disable(true);
             }
@@ -272,7 +272,7 @@ void protocol_exec_rt_system() {
     }
     ExecState rt_exec_state;
     rt_exec_state.value = sys_rt_exec_state.value;  // Copy volatile sys_rt_exec_state.
-    if (rt_exec_state.value != 0 || cycle_stop) {                 // Test if any bits are on
+    if (rt_exec_state.value != 0 || cycle_stop) {   // Test if any bits are on
         // Execute system abort.
         if (rt_exec_state.bit.reset) {
             sys.abort = true;  // Only place this is set true.
@@ -532,7 +532,6 @@ static void protocol_exec_rt_suspend() {
 #ifdef PARKING_ENABLE
     // Declare and initialize parking local variables
     float             restore_target[MAX_N_AXIS];
-    float             parking_target[MAX_N_AXIS];
     float             retract_waypoint = PARKING_PULLOUT_INCREMENT;
     plan_line_data_t  plan_data;
     plan_line_data_t* pl_data = &plan_data;
@@ -558,7 +557,7 @@ static void protocol_exec_rt_suspend() {
         restore_spindle_speed = block->spindle_speed;
     }
 #ifdef DISABLE_LASER_DURING_HOLD
-    if (laser_mode->get()) {
+    if (spindle->inLaserMode()) {
         sys_rt_exec_accessory_override.bit.spindleOvrStop = true;
     }
 #endif
@@ -567,12 +566,21 @@ static void protocol_exec_rt_suspend() {
         if (sys.abort) {
             return;
         }
+        // if a jogCancel comes in and we have a jog "in-flight" (parsed and handed over to mc_line()),
+        //  then we need to cancel it before it reaches the planner.  otherwise we may try to move way out of
+        //  normal bounds, especially with senders that issue a series of jog commands before sending a cancel.
+        if (sys.suspend.bit.jogCancel && sys_pl_data_inflight != NULL && ((plan_line_data_t*)sys_pl_data_inflight)->is_jog) {
+            sys_pl_data_inflight = NULL;
+        }
         // Block until initial hold is complete and the machine has stopped motion.
         if (sys.suspend.bit.holdComplete) {
             // Parking manager. Handles de/re-energizing, switch state checks, and parking motions for
             // the safety door and sleep states.
             if (sys.state == State::SafetyDoor || sys.state == State::Sleep) {
                 // Handles retraction motions and de-energizing.
+#ifdef PARKING_ENABLE
+                float* parking_target = system_get_mpos();
+#endif
                 if (!sys.suspend.bit.retractComplete) {
                     // Ensure any prior spindle stop override is disabled at start of safety door routine.
                     sys.spindle_stop_ovr.value = 0;  // Disable override
@@ -581,9 +589,8 @@ static void protocol_exec_rt_suspend() {
                     coolant_off();
 #else
                     // Get current position and store restore location and spindle retract waypoint.
-                    system_convert_array_steps_to_mpos(parking_target, sys_position);
                     if (!sys.suspend.bit.restartRetract) {
-                        memcpy(restore_target, parking_target, sizeof(parking_target));
+                        memcpy(restore_target, parking_target, sizeof(restore_target[0]) * number_axis->get());
                         retract_waypoint += restore_target[PARKING_AXIS];
                         retract_waypoint = MIN(retract_waypoint, PARKING_TARGET);
                     }
@@ -661,12 +668,13 @@ static void protocol_exec_rt_suspend() {
                         if (gc_state.modal.spindle != SpindleState::Disable) {
                             // Block if safety door re-opened during prior restore actions.
                             if (!sys.suspend.bit.restartRetract) {
-                                if (laser_mode->get()) {
+                                if (spindle->inLaserMode()) {
                                     // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                     sys.step_control.updateSpindleRpm = true;
                                 } else {
                                     spindle->set_state(restore_spindle, (uint32_t)restore_spindle_speed);
-                                    delay_sec(SAFETY_DOOR_SPINDLE_DELAY, DELAY_MODE_SYS_SUSPEND);
+                                    // restore delay is done in the spindle class
+                                    //delay_sec(int32_t(1000.0 * spindle_delay_spinup->get()), DwellMode::SysSuspend);
                                 }
                             }
                         }
@@ -675,7 +683,7 @@ static void protocol_exec_rt_suspend() {
                             if (!sys.suspend.bit.restartRetract) {
                                 // NOTE: Laser mode will honor this delay. An exhaust system is often controlled by this pin.
                                 coolant_set_state(restore_coolant);
-                                delay_sec(SAFETY_DOOR_COOLANT_DELAY, DELAY_MODE_SYS_SUSPEND);
+                                delay_msec(int32_t(1000.0 * coolant_start_delay->get()), DwellMode::SysSuspend);
                             }
                         }
 #ifdef PARKING_ENABLE
@@ -717,7 +725,7 @@ static void protocol_exec_rt_suspend() {
                     } else if (sys.spindle_stop_ovr.bit.restore || sys.spindle_stop_ovr.bit.restoreCycle) {
                         if (gc_state.modal.spindle != SpindleState::Disable) {
                             report_feedback_message(Message::SpindleRestore);
-                            if (laser_mode->get()) {
+                            if (spindle->inLaserMode()) {
                                 // When in laser mode, ignore spindle spin-up delay. Set to turn on laser when cycle starts.
                                 sys.step_control.updateSpindleRpm = true;
                             } else {

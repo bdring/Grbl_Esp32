@@ -36,7 +36,7 @@ namespace Motors {
             grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel Error. Missing pin definitions");
             _has_errors = true;
         } else {
-            _has_errors = false;   // The motor can be used
+            _has_errors = false;  // The motor can be used
         }
     }
 
@@ -103,8 +103,8 @@ namespace Motors {
             }
 
         } else {
-            grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(_axis_index, _dual_axis_index),
-_id);
+            grbl_msg_sendf(
+                CLIENT_SERIAL, MsgLevel::Info, "%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(_axis_index, _dual_axis_index), _id);
             return false;
         }
 
@@ -197,7 +197,7 @@ _id);
 
         set_disable(false);
         set_location();  // force the PWM to update now
-        return false;  // Cannot do conventional homing
+        return false;    // Cannot do conventional homing
     }
 
     void Dynamixel2::dxl_goal_position(int32_t position) {
@@ -345,15 +345,13 @@ _id);
         tx_message[++msg_index] = 4;                                  // low order data length
         tx_message[++msg_index] = 0;                                  // high order data length
 
-        auto n_axis = number_axis->get();
+        auto   n_axis = number_axis->get();
+        float* mpos   = system_get_mpos();
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
             for (uint8_t gang_index = 0; gang_index < 2; gang_index++) {
                 current_id = ids[axis][gang_index];
                 if (current_id != 0) {
                     count++;  // keep track of the count for the message length
-
-                    //determine the location of the axis
-                    float target = system_convert_axis_steps_to_mpos(sys_position, axis);  // get the axis machine position in mm
 
                     dxl_count_min = DXL_COUNT_MIN;
                     dxl_count_max = DXL_COUNT_MAX;
@@ -362,7 +360,8 @@ _id);
                         swap(dxl_count_min, dxl_count_max);
 
                     // map the mm range to the servo range
-                    dxl_position = (uint32_t)mapConstrain(target, limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max);
+                    dxl_position =
+                        (uint32_t)mapConstrain(mpos[axis], limitsMinPosition(axis), limitsMaxPosition(axis), dxl_count_min, dxl_count_max);
 
                     tx_message[++msg_index] = current_id;                         // ID of the servo
                     tx_message[++msg_index] = dxl_position & 0xFF;                // data

@@ -75,12 +75,14 @@ public:
 class Command : public Word {
 protected:
     Command* link;  // linked list of setting objects
+    bool (*_cmdChecker)();
+
 public:
     static Command* List;
     Command*        next() { return link; }
 
     ~Command() {}
-    Command(const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName);
+    Command(const char* description, type_t type, permissions_t permissions, const char* grblName, const char* fullName, bool (*cmdChecker)());
 
     // The default implementation of addWebui() does nothing.
     // Derived classes may override it to do something.
@@ -343,10 +345,17 @@ public:
                 const char*   grblName,
                 const char*   name,
                 int8_t        defVal,
-                enum_opt_t*   opts);
+                enum_opt_t*   opts,
+                bool (*checker)(char*));
 
-    EnumSetting(type_t type, permissions_t permissions, const char* grblName, const char* name, int8_t defVal, enum_opt_t* opts) :
-        EnumSetting(NULL, type, permissions, grblName, name, defVal, opts) {}
+    EnumSetting(type_t        type,
+                permissions_t permissions,
+                const char*   grblName,
+                const char*   name,
+                int8_t        defVal,
+                enum_opt_t*   opts,
+                bool (*checker)(char*) = NULL) :
+        EnumSetting(NULL, type, permissions, grblName, name, defVal, opts, checker) {}
 
     void        load();
     void        setDefault();
@@ -435,6 +444,12 @@ public:
 
     AxisSettings(const char* axisName);
 };
+
+extern bool idleOrJog();
+extern bool idleOrAlarm();
+extern bool anyState();
+extern bool notCycleOrHold();
+
 class WebCommand : public Command {
 private:
     Error (*_action)(char*, WebUI::AuthenticationLevel);
@@ -446,31 +461,40 @@ public:
                permissions_t permissions,
                const char*   grblName,
                const char*   name,
-               Error (*action)(char*, WebUI::AuthenticationLevel)) :
-        Command(description, type, permissions, grblName, name),
+               Error (*action)(char*, WebUI::AuthenticationLevel),
+               bool (*cmdChecker)()) :
+        Command(description, type, permissions, grblName, name, cmdChecker),
         _action(action) {}
+
+    WebCommand(const char*   description,
+               type_t        type,
+               permissions_t permissions,
+               const char*   grblName,
+               const char*   name,
+               Error (*action)(char*, WebUI::AuthenticationLevel)) :
+        WebCommand(description, type, permissions, grblName, name, action, idleOrAlarm) {}
+
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
 
 class GrblCommand : public Command {
 private:
     Error (*_action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*);
-    bool (*_checker)();
 
 public:
     GrblCommand(const char* grblName,
                 const char* name,
                 Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
-                bool (*checker)(),
+                bool (*cmdChecker)(),
                 permissions_t auth) :
-        Command(NULL, GRBLCMD, auth, grblName, name),
-        _action(action), _checker(checker) {}
+        Command(NULL, GRBLCMD, auth, grblName, name, cmdChecker),
+        _action(action) {}
 
     GrblCommand(const char* grblName,
                 const char* name,
                 Error (*action)(const char*, WebUI::AuthenticationLevel, WebUI::ESPResponseStream*),
-                bool (*checker)(void)) :
-        GrblCommand(grblName, name, action, checker, WG) {}
+                bool (*cmdChecker)()) :
+        GrblCommand(grblName, name, action, cmdChecker, WG) {}
     Error action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* response);
 };
 

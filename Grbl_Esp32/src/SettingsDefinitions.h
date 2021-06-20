@@ -1,7 +1,5 @@
 #pragma once
 
-extern bool motorSettingChanged;
-
 extern FlagSetting* verbose_errors;
 
 extern FakeSetting<int>* number_axis;
@@ -20,6 +18,8 @@ extern StringSetting* build_info;
 
 extern IntSetting* pulse_microseconds;
 extern IntSetting* stepper_idle_lock_time;
+extern IntSetting* direction_delay_microseconds;
+extern IntSetting* enable_delay_microseconds;
 
 extern AxisMaskSetting* step_invert_mask;
 extern AxisMaskSetting* dir_invert_mask;
@@ -35,6 +35,7 @@ extern FlagSetting* soft_limits;
 extern FlagSetting* hard_limits;
 extern FlagSetting* homing_enable;
 extern FlagSetting* laser_mode;
+extern IntSetting*  laser_full_power;
 
 extern IntSetting*   status_mask;
 extern FloatSetting* junction_deviation;
@@ -49,6 +50,7 @@ extern FloatSetting* rpm_max;
 extern FloatSetting* rpm_min;
 extern FloatSetting* spindle_delay_spinup;
 extern FloatSetting* spindle_delay_spindown;
+extern FloatSetting* coolant_start_delay;
 extern FlagSetting*  spindle_enbl_off_with_zero_speed;
 extern FlagSetting*  spindle_enable_invert;
 extern FlagSetting*  spindle_output_invert;
@@ -61,3 +63,10 @@ extern IntSetting*   spindle_pwm_bit_precision;
 extern EnumSetting* spindle_type;
 
 extern AxisMaskSetting* stallguard_debug_mask;
+
+extern StringSetting* user_macro0;
+extern StringSetting* user_macro1;
+extern StringSetting* user_macro2;
+extern StringSetting* user_macro3;
+
+extern EnumSetting* message_level;

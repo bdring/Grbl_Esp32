@@ -2,11 +2,11 @@
 
 /*
     VFDSpindle.h
-    
+
     Part of Grbl_ESP32
     2020 -	Bart Dring
     2020 -  Stefan de Bruijn
-    
+
     Grbl is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -20,21 +20,24 @@
 */
 #include "Spindle.h"
 
-#include <driver/uart.h>
+#include "../Uart.h"
+
+// #define VFD_DEBUG_MODE
 
 namespace Spindles {
+    extern Uart _uart;
 
     class VFD : public Spindle {
     private:
         static const int VFD_RS485_MAX_MSG_SIZE = 16;  // more than enough for a modbus message
-        static const int MAX_RETRIES            = 3;   // otherwise the spindle is marked 'unresponsive'
+        static const int MAX_RETRIES            = 5;   // otherwise the spindle is marked 'unresponsive'
 
         bool set_mode(SpindleState mode, bool critical);
         bool get_pins_and_settings();
 
-        uint8_t _txd_pin;
-        uint8_t _rxd_pin;
-        uint8_t _rts_pin;
+        int _txd_pin;
+        int _rxd_pin;
+        int _rts_pin;
 
         uint32_t _current_rpm  = 0;
         bool     _task_running = false;
@@ -55,8 +58,6 @@ namespace Spindles {
             uint8_t msg[VFD_RS485_MAX_MSG_SIZE];
         };
 
-        virtual void default_modbus_settings(uart_config_t& uart);
-
         // Commands:
         virtual void direction_command(SpindleState mode, ModbusCommand& data) = 0;
         virtual void set_speed_command(uint32_t rpm, ModbusCommand& data)      = 0;
@@ -64,13 +65,21 @@ namespace Spindles {
         // Commands that return the status. Returns nullptr if unavailable by this VFD (default):
         using response_parser = bool (*)(const uint8_t* response, VFD* spindle);
 
-        virtual response_parser get_max_rpm(ModbusCommand& data) { return nullptr; }
+        virtual response_parser initialization_sequence(int index, ModbusCommand& data) { return nullptr; }
         virtual response_parser get_current_rpm(ModbusCommand& data) { return nullptr; }
         virtual response_parser get_current_direction(ModbusCommand& data) { return nullptr; }
         virtual response_parser get_status_ok(ModbusCommand& data) = 0;
+        virtual bool            supports_actual_rpm() const { return false; }
+        virtual bool            safety_polling() const { return true; }
+
+        // The constructor sets these
+        int          _baudrate;
+        Uart::Data   _dataBits;
+        Uart::Stop   _stopBits;
+        Uart::Parity _parity;
 
     public:
-        VFD()           = default;
+        VFD();
         VFD(const VFD&) = delete;
         VFD(VFD&&)      = delete;
         VFD& operator=(const VFD&) = delete;
@@ -80,6 +89,8 @@ namespace Spindles {
         // Should hide them and use a member function.
         volatile uint32_t _min_rpm;
         volatile uint32_t _max_rpm;
+        volatile uint32_t _sync_rpm;
+        volatile bool     _syncing;
 
         void         init();
         void         config_message();

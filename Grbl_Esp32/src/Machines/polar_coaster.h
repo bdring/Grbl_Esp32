@@ -37,9 +37,6 @@
 #define POLAR_AXIS 1
 
 #define SEGMENT_LENGTH 0.5 // segment length in mm
-#define USE_KINEMATICS
-#define USE_FWD_KINEMATICS // report in cartesian
-#define USE_M30
 
 #define X_STEP_PIN              GPIO_NUM_15
 #define Y_STEP_PIN              GPIO_NUM_2
@@ -123,4 +120,6 @@
 
 #define DEFAULT_X_MAX_TRAVEL 50.0 // mm NOTE: Must be a positive value.
 #define DEFAULT_Y_MAX_TRAVEL 300.0 // mm NOTE: Must be a positive value.
-#define DEFAULT_Z_MAX_TRAVEL 100.0 // This is percent in servo mode
+#define DEFAULT_Z_MAX_TRAVEL 5.0 // This is percent in servo mode
+
+#define DEFAULT_Z_HOMING_MPOS DEFAULT_Z_MAX_TRAVEL // stays up after homing

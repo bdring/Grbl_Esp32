@@ -138,6 +138,7 @@ extern volatile Percent       sys_rt_f_override;               // Feed override 
 extern volatile Percent       sys_rt_r_override;               // Rapid feed override value in percent
 extern volatile Percent       sys_rt_s_override;               // Spindle override value in percent
 extern volatile bool          cycle_stop;
+extern volatile void* sys_pl_data_inflight;  // holds a plan_line_data_t while cartesian_to_motors has taken ownership of a line motion
 #ifdef DEBUG
 extern volatile bool sys_rt_exec_debug;
 #endif
@@ -164,14 +165,16 @@ void  system_flag_wco_change();
 float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx);
 
 // Updates a machine 'position' array based on the 'step' array sent.
-void system_convert_array_steps_to_mpos(float* position, int32_t* steps);
+void   system_convert_array_steps_to_mpos(float* position, int32_t* steps);
+float* system_get_mpos();
 
 // A task that runs after a control switch interrupt for debouncing.
 void controlCheckTask(void* pvParameters);
 void system_exec_control_pin(ControlPins pins);
 
-bool sys_io_control(uint8_t io_num_mask, bool turnOn, bool synchronized);
-bool sys_pwm_control(uint8_t io_num_mask, float duty, bool synchronized);
+bool sys_set_digital(uint8_t io_num, bool turnOn);
+void sys_digital_all_off();
+bool sys_set_analog(uint8_t io_num, float percent);
+void sys_analog_all_off();
 
-int8_t  sys_get_next_PWM_chan_num();
-uint8_t sys_calc_pwm_precision(uint32_t freq);
+int8_t sys_get_next_PWM_chan_num();

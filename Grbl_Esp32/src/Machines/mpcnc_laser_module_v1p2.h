@@ -30,7 +30,6 @@
 #define MACHINE_NAME "MPCNC_V1P2 with Laser Module"
 
 // The laser module fires without a low signal. This keeps the enable on
-#define USE_MACHINE_INIT
 #define LVL_SHIFT_ENABLE        GPIO_NUM_32
 #define CUSTOM_CODE_FILENAME    "Custom/mpcnc_laser_module.cpp"
 
@@ -53,8 +52,8 @@
 // OK to comment out to use pin for other features
 #define STEPPERS_DISABLE_PIN GPIO_NUM_13
 
-#define SPINDLE_TYPE            SpindleType::PWM
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_16
+#define SPINDLE_TYPE            SpindleType::LASER
+#define LASER_OUTPUT_PIN      GPIO_NUM_16
 
 #define COOLANT_MIST_PIN      GPIO_NUM_2
 

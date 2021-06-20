@@ -112,23 +112,28 @@ void delay_ms(uint16_t ms) {
 }
 
 // Non-blocking delay function used for general operation and suspend features.
-void delay_sec(float seconds, uint8_t mode) {
-    uint16_t i = ceil(1000 / DWELL_TIME_STEP * seconds);
+bool delay_msec(int32_t milliseconds, DwellMode mode) {
+    // Note: i must be signed, because of the 'i-- > 0' check below.
+    int32_t i         = milliseconds / DWELL_TIME_STEP;
+    int32_t remainder = i < 0 ? 0 : (milliseconds - DWELL_TIME_STEP * i);
+
     while (i-- > 0) {
         if (sys.abort) {
-            return;
+            return false;
         }
-        if (mode == DELAY_MODE_DWELL) {
+        if (mode == DwellMode::Dwell) {
             protocol_execute_realtime();
-        } else {  // DELAY_MODE_SYS_SUSPEND
+        } else {  // DwellMode::SysSuspend
             // Execute rt_system() only to avoid nesting suspend loops.
             protocol_exec_rt_system();
             if (sys.suspend.bit.restartRetract) {
-                return;  // Bail, if safety door reopens.
+                return false;  // Bail, if safety door reopens.
             }
         }
         delay(DWELL_TIME_STEP);  // Delay DWELL_TIME_STEP increment
     }
+    delay(remainder);
+    return true;
 }
 
 // Simple hypotenuse computation function.
