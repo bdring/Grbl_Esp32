@@ -23,6 +23,7 @@
 #include "../Uart.h"
 
 // #define VFD_DEBUG_MODE
+// #define VFD_DEBUG_MODE2
 
 namespace Spindles {
     extern Uart _uart;
@@ -39,14 +40,14 @@ namespace Spindles {
         Pin _rxd_pin;
         Pin _rts_pin;
 
-        uint32_t _current_rpm = 0;
+        int32_t _current_dev_speed = -1;
 
         static QueueHandle_t vfd_cmd_queue;
         static TaskHandle_t  vfd_cmdTaskHandle;
         static void          vfd_cmd_task(void* pvParameters);
 
         static uint16_t ModRTU_CRC(uint8_t* buf, int msg_len);
-        enum VFDactionType : uint8_t { setRPM, setMode };
+        enum VFDactionType : uint8_t { actionSetSpeed, actionSetMode };
         struct VFDaction {
             VFDactionType action;
             bool          critical;
@@ -64,10 +65,10 @@ namespace Spindles {
 
     private:
         bool prepareSetModeCommand(SpindleState mode, ModbusCommand& data);
-        bool prepareSetRPMCommand(uint32_t rpm, ModbusCommand& data);
+        bool prepareSetSpeedCommand(uint32_t speed, ModbusCommand& data);
 
         static void reportParsingErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length);
-        static void reportCmdErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length);
+        static void reportCmdErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length, uint8_t id);
 
     protected:
         // Commands:
@@ -78,24 +79,23 @@ namespace Spindles {
         using response_parser = bool (*)(const uint8_t* response, VFD* spindle);
 
         virtual response_parser initialization_sequence(int index, ModbusCommand& data) { return nullptr; }
-        virtual response_parser get_current_rpm(ModbusCommand& data) { return nullptr; }
+        virtual response_parser get_current_speed(ModbusCommand& data) { return nullptr; }
         virtual response_parser get_current_direction(ModbusCommand& data) { return nullptr; }
         virtual response_parser get_status_ok(ModbusCommand& data) = 0;
-        virtual bool            supports_actual_rpm() const { return false; }
+        virtual bool            supports_actual_speed() const { return false; }
         virtual bool            safety_polling() const { return true; }
 
         // The constructor sets these
-        int          _baudrate;
+        int          _baudrate = 9600;
         Uart::Data   _dataBits;
         Uart::Stop   _stopBits;
         Uart::Parity _parity;
 
-        // Convert from (uint32_t) RPM to the speed value that is sent to the VFD,
-        // scaling by the maximum RPM and maximum speed that the VFD supports.
-        static uint16_t RPMtoSpeed(uint32_t rpm, uint16_t max_speed, uint16_t max_rpm) {
-            uint16_t speed = (rpm * max_speed) / max_rpm;
-            return speed < max_speed ? speed : max_speed;
-        }
+        uint8_t _modbus_id = 1;
+
+        void setSpeed(uint32_t dev_speed);
+
+        volatile bool _syncing;
 
     public:
         VFD();
@@ -104,32 +104,23 @@ namespace Spindles {
         VFD& operator=(const VFD&) = delete;
         VFD& operator=(VFD&&) = delete;
 
-        // TODO FIXME: Have to make these public because of the parsers.
-        // Should hide them and use a member function.
-        // _min_rpm and _max_rpm could possibly move to the Spindle base class
-        uint32_t          _min_rpm;
-        uint32_t          _max_rpm;
-        volatile uint32_t _sync_rpm;
-        volatile bool     _syncing;
+        void init();
+        void config_message();
+        void setState(SpindleState state, SpindleSpeed speed);
+        void setSpeedfromISR(uint32_t dev_speed) override;
 
-        void         init();
-        void         config_message();
-        void         set_state(SpindleState state, uint32_t rpm);
-        SpindleState get_state();
-        void         set_rpm(uint32_t rpm);
-        void         setRPMfromISR(uint32_t rpm) override;
-        void         stop();
+        volatile uint32_t _sync_dev_speed;
+        SpindleSpeed      _slop;
 
         // Configuration handlers:
         void validate() const override { Spindle::validate(); }
 
         void group(Configuration::HandlerBase& handler) override {
-            handler.item("min_rpm", _min_rpm);
-            handler.item("max_rpm", _max_rpm);
-
             handler.item("txd_pin", _txd_pin);
             handler.item("rxd_pin", _rxd_pin);
             handler.item("rts_pin", _rts_pin);
+            handler.item("baudrate", _baudrate);
+            handler.item("modbus_id", _modbus_id);
 
             // TODO FIXME: baud rate, etc
 

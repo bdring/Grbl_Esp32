@@ -26,14 +26,10 @@
 namespace Spindles {
     // ======================================== Dac ======================================
     void Dac::init() {
-        get_pins_and_settings();
-
         if (_output_pin.undefined()) {
             return;
         }
 
-        _pwm_min = 0;    // not actually PWM...DAC counts
-        _pwm_max = 255;  // not actually PWM...DAC counts
         _gpio_ok = true;
 
         if (!_output_pin.capabilities().has(Pin::Capabilities::DAC)) {  // DAC can only be used on these pins
@@ -42,28 +38,26 @@ namespace Spindles {
             return;
         }
 
-        _enable_pin.setAttr(Pin::Attr::Output);
         _direction_pin.setAttr(Pin::Attr::Output);
 
         is_reversable = _direction_pin.defined();
-        use_delays    = true;
+
+        setupSpeeds(255);
 
         config_message();
     }
 
     void Dac::config_message() {
-        info_all("DAC spindle Output:%s, Enbl:%s, Dir:%s, Res:8bits",
-                 _output_pin.name().c_str(),
-                 _enable_pin.name().c_str(),
-                 _direction_pin.name().c_str());
+        info_all("%s spindle Output:%s, Dir:%s, Res:8bits", name(), _output_pin.name().c_str(), _direction_pin.name().c_str());
     }
 
-    void Dac::set_rpm(uint32_t rpm) {
-        sys.spindle_speed = rpm = limitRPM(overrideRPM(rpm));
-        set_output(RPMtoPWM(rpm));
+    uint32_t Dac::mapSpeed(SpindleSpeed speed) {
+        Spindle* s = static_cast<Spindle*>(this);
+        return s->mapSpeed(speed);
     }
 
-    void Dac::set_output(uint32_t duty) {
+    void IRAM_ATTR Dac::setSpeedfromISR(uint32_t speed) { set_output(speed); };
+    void IRAM_ATTR Dac::set_output(uint32_t duty) {
         if (_gpio_ok) {
             auto outputNative = _output_pin.getNative(Pin::Capabilities::DAC);
 

@@ -50,7 +50,7 @@ struct StepControl {
     uint8_t endMotion : 1;
     uint8_t executeHold : 1;
     uint8_t executeSysMotion : 1;
-    uint8_t updateSpindleRpm : 1;
+    uint8_t updateSpindleSpeed : 1;
 };
 
 // System suspend flags. Used in various ways to manage suspend states and procedures.
@@ -113,7 +113,7 @@ typedef struct {
 #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
     Override override_ctrl;  // Tracks override control states.
 #endif
-    uint32_t spindle_speed;
+    SpindleSpeed spindle_speed;
 } system_t;
 extern system_t sys;
 

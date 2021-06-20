@@ -65,6 +65,21 @@ namespace Configuration {
             dst_ << name << ": " << value << '\n';
         }
 
+        void item(const char* name, std::vector<speedEntry>& value) {
+            indent();
+            dst_ << name << ": ";
+            if (value.size() == 0) {
+                dst_ << "None";
+            } else {
+                const char* separator = "";
+                for (speedEntry n : value) {
+                    dst_ << separator << n.speed << '=' << n.percent << '%';
+                    separator = " ";
+                }
+            }
+            dst_ << '\n';
+        }
+
         void item(const char* name, StringRange& value, int minLength, int maxLength) override {
             indent();
             dst_ << name << ": " << value << '\n';

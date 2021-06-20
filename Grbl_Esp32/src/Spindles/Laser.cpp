@@ -36,8 +36,6 @@ namespace Spindles {
                  int(_pwm_freq),
                  _pwm_precision,
                  (config->_laserMode ? 1 : 0));  // the current mode
-
-        use_delays = false;  // this will override the value set in Spindle::PWM::init()
     }
 
     // Get the GPIO from the machine definition
@@ -47,17 +45,11 @@ namespace Spindles {
 
         is_reversable = false;
 
-        _pwm_precision = calc_pwm_precision(_pwm_freq);  // detewrmine the best precision
+        _pwm_precision = calc_pwm_precision(_pwm_freq);  // determine the best precision
         _pwm_period    = (1 << _pwm_precision);
 
         // pre-calculate some PWM count values
-        _pwm_off = 0;
-        _pwm_min = 0;
-        _pwm_max = _pwm_period;
-
-        _min_rpm = 0;
-        _max_rpm = _laser_full_power;
-
+        setupSpeeds(_laser_full_power);
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
     }
 

@@ -40,9 +40,7 @@ namespace Spindles {
 
         void init() override;
         void config_message() override;
-        void set_rpm(uint32_t rpm) override;
 
-        void stop() override;
         void deinit() override;
 
         // Configuration handlers:
@@ -60,8 +58,10 @@ namespace Spindles {
         virtual ~_10v() {}
 
     protected:
-        void set_enable(bool enable_pin) override;
-        void set_direction(bool Clockwise) override;
+        void set_enable(bool enable_pin);
+        void set_direction(bool Clockwise);
+        // XXX Do we need to override this to do something with enables?
+        // virtual void set_output(uint32_t) override;
 
         Pin _forward_pin;
         Pin _reverse_pin;

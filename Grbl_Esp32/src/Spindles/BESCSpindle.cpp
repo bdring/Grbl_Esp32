@@ -63,11 +63,6 @@ namespace Spindles {
         _pwm_freq      = (uint32_t)BESC_PWM_FREQ;
         _pwm_precision = 16;
 
-        // override these settings
-        _pwm_off = BESC_MIN_PULSE_CNT;
-        _pwm_min = _pwm_off;
-        _pwm_max = BESC_MAX_PULSE_CNT;
-
         auto outputPin = _output_pin.getNative(Pin::Capabilities::PWM);
 
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
@@ -75,9 +70,14 @@ namespace Spindles {
 
         _enable_pin.setAttr(Pin::Attr::Output);
 
-        set_rpm(0);
+        stop();
 
-        use_delays = true;
+#ifdef LATER
+        // XXX these need to be folded into the speed map
+        _pwm_off = BESC_MIN_PULSE_CNT;
+        _pwm_min = _pwm_off;
+        _pwm_max = BESC_MAX_PULSE_CNT;
+#endif
 
         config_message();
     }

@@ -21,11 +21,11 @@
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "Spindle.h"
+#include "OnOffSpindle.h"
 
 namespace Spindles {
     // This adds support for PWM
-    class PWM : public Spindle {
+    class PWM : public OnOff {
     public:
         PWM() = default;
 
@@ -39,31 +39,17 @@ namespace Spindles {
         PWM& operator=(PWM&&) = delete;
 
         void         init() override;
-        virtual void set_rpm(uint32_t rpm) override;
-        void         set_state(SpindleState state, uint32_t rpm) override;
-        SpindleState get_state() override;
-        void         stop() override;
+        virtual void setSpeedfromISR(uint32_t dev_speed) override;
+        void         setState(SpindleState state, SpindleSpeed speed) override;
         void         config_message() override;
-        uint32_t     limitRPM(uint32_t RPM);
-        uint32_t     RPMtoPWM(uint32_t rpm);
         // Configuration handlers:
         void validate() const override { Spindle::validate(); }
 
         void group(Configuration::HandlerBase& handler) override {
-            handler.item("min_rpm", _min_rpm);
-            handler.item("max_rpm", _max_rpm);
-
             handler.item("pwm_freq", _pwm_freq);
-            handler.item("pwm_off", _pwm_off_setting, 0.0, 100.0);
-            handler.item("pwm_min", _pwm_min_setting, 0.0, 100.0);
-            handler.item("pwm_max", _pwm_max_setting, 0.0, 100.0);
             handler.item("invert_pwm", _invert_pwm);
-            handler.item("output_pin", _output_pin);
-            handler.item("enable_pin", _enable_pin);
-            handler.item("direction_pin", _direction_pin);
-            handler.item("enable_off_with_zero_speed", _off_with_zero_speed);
 
-            Spindle::group(handler);
+            OnOff::group(handler);
         }
 
         // Name of the configurable. Must match the name registered in the cpp file.
@@ -72,29 +58,14 @@ namespace Spindles {
         virtual ~PWM() {}
 
     protected:
-        float _pwm_off_setting = 0;  // do we need these 3?
-        float _pwm_min_setting = 0;
-        float _pwm_max_setting = 0;
-
         int32_t  _current_pwm_duty;
-        uint32_t _min_rpm = 0;
-        uint32_t _max_rpm = 1000;
-        uint32_t _pwm_off;  // calculated at init
-        uint32_t _pwm_min;  // calculated at init
-        uint32_t _pwm_max;  // calculated at init
-        Pin      _output_pin;
-        Pin      _enable_pin;
-        Pin      _direction_pin;
         uint8_t  _pwm_chan_num;
         uint32_t _pwm_freq = 5000;
         uint32_t _pwm_period;     // how many counts in 1 period
         uint8_t  _pwm_precision;  // auto calculated
-        bool     _off_with_zero_speed = false;
-        bool     _invert_pwm          = false;
+        bool     _invert_pwm = false;
 
-        virtual void set_direction(bool Clockwise);
-        virtual void set_output(uint32_t duty);
-        virtual void set_enable(bool enable);
+        virtual void set_output(uint32_t duty) override;
         virtual void deinit();
 
         virtual void get_pins_and_settings();

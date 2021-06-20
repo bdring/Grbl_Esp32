@@ -22,9 +22,17 @@
 #include "../Pin.h"
 #include "../StringRange.h"
 #include "../EnumItem.h"
+#include "../SpindleDatatypes.h"
 
 namespace Configuration {
     class Configurable;
+
+    typedef struct {
+        SpindleSpeed speed;
+        float        percent;
+        uint32_t     offset;
+        uint32_t     scale;
+    } speedEntry;
 
     template <typename BaseType>
     class GenericFactory;
@@ -55,6 +63,7 @@ namespace Configuration {
         }
 
         virtual void item(const char* name, float& value, float minValue = -3e38, float maxValue = 3e38) = 0;
+        virtual void item(const char* name, std::vector<speedEntry>& value)                              = 0;
 
         virtual void item(const char* name, StringRange& value, int minLength = 0, int maxLength = 255) = 0;
         virtual void item(const char* name, Pin& value)                                                 = 0;

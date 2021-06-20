@@ -94,7 +94,9 @@ void grbl_init() {
             // If there is an axis with homing configured, enter Alarm state on startup
             sys.state = State::Alarm;
         }
-        config->_spindle->init();
+        for (auto s : config->_spindles) {
+            s->init();
+        }
         config->_coolant->init();
         limits_init();
         config->_probe->init();
@@ -124,7 +126,7 @@ static void reset_variables() {
     system_reset();
     protocol_reset();
     gc_init();  // Set g-code parser to default state
-    config->_spindle->stop();
+    spindle->stop();
     plan_reset();  // Clear block buffer and planner variables
     st_reset();    // Clear stepper subsystem variables
     // Sync cleared gcode and planner positions to current system position.
@@ -158,7 +160,9 @@ void __attribute__((weak)) display_init() {}
 
 void __attribute__((weak)) user_m30() {}
 
-void __attribute__((weak)) user_tool_change(uint8_t new_tool) {}
+void __attribute__((weak)) user_tool_change(uint8_t new_tool) {
+    Spindles::Spindle::switchSpindle(new_tool, config->_spindles, spindle);
+}
 
 /*
   setup() and loop() in the Arduino .ino implements this control flow:

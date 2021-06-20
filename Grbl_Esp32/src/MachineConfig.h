@@ -323,16 +323,17 @@ class MachineConfig : public Configuration::Configurable {
 public:
     MachineConfig() = default;
 
-    Axes*              _axes        = nullptr;
-    SPIBus*            _spi         = nullptr;
-    I2SOBus*           _i2so        = nullptr;
-    CoolantControl*    _coolant     = nullptr;
-    Probe*             _probe       = nullptr;
-    Communications*    _comms       = nullptr;
-    Control*           _control     = nullptr;
-    UserOutputs*       _userOutputs = nullptr;
-    SDCard*            _sdCard      = nullptr;
-    Spindles::Spindle* _spindle     = nullptr;
+    Axes*           _axes        = nullptr;
+    SPIBus*         _spi         = nullptr;
+    I2SOBus*        _i2so        = nullptr;
+    CoolantControl* _coolant     = nullptr;
+    Probe*          _probe       = nullptr;
+    Communications* _comms       = nullptr;
+    Control*        _control     = nullptr;
+    UserOutputs*    _userOutputs = nullptr;
+    SDCard*         _sdCard      = nullptr;
+
+    Spindles::SpindleList _spindles;
 
     int _pulseMicroSeconds          = 3;
     int _directionDelayMicroSeconds = 0;

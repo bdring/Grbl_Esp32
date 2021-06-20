@@ -21,11 +21,11 @@
 	along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "PWMSpindle.h"
+#include "OnOffSpindle.h"
 
 namespace Spindles {
     // This is for an on/off spindle all RPMs above 0 are on
-    class Relay : public PWM {
+    class Relay : public OnOff {
     public:
         Relay() = default;
 
@@ -34,16 +34,13 @@ namespace Spindles {
         Relay& operator=(const Relay&) = delete;
         Relay& operator=(Relay&&) = delete;
 
-        void init() override;
-        void config_message() override;
-        void set_rpm(uint32_t rpm) override;
-
         virtual ~Relay() {}
+
+        // Configuration handlers:
 
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "Relay"; }
 
     protected:
-        void set_output(uint32_t duty);
     };
 }

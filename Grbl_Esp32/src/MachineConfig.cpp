@@ -417,7 +417,7 @@ void MachineConfig::group(Configuration::HandlerBase& handler) {
     handler.item("verbose_errors", _verboseErrors);
     handler.item("report_inches", _reportInches);
     handler.item("homing_init_lock", _homingInitLock);
-    Spindles::SpindleFactory::factory(handler, _spindle);
+    Spindles::SpindleFactory::factory(handler, _spindles);
 }
 
 void MachineConfig::afterParse() {
@@ -457,9 +457,17 @@ void MachineConfig::afterParse() {
         _control = new Control();
     }
 
-    if (_spindle == nullptr) {
+    if (_spindles.size() == 0) {
         log_info("Using null spindle");
-        _spindle = new Spindles::Null();
+        _spindles.push_back(new Spindles::Null());
+    }
+    spindle = _spindles[0];
+
+    uint32_t next_tool = 100;
+    for (auto s : _spindles) {
+        if (s->_tool == -1) {
+            s->_tool = next_tool++;
+        }
     }
 
     if (_comms == nullptr) {

@@ -59,6 +59,33 @@ public:
         return StringRange(s, e);
     }
 
+    // Blank-delimited word
+    StringRange nextWord() {
+        while (start_ != end_ && *start_ == ' ') {
+            ++start_;
+        }
+        const char* s = start_;
+        while (start_ != end_ && *start_ != ' ') {
+            ++start_;
+        }
+        return StringRange(s, start_);
+    }
+
+    // Character-delimited word
+    StringRange nextWord(char c) {
+        const char* s = start_;
+        // Scan to delimiter or end of string
+        while (start_ != end_ && *start_ != c) {
+            ++start_;
+        }
+        const char* e = start_;
+        // Skip the delimiter if present
+        if (start_ != end_) {
+            ++start_;
+        }
+        return StringRange(s, e);
+    }
+
     bool equals(const StringRange& o) const {
         auto l = length();
         return l == o.length() && !strncasecmp(start_, o.start_, l);
@@ -90,6 +117,12 @@ public:
             delete[] buf;
             return tmp;
         }
+    }
+
+    inline bool isUInteger(uint32_t& intval) {
+        char* intEnd;
+        intval = strtol(start_, &intEnd, 10);
+        return intEnd == end_;
     }
 
     inline bool isInteger(int32_t& intval) {

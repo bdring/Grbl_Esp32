@@ -40,9 +40,9 @@ namespace Spindles {
 
         response_parser initialization_sequence(int index, ModbusCommand& data) override;
         response_parser get_status_ok(ModbusCommand& data) override;
-        response_parser get_current_rpm(ModbusCommand& data) override;
+        response_parser get_current_speed(ModbusCommand& data) override;
 
-        bool supports_actual_rpm() const override { return true; }
+        bool supports_actual_speed() const override { return true; }
 
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "Huanyang"; }

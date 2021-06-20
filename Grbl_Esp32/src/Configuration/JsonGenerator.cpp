@@ -93,6 +93,7 @@ namespace Configuration {
         item(name, n, int(minValue * 1000), int(maxValue * 1000));
     }
 
+    void JsonGenerator::item(const char* name, std::vector<speedEntry>& value) {}
     void JsonGenerator::item(const char* name, StringRange& value, int minLength, int maxLength) {
         enter(name);
         auto sv = value.str();

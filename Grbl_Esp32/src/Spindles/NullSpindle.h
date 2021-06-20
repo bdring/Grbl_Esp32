@@ -35,12 +35,10 @@ namespace Spindles {
         Null& operator=(const Null&) = delete;
         Null& operator=(Null&&) = delete;
 
-        void         init() override;
-        void         set_rpm(uint32_t rpm) override;
-        void         set_state(SpindleState state, uint32_t rpm) override;
-        SpindleState get_state() override;
-        void         stop() override;
-        void         config_message() override;
+        void init() override;
+        void setSpeedfromISR(uint32_t dev_speed) override;
+        void setState(SpindleState state, SpindleSpeed speed) override;
+        void config_message() override;
 
         // Configuration handlers:
         void group(Configuration::HandlerBase& handler) override {}
