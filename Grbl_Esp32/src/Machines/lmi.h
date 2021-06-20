@@ -63,7 +63,7 @@
 #define X_LIMIT_PIN                 GPIO_NUM_33
 #define Y_LIMIT_PIN                 GPIO_NUM_32
 #define Z_LIMIT_PIN                 GPIO_NUM_35
-#define CONTROL_SAFETY_DOOR_PIN     GPIO_NUM_34
+// #define CONTROL_SAFETY_DOOR_PIN     GPIO_NUM_34
 
 #define DEFAULT_INVERT_LIMIT_PINS       1  // Sets the default for N.O. switches
 // 4x Input in socket #2 for future custom buttons.
@@ -78,10 +78,13 @@
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/4x-5V-Buffered-Output-Module
 #define SPINDLE_TYPE            SpindleType::LASER
 // #define SPINDLE_TYPE            SpindleType::PWM
-#define SPINDLE_PWM_BASE_FREQ 30000
-#define SPINDLE_OUTPUT_PIN      GPIO_NUM_26  // 1st channel
+#define SPINDLE_PWM_BASE_FREQ 20000
+#define SPINDLE_PWM_BIT_PRECISION 12
+#define SPINDLE_PWM_MAX_VALUE 4096
+
+#define SPINDLE_OUTPUT_PIN      GPIO_NUM_16  // 1st channel
 #define SPINDLE_ENABLE_PIN      GPIO_NUM_4   // 2nd channel Enable Pin
-#define COOLANT_MIST_PIN        GPIO_NUM_16  // 3nd channel Air Assist using M7 on M9 off
+#define COOLANT_MIST_PIN        GPIO_NUM_27  // 3nd channel Air Assist using M7 on M9 off
 // Socket #4
 // https://github.com/bdring/6-Pack_CNC_Controller/wiki/Quad-MOSFET-Module
 #define USER_DIGITAL_PIN_0       GPIO_NUM_14 // Laser shutter using M62P0 on M63P0 Off
