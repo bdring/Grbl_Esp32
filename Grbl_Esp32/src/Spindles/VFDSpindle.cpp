@@ -29,7 +29,6 @@
       - We can report spindle_state and rpm better with VFD's that support 
         either mode, register RPM or actual RPM.
       - Destructor should break down the task.
-      - Move min/max RPM to protected members.
 
 */
 #include "VFDSpindle.h"
@@ -44,49 +43,36 @@ const int        RESPONSE_WAIT_MS     = 1000;                                   
 const int        VFD_RS485_POLL_RATE  = 250;                                    // in milliseconds between commands
 const TickType_t response_ticks       = RESPONSE_WAIT_MS / portTICK_PERIOD_MS;  // in milliseconds between commands
 
-// OK to change these
-// #define them in your machine definition file if you want different values
-#ifndef VFD_RS485_ADDR
-#    define VFD_RS485_ADDR 0x01
-#endif
-
 namespace Spindles {
     Uart          _uart(VFD_RS485_UART_PORT);
     QueueHandle_t VFD::vfd_cmd_queue     = nullptr;
     TaskHandle_t  VFD::vfd_cmdTaskHandle = nullptr;
 
     VFD::VFD() :
-        _txd_pin(), _rxd_pin(), _rts_pin(), _baudrate(
-#ifdef VFD_RS485_BAUD_RATE
-                                                VFD_RS485_BAUD_RATE
-#else
-                                                9600
-#endif
-                                                ),
-        _dataBits(Uart::Data::Bits8), _stopBits(Uart::Stop::Bits1), _parity(
+        _txd_pin(), _rxd_pin(), _rts_pin(), _baudrate(), _dataBits(Uart::Data::Bits8), _stopBits(Uart::Stop::Bits1), _parity(
 #ifdef VFD_RS485_PARITY
-                                                                        VFD_RS485_PARITY
+                                                                                                                         VFD_RS485_PARITY
 #else
-                                                                        Uart::Parity::None
+                                                                                                                         Uart::Parity::None
 #endif
-                                                                    ) {
+                                                                                                                     ) {
     }
 
     void VFD::reportParsingErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length) {
 #ifdef VFD_DEBUG_MODE
-        report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
+        report_hex_msg(cmd.msg, "RS485 Tx: ", cmd.tx_length);
         report_hex_msg(rx_message, "RS485 Rx: ", read_length);
 #endif
     }
-    void VFD::reportCmdErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length) {
+    void VFD::reportCmdErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length, uint8_t id) {
 #ifdef VFD_DEBUG_MODE
         report_hex_msg(cmd.msg, "RS485 Tx: ", cmd.tx_length);
         report_hex_msg(rx_message, "RS485 Rx: ", read_length);
 
         if (read_length != 0) {
-            if (rx_message[0] != VFD_RS485_ADDR) {
+            if (rx_message[0] != id) {
                 info_serial("RS485 received message from other modbus device");
-            } else if (read_length != next_cmd.rx_length) {
+            } else if (read_length != cmd.rx_length) {
                 info_serial("RS485 received message of unexpected length; expected %d, got %d", int(cmd.rx_length), int(read_length));
             } else {
                 info_serial("RS485 CRC check failed");
@@ -100,7 +86,7 @@ namespace Spindles {
     // The communications task
     void VFD::vfd_cmd_task(void* pvParameters) {
         static bool unresponsive = false;  // to pop off a message once each time it becomes unresponsive
-        static int  pollidx      = 0;
+        static int  pollidx      = -1;
 
         VFD*          instance = static_cast<VFD*>(pvParameters);
         ModbusCommand next_cmd;
@@ -111,30 +97,28 @@ namespace Spindles {
             std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
             response_parser parser = nullptr;
 
-            // First check if we should ask the VFD for the max RPM value as part of the initialization. We
-            // should also query this is max_rpm is 0, because that means a previous initialization failed:
-            if ((pollidx < 0 || instance->_max_rpm == 0) && (parser = instance->initialization_sequence(pollidx, next_cmd)) != nullptr) {
-                next_cmd.critical = false;
+            // First check if we should ask the VFD for the speed parameters as part of the initialization.
+            if (pollidx < 0 && (parser = instance->initialization_sequence(pollidx, next_cmd)) != nullptr) {
             } else {
-                pollidx           = 1;  // Done with initialization. Main sequence.
-                next_cmd.critical = false;
+                pollidx = 1;  // Done with initialization. Main sequence.
             }
+            next_cmd.critical = false;
 
             VFDaction action;
             if (parser == nullptr) {
                 // If we don't have a parser, the queue goes first.
                 if (xQueueReceive(vfd_cmd_queue, &action, 0)) {
                     switch (action.action) {
-                        case setRPM:
-                            if (!instance->prepareSetRPMCommand(action.arg, next_cmd)) {
-                                // prepareSetRPMCommand() can return false if the speed
+                        case actionSetSpeed:
+                            if (!instance->prepareSetSpeedCommand(action.arg, next_cmd)) {
+                                // prepareSetSpeedCommand() can return false if the speed
                                 // change is unnecessary - already at that speed.
                                 // In that case we just discard the command.
                                 continue;  // main loop
                             }
                             next_cmd.critical = action.critical;
                             break;
-                        case setMode:
+                        case actionSetMode:
                             if (!instance->prepareSetModeCommand(SpindleState(action.arg), next_cmd)) {
                                 continue;  // main loop
                             }
@@ -148,16 +132,16 @@ namespace Spindles {
                     // We poll in a cycle. Note that the switch will fall through unless we encounter a hit.
                     // The weakest form here is 'get_status_ok' which should be implemented if the rest fails.
                     if (instance->_syncing) {
-                        parser = instance->get_current_rpm(next_cmd);
+                        parser = instance->get_current_speed(next_cmd);
                     } else if (safetyPollingEnabled) {
                         switch (pollidx) {
                             case 1:
-                                parser = instance->get_current_rpm(next_cmd);
+                                parser = instance->get_current_speed(next_cmd);
                                 if (parser) {
                                     pollidx = 2;
                                     break;
                                 }
-                                // fall through if get_current_rpm did not return a parser
+                                // fall through if get_current_speed did not return a parser
                             case 2:
                                 parser = instance->get_current_direction(next_cmd);
                                 if (parser) {
@@ -187,12 +171,12 @@ namespace Spindles {
             // At this point next_cmd has been filled with a command block
             {
                 // Fill in the fields that are the same for all protocol variants
-                next_cmd.msg[0] = VFD_RS485_ADDR;
+                next_cmd.msg[0] = instance->_modbus_id;
 
                 // Grabbed the command. Add the CRC16 checksum:
                 auto crc16                         = ModRTU_CRC(next_cmd.msg, next_cmd.tx_length);
-                next_cmd.msg[next_cmd.tx_length++] = (crc16 & 0xFF00) >> 8;
                 next_cmd.msg[next_cmd.tx_length++] = (crc16 & 0xFF);
+                next_cmd.msg[next_cmd.tx_length++] = (crc16 & 0xFF00) >> 8;
                 next_cmd.rx_length += 2;
 
 #ifdef VFD_DEBUG_MODE2
@@ -217,7 +201,7 @@ namespace Spindles {
 
                 // Apparently some Huanyang report modbus errors in the correct way, and the rest not. Sigh.
                 // Let's just check for the condition, and truncate the first byte.
-                if (read_length > 0 && VFD_RS485_ADDR != 0 && rx_message[0] == 0) {
+                if (read_length > 0 && instance->_modbus_id != 0 && rx_message[0] == 0) {
                     memmove(rx_message + 1, rx_message, read_length - 1);
                 }
 
@@ -234,7 +218,7 @@ namespace Spindles {
                 auto crc16response = ModRTU_CRC(rx_message, next_cmd.rx_length - 2);
 
                 if (read_length == next_cmd.rx_length &&                             // check expected length
-                    rx_message[0] == VFD_RS485_ADDR &&                               // check address
+                    rx_message[0] == instance->_modbus_id &&                         // check address
                     rx_message[read_length - 1] == (crc16response & 0xFF00) >> 8 &&  // check CRC byte 1
                     rx_message[read_length - 2] == (crc16response & 0xFF)) {         // check CRC byte 1
 
@@ -260,7 +244,7 @@ namespace Spindles {
                         }
                     }
                 } else {
-                    reportCmdErrors(next_cmd, rx_message, read_length);
+                    reportCmdErrors(next_cmd, rx_message, read_length, instance->_modbus_id);
 
                     // Wait a bit before we retry. Set the delay to poll-rate. Not sure
                     // if we should use a different value...
@@ -289,14 +273,12 @@ namespace Spindles {
     // ================== Class methods ==================================
 
     void VFD::init() {
-        _sync_rpm = 0;
-        _syncing  = false;
-
-        info_serial("Initializing RS485 VFD spindle");
+        _sync_dev_speed = 0;
+        _syncing        = false;
 
         // fail if required items are not defined
+        // get_pins_and_settings reports detailed error messages
         if (!get_pins_and_settings()) {
-            info_serial("RS485 VFD spindle errors");
             return;
         }
 
@@ -320,12 +302,11 @@ namespace Spindles {
             return;
         }
 
-        // We have to initialize the constants before starting the task:
-        is_reversable = true;  // these VFDs are always reversable
-        use_delays    = true;
+        // These VFDs are always reversable, but most can be set via the operator panel
+        // to only allow one direction.  In principle we could check that setting and
+        // automatically set is_reversable.
+        is_reversable = true;
 
-        // Initially we initialize this to 0; over time, we might poll better information from the VFD.
-        _current_rpm   = 0;
         _current_state = SpindleState::Disable;
 
         // Initialization is complete, so now it's okay to run the queue task:
@@ -365,6 +346,10 @@ namespace Spindles {
             pins_settings_ok = false;
         }
 
+        if (_baudrate == 0) {
+            _baudrate = 9600;
+        }
+
         if (config->_laserMode) {
             info_serial("VFD spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");
             pins_settings_ok = false;
@@ -374,101 +359,81 @@ namespace Spindles {
     }
 
     void VFD::config_message() {
-        info_serial("VFD RS485  Tx:%s Rx:%s RTS:%s", _txd_pin.name().c_str(), _rxd_pin.name().c_str(), _rts_pin.name().c_str());
+        info_serial(
+            "VFD RS485  Tx:%s Rx:%s RTS:%s baudrate %d", _txd_pin.name().c_str(), _rxd_pin.name().c_str(), _rts_pin.name().c_str(), _baudrate);
     }
 
-    void VFD::set_state(SpindleState state, uint32_t rpm) {
+    void VFD::setState(SpindleState state, SpindleSpeed speed) {
         if (sys.abort) {
             return;  // Block during abort.
         }
 
-        bool shouldWait = state != _current_state || state != SpindleState::Disable;
-        bool critical   = (sys.state == State::Cycle || state != SpindleState::Disable);
+        bool critical = (sys.state == State::Cycle || state != SpindleState::Disable);
 
-        int32_t delayMillis = 1000;
+        uint32_t dev_speed = mapSpeed(speed);
+        log_debug("speed " << speed << " dev_speed " << dev_speed);
 
-        if (_current_state != state) {  // already at the desired state. This function gets called a lot.
+        if (_current_state != state) {
+            // Changing state
             set_mode(state, critical);  // critical if we are in a job
 
-            if (rpm != 0 && (rpm < _min_rpm || rpm > _max_rpm)) {
-                info_all("VFD: Requested speed %d outside range:(%d,%d)", rpm, _min_rpm, _max_rpm);
-            }
-
-            set_rpm(rpm);
-
-            if (state == SpindleState::Disable) {
-                sys.spindle_speed = 0;
-                rpm               = 0;
-                delayMillis       = _spindown_delay;
-            } else {
-                delayMillis = _spinup_delay;
-            }
-
-            if (_current_state != state && !supports_actual_rpm()) {
-                delay(delayMillis);
-            }
+            setSpeed(dev_speed);
         } else {
-            if (_current_rpm != rpm) {
-                if (rpm != 0 && (rpm < _min_rpm || rpm > _max_rpm)) {
-                    info_all("VFD: Requested speed %d outside range:(%d,%d)", rpm, _min_rpm, _max_rpm);
-                }
-
-                set_rpm(rpm);
-
-                delayMillis = rpm > _current_rpm ? _spinup_delay : _spindown_delay;
+            // Not changing state
+            if (_current_dev_speed != dev_speed) {
+                // Changing speed
+                setSpeed(dev_speed);
             }
         }
+        if (!supports_actual_speed()) {
+            spinDelay(state, speed);
+        } else {
+            // _sync_dev_speed is set by a callback that handles
+            // responses from periodic get_current_speed() requests.
+            // It changes as the actual speed ramps toward the target.
 
-        if (shouldWait) {
-            if (supports_actual_rpm()) {
-                _syncing = true;
+            _syncing = true;
 
-                // Allow 2.5% difference from what we asked for. Should be fine.
-                uint32_t drpm = (_max_rpm - _min_rpm) / 40;
-                if (drpm < 100) {
-                    drpm = 100;
-                }  // Just a sanity check
+            auto minSpeedAllowed = dev_speed > _slop ? (dev_speed - _slop) : 0;
+            auto maxSpeedAllowed = dev_speed + _slop;
 
-                auto minRpmAllowed = _current_rpm > drpm ? (_current_rpm - drpm) : 0;
-                auto maxRpmAllowed = _current_rpm + drpm;
+            int       unchanged = 0;
+            const int limit     = 20;  // 20 * 0.5s = 10 sec
+            auto      last      = _sync_dev_speed;
 
-                int       unchanged = 0;
-                const int limit     = 20;  // 20 * 0.5s = 10 sec
-                auto      last      = _sync_rpm;
-
-                while ((_sync_rpm < minRpmAllowed || _sync_rpm > maxRpmAllowed) && unchanged < limit) {
+            while ((_sync_dev_speed < minSpeedAllowed || _sync_dev_speed > maxSpeedAllowed) && unchanged < limit) {
 #ifdef VFD_DEBUG_MODE
-                    info_serial("Syncing RPM. Requested %d, current %d", int(rpm), int(_sync_rpm));
+                info_serial("Syncing speed. Requested %d, current %d", int(dev_speed), int(_sync_dev_speed));
 #endif
-                    if (!mc_dwell(500)) {
-                        // Something happened while we were dwelling, like a safety door.
-                        unchanged = limit;
-                        last      = _sync_rpm;
-                        break;
-                    }
-
-                    if (_sync_rpm == last) {
-                        ++unchanged;
-                    } else {
-                        unchanged = 0;
-                    }
-                    last = _sync_rpm;
+                if (!mc_dwell(500)) {
+                    // Something happened while we were dwelling, like a safety door.
+                    unchanged = limit;
+                    last      = _sync_dev_speed;
+                    break;
                 }
 
-                if (unchanged == limit) {
-                    error_all("Critical Spindle RS485 did not reach speed %d. Reported speed is %d rpm.", rpm, _sync_rpm);
-                    mc_reset();
-                    sys_rt_exec_alarm = ExecAlarm::SpindleControl;
-                }
-
-                _syncing = false;
-            } else {
-                delay(delayMillis);
+                // unchanged counts the number of consecutive times that we see the same speed
+                unchanged = (_sync_dev_speed == last) ? unchanged + 1 : 0;
+                last      = _sync_dev_speed;
             }
-        }
+#ifdef VFD_DEBUG_MODE
+            info_serial("Synced speed. Requested %d, current %d", int(dev_speed), int(_sync_dev_speed));
+#endif
 
-        _current_state         = state;  // store locally for faster get_state()
-        sys.report_ovr_counter = 0;      // Set to report change immediately
+            if (unchanged == limit) {
+                error_all("Critical Spindle RS485 did not reach speed %d. Reported speed is %d.", dev_speed, _sync_dev_speed);
+                mc_reset();
+                sys_rt_exec_alarm = ExecAlarm::SpindleControl;
+            }
+
+            _syncing = false;
+            // spinDelay() sets these when it is used
+            _current_state = state;
+            _current_speed = speed;
+        }
+        //        }
+
+        sys.report_ovr_counter = 0;  // Set to report change immediately
     }
 
     bool VFD::prepareSetModeCommand(SpindleState mode, ModbusCommand& data) {
@@ -487,7 +452,7 @@ namespace Spindles {
     void VFD::set_mode(SpindleState mode, bool critical) {
         if (vfd_cmd_queue) {
             VFDaction action;
-            action.action   = setMode;
+            action.action   = actionSetMode;
             action.arg      = uint32_t(mode);
             action.critical = critical;
             if (xQueueSend(vfd_cmd_queue, &action, 0) != pdTRUE) {
@@ -496,62 +461,45 @@ namespace Spindles {
         }
     }
 
-    void IRAM_ATTR VFD::setRPMfromISR(uint32_t rpm) {
+    void IRAM_ATTR VFD::setSpeedfromISR(uint32_t dev_speed) {
         if (vfd_cmd_queue) {
             VFDaction action;
-            action.action   = setRPM;
-            action.arg      = rpm;
-            action.critical = (rpm == 0);
+            action.action   = actionSetSpeed;
+            action.arg      = dev_speed;
+            action.critical = (dev_speed == 0);
             xQueueSendFromISR(vfd_cmd_queue, &action, 0);
         }
     }
 
-    void IRAM_ATTR VFD::set_rpm(uint32_t rpm) {
+    void VFD::setSpeed(uint32_t dev_speed) {
         if (vfd_cmd_queue) {
             VFDaction action;
-            action.action   = setRPM;
-            action.arg      = rpm;
-            action.critical = (rpm == 0);
+            action.action   = actionSetSpeed;
+            action.arg      = dev_speed;
+            action.critical = dev_speed == 0;
             xQueueSend(vfd_cmd_queue, &action, 0);
         }
     }
 
-    bool VFD::prepareSetRPMCommand(uint32_t rpm, ModbusCommand& data) {
-        // apply override
-        rpm = overrideRPM(rpm);  // Scale by spindle speed override value (uint8_t percent)
-
-        if (rpm != 0) {
-            rpm = constrain(rpm, _min_rpm, _max_rpm);
-        }
-
-        if (rpm == _current_rpm) {  // prevent setting same RPM twice
+    bool VFD::prepareSetSpeedCommand(uint32_t speed, ModbusCommand& data) {
+        log_debug("prep speed " << speed << " curr " << _current_dev_speed);
+        if (speed == _current_dev_speed) {  // prevent setting same speed twice
             return false;
         }
-
-        sys.spindle_speed = rpm;
+        _current_dev_speed = speed;
 
 #ifdef VFD_DEBUG_MODE2
-        info_serial("Setting spindle speed to %d rpm (%d, %d)", int(rpm), int(_min_rpm), int(_max_rpm));
+        info_serial("Setting spindle speed to %d", int(speed));
 #endif
         // Do variant-specific command preparation
-        set_speed_command(rpm, data);
+        set_speed_command(speed, data);
 
-        // Sometimes sync_rpm is retained between different set_speed_command's. We don't want that - we want
+        // Sometimes sync_dev_speed is retained between different set_speed_command's. We don't want that - we want
         // spindle sync to kick in after we set the speed. This forces that.
-        _sync_rpm = UINT32_MAX;
+        _sync_dev_speed = UINT32_MAX;
 
         return true;
     }
-
-    void VFD::stop() {
-#ifdef VFD_DEBUG_MODE
-        debug_serial("VFD::stop()");
-#endif
-        set_mode(SpindleState::Disable, false);
-    }
-
-    // state is cached rather than read right now to prevent delays
-    SpindleState VFD::get_state() { return _current_state; }
 
     // Calculate the CRC on all of the byte except the last 2
     // It then added the CRC to those last 2 bytes

@@ -488,7 +488,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                                 gc_block.modal.spindle = SpindleState::Cw;
                                 break;
                             case 4:  // Supported if the spindle can be reversed or laser mode is on.
-                                if (config->_spindle->is_reversable || config->_laserMode) {
+                                if (spindle->is_reversable || config->_laserMode) {
                                     gc_block.modal.spindle = SpindleState::Ccw;
                                 } else {
                                     FAIL(Error::GcodeUnsupportedCommand);
@@ -502,7 +502,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 6:  // tool change
                         gc_block.modal.tool_change = ToolChange::Enable;
-                        //user_tool_change(gc_state.tool);
+                        // user_tool_change(gc_state.tool);
                         mg_word_bit = ModalGroup::MM6;
                         break;
                     case 7:
@@ -1355,10 +1355,13 @@ Error gc_execute_line(char* line, uint8_t client) {
     if ((gc_state.spindle_speed != gc_block.values.s) || bit_istrue(gc_parser_flags, GCParserLaserForceSync)) {
         if (gc_state.modal.spindle != SpindleState::Disable) {
             if (bit_isfalse(gc_parser_flags, GCParserLaserIsMotion)) {
-                if (bit_istrue(gc_parser_flags, GCParserLaserDisable)) {
-                    config->_spindle->sync(gc_state.modal.spindle, 0);
-                } else {
-                    config->_spindle->sync(gc_state.modal.spindle, (uint32_t)gc_block.values.s);
+                if (sys.state != State::CheckMode) {
+                    protocol_buffer_synchronize();
+                    if (bit_istrue(gc_parser_flags, GCParserLaserDisable)) {
+                        spindle->setState(gc_state.modal.spindle, 0);
+                    } else {
+                        spindle->setState(gc_state.modal.spindle, (uint32_t)gc_block.values.s);
+                    }
                 }
             }
         }
@@ -1379,7 +1382,10 @@ Error gc_execute_line(char* line, uint8_t client) {
         // Update spindle control and apply spindle speed when enabling it in this block.
         // NOTE: All spindle state changes are synced, even in laser mode. Also, pl_data,
         // rather than gc_state, is used to manage laser state for non-laser motions.
-        config->_spindle->sync(gc_block.modal.spindle, (uint32_t)pl_data->spindle_speed);
+        if (sys.state != State::CheckMode) {
+            protocol_buffer_synchronize();
+            spindle->setState(gc_block.modal.spindle, (uint32_t)pl_data->spindle_speed);
+        }
         gc_state.modal.spindle = gc_block.modal.spindle;
     }
     pl_data->spindle = gc_state.modal.spindle;
@@ -1609,7 +1615,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             if (sys.state != State::CheckMode) {
                 coords[gc_state.modal.coord_select]->get(gc_state.coord_system);
                 system_flag_wco_change();  // Set to refresh immediately just in case something altered.
-                config->_spindle->spinDown();
+                spindle->spinDown();
 
                 config->_coolant->off();
             }

@@ -48,8 +48,6 @@ namespace Spindles {
         void init() override;
         void config_message() override;
 
-        // set_rpm() for BESC is the same as for PWM
-
         // Configuration handlers:
         void validate() const override { PWM::validate(); }
 

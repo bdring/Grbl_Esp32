@@ -47,11 +47,12 @@ static st_block_t st_block_buffer[SEGMENT_BUFFER_SIZE - 1];
 // planner buffer. Once "checked-out", the steps in the segments buffer cannot be modified by
 // the planner, where the remaining planner block steps still can.
 typedef struct {
-    uint16_t n_step;          // Number of step events to be executed for this segment
-    uint16_t isrPeriod;       // Time to next ISR tick, in units of timer ticks
-    uint8_t  st_block_index;  // Stepper block data index. Uses this information to execute this segment.
-    uint8_t  amass_level;     // AMASS level for the ISR to execute this segment
-    uint16_t spindle_rpm;     // TODO get rid of this.
+    uint16_t     n_step;             // Number of step events to be executed for this segment
+    uint16_t     isrPeriod;          // Time to next ISR tick, in units of timer ticks
+    uint8_t      st_block_index;     // Stepper block data index. Uses this information to execute this segment.
+    uint8_t      amass_level;        // AMASS level for the ISR to execute this segment
+    uint16_t     spindle_dev_speed;  // Spindle speed scaled to the device
+    SpindleSpeed spindle_speed;      // Spindle speed in GCode units
 } segment_t;
 static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 
@@ -117,9 +118,8 @@ typedef struct {
     float accelerate_until;  // Acceleration ramp end measured from end of block (mm)
     float decelerate_after;  // Deceleration ramp start measured from end of block (mm)
 
-    float inv_rate;  // Used by PWM laser mode to speed up segment calculations.
-    //uint16_t current_spindle_pwm;  // todo remove
-    float current_spindle_rpm;
+    float        inv_rate;  // Used by PWM laser mode to speed up segment calculations.
+    SpindleSpeed current_spindle_speed;
 
 } st_prep_t;
 static st_prep_t prep;
@@ -256,14 +256,14 @@ static void IRAM_ATTR stepper_pulse_func() {
                 st.steps[axis] = st.exec_block->steps[axis] >> st.exec_segment->amass_level;
             }
             // Set real-time spindle output as segment is loaded, just prior to the first step.
-            config->_spindle->setRPMfromISR(st.exec_segment->spindle_rpm);
+            spindle->setSpeedfromISR(st.exec_segment->spindle_dev_speed);
         } else {
             // Segment buffer empty. Shutdown.
             st_go_idle();
             if (sys.state != State::Jog) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
                 if (st.exec_block != NULL && st.exec_block->is_pwm_rate_adjusted) {
-                    config->_spindle->setRPMfromISR(0);
+                    spindle->setSpeedfromISR(0);
                 }
             }
             rtCycleStop = true;
@@ -647,7 +647,7 @@ void st_prep_buffer() {
                 }
             }
 
-            sys.step_control.updateSpindleRpm = true;  // Force update whenever updating block.
+            sys.step_control.updateSpindleSpeed = true;  // Force update whenever updating block.
         }
 
         // Initialize new segment
@@ -766,26 +766,28 @@ void st_prep_buffer() {
         /* -----------------------------------------------------------------------------------
           Compute spindle speed PWM output for step segment
         */
-        if (st_prep_block->is_pwm_rate_adjusted || sys.step_control.updateSpindleRpm) {
+        if (st_prep_block->is_pwm_rate_adjusted || sys.step_control.updateSpindleSpeed) {
             if (pl_block->spindle != SpindleState::Disable) {
-                float rpm = pl_block->spindle_speed;
+                float speed = pl_block->spindle_speed;
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
                 if (st_prep_block->is_pwm_rate_adjusted) {
-                    rpm *= (prep.current_speed * prep.inv_rate);
+                    speed *= (prep.current_speed * prep.inv_rate);
                     //info_serial("RPM %.2f", rpm);
                     //info_serial("Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
                 }
                 // If current_speed is zero, then may need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE)
                 // but this would be instantaneous only and during a motion. May not matter at all.
 
-                prep.current_spindle_rpm = rpm;
+                prep.current_spindle_speed = speed;
             } else {
-                sys.spindle_speed        = 0.0;
-                prep.current_spindle_rpm = 0.0;
+                sys.spindle_speed          = 0;
+                prep.current_spindle_speed = 0;
             }
-            sys.step_control.updateSpindleRpm = false;
+            sys.step_control.updateSpindleSpeed = false;
         }
-        prep_segment->spindle_rpm = prep.current_spindle_rpm;  // Reload segment PWM value
+        prep_segment->spindle_speed = prep.current_spindle_speed;
+        bool enabled;
+        prep_segment->spindle_dev_speed = spindle->mapSpeed(prep.current_spindle_speed);  // Reload segment PWM value
 
         /* -----------------------------------------------------------------------------------
            Compute segment step rate, steps to execute, and apply necessary rate corrections.

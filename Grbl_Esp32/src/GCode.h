@@ -27,6 +27,7 @@
 #include "Eeprom.h"
 #include "Config.h"
 #include "System.h"
+#include "SpindleDatatypes.h"
 
 // Modal group internal numbers for checking multiple command violations and tracking the
 // type of command that is called in the block. A modal group is a group of g-code commands that are
@@ -139,13 +140,6 @@ enum class CutterCompensation : uint8_t {
 // Modal Group G13: Control mode
 enum class ControlMode : uint8_t {
     ExactPath = 0,  // G61 (Default: Must be zero)
-};
-
-// Modal Group M7: Spindle control
-enum class SpindleState : uint8_t {
-    Disable = 0,  // M5 (Default: Must be zero)
-    Cw      = 1,  // M3
-    Ccw     = 2,  // M4
 };
 
 // GCodeCoolant is used by the parser, where at most one of

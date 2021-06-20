@@ -77,5 +77,22 @@ namespace Configuration {
                 handler.enterSection(inst->name(), inst);
             }
         }
+        static void factory(Configuration::HandlerBase& handler, std::vector<BaseType*>& inst) {
+            if (handler.handlerType() == HandlerType::Parser) {
+                for (auto it : instance().builders_) {
+                    if (handler.matchesUninitialized(it->name())) {
+                        auto product = it->create();
+                        inst.push_back(product);
+                        handler.enterFactory(it->name(), *product);
+
+                        return;
+                    }
+                }
+            } else {
+                for (auto it : inst) {
+                    handler.enterSection(it->name(), it);
+                }
+            }
+        }
     };
 }

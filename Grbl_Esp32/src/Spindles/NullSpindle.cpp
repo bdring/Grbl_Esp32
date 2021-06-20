@@ -27,17 +27,14 @@ namespace Spindles {
 
     void Null::init() {
         is_reversable = false;
-        use_delays    = false;
         config_message();
     }
-    void IRAM_ATTR Null::set_rpm(uint32_t rpm) { sys.spindle_speed = rpm = overrideRPM(rpm); }
-    void           Null::set_state(SpindleState state, uint32_t rpm) {
+    void IRAM_ATTR Null::setSpeedfromISR(uint32_t dev_speed) {};
+    void           Null::setState(SpindleState state, SpindleSpeed speed) {
         _current_state    = state;
-        sys.spindle_speed = rpm;
+        sys.spindle_speed = speed;
     }
-    SpindleState Null::get_state() { return _current_state; }
-    void         Null::stop() {}
-    void         Null::config_message() { info_all("No spindle"); }
+    void Null::config_message() { info_all("No spindle"); }
 
     // Configuration registration
     namespace {

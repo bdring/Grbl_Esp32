@@ -77,14 +77,13 @@ typedef struct {
     float programmed_rate;         // Programmed rate of this block (mm/min).
 
     // Stored spindle speed data used by spindle overrides and resuming methods.
-    float spindle_speed;  // Block spindle speed. Copied from pl_line_data.
-    //#endif
+    SpindleSpeed spindle_speed;  // Block spindle speed. Copied from pl_line_data.
 } plan_block_t;
 
 // Planner data prototype. Must be used when passing new motions to the planner.
 typedef struct {
     float        feed_rate;      // Desired feed rate for line motion. Value is ignored, if rapid motion.
-    uint32_t     spindle_speed;  // Desired spindle speed through line motion.
+    SpindleSpeed spindle_speed;  // Desired spindle speed through line motion.
     PlMotion     motion;         // Bitflag variable to indicate motion conditions. See defines above.
     SpindleState spindle;        // Spindle enable state
     CoolantState coolant;        // Coolant state

@@ -5,8 +5,8 @@
   Part of Grbl
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 
-	2018 -	Bart Dring This file was modifed for use on the ESP32
-		CPU. Do not use this with Grbl for atMega328P
+    2018 -	Bart Dring This file was modifed for use on the ESP32
+        CPU. Do not use this with Grbl for atMega328P
 
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ struct StepControl {
     uint8_t endMotion : 1;
     uint8_t executeHold : 1;
     uint8_t executeSysMotion : 1;
-    uint8_t updateSpindleRpm : 1;
+    uint8_t updateSpindleSpeed : 1;
 };
 
 // System suspend flags. Used in various ways to manage suspend states and procedures.
@@ -75,7 +75,7 @@ typedef uint8_t Counter;   // Report interval
 
 enum class Override : uint8_t {
     ParkingMotion = 0,  // M56 (Default: Must be zero)
-    Disabled      = 1,  // Parking disabled.
+    Disabled = 1,  // Parking disabled.
 };
 
 // Spindle stop override control states.
@@ -106,7 +106,7 @@ struct system_t {
     Counter        report_ovr_counter;  // Tracks when to add override data to status reports.
     Counter        report_wco_counter;  // Tracks when to add work coordinate offset data to status reports.
     Override       override_ctrl;       // Tracks override control states.
-    uint32_t       spindle_speed;
+    SpindleSpeed   spindle_speed;
 };
 
 extern system_t sys;

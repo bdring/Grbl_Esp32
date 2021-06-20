@@ -39,6 +39,9 @@
 // ================ NO FLOATS! ==========================
 
 namespace Spindles {
+    class Spindle;
+    using SpindleList = std::vector<Spindle*>;
+
     // This is the base class. Do not use this as your spindle
     class Spindle : public Configuration::Configurable {
     public:
@@ -49,26 +52,43 @@ namespace Spindles {
         Spindle& operator=(const Spindle&) = delete;
         Spindle& operator=(Spindle&&) = delete;
 
-        virtual void         init()                = 0;  // not in constructor because this also gets called when $$ settings change
-        virtual void         set_rpm(uint32_t rpm) = 0;
-        virtual void         set_state(SpindleState state, uint32_t rpm) = 0;
-        virtual SpindleState get_state()                                 = 0;
-        virtual void         stop()                                      = 0;
-        virtual void         config_message()                            = 0;
-        virtual bool         isRateAdjusted();
-        virtual void         sync(SpindleState state, uint32_t rpm);
+        bool     _defaultedSpeeds;
+        uint32_t offSpeed() { return _speeds[0].offset; }
+        uint32_t maxSpeed() { return _speeds[_speeds.size() - 1].speed; }
+        uint32_t mapSpeed(SpindleSpeed speed);
+        void     setupSpeeds(uint32_t max_dev_speed);
+        void     shelfSpeeds(SpindleSpeed min, SpindleSpeed max);
 
-        virtual IRAM_ATTR void setRPMfromISR(uint32_t rpm) { set_rpm(rpm); }
+        static void switchSpindle(uint8_t new_tool, SpindleList spindles, Spindle*& spindle);
 
-        void                      spinDown() { set_state(SpindleState::Disable, 0); }
-        static uint32_t IRAM_ATTR overrideRPM(uint32_t rpm) { return rpm * sys.spindle_speed_ovr / 100; }
+        void         spinDelay(SpindleState state, SpindleSpeed speed);
+        virtual void init() = 0;  // not in constructor because this also gets called when $$ settings change
+
+        // Used by Protocol.cpp to restore the state during a restart
+        virtual void setState(SpindleState state, uint32_t speed) = 0;
+        SpindleState get_state() { return _current_state; };
+        void         stop() { setState(SpindleState::Disable, 0); }
+        virtual void config_message() = 0;
+        virtual bool isRateAdjusted();
+
+        virtual void setSpeedfromISR(uint32_t dev_speed) = 0;
+
+        void spinDown() { setState(SpindleState::Disable, 0); }
 
         bool                  is_reversable;
-        bool                  use_delays;  // will SpinUp and SpinDown delays be used.
-        volatile SpindleState _current_state = SpindleState::Disable;
+        volatile SpindleState _current_state = SpindleState::Unknown;
+        volatile SpindleSpeed _current_speed = 0;
 
-        uint32_t _spinup_delay;
-        uint32_t _spindown_delay;
+        // scaler units are ms/rpm * 2^16.
+        // The computation is deltaRPM * scaler >> 16
+        uint32_t _spinup_scaler   = 0;
+        uint32_t _spindown_scaler = 0;
+
+        // uint32_t _spinup_delay   = 0;
+        // uint32_t _spindown_delay = 0;
+        int _tool = -1;
+
+        std::vector<Configuration::speedEntry> _speeds;
 
         // Name is required for the configuration factory to work.
         virtual const char* name() const = 0;
@@ -78,9 +98,15 @@ namespace Spindles {
             // TODO: Validate spinup/spindown delay?
         }
 
+        virtual void afterParse() override;
+
         void group(Configuration::HandlerBase& handler) override {
-            handler.item("spinup_delay_ms", _spinup_delay);
-            handler.item("spindown_delay_ms", _spindown_delay);
+            handler.item("spinup_scaler", _spinup_scaler);
+            handler.item("spindown_scaler", _spindown_scaler);
+            //            handler.item("spinup_delay_ms", _spinup_delay);
+            //            handler.item("spindown_delay_ms", _spindown_delay);
+            handler.item("tool", _tool);
+            handler.item("speeds", _speeds);
         }
 
         // Virtual base classes require a virtual destructor.
@@ -88,3 +114,4 @@ namespace Spindles {
     };
     using SpindleFactory = Configuration::GenericFactory<Spindle>;
 }
+extern Spindles::Spindle* spindle;

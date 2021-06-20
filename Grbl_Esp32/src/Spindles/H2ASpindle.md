@@ -109,8 +109,8 @@ Example:
 
 Get current RPM (d0.12): `01 03 700C 0002`
 
-Note that current RPM doesn't translate 1:1 to a percentage.
-So, when setting 10% of the max RPM on a 24.000 rpm spindle, 
+Note that current speed doesn't translate 1:1 to a percentage.
+So, when setting 10% of the max speed on a 24.000 rpm spindle,
 we would get:
 
     Send: 01 03 700C 0002 1EC8 

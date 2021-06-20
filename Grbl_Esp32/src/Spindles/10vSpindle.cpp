@@ -46,12 +46,11 @@ namespace Spindles {
         _forward_pin.setAttr(Pin::Attr::Output);
         _reverse_pin.setAttr(Pin::Attr::Output);
 
-        set_rpm(0);
+        stop();
 
         config_message();
 
         is_reversable = true;  // these VFDs are always reversable
-        use_delays    = true;
     }
 
     // prints the startup message of the spindle config
@@ -66,22 +65,17 @@ namespace Spindles {
                  _pwm_precision);
     }
 
+#ifdef LATER
     // This appears identical to the code in PWMSpindle.cpp but
     // it uses the 10v versions of set_enable and set_output
-    void IRAM_ATTR _10v::set_rpm(uint32_t rpm) {
-        sys.spindle_speed = rpm = limitRPM(overrideRPM(rpm));
-
+    void IRAM_ATTR _10v::setSpeedfromISR(uint32_t dev_speed) {
         set_enable(gc_state.modal.spindle != SpindleState::Disable);
-        set_output(RPMtoPWM(rpm));
+        set_output(dev_speed);
     }
-
-    void _10v::stop() {
-        set_enable(false);
-        set_output(_pwm_off);
-    }
+#endif
 
     void _10v::set_enable(bool enable) {
-        if (_off_with_zero_speed && sys.spindle_speed == 0) {
+        if (_disable_with_zero_speed && sys.spindle_speed == 0) {
             enable = false;
         }
 

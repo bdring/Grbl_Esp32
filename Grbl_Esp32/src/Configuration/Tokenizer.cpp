@@ -77,8 +77,7 @@ namespace Configuration {
         }
         switch (Current()) {
             case '\t':
-                // TODO FIXME: We can do tabs or spaces, not both. However, we *could* let the user decide.
-                ParseError("Indentation through tabs is not allowed. Convert all tabs to spaces please.");
+                ParseError("Tabs are not allowed. Use spaces for indentation.");
                 break;
 
             case '#':  // Comment till end of line
@@ -117,7 +116,7 @@ namespace Configuration {
                 }
 
                 if (Current() != ':') {
-                    ParseError("After a key or section name, we expect a colon character ':'.");
+                    ParseError("Keys must be followed by ':'");
                 }
                 Inc();
 
@@ -144,7 +143,7 @@ namespace Configuration {
                         }
                         token_.sValueEnd_ = current_;
                         if (Current() != delimiter) {
-                            ParseError("Could not find matching delimiter in string value.");
+                            ParseError("Did not find matching delimiter");
                         }
                         Inc();
 #ifdef VERBOSE_TOKENIZER
@@ -153,10 +152,13 @@ namespace Configuration {
 #endif
                     } else {
                         token_.sValueStart_ = current_;
-                        while (!IsWhiteSpace() && !IsEndLine()) {
+                        while (!IsEndLine()) {
                             Inc();
                         }
                         token_.sValueEnd_ = current_;
+                        if (token_.sValueEnd_ != token_.sValueStart_ && token_.sValueEnd_[-1] == '\r') {
+                            --token_.sValueEnd_;
+                        }
 #ifdef VERBOSE_TOKENIZER
                         log_debug("String " << StringRange(token_.keyStart_, token_.keyEnd_).str() << " "
                                             << StringRange(token_.sValueStart_, token_.sValueEnd_).str());

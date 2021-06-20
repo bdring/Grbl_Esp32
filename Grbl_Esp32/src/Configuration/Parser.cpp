@@ -77,6 +77,28 @@ namespace Configuration {
         return value;
     }
 
+    std::vector<speedEntry> Parser::speedEntryValue() const {
+        auto str = StringRange(token_.sValueStart_, token_.sValueEnd_);
+
+        std::vector<speedEntry> value;
+        StringRange             entryStr;
+        for (entryStr = str.nextWord(); entryStr.length(); entryStr = str.nextWord()) {
+            speedEntry  entry;
+            StringRange speed = entryStr.nextWord('=');
+            if (!speed.length() || !speed.isUInteger(entry.speed)) {
+                log_error("Bad speed number " << speed);
+                break;
+            }
+            StringRange percent = entryStr.nextWord('%');
+            if (!percent.length() || !percent.isFloat(entry.percent)) {
+                log_error("Bad speed percent " << percent);
+                break;
+            }
+            value.push_back(entry);
+        }
+        return value;
+    }
+
     Pin Parser::pinValue() const {
         auto str = StringRange(token_.sValueStart_, token_.sValueEnd_);
         return Pin::create(str);
@@ -98,6 +120,6 @@ namespace Configuration {
                 break;
             }
         }
-        return e->value; // Terminal value is default.
+        return e->value;  // Terminal value is default.
     }
 }

@@ -75,5 +75,5 @@ void make_settings() {
 
     message_level = +new EnumSetting(NULL, EXTENDED, WG, NULL, "Message/Level", static_cast<int8_t>(MsgLevel::Info), &messageLevels, NULL);
 
-    config_filename = new StringSetting(EXTENDED, WG, NULL, "Config/Filename", "/spiffs/config.yaml");
+    config_filename = new StringSetting(EXTENDED, WG, NULL, "Config/Filename", "config.yaml");
 }

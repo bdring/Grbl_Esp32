@@ -24,11 +24,11 @@
 
 */
 
-#include "PWMSpindle.h"
+#include "OnOffSpindle.h"
 
 namespace Spindles {
     // This uses one of the (2) DAC pins on ESP32 to output a voltage
-    class Dac : public PWM {
+    class Dac : public OnOff {
     public:
         Dac() = default;
 
@@ -39,12 +39,10 @@ namespace Spindles {
 
         void init() override;
         void config_message() override;
-        void set_rpm(uint32_t rpm) override;
+        void setSpeedfromISR(uint32_t dev_speed) override;
 
         // Configuration handlers:
-        void validate() const override { PWM::validate(); }
-
-        void group(Configuration::HandlerBase& handler) override { PWM::group(handler); }
+        // Inherited from PWM
 
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "DAC"; }

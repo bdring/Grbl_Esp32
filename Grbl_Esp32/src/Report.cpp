@@ -728,7 +728,7 @@ void report_realtime_status(uint8_t client) {
 
         sprintf(temp, "|Ov:%d,%d,%d", sys.f_override, sys.r_override, sys.spindle_speed_ovr);
         strcat(status, temp);
-        SpindleState sp_state      = config->_spindle->get_state();
+        SpindleState sp_state      = spindle->get_state();
         CoolantState coolant_state = config->_coolant->get_state();
         if (sp_state != SpindleState::Disable || coolant_state.Mist || coolant_state.Flood) {
             strcat(status, "|A:");
@@ -740,6 +740,8 @@ void report_realtime_status(uint8_t client) {
                     break;
                 case SpindleState::Ccw:
                     strcat(status, "C");
+                    break;
+                case SpindleState::Unknown:
                     break;
             }
 

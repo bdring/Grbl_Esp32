@@ -122,6 +122,12 @@ namespace Configuration {
             }
         }
 
+        void item(const char* name, std::vector<speedEntry>& value) override {
+            if (_parser.is(name)) {
+                value = _parser.speedEntryValue();
+            }
+        }
+
         void item(const char* name, StringRange& value, int minLength, int maxLength) override {
             if (_parser.is(name)) {
                 value = _parser.stringValue();

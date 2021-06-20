@@ -177,7 +177,17 @@ namespace Spindles {
         }
     }
 
-    void IRAM_ATTR Huanyang::set_speed_command(uint32_t rpm, ModbusCommand& data) {
+    void IRAM_ATTR Huanyang::set_speed_command(uint32_t dev_speed, ModbusCommand& data) {
+        // The units for setting Huanyang speed are Hz * 100.  For a 2-pole motor,
+        // RPM is Hz * 60 sec/min.  The maximum possible speed is 400 Hz so
+        // 400 * 60 = 24000 RPM.
+
+        // There is a configuration register PD144 that scales the display to show the
+        // RPMs.  It is nominally set to 3000 (= 50Hz * 60) for a 2-pole motor or
+        // 1500 for a 4-pole motor, but it can be set slightly lower to account for
+        // slip - the torque-limited difference between actual spindle speed and the
+        // the frequency delivered to the motor windings.
+
         // Frequency comes from a conversion of revolutions per second to revolutions per minute
         // (factor of 60) and a factor of 2 from counting the number of poles. E.g. rpm * 120 / 100.
 
@@ -187,17 +197,19 @@ namespace Spindles {
         //
         // Huanyang wants a factor 100 bigger numbers. So, 1500 rpm -> 25 HZ. Send 2500.
 
-        auto speed = RPMtoSpeed(rpm, 5000, _maxRpmAt50Hz);
+        // The conversion from RPM as requested by the GCode program and the speed number
+        // (nominally Hz * 100) is done in mapping code that is shared across all spindles.
+        // The dev_speed argument is precomputed by that code.
 
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 5;
         data.rx_length = 5;
 
         // data.msg[0] is omitted (modbus address is filled in later)
-        data.msg[1] = 0x05;
-        data.msg[2] = 0x02;
-        data.msg[3] = speed >> 8;
-        data.msg[4] = speed & 0xFF;
+        data.msg[1] = 0x05;  // Set register command
+        data.msg[2] = 0x02;  // Register PD002 - main frequency in units of 0.01 Hz
+        data.msg[3] = dev_speed >> 8;
+        data.msg[4] = dev_speed & 0xFF;
     }
 
     VFD::response_parser Huanyang::initialization_sequence(int index, ModbusCommand& data) {
@@ -309,20 +321,25 @@ namespace Spindles {
 
     void Huanyang::updateRPM() {
         /*
-        PD005 = 400 ; max frequency the VFD will allow
-        MaxRPM = PD005 * 50 / PD176
+        PD005 = 400.00 ; max frequency the VFD will allow
+        MaxRPM = PD005 * 60; but see PD176
 
-        Frequencies are a factor 100 of what they should be.
+        Frequencies are expressed in centiHz.
         */
 
         if (_minFrequency > _maxFrequency) {
             _minFrequency = _maxFrequency;
         }
+        if (_speeds.size() == 0) {
+            // Convert from Frequency in centiHz (the divisor of 100) to RPM (the factor of 60)
+            SpindleSpeed minRPM = _minFrequency * 60 / 100;
+            SpindleSpeed maxRPM = _maxFrequency * 60 / 100;
+            shelfSpeeds(minRPM, maxRPM);
+        }
+        setupSpeeds(_maxFrequency);
+        _slop = std::max(_maxFrequency / 40, 1);
 
-        this->_min_rpm = uint32_t(_minFrequency) * uint32_t(_maxRpmAt50Hz) / 5000;  //   0 * 3000 / 50 =   0 RPM.
-        this->_max_rpm = uint32_t(_maxFrequency) * uint32_t(_maxRpmAt50Hz) / 5000;  // 400 * 3000 / 50 = 24k RPM.
-
-        info_all("VFD: VFD settings read: RPM Range(%d, %d)]", _min_rpm, _max_rpm);
+        // info_all("VFD: VFD settings read: RPM Range(%d, %d)]", _min_rpm, _max_rpm);
     }
 
     VFD::response_parser Huanyang::get_status_ok(ModbusCommand& data) {
@@ -345,7 +362,7 @@ namespace Spindles {
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool { return true; };
     }
 
-    VFD::response_parser Huanyang::get_current_rpm(ModbusCommand& data) {
+    VFD::response_parser Huanyang::get_current_speed(ModbusCommand& data) {
         // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
         data.rx_length = 6;
@@ -360,25 +377,8 @@ namespace Spindles {
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
             uint16_t frequency = (response[4] << 8) | response[5];
 
-            auto huanyang = static_cast<Huanyang*>(vfd);
-
-            // Since we set a frequency, it's only fair to check if that's output in the spindle sync.
-            // The reason we check frequency instead of RPM is because RPM assumes a linear relation
-            // between RPM and frequency - which isn't necessarily true.
-            //
-            // We calculate the frequency back to RPM the same way as we calculated the frequency in the
-            // first place. In other words, this code must match the set_speed_command method. Note that
-            // we test sync_rpm instead of frequency, because that matches whatever a vfd can throw at us.
-            //
-            // value = rpm * 5000 / maxRpmAt50Hz
-            //
-            // It follows that:
-            // frequency_value_x100 * maxRpmAt50Hz / 5000 = rpm
-
-            auto rpm = uint32_t(frequency) * uint32_t(huanyang->_maxRpmAt50Hz) / 5000;
-
-            // Store RPM for synchronization
-            vfd->_sync_rpm = rpm;
+            // Store speed for synchronization
+            vfd->_sync_dev_speed = frequency;
             return true;
         };
     }

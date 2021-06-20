@@ -24,8 +24,13 @@
     Remove power before changing bits.
 
     =============================================================================================================
+    A Chinese manual for Modbus communication to YL620 can be found at
+    https://docs.google.com/document/d/1TkERAvHZby4uad_i9kSk19HlDhbM7_xd/edit
+    You can use Google Translate to translate it.
 
-    Configuration required for the YL620
+    Only Modbus RTU mode is supported, not Modbus ASCII mode.
+
+    Manual Configuration required for the YL620
 
     Parameter number        Description                     Value
     -------------------------------------------------------------------------------
@@ -44,6 +49,10 @@
     Therefore, the following operation codes are relevant:
     0x03:   read single holding register
     0x06:   write single holding register
+
+    Given a parameter Pnn.mm, the high byte of the register address is nn,
+    the low is mm.  The numbers nn and mm in the manual are given in decimal,
+    so P13.16 would be register address 0x0d10 when represented in hex.
 
     Holding register address                Description
     ---------------------------------------------------------------------------
@@ -79,7 +88,6 @@ namespace Spindles {
     YL620::YL620() : VFD() {}
 
     void YL620::direction_command(SpindleState mode, ModbusCommand& data) {
-        // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
         data.rx_length = 6;
 
@@ -102,11 +110,9 @@ namespace Spindles {
         }
     }
 
-    void IRAM_ATTR YL620::set_speed_command(uint32_t rpm, ModbusCommand& data) {
-        auto speed = RPMtoSpeed(rpm, this->_max_rpm, _maxFrequency);
-
+    void IRAM_ATTR YL620::set_speed_command(uint32_t speed, ModbusCommand& data) {
 #ifdef VFD_DEBUG_MODE
-        info_serial("For %d RPM the output frequency is set to %d Hz*10", int(rpm), int(freqFromRPM));
+        info_serial("Setting VFD speed to %d", speed);
 #endif
 
         data.tx_length = 6;
@@ -121,7 +127,6 @@ namespace Spindles {
 
     VFD::response_parser YL620::initialization_sequence(int index, ModbusCommand& data) {
         if (index == -1) {
-            // NOTE: data length is excluding the CRC16 checksum.
             data.tx_length = 6;
             data.rx_length = 5;
 
@@ -144,7 +149,6 @@ namespace Spindles {
                 return true;
             };
         } else if (index == -2) {
-            // NOTE: data length is excluding the CRC16 checksum.
             data.tx_length = 6;
             data.rx_length = 5;
 
@@ -160,12 +164,25 @@ namespace Spindles {
                 auto yl620           = static_cast<YL620*>(vfd);
                 yl620->_maxFrequency = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
 
-                vfd->_min_rpm = uint32_t(yl620->_minFrequency) * uint32_t(vfd->_max_rpm) /
-                                uint32_t(yl620->_maxFrequency);  //   1000 * 24000 / 4000 =   6000 RPM.
+                // frequency is in Hz * 10, so RPM is frequency * 60 / 10 = frequency * 6
+                // E.g. for 400 Hz, we have frequency = 4000, so 4000 * 6 = 24000 RPM
+
+                if (vfd->_speeds.size() == 0) {
+                    // Convert from frequency in deciHz to RPM (*60/10)
+                    SpindleSpeed maxRPM = yl620->_maxFrequency * 6;
+                    SpindleSpeed minRPM = yl620->_minFrequency * 6;
+
+                    vfd->shelfSpeeds(minRPM, maxRPM);
+                }
+
+                vfd->setupSpeeds(yl620->_maxFrequency);
+                vfd->_slop = std::max(yl620->_maxFrequency / 40, 1);
+
+                //                vfd->_min_rpm = uint32_t(vfd->_max_rpm) * uint32_t(yl620->_minFrequency) /
+                //                                uint32_t(yl620->_maxFrequency);  //   1000 * 24000 / 4000 =   6000 RPM.
 
 #ifdef VFD_DEBUG_MODE
-                info_serial("YL620 allows maximum frequency of %d Hz", int(yl620->_maxFrequency));
-                info_serial("Configured maxRPM of %d RPM results in minRPM of %d RPM", int(vfd->_max_rpm), int(vfd->_min_rpm));
+                info_serial("YL620 allows maximum frequency %d Hz", int(yl620->_maxFrequency));
 #endif
 
                 return true;
@@ -175,8 +192,7 @@ namespace Spindles {
         }
     }
 
-    VFD::response_parser YL620::get_current_rpm(ModbusCommand& data) {
-        // NOTE: data length is excluding the CRC16 checksum.
+    VFD::response_parser YL620::get_current_speed(ModbusCommand& data) {
         data.tx_length = 6;
         data.rx_length = 5;
 
@@ -194,16 +210,12 @@ namespace Spindles {
 
             auto yl620 = static_cast<YL620*>(vfd);
 
-            uint16_t rpm = freq * uint16_t(vfd->_max_rpm) / uint16_t(yl620->_maxFrequency);
-
-            // Set current RPM value? Somewhere?
-            vfd->_sync_rpm = rpm;
+            vfd->_sync_dev_speed = freq;
             return true;
         };
     }
 
     VFD::response_parser YL620::get_current_direction(ModbusCommand& data) {
-        // NOTE: data length is excluding the CRC16 checksum.
         data.tx_length = 6;
         data.rx_length = 5;
 
@@ -217,7 +229,7 @@ namespace Spindles {
         // Receive: 01 03 02 00 0A xx xx
         //                   ----- status is in 00 0A bit 5:4
 
-        // TODO: What are we going to do with this? Update sys.spindle_speed? Update vfd state?
+        // TODO: What are we going to do with this? Update vfd state?
         return [](const uint8_t* response, Spindles::VFD* vfd) -> bool { return true; };
     }
 

@@ -22,6 +22,7 @@
 #include "../Pin.h"
 #include "../StringRange.h"
 #include "../EnumItem.h"
+#include "HandlerBase.h"
 
 #include <stack>
 #include <cstring>
@@ -36,12 +37,13 @@ namespace Configuration {
 
         bool is(const char* expected);
 
-        StringRange stringValue() const;
-        bool        boolValue() const;
-        int         intValue() const;
-        float       floatValue() const;
-        Pin         pinValue() const;
-        int         enumValue(EnumItem* e) const;
-        IPAddress   ipValue() const;
+        StringRange             stringValue() const;
+        bool                    boolValue() const;
+        int                     intValue() const;
+        std::vector<speedEntry> speedEntryValue() const;
+        float                   floatValue() const;
+        Pin                     pinValue() const;
+        int                     enumValue(EnumItem* e) const;
+        IPAddress               ipValue() const;
     };
 }
