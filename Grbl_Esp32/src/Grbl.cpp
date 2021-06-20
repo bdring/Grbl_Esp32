@@ -111,6 +111,8 @@ void grbl_init() {
         for (auto s : config->_spindles) {
             s->init();
         }
+        Spindles::Spindle::switchSpindle(0, config->_spindles, spindle);
+
         config->_coolant->init();
         limits_init();
         config->_probe->init();

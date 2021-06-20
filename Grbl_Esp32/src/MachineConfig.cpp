@@ -476,11 +476,9 @@ void MachineConfig::afterParse() {
     }
 
     if (_spindles.size() == 0) {
-        log_info("Using null spindle");
+        log_info("Spindle config missing; using null spindle");
         _spindles.push_back(new Spindles::Null());
     }
-    spindle = _spindles[0];
-
     uint32_t next_tool = 100;
     for (auto s : _spindles) {
         if (s->_tool == -1) {

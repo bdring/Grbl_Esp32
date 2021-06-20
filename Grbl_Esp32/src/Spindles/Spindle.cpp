@@ -39,11 +39,17 @@ namespace Spindles {
         }
         if (candidate) {
             if (candidate != spindle) {
-                spindle->stop();
+                if (spindle != nullptr) {
+                    spindle->stop();
+                }
                 spindle = candidate;
             }
         } else {
-            if (!spindle) {
+            if (spindle == nullptr) {
+                if (spindles.size() == 0) {
+                    log_error("No spindles are defined");
+                    return;
+                }
                 spindle = spindles[0];
             }
         }
