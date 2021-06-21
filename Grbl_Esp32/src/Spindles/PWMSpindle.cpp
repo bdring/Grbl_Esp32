@@ -67,8 +67,7 @@ namespace Spindles {
             _speeds.push_back({ 0, 0 });
             _speeds.push_back({ 10000, 100 });
         }
-        setupSpeeds(_pwm_precision);
-
+        setupSpeeds(_pwm_period);
         config_message();
     }
 
