@@ -71,8 +71,9 @@ namespace Configuration {
         token_.indent_ = indent;
 
         if (Eof()) {
-            token_.state   = TokenState::Eof;
-            token_.indent_ = -1;
+            token_.state     = TokenState::Eof;
+            token_.indent_   = -1;
+            token_.keyStart_ = token_.keyEnd_ = current_;
             return;
         }
         switch (Current()) {
@@ -85,7 +86,7 @@ namespace Configuration {
                 while (!Eof() && !IsEndLine()) {
                     Inc();
                 }
-                return;
+                goto parseAgain;
 
             case '\r':
                 Inc();
