@@ -26,50 +26,63 @@
     Some ESCs can handle higher frequencies, but there is no advantage to changing it.
 
     Determine the typical min and max pulse length of your ESC
-    BESC_MIN_PULSE_SECS is typically 1ms (0.001 sec) or less
-    BESC_MAX_PULSE_SECS is typically 2ms (0.002 sec) or more
+    _min_pulse_secs is typically 1ms (0.001 sec) or less
+    _max_pulse_secs is typically 2ms (0.002 sec) or more
 
 */
 #include "BESCSpindle.h"
 
 namespace Spindles {
     void BESC::init() {
-        get_pins_and_settings();  // these gets the standard PWM settings, but many need to be changed for BESC
-
         if (_output_pin.undefined()) {
             info_all("Warning: BESC output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
-        // override some settings to what is required for a BESC
-        _pwm_freq      = (uint32_t)BESC_PWM_FREQ;
+        is_reversable = _direction_pin.defined();
+        _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
+
+        // override some settings in the PWM base class to what is required for a BESC
+        _pwm_freq      = besc_pwm_freq;
         _pwm_precision = 16;
+        _pwm_period    = (1 << _pwm_precision);
 
-        auto outputPin = _output_pin.getNative(Pin::Capabilities::PWM);
-
+        auto outputNative = _output_pin.getNative(Pin::Capabilities::PWM);
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(outputPin, _pwm_chan_num);                      // attach the PWM to the pin
+        ledcAttachPin(outputNative, _pwm_chan_num);                   // attach the PWM to the pin
 
         _enable_pin.setAttr(Pin::Attr::Output);
 
+        // 1000000 is us/sec
+        const uint32_t besc_pulse_period_us = 1000000 / besc_pwm_freq;
+
+        float _min_pulse_percent = 100.0 * _min_pulse_us / besc_pulse_period_us;
+        float _max_pulse_percent = 100.0 * _max_pulse_us / besc_pulse_period_us;
+
+        uint32_t max_speed = 20000;  // Default value if none given in speeds:
+        if (_speeds.size() != 0) {
+            log_info("Overriding PWM speed map for BESC");
+            // Extract the maximum speed from the provide speed map
+            max_speed = maxSpeed();
+        }
+
+        // BESC PWM typically represents 0 speed as a 1ms pulse and max speed as a 2ms pulse
+        _speeds.clear();
+        _speeds.push_back({ 0, _min_pulse_percent });
+        _speeds.push_back({ max_speed, _max_pulse_percent });
+
+        setupSpeeds(_pwm_period);
+
         stop();
-
-#ifdef LATER
-        // XXX these need to be folded into the speed map
-        _pwm_off = BESC_MIN_PULSE_CNT;
-        _pwm_min = _pwm_off;
-        _pwm_max = BESC_MAX_PULSE_CNT;
-#endif
-
         config_message();
     }
 
     // prints the startup message of the spindle config
     void BESC::config_message() {
-        info_all("BESC spindle on Pin:%s Min:%0.2fms Max:%0.2fms Freq:%dHz Res:%dbits",
+        info_all("BESC spindle on Pin:%s Min:%dus Max:%dus Freq:%dHz Res:%dbits",
                  _output_pin.name().c_str(),
-                 BESC_MIN_PULSE_SECS * 1000.0,  // convert to milliseconds
-                 BESC_MAX_PULSE_SECS * 1000.0,  // convert to milliseconds
+                 _min_pulse_us,
+                 _max_pulse_us,
                  _pwm_freq,
                  _pwm_precision);
     }

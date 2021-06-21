@@ -38,14 +38,11 @@
 namespace Spindles {
     class BESC : public PWM {
     protected:
-        float BESC_MIN_PULSE_SECS = 0.0009f;  // in seconds
-        float BESC_MAX_PULSE_SECS = 0.0022f;  // in seconds
+        const uint32_t besc_pwm_freq = 50;  // 50 Hz
 
-        uint16_t BESC_MIN_PULSE_CNT;
-        uint16_t BESC_MAX_PULSE_CNT;
-
-        const double BESC_PWM_FREQ     = 50.0;  // Hz
-        const double BESC_PULSE_PERIOD = (1.0 / BESC_PWM_FREQ);
+        // Configurable
+        uint32_t _min_pulse_us = 900;   // microseconds
+        uint32_t _max_pulse_us = 2200;  // microseconds
 
     public:
         BESC() = default;
@@ -64,14 +61,11 @@ namespace Spindles {
         void group(Configuration::HandlerBase& handler) override {
             PWM::group(handler);
 
-            handler.item("besc_min_pulse_secs", BESC_MIN_PULSE_SECS);
-            handler.item("besc_max_pulse_secs", BESC_MAX_PULSE_SECS);
+            handler.item("min_pulse_us", _min_pulse_us);
+            handler.item("max_pulse_us", _max_pulse_us);
         }
 
-        void afterParse() override {
-            BESC_MIN_PULSE_CNT = static_cast<uint16_t>(BESC_MIN_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0);
-            BESC_MAX_PULSE_CNT = static_cast<uint16_t>(BESC_MAX_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0);
-        }
+        void afterParse() override {}
 
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "BESC"; }

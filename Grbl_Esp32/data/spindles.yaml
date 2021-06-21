@@ -69,8 +69,9 @@ probe:
     pin: gpio.32:low:pu
 
 Relay:
+  spinup_ms: 5
   output_pin: gpio.12
-  tool:0
+  tool: 0
 #    direction_pin: gpio.13
 
 YL620:
@@ -80,26 +81,28 @@ YL620:
   rxd_pin: gpio.15
   rts_pin: gpio.13
   baudrate: 9600
-  tool:10
+  tool: 10
 
 Huanyang:
   speeds: 0=0% 0=25% 6000=25% 24000=100%
   modbus_id: 2
-  tool:20
+  tool: 20
 
 PWM:
-  tool:30
   spinup_ms: 200
   spindown_ms: 500
   speeds: 0=0% 5000=30% 10000=100%
   output_pin: gpio.2
   enable_pin: gpio.22
+  tool: 30
 
-PWM:
-  tool:40
-  speeds: 0=0% 10000=100%
+BESC:
+  min_pulse_us: 950
+  max_pulse_us: 2050
+  speeds: 0=0% 30000=100%
   output_pin: gpio.4
   enable_pin: gpio.10
+  tool: 40
 
 # user_outputs:
 #   digital0: gpio.13
