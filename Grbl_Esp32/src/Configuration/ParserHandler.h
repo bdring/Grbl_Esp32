@@ -25,7 +25,7 @@
 
 #include "../Logging.h"
 
-//#define DEBUG_YAML_VERBOSE_PARSER
+// #define DEBUG_VERBOSE_YAML_PARSER
 // #define DEBUG_CHATTY_YAML_PARSER
 namespace Configuration {
     class ParserHandler : public Configuration::HandlerBase {
@@ -45,7 +45,7 @@ namespace Configuration {
             // than entryIndent, there are some subordinate tokens.
             _parser.Tokenize();
             int thisIndent = _parser.token_.indent_;
-#ifdef DEBUG_YAML_VERBOSE_PARSER
+#ifdef DEBUG_VERBOSE_YAML_PARSER
             log_debug("thisIndent " << _parser.key().str() << " " << thisIndent);
 #endif
 
@@ -56,7 +56,7 @@ namespace Configuration {
                 // If thisIndent > entryIndent, the new token is the first token within
                 // this section so we process tokens at the same level as thisIndent.
                 for (; _parser.token_.indent_ >= thisIndent; _parser.Tokenize()) {
-#ifdef DEBUG_YAML_VERBOSE_PARSER
+#ifdef DEBUG_VERBOSE_YAML_PARSER
                     log_debug(" KEY " << _parser.key().str() << " state " << int(_parser.token_.state) << " indent "
                                       << _parser.token_.indent_);
 #endif
@@ -64,7 +64,7 @@ namespace Configuration {
                         log_info("Skipping key " << _parser.key().str() << " indent " << _parser.token_.indent_ << " thisIndent "
                                                  << thisIndent);
                     } else {
-#ifdef DEBUG_YAML_VERBOSE_PARSER
+#ifdef DEBUG_VERBOSE_YAML_PARSER
                         log_debug("Parsing key " << _parser.key().str());
 #endif
                         section->group(*this);
@@ -89,7 +89,7 @@ namespace Configuration {
 
             _parser.token_.state = TokenState::Held;
 #ifdef DEBUG_CHATTY_YAML_PARSER
-            log_debug("Left section at indent " << entryIndent);
+            log_debug("Left section at indent " << entryIndent << " holding " << _parser.key().str());
 #endif
         }
 
