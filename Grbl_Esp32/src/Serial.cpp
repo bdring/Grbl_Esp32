@@ -56,7 +56,7 @@
 */
 
 #include "Grbl.h"
-#include "MachineConfig.h"
+#include "Machine/MachineConfig.h"
 #include <atomic>
 
 portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;

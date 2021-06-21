@@ -19,7 +19,7 @@
 */
 
 #include "../Grbl.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 #include "TelnetServer.h"
 
 namespace WebUI {

@@ -29,7 +29,7 @@
 // - https://www.electronicshub.org/send-an-email-using-esp8266/
 
 #include "../Grbl.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 #include "NotificationsService.h"
 
 namespace WebUI {

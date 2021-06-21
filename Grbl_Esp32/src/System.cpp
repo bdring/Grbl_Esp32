@@ -21,7 +21,7 @@
 #include "Grbl.h"
 #include "Config.h"
 #include "SettingsDefinitions.h"
-#include "MachineConfig.h"
+#include "Machine/MachineConfig.h"
 #include <atomic>
 
 // Declare system global variable structure

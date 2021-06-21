@@ -31,7 +31,7 @@
 */
 
 #include "Motor.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 
 namespace Motors {
     void Motor::debug_message() {}

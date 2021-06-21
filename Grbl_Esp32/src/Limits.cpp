@@ -26,7 +26,7 @@
 */
 
 #include "Grbl.h"
-#include "MachineConfig.h"
+#include "Machine/MachineConfig.h"
 
 #include <atomic>
 
@@ -273,7 +273,7 @@ void limits_go_home(uint8_t cycle_mask, uint n_locate_cycles) {
     int32_t set_axis_position;
     // Set machine positions for homed limit switches. Don't update non-homed axes.
     for (int axis = 0; axis < n_axis; axis++) {
-        Axis* axisConf = config->_axes->_axis[axis];
+        Machine::Axis* axisConf = config->_axes->_axis[axis];
         auto  homing   = axisConf->_homing;
         if (homing != nullptr && bitnum_istrue(cycle_mask, axis)) {
             auto mpos    = homing->_mpos;

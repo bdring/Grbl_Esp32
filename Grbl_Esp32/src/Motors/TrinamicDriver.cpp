@@ -18,7 +18,7 @@
 
 */
 #include "TrinamicDriver.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 
 #include <TMCStepper.h>
 #include <atomic>

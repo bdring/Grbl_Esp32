@@ -24,7 +24,7 @@
 */
 
 #include "Grbl.h"
-#include "MachineConfig.h"
+#include "Machine/MachineConfig.h"
 
 #include <stdlib.h>  // PSoc Required for labs
 

@@ -25,7 +25,7 @@
 */
 
 #include "Dynamixel2.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 
 namespace Motors {
     bool    Motors::Dynamixel2::uart_ready         = false;

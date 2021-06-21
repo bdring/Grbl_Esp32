@@ -2,7 +2,7 @@
 #include <map>
 #include "Regex.h"
 
-#include "MachineConfig.h"
+#include "Machine/MachineConfig.h"
 #include "Configuration/RuntimeSetting.h"
 #include "Configuration/AfterParse.h"
 #include "Configuration/Validator.h"

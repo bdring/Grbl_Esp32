@@ -24,7 +24,7 @@
 
 #include "Grbl.h"
 
-#include "MachineConfig.h"
+#include "Machine/MachineConfig.h"
 
 // Allow iteration over CoordIndex values
 CoordIndex& operator++(CoordIndex& i) {

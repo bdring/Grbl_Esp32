@@ -30,7 +30,7 @@
 */
 
 #include "Servo.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 
 #include <atomic>
 

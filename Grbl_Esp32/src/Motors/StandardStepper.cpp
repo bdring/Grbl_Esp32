@@ -22,7 +22,7 @@
 */
 
 #include "StandardStepper.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 
 namespace Motors {
     rmt_item32_t StandardStepper::rmtItem[2];

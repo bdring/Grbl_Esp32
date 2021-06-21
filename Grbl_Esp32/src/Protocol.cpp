@@ -24,7 +24,7 @@
 
 #include "Grbl.h"
 
-#include "MachineConfig.h"
+#include "Machine/MachineConfig.h"
 
 static void protocol_exec_rt_suspend();
 

@@ -29,7 +29,7 @@
 */
 
 #include "RcServo.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 
 namespace Motors {
     // RcServo::RcServo(Pin pwm_pin) : Servo(), _pwm_pin(pwm_pin) {}

@@ -62,7 +62,7 @@
 #include "Pin.h"
 #include "I2SOut.h"
 
-#include "MachineConfig.h"
+#include "Machine/MachineConfig.h"
 #include "Settings.h"
 #include "SettingsDefinitions.h"
 

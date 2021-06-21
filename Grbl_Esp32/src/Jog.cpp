@@ -22,7 +22,7 @@
 */
 
 #include "Grbl.h"
-#include "MachineConfig.h"
+#include "Machine/MachineConfig.h"
 
 // Sets up valid jog motion received from g-code parser, checks for soft-limits, and executes the jog.
 // cancelledInflight will be set to true if was not added to parser due to a cancelJog.

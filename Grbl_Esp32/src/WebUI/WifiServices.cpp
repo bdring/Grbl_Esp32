@@ -19,7 +19,7 @@
 */
 
 #include "../Grbl.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 
 #ifdef ENABLE_WIFI
 

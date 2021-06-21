@@ -21,7 +21,7 @@
 */
 
 #include "../Grbl.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 
 #include <WiFi.h>
 #include <FS.h>
@@ -35,7 +35,7 @@
 #include <string.h>
 
 #include "../Configuration/JsonGenerator.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 
 namespace WebUI {
 

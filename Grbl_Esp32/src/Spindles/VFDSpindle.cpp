@@ -32,7 +32,7 @@
 
 */
 #include "VFDSpindle.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 #include "../MotionControl.h"  // for mc_reset
 #include <atomic>
 

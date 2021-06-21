@@ -18,7 +18,7 @@
 
 
 #include "TrinamicBase.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 #include <atomic>
 
 namespace Motors {

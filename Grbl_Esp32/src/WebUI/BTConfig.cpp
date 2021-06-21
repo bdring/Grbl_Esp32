@@ -19,7 +19,7 @@
 */
 
 #include "../Grbl.h"
-#include "../MachineConfig.h"
+#include "../Machine/MachineConfig.h"
 #include "BTConfig.h"
 
 // SerialBT sends the data over Bluetooth

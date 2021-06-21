@@ -21,7 +21,7 @@
 #include "Config.h"
 
 #include "SDCard.h"
-#include "MachineConfig.h"
+#include "Machine/MachineConfig.h"
 
 #include <FS.h>
 #include <SD.h>
