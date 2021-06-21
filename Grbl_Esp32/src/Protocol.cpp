@@ -188,7 +188,7 @@ void protocol_main_loop() {
                             return;  // Bail to calling function upon system abort
                         }
                         line = client_lines[client].buffer;
-#ifdef REPORT_ECHO_RAW_LINE_RECEIVED
+#ifdef DEBUG_REPORT_ECHO_RAW_LINE_RECEIVED
                         report_echo_line_received(line, client);
 #endif
                         // auth_level can be upgraded by supplying a password on the command line
@@ -683,7 +683,7 @@ void protocol_exec_rt_system() {
 
     protocol_execute_overrides();
 
-#ifdef DEBUG
+#ifdef DEBUG_PROTOCOL
     if (sys_rt_exec_debug) {
         sys_rt_exec_debug = false;
         report_realtime_debug();
@@ -960,7 +960,7 @@ void protocol_exec_rt_system() {
 //        }
 //    }
 //
-//#ifdef DEBUG
+//#ifdef DEBUG_REPORT_REALTIME
 //    if (sys_rt_exec_debug) {
 //        report_realtime_debug();
 //        sys_rt_exec_debug = false;
@@ -1013,11 +1013,9 @@ static void protocol_exec_rt_suspend() {
         restore_spindle       = block->spindle;
         restore_spindle_speed = block->spindle_speed;
     }
-#ifdef DISABLE_LASER_DURING_HOLD
-    if (config->_laserMode) {
+    if (config->_disableLaserDuringHold && config->_laserMode) {
         sys_rt_exec_accessory_override.bit.spindleOvrStop = true;
     }
-#endif
 
     while (sys.suspend.value) {
         if (sys.abort) {

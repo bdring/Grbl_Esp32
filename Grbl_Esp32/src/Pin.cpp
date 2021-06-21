@@ -33,8 +33,9 @@
         {}
 #endif
 
-#if defined PIN_DEBUG
+#ifdef DEBUG_PIN_DUMP
 #    define pin_debug(...) debug_serial(__VA_ARGS__)
+#    include "Pins/DebugPinDetail.h"
 #else
 #    define pin_debug(...)                                                                                                                 \
         {}
@@ -116,21 +117,27 @@ const char* Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     // Build this pin:
     if (prefix == "gpio") {
         pinImplementation = new Pins::GPIOPinDetail(uint8_t(pinNumber), parser);
-        return nullptr;
     }
 #ifdef ESP32
     if (prefix == "i2so") {
         pinImplementation = new Pins::I2SOPinDetail(uint8_t(pinNumber), parser);
-        return nullptr;
     }
 #endif
     if (prefix == "void") {
         // Note: having multiple void pins has its uses for debugging.
         pinImplementation = new Pins::VoidPinDetail();
+    }
+
+    if (pinImplementation == nullptr) {
+        pin_error("ERR: Unknown prefix: \"%s\"\r\n", prefix.c_str());
+        return "Unknown pin prefix";
+    } else {
+#if DEBUG_PIN_DUMP
+        pinImplementation = new Pins::DebugPinDetail(pinImplementation);
+#endif
+
         return nullptr;
     }
-    pin_error("ERR: Unknown prefix: \"%s\"\r\n", prefix.c_str());
-    return "Unknown pin prefix";
 }
 
 Pin Pin::create(const String& str) {

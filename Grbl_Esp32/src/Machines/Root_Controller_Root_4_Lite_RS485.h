@@ -111,7 +111,7 @@
 
 
 //**Spindle SETUP
-//#define VFD_DEBUG_MODE
+//#define DEBUG_VFD
 #define SPINDLE_TYPE            SpindleType::HUANYANG // only one spindle at a time
 #define VFD_RS485_TXD_PIN		"gpio.17"
 #define VFD_RS485_RXD_PIN		"gpio.16"

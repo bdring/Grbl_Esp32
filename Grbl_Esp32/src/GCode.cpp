@@ -132,7 +132,7 @@ void collapseGCode(char* line) {
 Error gc_execute_line(char* line, uint8_t client) {
     // Step 0 - remove whitespace and comments and convert to upper case
     collapseGCode(line);
-#ifdef REPORT_ECHO_LINE_RECEIVED
+#ifdef DEBUG_REPORT_ECHO_LINE_RECEIVED
     report_echo_line_received(line, client);
 #endif
 
@@ -1548,9 +1548,9 @@ Error gc_execute_line(char* line, uint8_t client) {
             } else {
                 // NOTE: gc_block.values.xyz is returned from mc_probe_cycle with the updated position value. So
                 // upon a successful probing cycle, the machine position and the returned value should be the same.
-#ifndef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
-                pl_data->motion.noFeedOverride = 1;
-#endif
+                if (!ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES) {
+                    pl_data->motion.noFeedOverride = 1;
+                }
                 gc_update_pos = mc_probe_cycle(gc_block.values.xyz, pl_data, gc_parser_flags);
             }
             // As far as the parser is concerned, the position is now == target. In reality the
@@ -1606,11 +1606,12 @@ Error gc_execute_line(char* line, uint8_t client) {
             }
 
             // gc_state.modal.override = OVERRIDE_DISABLE; // Not supported.
-#ifdef RESTORE_OVERRIDES_AFTER_PROGRAM_END
-            sys.f_override        = FeedOverride::Default;
-            sys.r_override        = RapidOverride::Default;
-            sys.spindle_speed_ovr = SpindleSpeedOverride::Default;
-#endif
+            if (RESTORE_OVERRIDES_AFTER_PROGRAM_END) {
+                sys.f_override        = FeedOverride::Default;
+                sys.r_override        = RapidOverride::Default;
+                sys.spindle_speed_ovr = SpindleSpeedOverride::Default;
+            }
+
             // Execute coordinate change and spindle/coolant stop.
             if (sys.state != State::CheckMode) {
                 coords[gc_state.modal.coord_select]->get(gc_state.coord_system);

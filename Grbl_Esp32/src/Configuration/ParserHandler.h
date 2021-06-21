@@ -25,8 +25,8 @@
 
 #include "../Logging.h"
 
-//#define VERBOSE_PARSER
-// #define CHATTY_PARSER
+//#define DEBUG_YAML_VERBOSE_PARSER
+// #define DEBUG_CHATTY_YAML_PARSER
 namespace Configuration {
     class ParserHandler : public Configuration::HandlerBase {
     private:
@@ -37,7 +37,7 @@ namespace Configuration {
             // On entry, the token is for the section that invoked us.
             // We will handle following nodes with indents greater than entryIndent
             int entryIndent = _parser.token_.indent_;
-#ifdef CHATTY_PARSER
+#ifdef DEBUG_CHATTY_YAML_PARSER
             log_debug("Entered section " << name << " at indent " << entryIndent);
 #endif
 
@@ -45,7 +45,7 @@ namespace Configuration {
             // than entryIndent, there are some subordinate tokens.
             _parser.Tokenize();
             int thisIndent = _parser.token_.indent_;
-#ifdef VERBOSE_PARSER
+#ifdef DEBUG_YAML_VERBOSE_PARSER
             log_debug("thisIndent " << _parser.key().str() << " " << thisIndent);
 #endif
 
@@ -56,7 +56,7 @@ namespace Configuration {
                 // If thisIndent > entryIndent, the new token is the first token within
                 // this section so we process tokens at the same level as thisIndent.
                 for (; _parser.token_.indent_ >= thisIndent; _parser.Tokenize()) {
-#ifdef VERBOSE_PARSER
+#ifdef DEBUG_YAML_VERBOSE_PARSER
                     log_debug(" KEY " << _parser.key().str() << " state " << int(_parser.token_.state) << " indent "
                                       << _parser.token_.indent_);
 #endif
@@ -64,14 +64,14 @@ namespace Configuration {
                         log_info("Skipping key " << _parser.key().str() << " indent " << _parser.token_.indent_ << " thisIndent "
                                                  << thisIndent);
                     } else {
-#ifdef VERBOSE_PARSER
+#ifdef DEBUG_YAML_VERBOSE_PARSER
                         log_debug("Parsing key " << _parser.key().str());
 #endif
                         section->group(*this);
                         if (_parser.token_.state == TokenState::Matching) {
                             log_error("Ignored key " << _parser.key().str());
                         }
-#ifdef CHATTY_PARSER
+#ifdef DEBUG_CHATTY_YAML_PARSER
                         if (_parser.token_.state == Configuration::TokenState::Matched) {
                             log_debug("Handled key " << _parser.key().str());
                         }
@@ -88,7 +88,7 @@ namespace Configuration {
             // _parser.token_.held = true;
 
             _parser.token_.state = TokenState::Held;
-#ifdef CHATTY_PARSER
+#ifdef DEBUG_CHATTY_YAML_PARSER
             log_debug("Left section at indent " << entryIndent);
 #endif
         }

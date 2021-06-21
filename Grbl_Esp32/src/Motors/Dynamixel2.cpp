@@ -99,8 +99,8 @@ namespace Motors {
     }
 
     void Dynamixel2::read_settings() {
-        _dxl_count_min = DXL_COUNT_MIN;
-        _dxl_count_max = DXL_COUNT_MAX;
+        _dxl_count_min = _countMin;
+        _dxl_count_max = _countMax;
 
         if (_invert_direction) {  // normal direction
             swap(_dxl_count_min, _dxl_count_min);
@@ -223,7 +223,7 @@ namespace Motors {
             int32_t pos_min_steps = lround(limitsMinPosition(_axis_index) * axis->_stepsPerMm);
             int32_t pos_max_steps = lround(limitsMaxPosition(_axis_index) * axis->_stepsPerMm);
 
-            int32_t temp = map(dxl_position, DXL_COUNT_MIN, DXL_COUNT_MAX, pos_min_steps, pos_max_steps);
+            int32_t temp = map(dxl_position, _countMin, _countMax, pos_min_steps, pos_max_steps);
 
             sys_position[_axis_index] = temp;
 
@@ -349,8 +349,8 @@ namespace Motors {
                 if (current_id != 0) {
                     count++;  // keep track of the count for the message length
 
-                    dxl_count_min = DXL_COUNT_MIN;
-                    dxl_count_max = DXL_COUNT_MAX;
+                    dxl_count_min = _countMin;
+                    dxl_count_max = _countMax;
 
                     if (_invert_direction) {  // normal direction
                         swap(dxl_count_min, dxl_count_max);

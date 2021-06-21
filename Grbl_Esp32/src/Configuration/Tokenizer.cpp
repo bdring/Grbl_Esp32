@@ -50,7 +50,7 @@ namespace Configuration {
         // Release a held token
         if (token_.state == TokenState::Held) {
             token_.state = TokenState::Matching;
-#ifdef VERBOSE_TOKENIZER
+#ifdef DEBUG_YAML_VERBOSE_TOKENIZER
             log_debug("Releasing " << key().str());
 #endif
             return;
@@ -127,7 +127,7 @@ namespace Configuration {
 
                 // token_.indent_ = indent;
                 if (IsEndLine()) {
-#ifdef VERBOSE_TOKENIZER
+#ifdef DEBUG_YAML_VERBOSE_TOKENIZER
                     log_debug("Section " << StringRange(token_.keyStart_, token_.keyEnd_).str());
 #endif
 
@@ -146,7 +146,7 @@ namespace Configuration {
                             ParseError("Did not find matching delimiter");
                         }
                         Inc();
-#ifdef VERBOSE_TOKENIZER
+#ifdef DEBUG_YAML_VERBOSE_TOKENIZER
                         log_debug("StringQ " << StringRange(token_.keyStart_, token_.keyEnd_).str() << " "
                                              << StringRange(token_.sValueStart_, token_.sValueEnd_).str());
 #endif
@@ -159,7 +159,7 @@ namespace Configuration {
                         if (token_.sValueEnd_ != token_.sValueStart_ && token_.sValueEnd_[-1] == '\r') {
                             --token_.sValueEnd_;
                         }
-#ifdef VERBOSE_TOKENIZER
+#ifdef DEBUG_YAML_VERBOSE_TOKENIZER
                         log_debug("String " << StringRange(token_.keyStart_, token_.keyEnd_).str() << " "
                                             << StringRange(token_.sValueStart_, token_.sValueEnd_).str());
 #endif

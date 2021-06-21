@@ -308,15 +308,9 @@ Error report_startup_lines(const char* value, WebUI::AuthenticationLevel auth_le
 }
 
 std::map<const char*, uint8_t, cmp_str> restoreCommands = {
-#ifdef ENABLE_RESTORE_DEFAULT_SETTINGS
     { "$", SettingsRestore::Defaults },   { "settings", SettingsRestore::Defaults },
-#endif
-#ifdef ENABLE_RESTORE_CLEAR_PARAMETERS
     { "#", SettingsRestore::Parameters }, { "gcode", SettingsRestore::Parameters },
-#endif
-#ifdef ENABLE_RESTORE_WIPE_ALL
     { "*", SettingsRestore::All },        { "all", SettingsRestore::All },
-#endif
     { "@", SettingsRestore::Wifi },       { "wifi", SettingsRestore::Wifi },
 };
 Error restore_settings(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {

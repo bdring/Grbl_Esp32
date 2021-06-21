@@ -25,14 +25,13 @@ You should set the the axis speed and acceleration to what the servo can handle.
 ```
 
 
-
 You need to specify the TXD, RXD and RTS pins you want to use for the half duplex communications bus.
 
 The `SERVO_TIMER_INTERVAL` sets the time in milliseconds between updates. At each interval 1 message per servo is sent. If you try to update too fast you will see errors reported to the USB/Serial port. 75ms seems like a good rate for 3 servos. Adjust per your count.
 
 You assign servos to axes with a definition like `#define X_DYNAMIXEL_ID          1` The servos should be programmed with unique IDs using Dynamixel software.
 
-You can limit the servo rotational range of travel using `DXL_COUNT_MIN` and `DXL_COUNT_MAX` The full range of a XT430-250T servo is 0-4095.
+You can limit the servo rotational range of travel using `dxl_count_min` and `dxl_count_max` settings The full range of a XT430-250T servo is 0-4095.
 
 You can revers direction using the standard $Stepper/DirInvert command
 

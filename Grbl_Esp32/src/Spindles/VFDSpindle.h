@@ -22,8 +22,8 @@
 
 #include "../Uart.h"
 
-// #define VFD_DEBUG_MODE
-// #define VFD_DEBUG_MODE2
+// #define DEBUG_VFD
+// #define DEBUG_VFD_ALL
 
 namespace Spindles {
     extern Uart _uart;

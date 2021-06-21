@@ -383,9 +383,6 @@ void st_wake_up() {
 
 // Reset and clear stepper subsystem variables
 void st_reset() {
-#ifdef ESP_DEBUG
-    //Serial.println("st_reset()");
-#endif
     // Initialize stepper driver idle state.
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_reset();
@@ -920,9 +917,6 @@ void IRAM_ATTR Stepper_Timer_Init() {
 }
 
 void IRAM_ATTR Stepper_Timer_Start() {
-#ifdef ESP_DEBUG
-    //Serial.println("ST Start");
-#endif
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_set_stepping();
     } else {

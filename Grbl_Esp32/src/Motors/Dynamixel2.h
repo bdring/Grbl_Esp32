@@ -23,53 +23,6 @@
 
 #include <driver/uart.h>
 
-const int DYNAMIXEL_BUF_SIZE  = 127;
-const int DYNAMIXEL_BAUD_RATE = 1000000;
-
-const int DXL_RESPONSE_WAIT_TICKS = 20;  // how long to wait for a response
-
-// protocol 2 byte positions
-const int DXL_MSG_HDR1  = 0;
-const int DXL_MSG_HDR2  = 1;
-const int DXL_MSG_HDR3  = 2;
-const int DXL_MSG_RSRV  = 3;  // reserved byte
-const int DXL_MSG_ID    = 4;
-const int DXL_MSG_LEN_L = 5;
-const int DXL_MSG_LEN_H = 6;
-const int DXL_MSG_INSTR = 7;
-const int DXL_MSG_START = 8;
-
-const int DXL_BROADCAST_ID = 0xFE;
-
-// protocol 2 instruction numbers
-const int DXL_INSTR_PING = 0x01;
-const int PING_RSP_LEN   = 14;
-const int DXL_READ       = 0x02;
-const int DXL_WRITE      = 0x03;
-const int DXL_SYNC_WRITE = 0x83;
-
-// protocol 2 register locations
-const int DXL_OPERATING_MODE   = 11;
-const int DXL_ADDR_TORQUE_EN   = 64;
-const int DXL_ADDR_LED_ON      = 65;
-const int DXL_GOAL_POSITION    = 116;  // 0x74
-const int DXL_PRESENT_POSITION = 132;  // 0x84
-
-// control modes
-const int DXL_CONTROL_MODE_POSITION = 3;
-
-#ifndef DXL_COUNT_MIN
-#    define DXL_COUNT_MIN 1024
-#endif
-
-#ifndef DXL_COUNT_MAX
-#    define DXL_COUNT_MAX 3072
-#endif
-
-#ifndef DYNAMIXEL_FULL_MOVE_TIME
-#    define DYNAMIXEL_FULL_MOVE_TIME 1000  // time in milliseconds to do a full DYNAMIXEL_FULL_MOVE_TIME
-#endif
-
 #include "Motor.h"
 #include "Servo.h"
 
@@ -110,6 +63,46 @@ namespace Motors {
         int         _axis_index;
         bool        _invert_direction = false;
 
+        static const int DYNAMIXEL_BUF_SIZE  = 127;
+        static const int DYNAMIXEL_BAUD_RATE = 1000000;
+
+        static const int DXL_RESPONSE_WAIT_TICKS = 20;  // how long to wait for a response
+
+        // protocol 2 byte positions
+        static const int DXL_MSG_HDR1  = 0;
+        static const int DXL_MSG_HDR2  = 1;
+        static const int DXL_MSG_HDR3  = 2;
+        static const int DXL_MSG_RSRV  = 3;  // reserved byte
+        static const int DXL_MSG_ID    = 4;
+        static const int DXL_MSG_LEN_L = 5;
+        static const int DXL_MSG_LEN_H = 6;
+        static const int DXL_MSG_INSTR = 7;
+        static const int DXL_MSG_START = 8;
+
+        static const int DXL_BROADCAST_ID = 0xFE;
+
+        // protocol 2 instruction numbers
+        static const int DXL_INSTR_PING = 0x01;
+        static const int PING_RSP_LEN   = 14;
+        static const int DXL_READ       = 0x02;
+        static const int DXL_WRITE      = 0x03;
+        static const int DXL_SYNC_WRITE = 0x83;
+
+        // protocol 2 register locations
+        static const int DXL_OPERATING_MODE   = 11;
+        static const int DXL_ADDR_TORQUE_EN   = 64;
+        static const int DXL_ADDR_LED_ON      = 65;
+        static const int DXL_GOAL_POSITION    = 116;  // 0x74
+        static const int DXL_PRESENT_POSITION = 132;  // 0x84
+
+        // control modes
+        static const int DXL_CONTROL_MODE_POSITION = 3;
+
+        int _countMin = 1024;
+        int _countMax = 3072;
+
+        int _dynamixelFullTimeMove = 1000;  // time in milliseconds to do a full DYNAMIXEL_FULL_MOVE_TIME
+
         bool _disabled;
         bool _has_errors;
 
@@ -139,6 +132,10 @@ namespace Motors {
             handler.item("rx", _rx_pin);
             handler.item("rts", _rts_pin);
             handler.item("invert_direction", _invert_direction);
+
+            handler.item("count_min", _countMin);
+            handler.item("count_max", _countMin);
+            handler.item("full_time_move", _dynamixelFullTimeMove);
 
             int id = _id;
             handler.item("id", id);

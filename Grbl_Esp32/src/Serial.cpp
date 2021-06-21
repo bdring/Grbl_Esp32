@@ -245,7 +245,7 @@ void execute_realtime_command(Cmd command, uint8_t client) {
             }
             break;
         case Cmd::DebugReport:
-#ifdef DEBUG
+#ifdef DEBUG_REPORT_REALTIME
             sys_rt_exec_debug = true;
 #endif
             break;
