@@ -34,16 +34,10 @@ namespace Motors {
 
     bool TrinamicUartDriver::_uart_started = false;
 
-    TrinamicUartDriver* TrinamicUartDriver::List = NULL;  // a static list of all drivers for stallguard reporting
-
-    uint8_t TrinamicUartDriver::get_next_index() {
-        static uint8_t index = 1;  // they start at 1
-        return index++;
-    }
 
     /* HW Serial Constructor. */
     TrinamicUartDriver::TrinamicUartDriver(uint16_t driver_part_number, uint8_t addr) :
-        StandardStepper(), _driver_part_number(driver_part_number), _addr(addr) {}
+        TrinamicBase(driver_part_number), _addr(addr) {}
 
     void TrinamicUartDriver::init() {
         if (!_uart_started) {
@@ -208,7 +202,7 @@ namespace Motors {
             return;
         }
 
-        TrinamicUartMode newMode = isHoming ? TRINAMIC_UART_HOMING_MODE : TRINAMIC_UART_RUN_MODE;
+        TrinamicMode newMode = isHoming ? TRINAMIC_HOMING_MODE : TRINAMIC_RUN_MODE;
 
         if (newMode == _mode) {
             return;
@@ -216,18 +210,18 @@ namespace Motors {
         _mode = newMode;
 
         switch (_mode) {
-            case TrinamicUartMode ::StealthChop:
+            case TrinamicMode ::StealthChop:
                 //info_serial("StealthChop");
                 tmcstepper->en_spreadCycle(false);
                 tmcstepper->pwm_autoscale(true);
                 break;
-            case TrinamicUartMode ::CoolStep:
+            case TrinamicMode ::CoolStep:
                 //info_serial("Coolstep");
                 // tmcstepper->en_pwm_mode(false); //TODO: check if this is present in TMC2208/09
                 tmcstepper->en_spreadCycle(true);
                 tmcstepper->pwm_autoscale(false);
                 break;
-            case TrinamicUartMode ::StallGuard:  //TODO: check all configurations for stallguard
+            case TrinamicMode ::StallGuard:  //TODO: check all configurations for stallguard
             {
                 auto axisConfig     = config->_axes->_axis[this->axis_index()];
                 auto homingFeedRate = (axisConfig->_homing != nullptr) ? axisConfig->_homing->_feedRate : 200;
@@ -278,17 +272,6 @@ namespace Motors {
         //             tmcstepper->GSTAT());
     }
 
-    // calculate a tstep from a rate
-    // tstep = TRINAMIC_UART_FCLK / (time between 1/256 steps)
-    // This is used to set the stallguard window from the homing speed.
-    // The percent is the offset on the window
-    uint32_t TrinamicUartDriver::calc_tstep(float speed, float percent) {
-        double tstep = speed / 60.0 * config->_axes->_axis[axis_index()]->_stepsPerMm * (256.0 / _microsteps);
-        tstep        = TRINAMIC_UART_FCLK / tstep * percent / 100.0;
-
-        return static_cast<uint32_t>(tstep);
-    }
-
     // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,
     // but that can be hardwired that way.
     void TrinamicUartDriver::set_disable(bool disable) {
@@ -308,7 +291,7 @@ namespace Motors {
         if (_disabled) {
             tmcstepper->toff(TRINAMIC_UART_TOFF_DISABLE);
         } else {
-            if (_mode == TrinamicUartMode::StealthChop) {
+            if (_mode == TrinamicMode::StealthChop) {
                 tmcstepper->toff(TRINAMIC_UART_TOFF_STEALTHCHOP);
             } else {
                 tmcstepper->toff(TRINAMIC_UART_TOFF_COOLSTEP);
@@ -317,33 +300,6 @@ namespace Motors {
 #endif
         // the pin based enable could be added here.
         // This would be for individual motors, not the single pin for all motors.
-    }
-
-    // Prints StallGuard data that is useful for tuning.
-    void TrinamicUartDriver::readSgTask(void* pvParameters) {
-        TickType_t       xLastWakeTime;
-        const TickType_t xreadSg = 200;  // in ticks (typically ms)
-        auto             n_axis  = config->_axes->_numberAxis;
-
-        xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
-        while (true) {                        // don't ever return from this or the task dies
-            std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
-            if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
-                for (TrinamicUartDriver* p = List; p; p = p->link) {
-                    if (p->_stallguardDebugMode) {
-                        //info_serial("SG:%d", _stallguardDebugMode);
-                        p->debug_message();
-                    }
-                }
-            }  // sys.state
-
-            vTaskDelayUntil(&xLastWakeTime, xreadSg);
-
-            static UBaseType_t uxHighWaterMark = 0;
-#ifdef DEBUG_TASK_STACK
-            reportTaskStackSize(uxHighWaterMark);
-#endif
-        }
     }
 
     // =========== Reporting functions ========================
@@ -395,7 +351,7 @@ namespace Motors {
 
     // Configuration registration
     namespace {
-        MotorFactory::InstanceBuilder<TMC2008> registration_2008("tmc_2008");
-        MotorFactory::InstanceBuilder<TMC2009> registration_2009("tmc_2009");
+        MotorFactory::InstanceBuilder<TMC2208> registration_2208("tmc_2208");
+        MotorFactory::InstanceBuilder<TMC2209> registration_2209("tmc_2209");
     }
 }

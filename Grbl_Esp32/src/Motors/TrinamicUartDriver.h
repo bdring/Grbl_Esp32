@@ -20,7 +20,7 @@
 */
 
 #include "Motor.h"
-#include "StandardStepper.h"
+#include "TrinamicBase.h"
 #include "../Uart.h"
 
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
@@ -28,17 +28,7 @@
 const float TMC2208_RSENSE_DEFAULT = 0.11f;
 const float TMC2209_RSENSE_DEFAULT = 0.11f;
 
-const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
-
 // ==== defaults OK to define them in your machine definition ====
-
-#ifndef TRINAMIC_UART_RUN_MODE
-#    define TRINAMIC_UART_RUN_MODE TrinamicUartMode ::StealthChop
-#endif
-
-#ifndef TRINAMIC_UART_HOMING_MODE
-#    define TRINAMIC_UART_HOMING_MODE TRINAMIC_UART_RUN_MODE
-#endif
 
 #ifndef TRINAMIC_UART_TOFF_DISABLE
 #    define TRINAMIC_UART_TOFF_DISABLE 0
@@ -70,50 +60,21 @@ extern Uart tmc_serial;
 
 namespace Motors {
 
-    enum class TrinamicUartMode : uint8_t {
-        None        = 0,  // not for machine defs!
-        StealthChop = 1,
-        CoolStep    = 2,
-        StallGuard  = 3,
-    };
-
-    class TrinamicUartDriver : public StandardStepper {
+    class TrinamicUartDriver : public TrinamicBase {
     private:
         static bool _uart_started;
 
-        uint32_t calc_tstep(float speed, float percent);
+        TMC2209Stepper* tmcstepper;  // all other driver types are subclasses of this one
 
-        TMC2209Stepper*  tmcstepper;  // all other driver types are subclasses of this one
-        TrinamicUartMode _homing_mode;
-        uint16_t         _driver_part_number;  // example: use 2209 for TMC2209
-        float            _r_sense;
-        bool             _has_errors;
-        bool             _disabled;
-
-        float _run_current         = 0.25;
-        float _hold_current        = 0.25;
-        int   _microsteps          = 256;
-        int   _stallguard          = 0;
-        bool  _stallguardDebugMode = false;
-
-        TrinamicUartMode _mode = TrinamicUartMode::None;
-        bool             test();
-        void             set_mode(bool isHoming);
-        void             trinamic_test_response();
-        void             trinamic_stepper_enable(bool enable);
+        bool test();
+        void set_mode(bool isHoming);
+        void trinamic_test_response();
+        void trinamic_stepper_enable(bool enable);
 
         bool report_open_load(TMC2208_n ::DRV_STATUS_t status);
         bool report_short_to_ground(TMC2208_n ::DRV_STATUS_t status);
         bool report_over_temp(TMC2208_n ::DRV_STATUS_t status);
         bool report_short_to_ps(TMC2208_n ::DRV_STATUS_t status);
-
-        uint8_t get_next_index();
-
-        // Linked list of Trinamic driver instances, used by the
-        // StallGuard reporting task. TODO: verify if this is really used/useful.
-        static TrinamicUartDriver* List;
-        TrinamicUartDriver*        link;
-        static void                readSgTask(void*);
 
     protected:
         void config_message() override;
@@ -137,34 +98,25 @@ namespace Motors {
         // Configuration handlers:
         void validate() const override { StandardStepper::validate(); }
 
-        void group(Configuration::HandlerBase& handler) override {
-            handler.item("r_sense", _r_sense);
-            handler.item("run_current", _run_current);
-            handler.item("hold_current", _hold_current);
-            handler.item("microsteps", _microsteps);
-            handler.item("stallguard", _stallguard);
-            handler.item("stallguardDebugMode", _stallguardDebugMode);
-
-            StandardStepper::group(handler);
-        }
+        void group(Configuration::HandlerBase& handler) override { TrinamicBase::group(handler); }
 
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "trinamic_uart"; }
     };
 
-    class TMC2008 : public TrinamicUartDriver {
+    class TMC2208 : public TrinamicUartDriver {
     public:
-        TMC2008() : TrinamicUartDriver(2008) {}
+        TMC2208() : TrinamicUartDriver(2208) {}
 
         // Name of the configurable. Must match the name registered in the cpp file.
-        const char* name() const override { return "tmc_2008"; }
+        const char* name() const override { return "tmc_2208"; }
     };
 
-    class TMC2009 : public TrinamicUartDriver {
+    class TMC2209 : public TrinamicUartDriver {
     public:
-        TMC2009() : TrinamicUartDriver(2009) {}
+        TMC2209() : TrinamicUartDriver(2209) {}
 
         // Name of the configurable. Must match the name registered in the cpp file.
-        const char* name() const override { return "tmc_2009"; }
+        const char* name() const override { return "tmc_2209"; }
     };
 }

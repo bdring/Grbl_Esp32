@@ -20,7 +20,7 @@
 */
 
 #include "Motor.h"
-#include "StandardStepper.h"
+#include "TrinamicBase.h"
 
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 
@@ -36,17 +36,7 @@ const int NORMAL_THIGH     = 0;
 
 const int TRINAMIC_SPI_FREQ = 100000;
 
-const double TRINAMIC_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to calculate TSTEP from homing rate
-
 // ==== defaults OK to define them in your machine definition ====
-
-#ifndef TRINAMIC_RUN_MODE
-#    define TRINAMIC_RUN_MODE TrinamicMode ::StealthChop
-#endif
-
-#ifndef TRINAMIC_HOMING_MODE
-#    define TRINAMIC_HOMING_MODE TRINAMIC_RUN_MODE
-#endif
 
 #ifndef TRINAMIC_TOFF_DISABLE
 #    define TRINAMIC_TOFF_DISABLE 0
@@ -62,50 +52,21 @@ const double TRINAMIC_FCLK = 12700000.0;  // Internal clock Approx (Hz) used to 
 
 namespace Motors {
 
-    enum class TrinamicMode : uint8_t {
-        None        = 0,  // not for machine defs!
-        StealthChop = 1,
-        CoolStep    = 2,
-        StallGuard  = 3,
-    };
-
-    class TrinamicDriver : public StandardStepper {
+    class TrinamicDriver : public TrinamicBase {
     private:
-        uint32_t calc_tstep(float speed, float percent);
-
         TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
-        TrinamicMode    _homing_mode;
-        Pin             _cs_pin;              // The chip select pin (can be the same for daisy chain)
-        uint16_t        _driver_part_number;  // example: use 2130 for TMC2130
-        float           _r_sense;
+        Pin             _cs_pin;     // The chip select pin (can be the same for daisy chain)
         int8_t          _spi_index;
-        bool            _has_errors;
-        bool            _disabled;
 
-        float _run_current         = 0.25;
-        float _hold_current        = 0.25;
-        int   _microsteps          = 256;
-        int   _stallguard          = 0;
-        bool  _stallguardDebugMode = false;
-
-        TrinamicMode _mode = TrinamicMode::None;
-        bool         test();
-        void         set_mode(bool isHoming);
-        void         trinamic_test_response();
-        void         trinamic_stepper_enable(bool enable);
+        bool test();
+        void set_mode(bool isHoming);
+        void trinamic_test_response();
+        void trinamic_stepper_enable(bool enable);
 
         bool report_open_load(TMC2130_n ::DRV_STATUS_t status);
         bool report_short_to_ground(TMC2130_n ::DRV_STATUS_t status);
         bool report_over_temp(TMC2130_n ::DRV_STATUS_t status);
         bool report_short_to_ps(TMC2130_n ::DRV_STATUS_t status);
-
-        uint8_t get_next_index();
-
-        // Linked list of Trinamic driver instances, used by the
-        // StallGuard reporting task.
-        static TrinamicDriver* List;
-        TrinamicDriver*        link;
-        static void            readSgTask(void*);
 
     protected:
         void config_message() override;
@@ -129,17 +90,7 @@ namespace Motors {
             StandardStepper::validate();
         }
 
-        void group(Configuration::HandlerBase& handler) override {
-            handler.item("spi_cs", _cs_pin);
-            handler.item("r_sense", _r_sense);
-            handler.item("run_current", _run_current);
-            handler.item("hold_current", _hold_current);
-            handler.item("microsteps", _microsteps);
-            handler.item("stallguard", _stallguard);
-            handler.item("stallguardDebugMode", _stallguardDebugMode);
-
-            StandardStepper::group(handler);
-        }
+        void group(Configuration::HandlerBase& handler) override { TrinamicBase::group(handler); }
 
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "trinamic_spi"; }

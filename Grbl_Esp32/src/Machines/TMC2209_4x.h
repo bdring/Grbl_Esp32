@@ -31,8 +31,8 @@
 
 #define N_AXIS 4
 
-#define TRINAMIC_UART_RUN_MODE       TrinamicUartMode :: StealthChop
-#define TRINAMIC_UART_HOMING_MODE    TrinamicUartMode :: StallGuard
+#define TRINAMIC_RUN_MODE       TrinamicMode :: StealthChop
+#define TRINAMIC_HOMING_MODE    TrinamicMode :: StallGuard
 
 #define TMC_UART                UART_NUM_1
 #define TMC_UART_RX             "gpio.21"

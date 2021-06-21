@@ -61,18 +61,9 @@ void TMC2130Stepper::switchCSpin(bool state) {
 }
 
 namespace Motors {
-    uint8_t TrinamicDriver::get_next_index() {
-#ifdef TRINAMIC_DAISY_CHAIN
-        static uint8_t index = 1;  // they start at 1
-        return index++;
-#else
-        return -1;
-#endif
-    }
-    TrinamicDriver* TrinamicDriver::List = NULL;
-
     TrinamicDriver::TrinamicDriver(uint16_t driver_part_number, int8_t spi_index) :
-        StandardStepper(), _homing_mode(TRINAMIC_HOMING_MODE), _driver_part_number(driver_part_number), _spi_index(spi_index) {}
+        TrinamicBase(driver_part_number), 
+        _spi_index(spi_index) {}
 
     void TrinamicDriver::init() {
         _has_errors = false;
@@ -325,17 +316,6 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
         //             tmcstepper->GSTAT());
     }
 
-    // calculate a tstep from a rate
-    // tstep = TRINAMIC_FCLK / (time between 1/256 steps)
-    // This is used to set the stallguard window from the homing speed.
-    // The percent is the offset on the window
-    uint32_t TrinamicDriver::calc_tstep(float speed, float percent) {
-        double tstep = speed / 60.0 * config->_axes->_axis[axis_index()]->_stepsPerMm * (256.0 / _microsteps);
-        tstep        = TRINAMIC_FCLK / tstep * percent / 100.0;
-
-        return static_cast<uint32_t>(tstep);
-    }
-
     // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,
     // but that can be hardwired that way.
     void TrinamicDriver::set_disable(bool disable) {
@@ -364,35 +344,6 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
 #endif
         // the pin based enable could be added here.
         // This would be for individual motors, not the single pin for all motors.
-    }
-
-    // Prints StallGuard data that is useful for tuning.
-    void TrinamicDriver::readSgTask(void* pvParameters) {
-        auto trinamicDriver = static_cast<TrinamicDriver*>(pvParameters);
-
-        TickType_t       xLastWakeTime;
-        const TickType_t xreadSg = 200;  // in ticks (typically ms)
-        auto             n_axis  = config->_axes->_numberAxis;
-
-        xLastWakeTime = xTaskGetTickCount();  // Initialise the xLastWakeTime variable with the current time.
-        while (true) {                        // don't ever return from this or the task dies
-            std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
-            if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
-                for (TrinamicDriver* p = List; p; p = p->link) {
-                    if (p->_stallguardDebugMode) {
-                        //info_serial("SG:%d", p->_stallguardDebugMode);
-                        p->debug_message();
-                    }
-                }
-            }  // sys.state
-
-            vTaskDelayUntil(&xLastWakeTime, xreadSg);
-
-            static UBaseType_t uxHighWaterMark = 0;
-#ifdef DEBUG_TASK_STACK
-            reportTaskStackSize(uxHighWaterMark);
-#endif
-        }
     }
 
     // =========== Reporting functions ========================
