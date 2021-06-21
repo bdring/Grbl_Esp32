@@ -59,13 +59,13 @@ namespace Spindles {
     }
 
     void VFD::reportParsingErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length) {
-#ifdef VFD_DEBUG_MODE
+#ifdef DEBUG_VFD
         report_hex_msg(cmd.msg, "RS485 Tx: ", cmd.tx_length);
         report_hex_msg(rx_message, "RS485 Rx: ", read_length);
 #endif
     }
     void VFD::reportCmdErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length, uint8_t id) {
-#ifdef VFD_DEBUG_MODE
+#ifdef DEBUG_VFD
         report_hex_msg(cmd.msg, "RS485 Tx: ", cmd.tx_length);
         report_hex_msg(rx_message, "RS485 Rx: ", read_length);
 
@@ -179,7 +179,7 @@ namespace Spindles {
                 next_cmd.msg[next_cmd.tx_length++] = (crc16 & 0xFF00) >> 8;
                 next_cmd.rx_length += 2;
 
-#ifdef VFD_DEBUG_MODE2
+#ifdef DEBUG_VFD_ALL
                 if (parser == nullptr) {
                     report_hex_msg(next_cmd.msg, "RS485 Tx: ", next_cmd.tx_length);
                 }
@@ -402,7 +402,7 @@ namespace Spindles {
             auto      last      = _sync_dev_speed;
 
             while ((_sync_dev_speed < minSpeedAllowed || _sync_dev_speed > maxSpeedAllowed) && unchanged < limit) {
-#ifdef VFD_DEBUG_MODE
+#ifdef DEBUG_VFD
                 info_serial("Syncing speed. Requested %d, current %d", int(dev_speed), int(_sync_dev_speed));
 #endif
                 if (!mc_dwell(500)) {
@@ -416,7 +416,7 @@ namespace Spindles {
                 unchanged = (_sync_dev_speed == last) ? unchanged + 1 : 0;
                 last      = _sync_dev_speed;
             }
-#ifdef VFD_DEBUG_MODE
+#ifdef DEBUG_VFD
             info_serial("Synced speed. Requested %d, current %d", int(dev_speed), int(_sync_dev_speed));
 #endif
 
@@ -488,7 +488,7 @@ namespace Spindles {
         }
         _current_dev_speed = speed;
 
-#ifdef VFD_DEBUG_MODE2
+#ifdef DEBUG_VFD_ALL
         info_serial("Setting spindle speed to %d", int(speed));
 #endif
         // Do variant-specific command preparation

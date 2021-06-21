@@ -137,7 +137,7 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // Upon a successful probe cycle, this option provides immediately feedback of the probe coordinates
 // through an automatically generated message. If disabled, users can still access the last probe
 // coordinates through Grbl '$#' print parameters.
-#define MESSAGE_PROBE_COORDINATES  // Enabled by default. Comment to disable.
+const bool MESSAGE_PROBE_COORDINATES = true;  // Enabled by default. Comment to disable.
 
 // Enables a second coolant control pin via the mist coolant GCode command M7 on the Arduino Uno
 // analog pin 4. Only use this option if you require a second coolant control pin.
@@ -152,13 +152,10 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // Grbl doesn't know its position and to force the user to home before proceeding. This option forces
 // Grbl to always initialize into an ALARM state regardless of homing or not. This option is more for
 // OEMs and LinuxCNC users that would like this power-cycle behavior.
-// #define FORCE_INITIALIZATION_ALARM // Default disabled. Uncomment to enable.
+const bool FORCE_INITIALIZATION_ALARM = false;  // Default disabled. Uncomment to enable.
 
 // ---------------------------------------------------------------------------------------
 // ADVANCED CONFIGURATION OPTIONS:
-
-// Enables code for debugging purposes. Not for general use and always in constant flux.
-// #define DEBUG // Uncomment to enable. Default disabled.
 
 // Configure rapid, feed, and spindle override settings. These values define the max and min
 // allowable override values and the coarse and fine increments per command received. Please
@@ -188,7 +185,7 @@ namespace SpindleSpeedOverride {
 // When a M2 or M30 program end command is executed, most GCode states are restored to their defaults.
 // This compile-time option includes the restoring of the feed, rapid, and spindle speed override values
 // to their default values at program end.
-#define RESTORE_OVERRIDES_AFTER_PROGRAM_END  // Default enabled. Comment to disable.
+const bool RESTORE_OVERRIDES_AFTER_PROGRAM_END = true;  // Default enabled. Comment to disable.
 
 // Some status report data isn't necessary for realtime, only intermittently, because the values don't
 // change often. The following macros configures how many times a status report needs to be called before
@@ -224,21 +221,6 @@ const int ACCELERATION_TICKS_PER_SECOND = 100;
 // the selected axis with the tool oriented toward the negative direction. In other words, a positive
 // tool length offset value is subtracted from the current location.
 const int TOOL_LENGTH_OFFSET_AXIS = Z_AXIS;  // Default z-axis. Valid values are X_AXIS, Y_AXIS, or Z_AXIS.
-
-// With this enabled, Grbl sends back an echo of the line it has received, which has been pre-parsed (spaces
-// removed, capitalized letters, no comments) and is to be immediately executed by Grbl. Echoes will not be
-// sent upon a line buffer overflow, but should for all normal lines sent to Grbl. For example, if a user
-// sendss the line 'g1 x1.032 y2.45 (test comment)', Grbl will echo back in the form '[echo: G1X1.032Y2.45]'.
-// Only GCode lines are echoed, not command lines starting with $ or [ESP.
-// NOTE: Only use this for debugging purposes!! When echoing, this takes up valuable resources and can effect
-// performance. If absolutely needed for normal operation, the serial write buffer should be greatly increased
-// to help minimize transmission waiting within the serial write protocol.
-//#define REPORT_ECHO_LINE_RECEIVED // Default disabled. Uncomment to enable.
-
-// This is similar to REPORT_ECHO_LINE_RECEIVED and subject to all its caveats,
-// but instead of echoing the pre-parsed line, it echos the raw line exactly as
-// received, including not only GCode lines, but also $ and [ESP commands.
-//#define REPORT_ECHO_RAW_LINE_RECEIVED // Default disabled. Uncomment to enable.
 
 // Minimum planner junction speed. Sets the default minimum junction speed the planner plans to at
 // every buffer block junction, except for starting from rest and end of the buffer, which are always
@@ -327,12 +309,6 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // #define HOMING_AXIS_SEARCH_SCALAR  1.5 // Uncomment to override defaults in limits.c.
 // #define HOMING_AXIS_LOCATE_SCALAR  10.0 // Uncomment to override defaults in limits.c.
 
-// Enable the '$RST=*', '$RST=$', and '$RST=#' eeprom restore commands. There are cases where
-// these commands may be undesirable. Simply comment the desired macro to disable it.
-#define ENABLE_RESTORE_WIPE_ALL          // '$RST=*' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_DEFAULT_SETTINGS  // '$RST=$' Default enabled. Comment to disable.
-#define ENABLE_RESTORE_CLEAR_PARAMETERS  // '$RST=#' Default enabled. Comment to disable.
-
 // Additional settings have been added to the original set that you see with the $$ command
 // Some senders may not be able to parse anything different from the original set
 // You can still set these like $33=5000, but you cannot read them back.
@@ -349,7 +325,7 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // NOTE: Most setting changes - $ commands - are blocked when a job is running. Coordinate setting
 // GCode commands (G10,G28/30.1) are not blocked, since they are part of an active streaming job.
 // This option forces a planner buffer sync only with such GCode commands.
-#define FORCE_BUFFER_SYNC_DURING_NVS_WRITE  // Default enabled. Comment to disable.
+const bool FORCE_BUFFER_SYNC_DURING_NVS_WRITE = true;  // Default enabled. Comment to disable.
 
 // In Grbl v0.9 and prior, there is an old outstanding bug where the `WPos:` work position reported
 // may not correlate to what is executing, because `WPos:` is based on the GCode parser state, which
@@ -357,14 +333,14 @@ const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
 // motion whenever there is a command that alters the work coordinate offsets `G10,G43.1,G92,G54-59`.
 // This is the simplest way to ensure `WPos:` is always correct. Fortunately, it's exceedingly rare
 // that any of these commands are used need continuous motions through them.
-#define FORCE_BUFFER_SYNC_DURING_WCO_CHANGE  // Default enabled. Comment to disable.
+const bool FORCE_BUFFER_SYNC_DURING_WCO_CHANGE = true;  // Default enabled. Comment to disable.
 
 // By default, Grbl disables feed rate overrides for all G38.x probe cycle commands. Although this
 // may be different than some pro-class machine control, it's arguable that it should be this way.
 // Most probe sensors produce different levels of error that is dependent on rate of speed. By
 // keeping probing cycles to their programmed feed rates, the probe sensor should be a lot more
 // repeatable. If needed, you can disable this behavior by uncommenting the define below.
-// #define ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES // Default disabled. Uncomment to enable.
+const bool ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES = false;
 
 // Configure options for the parking motion, if enabled.
 #define PARKING_AXIS Z_AXIS                      // Define which axis that performs the parking motion
@@ -373,22 +349,6 @@ const double PARKING_RATE              = 800.0;  // Parking fast rate after pull
 const double PARKING_PULLOUT_RATE      = 250.0;  // Pull-out/plunge slow feed rate in mm/min.
 const double PARKING_PULLOUT_INCREMENT = 5.0;    // Spindle pull-out and plunge distance in mm. Incremental distance.
 // Must be positive value or equal to zero.
-
-// Enables a special set of M-code commands that enables and disables the parking motion.
-// These are controlled by `M56`, `M56 P1`, or `M56 Px` to enable and `M56 P0` to disable.
-// The command is modal and will be set after a planner sync. Since it is GCode, it is
-// executed in sync with GCode commands. It is not a real-time command.
-// 
-// By default, M56 is active upon initialization. Use
-// DEACTIVATE_PARKING_UPON_INIT to set M56 P0 as the power-up default.
-// #define ENABLE_PARKING_OVERRIDE_CONTROL   // Default disabled. Uncomment to enable
-// #define DEACTIVATE_PARKING_UPON_INIT // Default disabled. Uncomment to enable.
-
-// This option will automatically disable the laser during a feed hold by invoking a spindle stop
-// override immediately after coming to a stop. However, this also means that the laser still may
-// be reenabled by disabling the spindle stop override, if needed. This is purely a safety feature
-// to ensure the laser doesn't inadvertently remain powered while at a stop and cause a fire.
-#define DISABLE_LASER_DURING_HOLD  // Default enabled. Comment to disable.
 
 // Enables a piecewise linear model of the spindle PWM/speed output. Requires a solution by the
 // 'fit_nonlinear_spindle.py' script in the /doc/script folder of the repo. See file comments

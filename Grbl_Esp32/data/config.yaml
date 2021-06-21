@@ -67,11 +67,6 @@ axes:
     gang1:
       null_motor:
 
-
-coolant:
-  flood: gpio.25
-  mist:  gpio.21
-
 comms:
     wifi_sta:
         ssid: Barts-WLAN
@@ -83,17 +78,19 @@ comms:
 probe:
     pin: gpio.32:low:pu
 
+Relay:
+  output_pin: gpio.21
+  spinup_ms: 1000
+  spindown_ms: 1000
+  tool: 0
+  speeds: 0=0.000% 0=0.000% 1000=100.000%
+
 PWM:
-  min_rpm: 200
-  max_rpm: 1000
   pwm_freq: 5000
-  pwm_off: 0.000
-  pwm_min: 20.000
-  pwm_max: 100.000
-  invert_pwm: true
+  invert_pwm: false
   output_pin: gpio.2
-  enable_pin: gpio.22
-  direction_pin: gpio.21
-  enable_off_with_zero_speed: true
-  spinup_delay_ms: 2000
-  spindown_delay_ms: 1000
+  enable_pin: NO_PIN
+  spinup_ms: 1000
+  spindown_ms: 1000
+  speeds: 0=0% 0=20% 4000=20% 8000=30% 16000=100%
+  tool: 30

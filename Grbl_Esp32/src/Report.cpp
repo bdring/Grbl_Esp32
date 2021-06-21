@@ -50,7 +50,7 @@
 #include "MachineConfig.h"
 #include <map>
 
-#ifdef REPORT_HEAP
+#ifdef DEBUG_REPORT_HEAP
 EspClass esp;
 #endif
 const int DEFAULTBUFFERSIZE = 64;
@@ -540,9 +540,9 @@ void report_build_info(const char* line, uint8_t client) {
     if (config->_limitsTwoSwitchesOnAxis) {
         grbl_send(client, "L");
     }
-#ifdef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
-    grbl_send(client, "A");
-#endif
+    if (ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES) {
+        grbl_send(client, "A");
+    }
     if (hasBluetooth()) {
         grbl_send(client, "B");
     }
@@ -553,21 +553,19 @@ void report_build_info(const char* line, uint8_t client) {
 #ifdef ENABLE_WIFI
     grbl_send(client, "W");
 #endif
-#ifndef ENABLE_RESTORE_WIPE_ALL  // NOTE: Shown when disabled.
-    grbl_send(client, "*");
-#endif
-#ifndef ENABLE_RESTORE_DEFAULT_SETTINGS  // NOTE: Shown when disabled.
-    grbl_send(client, "$");
-#endif
-#ifndef ENABLE_RESTORE_CLEAR_PARAMETERS  // NOTE: Shown when disabled.
-    grbl_send(client, "#");
-#endif
-#ifndef FORCE_BUFFER_SYNC_DURING_NVS_WRITE  // NOTE: Shown when disabled.
-    grbl_send(client, "E");
-#endif
-#ifndef FORCE_BUFFER_SYNC_DURING_WCO_CHANGE  // NOTE: Shown when disabled.
-    grbl_send(client, "W");
-#endif
+
+    grbl_send(client, "*");  // wipe all
+    grbl_send(client, "$");  // deft settings
+    grbl_send(client, "#");  // clear parameters
+
+    if (FORCE_BUFFER_SYNC_DURING_NVS_WRITE)  // NOTE: Shown when disabled.
+    {
+        grbl_send(client, "E");
+    }
+    if (FORCE_BUFFER_SYNC_DURING_WCO_CHANGE)  // NOTE: Shown when disabled.
+    {
+        grbl_send(client, "W");
+    }
     // NOTE: Compiled values, like override increments/max/min values, may be added at some point later.
     // These will likely have a comma delimiter to separate them.
     grbl_send(client, "]\r\n");
@@ -764,7 +762,7 @@ void report_realtime_status(uint8_t client) {
         config->_sdCard->get_current_filename(temp);
         strcat(status, temp);
     }
-#ifdef REPORT_HEAP
+#ifdef DEBUG_REPORT_HEAP
     sprintf(temp, "|Heap:%d", esp.getHeapSize());
     strcat(status, temp);
 #endif
@@ -795,7 +793,7 @@ void report_gcode_comment(char* comment) {
 }
 
 void report_machine_type(uint8_t client) {
-    info_client(client, "Using machine:%s", MACHINE_NAME);
+    info_client(client, "Using machine:%s", config->_name.c_str());
 }
 
 /*

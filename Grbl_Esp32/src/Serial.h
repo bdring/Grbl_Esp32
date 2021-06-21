@@ -66,7 +66,7 @@ enum class Cmd : uint8_t {
     FeedHold              = '!',
     SafetyDoor            = 0x84,
     JogCancel             = 0x85,
-    DebugReport           = 0x86,  // Only when DEBUG enabled, sends debug report in '{}' braces.
+    DebugReport           = 0x86,  // Only when DEBUG_REPORT_REALTIME enabled, sends debug report in '{}' braces.
     FeedOvrReset          = 0x90,  // Restores feed override value to 100%.
     FeedOvrCoarsePlus     = 0x91,
     FeedOvrCoarseMinus    = 0x92,

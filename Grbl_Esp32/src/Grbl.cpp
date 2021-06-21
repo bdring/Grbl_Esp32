@@ -41,10 +41,7 @@ void grbl_init() {
         info_serial("Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
         info_serial("Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
                                                                                      // show the map name at startup
-
-#ifdef MACHINE_NAME
         report_machine_type(CLIENT_SERIAL);
-#endif
 
         if (!SPIFFS.begin(true)) {
             log_error("Cannot mount the local filesystem");
@@ -52,7 +49,7 @@ void grbl_init() {
 
         // Load Grbl settings from non-volatile storage
         debug_serial("Initializing settings...");
-        settings_init(); // requires config
+        settings_init();  // requires config
         config->load(config_filename->get());
         make_grbl_commands();
 
@@ -90,12 +87,12 @@ void grbl_init() {
 
         // Initialize system state.
         if (sys.state != State::ConfigAlarm) {
-#ifdef FORCE_INITIALIZATION_ALARM
-            // Force Grbl into an ALARM state upon a power-cycle or hard reset.
-            sys.state = State::Alarm;
-#else
-            sys.state = State::Idle;
-#endif
+            if (FORCE_INITIALIZATION_ALARM) {
+                // Force Grbl into an ALARM state upon a power-cycle or hard reset.
+                sys.state = State::Alarm;
+            } else {
+                sys.state = State::Idle;
+            }
         }
         // Check for power-up and set system alarm if homing is enabled to force homing cycle
         // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the

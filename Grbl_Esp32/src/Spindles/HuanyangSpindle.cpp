@@ -230,7 +230,7 @@ namespace Spindles {
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[4] << 8) | response[5];
-#ifdef VFD_DEBUG_MODE
+#ifdef DEBUG_VFD
                 info_all("VFD: Max frequency = %d", value);
 #endif
 
@@ -247,7 +247,7 @@ namespace Spindles {
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[4] << 8) | response[5];
 
-#ifdef VFD_DEBUG_MODE
+#ifdef DEBUG_VFD
                 info_all("VFD: Min frequency set to %d", value);
 #endif
 
@@ -263,7 +263,7 @@ namespace Spindles {
 
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[4] << 8) | response[5];
-#ifdef VFD_DEBUG_MODE
+#ifdef DEBUG_VFD
                 info_all("VFD: Max rated revolutions @ 50Hz = %d", value);
 #endif
                 // Set current RPM value? Somewhere?
@@ -296,7 +296,7 @@ namespace Spindles {
 
                 // Sanity check. We expect something like 2 or 4 poles.
                 if (value <= 4 && value >= 2) {
-#ifdef VFD_DEBUG_MODE
+#ifdef DEBUG_VFD
                     // Set current RPM value? Somewhere?
                     info_all("VFD: Number of poles set to %d", value);
 #endif

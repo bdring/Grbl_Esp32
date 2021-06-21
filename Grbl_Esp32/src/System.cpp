@@ -44,7 +44,7 @@ volatile bool          rtButtonMacro1;
 volatile bool          rtButtonMacro2;
 volatile bool          rtButtonMacro3;
 volatile void*         sys_pl_data_inflight;  // holds a plan_line_data_t while cartesian_to_motors has taken ownership of a line motion
-#ifdef DEBUG
+#ifdef DEBUG_REPORT_REALTIME
 volatile bool sys_rt_exec_debug;
 #endif
 volatile Percent sys_rt_f_override;  // Global realtime executor feedrate override percentage
@@ -84,9 +84,9 @@ void init_output_pins() {
 }
 
 void system_flag_wco_change() {
-#ifdef FORCE_BUFFER_SYNC_DURING_WCO_CHANGE
-    protocol_buffer_synchronize();
-#endif
+    if (FORCE_BUFFER_SYNC_DURING_WCO_CHANGE) {
+        protocol_buffer_synchronize();
+    }
     sys.report_wco_counter = 0;
 }
 

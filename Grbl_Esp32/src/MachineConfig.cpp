@@ -364,7 +364,7 @@ void SPIBus::validate() const {
 }
 
 void SPIBus::init() {
-    if (_ss.defined()) { // validation ensures the rest is also defined.
+    if (_ss.defined()) {  // validation ensures the rest is also defined.
         auto ssPin   = _ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
         auto mosiPin = _mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
         auto sckPin  = _sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
@@ -434,6 +434,7 @@ void MachineConfig::group(Configuration::HandlerBase& handler) {
     handler.item("check_limits_at_init", _checkLimitsAtInit);
     handler.item("homing_single_axis_commands", _homingSingleAxisCommands);
     handler.item("limits_two_switches_on_axis", _limitsTwoSwitchesOnAxis);
+    handler.item("disable_laser_during_hold", _disableLaserDuringHold);
 
     Spindles::SpindleFactory::factory(handler, _spindles);
 }

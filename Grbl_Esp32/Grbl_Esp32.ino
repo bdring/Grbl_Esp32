@@ -22,7 +22,7 @@
 #    include "src/Grbl.h"
 
 void setup() {
-    // #    ifdef PIN_DEBUG
+    // #    ifdef DEBUG_PIN_DUMP
     delay(2000);
     // #    endif
 

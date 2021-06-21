@@ -26,6 +26,21 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// With this enabled, Grbl sends back an echo of the line it has received, which has been pre-parsed (spaces
+// removed, capitalized letters, no comments) and is to be immediately executed by Grbl. Echoes will not be
+// sent upon a line buffer overflow, but should for all normal lines sent to Grbl. For example, if a user
+// sendss the line 'g1 x1.032 y2.45 (test comment)', Grbl will echo back in the form '[echo: G1X1.032Y2.45]'.
+// Only GCode lines are echoed, not command lines starting with $ or [ESP.
+// NOTE: Only use this for debugging purposes!! When echoing, this takes up valuable resources and can effect
+// performance. If absolutely needed for normal operation, the serial write buffer should be greatly increased
+// to help minimize transmission waiting within the serial write protocol.
+//#define DEBUG_REPORT_ECHO_LINE_RECEIVED // Default disabled. Uncomment to enable.
+
+// This is similar to DEBUG_REPORT_ECHO_LINE_RECEIVED and subject to all its caveats,
+// but instead of echoing the pre-parsed line, it echos the raw line exactly as
+// received, including not only GCode lines, but also $ and [ESP commands.
+//#define DEBUG_REPORT_ECHO_RAW_LINE_RECEIVED // Default disabled. Uncomment to enable.
+
 // Define status reporting boolean enable bit flags in status_report_mask
 enum RtStatus {
     Position = bit(0),
@@ -118,7 +133,7 @@ void report_build_info(const char* line, uint8_t client);
 
 void report_gcode_comment(char* comment);
 
-#ifdef DEBUG
+#ifdef DEBUG_REPORT_REALTIME
 void report_realtime_debug();
 #endif
 

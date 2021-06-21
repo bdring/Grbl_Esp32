@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <IPAddress.h>
 #include "HandlerType.h"
 #include "../Pin.h"
 #include "../StringRange.h"

@@ -365,7 +365,6 @@ public:
     bool    _homingInitLock    = false;
     int     _stepType          = ST_RMT;
 
-    
     // Enables a special set of M-code commands that enables and disables the parking motion.
     // These are controlled by `M56`, `M56 P1`, or `M56 Px` to enable and `M56 P0` to disable.
     // The command is modal and will be set after a planner sync. Since it is GCode, it is
@@ -387,6 +386,12 @@ public:
     // limit switch for each axis, don't enable this option. By keeping it disabled, you can perform a
     // homing cycle while on the limit switch and not have to move the machine off of it.
     bool _limitsTwoSwitchesOnAxis = false;
+
+    // This option will automatically disable the laser during a feed hold by invoking a spindle stop
+    // override immediately after coming to a stop. However, this also means that the laser still may
+    // be reenabled by disabling the spindle stop override, if needed. This is purely a safety feature
+    // to ensure the laser doesn't inadvertently remain powered while at a stop and cause a fire.
+    bool _disableLaserDuringHold = true;
 
     String _board = "None";
     String _name  = "None";
