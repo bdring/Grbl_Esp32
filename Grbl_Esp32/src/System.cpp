@@ -77,10 +77,10 @@ void init_output_pins() {
     }
 
     // Setup M67 Pins
-    myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, userOutputs->_analogOutput[0], USER_ANALOG_PIN_0_FREQ);
-    myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, userOutputs->_analogOutput[1], USER_ANALOG_PIN_1_FREQ);
-    myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, userOutputs->_analogOutput[2], USER_ANALOG_PIN_2_FREQ);
-    myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, userOutputs->_analogOutput[3], USER_ANALOG_PIN_3_FREQ);
+    myAnalogOutputs[0] = new UserOutput::AnalogOutput(0, userOutputs->_analogOutput[0], userOutputs->_analogFrequency[0]);
+    myAnalogOutputs[1] = new UserOutput::AnalogOutput(1, userOutputs->_analogOutput[1], userOutputs->_analogFrequency[1]);
+    myAnalogOutputs[2] = new UserOutput::AnalogOutput(2, userOutputs->_analogOutput[2], userOutputs->_analogFrequency[2]);
+    myAnalogOutputs[3] = new UserOutput::AnalogOutput(3, userOutputs->_analogOutput[3], userOutputs->_analogFrequency[3]);
 }
 
 void system_flag_wco_change() {

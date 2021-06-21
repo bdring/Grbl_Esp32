@@ -116,9 +116,8 @@ void limits_go_home(uint8_t cycle_mask, uint n_locate_cycles) {
     pl_data->motion                = {};
     pl_data->motion.systemMotion   = 1;
     pl_data->motion.noFeedOverride = 1;
-#ifdef USE_LINE_NUMBERS
-    pl_data->line_number = HOMING_CYCLE_LINE_NUMBER;
-#endif
+    pl_data->line_number           = HOMING_CYCLE_LINE_NUMBER;
+
     // Initialize variables used for homing computations.
     uint8_t n_cycle = (2 * n_locate_cycles + 1);
 

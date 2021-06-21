@@ -32,9 +32,7 @@ Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block, bool* can
     pl_data->feed_rate             = gc_block->values.f;
     pl_data->motion.noFeedOverride = 1;
     pl_data->is_jog                = true;
-#ifdef USE_LINE_NUMBERS
-    pl_data->line_number = gc_block->values.n;
-#endif
+    pl_data->line_number           = gc_block->values.n;
 
     if (config->_axes->hasSoftLimits()) {
         if (limitsCheckTravel(gc_block->values.xyz)) {

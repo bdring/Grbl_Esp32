@@ -24,15 +24,16 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Line buffer size from the serial input stream to be executed.
+// Line buffer size from the serial input stream to be executed.Also, governs the size of
+// each of the startup blocks, as they are each stored as a string of this size.
+// 
 // NOTE: Not a problem except for extreme cases, but the line buffer size can be too small
 // and g-code blocks can get truncated. Officially, the g-code standards support up to 256
 // characters. In future versions, this will be increased, when we know how much extra
 // memory space we can invest into here or we re-write the g-code parser not to have this
 // buffer.
-#ifndef LINE_BUFFER_SIZE
-#    define LINE_BUFFER_SIZE 256
-#endif
+
+const int LINE_BUFFER_SIZE = 256;
 
 void protocol_reset();
 

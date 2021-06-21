@@ -210,9 +210,10 @@ public:
 
 class UserOutputs : public Configuration::Configurable {
 public:
-    UserOutputs() = default;
+    UserOutputs();
 
     Pin _analogOutput[4];
+    int _analogFrequency[4];
     Pin _digitalOutput[4];
 
     void group(Configuration::HandlerBase& handler) override;
@@ -392,6 +393,9 @@ public:
     // be reenabled by disabling the spindle stop override, if needed. This is purely a safety feature
     // to ensure the laser doesn't inadvertently remain powered while at a stop and cause a fire.
     bool _disableLaserDuringHold = true;
+
+    // Allows GRBL to track and report gcode line numbers. Disabled by default.
+    bool   _useLineNumbers = false;
 
     String _board = "None";
     String _name  = "None";

@@ -39,19 +39,6 @@
 #    define SERVO_TIMER_INTERVAL 75.0  // Hz This is the update inveral in milliseconds
 #endif
 
-#ifndef USER_ANALOG_PIN_0_FREQ
-#    define USER_ANALOG_PIN_0_FREQ 5000
-#endif
-#ifndef USER_ANALOG_PIN_1_FREQ
-#    define USER_ANALOG_PIN_1_FREQ 5000
-#endif
-#ifndef USER_ANALOG_PIN_2_FREQ
-#    define USER_ANALOG_PIN_2_FREQ 5000
-#endif
-#ifndef USER_ANALOG_PIN_3_FREQ
-#    define USER_ANALOG_PIN_3_FREQ 5000
-#endif
-
 #ifndef DEFAULT_USER_MACRO0
 #    define DEFAULT_USER_MACRO0 ""
 #endif

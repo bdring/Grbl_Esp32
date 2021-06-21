@@ -53,12 +53,10 @@ typedef struct {
     uint8_t  direction_bits;     // The direction bit set for this block (refers to *_DIRECTION_BIT in config.h)
 
     // Block condition data to ensure correct execution depending on states and overrides.
-    PlMotion     motion;   // Block bitflag motion conditions. Copied from pl_line_data.
-    SpindleState spindle;  // Spindle enable state
-    CoolantState coolant;  // Coolant state
-#ifdef USE_LINE_NUMBERS
-    int32_t line_number;  // Block line number for real-time reporting. Copied from pl_line_data.
-#endif
+    PlMotion     motion;       // Block bitflag motion conditions. Copied from pl_line_data.
+    SpindleState spindle;      // Spindle enable state
+    CoolantState coolant;      // Coolant state
+    int32_t      line_number;  // Block line number for real-time reporting. Copied from pl_line_data.
 
     // Fields used by the motion planner to manage acceleration. Some of these values may be updated
     // by the stepper module during execution of special motion cases for replanning purposes.
@@ -85,10 +83,8 @@ typedef struct {
     PlMotion     motion;         // Bitflag variable to indicate motion conditions. See defines above.
     SpindleState spindle;        // Spindle enable state
     CoolantState coolant;        // Coolant state
-#ifdef USE_LINE_NUMBERS
-    int32_t line_number;  // Desired line number to report when executing.
-#endif
-    bool is_jog;  // true if this was generated due to a jog command
+    int32_t      line_number;    // Desired line number to report when executing.
+    bool         is_jog;         // true if this was generated due to a jog command
 } plan_line_data_t;
 
 // Initialize and reset the motion plan subsystem

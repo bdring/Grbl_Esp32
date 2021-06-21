@@ -391,11 +391,21 @@ void SPIBus::afterParse() {
     }
 }
 
+UserOutputs::UserOutputs() {
+    for (int i = 0; i < 4; ++i) {
+        _analogFrequency[i] = 5000;
+    }
+}
+
 void UserOutputs::group(Configuration::HandlerBase& handler) {
     handler.item("analog0", _analogOutput[0]);
     handler.item("analog1", _analogOutput[1]);
     handler.item("analog2", _analogOutput[2]);
     handler.item("analog3", _analogOutput[3]);
+    handler.item("analog_frequency0", _analogFrequency[0]);
+    handler.item("analog_frequency1", _analogFrequency[1]);
+    handler.item("analog_frequency2", _analogFrequency[2]);
+    handler.item("analog_frequency3", _analogFrequency[3]);
     handler.item("digital0", _digitalOutput[0]);
     handler.item("digital1", _digitalOutput[1]);
     handler.item("digital2", _digitalOutput[2]);
@@ -435,6 +445,7 @@ void MachineConfig::group(Configuration::HandlerBase& handler) {
     handler.item("homing_single_axis_commands", _homingSingleAxisCommands);
     handler.item("limits_two_switches_on_axis", _limitsTwoSwitchesOnAxis);
     handler.item("disable_laser_during_hold", _disableLaserDuringHold);
+    handler.item("use_line_numbers", _useLineNumbers);
 
     Spindles::SpindleFactory::factory(handler, _spindles);
 }

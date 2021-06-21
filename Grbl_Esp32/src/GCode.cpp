@@ -164,9 +164,9 @@ Error gc_execute_line(char* line, uint8_t client) {
         gc_parser_flags |= GCParserJogMotion;
         gc_block.modal.motion    = Motion::Linear;
         gc_block.modal.feed_rate = FeedRate::UnitsPerMin;
-#ifdef USE_LINE_NUMBERS
-        gc_block.values.n = JOG_LINE_NUMBER;  // Initialize default line number reported during jog.
-#endif
+        if (config->_useLineNumbers) {
+            gc_block.values.n = JOG_LINE_NUMBER;  // Initialize default line number reported during jog.
+        }
     }
 
     /* -------------------------------------------------------------------------------------
@@ -1339,9 +1339,8 @@ Error gc_execute_line(char* line, uint8_t client) {
     // [0. Non-specific/common error-checks and miscellaneous setup]:
     // NOTE: If no line number is present, the value is zero.
     gc_state.line_number = gc_block.values.n;
-#ifdef USE_LINE_NUMBERS
     pl_data->line_number = gc_state.line_number;  // Record data for planner use.
-#endif
+
     // [1. Comments feedback ]:  NOT SUPPORTED
     // [2. Set feed rate mode ]:
     gc_state.modal.feed_rate = gc_block.modal.feed_rate;

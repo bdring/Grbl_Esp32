@@ -996,9 +996,7 @@ static void protocol_exec_rt_suspend() {
     pl_data->motion                = {};
     pl_data->motion.systemMotion   = 1;
     pl_data->motion.noFeedOverride = 1;
-#ifdef USE_LINE_NUMBERS
-    pl_data->line_number = PARKING_MOTION_LINE_NUMBER;
-#endif
+    pl_data->line_number           = PARKING_MOTION_LINE_NUMBER;
 
     plan_block_t* block = plan_get_current_block();
     CoolantState  restore_coolant;

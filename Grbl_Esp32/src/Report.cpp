@@ -641,17 +641,18 @@ void report_realtime_status(uint8_t client) {
         strcat(status, temp);
     }
 
-#ifdef USE_LINE_NUMBERS
-    // Report current line number
-    plan_block_t* cur_block = plan_get_current_block();
-    if (cur_block != NULL) {
-        uint32_t ln = cur_block->line_number;
-        if (ln > 0) {
-            sprintf(temp, "|Ln:%d", ln);
-            strcat(status, temp);
+    if (config->_useLineNumbers) {
+        // Report current line number
+        plan_block_t* cur_block = plan_get_current_block();
+        if (cur_block != NULL) {
+            uint32_t ln = cur_block->line_number;
+            if (ln > 0) {
+                sprintf(temp, "|Ln:%d", ln);
+                strcat(status, temp);
+            }
         }
     }
-#endif
+
     // Report realtime feed speed
     if (config->_reportInches) {
         sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate() / MM_PER_INCH, sys.spindle_speed);

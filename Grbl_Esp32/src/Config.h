@@ -130,10 +130,6 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // NOTE: Must be an integer value from 0 to ~4. More than 4 may exhibit round-off errors.
 // ESP32 Note: These are mostly hard coded, so these values will not change anything
 
-// Allows GRBL to track and report gcode line numbers.  Enabling this means that the planning buffer
-// goes from 16 to 15 to make room for the additional line number data in the plan_block_t struct
-// #define USE_LINE_NUMBERS // Disabled by default. Uncomment to enable.
-
 // Upon a successful probe cycle, this option provides immediately feedback of the probe coordinates
 // through an automatically generated message. If disabled, users can still access the last probe
 // coordinates through Grbl '$#' print parameters.
@@ -258,13 +254,6 @@ const double ARC_ANGULAR_TRAVEL_EPSILON = 5E-7;  // Float (radians)
 // run-time command executions, like status reports, since these are performed between each dwell
 // time step. Also, keep in mind that the Arduino delay timer is not very accurate for long delays.
 const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
-
-// Line buffer size from the serial input stream to be executed. Also, governs the size of
-// each of the startup blocks, as they are each stored as a string of this size.
-// NOTE: 80 characters is not a problem except for extreme cases, but the line buffer size
-// can be too small and GCode blocks can get truncated. Officially, the GCode standards
-// support up to 256 characters.
-// #define LINE_BUFFER_SIZE 80  // Uncomment to override default in protocol.h
 
 // Serial send and receive buffer size. The receive buffer is often used as another streaming
 // buffer to store incoming blocks to be processed by Grbl when its ready. Most streaming
