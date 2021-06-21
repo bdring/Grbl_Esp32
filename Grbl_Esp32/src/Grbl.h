@@ -70,12 +70,11 @@ const char* const GRBL_VERSION_BUILD = "20210326";
 // Do not guard this because it is needed for local files too
 #include "SDCard.h"
 
-#ifdef ENABLE_WIFI
-#    include "WebUI/WifiConfig.h"
-#    include "WebUI/Serial2Socket.h"
-#    include "WebUI/TelnetServer.h"
-#    include "WebUI/NotificationsService.h"
-#endif
+// These WebUI components create stub classes if not enabled
+#include "WebUI/WifiConfig.h"
+#include "WebUI/TelnetServer.h"
+#include "WebUI/Serial2Socket.h"
+#include "WebUI/NotificationsService.h"
 
 #include "I2SOut.h"
 

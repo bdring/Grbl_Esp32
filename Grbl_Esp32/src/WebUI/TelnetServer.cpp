@@ -20,21 +20,24 @@
 
 #include "../Grbl.h"
 #include "../MachineConfig.h"
+#include "TelnetServer.h"
+
+namespace WebUI {
+    Telnet_Server telnet_server;
+}
 
 #ifdef ENABLE_WIFI
 
 #    include "WifiServices.h"
 
-#    include "TelnetServer.h"
 #    include "WifiConfig.h"
 #    include <WiFi.h>
 
 namespace WebUI {
-    Telnet_Server telnet_server;
-    bool          Telnet_Server::_setupdone    = false;
-    uint16_t      Telnet_Server::_port         = 0;
-    WiFiServer*   Telnet_Server::_telnetserver = NULL;
-    WiFiClient    Telnet_Server::_telnetClients[MAX_TLNT_CLIENTS];
+    bool        Telnet_Server::_setupdone    = false;
+    uint16_t    Telnet_Server::_port         = 0;
+    WiFiServer* Telnet_Server::_telnetserver = NULL;
+    WiFiClient  Telnet_Server::_telnetClients[MAX_TLNT_CLIENTS];
 
     IPAddress Telnet_Server::_telnetClientsIP[MAX_TLNT_CLIENTS];
 
@@ -49,7 +52,7 @@ namespace WebUI {
         _RXbufferSize = 0;
         _RXbufferpos  = 0;
 
-        if (!hasWiFi() || !config->_comms->_telnetEnable) {
+        if (!config->_comms->_telnetEnable) {
             return false;
         }
         _port = config->_comms->_telnetPort;
@@ -232,4 +235,5 @@ namespace WebUI {
 
     Telnet_Server::~Telnet_Server() { end(); }
 }
+
 #endif

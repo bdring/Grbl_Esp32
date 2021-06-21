@@ -20,11 +20,22 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifdef ENABLE_WIFI
+#ifndef ENABLE_WIFI
+namespace WebUI {
+    class Serial_2_Socket {
+    public:
+        Serial_2_Socket() = default;
+        int    read() { return -1; }
+        void   handle_flush() {}
+        size_t write(const uint8_t* buffer, size_t size) { return 0; }
+    };
+    extern Serial_2_Socket Serial2Socket;
+}
+#else
 
-#include <Print.h>
-#include <cstring>
-#include <cstdint>
+#    include <Print.h>
+#    include <cstring>
+#    include <cstdint>
 
 class WebSocketsServer;
 

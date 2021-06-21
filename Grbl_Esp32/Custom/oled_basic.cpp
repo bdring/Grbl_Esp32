@@ -65,6 +65,12 @@ SSD1306Wire display(OLED_ADDRESS, OLED_SDA, OLED_SCL, OLED_GEOMETRY);
 
 static TaskHandle_t displayUpdateTaskHandle = 0;
 
+//Radio Mode
+const int ESP_RADIO_OFF = 0;
+const int ESP_WIFI_STA  = 1;
+const int ESP_WIFI_AP   = 2;
+const int ESP_BT        = 3;
+
 // This displays the status of the ESP32 Radios...BT, WiFi, etc
 void displayRadioInfo() {
     String radio_addr   = "";

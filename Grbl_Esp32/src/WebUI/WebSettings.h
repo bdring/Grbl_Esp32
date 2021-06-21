@@ -21,15 +21,15 @@
 */
 
 namespace WebUI {
-    extern StringSetting* wifi_sta_password;
-    extern StringSetting* wifi_ap_password;
-
 #ifdef ENABLE_AUTHENTICATION
     extern StringSetting* user_password;
     extern StringSetting* admin_password;
 #endif
 
 #ifdef ENABLE_WIFI
+    extern StringSetting* wifi_sta_password;
+    extern StringSetting* wifi_ap_password;
+
     extern EnumSetting*   notification_type;
     extern StringSetting* notification_t1;
     extern StringSetting* notification_t2;

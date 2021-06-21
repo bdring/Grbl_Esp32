@@ -114,38 +114,24 @@ void client_init() {
     );
 }
 
-static uint8_t getClientChar(uint8_t* data) {
-    int res;
-    if (client_buffer[CLIENT_SERIAL].availableforwrite() && (res = Uart0.read()) != -1) {
-        *data = res;
+static uint8_t getClientChar(uint8_t& data) {
+    if (client_buffer[CLIENT_SERIAL].availableforwrite() && (data = Uart0.read()) != -1) {
         return CLIENT_SERIAL;
     }
     if (WebUI::inputBuffer.available()) {
-        *data = WebUI::inputBuffer.read();
+        data = WebUI::inputBuffer.read();
         return CLIENT_INPUT;
     }
 
-#ifdef ENABLE_BLUETOOTH
-    //currently is wifi or BT but better to prepare both can be live
-    if (hasBluetooth()) {
-        if (WebUI::SerialBT.hasClient()) {
-            if ((res = WebUI::SerialBT.read()) != -1) {
-                *data = res;
-                return CLIENT_BT;
-            }
-        }
+    if ((data = WebUI::SerialBT.read()) != -1) {
+        return CLIENT_BT;
     }
-#endif
-#ifdef ENABLE_WIFI
-    if (WebUI::Serial2Socket.available()) {
-        *data = WebUI::Serial2Socket.read();
+    if ((data = WebUI::Serial2Socket.read()) != -1) {
         return CLIENT_WEBUI;
     }
-    if (WebUI::telnet_server.available()) {
-        *data = WebUI::telnet_server.read();
+    if ((data = WebUI::telnet_server.read()) != -1) {
         return CLIENT_TELNET;
     }
-#endif
     return CLIENT_ALL;
 }
 
@@ -156,7 +142,7 @@ void clientCheckTask(void* pvParameters) {
     uint8_t client;                                                         // who sent the data
     while (true) {                                                          // run continuously
         std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
-        while ((client = getClientChar(&data)) != CLIENT_ALL) {
+        while ((client = getClientChar(data)) != CLIENT_ALL) {
             // Pick off realtime command characters directly from the serial stream. These characters are
             // not passed into the main buffer, but these set system state flag bits for realtime execution.
             if (is_realtime_command(data)) {
@@ -176,15 +162,12 @@ void clientCheckTask(void* pvParameters) {
         }  // if something available
         WebUI::COMMANDS::handle();
 
-#ifdef ENABLE_BLUETOOTH
-        if (hasBluetooth()) {
+        if (config->_comms->_bluetoothConfig) {
             config->_comms->_bluetoothConfig->handle();
         }
-#endif
-#ifdef ENABLE_WIFI
+
         WebUI::wifi_config.handle();
         WebUI::Serial2Socket.handle_flush();
-#endif
 
         vTaskDelay(1 / portTICK_RATE_MS);  // Yield to other tasks
 
@@ -332,25 +315,13 @@ void client_write(uint8_t client, const char* text) {
         return;
     }
 
-#ifdef ENABLE_BLUETOOTH
-    if (hasBluetooth()) {
-        if (WebUI::SerialBT.hasClient() && (client == CLIENT_BT || client == CLIENT_ALL)) {
-            // TODO: This can be .print() for consistency with other clients,
-            // and it is not necessary to call .hasClient() because .write()
-            // checks for a client and does nothing if one is not present.
-            WebUI::SerialBT.print(text);
-            //delay(10); // possible fix for dropped characters
-        }
-    }
-#endif
-#ifdef ENABLE_WIFI
+    WebUI::SerialBT.print(text);
     if (client == CLIENT_WEBUI || client == CLIENT_ALL) {
         WebUI::Serial2Socket.write((const uint8_t*)text, strlen(text));
     }
     if (client == CLIENT_TELNET || client == CLIENT_ALL) {
         WebUI::telnet_server.write((const uint8_t*)text, strlen(text));
     }
-#endif
 
     if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
 #ifdef REVERT_TO_ARDUINO_SERIAL

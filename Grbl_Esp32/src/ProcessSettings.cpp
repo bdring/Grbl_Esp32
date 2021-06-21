@@ -39,11 +39,9 @@ void show_setting(const char* name, const char* value, const char* description, 
 }
 
 void settings_restore(uint8_t restore_flag) {
-#ifdef ENABLE_WIFI
     if (restore_flag & SettingsRestore::Wifi) {
         WebUI::wifi_config.reset_settings();
     }
-#endif
 
     if (restore_flag & SettingsRestore::Defaults) {
         bool restore_startup = restore_flag & SettingsRestore::StartupLines;

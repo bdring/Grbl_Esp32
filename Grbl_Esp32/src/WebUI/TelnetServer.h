@@ -22,7 +22,18 @@
 
 #include "../Config.h"
 
-#ifdef ENABLE_WIFI
+#ifndef ENABLE_WIFI
+namespace WebUI {
+    class Telnet_Server {
+    public:
+        Telnet_Server() = default;
+        int    read() { return -1; }
+        size_t write(const uint8_t* buffer, size_t size) { return 0; }
+        size_t get_rx_buffer_available() { return 0; }
+    };
+    extern Telnet_Server telnet_server;
+}
+#else
 
 class WiFiServer;
 class WiFiClient;
@@ -57,8 +68,8 @@ namespace WebUI {
         static bool        _setupdone;
         static WiFiServer* _telnetserver;
         static WiFiClient  _telnetClients[MAX_TLNT_CLIENTS];
-        static IPAddress _telnetClientsIP[MAX_TLNT_CLIENTS];
-        static uint16_t _port;
+        static IPAddress   _telnetClientsIP[MAX_TLNT_CLIENTS];
+        static uint16_t    _port;
 
         void clearClients();
 

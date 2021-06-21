@@ -41,8 +41,6 @@ void grbl_init() {
         info_serial("Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
         info_serial("Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
                                                                                      // show the map name at startup
-        report_machine_type(CLIENT_SERIAL);
-
         if (!SPIFFS.begin(true)) {
             log_error("Cannot mount the local filesystem");
         }
@@ -53,7 +51,7 @@ void grbl_init() {
         config->load(config_filename->get());
         make_grbl_commands();
 
-        info_serial("Name: %s", config->_name.c_str());
+        report_machine_type(CLIENT_SERIAL);
         info_serial("Board: %s", config->_board.c_str());
 
         if (config->_i2so) {
@@ -114,17 +112,10 @@ void grbl_init() {
         limits_init();
         config->_probe->init();
 
-#ifdef ENABLE_WIFI
-        info_serial("Initializing WiFi...");
         WebUI::wifi_config.begin();
-#endif
-#ifdef ENABLE_BLUETOOTH
-        if (hasBluetooth()) {
-            info_serial("Initializing Bluetooth...");
-
+        if (config->_comms->_bluetoothConfig) {
             config->_comms->_bluetoothConfig->begin();
         }
-#endif
         WebUI::inputBuffer.begin();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:

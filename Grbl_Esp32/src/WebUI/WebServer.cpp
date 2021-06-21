@@ -98,7 +98,7 @@ namespace WebUI {
         bool no_error = true;
         _setupdone    = false;
 
-        if (!hasWiFi() || !config->_comms->_httpEnable) {
+        if (!config->_comms->_httpEnable) {
             return false;
         }
         _port = config->_comms->_httpPort;

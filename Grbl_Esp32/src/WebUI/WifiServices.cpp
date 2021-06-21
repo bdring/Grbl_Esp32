@@ -43,7 +43,10 @@ namespace WebUI {
     bool WiFiServices::begin() {
         bool no_error = true;
         //Sanity check
-        if (WiFi.getMode() == WIFI_OFF || !hasWiFi()) {
+        if (!(config->_comms->_staConfig || config->_comms->_apConfig)) {
+            return false;
+        }
+        if (WiFi.getMode() == WIFI_OFF) {
             return false;
         }
 

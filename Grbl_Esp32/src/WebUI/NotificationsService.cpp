@@ -30,10 +30,13 @@
 
 #include "../Grbl.h"
 #include "../MachineConfig.h"
+#include "NotificationsService.h"
+
+namespace WebUI {
+    NotificationsService notificationsservice;
+}
 
 #ifdef ENABLE_WIFI
-
-#    include "NotificationsService.h"
 #    include <WiFiClientSecure.h>
 #    include <base64.h>
 
@@ -47,8 +50,6 @@ namespace WebUI {
     static const int   LINEPORT    = 443;
 
     static const int EMAILTIMEOUT = 5000;
-
-    NotificationsService notificationsservice;
 
     NotificationsService::NotificationsService() {
         _started          = false;

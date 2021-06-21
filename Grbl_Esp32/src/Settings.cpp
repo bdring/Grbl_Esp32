@@ -243,11 +243,9 @@ Error StringSetting::setStringValue(char* s) {
 }
 
 static bool isPassword(bool (*_checker)(char*)) {
-#ifdef ENABLE_WIFI
     if (_checker == (bool (*)(char*))WebUI::WiFiConfig::isPasswordValid) {
         return true;
     }
-#endif
     return _checker == (bool (*)(char*))WebUI::COMMANDS::isLocalPasswordValid;
 }
 

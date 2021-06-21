@@ -147,11 +147,8 @@ void error_serial(const char* format, ...) {
     va_end(arg);
 }
 
-//function to notify
 void grbl_notify(const char* title, const char* msg) {
-#ifdef ENABLE_WIFI
     WebUI::notificationsservice.sendMSG(title, msg);
-#endif
 }
 
 void grbl_notifyf(const char* title, const char* format, ...) {
@@ -543,41 +540,30 @@ void report_build_info(const char* line, uint8_t client) {
     if (ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES) {
         grbl_send(client, "A");
     }
-    if (hasBluetooth()) {
-        grbl_send(client, "B");
-    }
+    grbl_send(client, config->_comms->_bluetoothConfig ? "B" : "");
     grbl_send(client, "S");
     if (config->_enableParkingOverrideControl) {
         grbl_send(client, "R");
     }
-#ifdef ENABLE_WIFI
-    grbl_send(client, "W");
-#endif
+    grbl_send(client, FORCE_BUFFER_SYNC_DURING_NVS_WRITE ? "" : "E");   // Shown when disabled
+    grbl_send(client, FORCE_BUFFER_SYNC_DURING_WCO_CHANGE ? "" : "W");  // Shown when disabled.
 
-    grbl_send(client, "*");  // wipe all
-    grbl_send(client, "$");  // deft settings
-    grbl_send(client, "#");  // clear parameters
-
-    if (FORCE_BUFFER_SYNC_DURING_NVS_WRITE)  // NOTE: Shown when disabled.
-    {
-        grbl_send(client, "E");
-    }
-    if (FORCE_BUFFER_SYNC_DURING_WCO_CHANGE)  // NOTE: Shown when disabled.
-    {
-        grbl_send(client, "W");
-    }
     // NOTE: Compiled values, like override increments/max/min values, may be added at some point later.
     // These will likely have a comma delimiter to separate them.
     grbl_send(client, "]\r\n");
+
     report_machine_type(client);
-#ifdef ENABLE_WIFI
-    grbl_send(client, (char*)WebUI::wifi_config.info());
-#endif
-#ifdef ENABLE_BLUETOOTH
-    if (hasBluetooth()) {
-        grbl_send(client, config->_comms->_bluetoothConfig->info().c_str());
+    String info;
+    info = WebUI::wifi_config.info();
+    if (info.length()) {
+        info_client(client, info.c_str());
     }
-#endif
+    if (config->_comms->_bluetoothConfig) {
+        info = config->_comms->_bluetoothConfig->info();
+        if (info.length()) {
+            info_client(client, info.c_str());
+        }
+    }
 }
 
 // Prints the character string line Grbl has received from the user, which has been pre-parsed,
@@ -623,17 +609,14 @@ void report_realtime_status(uint8_t client) {
     // Returns planner and serial read buffer states.
     if (bit_istrue(status_mask->get(), RtStatus::Buffer)) {
         int bufsize = DEFAULTBUFFERSIZE;
-#ifdef ENABLE_WIFI
         if (client == CLIENT_TELNET) {
             bufsize = WebUI::telnet_server.get_rx_buffer_available();
         }
-#endif
-#ifdef ENABLE_BLUETOOTH
-        if (hasBluetooth() && client == CLIENT_BT) {
+        if (client == CLIENT_BT) {
             //TODO FIXME
             bufsize = 512 - WebUI::SerialBT.available();
         }
-#endif
+
         if (client == CLIENT_SERIAL) {
             bufsize = client_get_rx_buffer_available(CLIENT_SERIAL);
         }
@@ -794,7 +777,7 @@ void report_gcode_comment(char* comment) {
 }
 
 void report_machine_type(uint8_t client) {
-    info_client(client, "Using machine:%s", config->_name.c_str());
+    info_client(client, "Machine: %s", config->_name.c_str());
 }
 
 /*

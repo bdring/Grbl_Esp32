@@ -21,8 +21,9 @@
 #include "../Grbl.h"
 #include "../MachineConfig.h"
 
-#ifdef ENABLE_WIFI
+WebUI::WiFiConfig wifi_config;
 
+#ifdef ENABLE_WIFI
 #    include <WiFi.h>
 #    include <esp_wifi.h>
 #    include <ESPmDNS.h>
@@ -32,8 +33,6 @@
 #    include "WifiServices.h"
 
 namespace WebUI {
-    WiFiConfig wifi_config;
-
     String WiFiConfig::_hostname          = "";
     bool   WiFiConfig::_events_registered = false;
 
@@ -48,10 +47,9 @@ namespace WebUI {
         return macstr;
     }
 
-    const char* WiFiConfig::info() {
+    String WiFiConfig::info() {
         static String result;
         String        tmp;
-        result = "[MSG:";
 
         if ((WiFi.getMode() == WIFI_MODE_STA) || (WiFi.getMode() == WIFI_MODE_APSTA)) {
             result += "Mode=STA:SSID=";
@@ -84,8 +82,7 @@ namespace WebUI {
         if (WiFi.getMode() == WIFI_MODE_NULL) {
             result += "No Wifi";
         }
-        result += "]\r\n";
-        return result.c_str();
+        return result;
     }
 
     /**
@@ -399,38 +396,35 @@ namespace WebUI {
     /**
      * begin WiFi setup
      */
-    void WiFiConfig::begin() {
+    bool WiFiConfig::begin() {
         //stop active services
         wifi_services.end();
-        if (!hasWiFi()) {
-            goto wifi_off;
+
+        if (config->_comms->_staConfig && StartSTA()) {
+            // WIFI mode is STA; fall back on AP if necessary
+            goto wifi_on;
         }
+        if (config->_comms->_apConfig && StartAP()) {
+            goto wifi_on;
+        }
+
+        info_serial("WiFi off");
+        WiFi.mode(WIFI_OFF);
+        return false;
+
+    wifi_on:
+        //Get hostname
+        _hostname = config->_comms->_hostname;
+
         //setup events
         if (!_events_registered) {
             //cumulative function and no remove so only do once
             WiFi.onEvent(WiFiConfig::WiFiEvent);
             _events_registered = true;
         }
-
-        //Get hostname
-        _hostname = config->_comms->_hostname;
-
-        if (config->_comms->_staConfig != nullptr) {
-            // WIFI mode is STA; fall back on AP if necessary
-            if (StartSTA()) {
-                goto wifi_on;
-            }
-        }
-        if (StartAP()) {
-            goto wifi_on;
-        }
-
-    wifi_off:
-        info_serial("WiFi off");
-        WiFi.mode(WIFI_OFF);
-        return;
-    wifi_on:
+        info_serial("WiFi on");
         wifi_services.begin();
+        return true;
     }
 
     /**

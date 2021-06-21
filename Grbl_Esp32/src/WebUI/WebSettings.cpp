@@ -40,21 +40,6 @@
 namespace WebUI {
 
 #ifdef ENABLE_WIFI
-    StringSetting* wifi_sta_password;
-    StringSetting* wifi_ap_password;
-#endif
-
-#ifdef ENABLE_WIFI
-    enum_opt_t notificationOptions = {
-        { "NONE", 0 },
-        { "LINE", 3 },
-        { "PUSHOVER", 1 },
-        { "EMAIL", 2 },
-    };
-    EnumSetting*   notification_type;
-    StringSetting* notification_t1;
-    StringSetting* notification_t2;
-    StringSetting* notification_ts;
 #endif
 
     enum_opt_t onoffOptions = { { "OFF", 0 }, { "ON", 1 } };
@@ -314,6 +299,17 @@ namespace WebUI {
     }
 
 #ifdef ENABLE_WIFI
+    enum_opt_t notificationOptions = {
+        { "NONE", 0 },
+        { "LINE", 3 },
+        { "PUSHOVER", 1 },
+        { "EMAIL", 2 },
+    };
+    EnumSetting*   notification_type;
+    StringSetting* notification_t1;
+    StringSetting* notification_t2;
+    StringSetting* notification_ts;
+
     static Error showSetNotification(char* parameter, AuthenticationLevel auth_level) {  // ESP610
         if (*parameter == '\0') {
             webPrint("", notification_type->getStringValue());
@@ -378,18 +374,7 @@ namespace WebUI {
         return Error::Ok;
     }
 
-    static Error showSysStats(char* parameter, AuthenticationLevel auth_level) {  // ESP420
-        webPrintln("Chip ID: ", String((uint16_t)(ESP.getEfuseMac() >> 32)));
-        webPrintln("CPU Frequency: ", String(ESP.getCpuFreqMHz()) + "Mhz");
-        webPrintln("CPU Temperature: ", String(temperatureRead(), 1) + "C");
-        webPrintln("Free memory: ", ESPResponseStream::formatBytes(ESP.getFreeHeap()));
-        webPrintln("SDK: ", ESP.getSdkVersion());
-        webPrintln("Flash Size: ", ESPResponseStream::formatBytes(ESP.getFlashChipSize()));
-
-        // Round baudRate to nearest 100 because ESP32 can say e.g. 115201
-        // webPrintln("Baud rate: ", String((Serial.baudRate() / 100) * 100)); // TODO FIXME: Commented out, because we're using Uart
-        webPrintln("Sleep mode: ", WiFi.getSleep() ? "Modem" : "None");
-
+    static void showWifiStats() {
 #ifdef ENABLE_WIFI
         int mode = WiFi.getMode();
         if (mode != WIFI_MODE_NULL) {
@@ -524,31 +509,24 @@ namespace WebUI {
         }
         webPrintln("");
 #endif
+    }
 
-#ifdef ENABLE_BLUETOOTH
-        if (hasBluetooth()) {
-            auto bt_config = config->_comms->_bluetoothConfig;
-            webPrint("Current BT Mode: ");
-            if (bt_config->Is_BT_on()) {
-                webPrintln("On");
+    static Error showSysStats(char* parameter, AuthenticationLevel auth_level) {  // ESP420
+        webPrintln("Chip ID: ", String((uint16_t)(ESP.getEfuseMac() >> 32)));
+        webPrintln("CPU Frequency: ", String(ESP.getCpuFreqMHz()) + "Mhz");
+        webPrintln("CPU Temperature: ", String(temperatureRead(), 1) + "C");
+        webPrintln("Free memory: ", ESPResponseStream::formatBytes(ESP.getFreeHeap()));
+        webPrintln("SDK: ", ESP.getSdkVersion());
+        webPrintln("Flash Size: ", ESPResponseStream::formatBytes(ESP.getFlashChipSize()));
 
-                webPrint("BT Name: ");
-                webPrint(bt_config->BTname());
-                webPrint("(");
-                webPrint(bt_config->device_address());
-                webPrintln(")");
+        // Round baudRate to nearest 100 because ESP32 can say e.g. 115201
+        // webPrintln("Baud rate: ", String((Serial.baudRate() / 100) * 100)); // TODO FIXME: Commented out, because we're using Uart
+        webPrintln("Sleep mode: ", WiFi.getSleep() ? "Modem" : "None");
 
-                webPrint("Status: ");
-                if (SerialBT.hasClient()) {
-                    webPrintln("Connected with ", bt_config->client_name());
-                } else {
-                    webPrintln("Not connected");
-                }
-            } else {
-                webPrintln("Off");
-            }
+        showWifiStats();
+        if (config->_comms->_bluetoothConfig) {
+            webPrintln(config->_comms->_bluetoothConfig->info().c_str());
         }
-#endif
         webPrint("FW version: ");
         webPrint(GRBL_VERSION);
         webPrint(" (");
@@ -559,6 +537,9 @@ namespace WebUI {
     }
 
 #ifdef ENABLE_WIFI
+    StringSetting* wifi_sta_password;
+    StringSetting* wifi_ap_password;
+
     static Error listAPs(char* parameter, AuthenticationLevel auth_level) {  // ESP410
         JSONencoder j(espresponse->client() != CLIENT_WEBUI, espresponse);
         j.begin();
@@ -871,11 +852,9 @@ namespace WebUI {
             }
 #endif
 
-#ifdef ENABLE_BLUETOOTH
-            if (hasBluetooth() && config->_comms->_bluetoothConfig->Is_BT_on()) {
+            if (config->_comms->_bluetoothConfig && config->_comms->_bluetoothConfig->Is_BT_on()) {
                 on = true;
             }
-#endif
 
             webPrintln(on ? "ON" : "OFF");
             return Error::Ok;
@@ -897,13 +876,9 @@ namespace WebUI {
             wifi_config.StopWiFi();
         }
 #endif
-#ifdef ENABLE_BLUETOOTH
-        if (hasBluetooth()) {
-            if (config->_comms->_bluetoothConfig->Is_BT_on()) {
-                config->_comms->_bluetoothConfig->end();
-            }
+        if (config->_comms->_bluetoothConfig && config->_comms->_bluetoothConfig->Is_BT_on()) {
+            config->_comms->_bluetoothConfig->end();
         }
-#endif
 
         //if On start proper service
         if (!on) {
@@ -912,24 +887,13 @@ namespace WebUI {
         }
 
         //On
-#ifdef ENABLE_WIFI
-        if (hasWiFi()) {
-            wifi_config.begin();
+        if (wifi_config.begin()) {
             return Error::Ok;
         }
-#endif
 
-#ifdef ENABLE_BLUETOOTH
-        if (hasBluetooth()) {
-            if (hasBluetooth()) {
-                webPrintln("Bluetooth is not enabled!");
-                return Error::BtFailBegin;
-            } else {
-                config->_comms->_bluetoothConfig->begin();
-                return Error::Ok;
-            }
+        if (config->_comms->_bluetoothConfig) {
+            config->_comms->_bluetoothConfig->begin();
         }
-#endif
 
         webPrintln("[MSG: Radio is Off]");
         return Error::Ok;
@@ -1016,63 +980,10 @@ namespace WebUI {
         return Error::Ok;
     }
 
-    // WEB_COMMON should always be defined.  It is a trick to make the definitions
-    // line up while allowing VSCode code folding to work correction.
-#define WEB_COMMON
-
-    void make_web_settings() {
-        // If authentication enabled, display_settings skips or displays <Authentication Required>
-        // RU - need user or admin password to read
-        // WU - need user or admin password to set
-        // WA - need admin password to set
-#ifdef WEB_COMMON
-        new WebCommand(NULL, WEBCMD, WG, "ESP800", "Firmware/Info", showFwInfo, anyState);
-        new WebCommand(NULL, WEBCMD, WU, "ESP720", "LocalFS/Size", SPIFFSSize);
-        new WebCommand("FORMAT", WEBCMD, WA, "ESP710", "LocalFS/Format", formatSpiffs);
-        new WebCommand("path", WEBCMD, WU, "ESP701", "LocalFS/Show", showLocalFile);
-        new WebCommand("path", WEBCMD, WU, "ESP700", "LocalFS/Run", runLocalFile);
-        new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/List", listLocalFiles);
-        new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/ListJSON", listLocalFilesJSON);
-        new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/Delete", deleteLocalFile);
-#endif
+    void make_wifi_settings() {
 #ifdef ENABLE_WIFI
         new WebCommand(
             "TYPE=NONE|PUSHOVER|EMAIL|LINE T1=token1 T2=token2 TS=settings", WEBCMD, WA, "ESP610", "Notification/Setup", showSetNotification);
-        new WebCommand("message", WEBCMD, WU, "ESP600", "Notification/Send", sendMessage);
-#endif
-#ifdef ENABLE_AUTHENTICATION
-        new WebCommand("password", WEBCMD, WA, "ESP555", "WebUI/SetUserPassword", setUserPassword);
-#endif
-#ifdef WEB_COMMON
-        new WebCommand("RESTART", WEBCMD, WA, "ESP444", "System/Control", setSystemMode);
-        new WebCommand(NULL, WEBCMD, WU, "ESP420", "System/Stats", showSysStats, anyState);
-#endif
-#ifdef ENABLE_WIFI
-        new WebCommand(NULL, WEBCMD, WU, "ESP410", "WiFi/ListAPs", listAPs);
-#endif
-#ifdef WEB_COMMON
-        new WebCommand("P=position T=type V=value", WEBCMD, WA, "ESP401", "WebUI/Set", setWebSetting);
-        new WebCommand(NULL, WEBCMD, WU, "ESP400", "WebUI/List", listSettings, anyState);
-#endif
-        new WebCommand("path", WEBCMD, WU, "ESP221", "SD/Show", showSDFile);
-        new WebCommand("path", WEBCMD, WU, "ESP220", "SD/Run", runSDFile);
-        new WebCommand("file_or_directory_path", WEBCMD, WU, "ESP215", "SD/Delete", deleteSDObject);
-        new WebCommand(NULL, WEBCMD, WU, "ESP210", "SD/List", listSDFiles);
-#ifdef WEB_COMMON
-        new WebCommand(NULL, WEBCMD, WU, "ESP200", "SD/Status", showSDStatus);
-        new WebCommand("STA|AP|BT|OFF", WEBCMD, WA, "ESP115", "Radio/State", setRadioState);
-#endif
-#ifdef ENABLE_WIFI
-        new WebCommand(NULL, WEBCMD, WG, "ESP111", "System/IP", showIP);
-        new WebCommand("IP=ipaddress MSK=netmask GW=gateway", WEBCMD, WA, "ESP103", "Sta/Setup", showSetStaParams);
-#endif
-#ifdef WEB_COMMON
-        new WebCommand(NULL, WEBCMD, WG, "ESP0", "WebUI/Help", showWebHelp, anyState);
-        new WebCommand(NULL, WEBCMD, WG, "ESP", "WebUI/Help", showWebHelp, anyState);
-#endif
-        // WebUI Settings
-        // Standard WEBUI authentication is user+ to get, admin to set unless otherwise specified
-#ifdef ENABLE_WIFI
         notification_ts = new StringSetting(
             "Notification Settings", WEBSET, WA, NULL, "Notification/TS", DEFAULT_TOKEN, 0, MAX_NOTIFICATION_SETTING_LENGTH, NULL);
         notification_t2   = new StringSetting("Notification Token 2",
@@ -1095,28 +1006,11 @@ namespace WebUI {
                                             NULL);
         notification_type = new EnumSetting(
             "Notification type", WEBSET, WA, NULL, "Notification/Type", DEFAULT_NOTIFICATION_TYPE, &notificationOptions, NULL);
-#endif
-#ifdef ENABLE_AUTHENTICATION
-        user_password  = new StringSetting("User password",
-                                          WEBSET,
-                                          WA,
-                                          NULL,
-                                          "WebUI/UserPassword",
-                                          DEFAULT_USER_PWD,
-                                          MIN_LOCAL_PASSWORD_LENGTH,
-                                          MAX_LOCAL_PASSWORD_LENGTH,
-                                          &COMMANDS::isLocalPasswordValid);
-        admin_password = new StringSetting("Admin password",
-                                           WEBSET,
-                                           WA,
-                                           NULL,
-                                           "WebUI/AdminPassword",
-                                           DEFAULT_ADMIN_PWD,
-                                           MIN_LOCAL_PASSWORD_LENGTH,
-                                           MAX_LOCAL_PASSWORD_LENGTH,
-                                           &COMMANDS::isLocalPasswordValid);
-#endif
-#ifdef ENABLE_WIFI
+        new WebCommand("message", WEBCMD, WU, "ESP600", "Notification/Send", sendMessage);
+
+        new WebCommand(NULL, WEBCMD, WU, "ESP410", "WiFi/ListAPs", listAPs);
+        new WebCommand(NULL, WEBCMD, WG, "ESP111", "System/IP", showIP);
+        new WebCommand("IP=ipaddress MSK=netmask GW=gateway", WEBCMD, WA, "ESP103", "Sta/Setup", showSetStaParams);
         // no get, admin to set
         wifi_ap_password = new StringSetting("AP Password",
                                              WEBSET,
@@ -1138,5 +1032,62 @@ namespace WebUI {
                                               MAX_PASSWORD_LENGTH,
                                               (bool (*)(char*))WiFiConfig::isPasswordValid);
 #endif
+    }
+
+    void make_authentication_settings() {
+#ifdef ENABLE_AUTHENTICATION
+        new WebCommand("password", WEBCMD, WA, "ESP555", "WebUI/SetUserPassword", setUserPassword);
+        user_password  = new StringSetting("User password",
+                                          WEBSET,
+                                          WA,
+                                          NULL,
+                                          "WebUI/UserPassword",
+                                          DEFAULT_USER_PWD,
+                                          MIN_LOCAL_PASSWORD_LENGTH,
+                                          MAX_LOCAL_PASSWORD_LENGTH,
+                                          &COMMANDS::isLocalPasswordValid);
+        admin_password = new StringSetting("Admin password",
+                                           WEBSET,
+                                           WA,
+                                           NULL,
+                                           "WebUI/AdminPassword",
+                                           DEFAULT_ADMIN_PWD,
+                                           MIN_LOCAL_PASSWORD_LENGTH,
+                                           MAX_LOCAL_PASSWORD_LENGTH,
+                                           &COMMANDS::isLocalPasswordValid);
+#endif
+    }
+
+    void make_web_settings() {
+        make_wifi_settings();
+        make_authentication_settings();
+        // If authentication enabled, display_settings skips or displays <Authentication Required>
+        // RU - need user or admin password to read
+        // WU - need user or admin password to set
+        // WA - need admin password to set
+        new WebCommand(NULL, WEBCMD, WG, "ESP800", "Firmware/Info", showFwInfo, anyState);
+        new WebCommand(NULL, WEBCMD, WU, "ESP420", "System/Stats", showSysStats, anyState);
+        new WebCommand("RESTART", WEBCMD, WA, "ESP444", "System/Control", setSystemMode);
+
+        new WebCommand(NULL, WEBCMD, WU, "ESP720", "LocalFS/Size", SPIFFSSize);
+        new WebCommand("FORMAT", WEBCMD, WA, "ESP710", "LocalFS/Format", formatSpiffs);
+        new WebCommand("path", WEBCMD, WU, "ESP701", "LocalFS/Show", showLocalFile);
+        new WebCommand("path", WEBCMD, WU, "ESP700", "LocalFS/Run", runLocalFile);
+        new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/List", listLocalFiles);
+        new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/ListJSON", listLocalFilesJSON);
+        new WebCommand("path", WEBCMD, WU, NULL, "LocalFS/Delete", deleteLocalFile);
+
+        new WebCommand("path", WEBCMD, WU, "ESP221", "SD/Show", showSDFile);
+        new WebCommand("path", WEBCMD, WU, "ESP220", "SD/Run", runSDFile);
+        new WebCommand("file_or_directory_path", WEBCMD, WU, "ESP215", "SD/Delete", deleteSDObject);
+        new WebCommand(NULL, WEBCMD, WU, "ESP210", "SD/List", listSDFiles);
+        new WebCommand(NULL, WEBCMD, WU, "ESP200", "SD/Status", showSDStatus);
+
+        new WebCommand("STA|AP|BT|OFF", WEBCMD, WA, "ESP115", "Radio/State", setRadioState);
+
+        new WebCommand("P=position T=type V=value", WEBCMD, WA, "ESP401", "WebUI/Set", setWebSetting);
+        new WebCommand(NULL, WEBCMD, WU, "ESP400", "WebUI/List", listSettings, anyState);
+        new WebCommand(NULL, WEBCMD, WG, "ESP0", "WebUI/Help", showWebHelp, anyState);
+        new WebCommand(NULL, WEBCMD, WG, "ESP", "WebUI/Help", showWebHelp, anyState);
     }
 }

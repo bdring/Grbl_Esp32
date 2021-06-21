@@ -20,8 +20,16 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifdef ENABLE_WIFI
-
+#ifndef ENABLE_WIFI
+namespace WebUI {
+    class NotificationsService {
+    public:
+        NotificationsService() = default;
+        bool sendMSG(const char* title, const char* message) { return false; };
+    };
+    extern NotificationsService notificationsservice;
+}
+#else
 #    include <WString.h>
 #    include <cstdint>
 

@@ -20,19 +20,21 @@
 
 #include "../Grbl.h"
 #include "../MachineConfig.h"
+#include "BTConfig.h"
+
+// SerialBT sends the data over Bluetooth
+namespace WebUI {
+    BluetoothSerial SerialBT;
+}
+// The instance variable for the BTConfig class is in config->_comms
 
 #ifdef ENABLE_BLUETOOTH
-
-#include "BTConfig.h"
 
 extern "C" {
 const uint8_t* esp_bt_dev_get_address(void);
 }
 
 namespace WebUI {
-    BTConfig        bt_config;
-    BluetoothSerial SerialBT;
-
     BTConfig* BTConfig::instance = nullptr;
 
     BTConfig::BTConfig() {}
@@ -60,7 +62,6 @@ namespace WebUI {
     String BTConfig::info() {
         String result;
         String tmp;
-        result = "[MSG:";
         if (Is_BT_on()) {
             result += "Mode=BT:Name=";
             result += _btname;
@@ -75,7 +76,6 @@ namespace WebUI {
         } else {
             result += "No BT";
         }
-        result += "]\r\n";
         return result;
     }
     /**
@@ -111,22 +111,29 @@ namespace WebUI {
     /**
      * begin WiFi setup
      */
-    void BTConfig::begin() {
+    bool BTConfig::begin() {
         instance = this;
 
+        debug_serial("Begin");
         //stop active services
         end();
 
-        if (hasBluetooth()) {
+        debug_serial("end");
+        if (_btname.length()) {
+            debug_serial("length");
             if (!SerialBT.begin(_btname)) {
+                debug_serial("name");
                 report_status_message(Error::BtFailBegin, CLIENT_ALL);
-            } else {
-                SerialBT.register_callback(&my_spp_cb);
-                info_all("BT Started with %s", _btname.c_str());
+                return false;
             }
-        } else {
-            end();
+            debug_serial("register");
+            SerialBT.register_callback(&my_spp_cb);
+            info_all("BT Started with %s", _btname.c_str());
+            return true;
         }
+        info_all("BT is not enabled");
+        end();
+        return false;
     }
 
     /**
@@ -138,10 +145,10 @@ namespace WebUI {
      * Reset ESP
      */
     void BTConfig::reset_settings() {
-#ifdef LATER
+#    ifdef LATER
         // Implement this in YAML land
         // was wifi_radio_mode->setDefault();
-#endif
+#    endif
         info_all("BT reset done");
     }
 

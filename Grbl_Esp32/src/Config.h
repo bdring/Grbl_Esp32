@@ -89,29 +89,6 @@ const char* const DEFAULT_ADMIN_LOGIN = "admin";
 const char* const DEFAULT_USER_LOGIN  = "user";
 #endif
 
-//Radio Mode
-const int ESP_RADIO_OFF = 0;
-const int ESP_WIFI_STA  = 1;
-const int ESP_WIFI_AP   = 2;
-const int ESP_BT        = 3;
-
-//Default mode
-#ifdef ENABLE_WIFI
-#    ifdef CONNECT_TO_SSID
-const int DEFAULT_RADIO_MODE = ESP_WIFI_STA;
-#    else
-const int DEFAULT_RADIO_MODE = ESP_WIFI_AP;
-#    endif  //CONNECT_TO_SSID
-#else
-
-// TODO FIXME!
-#    ifdef ENABLE_BLUETOOTH
-const int DEFAULT_RADIO_MODE = ESP_BT;
-#    else
-const int DEFAULT_RADIO_MODE = ESP_RADIO_OFF;
-#    endif
-#endif
-
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This help in preventing overshoot and should improve repeatability. This value should be one or
 // greater.
@@ -205,13 +182,6 @@ const int REPORT_WCO_REFRESH_IDLE_COUNT = 10;  // (2-255) Must be less than or e
 // When increasing this value, this stores less overall time in the segment buffer and vice versa. Make
 // certain the step segment buffer is increased/decreased to account for these changes.
 const int ACCELERATION_TICKS_PER_SECOND = 100;
-
-// Sets the maximum step rate allowed to be written as a Grbl setting. This option enables an error
-// check in the settings module to prevent settings values that will exceed this limitation. The maximum
-// step rate is strictly limited by the CPU speed and will change if something other than an AVR running
-// at 16MHz is used.
-// NOTE: For now disabled, will enable if flash space permits.
-// #define MAX_STEP_RATE_HZ 30000 // Hz
 
 // Sets which axis the tool length offset is applied. Assumes the spindle is always parallel with
 // the selected axis with the tool oriented toward the negative direction. In other words, a positive
@@ -338,23 +308,3 @@ const double PARKING_RATE              = 800.0;  // Parking fast rate after pull
 const double PARKING_PULLOUT_RATE      = 250.0;  // Pull-out/plunge slow feed rate in mm/min.
 const double PARKING_PULLOUT_INCREMENT = 5.0;    // Spindle pull-out and plunge distance in mm. Incremental distance.
 // Must be positive value or equal to zero.
-
-// Enables a piecewise linear model of the spindle PWM/speed output. Requires a solution by the
-// 'fit_nonlinear_spindle.py' script in the /doc/script folder of the repo. See file comments
-// on how to gather spindle data and run the script to generate a solution.
-// #define ENABLE_PIECEWISE_LINEAR_SPINDLE  // Default disabled. Uncomment to enable.
-
-// N_PIECES, RPM_MAX, RPM_MIN, RPM_POINTxx, and RPM_LINE_XX constants are all set and given by
-// the 'fit_nonlinear_spindle.py' script solution. Used only when ENABLE_PIECEWISE_LINEAR_SPINDLE
-// is enabled. Make sure the constant values are exactly the same as the script solution.
-// NOTE: When N_PIECES < 4, unused RPM_LINE and RPM_POINT defines are not required and omitted.
-/*
-#define N_PIECES 4  // Integer (1-4). Number of piecewise lines used in script solution.
-#define RPM_MAX  11686.4  // Max RPM of model. $30 > RPM_MAX will be limited to RPM_MAX.
-#define RPM_MIN  202.5    // Min RPM of model. $31 < RPM_MIN will be limited to RPM_MIN.
-*/
-
-const int N_PIECES = 3;
-
-const double RPM_MAX = 23935.2;
-const double RPM_MIN = 2412.2;

@@ -282,11 +282,6 @@ class Communications : public Configuration::Configurable {
 public:
     Communications() = default;
 
-    // Passwords don't belong in a YAML!
-    //
-    // String _userPassword  = "";
-    // String _adminPassword = "";
-
     bool _telnetEnable = true;
     int  _telnetPort   = 23;
 
@@ -295,18 +290,20 @@ public:
 
     String _hostname = "grblesp";
 
-#ifdef ENABLE_BLUETOOTH
     WebUI::BTConfig* _bluetoothConfig = nullptr;
-#endif
-#ifdef ENABLE_WIFI
-    WifiAPConfig*  _apConfig  = nullptr;
-    WifiSTAConfig* _staConfig = nullptr;
-#endif
+    WifiAPConfig*    _apConfig        = nullptr;
+    WifiSTAConfig*   _staConfig       = nullptr;
 
     void group(Configuration::HandlerBase& handler) override {
-        // handler.item("user_password", _userPassword);
-        // handler.item("admin_password", _adminPassword);
-
+#ifdef ENABLE_BLUETOOTH
+        // If BT is not compiled in, attempts to configure it will be ignored,
+        // but the BTConfig class methods that might be called from elsewhere
+        // exist in an stub class implementation, so the compiler will not
+        // complain.  This lets us minimize the number of ifdefs to this one
+        // plus a couple in BTConfig.h and BTConfig.cpp which select either
+        // the real BTConfig class or the stub version.
+        handler.section("bluetooth", _bluetoothConfig);
+#endif
 #ifdef ENABLE_WIFI
         handler.item("telnet_enable", _telnetEnable);
         handler.item("telnet_port", _telnetPort);
@@ -315,25 +312,15 @@ public:
         handler.item("http_port", _httpPort);
 
         handler.item("hostname", _hostname);
-#endif
-
-#ifdef ENABLE_BLUETOOTH
-        handler.section("bluetooth", _bluetoothConfig);
-#endif
-#ifdef ENABLE_WIFI
         handler.section("wifi_ap", _apConfig);
         handler.section("wifi_sta", _staConfig);
 #endif
     }
 
     ~Communications() {
-#ifdef ENABLE_BLUETOOTH
         delete _bluetoothConfig;
-#endif
-#ifdef ENABLE_WIFI
         delete _apConfig;
         delete _staConfig;
-#endif
     }
 };
 
@@ -417,18 +404,3 @@ public:
 };
 
 extern MachineConfig* config;
-
-inline bool hasWiFi() {
-#ifdef ENABLE_WIFI
-    return config && config->_comms && (config->_comms->_staConfig != nullptr || config->_comms->_apConfig != nullptr);
-#else
-    return false;
-#endif
-}
-inline bool hasBluetooth() {
-#ifdef ENABLE_BLUETOOTH
-    return !hasWiFi() && (config && config->_comms && config->_comms->_bluetoothConfig != nullptr);
-#else
-    return false;
-#endif
-}

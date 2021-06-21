@@ -22,7 +22,23 @@
 
 //Preferences entries
 
-#include <WiFi.h>
+#include "../Config.h"
+
+#ifndef ENABLE_WIFI
+namespace WebUI {
+    class WiFiConfig {
+    public:
+        static String info() { return String(); }
+        static bool   isPasswordValid(const char* password) { return false; }
+        static bool   begin() { return false; };
+        static void   reset_settings() {}
+        static void   handle() {}
+        static bool   Is_WiFi_on() { return false; }
+    };
+    extern WiFiConfig wifi_config;
+}
+#else
+#    include <WiFi.h>
 
 namespace WebUI {
     // TODO: Clean these constants up. Some of them don't belong here.
@@ -83,24 +99,24 @@ namespace WebUI {
     public:
         WiFiConfig();
 
-        static const char* info();
-        static bool        isValidIP(const char* string);
-        static bool        isPasswordValid(const char* password);
-        static bool        isSSIDValid(const char* ssid);
-        static bool        isHostnameValid(const char* hostname);
-        static uint32_t    IP_int_from_string(String& s);
-        static String      IP_string_from_int(uint32_t ip_int);
-        static String      Hostname() { return _hostname; }
-        static char*       mac2str(uint8_t mac[8]);
-        static bool        StartAP();
-        static bool        StartSTA();
-        static void        StopWiFi();
-        static int32_t     getSignal(int32_t RSSI);
-        static void        begin();
-        static void        end();
-        static void        handle();
-        static void        reset_settings();
-        static bool        Is_WiFi_on();
+        static String   info();
+        static bool     isValidIP(const char* string);
+        static bool     isPasswordValid(const char* password);
+        static bool     isSSIDValid(const char* ssid);
+        static bool     isHostnameValid(const char* hostname);
+        static uint32_t IP_int_from_string(String& s);
+        static String   IP_string_from_int(uint32_t ip_int);
+        static String   Hostname() { return _hostname; }
+        static char*    mac2str(uint8_t mac[8]);
+        static bool     StartAP();
+        static bool     StartSTA();
+        static void     StopWiFi();
+        static int32_t  getSignal(int32_t RSSI);
+        static bool     begin();
+        static void     end();
+        static void     handle();
+        static void     reset_settings();
+        static bool     Is_WiFi_on();
 
         ~WiFiConfig();
 
@@ -113,3 +129,4 @@ namespace WebUI {
 
     extern WiFiConfig wifi_config;
 }
+#endif

@@ -19,17 +19,18 @@
 */
 
 #include "../Grbl.h"
+#include "Serial2Socket.h"
+
+namespace WebUI {
+    Serial_2_Socket Serial2Socket;
+}
 
 #ifdef ENABLE_WIFI
-
-#    include "Serial2Socket.h"
 #    include "WebServer.h"
 #    include <WebSocketsServer.h>
 #    include <WiFi.h>
 
 namespace WebUI {
-    Serial_2_Socket Serial2Socket;
-
     Serial_2_Socket::Serial_2_Socket() {
         _web_socket   = NULL;
         _TXbufferSize = 0;
@@ -180,5 +181,4 @@ namespace WebUI {
         _RXbufferpos  = 0;
     }
 }
-
 #endif

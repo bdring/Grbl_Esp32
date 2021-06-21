@@ -24,8 +24,36 @@
 
 #include "../Configuration/Configurable.h"
 
-#ifdef ENABLE_BLUETOOTH
+#ifndef ENABLE_BLUETOOTH
+namespace WebUI {
+    class BluetoothSerial {
+    public:
+        BluetoothSerial() = default;
+        int read() { return -1; };
+        // This is hardwired at 512 because the real BluetoothSerial hardwires
+        // the Rx queue size to 512 and code in Report.cpp subtracts available()
+        // from that to determine how many characters can be sent.
+        int  available() { return 512; };
+        void print(const char* text) {};
+    };
+    extern BluetoothSerial SerialBT;
 
+    class BTConfig : public Configuration::Configurable {
+    private:
+        String _btname = "";
+
+    public:
+        BTConfig() = default;
+        void          handle() {}
+        bool          begin() { return false; }
+        void          end() {}
+        bool          Is_BT_on() { return false; }
+        String        info() { return String(); }
+        const String& BTname() const { return _btname; }
+        void          group(Configuration::HandlerBase& handler) override {}
+    };
+}
+#else
 #    include <BluetoothSerial.h>
 
 namespace WebUI {
@@ -62,7 +90,7 @@ namespace WebUI {
         const String& BTname() const { return _btname; }
         const String& client_name() const { return _btclient; }
         const char*   device_address();
-        void          begin();
+        bool          begin();
         void          end();
         void          handle();
         void          reset_settings();
