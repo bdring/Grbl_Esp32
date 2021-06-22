@@ -99,7 +99,7 @@ PWM:
 BESC:
   min_pulse_us: 950
   max_pulse_us: 2050
-  speeds: 0=0% 30000=100%
+  # speeds: 0=0% 0=20% 2000=20% 5000=40% 10000=100%
   output_pin: gpio.4
   enable_pin: gpio.10
   tool: 40

@@ -37,9 +37,15 @@
 
 namespace Spindles {
     class BESC : public PWM {
-    protected:
+    private:
+        // Fixed
         const uint32_t besc_pwm_freq = 50;  // 50 Hz
 
+        // Calculated
+        uint16_t _pulse_span_counts;  // In counts of a 16-bit counter
+        uint16_t _min_pulse_counts;   // In counts of a 16-bit counter
+
+    protected:
         // Configurable
         uint32_t _min_pulse_us = 900;   // microseconds
         uint32_t _max_pulse_us = 2200;  // microseconds
@@ -54,6 +60,8 @@ namespace Spindles {
 
         void init() override;
         void config_message() override;
+
+        virtual void set_output(uint32_t duty) override;
 
         // Configuration handlers:
         void validate() const override { PWM::validate(); }
