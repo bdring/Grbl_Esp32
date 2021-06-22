@@ -62,8 +62,7 @@ void TMC2130Stepper::switchCSpin(bool state) {
 
 namespace Motors {
     TrinamicDriver::TrinamicDriver(uint16_t driver_part_number, int8_t spi_index) :
-        TrinamicBase(driver_part_number), 
-        _spi_index(spi_index) {}
+        TrinamicBase(driver_part_number), _spi_index(spi_index) {}
 
     void TrinamicDriver::init() {
         _has_errors = false;
@@ -84,7 +83,7 @@ namespace Motors {
 
         // use slower speed if I2S
         if (_cs_pin.capabilities().has(Pin::Capabilities::I2S)) {
-            tmcstepper->setSPISpeed(TRINAMIC_SPI_FREQ);
+            tmcstepper->setSPISpeed(_spi_freq);
         }
 
         link = List;
@@ -174,17 +173,19 @@ namespace Motors {
                 bool err = false;
 
                 // look for errors
-                if (report_short_to_ground(status)) {
+                if (report_short_to_ground(status.s2ga, status.s2gb)) {
                     err = true;
                 }
 
-                if (report_over_temp(status)) {
+                if (report_over_temp(status.ot, status.otpw)) {
                     err = true;
                 }
 
-                if (report_short_to_ps(status)) {
+                if (report_short_to_ps(bit_istrue(status.sr, 12), bit_istrue(status.sr, 13))) {
                     err = true;
                 }
+
+                // XXX why not report_open_load(status.ola, status.olb) ?
 
                 if (err) {
                     return false;
@@ -196,12 +197,11 @@ namespace Motors {
     }
 
     /*
-o    Read setting and send them to the driver. Called at init() and whenever related settings change
+    Read setting and send them to the driver. Called at init() and whenever related settings change
     both are stored as float Amps, but TMCStepper library expects...
     uint16_t run (mA)
     float hold (as a percentage of run)
-*/
-
+    */
     void TrinamicDriver::read_settings() {
         if (_has_errors) {
             return;
@@ -214,8 +214,9 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
             hold_i_percent = 0;
         } else {
             hold_i_percent = _hold_current / _run_current;
-            if (hold_i_percent > 1.0)
+            if (hold_i_percent > 1.0) {
                 hold_i_percent = 1.0;
+            }
         }
 
         tmcstepper->microsteps(_microsteps);
@@ -231,7 +232,7 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
 
     /*
     There are ton of settings. I'll start by grouping then into modes for now.
-    Many people will want quiet and stallgaurd homing. Stallguard only run in
+    Many people will want quiet and stallguard homing. Stallguard only run in
     Coolstep mode, so it will need to switch to Coolstep when homing
     */
     void TrinamicDriver::set_mode(bool isHoming) {
@@ -239,7 +240,7 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
             return;
         }
 
-        TrinamicMode newMode = isHoming ? TRINAMIC_HOMING_MODE : TRINAMIC_RUN_MODE;
+        TrinamicMode newMode = static_cast<TrinamicMode>(trinamicModes[isHoming ? _homing_mode : _run_mode].value);
 
         if (newMode == _mode) {
             return;
@@ -274,8 +275,6 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
                     tmcstepper->sgt(constrain(_stallguard, -64, 63));
                     break;
                 }
-            default:
-                info_serial("TRINAMIC_MODE_UNDEFINED");
         }
     }
 
@@ -301,14 +300,16 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
                     feedrate,
                     constrain(_stallguard, -64, 63));
 
+        // The bit locations differ somewhat between different chips.
+        // The layout is very different between 2130 and 2208
         TMC2130_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
         status.sr = tmcstepper->DRV_STATUS();
 
         // these only report if there is a fault condition
-        report_open_load(status);
-        report_short_to_ground(status);
-        report_over_temp(status);
-        report_short_to_ps(status);
+        report_open_load(status.ola, status.olb);
+        report_short_to_ground(status.s2ga, status.s2gb);
+        report_over_temp(status.ot, status.otpw);
+        report_short_to_ps(bit_istrue(status.sr, 12), bit_istrue(status.sr, 13));
 
         // info_serial("%s Status Register %08x GSTAT %02x",
         //             reportAxisNameMsg(axis_index(), dual_axis_index()),
@@ -331,66 +332,19 @@ o    Read setting and send them to the driver. Called at init() and whenever rel
 
         _disable_pin.write(_disabled);
 
-#ifdef USE_TRINAMIC_ENABLE
-        if (_disabled) {
-            tmcstepper->toff(TRINAMIC_TOFF_DISABLE);
-        } else {
-            if (_mode == TrinamicMode::StealthChop) {
-                tmcstepper->toff(TRINAMIC_TOFF_STEALTHCHOP);
+        if (_use_enable) {
+            if (_disabled) {
+                tmcstepper->toff(_toff_disable);
             } else {
-                tmcstepper->toff(TRINAMIC_TOFF_COOLSTEP);
+                if (_mode == TrinamicMode::StealthChop) {
+                    tmcstepper->toff(_toff_stealthchop);
+                } else {
+                    tmcstepper->toff(_toff_coolstep);
+                }
             }
         }
-#endif
         // the pin based enable could be added here.
         // This would be for individual motors, not the single pin for all motors.
-    }
-
-    // =========== Reporting functions ========================
-
-    bool TrinamicDriver::report_open_load(TMC2130_n ::DRV_STATUS_t status) {
-        if (status.ola || status.olb) {
-            info_serial("%s Driver Open Load a:%s b:%s",
-                        reportAxisNameMsg(axis_index(), dual_axis_index()),
-                        status.ola ? "Y" : "N",
-                        status.olb ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
-    }
-
-    bool TrinamicDriver::report_short_to_ground(TMC2130_n ::DRV_STATUS_t status) {
-        if (status.s2ga || status.s2gb) {
-            info_serial("%s Driver Short Coil a:%s b:%s",
-                        reportAxisNameMsg(axis_index(), dual_axis_index()),
-                        status.s2ga ? "Y" : "N",
-                        status.s2gb ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
-    }
-
-    bool TrinamicDriver::report_over_temp(TMC2130_n ::DRV_STATUS_t status) {
-        if (status.ot || status.otpw) {
-            info_serial("%s Driver Temp Warning:%s Fault:%s",
-                        reportAxisNameMsg(axis_index(), dual_axis_index()),
-                        status.otpw ? "Y" : "N",
-                        status.ot ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
-    }
-
-    bool TrinamicDriver::report_short_to_ps(TMC2130_n ::DRV_STATUS_t status) {
-        // check for short to power supply
-        if ((status.sr & bit(12)) || (status.sr & bit(13))) {
-            info_serial("%s Driver Short vsa:%s vsb:%s",
-                        reportAxisNameMsg(axis_index(), dual_axis_index()),
-                        (status.sr & bit(12)) ? "Y" : "N",
-                        (status.sr & bit(13)) ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
     }
 
     // Configuration registration

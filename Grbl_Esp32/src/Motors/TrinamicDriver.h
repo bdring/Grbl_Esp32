@@ -24,36 +24,18 @@
 
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 
-//#define TRINAMIC_MODE_STEALTHCHOP 0  // very quiet
-//#define TRINAMIC_MODE_COOLSTEP 1     // everything runs cooler so higher current possible
-//#define TRINAMIC_MODE_STALLGUARD 2   // coolstep plus generates stall indication
-
 const float TMC2130_RSENSE_DEFAULT = 0.11f;
 const float TMC5160_RSENSE_DEFAULT = 0.075f;
 
 const int NORMAL_TCOOLTHRS = 0xFFFFF;  // 20 bit is max
 const int NORMAL_THIGH     = 0;
 
-const int TRINAMIC_SPI_FREQ = 100000;
-
-// ==== defaults OK to define them in your machine definition ====
-
-#ifndef TRINAMIC_TOFF_DISABLE
-#    define TRINAMIC_TOFF_DISABLE 0
-#endif
-
-#ifndef TRINAMIC_TOFF_STEALTHCHOP
-#    define TRINAMIC_TOFF_STEALTHCHOP 5
-#endif
-
-#ifndef TRINAMIC_TOFF_COOLSTEP
-#    define TRINAMIC_TOFF_COOLSTEP 3
-#endif
-
 namespace Motors {
 
     class TrinamicDriver : public TrinamicBase {
     private:
+        const int _spi_freq = 100000;
+
         TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
         Pin             _cs_pin;     // The chip select pin (can be the same for daisy chain)
         int8_t          _spi_index;
@@ -62,11 +44,6 @@ namespace Motors {
         void set_mode(bool isHoming);
         void trinamic_test_response();
         void trinamic_stepper_enable(bool enable);
-
-        bool report_open_load(TMC2130_n ::DRV_STATUS_t status);
-        bool report_short_to_ground(TMC2130_n ::DRV_STATUS_t status);
-        bool report_over_temp(TMC2130_n ::DRV_STATUS_t status);
-        bool report_short_to_ps(TMC2130_n ::DRV_STATUS_t status);
 
     protected:
         void config_message() override;
@@ -90,7 +67,10 @@ namespace Motors {
             StandardStepper::validate();
         }
 
-        void group(Configuration::HandlerBase& handler) override { TrinamicBase::group(handler); }
+        void group(Configuration::HandlerBase& handler) override {
+            handler.item("cs", _cs_pin);
+            TrinamicBase::group(handler);
+        }
 
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "trinamic_spi"; }

@@ -34,10 +34,8 @@ namespace Motors {
 
     bool TrinamicUartDriver::_uart_started = false;
 
-
     /* HW Serial Constructor. */
-    TrinamicUartDriver::TrinamicUartDriver(uint16_t driver_part_number, uint8_t addr) :
-        TrinamicBase(driver_part_number), _addr(addr) {}
+    TrinamicUartDriver::TrinamicUartDriver(uint16_t driver_part_number, uint8_t addr) : TrinamicBase(driver_part_number), _addr(addr) {}
 
     void TrinamicUartDriver::init() {
         if (!_uart_started) {
@@ -52,14 +50,14 @@ namespace Motors {
         link = List;
         List = this;
 
+        if (_has_errors) {
+            return;
+        }
+
         // Display the stepper library version message once, before the first
         // TMC config message.  Link is NULL for the first TMC instance.
         if (!link) {
             info_serial("TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
-        }
-
-        if (_has_errors) {
-            return;
         }
 
         config_message();
@@ -124,10 +122,10 @@ namespace Motors {
 
         switch (tmcstepper->test_connection()) {
             case 1:
-                info_serial("%s driver test failed. Check connection", reportAxisNameMsg(axis_index(), dual_axis_index()));
+                info_serial("%s Trinamic driver test failed. Check connection", reportAxisNameMsg(axis_index(), dual_axis_index()));
                 return false;
             case 2:
-                info_serial("%s driver test failed. Check motor power", reportAxisNameMsg(axis_index(), dual_axis_index()));
+                info_serial("%s Trinamic driver test failed. Check motor power", reportAxisNameMsg(axis_index(), dual_axis_index()));
                 return false;
             default:
                 // driver responded, so check for other errors from the DRV_STATUS register
@@ -138,23 +136,25 @@ namespace Motors {
                 bool err = false;
 
                 // look for errors
-                if (report_short_to_ground(status)) {
+                if (report_short_to_ground(status.s2ga, status.s2gb)) {
                     err = true;
                 }
 
-                if (report_over_temp(status)) {
+                if (report_over_temp(status.ot, status.otpw)) {
                     err = true;
                 }
 
-                if (report_short_to_ps(status)) {
+                if (report_short_to_ps(bit_istrue(status.sr, 12), bit_istrue(status.sr, 13))) {
                     err = true;
                 }
+
+                // XXX why not report_open_load(status.ola, status.olb) ?
 
                 if (err) {
                     return false;
                 }
 
-                info_serial("%s driver test passed", reportAxisNameMsg(axis_index(), dual_axis_index()));
+                info_serial("%s Trinamic driver test passed", reportAxisNameMsg(axis_index(), dual_axis_index()));
                 return true;
         }
     }
@@ -165,6 +165,7 @@ namespace Motors {
     uint16_t run (mA)
     float hold (as a percentage of run)
     */
+    // XXX Identical to TrinamicDriver::read_settings()
     void TrinamicUartDriver::read_settings() {
         if (_has_errors) {
             return;
@@ -177,8 +178,9 @@ namespace Motors {
             hold_i_percent = 0;
         } else {
             hold_i_percent = _hold_current / _run_current;
-            if (hold_i_percent > 1.0)
+            if (hold_i_percent > 1.0) {
                 hold_i_percent = 1.0;
+            }
         }
 
         tmcstepper->microsteps(_microsteps);
@@ -187,6 +189,7 @@ namespace Motors {
         init_step_dir_pins();
     }
 
+    // XXX Identical to TrinamicDriver::set_homing_mode()
     bool TrinamicUartDriver::set_homing_mode(bool isHoming) {
         set_mode(isHoming);
         return true;
@@ -194,7 +197,7 @@ namespace Motors {
 
     /*
     There are ton of settings. I'll start by grouping then into modes for now.
-    Many people will want quiet and stallgaurd homing. Stallguard only run in
+    Many people will want quiet and stallguard homing. Stallguard only run in
     Coolstep mode, so it will need to switch to Coolstep when homing
     */
     void TrinamicUartDriver::set_mode(bool isHoming) {
@@ -202,7 +205,7 @@ namespace Motors {
             return;
         }
 
-        TrinamicMode newMode = isHoming ? TRINAMIC_HOMING_MODE : TRINAMIC_RUN_MODE;
+        TrinamicMode newMode = static_cast<TrinamicMode>(trinamicModes[isHoming ? _homing_mode : _run_mode].value);
 
         if (newMode == _mode) {
             return;
@@ -244,6 +247,7 @@ namespace Motors {
         if (_has_errors) {
             return;
         }
+
         uint32_t tstep = tmcstepper->TSTEP();
 
         if (tstep == 0xFFFFF || tstep < 1) {  // if axis is not moving return
@@ -261,10 +265,10 @@ namespace Motors {
         status.sr = tmcstepper->DRV_STATUS();
 
         // these only report if there is a fault condition
-        report_open_load(status);
-        report_short_to_ground(status);
-        report_over_temp(status);
-        report_short_to_ps(status);
+        report_open_load(status.ola, status.olb);
+        report_short_to_ground(status.s2ga, status.s2gb);
+        report_over_temp(status.ot, status.otpw);
+        report_short_to_ps(bit_istrue(status.sr, 12), bit_istrue(status.sr, 13));
 
         // info_serial("%s Status Register %08x GSTAT %02x",
         //             reportAxisNameMsg(axis_index(), dual_axis_index()),
@@ -272,6 +276,7 @@ namespace Motors {
         //             tmcstepper->GSTAT());
     }
 
+    // XXX Identical to TrinamicDriver::set_disable()
     // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,
     // but that can be hardwired that way.
     void TrinamicUartDriver::set_disable(bool disable) {
@@ -287,66 +292,19 @@ namespace Motors {
 
         _disable_pin.write(_disabled);
 
-#ifdef USE_TRINAMIC_ENABLE
-        if (_disabled) {
-            tmcstepper->toff(TRINAMIC_UART_TOFF_DISABLE);
-        } else {
-            if (_mode == TrinamicMode::StealthChop) {
-                tmcstepper->toff(TRINAMIC_UART_TOFF_STEALTHCHOP);
+        if (_use_enable) {
+            if (_disabled) {
+                tmcstepper->toff(_toff_disable);
             } else {
-                tmcstepper->toff(TRINAMIC_UART_TOFF_COOLSTEP);
+                if (_mode == TrinamicMode::StealthChop) {
+                    tmcstepper->toff(_toff_stealthchop);
+                } else {
+                    tmcstepper->toff(_toff_coolstep);
+                }
             }
         }
-#endif
         // the pin based enable could be added here.
         // This would be for individual motors, not the single pin for all motors.
-    }
-
-    // =========== Reporting functions ========================
-
-    bool TrinamicUartDriver::report_open_load(TMC2208_n ::DRV_STATUS_t status) {
-        if (status.ola || status.olb) {
-            info_serial("%s Driver Open Load a:%s b:%s",
-                        reportAxisNameMsg(axis_index(), dual_axis_index()),
-                        status.ola ? "Y" : "N",
-                        status.olb ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
-    }
-
-    bool TrinamicUartDriver::report_short_to_ground(TMC2208_n ::DRV_STATUS_t status) {
-        if (status.s2ga || status.s2gb) {
-            info_serial("%s Driver Short Coil a:%s b:%s",
-                        reportAxisNameMsg(axis_index(), dual_axis_index()),
-                        status.s2ga ? "Y" : "N",
-                        status.s2gb ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
-    }
-
-    bool TrinamicUartDriver::report_over_temp(TMC2208_n ::DRV_STATUS_t status) {
-        if (status.ot || status.otpw) {
-            info_serial("%s Driver Temp Warning:%s Fault:%s",
-                        reportAxisNameMsg(axis_index(), dual_axis_index()),
-                        status.otpw ? "Y" : "N",
-                        status.ot ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
-    }
-
-    bool TrinamicUartDriver::report_short_to_ps(TMC2208_n ::DRV_STATUS_t status) {
-        // check for short to power supply
-        if ((status.sr & bit(12)) || (status.sr & bit(13))) {
-            info_serial("%s Driver Short vsa:%s vsb:%s",
-                        reportAxisNameMsg(axis_index(), dual_axis_index()),
-                        (status.sr & bit(12)) ? "Y" : "N",
-                        (status.sr & bit(13)) ? "Y" : "N");
-            return true;
-        }
-        return false;  // no error
     }
 
     // Configuration registration

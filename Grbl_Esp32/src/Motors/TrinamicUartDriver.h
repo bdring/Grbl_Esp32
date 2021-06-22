@@ -28,20 +28,6 @@
 const float TMC2208_RSENSE_DEFAULT = 0.11f;
 const float TMC2209_RSENSE_DEFAULT = 0.11f;
 
-// ==== defaults OK to define them in your machine definition ====
-
-#ifndef TRINAMIC_UART_TOFF_DISABLE
-#    define TRINAMIC_UART_TOFF_DISABLE 0
-#endif
-
-#ifndef TRINAMIC_UART_TOFF_STEALTHCHOP
-#    define TRINAMIC_UART_TOFF_STEALTHCHOP 5
-#endif
-
-#ifndef TRINAMIC_UART_TOFF_COOLSTEP
-#    define TRINAMIC_UART_TOFF_COOLSTEP 3
-#endif
-
 #ifndef TMC_UART
 #    define TMC_UART UART_NUM_2
 #endif
@@ -70,11 +56,6 @@ namespace Motors {
         void set_mode(bool isHoming);
         void trinamic_test_response();
         void trinamic_stepper_enable(bool enable);
-
-        bool report_open_load(TMC2208_n ::DRV_STATUS_t status);
-        bool report_short_to_ground(TMC2208_n ::DRV_STATUS_t status);
-        bool report_over_temp(TMC2208_n ::DRV_STATUS_t status);
-        bool report_short_to_ps(TMC2208_n ::DRV_STATUS_t status);
 
     protected:
         void config_message() override;

@@ -16,12 +16,16 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "TrinamicBase.h"
 #include "../Machine/MachineConfig.h"
 #include <atomic>
 
 namespace Motors {
+    EnumItem trinamicModes[] = { { TrinamicMode::StealthChop, "StealthChop" },
+                                 { TrinamicMode::CoolStep, "CoolStep" },
+                                 { TrinamicMode::StallGuard, "StallGuard" },
+                                 EnumItem(TrinamicMode::StealthChop) };
+
     TrinamicBase* TrinamicBase::List = NULL;  // a static list of all drivers for stallguard reporting
 
     uint8_t TrinamicBase::get_next_index() {
@@ -57,17 +61,52 @@ namespace Motors {
 #endif
         }
     }
-    
+
     // calculate a tstep from a rate
-    // tstep = TRINAMIC_FCLK / (time between 1/256 steps)
+    // tstep = fclk / (time between 1/256 steps)
     // This is used to set the stallguard window from the homing speed.
     // The percent is the offset on the window
     uint32_t TrinamicBase::calc_tstep(float speed, float percent) {
         double tstep = speed / 60.0 * config->_axes->_axis[axis_index()]->_stepsPerMm * (256.0 / _microsteps);
-        tstep        = TRINAMIC_FCLK / tstep * percent / 100.0;
+        tstep        = fclk / tstep * percent / 100.0;
 
         return static_cast<uint32_t>(tstep);
     }
 
+    // =========== Reporting functions ========================
 
+    bool TrinamicBase::report_open_load(bool ola, bool olb) {
+        if (ola || olb) {
+            info_serial("%s Driver Open Load a:%s b:%s", reportAxisNameMsg(axis_index(), dual_axis_index()), ola ? "Y" : "N", olb ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
+
+    bool TrinamicBase::report_short_to_ground(bool s2ga, bool s2gb) {
+        if (s2ga || s2gb) {
+            info_serial(
+                "%s Driver Short Coil a:%s b:%s", reportAxisNameMsg(axis_index(), dual_axis_index()), s2ga ? "Y" : "N", s2gb ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
+
+    bool TrinamicBase::report_over_temp(bool ot, bool otpw) {
+        if (ot || otpw) {
+            info_serial(
+                "%s Driver Temp Warning:%s Fault:%s", reportAxisNameMsg(axis_index(), dual_axis_index()), otpw ? "Y" : "N", ot ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
+
+    bool TrinamicBase::report_short_to_ps(bool vsa, bool vsb) {
+        // check for short to power supply
+        if (vsa || vsb) {
+            info_serial("%s Driver Short vsa:%s vsb:%s", reportAxisNameMsg(axis_index(), dual_axis_index()), vsa ? "Y" : "N", vsb ? "Y" : "N");
+            return true;
+        }
+        return false;  // no error
+    }
 }
