@@ -139,10 +139,8 @@ void grbl_init() {
         WebUI::inputBuffer.begin();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
-        info_serial("Critical error in run_once: %s", ex.what());
+        info_serial("Critical error in grbl_init: %s", ex.what());
         sys.state = State::ConfigAlarm;
-        sleep(10000);
-        throw;
     }
 }
 
@@ -167,13 +165,12 @@ void run_once() {
         // Start Grbl main loop. Processes program inputs and executes them.
         // This can exit on a system abort condition, in which case run_once()
         // is re-executed by an enclosing loop.
-        protocol_main_loop();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
         error_all("Critical error in run_once: %s", ex.msg.c_str());
-        sleep(10000);
-        throw;
+        sys.state = State::ConfigAlarm;
     }
+    protocol_main_loop();
 }
 
 void __attribute__((weak)) machine_init() {}
