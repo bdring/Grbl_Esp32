@@ -23,6 +23,8 @@
 */
 #include "PWMSpindle.h"
 
+#include <cstdint>
+
 namespace Spindles {
     // this is the same as a PWM spindle but the M4 compensation is supported.
     class Laser : public PWM {

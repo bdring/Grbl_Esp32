@@ -1,5 +1,3 @@
-#include "H2ASpindle.h"
-
 /*
     H2ASpindle.cpp
 
@@ -27,6 +25,10 @@
     incomplete... See H2ASpindle.md for the remainder of the docs that I
     managed to piece together.
 */
+
+#include "H2ASpindle.h"
+
+#include "../Report.h"  // info_serial
 
 namespace Spindles {
     H2A::H2A() : VFD() {

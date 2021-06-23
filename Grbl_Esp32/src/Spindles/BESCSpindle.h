@@ -35,6 +35,8 @@
 
 #include "PWMSpindle.h"
 
+#include <cstdint>
+
 namespace Spindles {
     class BESC : public PWM {
     private:

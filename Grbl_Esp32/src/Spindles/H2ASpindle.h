@@ -1,7 +1,5 @@
 #pragma once
 
-#include "VFDSpindle.h"
-
 /*
     H2ASpindle.h
 
@@ -20,6 +18,8 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
+
+#include "VFDSpindle.h"
 
 namespace Spindles {
     class H2A : public VFD {

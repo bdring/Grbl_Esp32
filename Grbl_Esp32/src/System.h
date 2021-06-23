@@ -24,6 +24,7 @@
 #include "Exec.h"
 #include "Probe.h"
 #include "Error.h"
+#include "Config.h"  // MAX_AXIS
 #include "WebUI/Authentication.h"
 #include "WebUI/ESPResponse.h"
 

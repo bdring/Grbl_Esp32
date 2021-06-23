@@ -25,58 +25,10 @@
 const char* const GRBL_VERSION       = "2.1a";
 const char* const GRBL_VERSION_BUILD = "20210326";
 
-//#include <sdkconfig.h>
-#include <Arduino.h>
-#include <EEPROM.h>
-#include <driver/rmt.h>
-#include <esp_task_wdt.h>
-#include <freertos/task.h>
-#include <Preferences.h>
+#include "Planner.h"  // plan_line_data_t
+#include "System.h"   // AxisMask
 
-#include <driver/timer.h>
-
-// Define the Grbl system include files. NOTE: Do not alter organization.
-#include "Config.h"
-#include "NutsBolts.h"
-
-#include "Defaults.h"
-#include "Error.h"
-#include "WebUI/Authentication.h"
-#include "WebUI/Commands.h"
-#include "Probe.h"
-#include "System.h"
-
-#include "GCode.h"
-#include "Planner.h"
-#include "CoolantControl.h"
-#include "Limits.h"
-#include "MotionControl.h"
-#include "Protocol.h"
-#include "Uart.h"
-#include "Serial.h"
-#include "Report.h"
-#include "Pin.h"
-#include "Spindles/Spindle.h"
-#include "Stepper.h"
-#include "Jog.h"
-#include "WebUI/InputBuffer.h"
-#include "Settings.h"
-#include "SettingsDefinitions.h"
-#include "WebUI/WebSettings.h"
-#include "ControlPin.h"
-
-#include "UserOutput.h"
-
-// Do not guard this because it is needed for local files too
-#include "SDCard.h"
-
-// These WebUI components create stub classes if not enabled
-#include "WebUI/WifiConfig.h"
-#include "WebUI/TelnetServer.h"
-#include "WebUI/Serial2Socket.h"
-#include "WebUI/NotificationsService.h"
-
-#include "I2SOut.h"
+#include <cstdint>
 
 void grbl_init();
 void run_once();

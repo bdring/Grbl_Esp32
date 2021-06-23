@@ -55,9 +55,21 @@
 
 */
 
-#include "Grbl.h"
+#include "Serial.h"
+#include "Uart.h"
 #include "Machine/MachineConfig.h"
+#include "WebUI/InputBuffer.h"
+#include "WebUI/TelnetServer.h"
+#include "WebUI/Serial2Socket.h"
+#include "WebUI/Commands.h"
+#include "WebUI/WifiConfig.h"
+#include "MotionControl.h"
+#include "Report.h"
+#include "System.h"
+
 #include <atomic>
+#include <cstring>
+#include <freertos/task.h>  // portMUX_TYPE, TaskHandle_T
 
 portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
 

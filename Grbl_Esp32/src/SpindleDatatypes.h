@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 typedef uint32_t SpindleSpeed;
 
 // Modal Group M7: Spindle control

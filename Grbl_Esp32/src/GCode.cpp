@@ -22,9 +22,19 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "GCode.h"
+#include "Settings.h"
+#include "Config.h"
+#include "Report.h"
+#include "Jog.h"
+#include "NutsBolts.h"
+#include "Protocol.h"       // protocol_buffer_synchronize
+#include "Grbl.h"           // user_tool_change
+#include "MotionControl.h"  // mc_override_ctrl_update
 
 #include "Machine/MachineConfig.h"
+
+#include <string.h>  // memset
 
 // Allow iteration over CoordIndex values
 CoordIndex& operator++(CoordIndex& i) {

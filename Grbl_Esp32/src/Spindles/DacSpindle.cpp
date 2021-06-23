@@ -23,6 +23,10 @@
 */
 #include "DacSpindle.h"
 
+#include "../Report.h"
+
+#include <driver/dac.h>  // dacWrite
+
 namespace Spindles {
     // ======================================== Dac ======================================
     void Dac::init() {

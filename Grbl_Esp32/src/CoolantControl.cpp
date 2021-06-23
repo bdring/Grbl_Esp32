@@ -23,8 +23,9 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
 #include "CoolantControl.h"
+
+#include "Protocol.h"  // protocol_buffer_synchronize
 
 void CoolantControl::init() {
     static bool init_message = true;  // used to show messages only once.

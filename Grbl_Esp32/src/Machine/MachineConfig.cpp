@@ -31,6 +31,7 @@
 #include "../Configuration/Validator.h"
 #include "../Configuration/AfterParse.h"
 #include "../Configuration/ParseException.h"
+#include "../Config.h"  // ENABLE_*
 
 #include <SPIFFS.h>
 #include <cstdio>

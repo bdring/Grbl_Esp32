@@ -2,6 +2,8 @@
 
 #include "ESPResponse.h"
 
+#include <WString.h>
+
 // Class for creating JSON-encoded strings.
 
 namespace WebUI {

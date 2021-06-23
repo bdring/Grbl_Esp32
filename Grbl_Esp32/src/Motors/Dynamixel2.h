@@ -21,10 +21,11 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <driver/uart.h>
-
-#include "Motor.h"
 #include "Servo.h"
+#include "../Pin.h"
+
+#include <driver/uart.h>  // uart_port_t
+#include <cstdint>
 
 namespace Motors {
     class Dynamixel2 : public Servo {

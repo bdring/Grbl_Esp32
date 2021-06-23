@@ -22,6 +22,8 @@
 
 #include "SDCard.h"
 #include "Machine/MachineConfig.h"
+#include "Serial.h"  // CLIENT_SERIAL
+#include "Report.h"
 
 #include <FS.h>
 #include <SD.h>
@@ -141,8 +143,8 @@ SDCard::State SDCard::get_state(bool refresh) {
     auto spiConfig = config->_spi;
 
     if (spiConfig != nullptr) {
-        auto ssPin   = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        
+        auto ssPin = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+
         //no need to go further if SD detect is not correct
         if (config->_sdCard->_cardDetect.defined() && !config->_sdCard->_cardDetect.read()) {
             _state = SDCard::State::NotPresent;

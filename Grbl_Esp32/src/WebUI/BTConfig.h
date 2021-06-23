@@ -23,6 +23,9 @@
 */
 
 #include "../Configuration/Configurable.h"
+#include "../Config.h"  // ENABLE_*
+
+#include <WString.h>
 
 #ifndef ENABLE_BLUETOOTH
 namespace WebUI {

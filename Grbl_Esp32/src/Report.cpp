@@ -46,9 +46,23 @@
 
 */
 
-#include "Grbl.h"
+#include "Report.h"
+
+#include "Grbl.h"    // GRBL_VERSION
+#include "Serial.h"  // client_write
 #include "Machine/MachineConfig.h"
+#include "SettingsDefinitions.h"
+#include "Limits.h"                      // limits_get_state
+#include "Planner.h"                     // plan_get_block_buffer_available
+#include "WebUI/NotificationsService.h"  // WebUI::notificationsservice
+#include "WebUI/WifiConfig.h"            // wifi_config
+#include "WebUI/TelnetServer.h"          // WebUI::telnet_server
+#include "WebUI/BTConfig.h"              // bt_config
+
 #include <map>
+#include <freertos/task.h>
+#include <cstring>
+#include <cstdio>
 
 #ifdef DEBUG_REPORT_HEAP
 EspClass esp;

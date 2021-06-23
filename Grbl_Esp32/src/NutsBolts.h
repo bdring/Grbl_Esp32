@@ -23,6 +23,8 @@
 // #define false 0
 // #define true 1
 
+#include <cstdint>
+
 enum class DwellMode : uint8_t {
     Dwell      = 0,  // (Default: Must be zero)
     SysSuspend = 1,  //G92.1 (Do not alter value)
@@ -46,12 +48,13 @@ const int MAX_GANGED = 2;
 const int PRIMARY_MOTOR = 0;
 const int GANGED_MOTOR  = 1;
 
-const int         X2_AXIS = (X_AXIS + MAX_AXES);
-const int         Y2_AXIS = (Y_AXIS + MAX_AXES);
-const int         Z2_AXIS = (Z_AXIS + MAX_AXES);
-const int         A2_AXIS = (A_AXIS + MAX_AXES);
-const int         B2_AXIS = (B_AXIS + MAX_AXES);
-const int         C2_AXIS = (C_AXIS + MAX_AXES);
+const int X2_AXIS = (X_AXIS + MAX_AXES);
+const int Y2_AXIS = (Y_AXIS + MAX_AXES);
+const int Z2_AXIS = (Z_AXIS + MAX_AXES);
+const int A2_AXIS = (A_AXIS + MAX_AXES);
+const int B2_AXIS = (B_AXIS + MAX_AXES);
+const int C2_AXIS = (C_AXIS + MAX_AXES);
+
 static inline int toMotor2(int axis) {
     return axis + MAX_AXES;
 }
@@ -71,7 +74,9 @@ const double INCH_PER_MM = (0.0393701);
 // Bit field and masking macros
 // bit(n) is defined in Arduino.h.  We redefine it here so we can apply
 // the static_cast, thus making it work with scoped enums
-#undef bit
+#ifdef bit
+#    undef bit
+#endif
 #define bit(n) (1 << static_cast<unsigned int>(n))
 
 #define bit_true(x, mask) (x) |= (mask)

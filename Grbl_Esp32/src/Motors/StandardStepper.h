@@ -2,6 +2,8 @@
 
 #include "Motor.h"
 
+#include <driver/rmt.h>
+
 namespace Motors {
     class StandardStepper : public Motor {
     public:

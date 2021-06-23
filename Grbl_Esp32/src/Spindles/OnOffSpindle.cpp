@@ -1,5 +1,7 @@
 #include "OnOffSpindle.h"
 
+#include "../System.h"  // sys.abort
+
 namespace Spindles {
 
     void OnOff::init() {

@@ -4,6 +4,7 @@
 #include "../Motors/Motor.h"
 #include "../Motors/NullMotor.h"
 #include "../NutsBolts.h"
+#include "../MotionControl.h"
 
 namespace Machine {
     Axes::Axes() : _axis() {

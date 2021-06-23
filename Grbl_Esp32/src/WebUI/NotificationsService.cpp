@@ -28,8 +28,6 @@
 // - https://github.com/CosmicBoris/ESP8266SMTP
 // - https://www.electronicshub.org/send-an-email-using-esp8266/
 
-#include "../Grbl.h"
-#include "../Machine/MachineConfig.h"
 #include "NotificationsService.h"
 
 namespace WebUI {
@@ -37,6 +35,12 @@ namespace WebUI {
 }
 
 #ifdef ENABLE_WIFI
+
+#    include "WifiConfig.h"   // ESP_PUSHOVER_NOTIFICATION
+#    include "WebSettings.h"  // notification_ts
+#    include "Commands.h"
+#    include "../Machine/MachineConfig.h"
+
 #    include <WiFiClientSecure.h>
 #    include <base64.h>
 

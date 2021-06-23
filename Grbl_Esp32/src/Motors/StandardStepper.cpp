@@ -22,6 +22,8 @@
 */
 
 #include "StandardStepper.h"
+
+#include "../Report.h"
 #include "../Machine/MachineConfig.h"
 
 namespace Motors {
@@ -67,7 +69,6 @@ namespace Motors {
             rmtConfig.tx_config.idle_output_en       = true;
 
             rmtItem[0].duration0 = config->_directionDelayMicroSeconds < 1 ? 1 : config->_directionDelayMicroSeconds * 4;
-
             rmtItem[0].duration1 = 4 * config->_pulseMicroSeconds;
             rmtItem[1].duration0 = 0;
             rmtItem[1].duration1 = 0;

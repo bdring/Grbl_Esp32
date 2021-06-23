@@ -23,9 +23,9 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Configuration/HandlerBase.h"
 #include "Configuration/Configurable.h"
-#include "GCode.h"
+
+#include "GCode.h"  // CoolantState
 
 class CoolantControl : public Configuration::Configurable {
     Pin _mist;

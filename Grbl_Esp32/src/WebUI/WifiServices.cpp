@@ -18,10 +18,17 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "../Grbl.h"
+#include "WifiServices.h"
+
 #include "../Machine/MachineConfig.h"
 
 #ifdef ENABLE_WIFI
+
+#    include "WebServer.h"
+#    include "TelnetServer.h"
+#    include "NotificationsService.h"
+#    include "Commands.h"
+#    include "../Report.h"  // info_all
 
 #    include <WiFi.h>
 #    include <FS.h>
@@ -29,10 +36,6 @@
 #    include "WifiServices.h"
 #    include <ESPmDNS.h>
 #    include <ArduinoOTA.h>
-#    include "WebServer.h"
-#    include "TelnetServer.h"
-#    include "NotificationsService.h"
-#    include "Commands.h"
 
 namespace WebUI {
     WiFiServices wifi_services;

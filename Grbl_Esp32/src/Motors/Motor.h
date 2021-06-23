@@ -36,6 +36,8 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "../Configuration/Configurable.h"
+
 #include <cstdint>
 
 namespace Motors {

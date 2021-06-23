@@ -40,16 +40,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "Config.h"
 
-// This block of #includes is necessary for Report.h
-#include "Error.h"
-#include "WebUI/Authentication.h"
-#include "WebUI/ESPResponse.h"
-#include "Probe.h"
-#include "System.h"
-#include "Serial.h"
+#include "I2SOut.h"
+
+#include "Config.h"
 #include "Report.h"
+#include "Pin.h"
+#include "Settings.h"
+#include "SettingsDefinitions.h"
+#include "Machine/MachineConfig.h"
 
 #include <FreeRTOS.h>
 #include <driver/periph_ctrl.h>
@@ -58,13 +57,6 @@
 #include <freertos/queue.h>
 
 #include <stdatomic.h>
-
-#include "Pin.h"
-#include "I2SOut.h"
-
-#include "Machine/MachineConfig.h"
-#include "Settings.h"
-#include "SettingsDefinitions.h"
 
 // Always enable I2S streaming logic
 #define USE_I2S_OUT_STREAM_IMPL

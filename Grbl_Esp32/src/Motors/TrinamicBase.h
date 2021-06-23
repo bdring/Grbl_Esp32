@@ -18,8 +18,10 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdint>
 #include "StandardStepper.h"
+#include "../EnumItem.h"
+
+#include <cstdint>
 
 namespace Motors {
 

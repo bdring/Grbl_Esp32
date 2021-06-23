@@ -22,10 +22,13 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "NutsBolts.h"
+
 #include "Machine/MachineConfig.h"
+#include "Protocol.h"  // protocol_exec_rt_system
 
 #include <cstring>
+#include <cstdint>
 
 const int MAX_INT_DIGITS = 8;  // Maximum number of digits in int32 (and float)
 

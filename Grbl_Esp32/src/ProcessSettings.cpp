@@ -1,12 +1,23 @@
-#include "Grbl.h"
-#include <map>
-#include "Regex.h"
+#include "Settings.h"
 
 #include "Machine/MachineConfig.h"
 #include "Configuration/RuntimeSetting.h"
 #include "Configuration/AfterParse.h"
 #include "Configuration/Validator.h"
 #include "Configuration/ParseException.h"
+#include "Regex.h"
+#include "WebUI/Authentication.h"
+#include "WebUI/WifiConfig.h"
+#include "Report.h"
+#include "MotionControl.h"
+#include "System.h"
+#include "Serial.h"
+#include "Limits.h"               // homingAxes
+#include "SettingsDefinitions.h"  // build_info
+#include "Protocol.h"             // LINE_BUFFER_SIZE
+
+#include <cstring>
+#include <map>
 
 // WG Readable and writable as guest
 // WU Readable and writable as user and admin

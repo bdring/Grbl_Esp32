@@ -1,5 +1,10 @@
 #include "Grbl.h"
 
+#include "SettingsDefinitions.h"
+#include "Serial.h"    // CLIENT_SERIAL
+#include "Config.h"    // USER_MACRO, etc
+#include "Defaults.h"  // USER_MACRO, etc
+
 StringSetting* config_filename;
 
 StringSetting* startup_line_0;

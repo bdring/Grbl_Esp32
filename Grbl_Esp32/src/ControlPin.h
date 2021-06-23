@@ -2,6 +2,8 @@
 
 #include "Pin.h"
 
+#include <Arduino.h>  // IRAM_ATTR
+
 class ControlPin {
 private:
     bool           _value;

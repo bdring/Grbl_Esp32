@@ -1,6 +1,7 @@
-#include "Grbl.h"
-
 #include "ControlPin.h"
+
+#include "Report.h"   // addPinReport
+#include <Arduino.h>  // IRAM_ATTR
 
 // XXX we need to dispatch the user defined macros somehow
 // user_defined_macro(N)

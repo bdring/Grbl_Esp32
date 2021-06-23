@@ -20,11 +20,13 @@
 
 #include "../Configuration/Configurable.h"
 
-#include <WString.h>
-#include <IPAddress.h>
 #include "../WebUI/BTConfig.h"
+#include "../Config.h"  // ENABLE_*
 #include "WifiAPConfig.h"
 #include "WifiSTAConfig.h"
+
+#include <WString.h>
+#include <IPAddress.h>
 
 namespace WebUI {
     class BTConfig;
@@ -44,8 +46,8 @@ namespace Machine {
         String _hostname = "grblesp";
 
         WebUI::BTConfig* _bluetoothConfig = nullptr;
-        WifiAPConfig*  _apConfig  = nullptr;
-        WifiSTAConfig* _staConfig = nullptr;
+        WifiAPConfig*    _apConfig        = nullptr;
+        WifiSTAConfig*   _staConfig       = nullptr;
 
         void group(Configuration::HandlerBase& handler) override {
 #ifdef ENABLE_BLUETOOTH

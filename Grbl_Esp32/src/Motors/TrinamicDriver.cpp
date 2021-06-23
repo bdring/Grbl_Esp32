@@ -18,9 +18,11 @@
 
 */
 #include "TrinamicDriver.h"
-#include "../Machine/MachineConfig.h"
 
-#include <TMCStepper.h>
+#include "../Machine/MachineConfig.h"
+#include "../Report.h"
+
+#include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 #include <atomic>
 
 // This is global so it can be accessed from the override

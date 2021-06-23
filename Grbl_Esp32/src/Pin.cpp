@@ -26,7 +26,7 @@
 #include "Pins/ErrorPinDetail.h"
 
 #ifdef ESP32
-#    include "Grbl.h"  // serial output
+#    include "Report.h"  // serial output like info_serial, etc
 #    define pin_error(...) error_serial(__VA_ARGS__)
 #else
 #    define pin_error(...)                                                                                                                 \

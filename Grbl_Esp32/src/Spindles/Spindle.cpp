@@ -24,6 +24,8 @@
 */
 #include "Spindle.h"
 
+#include "../System.h"  //sys.spindle_speed_ovr
+
 Spindles::Spindle* spindle = nullptr;
 
 namespace Spindles {

@@ -22,8 +22,16 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "MotionControl.h"
+
 #include "Machine/MachineConfig.h"
+#include "Limits.h"    // limits_soft_check
+#include "Protocol.h"  // protocol_execute_realtime
+#include "Report.h"    // info_all
+#include "Serial.h"    // CLIENT_ALL
+#include "Planner.h"   // plan_reset, etc
+#include "I2SOut.h"    // i2s_out_reset
+#include "Grbl.h"      // user_defined_homing... Implemented in Limits.
 
 // M_PI is not defined in standard C/C++ but some compilers
 // support it anyway.  The following suppresses Intellisense

@@ -1,7 +1,7 @@
 // This file loads custom code from the Custom/ subdirectory if
 // CUSTOM_CODE_FILENAME is defined.
 
-#include "Grbl.h"
+#include "Config.h"
 
 #ifdef CUSTOM_CODE_FILENAME
 #    include CUSTOM_CODE_FILENAME

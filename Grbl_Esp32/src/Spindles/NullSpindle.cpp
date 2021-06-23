@@ -21,6 +21,11 @@
 */
 #include "NullSpindle.h"
 
+#include "../Report.h"  // info_all
+#include "../System.h"  // sys.spindle_speed
+
+#include <Arduino.h>  // IRAM_ATTR
+
 namespace Spindles {
     // ======================= Null ==============================
     // Null is just bunch of do nothing (ignore) methods to be used when you don't want a spindle

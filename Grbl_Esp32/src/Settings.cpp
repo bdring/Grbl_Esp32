@@ -1,7 +1,16 @@
-#include "Grbl.h"
-#include "WebUI/JSONEncoder.h"
+#include "Settings.h"
+
+#include "WebUI/JSONEncoder.h"  // JSON
+#include "WebUI/WifiConfig.h"   // WebUI::WiFiConfig
+#include "WebUI/Commands.h"     // WebUI::COMMANDS
+#include "Serial.h"             // CLIENT_SERIAL
+#include "Report.h"             // grbl_sendf
+#include "Protocol.h"           // protocol_buffer_synchronize
+
 #include <map>
+#include <cstring>
 #include <nvs.h>
+#include <WiFi.h>
 
 bool anyState() {
     return false;
@@ -372,8 +381,6 @@ void EnumSetting::addWebui(WebUI::JSONencoder* j) {
     j->end_array();
     j->end_object();
 }
-
-#include <WiFi.h>
 
 Error GrblCommand::action(char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (_cmdChecker && _cmdChecker()) {

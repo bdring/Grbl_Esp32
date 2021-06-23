@@ -1,11 +1,13 @@
 #pragma once
 
 #include "WebUI/JSONEncoder.h"
+#include "WebUI/ESPResponse.h"
+#include "WebUI/Authentication.h"
+#include "Report.h"  // info_client
+#include "GCode.h"   // CoordIndex
+
 #include <map>
 #include <nvs.h>
-#include "WebUI/ESPResponse.h"
-
-#include "Eeprom.h"  // For CoordIndex
 
 // Initialize the configuration subsystem
 void settings_init();

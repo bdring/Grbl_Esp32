@@ -18,11 +18,20 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "System.h"
+
+#include "MotionControl.h"  // motors_to_cartesian
+#include "Protocol.h"       // protocol_buffer_synchronize
 #include "Config.h"
+#include "UserOutput.h"
 #include "SettingsDefinitions.h"
 #include "Machine/MachineConfig.h"
+#include "WebUI/InputBuffer.h"  // WebUI::inputBuffer
+
 #include <atomic>
+#include <cstring>  // memset
+#include <freertos/queue.h>
+#include <freertos/task.h>
 
 // Declare system global variable structure
 system_t               sys;

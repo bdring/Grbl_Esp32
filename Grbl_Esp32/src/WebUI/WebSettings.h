@@ -20,6 +20,9 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "../Config.h"  // ENABLE_*
+#include "../Settings.h"
+
 namespace WebUI {
 #ifdef ENABLE_AUTHENTICATION
     extern StringSetting* user_password;

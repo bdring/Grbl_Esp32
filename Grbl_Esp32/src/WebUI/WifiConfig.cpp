@@ -18,19 +18,25 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "../Grbl.h"
+#include "WifiConfig.h"
+
 #include "../Machine/MachineConfig.h"
 
 WebUI::WiFiConfig wifi_config;
 
 #ifdef ENABLE_WIFI
+#    include "Commands.h"  // COMMANDS
+#    include "WifiServices.h"
+#    include "WebSettings.h"
+#    include "../Serial.h"
+#    include "../Report.h"
+
 #    include <WiFi.h>
 #    include <esp_wifi.h>
 #    include <ESPmDNS.h>
 #    include <FS.h>
 #    include <SPIFFS.h>
 #    include <cstring>
-#    include "WifiServices.h"
 
 namespace WebUI {
     String WiFiConfig::_hostname          = "";

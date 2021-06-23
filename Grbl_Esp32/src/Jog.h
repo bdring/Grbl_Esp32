@@ -22,7 +22,9 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "Error.h"
+#include "Planner.h"
+#include "GCode.h"
 
 // System motion line numbers must be zero.
 const int JOG_LINE_NUMBER = 0;

@@ -24,6 +24,12 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Config.h"            // MAX_N_AXIS
+#include "SpindleDatatypes.h"  // SpindleState
+#include "GCode.h"             // CoolantState
+
+#include <cstdint>
+
 // The number of linear motions in the planner buffer to be planned at any give time. The vast
 // majority of RAM that Grbl uses is based on this buffer size. Only increase if there is extra
 // available RAM, like when re-compiling for a Mega2560. Or decrease if the Arduino begins to
@@ -45,7 +51,7 @@ struct PlMotion {
 
 // This struct stores a linear movement of a g-code block motion with its critical "nominal" values
 // are as specified in the source g-code.
-typedef struct {
+struct plan_block_t {
     // Fields used by the bresenham algorithm for tracing the line
     // NOTE: Used by stepper algorithm to execute the block correctly. Do not alter these values.
     uint32_t steps[MAX_N_AXIS];  // Step count along each axis
@@ -74,10 +80,10 @@ typedef struct {
 
     // Stored spindle speed data used by spindle overrides and resuming methods.
     SpindleSpeed spindle_speed;  // Block spindle speed. Copied from pl_line_data.
-} plan_block_t;
+};
 
 // Planner data prototype. Must be used when passing new motions to the planner.
-typedef struct {
+struct plan_line_data_t {
     float        feed_rate;      // Desired feed rate for line motion. Value is ignored, if rapid motion.
     SpindleSpeed spindle_speed;  // Desired spindle speed through line motion.
     PlMotion     motion;         // Bitflag variable to indicate motion conditions. See defines above.
@@ -85,7 +91,7 @@ typedef struct {
     CoolantState coolant;        // Coolant state
     int32_t      line_number;    // Desired line number to report when executing.
     bool         is_jog;         // true if this was generated due to a jog command
-} plan_line_data_t;
+};
 
 // Initialize and reset the motion plan subsystem
 void plan_reset();         // Reset all

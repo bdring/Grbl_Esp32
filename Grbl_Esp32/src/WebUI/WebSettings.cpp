@@ -20,22 +20,27 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../Grbl.h"
-#include "../Machine/MachineConfig.h"
+#include "WebSettings.h"
 
+#include "../Settings.h"
+#include "../Machine/MachineConfig.h"
+#include "../Configuration/JsonGenerator.h"
+#include "../Grbl.h"    //GRBL_VERSION
+#include "../Serial.h"  // CLIENT_ALL
+#include "../Report.h"  // info_all
+#include "WifiConfig.h"
+#include "ESPResponse.h"
+#include "WebServer.h"
+#include "NotificationsService.h"  // notificationsservice
+#include "TelnetServer.h"          // telnet_server
+
+#include <cstring>
 #include <WiFi.h>
 #include <FS.h>
 #include <SPIFFS.h>
 #include <esp_wifi.h>
 #include <esp_ota_ops.h>
 #include <SD.h>
-
-#include "ESPResponse.h"
-#include "WebServer.h"
-#include <string.h>
-
-#include "../Configuration/JsonGenerator.h"
-#include "../Machine/MachineConfig.h"
 
 namespace WebUI {
 

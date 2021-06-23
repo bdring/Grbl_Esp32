@@ -20,7 +20,9 @@
 
 */
 #include "Laser.h"
+
 #include "../Machine/MachineConfig.h"
+#include "../Report.h"
 
 // ===================================== Laser ==============================================
 

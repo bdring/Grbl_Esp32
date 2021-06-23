@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Settings.h"
+
 extern StringSetting* config_filename;
 
 extern StringSetting* startup_line_0;

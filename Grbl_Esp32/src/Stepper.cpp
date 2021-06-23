@@ -23,10 +23,16 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "Stepper.h"
+
 #include "Machine/MachineConfig.h"
 #include "StepperPrivate.h"
+#include "Planner.h"
+#include "I2SOut.h"  // i2s_out_push_sample
+#include "Report.h"  // info_serial
+
 #include <atomic>
+#include <Arduino.h>  // IRAM_ATTR
 
 // Stores the planner block Bresenham algorithm execution data for the segments in the segment
 // buffer. Normally, this buffer is partially in-use, but, for the worst case scenario, it will
@@ -34,26 +40,26 @@
 // NOTE: This data is copied from the prepped planner blocks so that the planner blocks may be
 // discarded when entirely consumed and completed by the segment buffer. Also, AMASS alters this
 // data for its own use.
-typedef struct {
+struct st_block_t {
     uint32_t steps[MAX_N_AXIS];
     uint32_t step_event_count;
     uint8_t  direction_bits;
     uint8_t  is_pwm_rate_adjusted;  // Tracks motions that require constant laser power/rate
-} st_block_t;
+};
 static st_block_t st_block_buffer[SEGMENT_BUFFER_SIZE - 1];
 
 // Primary stepper segment ring buffer. Contains small, short line segments for the stepper
 // algorithm to execute, which are "checked-out" incrementally from the first block in the
 // planner buffer. Once "checked-out", the steps in the segments buffer cannot be modified by
 // the planner, where the remaining planner block steps still can.
-typedef struct {
+struct segment_t {
     uint16_t     n_step;             // Number of step events to be executed for this segment
     uint16_t     isrPeriod;          // Time to next ISR tick, in units of timer ticks
     uint8_t      st_block_index;     // Stepper block data index. Uses this information to execute this segment.
     uint8_t      amass_level;        // AMASS level for the ISR to execute this segment
     uint16_t     spindle_dev_speed;  // Spindle speed scaled to the device
     SpindleSpeed spindle_speed;      // Spindle speed in GCode units
-} segment_t;
+};
 static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 
 // Stepper ISR data struct. Contains the running data for the main stepper ISR.

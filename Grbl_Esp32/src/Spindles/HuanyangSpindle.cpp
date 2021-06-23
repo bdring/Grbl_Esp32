@@ -1,5 +1,3 @@
-#include "HuanyangSpindle.h"
-
 /*
     HuanyangSpindle.cpp
 
@@ -148,6 +146,8 @@
 
     If the frequency is -say- 25 Hz, Huanyang wants us to send 2500 (eg. 25.00 Hz).
 */
+
+#include "HuanyangSpindle.h"
 
 namespace Spindles {
     Huanyang::Huanyang() : VFD() {

@@ -1,5 +1,3 @@
-#include "Probe.h"
-
 /*
   Probe.cpp - code pertaining to probing methods
   Part of Grbl
@@ -22,6 +20,8 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#include "Probe.h"
 
 #include "Pin.h"
 

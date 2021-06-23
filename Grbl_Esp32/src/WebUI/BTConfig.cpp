@@ -18,9 +18,14 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "../Grbl.h"
-#include "../Machine/MachineConfig.h"
 #include "BTConfig.h"
+
+#include "../Machine/MachineConfig.h"
+#include "../Report.h"
+#include "../Serial.h"  // CLIENT_ALL
+#include "Commands.h"   // COMMANDS
+
+#include <cstdint>
 
 // SerialBT sends the data over Bluetooth
 namespace WebUI {

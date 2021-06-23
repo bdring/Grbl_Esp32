@@ -27,6 +27,10 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "System.h"  // AxisMask
+
+#include <cstdint>
+
 // Initialize the limits module
 void limits_init();
 

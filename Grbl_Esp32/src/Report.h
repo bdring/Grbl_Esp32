@@ -1,11 +1,5 @@
 #pragma once
 
-#include "Error.h"
-#include "NutsBolts.h"
-#include "Exec.h"
-
-#include <FreeRTOS.h>
-
 /*
   Report.h - Header for system level commands and real-time processes
   Part of Grbl
@@ -25,6 +19,13 @@
   You should have received a copy of the GNU General Public License
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#include "Error.h"
+#include "NutsBolts.h"
+#include "Exec.h"
+
+#include <cstdint>
+#include <freertos/FreeRTOS.h>  // UBaseType_t
 
 // With this enabled, Grbl sends back an echo of the line it has received, which has been pre-parsed (spaces
 // removed, capitalized letters, no comments) and is to be immediately executed by Grbl. Echoes will not be

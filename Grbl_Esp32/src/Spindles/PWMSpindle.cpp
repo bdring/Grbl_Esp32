@@ -20,7 +20,12 @@
 
 */
 #include "PWMSpindle.h"
-#include "soc/ledc_struct.h"
+
+#include <soc/ledc_struct.h>
+#include <driver/ledc.h>
+
+#include "../System.h"  // sys.report_ovr_counter
+#include "../GCode.h"   // gc_state.modal
 #include "../Logging.h"
 
 // ======================= PWM ==============================

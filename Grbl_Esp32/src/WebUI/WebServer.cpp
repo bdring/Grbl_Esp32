@@ -20,20 +20,25 @@
 
 #include "../Grbl.h"
 #include "../Machine/MachineConfig.h"
+#include "../Config.h"
 
 #ifdef ENABLE_WIFI
 
 #    include "WifiServices.h"
+#    include "WifiConfig.h"  // wifi_config
 
 #    include "ESPResponse.h"
 #    include "Serial2Socket.h"
 #    include "WebServer.h"
+#    include "../SDCard.h"
+#    include "../Report.h"  // info_all
+#    include "../Serial.h"  // CLIENT_ALL
+
 #    include <WebSocketsServer.h>
 #    include <WiFi.h>
 #    include <FS.h>
 #    include <SPIFFS.h>
 #    include <SD.h>
-#    include "../SDCard.h"
 #    include <WebServer.h>
 #    include <ESP32SSDP.h>
 #    include <StreamString.h>

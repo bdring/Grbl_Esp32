@@ -31,6 +31,7 @@
 */
 
 #include "Motor.h"
+
 #include "../Machine/MachineConfig.h"
 
 namespace Motors {
@@ -46,5 +47,4 @@ namespace Motors {
         Assert(config != nullptr && config->_axes != nullptr, "Expected machine to be configured before this is called.");
         return config->_axes->findAxisGanged(this);
     }
-
 }

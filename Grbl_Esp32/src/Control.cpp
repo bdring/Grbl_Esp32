@@ -21,9 +21,9 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
 #include "Control.h"
-#include "System.h"
+
+#include "System.h"  // rtSafetyDoor, etc
 
 Control::Control() :
     _safetyDoor(rtSafetyDoor, "Door", 'D'), _reset(rtReset, "Reset", 'R'), _feedHold(rtFeedHold, "FeedHold", 'H'),

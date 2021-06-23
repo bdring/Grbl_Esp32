@@ -18,10 +18,10 @@
 
 #pragma once
 
-#include <cstring>
-
 #include "StringRange.h"
 #include "Pin.h"
+
+#include <cstring>
 
 class SimpleOutputStream {
     static char* intToBuf(int value, char* dst);

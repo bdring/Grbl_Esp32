@@ -17,7 +17,9 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "UserOutput.h"
+
+#include "Report.h"  // info_serial
 
 namespace UserOutput {
     DigitalOutput::DigitalOutput(uint8_t number, Pin& pin) : _number(number), _pin(pin) {

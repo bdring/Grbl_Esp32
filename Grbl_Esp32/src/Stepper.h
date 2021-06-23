@@ -24,9 +24,9 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//#include "Grbl.h"
-//#include "Config.h"
 #include "EnumItem.h"
+
+#include <cstdint>
 
 enum stepper_id_t {
     ST_TIMED = 0,

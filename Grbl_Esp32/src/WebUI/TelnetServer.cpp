@@ -31,6 +31,10 @@ namespace WebUI {
 #    include "WifiServices.h"
 
 #    include "WifiConfig.h"
+#    include "../Serial.h"  // CLIENT_ALL
+#    include "../Report.h"  // grbl_send
+#    include "Commands.h"   // COMMANDS
+
 #    include <WiFi.h>
 
 namespace WebUI {

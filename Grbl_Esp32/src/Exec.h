@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <cstdint>
 
 // Override bit maps. Realtime bitflags to control feed, rapid, spindle, and coolant overrides.
 // Spindle/coolant and feed/rapids are separated into two controlling flag variables.

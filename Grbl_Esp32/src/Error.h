@@ -23,6 +23,8 @@
 
 #include <map>
 
+#include <cstdint>
+
 // Grbl error codes. Valid values (0-255)
 enum class Error : uint8_t {
     Ok                          = 0,

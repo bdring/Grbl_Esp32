@@ -22,7 +22,7 @@
 
 //Preferences entries
 
-#include "../Config.h"
+#include "../Config.h"  // ENABLE_*
 
 #ifndef ENABLE_WIFI
 namespace WebUI {

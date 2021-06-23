@@ -17,7 +17,10 @@
 */
 
 #include "TrinamicBase.h"
+
 #include "../Machine/MachineConfig.h"
+#include "../Report.h"  // reportAxisNameMsg, info_serial
+
 #include <atomic>
 
 namespace Motors {

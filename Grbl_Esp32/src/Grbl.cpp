@@ -21,8 +21,22 @@
 #include "Grbl.h"
 #include "Machine/MachineConfig.h"
 
+#include "Config.h"
+#include "Serial.h"
+#include "Report.h"
+#include "Settings.h"
+#include "SettingsDefinitions.h"
+#include "I2SOut.h"
+#include "Limits.h"
+#include "Protocol.h"
+#include "System.h"
+
+#include "WebUI/WifiConfig.h"
+#include "WebUI/InputBuffer.h"
+
 #include <WiFi.h>
 #include <SPIFFS.h>
+#include <Arduino.h>  // sleep
 
 extern void make_grbl_commands();
 

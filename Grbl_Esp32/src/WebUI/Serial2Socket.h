@@ -20,6 +20,8 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "../Config.h"  // ENABLE_*
+
 #ifndef ENABLE_WIFI
 namespace WebUI {
     class Serial_2_Socket {

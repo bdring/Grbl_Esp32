@@ -19,16 +19,18 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Motor.h"
 #include "TrinamicBase.h"
+#include "../Pin.h"
 
-#include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
+#include <cstdint>
 
 const float TMC2130_RSENSE_DEFAULT = 0.11f;
 const float TMC5160_RSENSE_DEFAULT = 0.075f;
 
 const int NORMAL_TCOOLTHRS = 0xFFFFF;  // 20 bit is max
 const int NORMAL_THIGH     = 0;
+
+class TMC2130Stepper;  // Forward declaration
 
 namespace Motors {
 

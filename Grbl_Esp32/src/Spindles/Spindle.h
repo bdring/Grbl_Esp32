@@ -28,11 +28,13 @@
 
 #include <cstdint>
 
-#include "../GCode.h"     // for SpindleState
-#include "../Report.h"    // for MsgLevel
-#include "../Serial.h"    // for CLIENT_ALL
-#include "../Protocol.h"  // for protocol_buffer_synchronize
+#include "../SpindleDatatypes.h"
 
+// #include "../GCode.h"     // for SpindleState
+// #include "../Serial.h"    // for CLIENT_ALL
+// #include "../Protocol.h"  // for protocol_buffer_synchronize
+
+#include "../Configuration/Configurable.h"
 #include "../Configuration/GenericFactory.h"
 
 // ===============  No floats! ===========================

@@ -1,4 +1,9 @@
-#include "../Grbl.h"
+#include "Authentication.h"
+
+#include "../Config.h"  // ENABLE_*
+#include "../Settings.h"
+
+#include <cstring>
 
 namespace WebUI {
 #ifdef ENABLE_AUTHENTICATION

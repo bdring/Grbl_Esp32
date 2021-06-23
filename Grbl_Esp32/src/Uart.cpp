@@ -19,14 +19,15 @@
  * UART driver that accesses the ESP32 hardware FIFOs directly.
  */
 
-#include "Grbl.h"
+#include "Uart.h"
 
-#include "esp_system.h"
-#include "soc/uart_reg.h"
-#include "soc/io_mux_reg.h"
-#include "soc/gpio_sig_map.h"
-#include "soc/dport_reg.h"
-#include "soc/rtc.h"
+#include <esp_system.h>
+#include <soc/uart_reg.h>
+#include <soc/io_mux_reg.h>
+#include <soc/gpio_sig_map.h>
+#include <soc/dport_reg.h>
+#include <soc/rtc.h>
+#include <driver/uart.h>
 
 Uart::Uart(int uart_num) : _uart_num(uart_port_t(uart_num)), _pushback(-1) {}
 

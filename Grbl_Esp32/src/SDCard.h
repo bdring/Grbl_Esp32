@@ -15,10 +15,11 @@
  *    D1       -
  */
 
-#include <cstdint>
 #include "Configuration/Configurable.h"
 #include "WebUI/Authentication.h"
 #include "Pin.h"
+
+#include <cstdint>
 
 // Forward declaration:
 namespace fs {

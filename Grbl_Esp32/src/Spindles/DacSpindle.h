@@ -26,6 +26,8 @@
 
 #include "OnOffSpindle.h"
 
+#include <cstdint>
+
 namespace Spindles {
     // This uses one of the (2) DAC pins on ESP32 to output a voltage
     class Dac : public OnOff {

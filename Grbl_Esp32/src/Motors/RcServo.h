@@ -19,10 +19,7 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Motor.h"
-
 #include "Servo.h"
-#include "RcServoSettings.h"
 
 namespace Motors {
     class RcServo : public Servo {

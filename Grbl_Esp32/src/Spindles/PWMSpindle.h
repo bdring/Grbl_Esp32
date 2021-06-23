@@ -23,6 +23,8 @@
 */
 #include "OnOffSpindle.h"
 
+#include <cstdint>
+
 namespace Spindles {
     // This adds support for PWM
     class PWM : public OnOff {

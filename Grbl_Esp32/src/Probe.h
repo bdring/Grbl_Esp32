@@ -25,6 +25,7 @@
 
 #include "Configuration/HandlerBase.h"
 #include "Configuration/Configurable.h"
+
 #include <cstdint>
 
 // Values that define the probing state machine.

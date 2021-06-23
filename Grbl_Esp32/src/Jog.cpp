@@ -21,8 +21,12 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "Jog.h"
+
 #include "Machine/MachineConfig.h"
+#include "Limits.h"         // limitsCheckTravel
+#include "MotionControl.h"  // cartesian_to_motors
+#include "Stepper.h"        // st_prep_buffer, st_wake_up
 
 // Sets up valid jog motion received from g-code parser, checks for soft-limits, and executes the jog.
 // cancelledInflight will be set to true if was not added to parser due to a cancelJog.

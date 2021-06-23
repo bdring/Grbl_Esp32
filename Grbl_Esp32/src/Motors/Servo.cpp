@@ -31,8 +31,10 @@
 
 #include "Servo.h"
 #include "../Machine/MachineConfig.h"
+#include "../Report.h"  // info_serial
 
 #include <atomic>
+#include <freertos/task.h>  // portTICK_PERIOD_MS, vTaskDelay
 
 namespace Motors {
     Servo* Servo::List = NULL;

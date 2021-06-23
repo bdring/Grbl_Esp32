@@ -25,7 +25,10 @@
 */
 
 #include "Dynamixel2.h"
+
 #include "../Machine/MachineConfig.h"
+#include "../Report.h"  // info_serial
+#include "../Limits.h"  // limitsMinPosition
 
 namespace Motors {
     bool    Motors::Dynamixel2::uart_ready         = false;

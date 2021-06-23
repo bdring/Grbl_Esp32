@@ -1,7 +1,5 @@
 #pragma once
 
-#include "VFDSpindle.h"
-
 /*
     HuanyangSpindle.h
 
@@ -21,6 +19,8 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 
 */
+
+#include "VFDSpindle.h"
 
 namespace Spindles {
     class Huanyang : public VFD {

@@ -23,7 +23,8 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "Planner.h"
+
 #include "Machine/MachineConfig.h"
 
 #include <stdlib.h>  // PSoc Required for labs

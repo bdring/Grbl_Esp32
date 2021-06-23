@@ -31,7 +31,10 @@
 
 */
 #include "BESCSpindle.h"
-#include "soc/ledc_struct.h"
+
+#include "../Report.h"
+
+#include <soc/ledc_struct.h>
 
 namespace Spindles {
     void BESC::init() {
@@ -49,7 +52,7 @@ namespace Spindles {
         _pwm_period    = (1 << _pwm_precision);
 
         auto outputNative = _output_pin.getNative(Pin::Capabilities::PWM);
-        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
+        ledcSetup(_pwm_chan_num, double(_pwm_freq), _pwm_precision);  // setup the channel
         ledcAttachPin(outputNative, _pwm_chan_num);                   // attach the PWM to the pin
 
         _enable_pin.setAttr(Pin::Attr::Output);
@@ -97,8 +100,10 @@ namespace Spindles {
         // This was ledcWrite, but this is called from an ISR
         // and ledcWrite uses RTOS features not compatible with ISRs
         LEDC.channel_group[0].channel[0].duty.duty = pulse_counts << 4;
-        // bool on                                           = !!duty;
-        bool on                                           = true;  // Never turn off the pulse train
+
+        // bool on = !!duty;
+        bool on = true;  // Never turn off the pulse train
+
         LEDC.channel_group[0].channel[0].conf0.sig_out_en = on;
         LEDC.channel_group[0].channel[0].conf1.duty_start = on;
     }

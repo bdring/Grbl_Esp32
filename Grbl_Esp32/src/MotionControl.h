@@ -24,7 +24,10 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "Planner.h"
+#include "NutsBolts.h"
+
+#include <cstdint>
 
 // System motion commands must have a line number of zero.
 const int HOMING_CYCLE_LINE_NUMBER   = 0;

@@ -29,7 +29,15 @@
 */
 
 #include "RcServo.h"
+
 #include "../Machine/MachineConfig.h"
+#include "../Pin.h"
+#include "../Report.h"
+#include "../Limits.h"  // limitsMaxPosition
+#include "RcServoSettings.h"
+
+#include <Arduino.h>        // ledcWrite
+#include <freertos/task.h>  // vTaskDelay
 
 namespace Motors {
     // RcServo::RcServo(Pin pwm_pin) : Servo(), _pwm_pin(pwm_pin) {}

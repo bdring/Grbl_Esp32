@@ -19,11 +19,11 @@
     along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Motor.h"
 #include "TrinamicBase.h"
+#include "../Pin.h"
 #include "../Uart.h"
 
-#include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
+#include <cstdint>
 
 const float TMC2208_RSENSE_DEFAULT = 0.11f;
 const float TMC2209_RSENSE_DEFAULT = 0.11f;
@@ -41,6 +41,8 @@ const float TMC2209_RSENSE_DEFAULT = 0.11f;
 #        define TMC_UART_TX UNDEFINED_PIN
 #    endif
 #endif
+
+class TMC2209Stepper;  // Forward declaration
 
 extern Uart tmc_serial;
 

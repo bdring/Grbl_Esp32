@@ -25,9 +25,22 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
-#include "Machine/MachineConfig.h"
+#include "Limits.h"
 
+#include "Machine/MachineConfig.h"
+#include "Planner.h"
+#include "MotionControl.h"  // HOMING_CYCLE_LINE_NUMBER
+#include "NutsBolts.h"      // bitnum_true, etc
+#include "System.h"         // sys.*
+#include "Stepper.h"        // st_wake
+#include "Protocol.h"       // protocol_execute_realtime
+#include "Report.h"         // info, etc
+#include "I2SOut.h"         // I2S_OUT_DELAY_MS
+
+#include <freertos/task.h>
+#include <freertos/queue.h>
+#include <Arduino.h>  // IRAM_ATTR
+#include <string.h>   // memset, memcpy
 #include <atomic>
 
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing

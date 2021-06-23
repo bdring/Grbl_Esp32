@@ -22,9 +22,14 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Grbl.h"
+#include "Protocol.h"
 
 #include "Machine/MachineConfig.h"
+#include "Report.h"         // report_feedback_message
+#include "Serial.h"         // CLIENT_COUNT
+#include "Limits.h"         // limits_get_state
+#include "Planner.h"        // plan_get_current_block
+#include "MotionControl.h"  // PARKING_MOTION_LINE_NUMBER
 
 static void protocol_exec_rt_suspend();
 
@@ -34,11 +39,12 @@ static uint8_t line_flags           = 0;
 static uint8_t char_counter         = 0;
 static uint8_t comment_char_counter = 0;
 
-typedef struct {
+struct client_line_t {
     char buffer[LINE_BUFFER_SIZE];
     int  len;
     int  line_number;
-} client_line_t;
+};
+
 client_line_t client_lines[CLIENT_COUNT];
 
 static void empty_line(uint8_t client) {

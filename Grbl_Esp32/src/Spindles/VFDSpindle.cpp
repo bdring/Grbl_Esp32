@@ -32,8 +32,14 @@
 
 */
 #include "VFDSpindle.h"
+
 #include "../Machine/MachineConfig.h"
 #include "../MotionControl.h"  // for mc_reset
+#include "../Report.h"         // info_all
+#include "../Config.h"         // VFD_RS485_PARITY
+
+#include <freertos/task.h>
+#include <freertos/queue.h>
 #include <atomic>
 
 const int        VFD_RS485_UART_PORT  = 2;  // hard coded for this port right now
