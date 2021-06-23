@@ -195,7 +195,7 @@ const int   stepTimerNumber = 0;
 hw_timer_t* stepTimer;  // Handle
 // autoReload true might give better step timing - but it also
 // might cause problems if an interrupt takes too long
-bool autoReload = false;
+const bool autoReload = true;
 
 static void stepper_pulse_func();
 
@@ -212,6 +212,7 @@ void IRAM_ATTR onStepperDriverTimer() {
         stepper_pulse_func();
 
         if (!autoReload) {
+            timerWrite(stepTimer, 0ULL);
             timerAlarmEnable(stepTimer);
         }
 
@@ -555,8 +556,9 @@ void st_prep_buffer() {
                     prep.current_speed = sqrt(pl_block->entry_speed_sqr);
                 }
 
-                st_prep_block->is_pwm_rate_adjusted = false;  // set default value
                 // prep.inv_rate is only used if is_pwm_rate_adjusted is true
+                st_prep_block->is_pwm_rate_adjusted = false;  // set default value
+
                 if (config->_laserMode) {
                     if (pl_block->spindle == SpindleState::Ccw) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
