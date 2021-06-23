@@ -60,8 +60,8 @@ namespace Spindles {
         const uint32_t pulse_period_us = 1000000 / besc_pwm_freq;
 
         // Calculate the pulse length offset and scaler in counts of the LEDC controller
-        _min_pulse_counts  = _min_pulse_us << _pwm_precision / pulse_period_us;
-        _pulse_span_counts = (_max_pulse_us - _min_pulse_us) << _pwm_precision / pulse_period_us;
+        _min_pulse_counts  = (_min_pulse_us << _pwm_precision) / pulse_period_us;
+        _pulse_span_counts = ((_max_pulse_us - _min_pulse_us) << _pwm_precision) / pulse_period_us;
 
         if (_speeds.size() == 0) {
             shelfSpeeds(4000, 20000);
@@ -88,21 +88,17 @@ namespace Spindles {
 
         _current_pwm_duty = duty;
 
-        //        if (_invert_pwm) {
-        //            duty = (1 << _pwm_precision) - duty;
-        //        }
         // This maps the dev_speed range of 0..(1<<_pwm_precision) into the pulse length
         // where _min_pulse_counts represents off and (_min_pulse_counts + _pulse_span_counts)
         // represents full on.  Typically the off value is a 1ms pulse length and the
         // full on value is a 2ms pulse.
-        uint32_t pulse_counts = _min_pulse_counts * _pulse_span_counts >> _pwm_precision;
-
-        //ledcWrite(_pwm_chan_num, duty);
+        uint32_t pulse_counts = _min_pulse_counts + ((duty * _pulse_span_counts) >> _pwm_precision);
 
         // This was ledcWrite, but this is called from an ISR
         // and ledcWrite uses RTOS features not compatible with ISRs
-        LEDC.channel_group[0].channel[0].duty.duty        = pulse_counts << 4;
-        bool on                                           = !!duty;
+        LEDC.channel_group[0].channel[0].duty.duty = pulse_counts << 4;
+        // bool on                                           = !!duty;
+        bool on                                           = true;  // Never turn off the pulse train
         LEDC.channel_group[0].channel[0].conf0.sig_out_en = on;
         LEDC.channel_group[0].channel[0].conf1.duty_start = on;
     }
