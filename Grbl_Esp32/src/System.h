@@ -134,7 +134,6 @@ extern volatile bool          rtButtonMacro0;
 extern volatile bool          rtButtonMacro1;
 extern volatile bool          rtButtonMacro2;
 extern volatile bool          rtButtonMacro3;
-extern volatile void* sys_pl_data_inflight;  // holds a plan_line_data_t while cartesian_to_motors has taken ownership of a line motion
 #ifdef DEBUG_REPORT_REALTIME
 extern volatile bool sys_rt_exec_debug;
 #endif

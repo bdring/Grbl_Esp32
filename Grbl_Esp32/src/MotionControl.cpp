@@ -42,6 +42,14 @@
 
 GangMask ganged_mode = gangDual;  // Run both motors at once
 
+// mc_pl_data_inflight keeps track of a jog command sent to mc_line() so we can cancel it.
+// this is needed if a jogCancel comes along after we have already parsed a jog and it is in-flight.
+static volatile void* mc_pl_data_inflight;  // holds a plan_line_data_t while cartesian_to_motors has taken ownership of a line motion
+
+void mc_init() {
+    mc_pl_data_inflight = NULL;
+}
+
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in
 // (1 minute)/feed_rate time.
@@ -53,7 +61,7 @@ GangMask ganged_mode = gangDual;  // Run both motors at once
 bool mc_line(float* target, plan_line_data_t* pl_data) {
     bool submitted_result = false;
     // store the plan data so it can be cancelled by the protocol system if needed
-    sys_pl_data_inflight = pl_data;
+    mc_pl_data_inflight = pl_data;
 
     // If enabled, check for soft limit violations. Placed here all line motions are picked up
     // from everywhere in Grbl.
@@ -66,7 +74,7 @@ bool mc_line(float* target, plan_line_data_t* pl_data) {
     }
     // If in check gcode mode, prevent motion by blocking planner. Soft limits still work.
     if (sys.state == State::CheckMode) {
-        sys_pl_data_inflight = NULL;
+        mc_pl_data_inflight = NULL;
         return submitted_result;  // Bail, if system abort.
     }
     // NOTE: Backlash compensation may be installed here. It will need direction info to track when
@@ -87,7 +95,7 @@ bool mc_line(float* target, plan_line_data_t* pl_data) {
     do {
         protocol_execute_realtime();  // Check for any run-time commands
         if (sys.abort) {
-            sys_pl_data_inflight = NULL;
+            mc_pl_data_inflight = NULL;
             return submitted_result;  // Bail, if system abort.
         }
         if (plan_check_full_buffer()) {
@@ -97,12 +105,18 @@ bool mc_line(float* target, plan_line_data_t* pl_data) {
         }
     } while (1);
     // Plan and queue motion into planner buffer
-    if (sys_pl_data_inflight == pl_data) {
+    if (mc_pl_data_inflight == pl_data) {
         plan_buffer_line(target, pl_data);
         submitted_result = true;
     }
-    sys_pl_data_inflight = NULL;
+    mc_pl_data_inflight = NULL;
     return submitted_result;
+}
+
+void mc_cancel_jog() {
+    if (mc_pl_data_inflight != NULL && ((plan_line_data_t*)mc_pl_data_inflight)->is_jog) {
+        mc_pl_data_inflight = NULL;
+    }
 }
 
 bool __attribute__((weak)) cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {

@@ -31,6 +31,7 @@
 #include "Protocol.h"
 #include "System.h"
 #include "Uart.h"
+#include "MotionControl.h"
 
 #include "WebUI/WifiConfig.h"
 #include "WebUI/InputBuffer.h"
@@ -157,10 +158,7 @@ static void reset_variables() {
     plan_sync_position();
     gc_sync_position();
     report_init_message(CLIENT_ALL);
-
-    // used to keep track of a jog command sent to mc_line() so we can cancel it.
-    // this is needed if a jogCancel comes along after we have already parsed a jog and it is in-flight.
-    sys_pl_data_inflight = NULL;
+    mc_init();
 }
 
 void run_once() {
