@@ -19,6 +19,7 @@
  * UART driver that accesses the ESP32 hardware FIFOs directly.
  */
 
+#include "Logging.h"
 #include "Uart.h"
 
 #include <esp_system.h>
@@ -66,7 +67,7 @@ int Uart::read(TickType_t timeout) {
     }
     uint8_t c;
     int     res = uart_read_bytes(_uart_num, &c, 1, timeout);
-    return res != 1 ? -1 : c;
+    return res == 1 ? c : -1;
 }
 int Uart::read() {
     return read(0);
@@ -110,3 +111,9 @@ bool Uart::flushTxTimed(TickType_t ticks) {
 }
 
 Uart Uart0(0);
+
+void uartInit() {
+    Uart0.setPins(GPIO_NUM_1, GPIO_NUM_3);  // Tx 1, Rx 3 - standard hardware pins
+    Uart0.begin(BAUD_RATE, Uart::Data::Bits8, Uart::Stop::Bits1, Uart::Parity::None);
+    Uart0.write("\r\n");  // create some white space after ESP32 boot info
+}

@@ -106,11 +106,7 @@ void client_init() {
     xTaskCreatePinnedToCore(heapCheckTask, "heapTask", 2000, NULL, 1, NULL, 1);
 #endif
 
-    Uart0.setPins(GPIO_NUM_1, GPIO_NUM_3);  // Tx 1, Rx 3 - standard hardware pins
-    Uart0.begin(BAUD_RATE, Uart::Data::Bits8, Uart::Stop::Bits1, Uart::Parity::None);
-
     client_reset_read_buffer(CLIENT_ALL);
-    Uart0.write("\r\n");  // create some white space after ESP32 boot info
     clientCheckTaskHandle = 0;
 
     // create a task to check for incoming data
@@ -126,7 +122,7 @@ void client_init() {
     );
 }
 
-static uint8_t getClientChar(uint8_t& data) {
+static ClientType getClientChar(int& data) {
     if (client_buffer[CLIENT_SERIAL].availableforwrite() && (data = Uart0.read()) != -1) {
         return CLIENT_SERIAL;
     }
@@ -150,22 +146,23 @@ static uint8_t getClientChar(uint8_t& data) {
 // this task runs and checks for data on all interfaces
 // Realtime stuff is acted upon, then characters are added to the appropriate buffer
 void clientCheckTask(void* pvParameters) {
-    uint8_t data = 0;
-    uint8_t client;                                                         // who sent the data
+    int        data = 0;                                                    // Must be int so -1 value is possible
+    ClientType client;                                                      // who sent the data
     while (true) {                                                          // run continuously
         std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
         while ((client = getClientChar(data)) != CLIENT_ALL) {
+            uint8_t clientByte = uint8_t(data);
             // Pick off realtime command characters directly from the serial stream. These characters are
             // not passed into the main buffer, but these set system state flag bits for realtime execution.
-            if (is_realtime_command(data)) {
-                execute_realtime_command(static_cast<Cmd>(data), client);
+            if (is_realtime_command(clientByte)) {
+                execute_realtime_command(static_cast<Cmd>(clientByte), client);
             } else {
                 if (config->_sdCard->get_state(false) < SDCard::State::Busy) {
                     vTaskEnterCritical(&myMutex);
-                    client_buffer[client].write(data);
+                    client_buffer[client].write(clientByte);
                     vTaskExitCritical(&myMutex);
                 } else {
-                    if (data == '\r' || data == '\n') {
+                    if (clientByte == '\r' || clientByte == '\n') {
                         grbl_sendf(client, "error %d\r\n", Error::AnotherInterfaceBusy);
                         info_client(client, "SD card job running");
                     }

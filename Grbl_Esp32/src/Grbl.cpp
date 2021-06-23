@@ -30,6 +30,7 @@
 #include "Limits.h"
 #include "Protocol.h"
 #include "System.h"
+#include "Uart.h"
 
 #include "WebUI/WifiConfig.h"
 #include "WebUI/InputBuffer.h"
@@ -42,7 +43,7 @@ extern void make_grbl_commands();
 
 void grbl_init() {
     try {
-        client_init();  // Setup serial baud rate and interrupts
+        uartInit();  // Setup serial port
 
         debug_serial("Initializing WiFi...");
         WiFi.persistent(false);
@@ -64,6 +65,10 @@ void grbl_init() {
         settings_init();  // requires config
         config->load(config_filename->get());
         make_grbl_commands();
+
+        // Setup input polling loop after loading the configuration,
+        // because the polling may depend on the config
+        client_init();
 
         report_machine_type(CLIENT_SERIAL);
         info_serial("Board: %s", config->_board.c_str());

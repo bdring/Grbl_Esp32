@@ -71,3 +71,5 @@ public:
 };
 
 extern Uart Uart0;
+
+extern void uartInit();
