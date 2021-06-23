@@ -60,6 +60,7 @@ namespace Machine {
         handler.item("idle_time", _idleTime);
         handler.section("user_outputs", _userOutputs);
         handler.section("sdcard", _sdCard);
+        handler.item("software_debounce_ms", _softwareDebounceMs);
         handler.item("step_type", _stepType, stepTypes);
 
         // TODO: Consider putting these under a gcode: hierarchy level? Or motion control?

@@ -54,7 +54,7 @@ namespace Motors {
         vTaskDelay(100);
         LED_on(false);
 
-        startUpdateTask();
+        startUpdateTask(_timer_ms);
     }
 
     void Dynamixel2::config_message() {

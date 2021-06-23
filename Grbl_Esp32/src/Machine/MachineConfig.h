@@ -38,8 +38,6 @@
 #include "Communications.h"
 #include "UserOutputs.h"
 
-// TODO FIXME: Split this file up into several files, perhaps put it in some folder and namespace Machine?
-
 namespace Machine {
     class MachineConfig : public Configuration::Configurable {
     public:
@@ -61,14 +59,15 @@ namespace Machine {
         int _directionDelayMicroSeconds = 0;
         int _disableDelayMicroSeconds   = 0;
 
-        bool    _laserMode         = false;
-        float   _arcTolerance      = 0.002;
-        float   _junctionDeviation = 0.01;
-        uint8_t _idleTime          = 255;
-        bool    _verboseErrors     = false;
-        bool    _reportInches      = false;
-        bool    _homingInitLock    = false;
-        int     _stepType          = ST_RMT;
+        bool    _laserMode          = false;
+        float   _arcTolerance       = 0.002;
+        float   _junctionDeviation  = 0.01;
+        uint8_t _idleTime           = 255;
+        bool    _verboseErrors      = false;
+        bool    _reportInches       = false;
+        bool    _homingInitLock     = false;
+        int     _softwareDebounceMs = 0;
+        int     _stepType           = ST_RMT;
 
         // Enables a special set of M-code commands that enables and disables the parking motion.
         // These are controlled by `M56`, `M56 P1`, or `M56 Px` to enable and `M56 P0` to disable.

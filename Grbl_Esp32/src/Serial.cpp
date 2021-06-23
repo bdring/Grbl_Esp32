@@ -324,11 +324,9 @@ void client_write(uint8_t client, const char* text) {
     }
 
     if (client == CLIENT_SERIAL || client == CLIENT_ALL) {
-#ifdef REVERT_TO_ARDUINO_SERIAL
-        Serial.write(text);
-#else
+        // This used to be Serial.write(text) before we made the Uart class
+        // The Arduino HardwareSerial class is buggy in some versions.
         Uart0.write(text);
-#endif
     }
 }
 

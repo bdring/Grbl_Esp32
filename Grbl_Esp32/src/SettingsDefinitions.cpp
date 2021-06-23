@@ -66,7 +66,7 @@ void make_settings() {
     // GRBL Numbered Settings
     build_info = new StringSetting(EXTENDED, WG, NULL, "Firmware/Build", "");
 
-    status_mask = new IntSetting(GRBL, WG, "10", "Report/Status", DEFAULT_STATUS_REPORT_MASK, 0, 3);
+    status_mask = new IntSetting(GRBL, WG, "10", "Report/Status", 1, 0, 3);
 
     user_macro3 = new StringSetting(EXTENDED, WG, NULL, "User/Macro3", DEFAULT_USER_MACRO3);
     user_macro2 = new StringSetting(EXTENDED, WG, NULL, "User/Macro2", DEFAULT_USER_MACRO2);

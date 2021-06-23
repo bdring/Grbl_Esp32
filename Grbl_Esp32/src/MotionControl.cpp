@@ -403,11 +403,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     }
     // TODO: Need to update this cycle so it obeys a non-auto cycle start.
     if (sys.state == State::CheckMode) {
-#ifdef SET_CHECK_MODE_PROBE_TO_START
-        return GCUpdatePos::None;
-#else
-        return GCUpdatePos::Target;
-#endif
+        return config->_probe->_check_mode_start ? GCUpdatePos::None : GCUpdatePos::Target;
     }
     // Finish all queued commands and empty planner buffer before starting probe cycle.
     protocol_buffer_synchronize();

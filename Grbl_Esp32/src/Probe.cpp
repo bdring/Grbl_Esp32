@@ -59,4 +59,5 @@ void Probe::validate() const {}
 
 void Probe::group(Configuration::HandlerBase& handler) {
     handler.item("pin", _probePin);
+    handler.item("check_mode_start", _check_mode_start);
 }

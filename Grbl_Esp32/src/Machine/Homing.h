@@ -33,6 +33,8 @@ namespace Machine {
         float _seekRate          = 100;
         float _pulloff           = 1.0;  // mm
         int   _debounce          = 10;
+        float _search_scaler     = 1.1;
+        float _locate_scaler     = 5.0;
 
         // Configuration system helpers:
         void validate() const override { Assert(_cycle >= 1, "Cycle has to be defined as >= 1 for homing sequence."); }
@@ -46,6 +48,8 @@ namespace Machine {
             handler.item("debounce", _debounce);
             handler.item("pulloff", _pulloff);
             handler.item("square", _square);
+            handler.item("search_scaler", _search_scaler);
+            handler.item("locate_scaler", _locate_scaler);
         }
     };
 }

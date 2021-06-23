@@ -238,42 +238,6 @@ const int DWELL_TIME_STEP = 50;  // Integer (1-255) (milliseconds)
 // #define RX_BUFFER_SIZE 128 // (1-254) Uncomment to override defaults in serial.h
 // #define TX_BUFFER_SIZE 100 // (1-254)
 
-// A simple software debouncing feature for hard limit switches. When enabled, the limit
-// switch interrupt unblock a waiting task which will recheck the limit switch pins after
-// a short delay. Default disabled
-//#define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
-const int DEBOUNCE_PERIOD = 32;  // in milliseconds default 32 microseconds
-
-// Configures the position after a probing cycle during Grbl's check mode. Disabled sets
-// the position to the probe target, when enabled sets the position to the start position.
-// #define SET_CHECK_MODE_PROBE_TO_START // Default disabled. Uncomment to enable.
-
-// Force Grbl to check the state of the hard limit switches when the processor detects a pin
-// change inside the hard limit ISR routine. By default, Grbl will trigger the hard limits
-// alarm upon any pin change, since bouncing switches can cause a state check like this to
-// misread the pin. When hard limits are triggered, they should be 100% reliable, which is the
-// reason that this option is disabled by default. Only if your system/electronics can guarantee
-// that the switches don't bounce, we recommend enabling this option. This will help prevent
-// triggering a hard limit when the machine disengages from the switch.
-// NOTE: This option has no effect if SOFTWARE_DEBOUNCE is enabled.
-// #define HARD_LIMIT_FORCE_STATE_CHECK // Default disabled. Uncomment to enable.
-
-// Adjusts homing cycle search and locate scalars. These are the multipliers used by Grbl's
-// homing cycle to ensure the limit switches are engaged and cleared through each phase of
-// the cycle. The search phase uses the axes max-travel setting times the SEARCH_SCALAR to
-// determine distance to look for the limit switch. Once found, the locate phase begins and
-// uses the homing pull-off distance setting times the LOCATE_SCALAR to pull-off and re-engage
-// the limit switch.
-// NOTE: Both of these values must be greater than 1.0 to ensure proper function.
-// #define HOMING_AXIS_SEARCH_SCALAR  1.5 // Uncomment to override defaults in limits.c.
-// #define HOMING_AXIS_LOCATE_SCALAR  10.0 // Uncomment to override defaults in limits.c.
-
-// Additional settings have been added to the original set that you see with the $$ command
-// Some senders may not be able to parse anything different from the original set
-// You can still set these like $33=5000, but you cannot read them back.
-// Default is off to limit support issues...you can enable here or in your machine definition file
-// #define SHOW_EXTENDED_SETTINGS
-
 // Writing to non-volatile storage (NVS) can take a long time and interfere with timely instruction
 // execution, causing problems for the stepper ISRs and serial comm ISRs and subsequent loss of
 // stepper position and serial data. This configuration option forces the planner buffer to completely

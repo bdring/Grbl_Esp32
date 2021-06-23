@@ -93,9 +93,7 @@ void collapseGCode(char* line) {
                 break;
             case ';':
                 // NOTE: ';' comment to EOL is a LinuxCNC definition. Not NIST.
-#ifdef REPORT_SEMICOLON_COMMENTS
-                report_gcode_comment(inPtr + 1);
-#endif
+                // report_gcode_comment(inPtr + 1);
                 *outPtr = '\0';
                 return;
             case '%':

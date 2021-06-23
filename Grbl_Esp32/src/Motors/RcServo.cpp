@@ -47,7 +47,7 @@ namespace Motors {
 
         _disabled = true;
         config_message();
-        startUpdateTask();
+        startUpdateTask(_timer_ms);
     }
 
     void RcServo::config_message() {

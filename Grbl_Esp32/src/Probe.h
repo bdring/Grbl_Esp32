@@ -34,12 +34,19 @@ enum class ProbeState : uint8_t {
 };
 
 class Probe : public Configuration::Configurable {
-    Pin _probePin;
-
     // Inverts the probe pin state depending on user settings and probing cycle mode.
     bool _isProbeAway = false;
 
+    // Configurable
+    Pin _probePin;
+
 public:
+    // Configurable
+    bool _check_mode_start = true;
+    // _check_mode_start configures the position after a probing cycle
+    // during check mode. false sets the position to the probe target,
+    // true sets the position to the start position.
+
     Probe() = default;
 
     bool exists() const { return _probePin.defined(); }

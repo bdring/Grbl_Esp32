@@ -32,14 +32,6 @@
 
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 
-// Homing axis search distance multiplier. Computed by this value times the cycle travel.
-#ifndef HOMING_AXIS_SEARCH_SCALAR
-#    define HOMING_AXIS_SEARCH_SCALAR 1.1  // Must be > 1 to ensure limit switch will be engaged.
-#endif
-#ifndef HOMING_AXIS_LOCATE_SCALAR
-#    define HOMING_AXIS_LOCATE_SCALAR 5.0  // Must be > 1 to ensure limit switch is cleared.
-#endif
-
 void IRAM_ATTR isr_limit_switches(void* /*unused */) {
     // Ignore limit switches if already in an alarm state or in-process of executing an alarm.
     // When in the alarm state, Grbl should have been reset or will force a reset, so any pending
@@ -48,24 +40,18 @@ void IRAM_ATTR isr_limit_switches(void* /*unused */) {
     // limit setting if their limits are constantly triggering after a reset and move their axes.
     if (sys.state != State::Alarm && sys.state != State::ConfigAlarm && sys.state != State::Homing) {
         if (sys_rt_exec_alarm == ExecAlarm::None) {
-#ifdef ENABLE_SOFTWARE_DEBOUNCE
-            // we will start a task that will recheck the switches after a small delay
-            int evt;
-            xQueueSendFromISR(limit_sw_queue, &evt, NULL);
-#else
-#    ifdef HARD_LIMIT_FORCE_STATE_CHECK
-            // Check limit pin state.
-            if (limits_get_state()) {
-                debug_all("Hard limits");
-                mc_reset();                                // Initiate system kill.
-                sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
+            if (config->_softwareDebounceMs) {
+                // we will start a task that will recheck the switches after a small delay
+                int evt;
+                xQueueSendFromISR(limit_sw_queue, &evt, NULL);
+            } else {
+                // Check limit pin state.
+                if (limits_get_state()) {
+                    debug_all("Hard limits");
+                    mc_reset();                                // Initiate system kill.
+                    sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
+                }
             }
-#    else
-            debug_all("Hard limits");
-            mc_reset();                                // Initiate system kill.
-            sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
-#    endif
-#endif
         }
     }
 }
@@ -188,11 +174,13 @@ void limits_go_home(uint8_t cycle_mask, uint n_locate_cycles) {
             }
         }
         // Scale the target array, currently in units of time, back to positions
-        // The SCALAR adds a small fudge factor to ensure that the limit is reached
-        limitingRate *= approach ? HOMING_AXIS_SEARCH_SCALAR : HOMING_AXIS_LOCATE_SCALAR;
+        // Add a small fudge factor to ensure that the limit is reached
         for (int axis = 0; axis < n_axis; axis++) {
+            auto axisConfig = config->_axes->_axis[axis];
+            auto homing     = axisConfig->_homing;
+            auto scaler     = approach ? homing->_search_scaler : homing->_locate_scaler;
             if (bitnum_istrue(axislock, axis)) {
-                target[axis] *= limitingRate;
+                target[axis] *= limitingRate * scaler;
             }
         }
         homing_rate = sqrt(homing_rate);  // Magnitude of homing rate vector
@@ -274,7 +262,7 @@ void limits_go_home(uint8_t cycle_mask, uint n_locate_cycles) {
     // Set machine positions for homed limit switches. Don't update non-homed axes.
     for (int axis = 0; axis < n_axis; axis++) {
         Machine::Axis* axisConf = config->_axes->_axis[axis];
-        auto  homing   = axisConf->_homing;
+        auto           homing   = axisConf->_homing;
         if (homing != nullptr && bitnum_istrue(cycle_mask, axis)) {
             auto mpos    = homing->_mpos;
             auto pulloff = homing->_pulloff;
@@ -310,22 +298,22 @@ void limits_init() {
                     pin.detachInterrupt();
                 }
 
-                if (limit_sw_queue == NULL) {
-                    info_serial("%s limit on %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
-                }
+                info_serial("%s limit on %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
             }
         }
     }
 
-    // setup task used for debouncing
-    if (limit_sw_queue == NULL) {
-        limit_sw_queue = xQueueCreate(10, sizeof(int));
-        xTaskCreate(limitCheckTask,
-                    "limitCheckTask",
-                    2048,
-                    NULL,
-                    5,  // priority
-                    NULL);
+    if (limit_sw_queue == NULL && config->_softwareDebounceMs != 0) {
+        // setup task used for debouncing
+        if (limit_sw_queue == NULL) {
+            limit_sw_queue = xQueueCreate(10, sizeof(int));
+            xTaskCreate(limitCheckTask,
+                        "limitCheckTask",
+                        2048,
+                        NULL,
+                        5,  // priority
+                        NULL);
+        }
     }
 }
 
@@ -390,14 +378,13 @@ void limits_soft_check(float* target) {
     }
 }
 
-// this is the task
 void limitCheckTask(void* pvParameters) {
     while (true) {
         std::atomic_thread_fence(std::memory_order::memory_order_seq_cst);  // read fence for settings
 
         int evt;
-        xQueueReceive(limit_sw_queue, &evt, portMAX_DELAY);  // block until receive queue
-        vTaskDelay(DEBOUNCE_PERIOD / portTICK_PERIOD_MS);    // delay a while
+        xQueueReceive(limit_sw_queue, &evt, portMAX_DELAY);            // block until receive queue
+        vTaskDelay(config->_softwareDebounceMs / portTICK_PERIOD_MS);  // delay a while
         AxisMask switch_state;
         switch_state = limits_get_state();
         if (switch_state) {

@@ -31,14 +31,6 @@
     */
 
 // Grbl generic default settings. Should work across different machines.
-#ifndef DEFAULT_STATUS_REPORT_MASK
-#    define DEFAULT_STATUS_REPORT_MASK 1  // $10
-#endif
-
-#ifndef SERVO_TIMER_INTERVAL
-#    define SERVO_TIMER_INTERVAL 75.0  // Hz This is the update inveral in milliseconds
-#endif
-
 #ifndef DEFAULT_USER_MACRO0
 #    define DEFAULT_USER_MACRO0 ""
 #endif
