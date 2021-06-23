@@ -22,13 +22,16 @@
 
 #include "stdint.h"
 
-#define CLIENT_SERIAL 0
-#define CLIENT_BT 1
-#define CLIENT_WEBUI 2
-#define CLIENT_TELNET 3
-#define CLIENT_INPUT 4
-#define CLIENT_ALL 0xFF
-#define CLIENT_COUNT 5  // total number of client types regardless if they are used
+// TODO: Change to enum class, and instead of 'uint8_t client' everywhere, change to ClientType client.
+enum ClientType : uint8_t {
+    CLIENT_SERIAL = 0,
+    CLIENT_BT     = 1,
+    CLIENT_WEBUI  = 2,
+    CLIENT_TELNET = 3,
+    CLIENT_INPUT  = 4,
+    CLIENT_ALL    = 0xFF,
+    CLIENT_COUNT  = 5,  // total number of client types regardless if they are used
+};
 
 // a task to read for incoming data from serial port
 void clientCheckTask(void* pvParameters);

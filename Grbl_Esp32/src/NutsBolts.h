@@ -23,8 +23,6 @@
 // #define false 0
 // #define true 1
 
-#define UNDEFINED_PIN ""
-
 enum class DwellMode : uint8_t {
     Dwell      = 0,  // (Default: Must be zero)
     SysSuspend = 1,  //G92.1 (Do not alter value)
@@ -38,9 +36,9 @@ const double SOME_LARGE_VALUE = 1.0E+38;
 const int X_AXIS = 0;  // Axis indexing value.
 const int Y_AXIS = 1;
 const int Z_AXIS = 2;
-#define A_AXIS 3
-#define B_AXIS 4
-#define C_AXIS 5
+const int A_AXIS = 3;
+const int B_AXIS = 4;
+const int C_AXIS = 5;
 
 const int MAX_AXES   = 6;
 const int MAX_GANGED = 2;
@@ -48,12 +46,12 @@ const int MAX_GANGED = 2;
 const int PRIMARY_MOTOR = 0;
 const int GANGED_MOTOR  = 1;
 
-#define X2_AXIS (X_AXIS + MAX_AXES)
-#define Y2_AXIS (Y_AXIS + MAX_AXES)
-#define Z2_AXIS (Z_AXIS + MAX_AXES)
-#define A2_AXIS (A_AXIS + MAX_AXES)
-#define B2_AXIS (B_AXIS + MAX_AXES)
-#define C2_AXIS (C_AXIS + MAX_AXES)
+const int         X2_AXIS = (X_AXIS + MAX_AXES);
+const int         Y2_AXIS = (Y_AXIS + MAX_AXES);
+const int         Z2_AXIS = (Z_AXIS + MAX_AXES);
+const int         A2_AXIS = (A_AXIS + MAX_AXES);
+const int         B2_AXIS = (B_AXIS + MAX_AXES);
+const int         C2_AXIS = (C_AXIS + MAX_AXES);
 static inline int toMotor2(int axis) {
     return axis + MAX_AXES;
 }

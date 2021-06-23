@@ -181,7 +181,7 @@ Error list_pins(const char* value, WebUI::AuthenticationLevel auth_level, WebUI:
 Error list_changed_pins(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     for (Setting* s = Setting::List; s; s = s->next()) {
         const char* value = s->getStringValue();
-        if (s->getType() == PIN && strcmp(value, UNDEFINED_PIN)) {
+        if (s->getType() == PIN && strcmp(value, "")) {  // Not undefined pin
             show_setting(s->getName(), value, NULL, out);
         }
     }
