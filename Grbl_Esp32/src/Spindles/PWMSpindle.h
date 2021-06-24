@@ -49,7 +49,6 @@ namespace Spindles {
 
         void group(Configuration::HandlerBase& handler) override {
             handler.item("pwm_freq", _pwm_freq);
-            handler.item("invert_pwm", _invert_pwm);
 
             OnOff::group(handler);
         }
@@ -62,10 +61,11 @@ namespace Spindles {
     protected:
         int32_t  _current_pwm_duty;
         uint8_t  _pwm_chan_num;
-        uint32_t _pwm_freq = 5000;
         uint32_t _pwm_period;     // how many counts in 1 period
         uint8_t  _pwm_precision;  // auto calculated
-        bool     _invert_pwm = false;
+
+        // Configurable
+        uint32_t _pwm_freq = 5000;
 
         virtual void set_output(uint32_t duty) override;
         virtual void deinit();

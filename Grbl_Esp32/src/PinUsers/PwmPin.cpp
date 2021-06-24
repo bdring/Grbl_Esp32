@@ -18,6 +18,7 @@
 
 #include "PwmPin.h"
 
+#include "../Pins/Ledc.h"
 #include "../Pin.h"
 #include "../Assert.h"
 #include "LimitedResource.h"
@@ -107,9 +108,8 @@ namespace PinUsers {
 
             resolutionBits_ = calculatePwmPrecision(frequency);
 
-            ledcSetup(pwmChannel_, frequency, resolutionBits_);
-            ledcAttachPin(native, pwmChannel_);
-            ledcWrite(pwmChannel_, 0);
+            ledcInit(pin, pwmChannel_, frequency, resolutionBits_);
+            ledcSetDuty(pwmChannel_, 0);
 
             // info_serial("PWM Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
 
@@ -129,13 +129,13 @@ namespace PinUsers {
             }
 
             auto duty = value * (uint32_t(1) << int(resolutionBits_));
-            ledcWrite(pwmChannel_, uint32_t(duty));
+            ledcSetDuty(pwmChannel_, uint32_t(duty));
         }
 
         ~NativePwm() override {
             auto native = pin_.getNative(Pin::Capabilities::PWM | Pin::Capabilities::Native);
 
-            ledcWrite(pwmChannel_, 0);
+            ledcSetDuty(pwmChannel_, 0);
             ledcDetachPin(native);
 
             // Release resource:

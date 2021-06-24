@@ -32,6 +32,7 @@
 */
 #include "BESCSpindle.h"
 
+#include "../Pins/Ledc.h"
 #include "../Report.h"
 
 #include <soc/ledc_struct.h>
@@ -51,9 +52,7 @@ namespace Spindles {
         _pwm_precision = 16;
         _pwm_period    = (1 << _pwm_precision);
 
-        auto outputNative = _output_pin.getNative(Pin::Capabilities::PWM);
-        ledcSetup(_pwm_chan_num, double(_pwm_freq), _pwm_precision);  // setup the channel
-        ledcAttachPin(outputNative, _pwm_chan_num);                   // attach the PWM to the pin
+        ledcInit(_output_pin, _pwm_chan_num, double(_pwm_freq), _pwm_precision);  // setup the channel
 
         _enable_pin.setAttr(Pin::Attr::Output);
 
@@ -84,7 +83,7 @@ namespace Spindles {
             return;
         }
 
-        // to prevent excessive calls to ledcWrite, make sure duty has changed
+        // to prevent excessive calls to ledcSetDuty, make sure duty has changed
         if (duty == _current_pwm_duty) {
             return;
         }
@@ -97,15 +96,7 @@ namespace Spindles {
         // full on value is a 2ms pulse.
         uint32_t pulse_counts = _min_pulse_counts + ((duty * _pulse_span_counts) >> _pwm_precision);
 
-        // This was ledcWrite, but this is called from an ISR
-        // and ledcWrite uses RTOS features not compatible with ISRs
-        LEDC.channel_group[0].channel[0].duty.duty = pulse_counts << 4;
-
-        // bool on = !!duty;
-        bool on = true;  // Never turn off the pulse train
-
-        LEDC.channel_group[0].channel[0].conf0.sig_out_en = on;
-        LEDC.channel_group[0].channel[0].conf1.duty_start = on;
+        ledcSetDuty(_pwm_chan_num, pulse_counts);
     }
 
     // prints the startup message of the spindle config

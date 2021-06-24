@@ -26,6 +26,7 @@
 */
 #include "10vSpindle.h"
 
+#include "../Pins/Ledc.h"
 #include "../Report.h"
 #include "../System.h"  // sys.spindle_speed
 
@@ -39,10 +40,7 @@ namespace Spindles {
             return;  // We cannot continue without the output pin
         }
 
-        auto outputPin = _output_pin.getNative(Pin::Capabilities::PWM);
-
-        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(outputPin, _pwm_chan_num);                      // attach the PWM to the pin
+        ledcInit(_output_pin, _pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
 
         _enable_pin.setAttr(Pin::Attr::Output);
         _direction_pin.setAttr(Pin::Attr::Output);

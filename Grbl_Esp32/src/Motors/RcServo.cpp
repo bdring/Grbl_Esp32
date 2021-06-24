@@ -31,6 +31,7 @@
 #include "RcServo.h"
 
 #include "../Machine/MachineConfig.h"
+#include "../Pins/Ledc.h"
 #include "../Pin.h"
 #include "../Report.h"
 #include "../Limits.h"  // limitsMaxPosition
@@ -45,12 +46,9 @@ namespace Motors {
     void RcServo::init() {
         _axis_index = axis_index();
 
-        auto pwmNative = _pwm_pin.getNative(Pin::Capabilities::PWM);
-
         read_settings();
         _channel_num = sys_get_next_PWM_chan_num();
-        ledcSetup(_channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
-        ledcAttachPin(pwmNative, _channel_num);
+        ledcInit(_pwm_pin, _channel_num, SERVO_PULSE_FREQ, SERVO_PULSE_RES_BITS);
         _current_pwm_duty = 0;
 
         _disabled = true;
@@ -74,7 +72,7 @@ namespace Motors {
         }
 
         _current_pwm_duty = duty;
-        ledcWrite(_channel_num, duty);
+        ledcSetDuty(_channel_num, duty);
     }
 
     // sets the PWM to zero. This allows most servos to be manually moved

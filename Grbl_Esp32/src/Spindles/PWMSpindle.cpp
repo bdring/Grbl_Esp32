@@ -21,14 +21,10 @@
 */
 #include "PWMSpindle.h"
 
-#include <soc/ledc_struct.h>
-#include <driver/ledc.h>
-
 #include "../System.h"  // sys.report_ovr_counter
 #include "../GCode.h"   // gc_state.modal
 #include "../Logging.h"
-
-extern "C" void __pinMode(uint8_t pin, uint8_t mode);
+#include "../Pins/Ledc.h"
 
 // ======================= PWM ==============================
 /*
@@ -63,15 +59,7 @@ namespace Spindles {
 
         auto outputNative = _output_pin.getNative(Pin::Capabilities::PWM);
 
-        ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-
-        // This is equivalent to ledcAttachPin with the addition of
-        // using the hardware inversion function in the GPIO matrix.
-        // We use that to apply the active low function in hardware.
-        __pinMode(outputNative, OUTPUT);
-        uint8_t function    = ((_pwm_chan_num / 8) ? LEDC_LS_SIG_OUT0_IDX : LEDC_HS_SIG_OUT0_IDX) + (_pwm_chan_num % 8);
-        bool    isActiveLow = _output_pin.getAttr().has(Pin::Attr::ActiveLow);
-        pinMatrixOutAttach(outputNative, function, isActiveLow, false);
+        ledcInit(_output_pin, _pwm_chan_num, (double)_pwm_freq, _pwm_precision);
 
         _enable_pin.setAttr(Pin::Attr::Output);
         _direction_pin.setAttr(Pin::Attr::Output);
@@ -142,25 +130,14 @@ namespace Spindles {
             return;
         }
 
-        // to prevent excessive calls to ledcWrite, make sure duty has changed
+        // to prevent excessive calls to ledcSetDuty, make sure duty has changed
         if (duty == _current_pwm_duty) {
             return;
         }
 
         _current_pwm_duty = duty;
 
-        if (_invert_pwm) {
-            duty = (1 << _pwm_precision) - duty;
-        }
-
-        //ledcWrite(_pwm_chan_num, duty);
-
-        // This was ledcWrite, but this is called from an ISR
-        // and ledcWrite uses RTOS features not compatible with ISRs
-        LEDC.channel_group[0].channel[0].duty.duty        = duty << 4;
-        bool on                                           = !!duty;
-        LEDC.channel_group[0].channel[0].conf0.sig_out_en = on;
-        LEDC.channel_group[0].channel[0].conf1.duty_start = on;
+        ledcSetDuty(_pwm_chan_num, duty);
     }
 
     /*
