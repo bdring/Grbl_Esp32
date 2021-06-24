@@ -379,6 +379,13 @@ namespace WebUI {
         return Error::Ok;
     }
 
+    static Error restart(char* parameter, AuthenticationLevel auth_level) {
+        parameter = trim(parameter);
+        info_all("Restart ongoing");
+        COMMANDS::restart_ESP();
+        return Error::Ok;
+    }
+
     static void showWifiStats() {
 #ifdef ENABLE_WIFI
         int mode = WiFi.getMode();
@@ -1073,6 +1080,7 @@ namespace WebUI {
         new WebCommand(NULL, WEBCMD, WG, "ESP800", "Firmware/Info", showFwInfo, anyState);
         new WebCommand(NULL, WEBCMD, WU, "ESP420", "System/Stats", showSysStats, anyState);
         new WebCommand("RESTART", WEBCMD, WA, "ESP444", "System/Control", setSystemMode);
+        new WebCommand("RESTART", WEBCMD, WA, NULL, "Bye", restart);
 
         new WebCommand(NULL, WEBCMD, WU, "ESP720", "LocalFS/Size", SPIFFSSize);
         new WebCommand("FORMAT", WEBCMD, WA, "ESP710", "LocalFS/Format", formatSpiffs);
