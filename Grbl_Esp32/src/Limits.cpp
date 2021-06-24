@@ -308,6 +308,8 @@ void limits_init() {
                 }
                 Pin& pin = gangConfig->_endstops->_dual;
 
+                info_serial("%s limit on %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
+
                 pin.setAttr(Pin::Attr::Input | Pin::Attr::ISR);
                 bitnum_true(limit_mask, axis);
                 if (gangConfig->_endstops->_hardLimits) {
@@ -315,8 +317,6 @@ void limits_init() {
                 } else {
                     pin.detachInterrupt();
                 }
-
-                info_serial("%s limit on %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
             }
         }
     }
