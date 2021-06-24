@@ -33,6 +33,9 @@ namespace Spindles {
     void Null::init() {
         is_reversable = false;
         config_message();
+        if (_speeds.size() == 0) {
+            _speeds.push_back({ 0, 0 });
+        }
     }
     void IRAM_ATTR Null::setSpeedfromISR(uint32_t dev_speed) {};
     void           Null::setState(SpindleState state, SpindleSpeed speed) {
