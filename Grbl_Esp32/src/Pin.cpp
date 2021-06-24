@@ -75,17 +75,10 @@ const char* Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
 
     int pinNumber = 0;
     if (prefix != "") {
-        if (idx == str.end()) {
-            // Incorrect pin definition.
-            return "Pin definition is missing.";
-        }
-
-        for (int n = 0; idx != str.end() && n <= 4 && *idx >= '0' && *idx <= '9'; ++idx, ++n) {
-            pinNumber = pinNumber * 10 + int(*idx - '0');
-        }
-        if ((idx != str.end() && *idx >= '0' && *idx <= '9') || (pinNumber < 0 || pinNumber > 253)) {
-            // Pin number has to be between [0,253].
-            return "Pin number has to be between [0,253>";
+        if (idx != str.end()) {
+            for (int n = 0; idx != str.end() && n <= 4 && *idx >= '0' && *idx <= '9'; ++idx, ++n) {
+                pinNumber = pinNumber * 10 + int(*idx - '0');
+            }
         }
     }
 
@@ -112,7 +105,7 @@ const char* Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     // Build an options parser:
     Pins::PinOptionsParser parser(options.begin(), options.end());
 
-    pin_debug("Attempting to set up pin: %s, index %d\r\n", prefix.c_str(), int(pinNumber));
+    pin_debug("Attempting to set up pin: %s, index %d", prefix.c_str(), int(pinNumber));
 
     // Build this pin:
     if (prefix == "gpio") {
@@ -123,16 +116,20 @@ const char* Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
         pinImplementation = new Pins::I2SOPinDetail(uint8_t(pinNumber), parser);
     }
 #endif
+    if (prefix == "no_pin") {
+        pinImplementation = new Pins::VoidPinDetail();
+    }
+
     if (prefix == "void") {
         // Note: having multiple void pins has its uses for debugging.
         pinImplementation = new Pins::VoidPinDetail();
     }
 
     if (pinImplementation == nullptr) {
-        pin_error("ERR: Unknown prefix: \"%s\"\r\n", prefix.c_str());
+        pin_error("ERR: Unknown prefix: \"%s\"", prefix.c_str());
         return "Unknown pin prefix";
     } else {
-#if DEBUG_PIN_DUMP
+#ifdef DEBUG_PIN_DUMP
         pinImplementation = new Pins::DebugPinDetail(pinImplementation);
 #endif
 
@@ -147,7 +144,7 @@ Pin Pin::create(const String& str) {
 Pin Pin::create(const StringRange& str) {
     Pins::PinDetail* pinImplementation = nullptr;
     try {
-        pin_debug("Setting up pin: [%s]\r\n", str.str().c_str());
+        pin_debug("Setting up pin: [%s]", str.str().c_str());
 
         const char* err = parse(str, pinImplementation);
         if (err) {
