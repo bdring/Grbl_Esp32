@@ -249,7 +249,7 @@ Error report_ngc(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
     return Error::Ok;
 }
 Error home(int cycle) {
-    if (homingAxes()) {
+    if (!homingAxes()) {
         return Error::SettingDisabled;
     }
     if (config->_control->system_check_safety_door_ajar()) {

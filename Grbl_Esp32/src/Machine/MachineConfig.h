@@ -65,7 +65,7 @@ namespace Machine {
         uint8_t _idleTime           = 255;
         bool    _verboseErrors      = false;
         bool    _reportInches       = false;
-        bool    _homingInitLock     = false;
+        bool    _homingInitLock     = true;
         int     _softwareDebounceMs = 0;
         int     _stepType           = ST_RMT;
 
