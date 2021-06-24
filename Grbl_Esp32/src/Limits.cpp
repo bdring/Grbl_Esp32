@@ -296,11 +296,16 @@ uint8_t limit_mask = 0;
 void limits_init() {
     limit_mask = 0;
 
-    auto n_axis = config->_axes->_numberAxis;
+    bool hasLimits = false;
+    auto n_axis    = config->_axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
             if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
+                if (!hasLimits) {
+                    info_serial("Initializing endstops...");
+                    hasLimits = true;
+                }
                 Pin& pin = gangConfig->_endstops->_dual;
 
                 pin.setAttr(Pin::Attr::Input | Pin::Attr::ISR);
@@ -316,16 +321,18 @@ void limits_init() {
         }
     }
 
-    if (limit_sw_queue == NULL && config->_softwareDebounceMs != 0) {
-        // setup task used for debouncing
-        if (limit_sw_queue == NULL) {
-            limit_sw_queue = xQueueCreate(10, sizeof(int));
-            xTaskCreate(limitCheckTask,
-                        "limitCheckTask",
-                        2048,
-                        NULL,
-                        5,  // priority
-                        NULL);
+    if (hasLimits) {
+        if (limit_sw_queue == NULL && config->_softwareDebounceMs != 0) {
+            // setup task used for debouncing
+            if (limit_sw_queue == NULL) {
+                limit_sw_queue = xQueueCreate(10, sizeof(int));
+                xTaskCreate(limitCheckTask,
+                            "limitCheckTask",
+                            2048,
+                            NULL,
+                            5,  // priority
+                            NULL);
+            }
         }
     }
 }
