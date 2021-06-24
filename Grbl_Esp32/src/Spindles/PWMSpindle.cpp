@@ -28,6 +28,8 @@
 #include "../GCode.h"   // gc_state.modal
 #include "../Logging.h"
 
+extern "C" void __pinMode(uint8_t pin, uint8_t mode);
+
 // ======================= PWM ==============================
 /*
     This gets called at startup or whenever a spindle setting changes
@@ -62,7 +64,14 @@ namespace Spindles {
         auto outputNative = _output_pin.getNative(Pin::Capabilities::PWM);
 
         ledcSetup(_pwm_chan_num, (double)_pwm_freq, _pwm_precision);  // setup the channel
-        ledcAttachPin(outputNative, _pwm_chan_num);                   // attach the PWM to the pin
+
+        // This is equivalent to ledcAttachPin with the addition of
+        // using the hardware inversion function in the GPIO matrix.
+        // We use that to apply the active low function in hardware.
+        __pinMode(outputNative, OUTPUT);
+        uint8_t function    = ((_pwm_chan_num / 8) ? LEDC_LS_SIG_OUT0_IDX : LEDC_HS_SIG_OUT0_IDX) + (_pwm_chan_num % 8);
+        bool    isActiveLow = _output_pin.getAttr().has(Pin::Attr::ActiveLow);
+        pinMatrixOutAttach(outputNative, function, isActiveLow, false);
 
         _enable_pin.setAttr(Pin::Attr::Output);
         _direction_pin.setAttr(Pin::Attr::Output);
