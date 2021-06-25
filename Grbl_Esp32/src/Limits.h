@@ -37,6 +37,9 @@ void limits_init();
 // Disables hard limits.
 void limits_disable();
 
+// Re-enables hard limits.
+void limits_enable();
+
 // Returns limit state
 AxisMask limits_get_state();
 

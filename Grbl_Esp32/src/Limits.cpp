@@ -351,6 +351,20 @@ void limits_disable() {
     }
 }
 
+// Re-enables hard limits.
+void limits_enable() {
+    auto n_axis = config->_axes->_numberAxis;
+    for (int axis = 0; axis < n_axis; axis++) {
+        for (int gang_index = 0; gang_index < 2; gang_index++) {
+            auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
+            if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
+                Pin& pin = gangConfig->_endstops->_dual;
+                pin.attachInterrupt(isr_limit_switches, CHANGE, nullptr);
+            }
+        }
+    }
+}
+
 // Returns limit state as a bit-wise uint8 variable. Each bit indicates an axis limit, where
 // triggered is 1 and not triggered is 0. Invert mask is applied. Axes are defined by their
 // number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).

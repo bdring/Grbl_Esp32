@@ -413,7 +413,7 @@ void mc_homing_cycle(AxisMask axis_mask) {
     // This give kinematics a chance to do something after normal homing
     kinematics_post_homing();
     // If hard limits feature enabled, re-enable hard limits pin change register after homing cycle.
-    limits_init();
+    limits_enable();
 }
 
 // Perform tool length probe cycle. Requires probe switch.
