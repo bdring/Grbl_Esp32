@@ -72,9 +72,5 @@ bool get_stepper_disable();  // returns the state of the pin
 void set_stepper_pins_on(uint8_t onMask);
 void set_direction_pins_on(uint8_t onMask);
 
-void Stepper_Timer_WritePeriod(uint16_t timerTicks);
-void Stepper_Timer_Init();
-void Stepper_Timer_Start();
-void Stepper_Timer_Stop();
-
 extern EnumItem stepTypes[];
+extern uint32_t step_count;

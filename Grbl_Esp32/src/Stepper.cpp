@@ -190,6 +190,12 @@ EnumItem stepTypes[] = {
 
 */
 
+// Forward references to functions that are only used herein
+static void Stepper_Timer_WritePeriod(uint16_t timerTicks);
+static void Stepper_Timer_Init();
+static void Stepper_Timer_Start();
+static void Stepper_Timer_Stop();
+
 // Stepper timer configuration
 const int   stepTimerNumber = 0;
 hw_timer_t* stepTimer;  // Handle
@@ -198,6 +204,11 @@ hw_timer_t* stepTimer;  // Handle
 const bool autoReload = true;
 
 static void stepper_pulse_func();
+
+// Counts stepper ISR invocations.  This variable can be inspected
+// from the mainline code to determine if the stepper ISR is running,
+// since printing from the ISR is not a good idea.
+uint32_t step_count = 0;
 
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
@@ -209,12 +220,23 @@ void IRAM_ATTR onStepperDriverTimer() {
 
     bool expected = false;
     if (busy.compare_exchange_strong(expected, true)) {
-        stepper_pulse_func();
+        ++step_count;
 
+        // Using autoReload results is less timing jitter so it is
+        // probably best to have it on.  We keep the variable for
+        // convenience in debugging.
         if (!autoReload) {
             timerWrite(stepTimer, 0ULL);
-            timerAlarmEnable(stepTimer);
         }
+
+        // It is tempting to defer this until after stepper_pulse_func(),
+        // but if stepper_pulse_func() determines that no more stepping
+        // is required and disables the timer, then that will be undone
+        // if the re-enable happens afterwards.
+
+        timerAlarmEnable(stepTimer);
+
+        stepper_pulse_func();
 
         busy.store(false);
     }
@@ -906,7 +928,7 @@ float st_get_realtime_rate() {
 }
 
 // The argument is in units of ticks of the timer that generates ISRs
-void IRAM_ATTR Stepper_Timer_WritePeriod(uint16_t timerTicks) {
+static void IRAM_ATTR Stepper_Timer_WritePeriod(uint16_t timerTicks) {
     if (config->_stepType == ST_I2S_STREAM) {
         // 1 tick = fTimers / fStepperTimer
         // Pulse ISR is called for each tick of alarm_val.
@@ -917,14 +939,14 @@ void IRAM_ATTR Stepper_Timer_WritePeriod(uint16_t timerTicks) {
     }
 }
 
-void IRAM_ATTR Stepper_Timer_Init() {
+static void IRAM_ATTR Stepper_Timer_Init() {
     const bool isEdge  = false;
     const bool countUp = true;
     stepTimer          = timerBegin(stepTimerNumber, fTimers / fStepperTimer, countUp);
     timerAttachInterrupt(stepTimer, onStepperDriverTimer, isEdge);
 }
 
-void IRAM_ATTR Stepper_Timer_Start() {
+static void IRAM_ATTR Stepper_Timer_Start() {
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_set_stepping();
     } else {
@@ -933,7 +955,7 @@ void IRAM_ATTR Stepper_Timer_Start() {
     }
 }
 
-void IRAM_ATTR Stepper_Timer_Stop() {
+static void IRAM_ATTR Stepper_Timer_Stop() {
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_set_passthrough();
     } else {

@@ -54,6 +54,7 @@
 #include "SettingsDefinitions.h"
 #include "Limits.h"                      // limits_get_state
 #include "Planner.h"                     // plan_get_block_buffer_available
+#include "Stepper.h"                     // step_count
 #include "WebUI/NotificationsService.h"  // WebUI::notificationsservice
 #include "WebUI/WifiConfig.h"            // wifi_config
 #include "WebUI/TelnetServer.h"          // WebUI::telnet_server
@@ -760,6 +761,10 @@ void report_realtime_status(uint8_t client) {
         config->_sdCard->get_current_filename(temp);
         strcat(status, temp);
     }
+#ifdef DEBUG_STEPPER_ISR
+    sprintf(temp, "|cnt:%d", step_count);
+    strcat(status, temp);
+#endif
 #ifdef DEBUG_REPORT_HEAP
     sprintf(temp, "|Heap:%d", esp.getHeapSize());
     strcat(status, temp);
