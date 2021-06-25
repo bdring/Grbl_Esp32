@@ -762,7 +762,7 @@ void report_realtime_status(uint8_t client) {
         strcat(status, temp);
     }
 #ifdef DEBUG_STEPPER_ISR
-    sprintf(temp, "|cnt:%d", step_count);
+    sprintf(temp, "|ISRs:%d", step_count);
     strcat(status, temp);
 #endif
 #ifdef DEBUG_REPORT_HEAP
