@@ -46,11 +46,7 @@ Some features should not be changed. See notes below.
 // machine.h is #included below, after some definitions
 // that the machine file might choose to undefine.
 
-// Note: HOMING_CYCLES are now settings
 const int SUPPORT_TASK_CORE = 1;  // Reference: CONFIG_ARDUINO_RUNNING_CORE = 1
-
-// #define ENABLE_CONTROL_SW_DEBOUNCE     // Default disabled. Uncomment to enable.
-#define CONTROL_SW_DEBOUNCE_PERIOD 32  // in milliseconds default 32 microseconds
 
 // Include the file that loads the machine-specific config file.
 // machine.h must be edited to choose the desired file.
@@ -100,24 +96,10 @@ static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 // parser state depending on user preferences.
 // #define N_STARTUP_LINE 2  // Integer (1-2)
 
-// Number of floating decimal points printed by Grbl for certain value types. These settings are
-// determined by realistic and commonly observed values in CNC machines. For example, position
-// values cannot be less than 0.001mm or 0.0001in, because machines can not be physically more
-// precise this. So, there is likely no need to change these, but you can if you need to here.
-// NOTE: Must be an integer value from 0 to ~4. More than 4 may exhibit round-off errors.
-// ESP32 Note: These are mostly hard coded, so these values will not change anything
-
 // Upon a successful probe cycle, this option provides immediately feedback of the probe coordinates
 // through an automatically generated message. If disabled, users can still access the last probe
 // coordinates through Grbl '$#' print parameters.
 const bool MESSAGE_PROBE_COORDINATES = true;  // Enabled by default. Comment to disable.
-
-// Enables a second coolant control pin via the mist coolant GCode command M7 on the Arduino Uno
-// analog pin 4. Only use this option if you require a second coolant control pin.
-// NOTE: The M8 flood coolant control pin on analog pin 3 will still be functional regardless.
-// ESP32 NOTE! This is here for reference only. You enable both M7 and M8 by assigning them a GPIO Pin
-// in the machine definition file.
-//#define ENABLE_M7 // Don't uncomment...see above!
 
 // When Grbl powers-cycles or is hard reset with the Arduino reset button, Grbl boots up with no ALARM
 // by default. This is to make it as simple as possible for new users to start using Grbl. When homing
