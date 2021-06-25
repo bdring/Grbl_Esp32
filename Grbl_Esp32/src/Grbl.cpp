@@ -149,7 +149,13 @@ static void reset_variables() {
     system_reset();
     protocol_reset();
     gc_init();  // Set g-code parser to default state
-    spindle->stop();
+    // Spindle should be set either by the configuration
+    // or by the post-configuration fixup, but we test
+    // it anyway just for safety.  We want to avoid any
+    // possibility of crashing at this point.
+    if (spindle) {
+        spindle->stop();
+    }
     plan_reset();  // Clear block buffer and planner variables
     st_reset();    // Clear stepper subsystem variables
     // Sync cleared gcode and planner positions to current system position.
@@ -164,13 +170,25 @@ void run_once() {
         reset_variables();
         // Start Grbl main loop. Processes program inputs and executes them.
         // This can exit on a system abort condition, in which case run_once()
-        // is re-executed by an enclosing loop.
+        // is re-executed by an enclosing loop.  It can also exit via a
+        // throw that is caught and handled below.
+        protocol_main_loop();
     } catch (const AssertionFailed& ex) {
-        // This means something is terribly broken:
+        // If an assertion fails, we display a message and restart.
+        // This could result in repeated restarts if the assertion
+        // happens before waiting for input, but that is unlikely
+        // because the code in reset_variables() and the code
+        // that precedes the input loop has few configuration
+        // dependencies.  The safest approach would be to set
+        // a "reconfiguration" flag and redo the configuration
+        // step, but that would require combining grbl_init()
+        // and run_once into a single control flow, and it would
+        // require careful teardown of the existing configuration
+        // to avoid memory leaks. It is probably worth doing eventually.
         error_all("Critical error in run_once: %s", ex.msg.c_str());
         sys.state = State::ConfigAlarm;
     }
-    protocol_main_loop();
+    // This is inside a loop in Grbl_Esp32.ino
 }
 
 void __attribute__((weak)) machine_init() {}
