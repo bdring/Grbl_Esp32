@@ -69,7 +69,7 @@ namespace Spindles {
         // _disable_with_zero_speed forces a disable when speed is 0
         bool _disable_with_zero_speed = false;
         // _zero_speed_with_disable forces speed to 0 when disabled
-        bool _zero_speed_with_disable = false;
+        bool _zero_speed_with_disable = true;
 
         virtual void set_output(uint32_t speed);
         virtual void deinit();
