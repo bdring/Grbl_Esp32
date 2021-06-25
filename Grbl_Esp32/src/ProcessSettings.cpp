@@ -272,8 +272,7 @@ Error home(int cycle) {
         sys.state = State::Idle;  // Set to IDLE when complete.
         st_go_idle();             // Set steppers to the settings idle state before returning.
         if (cycle == HOMING_CYCLE_ALL) {
-            char line[128];
-            system_execute_startup(line);
+            system_execute_startup();
         }
     }
     return Error::Ok;
@@ -687,7 +686,7 @@ Error system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel
     return system_execute_line(line, &stream, auth_level);
 }
 
-void system_execute_startup(char* line) {
+void system_execute_startup() {
     Error status_code;
     char  gcline[256];
     strncpy(gcline, startup_line_0->get(), 255);

@@ -143,7 +143,7 @@ void init_output_pins();  // Renamed from system_init() due to conflict with esp
 void system_reset();
 
 // Execute the startup script lines stored in non-volatile storage upon initialization
-void  system_execute_startup(char* line);
+void  system_execute_startup();
 Error execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_level);
 Error system_execute_line(char* line, WebUI::ESPResponseStream*, WebUI::AuthenticationLevel);
 Error system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel);

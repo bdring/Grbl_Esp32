@@ -156,7 +156,7 @@ void protocol_main_loop() {
             protocol_execute_realtime();  // Enter safety door mode. Should return as IDLE state.
         }
         // All systems go!
-        system_execute_startup(line);  // Execute startup script.
+        system_execute_startup();  // Execute startup script.
     }
     // ---------------------------------------------------------------------------------
     // Primary loop! Upon a system abort, this exits back to main() to reset the system.
