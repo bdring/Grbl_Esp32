@@ -24,7 +24,8 @@
 #include "Servo.h"
 #include "../Pin.h"
 
-#include <driver/uart.h>  // uart_port_t
+#include "../Uart.h"
+
 #include <cstdint>
 
 namespace Motors {
@@ -47,24 +48,20 @@ namespace Motors {
         void     set_operating_mode(uint8_t mode);
         void     LED_on(bool on);
 
-        void            init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
         static void     dxl_finish_message(uint8_t id, char* msg, uint16_t msg_len);
         static uint16_t dxl_update_crc(uint16_t crc_accum, char* data_blk_ptr, uint8_t data_blk_size);
-        void            dxl_bulk_goal_position();  // set all motorsd init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
+        void            dxl_bulk_goal_position();
 
         float _homing_position;
 
         float _dxl_count_min;
         float _dxl_count_max;
 
-        Pin         _tx_pin;
-        Pin         _rx_pin;
-        Pin         _rts_pin;
-        uart_port_t _uart_num;
-        int         _axis_index;
-        bool        _invert_direction = false;
+        int  _axis_index;
+        bool _invert_direction = false;
 
-        static const int DYNAMIXEL_BUF_SIZE  = 127;
+        Uart* _uart = nullptr;
+
         static const int DYNAMIXEL_BAUD_RATE = 1000000;
 
         static const int DXL_RESPONSE_WAIT_TICKS = 20;  // how long to wait for a response
@@ -122,21 +119,18 @@ namespace Motors {
 
         // Configuration handlers:
         void validate() const override {
-            Assert(!_tx_pin.undefined(), "TX pin should be configured.");
-            Assert(!_rx_pin.undefined(), "RX pin should be configured.");
-            Assert(!_rts_pin.undefined(), "RTS pin should be configured.");
-            Assert(_id != 255, "Dynamixel ID should be configured.");
+            Assert(_uart != nullptr, "Dynamixel: Missing UART configuration");
+            Assert(!_uart->_rts_pin.undefined(), "Dynamixel: UART RTS pin must be configured.");
+            Assert(_id != 255, "Dynamixel: ID must be configured.");
         }
 
         void group(Configuration::HandlerBase& handler) override {
-            handler.item("tx", _tx_pin);
-            handler.item("rx", _rx_pin);
-            handler.item("rts", _rts_pin);
             handler.item("invert_direction", _invert_direction);
 
             handler.item("count_min", _countMin);
             handler.item("count_max", _countMin);
             handler.item("full_time_move", _dynamixelFullTimeMove);
+            handler.section("uart", _uart);
 
             int id = _id;
             handler.item("id", id);

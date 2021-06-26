@@ -35,10 +35,27 @@ namespace Motors {
     uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
 
     void Dynamixel2::init() {
-        _has_errors = false;  // let's start with the assumption we're good.
+        _has_errors = false;  // Initially assume okay
         _axis_index = axis_index();
 
-        init_uart(_id, axis_index(), dual_axis_index());  // static and only allows one init
+        ids[_axis_index][dual_axis_index()] = _id;  // learn all the ids
+
+        if (!uart_ready) {
+            if (_uart->baud != 1000000) {
+                info_serial("Warning: The baud rate is %d.  Dynamixels typically use 1000000 baud.");
+            }
+            _uart->begin();
+
+            if (_uart->setHalfDuplex()) {
+                info_serial("Dynamixel: UART set half duplex failed");
+                return;
+            }
+
+            info_serial("Dynamixel:");
+            _uart->config_message();
+
+            uart_ready = true;
+        }
 
         read_settings();
 
@@ -138,46 +155,6 @@ namespace Motors {
         } else {
             dxl_bulk_goal_position();  // call the static method that updates all at once
         }
-    }
-
-    /*
-        Static
-
-        This will be called by each axis, but only the first call will setup the serial port.
-        It will store the IDs and Axes in an array for later group processing
-
-    */
-    void Dynamixel2::init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index) {
-        ids[axis_index][dual_axis_index] = id;  // learn all the ids
-
-        if (uart_ready) {
-            return;  // UART already setup
-        }
-
-        info_serial("Dynamixel UART TX:%d RX:%d RTS:%d", _tx_pin.name().c_str(), _rx_pin.name().c_str(), _rts_pin.name().c_str());
-
-        uart_driver_delete(UART_NUM_2);
-
-        // setup the comm port as half duplex
-        uart_config_t uart_config;
-        uart_config.baud_rate           = DYNAMIXEL_BAUD_RATE;
-        uart_config.data_bits           = UART_DATA_8_BITS;
-        uart_config.parity              = UART_PARITY_DISABLE;
-        uart_config.stop_bits           = UART_STOP_BITS_1;
-        uart_config.flow_ctrl           = UART_HW_FLOWCTRL_DISABLE;
-        uart_config.rx_flow_ctrl_thresh = 122;
-
-        auto txd = _tx_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
-        auto rxd = _rx_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Input);
-        auto rts = _rts_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
-
-        // Configure UART parameters
-        uart_param_config(UART_NUM_2, &uart_config);
-        uart_set_pin(UART_NUM_2, txd, rxd, rts, UART_PIN_NO_CHANGE);
-        uart_driver_install(UART_NUM_2, DYNAMIXEL_BUF_SIZE * 2, 0, 0, NULL, 0);
-        uart_set_mode(UART_NUM_2, UART_MODE_RS485_HALF_DUPLEX);
-
-        uart_ready = true;
     }
 
     void Dynamixel2::set_location() {}

@@ -30,18 +30,22 @@ private:
     uart_port_t _uart_num;
     int         _pushback;
 
-    // From configuration. Not used for UART0!
-    Pin _txd_pin;
-    Pin _rxd_pin;
-    Pin _rts_pin;
-    Pin _cts_pin;
+public:
+    // These are public so that validators from classes
+    // that use Uart can check that the setup is suitable.
+    // E.g. some uses require an RTS pin.
 
+    // Configurable.  Uart0 uses a fixed configuration
     int        baud     = 115200;
     UartData   dataBits = UartData::Bits8;
     UartParity parity   = UartParity::None;
     UartStop   stopBits = UartStop::Bits1;
 
-public:
+    Pin _txd_pin;
+    Pin _rxd_pin;
+    Pin _rts_pin;
+    Pin _cts_pin;
+
     Uart();
     Uart(int uart_num);
 
@@ -49,6 +53,7 @@ public:
     bool   setPins(int tx_pin, int rx_pin, int rts_pin = -1, int cts_pin = -1);
     void   begin();
     void   begin(unsigned long baud, UartData dataBits, UartStop stopBits, UartParity parity);
+    void   begin(unsigned long baud);
     int    available(void) override;
     int    read(void) override;
     int    read(TickType_t timeout);
@@ -67,8 +72,8 @@ public:
 
     // Configuration handlers:
     void validate() const override {
-        Assert(!_txd_pin.undefined(), "TXD of uart is undefined");
-        Assert(!_rxd_pin.undefined(), "RXD of uart is undefined");
+        Assert(!_txd_pin.undefined(), "UART: TXD is undefined");
+        Assert(!_rxd_pin.undefined(), "UART: RXD is undefined");
         // RTS and CTS are optional.
     }
 

@@ -285,7 +285,7 @@ namespace Spindles {
         _uart->begin();
 
         if (_uart->setHalfDuplex()) {
-            info_serial("RS485 VFD uart set half duplex failed");
+            info_serial("VFD: RS485 UART set half duplex failed");
             return;
         }
 
