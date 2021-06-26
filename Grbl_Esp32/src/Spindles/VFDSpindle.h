@@ -107,7 +107,7 @@ namespace Spindles {
         // Configuration handlers:
         void validate() const override {
             Spindle::validate();
-            Assert(_uart != nullptr, "Uart must be configured for using a VFD through RS485.");
+            Assert(_uart != nullptr, "VFD: missing UART configuration");
         }
 
         void group(Configuration::HandlerBase& handler) override {
