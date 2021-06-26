@@ -32,8 +32,6 @@
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 #include <atomic>
 
-Uart tmc_serial(TMC_UART);
-
 namespace Motors {
 
     bool TrinamicUartDriver::_uart_started = false;
@@ -43,10 +41,9 @@ namespace Motors {
 
     void TrinamicUartDriver::init() {
         if (!_uart_started) {
-#ifdef LATER
-            tmc_serial.setPins(TMC_UART_TX, TMC_UART_RX);
-#endif
-            tmc_serial.begin(115200, UartData::Bits8, UartStop::Bits1, UartParity::None);
+            _uart->begin();
+            info_serial("Trinamic:");
+            _uart->config_message();
             _uart_started = true;
         }
         _has_errors = hw_serial_init();
@@ -89,7 +86,7 @@ namespace Motors {
 
     bool TrinamicUartDriver::hw_serial_init() {
         if (_driver_part_number == 2209) {
-            tmcstepper = new TMC2209Stepper(&tmc_serial, _r_sense, _addr);
+            tmcstepper = new TMC2209Stepper(_uart, _r_sense, _addr);
             return false;
         }
         info_serial("Unsupported Trinamic motor p/n:%d", _driver_part_number);
@@ -100,20 +97,12 @@ namespace Motors {
         This is the startup message showing the basic definition. 
     */
     void TrinamicUartDriver::config_message() {  //TODO: The RX/TX pin could be added to the msg.
-        info_serial("%s motor Trinamic TMC%d Step:%s Dir:%s Disable:%s UART%d Rx:%s Tx:%s Addr:%d R:%0.3f %s",
+        info_serial("%s motor Trinamic TMC%d Step:%s Dir:%s Disable:%s Addr:%d R:%0.3f %s",
                     reportAxisNameMsg(axis_index(), dual_axis_index()),
                     _driver_part_number,
                     _step_pin.name().c_str(),
                     _dir_pin.name().c_str(),
                     _disable_pin.name().c_str(),
-                    TMC_UART,
-#ifdef LATER
-                    pinName(TMC_UART_RX),
-                    pinName(TMC_UART_TX),
-#else
-                    0,
-                    0,
-#endif
                     _addr,
                     _r_sense,
                     reportAxisLimitsMsg(axis_index()));

@@ -62,7 +62,7 @@ namespace Motors {
 
         Uart* _uart = nullptr;
 
-        static const int DYNAMIXEL_BAUD_RATE = 1000000;
+        static bool _uart_started;
 
         static const int DXL_RESPONSE_WAIT_TICKS = 20;  // how long to wait for a response
 
@@ -114,7 +114,6 @@ namespace Motors {
         void set_disable(bool disable) override;
         void update() override;
 
-        static bool    uart_ready;
         static uint8_t ids[MAX_N_AXIS][2];
 
         // Configuration handlers:

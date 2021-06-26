@@ -25,31 +25,14 @@
 
 #include <cstdint>
 
-const float TMC2208_RSENSE_DEFAULT = 0.11f;
-const float TMC2209_RSENSE_DEFAULT = 0.11f;
-
-#ifndef TMC_UART
-#    define TMC_UART UART_NUM_2
-#endif
-
-#ifdef LATER
-#    ifndef TMC_UART_RX
-#        define TMC_UART_RX UNDEFINED_PIN
-#    endif
-
-#    ifndef TMC_UART_TX
-#        define TMC_UART_TX UNDEFINED_PIN
-#    endif
-#endif
-
 class TMC2209Stepper;  // Forward declaration
-
-extern Uart tmc_serial;
 
 namespace Motors {
 
     class TrinamicUartDriver : public TrinamicBase {
     private:
+        Uart* _uart = nullptr;
+
         static bool _uart_started;
 
         TMC2209Stepper* tmcstepper;  // all other driver types are subclasses of this one

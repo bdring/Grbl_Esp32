@@ -31,7 +31,7 @@
 #include "../Limits.h"  // limitsMinPosition
 
 namespace Motors {
-    bool    Motors::Dynamixel2::uart_ready         = false;
+    bool    Motors::Dynamixel2::_uart_started      = false;
     uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
 
     void Dynamixel2::init() {
@@ -40,7 +40,7 @@ namespace Motors {
 
         ids[_axis_index][dual_axis_index()] = _id;  // learn all the ids
 
-        if (!uart_ready) {
+        if (!_uart_started) {
             if (_uart->baud != 1000000) {
                 info_serial("Warning: The baud rate is %d.  Dynamixels typically use 1000000 baud.");
             }
@@ -54,7 +54,7 @@ namespace Motors {
             info_serial("Dynamixel:");
             _uart->config_message();
 
-            uart_ready = true;
+            _uart_started = true;
         }
 
         read_settings();
