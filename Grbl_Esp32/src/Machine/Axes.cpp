@@ -208,7 +208,6 @@ namespace Machine {
 
             if (handler.handlerType() == Configuration::HandlerType::Runtime || handler.handlerType() == Configuration::HandlerType::Parser ||
                 handler.handlerType() == Configuration::HandlerType::AfterParse ||
-                handler.handlerType() == Configuration::HandlerType::AfterParse ||
                 handler.handlerType() == Configuration::HandlerType::Generator ||
                 handler.handlerType() == Configuration::HandlerType::Validator) {
                 handler.section(tmp, _axis[a]);
