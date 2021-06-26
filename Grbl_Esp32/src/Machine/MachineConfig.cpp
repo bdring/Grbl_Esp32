@@ -110,9 +110,8 @@ namespace Machine {
             _spi = new SPIBus();
         }
 
-        if (_i2so == nullptr) {
-            _i2so = new I2SOBus();
-        }
+        // We do not auto-create an I2SO bus config node
+        // Only if an i2so section is present will config->_i2so be non-null
 
         if (_control == nullptr) {
             log_info("Control config missing; building default");
