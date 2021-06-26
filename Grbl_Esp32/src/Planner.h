@@ -37,10 +37,6 @@
 // new incoming motions as they are executed.
 const int BLOCK_BUFFER_SIZE = 16;
 
-// Returned status message from planner.
-const int PLAN_OK          = true;
-const int PLAN_EMPTY_BLOCK = false;
-
 // Define planner data condition flags. Used to denote running conditions of a block.
 struct PlMotion {
     uint8_t rapidMotion : 1;
@@ -100,7 +96,8 @@ void plan_reset_buffer();  // Reset buffer only.
 // Add a new linear movement to the buffer. target[MAX_N_AXIS] is the signed, absolute target position
 // in millimeters. Feed rate specifies the speed of the motion. If feed rate is inverted, the feed
 // rate is taken to mean "frequency" and would complete the operation in 1/feed_rate minutes.
-uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data);
+// Returns true on success.
+bool plan_buffer_line(float* target, plan_line_data_t* pl_data);
 
 // Called when the current block is no longer needed. Discards the block and makes the memory
 // availible for new blocks.

@@ -298,7 +298,7 @@ void plan_update_velocity_profile_parameters() {
     pl.previous_nominal_speed = prev_nominal_speed;  // Update prev nominal speed for next incoming block.
 }
 
-uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
+bool plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     // Prepare and initialize new block. Copy relevant pl_data for block execution.
     plan_block_t* block = &block_buffer[block_buffer_head];
     memset(block, 0, sizeof(plan_block_t));  // Zero all block values.
@@ -336,7 +336,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
     }
     // Bail if this is a zero-length block. Highly unlikely to occur.
     if (block->step_event_count == 0) {
-        return PLAN_EMPTY_BLOCK;
+        return false;
     }
 
     // Calculate the unit vector of the line move and the block maximum feed rate and acceleration scaled
@@ -421,7 +421,7 @@ uint8_t plan_buffer_line(float* target, plan_line_data_t* pl_data) {
         // Finish up by recalculating the plan with the new block.
         planner_recalculate();
     }
-    return PLAN_OK;
+    return true;
 }
 
 // Reset the planner position vectors. Called by the system abort/initialization routine.

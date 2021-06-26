@@ -200,8 +200,8 @@ void limits_go_home(uint8_t cycle_mask, uint n_locate_cycles) {
 
         sys.homing_axis_lock = axislock;
         // Perform homing cycle. Planner buffer should be empty, as required to initiate the homing cycle.
-        pl_data->feed_rate =                    // Set current homing rate.
-            plan_buffer_line(target, pl_data);  // Bypass mc_line(). Directly plan homing motion.
+        pl_data->feed_rate = homing_rate;
+        plan_buffer_line(target, pl_data);  // Bypass mc_line(). Directly plan homing motion.
         sys.step_control                  = {};
         sys.step_control.executeSysMotion = true;  // Set to execute homing motion and clear existing flags.
         st_prep_buffer();                          // Prep and fill segment buffer from newly planned block.
