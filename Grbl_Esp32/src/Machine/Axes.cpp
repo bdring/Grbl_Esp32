@@ -206,12 +206,7 @@ namespace Machine {
             tmp[0] = allAxis[a];
             tmp[1] = '\0';
 
-            if (handler.handlerType() == Configuration::HandlerType::Runtime || handler.handlerType() == Configuration::HandlerType::Parser ||
-                handler.handlerType() == Configuration::HandlerType::AfterParse ||
-                handler.handlerType() == Configuration::HandlerType::Generator ||
-                handler.handlerType() == Configuration::HandlerType::Validator) {
-                handler.section(tmp, _axis[a]);
-            }
+            handler.section(tmp, _axis[a]);
         }
     }
 
