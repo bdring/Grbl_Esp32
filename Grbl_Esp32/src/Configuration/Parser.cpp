@@ -122,4 +122,46 @@ namespace Configuration {
         }
         return e->value;  // Terminal value is default.
     }
+
+    void Parser::uartMode(UartData& wordLength, UartParity& parity, UartStop& stopBits) const {
+        auto str = StringRange(token_.sValueStart_, token_.sValueEnd_);
+        if (str.length() == 5 || str.length() == 3) {
+            int32_t wordLenInt;
+            if (!str.subString(0, 1).isInteger(wordLenInt)) {
+                parseError("Uart mode should be specified as [Bits Parity Stopbits] like [8N1]");
+            } else if (wordLenInt < 5 || wordLenInt > 8) {
+                parseError("Number of data bits for uart is out of range. Expected format like [8N1].");
+            }
+            wordLength = UartData(int(UartData::Bits5) + (wordLenInt - 5));
+
+            switch (str.begin()[1]) {
+                case 'N':
+                    parity = UartParity::None;
+                    break;
+                case 'O':
+                    parity = UartParity::Odd;
+                    break;
+                case 'E':
+                    parity = UartParity::Even;
+                    break;
+                default:
+                    parseError("Uart mode should be specified as [Bits Parity Stopbits] like [8N1]");
+                    break;  // Omits compiler warning. Never hit.
+            }
+
+            auto stop = str.subString(2, str.length() - 2);
+            if (stop.equals("1")) {
+                stopBits = UartStop::Bits1;
+            } else if (stop.equals("1.5")) {
+                stopBits = UartStop::Bits1_5;
+            } else if (stop.equals("2")) {
+                stopBits = UartStop::Bits2;
+            } else {
+                parseError("Uart stopbits can only be 1, 1.5 or 2. Syntax is [8N1]");
+            }
+
+        } else {
+            parseError("Uart mode should be specified as [Bits Parity Stopbits] like [8N1]");
+        }
+    }
 }

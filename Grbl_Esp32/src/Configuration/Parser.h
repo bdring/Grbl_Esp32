@@ -22,6 +22,7 @@
 #include "../Pin.h"
 #include "../StringRange.h"
 #include "../EnumItem.h"
+#include "../UartTypes.h"
 #include "HandlerBase.h"
 
 #include <stack>
@@ -45,5 +46,6 @@ namespace Configuration {
         Pin                     pinValue() const;
         int                     enumValue(EnumItem* e) const;
         IPAddress               ipValue() const;
+        void                    uartMode(UartData& wordLength, UartParity& parity, UartStop& stopBits) const;
     };
 }

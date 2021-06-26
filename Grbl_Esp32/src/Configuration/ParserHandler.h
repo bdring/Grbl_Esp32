@@ -21,7 +21,6 @@
 #include "HandlerBase.h"
 #include "Parser.h"
 #include "Configurable.h"
-#include "../EnumItem.h"
 
 #include "../Logging.h"
 
@@ -125,6 +124,12 @@ namespace Configuration {
         void item(const char* name, std::vector<speedEntry>& value) override {
             if (_parser.is(name)) {
                 value = _parser.speedEntryValue();
+            }
+        }
+
+        void item(const char* name, UartData& wordLength, UartParity& parity, UartStop& stopBits) override {
+            if (_parser.is(name)) {
+                _parser.uartMode(wordLength, parity, stopBits);
             }
         }
 

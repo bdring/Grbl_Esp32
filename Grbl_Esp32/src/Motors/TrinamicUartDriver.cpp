@@ -46,7 +46,7 @@ namespace Motors {
 #ifdef LATER
             tmc_serial.setPins(TMC_UART_TX, TMC_UART_RX);
 #endif
-            tmc_serial.begin(115200, Uart::Data::Bits8, Uart::Stop::Bits1, Uart::Parity::None);
+            tmc_serial.begin(115200, UartData::Bits8, UartStop::Bits1, UartParity::None);
             _uart_started = true;
         }
         _has_errors = hw_serial_init();

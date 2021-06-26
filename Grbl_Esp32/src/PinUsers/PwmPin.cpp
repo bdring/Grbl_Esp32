@@ -21,7 +21,6 @@
 #include "../Pins/Ledc.h"
 #include "../Pin.h"
 #include "../Assert.h"
-#include "LimitedResource.h"
 
 #include <Arduino.h>
 

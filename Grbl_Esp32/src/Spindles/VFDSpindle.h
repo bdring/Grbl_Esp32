@@ -36,10 +36,6 @@ namespace Spindles {
         void set_mode(SpindleState mode, bool critical);
         bool get_pins_and_settings();
 
-        Pin _txd_pin;
-        Pin _rxd_pin;
-        Pin _rts_pin;
-
         int32_t _current_dev_speed = -1;
 
         static QueueHandle_t vfd_cmd_queue;
@@ -86,11 +82,7 @@ namespace Spindles {
         virtual bool            safety_polling() const { return true; }
 
         // The constructor sets these
-        int          _baudrate = 9600;
-        Uart::Data   _dataBits;
-        Uart::Stop   _stopBits;
-        Uart::Parity _parity;
-
+        Uart*   _uart      = nullptr;
         uint8_t _modbus_id = 1;
 
         void setSpeed(uint32_t dev_speed);
@@ -98,7 +90,7 @@ namespace Spindles {
         volatile bool _syncing;
 
     public:
-        VFD();
+        VFD() {}
         VFD(const VFD&) = delete;
         VFD(VFD&&)      = delete;
         VFD& operator=(const VFD&) = delete;
@@ -113,16 +105,14 @@ namespace Spindles {
         SpindleSpeed      _slop;
 
         // Configuration handlers:
-        void validate() const override { Spindle::validate(); }
+        void validate() const override {
+            Spindle::validate();
+            Assert(_uart != nullptr, "Uart must be configured for using a VFD through RS485.");
+        }
 
         void group(Configuration::HandlerBase& handler) override {
-            handler.item("txd_pin", _txd_pin);
-            handler.item("rxd_pin", _rxd_pin);
-            handler.item("rts_pin", _rts_pin);
-            handler.item("baudrate", _baudrate);
+            handler.section("uart", _uart);
             handler.item("modbus_id", _modbus_id);
-
-            // TODO FIXME: baud rate, etc
 
             Spindle::group(handler);
         }

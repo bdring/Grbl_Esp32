@@ -25,6 +25,9 @@
     <Filter Include="src\Configuration">
       <UniqueIdentifier>{2b406c50-ba04-4c6d-a21e-0daedeeda9d9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="X86TestSupport\driver">
+      <UniqueIdentifier>{1876cb4d-22d0-44a9-907d-4dabd762367e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Grbl_Esp32\test\TestFramework.h">
@@ -101,6 +104,9 @@
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\PinMapper.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\driver\uart.h">
+      <Filter>X86TestSupport\driver</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

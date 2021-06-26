@@ -20,39 +20,35 @@
 
 #include "Config.h"
 
-#include <freertos/FreeRTOS.h>  // TickType_T
-#include <driver/uart.h>        // UART_DATA_5_BITS, etc
+#include "Configuration/Configurable.h"
+#include "UartTypes.h"
 
-class Uart : public Stream {
+#include <freertos/FreeRTOS.h>  // TickType_T
+
+class Uart : public Stream, public Configuration::Configurable {
 private:
     uart_port_t _uart_num;
     int         _pushback;
 
+    // From configuration. Not used for UART0!
+    Pin _txd_pin;
+    Pin _rxd_pin;
+    Pin _rts_pin;
+    Pin _cts_pin;
+
+    int        baud     = 115200;
+    UartData   dataBits = UartData::Bits8;
+    UartParity parity   = UartParity::None;
+    UartStop   stopBits = UartStop::Bits1;
+
 public:
-    enum class Data : int {
-        Bits5 = UART_DATA_5_BITS,
-        Bits6 = UART_DATA_6_BITS,
-        Bits7 = UART_DATA_7_BITS,
-        Bits8 = UART_DATA_8_BITS,
-    };
-
-    enum class Stop : int {
-        Bits1   = UART_STOP_BITS_1,
-        Bits1_5 = UART_STOP_BITS_1_5,
-        Bits2   = UART_STOP_BITS_2,
-    };
-
-    enum class Parity : int {
-        None = UART_PARITY_DISABLE,
-        Even = UART_PARITY_EVEN,
-        Odd  = UART_PARITY_ODD,
-    };
-
+    Uart();
     Uart(int uart_num);
 
     bool   setHalfDuplex();
     bool   setPins(int tx_pin, int rx_pin, int rts_pin = -1, int cts_pin = -1);
-    void   begin(unsigned long baud, Data dataBits, Stop stopBits, Parity parity);
+    void   begin();
+    void   begin(unsigned long baud, UartData dataBits, UartStop stopBits, UartParity parity);
     int    available(void) override;
     int    read(void) override;
     int    read(TickType_t timeout);
@@ -68,6 +64,27 @@ public:
     size_t        write(const char* text);
     void          flush() { uart_flush(_uart_num); }
     bool          flushTxTimed(TickType_t ticks);
+
+    // Configuration handlers:
+    void validate() const override {
+        Assert(!_txd_pin.undefined(), "TXD of uart is undefined");
+        Assert(!_rxd_pin.undefined(), "RXD of uart is undefined");
+        // RTS and CTS are optional.
+    }
+
+    void afterParse() override {}
+
+    void group(Configuration::HandlerBase& handler) override {
+        handler.item("txd_pin", _txd_pin);
+        handler.item("rxd_pin", _rxd_pin);
+        handler.item("rts_pin", _rts_pin);
+        handler.item("rts_pin", _cts_pin);
+
+        handler.item("baud", baud);
+        handler.item("mode", dataBits, parity, stopBits);
+    }
+
+    void config_message();
 };
 
 extern Uart Uart0;

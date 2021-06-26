@@ -21,6 +21,7 @@
 
 #include "Logging.h"
 #include "Uart.h"
+#include "Report.h" // info_serial
 
 #include <esp_system.h>
 #include <soc/uart_reg.h>
@@ -30,9 +31,31 @@
 #include <soc/rtc.h>
 #include <driver/uart.h>
 
+Uart::Uart() : _pushback(-1) {
+    static int currentNumber = 1;
+    Assert(currentNumber <= 3, "Max number of UART's reached.");
+
+    _uart_num = uart_port_t(currentNumber++);
+}
+
 Uart::Uart(int uart_num) : _uart_num(uart_port_t(uart_num)), _pushback(-1) {}
 
-void Uart::begin(unsigned long baudrate, Data dataBits, Stop stopBits, Parity parity) {
+void Uart::begin() {
+    auto txd = _txd_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
+    auto rxd = _rxd_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Input);
+    auto rts = _rts_pin.undefined() ? -1 : _rts_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
+    auto cts = _cts_pin.undefined() ? -1 : _cts_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Input);
+
+    if (setPins(txd, rxd, rts, cts)) {
+        Assert(false, "Uart pin config failed");
+        return;
+    }
+
+    begin(static_cast<unsigned long>(baud), dataBits, stopBits, parity);
+    // Hmm.. TODO FIXME: if (uart_param_config(_uart_num, &conf) != ESP_OK) { ... } -> should assert?!
+}
+
+void Uart::begin(unsigned long baudrate, UartData dataBits, UartStop stopBits, UartParity parity) {
     //    uart_driver_delete(_uart_num);
     uart_config_t conf;
     conf.baud_rate           = baudrate;
@@ -114,6 +137,11 @@ Uart Uart0(0);
 
 void uartInit() {
     Uart0.setPins(GPIO_NUM_1, GPIO_NUM_3);  // Tx 1, Rx 3 - standard hardware pins
-    Uart0.begin(BAUD_RATE, Uart::Data::Bits8, Uart::Stop::Bits1, Uart::Parity::None);
+    Uart0.begin(BAUD_RATE, UartData::Bits8, UartStop::Bits1, UartParity::None);
     Uart0.write("\r\n");  // create some white space after ESP32 boot info
+}
+
+void Uart::config_message() {
+    info_serial(
+        "Uart on Tx:%s Rx:%s RTS:%s baudrate %d", _txd_pin.name().c_str(), _rxd_pin.name().c_str(), _rts_pin.name().c_str(), baud);
 }

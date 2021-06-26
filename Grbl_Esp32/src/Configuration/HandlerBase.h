@@ -18,12 +18,14 @@
 
 #pragma once
 
-#include <IPAddress.h>
 #include "HandlerType.h"
 #include "../Pin.h"
 #include "../StringRange.h"
 #include "../EnumItem.h"
 #include "../SpindleDatatypes.h"
+#include "../UartTypes.h"
+
+#include <IPAddress.h>
 
 namespace Configuration {
     class Configurable;
@@ -63,8 +65,9 @@ namespace Configuration {
             value = uint8_t(v);
         }
 
-        virtual void item(const char* name, float& value, float minValue = -3e38, float maxValue = 3e38) = 0;
-        virtual void item(const char* name, std::vector<speedEntry>& value)                              = 0;
+        virtual void item(const char* name, float& value, float minValue = -3e38, float maxValue = 3e38)  = 0;
+        virtual void item(const char* name, std::vector<speedEntry>& value)                               = 0;
+        virtual void item(const char* name, UartData& wordLength, UartParity& parity, UartStop& stopBits) = 0;
 
         virtual void item(const char* name, StringRange& value, int minLength = 0, int maxLength = 255) = 0;
         virtual void item(const char* name, Pin& value)                                                 = 0;

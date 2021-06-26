@@ -50,19 +50,8 @@ const int        VFD_RS485_POLL_RATE  = 250;                                    
 const TickType_t response_ticks       = RESPONSE_WAIT_MS / portTICK_PERIOD_MS;  // in milliseconds between commands
 
 namespace Spindles {
-    Uart          _uart(VFD_RS485_UART_PORT);
     QueueHandle_t VFD::vfd_cmd_queue     = nullptr;
     TaskHandle_t  VFD::vfd_cmdTaskHandle = nullptr;
-
-    VFD::VFD() :
-        _txd_pin(), _rxd_pin(), _rts_pin(), _baudrate(), _dataBits(Uart::Data::Bits8), _stopBits(Uart::Stop::Bits1), _parity(
-#ifdef VFD_RS485_PARITY
-                                                                                                                         VFD_RS485_PARITY
-#else
-                                                                                                                         Uart::Parity::None
-#endif
-                                                                                                                     ) {
-    }
 
     void VFD::reportParsingErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length) {
 #ifdef DEBUG_VFD
@@ -95,6 +84,7 @@ namespace Spindles {
         static int  pollidx      = -1;
 
         VFD*          instance = static_cast<VFD*>(pvParameters);
+        auto&         uart     = *instance->_uart;
         ModbusCommand next_cmd;
         uint8_t       rx_message[VFD_RS485_MAX_MSG_SIZE];
         bool          safetyPollingEnabled = instance->safety_polling();
@@ -196,13 +186,13 @@ namespace Spindles {
             int retry_count = 0;
             for (; retry_count < MAX_RETRIES; ++retry_count) {
                 // Flush the UART and write the data:
-                _uart.flush();
-                _uart.write(reinterpret_cast<const char*>(next_cmd.msg), next_cmd.tx_length);
-                _uart.flushTxTimed(response_ticks);
+                uart.flush();
+                uart.write(reinterpret_cast<const char*>(next_cmd.msg), next_cmd.tx_length);
+                uart.flushTxTimed(response_ticks);
 
                 // Read the response
                 uint16_t read_length  = 0;
-                uint16_t current_read = _uart.readBytes(rx_message, next_cmd.rx_length, response_ticks);
+                uint16_t current_read = uart.readBytes(rx_message, next_cmd.rx_length, response_ticks);
                 read_length += current_read;
 
                 // Apparently some Huanyang report modbus errors in the correct way, and the rest not. Sigh.
@@ -213,7 +203,7 @@ namespace Spindles {
 
                 while (read_length < next_cmd.rx_length && current_read > 0) {
                     // Try to read more; we're not there yet...
-                    current_read = _uart.readBytes(rx_message + read_length, next_cmd.rx_length - read_length, response_ticks);
+                    current_read = uart.readBytes(rx_message + read_length, next_cmd.rx_length - read_length, response_ticks);
                     read_length += current_read;
                 }
                 if (current_read < 0) {
@@ -292,18 +282,9 @@ namespace Spindles {
         // If you change certain settings, init() gets called agian
         // uart_driver_delete(VFD_RS485_UART_PORT);
 
-        auto txd = _txd_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
-        auto rxd = _rxd_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Input);
-        auto rts = _rts_pin.getNative(Pin::Capabilities::UART | Pin::Capabilities::Output);
+        _uart->begin();
 
-        if (_uart.setPins(txd, rxd, rts)) {
-            info_serial("RS485 VFD uart pin config failed");
-            return;
-        }
-
-        _uart.begin(_baudrate, _dataBits, _stopBits, _parity);
-
-        if (_uart.setHalfDuplex()) {
+        if (_uart->setHalfDuplex()) {
             info_serial("RS485 VFD uart set half duplex failed");
             return;
         }
@@ -337,25 +318,6 @@ namespace Spindles {
     bool VFD::get_pins_and_settings() {
         bool pins_settings_ok = true;
 
-        if (_txd_pin.undefined()) {
-            info_serial("Undefined VFD_RS485_TXD_PIN");
-            pins_settings_ok = false;
-        }
-
-        if (_rxd_pin.undefined()) {
-            info_serial("Undefined VFD_RS485_RXD_PIN");
-            pins_settings_ok = false;
-        }
-
-        if (_rts_pin.undefined()) {
-            info_serial("Undefined VFD_RS485_RTS_PIN");
-            pins_settings_ok = false;
-        }
-
-        if (_baudrate == 0) {
-            _baudrate = 9600;
-        }
-
         if (config->_laserMode) {
             info_serial("VFD spindle disabled in laser mode. Set $GCode/LaserMode=Off and restart");
             pins_settings_ok = false;
@@ -365,8 +327,8 @@ namespace Spindles {
     }
 
     void VFD::config_message() {
-        info_serial(
-            "VFD RS485  Tx:%s Rx:%s RTS:%s baudrate %d", _txd_pin.name().c_str(), _rxd_pin.name().c_str(), _rts_pin.name().c_str(), _baudrate);
+        info_serial("VFD RS485:");
+        _uart->config_message();
     }
 
     void VFD::setState(SpindleState state, SpindleSpeed speed) {

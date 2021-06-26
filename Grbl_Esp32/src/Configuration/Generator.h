@@ -80,6 +80,34 @@ namespace Configuration {
             dst_ << '\n';
         }
 
+        void item(const char* name, UartData& wordLength, UartParity& parity, UartStop& stopBits) override {
+            indent();
+            dst_ << name << ": " << (int(wordLength) - int(UartData::Bits5) + 5);
+            switch (parity) {
+                case UartParity::Even:
+                    dst_ << 'E';
+                    break;
+                case UartParity::Odd:
+                    dst_ << 'O';
+                    break;
+                case UartParity::None:
+                    dst_ << 'N';
+                    break;
+            }
+            switch (stopBits) {
+                case UartStop::Bits1:
+                    dst_ << '1';
+                    break;
+                case UartStop::Bits1_5:
+                    dst_ << "1.5";
+                    break;
+                case UartStop::Bits2:
+                    dst_ << '2';
+                    break;
+            }
+            dst_ << '\n';
+        }
+
         void item(const char* name, StringRange& value, int minLength, int maxLength) override {
             indent();
             dst_ << name << ": " << value << '\n';
