@@ -29,6 +29,7 @@
 #include "../Pins/Ledc.h"
 #include "../Report.h"
 #include "../System.h"  // sys.spindle_speed
+#include "../GCode.h"   // gc_state.modal
 
 namespace Spindles {
     void _10v::init() {
@@ -66,14 +67,12 @@ namespace Spindles {
                  _pwm_precision);
     }
 
-#ifdef LATER
     // This appears identical to the code in PWMSpindle.cpp but
     // it uses the 10v versions of set_enable and set_output
     void IRAM_ATTR _10v::setSpeedfromISR(uint32_t dev_speed) {
         set_enable(gc_state.modal.spindle != SpindleState::Disable);
         set_output(dev_speed);
     }
-#endif
 
     void _10v::set_enable(bool enable) {
         if (_disable_with_zero_speed && sys.spindle_speed == 0) {

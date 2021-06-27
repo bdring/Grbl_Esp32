@@ -40,6 +40,7 @@ namespace Spindles {
 
         void init() override;
         void config_message() override;
+        void setSpeedfromISR(uint32_t dev_speed) override;
 
         void deinit() override;
 
@@ -60,8 +61,6 @@ namespace Spindles {
     protected:
         void set_enable(bool enable_pin);
         void set_direction(bool Clockwise);
-        // XXX Do we need to override this to do something with enables?
-        // virtual void set_output(uint32_t) override;
 
         Pin _forward_pin;
         Pin _reverse_pin;
