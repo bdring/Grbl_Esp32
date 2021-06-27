@@ -39,27 +39,21 @@ namespace Machine {
         }
     }
 
-    void Axes::set_disable(bool disable) {
-        static bool previous_state = true;
-
-        //info_serial("Motors disable %d", disable);
-
-        /*
-    if (previous_state == disable) {
-        return;
-    }
-    previous_state = disable;
-*/
-
-        // now loop through all the motors to see if they can individually disable
-        for (int axis = 0; axis < _numberAxis; axis++) {
-            for (int gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-                auto a = _axis[axis]->_gangs[gang_index]->_motor;
-                a->set_disable(disable);
-            }
+    void Axes::set_disable(int axis, bool disable) {
+        for (int gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
+            auto a = _axis[axis]->_gangs[gang_index]->_motor;
+            a->set_disable(disable);
         }
 
         // invert only inverts the global stepper disable pin.
+        _sharedStepperDisable.write(disable);
+    }
+
+    void Axes::set_disable(bool disable) {
+        for (int axis = 0; axis < _numberAxis; axis++) {
+            set_disable(axis, disable);
+        }
+
         _sharedStepperDisable.write(disable);
     }
 
@@ -197,16 +191,14 @@ namespace Machine {
         handler.item("number_axis", _numberAxis);
         handler.item("shared_stepper_disable", _sharedStepperDisable);
 
-        const char* allAxis = "xyzabc";
-
         char tmp[3];
         tmp[2] = '\0';
 
-        for (size_t a = 0; a < MAX_NUMBER_AXIS; ++a) {
-            tmp[0] = allAxis[a];
+        for (size_t i = 0; i < MAX_NUMBER_AXIS; ++i) {
+            tmp[0] = tolower(_names[i]);
             tmp[1] = '\0';
 
-            handler.section(tmp, _axis[a]);
+            handler.section(tmp, _axis[i]);
         }
     }
 

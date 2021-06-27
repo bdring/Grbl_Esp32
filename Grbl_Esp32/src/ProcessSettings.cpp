@@ -5,6 +5,7 @@
 #include "Configuration/AfterParse.h"
 #include "Configuration/Validator.h"
 #include "Configuration/ParseException.h"
+#include "Machine/Axes.h"
 #include "Regex.h"
 #include "WebUI/Authentication.h"
 #include "WebUI/WifiConfig.h"
@@ -420,36 +421,30 @@ Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
 }
 
 Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    char* s;
-    if (value == NULL) {
-        value = "\0";
+    while (value && isspace(*value)) {
+        ++value;
+    }
+    if (!value || *value == '\0') {
+        info_all("Disabling all motors");
+        config->_axes->set_disable(true);
+        return Error::Ok;
     }
 
-    s = strdup(value);
-    s = trim(s);
+    auto axes = config->_axes;
 
-    int32_t convertedValue;
-    char*   endptr;
-    if (*s == '\0') {
-        convertedValue = 255;  // all axes
-    } else {
-        convertedValue = strtol(s, &endptr, 10);
-        if (endptr == s || *endptr != '\0') {
-            // Try to convert as an axis list
-            convertedValue = 0;
-            auto axisNames = String("XYZABC");
-            while (*s) {
-                int index = axisNames.indexOf(toupper(*s++));
-                if (index < 0) {
-                    return Error::BadNumberFormat;
-                }
-                convertedValue |= bit(index);
-            }
+    if (axes->_sharedStepperDisable.defined()) {
+        info_all("Cannot disable individual axes with a shared disable pin");
+        return Error::InvalidStatement;
+    }
+
+    for (int i = 0; i < config->_axes->_numberAxis; i++) {
+        char axisName = axes->axisName(i);
+
+        if (strchr(value, axisName) || strchr(value, tolower(axisName))) {
+            info_all("Disabling %c motors", axisName);
+            axes->set_disable(i, true);
         }
     }
-#ifdef LATER
-    motors_set_disable(true, convertedValue);
-#endif
     return Error::Ok;
 }
 

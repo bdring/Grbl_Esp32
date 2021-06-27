@@ -27,10 +27,13 @@ namespace Motors {
 
 namespace Machine {
     class Axes : public Configuration::Configurable {
-        static const int MAX_NUMBER_AXIS = 6;
+        static const int             MAX_NUMBER_AXIS = 6;
+        static constexpr const char* _names          = "XYZABC";
 
     public:
         Axes();
+
+        inline char axisName(int index) { return index < MAX_NUMBER_AXIS ? _names[index] : '?'; }
 
         Pin _sharedStepperDisable;
 
@@ -68,6 +71,7 @@ namespace Machine {
 
         // The return value is a bitmask of axes that can home
         uint8_t set_homing_mode(uint8_t homing_mask, bool isHoming);
+        void    set_disable(int axis, bool disable);
         void    set_disable(bool disable);
         void    step(uint8_t step_mask, uint8_t dir_mask);
         void    unstep();

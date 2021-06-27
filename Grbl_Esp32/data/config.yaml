@@ -19,6 +19,7 @@ axes:
     acceleration: 25
     max_travel: 1000
     homing:
+      cycle: 2
       mpos: 10
       positive_direction: false
     
@@ -37,6 +38,7 @@ axes:
     acceleration: 25
     max_travel: 1000
     homing:
+      cycle: 2
       mpos: 10
       positive_direction: false
 
@@ -55,6 +57,7 @@ axes:
     acceleration: 25
     max_travel: 1000
     homing:
+      cycle: 1
       mpos: 10
       positive_direction: true
 

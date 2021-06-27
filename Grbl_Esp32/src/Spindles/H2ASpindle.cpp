@@ -31,12 +31,7 @@
 #include "../Report.h"  // info_serial
 
 namespace Spindles {
-    H2A::H2A() : VFD() {
-#ifdef LATER
-        _baudrate = 19200;
-        _parity   = Uart::Parity::Even;
-#endif
-    }
+    H2A::H2A() : VFD() {}
 
     void H2A::direction_command(SpindleState mode, ModbusCommand& data) {
         data.tx_length = 6;

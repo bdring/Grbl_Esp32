@@ -877,25 +877,6 @@ char* report_state_text() {
     return state;
 }
 
-char report_get_axis_letter(uint8_t axis) {
-    switch (axis) {
-        case X_AXIS:
-            return 'X';
-        case Y_AXIS:
-            return 'Y';
-        case Z_AXIS:
-            return 'Z';
-        case A_AXIS:
-            return 'A';
-        case B_AXIS:
-            return 'B';
-        case C_AXIS:
-            return 'C';
-        default:
-            return '?';
-    }
-}
-
 char* reportAxisLimitsMsg(uint8_t axis) {
     static char msg[40];
     sprintf(msg, "Limits(%0.3f,%0.3f)", limitsMinPosition(axis), limitsMaxPosition(axis));
@@ -904,13 +885,13 @@ char* reportAxisLimitsMsg(uint8_t axis) {
 
 char* reportAxisNameMsg(uint8_t axis, uint8_t dual_axis) {
     static char name[10];
-    sprintf(name, "%c%c Axis", report_get_axis_letter(axis), dual_axis ? '2' : ' ');
+    sprintf(name, "%c%c Axis", config->_axes->axisName(axis), dual_axis ? '2' : ' ');
     return name;
 }
 
 char* reportAxisNameMsg(uint8_t axis) {
     static char name[10];
-    sprintf(name, "%c  Axis", report_get_axis_letter(axis));
+    sprintf(name, "%c  Axis", config->_axes->axisName(axis));
     return name;
 }
 

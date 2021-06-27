@@ -374,14 +374,14 @@ namespace WebUI {
             webPrintln("Incorrect command");
             return Error::InvalidValue;
         }
-        info_all("Restart ongoing");
+        info_all("Restarting");
         COMMANDS::restart_ESP();
         return Error::Ok;
     }
 
     static Error restart(char* parameter, AuthenticationLevel auth_level) {
         parameter = trim(parameter);
-        info_all("Restart ongoing");
+        info_all("Restarting");
         COMMANDS::restart_ESP();
         return Error::Ok;
     }
