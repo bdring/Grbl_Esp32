@@ -34,7 +34,7 @@ namespace Spindles {
         Relay& operator=(const Relay&) = delete;
         Relay& operator=(Relay&&) = delete;
 
-        virtual ~Relay() {}
+        ~Relay() {}
 
         // Configuration handlers:
 

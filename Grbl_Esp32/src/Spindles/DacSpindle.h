@@ -49,7 +49,7 @@ namespace Spindles {
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "DAC"; }
 
-        virtual ~Dac() {}
+        ~Dac() {}
 
     private:
         bool _gpio_ok;  // DAC is on a valid pin

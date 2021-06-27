@@ -47,6 +47,6 @@ namespace Spindles {
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "NoSpindle"; }
 
-        virtual ~Null() {}
+        ~Null() {}
     };
 }

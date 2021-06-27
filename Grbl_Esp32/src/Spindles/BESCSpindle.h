@@ -63,7 +63,7 @@ namespace Spindles {
         void init() override;
         void config_message() override;
 
-        virtual void set_output(uint32_t duty) override;
+        void set_output(uint32_t duty) override;
 
         // Configuration handlers:
         void validate() const override { PWM::validate(); }
@@ -80,6 +80,6 @@ namespace Spindles {
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "BESC"; }
 
-        virtual ~BESC() {}
+        ~BESC() {}
     };
 }

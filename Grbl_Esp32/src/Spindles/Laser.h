@@ -52,6 +52,6 @@ namespace Spindles {
             PWM::group(handler);
         }
 
-        virtual ~Laser() {}
+        ~Laser() {}
     };
 }

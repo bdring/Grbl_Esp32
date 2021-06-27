@@ -36,9 +36,9 @@ namespace Spindles {
 
         void init() override;
 
-        virtual void setSpeedfromISR(uint32_t dev_speed) override;
-        void         setState(SpindleState state, SpindleSpeed speed) override;
-        void         config_message() override;
+        void setSpeedfromISR(uint32_t dev_speed) override;
+        void setState(SpindleState state, SpindleSpeed speed) override;
+        void config_message() override;
 
         // Methods introduced by this base clase
         virtual void set_direction(bool Clockwise);

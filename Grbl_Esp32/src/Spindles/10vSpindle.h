@@ -55,7 +55,7 @@ namespace Spindles {
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "10V"; }
 
-        virtual ~_10v() {}
+        ~_10v() {}
 
     protected:
         void set_enable(bool enable_pin);

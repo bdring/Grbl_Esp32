@@ -40,10 +40,10 @@ namespace Spindles {
         PWM& operator=(const PWM&) = delete;
         PWM& operator=(PWM&&) = delete;
 
-        void         init() override;
-        virtual void setSpeedfromISR(uint32_t dev_speed) override;
-        void         setState(SpindleState state, SpindleSpeed speed) override;
-        void         config_message() override;
+        void init() override;
+        void setSpeedfromISR(uint32_t dev_speed) override;
+        void setState(SpindleState state, SpindleSpeed speed) override;
+        void config_message() override;
         // Configuration handlers:
         void validate() const override { Spindle::validate(); }
 
@@ -67,7 +67,7 @@ namespace Spindles {
         // Configurable
         uint32_t _pwm_freq = 5000;
 
-        virtual void set_output(uint32_t duty) override;
+        void         set_output(uint32_t duty) override;
         virtual void deinit();
 
         virtual void get_pins_and_settings();

@@ -98,7 +98,7 @@ namespace Spindles {
             // TODO: Validate spinup/spindown delay?
         }
 
-        virtual void afterParse() override;
+        void afterParse() override;
 
         void group(Configuration::HandlerBase& handler) override {
             handler.item("spinup_ms", _spinup_ms);
