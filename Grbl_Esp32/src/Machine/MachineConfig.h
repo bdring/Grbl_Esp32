@@ -37,6 +37,7 @@
 #include "I2SOBus.h"
 #include "Communications.h"
 #include "UserOutputs.h"
+#include "Macros.h"
 
 namespace Machine {
     class MachineConfig : public Configuration::Configurable {
@@ -52,6 +53,7 @@ namespace Machine {
         Control*        _control     = nullptr;
         UserOutputs*    _userOutputs = nullptr;
         SDCard*         _sdCard      = nullptr;
+        Macros*         _macros      = nullptr;
 
         Spindles::SpindleList _spindles;
 

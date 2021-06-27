@@ -90,12 +90,6 @@ const char* const DEFAULT_USER_LOGIN  = "user";
 // greater.
 static const uint8_t NHomingLocateCycle = 1;  // Integer (1-128)
 
-// Number of blocks Grbl executes upon startup. These blocks are stored in non-volatile storage.
-// and addresses are defined in settings.h. With the current settings, up to 2 startup blocks may
-// be stored and executed in order. These startup blocks would typically be used to set the GCode
-// parser state depending on user preferences.
-// #define N_STARTUP_LINE 2  // Integer (1-2)
-
 // Upon a successful probe cycle, this option provides immediately feedback of the probe coordinates
 // through an automatically generated message. If disabled, users can still access the last probe
 // coordinates through Grbl '$#' print parameters.

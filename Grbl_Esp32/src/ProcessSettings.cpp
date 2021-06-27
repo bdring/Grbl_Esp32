@@ -310,8 +310,9 @@ Error get_report_build_info(const char* value, WebUI::AuthenticationLevel auth_l
     return Error::InvalidStatement;
 }
 Error report_startup_lines(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    report_startup_line(0, startup_line_0->get(), out->client());
-    report_startup_line(1, startup_line_1->get(), out->client());
+    for (int i = 0; i < config->_macros->n_startup_lines; i++) {
+        report_startup_line(i, config->_macros->startup_line(i).c_str(), out->client());
+    }
     return Error::Ok;
 }
 
@@ -689,14 +690,11 @@ Error system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel
 void system_execute_startup() {
     Error status_code;
     char  gcline[256];
-    strncpy(gcline, startup_line_0->get(), 255);
-    if (*gcline) {
-        status_code = gc_execute_line(gcline, CLIENT_SERIAL);
-        report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);
-    }
-    strncpy(gcline, startup_line_1->get(), 255);
-    if (*gcline) {
-        status_code = gc_execute_line(gcline, CLIENT_SERIAL);
-        report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);
+    for (int i = 0; i < config->_macros->n_startup_lines; i++) {
+        strncpy(gcline, config->_macros->startup_line(i).c_str(), 255);
+        if (*gcline) {
+            status_code = gc_execute_line(gcline, CLIENT_SERIAL);
+            report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);
+        }
     }
 }

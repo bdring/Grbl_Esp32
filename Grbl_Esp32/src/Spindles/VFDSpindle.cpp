@@ -36,13 +36,11 @@
 #include "../Machine/MachineConfig.h"
 #include "../MotionControl.h"  // for mc_reset
 #include "../Report.h"         // info_all
-#include "../Config.h"         // VFD_RS485_PARITY
 
 #include <freertos/task.h>
 #include <freertos/queue.h>
 #include <atomic>
 
-const int        VFD_RS485_UART_PORT  = 2;  // hard coded for this port right now
 const int        VFD_RS485_BUF_SIZE   = 127;
 const int        VFD_RS485_QUEUE_SIZE = 10;                                     // number of commands that can be queued up.
 const int        RESPONSE_WAIT_MS     = 1000;                                   // how long to wait for a response
@@ -277,10 +275,6 @@ namespace Spindles {
         if (!get_pins_and_settings()) {
             return;
         }
-
-        // this allows us to init() again later.
-        // If you change certain settings, init() gets called agian
-        // uart_driver_delete(VFD_RS485_UART_PORT);
 
         _uart->begin();
 

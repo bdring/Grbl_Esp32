@@ -27,7 +27,6 @@
 #include "../Machine/MachineConfig.h"
 #include "../Uart.h"
 #include "../Report.h"  // info_serial
-#include "../Config.h"  // TMC_UART is still a todo. For now I'll just include config.h for the defines
 
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 #include <atomic>

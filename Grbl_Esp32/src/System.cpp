@@ -188,29 +188,14 @@ void __attribute__((weak)) user_defined_macro(uint8_t index) {
         return;
     }
 
-    String user_macro;
-    char   line[255];
-    switch (index) {
-        case 0:
-            user_macro = user_macro0->get();
-            break;
-        case 1:
-            user_macro = user_macro1->get();
-            break;
-        case 2:
-            user_macro = user_macro2->get();
-            break;
-        case 3:
-            user_macro = user_macro3->get();
-            break;
-        default:
-            return;
-    }
+    String user_macro = config->_macros->macro(index);
 
     if (user_macro == "") {
-        info_serial("Macro User/Macro%d empty", index);
+        info_serial("User/Macro%d empty", index);
         return;
     }
+
+    char line[255];
 
     user_macro.replace('&', '\n');
     user_macro.toCharArray(line, 255, 0);

@@ -54,6 +54,7 @@ namespace Machine {
         handler.section("coolant", _coolant);
         handler.section("probe", _probe);
         handler.section("comms", _comms);
+        handler.section("macros", _macros);
 
         handler.item("pulse_microseconds", _pulseMicroSeconds);
         handler.item("dir_delay_microseconds", _directionDelayMicroSeconds);
@@ -145,6 +146,10 @@ namespace Machine {
             _comms->_apConfig = new WifiAPConfig();
         }
 #endif
+
+        if (_macros == nullptr) {
+            _macros = new Macros();
+        }
     }
 
     size_t MachineConfig::readFile(const char* filename, char*& buffer) {
@@ -309,5 +314,10 @@ namespace Machine {
         delete _i2so;
         delete _coolant;
         delete _probe;
+        delete _sdCard;
+        delete _spi;
+        delete _control;
+        delete _comms;
+        delete _macros;
     }
 }
