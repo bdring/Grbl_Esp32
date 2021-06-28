@@ -147,13 +147,15 @@ namespace WebUI {
     void BTConfig::end() { SerialBT.end(); }
 
     /**
-     * Reset ESP
+     * Reset Bluetooth settings
+     * XXX this is not called from anywhere
      */
     void BTConfig::reset_settings() {
-#    ifdef LATER
-        // Implement this in YAML land
-        // was wifi_radio_mode->setDefault();
-#    endif
+        auto bt = config->_comms->_bluetoothConfig;
+        if (bt) {
+            delete bt;
+            config->_comms->_bluetoothConfig = nullptr;
+        }
         info_all("BT reset done");
     }
 

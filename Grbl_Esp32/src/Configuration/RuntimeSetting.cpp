@@ -132,8 +132,7 @@ namespace Configuration {
                 grbl_sendf(out_->client(), "$%s=%s\r\n", setting_, value.toString().c_str());
             } else {
                 IPAddress ip;
-                auto      str = String(newValue_);
-                if (!ip.fromString(str)) {
+                if (!ip.fromString(newValue_)) {
                     Assert(false, "Expected an IP address like 192.168.0.100");
                 }
                 value = ip;

@@ -443,6 +443,8 @@ namespace WebUI {
      */
     void WiFiConfig::reset_settings() {
         bool error = false;
+        // XXX this is probably wrong for YAML land.
+        // We might want this function to go away.
         for (Setting* s = Setting::List; s; s = s->next()) {
             if (s->getDescription()) {
                 s->setDefault();

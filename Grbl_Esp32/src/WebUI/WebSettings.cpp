@@ -24,6 +24,7 @@
 
 #include "../Settings.h"
 #include "../Machine/MachineConfig.h"
+#include "../Machine/WifiSTAConfig.h"
 #include "../Configuration/JsonGenerator.h"
 #include "../Grbl.h"    //GRBL_VERSION
 #include "../Serial.h"  // CLIENT_ALL
@@ -939,19 +940,29 @@ namespace WebUI {
         char* netmask = get_param("MSK", false);
         char* ip      = get_param("IP", false);
 
-#    ifdef LATER
-        // Needs to be converted to YAML land
-        Error err = wifi_sta_ip->setStringValue(ip);
-        if (err == Error::Ok) {
-            err = wifi_sta_netmask->setStringValue(netmask);
+        auto sta = config->_comms->_staConfig;
+        if (!sta) {
+            sta = config->_comms->_staConfig = new Machine::WifiSTAConfig();
         }
-        if (err == Error::Ok) {
-            err = wifi_sta_gateway->setStringValue(gateway);
+
+        IPAddress ipv;
+
+        if (!ipv.fromString(ip)) {
+            return Error::InvalidValue;
         }
-#    else
-        Error err = Error::SettingDisabled;
-#    endif
-        return err;
+        sta->_ipAddress = ipv;
+
+        if (!ipv.fromString(netmask)) {
+            return Error::InvalidValue;
+        }
+        sta->_netmask = ipv;
+
+        if (!ipv.fromString(gateway)) {
+            return Error::InvalidValue;
+        }
+        sta->_gateway = ipv;
+
+        return Error::Ok;
     }
 #endif
 
