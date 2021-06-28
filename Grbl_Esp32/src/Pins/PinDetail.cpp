@@ -22,7 +22,10 @@
 
 namespace Pins {
     void PinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) {
-        Assert(false, "Interrupts are not supported by this pin.");
+        Assert(false, "Interrupts are not supported by pin %d", _index);
     }
-    void PinDetail::detachInterrupt() { Assert(false, "Interrupts are not supported by this pin."); }
+    void PinDetail::detachInterrupt() {
+        Assert(false, "Interrupts are not supported by pin %d", _index);
+        ;
+    }
 }
