@@ -1330,6 +1330,7 @@ namespace WebUI {
             s += path;
             s += " does not exist on SD Card\"}";
             _webserver->send(200, "application/json", s);
+            set_sd_state(SDCARD_IDLE);
             SD.end();
             set_sd_state(SDState::Idle);
             return;
