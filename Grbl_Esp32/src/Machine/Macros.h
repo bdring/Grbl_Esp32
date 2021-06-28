@@ -19,6 +19,7 @@
 */
 
 #include "../Configuration/Configurable.h"
+#include "../WebUI/InputBuffer.h"  // WebUI::inputBuffer
 
 namespace Machine {
     class Macros : public Configuration::Configurable {
@@ -33,8 +34,36 @@ namespace Machine {
     public:
         Macros() = default;
 
-        String macro(size_t index) { return index < n_macros ? _macro[index] : ""; }
-        String startup_line(size_t index) { return index < n_startup_lines ? _startup_line[index] : ""; }
+        void run_macro(size_t index) {
+            if (index >= n_macros) {
+                return;
+            }
+            String macro = _macro[index];
+            if (macro == "") {
+                return;
+            }
+
+            // & is a proxy for newlines in macros, because you cannot
+            // enter a newline directly in a config file string value.
+            macro.replace('&', '\n');
+            macro += "\n";
+
+            WebUI::inputBuffer.push(macro.c_str());
+        }
+
+        String startup_line(size_t index) {
+            if (index >= n_startup_lines) {
+                return "";
+            }
+            String s = _startup_line[index];
+            if (s == "") {
+                return s;
+            }
+            // & is a proxy for newlines in startup lines, because you cannot
+            // enter a newline directly in a config file string value.
+            s.replace('&', '\n');
+            return s + "\n";
+        }
 
         // Configuration helpers:
 

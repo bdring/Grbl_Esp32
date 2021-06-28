@@ -684,10 +684,14 @@ Error system_execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel
 
 void system_execute_startup() {
     Error status_code;
-    char  gcline[256];
     for (int i = 0; i < config->_macros->n_startup_lines; i++) {
-        strncpy(gcline, config->_macros->startup_line(i).c_str(), 255);
-        if (*gcline) {
+        String      str = config->_macros->startup_line(i);
+        const char* s   = str.c_str();
+        if (s && strlen(s)) {
+            // We have to copy this to a mutable array because
+            // gc_execute_line modifies the line while parsing.
+            char gcline[256];
+            strncpy(gcline, s, 255);
             status_code = gc_execute_line(gcline, CLIENT_SERIAL);
             report_execute_startup_message(gcline, status_code, CLIENT_SERIAL);
         }

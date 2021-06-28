@@ -87,3 +87,6 @@ PWM:
   spindown_ms: 1000
   speeds: 0=0% 1000=100%
   tool: 0
+
+macros:
+  n0: G0 X0

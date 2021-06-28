@@ -646,6 +646,16 @@ static void protocol_execute_overrides() {
     }
 }
 
+void protocol_do_macro(int macro_num) {
+    // must be in Idle
+    if (sys.state != State::Idle) {
+        info_serial("Macro button only permitted in idle");
+        return;
+    }
+
+    config->_macros->run_macro(macro_num);
+}
+
 void protocol_exec_rt_system() {
     protocol_do_alarm();  // If there is a hard or soft limit, this will block until rtReset is set
 
@@ -685,6 +695,23 @@ void protocol_exec_rt_system() {
 
     if (rtCycleStop) {
         protocol_do_cycle_stop();
+    }
+
+    if (rtButtonMacro0) {
+        protocol_do_macro(0);
+        rtButtonMacro0 = false;
+    }
+    if (rtButtonMacro1) {
+        protocol_do_macro(1);
+        rtButtonMacro1 = false;
+    }
+    if (rtButtonMacro2) {
+        protocol_do_macro(2);
+        rtButtonMacro0 = false;
+    }
+    if (rtButtonMacro3) {
+        protocol_do_macro(3);
+        rtButtonMacro3 = false;
     }
 
     protocol_execute_overrides();

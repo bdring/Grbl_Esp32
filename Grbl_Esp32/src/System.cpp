@@ -26,7 +26,6 @@
 #include "UserOutput.h"
 #include "SettingsDefinitions.h"
 #include "Machine/MachineConfig.h"
-#include "WebUI/InputBuffer.h"  // WebUI::inputBuffer
 
 #include <atomic>
 #include <cstring>  // memset
@@ -179,28 +178,6 @@ uint8_t sys_calc_pwm_precision(uint32_t freq) {
     }
 
     return precision - 1;
-}
-
-void __attribute__((weak)) user_defined_macro(uint8_t index) {
-    // must be in Idle
-    if (sys.state != State::Idle) {
-        info_serial("Macro button only permitted in idle");
-        return;
-    }
-
-    String user_macro = config->_macros->macro(index);
-
-    if (user_macro == "") {
-        info_serial("User/Macro%d empty", index);
-        return;
-    }
-
-    char line[255];
-
-    user_macro.replace('&', '\n');
-    user_macro.toCharArray(line, 255, 0);
-    strcat(line, "\r");
-    WebUI::inputBuffer.push(line);
 }
 
 std::map<State, const char*> StateName = {

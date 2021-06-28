@@ -48,8 +48,6 @@ bool limitsCheckTravel(float* target);  // weak in Limits.cpp; true if out of ra
 void inverse_kinematics(float* position);  // used to return a converted value
 void forward_kinematics(float* position);
 
-void user_defined_macro(uint8_t index);
-
 void user_m30();
 
 void user_tool_change(uint8_t new_tool);
