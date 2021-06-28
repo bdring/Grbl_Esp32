@@ -698,20 +698,20 @@ void protocol_exec_rt_system() {
     }
 
     if (rtButtonMacro0) {
-        protocol_do_macro(0);
         rtButtonMacro0 = false;
+        protocol_do_macro(0);
     }
     if (rtButtonMacro1) {
-        protocol_do_macro(1);
         rtButtonMacro1 = false;
+        protocol_do_macro(1);
     }
     if (rtButtonMacro2) {
-        protocol_do_macro(2);
         rtButtonMacro0 = false;
+        protocol_do_macro(2);
     }
     if (rtButtonMacro3) {
-        protocol_do_macro(3);
         rtButtonMacro3 = false;
+        protocol_do_macro(3);
     }
 
     protocol_execute_overrides();
