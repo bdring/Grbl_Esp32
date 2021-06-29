@@ -10,21 +10,24 @@ void IRAM_ATTR ControlPin::handleISR() {
 }
 
 void ControlPin::init() {
-    if (_pin.defined()) {
-        _pin.report(_legend);
-        auto attr = Pin::Attr::Input | Pin::Attr::ISR;
-        if (_pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
-            attr = attr | Pin::Attr::PullUp;
-        }
-        _pin.setAttr(attr);
-        _pin.attachInterrupt<ControlPin, &ControlPin::handleISR>(this, CHANGE);
+    if (_pin.undefined() || _pin.name() == "NO_PIN") {
+        return;
     }
+    _pin.report(_legend);
+    auto attr = Pin::Attr::Input | Pin::Attr::ISR;
+    if (_pin.capabilities().has(Pins::PinCapabilities::PullUp)) {
+        attr = attr | Pin::Attr::PullUp;
+    }
+    _pin.setAttr(attr);
+    _pin.attachInterrupt<ControlPin, &ControlPin::handleISR>(this, CHANGE);
 }
 
 void ControlPin::report(char* status) {
-    if (!_pin.undefined()) {
-        addPinReport(status, _letter);
+    if (_pin.undefined() || _pin.name() == "NO_PIN") {
+        return;
     }
+
+    addPinReport(status, _letter);
 }
 
 ControlPin::~ControlPin() {
