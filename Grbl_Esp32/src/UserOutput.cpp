@@ -23,7 +23,7 @@
 
 namespace UserOutput {
     DigitalOutput::DigitalOutput(uint8_t number, Pin& pin) : _number(number), _pin(pin) {
-        if (_pin.undefined() || _pin.name() == "NO_PIN") {
+        if (_pin.undefined()) {
             return;
         }
         init();
@@ -50,7 +50,7 @@ namespace UserOutput {
     // ==================================================================
 
     AnalogOutput::AnalogOutput(uint8_t number, Pin& pin, float pwm_frequency) : _number(number), _pin(pin), _pwm_frequency(pwm_frequency) {
-        if (_pin.undefined() || _pin.name() == "NO_PIN") {
+        if (_pin.undefined()) {
             return;
         }
 

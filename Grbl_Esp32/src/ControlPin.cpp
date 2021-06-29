@@ -10,7 +10,7 @@ void IRAM_ATTR ControlPin::handleISR() {
 }
 
 void ControlPin::init() {
-    if (_pin.undefined() || _pin.name() == "NO_PIN") {
+    if (_pin.undefined()) {
         return;
     }
     _pin.report(_legend);
@@ -23,11 +23,7 @@ void ControlPin::init() {
 }
 
 void ControlPin::report(char* status) {
-    if (_pin.undefined()) {
-        return;
-    }
-
-    if (_pin.read()) {
+    if (get()) {
         addPinReport(status, _letter);
     }
 }

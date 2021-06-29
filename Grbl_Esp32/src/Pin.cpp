@@ -117,7 +117,7 @@ const char* Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     }
 #endif
     if (prefix == "no_pin") {
-        pinImplementation = new Pins::VoidPinDetail();
+        pinImplementation = undefinedPin;
     }
 
     if (prefix == "void") {
