@@ -437,7 +437,7 @@ void IRAM_ATTR st_go_idle() {
     Stepper_Timer_Stop();
 
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
-    if (((config->_idleTime != 0xff) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) && sys.state != State::Homing) {
+    if (((config->_idleTime != 255) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) && sys.state != State::Homing) {
         // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
         // stop and not drift from residual inertial forces at the end of the last movement.
 
