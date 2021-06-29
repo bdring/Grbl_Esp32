@@ -28,7 +28,14 @@ axes:
       locate_scaler: 5.000
 
     gang0:
-      null_motor:
+      endstops:
+        dual: gpio.33:low
+      stepstick:
+        direction: i2sO.1
+        step: i2sO.2
+        ms3: i2sO.3
+        disable: i2sO.0
+
 
     gang1:
       null_motor:
@@ -52,7 +59,13 @@ axes:
       locate_scaler: 5.000
 
     gang0:
-      null_motor:
+      endstops:
+        dual: gpio.32:low
+      stepstick:
+        direction: i2sO.4
+        step: i2sO.5
+        ms3: i2sO.6
+        disable: i2sO.7
 
     gang1:
       null_motor:
@@ -76,22 +89,27 @@ axes:
       locate_scaler: 5.000
 
     gang0:
-      null_motor:
+      endstops:
+        dual: gpio.35:low
+      stepstick:
+        direction: i2sO.9
+        step: i2sO.10
+        ms3: i2sO.11
+        disable: i2sO.8
 
     gang1:
       null_motor:
 
- 
+spi:  
+  miso: gpio.19
+  mosi: gpio.23
+  sck: gpio.18
+  ss: gpio.5
 
-control:
-  safety_door: NO_PIN
-  reset: NO_PIN
-  feed_hold: NO_PIN
-  cycle_start: NO_PIN
-  macro0: NO_PIN
-  macro1: NO_PIN
-  macro2: NO_PIN
-  macro3: NO_PIN
+sdcard:  
+  card_detect: NO_PIN
+
+
 
 coolant:
   flood: NO_PIN
@@ -120,22 +138,7 @@ pulse_microseconds: 2
 dir_delay_microseconds: 1
 disable_delay_us: 0
 idle_time: 250
-user_outputs:
-  analog0: NO_PIN
-  analog1: NO_PIN
-  analog2: NO_PIN
-  analog3: NO_PIN
-  analog_frequency0: 5000
-  analog_frequency1: 5000
-  analog_frequency2: 5000
-  analog_frequency3: 5000
-  digital0: NO_PIN
-  digital1: NO_PIN
-  digital2: NO_PIN
-  digital3: NO_PIN
 
-sdcard:
-  card_detect: NO_PIN
 
 software_debounce_ms: 0
 step_type: I2S_STREAM
@@ -152,3 +155,13 @@ homing_single_axis_commands: false
 limits_two_switches_on_axis: false
 disable_laser_during_hold: true
 use_line_numbers: false
+
+PWM:
+  pwm_freq: 5000
+  output_pin: gpio.26:high
+  zero_speed_with_disable: true
+  enable_pin: gpio.4
+  spinup_ms: 1000
+  spindown_ms: 1000
+  speeds: 0=0% 1000=100%
+  tool: 0

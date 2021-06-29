@@ -45,7 +45,7 @@ namespace Machine {
         handler.item("ss", _ss);
         handler.item("miso", _miso);
         handler.item("mosi", _mosi);
-        handler.item("mosi", _sck);
+        handler.item("sck", _sck);
     }
 
     void SPIBus::afterParse() {
