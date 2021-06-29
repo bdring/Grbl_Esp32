@@ -19,6 +19,8 @@
 #include "Validator.h"
 
 #include "Configurable.h"
+#include "../System.h"
+#include "../Logging.h"
 
 #include <cstring>
 #include <atomic>
@@ -30,7 +32,20 @@ namespace Configuration {
     }
 
     void Validator::enterSection(const char* name, Configurable* value) {
-        value->validate();
+        _path.push_back(name);  // For error handling
+
+        try {
+            value->validate();
+        } catch (const AssertionFailed& ex) {
+            // Log something meaningful to the user:
+            log_error("Validation error at "; for (auto it : _path) { ss << '/' << it; } ss << ": " << ex.msg);
+
+            // Set the state to config alarm, so users can't run time machine.
+            sys.state = State::ConfigAlarm;
+        }
+
         value->group(*this);
+
+        _path.erase(_path.begin() + (_path.size() - 1));
     }
 }

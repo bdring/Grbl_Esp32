@@ -137,7 +137,7 @@ namespace Spindles {
             dev_speed += (((speed - _speeds[i].speed) * _speeds[i].scale) >> 16);
         }
 
-        log_debug("rpm " << speed << " speed " << dev_speed);
+        // log_debug("rpm " << speed << " speed " << dev_speed); // This will spew quite a bit of data on your output
         return dev_speed;
     }
     void Spindle::spinDelay(SpindleState state, SpindleSpeed speed) {

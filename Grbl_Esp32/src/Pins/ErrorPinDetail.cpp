@@ -51,5 +51,5 @@ namespace Pins {
 
     PinAttributes ErrorPinDetail::getAttr() const { return PinAttributes::None; }
 
-    String ErrorPinDetail::toString() { return "ERROR_PIN"; }
+    String ErrorPinDetail::toString() { return "ERROR_PIN (for " + _description + ")"; }
 }

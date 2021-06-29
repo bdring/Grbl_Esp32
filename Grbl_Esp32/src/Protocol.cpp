@@ -132,32 +132,35 @@ void protocol_main_loop() {
     empty_lines();
     //uint8_t client = CLIENT_SERIAL; // default client
 
-    // Perform some machine checks to make sure everything is good to go.
-    if (config->_checkLimitsAtInit && config->_axes->hasHardLimits()) {
-        if (limits_get_state()) {
-            sys.state = State::Alarm;  // Ensure alarm state is active.
-            report_feedback_message(Message::CheckLimits);
-        }
-    }
-
     // Check for and report alarm state after a reset, error, or an initial power up.
     // NOTE: Sleep mode disables the stepper drivers and position can't be guaranteed.
     // Re-initialize the sleep state as an ALARM mode to ensure user homes or acknowledges.
     if (sys.state == State::ConfigAlarm) {
         report_feedback_message(Message::ConfigAlarmLock);
-    } else if (sys.state == State::Alarm || sys.state == State::Sleep) {
-        report_feedback_message(Message::AlarmLock);
-        sys.state = State::Alarm;  // Ensure alarm state is set.
     } else {
-        // Check if the safety door is open.
-        sys.state = State::Idle;
-        if (config->_control->system_check_safety_door_ajar()) {
-            rtSafetyDoor = true;
-            protocol_execute_realtime();  // Enter safety door mode. Should return as IDLE state.
+        // Perform some machine checks to make sure everything is good to go.
+        if (config->_checkLimitsAtInit && config->_axes->hasHardLimits()) {
+            if (limits_get_state()) {
+                sys.state = State::Alarm;  // Ensure alarm state is active.
+                report_feedback_message(Message::CheckLimits);
+            }
         }
-        // All systems go!
-        system_execute_startup();  // Execute startup script.
+
+        if (sys.state == State::Alarm || sys.state == State::Sleep) {
+            report_feedback_message(Message::AlarmLock);
+            sys.state = State::Alarm;  // Ensure alarm state is set.
+        } else {
+            // Check if the safety door is open.
+            sys.state = State::Idle;
+            if (config->_control->system_check_safety_door_ajar()) {
+                rtSafetyDoor = true;
+                protocol_execute_realtime();  // Enter safety door mode. Should return as IDLE state.
+            }
+            // All systems go!
+            system_execute_startup();  // Execute startup script.
+        }
     }
+
     // ---------------------------------------------------------------------------------
     // Primary loop! Upon a system abort, this exits back to main() to reset the system.
     // This is also where Grbl idles while waiting for something to do.

@@ -198,7 +198,7 @@ static void Stepper_Timer_Stop();
 
 // Stepper timer configuration
 const int   stepTimerNumber = 0;
-hw_timer_t* stepTimer;  // Handle
+hw_timer_t* stepTimer       = nullptr;  // Handle
 // autoReload true might give better step timing - but it also
 // might cause problems if an interrupt takes too long
 const bool autoReload = true;
@@ -958,7 +958,7 @@ static void IRAM_ATTR Stepper_Timer_Start() {
 static void IRAM_ATTR Stepper_Timer_Stop() {
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_set_passthrough();
-    } else {
+    } else if (stepTimer) {
         timerAlarmDisable(stepTimer);
     }
 }

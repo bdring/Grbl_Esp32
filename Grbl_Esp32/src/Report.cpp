@@ -295,7 +295,7 @@ std::map<Message, const char*> MessageText = {
     { Message::RestoreDefaults, "Restoring defaults" },
     { Message::SpindleRestore, "Restoring spindle" },
     { Message::SleepMode, "Sleeping" },
-    { Message::ConfigAlarmLock, "Configuration error - '$X' to unlock" },
+    { Message::ConfigAlarmLock, "Configuration is invalid. Check boot messages for ERR's." },
     // Handled separately due to numeric argument
     // { Message::SdFileQuit, "Reset during SD file at line: %d" },
 };

@@ -18,10 +18,10 @@
 
 #pragma once
 
-#include <vector>
-
 #include "../Pin.h"
 #include "HandlerBase.h"
+
+#include <vector>
 
 namespace Configuration {
     class Configurable;
@@ -29,6 +29,8 @@ namespace Configuration {
     class AfterParse : public HandlerBase {
         AfterParse(const AfterParse&) = delete;
         AfterParse& operator=(const AfterParse&) = delete;
+
+        std::vector<const char*> _path;
 
     protected:
         void        enterSection(const char* name, Configurable* value) override;

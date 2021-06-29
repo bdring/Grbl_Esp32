@@ -158,10 +158,17 @@ Pin Pin::create(const StringRange& str) {
             return Pin(pinImplementation);
         }
     } catch (const AssertionFailed& ex) {  // We shouldn't get here under normal circumstances.
+
+        char buf[255];
+        snprintf(buf, 255, "ERR: Setting up pin [%s] failed. Details: %s", str.str().c_str(), ex.what());
+
+        Assert(false, buf);
+
+        /*
         pin_error("ERR: Setting up pin [%s] failed. Details: %s", str.str().c_str(), ex.what());
-        (void)ex;  // Get rid of compiler warning
 
         return Pin(new Pins::ErrorPinDetail(str.str()));
+        */
     }
 }
 

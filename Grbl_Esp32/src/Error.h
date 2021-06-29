@@ -89,6 +89,7 @@ enum class Error : uint8_t {
     JogCancelled                = 130,
     BadPinSpecification         = 150,
     BadRuntimeConfigSetting     = 151,
+    ConfigurationInvalid        = 152,
 };
 
 extern std::map<Error, const char*> ErrorNames;

@@ -24,15 +24,20 @@
 
 #include "../Logging.h"
 
+#include <vector>
+
 // #define DEBUG_VERBOSE_YAML_PARSER
 // #define DEBUG_CHATTY_YAML_PARSER
 namespace Configuration {
     class ParserHandler : public Configuration::HandlerBase {
     private:
-        Configuration::Parser& _parser;
+        Configuration::Parser&   _parser;
+        std::vector<const char*> _path;
 
     public:
         void enterSection(const char* name, Configuration::Configurable* section) override {
+            _path.push_back(name);  // For error handling
+
             // On entry, the token is for the section that invoked us.
             // We will handle following nodes with indents greater than entryIndent
             int entryIndent = _parser.token_.indent_;
@@ -66,7 +71,16 @@ namespace Configuration {
 #ifdef DEBUG_VERBOSE_YAML_PARSER
                         log_debug("Parsing key " << _parser.key().str());
 #endif
-                        section->group(*this);
+                        try {
+                            section->group(*this);
+                        } catch (const AssertionFailed& ex) {
+                            // Log something meaningful to the user:
+                            log_error("Configuration error at "; for (auto it : _path) { ss << '/' << it; } ss << ": " << ex.msg);
+
+                            // Set the state to config alarm, so users can't run time machine.
+                            sys.state = State::ConfigAlarm;
+                        }
+
                         if (_parser.token_.state == TokenState::Matching) {
                             log_error("Ignored key " << _parser.key().str());
                         }
@@ -90,6 +104,8 @@ namespace Configuration {
 #ifdef DEBUG_CHATTY_YAML_PARSER
             log_debug("Left section at indent " << entryIndent << " holding " << _parser.key().str());
 #endif
+
+            _path.erase(_path.begin() + (_path.size() - 1));
         }
 
         bool matchesUninitialized(const char* name) override { return _parser.is(name); }

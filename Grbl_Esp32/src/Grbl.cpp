@@ -113,26 +113,27 @@ void grbl_init() {
             } else {
                 sys.state = State::Idle;
             }
-        }
-        // Check for power-up and set system alarm if homing is enabled to force homing cycle
-        // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
-        // startup scripts, but allows access to settings and internal commands. Only a homing
-        // cycle '$H' or kill alarm locks '$X' will disable the alarm.
-        // NOTE: The startup script will run after successful completion of the homing cycle, but
-        // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
-        // things uncontrollably. Very bad.
-        if (config->_homingInitLock && homingAxes() && sys.state != State::ConfigAlarm) {
-            // If there is an axis with homing configured, enter Alarm state on startup
-            sys.state = State::Alarm;
-        }
-        for (auto s : config->_spindles) {
-            s->init();
-        }
-        Spindles::Spindle::switchSpindle(0, config->_spindles, spindle);
 
-        config->_coolant->init();
-        limits_init();
-        config->_probe->init();
+            // Check for power-up and set system alarm if homing is enabled to force homing cycle
+            // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
+            // startup scripts, but allows access to settings and internal commands. Only a homing
+            // cycle '$H' or kill alarm locks '$X' will disable the alarm.
+            // NOTE: The startup script will run after successful completion of the homing cycle, but
+            // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
+            // things uncontrollably. Very bad.
+            if (config->_homingInitLock && homingAxes()) {
+                // If there is an axis with homing configured, enter Alarm state on startup
+                sys.state = State::Alarm;
+            }
+            for (auto s : config->_spindles) {
+                s->init();
+            }
+            Spindles::Spindle::switchSpindle(0, config->_spindles, spindle);
+
+            config->_coolant->init();
+            limits_init();
+            config->_probe->init();
+        }
 
         WebUI::wifi_config.begin();
         if (config->_comms->_bluetoothConfig) {
@@ -155,11 +156,16 @@ static void reset_variables() {
     // or by the post-configuration fixup, but we test
     // it anyway just for safety.  We want to avoid any
     // possibility of crashing at this point.
-    if (spindle) {
-        spindle->stop();
-    }
+
     plan_reset();  // Clear block buffer and planner variables
-    st_reset();    // Clear stepper subsystem variables
+
+    if (sys.state != State::ConfigAlarm) {
+        if (spindle) {
+            spindle->stop();
+        }
+        st_reset();  // Clear stepper subsystem variables
+    }
+
     // Sync cleared gcode and planner positions to current system position.
     plan_sync_position();
     gc_sync_position();
@@ -189,6 +195,7 @@ void run_once() {
         // require careful teardown of the existing configuration
         // to avoid memory leaks. It is probably worth doing eventually.
         error_all("Critical error in run_once: %s", ex.msg.c_str());
+        error_all("Stacktrace: %s", ex.stackTrace.c_str());
         sys.state = State::ConfigAlarm;
     }
     if (++tries > 1) {

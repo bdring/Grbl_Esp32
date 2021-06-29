@@ -103,6 +103,10 @@ void settings_init() {
 // than actual settings, which change infrequently, so handling
 // it early is probably prudent.
 Error jog_set(uint8_t* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    if (sys.state == State::ConfigAlarm) {
+        return Error::ConfigurationInvalid;
+    }
+
     // Execute only if in IDLE or JOG states.
     if (sys.state != State::Idle && sys.state != State::Jog) {
         return Error::IdleError;
@@ -217,6 +221,10 @@ Error list_commands(const char* value, WebUI::AuthenticationLevel auth_level, We
     return Error::Ok;
 }
 Error toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    if (sys.state == State::ConfigAlarm) {
+        return Error::ConfigurationInvalid;
+    }
+
     // Perform reset when toggling off. Check g-code mode should only work if Grbl
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
     // simple and consistent.
@@ -234,7 +242,9 @@ Error toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
     return Error::Ok;
 }
 Error disable_alarm_lock(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    if (sys.state == State::Alarm || sys.state == State::ConfigAlarm) {
+    if (sys.state == State::ConfigAlarm) {
+        return Error::ConfigurationInvalid;
+    } else if (sys.state == State::Alarm) {
         // Block if safety door is ajar.
         if (config->_control->system_check_safety_door_ajar()) {
             return Error::CheckDoor;
@@ -250,6 +260,10 @@ Error report_ngc(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
     return Error::Ok;
 }
 Error home(int cycle) {
+    if (sys.state == State::ConfigAlarm) {
+        return Error::ConfigurationInvalid;
+    }
+
     if (!homingAxes()) {
         return Error::SettingDisabled;
     }
@@ -346,6 +360,10 @@ Error showState(const char* value, WebUI::AuthenticationLevel auth_level, WebUI:
 }
 
 Error doJog(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    if (sys.state == State::ConfigAlarm) {
+        return Error::ConfigurationInvalid;
+    }
+
     // For jogging, you must give gc_execute_line() a line that
     // begins with $J=.  There are several ways we can get here,
     // including  $J, $J=xxx, [J]xxx.  For any form other than
@@ -421,6 +439,10 @@ Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
 }
 
 Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    if (sys.state == State::ConfigAlarm) {
+        return Error::ConfigurationInvalid;
+    }
+
     while (value && isspace(*value)) {
         ++value;
     }
@@ -556,7 +578,7 @@ Error do_command_or_setting(const char* key, char* value, WebUI::AuthenticationL
                 config->group(validator);
             } catch (std::exception& ex) {
                 log_error("Validation error: " << ex.what());
-                return Error::BadRuntimeConfigSetting;
+                return Error::ConfigurationInvalid;
             }
 
             Configuration::AfterParse afterParseHandler;
@@ -567,10 +589,10 @@ Error do_command_or_setting(const char* key, char* value, WebUI::AuthenticationL
         }
     } catch (const Configuration::ParseException& ex) {
         log_error("Configuration parse error: " << ex.What() << " @ " << ex.LineNumber() << ":" << ex.ColumnNumber());
-        return Error::BadRuntimeConfigSetting;
+        return Error::ConfigurationInvalid;
     } catch (const AssertionFailed& ex) {
         log_error("Configuration change failed: " << ex.what());
-        return Error::BadRuntimeConfigSetting;
+        return Error::ConfigurationInvalid;
     }
 
     // Next search the settings list by text name. If found, set a new

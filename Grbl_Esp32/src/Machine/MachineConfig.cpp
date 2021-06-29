@@ -276,7 +276,7 @@ namespace Machine {
 
             // log_info("Heap size after configuation load is " << uint32_t(xPortGetFreeHeapSize()));
 
-            successful = true;
+            successful = (sys.state != State::ConfigAlarm);
 
         } catch (const Configuration::ParseException& ex) {
             sys.state      = State::ConfigAlarm;
