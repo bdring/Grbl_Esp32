@@ -104,7 +104,7 @@ spi:
   miso: gpio.19
   mosi: gpio.23
   sck: gpio.18
-  ss: gpio.5
+  cs: gpio.5
 
 sdcard:  
   card_detect: NO_PIN
