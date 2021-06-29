@@ -3,16 +3,11 @@ board: "ESP32 Dev Controller V4"
 yaml_wiki: "https://github.com/bdring/Grbl_Esp32/wiki/YAML-Config-File"
 
 idle_time: 250
-step_type: I2S_STATIC
+step_type: RMT
 dir_delay_microseconds: 1
 pulse_microseconds: 2
 disable_delay_us: 0
 homing_init_lock: false
-
-i2so:
-  bck: gpio.22
-  ws: gpio.17
-  data: gpio.21
 
 axes:
   number_axis: 3
