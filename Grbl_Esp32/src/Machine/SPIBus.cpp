@@ -22,8 +22,8 @@
 
 namespace Machine {
     void SPIBus::validate() const {
-        if (_ss.defined() || _miso.defined() || _mosi.defined() || _sck.defined()) {
-            Assert(_ss.defined(), "SPI SS pin should be configured once");
+        if (_cs.defined() || _miso.defined() || _mosi.defined() || _sck.defined()) {
+            Assert(_cs.defined(), "SPI CS pin should be configured once");
             Assert(_miso.defined(), "SPI MISO pin should be configured once");
             Assert(_mosi.defined(), "SPI MOSI pin should be configured once");
             Assert(_sck.defined(), "SPI SCK pin should be configured once");
@@ -31,30 +31,30 @@ namespace Machine {
     }
 
     void SPIBus::init() {
-        if (_ss.defined()) {  // validation ensures the rest is also defined.
-            auto ssPin   = _ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        if (_cs.defined()) {  // validation ensures the rest is also defined.
+            auto csPin   = _cs.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
             auto mosiPin = _mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
             auto sckPin  = _sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
             auto misoPin = _miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
 
-            SPI.begin(sckPin, misoPin, mosiPin, ssPin);
+            SPI.begin(sckPin, misoPin, mosiPin, csPin);
         }
     }
 
     void SPIBus::group(Configuration::HandlerBase& handler) {
-        handler.item("ss", _ss);
+        handler.item("cs", _cs);
         handler.item("miso", _miso);
         handler.item("mosi", _mosi);
         handler.item("sck", _sck);
     }
 
     void SPIBus::afterParse() {
-        if (_ss.undefined() && _miso.undefined() && _mosi.undefined() && _sck.undefined()) {
-            // Default SPI miso, mosi, sck, ss pins to the "standard" gpios 19, 23, 18, 5
+        if (_cs.undefined() && _miso.undefined() && _mosi.undefined() && _sck.undefined()) {
+            // Default SPI miso, mosi, sck, cs pins to the "standard" gpios 19, 23, 18, 5
             _miso = Pin::create("gpio.19");
             _mosi = Pin::create("gpio.23");
             _sck  = Pin::create("gpio.18");
-            _ss   = Pin::create("gpio.5");
+            _cs   = Pin::create("gpio.5");
         }
     }
 }

@@ -143,7 +143,7 @@ SDCard::State SDCard::get_state(bool refresh) {
     auto spiConfig = config->_spi;
 
     if (spiConfig != nullptr) {
-        auto ssPin = spiConfig->_ss.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
+        auto csPin = spiConfig->_cs.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
 
         //no need to go further if SD detect is not correct
         if (config->_sdCard->_cardDetect.defined() && !config->_sdCard->_cardDetect.read()) {
@@ -166,7 +166,7 @@ SDCard::State SDCard::get_state(bool refresh) {
 
         //using default value for speed ? should be parameter
         //refresh content if card was removed
-        if (SD.begin(ssPin, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
+        if (SD.begin(csPin, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
             if (SD.cardSize() > 0) {
                 _state = SDCard::State::Idle;
             }
