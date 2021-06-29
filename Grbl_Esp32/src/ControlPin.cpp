@@ -27,7 +27,9 @@ void ControlPin::report(char* status) {
         return;
     }
 
-    addPinReport(status, _letter);
+    if (_pin.read()) {
+        addPinReport(status, _letter);
+    }
 }
 
 ControlPin::~ControlPin() {

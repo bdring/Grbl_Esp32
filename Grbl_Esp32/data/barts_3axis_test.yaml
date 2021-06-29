@@ -29,7 +29,7 @@ axes:
 
     gang0:
       endstops:
-        dual: gpio.33:low
+        dual: gpio.33:high
       stepstick:
         direction: i2sO.1
         step: i2sO.2
@@ -60,7 +60,7 @@ axes:
 
     gang0:
       endstops:
-        dual: gpio.32:low
+        dual: gpio.32:high
       stepstick:
         direction: i2sO.4
         step: i2sO.5
@@ -90,7 +90,7 @@ axes:
 
     gang0:
       endstops:
-        dual: gpio.35:low
+        dual: gpio.35:high
       stepstick:
         direction: i2sO.9
         step: i2sO.10
@@ -104,7 +104,31 @@ spi:
   miso: gpio.19
   mosi: gpio.23
   sck: gpio.18
-  ss: gpio.5
+  cs: gpio.5
+
+control:
+  safety_door: gpio.34:high
+  reset: gpio.25:low:pu
+  feed_hold: NO_PIN
+  cycle_start: NO_PIN
+  macro0: NO_PIN
+  macro1: NO_PIN
+  macro2: NO_PIN
+  macro3: NO_PIN
+
+user_outputs:
+  analog0: gpio.2
+  analog1: NO_PIN
+  analog2: NO_PIN
+  analog3: NO_PIN
+  analog_frequency0: 5000
+  analog_frequency1: 5000
+  analog_frequency2: 5000
+  analog_frequency3: 5000
+  digital0: NO_PIN
+  digital1: NO_PIN
+  digital2: NO_PIN
+  digital3: NO_PIN
 
 sdcard:  
   card_detect: NO_PIN
