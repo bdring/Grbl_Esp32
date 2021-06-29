@@ -64,6 +64,7 @@
 #include <freertos/task.h>
 #include <cstring>
 #include <cstdio>
+#include <cstdarg>
 
 #ifdef DEBUG_REPORT_HEAP
 EspClass esp;

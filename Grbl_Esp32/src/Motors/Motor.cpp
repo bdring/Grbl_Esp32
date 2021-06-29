@@ -41,10 +41,10 @@ namespace Motors {
 
     uint8_t Motor::axis_index() const {
         Assert(config != nullptr && config->_axes != nullptr, "Expected machine to be configured before this is called.");
-        return config->_axes->findAxisIndex(this);
+        return uint8_t(config->_axes->findAxisIndex(this));
     }
     uint8_t Motor::dual_axis_index() const {
         Assert(config != nullptr && config->_axes != nullptr, "Expected machine to be configured before this is called.");
-        return config->_axes->findAxisGanged(this);
+        return uint8_t(config->_axes->findAxisGanged(this));
     }
 }

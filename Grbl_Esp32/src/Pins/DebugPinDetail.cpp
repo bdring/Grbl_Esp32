@@ -18,10 +18,11 @@
 
 #include "DebugPinDetail.h"
 
-#include "../Grbl.h"         // for printf
-#include <Arduino.h>         // for timer
-#include <HardwareSerial.h>  // HW serial
-#include <cstdio>            // vsnprintf
+#include "../Grbl.h"  // for printf
+#include "../Uart.h"
+#include <Arduino.h>  // for timer
+#include <cstdio>     // vsnprintf
+#include <cstdarg>
 
 namespace Pins {
     inline void WriteSerial(const char* format, ...) {
@@ -32,9 +33,9 @@ namespace Pins {
         va_copy(copy, arg);
         size_t len = vsnprintf(buf, 50, format, arg);
         va_end(copy);
-        Serial.print("[MSG: ");
-        Serial.print(buf);
-        Serial.println(" ]");
+        Uart0.print("[MSG: ");
+        Uart0.print(buf);
+        Uart0.println(" ]");
         va_end(arg);
     }
 

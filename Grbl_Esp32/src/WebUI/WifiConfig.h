@@ -24,6 +24,8 @@
 
 #include "../Config.h"  // ENABLE_*
 
+#include <WString.h>
+
 #ifndef ENABLE_WIFI
 namespace WebUI {
     class WiFiConfig {

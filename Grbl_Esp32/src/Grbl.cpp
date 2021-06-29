@@ -32,11 +32,14 @@
 #include "System.h"
 #include "Uart.h"
 #include "MotionControl.h"
+#include "Platform.h"
 
 #include "WebUI/WifiConfig.h"
 #include "WebUI/InputBuffer.h"
 
-#include <WiFi.h>
+#ifdef ENABLE_WIFI
+#    include <WiFi.h>
+#endif
 #include <SPIFFS.h>
 #include <Arduino.h>  // sleep
 
@@ -46,12 +49,14 @@ void grbl_init() {
     try {
         uartInit();  // Setup serial port
 
+#ifdef ENABLE_WIFI
         debug_serial("Initializing WiFi...");
         WiFi.persistent(false);
         WiFi.disconnect(true);
         WiFi.enableSTA(false);
         WiFi.enableAP(false);
         WiFi.mode(WIFI_OFF);
+#endif
 
         display_init();
         info_serial("Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
@@ -204,13 +209,13 @@ void run_once() {
     // This is inside a loop in Grbl_Esp32.ino
 }
 
-void __attribute__((weak)) machine_init() {}
+void WEAK_LINK machine_init() {}
 
-void __attribute__((weak)) display_init() {}
+void WEAK_LINK display_init() {}
 
-void __attribute__((weak)) user_m30() {}
+void WEAK_LINK user_m30() {}
 
-void __attribute__((weak)) user_tool_change(uint8_t new_tool) {
+void WEAK_LINK user_tool_change(uint8_t new_tool) {
     Spindles::Spindle::switchSpindle(new_tool, config->_spindles, spindle);
 }
 

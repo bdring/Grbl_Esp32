@@ -10,7 +10,10 @@
 #include <map>
 #include <cstring>
 #include <nvs.h>
-#include <WiFi.h>
+
+#ifdef ENABLE_WIFI
+#    include <WiFi.h>
+#endif
 
 bool anyState() {
     return false;

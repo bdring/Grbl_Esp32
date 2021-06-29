@@ -44,7 +44,7 @@ void limits_enable();
 AxisMask limits_get_state();
 
 // Perform one homing operation
-void limits_go_home(AxisMask cycle_mask, uint n_locate_cycles);
+void limits_go_home(AxisMask cycle_mask, uint32_t n_locate_cycles);
 
 // Check for soft limit violations
 void limits_soft_check(float* target);

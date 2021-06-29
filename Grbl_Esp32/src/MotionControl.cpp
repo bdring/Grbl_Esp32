@@ -32,6 +32,7 @@
 #include "Planner.h"   // plan_reset, etc
 #include "I2SOut.h"    // i2s_out_reset
 #include "Grbl.h"      // user_defined_homing... Implemented in Limits.
+#include "Platform.h"  // WEAK_LINK
 
 // M_PI is not defined in standard C/C++ but some compilers
 // support it anyway.  The following suppresses Intellisense
@@ -119,21 +120,21 @@ void mc_cancel_jog() {
     }
 }
 
-bool __attribute__((weak)) cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
+bool WEAK_LINK cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
     return mc_line(target, pl_data);
 }
 
-bool __attribute__((weak)) kinematics_pre_homing(AxisMask cycle_mask) {
+bool WEAK_LINK kinematics_pre_homing(AxisMask cycle_mask) {
     return false;  // finish normal homing cycle
 }
 
-void __attribute__((weak)) kinematics_post_homing() {}
+void WEAK_LINK kinematics_post_homing() {}
 
-void __attribute__((weak)) motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
+void WEAK_LINK motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
     memcpy(cartesian, motors, n_axis * sizeof(motors[0]));
 }
 
-void __attribute__((weak)) forward_kinematics(float* position) {}
+void WEAK_LINK forward_kinematics(float* position) {}
 // Execute an arc in offset mode format. position == current xyz, target == target xyz,
 // offset == offset from current xyz, axis_X defines circle plane in tool space, axis_linear is
 // the direction of helical travel, radius == circle radius, isclockwise boolean. Used

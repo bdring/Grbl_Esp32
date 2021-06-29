@@ -50,7 +50,7 @@
 #include "SettingsDefinitions.h"
 #include "Machine/MachineConfig.h"
 
-#include <FreeRTOS.h>
+#include <freertos/FreeRTOS.h>
 #include <driver/periph_ctrl.h>
 #include <rom/lldesc.h>
 #include <soc/i2s_struct.h>

@@ -1,5 +1,3 @@
-#include "YL620Spindle.h"
-
 /*
     YL620Spindle.cpp
 
@@ -83,6 +81,10 @@
                         b10: reset all error flags
                         b11: reserved
 */
+
+#include "YL620Spindle.h"
+
+#include <algorithm>
 
 namespace Spindles {
     YL620::YL620() : VFD() {}

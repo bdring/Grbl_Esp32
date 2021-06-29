@@ -29,6 +29,7 @@
 #include "../Grbl.h"    //GRBL_VERSION
 #include "../Serial.h"  // CLIENT_ALL
 #include "../Report.h"  // info_all
+#include "Commands.h"   // COMMANDS::wait(1);
 #include "WifiConfig.h"
 #include "ESPResponse.h"
 #include "WebServer.h"
@@ -36,17 +37,18 @@
 #include "TelnetServer.h"          // telnet_server
 
 #include <cstring>
-#include <WiFi.h>
+
+#ifdef ENABLE_WIFI
+#    include <WiFi.h>
+#    include <esp_wifi.h>
+#    include <esp_ota_ops.h>
+#endif
+
 #include <FS.h>
 #include <SPIFFS.h>
-#include <esp_wifi.h>
-#include <esp_ota_ops.h>
 #include <SD.h>
 
 namespace WebUI {
-
-#ifdef ENABLE_WIFI
-#endif
 
     enum_opt_t onoffOptions = { { "OFF", 0 }, { "ON", 1 } };
 
@@ -264,7 +266,7 @@ namespace WebUI {
         while (currentfile.available()) {
             String currentline = currentfile.readStringUntil('\n');
             if (currentline.length() > 0) {
-                byte line[256];
+                uint8_t line[256];
                 currentline.getBytes(line, 255);
                 err = execute_line((char*)line, client, auth_level);
                 if (err != Error::Ok) {
@@ -532,11 +534,13 @@ namespace WebUI {
         webPrintln("SDK: ", ESP.getSdkVersion());
         webPrintln("Flash Size: ", ESPResponseStream::formatBytes(ESP.getFlashChipSize()));
 
+#ifdef ENABLE_WIFI
         // Round baudRate to nearest 100 because ESP32 can say e.g. 115201
         // webPrintln("Baud rate: ", String((Serial.baudRate() / 100) * 100)); // TODO FIXME: Commented out, because we're using Uart
         webPrintln("Sleep mode: ", WiFi.getSleep() ? "Modem" : "None");
-
         showWifiStats();
+#endif
+
         if (config->_comms->_bluetoothConfig) {
             webPrintln(config->_comms->_bluetoothConfig->info().c_str());
         }

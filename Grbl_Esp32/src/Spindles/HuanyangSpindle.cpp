@@ -149,6 +149,8 @@
 
 #include "HuanyangSpindle.h"
 
+#include <algorithm>  // std::max
+
 namespace Spindles {
     Huanyang::Huanyang() : VFD() {
         // Baud rate is set in the PD164 setting.  If it is not 9600, add, for example,

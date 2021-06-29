@@ -23,6 +23,7 @@
 #include "Configuration/Configurable.h"
 #include "UartTypes.h"
 
+#include <Stream.h>
 #include <freertos/FreeRTOS.h>  // TickType_T
 
 class Uart : public Stream, public Configuration::Configurable {

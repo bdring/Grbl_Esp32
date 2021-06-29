@@ -21,6 +21,7 @@
 #include "HandlerBase.h"
 #include "Parser.h"
 #include "Configurable.h"
+#include "../System.h"
 
 #include "../Logging.h"
 

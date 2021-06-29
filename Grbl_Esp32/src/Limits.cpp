@@ -36,6 +36,7 @@
 #include "Protocol.h"       // protocol_execute_realtime
 #include "Report.h"         // info, etc
 #include "I2SOut.h"         // I2S_OUT_DELAY_MS
+#include "Platform.h"
 
 #include <freertos/task.h>
 #include <freertos/queue.h>
@@ -89,7 +90,7 @@ AxisMask homingAxes() {
 // circumvent the processes for executing motions in normal operation.
 // NOTE: Only the abort realtime command can interrupt this process.
 // TODO: Move limit pin-specific calls to a general function for portability.
-void limits_go_home(uint8_t cycle_mask, uint n_locate_cycles) {
+void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     if ((cycle_mask & homingAxes()) != cycle_mask) {
         debug_all("Homing is not configured for some requested axes");
     }
@@ -454,7 +455,7 @@ float limitsMinPosition(uint8_t axis) {
 // Checks and reports if target array exceeds machine travel limits.
 // Return true if exceeding limits
 // Set $<axis>/MaxTravel=0 to selectively remove an axis from soft limit checks
-bool __attribute__((weak)) limitsCheckTravel(float* target) {
+bool WEAK_LINK limitsCheckTravel(float* target) {
     auto axes   = config->_axes;
     auto n_axis = axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
@@ -477,6 +478,6 @@ bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index) {
     }
 }
 
-bool __attribute__((weak)) user_defined_homing(AxisMask cycle_mask) {
+bool WEAK_LINK user_defined_homing(AxisMask cycle_mask) {
     return false;
 }

@@ -222,18 +222,35 @@ public:
     String substring(int index) { return String(backbuf.substr(index)); }
 
     // modification
-    // void replace(char find, char replace);
+    void replace(char find, char replace) {
+        std::string s2 = backbuf;
+        for (auto& it : s2) {
+            if (it == find) {
+                it = replace;
+            }
+        }
+        backbuf = s2;
+    }
     // void replace(const String& find, const String& replace);
     // void remove(unsigned int index);
     // void remove(unsigned int index, unsigned int count);
-    // void toLowerCase(void);
-    // void toUpperCase(void);
     // void trim(void);
 
     // parsing/conversion
     long   toInt() const { return atoi(backbuf.c_str()); }
     float  toFloat() const { return std::stof(backbuf.c_str()); }
     double toDouble() const { return std::stod(backbuf.c_str()); }
+
+    inline void toLowerCase() {
+        for (auto& it : backbuf) {
+            it = std::tolower(it);
+        }
+    }
+    inline void toUpperCase() {
+        for (auto& it : backbuf) {
+            it = std::toupper(it);
+        }
+    }
 };
 
 class StringAppender : public String {
@@ -250,5 +267,5 @@ public:
     StringAppender(double num) : String(num) {}
 };
 
-int	 strcasecmp(const char* lhs, const char* rhs);
-int	 strncasecmp(const char* lhs, const char* rhs, size_t count);
+int strcasecmp(const char* lhs, const char* rhs);
+int strncasecmp(const char* lhs, const char* rhs, size_t count);

@@ -30,6 +30,8 @@
 #include "../Report.h"  // info_serial
 #include "../Limits.h"  // limitsMinPosition
 
+#include <cstdarg>
+
 namespace Motors {
     bool    Motors::Dynamixel2::_uart_started      = false;
     uint8_t Motors::Dynamixel2::ids[MAX_N_AXIS][2] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };

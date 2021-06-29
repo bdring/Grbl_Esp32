@@ -28,13 +28,13 @@ namespace Machine {
         int   _cycle             = -1;
         bool  _square            = false;
         bool  _positiveDirection = true;
-        float _mpos              = 0;
-        float _feedRate          = 500;
-        float _seekRate          = 100;
-        float _pulloff           = 1.0;  // mm
+        float _mpos              = 0.0f;
+        float _feedRate          = 500.0f;
+        float _seekRate          = 100.0f;
+        float _pulloff           = 1.0f;  // mm
         int   _debounce          = 10;
-        float _search_scaler     = 1.1;
-        float _locate_scaler     = 5.0;
+        float _search_scaler     = 1.1f;
+        float _locate_scaler     = 5.0f;
 
         // Configuration system helpers:
         void validate() const override { Assert(_cycle >= 1, "Cycle has to be defined as >= 1 for homing sequence."); }

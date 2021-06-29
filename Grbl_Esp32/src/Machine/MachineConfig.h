@@ -62,8 +62,8 @@ namespace Machine {
         int _disableDelayMicroSeconds   = 0;
 
         bool    _laserMode          = false;
-        float   _arcTolerance       = 0.002;
-        float   _junctionDeviation  = 0.01;
+        float   _arcTolerance       = 0.002f;
+        float   _junctionDeviation  = 0.01f;
         uint8_t _idleTime           = 255;
         bool    _verboseErrors      = false;
         bool    _reportInches       = false;

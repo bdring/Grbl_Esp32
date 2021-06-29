@@ -21,6 +21,9 @@
 
 #include "Authentication.h"  // MAX_LOCAL_PASSWORD_LENGTH
 
+#include <esp_err.h>
+#include <cstring>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

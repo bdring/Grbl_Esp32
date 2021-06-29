@@ -1,5 +1,7 @@
 #include "Axis.h"
 
+#include <cstring>
+
 namespace Machine {
     void Axis::group(Configuration::HandlerBase& handler) {
         handler.item("steps_per_mm", _stepsPerMm);

@@ -141,7 +141,7 @@ namespace Spindles {
         return dev_speed;
     }
     void Spindle::spinDelay(SpindleState state, SpindleSpeed speed) {
-        uint up = 0, down = 0;
+        uint32_t up = 0, down = 0;
         switch (state) {
             case SpindleState::Unknown:
                 // Unknown is only used for an initializer value,
