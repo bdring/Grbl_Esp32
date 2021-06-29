@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Machine/MachineConfig.h"  // config->_stepType
+#include "../Stepper.h"                // ST_I2S_*
 #include "Motor.h"
 
 #include <driver/rmt.h>
@@ -33,8 +35,11 @@ namespace Motors {
 
         // Configuration handlers:
         void validate() const override {
-            Assert(!_step_pin.undefined(), "Step pin should be configured.");
-            Assert(!_dir_pin.undefined(), "Direction pin should be configured.");
+            Assert(_step_pin.defined(), "Step pin should be configured.");
+            Assert(_dir_pin.defined(), "Direction pin should be configured.");
+            bool isI2SO = config->_stepType == ST_I2S_STREAM || config->_stepType == ST_I2S_STATIC;
+            Assert(!isI2SO || _step_pin.name().startsWith("I2SO"), "Step pin must be an I2SO pin");
+            Assert(!isI2SO || _dir_pin.name().startsWith("I2SO"), "Direction pin must be an I2SO pin");
         }
 
         void group(Configuration::HandlerBase& handler) override {

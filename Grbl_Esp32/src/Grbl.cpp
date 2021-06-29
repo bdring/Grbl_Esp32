@@ -64,44 +64,46 @@ void grbl_init() {
         // Load Grbl settings from non-volatile storage
         debug_serial("Initializing settings...");
         settings_init();  // requires config
-        config->load(config_filename->get());
+        bool configOkay = config->load(config_filename->get());
         make_grbl_commands();
 
         // Setup input polling loop after loading the configuration,
         // because the polling may depend on the config
         client_init();
 
-        report_machine_type(CLIENT_SERIAL);
-        info_serial("Board: %s", config->_board.c_str());
+        if (configOkay) {
+            report_machine_type(CLIENT_SERIAL);
+            info_serial("Board: %s", config->_board.c_str());
 
-        if (config->_i2so) {
-            info_serial("Initializing I2SO...");
-            // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
-            i2s_out_init();
-        }
-        if (config->_spi) {
-            info_serial("Initializing SPI...");
-            // The SPI must be initialized before we can use it.
-            config->_spi->init();
-
-            // Initialize SD card after SPI:
-            if (config->_sdCard != nullptr) {
-                config->_sdCard->init();
+            if (config->_i2so) {
+                info_serial("Initializing I2SO...");
+                // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
+                i2s_out_init();
             }
+            if (config->_spi) {
+                info_serial("Initializing SPI...");
+                // The SPI must be initialized before we can use it.
+                config->_spi->init();
+
+                // Initialize SD card after SPI:
+                if (config->_sdCard != nullptr) {
+                    config->_sdCard->init();
+                }
+            }
+
+            info_serial("Initializing steppers...");
+            stepper_init();  // Configure stepper pins and interrupt timers
+
+            info_serial("Initializing axes...");
+            config->_axes->read_settings();
+            config->_axes->init();
+
+            config->_control->init();
+            init_output_pins();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
+            memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
+
+            machine_init();  // user supplied function for special initialization
         }
-
-        info_serial("Initializing steppers...");
-        stepper_init();  // Configure stepper pins and interrupt timers
-
-        info_serial("Initializing axes...");
-        config->_axes->read_settings();
-        config->_axes->init();
-
-        config->_control->init();
-        init_output_pins();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
-        memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
-
-        machine_init();  // user supplied function for special initialization
 
         // Initialize system state.
         if (sys.state != State::ConfigAlarm) {
@@ -166,6 +168,7 @@ static void reset_variables() {
 }
 
 void run_once() {
+    static int tries = 0;
     try {
         reset_variables();
         // Start Grbl main loop. Processes program inputs and executes them.
@@ -187,6 +190,9 @@ void run_once() {
         // to avoid memory leaks. It is probably worth doing eventually.
         error_all("Critical error in run_once: %s", ex.msg.c_str());
         sys.state = State::ConfigAlarm;
+    }
+    if (++tries > 1) {
+        while (1) {}
     }
     // This is inside a loop in Grbl_Esp32.ino
 }

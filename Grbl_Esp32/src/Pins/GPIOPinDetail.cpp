@@ -21,6 +21,7 @@
 
 #include "GPIOPinDetail.h"
 #include "../Assert.h"
+#include "../Logging.h"
 
 extern "C" void __pinMode(uint8_t pin, uint8_t mode);
 extern "C" int  __digitalRead(uint8_t pin);
@@ -133,7 +134,10 @@ namespace Pins {
     PinCapabilities GPIOPinDetail::capabilities() const { return _capabilities; }
 
     void GPIOPinDetail::write(int high) {
-        Assert(_attributes.has(PinAttributes::Output), "Pin has no output attribute defined. Cannot write to it.");
+        if (!_attributes.has(PinAttributes::Output)) {
+            log_error(toString());
+        }
+        Assert(_attributes.has(PinAttributes::Output), "Pin %s cannot be written", toString());
         int value = _readWriteMask ^ high;
         __digitalWrite(_index, value);
     }
@@ -149,9 +153,11 @@ namespace Pins {
 
         // Check the attributes first:
         Assert(value.validateWith(this->_capabilities) || _index == 1 || _index == 3,
-               "The requested attributes don't match the pin capabilities");
+               "The requested attributes don't match the capabilities for %s",
+               toString());
         Assert(!_attributes.conflictsWith(value) || _index == 1 || _index == 3,
-               "Attributes on this pin have been set before, and there's a conflict.");
+               "The requested attributes on %s conflict with previous settings",
+               toString());
 
         _attributes = _attributes | value;
 
@@ -180,14 +186,12 @@ namespace Pins {
     }
 
     void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) {
-        Assert(_attributes.has(PinAttributes::ISR),
-               "Pin has no ISR attribute, which means 'setAttr' was not set, or the pin doesn't support ISR's. Cannot bind ISR.");
+        Assert(_attributes.has(PinAttributes::ISR), "Pin %s does not support interrupts", toString());
         ::attachInterruptArg(_index, callback, arg, mode);
     }
 
     void GPIOPinDetail::detachInterrupt() {
-        Assert(_attributes.has(PinAttributes::ISR),
-               "Pin has no ISR attribute, which means 'setAttr' was not set, or the pin doesn't support ISR's. Cannot unbind ISR.");
+        Assert(_attributes.has(PinAttributes::ISR), "Pin %s does not support interrupts");
         ::detachInterrupt(_index);
     }
 
