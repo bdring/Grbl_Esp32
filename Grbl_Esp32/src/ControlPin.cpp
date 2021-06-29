@@ -23,7 +23,7 @@ void ControlPin::init() {
 }
 
 void ControlPin::report(char* status) {
-    if (_pin.undefined() || _pin.name() == "NO_PIN") {
+    if (_pin.undefined()) {
         return;
     }
 
