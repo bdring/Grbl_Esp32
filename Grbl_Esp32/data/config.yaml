@@ -11,7 +11,7 @@ homing_init_lock: false
 
 axes:
   number_axis: 3
-  shared_stepper_disable: gpio.13:low
+  shared_stepper_disable: gpio.13:high
   
   x:
     steps_per_mm: 800
@@ -22,6 +22,8 @@ axes:
       cycle: 2
       mpos: 10
       positive_direction: false
+      feed_rate: 50.000
+      seek_rate: 100.000
     
     gang0:
       endstops:
@@ -41,6 +43,8 @@ axes:
       cycle: 2
       mpos: 10
       positive_direction: false
+      feed_rate: 50.000
+      seek_rate: 200.000
 
     gang0:
       endstops:
@@ -60,6 +64,8 @@ axes:
       cycle: 1
       mpos: 10
       positive_direction: true
+      feed_rate: 50.000
+      seek_rate: 200.000
 
     gang0:
       endstops:

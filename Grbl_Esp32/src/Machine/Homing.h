@@ -29,8 +29,8 @@ namespace Machine {
         bool  _square            = false;
         bool  _positiveDirection = true;
         float _mpos              = 0.0f;
-        float _feedRate          = 500.0f;
-        float _seekRate          = 100.0f;
+        float _feedRate          = 50.0f;
+        float _seekRate          = 200.0f;
         float _pulloff           = 1.0f;  // mm
         int   _debounce          = 10;
         float _search_scaler     = 1.1f;
