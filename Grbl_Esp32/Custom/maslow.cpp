@@ -102,6 +102,7 @@ void machine_init()
 
 void recomputePID(){
     //Stop everything but keep track of the encoder positions if we are idle or alarm. Unless doing calibration.
+    
     if((sys.state == State::Idle || sys.state == State::Alarm) && !calibrationInProgress){
         axis1.stop();
         axis1.updateEncoderPosition();
@@ -169,25 +170,90 @@ void runCalibration(){
     //This is a bit of a hack, but it undoes any calls by the system to move these to (0,0)
     axis1.setTarget(computeL4(0, -200));
     axis2.setTarget(computeL3(0, -200));
-    axis3.setTarget(computeL2(0, -400));
-    axis4.setTarget(computeL1(0, -400));
-    
+    axis3.setTarget(computeL2(0, -500));
+    axis4.setTarget(computeL1(0, -500));
     
     float lengths1[4];
-    takeMeasurement(lengths1);
-    
-    grbl_sendf(CLIENT_ALL, "First measurement:\n%f \n%f \n%f \n%f \n",lengths1[0], lengths1[1], lengths1[2], lengths1[3]);
-    
-    moveUp(computeL1(0, 400));
-    
     float lengths2[4];
-    takeMeasurement(lengths2);
+    float lengths3[4];
+    float lengths4[4];
+    float lengths5[4];
+    float lengths6[4];
+    float lengths7[4];
+    float lengths8[4];
+    float lengths9[4];
     
-    grbl_sendf(CLIENT_ALL, "Second measurement:\n%f \n%f \n%f \n%f \n",lengths2[0], lengths2[1], lengths2[2], lengths2[3]);
+    //------------------------------------------------------Take measurements
     
-    float machineDimensions [2];
+    takeMeasurementAvg(lengths1);
     
-    computeFrameDimensions(lengths1, lengths2, machineDimensions);
+    moveUp(computeL1(0, -250));
+    
+    takeMeasurementAvg(lengths2);
+    
+     moveUp(computeL1(0, 0));
+    
+    takeMeasurementAvg(lengths3);
+    
+     moveUp(computeL1(0, 250));
+    
+    takeMeasurementAvg(lengths4);
+    
+     moveUp(computeL1(0, 500));
+    
+    takeMeasurementAvg(lengths5);
+    
+    //-----------------------------------------------------------Move back down
+    
+    moveDown(computeL1(0, 250));
+    takeMeasurementAvg(lengths6);
+    
+    moveDown(computeL1(0, 0));
+    takeMeasurementAvg(lengths7);
+    
+    moveDown(computeL1(0, -250));
+    takeMeasurementAvg(lengths8);
+    
+    moveDown(computeL1(0, -500));
+    takeMeasurementAvg(lengths9);
+    
+    //----------------------------------------------------------Do the computation
+    
+    printMeasurements(lengths1);
+    printMeasurements(lengths2);
+    printMeasurements(lengths3);
+    printMeasurements(lengths4);
+    printMeasurements(lengths5);
+    printMeasurements(lengths6);
+    printMeasurements(lengths7);
+    printMeasurements(lengths8);
+    printMeasurements(lengths9);
+    
+    // float computedDimensions1 [2];
+    // float computedDimensions2 [2];
+    // float computedDimensions3 [2];
+    // float computedDimensions4 [2];
+    // float computedDimensions5 [2];
+    // float computedDimensions6 [2];
+    // float computedDimensions7 [2];
+    // float computedDimensions8 [2];
+    // float computedDimensions9 [2];
+    // float computedDimensions10 [2];
+    // float computedDimensions11 [2];
+    
+    // computeFrameDimensions(lengths1, lengths3, machineDimensions1);
+    // computeFrameDimensions(lengths1, lengths4, machineDimensions2);
+    // computeFrameDimensions(lengths1, lengths5, machineDimensions3);
+    // computeFrameDimensions(lengths1, lengths6, machineDimensions4);
+    // computeFrameDimensions(lengths1, lengths7, machineDimensions5);
+    
+    // computeFrameDimensions(lengths2, lengths4, machineDimensions6);
+    // computeFrameDimensions(lengths2, lengths3, machineDimensions7);
+    // computeFrameDimensions(lengths2, lengths3, machineDimensions8);
+    // computeFrameDimensions(lengths2, lengths3, machineDimensions9);
+    
+    
+    //---------------------------------------------------------Finish
     
     calibrationInProgress = false;
     grbl_sendf(CLIENT_ALL, "Calibration finished\n");
@@ -196,6 +262,62 @@ void runCalibration(){
     axis2.stop();
     axis3.stop();
     axis4.stop();
+}
+
+void printMeasurements(float lengths[]){
+    grbl_sendf(CLIENT_ALL, "%f   %f   %f   %f\n", lengths[0], lengths[1], lengths[2], lengths[3]);
+}
+
+void lowerBeltsGoSlack(){
+    unsigned long timeLastMoved1 = millis();
+    unsigned long timeLastMoved2 = millis();
+    double lastPosition1 = axis1.angleSensor->getRotation();
+    double lastPosition2 = axis2.angleSensor->getRotation();
+    double amtToMove1 = 0.1;
+    double amtToMove2 = 0.1;
+    
+    unsigned long startTime = millis();
+    
+    while(millis()- startTime < 5000){
+        //Set the lower axis to be compliant. PID is recomputed in comply()
+        axis1.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 3);
+        axis2.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 3);
+        
+        // Delay without blocking
+        unsigned long time = millis();
+        unsigned long elapsedTime = millis()-time;
+        while(elapsedTime < 10){
+            elapsedTime = millis()-time;
+        }
+    }
+}
+
+//Takes 5 measurements and computes the average of them
+void takeMeasurementAvg(float lengths[]){
+    
+    //Where our five measurements will be stored
+    float lengths1[4];
+    float lengths2[4];
+    float lengths3[4];
+    float lengths4[4];
+    float lengths5[4];
+    
+    takeMeasurement(lengths1);
+    lowerBeltsGoSlack();
+    takeMeasurement(lengths1);  //Repeat the first measurement to discard the one before everything was pulled taught
+    lowerBeltsGoSlack();
+    takeMeasurement(lengths2);
+    lowerBeltsGoSlack();
+    takeMeasurement(lengths3);
+    lowerBeltsGoSlack();
+    takeMeasurement(lengths4);
+    lowerBeltsGoSlack();
+    takeMeasurement(lengths5);
+    
+    lengths[0] = (lengths1[0]+lengths2[0]+lengths3[0]+lengths4[0]+lengths5[0])/5.0;
+    lengths[1] = (lengths1[1]+lengths2[1]+lengths3[1]+lengths4[1]+lengths5[1])/5.0;
+    lengths[2] = (lengths1[2]+lengths2[2]+lengths3[2]+lengths4[2]+lengths5[2])/5.0;
+    lengths[3] = (lengths1[3]+lengths2[3]+lengths3[3]+lengths4[3]+lengths5[3])/5.0;
 }
 
 //Retract the lower belts until they pull tight and take a measurement
@@ -237,8 +359,8 @@ void takeMeasurement(float lengths[]){
     
     axis1.setTarget(axis1.getPosition());
     axis2.setTarget(axis2.getPosition());
-    axis3.setTarget(axis3.getPosition());
-    axis4.setTarget(axis4.getPosition());
+    //axis3.setTarget(axis3.getPosition());
+    //axis4.setTarget(axis4.getPosition());
     
     axis1.stop();
     axis2.stop();
@@ -249,6 +371,8 @@ void takeMeasurement(float lengths[]){
     lengths[1] = axis2.getPosition()+beltEndExtension+armLength;
     lengths[2] = axis3.getPosition()+beltEndExtension+armLength;
     lengths[3] = axis4.getPosition()+beltEndExtension+armLength;
+    
+    //grbl_sendf(CLIENT_ALL, "Measured:\n%f \n%f \n%f \n%f \n",lengths[0], lengths[1], lengths[2], lengths[3]);
     
     return;
 }
@@ -263,23 +387,77 @@ void moveUp(float targetLength){
     
     unsigned long timeLastMoved1 = millis();
     unsigned long timeLastMoved2 = millis();
-    double lastPosition1 = axis1.angleSensor->getRotation();
-    double lastPosition2 = axis2.angleSensor->getRotation();
+    double lastPosition1 = axis1.getPosition();
+    double lastPosition2 = axis2.getPosition();
     double amtToMove1 = 0.1;
     double amtToMove2 = 0.1;
     
     while(distToRetract > 0){
         
         //Set the lower axis to be compliant. PID is recomputed in comply()
-        axis1.comply(&timeLastMoved1, &lastPosition1, &amtToMove1);
-        axis2.comply(&timeLastMoved2, &lastPosition2, &amtToMove2);
+        axis1.comply(&timeLastMoved1, &lastPosition1, &amtToMove1, 1.5);
+        axis2.comply(&timeLastMoved2, &lastPosition2, &amtToMove2, 1.5);
+        
+        //Syncronize the two pulling axis
+        double axis3Boost = (axis3.getTarget() - axis4.getTarget())/20.0;
+        double axis4Boost = (axis4.getTarget() - axis3.getTarget())/20.0;
         
         //Pull in on the upper axis
-        axis3.setTarget(axis3.getTarget() - .05);
-        axis4.setTarget(axis4.getTarget() - .05);
+        axis3.setTarget((axis3.getTarget() - .05) - axis3Boost);
+        axis4.setTarget((axis4.getTarget() - .05) - axis4Boost);
         axis3.recomputePID();
         axis4.recomputePID();
         distToRetract = distToRetract - .05;
+        
+        // Delay without blocking
+        unsigned long time = millis();
+        unsigned long elapsedTime = millis()-time;
+        while(elapsedTime < 10){
+            elapsedTime = millis()-time;
+        }
+        
+        //Force extend if the belt is getting taught
+        if(axis3.getCurrent() > 3){
+           lastPosition2 = lastPosition2 - 2.0;
+           // grbl_sendf(CLIENT_ALL, "Axis 3 taught %f\n",axis3.getCurrent());
+        }
+        if(axis4.getCurrent() > 3){
+           lastPosition1 = lastPosition1 - 2.0;
+           // grbl_sendf(CLIENT_ALL, "Axis 4 taught %f\n",axis4.getCurrent());
+        }
+    }
+    
+    axis1.setTarget(axis1.getPosition());
+    axis2.setTarget(axis2.getPosition());
+    axis3.setTarget(axis3.getPosition());
+    axis4.setTarget(axis4.getPosition());
+    
+    axis1.stop();
+    axis2.stop();
+    axis3.stop();
+    axis4.stop();
+}
+
+//Reposition the sled lower without knowing the machine dimensions
+void moveDown(float targetLength){
+    
+    //The distance we need to move is the current position minus the target position
+    double distToExtend = targetLength - axis3.getPosition();
+    
+    grbl_sendf(CLIENT_ALL, "Dist to extend %f\n",distToExtend);
+    
+    while(distToExtend > 0){
+        
+        //Extend the upper axis
+        axis3.setTarget(axis3.getTarget() + .15);
+        axis4.setTarget(axis4.getTarget() + .15);
+        axis3.recomputePID();
+        axis4.recomputePID();
+        distToExtend = distToExtend - .15;
+        
+        
+        axis1.stop();
+        axis2.stop();
         
         // Delay without blocking
         unsigned long time = millis();
@@ -298,6 +476,11 @@ void moveUp(float targetLength){
     axis2.stop();
     axis3.stop();
     axis4.stop();
+    
+    //Take some fake measurements to retract the lower arms fully
+    float lengths[4];
+    takeMeasurementAvg(lengths);
+    takeMeasurementAvg(lengths);
 }
 
 float computeVertical(float firstUpper, float firstLower, float secondUpper, float secondLower){
@@ -311,15 +494,11 @@ float computeVertical(float firstUpper, float firstLower, float secondUpper, flo
     float aSquared = (((b*b)-(c*c))*((b*b)-(c*c))-((d*d)-(e*e))*((d*d)-(e*e)))/(2*(b*b+c*c-d*d-e*e));
 
     float a = sqrt(aSquared);
-
-    Serial.println("Measured vertical: ");
-    Serial.println(a);
     
     return a;
 }
 
 void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float machineDimensions[]){
-    Serial.println("Computing frame dimensions");
     //Call compute verticals from each side
     
     float leftHeight = computeVertical(lengthsSet1[3],lengthsSet1[0], lengthsSet2[3], lengthsSet2[0]);
@@ -339,15 +518,15 @@ void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float mach
 bool user_defined_homing(uint8_t cycle_mask)
 {
   
-  grbl_sendf(CLIENT_ALL, "User defined calibration");
+  grbl_sendf(CLIENT_ALL, "User defined calibration\n");
   
   if(cycle_mask == 1){  //Upper left
     axis4.testEncoder();
-    axis4Homed = axis4.retract(computeL1(0, -400));
+    axis4Homed = axis4.retract(computeL1(0, -500));
   }
   else if(cycle_mask == 2){  //Upper right
     axis3.testEncoder();
-    axis3Homed = axis3.retract(computeL2(0, -400));
+    axis3Homed = axis3.retract(computeL2(0, -500));
     grbl_sendf(CLIENT_ALL, "Extending to: %f", computeL2(0, 0));
   }
   else if(cycle_mask == 4){ //Lower right
@@ -356,13 +535,13 @@ bool user_defined_homing(uint8_t cycle_mask)
         runCalibration();
     }
       else{
-        axis2Homed = axis2.retract(computeL3(0, -200));
+        axis2Homed = axis2.retract(computeL3(0, -300));
     }
     grbl_sendf(CLIENT_ALL, "Extending to: %f", computeL2(0, 0));
   }
   else if(cycle_mask == 0){  //Lower left
     axis1.testEncoder();
-    axis1Homed = axis1.retract(computeL4(0, -200));
+    axis1Homed = axis1.retract(computeL4(0, -300));
   }
   
   return true;

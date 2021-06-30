@@ -109,10 +109,14 @@ float computeL2(float x, float y);
 float computeL3(float x, float y);
 float computeL4(float x, float y);
 void runCalibration();
+void lowerBeltsGoSlack();
+void takeMeasurementAvg(float lengths[]);
 void moveUp(float distToRetract);
+void moveDown(float distToRetract);
 void computeFrameDimensions(float lengthsSet1[], float lengthsSet2[], float machineDimensions[]);
 float computeVertical(float firstUpper, float firstLower, float secondUpper, float secondLower);
 void takeMeasurement(float lengths[]);
+void printMeasurements(float lengths[]);
 
 
 
