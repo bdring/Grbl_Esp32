@@ -400,7 +400,7 @@ void mc_homing_cycle(AxisMask axis_mask) {
         }
         if (!someAxisHomed) {
             report_status_message(Error::HomingNoCycles, CLIENT_ALL);
-            sys.state = State::ConfigAlarm;
+            sys.state = State::Alarm;
             return;
         }
     }

@@ -383,7 +383,10 @@ const char* alarmString(ExecAlarm alarmNumber) {
 }
 
 Error listAlarms(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
-    if (sys_rt_exec_alarm != ExecAlarm::None) {
+    if (sys.state == State::ConfigAlarm) {
+        grbl_sendf(out->client(), "Configuration alarm is active. Check the boot messages for 'ERR'.\r\n");
+    }
+    else if (sys_rt_exec_alarm != ExecAlarm::None) {
         grbl_sendf(out->client(), "Active alarm: %d (%s)\r\n", int(sys_rt_exec_alarm), alarmString(sys_rt_exec_alarm));
     }
     if (value) {
