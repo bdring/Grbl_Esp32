@@ -23,7 +23,7 @@ axes:
       mpos: 10
       positive_direction: false
       feed_rate: 50.000
-      seek_rate: 100.000
+      seek_rate: 200.000
     
     gang0:
       endstops:
@@ -44,7 +44,7 @@ axes:
       mpos: 10
       positive_direction: false
       feed_rate: 50.000
-      seek_rate: 200.000
+      seek_rate: 500.000
 
     gang0:
       endstops:
@@ -65,7 +65,8 @@ axes:
       mpos: 10
       positive_direction: true
       feed_rate: 50.000
-      seek_rate: 200.000
+      seek_rate: 100.000
+      locate_scaler: 2.000
 
     gang0:
       endstops:

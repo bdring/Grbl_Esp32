@@ -125,6 +125,7 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
 
     // Set search mode with approach at seek rate to quickly engage the specified cycle_mask limit switches.
     bool     approach = true;
+    bool     seek     = true;
     uint8_t  n_active_axis;
     AxisMask limit_state, axislock;
     float    homing_rate = 0.0;
@@ -160,7 +161,7 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
                 if (axis_debounce > debounce) {
                     debounce = axis_debounce;
                 }
-                auto axis_homing_rate = approach ? homing->_seekRate : homing->_feedRate;
+                auto axis_homing_rate = seek ? homing->_seekRate : homing->_feedRate;
 
                 // Accumulate the squares of the homing rates for later use
                 // in computing the aggregate feed rate.
@@ -192,7 +193,7 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         for (int axis = 0; axis < n_axis; axis++) {
             auto axisConfig = config->_axes->_axis[axis];
             auto homing     = axisConfig->_homing;
-            auto scaler     = approach ? homing->_search_scaler : homing->_locate_scaler;
+            auto scaler     = approach ? homing->_search_scaler : 1.0;
             if (bitnum_istrue(axislock, axis)) {
                 target[axis] *= limitingRate * scaler;
             }
@@ -220,6 +221,7 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
                 }
                 sys.homing_axis_lock = axislock;
             }
+            seek = false;
             st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
             // Exit routines: No time to run protocol_execute_realtime() in this loop.
             if (rtSafetyDoor || rtReset || rtCycleStop) {
