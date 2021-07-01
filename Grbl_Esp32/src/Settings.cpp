@@ -3,7 +3,6 @@
 #include "WebUI/JSONEncoder.h"  // JSON
 #include "WebUI/WifiConfig.h"   // WebUI::WiFiConfig
 #include "WebUI/Commands.h"     // WebUI::COMMANDS
-#include "Serial.h"             // CLIENT_SERIAL
 #include "Report.h"             // grbl_sendf
 #include "Protocol.h"           // protocol_buffer_synchronize
 
@@ -82,7 +81,7 @@ nvs_handle Setting::_handle = 0;
 void Setting::init() {
     if (!_handle) {
         if (esp_err_t err = nvs_open("Grbl_ESP32", NVS_READWRITE, &_handle)) {
-            grbl_sendf(CLIENT_SERIAL, "nvs_open failed with error %d\r\n", err);
+            debug_serial("nvs_open failed with error %d", err);
         }
     }
 }

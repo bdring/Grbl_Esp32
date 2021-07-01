@@ -32,7 +32,6 @@
 #    include "WebServer.h"
 #    include "../SDCard.h"
 #    include "../Report.h"  // info_all
-#    include "../Serial.h"  // CLIENT_ALL
 
 #    include <WebSocketsServer.h>
 #    include <WiFi.h>

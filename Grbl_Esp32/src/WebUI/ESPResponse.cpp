@@ -19,7 +19,6 @@
 */
 #include "ESPResponse.h"
 
-#include "../Serial.h"
 #include "../Report.h"
 
 #ifdef ENABLE_WIFI

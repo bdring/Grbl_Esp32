@@ -1,7 +1,6 @@
 #include "Grbl.h"
 
 #include "SettingsDefinitions.h"
-#include "Serial.h"  // CLIENT_SERIAL
 
 StringSetting* config_filename;
 

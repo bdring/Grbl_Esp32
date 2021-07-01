@@ -30,10 +30,6 @@
 
 #include "../SpindleDatatypes.h"
 
-// #include "../GCode.h"     // for SpindleState
-// #include "../Serial.h"    // for CLIENT_ALL
-// #include "../Protocol.h"  // for protocol_buffer_synchronize
-
 #include "../Configuration/Configurable.h"
 #include "../Configuration/GenericFactory.h"
 

@@ -27,7 +27,6 @@
 #include "../Machine/WifiSTAConfig.h"
 #include "../Configuration/JsonGenerator.h"
 #include "../Grbl.h"    //GRBL_VERSION
-#include "../Serial.h"  // CLIENT_ALL
 #include "../Report.h"  // info_all
 #include "Commands.h"   // COMMANDS::wait(1);
 #include "WifiConfig.h"

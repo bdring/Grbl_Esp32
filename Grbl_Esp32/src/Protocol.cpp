@@ -26,7 +26,6 @@
 
 #include "Machine/MachineConfig.h"
 #include "Report.h"         // report_feedback_message
-#include "Serial.h"         // CLIENT_COUNT
 #include "Limits.h"         // limits_get_state
 #include "Planner.h"        // plan_get_current_block
 #include "MotionControl.h"  // PARKING_MOTION_LINE_NUMBER

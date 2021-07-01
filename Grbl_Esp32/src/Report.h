@@ -23,6 +23,7 @@
 #include "Error.h"
 #include "NutsBolts.h"
 #include "Exec.h"
+#include "Serial.h"  // CLIENT_xxx
 
 #include <cstdint>
 #include <freertos/FreeRTOS.h>  // UBaseType_t

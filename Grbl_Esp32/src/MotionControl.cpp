@@ -28,7 +28,6 @@
 #include "Limits.h"    // limits_soft_check
 #include "Protocol.h"  // protocol_execute_realtime
 #include "Report.h"    // info_all
-#include "Serial.h"    // CLIENT_ALL
 #include "Planner.h"   // plan_reset, etc
 #include "I2SOut.h"    // i2s_out_reset
 #include "Grbl.h"      // user_defined_homing... Implemented in Limits.

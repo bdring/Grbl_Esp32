@@ -22,7 +22,6 @@
 
 #include "SDCard.h"
 #include "Machine/MachineConfig.h"
-#include "Serial.h"  // CLIENT_SERIAL
 #include "Report.h"
 
 #include <FS.h>

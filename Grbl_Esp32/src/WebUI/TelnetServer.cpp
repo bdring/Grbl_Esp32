@@ -31,8 +31,7 @@ namespace WebUI {
 #    include "WifiServices.h"
 
 #    include "WifiConfig.h"
-#    include "../Serial.h"  // CLIENT_ALL
-#    include "../Report.h"  // grbl_send
+#    include "../Report.h"  // info_all() and CLIENT_TELNET
 #    include "Commands.h"   // COMMANDS
 
 #    include <WiFi.h>
@@ -64,8 +63,8 @@ namespace WebUI {
         //create instance
         _telnetserver = new WiFiServer(_port, MAX_TLNT_CLIENTS);
         _telnetserver->setNoDelay(true);
-        String s = "[MSG:TELNET Started " + String(_port) + "]\r\n";
-        grbl_send(CLIENT_ALL, (char*)s.c_str());
+        String s = "TELNET Started " + String(_port);
+        info_all(s.c_str());
         //start telnet server
         _telnetserver->begin();
         _setupdone = true;

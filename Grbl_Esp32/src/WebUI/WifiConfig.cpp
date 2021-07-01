@@ -28,7 +28,6 @@ WebUI::WiFiConfig wifi_config;
 #    include "Commands.h"  // COMMANDS
 #    include "WifiServices.h"
 #    include "WebSettings.h"
-#    include "../Serial.h"
 #    include "../Report.h"
 
 #    include <WiFi.h>

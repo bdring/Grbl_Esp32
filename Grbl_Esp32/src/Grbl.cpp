@@ -22,7 +22,6 @@
 #include "Machine/MachineConfig.h"
 
 #include "Config.h"
-#include "Serial.h"
 #include "Report.h"
 #include "Settings.h"
 #include "SettingsDefinitions.h"

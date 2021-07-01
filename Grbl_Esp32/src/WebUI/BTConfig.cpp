@@ -22,8 +22,7 @@
 
 #include "../Machine/MachineConfig.h"
 #include "../Report.h"
-#include "../Serial.h"  // CLIENT_ALL
-#include "Commands.h"   // COMMANDS
+#include "Commands.h"  // COMMANDS
 
 #include <cstdint>
 

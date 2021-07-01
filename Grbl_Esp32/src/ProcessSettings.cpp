@@ -12,7 +12,6 @@
 #include "Report.h"
 #include "MotionControl.h"
 #include "System.h"
-#include "Serial.h"
 #include "Limits.h"               // homingAxes
 #include "SettingsDefinitions.h"  // build_info
 #include "Protocol.h"             // LINE_BUFFER_SIZE
