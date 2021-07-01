@@ -5,6 +5,9 @@
 #include "../Motors/NullMotor.h"
 #include "../NutsBolts.h"
 #include "../MotionControl.h"
+#include "../Stepper.h"     // stepper_id_t
+#include "../I2SOut.h"      // i2s_out_push_sample
+#include "MachineConfig.h"  // config->
 
 namespace Machine {
     Axes::Axes() : _axis() {
@@ -125,6 +128,31 @@ namespace Machine {
                     if (a != nullptr) {
                         a->set_direction(thisDir);
                     }
+                }
+            }
+
+            auto wait_direction = config->_directionDelayMicroSeconds;
+            if (wait_direction > 0) {
+                // Stepper drivers need some time between changing direction and doing a pulse.
+                switch (config->_stepType) {
+                    case stepper_id_t::ST_I2S_STREAM:
+                        i2s_out_push_sample(wait_direction);
+                        break;
+                    case stepper_id_t::ST_I2S_STATIC:
+                    case stepper_id_t::ST_TIMED: {
+                        // wait for step pulse time to complete...some time expired during code above
+                        //
+                        // If we are using GPIO stepping as opposed to RMT, record the
+                        // time that we turned on the direction pins so we can delay a bit.
+                        // If we are using RMT, we can't delay here.
+                        auto direction_pulse_start_time = esp_timer_get_time() + wait_direction;
+                        while ((esp_timer_get_time() - direction_pulse_start_time) < 0) {
+                            NOP();  // spin here until time to turn off step
+                        }
+                        break;
+                    }
+                    case stepper_id_t::ST_RMT:
+                        break;
                 }
             }
         }

@@ -56,7 +56,7 @@
 
 /* 16-bit mode: 1000000 usec / ((160000000 Hz) / 10 / 2) x 16 bit/pulse x 2(stereo) = 4 usec/pulse */
 /* 32-bit mode: 1000000 usec / ((160000000 Hz) /  5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
-const int I2S_OUT_USEC_PER_PULSE = 4;
+const uint32_t I2S_OUT_USEC_PER_PULSE = 4;
 
 const int I2S_OUT_DMABUF_COUNT = 5;    /* number of DMA buffers to store data */
 const int I2S_OUT_DMABUF_LEN   = 2000; /* maximum size in bytes (4092 is DMA's limit) */

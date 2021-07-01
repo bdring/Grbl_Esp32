@@ -366,8 +366,13 @@ void stepper_init() {
                 config->_disableDelayMicroSeconds,
                 config->_directionDelayMicroSeconds);
 
-    // I2S stepper stream mode use callback but timer interrupt
-    i2s_out_set_pulse_callback(stepper_pulse_func);
+    switch (config->_stepType) {
+        case ST_I2S_STREAM:
+        case ST_I2S_STATIC:
+            // I2S stepper stream mode use callback but timer interrupt
+            i2s_out_set_pulse_callback(stepper_pulse_func);
+            break;
+    }
 
     // Other stepper use timer interrupt
     Stepper_Timer_Init();
@@ -398,13 +403,13 @@ void st_wake_up() {
     // Enable stepper drivers.
     config->_axes->set_disable(false);
     stepper_idle = false;
-    // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
 
-    // Step pulse delay handling is not require with RMT
-    if (config->_disableDelayMicroSeconds < 1) {
+    // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
+    // Step pulse delay handling is not require with ESP32 RMT...the RMT function does it.
+    if (config->_stepType != ST_RMT || config->_directionDelayMicroSeconds < 1) {
         // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
         st.step_pulse_time = -(((config->_pulseMicroSeconds - 2) * ticksPerMicrosecond) >> 3);
-    }
+    } 
 
     // Enable Stepper Driver Interrupt
     Stepper_Timer_Start();
