@@ -33,6 +33,7 @@ enum class SpindleType : int8_t {
     PWM,
     RELAY,
     LASER,
+    TickleMeLaser,
     DAC,
     HUANYANG,
     BESC,

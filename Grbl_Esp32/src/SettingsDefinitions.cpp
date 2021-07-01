@@ -67,6 +67,7 @@ enum_opt_t spindleTypes = {
     { "NONE", int8_t(SpindleType::NONE) },
     { "PWM", int8_t(SpindleType::PWM) },
     { "RELAY", int8_t(SpindleType::RELAY) },
+    { "TickleMeLaser", int8_t(SpindleType::TickleMeLaser) },
     { "LASER", int8_t(SpindleType::LASER) },
     { "DAC", int8_t(SpindleType::DAC) },
     { "HUANYANG", int8_t(SpindleType::HUANYANG) },
