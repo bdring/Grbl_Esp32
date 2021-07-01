@@ -294,6 +294,7 @@ static void protocol_do_alarm() {
                 // the user and a GUI time to do what is needed before resetting, like killing the
                 // incoming stream. The same could be said about soft limits. While the position is not
                 // lost, continued streaming could cause a serious crash if by chance it gets executed.
+                vTaskDelay(1);  // give serial task some time
             } while (!rtReset);
             break;
         default:

@@ -65,7 +65,7 @@ axes:
     steps_per_mm: 800
     max_rate: 2000
     acceleration: 25
-    max_travel: 1000
+    max_travel: 10
     homing:
       cycle: 1
       mpos: 10
@@ -74,7 +74,7 @@ axes:
       seek_rate: 300.000
       locate_scaler: 2.000
       debounce: 500
-      pulloff: 2.000
+      pulloff: 1.000
 
     gang0:
       endstops:
