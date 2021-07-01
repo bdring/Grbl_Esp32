@@ -361,8 +361,10 @@ void limits_enable() {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
             auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
             if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
-                Pin& pin = gangConfig->_endstops->_dual;
-                pin.attachInterrupt(isr_limit_switches, CHANGE, nullptr);
+                if (gangConfig->_endstops->_hardLimits) {
+                    Pin& pin = gangConfig->_endstops->_dual;
+                    pin.attachInterrupt(isr_limit_switches, CHANGE, nullptr);
+                }
             }
         }
     }

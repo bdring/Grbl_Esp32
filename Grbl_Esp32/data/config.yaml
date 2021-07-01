@@ -24,10 +24,13 @@ axes:
       positive_direction: false
       feed_rate: 50.000
       seek_rate: 200.000
+      debounce: 500
+      pulloff: 1.000
     
     gang0:
       endstops:
         dual: gpio.17:low:pu
+        hard_limits: false
       stepstick:
         direction: gpio.14
         step: gpio.12
@@ -44,11 +47,14 @@ axes:
       mpos: 10
       positive_direction: false
       feed_rate: 50.000
-      seek_rate: 500.000
+      seek_rate: 600.000
+      debounce: 500
+      pulloff: 1.500
 
     gang0:
       endstops:
         dual: gpio.4:low:pu
+        hard_limits: false
       stepstick:
         direction: gpio.15
         step: gpio.26
@@ -64,13 +70,16 @@ axes:
       cycle: 1
       mpos: 10
       positive_direction: true
-      feed_rate: 50.000
-      seek_rate: 100.000
+      feed_rate: 30.000
+      seek_rate: 300.000
       locate_scaler: 2.000
+      debounce: 500
+      pulloff: 2.000
 
     gang0:
       endstops:
         dual: gpio.16:low:pu
+        hard_limits: true
       stepstick:
         direction: gpio.33
         step: gpio.27

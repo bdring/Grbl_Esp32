@@ -25,15 +25,15 @@ namespace Machine {
     public:
         Homing() = default;
 
-        int   _cycle             = -1;
+        int   _cycle             = -1;  // what homing cycle does this axis home on?
         bool  _square            = false;
         bool  _positiveDirection = true;
         float _mpos              = 0.0f;
-        float _feedRate          = 50.0f;
-        float _seekRate          = 200.0f;
-        float _pulloff           = 1.0f;  // mm
-        int   _debounce          = 10;
-        float _search_scaler     = 1.1f;
+        float _feedRate          = 50.0f;   // pulloff and second touch speed
+        float _seekRate          = 200.0f;  // this first approach speed
+        float _pulloff           = 1.0f;    // mm
+        int   _debounce          = 250;     // ms settling time for homing switches after motion
+        float _search_scaler     = 1.1f;    // multiplied by max travel for max homing distance on first touch
         float _locate_scaler     = 5.0f;
 
         // Configuration system helpers:
