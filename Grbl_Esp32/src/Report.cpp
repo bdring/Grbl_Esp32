@@ -674,7 +674,7 @@ void report_realtime_status(uint8_t client) {
         auto n_axis = config->_axes->_numberAxis;
         for (int i = 0; i < n_axis; i++) {
             if (bit_istrue(lim_pin_state, bit(i))) {
-                addPinReport(status, "XYZABC"[i]);
+                addPinReport(status, config->_axes->axisName(i));
             }
         }
     }
