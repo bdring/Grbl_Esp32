@@ -53,10 +53,6 @@ namespace Pins {
     void I2SOPinDetail::write(int high) {
         int value = _readWriteMask ^ high;
         i2s_out_write(_index, value);
-        // XXX Do we want to add i2s_out_delay() here ?
-        // Doing so would eliminate the need to override
-        // switchCSpin() in TrinamicDriver.cpp
-        i2s_out_delay();
     }
 
     int I2SOPinDetail::read() {
