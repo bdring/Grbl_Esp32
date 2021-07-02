@@ -4,9 +4,9 @@
 
 #include <Arduino.h>
 
-// Pin mapping. Pretty straight forward, it's just a thing that stores pins in an array. 
-// 
-// The default behavior of a mapped pin is _undefined pin_, so it does nothing. 
+// Pin mapping. Pretty straight forward, it's just a thing that stores pins in an array.
+//
+// The default behavior of a mapped pin is _undefined pin_, so it does nothing.
 namespace {
     class Mapping {
     public:
@@ -44,7 +44,7 @@ PinMapper::PinMapper() : _mappedId(0) {}
 
 PinMapper::PinMapper(Pin& pin) {
     _mappedId = Mapping::instance().Claim(&pin);
-    
+
     // If you reach this assertion, you haven't been using the Pin class like you're supposed to.
     Assert(_mappedId != 0, "Cannot claim pin. We've reached the limit of 255 mapped pins.");
 }
@@ -77,7 +77,7 @@ PinMapper::~PinMapper() {
 void IRAM_ATTR digitalWrite(uint8_t pin, uint8_t val) {
     auto thePin = Mapping::instance()._mapping[pin];
     if (thePin) {
-        thePin->write(val);
+        thePin->synchronousWrite(val);
     }
 }
 

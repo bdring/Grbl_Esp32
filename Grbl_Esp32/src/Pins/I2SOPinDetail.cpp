@@ -50,9 +50,17 @@ namespace Pins {
 
     PinCapabilities I2SOPinDetail::capabilities() const { return PinCapabilities::Output | PinCapabilities::I2S; }
 
-    void I2SOPinDetail::write(int high) {
+    // The write will not happen immediately; the data is queued for
+    // delivery to the serial shift register chain via DMA and a FIFO
+    void IRAM_ATTR I2SOPinDetail::write(int high) {
         int value = _readWriteMask ^ high;
         i2s_out_write(_index, value);
+    }
+
+    // Write and wait for completion.  Not suitable for use from an ISR
+    void I2SOPinDetail::synchronousWrite(int high) {
+        write(high);
+        i2s_out_delay();
     }
 
     int I2SOPinDetail::read() {

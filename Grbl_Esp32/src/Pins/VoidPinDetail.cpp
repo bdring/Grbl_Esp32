@@ -16,6 +16,7 @@
     along with Grbl_ESP32.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <Arduino.h>  // IRAM_ATTR
 #include "VoidPinDetail.h"
 
 namespace Pins {
@@ -27,10 +28,10 @@ namespace Pins {
         return PinCapabilities::Output | PinCapabilities::Input | PinCapabilities::ISR | PinCapabilities::Void;
     }
 
-    void          VoidPinDetail::write(int high) {}
-    int           VoidPinDetail::read() { return 0; }
-    void          VoidPinDetail::setAttr(PinAttributes value) {}
-    PinAttributes VoidPinDetail::getAttr() const { return PinAttributes::None; }
+    void IRAM_ATTR VoidPinDetail::write(int high) {}
+    int            VoidPinDetail::read() { return 0; }
+    void           VoidPinDetail::setAttr(PinAttributes value) {}
+    PinAttributes  VoidPinDetail::getAttr() const { return PinAttributes::None; }
 
     String VoidPinDetail::toString() { return "NO_PIN"; }
 

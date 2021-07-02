@@ -54,10 +54,10 @@ void TMC2130Stepper::switchCSpin(bool state) {
     // We use the _pinCS to figure out which derived class we have
     switch (this->_pinCS) {
         case 2130:
-            static_cast<Motors::Details::MyTMC2130Stepper*>(this)->_cspin.write(state);
+            static_cast<Motors::Details::MyTMC2130Stepper*>(this)->_cspin.synchronousWrite(state);
             break;
         case 5160:
-            static_cast<Motors::Details::MyTMC5160Stepper*>(this)->_cspin.write(state);
+            static_cast<Motors::Details::MyTMC5160Stepper*>(this)->_cspin.synchronousWrite(state);
             break;
     }
 }

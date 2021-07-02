@@ -37,6 +37,7 @@ namespace Pins {
 
         // I/O:
         void          write(int high) override;
+        void          synchronousWrite(int high) override;
         int           read() override;
         void          setAttr(PinAttributes value) override;
         PinAttributes getAttr() const override;
