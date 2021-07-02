@@ -26,6 +26,9 @@ namespace fs {
     class FS;
 }
 
+// XXX This should be a configuration parameter of the SPI bus
+const int32_t SPIfreq = 4000000;
+
 class SDCard : public Configuration::Configurable {
 public:
     enum class State : uint8_t {

@@ -163,9 +163,8 @@ SDCard::State SDCard::get_state(bool refresh) {
 
         _state = SDCard::State::NotPresent;
 
-        //using default value for speed ? should be parameter
         //refresh content if card was removed
-        if (SD.begin(csPin, SPI, GRBL_SPI_FREQ, "/sd", 2)) {
+        if (SD.begin(csPin, SPI, SPIfreq, "/sd", 2)) {
             if (SD.cardSize() > 0) {
                 _state = SDCard::State::Idle;
             }

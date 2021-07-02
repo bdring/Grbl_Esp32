@@ -48,13 +48,6 @@ Some features should not be changed. See notes below.
 
 const int SUPPORT_TASK_CORE = 1;  // Reference: CONFIG_ARDUINO_RUNNING_CORE = 1
 
-// Include the file that loads the machine-specific config file.
-// machine.h must be edited to choose the desired file.
-#include "Machine.h"
-
-// machine_common.h contains settings that do not change
-#include "MachineCommon.h"
-
 const int MAX_N_AXIS = 6;
 
 // Serial baud rate

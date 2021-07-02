@@ -24,6 +24,7 @@ struct PrepFlag {
 };
 
 // fStepperTimer should be an integer divisor of the bus speed, i.e. of fTimers
+const uint32_t fTimers             = 80000000;  // the frequency of ESP32 timers
 const uint32_t fStepperTimer       = 20000000;  // frequency of step pulse timer
 const int      ticksPerMicrosecond = fStepperTimer / 1000000;
 
