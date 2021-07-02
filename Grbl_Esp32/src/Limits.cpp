@@ -44,6 +44,9 @@
 #include <string.h>   // memset, memcpy
 #include <atomic>
 
+AxisMask limitAxes  = 0;  // Axes that have limit switches
+AxisMask homingAxes = 0;  // Axes that have homing configured
+
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 
 void IRAM_ATTR isr_limit_switches(void* /*unused */) {
@@ -60,7 +63,7 @@ void IRAM_ATTR isr_limit_switches(void* /*unused */) {
                 xQueueSendFromISR(limit_sw_queue, &evt, NULL);
             } else {
                 // Check limit pin state.
-                if (limits_get_state()) {
+                if (limits_check(limitAxes)) {
                     debug_all("Hard limits");
                     mc_reset();                                // Initiate system kill.
                     sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
@@ -70,17 +73,35 @@ void IRAM_ATTR isr_limit_switches(void* /*unused */) {
     }
 }
 
-AxisMask homingAxes() {
-    AxisMask mask   = 0;
-    auto     axes   = config->_axes;
-    auto     n_axis = axes->_numberAxis;
-    for (int axis = 0; axis < n_axis; axis++) {
-        auto homing = axes->_axis[axis]->_homing;
-        if (homing) {
-            bitnum_true(mask, axis);
+// Returns true if an error occurred
+static ExecAlarm limits_handle_errors(bool approach, uint8_t cycle_mask) {
+    // This checks some of the events that would normally be handled
+    // by protocol_execute_realtime().  The homing loop is time-critical
+    // so we handle those events directly here, calling protocol_execute_realtime()
+    // only if one of those events is active.
+    if (rtReset) {
+        // Homing failure: Reset issued during cycle.
+        return ExecAlarm::HomingFailReset;
+    }
+    if (rtSafetyDoor) {
+        // Homing failure: Safety door was opened.
+        return ExecAlarm::HomingFailDoor;
+    }
+    if (rtCycleStop) {
+        if (approach) {
+            // Homing failure: Limit switch not found during approach.
+            return ExecAlarm::HomingFailApproach;
+        }
+        // Pulloff
+        if (limits_check(cycle_mask)) {
+            // Homing failure: Limit switch still engaged after pull-off motion
+            return ExecAlarm::HomingFailPulloff;
         }
     }
-    return mask;
+    // If we get here, either none of the rtX events were triggered, or
+    // it was rtCycleStop during a pulloff with the limit switches
+    // disengaged, i.e. a normal pulloff completion.
+    return ExecAlarm::None;
 }
 
 // Homes the specified cycle axes, sets the machine position, and performs a pull-off motion after
@@ -89,14 +110,22 @@ AxisMask homingAxes() {
 // mask, which prevents the stepper algorithm from executing step pulses. Homing motions typically
 // circumvent the processes for executing motions in normal operation.
 // NOTE: Only the abort realtime command can interrupt this process.
-// TODO: Move limit pin-specific calls to a general function for portability.
-void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
-    if ((cycle_mask & homingAxes()) != cycle_mask) {
-        debug_all("Homing is not configured for some requested axes");
-    }
+static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     if (sys.abort) {
         return;  // Block if system reset has been issued.
     }
+
+    auto axes   = config->_axes;
+    auto n_axis = axes->_numberAxis;
+
+    // Remove axes with no homing setup from cycle_mask
+    for (int axis = 0; axis < n_axis; axis++) {
+        if (bitnum_istrue(cycle_mask, axis) && axes->_axis[axis]->_homing == nullptr) {
+            debug_all("Homing is not configured for the %d axis", axes->axisName(axis));
+            bitnum_false(cycle_mask, axis);
+        }
+    }
+
     // Initialize plan data struct for homing motion. Spindle and coolant are disabled.
 
     // Put motors on axes listed in cycle_mask in homing mode and
@@ -121,11 +150,16 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     // Initialize variables used for homing computations.
     uint8_t n_cycle = (2 * n_locate_cycles + 1);
 
-    auto n_axis = config->_axes->_numberAxis;
+    // First approach at seek rate to quickly find the limit switches.
 
-    // Set search mode with approach at seek rate to quickly engage the specified cycle_mask limit switches.
-    bool     approach = true;
-    bool     seek     = true;
+    // approach is the direction of motion; it cycles between true and false
+    bool approach = true;
+
+    // seek starts out true for initial rapid motion toward the homing switches,
+    // then becomes false after the first approach cycle, for slower motion on
+    // subsequent fine-positioning steps
+    bool seek = true;
+
     uint8_t  n_active_axis;
     AxisMask limit_state, axislock;
     float    homing_rate = 0.0;
@@ -156,38 +190,34 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
             }
             auto axisConfig = config->_axes->_axis[axis];
             auto homing     = axisConfig->_homing;
-            if (homing != nullptr) {
-                auto axis_debounce = homing->_debounce;
-                if (axis_debounce > debounce) {
-                    debounce = axis_debounce;
-                }
-                auto axis_homing_rate = seek ? homing->_seekRate : homing->_feedRate;
 
-                // Accumulate the squares of the homing rates for later use
-                // in computing the aggregate feed rate.
-                homing_rate += (axis_homing_rate * axis_homing_rate);
+            debounce = std::max(debounce, homing->_debounce);
 
-                // Set target location for active axes and setup computation for homing rate.
-                if (bitnum_istrue(cycle_mask, axis)) {
-                    sys_position[axis] = 0;
+            auto axis_homing_rate = seek ? homing->_seekRate : homing->_feedRate;
 
-                    auto travel = approach ? axisConfig->_maxTravel : homing->_pulloff;
+            // Accumulate the squares of the homing rates for later use
+            // in computing the aggregate feed rate.
+            homing_rate += (axis_homing_rate * axis_homing_rate);
 
-                    // First we compute the maximum time to completion vector; later we will
-                    // convert it back to positions after we determine the limiting axis.
-                    // Set target direction based on cycle mask and homing cycle approach state.
-                    auto seekTime = travel / axis_homing_rate;
-                    target[axis]  = (homing->_positiveDirection ^ approach) ? -seekTime : seekTime;
-                    if (seekTime > maxSeekTime) {
-                        maxSeekTime  = seekTime;
-                        limitingRate = axis_homing_rate;
-                    }
-                }
+            // Set target location for active axes and setup computation for homing rate.
+            sys_position[axis] = 0;
 
-                // Record the axis as active
-                bitnum_true(axislock, axis);
+            auto travel = approach ? axisConfig->_maxTravel : homing->_pulloff;
+
+            // First we compute the maximum-time-to-completion vector; later we will
+            // convert it back to positions after we determine the limiting axis.
+            // Set target direction based on cycle mask and homing cycle approach state.
+            auto seekTime = travel / axis_homing_rate;
+            target[axis]  = (homing->_positiveDirection ^ approach) ? -seekTime : seekTime;
+            if (seekTime > maxSeekTime) {
+                maxSeekTime  = seekTime;
+                limitingRate = axis_homing_rate;
             }
+
+            // Record the axis as active
+            bitnum_true(axislock, axis);
         }
+
         // Scale the target array, currently in units of time, back to positions
         // Add a small fudge factor to ensure that the limit is reached
         for (int axis = 0; axis < n_axis; axis++) {
@@ -200,6 +230,7 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         homing_rate = sqrt(homing_rate);  // Magnitude of homing rate vector
 
         sys.homing_axis_lock = axislock;
+
         // Perform homing cycle. Planner buffer should be empty, as required to initiate the homing cycle.
         pl_data->feed_rate = homing_rate;
         plan_buffer_line(target, pl_data);  // Bypass mc_line(). Directly plan homing motion.
@@ -210,51 +241,32 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         do {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
-                limit_state = limits_get_state();
-                for (int axis = 0; axis < n_axis; axis++) {
-                    if (bitnum_istrue(axislock, axis)) {
-                        if (bitnum_istrue(limit_state, axis)) {
-                            bitnum_false(axislock, axis);
-                        }
-                    }
-                }
+                axislock             = limits_check(axislock);
                 sys.homing_axis_lock = axislock;
             }
-            seek = false;
-            st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
-            // Exit routines: No time to run protocol_execute_realtime() in this loop.
-            if (rtSafetyDoor || rtReset || rtCycleStop) {
-                // Homing failure condition: Reset issued during cycle.
-                if (rtReset) {
-                    sys_rt_exec_alarm = ExecAlarm::HomingFailReset;
-                }
-                // Homing failure condition: Safety door was opened.
-                if (rtSafetyDoor) {
-                    sys_rt_exec_alarm = ExecAlarm::HomingFailDoor;
-                }
-                // Homing failure condition: Limit switch still engaged after pull-off motion
-                if (!approach && (limits_get_state() & cycle_mask)) {
-                    sys_rt_exec_alarm = ExecAlarm::HomingFailPulloff;
-                }
-                // Homing failure condition: Limit switch not found during approach.
-                if (approach && rtCycleStop) {
-                    sys_rt_exec_alarm = ExecAlarm::HomingFailApproach;
-                }
 
-                if (sys_rt_exec_alarm != ExecAlarm::None) {
-                    config->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
-                    debug_all("Homing fail");
-                    mc_reset();  // Stop motors, if they are running.
-                    protocol_execute_realtime();
-                    return;
-                } else {
-                    // Pull-off motion complete. Disable CYCLE_STOP from executing.
-                    rtCycleStop = false;
-                    break;
-                }
+            st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
+
+            ExecAlarm alarm = limits_handle_errors(approach, cycle_mask);
+            if (alarm != ExecAlarm::None) {
+                // Homing failure
+                sys_rt_exec_alarm = alarm;
+                config->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
+                debug_all("Homing fail");
+                mc_reset();  // Stop motors, if they are running.
+                // protocol_execute_realtime() will handle any pending rtXXX conditions
+                protocol_execute_realtime();
+                return;
             }
 
+            if (rtCycleStop) {
+                // Normal pulloff completion with limit switches disengaged
+                rtCycleStop = false;
+                break;
+            }
+            // Keep trying until all axes have finished
         } while (axislock);
+
         if (config->_stepType == ST_I2S_STREAM) {
             if (!approach) {
                 delay_ms(I2S_OUT_DELAY_MS);
@@ -263,8 +275,14 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
 
         st_reset();          // Immediately force kill steppers and reset step segment buffer.
         delay_ms(debounce);  // Delay to allow transient dynamics to dissipate.
-        // Reverse direction and reset homing rate for locate cycle(s).
+
+        // After the initial approach, we switch to the slow rate for subsequent steps
+        // The pattern is  fast approach, slow pulloff, slow approach, slow pulloff, ...
+        seek = false;
+
+        // Reverse direction.
         approach = !approach;
+
     } while (n_cycle-- > 0);
 
     // The active cycle axes should now be homed and machine limits have been located. By
@@ -278,7 +296,7 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     for (int axis = 0; axis < n_axis; axis++) {
         Machine::Axis* axisConf = config->_axes->_axis[axis];
         auto           homing   = axisConf->_homing;
-        if (homing != nullptr && bitnum_istrue(cycle_mask, axis)) {
+        if (bitnum_istrue(cycle_mask, axis)) {
             auto mpos    = homing->_mpos;
             auto pulloff = homing->_pulloff;
             auto steps   = axisConf->_stepsPerMm;
@@ -293,27 +311,132 @@ void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     config->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done
 }
 
-uint8_t limit_mask = 0;
+// return true if the mask has exactly one bit set,
+// so it refers to exactly one axis
+static bool mask_is_single_axis(AxisMask axis_mask) {
+    // This code depends on the fact that, for binary numberes
+    // with only one bit set - and only for such numbers -
+    // the bits in one less than the number are disjoint
+    // with that bit.  For a number like B100, if you
+    // subtract one, the low order 00 bits will have to
+    // borrow from the high 1 bit and thus clear it.
+    // If any lower bits are 1, then there will be no
+    // borrow to clear the highest 1 bit.
+    return axis_mask && ((axis_mask & (axis_mask - 1)) == 0);
+}
+
+static AxisMask squaredAxes() {
+    AxisMask mask   = 0;
+    auto     axes   = config->_axes;
+    auto     n_axis = axes->_numberAxis;
+    for (int axis = 0; axis < n_axis; axis++) {
+        auto homing = axes->_axis[axis]->_homing;
+        if (homing && homing->_square) {
+            mask |= bit(axis);
+        }
+    }
+    return mask;
+}
+
+static bool axis_is_squared(AxisMask axis_mask) {
+    // Squaring can only be done if it is the only axis in the mask
+
+    // cases:
+    // axis_mask has one bit:
+    //   axis is squared: return true
+    //   else: return false
+    // else:
+    //   one of the axes is squared: message and return false
+    //   else return false
+
+    if (axis_mask & squaredAxes()) {
+        if (mask_is_single_axis(axis_mask)) {
+            return true;
+        }
+        info_all("Cannot multi-axis home with squared axes. Homing normally");
+    }
+
+    return false;
+}
+
+// For this routine, homing_mask cannot be 0.  The 0 case,
+// meaning run all cycles, is handled by the caller mc_homing_cycle()
+static void limits_run_one_homing_cycle(AxisMask homing_mask) {
+    if (axis_is_squared(homing_mask)) {
+        // For squaring, we first do the fast seek using both motors,
+        // skipping the second slow moving phase.
+        ganged_mode = gangDual;
+        limits_go_home(homing_mask, 0);  // Do not do a second touch cycle
+
+        // Then we do the slow motion on the individual motors
+        ganged_mode = gangA;
+        limits_go_home(homing_mask, NHomingLocateCycle);
+
+        ganged_mode = gangB;
+        limits_go_home(homing_mask, NHomingLocateCycle);
+
+        ganged_mode = gangDual;  // always return to dual
+    } else {
+        limits_go_home(homing_mask, NHomingLocateCycle);
+    }
+}
+
+void limits_run_homing_cycles(AxisMask axis_mask) {
+    limits_homing_mode();  // Disable hard limits pin change register for cycle duration
+
+    // -------------------------------------------------------------------------------------
+    // Perform homing routine. NOTE: Special motion case. Only system reset works.
+    if (axis_mask != HOMING_CYCLE_ALL) {
+        limits_run_one_homing_cycle(axis_mask);
+    } else {
+        // Run all homing cycles
+        bool someAxisHomed = false;
+
+        for (int cycle = 0; cycle < MAX_N_AXIS; cycle++) {
+            // Set axis_mask to the axes that home on this cycle
+            axis_mask   = 0;
+            auto n_axis = config->_axes->_numberAxis;
+            for (int axis = 0; axis < n_axis; axis++) {
+                auto axisConfig = config->_axes->_axis[axis];
+                auto homing     = axisConfig->_homing;
+                if (homing && homing->_cycle == cycle) {
+                    bitnum_istrue(axis_mask, axis);
+                }
+            }
+
+            if (axis_mask) {  // if there are some axes in this cycle
+                someAxisHomed = true;
+                limits_run_one_homing_cycle(axis_mask);
+            }
+        }
+        if (!someAxisHomed) {
+            report_status_message(Error::HomingNoCycles, CLIENT_ALL);
+            sys.state = State::Alarm;
+        }
+    }
+    limits_run_mode();  // Disable hard limits pin change register for cycle duration
+}
 
 void limits_init() {
-    limit_mask = 0;
-
-    bool hasLimits = false;
-    auto n_axis    = config->_axes->_numberAxis;
+    auto axes   = config->_axes;
+    auto n_axis = axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
+        if (axes->_axis[axis]->_homing) {
+            bitnum_true(homingAxes, axis);
+        }
         for (int gang_index = 0; gang_index < 2; gang_index++) {
-            auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
+            auto gangConfig = axes->_axis[axis]->_gangs[gang_index];
             if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
-                if (!hasLimits) {
+                if (!limitAxes) {
                     info_serial("Initializing endstops...");
-                    hasLimits = true;
                 }
+                bitnum_true(limitAxes, axis);
+
                 Pin& pin = gangConfig->_endstops->_dual;
 
                 info_serial("%s limit on %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
 
                 pin.setAttr(Pin::Attr::Input | Pin::Attr::ISR);
-                bitnum_true(limit_mask, axis);
                 if (gangConfig->_endstops->_hardLimits) {
                     pin.attachInterrupt(isr_limit_switches, CHANGE, nullptr);
                 } else {
@@ -323,7 +446,7 @@ void limits_init() {
         }
     }
 
-    if (hasLimits) {
+    if (limitAxes) {
         if (limit_sw_queue == NULL && config->_softwareDebounceMs != 0) {
             // setup task used for debouncing
             if (limit_sw_queue == NULL) {
@@ -339,8 +462,7 @@ void limits_init() {
     }
 }
 
-// Disables hard limits.
-void limits_disable() {
+void limits_homing_mode() {
     auto n_axis = config->_axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
@@ -353,8 +475,7 @@ void limits_disable() {
     }
 }
 
-// Re-enables hard limits.
-void limits_enable() {
+void limits_run_mode() {
     auto n_axis = config->_axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
         for (int gang_index = 0; gang_index < 2; gang_index++) {
@@ -369,25 +490,39 @@ void limits_enable() {
     }
 }
 
+bool limits_check_axis(int axis) {
+    for (int gang_index = 0; gang_index < 2; gang_index++) {
+        auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
+        if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
+            Pin& pin = gangConfig->_endstops->_dual;
+            if (pin.read()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Check the limit switches for the axes listed in check_mask.
+// Return a mask of the switches that are engaged.
+AxisMask limits_check(AxisMask check_mask) {
+    AxisMask pinMask = 0;
+    auto     n_axis  = config->_axes->_numberAxis;
+    for (int axis = 0; axis < n_axis; axis++) {
+        if (bitnum_istrue(check_mask, axis)) {
+            if (!limits_check_axis(axis)) {
+                bitnum_true(pinMask, axis);
+            }
+        }
+    }
+    return pinMask;
+}
+
 // Returns limit state as a bit-wise uint8 variable. Each bit indicates an axis limit, where
 // triggered is 1 and not triggered is 0. Invert mask is applied. Axes are defined by their
 // number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 AxisMask limits_get_state() {
-    AxisMask pinMask = 0;
-    auto     n_axis  = config->_axes->_numberAxis;
-    for (int axis = 0; axis < n_axis; axis++) {
-        for (int gang_index = 0; gang_index < 2; gang_index++) {
-            auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
-            if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
-                Pin& pin = gangConfig->_endstops->_dual;
-                if (pin.read()) {
-                    bitnum_true(pinMask, axis);
-                }
-            }
-        }
-    }
-
-    return pinMask;
+    return limits_check(limitAxes);
 }
 
 // Performs a soft limit check. Called from mcline() only. Assumes the machine has been homed,

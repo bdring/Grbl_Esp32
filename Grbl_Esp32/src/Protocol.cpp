@@ -100,9 +100,9 @@ Error execute_line(char* line, uint8_t client, WebUI::AuthenticationLevel auth_l
 
 bool can_park() {
     if (config->_enableParkingOverrideControl) {
-        return sys.override_ctrl == Override::ParkingMotion && homingAxes() && !config->_laserMode;
+        return sys.override_ctrl == Override::ParkingMotion && homingAxes && !config->_laserMode;
     } else {
-        return homingAxes() && !config->_laserMode;
+        return homingAxes && !config->_laserMode;
     }
 }
 

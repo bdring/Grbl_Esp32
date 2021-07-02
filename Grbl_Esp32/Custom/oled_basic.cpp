@@ -136,7 +136,6 @@ void displayDRO() {
     display.drawString(80, 14, "L");  // Limit switch
 
     auto        n_axis         = config->_axes->_numberAxis;
-    AxisMask    lim_pin_state  = limits_get_state();
     ControlPins ctrl_pin_state = system_control_get_state();
     bool        prb_pin_state  = probe_get_state();
 
@@ -162,8 +161,8 @@ void displayDRO() {
         snprintf(axisVal, 20 - 1, "%.3f", print_position[axis]);
         display.drawString(60, oled_y_pos, axisVal);
 
-        if (limitsSwitchDefined(axis, 0)) {  // olny draw the box if a switch has been defined
-            draw_checkbox(80, 27 + (axis * 10), 7, 7, bit_istrue(lim_pin_state, bit(axis)));
+        if (bitnum_istrue(limitAxes, axis)) {  // only draw the box if a switch has been defined
+            draw_checkbox(80, 27 + (axis * 10), 7, 7, limits_check(bit(axis)));
         }
     }
 

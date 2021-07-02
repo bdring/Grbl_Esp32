@@ -159,7 +159,7 @@ bool user_defined_homing(AxisMask cycle_mask) {
 
                     do {
                         if (approach) {
-                            switch_touched = bitnum_istrue(limits_get_state(), axis);
+                            switch_touched = limits_check(bit(axis));
                         }
                         st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
                         // Exit routines: No time to run protocol_execute_realtime() in this loop.
@@ -175,7 +175,7 @@ bool user_defined_homing(AxisMask cycle_mask) {
                                 sys_rt_exec_alarm = ExecAlarm::HomingFailDoor;
                             }
                             // Homing failure condition: Limit switch still engaged after pull-off motion
-                            if (!approach && (limits_get_state() & cycle_mask)) {
+                            if (!approach && limits_check(cycle_mask)) {
                                 sys_rt_exec_alarm = ExecAlarm::HomingFailPulloff;
                             }
                             // Homing failure condition: Limit switch not found during approach.

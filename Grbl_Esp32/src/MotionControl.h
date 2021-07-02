@@ -30,10 +30,7 @@
 #include <cstdint>
 
 // System motion commands must have a line number of zero.
-const int HOMING_CYCLE_LINE_NUMBER   = 0;
 const int PARKING_MOTION_LINE_NUMBER = 0;
-
-const int HOMING_CYCLE_ALL = 0;  // Must be zero.
 
 // Execute linear motion in absolute millimeter coordinates. Feed rate given in millimeters/second
 // unless invert_feed_rate is true. Then the feed_rate means that the motion should be completed in

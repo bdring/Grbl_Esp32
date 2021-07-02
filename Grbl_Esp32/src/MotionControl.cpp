@@ -273,79 +273,9 @@ bool mc_dwell(int32_t milliseconds) {
     return delay_msec(milliseconds, DwellMode::Dwell);
 }
 
-// return true if the mask has exactly one bit set,
-// so it refers to exactly one axis
-static bool mask_is_single_axis(AxisMask axis_mask) {
-    // This code depends on the fact that, for binary numberes
-    // with only one bit set - and only for such numbers -
-    // the bits in one less than the number are disjoint
-    // with that bit.  For a number like B100, if you
-    // subtract one, the low order 00 bits will have to
-    // borrow from the high 1 bit and thus clear it.
-    // If any lower bits are 1, then there will be no
-    // borrow to clear the highest 1 bit.
-    return axis_mask && ((axis_mask & (axis_mask - 1)) == 0);
-}
-
-static AxisMask squaredAxes() {
-    AxisMask mask   = 0;
-    auto     axes   = config->_axes;
-    auto     n_axis = axes->_numberAxis;
-    for (int axis = 0; axis < n_axis; axis++) {
-        auto homing = axes->_axis[axis]->_homing;
-        if (homing && homing->_square) {
-            mask |= bit(axis);
-        }
-    }
-    return mask;
-}
-
-static bool axis_is_squared(AxisMask axis_mask) {
-    // Squaring can only be done if it is the only axis in the mask
-
-    // cases:
-    // axis_mask has one bit:
-    //   axis is squared: return true
-    //   else: return false
-    // else:
-    //   one of the axes is squared: message and return false
-    //   else return false
-
-    if (axis_mask & squaredAxes()) {
-        if (mask_is_single_axis(axis_mask)) {
-            return true;
-        }
-        info_all("Cannot multi-axis home with squared axes. Homing normally");
-    }
-
-    return false;
-}
-
 inline void RESTORE_STEPPER(int save_stepper) {
     if (save_stepper == ST_I2S_STREAM && config->_stepType != ST_I2S_STREAM) {
         stepper_switch(ST_I2S_STREAM); /* Put the stepper back on. */
-    }
-}
-
-// For this routine, homing_mask cannot be 0.  The 0 case,
-// meaning run all cycles, is handled by the caller mc_homing_cycle()
-static void mc_run_one_homing_cycle(AxisMask homing_mask) {
-    if (axis_is_squared(homing_mask)) {
-        // For squaring, we first do the fast seek using both motors,
-        // skipping the second slow moving phase.
-        ganged_mode = gangDual;
-        limits_go_home(homing_mask, 0);  // Do not do a second touch cycle
-
-        // Then we do the slow motion on the individual motors
-        ganged_mode = gangA;
-        limits_go_home(homing_mask, NHomingLocateCycle);
-
-        ganged_mode = gangB;
-        limits_go_home(homing_mask, NHomingLocateCycle);
-
-        ganged_mode = gangDual;  // always return to dual
-    } else {
-        limits_go_home(homing_mask, NHomingLocateCycle);
     }
 }
 
@@ -371,38 +301,9 @@ void mc_homing_cycle(AxisMask axis_mask) {
         return;
     }
 
-    limits_disable();  // Disable hard limits pin change register for cycle duration
-    // -------------------------------------------------------------------------------------
-    // Perform homing routine. NOTE: Special motion case. Only system reset works.
-    if (axis_mask) {
-        mc_run_one_homing_cycle(axis_mask);
-    } else {
-        // Run all homing cycles
-        bool someAxisHomed = false;
+    // Might set an alarm; if so protocol_execute_realtime will handle it
+    limits_run_homing_cycles(axis_mask);
 
-        for (int cycle = 0; cycle < MAX_N_AXIS; cycle++) {
-            // Set axis_mask to the axes that home on this cycle
-            axis_mask   = 0;
-            auto n_axis = config->_axes->_numberAxis;
-            for (int axis = 0; axis < n_axis; axis++) {
-                auto axisConfig = config->_axes->_axis[axis];
-                auto homing     = axisConfig->_homing;
-                if (homing && homing->_cycle == cycle) {
-                    axis_mask |= bit(axis);
-                }
-            }
-
-            if (axis_mask) {  // if there are some axes in this cycle
-                someAxisHomed = true;
-                mc_run_one_homing_cycle(axis_mask);
-            }
-        }
-        if (!someAxisHomed) {
-            report_status_message(Error::HomingNoCycles, CLIENT_ALL);
-            sys.state = State::Alarm;
-            return;
-        }
-    }
     protocol_execute_realtime();  // Check for reset and set system abort.
     if (sys.abort) {
         return;  // Did not complete. Alarm state set by mc_alarm.
@@ -414,8 +315,6 @@ void mc_homing_cycle(AxisMask axis_mask) {
     plan_sync_position();
     // This give kinematics a chance to do something after normal homing
     kinematics_post_homing();
-    // If hard limits feature enabled, re-enable hard limits pin change register after homing cycle.
-    limits_enable();
 }
 
 // Perform tool length probe cycle. Requires probe switch.

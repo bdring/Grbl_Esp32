@@ -31,36 +31,42 @@
 
 #include <cstdint>
 
+const int HOMING_CYCLE_ALL         = 0;  // Must be zero.
+const int HOMING_CYCLE_LINE_NUMBER = 0;
+
 // Initialize the limits module
 void limits_init();
-
-// Disables hard limits.
-void limits_disable();
-
-// Re-enables hard limits.
-void limits_enable();
 
 // Returns limit state
 AxisMask limits_get_state();
 
-// Perform one homing operation
-void limits_go_home(AxisMask cycle_mask, uint32_t n_locate_cycles);
+void limits_run_homing_cycles(AxisMask axis_mask);
 
 // Check for soft limit violations
 void limits_soft_check(float* target);
+
+float limitsMaxPosition(uint8_t axis);
+float limitsMinPosition(uint8_t axis);
+
+// check if a switch has been defined
+bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index);
+
+extern AxisMask homingAxes;
+
+extern AxisMask limitAxes;
+
+// Private
+
+// Returns limit state under mask
+AxisMask limits_check(AxisMask check_mask);
 
 void isr_limit_switches(void* /*unused*/);
 
 // A task that runs after a limit switch interrupt.
 void limitCheckTask(void* pvParameters);
 
-float limitsMaxPosition(uint8_t axis);
-float limitsMinPosition(uint8_t axis);
-
 // Internal factor used by limits_soft_check
 bool limitsCheckTravel(float* target);
 
-// check if a switch has been defined
-bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index);
-
-AxisMask homingAxes();
+void limits_homing_mode();
+void limits_run_mode();
