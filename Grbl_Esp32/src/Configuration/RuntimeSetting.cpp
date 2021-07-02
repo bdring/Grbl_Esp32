@@ -58,7 +58,7 @@ namespace Configuration {
             if (newValue_ == nullptr) {
                 grbl_sendf(out_->client(), "$%s=%s\r\n", setting_, value ? "true" : "false");
             } else {
-                value = (!strcmp(newValue_, "true"));
+                value = (!strcasecmp(newValue_, "true"));
             }
         }
     }
@@ -109,7 +109,7 @@ namespace Configuration {
                 }
             } else {
                 for (; e->name; ++e) {
-                    if (!strcmp(newValue_, e->name)) {
+                    if (!strcasecmp(newValue_, e->name)) {
                         value = e->value;
                         return;
                     }
