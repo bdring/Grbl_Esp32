@@ -112,8 +112,10 @@ namespace Pins {
         // User defined pin capabilities
         for (auto opt : options) {
             if (opt.is("pu")) {
+                Assert(_capabilities.has(PinCapabilities::PullUp), "Pin %s does not support :pu", toString().c_str());
                 _attributes = _attributes | PinAttributes::PullUp;
             } else if (opt.is("pd")) {
+                Assert(_capabilities.has(PinCapabilities::PullDown), "Pin %s does not support :pd", toString().c_str());
                 _attributes = _attributes | PinAttributes::PullDown;
             } else if (opt.is("low")) {
                 _attributes = _attributes | PinAttributes::ActiveLow;
@@ -137,7 +139,7 @@ namespace Pins {
         if (!_attributes.has(PinAttributes::Output)) {
             log_error(toString());
         }
-        Assert(_attributes.has(PinAttributes::Output), "Pin %s cannot be written", toString());
+        Assert(_attributes.has(PinAttributes::Output), "Pin %s cannot be written", toString().c_str());
         int value = _readWriteMask ^ high;
         __digitalWrite(_index, value);
     }
@@ -154,10 +156,10 @@ namespace Pins {
         // Check the attributes first:
         Assert(value.validateWith(this->_capabilities) || _index == 1 || _index == 3,
                "The requested attributes don't match the capabilities for %s",
-               toString());
+               toString().c_str());
         Assert(!_attributes.conflictsWith(value) || _index == 1 || _index == 3,
                "The requested attributes on %s conflict with previous settings",
-               toString());
+               toString().c_str());
 
         _attributes = _attributes | value;
 
@@ -186,7 +188,7 @@ namespace Pins {
     }
 
     void GPIOPinDetail::attachInterrupt(void (*callback)(void*), void* arg, int mode) {
-        Assert(_attributes.has(PinAttributes::ISR), "Pin %s does not support interrupts", toString());
+        Assert(_attributes.has(PinAttributes::ISR), "Pin %s does not support interrupts", toString().c_str());
         ::attachInterruptArg(_index, callback, arg, mode);
     }
 
