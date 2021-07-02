@@ -35,7 +35,7 @@ namespace Machine {
         float _seekRate          = 200.0f;  // this first approach speed
         float _pulloff           = 1.0f;    // mm
         int   _debounce          = 250;     // ms settling time for homing switches after motion
-        float _search_scaler     = 1.1f;    // multiplied by max travel for max homing distance on first touch
+        float _seek_scaler       = 1.1f;    // multiplied by max travel for max homing distance on first touch
         float _locate_scaler     = 1.0f;
 
         // Configuration system helpers:
@@ -50,7 +50,7 @@ namespace Machine {
             handler.item("debounce", _debounce);
             handler.item("pulloff", _pulloff);
             handler.item("square", _square);
-            handler.item("search_scaler", _search_scaler);
+            handler.item("seek_scaler", _seek_scaler);
             handler.item("locate_scaler", _locate_scaler);
         }
     };

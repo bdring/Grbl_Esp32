@@ -222,7 +222,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         // Add a small fudge factor to ensure that the limit is reached
         for (int axis = 0; axis < n_axis; axis++) {
             auto homing = config->_axes->_axis[axis]->_homing;
-            auto scaler = approach ? homing->_search_scaler : homing->_locate_scaler;
+            auto scaler = approach ? homing->_seek_scaler : homing->_locate_scaler;
             if (bitnum_istrue(axislock, axis)) {
                 target[axis] *= limitingRate * scaler;
             }
