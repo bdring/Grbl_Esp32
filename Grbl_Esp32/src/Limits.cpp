@@ -392,7 +392,7 @@ void limits_run_homing_cycles(AxisMask axis_mask) {
         // Run all homing cycles
         bool someAxisHomed = false;
 
-        for (int cycle = 0; cycle < MAX_N_AXIS; cycle++) {
+        for (int cycle = 1; cycle <= MAX_N_AXIS; cycle++) {
             // Set axis_mask to the axes that home on this cycle
             axis_mask   = 0;
             auto n_axis = config->_axes->_numberAxis;
