@@ -118,13 +118,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     auto axes   = config->_axes;
     auto n_axis = axes->_numberAxis;
 
-    // Remove axes with no homing setup from cycle_mask
-    for (int axis = 0; axis < n_axis; axis++) {
-        if (bitnum_istrue(cycle_mask, axis) && axes->_axis[axis]->_homing == nullptr) {
-            debug_all("Homing is not configured for the %d axis", axes->axisName(axis));
-            bitnum_false(cycle_mask, axis);
-        }
-    }
+    cycle_mask &= homingAxes;
 
     // Initialize plan data struct for homing motion. Spindle and coolant are disabled.
 
@@ -184,6 +178,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         float limitingRate = 0.0;
         int   debounce     = 0;
 
+        // Find the axis that will take the longest
         for (int axis = 0; axis < n_axis; axis++) {
             if (bitnum_isfalse(cycle_mask, axis)) {
                 continue;
@@ -217,13 +212,12 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
             // Record the axis as active
             bitnum_true(axislock, axis);
         }
-
         // Scale the target array, currently in units of time, back to positions
         // Add a small fudge factor to ensure that the limit is reached
         for (int axis = 0; axis < n_axis; axis++) {
-            auto homing = config->_axes->_axis[axis]->_homing;
-            auto scaler = approach ? homing->_seek_scaler : homing->_locate_scaler;
             if (bitnum_istrue(axislock, axis)) {
+                auto homing = config->_axes->_axis[axis]->_homing;
+                auto scaler = approach ? homing->_seek_scaler : homing->_feed_scaler;
                 target[axis] *= limitingRate * scaler;
             }
         }
@@ -241,10 +235,9 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         do {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
-                axislock             = limits_check(axislock);
+                bit_false(axislock, limits_check(axislock));
                 sys.homing_axis_lock = axislock;
             }
-
             st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
 
             ExecAlarm alarm = limits_handle_errors(approach, cycle_mask);
@@ -490,7 +483,7 @@ void limits_run_mode() {
     }
 }
 
-bool limits_check_axis(int axis) {
+static bool limits_check_axis(int axis) {
     for (int gang_index = 0; gang_index < 2; gang_index++) {
         auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
         if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
@@ -510,7 +503,7 @@ AxisMask limits_check(AxisMask check_mask) {
     auto     n_axis  = config->_axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
         if (bitnum_istrue(check_mask, axis)) {
-            if (!limits_check_axis(axis)) {
+            if (limits_check_axis(axis)) {
                 bitnum_true(pinMask, axis);
             }
         }

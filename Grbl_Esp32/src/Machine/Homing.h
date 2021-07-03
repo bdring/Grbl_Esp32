@@ -36,7 +36,7 @@ namespace Machine {
         float _pulloff           = 1.0f;    // mm
         int   _debounce          = 250;     // ms settling time for homing switches after motion
         float _seek_scaler       = 1.1f;    // multiplied by max travel for max homing distance on first touch
-        float _locate_scaler     = 1.0f;
+        float _feed_scaler       = 1.0f;
 
         // Configuration system helpers:
         void validate() const override { Assert(_cycle >= 0, "Homing cycle must be defined"); }
@@ -51,7 +51,7 @@ namespace Machine {
             handler.item("pulloff", _pulloff);
             handler.item("square", _square);
             handler.item("seek_scaler", _seek_scaler);
-            handler.item("locate_scaler", _locate_scaler);
+            handler.item("feed_scaler", _feed_scaler);
         }
     };
 }
