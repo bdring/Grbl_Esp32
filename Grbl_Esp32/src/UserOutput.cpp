@@ -59,7 +59,7 @@ namespace UserOutput {
 
         // increase the precision (bits) until it exceeds allow by frequency the max or is 16
         _resolution_bits = 0;
-        while ((1 << _resolution_bits) < (apb_frequency / _pwm_frequency) && _resolution_bits <= 16) {
+        while ((1u << _resolution_bits) < (apb_frequency / _pwm_frequency) && _resolution_bits <= 16) {
             ++_resolution_bits;
         }
         // _resolution_bits is now just barely too high, so drop it down one

@@ -389,7 +389,7 @@ Error listAlarms(const char* value, WebUI::AuthenticationLevel auth_level, WebUI
     }
     if (value) {
         char*   endptr      = NULL;
-        uint8_t alarmNumber = strtol(value, &endptr, 10);
+        uint8_t alarmNumber = uint8_t(strtol(value, &endptr, 10));
         if (*endptr) {
             grbl_sendf(out->client(), "Malformed alarm number: %s\r\n", value);
             return Error::InvalidValue;
@@ -418,7 +418,7 @@ const char* errorString(Error errorNumber) {
 Error listErrors(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     if (value) {
         char*   endptr      = NULL;
-        uint8_t errorNumber = strtol(value, &endptr, 10);
+        uint8_t errorNumber = uint8_t(strtol(value, &endptr, 10));
         if (*endptr) {
             grbl_sendf(out->client(), "Malformed error number: %s\r\n", value);
             return Error::InvalidValue;

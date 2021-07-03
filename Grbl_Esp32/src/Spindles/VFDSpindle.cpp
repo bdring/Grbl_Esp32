@@ -51,13 +51,13 @@ namespace Spindles {
     QueueHandle_t VFD::vfd_cmd_queue     = nullptr;
     TaskHandle_t  VFD::vfd_cmdTaskHandle = nullptr;
 
-    void VFD::reportParsingErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length) {
+    void VFD::reportParsingErrors(ModbusCommand cmd, uint8_t* rx_message, size_t read_length) {
 #ifdef DEBUG_VFD
         report_hex_msg(cmd.msg, "RS485 Tx: ", cmd.tx_length);
         report_hex_msg(rx_message, "RS485 Rx: ", read_length);
 #endif
     }
-    void VFD::reportCmdErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length, uint8_t id) {
+    void VFD::reportCmdErrors(ModbusCommand cmd, uint8_t* rx_message, size_t read_length, uint8_t id) {
 #ifdef DEBUG_VFD
         report_hex_msg(cmd.msg, "RS485 Tx: ", cmd.tx_length);
         report_hex_msg(rx_message, "RS485 Rx: ", read_length);
@@ -189,8 +189,8 @@ namespace Spindles {
                 uart.flushTxTimed(response_ticks);
 
                 // Read the response
-                uint16_t read_length  = 0;
-                uint16_t current_read = uart.readBytes(rx_message, next_cmd.rx_length, response_ticks);
+                size_t read_length  = 0;
+                size_t current_read = uart.readBytes(rx_message, next_cmd.rx_length, response_ticks);
                 read_length += current_read;
 
                 // Apparently some Huanyang report modbus errors in the correct way, and the rest not. Sigh.
@@ -203,9 +203,6 @@ namespace Spindles {
                     // Try to read more; we're not there yet...
                     current_read = uart.readBytes(rx_message + read_length, next_cmd.rx_length - read_length, response_ticks);
                     read_length += current_read;
-                }
-                if (current_read < 0) {
-                    read_length = 0;
                 }
 
                 // Generate crc16 for the response:

@@ -35,7 +35,7 @@ namespace UserOutput {
         void config_message();
 
         uint8_t _number = UNDEFINED_OUTPUT;
-        Pin&     _pin;
+        Pin&    _pin;
     };
 
     class AnalogOutput {
@@ -49,7 +49,7 @@ namespace UserOutput {
         void config_message();
 
         uint8_t  _number = UNDEFINED_OUTPUT;
-        Pin&      _pin;
+        Pin&     _pin;
         uint8_t  _pwm_channel = -1;  // -1 means invalid or not setup
         float    _pwm_frequency;
         uint8_t  _resolution_bits;

@@ -58,7 +58,7 @@ namespace WebUI {
         }
 
         //no space allowed
-        for (int i = 0; i < strlen(password); i++) {
+        for (size_t i = 0; i < strlen(password); i++) {
             c = password[i];
             if (c == ' ') {
                 return false;

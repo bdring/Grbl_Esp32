@@ -201,7 +201,7 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
     const char* format    = "%4.3f";  // Default - report mm to 3 decimal places
     rpt[0]                = '\0';
     if (config->_reportInches) {
-        unit_conv = 1.0 / MM_PER_INCH;
+        unit_conv = 1.0f / MM_PER_INCH;
         format    = "%4.4f";  // Report inches to 4 decimal places
     }
     auto n_axis = config->_axes->_numberAxis;
@@ -218,11 +218,10 @@ static void report_util_axis_values(float* axis_value, char* rpt) {
 static String report_util_axis_values(const float* axis_value) {
     String  rpt = "";
     uint8_t idx;
-    char    axisVal[coordStringLen];
     float   unit_conv = 1.0;  // unit conversion multiplier..default is mm
     int     decimals  = 3;    // Default - report mm to 3 decimal places
     if (config->_reportInches) {
-        unit_conv = 1.0 / MM_PER_INCH;
+        unit_conv = 1.0f / MM_PER_INCH;
         decimals  = 4;  // Report inches to 4 decimal places
     }
     auto n_axis = config->_axes->_numberAxis;

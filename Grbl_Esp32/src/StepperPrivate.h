@@ -9,12 +9,12 @@
 const int SEGMENT_BUFFER_SIZE = 6;
 
 // Some useful constants.
-const double DT_SEGMENT              = (1.0 / (ACCELERATION_TICKS_PER_SECOND * 60.0));  // min/segment
-const double REQ_MM_INCREMENT_SCALAR = 1.25;
-const int    RAMP_ACCEL              = 0;
-const int    RAMP_CRUISE             = 1;
-const int    RAMP_DECEL              = 2;
-const int    RAMP_DECEL_OVERRIDE     = 3;
+const float DT_SEGMENT              = (1.0f / (float(ACCELERATION_TICKS_PER_SECOND) * 60.0f));  // min/segment
+const float REQ_MM_INCREMENT_SCALAR = 1.25f;
+const int   RAMP_ACCEL              = 0;
+const int   RAMP_CRUISE             = 1;
+const int   RAMP_DECEL              = 2;
+const int   RAMP_DECEL_OVERRIDE     = 3;
 
 struct PrepFlag {
     uint8_t recalculate : 1;

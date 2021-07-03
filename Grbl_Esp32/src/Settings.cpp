@@ -235,7 +235,7 @@ void StringSetting::setDefault() {
 }
 
 Error StringSetting::setStringValue(char* s) {
-    if (_minLength && _maxLength && (strlen(s) < _minLength || strlen(s) > _maxLength)) {
+    if (_minLength && _maxLength && (strlen(s) < size_t(_minLength) || strlen(s) > size_t(_maxLength))) {
         return Error::BadNumberFormat;
     }
     Error err = check(s);
@@ -330,7 +330,7 @@ Error EnumSetting::setStringValue(char* s) {
             return Error::BadNumberFormat;
         }
         char*   endptr;
-        uint8_t num = strtol(s, &endptr, 10);
+        uint8_t num = uint8_t(strtol(s, &endptr, 10));
         // Disallow non-numeric characters in string
         if (*endptr) {
             return Error::BadNumberFormat;

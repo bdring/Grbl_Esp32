@@ -153,7 +153,7 @@ namespace Spindles {
         }
 
         // increase the precision (bits) until it exceeds allow by frequency the max or is 16
-        while ((1 << precision) < (uint32_t)(80000000 / freq) && precision <= 16) {
+        while ((1u << precision) < uint32_t(80000000 / freq) && precision <= 16) {
             precision++;
         }
 

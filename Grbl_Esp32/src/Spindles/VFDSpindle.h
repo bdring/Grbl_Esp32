@@ -63,8 +63,8 @@ namespace Spindles {
         bool prepareSetModeCommand(SpindleState mode, ModbusCommand& data);
         bool prepareSetSpeedCommand(uint32_t speed, ModbusCommand& data);
 
-        static void reportParsingErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length);
-        static void reportCmdErrors(ModbusCommand cmd, uint8_t* rx_message, uint16_t read_length, uint8_t id);
+        static void reportParsingErrors(ModbusCommand cmd, uint8_t* rx_message, size_t read_length);
+        static void reportCmdErrors(ModbusCommand cmd, uint8_t* rx_message, size_t read_length, uint8_t id);
 
     protected:
         // Commands:

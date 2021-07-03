@@ -28,7 +28,8 @@
 #include <SD.h>
 #include <SPI.h>
 
-struct SDCard::FileWrap {
+class SDCard::FileWrap {
+public:
     FileWrap() : _file(nullptr) {}
     File _file;
 };

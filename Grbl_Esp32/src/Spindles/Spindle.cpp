@@ -79,18 +79,18 @@ namespace Spindles {
             offset            = _speeds[i].percent / 100.0 * max_dev_speed;
             _speeds[i].offset = offset;
 
-            float deltaPercent = (_speeds[i + 1].percent - _speeds[i].percent) / 100.0;
+            float deltaPercent = (_speeds[i + 1].percent - _speeds[i].percent) / 100.0f;
             float deltaRPM     = _speeds[i + 1].speed - _speeds[i].speed;
-            float scale        = deltaRPM == 0.0 ? 0.0 : (deltaPercent / deltaRPM);
+            float scale        = deltaRPM == 0.0f ? 0.0f : (deltaPercent / deltaRPM);
             scale *= max_dev_speed;
 
             // float scale = deltaPercent * max_dev_speed;
-            scaler           = scale * 65536;
+            scaler           = uint32_t(scale * 65536);
             _speeds[i].scale = scaler;
         }
 
         // The final scaler is 0, with the offset equal to the ending offset
-        offset            = _speeds[nsegments].percent / 100.0 * max_dev_speed;
+        offset            = SpindleSpeed(_speeds[nsegments].percent / 100.0f * float(max_dev_speed));
         _speeds[i].offset = offset;
         scaler            = 0;
         _speeds[i].scale  = scaler;
@@ -99,14 +99,14 @@ namespace Spindles {
     void Spindle::afterParse() {}
 
     void Spindle::shelfSpeeds(SpindleSpeed min, SpindleSpeed max) {
-        float minPercent = 100.0 * min / max;
+        float minPercent = 100.0f * min / max;
         _speeds.clear();
-        _speeds.push_back({ 0, 0.0 });
+        _speeds.push_back({ 0, 0.0f });
         _speeds.push_back({ 0, minPercent });
         if (min) {
             _speeds.push_back({ min, minPercent });
         }
-        _speeds.push_back({ max, 100.0 });
+        _speeds.push_back({ max, 100.0f });
     }
 
     uint32_t Spindle::mapSpeed(SpindleSpeed speed) {

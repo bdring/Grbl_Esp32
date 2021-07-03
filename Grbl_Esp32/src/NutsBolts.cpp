@@ -171,7 +171,7 @@ float       limit_acceleration_by_axis_maximum(float* unit_vec) {
     for (idx = 0; idx < n_axis; idx++) {
         auto axisSetting = config->_axes->_axis[idx];
         if (unit_vec[idx] != 0) {  // Avoid divide by zero.
-            limit_value = MIN(limit_value, fabs(axisSetting->_acceleration / unit_vec[idx]));
+            limit_value = MIN(limit_value, float(fabs(axisSetting->_acceleration / unit_vec[idx])));
         }
     }
     // The acceleration setting is stored and displayed in units of mm/sec^2,
@@ -188,7 +188,7 @@ float limit_rate_by_axis_maximum(float* unit_vec) {
     for (idx = 0; idx < n_axis; idx++) {
         auto axisSetting = config->_axes->_axis[idx];
         if (unit_vec[idx] != 0) {  // Avoid divide by zero.
-            limit_value = MIN(limit_value, fabs(axisSetting->_maxRate / unit_vec[idx]));
+            limit_value = MIN(limit_value, float(fabs(axisSetting->_maxRate / unit_vec[idx])));
         }
     }
     return limit_value;

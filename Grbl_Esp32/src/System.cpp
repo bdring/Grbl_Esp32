@@ -140,7 +140,7 @@ void sys_analog_all_off() {
 // io_num is the virtual analog pin#
 bool sys_set_analog(uint8_t io_num, float percent) {
     auto     analog    = myAnalogOutputs[io_num];
-    uint32_t numerator = percent / 100.0 * analog->denominator();
+    uint32_t numerator = uint32_t(percent / 100.0f * analog->denominator());
     return analog->set_level(numerator);
 }
 
@@ -173,7 +173,7 @@ uint8_t sys_calc_pwm_precision(uint32_t freq) {
     uint8_t precision = 0;
 
     // increase the precision (bits) until it exceeds allow by frequency the max or is 16
-    while ((1 << precision) < (uint32_t)(80000000 / freq) && precision <= 16) {  // TODO is there a named value for the 80MHz?
+    while ((1u << precision) < uint32_t(80000000 / freq) && precision <= 16) {  // TODO is there a named value for the 80MHz?
         precision++;
     }
 

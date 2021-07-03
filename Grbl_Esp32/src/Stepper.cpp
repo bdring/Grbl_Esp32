@@ -564,7 +564,7 @@ void st_prep_buffer() {
                     pl_block->entry_speed_sqr           = prep.exit_speed * prep.exit_speed;
                     prep.recalculate_flag.decelOverride = 0;
                 } else {
-                    prep.current_speed = sqrt(pl_block->entry_speed_sqr);
+                    prep.current_speed = float(sqrt(pl_block->entry_speed_sqr));
                 }
 
                 // prep.inv_rate is only used if is_pwm_rate_adjusted is true
@@ -573,7 +573,7 @@ void st_prep_buffer() {
                 if (config->_laserMode) {
                     if (pl_block->spindle == SpindleState::Ccw) {
                         // Pre-compute inverse programmed rate to speed up PWM updating per step segment.
-                        prep.inv_rate                       = 1.0 / pl_block->programmed_rate;
+                        prep.inv_rate                       = 1.0f / pl_block->programmed_rate;
                         st_prep_block->is_pwm_rate_adjusted = true;
                     }
                 }
@@ -585,7 +585,7 @@ void st_prep_buffer() {
              hold, override the planner velocities and decelerate to the target exit speed.
             */
             prep.mm_complete  = 0.0;  // Default velocity profile complete at 0.0mm from end of block.
-            float inv_2_accel = 0.5 / pl_block->acceleration;
+            float inv_2_accel = 0.5f / pl_block->acceleration;
             if (sys.step_control.executeHold) {  // [Forced Deceleration to Zero Velocity]
                 // Compute velocity profile parameters for a feed hold in-progress. This profile overrides
                 // the planner block profile, enforcing a deceleration to zero speed.
@@ -594,7 +594,7 @@ void st_prep_buffer() {
                 float decel_dist = pl_block->millimeters - inv_2_accel * pl_block->entry_speed_sqr;
                 if (decel_dist < 0.0) {
                     // Deceleration through entire planner block. End of feed hold is not in this block.
-                    prep.exit_speed = sqrt(pl_block->entry_speed_sqr - 2 * pl_block->acceleration * pl_block->millimeters);
+                    prep.exit_speed = float(sqrt(pl_block->entry_speed_sqr - 2 * pl_block->acceleration * pl_block->millimeters));
                 } else {
                     prep.mm_complete = decel_dist;  // End of feed hold.
                     prep.exit_speed  = 0.0;
@@ -609,12 +609,12 @@ void st_prep_buffer() {
                     prep.exit_speed = exit_speed_sqr = 0.0;  // Enforce stop at end of system motion.
                 } else {
                     exit_speed_sqr  = plan_get_exec_block_exit_speed_sqr();
-                    prep.exit_speed = sqrt(exit_speed_sqr);
+                    prep.exit_speed = float(sqrt(exit_speed_sqr));
                 }
 
                 nominal_speed            = plan_compute_profile_nominal_speed(pl_block);
                 float nominal_speed_sqr  = nominal_speed * nominal_speed;
-                float intersect_distance = 0.5 * (pl_block->millimeters + inv_2_accel * (pl_block->entry_speed_sqr - exit_speed_sqr));
+                float intersect_distance = 0.5f * (pl_block->millimeters + inv_2_accel * (pl_block->entry_speed_sqr - exit_speed_sqr));
                 if (pl_block->entry_speed_sqr > nominal_speed_sqr) {  // Only occurs during override reductions.
                     prep.accelerate_until = pl_block->millimeters - inv_2_accel * (pl_block->entry_speed_sqr - nominal_speed_sqr);
                     if (prep.accelerate_until <= 0.0) {  // Deceleration-only.
@@ -622,7 +622,7 @@ void st_prep_buffer() {
                         // prep.decelerate_after = pl_block->millimeters;
                         // prep.maximum_speed = prep.current_speed;
                         // Compute override block exit speed since it doesn't match the planner exit speed.
-                        prep.exit_speed = sqrt(pl_block->entry_speed_sqr - 2 * pl_block->acceleration * pl_block->millimeters);
+                        prep.exit_speed = float(sqrt(pl_block->entry_speed_sqr - 2 * pl_block->acceleration * pl_block->millimeters));
                         prep.recalculate_flag.decelOverride = 1;  // Flag to load next block as deceleration override.
                         // TODO: Determine correct handling of parameters in deceleration-only.
                         // Can be tricky since entry speed will be current speed, as in feed holds.
@@ -649,7 +649,7 @@ void st_prep_buffer() {
                         } else {  // Triangle type
                             prep.accelerate_until = intersect_distance;
                             prep.decelerate_after = intersect_distance;
-                            prep.maximum_speed    = sqrt(2.0 * pl_block->acceleration * intersect_distance + exit_speed_sqr);
+                            prep.maximum_speed    = float(sqrt(2.0f * pl_block->acceleration * intersect_distance + exit_speed_sqr));
                         }
                     } else {  // Deceleration-only type
                         prep.ramp_type = RAMP_DECEL;
@@ -702,12 +702,12 @@ void st_prep_buffer() {
             switch (prep.ramp_type) {
                 case RAMP_DECEL_OVERRIDE:
                     speed_var = pl_block->acceleration * time_var;
-                    mm_var    = time_var * (prep.current_speed - 0.5 * speed_var);
+                    mm_var    = time_var * (prep.current_speed - 0.5f * speed_var);
                     mm_remaining -= mm_var;
                     if ((mm_remaining < prep.accelerate_until) || (mm_var <= 0)) {
                         // Cruise or cruise-deceleration types only for deceleration override.
                         mm_remaining       = prep.accelerate_until;  // NOTE: 0.0 at EOB
-                        time_var           = 2.0 * (pl_block->millimeters - mm_remaining) / (prep.current_speed + prep.maximum_speed);
+                        time_var           = 2.0f * (pl_block->millimeters - mm_remaining) / (prep.current_speed + prep.maximum_speed);
                         prep.ramp_type     = RAMP_CRUISE;
                         prep.current_speed = prep.maximum_speed;
                     } else {  // Mid-deceleration override ramp.
@@ -717,11 +717,11 @@ void st_prep_buffer() {
                 case RAMP_ACCEL:
                     // NOTE: Acceleration ramp only computes during first do-while loop.
                     speed_var = pl_block->acceleration * time_var;
-                    mm_remaining -= time_var * (prep.current_speed + 0.5 * speed_var);
+                    mm_remaining -= time_var * (prep.current_speed + 0.5f * speed_var);
                     if (mm_remaining < prep.accelerate_until) {  // End of acceleration ramp.
                         // Acceleration-cruise, acceleration-deceleration ramp junction, or end of block.
                         mm_remaining = prep.accelerate_until;  // NOTE: 0.0 at EOB
-                        time_var     = 2.0 * (pl_block->millimeters - mm_remaining) / (prep.current_speed + prep.maximum_speed);
+                        time_var     = 2.0f * (pl_block->millimeters - mm_remaining) / (prep.current_speed + prep.maximum_speed);
                         if (mm_remaining == prep.decelerate_after) {
                             prep.ramp_type = RAMP_DECEL;
                         } else {
@@ -751,15 +751,15 @@ void st_prep_buffer() {
                     speed_var = pl_block->acceleration * time_var;  // Used as delta speed (mm/min)
                     if (prep.current_speed > speed_var) {           // Check if at or below zero speed.
                         // Compute distance from end of segment to end of block.
-                        mm_var = mm_remaining - time_var * (prep.current_speed - 0.5 * speed_var);  // (mm)
-                        if (mm_var > prep.mm_complete) {                                            // Typical case. In deceleration ramp.
+                        mm_var = mm_remaining - time_var * (prep.current_speed - 0.5f * speed_var);  // (mm)
+                        if (mm_var > prep.mm_complete) {                                             // Typical case. In deceleration ramp.
                             mm_remaining = mm_var;
                             prep.current_speed -= speed_var;
                             break;  // Segment complete. Exit switch-case statement. Continue do-while loop.
                         }
                     }
                     // Otherwise, at end of block or end of forced-deceleration.
-                    time_var           = 2.0 * (mm_remaining - prep.mm_complete) / (prep.current_speed + prep.exit_speed);
+                    time_var           = 2.0f * (mm_remaining - prep.mm_complete) / (prep.current_speed + prep.exit_speed);
                     mm_remaining       = prep.mm_complete;
                     prep.current_speed = prep.exit_speed;
             }
@@ -802,7 +802,6 @@ void st_prep_buffer() {
             sys.step_control.updateSpindleSpeed = false;
         }
         prep_segment->spindle_speed = prep.current_spindle_speed;
-        bool enabled;
         prep_segment->spindle_dev_speed = spindle->mapSpeed(prep.current_spindle_speed);  // Reload segment PWM value
 
         /* -----------------------------------------------------------------------------------
@@ -815,10 +814,10 @@ void st_prep_buffer() {
            Fortunately, this scenario is highly unlikely and unrealistic in CNC machines
            supported by Grbl (i.e. exceeding 10 meters axis travel at 200 step/mm).
         */
-        float step_dist_remaining    = prep.step_per_mm * mm_remaining;             // Convert mm_remaining to steps
-        float n_steps_remaining      = ceil(step_dist_remaining);                   // Round-up current steps remaining
-        float last_n_steps_remaining = ceil(prep.steps_remaining);                  // Round-up last steps remaining
-        prep_segment->n_step         = last_n_steps_remaining - n_steps_remaining;  // Compute number of steps to execute.
+        float step_dist_remaining    = prep.step_per_mm * mm_remaining;                       // Convert mm_remaining to steps
+        float n_steps_remaining      = float(ceil(step_dist_remaining));                      // Round-up current steps remaining
+        float last_n_steps_remaining = float(ceil(prep.steps_remaining));                     // Round-up last steps remaining
+        prep_segment->n_step         = uint16_t(last_n_steps_remaining - n_steps_remaining);  // Compute number of steps to execute.
 
         // Bail if we are at the end of a feed hold and don't have a step to execute.
         if (prep_segment->n_step == 0) {
@@ -849,7 +848,7 @@ void st_prep_buffer() {
         // Compute CPU cycles per step for the prepped segment.
         // fStepperTimer is in units of timerTicks/sec, so the dimensional analysis is
         // timerTicks/sec * 60 sec/minute * minutes = timerTicks
-        uint32_t timerTicks = ceil((fStepperTimer * 60) * inv_rate);  // (timerTicks/step)
+        uint32_t timerTicks = uint32_t(ceil((fStepperTimer * 60) * inv_rate));  // (timerTicks/step)
         int      level;
 
         // Compute step timing and multi-axis smoothing level.
