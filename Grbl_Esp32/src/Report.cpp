@@ -246,7 +246,7 @@ void report_status_message(Error status_code, uint8_t client) {
     switch (status_code) {
         case Error::Ok:  // Error::Ok
             if (sdCard->get_state(false) == SDCard::State::BusyPrinting) {
-                sdCard->_ready_next = true;  // flag so system_execute_line() will send the next line
+                sdCard->_readyNext = true;  // flag so system_execute_line() will send the next line
             } else {
                 grbl_send(client, "ok\r\n");
             }
@@ -258,7 +258,7 @@ void report_status_message(Error status_code, uint8_t client) {
                     grbl_sendf(client, "error:%d\r\n", status_code);  // most senders seem to tolerate this error and keep on going
                     grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sdCard->get_current_line_number());
                     // don't close file
-                    sdCard->_ready_next = true;  // flag so system_execute_line() will send the next line
+                    sdCard->_readyNext = true;  // flag so system_execute_line() will send the next line
                 } else {
                     grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sdCard->get_current_line_number());
                     grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sdCard->get_current_line_number());

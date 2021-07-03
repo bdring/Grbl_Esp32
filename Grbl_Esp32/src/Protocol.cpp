@@ -167,18 +167,49 @@ void protocol_main_loop() {
     int c;
     for (;;) {
         auto sdcard = config->_sdCard;
-        if (sdcard->_ready_next) {
+
+        // _readyNext means a line *might* be available from the _SDCard
+        // and implies SDCard::State == Busy (which is the same value as BusyPrinting).
+
+        if (sdcard->_readyNext) {
             char fileLine[255];
-            if (sdcard->readFileLine(fileLine, 255)) {
-                sdcard->_ready_next = false;
+
+            sdcard->_readyNext = false;
+                // _readyNext is invariantly set to false here.
+                // either readFileLine() will succeed, in which case
+                // it is up to report_status_message() to reset it,
+                // or we are done with EOF or an error and we want to
+                // leave it as false.
+
+            SDCard::ReadResult_t rslt = sdcard->readFileLine(fileLine, 255);
+
+            #define DEBUG_PROTOCOL_READFILELINE 0
+
+            if (rslt == SDCard::ReadResult_t::OK) {
+                #if DEBUG_PROTOCOL_READFILELINE
+                    debug_serial("protocol loop readFileLine returned OK with '%s'",fileLine);
+                #endif
                 report_status_message(execute_line(fileLine, sdcard->_client, sdcard->_auth_level), sdcard->_client);
-            } else {
+                    // will call sdcard->closefile()
+
+            } else if (rslt == SDCard::ReadResult_t::EndOfFile) {
+                #if DEBUG_PROTOCOL_READFILELINE
+                    debug_serial("protocol loop readFileLine returned EndOfFile");
+                #endif
                 char temp[50];
                 sdcard->get_current_filename(temp);
                 grbl_notifyf("SD print done", "%s print is successful", temp);
                 sdcard->closeFile();  // close file and clear SD ready/running flags
+
+            } else {
+                // there was a problem and the error was already reported
+                #if DEBUG_PROTOCOL_READFILELINE
+                    debug_serial("protocol loop readFileLine() returned %d for some kind of problem",rslt);
+                #endif
+                sdcard->closeFile();
             }
         }
+
         // Receive one line of incoming serial data, as the data becomes available.
         // Filtering, if necessary, is done later in gc_execute_line(), so the
         // filtering is the same with serial and file input.

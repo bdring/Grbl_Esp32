@@ -21,6 +21,7 @@
 
 #include <cstdint>
 
+
 // Forward declaration:
 namespace fs {
     class FS;
@@ -40,6 +41,14 @@ public:
         BusyParsing   = 4,
     };
 
+    enum class ReadResult_t : uint8_t {    // return value from readFileLine()
+        OK                  = 0,
+        EndOfFile           = 1,
+        FSError             = 2,
+        ImplementationError = 3,
+        UserError           = 4,
+    };
+
     class FileWrap;  // holds a single 'File'; we don't want to include <FS.h> here
 
 private:
@@ -53,15 +62,13 @@ private:
     Pin   _cardDetect;
 
 public:
-    bool                       _readyNext;
+    bool                       _readyNext = false;
     uint8_t                    _client;
     WebUI::AuthenticationLevel _auth_level;
 
     SDCard();
     SDCard(const SDCard&) = delete;
     SDCard& operator=(const SDCard&) = delete;
-
-    bool _ready_next = false;  // Grbl has processed a line and is waiting for another
 
     //bool mount();
     SDCard::State get_state(bool refresh);
@@ -70,7 +77,7 @@ public:
     void     listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client);
     bool     openFile(fs::FS& fs, const char* path);
     bool     closeFile();
-    bool     readFileLine(char* line, int len);
+    ReadResult_t  readFileLine(char* line, int len);
     float    report_perc_complete();
     uint32_t get_current_line_number();
     void     get_current_filename(char* name);

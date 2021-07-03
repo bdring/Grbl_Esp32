@@ -647,6 +647,10 @@ namespace WebUI {
                 return Error::FsFailedBusy;
             }
         }
+
+        // this is only call to openFile()
+        // all runs and shows go through here.
+
         if (!config->_sdCard->openFile(SD, path.c_str())) {
             report_status_message(Error::FsFailedRead, (espresponse) ? espresponse->client() : CLIENT_ALL);
             webPrintln("");
@@ -663,14 +667,25 @@ namespace WebUI {
             return err;
         }
         config->_sdCard->_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
+
         char fileLine[255];
-        while (config->_sdCard->readFileLine(fileLine, 255)) {
+        SDCard::ReadResult_t rslt = config->_sdCard->readFileLine(fileLine, 255);
+        while (rslt == SDCard::ReadResult_t::OK)
+        {
             webPrintln(fileLine);
+            rslt = config->_sdCard->readFileLine(fileLine, 255);
+
         }
         webPrintln("");
         config->_sdCard->closeFile();
-        return Error::Ok;
+
+        // file system errors will have alrady been been reported
+        // so we just return OK even though it might not be ...
+
+        return rslt == SDCard::ReadResult_t::EndOfFile ?
+            Error::Ok : Error::FsFailedRead;
     }
+
 
     static Error runSDFile(char* parameter, AuthenticationLevel auth_level) {  // ESP220
         Error err;
@@ -688,18 +703,39 @@ namespace WebUI {
         auto sdCard = config->_sdCard;
 
         char fileLine[255];
-        if (!sdCard->readFileLine(fileLine, 255)) {
-            //No need notification here it is just a macro
+        SDCard::ReadResult_t rslt = sdCard->readFileLine(fileLine, 255);
+
+        if (rslt == SDCard::ReadResult_t::EndOfFile){     // available() was zero to begin with
             sdCard->closeFile();
             webPrintln("");
             return Error::Ok;
         }
+
+        // otherwise if it's not ok, its an error
+
+        if (rslt != SDCard::ReadResult_t::OK)
+        {
+            // the error has already been reported ?!?
+            // but we return an error just to be sure
+
+            sdCard->closeFile();
+            webPrintln("");
+            return Error::FsFailedRead;
+        }
+
+        // fileLine is now executed immediately, mas o menus, below
+        // _readyNext is false but will get set to true if execute_line returns OK to report_status_message
+        // in which case the protocol loop will get ready_next=true and away it goes
+
         sdCard->_client     = (espresponse) ? espresponse->client() : CLIENT_ALL;
         sdCard->_auth_level = auth_level;
-        // execute the first line now; Protocol.cpp handles later ones when sdCard._ready_next
+        // execute the first line now; Protocol.cpp handles later ones when sdCard._readyNext
         report_status_message(execute_line(fileLine, sdCard->_client, sdCard->_auth_level), sdCard->_client);
         report_realtime_status(sdCard->_client);
         webPrintln("");
+
+        // it's weird to me that execute_line() could have failed and we're returning OK invariantly
+
         return Error::Ok;
     }
 

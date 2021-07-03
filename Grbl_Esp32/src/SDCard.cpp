@@ -84,6 +84,9 @@ bool SDCard::openFile(fs::FS& fs, const char* path) {
 }
 
 bool SDCard::closeFile() {
+
+    // debug_serial("closeFile() file=%d",(bool)_pImpl->_file);
+
     if (!_pImpl->_file) {
         return false;
     }
@@ -95,6 +98,7 @@ bool SDCard::closeFile() {
     return true;
 }
 
+
 /*
   read a line from the SD card
   strip whitespace
@@ -102,26 +106,104 @@ bool SDCard::closeFile() {
   make uppercase
   return true if a line is
 */
-bool SDCard::readFileLine(char* line, int maxlen) {
+SDCard::ReadResult_t SDCard::readFileLine(char* line, int maxlen) {
+
+    // _readyNext is, by convention and program logic, FALSE at this point
+
+    #define DEBUG_READFILELINE 0
+
+    #if DEBUG_READFILELINE
+        debug_serial("readFileLine started: file(%s) size(%d) pos(%d) avail(%d)",
+            _pImpl->_file?"OPEN":"NULL",
+            _pImpl->_file?_pImpl->_file.size():-237,
+            _pImpl->_file?_pImpl->_file.position():-237,
+            _pImpl->_file?_pImpl->_file.available():-237);
+    #endif
+
     if (!_pImpl->_file) {
+        #if DEBUG_READFILELINE
+            debug_serial("readFileLine: returning false because somebody incorrectly called it with a closed file");
+                // fwiw, once a file is opened the operator bool() will NEVER return false until the file is closed,
+                // even if you yank the SD card out and burn it. So, in reality, this means someone just neglected
+                // to check the result of File.Open() and the program logic is flawed.  By rights this case could
+                // be removed from the well tested release version of Grbl_Esp32.
+        #endif
         report_status_message(Error::FsFailedRead, _client);
-        return false;
+        return ReadResult_t::ImplementationError;
+    }
+
+    if (_pImpl->_file.position() < 0 || _pImpl->_file.available() < 0)  {
+        // this may happen, for example, if you yank the SD card out in the middle of a run
+        // though it could also happen in the read() below.
+        #if DEBUG_READFILELINE
+            debug_serial("readFileLine: short ending because position() < 0");
+        #endif
+        report_status_message(Error::FsFailedRead, _client);
+        return ReadResult_t::FSError;
+    }
+
+    if (_pImpl->_file.available() == 0) {
+        // this should ONLY happen when position==size
+        // indicating all file bytes have been properly rea.
+        #if DEBUG_READFILELINE
+            debug_serial("readFileLine: short ending because available() == 0");
+        #endif
+        return ReadResult_t::EndOfFile;
     }
 
     _current_line_number += 1;
     int len = 0;
-    while (_pImpl->_file.available()) {
-        if (len >= maxlen) {
-            return false;
+
+    while (_pImpl->_file.available() > 0) {
+
+        if (len >= maxlen)   {
+            #if DEBUG_READFILELINE
+                debug_serial("readFileLine returning false because len>=maxlen");
+            #endif
+            // _readyNext = false;  not needed by convention and logic
+            report_status_message(Error::Overflow, _client);
+            return ReadResult_t::UserError;
         }
-        char c = _pImpl->_file.read();
+
+        int c = _pImpl->_file.read();
+
+        #if DEBUG_READFILELINE > 1
+            debug_serial("readFileLine: got char(%d) len(%d) size(%d) pos(%d) avail(%d)",
+                c,
+                len,
+                _pImpl->_file.size(),
+                _pImpl->_file.position(),
+                _pImpl->_file.available());
+        #endif
+
+        if (c < 0)  {
+            // read() would have only been called if available() returned > 0,
+            // ergo, it is a file system error if read() returned -1 at this
+            // point and NOT an EOF condition.
+            #if DEBUG_READFILELINE
+                debug_serial("readFileLine returning FALSE due to read() returning -1 a file system error");
+            #endif
+            report_status_message(Error::FsFailedRead, _client);
+            return ReadResult_t::FSError;
+        }
+
         if (c == '\n') {
             break;
         }
-        line[len++] = c;
+        if (c != '\r')
+            line[len++] = c;
     }
+
+    // we could do the same checks for position()<0 and
+    // available<0, HOWEVER, EOF or any problems
+    // WILL be caught the NEXT time around and the calling
+    // logic is built to around that ...
+
     line[len] = '\0';
-    return len || _pImpl->_file.available();
+    #if DEBUG_READFILELINE
+        debug_serial("readFileLine() returning OK with len(%d) '%s'  avail(%d)",len,line,_pImpl->_file.available());
+    #endif
+    return ReadResult_t::OK;
 }
 
 // return a percentage complete 50.5 = 50.5%
