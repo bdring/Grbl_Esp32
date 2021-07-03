@@ -39,11 +39,11 @@ namespace Machine {
         Gang*   _gangs[MAX_NUMBER_GANGED];
         Homing* _homing = nullptr;
 
-        int  _stepsPerMm   = 320;
-        int  _maxRate      = 1000;
-        int  _acceleration = 25;
-        int  _maxTravel    = 200;
-        bool _softLimits   = false;
+        float _stepsPerMm   = 320.0f;
+        float _maxRate      = 1000.0f;
+        float _acceleration = 25.0f;
+        float _maxTravel    = 200.0f;
+        bool  _softLimits   = false;
 
         // Configuration system helpers:
         void group(Configuration::HandlerBase& handler) override;
