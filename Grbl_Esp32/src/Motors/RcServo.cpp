@@ -57,7 +57,7 @@ namespace Motors {
     }
 
     void RcServo::config_message() {
-        info_serial("%s RC Servo Pin:%d Pulse Len(%.0f,%.0f) %s",
+        info_serial("%s RC Servo Pin:%s Pulse Len(%.0f,%.0f) %s",
                     reportAxisNameMsg(axis_index(), dual_axis_index()),
                     _pwm_pin.name().c_str(),
                     _pwm_pulse_min,
