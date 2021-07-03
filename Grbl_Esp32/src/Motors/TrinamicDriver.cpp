@@ -25,43 +25,6 @@
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 #include <atomic>
 
-// This is global so it can be accessed from the override
-namespace Motors {
-    namespace Details {
-        // How this hack works... In short, we just derive from the TMCStepper classes, and add the pin as a field. This is
-        // fine of course, as long as we know what CS pin we have to switch. Unfortunately, this is a bit tougher, because
-        // the TMC5160Stepper class derives from TMC2130Stepper. Normally, this is solved through multiple inheritance, where
-        // we put the pin in the second class. Unfortunately, that requires dynamic_cast down the road, which is not available.
-        // So instead, we use the old _pinCS in the TMC2130Stepper class to figure out which class we actually have, and cast
-        // away with static_cast.
-
-        class MyTMC2130Stepper : public TMC2130Stepper {
-        public:
-            MyTMC2130Stepper(Pin& cspin, float rsense, int spiIndex) : TMC2130Stepper(2130, rsense, spiIndex), _cspin(cspin) {}
-            Pin& _cspin;
-        };
-
-        class MyTMC5160Stepper : public TMC5160Stepper {
-        public:
-            MyTMC5160Stepper(Pin& cspin, float rsense, int spiIndex) : TMC5160Stepper(5160, rsense, spiIndex), _cspin(cspin) {}
-            Pin& _cspin;
-        };
-    }
-}
-
-// Override default functions to use our pin framework
-void TMC2130Stepper::switchCSpin(bool state) {
-    // We use the _pinCS to figure out which derived class we have
-    switch (this->_pinCS) {
-        case 2130:
-            static_cast<Motors::Details::MyTMC2130Stepper*>(this)->_cspin.synchronousWrite(state);
-            break;
-        case 5160:
-            static_cast<Motors::Details::MyTMC5160Stepper*>(this)->_cspin.synchronousWrite(state);
-            break;
-    }
-}
-
 namespace Motors {
     TrinamicDriver::TrinamicDriver(uint16_t driver_part_number, int8_t spi_index) :
         TrinamicBase(driver_part_number), _spi_index(spi_index) {}
@@ -69,10 +32,13 @@ namespace Motors {
     void TrinamicDriver::init() {
         _has_errors = false;
 
+        _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
+        _cs_mapping = PinMapper(_cs_pin);
+
         if (_driver_part_number == 2130) {
-            tmcstepper = new Details::MyTMC2130Stepper(_cs_pin, _r_sense, _spi_index);
+            tmcstepper = new TMC2130Stepper(_cs_mapping.pinId(), _r_sense, _spi_index);
         } else if (_driver_part_number == 5160) {
-            tmcstepper = new Details::MyTMC5160Stepper(_cs_pin, _r_sense, _spi_index);
+            tmcstepper = new TMC5160Stepper(_cs_mapping.pinId(), _r_sense, _spi_index);
         } else {
             info_serial("%s Unsupported Trinamic part number TMC%d", reportAxisNameMsg(axis_index(), dual_axis_index()), _driver_part_number);
             _has_errors = true;  // This motor cannot be used
@@ -80,8 +46,6 @@ namespace Motors {
         }
 
         _has_errors = false;
-
-        _cs_pin.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);
 
         // use slower speed if I2S
         if (_cs_pin.capabilities().has(Pin::Capabilities::I2S)) {

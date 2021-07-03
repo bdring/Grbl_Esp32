@@ -945,7 +945,7 @@ Error gc_execute_line(char* line, uint8_t client) {
             pValue = trunc(gc_block.values.p);  // Convert p value to integer
             if (pValue > 0) {
                 // P1 means G54, P2 means G55, etc.
-                coord_select = static_cast<CoordIndex>(pValue - 1 + CoordIndex::G54);
+                coord_select = static_cast<CoordIndex>(pValue - 1 + int(CoordIndex::G54));
             } else {
                 // P0 means use currently-selected system
                 coord_select = gc_block.modal.coord_select;

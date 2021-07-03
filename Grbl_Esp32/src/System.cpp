@@ -106,7 +106,7 @@ float system_convert_axis_steps_to_mpos(int32_t* steps, uint8_t idx) {
 
 void system_convert_array_steps_to_mpos(float* position, int32_t* steps) {
     auto  n_axis = config->_axes->_numberAxis;
-    float motors[n_axis];
+    float motors[MAX_N_AXIS];
     for (int idx = 0; idx < n_axis; idx++) {
         motors[idx] = (float)steps[idx] / config->_axes->_axis[idx]->_stepsPerMm;
     }

@@ -42,7 +42,8 @@
 #include <freertos/queue.h>
 #include <Arduino.h>  // IRAM_ATTR
 #include <string.h>   // memset, memcpy
-#include <atomic>
+#include <algorithm>  // min, max
+#include <atomic>     // fence
 
 AxisMask limitAxes  = 0;  // Axes that have limit switches
 AxisMask homingAxes = 0;  // Axes that have homing configured

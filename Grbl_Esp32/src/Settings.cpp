@@ -8,6 +8,7 @@
 
 #include <map>
 #include <cstring>
+#include <vector>
 #include <nvs.h>
 
 #ifdef ENABLE_WIFI
@@ -211,7 +212,11 @@ void StringSetting::load() {
         _currentValue = _defaultValue;
         return;
     }
-    char buf[len];
+
+    // TODO: Can't we allocate the string immediately?
+    std::vector<char> buffer;
+    buffer.resize(len);
+    char* buf = buffer.data();
     err = nvs_get_str(_handle, _keyName, buf, &len);
     if (err) {
         _storedValue  = _defaultValue;

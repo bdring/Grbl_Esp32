@@ -51,8 +51,7 @@ TickType_t xTaskGetTickCount(void);
 
 // Keep this in sync with the portMUX_TYPE struct definition please.
 #ifndef CONFIG_FREERTOS_PORTMUX_DEBUG
-#    define portMUX_INITIALIZER_UNLOCKED                                                                                                   \
-        { .owner = portMUX_FREE_VAL, .count = 0, }
+#    define portMUX_INITIALIZER_UNLOCKED {}
 #else
 #    define portMUX_INITIALIZER_UNLOCKED                                                                                                   \
         { .owner = portMUX_FREE_VAL, .count = 0, .lastLockedFn = "(never locked)", .lastLockedLine = -1 }
