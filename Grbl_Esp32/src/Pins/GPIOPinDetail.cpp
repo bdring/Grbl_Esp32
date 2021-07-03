@@ -128,7 +128,7 @@ namespace Pins {
         _claimed[index] = true;
 
         // readWriteMask is xor'ed with the value to invert it if active low
-        _readWriteMask = _attributes.has(PinAttributes::ActiveLow);
+        _readWriteMask = int(_attributes.has(PinAttributes::ActiveLow));
     }
 
     PinAttributes GPIOPinDetail::getAttr() const { return _attributes; }
@@ -181,7 +181,7 @@ namespace Pins {
 
         // If the pin is ActiveLow, we should take that into account here:
         if (value.has(PinAttributes::Output)) {
-            __digitalWrite(_index, value.has(PinAttributes::InitialOn) ^ _readWriteMask);
+            __digitalWrite(_index, int(value.has(PinAttributes::InitialOn)) ^ _readWriteMask);
         }
 
         __pinMode(_index, pinModeValue);

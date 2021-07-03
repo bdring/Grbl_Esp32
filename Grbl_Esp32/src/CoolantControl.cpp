@@ -45,7 +45,6 @@ void CoolantControl::init() {
 // Returns current coolant output state. Overrides may alter it from programmed state.
 CoolantState CoolantControl::get_state() {
     CoolantState cl_state = {};
-    bool         pinState;
 
     if (_flood.defined()) {
         auto pinState = _flood.read();

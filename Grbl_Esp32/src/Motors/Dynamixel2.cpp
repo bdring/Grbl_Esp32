@@ -121,8 +121,8 @@ namespace Motors {
     }
 
     void Dynamixel2::read_settings() {
-        _dxl_count_min = _countMin;
-        _dxl_count_max = _countMax;
+        _dxl_count_min = float(_countMin);
+        _dxl_count_max = float(_countMax);
 
         if (_invert_direction) {  // normal direction
             swap(_dxl_count_min, _dxl_count_min);
@@ -169,7 +169,7 @@ namespace Motors {
         }
 
         auto axis                 = config->_axes->_axis[_axis_index];
-        sys_position[_axis_index] = axis->_homing->_mpos * axis->_stepsPerMm;  // convert to steps
+        sys_position[_axis_index] = int32_t(axis->_homing->_mpos * axis->_stepsPerMm);  // convert to steps
 
         set_disable(false);
         set_location();  // force the PWM to update now
@@ -188,7 +188,7 @@ namespace Motors {
     }
 
     uint32_t Dynamixel2::dxl_read_position() {
-        uint8_t data_len = 4;
+        uint16_t data_len = 4;
 
         dxl_read(DXL_PRESENT_POSITION, data_len);
 
@@ -309,7 +309,6 @@ namespace Motors {
     */
     void Dynamixel2::dxl_bulk_goal_position() {
         char  tx_message[100];  // outgoing to dynamixel
-        float position_min, position_max;
         float dxl_count_min, dxl_count_max;
 
         uint16_t msg_index = DXL_MSG_INSTR;  // index of the byte in the message we are currently filling
@@ -331,8 +330,8 @@ namespace Motors {
                 if (current_id != 0) {
                     count++;  // keep track of the count for the message length
 
-                    dxl_count_min = _countMin;
-                    dxl_count_max = _countMax;
+                    dxl_count_min = float(_countMin);
+                    dxl_count_max = float(_countMax);
 
                     if (_invert_direction) {  // normal direction
                         swap(dxl_count_min, dxl_count_max);
@@ -366,9 +365,9 @@ namespace Motors {
         //uint16_t msg_len;
         uint16_t crc = 0;
         // header
-        msg[DXL_MSG_HDR1] = 0xFF;
-        msg[DXL_MSG_HDR2] = 0xFF;
-        msg[DXL_MSG_HDR3] = 0xFD;
+        msg[DXL_MSG_HDR1] = char(0xFF);
+        msg[DXL_MSG_HDR2] = char(0xFF);
+        msg[DXL_MSG_HDR3] = char(0xFD);
         //
         // reserved
         msg[DXL_MSG_RSRV] = 0x00;

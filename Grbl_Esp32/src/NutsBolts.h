@@ -30,7 +30,7 @@ enum class DwellMode : uint8_t {
     SysSuspend = 1,  //G92.1 (Do not alter value)
 };
 
-const double SOME_LARGE_VALUE = 1.0E+38;
+const float SOME_LARGE_VALUE = 1.0E+38f;
 
 // Axis array index values. Must start with 0 and be continuous.
 // Note: You set the number of axes used by changing MAX_N_AXIS.
@@ -60,7 +60,7 @@ static inline int toMotor2(int axis) {
 }
 
 // Conversions
-const double MM_PER_INCH = (25.40);
+const float MM_PER_INCH = (25.40f);
 const double INCH_PER_MM = (0.0393701);
 
 // Useful macros

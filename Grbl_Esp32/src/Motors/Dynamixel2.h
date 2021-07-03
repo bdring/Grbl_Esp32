@@ -80,11 +80,11 @@ namespace Motors {
         static const int DXL_BROADCAST_ID = 0xFE;
 
         // protocol 2 instruction numbers
-        static const int DXL_INSTR_PING = 0x01;
-        static const int PING_RSP_LEN   = 14;
-        static const int DXL_READ       = 0x02;
-        static const int DXL_WRITE      = 0x03;
-        static const int DXL_SYNC_WRITE = 0x83;
+        static const int  DXL_INSTR_PING = 0x01;
+        static const int  PING_RSP_LEN   = 14;
+        static const char DXL_READ       = char(0x02);
+        static const char DXL_WRITE      = char(0x03);
+        static const char DXL_SYNC_WRITE = char(0x83);
 
         // protocol 2 register locations
         static const int DXL_OPERATING_MODE   = 11;

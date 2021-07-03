@@ -91,11 +91,11 @@ uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr) {
     // expected range of E0 to E-4.
     if (fval != 0) {
         while (exp <= -2) {
-            fval *= 0.01;
+            fval *= 0.01f;
             exp += 2;
         }
         if (exp < 0) {
-            fval *= 0.1;
+            fval *= 0.1f;
         } else if (exp > 0) {
             do {
                 fval *= 10.0;
@@ -143,7 +143,7 @@ bool delay_msec(int32_t milliseconds, DwellMode mode) {
 
 // Simple hypotenuse computation function.
 float hypot_f(float x, float y) {
-    return sqrt(x * x + y * y);
+    return float(sqrt(x * x + y * y));
 }
 
 float convert_delta_vector_to_unit_vector(float* vector) {
@@ -155,8 +155,8 @@ float convert_delta_vector_to_unit_vector(float* vector) {
             magnitude += vector[idx] * vector[idx];
         }
     }
-    magnitude           = sqrt(magnitude);
-    float inv_magnitude = 1.0 / magnitude;
+    magnitude           = float(sqrt(magnitude));
+    float inv_magnitude = 1.0f / magnitude;
     for (idx = 0; idx < n_axis; idx++) {
         vector[idx] *= inv_magnitude;
     }

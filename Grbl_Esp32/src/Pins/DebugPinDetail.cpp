@@ -41,8 +41,8 @@ namespace Pins {
 
     // I/O:
     void DebugPinDetail::write(int high) {
-        if (high != _isHigh) {
-            _isHigh = high;
+        if (high != int(_isHigh)) {
+            _isHigh = bool(high);
             if (shouldEvent()) {
                 WriteSerial("Write %s < %d", toString().c_str(), high);
             }
@@ -116,7 +116,7 @@ namespace Pins {
         // This method basically ensures we don't flood users:
         auto time = millis();
 
-        if (_lastEvent + 1000 < time) {
+        if (uint32_t(_lastEvent + 1000) < time) {
             _lastEvent  = time;
             _eventCount = 1;
             return true;

@@ -211,8 +211,8 @@ Error gc_execute_line(char* line, uint8_t client) {
         // a good enough compromise and catch most all non-integer errors. To make it compliant,
         // we would simply need to change the mantissa to int16, but this add compiled flash space.
         // Maybe update this later.
-        int_value = trunc(value);
-        mantissa  = round(100 * (value - int_value));  // Compute mantissa for Gxx.x commands.
+        int_value = int8_t(trunc(value));
+        mantissa  = int16_t(round(100 * (value - int_value)));  // Compute mantissa for Gxx.x commands.
         // NOTE: Rounding must be used to catch small floating point errors.
         // Check if the g-code word is supported or errors due to modal group violations or has
         // been repeated in the g-code block. If ok, update the command or record its value.
@@ -642,7 +642,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                         break;
                     case 'N':
                         axis_word_bit     = GCodeWord::N;
-                        gc_block.values.n = trunc(value);
+                        gc_block.values.n = int32_t(trunc(value));
                         break;
                     case 'P':
                         axis_word_bit     = GCodeWord::P;
@@ -942,7 +942,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                 }
             }
             // Select the coordinate system based on the P word
-            pValue = trunc(gc_block.values.p);  // Convert p value to integer
+            pValue = int8_t(trunc(gc_block.values.p));  // Convert p value to integer
             if (pValue > 0) {
                 // P1 means G54, P2 means G55, etc.
                 coord_select = static_cast<CoordIndex>(pValue - 1 + int(CoordIndex::G54));
@@ -1174,7 +1174,7 @@ Error gc_execute_line(char* line, uint8_t client) {
                     */
                         // First, use h_x2_div_d to compute 4*h^2 to check if it is negative or r is smaller
                         // than d. If so, the sqrt of a negative number is complex and error out.
-                        float h_x2_div_d = 4.0 * gc_block.values.r * gc_block.values.r - x * x - y * y;
+                        float h_x2_div_d = 4.0f * gc_block.values.r * gc_block.values.r - x * x - y * y;
                         if (h_x2_div_d < 0) {
                             FAIL(Error::GcodeArcRadiusError);  // [Arc radius error]
                         }
@@ -1208,8 +1208,8 @@ Error gc_execute_line(char* line, uint8_t client) {
                             gc_block.values.r = -gc_block.values.r;  // Finished with r. Set to positive for mc_arc
                         }
                         // Complete the operation by calculating the actual center of the arc
-                        gc_block.values.ijk[axis_0] = 0.5 * (x - (y * h_x2_div_d));
-                        gc_block.values.ijk[axis_1] = 0.5 * (y + (x * h_x2_div_d));
+                        gc_block.values.ijk[axis_0] = 0.5f * (x - (y * h_x2_div_d));
+                        gc_block.values.ijk[axis_1] = 0.5f * (y + (x * h_x2_div_d));
                     } else {  // Arc Center Format Offset Mode
                         if (!(ijk_words & (bit(axis_0) | bit(axis_1)))) {
                             FAIL(Error::GcodeNoOffsetsInPlane);  // [No offsets in plane]
@@ -1436,7 +1436,7 @@ Error gc_execute_line(char* line, uint8_t client) {
     }
     if ((gc_block.modal.io_control == IoControl::SetAnalogSync) || (gc_block.modal.io_control == IoControl::SetAnalogImmediate)) {
         if (gc_block.values.e < MaxUserDigitalPin) {
-            gc_block.values.q = constrain(gc_block.values.q, 0.0, 100.0);  // force into valid range
+            gc_block.values.q = constrain(gc_block.values.q, 0.0f, 100.0f);  // force into valid range
             if (gc_block.modal.io_control == IoControl::SetAnalogSync) {
                 protocol_buffer_synchronize();
             }

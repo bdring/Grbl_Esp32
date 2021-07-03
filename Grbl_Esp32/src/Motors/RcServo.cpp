@@ -86,7 +86,7 @@ namespace Motors {
     // Homing justs sets the new system position and the servo will move there
     bool RcServo::set_homing_mode(bool isHoming) {
         auto axis                 = config->_axes->_axis[_axis_index];
-        sys_position[_axis_index] = axis->_homing->_mpos * axis->_stepsPerMm;  // convert to steps
+        sys_position[_axis_index] = int32_t(axis->_homing->_mpos * axis->_stepsPerMm);  // convert to steps
 
         set_location();   // force the PWM to update now
         vTaskDelay(750);  // give time to move
@@ -120,8 +120,8 @@ namespace Motors {
     void RcServo::read_settings() {
         if (_invert_direction) {
             // swap the pwm values
-            _pwm_pulse_min = SERVO_MAX_PULSE * (1.0 + (1.0 - _cal_min));
-            _pwm_pulse_max = SERVO_MIN_PULSE * (1.0 + (1.0 - _cal_max));
+            _pwm_pulse_min = SERVO_MAX_PULSE * (1.0f + (1.0f - _cal_min));
+            _pwm_pulse_max = SERVO_MIN_PULSE * (1.0f + (1.0f - _cal_max));
 
         } else {
             _pwm_pulse_min = SERVO_MIN_PULSE * _cal_min;

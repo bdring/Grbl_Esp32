@@ -182,7 +182,7 @@ namespace Machine {
         // log_debug("Configuration file has " << int(filesize) << " bytes");
         buffer = new char[filesize + 1];
 
-        long pos = 0;
+        size_t pos = 0;
         while (pos < filesize) {
             auto read = file.read((uint8_t*)(buffer + pos), filesize - pos);
             if (read == 0) {

@@ -155,8 +155,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     // subsequent fine-positioning steps
     bool seek = true;
 
-    uint8_t  n_active_axis;
-    AxisMask limit_state, axislock;
+    AxisMask axislock;
     float    homing_rate = 0.0;
     do {
         float* target = system_get_mpos();
@@ -222,7 +221,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
                 target[axis] *= limitingRate * scaler;
             }
         }
-        homing_rate = sqrt(homing_rate);  // Magnitude of homing rate vector
+        homing_rate = float(sqrt(homing_rate));  // Magnitude of homing rate vector
 
         sys.homing_axis_lock = axislock;
 
@@ -285,7 +284,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     // set up pull-off maneuver from axes limit switches that have been homed. This provides
     // some initial clearance off the switches and should also help prevent them from falsely
     // triggering when hard limits are enabled or when more than one axes shares a limit pin.
-    int32_t set_axis_position;
+    
     // Set machine positions for homed limit switches. Don't update non-homed axes.
     for (int axis = 0; axis < n_axis; axis++) {
         Machine::Axis* axisConf = config->_axes->_axis[axis];
@@ -295,9 +294,9 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
             auto pulloff = homing->_pulloff;
             auto steps   = axisConf->_stepsPerMm;
             if (homing->_positiveDirection) {
-                sys_position[axis] = (mpos + pulloff) * steps;
+                sys_position[axis] = int32_t((mpos + pulloff) * steps);
             } else {
-                sys_position[axis] = (mpos - pulloff) * steps;
+                sys_position[axis] = int32_t((mpos - pulloff) * steps);
             }
         }
     }
@@ -591,7 +590,6 @@ bool WEAK_LINK limitsCheckTravel(float* target) {
     auto axes   = config->_axes;
     auto n_axis = axes->_numberAxis;
     for (int axis = 0; axis < n_axis; axis++) {
-        float max_mpos, min_mpos;
         auto  axisSetting = axes->_axis[axis];
         if ((target[axis] < limitsMinPosition(axis) || target[axis] > limitsMaxPosition(axis)) && axisSetting->_maxTravel > 0) {
             return true;
