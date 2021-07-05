@@ -85,6 +85,7 @@ enum class Error : uint8_t {
     NvsGetStatsFailed           = 101,
     AuthenticationFailed        = 110,
     Eol                         = 111,
+    Eof                         = 112,  // Not necessarily an error
     AnotherInterfaceBusy        = 120,
     JogCancelled                = 130,
     BadPinSpecification         = 150,

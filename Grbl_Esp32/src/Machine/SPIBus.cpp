@@ -17,6 +17,7 @@
 */
 
 #include "SPIBus.h"
+#include "../Report.h"
 
 #include <SPI.h>
 
@@ -32,11 +33,19 @@ namespace Machine {
 
     void SPIBus::init() {
         if (_cs.defined()) {  // validation ensures the rest is also defined.
+            info_serial(
+                "SPI SCK:%s MOSI:%s MISO:%s CS:%s", _sck.name().c_str(), _mosi.name().c_str(), _miso.name().c_str(), _cs.name().c_str());
+
+            _cs.setAttr(Pin::Attr::Output);
+
             auto csPin   = _cs.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
             auto mosiPin = _mosi.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
             auto sckPin  = _sck.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
             auto misoPin = _miso.getNative(Pin::Capabilities::Input | Pin::Capabilities::Native);
 
+            // Start the SPI bus with the pins defined here.  Once it has been started,
+            // those pins "stick" and subsequent attempts to restart it with defaults
+            // for the miso, mosi, and sck pins are ignored
             SPI.begin(sckPin, misoPin, mosiPin, csPin);
         }
     }
@@ -48,13 +57,19 @@ namespace Machine {
         handler.item("sck", _sck);
     }
 
+    // XXX it would be nice to have some way to turn off SPI entirely
     void SPIBus::afterParse() {
-        if (_cs.undefined() && _miso.undefined() && _mosi.undefined() && _sck.undefined()) {
-            // Default SPI miso, mosi, sck, cs pins to the "standard" gpios 19, 23, 18, 5
+        if (_cs.undefined()) {
+            _cs = Pin::create("gpio.5");
+        }
+        if (_miso.undefined()) {
             _miso = Pin::create("gpio.19");
+        }
+        if (_mosi.undefined()) {
             _mosi = Pin::create("gpio.23");
-            _sck  = Pin::create("gpio.18");
-            _cs   = Pin::create("gpio.5");
+        }
+        if (_sck.undefined()) {
+            _sck = Pin::create("gpio.18");
         }
     }
 }

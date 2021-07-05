@@ -663,9 +663,13 @@ namespace WebUI {
             return err;
         }
         config->_sdCard->_client = (espresponse) ? espresponse->client() : CLIENT_ALL;
-        char fileLine[255];
-        while (config->_sdCard->readFileLine(fileLine, 255)) {
+        char  fileLine[255];
+        Error res;
+        while ((res = config->_sdCard->readFileLine(fileLine, 255)) == Error::Ok) {
             webPrintln(fileLine);
+        }
+        if (res != Error::Eof) {
+            webPrintln(errorString(res));
         }
         webPrintln("");
         config->_sdCard->closeFile();
@@ -687,19 +691,19 @@ namespace WebUI {
         }
         auto sdCard = config->_sdCard;
 
-        char fileLine[255];
-        if (!sdCard->readFileLine(fileLine, 255)) {
-            //No need notification here it is just a macro
-            sdCard->closeFile();
+        char  fileLine[255];
+        Error res = sdCard->readFileLine(fileLine, 255);
+        if (res != Error::Ok) {
+            report_status_message(res, sdCard->_client);
+            // report_status_message will close the file
             webPrintln("");
             return Error::Ok;
         }
         sdCard->_client     = (espresponse) ? espresponse->client() : CLIENT_ALL;
         sdCard->_auth_level = auth_level;
-        // execute the first line now; Protocol.cpp handles later ones when sdCard._ready_next
+        // execute the first line now; Protocol.cpp handles later ones when sdCard._readyNext
         report_status_message(execute_line(fileLine, sdCard->_client, sdCard->_auth_level), sdCard->_client);
         report_realtime_status(sdCard->_client);
-        webPrintln("");
         return Error::Ok;
     }
 

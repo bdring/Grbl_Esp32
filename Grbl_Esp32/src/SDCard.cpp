@@ -38,16 +38,6 @@ SDCard::SDCard() :
     _pImpl(new FileWrap()), _current_line_number(0), _state(State::Idle), _readyNext(false), _client(CLIENT_SERIAL),
     _auth_level(WebUI::AuthenticationLevel::LEVEL_GUEST) {}
 
-// attempt to mount the SD card
-/*bool SDCard::mount()
-{
-  if(!SD.begin()) {
-    report_status_message(Error::FsFailedMount, _client);
-    return false;
-  }
-  return true;
-}*/
-
 void SDCard::listDir(fs::FS& fs, const char* dirname, uint8_t levels, uint8_t client) {
     //char temp_filename[128]; // to help filter by extension	TODO: 128 needs a definition based on something
     File root = fs.open(dirname);
@@ -85,44 +75,44 @@ bool SDCard::openFile(fs::FS& fs, const char* path) {
 }
 
 bool SDCard::closeFile() {
-    if (!_pImpl->_file) {
-        return false;
-    }
     set_state(State::Idle);
     _readyNext           = false;
     _current_line_number = 0;
+    if (!_pImpl->_file) {
+        return false;
+    }
     _pImpl->_file.close();
     SD.end();
     return true;
 }
 
 /*
-  read a line from the SD card
-  strip whitespace
-  strip comments per http://linuxcnc.org/docs/ja/html/gcode/overview.html#gcode:comments
-  make uppercase
-  return true if a line is
+  Read a line from the SD card
+  Returns true if a line was read, even if it was empty.
+  Returns false on EOF or error.  Errors display a message.
 */
-bool SDCard::readFileLine(char* line, int maxlen) {
+Error SDCard::readFileLine(char* line, int maxlen) {
     if (!_pImpl->_file) {
-        report_status_message(Error::FsFailedRead, _client);
-        return false;
+        return Error::FsFailedRead;
     }
 
     _current_line_number += 1;
     int len = 0;
     while (_pImpl->_file.available()) {
         if (len >= maxlen) {
-            return false;
+            return Error::LineLengthExceeded;
         }
-        char c = _pImpl->_file.read();
+        int c = _pImpl->_file.read();
+        if (c < 0) {
+            return Error::FsFailedRead;
+        }
         if (c == '\n') {
             break;
         }
         line[len++] = c;
     }
     line[len] = '\0';
-    return len || _pImpl->_file.available();
+    return len || _pImpl->_file.available() ? Error::Ok : Error::Eof;
 }
 
 // return a percentage complete 50.5 = 50.5%
@@ -133,7 +123,7 @@ float SDCard::report_perc_complete() {
     return (float)_pImpl->_file.position() / (float)_pImpl->_file.size() * 100.0f;
 }
 
-uint32_t SDCard::get_current_line_number() {
+uint32_t SDCard::lineNumber() {
     return _current_line_number;
 }
 
@@ -181,12 +171,8 @@ SDCard::State SDCard::set_state(SDCard::State state) {
     return _state;
 }
 
-void SDCard::get_current_filename(char* name) {
-    if (_pImpl->_file) {
-        strcpy(name, _pImpl->_file.name());
-    } else {
-        name[0] = 0;
-    }
+const char* SDCard::filename() {
+    return _pImpl->_file ? _pImpl->_file.name() : "";
 }
 
 void SDCard::init() {

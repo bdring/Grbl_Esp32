@@ -241,38 +241,56 @@ static String report_util_axis_values(const float* axis_value) {
 // from a critical error, such as a triggered hard limit. Interface should always monitor for these
 // responses.
 void report_status_message(Error status_code, uint8_t client) {
-    auto sdCard = config->_sdCard;
-    switch (status_code) {
-        case Error::Ok:  // Error::Ok
-            if (sdCard->get_state(false) == SDCard::State::BusyPrinting) {
-                sdCard->_ready_next = true;  // flag so system_execute_line() will send the next line
-            } else {
-                grbl_send(client, "ok\r\n");
-            }
-            break;
-        default:
-            // do we need to stop a running SD job?
-            if (sdCard->get_state(false) == SDCard::State::BusyPrinting) {
+    auto sdcard = config->_sdCard;
+    if (sdcard->get_state(false) == SDCard::State::BusyPrinting) {
+        // When running from SD, the GCode is not coming from a sender, so we are not
+        // using the Grbl send/response/error protocol.  We use _readyNext instead of
+        // "ok" to indicate readiness for another line, and we report verbose error
+        // messages with [MSG: ...] encapsulation
+        switch (status_code) {
+            case Error::Ok:
+                sdcard->_readyNext = true;  // flag so system_execute_line() will send the next line
+                break;
+            case Error::Eof:
+                // XXX we really should wait for the machine to return to idle before
+                // we issue this message.  What Eof really means is that all the lines
+                // in the file were sent to Grbl.  Some could still be running.
+                grbl_notifyf("SD print done", "%s print succeeded", sdcard->filename());
+                info_client(sdcard->_client, "%s print succeeded", sdcard->filename());
+                sdcard->closeFile();
+                break;
+            default:
+                info_client(sdcard->_client,
+                            "Error:%d (%s) in %s at line %d",
+                            status_code,
+                            errorString(status_code),
+                            sdcard->filename(),
+                            sdcard->lineNumber());
                 if (status_code == Error::GcodeUnsupportedCommand) {
-                    grbl_sendf(client, "error:%d\r\n", status_code);  // most senders seem to tolerate this error and keep on going
-                    grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sdCard->get_current_line_number());
-                    // don't close file
-                    sdCard->_ready_next = true;  // flag so system_execute_line() will send the next line
+                    // Do not stop on unsupported commands because most senders do not
+                    sdcard->_readyNext = true;
                 } else {
-                    grbl_notifyf("SD print error", "Error:%d during SD file at line: %d", status_code, sdCard->get_current_line_number());
-                    grbl_sendf(CLIENT_ALL, "error:%d in SD file at line %d\r\n", status_code, sdCard->get_current_line_number());
-                    sdCard->closeFile();
+                    grbl_notifyf("SD print error", "Error:%d in %s at line: %d", status_code, sdcard->filename(), sdcard->lineNumber());
+                    sdcard->closeFile();
                 }
-                return;
-            }
-            // With verbose errors, the message text is displayed instead of the number.
-            // Grbl 0.9 used to display the text, while Grbl 1.1 switched to the number.
-            // Many senders support both formats.
-            if (config->_verboseErrors) {
-                grbl_sendf(client, "error: %s\r\n", errorString(status_code));
-            } else {
-                grbl_sendf(client, "error:%d\r\n", static_cast<int>(status_code));
-            }
+        }
+    } else {
+        // Input is coming from a sender so use the classic Grbl line protocol
+        switch (status_code) {
+            case Error::Ok:  // Error::Ok
+                grbl_send(client, "ok\r\n");
+                break;
+            default:
+                // With verbose errors, the message text is displayed instead of the number.
+                // Grbl 0.9 used to display the text, while Grbl 1.1 switched to the number.
+                // Many senders support both formats.
+                if (config->_verboseErrors) {
+                    grbl_sendf(client, "error: %s\r\n", errorString(status_code));
+                } else {
+                    grbl_sendf(client, "error:%d\r\n", static_cast<int>(status_code));
+                }
+                break;
+        }
     }
 }
 
@@ -306,8 +324,8 @@ std::map<Message, const char*> MessageText = {
 // is installed, the message number codes are less than zero.
 void report_feedback_message(Message message) {  // ok to send to all clients
     if (message == Message::SdFileQuit) {
-        grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
-        info_serial("Reset during SD file at line: %d", config->_sdCard->get_current_line_number());
+        grbl_notifyf("SD print canceled", "Reset during SD file at line: %d", config->_sdCard->lineNumber());
+        info_serial("Reset during SD file at line: %d", config->_sdCard->lineNumber());
 
     } else {
         auto it = MessageText.find(message);
@@ -757,8 +775,7 @@ void report_realtime_status(uint8_t client) {
     if (config->_sdCard->get_state(false) == SDCard::State::BusyPrinting) {
         sprintf(temp, "|SD:%4.2f,", config->_sdCard->report_perc_complete());
         strcat(status, temp);
-        config->_sdCard->get_current_filename(temp);
-        strcat(status, temp);
+        strcat(status, config->_sdCard->filename());
     }
 #ifdef DEBUG_STEPPER_ISR
     sprintf(temp, "|ISRs:%d", step_count);

@@ -167,16 +167,22 @@ void protocol_main_loop() {
     int c;
     for (;;) {
         auto sdcard = config->_sdCard;
-        if (sdcard->_ready_next) {
-            char fileLine[255];
-            if (sdcard->readFileLine(fileLine, 255)) {
-                sdcard->_ready_next = false;
-                report_status_message(execute_line(fileLine, sdcard->_client, sdcard->_auth_level), sdcard->_client);
-            } else {
-                char temp[50];
-                sdcard->get_current_filename(temp);
-                grbl_notifyf("SD print done", "%s print is successful", temp);
-                sdcard->closeFile();  // close file and clear SD ready/running flags
+        // _readyNext indicates that input is coming from a file and
+        // the GCode system is ready for another line.
+        if (sdcard->_readyNext) {
+            char  fileLine[255];
+            Error res;
+            switch (res = sdcard->readFileLine(fileLine, 255)) {
+                case Error::Ok:
+                    sdcard->_readyNext = false;
+#ifdef DEBUG_REPORT_ECHO_RAW_LINE_RECEIVED
+                    report_echo_line_received(fileLine, CLIENT_SERIAL);
+#endif
+                    report_status_message(execute_line(fileLine, sdcard->_client, sdcard->_auth_level), sdcard->_client);
+                    break;
+                default:
+                    report_status_message(res, sdcard->_client);
+                    break;
             }
         }
         // Receive one line of incoming serial data, as the data becomes available.
