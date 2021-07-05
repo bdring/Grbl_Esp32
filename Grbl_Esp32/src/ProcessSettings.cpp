@@ -274,18 +274,18 @@ Error home(int cycle) {
 
     int save_stepper = config->_stepType;
     if (save_stepper == ST_I2S_STREAM) {
-        stepper_switch(ST_I2S_STATIC);
+        Stepper::switch_mode(ST_I2S_STATIC);
     }
 
     mc_homing_cycle(cycle);
 
     if (save_stepper == ST_I2S_STREAM && config->_stepType != ST_I2S_STREAM) {
-        stepper_switch(ST_I2S_STREAM);
+        Stepper::switch_mode(ST_I2S_STREAM);
     }
 
     if (!sys.abort) {             // Execute startup scripts after successful homing.
         sys.state = State::Idle;  // Set to IDLE when complete.
-        st_go_idle();             // Set steppers to the settings idle state before returning.
+        Stepper::go_idle();       // Set steppers to the settings idle state before returning.
         if (cycle == HOMING_CYCLE_ALL) {
             system_execute_startup();
         }

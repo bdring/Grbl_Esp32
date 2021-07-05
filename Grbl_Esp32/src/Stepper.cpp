@@ -34,6 +34,8 @@
 #include <atomic>
 #include <Arduino.h>  // IRAM_ATTR
 
+using namespace Stepper;
+
 // Stores the planner block Bresenham algorithm execution data for the segments in the segment
 // buffer. Normally, this buffer is partially in-use, but, for the worst case scenario, it will
 // never exceed the number of accessible stepper buffer segments (SEGMENT_BUFFER_SIZE-1).
@@ -94,9 +96,20 @@ static std::atomic<bool> busy;
 static plan_block_t* pl_block;       // Pointer to the planner block being prepped
 static st_block_t*   st_prep_block;  // Pointer to the stepper block data being prepped
 
-// esp32 work around for disable in main loop
-uint64_t stepper_idle_counter;  // used to count down until time to disable stepper drivers
-bool     stepper_idle;
+// The time, in ticks of esp_timer_get_time(), when the steppers should be disabled
+static int64_t idleEndTime;
+static bool    isIdle;
+
+bool Stepper::shouldDisable() {
+    // "(timer() - EndTime) > 0" is a twos-complement arithmetic trick
+    // for avoiding problems when the number space wraps around from
+    // negative to positive or vice-versa.  It always works if EndTime
+    // is set to "timer() + N" where N is less than half the number
+    // space.  Using "timer() > EndTime" fails across the positive to
+    // negative transition using signed comparison, and across the
+    // negative to positive transition using unsigned.
+    return isIdle && config->_idleTime != 255 && (esp_timer_get_time() - idleEndTime) > 0;
+}
 
 // Segment preparation data struct. Contains all the necessary information to compute new segments
 // based on the current executing planner block.
@@ -190,10 +203,10 @@ EnumItem stepTypes[] = {
 */
 
 // Forward references to functions that are only used herein
-static void Stepper_Timer_WritePeriod(uint16_t timerTicks);
-static void Stepper_Timer_Init();
-static void Stepper_Timer_Start();
-static void Stepper_Timer_Stop();
+static void timerWritePeriod(uint16_t timerTicks);
+static void timerInit();
+static void timerStart();
+static void timerStop();
 
 // Stepper timer configuration
 const int   stepTimerNumber = 0;
@@ -202,12 +215,12 @@ hw_timer_t* stepTimer       = nullptr;  // Handle
 // might cause problems if an interrupt takes too long
 const bool autoReload = true;
 
-static void stepper_pulse_func();
+static void pulse_func();
 
 // Counts stepper ISR invocations.  This variable can be inspected
 // from the mainline code to determine if the stepper ISR is running,
 // since printing from the ISR is not a good idea.
-uint32_t step_count = 0;
+uint32_t Stepper::isr_count = 0;
 
 // TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
 // int8 variables and update position counters only when a segment completes. This can get complicated
@@ -219,7 +232,7 @@ void IRAM_ATTR onStepperDriverTimer() {
 
     bool expected = false;
     if (busy.compare_exchange_strong(expected, true)) {
-        ++step_count;
+        ++isr_count;
 
         // Using autoReload results is less timing jitter so it is
         // probably best to have it on.  We keep the variable for
@@ -228,14 +241,14 @@ void IRAM_ATTR onStepperDriverTimer() {
             timerWrite(stepTimer, 0ULL);
         }
 
-        // It is tempting to defer this until after stepper_pulse_func(),
-        // but if stepper_pulse_func() determines that no more stepping
+        // It is tempting to defer this until after pulse_func(),
+        // but if pulse_func() determines that no more stepping
         // is required and disables the timer, then that will be undone
         // if the re-enable happens afterwards.
 
         timerAlarmEnable(stepTimer);
 
-        stepper_pulse_func();
+        pulse_func();
 
         busy.store(false);
     }
@@ -248,7 +261,7 @@ void IRAM_ATTR onStepperDriverTimer() {
  * call to this method that might cause variation in the timing. The aim
  * is to keep pulse timing as regular as possible.
  */
-static void IRAM_ATTR stepper_pulse_func() {
+static void IRAM_ATTR pulse_func() {
     auto n_axis = config->_axes->_numberAxis;
 
     // If we are using GPIO stepping as opposed to RMT, record the
@@ -266,7 +279,7 @@ static void IRAM_ATTR stepper_pulse_func() {
             // Initialize new step segment and load number of steps to execute
             st.exec_segment = &segment_buffer[segment_buffer_tail];
             // Initialize step segment timing per step and load number of steps to execute.
-            Stepper_Timer_WritePeriod(st.exec_segment->isrPeriod);
+            timerWritePeriod(st.exec_segment->isrPeriod);
             st.step_count = st.exec_segment->n_step;  // NOTE: Can sometimes be zero when moving slow.
             // If the new segment starts a new planner block, initialize stepper variables and counters.
             // NOTE: When the segment data index changes, this indicates a new planner block.
@@ -287,7 +300,7 @@ static void IRAM_ATTR stepper_pulse_func() {
             spindle->setSpeedfromISR(st.exec_segment->spindle_dev_speed);
         } else {
             // Segment buffer empty. Shutdown.
-            st_go_idle();
+            go_idle();
             if (sys.state != State::Jog) {  // added to prevent ... jog after probing crash
                 // Ensure pwm is set properly upon completion of rate-controlled motion.
                 if (st.exec_block != NULL && st.exec_block->is_pwm_rate_adjusted) {
@@ -355,7 +368,7 @@ static void IRAM_ATTR stepper_pulse_func() {
     }
 }
 
-void stepper_init() {
+void Stepper::init() {
     busy.store(false);
 
     info_serial("Axis count %d", config->_axes->_numberAxis);
@@ -366,10 +379,10 @@ void stepper_init() {
                 config->_directionDelayMicroSeconds);
 
     // Other stepper use timer interrupt
-    Stepper_Timer_Init();
+    timerInit();
 }
 
-void stepper_switch(stepper_id_t new_stepper) {
+void Stepper::switch_mode(stepper_id_t new_stepper) {
     debug_serial("Switch stepper: %s -> %s", stepTypes[config->_stepType].name, stepTypes[new_stepper].name);
     if (config->_stepType == new_stepper) {
         // do not need to change
@@ -389,24 +402,24 @@ void stepper_switch(stepper_id_t new_stepper) {
 }
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
-void st_wake_up() {
+void Stepper::wake_up() {
     //info_serial("st_wake_up");
     // Enable stepper drivers.
     config->_axes->set_disable(false);
-    stepper_idle = false;
+    isIdle = false;
 
     // Enable Stepper Driver Interrupt
-    Stepper_Timer_Start();
+    timerStart();
 }
 
 // Reset and clear stepper subsystem variables
-void st_reset() {
+void Stepper::reset() {
     // Initialize stepper driver idle state.
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_reset();
     }
 
-    st_go_idle();
+    go_idle();
     // Initialize stepper algorithm variables.
     memset(&prep, 0, sizeof(st_prep_t));
     memset(&st, 0, sizeof(stepper_t));
@@ -421,9 +434,9 @@ void st_reset() {
 }
 
 // Stepper shutdown
-void IRAM_ATTR st_go_idle() {
+void IRAM_ATTR Stepper::go_idle() {
     // Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
-    Stepper_Timer_Stop();
+    timerStop();
 
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
     if (((config->_idleTime != 255) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) && sys.state != State::Homing) {
@@ -433,9 +446,9 @@ void IRAM_ATTR st_go_idle() {
         if (sys.state == State::Sleep || sys_rt_exec_alarm != ExecAlarm::None) {
             config->_axes->set_disable(true);
         } else {
-            stepper_idle         = true;                                               // esp32 work around for disable in main loop
-            stepper_idle_counter = esp_timer_get_time() + (config->_idleTime * 1000);  // * 1000 because the time is in uSecs
-            // after idle countdown will be disabled in protocol loop
+            // Setup for shouldDisable()
+            isIdle      = true;
+            idleEndTime = esp_timer_get_time() + (config->_idleTime * 1000);  // * 1000 because the time is in uSecs
         }
     } else {
         config->_axes->set_disable(false);
@@ -446,16 +459,16 @@ void IRAM_ATTR st_go_idle() {
 }
 
 // Called by planner_recalculate() when the executing block is updated by the new plan.
-void st_update_plan_block_parameters() {
+void Stepper::update_plan_block_parameters() {
     if (pl_block != NULL) {  // Ignore if at start of a new block.
         prep.recalculate_flag.recalculate = 1;
         pl_block->entry_speed_sqr         = prep.current_speed * prep.current_speed;  // Update entry speed.
-        pl_block                          = NULL;  // Flag st_prep_segment() to load and check active velocity profile.
+        pl_block                          = NULL;  // Flag prep_segment() to load and check active velocity profile.
     }
 }
 
 // Changes the run state of the step segment buffer to execute the special parking motion.
-void st_parking_setup_buffer() {
+void Stepper::parking_setup_buffer() {
     // Store step execution data of partially completed block, if necessary.
     if (prep.recalculate_flag.holdPartialBlock) {
         prep.last_st_block_index  = prep.st_block_index;
@@ -470,7 +483,7 @@ void st_parking_setup_buffer() {
 }
 
 // Restores the step segment buffer to the normal run state after a parking motion.
-void st_parking_restore_buffer() {
+void Stepper::parking_restore_buffer() {
     // Restore step execution data and flags of partially completed block, if necessary.
     if (prep.recalculate_flag.holdPartialBlock) {
         st_prep_block                          = &st_block_buffer[prep.last_st_block_index];
@@ -489,7 +502,7 @@ void st_parking_restore_buffer() {
 }
 
 // Increments the step segment buffer block data ring buffer.
-static uint8_t st_next_block_index(uint8_t block_index) {
+static uint8_t next_block_index(uint8_t block_index) {
     block_index++;
     return block_index == (SEGMENT_BUFFER_SIZE - 1) ? 0 : block_index;
 }
@@ -507,7 +520,7 @@ static uint8_t st_next_block_index(uint8_t block_index) {
    Currently, the segment buffer conservatively holds roughly up to 40-50 msec of steps.
    NOTE: Computation units are in steps, millimeters, and minutes.
 */
-void st_prep_buffer() {
+void Stepper::prep_buffer() {
     // Block step prep buffer, while in a suspend state and there is no suspend motion to execute.
     if (sys.step_control.endMotion) {
         return;
@@ -536,7 +549,7 @@ void st_prep_buffer() {
                 }
             } else {
                 // Load the Bresenham stepping data for the block.
-                prep.st_block_index = st_next_block_index(prep.st_block_index);
+                prep.st_block_index = next_block_index(prep.st_block_index);
                 // Prepare and copy Bresenham algorithm segment data from the new planner block, so that
                 // when the segment buffer completes the planner block, it may be discarded when the
                 // segment buffer finishes the prepped block, but the stepper ISR is still executing it.
@@ -801,7 +814,7 @@ void st_prep_buffer() {
             }
             sys.step_control.updateSpindleSpeed = false;
         }
-        prep_segment->spindle_speed = prep.current_spindle_speed;
+        prep_segment->spindle_speed     = prep.current_spindle_speed;
         prep_segment->spindle_dev_speed = spindle->mapSpeed(prep.current_spindle_speed);  // Reload segment PWM value
 
         /* -----------------------------------------------------------------------------------
@@ -902,7 +915,7 @@ void st_prep_buffer() {
 // however is not exactly the current speed, but the speed computed in the last step segment
 // in the segment buffer. It will always be behind by up to the number of segment blocks (-1)
 // divided by the ACCELERATION TICKS PER SECOND in seconds.
-float st_get_realtime_rate() {
+float Stepper::get_realtime_rate() {
     switch (sys.state) {
         case State::Cycle:
         case State::Homing:
@@ -916,7 +929,7 @@ float st_get_realtime_rate() {
 }
 
 // The argument is in units of ticks of the timer that generates ISRs
-static void IRAM_ATTR Stepper_Timer_WritePeriod(uint16_t timerTicks) {
+static void IRAM_ATTR timerWritePeriod(uint16_t timerTicks) {
     if (config->_stepType == ST_I2S_STREAM) {
         // 1 tick = fTimers / fStepperTimer
         // Pulse ISR is called for each tick of alarm_val.
@@ -927,22 +940,22 @@ static void IRAM_ATTR Stepper_Timer_WritePeriod(uint16_t timerTicks) {
     }
 }
 
-static void IRAM_ATTR Stepper_Timer_Init() {
+static void IRAM_ATTR timerInit() {
     const bool isEdge  = false;
     const bool countUp = true;
 
     // Prepare stepping interrupt callbacks.  The one that is actually
-    // used is determined by Stepper_Timer_Start() and _Stop()
+    // used is determined by timerStart() and timerStop()
 
-    // Register stepper_pulse_func with the I2S subsystem
-    i2s_out_set_pulse_callback(stepper_pulse_func);
+    // Register pulse_func with the I2S subsystem
+    i2s_out_set_pulse_callback(pulse_func);
 
     // Setup a timer for direct stepping
     stepTimer = timerBegin(stepTimerNumber, fTimers / fStepperTimer, countUp);
     timerAttachInterrupt(stepTimer, onStepperDriverTimer, isEdge);
 }
 
-static void IRAM_ATTR Stepper_Timer_Start() {
+static void IRAM_ATTR timerStart() {
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_set_stepping();
     } else {
@@ -951,19 +964,10 @@ static void IRAM_ATTR Stepper_Timer_Start() {
     }
 }
 
-static void IRAM_ATTR Stepper_Timer_Stop() {
+static void IRAM_ATTR timerStop() {
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_set_passthrough();
     } else if (stepTimer) {
         timerAlarmDisable(stepTimer);
     }
-}
-
-bool get_stepper_disable() {  // returns true if steppers are disabled
-    auto axesConfig = config->_axes;
-    if (axesConfig->_sharedStepperDisable.defined()) {
-        bool disabled = axesConfig->_sharedStepperDisable.read();
-        return disabled;
-    }
-    return false;  // they are never disabled if there is no pin defined
 }

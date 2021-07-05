@@ -276,7 +276,7 @@ bool mc_dwell(int32_t milliseconds) {
 
 inline void RESTORE_STEPPER(int save_stepper) {
     if (save_stepper == ST_I2S_STREAM && config->_stepType != ST_I2S_STREAM) {
-        stepper_switch(ST_I2S_STREAM); /* Put the stepper back on. */
+        Stepper::switch_mode(ST_I2S_STREAM); /* Put the stepper back on. */
     }
 }
 
@@ -339,7 +339,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
 
     // Switch stepper mode to the I2S static (realtime mode)
     if (save_stepper == ST_I2S_STREAM) {
-        stepper_switch(ST_I2S_STATIC); /* Change the stepper to reduce the delay for accurate probing. */
+        Stepper::switch_mode(ST_I2S_STATIC); /* Change the stepper to reduce the delay for accurate probing. */
     }
 
     // Initialize probing control variables
@@ -387,7 +387,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     sys_probe_state = ProbeState::Off;  // Ensure probe state monitor is disabled.
     protocol_execute_realtime();        // Check and execute run-time commands
     // Reset the stepper and planner buffers to remove the remainder of the probe motion.
-    st_reset();            // Reset step segment buffer.
+    Stepper::reset();      // Reset step segment buffer.
     plan_reset();          // Reset planner buffer. Zero planner positions. Ensure probing motion is cleared.
     plan_sync_position();  // Sync planner position to current machine position.
     if (MESSAGE_PROBE_COORDINATES) {
@@ -410,16 +410,16 @@ void mc_parking_motion(float* parking_target, plan_line_data_t* pl_data) {
     if (plan_buffer_line(parking_target, pl_data)) {
         sys.step_control.executeSysMotion = true;
         sys.step_control.endMotion        = false;  // Allow parking motion to execute, if feed hold is active.
-        st_parking_setup_buffer();                  // Setup step segment buffer for special parking motion case
-        st_prep_buffer();
-        st_wake_up();
+        Stepper::parking_setup_buffer();            // Setup step segment buffer for special parking motion case
+        Stepper::prep_buffer();
+        Stepper::wake_up();
         do {
             protocol_exec_rt_system();
             if (sys.abort) {
                 return;
             }
         } while (sys.step_control.executeSysMotion);
-        st_parking_restore_buffer();  // Restore step segment buffer to normal run state.
+        Stepper::parking_restore_buffer();  // Restore step segment buffer to normal run state.
     } else {
         sys.step_control.executeSysMotion = false;
         protocol_exec_rt_system();
@@ -473,7 +473,7 @@ void mc_reset() {
             } else {
                 sys_rt_exec_alarm = ExecAlarm::AbortCycle;
             }
-            st_go_idle();  // Force kill steppers. Position has likely been lost.
+            Stepper::go_idle();  // Force kill steppers. Position has likely been lost.
         }
         ganged_mode = gangDual;  // in case an error occurred during squaring
 

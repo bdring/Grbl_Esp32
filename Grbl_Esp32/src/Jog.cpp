@@ -51,8 +51,8 @@ Error jog_execute(plan_line_data_t* pl_data, parser_block_t* gc_block, bool* can
     if (sys.state == State::Idle) {
         if (plan_get_current_block() != NULL) {  // Check if there is a block to execute.
             sys.state = State::Jog;
-            st_prep_buffer();
-            st_wake_up();  // NOTE: Manual start. No state machine required.
+            Stepper::prep_buffer();
+            Stepper::wake_up();  // NOTE: Manual start. No state machine required.
         }
     }
     return Error::Ok;

@@ -89,7 +89,7 @@ void grbl_init() {
                 }
             }
 
-            stepper_init();  // Configure stepper pins and interrupt timers
+            Stepper::init();  // Configure stepper pins and interrupt timers
 
             config->_axes->read_settings();
             config->_axes->init();
@@ -160,7 +160,7 @@ static void reset_variables() {
         if (spindle) {
             spindle->stop();
         }
-        st_reset();  // Clear stepper subsystem variables
+        Stepper::reset();  // Clear stepper subsystem variables
     }
 
     // Sync cleared gcode and planner positions to current system position.

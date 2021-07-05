@@ -614,7 +614,7 @@ int IRAM_ATTR i2s_out_set_passthrough() {
         i2s_out_pulser_status = WAITING;  // Start stopping the pulser (trigger)
     }
     // It is a function that may be called via i2sOutTask().
-    // (i2sOutTask() -> stepper_pulse_func() -> st_go_idle() -> Stepper_Timer_Stop() -> this function)
+    // (i2sOutTask() -> Stepper::pulse_func() -> Stepper::go_idle() -> Stepper_Timer_Stop() -> this function)
     // And only i2sOutTask() can change the state to PASSTHROUGH.
     // So, to change the state, you need to return to i2sOutTask() as soon as possible.
 #else

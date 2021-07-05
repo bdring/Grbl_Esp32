@@ -230,15 +230,15 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         plan_buffer_line(target, pl_data);  // Bypass mc_line(). Directly plan homing motion.
         sys.step_control                  = {};
         sys.step_control.executeSysMotion = true;  // Set to execute homing motion and clear existing flags.
-        st_prep_buffer();                          // Prep and fill segment buffer from newly planned block.
-        st_wake_up();                              // Initiate motion
+        Stepper::prep_buffer();                    // Prep and fill segment buffer from newly planned block.
+        Stepper::wake_up();                        // Initiate motion
         do {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
                 bit_false(axislock, limits_check(axislock));
                 sys.homing_axis_lock = axislock;
             }
-            st_prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
+            Stepper::prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
 
             ExecAlarm alarm = limits_handle_errors(approach, cycle_mask);
             if (alarm != ExecAlarm::None) {
@@ -266,7 +266,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
             }
         }
 
-        st_reset();          // Immediately force kill steppers and reset step segment buffer.
+        Stepper::reset();    // Immediately force kill steppers and reset step segment buffer.
         delay_ms(debounce);  // Delay to allow transient dynamics to dissipate.
 
         // After the initial approach, we switch to the slow rate for subsequent steps

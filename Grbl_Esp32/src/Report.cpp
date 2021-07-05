@@ -669,11 +669,11 @@ void report_realtime_status(uint8_t client) {
     }
 
     // Report realtime feed speed
+    float rate = Stepper::get_realtime_rate();
     if (config->_reportInches) {
-        sprintf(temp, "|FS:%.1f,%d", st_get_realtime_rate() / MM_PER_INCH, sys.spindle_speed);
-    } else {
-        sprintf(temp, "|FS:%.0f,%d", st_get_realtime_rate(), sys.spindle_speed);
+        rate /= MM_PER_INCH;
     }
+    sprintf(temp, "|FS:%.0f,%d", rate, sys.spindle_speed);
     strcat(status, temp);
     AxisMask    lim_pin_state   = limits_get_state();
     bool        prb_pin_state   = config->_probe->get_state();
@@ -778,7 +778,7 @@ void report_realtime_status(uint8_t client) {
         strcat(status, config->_sdCard->filename());
     }
 #ifdef DEBUG_STEPPER_ISR
-    sprintf(temp, "|ISRs:%d", step_count);
+    sprintf(temp, "|ISRs:%d", Stepper::isr_count);
     strcat(status, temp);
 #endif
 #ifdef DEBUG_REPORT_HEAP

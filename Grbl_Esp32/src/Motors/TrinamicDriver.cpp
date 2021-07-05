@@ -257,7 +257,7 @@ namespace Motors {
         if (tstep == 0xFFFFF || tstep < 1) {  // if axis is not moving return
             return;
         }
-        float feedrate = st_get_realtime_rate();  //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
+        float feedrate = Stepper::get_realtime_rate();  //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
         info_serial("%s Stallguard %d   SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
                     reportAxisNameMsg(axis_index(), dual_axis_index()),

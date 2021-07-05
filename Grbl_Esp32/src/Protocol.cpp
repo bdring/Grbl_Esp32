@@ -227,10 +227,8 @@ void protocol_main_loop() {
             return;  // Bail to main() program loop to reset system.
         }
         // check to see if we should disable the stepper drivers ... esp32 work around for disable in main loop.
-        if (stepper_idle && config->_idleTime != 255) {
-            if (uint64_t(esp_timer_get_time()) > stepper_idle_counter) {
-                config->_axes->set_disable(true);
-            }
+        if (Stepper::shouldDisable()) {
+            config->_axes->set_disable(true);
         }
     }
     return; /* Never reached */
@@ -312,7 +310,7 @@ static void protocol_do_alarm() {
 
 static void protocol_start_holding() {
     if (!(sys.suspend.bit.motionCancel || sys.suspend.bit.jogCancel)) {  // Block, if already holding.
-        st_update_plan_block_parameters();                               // Notify stepper module to recompute for hold deceleration.
+        Stepper::update_plan_block_parameters();                         // Notify stepper module to recompute for hold deceleration.
         sys.step_control             = {};
         sys.step_control.executeHold = true;  // Initiate suspend state with active flag.
     }
@@ -424,7 +422,7 @@ static void protocol_do_safety_door() {
             if (!sys.suspend.bit.jogCancel && sys.suspend.bit.initiateRestore) {  // Actively restoring
                 // Set hold and reset appropriate control flags to restart parking sequence.
                 if (sys.step_control.executeSysMotion) {
-                    st_update_plan_block_parameters();  // Notify stepper module to recompute for hold deceleration.
+                    Stepper::update_plan_block_parameters();  // Notify stepper module to recompute for hold deceleration.
                     sys.step_control                  = {};
                     sys.step_control.executeHold      = true;
                     sys.step_control.executeSysMotion = true;
@@ -493,8 +491,8 @@ static void protocol_do_initiate_cycle() {
     if (plan_get_current_block() && !sys.suspend.bit.motionCancel) {
         sys.suspend.value = 0;  // Break suspend state.
         sys.state         = State::Cycle;
-        st_prep_buffer();  // Initialize step segment buffer before beginning cycle.
-        st_wake_up();
+        Stepper::prep_buffer();  // Initialize step segment buffer before beginning cycle.
+        Stepper::wake_up();
     } else {                    // Otherwise, do nothing. Set and resume IDLE state.
         sys.suspend.value = 0;  // Break suspend state.
         sys.state         = State::Idle;
@@ -584,7 +582,7 @@ static void protocol_do_cycle_stop() {
             if (sys.suspend.bit.jogCancel) {  // For jog cancel, flush buffers and sync positions.
                 sys.step_control = {};
                 plan_reset();
-                st_reset();
+                Stepper::reset();
                 gc_sync_position();
                 plan_sync_position();
             }
@@ -744,7 +742,7 @@ void protocol_exec_rt_system() {
         case State::SafetyDoor:
         case State::Homing:
         case State::Jog:
-            st_prep_buffer();
+            Stepper::prep_buffer();
             break;
     }
 }
@@ -1128,7 +1126,7 @@ static void protocol_exec_rt_suspend() {
                         // Spindle and coolant should already be stopped, but do it again just to be sure.
                         spindle->spinDown();
                         config->_coolant->off();
-                        st_go_idle();  // Disable steppers
+                        Stepper::go_idle();  // Disable steppers
                         while (!(sys.abort)) {
                             protocol_exec_rt_system();  // Do nothing until reset.
                         }

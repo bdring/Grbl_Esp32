@@ -147,7 +147,7 @@ static void planner_recalculate() {
     if (block_index == block_buffer_planned) {  // Only two plannable blocks in buffer. Reverse pass complete.
         // Check if the first block is the tail. If so, notify stepper to update its current parameters.
         if (block_index == block_buffer_tail) {
-            st_update_plan_block_parameters();
+            Stepper::update_plan_block_parameters();
         }
     } else {  // Three or more plan-able blocks
         while (block_index != block_buffer_planned) {
@@ -156,7 +156,7 @@ static void planner_recalculate() {
             block_index = plan_prev_block_index(block_index);
             // Check if next block is the tail block(=planned block). If so, update current stepper parameters.
             if (block_index == block_buffer_tail) {
-                st_update_plan_block_parameters();
+                Stepper::update_plan_block_parameters();
             }
             // Compute maximum entry speed decelerating over the current block from its exit speed.
             if (current->entry_speed_sqr != current->max_entry_speed_sqr) {
@@ -400,7 +400,7 @@ bool plan_buffer_line(float* target, plan_line_data_t* pl_data) {
             } else {
                 convert_delta_vector_to_unit_vector(junction_unit_vec);
                 float junction_acceleration = limit_acceleration_by_axis_maximum(junction_unit_vec);
-                float sin_theta_d2          = float(sqrt(0.5f * (1.0f - junction_cos_theta)));  // Trig half angle identity. Always positive.
+                float sin_theta_d2 = float(sqrt(0.5f * (1.0f - junction_cos_theta)));  // Trig half angle identity. Always positive.
                 block->max_junction_speed_sqr =
                     MAX(MINIMUM_JUNCTION_SPEED * MINIMUM_JUNCTION_SPEED,
                         (junction_acceleration * config->_junctionDeviation * sin_theta_d2) / (1.0f - sin_theta_d2));
@@ -458,7 +458,7 @@ uint8_t plan_get_block_buffer_count() {
 // Called after a steppers have come to a complete stop for a feed hold and the cycle is stopped.
 void plan_cycle_reinitialize() {
     // Re-plan from a complete stop. Reset planner entry speeds and buffer planned pointer.
-    st_update_plan_block_parameters();
+    Stepper::update_plan_block_parameters();
     block_buffer_planned = block_buffer_tail;
     planner_recalculate();
 }

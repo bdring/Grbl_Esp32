@@ -35,42 +35,39 @@ enum stepper_id_t {
     ST_I2S_STREAM,
 };
 
-// esp32 work around for diable in main loop
-extern uint64_t stepper_idle_counter;
-extern bool     stepper_idle;
+namespace Stepper {
+    // Is it time to disable the steppers?
+    bool shouldDisable();
 
-void stepper_init();
-void stepper_switch(stepper_id_t new_stepper);
+    void init();
+    void switch_mode(stepper_id_t new_stepper);
 
-// Enable steppers, but cycle does not start unless called by motion control or realtime command.
-void st_wake_up();
+    // Enable steppers, but cycle does not start unless called by motion control or realtime command.
+    void wake_up();
 
-// Immediately disables steppers
-void st_go_idle();
+    // Immediately disables steppers
+    void go_idle();
 
-// Reset the stepper subsystem variables
-void st_reset();
+    // Reset the stepper subsystem variables
+    void reset();
 
-// Changes the run state of the step segment buffer to execute the special parking motion.
-void st_parking_setup_buffer();
+    // Changes the run state of the step segment buffer to execute the special parking motion.
+    void parking_setup_buffer();
 
-// Restores the step segment buffer to the normal run state after a parking motion.
-void st_parking_restore_buffer();
+    // Restores the step segment buffer to the normal run state after a parking motion.
+    void parking_restore_buffer();
 
-// Reloads step segment buffer. Called continuously by realtime execution system.
-void st_prep_buffer();
+    // Reloads step segment buffer. Called continuously by realtime execution system.
+    void prep_buffer();
 
-// Called by planner_recalculate() when the executing block is updated by the new plan.
-void st_update_plan_block_parameters();
+    // Called by planner_recalculate() when the executing block is updated by the new plan.
+    void update_plan_block_parameters();
 
-// Called by realtime status reporting if realtime rate reporting is enabled in config.h.
-float st_get_realtime_rate();
+    // Called by realtime status reporting if realtime rate reporting is enabled in config.h.
+    float get_realtime_rate();
 
-// disable (or enable) steppers via STEPPERS_DISABLE_PIN
-bool get_stepper_disable();  // returns the state of the pin
-
-void set_stepper_pins_on(uint8_t onMask);
-void set_direction_pins_on(uint8_t onMask);
+    extern uint32_t isr_count;  // for debugging only
+}
+// private
 
 extern EnumItem stepTypes[];
-extern uint32_t step_count;
