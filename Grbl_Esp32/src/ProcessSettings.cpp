@@ -272,16 +272,11 @@ Error home(int cycle) {
     }
     sys.state = State::Homing;  // Set system state variable
 
-    int save_stepper = config->_stepType;
-    if (save_stepper == ST_I2S_STREAM) {
-        Stepper::switch_mode(ST_I2S_STATIC);
-    }
+    config->_axes->beginLowLatency();
 
     mc_homing_cycle(cycle);
 
-    if (save_stepper == ST_I2S_STREAM && config->_stepType != ST_I2S_STREAM) {
-        Stepper::switch_mode(ST_I2S_STREAM);
-    }
+    config->_axes->endLowLatency();
 
     if (!sys.abort) {             // Execute startup scripts after successful homing.
         sys.state = State::Idle;  // Set to IDLE when complete.

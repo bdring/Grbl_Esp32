@@ -503,7 +503,7 @@ static void IRAM_ATTR i2sOutTask(void* parameter) {
         } else if (i2s_out_pulser_status == WAITING) {
             if (dma_desc->qe.stqe_next == NULL) {
                 // Tail of the DMA descriptor found
-                // I2S TX module has alrewdy stopped by ISR
+                // I2S TX module has already stopped by ISR
                 i2s_out_stop();
                 i2s_clear_o_dma_buffers(0);  // 0 for static I2S control mode (right ch. data is always 0)
                 // You need to set the status before calling i2s_out_start()
@@ -546,6 +546,7 @@ void IRAM_ATTR i2s_out_delay() {
     } else {
         // Just wait until the data now registered in the DMA descripter
         // is reflected in the I2S TX module via FIFO.
+        // XXX perhaps just wait until I2SO.conf1.tx_start == 0
         delay(I2S_OUT_DELAY_MS);
     }
     I2S_OUT_PULSER_EXIT_CRITICAL();

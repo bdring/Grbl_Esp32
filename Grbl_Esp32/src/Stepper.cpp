@@ -348,17 +348,19 @@ static void IRAM_ATTR pulse_func() {
         }
     }
 
-    auto pulseMicros = config->_pulseMicroSeconds;
+    // stepping->unStep(pulseMicros);
+    uint64_t endMicros;
     switch (config->_stepType) {
         case ST_I2S_STREAM:
             // Generate the number of pulses needed to span pulse_microseconds
-            i2s_out_push_sample(pulseMicros);
+            i2s_out_push_sample(config->_pulseMicroSeconds);
             config->_axes->unstep();
             break;
         case ST_I2S_STATIC:
         case ST_TIMED:
+            endMicros = config->_pulseMicroSeconds + step_pulse_start_time;
             // wait for step pulse time to complete...some time expired during code above
-            while (esp_timer_get_time() - step_pulse_start_time < pulseMicros) {
+            while ((esp_timer_get_time() - endMicros) < 0) {
                 NOP();  // spin here until time to turn off step
             }
             config->_axes->unstep();
@@ -373,6 +375,7 @@ void Stepper::init() {
 
     info_serial("Axis count %d", config->_axes->_numberAxis);
     info_serial("Step type:%s Pulse:%dus Dsbl Delay:%dus Dir Delay:%dus",
+                // stepping->name(),
                 stepTypes[config->_stepType].name,
                 config->_pulseMicroSeconds,
                 config->_disableDelayMicroSeconds,
@@ -380,25 +383,6 @@ void Stepper::init() {
 
     // Other stepper use timer interrupt
     timerInit();
-}
-
-void Stepper::switch_mode(stepper_id_t new_stepper) {
-    debug_serial("Switch stepper: %s -> %s", stepTypes[config->_stepType].name, stepTypes[new_stepper].name);
-    if (config->_stepType == new_stepper) {
-        // do not need to change
-        return;
-    }
-
-    if (config->_stepType == ST_I2S_STREAM) {
-        if (i2s_out_get_pulser_status() != PASSTHROUGH) {
-            // Called during streaming. Stop streaming.
-            debug_serial("Stop the I2S streaming and switch to the passthrough mode.");
-            i2s_out_set_passthrough();
-            i2s_out_delay();  // Wait for a change in mode.
-        }
-    }
-
-    config->_stepType = new_stepper;
 }
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
@@ -415,6 +399,7 @@ void Stepper::wake_up() {
 // Reset and clear stepper subsystem variables
 void Stepper::reset() {
     // Initialize stepper driver idle state.
+    // stepping->reset();
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_reset();
     }
@@ -930,6 +915,7 @@ float Stepper::get_realtime_rate() {
 
 // The argument is in units of ticks of the timer that generates ISRs
 static void IRAM_ATTR timerWritePeriod(uint16_t timerTicks) {
+    // stepping->setPeriod(uint16_t timerTicks);
     if (config->_stepType == ST_I2S_STREAM) {
         // 1 tick = fTimers / fStepperTimer
         // Pulse ISR is called for each tick of alarm_val.
@@ -956,6 +942,7 @@ static void IRAM_ATTR timerInit() {
 }
 
 static void IRAM_ATTR timerStart() {
+    // stepping->start();
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_set_stepping();
     } else {
@@ -965,6 +952,7 @@ static void IRAM_ATTR timerStart() {
 }
 
 static void IRAM_ATTR timerStop() {
+    // stepping->stop();
     if (config->_stepType == ST_I2S_STREAM) {
         i2s_out_set_passthrough();
     } else if (stepTimer) {

@@ -57,6 +57,7 @@ namespace Motors {
 
         _dir_pin.setAttr(Pin::Attr::Output);
 
+        // stepping->init(_step_pin);
         if (config->_stepType == ST_RMT) {
             rmtConfig.rmt_mode                       = RMT_MODE_TX;
             rmtConfig.clk_div                        = 20;

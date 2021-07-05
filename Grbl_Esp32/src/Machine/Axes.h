@@ -30,6 +30,8 @@ namespace Machine {
         static const int             MAX_NUMBER_AXIS = 6;
         static constexpr const char* _names          = "XYZABC";
 
+        bool _switchedStepper = false;
+
     public:
         Axes();
 
@@ -64,6 +66,10 @@ namespace Machine {
             }
             return false;
         }
+
+        void synchronize();  // Wait for motion to complete
+        void beginLowLatency();
+        void endLowLatency();
 
         // These are used for setup and to talk to the motors as a group.
         void init();

@@ -274,12 +274,6 @@ bool mc_dwell(int32_t milliseconds) {
     return delay_msec(milliseconds, DwellMode::Dwell);
 }
 
-inline void RESTORE_STEPPER(int save_stepper) {
-    if (save_stepper == ST_I2S_STREAM && config->_stepType != ST_I2S_STREAM) {
-        Stepper::switch_mode(ST_I2S_STREAM); /* Put the stepper back on. */
-    }
-}
-
 // Perform homing cycle to locate and set machine zero. Only '$H' executes this command.
 // NOTE: There should be no motions in the buffer and Grbl must be in an idle state before
 // executing the homing cycle. This prevents incorrect buffered plans after homing.
@@ -337,10 +331,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
 
     int save_stepper = config->_stepType; /* remember the stepper */
 
-    // Switch stepper mode to the I2S static (realtime mode)
-    if (save_stepper == ST_I2S_STREAM) {
-        Stepper::switch_mode(ST_I2S_STATIC); /* Change the stepper to reduce the delay for accurate probing. */
-    }
+    config->_axes->beginLowLatency();
 
     // Initialize probing control variables
     bool is_probe_away  = bit_istrue(parser_flags, GCParserProbeIsAway);
@@ -352,8 +343,8 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     if (config->_probe->tripped()) {
         sys_rt_exec_alarm = ExecAlarm::ProbeFailInitial;
         protocol_execute_realtime();
-        RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
-        return GCUpdatePos::None;       // Nothing else to do but bail.
+        config->_axes->endLowLatency();
+        return GCUpdatePos::None;  // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
     info_serial("Found");
@@ -365,13 +356,12 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     do {
         protocol_execute_realtime();
         if (sys.abort) {
-            RESTORE_STEPPER(save_stepper);  // Switch the stepper mode to the previous mode
-            return GCUpdatePos::None;       // Check for system abort
+            config->_axes->endLowLatency();
+            return GCUpdatePos::None;  // Check for system abort
         }
     } while (sys.state != State::Idle);
 
-    // Switch the stepper mode to the previous mode
-    RESTORE_STEPPER(save_stepper);
+    config->_axes->endLowLatency();
 
     // Probing cycle complete!
     // Set state variables and error out, if the probe failed and cycle with error is enabled.

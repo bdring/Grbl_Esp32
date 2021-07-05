@@ -133,6 +133,7 @@ namespace Machine {
 
             auto wait_direction = config->_directionDelayMicroSeconds;
             if (wait_direction > 0) {
+                // stepping->turnaround(wait_direction);
                 // Stepper drivers need some time between changing direction and doing a pulse.
                 switch (config->_stepType) {
                     case stepper_id_t::ST_I2S_STREAM:
@@ -211,6 +212,35 @@ namespace Machine {
 
         Assert(false, "Cannot find axis for motor. Something wonky is going on here...");
         return SIZE_MAX;
+    }
+
+    // Wait for motion to complete; the axes can still be moving
+    // after the data has been sent to the stepping engine, due
+    // to queuing delays.
+    void Axes::synchronize() {
+        if (config->_stepType == ST_I2S_STREAM) {
+            // XXX instead of a delay, we could sense when the DMA and
+            // FIFO have drained. It might be as simple as waiting for
+            // I2SO.conf1.tx_start == 0, while yielding.
+            delay_ms(I2S_OUT_DELAY_MS);
+        }
+    }
+    void Axes::beginLowLatency() {
+        _switchedStepper = config->_stepType == ST_I2S_STREAM;
+        if (_switchedStepper) {
+            config->_stepType = ST_I2S_STATIC;
+        }
+    }
+    void Axes::endLowLatency() {
+        if (_switchedStepper) {
+            if (i2s_out_get_pulser_status() != PASSTHROUGH) {
+                // Called during streaming. Stop streaming.
+                debug_serial("Stop the I2S streaming and switch to the passthrough mode.");
+                i2s_out_set_passthrough();
+                i2s_out_delay();  // Wait for a change in mode.
+            }
+            config->_stepType = ST_I2S_STREAM;
+        }
     }
 
     // Configuration helpers:
