@@ -85,17 +85,17 @@ namespace Machine {
 
     void MachineConfig::afterParse() {
         if (_axes == nullptr) {
-            log_info("Axes config missing; building default axes");
+            log_info("Axes: using defaults");
             _axes = new Axes();
         }
 
         if (_coolant == nullptr) {
-            log_info("Coolant control config missing; building default coolant");
+            log_info("Coolant: using defaults");
             _coolant = new CoolantControl();
         }
 
         if (_probe == nullptr) {
-            log_info("Probe config missing; building default probe");
+            log_info("Probe: using defaults");
             _probe = new Probe();
         }
 
@@ -115,12 +115,12 @@ namespace Machine {
         // Only if an i2so section is present will config->_i2so be non-null
 
         if (_control == nullptr) {
-            log_info("Control config missing; building default");
+            log_info("Control: using defaults");
             _control = new Control();
         }
 
         if (_spindles.size() == 0) {
-            log_info("Spindle config missing; using null spindle");
+            log_info("Spindle: using defaults (no spindle)");
             _spindles.push_back(new Spindles::Null());
         }
         uint32_t next_tool = 100;
@@ -131,7 +131,7 @@ namespace Machine {
         }
 
         if (_comms == nullptr) {
-            log_info("Comms config missing; building default comms");
+            log_info("Comms: using defaults");
             _comms = new Communications();
 #ifdef ENABLE_WIFI
             _comms->_apConfig = new WifiAPConfig();
@@ -225,7 +225,7 @@ namespace Machine {
 
         if (filesize > 0) {
             input = new StringRange(buffer, buffer + filesize);
-            log_info("Using configuration file " << filename);
+            log_info("Configuration file: " << filename);
 
         } else {
             log_info("Using default configuration");
@@ -252,7 +252,7 @@ namespace Machine {
 
             handler.enterSection("machine", config);
 
-            log_info("Parsed configuration. Running after-parse tasks");
+            log_info("Running after-parse tasks");
 
             // log_info("Heap size before after-parse is " << uint32_t(xPortGetFreeHeapSize()));
 
@@ -262,7 +262,7 @@ namespace Machine {
                 config->group(afterParse);
             } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
 
-            log_info("Validating configuration");
+            log_info("Checking configuration");
 
             // log_info("Heap size before validation is " << uint32_t(xPortGetFreeHeapSize()));
 
@@ -272,11 +272,11 @@ namespace Machine {
                 config->group(validator);
             } catch (std::exception& ex) { log_info("Validation error: " << ex.what()); }
 
-            log_info("Validated configuration");
-
             // log_info("Heap size after configuation load is " << uint32_t(xPortGetFreeHeapSize()));
 
             successful = (sys.state != State::ConfigAlarm);
+
+            log_info("Configuration is " << (successful ? "valid" : "invalid"));
 
         } catch (const Configuration::ParseException& ex) {
             sys.state      = State::ConfigAlarm;

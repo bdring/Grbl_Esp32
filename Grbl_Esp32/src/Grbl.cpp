@@ -25,7 +25,6 @@
 #include "Report.h"
 #include "Settings.h"
 #include "SettingsDefinitions.h"
-#include "I2SOut.h"
 #include "Limits.h"
 #include "Protocol.h"
 #include "System.h"
@@ -66,7 +65,6 @@ void grbl_init() {
         }
 
         // Load Grbl settings from non-volatile storage
-        debug_serial("Initializing settings...");
         settings_init();  // requires config
         bool configOkay = config->load(config_filename->get());
         make_grbl_commands();
@@ -79,31 +77,26 @@ void grbl_init() {
             report_machine_type(CLIENT_SERIAL);
             info_serial("Board: %s", config->_board.c_str());
 
+            // The initialization order reflects dependencies between the subsystems
             if (config->_i2so) {
-                info_serial("Initializing I2SO...");
-                // The I2S out must be initialized before it can access the expanded GPIO port. Must be initialized _after_ settings!
-                i2s_out_init();
+                config->_i2so->init();
             }
             if (config->_spi) {
-                info_serial("Initializing SPI...");
-                // The SPI must be initialized before we can use it.
                 config->_spi->init();
 
-                // Initialize SD card after SPI:
                 if (config->_sdCard != nullptr) {
                     config->_sdCard->init();
                 }
             }
 
-            info_serial("Initializing steppers...");
             stepper_init();  // Configure stepper pins and interrupt timers
 
-            info_serial("Initializing axes...");
             config->_axes->read_settings();
             config->_axes->init();
 
             config->_control->init();
             init_output_pins();  // Configure pinout pins and pin-change interrupt (Renamed due to conflict with esp32 files)
+
             memset(sys_position, 0, sizeof(sys_position));  // Clear machine position.
 
             machine_init();  // user supplied function for special initialization

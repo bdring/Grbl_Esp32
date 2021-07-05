@@ -81,6 +81,7 @@ void load_settings() {
     for (Setting* s = Setting::List; s; s = s->next()) {
         s->load();
     }
+    info_serial("Settings loaded from non-volatile storage");
 }
 
 extern void make_settings();

@@ -32,6 +32,8 @@ namespace Machine {
         void validate() const override;
         void group(Configuration::HandlerBase& handler) override;
 
+        void init();
+
         ~I2SOBus() = default;
     };
 }
