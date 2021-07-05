@@ -4,6 +4,8 @@
 
 #include "esp_err.h"
 
+class SystemRestartException {};
+
 #define IRAM_ATTR
 
 // From Arduino.h:

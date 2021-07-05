@@ -2,16 +2,9 @@
 
 #include "../Arduino.h"
 #include "FreeRTOS.h"
-
-#define portBASE_TYPE int
-typedef unsigned portBASE_TYPE UBaseType_t;
-typedef portBASE_TYPE          BaseType_t;
-typedef uint32_t               TickType_t;
+#include "FreeRTOSTypes.h"
 
 void vTaskDelay(const TickType_t xTicksToDelay);
-
-typedef void (*TaskFunction_t)(void*);
-typedef void* TaskHandle_t;
 
 #define CONFIG_ARDUINO_RUNNING_CORE 0
 
@@ -51,7 +44,8 @@ TickType_t xTaskGetTickCount(void);
 
 // Keep this in sync with the portMUX_TYPE struct definition please.
 #ifndef CONFIG_FREERTOS_PORTMUX_DEBUG
-#    define portMUX_INITIALIZER_UNLOCKED {}
+#    define portMUX_INITIALIZER_UNLOCKED                                                                                                   \
+        {}
 #else
 #    define portMUX_INITIALIZER_UNLOCKED                                                                                                   \
         { .owner = portMUX_FREE_VAL, .count = 0, .lastLockedFn = "(never locked)", .lastLockedLine = -1 }

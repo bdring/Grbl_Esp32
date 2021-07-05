@@ -1,11 +1,27 @@
 #pragma once
 
-#include "task.h"
+#include "Task.h"
+#include "FreeRTOSTypes.h"
 
-typedef void* QueueHandle_t;
+#include <queue>
+#include <mutex>
 
-using xQueueHandle = QueueHandle_t;
+struct QueueHandle {
+    std::mutex mutex;
 
+    size_t numberItems = 16;
+    size_t entrySize   = 1;
+    size_t readIndex   = 0;
+    size_t writeIndex  = 0;
+
+    // Basically this is just a round-robin buffer:
+    std::vector<char> data;
+};
+
+using QueueHandle_t = QueueHandle*;
+using xQueueHandle  = QueueHandle_t;
+
+#define errQUEUE_FULL ((BaseType_t)0)
 #define queueSEND_TO_BACK ((BaseType_t)0)
 #define queueSEND_TO_FRONT ((BaseType_t)1)
 #define queueOVERWRITE ((BaseType_t)2)

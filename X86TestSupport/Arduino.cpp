@@ -46,3 +46,29 @@ void delay(int ms) {
 int temperatureRead(void) {
     return 22;  // Nobody cares
 }
+
+esp_reset_reason_t esp_reset_reason(void) {
+    return ESP_RST_POWERON;
+}
+
+uint64_t EspClass::getEfuseMac() {
+    return 0x0102030405060708ULL;
+}
+uint32_t EspClass::getCpuFreqMHz() {
+    return 240;
+}
+const char* EspClass::getSdkVersion() {
+    return "v1.0-UnitTest-foobar";
+}
+uint32_t EspClass::getFreeHeap() {
+    return 0xFFFF;
+}
+uint32_t EspClass::getFlashChipSize() {
+    return 4 * 1024 * 1024;
+}
+
+void EspClass::restart() {
+    throw SystemRestartException();
+}
+
+EspClass ESP;

@@ -37,6 +37,15 @@
     <Filter Include="tests">
       <UniqueIdentifier>{9396f607-9b99-4f0e-bfdb-f549462e0205}</UniqueIdentifier>
     </Filter>
+    <Filter Include="X86TestSupport\freertos">
+      <UniqueIdentifier>{170a3d62-e923-4fa4-919a-c5a265fc6327}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="X86TestSupport\driver">
+      <UniqueIdentifier>{1c6b65a5-ab00-4633-aba8-cb541e15d722}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="X86TestSupport\soc">
+      <UniqueIdentifier>{2fe0b2ec-2f5f-44c9-8e5d-33a53d96d80c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Grbl_Esp32\src\Machine\SPIBus.h">
@@ -59,9 +68,6 @@
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\SimpleOutputStream.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="X86TestSupport\freertos\task.h">
-      <Filter>X86TestSupport</Filter>
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Spindles\Spindle.h">
       <Filter>src\Spindles</Filter>
@@ -141,9 +147,6 @@
     <ClInclude Include="Grbl_Esp32\src\Probe.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="X86TestSupport\freertos\Queue.h">
-      <Filter>X86TestSupport</Filter>
-    </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Machine\Endstops.h">
       <Filter>src\Machine</Filter>
     </ClInclude>
@@ -158,9 +161,6 @@
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Pins\PinCapabilities.h">
       <Filter>src\Pins</Filter>
-    </ClInclude>
-    <ClInclude Include="X86TestSupport\driver\uart.h">
-      <Filter>X86TestSupport</Filter>
     </ClInclude>
     <ClInclude Include="X86TestSupport\soc\dport_reg.h">
       <Filter>X86TestSupport</Filter>
@@ -177,9 +177,6 @@
     <ClInclude Include="Grbl_Esp32\src\Config.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="X86TestSupport\driver\rmt.h">
-      <Filter>X86TestSupport</Filter>
-    </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\GCode.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -189,17 +186,11 @@
     <ClInclude Include="Grbl_Esp32\src\WebUI\Authentication.h">
       <Filter>src\WebUI</Filter>
     </ClInclude>
-    <ClInclude Include="X86TestSupport\soc\ledc_struct.h">
-      <Filter>X86TestSupport</Filter>
-    </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Regex.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\WebUI\ESPResponse.h">
       <Filter>src\WebUI</Filter>
-    </ClInclude>
-    <ClInclude Include="X86TestSupport\driver\dac.h">
-      <Filter>X86TestSupport</Filter>
     </ClInclude>
     <ClInclude Include="Grbl_Esp32\src\Spindles\DacSpindle.h">
       <Filter>src\Spindles</Filter>
@@ -223,9 +214,6 @@
       <Filter>src\Spindles</Filter>
     </ClInclude>
     <ClInclude Include="X86TestSupport\esp_system.h">
-      <Filter>X86TestSupport</Filter>
-    </ClInclude>
-    <ClInclude Include="X86TestSupport\freertos\FreeRTOS.h">
       <Filter>X86TestSupport</Filter>
     </ClInclude>
     <ClInclude Include="X86TestSupport\SoftwareGPIO.h">
@@ -405,9 +393,6 @@
     <ClInclude Include="Grbl_Esp32\src\Machine\I2SOBus.h">
       <Filter>src\Machine</Filter>
     </ClInclude>
-    <ClInclude Include="X86TestSupport\driver\ledc.h">
-      <Filter>X86TestSupport</Filter>
-    </ClInclude>
     <ClInclude Include="X86TestSupport\SPI.h">
       <Filter>X86TestSupport</Filter>
     </ClInclude>
@@ -494,6 +479,33 @@
     </ClInclude>
     <ClInclude Include="X86TestSupport\Capture.h">
       <Filter>X86TestSupport</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\freertos\Task.h">
+      <Filter>X86TestSupport\freertos</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\freertos\Queue.h">
+      <Filter>X86TestSupport\freertos</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\freertos\FreeRTOS.h">
+      <Filter>X86TestSupport\freertos</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\freertos\FreeRTOSTypes.h">
+      <Filter>X86TestSupport\freertos</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\driver\dac.h">
+      <Filter>X86TestSupport\driver</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\driver\ledc.h">
+      <Filter>X86TestSupport\driver</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\driver\rmt.h">
+      <Filter>X86TestSupport\driver</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\driver\uart.h">
+      <Filter>X86TestSupport\driver</Filter>
+    </ClInclude>
+    <ClInclude Include="X86TestSupport\soc\ledc_struct.h">
+      <Filter>X86TestSupport\soc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -826,6 +838,21 @@
     </ClCompile>
     <ClCompile Include="X86TestSupport\nvs.cpp">
       <Filter>X86TestSupport</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\freertos\Task.cpp">
+      <Filter>X86TestSupport\freertos</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\freertos\Queue.cpp">
+      <Filter>X86TestSupport\freertos</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\driver\dac.cpp">
+      <Filter>X86TestSupport\driver</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\driver\ledc.cpp">
+      <Filter>X86TestSupport\driver</Filter>
+    </ClCompile>
+    <ClCompile Include="X86TestSupport\driver\uartdriver.cpp">
+      <Filter>X86TestSupport\driver</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

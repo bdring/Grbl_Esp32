@@ -174,6 +174,7 @@
     <ClInclude Include="X86TestSupport\esp_err.h" />
     <ClInclude Include="X86TestSupport\esp_system.h" />
     <ClInclude Include="X86TestSupport\freertos\FreeRTOS.h" />
+    <ClInclude Include="X86TestSupport\freertos\FreeRTOSTypes.h" />
     <ClInclude Include="X86TestSupport\freertos\Queue.h" />
     <ClInclude Include="X86TestSupport\freertos\Task.h" />
     <ClInclude Include="X86TestSupport\FS.h" />
@@ -303,7 +304,12 @@
     <ClCompile Include="Grbl_Esp32\test\TestFrameworkTest.cpp" />
     <ClCompile Include="Grbl_Esp32\test\test_main.cpp" />
     <ClCompile Include="X86TestSupport\Arduino.cpp" />
+    <ClCompile Include="X86TestSupport\driver\dac.cpp" />
+    <ClCompile Include="X86TestSupport\driver\ledc.cpp" />
+    <ClCompile Include="X86TestSupport\driver\uartdriver.cpp" />
     <ClCompile Include="X86TestSupport\ExceptionHelper.cpp" />
+    <ClCompile Include="X86TestSupport\freertos\Queue.cpp" />
+    <ClCompile Include="X86TestSupport\freertos\Task.cpp" />
     <ClCompile Include="X86TestSupport\FS.cpp" />
     <ClCompile Include="X86TestSupport\nvs.cpp" />
     <ClCompile Include="X86TestSupport\Print.cpp" />
