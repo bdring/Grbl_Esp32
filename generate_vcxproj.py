@@ -17,6 +17,7 @@ PATHS_TO_SEARCH = ['Grbl_Esp32']
 HEADER_EXT = ['.h', '.inl']
 SOURCE_EXT = ['.c', '.cpp']
 OTHER_EXT = ['.ino', '.md']
+TEST_IGNORE = ['I2SOut.cpp','I2SOut.h']
 
 import os, uuid
 
@@ -276,5 +277,15 @@ def main(paths):
 	for path in paths:
 		generator.Walk(path)
 	generator.Generate()
+    
+def tests(paths):
+	generator = Generator()
+	generator.Name = "UnitTests"
+	OTHER_EXT = ['.md']
+	newpaths = ['Grbl_Esp32', 'X86TestSupport']
+	for path in newpaths:
+		generator.Walk(path)
+	generator.Generate()
 
 main(PATHS_TO_SEARCH)
+

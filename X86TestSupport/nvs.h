@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include "esp_err.h"
 
 class NvsEmulator {
     // NVS is basically a key-value store.
@@ -28,10 +29,10 @@ public:
         }
     }
 
-    bool tryGetStr(const char* str, char* buf, int32_t& len) {
+    bool tryGetStr(const char* str, char* buf, size_t& len) {
         auto it = data.find(str);
         if (it != data.end()) {
-            auto v = int32_t(it->second.size());
+            auto v = it->second.size();
             if (buf) {
                 if (v > len) {
                     v = len;
@@ -47,10 +48,10 @@ public:
         }
     }
 
-    bool tryGetBlob(const char* str, char* buf, int32_t& len) {
+    bool tryGetBlob(const char* str, void* buf, size_t& len) {
         auto it = data.find(str);
         if (it != data.end()) {
-            auto v = int32_t(it->second.size());
+            auto v = it->second.size();
             if (buf) {
                 if (v > len) {
                     v = len;
@@ -65,6 +66,8 @@ public:
             return false;
         }
     }
+
+    void set(const char* str, std::string value) { data[str] = value; }
 
     void erase(const char* str) {
         auto it = data.find(str);
@@ -97,10 +100,7 @@ inline esp_err_t nvs_get_stats(const char* part_name, nvs_stats_t* stats) {
     return ESP_OK;
 }
 
-inline esp_err_t nvs_erase_all(nvs_handle handle) {
-    handle->clear();
-    return ESP_OK;
-}
+esp_err_t nvs_erase_all(nvs_handle handle);
 
 enum nvs_open_mode { NVS_READWRITE };
 
@@ -157,7 +157,7 @@ esp_err_t nvs_get_blob(nvs_handle handle, const char* key, void* out_value, size
 esp_err_t nvs_erase_key(nvs_handle handle, const char* key);
 esp_err_t nvs_erase_all(nvs_handle handle);
 
-esp_err_t nvs_set_i8(nvs_handle handle, const char* key, int32_t value);
+esp_err_t nvs_set_i8(nvs_handle handle, const char* key, int8_t value);
 esp_err_t nvs_set_i32(nvs_handle handle, const char* key, int32_t value);
 esp_err_t nvs_set_str(nvs_handle handle, const char* key, const char* value);
 esp_err_t nvs_set_blob(nvs_handle handle, const char* key, const void* value, size_t length);

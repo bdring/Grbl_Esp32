@@ -49,7 +49,8 @@ namespace UserOutput {
 
     // ==================================================================
 
-    AnalogOutput::AnalogOutput(uint8_t number, Pin& pin, float pwm_frequency) : _number(number), _pin(pin), _pwm_frequency(pwm_frequency) {
+    AnalogOutput::AnalogOutput(uint8_t number, Pin& pin, uint32_t pwm_frequency) :
+        _number(number), _pin(pin), _pwm_frequency(pwm_frequency) {
         if (_pin.undefined()) {
             return;
         }

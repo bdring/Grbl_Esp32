@@ -166,6 +166,7 @@
     <ClInclude Include="Grbl_Esp32\test\TestFactory.h" />
     <ClInclude Include="Grbl_Esp32\test\TestFramework.h" />
     <ClInclude Include="X86TestSupport\Arduino.h" />
+    <ClInclude Include="X86TestSupport\Capture.h" />
     <ClInclude Include="X86TestSupport\driver\dac.h" />
     <ClInclude Include="X86TestSupport\driver\ledc.h" />
     <ClInclude Include="X86TestSupport\driver\rmt.h" />
@@ -304,6 +305,7 @@
     <ClCompile Include="X86TestSupport\Arduino.cpp" />
     <ClCompile Include="X86TestSupport\ExceptionHelper.cpp" />
     <ClCompile Include="X86TestSupport\FS.cpp" />
+    <ClCompile Include="X86TestSupport\nvs.cpp" />
     <ClCompile Include="X86TestSupport\Print.cpp" />
     <ClCompile Include="X86TestSupport\Stream.cpp" />
     <ClCompile Include="X86TestSupport\WString.cpp" />

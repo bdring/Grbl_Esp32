@@ -42,3 +42,7 @@ extern "C" void __digitalWrite(uint8_t pin, uint8_t val) {
 void delay(int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
+
+int temperatureRead(void) {
+    return 22;  // Nobody cares
+}
