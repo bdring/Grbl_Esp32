@@ -563,9 +563,7 @@ void report_build_info(const char* line, uint8_t client) {
         grbl_send(client, "M");  // TODO Need to deal with M8...it could be disabled
     }
     grbl_send(client, "P");
-    if (config->_homingSingleAxisCommands) {
-        grbl_send(client, "H");
-    }
+    grbl_send(client, "H");
     if (config->_limitsTwoSwitchesOnAxis) {
         grbl_send(client, "L");
     }

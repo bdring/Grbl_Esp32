@@ -77,7 +77,6 @@ namespace Machine {
         // executed in sync with GCode commands. It is not a real-time command.
         bool _enableParkingOverrideControl = false;
         bool _deactivateParkingUponInit    = false;
-        bool _homingSingleAxisCommands     = false;
 
         // At power-up or a reset, Grbl will check the limit switch states to ensure they are not active
         // before initialization. If it detects a problem and the hard limits setting is enabled, Grbl will
