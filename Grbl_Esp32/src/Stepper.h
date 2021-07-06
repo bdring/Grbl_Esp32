@@ -28,19 +28,13 @@
 
 #include <cstdint>
 
-enum stepper_id_t {
-    ST_TIMED = 0,
-    ST_RMT,
-    ST_I2S_STATIC,
-    ST_I2S_STREAM,
-};
-
 namespace Stepper {
     // Is it time to disable the steppers?
     bool shouldDisable();
 
     void init();
-    void switch_mode(stepper_id_t new_stepper);
+
+    void pulse_func();
 
     // Enable steppers, but cycle does not start unless called by motion control or realtime command.
     void wake_up();
@@ -69,5 +63,3 @@ namespace Stepper {
     extern uint32_t isr_count;  // for debugging only
 }
 // private
-
-extern EnumItem stepTypes[];

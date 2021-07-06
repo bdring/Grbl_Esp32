@@ -23,11 +23,6 @@ struct PrepFlag {
     uint8_t decelOverride : 1;
 };
 
-// fStepperTimer should be an integer divisor of the bus speed, i.e. of fTimers
-const uint32_t fTimers             = 80000000;  // the frequency of ESP32 timers
-const uint32_t fStepperTimer       = 20000000;  // frequency of step pulse timer
-const int      ticksPerMicrosecond = fStepperTimer / 1000000;
-
 // Define Adaptive Multi-Axis Step-Smoothing(AMASS) levels and cutoff frequencies. The highest level
 // frequency bin starts at 0Hz and ends at its cutoff frequency. The next lower level frequency bin
 // starts at the next higher cutoff frequency, and so on. The cutoff frequencies for each level must
@@ -39,5 +34,5 @@ const int      ticksPerMicrosecond = fStepperTimer / 1000000;
 // NOTE: Current settings are set to overdrive the ISR to no more than 16kHz, balancing CPU overhead
 // and timer accuracy.  Do not alter these settings unless you know what you are doing.
 
-const uint32_t amassThreshold = fStepperTimer / 8000;
+const uint32_t amassThreshold = Machine::Stepping::fStepperTimer / 8000;
 const int      maxAmassLevel  = 3;  // Each level increase doubles the threshold

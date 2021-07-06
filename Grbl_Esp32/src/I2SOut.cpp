@@ -49,6 +49,7 @@
 #include "Settings.h"
 #include "SettingsDefinitions.h"
 #include "Machine/MachineConfig.h"
+#include "Stepper.h"
 
 #include <freertos/FreeRTOS.h>
 #include <driver/periph_ctrl.h>
@@ -124,9 +125,8 @@ static portMUX_TYPE i2s_out_spinlock = portMUX_INITIALIZER_UNLOCKED;
 static int i2s_out_initialized = 0;
 
 #ifdef USE_I2S_OUT_STREAM_IMPL
-static volatile uint32_t             i2s_out_pulse_period;
-static uint32_t                      i2s_out_remain_time_until_next_pulse;  // Time remaining until the next pulse (μsec)
-static volatile i2s_out_pulse_func_t i2s_out_pulse_func;
+static volatile uint32_t i2s_out_pulse_period;
+static uint32_t          i2s_out_remain_time_until_next_pulse;  // Time remaining until the next pulse (μsec)
 #endif
 
 static uint8_t i2s_out_ws_pin   = 255;
@@ -374,29 +374,28 @@ static int IRAM_ATTR i2s_fillout_dma_buffer(lldesc_t* dma_desc) {
                 // pulser status may change in pulse phase func, so I need to check it every time.
                 if (i2s_out_pulser_status == STEPPING) {
                     // fillout future DMA buffer (tail of the DMA buffer chains)
-                    if (i2s_out_pulse_func != NULL) {
-                        uint32_t old_rw_pos = o_dma.rw_pos;
-                        I2S_OUT_PULSER_EXIT_CRITICAL();   // Temporarily unlocked status lock as it may be locked in pulse callback.
-                        (*i2s_out_pulse_func)();          // should be pushed into buffer max DMA_SAMPLE_SAFE_COUNT
-                        I2S_OUT_PULSER_ENTER_CRITICAL();  // Lock again.
-                        // Calculate pulse period.
-                        i2s_out_remain_time_until_next_pulse += i2s_out_pulse_period - I2S_OUT_USEC_PER_PULSE * (o_dma.rw_pos - old_rw_pos);
-                        if (i2s_out_pulser_status == WAITING) {
-                            // i2s_out_set_passthrough() has called from the pulse function.
-                            // It needs to go into pass-through mode.
-                            // This DMA descriptor must be a tail of the chain.
-                            dma_desc->qe.stqe_next = NULL;  // Cut the DMA descriptor ring. This allow us to identify the tail of the buffer.
-                        } else if (i2s_out_pulser_status == PASSTHROUGH) {
-                            // i2s_out_reset() has called during the execution of the pulse function.
-                            // I2S has already in static mode, and buffers has cleared to zero.
-                            // To prevent the pulse function from being called back,
-                            // we assume that the buffer is already full.
-                            i2s_out_remain_time_until_next_pulse = 0;                 // There is no need to fill the current buffer.
-                            o_dma.rw_pos                         = DMA_SAMPLE_COUNT;  // The buffer is full.
-                            break;
-                        }
-                        continue;
+                    uint32_t old_rw_pos = o_dma.rw_pos;
+                    I2S_OUT_PULSER_EXIT_CRITICAL();  // Temporarily unlocked status lock as it may be locked in pulse callback.
+                    Stepper::pulse_func();
+
+                    I2S_OUT_PULSER_ENTER_CRITICAL();  // Lock again.
+                    // Calculate pulse period.
+                    i2s_out_remain_time_until_next_pulse += i2s_out_pulse_period - I2S_OUT_USEC_PER_PULSE * (o_dma.rw_pos - old_rw_pos);
+                    if (i2s_out_pulser_status == WAITING) {
+                        // i2s_out_set_passthrough() has called from the pulse function.
+                        // It needs to go into pass-through mode.
+                        // This DMA descriptor must be a tail of the chain.
+                        dma_desc->qe.stqe_next = NULL;  // Cut the DMA descriptor ring. This allow us to identify the tail of the buffer.
+                    } else if (i2s_out_pulser_status == PASSTHROUGH) {
+                        // i2s_out_reset() has called during the execution of the pulse function.
+                        // I2S has already in static mode, and buffers has cleared to zero.
+                        // To prevent the pulse function from being called back,
+                        // we assume that the buffer is already full.
+                        i2s_out_remain_time_until_next_pulse = 0;                 // There is no need to fill the current buffer.
+                        o_dma.rw_pos                         = DMA_SAMPLE_COUNT;  // The buffer is full.
+                        break;
                     }
+                    continue;
                 }
             }
             // no pulse data in push buffer (pulse off or idle or callback is not defined)
@@ -678,13 +677,6 @@ int IRAM_ATTR i2s_out_set_pulse_period(uint32_t period) {
     return 0;
 }
 
-int IRAM_ATTR i2s_out_set_pulse_callback(i2s_out_pulse_func_t func) {
-#ifdef USE_I2S_OUT_STREAM_IMPL
-    i2s_out_pulse_func = func;
-#endif
-    return 0;
-}
-
 int IRAM_ATTR i2s_out_reset() {
     I2S_OUT_PULSER_ENTER_CRITICAL();
     i2s_out_stop();
@@ -705,7 +697,7 @@ int IRAM_ATTR i2s_out_reset() {
 }
 
 //
-// Initialize funtion (external function)
+// Initialize function (external function)
 //
 // XXX does this really need IRAM_ATTR ? It is not called from an ISR
 int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
@@ -917,7 +909,6 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
 
     // default pulse callback period (μsec)
     i2s_out_pulse_period = init_param.pulse_period;
-    i2s_out_pulse_func   = init_param.pulse_func;
 
     // Create the task that will feed the buffer
     xTaskCreatePinnedToCore(i2sOutTask,
@@ -979,7 +970,6 @@ int IRAM_ATTR i2s_out_init() {
         default_param.ws_pin       = wsPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
         default_param.bck_pin      = bckPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
         default_param.data_pin     = dataPin.getNative(Pin::Capabilities::Output | Pin::Capabilities::Native);
-        default_param.pulse_func   = NULL;
         default_param.pulse_period = I2S_OUT_USEC_PER_PULSE;
         default_param.init_val     = I2S_OUT_INIT_VAL;
 

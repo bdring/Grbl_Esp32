@@ -260,10 +260,8 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
             // Keep trying until all axes have finished
         } while (axislock);
 
-        if (config->_stepType == ST_I2S_STREAM) {
-            if (!approach) {
-                delay_ms(I2S_OUT_DELAY_MS);
-            }
+        if (!approach) {
+            config->_stepping->synchronize();
         }
 
         Stepper::reset();    // Immediately force kill steppers and reset step segment buffer.

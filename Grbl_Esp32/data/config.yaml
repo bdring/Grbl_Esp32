@@ -2,11 +2,13 @@ name: "ESP32 Dev Controller V4"
 board: "ESP32 Dev Controller V4"
 yaml_wiki: "https://github.com/bdring/Grbl_Esp32/wiki/YAML-Config-File"
 
-idle_time: 250
-step_type: RMT
-dir_delay_microseconds: 1
-pulse_microseconds: 2
-disable_delay_us: 0
+stepping:
+  engine: RMT
+  idle_ms: 250
+  dir_delay_us: 1
+  pulse_us: 2
+  disable_delay_us: 0
+
 homing_init_lock: false
 
 axes:
@@ -70,9 +72,10 @@ axes:
       cycle: 1
       mpos: 10
       positive_direction: true
-      feed_rate: 30.000
       seek_rate: 300.000
-      locate_scaler: 2.000
+      feed_rate: 30.000
+      seek_scaler: 2.000
+      feed_scaler: 1.000
       debounce: 500
       pulloff: 1.000
 

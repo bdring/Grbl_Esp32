@@ -272,11 +272,11 @@ Error home(int cycle) {
     }
     sys.state = State::Homing;  // Set system state variable
 
-    config->_axes->beginLowLatency();
+    config->_stepping->beginLowLatency();
 
     mc_homing_cycle(cycle);
 
-    config->_axes->endLowLatency();
+    config->_stepping->endLowLatency();
 
     if (!sys.abort) {             // Execute startup scripts after successful homing.
         sys.state = State::Idle;  // Set to IDLE when complete.

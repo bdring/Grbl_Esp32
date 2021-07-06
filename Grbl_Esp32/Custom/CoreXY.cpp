@@ -196,13 +196,10 @@ bool user_defined_homing(AxisMask cycle_mask) {
                         }
                     } while (!switch_touched);
 
-#ifdef USE_I2S_STEPS
-                    if (config->_stepType == ST_I2S_STREAM) {
-                        if (!approach) {
-                            delay_ms(I2S_OUT_DELAY_MS);
-                        }
+                    if (!approach) {
+                        config->_stepping->synchronize();
                     }
-#endif
+
                     st_reset();                            // Immediately force kill steppers and reset step segment buffer.
                     delay_ms(config->_homing->_debounce);  // Delay to allow transient dynamics to dissipate.
 

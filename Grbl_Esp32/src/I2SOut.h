@@ -64,8 +64,6 @@ const int I2S_OUT_DMABUF_LEN   = 2000; /* maximum size in bytes (4092 is DMA's l
 const int I2S_OUT_DELAY_DMABUF_MS = (I2S_OUT_DMABUF_LEN / sizeof(uint32_t) * I2S_OUT_USEC_PER_PULSE / 1000);
 const int I2S_OUT_DELAY_MS        = (I2S_OUT_DELAY_DMABUF_MS * (I2S_OUT_DMABUF_COUNT + 1));
 
-typedef void (*i2s_out_pulse_func_t)(void);
-
 typedef struct {
     /*
         I2S bitstream (32-bits): Transfers from MSB(bit31) to LSB(bit0) in sequence
@@ -80,12 +78,11 @@ typedef struct {
         If I2S_OUT_PIN_BASE is set to 128,
         bit0:Expanded GPIO 128, 1: Expanded GPIO 129, ..., v: Expanded GPIO 159
     */
-    uint8_t              ws_pin;
-    uint8_t              bck_pin;
-    uint8_t              data_pin;
-    i2s_out_pulse_func_t pulse_func;
-    uint32_t             pulse_period;  // aka step rate.
-    uint32_t             init_val;
+    uint8_t  ws_pin;
+    uint8_t  bck_pin;
+    uint8_t  data_pin;
+    uint32_t pulse_period;  // aka step rate.
+    uint32_t init_val;
 } i2s_out_init_t;
 
 /*
@@ -100,7 +97,6 @@ int i2s_out_init(i2s_out_init_t& init_param);
         .ws_pin = I2S_OUT_WS,
         .bck_pin = I2S_OUT_BCK,
         .data_pin = I2S_OUT_DATA,
-        .pulse_func = NULL,
         .pulse_period = I2S_OUT_USEC_PER_PULSE,
         .init_val = I2S_OUT_INIT_VAL,
     };
@@ -159,11 +155,6 @@ void i2s_out_delay();
    Set the pulse callback period in microseconds
  */
 int i2s_out_set_pulse_period(uint32_t usec);
-
-/*
-   Register a callback function to generate pulse data
- */
-int i2s_out_set_pulse_callback(i2s_out_pulse_func_t func);
 
 /*
    Get current pulser mode

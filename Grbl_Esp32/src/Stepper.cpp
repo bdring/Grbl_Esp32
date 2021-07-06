@@ -26,12 +26,10 @@
 #include "Stepper.h"
 
 #include "Machine/MachineConfig.h"
+#include "Stepping.h"
 #include "StepperPrivate.h"
 #include "Planner.h"
-#include "I2SOut.h"  // i2s_out_push_sample
-#include "Report.h"  // info_serial
-
-#include <atomic>
+#include "Report.h"   // info_serial
 #include <Arduino.h>  // IRAM_ATTR
 
 using namespace Stepper;
@@ -88,9 +86,6 @@ static volatile uint8_t segment_buffer_tail;
 static uint8_t          segment_buffer_head;
 static uint8_t          segment_next_head;
 
-// Used to avoid ISR nesting of the "Stepper Driver Interrupt". Should never occur though.
-static std::atomic<bool> busy;
-
 // Pointers for the step segment being prepped from the planner buffer. Accessed only by the
 // main program. Pointers may be planning segments or planner blocks ahead of what being executed.
 static plan_block_t* pl_block;       // Pointer to the planner block being prepped
@@ -108,7 +103,7 @@ bool Stepper::shouldDisable() {
     // space.  Using "timer() > EndTime" fails across the positive to
     // negative transition using signed comparison, and across the
     // negative to positive transition using unsigned.
-    return isIdle && config->_idleTime != 255 && (esp_timer_get_time() - idleEndTime) > 0;
+    return isIdle && config->_stepping->_idleMsecs != 255 && (esp_timer_get_time() - idleEndTime) > 0;
 }
 
 // Segment preparation data struct. Contains all the necessary information to compute new segments
@@ -141,10 +136,6 @@ typedef struct {
 
 } st_prep_t;
 static st_prep_t prep;
-
-EnumItem stepTypes[] = {
-    { ST_TIMED, "Timed" }, { ST_RMT, "RMT" }, { ST_I2S_STATIC, "I2S_static" }, { ST_I2S_STREAM, "I2S_stream" }, EnumItem(ST_RMT)
-};
 
 /* "The Stepper Driver Interrupt" - This timer interrupt is the workhorse of Grbl. Grbl employs
    the venerable Bresenham line algorithm to manage and exactly synchronize multi-axis moves.
@@ -202,58 +193,6 @@ EnumItem stepTypes[] = {
 
 */
 
-// Forward references to functions that are only used herein
-static void timerWritePeriod(uint16_t timerTicks);
-static void timerInit();
-static void timerStart();
-static void timerStop();
-
-// Stepper timer configuration
-const int   stepTimerNumber = 0;
-hw_timer_t* stepTimer       = nullptr;  // Handle
-// autoReload true might give better step timing - but it also
-// might cause problems if an interrupt takes too long
-const bool autoReload = true;
-
-static void pulse_func();
-
-// Counts stepper ISR invocations.  This variable can be inspected
-// from the mainline code to determine if the stepper ISR is running,
-// since printing from the ISR is not a good idea.
-uint32_t Stepper::isr_count = 0;
-
-// TODO: Replace direct updating of the int32 position counters in the ISR somehow. Perhaps use smaller
-// int8 variables and update position counters only when a segment completes. This can get complicated
-// with probing and homing cycles that require true real-time positions.
-void IRAM_ATTR onStepperDriverTimer() {
-    // Timer ISR, normally takes a step.
-
-    // The intermediate handler clears the timer interrupt so we need not do it here
-
-    bool expected = false;
-    if (busy.compare_exchange_strong(expected, true)) {
-        ++isr_count;
-
-        // Using autoReload results is less timing jitter so it is
-        // probably best to have it on.  We keep the variable for
-        // convenience in debugging.
-        if (!autoReload) {
-            timerWrite(stepTimer, 0ULL);
-        }
-
-        // It is tempting to defer this until after pulse_func(),
-        // but if pulse_func() determines that no more stepping
-        // is required and disables the timer, then that will be undone
-        // if the re-enable happens afterwards.
-
-        timerAlarmEnable(stepTimer);
-
-        pulse_func();
-
-        busy.store(false);
-    }
-}
-
 /**
  * This phase of the ISR should ONLY create the pulses for the steppers.
  * This prevents jitter caused by the interval between the start of the
@@ -261,15 +200,9 @@ void IRAM_ATTR onStepperDriverTimer() {
  * call to this method that might cause variation in the timing. The aim
  * is to keep pulse timing as regular as possible.
  */
-static void IRAM_ATTR pulse_func() {
+void IRAM_ATTR Stepper::pulse_func() {
     auto n_axis = config->_axes->_numberAxis;
 
-    // If we are using GPIO stepping as opposed to RMT, record the
-    // time that we turned on the step pins so we can turn them off
-    // at the end of this routine without incurring another interrupt.
-    // This is unnecessary with RMT and I2S stepping since both of
-    // those methods time the turn off automatically.
-    uint64_t step_pulse_start_time = esp_timer_get_time();
     config->_axes->step(st.step_outbits, st.dir_outbits);
 
     // If there is no step segment, attempt to pop one from the stepper buffer
@@ -279,7 +212,7 @@ static void IRAM_ATTR pulse_func() {
             // Initialize new step segment and load number of steps to execute
             st.exec_segment = &segment_buffer[segment_buffer_tail];
             // Initialize step segment timing per step and load number of steps to execute.
-            timerWritePeriod(st.exec_segment->isrPeriod);
+            config->_stepping->setTimerPeriod(st.exec_segment->isrPeriod);
             st.step_count = st.exec_segment->n_step;  // NOTE: Can sometimes be zero when moving slow.
             // If the new segment starts a new planner block, initialize stepper variables and counters.
             // NOTE: When the segment data index changes, this indicates a new planner block.
@@ -348,41 +281,7 @@ static void IRAM_ATTR pulse_func() {
         }
     }
 
-    // stepping->unStep(pulseMicros);
-    uint64_t endMicros;
-    switch (config->_stepType) {
-        case ST_I2S_STREAM:
-            // Generate the number of pulses needed to span pulse_microseconds
-            i2s_out_push_sample(config->_pulseMicroSeconds);
-            config->_axes->unstep();
-            break;
-        case ST_I2S_STATIC:
-        case ST_TIMED:
-            endMicros = config->_pulseMicroSeconds + step_pulse_start_time;
-            // wait for step pulse time to complete...some time expired during code above
-            while ((esp_timer_get_time() - endMicros) < 0) {
-                NOP();  // spin here until time to turn off step
-            }
-            config->_axes->unstep();
-            break;
-        case ST_RMT:
-            break;
-    }
-}
-
-void Stepper::init() {
-    busy.store(false);
-
-    info_serial("Axis count %d", config->_axes->_numberAxis);
-    info_serial("Step type:%s Pulse:%dus Dsbl Delay:%dus Dir Delay:%dus",
-                // stepping->name(),
-                stepTypes[config->_stepType].name,
-                config->_pulseMicroSeconds,
-                config->_disableDelayMicroSeconds,
-                config->_directionDelayMicroSeconds);
-
-    // Other stepper use timer interrupt
-    timerInit();
+    config->_axes->unstep();
 }
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
@@ -392,17 +291,14 @@ void Stepper::wake_up() {
     config->_axes->set_disable(false);
     isIdle = false;
 
-    // Enable Stepper Driver Interrupt
-    timerStart();
+    // Enable Stepping Driver Interrupt
+    config->_stepping->startTimer();
 }
 
 // Reset and clear stepper subsystem variables
 void Stepper::reset() {
-    // Initialize stepper driver idle state.
-    // stepping->reset();
-    if (config->_stepType == ST_I2S_STREAM) {
-        i2s_out_reset();
-    }
+    // Initialize Stepping driver idle state.
+    config->_stepping->reset();
 
     go_idle();
     // Initialize stepper algorithm variables.
@@ -420,11 +316,12 @@ void Stepper::reset() {
 
 // Stepper shutdown
 void IRAM_ATTR Stepper::go_idle() {
-    // Disable Stepper Driver Interrupt. Allow Stepper Port Reset Interrupt to finish, if active.
-    timerStop();
+    // Disable Stepping Driver Interrupt.
+    config->_stepping->stopTimer();
 
     // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
-    if (((config->_idleTime != 255) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) && sys.state != State::Homing) {
+    if (((config->_stepping->_idleMsecs != 255) || sys_rt_exec_alarm != ExecAlarm::None || sys.state == State::Sleep) &&
+        sys.state != State::Homing) {
         // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
         // stop and not drift from residual inertial forces at the end of the last movement.
 
@@ -433,7 +330,7 @@ void IRAM_ATTR Stepper::go_idle() {
         } else {
             // Setup for shouldDisable()
             isIdle      = true;
-            idleEndTime = esp_timer_get_time() + (config->_idleTime * 1000);  // * 1000 because the time is in uSecs
+            idleEndTime = esp_timer_get_time() + (config->_stepping->_idleMsecs * 1000);  // * 1000 because the time is in uSecs
         }
     } else {
         config->_axes->set_disable(false);
@@ -846,7 +743,7 @@ void Stepper::prep_buffer() {
         // Compute CPU cycles per step for the prepped segment.
         // fStepperTimer is in units of timerTicks/sec, so the dimensional analysis is
         // timerTicks/sec * 60 sec/minute * minutes = timerTicks
-        uint32_t timerTicks = uint32_t(ceil((fStepperTimer * 60) * inv_rate));  // (timerTicks/step)
+        uint32_t timerTicks = uint32_t(ceil((Machine::Stepping::fStepperTimer * 60) * inv_rate));  // (timerTicks/step)
         int      level;
 
         // Compute step timing and multi-axis smoothing level.
@@ -913,49 +810,6 @@ float Stepper::get_realtime_rate() {
     }
 }
 
-// The argument is in units of ticks of the timer that generates ISRs
-static void IRAM_ATTR timerWritePeriod(uint16_t timerTicks) {
-    // stepping->setPeriod(uint16_t timerTicks);
-    if (config->_stepType == ST_I2S_STREAM) {
-        // 1 tick = fTimers / fStepperTimer
-        // Pulse ISR is called for each tick of alarm_val.
-        // The argument to i2s_out_set_pulse_period is in units of microseconds
-        i2s_out_set_pulse_period(((uint32_t)timerTicks) / ticksPerMicrosecond);
-    } else {
-        timerAlarmWrite(stepTimer, (uint64_t)timerTicks, autoReload);
-    }
-}
-
-static void IRAM_ATTR timerInit() {
-    const bool isEdge  = false;
-    const bool countUp = true;
-
-    // Prepare stepping interrupt callbacks.  The one that is actually
-    // used is determined by timerStart() and timerStop()
-
-    // Register pulse_func with the I2S subsystem
-    i2s_out_set_pulse_callback(pulse_func);
-
-    // Setup a timer for direct stepping
-    stepTimer = timerBegin(stepTimerNumber, fTimers / fStepperTimer, countUp);
-    timerAttachInterrupt(stepTimer, onStepperDriverTimer, isEdge);
-}
-
-static void IRAM_ATTR timerStart() {
-    // stepping->start();
-    if (config->_stepType == ST_I2S_STREAM) {
-        i2s_out_set_stepping();
-    } else {
-        timerWrite(stepTimer, 0ULL);
-        timerAlarmEnable(stepTimer);
-    }
-}
-
-static void IRAM_ATTR timerStop() {
-    // stepping->stop();
-    if (config->_stepType == ST_I2S_STREAM) {
-        i2s_out_set_passthrough();
-    } else if (stepTimer) {
-        timerAlarmDisable(stepTimer);
-    }
+void Stepper::init() {
+    config->_stepping->init();
 }

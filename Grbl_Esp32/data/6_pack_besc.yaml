@@ -1,11 +1,13 @@
 name: 6 Pack StepStick BESC
 board: 6-pack
 
-idle_time: 250
-step_type: I2S_static
-dir_delay_microseconds: 1
-pulse_microseconds: 2
-disable_delay_us: 0
+stepping:
+  engine: I2S_static
+  idle_ms: 250
+  dir_delay_us: 1
+  pulse_us: 2
+  disable_delay_us: 0
+
 homing_init_lock: false
 
 i2so:

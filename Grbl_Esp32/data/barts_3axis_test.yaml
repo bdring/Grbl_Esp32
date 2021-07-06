@@ -6,6 +6,13 @@ i2so:
   ws: gpio.17
   data: gpio.21
 
+stepping:
+  engine: I2S_STREAM
+  idle_ms: 250
+  pulse_us: 2
+  dir_delay_us: 1
+  disable_delay_us: 0
+
 axes:
   number_axis: 3
   
@@ -19,13 +26,13 @@ axes:
       cycle: 1
       positive_direction: false
       mpos: 10.000
-      feed_rate: 500.000
-      seek_rate: 100.000
       debounce: 10
       pulloff: 1.000
       square: false
-      search_scaler: 1.100
-      locate_scaler: 5.000
+      seek_rate: 500.000
+      feed_rate: 100.000
+      seek_scaler: 1.100
+      feed_scaler: 1.000
 
     gang0:
       endstops:
@@ -50,13 +57,13 @@ axes:
       cycle: 2
       positive_direction: false
       mpos: 10.000
-      feed_rate: 500.000
-      seek_rate: 100.000
       debounce: 10
       pulloff: 1.000
       square: false
-      search_scaler: 1.100
-      locate_scaler: 5.000
+      seek_rate: 500.000
+      feed_rate: 100.000
+      seek_scaler: 1.100
+      feed_scaler: 1.000
 
     gang0:
       endstops:
@@ -80,13 +87,13 @@ axes:
       cycle: 2
       positive_direction: false
       mpos: 10.000
-      feed_rate: 500.000
-      seek_rate: 100.000
       debounce: 10
       pulloff: 1.000
       square: false
-      search_scaler: 1.100
-      locate_scaler: 5.000
+      seek_rate: 500.000
+      feed_rate: 100.000
+      seek_scaler: 1.100
+      feed_scaler: 1.000
 
     gang0:
       endstops:
@@ -158,14 +165,7 @@ comms:
     dhcp: true
     channel: 1
 
-pulse_microseconds: 2
-dir_delay_microseconds: 1
-disable_delay_us: 0
-idle_time: 250
-
-
 software_debounce_ms: 0
-step_type: I2S_STREAM
 laser_mode: false
 arc_tolerance: 0.002
 junction_deviation: 0.010

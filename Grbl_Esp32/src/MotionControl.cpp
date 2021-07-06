@@ -329,9 +329,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
         return GCUpdatePos::None;  // Return if system reset has been issued.
     }
 
-    int save_stepper = config->_stepType; /* remember the stepper */
-
-    config->_axes->beginLowLatency();
+    config->_stepping->beginLowLatency();
 
     // Initialize probing control variables
     bool is_probe_away  = bit_istrue(parser_flags, GCParserProbeIsAway);
@@ -343,7 +341,7 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     if (config->_probe->tripped()) {
         sys_rt_exec_alarm = ExecAlarm::ProbeFailInitial;
         protocol_execute_realtime();
-        config->_axes->endLowLatency();
+        config->_stepping->endLowLatency();
         return GCUpdatePos::None;  // Nothing else to do but bail.
     }
     // Setup and queue probing motion. Auto cycle-start should not start the cycle.
@@ -356,12 +354,12 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     do {
         protocol_execute_realtime();
         if (sys.abort) {
-            config->_axes->endLowLatency();
+            config->_stepping->endLowLatency();
             return GCUpdatePos::None;  // Check for system abort
         }
     } while (sys.state != State::Idle);
 
-    config->_axes->endLowLatency();
+    config->_stepping->endLowLatency();
 
     // Probing cycle complete!
     // Set state variables and error out, if the probe failed and cycle with error is enabled.
@@ -467,8 +465,6 @@ void mc_reset() {
         }
         ganged_mode = gangDual;  // in case an error occurred during squaring
 
-        if (config->_stepType == ST_I2S_STREAM) {
-            i2s_out_reset();
-        }
+        config->_stepping->reset();
     }
 }

@@ -47,6 +47,7 @@ namespace Machine {
         handler.item("board", _board);
         handler.item("name", _name);
 
+        handler.section("stepping", _stepping);
         handler.section("axes", _axes);
         handler.section("i2so", _i2so);
         handler.section("spi", _spi);
@@ -56,15 +57,9 @@ namespace Machine {
         handler.section("comms", _comms);
         handler.section("macros", _macros);
 
-        handler.item("pulse_microseconds", _pulseMicroSeconds);
-        handler.item("dir_delay_microseconds", _directionDelayMicroSeconds);
-        handler.item("disable_delay_us", _disableDelayMicroSeconds);
-        handler.item("idle_time", _idleTime);
         handler.section("user_outputs", _userOutputs);
         handler.section("sdcard", _sdCard);
         handler.item("software_debounce_ms", _softwareDebounceMs);
-        handler.item("step_type", _stepType, stepTypes);
-
         // TODO: Consider putting these under a gcode: hierarchy level? Or motion control?
         handler.item("laser_mode", _laserMode);
         handler.item("arc_tolerance", _arcTolerance);
@@ -108,6 +103,10 @@ namespace Machine {
 
         if (_spi == nullptr) {
             _spi = new SPIBus();
+        }
+
+        if (_stepping == nullptr) {
+            _stepping = new Stepping();
         }
 
         // We do not auto-create an I2SO bus config node

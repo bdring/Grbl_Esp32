@@ -6,7 +6,6 @@
 #include "../NutsBolts.h"
 #include "../MotionControl.h"
 #include "../Stepper.h"     // stepper_id_t
-#include "../I2SOut.h"      // i2s_out_push_sample
 #include "MachineConfig.h"  // config->
 
 namespace Machine {
@@ -17,7 +16,7 @@ namespace Machine {
     }
 
     void Axes::init() {
-        info_serial("Init Motors");
+        info_serial("Axis count %d", config->_axes->_numberAxis);
 
         if (_sharedStepperDisable.defined()) {
             _sharedStepperDisable.setAttr(Pin::Attr::Output);
@@ -130,33 +129,10 @@ namespace Machine {
                     }
                 }
             }
-
-            auto wait_direction = config->_directionDelayMicroSeconds;
-            if (wait_direction > 0) {
-                // stepping->turnaround(wait_direction);
-                // Stepper drivers need some time between changing direction and doing a pulse.
-                switch (config->_stepType) {
-                    case stepper_id_t::ST_I2S_STREAM:
-                        i2s_out_push_sample(wait_direction);
-                        break;
-                    case stepper_id_t::ST_I2S_STATIC:
-                    case stepper_id_t::ST_TIMED: {
-                        // wait for step pulse time to complete...some time expired during code above
-                        //
-                        // If we are using GPIO stepping as opposed to RMT, record the
-                        // time that we turned on the direction pins so we can delay a bit.
-                        // If we are using RMT, we can't delay here.
-                        auto direction_pulse_start_time = esp_timer_get_time() + wait_direction;
-                        while ((esp_timer_get_time() - direction_pulse_start_time) < 0) {
-                            NOP();  // spin here until time to turn off step
-                        }
-                        break;
-                    }
-                    case stepper_id_t::ST_RMT:
-                        break;
-                }
-            }
+            config->_stepping->waitDirection();
         }
+
+        config->_stepping->startPulseTimer();
 
         // Turn on step pulses for motors that are supposed to step now
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
@@ -172,8 +148,10 @@ namespace Machine {
             }
         }
     }
+
     // Turn all stepper pins off
     void IRAM_ATTR Axes::unstep() {
+        config->_stepping->waitPulse();
         auto n_axis = _numberAxis;
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
             for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
@@ -212,35 +190,6 @@ namespace Machine {
 
         Assert(false, "Cannot find axis for motor. Something wonky is going on here...");
         return SIZE_MAX;
-    }
-
-    // Wait for motion to complete; the axes can still be moving
-    // after the data has been sent to the stepping engine, due
-    // to queuing delays.
-    void Axes::synchronize() {
-        if (config->_stepType == ST_I2S_STREAM) {
-            // XXX instead of a delay, we could sense when the DMA and
-            // FIFO have drained. It might be as simple as waiting for
-            // I2SO.conf1.tx_start == 0, while yielding.
-            delay_ms(I2S_OUT_DELAY_MS);
-        }
-    }
-    void Axes::beginLowLatency() {
-        _switchedStepper = config->_stepType == ST_I2S_STREAM;
-        if (_switchedStepper) {
-            config->_stepType = ST_I2S_STATIC;
-        }
-    }
-    void Axes::endLowLatency() {
-        if (_switchedStepper) {
-            if (i2s_out_get_pulser_status() != PASSTHROUGH) {
-                // Called during streaming. Stop streaming.
-                debug_serial("Stop the I2S streaming and switch to the passthrough mode.");
-                i2s_out_set_passthrough();
-                i2s_out_delay();  // Wait for a change in mode.
-            }
-            config->_stepType = ST_I2S_STREAM;
-        }
     }
 
     // Configuration helpers:

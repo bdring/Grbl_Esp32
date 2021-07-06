@@ -25,6 +25,10 @@
 
 #include "../Report.h"
 #include "../Machine/MachineConfig.h"
+#include "../Stepper.h"   // ST_I2S_*
+#include "../Stepping.h"  // config->_stepping->_engine
+
+using namespace Machine;
 
 namespace Motors {
     rmt_item32_t StandardStepper::rmtItem[2];
@@ -57,8 +61,8 @@ namespace Motors {
 
         _dir_pin.setAttr(Pin::Attr::Output);
 
-        // stepping->init(_step_pin);
-        if (config->_stepType == ST_RMT) {
+        auto stepping = config->_stepping;
+        if (stepping->_engine == Stepping::RMT) {
             rmtConfig.rmt_mode                       = RMT_MODE_TX;
             rmtConfig.clk_div                        = 20;
             rmtConfig.mem_block_num                  = 2;
@@ -69,8 +73,8 @@ namespace Motors {
             rmtConfig.tx_config.carrier_level        = RMT_CARRIER_LEVEL_LOW;
             rmtConfig.tx_config.idle_output_en       = true;
 
-            rmtItem[0].duration0 = config->_directionDelayMicroSeconds < 1 ? 1 : config->_directionDelayMicroSeconds * 4;
-            rmtItem[0].duration1 = 4 * config->_pulseMicroSeconds;
+            rmtItem[0].duration0 = stepping->_directionDelayUsecs < 1 ? 1 : stepping->_directionDelayUsecs * 4;
+            rmtItem[0].duration1 = 4 * stepping->_pulseUsecs;
             rmtItem[1].duration0 = 0;
             rmtItem[1].duration1 = 0;
 
@@ -105,7 +109,7 @@ namespace Motors {
     }
 
     void IRAM_ATTR StandardStepper::step() {
-        if (config->_stepType == ST_RMT) {
+        if (config->_stepping->_engine == Stepping::RMT) {
             RMT.conf_ch[_rmt_chan_num].conf1.mem_rd_rst = 1;
             RMT.conf_ch[_rmt_chan_num].conf1.tx_start   = 1;
         } else {
@@ -114,7 +118,7 @@ namespace Motors {
     }
 
     void IRAM_ATTR StandardStepper::unstep() {
-        if (config->_stepType != ST_RMT) {
+        if (config->_stepping->_engine != Stepping::RMT) {
             _step_pin.off();
         }
     }
@@ -127,4 +131,13 @@ namespace Motors {
     namespace {
         MotorFactory::InstanceBuilder<StandardStepper> registration("standard_stepper");
     }
+
+    void StandardStepper::validate() const {
+        Assert(_step_pin.defined(), "Step pin should be configured.");
+        Assert(_dir_pin.defined(), "Direction pin should be configured.");
+        bool isI2SO = config->_stepping->_engine == Stepping::I2S_STREAM || config->_stepping->_engine == Stepping::I2S_STATIC;
+        Assert(!isI2SO || _step_pin.name().startsWith("I2SO"), "Step pin must be an I2SO pin");
+        Assert(!isI2SO || _dir_pin.name().startsWith("I2SO"), "Direction pin must be an I2SO pin");
+    }
+
 }

@@ -67,10 +67,6 @@ namespace Machine {
             return false;
         }
 
-        void synchronize();  // Wait for motion to complete
-        void beginLowLatency();
-        void endLowLatency();
-
         // These are used for setup and to talk to the motors as a group.
         void init();
         void read_settings();  // more like 'after read settings, before init'. Oh well...

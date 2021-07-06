@@ -10,7 +10,7 @@ namespace Configuration {
                              "yaml_wiki: \"https://github.com/bdring/Grbl_Esp32/wiki/YAML-Config-File\"\n"
                              "\n"
                              "idle_time: 250\n"
-                             "step_type: rmt\n"
+                             "engine: rmt\n"
                              "dir_delay_microseconds: 1\n"
                              "pulse_microseconds: 2\n"
                              "disable_delay_us: 0\n"
@@ -63,7 +63,7 @@ namespace Configuration {
             p.Tokenize();
 
             Assert(!p.Eof(), "No EOF expected");
-            Assert(p.key().equals("step_type"), "Expected 'step_type'");
+            Assert(p.key().equals("engine"), "Expected 'engine'");
             p.Tokenize();
 
             Assert(!p.Eof(), "No EOF expected");

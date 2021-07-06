@@ -28,7 +28,7 @@
 #include "../Probe.h"
 #include "../SDCard.h"
 #include "../Spindles/Spindle.h"
-#include "../EnumItem.h"
+#include "../Stepping.h"
 #include "../Stepper.h"
 #include "../Logging.h"
 #include "../Config.h"
@@ -47,6 +47,7 @@ namespace Machine {
         Axes*           _axes        = nullptr;
         SPIBus*         _spi         = nullptr;
         I2SOBus*        _i2so        = nullptr;
+        Stepping*       _stepping    = nullptr;
         CoolantControl* _coolant     = nullptr;
         Probe*          _probe       = nullptr;
         Communications* _comms       = nullptr;
@@ -57,19 +58,13 @@ namespace Machine {
 
         Spindles::SpindleList _spindles;
 
-        int _pulseMicroSeconds          = 3;
-        int _directionDelayMicroSeconds = 0;
-        int _disableDelayMicroSeconds   = 0;
-
-        bool    _laserMode          = false;
-        float   _arcTolerance       = 0.002f;
-        float   _junctionDeviation  = 0.01f;
-        uint8_t _idleTime           = 255;
-        bool    _verboseErrors      = false;
-        bool    _reportInches       = false;
-        bool    _homingInitLock     = true;
-        int     _softwareDebounceMs = 0;
-        int     _stepType           = ST_RMT;
+        bool  _laserMode          = false;
+        float _arcTolerance       = 0.002f;
+        float _junctionDeviation  = 0.01f;
+        bool  _verboseErrors      = false;
+        bool  _reportInches       = false;
+        bool  _homingInitLock     = true;
+        int   _softwareDebounceMs = 0;
 
         // Enables a special set of M-code commands that enables and disables the parking motion.
         // These are controlled by `M56`, `M56 P1`, or `M56 Px` to enable and `M56 P0` to disable.
