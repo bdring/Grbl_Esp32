@@ -160,6 +160,7 @@ namespace Machine {
                 a->unstep();
             }
         }
+        config->_stepping->finishPulse();
     }
 
     // Some small helpers to find the axis index and axis ganged index for a given motor. This

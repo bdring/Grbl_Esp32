@@ -168,14 +168,16 @@ static inline void gpio_matrix_out_check(uint8_t gpio, uint32_t signal_idx, bool
     }
 }
 
-static inline void i2s_out_single_data() {
+void i2s_out_push() {
+    if (i2s_out_pulser_status == PASSTHROUGH) {
 #if I2S_OUT_NUM_BITS == 16
-    uint32_t port_data = atomic_load(&i2s_out_port_data);
-    port_data <<= 16;                   // Shift needed. This specification is not spelled out in the manual.
-    I2S0.conf_single_data = port_data;  // Apply port data in real-time (static I2S)
+        uint32_t port_data = atomic_load(&i2s_out_port_data);
+        port_data <<= 16;                   // Shift needed. This specification is not spelled out in the manual.
+        I2S0.conf_single_data = port_data;  // Apply port data in real-time (static I2S)
 #else
-    I2S0.conf_single_data = atomic_load(&i2s_out_port_data);  // Apply port data in real-time (static I2S)
+        I2S0.conf_single_data = atomic_load(&i2s_out_port_data);  // Apply port data in real-time (static I2S)
 #endif
+    }
 }
 
 static inline void i2s_out_reset_fifo_without_lock() {
@@ -561,15 +563,6 @@ void IRAM_ATTR i2s_out_write(uint8_t pin, uint8_t val) {
     } else {
         atomic_fetch_and(&i2s_out_port_data, ~bit);
     }
-#ifdef USE_I2S_OUT_STREAM_IMPL
-    // It needs a lock for access, but I've given up because I need speed.
-    // This is not a problem as long as there is no overlap between the status change and digitalWrite().
-    if (i2s_out_pulser_status == PASSTHROUGH) {
-        i2s_out_single_data();
-    }
-#else
-    i2s_out_single_data();
-#endif
 }
 
 uint8_t IRAM_ATTR i2s_out_read(uint8_t pin) {
@@ -835,8 +828,8 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
     }
 #else
     // For the static output mode
-    I2S0.conf_chan.tx_chan_mod = 3;                    // 3:right+constant 4:left+constant (when tx_msb_right = 1)
-    I2S0.conf_single_data      = init_param.init_val;  // initial constant value
+    I2S0.conf_chan.tx_chan_mod = 3;               // 3:right+constant 4:left+constant (when tx_msb_right = 1)
+    I2S0.conf_single_data = init_param.init_val;  // initial constant value
 #endif
 #if I2S_OUT_NUM_BITS == 16
     I2S0.fifo_conf.tx_fifo_mod        = 0;   // 0: 16-bit dual channel data, 3: 32-bit single channel data
@@ -844,8 +837,8 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
     I2S0.sample_rate_conf.tx_bits_mod = 16;  // default is 16-bits
     I2S0.sample_rate_conf.rx_bits_mod = 16;  // default is 16-bits
 #else
-    I2S0.fifo_conf.tx_fifo_mod = 3;                    // 0: 16-bit dual channel data, 3: 32-bit single channel data
-    I2S0.fifo_conf.rx_fifo_mod = 3;                    // 0: 16-bit dual channel data, 3: 32-bit single channel data
+    I2S0.fifo_conf.tx_fifo_mod = 3;               // 0: 16-bit dual channel data, 3: 32-bit single channel data
+    I2S0.fifo_conf.rx_fifo_mod = 3;               // 0: 16-bit dual channel data, 3: 32-bit single channel data
     // Data width is 32-bit. Forgetting this setting will result in a 16-bit transfer.
     I2S0.sample_rate_conf.tx_bits_mod = 32;
     I2S0.sample_rate_conf.rx_bits_mod = 32;

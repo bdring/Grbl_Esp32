@@ -91,6 +91,7 @@ namespace Machine {
                 i2s_out_push_sample(_pulseUsecs);
                 break;
             case I2S_STATIC:
+                i2s_out_push();
             case TIMED:
                 spinDelay(_stepPulseStartTime, _pulseUsecs);
                 break;
@@ -129,6 +130,20 @@ namespace Machine {
             case stepper_id_t::I2S_STATIC:
             case stepper_id_t::TIMED:
                 _stepPulseStartTime = esp_timer_get_time();
+                break;
+            case stepper_id_t::RMT:
+                break;
+        }
+    }
+
+    void Stepping::finishPulse() {
+        switch (_engine) {
+            case stepper_id_t::I2S_STREAM:
+                break;
+            case stepper_id_t::I2S_STATIC:
+                i2s_out_push();
+                break;
+            case stepper_id_t::TIMED:
                 break;
             case stepper_id_t::RMT:
                 break;

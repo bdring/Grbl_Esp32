@@ -74,6 +74,7 @@ namespace Machine {
         void waitPulse();      // Wait for pulse length
         void waitDirection();  // Wait for direction delay
         void waitMotion();     // Wait for motion to complete
+        void finishPulse();    // Cleanup after unstep
 
         // Timers
         void setTimerPeriod(uint16_t timerTicks);
