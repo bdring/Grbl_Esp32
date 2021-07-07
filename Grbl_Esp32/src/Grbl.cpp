@@ -195,7 +195,9 @@ void run_once() {
         error_all("Stacktrace: %s", ex.stackTrace.c_str());
         sys.state = State::ConfigAlarm;
     }
-    if (++tries > 1) {
+    // sys.abort is a user-initiated exit via ^x so we don't limit the number of occurrences
+    if (!sys.abort && ++tries > 1) {
+        info_serial("Stalling due to too many failures");
         while (1) {}
     }
     // This is inside a loop in Grbl_Esp32.ino
