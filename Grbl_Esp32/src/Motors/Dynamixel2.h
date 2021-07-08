@@ -127,7 +127,7 @@ namespace Motors {
             handler.item("invert_direction", _invert_direction);
 
             handler.item("count_min", _countMin);
-            handler.item("count_max", _countMin);
+            handler.item("count_max", _countMax);
             handler.item("full_time_move", _dynamixelFullTimeMove);
             handler.section("uart", _uart);
 
