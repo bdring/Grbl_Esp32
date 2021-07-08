@@ -12,8 +12,9 @@ namespace Motors {
         void init() override;
         void set_disable(bool disable) override;
 
-        float _transition_poiont;
-  protected:
+        float _transition_point;
+
+    protected:
         void config_message() override;
     };
 }
