@@ -111,6 +111,8 @@ void grbl_init() {
                 sys.state = State::Idle;
             }
 
+            limits_init();
+
             // Check for power-up and set system alarm if homing is enabled to force homing cycle
             // by setting Grbl's alarm state. Alarm locks out all g-code commands, including the
             // startup scripts, but allows access to settings and internal commands. Only a homing
@@ -128,7 +130,6 @@ void grbl_init() {
             Spindles::Spindle::switchSpindle(0, config->_spindles, spindle);
 
             config->_coolant->init();
-            limits_init();
             config->_probe->init();
         }
 
