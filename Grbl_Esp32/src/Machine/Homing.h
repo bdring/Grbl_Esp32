@@ -30,13 +30,13 @@ namespace Machine {
         int   _cycle             = -1;  // what homing cycle does this axis home on?
         bool  _square            = false;
         bool  _positiveDirection = true;
-        float _mpos              = 0.0f;
+        float _mpos              = 0.0f;    // After homing this will be the mpos of the switch location
         float _feedRate          = 50.0f;   // pulloff and second touch speed
         float _seekRate          = 200.0f;  // this first approach speed
         float _pulloff           = 1.0f;    // mm
-        int   _debounce          = 250;     // ms settling time for homing switches after motion
+        int   _debounce_ms       = 250;     // ms settling time for homing switches after motion
         float _seek_scaler       = 1.1f;    // multiplied by max travel for max homing distance on first touch
-        float _feed_scaler       = 1.0f;
+        float _feed_scaler       = 1.1f;    // multiplier to pulloff for moving to switch after pulloff
 
         // Configuration system helpers:
         void validate() const override { Assert(_cycle >= 0, "Homing cycle must be defined"); }
@@ -47,7 +47,7 @@ namespace Machine {
             handler.item("mpos", _mpos);
             handler.item("feed_rate", _feedRate);
             handler.item("seek_rate", _seekRate);
-            handler.item("debounce", _debounce);
+            handler.item("debounce_ms", _debounce_ms);
             handler.item("pulloff", _pulloff);
             handler.item("square", _square);
             handler.item("seek_scaler", _seek_scaler);

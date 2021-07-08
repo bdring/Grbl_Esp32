@@ -9,7 +9,7 @@ stepping:
   pulse_us: 2
   disable_delay_us: 0
 
-homing_init_lock: false
+homing_init_lock: true
 
 axes:
   number_axis: 3
@@ -21,12 +21,12 @@ axes:
     acceleration: 25
     max_travel: 1000
     homing:
-      cycle: 2
+      cycle: -1
       mpos: 10
       positive_direction: false
       feed_rate: 50.000
       seek_rate: 200.000
-      debounce: 500
+      debounce_ms: 500
       pulloff: 1.000
     
     gang0:
@@ -45,12 +45,12 @@ axes:
     acceleration: 25
     max_travel: 1000
     homing:
-      cycle: 2
+      cycle: 0
       mpos: 10
       positive_direction: false
       feed_rate: 50.000
       seek_rate: 600.000
-      debounce: 500
+      debounce_ms: 500
       pulloff: 1.500
 
     gang0:
@@ -76,13 +76,13 @@ axes:
       feed_rate: 30.000
       seek_scaler: 2.000
       feed_scaler: 1.000
-      debounce: 500
+      debounce_ms: 500
       pulloff: 1.000
 
     gang0:
       endstops:
         dual: gpio.16:low:pu
-        hard_limits: true
+        hard_limits: false
       stepstick:
         direction: gpio.33
         step: gpio.27

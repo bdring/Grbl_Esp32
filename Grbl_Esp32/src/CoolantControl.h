@@ -31,7 +31,7 @@ class CoolantControl : public Configuration::Configurable {
     Pin _mist;
     Pin _flood;
 
-    float _delay = 0.0;
+    uint32_t _delay_ms = 0;
 
     void write(CoolantState state);
 

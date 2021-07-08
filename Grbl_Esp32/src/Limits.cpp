@@ -186,7 +186,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
             auto axisConfig = config->_axes->_axis[axis];
             auto homing     = axisConfig->_homing;
 
-            debounce = std::max(debounce, homing->_debounce);
+            debounce = std::max(debounce, homing->_debounce_ms);
 
             auto axis_homing_rate = seek ? homing->_seekRate : homing->_feedRate;
 

@@ -95,7 +95,7 @@ void CoolantControl::set_state(CoolantState state) {
     }
     write(state);
     sys.report_ovr_counter = 0;  // Set to report change immediately
-    delay_msec(int32_t(1000.0 * _delay), DwellMode::SysSuspend);
+    delay_msec(_delay_ms, DwellMode::SysSuspend);
 }
 
 void CoolantControl::off() {
@@ -116,5 +116,5 @@ void CoolantControl::sync(CoolantState state) {
 void CoolantControl::group(Configuration::HandlerBase& handler) {
     handler.item("flood", _flood);
     handler.item("mist", _mist);
-    handler.item("delay", _delay);
+    handler.item("delay_ms", _delay_ms);
 }

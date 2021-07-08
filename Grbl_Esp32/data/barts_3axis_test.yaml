@@ -23,10 +23,10 @@ axes:
     max_travel: 1000
     soft_limits: false
     homing:
-      cycle: 1
+      cycle: 2
       positive_direction: false
       mpos: 10.000
-      debounce: 10
+      debounce_ms: 250
       pulloff: 1.000
       square: false
       seek_rate: 500.000
@@ -57,7 +57,7 @@ axes:
       cycle: 2
       positive_direction: false
       mpos: 10.000
-      debounce: 10
+      debounce_ms: 250
       pulloff: 1.000
       square: false
       seek_rate: 500.000
@@ -87,7 +87,7 @@ axes:
       cycle: 2
       positive_direction: false
       mpos: 10.000
-      debounce: 10
+      debounce_ms: 250
       pulloff: 1.000
       square: false
       seek_rate: 500.000
@@ -145,7 +145,7 @@ sdcard:
 coolant:
   flood: NO_PIN
   mist: NO_PIN
-  delay: 0.000
+  delay_ms: 0.000
 
 probe:
   pin: NO_PIN
