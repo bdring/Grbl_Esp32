@@ -56,7 +56,7 @@ namespace Spindles {
             _speeds.push_back({ 255, 100 });
         }
 
-        setupSpeeds(_laser_full_power);
+        setupSpeeds(_pwm_period);
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
     }
 

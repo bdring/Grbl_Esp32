@@ -28,9 +28,6 @@
 namespace Spindles {
     // this is the same as a PWM spindle but the M4 compensation is supported.
     class Laser : public PWM {
-    private:
-        uint32_t _laser_full_power;
-
     public:
         Laser() = default;
 
@@ -46,11 +43,7 @@ namespace Spindles {
         // Name of the configurable. Must match the name registered in the cpp file.
         const char* name() const override { return "Laser"; }
 
-        void group(Configuration::HandlerBase& handler) override {
-            handler.item("laser_full_power", _laser_full_power);
-
-            PWM::group(handler);
-        }
+        void group(Configuration::HandlerBase& handler) override { PWM::group(handler); }
 
         ~Laser() {}
     };
