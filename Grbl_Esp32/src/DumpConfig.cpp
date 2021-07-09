@@ -256,33 +256,33 @@ void print_motor_class(int axis, int gang) {
         return;
     }
     if (!strcasecmp(name, "stepstick")) {
-        print_stepstick((StandardStepper*)m, axis, gang, name);
+        print_stepstick(static_cast<StandardStepper*>(m), axis, gang, name);
         return;
     }
 #if 0
     if (!strcasecmp(name, "solenoid")) {
-        print_solenoid((Solenoid*)m, axis, gang, name);
+        print_solenoid(static_cast<Solenoid*>(m), axis, gang, name);
         return;
     }
 #endif
     if (!strcasecmp(name, "rc_servo")) {
-        print_rc_servo((RcServo*)m, axis, gang, name);
+        print_rc_servo(static_cast<RcServo*>(m), axis, gang, name);
         return;
     }
     if (!strcasecmp(name, "dynamixel2")) {
-        print_dynamixel((Dynamixel2*)m, axis, gang, name);
+        print_dynamixel(static_cast<Dynamixel2*>(m), axis, gang, name);
         return;
     }
     if (!strcasecmp(name, "unipolar")) {
-        print_unipolar((UnipolarMotor*)m, axis, gang, name);
+        print_unipolar(static_cast<UnipolarMotor*>(m), axis, gang, name);
         return;
     }
     if (!strcasecmp(name, "tmc_2130") || !strcasecmp(name, "tmc_5160")) {
-        print_trinamic_spi((TrinamicDriver*)m, axis, gang, name);
+        print_trinamic_spi(static_cast<TrinamicDriver*>(m), axis, gang, name);
         return;
     }
     if (!strcasecmp(name, "tmc_2208") || !strcasecmp(name, "tmc_2209")) {
-        print_trinamic_uart((TrinamicUartDriver*)m, axis, gang, name);
+        print_trinamic_uart(static_cast<TrinamicUartDriver*>(m), axis, gang, name);
         return;
     }
 }
@@ -428,7 +428,7 @@ void print_spindle(const char* name, Spindle* s) {
     item("spinup_ms", s->_spinup_delay);
     item("spindown_ms", s->_spindown_delay);
     item("tool", int(0));
-    item("speeds", makeSpeedMap((PWM*)s));
+    item("speeds", makeSpeedMap(static_cast<PWM*>(s)));
     end_section();
 }
 void print_onoff_spindle(const char* name, PWM* s) {
@@ -537,31 +537,31 @@ void print_spindle_class() {
         case int8_t(SpindleType::NONE):
             break;
         case int8_t(SpindleType::PWM):
-            print_pwm_spindle("pwm", (PWM*)s);
+            print_pwm_spindle("pwm", static_cast<PWM*>(s));
             break;
         case int8_t(SpindleType::RELAY):
-            print_relay_spindle((Relay*)s);
+            print_relay_spindle(static_cast<Relay*>(s));
             break;
         case int8_t(SpindleType::LASER):
-            print_laser_spindle((Laser*)s);
+            print_laser_spindle(static_cast<Laser*>(s));
             break;
         case int8_t(SpindleType::DAC):
-            print_dac_spindle((Dac*)s);
+            print_dac_spindle(static_cast<Dac*>(s));
             break;
         case int8_t(SpindleType::HUANYANG):
-            print_huanyang_spindle((Huanyang*)s);
+            print_huanyang_spindle(static_cast<Huanyang*>(s));
             break;
         case int8_t(SpindleType::BESC):
-            print_besc_spindle((BESC*)s);
+            print_besc_spindle(static_cast<BESC*>(s));
             break;
         case int8_t(SpindleType::_10V):
-            print_10v_spindle((_10v*)s);
+            print_10v_spindle(static_cast<_10v*>(s));
             break;
         case int8_t(SpindleType::H2A):
-            print_h2a_spindle((H2A*)s);
+            print_h2a_spindle(static_cast<H2A*>(s));
             break;
         case int8_t(SpindleType::YL620):
-            print_yl620_spindle((YL620*)s);
+            print_yl620_spindle(static_cast<YL620*>(s));
             break;
     }
 }
