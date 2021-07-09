@@ -57,3 +57,5 @@ bool limitsCheckTravel(float* target);
 
 // check if a switch has been defined
 bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index);
+
+extern uint8_t limit_pins[MAX_N_AXIS][2];

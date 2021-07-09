@@ -7,5 +7,7 @@ namespace Motors {
     public:
         Nullmotor(uint8_t axis_index);
         bool set_homing_mode(bool isHoming) { return false; }
+
+        const char* name() override { return "null_motor"; }
     };
 }

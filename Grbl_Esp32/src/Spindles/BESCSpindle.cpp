@@ -36,16 +36,6 @@
 const double BESC_PWM_FREQ     = 50.0;  // Hz
 const double BESC_PULSE_PERIOD = (1.0 / BESC_PWM_FREQ);
 
-// Ok to tweak. These are the pulse lengths in seconds
-// #define them in your machine definition file if you want different values
-#ifndef BESC_MIN_PULSE_SECS
-#    define BESC_MIN_PULSE_SECS 0.0009f  // in seconds
-#endif
-
-#ifndef BESC_MAX_PULSE_SECS
-#    define BESC_MAX_PULSE_SECS 0.0022f  // in seconds
-#endif
-
 //calculations...don't change
 const uint16_t BESC_MIN_PULSE_CNT = static_cast<uint16_t>(BESC_MIN_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0);
 const uint16_t BESC_MAX_PULSE_CNT = static_cast<uint16_t>(BESC_MAX_PULSE_SECS / BESC_PULSE_PERIOD * 65535.0);

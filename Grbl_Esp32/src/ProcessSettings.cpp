@@ -1,6 +1,7 @@
 #include "Grbl.h"
 #include <map>
 #include "Regex.h"
+#include "DumpConfig.h"
 
 // WG Readable and writable as guest
 // WU Readable and writable as user and admin
@@ -290,6 +291,11 @@ Error report_startup_lines(const char* value, WebUI::AuthenticationLevel auth_le
     return Error::Ok;
 }
 
+Error dump_config_command(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    dump_config();
+    return Error::Ok;
+}
+
 std::map<const char*, uint8_t, cmp_str> restoreCommands = {
 #ifdef ENABLE_RESTORE_DEFAULT_SETTINGS
     { "$", SettingsRestore::Defaults },   { "settings", SettingsRestore::Defaults },
@@ -461,6 +467,8 @@ void make_grbl_commands() {
     new GrblCommand("I", "Build/Info", get_report_build_info, idleOrAlarm);
     new GrblCommand("N", "GCode/StartupLines", report_startup_lines, idleOrAlarm);
     new GrblCommand("RST", "Settings/Restore", restore_settings, idleOrAlarm, WA);
+
+    new GrblCommand("CD", "Config/Dump", dump_config_command, anyState);
 };
 
 // normalize_key puts a key string into canonical form -

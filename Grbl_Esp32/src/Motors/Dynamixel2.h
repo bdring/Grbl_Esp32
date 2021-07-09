@@ -84,16 +84,26 @@ namespace Motors {
         void set_disable(bool disable) override;
         void update() override;
 
+        const char* name() override { return "Dynamixel2"; }
+
         static bool    uart_ready;
         static uint8_t ids[MAX_N_AXIS][2];
 
+        float _dxl_count_min;
+        float _dxl_count_max;
+
+        uint8_t     _id;
+
+        uint8_t     _tx_pin;
+        uint8_t     _rx_pin;
+        uint8_t     _rts_pin;
+        uart_port_t _uart_num;
 
     protected:
         void config_message() override;
 
         void set_location();
 
-        uint8_t _id;
         char    _dxl_tx_message[50];  // outgoing to dynamixel
         uint8_t _dxl_rx_message[50];  // received from dynamixel
 
@@ -112,14 +122,6 @@ namespace Motors {
         static void     dxl_bulk_goal_position();  // set all motorsd init_uart(uint8_t id, uint8_t axis_index, uint8_t dual_axis_index);
 
         float _homing_position;
-
-        float _dxl_count_min;
-        float _dxl_count_max;
-
-        uint8_t     _tx_pin;
-        uint8_t     _rx_pin;
-        uint8_t     _rts_pin;
-        uart_port_t _uart_num;
 
         bool _disabled;
         bool _has_errors;

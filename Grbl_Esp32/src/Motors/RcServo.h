@@ -36,15 +36,19 @@ namespace Motors {
         void set_disable(bool disable) override;
         void update() override;
 
+        const char* name() override { return "rc_servo"; }
+
         void _write_pwm(uint32_t duty);
-        
+
+        uint8_t       _pwm_pin;
+        FloatSetting* rc_servo_cal_min;
+        FloatSetting* rc_servo_cal_max;
 
     protected:
         void config_message() override;
 
         void set_location();
 
-        uint8_t  _pwm_pin;
         uint8_t  _channel_num;
         uint32_t _current_pwm_duty;
 
@@ -54,8 +58,5 @@ namespace Motors {
         float _pwm_pulse_max;
 
         bool _disabled;
-
-        FloatSetting* rc_servo_cal_min;
-        FloatSetting* rc_servo_cal_max;
-        };
+    };
 }

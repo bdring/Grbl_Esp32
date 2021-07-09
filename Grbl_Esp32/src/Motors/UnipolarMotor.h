@@ -14,17 +14,18 @@ namespace Motors {
         void set_direction(bool) override;
         void step() override;
 
-    private:
         uint8_t _pin_phase0;
         uint8_t _pin_phase1;
         uint8_t _pin_phase2;
         uint8_t _pin_phase3;
-        uint8_t _current_phase;
         bool    _half_step;
+
+    private:
+        uint8_t _current_phase;
         bool    _enabled;
         bool    _dir;
 
-  protected:
+    protected:
         void config_message() override;
     };
 }

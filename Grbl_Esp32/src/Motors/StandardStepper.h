@@ -17,6 +17,8 @@ namespace Motors {
         void unstep() override;
         void read_settings() override;
 
+        const char* name() override { return "stepstick"; }
+
         void init_step_dir_pins();
 
     protected:
@@ -25,6 +27,7 @@ namespace Motors {
 #ifdef USE_RMT_STEPS
         rmt_channel_t _rmt_chan_num;
 #endif
+    public:
         bool    _invert_step_pin;
         bool    _invert_dir_pin;
         uint8_t _step_pin;

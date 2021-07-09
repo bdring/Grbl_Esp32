@@ -41,18 +41,18 @@
 // It should be included at the outset to know the machine configuration.
 #include "Config.h"
 
-#    include <stdint.h>
+#include <stdint.h>
 
 /* Assert */
-#    if defined(I2S_OUT_NUM_BITS)
-#        if (I2S_OUT_NUM_BITS != 16) && (I2S_OUT_NUM_BITS != 32)
-#            error "I2S_OUT_NUM_BITS should be 16 or 32"
-#        endif
-#    else
-#        define I2S_OUT_NUM_BITS 32
+#if defined(I2S_OUT_NUM_BITS)
+#    if (I2S_OUT_NUM_BITS != 16) && (I2S_OUT_NUM_BITS != 32)
+#        error "I2S_OUT_NUM_BITS should be 16 or 32"
 #    endif
+#else
+#    define I2S_OUT_NUM_BITS 32
+#endif
 
-#    define I2SO(n) (I2S_OUT_PIN_BASE + n)
+#define I2SO(n) (I2S_OUT_PIN_BASE + n)
 
 /* 16-bit mode: 1000000 usec / ((160000000 Hz) / 10 / 2) x 16 bit/pulse x 2(stereo) = 4 usec/pulse */
 /* 32-bit mode: 1000000 usec / ((160000000 Hz) /  5 / 2) x 32 bit/pulse x 2(stereo) = 4 usec/pulse */
@@ -187,3 +187,15 @@ int i2s_out_reset();
    Reference: "ESP32 Technical Reference Manual" by Espressif Systems
      https://www.espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf
  */
+#ifndef I2S_OUT_WS
+#    define I2S_OUT_WS GPIO_NUM_17
+#endif
+#ifndef I2S_OUT_BCK
+#    define I2S_OUT_BCK GPIO_NUM_22
+#endif
+#ifndef I2S_OUT_DATA
+#    define I2S_OUT_DATA GPIO_NUM_21
+#endif
+#ifndef I2S_OUT_INIT_VAL
+#    define I2S_OUT_INIT_VAL 0
+#endif

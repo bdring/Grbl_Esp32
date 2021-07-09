@@ -94,6 +94,8 @@ namespace Motors {
         // called from a periodic task.
         virtual void update() {}
 
+        virtual const char* name() = 0;
+
     protected:
         // config_message(), called from init(), displays a message describing
         // the motor configuration - pins and other motor-specific items
@@ -115,3 +117,4 @@ namespace Motors {
         uint8_t _dual_axis_index;  // 0 = primary 1=ganged
     };
 }
+extern Motors::Motor* myMotor[MAX_AXES][MAX_GANGED];

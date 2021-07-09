@@ -11,9 +11,11 @@ namespace Motors {
         void update() override;
         void init() override;
         void set_disable(bool disable) override;
+        void name() override { return "unipolar"; }
 
         float _transition_poiont;
-  protected:
+
+    protected:
         void config_message() override;
     };
 }

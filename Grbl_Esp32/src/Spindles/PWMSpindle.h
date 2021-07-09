@@ -44,7 +44,9 @@ namespace Spindles {
         virtual ~PWM() {}
 
     protected:
-        int32_t  _current_pwm_duty;
+        int32_t _current_pwm_duty;
+
+    public:
         uint32_t _min_rpm;
         uint32_t _max_rpm;
         uint32_t _pwm_off_value;
@@ -65,7 +67,7 @@ namespace Spindles {
         virtual void set_dir_pin(bool Clockwise);
         virtual void set_output(uint32_t duty);
         virtual void set_enable_pin(bool enable_pin);
-        virtual void deinit();
+        void         deinit() override;
 
         virtual void get_pins_and_settings();
         uint8_t      calc_pwm_precision(uint32_t freq);

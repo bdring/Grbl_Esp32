@@ -101,4 +101,5 @@ namespace Spindles {
 
         virtual ~VFD() {}
     };
+    const int VFD_RS485_UART_PORT = 2;  // hard coded for this port right now
 }

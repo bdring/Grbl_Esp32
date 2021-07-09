@@ -97,6 +97,8 @@ namespace Motors {
         bool set_homing_mode(bool is_homing) override;
         void set_disable(bool disable) override;
 
+        const char* name() override { return _driver_part_number == 2008 ? "tmc_2008" : "tmc_2009"; }
+
         uint8_t addr;
 
     private:
@@ -105,9 +107,13 @@ namespace Motors {
         TMC2209Stepper*  tmcstepper;  // all other driver types are subclasses of this one
         TrinamicUartMode _homing_mode;
         uint16_t         _driver_part_number;  // example: use 2209 for TMC2209
-        float            _r_sense;
-        bool             _has_errors;
-        bool             _disabled;
+
+    public:
+        float _r_sense;
+
+    private:
+        bool _has_errors;
+        bool _disabled;
 
         TrinamicUartMode _mode = TrinamicUartMode::None;
         bool             test();

@@ -42,7 +42,6 @@
 // be plenty: assuming 9600 8N1, that's roughly 250 chars. A message of 2x16 chars with 4x4
 // chars buffering is just 40 chars.
 
-const int        VFD_RS485_UART_PORT  = 2;  // hard coded for this port right now
 const int        VFD_RS485_BUF_SIZE   = 127;
 const int        VFD_RS485_QUEUE_SIZE = 10;                                         // numv\ber of commands that can be queued up.
 const int        RESPONSE_WAIT_MILLIS = 1000;                                       // how long to wait for a response in milliseconds
@@ -567,7 +566,7 @@ namespace Spindles {
 
         set_speed_command(rpm, rpm_cmd);
 
-        // Sometimes sync_rpm is retained between different set_speed_command's. We don't want that - we want 
+        // Sometimes sync_rpm is retained between different set_speed_command's. We don't want that - we want
         // spindle sync to kick in after we set the speed. This forces that.
         _sync_rpm = UINT32_MAX;
 

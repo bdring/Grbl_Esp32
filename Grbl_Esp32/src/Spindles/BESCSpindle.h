@@ -52,3 +52,12 @@ namespace Spindles {
         virtual ~BESC() {}
     };
 }
+// Ok to tweak. These are the pulse lengths in seconds
+// #define them in your machine definition file if you want different values
+#ifndef BESC_MIN_PULSE_SECS
+#    define BESC_MIN_PULSE_SECS 0.0009f  // in seconds
+#endif
+
+#ifndef BESC_MAX_PULSE_SECS
+#    define BESC_MAX_PULSE_SECS 0.0022f  // in seconds
+#endif

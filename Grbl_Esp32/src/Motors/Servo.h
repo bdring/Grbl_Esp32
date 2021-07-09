@@ -36,6 +36,8 @@ namespace Motors {
         bool set_homing_mode(bool isHoming) override;
         void set_disable(bool disable) override;
 #endif
+        const char* name() override { return "servo"; }
+
         virtual void update() = 0;  // This must be implemented by derived classes
 
     protected:

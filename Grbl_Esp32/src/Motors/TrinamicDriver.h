@@ -95,6 +95,8 @@ namespace Motors {
         bool set_homing_mode(bool ishoming) override;
         void set_disable(bool disable) override;
 
+        const char* name() override { return _driver_part_number == 2130 ? "tmc_2130" : "tmc_5160"; }
+
         void debug_message();
 
     private:
@@ -102,12 +104,20 @@ namespace Motors {
 
         TMC2130Stepper* tmcstepper;  // all other driver types are subclasses of this one
         TrinamicMode    _homing_mode;
-        uint8_t         _cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
-        uint16_t        _driver_part_number;      // example: use 2130 for TMC2130
-        float           _r_sense;
-        int8_t          _spi_index;
-        bool            _has_errors;
-        bool            _disabled;
+
+    public:
+        uint8_t _cs_pin = UNDEFINED_PIN;  // The chip select pin (can be the same for daisy chain)
+
+    private:
+        uint16_t _driver_part_number;  // example: use 2130 for TMC2130
+
+    public:
+        float _r_sense;
+
+    private:
+        int8_t _spi_index;
+        bool   _has_errors;
+        bool   _disabled;
 
         TrinamicMode _mode = TrinamicMode::None;
         bool         test();

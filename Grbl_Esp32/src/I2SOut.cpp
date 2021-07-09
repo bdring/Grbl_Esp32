@@ -945,18 +945,6 @@ int IRAM_ATTR i2s_out_init(i2s_out_init_t& init_param) {
     return 0;
 }
 
-#ifndef I2S_OUT_WS
-#    define I2S_OUT_WS GPIO_NUM_17
-#endif
-#ifndef I2S_OUT_BCK
-#    define I2S_OUT_BCK GPIO_NUM_22
-#endif
-#ifndef I2S_OUT_DATA
-#    define I2S_OUT_DATA GPIO_NUM_21
-#endif
-#ifndef I2S_OUT_INIT_VAL
-#    define I2S_OUT_INIT_VAL 0
-#endif
 /*
   Initialize I2S out by default parameters.
 
