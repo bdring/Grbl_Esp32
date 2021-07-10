@@ -318,11 +318,13 @@ void print_stepping() {
 }
 
 void print_i2so() {
+#ifdef USE_I2S_OUT
     section("i2so");
     item("bck", pinspec(I2S_OUT_BCK));
     item("data", pinspec(I2S_OUT_DATA));
     item("ws", pinspec(I2S_OUT_WS));
     end_section();
+#endif
 }
 void print_spi() {
     section("spi");
