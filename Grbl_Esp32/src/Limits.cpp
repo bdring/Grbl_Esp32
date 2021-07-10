@@ -396,7 +396,7 @@ float limitsMinPosition(uint8_t axis) {
 // Checks and reports if target array exceeds machine travel limits.
 // Return true if exceeding limits
 // Set $<axis>/MaxTravel=0 to selectively remove an axis from soft limit checks
-bool __attribute__((weak)) limitsCheckTravel(float* target) {
+bool WEAK_FUNC limitsCheckTravel(float* target) {
     uint8_t idx;
     auto    n_axis = number_axis->get();
     for (idx = 0; idx < n_axis; idx++) {
@@ -413,6 +413,6 @@ bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index) {
     return (limit_pins[axis][gang_index] != UNDEFINED_PIN);
 }
 
-bool __attribute__((weak)) user_defined_homing(uint8_t cycle_mask) {
+bool WEAK_FUNC user_defined_homing(uint8_t cycle_mask) {
     return false;
 }

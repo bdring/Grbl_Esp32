@@ -166,35 +166,39 @@ static uint8_t getClientChar(uint8_t* data) {
     return CLIENT_ALL;
 }
 
+void pollClients() {
+    uint8_t data = 0;
+    uint8_t client;  // who sent the data
+    while ((client = getClientChar(&data)) != CLIENT_ALL) {
+        // Pick off realtime command characters directly from the serial stream. These characters are
+        // not passed into the main buffer, but these set system state flag bits for realtime execution.
+        if (is_realtime_command(data)) {
+            execute_realtime_command(static_cast<Cmd>(data), client);
+        } else {
+#if defined(ENABLE_SD_CARD)
+            if (get_sd_state(false) < SDState::Busy) {
+#endif  //ENABLE_SD_CARD
+                vTaskEnterCritical(&myMutex);
+                client_buffer[client].write(data);
+                vTaskExitCritical(&myMutex);
+#if defined(ENABLE_SD_CARD)
+            } else {
+                if (data == '\r' || data == '\n') {
+                    grbl_sendf(client, "error %d\r\n", Error::AnotherInterfaceBusy);
+                    grbl_msg_sendf(client, MsgLevel::Info, "SD card job running");
+                }
+            }
+#endif  //ENABLE_SD_CARD
+        }
+    }  // if something available
+}
+
 // this task runs and checks for data on all interfaces
 // REaltime stuff is acted upon, then characters are added to the appropriate buffer
 void clientCheckTask(void* pvParameters) {
-    uint8_t            data = 0;
-    uint8_t            client;  // who sent the data
     static UBaseType_t uxHighWaterMark = 0;
     while (true) {  // run continuously
-        while ((client = getClientChar(&data)) != CLIENT_ALL) {
-            // Pick off realtime command characters directly from the serial stream. These characters are
-            // not passed into the main buffer, but these set system state flag bits for realtime execution.
-            if (is_realtime_command(data)) {
-                execute_realtime_command(static_cast<Cmd>(data), client);
-            } else {
-#if defined(ENABLE_SD_CARD)
-                if (get_sd_state(false) < SDState::Busy) {
-#endif  //ENABLE_SD_CARD
-                    vTaskEnterCritical(&myMutex);
-                    client_buffer[client].write(data);
-                    vTaskExitCritical(&myMutex);
-#if defined(ENABLE_SD_CARD)
-                } else {
-                    if (data == '\r' || data == '\n') {
-                        grbl_sendf(client, "error %d\r\n", Error::AnotherInterfaceBusy);
-                        grbl_msg_sendf(client, MsgLevel::Info, "SD card job running");
-                    }
-                }
-#endif  //ENABLE_SD_CARD
-            }
-        }  // if something available
+        pollClients();
         WebUI::COMMANDS::handle();
 #ifdef ENABLE_WIFI
         WebUI::wifi_config.handle();

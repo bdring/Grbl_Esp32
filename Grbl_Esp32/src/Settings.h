@@ -2,7 +2,20 @@
 
 #include "WebUI/JSONEncoder.h"
 #include <map>
-#include <nvs.h>
+#ifdef NATIVE
+typedef int nvs_handle;
+typedef struct {
+    int used_entries;
+    int free_entries;
+    int total_entries;
+} nvs_stats_t;
+inline nvs_get_stats(void* p, nvs_stats_t* r) {
+    return -1;
+}
+inline void nvs_erase_all(nvs_handle h) {}
+#else
+#    include <nvs.h>
+#endif
 #include "WebUI/ESPResponse.h"
 
 // Initialize the configuration subsystem

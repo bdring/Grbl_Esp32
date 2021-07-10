@@ -42,8 +42,6 @@ enum class SpindleType : int8_t {
 };
 
 #include "../Grbl.h"
-#include <driver/dac.h>
-#include <driver/uart.h>
 
 // ===============  No floats! ===========================
 // ================ NO FLOATS! ==========================

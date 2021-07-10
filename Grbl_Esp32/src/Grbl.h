@@ -26,13 +26,19 @@ const char* const GRBL_VERSION_BUILD = "20210424";
 
 //#include <sdkconfig.h>
 #include <Arduino.h>
-#include <EEPROM.h>
-#include <driver/rmt.h>
-#include <esp_task_wdt.h>
-#include <freertos/task.h>
-#include <Preferences.h>
 
-#include <driver/timer.h>
+#ifdef NATIVE
+#    include "native.h"
+#else
+#    include <driver/rmt.h>
+#    include <esp_task_wdt.h>
+#    include <freertos/task.h>
+#    include <Preferences.h>
+
+#    include <driver/timer.h>
+
+#    define WEAK_FUNC __attribute__((weak))
+#endif
 
 // Define the Grbl system include files. NOTE: Do not alter organization.
 #include "Config.h"

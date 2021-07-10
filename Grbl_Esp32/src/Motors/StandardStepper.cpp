@@ -24,6 +24,7 @@
 #include "StandardStepper.h"
 
 namespace Motors {
+#ifdef USE_RMT_STEPS
     rmt_item32_t StandardStepper::rmtItem[2];
     rmt_config_t StandardStepper::rmtConfig;
 
@@ -38,6 +39,7 @@ namespace Motors {
         }
         return rmt_channel_t(next_RMT_chan_num);
     }
+#endif
 
     StandardStepper::StandardStepper(uint8_t axis_index, uint8_t step_pin, uint8_t dir_pin, uint8_t disable_pin) :
         Motor(axis_index), _step_pin(step_pin), _dir_pin(dir_pin), _disable_pin(disable_pin) {
@@ -123,7 +125,5 @@ namespace Motors {
 
     void StandardStepper::set_direction(bool dir) { digitalWrite(_dir_pin, dir ^ _invert_dir_pin); }
 
-    void StandardStepper::set_disable(bool disable) {
-        digitalWrite(_disable_pin, disable);
-    }
+    void StandardStepper::set_disable(bool disable) { digitalWrite(_disable_pin, disable); }
 }

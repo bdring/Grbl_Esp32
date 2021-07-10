@@ -53,7 +53,7 @@ const double TRINAMIC_UART_FCLK = 12700000.0;  // Internal clock Approx (Hz) use
 #endif
 
 #ifndef TMC_UART
-#    define TMC_UART UART_NUM_2
+#    define TMC_UART 2
 #endif
 
 #ifndef TMC_UART_RX

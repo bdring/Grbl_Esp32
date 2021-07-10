@@ -95,21 +95,21 @@ bool mc_line(float* target, plan_line_data_t* pl_data) {
     return submitted_result;
 }
 
-bool __attribute__((weak)) cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
+bool WEAK_FUNC cartesian_to_motors(float* target, plan_line_data_t* pl_data, float* position) {
     return mc_line(target, pl_data);
 }
 
-bool __attribute__((weak)) kinematics_pre_homing(uint8_t cycle_mask) {
+bool WEAK_FUNC kinematics_pre_homing(uint8_t cycle_mask) {
     return false;  // finish normal homing cycle
 }
 
-void __attribute__((weak)) kinematics_post_homing() {}
+void WEAK_FUNC kinematics_post_homing() {}
 
-void __attribute__((weak)) motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
+void WEAK_FUNC motors_to_cartesian(float* cartesian, float* motors, int n_axis) {
     memcpy(cartesian, motors, n_axis * sizeof(motors[0]));
 }
 
-void __attribute__((weak)) forward_kinematics(float* position) {}
+void WEAK_FUNC forward_kinematics(float* position) {}
 // Execute an arc in offset mode format. position == current xyz, target == target xyz,
 // offset == offset from current xyz, axis_X defines circle plane in tool space, axis_linear is
 // the direction of helical travel, radius == circle radius, isclockwise boolean. Used

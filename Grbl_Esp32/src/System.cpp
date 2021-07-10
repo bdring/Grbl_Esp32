@@ -337,7 +337,7 @@ uint8_t sys_calc_pwm_precision(uint32_t freq) {
 
     return precision - 1;
 }
-void __attribute__((weak)) user_defined_macro(uint8_t index) {
+void WEAK_FUNC user_defined_macro(uint8_t index) {
     // must be in Idle
     if (sys.state != State::Idle) {
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Macro button only permitted in idle");

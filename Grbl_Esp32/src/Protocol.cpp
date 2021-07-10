@@ -137,6 +137,11 @@ void protocol_main_loop() {
     // ---------------------------------------------------------------------------------
     int c;
     for (;;) {
+#ifdef NO_TASKS
+        // Depending on the environment, this might be a no-op
+        pollClients();
+#endif
+
 #ifdef ENABLE_SD_CARD
         if (SD_ready_next) {
             char fileLine[255];

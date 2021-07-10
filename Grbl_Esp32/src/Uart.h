@@ -1,6 +1,10 @@
 #pragma once
 
-#include <driver/uart.h>
+#ifdef NATIVE
+#    include "native.h"
+#else
+#    include <driver/uart.h>
+#endif
 
 class Uart : public Stream {
 private:
@@ -8,6 +12,24 @@ private:
     int         _pushback;
 
 public:
+#ifdef NATIVE
+    enum class Data : int {
+        Bits5 = 5,
+        Bits6 = 6,
+        Bits7 = 7,
+        Bits8 = 8,
+    };
+    enum class Stop : int {
+        Bits1   = 1,
+        Bits2   = 2,
+        Bits1_5 = 3,
+    };
+    enum class Parity : int {
+        None = 0,
+        Even = 2,
+        Odd  = 1,
+    };
+#else
     enum class Data : int {
         Bits5 = UART_DATA_5_BITS,
         Bits6 = UART_DATA_6_BITS,
@@ -26,6 +48,7 @@ public:
         Even = UART_PARITY_EVEN,
         Odd  = UART_PARITY_ODD,
     };
+#endif
 
     Uart(int uart_num);
     bool          setHalfDuplex();
@@ -42,7 +65,7 @@ public:
     size_t        write(const uint8_t* buffer, size_t length);
     inline size_t write(const char* buffer, size_t size) { return write((uint8_t*)buffer, size); }
     size_t        write(const char* text);
-    void          flush() { uart_flush(_uart_num); }
+    void          flush();
     bool          flushTxTimed(TickType_t ticks);
 };
 

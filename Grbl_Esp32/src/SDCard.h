@@ -16,8 +16,12 @@
  */
 
 #include "Grbl.h"
-#include <FS.h>
-#include <SD.h>
+#ifdef NATIVE
+#    include "native.h"
+#else
+#    include <FS.h>
+#    include <SD.h>
+#endif
 #include <SPI.h>
 
 //#define SDCARD_DET_PIN -1

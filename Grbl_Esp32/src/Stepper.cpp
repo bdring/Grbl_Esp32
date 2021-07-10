@@ -200,13 +200,17 @@ void IRAM_ATTR onStepperDriverTimer(void* para) {
     //
     // When handling an interrupt within an interrupt serivce routine (ISR), the interrupt status bit
     // needs to be explicitly cleared.
+#ifndef NATIVE
     TIMERG0.int_clr_timers.t0 = 1;
+#endif
 
     bool expected = false;
     if (busy.compare_exchange_strong(expected, true)) {
         stepper_pulse_func();
 
+#ifndef NATIVE
         TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
+#endif
 
         busy.store(false);
     }
@@ -352,8 +356,8 @@ static void stepper_pulse_func() {
 }
 
 void stepper_init() {
-    busy.store(false); 
-    
+    busy.store(false);
+
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Axis count %d", number_axis->get());
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s", stepper_names[current_stepper]);
 
@@ -394,8 +398,7 @@ void st_wake_up() {
     // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
 #ifdef USE_RMT_STEPS
     // Step pulse delay handling is not require with ESP32...the RMT function does it.
-    if (direction_delay_microseconds->get() < 1)
-    {
+    if (direction_delay_microseconds->get() < 1) {
         // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
         st.step_pulse_time = -(((pulse_microseconds->get() - 2) * ticksPerMicrosecond) >> 3);
     }
@@ -976,7 +979,9 @@ void IRAM_ATTR Stepper_Timer_Start() {
     } else {
         timer_set_counter_value(STEP_TIMER_GROUP, STEP_TIMER_INDEX, 0x00000000ULL);
         timer_start(STEP_TIMER_GROUP, STEP_TIMER_INDEX);
+#ifndef NATIVE
         TIMERG0.hw_timer[STEP_TIMER_INDEX].config.alarm_en = TIMER_ALARM_EN;
+#endif
     }
 }
 

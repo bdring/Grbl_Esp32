@@ -12,6 +12,7 @@ String pinName(uint8_t pin) {
     }
 }
 
+#ifndef NATIVE
 // Even if USE_I2S_OUT is not defined, it is necessary to
 // override the following functions, instead of allowing
 // the weak aliases in the library to apply, because of
@@ -25,9 +26,9 @@ void IRAM_ATTR digitalWrite(uint8_t pin, uint8_t val) {
         __digitalWrite(pin, val);
         return;
     }
-#ifdef USE_I2S_OUT
+#    ifdef USE_I2S_OUT
     i2s_out_write(pin - I2S_OUT_PIN_BASE, val);
-#endif
+#    endif
 }
 
 void IRAM_ATTR pinMode(uint8_t pin, uint8_t mode) {
@@ -48,9 +49,10 @@ int IRAM_ATTR digitalRead(uint8_t pin) {
     if (pin < I2S_OUT_PIN_BASE) {
         return __digitalRead(pin);
     }
-#ifdef USE_I2S_OUT
+#    ifdef USE_I2S_OUT
     return i2s_out_read(pin - I2S_OUT_PIN_BASE);
-#else
+#    else
     return 0;
-#endif
+#    endif
 }
+#endif

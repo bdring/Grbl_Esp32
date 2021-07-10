@@ -22,11 +22,17 @@
 
 #include "../Grbl.h"
 
-#include <WiFi.h>
-#include <FS.h>
-#include <SPIFFS.h>
-#include <esp_wifi.h>
-#include <esp_ota_ops.h>
+#ifdef ENABLE_WIFI
+#    include <WiFi.h>
+#endif
+#ifdef NATIVE
+#    include "../native.h"
+#else
+#    include <FS.h>
+#    include <SPIFFS.h>
+#    include <esp_wifi.h>
+#    include <esp_ota_ops.h>
+#endif
 
 #include "ESPResponse.h"
 #include "WebServer.h"
@@ -428,9 +434,11 @@ namespace WebUI {
         webPrintln("SDK: ", ESP.getSdkVersion());
         webPrintln("Flash Size: ", ESPResponseStream::formatBytes(ESP.getFlashChipSize()));
 
+#ifndef NATIVE
         // Round baudRate to nearest 100 because ESP32 can say e.g. 115201
         webPrintln("Baud rate: ", String((Serial.baudRate() / 100) * 100));
         webPrintln("Sleep mode: ", WiFi.getSleep() ? "Modem" : "None");
+#endif
 
 #ifdef ENABLE_WIFI
         int mode = WiFi.getMode();

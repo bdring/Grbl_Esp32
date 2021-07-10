@@ -34,7 +34,11 @@
 */
 #include "VFDSpindle.h"
 
-#include <freertos/task.h>
+#ifdef NATIVE
+#    include "../native.h"
+#else
+#    include <freertos/task.h>
+#endif
 
 // Timing and modbus... The manual states that between communications, we should respect a
 // silent interval of 3,5 characters. If we received communications between these times, we

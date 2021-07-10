@@ -1,7 +1,8 @@
 #include "Grbl.h"
 #include "WebUI/JSONEncoder.h"
 #include <map>
-#include <nvs.h>
+#include <limits>
+#include "Settings.h"
 
 bool anyState() {
     return false;
@@ -626,7 +627,9 @@ const char* FlagSetting::getCompatibleValue() {
     return get() ? "1" : "0";
 }
 
-#include <WiFi.h>
+#ifdef ENABLE_WIFI
+#    include <WiFi.h>
+#endif
 
 IPaddrSetting::IPaddrSetting(const char*   description,
                              type_t        type,

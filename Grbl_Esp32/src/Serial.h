@@ -52,3 +52,5 @@ uint8_t client_get_rx_buffer_available(uint8_t client);
 
 void execute_realtime_command(Cmd command, uint8_t client);
 bool is_realtime_command(uint8_t data);
+
+extern void pollClients();

@@ -25,6 +25,7 @@
 */
 
 #include "Dynamixel2.h"
+#include <stdarg.h>
 
 namespace Motors {
     bool    Motors::Dynamixel2::uart_ready         = false;
@@ -163,6 +164,7 @@ namespace Motors {
 
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Dynamixel UART TX:%d RX:%d RTS:%d", DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS);
 
+#ifndef NATIVE
         uart_driver_delete(UART_NUM_2);
 
         // setup the comm port as half duplex
@@ -180,6 +182,7 @@ namespace Motors {
         uart_set_pin(UART_NUM_2, DYNAMIXEL_TXD, DYNAMIXEL_RXD, DYNAMIXEL_RTS, UART_PIN_NO_CHANGE);
         uart_driver_install(UART_NUM_2, DYNAMIXEL_BUF_SIZE * 2, 0, 0, NULL, 0);
         uart_set_mode(UART_NUM_2, UART_MODE_RS485_HALF_DUPLEX);
+#endif
 
         uart_ready = true;
     }
@@ -262,7 +265,11 @@ namespace Motors {
 
     // wait for and get the servo response
     uint16_t Dynamixel2::dxl_get_response(uint16_t length) {
+#ifdef NATIVE
+        length = 0;
+#else
         length = uart_read_bytes(UART_NUM_2, _dxl_rx_message, length, DXL_RESPONSE_WAIT_TICKS);
+#endif
         return length;
     }
 
@@ -405,8 +412,10 @@ namespace Motors {
         msg[msg_len + 5] = crc & 0xFF;  // CRC_L
         msg[msg_len + 6] = (crc & 0xFF00) >> 8;
 
+#ifndef NATIVE
         uart_flush(UART_NUM_2);
         uart_write_bytes(UART_NUM_2, msg, msg_len + 7);
+#endif
     }
 
     // from http://emanual.robotis.com/docs/en/dxl/crc/

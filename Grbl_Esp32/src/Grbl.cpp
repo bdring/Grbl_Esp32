@@ -19,17 +19,21 @@
 */
 
 #include "Grbl.h"
-#include <WiFi.h>
+#ifdef ENABLE_WIFI
+#    include <WiFi.h>
+#endif
 
 void grbl_init() {
 #ifdef USE_I2S_OUT
     i2s_out_init();  // The I2S out must be initialized before it can access the expanded GPIO port
 #endif
+#ifdef ENABLE_WIFI
     WiFi.persistent(false);
     WiFi.disconnect(true);
     WiFi.enableSTA(false);
     WiFi.enableAP(false);
     WiFi.mode(WIFI_OFF);
+#endif
     client_init();  // Setup serial baud rate and interrupts
     display_init();
     grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
@@ -119,20 +123,20 @@ void run_once() {
     protocol_main_loop();
 }
 
-void __attribute__((weak)) machine_init() {}
+void WEAK_FUNC machine_init() {}
 
-void __attribute__((weak)) display_init() {}
+void WEAK_FUNC display_init() {}
 
-void __attribute__((weak)) user_m30() {}
+void WEAK_FUNC user_m30() {}
 
-void __attribute__((weak)) user_tool_change(uint8_t new_tool) {}
-/*
-  setup() and loop() in the Arduino .ino implements this control flow:
+void WEAK_FUNC user_tool_change(uint8_t new_tool) {}
+#ifdef NATIVE
+//  setup() and loop() in the Arduino .ino implements this control flow:
 
-  void main() {
-     init();          // setup()
-     while (1) {      // loop()
-         run_once();
-     }
-  }
-*/
+int main(int arc, char** argv) {
+    grbl_init();  // setup()
+    while (1) {   // loop()
+        run_once();
+    }
+}
+#endif

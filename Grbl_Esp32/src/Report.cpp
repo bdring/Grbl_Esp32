@@ -48,6 +48,7 @@
 
 #include "Grbl.h"
 #include <map>
+#include <stdarg.h>
 
 #ifdef REPORT_HEAP
 EspClass esp;
@@ -924,7 +925,7 @@ char* reportAxisNameMsg(uint8_t axis) {
 }
 
 void reportTaskStackSize(UBaseType_t& saved) {
-#ifdef DEBUG_REPORT_STACK_FREE
+#ifdef DEBUG_TASK_STACK
     UBaseType_t newHighWater = uxTaskGetStackHighWaterMark(NULL);
     if (newHighWater != saved) {
         saved = newHighWater;
