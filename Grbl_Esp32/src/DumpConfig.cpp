@@ -289,7 +289,10 @@ void print_motor_class(int axis, int gang) {
 const char* axis_names[] = { "x", "y", "z", "a", "b", "c" };
 void        print_axes() {
     section("axes");
-    for (int axis = 0; axis < number_axis->get(); axis++) {
+    int n_axis = number_axis->get();
+    item("number_axis", n_axis);
+    item("shared_stepper_disable", STEPPERS_DISABLE_PIN);
+    for (int axis = 0; axis < n_axis; axis++) {
         section(axis_names[axis]);
         print_steps(axis);
         print_homing(axis);
@@ -438,7 +441,6 @@ void print_onoff_spindle(const char* name, PWM* s) {
     item("direction_pin", pinspec(s->_direction_pin));
     item("disable_with_zero_speed", bool(s->_off_with_zero_speed));
     item("zero_speed_with_disable", false);
-    end_section();
 }
 void print_pwm_spindle(const char* name, PWM* s) {
     print_onoff_spindle(name, s);
