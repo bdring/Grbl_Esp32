@@ -570,7 +570,11 @@ void print_spindle_class() {
     }
 }
 void dump_config() {
+#ifdef USE_I2S_OUT
+    item("board", "6-pack");
+#else
     item("board", "unknown");
+#endif
     item("name", MACHINE_NAME);
     print_stepping();
     print_axes();
