@@ -84,7 +84,7 @@ public:
         handler.item("txd_pin", _txd_pin);
         handler.item("rxd_pin", _rxd_pin);
         handler.item("rts_pin", _rts_pin);
-        handler.item("rts_pin", _cts_pin);
+        handler.item("cts_pin", _cts_pin);
 
         handler.item("baud", baud);
         handler.item("mode", dataBits, parity, stopBits);

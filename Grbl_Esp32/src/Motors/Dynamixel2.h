@@ -99,8 +99,6 @@ namespace Motors {
         int _countMin = 1024;
         int _countMax = 3072;
 
-        int _dynamixelFullTimeMove = 1000;  // time in milliseconds to do a full DYNAMIXEL_FULL_MOVE_TIME
-
         bool _disabled;
         bool _has_errors;
 
@@ -128,7 +126,6 @@ namespace Motors {
 
             handler.item("count_min", _countMin);
             handler.item("count_max", _countMax);
-            handler.item("full_time_move", _dynamixelFullTimeMove);
             handler.section("uart", _uart);
 
             int id = _id;

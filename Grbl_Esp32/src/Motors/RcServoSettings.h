@@ -21,5 +21,3 @@ const uint16_t SERVO_MAX_PULSE = (uint16_t)(SERVO_MAX_PULSE_SEC / SERVO_TIME_PER
 const uint16_t SERVO_PULSE_RANGE = (SERVO_MAX_PULSE - SERVO_MIN_PULSE);
 
 const double SERVO_TIMER_INT_FREQ = 50.0;  // Hz This is the task frequency
-
-const int SERVO_FULL_MOVE_TIME = 750;  // rtos ticks

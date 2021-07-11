@@ -323,7 +323,7 @@ static AxisMask squaredAxes() {
     for (int axis = 0; axis < n_axis; axis++) {
         auto homing = axes->_axis[axis]->_homing;
         if (homing && homing->_square) {
-            mask |= bit(axis);
+            bitnum_true(mask, axis);
         }
     }
     return mask;
