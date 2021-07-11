@@ -1,0 +1,174 @@
+
+board: unknown
+name: External 4 Axis Driver Board V2
+stepping:
+  engine: Timed Steps
+  idle_ms: 250
+  pulse_us: 3
+  dir_delay_us: 0
+  disable_delay_us: 0
+axes:
+  number_axis: 4
+  shared_stepper_disable: 13
+  x:
+    steps_per_mm: 100.000
+    max_rate: 1000.000
+    acceleration: 200.000
+    max_travel: 300.000
+    soft_limits: false
+    homing:
+      cycle: 2
+      positive_direction: true
+      mpos: 0.000
+      debounce: 250.000
+      pulloff: 1.000
+      square: false
+      seek_rate: 2000.000
+      feed_rate: 200.000
+      seek_scaler: 1.100
+      feed_scaler: 5.000
+    endstops:
+      dual: gpio.34:low
+      hard_limits: false
+    gang0:
+      endstops:
+        dual: gpio.34:low
+        hard_limits: false
+      stepstick:
+        direction: gpio.2
+        step: gpio.0
+        disable: NO_PIN
+    gang1:
+      null_motor:
+  y:
+    steps_per_mm: 100.000
+    max_rate: 1000.000
+    acceleration: 200.000
+    max_travel: 300.000
+    soft_limits: false
+    homing:
+      cycle: 2
+      positive_direction: true
+      mpos: 0.000
+      debounce: 250.000
+      pulloff: 1.000
+      square: false
+      seek_rate: 2000.000
+      feed_rate: 200.000
+      seek_scaler: 1.100
+      feed_scaler: 5.000
+    endstops:
+      dual: gpio.35:low
+      hard_limits: false
+    gang0:
+      endstops:
+        dual: gpio.35:low
+        hard_limits: false
+      stepstick:
+        direction: gpio.15
+        step: gpio.26
+        disable: NO_PIN
+    gang1:
+      null_motor:
+  z:
+    steps_per_mm: 100.000
+    max_rate: 1000.000
+    acceleration: 200.000
+    max_travel: 300.000
+    soft_limits: false
+    homing:
+      cycle: 1
+      positive_direction: false
+      mpos: 0.000
+      debounce: 250.000
+      pulloff: 1.000
+      square: false
+      seek_rate: 2000.000
+      feed_rate: 200.000
+      seek_scaler: 1.100
+      feed_scaler: 5.000
+    endstops:
+      dual: gpio.36:low
+      hard_limits: false
+    gang0:
+      endstops:
+        dual: gpio.36:low
+        hard_limits: false
+      stepstick:
+        direction: gpio.33
+        step: gpio.27
+        disable: NO_PIN
+    gang1:
+      null_motor:
+  a:
+    steps_per_mm: 100.000
+    max_rate: 1000.000
+    acceleration: 200.000
+    max_travel: 300.000
+    soft_limits: false
+    endstops:
+      dual: gpio.39:low
+      hard_limits: false
+    gang0:
+      endstops:
+        dual: gpio.39:low
+        hard_limits: false
+      stepstick:
+        direction: gpio.14
+        step: gpio.12
+        disable: NO_PIN
+    gang1:
+      null_motor:
+spi:
+  cs: gpio.5
+  miso: gpio.19
+  mosi: gpio.23
+  sck: gpio.18
+control:
+  safety_door: NO_PIN
+  reset: NO_PIN
+  cycle_start: NO_PIN
+  macro0: NO_PIN
+  macro1: NO_PIN
+  macro2: NO_PIN
+  macro3: NO_PIN
+coolant:
+  flood: NO_PIN
+  mist: gpio.21
+  delay_ms: 1000.000
+probe:
+  pin: gpio.32:pu
+  check_mode_start: false
+comms:
+macros:
+  n0: 
+  n1: 
+  macro0: 
+  macro1: 
+  macro2: 
+  macro3: 
+software_debounce_ms: 0
+laser_mode: false
+arc_tolerance: 0.002
+junction_deviation: 0.010
+verbose_errors: false
+homing_init_lock: true
+report_inches: false
+enable_parking_override_control: false
+deactivate_parking_upon_init: false
+check_limits_at_init: true
+limits_two_switches_on_axis: false
+disable_laser_during_hold: true
+use_line_numbers: false
+huanyang:
+  spinup_ms: 0
+  spindown_ms: 0
+  tool: 0
+  speeds: 0=0% 1000=100%
+uart:
+  txd_pin: gpio.17
+  rxd_pin: gpio.4
+  rts_pin: gpio.16
+  cts_pin: NO_PIN
+  baud: 9600
+  mode: 8n1

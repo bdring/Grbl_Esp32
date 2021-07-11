@@ -79,9 +79,6 @@
 #define DEFAULT_Z_MAX_TRAVEL 	60
 
 
-//**Storage
-#define ENABLE_SD_CARD
-
 //**Endstop pins
 #define X_LIMIT_PIN             GPIO_NUM_2
 #define Y_LIMIT_PIN             GPIO_NUM_26

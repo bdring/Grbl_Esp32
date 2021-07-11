@@ -87,6 +87,9 @@ void grbl_sendf(uint8_t client, const char* format, ...) {
 }
 // Use to send [MSG:xxxx] Type messages. The level allows messages to be easily suppressed
 void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...) {
+#ifdef EMIT_YAML
+    return;
+#endif
     if (client == CLIENT_INPUT) {
         return;
     }

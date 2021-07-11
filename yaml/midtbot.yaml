@@ -1,0 +1,137 @@
+
+board: unknown
+name: midTbot
+stepping:
+  engine: Timed Steps
+  idle_ms: 255
+  pulse_us: 3
+  dir_delay_us: 0
+  disable_delay_us: 0
+axes:
+  number_axis: 3
+  shared_stepper_disable: 13
+  x:
+    steps_per_mm: 100.000
+    max_rate: 8000.000
+    acceleration: 200.000
+    max_travel: 100.000
+    soft_limits: false
+    homing:
+      cycle: 3
+      positive_direction: true
+      mpos: 5.000
+      debounce: 250.000
+      pulloff: 3.000
+      square: false
+      seek_rate: 2000.000
+      feed_rate: 500.000
+      seek_scaler: 1.100
+      feed_scaler: 5.000
+    endstops:
+      dual: gpio.2:low
+      hard_limits: false
+    gang0:
+      endstops:
+        dual: gpio.2:low
+        hard_limits: false
+      stepstick:
+        direction: gpio.26
+        step: gpio.12
+        disable: NO_PIN
+    gang1:
+      null_motor:
+  y:
+    steps_per_mm: 100.000
+    max_rate: 8000.000
+    acceleration: 200.000
+    max_travel: 100.000
+    soft_limits: false
+    homing:
+      cycle: 2
+      positive_direction: false
+      mpos: 0.000
+      debounce: 250.000
+      pulloff: 3.000
+      square: false
+      seek_rate: 2000.000
+      feed_rate: 500.000
+      seek_scaler: 1.100
+      feed_scaler: 5.000
+    endstops:
+      dual: gpio.4:low
+      hard_limits: false
+    gang0:
+      endstops:
+        dual: gpio.4:low
+        hard_limits: false
+      stepstick:
+        direction: gpio.25:low
+        step: gpio.14
+        disable: NO_PIN
+    gang1:
+      null_motor:
+  z:
+    steps_per_mm: 100.000
+    max_rate: 5000.000
+    acceleration: 100.000
+    max_travel: 5.000
+    soft_limits: false
+    homing:
+      cycle: 1
+      positive_direction: true
+      mpos: 0.000
+      debounce: 250.000
+      pulloff: 3.000
+      square: false
+      seek_rate: 2000.000
+      feed_rate: 500.000
+      seek_scaler: 1.100
+      feed_scaler: 5.000
+    gang0:
+      rc_servo:
+        cal_min: 1.000
+        cal_max: 1.000
+        pwm: gpio.27
+    gang1:
+      null_motor:
+spi:
+  cs: gpio.5
+  miso: gpio.19
+  mosi: gpio.23
+  sck: gpio.18
+control:
+  safety_door: NO_PIN
+  reset: NO_PIN
+  cycle_start: NO_PIN
+  macro0: NO_PIN
+  macro1: NO_PIN
+  macro2: NO_PIN
+  macro3: NO_PIN
+coolant:
+  flood: NO_PIN
+  mist: NO_PIN
+  delay_ms: 1000.000
+probe:
+  pin: NO_PIN
+  check_mode_start: false
+comms:
+macros:
+  n0: 
+  n1: 
+  macro0: 
+  macro1: 
+  macro2: 
+  macro3: 
+software_debounce_ms: 0
+laser_mode: false
+arc_tolerance: 0.002
+junction_deviation: 0.010
+verbose_errors: false
+homing_init_lock: true
+report_inches: false
+enable_parking_override_control: false
+deactivate_parking_upon_init: false
+check_limits_at_init: true
+limits_two_switches_on_axis: false
+disable_laser_during_hold: true
+use_line_numbers: false

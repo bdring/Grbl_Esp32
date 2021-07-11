@@ -50,7 +50,7 @@ size_t Uart::write(uint8_t c) {
     if (_uart_num) {
         return 0;
     }
-    int result = putch(c);
+    int result = putchar(c);
     return (result == EOF) ? 0 : 1;
 }
 

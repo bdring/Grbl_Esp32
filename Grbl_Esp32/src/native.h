@@ -54,6 +54,9 @@ inline void timer_start(timer_group_t group, timer_idx_t idx) {}
 inline void timer_pause(timer_group_t group, timer_idx_t idx) {}
 inline void timer_isr_register(timer_group_t group, timer_idx_t idx, void (*handler)(void*), void* arg, int a, void* arg1) {}
 
+inline void gpio_reset_pin(uint8_t pin) {}
+inline int  digitalPinToInterrupt(uint8_t pin) {}
+
 #define IRAM_ATTR
 
 // Most of the EspClass stuff is used by information reports,
@@ -97,6 +100,9 @@ inline BaseType_t    xQueueReset(QueueHandle_t queue) {
     return pdPASS;
 }
 inline BaseType_t xQueueSend(QueueHandle_t queue, void* item, TickType_t ticks) {
+    return pdTRUE;
+}
+inline BaseType_t xQueueSendFromISR(QueueHandle_t queue, void* item, void* p) {
     return pdTRUE;
 }
 inline TaskHandle_t xTaskCreate(void (*task)(void*), const char* name, int stacksize, void* arg0, int pri, TaskHandle_t* th) {}
@@ -297,3 +303,7 @@ using fs::SeekMode;
 using fs::SeekSet;
 
 extern fs::SPIFFSFS SPIFFS;
+
+#define UART_NUM_1 1
+
+#define M_PI 3.1415926536

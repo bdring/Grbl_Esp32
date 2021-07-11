@@ -14,6 +14,8 @@ namespace Motors {
         void set_direction(bool) override;
         void step() override;
 
+        const char* name() override { return "rc_servo"; }
+
         uint8_t _pin_phase0;
         uint8_t _pin_phase1;
         uint8_t _pin_phase2;

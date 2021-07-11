@@ -21,13 +21,15 @@
 
 #include <TMCStepper.h>
 
-#ifdef USE_I2S_OUT
+#ifndef NATIVE
+#    ifdef USE_I2S_OUT
 
 // Override default function and insert a short delay
 void TMC2130Stepper::switchCSpin(bool state) {
     digitalWrite(_pinCS, state);
     i2s_out_delay();
 }
+#    endif
 #endif
 
 namespace Motors {
@@ -67,7 +69,7 @@ namespace Motors {
             return;
         }
 
-        _has_errors = false;       
+        _has_errors = false;
 
         digitalWrite(_cs_pin, HIGH);
         pinMode(_cs_pin, OUTPUT);
