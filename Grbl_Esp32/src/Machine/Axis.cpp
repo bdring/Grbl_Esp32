@@ -30,6 +30,9 @@ namespace Machine {
             if (_gangs[i] == nullptr) {
                 _gangs[i] = new Gang();
             }
+            if (_endstops == nullptr) {
+                _endstops == new Endstops();
+            }
         }
     }
 

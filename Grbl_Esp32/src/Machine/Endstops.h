@@ -31,10 +31,12 @@ namespace Machine {
         Pin  _limitPos;
         Pin  _limitAll;
         bool _hardLimits = false;
+        
 
         // Configuration system helpers:
         void validate() const override;
         bool read();
         void group(Configuration::HandlerBase& handler) override;
+        void afterParse() override;
     };
 }

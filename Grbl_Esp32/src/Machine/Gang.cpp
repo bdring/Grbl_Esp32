@@ -30,6 +30,9 @@ namespace Machine {
         if (_motor == nullptr) {
             _motor = new Motors::Nullmotor();
         }
+        if (_endstops == nullptr) {
+            _endstops == new Endstops();
+        }
     }
 
     Gang::~Gang() {

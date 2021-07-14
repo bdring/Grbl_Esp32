@@ -34,22 +34,8 @@ namespace Machine {
     // TODO: Would be handy to return some sort of mask of which switch is active
     // or have a parameter to read all or a specific switch
     bool Endstops::read() {
-        if (_limitAll.defined()) {
-            if (_limitAll.read())
-                return true;
-        }
 
-        if (_limitNeg.defined()) {
-            if (_limitNeg.read())
-                return true;
-        }
-
-        if (_limitPos.defined()) {
-            if (_limitPos.read())
-                return true;
-        }
-
-        return false;
+        return (_limitAll.read() || _limitNeg.read() || _limitPos.read());
     }
 
     void Endstops::group(Configuration::HandlerBase& handler) {
@@ -57,5 +43,9 @@ namespace Machine {
         handler.item("limit_pos", _limitPos);
         handler.item("limit_all", _limitAll);
         handler.item("hard_limits", _hardLimits);
+    }
+
+    void Endstops::afterParse() {
+        
     }
 }
