@@ -927,15 +927,15 @@ char* reportAxisNameMsg(uint8_t axis) {
     return name;
 }
 
-void reportTaskStackSize(UBaseType_t& saved) {
 #ifdef DEBUG_TASK_STACK
+void reportTaskStackSize(UBaseType_t& saved) {
     UBaseType_t newHighWater = uxTaskGetStackHighWaterMark(NULL);
     if (newHighWater != saved) {
         saved = newHighWater;
         grbl_msg_sendf(CLIENT_SERIAL, MsgLevel::Info, "%s Min Stack Space: %d", pcTaskGetTaskName(NULL), saved);
     }
-#endif
 }
+#endif
 
 void mpos_to_wpos(float* position) {
     float* wco    = get_wco();

@@ -42,17 +42,18 @@
  */
 #include "I2SOut.h"
 
-// This block of #includes is necessary for Report.h
-#include "Error.h"
-#include "WebUI/Authentication.h"
-#include "WebUI/ESPResponse.h"
-#include "Probe.h"
-#include "System.h"
-#include "Serial.h"
-#include "Report.h"
-#include "Pins.h"
-
 #ifndef NATIVE
+
+// This block of #includes is necessary for Report.h
+#    include "Error.h"
+#    include "WebUI/Authentication.h"
+#    include "WebUI/ESPResponse.h"
+#    include "Probe.h"
+#    include "System.h"
+#    include "Serial.h"
+#    include "Report.h"
+#    include "Pins.h"
+
 #    include <FreeRTOS.h>
 #    include <driver/periph_ctrl.h>
 #    include <rom/lldesc.h>
@@ -525,15 +526,14 @@ static void IRAM_ATTR i2sOutTask(void* parameter) {
         }
         I2S_OUT_PULSER_EXIT_CRITICAL();  // Unlock pulser status
 
-        static UBaseType_t uxHighWaterMark = 0;
 #        ifdef DEBUG_TASK_STACK
+        static UBaseType_t uxHighWaterMark = 0;
         reportTaskStackSize(uxHighWaterMark);
 #        endif
     }
 }
 #    endif
 
-//
 // External funtions
 //
 void IRAM_ATTR i2s_out_delay() {

@@ -32,8 +32,18 @@
 
 #ifdef ENABLE_NOTIFICATIONS
 #    include "NotificationsService.h"
-#    include <WiFiClientSecure.h>
-#    include <base64.h>
+#    ifdef NATIVE
+namespace WebUI {
+    NotificationsService notificationsservice;
+
+    NotificationsService::NotificationsService() {}
+    bool NotificationsService::sendMSG(const char* title, const char* message) { return false; }
+    NotificationsService::~NotificationsService() { end(); }
+    void NotificationsService::end() {}
+}
+#    else
+#        include <WiFiClientSecure.h>
+#        include <base64.h>
 
 namespace WebUI {
     static const int   PUSHOVERTIMEOUT = 5000;
@@ -369,4 +379,5 @@ namespace WebUI {
 
     NotificationsService::~NotificationsService() { end(); }
 }
+#    endif
 #endif  //ENABLE_NOTIFICATIONS

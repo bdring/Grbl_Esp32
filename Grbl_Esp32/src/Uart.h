@@ -1,10 +1,6 @@
 #pragma once
 
-#ifdef NATIVE
-#    include "native.h"
-#else
-#    include <driver/uart.h>
-#endif
+#include <driver/uart.h>
 
 class Uart : public Stream {
 private:

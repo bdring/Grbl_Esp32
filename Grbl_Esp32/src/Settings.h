@@ -14,8 +14,8 @@ inline nvs_get_stats(void* p, nvs_stats_t* r) {
 }
 inline void nvs_erase_all(nvs_handle h) {}
 #else
-#    include <nvs.h>
 #endif
+#include <nvs.h>
 #include "WebUI/ESPResponse.h"
 
 // Initialize the configuration subsystem

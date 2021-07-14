@@ -127,7 +127,9 @@ char* reportAxisLimitsMsg(uint8_t axis);
 char* reportAxisNameMsg(uint8_t axis);
 char* reportAxisNameMsg(uint8_t axis, uint8_t dual_axis);
 
+#ifdef DEBUG_TASK_STACK
 void reportTaskStackSize(UBaseType_t& saved);
+#endif
 
 char*  report_state_text();
 float* get_wco();

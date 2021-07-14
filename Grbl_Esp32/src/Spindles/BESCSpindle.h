@@ -61,3 +61,5 @@ namespace Spindles {
 #ifndef BESC_MAX_PULSE_SECS
 #    define BESC_MAX_PULSE_SECS 0.0022f  // in seconds
 #endif
+
+const double BESC_PWM_FREQ = 50.0;  // Hz

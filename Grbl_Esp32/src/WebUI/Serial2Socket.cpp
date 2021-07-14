@@ -79,12 +79,6 @@ namespace WebUI {
 
     size_t Serial_2_Socket::write(const uint8_t* buffer, size_t size) {
         if ((buffer == NULL) || (!_web_socket)) {
-            if (buffer == NULL) {
-                log_i("[SOCKET]No buffer");
-            }
-            if (!_web_socket) {
-                log_i("[SOCKET]No socket");
-            }
             return 0;
         }
 
@@ -103,7 +97,6 @@ namespace WebUI {
             _TXbuffer[_TXbufferSize] = buffer[i];
             _TXbufferSize++;
         }
-        log_i("[SOCKET]buffer size %d", _TXbufferSize);
         handle_flush();
 #    endif
         return size;
@@ -160,13 +153,11 @@ namespace WebUI {
 
     void Serial_2_Socket::handle_flush() {
         if (_TXbufferSize > 0 && ((_TXbufferSize >= TXBUFFERSIZE) || ((millis() - _lastflush) > FLUSHTIMEOUT))) {
-            log_i("[SOCKET]need flush, buffer size %d", _TXbufferSize);
             flush();
         }
     }
     void Serial_2_Socket::flush(void) {
         if (_TXbufferSize > 0) {
-            log_i("[SOCKET]flush data, buffer size %d", _TXbufferSize);
             _web_socket->broadcastBIN(_TXbuffer, _TXbufferSize);
 
             //refresh timout

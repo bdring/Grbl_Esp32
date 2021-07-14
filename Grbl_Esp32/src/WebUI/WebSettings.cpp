@@ -25,11 +25,9 @@
 #ifdef ENABLE_WIFI
 #    include <WiFi.h>
 #endif
-#ifdef NATIVE
-#    include "../native.h"
-#else
-#    include <FS.h>
-#    include <SPIFFS.h>
+#include <FS.h>
+#include <SPIFFS.h>
+#ifndef NATIVE
 #    include <esp_wifi.h>
 #    include <esp_ota_ops.h>
 #endif
@@ -250,8 +248,9 @@ namespace WebUI {
 #else
         webPrint("no");
 #endif
-#if defined(ENABLE_WIFI)
-#    if defined(ENABLE_HTTP)
+#ifndef NATIVE
+#    if defined(ENABLE_WIFI)
+#        if defined(ENABLE_HTTP)
         webPrint(" # webcommunication: Sync: ", String(web_server.port() + 1));
         webPrint(":");
         switch (WiFi.getMode()) {
@@ -268,11 +267,12 @@ namespace WebUI {
                 webPrint("0.0.0.0");
                 break;
         }
-#    endif
+#        endif
         webPrint(" # hostname:", wifi_config.Hostname());
         if (WiFi.getMode() == WIFI_AP) {
             webPrint("(AP mode)");
         }
+#    endif
 #endif
         //to save time in decoding `?`
         webPrintln(" # axis:", String(number_axis->get()));
@@ -298,6 +298,7 @@ namespace WebUI {
     }
 
     static Error runLocalFile(char* parameter, AuthenticationLevel auth_level) {  // ESP700
+#ifndef NATIVE
         if (sys.state != State::Idle) {
             webPrintln("Busy");
             return Error::IdleError;
@@ -332,6 +333,9 @@ namespace WebUI {
         }
         currentfile.close();
         return accumErr;
+#else
+        Error::Ok;
+#endif
     }
 
     static Error showLocalFile(char* parameter, AuthenticationLevel auth_level) {  // ESP701
@@ -427,6 +431,7 @@ namespace WebUI {
     }
 
     static Error showSysStats(char* parameter, AuthenticationLevel auth_level) {  // ESP420
+#ifndef NATIVE
         webPrintln("Chip ID: ", String((uint16_t)(ESP.getEfuseMac() >> 32)));
         webPrintln("CPU Frequency: ", String(ESP.getCpuFreqMHz()) + "Mhz");
         webPrintln("CPU Temperature: ", String(temperatureRead(), 1) + "C");
@@ -434,13 +439,11 @@ namespace WebUI {
         webPrintln("SDK: ", ESP.getSdkVersion());
         webPrintln("Flash Size: ", ESPResponseStream::formatBytes(ESP.getFlashChipSize()));
 
-#ifndef NATIVE
         // Round baudRate to nearest 100 because ESP32 can say e.g. 115201
         webPrintln("Baud rate: ", String((Serial.baudRate() / 100) * 100));
         webPrintln("Sleep mode: ", WiFi.getSleep() ? "Modem" : "None");
-#endif
 
-#ifdef ENABLE_WIFI
+#    ifdef ENABLE_WIFI
         int mode = WiFi.getMode();
         if (mode != WIFI_MODE_NULL) {
             //Is OTA available ?
@@ -454,12 +457,12 @@ namespace WebUI {
             webPrintln("Available Size for update: ", ESPResponseStream::formatBytes(flashsize));
             webPrintln("Available Size for SPIFFS: ", ESPResponseStream::formatBytes(SPIFFS.totalBytes()));
 
-#    if defined(ENABLE_HTTP)
+#        if defined(ENABLE_HTTP)
             webPrintln("Web port: ", String(web_server.port()));
-#    endif
-#    if defined(ENABLE_TELNET)
+#        endif
+#        if defined(ENABLE_TELNET)
             webPrintln("Data port: ", String(telnet_server.port()));
-#    endif
+#        endif
             webPrintln("Hostname: ", wifi_config.Hostname());
         }
 
@@ -568,8 +571,8 @@ namespace WebUI {
                 webPrintln("Off");
                 break;
         }
-#endif  // ENABLE_WIFI
-#ifdef ENABLE_BLUETOOTH
+#    endif  // ENABLE_WIFI
+#    ifdef ENABLE_BLUETOOTH
         webPrint("Current BT Mode: ");
         if (bt_config.Is_BT_on()) {
             webPrintln("On");
@@ -589,8 +592,8 @@ namespace WebUI {
         } else {
             webPrintln("Off");
         }
-#endif
-#ifdef ENABLE_NOTIFICATIONS
+#    endif
+#    ifdef ENABLE_NOTIFICATIONS
         webPrint("Notifications: ");
         webPrint(notificationsservice.started() ? "Enabled" : "Disabled");
         if (notificationsservice.started()) {
@@ -599,18 +602,20 @@ namespace WebUI {
             webPrint(")");
         }
         webPrintln("");
-#endif
+#    endif
         webPrint("FW version: ");
         webPrint(GRBL_VERSION);
         webPrint(" (");
         webPrint(GRBL_VERSION_BUILD);
         webPrint(") (ESP32)");
         webPrintln("");
+#endif
         return Error::Ok;
     }
 
 #ifdef ENABLE_WIFI
     static Error listAPs(char* parameter, AuthenticationLevel auth_level) {  // ESP410
+#    ifndef NATIVE
         JSONencoder j(espresponse->client() != CLIENT_WEBUI);
         j.begin();
         j.begin_array("AP_LIST");
@@ -646,6 +651,7 @@ namespace WebUI {
         if (espresponse->client() != CLIENT_WEBUI) {
             espresponse->println("");
         }
+#    endif
         return Error::Ok;
     }
 #endif
@@ -792,6 +798,7 @@ namespace WebUI {
     }
 
     static Error listSDFiles(char* parameter, AuthenticationLevel auth_level) {  // ESP210
+#    ifndef NATIVE
         SDState state = get_sd_state(true);
         if (state != SDState::Idle) {
             if (state == SDState::NotPresent) {
@@ -810,6 +817,7 @@ namespace WebUI {
         ssd += "]";
         webPrintln(ssd);
         SD.end();
+#    endif
         return Error::Ok;
     }
 #endif
@@ -908,20 +916,21 @@ namespace WebUI {
     }
 
     static Error setRadioState(char* parameter, AuthenticationLevel auth_level) {  // ESP115
+#ifndef NATIVE
         parameter = trim(parameter);
         if (*parameter == '\0') {
             // Display the radio state
             bool on = false;
-#if defined(ENABLE_WIFI)
+#    if defined(ENABLE_WIFI)
             if (WiFi.getMode() != WIFI_MODE_NULL) {
                 on = true;
             }
-#endif
-#if defined(ENABLE_BLUETOOTH)
+#    endif
+#    if defined(ENABLE_BLUETOOTH)
             if (bt_config.Is_BT_on()) {
                 on = true;
             }
-#endif
+#    endif
             webPrintln(on ? "ON" : "OFF");
             return Error::Ok;
         }
@@ -937,53 +946,56 @@ namespace WebUI {
         }
 
         //Stop everything
-#if defined(ENABLE_WIFI)
+#    if defined(ENABLE_WIFI)
         if (WiFi.getMode() != WIFI_MODE_NULL) {
             wifi_config.StopWiFi();
         }
-#endif
-#if defined(ENABLE_BLUETOOTH)
+#    endif
+#    if defined(ENABLE_BLUETOOTH)
         if (bt_config.Is_BT_on()) {
             bt_config.end();
         }
-#endif
+#    endif
         //if On start proper service
         if (!on) {
             webPrintln("[MSG: Radio is Off]");
             return Error::Ok;
         }
         //On
-#ifdef WIFI_OR_BLUETOOTH
+#    ifdef WIFI_OR_BLUETOOTH
         switch (wifi_radio_mode->get()) {
             case ESP_WIFI_AP:
             case ESP_WIFI_STA:
-#    if !defined(ENABLE_WIFI)
+#        if !defined(ENABLE_WIFI)
                 webPrintln("WiFi is not enabled!");
                 return Error::WifiFailBegin;
 
-#    else
+#        else
                 wifi_config.begin();
                 return Error::Ok;
-#    endif
+#        endif
             case ESP_BT:
-#    if !defined(ENABLE_BLUETOOTH)
+#        if !defined(ENABLE_BLUETOOTH)
                 webPrintln("Bluetooth is not enabled!");
                 return Error::BtFailBegin;
-#    else
+#        else
                 bt_config.begin();
                 return Error::Ok;
-#    endif
+#        endif
             default:
                 webPrintln("[MSG: Radio is Off]");
                 return Error::Ok;
         }
+#    endif
 #endif
         return Error::Ok;
     }
 
 #ifdef ENABLE_WIFI
     static Error showIP(char* parameter, AuthenticationLevel auth_level) {  // ESP111
+#    ifndef NATIVE
         webPrintln(parameter, WiFi.getMode() == WIFI_STA ? WiFi.localIP() : WiFi.softAPIP());
+#    endif
         return Error::Ok;
     }
 

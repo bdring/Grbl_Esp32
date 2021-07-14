@@ -21,7 +21,7 @@
 */
 #include "PWMSpindle.h"
 #ifdef NATIVE
-#    include "../native.h"
+#    include <native.h>
 #else
 #    include "soc/ledc_struct.h"
 #endif

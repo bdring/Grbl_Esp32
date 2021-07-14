@@ -21,44 +21,53 @@
 #include "../Grbl.h"
 
 #if defined(ENABLE_WIFI) && defined(ENABLE_HTTP)
+#    ifdef NATIVE
+#        include "WebServer.h"
+namespace WebUI {
+    Web_Server::Web_Server() {}
+    Web_Server::~Web_Server() {}
+    bool Web_Server::begin() { return false; }
+    void Web_Server::end() {}
 
-#    include "WifiServices.h"
+}
+#    else
 
-#    include "ESPResponse.h"
-#    include "Serial2Socket.h"
-#    include "WebServer.h"
-#    include <WebSocketsServer.h>
-#    include <WiFi.h>
-#    include <FS.h>
-#    include <SPIFFS.h>
-#    ifdef ENABLE_SD_CARD
-#        include <SD.h>
-#        include "../SDCard.h"
-#    endif
-#    include <WebServer.h>
-#    include <ESP32SSDP.h>
-#    include <StreamString.h>
-#    include <Update.h>
-#    include <esp_wifi_types.h>
-#    ifdef ENABLE_MDNS
-#        include <ESPmDNS.h>
-#    endif
-#    ifdef ENABLE_SSDP
-#        include <ESP32SSDP.h>
-#    endif
-#    ifdef ENABLE_CAPTIVE_PORTAL
-#        include <DNSServer.h>
+#        include "WifiServices.h"
+
+#        include "ESPResponse.h"
+#        include "Serial2Socket.h"
+#        include "WebServer.h"
+#        include <WebSocketsServer.h>
+#        include <WiFi.h>
+#        include <FS.h>
+#        include <SPIFFS.h>
+#        ifdef ENABLE_SD_CARD
+#            include <SD.h>
+#            include "../SDCard.h"
+#        endif
+#        include <WebServer.h>
+#        include <StreamString.h>
+#        include <Update.h>
+#        include <esp_wifi_types.h>
+#        ifdef ENABLE_MDNS
+#            include <ESPmDNS.h>
+#        endif
+#        ifdef ENABLE_SSDP
+#            include <ESP32SSDP.h>
+#        endif
+#        ifdef ENABLE_CAPTIVE_PORTAL
+#            include <DNSServer.h>
+#        endif
 
 namespace WebUI {
     const byte DNS_PORT = 53;
     DNSServer  dnsServer;
 }
 
-#    endif
-#    include <esp_ota_ops.h>
+#        include <esp_ota_ops.h>
 
 //embedded response file if no files on SPIFFS
-#    include "NoFile.h"
+#        include "NoFile.h"
 
 namespace WebUI {
     //Default 404
@@ -91,11 +100,11 @@ namespace WebUI {
     UploadStatusType  Web_Server::_upload_status = UploadStatusType::NONE;
     WebServer*        Web_Server::_webserver     = NULL;
     WebSocketsServer* Web_Server::_socket_server = NULL;
-#    ifdef ENABLE_AUTHENTICATION
-    AuthenticationIP* Web_Server::_head  = NULL;
-    uint8_t           Web_Server::_nb_ip = 0;
-    const int         MAX_AUTH_IP        = 10;
-#    endif
+#        ifdef ENABLE_AUTHENTICATION
+    AuthenticationIP* Web_Server::_head          = NULL;
+    uint8_t           Web_Server::_nb_ip         = 0;
+    const int         MAX_AUTH_IP                = 10;
+#        endif
     Web_Server::Web_Server() {}
     Web_Server::~Web_Server() { end(); }
 
@@ -111,13 +120,13 @@ namespace WebUI {
 
         //create instance
         _webserver = new WebServer(_port);
-#    ifdef ENABLE_AUTHENTICATION
+#        ifdef ENABLE_AUTHENTICATION
         //here the list of headers to be recorded
         const char* headerkeys[]   = { "Cookie" };
         size_t      headerkeyssize = sizeof(headerkeys) / sizeof(char*);
         //ask server to track these headers
         _webserver->collectHeaders(headerkeys, headerkeyssize);
-#    endif
+#        endif
         _socket_server = new WebSocketsServer(_port + 1);
         _socket_server->begin();
         _socket_server->onEvent(handle_Websocket_Event);
@@ -155,13 +164,13 @@ namespace WebUI {
         //web update
         _webserver->on("/updatefw", HTTP_ANY, handleUpdate, WebUpdateUpload);
 
-#    ifdef ENABLE_SD_CARD
+#        ifdef ENABLE_SD_CARD
         //Direct SD management
         _webserver->on("/upload", HTTP_ANY, handle_direct_SDFileList, SDFile_direct_upload);
         //_webserver->on("/SD", HTTP_ANY, handle_SDCARD);
-#    endif
+#        endif
 
-#    ifdef ENABLE_CAPTIVE_PORTAL
+#        ifdef ENABLE_CAPTIVE_PORTAL
         if (WiFi.getMode() == WIFI_AP) {
             // if DNSServer is started with "*" for domain name, it will reply with
             // provided IP to all DNS request
@@ -172,9 +181,9 @@ namespace WebUI {
             //do not forget the / at the end
             _webserver->on("/fwlink/", HTTP_ANY, handle_root);
         }
-#    endif
+#        endif
 
-#    ifdef ENABLE_SSDP
+#        ifdef ENABLE_SSDP
         //SSDP service presentation
         if (WiFi.getMode() == WIFI_STA) {
             _webserver->on("/description.xml", HTTP_GET, handle_SSDP);
@@ -196,29 +205,29 @@ namespace WebUI {
             grbl_send(CLIENT_ALL, "[MSG:SSDP Started]\r\n");
             SSDP.begin();
         }
-#    endif
+#        endif
         grbl_send(CLIENT_ALL, "[MSG:HTTP Started]\r\n");
         //start webserver
         _webserver->begin();
-#    ifdef ENABLE_MDNS
+#        ifdef ENABLE_MDNS
         //add mDNS
         if (WiFi.getMode() == WIFI_STA) {
             MDNS.addService("http", "tcp", _port);
         }
-#    endif
+#        endif
         _setupdone = true;
         return no_error;
     }
 
     void Web_Server::end() {
         _setupdone = false;
-#    ifdef ENABLE_SSDP
+#        ifdef ENABLE_SSDP
         SSDP.end();
-#    endif  //ENABLE_SSDP
-#    ifdef ENABLE_MDNS
+#        endif  //ENABLE_SSDP
+#        ifdef ENABLE_MDNS
         //remove mDNS
         mdns_service_remove("_http", "_tcp");
-#    endif
+#        endif
         if (_socket_server) {
             delete _socket_server;
             _socket_server = NULL;
@@ -229,14 +238,14 @@ namespace WebUI {
             _webserver = NULL;
         }
 
-#    ifdef ENABLE_AUTHENTICATION
+#        ifdef ENABLE_AUTHENTICATION
         while (_head) {
             AuthenticationIP* current = _head;
             _head                     = _head->_next;
             delete current;
         }
         _nb_ip = 0;
-#    endif
+#        endif
     }
 
     //Root of Webserver/////////////////////////////////////////////////////
@@ -276,7 +285,7 @@ namespace WebUI {
         String contentType    = getContentType(path);
         String pathWithGz     = path + ".gz";
 
-#    ifdef ENABLE_SD_CARD
+#        ifdef ENABLE_SD_CARD
         if ((path.substring(0, 4) == "/SD/")) {
             //remove /SD
             path = path.substring(3);
@@ -328,7 +337,7 @@ namespace WebUI {
             _webserver->send(404, "text/plain", content);
             return;
         } else
-#    endif
+#        endif
             if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
             if (SPIFFS.exists(pathWithGz)) {
                 path = pathWithGz;
@@ -342,7 +351,7 @@ namespace WebUI {
         }
 
         if (page_not_found) {
-#    ifdef ENABLE_CAPTIVE_PORTAL
+#        ifdef ENABLE_CAPTIVE_PORTAL
             if (WiFi.getMode() == WIFI_AP) {
                 String contentType = PAGE_CAPTIVE;
                 String stmp        = WiFi.softAPIP().toString();
@@ -361,7 +370,7 @@ namespace WebUI {
                 //_webserver->client().stop();
                 return;
             }
-#    endif
+#        endif
             path        = "/404.htm";
             contentType = getContentType(path);
             pathWithGz  = path + ".gz";
@@ -396,7 +405,7 @@ namespace WebUI {
         }
     }
 
-#    ifdef ENABLE_SSDP
+#        ifdef ENABLE_SSDP
     //http SSDP xml presentation
     void Web_Server::handle_SSDP() {
         StreamString sschema;
@@ -437,7 +446,7 @@ namespace WebUI {
             _webserver->send(500);
         }
     }
-#    endif
+#        endif
 
     void Web_Server::_handle_web_command(bool silent) {
         //to save time if already disconnected
@@ -484,16 +493,17 @@ namespace WebUI {
             } else {
                 espresponse->flush();
             }
-            if(espresponse) delete(espresponse);
+            if (espresponse)
+                delete (espresponse);
         } else {  //execute GCODE
             if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
                 _webserver->send(401, "text/plain", "Authentication failed!\n");
                 return;
             }
             //Instead of send several commands one by one by web  / send full set and split here
-            String      scmd;
-            bool hasError =false;
-            uint8_t     sindex = 0;
+            String  scmd;
+            bool    hasError = false;
+            uint8_t sindex   = 0;
             // TODO Settings - this is very inefficient.  get_Splited_Value() is O(n^2)
             // when it could easily be O(n).  Also, it would be just as easy to push
             // the entire string into Serial2Socket and pull off lines from there.
@@ -516,13 +526,13 @@ namespace WebUI {
                     hasError = true;
                 }
             }
-            _webserver->send(200, "text/plain", hasError?"Error":"");
+            _webserver->send(200, "text/plain", hasError ? "Error" : "");
         }
     }
 
     //login status check
     void Web_Server::handle_login() {
-#    ifdef ENABLE_AUTHENTICATION
+#        ifdef ENABLE_AUTHENTICATION
         String smsg;
         String sUser, sPassword;
         String auths;
@@ -685,10 +695,10 @@ namespace WebUI {
             buffer2send += "\"}";
             _webserver->send(code, "application/json", buffer2send);
         }
-#    else
+#        else
         _webserver->sendHeader("Cache-Control", "no-cache");
         _webserver->send(200, "application/json", "{\"status\":\"Ok\",\"authentication_lvl\":\"admin\"}");
-#    endif
+#        endif
     }
     //SPIFFS
     //SPIFFS files list and file commands
@@ -1172,7 +1182,7 @@ namespace WebUI {
         COMMANDS::wait(0);
     }
 
-#    ifdef ENABLE_SD_CARD
+#        ifdef ENABLE_SD_CARD
 
     //Function to delete not empty directory on SD card
     bool Web_Server::deleteRecursive(String path) {
@@ -1224,9 +1234,9 @@ namespace WebUI {
         String path    = "/";
         String sstatus = "Ok";
         if ((_upload_status == UploadStatusType::FAILED) || (_upload_status == UploadStatusType::FAILED)) {
-            sstatus        = "Upload failed";
+            sstatus = "Upload failed";
         }
-        _upload_status = UploadStatusType::NONE;
+        _upload_status      = UploadStatusType::NONE;
         bool     list_files = true;
         uint64_t totalspace = 0;
         uint64_t usedspace  = 0;
@@ -1544,16 +1554,16 @@ namespace WebUI {
         }
         COMMANDS::wait(0);
     }
-#    endif
+#        endif
 
     void Web_Server::handle() {
         static uint32_t timeout = millis();
         COMMANDS::wait(0);
-#    ifdef ENABLE_CAPTIVE_PORTAL
+#        ifdef ENABLE_CAPTIVE_PORTAL
         if (WiFi.getMode() == WIFI_AP) {
             dnsServer.processNextRequest();
         }
-#    endif
+#        endif
         if (_webserver) {
             _webserver->handleClient();
         }
@@ -1663,7 +1673,7 @@ namespace WebUI {
 
     //check authentification
     AuthenticationLevel Web_Server::is_authenticated() {
-#    ifdef ENABLE_AUTHENTICATION
+#        ifdef ENABLE_AUTHENTICATION
         if (_webserver->hasHeader("Cookie")) {
             String cookie = _webserver->header("Cookie");
             int    pos    = cookie.indexOf("ESPSESSIONID=");
@@ -1676,12 +1686,12 @@ namespace WebUI {
             }
         }
         return AuthenticationLevel::LEVEL_GUEST;
-#    else
+#        else
         return AuthenticationLevel::LEVEL_ADMIN;
-#    endif
+#        endif
     }
 
-#    ifdef ENABLE_AUTHENTICATION
+#        ifdef ENABLE_AUTHENTICATION
 
     //add the information in the linked list if possible
     bool Web_Server::AddAuthIP(AuthenticationIP* item) {
@@ -1799,6 +1809,7 @@ namespace WebUI {
         }
         return AuthenticationLevel::LEVEL_GUEST;
     }
-#    endif
+#        endif
 }
+#    endif
 #endif  // Enable HTTP && ENABLE_WIFI

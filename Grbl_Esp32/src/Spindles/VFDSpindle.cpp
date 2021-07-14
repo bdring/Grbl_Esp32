@@ -35,10 +35,10 @@
 #include "VFDSpindle.h"
 
 #ifdef NATIVE
-#    include "../native.h"
-#else
-#    include <freertos/task.h>
+#    include <native.h>
 #endif
+
+#include <freertos/task.h>
 
 // Timing and modbus... The manual states that between communications, we should respect a
 // silent interval of 3,5 characters. If we received communications between these times, we
@@ -273,8 +273,10 @@ namespace Spindles {
                     // if we should use a different value...
                     vTaskDelay(VFD_RS485_POLL_RATE / portTICK_PERIOD_MS);
 
+#ifdef REPORT_TASK_STACK
                     static UBaseType_t uxHighWaterMark = 0;
                     reportTaskStackSize(uxHighWaterMark);
+#endif
                 }
             }
 

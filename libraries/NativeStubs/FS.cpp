@@ -1,14 +1,4 @@
-#ifdef NATIVE
-#    include "native.h"
-#    include <stdio.h>
-
-EspClass ESP;
-
-String IPAddress::toString() const {
-    char szRet[16];
-    sprintf(szRet, "%u.%u.%u.%u", _address.bytes[0], _address.bytes[1], _address.bytes[2], _address.bytes[3]);
-    return String(szRet);
-}
+#include <FS.h>
 
 using namespace fs;
 
@@ -122,52 +112,10 @@ bool FS::rmdir(const String& path) {
     return rmdir(path.c_str());
 }
 
-#    if 0
+#if 0
 void FSImpl::mountpoint(const char* mp) {}
 
 const char* FSImpl::mountpoint() {
     return "";
-}
-#    endif
-
-SPIFFSFS::SPIFFSFS() {}
-
-SPIFFSFS::~SPIFFSFS() {}
-
-bool SPIFFSFS::begin(bool formatOnFail, const char* basePath, uint8_t maxOpenFiles, const char* partitionLabel) {
-    return true;
-}
-
-void SPIFFSFS::end() {}
-
-bool SPIFFSFS::format() {
-    return true;
-}
-
-size_t SPIFFSFS::totalBytes() {
-    return 0;
-}
-
-size_t SPIFFSFS::usedBytes() {
-    return 0;
-}
-
-fs::SPIFFSFS SPIFFS;
-
-#    include <TMCStepper.h>
-
-// Implementation of weak functions in libraries
-// The compiler use for native compilation doesn't support
-// __attribute__ ((weak))
-void TMC2130Stepper::switchCSpin(bool state) {
-    // digitalWrite(_pinCS, state);
-}
-void TMC2130Stepper::setSPISpeed(uint32_t speed) {
-    // spi_speed = speed;
-}
-void TMC2130Stepper::write(uint8_t addressByte, uint32_t config) {}
-
-uint32_t TMC2130Stepper::read(uint8_t addressByte) {
-    return 0UL;
 }
 #endif

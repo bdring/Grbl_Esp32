@@ -23,9 +23,11 @@
 #ifdef ENABLE_WIFI
 
 #    include <WiFi.h>
-#    include <esp_wifi.h>
-#    include <ESPmDNS.h>
-#    include <FS.h>
+#    ifndef NATIVE
+#        include <esp_wifi.h>
+#        include <ESPmDNS.h>
+#        include <FS.h>
+#    endif
 #    include <SPIFFS.h>
 #    include <cstring>
 #    include "WifiServices.h"
@@ -52,6 +54,7 @@ namespace WebUI {
         String        tmp;
         result = "[MSG:";
 
+#    ifndef NATIVE
         if ((WiFi.getMode() == WIFI_MODE_STA) || (WiFi.getMode() == WIFI_MODE_APSTA)) {
             result += "Mode=STA:SSID=";
             result += WiFi.SSID();
@@ -83,6 +86,7 @@ namespace WebUI {
         if (WiFi.getMode() == WIFI_MODE_NULL) {
             result += "No Wifi";
         }
+#    endif
         result += "]\r\n";
         return result.c_str();
     }
@@ -208,6 +212,7 @@ namespace WebUI {
      */
 
     void WiFiConfig::WiFiEvent(WiFiEvent_t event) {
+#    ifndef NATIVE
         switch (event) {
             case SYSTEM_EVENT_STA_GOT_IP:
                 grbl_sendf(CLIENT_ALL, "[MSG:Connected with %s]\r\n", WiFi.localIP().toString().c_str());
@@ -218,6 +223,7 @@ namespace WebUI {
             default:
                 break;
         }
+#    endif
     }
 
     /*
@@ -238,6 +244,9 @@ namespace WebUI {
      */
 
     bool WiFiConfig::ConnectSTA2AP() {
+#    ifdef NATIVE
+        return false;
+#    else
         String      msg, msg_out;
         uint8_t     count  = 0;
         uint8_t     dot    = 0;
@@ -268,6 +277,7 @@ namespace WebUI {
             status = WiFi.status();
         }
         return status == WL_CONNECTED;
+#    endif
     }
 
     /*
@@ -275,6 +285,9 @@ namespace WebUI {
      */
 
     bool WiFiConfig::StartSTA() {
+#    ifdef NATIVE
+        return false;
+#    else
         //stop active service
         wifi_services.end();
         //Sanity check
@@ -313,6 +326,7 @@ namespace WebUI {
             grbl_send(CLIENT_ALL, "[MSG:Starting client failed]\r\n");
             return false;
         }
+#    endif
     }
 
     /**
@@ -320,6 +334,9 @@ namespace WebUI {
      */
 
     bool WiFiConfig::StartAP() {
+#    ifdef NATIVE
+        return false;
+#    else
         //stop active services
         wifi_services.end();
         //Sanity check
@@ -359,6 +376,7 @@ namespace WebUI {
             grbl_send(CLIENT_ALL, "[MSG:Starting AP failed]\r\n");
             return false;
         }
+#    endif
     }
 
     /**
@@ -366,6 +384,7 @@ namespace WebUI {
      */
 
     void WiFiConfig::StopWiFi() {
+#    ifndef NATIVE
         //Sanity check
         if ((WiFi.getMode() == WIFI_STA) || (WiFi.getMode() == WIFI_AP_STA)) {
             WiFi.disconnect(true);
@@ -378,12 +397,14 @@ namespace WebUI {
         WiFi.enableAP(false);
         WiFi.mode(WIFI_OFF);
         grbl_send(CLIENT_ALL, "\n[MSG:WiFi Off]\r\n");
+#    endif
     }
 
     /**
      * begin WiFi setup
      */
     void WiFiConfig::begin() {
+#    ifndef NATIVE
         //stop active services
         wifi_services.end();
         //setup events
@@ -409,6 +430,7 @@ namespace WebUI {
         } else {
             WiFi.mode(WIFI_OFF);
         }
+#    endif
     }
 
     /**
@@ -432,8 +454,13 @@ namespace WebUI {
         }
         grbl_send(CLIENT_ALL, "[MSG:WiFi reset done]\r\n");
     }
-    bool WiFiConfig::Is_WiFi_on() { return !(WiFi.getMode() == WIFI_MODE_NULL); }
-
+    bool WiFiConfig::Is_WiFi_on() {
+#    ifdef NATIVE
+        return false;
+#    else
+        return !(WiFi.getMode() == WIFI_MODE_NULL);
+#    endif
+    }
     /**
      * Handle not critical actions that must be done in sync environement
      */

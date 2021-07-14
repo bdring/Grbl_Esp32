@@ -26,22 +26,32 @@
 #    include <FS.h>
 #    include <SPIFFS.h>
 #    include "WifiServices.h"
-#    ifdef ENABLE_MDNS
-#        include <ESPmDNS.h>
-#    endif
-#    ifdef ENABLE_OTA
-#        include <ArduinoOTA.h>
-#    endif
-#    ifdef ENABLE_HTTP
-#        include "WebServer.h"
-#    endif
-#    ifdef ENABLE_TELNET
-#        include "TelnetServer.h"
-#    endif
-#    ifdef ENABLE_NOTIFICATIONS
-#        include "NotificationsService.h"
-#    endif
-#    include "Commands.h"
+#    ifdef NATIVE
+using namespace WebUI;
+WiFiServices::WiFiServices() {}
+WiFiServices::~WiFiServices() {}
+bool WiFiServices::begin() {
+    return false;
+}
+void WiFiServices::end() {}
+void WiFiServices::handle() {}
+#    else
+#        ifdef ENABLE_MDNS
+#            include <ESPmDNS.h>
+#        endif
+#        ifdef ENABLE_OTA
+#            include <ArduinoOTA.h>
+#        endif
+#        ifdef ENABLE_HTTP
+#            include "WebServer.h"
+#        endif
+#        ifdef ENABLE_TELNET
+#            include "TelnetServer.h"
+#        endif
+#        ifdef ENABLE_NOTIFICATIONS
+#            include "NotificationsService.h"
+#        endif
+#        include "Commands.h"
 
 namespace WebUI {
     WiFiServices wifi_services;
@@ -59,7 +69,7 @@ namespace WebUI {
 
         //Start SPIFFS
         SPIFFS.begin(true);
-#    ifdef ENABLE_OTA
+#        ifdef ENABLE_OTA
         ArduinoOTA
             .onStart([]() {
                 String type;
@@ -97,8 +107,8 @@ namespace WebUI {
                 }
             });
         ArduinoOTA.begin();
-#    endif
-#    ifdef ENABLE_MDNS
+#        endif
+#        ifdef ENABLE_MDNS
         //no need in AP mode
         if (WiFi.getMode() == WIFI_STA) {
             //start mDns
@@ -109,40 +119,40 @@ namespace WebUI {
                 grbl_sendf(CLIENT_ALL, "[MSG:Start mDNS with hostname:http://%s.local/]\r\n", h.c_str());
             }
         }
-#    endif
-#    ifdef ENABLE_HTTP
+#        endif
+#        ifdef ENABLE_HTTP
         web_server.begin();
-#    endif
-#    ifdef ENABLE_TELNET
+#        endif
+#        ifdef ENABLE_TELNET
         telnet_server.begin();
-#    endif
-#    ifdef ENABLE_NOTIFICATIONS
+#        endif
+#        ifdef ENABLE_NOTIFICATIONS
         notificationsservice.begin();
-#    endif
+#        endif
         //be sure we are not is mixed mode in setup
         WiFi.scanNetworks(true);
         return no_error;
     }
     void WiFiServices::end() {
-#    ifdef ENABLE_NOTIFICATIONS
+#        ifdef ENABLE_NOTIFICATIONS
         notificationsservice.end();
-#    endif
-#    ifdef ENABLE_TELNET
+#        endif
+#        ifdef ENABLE_TELNET
         telnet_server.end();
-#    endif
-#    ifdef ENABLE_HTTP
+#        endif
+#        ifdef ENABLE_HTTP
         web_server.end();
-#    endif
+#        endif
         //stop OTA
-#    ifdef ENABLE_OTA
+#        ifdef ENABLE_OTA
         ArduinoOTA.end();
-#    endif
+#        endif
         //Stop SPIFFS
         SPIFFS.end();
-#    ifdef ENABLE_MDNS
+#        ifdef ENABLE_MDNS
         //Stop mDNS
         MDNS.end();
-#    endif
+#        endif
     }
 
     void WiFiServices::handle() {
@@ -156,15 +166,16 @@ namespace WebUI {
                 WiFi.enableSTA(false);
             }
         }
-#    ifdef ENABLE_OTA
+#        ifdef ENABLE_OTA
         ArduinoOTA.handle();
-#    endif
-#    ifdef ENABLE_HTTP
+#        endif
+#        ifdef ENABLE_HTTP
         web_server.handle();
-#    endif
-#    ifdef ENABLE_TELNET
+#        endif
+#        ifdef ENABLE_TELNET
         telnet_server.handle();
-#    endif
+#        endif
     }
 }
-#endif  // ENABLE_WIFI
+#    endif  // ENABLE_WIFI
+#endif

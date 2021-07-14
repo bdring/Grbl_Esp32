@@ -5,8 +5,6 @@
 #include "Grbl.h"
 
 #ifdef NATIVE
-#    include "native.h"
-// #    include <stdio.h>
 #    include <conio.h>
 Uart::Uart(int uart_num) : _uart_num(uart_port_t(uart_num)), _pushback(-1) {}
 
@@ -23,6 +21,7 @@ int Uart::read(TickType_t timeout) {
         return -1;
     }
     int c = getch();
+    // This is putch() not putchar() because we want to echo to the console
     putch(c);
     return c;
 }
@@ -50,6 +49,7 @@ size_t Uart::write(uint8_t c) {
     if (_uart_num) {
         return 0;
     }
+    // This is putchar() not putch() because we want it to go to stdout
     int result = putchar(c);
     return (result == EOF) ? 0 : 1;
 }

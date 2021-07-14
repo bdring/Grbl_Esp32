@@ -25,15 +25,27 @@
 #    include "BTConfig.h"
 
 namespace WebUI {
+#    ifdef NATIVE
+    BluetoothSerial SerialBT;
+    BTConfig::BTConfig() {}
+    void        BTConfig::begin() {}
+    void        BTConfig::end() {}
+    void        BTConfig::handle() {}
+    void        BTConfig::reset_settings() {}
+    bool        BTConfig::isBTnameValid(const char* hostname) { return true; }
+    const char* BTConfig::info() { return ""; }
+    BTConfig::~BTConfig() {}
+
+#    else
     BTConfig        bt_config;
     BluetoothSerial SerialBT;
-#    ifdef __cplusplus
+#        ifdef __cplusplus
     extern "C" {
-#    endif
+#        endif
     const uint8_t* esp_bt_dev_get_address(void);
-#    ifdef __cplusplus
+#        ifdef __cplusplus
     }
-#    endif
+#        endif
 
     String BTConfig::_btname   = "";
     String BTConfig::_btclient = "";
@@ -157,5 +169,6 @@ namespace WebUI {
     }
 
     BTConfig::~BTConfig() { end(); }
+#    endif
 }
 #endif  // ENABLE_BLUETOOTH

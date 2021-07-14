@@ -33,7 +33,6 @@
 #include "BESCSpindle.h"
 
 // don't change these
-const double BESC_PWM_FREQ     = 50.0;  // Hz
 const double BESC_PULSE_PERIOD = (1.0 / BESC_PWM_FREQ);
 
 //calculations...don't change

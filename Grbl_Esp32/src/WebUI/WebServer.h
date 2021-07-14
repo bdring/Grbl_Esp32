@@ -55,6 +55,9 @@ namespace WebUI {
         ~Web_Server();
 
     private:
+#ifdef NATIVE
+        static uint16_t _port;
+#else
         static bool                _setupdone;
         static WebServer*          _webserver;
         static long                _id_connection;
@@ -64,7 +67,7 @@ namespace WebUI {
         static String              getContentType(String filename);
         static String              get_Splited_Value(String data, char separator, int index);
         static AuthenticationLevel is_authenticated();
-#ifdef ENABLE_AUTHENTICATION
+#    ifdef ENABLE_AUTHENTICATION
         static AuthenticationIP*   _head;
         static uint8_t             _nb_ip;
         static bool                AddAuthIP(AuthenticationIP* item);
@@ -72,27 +75,28 @@ namespace WebUI {
         static bool                ClearAuthIP(IPAddress ip, const char* sessionID);
         static AuthenticationIP*   GetAuth(IPAddress ip, const char* sessionID);
         static AuthenticationLevel ResetAuthIP(IPAddress ip, const char* sessionID);
-#endif
-#ifdef ENABLE_SSDP
-        static void handle_SSDP();
-#endif
-        static void handle_root();
-        static void handle_login();
-        static void handle_not_found();
-        static void _handle_web_command(bool);
-        static void handle_web_command() { _handle_web_command(false); }
-        static void handle_web_command_silent() { _handle_web_command(true); }
-        static void handle_Websocket_Event(uint8_t num, uint8_t type, uint8_t* payload, size_t length);
-        static void SPIFFSFileupload();
-        static void handleFileList();
-        static void handleUpdate();
-        static void WebUpdateUpload();
-        static void pushError(int code, const char* st, bool web_error = 500, uint16_t timeout = 1000);
-        static void cancelUpload();
-#ifdef ENABLE_SD_CARD
-        static void handle_direct_SDFileList();
-        static void SDFile_direct_upload();
-        static bool deleteRecursive(String path);
+#    endif
+#    ifdef ENABLE_SSDP
+        static void                handle_SSDP();
+#    endif
+        static void                handle_root();
+        static void                handle_login();
+        static void                handle_not_found();
+        static void                _handle_web_command(bool);
+        static void                handle_web_command() { _handle_web_command(false); }
+        static void                handle_web_command_silent() { _handle_web_command(true); }
+        static void                handle_Websocket_Event(uint8_t num, uint8_t type, uint8_t* payload, size_t length);
+        static void                SPIFFSFileupload();
+        static void                handleFileList();
+        static void                handleUpdate();
+        static void                WebUpdateUpload();
+        static void                pushError(int code, const char* st, bool web_error = 500, uint16_t timeout = 1000);
+        static void                cancelUpload();
+#    ifdef ENABLE_SD_CARD
+        static void                handle_direct_SDFileList();
+        static void                SDFile_direct_upload();
+        static bool                deleteRecursive(String path);
+#    endif
 #endif
     };
 

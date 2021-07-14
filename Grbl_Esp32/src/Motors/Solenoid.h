@@ -11,7 +11,8 @@ namespace Motors {
         void update() override;
         void init() override;
         void set_disable(bool disable) override;
-        void name() override { return "unipolar"; }
+
+        void name() override { return "solenoid"; }
 
         float _transition_poiont;
 

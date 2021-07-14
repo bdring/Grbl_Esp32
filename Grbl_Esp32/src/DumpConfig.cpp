@@ -19,9 +19,11 @@
 #include "Spindles/VFDSpindle.h"
 #include "Spindles/YL620Spindle.h"
 #include "Spindles/Laser.h"
+#include "WebUI/WebSettings.h"
 
 using namespace Motors;
 using namespace Spindles;
+using namespace WebUI;
 
 #define p(...)                                                                                                                             \
     do {                                                                                                                                   \
@@ -410,11 +412,61 @@ void print_probe() {
     item("check_mode_start", cms);
     end_section();
 }
+void print_ips(const char* ssid, const char* ip, const char* gateway, const char* netmask, bool dhcp) {
+    item("ssid", ssid);
+    item("ip_address", ip);
+    item("gateway", gateway);
+    item("netmask", netmask);
+    item("dhcp", dhcp);
+}
+void print_ap() {
+#ifdef ENABLE_WIFI
+    section("wifi_ap");
+    print_ips(wifi_ap_ssid->get(), wifi_ap_ip->getStringValue(), "", "", true);
+    item("channel", wifi_ap_channel->get());
+    end_section();
+#endif
+}
+void print_sta() {
+#ifdef ENABLE_WIFI
+    section("wifi_sta");
+    print_ips(wifi_sta_ssid->get(),
+              wifi_sta_ip->getStringValue(),
+              wifi_sta_gateway->getStringValue(),
+              wifi_sta_netmask->getStringValue(),
+              wifi_sta_mode->get() == DHCP_MODE);
+    end_section();
+#endif
+}
+void print_bt() {
+#ifdef ENABLE_BLUETOOTH
+    section("bluetooth");
+    item("name", bt_name->get());
+    end_section();
+#endif
+}
 void print_comms() {
+    // Radio mode???
+
     section("comms");
-    // XXX
+#ifdef ENABLE_WIFI
+    item("telnet_enable", telnet_enable->get());
+    item("telnet_port", telnet_port->get());
+
+    item("http_enable", http_enable->get());
+    item("http_port", http_port->get());
+
+    item("hostname", wifi_hostname->get());
+
+    print_ap();
+    print_sta();
+#endif
+#ifdef ENABLE_BLUETOOTH
+    print_bt();
+#endif
     end_section();
 }
+// notifications?
 void print_macros() {
     section("macros");
     item("n0", startup_line_0->get());
@@ -426,7 +478,18 @@ void print_macros() {
     end_section();
 }
 const char* makeSpeedMap(PWM* s) {
-    return "0=0% 1000=100%";
+    static char temp[100];
+    float       off_percent = spindle_pwm_off_value->get();
+    float       min_percent = spindle_pwm_min_value->get();
+    float       max_percent = spindle_pwm_max_value->get();
+    float       min_rpm     = rpm_min->get();
+    float       max_rpm     = rpm_max->get();
+    if (min_rpm == 0.0f && off_percent == min_percent) {
+        sprintf(temp, "%d=%.1f%% %d=%.1f%%", (int)min_rpm, min_percent, (int)max_rpm, max_percent);
+    } else {
+        sprintf(temp, "%d=%.1f%% %d=%.1f%% %d=%.1f%%", 0, off_percent, (int)min_rpm, min_percent, (int)max_rpm, max_percent);
+    }
+    return temp;
 }
 void print_spindle(const char* name, Spindle* s) {
     section(name);
@@ -464,8 +527,8 @@ void print_dac_spindle(Dac* s) {
     end_section();
 }
 void print_besc_spindle(BESC* s) {
+    s->_pwm_freq = BESC_PWM_FREQ;  // Override in parent class
     print_pwm_spindle("besc", s);
-    // XXX override frequency to BEDC_PWM_FREQ and period to BESC_PULSE_PERIOD
     item("min_pulse_us", int(BESC_MIN_PULSE_SECS * 1000000));
     item("max_pulse_us", int(BESC_MAX_PULSE_SECS * 1000000));
 
