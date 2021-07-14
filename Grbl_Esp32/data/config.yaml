@@ -41,6 +41,7 @@ axes:
         step: gpio.12
     gang1:
       null_motor:
+      endstops:
 
   y:
     steps_per_mm: 800
@@ -67,6 +68,7 @@ axes:
         step: gpio.26
     gang1:
       null_motor:
+      endstops:
 
   z:
     steps_per_mm: 800
@@ -95,6 +97,7 @@ axes:
         step: gpio.27
     gang1:
       null_motor:
+      endstops:
 
 comms:
     wifi_ap:

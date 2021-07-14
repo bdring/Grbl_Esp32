@@ -517,41 +517,20 @@ void limits_run_mode() {
 
 // return the switch state of an axis
 static bool limits_check_axis(int axis) {
-    
     // check the axis level
     auto axes     = config->_axes;
     auto endstops = axes->_axis[axis]->_endstops;
 
-    Pin& pinAll = endstops->_limitAll;
-    if (pinAll.defined()) {
-        return pinAll.read();
-    }
-    Pin& pinNeg = endstops->_limitNeg;
-    if (pinNeg.defined()) {
-        return pinNeg.read();
-    }
-    Pin& pinPos = endstops->_limitPos;
-    if (pinPos.defined()) {
-        return pinPos.read();
-    }
+    if (endstops->read())
+        return true;
 
     // check the gang level
     for (int gang_index = 0; gang_index < 2; gang_index++) {
         auto gangConfig = axes->_axis[axis]->_gangs[gang_index];
         auto endstops   = gangConfig->_endstops;
 
-        Pin& pinAll = endstops->_limitAll;
-        if (pinAll.defined()) {
-            return pinAll.read();
-        }
-        Pin& pinNeg = endstops->_limitNeg;
-        if (pinNeg.defined()) {
-            return pinNeg.read();
-        }
-        Pin& pinPos = endstops->_limitPos;
-        if (pinPos.defined()) {
-            return pinPos.read();
-        }
+        if (endstops->read())
+            return true;
     }
 
     return false;

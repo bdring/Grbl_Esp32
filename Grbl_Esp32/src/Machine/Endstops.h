@@ -34,6 +34,7 @@ namespace Machine {
 
         // Configuration system helpers:
         void validate() const override;
+        bool read();
         void group(Configuration::HandlerBase& handler) override;
     };
 }
