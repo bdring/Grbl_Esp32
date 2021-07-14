@@ -77,7 +77,9 @@ bool Uart::setHalfDuplex() {
 bool Uart::setPins(int tx_pin, int rx_pin, int rts_pin, int cts_pin) {
     return false;
 }
-void Uart::flush() {}
+void Uart::flush() {
+    fflush(stdout);
+}
 bool Uart::flushTxTimed(TickType_t ticks) {
     return false;
 }

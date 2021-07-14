@@ -111,7 +111,9 @@ void client_init() {
     Uart0.begin(BAUD_RATE, Uart::Data::Bits8, Uart::Stop::Bits1, Uart::Parity::None);
 
     client_reset_read_buffer(CLIENT_ALL);
+#    ifndef NATIVE
     Uart0.write("\r\n");  // create some white space after ESP32 boot info
+#    endif
 #endif
     clientCheckTaskHandle = 0;
     // create a task to check for incoming data

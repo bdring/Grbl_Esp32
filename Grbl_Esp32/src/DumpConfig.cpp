@@ -309,9 +309,16 @@ void        print_axes() {
     }
     end_section();
 }
+const char* engine_names[] = {
+    "Timed",
+    "RMT",
+    "I2S_stream",
+    "I2S_static",
+};
+
 void print_stepping() {
     section("stepping");
-    item("engine", stepper_names[current_stepper]);
+    item("engine", engine_names[current_stepper]);
     item("idle_ms", stepper_idle_lock_time->get());
     item("pulse_us", pulse_microseconds->get());
     item("dir_delay_us", direction_delay_microseconds->get());
@@ -497,7 +504,6 @@ void print_spindle(const char* name, Spindle* s) {
     item("spindown_ms", s->_spindown_delay);
     item("tool", int(0));
     item("speeds", makeSpeedMap(static_cast<PWM*>(s)));
-    end_section();
 }
 void print_onoff_spindle(const char* name, PWM* s) {
     print_spindle(name, s);
@@ -510,7 +516,6 @@ void print_onoff_spindle(const char* name, PWM* s) {
 void print_pwm_spindle(const char* name, PWM* s) {
     print_onoff_spindle(name, s);
     item("pwm_freq", s->_pwm_freq);
-    end_section();
 }
 void print_relay_spindle(Relay* s) {
     print_onoff_spindle("relay", s);
@@ -605,6 +610,7 @@ void print_spindle_class() {
             break;
         case int8_t(SpindleType::PWM):
             print_pwm_spindle("pwm", static_cast<PWM*>(s));
+            end_section();
             break;
         case int8_t(SpindleType::RELAY):
             print_relay_spindle(static_cast<Relay*>(s));
@@ -633,12 +639,12 @@ void print_spindle_class() {
     }
 }
 void dump_config() {
+    item("name", MACHINE_NAME);
 #ifdef USE_I2S_OUT
     item("board", "6-pack");
 #else
     item("board", "unknown");
 #endif
-    item("name", MACHINE_NAME);
     print_stepping();
     print_axes();
     print_i2so();
@@ -706,8 +712,3 @@ void dump_config() {
 
     print_spindle_class();
 }
-#if 0
-void machine_init() {
-    print_machine();
-}
-#endif

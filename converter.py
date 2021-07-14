@@ -28,14 +28,12 @@ def convertMachine(baseName, verbose=True, extraArgs=None):
                 print(line, end='')
     app.wait()
     if app.returncode == 0:
-        print()
         cmd = [ '.pio/build/native/program.exe' ]
         out_filename = "yaml/" + Path(baseName).stem + ".yaml"
         app = subprocess.Popen(cmd, env=env, stdout=open(out_filename, "w"), stderr=subprocess.STDOUT, bufsize=1)
         app.wait()
-        # return app.returncode
+        return app.returncode
     else:
         out_filename = "yaml/" + Path(baseName).stem + ".ERROR"
         open(out_filename, "w")
     return 0
-
