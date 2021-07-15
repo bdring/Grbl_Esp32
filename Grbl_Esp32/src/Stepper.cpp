@@ -244,6 +244,7 @@ void IRAM_ATTR Stepper::pulse_func() {
             return;  // Nothing to do but exit.
         }
     }
+
     // Check probing state.
     if (sys_probe_state == ProbeState::Active && config->_probe->tripped()) {
         sys_probe_state = ProbeState::Off;

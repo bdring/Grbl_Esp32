@@ -507,6 +507,9 @@
     <ClInclude Include="X86TestSupport\soc\ledc_struct.h">
       <Filter>X86TestSupport\soc</Filter>
     </ClInclude>
+    <ClInclude Include="Grbl_Esp32\src\Stepping.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Grbl_Esp32\src\WebUI\JSONEncoder.cpp">
@@ -853,6 +856,9 @@
     </ClCompile>
     <ClCompile Include="X86TestSupport\driver\uartdriver.cpp">
       <Filter>X86TestSupport\driver</Filter>
+    </ClCompile>
+    <ClCompile Include="Grbl_Esp32\src\Stepping.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -16,12 +16,12 @@ axes:
   shared_stepper_disable: gpio.13:high
   
   x:
-    steps_per_mm: 800
-    max_rate: 2000
-    acceleration: 25
-    max_travel: 1000
+    steps_per_mm: 1500
+    max_rate: 50000
+    acceleration: 5000
+    max_travel: 100000
     homing:
-      cycle: -1
+      cycle: 0
       mpos: 10
       positive_direction: false
       feed_rate: 50.000

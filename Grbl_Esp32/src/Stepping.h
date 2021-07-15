@@ -19,7 +19,6 @@
 */
 
 #include "Configuration/Configurable.h"
-// #include <atomic>
 
 namespace Machine {
     class Stepping : public Configuration::Configurable {
@@ -29,7 +28,7 @@ namespace Machine {
 
     private:
         static const int   stepTimerNumber = 0;
-        static const bool  autoReload      = true;
+        static const bool  autoReload      = false;
         static hw_timer_t* stepTimer;
         static void        onStepperDriverTimer();
 

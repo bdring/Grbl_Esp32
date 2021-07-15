@@ -160,6 +160,7 @@ namespace Machine {
                 a->unstep();
             }
         }
+
         config->_stepping->finishPulse();
     }
 

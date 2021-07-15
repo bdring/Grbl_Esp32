@@ -143,6 +143,7 @@
     <ClInclude Include="Grbl_Esp32\src\StackTrace\debug_helpers.h" />
     <ClInclude Include="Grbl_Esp32\src\Stepper.h" />
     <ClInclude Include="Grbl_Esp32\src\StepperPrivate.h" />
+    <ClInclude Include="Grbl_Esp32\src\Stepping.h" />
     <ClInclude Include="Grbl_Esp32\src\StringRange.h" />
     <ClInclude Include="Grbl_Esp32\src\StringStream.h" />
     <ClInclude Include="Grbl_Esp32\src\System.h" />
@@ -276,6 +277,7 @@
     <ClCompile Include="Grbl_Esp32\src\StackTrace\AssertionFailed.cpp" />
     <ClCompile Include="Grbl_Esp32\src\StackTrace\debug_helpers.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Stepper.cpp" />
+    <ClCompile Include="Grbl_Esp32\src\Stepping.cpp" />
     <ClCompile Include="Grbl_Esp32\src\System.cpp" />
     <ClCompile Include="Grbl_Esp32\src\Uart.cpp" />
     <ClCompile Include="Grbl_Esp32\src\UserOutput.cpp" />

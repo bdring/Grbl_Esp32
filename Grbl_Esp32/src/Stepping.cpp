@@ -15,8 +15,6 @@ namespace Machine {
                              { Stepping::I2S_STREAM, "I2S_stream" },
                              EnumItem(Stepping::RMT) };
 
-    static std::atomic<bool> busy;
-
     void Stepping::init() {
         info_serial("Step type:%s Pulse:%dus Dsbl Delay:%dus Dir Delay:%dus Idle Delay:%dms",
                     // stepping->name(),
@@ -39,8 +37,6 @@ namespace Machine {
         // Register pulse_func with the I2S subsystem
         // This could be done via the linker.
         //        i2s_out_set_pulse_callback(Stepper::pulse_func);
-
-        busy.store(false);
     }
 
     // Wait for motion to complete; the axes can still be moving
@@ -83,7 +79,8 @@ namespace Machine {
             NOP();
         }
     }
-    void Stepping::waitPulse() {
+
+    void IRAM_ATTR Stepping::waitPulse() {
         uint64_t pulseEndTime;
         switch (_engine) {
             case I2S_STREAM:
@@ -100,7 +97,8 @@ namespace Machine {
                 return;
         }
     }
-    void Stepping::waitDirection() {
+
+    void IRAM_ATTR Stepping::waitDirection() {
         if (_directionDelayUsecs) {
             // Stepper drivers need some time between changing direction and doing a pulse.
             switch (_engine) {
@@ -108,7 +106,7 @@ namespace Machine {
                     i2s_out_push_sample(_directionDelayUsecs);
                     break;
                 case stepper_id_t::I2S_STATIC:
-                case stepper_id_t::TIMED: {
+                case stepper_id_t::TIMED:
                     // wait for step pulse time to complete...some time expired during code above
                     //
                     // If we are using GPIO stepping as opposed to RMT, record the
@@ -116,14 +114,13 @@ namespace Machine {
                     // If we are using RMT, we can't delay here.
                     spinDelay(esp_timer_get_time(), _directionDelayUsecs);
                     break;
-                    case stepper_id_t::RMT:
-                        break;
-                }
+                case stepper_id_t::RMT:
+                    break;
             }
         }
     }
 
-    void Stepping::startPulseTimer() {
+    void IRAM_ATTR Stepping::startPulseTimer() {
         switch (_engine) {
             case stepper_id_t::I2S_STREAM:
                 break;
@@ -136,7 +133,7 @@ namespace Machine {
         }
     }
 
-    void Stepping::finishPulse() {
+    void IRAM_ATTR Stepping::finishPulse() {
         switch (_engine) {
             case stepper_id_t::I2S_STREAM:
                 break;
@@ -191,31 +188,25 @@ namespace Machine {
     // with probing and homing cycles that require true real-time positions.
     void IRAM_ATTR Stepping::onStepperDriverTimer() {
         // Timer ISR, normally takes a step.
-
+        //
         // The intermediate handler clears the timer interrupt so we need not do it here
+        ++isr_count;
 
-        bool expected = false;
-        if (busy.compare_exchange_strong(expected, true)) {
-            ++isr_count;
-
-            // Using autoReload results is less timing jitter so it is
-            // probably best to have it on.  We keep the variable for
-            // convenience in debugging.
-            if (!autoReload) {
-                timerWrite(stepTimer, 0ULL);
-            }
-
-            // It is tempting to defer this until after pulse_func(),
-            // but if pulse_func() determines that no more stepping
-            // is required and disables the timer, then that will be undone
-            // if the re-enable happens afterwards.
-
-            timerAlarmEnable(stepTimer);
-
-            Stepper::pulse_func();
-
-            busy.store(false);
+        // Using autoReload results is less timing jitter so it is
+        // probably best to have it on.  We keep the variable for
+        // convenience in debugging.
+        if (!autoReload) {
+            timerWrite(stepTimer, 0ULL);
         }
+
+        // It is tempting to defer this until after pulse_func(),
+        // but if pulse_func() determines that no more stepping
+        // is required and disables the timer, then that will be undone
+        // if the re-enable happens afterwards.
+
+        timerAlarmEnable(stepTimer);
+
+        Stepper::pulse_func();
     }
 
     void Stepping::group(Configuration::HandlerBase& handler) {
