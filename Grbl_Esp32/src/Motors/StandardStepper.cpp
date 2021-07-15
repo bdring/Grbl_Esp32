@@ -125,7 +125,7 @@ namespace Motors {
 
     void IRAM_ATTR StandardStepper::set_direction(bool dir) { _dir_pin.write(dir); }
 
-    void StandardStepper::set_disable(bool disable) { _disable_pin.write(disable); }
+    void IRAM_ATTR StandardStepper::set_disable(bool disable) { _disable_pin.write(disable); }
 
     // Configuration registration
     namespace {

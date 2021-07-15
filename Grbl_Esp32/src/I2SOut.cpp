@@ -51,6 +51,8 @@
 #include "Machine/MachineConfig.h"
 #include "Stepper.h"
 
+#include <Arduino.h> // IRAM_ATTR 
+
 #include <freertos/FreeRTOS.h>
 #include <driver/periph_ctrl.h>
 #include <rom/lldesc.h>
@@ -168,7 +170,7 @@ static inline void gpio_matrix_out_check(uint8_t gpio, uint32_t signal_idx, bool
     }
 }
 
-void i2s_out_push() {
+void IRAM_ATTR i2s_out_push() {
     if (i2s_out_pulser_status == PASSTHROUGH) {
 #if I2S_OUT_NUM_BITS == 16
         uint32_t port_data = atomic_load(&i2s_out_port_data);

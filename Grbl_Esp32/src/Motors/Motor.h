@@ -72,7 +72,7 @@ namespace Motors {
 
         // set_disable() disables or enables a motor.  It is used to
         // make a motor transition between idle and non-idle states.
-        virtual void set_disable(bool disable) {}
+        virtual IRAM_ATTR void set_disable(bool disable) {}
 
         // set_direction() sets the motor movement direction.  It is
         // invoked for every motion segment.

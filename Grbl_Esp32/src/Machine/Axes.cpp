@@ -41,7 +41,7 @@ namespace Machine {
         }
     }
 
-    void Axes::set_disable(int axis, bool disable) {
+    void IRAM_ATTR Axes::set_disable(int axis, bool disable) {
         for (int gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
             auto a = _axis[axis]->_gangs[gang_index]->_motor;
             a->set_disable(disable);
@@ -51,7 +51,7 @@ namespace Machine {
         _sharedStepperDisable.write(disable);
     }
 
-    void Axes::set_disable(bool disable) {
+    void IRAM_ATTR Axes::set_disable(bool disable) {
         for (int axis = 0; axis < _numberAxis; axis++) {
             set_disable(axis, disable);
         }

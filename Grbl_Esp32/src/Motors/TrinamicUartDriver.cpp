@@ -271,7 +271,7 @@ namespace Motors {
     // XXX Identical to TrinamicDriver::set_disable()
     // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,
     // but that can be hardwired that way.
-    void TrinamicUartDriver::set_disable(bool disable) {
+    void IRAM_ATTR TrinamicUartDriver::set_disable(bool disable) {
         if (_has_errors) {
             return;
         }

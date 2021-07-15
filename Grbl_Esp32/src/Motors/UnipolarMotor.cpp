@@ -20,6 +20,7 @@
 #include "UnipolarMotor.h"
 
 #include "../Report.h"  // reportAxisNameMsg, info_serial
+#include <Arduino.h>    // IRAM_ATTR
 
 namespace Motors {
     void UnipolarMotor::init() {
@@ -41,7 +42,7 @@ namespace Motors {
                     reportAxisLimitsMsg(axis_index()));
     }
 
-    void UnipolarMotor::set_disable(bool disable) {
+    void IRAM_ATTR UnipolarMotor::set_disable(bool disable) {
         if (disable) {
             _pin_phase0.off();
             _pin_phase1.off();

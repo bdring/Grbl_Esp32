@@ -85,7 +85,7 @@ namespace Spindles {
         _pwm_chan_num = 0;  // Channel 0 is reserved for spindle use
     }
 
-    void PWM::setSpeedfromISR(uint32_t dev_speed) {
+    void IRAM_ATTR PWM::setSpeedfromISR(uint32_t dev_speed) {
         set_enable(gc_state.modal.spindle != SpindleState::Disable);
         set_output(dev_speed);
     }

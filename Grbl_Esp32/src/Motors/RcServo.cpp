@@ -76,7 +76,7 @@ namespace Motors {
     }
 
     // sets the PWM to zero. This allows most servos to be manually moved
-    void RcServo::set_disable(bool disable) {
+    void IRAM_ATTR RcServo::set_disable(bool disable) {
         _disabled = disable;
         if (_disabled) {
             _write_pwm(0);

@@ -135,7 +135,7 @@ namespace Pins {
 
     PinCapabilities GPIOPinDetail::capabilities() const { return _capabilities; }
 
-    void GPIOPinDetail::write(int high) {
+    void IRAM_ATTR GPIOPinDetail::write(int high) {
         if (!_attributes.has(PinAttributes::Output)) {
             log_error(toString());
         }

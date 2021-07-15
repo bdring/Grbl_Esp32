@@ -73,7 +73,7 @@ namespace Machine {
             _engine = I2S_STREAM;
         }
     }
-    void Stepping::spinDelay(int64_t start_time, uint32_t durationUs) {
+    void IRAM_ATTR Stepping::spinDelay(int64_t start_time, uint32_t durationUs) {
         int64_t endTime = start_time + durationUs;
         while ((esp_timer_get_time() - endTime) < 0) {
             NOP();
@@ -166,7 +166,7 @@ namespace Machine {
             timerAlarmEnable(stepTimer);
         }
     }
-    void Stepping::stopTimer() {
+    void IRAM_ATTR Stepping::stopTimer() {
         if (_engine == I2S_STREAM) {
             i2s_out_set_passthrough();
         } else if (stepTimer) {

@@ -248,6 +248,7 @@ void IRAM_ATTR Stepper::pulse_func() {
     // Check probing state.
     if (sys_probe_state == ProbeState::Active && config->_probe->tripped()) {
         sys_probe_state = ProbeState::Off;
+        // Memcpy is not IRAM_ATTR, but: most compilers optimize memcpy away.
         memcpy(sys_probe_position, sys_position, sizeof(sys_position));
         rtMotionCancel = true;
     }

@@ -124,7 +124,7 @@ public:
         return _detail->_index;
     }
 
-    inline void write(bool value) const { _detail->write(value); }
+    inline IRAM_ATTR void write(bool value) const { _detail->write(value); }
     inline void synchronousWrite(bool value) const { _detail->synchronousWrite(value); }
 
     inline bool read() const { return _detail->read() != 0; }
