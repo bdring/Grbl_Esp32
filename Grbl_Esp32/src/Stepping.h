@@ -28,7 +28,6 @@ namespace Machine {
 
     private:
         static const int   stepTimerNumber = 0;
-        static const bool  autoReload      = false;
         static hw_timer_t* stepTimer;
         static void        onStepperDriverTimer();
 

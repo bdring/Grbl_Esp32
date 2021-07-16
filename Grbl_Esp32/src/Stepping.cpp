@@ -155,7 +155,7 @@ namespace Machine {
             // The argument to i2s_out_set_pulse_period is in units of microseconds
             i2s_out_set_pulse_period(((uint32_t)timerTicks) / ticksPerMicrosecond);
         } else {
-            timerAlarmWrite(stepTimer, (uint64_t)timerTicks, autoReload);
+            timerAlarmWrite(stepTimer, (uint64_t)timerTicks, false);  // false disables autoreload
         }
     }
     void Stepping::startTimer() {
@@ -192,12 +192,7 @@ namespace Machine {
         // The intermediate handler clears the timer interrupt so we need not do it here
         ++isr_count;
 
-        // Using autoReload results is less timing jitter so it is
-        // probably best to have it on.  We keep the variable for
-        // convenience in debugging.
-        if (!autoReload) {
-            timerWrite(stepTimer, 0ULL);
-        }
+        timerWrite(stepTimer, 0ULL);
 
         // It is tempting to defer this until after pulse_func(),
         // but if pulse_func() determines that no more stepping
