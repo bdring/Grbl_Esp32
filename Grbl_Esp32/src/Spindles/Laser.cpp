@@ -52,8 +52,7 @@ namespace Spindles {
 
         if (_speeds.size() == 0) {
             // The default speed map for a Laser is linear from 0=0% to 255=100%
-            _speeds.push_back({ 0, 0 });
-            _speeds.push_back({ 255, 100 });
+            linearSpeeds(255, 100.0f);
         }
 
         setupSpeeds(_pwm_period);

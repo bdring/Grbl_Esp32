@@ -66,8 +66,7 @@ namespace Spindles {
 
         if (_speeds.size() == 0) {
             // The default speed map for a PWM spindle is linear from 0=0% to 10000=100%
-            _speeds.push_back({ 0, 0 });
-            _speeds.push_back({ 10000, 100 });
+            linearSpeeds(10000, 100.0f);
         }
         setupSpeeds(_pwm_period);
         config_message();

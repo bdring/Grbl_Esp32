@@ -98,6 +98,12 @@ namespace Spindles {
 
     void Spindle::afterParse() {}
 
+    void Spindle::linearSpeeds(SpindleSpeed maxSpeed, float maxPercent) {
+        _speeds.clear();
+        _speeds.push_back({ 0, 0.0f });
+        _speeds.push_back({ maxSpeed, maxPercent });
+    }
+
     void Spindle::shelfSpeeds(SpindleSpeed min, SpindleSpeed max) {
         float minPercent = 100.0f * min / max;
         _speeds.clear();

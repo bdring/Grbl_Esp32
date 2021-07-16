@@ -56,6 +56,7 @@ namespace Spindles {
         uint32_t mapSpeed(SpindleSpeed speed);
         void     setupSpeeds(uint32_t max_dev_speed);
         void     shelfSpeeds(SpindleSpeed min, SpindleSpeed max);
+        void     linearSpeeds(SpindleSpeed maxSpeed, float maxPercent);
 
         static void switchSpindle(uint8_t new_tool, SpindleList spindles, Spindle*& spindle);
 
