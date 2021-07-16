@@ -52,7 +52,7 @@ namespace Spindles {
         }
         set_output(dev_speed);
         set_enable(state != SpindleState::Disable);
-        spinDelay(state, speed);
+        spindleDelay(state, speed);
 
         sys.report_ovr_counter = 0;  // Set to report change immediately
     }

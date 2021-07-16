@@ -35,9 +35,7 @@ namespace Machine {
         static const int      ticksPerMicrosecond = fStepperTimer / 1000000;
 
         bool    _switchedStepper = false;
-        int64_t _stepPulseStartTime;
-
-        static void spinDelay(int64_t start_time, uint32_t duration);
+        int32_t _stepPulseEndTime;
 
     public:
         // Counts stepper ISR invocations.  This variable can be inspected

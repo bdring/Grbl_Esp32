@@ -73,13 +73,6 @@ namespace Machine {
             _engine = I2S_STREAM;
         }
     }
-    void IRAM_ATTR Stepping::spinDelay(int64_t start_time, uint32_t durationUs) {
-        int64_t endTime = start_time + durationUs;
-        while ((esp_timer_get_time() - endTime) < 0) {
-            NOP();
-        }
-    }
-
     void IRAM_ATTR Stepping::waitPulse() {
         uint64_t pulseEndTime;
         switch (_engine) {
@@ -90,7 +83,7 @@ namespace Machine {
             case I2S_STATIC:
                 i2s_out_push();
             case TIMED:
-                spinDelay(_stepPulseStartTime, _pulseUsecs);
+                spinUntil(_stepPulseEndTime);
                 break;
             case RMT:
                 // RMT generates the trailing edges in hardware
@@ -112,7 +105,7 @@ namespace Machine {
                     // If we are using GPIO stepping as opposed to RMT, record the
                     // time that we turned on the direction pins so we can delay a bit.
                     // If we are using RMT, we can't delay here.
-                    spinDelay(esp_timer_get_time(), _directionDelayUsecs);
+                    delay_us(_directionDelayUsecs);
                     break;
                 case stepper_id_t::RMT:
                     break;
@@ -126,7 +119,7 @@ namespace Machine {
                 break;
             case stepper_id_t::I2S_STATIC:
             case stepper_id_t::TIMED:
-                _stepPulseStartTime = esp_timer_get_time();
+                _stepPulseEndTime = usToEndTicks(_pulseUsecs);
                 break;
             case stepper_id_t::RMT:
                 break;

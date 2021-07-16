@@ -24,6 +24,8 @@
 // #define true 1
 
 #include <cstdint>
+#include <esp_attr.h>
+#include <xtensa/core-macros.h>
 
 enum class DwellMode : uint8_t {
     Dwell      = 0,  // (Default: Must be zero)
@@ -93,6 +95,9 @@ const float INCH_PER_MM = (0.0393701f);
 // a pointer to the result variable. Returns true when it succeeds
 uint8_t read_float(const char* line, uint8_t* char_counter, float* float_ptr);
 
+// Blocking delay for very short time intervals
+void delay_us(int32_t microseconds);
+
 // Non-blocking delay function used for general operation and suspend features.
 bool delay_msec(int32_t milliseconds, DwellMode mode);
 
@@ -117,4 +122,39 @@ void swap(T& a, T& b) {
     T c(a);
     a = b;
     b = c;
+}
+
+// Short delays measured using the CPU cycle counter.  There is a ROM
+// routine "esp_delay_us(us)" that almost does what what we need,
+// except that it is in ROM and thus dodgy for use from ISRs.  We
+// duplicate the esp_delay_us() here, but placed in IRAM, inlined,
+// and factored so it can be used in different ways.
+
+inline int32_t IRAM_ATTR getCpuTicks() {
+    return XTHAL_GET_CCOUNT();
+}
+
+extern uint32_t g_ticks_per_us_pro;  // For CPU 0 - typically 240 MHz
+extern uint32_t g_ticks_per_us_app;  // For CPU 1 - typically 240 MHz
+
+inline int32_t IRAM_ATTR usToCpuTicks(int32_t us) {
+    return us * g_ticks_per_us_pro;
+}
+
+inline int32_t IRAM_ATTR usToEndTicks(int32_t us) {
+    return getCpuTicks() + usToCpuTicks(us);
+}
+
+// At the usual ESP32 clock rate of 240MHz, the range of this is
+// just under 18 seconds, but it really should be used only for
+// short delays up to a few tens of microseconds.
+
+inline void IRAM_ATTR spinUntil(int32_t endTicks) {
+    while ((XTHAL_GET_CCOUNT() - endTicks) < 0) {
+        asm volatile("nop");
+    }
+}
+
+inline void IRAM_ATTR delay_us(int32_t us) {
+    spinUntil(usToEndTicks(us));
 }

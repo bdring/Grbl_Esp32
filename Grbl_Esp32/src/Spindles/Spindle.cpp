@@ -140,7 +140,7 @@ namespace Spindles {
         // log_debug("rpm " << speed << " speed " << dev_speed); // This will spew quite a bit of data on your output
         return dev_speed;
     }
-    void Spindle::spinDelay(SpindleState state, SpindleSpeed speed) {
+    void Spindle::spindleDelay(SpindleState state, SpindleSpeed speed) {
         uint32_t up = 0, down = 0;
         switch (state) {
             case SpindleState::Unknown:

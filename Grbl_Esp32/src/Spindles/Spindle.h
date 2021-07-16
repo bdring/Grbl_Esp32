@@ -59,7 +59,7 @@ namespace Spindles {
 
         static void switchSpindle(uint8_t new_tool, SpindleList spindles, Spindle*& spindle);
 
-        void         spinDelay(SpindleState state, SpindleSpeed speed);
+        void         spindleDelay(SpindleState state, SpindleSpeed speed);
         virtual void init() = 0;  // not in constructor because this also gets called when $$ settings change
 
         // Used by Protocol.cpp to restore the state during a restart

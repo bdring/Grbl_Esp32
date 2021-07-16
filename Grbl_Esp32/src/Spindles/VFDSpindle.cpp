@@ -345,7 +345,7 @@ namespace Spindles {
             }
         }
         if (!supports_actual_speed()) {
-            spinDelay(state, speed);
+            spindleDelay(state, speed);
         } else {
             // _sync_dev_speed is set by a callback that handles
             // responses from periodic get_current_speed() requests.
@@ -386,7 +386,7 @@ namespace Spindles {
             }
 
             _syncing = false;
-            // spinDelay() sets these when it is used
+            // spindleDelay() sets these when it is used
             _current_state = state;
             _current_speed = speed;
         }
