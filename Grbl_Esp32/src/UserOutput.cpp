@@ -19,8 +19,6 @@
 
 #include "UserOutput.h"
 
-#include "Report.h"  // info_serial
-
 namespace UserOutput {
     DigitalOutput::DigitalOutput(uint8_t number, Pin& pin) : _number(number), _pin(pin) {
         if (_pin.undefined()) {
@@ -36,7 +34,7 @@ namespace UserOutput {
         config_message();
     }
 
-    void DigitalOutput::config_message() { info_serial("User Digital Output:%d on Pin:%s", _number, _pin.name().c_str()); }
+    void DigitalOutput::config_message() { log_info("User Digital Output:" << _number << " on Pin:" << _pin.name()); }
 
     bool DigitalOutput::set_level(bool isOn) {
         if (_number == UNDEFINED_OUTPUT && isOn) {
@@ -72,7 +70,7 @@ namespace UserOutput {
     void AnalogOutput::init() {
         _pwm_channel = sys_get_next_PWM_chan_num();
         if (_pwm_channel == -1) {
-            error_serial("Error: out of PWM channels");
+            log_error("Out of PWM channels");
         } else {
             _pin.setAttr(Pin::Attr::Output);
             auto nativePin = _pin.getNative(Pin::Capabilities::PWM);
@@ -86,7 +84,7 @@ namespace UserOutput {
     }
 
     void AnalogOutput::config_message() {
-        info_serial("User Analog Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
+        log_info("User Analog Output " << _number << " on Pin:" << _pin.name() << " Freq:" << _pwm_frequency << "Hz");
     }
 
     // returns true if able to set value
@@ -97,7 +95,7 @@ namespace UserOutput {
         }
 
         if (_pwm_channel == -1) {
-            info_serial("M67 PWM channel error");
+            log_error("M67 PWM channel error");
             return false;
         }
 

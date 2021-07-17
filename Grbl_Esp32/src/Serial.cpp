@@ -89,7 +89,7 @@ void heapCheckTask(void* pvParameters) {
         uint32_t newHeapSize = xPortGetFreeHeapSize();
         if (newHeapSize != heapSize) {
             heapSize = newHeapSize;
-            info_serial("heap %d", heapSize);
+            log_info("heap " << heapSize);
         }
         vTaskDelay(3000 / portTICK_RATE_MS);  // Yield to other tasks
 
@@ -164,7 +164,7 @@ void clientCheckTask(void* pvParameters) {
                 } else {
                     if (clientByte == '\r' || clientByte == '\n') {
                         grbl_sendf(client, "error %d\r\n", Error::AnotherInterfaceBusy);
-                        info_client(client, "SD card job running");
+                        log_error("SD card job running");
                     }
                 }
             }
@@ -216,7 +216,7 @@ bool is_realtime_command(uint8_t data) {
 void execute_realtime_command(Cmd command, uint8_t client) {
     switch (command) {
         case Cmd::Reset:
-            debug_all("Cmd::Reset");
+            log_debug("Cmd::Reset");
             mc_reset();  // Call motion control reset routine.
             break;
         case Cmd::StatusReport:

@@ -27,7 +27,6 @@
 #include "Dynamixel2.h"
 
 #include "../Machine/MachineConfig.h"
-#include "../Report.h"  // info_serial
 #include "../Limits.h"  // limitsMinPosition
 
 #include <cstdarg>
@@ -44,17 +43,17 @@ namespace Motors {
 
         if (!_uart_started) {
             if (_uart->baud != 1000000) {
-                info_serial("Warning: The baud rate is %d.  Dynamixels typically use 1000000 baud.");
+                log_info("Warning: The baud rate is " << _uart->baud << ".  Dynamixels typically use 1000000 baud.");
             }
             _uart->begin();
 
             if (_uart->setHalfDuplex()) {
-                info_serial("Dynamixel: UART set half duplex failed");
+                log_info("Dynamixel: UART set half duplex failed");
                 return;
             }
 
-            info_serial("Dynamixel:");
-            _uart->config_message();
+            log_info("Dynamixel:");
+            _uart->config_message("Dynamixel", " Motor ");
 
             _uart_started = true;
         }
@@ -80,12 +79,7 @@ namespace Motors {
     }
 
     void Dynamixel2::config_message() {
-        info_serial("%s Dynamixel Servo ID:%d Count(%5.0f,%5.0f) %s",
-                    reportAxisNameMsg(axis_index(), dual_axis_index()),
-                    _id,
-                    _dxl_count_min,
-                    _dxl_count_max,
-                    reportAxisLimitsMsg(_axis_index));
+        log_info(axisName() << idString() << " Count(" << _dxl_count_min << "," << _dxl_count_max << ") " << axisLimits());
     }
 
     bool Dynamixel2::test() {
@@ -100,20 +94,14 @@ namespace Motors {
         if (len == PING_RSP_LEN) {
             uint16_t model_num = _dxl_rx_message[10] << 8 | _dxl_rx_message[9];
             if (model_num == 1060) {
-                info_serial("%s Dynamixel Detected ID %d Model XL430-W250 F/W Rev %x",
-                            reportAxisNameMsg(axis_index(), dual_axis_index()),
-                            _id,
-                            _dxl_rx_message[11]);
+                log_info(axisName() << " Dynamixel Detected ID " << _id << " Model XL430-W250 F/W Rev " << String(_dxl_rx_message[11], HEX));
             } else {
-                info_serial("%s Dynamixel Detected ID %d M/N %d F/W Rev %x",
-                            reportAxisNameMsg(axis_index(), dual_axis_index()),
-                            _id,
-                            model_num,
-                            _dxl_rx_message[11]);
+                log_info(axisName() << " Dynamixel Detected ID " << _id << " M/N " << model_num << " F/W Rev "
+                                    << String(_dxl_rx_message[11], HEX));
             }
 
         } else {
-            info_serial("%s Dynamixel Servo ID %d Ping failed", reportAxisNameMsg(axis_index(), dual_axis_index()), _id);
+            log_info(axisName() << idString() << " Ping failed");
             return false;
         }
 
@@ -271,32 +259,32 @@ namespace Motors {
             uint8_t err = _dxl_rx_message[8];
             switch (err) {
                 case 1:
-                    info_serial("Dynamixel Servo ID %d Write fail error", _id);
+                    log_info(idString() << " Write fail error");
                     break;
                 case 2:
-                    info_serial("Dynamixel Servo ID %d Write instruction error", _id);
+                    log_info(idString() << " Write instruction error");
                     break;
                 case 3:
-                    info_serial("Dynamixel Servo ID %d Write access error", _id);
+                    log_info(idString() << " Write access error");
                     break;
                 case 4:
-                    info_serial("Dynamixel Servo ID %d Write data range error", _id);
+                    log_info(idString() << " Write data range error");
                     break;
                 case 5:
-                    info_serial("Dynamixel Servo ID %d Write data length error", _id);
+                    log_info(idString() << " Write data length error");
                     break;
                 case 6:
-                    info_serial("Dynamixel Servo ID %d Write data limit error", _id);
+                    log_info(idString() << " Write data limit error");
                     break;
                 case 7:
-                    info_serial("Dynamixel Servo ID %d Write access error", _id);
+                    log_info(idString() << " Write access error");
                     break;
                 default:
                     break;
             }
         } else {
             // timeout
-            info_serial("Dynamixel Servo ID %d Timeout", _id);
+            log_info(idString() << " Timeout");
         }
     }
 

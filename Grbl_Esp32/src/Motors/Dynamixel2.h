@@ -105,6 +105,8 @@ namespace Motors {
     public:
         Dynamixel2() : _id(255), _disabled(true), _has_errors(true) {}
 
+        String idString() { return "Dynamixel Servo ID " + _id; }
+
         // Overrides for inherited methods
         void init() override;
         void read_settings() override;

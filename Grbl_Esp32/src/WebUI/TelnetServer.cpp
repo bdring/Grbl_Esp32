@@ -31,7 +31,7 @@ namespace WebUI {
 #    include "WifiServices.h"
 
 #    include "WifiConfig.h"
-#    include "../Report.h"  // info_all() and CLIENT_TELNET
+#    include "../Report.h"  // report_init_message() and CLIENT_TELNET
 #    include "Commands.h"   // COMMANDS
 
 #    include <WiFi.h>
@@ -63,8 +63,7 @@ namespace WebUI {
         //create instance
         _telnetserver = new WiFiServer(_port, MAX_TLNT_CLIENTS);
         _telnetserver->setNoDelay(true);
-        String s = "TELNET Started " + String(_port);
-        info_all(s.c_str());
+        log_info("Telnet Started on port " << _port);
         //start telnet server
         _telnetserver->begin();
         _setupdone = true;
@@ -106,17 +105,14 @@ namespace WebUI {
     size_t Telnet_Server::write(const uint8_t* buffer, size_t size) {
         size_t wsize = 0;
         if (!_setupdone || _telnetserver == NULL) {
-            log_d("[TELNET out blocked]");
             return 0;
         }
 
         clearClients();
 
-        //log_d("[TELNET out]");
         //push UART data to all connected telnet clients
         for (uint8_t i = 0; i < MAX_TLNT_CLIENTS; i++) {
             if (_telnetClients[i] && _telnetClients[i].connected()) {
-                //log_d("[TELNET out connected]");
                 wsize = _telnetClients[i].write(buffer, size);
                 COMMANDS::wait(0);
             }
@@ -179,7 +175,6 @@ namespace WebUI {
     int Telnet_Server::get_rx_buffer_available() { return TELNETRXBUFFERSIZE - _RXbufferSize; }
 
     bool Telnet_Server::push(uint8_t data) {
-        log_i("[TELNET]push %c", data);
         if ((1 + _RXbufferSize) <= TELNETRXBUFFERSIZE) {
             int current = _RXbufferpos + _RXbufferSize;
             if (current > TELNETRXBUFFERSIZE) {
@@ -190,7 +185,6 @@ namespace WebUI {
             }
             _RXbuffer[current] = data;
             _RXbufferSize++;
-            log_i("[TELNET]buffer size %d", _RXbufferSize);
             return true;
         }
         return false;
@@ -224,7 +218,6 @@ namespace WebUI {
     int Telnet_Server::read(void) {
         if (_RXbufferSize > 0) {
             int v = _RXbuffer[_RXbufferpos];
-            //log_d("[TELNET]read %c",char(v));
             _RXbufferpos++;
             if (_RXbufferpos > (TELNETRXBUFFERSIZE - 1)) {
                 _RXbufferpos = 0;

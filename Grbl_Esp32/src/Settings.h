@@ -119,14 +119,14 @@ public:
         if (esp_err_t err = nvs_get_stats(NULL, &stats)) {
             return Error::NvsGetStatsFailed;
         }
-        info_client(out->client(), "NVS Used: %d Free: %d Total: %d", stats.used_entries, stats.free_entries, stats.total_entries);
+        log_info("NVS Used:" << stats.used_entries << " Free:" << stats.free_entries << " Total:" << stats.total_entries);
 #if 0  // The SDK we use does not have this yet
         nvs_iterator_t it = nvs_entry_find(NULL, NULL, NVS_TYPE_ANY);
         while (it != NULL) {
             nvs_entry_info_t info;
             nvs_entry_info(it, &info);
             it = nvs_entry_next(it);
-            grbl_sendf(out->client(), "namespace %s key '%s', type '%d' \n", info.namespace_name, info.key, info.type);
+            log_info("namespace:"<<info.namespace_name<<" key:"<<info.key<<" type:"<< info.type);
         }
 #endif
         return Error::Ok;

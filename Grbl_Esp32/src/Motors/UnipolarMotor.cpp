@@ -19,8 +19,7 @@
 
 #include "UnipolarMotor.h"
 
-#include "../Report.h"  // reportAxisNameMsg, info_serial
-#include <Arduino.h>    // IRAM_ATTR
+#include <Arduino.h>  // IRAM_ATTR
 
 namespace Motors {
     void UnipolarMotor::init() {
@@ -33,13 +32,8 @@ namespace Motors {
     }
 
     void UnipolarMotor::config_message() {
-        info_serial("%s Unipolar Stepper Ph0:%s Ph1:%s Ph2:%s Ph3:%s %s",
-                    reportAxisNameMsg(axis_index(), dual_axis_index()),
-                    _pin_phase0.name().c_str(),
-                    _pin_phase1.name().c_str(),
-                    _pin_phase2.name().c_str(),
-                    _pin_phase3.name().c_str(),
-                    reportAxisLimitsMsg(axis_index()));
+        log_info(axisName() << " Unipolar Stepper Ph0:" << _pin_phase0.name() << " Ph1:" << _pin_phase1.name()
+                            << " Ph2:" << _pin_phase2.name() << " Ph3:" << _pin_phase3.name() << " " << axisLimits());
     }
 
     void IRAM_ATTR UnipolarMotor::set_disable(bool disable) {

@@ -73,6 +73,8 @@ namespace Motors {
         bool report_over_temp(bool ot, bool otpw);
         bool report_short_to_ps(bool vsa, bool vsb);
 
+        const char* yn(bool v) { return v ? "Y" : "N"; }
+
     public:
         TrinamicBase(uint16_t partNumber) : StandardStepper(), _driver_part_number(partNumber) {}
 

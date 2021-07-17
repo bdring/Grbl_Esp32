@@ -26,7 +26,6 @@
 
 #include "../Machine/MachineConfig.h"
 #include "../Uart.h"
-#include "../Report.h"  // info_serial
 
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 #include <atomic>
@@ -41,8 +40,7 @@ namespace Motors {
     void TrinamicUartDriver::init() {
         if (!_uart_started) {
             _uart->begin();
-            info_serial("Trinamic:");
-            _uart->config_message();
+            _uart->config_message("Trinamic", " Stepper ");
             _uart_started = true;
         }
         _has_errors = hw_serial_init();
@@ -57,7 +55,7 @@ namespace Motors {
         // Display the stepper library version message once, before the first
         // TMC config message.  Link is NULL for the first TMC instance.
         if (!link) {
-            info_serial("TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
+            log_info("TMCStepper Library Ver. 0x" << String(TMCSTEPPER_VERSION, HEX));
         }
 
         config_message();
@@ -88,7 +86,7 @@ namespace Motors {
             tmcstepper = new TMC2209Stepper(_uart, _r_sense, _addr);
             return false;
         }
-        info_serial("Unsupported Trinamic motor p/n:%d", _driver_part_number);
+        log_info("Unsupported Trinamic motor p/n:" << _driver_part_number);
         return true;
     }
 
@@ -96,15 +94,8 @@ namespace Motors {
         This is the startup message showing the basic definition. 
     */
     void TrinamicUartDriver::config_message() {  //TODO: The RX/TX pin could be added to the msg.
-        info_serial("%s motor Trinamic TMC%d Step:%s Dir:%s Disable:%s Addr:%d R:%0.3f %s",
-                    reportAxisNameMsg(axis_index(), dual_axis_index()),
-                    _driver_part_number,
-                    _step_pin.name().c_str(),
-                    _dir_pin.name().c_str(),
-                    _disable_pin.name().c_str(),
-                    _addr,
-                    _r_sense,
-                    reportAxisLimitsMsg(axis_index()));
+        log_info(axisName() << " motor Trinamic TMC" << _driver_part_number << " Step:" << _step_pin.name() << " Dir:" << _dir_pin.name()
+                            << " Disable:" << _disable_pin.name() << " Addr:" << _addr << " R:" << _r_sense << " " << axisLimits());
     }
 
     bool TrinamicUartDriver::test() {
@@ -114,10 +105,10 @@ namespace Motors {
 
         switch (tmcstepper->test_connection()) {
             case 1:
-                info_serial("%s Trinamic driver test failed. Check connection", reportAxisNameMsg(axis_index(), dual_axis_index()));
+                log_info(axisName() << " Trinamic driver test failed. Check connection");
                 return false;
             case 2:
-                info_serial("%s Trinamic driver test failed. Check motor power", reportAxisNameMsg(axis_index(), dual_axis_index()));
+                log_info(axisName() << " Trinamic driver test failed. Check motor power");
                 return false;
             default:
                 // driver responded, so check for other errors from the DRV_STATUS register
@@ -146,7 +137,7 @@ namespace Motors {
                     return false;
                 }
 
-                info_serial("%s Trinamic driver test passed", reportAxisNameMsg(axis_index(), dual_axis_index()));
+                log_info(axisName() << " Trinamic driver test passed");
                 return true;
         }
     }
@@ -206,12 +197,12 @@ namespace Motors {
 
         switch (_mode) {
             case TrinamicMode ::StealthChop:
-                //info_serial("StealthChop");
+                //log_info("StealthChop");
                 tmcstepper->en_spreadCycle(false);
                 tmcstepper->pwm_autoscale(true);
                 break;
             case TrinamicMode ::CoolStep:
-                //info_serial("Coolstep");
+                //log_info("Coolstep");
                 // tmcstepper->en_pwm_mode(false); //TODO: check if this is present in TMC2208/09
                 tmcstepper->en_spreadCycle(true);
                 tmcstepper->pwm_autoscale(false);
@@ -220,7 +211,7 @@ namespace Motors {
             {
                 auto axisConfig     = config->_axes->_axis[this->axis_index()];
                 auto homingFeedRate = (axisConfig->_homing != nullptr) ? axisConfig->_homing->_feedRate : 200;
-                //info_serial("Stallguard");
+                //log_info("Stallguard");
                 tmcstepper->en_spreadCycle(false);
                 tmcstepper->pwm_autoscale(false);
                 tmcstepper->TCOOLTHRS(calc_tstep(homingFeedRate, 150.0));
@@ -228,7 +219,7 @@ namespace Motors {
                 break;
             }
             default:
-                info_serial("Unknown Trinamic mode:d", _mode);
+                log_info("Unknown Trinamic mode:" << _mode);
         }
     }
 
@@ -247,11 +238,8 @@ namespace Motors {
         }
         float feedrate = Stepper::get_realtime_rate();  //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
-        info_serial("%s SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
-                    reportAxisNameMsg(axis_index(), dual_axis_index()),
-                    tmcstepper->SG_RESULT(),  //    tmcstepper->sg_result(),
-                    feedrate,
-                    constrain(_stallguard, -64, 63));
+        log_info(axisName() << " SG_Val: " << tmcstepper->SG_RESULT() << "   Rate: " << feedrate
+                            << " mm/min SG_Setting:" << constrain(_stallguard, -64, 63));
 
         TMC2208_n ::DRV_STATUS_t status { 0 };  // a useful struct to access the bits.
         status.sr = tmcstepper->DRV_STATUS();
@@ -262,10 +250,7 @@ namespace Motors {
         report_over_temp(status.ot, status.otpw);
         report_short_to_ps(bit_istrue(status.sr, 12), bit_istrue(status.sr, 13));
 
-        // info_serial("%s Status Register %08x GSTAT %02x",
-        //             reportAxisNameMsg(axis_index(), dual_axis_index()),
-        //             status.sr,
-        //             tmcstepper->GSTAT());
+        // log_info(axisName()<<" Status Register "<<String(status.sr,HEX)<<" GSTAT " << String(tmcstepper->GSTAT(),HEX));
     }
 
     // XXX Identical to TrinamicDriver::set_disable()

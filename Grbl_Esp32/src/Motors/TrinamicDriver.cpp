@@ -20,7 +20,6 @@
 #include "TrinamicDriver.h"
 
 #include "../Machine/MachineConfig.h"
-#include "../Report.h"
 
 #include <TMCStepper.h>  // https://github.com/teemuatlut/TMCStepper
 #include <atomic>
@@ -40,7 +39,7 @@ namespace Motors {
         } else if (_driver_part_number == 5160) {
             tmcstepper = new TMC5160Stepper(_cs_mapping.pinId(), _r_sense, _spi_index);
         } else {
-            info_serial("%s Unsupported Trinamic part number TMC%d", reportAxisNameMsg(axis_index(), dual_axis_index()), _driver_part_number);
+            log_info(axisName() << " Unsupported Trinamic part number TMC" << _driver_part_number);
             _has_errors = true;  // This motor cannot be used
             return;
         }
@@ -63,7 +62,7 @@ namespace Motors {
         // Display the stepper library version message once, before the first
         // TMC config message.  Link is NULL for the first TMC instance.
         if (!link) {
-            info_serial("TMCStepper Library Ver. 0x%06x", TMCSTEPPER_VERSION);
+            log_info("TMCStepper Library Ver. 0x" << String(TMCSTEPPER_VERSION, HEX));
         }
 
         config_message();
@@ -97,7 +96,7 @@ namespace Motors {
                 );
             }
         } else {
-            info_serial("SPI bus is not available; cannot initialize TMC driver.");
+            log_info("SPI bus is not available; cannot initialize TMC driver.");
             _has_errors = true;
         }
     }
@@ -106,16 +105,9 @@ namespace Motors {
     This is the startup message showing the basic definition
     */
     void TrinamicDriver::config_message() {
-        info_serial("%s Trinamic TMC%d Step:%s Dir:%s CS:%s Disable:%s Index:%d R:%0.3f %s",
-                    reportAxisNameMsg(axis_index(), dual_axis_index()),
-                    _driver_part_number,
-                    _step_pin.name().c_str(),
-                    _dir_pin.name().c_str(),
-                    _cs_pin.name().c_str(),
-                    _disable_pin.name().c_str(),
-                    _spi_index,
-                    _r_sense,
-                    reportAxisLimitsMsg(axis_index()));
+        log_info(axisName() << " Trinamic TMC" << _driver_part_number << " Step:" << _step_pin.name() << " Dir:" << _dir_pin.name()
+                            << " CS:" << _cs_pin.name() << " Disable:" << _disable_pin.name() << " Index:" << _spi_index
+                            << " R:" << _r_sense << " " << axisLimits());
     }
 
     bool TrinamicDriver::test() {
@@ -125,10 +117,10 @@ namespace Motors {
 
         switch (tmcstepper->test_connection()) {
             case 1:
-                info_serial("%s Trinamic driver test failed. Check connection", reportAxisNameMsg(axis_index(), dual_axis_index()));
+                log_info(axisName() << " Trinamic driver test failed. Check connection");
                 return false;
             case 2:
-                info_serial("%s Trinamic driver test failed. Check motor power", reportAxisNameMsg(axis_index(), dual_axis_index()));
+                log_info(axisName() << " Trinamic driver test failed. Check motor power");
                 return false;
             default:
                 // driver responded, so check for other errors from the DRV_STATUS register
@@ -157,7 +149,7 @@ namespace Motors {
                     return false;
                 }
 
-                info_serial("%s Trinamic driver test passed", reportAxisNameMsg(axis_index(), dual_axis_index()));
+                log_info(axisName() << " Trinamic driver test passed");
                 return true;
         }
     }
@@ -215,20 +207,20 @@ namespace Motors {
 
         switch (_mode) {
             case TrinamicMode ::StealthChop:
-                //info_serial("StealthChop");
+                //log_info("StealthChop");
                 tmcstepper->en_pwm_mode(true);
                 tmcstepper->pwm_autoscale(true);
                 tmcstepper->diag1_stall(false);
                 break;
             case TrinamicMode ::CoolStep:
-                //info_serial("Coolstep");
+                //log_info("Coolstep");
                 tmcstepper->en_pwm_mode(false);
                 tmcstepper->pwm_autoscale(false);
                 tmcstepper->TCOOLTHRS(NORMAL_TCOOLTHRS);  // when to turn on coolstep
                 tmcstepper->THIGH(NORMAL_THIGH);
                 break;
             case TrinamicMode ::StallGuard:
-                //info_serial("Stallguard");
+                //log_info("Stallguard");
                 {
                     auto feedrate = config->_axes->_axis[axis_index()]->_homing->_feedRate;
 
@@ -259,12 +251,8 @@ namespace Motors {
         }
         float feedrate = Stepper::get_realtime_rate();  //* settings.microsteps[axis_index] / 60.0 ; // convert mm/min to Hz
 
-        info_serial("%s Stallguard %d   SG_Val: %04d   Rate: %05.0f mm/min SG_Setting:%d",
-                    reportAxisNameMsg(axis_index(), dual_axis_index()),
-                    tmcstepper->stallguard(),
-                    tmcstepper->sg_result(),
-                    feedrate,
-                    constrain(_stallguard, -64, 63));
+        log_info(axisName() << " Stallguard " << tmcstepper->stallguard() << "   SG_Val:" << tmcstepper->sg_result() << " Rate:" << feedrate
+                            << " mm/min SG_Setting:" << constrain(_stallguard, -64, 63));
 
         // The bit locations differ somewhat between different chips.
         // The layout is very different between 2130 and 2208
@@ -277,10 +265,7 @@ namespace Motors {
         report_over_temp(status.ot, status.otpw);
         report_short_to_ps(bit_istrue(status.sr, 12), bit_istrue(status.sr, 13));
 
-        // info_serial("%s Status Register %08x GSTAT %02x",
-        //             reportAxisNameMsg(axis_index(), dual_axis_index()),
-        //             status.sr,
-        //             tmcstepper->GSTAT());
+        // log_info(axisName() << " Status Register " << String(status.sr, HEX) << " GSTAT " << String(tmcstepper->GSTAT(), HEX));
     }
 
     // this can use the enable feature over SPI. The dedicated pin must be in the enable mode,

@@ -118,8 +118,8 @@ namespace Spindles {
 
     // prints the startup message of the spindle config
     void PWM::config_message() {
-        log_info(name() << " spindle Output:" << _output_pin.name().c_str() << ", Ena:" << _enable_pin.name().c_str()
-                        << ", Dir:" << _direction_pin.name().c_str() << ", Freq:" << _pwm_freq << "Hz, Res:" << _pwm_precision << "bits"
+        log_info(name() << " Spindle Ena:" << _enable_pin.name() << " Out:" << _output_pin.name() << " Dir:" << _direction_pin.name()
+                        << " Freq:" << _pwm_freq << "Hz Res:" << _pwm_precision << "bits"
 
         );
     }

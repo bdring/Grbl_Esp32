@@ -114,7 +114,7 @@ namespace Spindles {
 
     void IRAM_ATTR YL620::set_speed_command(uint32_t speed, ModbusCommand& data) {
 #ifdef DEBUG_VFD
-        info_serial("Setting VFD speed to %d", speed);
+        log_debug("Setting VFD speed to " << speed);
 #endif
 
         data.tx_length = 6;
@@ -145,7 +145,7 @@ namespace Spindles {
                 yl620->_minFrequency = (uint16_t(response[3]) << 8) | uint16_t(response[4]);
 
 #ifdef DEBUG_VFD
-                info_serial("YL620 allows minimum frequency of %d Hz", int(yl620->_minFrequency));
+                log_debug("YL620 allows minimum frequency of " << _minFrequency << " Hz");
 #endif
 
                 return true;
@@ -184,7 +184,7 @@ namespace Spindles {
                 //                                uint32_t(yl620->_maxFrequency);  //   1000 * 24000 / 4000 =   6000 RPM.
 
 #ifdef DEBUG_VFD
-                info_serial("YL620 allows maximum frequency %d Hz", int(yl620->_maxFrequency));
+                log_debug("YL620 allows maximum frequency " << yl620->_maxFrequency << " Hz");
 #endif
 
                 return true;

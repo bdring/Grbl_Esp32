@@ -48,7 +48,6 @@ void grbl_init() {
         uartInit();  // Setup serial port
 
 #ifdef ENABLE_WIFI
-        debug_serial("Initializing WiFi...");
         WiFi.persistent(false);
         WiFi.disconnect(true);
         WiFi.enableSTA(false);
@@ -57,15 +56,17 @@ void grbl_init() {
 #endif
 
         display_init();
-        info_serial("Grbl_ESP32 Ver %s Date %s", GRBL_VERSION, GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
-        info_serial("Compiled with ESP32 SDK:%s", ESP.getSdkVersion());              // print the SDK version
-                                                                                     // show the map name at startup
+
+        // Load Grbl settings from non-volatile storage
+        settings_init();  // requires config
+
+        log_info("Grbl_ESP32 Ver " << GRBL_VERSION << " Date " << GRBL_VERSION_BUILD);  // print grbl_esp32 verion info
+        log_info("Compiled with ESP32 SDK:" << ESP.getSdkVersion());                    // print the SDK version
+
         if (!SPIFFS.begin(true)) {
             log_error("Cannot mount the local filesystem");
         }
 
-        // Load Grbl settings from non-volatile storage
-        settings_init();  // requires config
         bool configOkay = config->load(config_filename->get());
         make_grbl_commands();
 
@@ -74,8 +75,8 @@ void grbl_init() {
         client_init();
 
         if (configOkay) {
-            report_machine_type(CLIENT_SERIAL);
-            info_serial("Board: %s", config->_board.c_str());
+            log_info("Machine " << config->_name);
+            log_info("Board " << config->_board);
 
             // The initialization order reflects dependencies between the subsystems
             if (config->_i2so) {
@@ -140,7 +141,7 @@ void grbl_init() {
         WebUI::inputBuffer.begin();
     } catch (const AssertionFailed& ex) {
         // This means something is terribly broken:
-        info_serial("Critical error in grbl_init: %s", ex.what());
+        log_info("Critical error in grbl_init: " << ex.what());
         sys.state = State::ConfigAlarm;
     }
 }
@@ -192,13 +193,13 @@ void run_once() {
         // and run_once into a single control flow, and it would
         // require careful teardown of the existing configuration
         // to avoid memory leaks. It is probably worth doing eventually.
-        error_all("Critical error in run_once: %s", ex.msg.c_str());
-        error_all("Stacktrace: %s", ex.stackTrace.c_str());
+        log_error("Critical error in run_once: " << ex.msg);
+        log_error("Stacktrace: " << ex.stackTrace);
         sys.state = State::ConfigAlarm;
     }
     // sys.abort is a user-initiated exit via ^x so we don't limit the number of occurrences
     if (!sys.abort && ++tries > 1) {
-        info_serial("Stalling due to too many failures");
+        log_info("Stalling due to too many failures");
         while (1) {}
     }
     // This is inside a loop in Grbl_Esp32.ino

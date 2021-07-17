@@ -33,8 +33,8 @@
 #include "NutsBolts.h"      // bitnum_true, etc
 #include "System.h"         // sys.*
 #include "Stepper.h"        // st_wake
+#include "Report.h"         // CLIENT_
 #include "Protocol.h"       // protocol_execute_realtime
-#include "Report.h"         // info, etc
 #include "I2SOut.h"         // I2S_OUT_DELAY_MS
 #include "Platform.h"
 
@@ -65,7 +65,7 @@ void IRAM_ATTR isr_limit_switches(void* /*unused */) {
             } else {
                 // Check limit pin state.
                 if (limits_check(limitAxes)) {
-                    debug_all("Hard limits");
+                    log_debug("Hard limits");
                     mc_reset();                                // Initiate system kill.
                     sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
                 }
@@ -245,7 +245,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
                 // Homing failure
                 sys_rt_exec_alarm = alarm;
                 config->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done...failed
-                debug_all("Homing fail");
+                log_debug("Homing fail");
                 mc_reset();  // Stop motors, if they are running.
                 // protocol_execute_realtime() will handle any pending rtXXX conditions
                 protocol_execute_realtime();
@@ -344,7 +344,7 @@ static bool axis_is_squared(AxisMask axis_mask) {
         if (mask_is_single_axis(axis_mask)) {
             return true;
         }
-        info_all("Cannot multi-axis home with squared axes. Homing normally");
+        log_info("Cannot multi-axis home with squared axes. Homing normally");
     }
 
     return false;
@@ -419,13 +419,13 @@ void limits_init() {
             auto gangConfig = axes->_axis[axis]->_gangs[gang_index];
             if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
                 if (!limitAxes) {
-                    info_serial("Initializing endstops...");
+                    log_info("Initializing endstops...");
                 }
                 bitnum_true(limitAxes, axis);
 
                 Pin& pin = gangConfig->_endstops->_dual;
 
-                info_serial("%s limit on %s", reportAxisNameMsg(axis, gang_index), pin.name().c_str());
+                log_info(reportAxisNameMsg(axis, gang_index) << " limit on " << pin.name());
 
                 pin.setAttr(Pin::Attr::Input | Pin::Attr::ISR);
                 if (gangConfig->_endstops->_hardLimits) {
@@ -534,7 +534,7 @@ void limits_soft_check(float* target) {
                 }
             } while (sys.state != State::Idle);
         }
-        debug_all("Soft limits");
+        log_debug("Soft limits");
         mc_reset();                                // Issue system reset and ensure spindle and coolant are shutdown.
         sys_rt_exec_alarm = ExecAlarm::SoftLimit;  // Indicate soft limit critical event
         protocol_execute_realtime();               // Execute to enter critical event loop and system abort
@@ -552,7 +552,7 @@ void limitCheckTask(void* pvParameters) {
         AxisMask switch_state;
         switch_state = limits_get_state();
         if (switch_state) {
-            debug_serial("Limit Switch State %08d", switch_state);
+            log_debug("Limit Switch State " << String(switch_state, HEX));
             mc_reset();                                // Initiate system kill.
             sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
         }

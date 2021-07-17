@@ -3,7 +3,6 @@
 #include "EnumItem.h"
 #include "Stepping.h"
 #include "Stepper.h"
-#include "Report.h"
 
 #include <atomic>
 
@@ -16,13 +15,8 @@ namespace Machine {
                              EnumItem(Stepping::RMT) };
 
     void Stepping::init() {
-        info_serial("Step type:%s Pulse:%dus Dsbl Delay:%dus Dir Delay:%dus Idle Delay:%dms",
-                    // stepping->name(),
-                    stepTypes[_engine].name,
-                    _pulseUsecs,
-                    _disableDelayUsecs,
-                    _directionDelayUsecs,
-                    _idleMsecs);
+        log_info("Step type:" << stepTypes[_engine].name << " Pulse:" << _pulseUsecs << "us Dsbl Delay:" << _disableDelayUsecs
+                              << "us Dir Delay:" << _directionDelayUsecs << "us Idle Delay:" << _idleMsecs << "ms");
 
         // Prepare stepping interrupt callbacks.  The one that is actually
         // used is determined by timerStart() and timerStop()
@@ -66,7 +60,7 @@ namespace Machine {
         if (_switchedStepper) {
             if (i2s_out_get_pulser_status() != PASSTHROUGH) {
                 // Called during streaming. Stop streaming.
-                // debug_serial("Stop the I2S streaming and switch to the passthrough mode.");
+                // log_debug("Stop the I2S streaming and switch to the passthrough mode.");
                 i2s_out_set_passthrough();
                 i2s_out_delay();  // Wait for a change in mode.
             }

@@ -22,7 +22,6 @@
 #include "Laser.h"
 
 #include "../Machine/MachineConfig.h"
-#include "../Report.h"
 
 // ===================================== Laser ==============================================
 
@@ -32,12 +31,8 @@ namespace Spindles {
     }
 
     void Laser::config_message() {
-        info_all("Laser spindle on Pin:%s, Enbl:%s, Freq:%dHz, Res:%dbits Laser mode:%d",
-                 _output_pin.name().c_str(),
-                 _enable_pin.name().c_str(),
-                 int(_pwm_freq),
-                 _pwm_precision,
-                 (config->_laserMode ? 1 : 0));  // the current mode
+        log_info(name() << " Spindle Ena:" << _enable_pin.name() << " Out:" << _output_pin.name() << " Freq:" << _pwm_freq
+                        << "Hz Res:" << _pwm_precision << "bits Laser mode:" << (config->_laserMode ? "On" : "Off"));
     }
 
     // Get the GPIO from the machine definition

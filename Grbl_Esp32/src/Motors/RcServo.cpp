@@ -33,7 +33,6 @@
 #include "../Machine/MachineConfig.h"
 #include "../Pins/Ledc.h"
 #include "../Pin.h"
-#include "../Report.h"
 #include "../Limits.h"  // limitsMaxPosition
 #include "RcServoSettings.h"
 
@@ -57,12 +56,8 @@ namespace Motors {
     }
 
     void RcServo::config_message() {
-        info_serial("%s RC Servo Pin:%s Pulse Len(%.0f,%.0f) %s",
-                    reportAxisNameMsg(axis_index(), dual_axis_index()),
-                    _pwm_pin.name().c_str(),
-                    _pwm_pulse_min,
-                    _pwm_pulse_max,
-                    reportAxisLimitsMsg(axis_index()));
+        log_info(axisName() << " RC Servo Pin:" << _pwm_pin.name() << " Pulse Len(" << _pwm_pulse_min << "," << _pwm_pulse_max << ") "
+                            << axisLimits());
     }
 
     void RcServo::_write_pwm(uint32_t duty) {

@@ -233,7 +233,7 @@ namespace Spindles {
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[4] << 8) | response[5];
 #ifdef DEBUG_VFD
-                info_all("VFD: Max frequency = %d", value);
+                log_debug("VFD: Max frequency = " << value);
 #endif
 
                 // Set current RPM value? Somewhere?
@@ -250,7 +250,7 @@ namespace Spindles {
                 uint16_t value = (response[4] << 8) | response[5];
 
 #ifdef DEBUG_VFD
-                info_all("VFD: Min frequency set to %d", value);
+                debug_all("VFD: Min frequency set to " << value);
 #endif
 
                 // Set current RPM value? Somewhere?
@@ -266,7 +266,7 @@ namespace Spindles {
             return [](const uint8_t* response, Spindles::VFD* vfd) -> bool {
                 uint16_t value = (response[4] << 8) | response[5];
 #ifdef DEBUG_VFD
-                info_all("VFD: Max rated revolutions @ 50Hz = %d", value);
+                log_debug("VFD: Max rated revolutions @ 50Hz = " << value);
 #endif
                 // Set current RPM value? Somewhere?
                 auto huanyang           = static_cast<Huanyang*>(vfd);
@@ -300,7 +300,7 @@ namespace Spindles {
                 if (value <= 4 && value >= 2) {
 #ifdef DEBUG_VFD
                     // Set current RPM value? Somewhere?
-                    info_all("VFD: Number of poles set to %d", value);
+                    log_debug("VFD: Number of poles set to " << value);
 #endif
 
                     auto huanyang = static_cast<Huanyang*>(vfd);
@@ -341,7 +341,7 @@ namespace Spindles {
         setupSpeeds(_maxFrequency);
         _slop = std::max(_maxFrequency / 40, 1);
 
-        // info_all("VFD: VFD settings read: RPM Range(%d, %d)]", _min_rpm, _max_rpm);
+        // log_info("VFD: VFD settings read: RPM Range(" << _min_rpm << " , " << _max_rpm << ")]");
     }
 
     VFD::response_parser Huanyang::get_status_ok(ModbusCommand& data) {

@@ -66,14 +66,14 @@ void settings_restore(uint8_t restore_flag) {
                 }
             }
         }
-        info_serial("Settings reset done");
+        log_info("Settings reset done");
     }
     if (restore_flag & SettingsRestore::Parameters) {
         for (auto idx = CoordIndex::Begin; idx < CoordIndex::End; ++idx) {
             coords[idx]->setDefault();
         }
     }
-    info_serial("Position offsets reset done");
+    log_info("Position offsets reset done");
 }
 
 // Get settings values from non volatile storage into memory
@@ -81,7 +81,6 @@ void load_settings() {
     for (Setting* s = Setting::List; s; s = s->next()) {
         s->load();
     }
-    info_serial("Settings loaded from non-volatile storage");
 }
 
 extern void make_settings();
@@ -229,7 +228,7 @@ Error toggle_check_mode(const char* value, WebUI::AuthenticationLevel auth_level
     // is idle and ready, regardless of alarm locks. This is mainly to keep things
     // simple and consistent.
     if (sys.state == State::CheckMode) {
-        debug_all("Check mode");
+        log_debug("Check mode");
         mc_reset();
         report_feedback_message(Message::Disabled);
     } else {
@@ -444,7 +443,7 @@ Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, We
         ++value;
     }
     if (!value || *value == '\0') {
-        info_all("Disabling all motors");
+        log_info("Disabling all motors");
         config->_axes->set_disable(true);
         return Error::Ok;
     }
@@ -452,7 +451,7 @@ Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, We
     auto axes = config->_axes;
 
     if (axes->_sharedStepperDisable.defined()) {
-        info_all("Cannot disable individual axes with a shared disable pin");
+        log_error("Cannot disable individual axes with a shared disable pin");
         return Error::InvalidStatement;
     }
 
@@ -460,7 +459,7 @@ Error motor_disable(const char* value, WebUI::AuthenticationLevel auth_level, We
         char axisName = axes->axisName(i);
 
         if (strchr(value, axisName) || strchr(value, tolower(axisName))) {
-            info_all("Disabling %c motors", axisName);
+            log_info("Disabling " << String(axisName) << " motors");
             axes->set_disable(i, true);
         }
     }

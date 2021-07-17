@@ -21,8 +21,8 @@
 #include "BTConfig.h"
 
 #include "../Machine/MachineConfig.h"
-#include "../Report.h"
-#include "Commands.h"  // COMMANDS
+#include "../Report.h"  // CLIENT_*
+#include "Commands.h"   // COMMANDS
 
 #include <cstdint>
 
@@ -52,10 +52,10 @@ namespace WebUI {
                 uint8_t* addr = param->srv_open.rem_bda;
                 sprintf(str, "%02X:%02X:%02X:%02X:%02X:%02X", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
                 inst->_btclient = str;
-                info_all("BT Connected with %s", str);
+                log_info("BT Connected with " << str);
             } break;
             case ESP_SPP_CLOSE_EVT:  //Client connection closed
-                info_all("BT Disconnected");
+                log_info("BT Disconnected");
                 inst->_btclient = "";
                 break;
             default:
@@ -118,24 +118,24 @@ namespace WebUI {
     bool BTConfig::begin() {
         instance = this;
 
-        debug_serial("Begin");
+        log_debug("Begin");
         //stop active services
         end();
 
-        debug_serial("end");
+        log_debug("end");
         if (_btname.length()) {
-            debug_serial("length");
+            log_debug("length");
             if (!SerialBT.begin(_btname)) {
-                debug_serial("name");
+                log_debug("name");
                 report_status_message(Error::BtFailBegin, CLIENT_ALL);
                 return false;
             }
-            debug_serial("register");
+            log_debug("register");
             SerialBT.register_callback(&my_spp_cb);
-            info_all("BT Started with %s", _btname.c_str());
+            log_info("BT Started with " << _btname);
             return true;
         }
-        info_all("BT is not enabled");
+        log_info("BT is not enabled");
         end();
         return false;
     }
@@ -155,7 +155,7 @@ namespace WebUI {
             delete bt;
             config->_comms->_bluetoothConfig = nullptr;
         }
-        info_all("BT reset done");
+        log_info("BT reset done");
     }
 
     /**

@@ -1,6 +1,7 @@
 #include "Grbl.h"
 
 #include "SettingsDefinitions.h"
+#include "Logging.h"
 
 StringSetting* config_filename;
 
@@ -12,12 +13,12 @@ EnumSetting* message_level;
 
 enum_opt_t messageLevels = {
     // clang-format off
-    { "None", int8_t(MsgLevel::None) },
-    { "Error", int8_t(MsgLevel::Error) },
-    { "Warning", int8_t(MsgLevel::Warning) },
-    { "Info", int8_t(MsgLevel::Info) },
-    { "Debug", int8_t(MsgLevel::Debug) },
-    { "Verbose", int8_t(MsgLevel::Verbose) },
+    { "None", MsgLevelNone },
+    { "Error", MsgLevelError },
+    { "Warning", MsgLevelWarning },
+    { "Info", MsgLevelInfo },
+    { "Debug", MsgLevelDebug },
+    { "Verbose", MsgLevelVerbose },
     // clang-format on
 };
 
@@ -49,7 +50,7 @@ void make_settings() {
 
     status_mask = new IntSetting(GRBL, WG, "10", "Report/Status", 1, 0, 3);
 
-    message_level = +new EnumSetting(NULL, EXTENDED, WG, NULL, "Message/Level", static_cast<int8_t>(MsgLevel::Info), &messageLevels, NULL);
+    message_level = new EnumSetting(NULL, EXTENDED, WG, NULL, "Message/Level", MsgLevelInfo, &messageLevels, NULL);
 
     config_filename = new StringSetting(EXTENDED, WG, NULL, "Config/Filename", "config.yaml");
 }

@@ -23,7 +23,6 @@
 
 #include "StandardStepper.h"
 
-#include "../Report.h"
 #include "../Machine/MachineConfig.h"
 #include "../Stepper.h"   // ST_I2S_*
 #include "../Stepping.h"  // config->_stepping->_engine
@@ -41,7 +40,7 @@ namespace Motors {
         if (next_RMT_chan_num < RMT_CHANNEL_MAX) {
             next_RMT_chan_num++;
         } else {
-            error_serial("Error: out of RMT channels");
+            log_error("Out of RMT channels");
         }
         return rmt_channel_t(next_RMT_chan_num);
     }
@@ -100,12 +99,8 @@ namespace Motors {
     }
 
     void StandardStepper::config_message() {
-        info_serial("%s Standard Stepper Step:%s Dir:%s Disable:%s %s",
-                    reportAxisNameMsg(axis_index(), dual_axis_index()),
-                    _step_pin.name().c_str(),
-                    _dir_pin.name().c_str(),
-                    _disable_pin.name().c_str(),
-                    reportAxisLimitsMsg(axis_index()));
+        log_info(axisName() << " Standard Stepper Step:" << _step_pin.name() << " Dir:" << _dir_pin.name()
+                            << " Disable:" << _disable_pin.name() << " " << axisLimits());
     }
 
     void IRAM_ATTR StandardStepper::step() {

@@ -31,7 +31,6 @@
 
 #include "Servo.h"
 #include "../Machine/MachineConfig.h"
-#include "../Report.h"  // info_serial
 
 #include <atomic>
 #include <freertos/task.h>  // portTICK_PERIOD_MS, vTaskDelay
@@ -48,7 +47,7 @@ namespace Motors {
         if (_timer_ms == 0 || ms < _timer_ms) {
             _timer_ms = ms;
         }
-        info_serial("Servo Update Task Started");
+        log_info("Servo Update Task Started");
         if (this == List) {
             xTaskCreatePinnedToCore(updateTask,         // task
                                     "servoUpdateTask",  // name for task

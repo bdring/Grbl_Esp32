@@ -44,14 +44,13 @@
 #include "I2SOut.h"
 
 #include "Config.h"
-#include "Report.h"
 #include "Pin.h"
 #include "Settings.h"
 #include "SettingsDefinitions.h"
 #include "Machine/MachineConfig.h"
 #include "Stepper.h"
 
-#include <Arduino.h> // IRAM_ATTR 
+#include <Arduino.h>  // IRAM_ATTR
 
 #include <freertos/FreeRTOS.h>
 #include <driver/periph_ctrl.h>
@@ -952,13 +951,13 @@ int IRAM_ATTR i2s_out_init() {
 
     // Check capabilities:
     if (!wsPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
-        info_serial("Not setting up I2SO: WS pin has incorrect capabilities");
+        log_info("Not setting up I2SO: WS pin has incorrect capabilities");
         return -1;
     } else if (!bckPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
-        info_serial("Not setting up I2SO: BCK pin has incorrect capabilities");
+        log_info("Not setting up I2SO: BCK pin has incorrect capabilities");
         return -1;
     } else if (!dataPin.capabilities().has(Pin::Capabilities::Output | Pin::Capabilities::Native)) {
-        info_serial("Not setting up I2SO: DATA pin has incorrect capabilities");
+        log_info("Not setting up I2SO: DATA pin has incorrect capabilities");
         return -1;
     } else {
         i2s_out_init_t default_param;

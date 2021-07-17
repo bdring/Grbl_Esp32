@@ -93,4 +93,6 @@ enum class Error : uint8_t {
     ConfigurationInvalid        = 152,
 };
 
+const char* errorString(Error errorNumber);
+
 extern std::map<Error, const char*> ErrorNames;

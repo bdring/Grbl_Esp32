@@ -110,7 +110,7 @@ namespace PinUsers {
             ledcInit(pin, pwmChannel_, frequency, resolutionBits_);
             ledcSetDuty(pwmChannel_, 0);
 
-            // info_serial("PWM Output:%d on Pin:%s Freq:%0.0fHz", _number, _pin.name().c_str(), _pwm_frequency);
+            // log_info("PWM Output:" << _number << " on Pin:" << _pin.name() << " Freq:" << _pwm_frequency << "Hz");
 
             // Store instance:
             auto instances         = PwmChannelResources();

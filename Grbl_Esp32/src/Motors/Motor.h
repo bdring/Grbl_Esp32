@@ -108,6 +108,9 @@ namespace Motors {
         virtual ~Motor() {}
 
     protected:
+        String axisName() const;
+        String axisLimits() const;
+
         // config_message(), called from init(), displays a message describing
         // the motor configuration - pins and other motor-specific items
         virtual void config_message() {}

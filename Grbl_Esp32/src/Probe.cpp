@@ -33,7 +33,7 @@ void Probe::init() {
         _probePin.setAttr(Pin::Attr::Input);
 
         if (show_init_msg) {
-            _probePin.report("Probe");
+            _probePin.report("Probe Pin:");
             show_init_msg = false;
         }
     }

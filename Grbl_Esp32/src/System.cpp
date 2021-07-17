@@ -158,7 +158,7 @@ int8_t sys_get_next_PWM_chan_num() {
     if (next_PWM_chan_num < 8) {           // 7 is the max PWM channel number
         return next_PWM_chan_num++;
     } else {
-        error_serial("Error: out of PWM channels");
+        log_error("Out of PWM channels");
         return -1;
     }
 }

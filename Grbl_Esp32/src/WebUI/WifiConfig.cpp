@@ -28,7 +28,6 @@ WebUI::WiFiConfig wifi_config;
 #    include "Commands.h"  // COMMANDS
 #    include "WifiServices.h"
 #    include "WebSettings.h"
-#    include "../Report.h"
 
 #    include <WiFi.h>
 #    include <esp_wifi.h>
@@ -215,7 +214,7 @@ namespace WebUI {
             case SYSTEM_EVENT_STA_GOT_IP:
                 break;
             case SYSTEM_EVENT_STA_DISCONNECTED:
-                info_all("WiFi Disconnected");
+                log_info("WiFi Disconnected");
                 break;
             default:
                 break;
@@ -246,13 +245,13 @@ namespace WebUI {
         for (count = 0; count < 10; ++count) {
             switch (WiFi.status()) {
                 case WL_NO_SSID_AVAIL:
-                    info_all("No SSID");
+                    log_info("No SSID");
                     return false;
                 case WL_CONNECT_FAILED:
-                    info_all("Connection failed");
+                    log_info("Connection failed");
                     return false;
                 case WL_CONNECTED:
-                    info_all("Connected - IP is %s", WiFi.localIP().toString().c_str());
+                    log_info("Connected - IP is " << WiFi.localIP().toString());
                     return true;
                 default:
                     if ((dot > 3) || (dot == 0)) {
@@ -264,7 +263,7 @@ namespace WebUI {
                     dot++;
                     break;
             }
-            info_all(msg.c_str());
+            log_info(msg);
             COMMANDS::wait(2000);
         }
         return false;
@@ -304,21 +303,18 @@ namespace WebUI {
         int8_t IP_mode  = sta->_dhcp ? DHCP_MODE : STATIC_MODE;
 
         if (IP_mode == DHCP_MODE) {
-            info_all("STA SSID %s DHCP", SSID.c_str());
+            log_info("STA SSID " << SSID << " DHCP");
         } else {
             // Static IP configuration
             WiFi.config(sta->_ipAddress, sta->_netmask, sta->_gateway);
-            info_all("STA SSID %s static IP %s netmask %s gateway %s",
-                     SSID.c_str(),
-                     sta->_ipAddress.toString().c_str(),
-                     sta->_netmask.toString().c_str(),
-                     sta->_gateway.toString().c_str());
+            log_info("STA SSID " << SSID << " static IP " << sta->_ipAddress.toString() << " netmask " << sta->_netmask.toString()
+                                 << " gateway " << sta->_gateway.toString());
         }
 
         if (WiFi.begin(SSID.c_str(), (password.length() > 0) ? password.c_str() : NULL)) {
             return ConnectSTA2AP();
         }
-        info_serial("Cannot connect to %s", config->_comms->_staConfig->_ssid.c_str());
+        log_info("Cannot connect to " << config->_comms->_staConfig->_ssid);
         return false;
     }
 
@@ -364,18 +360,18 @@ namespace WebUI {
         IPAddress mask;
         mask.fromString(DEFAULT_AP_MK);
 
-        info_all("AP SSID %s IP %s, mask %s channel %d", SSID.c_str(), ip.toString().c_str(), mask.toString().c_str(), channel);
+        log_info("AP SSID " << SSID << " IP " << ip.toString() << " mask " << mask.toString() << " channel " << channel);
 
         //Set static IP
         WiFi.softAPConfig(ip, ip, mask);
 
         //Start AP
         if (WiFi.softAP(SSID.c_str(), (password.length() > 0) ? password.c_str() : NULL, channel)) {
-            info_all("AP started");
+            log_info("AP started");
             return true;
         }
 
-        info_all("AP did not start");
+        log_info("AP did not start");
         return false;
     }
 
@@ -395,7 +391,7 @@ namespace WebUI {
         WiFi.enableSTA(false);
         WiFi.enableAP(false);
         WiFi.mode(WIFI_OFF);
-        info_all("WiFi Off");
+        log_info("WiFi Off");
     }
 
     /**
@@ -413,7 +409,7 @@ namespace WebUI {
             goto wifi_on;
         }
 
-        info_serial("WiFi off");
+        log_info("WiFi off");
         WiFi.mode(WIFI_OFF);
         return false;
 
@@ -427,7 +423,7 @@ namespace WebUI {
             WiFi.onEvent(WiFiConfig::WiFiEvent);
             _events_registered = true;
         }
-        info_serial("WiFi on");
+        log_info("WiFi on");
         wifi_services.begin();
         return true;
     }
@@ -451,9 +447,9 @@ namespace WebUI {
         }
         // TODO commit the changes and check that for errors
         if (error) {
-            info_all("WiFi reset error");
+            log_info("WiFi reset error");
         }
-        info_all("WiFi reset done");
+        log_info("WiFi reset done");
     }
     bool WiFiConfig::Is_WiFi_on() { return !(WiFi.getMode() == WIFI_MODE_NULL); }
 

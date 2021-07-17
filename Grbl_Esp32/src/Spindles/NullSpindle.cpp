@@ -21,7 +21,6 @@
 */
 #include "NullSpindle.h"
 
-#include "../Report.h"  // info_all
 #include "../System.h"  // sys.spindle_speed
 
 #include <Arduino.h>  // IRAM_ATTR
@@ -42,7 +41,7 @@ namespace Spindles {
         _current_state    = state;
         sys.spindle_speed = speed;
     }
-    void Null::config_message() { info_all("No spindle"); }
+    void Null::config_message() { log_info("No spindle"); }
 
     // Configuration registration
     namespace {

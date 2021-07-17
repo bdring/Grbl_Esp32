@@ -27,7 +27,6 @@
 #include "10vSpindle.h"
 
 #include "../Pins/Ledc.h"
-#include "../Report.h"
 #include "../System.h"  // sys.spindle_speed
 #include "../GCode.h"   // gc_state.modal
 
@@ -37,7 +36,7 @@ namespace Spindles {
 
         // a couple more pins not inherited from PWM Spindle
         if (_output_pin.undefined()) {
-            info_all("Warning: Spindle output pin not defined");
+            log_warn("Spindle output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
@@ -57,14 +56,9 @@ namespace Spindles {
 
     // prints the startup message of the spindle config
     void _10v::config_message() {
-        info_all("0-10V spindle Out:%s Enbl:%s, Dir:%s, Fwd:%s, Rev:%s, Freq:%dHz Res:%dbits",
-                 _output_pin.name().c_str(),
-                 _enable_pin.name().c_str(),
-                 _direction_pin.name().c_str(),
-                 _forward_pin.name().c_str(),
-                 _reverse_pin.name().c_str(),
-                 _pwm_freq,
-                 _pwm_precision);
+        log_info(name() << " Spindle Ena:" << _enable_pin.name() << " Out:" << _output_pin.name() << " Dir:" << _direction_pin.name()
+                        << " Fwd:" << _forward_pin.name() << " Rev:" << _reverse_pin.name() << " Freq:" << _pwm_freq
+                        << "Hz Res:" << _pwm_precision << "bits");
     }
 
     // This appears identical to the code in PWMSpindle.cpp but

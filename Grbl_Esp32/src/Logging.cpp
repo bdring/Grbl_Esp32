@@ -35,8 +35,14 @@ DebugStream::~DebugStream() {
 
 #else
 
+#    include "SettingsDefinitions.h"
+
+bool atMsgLevel(MsgLevel level) {
+    return message_level == nullptr || message_level->get() >= level;
+}
+
 #    include "Serial.h"
-#    define LOG_CLIENT CLIENT_SERIAL
+#    define LOG_CLIENT CLIENT_ALL
 
 DebugStream::DebugStream(const char* name) {
     client_write(LOG_CLIENT, "[MSG:");

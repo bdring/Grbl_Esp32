@@ -17,8 +17,6 @@
 
 #include "StepStick.h"
 
-#include "../Report.h"  // info_serial
-
 namespace Motors {
     void StepStick::init() {
         // If they are not 'undefined', set them as 'on'.
@@ -43,7 +41,7 @@ namespace Motors {
 
     void StepStick::afterParse() {
         if (!_Reset.undefined()) {
-            info_serial("Using StepStick Mode");
+            log_info("Using StepStick Mode");
 
             // !RESET pin on steppers  (MISO On Schematic)
             _Reset.setAttr(Pin::Attr::Output | Pin::Attr::InitialOn);

@@ -90,7 +90,7 @@ public:
         handler.item("mode", dataBits, parity, stopBits);
     }
 
-    void config_message();
+    void config_message(const char* prefix, const char* usage);
 };
 
 extern Uart Uart0;

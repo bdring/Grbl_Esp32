@@ -30,7 +30,7 @@ void machine_init() {
     Pin levelShift = Pin::create(LVL_SHIFT_ENABLE);
 
     // force this on all the time
-    info_serial("Custom machine_init() Level Shift Enabled");
+    log_info("Custom machine_init() Level Shift Enabled");
     levelShift.setAttr(Pin::Attr::Output);
     levelShift.on();
 }

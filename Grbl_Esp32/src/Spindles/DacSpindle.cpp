@@ -23,8 +23,6 @@
 */
 #include "DacSpindle.h"
 
-#include "../Report.h"
-
 #include <driver/dac.h>  // dacWrite
 
 namespace Spindles {
@@ -38,7 +36,7 @@ namespace Spindles {
 
         if (!_output_pin.capabilities().has(Pin::Capabilities::DAC)) {  // DAC can only be used on these pins
             _gpio_ok = false;
-            info_all("DAC spindle pin invalid %s (pin 25 or 26 only)", _output_pin.name().c_str());
+            log_error("DAC spindle pin invalid " << _output_pin.name().c_str() << " (pin 25 or 26 only)");
             return;
         }
 
@@ -52,7 +50,7 @@ namespace Spindles {
     }
 
     void Dac::config_message() {
-        info_all("%s spindle Output:%s, Dir:%s, Res:8bits", name(), _output_pin.name().c_str(), _direction_pin.name().c_str());
+        log_info(name() << " Spindle Out:" << _output_pin.name() << " Dir:" << _direction_pin.name() << " Res:8bits");
     }
 
     void IRAM_ATTR Dac::setSpeedfromISR(uint32_t speed) { set_output(speed); };

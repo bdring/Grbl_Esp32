@@ -33,8 +33,14 @@
 #include "Motor.h"
 
 #include "../Machine/MachineConfig.h"
+#include "../Limits.h"  // limitsMinPosition
 
 namespace Motors {
+    String Motor::axisName() const { return String(config->_axes->axisName(axis_index())) + (dual_axis_index() ? "2" : "") + " Axis"; }
+    String Motor::axisLimits() const {
+        return String("Limits(") + limitsMinPosition(axis_index()) + "," + limitsMaxPosition(axis_index()) + ")";
+    }
+
     void Motor::debug_message() {}
 
     bool Motor::test() { return true; };  // true = OK

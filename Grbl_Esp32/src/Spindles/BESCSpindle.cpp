@@ -33,14 +33,13 @@
 #include "BESCSpindle.h"
 
 #include "../Pins/Ledc.h"
-#include "../Report.h"
 
 #include <soc/ledc_struct.h>
 
 namespace Spindles {
     void BESC::init() {
         if (_output_pin.undefined()) {
-            info_all("Warning: BESC output pin not defined");
+            log_warn("BESC output pin not defined");
             return;  // We cannot continue without the output pin
         }
 
@@ -101,12 +100,8 @@ namespace Spindles {
 
     // prints the startup message of the spindle config
     void BESC::config_message() {
-        info_all("BESC spindle on Pin:%s Min:%dus Max:%dus Freq:%dHz Res:%dbits",
-                 _output_pin.name().c_str(),
-                 _min_pulse_us,
-                 _max_pulse_us,
-                 _pwm_freq,
-                 _pwm_precision);
+        log_info(name() << " Spindle Out:" << _output_pin.name() << " Min:" << _min_pulse_us << "us Max:" << _max_pulse_us
+                        << "us Freq:" << _pwm_freq << "Hz Res:" << _pwm_precision << "bits");
     }
 
     // Configuration registration

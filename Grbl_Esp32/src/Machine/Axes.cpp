@@ -1,6 +1,5 @@
 #include "Axes.h"
 
-#include "../Report.h"
 #include "../Motors/Motor.h"
 #include "../Motors/NullMotor.h"
 #include "../NutsBolts.h"
@@ -16,7 +15,7 @@ namespace Machine {
     }
 
     void Axes::init() {
-        info_serial("Axis count %d", config->_axes->_numberAxis);
+        log_info("Axis count " << config->_axes->_numberAxis);
 
         if (_sharedStepperDisable.defined()) {
             _sharedStepperDisable.setAttr(Pin::Attr::Output);
@@ -60,7 +59,7 @@ namespace Machine {
     }
 
     void Axes::read_settings() {
-        //info_serial("Read Settings");
+        //log_info("Read Settings");
         for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
             for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
                 auto a = _axis[axis];
@@ -110,7 +109,7 @@ namespace Machine {
 
     void IRAM_ATTR Axes::step(uint8_t step_mask, uint8_t dir_mask) {
         auto n_axis = _numberAxis;
-        //info_serial("motors_set_direction_pins:0x%02X", onMask);
+        //log_info("motors_set_direction_pins:0x%02X", onMask);
 
         // Set the direction pins, but optimize for the common
         // situation where the direction bits haven't changed.

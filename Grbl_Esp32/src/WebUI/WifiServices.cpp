@@ -28,7 +28,6 @@
 #    include "TelnetServer.h"
 #    include "NotificationsService.h"
 #    include "Commands.h"
-#    include "../Report.h"  // info_all
 
 #    include <WiFi.h>
 #    include <FS.h>
@@ -65,39 +64,44 @@ namespace WebUI {
                     type = "filesystem";
                     SPIFFS.end();
                 }
-                info_all("Start OTA updating %s", type.c_str());
+                log_info("Start OTA updating " << type);
             })
-            .onEnd([]() { info_all("End OTA"); })
-            .onProgress([](unsigned int progress, unsigned int total) { info_all("OTA Progress: %u%%", (progress / (total / 100))); })
+            .onEnd([]() { log_info("End OTA"); })
+            .onProgress([](unsigned int progress, unsigned int total) { log_info("OTA Progress: " << (progress / (total / 100)) << "%"); })
             .onError([](ota_error_t error) {
-                info_all("OTA Error(%u):", error);
+                const char* errorName;
                 switch (error) {
                     case OTA_AUTH_ERROR:
-                        info_all("Auth Failed");
+                        errorName = "Auth Failed";
                         break;
                     case OTA_BEGIN_ERROR:
-                        info_all("Begin Failed");
+                        errorName = "Begin Failed";
                         break;
                     case OTA_CONNECT_ERROR:
-                        info_all("Connect Failed");
+                        errorName = "Connect Failed";
                         break;
                     case OTA_RECEIVE_ERROR:
-                        info_all("Receive Failed");
+                        errorName = "Receive Failed";
                         break;
                     case OTA_END_ERROR:
-                        info_all("End Failed");
+                        errorName = "End Failed";
+                        break;
+                    default:
+                        errorName = "Unknown";
                         break;
                 }
+
+                log_info("OTA Error(" << error << "):" << errorName);
             });
         ArduinoOTA.begin();
         //no need in AP mode
         if (WiFi.getMode() == WIFI_STA) {
             //start mDns
             if (!MDNS.begin(h.c_str())) {
-                info_all("Cannot start mDNS");
+                log_info("Cannot start mDNS");
                 no_error = false;
             } else {
-                info_all("Start mDNS with hostname:http://%s.local/", h.c_str());
+                log_info("Start mDNS with hostname:http://" << h << ".local/");
             }
         }
         web_server.begin();

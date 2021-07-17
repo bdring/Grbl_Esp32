@@ -28,8 +28,6 @@
 
 #include "H2ASpindle.h"
 
-#include "../Report.h"  // info_serial
-
 namespace Spindles {
     H2A::H2A() : VFD() {}
 
@@ -81,7 +79,7 @@ namespace Spindles {
                 vfd->setupSpeeds(1);  // The speed is given directly in RPM
                 vfd->_slop = 300;     // 300 RPM
 
-                info_serial("H2A spindle is initialized at %d RPM", int(maxRPM));
+                log_info("H2A spindle initialized at " << maxRPM << " RPM");
 
                 return true;
             };

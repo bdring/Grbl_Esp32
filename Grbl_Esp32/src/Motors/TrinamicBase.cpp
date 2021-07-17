@@ -19,7 +19,6 @@
 #include "TrinamicBase.h"
 
 #include "../Machine/MachineConfig.h"
-#include "../Report.h"  // reportAxisNameMsg, info_serial
 
 #include <atomic>
 
@@ -50,7 +49,7 @@ namespace Motors {
             if (sys.state == State::Cycle || sys.state == State::Homing || sys.state == State::Jog) {
                 for (TrinamicBase* p = List; p; p = p->link) {
                     if (p->_stallguardDebugMode) {
-                        //info_serial("SG:%d", p->_stallguardDebugMode);
+                        //log_info("SG:" << p->_stallguardDebugMode);
                         p->debug_message();
                     }
                 }
@@ -80,7 +79,7 @@ namespace Motors {
 
     bool TrinamicBase::report_open_load(bool ola, bool olb) {
         if (ola || olb) {
-            info_serial("%s Driver Open Load a:%s b:%s", reportAxisNameMsg(axis_index(), dual_axis_index()), ola ? "Y" : "N", olb ? "Y" : "N");
+            log_info(axisName() << " Driver Open Load a:" << yn(ola) << " b:" << yn(olb));
             return true;
         }
         return false;  // no error
@@ -88,17 +87,14 @@ namespace Motors {
 
     bool TrinamicBase::report_short_to_ground(bool s2ga, bool s2gb) {
         if (s2ga || s2gb) {
-            info_serial(
-                "%s Driver Short Coil a:%s b:%s", reportAxisNameMsg(axis_index(), dual_axis_index()), s2ga ? "Y" : "N", s2gb ? "Y" : "N");
-            return true;
+            log_info(axisName() << " Driver Short Coil a:" << yn(s2ga) << " b:" << yn(s2gb));
         }
         return false;  // no error
     }
 
     bool TrinamicBase::report_over_temp(bool ot, bool otpw) {
         if (ot || otpw) {
-            info_serial(
-                "%s Driver Temp Warning:%s Fault:%s", reportAxisNameMsg(axis_index(), dual_axis_index()), otpw ? "Y" : "N", ot ? "Y" : "N");
+            log_info(axisName() << " Driver Temp Warning:" << yn(otpw) << " Fault:" << yn(ot));
             return true;
         }
         return false;  // no error
@@ -107,7 +103,7 @@ namespace Motors {
     bool TrinamicBase::report_short_to_ps(bool vsa, bool vsb) {
         // check for short to power supply
         if (vsa || vsb) {
-            info_serial("%s Driver Short vsa:%s vsb:%s", reportAxisNameMsg(axis_index(), dual_axis_index()), vsa ? "Y" : "N", vsb ? "Y" : "N");
+            log_info(axisName() << " Driver Short vsa:" << yn(vsa) << " vsb:" << yn(vsb));
             return true;
         }
         return false;  // no error

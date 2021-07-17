@@ -18,6 +18,17 @@
 
 #pragma once
 
+#include <cstdint>
+
+enum MsgLevel {
+    MsgLevelNone    = 0,
+    MsgLevelError   = 1,
+    MsgLevelWarning = 2,
+    MsgLevelInfo    = 3,
+    MsgLevelDebug   = 4,
+    MsgLevelVerbose = 5,
+};
+
 #include "SimpleOutputStream.h"
 
 // How to use logging? Well, the basics are pretty simple:
@@ -42,27 +53,29 @@ public:
 
 #include "StringStream.h"
 
+extern bool atMsgLevel(MsgLevel level);
+
 // Note: these '{'..'}' scopes are here for a reason: the destructor should flush.
 #define log_debug(x)                                                                                                                       \
-    {                                                                                                                                      \
+    if (atMsgLevel(MsgLevelDebug)) {                                                                                                       \
         DebugStream ss("DBG");                                                                                                             \
         ss << x;                                                                                                                           \
     }
 
 #define log_info(x)                                                                                                                        \
-    {                                                                                                                                      \
+    if (atMsgLevel(MsgLevelInfo)) {                                                                                                        \
         DebugStream ss("INFO");                                                                                                            \
         ss << x;                                                                                                                           \
     }
 
 #define log_warn(x)                                                                                                                        \
-    {                                                                                                                                      \
+    if (atMsgLevel(MsgLevelWarning)) {                                                                                                     \
         DebugStream ss("WARN");                                                                                                            \
         ss << x;                                                                                                                           \
     }
 
 #define log_error(x)                                                                                                                       \
-    {                                                                                                                                      \
+    if (atMsgLevel(MsgLevelError)) {                                                                                                       \
         DebugStream ss("ERR");                                                                                                             \
         ss << x;                                                                                                                           \
     }

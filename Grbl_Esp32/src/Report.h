@@ -68,25 +68,9 @@ enum class Message : uint8_t {
     SdFileQuit      = 60,  // mc_reset was called during an SD job
 };
 
-enum class MsgLevel : int8_t {  // Use $Message/Level
-    None    = 0,
-    Error   = 1,
-    Warning = 2,
-    Info    = 3,
-    Debug   = 4,
-    Verbose = 5,
-};
-
 // functions to send data to the user.
 void grbl_send(uint8_t client, const char* text);
 void grbl_sendf(uint8_t client, const char* format, ...);
-void info_client(uint8_t client, const char* format, ...);
-void info_serial(const char* format, ...);
-void info_all(const char* format, ...);
-void debug_serial(const char* format, ...);
-void debug_all(const char* format, ...);
-void error_serial(const char* format, ...);
-void error_all(const char* format, ...);
 
 //function to notify
 void grbl_notify(const char* title, const char* msg);

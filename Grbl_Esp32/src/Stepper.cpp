@@ -29,7 +29,6 @@
 #include "Stepping.h"
 #include "StepperPrivate.h"
 #include "Planner.h"
-#include "Report.h"   // info_serial
 #include <Arduino.h>  // IRAM_ATTR
 
 using namespace Stepper;
@@ -288,7 +287,7 @@ void IRAM_ATTR Stepper::pulse_func() {
 
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void Stepper::wake_up() {
-    //info_serial("st_wake_up");
+    //log_info("st_wake_up");
     // Enable stepper drivers.
     config->_axes->set_disable(false);
     isIdle = false;
@@ -685,8 +684,8 @@ void Stepper::prep_buffer() {
                 // NOTE: Feed and rapid overrides are independent of PWM value and do not alter laser power/rate.
                 if (st_prep_block->is_pwm_rate_adjusted) {
                     speed *= (prep.current_speed * prep.inv_rate);
-                    //info_serial("RPM %.2f", rpm);
-                    //info_serial("Rates CV %.2f IV %.2f RPM %.2f", prep.current_speed, prep.inv_rate, rpm);
+                    // log_debug("RPM " << rpm);
+                    // log_debug("Rates CV " << prep.current_speed << " IV " << prep.inv_rate << " RPM " << rpm);
                 }
                 // If current_speed is zero, then may need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE)
                 // but this would be instantaneous only and during a motion. May not matter at all.

@@ -21,6 +21,7 @@
 #include "../Grbl.h"
 #include "../Machine/MachineConfig.h"
 #include "../Config.h"
+#include "../Serial.h"  // is_realtime_command()
 
 #ifdef ENABLE_WIFI
 
@@ -31,7 +32,6 @@
 #    include "Serial2Socket.h"
 #    include "WebServer.h"
 #    include "../SDCard.h"
-#    include "../Report.h"  // info_all
 
 #    include <WebSocketsServer.h>
 #    include <WiFi.h>
@@ -161,7 +161,7 @@ namespace WebUI {
             // if DNSServer is started with "*" for domain name, it will reply with
             // provided IP to all DNS request
             dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
-            info_all("Captive Portal Started");
+            log_info("Captive Portal Started");
             _webserver->on("/generate_204", HTTP_ANY, handle_root);
             _webserver->on("/gconnectivitycheck.gstatic.com", HTTP_ANY, handle_root);
             //do not forget the / at the end
@@ -186,11 +186,11 @@ namespace WebUI {
         */
 
             //Start SSDP
-            info_all("SSDP Started");
+            log_info("SSDP Started");
             SSDP.begin();
         }
 
-        info_all("HTTP Started");
+        log_info("HTTP Started");
         //start webserver
         _webserver->begin();
 
@@ -917,7 +917,7 @@ namespace WebUI {
         //Guest cannot upload - only admin
         if (auth_level == AuthenticationLevel::LEVEL_GUEST) {
             _upload_status = UploadStatusType::FAILED;
-            info_all("Upload rejected");
+            log_info("Upload rejected");
             pushError(ESP_ERROR_AUTHENTICATION, "Upload rejected", 401);
         } else {
             HTTPUpload& upload = _webserver->upload();
@@ -951,7 +951,7 @@ namespace WebUI {
                         uint32_t freespace = SPIFFS.totalBytes() - SPIFFS.usedBytes();
                         if (filesize > freespace) {
                             _upload_status = UploadStatusType::FAILED;
-                            info_all("Upload error");
+                            log_info("Upload error");
                             pushError(ESP_ERROR_NOT_ENOUGH_SPACE, "Upload rejected, not enough space");
                         }
                     }
@@ -966,7 +966,7 @@ namespace WebUI {
                         } else {
                             //if no set cancel flag
                             _upload_status = UploadStatusType::FAILED;
-                            info_all("Upload error");
+                            log_info("Upload error");
                             pushError(ESP_ERROR_FILE_CREATION, "File creation failed");
                         }
                     }
@@ -979,13 +979,13 @@ namespace WebUI {
                         //no error so write post date
                         if (upload.currentSize != fsUploadFile.write(upload.buf, upload.currentSize)) {
                             _upload_status = UploadStatusType::FAILED;
-                            info_all("Upload error");
+                            log_info("Upload error");
                             pushError(ESP_ERROR_FILE_WRITE, "File write failed");
                         }
                     } else {
                         //we have a problem set flag UploadStatusType::FAILED
                         _upload_status = UploadStatusType::FAILED;
-                        info_all("Upload error");
+                        log_info("Upload error");
                         pushError(ESP_ERROR_FILE_WRITE, "File write failed");
                     }
                     //Upload end
@@ -1008,14 +1008,14 @@ namespace WebUI {
                         if (_upload_status == UploadStatusType::ONGOING) {
                             _upload_status = UploadStatusType::SUCCESSFUL;
                         } else {
-                            info_all("Upload error");
+                            log_info("Upload error");
                             pushError(ESP_ERROR_UPLOAD, "File upload failed");
                         }
                     } else {
                         //we have a problem set flag UploadStatusType::FAILED
                         _upload_status = UploadStatusType::FAILED;
                         pushError(ESP_ERROR_FILE_CLOSE, "File close failed");
-                        info_all("Upload error");
+                        log_info("Upload error");
                     }
                     //Upload cancelled
                     //**************
@@ -1070,7 +1070,7 @@ namespace WebUI {
         //only admin can update FW
         if (is_authenticated() != AuthenticationLevel::LEVEL_ADMIN) {
             _upload_status = UploadStatusType::FAILED;
-            info_all("Upload rejected");
+            log_info("Upload rejected");
             pushError(ESP_ERROR_AUTHENTICATION, "Upload rejected", 401);
         } else {
             //get current file ID
@@ -1079,7 +1079,7 @@ namespace WebUI {
                 //Upload start
                 //**************
                 if (upload.status == UPLOAD_FILE_START) {
-                    info_all("Update Firmware");
+                    log_info("Update Firmware");
                     _upload_status     = UploadStatusType::ONGOING;
                     String sizeargname = upload.filename + "S";
                     if (_webserver->hasArg(sizeargname)) {
@@ -1096,17 +1096,16 @@ namespace WebUI {
                     if (flashsize < maxSketchSpace) {
                         pushError(ESP_ERROR_NOT_ENOUGH_SPACE, "Upload rejected, not enough space");
                         _upload_status = UploadStatusType::FAILED;
-                        info_all("Update cancelled");
+                        log_info("Update cancelled");
                     }
                     if (_upload_status != UploadStatusType::FAILED) {
                         last_upload_update = 0;
                         if (!Update.begin()) {  //start with max available size
                             _upload_status = UploadStatusType::FAILED;
-                            info_all("Update cancelled");
+                            log_info("Update cancelled");
                             pushError(ESP_ERROR_NOT_ENOUGH_SPACE, "Upload rejected, not enough space");
                         } else {
-                            grbl_send(CLIENT_ALL, "\n");
-                            info_all("Update 0%");
+                            log_info("Update 0%");
                         }
                     }
                     //Upload write
@@ -1122,14 +1121,11 @@ namespace WebUI {
                                 last_upload_update = upload.totalSize;
                             }
 
-                            String s = "Update ";
-                            s += String(last_upload_update);
-                            s += "%";
-                            info_all(s.c_str());
+                            log_info("Update " << last_upload_update << "%");
                         }
                         if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
                             _upload_status = UploadStatusType::FAILED;
-                            info_all("Update write failed");
+                            log_info("Update write failed");
                             pushError(ESP_ERROR_FILE_WRITE, "File write failed");
                         }
                     }
@@ -1138,15 +1134,15 @@ namespace WebUI {
                 } else if (upload.status == UPLOAD_FILE_END) {
                     if (Update.end(true)) {  //true to set the size to the current progress
                         //Now Reboot
-                        info_all("Update 100%");
+                        log_info("Update 100%");
                         _upload_status = UploadStatusType::SUCCESSFUL;
                     } else {
                         _upload_status = UploadStatusType::FAILED;
-                        info_all("Update failed");
+                        log_info("Update failed");
                         pushError(ESP_ERROR_UPLOAD, "Update upload failed");
                     }
                 } else if (upload.status == UPLOAD_FILE_ABORTED) {
-                    info_all("Update failed");
+                    log_info("Update failed");
                     _upload_status = UploadStatusType::FAILED;
                     return;
                 }
@@ -1424,7 +1420,7 @@ namespace WebUI {
                     //check if SD Card is available
                     if (config->_sdCard->get_state(true) != SDCard::State::Idle) {
                         _upload_status = UploadStatusType::FAILED;
-                        info_all("Upload cancelled");
+                        log_info("Upload cancelled");
                         pushError(ESP_ERROR_UPLOAD_CANCELLED, "Upload cancelled");
 
                     } else {
@@ -1439,7 +1435,7 @@ namespace WebUI {
                             uint64_t freespace = SD.totalBytes() - SD.usedBytes();
                             if (filesize > freespace) {
                                 _upload_status = UploadStatusType::FAILED;
-                                info_all("Upload error");
+                                log_info("Upload error");
                                 pushError(ESP_ERROR_NOT_ENOUGH_SPACE, "Upload rejected, not enough space");
                             }
                         }
@@ -1450,7 +1446,7 @@ namespace WebUI {
                             if (!sdUploadFile) {
                                 //if creation failed
                                 _upload_status = UploadStatusType::FAILED;
-                                info_all("Upload failed");
+                                log_info("Upload failed");
                                 pushError(ESP_ERROR_FILE_CREATION, "File creation failed");
                             }
                             //if creation succeed set flag UploadStatusType::ONGOING
@@ -1469,12 +1465,12 @@ namespace WebUI {
                         //no error write post data
                         if (upload.currentSize != sdUploadFile.write(upload.buf, upload.currentSize)) {
                             _upload_status = UploadStatusType::FAILED;
-                            info_all("Upload failed");
+                            log_info("Upload failed");
                             pushError(ESP_ERROR_FILE_WRITE, "File write failed");
                         }
                     } else {  //if error set flag UploadStatusType::FAILED
                         _upload_status = UploadStatusType::FAILED;
-                        info_all("Upload failed");
+                        log_info("Upload failed");
                         pushError(ESP_ERROR_FILE_WRITE, "File write failed");
                     }
                     //Upload end
@@ -1493,12 +1489,12 @@ namespace WebUI {
                             if (_webserver->arg(sizeargname) != String(filesize)) {
                                 _upload_status = UploadStatusType::FAILED;
                                 pushError(ESP_ERROR_UPLOAD, "File upload mismatch");
-                                info_all("Upload failed");
+                                log_info("Upload failed");
                             }
                         }
                     } else {
                         _upload_status = UploadStatusType::FAILED;
-                        info_all("Upload failed");
+                        log_info("Upload failed");
                         pushError(ESP_ERROR_FILE_CLOSE, "File close failed");
                     }
                     if (_upload_status == UploadStatusType::ONGOING) {
@@ -1512,7 +1508,7 @@ namespace WebUI {
                 } else {  //Upload cancelled
                     _upload_status = UploadStatusType::FAILED;
                     config->_sdCard->set_state(SDCard::State::Idle);
-                    info_all("Upload failed");
+                    log_info("Upload failed");
                     if (sdUploadFile) {
                         sdUploadFile.close();
                     }
@@ -1557,12 +1553,10 @@ namespace WebUI {
     void Web_Server::handle_Websocket_Event(uint8_t num, uint8_t type, uint8_t* payload, size_t length) {
         switch (type) {
             case WStype_DISCONNECTED:
-                //USE_SERIAL.printf("[%u] Disconnected!\n", num);
                 break;
             case WStype_CONNECTED: {
                 IPAddress ip = _socket_server->remoteIP(num);
-                //USE_SERIAL.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-                String s = "CURRENT_ID:" + String(num);
+                String    s  = "CURRENT_ID:" + String(num);
                 // send message to client
                 _id_connection = num;
                 _socket_server->sendTXT(_id_connection, s);
@@ -1570,8 +1564,6 @@ namespace WebUI {
                 _socket_server->broadcastTXT(s);
             } break;
             case WStype_TEXT:
-                //USE_SERIAL.printf("[%u] get Text: %s\n", num, payload);
-
                 // send message to client
                 // webSocket.sendTXT(num, "message here");
 
@@ -1579,7 +1571,6 @@ namespace WebUI {
                 // webSocket.broadcastTXT("message here");
                 break;
             case WStype_BIN:
-                //USE_SERIAL.printf("[%u] get binary length: %u\n", num, length);
                 //hexdump(payload, length);
 
                 // send message to client

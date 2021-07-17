@@ -21,7 +21,6 @@
 
 #include "Logging.h"
 #include "Uart.h"
-#include "Report.h"  // info_serial
 
 #include <esp_system.h>
 #include <soc/uart_reg.h>
@@ -147,6 +146,6 @@ void uartInit() {
     Uart0.write("\r\n");  // create some white space after ESP32 boot info
 }
 
-void Uart::config_message() {
-    info_serial("Uart on Tx:%s Rx:%s RTS:%s baudrate %d", _txd_pin.name().c_str(), _rxd_pin.name().c_str(), _rts_pin.name().c_str(), baud);
+void Uart::config_message(const char* prefix, const char* usage) {
+    log_info(prefix << usage << "Uart Tx:" << _txd_pin.name() << " Rx:" << _rxd_pin.name() << " RTS:" << _rts_pin.name() << " Baud:" << baud);
 }

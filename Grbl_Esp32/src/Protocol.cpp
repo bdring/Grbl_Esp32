@@ -656,7 +656,7 @@ static void protocol_execute_overrides() {
 void protocol_do_macro(int macro_num) {
     // must be in Idle
     if (sys.state != State::Idle) {
-        info_serial("Macro button only permitted in idle");
+        log_error("Macro button only permitted in idle");
         return;
     }
 

@@ -26,9 +26,8 @@
 #include "../Machine/MachineConfig.h"
 #include "../Machine/WifiSTAConfig.h"
 #include "../Configuration/JsonGenerator.h"
-#include "../Grbl.h"    //GRBL_VERSION
-#include "../Report.h"  // info_all
-#include "Commands.h"   // COMMANDS::wait(1);
+#include "../Grbl.h"   //GRBL_VERSION
+#include "Commands.h"  // COMMANDS::wait(1);
 #include "WifiConfig.h"
 #include "ESPResponse.h"
 #include "WebServer.h"
@@ -376,14 +375,14 @@ namespace WebUI {
             webPrintln("Incorrect command");
             return Error::InvalidValue;
         }
-        info_all("Restarting");
+        log_info("Restarting");
         COMMANDS::restart_ESP();
         return Error::Ok;
     }
 
     static Error restart(char* parameter, AuthenticationLevel auth_level) {
         parameter = trim(parameter);
-        info_all("Restarting");
+        log_info("Restarting");
         COMMANDS::restart_ESP();
         return Error::Ok;
     }

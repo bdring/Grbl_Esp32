@@ -18,7 +18,6 @@
 
 #include "I2SOBus.h"
 #include "../I2SOut.h"
-#include "../Report.h"
 
 namespace Machine {
     void I2SOBus::validate() const {
@@ -36,8 +35,7 @@ namespace Machine {
     }
 
     void I2SOBus::init() {
-        info_serial("I2SO BCK:%s WS:%s DATA:%s", _bck.name().c_str(), _ws.name().c_str(), _data.name().c_str());
+        log_info("I2SO BCK:" << _bck.name() << " WS:" << _ws.name() << " DATA:" << _data.name());
         i2s_out_init();
     }
-
 }

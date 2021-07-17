@@ -43,7 +43,7 @@ uint8_t             current_tool;
 
 void machine_init() {
     solenoid_pull_count = 0;  // initialize
-    info_serial("Atari 1020 Solenoid");
+    log_info("Atari 1020 Solenoid");
 
     // setup PWM channel
     solenoid_pwm_chan_num = sys_get_next_PWM_chan_num();
@@ -157,7 +157,7 @@ void atari_home_task(void* pvParameters) {
                         homing_phase = HOMING_PHASE_CHECK;
                         break;
                     default:
-                        info_serial("Homing phase error %d", homing_phase);
+                        log_info("Homing phase error " << homing_phase);
                         atari_homing = false;
 
                         // kills task
@@ -165,7 +165,7 @@ void atari_home_task(void* pvParameters) {
                 }
                 if (homing_attempt > ATARI_HOMING_ATTEMPTS) {
                     // try all positions plus 1
-                    info_serial("Atari homing failed");
+                    log_info("Atari homing failed");
                     WebUI::inputBuffer.push("G90\r");
                     atari_homing = false;
                 }
@@ -217,7 +217,7 @@ void user_tool_change(uint8_t new_tool) {
     char    gcode_line[20];
     protocol_buffer_synchronize();  // wait for all previous moves to complete
     if ((new_tool < 1) || (new_tool > MAX_PEN_NUMBER)) {
-        info_serial("Requested Pen#%d is out of 1-4 range", new_tool);
+        log_info("Requested Pen#" << new_tool << " is out of 1-4 range");
         return;
     }
     if (new_tool == current_tool)
@@ -234,7 +234,7 @@ void user_tool_change(uint8_t new_tool) {
         WebUI::inputBuffer.push("G0X0\r");
     }
     current_tool = new_tool;
-    info_serial("Change to Pen#%d", current_tool);
+    log_info("Change to Pen#" << current_tool);
 }
 
 // move from current tool to next tool....
@@ -248,17 +248,17 @@ void user_defined_macro(uint8_t index) {
     char gcode_line[20];
     switch (index) {
         case 0:
-            info_serial("Pen switch");
+            log_info("Pen switch");
             WebUI::inputBuffer.push("$H\r");
             break;
         case 1:
-            info_serial("Color switch");
+            log_info("Color switch");
             atari_next_pen();
             sprintf(gcode_line, "G90G0X%3.2f\r", ATARI_PAPER_WIDTH);  // alway return to right side to reduce home travel stalls
             WebUI::inputBuffer.push(gcode_line);
             break;
         case 2:
-            info_serial("Paper switch");
+            log_info("Paper switch");
             WebUI::inputBuffer.push("G0Y-25\r");
             WebUI::inputBuffer.push("G4P0.1\r");  // sync...forces wait for planner to clear
             sys_position[Y_AXIS] = 0.0;           // reset the Y position

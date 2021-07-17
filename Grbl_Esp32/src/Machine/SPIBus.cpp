@@ -17,7 +17,6 @@
 */
 
 #include "SPIBus.h"
-#include "../Report.h"
 
 #include <SPI.h>
 
@@ -33,8 +32,7 @@ namespace Machine {
 
     void SPIBus::init() {
         if (_cs.defined()) {  // validation ensures the rest is also defined.
-            info_serial(
-                "SPI SCK:%s MOSI:%s MISO:%s CS:%s", _sck.name().c_str(), _mosi.name().c_str(), _miso.name().c_str(), _cs.name().c_str());
+            log_info("SPI SCK:" << _sck.name() << " MOSI:" << _mosi.name() << " MISO:" << _miso.name() << " CS:" << _cs.name());
 
             _cs.setAttr(Pin::Attr::Output);
 

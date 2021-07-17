@@ -19,27 +19,12 @@
 #include "Pin.h"
 
 // Pins:
+#include "Logging.h"
 #include "Pins/PinOptionsParser.h"
 #include "Pins/GPIOPinDetail.h"
 #include "Pins/VoidPinDetail.h"
 #include "Pins/I2SOPinDetail.h"
 #include "Pins/ErrorPinDetail.h"
-
-#ifdef ESP32
-#    include "Report.h"  // serial output like info_serial, etc
-#    define pin_error(...) error_serial(__VA_ARGS__)
-#else
-#    define pin_error(...)                                                                                                                 \
-        {}
-#endif
-
-#ifdef DEBUG_PIN_DUMP
-#    define pin_debug(...) debug_serial(__VA_ARGS__)
-#    include "Pins/DebugPinDetail.h"
-#else
-#    define pin_debug(...)                                                                                                                 \
-        {}
-#endif
 
 Pins::PinDetail* Pin::undefinedPin = new Pins::VoidPinDetail();
 Pins::PinDetail* Pin::errorPin     = new Pins::ErrorPinDetail("unknown");
@@ -105,7 +90,7 @@ const char* Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     // Build an options parser:
     Pins::PinOptionsParser parser(options.begin(), options.end());
 
-    pin_debug("Attempting to set up pin: %s, index %d", prefix.c_str(), int(pinNumber));
+    log_debug("Attempting to set up pin: " << prefix << " index " << int(pinNumber));
 
     // Build this pin:
     if (prefix == "gpio") {
@@ -126,7 +111,7 @@ const char* Pin::parse(StringRange tmp, Pins::PinDetail*& pinImplementation) {
     }
 
     if (pinImplementation == nullptr) {
-        pin_error("ERR: Unknown prefix: \"%s\"", prefix.c_str());
+        log_error("Unknown prefix:" << prefix);
         return "Unknown pin prefix";
     } else {
 #ifdef DEBUG_PIN_DUMP
@@ -144,7 +129,7 @@ Pin Pin::create(const String& str) {
 Pin Pin::create(const StringRange& str) {
     Pins::PinDetail* pinImplementation = nullptr;
     try {
-        pin_debug("Setting up pin: [%s]", str.str().c_str());
+        log_debug("Setting up pin " << str.str());
 
         const char* err = parse(str, pinImplementation);
         if (err) {
@@ -152,7 +137,7 @@ Pin Pin::create(const StringRange& str) {
                 delete pinImplementation;
             }
 
-            pin_debug("ERR: Setting up pin: '%s' failed: %s.", str.str().c_str(), err);
+            log_error("Setting up pin:" << str.str() << " failed:" << err);
             return Pin(new Pins::ErrorPinDetail(str.str()));
         } else {
             return Pin(pinImplementation);
@@ -165,7 +150,7 @@ Pin Pin::create(const StringRange& str) {
         Assert(false, buf);
 
         /*
-        pin_error("ERR: Setting up pin [%s] failed. Details: %s", str.str().c_str(), ex.what());
+          log_error("ERR: Setting up pin ["<<str.str()<<"] failed. Details:"<< ex.what());
 
         return Pin(new Pins::ErrorPinDetail(str.str()));
         */
@@ -185,9 +170,7 @@ bool Pin::validate(const String& str) {
 
 void Pin::report(const char* legend) {
     if (defined()) {
-#if ESP32
-        info_serial("%s on %s", legend, name().c_str());
-#endif
+        log_info(legend << " " << name());
     }
 }
 
