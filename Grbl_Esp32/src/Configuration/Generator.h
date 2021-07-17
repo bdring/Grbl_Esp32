@@ -53,7 +53,7 @@ namespace Configuration {
         HandlerType handlerType() override { return HandlerType::Generator; }
 
     public:
-        Generator(SimpleOutputStream& dst);
+        Generator(SimpleOutputStream& dst, int indent = 0);
 
         void item(const char* name, int& value, int32_t minValue, int32_t maxValue) override {
             indent();

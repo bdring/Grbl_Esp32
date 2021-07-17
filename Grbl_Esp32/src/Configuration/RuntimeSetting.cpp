@@ -45,6 +45,16 @@ namespace Configuration {
 
                 // Handle child:
                 value->group(*this);
+            } else {
+                if (newValue_ == nullptr) {
+                    ClientStream ss(CLIENT_ALL);
+                    ss << setting_ << ":\n";
+                    Configuration::Generator generator(ss, 1);
+                    value->group(generator);
+                    isHandled_ = true;
+                } else {
+                    log_error("Can't set a value on a section");
+                }
             }
 
             // Restore situation:
