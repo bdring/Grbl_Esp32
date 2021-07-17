@@ -1113,7 +1113,7 @@ namespace WebUI {
         new WebCommand(NULL, WEBCMD, WU, "ESP210", "SD/List", listSDFiles);
         new WebCommand(NULL, WEBCMD, WU, "ESP200", "SD/Status", showSDStatus);
 
-        new WebCommand("STA|AP|BT|OFF", WEBCMD, WA, "ESP115", "Radio/State", setRadioState);
+        new WebCommand("ON|OFF", WEBCMD, WA, "ESP115", "Radio/State", setRadioState);
 
         new WebCommand("P=position T=type V=value", WEBCMD, WA, "ESP401", "WebUI/Set", setWebSetting);
         new WebCommand(NULL, WEBCMD, WU, "ESP400", "WebUI/List", listSettings, anyState);
