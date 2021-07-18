@@ -206,14 +206,14 @@ namespace Machine {
             tmp[0] = tolower(_names[i]);
             tmp[1] = '\0';
 
-            handler.section(tmp, _axis[i]);
+            handler.section(tmp, _axis[i], i);
         }
     }
 
     void Axes::afterParse() {
         for (size_t i = 0; i < MAX_NUMBER_AXIS; ++i) {
             if (_axis[i] == nullptr) {
-                _axis[i] = new Axis();
+                _axis[i] = new Axis(i);
             }
         }
     }

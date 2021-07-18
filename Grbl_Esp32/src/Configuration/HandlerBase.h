@@ -89,12 +89,12 @@ namespace Configuration {
 
         virtual HandlerType handlerType() = 0;
 
-        template <typename T>
-        void section(const char* name, T*& value) {
+        template <typename T, typename... U>
+        void section(const char* name, T*& value, U... args) {
             if (handlerType() == HandlerType::Parser) {
                 // For Parser, matchesUninitialized(name) resolves to _parser.is(name)
                 if (value == nullptr && matchesUninitialized(name)) {
-                    value = new T();
+                    value = new T(args...);
                     enterSection(name, value);
                 }
             } else {

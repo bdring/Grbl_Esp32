@@ -29,8 +29,9 @@ namespace Motors {
 namespace Machine {
     class Gang : public Configuration::Configurable {
     public:
-        Gang() = default;
+        Gang(int index) : _index(index) {}
 
+        int            _index;
         Motors::Motor* _motor    = nullptr;
         Endstops*      _endstops = nullptr;
 

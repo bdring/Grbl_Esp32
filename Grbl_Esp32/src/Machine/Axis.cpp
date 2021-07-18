@@ -20,14 +20,14 @@ namespace Machine {
             tmp[4] = char(g + '0');
             tmp[5] = '\0';
 
-            handler.section(tmp, _gangs[g]);
+            handler.section(tmp, _gangs[g], g);
         }
     }
 
     void Axis::afterParse() {
         for (size_t i = 0; i < MAX_NUMBER_GANGED; ++i) {
             if (_gangs[i] == nullptr) {
-                _gangs[i] = new Gang();
+                _gangs[i] = new Gang(i);
             }
         }
     }

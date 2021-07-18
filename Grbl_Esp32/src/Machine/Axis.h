@@ -29,11 +29,12 @@ namespace Motors {
 namespace Machine {
     class Axis : public Configuration::Configurable {
     public:
-        Axis() {
+        Axis(int currentAxis): _index(currentAxis) {
             for (int i = 0; i < MAX_NUMBER_GANGED; ++i) {
                 _gangs[i] = nullptr;
             }
         }
+
         static const int MAX_NUMBER_GANGED = 2;
 
         Gang*   _gangs[MAX_NUMBER_GANGED];
@@ -44,6 +45,8 @@ namespace Machine {
         float _acceleration = 25.0f;
         float _maxTravel    = 200.0f;
         bool  _softLimits   = false;
+
+        int _index;
 
         // Configuration system helpers:
         void group(Configuration::HandlerBase& handler) override;
