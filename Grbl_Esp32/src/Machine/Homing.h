@@ -53,5 +53,7 @@ namespace Machine {
             handler.item("seek_scaler", _seek_scaler);
             handler.item("feed_scaler", _feed_scaler);
         }
+
+        void init() {}
     };
 }

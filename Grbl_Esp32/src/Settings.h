@@ -119,6 +119,7 @@ public:
         if (esp_err_t err = nvs_get_stats(NULL, &stats)) {
             return Error::NvsGetStatsFailed;
         }
+
         log_info("NVS Used:" << stats.used_entries << " Free:" << stats.free_entries << " Total:" << stats.total_entries);
 #if 0  // The SDK we use does not have this yet
         nvs_iterator_t it = nvs_entry_find(NULL, NULL, NVS_TYPE_ANY);

@@ -121,7 +121,7 @@ void grbl_init() {
             // NOTE: The startup script will run after successful completion of the homing cycle, but
             // not after disabling the alarm locks. Prevents motion startup blocks from crashing into
             // things uncontrollably. Very bad.
-            if (config->_homingInitLock && homingAxes) {
+            if (config->_homingInitLock && Machine::Axes::homingMask) {
                 // If there is an axis with homing configured, enter Alarm state on startup
                 sys.state = State::Alarm;
             }

@@ -45,6 +45,14 @@ namespace Motors {
     public:
         Motor() = default;
 
+        static constexpr int      max_n_axis = MAX_N_AXIS;
+        static constexpr uint32_t axis_mask  = (1 << max_n_axis) - 1;
+        static inline int         axisGangToMotor(int gang, int axis) { return (gang << max_n_axis) + axis; }
+        static inline void        motorToAxisGang(int& gang, int& axis, int motor) {
+            gang = motor >> max_n_axis;
+            axis = motor & ~axis_mask;
+        }
+
         // init() establishes configured motor parameters.  It is called after
         // all motor objects have been constructed.
         virtual void init() {}

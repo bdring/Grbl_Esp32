@@ -19,16 +19,25 @@
 */
 
 #include "../Configuration/Configurable.h"
+#include "../System.h"  // AxisMask
+#include "LimitPin.h"
 
 namespace Machine {
     class Endstops : public Configuration::Configurable {
+        LimitPin* _negLimitPin;
+        LimitPin* _posLimitPin;
+        LimitPin* _allLimitPin;
+        int       _axis;
+        int       _gang;  // 0:gang0, 1:gang1, or -1:axis
     public:
-        Endstops() = default;
+        Endstops(int axis, int gang);
 
-        //     Pin  _positive;
-        //     Pin  _negative;
-        Pin  _dual;
-        bool _hardLimits = false;
+        Pin  _negPin;
+        Pin  _posPin;
+        Pin  _allPin;
+        bool _hardLimits = true;
+
+        void init();
 
         // Configuration system helpers:
         void validate() const override;

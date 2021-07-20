@@ -1,3 +1,4 @@
+#include "Axes.h"
 #include "Axis.h"
 
 #include <cstring>
@@ -10,6 +11,7 @@ namespace Machine {
         handler.item("max_travel", _maxTravel);
         handler.item("soft_limits", _softLimits);
 
+        handler.section("endstops", _endstops, _axis, -1);
         handler.section("homing", _homing);
 
         char tmp[6];
@@ -20,15 +22,28 @@ namespace Machine {
             tmp[4] = char(g + '0');
             tmp[5] = '\0';
 
-            handler.section(tmp, _gangs[g], g);
+            handler.section(tmp, _gangs[g], _axis, g);
         }
     }
 
     void Axis::afterParse() {
         for (size_t i = 0; i < MAX_NUMBER_GANGED; ++i) {
             if (_gangs[i] == nullptr) {
-                _gangs[i] = new Gang(i);
+                _gangs[i] = new Gang(_axis, i);
             }
+        }
+    }
+
+    void Axis::init() {
+        for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
+            _gangs[gang_index]->init();
+        }
+        if (_homing) {
+            _homing->init();
+            bitnum_true(Axes::homingMask, _axis);
+        }
+        if (_endstops) {
+            _endstops->init();
         }
     }
 

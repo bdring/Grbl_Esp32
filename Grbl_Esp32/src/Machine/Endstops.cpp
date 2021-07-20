@@ -19,6 +19,17 @@
 */
 
 namespace Machine {
+    Endstops::Endstops(int axis, int gang) : _axis(axis), _gang(gang) {
+        _negLimitPin = new LimitPin(_negPin, _axis, _gang, -1, _hardLimits);
+        _posLimitPin = new LimitPin(_posPin, _axis, _gang, 1, _hardLimits);
+        _allLimitPin = new LimitPin(_allPin, _axis, _gang, 0, _hardLimits);
+    }
+
+    void Endstops::init() {
+        _negLimitPin->init();
+        _posLimitPin->init();
+        _allLimitPin->init();
+    }
 
     void Endstops::validate() const {
         //    if (_dual.defined()) {
@@ -31,9 +42,9 @@ namespace Machine {
     }
 
     void Endstops::group(Configuration::HandlerBase& handler) {
-        //     handler.item("positive", _positive);
-        //     handler.item("negative", _negative);
-        handler.item("dual", _dual);
+        handler.item("limit_neg", _negPin);
+        handler.item("limit_pos", _posPin);
+        handler.item("limit_all", _allPin);
         handler.item("hard_limits", _hardLimits);
     }
 }

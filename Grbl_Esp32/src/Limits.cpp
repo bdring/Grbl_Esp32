@@ -37,6 +37,7 @@
 #include "Protocol.h"       // protocol_execute_realtime
 #include "I2SOut.h"         // I2S_OUT_DELAY_MS
 #include "Platform.h"
+#include "Machine/Axes.h"
 
 #include <freertos/task.h>
 #include <freertos/queue.h>
@@ -45,34 +46,7 @@
 #include <algorithm>  // min, max
 #include <atomic>     // fence
 
-AxisMask limitAxes  = 0;  // Axes that have limit switches
-AxisMask homingAxes = 0;  // Axes that have homing configured
-
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
-
-void IRAM_ATTR isr_limit_switches(void* /*unused */) {
-    // Ignore limit switches if already in an alarm state or in-process of executing an alarm.
-    // When in the alarm state, Grbl should have been reset or will force a reset, so any pending
-    // moves in the planner and serial buffers are all cleared and newly sent blocks will be
-    // locked out until a homing cycle or a kill lock command. Allows the user to disable the hard
-    // limit setting if their limits are constantly triggering after a reset and move their axes.
-    if (sys.state != State::Alarm && sys.state != State::ConfigAlarm && sys.state != State::Homing) {
-        if (sys_rt_exec_alarm == ExecAlarm::None) {
-            if (config->_softwareDebounceMs) {
-                // we will start a task that will recheck the switches after a small delay
-                int evt;
-                xQueueSendFromISR(limit_sw_queue, &evt, NULL);
-            } else {
-                // Check limit pin state.
-                if (limits_check(limitAxes)) {
-                    log_debug("Hard limits");
-                    mc_reset();                                // Initiate system kill.
-                    sys_rt_exec_alarm = ExecAlarm::HardLimit;  // Indicate hard limit critical event
-                }
-            }
-        }
-    }
-}
 
 // Returns true if an error occurred
 static ExecAlarm limits_handle_errors(bool approach, uint8_t cycle_mask) {
@@ -119,7 +93,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     auto axes   = config->_axes;
     auto n_axis = axes->_numberAxis;
 
-    cycle_mask &= homingAxes;
+    cycle_mask &= Machine::Axes::homingMask;
 
     // Initialize plan data struct for homing motion. Spindle and coolant are disabled.
 
@@ -373,8 +347,6 @@ static void limits_run_one_homing_cycle(AxisMask homing_mask) {
 }
 
 void limits_run_homing_cycles(AxisMask axis_mask) {
-    limits_homing_mode();  // Disable hard limits pin change register for cycle duration
-
     // -------------------------------------------------------------------------------------
     // Perform homing routine. NOTE: Special motion case. Only system reset works.
     if (axis_mask != HOMING_CYCLE_ALL) {
@@ -405,39 +377,10 @@ void limits_run_homing_cycles(AxisMask axis_mask) {
             sys.state = State::Alarm;
         }
     }
-    limits_run_mode();  // Disable hard limits pin change register for cycle duration
 }
 
 void limits_init() {
-    auto axes   = config->_axes;
-    auto n_axis = axes->_numberAxis;
-    for (int axis = 0; axis < n_axis; axis++) {
-        if (axes->_axis[axis]->_homing) {
-            bitnum_true(homingAxes, axis);
-        }
-        for (int gang_index = 0; gang_index < 2; gang_index++) {
-            auto gangConfig = axes->_axis[axis]->_gangs[gang_index];
-            if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
-                if (!limitAxes) {
-                    log_info("Initializing endstops...");
-                }
-                bitnum_true(limitAxes, axis);
-
-                Pin& pin = gangConfig->_endstops->_dual;
-
-                log_info(reportAxisNameMsg(axis, gang_index) << " limit on " << pin.name());
-
-                pin.setAttr(Pin::Attr::Input | Pin::Attr::ISR);
-                if (gangConfig->_endstops->_hardLimits) {
-                    pin.attachInterrupt(isr_limit_switches, CHANGE, nullptr);
-                } else {
-                    pin.detachInterrupt();
-                }
-            }
-        }
-    }
-
-    if (limitAxes) {
+    if (Machine::Axes::limitMask) {
         if (limit_sw_queue == NULL && config->_softwareDebounceMs != 0) {
             // setup task used for debouncing
             if (limit_sw_queue == NULL) {
@@ -453,67 +396,19 @@ void limits_init() {
     }
 }
 
-void limits_homing_mode() {
-    auto n_axis = config->_axes->_numberAxis;
-    for (int axis = 0; axis < n_axis; axis++) {
-        for (int gang_index = 0; gang_index < 2; gang_index++) {
-            auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
-            if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
-                Pin& pin = gangConfig->_endstops->_dual;
-                pin.detachInterrupt();
-            }
-        }
-    }
-}
-
-void limits_run_mode() {
-    auto n_axis = config->_axes->_numberAxis;
-    for (int axis = 0; axis < n_axis; axis++) {
-        for (int gang_index = 0; gang_index < 2; gang_index++) {
-            auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
-            if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
-                if (gangConfig->_endstops->_hardLimits) {
-                    Pin& pin = gangConfig->_endstops->_dual;
-                    pin.attachInterrupt(isr_limit_switches, CHANGE, nullptr);
-                }
-            }
-        }
-    }
-}
-
-static bool limits_check_axis(int axis) {
-    for (int gang_index = 0; gang_index < 2; gang_index++) {
-        auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
-        if (gangConfig->_endstops != nullptr && gangConfig->_endstops->_dual.defined()) {
-            Pin& pin = gangConfig->_endstops->_dual;
-            if (pin.read()) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 // Check the limit switches for the axes listed in check_mask.
 // Return a mask of the switches that are engaged.
 AxisMask limits_check(AxisMask check_mask) {
-    AxisMask pinMask = 0;
-    auto     n_axis  = config->_axes->_numberAxis;
-    for (int axis = 0; axis < n_axis; axis++) {
-        if (bitnum_istrue(check_mask, axis)) {
-            if (limits_check_axis(axis)) {
-                bitnum_true(pinMask, axis);
-            }
-        }
-    }
-    return pinMask;
+    // Expand the bitmask to include both gangs
+    bit_true(check_mask, check_mask << MAX_N_AXIS);
+    return bit_istrue(Machine::Axes::posLimitMask, check_mask) || bit_istrue(Machine::Axes::negLimitMask, check_mask);
 }
 
 // Returns limit state as a bit-wise uint8 variable. Each bit indicates an axis limit, where
 // triggered is 1 and not triggered is 0. Invert mask is applied. Axes are defined by their
 // number in bit position, i.e. Z_AXIS is bit(2), and Y_AXIS is bit(1).
 AxisMask limits_get_state() {
-    return limits_check(limitAxes);
+    return limits_check(Machine::Axes::limitMask);
 }
 
 // Performs a soft limit check. Called from mcline() only. Assumes the machine has been homed,
@@ -594,16 +489,6 @@ bool WEAK_LINK limitsCheckTravel(float* target) {
         }
     }
     return false;
-}
-
-bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index) {
-    auto gangConfig = config->_axes->_axis[axis]->_gangs[gang_index];
-
-    if (gangConfig->_endstops != nullptr) {
-        return gangConfig->_endstops->_dual.defined();
-    } else {
-        return false;
-    }
 }
 
 bool WEAK_LINK user_defined_homing(AxisMask cycle_mask) {

@@ -8,8 +8,13 @@
 #include "MachineConfig.h"  // config->
 
 namespace Machine {
+    uint32_t Axes::posLimitMask = 0;
+    uint32_t Axes::negLimitMask = 0;
+    uint32_t Axes::homingMask   = 0;
+    uint32_t Axes::limitMask    = 0;
+
     Axes::Axes() : _axis() {
-        for (int i = 0; i < MAX_NUMBER_AXIS; ++i) {
+        for (int i = 0; i < MAX_N_AXIS; ++i) {
             _axis[i] = nullptr;
         }
     }
@@ -24,18 +29,9 @@ namespace Machine {
 
         // certain motors need features to be turned on. Check them here
         for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
-            for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
-                auto a = _axis[axis];
-                if (a) {
-                    auto g = a->_gangs[gang_index];
-                    if (g) {
-                        auto m = g->_motor;
-                        if (m == nullptr) {
-                            m = new Motors::Nullmotor();
-                        }
-                        m->init();
-                    }
-                }
+            auto a = _axis[axis];
+            if (a) {
+                a->init();
             }
         }
     }
@@ -199,10 +195,12 @@ namespace Machine {
         handler.item("number_axis", _numberAxis);
         handler.item("shared_stepper_disable", _sharedStepperDisable);
 
+        // Handle axis names xyzabc.  handler.section is inferred
+        // from a template.
         char tmp[3];
         tmp[2] = '\0';
 
-        for (size_t i = 0; i < MAX_NUMBER_AXIS; ++i) {
+        for (size_t i = 0; i < MAX_N_AXIS; ++i) {
             tmp[0] = tolower(_names[i]);
             tmp[1] = '\0';
 
@@ -211,7 +209,7 @@ namespace Machine {
     }
 
     void Axes::afterParse() {
-        for (size_t i = 0; i < MAX_NUMBER_AXIS; ++i) {
+        for (size_t i = 0; i < MAX_N_AXIS; ++i) {
             if (_axis[i] == nullptr) {
                 _axis[i] = new Axis(i);
             }
@@ -219,7 +217,7 @@ namespace Machine {
     }
 
     Axes::~Axes() {
-        for (int i = 0; i < MAX_NUMBER_AXIS; ++i) {
+        for (int i = 0; i < MAX_N_AXIS; ++i) {
             delete _axis[i];
         }
     }

@@ -20,15 +20,24 @@
 
 #include "../Motors/Motor.h"
 #include "../Motors/NullMotor.h"
+#include "Endstops.h"
 
 namespace Machine {
     void Gang::group(Configuration::HandlerBase& handler) {
-        handler.section("endstops", _endstops);
+        handler.section("endstops", _endstops, _axis, _gang);
         Motors::MotorFactory::factory(handler, _motor);
     }
+
     void Gang::afterParse() {
         if (_motor == nullptr) {
             _motor = new Motors::Nullmotor();
+        }
+    }
+
+    void Gang::init() {
+        _motor->init();
+        if (_endstops) {
+            _endstops->init();
         }
     }
 

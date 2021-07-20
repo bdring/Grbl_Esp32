@@ -27,20 +27,25 @@ namespace Motors {
 
 namespace Machine {
     class Axes : public Configuration::Configurable {
-        static const int             MAX_NUMBER_AXIS = 6;
-        static constexpr const char* _names          = "XYZABC";
+        static constexpr const char* _names = "XYZABC";
 
         bool _switchedStepper = false;
 
     public:
         Axes();
 
-        inline char axisName(int index) { return index < MAX_NUMBER_AXIS ? _names[index] : '?'; }
+        // Bitmasks to collect information about axes that have limits and homing
+        static uint32_t posLimitMask;
+        static uint32_t negLimitMask;
+        static uint32_t homingMask;
+        static uint32_t limitMask;
+
+        inline char axisName(int index) { return index < MAX_N_AXIS ? _names[index] : '?'; }
 
         Pin _sharedStepperDisable;
 
         int   _numberAxis = 3;
-        Axis* _axis[MAX_NUMBER_AXIS];
+        Axis* _axis[MAX_N_AXIS];
 
         // Some small helpers to find the axis index and axis ganged index for a given motor. This
         // is helpful for some motors that need this info, as well as debug information.
@@ -57,9 +62,15 @@ namespace Machine {
         }
 
         inline bool hasHardLimits() const {
-            for (int i = 0; i < _numberAxis; ++i) {
-                for (int j = 0; j < Axis::MAX_NUMBER_GANGED; ++j) {
-                    if (_axis[i]->_gangs[j]->_endstops != nullptr && _axis[i]->_gangs[j]->_endstops->_hardLimits) {
+            for (int axis = 0; axis < _numberAxis; ++axis) {
+                auto a  = _axis[axis];
+                auto ae = a->_endstops;
+                if (ae && ae->_hardLimits) {
+                    return true;
+                }
+                for (int gang = 0; gang < Axis::MAX_NUMBER_GANGED; ++gang) {
+                    auto ge = a->_gangs[gang]->_endstops;
+                    if (ge && ge->_hardLimits) {
                         return true;
                     }
                 }

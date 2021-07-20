@@ -19,8 +19,10 @@
 */
 
 #include "../Configuration/Configurable.h"
+// #include "Axes.h"
 #include "Gang.h"
 #include "Homing.h"
+#include "Endstops.h"
 
 namespace Motors {
     class Motor;
@@ -28,8 +30,10 @@ namespace Motors {
 
 namespace Machine {
     class Axis : public Configuration::Configurable {
+        int _axis;
+
     public:
-        Axis(int currentAxis): _index(currentAxis) {
+        Axis(int currentAxis) : _axis(currentAxis) {
             for (int i = 0; i < MAX_NUMBER_GANGED; ++i) {
                 _gangs[i] = nullptr;
             }
@@ -37,8 +41,9 @@ namespace Machine {
 
         static const int MAX_NUMBER_GANGED = 2;
 
-        Gang*   _gangs[MAX_NUMBER_GANGED];
-        Homing* _homing = nullptr;
+        Gang*     _gangs[MAX_NUMBER_GANGED];
+        Homing*   _homing   = nullptr;
+        Endstops* _endstops = nullptr;
 
         float _stepsPerMm   = 320.0f;
         float _maxRate      = 1000.0f;
@@ -46,14 +51,14 @@ namespace Machine {
         float _maxTravel    = 200.0f;
         bool  _softLimits   = false;
 
-        int _index;
-
         // Configuration system helpers:
         void group(Configuration::HandlerBase& handler) override;
         void afterParse() override;
 
         // Checks if a motor matches this axis:
         bool hasMotor(const Motors::Motor* const motor) const;
+
+        void init();
 
         ~Axis();
     };

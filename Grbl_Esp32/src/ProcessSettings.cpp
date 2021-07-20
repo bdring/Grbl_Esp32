@@ -15,6 +15,7 @@
 #include "Limits.h"               // homingAxes
 #include "SettingsDefinitions.h"  // build_info
 #include "Protocol.h"             // LINE_BUFFER_SIZE
+#include "Uart.h"                 // Uart0.write()
 
 #include <cstring>
 #include <map>
@@ -263,7 +264,7 @@ Error home(int cycle) {
         return Error::ConfigurationInvalid;
     }
 
-    if (!homingAxes) {
+    if (!Machine::Axes::homingMask) {
         return Error::SettingDisabled;
     }
     if (config->_control->system_check_safety_door_ajar()) {
@@ -306,6 +307,31 @@ Error home_b(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ES
 }
 Error home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     return home(bit(C_AXIS));
+}
+void write_limit_set(uint32_t mask) {
+    const char* axisName = "xyzabcXYZABC";
+    for (int i = 0; i < MAX_N_AXIS * 2; i++) {
+        Uart0.write(bitnum_istrue(mask, i) ? uint8_t(axisName[i]) : ' ');
+    }
+}
+Error show_limits(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    Uart0.write("Homing Axes: ");
+    write_limit_set(Machine::Axes::homingMask);
+    Uart0.write('\n');
+    Uart0.write("Limit  Axes: ");
+    write_limit_set(Machine::Axes::limitMask);
+    Uart0.write('\n');
+    Uart0.write("PosLimitPins NegLimitPins\n");
+    do {
+        write_limit_set(Machine::Axes::posLimitMask);
+        Uart0.write(' ');
+        write_limit_set(Machine::Axes::negLimitMask);
+        Uart0.write('\r');
+        vTaskDelay(400);
+    } while (!rtFeedHold);
+    rtFeedHold = false;
+    Uart0.write('\n');
+    return Error::Ok;
 }
 Error sleep_grbl(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
     rtSleep = true;
@@ -489,6 +515,7 @@ void make_grbl_commands() {
     new GrblCommand("$", "GrblSettings/List", report_normal_settings, notCycleOrHold);
     new GrblCommand("+", "ExtendedSettings/List", report_extended_settings, notCycleOrHold);
     new GrblCommand("L", "GrblNames/List", list_grbl_names, notCycleOrHold);
+    new GrblCommand("Limits", "Limits/Show", show_limits, notCycleOrHold);
     new GrblCommand("S", "Settings/List", list_settings, notCycleOrHold);
     new GrblCommand("SC", "Settings/ListChanged", list_changed_settings, notCycleOrHold);
     new GrblCommand("P", "Pins/List", list_pins, notCycleOrHold);

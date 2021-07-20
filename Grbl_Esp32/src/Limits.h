@@ -48,25 +48,13 @@ void limits_soft_check(float* target);
 float limitsMaxPosition(uint8_t axis);
 float limitsMinPosition(uint8_t axis);
 
-// check if a switch has been defined
-bool limitsSwitchDefined(uint8_t axis, uint8_t gang_index);
-
-extern AxisMask homingAxes;
-
-extern AxisMask limitAxes;
-
 // Private
 
 // Returns limit state under mask
 AxisMask limits_check(AxisMask check_mask);
-
-void isr_limit_switches(void* /*unused*/);
 
 // A task that runs after a limit switch interrupt.
 void limitCheckTask(void* pvParameters);
 
 // Internal factor used by limits_soft_check
 bool limitsCheckTravel(float* target);
-
-void limits_homing_mode();
-void limits_run_mode();

@@ -20,18 +20,22 @@
 
 #include "../Configuration/Configurable.h"
 
-#include "Endstops.h"
-
 namespace Motors {
     class Motor;
 }
 
 namespace Machine {
-    class Gang : public Configuration::Configurable {
-    public:
-        Gang(int index) : _index(index) {}
+    class Endstops;
+}
 
-        int            _index;
+namespace Machine {
+    class Gang : public Configuration::Configurable {
+        int _axis;
+        int _gang;
+
+    public:
+        Gang(int axis, int gang) : _axis(axis), _gang(gang) {}
+
         Motors::Motor* _motor    = nullptr;
         Endstops*      _endstops = nullptr;
 
@@ -39,6 +43,7 @@ namespace Machine {
         void group(Configuration::HandlerBase& handler) override;
         void afterParse() override;
 
+        void init();
         ~Gang();
     };
 }
