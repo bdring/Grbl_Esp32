@@ -79,7 +79,8 @@ namespace Machine {
 
     // use this to tell all the motors what the current homing mode is
     // They can use this to setup things like Stall
-    uint8_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
+    uint32_t Axes::set_homing_mode(uint8_t homing_mask, bool isHoming) {
+        release_all_motors();  // On homing transitions, cancel all motor lockouts
         uint8_t can_home = 0;
 
         for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
@@ -103,7 +104,13 @@ namespace Machine {
         return can_home;
     }
 
+    void Axes::release_all_motors() { _motorLockoutMask = 0xffffffff; }
+    void Axes::stop_motors(uint32_t mask) { bit_false(_motorLockoutMask, mask); }
+
     void IRAM_ATTR Axes::step(uint8_t step_mask, uint8_t dir_mask) {
+        // Do not step motors that are locked out during homing
+        step_mask &= _motorLockoutMask;
+
         auto n_axis = _numberAxis;
         //log_info("motors_set_direction_pins:0x%02X", onMask);
 

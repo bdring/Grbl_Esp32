@@ -269,10 +269,6 @@ void IRAM_ATTR Stepper::pulse_func() {
         }
     }
 
-    // During a homing cycle, lock out and prevent desired axes from moving.
-    if (sys.state == State::Homing) {
-        st.step_outbits &= sys.homing_axis_lock;
-    }
     st.step_count--;  // Decrement step events count
     if (st.step_count == 0) {
         // Segment is complete. Discard current segment and advance segment indexing.

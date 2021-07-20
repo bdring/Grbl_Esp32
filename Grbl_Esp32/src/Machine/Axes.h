@@ -31,6 +31,10 @@ namespace Machine {
 
         bool _switchedStepper = false;
 
+        // During homing, this is used to stop stepping on motors that have
+        // reached their limit switches, by clearing bits in the mask.
+        uint32_t _motorLockoutMask = 0;
+
     public:
         Axes();
 
@@ -82,12 +86,16 @@ namespace Machine {
         void init();
         void read_settings();  // more like 'after read settings, before init'. Oh well...
 
+        // These are used during homing cycles.
         // The return value is a bitmask of axes that can home
-        uint8_t set_homing_mode(uint8_t homing_mask, bool isHoming);
-        void    set_disable(int axis, bool disable);
-        void    set_disable(bool disable);
-        void    step(uint8_t step_mask, uint8_t dir_mask);
-        void    unstep();
+        uint32_t set_homing_mode(uint8_t homing_mask, bool isHoming);
+        void     release_all_motors();
+        void     stop_motors(uint32_t motor_mask);
+
+        void set_disable(int axis, bool disable);
+        void set_disable(bool disable);
+        void step(uint8_t step_mask, uint8_t dir_mask);
+        void unstep();
 
         // Configuration helpers:
         void group(Configuration::HandlerBase& handler) override;

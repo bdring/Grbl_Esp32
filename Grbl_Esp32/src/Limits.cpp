@@ -197,7 +197,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         }
         homing_rate = float(sqrt(homing_rate));  // Magnitude of homing rate vector
 
-        sys.homing_axis_lock = axislock;
+        config->_axes->release_all_motors();
 
         // Perform homing cycle. Planner buffer should be empty, as required to initiate the homing cycle.
         pl_data->feed_rate = homing_rate;
@@ -209,8 +209,9 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         do {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
-                bit_false(axislock, limits_check(axislock));
-                sys.homing_axis_lock = axislock;
+                uint32_t limitedAxes = limits_check(axislock);
+                config->_axes->stop_motors(limitedAxes);
+                bit_false(axislock, limitedAxes);
             }
             Stepper::prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
 
