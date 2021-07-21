@@ -48,6 +48,104 @@
 
 xQueueHandle limit_sw_queue;  // used by limit switch debouncing
 
+// Calculate the motion for the next homing move.
+//  Input: axesMask - the axes that should participate in this homing cycle
+//  Input: approach - the direction of motion - true for approach, false for pulloff
+//  Input: seek - the phase - true for the initial high-speed seek, false for the slow second phase
+//  Output: axislock - the axes that actually participate, accounting
+//  Output: target - the endpoint vector of the motion
+//  Output: rate    - the feed rate
+//  Return: debounce - the maximum delay time of all the axes
+
+// For multi-axis homing, we use the per-axis rates and travel limits to compute
+// a target vector and a feedrate as follows:
+// The goal is for each axis to travel at its specified rate, and for the
+// maximum travel to be enough for each participating axis to reach its limit.
+// For the rate goal, the axis components of the target vector must be proportional
+// to the per-axis rates, and the overall feed rate must be the magnitude of the
+// vector of per-axis rates.
+// For the travel goal, the axis components of the target vector must be scaled
+// according to the one that would take the longest.
+// The time to complete a maxTravel move for a given feedRate is maxTravel/feedRate.
+// We compute that time for all axes in the homing cycle, then find the longest one.
+// Then we scale the travel distances for the other axes so they would complete
+// at the same time.
+
+static uint32_t limits_plan_move(AxisMask axesMask, bool approach, bool seek) {
+    float    maxSeekTime  = 0.0;
+    float    limitingRate = 0.0;
+    uint32_t debounce     = 0;
+    float    rate         = 0.0;
+
+    auto   axes   = config->_axes;
+    auto   n_axis = axes->_numberAxis;
+    float* target = system_get_mpos();
+
+    // Find the axis that will take the longest
+    for (int axis = 0; axis < n_axis; axis++) {
+        if (bitnum_isfalse(axesMask, axis)) {
+            continue;
+        }
+        // Set target location for active axes and setup computation for homing rate.
+        sys_position[axis] = 0;
+
+        auto axisConfig = axes->_axis[axis];
+        auto homing     = axisConfig->_homing;
+
+        debounce = std::max(debounce, homing->_debounce_ms);
+
+        float axis_rate = seek ? homing->_seekRate : homing->_feedRate;
+
+        // Accumulate the squares of the homing rates for later use
+        // in computing the aggregate feed rate.
+        rate += (axis_rate * axis_rate);
+
+        auto travel = seek ? axisConfig->_maxTravel : homing->_pulloff;
+
+        // First we compute the maximum-time-to-completion vector; later we will
+        // convert it back to positions after we determine the limiting axis.
+        // Set target direction based on cycle mask and homing cycle approach state.
+        auto seekTime = travel / axis_rate;
+
+        target[axis] = (homing->_positiveDirection ^ approach) ? -seekTime : seekTime;
+        if (seekTime > maxSeekTime) {
+            maxSeekTime  = seekTime;
+            limitingRate = axis_rate;
+        }
+    }
+    // Scale the target array, currently in units of time, back to positions
+    // When approaching a small fudge factor to ensure that the limit is reached -
+    // but no fudge factor when pulling off.
+    for (int axis = 0; axis < n_axis; axis++) {
+        if (bitnum_istrue(axesMask, axis)) {
+            auto homing = config->_axes->_axis[axis]->_homing;
+            auto scaler = approach ? (seek ? homing->_seek_scaler : homing->_feed_scaler) : 1.0;
+            target[axis] *= limitingRate * scaler;
+        }
+    }
+
+    plan_line_data_t plan_data;
+    plan_data.spindle_speed         = 0;
+    plan_data.motion                = {};
+    plan_data.motion.systemMotion   = 1;
+    plan_data.motion.noFeedOverride = 1;
+    plan_data.spindle               = SpindleState::Disable;
+    plan_data.coolant.Mist          = 0;
+    plan_data.coolant.Flood         = 0;
+    plan_data.line_number           = HOMING_CYCLE_LINE_NUMBER;
+    plan_data.is_jog                = false;
+
+    plan_data.feed_rate = float(sqrt(rate));  // Magnitude of homing rate vector
+    plan_buffer_line(target, &plan_data);     // Bypass mc_line(). Directly plan homing motion.
+
+    sys.step_control                  = {};
+    sys.step_control.executeSysMotion = true;  // Set to execute homing motion and clear existing flags.
+    Stepper::prep_buffer();                    // Prep and fill segment buffer from newly planned block.
+    Stepper::wake_up();                        // Initiate motion
+
+    return debounce;
+}
+
 // Returns true if an error occurred
 static ExecAlarm limits_handle_errors(bool approach, uint8_t cycle_mask) {
     // This checks some of the events that would normally be handled
@@ -108,18 +206,8 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         return;
     }
 
-    plan_line_data_t  plan_data;
-    plan_line_data_t* pl_data = &plan_data;
-    memset(pl_data, 0, sizeof(plan_line_data_t));
-    pl_data->motion                = {};
-    pl_data->motion.systemMotion   = 1;
-    pl_data->motion.noFeedOverride = 1;
-    pl_data->line_number           = HOMING_CYCLE_LINE_NUMBER;
-
     // Initialize variables used for homing computations.
     uint8_t n_cycle = (2 * n_locate_cycles + 1);
-
-    // First approach at seek rate to quickly find the limit switches.
 
     // approach is the direction of motion; it cycles between true and false
     bool approach = true;
@@ -129,91 +217,43 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     // subsequent fine-positioning steps
     bool seek = true;
 
-    AxisMask axislock;
-    float    homing_rate = 0.0;
     do {
-        float* target = system_get_mpos();
-
-        // For multi-axis homing, we use the per-axis rates and travel limits to compute
-        // a target vector and a feedrate as follows:
-        // The goal is for each axis to travel at its specified rate, and for the
-        // maximum travel to be enough for each participating axis to reach its limit.
-        // For the rate goal, the axis components of the target vector must be proportional
-        // to the per-axis rates, and the overall feed rate must be the magnitude of the
-        // vector of per-axis rates.
-        // For the travel goal, the axis components of the target vector must be scaled
-        // according to the one that would take the longest.
-        // The time to complete a maxTravel move for a given feedRate is maxTravel/feedRate.
-        // We compute that time for all axes in the homing cycle, then find the longest one.
-        // Then we scale the travel distances for the other axes so they would complete
-        // at the same time.
-        axislock           = 0;
-        float maxSeekTime  = 0.0;
-        float limitingRate = 0.0;
-        int   debounce     = 0;
-
-        // Find the axis that will take the longest
-        for (int axis = 0; axis < n_axis; axis++) {
-            if (bitnum_isfalse(cycle_mask, axis)) {
-                continue;
-            }
-            auto axisConfig = config->_axes->_axis[axis];
-            auto homing     = axisConfig->_homing;
-
-            debounce = std::max(debounce, homing->_debounce_ms);
-
-            auto axis_homing_rate = seek ? homing->_seekRate : homing->_feedRate;
-
-            // Accumulate the squares of the homing rates for later use
-            // in computing the aggregate feed rate.
-            homing_rate += (axis_homing_rate * axis_homing_rate);
-
-            // Set target location for active axes and setup computation for homing rate.
-            sys_position[axis] = 0;
-
-            auto travel = approach ? axisConfig->_maxTravel : homing->_pulloff;
-
-            // First we compute the maximum-time-to-completion vector; later we will
-            // convert it back to positions after we determine the limiting axis.
-            // Set target direction based on cycle mask and homing cycle approach state.
-            auto seekTime = travel / axis_homing_rate;
-            target[axis]  = (homing->_positiveDirection ^ approach) ? -seekTime : seekTime;
-            if (seekTime > maxSeekTime) {
-                maxSeekTime  = seekTime;
-                limitingRate = axis_homing_rate;
-            }
-
-            // Record the axis as active
-            bitnum_true(axislock, axis);
-        }
-        // Scale the target array, currently in units of time, back to positions
-        // Add a small fudge factor to ensure that the limit is reached
-        for (int axis = 0; axis < n_axis; axis++) {
-            if (bitnum_istrue(axislock, axis)) {
-                auto homing = config->_axes->_axis[axis]->_homing;
-                auto scaler = approach ? homing->_seek_scaler : homing->_feed_scaler;
-                target[axis] *= limitingRate * scaler;
-            }
-        }
-        homing_rate = float(sqrt(homing_rate));  // Magnitude of homing rate vector
-
-        config->_axes->release_all_motors();
+        uint32_t debounce_ms = limits_plan_move(cycle_mask, approach, seek);
 
         // Perform homing cycle. Planner buffer should be empty, as required to initiate the homing cycle.
-        pl_data->feed_rate = homing_rate;
-        plan_buffer_line(target, pl_data);  // Bypass mc_line(). Directly plan homing motion.
-        sys.step_control                  = {};
-        sys.step_control.executeSysMotion = true;  // Set to execute homing motion and clear existing flags.
-        Stepper::prep_buffer();                    // Prep and fill segment buffer from newly planned block.
-        Stepper::wake_up();                        // Initiate motion
+
+        // Start with all motors allowed to move
+        config->_axes->release_all_motors();
+
+        // For approach cycles:
+        // remainingMotors starts out with the bits set for all the motors in this homing cycle.
+        // As limit switches are hit, their bits are cleared and the associated motor is stopped,
+        // continuing until no bits are set (normal exit)
+
+        // For pulloff cycles:
+        // Motion continues until rtCycleStop is set, indicating that the target was reached,
+        // without looking at the limit switches (which are initially active)
+
+        // There are also some error conditions that can abort the operation:
+        // rtReset or rtSafetyDoor - the user hits either of those buttons
+        // rtCycleStop in approach
+        //   - the max travel distance was reached without hitting all the limit switches
+        // rtCycleStop in pulloff but a switch is still active
+        //   - pulloff failed to clear all the switches
+
+        // XXX we need to include gang1 in the remaining mask
+        // The following might fail if only one gang has limit switches. Anaylze me.
+        uint32_t remainingMotors = cycle_mask | (cycle_mask << 16);
+
         do {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
-                uint32_t limitedAxes = limits_check(axislock);
+                // XXX do we check only the switch in the direction of motion?
+                uint32_t limitedAxes = limits_check(remainingMotors);
                 config->_axes->stop_motors(limitedAxes);
-                bit_false(axislock, limitedAxes);
+                bit_false(remainingMotors, limitedAxes);
             }
-            Stepper::prep_buffer();  // Check and prep segment buffer. NOTE: Should take no longer than 200us.
+            Stepper::prep_buffer();  // Check and prep segment buffer.
 
             ExecAlarm alarm = limits_handle_errors(approach, cycle_mask);
             if (alarm != ExecAlarm::None) {
@@ -233,14 +273,14 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
                 break;
             }
             // Keep trying until all axes have finished
-        } while (axislock);
+        } while (remainingMotors);
 
         if (!approach) {
             config->_stepping->synchronize();
         }
 
-        Stepper::reset();    // Immediately force kill steppers and reset step segment buffer.
-        delay_ms(debounce);  // Delay to allow transient dynamics to dissipate.
+        Stepper::reset();       // Immediately force kill steppers and reset step segment buffer.
+        delay_ms(debounce_ms);  // Delay to allow transient dynamics to dissipate.
 
         // After the initial approach, we switch to the slow rate for subsequent steps
         // The pattern is  fast approach, slow pulloff, slow approach, slow pulloff, ...
@@ -401,8 +441,8 @@ void limits_init() {
 // Return a mask of the switches that are engaged.
 AxisMask limits_check(AxisMask check_mask) {
     // Expand the bitmask to include both gangs
-    bit_true(check_mask, check_mask << MAX_N_AXIS);
-    return bit_istrue(Machine::Axes::posLimitMask, check_mask) || bit_istrue(Machine::Axes::negLimitMask, check_mask);
+    bit_true(check_mask, check_mask << 16);
+    return (Machine::Axes::posLimitMask & check_mask) | (Machine::Axes::negLimitMask & check_mask);
 }
 
 // Returns limit state as a bit-wise uint8 variable. Each bit indicates an axis limit, where

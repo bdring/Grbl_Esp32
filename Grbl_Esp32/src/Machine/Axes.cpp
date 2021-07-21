@@ -141,10 +141,10 @@ namespace Machine {
             if (bitnum_istrue(step_mask, axis)) {
                 auto a = _axis[axis];
 
-                if (bitnum_istrue(ganged_mode, 0)) {
+                if (bitnum_istrue(_motorLockoutMask, axis)) {
                     a->_gangs[0]->_motor->step();
                 }
-                if (bitnum_istrue(ganged_mode, 1)) {
+                if (bitnum_istrue(_motorLockoutMask, axis + 16)) {
                     a->_gangs[1]->_motor->step();
                 }
             }

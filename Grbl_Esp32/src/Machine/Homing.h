@@ -27,16 +27,16 @@ namespace Machine {
 
         // The homing cycles are 1,2,3 etc.  0 means not homed as part of home-all,
         // but you can still home it manually with e.g. $HA
-        int   _cycle             = -1;  // what auto-homing cycle does this axis home on?
-        bool  _square            = false;
-        bool  _positiveDirection = true;
-        float _mpos              = 0.0f;    // After homing this will be the mpos of the switch location
-        float _feedRate          = 50.0f;   // pulloff and second touch speed
-        float _seekRate          = 200.0f;  // this first approach speed
-        float _pulloff           = 1.0f;    // mm
-        int   _debounce_ms       = 250;     // ms settling time for homing switches after motion
-        float _seek_scaler       = 1.1f;    // multiplied by max travel for max homing distance on first touch
-        float _feed_scaler       = 1.1f;    // multiplier to pulloff for moving to switch after pulloff
+        int      _cycle             = -1;  // what auto-homing cycle does this axis home on?
+        bool     _square            = false;
+        bool     _positiveDirection = true;
+        float    _mpos              = 0.0f;    // After homing this will be the mpos of the switch location
+        float    _feedRate          = 50.0f;   // pulloff and second touch speed
+        float    _seekRate          = 200.0f;  // this first approach speed
+        float    _pulloff           = 1.0f;    // mm
+        uint32_t _debounce_ms       = 250;     // ms settling time for homing switches after motion
+        float    _seek_scaler       = 1.1f;    // multiplied by max travel for max homing distance on first touch
+        float    _feed_scaler       = 1.1f;    // multiplier to pulloff for moving to switch after pulloff
 
         // Configuration system helpers:
         void validate() const override { Assert(_cycle >= 0, "Homing cycle must be defined"); }

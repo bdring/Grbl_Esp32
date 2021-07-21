@@ -45,11 +45,11 @@ namespace Machine {
                 _legend  = " Gang0";
                 break;
             case 1:
-                _bitmask = 1 << MAX_N_AXIS;  // Set bit as for X axis gang 1
+                _bitmask = 1 << 16;  // Set bit as for X axis gang 1
                 _legend  = " Gang1";
                 break;
             case -1:  // Axis level switch - set both bits
-                _bitmask = (1 << MAX_N_AXIS) | 1;
+                _bitmask = (1 << 16) | 1;
                 _legend  = "";
                 break;
             default:

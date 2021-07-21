@@ -309,12 +309,17 @@ Error home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ES
     return home(bit(C_AXIS));
 }
 void write_limit_set(uint32_t mask) {
-    const char* axisName = "xyzabcXYZABC";
-    for (int i = 0; i < MAX_N_AXIS * 2; i++) {
-        Uart0.write(bitnum_istrue(mask, i) ? uint8_t(axisName[i]) : ' ');
+    const char* gang0AxisName = "xyzabc";
+    for (int i = 0; i < MAX_N_AXIS; i++) {
+        Uart0.write(bitnum_istrue(mask, i) ? uint8_t(gang0AxisName[i]) : ' ');
+    }
+    const char* gang1AxisName = "XYZABC";
+    for (int i = 0; i < MAX_N_AXIS; i++) {
+        Uart0.write(bitnum_istrue(mask, i + 16) ? uint8_t(gang1AxisName[i]) : ' ');
     }
 }
 Error show_limits(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {
+    Uart0.write("Send ! to exit\n");
     Uart0.write("Homing Axes: ");
     write_limit_set(Machine::Axes::homingMask);
     Uart0.write('\n');
@@ -326,8 +331,8 @@ Error show_limits(const char* value, WebUI::AuthenticationLevel auth_level, WebU
         write_limit_set(Machine::Axes::posLimitMask);
         Uart0.write(' ');
         write_limit_set(Machine::Axes::negLimitMask);
-        Uart0.write('\r');
-        vTaskDelay(400);
+        Uart0.write('\n');
+        vTaskDelay(500);
     } while (!rtFeedHold);
     rtFeedHold = false;
     Uart0.write('\n');
