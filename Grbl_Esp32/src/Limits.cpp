@@ -244,12 +244,23 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         // XXX we need to include gang1 in the remaining mask
         // The following might fail if only one gang has limit switches. Anaylze me.
         uint32_t remainingMotors = cycle_mask | (cycle_mask << 16);
+        //uint32_t remainingMotors = cycle_mask;  // this works!!! but not for squaring
+
+        uint32_t old = 0;
 
         do {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
                 // XXX do we check only the switch in the direction of motion?
-                uint32_t limitedAxes = limits_check(remainingMotors);
+                uint32_t limitedAxes = limits_check(-1);
+
+                if (old != remainingMotors) {
+                    //log_info("remainingMotors: " << remainingMotors);
+                    log_info("remainingMotors: 0x" << String(remainingMotors, 16));
+                    log_info("limitedAxes: 0x" << String(limitedAxes, 16));
+                    old = remainingMotors;
+                }
+
                 config->_axes->stop_motors(limitedAxes);
                 bit_false(remainingMotors, limitedAxes);
             }

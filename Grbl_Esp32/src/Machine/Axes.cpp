@@ -108,9 +108,6 @@ namespace Machine {
     void Axes::stop_motors(uint32_t mask) { bit_false(_motorLockoutMask, mask); }
 
     void IRAM_ATTR Axes::step(uint8_t step_mask, uint8_t dir_mask) {
-        // Do not step motors that are locked out during homing
-        step_mask &= _motorLockoutMask;
-
         auto n_axis = _numberAxis;
         //log_info("motors_set_direction_pins:0x%02X", onMask);
 

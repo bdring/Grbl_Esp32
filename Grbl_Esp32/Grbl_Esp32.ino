@@ -23,7 +23,7 @@
 
 void setup() {
     // #    ifdef DEBUG_PIN_DUMP
-    delay(2000);
+    //delay(2000);  // BJD removed mystery delay
     // #    endif
 
     grbl_init();
