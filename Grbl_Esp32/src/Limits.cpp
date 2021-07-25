@@ -243,8 +243,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
 
         // XXX we need to include gang1 in the remaining mask
         // The following might fail if only one gang has limit switches. Anaylze me.
-        uint32_t remainingMotors = cycle_mask | (cycle_mask << 16);
-        //uint32_t remainingMotors = cycle_mask;  // this works!!! but not for squaring
+        uint32_t remainingMotors = (cycle_mask | (cycle_mask << 16)) & Machine::Axes::motorMask;
 
         uint32_t old = 0;
 
@@ -252,7 +251,6 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
                 // XXX do we check only the switch in the direction of motion?
-                //uint32_t limitedAxes = limits_check(-1);
                 uint32_t limitedAxes = Machine::Axes::posLimitMask | Machine::Axes::negLimitMask;
 
                 if (old != remainingMotors) {
@@ -453,9 +451,8 @@ void limits_init() {
 // Return a mask of the switches that are engaged.
 AxisMask limits_check(AxisMask check_mask) {
     // Expand the bitmask to include both gangs
-
     bit_true(check_mask, check_mask << 16);
-    return (Machine::Axes::posLimitMask & check_mask) | (Machine::Axes::negLimitMask & check_mask);
+    return (Machine::Axes::posLimitMask | Machine::Axes::negLimitMask) & check_mask;
 }
 
 // Returns limit state as a bit-wise uint8 variable. Each bit indicates an axis limit, where

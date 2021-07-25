@@ -12,6 +12,7 @@ namespace Machine {
     uint32_t Axes::negLimitMask = 0;
     uint32_t Axes::homingMask   = 0;
     uint32_t Axes::limitMask    = 0;
+    uint32_t Axes::motorMask    = 0;
 
     Axes::Axes() : _axis() {
         for (int i = 0; i < MAX_N_AXIS; ++i) {

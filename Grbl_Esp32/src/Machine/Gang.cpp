@@ -35,6 +35,9 @@ namespace Machine {
     }
 
     void Gang::init() {
+        if (strcmp(_motor->name, "null_motor") != 0) {
+            bitnum_istrue(Axes::motorMask, _axis + 16 * i);
+        }
         _motor->init();
         if (_endstops) {
             _endstops->init();

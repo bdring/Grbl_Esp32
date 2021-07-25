@@ -43,6 +43,7 @@ namespace Machine {
         static uint32_t negLimitMask;
         static uint32_t homingMask;
         static uint32_t limitMask;
+        static uint32_t motorMask;
 
         inline char axisName(int index) { return index < MAX_N_AXIS ? _names[index] : '?'; }
 
