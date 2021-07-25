@@ -30,7 +30,6 @@ axes:
       seek_rate: 200.000
       debounce_ms: 500
       pulloff: 1.000
-      square: true
     
     gang0:
       endstops:
