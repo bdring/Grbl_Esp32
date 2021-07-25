@@ -20,6 +20,7 @@
 
 #include "../Motors/Motor.h"
 #include "../Motors/NullMotor.h"
+#include "Axes.h"
 #include "Endstops.h"
 
 namespace Machine {
@@ -35,8 +36,8 @@ namespace Machine {
     }
 
     void Gang::init() {
-        if (strcmp(_motor->name, "null_motor") != 0) {
-            bitnum_istrue(Axes::motorMask, _axis + 16 * i);
+        if (strcmp(_motor->name(), "null_motor") != 0) {
+            bitnum_istrue(Machine::Axes::motorMask, _axis + 16 * _gang);
         }
         _motor->init();
         if (_endstops) {
