@@ -332,8 +332,8 @@ GCUpdatePos mc_probe_cycle(float* target, plan_line_data_t* pl_data, uint8_t par
     config->_stepping->beginLowLatency();
 
     // Initialize probing control variables
-    bool is_probe_away  = bit_istrue(parser_flags, GCParserProbeIsAway);
-    bool is_no_error    = bit_istrue(parser_flags, GCParserProbeIsNoError);
+    bool is_probe_away  = bits_are_true(parser_flags, GCParserProbeIsAway);
+    bool is_no_error    = bits_are_true(parser_flags, GCParserProbeIsNoError);
     sys.probe_succeeded = false;  // Re-initialize probe history before beginning cycle.
     config->_probe->set_direction(is_probe_away);
     // After syncing, check if probe is already triggered. If so, halt and issue alarm.

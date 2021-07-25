@@ -311,11 +311,11 @@ Error home_c(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ES
 void write_limit_set(uint32_t mask) {
     const char* gang0AxisName = "xyzabc";
     for (int i = 0; i < MAX_N_AXIS; i++) {
-        Uart0.write(bitnum_istrue(mask, i) ? uint8_t(gang0AxisName[i]) : ' ');
+        Uart0.write(bitnum_is_true(mask, i) ? uint8_t(gang0AxisName[i]) : ' ');
     }
     const char* gang1AxisName = "XYZABC";
     for (int i = 0; i < MAX_N_AXIS; i++) {
-        Uart0.write(bitnum_istrue(mask, i + 16) ? uint8_t(gang1AxisName[i]) : ' ');
+        Uart0.write(bitnum_is_true(mask, i + 16) ? uint8_t(gang1AxisName[i]) : ' ');
     }
 }
 Error show_limits(const char* value, WebUI::AuthenticationLevel auth_level, WebUI::ESPResponseStream* out) {

@@ -37,7 +37,7 @@ namespace Machine {
 
     void Gang::init() {
         if (strcmp(_motor->name(), "null_motor") != 0) {
-            bitnum_true(Machine::Axes::motorMask, _axis + 16 * _gang);
+            set_bitnum(Machine::Axes::motorMask, _axis + 16 * _gang);
         }
         _motor->init();
         if (_endstops) {

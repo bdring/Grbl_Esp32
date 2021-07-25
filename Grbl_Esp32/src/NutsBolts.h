@@ -81,14 +81,14 @@ const float INCH_PER_MM = (0.0393701f);
 #endif
 #define bit(n) (1 << static_cast<unsigned int>(n))
 
-#define bit_true(x, mask) (x) |= (mask)
-#define bit_false(x, mask) (x) &= ~(mask)
-#define bit_istrue(x, mask) ((x & mask) != 0)
-#define bit_isfalse(x, mask) ((x & mask) == 0)
-#define bitnum_true(x, num) (x) |= bit(num)
-#define bitnum_false(x, num) (x) &= ~bit(num)
-#define bitnum_istrue(x, num) ((x & bit(num)) != 0)
-#define bitnum_isfalse(x, num) ((x & bit(num)) == 0)
+#define bit_true(target, mask) (target) |= (mask)
+#define clear_bits(target, mask) (target) &= ~(mask)
+#define bits_are_true(target, mask) ((target & mask) != 0)
+#define bits_are_false(target, mask) ((target & mask) == 0)
+#define set_bitnum(target, num) (target) |= bit(num)
+#define clear_bitnum(target, num) (target) &= ~bit(num)
+#define bitnum_is_true(target, num) ((target & bit(num)) != 0)
+#define bitnum_is_false(target, num) ((target & bit(num)) == 0)
 
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is

@@ -85,13 +85,13 @@ namespace Machine {
         uint8_t can_home = 0;
 
         for (uint8_t axis = X_AXIS; axis < _numberAxis; axis++) {
-            if (bitnum_istrue(homing_mask, axis)) {
+            if (bitnum_is_true(homing_mask, axis)) {
                 auto a = _axis[axis];
                 if (a != nullptr) {
                     auto motor = a->_gangs[0]->_motor;
 
                     if (motor->set_homing_mode(isHoming)) {
-                        bitnum_true(can_home, axis);
+                        set_bitnum(can_home, axis);
                     }
 
                     for (uint8_t gang_index = 1; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
@@ -106,7 +106,7 @@ namespace Machine {
     }
 
     void Axes::release_all_motors() { _motorLockoutMask = 0xffffffff; }
-    void Axes::stop_motors(uint32_t mask) { bit_false(_motorLockoutMask, mask); }
+    void Axes::stop_motors(uint32_t mask) { clear_bits(_motorLockoutMask, mask); }
 
     void IRAM_ATTR Axes::step(uint8_t step_mask, uint8_t dir_mask) {
         auto n_axis = _numberAxis;
@@ -119,7 +119,7 @@ namespace Machine {
             previous_dir = dir_mask;
 
             for (int axis = X_AXIS; axis < n_axis; axis++) {
-                bool thisDir = bitnum_istrue(dir_mask, axis);
+                bool thisDir = bitnum_is_true(dir_mask, axis);
 
                 for (uint8_t gang_index = 0; gang_index < Axis::MAX_NUMBER_GANGED; gang_index++) {
                     auto a = _axis[axis]->_gangs[gang_index]->_motor;
@@ -136,13 +136,13 @@ namespace Machine {
 
         // Turn on step pulses for motors that are supposed to step now
         for (uint8_t axis = X_AXIS; axis < n_axis; axis++) {
-            if (bitnum_istrue(step_mask, axis)) {
+            if (bitnum_is_true(step_mask, axis)) {
                 auto a = _axis[axis];
 
-                if (bitnum_istrue(_motorLockoutMask, axis)) {
+                if (bitnum_is_true(_motorLockoutMask, axis)) {
                     a->_gangs[0]->_motor->step();
                 }
-                if (bitnum_istrue(_motorLockoutMask, axis + 16)) {
+                if (bitnum_is_true(_motorLockoutMask, axis + 16)) {
                     a->_gangs[1]->_motor->step();
                 }
             }

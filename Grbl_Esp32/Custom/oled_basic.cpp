@@ -142,7 +142,7 @@ void displayDRO() {
     display.setTextAlignment(TEXT_ALIGN_RIGHT);
 
     float* print_position = system_get_mpos();
-    if (bit_istrue(status_mask->get(), RtStatus::Position)) {
+    if (bits_are_true(status_mask->get(), RtStatus::Position)) {
         display.drawString(60, 14, "M Pos");
     } else {
         display.drawString(60, 14, "W Pos");
@@ -161,7 +161,7 @@ void displayDRO() {
         snprintf(axisVal, 20 - 1, "%.3f", print_position[axis]);
         display.drawString(60, oled_y_pos, axisVal);
 
-        if (bitnum_istrue(limitAxes, axis)) {  // only draw the box if a switch has been defined
+        if (bitnum_is_true(limitAxes, axis)) {  // only draw the box if a switch has been defined
             draw_checkbox(80, 27 + (axis * 10), 7, 7, limits_check(bit(axis)));
         }
     }

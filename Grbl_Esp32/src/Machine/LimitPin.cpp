@@ -2,7 +2,7 @@
 #include "Axes.h"
 #include "MachineConfig.h"  // config
 
-#include "../NutsBolts.h"      // bitnum_true etc
+#include "../NutsBolts.h"      // set_bitnum etc
 #include "../MotionControl.h"  // mc_reset
 #include "../Limits.h"
 #include "../System.h"  // sys_rt_exec_alarm
@@ -71,10 +71,10 @@ namespace Machine {
             }
         } else {
             if (_posLimits != nullptr) {
-                bit_false(*_posLimits, _bitmask);
+                clear_bits(*_posLimits, _bitmask);
             }
             if (_negLimits != nullptr) {
-                bit_false(*_negLimits, _bitmask);
+                clear_bits(*_negLimits, _bitmask);
             }
         }
         if (sys.state != State::Alarm && sys.state != State::ConfigAlarm && sys.state != State::Homing) {
@@ -100,7 +100,7 @@ namespace Machine {
         if (_pin.undefined()) {
             return;
         }
-        bitnum_true(Axes::limitMask, _axis);
+        set_bitnum(Axes::limitMask, _axis);
         _pin.report(_legend.c_str());
         auto attr = Pin::Attr::Input | Pin::Attr::ISR;
         if (_pin.capabilities().has(Pins::PinCapabilities::PullUp)) {

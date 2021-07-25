@@ -585,7 +585,7 @@ void report_realtime_status(uint8_t client) {
 
     // Report position
     float* print_position = system_get_mpos();
-    if (bit_istrue(status_mask->get(), RtStatus::Position)) {
+    if (bits_are_true(status_mask->get(), RtStatus::Position)) {
         strcat(status, "|MPos:");
     } else {
         strcat(status, "|WPos:");
@@ -595,7 +595,7 @@ void report_realtime_status(uint8_t client) {
     strcat(status, temp);
 
     // Returns planner and serial read buffer states.
-    if (bit_istrue(status_mask->get(), RtStatus::Buffer)) {
+    if (bits_are_true(status_mask->get(), RtStatus::Buffer)) {
         int bufsize = DEFAULTBUFFERSIZE;
         if (client == CLIENT_TELNET) {
             bufsize = WebUI::telnet_server.get_rx_buffer_available();
@@ -646,7 +646,7 @@ void report_realtime_status(uint8_t client) {
     if (lim_pin_state) {
         auto n_axis = config->_axes->_numberAxis;
         for (int i = 0; i < n_axis; i++) {
-            if (bit_istrue(lim_pin_state, bit(i))) {
+            if (bits_are_true(lim_pin_state, bit(i))) {
                 addPinReport(status, config->_axes->axisName(i));
             }
         }

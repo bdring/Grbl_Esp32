@@ -40,7 +40,7 @@ namespace Machine {
         }
         if (_homing) {
             _homing->init();
-            bitnum_true(Axes::homingMask, _axis);
+            set_bitnum(Axes::homingMask, _axis);
         }
         if (_endstops) {
             _endstops->init();

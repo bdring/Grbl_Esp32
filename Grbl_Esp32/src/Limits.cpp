@@ -30,7 +30,7 @@
 #include "Machine/MachineConfig.h"
 #include "Planner.h"
 #include "MotionControl.h"  // HOMING_CYCLE_LINE_NUMBER
-#include "NutsBolts.h"      // bitnum_true, etc
+#include "NutsBolts.h"      // set_bitnum, etc
 #include "System.h"         // sys.*
 #include "Stepper.h"        // st_wake
 #include "Report.h"         // CLIENT_
@@ -83,7 +83,7 @@ static uint32_t limits_plan_move(AxisMask axesMask, bool approach, bool seek) {
 
     // Find the axis that will take the longest
     for (int axis = 0; axis < n_axis; axis++) {
-        if (bitnum_isfalse(axesMask, axis)) {
+        if (bitnum_is_false(axesMask, axis)) {
             continue;
         }
         // Set target location for active axes and setup computation for homing rate.
@@ -117,7 +117,7 @@ static uint32_t limits_plan_move(AxisMask axesMask, bool approach, bool seek) {
     // When approaching a small fudge factor to ensure that the limit is reached -
     // but no fudge factor when pulling off.
     for (int axis = 0; axis < n_axis; axis++) {
-        if (bitnum_istrue(axesMask, axis)) {
+        if (bitnum_is_true(axesMask, axis)) {
             auto homing = config->_axes->_axis[axis]->_homing;
             auto scaler = approach ? (seek ? homing->_seek_scaler : homing->_feed_scaler) : 1.0;
             target[axis] *= limitingRate * scaler;
@@ -252,7 +252,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
                 uint32_t limitedAxes = Machine::Axes::posLimitMask | Machine::Axes::negLimitMask;
 
                 config->_axes->stop_motors(limitedAxes);
-                bit_false(remainingMotors, limitedAxes);
+                clear_bits(remainingMotors, limitedAxes);
             }
             Stepper::prep_buffer();  // Check and prep segment buffer.
 
@@ -303,7 +303,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     for (int axis = 0; axis < n_axis; axis++) {
         Machine::Axis* axisConf = config->_axes->_axis[axis];
         auto           homing   = axisConf->_homing;
-        if (bitnum_istrue(cycle_mask, axis)) {
+        if (bitnum_is_true(cycle_mask, axis)) {
             auto mpos    = homing->_mpos;
             auto pulloff = homing->_pulloff;
             auto steps   = axisConf->_stepsPerMm;
@@ -339,7 +339,7 @@ static AxisMask squaredAxes() {
     for (int axis = 0; axis < n_axis; axis++) {
         auto homing = axes->_axis[axis]->_homing;
         if (homing && homing->_square) {
-            bitnum_true(mask, axis);
+            set_bitnum(mask, axis);
         }
     }
     return mask;
@@ -405,7 +405,7 @@ void limits_run_homing_cycles(AxisMask axis_mask) {
                 auto axisConfig = config->_axes->_axis[axis];
                 auto homing     = axisConfig->_homing;
                 if (homing && homing->_cycle == cycle) {
-                    bitnum_true(axis_mask, axis);
+                    set_bitnum(axis_mask, axis);
                 }
             }
 

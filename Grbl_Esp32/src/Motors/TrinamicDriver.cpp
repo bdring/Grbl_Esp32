@@ -139,7 +139,7 @@ namespace Motors {
                     err = true;
                 }
 
-                if (report_short_to_ps(bit_istrue(status.sr, 12), bit_istrue(status.sr, 13))) {
+                if (report_short_to_ps(bits_are_true(status.sr, 12), bits_are_true(status.sr, 13))) {
                     err = true;
                 }
 
@@ -263,7 +263,7 @@ namespace Motors {
         report_open_load(status.ola, status.olb);
         report_short_to_ground(status.s2ga, status.s2gb);
         report_over_temp(status.ot, status.otpw);
-        report_short_to_ps(bit_istrue(status.sr, 12), bit_istrue(status.sr, 13));
+        report_short_to_ps(bits_are_true(status.sr, 12), bits_are_true(status.sr, 13));
 
         // log_info(axisName() << " Status Register " << String(status.sr, HEX) << " GSTAT " << String(tmcstepper->GSTAT(), HEX));
     }

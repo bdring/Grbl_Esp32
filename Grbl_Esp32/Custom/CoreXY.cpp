@@ -112,7 +112,7 @@ bool user_defined_homing(AxisMask cycle_mask) {
         mask = cycle_mask ? cycle_mask : homing_cycle[cycle]->get();
 
         // If not X or Y do a normal home
-        if (!(bitnum_istrue(mask, X_AXIS) || bitnum_istrue(mask, Y_AXIS))) {
+        if (!(bitnum_is_true(mask, X_AXIS) || bitnum_is_true(mask, Y_AXIS))) {
             limits_go_home(mask);  // Homing cycle 0
             continue;              // continue to next item in for loop
         }
@@ -137,7 +137,7 @@ bool user_defined_homing(AxisMask cycle_mask) {
                         target[idx]       = 0.0;
                     }
 
-                    if (bit_istrue(homing_dir_mask->get(), bit(axis))) {
+                    if (bits_are_true(homing_dir_mask->get(), bit(axis))) {
                         approach ? target[axis] = -max_travel : target[axis] = max_travel;
                     } else {
                         approach ? target[axis] = max_travel : target[axis] = -max_travel;
@@ -221,7 +221,7 @@ bool user_defined_homing(AxisMask cycle_mask) {
 
     // set the cartesian axis position
     for (axis = X_AXIS; axis <= Y_AXIS; axis++) {
-        if (bitnum_istrue(homing_dir_mask->get(), axis)) {
+        if (bitnum_is_true(homing_dir_mask->get(), axis)) {
             target[axis] = limitsMinPosition(axis) + config->_homing->_pulloff;
         } else {
             target[axis] = limitsMaxPosition(axis) - config->_homing->_pulloff;

@@ -259,9 +259,9 @@ void IRAM_ATTR Stepper::pulse_func() {
         // Execute step displacement profile by Bresenham line algorithm
         st.counter[axis] += st.steps[axis];
         if (st.counter[axis] > st.exec_block->step_event_count) {
-            bitnum_true(st.step_outbits, axis);
+            set_bitnum(st.step_outbits, axis);
             st.counter[axis] -= st.exec_block->step_event_count;
-            if (bitnum_istrue(st.exec_block->direction_bits, axis)) {
+            if (bitnum_is_true(st.exec_block->direction_bits, axis)) {
                 sys_position[axis]--;
             } else {
                 sys_position[axis]++;
