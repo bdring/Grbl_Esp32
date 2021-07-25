@@ -81,7 +81,7 @@ const float INCH_PER_MM = (0.0393701f);
 #endif
 #define bit(n) (1 << static_cast<unsigned int>(n))
 
-#define bit_true(target, mask) (target) |= (mask)
+#define set_bits(target, mask) (target) |= (mask)
 #define clear_bits(target, mask) (target) &= ~(mask)
 #define bits_are_true(target, mask) ((target & mask) != 0)
 #define bits_are_false(target, mask) ((target & mask) == 0)

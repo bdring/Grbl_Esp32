@@ -64,10 +64,10 @@ namespace Machine {
         _value        = _pin.read();
         if (_value) {
             if (_posLimits != nullptr) {
-                bit_true(*_posLimits, _bitmask);
+                set_bits(*_posLimits, _bitmask);
             }
             if (_negLimits != nullptr) {
-                bit_true(*_negLimits, _bitmask);
+                set_bits(*_negLimits, _bitmask);
             }
         } else {
             if (_posLimits != nullptr) {

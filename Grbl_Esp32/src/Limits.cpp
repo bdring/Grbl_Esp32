@@ -442,7 +442,7 @@ void limits_init() {
 // Return a mask of the switches that are engaged.
 AxisMask limits_check(AxisMask check_mask) {
     // Expand the bitmask to include both gangs
-    bit_true(check_mask, check_mask << 16);
+    set_bits(check_mask, check_mask << 16);
     return (Machine::Axes::posLimitMask | Machine::Axes::negLimitMask) & check_mask;
 }
 
