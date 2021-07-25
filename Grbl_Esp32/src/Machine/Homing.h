@@ -28,7 +28,6 @@ namespace Machine {
         // The homing cycles are 1,2,3 etc.  0 means not homed as part of home-all,
         // but you can still home it manually with e.g. $HA
         int      _cycle             = -1;  // what auto-homing cycle does this axis home on?
-        bool     _square            = false;
         bool     _positiveDirection = true;
         float    _mpos              = 0.0f;    // After homing this will be the mpos of the switch location
         float    _feedRate          = 50.0f;   // pulloff and second touch speed
@@ -49,7 +48,6 @@ namespace Machine {
             handler.item("seek_rate", _seekRate);
             handler.item("debounce_ms", _debounce_ms);
             handler.item("pulloff", _pulloff);
-            handler.item("square", _square);
             handler.item("seek_scaler", _seek_scaler);
             handler.item("feed_scaler", _feed_scaler);
         }

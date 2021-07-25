@@ -183,7 +183,10 @@ static ExecAlarm limits_handle_errors(bool approach, uint8_t cycle_mask) {
 // mask, which prevents the stepper algorithm from executing step pulses. Homing motions typically
 // circumvent the processes for executing motions in normal operation.
 // NOTE: Only the abort realtime command can interrupt this process.
-static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
+
+// cycle_mask cannot be 0.  The 0 case - run all cycles - is
+// handled by the caller mc_homing_cycle()
+static void limits_run_one_homing_cycle(AxisMask cycle_mask) {
     if (sys.abort) {
         return;  // Block if system reset has been issued.
     }
@@ -207,7 +210,7 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     }
 
     // Initialize variables used for homing computations.
-    uint8_t n_cycle = (2 * n_locate_cycles + 1);
+    uint8_t n_cycle = (2 * NHomingLocateCycle + 1);
 
     // approach is the direction of motion; it cycles between true and false
     bool approach = true;
@@ -316,76 +319,6 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
     }
     sys.step_control = {};                              // Return step control to normal operation.
     config->_axes->set_homing_mode(cycle_mask, false);  // tell motors homing is done
-}
-
-// return true if the mask has exactly one bit set,
-// so it refers to exactly one axis
-static bool mask_is_single_axis(AxisMask axis_mask) {
-    // This code depends on the fact that, for binary numberes
-    // with only one bit set - and only for such numbers -
-    // the bits in one less than the number are disjoint
-    // with that bit.  For a number like B100, if you
-    // subtract one, the low order 00 bits will have to
-    // borrow from the high 1 bit and thus clear it.
-    // If any lower bits are 1, then there will be no
-    // borrow to clear the highest 1 bit.
-    return axis_mask && ((axis_mask & (axis_mask - 1)) == 0);
-}
-
-static AxisMask squaredAxes() {
-    AxisMask mask   = 0;
-    auto     axes   = config->_axes;
-    auto     n_axis = axes->_numberAxis;
-    for (int axis = 0; axis < n_axis; axis++) {
-        auto homing = axes->_axis[axis]->_homing;
-        if (homing && homing->_square) {
-            set_bitnum(mask, axis);
-        }
-    }
-    return mask;
-}
-
-static bool axis_is_squared(AxisMask axis_mask) {
-    // Squaring can only be done if it is the only axis in the mask
-
-    // cases:
-    // axis_mask has one bit:
-    //   axis is squared: return true
-    //   else: return false
-    // else:
-    //   one of the axes is squared: message and return false
-    //   else return false
-
-    if (axis_mask & squaredAxes()) {
-        if (mask_is_single_axis(axis_mask)) {
-            return true;
-        }
-        log_info("Cannot multi-axis home with squared axes. Homing normally");
-    }
-
-    return false;
-}
-
-// For this routine, homing_mask cannot be 0.  The 0 case,
-// meaning run all cycles, is handled by the caller mc_homing_cycle()
-static void limits_run_one_homing_cycle(AxisMask homing_mask) {
-    if (axis_is_squared(homing_mask)) {
-        // For squaring, we first do the fast seek using both motors,
-        // skipping the second slow moving phase.
-        ganged_mode = gangDual;
-        limits_go_home(homing_mask, 0);  // Do not do a second touch cycle
-
-        // Then we do the slow motion on the individual motors
-        ganged_mode = gangA;
-        limits_go_home(homing_mask, NHomingLocateCycle);
-
-        ganged_mode = gangB;
-        limits_go_home(homing_mask, NHomingLocateCycle);
-
-        ganged_mode = gangDual;  // always return to dual
-    } else {
-        limits_go_home(homing_mask, NHomingLocateCycle);
-    }
 }
 
 void limits_run_homing_cycles(AxisMask axis_mask) {

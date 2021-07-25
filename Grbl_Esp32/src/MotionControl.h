@@ -74,11 +74,3 @@ void mc_reset();
 void mc_cancel_jog();
 
 void mc_init();
-
-typedef uint8_t GangMask;
-const GangMask  gangA    = bit(0);
-const GangMask  gangB    = bit(1);
-const GangMask  gangDual = gangA | gangB;
-
-// TODO: Ideally, ganged_mode would be in the planner block instead of global
-extern GangMask ganged_mode;

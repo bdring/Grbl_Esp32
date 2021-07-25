@@ -40,8 +40,6 @@
 #    define M_PI 3.14159265358979323846
 #endif
 
-GangMask ganged_mode = gangDual;  // Run both motors at once
-
 // mc_pl_data_inflight keeps track of a jog command sent to mc_line() so we can cancel it.
 // this is needed if a jogCancel comes along after we have already parsed a jog and it is in-flight.
 static volatile void* mc_pl_data_inflight;  // holds a plan_line_data_t while cartesian_to_motors has taken ownership of a line motion
@@ -463,8 +461,6 @@ void mc_reset() {
             }
             Stepper::go_idle();  // Force kill steppers. Position has likely been lost.
         }
-        ganged_mode = gangDual;  // in case an error occurred during squaring
-
         config->_stepping->reset();
     }
 }
