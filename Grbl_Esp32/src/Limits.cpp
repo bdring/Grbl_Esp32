@@ -245,20 +245,11 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
         // The following might fail if only one gang has limit switches. Anaylze me.
         uint32_t remainingMotors = (cycle_mask | (cycle_mask << 16)) & Machine::Axes::motorMask;
 
-        uint32_t old = 0;
-
         do {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
                 // XXX do we check only the switch in the direction of motion?
                 uint32_t limitedAxes = Machine::Axes::posLimitMask | Machine::Axes::negLimitMask;
-
-                if (old != remainingMotors) {
-                    //log_info("remainingMotors: " << remainingMotors);
-                    log_info("remainingMotors: 0x" << String(remainingMotors, 16));
-                    log_info("limitedAxes: 0x" << String(limitedAxes, 16));
-                    old = remainingMotors;
-                }
 
                 config->_axes->stop_motors(limitedAxes);
                 bit_false(remainingMotors, limitedAxes);
