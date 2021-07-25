@@ -52,9 +52,9 @@ axes:
       mpos: 10
       positive_direction: false
       feed_rate: 50.000
-      seek_rate: 600.000
+      seek_rate: 200.000
       debounce_ms: 500
-      pulloff: 1.500
+      pulloff: 1.00
 
     gang0:
       endstops:
@@ -65,7 +65,7 @@ axes:
         step: gpio.26
     gang1:
       endstops:
-        limit_neg: gpio.16:low:pu
+        limit_all: gpio.16:low:pu
         hard_limits: true
       stepstick:
         direction: gpio.33

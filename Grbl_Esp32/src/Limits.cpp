@@ -252,7 +252,8 @@ static void limits_go_home(uint8_t cycle_mask, uint32_t n_locate_cycles) {
             if (approach) {
                 // Check limit state. Lock out cycle axes when they change.
                 // XXX do we check only the switch in the direction of motion?
-                uint32_t limitedAxes = limits_check(-1);
+                //uint32_t limitedAxes = limits_check(-1);
+                uint32_t limitedAxes = Machine::Axes::posLimitMask | Machine::Axes::negLimitMask;
 
                 if (old != remainingMotors) {
                     //log_info("remainingMotors: " << remainingMotors);
@@ -452,6 +453,7 @@ void limits_init() {
 // Return a mask of the switches that are engaged.
 AxisMask limits_check(AxisMask check_mask) {
     // Expand the bitmask to include both gangs
+
     bit_true(check_mask, check_mask << 16);
     return (Machine::Axes::posLimitMask & check_mask) | (Machine::Axes::negLimitMask & check_mask);
 }
