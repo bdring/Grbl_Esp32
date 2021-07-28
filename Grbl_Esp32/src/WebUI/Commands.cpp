@@ -41,10 +41,10 @@ namespace WebUI {
      * delay is to avoid with asyncwebserver and may need to wait sometimes
      */
     void COMMANDS::wait(uint32_t milliseconds) {
-        uint32_t timeout = millis();
+        uint32_t start_time = millis();
         esp_task_wdt_reset();  //for a wait 0;
         //wait feeding WDT
-        while ((millis() - timeout) < milliseconds) {
+        while ((millis() - start_time) < milliseconds) {
             esp_task_wdt_reset();
         }
     }

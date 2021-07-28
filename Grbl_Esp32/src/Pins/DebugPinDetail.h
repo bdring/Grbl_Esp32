@@ -24,9 +24,9 @@ namespace Pins {
     class DebugPinDetail : public PinDetail {
         PinDetail* _implementation;
 
-        int  _lastEvent;
-        int  _eventCount;
-        bool _isHigh;
+        uint32_t _lastEvent;
+        int      _eventCount;
+        bool     _isHigh;
 
         struct CallbackHandler {
             void (*callback)(void* arg);

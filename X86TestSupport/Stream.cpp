@@ -36,7 +36,7 @@ int Stream::timedRead() {
         if (c >= 0) {
             return c;
         }
-    } while (millis() - _startMillis < _timeout);
+    } while ((millis() - _startMillis) < _timeout);
     return -1;  // -1 indicates timeout
 }
 
@@ -49,7 +49,7 @@ int Stream::timedPeek() {
         if (c >= 0) {
             return c;
         }
-    } while (millis() - _startMillis < _timeout);
+    } while ((millis() - _startMillis) < _timeout);
     return -1;  // -1 indicates timeout
 }
 */

@@ -66,8 +66,8 @@ namespace WebUI {
     bool Wait4Answer(WiFiClientSecure& client, const char* linetrigger, const char* expected_answer, uint32_t timeout) {
         if (client.connected()) {
             String   answer;
-            uint32_t starttimeout = millis();
-            while (client.connected() && ((millis() - starttimeout) < timeout)) {
+            uint32_t start_time = millis();
+            while (client.connected() && ((millis() - start_time) < timeout)) {
                 answer = client.readStringUntil('\n');
                 log_d("Answer: %s", answer.c_str());
                 if ((answer.indexOf(linetrigger) != -1) || (strlen(linetrigger) == 0)) {

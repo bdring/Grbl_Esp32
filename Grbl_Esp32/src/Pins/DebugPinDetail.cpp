@@ -115,7 +115,7 @@ namespace Pins {
         // This method basically ensures we don't flood users:
         auto time = millis();
 
-        if (uint32_t(_lastEvent + 1000) < time) {
+        if ((time - _lastEvent) > 1000) {
             _lastEvent  = time;
             _eventCount = 1;
             return true;

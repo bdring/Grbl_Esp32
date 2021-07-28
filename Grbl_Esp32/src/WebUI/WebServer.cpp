@@ -887,8 +887,8 @@ namespace WebUI {
                 _webserver->send(web_error, "text/xml", st);
             }
 
-            uint32_t t = millis();
-            while (millis() - t < timeout) {
+            uint32_t start_time = millis();
+            while ((millis() - start_time) < timeout) {
                 _socket_server->loop();
                 delay(10);
             }
@@ -1530,7 +1530,7 @@ namespace WebUI {
     }
 
     void Web_Server::handle() {
-        static uint32_t timeout = millis();
+        static uint32_t start_time = millis();
         COMMANDS::wait(0);
         if (WiFi.getMode() == WIFI_AP) {
             dnsServer.processNextRequest();
@@ -1541,11 +1541,11 @@ namespace WebUI {
         if (_socket_server && _setupdone) {
             _socket_server->loop();
         }
-        if ((millis() - timeout) > 10000 && _socket_server) {
+        if ((millis() - start_time) > 10000 && _socket_server) {
             String s = "PING:";
             s += String(_id_connection);
             _socket_server->broadcastTXT(s);
-            timeout = millis();
+            start_time = millis();
         }
     }
 
@@ -1728,8 +1728,6 @@ namespace WebUI {
     AuthenticationIP* Web_Server::GetAuth(IPAddress ip, const char* sessionID) {
         AuthenticationIP* current = _head;
         //AuthenticationIP * previous = NULL;
-        //get time
-        //uint32_t now = millis();
         while (current) {
             if (ip == current->ip) {
                 if (strcmp(sessionID, current->sessionID) == 0) {
@@ -1747,8 +1745,6 @@ namespace WebUI {
     AuthenticationLevel Web_Server::ResetAuthIP(IPAddress ip, const char* sessionID) {
         AuthenticationIP* current  = _head;
         AuthenticationIP* previous = NULL;
-        //get time
-        //uint32_t now = millis();
         while (current) {
             if ((millis() - current->last_time) > 360000) {
                 //remove
